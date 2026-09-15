@@ -388,7 +388,38 @@ camisa sai — e o preço quem escolhe é você.
 ⚽ leilaolegends.com
 ```
 
-### 🪜 A VIRADA EM 5 PASSOS PADRONIZADOS — mockup feito, esperando OK
+### 🪜 A VIRADA EM 5 PASSOS PADRONIZADOS — ✅ NO AR (15/09)
+🔓 **E a Loja do Clube foi LIBERADA GERAL no mesmo dia.** Palavras dele: *"tá tudo
+aprovado, pode publicar pra todos: na loja, ou vendas de camisas, bico passo a passo,
+enfim tudo pro meu usuário agora pra todos também, e valores e etc"*. `LOJA_TESTERS`
+virou `LOJA_GERAL = true` em `sport.ts` (a lista fica como plano B, igual à Agência).
+⚠️ A porta de VERDADE continua sendo a obra 🛍️ Loja do Clube no estádio — quem não
+construiu não vê a sub-aba nem os passos, então a liberação não mexeu em ninguém que
+ainda não chegou lá.
+
+**O que subiu, em 3 commits separados (pra dar pra reverter um pedaço só):**
+1. `8d5651ea` — os pagamentos mudaram de hora (detalhe logo abaixo);
+2. `74544ef9` — a fila virou 5 passos, com as duas telas novas;
+3. `7e1c1f15` — liberação geral + as 3 linhas de `novidades.ts` (PT e EN).
+
+**Arquivos novos:** `career-loja-cenas.css` (as duas cenas, em degradê puro, 0 KB),
+`passo-virada.tsx` (a pílula PASSO X DE N, em módulo próprio pra não criar import
+circular entre `estadio.tsx`, `career-sponsor-visual.tsx` e `loja-tela.tsx`) e
+`scripts/teste-virada/` (a bancada que monta as duas telas com os componentes de
+verdade — foi como conferi o visual antes de publicar).
+
+**Cuidados que valem pra quem mexer aqui depois:**
+- a cena usa `aspect-ratio: 1` **sem** `min-height`: com altura mínima maior que a
+  largura disponível, o `aspect-ratio` INFLA a largura e a cena vaza uns 24px pra fora
+  da borda arredondada do cartão (foi o que aconteceu no primeiro corte). ⚠️ O
+  `.ll36-office` do Master/Pontual/Fornecedor ainda tem `min-height: 420px` — vale
+  conferir com ele se quer o mesmo conserto lá, é o mesmo sintoma;
+- a camisa MEDE a cena (`ResizeObserver`) e nasce com 66% da largura, então serve de
+  celular estreito a tablet sem número chutado em px;
+- nome comprido no papel (ERO ODONTOLOGIA) precisa de `overflow-wrap: anywhere`, senão
+  vaza — é a mesma cura que os contratos do Master já usavam.
+
+### (histórico do desenho) A virada em 5 passos — o mockup que virou isto
 Pedido dele (15/09): *"quero padronizado passo a passo igual já ocorre hoje quando abre
 patrocinador Master, depois patrocinador pontual, depois material esportivo, depois
 venda de camisas e depois o bico!"*, com *"visuais parecidos com o que já existe hoje"*,
@@ -425,7 +456,7 @@ iguais. É troca de casca + a ordem + a volta do bico na mudança de divisão.
 (15/09): *"na arte da carteira de trabalho não coloque a logo de uma bola, coloque um
 emoji de trabalhador ou obras"*. Faz sentido — a carteira é do BICO, não do clube.
 
-#### 💰 QUANDO CADA UM PAGA — regra nova dele (15/09), e ela MUDA o jogo de hoje
+#### 💰 QUANDO CADA UM PAGA — ✅ NO AR (15/09)
 Palavras dele: *"os valores do bico já devem entrar na hora que ele aperta pra iniciar a
 temporada, já de cara. O Master também. O fornecedor de material esportivo também.
 Somente o Pontual e a venda de camisas devem aguardar, porque como são aposta o Pontual
@@ -443,12 +474,25 @@ ganha se ficar entre os 4 últimos"*.
 ⚠️ **CONFERIDO NO CÓDIGO: hoje os CINCO pagam no fim** — todos dentro de
 `applySeasonMoney` (`store.tsx`), que roda no fechamento da temporada.
 
-🛡️ **O cuidado que essa mudança exige** (senão some moeda de gente que está jogando):
-quem estiver **no MEIO de uma temporada** no dia do deploy já começou o ano sem receber,
-e o fechamento deixaria de pagar → **sumia uma parcela**. Solução combinada: gravar no
-save **qual temporada já foi paga** (uma marca por perna: Master/fornecedor/bico); o
-começo paga só se ainda não pagou aquela temporada, e o fechamento continua pagando o
-que ficou pra trás. Ninguém recebe duas vezes, ninguém perde. **Não codar sem isso.**
+🛡️ **COMO OS SAVES ANTIGOS FORAM TRATADOS** (ordem dele: *"se ele já iniciou, ele ganha
+no final; e na próxima ele ganha no início"*). Cada perna marca em `pagoAdiantado[id]`
+(`types.ts`) a temporada que já pagou, e `aplicaContratosFixos(s)` roda nos DOIS lugares
+— no `PLAY_ROUND` com `round === 0` e dentro do `applySeasonMoney`. A marca faz o resto:
+- save que começou a temporada DEPOIS da mudança → paga no início, e o fechamento não
+  repete;
+- save que estava NO MEIO da temporada no dia do deploy → não teve início pra pagar,
+  então o fechamento paga (ninguém perde parcela);
+- na temporada seguinte esse mesmo save volta a receber no começo.
+
+O 🕴️ bico saiu da cadeia de snapshots do fechamento e virou `applyBicoIncome`, com
+linha própria no extrato (com o nome da empresa). Por isso ele também **sumiu da lista
+de linhas do resumo de fim de temporada** — não é mais um item do fechamento.
+
+🧪 **PROVADO** em `scripts/testa-loja.mjs`, grupo 12 (12 checks): o valor exato que entra
+ao começar, que apertar COMEÇAR duas vezes não paga duas vezes, que o fechamento não
+repete o que já foi pago, que o save antigo recebe os três no fim, que na temporada
+seguinte volta pro começo, e que carreira sem Master/fornecedor/bico não ganha nada.
+**Mexeu nessa régua? Rode `node scripts/testa-loja.mjs`.**
 
 ### ⛔ ENCERRADO — juntar o Pontual com a venda de camisas NÃO vai acontecer
 Ele mesmo matou a ideia depois de ver o mockup (15/09): *"a ideia é diferente, porque no
