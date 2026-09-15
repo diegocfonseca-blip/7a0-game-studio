@@ -340,6 +340,53 @@ fazer, a aposta e o que o fornecedor soma em cima. Sem tabela de valores, como e
 pediu — e **sem a caixa "se cair não vende nada"**, tirada junto com a do vídeo pela
 mesma ordem dele (divulgação mostra o que se ganha, não o castigo).
 
+### ✍️ A LEGENDA DO POST (pedido dele, 15/09)
+*"me mande o texto do vídeo agora que eu falo das duas novidades. Ah, e fale também
+assim que, aos poucos, cada vez mais, deixando o jogo melhor"*. O texto mora aqui
+porque legenda que só existe no chat se perde — e porque o **tom** dela é regra: as
+duas novidades NUMERADAS (igual ao vídeo), zero menção a castigo/rebaixamento, e o
+fecho de "o jogo vai melhorando de pouco em pouco", que virou assinatura dos posts.
+
+```
+🛍️ DUAS NOVIDADES CHEGANDO NO MODO CARREIRA
+
+O jogo vai crescendo de pouquinho em pouquinho, sempre pra ficar melhor pra vocês —
+e dessa vez são duas de uma vez só.
+
+1️⃣ FORNECEDOR DE MATERIAL ESPORTIVO
+Agora uma marca veste o seu time. Ela aparece na camisa, no peito direito, e assina
+contrato de 1, 2, 3 ou 5 temporadas — do mesmo jeito que o Patrocinador Master.
+🔒 O valor trava na divisão em que você assinou: subiu ou caiu, o contrato não quebra.
+São quatro na mesa: Pênalti do Bairro, Adibas, Pumba e Naique. Quanto maior a marca,
+mais ela soma nas vendas da sua loja — mas marca grande só bate na porta de quem subiu.
+
+2️⃣ VENDA DE CAMISAS
+A Loja do Clube deixou de ser enfeite: a sua camisa agora vira dinheiro toda temporada.
+👥 Quanto mais arquibancada você levanta, maior a sua torcida — e cada obra do estádio
+leva mais gente pra loja.
+💰 O preço é escolha sua, antes da temporada começar: popular, normal ou cara. Camisa
+barata a torcida toda leva; camisa cara, campeão vende que é uma beleza.
+📦 O balanço chega na abertura da temporada seguinte e cai direto no caixa.
+
+Uma coisa de cada vez, sempre deixando o jogo melhor. 🖤
+
+⚽ leilaolegends.com
+```
+
+Versão curta (stories/legenda de reels):
+```
+🛍️ DUAS NOVIDADES NO MODO CARREIRA
+
+Devagarzinho, sempre deixando o jogo melhor 🖤
+
+1️⃣ Fornecedor de material esportivo: uma marca veste o seu time, aparece na camisa e
+assina de 1 a 5 temporadas. O valor trava na sua divisão.
+2️⃣ Venda de camisas: a Loja do Clube começa a render. Quanto maior a sua torcida, mais
+camisa sai — e o preço quem escolhe é você.
+
+⚽ leilaolegends.com
+```
+
 ### 🎲 EM ABERTO — juntar o Pontual e o preço da camisa numa decisão só
 Ideia dele (15/09): *"o cara que escolher o patrocínio pontual já decide de uma vez
 entre o valor que ele ganharia e também a venda de camisa — são duas coisas em uma,
