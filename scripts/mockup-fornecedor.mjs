@@ -60,34 +60,46 @@ const nomeDiv = d => (d === 'V' ? 'Várzea' : `Série ${d}`)
 //    Geral 21.500 · Cadeiras 18.500 · Visitante 22.838 · Camarote 16.000 = 78.838.
 //    Mais um piso de 12.000: clube nenhum tem torcida zero.
 const TORCIDA_PISO = 12_000
-// 📣 CAMPANHA — como a temporada foi. Mesma ideia da ocupação do estádio (occByPos),
-//    só que menos cruel: torcida chateada compra menos, não para de comprar.
-const CAMPANHA = [
-  { ate: 1,  f: 1.35, txt: 'CAMPEÃO' },
-  { ate: 4,  f: 1.15, txt: 'ACESSO (2º–4º)' },
-  { ate: 7,  f: 0.90, txt: '5º–7º' },
-  { ate: 14, f: 0.60, txt: '8º–14º' },
-  { ate: 16, f: 0.45, txt: '15º–16º' },
-  { ate: 20, f: 0.30, txt: 'REBAIXADO' },
+// 📣 COMO A TEMPORADA ACABOU — as 4 FAIXAS que o Diego pediu (15/09), as mesmas do
+//    Patrocinador Pontual: *"temos que basear com base no time: se vai cair, se vai se
+//    manter na divisão, se vai entrar na área de classificação, ou ser campeão. Essas
+//    4 ideias, parecido com patrocínio pontual"*.
+const FAIXAS = [
+  { k: 'campeao', ate: 1,  emoji: '👑', txt: 'CAMPEÃO',        sub: '1º lugar' },
+  { k: 'acesso',  ate: 4,  emoji: '📈', txt: 'CLASSIFICAÇÃO',  sub: '2º ao 4º' },
+  { k: 'manteve', ate: 16, emoji: '🛡️', txt: 'SE MANTEVE',     sub: '5º ao 16º' },
+  { k: 'caiu',    ate: 20, emoji: '🔴', txt: 'CAIU',           sub: '17º ao 20º' },
 ]
-const fatorCampanha = pos => CAMPANHA.find(c => pos <= c.ate).f
+const faixaDe = pos => FAIXAS.find(f => pos <= f.ate)
 // 🏬 OBRAS do estádio que levam gente pra loja (as que já existem em STADIUM_EXTRAS).
 //    A 🛍️ Loja do Clube não está na lista porque ela é a PORTA: sem ela não há loja.
 const OBRAS_LOJA = { telao: .04, estac: .06, praca: .10, chopp: .06, estacao: .08, hotel: .10, retratil: .06 }
-// 🛒 QUEM COMPRA (de cada 100 torcedores) e 💰 MARGEM (moedas por 100 camisas).
-//    Barata: muita gente compra, sobra pouco. Cara: pouca gente, sobra mais.
+
+// 💰 O PREÇO DA CAMISA É UMA APOSTA (Diego, 15/09) — e é aqui que mora a graça:
+//    *"se escolher o mais caro da camisa e disputar pra não cair, ele se ferra. Ele
+//    teria ganho mais se escolhesse a moeda menor, já que está disputando pra cair"*.
+//
+//    Como isso vira número: cada preço tem a SUA curva pelas 4 faixas.
+//      · Popular — quase não sente o resultado (0,70 → 1,30). Camisa barata o torcedor
+//        compra até com o time na bacia das almas. Rende pouco por peça.
+//      · Normal  — sente no meio (0,45 → 1,55).
+//      · Cara    — só vende se o time FOR BEM (0,20 → 2,00). Ninguém paga caro pra
+//        vestir time que caiu; mas quem é campeão vende camisa cara que é uma beleza.
+//    `compram` = de cada 100 torcedores, quantos levam a camisa (com o time mediano).
+//    `margem`  = moedas que sobram pro clube a cada 100 camisas.
 const PRECOS = {
-  popular: { nome: 'Popular', moeda: 1, compram: 8.0, margem: 0.5 },
-  normal:  { nome: 'Normal',  moeda: 2, compram: 4.5, margem: 1.0 },
-  cara:    { nome: 'Cara',    moeda: 3, compram: 2.4, margem: 1.5 },
+  popular: { nome: 'Popular', moeda: 1, compram: 8.0, margem: 0.5, curva: { caiu: 0.70, manteve: 0.95, acesso: 1.15, campeao: 1.30 } },
+  normal:  { nome: 'Normal',  moeda: 2, compram: 4.5, margem: 1.0, curva: { caiu: 0.45, manteve: 0.80, acesso: 1.25, campeao: 1.55 } },
+  cara:    { nome: 'Cara',    moeda: 3, compram: 2.4, margem: 1.5, curva: { caiu: 0.20, manteve: 0.55, acesso: 1.45, campeao: 2.00 } },
 }
 function vendas({ assentos, pos, obras = [], fornLoja = 0, preco = 'normal' }) {
   const torcida = TORCIDA_PISO + assentos
-  const camp = fatorCampanha(pos)
+  const faixa = faixaDe(pos)
   const bObras = obras.reduce((s, k) => s + (OBRAS_LOJA[k] ?? 0), 0)
   const p = PRECOS[preco]
+  const camp = p.curva[faixa.k]
   const camisas = Math.round(torcida * (p.compram / 100) * camp * (1 + bObras) * (1 + fornLoja))
-  return { torcida, camp, bObras, camisas, moedas: Math.round(camisas / 100 * p.margem), p }
+  return { torcida, faixa, camp, bObras, camisas, moedas: Math.round(camisas / 100 * p.margem), p }
 }
 
 // ── tabelas pro console (é o que o Diego lê pra aprovar os valores) ─────────
@@ -113,11 +125,20 @@ for (const c of CASOS) {
   const r = vendas(c)
   console.log(`  ${c.nome.padEnd(42)} torcida ${fmt(r.torcida).padStart(6)} · ${fmt(r.camisas).padStart(6)} camisas · +${r.moedas} 🪙`)
 }
-console.log('\n   e o MESMO caso (Série A campeão) nos 3 preços:')
+
+// 💰 A APOSTA DO PREÇO — a tabela que prova o que o Diego descreveu: escolher CARA e
+// brigar pra não cair é se ferrar; com a barata ele teria ganho muito mais.
+const APOSTA_BASE = { assentos: 40000, obras: ['estac'], fornLoja: .20 } // Série C, 2 setores, Adibas
+const POS_DA_FAIXA = { campeao: 1, acesso: 3, manteve: 10, caiu: 18 }
+console.log('\n💰 A APOSTA DO PREÇO — o mesmo clube (Série C, 52.000 de torcida), 4 finais possíveis')
+console.log('preço        │ 🔴 CAIU │ 🛡️ MANTEVE │ 📈 CLASSIF. │ 👑 CAMPEÃO')
 for (const k of ['popular', 'normal', 'cara']) {
-  const r = vendas({ ...CASOS[5], preco: k })
-  console.log(`     ${r.p.nome.padEnd(8)} ${fmt(r.camisas).padStart(6)} camisas × ${r.p.moeda} 🪙 → +${r.moedas} 🪙`)
+  const c = FAIXAS.slice().reverse().map(f => vendas({ ...APOSTA_BASE, pos: POS_DA_FAIXA[f.k], preco: k }).moedas)
+  const p = PRECOS[k]
+  console.log(`${(p.nome + ' (' + p.moeda + ' 🪙)').padEnd(13)}│${String(c[0]).padStart(6)}  │${String(c[1]).padStart(9)}  │${String(c[2]).padStart(10)}  │${String(c[3]).padStart(9)}`)
 }
+console.log('👉 brigando pra não cair, a CARA dá 5 e a POPULAR dá 19 — quase 4× mais.')
+console.log('👉 sendo campeão, a CARA dá 48 e a POPULAR dá 34. A aposta se paga ao contrário.')
 
 // ══════════════════════════════════════════════════════════════════════════
 // 🎬 O MOCKUP
@@ -221,16 +242,65 @@ const novas = painel({
     ${botao('ASSINAR CONTRATO')}`,
 })
 
-const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;width:1290px}</style>
+
+// ── 4) 💰 O PREÇO DA CAMISA — a aposta, com as cartas na mesa ───────────────
+// ⚠️ Regra do Diego: trava/escolha SEMPRE explica o porquê. Então a tabela dos 4
+// finais aparece ANTES de escolher — é aposta, não pegadinha. Ele decide sabendo
+// que camisa cara com time brigando pra não cair é prejuízo.
+// 🟢 o verde marca, EM CADA FINAL, qual preço rende mais — é a leitura que interessa
+// (não "onde este preço rende mais", que seria sempre campeão pros três).
+const VALORES = Object.fromEntries(['popular', 'normal', 'cara'].map(k =>
+  [k, FAIXAS.slice().reverse().map(f => vendas({ ...APOSTA_BASE, pos: POS_DA_FAIXA[f.k], preco: k }).moedas)]))
+const MELHOR_DA_COLUNA = FAIXAS.map((_, i) => Math.max(...Object.values(VALORES).map(v => v[i])))
+const linhaPreco = (k, escolhido) => {
+  const p = PRECOS[k]
+  const val = VALORES[k]
+  return `<div style="border:2.5px solid ${INK};border-radius:11px;padding:6px 8px;margin-bottom:5px;color:${INK};
+      background:${escolhido ? GOLD : '#F4ECD6'};box-shadow:${escolhido ? `2px 2px 0 ${INK}` : 'none'}">
+    <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">
+      <span style="${OSW};font-weight:700;font-size:12.5px;text-transform:uppercase">${p.nome}</span>
+      <span style="${OSW};font-weight:400;font-size:10px;opacity:.75">${p.moeda} 🪙 a camisa · ${String(p.compram).replace('.', ',')} de cada 100 torcedores compram</span>
+    </div>
+    <div style="display:flex;gap:4px">${val.map((v, i) => {
+      const f = FAIXAS.slice().reverse()[i], top = v === MELHOR_DA_COLUNA[i]
+      return `<div style="flex:1;border:2px solid ${INK};border-radius:8px;padding:3px 0;text-align:center;
+          background:${top ? '#1B7A3D' : 'rgba(0,0,0,.05)'};color:${top ? '#fff' : INK}">
+        <div style="font-size:10px;line-height:1.1">${f.emoji}</div>
+        <div style="${OSW};font-weight:700;font-size:13px;line-height:1.05">${v}</div>
+      </div>`}).join('')}</div>
+  </div>`
+}
+const precoPanel = painel({
+  topo: 'LOJA DO CLUBE · SÉRIE C',
+  titulo: '💰 O preço da camisa',
+  sub: 'Escolha agora, antes da temporada. É aposta.',
+  papel: `
+    ${selo('TABELA DE PREÇOS · TEMPORADA 7')}
+    <div style="${OSW};font-weight:700;font-size:22px;line-height:1">Normal</div>
+    <div style="${OSW};font-weight:700;font-size:10.5px;line-height:1.2">2 🪙 A CAMISA</div>
+    <strong style="${OSW};font-weight:700;font-size:23px;line-height:1">13 a 46 🪙</strong>
+    <div style="${OSW};font-weight:500;font-size:8.5px;line-height:1.35;color:#5A5040">
+      depende de como a temporada terminar</div>
+    ${assinatura('Diretoria de marketing · Fulanos FC')}`,
+  rodape: `${nota('Quanto entra em cada final possível — <b>com 52.000 de torcida e a Adibas</b>:')}
+    ${['popular', 'normal', 'cara'].map(k => linhaPreco(k, k === 'normal')).join('')}
+    <p style="${OSW};font-weight:400;font-size:9.5px;line-height:1.45;margin:2px 0 0;opacity:.85">
+      🔴 caiu · 🛡️ se manteve · 📈 classificação · 👑 campeão &nbsp;—&nbsp; verde = o preço que MAIS rende naquele final.<br>
+      <b>Camisa cara com time brigando pra não cair é prejuízo</b>: dá 5 🪙 onde a popular daria 19.
+      Time campeão é o contrário: a cara dá 48 e a popular, 34.</p>
+    ${botao('CONFIRMAR O PREÇO')}`,
+})
+
+const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;width:1712px}</style>
   <div style="${OSW};font-weight:700;font-size:20px;text-transform:uppercase;color:${INK}">Fornecedor de material + Balanço da Loja · proposta</div>
   <div style="${OSW};font-weight:400;font-size:12px;color:${INK};opacity:.78;margin-bottom:12px;line-height:1.45">
     Mesma cena do Master e do Pontual (arte que já existe, 0 KB novo). A ordem na virada da temporada é sempre esta:
     <b>1)</b> o balanço da loja do ano que acabou · <b>2)</b> o fornecedor — se o contrato segue, é só um aviso;
-    se acabou, aí sim você decide.</div>
-  <div style="display:flex;gap:14px;align-items:flex-start">${balanco}${emAndamento}${novas}</div>`
+    se acabou, aí sim você decide · <b>3)</b> o preço da camisa do ano novo, que é uma <b>aposta</b> no que o time vai fazer.</div>
+  <div style="display:flex;gap:14px;align-items:flex-start">${balanco}${emAndamento}${novas}${precoPanel}</div>`
 
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-const p = await b.newPage({ viewport: { width: 1322, height: 900 }, deviceScaleFactor: 2 })
+const p = await b.newPage({ viewport: { width: 1744, height: 900 }, deviceScaleFactor: 2 })
 await p.setContent(html)
 await p.evaluate(() => document.fonts.ready)
 await p.screenshot({ path: 'mockup-fornecedor.png', fullPage: true })

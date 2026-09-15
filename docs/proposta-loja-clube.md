@@ -310,7 +310,7 @@ clube da Série B pra cima — suba uma série e ela bate na sua porta"*. Marca 
 que só procura quem subiu é o degrau de ambição, e o jogador nunca fica sem opção:
 na Várzea já há duas marcas na mesa.
 
-### 3.3 Venda de camisas — torcida vem do ESTÁDIO, venda vem da CAMPANHA
+### 3.3 Venda de camisas — torcida vem do ESTÁDIO, venda vem do RESULTADO
 
 Pedido dele (15/09): *"o tamanho da torcida deve ser com base no estádio, de coisas
 que é construído. E também as vendas com base na temporada, como foi"*. A conta usa só
@@ -321,9 +321,9 @@ coisa que o jogo **já mede** — nada de número solto:
                (Geral 21.500 · Cadeiras 18.500 · Visitante 22.838 · Camarote 16.000)
                → de 12.000 (estádio cru) a 90.838 (estádio completo)
 
-📣 CAMPANHA  = como a temporada acabou, pela colocação final:
-               campeão 1,35 · acesso (2º–4º) 1,15 · 5º–7º 0,90
-               8º–14º 0,60 · 15º–16º 0,45 · rebaixado 0,30
+📣 COMO ACABOU — as 4 FAIXAS (as mesmas do Pontual):
+               👑 CAMPEÃO (1º) · 📈 CLASSIFICAÇÃO (2º–4º)
+               🛡️ SE MANTEVE (5º–16º) · 🔴 CAIU (17º–20º)
 
 🏬 OBRAS     = o que leva gente pra loja (soma, teto +50%):
                📺 telão +4% · 🅿️ estacionamento +6% · 🍔 praça +10% · 🍻 choperia +6%
@@ -333,34 +333,61 @@ coisa que o jogo **já mede** — nada de número solto:
 
 👟 FORNECEDOR = +10% · +20% · +30% · +45%
 
-🛒 QUEM COMPRA (de cada 100 torcedores) e 💰 MARGEM (moedas por 100 camisas):
-      Popular  8,0 compram   ·  0,5 moeda / 100 camisas   (1 🪙 a camisa)
-      Normal   4,5 compram   ·  1,0 moeda / 100 camisas   (2 🪙 a camisa)
-      Cara     2,4 compram   ·  1,5 moeda / 100 camisas   (3 🪙 a camisa)
-
-CAMISAS = TORCIDA × quem_compra × CAMPANHA × (1 + OBRAS) × (1 + FORNECEDOR)
-MOEDAS  = CAMISAS ÷ 100 × MARGEM
+CAMISAS = TORCIDA × quem_compra × curva_do_preço[faixa] × (1+OBRAS) × (1+FORNECEDOR)
+MOEDAS  = CAMISAS ÷ 100 × margem_do_preço
 ```
 
-Barata vende pra torcida toda e sobra pouco por peça; cara vende menos e sobra mais.
-Com o clube grande e indo bem, o **Normal** rende um pouco mais — mas as três ficam
-perto, então a escolha é gosto, não pegadinha.
+### 3.3b 💰 O PREÇO É UMA APOSTA — e escolher errado dói (Diego, 15/09)
 
-**Quanto isso dá de verdade** (rodado em `node scripts/mockup-fornecedor.mjs`):
+A ideia é dele, e é a melhor coisa da Loja: *"sobre os preços, temos que basear com
+base no time: se vai cair, se vai se manter na divisão, se vai entrar na área de
+classificação, ou ser campeão. Essas 4 ideias, parecido com patrocínio pontual. E aí,
+se escolher o mais caro da camisa e disputar pra não cair, ele se ferra — ele teria
+ganho mais se escolhesse a moeda menor, já que está disputando pra cair, entende?"*.
+
+Traduzindo em número: **cada preço tem a SUA curva pelas 4 faixas.**
+
+| Preço | de cada 100 torcedores compram | margem (por 100 camisas) | 🔴 CAIU | 🛡️ MANTEVE | 📈 CLASSIF. | 👑 CAMPEÃO |
+|---|---|---|---|---|---|---|
+| **Popular** (1 🪙) | 8,0 | 0,5 | ×0,70 | ×0,95 | ×1,15 | ×1,30 |
+| **Normal** (2 🪙) | 4,5 | 1,0 | ×0,45 | ×0,80 | ×1,25 | ×1,55 |
+| **Cara** (3 🪙) | 2,4 | 1,5 | ×0,20 | ×0,55 | ×1,45 | ×2,00 |
+
+- **Popular** quase não sente o resultado (0,70 → 1,30): camisa barata o torcedor
+  compra mesmo com o time na bacia das almas. Em compensação sobra pouco por peça.
+- **Cara** só vende se o time for bem (0,20 → 2,00): ninguém paga caro pra vestir time
+  que caiu — mas campeão vende camisa cara que é uma beleza.
+
+**O resultado, no mesmo clube** (Série C, 52.000 de torcida, Adibas +20%):
+
+| Preço | 🔴 CAIU | 🛡️ SE MANTEVE | 📈 CLASSIFICAÇÃO | 👑 CAMPEÃO |
+|---|---|---|---|---|
+| Popular (1 🪙) | **19** | **25** | 30 | 34 |
+| Normal (2 🪙) | 13 | 24 | **37** | 46 |
+| Cara (3 🪙) | 5 | 13 | 35 | **48** |
+
+👉 É exatamente o que ele descreveu: **brigando pra não cair, a cara dá 5 e a popular
+dá 19 — quase 4× mais.** Campeão é o contrário: cara 48, popular 34. E o meio de
+tabela é escolha de verdade (25 × 24, empate técnico entre popular e normal).
+
+⚠️ **E NÃO É PEGADINHA.** A tela mostra a tabela dos 4 finais **antes** de ele escolher
+— regra permanente do Diego: toda trava/escolha explica o porquê. Ele aposta sabendo
+o que ganha em cada cenário; o risco é dele, a informação é dele também.
+
+**Quanto isso dá numa temporada** (preço Normal, rodado em `node scripts/mockup-fornecedor.mjs`):
 
 | Situação | Torcida | Camisas | Entra |
 |---|---|---|---|
-| Várzea, estádio cru, meio de tabela | 12.000 | 356 | **+4 🪙** |
-| Série D, só a Geral, escapou do Z4 | 33.500 | 814 | **+8 🪙** |
-| Série C, 2 setores, meio de tabela | 52.000 | 1.786 | **+18 🪙** |
-| Série C, 2 setores, **ACESSO** | 52.000 | 3.423 | **+34 🪙** |
-| Série B, 3 setores, 5º–7º | 74.838 | 4.728 | **+47 🪙** |
-| Série A, estádio COMPLETO, **CAMPEÃO** | 90.838 | 12.003 | **+120 🪙** |
+| Várzea, estádio cru, meio de tabela | 12.000 | 475 | **+5 🪙** |
+| Série D, só a Geral, escapou do Z4 | 33.500 | 1.447 | **+14 🪙** |
+| Série C, 2 setores, meio de tabela | 52.000 | 2.381 | **+24 🪙** |
+| Série C, 2 setores, **CLASSIFICAÇÃO** | 52.000 | 3.721 | **+37 🪙** |
+| Série A, estádio COMPLETO, **CAMPEÃO** | 90.838 | 13.781 | **+138 🪙** |
 
 Por que esses tamanhos: medido em 14/09, a mediana de caixa é **32 na Série B** e
-**53 na Série C** — ou seja, +18 a +34 numa temporada de Série C **dobra** o ano de
+**53 na Série C** — ou seja, +24 a +37 numa temporada de Série C **dobra** o ano de
 quem está no meio da tabela, que é exatamente quem reclamou. Na Série A (mediana de
-caixa 881) os +120 são um bônus, não uma virada — a loja não vira a fonte principal
+caixa 881) os +138 são um bônus, não uma virada — a loja não vira a fonte principal
 de ninguém.
 
 ### 3.4 QUANDO isso aparece — o balanço só na virada (Diego, 15/09)
@@ -395,7 +422,7 @@ Mockup: `node scripts/mockup-fornecedor.mjs` → `mockup-fornecedor.png`.
 |---|---|
 | **1º** — abertura da temporada nova | 📦 **Balanço da Loja** do ano que acabou: camisas vendidas, moedas, e a conta na tela. Cai direto no caixa. |
 | **2º** — logo em seguida | 👟 **Fornecedor**: contrato em dia = só aviso, nada pra decidir · contrato acabou = 4 propostas e ele assina |
-| Virada de temporada | escolher o **preço** da camisa do ano (popular / normal / cara) |
+| **3º** — ainda na virada | 💰 **O preço da camisa** do ano novo: aposta nas 4 faixas, com a tabela dos 4 finais na tela antes de escolher |
 | Durante a temporada | **nada**. A loja trabalha calada. |
 | Qualquer hora | aba **Clube › Loja**: a camisa grande, é a vitrine do orgulho |
 

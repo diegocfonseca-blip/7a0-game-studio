@@ -16,8 +16,14 @@ batismo usa o molde do jogo na cor do tier 🪵 Foi Profissional.
   Régua fechada em 15/09: fornecedor = mecânica do Master (1/2/3/5 temporadas, valor
   congela na divisão da assinatura, não quebra ao subir/cair) com base 62% menor
   (V1 D2 C5 B10 A20). Loja: torcida = 12.000 + assentos construídos; venda = torcida ×
-  quem compra × campanha (colocação final) × obras × fornecedor. Balanço só na abertura
+  quem compra × curva do preço na faixa × obras × fornecedor. Balanço só na abertura
   da temporada nova, e aí o fornecedor (aviso se o contrato corre, decisão se acabou).
+  💰 **O PREÇO DA CAMISA É APOSTA** (ideia do Diego, 15/09): 4 faixas iguais às do
+  Pontual (👑 campeão · 📈 classificação 2º–4º · 🛡️ se manteve 5º–16º · 🔴 caiu 17º–20º)
+  e cada preço tem a SUA curva. Popular quase não sente (0,70→1,30), cara só vende se o
+  time for bem (0,20→2,00). Num clube de Série C: brigando pra não cair a cara dá 5 e a
+  popular dá 19; campeão a cara dá 48 e a popular 34. A tabela dos 4 finais aparece
+  ANTES de escolher — é aposta, não pegadinha.
 
 ✅ **A arte limpa chegou** — o Diego mandou a camisa certa (*"segue a arte certa"*),
 sem escudo e sem patrocínio. Virou `scripts/kits/MOLDE-camisa-tier.webp` e aposentou
