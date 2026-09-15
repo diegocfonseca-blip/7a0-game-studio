@@ -809,6 +809,20 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
               {others.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
                   <span className="flex-1 min-w-0 truncate text-xs font-bold text-black/70" style={OSWALD}>{m.isHuman ? '' : '🤖 '}{m.teamName}</span>
+                  {/* 🕳️ QUANTOS BURACOS ELE TEM (Diego, 15/09: *"gostei de apertar em
+                      gerenciar e mostrar a quantidade de buracos, com −5, algo assim"*).
+                      É informação pra DECIDIR, não uma acusação: time muito furado pode
+                      ser alguém que largou o jogo — mas também pode ser só quem perdeu
+                      os leilões. Quem decide remover continua sendo o host. */}
+                  {(() => {
+                    const h = totalHoles(m)
+                    return (
+                      <span className="shrink-0 text-[11px] font-black tabular-nums" style={{ ...OSWALD, color: h > 0 ? '#B23A2A' : 'rgba(0,0,0,.3)' }}
+                        title={tr(`${h} vaga(s) sem jogador`, `${h} empty slot(s)`)}>
+                        {h > 0 ? `−${h} 🕳️` : '✅'}
+                      </span>
+                    )
+                  })()}
                   <button onClick={() => kick(m)}
                     className="shrink-0 border border-black/20 rounded-lg px-2 py-1 text-[11px] font-black active:opacity-60"
                     style={{ background: '#F4ECD6', color: '#B23A2A', ...OSWALD }}>{m.isHuman ? tr('remover', 'remove') : tr('excluir', 'delete')}</button>
@@ -4628,6 +4642,47 @@ export function EscMonte() {
   }, [online, state.monteDeadline])
   const remaining = online && state.monteDeadline ? Math.max(0, Math.ceil((state.monteDeadline - now) / 1000)) : null
 
+  // 🎽 mantos da SALA — mesma fonte que a simulação usa (o servidor devolve só
+  // assento → cores; e-mail nunca viaja). Falhou? O campinho fica sem manto.
+  const [mantosMonte, setMantosMonte] = useState<Record<number, [string, string]>>({})
+  useEffect(() => {
+    if (!online || !state.roomId) { setMantosMonte({}); return }
+    let alive = true
+    supabase.rpc('esc_mantos_sala', { p_room: state.roomId }).then(({ data }) => {
+      if (!alive || !Array.isArray(data)) return
+      const mm: Record<number, [string, string]> = {}
+      for (const r of data as { player_index: number; manto_c1: string; manto_c2: string }[]) mm[r.player_index] = [r.manto_c1, r.manto_c2]
+      setMantosMonte(mm)
+    }, () => {})
+    return () => { alive = false }
+  }, [online, state.roomId])
+
+  // 🏟️ OS CAMPINHOS DE TODA A SALA (pedido do Diego, 15/09): *"você colocaria os
+  // campos com o elenco de quem a pessoa escolheu, igual já funciona na simulação"*.
+  // É LITERALMENTE o mesmo bloco que a simulação já roda desde 09/08 — mesma regra
+  // (só online rápido/Minhas Ligas, fora a carreira online), mesmo `small`, mesmo
+  // manto da sala. Sem spoiler: quem é de quem já é público aqui (a ordem da
+  // serpente é pelos buracos, e a revelação já passou).
+  //
+  // ⚠️ `useMemo` NÃO é enfeite: esta tela se redesenha 4× POR SEGUNDO enquanto o
+  // relógio da vez corre (o `setNow` de 250 ms aí em cima). Sem congelar a lista,
+  // os até 20 campinhos — 11 rostos cada — seriam redesenhados junto, e logo na
+  // tela que tem cronômetro. Com o memo eles só mudam quando o elenco muda.
+  const campinhosDaSala = useMemo(() => {
+    if (!online || state.careerOnline) return null
+    const outros = state.managers.filter(mm => mm.id !== you.id && !mm.auctionOnly && mm.squad.length > 0)
+    if (!outros.length) return null
+    return (
+      <div className="space-y-2">
+        <p className="text-[11px] font-black text-black/45" style={OSWALD}>{tr('🏟️ OS TIMES DA SALA', '🏟️ THE TEAMS IN THE ROOM')}</p>
+        {outros.map(mm => (
+          <Campinho key={mm.id} m={mm} small title={`${mm.isHuman ? '👤' : '🤖'} ${mm.teamName}`}
+            manto={mm.isHuman ? mantosMonte[mm.id] ?? null : null} />
+        ))}
+      </div>
+    )
+  }, [online, state.careerOnline, state.managers, you.id, mantosMonte])
+
   return (
     <Shell bar={<AuctionBar />}>
       {state.sport !== 'basquete' && <NarradorDica fase="monte" texto={tr('🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!', '🃏 Players left without an owner! On your turn, grab one FOR FREE (or pay the floor, if it has 💰). Time to complete the team without spending. You can also pass!')} />}
@@ -4758,6 +4813,7 @@ export function EscMonte() {
         )
       })()}
       <YourPitch />
+      {campinhosDaSala}
       <FloatingEmotes />
     </Shell>
   )
