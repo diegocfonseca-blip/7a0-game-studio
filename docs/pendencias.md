@@ -240,6 +240,25 @@ abre na **temporada 3**, só com o clube na **Várzea ou Série D**, paga **5 �
 temporada**, a escolha é de graça. **Ao chegar na Série C ele acaba** ("virou nome
 grande") e **reabre se cair** de volta pra D.
 
+### 🔼 AJUSTE DE VALORES (ordem dele, 15/09) — vale pra TODO MUNDO
+1. 🕴️ **Bico virou ESCADA e ganhou um 3º degrau**: *"aumente pra 5 na Várzea, 7 na
+   Série D e 10 na Série C… e são degraus de evolução dentro da empresa: tipo loja de
+   carro — lavador, depois vendedor e depois gerente"*. Então:
+   - **a Série C AGORA TEM bico** (antes acabava ao chegar em C);
+   - o **cargo muda com a divisão** (Vadico: lavador → vendedor do pátio → gerente da
+     loja; e o equivalente nas outras três marcas);
+   - **Série B pra cima ele larga**, e a saída é ESNOBE (*"agora eu compro o carro, não
+     vendo"*);
+   - **caiu de volta depois de ter sido grande?** volta humilde — e ganhando o **teto
+     (10)** em qualquer divisão, porque já foi gerente. Fica marcado no save
+     (`careerBico.esnobou`).
+2. 👟 **Fornecedor subiu** (*"quase nada a mais"*): base V2 D3 C6 B12 A24 (era
+   V1 D2 C5 B10 A20).
+3. 🏆 **Master subiu SÓ da Várzea até a Série C** (*"até pra não atrapalhar o que ganha
+   da Série B"*): V3 D5 C10 (era V2 D4 C8). **B e A intactas.**
+   🛡️ Trava nova no teste: o melhor da Série C (33/temporada) fica **abaixo** do
+   contrato de 3 temporadas da Série B (36), e cada divisão paga mais que a de baixo.
+
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
    mostraria pra todo mundo uma aba que só ele vê. Entra na MESMA entrega que

@@ -30,7 +30,14 @@ import { STADIUM_SECTORS, sectorPct, hasExtra, type StadiumSave } from './estadi
 //
 // Base = ≈62% da do Master (V2 D4 C8 B16 A32). Fica menor de propósito: o
 // fornecedor ainda paga a segunda perna, o bônus nas vendas da loja.
-export const FORN_BASE: Record<string, number> = { V: 1, D: 2, C: 5, B: 10, A: 20 }
+// 🔼 15/09, duas ordens dele no mesmo dia:
+//   · *"aumente um pouco mais o valor ganho de fornecedor de material esportivo,
+//     quase nada a mais"* → toda a régua subiu ~20% (B 10→12 · A 20→24);
+//   · *"da Várzea até a Série C também aumente um pouco mais… mas quase nada"* →
+//     esses três subiram um degrau a mais (V 1→2 · D 2→3 · C 5→6).
+// A regra de sempre continua de pé e está no teste: o fornecedor paga MENOS que o
+// Master em TODA divisão e TODO prazo.
+export const FORN_BASE: Record<string, number> = { V: 2, D: 3, C: 6, B: 12, A: 24 }
 
 /** quanto o fornecedor paga POR TEMPORADA, num contrato de `anos` fechado na divisão `div`.
  *  Mesma fórmula do Master — se a régua do Master mudar um dia, esta anda junto de propósito. */

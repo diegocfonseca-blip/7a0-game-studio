@@ -28,7 +28,7 @@ const ok = (c, t) => { console.log(`${c ? '✅' : '❌'} ${t}`); if (!c) falhas+
 
 // ── 1) a régua do fornecedor ────────────────────────────────────────────────
 console.log('\n👟 1) régua do fornecedor (moedas por temporada)')
-const REGUA = { V: [1, 2, 2, 3], D: [3, 4, 5, 7], C: [6, 9, 11, 16], B: [13, 18, 23, 33], A: [25, 35, 45, 65] }
+const REGUA = { V: [3, 4, 5, 7], D: [4, 5, 7, 10], C: [8, 11, 14, 20], B: [15, 21, 27, 39], A: [30, 42, 54, 78] }
 for (const [d, esperado] of Object.entries(REGUA)) {
   const v = [1, 2, 3, 5].map(a => fornPorTemporada(d, a))
   ok(JSON.stringify(v) === JSON.stringify(esperado), `${d}: ${v.join('/')} (esperado ${esperado.join('/')})`)
@@ -51,10 +51,10 @@ ok(fornLiberado(penalti, 'V'), 'Pênalti do Bairro fecha até na Várzea (ningu�
 // ── 3) contrato congela e não quebra ────────────────────────────────────────
 console.log('\n👟 3) o contrato congela na divisão da assinatura')
 const c = { fornId: 'adibas', anos: 2, div: 'D', desde: 5, porTemporada: fornPorTemporada('D', 2) }
-ok(fornValor(c) === 4, `assinou na Série D por 2 temporadas → 4 🪙 (deu ${fornValor(c)})`)
+ok(fornValor(c) === 5, `assinou na Série D por 2 temporadas → 5 🪙 (deu ${fornValor(c)})`)
 ok(fornAtivo(c, 5) && fornAtivo(c, 6), 'cobre as temporadas 5 e 6')
 ok(!fornAtivo(c, 7), 'na 7 já acabou (chegam propostas novas)')
-ok(fornValor(c) === 4, 'subiu pra Série C no meio? o valor continua 4 — o contrato NÃO quebra')
+ok(fornValor(c) === 5, 'subiu pra Série C no meio? o valor continua 5 — o contrato NÃO quebra')
 
 // ── 4) a aposta do preço ────────────────────────────────────────────────────
 console.log('\n💰 4) a aposta do preço')
@@ -102,7 +102,7 @@ console.log('\n✍️ 8) não dá pra trocar de fornecedor no meio do contrato')
 let s2 = { ...base, careerLoja: { 1: {} } }
 s2 = reducer(s2, { type: 'LOJA_FORNECEDOR', fornId: 'adibas', mgrId: 1 })
 ok(s2.careerLoja[1].forn?.fornId === 'adibas', 'assinou a Adibas (2 temporadas, Série C)')
-ok(s2.careerLoja[1].forn?.porTemporada === 9, `valor congelado da Série C: 9 (deu ${s2.careerLoja[1].forn?.porTemporada})`)
+ok(s2.careerLoja[1].forn?.porTemporada === 11, `valor congelado da Série C: 11 (deu ${s2.careerLoja[1].forn?.porTemporada})`)
 s2 = reducer(s2, { type: 'LOJA_FORNECEDOR', fornId: 'pumba', mgrId: 1 })
 ok(s2.careerLoja[1].forn?.fornId === 'adibas', 'tentou trocar pela Pumba no meio: RECUSADO')
 let s3 = reducer({ ...base, careerLoja: { 1: {} } }, { type: 'LOJA_FORNECEDOR', fornId: 'naique', mgrId: 1 })
@@ -131,6 +131,14 @@ const est2 = est.stadiumIncome(st), est3 = est.stadiumIncome(st, true)
 ok(est2 - est3 === 6, `stadiumIncome com e sem a loja difere exatamente nos 6 da obra (${est2} × ${est3})`)
 ok(caixa(semAba) > 100, `quem NÃO tem a aba continua recebendo o estádio cheio (caixa ${caixa(semAba)})`)
 ok(caixa(comAba) > caixa(semAba), `quem tem a aba troca os 6 fixos pelas vendas e sai na frente (${caixa(comAba)} × ${caixa(semAba)})`)
+
+// ── 11) o degrau de divisão continua valendo a pena ────────────────────────
+console.log('\n📈 11) subir de divisão continua compensando (Diego: "não atrapalhar a Série B")')
+const mst = (d, a) => est.masterPorTemporada(d, a)
+ok(mst('C', 5) < mst('B', 3), `Master: o melhor da Série C (${mst('C', 5)}) fica abaixo do de 3 temporadas da B (${mst('B', 3)})`)
+ok(fornPorTemporada('C', 5) < fornPorTemporada('B', 3), `Fornecedor: idem (${fornPorTemporada('C', 5)} < ${fornPorTemporada('B', 3)})`)
+for (const [a, b] of [['V','D'],['D','C'],['C','B'],['B','A']])
+  ok(mst(a, 1) < mst(b, 1) && fornPorTemporada(a, 1) < fornPorTemporada(b, 1), `${a} paga menos que ${b} no contrato de 1 temporada`)
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')
 await server.close()

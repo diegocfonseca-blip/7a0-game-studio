@@ -604,7 +604,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
     if (s.careerBico) {
       const divAtual = (s.careerPlacements?.[`m${y}`] ?? s.careerDivision ?? 'V') as string
       if (bicoElegivel(s.seasonNo ?? 1, divAtual)) {
-        const valor = BICO_VALOR[divAtual as 'V' | 'D']
+        const valor = bicoValor(divAtual, s.careerBico.esnobou)
         s.careerCoins = { ...(s.careerCoins ?? {}), [y]: (s.careerCoins?.[y] ?? 0) + valor }
       }
     }
@@ -738,7 +738,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 }
 import type { CareerTeam } from './data'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
-import { BICO_VALOR, bicoElegivel } from './bico'
+import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, lojaConstruida, calculaVendas } from './loja'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
@@ -6204,9 +6204,13 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'BICO_NEWS': {
       if (!s.careerOnline || s.onlineMode === 'online' || !s.careerBico) return s
       const nome = BICO_BRANDS[s.careerBico.brandId]
+      const marca = bicoMarcaDe(s.careerBico.brandId)
       const msg = action.kind === 'saiu'
-        ? `💼 Chega de bico! Virou nome grande — agora é VOCÊ o patrão. O bico de folga na ${nome} desligou.`
-        : `😅 Voltou humilde pedir o emprego de volta — a ${nome} topou de novo.`
+        // 🎩 esnobou: marca no save. Quando cair de volta, a história é de humildade
+        // e o pagamento é o TETO — ele já foi gerente (ordem do Diego, 15/09).
+        ? (marca ? marca.esnobe.pt : `💼 Chega de bico! Virou nome grande — o bico na ${nome} desligou.`)
+        : (marca ? marca.volta.pt : `😅 Voltou humilde pedir o emprego de volta — a ${nome} topou de novo.`)
+      if (action.kind === 'saiu') s.careerBico = { ...s.careerBico, esnobou: true }
       s.marketLog = [...(s.marketLog ?? []), msg]
       return s
     }

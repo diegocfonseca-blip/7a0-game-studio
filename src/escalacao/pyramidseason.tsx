@@ -46,7 +46,7 @@ import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador, useLojaLiberada } from './sport'
 import { LojaTab, LojaVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
-import { BICO_MARCAS, BICO_VALOR, bicoElegivel } from './bico'
+import { BICO_MARCAS, bicoValor, bicoElegivel, type BicoDiv } from './bico'
 import { fornAtivo } from './loja' // 🕴️ Bico de Folga — teste fechado por e-mail (LOJA_TESTERS)
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
@@ -7740,7 +7740,7 @@ export function PyramidSeasonScreen() {
                 if (!agenciaOk || !bicoElegivel(state.seasonNo ?? 1, dv)) return null
                 // com bico já escolhido é UMA linha com o "trocar" fechado; sem bico,
                 // a lista aberta. Em nenhum dos dois casos trava o "Começar a temporada".
-                return <BicoVirada div={dv} atual={state.careerBico?.brandId}
+                return <BicoVirada div={dv} atual={state.careerBico?.brandId} esnobou={state.careerBico?.esnobou}
                   onPick={brand => dispatch({ type: 'SET_BICO', brand })} />
               })()}
               {lojaLib && <LojaVirada
@@ -8204,8 +8204,10 @@ export function PyramidSeasonScreen() {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
                   // 🕴️ a régua e as marcas do bico moram em `bico.ts` (lista repetida diverge)
                   const bicoOn = bicoElegivel(state.seasonNo ?? 1, myDiv)
-                  const valor = BICO_VALOR[(myDiv === 'V' ? 'V' : 'D')]
-                  const BRANDS = BICO_MARCAS.map(b => ({ ...b, cargo: tr(b.cargo.pt, b.cargo.en) }))
+                  const esnobou = !!state.careerBico?.esnobou
+                  const valor = bicoValor(myDiv, esnobou)
+                  const bdv = (['V', 'D', 'C'].includes(myDiv) ? myDiv : 'V') as BicoDiv
+                  const BRANDS = BICO_MARCAS.map(b => ({ ...b, cargo: tr(b.cargos[bdv].pt, b.cargos[bdv].en) }))
                   return (
                     <div style={{ marginTop: 10 }}>
                       <UnlockBanner k="bico" tag={tr('🕴️ novo bico', '🕴️ new side job')} title={tr('Bico de Folga', 'Side Job')} ctaBg={GREEN} ctaColor="#fff">
@@ -8232,12 +8234,12 @@ export function PyramidSeasonScreen() {
                               </div>
                               <div style={{ textAlign: 'center', flexShrink: 0, background: 'rgba(255,196,0,.15)', border: `2px solid ${GOLD}`, borderRadius: 9, padding: '5px 9px' }}>
                                 <b style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 14, color: GOLD }}>+{valor}🪙</b>
-                                <span style={{ fontSize: 7, fontWeight: 800, color: 'rgba(255,255,255,.65)', textTransform: 'uppercase' }}>{myDiv === 'V' ? 'Várzea' : 'Série D'}</span>
+                                <span style={{ fontSize: 7, fontWeight: 800, color: 'rgba(255,255,255,.65)', textTransform: 'uppercase' }}>{myDiv === 'V' ? 'Várzea' : myDiv === 'D' ? 'Série D' : 'Série C'}</span>
                               </div>
                             </div>
                             <div style={{ padding: '9px 12px' }}>
                               {/* 📖 a historinha (Diego 15/09) — é o que dá vida ao bico */}
-                              <p style={{ fontSize: 10.5, fontWeight: 600, fontStyle: 'italic', color: '#5a5647', margin: 0, lineHeight: 1.5 }}>“{tr(atual.historia.pt, atual.historia.en)}”</p>
+                              <p style={{ fontSize: 10.5, fontWeight: 600, fontStyle: 'italic', color: '#5a5647', margin: 0, lineHeight: 1.5 }}>“{esnobou ? tr(atual.volta.pt, atual.volta.en) : tr(atual.historia.pt, atual.historia.en)}”</p>
                               {/* 🧹 SEM BOTÃO DE ESCOLHA AQUI (ordem do Diego, 15/09): esta aba
                                   só MOSTRA o que está fechado. Trocar de bico é na virada da
                                   temporada, junto das outras decisões. */}

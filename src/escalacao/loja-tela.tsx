@@ -27,7 +27,7 @@ import {
   type LojaSave, type PrecoLoja,
 } from './loja'
 import type { StadiumSave } from './estadiodata'
-import { BICO_MARCAS, BICO_VALOR, type BicoMarca } from './bico' // 🕴️ Bico de Folga
+import { BICO_MARCAS, bicoValor, type BicoMarca, type BicoDiv } from './bico' // 🕴️ Bico de Folga
 import MOLDE_CAMISA from './img/camisa-molde-v1.webp'
 
 const INK = '#0C0C0C', CREME = '#F4ECD6', GOLD = '#FFC400', GREEN = '#1B7A3D'
@@ -531,11 +531,12 @@ function FornecedorPapeis({ div, onPick }: { div: string; onPick: (id: string) =
 // nenhum**. Quem já tem bico não vê nada aqui — senão viraria um passo a mais em
 // toda virada, e a regra de ouro dele é que nada pode atrasar o ritmo do jogo.
 // E dá pra ignorar: o botão "Começar a temporada" não depende disto.
-export function BicoVirada({ div, atual, onPick }: { div: string; atual?: BicoMarca; onPick: (b: BicoMarca) => void }) {
+export function BicoVirada({ div, atual, esnobou, onPick }: { div: string; atual?: BicoMarca; esnobou?: boolean; onPick: (b: BicoMarca) => void }) {
   const [sel, setSel] = useState<BicoMarca | undefined>(undefined)
   const [trocando, setTrocando] = useState(false)
   const esc = BICO_MARCAS.find(b => b.k === sel)
-  const valor = BICO_VALOR[div === 'V' ? 'V' : 'D']
+  const valor = bicoValor(div, esnobou)
+  const dv = (['V', 'D', 'C'].includes(div) ? div : 'V') as BicoDiv
   const jaTem = atual ? BICO_MARCAS.find(b => b.k === atual) : undefined
   // ✅ JÁ TEM BICO: uma linha só, com o trocar fechado. "Só quando precisar" é isso —
   // nada de repetir a lista inteira em toda virada (o Diego odeia passo a mais).
@@ -544,7 +545,7 @@ export function BicoVirada({ div, atual, onPick }: { div: string; atual?: BicoMa
       <div style={{ width: 30, height: 30, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 8, background: jaTem.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{jaTem.ic}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 12.5 }}>🕴️ {jaTem.nome}</div>
-        <div style={{ fontWeight: 400, fontSize: 10, opacity: .72 }}>{tr(jaTem.cargo.pt, jaTem.cargo.en)} · +{valor} 🪙/{tr('temp', 'seas')}</div>
+        <div style={{ fontWeight: 400, fontSize: 10, opacity: .72 }}>{tr(jaTem.cargos[dv].pt, jaTem.cargos[dv].en)} · +{valor} 🪙/{tr('temp', 'seas')}</div>
       </div>
       <button onClick={() => setTrocando(true)} style={{ flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 9px', ...OSW, fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase', background: CREME, color: INK, cursor: 'pointer' }}>🔁 {tr('trocar', 'change')}</button>
     </div>
@@ -563,14 +564,14 @@ export function BicoVirada({ div, atual, onPick }: { div: string; atual?: BicoMa
             <div style={{ width: 28, height: 28, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 8, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{b.ic}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5, lineHeight: 1.1 }}>{b.nome}</div>
-              <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .75 }}>{tr(b.cargo.pt, b.cargo.en)}</div>
+              <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, opacity: .75 }}>{tr(b.cargos[dv].pt, b.cargos[dv].en)}</div>
             </div>
             <div style={{ ...OSW, fontWeight: 700, fontSize: 13, flex: 'none' }}>+{valor} 🪙</div>
           </div>
           {/* 📖 a historinha só abre no escolhido — a lista fica limpa e quem quer ler, lê */}
           {sel === b.k && (
             <div style={{ ...OSW, fontWeight: 400, fontSize: 10.5, lineHeight: 1.5, marginTop: 7, paddingTop: 7, borderTop: `2px solid rgba(0,0,0,.18)`, fontStyle: 'italic' }}>
-              “{tr(b.historia.pt, b.historia.en)}”
+              “{esnobou ? tr(b.volta.pt, b.volta.en) : tr(b.historia.pt, b.historia.en)}”
             </div>
           )}
         </button>

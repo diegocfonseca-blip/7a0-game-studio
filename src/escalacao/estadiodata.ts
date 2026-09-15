@@ -172,7 +172,12 @@ export interface MasterContrato { brandId: string; anos: number; div: string; de
  *  então (2/4/8/16/32) e ficou CONGELADA aqui em 13/09, quando o Diego subiu o Pontual
  *  sem pedir pra mexer no Master — a régua dele (V 3/4/5/7 · D 5/7/9/13 · C 10/14/18/26 ·
  *  B 20/28/36/52 · A 40/56/72/104) continua a aprovada. */
-export const MASTER_BASE: Record<string, number> = { V: 2, D: 4, C: 8, B: 16, A: 32 }
+// 🔼 15/09: o Diego mandou subir SÓ da Várzea até a Série C, *"um pouco mais… quase
+// nada… até pra não atrapalhar o que ganha da Série B e as que ficam na frente"*.
+// Era V2 · D4 · C8. Virou V3 · D5 · C10; B e A ficam intactas de propósito — o degrau
+// de subir de divisão continua valendo a pena (o melhor da C, 33/temporada num contrato
+// de 5, segue abaixo do de 3 temporadas da B, que é 36).
+export const MASTER_BASE: Record<string, number> = { V: 3, D: 5, C: 10, B: 16, A: 32 }
 /** quanto o Master paga POR TEMPORADA, pra um contrato de `anos` fechado na divisão `div` */
 export function masterPorTemporada(div: string, anos: number): number {
   const base = MASTER_BASE[div] ?? 0

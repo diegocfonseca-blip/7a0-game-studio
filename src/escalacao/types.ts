@@ -678,7 +678,9 @@ export interface EscState {
   // tá na Várzea/Série D, a partir da Temporada 3. A escolha fica guardada mesmo
   // fora da janela de elegibilidade (subiu pra C) — reabre sozinha se cair de
   // volta, com o MESMO patrocinador (ideia do Diego: "pede o emprego de volta").
-  careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; since: number } | null
+  // 🕴️ Bico de Folga. `esnobou` = já chegou na Série B e largou o bico uma vez;
+  // se cair de volta, volta humilde — e ganhando o teto (10), porque já foi gerente.
+  careerBico?: { brandId: 'vadico' | 'maxjoias' | 'ero' | 'reidastintas'; since: number; esnobou?: boolean } | null
   careerDivision: Division | null // modo carreira (solo): divisão atual (null = partida rápida)
   careerOnline?: boolean // sala online no MODO CARREIRA (4 divisões) — diferencia do online "rápido"
   careerFilial?: {
