@@ -1,3 +1,65 @@
+## 15/09/2026 — 🚑⬇️🎛️ Três entregas juntas: lesão, placar que encolhe e hierarquia da tela
+
+Ele aprovou as três de uma vez: *"Perfeito pode publicar tudo isso"*.
+
+---
+
+### 1. 🚑 A lesão virou UM DADO POR RODADA (a causa raiz, finalmente)
+O que faltava desde a madrugada (ver o bloco "Por que machucava tanto" mais abaixo, que
+fica aqui de propósito como histórico). `sorteiaLesaoDesgaste` jogava um dado **pra cada
+titular cansado** — com 9 🚑 em campo isso dava **61% de chance por rodada** e ~9 lesões
+por temporada. Agora a rodada sorteia **uma vez só**, no jogador de PIOR gás:
+  · teto de **10% por rodada**, doa o time que doer;
+  · escalar mais gente morta continua sendo pior (o pior gás piora e o dado sobe de 5%
+    pra 10%), só não vira loteria;
+  · medido depois da mudança, com 9 🚑 + 2 🥵 em campo as 38 rodadas inteiras: **3,9
+    lesões por temporada** (era 9,0). Com só um 🥵: 1,9.
+Determinismo intacto (reload não re-sorteia) e a condição física não foi tocada.
+Testes novos em `scripts/testa-condicao.mjs`: o teto com o time todo 🚑, "quem cai é
+sempre o de pior gás" e a mistura 1 🚑 + 4 🥵.
+**Reverter**: uma função em `condicao.ts`. Nada de save.
+
+### 2. ⬇️ O placar encolhe quando você rola (ideia DELE)
+Palavras dele: *"sobre arrastar pra baixo o placar rolando daria?? qd eu quiser arrastar
+p descer mais as coisas"*. Como ele **barrou tirar** o estádio, o placar e o campinho
+(*"mas isso aqui N deve sair… E o campinho C elenco Tb não"*), nada some — o placar
+ENCOLHE. Saiu da tela por cima, vira faixinha preta grudada no topo com o **resultado ao
+vivo + o minuto**; toca nela e volta pro placar inteiro; subiu, ele abre sozinho.
+Detalhes que importam:
+  · a faixinha entra **abaixo** da faixa da carreira (z-index 99987 contra 99988) e
+    **empurra as sub-abas grudadas** pra baixo — não cobre nada;
+  · não aparece nos momentos sagrados (intervalo, pênalti, festa de campeão);
+  · 🚫 anti-spoiler: o placar é o daquele minuto (mesma conta do `LiveScoreCard`) e zera
+    na virada de rodada.
+Feito no componente novo `PlacarQueEncolhe` (`pyramidseason.tsx`), que embrulha o
+`MyMatchCard` sem mexer nele.
+**Reverter**: trocar `<PlacarQueEncolhe …>` de volta por `<MyMatchCard …>`.
+
+### 3. 🎛️ Hierarquia da tela de carreira (mockup v2, "forma segue papel")
+Queixa dele com dois prints: *"o cara tem q descer lá em baixo p ver o elenco"* e *"isso
+aqui Tb N tá legal.. Olha q confusão tudo parecido"*. **Nada mudou de lugar** — só a
+FORMA de cada coisa:
+  · **ação** = único botão grande (`.ll25-career .ll25-actions`); PULAR menor ao lado;
+  · ⚠️ o botão grande ficou **DOURADO, não verde** como no mockup: o verde virou o
+    "ligado" do ritmo em 15/09 e uma cor não pode significar duas coisas. Quem faz a
+    hierarquia é o TAMANHO. Se ele quiser verde, é uma linha de CSS;
+  · **ritmo** = segue a faixinha fina verde de 15/09 (intocada);
+  · **TIME / AGENCIADOS** = aba de TEXTO com sublinhado na cor do time (era caixa com
+    borda grossa, igual aos botões de ação);
+  · **tática** = pastilha redonda sob o rótulo **⚔️ TÁTICA DO PRÓXIMO JOGO** (o azul de
+    13/08 continua sendo a cor da tática);
+  · **atalho 🚑** colado na caixa do clube: *"9 esgotados · gás do time 29% — toque pra
+    ver quem"*, rola direto pros ⭐ Titulares (âncora `ID_TITULARES`). Só aparece quando
+    tem 🥵 ou 🚑 no time; time inteiro, some.
+Mockup do estado publicado: `scripts/mockups/carreira-hierarquia-v3.png`.
+**Reverter**: as duas regras `.ll25-career .ll25-actions` do CSS + três blocos do
+`pyramidseason.tsx`. Nada de save, nada de banco.
+
+📢 Novidades: duas linhas novas (o placar que acompanha e a tela mais fácil de ler). A
+lesão **não** virou novidade — é conserto, e conserto não vai pra tela do jogador.
+
+---
+
 ## 15/09/2026 — 🧩 "Caiu pra home no meio do jogo" = publicação derrubando quem está jogando (CONHECIDO, o Diego pediu pra DEIXAR)
 
 Relato do Diego, vendo a live do canalmeianacanela: *"durante o jogo teve umas duas vezes

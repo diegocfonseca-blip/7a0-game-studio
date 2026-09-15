@@ -116,13 +116,13 @@ const html = `<!doctype html><meta charset="utf-8">
  .fita{background:#000;color:#e6e1cf;border-radius:9px;padding:7px 10px;font:700 11px Oswald;letter-spacing:.4px;margin-bottom:9px;display:flex;align-items:center}
  .fita b{color:#fff;font-size:13px;margin:0 4px} .cv{margin-left:auto;opacity:.6}
  .acao{display:flex;gap:7px;margin-bottom:9px}
- .big{flex:2.1;background:${VERDE};color:#fff;border:3px solid ${INK};border-radius:12px;box-shadow:3px 4px 0 ${INK};min-height:52px;font:900 16px Oswald}
+ .big{flex:2.1;background:${GOLD};color:${INK};border:3px solid ${INK};border-radius:12px;box-shadow:3px 4px 0 ${INK};min-height:52px;font:900 16px Oswald}
  .pular{flex:1;background:#fff;border:2px solid ${INK};border-radius:10px;box-shadow:2px 2px 0 ${INK};min-height:52px;font:700 12px Oswald}
  .ritmo{display:flex;align-items:center;gap:7px;background:#000;border-radius:10px;padding:5px 8px;margin-bottom:11px}
  .ritmo .rot{font:900 9px Oswald;letter-spacing:1px;color:#b9b19a}
  .ritmo .seg{flex:1;display:flex;border:2px solid #6c6350;border-radius:7px;overflow:hidden}
  .ritmo .seg button{flex:1;background:transparent;border:0;color:#cfc8b4;min-height:26px;font:700 11px Oswald}
- .ritmo .seg .on{background:${GOLD};color:${INK};font-weight:900}
+ .ritmo .seg .on{background:${VERDE};color:#fff;font-weight:900}
  .ritmo select{background:#1d2118;color:#e6e1cf;border:2px solid #6c6350;border-radius:7px;min-height:26px;font:700 10.5px Oswald;padding:0 5px}
  .abast{display:flex;gap:18px;border-bottom:3px solid rgba(0,0,0,.14);margin-bottom:11px}
  .abast button{background:none;border:0;border-bottom:4px solid transparent;padding:0 2px 7px;font:900 14px Oswald;color:rgba(0,0,0,.4);margin-bottom:-3px}
@@ -164,17 +164,17 @@ const html = `<!doctype html><meta charset="utf-8">
  .nota{margin-top:20px;background:#FFF4E2;border:4px solid #B8722A;border-radius:14px;padding:15px 18px;font-size:15px;line-height:1.55;color:#3A2C18}
  .nota b{font-weight:800}
 </style>
-<h1>A tela de carreira: dar hierarquia e mostrar o elenco</h1>
+<h1>A tela de carreira: hierarquia e atalho pro elenco</h1>
 <p class="sub">2ª volta: o Diego barrou tirar o estádio, o placar e o campinho — <b>tudo isso fica</b>. O que muda é só a <b>forma</b> das quatro fileiras de botão (que hoje são iguais com significados diferentes: ritmo, ação, navegação e tática) e entra <b>um atalho</b> pro elenco. Regra: <b>a forma segue o papel</b>.</p>
 <div class="grid">
   <div class="col"><div class="ct a">Como é hoje</div><div class="tela">${hoje}</div></div>
-  <div class="col"><div class="ct b">Proposta</div><div class="tela">${proposta}</div></div>
+  <div class="col"><div class="ct b">Assim ficou (publicado 15/09)</div><div class="tela">${proposta}</div></div>
 </div>
 <div class="nota">
-  <b>O que muda, item por item:</b><br>
+  <b>✅ PUBLICADO em 15/09 — o que mudou, item por item:</b><br>
   · <b>NADA SAI DO LUGAR.</b> Estádio, torcida, placar, campinho e tática continuam onde estão, na mesma ordem — você barrou a ideia de colapsar, e com razão.<br>
   · <b>Só a AÇÃO é botão grande</b> — "Próxima rodada" é a única coisa que faz o jogo andar. O PULAR fica ao lado, menor.<br>
-  · <b>O ritmo vira faixa fina escura</b>, igual já ficou no online hoje. Ajuste não compete com ação.<br>
+  · <b>O botão grande ficou DOURADO, não verde</b> (mudei de propósito na hora de codar): o verde agora é o "ligado" do ritmo, e uma cor não pode querer dizer duas coisas. Quem manda na hierarquia é o TAMANHO.<br>· <b>O ritmo continua a faixa fina verde</b> que você aprovou dia 15 ("só menor e verde"). Ajuste não compete com ação.<br>
   · <b>TIME/AGENCIADOS vira aba de texto</b> com sublinhado. Aba não é botão — e assim some mais uma fileira de caixas.<br>
   · <b>A tática vira pastilha redonda</b> com um rótulo em cima ("⚔️ TÁTICA DO PRÓXIMO JOGO") — fica no mesmo lugar, mas deixa de parecer mais uma fileira de botões.<br>
   · <b>Entra o ATALHO 🚑</b> colado na caixa do clube: "9 esgotados · gás 29% — toque pra ver quem". <b>Um toque</b> leva direto pra lista, sem rolar nada. É isso que resolve o "tem que descer lá embaixo" sem tirar nada da tela.

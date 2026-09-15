@@ -29,6 +29,14 @@
 .ll25-rhythm select:enabled{background:#FFC400}
 .ll25-tabs{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:6px;margin:16px 0}.ll25-tabs button{padding:7px 2px;font-size:12px}
 .ll25-actions{display:flex;gap:8px;margin:12px 0}.ll25-actions button{flex:1}.ll25-actions button:first-child{background:#FFC400}
+/* 🎛️ AÇÃO ≠ RESTO (Diego 15/09: *"olha q confusão tudo parecido"*). Na carreira o
+   "▶️ Próxima rodada" e o "PULAR" tinham o MESMO tamanho, então a tela não dizia qual
+   é o botão que faz a rodada andar. Agora a AÇÃO é o único botão grande e o PULAR fica
+   do tamanho de um acessório ao lado. Fica DOURADO de propósito: o verde já é o
+   "ligado" do ritmo e não pode querer dizer duas coisas. Só na carreira — a tela do
+   online rápido segue igual. */
+.ll25-career .ll25-actions button:first-child{flex:2.1;min-height:52px;font-size:16px;font-weight:900;border-radius:12px;box-shadow:3px 4px 0 #0C0C0C}
+.ll25-career .ll25-actions button:nth-child(2){flex:1;min-height:52px;font-size:12px;border-width:2px;box-shadow:2px 2px 0 #0C0C0C}
 .ll25-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .ll25-shell{background-image:linear-gradient(180deg,rgba(4,12,8,.28),rgba(4,12,8,.8)),url('./img/online-estadio-v25.webp');background-size:cover;background-position:center top;background-attachment:fixed}
 .ll25-shell>div.max-w-xl{max-width:1000px}.ll25-shell [hidden]{display:none!important}

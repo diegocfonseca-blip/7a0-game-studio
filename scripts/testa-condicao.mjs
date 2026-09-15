@@ -105,6 +105,18 @@ const gasLim = { ...gasOk, t8: 15 } // 🥵
 hits = 0
 for (let seed = 1; seed <= 4000; seed++) if (sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasLim })) hits++
 ok(hits > 4000 * (LESAO_LIMITE_PCT - 0.03) && hits < 4000 * (LESAO_LIMITE_PCT + 0.03), `🥵: ~${Math.round(LESAO_LIMITE_PCT * 100)}% por jogo (medido ${(hits / 40).toFixed(1)}%)`)
+// 🚨 O TETO (15/09): time INTEIRO acabado não pode virar loteria. Antes o dado era
+// jogado pra cada cansado — 9 🚑 davam 61% por rodada. Agora é UM dado por rodada.
+const gasMorto = Object.fromEntries(squad.map(c => [c.id, 5])) // TODO mundo 🚑
+hits = 0; let semprePior = true
+for (let seed = 1; seed <= 4000; seed++) { const d = sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasMorto }); if (d) { hits++; if ((gasMorto[d.card.id] ?? 100) !== 5) semprePior = false } }
+ok(hits < 4000 * (LESAO_ESGOTADO_PCT + 0.03), `time TODO 🚑: continua no teto de ~${Math.round(LESAO_ESGOTADO_PCT * 100)}% por rodada (medido ${(hits / 40).toFixed(1)}%) — um dado por rodada, não um por jogador`)
+ok(semprePior, 'e quem cai é sempre o de PIOR gás')
+// mistura: um 🚑 e vários 🥵 → o dado é o do 🚑 (o pior), não a soma de todos
+const gasMix = { ...gasOk, t8: 5, t7: 15, t6: 16, t5: 17, t4: 14 }
+hits = 0
+for (let seed = 1; seed <= 4000; seed++) { const d = sorteiaLesaoDesgaste({ seed, seasonNo: 3, round: 10, xi: xiCards, gas: gasMix }); if (d) { hits++; if (d.card.id !== 't8') hits = -1e9 } }
+ok(hits > 4000 * (LESAO_ESGOTADO_PCT - 0.03) && hits < 4000 * (LESAO_ESGOTADO_PCT + 0.03), `1 🚑 + 4 🥵: ~${Math.round(LESAO_ESGOTADO_PCT * 100)}% (medido ${(hits / 40).toFixed(1)}%), e sempre o 🚑`)
 const d1 = sorteiaLesaoDesgaste({ seed: 77, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg }), d2 = sorteiaLesaoDesgaste({ seed: 77, seasonNo: 3, round: 10, xi: xiCards, gas: gasEsg })
 ok(JSON.stringify(d1) === JSON.stringify(d2), 'determinístico: reload não re-sorteia')
 

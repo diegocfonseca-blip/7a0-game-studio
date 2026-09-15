@@ -2731,6 +2731,80 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
     youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} />
 }
 
+// ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────
+// Palavras dele: *"sobre arrastar pra baixo o placar rolando daria?? qd eu quiser
+// arrastar p descer mais as coisas"*. A queixa era que o Elenco mora longe demais —
+// pra ver quem está cansado a pessoa tem que rolar por cima do estádio, do placar e
+// dos avisos. E ele BARROU tirar qualquer um desses três da tela ("mas isso aqui N
+// deve sair... E o campinho C elenco Tb não").
+//
+// Então nada some: o placar ENCOLHE.
+//   · No topo, inteiro, exatamente como sempre foi.
+//   · Rolou pra baixo até o placar sair da tela → uma faixinha preta gruda no alto
+//     com o resultado AO VIVO (ninguém perde um gol por estar olhando o elenco).
+//   · Tocou na faixinha → volta pro placar inteiro. Subiu → ele abre sozinho.
+// A faixinha entra ABAIXO da faixa da carreira (z-index menor) e empurra as
+// sub-abas grudadas pra baixo, então não cobre nada.
+// 🚫 ANTI-SPOILER: o placar da faixinha é o placar NAQUELE minuto, com a mesma
+// conta do LiveScoreCard (gols filtrados por `min`), e zera na virada de rodada.
+const MINI_PLACAR_H = 30
+function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu }: {
+  m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
+  pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
+  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void
+}) {
+  const [min, setMin] = useState(finished ? 93 : 0)
+  const [fora, setFora] = useState(false)
+  const caixa = useRef<HTMLDivElement | null>(null)
+  const reportar = useCallback((n: number) => { setMin(n); onMinuteChange?.(n) }, [onMinuteChange])
+  // rodada nova: zera JÁ na renderização (mesma guarda do LiveScoreCard), senão a
+  // faixinha mostraria o placar da rodada anterior com os nomes do jogo novo.
+  const rkRef = useRef(roundKey)
+  if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0) }
+  useEffect(() => {
+    const el = caixa.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    // só liga quando o placar saiu POR CIMA (a pessoa rolou pra baixo).
+    const io = new IntersectionObserver(([e]) => {
+      const v = !e.isIntersecting && e.boundingClientRect.top < 0
+      setFora(v); onEncolheu(v)
+    }, { threshold: 0 })
+    io.observe(el)
+    return () => { io.disconnect(); onEncolheu(false) }
+  }, [onEncolheu])
+  const fim = !!finished || min >= 93
+  const vistos = fim ? m.goals : m.goals.filter(g => g.min <= min)
+  const hg = vistos.filter(g => g.home).length
+  const ag = vistos.length - hg
+  const iAmHome = m.h === youName
+  const nome = (t: string, meu: boolean) => (
+    <b style={{ ...OSWALD, fontWeight: meu ? 900 : 700, fontSize: 11.5, color: meu ? '#fff' : 'rgba(255,255,255,.72)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '38vw' }}>{t}</b>
+  )
+  return (
+    <>
+      <div ref={caixa}>
+        <MyMatchCard m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
+          roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} />
+      </div>
+      {fora && !escondido && (
+        <button type="button" onClick={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          title={tr('toque pra abrir o placar inteiro', 'tap to open the full scoreboard')}
+          style={{ position: 'fixed', top: topo, left: 0, right: 0, zIndex: 99987, height: MINI_PLACAR_H, width: '100%',
+            background: 'rgba(12,12,12,.96)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', color: '#fff', border: 0,
+            boxShadow: '0 2px 10px rgba(0,0,0,.18)', display: 'flex', alignItems: 'center', gap: 7, padding: '0 10px', cursor: 'pointer' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: fim ? '#C2452F' : '#1B7A3D', borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>{fim ? tr('FIM', 'FT') : `${min}'`}</span>
+          <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            {nome(m.h, iAmHome)}
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: '#fff', color: INK, borderRadius: 6, padding: '0 8px', whiteSpace: 'nowrap' }}>{hg} × {ag}</span>
+            {nome(m.a, !iAmHome)}
+          </span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,.55)', whiteSpace: 'nowrap' }}>▴ {tr('abrir', 'open')}</span>
+        </button>
+      )}
+    </>
+  )
+}
+
 // ── 🔁 BANNER DO INTERVALO (carreira offline): pausa aos 45' e deixa o técnico
 // mexer SÓ no 2º tempo — trocar jogador (mesma posição), formação e tática. Vale
 // só pra esta partida; NÃO muda o time do próximo jogo (isso é lá no Elenco).
@@ -3155,6 +3229,8 @@ const POS_LABEL_EN: Record<Sector, string> = { GOL: 'Goalkeepers', LAT: 'Full-ba
 // 🌐 lê o idioma a cada acesso (Proxy barato): `POS_LABEL[pos]` continua igual nos usos
 const POS_LABEL: Record<Sector, string> = new Proxy(POS_LABEL_PT, { get: (_t, k) => (getLang() === 'en' ? POS_LABEL_EN : POS_LABEL_PT)[k as Sector] })
 type ListCfg = { listed: boolean; listable: boolean; onList: () => void }
+// 🚑 âncora da lista de titulares: o atalho do cabeçalho do clube rola até aqui.
+const ID_TITULARES = 'll-titulares'
 function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boolean; col: FCol; onSwap?: () => void; list?: ListCfg }) {
   const listed = !!list?.listed
   const dim = !!list && !list.listable && !listed // modo listagem: sem poder listar (último da posição / bloqueado)
@@ -3571,7 +3647,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           jogador de qualquer lista OU do campinho e completa no outro). */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, alignItems: 'start' }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('⭐ Titulares', '⭐ Starters')} ({titulares.length})</p>
+          {/* 🚑 alvo do atalho do cabeçalho (ver ID_TITULARES) */}
+          <p id={ID_TITULARES} style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('⭐ Titulares', '⭐ Starters')} ({titulares.length})</p>
           {titulares.map(c => rowOf(c, true))}
         </div>
         <div style={{ minWidth: 0 }}>
@@ -4288,6 +4365,16 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
   // de brilho (holo), igual à carta — só na aba Elenco, que é o "manto" dele.
   const perk = perkOverride ?? myApoioPerk()
   const shine = elenco && perk && perk.holo > 0
+  // 😓 resumo do gás dos 11 do PRÓXIMO jogo — usado em dois lugares: a linha
+  // "🏃 Gás do time" do cabeçalho e o atalho 🚑 logo abaixo dele.
+  const resumoGas = (() => {
+    if (!elenco || !condicao || !xiIds) return null
+    const ids = [...xiIds].filter(id => mgr.squad.some(c => c.id === id && !c.fake))
+    if (!ids.length) return null
+    const media = ids.reduce((s, id) => s + (condicao.gas[id] ?? 100), 0) / ids.length
+    const conta = (e: string) => ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === e).length
+    return { media, pct: pctBarra(media), cor: corBarra(media), esg: conta('esgotado'), lim: conta('limite'), can: conta('cansado') }
+  })()
   return (
     <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12 }}>
       {shine && <ApoioSheen holo={perk.holo} />}
@@ -4300,19 +4387,30 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
         <span title={tr('Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)', 'Sum of the 22 players\' market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
-        {/* 😓 resumo do gás do TIME (média dos 11 do próximo jogo) — a leitura de relance */}
-        {elenco && condicao && xiIds && (() => {
-          const ids = [...xiIds].filter(id => mgr.squad.some(c => c.id === id && !c.fake))
-          if (!ids.length) return null
-          // média do gás CRU dos 11; na tela, a mesma leitura das barrinhas (pctBarra/corBarra)
-          const media = ids.reduce((s, id) => s + (condicao.gas[id] ?? 100), 0) / ids.length
-          const nEsg = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'esgotado').length
-          const nLim = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'limite').length
-          const nCan = ids.filter(id => estadoGas(condicao.gas[id] ?? 100) === 'cansado').length
-          const cor = corBarra(media)
-          return <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: cor }}>{pctBarra(media)}%</span>{nEsg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {nEsg} 🚑</span> : null}{nLim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {nLim} 🥵</span> : null}{nCan ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {nCan} 😓</span> : null}</span>
-        })()}
+        {/* 😓 resumo do gás do TIME (média dos 11 do próximo jogo) — a leitura de relance.
+            Na tela é a mesma leitura das barrinhas (pctBarra/corBarra), nunca o gás cru. */}
+        {resumoGas && <span style={{ marginLeft: 'auto', fontWeight: 900, fontSize: 11, ...OSWALD, color: INK, whiteSpace: 'nowrap' }}>🏃 {tr('Gás do time', 'Team energy')}: <span style={{ color: resumoGas.cor }}>{resumoGas.pct}%</span>{resumoGas.esg ? <span style={{ fontSize: 9, color: '#7A1B1B' }}> · {resumoGas.esg} 🚑</span> : null}{resumoGas.lim ? <span style={{ fontSize: 9, color: '#C2452F' }}> · {resumoGas.lim} 🥵</span> : null}{resumoGas.can ? <span style={{ fontSize: 9, color: '#B8860B' }}> · {resumoGas.can} 😓</span> : null}</span>}
       </div>
+      {/* 🚑 ATALHO PRO ELENCO (Diego 15/09: *"o cara tem q descer lá em baixo p ver o
+          elenco... os cansados e etc"*). Entre o cabeçalho do clube e a lista mora um
+          monte de coisa (formação, banners, modo de troca, campinho). Em vez de MEXER
+          nessa ordem — ele barrou mexer —, quando tem gente no vermelho aparece UMA
+          linha que diz o problema e leva direto pros titulares. Time inteiro = some. */}
+      {resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0) && (
+        <button onClick={() => document.getElementById(ID_TITULARES)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, textAlign: 'left', background: '#FDECEA', border: `2.5px solid ${resumoGas.esg ? '#C2452F' : '#E8503A'}`, borderRadius: 10, padding: '7px 9px', marginBottom: 10, boxShadow: '2px 3px 0 0 rgba(122,27,27,.55)', cursor: 'pointer' }}>
+          <span style={{ fontSize: 19, lineHeight: 1, flexShrink: 0 }}>{resumoGas.esg ? '🚑' : '🥵'}</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <b style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 12, color: '#8a2318' }}>
+              {resumoGas.esg
+                ? tr(`${resumoGas.esg} esgotado${resumoGas.esg > 1 ? 's' : ''} · gás do time ${resumoGas.pct}%`, `${resumoGas.esg} spent · team energy ${resumoGas.pct}%`)
+                : tr(`${resumoGas.lim} no limite · gás do time ${resumoGas.pct}%`, `${resumoGas.lim} on the limit · team energy ${resumoGas.pct}%`)}
+            </b>
+            <i style={{ fontStyle: 'normal', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{tr('toque pra ver quem — e trocar', 'tap to see who — and swap')}</i>
+          </span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 17, color: '#8a2318', flexShrink: 0 }}>›</span>
+        </button>
+      )}
       {elenco && onSetFormation && (() => {
         // 🎽 troca de formação: libera pra QUALQUER formação que você consiga preencher
         // por posição com jogadores REAIS e SEUS (emprestado não conta — é extra que
@@ -7219,11 +7317,19 @@ export function PyramidSeasonScreen() {
     io.observe(el)
     return () => io.disconnect()
   }, [barraOn])
+  // ⬇️ o placar encolhido (a faixinha do resultado) — ver PlacarQueEncolhe. Fica
+  // logo ABAIXO da faixa da carreira e, quando está na tela, empurra as sub-abas
+  // grudadas pra baixo pra nada ficar escondido atrás dela. Nos momentos sagrados
+  // (intervalo, pênalti, festa de campeão) ela não aparece: nada compete com eles.
+  const [placarEncolhido, setPlacarEncolhido] = useState(false)
+  const marcaEncolhido = useCallback((v: boolean) => setPlacarEncolhido(v), [])
+  const miniPlacarOn = placarEncolhido && !sagrado
+  const topoMini = (barraOn && cabFora) ? FAIXA_H : 0
   // A fileira gruda logo abaixo da faixa fina. De propósito ela para 6px ACIMA
   // do fim da faixa: assim o padding de cima do wrapper fica ESCONDIDO atrás da
   // faixa (que é opaca e vem por cima) e não sobra nenhuma fresta pro conteúdo
   // aparecer entre as duas. As pílulas continuam inteiras.
-  const topoSub = (barraOn && cabFora) ? FAIXA_H - 6 : 0
+  const topoSub = ((barraOn && cabFora) ? FAIXA_H - 6 : 0) + (miniPlacarOn ? MINI_PLACAR_H : 0)
   // 🐛 CONSERTO (21/08, vídeo de usuário): a fileira de pílulas aparecia BOIANDO
   // por cima da tela do intervalo. O banner do intervalo (e o do pênalti, e a
   // festa de campeão) é desenhado ANTES do bloco das abas, então ele fica na
@@ -7569,7 +7675,7 @@ export function PyramidSeasonScreen() {
         {copaFinished && copa?.champion && (
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? tr('👉 Ver fases e resultados na aba Tabelas', '👉 See rounds and results in the Tables tab') : tr('👉 ver o chaveamento da Copa na aba Tabelas', '👉 see the Cup bracket in the Tables tab')}</button>
         )}
-        {!done && myMatch && me && <MyMatchCard onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} />}
+        {!done && myMatch && me && <PlacarQueEncolhe onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
@@ -8514,10 +8620,21 @@ export function PyramidSeasonScreen() {
                 nome/ícone da aba-mãe "Elenco", confundindo (14/08, pedido do Diego). */}
             {state.agenciaOn && agLib && (
               <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
-              <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-                {(([['elenco', '🎽', tr('Time', 'Team')], ['agencia', '🕴️', tr('Agenciados', 'Clients')]]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => (
-                  <button key={sb} onClick={() => setElencoSub(sb)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: elencoSub === sb ? myCol.solid : '#fff', color: elencoSub === sb ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
-                ))}
+              {/* 🎛️ FORMA SEGUE PAPEL (Diego 15/09): NAVEGAR não é apertar. Estas duas
+                  eram caixas com borda grossa e sombra dura, iguaizinhas aos botões de
+                  ação logo acima — quatro fileiras de botão empilhadas ("tudo parecido").
+                  Viraram aba de TEXTO com sublinhado: continuam no mesmo lugar, fazem a
+                  mesma coisa, só não competem mais com o que precisa ser apertado. */}
+              <div style={{ display: 'flex', gap: 18, borderBottom: '3px solid rgba(12,12,12,.14)', marginBottom: subGrudadas ? 0 : 10 }}>
+                {(([['elenco', '🎽', tr('Time', 'Team')], ['agencia', '🕴️', tr('Agenciados', 'Clients')]]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => {
+                  const on = elencoSub === sb
+                  return (
+                    <button key={sb} onClick={() => setElencoSub(sb)} aria-current={on ? 'page' : undefined}
+                      style={{ background: 'none', border: 0, borderBottom: `4px solid ${on ? myCol.solid : 'transparent'}`, marginBottom: -3, padding: '0 2px 7px', fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', color: on ? INK : 'rgba(12,12,12,.42)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, ...OSWALD }}>
+                      <span style={{ fontSize: 14 }}>{ic}</span>{label}
+                    </button>
+                  )
+                })}
               </div>
               </SubAbasGrudadas>
             )}
@@ -8555,14 +8672,16 @@ export function PyramidSeasonScreen() {
                 fica AQUI no topo do elenco (era na aba Jogos). */}
             {!done && (
               <>
-                {/* botões de tática MENORES que as abas do menu (pra não confundir) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, marginBottom: 6 }}>
+                {/* 🎛️ FORMA SEGUE PAPEL (Diego 15/09: *"olha q confusão, tudo parecido"*).
+                    A tática não é botão de apertar-agora nem aba — é um AJUSTE do time.
+                    Então ganhou rótulo próprio e virou PÍLULA arredondada, sem sombra
+                    dura: forma diferente separa mais que cor. O azul continua sendo a
+                    cor da tática (decisão de 13/08), só que agora dentro da pílula. */}
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1.1, color: '#5a5647', textTransform: 'uppercase', margin: '0 0 5px' }}>{tr('⚔️ Tática do próximo jogo', '⚔️ Tactics for the next match')}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
                   {([['retranca', tr('🧱 Retranca', '🧱 Park the bus')], ['equilibrio', tr('⚖️ Equilíbrio', '⚖️ Balanced')], ['ataque', tr('🔥 Ataque', '🔥 Attack')]] as [Tac, string][]).map(([t, label]) => (
-                    // 🎨 CORES DO ELENCO (Diego 13/08 — "parede amarela, tudo dourado"):
-                    // tática ganha cor PRÓPRIA (azul), separada do dourado da navegação
-                    // e do verde da substituição — mockup aprovado antes de codar.
                     <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: youId, tactic: t })}
-                      style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '5px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? '#2F6BAE' : '#fff', color: myTactic === t ? '#fff' : INK, boxShadow: myTactic === t ? `2px 2px 0 0 ${INK}` : 'none', cursor: 'pointer' }}>
+                      style={{ border: `2px solid ${myTactic === t ? '#2F6BAE' : 'rgba(12,12,12,.28)'}`, borderRadius: 999, padding: '6px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? '#2F6BAE' : 'rgba(255,255,255,.75)', color: myTactic === t ? '#fff' : '#5a5647', cursor: 'pointer' }}>
                       {label}
                     </button>
                   ))}
