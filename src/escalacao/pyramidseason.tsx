@@ -2325,7 +2325,10 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 const ROUND_MS = 9000
 // ⏱️ +1s SÓ no AUTO da carreira (Diego 13/09: "aumente mais 1s o tempo da simulação da
 // partida no modo carreira em auto"). No manual o técnico já controla o ritmo (🐢/⏩).
-const AUTO_EXTRA_MS = 1000
+// ⏱️ …e desde 15/09 vale pra COPA também, nas palavras dele: *"aumente p 1s a simulação
+// dos jogos das Copas nos jogos rolando no modo auto, nos jogos das copas dos modos online
+// e no off-line do modo carreira"*. Mesmo +1s, mesma regra: só no AUTO.
+export const AUTO_EXTRA_MS = 1000
 export const COPA_LEG_MS = 9000 // cada JOGO da Copa rola ~9s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
 
 // COR DO TIME: todo mundo começa na cor BEGE do "Foi Profissional" — a cor
@@ -4988,10 +4991,10 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
 // (vira a volta), o `roundKey` muda e ele reinicia com os gols do 2º jogo — e
 // os lados trocam, porque na volta quem manda é o outro.
 // 🛟 (13/09) o SEU jogo da Copa também fica numa zona segura — mesmo motivo da lista.
-function MyCopaMatch(props: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+function MyCopaMatch(props: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
 }
-function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed, footTint, final=false }: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
+function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   const privateMatch = useOnlinePreview()
   const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
   const nLegs = legG.length
@@ -5006,7 +5009,10 @@ function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed,
   const homeT = swap ? tie.b : tie.a, awayT = swap ? tie.a : tie.b
   const colOf = (t: SimTeam) => t.you || (safName && t.name === safName) ? myColor : (colors[t.teamId]?.solid ?? copaSideColor(t.name))
   const sf = simSpeed && simSpeed > 0 ? simSpeed : 1
-  const roundMs = Math.max(400, (COPA_LEG_MS / sf) / 0.82)
+  // `legMs` vem da tela (COPA_LEG_MS, +1s quando está no AUTO) — os DOIS relógios,
+  // este card e a lista de jogos, TÊM que sair do mesmo número, senão o placar do
+  // seu jogo apita fora de hora em relação aos outros.
+  const roundMs = Math.max(400, (legMs / sf) / 0.82)
   const aWin = tie.win === 'a'
   const winName = aWin ? copaName(tie.a) : copaName(tie.b)
   const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens) : 0
@@ -6450,13 +6456,20 @@ export function PyramidSeasonScreen() {
   // ⏱️ quanto o relógio da fase espera pelos SEUS pênaltis (número, pra entrar como
   // dependência estável do efeito do relógio logo abaixo)
   const copaPenMs = myCopaTie?.pens ? Math.ceil(pensRevealDelay(myCopaTie.pens) * 1000) : 0
-  // cada JOGO rola ~COPA_LEG_MS (como uma partida da liga): toca a IDA inteira e
+  // ⏱️ TEMPO DE CADA JOGO DA COPA (15/09, Diego: *"aumente p 1s a simulação dos jogos
+  // das Copas nos jogos rolando no modo auto"*): no AUTO cada perna dura COPA_LEG_MS+1s;
+  // no manual continua COPA_LEG_MS, porque lá quem manda no ritmo é o 🐢/⏩ do técnico —
+  // a MESMA regra que a partida da liga já segue desde 13/09 (`baseRoundMs`).
+  // ⚠️ Este número alimenta os DOIS relógios da Copa (o card do seu jogo e a lista das
+  // outras chaves). Eles têm que sair daqui juntos, senão um apita antes do outro.
+  const copaLegMs = manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
+  // cada JOGO rola ~copaLegMs (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
   useEffect(() => {
     if (!copaPlaying) return
     setCopaPos(0); setCopaReady(false)
     const sf = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1 // ⏩ marcha escolhida
-    const dur = Math.round((copaNLegs * COPA_LEG_MS) / sf)
+    const dur = Math.round((copaNLegs * copaLegMs) / sf)
     const t0 = Date.now()
     const iv = setInterval(() => setCopaPos(Math.min(copaFaseTotal, ((Date.now() - t0) / dur) * copaFaseTotal)), 90)
     // 🎯 SE O SEU JOGO FOI PRA PÊNALTIS, A FASE ESPERA A DISPUTA ACABAR.
@@ -6480,7 +6493,7 @@ export function PyramidSeasonScreen() {
     return () => { clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
     // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
-  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaPenMs])
+  }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs])
   // quando a Copa COMEÇA (temporada da liga encerrou), joga todo mundo pra aba
   // Jogos — é lá que a Copa toca ao vivo, em cima dos jogos. (Uma vez por temporada.)
   useEffect(() => { if (copaPlaying) setTab('jogos') }, [copaPlaying])
@@ -7594,7 +7607,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && <MyCopaMatch final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed}
+        {copaPlaying && myCopaTie && <MyCopaMatch final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue

@@ -31,7 +31,7 @@ const CopaDaLigaLazy = lazy(() => import('./copa-mundo-online').then(m => ({ def
 import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estante · Temporadas · Ajustes
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
@@ -5295,7 +5295,12 @@ export function EscSeason() {
   // 2× e 4× (em 2× esperava 6,5s por uma disputa de até 11,5s) — o mesmo defeito que
   // o jogador relatou na Copa da carreira. Então o tempo do jogo divide, o dos
   // pênaltis é somado depois, inteiro.
-  const copaAnimMs = Math.round(QUICK_COPA_LEG_MS / speedFactor) + (phaseFullyPlayed && anyPens ? 13000 : 0)
+  // ⏱️ +1s SÓ NO AUTO (15/09, Diego: *"aumente p 1s a simulação dos jogos das Copas nos
+  // jogos rolando no modo auto"*) — mesma regra da partida da liga. No manual quem manda
+  // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
+  // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
+  const copaLegMs = manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS
+  const copaAnimMs = Math.round(copaLegMs / speedFactor) + (phaseFullyPlayed && anyPens ? 13000 : 0)
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending || cupNow) return // a Cup tem o motor dela
     const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round(3200 / speedFactor) : copaAnimMs)
@@ -5337,7 +5342,7 @@ export function EscSeason() {
     setCopaMin(0)
     // relógio por TEMPO (igual ao card grande): cada velocidade é de fato diferente
     // e termina exato no fim do jogo. Piso de 400ms pra nunca ficar instantâneo.
-    const dur = Math.max(400, (QUICK_COPA_LEG_MS / speedFactor) * 0.82)
+    const dur = Math.max(400, (copaLegMs / speedFactor) * 0.82)
     const t0 = Date.now()
     const iv = setInterval(() => {
       const m = Math.min(93, Math.round(((Date.now() - t0) / dur) * 93))
@@ -5345,7 +5350,7 @@ export function EscSeason() {
       if (m >= 93) clearInterval(iv)
     }, 40)
     return () => clearInterval(iv)
-  }, [copaTieKey, copaLive, firstLegPending, speedFactor])
+  }, [copaTieKey, copaLive, firstLegPending, speedFactor, copaLegMs])
 
   return (
     <Shell bar={
@@ -5598,7 +5603,7 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={QUICK_COPA_LEG_MS} classico={oppIsHuman}
+                      roundMs={copaLegMs} classico={oppIsHuman}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
