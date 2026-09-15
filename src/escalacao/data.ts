@@ -1406,11 +1406,14 @@ const L29_BR_ATA: C[] = [
 // Maringá FC"*. Auge = 2014, o ano em que ele foi capitão do Maringá FC na final
 // do Paranaense, com o clube fundado havia só 4 anos (perdeu pro Londrina nos
 // pênaltis, 1-1 no tempo normal). É o jogador com mais jogos pelo Maringá FC.
-// Categoria BOM JOGADOR (fame 2, faixa larga): passou dos 400 jogos como
-// profissional e rodou fora (Racing Santander, Cerro Porteño, Chile, Venezuela),
-// mas nunca foi estrela nacional — então não é craque nem "foi profissional".
+// 🪵 CATEGORIA: FOI PROFISSIONAL (fame 1) — **decisão do Diego em 15/09**: *"Leo
+// Maringá coloca como foi profissional"*. Ele tinha nascido como 🎯 Bom Jogador
+// (fame 2) e o Diego reclassificou; quem manda na categoria é ele.
+// ⚠️ O NÍVEL NÃO MUDOU (62-80): essa faixa já é usada por outras cartas fame 1, então
+// a carta continua valendo o mesmo em campo — só trocou de categoria (e de cor).
+// A bio segue intocada: é fato sobre uma pessoa real, não muda com a categoria.
 const L30_BR_MEI: C[] = [
-  { name: 'Léo Maringá', club: 'Maringá', year: 2014, fame: 2, lo: 62, hi: 80, bio: 'Capitão do Maringá FC na final do Paranaense de 2014, com o clube fundado havia apenas 4 anos — caiu nos pênaltis pro Londrina. É o jogador que mais vestiu a camisa do MFC.' },
+  { name: 'Léo Maringá', club: 'Maringá', year: 2014, fame: 1, lo: 62, hi: 80, bio: 'Capitão do Maringá FC na final do Paranaense de 2014, com o clube fundado havia apenas 4 anos — caiu nos pênaltis pro Londrina. É o jogador que mais vestiu a camisa do MFC.' },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA] }
 
