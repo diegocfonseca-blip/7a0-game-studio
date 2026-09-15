@@ -22,7 +22,7 @@
 // 🎞️ Roteiro (~31 s):
 //   0,0–3,4    duas novidades no modo carreira (a 1 e a 2 já listadas)
 //   3,4–5,6    CARTELA · NOVIDADE 1 · 👟 fornecedor de material
-//   5,6–10,0   uma marca veste o seu time — e aparece na camisa (destaque no peito)
+//   5,6–10,0   uma marca veste o seu time — e aparece na camisa (peito direito)
 //   10,0–14,6  as 4 marcas · o valor trava na divisão em que você assina
 //   14,6–16,8  CARTELA · NOVIDADE 2 · 🛍️ venda de camisas
 //   16,8–21,2  a sua camisa vira dinheiro toda temporada (a vitrine)
@@ -35,7 +35,7 @@ import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'nod
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { chromium } from 'playwright-core'
-import { camisa, escudoBase, CAMISA_TIER, LOGO_VADICO } from './loja-pecas.mjs'
+import { camisa, img, LOGO_VADICO } from './loja-pecas.mjs'
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d }
 const SAIDA = arg('--saida', 'loja-reels.mp4')
@@ -47,13 +47,18 @@ const FONTES = [400, 500, 600, 700].map(w =>
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW = 'font-family:Oswald,sans-serif;font-weight:700'
 
-// a camisa montada, em dois tamanhos (a cena 2 mostra grande, as outras menor)
+// 👕 A CAMISA DO VÍDEO É A DO **FINAL BOSS FC** — a arte de batismo de verdade, com o
+// Master da Vadico e o fornecedor de material no peito direito. Cobrança dele (15/09):
+// *"eu pedi a arte do Final Boss que fizemos com patrocínio da Vadico e fornecedor
+// esportivo, e não a do sem batismo"*. O molde de tier (`CAMISA_TIER`) serve pro post
+// que EXPLICA o escudo base de quem não tem batismo — no vídeo, que é vitrine, entra a
+// arte bonita. `escudo: ''` porque a arte do batismo já traz o escudo dele.
+const ARTE_FINALBOSS = img('public/mantos-salao/finalboss-camisa.webp')
 const CAMISA = (alt) => camisa({
-  arte: CAMISA_TIER, alt,
-  escudo: escudoBase({ letra: 'S', c1: '#2E9E5B', c2: '#14612F', size: Math.round(alt * 0.085) }),
-  fornecedor: 'Pumba', fornSimbolo: '🐆', master: '', masterLogo: LOGO_VADICO,
-  masterW: 0.20, masterH: 0.155, masterCor: '#4F462E',
-  pos: { escudoX: 64, escudoY: 27, fornX: 36, fornY: 27, masterX: 50, masterY: 61 },
+  arte: ARTE_FINALBOSS, alt, escudo: '',
+  fornecedor: 'Naique', fornSimbolo: '✓', master: '', masterLogo: LOGO_VADICO,
+  masterW: 0.22, masterH: 0.155, masterCor: INK,
+  pos: { fornX: 30, fornY: 27, masterX: 50, masterY: 58 },
 })
 
 const pill = (txt, bg, cor, fs = 32) => `
@@ -83,11 +88,11 @@ const vitrine = (alt) => `
       margin-left:-30px;margin-right:-30px;border-radius:0 0 22px 22px"></div>
   </div>`
 
-// 🔍 um anel piscando sobre um ponto da camisa (pra mostrar ONDE a marca entra)
-const anel = (x, y, atraso) => `
-  <div style="position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);
-    width:150px;height:150px;border:8px solid ${GOLD};border-radius:999px;box-shadow:0 0 0 5px ${INK}, inset 0 0 0 5px ${INK};
-    animation:anelp 1.1s ease-in-out ${atraso}s infinite"></div>`
+// 🚫 TINHA um anel dourado piscando em cima do peito direito, pra apontar onde a marca
+// entra. O Diego cortou (15/09): *"o círculo não envolveu o fornecedor de material
+// esportivo, e melhor nem ter esse círculo"*. Ele estava mesmo caindo fora do lugar (a
+// posição da estampa muda com a proporção de cada arte), e marcação que erra o alvo é
+// pior que nenhuma. A frase da cena já diz "no peito direito" — isso basta.
 
 // uma seta apontando pra um ponto da camisa
 const ponto = (emoji, titulo, txt, atraso) => `
@@ -132,7 +137,6 @@ body{width:1080px;height:1920px;background:${CREME};font-family:system-ui;overfl
 @keyframes sobe{0%{transform:translateY(90px);opacity:0}100%{transform:translateY(0);opacity:1}}
 @keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 @keyframes sobeb{0%{transform:translateY(16px)}100%{transform:translateY(-16px)}}
-@keyframes anelp{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.95}50%{transform:translate(-50%,-50%) scale(1.14);opacity:.55}}
 </style><body>
 
 <!-- ① abertura: são DUAS novidades, e já diz quais -->
@@ -171,10 +175,7 @@ ${cena(5.6, 10.0, `
     animation:sobe .45s 5.75s both">uma marca<br><span style="color:${GREEN}">veste o seu time</span></p>
   <p style="font-size:36px;font-weight:800;color:rgba(12,12,12,.62);margin-bottom:24px;text-align:center;
     animation:sobe .45s 6.05s both">e aparece na camisa, no peito direito</p>
-  <div style="position:relative;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 6.35s both">
-    ${vitrine(400)}
-    ${anel(31, 46, 7.0)}
-  </div>
+  <div style="animation:pop .55s cubic-bezier(.2,1.6,.4,1) 6.35s both">${vitrine(400)}</div>
   <p style="font-size:34px;font-weight:800;color:rgba(12,12,12,.62);margin-top:26px;text-align:center;line-height:1.3;
     animation:sobe .45s 7.6s both">contrato de 1, 2, 3 ou 5 temporadas —<br>igual ao Patrocinador Master</p>`)}
 

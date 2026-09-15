@@ -315,9 +315,23 @@ pessoas não"*. Traduzindo:
    APAGADA. A regra do jogo continua valendo (rebaixado vende zero), mas divulgação
    vende o que a pessoa GANHA — quem assusta não atrai. Vale pro post também.
 Roteiro do corte aprovado (9 cenas): as duas novidades listadas · CARTELA 1 👟 · uma
-marca veste o seu time (com anel dourado marcando o lugar da marca na camisa) · as 4
-marcas + o valor trava na divisão · CARTELA 2 🛍️ · a sua camisa vira dinheiro · quanto
-mais arquibancada, mais camisa · você escolhe o preço · marca.
+marca veste o seu time · as 4 marcas + o valor trava na divisão · CARTELA 2 🛍️ · a sua
+camisa vira dinheiro · quanto mais arquibancada, mais camisa · você escolhe o preço ·
+marca.
+
+✅ **E mais duas correções no mesmo dia** (*"o vídeo ficou ótimo, porém…"*):
+3. **Sem anel/círculo de destaque.** *"o círculo não envolveu o fornecedor de material
+   esportivo, e melhor nem ter esse círculo"*. Ele estava mesmo errando o alvo — a
+   posição da estampa muda com a PROPORÇÃO de cada arte, então marcação fixa em % não
+   acompanha. Marcação que erra é pior que nenhuma: a frase da cena já diz "no peito
+   direito". **Não repor sem ele pedir.**
+4. **Vitrine de vídeo/post usa ARTE DE BATISMO, não o molde de tier.** *"eu pedi a arte
+   do Final Boss que fizemos com patrocínio da Vadico e fornecedor esportivo, e não a do
+   sem batismo"*. Agora o reels monta `public/mantos-salao/finalboss-camisa.webp` com
+   `escudo: ''` (a arte já traz o escudo do clube), Naique ✓ no peito direito e o logo
+   da Vadico na barriga — posições `{ fornX: 30, fornY: 27, masterX: 50, masterY: 58 }`.
+   O molde de tier (`CAMISA_TIER`) continua certo **só** no post que EXPLICA o escudo
+   base de quem não tem batismo; onde é vitrine, entra arte bonita.
 
 ### 📢 Stories da venda de camisas
 `node scripts/post-loja-camisas.mjs [--saida x.png] [--no-ar]` — o irmão do post do
@@ -325,6 +339,37 @@ fornecedor, mesmo molde. Mostra a vitrine, os 3 preços com o que cada um é bom
 fazer, a aposta e o que o fornecedor soma em cima. Sem tabela de valores, como ele
 pediu — e **sem a caixa "se cair não vende nada"**, tirada junto com a do vídeo pela
 mesma ordem dele (divulgação mostra o que se ganha, não o castigo).
+
+### 🎲 EM ABERTO — juntar o Pontual e o preço da camisa numa decisão só
+Ideia dele (15/09): *"o cara que escolher o patrocínio pontual já decide de uma vez
+entre o valor que ele ganharia e também a venda de camisa — são duas coisas em uma,
+porque têm o mesmo sentido de aposta, ou não têm??"*.
+
+**A leitura dele está certa na METADE**: as duas perguntam a mesma coisa ("como vai ser
+a sua temporada?") e usam as MESMAS 3 metas — `FAIXA_META` do `loja.ts` nasceu copiando
+`SPONSOR_BET_META` justamente por isso. Mas o FORMATO DO RISCO é diferente:
+- **Pontual = tudo ou nada.** Bateu a meta, leva (C: 14/22/30); não bateu, leva 0. E
+  mirar baixo e ir bem **não** paga mais (`sponsorBetHit`).
+- **Loja = curva.** Toda faixa paga alguma coisa, o preço só muda a inclinação
+  (popular 1.00→1.30 · cara 0.50→2.00). Só rebaixamento zera.
+Por isso hoje existe um **hedge legítimo**: apostar 👑 no patrocínio (prêmio alto) e
+imprimir camisa **popular** (renda segura). Juntar de vez apaga esse hedge e as
+9 combinações viram 3.
+
+`node scripts/mockup-plano-temporada.mjs [--saida x.png]` desenha as duas versões lado
+a lado (números REAIS: régua da Série C + `calculaVendas` com torcida 24.300, obras
++10%, Pumba +30%):
+- **Opção A — grudado**: o objetivo escolhe patrocínio E preço. 1 toque. Custo: errar a
+  aposta vira castigo dobrado (0 + 6 = **6 moedas** no exemplo, contra 14 hoje).
+- **Opção B — junto, mas dá pra separar** ⭐ recomendada: mesma tela única, o preço já
+  entra MARCADO pelo objetivo (1 toque pra quem não quer pensar) e pode ser trocado
+  (2 toques pra quem quer proteger a loja). Mesma economia de hoje, uma tela a menos.
+
+⏳ **Nada foi codado — só o mockup.** Esperando o OK dele pra escolher A ou B.
+Se for B, o trabalho é: fundir `CareerSponsorVisual` + `PrecoVirada` numa tela só na
+fila da virada (`pyramidseason.tsx`, `round === 0`), com o `LOJA_PRECO` disparado junto
+do `onPick` do Pontual. As regras de `loja.ts` e `estadiodata.ts` **não mudam** — é
+costura de tela.
 
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
