@@ -1,3 +1,43 @@
+## 15/09/2026 — 🧩 "Caiu pra home no meio do jogo" = publicação derrubando quem está jogando (CONHECIDO, o Diego pediu pra DEIXAR)
+
+Relato do Diego, vendo a live do canalmeianacanela: *"durante o jogo teve umas duas vezes
+que ele foi tirado pro menu… ele continuou sendo host e não mudou nada, só que jogou ela
+pra home do site e voltou ele de novo depois"*.
+
+### A causa (com prova, não teoria)
+O jogo carrega algumas partes **sob demanda** (`lazy` + `import()`): o **Salão dos
+Batismos** (`screens.tsx:92`) e a **Copa da Liga** (`screens.tsx:30`). O arquivo desses
+pedaços tem HASH no nome, que muda a cada publicação — e o GitHub Pages apaga o antigo na
+hora. Quem está com a página aberta na versão VELHA e toca numa dessas partes busca um
+arquivo que não existe mais → 404 → `ErrorBoundary` → tela "😵 Ops" → a pessoa recarrega →
+cai na home → o save da sala traz ela de volta pra partida, ainda como host.
+
+👉 **Não é bug de coroa, de host nem de sala.** Bate exatamente com o relato.
+
+### O tamanho (tabela `esc_quedas`, a caixa-preta do jogo)
+Nos últimos 30 dias: **12 quedas desse tipo, com 12 pessoas diferentes** — contra **3** de
+todos os outros erros somados. Ou seja, **80% das quedas do jogo são isto**.
+Assinatura inconfundível: toda queda numa `versao` diferente (9adfaab, 54739af, d11e86a,
+b475e7a, 3be7df8, 4da4b7a, 14bf4e8…) e sempre em `Lazy → Suspense`.
+A última foi 15/09 18:18 UTC (15:18 BRT), 7 minutos depois de um deploy meu — ou seja,
+**fui eu que derrubei o streamer**, publicando ~6 vezes durante a live dele.
+
+### ⛔ O Diego mandou DEIXAR como está
+Palavras dele: *"não, deixa. Quero [saber] se foi por isso, porque estávamos fazendo
+coisas. Não tem problema não"*. **Não implementar sem ele pedir.**
+
+O conserto está mapeado, se um dia voltar a incomodar:
+  · no `ErrorBoundary` (`index.tsx:144`), quando a mensagem for **especificamente**
+    "Failed to fetch dynamically imported module" / "Importing a module script failed",
+    recarregar a página sozinho UMA vez (trava anti-loop de 5 min, igual à do
+    `VersionWatcher`) em vez de mostrar o "Ops". Qualquer outra pane continua mostrando a
+    tela de erro com a pilha — é ela que ajuda a achar bug de verdade.
+  · e/ou envolver os dois `lazy(() => import(...))` num retry.
+
+### 🤝 E o que não precisa de código
+Não publicar enquanto tem live rolando. Foi o que criou o caso de hoje.
+
+---
 ## 15/09/2026 — 🌱 Cria da Base ganha apelido de várzea (adeus "Cotoco 33º") — ✅ no ar
 
 Cobrança do Diego: *"não gostei desses nomes Cotoco 33, Pimentinha 25, não ficou bom desse
