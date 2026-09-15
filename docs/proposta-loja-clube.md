@@ -76,6 +76,18 @@ escudo e patrocínios são carimbados por cima.
   Serve pro mockup, mas **sobraram dois remendos de leve** (manga esquerda e barra),
   então não é arte final.
 
+✂️ **Ajustes que ele pediu vendo o mockup (15/09), todos aplicados:**
+1. **Sem as duas faixas** no molde de quem não tem batismo — a camisa do tier é
+   LISA, só com a gola e os punhos como detalhe. (A faixa vermelha/preta é do
+   Final Boss, não do molde.)
+2. **Sem escudo inventado** no clube sem batismo. Eu tinha posto uma águia de
+   enfeite e ele cortou: *"não entendi o porquê da águia, tire também"*.
+3. **O painel do clube COM batismo agora é o Final Boss FC** (era o Internacional
+   de Madrid): *"e no do batismo coloque o do Final Boss"*.
+4. **O Master virou ESTAMPA de verdade na camisa**, não caixinha com borda:
+   *"a logo deixe de forma melhor na camisa o patrocinador Master"*. Texto
+   impresso no tecido, do tamanho que couber no peito.
+
 Lugares das peças (pedido dele, referência: Internacional de Madrid e Inter de Bailão):
 
 - **peito esquerdo**: escudo do clube;

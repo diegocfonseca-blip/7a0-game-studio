@@ -27,7 +27,7 @@ const img = (caminho, tipo = 'webp') => `data:image/${tipo};base64,${readFileSyn
 // ── A CAMISA: a arte (imagem) + as 3 peças carimbadas por cima ──────────────
 // `pos` = onde cada peça cai NAQUELA arte, em % (arte de batismo e molde têm
 // enquadramentos diferentes, então cada uma traz as suas medidas).
-const camisa = ({ arte, alt = 300, escudo, fornecedor, master, pos }) => `
+const camisa = ({ arte, alt = 300, escudo, fornecedor, master, masterCor, pos }) => `
   <div style="position:relative;height:${alt}px;flex:none">
     <img src="${arte}" style="height:${alt}px;display:block">
     ${!escudo ? '' : `<div style="position:absolute;left:${pos.escudoX}%;top:${pos.escudoY}%;transform:translate(-50%,-50%)">
@@ -39,8 +39,9 @@ const camisa = ({ arte, alt = 300, escudo, fornecedor, master, pos }) => `
                 ${OSW};font-weight:700;font-size:${Math.round(alt * 0.045)}px;color:#fff;letter-spacing:.4px;white-space:nowrap;
                 text-shadow:0 1px 0 ${INK},1px 0 0 ${INK},-1px 0 0 ${INK},0 -1px 0 ${INK}">${fornecedor}</div>
     <div style="position:absolute;left:${pos.masterX}%;top:${pos.masterY}%;transform:translate(-50%,-50%);
-                background:${CREME};border:2.5px solid ${INK};border-radius:6px;padding:3px 7px;white-space:nowrap;
-                ${OSW};font-weight:700;font-size:${Math.round(alt * 0.04)}px;color:${INK};box-shadow:1.5px 1.5px 0 rgba(0,0,0,.4)">${master}</div>
+                ${OSW};font-weight:700;font-size:${Math.round(alt * (master.length > 18 ? 0.042 : master.length > 13 ? 0.05 : 0.058))}px;line-height:1;letter-spacing:.5px;
+                text-transform:uppercase;white-space:nowrap;color:${masterCor ?? INK};
+                text-shadow:0 1px 1px rgba(0,0,0,.35)">${master}</div>
   </div>`
 
 const pill = (txt, sub, on) => `
@@ -82,12 +83,12 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
     Molde da camisa: o do <b>Final Boss FC</b>. Escudo no peito esquerdo, fornecedor no peito direito, Master abaixo do peito.</div>
   <div style="display:flex;gap:14px;align-items:flex-start">
     ${tela({
-      titulo: 'COM batismo', sub: 'Internacional de Madrid',
+      titulo: 'COM batismo', sub: 'Final Boss FC',
       shirt: camisa({
-        arte: img(`${SCRATCH}/intermadrid-camisa.webp`), alt: 300,
+        arte: img('public/mantos-salao/finalboss-camisa.webp'), alt: 300,
         escudo: '', // a arte do batismo já traz o escudo dele — o jogo não carimba outro
-        fornecedor: 'NAIQUE', master: 'VADICO VEÍCULOS',
-        pos: { escudoX: 32, escudoY: 25, fornX: 31, fornY: 26, masterX: 50, masterY: 63 },
+        fornecedor: 'NAIQUE', master: 'VADICO VEÍCULOS', masterCor: INK,
+        pos: { fornX: 30, fornY: 25, masterX: 50, masterY: 62 },
       }),
       extra: cartao('👑 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Arte própria do batismo</div>`,
         'Clube batizado usa a arte que o dono mandou — é ela que aparece na loja. As 2 cores do manto saem dessa arte.'),
@@ -99,8 +100,8 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
       titulo: 'SEM batismo', sub: 'tier 🪵 FOI PROFISSIONAL',
       shirt: camisa({
         arte: img(`${SCRATCH}/camisa-foiprof.webp`), alt: 300,
-        escudo: '🦅', fornecedor: 'ADIBAS', master: 'ESPETINHO',
-        pos: { escudoX: 32, escudoY: 27, fornX: 69, fornY: 27, masterX: 50, masterY: 60 },
+        escudo: '', fornecedor: 'ADIBAS', master: 'ESPETINHO DO BAIXINHO', masterCor: '#5B5138',
+        pos: { fornX: 69, fornY: 26, masterX: 50, masterY: 52 },
       }),
       extra: cartao('🪵 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Molde do jogo, na cor do seu tier</div>`,
         'Mesmo molde, mesma qualidade de arte. É UM arquivo só pro jogo inteiro, pintado com as suas cores — aqui o bege do tier 🪵 Foi Profissional.'),
