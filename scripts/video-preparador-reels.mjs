@@ -4,8 +4,8 @@
 // (`video-condicao-reels.mjs`): as cenas são keyframes de CSS, o Playwright GRAVA
 // A TELA em tempo real (webm) e o ffmpeg converte pra mp4 do Instagram/WhatsApp.
 //
-// ⚠️ A FEATURE AINDA NÃO ESTÁ NO JOGO. Por isso o vídeo NÃO diz "já está no ar" —
-// diz "chegando". Só trocar essa fita quando o deploy fechar na main.
+// 🚀 ATUALIZADO 15/09: a feature SUBIU (deploy 2853), então a fita final diz "já
+// está no ar" (verde), não mais "chegando". A legenda do post diz o mesmo.
 //
 // 🎞️ Roteiro (~25 s):
 //   0,0–3,4    seu time agora tem PREPARADOR FÍSICO
@@ -177,7 +177,9 @@ ${cena(22.0, 40, `
   <p style="font-size:150px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 22.15s both">🏋️</p>
   <p style="${OSW};font-size:96px;text-transform:uppercase;text-align:center;line-height:1;margin:20px 0 34px;
     animation:sobe .45s 22.45s both">chega no<br><span style="color:${GREEN}">modo carreira</span></p>
-  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 22.9s both">${pill('chegando', GOLD, INK, 40)}</div>
+  <!-- 🚀 subiu pra main em 15/09 (deploy 2853), então a fita trocou de "chegando"
+       pra "já está no ar" — a legenda do post diz o mesmo e não pode contradizer. -->
+  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 22.9s both">${pill('já está no ar', GREEN, '#fff', 40)}</div>
   <p style="${OSW};font-size:64px;margin-top:60px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 23.4s infinite">
     ⚽ Leilão <span style="color:${RED}">Legends</span></p>
   <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.55);margin-top:12px">leilaolegends.com</p>`)}
