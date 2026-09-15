@@ -348,12 +348,23 @@ function escadaAfterPlacements(s: EscState) {
 // REGISTRA cada um no extrato pela VARIAÇÃO REAL da caixa do humano. Mantém a
 // mesma ordem/efeito de antes (prêmios → bilheteria → folha) — só soma o registro.
 // 📺 COTA DE TV (Diego 11/08): renda por PARTICIPAÇÃO na divisão, todo fim de
-// temporada. Cresce quanto mais alto você está. Várzea 1 (Diego 12/08: a
-// pelada não tem TV de verdade, mas um valor bem simbólico ajuda quem tá
-// começando — antes era 0, a única divisão sem NENHUMA renda de TV).
+// temporada. Cresce quanto mais alto você está.
 // Creditada ANTES dos snapshots do extrato pra não entrar em outra
 // linha — e logada com linha própria "📺 Cota de TV".
-const TV_COTA: Record<string, number> = { A: 20, B: 15, C: 10, D: 5, V: 1 }
+//
+// 💰 HISTÓRICO DOS VALORES:
+//   · 11/08 nasceu com A 20 · B 15 · C 10 · D 5 · V 0;
+//   · 12/08 a Várzea ganhou 1 simbólico (era a única divisão sem NENHUMA TV);
+//   · 15/09 o Diego REFEZ a régua inteira: *"aumente a cota de TV pra Várzea
+//     começando em 10, depois Série D 20, depois C 30, B 40, A 50"*. É uma escada
+//     redonda de 10 em 10 — e um empurrão forte em quem está começando (a Várzea
+//     saiu de 1 pra 10).
+//
+// ⚠️ ESTA É A ÚNICA TABELA. O card da Rede Martelo TV (Clube › Patrocínio) LÊ DAQUI
+// (`TV_DEGRAUS` em `pyramidseason.tsx` é derivado). Antes eram duas listas com os
+// mesmos números escritos à mão — mexer numa e esquecer a outra fazia a tela
+// prometer um valor e o caixa receber outro.
+export const TV_COTA: Record<string, number> = { A: 50, B: 40, C: 30, D: 20, V: 10 }
 // 📺💰 COTA EXTRA DE TV — quanto vale UM vídeo aprovado (Diego 23/08: era 10,
 // virou 15). Este é o ÚNICO lugar do jogo que diz o valor: reducer, card do
 // Clube › Patrocínio e banner da virada leem daqui.

@@ -466,6 +466,27 @@ a cota do bom jogador (mexe no equilíbrio do leilão, que ele ajustou à mão),
 prioridade a quem nunca saiu (o `RECENT_DECK` já faz isso pra UMA leva; daria pra
 guardar mais fundo). Perguntar antes — régua de raridade é decisão dele.
 
+### 📺 COTA DE TV REFEITA — ✅ NO AR (15/09)
+Ordem dele: *"aumente a cota de TV pra Várzea começando em 10, depois Série D 20, depois
+C 30, B 40, A 50"*. Virou uma escada redonda de 10 em 10.
+
+| divisão | antes | agora |
+|---|---|---|
+| Várzea | 1 | **10** |
+| Série D | 5 | **20** |
+| Série C | 10 | **30** |
+| Série B | 15 | **40** |
+| Série A | 20 | **50** |
+
+Quem está começando foi quem mais ganhou (a Várzea multiplicou por 10). A cota cai no
+fechamento da temporada, com linha própria no extrato (`applyTVIncome` em `store.tsx`).
+
+🧹 **E de quebra, uma armadilha fechada:** os mesmos números existiam DUAS vezes —
+`TV_COTA` (que paga, no `store.tsx`) e `TV_DEGRAUS` (que a tela mostra, no
+`pyramidseason.tsx`), escritos à mão nos dois lugares. Mexer num e esquecer o outro faria
+o card da Rede Martelo prometer um valor e o caixa receber outro. Agora `TV_DEGRAUS` é
+**derivado** de `TV_COTA`. **Nunca mais escrever esses números à mão na tela.**
+
 ### 📏 CABE MAIS GENTE NO ELENCO? — medido em 15/09 (nada mudado)
 Pergunta dele: *"o tamanho do elenco, se cabe eu colocar mais gente… pelo menos mais um
 de cada posição… se vai atrapalhar visualmente"*, e *"se eu pegar quatro emprestados da

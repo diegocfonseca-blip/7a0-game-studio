@@ -29,7 +29,7 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
-import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO } from './store'
+import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
 import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -1743,7 +1743,10 @@ function BancoLegends() {
 // @leilaolegendscom · foto não vale · 1 vídeo por temporada · +15 🪙 por vídeo
 // aprovado · conferência MANUAL dele no admin ("como toda cota de TV, pode
 // atrasar um pouco mas vai receber" — a fila espera, não expira).
-const TV_DEGRAUS: [string, number][] = [['V', 1], ['D', 5], ['C', 10], ['B', 15], ['A', 20]]
+// 📺 a escada mostrada no card — DERIVADA da tabela que realmente paga (`TV_COTA`
+// em `store.tsx`). Nunca escrever os números à mão aqui: já aconteceu de as duas
+// listas divergirem e a tela prometer um valor diferente do que caía no caixa.
+const TV_DEGRAUS: [string, number][] = (['V', 'D', 'C', 'B', 'A'] as const).map(d => [d, TV_COTA[d] ?? 0])
 type TvEnvio = { id: number; temporada: number; status: string; motivo: string | null }
 function TVContrato({ div, clube, foco, onFocoFim }: { div: string; clube: string; foco?: boolean; onFocoFim?: () => void }) {
   const { state, dispatch } = useEsc()
