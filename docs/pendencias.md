@@ -259,6 +259,14 @@ grande") e **reabre se cair** de volta pra D.
    🛡️ Trava nova no teste: o melhor da Série C (33/temporada) fica **abaixo** do
    contrato de 3 temporadas da Série B (36), e cada divisão paga mais que a de baixo.
 
+### 📢 Stories do fornecedor
+`node scripts/post-fornecedor.mjs [--saida x.png] [--no-ar]` — 1080×1920, no MESMO
+molde dos posts que ele já aprovou (pill · título · lead · caixa preta · fichas ·
+caixa de aviso · rodapé). A camisa do post é montada pelas peças de verdade
+(`loja-pecas.mjs`), então mostra exatamente o que o jogo desenha.
+⏳ O rodapé diz **"chegando"**; `--no-ar` troca pra "já está no ar" no dia que a
+Loja sair do teste fechado.
+
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
    mostraria pra todo mundo uma aba que só ele vê. Entra na MESMA entrega que
