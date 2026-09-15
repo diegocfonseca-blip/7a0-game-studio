@@ -1825,7 +1825,24 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           <button onClick={onManual}>{t('REGRAS', 'RULES')}</button><button onClick={onAlbum}>{t('ÁLBUM', 'ALBUM')}</button><button onClick={onRanking}>{t('RANKING', 'RANKING')}</button>
           <ApoieButton trigger={open => <button onClick={open}>{t('APOIAR', 'SUPPORT')}</button>} />
         </nav>
-        <div className="ll-web"><span>leilaolegends.com</span> · {t('Seu clube. Sua história.', 'Your club. Your story.')}</div>
+        <div className="ll-web">
+          <span>leilaolegends.com</span> · {t('Seu clube. Sua história.', 'Your club. Your story.')}
+          {/* 📬 CONTATO SUTIL NA HOME (Diego 15/09: *"em baixo das telas da home ou
+              qualquer página, coloque o Instagram sutilmente e uma frase pra qualquer
+              bug ou ideias… e o e-mail também"*).
+              O rodapé geral do jogo (GameFooter) JÁ tem esses dois contatos e aparece
+              em todas as telas — menos nesta: `home-ilustrada.css` esconde ele quando
+              a home ilustrada está na tela (`.tela-cheia:has(.ll-home) > .game-contact-footer`),
+              porque a home tem rodapé próprio. Resultado: o Instagram e o e-mail
+              sumiam justamente na tela que todo mundo vê primeiro. Aqui eles voltam,
+              no tom apagado do rodapé — sem virar banner. */}
+          <small className="ll-contato">
+            {t('Achou um bug ou tem uma ideia? Fala comigo:', 'Found a bug or got an idea? Talk to me:')}{' '}
+            <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer"><InstaIcon /> @leilaolegendscom</a>
+            {' · '}
+            <a href="mailto:contato@leilaolegends.com">✉️ contato@leilaolegends.com</a>
+          </small>
+        </div>
       </footer>
       {contaAberta && <JanelaConta titulo={t('MINHA CONTA', 'MY ACCOUNT')} onPronto={() => setContaAberta(false)} onFechar={() => setContaAberta(false)} />}
       {overlays}
