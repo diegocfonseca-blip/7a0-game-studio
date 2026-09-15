@@ -127,7 +127,17 @@ alheia, e por isso a arte limpa continua sendo pedida.
 pintado uma faixa escura na manga; ele cortou na hora: *"na manga ficou ridícula,
 não mexe nas mangas"*. A manga não recebe desenho novo — só a limpeza do texto do
 Final Boss.
-🩹 **E a limpeza certa é RECONSTRUIR, não remendar.** Colar um pedaço de tecido
+🥇 **O JEITO QUE FINALMENTE FUNCIONOU NA MANGA: usar a manga do OUTRO LADO.**
+A manga esquerda do Final Boss tem o texto "MAIS QUE UM JOGO" (área grande); a
+direita só tem uma coroa pequena. Então o molde apaga só a coroa (área minúscula) e
+usa **essa manga nos DOIS lados**, espelhada. Resultado: manga com o TECIDO DE
+VERDADE, com as dobras originais, sem remendo e sem mancha — que foi o que ele
+cobriu 3 vezes (*"a manga tá ruim, quero sem essa mancha, igual era antes"*).
+⚠️ Ao colar a manga espelhada, a máscara TEM que ser multiplicada pelo alfa da
+própria manga; sem isso o pixel transparente do recorte abre um buraco branco na
+axila do corpo (aconteceu e ele não chegou a ver).
+
+🩹 **Onde a área é pequena, a limpeza certa é RECONSTRUIR, não remendar.** Colar um pedaço de tecido
 vizinho deixa caixa e fantasma das letras, por mais que se case o brilho (tentei
 3 vezes). O que funcionou foi reconstruir o buraco a partir das BORDAS — média dos
 vizinhos repetida até assentar (Laplace). Sai liso, no tom exato da volta, sem
