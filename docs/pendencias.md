@@ -1,3 +1,73 @@
+## 15/09/2026 — 🌱 Cria da Base ganha apelido de várzea (adeus "Cotoco 33º") — ✅ no ar
+
+Cobrança do Diego: *"não gostei desses nomes Cotoco 33, Pimentinha 25, não ficou bom desse
+jeito, parecem robôs pow… até porque o jogador não foi vendido do time, ele é o mesmo da
+base de sempre"*.
+
+### O que era
+`CRIA_NOMES` tem 30 nomes. Acabados, o código colava o CONTADOR no fim
+(`${nome} ${k}º`) — em `previewCriaNomes` e em `spawnCriaCore`. Era a engrenagem
+aparecendo na cara de quem joga: o jogador via o jogo contando, não um moleque do clube.
+
+### O que ficou
+`proximoNomeCria(usados, rng)` (store.tsx) é agora a porta ÚNICA — os dois lugares usam
+ela. Ordem: nome solto que ainda não saiu → nome + **apelido de várzea**
+(`CRIA_APELIDOS`, 24 deles: da Vila, do Campinho, Canhoto, Foguete, Bala…) → e só então,
+como última rede, o número. São **30 + 672 = 702 nomes** antes de qualquer dígito, ou
+seja: na prática o número nunca mais aparece.
+📏 Só nome de UMA palavra ganha apelido — senão sairia "Zé Pequeno da Base do Morro".
+Exemplos reais do gerador: *Cotoco do Campinho · Chulé Bala · Pintinho Canhoto ·
+Neneca da Vila*.
+
+`scripts/testa-nomes-cria.mjs`: gera 120 crias na mesma carreira e confere que nenhum tem
+número, nenhum repete, os 30 primeiros continuam os de sempre, nome composto não ganha
+apelido e as 3 opções da tela nunca vêm repetidas.
+
+🚫 Não virou novidade da home: é conserto de apresentação, não feature.
+
+### Reverter
+Um commit. Nomes já gravados em save (`criaNames`) continuam como estão — a mudança vale
+só pros PRÓXIMOS guris que sobem.
+
+---
+## 15/09/2026 — 🩹 Lesão por desgaste: 15%→5% e 30%→10% — ✅ no ar
+
+⚠️ **O Diego desanimou de jogar o próprio jogo.** Palavras dele: *"tô achando bem chato
+os jogadores se machucando toda hora e tão rápido pqp… eu fico pulando tb… tá foda,
+desanimei"*. E ele foi preciso ao separar o problema: *"pra mim o problema NÃO é a
+condição física e sim toda hora machucar"*. Tinha razão.
+
+### Por que machucava tanto (medido, não achismo)
+`sorteiaLesaoDesgaste` **joga um dado PRA CADA titular cansado, toda rodada** — não um
+dado por rodada. Com 4 titulares 🚑 eram 4 dados de 30% na mesma rodada = **76% de chance
+de alguém cair, naquela rodada**. E de novo na seguinte.
+E o ciclo se fechava sozinho: o cara ficava 1-3 rodadas fora, no banco recuperava só +4
+por rodada (2 rodadas = +8, que NÃO tira ninguém do 🚑) e voltava direto pro sorteio.
+Simulação de 20 mil temporadas, 4 titulares 🚑: **9,0 lesões por temporada**. Com o time
+inteiro cansado: 10,0 — uma a cada três rodadas, pra sempre.
+
+### O que foi feito
+Só o que ele escolheu: `LESAO_LIMITE_PCT` 0.15 → **0.05** e `LESAO_ESGOTADO_PCT` 0.30 →
+**0.10** (`condicao.ts`), mais o texto da ajuda na tela em PT e EN.
+Um jogador 🚑 por 5 jogos ainda tem 41% de cair — continua ameaça, deixou de ser imposto.
+
+### ⚠️ A CAUSA CONTINUA LÁ, e ele sabe
+Ofereci três consertos e ele pediu só este. Medido: com 4 🚑 cai de 9 pra **6** lesões por
+temporada; com o time inteiro cansado, de 10 pra **8,6** — porque a MULTIPLICAÇÃO segue.
+Os dois que faltam, se voltar a incomodar:
+  1. **um dado por RODADA** (o mais cansado), em vez de um por jogador — é este que mata
+     o efeito; sozinho já levaria de 9 pra 5,5, e com os 10% leva pra 2,4
+  2. **descanso de ~5 rodadas** depois de cada lesão por desgaste → 1,8
+A condição física NÃO foi tocada: gás, escada 😓/🥵/🚑, −1/−2/−3 e a volta gradual estão
+iguais. O pedido dele de 12/09 (*"quero que a chance aumente de lesão, senão não tem
+sentido"*) continua valendo — o 🚑 segue com o dobro do risco do 🥵.
+
+### Reverter
+Duas linhas em `condicao.ts`. Nada de save.
+
+🚫 Não vira novidade da home (ajuste de equilíbrio a pedido dele, não feature).
+
+---
 ## 15/09/2026 — 🏋️ PREPARADOR FÍSICO — ✅ NO AR (fecha a nota de 14/09)
 
 As quatro decisões que faltavam, direto dele:

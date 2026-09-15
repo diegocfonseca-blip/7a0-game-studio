@@ -17,8 +17,8 @@
 //     a 80% (−1), depois 100%.
 //   · 🩹 LESÃO POR DESGASTE (Diego 12/09: *"quero sim q qd chegue no 9 e no 10
 //     em diante a chance aumente de lesão, senão não tem sentido"*): FORA o causo
-//     da temporada, todo jogo o 🥵 tem 15% e o 🚑 tem 30% de se machucar (1-3
-//     rodadas). Mesmo banner, mesmos Crias sem reserva. Roda só quando ninguém
+//     da temporada, todo jogo o 🥵 tem 5% e o 🚑 tem 10% de se machucar (1-3
+//     rodadas) — eram 15% e 30% até 15/09, ver LESAO_LIMITE_PCT. Mesmo banner, mesmos Crias sem reserva. Roda só quando ninguém
 //     do time já está fora (o jogo guarda UM causo por vez — limitação assumida).
 //   · 🏥 O DEP. MÉDICO SAIU DO JOGO (Diego 12/09, três vezes até eu entender:
 //     *"não quero dep médico, já disse… quem comprou esquece, vai ser igual p
@@ -67,8 +67,18 @@ export const MOD_CANSADO = -1
 export const MOD_LIMITE = -2
 export const MOD_ESGOTADO = -3
 export const MOD_VOLTA = [-2, -1] as const // rodada da volta (60%) · seguinte (80%)
-export const LESAO_LIMITE_PCT = 0.15   // 🥵 chance de lesão por desgaste, por jogo
-export const LESAO_ESGOTADO_PCT = 0.30 // 🚑 idem
+// 🩹 15/09 — O DIEGO DESANIMOU DE JOGAR O PRÓPRIO JOGO: *"tô achando bem chato os
+// jogadores se machucando toda hora e tão rápido pqp… tá foda, desanimei"*. Fui medir:
+// com 4 titulares 🚑, dava **9 lesões por temporada** (simulação de 20 mil temporadas).
+// Ele escolheu o conserto por aqui — 15% → 5% e 30% → 10%. Continua ameaça (um jogador
+// 🚑 por 5 jogos ainda tem 41% de cair), mas deixa de ser imposto.
+// ⚠️ ISTO SOZINHO NÃO MATA A CAUSA, e está medido: o sorteio joga UM DADO PRA CADA
+// titular cansado, toda rodada (ver `sorteiaLesaoDesgaste`). Com 4 🚑 a conta cai de 9
+// pra 6 lesões por temporada; com o time inteiro cansado, de 10 pra 8,6 — porque a
+// MULTIPLICAÇÃO continua. O conserto de verdade é um dado por RODADA, e ele sabe disso
+// (ofereci, ele preferiu começar só pelo número). Se voltar a incomodar, é ali.
+export const LESAO_LIMITE_PCT = 0.05   // 🥵 chance de lesão por desgaste, por jogo (era 0.15)
+export const LESAO_ESGOTADO_PCT = 0.10 // 🚑 idem (era 0.30)
 
 export type EstadoGas = 'ok' | 'cansado' | 'limite' | 'esgotado'
 export function estadoGas(g: number): EstadoGas { return g >= GAS_CANSADO ? 'ok' : g >= GAS_LIMITE ? 'cansado' : g >= GAS_ESGOTADO ? 'limite' : 'esgotado' }
