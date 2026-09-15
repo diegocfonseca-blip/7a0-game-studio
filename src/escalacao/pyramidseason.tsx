@@ -7466,6 +7466,33 @@ export function PyramidSeasonScreen() {
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
           onFechar={fecharDesfecho} />
       )}
+      {/* 💸 MODAL DE VENDER O 2º CLUBE — mora aqui na RAIZ da tela, não dentro de
+          uma aba. Ele nasceu dentro da aba Clube junto com o botão; quando o botão
+          passou a existir também na virada da temporada (15/09), o modal teria
+          ficado pra trás e o clique não abriria nada. Overlay fixo não tem por que
+          morar dentro de uma aba. */}
+      {venderAsk && state.multiClube && (() => {
+        const vendido = state.multiClube.team
+        return (
+          <div onClick={() => setVenderAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 348, width: '100%', padding: 16 }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0, textAlign: 'center' }}>{tr(`💸 Vender o ${vendido}?`, `💸 Sell ${vendido}?`)}</p>
+              <div style={{ background: '#FFF4E2', border: '2.5px solid #B8722A', borderRadius: 12, padding: 10, margin: '10px 0 0' }}>
+                <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3A2C18', margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>🍖 The squad and the board already threw the <b>farewell barbecue</b> — celebrating that you are leaving. And they went <b>all out</b>: they left <b>1.000 🪙</b> on your tab.</> : <>🍖 O elenco e a diretoria já fizeram o <b>churrasco de despedida</b> — comemorando a sua saída. E foi <b>tudo de luxo</b>: deixaram <b>1.000 🪙</b> na sua conta.</>}</p>
+                <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 12, color: '#6B4A22', margin: '7px 0 0', lineHeight: 1.45 }}>{tr('“Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”', '“Prime cuts, shrimp and an open bar. There was a banner, a speech, a photo on the pitch. They just didn\'t invite you.”')}</p>
+              </div>
+              <div style={{ background: '#EAFAEF', border: '2.5px solid #1B7A3D', borderRadius: 11, padding: '8px 10px', margin: '9px 0 0' }}>
+                <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 700, color: '#1c3d28', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>✅ You paid 4.000 and get <b>3.000 🪙</b> back.</> : <>✅ Você pagou 4.000 e recebe <b>3.000 🪙</b> de volta.</>}</p>
+              </div>
+              <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '9px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>🤖 <b>{vendido}</b> stays in the game, in its division, run by the computer — keeping its stadium, titles and till. Loans sort themselves out: whoever it lent goes back to it, and whoever your main club lent comes home.</> : <>🤖 O <b>{vendido}</b> continua no jogo, na divisão dele, comandado pela máquina — e fica com o estádio, os títulos e o caixa dele. Os empréstimos se acertam sozinhos: quem ele emprestou volta pra ele, e quem era do seu clube principal volta pra casa.</>}</p>
+              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                <button onClick={() => setVenderAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
+                <button onClick={() => { setVenderAsk(false); dispatch({ type: 'SELL_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('💸 Vender', '💸 Sell')}</button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
       <div className="max-w-xl mx-auto" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <AvisoContaCarreira />
@@ -8136,7 +8163,17 @@ export function PyramidSeasonScreen() {
                   com o mesmo time. É a única coisa em vermelho na tela. */}
               <SeloSuaVez texto={tr('decida como monta o time da próxima', 'decide how to build next season\'s team')} />
               <p style={{ fontWeight: 900, fontSize: 13.5, ...OSWALD, margin: '0 0 3px' }}>{tr('📅 Próxima temporada', '📅 Next season')}</p>
-              {/* 🏛️ MULTICLUBES · seletor (só entre temporadas, só testers) */}
+              {/* 🏛️ MULTICLUBES · seletor da VIRADA (entre temporadas).
+                  🐛 BURACO ACHADO PELO DIEGO (15/09, print do Futpoint FC): *"aqui por
+                  exemplo o Futpoint tá usando o time principal dele e N tá aparecendo p
+                  deixar vender o segundo clube"*. Ele estava certo e não era nenhuma das
+                  travas da regra — a caixa do multiclube existe em DOIS lugares (aqui, na
+                  virada, e na aba Clube) e o botão de VENDER só tinha sido posto na aba
+                  Clube. Quem estava na virada — que é justamente onde se decide o time da
+                  próxima temporada, o momento mais natural pra desistir do 2º clube — não
+                  via jeito nenhum de vender. Agora as duas caixas têm o mesmo botão, com
+                  a MESMA trava (`mine`), e o modal subiu pra raiz da tela pra abrir dos
+                  dois lugares. */}
               {state.onlineMode !== 'online' && state.multiClube && (() => {
                 const ativo = state.managers[state.youIdx]?.teamName ?? '—'
                 const dormindo = state.multiClube.team
@@ -8148,6 +8185,17 @@ export function PyramidSeasonScreen() {
                       <div style={{ flex: 1, border: '2px solid #000', borderRadius: 9, padding: '6px 8px', background: '#3a3a3a', color: 'rgba(255,255,255,.7)', fontWeight: 900, fontSize: 11, textAlign: 'center', ...OSWALD }}>⚪ {dormindo}<div style={{ fontSize: 8, fontWeight: 800 }}>{tr('dormindo 💤', 'asleep 💤')}</div></div>
                     </div>
                     <button onClick={() => dispatch({ type: 'SWITCH_MULTICLUBE' })} style={{ width: '100%', marginTop: 8, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr(`🔄 Passar o comando pro ${dormindo}`, `🔄 Hand over command to ${dormindo}`)}</button>
+                    {/* 💸 VENDER — mesma regra da aba Clube: só o 2º clube (`mine`) se
+                        vende, nunca o oficial do rank global. Quando quem dorme é o
+                        PRINCIPAL (você está comandando o 2º), o botão não existe e a
+                        linha explica o caminho. O reducer tem a mesma trava, então nem
+                        um clique torto venderia o clube errado. */}
+                    {(() => {
+                      const dorm = state.managers.find(m => m.id === state.multiClube!.id)
+                      return dorm?.mine
+                        ? <button onClick={() => setVenderAsk(true)} style={{ width: '100%', marginTop: 7, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr(`💸 Vender o ${dormindo} · 3.000 🪙`, `💸 Sell ${dormindo} · 3,000 🪙`)}</button>
+                        : <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.55)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
+                    })()}
                     <p style={{ fontFamily: 'system-ui', fontSize: 8.5, color: 'rgba(255,255,255,.45)', margin: '6px 0 0', textAlign: 'center' }}>{tr('Trocar = na próxima você comanda o outro; este dorme (mesmo time).', 'Switch = next season you manage the other one; this one sleeps (same team).')}</p>
                   </div>
                 )
@@ -8518,29 +8566,6 @@ export function PyramidSeasonScreen() {
                       : <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
                   })()}
                   <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.5)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.4 }}>{getLang() === 'en' ? <>Each club has <b>its own</b> till, squad, titles and stadium — nothing mixes. The sleeping one plays the season on auto, with the team as it is.</> : <>Cada clube tem o <b>seu</b> caixa, elenco, títulos e estádio — nada se mistura. O que dorme segue a temporada no automático, com o time como está.</>}</p>
-                </div>
-              )
-            })()}
-            {/* 💸 modal de CONFIRMAR a venda — com a historinha que o Diego escreveu */}
-            {venderAsk && state.multiClube && (() => {
-              const vendido = state.multiClube.team
-              return (
-                <div onClick={() => setVenderAsk(false)} style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-                  <div onClick={e => e.stopPropagation()} style={{ ...box('#F4ECD6'), maxWidth: 348, width: '100%', padding: 16 }}>
-                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: 0, textAlign: 'center' }}>{tr(`💸 Vender o ${vendido}?`, `💸 Sell ${vendido}?`)}</p>
-                    <div style={{ background: '#FFF4E2', border: '2.5px solid #B8722A', borderRadius: 12, padding: 10, margin: '10px 0 0' }}>
-                      <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 600, color: '#3A2C18', margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>🍖 The squad and the board already threw the <b>farewell barbecue</b> — celebrating that you are leaving. And they went <b>all out</b>: they left <b>1.000 🪙</b> on your tab.</> : <>🍖 O elenco e a diretoria já fizeram o <b>churrasco de despedida</b> — comemorando a sua saída. E foi <b>tudo de luxo</b>: deixaram <b>1.000 🪙</b> na sua conta.</>}</p>
-                      <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 12, color: '#6B4A22', margin: '7px 0 0', lineHeight: 1.45 }}>{tr('“Picanha, camarão e open bar. Teve faixa, teve discurso, teve foto no gramado. Só não te chamaram.”', '“Prime cuts, shrimp and an open bar. There was a banner, a speech, a photo on the pitch. They just didn\'t invite you.”')}</p>
-                    </div>
-                    <div style={{ background: '#EAFAEF', border: '2.5px solid #1B7A3D', borderRadius: 11, padding: '8px 10px', margin: '9px 0 0' }}>
-                      <p style={{ fontFamily: 'system-ui', fontSize: 12.5, fontWeight: 700, color: '#1c3d28', margin: 0, lineHeight: 1.45 }}>{getLang() === 'en' ? <>✅ You paid 4.000 and get <b>3.000 🪙</b> back.</> : <>✅ Você pagou 4.000 e recebe <b>3.000 🪙</b> de volta.</>}</p>
-                    </div>
-                    <p style={{ fontFamily: 'system-ui', fontSize: 11.5, fontWeight: 600, color: '#5a5647', margin: '9px 0 0', lineHeight: 1.5 }}>{getLang() === 'en' ? <>🤖 <b>{vendido}</b> stays in the game, in its division, run by the computer — keeping its stadium, titles and till. Loans sort themselves out: whoever it lent goes back to it, and whoever your main club lent comes home.</> : <>🤖 O <b>{vendido}</b> continua no jogo, na divisão dele, comandado pela máquina — e fica com o estádio, os títulos e o caixa dele. Os empréstimos se acertam sozinhos: quem ele emprestou volta pra ele, e quem era do seu clube principal volta pra casa.</>}</p>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                      <button onClick={() => setVenderAsk(false)} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#fff', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('Voltar', 'Back')}</button>
-                      <button onClick={() => { setVenderAsk(false); dispatch({ type: 'SELL_MULTICLUBE' }) }} style={{ flex: 1, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr('💸 Vender', '💸 Sell')}</button>
-                    </div>
-                  </div>
                 </div>
               )
             })()}
