@@ -8010,7 +8010,7 @@ export function PyramidSeasonScreen() {
 
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            <CardCollectPrompt motivo={tr(`🏆 Campeão da ${DIV_NAME[me.div]}`, `🏆 ${DIV_NAME[me.div]} champion`)} you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
         {/* 🏆 Campeão da COPA LEGENDS (mata-mata dos 16) ganha carta À PARTE do
@@ -8018,7 +8018,7 @@ export function PyramidSeasonScreen() {
             duas. seasonKey própria (sufixo ":copa") pra não colidir com a de cima. */}
         {copaFinished && copa?.champion?.you && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            <CardCollectPrompt motivo={tr('🏆 Campeão da Copa Legends', '🏆 Legends Cup champion')} you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
         {/* 🏆🔵 Campeão da SUPERCOPA ganha carta também (conserto 18/08 — reclamação
@@ -8030,7 +8030,7 @@ export function PyramidSeasonScreen() {
             — quem ganhar as três na mesma temporada pega as três cartas. */}
         {copaFinished && superChamp?.you && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            <CardCollectPrompt motivo={tr('👑 Campeão da Supercopa', '👑 Super Cup champion')} you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
         {copaFinished && (() => {
@@ -8213,7 +8213,7 @@ export function PyramidSeasonScreen() {
                     const key = `co:solo${state.seed}:${p.season}:mc${youId}${p.copa ? ':copa' : ''}`
                     return (
                       <div key={key} style={{ marginBottom: 10 }}>
-                        <CardCollectPrompt you={state.managers[state.youIdx]} seasonKey={key} origin="cpu" saveCards={state.empresarioCards ?? []}
+                        <CardCollectPrompt motivo={p.copa ? tr(`🏆 ${state.managers[state.youIdx]?.teamName} foi campeão da Copa Legends (T${p.season})`, `🏆 ${state.managers[state.youIdx]?.teamName} won the Legends Cup (S${p.season})`) : tr(`🏆 ${state.managers[state.youIdx]?.teamName} foi campeão da divisão (T${p.season})`, `🏆 ${state.managers[state.youIdx]?.teamName} won its division (S${p.season})`)} you={state.managers[state.youIdx]} seasonKey={key} origin="cpu" saveCards={state.empresarioCards ?? []}
                           onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
                           onClaimed={() => dispatch({ type: 'CLEAR_MULTICLUBE_PENDING', mgrId: youId, season: p.season, copa: p.copa })} />
                       </div>

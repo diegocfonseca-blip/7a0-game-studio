@@ -1247,7 +1247,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
           carreira. */}
       {finalSeen && online && isYou(world.final.champion) && (
         <div style={{ marginBottom: 10 }}>
-          <CardCollectPrompt seasonKey={online.seasonKey} origin="online" />
+          <CardCollectPrompt motivo={tr('🌍 Campeão do Mundo Legends', '🌍 Legends World Cup champion')} seasonKey={online.seasonKey} origin="online" />
         </div>
       )}
       {finalSeen && !online && isYou(world.final.champion) && !jaGravada && (
@@ -1258,7 +1258,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
               🐛 (07/08) gatilho trocado de `done` pra `finalSeen`: a carta
               já grava (persist automático dentro do componente) assim que o
               placar da final aparece, sem depender do clique da cerimônia. */}
-          <CardCollectPrompt seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onGuaranteed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
+          <CardCollectPrompt motivo={tr('🌍 Campeão do Mundo Legends', '🌍 Legends World Cup champion')} seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onGuaranteed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
         </div>
       )}
       {privateVisual && <details className="ll27-copa-stats">

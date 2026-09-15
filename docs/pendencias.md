@@ -614,6 +614,40 @@ Moedas por temporada (contrato de 3 temporadas, estádio médio com a Loja):
 ⚠️ O post avisa na caixa laranja que as duas fontes NOVAS pedem a Loja construída e que
 o bico começa na 3ª temporada — senão o número promete o que nem todo mundo alcança.
 
+### 🎴 "GANHEI CARTA SEM SER CAMPEÃO" (Futpoint FC, 15/09) — investigado + conserto
+Relato trazido pelo Diego: *"ele nao foi campeao nem da Liga nem da Supercopa, porem
+ganhou duas cartinhas como se tivesse sido"*. E a ordem que veio junto: *"ele so tem que
+ganhar a cartinha se for campeao de alguma coisa. E a cartinha tem que aparecer de cara
+na cara dele - nao tem negocio de mostrar depois"*.
+
+**O QUE EU CONFERI (os CINCO caminhos que dao carta):**
+- titulo de divisao -> trava `me.champ` (= 1o da tabela, `myStanding`), `pyramidseason.tsx`
+- Copa Legends -> trava `copa?.champion?.you`
+- Supercopa -> trava `superChamp?.you` (vem de `superTie.win`)
+- Copa do Mundo -> trava `isYou(world.final.champion)`, `copa-mundo.tsx`
+- pacote do 2o clube -> `recordDormantCards` so enfileira com `wonDiv` ou `wonCopa`
+
+**Todos exigem titulo de verdade.** Nao achei caminho que de carta sem campeonato.
+
+**O QUE EU ACHO QUE ACONTECEU** (e o que o conserto resolve): o pacote **sorteia e GRAVA
+a carta assim que a tela monta**, antes de qualquer toque (e de proposito - regra do
+Diego de 27/08: *"se ele sair, ai conta automatico"*), e o popup **nao dizia de qual
+titulo era**. Quem fecha depressa, ou ganha duas de uma vez, acha as cartas no album
+depois e nao tem como ligar uma coisa na outra. E tem precedente com ESTE MESMO usuario:
+em 05/09 o placar da Supercopa saia invertido e **ele achou que tinha perdido** uma final
+que ganhou (o comentario esta em `superRun`, `pyramidseason.tsx`).
+
+**CONSERTO (15/09):** `CardCollectPrompt` ganhou a prop **`motivo`**, e o popup abre com
+uma faixa preta/dourada dizendo o titulo: Campeao da Serie X, Campeao da Copa Legends,
+Campeao da Supercopa, Campeao do Mundo Legends - e no pacote guardado do 2o clube, o nome
+do clube e a temporada. A pilula de reabrir tambem repete o titulo.
+Agora **nenhuma carta chega sem dizer de onde veio** - e, se alguem insistir que nao foi
+campeao, da pra conferir contra o titulo que a propria carta anunciou.
+
+**O que ficou de fora:** o titulo NAO e gravado junto da carta (a tabela `user_cards` nao
+tem coluna pra isso), entao o album e o cofre continuam mostrando so a carta. Se o Diego
+quiser rastrear depois, e uma coluna nova no banco.
+
 ### 🗣️ DOIS TEXTOS DA LOJA QUE NINGUÉM ENTENDEU — ✅ CORRIGIDOS (15/09)
 Os dois vieram da LIVE, com gente real travando na tela. **Guardar como regra de
 escrita**, não só como conserto:

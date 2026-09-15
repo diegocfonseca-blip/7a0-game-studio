@@ -6961,7 +6961,18 @@ const ALL_POOL: WonCard[] = (() => {
   return out
 })()
 
-export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, saveCards }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; saveCards?: { name: string; club: string; year: number }[] }) {
+// 🏆 `motivo` = DE QUAL TÍTULO veio esta carta ("Campeão da Série C", "Campeão da
+// Copa Legends"…). Existe por causa do relato do Futpoint FC (15/09), trazido pelo
+// Diego: *"ele não foi campeão nem da Liga nem da Supercopa, porém ganhou duas
+// cartinhas… ele só tem que ganhar a cartinha se for campeão de alguma coisa. E a
+// cartinha tem que aparecer de cara na cara dele"*.
+// Conferi os CINCO caminhos que dão carta (título de divisão, Copa Legends,
+// Supercopa, Copa do Mundo e o pacote guardado do 2º clube): TODOS já exigem um
+// título de verdade. O que faltava era a carta DIZER de onde veio — sem isso, quem
+// fecha o popup depressa (ou ganha duas de uma vez) acha as cartas no álbum depois e
+// não tem como ligar uma coisa na outra. Agora o pacote anuncia o título, e a pílula
+// de reabrir também.
+export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onGuaranteed, onStatus, saveCards, motivo }: { you?: Manager; seasonKey: string; origin?: 'cpu' | 'online'; onClaimed?: (card: WonCard) => void; onGuaranteed?: (card: WonCard) => void; onStatus?: (s: 'checking' | 'noauth' | 'picking' | 'revealed') => void; saveCards?: { name: string; club: string; year: number }[]; motivo?: string }) {
   // 'noauth' = campeão sem conta: cartas são só pra quem tem cadastro
   const [status, setStatus] = useState<'checking' | 'noauth' | 'picking' | 'revealed'>('checking')
   // avisa quem renderiza (EscEnd) o status da carta — pra travar a votação online
@@ -7082,9 +7093,14 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   if (status === 'checking') return null
 
   let content: React.ReactNode = null
+  // 🏆 a faixa que diz DE ONDE veio a carta — a primeira coisa que se lê no popup
+  const faixaMotivo = motivo
+    ? <p className="font-black text-[11px] uppercase tracking-widest mb-2 px-2 py-1 rounded-lg" style={{ ...OSWALD, background: INK, color: GOLD, letterSpacing: 2 }}>{motivo}</p>
+    : null
   if (status === 'noauth') {
     content = (
       <Box bg={GOLD} className={`p-5 text-center ${origin === 'online' ? 'online-reward' : ''}`} shadow={6}>
+        {faixaMotivo}
         <p className="font-black text-2xl" style={OSWALD}>🎁 Você foi campeão!</p>
         <p className="text-sm font-bold text-black/75 mt-1 mb-3">Todo campeão abre um <b>PACOTE SURPRESA</b> e leva uma carta colecionável pro álbum — tipo essa 👇</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
@@ -7103,6 +7119,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   } else if (status === 'revealed' && claimed) {
     content = (
       <Box bg={CREAM} className={`p-5 text-center ${origin === 'online' ? 'online-reward' : ''}`} shadow={6}>
+        {faixaMotivo}
         <p className="text-xs font-black uppercase text-black/60 mb-3">🎁 Saiu do pacote — foi pro seu álbum!</p>
         <motion.div initial={{ rotateY: 90, opacity: 0, scale: 0.9 }} animate={{ rotateY: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.7, type: 'spring', bounce: 0.35 }}
           className="mx-auto" style={{ maxWidth: 285 }}>
@@ -7118,6 +7135,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   content = (
     <Box bg={GOLD} className={`p-4 text-center ${origin === 'online' ? 'online-reward' : ''}`} shadow={6}>
       <style>{'@keyframes escPackSheen{0%{background-position:0% 0%}100%{background-position:100% 100%}}'}</style>
+        {faixaMotivo}
       <p className="font-black text-lg mb-1" style={OSWALD}>🎁 Pacote do campeão!</p>
       <p className="text-xs font-bold text-black/70 mb-3">Campeão leva uma carta <b>surpresa</b> pro álbum — sorteada entre <b>todas as cartas do jogo</b> (sempre uma que você ainda não tem). Toque no pacote pra abrir.</p>
       {/* o pacote espera. A carta JÁ é sua — o aviso existe pra ninguém achar que
@@ -7157,7 +7175,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   if (dismissed) {
     return (
       <button onClick={() => setDismissed(false)} className={`w-full rounded-xl border-[3px] border-black px-3 py-2.5 font-black text-sm flex items-center justify-center gap-2 ${origin === 'online' && status !== 'noauth' ? 'online-reward-reopen' : ''}`} style={{ ...OSWALD, background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}` }}>
-        {origin === 'online' && status !== 'noauth' ? <><img src={onlinePackArt} alt="" /><span><strong>Seu pacote do campeão</strong><small>Sua carta está no álbum.</small><span className="online-reopen-label">{status === 'revealed' ? 'Ver a carta do campeão' : 'Reabrir pacote'}</span></span></> : '🎁 Ver a carta do campeão'}
+        {origin === 'online' && status !== 'noauth' ? <><img src={onlinePackArt} alt="" /><span><strong>Seu pacote do campeão</strong><small>{motivo ?? 'Sua carta está no álbum.'}</small><span className="online-reopen-label">{status === 'revealed' ? 'Ver a carta do campeão' : 'Reabrir pacote'}</span></span></> : <>🎁 {motivo ? `Ver a carta · ${motivo}` : 'Ver a carta do campeão'}</>}
       </button>
     )
   }
