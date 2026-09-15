@@ -13,7 +13,20 @@
 .ll25-scorers{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:10px 12px;border-top:1px solid #59624d;height:70px;overflow:auto;font-size:12px}.ll25-scorers p{margin:0 0 3px}
 .ll25-button{background:#fff;color:#0C0C0C;border:3px solid #0C0C0C;border-radius:10px;box-shadow:2px 3px 0 #0C0C0C;min-height:44px;padding:7px 8px;font:700 13px/1.2 Oswald,sans-serif;cursor:pointer}
 .ll25-button[aria-pressed=true]{background:#7C3AED;color:#fff}.ll25-button:focus-visible{outline:3px solid #FFC400;outline-offset:3px}.ll25-button:disabled{opacity:.6;cursor:default}
-.ll25-rhythm{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:6px;margin-bottom:12px}.ll25-rhythm label,.ll25-rhythm select{min-width:0;width:100%;height:44px}.ll25-rhythm select:enabled{background:#FFC400}
+/* ⏱️ RITMO ≠ 📑 ABAS (Diego 15/09, vendo a live do canalmeianacanela: *"o modo AUTO
+   junto com a mesma aba de estatística e tabela, jogos, tabela, elenco — ele tá com a
+   mesma aba, cor, tamanho, sei lá, do elenco"*). Ele estava certo e o motivo era este
+   arquivo: as duas linhas usavam a MESMA .ll25-button, com o MESMO roxo no
+   aria-pressed e os MESMOS 44px. A tela dava o mesmo sinal pra duas coisas diferentes —
+   "como a partida roda" e "que conteúdo estou vendo".
+   Ele escolheu a saída mais barata (*"só menor e verde"*): o ritmo fica MENOR que as
+   abas e o ligado vira VERDE. Com isso o roxo passa a significar uma coisa só: a ABA
+   em que você está. ⚠️ Não repintar o ritmo de roxo de novo sem falar com ele. */
+.ll25-rhythm{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:6px;margin-bottom:12px}
+.ll25-rhythm label,.ll25-rhythm select{min-width:0;width:100%;height:32px}
+.ll25-rhythm .ll25-button{min-height:32px;padding:5px 6px;border-width:2px;border-radius:8px;box-shadow:1.5px 2px 0 #0C0C0C;font-size:11.5px}
+.ll25-rhythm .ll25-button[aria-pressed=true]{background:#1B7A3D;color:#fff}
+.ll25-rhythm select:enabled{background:#FFC400}
 .ll25-tabs{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:6px;margin:16px 0}.ll25-tabs button{padding:7px 2px;font-size:12px}
 .ll25-actions{display:flex;gap:8px;margin:12px 0}.ll25-actions button{flex:1}.ll25-actions button:first-child{background:#FFC400}
 .ll25-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
