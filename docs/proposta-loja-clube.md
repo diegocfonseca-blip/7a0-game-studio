@@ -154,6 +154,42 @@ moldura branca do arquivo do logo (`patro-vadico.webp` tem 5px de folga em volta
 Marca SEM logo (genérica) segue a mesma régua: nome comprido **quebra em 2 linhas**,
 como kit de verdade, em vez de encolher até virar formiga.
 
+✅ **A ARTE LIMPA CHEGOU — o Diego mandou (15/09): *"segue a arte certa"*.**
+Acabou a novela do molde remendado. É uma camisa de frente, gola V, duas faixas
+pretas no peito, punhos com detalhe, **sem escudo, sem patrocínio, sem nada
+escrito** — exatamente o que faltava. Ela virou `scripts/kits/MOLDE-camisa-tier.webp`
+(fundo cinza recortado pro alfa, 542×620, ~58 KB) e **aposentou** as duas peças
+remendadas que eu tinha fabricado apagando a camisa do Final Boss. É ela o MOLDE
+do jogo daqui pra frente: sai nesta cor pro tier 🪵 e é repintada pros outros
+(`scripts/tinge-camisa.py`).
+
+🛡️ **ESCUDO BASE — quem não tem batismo TAMBÉM tem escudo (regra dele, 15/09).**
+Palavras do Diego: *"o escudo base que sempre vem com a primeira letra ou algo do
+tipo pra pôr no peito, com alguma cor também o escudo"*. Como funciona:
+- nasce da **primeira letra** do nome do clube (Fulanos FC → **F**);
+- pintado com as **2 cores que o dono escolher** (as mesmas da camisa, ou outras);
+- é **desenho em código** (SVG), **não arquivo**. Isso é obrigatório: seria um
+  arquivo por clube, e são dezenas de milhares de carreiras — a regra de peso
+  morria na hora. Em código custa **0 KB** e serve pra qualquer nome.
+- formato: escudo de ponta, borda preta grossa, degradê das 2 cores, barra
+  preta em cima e a letra em creme com contorno preto — a mesma cara do resto do
+  jogo (borda 3-4px, sombra dura).
+
+📏 **TAMANHO DAS PEÇAS: medido na camisa, não chutado (ele cortou 15/09).**
+*"totalmente desproporcional × o tamanho da camisa"*. Eu estava dimensionando pela
+ALTURA da imagem inteira, e a imagem tem manga dos dois lados — então tudo saía
+grande demais e o escudo ainda atravessava a costura do ombro. As medidas certas,
+tiradas da arte (542×620): gola escura até **12%** da altura · faixa de cima
+**32→38%** · faixa de baixo **42→48%** · corpo entre **21% e 79%** da largura
+(o resto é manga). Daí:
+- **escudo**: altura ≈ **8,5%** da camisa, centro em **x 64% · y 27%** (peito
+  esquerdo de quem veste = lado direito de quem olha) — cabe entre a gola e a faixa;
+- **fornecedor**: marquinha espelhada em **x 36% · y 27%**, símbolo 3% + nome 1,9%;
+- **Master**: largura ≈ **22%** da altura da camisa, centro em **x 50% · y 61%**
+  (na barriga, abaixo das duas faixas), que dá ~48% da largura do corpo.
+👉 Regra que fica: peça de camisa se mede pelo **CORPO** (21–79%), nunca pela
+largura da imagem, e nunca pela altura total.
+
 🎨 **COR DE TIER TEM QUE PARECER COR (15/09, última correção dele).** Palavras do
 Diego: *"a cor do batismo eu pedi cor do tier profissional, mas na forma que tá parece
 que tá sem cor. Estranho"*. Eu tinha pintado o molde com uma rampa lavada

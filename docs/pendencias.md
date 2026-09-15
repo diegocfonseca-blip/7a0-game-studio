@@ -11,13 +11,21 @@ batismo usa o molde do jogo na cor do tier 🪵 Foi Profissional.
   patro-vadico-alfa) — são do POST, não entram no bundle do jogo.
 - Pintor de camisa: `python3 scripts/tinge-camisa.py foiprof` (rampa de cor por tier).
 
+✅ **A arte limpa chegou** — o Diego mandou a camisa certa (*"segue a arte certa"*),
+sem escudo e sem patrocínio. Virou `scripts/kits/MOLDE-camisa-tier.webp` e aposentou
+as duas peças remendadas que eu tinha fabricado a partir da camisa do Final Boss.
+✅ **Escudo base** pra quem não tem batismo: nasce da 1ª letra do nome + 2 cores do
+dono, desenhado em código (0 KB). No mockup: Fulanos FC → F.
+✅ **Tamanhos medidos** (ele pegou: *"totalmente desproporcional × o tamanho da
+camisa"*): peça de camisa se mede pelo CORPO (21–79% da largura), nunca pela imagem.
+
 **Falta pra virar código de verdade:**
-1. ⛔ **A arte da camisa em branco, limpa, precisa vir de fora.** O molde de hoje é a
-   camisa do Final Boss com as marcas apagadas — serve pro mockup, não pro jogo. O
-   OpenArt está sem crédito e os domínios do Canva não são alcançáveis deste ambiente.
-2. OK visual do Diego no mockup (regra: nada visual commitado sem o OK dele).
-3. Rampa de cor dos outros tiers (hoje só o 🪵 está feita).
-4. Campo novo no save: as 2 cores do clube de quem não tem batismo.
+1. OK visual do Diego no mockup (regra: nada visual commitado sem o OK dele).
+2. Rampa de cor dos outros tiers (hoje só o 🪵 está feita).
+3. Campo novo no save: as 2 cores do clube de quem não tem batismo (valem pra camisa
+   e pro escudo base).
+4. Levar o escudo base pro jogo de verdade (componente em `src/escalacao/`), pra ele
+   aparecer também na tabela, no elenco e no jornal — não só na loja.
 
 Nada disso mexeu no jogo ainda — só documento, script de mockup e arte de post. Reverter
 é apagar os arquivos; o jogo no ar não muda em nada.

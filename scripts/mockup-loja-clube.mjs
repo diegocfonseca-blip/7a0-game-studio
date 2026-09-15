@@ -28,25 +28,47 @@ const img = (caminho, tipo = 'webp') => `data:image/${tipo};base64,${readFileSyn
 //   · MOLDE-camisa-branca.webp  → o molde em branco (camisa do Final Boss, limpa)
 //   · camisa-tier-foiprof.webp  → o molde já pintado no bege 🪵 Foi Profissional
 //   · patro-vadico-alfa.webp    → o logo da Vadico com fundo transparente (cor intacta)
-const CAMISA_FOIPROF = img('scripts/kits/camisa-tier-foiprof.webp')
+const CAMISA_TIER = img('scripts/kits/MOLDE-camisa-tier.webp')
 const LOGO_VADICO = img('scripts/kits/patro-vadico-alfa.webp')
+
+// 🛡️ ESCUDO BASE — quem não tem batismo também tem escudo (pedido do Diego, 15/09):
+// *"o escudo base que sempre vem com a primeira letra ou algo do tipo pra pôr no
+// peito, com alguma cor também o escudo"*.
+//
+// Ele NASCE DA LETRA do clube e das 2 cores que o dono escolhe, então é DESENHO EM
+// CÓDIGO, não arquivo — se fosse arquivo seria um por clube, e aí a regra de peso
+// morria na hora (são dezenas de milhares de carreiras). Aqui ele custa 0 KB e serve
+// pra qualquer nome: "Fulanos FC" → F.
+const escudoBase = ({ letra, c1, c2, size = 44 }) => {
+  const L = (letra || '?').trim().charAt(0).toUpperCase()
+  return `<svg viewBox="0 0 100 114" width="${Math.round(size * 100 / 114)}" height="${size}" style="display:block;overflow:visible">
+    <defs><linearGradient id="g${L}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
+    <path d="M50 3 L95 17 V60 C95 86 74 102 50 111 C26 102 5 86 5 60 V17 Z"
+          fill="url(#g${L})" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M9 34 H91" stroke="${INK}" stroke-width="5" opacity=".85"/>
+    <text x="50" y="82" text-anchor="middle" style="${OSW};font-weight:700;font-size:56px;letter-spacing:-1px"
+          fill="#F4ECD6" stroke="${INK}" stroke-width="5" paint-order="stroke">${L}</text>
+  </svg>`
+}
 
 // ── A CAMISA: a arte (imagem) + as 3 peças carimbadas por cima ──────────────
 // `pos` = onde cada peça cai NAQUELA arte, em % (arte de batismo e molde têm
 // enquadramentos diferentes, então cada uma traz as suas medidas).
-const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, master, masterLogo, masterCor, pos }) => `
+const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, master, masterLogo, masterCor, masterW = 0.27, pos }) => `
   <div style="position:relative;height:${alt}px;flex:none;isolation:isolate">
     <img src="${arte}" style="height:${alt}px;display:block">
-    ${!escudo ? '' : `<div style="position:absolute;left:${pos.escudoX}%;top:${pos.escudoY}%;transform:translate(-50%,-50%)">
+    ${!escudo ? '' : `<div style="position:absolute;left:${pos.escudoX}%;top:${pos.escudoY}%;transform:translate(-50%,-50%);
+                filter:drop-shadow(0 1px 2px rgba(0,0,0,.42))">
       ${escudo.startsWith('data:')
-        ? `<img src="${escudo}" style="height:${Math.round(alt * 0.135)}px;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))">`
-        : `<span style="font-size:${Math.round(alt * 0.11)}px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))">${escudo}</span>`}
+        ? `<img src="${escudo}" style="height:${Math.round(alt * 0.135)}px;display:block">`
+        : escudo /* escudo base desenhado em código (SVG) */}
     </div>`}
     <div style="position:absolute;left:${pos.fornX}%;top:${pos.fornY}%;transform:translate(-50%,-50%);
                 display:flex;flex-direction:column;align-items:center;gap:${Math.round(alt * 0.006)}px;
-                mix-blend-mode:multiply;opacity:.88;filter:blur(.15px);color:${masterCor ?? INK}">
-      <span style="font-size:${Math.round(alt * 0.042)}px;line-height:1">${fornSimbolo ?? '▸'}</span>
-      <span style="${OSW};font-weight:700;font-size:${Math.round(alt * 0.026)}px;line-height:1;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap">${fornecedor}</span>
+                mix-blend-mode:multiply;opacity:.95;filter:blur(.15px);color:${masterCor ?? INK}">
+      <span style="font-size:${(alt * 0.030).toFixed(1)}px;line-height:1">${fornSimbolo ?? '▸'}</span>
+      <span style="${OSW};font-weight:700;font-size:${(alt * 0.019).toFixed(1)}px;line-height:1;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap">${fornecedor}</span>
     </div>
     <div style="position:absolute;left:${pos.masterX}%;top:${pos.masterY}%;transform:translate(-50%,-50%);
                 ${masterLogo ? 'opacity:.97' : 'mix-blend-mode:multiply;opacity:.93'};filter:blur(.15px)">
@@ -58,7 +80,7 @@ const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, master, mast
         // arquivo já tem alfa de verdade (o branco do fundo virou transparente,
         // veja `scripts/kits/patro-vadico-alfa.webp`), ele entra por cima normal
         // e a cor fica intacta; a sombrinha é que encaixa a estampa no pano.
-        ? `<img src="${masterLogo}" style="width:${Math.round(alt * 0.27)}px;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.28))">`
+        ? `<img src="${masterLogo}" style="width:${Math.round(alt * masterW)}px;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.28))">`
         : (() => {
             // 🖨️ marca SEM logo: o nome é impresso no peito e tem que CABER no corpo
             // da camisa (≈65% da largura dele). Nome comprido quebra em 2 linhas,
@@ -111,7 +133,7 @@ const tela = ({ titulo, sub, shirt, extra, forn, master, masterPe, vendeu }) => 
 const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;width:860px}</style>
   <div style="${OSW};font-weight:700;font-size:20px;text-transform:uppercase;color:${INK}">Loja do Clube · proposta</div>
   <div style="${OSW};font-weight:400;font-size:12px;color:${INK};opacity:.75;margin-bottom:12px">
-    Molde da camisa: o do <b>Final Boss FC</b>. Escudo no peito esquerdo, fornecedor no peito direito, Master abaixo do peito.</div>
+    Escudo no peito <b>esquerdo</b>, fornecedor de material no peito <b>direito</b>, patrocínio Master na <b>barriga</b>.</div>
   <div style="display:flex;gap:14px;align-items:flex-start">
     ${tela({
       titulo: 'COM batismo', sub: 'Final Boss FC',
@@ -119,8 +141,8 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
         arte: img('public/mantos-salao/finalboss-camisa.webp'), alt: 300,
         escudo: '', // a arte do batismo já traz o escudo dele — o jogo não carimba outro
         fornecedor: 'Naique', fornSimbolo: '✓', master: 'VADICO VEÍCULOS', masterCor: INK,
-        masterLogo: LOGO_VADICO, // 🏷️ marca REAL = logo de verdade, em cores
-        pos: { fornX: 30, fornY: 26, masterX: 50, masterY: 58 },
+        masterLogo: LOGO_VADICO, masterW: 0.22, // 🏷️ marca REAL = logo de verdade, em cores
+        pos: { fornX: 30, fornY: 27, masterX: 50, masterY: 58 },
       }),
       extra: cartao('👑 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Arte própria do batismo</div>`,
         'Clube batizado usa a arte que o dono mandou — é ela que aparece na loja. As 2 cores do manto saem dessa arte.'),
@@ -130,15 +152,22 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
       vendeu: { n: 44, m: 88, conta: '34 de base na Série B × estádio cheio × Naique (+30%)' },
     })}
     ${tela({
-      titulo: 'SEM batismo', sub: 'tier 🪵 FOI PROFISSIONAL',
+      titulo: 'SEM batismo', sub: 'Fulanos FC · tier 🪵 FOI PROFISSIONAL',
       shirt: camisa({
-        arte: CAMISA_FOIPROF, alt: 300,
-        escudo: '', fornecedor: 'Adibas', fornSimbolo: '◣', master: 'VADICO VEÍCULOS', masterCor: '#4F462E',
-        masterLogo: LOGO_VADICO,
-        pos: { fornX: 69, fornY: 27, masterX: 50, masterY: 55 },
+        arte: CAMISA_TIER, alt: 300,
+        // 📐 medido na arte que o Diego mandou (542×620): gola escura até 12%, faixa de
+        // cima 32→38%, faixa de baixo 42→48%, corpo entre x=128 e x=414.
+        // Escudo no peito ESQUERDO de quem veste = lado DIREITO de quem olha.
+        escudo: escudoBase({ letra: 'F', c1: '#2E9E5B', c2: '#14612F', size: Math.round(300 * 0.085) }),
+        fornecedor: 'Adibas', fornSimbolo: '◣', master: 'VADICO VEÍCULOS', masterCor: '#4F462E',
+        masterLogo: LOGO_VADICO, masterW: 0.22,
+        pos: { escudoX: 64, escudoY: 27, fornX: 36, fornY: 27, masterX: 50, masterY: 61 },
       }),
-      extra: cartao('🪵 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Molde do jogo, na cor do seu tier</div>`,
-        'Mesmo molde, mesma qualidade de arte. É UM arquivo só pro jogo inteiro, pintado com as suas cores — aqui o caramelo/areia do tier 🪵 Foi Profissional.'),
+      extra: cartao('🪵 A camisa e o escudo do seu clube', `<div style="display:flex;align-items:center;gap:9px">
+          ${escudoBase({ letra: 'F', c1: '#2E9E5B', c2: '#14612F', size: 40 })}
+          <div style="flex:1;min-width:0"><div style="${OSW};font-weight:700;font-size:12.5px">Fulanos FC</div>
+            <div style="${OSW};font-weight:400;font-size:10px;opacity:.7">escudo base · letra F · verde escolhido por você</div></div></div>`,
+        'A camisa é a MESMA arte de quem tem batismo, na cor do tier 🪵. E o clube sem batismo também tem escudo: o <b>escudo base</b> nasce da <b>primeira letra</b> do nome e das <b>2 cores</b> que você escolher — é desenho do jogo, não custa nada e serve pra qualquer nome.'),
       forn: { nome: 'Adibas', emoji: '🔺', cor: '#0E3E86', linha: 'contrato de 2 temporadas · 3 🪙 por ano<br>+20% nas vendas da loja', pe: 'Subiu de série, marca melhor bate na porta.' },
       master: '🚗 Vadico Veículos <span style="font-weight:400;font-size:10px;opacity:.7">· ano 1 de 3</span>',
       masterPe: 'Marca <b>real</b> entra com o <b>logo de verdade, em cores</b> (o vermelho da Vadico aparece). Marca <b>genérica</b> (Padaria do Zé, Espetinho do Baixinho…) não tem logo: entra o <b>nome escrito</b>.',

@@ -1,9 +1,10 @@
 # 👕 PINTA O MOLDE DA CAMISA NA COR DO CLUBE (Loja do Clube, 15/09).
 #
 # A ideia que faz a Loja caber no jogo: NÃO existe um arquivo de camisa por
-# clube. Existe UM molde só (`scripts/kits/MOLDE-camisa-branca.webp`, tirado da
-# camisa do Final Boss FC, que é o modelo que o Diego aprovou) e ele é pintado
-# com as cores de quem for. Quem tem batismo continua usando a arte própria.
+# clube. Existe UM molde só (`scripts/kits/MOLDE-camisa-tier.webp`, a arte que o
+# DIEGO MANDOU em 15/09 — camisa limpa, sem escudo e sem patrocínio, que encerrou
+# a novela do molde remendado) e ele é pintado com as cores de quem for. Quem tem
+# batismo continua usando a arte própria dele.
 #
 # Como pinta: o molde é quase sem cor (tecido claro, faixas escuras, contorno
 # preto), então dá pra trocar a cor lendo o BRILHO de cada pixel e devolvendo a
@@ -20,7 +21,7 @@ import sys
 from PIL import Image
 import numpy as np
 
-MOLDE = 'scripts/kits/MOLDE-camisa-branca.webp'
+MOLDE = 'scripts/kits/MOLDE-camisa-tier.webp'
 
 # 🪵 tier FOI PROFISSIONAL — o bege do jogo (#DBD1B5/#CBBF9E/#B2A583), mas
 # esticado em rampa pra virar cor de camisa mesmo: faixa caramelo no peito,
