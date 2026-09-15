@@ -296,6 +296,46 @@ Diego fechou a regra: *"o bico, depois de escolhido, só troca se subir de divis
 cair"* — que é exatamente quando o cargo muda de degrau. O passo 5 volta a aparecer na
 virada sempre que a divisão mudar. Falta codar (esperando o OK do mockup).
 
+### 👀 EM ABERTO — ver o campinho de TODO MUNDO no Monte Final (ideia dele, 15/09)
+Palavras dele: *"quando você tá no monte e tá escolhendo os times, não poderia aparecer
+o campinho de todos os times, igual quando acontece a simulação? Até pra gente saber:
+como já tem um botão de gerenciar, se eu ver que tem um campinho com um monte de buraco,
+pode ser que esse cara já saiu do jogo, aí é mais fácil eu apertar em gerenciar e tirar
+ele"*. E ele mesmo levantou o risco: *"vai prejudicar alguma coisa ou não? Pode ser que
+tenha até 20 campinhos"*.
+
+`node scripts/mockup-monte-campinhos.mjs [--saida x.png]` desenha as duas formas.
+
+📏 **O que foi MEDIDO no código antes de responder** (vale guardar, porque é a conta que
+decide):
+- ⏱️ o tempo da vez é **15 s** (`MONTE_MS = 15_000` em `store.tsx`). O "13s" que ele viu
+  na live era o relógio JÁ CORRENDO — a tela mostra `remaining`, não a constante;
+- 👥 a sala vai a **20 técnicos** (`MAX_PLAYERS` em `lobby.tsx`; 40 em duplas);
+- 🖼️ hoje o Monte desenha **só o seu** campinho (`<YourPitch />`), e cada `Campinho`
+  desenha **11 rostos** (`avatarIdentity`) → 20 campinhos = **220 fotos** de uma vez;
+- 🔁 e `EscMonte` **re-renderiza 4× por segundo** enquanto o relógio corre
+  (`setInterval(…, 250)`) — ou seja, os 20 campinhos seriam redesenhados junto, na tela
+  mais sensível do jogo. **É esse o custo real da versão empilhada.**
+
+🟢 **E o achado que melhora a ideia dele:** o jogo **já sabe quem saiu** —
+`state.presenceUids` é o crachá online, e o código JÁ o usa pra liberar o "seu parceiro
+caiu" (`screens.tsx` 3281 e 4658). **Contar buraco é adivinhação**: um técnico pode estar
+ali, jogando, e ter 7 buracos só porque perdeu os leilões; e quem saiu pode estar com o
+time cheio. Remover pelo buraco pode tirar alguém que está jogando — exatamente o tipo de
+falso positivo que ele odeia (foi o argumento que aposentou a eleição automática de host).
+
+**Opções no mockup:**
+- **A — os 20 campinhos empilhados**: é o que ele descreveu, e é o que custa caro.
+- **B — a lista viva + o campinho que abrir** ⭐ recomendada: uma fileira por técnico com
+  🟢/🔴 (presença de verdade) e os buracos; toca no nome e o campinho dele abre ali. O
+  seu já vem aberto. Mesma informação, um campinho por vez, e a decisão de remover passa
+  a ser pelo FATO. A faixa 🔴 leva direto pro ⚙️ gerenciar (`Shell`, `kickPlayer`).
+
+⏳ **Nada codado — só o mockup, esperando ele escolher A ou B.** Se for B, o trabalho é:
+uma lista nova em `EscMonte` (`screens.tsx` ~4760, onde hoje está o `<YourPitch />`), um
+`useState` pro time aberto, e o `🟢/🔴` saindo de `presenceUids`. ⚠️ Em QUALQUER das duas,
+memoizar os campinhos pra o relógio de 250 ms não redesenhá-los.
+
 ### 🎬 Reels da Loja + fornecedor
 `node scripts/video-loja-reels.mjs [--saida x.mp4] [--no-ar]` — 1080×1920, ~31 s, a
 mesma técnica dos outros reels (cenas em keyframes de CSS, Playwright grava a tela,
