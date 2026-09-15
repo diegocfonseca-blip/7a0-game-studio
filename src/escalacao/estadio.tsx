@@ -64,7 +64,7 @@ const META_EN: Record<SponsorBetTier, { curto: string; linha: string }> = {
   2: { curto: 'Promotion', linha: 'finish in the top 4' },
   3: { curto: 'Champion', linha: 'league or cup' },
 }
-const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : undefined
+export const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : undefined
 // a marca fiel mora num nível só — o selinho no PASSO 1 avisa em qual, senão
 // quem escolhesse outra meta nunca descobriria que perdeu a garantia.
 const tierDaMarca = (brandId?: string): SponsorBetTier | undefined => sponsorBrandOf(brandId)?.tier

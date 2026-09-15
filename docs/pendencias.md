@@ -1,3 +1,43 @@
+## 15/09/2026 — 🛍️ LOJA DO CLUBE no ar, TRAVADA na conta do Diego
+
+Ele aprovou: *"pode aprovar tudo que fizemos, só pro e-mail do usuário
+diego.c.fonseca@gmail.com"*. Então a Loja foi IMPLEMENTADA de verdade e está na
+`main`, mas **invisível pra todo mundo menos ele** (`LOJA_TESTERS` em `sport.ts`,
+o mesmo padrão do basquete e do tema noturno).
+
+### O que existe agora
+- **`src/escalacao/loja.ts`** — módulo PURO com a régua toda: fornecedor
+  (`FORN_BASE` V1 D2 C5 B10 A20, mesma fórmula do Master), as 4 marcas com prazo
+  fixo, torcida = 12.000 + assentos construídos, obras que puxam venda, as 3 faixas
+  e as curvas de preço, e `calculaVendas()`.
+- **`src/escalacao/loja-tela.tsx`** — `EscudoBase` (SVG, nasce da letra + 2 cores,
+  0 KB), `CamisaLoja` (arte + escudo + fornecedor + Master nos 3 lugares fixos) e
+  `LojaTab` (a sub-aba inteira, com a porta trancada pra quem não construiu a obra).
+- **`src/escalacao/img/camisa-molde-v1.webp`** — o molde do jogo (a arte que o Diego
+  mandou), 58 KB, UM arquivo pro jogo inteiro.
+- **sub-aba `🏟️ Clube › 🛍️ Loja`** em `pyramidseason.tsx`, só quando `useLojaLiberada()`.
+- **reducer**: ações `LOJA_PRECO` e `LOJA_FORNECEDOR`, e `applyLojaIncome()` na
+  virada (paga o fornecedor + as vendas e guarda o balanço).
+- **`scripts/testa-loja.mjs`** — 25 conferências, todas verdes.
+
+### 🛡️ Por que isso NÃO pode quebrar o futebol de ninguém
+`applyLojaIncome()` sai na hora se o save não tem `careerLoja`, e a ÚNICA porta que
+cria essa chave é a sub-aba travada por e-mail. O teste prova: carreira sem
+`careerLoja` fecha a temporada sem nenhuma linha de loja no extrato e sem uma moeda
+a mais. As travas do fornecedor (divisão mínima, sem rescisão) estão no REDUCER,
+não só na tela.
+
+### Falta (quando o Diego mandar liberar geral)
+1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
+   mostraria pra todo mundo uma aba que só ele vê. Entra na MESMA entrega que
+   esvaziar `LOJA_TESTERS`.
+2. **Escolher as 2 cores do clube** (hoje `LojaSave.cores` existe no save mas não
+   tem tela; sem escolha, o escudo base nasce no vermelho/dourado da casa).
+3. **Arte da loja do Canva** — 4 opções geradas, links em `docs/proposta-loja-clube.md`.
+   Hoje a vitrine é degradê CSS (0 KB) e já funciona; a arte é um upgrade opcional.
+4. **Rampa de cor dos outros tiers** em `scripts/tinge-camisa.py` (só o 🪵 está feito).
+5. Levar o `EscudoBase` pra tabela/elenco/jornal — hoje ele só aparece na Loja.
+
 ## 15/09/2026 — ⏱️ +1s nos jogos de Copa no AUTO — ✅ no ar
 
 Pedido do Diego: *"aumente p 1s a simulação dos jogos das Copas nos jogos rolando no modo

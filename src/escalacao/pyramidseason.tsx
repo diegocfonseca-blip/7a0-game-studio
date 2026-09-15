@@ -35,7 +35,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, MasterRegua } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, MasterRegua, sponsorLogoSrc } from './estadio'
 import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorOverview } from './career-sponsor-visual'
 import { UnlockBanner } from './unlockbanner'
@@ -43,7 +43,8 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do cl
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador, useLojaLiberada } from './sport'
+import { LojaTab } from './loja-tela' // 🛍️ Loja do Clube — teste fechado por e-mail (LOJA_TESTERS)
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
@@ -5977,10 +5978,11 @@ export function PyramidSeasonScreen() {
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'global'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const [bicoTrocando, setBicoTrocando] = useState(false) // 🕴️ Bico de Folga: lista de troca abre no lugar do botão (visual novo, 14/08)
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
+  const lojaLib = useLojaLiberada() // 🛍️ Loja do Clube: teste fechado na conta do Diego — pros outros a pílula nem existe
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
   const agenciaOk = !!state.agenciaOn && agLib // 🏗️ Clube vira "Estrutura" (estádio→patrocínio→agência) SÓ na Agência 2.0
   // 🏛️ MULTICLUBES (Opção B): seletor livre. `multiAsk` = modal de confirmar a troca;
@@ -6236,6 +6238,13 @@ export function PyramidSeasonScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [humanKey, rivalKey, youId, state.seed, nameKey])
   const myCol = baseColors[youId] ?? { solid: APOIO_PERKS.bege.solid, light: APOIO_PERKS.bege.light }
+  // 🛍️ marca do Master VIGENTE — é ela que vai estampada na barriga da camisa da
+  // Loja. Sem contrato correndo, nada é estampado (regra do Diego: fechou aparece,
+  // acabou some).
+  const masterBrandAtual = useMemo(() => {
+    const c = state.careerMaster?.[youId]
+    return masterAtivo(c, state.seasonNo ?? 1) ? sponsorBrandOf(c.brandId) : undefined
+  }, [state.careerMaster, state.seasonNo, youId])
   // 🏢 a SUA SAF veste a MESMA cor do seu clube (mesma "marca"): acha o teamId
   // dela na tabela e injeta a sua cor no mapa — assim ela pinta igual em jogos,
   // artilharia e classificação. O ícone 💼 (vs 👤) é quem diferencia vocês.
@@ -6430,8 +6439,12 @@ export function PyramidSeasonScreen() {
     const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult)
     // 🎟️ ocupação por técnico (carreira nova) — colocação final vira renda do estádio
     const stadiumOcc: Record<number, number> = {}
-    for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]) })
-    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), sponsorRewards: spb.rewards, sponsorResults: spb.results, stadiumOcc })
+    // 🛍️ e a COLOCAÇÃO FINAL crua, que é o que a Loja usa (a ocupação já vem
+    // convertida em %, e a loja precisa do lugar pra saber a faixa: campeão ·
+    // classificação · se manteve · caiu)
+    const finalPos: Record<number, number> = {}
+    for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) { stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]); finalPos[t.teamId] = i + 1 } })
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), sponsorRewards: spb.rewards, sponsorResults: spb.results, stadiumOcc, finalPos })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
@@ -7675,7 +7688,8 @@ export function PyramidSeasonScreen() {
           // 🎟️ OCUPAÇÃO por técnico (carreira nova): quão cheio o estádio ficou pela
           // colocação final → vira a renda (piso + construído × ocupação, no reducer).
           const stadiumOcc: Record<number, number> = {}
-          for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]) })
+          const finalPos: Record<number, number> = {} // 🛍️ colocação crua, pra faixa da Loja
+          for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) { stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]); finalPos[t.teamId] = i + 1 } })
           // carreira NOVA (agenciaOn) troca o bônus solto do torcidômetro pela renda de
           // ocupação; a antiga mantém o +15/+8 de sempre.
           const torcBonus = state.agenciaOn ? {} : torcidaBonusRewards(state.careerTorcida, torcDeltas, tables)
@@ -7685,7 +7699,7 @@ export function PyramidSeasonScreen() {
           // Diego 16/08: "não são coisas novas, só alterou o nome" — quem já tinha
           // títulos de Copa Legends não perde nada, o histórico é contínuo.
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
-          const args = () => ({ placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc })
+          const args = () => ({ placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
@@ -7922,7 +7936,7 @@ export function PyramidSeasonScreen() {
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
             <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
             <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(privateCareer && PRESIDENT_ROOM_RELEASED ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(privateCareer && PRESIDENT_ROOM_RELEASED ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
                 // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
                 // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
                 .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
@@ -7944,6 +7958,23 @@ export function PyramidSeasonScreen() {
               // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
               <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
+            ) : clubeSub === 'loja' && lojaLib ? (
+              // 🛍️ LOJA DO CLUBE — a camisa montada (escudo + fornecedor + Master), o
+              // preço do ano (que é aposta) e o contrato de material. A porta abre com
+              // a obra 🛍️ Loja do Clube, que já existe no estádio; sem ela a tela
+              // explica o porquê e leva pra Estrutura.
+              <LojaTab
+                time={state.managers[state.youIdx]?.teamName ?? tr('Seu clube', 'Your club')}
+                st={state.stadiums?.[youId]}
+                div={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+                seasonNo={state.seasonNo ?? 1}
+                loja={state.careerLoja?.[youId]}
+                masterNome={masterBrandAtual?.name}
+                masterLogo={masterBrandAtual ? sponsorLogoSrc(masterBrandAtual) : undefined}
+                minhaCor={myCol.solid}
+                onPreco={preco => dispatch({ type: 'LOJA_PRECO', preco, mgrId: youId })}
+                onFornecedor={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })}
+                onIrEstrutura={() => setClubeSub('estadio')} />
             ) : clubeSub === 'financas' ? (
               <>
               <FinancasTab ledger={(state.onlineMode === 'online' ? state.careerLedgers?.[youId] : state.careerLedger) ?? []} caixa={state.careerCoins?.[youId] ?? 0} seasonNo={state.seasonNo ?? 1}

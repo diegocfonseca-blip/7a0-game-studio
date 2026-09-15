@@ -521,6 +521,10 @@ export interface EscState {
   // temporada de `desde` até `desde + anos − 1`. Vencido, fica guardado (histórico) e a
   // tela oferece os 4 contratos de novo. Regras completas em estadiodata.ts (MASTER_PRAZOS).
   careerMaster?: Record<number, { brandId: string; anos: number; div: string; desde: number; porTemporada: number }> // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado. floored = não bateu mas a garantia de fidelidade pagou o mínimo mesmo assim
+  // 🛍️ LOJA DO CLUBE (15/09, teste fechado — trava por e-mail em sport.ts).
+  // Por técnico: contrato de material vigente, preço escolhido pra temporada, as 2
+  // cores do clube (escudo base) e o balanço da temporada que FECHOU.
+  careerLoja?: Record<number, import('./loja').LojaSave>
   empresarioCards?: EmpCard[] // 💼 carreira SOLO: agência do Empresário — cartas ganhas no pacote de campeão desta carreira (começa vazia). Rende por temporada por raridade (categorias destravam com estádio/SAF). Aceita REPETIDAS (o álbum geral ignora; a agência do save conta).
   empresarioClaimKeys?: string[] // 💼 idempotência: seasonKeys dos pacotes já registrados na agência (o pacote reoferece a carta no reload, então dedup por temporada, não por carta).
   careerEmpresario?: Record<number, EmpCard[]> // 💼 carreira ONLINE: agência do Empresário por técnico (mgrId → cartas). Offline usa empresarioCards.
