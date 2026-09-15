@@ -532,6 +532,29 @@ a cota do bom jogador (mexe no equilíbrio do leilão, que ele ajustou à mão),
 prioridade a quem nunca saiu (o `RECENT_DECK` já faz isso pra UMA leva; daria pra
 guardar mais fundo). Perguntar antes — régua de raridade é decisão dele.
 
+### 📢 STORIES "O CLUBE GANHA MUITO MAIS" (15/09)
+`node scripts/post-mais-dinheiro.mjs` — junta num post só tudo que mexeu no caixa em
+15/09, com **antes × agora por divisão**. Pedido dele: *"quero um mockup com todos os
+aumentos que fizemos e inclusões, e como era até ontem e tudo de novo que fiz hoje…
+pras pessoas entenderem o que fizemos de novo pra ganhar mais dinheiro"*.
+
+📊 **Os números NÃO são escritos à mão** — saem de `node scripts/mede-antes-depois.mjs`,
+que pega o **ANTES no próprio git** (`2f151197^` e `b4857483^`) e o **AGORA nas funções
+de verdade** (`masterPorTemporada`, `fornPorTemporada`, `calculaVendas`). Mexeu numa
+régua? Roda de novo e refaz o post.
+
+Moedas por temporada (contrato de 3 temporadas, estádio médio com a Loja):
+| divisão | até ontem | agora |
+|---|---|---|
+| Várzea | 8 | **43** (5,4×) |
+| Série D | 18 | **61** |
+| Série C | 28 | **93** |
+| Série B | 51 | **119** |
+| Série A | 92 | **192** |
+
+⚠️ O post avisa na caixa laranja que as duas fontes NOVAS pedem a Loja construída e que
+o bico começa na 3ª temporada — senão o número promete o que nem todo mundo alcança.
+
 ### 📺 COTA DE TV REFEITA — ✅ NO AR (15/09)
 Ordem dele: *"aumente a cota de TV pra Várzea começando em 10, depois Série D 20, depois
 C 30, B 40, A 50"*. Virou uma escada redonda de 10 em 10.
