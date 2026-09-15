@@ -295,6 +295,14 @@ leitura e o bloco da virada some). Antes tinha o botão "Trocar de bico" na aba.
 quiser a troca de volta, o lugar natural é o bloco da virada aparecer também quando a
 DIVISÃO muda (que é quando o cargo muda de degrau).
 
+### 🎬 Reels da Loja + fornecedor
+`node scripts/video-loja-reels.mjs [--saida x.mp4] [--no-ar]` — 1080×1920, ~28 s, a
+mesma técnica dos outros reels (cenas em keyframes de CSS, Playwright grava a tela,
+ffmpeg converte). 7 cenas: abertura · a camisa montada na vitrine · o fornecedor com as
+4 marcas · a torcida vem do estádio · o preço é uma aposta · se cair não vende nada ·
+marca. A camisa é montada pelas peças de verdade (`loja-pecas.mjs`).
+⏳ Diz "chegando"; `--no-ar` troca no dia que liberar geral.
+
 ### 📢 Stories da venda de camisas
 `node scripts/post-loja-camisas.mjs [--saida x.png] [--no-ar]` — o irmão do post do
 fornecedor, mesmo molde. Mostra a vitrine, os 3 preços com o que cada um é bom pra

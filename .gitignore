@@ -55,6 +55,10 @@ dist-ssr
 scripts/_tmp-*.mjs
 bench-sim.html
 
+# 🎬 REELS gerados por script (o gerador mora no repo; o mp4 sai dele em segundos
+# e tem megas). Mesma regra dos mockups: script sim, arquivo não.
+*.mp4
+
 # 📣 artes de DIVULGAÇÃO geradas por script (a fonte é scripts/post-divulgacao.mjs;
 # a imagem sai dela em 2 segundos, não precisa versionar PNG de 1 MB)
 /divulgacao-feed.png
