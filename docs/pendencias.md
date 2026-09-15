@@ -532,6 +532,65 @@ a cota do bom jogador (mexe no equilíbrio do leilão, que ele ajustou à mão),
 prioridade a quem nunca saiu (o `RECENT_DECK` já faz isso pra UMA leva; daria pra
 guardar mais fundo). Perguntar antes — régua de raridade é decisão dele.
 
+### ✍️ A LEGENDA DO POST DO DINHEIRO (15/09)
+Mesma regra da outra legenda: mora aqui porque texto que só existe no chat se perde, e
+porque o TOM é o que interessa — número grande na frente, o "por quê" em seguida, e o
+aviso do que precisa ser destravado **no fim e em tom de dica**, nunca como susto
+(regra dele: divulgação mostra o que se ganha).
+
+```
+🤑 O SEU CLUBE VAI GANHAR MUITO MAIS
+
+Passei o dia mexendo em tudo que pinga no caixa do Modo Carreira. Não foi um ajuste:
+foi a conta inteira refeita — e quem está começando na Várzea foi quem mais ganhou.
+
+📺 COTA DE TV — subiu em TODAS as divisões
+Virou uma escada redonda: Várzea 10, Série D 20, Série C 30, Série B 40, Série A 50
+moedas por temporada. A Várzea saiu de 1 pra 10.
+
+🕴️ BICO DE FOLGA — paga mais e vai mais longe
+Era 2 na Várzea e 4 na Série D. Agora é 5, 7 e 10 — e agora existe também na Série C,
+que antes não tinha. Ele virou uma carreira dentro da empresa: você começa lavando
+carro no pátio e termina gerente da loja.
+
+🏆 PATROCINADOR MASTER — subiu na Várzea, na D e na C
+De propósito só embaixo: subir de divisão tem que continuar valendo a pena.
+
+👟 FORNECEDOR DE MATERIAL — NOVO
+Uma marca veste o seu time e aparece na camisa, no peito direito. Contrato de 1, 2, 3
+ou 5 temporadas, e o valor trava na divisão em que você assina.
+
+🛍️ VENDA DE CAMISAS — NOVO
+A sua camisa vira dinheiro toda temporada. Quanto maior a sua torcida, mais camisa
+sai — e o preço quem escolhe é você, antes do ano começar.
+
+📈 NA PRÁTICA, POR TEMPORADA:
+Várzea 8 → 43 · Série D 18 → 61 · Série C 28 → 93 · Série B 51 → 119 · Série A 92 → 192
+
+🏟️ As duas novidades moram na Loja do Clube, então vale levantar ela no estádio — é
+por lá que o fornecedor e as camisas entram. O resto já está valendo pra todo mundo,
+sozinho, sem fazer nada.
+
+O jogo vai crescendo de pouquinho em pouquinho, sempre pra ficar melhor pra vocês. 🖤
+
+⚽ leilaolegends.com
+```
+
+Versão curta (stories):
+```
+🤑 O SEU CLUBE GANHA MUITO MAIS AGORA
+
+📺 Cota de TV subiu em todas as divisões (Várzea 10 · D 20 · C 30 · B 40 · A 50)
+🕴️ Bico de folga paga 5, 7 e 10 — e agora vai até a Série C
+🏆 Patrocínio Master subiu na Várzea, D e C
+👟 Fornecedor de material esportivo: NOVO
+🛍️ Venda de camisas: NOVO
+
+Na Várzea é 5× mais dinheiro que ontem. Em todas as outras, mais que o dobro.
+
+⚽ leilaolegends.com
+```
+
 ### 📢 STORIES "O CLUBE GANHA MUITO MAIS" (15/09)
 `node scripts/post-mais-dinheiro.mjs` — junta num post só tudo que mexeu no caixa em
 15/09, com **antes × agora por divisão**. Pedido dele: *"quero um mockup com todos os
