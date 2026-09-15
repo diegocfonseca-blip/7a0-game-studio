@@ -28,7 +28,7 @@ const img = (caminho, tipo = 'webp') => `data:image/${tipo};base64,${readFileSyn
 // `pos` = onde cada peça cai NAQUELA arte, em % (arte de batismo e molde têm
 // enquadramentos diferentes, então cada uma traz as suas medidas).
 const camisa = ({ arte, alt = 300, escudo, fornecedor, master, masterCor, pos }) => `
-  <div style="position:relative;height:${alt}px;flex:none">
+  <div style="position:relative;height:${alt}px;flex:none;isolation:isolate">
     <img src="${arte}" style="height:${alt}px;display:block">
     ${!escudo ? '' : `<div style="position:absolute;left:${pos.escudoX}%;top:${pos.escudoY}%;transform:translate(-50%,-50%)">
       ${escudo.startsWith('data:')
@@ -36,12 +36,12 @@ const camisa = ({ arte, alt = 300, escudo, fornecedor, master, masterCor, pos })
         : `<span style="font-size:${Math.round(alt * 0.11)}px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))">${escudo}</span>`}
     </div>`}
     <div style="position:absolute;left:${pos.fornX}%;top:${pos.fornY}%;transform:translate(-50%,-50%);
-                ${OSW};font-weight:700;font-size:${Math.round(alt * 0.045)}px;color:#fff;letter-spacing:.4px;white-space:nowrap;
-                text-shadow:0 1px 0 ${INK},1px 0 0 ${INK},-1px 0 0 ${INK},0 -1px 0 ${INK}">${fornecedor}</div>
+                ${OSW};font-weight:700;font-size:${Math.round(alt * 0.04)}px;color:${masterCor ?? INK};letter-spacing:.5px;white-space:nowrap;
+                mix-blend-mode:multiply;opacity:.85;filter:blur(.15px)">${fornecedor}</div>
     <div style="position:absolute;left:${pos.masterX}%;top:${pos.masterY}%;transform:translate(-50%,-50%);
                 ${OSW};font-weight:700;font-size:${Math.round(alt * (master.length > 18 ? 0.042 : master.length > 13 ? 0.05 : 0.058))}px;line-height:1;letter-spacing:.5px;
                 text-transform:uppercase;white-space:nowrap;color:${masterCor ?? INK};
-                text-shadow:0 1px 1px rgba(0,0,0,.35)">${master}</div>
+                mix-blend-mode:multiply;opacity:.92;filter:blur(.15px)">${master}</div>
   </div>`
 
 const pill = (txt, sub, on) => `

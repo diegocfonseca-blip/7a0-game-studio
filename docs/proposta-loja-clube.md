@@ -88,6 +88,25 @@ escudo e patrocínios são carimbados por cima.
    *"a logo deixe de forma melhor na camisa o patrocinador Master"*. Texto
    impresso no tecido, do tamanho que couber no peito.
 
+🖨️ **A ESTAMPA TEM QUE ENTRAR NO TECIDO (15/09).** Ele viu a primeira versão e
+cortou: *"a logo tá ridícula, parece PowerPoint"*. Estava certo — era texto colado
+POR CIMA da foto. O conserto é `mix-blend-mode: multiply` no nome do Master e do
+fornecedor: as dobras e o desenho da camisa passam por cima das letras, e aí lê
+como estampa. Vale como regra pra qualquer coisa que o jogo carimbar na camisa.
+
+⛔ **E A LIÇÃO MAIOR, que custou várias idas e vindas:** *"não gostei nada… tá
+manchada… quero camisa perfeita"*. O molde que eu montei é a camisa do Final Boss
+com o escudo, o texto da manga e a etiqueta **apagados na mão por cima da arte do
+dono**. Isso é REMENDO e vai ficar manchado sempre. **Não dá pra fabricar a arte
+base apagando arte alheia.** O único caminho é uma camisa branca lisa desenhada do
+zero — e ela precisa vir DE FORA, porque:
+- o gerador de imagem (OpenArt) está **sem crédito**;
+- o **Canva foi usado** (gerou 4 opções e os links foram pro Diego), mas este
+  ambiente **bloqueia os domínios do Canva**, então não dá pra baixar a imagem
+  aqui — e depois a conexão do Canva caiu da sessão.
+👉 Pedido feito a ele: gerar/mandar **uma** camisa branca, de frente, sem estampa,
+sem escudo, sem patrocínio, sem faixa, fundo verde. Prompt pronto entregue no chat.
+
 Lugares das peças (pedido dele, referência: Internacional de Madrid e Inter de Bailão):
 
 - **peito esquerdo**: escudo do clube;
