@@ -614,6 +614,27 @@ Moedas por temporada (contrato de 3 temporadas, estádio médio com a Loja):
 ⚠️ O post avisa na caixa laranja que as duas fontes NOVAS pedem a Loja construída e que
 o bico começa na 3ª temporada — senão o número promete o que nem todo mundo alcança.
 
+### 🗣️ DOIS TEXTOS DA LOJA QUE NINGUÉM ENTENDEU — ✅ CORRIGIDOS (15/09)
+Os dois vieram da LIVE, com gente real travando na tela. **Guardar como regra de
+escrita**, não só como conserto:
+
+1. **DOIS NÚMEROS NA MESMA TELA SEM DIZER A RELAÇÃO = o pessoal SOMA.** A tela da venda
+   de camisas mostrava `+103 🪙 se for campeão` na cena e soltava `num ano de meio de
+   tabela dá ~79 🪙` na barra de baixo. Um espectador perguntou ao Diego: *"se eu for
+   campeão é 79+103?"*. Ele trouxe: *"não consegui entender esses valores, e quem tá
+   lendo não tá claro também, porque tem dois valores na tela e a info não tá clara"*.
+   **Conserto:** os dois finais viraram um bloco só (`.ll37-finais`), um embaixo do
+   outro, com o rótulo "O QUE ENTRA NO FIM DA TEMPORADA" em cima e
+   **"um OU outro — não soma"** embaixo. O número de camisas saiu da linha do dinheiro
+   (número grande ao lado de moedas parecia dinheiro) e foi pra frase de baixo.
+2. **RÓTULO CURTO DEMAIS VIRA ADIVINHAÇÃO.** A linha `💰 Preço do ano` na aba 🛍️ Loja —
+   *"ninguém entende o que quis dizer com isso"*. Lido solto parece o quanto o clube
+   faturou no ano. **Conserto:** virou `👕 A torcida paga · 1 🪙 por camisa · Popular` —
+   diz QUEM paga, QUANTO e POR QUÊ.
+
+👉 A regra que fica: **todo número na tela precisa dizer de quem é e quando acontece.**
+E quando houver mais de um, dizer se somam.
+
 ### 📺 COTA DE TV REFEITA — ✅ NO AR (15/09)
 Ordem dele: *"aumente a cota de TV pra Várzea começando em 10, depois Série D 20, depois
 C 30, B 40, A 50"*. Virou uma escada redonda de 10 em 10.

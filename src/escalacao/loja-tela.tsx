@@ -392,7 +392,12 @@ export function LojaTab({
         {linha(<>🤝 {tr('Master', 'Master')}</>, masterNome
           ? <>{masterNome}</>
           : <span style={{ fontWeight: 400, opacity: .6 }}>{tr('nenhum', 'none')}</span>)}
-        {linha(<>💰 {tr('Preço do ano', 'Price this season')}</>, <>{nomePreco(preco)} · {p.moeda} 🪙</>)}
+        {/* ⚠️ "Preço do ano" NÃO: corte do Diego (15/09) — *"ninguém entende o que quis
+            dizer com isso"*. Lido solto, parece o quanto o clube ganhou no ano. É o
+            PREÇO QUE A TORCIDA PAGA na camisa, então o rótulo diz isso, com o "cada"
+            colado no valor pra não sobrar dúvida. */}
+        {linha(<>👕 {tr('A torcida paga', 'Fans pay')}</>,
+          <>{p.moeda} 🪙 <span style={{ fontWeight: 400, fontSize: 10, opacity: .7 }}>{tr('por camisa', 'per shirt')} · {nomePreco(preco)}</span></>)}
       </Cartao>
 
       {/* 🧭 onde se decide — uma linha, sem botão de escolher aqui */}
@@ -504,14 +509,31 @@ export function PrecoVirada({
           </div>
         </div>
         <div className="ll37-chao" />
-        <div className="ll37-conta">
-          ~{fmt(rCampeao.camisas)} {tr('camisas', 'shirts')} · <em>+{rCampeao.moedas} 🪙</em>{' '}
-          <small>{tr('se for campeão', 'if you win it')}</small>
+        {/* 💰 OS DOIS FINAIS, LADO A LADO — e escrito que é UM OU OUTRO.
+            ⚠️ POR QUE ASSIM: antes a cena mostrava só o número de campeão e a barra de
+            baixo soltava o de meio de tabela numa frase. Dois números na mesma tela, sem
+            dizer a relação, e o pessoal leu como SOMA — um jogador perguntou ao Diego na
+            live: *"se eu for campeão é 79+103?"*. Ele trouxe: *"não consegui entender
+            esses valores, e quem tá lendo não tá claro também, porque tem dois valores na
+            tela e a info não tá clara"*. Agora os dois moram juntos, com o rótulo
+            explicando que dependem de como a temporada terminar. */}
+        <div className="ll37-finais">
+          <div className="tit">{tr('O QUE ENTRA NO FIM DA TEMPORADA', 'WHAT YOU GET AT THE END OF THE SEASON')}</div>
+          <div className="ln">
+            <span className="q">🏆 {tr('se for campeão', 'if you win it')}</span>
+            <span className="v">+{rCampeao.moedas} 🪙</span>
+          </div>
+          <div className="ln">
+            <span className="q">🛡️ {tr('se ficar no meio da tabela', 'if you finish mid-table')}</span>
+            <span className="v">+{rManteve.moedas} 🪙</span>
+          </div>
+          <div className="pe">{tr('um OU outro — não soma. Depende de como a sua temporada terminar.',
+            'one OR the other — they do not add up. It depends on how your season ends.')}</div>
         </div>
       </div>
       <div className="ll29-sponsor-bottom">
         <p>{tr(EXPLICA[sel].pt, EXPLICA[sel].en)}{' '}
-          {tr(`Num ano de meio de tabela dá ~${rManteve.moedas} 🪙.`, `In a mid-table year it makes ~${rManteve.moedas} 🪙.`)}</p>
+          {tr(`Campeão, a torcida leva ~${fmt(rCampeao.camisas)} camisas.`, `As champion, the fans buy ~${fmt(rCampeao.camisas)} shirts.`)}</p>
         <button onClick={() => onPreco(sel)}>
           ✍️ {tr('CONFIRMAR O PREÇO', 'CONFIRM THE PRICE')} · {nomePreco(sel).toUpperCase()}
         </button>
