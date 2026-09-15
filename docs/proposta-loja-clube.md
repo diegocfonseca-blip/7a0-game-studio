@@ -107,6 +107,22 @@ zero — e ela precisa vir DE FORA, porque:
 👉 Pedido feito a ele: gerar/mandar **uma** camisa branca, de frente, sem estampa,
 sem escudo, sem patrocínio, sem faixa, fundo verde. Prompt pronto entregue no chat.
 
+🏷️ **MARCA REAL ENTRA COM LOGO DE VERDADE (regra dele, 15/09):** *"tinha que entrar
+a logo real da Vadico, por exemplo. Só se fosse marca genérica que não"*. O jogo JÁ
+tem os quatro logos dos amigos dele em `src/escalacao/img/`: `patro-vadico.webp`,
+`patro-ero.webp`, `patro-maxjoias.webp`, `patro-reidastintas.webp` (usados hoje em
+`estadio.tsx` e `career-sponsor-visual.tsx`). Então:
+- **Vadico · ERO · Max Joias · Rei das Tintas** → estampa o **logo**;
+- **Padaria do Zé, Açougue, Espetinho, Guaraná Craque, Diamante** → não têm logo,
+  estampa o **nome escrito**.
+
+🧼 **Molde refeito (15/09, 3ª tentativa).** Em vez de apagar as 4 marcas do Final
+Boss uma a uma, o molde agora nasce da **metade ESQUERDA** da camisa dele — que é a
+limpa, só tinha o texto da manga — e essa metade é **espelhada** pra formar a camisa
+inteira. Sai simétrica, sem escudo, sem coroa e sem etiqueta, com um conserto só em
+vez de quatro. Ainda sobra um clarão leve nas mangas: é o limite de mexer em arte
+alheia, e por isso a arte limpa continua sendo pedida.
+
 Lugares das peças (pedido dele, referência: Internacional de Madrid e Inter de Bailão):
 
 - **peito esquerdo**: escudo do clube;

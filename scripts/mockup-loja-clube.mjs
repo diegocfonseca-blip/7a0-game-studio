@@ -27,7 +27,7 @@ const img = (caminho, tipo = 'webp') => `data:image/${tipo};base64,${readFileSyn
 // ── A CAMISA: a arte (imagem) + as 3 peças carimbadas por cima ──────────────
 // `pos` = onde cada peça cai NAQUELA arte, em % (arte de batismo e molde têm
 // enquadramentos diferentes, então cada uma traz as suas medidas).
-const camisa = ({ arte, alt = 300, escudo, fornecedor, master, masterCor, pos }) => `
+const camisa = ({ arte, alt = 300, escudo, fornecedor, master, masterLogo, masterCor, pos }) => `
   <div style="position:relative;height:${alt}px;flex:none;isolation:isolate">
     <img src="${arte}" style="height:${alt}px;display:block">
     ${!escudo ? '' : `<div style="position:absolute;left:${pos.escudoX}%;top:${pos.escudoY}%;transform:translate(-50%,-50%)">
@@ -39,9 +39,12 @@ const camisa = ({ arte, alt = 300, escudo, fornecedor, master, masterCor, pos })
                 ${OSW};font-weight:700;font-size:${Math.round(alt * 0.04)}px;color:${masterCor ?? INK};letter-spacing:.5px;white-space:nowrap;
                 mix-blend-mode:multiply;opacity:.85;filter:blur(.15px)">${fornecedor}</div>
     <div style="position:absolute;left:${pos.masterX}%;top:${pos.masterY}%;transform:translate(-50%,-50%);
-                ${OSW};font-weight:700;font-size:${Math.round(alt * (master.length > 18 ? 0.042 : master.length > 13 ? 0.05 : 0.058))}px;line-height:1;letter-spacing:.5px;
-                text-transform:uppercase;white-space:nowrap;color:${masterCor ?? INK};
-                mix-blend-mode:multiply;opacity:.92;filter:blur(.15px)">${master}</div>
+                mix-blend-mode:multiply;opacity:.93;filter:blur(.15px)">
+      ${masterLogo
+        ? `<img src="${masterLogo}" style="width:${Math.round(alt * 0.46)}px;display:block">`
+        : `<span style="${OSW};font-weight:700;font-size:${Math.round(alt * (master.length > 18 ? 0.042 : master.length > 13 ? 0.05 : 0.058))}px;line-height:1;letter-spacing:.5px;
+             text-transform:uppercase;white-space:nowrap;color:${masterCor ?? INK}">${master}</span>`}
+    </div>
   </div>`
 
 const pill = (txt, sub, on) => `
@@ -56,7 +59,7 @@ const cartao = (titulo, corpo, rodape) => `
     ${corpo}${rodape ? `<div style="${OSW};font-weight:400;font-size:10px;opacity:.65;margin-top:6px;line-height:1.4">${rodape}</div>` : ''}
   </div>`
 
-const tela = ({ titulo, sub, shirt, extra, forn, master, vendeu }) => `
+const tela = ({ titulo, sub, shirt, extra, forn, master, masterPe, vendeu }) => `
   <div style="width:392px;flex:none;background:${CREME};border:3px solid ${INK};border-radius:16px;box-shadow:4px 4px 0 ${INK};padding:12px;color:${INK}">
     <div style="${OSW};font-weight:700;font-size:16px;text-transform:uppercase">🛍️ Loja do Clube</div>
     <div style="${OSW};font-weight:400;font-size:11px;opacity:.7;margin-bottom:8px">${titulo} · ${sub}</div>
@@ -88,12 +91,14 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
         arte: img('public/mantos-salao/finalboss-camisa.webp'), alt: 300,
         escudo: '', // a arte do batismo já traz o escudo dele — o jogo não carimba outro
         fornecedor: 'NAIQUE', master: 'VADICO VEÍCULOS', masterCor: INK,
-        pos: { fornX: 30, fornY: 25, masterX: 50, masterY: 62 },
+        masterLogo: img('src/escalacao/img/patro-vadico.webp'), // 🏷️ marca REAL = logo de verdade
+        pos: { fornX: 30, fornY: 25, masterX: 50, masterY: 60 },
       }),
       extra: cartao('👑 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Arte própria do batismo</div>`,
         'Clube batizado usa a arte que o dono mandou — é ela que aparece na loja. As 2 cores do manto saem dessa arte.'),
       forn: { nome: 'Naique Sports', emoji: '👟', cor: GREEN, linha: 'contrato de 3 temporadas · 5 🪙 por ano<br>+30% nas vendas da loja', pe: 'Marca grande só te procura na Série B pra cima.' },
       master: '🚗 Vadico Veículos <span style="font-weight:400;font-size:10px;opacity:.7">· ano 2 de 5</span>',
+      masterPe: 'Marca REAL (Vadico, ERO, Max Joias, Rei das Tintas): entra o <b>logo de verdade</b>, o mesmo que já está no jogo.',
       vendeu: { n: 44, m: 88, conta: '34 de base na Série B × estádio cheio × Naique (+30%)' },
     })}
     ${tela({
@@ -107,6 +112,7 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
         'Mesmo molde, mesma qualidade de arte. É UM arquivo só pro jogo inteiro, pintado com as suas cores — aqui o bege do tier 🪵 Foi Profissional.'),
       forn: { nome: 'Adibas', emoji: '🔺', cor: '#0E3E86', linha: 'contrato de 2 temporadas · 3 🪙 por ano<br>+20% nas vendas da loja', pe: 'Subiu de série, marca melhor bate na porta.' },
       master: '🍗 Espetinho do Baixinho <span style="font-weight:400;font-size:10px;opacity:.7">· ano 1 de 2</span>',
+      masterPe: 'Marca <b>genérica</b> (Padaria do Zé, Espetinho, Guaraná Craque…): não tem logo, então entra o <b>nome escrito</b>.',
       vendeu: { n: 15, m: 30, conta: '22 de base na Série C × estádio 55% × Adibas (+20%)' },
     })}
   </div>`
