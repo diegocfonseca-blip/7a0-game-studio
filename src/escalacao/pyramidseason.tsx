@@ -8479,7 +8479,12 @@ export function PyramidSeasonScreen() {
                 escalação de verdade, em vez de espalhado em duas abas). */}
             {agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
             {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
-                fora do leilão (outra tela) e de jogo/Copa rolando. Só testers, só solo. */}
+                fora do leilão (outra tela) e de jogo/Copa rolando.
+                ⚠️ O comentário aqui dizia "só testers" e estava VELHO (achado 15/09, o
+                Diego perguntou se a venda já valia pra todos). NÃO existe trava de tester
+                em lugar nenhum do multiclube: quem tem 2º clube vê esta área, e ter 2º
+                clube é regalia de Lenda 👑 + 4.000 moedas. Só não vale no ONLINE (o motor
+                é solo-only: o reducer ignora BUY/SWITCH e o estado guarda 1 clube só). */}
             {state.onlineMode !== 'online' && state.multiClube && (() => {
               const ativo = state.managers[state.youIdx]?.teamName ?? '—'
               const dormindo = state.multiClube.team
@@ -8557,7 +8562,9 @@ export function PyramidSeasonScreen() {
                 </div>
               )
             })()}
-            {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · em construção, só testers veem · só solo */}
+            {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · só solo. ⚠️ dizia "em construção, só
+                testers veem" e estava VELHO: a compra está no ar pra todo mundo desde
+                que apareça o tier — quem não é Lenda vê a área com o botão APOIE. */}
             {state.onlineMode !== 'online' && (() => {
               const opcoes = (() => {
                 const safName = myFilial?.team
