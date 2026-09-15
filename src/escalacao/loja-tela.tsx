@@ -21,8 +21,8 @@ import { useMemo, useState } from 'react'
 import { tr } from './lang'
 import { CAMISAS_SALAO } from './salao-camisas'
 import {
-  FORNECEDORES, PRECOS, PRECO_EN, FAIXA_META, CORES_PADRAO,
-  fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor,
+  PRECOS, PRECO_EN, FAIXA_META, CORES_PADRAO,
+  fornecedorDe, fornAtivo, fornAnoAtual, fornValor,
   torcidaDoEstadio, bonusObras, lojaConstruida, calculaVendas,
   type LojaSave, type PrecoLoja, type FaixaLoja,
 } from './loja'
@@ -64,10 +64,50 @@ export function EscudoBase({ nome, cores, size = 44 }: { nome: string; cores?: [
 // `pos` em % de CADA arte. O molde do jogo (542×620) tem gola escura até 12%,
 // faixa de cima 32→38%, faixa de baixo 42→48% e o corpo entre 21% e 79% da largura.
 const POS_MOLDE = { escudoX: 64, escudoY: 27, fornX: 36, fornY: 27, masterX: 50, masterY: 61 }
-// Arte de batismo: o enquadramento muda de clube pra clube e o desenho do dono já
-// ocupa o peito, então as estampas vão um pouco mais abaixo pra não brigar com o
-// escudo e o nome que já estão lá.
-const POS_BATISMO = { fornX: 33, fornY: 34, masterX: 50, masterY: 65 }
+// 👕 ARTE DE BATISMO: o enquadramento muda de clube pra clube — e MUITO. Tem arte
+// só de camisa (Leite de Verdade, 588×760 → proporção 0,77) e tem arte de UNIFORME
+// INTEIRO, com calção junto (Neymarzetti, 343×620 → 0,55). Com posição fixa em %,
+// o patrocínio da barriga caía no CALÇÃO nas artes de uniforme inteiro — foi o que
+// o Diego viu na tela dele em 15/09.
+// O conserto sem tabela por clube: medir a proporção REAL do arquivo quando ele
+// carrega e encolher as alturas na mesma medida. Arte só de camisa ≈ 0,80; abaixo
+// disso, a camisa ocupa só a parte de cima da imagem.
+const POS_BATISMO = { fornX: 33, fornY: 34, masterX: 50, masterY: 62 }
+const PROP_SO_CAMISA = 0.80
+// 🎨 A ESTAMPA TEM QUE LER EM QUALQUER TECIDO. As artes de batismo vão de branco
+// (Final Boss) a preto (Neymarzetti) — com cor fixa, o nome do fornecedor sumia no
+// manto escuro. Em vez de chutar, o jogo MEDE o brilho do pano no lugar exato onde a
+// estampa vai cair, e escolhe tinta escura ou clara. Vale pra sempre, pra qualquer
+// arte nova que chegar, sem tabela por clube.
+function brilhoNoPonto(img: HTMLImageElement, xPct: number, yPct: number): number | undefined {
+  try {
+    const c = document.createElement('canvas')
+    c.width = 40; c.height = 40
+    const ctx = c.getContext('2d', { willReadFrequently: true }); if (!ctx) return undefined
+    const w = img.naturalWidth, h = img.naturalHeight
+    const lado = Math.max(8, Math.round(Math.min(w, h) * 0.16))
+    const sx = Math.max(0, Math.min(w - lado, Math.round(w * xPct / 100 - lado / 2)))
+    const sy = Math.max(0, Math.min(h - lado, Math.round(h * yPct / 100 - lado / 2)))
+    ctx.drawImage(img, sx, sy, lado, lado, 0, 0, 40, 40)
+    const d = ctx.getImageData(0, 0, 40, 40).data
+    let soma = 0, n = 0
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 120) continue // fora do desenho
+      soma += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; n++
+    }
+    return n > 20 ? soma / n : undefined
+  } catch { return undefined } // canvas bloqueado: segue no padrão
+}
+/** tinta + jeito de misturar, pro pano medido */
+function tintaDaEstampa(brilho?: number): { cor: string; blend: 'multiply' | 'screen'; op: number } {
+  if (brilho != null && brilho < 110) return { cor: '#F2F0EA', blend: 'screen', op: .92 } // pano ESCURO → tinta clara
+  return { cor: '#20201C', blend: 'multiply', op: .95 }                                    // pano CLARO → tinta escura
+}
+/** o quanto da ALTURA da imagem é a camisa (1 = a imagem é só a camisa) */
+function fatorCamisa(ratio?: number): number {
+  if (!ratio || !Number.isFinite(ratio)) return 1
+  return Math.min(1, ratio / PROP_SO_CAMISA)
+}
 
 export function CamisaLoja({
   time, arteBatismo, cores, alt = 290, fornId, masterNome, masterLogo,
@@ -82,13 +122,28 @@ export function CamisaLoja({
   masterLogo?: string
 }) {
   const f = fornecedorDe(fornId)
-  const p = arteBatismo ? POS_BATISMO : POS_MOLDE
+  // 📏 proporção real do arquivo, lida quando a imagem carrega (ver POS_BATISMO)
+  const [ratio, setRatio] = useState<number | undefined>(undefined)
+  const [brilho, setBrilho] = useState<{ forn?: number; master?: number }>({})
+  const fc = arteBatismo ? fatorCamisa(ratio) : 1
+  const base = arteBatismo ? POS_BATISMO : POS_MOLDE
+  const p = { ...base, fornY: base.fornY * fc, masterY: base.masterY * fc }
+  const tintaForn = tintaDaEstampa(brilho.forn)
+  const tintaMaster = tintaDaEstampa(brilho.master)
   const marca = (x: number, y: number, filho: React.ReactNode, extra?: React.CSSProperties) => (
     <div style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)', ...extra }}>{filho}</div>
   )
   return (
     <div style={{ position: 'relative', height: alt, flex: 'none', isolation: 'isolate' }}>
       <img src={arteBatismo ?? MOLDE_CAMISA} alt={tr(`Camisa do ${time}`, `${time} shirt`)}
+        onLoad={e => {
+          const i = e.currentTarget
+          if (!i.naturalHeight) return
+          const r = i.naturalWidth / i.naturalHeight
+          setRatio(r)
+          const k = arteBatismo ? fatorCamisa(r) : 1
+          setBrilho({ forn: brilhoNoPonto(i, base.fornX, base.fornY * k), master: brilhoNoPonto(i, base.masterX, base.masterY * k) })
+        }}
         style={{ height: alt, display: 'block' }} />
       {/* 🛡️ escudo — só carimbado em quem NÃO tem batismo (no batismo já está na arte) */}
       {!arteBatismo && marca(POS_MOLDE.escudoX, POS_MOLDE.escudoY,
@@ -101,7 +156,7 @@ export function CamisaLoja({
       </>, {
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: alt * 0.006,
         // a estampa tem que ENTRAR no tecido — texto colado por cima "parece PowerPoint"
-        mixBlendMode: 'multiply', opacity: .95, filter: 'blur(.15px)', color: arteBatismo ? '#1A1A1A' : '#4F462E',
+        mixBlendMode: tintaForn.blend, opacity: tintaForn.op, filter: 'blur(.15px)', color: tintaForn.cor,
       })}
       {/* 🤝 Master na barriga */}
       {(masterLogo || masterNome) && marca(p.masterX, p.masterY,
@@ -110,17 +165,28 @@ export function CamisaLoja({
           // tecido mas COME a cor do logo — o Diego pegou o vermelho da Vadico sumindo.
           ? <img src={masterLogo} alt={masterNome ?? ''} style={{
             maxWidth: alt * 0.20, maxHeight: alt * 0.155, width: 'auto', height: 'auto',
-            display: 'block', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,.28))',
+            display: 'block',
+            // em pano escuro a sombra preta some; um halo claro devolve o contorno
+            filter: (brilho.master != null && brilho.master < 110)
+              ? 'drop-shadow(0 0 2px rgba(255,255,255,.75)) drop-shadow(0 0 5px rgba(255,255,255,.35))'
+              : 'drop-shadow(0 1px 1px rgba(0,0,0,.28))',
           }} />
           // 🖨️ marca genérica: o nome impresso, que tem que CABER no corpo da camisa
-          : <div style={{
-            ...OSW, fontWeight: 700, lineHeight: 1.05, letterSpacing: .5, textAlign: 'center',
-            textTransform: 'uppercase', color: arteBatismo ? '#1A1A1A' : '#4F462E',
-            fontSize: Math.max(alt * 0.028, Math.min(alt * 0.055, (alt * 0.30) / (Math.max(...(masterNome ?? '').split(' ').map(w => w.length)) * 0.52))),
-          }}>{(masterNome ?? '').length > 14
-            ? (() => { const w = (masterNome ?? '').split(' '); const m = Math.ceil(w.length / 2); return <>{w.slice(0, m).join(' ')}<br />{w.slice(m).join(' ')}</> })()
-            : masterNome}</div>,
-        masterLogo ? { opacity: .97, filter: 'blur(.15px)' } : { mixBlendMode: 'multiply', opacity: .93, filter: 'blur(.15px)' })}
+          : (() => {
+            // 🖨️ marca SEM logo: o nome impresso. Tem que caber no CORPO da camisa —
+            // e não pode quebrar sozinho de novo (virava 3 linhas e dominava a camisa).
+            const palavras = (masterNome ?? '').split(' ')
+            const linhas = (masterNome ?? '').length > 14
+              ? (() => { const m = Math.ceil(palavras.length / 2); return [palavras.slice(0, m).join(' '), palavras.slice(m).join(' ')] })()
+              : [masterNome ?? '']
+            const maior = Math.max(...linhas.map(l => l.length))
+            const fs = Math.max(alt * 0.026, Math.min(alt * 0.045, (alt * 0.26) / (maior * 0.55)))
+            return <div style={{
+              ...OSW, fontWeight: 700, lineHeight: 1.1, letterSpacing: .4, textAlign: 'center',
+              textTransform: 'uppercase', color: tintaMaster.cor, fontSize: fs,
+            }}>{linhas.map((l, i) => <div key={i} style={{ whiteSpace: 'nowrap' }}>{l}</div>)}</div>
+          })(),
+        masterLogo ? { opacity: .97, filter: 'blur(.15px)' } : { mixBlendMode: tintaMaster.blend, opacity: tintaMaster.op, filter: 'blur(.15px)' })}
     </div>
   )
 }
@@ -163,7 +229,7 @@ const Cartao = ({ titulo, children, pe, bg = '#fff' }: { titulo: string; childre
 // ══════════════════════════════════════════════════════════════════════════
 export function LojaTab({
   time, st, div, seasonNo, loja, masterNome, masterLogo, minhaCor,
-  onPreco, onFornecedor, onIrEstrutura,
+  onPreco, onVerPatrocinio, onIrEstrutura,
 }: {
   time: string
   st: StadiumSave | undefined
@@ -174,7 +240,7 @@ export function LojaTab({
   masterLogo?: string
   minhaCor: string
   onPreco: (p: PrecoLoja) => void
-  onFornecedor: (fornId: string) => void
+  onVerPatrocinio: () => void
   onIrEstrutura: () => void
 }) {
   const arteFile = CAMISAS_SALAO[time]
@@ -321,13 +387,11 @@ export function LojaTab({
         </div>}
       </Cartao>
 
-      {/* 👟 o fornecedor */}
+      {/* 👟 o fornecedor: aqui é só LEITURA. Assinar é na aba 🤝 Patrocínio, junto do
+          Master e do Pontual — a Loja é a vitrine, contrato mora com contrato. */}
       <Cartao titulo={tr('👟 Fornecedor de material', '👟 Kit supplier')}
-        pe={ativo
-          ? tr(`Assinado na ${nomeDiv(forn.div)} e não quebra se você subir ou cair. Proposta nova só quando acabar.`,
-            `Signed in ${nomeDiv(forn.div)} and it does not break if you go up or down. New offers only when it ends.`)
-          : tr('Escolha o prazo. O valor congela na divisão em que você assinar.',
-            'Pick the term. The amount freezes at the division where you sign.')}>
+        pe={tr('O contrato é fechado em 🤝 Patrocínio, junto do Master e do Pontual. Aqui você só vê como ficou na camisa.',
+          'The deal is signed in 🤝 Sponsors, next to the Master and the one-season sponsor. Here you only see how it looks on the shirt.')}>
         {ativo && fornMeta ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 34, height: 34, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 9, background: fornMeta.cor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{fornMeta.simb}</div>
@@ -338,27 +402,15 @@ export function LojaTab({
               </div>
             </div>
           </div>
-        ) : FORNECEDORES.map(f => {
-          const ok = fornLiberado(f, div)
-          const v = fornPorTemporada(div, f.anos)
-          return (
-            <button key={f.id} disabled={!ok} onClick={() => ok && onFornecedor(f.id)}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '6px 8px', marginBottom: 5, textAlign: 'left', cursor: ok ? 'pointer' : 'not-allowed', background: ok ? CREME : '#CBBF9E', opacity: ok ? 1 : .8, boxShadow: ok ? `2px 2px 0 ${INK}` : 'none' }}>
-              <div style={{ width: 30, height: 30, flex: 'none', border: `2.5px solid ${INK}`, borderRadius: 8, background: ok ? f.cor : '#8A836E', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>{f.simb}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ ...OSW, fontWeight: 700, fontSize: 12.5, lineHeight: 1.1 }}>{f.nome}</div>
-                <div style={{ ...OSW, fontWeight: 400, fontSize: 9.5, lineHeight: 1.25, opacity: .75 }}>
-                  {ok ? <>{f.anos} {f.anos > 1 ? tr('temporadas', 'seasons') : tr('temporada', 'season')} · +{Math.round(f.loja * 100)}% {tr('na loja', 'on store')}</>
-                    : tr(`só fecha com clube da ${nomeDiv(f.desde)} pra cima`, `only signs clubs from ${nomeDiv(f.desde)} up`)}
-                </div>
-              </div>
-              <div style={{ textAlign: 'right', flex: 'none' }}>
-                <div style={{ ...OSW, fontWeight: 700, fontSize: 15, lineHeight: 1 }}>{ok ? `${v} 🪙` : '🔒'}</div>
-                <div style={{ ...OSW, fontWeight: 400, fontSize: 8.5, opacity: .7 }}>{ok ? tr(`${v * f.anos} no total`, `${v * f.anos} total`) : tr('suba 1 série', 'go up 1 tier')}</div>
-              </div>
-            </button>
-          )
-        })}
+        ) : (
+          <div style={{ ...OSW, fontWeight: 400, fontSize: 11.5, opacity: .8, lineHeight: 1.45 }}>
+            {tr('Você ainda não tem marca de material. Sem ela, o peito direito da camisa fica vazio e a loja vende sem bônus.',
+              'You have no kit brand yet. Without one the right chest stays empty and the store sells with no bonus.')}
+          </div>
+        )}
+        <button onClick={onVerPatrocinio} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, background: ativo ? '#fff' : minhaCor, color: ativo ? INK : '#fff', ...OSW, fontWeight: 700, fontSize: 11.5, textTransform: 'uppercase', padding: 8, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
+          {ativo ? tr('Ver em 🤝 Patrocínio', 'See it in 🤝 Sponsors') : tr('Fechar contrato em 🤝 Patrocínio', 'Sign a deal in 🤝 Sponsors')}
+        </button>
       </Cartao>
     </section>
   )

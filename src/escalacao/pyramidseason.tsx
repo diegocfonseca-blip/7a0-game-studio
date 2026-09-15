@@ -35,7 +35,7 @@ import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls,
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, MasterRegua, sponsorLogoSrc } from './estadio'
+import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, MasterRegua, sponsorLogoEstampa, FornBanner } from './estadio'
 import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorOverview } from './career-sponsor-visual'
 import { UnlockBanner } from './unlockbanner'
@@ -7970,10 +7970,10 @@ export function PyramidSeasonScreen() {
                 seasonNo={state.seasonNo ?? 1}
                 loja={state.careerLoja?.[youId]}
                 masterNome={masterBrandAtual?.name}
-                masterLogo={masterBrandAtual ? sponsorLogoSrc(masterBrandAtual) : undefined}
+                masterLogo={masterBrandAtual ? sponsorLogoEstampa(masterBrandAtual) : undefined}
                 minhaCor={myCol.solid}
                 onPreco={preco => dispatch({ type: 'LOJA_PRECO', preco, mgrId: youId })}
-                onFornecedor={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })}
+                onVerPatrocinio={() => setClubeSub('patrocinio')}
                 onIrEstrutura={() => setClubeSub('estadio')} />
             ) : clubeSub === 'financas' ? (
               <>
@@ -7998,6 +7998,14 @@ export function PyramidSeasonScreen() {
                       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: 0 }}>🏆 {tr('Patrocinador Master', 'Master sponsor')}</p>
                       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{tr('Sem contrato correndo. Os 4 contratos aparecem no começo da temporada.', 'No contract running. The 4 contracts show up at the start of the season.')}</p>
                     </div>)}
+                {/* 👟 FORNECEDOR DE MATERIAL — irmão do Master, aqui e não na Loja.
+                    O Diego pegou meu erro em 15/09: *"não era contrato igual tem lá na
+                    área de patrocínio Master e Pontual? Achei que aqui [na Loja] era só
+                    pra ver o visual"*. Contrato mora com contrato; a Loja é a vitrine. */}
+                {me && lojaLib && <FornBanner div={me.div} contrato={state.careerLoja?.[youId]?.forn}
+                  seasonNo={state.seasonNo ?? 1} temLoja={hasExtra(state.stadiums?.[youId], 'loja')}
+                  cinematic={privateCareer} onIrEstrutura={() => setClubeSub('estadio')}
+                  onPick={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })} />}
                 {me && (privateCareer ? <CareerSponsorOverview chosen={state.careerSponsorBet?.[youId]} div={me.div} /> : <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} />)}
                 {me && <TVContrato div={me.div} clube={me.team} foco={tvFoco} onFocoFim={() => setTvFoco(false)} />}
                 {me && <MasterRegua div={me.div} />}

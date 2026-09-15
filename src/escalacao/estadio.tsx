@@ -8,6 +8,11 @@ import { CareerSponsorVisual } from './career-sponsor-visual'
 import { sectorNome, extraNome, extraReq, extraPerk, sponsorBetMeta, STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, extraNovaOnly, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterAnoAtual, masterValor } from './estadiodata'
 import type { StadiumSave, SponsorBetTier, SponsorBrand, MasterContrato } from './estadiodata'
 import { VADICO_LOGO } from './vadico'
+// 🔴 versões com FUNDO TRANSPARENTE dos dois logos que vêm em fundo branco. São usadas
+// SÓ na estampa da camisa (Loja): logo com caixa branca na camisa fica adesivo colado.
+// As telas antigas seguem com o arquivo original, intocadas.
+import VADICO_ALFA from './img/patro-vadico-alfa.webp'
+import ERO_ALFA from './img/patro-ero-alfa.webp'
 import { ERO_LOGO } from './ero'
 import { MAXJOIAS_LOGO } from './maxjoias'
 import { REIDASTINTAS_LOGO } from './reidastintas'
@@ -17,6 +22,7 @@ import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
 import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (teste fechado)
+import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 
 const INK = '#0C0C0C'
@@ -65,6 +71,9 @@ const META_EN: Record<SponsorBetTier, { curto: string; linha: string }> = {
   2: { curto: 'Promotion', linha: 'finish in the top 4' },
   3: { curto: 'Champion', linha: 'league or cup' },
 }
+/** o logo pra ESTAMPAR NA CAMISA: sempre com fundo transparente. */
+export const sponsorLogoEstampa = (s: SponsorBrand): string | undefined =>
+  s.logo === 'vadico' ? VADICO_ALFA : s.logo === 'ero' ? ERO_ALFA : sponsorLogoSrc(s)
 export const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : undefined
 // a marca fiel mora num nível só — o selinho no PASSO 1 avisa em qual, senão
 // quem escolhesse outra meta nunca descobriria que perdeu a garantia.
@@ -1031,4 +1040,133 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
       <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', margin: '10px 2px 4px' }}>{tr('🏟️ O desenho lá em cima é o teu progresso — cada compra aparece nele.', '🏟️ The drawing up there is your progress — every purchase shows up in it.')}</p>
     </>
   )
+}
+
+// ─── 👟 FORNECEDOR DE MATERIAL — irmão do Master, na aba Patrocínio ────────
+// O Diego pegou o meu erro (15/09): eu tinha posto o CONTRATO dentro da Loja, e
+// ele esperava o contrato aqui, junto do Master e do Pontual. Palavras dele:
+// *"ué, não entendi… não era contrato igual tem lá na área de patrocínio Master e
+// Pontual? Achei que aqui [na Loja] era só pra ver o visual de como ficou"*.
+// Ele tem razão: a Loja é a VITRINE; contrato mora com contrato.
+// Então este componente é o espelho do MasterBanner — mesma cena de escritório,
+// mesmas classes de CSS, mesmo jeito de escolher e assinar.
+function FornPapel({ f, div, sel, onPick }: { f: Fornecedor; div: string; sel: boolean; onPick: () => void }) {
+  const ok = fornLiberado(f, div)
+  const porTemp = fornPorTemporada(div, f.anos)
+  const total = porTemp * f.anos
+  return (
+    <button onClick={() => ok && onPick()} aria-pressed={sel} disabled={!ok}
+      style={{ background: ok ? '#f6efdc' : '#cfc6ae', color: ok ? INK : 'rgba(0,0,0,.5)', border: `3px solid ${sel ? '#7c3aed' : INK}`, outline: sel ? '3px solid #7c3aed' : 'none', outlineOffset: 1, borderRadius: 6, padding: '9px 6px 7px', textAlign: 'center', boxShadow: ok ? `3px 3px 0 ${sel ? INK : 'rgba(0,0,0,.55)'}` : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: ok ? 'pointer' : 'not-allowed', minHeight: 0, textTransform: 'none', font: 'inherit' }}>
+      <span style={{ ...OSW, fontWeight: 600, fontSize: 7.5, letterSpacing: '.08em' }}>{tr('MATERIAL ESPORTIVO', 'KIT SUPPLIER')}</span>
+      <span style={{ height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{f.simb}</span>
+      <span style={{ ...OSW, fontWeight: 700, fontSize: 15, lineHeight: 1.05 }}>{f.nome}</span>
+      {ok ? <>
+        <span style={{ ...OSW, fontWeight: 700, fontSize: 11, background: INK, color: GOLD, borderRadius: 5, padding: '1px 7px', marginTop: 1 }}>{f.anos} {f.anos > 1 ? tr('TEMPORADAS', 'SEASONS') : tr('TEMPORADA', 'SEASON')}</span>
+        <span style={{ ...OSW, fontWeight: 700, fontSize: 24, lineHeight: 1, marginTop: 4 }}>{total} 🪙</span>
+        <span style={{ fontSize: 9.5, fontWeight: 600, opacity: .75 }}>{tr('no total', 'in total')}</span>
+        <span style={{ ...OSW, fontWeight: 700, fontSize: 12, color: GREEN, marginTop: 2 }}>= +{porTemp} {tr('por temporada', 'per season')}</span>
+        <span style={{ ...OSW, fontWeight: 700, fontSize: 10, color: '#7c3aed' }}>+{Math.round(f.loja * 100)}% {tr('na loja', 'on store')}</span>
+      </> : <>
+        <span style={{ fontSize: 20, marginTop: 6 }}>🔒</span>
+        {/* 🔒 a trava diz o porquê E o caminho (regra permanente do Diego) */}
+        <span style={{ fontSize: 9.5, fontWeight: 700, lineHeight: 1.3, marginTop: 3 }}>{tr(`só fecha da ${divNome(f.desde)} pra cima`, `only signs from ${divNome(f.desde)} up`)}</span>
+      </>}
+      <span style={{ alignSelf: 'stretch', borderTop: '1px solid #897b5d', marginTop: 5, paddingTop: 3, fontSize: 8, fontWeight: 500, color: '#62573f' }}>{!ok ? tr('suba de divisão', 'go up a division') : sel ? tr('toque em ASSINAR embaixo', 'tap SIGN below') : tr('toque pra escolher', 'tap to choose')}</span>
+    </button>
+  )
+}
+/** a faixa de leitura: contrato de material correndo */
+export function FornFaixa({ contrato, seasonNo }: { contrato: FornContrato; seasonNo: number }) {
+  const f = fornecedorDe(contrato.fornId)
+  const ano = fornAnoAtual(contrato, seasonNo)
+  const faltam = contrato.anos - ano
+  return (
+    <div style={{ background: '#160e08', color: '#f4ecd6', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 14px', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ ...OSW, fontWeight: 600, fontSize: 10, letterSpacing: '.08em', color: GOLD }}>👟 {tr('FORNECEDOR DE MATERIAL', 'KIT SUPPLIER')} · {divNome(contrato.div).toUpperCase()}</div>
+          <div style={{ ...OSW, fontWeight: 700, fontSize: 20, lineHeight: 1.1, marginTop: 2 }}>{f?.simb} {f?.nome ?? contrato.fornId}</div>
+          <div style={{ fontSize: 10.5, fontWeight: 700, opacity: .8, marginTop: 2 }}>
+            {tr('temporada', 'season')} {ano} {tr('de', 'of')} {contrato.anos} · {faltam > 0 ? tr(`faltam ${faltam}`, `${faltam} to go`) : tr('última', 'last one')} · +{Math.round((f?.loja ?? 0) * 100)}% {tr('nas vendas da loja', 'on store sales')}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', flex: 'none' }}>
+          <div style={{ ...OSW, fontWeight: 700, fontSize: 26, lineHeight: 1, color: GOLD }}>+{fornValor(contrato)}</div>
+          <div style={{ fontSize: 9, fontWeight: 700, opacity: .7 }}>{tr('por temporada', 'per season')}</div>
+        </div>
+      </div>
+      <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '8px 0 0', lineHeight: 1.4 }}>
+        {tr(`Fechado na ${divNome(contrato.div)}. O valor é o da divisão onde você assinou e não muda se subir ou cair. Proposta nova só quando acabar.`,
+          `Signed in ${divNome(contrato.div)}. The amount is the one from the division where you signed and does not change if you go up or down. New offers only when it ends.`)}
+      </p>
+    </div>
+  )
+}
+/** os 4 contratos de material, na cena do escritório (igual ao Master) */
+export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic = false, onIrEstrutura }: {
+  div: string; contrato?: FornContrato; seasonNo: number; temLoja: boolean
+  onPick: (fornId: string) => void; cinematic?: boolean; onIrEstrutura?: () => void
+}) {
+  const [sel, setSel] = useState<string | undefined>(undefined)
+  if (fornAtivo(contrato, seasonNo)) return <FornFaixa contrato={contrato} seasonNo={seasonNo} />
+  // 🔒 SEM LOJA NÃO HÁ FORNECEDOR (ordem do Diego): marca de material patrocina quem
+  // vende camisa. A trava diz o porquê e o caminho, e leva pro lugar de resolver.
+  if (!temLoja) return (
+    <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 12 }}>
+      <p style={{ ...OSW, fontWeight: 900, fontSize: 12, margin: 0 }}>👟 {tr('Fornecedor de material', 'Kit supplier')}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0', lineHeight: 1.45 }}>
+        {tr('Nenhuma marca patrocina quem ainda não vende camisa. Construa a 🛍️ Loja do Clube (2 setores prontos + 80 🪙) e as propostas chegam.',
+          'No brand sponsors a club that does not sell shirts yet. Build the 🛍️ Club Store (2 finished stands + 80 🪙) and the offers arrive.')}
+      </p>
+      {onIrEstrutura && <button onClick={onIrEstrutura} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: 8, ...OSW, fontWeight: 900, fontSize: 12, background: GOLD, color: INK, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>{tr('Ir pra 🏗️ Estrutura', 'Go to 🏗️ Facilities')}</button>}
+    </div>
+  )
+  const esc = FORNECEDORES.find(f => f.id === sel)
+  const porTemp = esc ? fornPorTemporada(div, esc.anos) : 0
+  const total = esc ? porTemp * esc.anos : 0
+  const grade = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+    {FORNECEDORES.map(f => <FornPapel key={f.id} f={f} div={div} sel={sel === f.id} onPick={() => setSel(f.id)} />)}
+  </div>
+  const explica = esc
+    ? tr(`${total} moedas em ${esc.anos} temporada${esc.anos > 1 ? 's' : ''} = +${porTemp} por temporada, e +${Math.round(esc.loja * 100)}% em tudo que a loja vender. O valor trava na ${divNome(div)}: subiu ou caiu, continua igual até o fim.`,
+      `${total} coins over ${esc.anos} season${esc.anos > 1 ? 's' : ''} = +${porTemp} per season, plus +${Math.round(esc.loja * 100)}% on everything the store sells. The amount locks in ${divNome(div)}: up or down, it stays until the end.`)
+    : tr('Cada marca oferece o seu prazo. Além da moeda por temporada, ela aumenta TUDO que a sua loja vender — e o valor trava na sua divisão de hoje.',
+      'Each brand offers its own term. Beyond the coins per season, it boosts everything your store sells — and the amount locks in at your current division.')
+  const btnTxt = esc ? `✍️ ${tr('ASSINAR', 'SIGN')} · ${esc.nome.toUpperCase()} · ${esc.anos} ${esc.anos > 1 ? tr('TEMPORADAS', 'SEASONS') : tr('TEMPORADA', 'SEASON')}` : tr('ESCOLHA UM CONTRATO ACIMA', 'CHOOSE A CONTRACT ABOVE')
+  const corpo = <>
+    {grade}
+    <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, margin: '10px 0 0', color: 'rgba(0,0,0,.7)' }}>{explica}</p>
+    <button disabled={!esc} onClick={() => esc && onPick(esc.id)}
+      style={{ width: '100%', marginTop: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 10px', fontWeight: 900, fontSize: 13.5, ...OSW, background: esc ? GOLD : '#cfc6ae', color: esc ? INK : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: esc ? 'pointer' : 'default' }}>{btnTxt}</button>
+  </>
+  if (cinematic) return (
+    <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Fornecedor de material', 'Kit supplier')}>
+      <header><small>{divNome(div).toUpperCase()} · {contrato ? tr('CONTRATO ACABOU', 'CONTRACT ENDED') : tr('PRIMEIRA VEZ', 'FIRST TIME')}</small><h2>{tr('FORNECEDOR DE MATERIAL', 'KIT SUPPLIER')}</h2><p>{tr('Quem veste o seu time. Quatro marcas na mesa — cada uma com o seu prazo.', 'Who kits out your team. Four brands on the desk — each with its own term.')}</p></header>
+      <div style={{ padding: '0 14px 12px' }}>{grade}</div>
+      <div className="ll36-office"><article className="ll36-paper">
+        {esc ? <>
+          <small className="ll35-contract-heading">{tr('CONTRATO DE MATERIAL ESPORTIVO', 'KIT SUPPLY CONTRACT')}</small>
+          <h3>{esc.simb} {esc.nome}</h3>
+          <p>{esc.anos} {esc.anos > 1 ? tr('temporadas', 'seasons') : tr('temporada', 'season')} · {total} {tr('no total', 'in total')} · {divNome(div)}</p>
+          <strong>+{porTemp}/{tr('TEMPORADA', 'SEASON')}</strong>
+          <span className="ll35-signature">{tr('Assinatura do presidente', 'President\'s signature')}</span>
+        </> : <><h3>{tr('Contrato de material', 'Kit contract')}</h3><p>{tr('Escolha uma das quatro marcas acima.', 'Pick one of the four brands above.')}</p></>}
+      </article></div>
+      <div className="ll29-sponsor-bottom">
+        <p>{explica}</p>
+        <button disabled={!esc} onClick={() => esc && onPick(esc.id)}>{btnTxt}</button>
+        <small>{tr('Soma com o Master e com o Pontual. Proposta nova só quando este acabar.', 'Adds up with the Master and the one-season sponsor. New offers only when this one ends.')}</small>
+      </div>
+    </section>
+  )
+  return <div style={{ marginBottom: 12 }}><div style={{ ...box('#fff'), overflow: 'hidden' }}>
+    <div style={{ background: 'linear-gradient(150deg,#1b2e1b,#2d6e3b)', padding: '10px 13px', color: '#fff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ ...OSW, fontWeight: 900, fontSize: 14, color: GOLD }}>👟 {tr('FORNECEDOR DE MATERIAL', 'KIT SUPPLIER')}</span>
+        <span style={{ fontSize: 8.5, fontWeight: 800, color: 'rgba(255,255,255,.6)', whiteSpace: 'nowrap' }}>{divNome(div).toUpperCase()}</span>
+      </div>
+      <p style={{ fontSize: 10.5, fontWeight: 700, opacity: .85, margin: '3px 0 0' }}>{tr('Quem veste o seu time. Quatro marcas na mesa.', 'Who kits out your team. Four brands on the desk.')}</p>
+    </div>
+    <div style={{ padding: '12px 11px 11px' }}>{corpo}</div>
+  </div></div>
 }
