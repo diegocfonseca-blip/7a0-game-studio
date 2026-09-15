@@ -350,6 +350,16 @@ mostra o time e a decisão de remover é de gente. Não repropor.
    vermelho (ou ✅ com o time cheio). Pedido dele: *"gostei de apertar em gerenciar e
    mostrar a quantidade de buracos, com −5, algo assim"*.
 
+✅ **E O CAMPINHO DOS AMIGOS ATUALIZA NA HORA** — pergunta dele: *"quando os amigos
+usuários vão escolhendo, também já vai atualizando o campinho na hora pra a tela do
+usuário que está assistindo?"*. **Sim**, e está PROVADO em `scripts/testa-monte.mjs`
+(11 checks): quando outro técnico pega no Monte, o elenco dele cresce, `state.managers`
+vira referência NOVA (o reducer clona o estado inteiro — `JSON.parse(JSON.stringify)`),
+o `useMemo` invalida e a lista redesenha; e o mesmo vale pelo caminho do `SYNC_STATE`,
+que é por onde o convidado recebe a jogada do host.
+⚠️ **Se alguém um dia trocar esse clone por mutação no lugar, os campinhos CONGELAM** —
+o teste 2 é o alarme disso. Rodar `node scripts/testa-monte.mjs` ao mexer aqui.
+
 ⚠️ **O CUIDADO QUE NÃO PODE SUMIR DAQUI:** `EscMonte` se redesenha **4× por segundo**
 enquanto o relógio da vez corre (`setInterval(…, 250)`). A lista de campinhos está num
 `useMemo` de propósito — sem ele, os até **20 campinhos × 11 rostos** seriam redesenhados
