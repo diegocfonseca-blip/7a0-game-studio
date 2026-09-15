@@ -154,6 +154,27 @@ moldura branca do arquivo do logo (`patro-vadico.webp` tem 5px de folga em volta
 Marca SEM logo (genérica) segue a mesma régua: nome comprido **quebra em 2 linhas**,
 como kit de verdade, em vez de encolher até virar formiga.
 
+🎨 **COR DE TIER TEM QUE PARECER COR (15/09, última correção dele).** Palavras do
+Diego: *"a cor do batismo eu pedi cor do tier profissional, mas na forma que tá parece
+que tá sem cor. Estranho"*. Eu tinha pintado o molde com uma rampa lavada
+(`#6B6148` → `#E3DBC3`) e a camisa saiu cinza-areia, sem vida. O conserto é **esticar
+a rampa**: escuro de verdade embaixo, cor cheia no meio, claro em cima. A do tier 🪵
+ficou `#2A2211` → `#8A6E33` → `#C3AF78` → `#DCCB9A` → `#F1E7CB` — tecido areia quente
+e faixa caramelo no peito, ainda na família do bege do tier (`#DBD1B5/#CBBF9E/#B2A583`),
+mas lendo como camisa de verdade. **Regra pros outros tiers**: nunca dois tons quase
+iguais; a rampa precisa de faixa larga, senão a camisa fica "sem cor".
+A conta mora em `scripts/tinge-camisa.py` (é ela que vai virar o pintor do jogo) e o
+molde limpo em `scripts/kits/MOLDE-camisa-branca.webp`.
+
+🔴 **LOGO DE MARCA REAL ENTRA EM CORES (mesma mensagem dele):** *"se eu por a logo da
+Vadico ali, que tem parte vermelha, deve aparecer o vermelho. Não é pra ser sem cor"*.
+O `mix-blend-mode: multiply` (que é o que faz a estampa entrar no tecido) **come a cor
+do logo** — o vermelho da Vadico sumia. Então a regra se divide:
+- **nome escrito** (marca genérica) → segue com `multiply`, porque é tinta chapada;
+- **logo de verdade** → entra **normal**, com o fundo branco do arquivo virado
+  **transparente de verdade** (`scripts/kits/patro-vadico-alfa.webp`) e uma sombrinha
+  de 1px pra encaixar no pano. A cor fica intacta.
+
 🏷️ **Fornecedor virou MARQUINHA, não palavra solta** (*"tá com uma marca ridícula no
 peito"*): símbolo em cima + nome pequeno embaixo, como etiqueta de material
 esportivo. O símbolo é neutro de propósito — **não imitar a marca de verdade**

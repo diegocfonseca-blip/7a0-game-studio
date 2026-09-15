@@ -1,3 +1,27 @@
+## 15/09/2026 — 🛍️ Loja do Clube: proposta + mockup (aguardando OK visual)
+
+Pedido do Diego: loja que vende camisas, com **fornecedor de material esportivo** e o
+**patrocínio Master estampado** na camisa, mostrando a **arte do manto**. Quem não tem
+batismo usa o molde do jogo na cor do tier 🪵 Foi Profissional.
+
+- Plano escrito: `docs/proposta-loja-clube.md` (economia medida, régua de venda, quando
+  cada coisa aparece, travas e todas as correções dele, palavra por palavra).
+- Mockup: `node scripts/mockup-loja-clube.mjs` → dois painéis, COM e SEM batismo.
+- Molde e peças do mockup em `scripts/kits/` (MOLDE-camisa-branca, camisa-tier-foiprof,
+  patro-vadico-alfa) — são do POST, não entram no bundle do jogo.
+- Pintor de camisa: `python3 scripts/tinge-camisa.py foiprof` (rampa de cor por tier).
+
+**Falta pra virar código de verdade:**
+1. ⛔ **A arte da camisa em branco, limpa, precisa vir de fora.** O molde de hoje é a
+   camisa do Final Boss com as marcas apagadas — serve pro mockup, não pro jogo. O
+   OpenArt está sem crédito e os domínios do Canva não são alcançáveis deste ambiente.
+2. OK visual do Diego no mockup (regra: nada visual commitado sem o OK dele).
+3. Rampa de cor dos outros tiers (hoje só o 🪵 está feita).
+4. Campo novo no save: as 2 cores do clube de quem não tem batismo.
+
+Nada disso mexeu no jogo ainda — só documento, script de mockup e arte de post. Reverter
+é apagar os arquivos; o jogo no ar não muda em nada.
+
 ## 15/09/2026 — 🐛 "Chamar mais gente" não contava quem entrou depois — ✅ no ar
 
 Relato do Bruno (print que o Diego mandou, 21:50): *"fica dando um erro quando tu volta

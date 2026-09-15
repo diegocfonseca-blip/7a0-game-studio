@@ -17,12 +17,19 @@ import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 
 const INK = '#0C0C0C', CREME = '#F4ECD6', GOLD = '#FFC400', GREEN = '#1B7A3D'
-const SCRATCH = process.env.SCRATCH || '/tmp/claude-0/-home-user-7a0-game-studio/eff68882-b963-5eee-b2bb-3ea2ad04e5b9/scratchpad'
 const b64 = w => readFileSync(`scripts/fonts/oswald-latin-${w}-normal.woff2`).toString('base64')
 const FONTES = [400, 500, 600, 700].map(w =>
   `@font-face{font-family:Oswald;src:url(data:font/woff2;base64,${b64(w)}) format('woff2');font-weight:${w};font-display:block}`).join('')
 const OSW = 'font-family:Oswald,sans-serif'
 const img = (caminho, tipo = 'webp') => `data:image/${tipo};base64,${readFileSync(caminho).toString('base64')}`
+
+// 👕 As peças do mockup moram em `scripts/kits/` (são do POST, não do jogo —
+// no jogo o molde é pintado na hora, veja `scripts/tinge-camisa.py`):
+//   · MOLDE-camisa-branca.webp  → o molde em branco (camisa do Final Boss, limpa)
+//   · camisa-tier-foiprof.webp  → o molde já pintado no bege 🪵 Foi Profissional
+//   · patro-vadico-alfa.webp    → o logo da Vadico com fundo transparente (cor intacta)
+const CAMISA_FOIPROF = img('scripts/kits/camisa-tier-foiprof.webp')
+const LOGO_VADICO = img('scripts/kits/patro-vadico-alfa.webp')
 
 // ── A CAMISA: a arte (imagem) + as 3 peças carimbadas por cima ──────────────
 // `pos` = onde cada peça cai NAQUELA arte, em % (arte de batismo e molde têm
@@ -42,9 +49,16 @@ const camisa = ({ arte, alt = 300, escudo, fornecedor, fornSimbolo, master, mast
       <span style="${OSW};font-weight:700;font-size:${Math.round(alt * 0.026)}px;line-height:1;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap">${fornecedor}</span>
     </div>
     <div style="position:absolute;left:${pos.masterX}%;top:${pos.masterY}%;transform:translate(-50%,-50%);
-                mix-blend-mode:multiply;opacity:.93;filter:blur(.15px)">
+                ${masterLogo ? 'opacity:.97' : 'mix-blend-mode:multiply;opacity:.93'};filter:blur(.15px)">
       ${masterLogo
-        ? `<img src="${masterLogo}" style="width:${Math.round(alt * 0.27)}px;display:block">`
+        // 🔴 LOGO DE MARCA REAL ENTRA EM CORES DE VERDADE. O `multiply` casava a
+        // estampa com o tecido, mas comia a cor do logo — o vermelho da Vadico
+        // sumia. O Diego pegou: *"se eu por a logo da Vadico ali, que tem parte
+        // vermelha, deve aparecer o vermelho. Não é pra ser sem cor"*. Como o
+        // arquivo já tem alfa de verdade (o branco do fundo virou transparente,
+        // veja `scripts/kits/patro-vadico-alfa.webp`), ele entra por cima normal
+        // e a cor fica intacta; a sombrinha é que encaixa a estampa no pano.
+        ? `<img src="${masterLogo}" style="width:${Math.round(alt * 0.27)}px;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.28))">`
         : (() => {
             // 🖨️ marca SEM logo: o nome é impresso no peito e tem que CABER no corpo
             // da camisa (≈65% da largura dele). Nome comprido quebra em 2 linhas,
@@ -86,7 +100,7 @@ const tela = ({ titulo, sub, shirt, extra, forn, master, masterPe, vendeu }) => 
         <div style="flex:1;min-width:0"><div style="${OSW};font-weight:700;font-size:13px">${forn.nome}</div>
           <div style="${OSW};font-weight:400;font-size:10px;opacity:.7">${forn.linha}</div></div></div>`, forn.pe)}
     ${cartao('🤝 Patrocínio Master', `<div style="${OSW};font-weight:700;font-size:13px">${master}</div>`,
-      'O Master que você já fechou aparece ESTAMPADO na camisa.')}
+      `O Master que você já fechou aparece ESTAMPADO na camisa.<br>${masterPe}`)}
     <div style="border:3px solid ${INK};border-radius:13px;background:${GOLD};box-shadow:3px 3px 0 ${INK};padding:9px 10px">
       <div style="${OSW};font-weight:700;font-size:11.5px;text-transform:uppercase">📦 Vendeu na temporada</div>
       <div style="${OSW};font-weight:700;font-size:20px;margin-top:2px">${vendeu.n} camisas · <span style="color:${GREEN}">+${vendeu.m} 🪙</span></div>
@@ -105,7 +119,7 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
         arte: img('public/mantos-salao/finalboss-camisa.webp'), alt: 300,
         escudo: '', // a arte do batismo já traz o escudo dele — o jogo não carimba outro
         fornecedor: 'Naique', fornSimbolo: '✓', master: 'VADICO VEÍCULOS', masterCor: INK,
-        masterLogo: img(`${SCRATCH}/logo-vadico.webp`), // 🏷️ marca REAL = logo de verdade (recortado no limite do desenho)
+        masterLogo: LOGO_VADICO, // 🏷️ marca REAL = logo de verdade, em cores
         pos: { fornX: 30, fornY: 26, masterX: 50, masterY: 58 },
       }),
       extra: cartao('👑 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Arte própria do batismo</div>`,
@@ -118,15 +132,16 @@ const html = `<style>${FONTES}body{margin:0;background:#E8DFC6;padding:16px;widt
     ${tela({
       titulo: 'SEM batismo', sub: 'tier 🪵 FOI PROFISSIONAL',
       shirt: camisa({
-        arte: img(`${SCRATCH}/camisa-foiprof.webp`), alt: 300,
-        escudo: '', fornecedor: 'Adibas', fornSimbolo: '◣', master: 'ESPETINHO DO BAIXINHO', masterCor: '#4F462E',
+        arte: CAMISA_FOIPROF, alt: 300,
+        escudo: '', fornecedor: 'Adibas', fornSimbolo: '◣', master: 'VADICO VEÍCULOS', masterCor: '#4F462E',
+        masterLogo: LOGO_VADICO,
         pos: { fornX: 69, fornY: 27, masterX: 50, masterY: 55 },
       }),
       extra: cartao('🪵 A camisa do seu clube', `<div style="${OSW};font-weight:700;font-size:12.5px">Molde do jogo, na cor do seu tier</div>`,
-        'Mesmo molde, mesma qualidade de arte. É UM arquivo só pro jogo inteiro, pintado com as suas cores — aqui o bege do tier 🪵 Foi Profissional.'),
+        'Mesmo molde, mesma qualidade de arte. É UM arquivo só pro jogo inteiro, pintado com as suas cores — aqui o caramelo/areia do tier 🪵 Foi Profissional.'),
       forn: { nome: 'Adibas', emoji: '🔺', cor: '#0E3E86', linha: 'contrato de 2 temporadas · 3 🪙 por ano<br>+20% nas vendas da loja', pe: 'Subiu de série, marca melhor bate na porta.' },
-      master: '🍗 Espetinho do Baixinho <span style="font-weight:400;font-size:10px;opacity:.7">· ano 1 de 2</span>',
-      masterPe: 'Marca <b>genérica</b> (Padaria do Zé, Espetinho, Guaraná Craque…): não tem logo, então entra o <b>nome escrito</b>.',
+      master: '🚗 Vadico Veículos <span style="font-weight:400;font-size:10px;opacity:.7">· ano 1 de 3</span>',
+      masterPe: 'Marca <b>real</b> entra com o <b>logo de verdade, em cores</b> (o vermelho da Vadico aparece). Marca <b>genérica</b> (Padaria do Zé, Espetinho do Baixinho…) não tem logo: entra o <b>nome escrito</b>.',
       vendeu: { n: 15, m: 30, conta: '22 de base na Série C × estádio 55% × Adibas (+20%)' },
     })}
   </div>`
