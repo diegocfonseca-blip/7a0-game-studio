@@ -131,7 +131,12 @@ ok(pctBarra(gasJogo(55)) === 40 && pctBarra(gasJogo(60)) === 33 && pctBarra(gasJ
 ok(pctBarra(gasJogo(73)) === 0 && pctBarra(gasJogo(90)) === 0, '73º em diante: 0% (o motor zera o gás)')
 let mono = true; for (let g = 1; g <= 1000; g++) if (pctBarra(g / 10) < pctBarra((g - 1) / 10)) mono = false
 ok(mono, 'nunca sobe quando o gás cai (monótona)')
-ok(corBarra(gasJogo(50)) === corGas('ok') && corBarra(gasJogo(51)) === corGas('cansado'), 'verde até o 50º · amarela do 51º (mesmo 💪)')
+// 🟡 15/09: a COR voltou a seguir o motor. O Diego escolheu juntar cor e ação no 55º
+// (*"podemos fazer isso no 55"*) — o amarelo de 13/09, que começava no 51º, saiu porque
+// deixava 4 jogos de alerta aceso com o preparador parado. NÃO é regressão: é a escolha
+// dele depois de ver a tabela dos dois jeitos. Ver o comentário de `corBarra`.
+ok(corBarra(gasJogo(54)) === corGas('ok') && corBarra(gasJogo(51)) === corGas('ok'), 'verde até o 54º — o 51º já NÃO amarela mais (Diego 15/09)')
+ok(corBarra(gasJogo(55)) === corGas('cansado'), 'amarela no 55º, junto com o 😓 — cor e ação no mesmo ponto')
 ok(corBarra(gasJogo(55)) === corGas('cansado') && corBarra(gasJogo(60)) === corGas('limite') && corBarra(gasJogo(65)) === corGas('esgotado'), '😓 amarela · 🥵 vermelha · 🚑 escura — como antes')
 ok(estadoGas(gasJogo(54)) === 'ok' && estadoGas(gasJogo(55)) === 'cansado', 'o MOTOR não mudou: inteiro até o 54º, 😓 no 55º')
 
