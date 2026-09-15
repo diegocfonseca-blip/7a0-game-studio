@@ -133,6 +133,32 @@ não só na tela.
    ⚠️ Quem não é tester continua recebendo o +6 e lendo o texto de sempre — ninguém
    perde renda que já tinha. O teste mede a diferença (40 × 34).
 
+### ✂️ O erro de lugar que ele pegou (15/09, jogando)
+Palavras dele: *"ué, não entendi… não era contrato igual tem lá na área de patrocínio
+Master e Pontual? Achei que aqui [na Loja] era só pra ver o visual de como ficou"*.
+**Ele estava certo e eu estava errado**: eu tinha posto o CONTRATO do fornecedor dentro
+da Loja. Contrato mora com contrato.
+- 👟 O **`FornBanner`** (em `estadio.tsx`, espelho do `MasterBanner`) agora vive em
+  **🤝 Patrocínio**, logo abaixo do Master, com a **mesma cena de escritório** e as
+  mesmas classes de CSS. Os 4 papéis, a trava de divisão e o botão ASSINAR são de lá.
+- 🛍️ A **Loja virou só a VITRINE**: a camisa grande, o preço do ano, o balanço — e o
+  fornecedor aparece **só como leitura**, com um atalho "Ver em 🤝 Patrocínio".
+
+### 👕 Dois defeitos de arte que apareceram na tela dele
+1. **Patrocínio caindo no CALÇÃO.** As artes de batismo não têm todas o mesmo
+   enquadramento: a do Leite de Verdade é só camisa (588×760 → 0,77) e a do Neymarzetti
+   é **uniforme inteiro, com calção** (343×620 → 0,55). Com % fixo, o Master caía no
+   calção. Conserto sem tabela por clube: o componente **mede a proporção real do
+   arquivo** quando ele carrega e encolhe as alturas na mesma medida
+   (`fatorCamisa()` em `loja-tela.tsx`). Vale pra qualquer arte nova que chegar.
+2. **Estampa sumindo no pano escuro** (o "PUMBA" no manto preto do Neymarzetti) e
+   **logo com caixa branca** (o `patro-vadico.webp` do jogo é sem transparência).
+   - o jogo agora **MEDE o brilho do tecido** no ponto exato da estampa (canvas,
+     `brilhoNoPonto()`) e escolhe tinta escura (`multiply`) ou clara (`screen`);
+   - `patro-vadico-alfa.webp` e `patro-ero-alfa.webp` entraram em `img/` **só pra
+     estampa** (`sponsorLogoEstampa`), e as telas antigas seguem com o arquivo original;
+   - logo em pano escuro ganha um halo claro, senão some no preto.
+
 ### Falta (quando o Diego mandar liberar geral)
 1. **A linha em `novidades.ts`** — escrita e removida de propósito: anunciar agora
    mostraria pra todo mundo uma aba que só ele vê. Entra na MESMA entrega que
