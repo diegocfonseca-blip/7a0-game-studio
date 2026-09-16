@@ -1,3 +1,43 @@
+## 16/09/2026 (parte 3) — 🪶 A faixinha do placar chegou no ONLINE e no RÁPIDO
+
+Print do Diego, de uma live do canalmeianacanela: *"no modo online, quando o usuário
+quer descer e ver a tabela, ele não vê o jogo rolando e etc... teria que ter uma
+barrinha mostrando os gols que arrasta junto em cima da tela, igual fizemos no modo
+carreira"*.
+
+### Por que não funcionava lá
+São DOIS placares diferentes no jogo:
+- **carreira** → `PlacarQueEncolhe` (pyramidseason.tsx), que já encolhia;
+- **online / rápido** → `LiveScoreCard` (usado direto pelo `EscSeason`, screens.tsx),
+  sem encolher nenhum.
+A faixinha estava escrita DENTRO do componente da carreira, então o online nunca teve.
+
+### O que foi feito — peça única, não cópia
+A tira e o "olho" viraram peças exportadas em `pyramidseason.tsx`:
+- **`FaixaPlacarMini`** — o desenho da tira (preta, grudada, minuto · placar · abrir);
+- **`usePlacarFora`** — o IntersectionObserver que decide quando encolher.
+A carreira foi refatorada pra usar as duas (mesmo desenho de antes — conferido na
+bancada: a tira da carreira segue idêntica), e o online ganhou
+**`PlacarOnlineQueEncolhe`** (screens.tsx), que embrulha o `LiveScoreCard` com elas.
+Se um dia a tira mudar, muda nos dois lugares de uma vez.
+
+### Regras respeitadas
+- 🚫 **Anti-spoiler**: a tira mostra só os gols ATÉ o minuto que está na tela, com a
+  mesma conta do placar de baixo. Nunca o placar final antes do apito.
+- 🏀 **Basquete fica de fora**: lá o placar sobe por PONTOS (não conta lances), e um
+  número meio-certo na tira seria pior que tira nenhuma.
+
+### Conferido no jogo rodando (partida rápida, celular de 430px)
+Topo: placar inteiro, sem tira. Rolando até a artilharia/campinho: a tira aparece
+grudada — `46' · Só Deus Sabe FC 1 × 0 Meu Time · ▴ abrir`. E a da CARREIRA continua
+aparecendo igual depois do refactor (`83' · Nova Eclipse 0 × 0 São Marcos Antônio FC`).
+
+### 🐛 Achado de lambuja (na minha própria bancada, mas vale pro jogo)
+Um script meu clicou sem querer em **"Acelerar e pular 🔒 Desbloquear"** e foi PARAR
+FORA da liga, na página de planos — perdendo onde estava. É exatamente o achado nº 6
+do levantamento das telas (a faixa do Desbloquear te tira do jogo). Continua ABERTO,
+esperando o Diego decidir se ela vira modal.
+
 ## 16/09/2026 (parte 2) — 🚨 A trava da crise NUNCA EXISTIU (ligada agora)
 
 Diego, depois do primeiro conserto: *"eu não entendi que, se foi menos 500 lá atrás,

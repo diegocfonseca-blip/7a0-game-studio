@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, Component, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
+import { type CSSProperties, type ReactNode, Component, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { revealOffers, revealIdentityVisible } from './reveal-presentation'
@@ -31,7 +31,7 @@ const CopaDaLigaLazy = lazy(() => import('./copa-mundo-online').then(m => ({ def
 import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estante · Temporadas · Ajustes
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
@@ -5069,6 +5069,56 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
   )
 }
 
+// 🪶 PLACAR DO ONLINE/RÁPIDO QUE ENCOLHE (Diego 16/09)
+//
+// Pedido dele: *"no modo online, quando o usuário quer descer e ver a tabela, ele
+// não vê o jogo rolando e etc... teria que ter uma barrinha mostrando os gols que
+// arrasta junto em cima da tela, igual fizemos no modo carreira"*.
+//
+// A carreira já tinha isso (`PlacarQueEncolhe`, em pyramidseason.tsx), mas o placar
+// do online é OUTRO componente (`LiveScoreCard`, com props diferentes) — então o que
+// se reaproveita aqui é a TIRA e o OLHO, que agora são peças exportadas:
+// `FaixaPlacarMini` e `usePlacarFora`. O desenho da tira é literalmente o mesmo nos
+// dois lugares; se um dia mudar, muda nos dois de uma vez.
+//
+// 🚫 ANTI-SPOILER: a tira mostra só os gols ATÉ O MINUTO que está na tela — a mesma
+// conta do placar de baixo. Nunca o placar final antes do apito.
+// 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
+// e um número meio-certo na tira seria pior que tira nenhuma.
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline }: {
+  homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean
+  goals: { name: string; min: number; home: boolean }[]; roundKey: number; roundMs: number
+  classico?: boolean; basket?: { h: number; a: number }; enhancedOnline?: boolean
+}) {
+  const caixa = useRef<HTMLDivElement | null>(null)
+  const [min, setMin] = useState(0)
+  const fora = usePlacarFora(caixa)
+  // a rodada nova zera o relógio JÁ na renderização (mesma guarda do LiveScoreCard),
+  // senão a tira mostraria o placar da rodada anterior com os nomes do jogo novo.
+  const rkRef = useRef(roundKey)
+  if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(0) }
+  const reportar = useCallback((n: number) => setMin(n), [])
+  const fim = min >= 93
+  const vistos = fim ? goals : goals.filter(g => g.min <= min)
+  const hg = vistos.filter(g => g.home).length
+  const ag = vistos.length - hg
+  return (
+    <>
+      <div ref={caixa}>
+        <LiveScoreCard enhancedOnline={enhancedOnline}
+          homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
+          youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
+          basket={basket} onMinuteChange={reportar} />
+      </div>
+      {fora && !basket && (
+        <FaixaPlacarMini topo={0} min={min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
+          youIsHome={youIsHome}
+          onAbrir={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })} />
+      )}
+    </>
+  )
+}
+
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   const previewAccount = useOnlinePreview()
@@ -5682,10 +5732,16 @@ export function EscSeason() {
         const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         const goals = myLast.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
-        return <LiveScoreCard enhancedOnline={privateVisual} key={state.round}
+        // 🪶 A FAIXINHA DO PLACAR TAMBÉM AQUI (Diego 16/09): *"no modo online, quando
+        // o usuário quer descer e ver a tabela, ele não vê o jogo rolando... teria que
+        // ter uma barrinha mostrando os gols que arrasta junto em cima da tela, igual
+        // fizemos no modo carreira"*. É a MESMA tira da carreira (`FaixaPlacarMini`),
+        // não uma cópia — só o placar de baixo é que é outro componente aqui.
+        return <PlacarOnlineQueEncolhe key={state.round}
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
+          enhancedOnline={privateVisual}
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} />
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>

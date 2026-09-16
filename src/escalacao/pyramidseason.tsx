@@ -2750,39 +2750,72 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
 // sub-abas grudadas pra baixo, então não cobre nada.
 // 🚫 ANTI-SPOILER: o placar da faixinha é o placar NAQUELE minuto, com a mesma
 // conta do LiveScoreCard (gols filtrados por `min`), e zera na virada de rodada.
-const MINI_PLACAR_H = 30
+export const MINI_PLACAR_H = 30
+// 🪶 A FAIXINHA DO PLACAR — a tira fina, preta e grudada no topo, que aparece
+// quando o placar inteiro sai de vista. Nasceu dentro do `PlacarQueEncolhe` da
+// CARREIRA (aprovada pelo Diego em 15/09) e virou peça própria em 16/09, quando
+// ele pediu a mesma coisa no ONLINE: *"quando o usuário quer descer e ver a
+// tabela ele não vê o jogo rolando... teria que ter uma barrinha mostrando os
+// gols que arrasta junto em cima da tela, igual fizemos no modo carreira"*.
+// Peça ÚNICA de propósito: duas cópias divergem (o placar da carreira e o do
+// online já são componentes diferentes — a TIRA não pode ser a terceira cópia).
+export function FaixaPlacarMini({ topo, min, fim, home, away, hg, ag, youIsHome, onAbrir }: {
+  topo: number; min: number; fim: boolean; home: string; away: string
+  hg: number; ag: number; youIsHome: boolean; onAbrir: () => void
+}) {
+  const nome = (txt: string, meu: boolean) => (
+    <b style={{ ...OSWALD, fontWeight: meu ? 900 : 700, fontSize: 11.5, color: meu ? '#fff' : 'rgba(255,255,255,.72)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '38vw' }}>{txt}</b>
+  )
+  return (
+    <button type="button" onClick={onAbrir}
+      title={tr('toque pra abrir o placar inteiro', 'tap to open the full scoreboard')}
+      style={{ position: 'fixed', top: topo, left: 0, right: 0, zIndex: 99987, height: MINI_PLACAR_H, width: '100%',
+        background: 'rgba(12,12,12,.96)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', color: '#fff', border: 0,
+        boxShadow: '0 2px 10px rgba(0,0,0,.18)', display: 'flex', alignItems: 'center', gap: 7, padding: '0 10px', cursor: 'pointer' }}>
+      <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: fim ? '#C2452F' : '#1B7A3D', borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>{fim ? tr('FIM', 'FT') : `${min}'`}</span>
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        {nome(home, youIsHome)}
+        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: '#fff', color: INK, borderRadius: 6, padding: '0 8px', whiteSpace: 'nowrap' }}>{hg} × {ag}</span>
+        {nome(away, !youIsHome)}
+      </span>
+      <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,.55)', whiteSpace: 'nowrap' }}>▴ {tr('abrir', 'open')}</span>
+    </button>
+  )
+}
+// 👀 "o placar saiu POR CIMA da tela?" — o mesmo olho que a carreira usa pra
+// decidir quando encolher. Exportado junto com a faixa: quem usa uma usa o outro.
+export function usePlacarFora(caixa: React.RefObject<HTMLDivElement | null>, onEncolheu?: (v: boolean) => void): boolean {
+  const [fora, setFora] = useState(false)
+  useEffect(() => {
+    const el = caixa.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => {
+      const v = !e.isIntersecting && e.boundingClientRect.top < 0 // só quando saiu por CIMA
+      setFora(v); onEncolheu?.(v)
+    }, { threshold: 0 })
+    io.observe(el)
+    return () => { io.disconnect(); onEncolheu?.(false) }
+  }, [caixa, onEncolheu])
+  return fora
+}
 function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu }: {
   m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
   pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
   topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void
 }) {
   const [min, setMin] = useState(finished ? 93 : 0)
-  const [fora, setFora] = useState(false)
   const caixa = useRef<HTMLDivElement | null>(null)
   const reportar = useCallback((n: number) => { setMin(n); onMinuteChange?.(n) }, [onMinuteChange])
   // rodada nova: zera JÁ na renderização (mesma guarda do LiveScoreCard), senão a
   // faixinha mostraria o placar da rodada anterior com os nomes do jogo novo.
   const rkRef = useRef(roundKey)
   if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0) }
-  useEffect(() => {
-    const el = caixa.current
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    // só liga quando o placar saiu POR CIMA (a pessoa rolou pra baixo).
-    const io = new IntersectionObserver(([e]) => {
-      const v = !e.isIntersecting && e.boundingClientRect.top < 0
-      setFora(v); onEncolheu(v)
-    }, { threshold: 0 })
-    io.observe(el)
-    return () => { io.disconnect(); onEncolheu(false) }
-  }, [onEncolheu])
+  const fora = usePlacarFora(caixa, onEncolheu)
   const fim = !!finished || min >= 93
   const vistos = fim ? m.goals : m.goals.filter(g => g.min <= min)
   const hg = vistos.filter(g => g.home).length
   const ag = vistos.length - hg
   const iAmHome = m.h === youName
-  const nome = (t: string, meu: boolean) => (
-    <b style={{ ...OSWALD, fontWeight: meu ? 900 : 700, fontSize: 11.5, color: meu ? '#fff' : 'rgba(255,255,255,.72)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '38vw' }}>{t}</b>
-  )
   return (
     <>
       <div ref={caixa}>
@@ -2790,19 +2823,8 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
           roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} />
       </div>
       {fora && !escondido && (
-        <button type="button" onClick={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-          title={tr('toque pra abrir o placar inteiro', 'tap to open the full scoreboard')}
-          style={{ position: 'fixed', top: topo, left: 0, right: 0, zIndex: 99987, height: MINI_PLACAR_H, width: '100%',
-            background: 'rgba(12,12,12,.96)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', color: '#fff', border: 0,
-            boxShadow: '0 2px 10px rgba(0,0,0,.18)', display: 'flex', alignItems: 'center', gap: 7, padding: '0 10px', cursor: 'pointer' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, background: fim ? '#C2452F' : '#1B7A3D', borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>{fim ? tr('FIM', 'FT') : `${min}'`}</span>
-          <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            {nome(m.h, iAmHome)}
-            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: '#fff', color: INK, borderRadius: 6, padding: '0 8px', whiteSpace: 'nowrap' }}>{hg} × {ag}</span>
-            {nome(m.a, !iAmHome)}
-          </span>
-          <span style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,.55)', whiteSpace: 'nowrap' }}>▴ {tr('abrir', 'open')}</span>
-        </button>
+        <FaixaPlacarMini topo={topo} min={min} fim={fim} home={m.h} away={m.a} hg={hg} ag={ag} youIsHome={iAmHome}
+          onAbrir={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })} />
       )}
     </>
   )
