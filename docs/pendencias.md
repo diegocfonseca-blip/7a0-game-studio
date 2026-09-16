@@ -1,3 +1,53 @@
+## 16/09/2026 — 🧮 E COM O ELENCO CHEIO? (18 · 20 · 22 jogadores)
+
+Diego: *"não quero, né. Faça simulação tendo 22 jogadores pô, ou 20, 18… sei lá,
+que agora todo mundo quer completar time"*. É o cenário REAL depois da condição
+física — ninguém mais joga com 11.
+
+### As mesmas 120 temporadas, mudando só o tamanho do elenco
+| elenco | caixa final | folha na Série A | lesões/temporada | caixa passa de 200 na |
+| --- | --- | --- | --- | --- |
+| 11 | 44.167 | 65 | 1,88 | T12 |
+| 18 | 41.336 | 89 | 0,00 | T13 |
+| 20 | 38.945 | 98 | 0,00 | T14 |
+| 22 | 38.047 | 102 | 0,00 | **T15** |
+
+Completar o elenco custa **~6.000 moedas em 120 temporadas** (14% a menos) e
+**atrasa 3 temporadas** a hora em que o caixa respira. Em troca: **zero lesões**.
+Na Série A firmada, folha + renovação comem **24% da receita com 11** e **36% com
+22**. É caro, mas cabe.
+
+### 🚨 ACHADO 4 — O PROBLEMA NÃO É O TAMANHO, É O NÍVEL DAS CARTAS
+Receita de um time no MEIO da tabela (estádio meio construído) menos o custo do
+elenco (folha + renovação). **Negativo = caixa no vermelho:**
+
+| divisão | receita | 11 baratos | 22 baratos | 22 medianos | 22 bons | 22 craques |
+| --- | --- | --- | --- | --- | --- | --- |
+| Várzea | 80 | +60 | +40 | **−8** | −96 | −272 |
+| Série D | 102 | +82 | +62 | +14 | −74 | −250 |
+| Série C | 140 | +120 | +100 | +52 | −36 | −212 |
+| Série B | 176 | +156 | +136 | +88 | **0** | −176 |
+| Série A | 267 | +247 | +227 | +179 | +91 | **−85** |
+(carta barata ≈ 8 moedas · mediana ≈ 20 · boa ≈ 40 · craque ≈ 80)
+
+**Duas leituras que valem ouro:**
+1. **Elenco cheio de carta barata cabe em QUALQUER divisão** — até na Várzea sobra
+   40. Quem completa o time com o que a divisão dele negocia não quebra.
+2. **NINGUÉM sustenta 22 craques — nem na Série A** (−85 por temporada, e o
+   campeão da A, com 389 de receita, também não fecha). Hoje uma carta custa
+   `preço ÷ 5` por temporada (salário `÷10` + renovação de 5 anos ≈ `÷10`), então
+   22 cartas de 80 = **352/temporada** contra 267 de receita.
+👉 **É AQUI que mora a reclamação**: a pessoa completa o elenco com jogador BOM
+cedo demais (22 bons na Série C = −36/temporada) e vê a caixa afundar sem
+entender por quê.
+
+### 💡 Sugestão (não implementada — decisão do Diego)
+**Reserva pagar meio salário.** Faz sentido no jogo ("quem não joga ganha menos")
+e conserta a conta sem mexer em receita: 22 jogadores viram o custo de ~16,5, e aí
+22 craques na Série A passam de 352 pra **264** — cabe na receita do campeão.
+Premia quem completa o elenco em vez de castigar.
+As outras saídas seriam aumentar a grana da Série A ou baratear a renovação longa.
+
 ## 16/09/2026 — 💰 SIMULAÇÃO DE CAIXA: 120 temporadas da Várzea à Série A (FEITO)
 
 Pedido do Diego: *"faça uma simulação de 120 temporadas começando na várzea, time
