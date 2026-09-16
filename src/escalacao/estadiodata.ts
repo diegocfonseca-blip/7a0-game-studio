@@ -278,11 +278,20 @@ export function stadiumIncomeAt(st: StadiumSave | undefined, occ: number, semLoj
 // ⚠️ `semLoja` só é ligado pra quem TEM `careerLoja` no save, e a única porta que
 // cria isso é a aba travada por e-mail. Pra todo mundo mais, nada muda: o +6
 // continua caindo igual, e ninguém perde renda que já tinha.
+// 🎟️ OS LUGARES PASSARAM A CONTAR NA BILHETERIA (Diego 16/09).
+// ⚠️ ANTES a bilheteria NÃO olhava os lugares: era só `base + renda fixa × lotação`.
+// Dava pra ter 78 mil lugares ou ZERO que a bilheteria era a mesma — construir
+// arquibancada só servia pra vender camisa. Era o encanamento trocado: cadeira tem
+// que encher bilheteria. Agora cada 3.000 lugares construídos valem +1 moeda, e
+// isso entra no CONSTRUÍDO — ou seja, ainda é multiplicado pela lotação, que é o
+// certo: lugar vazio não paga ingresso.
+export const BILHETERIA_POR_LUGARES = 3000
 export function stadiumIncome(st: StadiumSave | undefined, semLoja = false): number {
   let r = STADIUM_BASE
   if (st) {
     for (const s of STADIUM_SECTORS) r += Math.floor(s.inc * sectorPct(st, s.k) / 100)
     for (const e of STADIUM_EXTRAS) if (hasExtra(st, e.k) && !(semLoja && e.k === 'loja')) r += e.inc
+    r += Math.floor(stadiumSeats(st).now / BILHETERIA_POR_LUGARES)
   }
   return r
 }

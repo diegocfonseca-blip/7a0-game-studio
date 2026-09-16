@@ -1,3 +1,47 @@
+## 16/09/2026 — ✅ FEITO: as 6 mudanças do estádio (o encanamento consertado)
+
+Diego aprovou o mockup `mockup-estadio-antes-depois.mjs` inteiro: *"pode fazer
+tudo"*. A **linha 1 é ideia dele**: *"o camarote cobra caro mas não pode render
+mais também?"*.
+
+| # | o que era | o que ficou |
+| --- | --- | --- |
+| 1 | 🎭 Camarote: 16.000 lugares valendo igual aos da geral | **cada lugar vale por DOIS** (`PESO_LUGAR` em loja.ts) |
+| 2 | ☂️ Cobertura: não trazia ninguém | **+8% de venda de camisa** (`OBRAS_LOJA`) |
+| 3 | 💡 Refletores: não trazia ninguém | **+5% de venda de camisa** |
+| 4 | 🎟️ Bilheteria ignorava os lugares | **+1 moeda a cada 3.000 lugares** (`BILHETERIA_POR_LUGARES`) |
+| 5 | 🧍 Torcida 12.000 em TODAS as divisões | **V 12.000 · D 20.000 · C 35.000 · B 60.000 · A 100.000** (`TORCIDA_PISO_DIV`) |
+| 6 | 🌱 Gramado na aba das Arquibancadas | **foi pras Melhorias** |
+
+### Medido depois
+| | antes | agora |
+| --- | --- | --- |
+| 🎟️ bilheteria, estádio completo, 3º lugar | 112 | **132** |
+| 🎟️ bilheteria, estádio completo, 10º lugar | 77 | **90** |
+| 👕 camisa (estádio meio construído) | 21 em todas | V 21 · D 24 · C 30 · B 40 · **A 55** |
+| 🧍 torcida, estádio completo | 90.838 em todas | V 106.838 … **A 194.838** |
+
+### 🛡️ O QUE EU **NÃO** FIZ, E POR QUÊ
+O mockup dizia "o gramado vai pras Melhorias". **Movi só na TELA, não no dado.**
+Ele continua sendo um `STADIUM_SECTORS` por baixo, de propósito: mover de verdade
+mudaria o `sectorsDone()`, e quem já tinha o gramado pronto poderia ver obras
+**RE-TRANCAREM** (a Cobertura pede 4 setores, o Hotel pede todos, e a Agência
+destrava categorias por `sectorsDone`). Ninguém pode perder desbloqueio que já
+tinha. O efeito visível pro jogador é exatamente o que ele aprovou.
+
+### 📱 E a tela ficou honesta
+- **Renda e graça aparecem JUNTAS.** Antes o `perk` SUBSTITUÍA a renda, e isso
+  acontecia justo com as 5 que mais rendem: Retrátil (+10), Hotel (+9), Praça (+7),
+  Choperia (+6), Estação (+5). A pessoa comparava o Estacionamento ("rende +4") com
+  a Praça ("o food court do estádio") e achava que a Praça era enfeite.
+- **Obra trancada mostra preço e ganho** — dá pra planejar pra que juntar dinheiro.
+- **Setor mostra a renda REAL**: "rende +6/temp (hoje +3 — estádio 55% cheio)".
+- **O gramado diz "sem lugares"**.
+
+### Reverter
+`git revert` do commit desfaz as 6. Nenhuma tira nada de ninguém: as 6 só somam, e
+o save (`inv`/`ext`) não é tocado por nenhuma delas.
+
 ## 16/09/2026 — 🔀 O ENCANAMENTO TROCADO: capacidade × torcida
 
 Diego, confuso com o meu mockup anterior: *"acho que você tá confundindo torcida

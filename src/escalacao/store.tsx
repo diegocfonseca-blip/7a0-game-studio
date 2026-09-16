@@ -502,7 +502,11 @@ function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
     const pos = finalPos?.[id]
     if (!lojaConstruida(st) || !pos) continue
     const preco: import('./loja').PrecoLoja = lj.preco ?? PRECO_PADRAO
-    const r = calculaVendas({ st, pos, preco, fornLoja: fornAtivo(fc, season) ? (fornecedorDe(fc.fornId)?.loja ?? 0) : 0 })
+    // 🧍 a DIVISÃO entra na conta desde 16/09: o piso da torcida cresce com ela
+    //    (TORCIDA_PISO_DIV, em loja.ts). Um clube da Série A tem mais torcedor que
+    //    um da Várzea, então vende mais camisa — antes as duas vendiam igual.
+    const divDaLoja = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
+    const r = calculaVendas({ st, pos, preco, div: divDaLoja, fornLoja: fornAtivo(fc, season) ? (fornecedorDe(fc.fornId)?.loja ?? 0) : 0 })
     if (r.moedas > 0) {
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + r.moedas }
       logFin(s, 'reward', `🛍️ Loja · ${r.camisas.toLocaleString('pt-BR')} camisas`, r.moedas, undefined, id, true)
