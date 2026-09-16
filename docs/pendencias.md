@@ -1,3 +1,28 @@
+## 16/09/2026 — 🧍 "TORCIDA" ≠ "CAPACIDADE" (e a Várzea ganhou, sim)
+
+Duas confusões que o Diego pegou no mesmo dia, e as duas eram texto MEU, não bug:
+
+1. *"195 mil e o quê?? Não entendi"* — no story eu escrevi "Série A, **estádio
+   cheio**" ao lado de 195 mil, num estádio que cabe 78.838. Torcida é **quem
+   torce pelo clube** (a base que compra camisa), não quem está na arquibancada.
+   Corrigido no story **e na tela do jogo** (`estadio.tsx`): o texto embaixo da
+   barra da torcida agora diz que é quanta gente torce, que **não** é quanta
+   cabe, e que ela cresce por DOIS caminhos (divisão + lugares construídos) —
+   antes ele só creditava os lugares, o que ficou errado depois da mudança nº 5.
+2. *"pra quem tá na Várzea, em tudo que fizemos hoje, não ganhou benefício
+   nenhum?"* — culpa do meu "a Várzea não muda em nada" no mockup das 6 trocas.
+   Aquilo valia só pras 6 linhas DAQUELA lista. Medido em
+   `scripts/varzea-ganhou.mjs` (mockup: `mockup-varzea-ganhou.mjs`):
+   - Geral 60→40 · Gramado 60→30 · Refletores 50→30 · Loja 80→60 **e exigindo 1
+     setor em vez de 2** → abrir a Loja do Clube caiu de **200 pra 100 moedas**.
+   - Mesmas 40 moedas na Geral, bilheteria por temporada: 10º **21→26** · 16º
+     **20→24** · 18º **20→22** (os lugares passaram a contar + a lotação lá
+     embaixo subiu de 18% pra 27%, que é exatamente onde a Várzea termina).
+   - A ÚNICA coisa que a Várzea não ganhou é o piso de torcida (segue 12.000), e
+     isso é de propósito: torcida é o prêmio de SUBIR.
+
+---
+
 ## 16/09/2026 — ✅ FEITO: as 6 mudanças do estádio (o encanamento consertado)
 
 Diego aprovou o mockup `mockup-estadio-antes-depois.mjs` inteiro: *"pode fazer
