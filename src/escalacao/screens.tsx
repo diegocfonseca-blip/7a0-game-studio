@@ -6278,17 +6278,33 @@ type ShareBlobOpts = {
   nTeams?: number // tamanho da liga (pra faixa 🏅/🪦 proporcional; ausente = 20)
   card?: ShareCard // carta-lembrança do campeão (só quando você venceu e escolheu)
 }
-// 🪜 "QUER CONTINUAR COM ESSE TIME?" — leva a liga que acabou pra uma carreira.
-// Fica no fim da partida rápida OFFLINE (online tem a votação da sala; dinastia,
-// NBA e carreira já têm o próprio caminho). Se a pessoa não tem conta, a
-// JanelaConta abre por cima e retoma daqui mesmo — ela nunca sai do lugar.
+// 🪜 "GOSTOU? COMECE UMA CARREIRA" — o convite no fim da partida rápida OFFLINE
+// (online tem a votação da sala; dinastia, NBA e carreira já têm o próprio caminho).
+// Se a pessoa não tem conta, a JanelaConta abre por cima e retoma daqui mesmo.
+//
+// 🐛 ATÉ 16/09 ESTE BOTÃO LEVAVA O TIME JUNTO (`CAREER_FROM_QUICK`) — e o Diego
+// matou a ideia, com razão, no print do Felipe (Cajuri EC): *"é injusto isso com
+// quem inicia carreira na várzea q N vê lendas.. sendo q no modo rápido tem lendas
+// já"*. Medido (`scripts/mede-escada-vs-rapido.mjs`): o pregão do jogo rápido tem
+// top-11 de **96,3** — o MESMO nível da Série A — contra **82,0** da Várzea, e o
+// rápido tem 179 lendas/craques onde a Várzea tem ZERO. Ou seja: a pessoa entrava
+// na Várzea com elenco de Série A, e subia de divisão ganhando título, moeda e rank
+// com cartas que a regra da Várzea proíbe.
+//
+// 👉 Decisão dele: *"é simples. Só perguntar se o cara gostou e se vai iniciar uma
+// carreira. Mas não quer dizer que tem que ser com o mesmo time. Nem precisa falar
+// isso... ele vai iniciar normal igual qualquer outro, com o leilão e etc, criando
+// seu time"*. Então o convite virou só CONVITE: leva pra tela de carreira nova, a
+// mesma de quem entra pela home. Nada é herdado do jogo rápido.
 function ContinuarComEsseTime() {
-  const { state, dispatch } = useEsc()
+  const { dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
   const [pedindoConta, setPedindoConta] = useState(false)
-  const you = state.managers[state.youIdx]
-  const nome = you?.teamName ?? t('seu time', 'your team')
-  const virar = () => dispatch({ type: 'CAREER_FROM_QUICK' })
+  // (o nome do time do jogo rápido NÃO aparece mais aqui de propósito: o convite
+  // não promete levar aquele time — ver o bloco de cima.)
+  // ⚠️ carreira NOVA de verdade: mesma porta da home (GO_SETUP_CAREER → nome do
+  // clube, formação, rivais, presidente e o pregão). Nada vem do jogo rápido.
+  const virar = () => dispatch({ type: 'GO_SETUP_CAREER' })
   const clicar = async () => {
     // conta NÃO é obrigatória pra jogar (a 1ª temporada é livre — §1 do plano).
     // O convite só aparece se ela ainda não tem conta, e dá pra recusar.
@@ -6301,20 +6317,20 @@ function ContinuarComEsseTime() {
   return (
     <>
       <Box bg={PURPLE} className="p-4 space-y-2" shadow={6}>
-        <p className="font-black text-lg text-center text-white" style={OSWALD}>{t('🪜 QUER CONTINUAR COM ESSE TIME?', '🪜 KEEP GOING WITH THIS TEAM?')}</p>
+        <p className="font-black text-lg text-center text-white" style={OSWALD}>{t('🪜 GOSTOU? COMECE UMA CARREIRA', '🪜 ENJOYED IT? START A CAREER')}</p>
         <p className="text-sm font-bold text-center text-white/85">
-          {getLang() === 'en' ? <>Take <b className="text-white">{nome}</b> and this whole league into a <b className="text-white">career</b>:
+          {getLang() === 'en' ? <>The quick match is one night. In a <b className="text-white">career</b> the club is yours:
           climb the divisions, build a stadium, renew contracts and play the Copa do Brasil.
-          <br /><span className="text-white/70">No new auction — the team is already yours.</span></> : <>Leva o <b className="text-white">{nome}</b> e essa liga inteira pra uma <b className="text-white">carreira</b>:
+          <br /><span className="text-white/70">You start from the bottom, with your own auction — like everyone else.</span></> : <>A partida rápida é uma noite. Na <b className="text-white">carreira</b> o clube é seu:
           suba de divisão, construa estádio, renove contrato e dispute a Copa do Brasil.
-          <br /><span className="text-white/70">Sem novo pregão — o time já é seu.</span></>}
+          <br /><span className="text-white/70">Você começa de baixo, com o seu pregão — igual a todo mundo.</span></>}
         </p>
-        <Btn onClick={clicar} bg={GOLD} className="w-full text-lg">{t(`🪜 Continuar com o ${nome}`, `🪜 Continue with ${nome}`)}</Btn>
+        <Btn onClick={clicar} bg={GOLD} className="w-full text-lg">{t('🪜 Começar uma carreira', '🪜 Start a career')}</Btn>
       </Box>
       {pedindoConta && (
         <JanelaConta
-          titulo={t('🪜 Levar esse time pra carreira', '🪜 Take this team into a career')}
-          contexto={t(`${nome} — sua carreira começa agora`, `${nome} — your career starts now`)}
+          titulo={t('🪜 Começar uma carreira', '🪜 Start a career')}
+          contexto={t('sua carreira começa agora', 'your career starts now')}
           comecarEmCriar
           onPronto={() => { setPedindoConta(false); virar() }}
           onFechar={() => { setPedindoConta(false); virar() }} />
