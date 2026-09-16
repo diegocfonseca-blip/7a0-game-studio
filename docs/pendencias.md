@@ -1,3 +1,56 @@
+## 16/09/2026 — 🦍🦂 Scorporila FC de cara nova (FEITO, no ar)
+
+O dono (lucassrribeiroo2023@gmail.com, Lucas, ❤️ Santos, sócio nº16, fundador
+nº36) mandou a prancha completa. Série **D** (ex-Realeza FC).
+⚠️ A divisão foi CONFERIDA no `data.ts` antes de gerar o post — o primeiro saiu
+como Série C por chute meu e foi refeito. Batismo antigo não tem a divisão óbvia.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/scorporila-escudo.webp` — 262×360, **28 KB**.
+- **Mascote** `src/escalacao/img/scorporila-mascote.webp` — 249×440, **36 KB**.
+- **Total 64 KB**, dentro do teto de 75 KB.
+- **Camisa** `scripts/kits/scorporila-camisa.webp` +
+  `public/mantos-salao/scorporila-camisa-v1.webp` (já com `-vN`).
+- **Manto** `#161516` preto + `#E3DCD6` branco, MEDIDOS na camisa nova (preto 60%,
+  branco 32%). **3ª cor DOURADA** `#EDB228` (cauda, gola, punhos) em `MANTO_TRI`.
+
+### 🔁 A ORDEM DO MANTO FOI INVERTIDA — de propósito
+No banco estava **`#FFFFFF` (branco puro) em 1º**. Listra branca em cima da tela
+creme do jogo SOME — é o caso exato da regra, o mesmo motivo pelo qual o Tricolor
+do Arruda e o Briga de Galo foram virados. Agora é preto primeiro.
+(Compare com o **Barcenite**, do mesmo dia, onde eu NÃO inverti: lá a cor clara é
+amarelo saturado, que aparece bem no creme. A regra é sobre cor que SOME, não
+sobre "clara primeiro é errado".)
+
+### 🧹 Mais dois SVG à mão fora do bundle
+Escudo e mascote eram SVG desenhados à mão no `.tsx` — o escudo tinha versão MINI
+pra tabela, que o `objectFit: contain` resolve sozinho. A chave `scorporila` FICOU
+(está no banco). O `CARIMBO_GOL` ganhou as 4 formas + caixa alta + o nome VELHO
+(**Realeza FC**), pra save antigo continuar carimbando o gol.
+
+### 🗄️ Banco
+Conta, ouro, fundador nº36 e sócio nº16 já existiam. Manto atualizado.
+`esc_nomes_batismo`: **QUINTO clube seguido com furo** — só `scorporila fc`.
+Inserido o nome puro; o gatilho criou o EC.
+
+### 🔎 Placar da pendência de reserva de nome
+| clube | tinha | agora |
+| --- | --- | --- |
+| Murriz FC | 1 de 3 | 3 |
+| Nightfull FC | 1 de 3 | 3 |
+| Barcenite FC | 1 de 3 | 3 |
+| Papão United Madrid | **0** | 6 (com e sem til) |
+| Scorporila FC | 1 de 3 | 3 |
+**5 de 5 clubes que eu abri estavam furados.** Varrer a tabela inteira contra
+`batismos.ts` é a próxima coisa a fazer. Só banco, sem deploy.
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.scorporila = 'O Scorporila'`.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira. Manto volta com `update esc_socios`
+(e a ordem antiga era `#FFFFFF` / `#141414`, se ele quiser de volta).
+
 ## 16/09/2026 — 🐺 Papão United Madrid: escudo e manto novos (FEITO, no ar)
 
 O dono (agrostinho88@gmail.com, Agostinho, ❤️ Paysandu, sócio nº29, fundador nº39)
