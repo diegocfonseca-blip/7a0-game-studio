@@ -1,3 +1,51 @@
+## 16/09/2026 — 🚨 O aviso de "jogador vai sair" NÃO EXPIRAVA (consertado)
+
+Print do Diego, do dono do **Divizeiro** (temporada 240, Série B, rodada 10): a faixa
+*"NÃO JOGO EM TIME DURO ASSIM, NÃO — Carlos Alberto Torres avisa que tá de saída, com
+o caixa no vermelho desse jeito"* aparecendo com **+3.822 🪙 no caixa**. Palavras dele:
+*"esse usuário está C grana pow olha o caixa... se deu C eles deu em outros Tb"*. E a
+regra, repetida por ele: *"isso é só quando bate menos 500. E depois, se ele tiver com
+menos 500 e bate mil, aí é outro jogador"*.
+
+### A causa (conferida NO SAVE DELE, não por dedução)
+`esc_pyramid_saves` → carreira do Divizeiro:
+```
+caixa    { clube 0: +3870 }
+barreira { clube 0:  -500 }
+crise    { clube 0: Carlos Alberto Torres }
+```
+A barreira **-500** só é gravada quando o caixa esteve entre -1 e -500 — ou seja,
+**a crise disparou CERTO**, lá atrás. O defeito é que ela **nunca expirava**: a crise
+é um aviso PENDENTE que fica na fila até o técnico decidir, e não bloqueia as rodadas.
+Ele seguiu jogando, recuperou o caixa até +3.870, e a ameaça continuou pendurada
+dizendo que o clube estava quebrado.
+
+⚠️ **Não houve disparo errado.** Varri as 6.181 carreiras da nuvem: só 4 têm crise
+ativa, e as outras três estão MESMO no vermelho no clube que tem a crise — Jurubeba
+(-907), São Luiz (-32.255, no 2º clube) e Chelsea (-1.370, no 2º clube). Só a do
+Divizeiro ficou presa depois da recuperação.
+
+### O conserto
+Ação nova **`CANCEL_CAREER_CRISE`** (`store.tsx`) + um efeito em `pyramidseason.tsx`:
+assim que o caixa sai do vermelho (`>= 0`) com crise pendente, o aviso some e **o
+jogador FICA** — que é exatamente o que a frase dele promete ("com o caixa no vermelho
+desse jeito"; sem vermelho, não há ameaça). Fica uma linha no mercado dizendo que ele
+voltou atrás.
+**A barreira NÃO é tocada**: a escada -500 → -1000 → -1500 continua valendo igual.
+Os saves presos se curam sozinhos no próximo carregamento — não precisa mexer no banco.
+
+### Trava contra voltar
+`npm run crise` (`scripts/testa-crise.mjs`) — 18 conferências no motor: caixa positivo
+nunca abre crise · -1 e -499 não abrem · -500 abre o melhor do elenco · -1000 abre
+outro · voltar a -600 não repete · fora do vermelho o aviso expira e o elenco fica
+intacto · a barreira sobrevive ao cancelamento · e o online não é tocado.
+
+### 🔎 Dois achados de lambuja, AINDA ABERTOS
+1. **Crise no 2º clube fica invisível.** São Luiz e Chelsea têm a crise no clube que
+   DORME (id 20), e a faixa só lê `careerCrise[youId]` — o dono nunca vê nem resolve
+   enquanto estiver no clube principal.
+2. **Caixa do 2º clube afundando sem freio**: -32.255 no São Luiz. Ninguém olha isso.
+
 ## 16/09/2026 — 🪞 Antes × depois das telas da carreira (RASCUNHO PRONTO, esperando OK)
 
 Diego, depois do levantamento: *"cadê mockups das ideias de como ficaria"*.

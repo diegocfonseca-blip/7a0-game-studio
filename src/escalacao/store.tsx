@@ -3760,6 +3760,7 @@ type Action =
   | { type: 'EVENTO_DECIDE'; escolha: 'troca' | 'campo'; subId?: string; xi: string[] } // 🎭 decisão do banner: troca (reserva assume até a volta) ou "escalar assim mesmo" (só noitada)
   | { type: 'SEED_DEBT_BARRIER'; mgrId: number; barrier: number } // 🚨 crise financeira: grava a barreira de -500 JÁ cruzada na 1ª observação (baseline silenciosa, não dispara banner) — daqui pra frente conta
   | { type: 'START_CAREER_CRISE'; mgrId: number; barrier: number; playerId: string; playerName: string; pos: Sector } // 🚨 caixa cruzou uma barreira NOVA (mais funda) de -500 — o jogador de mais fama do elenco anuncia que vai embora ("não jogo em time duro")
+  | { type: 'CANCEL_CAREER_CRISE'; mgrId: number } // 🚨 o caixa SAIU do vermelho antes do técnico decidir → o jogador FICA e o aviso some (a ameaça dele era "com o caixa assim eu não fico"; sem vermelho, não há ameaça)
   | { type: 'RESOLVE_CAREER_CRISE'; mgrId: number; choice: 'folclorico' | 'base'; folclorico?: { name: string; club: string; year: number; pos: Sector; fame: Fame; lo: number; hi: number; bio?: string; folk?: boolean } } // 🚨 decisão do técnico: 'folclorico' = pega alguém REAL da categoria "foi profissional" (fame 1, do catálogo — não é jogador inventado) de graça · 'base' = sobe alguém da base (Cria da Base)
   | { type: 'PLAY_ROUND' }
   | { type: 'SIM_MANY'; count: number }
@@ -6477,6 +6478,23 @@ export function reducer(state: EscState, action: Action): EscState {
       if (last !== undefined && action.barrier >= last) return s
       s.careerDebtBarrier = { ...(s.careerDebtBarrier ?? {}), [action.mgrId]: action.barrier }
       s.careerCrise = { ...(s.careerCrise ?? {}), [action.mgrId]: { playerId: action.playerId, playerName: action.playerName, pos: action.pos } }
+      return s
+    }
+    case 'CANCEL_CAREER_CRISE': {
+      // 🚨 CAIXA RECUPEROU (16/09, caso do Divizeiro): o aviso de saída não
+      // expirava. A crise do clube dele disparou certo, lá atrás, quando o caixa
+      // cruzou -500 — mas ficou PENDENTE, e ele seguiu jogando até +3870 com a
+      // faixa dizendo "com o caixa no vermelho desse jeito, ele não fica".
+      // Diego: *"esse usuário está C grana pow olha o caixa"*. Agora, assim que o
+      // caixa sai do vermelho, o jogador FICA e o aviso some sozinho — que é o que
+      // a própria frase dele promete. A BARREIRA não é mexida: a escada de -500 /
+      // -1000 continua valendo pra próxima vez (regra do Diego).
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      const cr = s.careerCrise?.[action.mgrId]
+      if (!cr) return s
+      const cc = { ...(s.careerCrise ?? {}) }; delete cc[action.mgrId]; s.careerCrise = cc
+      const time = s.managers.find(mg => mg.id === action.mgrId)?.teamName ?? ''
+      ;(s.marketLog = s.marketLog ?? []).push(`💚 ${time}: ${cr.playerName} voltou atrás e FICOU — o caixa saiu do vermelho a tempo`)
       return s
     }
     case 'RESOLVE_CAREER_CRISE': {

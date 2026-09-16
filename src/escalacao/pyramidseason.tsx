@@ -6883,6 +6883,18 @@ export function PyramidSeasonScreen() {
   // durante a Copa ao vivo nem em cima de outro banner de evento pendente. ───
   const caixa = state.careerCoins?.[youId] ?? 0
   const criseAtual = soloCareer ? state.careerCrise?.[youId] : undefined
+  // 🚨 O AVISO DE SAÍDA EXPIRA QUANDO O CAIXA SAI DO VERMELHO (16/09, Divizeiro).
+  // O aviso é uma AMEAÇA condicionada — "com o caixa no vermelho desse jeito, ele
+  // não fica". Ele ficava pendente pra sempre: o dono do Divizeiro recuperou até
+  // +3870 (conferido no save) e a faixa continuava dizendo que o clube estava
+  // quebrado, com o melhor jogador de saída. Agora, fora do vermelho, ele FICA.
+  // A barreira de -500/-1000 não é tocada — a escada continua valendo.
+  useEffect(() => {
+    if (!soloCareer || !state.careerOnline || !criseAtual) return
+    if (caixa < 0) return
+    dispatch({ type: 'CANCEL_CAREER_CRISE', mgrId: youId })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [criseAtual, caixa, soloCareer, state.careerOnline, youId])
   useEffect(() => {
     if (!soloCareer || !state.careerOnline || !mgrMe || copaPlaying || seasonOver || eventoPendente || criseAtual) return
     const agora = caixa < 0 ? Math.ceil(caixa / 500) * 500 : 0
