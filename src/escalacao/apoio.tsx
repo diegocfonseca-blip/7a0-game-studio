@@ -139,7 +139,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'lluchmarcel81@gmail.com': 'ouro', // 👑 Lenda — batismo (Esqueceram do Lluch FC, ex-Litoral United, Série B) + FUNDADOR nº50 (28/08)
   'agrostinho88@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº39 + sócio nº29 + batismo (Papão United Madrid, ex-Santos Dumont, Série D; Leandro/Obina) (nome reservado 11/08, clube entregue 23/08)
   'erosreis@outlook.com.br': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Eros FC — influencer @erosreis; nomes: Eros Reis FC / Eros Reis / Eros; mascote Nina 🐶) (12/08)
-  'caiobegnamii@gmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR nº70 + batismo (Rei da Bola FC, Série A; leão branco coroado 👑🦁; manto branco com faixa vermelha e preta) (16/09)
+  'caiobegnamii@gmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR nº70 + batismo (Rei da Bola FC, Série A; leão branco coroado 👑🦁; manto branco com faixa vermelha e preta; coração São Paulo — daí o tricolor) (16/09)
   'tiosapeka@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Sapekeiros FC — influencer @tiosapekagg; mascote abelha coroada 🐝; coração Santos) (12/08)
   'chiarentin.dyno127@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N) (12/08)
   'glaucomiranda@outlook.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + sócio nº22 (Glauco; batismo Série A a definir) (15/08)
