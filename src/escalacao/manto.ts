@@ -49,7 +49,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'gustavo99828@gmail.com': ['#CD0C12', '#070505'], // 🐂 Final Boss FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (mediana dos vermelhos e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa dele é branca com faixa vermelha e preta
   'stoccoassessoria@gmail.com': ['#050306', '#6A04D7'], // ⚡ Stocco FC — preto e roxo, MEDIDOS na arte que o dono mandou (mediana dos pixels escuros e o roxo vivo do corpo da camisa, 04/09)
   'contatovegetta14@gmail.com': ['#050A13', '#0C5CB3'], // 🐉 Corporação Capsule FC — preto e azul, MEDIDOS na arte que o dono mandou (mediana dos pixels pretos e dos azuis do escudo, 03/09)
-  'gabrielnegreirosamaral99@hotmail.com': ['#E00000', '#0C0C0C'], // 🐶 São Luiz FC — vermelho e preto, MEDIDOS na arte do dono (branco é a 3ª cor, em MANTO_TRI) (21/08)
+  'gabrielnegreirosamaral99@hotmail.com': ['#C70107', '#080808'], // 🐶 São Luiz FC — vermelho e preto, REMEDIDOS na camisa NOVA que o dono mandou (vermelho 41% do manto, preto 28%, branco 26%, 16/09; antes era #E00000/#0C0C0C, de 21/08). O BRANCO #D9D9D8 é a 3ª cor (MANTO_TRI), com o amortecedor de sempre — vermelho não pode encostar em preto
   'igormarquesn99@gmail.com': ['#AE1A13', '#F3B212'], // 🌽 Milhaça FC — vermelho e amarelo, MEDIDOS na camisa que o dono mandou (24/08)
   'lluchmarcel81@gmail.com': ['#C00018', '#111111'], // 🏠 Esqueceram do Lluch FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (28/08). ❤️ São Paulo (por isso o manto é TRICOLOR listrado; o branco é a 3ª cor, em MANTO_TRI)
   'danielmanfre5@gmail.com': ['#EC121C', '#0135A3'], // 🐦‍⬛ Manfré FC — vermelho e azul, MEDIDOS na 2ª camisa que o dono mandou (30/08, a da gralha AZUL). ❤️ Paraná Clube (de onde vem a gralha-azul)
@@ -143,6 +143,7 @@ export const mantoStripes = (c: [string, string], w = 9, angle = 90, c3?: string
 const MANTO_ANGLE: Record<string, number> = {
   samambaia: 45,        // 🌿 Império Samambaia — diagonais (Rio Branco)
   careca_ruivo: 0,      // 🔴⚫ Murriz FC — horizontais (rubro-negro)
+  saoluiz_pitbull: 0,   // 🔴⚫⚪ São Luiz FC — horizontais: a camisa NOVA do dono (16/09) é de argolas, não de listras em pé. Sem esta linha o manto dele sairia vertical (o padrão) e não bateria com a camisa de verdade
   porco_marinheiro: 0,  // 🐷⚓ Marinheiros AS — horizontais (marujo/Palmeiras)
 }
 // ângulo da listra do MEU manto (pelo meu mascote). Só o próprio dono decora o seu.
@@ -162,7 +163,7 @@ const MANTO_TRI: Record<string, string> = {
   piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
   cobra_arruda: '#B91515', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho). 09/09: MEDIDA na camisa nova que o dono mandou (era #C2001E chutado em 16/08); preto #110D0E e branco #F5F2EF foram pro banco (esc_socios)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)
-  saoluiz_pitbull: '#FFFFFF', // 🐶 São Luiz FC — 3ª cor BRANCA (vermelho/preto/branco, medidas na camisa dele, 21/08)
+  saoluiz_pitbull: '#D9D9D8', // 🐶 São Luiz FC — 3ª cor BRANCA, REMEDIDA na camisa NOVA do dono (26% do manto, 16/09; era #FFFFFF chutado em 21/08)
   bagres_bagre: '#D9A95D', // 🐟 Bagres 1993 (caiohcris) — 3ª cor DOURADA: a moldura, a coroa e o louro do escudo (medidas na arte dele, 06/09)
   vidraceiro_vidro: '#FFFFFF', // 🪟 Vidraceiro FC (guiouriques) — 3ª cor BRANCA: a camisa é listrada azul/preto com filete branco (medidas na arte dele, 05/09)
   sistematizados_streamer: '#F3F1F6', // 🎮 Sistematizados FC (gaancaxd) — 3ª cor BRANCA: os filetes e o nome na camisa (medidos na arte dele, 07/09)

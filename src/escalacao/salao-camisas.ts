@@ -44,7 +44,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Xurupitas FC": "xurupitas-camisa.webp",
   "Neymarzetti": "neymarzetti-camisa-v2.webp",
   "Milhaça FC": "milhaca.webp",
-  "São Luiz FC": "saoluiz.webp",
+  "São Luiz FC": "saoluiz-camisa-v2.webp",
   "Theuzudo FC": "theuzudo.webp"
 }
 

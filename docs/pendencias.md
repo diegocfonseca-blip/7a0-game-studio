@@ -1,3 +1,51 @@
+## 16/09/2026 — 🐶 São Luiz FC: escudo e manto novos (FEITO, no ar)
+
+O dono (gabrielnegreirosamaral99@**hotmail**.com, Gabriel, ❤️ Flamengo, sócio nº46,
+fundador nº48) mandou prancha nova com **só duas peças**: escudo e camisa.
+**A MASCOTE (o Luizão, pitbull) NÃO foi tocada** — não veio na prancha.
+⚠️ O e-mail dele é **hotmail**, não gmail. Procurar por gmail não acha nada.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/saoluiz-escudo.webp` — **360×355**, 25 KB
+  (antes 283×279). A proporção no `escudos.tsx` foi atualizada junto.
+- **Camisa** `scripts/kits/saoluiz-camisa.webp` +
+  `public/mantos-salao/saoluiz-camisa-v2.webp`.
+  🧹 Limpeza de arquivo velho: o acervo tinha `saoluiz.png` (141 KB, PNG!) e o
+  Salão servia `saoluiz.webp` SEM versão no nome. Os dois foram removidos — agora
+  é webp nos dois lugares e o nome do Salão tem `-v2`, senão o cache serviria a
+  camisa velha pra quem já abriu.
+- **Manto** `#C70107` vermelho + `#080808` preto, REMEDIDOS na camisa nova
+  (vermelho 41%, preto 28%, branco 26%; antes era `#E00000`/`#0C0C0C`, de 21/08).
+  3ª cor BRANCA `#D9D9D8` — também remedida (era `#FFFFFF` chutado).
+  O amortecedor do `MANTO_TRI_BUFFER` continua: vermelho não pode encostar em preto.
+
+### 🔁 O MANTO VIROU HORIZONTAL
+A camisa nova é de **argolas**, não de listras em pé. Sem mexer, o manto dele
+sairia VERTICAL (que é o padrão, ângulo 90) e não bateria com a camisa de verdade.
+Entrou `saoluiz_pitbull: 0` no `MANTO_ANGLE` — mesma coisa que o Murriz já tem.
+
+### 🗄️ Banco
+Conta, ouro, fundador nº48 e sócio nº46 já existiam. Manto atualizado.
+`esc_nomes_batismo` estava **PELA METADE**: tinha `sao luiz` (sem til), `são luiz
+fc` e `são luiz ec` — faltavam `são luiz` (com til, puro), `sao luiz fc` e
+`sao luiz ec`. Completei: agora são **6 formas**, com e sem til.
+
+### 🔎 Placar da pendência de reserva de nome — 6 de 6
+Murriz, Nightfull, Barcenite, Scorporila (1 de 3 cada) · Papão (**zero**) ·
+São Luiz (**3 de 6**). Nenhum clube que eu abri hoje estava completo.
+**Varrer `esc_nomes_batismo` contra `batismos.ts` continua sendo a próxima coisa.**
+
+### 📌 Nota pro Diego (decisão dele, não minha)
+O escudo novo é **muito parecido com o brasão do São Paulo FC** — mesmo formato
+redondo, mesmo triângulo invertido tricolor, estrelas na mesma posição, só trocando
+"SPFC" por "SLFC". Foi o dono que mandou e o Diego pediu pra colocar, então
+entrou. Fica anotado aqui porque o CLAUDE.md diz que escudo de clube REAL não
+aparece no jogo — se um dia isso incomodar, é só pedir e a gente troca.
+
+### Reverter
+`git revert` do commit desfaz escudo, manto, ângulo e camisa.
+O manto volta com `update esc_socios` (era `#E00000` / `#0C0C0C`).
+
 ## 16/09/2026 — 🦍🦂 Scorporila FC de cara nova (FEITO, no ar)
 
 O dono (lucassrribeiroo2023@gmail.com, Lucas, ❤️ Santos, sócio nº16, fundador

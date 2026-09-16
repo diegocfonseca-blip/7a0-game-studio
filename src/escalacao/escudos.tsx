@@ -552,9 +552,13 @@ const futpointEscudoRender = (size: number) => (
 // amarelo/preto com o palhaço e faixas de risco; arte enviada pelo próprio dono,
 // aqui só tiramos o fundo quadriculado falso, cortamos no limite do desenho e
 // reduzimos (o escudo nunca passa de 78px na tela).
-// 🐶 São Luiz FC — pitbull (coração Flamengo), vermelho/preto/branco. 283x279 no arquivo.
+// 🐶 São Luiz FC — ESCUDO NOVO em 16/09, mandado pelo dono: o brasão redondo
+// vermelho/preto/branco com o "SLFC" e as estrelas. 360x355 no arquivo, então a
+// largura sai da PROPORÇÃO REAL (antes era 283x279 — quase quadrado nos dois
+// casos, mas a proporção foi atualizada junto pra não espremer nada).
+// ⚠️ A MASCOTE (o pitbull) NÃO foi tocada: o dono mandou só escudo e manto.
 const saoluizEscudoRender = (size: number) => (
-  <img src={saoluizEscudoImg} height={size} width={Math.round(size * 283 / 279)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={saoluizEscudoImg} height={size} width={Math.round(size * 360 / 355)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 const leaoEstradinhaRender = (size: number) => (
   <img src={leaoEstradinhaEscudoImg} height={size} width={Math.round(size * 287 / 360)} alt="Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
