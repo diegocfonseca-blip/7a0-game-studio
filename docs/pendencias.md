@@ -1,3 +1,70 @@
+## 16/09/2026 — 🔀 O ENCANAMENTO TROCADO: capacidade × torcida
+
+Diego, confuso com o meu mockup anterior: *"acho que você tá confundindo torcida
+com capacidade de estádio… a capacidade do estádio e a capacidade da torcida não
+são coisas diferentes? Tô muito confuso"*. E pediu a auditoria de verdade: *"quero
+entender cada setor, cada item, cada categoria… se tá cobrando certo, se tá
+rendendo certo, se é justo um item ser de um valor e o outro não"*.
+
+### ✅ A DÚVIDA DELE ESTAVA CERTA — e o problema é do JOGO, não da leitura dele
+Conferido no código:
+- `stadiumIncomeAt` (**bilheteria**) = `STADIUM_BASE + renda_fixa × LOTAÇÃO`.
+  → **NÃO olha os LUGARES construídos.** Nenhum. 78 mil lugares ou zero, mesma bilheteria.
+- `torcidaDoEstadio` (que manda na **camisa**) = `12.000 + LUGARES construídos`.
+  → **NÃO olha a divisão**, nem títulos. Torcedor = cadeira.
+
+**O jogo trocou as bolas.** Cadeira devia encher bilheteria; torcida devia vir de
+quem o clube É (divisão, títulos). Hoje é o contrário, e é por isso que nada
+parecia fazer sentido — construir arquibancada não enche a bilheteria, e subir de
+divisão não traz torcedor.
+👉 **Não é um número errado. É o encanamento.**
+
+### 🐛 E eu errei na comunicação (fica registrado)
+O mockup anterior mostrou "antes × depois" com **os mesmos custos dos dois lados**
+e ele pegou: *"não ficou claro o que você fez, tá sempre tendo o mesmo custo, o
+mesmo rendimento"*. Era só mudança de TEXTO, e eu não avisei. Mockup de antes ×
+depois tem que deixar explícito quando o número NÃO muda.
+
+### 🧱 AUDITORIA — SETORES (valores de hoje, já com o corte de 16/09)
+| setor | custo | renda | lugares | 💰/renda | 💰/mil lugares | veredito |
+| --- | --- | --- | --- | --- | --- | --- |
+| 🌱 Gramado | 30 | +4 | **0** | 7,5 | — | não dá lugar |
+| Geral | 40 | +4 | 21.500 | 10,0 | **1,9** | barato |
+| Cadeiras | 90 | +6 | 18.500 | 15,0 | 4,9 | justo |
+| Visitante | 120 | +8 | 22.838 | 15,0 | 5,3 | justo |
+| Camarote | 150 | +10 | 16.000 | 15,0 | **9,4** | **CARO por lugar** |
+
+**Na RENDA está consistente**: os três grandes cobram exatamente **15 por ponto de
+renda**. **Nos LUGARES está torto**: o Camarote cobra **5× mais caro por lugar** que
+o Geral, é o setor MAIS caro (150) e o que dá MENOS lugares (16.000) — e no jogo
+**uma cadeira de camarote vale igual a uma de geral**.
+
+### ✨ AUDITORIA — MELHORIAS
+*preço justo = 15 por ponto de renda + 5 por cada 1% de bônus de camisa*
+| melhoria | custo | renda | bônus | justo seria | veredito |
+| --- | --- | --- | --- | --- | --- |
+| 🛍️ Loja | 60 | +6 | — | 90 | barato |
+| 💡 Refletores | 30 | +2 | **—** | 30 | justo |
+| 📺 Telão | 60 | +3 | 4% | 65 | justo |
+| 🅿️ Estacionamento | 70 | +4 | 6% | 90 | barato |
+| 🍻 Choperia | 90 | +6 | 6% | 120 | barato |
+| 🍔 Praça | 110 | +7 | 10% | 155 | barato |
+| 🚇 Estação | 120 | +5 | 8% | 115 | justo |
+| ☂️ Cobertura | 130 | +8 | **—** | 120 | justo |
+| 🏨 Hotel | 160 | +9 | 10% | 185 | barato |
+| 🏟️ Retrátil | 180 | +10 | 6% | 180 | justo |
+
+**Quase tudo justo ou BARATO — aqui não tem roubo.** Fui procurar preço abusivo e
+não achei.
+
+### 🎯 CONCLUSÃO (mockup em `scripts/mockup-estadio-justo.mjs`)
+**Mexer em preço de item não resolve nada.** O que está errado é maior:
+1. 🔀 **O encanamento trocado** (o item acima) — é o que faz o estádio inteiro
+   não fazer sentido pra quem joga.
+2. 🎭 **Camarote** cobra 5× por lugar e entrega o mesmo que o Geral.
+3. ☂️💡 **Cobertura e Refletores** são as únicas duas que não levam ninguém.
+4. 🌱 **Gramado** está na aba das arquibancadas sem ser arquibancada.
+
 ## 16/09/2026 — 🔍 AUDITORIA DAS DUAS ABAS DO ESTÁDIO (peça por peça)
 
 Diego: *"do estádio, tem certeza que das duas abas dentro do estádio as únicas
