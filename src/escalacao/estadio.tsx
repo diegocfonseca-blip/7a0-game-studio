@@ -704,8 +704,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           </div>
           <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '5px 1px 0', lineHeight: 1.35 }}>
             {getLang() === 'en'
-              ? <>Every seat you build brings support. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
-              : <>Cada lugar que você constrói traz torcida. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
+              ? <>This is <b>how many people support your club</b> — not how many fit in the ground. It grows two ways: <b>the division you play in</b> and <b>every seat you build</b>. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
+              : <>Isto é <b>quanta gente torce pelo seu clube</b> — não é quanta gente cabe no estádio. Ela cresce de dois jeitos: <b>a divisão em que você joga</b> e <b>cada lugar que você constrói</b>. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
         </div>
         <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={tr('Seu estádio já rende', 'Your stadium already earns')}>
           {getLang() === 'en' ? <>Every club already sells tickets, even without building ANYTHING — the base of <b>+{STADIUM_BASE} 🪙 per season</b> lands in the till by itself. Each stand you build ADDS on top — and unlocks income per category over at the Agency.</> : <>Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.</>}
