@@ -3601,8 +3601,17 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // 🔖 as abas da lista. O número vem do teto DE VERDADE (`slotsCheio` por posição),
   // nunca de um 22 escrito na mão — agora que o seu banco tem +1 por posição, o
   // texto tem que acompanhar sozinho.
+  // 🏢 O EMPRESTADO DA SAF NÃO GASTA VAGA DO ELENCO (Diego 16/09: *"tem a SAF
+  // também, né? O usuário pode pegar emprestado quatro jogadores. Então pode ir de
+  // 27 para 31"*). No motor já era assim — o `LOAN_FROM_FILIAL` conta pela vaga da
+  // DIVISÃO (A 4 · B 3 · C 2 · D 1), não pelo teto do elenco. O que estava errado
+  // era a CONTA DA TELA: com 4 emprestados no banco ela ia dizer "20/16", que é
+  // número impossível e parece bug. Agora o teto conta só o que é SEU, e o
+  // empréstimo aparece à parte, como o extra que ele é.
+  const emprestados = mgr.squad.filter(c => c.emprestado).length
   const tetoElenco = elencoCheio(mgr)
-  const tetoBanco = Math.max(0, tetoElenco - titulares.length)
+  const reservasProprias = reserves.filter(c => !c.emprestado).length
+  const tetoBanco = Math.max(0, tetoElenco - titulares.filter(c => !c.emprestado).length)
   const abaBtn = (k: 'tit' | 'res', txt: string) => (
     <button onClick={() => setAbaLista(k)} style={{ flex: 1, minWidth: 0, ...OSWALD, fontWeight: 900, fontSize: larga ? 11 : 10, padding: '6px 4px', border: `2.5px solid ${INK}`, borderRadius: 9, background: abaLista === k ? INK : '#fff', color: abaLista === k ? GOLD : INK, boxShadow: abaLista === k ? `2px 2px 0 ${INK}` : 'none', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{txt}</button>
   )
@@ -3670,7 +3679,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       {/* 🚑 alvo do atalho do cabeçalho (ver ID_TITULARES) */}
       <div id={ID_TITULARES} style={{ display: 'flex', gap: 5, marginBottom: 7 }}>
         {abaBtn('tit', `⭐ ${tr('TITULARES', 'STARTERS')} (${titulares.length})`)}
-        {abaBtn('res', `🔁 ${tr('RESERVAS', 'SUBS')} (${reserves.length}/${tetoBanco})`)}
+        {abaBtn('res', `🔁 ${tr('RESERVAS', 'SUBS')} (${reservasProprias}/${tetoBanco}${emprestados ? ` +${emprestados} 🏢` : ''})`)}
       </div>
       <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 13, padding: larga ? 9 : 6, boxShadow: `3px 3px 0 ${INK}` }}>
         {cabecalhoTabela}
@@ -4637,7 +4646,16 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
             desde 16/09 o SEU elenco tem +1 por posição (27 no 4-4-2). E com
             empréstimo DA SAF o elenco passa do teto por um jogador: o selo se
             estica sozinho pra não parecer erro (28/28). */}
-        <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/{Math.max(elencoCheio(mgr), mgr.squad.length)}{elenco ? '' : ` · 💰 ${total}`}</span>
+        <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{(() => {
+          // 🏢 com a trava aberta o selo separa o SEU elenco do que veio de
+          // empréstimo: "27/27 +4 🏢" em vez de "31/31", que fazia o teto parecer
+          // outro. Com a trava fechada fica o texto de sempre, byte a byte.
+          const emp = mgr.squad.filter(c => c.emprestado).length
+          const meus = mgr.squad.length - emp
+          const teto = elencoCheio(mgr)
+          if (!elencoNovoOk) return `${mgr.squad.length}/${Math.max(teto, mgr.squad.length)}`
+          return `${meus}/${Math.max(teto, meus)}${emp ? ` +${emp} 🏢` : ''}`
+        })()}{elenco ? '' : ` · 💰 ${total}`}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
         <span title={tr('Soma do valor de mercado do elenco (não é a sua caixa de moedas)', 'Sum of the squad\'s market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>

@@ -1,3 +1,26 @@
+## 16/09/2026 (parte 18) — 🏢 A SAF entra POR CIMA: 27 + 4 = 31
+
+Diego: *"tem a SAF também, né? A SAF o usuário pode pegar emprestado quatro jogadores.
+Então pode ir de 27 para 31. Era isso que dava para marcar."*
+
+**No MOTOR já estava certo** e eu conferi antes de mexer: `LOAN_FROM_FILIAL` limita o
+empréstimo pela **vaga da DIVISÃO** (`FILIAL_SLOTS` — A 4 · B 3 · C 2 · D 1), nunca pelo teto
+do elenco. O emprestado sempre entrou por cima, e volta pra SAF na virada.
+
+**Errada estava a CONTA DA TELA**, e era erro NOVO, meu, da entrega de hoje: a aba dizia
+`(${'{'}reservas{'}'}/16)` contando o emprestado junto, então com 4 da SAF ia aparecer
+**"20/16"** — número impossível, cara de bug. Consertado: o teto conta só o que é SEU e o
+empréstimo aparece à parte.
+- selo do cabeçalho: **`27/27 +4 🏢`** (era `31/31`, que fazia o teto parecer outro)
+- aba do banco: **`🔁 RESERVAS (16/16 +4 🏢)`**
+- com a trava fechada, o selo fica **byte a byte** o texto de sempre.
+
+🧪 Entrou no `npm run elenco27`: elenco próprio cheio em 27 fecha o pregão · os 4 da SAF
+levam a 31 · e o teto DELE segue 27 (empréstimo não gasta vaga).
+
+📌 **Lição:** quando um teto muda, **toda conta que usava o teto velho vira suspeita**. Eu
+mexi no número e não varri quem mais o lia — quem varreu foi ele, de cabeça.
+
 ## 16/09/2026 (parte 17) — ⚠️ CORREÇÃO: o leilão de reservas NÃO muda (são 11, sempre)
 
 Diego, logo depois da entrega da parte 16: *"o leilão de reserva são 11 jogadores sempre.

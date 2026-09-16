@@ -54,7 +54,22 @@ _bancadaElencoNovo(true)
   ok(soma(eu, openSlots) === 0, 'elenco 27/27: aí sim fecha — ninguém passa do teto')
 }
 
-console.log('3) 🤖 bot e rival não mudam (a demanda do baralho cresce 5 no total, não 5 por time)')
+console.log('3) 🏢 o emprestado da SAF entra POR CIMA do teto — 27 vira até 31')
+{
+  // Diego (16/09): *"tem a SAF também, né? O usuário pode pegar emprestado quatro
+  // jogadores. Então pode ir de 27 para 31"*. Quem limita o empréstimo é a DIVISÃO
+  // (A 4 · B 3 · C 2 · D 1, `FILIAL_SLOTS`), nunca o teto do elenco — e o
+  // emprestado volta pra SAF na virada de temporada.
+  const eu = encher(time({ isHuman: true, deepSquad: true }), 27)
+  ok(soma(eu, openSlots) === 0, 'elenco próprio cheio (27): o pregão fecha pra ele')
+  for (const [k, pos] of ['ZAG', 'MEI', 'ATA', 'LAT'].entries())
+    eu.squad.push({ id: `emp${k}`, pos, lo: 70, hi: 84, emprestado: 'saf' })
+  ok(eu.squad.length === 31, `com os 4 da SAF o elenco fica em ${eu.squad.length} — é o 31 que ele falou`)
+  const meus = eu.squad.filter(c => !c.emprestado).length
+  ok(meus === 27 && elencoCheio(eu) === 27, `e o teto DELE segue ${elencoCheio(eu)} com ${meus} próprios — o empréstimo não gasta vaga`)
+}
+
+console.log('4) 🤖 bot e rival não mudam (a demanda do baralho cresce 5 no total, não 5 por time)')
 {
   const bot = encher(time({ isHuman: false, deepSquad: true }), 22)
   ok(soma(bot, slotsCheio) === 22, `teto do bot = ${soma(bot, slotsCheio)} (22)`)
@@ -63,7 +78,7 @@ console.log('3) 🤖 bot e rival não mudam (a demanda do baralho cresce 5 no to
   ok(soma(rival, openSlots) === 0, 'rival cheio em 22: sem vaga, igual a antes')
 }
 
-console.log('4) 🌐 online não muda (o que está no ar não mexe sozinho)')
+console.log('5) 🌐 online não muda (o que está no ar não mexe sozinho)')
 marcaModoOnline(true)
 {
   const eu = encher(time({ isHuman: true, deepSquad: true }), 22)
@@ -72,7 +87,7 @@ marcaModoOnline(true)
 }
 marcaModoOnline(false)
 
-console.log('5) 📅 fora do pregão o número de vagas não muda (senão a tela mente)')
+console.log('6) 📅 fora do pregão o número de vagas não muda (senão a tela mente)')
 {
   // Durante a temporada o alvo volta pra 11. Este número alimenta o "−N 🕳️" do
   // gerenciar e a vez do monte — se ele crescesse o ano todo, a tela ia dizer que
