@@ -577,11 +577,17 @@ export const MASCOTES: Record<string, ReactNode> = {
   internacional_siuuu: (
     <img src={interMadridMascoteImg} height={176} width={Math.round(176 * 364 / 440)} alt="O Siuuu — Internacional de Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 👑🦁 O Rei — Rei da Bola FC (caiobegnamii, 16/09). 239x440 no arquivo, então a
+  // 👑🦁 O Rei — Rei da Bola FC (caiobegnamii, 16/09). 440x404 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O leão branco coroado,
   // de manto vermelho, com o pé na bola em cima da pedra.
+  // 🪚 O recorte deste teve que ser CURVO: na prancha do dono a camisa fica coladinha no
+  // mascote e a distância entre os dois MUDA com a altura (em y=460 o vão está em x≈950,
+  // em y=780 em x≈1048). O primeiro corte foi uma linha reta e o Diego pegou na hora:
+  // *"tem manga da camisa aparecendo no mascote e também saiu parte da manga da camisa"*.
+  // Agora o corte acompanha o vão de verde linha por linha — e por isso o mascote ficou
+  // MAIS LARGO que na 1ª tentativa: a capa e a pedra estavam sendo comidas junto.
   reidabola_leao: (
-    <img src={reiDaBolaMascoteImg} height={176} width={Math.round(176 * 239 / 440)} alt="O Rei — Rei da Bola FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={reiDaBolaMascoteImg} height={176} width={Math.round(176 * 440 / 404)} alt="O Rei — Rei da Bola FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🪩 O Bailão — Inter de Bailão (matheus223lms, 14/09). 232x440 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado). A bola de espelho de
