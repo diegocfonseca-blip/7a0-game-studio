@@ -30,6 +30,12 @@ import saoMarcosAntonioMascoteImg from './img/saomarcosantonio-mascote.webp' // 
 import interMadridMascoteImg from './img/internacional-madrid-mascote.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
 import raivaCajuriMascoteImg from './img/raivacajuri-mascote.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
+import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import barceniteMascoteImg from './img/barcenite-mascote.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import marinheirosMascoteImg from './img/marinheiros-mascote.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import maroladosMascoteImg from './img/marolados-mascote.webp' // 🛡️🌱 Marolados FC (paisagensetrilha): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import scorporilaMascoteImg from './img/scorporila-mascote.webp' // 🦍🦂 Scorporila FC (lucassrribeiroo2023): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import nightfullMascoteImg from './img/nightfull-mascote.webp' // 🐓🌙 Nightfull FC (guilhermevictor539): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import interBailaoMascoteImg from './img/inter-bailao-mascote.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
@@ -62,42 +68,17 @@ export const MASCOTES: Record<string, ReactNode> = {
   trevo_seven: (
     <img src={sevenCityMascoteImg} height={176} width={Math.round(176 * 303 / 440)} alt="O Trevo — Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🐈💛💙 O GATÃO do Barcenite FC (batismo do ricardopessoafreire, Sócio nº 12) —
-  // aprovado pelo Diego 14/08: gato-selvagem amarelo/azul inspirado no CAT (o
-  // mascote real do Barcelona dos 125 anos): orelhas pontudas, tufos na bochecha,
-  // listras na testa, presinha no sorriso, camisa listrada do clube e bola no pé.
-  // Desenhado em código (mesma linguagem do leao_thor). mascote_key = "gatao_bfc".
+  // 🐈💛💙 O Gatão — Barcenite FC (ricardopessoafreire, 16/09). 222x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O gato
+  // de braços cruzados, com o uniforme listrado azul e amarelo do clube.
+  // 🧷 A CHAVE continua `gatao_bfc` de propósito: é o que está gravado no banco
+  // (esc_socios.mascote_key do dono). Só a arte trocou — era SVG desenhado à mão
+  // aqui dentro (pré-regra de peso), agora é webp fora do bundle.
+  // 🚫 O SWOOSH da Nike saiu das duas chuteiras: marca real não entra em arte do
+  // jogo. O couro foi reconstruído com o grão do próprio calçado, então o que
+  // sobrou é vinco de couro, não logo. Mesmo tratamento que falta no Inter de Bailão.
   gatao_bfc: (
-    <svg width="140" height="168" viewBox="0 0 200 240">
-      <ellipse cx="100" cy="232" rx="54" ry="9" fill="rgba(0,0,0,.15)"/>
-      <path d="M162 178 Q188 168 184 140 Q182 124 168 122 Q178 138 170 152 Q164 164 150 170 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
-      <path d="M184 140 Q183 128 168 122 L174 132 Z" fill="#0E3E86" stroke={INK} strokeWidth="4"/>
-      <path d="M64 148 Q64 132 82 128 L118 128 Q136 132 136 148 L136 190 L64 190 Z" fill="#FFC400" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
-      <rect x="76" y="128" width="14" height="62" fill="#0E3E86"/>
-      <rect x="110" y="128" width="14" height="62" fill="#0E3E86"/>
-      <path d="M64 148 Q64 132 82 128 L118 128 Q136 132 136 148 L136 190 L64 190 Z" fill="none" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M64 140 Q46 148 44 166 Q44 176 54 176 Q62 174 64 162 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
-      <path d="M136 140 Q154 148 156 166 Q156 176 146 176 Q138 174 136 162 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
-      <rect x="68" y="188" width="64" height="20" rx="6" fill="#0E3E86" stroke={INK} strokeWidth="5"/>
-      <rect x="74" y="206" width="16" height="18" rx="6" fill="#F0B446" stroke={INK} strokeWidth="5"/>
-      <rect x="110" y="206" width="16" height="18" rx="6" fill="#F0B446" stroke={INK} strokeWidth="5"/>
-      <circle cx="146" cy="222" r="14" fill="#fff" stroke={INK} strokeWidth="5"/>
-      <path d="M146 214 L153 219 L150 227 L142 227 L139 219 Z" fill={INK}/>
-      <path d="M52 52 L68 24 L84 44 L116 44 L132 24 L148 52 Q160 68 158 88 Q156 104 144 112 L140 116 Q150 118 154 114 L148 126 Q138 130 130 124 Q116 132 84 132 Q70 130 60 124 L52 126 Q46 122 46 114 Q50 118 60 116 L56 112 Q44 104 42 88 Q40 68 52 52 Z" fill="#F0B446" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M62 42 L69 31 L76 40 Z" fill="#0E3E86"/>
-      <path d="M138 42 L131 31 L124 40 Z" fill="#0E3E86"/>
-      <path d="M74 92 Q76 78 100 78 Q124 78 126 92 Q126 112 100 116 Q74 112 74 92 Z" fill="#FFF6E0" stroke={INK} strokeWidth="4"/>
-      <ellipse cx="80" cy="72" rx="11" ry="12" fill="#fff" stroke={INK} strokeWidth="4"/>
-      <ellipse cx="120" cy="72" rx="11" ry="12" fill="#fff" stroke={INK} strokeWidth="4"/>
-      <circle cx="82" cy="74" r="4.5" fill={INK}/>
-      <circle cx="118" cy="74" r="4.5" fill={INK}/>
-      <path d="M70 58 L90 54 M130 58 L110 54" stroke={INK} strokeWidth="4" strokeLinecap="round"/>
-      <path d="M94 90 L106 90 L100 97 Z" fill={INK}/>
-      <path d="M100 97 Q100 104 92 105 M100 97 Q100 104 108 105" stroke={INK} strokeWidth="3.5" fill="none" strokeLinecap="round"/>
-      <path d="M106 105 L110 111 L113 104" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M60 88 L40 84 M60 96 L42 98 M140 88 L160 84 M140 96 L158 98" stroke={INK} strokeWidth="3.5" strokeLinecap="round"/>
-      <path d="M92 48 L92 58 M100 46 L100 58 M108 48 L108 58" stroke={INK} strokeWidth="4" strokeLinecap="round" opacity=".8"/>
-    </svg>
+    <img src={barceniteMascoteImg} height={176} width={Math.round(176 * 222 / 440)} alt="O Gatão — Barcenite FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🏎️⚽ Ferrari SC (adriano.ferrari) — ARTE PRÓPRIA do dono (imagem webp): o cavalo-
   // piloto comemorando GOL, de macacão vermelho e capacete do Brasil. Pro festão do
@@ -151,79 +132,14 @@ export const MASCOTES: Record<string, ReactNode> = {
       </g>
     </svg>
   ),
-  // 🤙🌱 Marolados FC (batismo do paisagensetrilha): o MOLEQUE de boa da várzea —
-  // rastafari (dreadlocks + touca rasta), descalço, com a bola rasgada, fazendo joia.
-  // Homenagem à molecada de periferia que joga na várzea. mascote_key = "marolado".
+  // 🤙🌱 O Marolado — Marolados FC (paisagensetrilha, 16/09). 230x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O moleque
+  // rastafari de touca e dreads, fazendo joia, com o pé na bola.
+  // 🧷 A CHAVE continua `marolado` de propósito: é o que está gravado no banco
+  // (esc_socios.mascote_key do dono). Só a arte trocou — era SVG desenhado à mão
+  // aqui dentro (pré-regra de peso), agora é webp fora do bundle.
   marolado: (
-    <svg width="150" height="192" viewBox="0 0 200 255">
-      <ellipse cx="100" cy="246" rx="56" ry="9" fill="rgba(0,0,0,.15)"/>
-  
-  <g><path d="M150 120 q-21.0 -15.0 -3.0 -33.0 q18.0 -15.0 -3.0 -33.0 q-18.0 -12.0 3.0 -30.0" fill="none" stroke="#EAF0E7" strokeWidth="10.5" strokeLinecap="round" opacity="0.8"/><path d="M52 116 q-19.599999999999998 -14.0 -2.8 -30.799999999999997 q16.799999999999997 -14.0 -2.8 -30.799999999999997 q-16.799999999999997 -11.2 2.8 -28.0" fill="none" stroke="#EAF0E7" strokeWidth="9.799999999999999" strokeLinecap="round" opacity="0.7"/></g>
-  
-  <path d="M78 196 H122 V214 H78 Z" fill="#ffffff" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/>
-  <path d="M100 198 L100 214" stroke="#1B7A3D" strokeWidth="3"/>
-  <path d="M82 214 l-2 18 M118 214 l2 18" stroke="#B07A4E" strokeWidth="14" strokeLinecap="round"/>
-  
-  <path d="M74 228 q-10 3 -8 10 q2 5 13 4 l10 -1 -3 -15 Z" fill="#B07A4E" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/>
-  <path d="M126 228 q10 3 8 10 q-2 5 -13 4 l-10 -1 3 -15 Z" fill="#B07A4E" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/>
-  <path d="M66 238 h10 M124 238 h10" stroke="#8C5E38" strokeWidth="1.6"/>
-  
-  <g>
-      <path d="M131 230 Q131 215 150 215 Q169 215 169 230 Q169 248.82 150 248.82 Q131 248.82 131 230 Z" fill="#ffffff" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/>
-      <path d="M147.15 227.35 l7.6000000000000005 5.32 l-2.85 7.9799999999999995 h-9.5 l-2.85 -7.9799999999999995 Z" fill="#141414"/>
-      <path d="M139.55 236.85 l7.6000000000000005 1.9000000000000001 M160.45 236.85 l-7.6000000000000005 1.9000000000000001" stroke="#141414" strokeWidth="2.5" opacity=".5"/>
-      
-      <path d="M156.65 220.32 l3.42 4.18 l-2.28 1.9000000000000001 l3.04 3.04 l-4.94 0.76 l-1.14 -9.5 Z" fill="#2A2A2A" stroke="#141414" strokeWidth="2.5" strokeLinejoin="round"/>
-      
-      <rect x="136.32" y="234.38" width="7.9799999999999995" height="6.460000000000001" rx="2" transform="rotate(-12 140.5 237.8)" fill="#C9B89A" stroke="#141414" strokeWidth="2.5"/>
-      <path d="M136.7 235.9 l7.6000000000000005 1.14 M137.07999999999998 238.18 l7.22 1.14" stroke="#141414" strokeWidth="1.6" strokeDasharray="2 2"/>
-    </g>
-  
-  <path d="M74 150 Q70 138 86 134 L114 134 Q130 138 126 150 L128 196 72 196 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-  <path d="M88 138 L88 196 M112 138 L112 196" stroke="#ffffff" strokeWidth="7"/>
-  <path d="M80 140 Q100 132 120 140" stroke="#0E5A2B" strokeWidth="4" fill="none"/>
-  
-  <path d="M78 150 Q54 158 52 186" fill="none" stroke="#B07A4E" strokeWidth="14" strokeLinecap="round"/>
-  <circle cx="52" cy="190" r="9" fill="#B07A4E" stroke="#141414" strokeWidth="4"/>
-  
-  <path d="M122 150 Q150 150 154 128" fill="none" stroke="#B07A4E" strokeWidth="14" strokeLinecap="round"/>
-  <circle cx="156" cy="122" r="11" fill="#B07A4E" stroke="#141414" strokeWidth="4"/>
-  <path d="M156 111 q7 -9 3 -18 q-8 2 -6 12" fill="#B07A4E" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/>
-  
-  <rect x="92" y="120" width="16" height="18" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
-  <g transform="translate(100 92) scale(1.0) translate(-100 -92)">
-      
-      <g stroke="#16110E" strokeWidth="10" strokeLinecap="round" fill="none">
-        <path d="M58 70 q-12 20 -4 40 q6 16 0 34"/>
-        <path d="M72 66 q-12 18 -6 38 q5 16 -1 32"/>
-        <path d="M142 70 q12 20 4 40 q-6 16 0 34"/>
-        <path d="M128 66 q12 18 6 38 q-5 16 1 32"/>
-      </g>
-      <g fill="#C2452F" stroke="#141414" strokeWidth="2">
-        <circle cx="54" cy="146" r="4.5"/><circle cx="146" cy="146" r="4.5"/>
-      </g>
-      <g fill="#FFC400" stroke="#141414" strokeWidth="2">
-        <circle cx="71" cy="138" r="4"/><circle cx="129" cy="138" r="4"/>
-      </g>
-      
-      <circle cx="100" cy="92" r="40" fill="#B07A4E" stroke="#141414" strokeWidth="6"/>
-      <ellipse cx="62" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
-      <ellipse cx="138" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
-      
-      <path d="M58 80 Q58 44 100 42 Q142 44 142 80 Q100 71 58 80 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M62 66 Q62 50 100 48 Q138 50 138 66 Q100 59 62 66 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M68 55 Q68 45 100 44 Q132 45 132 55 Q100 50 68 55 Z" fill="#C2452F" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M56 78 Q100 88 144 78 L142 86 Q100 96 58 86 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-      <circle cx="100" cy="42" r="5" fill="#FFC400" stroke="#141414" strokeWidth="3"/>
-      
-      <path d="M74 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <path d="M106 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <circle cx="84" cy="97" r="3" fill="#141414"/><circle cx="116" cy="97" r="3" fill="#141414"/>
-      
-      <path d="M86 110 Q100 120 114 110" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <path d="M97 122 q3 7 6 0 q-3 9 -6 0 Z" fill="#16110E"/>
-    </g>
-    </svg>
+    <img src={maroladosMascoteImg} height={176} width={Math.round(176 * 230 / 440)} alt="O Marolado — Marolados FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 👶😎 Desportivo Montreal (batismo do nevesgabriel95): a MAITÊ — bebê BRAVA de óculos
   // escuros, homenagem do Gabriel à filha. Aparece no festão do gol. mascote_key = "maite".
@@ -269,112 +185,33 @@ export const MASCOTES: Record<string, ReactNode> = {
   <path d="M150 96 q6 8 0 14 q-6 -6 0 -14 Z" fill="#7FC6E8" stroke="#0C0C0C" strokeWidth="3" strokeLinejoin="round"/>
     </svg>
   ),
-  // 🦍🦂 Scorporila FC (batismo do lucassrribeiroo2023): o GORILA-ESCORPIÃO de corpo
-  // inteiro rugindo — cauda de escorpião com ferrão e mãos-pinças. No FESTÃO atravessa
-  // a tela. Vetor leve (estilo Nightfull). mascote_key = "scorporila".
+  // 🦍🦂 O Scorporila — Scorporila FC (lucassrribeiroo2023, 16/09). 249x440 no
+  // arquivo, então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado).
+  // O gorila de corpo inteiro com a cauda de escorpião erguida e as mãos-pinças,
+  // de uniforme listrado preto e branco.
+  // 🧷 A CHAVE continua `scorporila` de propósito: é o que está gravado no banco
+  // (esc_socios.mascote_key do dono). Só a arte trocou — era SVG desenhado à mão
+  // aqui dentro (pré-regra de peso), agora é webp fora do bundle.
   scorporila: (
-    <svg width="150" height="188" viewBox="0 0 200 250">
-      <ellipse cx="100" cy="243" rx="58" ry="9" fill="rgba(0,0,0,.15)"/>
-  <path d="M82 186 Q70 206 74 226 Q76 236 90 234 L100 232 L100 186 Z" fill="#1D1D20" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-  <path d="M118 186 Q130 206 126 226 Q124 236 110 234 L100 232 L100 186 Z" fill="#1D1D20" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-  <ellipse cx="78" cy="232" rx="19" ry="10" fill="#6C727A" stroke="#141414" strokeWidth="6"/>
-  <ellipse cx="122" cy="232" rx="19" ry="10" fill="#6C727A" stroke="#141414" strokeWidth="6"/>
-  <path d="M72 122 Q40 132 40 176 Q40 196 60 198 Q68 186 64 170 Q58 148 78 140 Z" fill="#1D1D20" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/>
-  <path d="M128 122 Q160 132 160 176 Q160 196 140 198 Q132 186 136 170 Q142 148 122 140 Z" fill="#1D1D20" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/>
-  <path d="M66 150 Q60 116 90 106 L110 106 Q140 116 134 150 Q136 190 112 200 L88 200 Q64 190 66 150 Z" fill="#1D1D20" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/>
-  <path d="M82 116 Q100 108 118 116 Q120 130 110 140 Q100 132 90 140 Q80 130 82 116 Z" fill="#A2A8AE" stroke="#141414" strokeWidth="3.5" strokeLinejoin="round" opacity=".9"/>
-  <path d="M100 118 L100 176" stroke="#141414" strokeWidth="3.5" opacity=".5" strokeLinecap="round"/>
-  <path d="M80 136 Q90 148 99 144 M120 136 Q110 148 101 144" stroke="#141414" strokeWidth="3" fill="none" opacity=".45" strokeLinecap="round"/>
-  <g transform="translate(58 198) rotate(10) scale(0.56 0.56)"><path d="M6 2 Q-16 8 -28 0" fill="none" stroke="#FFC400" strokeWidth="12" strokeLinecap="round"/><circle cx="4" cy="2" r="5.5" fill="#E8A200" stroke="#141414" strokeWidth="3.5"/><ellipse cx="-38" cy="-3" rx="17" ry="13" fill="#FFC400" stroke="#141414" strokeWidth="5"/><path d="M-46 -12 C-70 -28 -92 -28 -104 -16 C-88 -14 -73 -10 -52 -3 Z" fill="#FFC400" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/><path d="M-46 8 C-68 22 -90 22 -100 10 C-85 6 -71 4 -50 1 Z" fill="#E8A200" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/></g>
-  <g transform="translate(142 198) rotate(-10) scale(-0.56 0.56)"><path d="M6 2 Q-16 8 -28 0" fill="none" stroke="#FFC400" strokeWidth="12" strokeLinecap="round"/><circle cx="4" cy="2" r="5.5" fill="#E8A200" stroke="#141414" strokeWidth="3.5"/><ellipse cx="-38" cy="-3" rx="17" ry="13" fill="#FFC400" stroke="#141414" strokeWidth="5"/><path d="M-46 -12 C-70 -28 -92 -28 -104 -16 C-88 -14 -73 -10 -52 -3 Z" fill="#FFC400" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/><path d="M-46 8 C-68 22 -90 22 -100 10 C-85 6 -71 4 -50 1 Z" fill="#E8A200" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/></g>
-  <g transform="translate(100 64) scale(0.9) translate(-100 -120)"><path d="M52 150 C43 120 47 90 62 76 C70 56 84 48 100 48 C116 48 130 56 138 76 C153 90 157 120 148 150 C141 178 121 192 100 192 C79 192 59 178 52 150 Z" fill="none" stroke="#FFC400" strokeWidth="13" strokeLinejoin="round"/><circle cx="49" cy="108" r="13" fill="#1D1D20" stroke="#141414" strokeWidth="6"/><circle cx="151" cy="108" r="13" fill="#1D1D20" stroke="#141414" strokeWidth="6"/><path d="M52 150 C43 120 47 90 62 76 C70 56 84 48 100 48 C116 48 130 56 138 76 C153 90 157 120 148 150 C141 178 121 192 100 192 C79 192 59 178 52 150 Z" fill="#1D1D20" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/><path d="M66 92 C64 78 80 70 100 70 C120 70 136 78 134 92 C138 112 132 138 116 158 C108 170 100 176 100 176 C100 176 92 170 84 158 C68 138 62 112 66 92 Z" fill="#A2A8AE" stroke="#141414" strokeWidth="4.5" strokeLinejoin="round"/><path d="M84 60 Q100 52 116 60" stroke="#141414" strokeWidth="3" fill="none" opacity=".5"/><path d="M72 78 Q80 70 90 74 M128 78 Q120 70 110 74" stroke="#6C727A" strokeWidth="2.5" fill="none" opacity=".6"/><path d="M66 96 Q84 84 98 96 L100 100 L102 96 Q116 84 134 96 L130 106 Q116 98 102 106 L100 108 L98 106 Q84 98 70 106 Z" fill="#1D1D20" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/><path d="M74 108 Q84 102 95 110 Q86 118 76 114 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/><path d="M126 108 Q116 102 105 110 Q114 118 124 114 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/><circle cx="84" cy="111" r="3.2" fill="#141414"/><circle cx="116" cy="111" r="3.2" fill="#141414"/><path d="M82 120 Q100 112 118 120 Q122 134 100 140 Q78 134 82 120 Z" fill="#6C727A" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/><ellipse cx="91" cy="126" rx="3.4" ry="4.6" fill="#141414"/><ellipse cx="109" cy="126" rx="3.4" ry="4.6" fill="#141414"/><path d="M100 118 L100 128" stroke="#4A4F55" strokeWidth="2.5" strokeLinecap="round"/><path d="M76 146 Q100 137 124 146 Q126 168 100 177 Q74 168 76 146 Z" fill="#5E120E" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/><path d="M78 146 Q100 139 122 146 L121 154 Q100 148 79 154 Z" fill="#ffffff" stroke="#141414" strokeWidth="2"/><path d="M88 148 L88 153 M100 147 L100 153 M112 148 L112 153" stroke="#141414" strokeWidth="1.6"/><path d="M80 152 L84 164 L90 153 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M120 152 L116 164 L110 153 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M90 176 L93 167 L97 176 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M110 176 L107 167 L103 176 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M100 175 L100 169" stroke="#ffffff" strokeWidth="3" strokeLinecap="round"/><ellipse cx="100" cy="170" rx="7" ry="4.5" fill="#C2452F" opacity=".9"/></g>
-  <g><circle cx="136.0" cy="150.0" r="14.0" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="131.8" cy="145.1" r="4.2" fill="#ffffff" opacity=".55"/><circle cx="152.4" cy="128.0" r="13.2" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="148.4" cy="123.4" r="4.0" fill="#ffffff" opacity=".55"/><circle cx="164.6" cy="108.1" r="12.5" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="160.9" cy="103.8" r="3.8" fill="#ffffff" opacity=".55"/><circle cx="172.7" cy="90.3" r="11.8" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="169.1" cy="86.2" r="3.5" fill="#ffffff" opacity=".55"/><circle cx="176.5" cy="74.5" r="11.0" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="173.2" cy="70.7" r="3.3" fill="#ffffff" opacity=".55"/><circle cx="176.2" cy="60.8" r="10.2" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="173.1" cy="57.2" r="3.1" fill="#ffffff" opacity=".55"/><circle cx="171.6" cy="49.1" r="9.5" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="168.8" cy="45.8" r="2.9" fill="#ffffff" opacity=".55"/><circle cx="162.9" cy="39.5" r="8.8" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="160.3" cy="36.5" r="2.6" fill="#ffffff" opacity=".55"/><circle cx="150.0" cy="32.0" r="8.0" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="147.6" cy="29.2" r="2.4" fill="#ffffff" opacity=".55"/><ellipse cx="150.0" cy="32.0" rx="14.0" ry="16.0" fill="#E8A200" stroke="#141414" strokeWidth="5"/><path d="M148.0 19.0 Q132.0 6.0 122.0 18.0 Q134.0 20.0 145.0 34.0 Z" fill="#E8503A" stroke="#141414" strokeWidth="4.5" strokeLinejoin="round"/></g>
-    </svg>
+    <img src={scorporilaMascoteImg} height={176} width={Math.round(176 * 249 / 440)} alt="O Scorporila — Scorporila FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🐷⚓ porco marinheiro ESTRESSADO (Marinheiros AS — feehcamp11, 1ª assinatura, Palmeiras)
+  // ⚓🐷 O Marujo — Marinheiros AS (feehcamp11, 16/09). 281x440 no arquivo, então a
+  // largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O porco marujo de
+  // cachimbo e lata de espinafre, mostrando o bíceps, com o pé na bola.
+  // 🧷 A CHAVE continua `porco_marinheiro` de propósito: é o que está gravado no
+  // banco (esc_socios.mascote_key do dono) e no MANTO_ANGLE (argolas horizontais).
+  // Só a arte trocou — era SVG desenhado à mão aqui dentro, agora é webp.
   porco_marinheiro: (
-    <svg width={150} height={195} viewBox="0 0 200 300">
-      <defs><clipPath id="shirt"><path d="M60 150 Q100 142 140 150 L146 210 54 210 Z"/></clipPath></defs>
-            <ellipse cx="100" cy="284" rx="60" ry="10" fill="rgba(0,0,0,.15)"/>
-            <rect x="74" y="206" width="20" height="46" rx="7" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="5"/>
-            <rect x="106" y="206" width="20" height="46" rx="7" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="5"/>
-            <path d="M66 246 q-8 10 4 16 l26 0 0 -16 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-            <path d="M104 246 l0 16 26 0 q12 -6 4 -16 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-            <path d="M64 158 Q40 168 44 200" fill="none" stroke="#3FAF6A" strokeWidth="17" strokeLinecap="round"/>
-            <path d="M136 158 Q160 168 156 200" fill="none" stroke="#3FAF6A" strokeWidth="17" strokeLinecap="round"/>
-            <circle cx="44" cy="206" r="14" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="5"/>
-            <circle cx="156" cy="206" r="14" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="5"/>
-            <path d="M60 150 Q100 142 140 150 L146 210 54 210 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-            <g clipPath="url(#shirt)">
-              <rect x="50" y="150" width="100" height="11" fill="#1B7A3D"/>
-              <rect x="50" y="172" width="100" height="11" fill="#1B7A3D"/>
-              <rect x="50" y="194" width="100" height="11" fill="#1B7A3D"/>
-            </g>
-            <path d="M60 150 Q100 142 140 150 L146 210 54 210 Z" fill="none" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-            <path d="M84 146 L100 160 116 146 L108 140 92 140 Z" fill="#1B7A3D" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
-            <g transform="translate(8 -6) scale(0.92)">
-            <g fill="#EAF7EE" stroke="#0C0C0C" strokeWidth="3">
-              <circle cx="34" cy="74" r="8"/><circle cx="22" cy="62" r="6"/>
-              <circle cx="166" cy="74" r="8"/><circle cx="178" cy="62" r="6"/>
-            </g>
-            <path d="M56 82 Q40 46 58 42 Q76 50 84 82 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-            <path d="M144 82 Q160 46 142 42 Q124 50 116 82 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-            <path d="M56 92 Q56 64 100 62 Q144 64 144 92 L144 124 Q144 158 100 164 Q56 158 56 124 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-            <path d="M64 98 L98 112 M136 98 L102 112" stroke="#0C0C0C" strokeWidth="11" strokeLinecap="round"/>
-            <path d="M72 114 Q84 108 96 116 Q86 126 74 122 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
-            <path d="M128 114 Q116 108 104 116 Q114 126 126 122 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
-            <circle cx="86" cy="117" r="5" fill="#0C0C0C"/><circle cx="114" cy="117" r="5" fill="#0C0C0C"/>
-            <ellipse cx="100" cy="138" rx="28" ry="18" fill="#1E7A45" stroke="#0C0C0C" strokeWidth="7"/>
-            <ellipse cx="90" cy="138" rx="4.5" ry="7" fill="#0C0C0C"/><ellipse cx="110" cy="138" rx="4.5" ry="7" fill="#0C0C0C"/>
-            <rect x="80" y="150" width="40" height="13" rx="3" fill="#7a1410" stroke="#0C0C0C" strokeWidth="4"/>
-            <path d="M86 150 L86 163 M94 150 L94 163 M102 150 L102 163 M110 150 L110 163 M118 150 L118 163" stroke="#fff" strokeWidth="3"/>
-            <path d="M150 96 q7 12 0 18 q-7 -6 0 -18 Z" fill="#7FD3F0" stroke="#0C0C0C" strokeWidth="3"/>
-            <ellipse cx="100" cy="62" rx="62" ry="17" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6"/>
-            <path d="M44 62 Q100 14 156 62 Q130 76 100 76 Q70 76 44 62 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-            <circle cx="100" cy="26" r="8" fill="#E5271C" stroke="#0C0C0C" strokeWidth="4"/>
-          </g>
-    </svg>
+    <img src={marinheirosMascoteImg} height={176} width={Math.round(176 * 281 / 440)} alt="O Marujo — Marinheiros AS" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🧔 careca de barba ruiva ESTRESSADO (Murriz FC — msb102010, rubro-negro)
+  // ⚔️ O Murriz — Murriz FC (msb102010, 16/09). 316x440 no arquivo, então a largura
+  // sai da PROPORÇÃO REAL (nunca width={size} chutado). O guerreiro careca de barba
+  // ruiva, de armadura e machado-de-bola, em cima do entulho.
+  // 🧷 A CHAVE continua `careca_ruivo` de propósito: é o que está gravado no banco
+  // (esc_socios.mascote_key do dono) e no MANTO_ANGLE. Só a arte trocou — era SVG
+  // desenhado à mão aqui dentro (pré-regra de peso), agora é webp fora do bundle.
   careca_ruivo: (
-    <svg width={150} height={195} viewBox="0 0 200 260">
-      <g>
-              <ellipse cx="100" cy="248" rx="60" ry="10" fill="rgba(0,0,0,.15)"/>
-              <rect x="72" y="196" width="20" height="40" rx="6" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <rect x="108" y="196" width="20" height="40" rx="6" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <path d="M64 232 q-6 10 6 14 l24 0 0 -14 Z" fill="#141414" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <path d="M106 232 l0 14 24 0 q12 -4 6 -14 Z" fill="#141414" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <path d="M66 176 H134 L138 200 108 196 106 202 94 202 92 196 62 200 Z" fill="#141414" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <path d="M56 118 Q34 140 40 172 L60 164" fill="#C4122E" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <circle cx="42" cy="176" r="13" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <path d="M144 118 Q166 140 160 172 L140 164" fill="#C4122E" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <circle cx="158" cy="176" r="13" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <defs><clipPath id="tor"><path d="M60 112 Q100 104 140 112 L136 180 64 180 Z"/></clipPath></defs>
-              <path d="M60 112 Q100 104 140 112 L136 180 64 180 Z" fill="#C4122E" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <g clipPath="url(#tor)">
-                <rect x="55" y="124" width="90" height="12" fill="#141414"/>
-                <rect x="55" y="148" width="90" height="12" fill="#141414"/>
-                <rect x="55" y="172" width="90" height="12" fill="#141414"/>
-              </g>
-              <path d="M60 112 Q100 104 140 112 L136 180 64 180 Z" fill="none" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <g transform="translate(100 66) scale(1.18)">
-            <circle cx="-42" cy="6" r="10" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-            <circle cx="42" cy="6" r="10" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-            <path d="M-40 6 Q-44 -46 0 -48 Q44 -46 40 6 Q40 20 32 30 L-32 30 Q-40 20 -40 6 Z" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-            <path d="M-22 -34 Q-4 -44 14 -36 Q-4 -30 -22 -34 Z" fill="#ffffff" opacity=".45"/>
-            <path d="M-30 -8 L-8 -2" stroke="#A2481A" strokeWidth="8" strokeLinecap="round"/>
-            <path d="M30 -8 L8 -2" stroke="#A2481A" strokeWidth="8" strokeLinecap="round"/>
-            <circle cx="-17" cy="6" r="7.5" fill="#fff" stroke="#0C0C0C" strokeWidth="3"/>
-            <circle cx="17" cy="6" r="7.5" fill="#fff" stroke="#0C0C0C" strokeWidth="3"/>
-            <circle cx="-15" cy="7" r="3.6" fill="#0C0C0C"/>
-            <circle cx="19" cy="7" r="3.6" fill="#0C0C0C"/>
-            <path d="M0 8 Q-6 22 2 24" fill="none" stroke="#DDA877" strokeWidth="5" strokeLinecap="round"/>
-            <path d="M-38 6 Q-40 44 -20 62 Q0 74 20 62 Q40 44 38 6 Q30 30 18 32 Q8 44 0 44 Q-8 44 -18 32 Q-30 30 -38 6 Z" fill="#C85A1B" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-            <path d="M-26 30 l-4 16 M-12 40 l-2 16 M0 44 l0 16 M12 40 l2 16 M26 30 l4 16" stroke="#A2481A" strokeWidth="3.5" strokeLinecap="round"/>
-            <path d="M-20 26 Q-8 34 0 30 Q8 34 20 26 Q10 40 0 38 Q-10 40 -20 26 Z" fill="#A2481A" stroke="#0C0C0C" strokeWidth="3"/>
-          </g>
-            </g>
-    </svg>
+    <img src={murrizMascoteImg} height={176} width={Math.round(176 * 316 / 440)} alt="O Murriz — Murriz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🌿👑 samambaia BRABA coroada (Império Samambaia — jorgericardo777, Rio Branco)
   samambaia: (
@@ -429,14 +266,16 @@ export const MASCOTES: Record<string, ReactNode> = {
   porco: (
     <img src={xurupitasMascoteImg} height={176} width={Math.round(176 * 334 / 440)} alt="O Xurupita — Xurupitas FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🧢 o MENINO DA TOUCA (Tôka10 — ofc.toka10, aprovado 10/08): arte própria do
-  // dono em imagem (webp 15 KB, exceção aprovada — ver nota em escudos.tsx).
-  // Corpo inteiro: touca azul, oclinhos, piscadinha, joinha, camisa 10 e bola.
+  // 🧢 o MENINO DA TOUCA (Tôka10 — ofc.toka10) — ARTE RENOVADA em 16/09: touca
+  // azul, oclinhos, bigode, piscadinha, joinha, camisa 10 e a bola do 10 no pé.
+  // 248x440 no arquivo (era 156x300). A largura passou a sair da PROPORÇÃO REAL —
+  // estava `width={92}` chumbado, que por sorte batia com a arte velha e ia
+  // ESTICAR a nova.
   toka: (
     <img
       src={tokaMascoteImg}
       height={176}
-      width={92}
+      width={Math.round(176 * 248 / 440)}
       alt="Tôka10"
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />
@@ -667,34 +506,14 @@ export const MASCOTES: Record<string, ReactNode> = {
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />
   ),
-  // 🐓🌙 o GALO BALADEIRO (Nightfull FC — guilhermevictor539, aprovado 09/08):
-  // alvinegro de óculos escuro, corrente de ouro e pose Travolta da night.
+  // 🐓🌙 O Nightfull — Nightfull FC (guilhermevictor539, 16/09). 244x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O galo
+  // guerreiro alvinegro de capa de penas, crista vermelha e a lua no peito.
+  // 🧷 A CHAVE continua `galo` de propósito: é o que está gravado no banco
+  // (esc_socios.mascote_key do dono). Só a arte trocou — era SVG desenhado à mão
+  // aqui dentro (pré-regra de peso), agora é webp fora do bundle.
   galo: (
-    <svg width="126" height="176" viewBox="0 0 120 170">
-      <g transform="translate(0,4)">
-        <ellipse cx="60" cy="158" rx="42" ry="9" fill="rgba(0,0,0,.15)" />
-        <circle cx="90" cy="146" r="12" fill="#fff" stroke={INK} strokeWidth="4" />
-        <path d="M90 138 l4 5 -1 6 h-6 l-1 -6 Z" fill={INK} />
-        <path d="M50 126 l-2 18 M68 126 l2 18" stroke="#E8A200" strokeWidth="6" strokeLinecap="round" />
-        <path d="M42 146 l10 2 M64 146 l12 2 M46 140 l-6 2" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
-        <path d="M74 92 Q104 68 108 44 Q112 66 96 88 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M76 100 Q112 88 122 66 Q120 94 96 108 Z" fill="#2b2b2b" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M40 88 74 88 78 128 38 128 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M50 88 l2 40 M64 88 l2 40" stroke="#ffffff" strokeWidth="6" />
-        <path d="M70 92 Q86 74 88 56 L82 58 Q86 46 92 40 L96 52 Q98 60 92 72 Q86 84 76 94 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M92 40 l2 -10" stroke={INK} strokeWidth="4" strokeLinecap="round" />
-        <path d="M42 96 Q30 102 36 114 L46 112" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M44 90 Q58 100 70 90" stroke="#FFC400" strokeWidth="4" fill="none" strokeLinecap="round" />
-        <circle cx="57" cy="97" r="4" fill="#FFC400" stroke={INK} strokeWidth="2.5" />
-        <path d="M34 56 Q36 38 54 34 Q74 30 80 46 Q86 60 80 72 Q72 86 54 86 Q38 84 34 70 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M38 38 Q32 22 46 26 Q46 12 60 22 Q64 8 74 22 Q82 16 80 32 L72 44 Z" fill="#E8503A" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
-        <path d="M32 60 L14 66 L32 72 Z" fill="#E8A200" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
-        <path d="M36 74 q-6 12 3 16 q8 3 10 -6 q-6 -3 -13 -10 Z" fill="#E8503A" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
-        <path d="M36 50 Q36 44 44 44 L68 46 Q76 47 74 54 Q73 62 64 62 L44 60 Q36 59 36 50 Z" fill="#0C0C0C" stroke={INK} strokeWidth="3" />
-        <path d="M70 48 L82 44" stroke={INK} strokeWidth="4" strokeLinecap="round" />
-        <path d="M42 49 L60 51" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" opacity=".8" />
-      </g>
-    </svg>
+    <img src={nightfullMascoteImg} height={176} width={Math.round(176 * 244 / 440)} alt="O Nightfull — Nightfull FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐦‍⬛ Manfré FC — a GRALHA AZUL de braço cruzado (coração Paraná Clube),
   // camisa metade vermelha metade azul. Arte própria do dono (webp, fora do
@@ -884,11 +703,36 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Bicho da Seda EC': 'bichodaseda_bicho',
   'BICHO DA SEDA': 'bichodaseda_bicho',
   'BICHO DA SEDA FC': 'bichodaseda_bicho',
+  // 🐓🌙 Nightfull FC (guilhermevictor539). CARIMBO_GOL é busca EXATA: entram as 4
+  // formas do nome reservado + a caixa alta, senão o carimbo do gol falha quando o
+  // dono escreve o clube de outro jeito.
+  'Nightfull': 'galo',
   'Nightfull FC': 'galo',
+  'Nightfull EC': 'galo',
+  'Nightfull SC': 'galo',
+  'NIGHTFULL': 'galo',
+  'NIGHTFULL FC': 'galo',
+  // ⚔️ Murriz FC (msb102010). CARIMBO_GOL é busca EXATA: entram as 4 formas do nome
+  // reservado + a caixa alta, senão o carimbo do gol falha quando o dono escreve
+  // o clube de outro jeito.
+  'Murriz': 'careca_ruivo',
   'Murriz FC': 'careca_ruivo',
+  'Murriz EC': 'careca_ruivo',
+  'Murriz SC': 'careca_ruivo',
+  'MURRIZ': 'careca_ruivo',
+  'MURRIZ FC': 'careca_ruivo',
   'Tôka10': 'toka',
   'SC Ferrari': 'piloto_bola',
+  // 🛡️🐈 Barcenite FC (ricardopessoafreire). CARIMBO_GOL é busca EXATA: entram as 4
+  // formas do nome reservado + a caixa alta + o nome VELHO (Milanesa FC), senão o
+  // carimbo do gol falha em save antigo.
+  'Barcenite': 'gatao_bfc',
   'Barcenite FC': 'gatao_bfc',
+  'Barcenite EC': 'gatao_bfc',
+  'Barcenite SC': 'gatao_bfc',
+  'BARCENITE': 'gatao_bfc',
+  'BARCENITE FC': 'gatao_bfc',
+  'Milanesa FC': 'gatao_bfc',
   'La Bestia Negra': 'raposa',
   'Xurupitas FC': 'xurupitas_gosma',
   'Xurupitas': 'xurupitas_gosma',
@@ -901,10 +745,36 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Leite de Verdade EC': 'leiteverdade_vaca',
   'LEITE DE VERDADE FC': 'leiteverdade_vaca',
   'LEITE DE VERDADE': 'leiteverdade_vaca',
+  // ⚓🐷 Marinheiros AS (feehcamp11). CARIMBO_GOL é busca EXATA: entram as formas
+  // do nome + a caixa alta. ⚠️ O clube dele termina em "AS", não em FC/EC — as
+  // variações reservadas são "Marinheiros AS FC/EC", que é o que o gatilho do
+  // banco gerou. Por isso a lista aqui é diferente da dos outros clubes.
+  'Marinheiros': 'porco_marinheiro',
   'Marinheiros AS': 'porco_marinheiro',
+  'Marinheiros AS FC': 'porco_marinheiro',
+  'Marinheiros AS EC': 'porco_marinheiro',
+  'MARINHEIROS AS': 'porco_marinheiro',
+  // 🦍🦂 Scorporila FC (lucassrribeiroo2023). CARIMBO_GOL é busca EXATA: entram as 4
+  // formas do nome reservado + a caixa alta + o nome VELHO (Realeza FC), senão o
+  // carimbo do gol falha em save antigo.
+  'Scorporila': 'scorporila',
   'Scorporila FC': 'scorporila',
+  'Scorporila EC': 'scorporila',
+  'Scorporila SC': 'scorporila',
+  'SCORPORILA': 'scorporila',
+  'SCORPORILA FC': 'scorporila',
+  'Realeza FC': 'scorporila',
   'Deportivo Montreal': 'maite',
+  // 🛡️🌱 Marolados FC (paisagensetrilha). CARIMBO_GOL é busca EXATA: entram as 4
+  // formas do nome reservado + a caixa alta + o nome VELHO (Real Madruga), senão o
+  // carimbo do gol falha em save antigo.
+  'Marolados': 'marolado',
   'Marolados FC': 'marolado',
+  'Marolados EC': 'marolado',
+  'Marolados SC': 'marolado',
+  'MAROLADOS': 'marolado',
+  'MAROLADOS FC': 'marolado',
+  'Real Madruga': 'marolado',
   'Remoçada': 'leao_thor',
   'Eros FC': 'eros_nina',
   'Sapekeiros FC': 'sapek_abelha',
@@ -1127,6 +997,12 @@ export const MASCOTE_NOME: Record<string, string> = {
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
+  porco_marinheiro: 'O Marujo', // ⚓🐷 Marinheiros AS (feehcamp11, 16/09) — o porco marujo de cachimbo e espinafre. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  marolado: 'O Marolado', // 🛡️🌱 Marolados FC (paisagensetrilha, 16/09) — o moleque rastafari da várzea. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  scorporila: 'O Scorporila', // 🦍🦂 Scorporila FC (lucassrribeiroo2023, 16/09) — o gorila-escorpião. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  gatao_bfc: 'O Gatão', // 🛡️🐈 Barcenite FC (ricardopessoafreire, 16/09) — o gato de braços cruzados. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  galo: 'O Nightfull', // 🐓🌙 Nightfull FC (guilhermevictor539, 16/09) — o galo guerreiro da noite. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  careca_ruivo: 'O Murriz', // ⚔️ Murriz FC (msb102010, 16/09) — o guerreiro de barba ruiva e machado-de-bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bailao_espelho: 'O Bailão', // 🪩 Inter de Bailão (matheus223lms, 14/09) — a bola de espelho. ⚠️ a chave antiga era `alface`; o banco (esc_socios.mascote_key) foi atualizado junto.
   internacional_siuuu: 'O Siuuu', // 👑 Internacional de Madrid (matheusstefanello372, 14/09) — o grito coroado é a marca do clube. A chave fica `internacional_siuuu` porque já está gravada no banco (esc_socios.mascote_key).
   saomarcos_porco: 'Marcos', // 😇 São Marcos Antônio FC (marcomak03, 13/09) — a mascote é o próprio Marcos, o goleiro de auréola (palavras do Diego: "Mascote do São Marcos é o Marcos mesmo"); o porquinho vai junto na arte. A chave fica `saomarcos_porco` porque já está gravada no banco (esc_socios.mascote_key).

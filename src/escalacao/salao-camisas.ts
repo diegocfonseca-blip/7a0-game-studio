@@ -1,4 +1,11 @@
 // Artes originais do acervo scripts/kits, publicadas como arquivos separados.
+//
+// ⚠️ NOME DE ARQUIVO LEVA VERSÃO (-v1, -v2…) — e isto NÃO é frescura. Estes arquivos
+// moram em `public/`, então o endereço deles é FIXO: não ganham hash como o resto do
+// build. Se a arte muda e o nome não, o navegador continua servindo a VELHA do cache.
+// Foi o que aconteceu com o Neymarzetti em 16/09: a camisa branca subiu, o deploy
+// fechou verde, e o Diego continuou vendo a preta — *"aquela camisa antiga do
+// Neymarzetti porém N quero mais"*. Arte nova = NOME NOVO, sempre.
 // Carregadas somente no detalhe do clube; sem manto inventado ou vínculo por e-mail.
 export const CAMISAS_SALAO: Record<string, string> = {
   "Al Takhadao FC": "al-takahdao-camisa.webp",
@@ -13,8 +20,15 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Fala D10": "falad10-camisa.webp",
   "Final Boss FC": "finalboss-camisa.webp",
   "Futpoint FC": "futpoint-camisa.webp",
-  "Rei da Bola FC": "reidabola-camisa.webp",
-  "Raiva Cajuri FC": "raivacajuri-camisa.webp", // 🥊 batismo de 16/09 (feliperamiro0501) // 👑🦁 batismo de 16/09 (caiobegnamii)
+  "Rei da Bola FC": "reidabola-camisa-v1.webp",
+  "Murriz FC": "murriz-camisa-v1.webp",
+  "Nightfull FC": "nightfull-camisa-v1.webp",
+  "Barcenite FC": "barcenite-camisa-v1.webp",
+  "Scorporila FC": "scorporila-camisa-v1.webp",
+  "Marolados FC": "marolados-camisa-v1.webp",
+  "Marinheiros AS": "marinheiros-camisa-v1.webp",
+  "Raiva Cajuri FC": "raivacajuri-camisa-v1.webp", // 🥊 batismo de 16/09 (feliperamiro0501)
+  "Tôka10": "toka10-camisa-v2.webp", // 🧢 arte renovada em 16/09 (ofc.toka10) // 👑🦁 batismo de 16/09 (caiobegnamii)
   "Inter de Bailão": "interbailao-camisa.webp", // 🪩 ex-Alfacehh (renomeado 14/09) — a 1ª camisa de verdade dele no salão
   "Jurubeba FC": "jurubeba-camisa.webp",
   "Leão da Estradinha": "leao-estradinha-camisa.webp",
@@ -22,7 +36,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Esqueceram do Lluch": "lluch-camisa.webp",
   "Manfré FC": "manfre-camisa.webp",
   "Nova Eclipse FC": "novaeclipse-camisa.webp",
-  "Papão United Madrid": "papao-camisa.webp",
+  "Papão United Madrid": "papao-camisa-v2.webp",
   "Seven City": "sevencity-camisa.webp",
   "Sistematizados FC": "sistematizados-camisa.webp",
   "Skyy FC": "skyy-camisa.webp",
@@ -30,9 +44,9 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Stocco FC": "stocco-camisa.webp",
   "Vidraceiro FC": "vidraceiro-camisa.webp",
   "Xurupitas FC": "xurupitas-camisa.webp",
-  "Neymarzetti": "neymarzetti.webp",
+  "Neymarzetti": "neymarzetti-camisa-v2.webp",
   "Milhaça FC": "milhaca.webp",
-  "São Luiz FC": "saoluiz.webp",
+  "São Luiz FC": "saoluiz-camisa-v2.webp",
   "Theuzudo FC": "theuzudo.webp"
 }
 

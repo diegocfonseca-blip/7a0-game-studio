@@ -22,7 +22,7 @@ import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
 import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09)
-import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, type Fornecedor, type FornContrato } from './loja'
+import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO_DIV, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
 
@@ -572,7 +572,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, cinematic = false }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false }: {
   cinematic?: boolean
   st: StadiumSave | undefined
   coins: number
@@ -612,6 +612,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   // determinístico do dia (feito na tela-mãe, por seed+rodada). Sem Camarote,
   // chuva reduz a lotação DESSE jogo; com Camarote, protege.
   torcidaPct?: number
+  /** 🧍 divisão do clube — o piso da torcida cresce com ela (TORCIDA_PISO_DIV) */
+  divClube?: string
   chuvaHoje?: boolean
 }) {
   const [buying, setBuying] = useState(false)
@@ -623,6 +625,15 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   const lvl = stadiumLevel(st)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
+  // 🧍 A TORCIDA (Diego 16/09). O jogo JÁ calculava este número e nunca mostrava.
+  // Motivo de mostrar: medido em `scripts/bilheteria-comeco.mjs`, um investimento
+  // de 20 moedas mexe a bilheteria em MENOS DE UMA MOEDA — a pessoa gasta e lê
+  // "+0". A torcida, não: o Geral sozinho traz 21.500 lugares, então ela sobe aos
+  // MILHARES a cada clique. É o mesmo esforço mostrado por um número que se move.
+  // E não é enfeite: é exatamente esta torcida que vira venda de camisa na 🛍️ Loja.
+  const torcida = torcidaDoEstadio(st, divClube)
+  // o teto da barrinha é a Série A com o estádio cheio (o camarote conta dobrado)
+  const torcidaMax = TORCIDA_PISO_DIV.A + seats.max + 16000
   // 🏟️ nome batizado pelo sócio (esc_socios via manto.ts): troca SÓ o texto do
   // título — o desenho do estádio segue intocado e primeiro, como sempre.
   const meuSocio = useMeuSocio()
@@ -683,6 +694,19 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</span></div>
           <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% {tr('pronto', 'done')}</span>
         </div>
+        <div style={{ marginTop: 9, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 11px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.55)', ...OSW }}>{tr('🧍 Torcida do clube', '🧍 Club support')}</span>
+            <b style={{ fontSize: 19, fontWeight: 900, color: ACC }}>{torcida.toLocaleString('pt-BR')}</b>
+          </div>
+          <div style={{ height: 11, background: 'rgba(12,12,12,.10)', border: `2px solid ${INK}`, borderRadius: 7, overflow: 'hidden', marginTop: 5 }}>
+            <i style={{ display: 'block', height: '100%', width: `${Math.round(torcida / torcidaMax * 100)}%`, background: ACC }} />
+          </div>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '5px 1px 0', lineHeight: 1.35 }}>
+            {getLang() === 'en'
+              ? <>Every seat you build brings support. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
+              : <>Cada lugar que você constrói traz torcida. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
+        </div>
         <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={tr('Seu estádio já rende', 'Your stadium already earns')}>
           {getLang() === 'en' ? <>Every club already sells tickets, even without building ANYTHING — the base of <b>+{STADIUM_BASE} 🪙 per season</b> lands in the till by itself. Each stand you build ADDS on top — and unlocks income per category over at the Agency.</> : <>Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.</>}
         </UnlockBanner>
@@ -739,7 +763,15 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
       {cinematic && <nav className="ll32-structure-tabs" aria-label="Obras do estádio"><button aria-pressed={structurePage === 'sectors'} onClick={() => setStructurePage('sectors')}>{tr('Setores', 'Stands')}</button><button aria-pressed={structurePage === 'extras'} onClick={() => setStructurePage('extras')}>{tr('Melhorias', 'Upgrades')}</button></nav>}
       <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'sectors'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '0 2px 8px', ...OSW }}>{tr('🧱 Arquibancadas — investe aos poucos', '🧱 Stands — invest bit by bit')}</p>
-      {STADIUM_SECTORS.map(s => {
+      {/* 🌱 O GRAMADO SAIU DAQUI (Diego 16/09). Ele tem ZERO lugares — não é
+          arquibancada, e ficava na lista como se fosse. Vai lá pra baixo, junto das
+          melhorias, que é onde ele sempre devia ter estado.
+          ⚠️ NO DADO ele continua sendo um SETOR (`STADIUM_SECTORS`), de propósito:
+          mover de verdade mudaria o `sectorsDone()`, e quem já tinha o gramado pronto
+          poderia ver obras RE-TRANCAREM (a Cobertura pede 4 setores, o Hotel pede
+          todos). Isto aqui é mudança de LUGAR NA TELA, não de regra — ninguém perde
+          progresso nem desbloqueio. */}
+      {STADIUM_SECTORS.filter(s => s.k !== 'grama').map(s => {
         const p = sectorPct(st, s.k), full = p >= 100
         // 🐛 CORRIGIDO (relato de jogador, 12/08): Cadeiras (90) e Camarote (150)
         // não são múltiplos de 20 — o ÚLTIMO clique já cobrava só o restante
@@ -762,7 +794,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
                 <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
               </div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b>{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</> : null}</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b>{typeof torcidaPct === 'number' && torcidaPct < 100 ? <span style={{ opacity: .75 }}> {tr(`(hoje +${Math.floor(s.inc * torcidaPct / 100)} — estádio ${torcidaPct}% cheio)`, `(today +${Math.floor(s.inc * torcidaPct / 100)} — stadium ${torcidaPct}% full)`)}</span> : null}{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</> : null}</div>
             </div>
             <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
               style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
@@ -775,6 +807,31 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
       </section>
       <section className={cinematic ? 'll32-works-grid' : undefined} hidden={cinematic && structurePage !== 'extras'}>
       <p style={{ fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,.5)', margin: '14px 2px 8px', ...OSW }}>{tr('✨ Melhorias — pagam e destravam 🔓', '✨ Upgrades — they pay and unlock 🔓')}</p>
+      {/* 🌱 o GRAMADO mora aqui desde 16/09 (ver o comentário lá em cima) */}
+      {(() => {
+        const s = STADIUM_SECTORS.find(x => x.k === 'grama')!
+        const p = sectorPct(st, s.k), full = p >= 100
+        const stepPay = Math.min(STADIUM_STEP, Math.max(0, s.cost - (st?.inv[s.k] ?? 0)))
+        const poor = coins < stepPay
+        return (
+          <div style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{sectorNome(s)}</span>
+                <span style={{ fontSize: 11.5, fontWeight: 900, color: '#14512b' }}>{p}%</span>
+              </div>
+              <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
+                <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
+              </div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b> · <b>{tr('sem lugares', 'no seats')}</b></div>
+            </div>
+            <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
+              style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
+              {full ? tr('✅ pronto', '✅ done') : <>{tr('Investir', 'Invest')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{stepPay} 💰</span></>}
+            </button>
+          </div>
+        )
+      })()}
       {extras.map(e => {
         const done = hasExtra(st, e.k), unlocked = extraUnlocked(st, e.k), poor = coins < e.cost
         // 🛍️ com a LOJA DO CLUBE de verdade ligada (teste fechado), a obra da loja
@@ -792,9 +849,17 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
               <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{extraNome(e)}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
                 {/* 🏥 melhoria SEM renda (perk): mostra o benefício, nunca "+0/temp" */}
-                {done ? <b style={{ color: ACC }}>{rendeTxt ?? extraPerk(e) ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}</b>
-                  : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{rendeTxt ?? extraPerk(e) ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b></>
-                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{extraReq(e)}</b>{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
+                {/* 💡 A RENDA E A GRAÇA APARECEM JUNTAS (Diego 16/09). ⚠️ ANTES o
+                    `perk` SUBSTITUÍA a renda — e isso acontecia justo com as CINCO
+                    melhorias que mais rendem: Retrátil (+10), Hotel (+9), Praça (+7),
+                    Choperia (+6) e Estação (+5). A pessoa comparava o Estacionamento
+                    ("rende +4/temp") com a Praça ("o food court do estádio") e achava
+                    que a Praça era enfeite, quando ela rende quase o dobro.
+                    E a OBRA TRANCADA passou a mostrar preço e renda também: sem isso
+                    não dava pra planejar pra que obra juntar dinheiro. */}
+                {done ? <b style={{ color: ACC }}>{rendeTxt ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}{extraPerk(e) ? <span style={{ fontWeight: 700, color: 'rgba(0,0,0,.5)' }}> · {extraPerk(e)}</span> : null}</b>
+                  : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{rendeTxt ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b>{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>
+                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{extraReq(e)}</b> · {tr('custaria', 'would cost')} {e.cost} 💰 · {tr(`renderia +${e.inc}/temp`, `would earn +${e.inc}/season`)}{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
               </div>
             </div>
             <button onClick={() => !done && unlocked && !poor && onBuild(e.k)} disabled={done || !unlocked || poor}

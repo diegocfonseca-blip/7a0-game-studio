@@ -39,6 +39,12 @@ import saoMarcosAntonioEscudoImg from './img/saomarcosantonio-escudo.webp' // �
 import interMadridEscudoImg from './img/internacional-madrid-escudo.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
 import raivaCajuriEscudoImg from './img/raivacajuri-escudo.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaEscudoImg from './img/reidabola-escudo.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
+import murrizEscudoImg from './img/murriz-escudo.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import barceniteEscudoImg from './img/barcenite-escudo.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import marinheirosEscudoImg from './img/marinheiros-escudo.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import maroladosEscudoImg from './img/marolados-escudo.webp' // 🛡️🌱 Marolados FC (paisagensetrilha): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import scorporilaEscudoImg from './img/scorporila-escudo.webp' // 🦍🦂 Scorporila FC (lucassrribeiroo2023): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import nightfullEscudoImg from './img/nightfull-escudo.webp' // 🐓🌙 Nightfull FC (guilhermevictor539): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import interBailaoEscudoImg from './img/inter-bailao-escudo.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
@@ -548,18 +554,14 @@ const futpointEscudoRender = (size: number) => (
 // amarelo/preto com o palhaço e faixas de risco; arte enviada pelo próprio dono,
 // aqui só tiramos o fundo quadriculado falso, cortamos no limite do desenho e
 // reduzimos (o escudo nunca passa de 78px na tela).
-// 🐶 São Luiz FC — pitbull (coração Flamengo), vermelho/preto/branco. 283x279 no arquivo.
+// 🐶 São Luiz FC — ESCUDO NOVO em 16/09, mandado pelo dono: o brasão redondo
+// vermelho/preto/branco com o "SLFC" e as estrelas. 360x355 no arquivo, então a
+// largura sai da PROPORÇÃO REAL (antes era 283x279 — quase quadrado nos dois
+// casos, mas a proporção foi atualizada junto pra não espremer nada).
+// ⚠️ A MASCOTE (o pitbull) NÃO foi tocada: o dono mandou só escudo e manto.
 const saoluizEscudoRender = (size: number) => (
-  <img src={saoluizEscudoImg} height={size} width={Math.round(size * 283 / 279)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={saoluizEscudoImg} height={size} width={Math.round(size * 360 / 355)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
-// 🐺 Papão United Madrid — lobo chifrudo com tridente, azul-marinho e branco.
-// 150x360 no arquivo (a largura sai da proporção REAL, nunca chutada).
-// 📌 O dono mandou DUAS artes. A 1ª trazia escudo, fera e camisa grudados, com um
-// xadrez falso preto+cinza por baixo — a haste da fera atravessava a borda do
-// escudo e o Diego reprovou o resultado ("ficou ruim"). A 2ª (esta) veio com as
-// três peças SEPARADAS e fundo branco: o escudo saiu inteiro, sem remendo nenhum.
-// Conferido sobre fundo CREME, nunca sobre branco — "PAPÃO UNITED" e "DE MADRID"
-// intactos, que foi o furo que ele pegou no Theuzudo.
 const leaoEstradinhaRender = (size: number) => (
   <img src={leaoEstradinhaEscudoImg} height={size} width={Math.round(size * 287 / 360)} alt="Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -572,8 +574,19 @@ const lluchEscudoRender = (size: number) => (
   <img src={lluchEscudoImg} height={size} width={Math.round(size * 296 / 360)} alt="Esqueceram do Lluch FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🐺 Papão United Madrid — brasão de coroa com o lobo chifrudo, o tridente e a
+// caravela, azul-marinho, branco e vermelho. 232x360 no arquivo, então a largura
+// sai da PROPORÇÃO REAL (nunca width={size} chutado).
+// 🔁 ESCUDO NOVO em 16/09, mandado pelo dono. Palavras do Diego: *"alargamos o
+// escudo e mudamos o manto. O mascote é o mesmo, não se mudou nada dele"* — por
+// isso a MASCOTE não foi tocada nesta entrega, só escudo e manto.
+// Ele ficou mesmo mais largo: 0,64 contra 0,57 do anterior.
+// 🕰️ histórico (23/08): o dono mandou DUAS artes na época. A 1ª trazia escudo,
+// fera e camisa grudados com xadrez falso por baixo, e o Diego reprovou ("ficou
+// ruim"); a 2ª veio com as peças separadas. Conferido sobre fundo CREME, nunca
+// sobre branco — "PAPÃO UNITED" e "DE MADRID" intactos (o furo do Theuzudo).
 const papaoEscudoRender = (size: number) => (
-  <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 263)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={papaoEscudoImg} height={size} width={Math.round(size * 232 / 360)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🦜🛒 Al Takahdao FC — brasão com carrinho de mercado, bola e ramos, verde e
 // laranja. 337x360 no arquivo (largura pela proporção REAL, nunca chutada).
@@ -639,6 +652,56 @@ const raivaCajuriEscudoRender = (size: number) => (
 // listrado vermelho/branco/preto, com o leão branco coroado e a coroa por cima.
 const reiDaBolaEscudoRender = (size: number) => (
   <img src={reiDaBolaEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Rei da Bola FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// ⚔️ Murriz FC — 240x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (msb102010, 16/09): brasão
+// rubro-negro com o guerreiro careca de barba ruiva e o letreiro "MURRIZ FC".
+// 🧹 Esta renovação TIROU do bundle um escudo que era SVG desenhado à mão — era
+// código baixado por TODO jogador, mesmo quem nunca cruza com o clube. Agora é
+// arquivo separado (28 KB), que só desce pra quem encontra o Murriz.
+const murrizEscudoRender = (size: number) => (
+  <img src={murrizEscudoImg} height={size} width={Math.round(size * 240 / 360)} alt="Murriz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🐓🌙 Nightfull FC — 249x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (guilhermevictor539, 16/09):
+// brasão alvinegro de moldura dourada, com o galo coroado de crista vermelha,
+// a lua e as estrelas. ❤️ Atlético Mineiro — o Galo, alvinegro; a arte é a cara
+// do time do coração dele.
+// 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+// 🛡️🐈 Barcenite FC — 268x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (ricardopessoafreire, 16/09):
+// brasão azul e amarelo com o BFC dourado, as listras e a bola no meio.
+// ⚠️ A 1ª prancha que ele mandou trazia um escudo com COROA; ele corrigiu na hora
+// (*"o escudo certo é esse daqui"*) e a arte boa é esta, SEM coroa e mais larga
+// (0,74 contra 0,68 da outra) — por isso a proporção mudou.
+// 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+const barceniteEscudoRender = (size: number) => (
+  <img src={barceniteEscudoImg} height={size} width={Math.round(size * 268 / 360)} alt="Barcenite FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🦍🦂 Scorporila FC — 262x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (lucassrribeiroo2023, 16/09):
+// brasão alvinegro com o gorila-escorpião, cauda dourada e as pinças abraçando.
+// ❤️ Santos — alvinegro, como o time do coração dele.
+// 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+// 🛡️🌱 Marolados FC — 298x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (paisagensetrilha, 16/09):
+// brasão de coqueiros e onda, verde e dourado, com a faixa rasta e a bola.
+// 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+// ⚓🐷 Marinheiros AS — 290x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (feehcamp11, 16/09): brasão
+// redondo de corda e âncora, verde e creme, com o porco marujo de cachimbo.
+// 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+const marinheirosEscudoRender = (size: number) => (
+  <img src={marinheirosEscudoImg} height={size} width={Math.round(size * 290 / 360)} alt="Marinheiros AS" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+const maroladosEscudoRender = (size: number) => (
+  <img src={maroladosEscudoImg} height={size} width={Math.round(size * 298 / 360)} alt="Marolados FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+const scorporilaEscudoRender = (size: number) => (
+  <img src={scorporilaEscudoImg} height={size} width={Math.round(size * 262 / 360)} alt="Scorporila FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+const nightfullEscudoRender = (size: number) => (
+  <img src={nightfullEscudoImg} height={size} width={Math.round(size * 249 / 360)} alt="Nightfull FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🔊 Bonança SSFC — 305x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (duselecta, 09/09): escudo redondo
@@ -1059,33 +1122,16 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Eros FC': erosEscudoRender,
   'Eros Reis FC': erosEscudoRender,
   'Eros Reis': erosEscudoRender,
-  // 🛡️🐈 Barcenite FC (batismo do ricardopessoafreire, Sócio Barão nº 12) —
-  // aprovado pelo Diego 14/08: formato que LEMBRA o brasão do Barcelona (dois
-  // "ombros" com vinco no topo — sem copiar nada do escudo real), topo azul com
-  // BFC dourado, faixa dourada e base listrada amarelo/azul com a bola.
-  // O nome velho (Milanesa FC) resolve sozinho via newestTeamName.
-  'Barcenite FC': (size: number) => {
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Barcenite FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="bfcEscClip"><path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z"/></clipPath></defs>
-        <path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z" fill="#0E3E86"/>
-        <g clipPath="url(#bfcEscClip)">
-          <text x="100" y="68" textAnchor="middle" fontFamily="Oswald,'Arial Narrow',sans-serif" fontWeight="700" fontSize="46" fill="#FFC400" letterSpacing="4">BFC</text>
-          <rect x="0" y="84" width="200" height="26" fill="#FFC400"/>
-          <rect x="0" y="84" width="200" height="26" fill="none" stroke={INK} strokeWidth="4"/>
-          <rect x="29" y="110" width="28.4" height="130" fill="#FFC400"/>
-          <rect x="57.4" y="110" width="28.4" height="130" fill="#0E3E86"/>
-          <rect x="85.8" y="110" width="28.4" height="130" fill="#FFC400"/>
-          <rect x="114.2" y="110" width="28.4" height="130" fill="#0E3E86"/>
-          <rect x="142.6" y="110" width="28.4" height="130" fill="#FFC400"/>
-          <circle cx="100" cy="162" r="26" fill="#fff" stroke={INK} strokeWidth="5"/>
-          <path d="M100 148 L112 157 L107 171 L93 171 L88 157 Z" fill={INK}/>
-        </g>
-        <path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z" fill="none" stroke={INK} strokeWidth="7" strokeLinejoin="round"/>
-      </svg>
-    )
-  },
+  // 🛡️🐈 Barcenite FC (ricardopessoafreire) — ARTE NOVA em 16/09, mandada pelo dono.
+  // O brasão azul e amarelo, com o BFC dourado, as listras e a bola.
+  // As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4 nomes reservados),
+  // e o nome VELHO (Milanesa FC) resolve sozinho via newestTeamName.
+  // 🧹 O escudo ANTIGO era SVG à mão aqui dentro (era pré-regra de peso); saiu de
+  // vez e virou webp fora do bundle.
+  'Barcenite': barceniteEscudoRender,
+  'Barcenite FC': barceniteEscudoRender,
+  'Barcenite EC': barceniteEscudoRender,
+  'Barcenite SC': barceniteEscudoRender,
   'Remoçada': (size: number) => {
     const w = Math.round(size * 200 / 240)
     return (
@@ -1134,85 +1180,16 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
       </svg>
     )
   },
-  // 🛡️🌱 Marolados FC (batismo do paisagensetrilha — Lenda + fundador, aprovado 11/08):
-  // a molecada da várzea. Cabeça do moleque RASTAFARI (dreadlocks + touca rasta) no
-  // escudo verde ("AQUI É RAIZ") + fumaça. ex-Real Madruga (Série D). SVG + mini.
-  'Marolados FC': (size: number) => {
-    const mini = size < 40
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Marolados FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="mrS"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath></defs>
-        {mini ? (
-          <><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#0E5A2B"/><g clipPath="url(#mrS)"><path d="M-20 150 L210 30 v42 L10 182 Z" fill="#2E9E5B" opacity=".45"/><path d="M18 176 H182 V196 H18 Z" fill="#0E5A2B"/></g><g clipPath="url(#mrS)"><g transform="translate(100 122) scale(1.25) translate(-100 -92)">
-      
-      <g stroke="#16110E" strokeWidth="10" strokeLinecap="round" fill="none">
-        <path d="M58 70 q-12 20 -4 40 q6 16 0 34"/>
-        <path d="M72 66 q-12 18 -6 38 q5 16 -1 32"/>
-        <path d="M142 70 q12 20 4 40 q-6 16 0 34"/>
-        <path d="M128 66 q12 18 6 38 q-5 16 1 32"/>
-      </g>
-      <g fill="#C2452F" stroke="#141414" strokeWidth="2">
-        <circle cx="54" cy="146" r="4.5"/><circle cx="146" cy="146" r="4.5"/>
-      </g>
-      <g fill="#FFC400" stroke="#141414" strokeWidth="2">
-        <circle cx="71" cy="138" r="4"/><circle cx="129" cy="138" r="4"/>
-      </g>
-      
-      <circle cx="100" cy="92" r="40" fill="#B07A4E" stroke="#141414" strokeWidth="6"/>
-      <ellipse cx="62" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
-      <ellipse cx="138" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
-      
-      <path d="M58 80 Q58 44 100 42 Q142 44 142 80 Q100 71 58 80 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M62 66 Q62 50 100 48 Q138 50 138 66 Q100 59 62 66 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M68 55 Q68 45 100 44 Q132 45 132 55 Q100 50 68 55 Z" fill="#C2452F" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M56 78 Q100 88 144 78 L142 86 Q100 96 58 86 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-      <circle cx="100" cy="42" r="5" fill="#FFC400" stroke="#141414" strokeWidth="3"/>
-      
-      <path d="M74 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <path d="M106 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <circle cx="84" cy="97" r="3" fill="#141414"/><circle cx="116" cy="97" r="3" fill="#141414"/>
-      
-      <path d="M86 110 Q100 120 114 110" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <path d="M97 122 q3 7 6 0 q-3 9 -6 0 Z" fill="#16110E"/>
-    </g></g><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#141414" strokeWidth="9" strokeLinejoin="round"/></>
-        ) : (
-          <><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#0E5A2B"/><g clipPath="url(#mrS)"><path d="M-20 150 L210 30 v42 L10 182 Z" fill="#2E9E5B" opacity=".45"/><path d="M18 176 H182 V196 H18 Z" fill="#0E5A2B"/></g><g clipPath="url(#mrS)"><path d="M70 150 q-21.0 -15.0 -3.0 -33.0 q18.0 -15.0 -3.0 -33.0 q-18.0 -12.0 3.0 -30.0" fill="none" stroke="#EAF0E7" strokeWidth="10.5" strokeLinecap="round" opacity="0.7"/><path d="M132 150 q-22.400000000000002 -16.0 -3.2 -35.2 q19.200000000000003 -16.0 -3.2 -35.2 q-19.200000000000003 -12.8 3.2 -32.0" fill="none" stroke="#EAF0E7" strokeWidth="11.200000000000001" strokeLinecap="round" opacity="0.7"/><path d="M100 120 q-18.2 -13.0 -2.6 -28.6 q15.600000000000001 -13.0 -2.6 -28.6 q-15.600000000000001 -10.4 2.6 -26.0" fill="none" stroke="#EAF0E7" strokeWidth="9.1" strokeLinecap="round" opacity="0.55"/></g><g clipPath="url(#mrS)"><g transform="translate(100 118) scale(1.06) translate(-100 -92)">
-      
-      <g stroke="#16110E" strokeWidth="10" strokeLinecap="round" fill="none">
-        <path d="M58 70 q-12 20 -4 40 q6 16 0 34"/>
-        <path d="M72 66 q-12 18 -6 38 q5 16 -1 32"/>
-        <path d="M142 70 q12 20 4 40 q-6 16 0 34"/>
-        <path d="M128 66 q12 18 6 38 q-5 16 1 32"/>
-      </g>
-      <g fill="#C2452F" stroke="#141414" strokeWidth="2">
-        <circle cx="54" cy="146" r="4.5"/><circle cx="146" cy="146" r="4.5"/>
-      </g>
-      <g fill="#FFC400" stroke="#141414" strokeWidth="2">
-        <circle cx="71" cy="138" r="4"/><circle cx="129" cy="138" r="4"/>
-      </g>
-      
-      <circle cx="100" cy="92" r="40" fill="#B07A4E" stroke="#141414" strokeWidth="6"/>
-      <ellipse cx="62" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
-      <ellipse cx="138" cy="94" rx="7" ry="9" fill="#B07A4E" stroke="#141414" strokeWidth="5"/>
-      
-      <path d="M58 80 Q58 44 100 42 Q142 44 142 80 Q100 71 58 80 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M62 66 Q62 50 100 48 Q138 50 138 66 Q100 59 62 66 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M68 55 Q68 45 100 44 Q132 45 132 55 Q100 50 68 55 Z" fill="#C2452F" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M56 78 Q100 88 144 78 L142 86 Q100 96 58 86 Z" fill="#1B7A3D" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/>
-      <circle cx="100" cy="42" r="5" fill="#FFC400" stroke="#141414" strokeWidth="3"/>
-      
-      <path d="M74 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <path d="M106 94 q10 8 20 0" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <circle cx="84" cy="97" r="3" fill="#141414"/><circle cx="116" cy="97" r="3" fill="#141414"/>
-      
-      <path d="M86 110 Q100 120 114 110" stroke="#141414" strokeWidth="5" fill="none" strokeLinecap="round"/>
-      <path d="M97 122 q3 7 6 0 q-3 9 -6 0 Z" fill="#16110E"/>
-    </g></g><text x="100" y="190" textAnchor="middle" fontFamily="Oswald, Arial, sans-serif" fontWeight="800" fontSize="13.5" letterSpacing="1" fill="#ffffff">AQUI É RAIZ</text><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/></>
-        )}
-      </svg>
-    )
-  },
+  // 🛡️🌱 Marolados FC (paisagensetrilha) — ARTE NOVA em 16/09, mandada pelo dono.
+  // O brasão de coqueiros e onda, com o "MAROLADOS FC" em letra de pincel, a
+  // faixa rasta e a bola. As 4 formas do nome ficam presas ao mesmo escudo;
+  // o nome velho (Real Madruga) resolve sozinho via newestTeamName.
+  // 🧹 O escudo ANTIGO era SVG à mão aqui dentro, com versão MINI pra tabela (era
+  // pré-regra de peso); saiu de vez e virou webp fora do bundle.
+  'Marolados': maroladosEscudoRender,
+  'Marolados FC': maroladosEscudoRender,
+  'Marolados EC': maroladosEscudoRender,
+  'Marolados SC': maroladosEscudoRender,
   // 🛡️ Deportivo Montreal (batismo do nevesgabriel95 — Lenda + fundador, aprovado 11/08):
   // recriação do escudo verde (estrela-bússola + faixas DEPORTIVO/MONTREAL + 2026 + bola),
   // ex-Titan Capital (Série A). SVG estilo da casa, com versão MINI pra tabela.
@@ -1230,95 +1207,35 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
       </svg>
     )
   },
-  // 🦍🦂 Scorporila FC (batismo do lucassrribeiroo2023 — Lenda, aprovado pelo Diego 11/08):
-  // GORILA rugindo (silverback preto, máscara facial cinza) fundido com ESCORPIÃO
-  // (cauda dourada segmentada + ferrão vermelho + pinças), sobre listras P&B do
-  // Santos. Vetor leve estilo Nightfull, com versão MINI pra tabela. Ex-Realeza FC.
-  'Scorporila FC': (size: number) => {
-    const mini = size < 40
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Scorporila FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="sclS"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" /></clipPath></defs>
-        {mini ? (
-          <><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#ffffff"/><g clipPath="url(#sclS)"><rect x="18" y="10" width="19" height="240" fill="#141414"/><rect x="56" y="10" width="19" height="240" fill="#141414"/><rect x="94" y="10" width="19" height="240" fill="#141414"/><rect x="132" y="10" width="19" height="240" fill="#141414"/><rect x="170" y="10" width="19" height="240" fill="#141414"/></g><g transform="translate(58 168) rotate(-24) scale(0.86 0.86)"><path d="M6 2 Q-16 8 -28 0" fill="none" stroke="#FFC400" strokeWidth="12" strokeLinecap="round"/><circle cx="4" cy="2" r="5.5" fill="#E8A200" stroke="#141414" strokeWidth="3.5"/><ellipse cx="-38" cy="-3" rx="17" ry="13" fill="#FFC400" stroke="#141414" strokeWidth="7"/><path d="M-46 -12 C-70 -28 -92 -28 -104 -16 C-88 -14 -73 -10 -52 -3 Z" fill="#FFC400" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/><path d="M-46 8 C-68 22 -90 22 -100 10 C-85 6 -71 4 -50 1 Z" fill="#E8A200" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/></g><g transform="translate(142 168) rotate(24) scale(-0.86 0.86)"><path d="M6 2 Q-16 8 -28 0" fill="none" stroke="#FFC400" strokeWidth="12" strokeLinecap="round"/><circle cx="4" cy="2" r="5.5" fill="#E8A200" stroke="#141414" strokeWidth="3.5"/><ellipse cx="-38" cy="-3" rx="17" ry="13" fill="#FFC400" stroke="#141414" strokeWidth="7"/><path d="M-46 -12 C-70 -28 -92 -28 -104 -16 C-88 -14 -73 -10 -52 -3 Z" fill="#FFC400" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/><path d="M-46 8 C-68 22 -90 22 -100 10 C-85 6 -71 4 -50 1 Z" fill="#E8A200" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/></g><g transform="translate(100 116) scale(0.86) translate(-100 -120)"><path d="M52 150 C43 120 47 90 62 76 C70 56 84 48 100 48 C116 48 130 56 138 76 C153 90 157 120 148 150 C141 178 121 192 100 192 C79 192 59 178 52 150 Z" fill="none" stroke="#FFC400" strokeWidth="15" strokeLinejoin="round"/><circle cx="49" cy="108" r="13" fill="#1D1D20" stroke="#141414" strokeWidth="8"/><circle cx="151" cy="108" r="13" fill="#1D1D20" stroke="#141414" strokeWidth="8"/><path d="M52 150 C43 120 47 90 62 76 C70 56 84 48 100 48 C116 48 130 56 138 76 C153 90 157 120 148 150 C141 178 121 192 100 192 C79 192 59 178 52 150 Z" fill="#1D1D20" stroke="#141414" strokeWidth="8" strokeLinejoin="round"/><path d="M66 92 C64 78 80 70 100 70 C120 70 136 78 134 92 C138 112 132 138 116 158 C108 170 100 176 100 176 C100 176 92 170 84 158 C68 138 62 112 66 92 Z" fill="#A2A8AE" stroke="#141414" strokeWidth="6.5" strokeLinejoin="round"/><path d="M66 96 Q84 84 98 96 L100 100 L102 96 Q116 84 134 96 L130 106 Q116 98 102 106 L100 108 L98 106 Q84 98 70 106 Z" fill="#1D1D20" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/><path d="M74 108 Q84 102 95 110 Q86 118 76 114 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/><path d="M126 108 Q116 102 105 110 Q114 118 124 114 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/><circle cx="84" cy="111" r="3.2" fill="#141414"/><circle cx="116" cy="111" r="3.2" fill="#141414"/><path d="M82 120 Q100 112 118 120 Q122 134 100 140 Q78 134 82 120 Z" fill="#6C727A" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/><ellipse cx="91" cy="126" rx="3.4" ry="4.6" fill="#141414"/><ellipse cx="109" cy="126" rx="3.4" ry="4.6" fill="#141414"/><path d="M100 118 L100 128" stroke="#4A4F55" strokeWidth="2.5" strokeLinecap="round"/><path d="M76 146 Q100 137 124 146 Q126 168 100 177 Q74 168 76 146 Z" fill="#5E120E" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/><path d="M78 146 Q100 139 122 146 L121 154 Q100 148 79 154 Z" fill="#ffffff" stroke="#141414" strokeWidth="2"/><path d="M80 152 L84 164 L90 153 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M120 152 L116 164 L110 153 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M90 176 L93 167 L97 176 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M110 176 L107 167 L103 176 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><ellipse cx="100" cy="170" rx="7" ry="4.5" fill="#C2452F" opacity=".9"/></g><g clipPath="url(#sclS)"><circle cx="150.0" cy="180.0" r="15.0" fill="#FFC400" stroke="#141414" strokeWidth="7"/><circle cx="145.5" cy="174.8" r="4.5" fill="#ffffff" opacity=".55"/><circle cx="159.7" cy="144.2" r="14.0" fill="#FFC400" stroke="#141414" strokeWidth="7"/><circle cx="155.5" cy="139.3" r="4.2" fill="#ffffff" opacity=".55"/><circle cx="162.6" cy="114.5" r="13.0" fill="#FFC400" stroke="#141414" strokeWidth="7"/><circle cx="158.7" cy="110.0" r="3.9" fill="#ffffff" opacity=".55"/><circle cx="158.6" cy="91.0" r="12.0" fill="#FFC400" stroke="#141414" strokeWidth="7"/><circle cx="155.0" cy="86.8" r="3.6" fill="#ffffff" opacity=".55"/><circle cx="147.7" cy="73.6" r="11.0" fill="#FFC400" stroke="#141414" strokeWidth="7"/><circle cx="144.4" cy="69.7" r="3.3" fill="#ffffff" opacity=".55"/><circle cx="130.0" cy="62.2" r="10.0" fill="#FFC400" stroke="#141414" strokeWidth="7"/><circle cx="127.0" cy="58.7" r="3.0" fill="#ffffff" opacity=".55"/><circle cx="105.4" cy="57.1" r="9.0" fill="#FFC400" stroke="#141414" strokeWidth="7"/><circle cx="102.7" cy="53.9" r="2.7" fill="#ffffff" opacity=".55"/><circle cx="74.0" cy="58.0" r="8.0" fill="#FFC400" stroke="#141414" strokeWidth="7"/><circle cx="71.6" cy="55.2" r="2.4" fill="#ffffff" opacity=".55"/><ellipse cx="74.0" cy="58.0" rx="14.0" ry="16.0" fill="#E8A200" stroke="#141414" strokeWidth="7"/><path d="M72.0 45.0 Q56.0 32.0 46.0 44.0 Q58.0 46.0 69.0 60.0 Z" fill="#E8503A" stroke="#141414" strokeWidth="6.5" strokeLinejoin="round"/></g><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#141414" strokeWidth="9" strokeLinejoin="round"/></>
-        ) : (
-          <><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#ffffff"/><g clipPath="url(#sclS)"><rect x="18" y="10" width="19" height="240" fill="#141414"/><rect x="56" y="10" width="19" height="240" fill="#141414"/><rect x="94" y="10" width="19" height="240" fill="#141414"/><rect x="132" y="10" width="19" height="240" fill="#141414"/><rect x="170" y="10" width="19" height="240" fill="#141414"/></g><g transform="translate(56 170) rotate(-22) scale(0.9 0.9)"><path d="M6 2 Q-16 8 -28 0" fill="none" stroke="#FFC400" strokeWidth="12" strokeLinecap="round"/><circle cx="4" cy="2" r="5.5" fill="#E8A200" stroke="#141414" strokeWidth="3.5"/><ellipse cx="-38" cy="-3" rx="17" ry="13" fill="#FFC400" stroke="#141414" strokeWidth="5"/><path d="M-46 -12 C-70 -28 -92 -28 -104 -16 C-88 -14 -73 -10 -52 -3 Z" fill="#FFC400" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/><path d="M-46 8 C-68 22 -90 22 -100 10 C-85 6 -71 4 -50 1 Z" fill="#E8A200" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/></g><g transform="translate(144 170) rotate(22) scale(-0.9 0.9)"><path d="M6 2 Q-16 8 -28 0" fill="none" stroke="#FFC400" strokeWidth="12" strokeLinecap="round"/><circle cx="4" cy="2" r="5.5" fill="#E8A200" stroke="#141414" strokeWidth="3.5"/><ellipse cx="-38" cy="-3" rx="17" ry="13" fill="#FFC400" stroke="#141414" strokeWidth="5"/><path d="M-46 -12 C-70 -28 -92 -28 -104 -16 C-88 -14 -73 -10 -52 -3 Z" fill="#FFC400" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/><path d="M-46 8 C-68 22 -90 22 -100 10 C-85 6 -71 4 -50 1 Z" fill="#E8A200" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/></g><g transform="translate(0 6)"><g transform="translate(100 120) scale(0.82) translate(-100 -120)"><path d="M52 150 C43 120 47 90 62 76 C70 56 84 48 100 48 C116 48 130 56 138 76 C153 90 157 120 148 150 C141 178 121 192 100 192 C79 192 59 178 52 150 Z" fill="none" stroke="#FFC400" strokeWidth="13" strokeLinejoin="round"/><circle cx="49" cy="108" r="13" fill="#1D1D20" stroke="#141414" strokeWidth="6"/><circle cx="151" cy="108" r="13" fill="#1D1D20" stroke="#141414" strokeWidth="6"/><path d="M52 150 C43 120 47 90 62 76 C70 56 84 48 100 48 C116 48 130 56 138 76 C153 90 157 120 148 150 C141 178 121 192 100 192 C79 192 59 178 52 150 Z" fill="#1D1D20" stroke="#141414" strokeWidth="6" strokeLinejoin="round"/><path d="M66 92 C64 78 80 70 100 70 C120 70 136 78 134 92 C138 112 132 138 116 158 C108 170 100 176 100 176 C100 176 92 170 84 158 C68 138 62 112 66 92 Z" fill="#A2A8AE" stroke="#141414" strokeWidth="4.5" strokeLinejoin="round"/><path d="M84 60 Q100 52 116 60" stroke="#141414" strokeWidth="3" fill="none" opacity=".5"/><path d="M72 78 Q80 70 90 74 M128 78 Q120 70 110 74" stroke="#6C727A" strokeWidth="2.5" fill="none" opacity=".6"/><path d="M66 96 Q84 84 98 96 L100 100 L102 96 Q116 84 134 96 L130 106 Q116 98 102 106 L100 108 L98 106 Q84 98 70 106 Z" fill="#1D1D20" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/><path d="M74 108 Q84 102 95 110 Q86 118 76 114 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/><path d="M126 108 Q116 102 105 110 Q114 118 124 114 Z" fill="#FFC400" stroke="#141414" strokeWidth="3" strokeLinejoin="round"/><circle cx="84" cy="111" r="3.2" fill="#141414"/><circle cx="116" cy="111" r="3.2" fill="#141414"/><path d="M82 120 Q100 112 118 120 Q122 134 100 140 Q78 134 82 120 Z" fill="#6C727A" stroke="#141414" strokeWidth="4" strokeLinejoin="round"/><ellipse cx="91" cy="126" rx="3.4" ry="4.6" fill="#141414"/><ellipse cx="109" cy="126" rx="3.4" ry="4.6" fill="#141414"/><path d="M100 118 L100 128" stroke="#4A4F55" strokeWidth="2.5" strokeLinecap="round"/><path d="M76 146 Q100 137 124 146 Q126 168 100 177 Q74 168 76 146 Z" fill="#5E120E" stroke="#141414" strokeWidth="5" strokeLinejoin="round"/><path d="M78 146 Q100 139 122 146 L121 154 Q100 148 79 154 Z" fill="#ffffff" stroke="#141414" strokeWidth="2"/><path d="M88 148 L88 153 M100 147 L100 153 M112 148 L112 153" stroke="#141414" strokeWidth="1.6"/><path d="M80 152 L84 164 L90 153 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M120 152 L116 164 L110 153 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M90 176 L93 167 L97 176 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M110 176 L107 167 L103 176 Z" fill="#ffffff" stroke="#141414" strokeWidth="2" strokeLinejoin="round"/><path d="M100 175 L100 169" stroke="#ffffff" strokeWidth="3" strokeLinecap="round"/><ellipse cx="100" cy="170" rx="7" ry="4.5" fill="#C2452F" opacity=".9"/></g></g><g clipPath="url(#sclS)"><circle cx="150.0" cy="182.0" r="15.0" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="145.5" cy="176.8" r="4.5" fill="#ffffff" opacity=".55"/><circle cx="157.8" cy="152.8" r="14.2" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="153.5" cy="147.8" r="4.2" fill="#ffffff" opacity=".55"/><circle cx="161.5" cy="127.4" r="13.3" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="157.5" cy="122.7" r="4.0" fill="#ffffff" opacity=".55"/><circle cx="161.1" cy="105.8" r="12.5" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="157.4" cy="101.4" r="3.8" fill="#ffffff" opacity=".55"/><circle cx="156.7" cy="88.0" r="11.7" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="153.2" cy="83.9" r="3.5" fill="#ffffff" opacity=".55"/><circle cx="148.3" cy="74.0" r="10.8" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="145.0" cy="70.2" r="3.2" fill="#ffffff" opacity=".55"/><circle cx="135.8" cy="63.8" r="10.0" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="132.8" cy="60.3" r="3.0" fill="#ffffff" opacity=".55"/><circle cx="119.2" cy="57.4" r="9.2" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="116.5" cy="54.2" r="2.8" fill="#ffffff" opacity=".55"/><circle cx="98.6" cy="54.8" r="8.3" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="96.1" cy="51.9" r="2.5" fill="#ffffff" opacity=".55"/><circle cx="74.0" cy="56.0" r="7.5" fill="#FFC400" stroke="#141414" strokeWidth="5"/><circle cx="71.8" cy="53.4" r="2.2" fill="#ffffff" opacity=".55"/><ellipse cx="74.0" cy="56.0" rx="13.5" ry="15.5" fill="#E8A200" stroke="#141414" strokeWidth="5"/><path d="M72.0 43.5 Q56.0 30.5 46.0 42.5 Q58.0 44.5 69.0 58.0 Z" fill="#E8503A" stroke="#141414" strokeWidth="4.5" strokeLinejoin="round"/></g><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#141414" strokeWidth="7" strokeLinejoin="round"/></>
-        )}
-      </svg>
-    )
-  },
-  // ⭐ 1ª ASSINATURA (personalização de conta, NÃO é batismo/time fixo)
-  'Marinheiros AS': (size: number) => {
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Marinheiros AS" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="mrMar"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z"/></clipPath></defs>
-              <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#1B7A3D"/>
-              <g clipPath="url(#mrMar)"><path d="M-20 150 L210 30 v40 L10 180 Z" fill="#2A8f4d" opacity=".5"/></g>
-              <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-              <g clipPath="url(#mrMar)">
-                <circle cx="100" cy="128" r="60" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6"/>
-              <path d="M40 128 a60 60 0 0 1 60 -60" fill="none" stroke="#1B7A3D" strokeWidth="12"/>
-              <path d="M160 128 a60 60 0 0 1 -60 60" fill="none" stroke="#1B7A3D" strokeWidth="12"/>
-              <circle cx="100" cy="128" r="47" fill="#1B7A3D" stroke="#0C0C0C" strokeWidth="5"/>
-                <g transform="translate(38 58) scale(0.62)">
-              <g fill="#EAF7EE" stroke="#0C0C0C" strokeWidth="3">
-                <circle cx="34" cy="74" r="8"/><circle cx="22" cy="62" r="6"/>
-                <circle cx="166" cy="74" r="8"/><circle cx="178" cy="62" r="6"/>
-              </g>
-              <path d="M56 82 Q40 46 58 42 Q76 50 84 82 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-              <path d="M144 82 Q160 46 142 42 Q124 50 116 82 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-              <path d="M56 92 Q56 64 100 62 Q144 64 144 92 L144 124 Q144 158 100 164 Q56 158 56 124 Z" fill="#3FAF6A" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-              <path d="M64 98 L98 112 M136 98 L102 112" stroke="#0C0C0C" strokeWidth="11" strokeLinecap="round"/>
-              <path d="M72 114 Q84 108 96 116 Q86 126 74 122 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
-              <path d="M128 114 Q116 108 104 116 Q114 126 126 122 Z" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
-              <circle cx="86" cy="117" r="5" fill="#0C0C0C"/><circle cx="114" cy="117" r="5" fill="#0C0C0C"/>
-              <ellipse cx="100" cy="138" rx="28" ry="18" fill="#1E7A45" stroke="#0C0C0C" strokeWidth="7"/>
-              <ellipse cx="90" cy="138" rx="4.5" ry="7" fill="#0C0C0C"/><ellipse cx="110" cy="138" rx="4.5" ry="7" fill="#0C0C0C"/>
-              <rect x="80" y="150" width="40" height="13" rx="3" fill="#7a1410" stroke="#0C0C0C" strokeWidth="4"/>
-              <path d="M86 150 L86 163 M94 150 L94 163 M102 150 L102 163 M110 150 L110 163 M118 150 L118 163" stroke="#fff" strokeWidth="3"/>
-              <path d="M150 96 q7 12 0 18 q-7 -6 0 -18 Z" fill="#7FD3F0" stroke="#0C0C0C" strokeWidth="3"/>
-              <ellipse cx="100" cy="62" rx="62" ry="17" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6"/>
-              <path d="M44 62 Q100 14 156 62 Q130 76 100 76 Q70 76 44 62 Z" fill="#FFFFFF" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-              <circle cx="100" cy="26" r="8" fill="#E5271C" stroke="#0C0C0C" strokeWidth="4"/>
-            </g>
-              </g>
-      </svg>
-    )
-  },
-  // ⬇️ kit de batismo (arte própria em código — cores + símbolo folclórico, sem escudo real)
-  'Murriz FC': (size: number) => {
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Murriz FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="mcMurriz"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z"/></clipPath></defs>
-              <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#141414"/>
-              <g clipPath="url(#mcMurriz)">
-                <rect x="0" y="30" width="200" height="34" fill="#C4122E"/>
-                <rect x="0" y="98" width="200" height="34" fill="#C4122E"/>
-                <rect x="0" y="166" width="200" height="34" fill="#C4122E"/>
-              </g>
-              <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-              <g clipPath="url(#mcMurriz)"><g transform="translate(100 108) scale(1.28)">
-              <circle cx="-42" cy="6" r="10" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <circle cx="42" cy="6" r="10" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <path d="M-40 6 Q-44 -46 0 -48 Q44 -46 40 6 Q40 20 32 30 L-32 30 Q-40 20 -40 6 Z" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-              <path d="M-22 -34 Q-4 -44 14 -36 Q-4 -30 -22 -34 Z" fill="#ffffff" opacity=".45"/>
-              <path d="M-30 -8 L-8 -2" stroke="#A2481A" strokeWidth="8" strokeLinecap="round"/>
-              <path d="M30 -8 L8 -2" stroke="#A2481A" strokeWidth="8" strokeLinecap="round"/>
-              <circle cx="-17" cy="6" r="7.5" fill="#fff" stroke="#0C0C0C" strokeWidth="3"/>
-              <circle cx="17" cy="6" r="7.5" fill="#fff" stroke="#0C0C0C" strokeWidth="3"/>
-              <circle cx="-15" cy="7" r="3.6" fill="#0C0C0C"/>
-              <circle cx="19" cy="7" r="3.6" fill="#0C0C0C"/>
-              <path d="M0 8 Q-6 22 2 24" fill="none" stroke="#DDA877" strokeWidth="5" strokeLinecap="round"/>
-              <path d="M-38 6 Q-40 44 -20 62 Q0 74 20 62 Q40 44 38 6 Q30 30 18 32 Q8 44 0 44 Q-8 44 -18 32 Q-30 30 -38 6 Z" fill="#C85A1B" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-              <path d="M-26 30 l-4 16 M-12 40 l-2 16 M0 44 l0 16 M12 40 l2 16 M26 30 l4 16" stroke="#A2481A" strokeWidth="3.5" strokeLinecap="round"/>
-              <path d="M-20 26 Q-8 34 0 30 Q8 34 20 26 Q10 40 0 38 Q-10 40 -20 26 Z" fill="#A2481A" stroke="#0C0C0C" strokeWidth="3"/>
-            </g></g>
-      </svg>
-    )
-  },
+  // 🦍🦂 Scorporila FC (lucassrribeiroo2023) — ARTE NOVA em 16/09, mandada pelo dono.
+  // O brasão alvinegro com o gorila-escorpião: cauda dourada segmentada por cima,
+  // as pinças abraçando o escudo e o "SCORPORILA" em letra de raio.
+  // As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4 nomes reservados);
+  // o nome velho (Realeza FC) resolve sozinho via newestTeamName.
+  // 🧹 O escudo ANTIGO era SVG à mão aqui dentro, com versão MINI pra tabela (era
+  // pré-regra de peso); saiu de vez e virou webp fora do bundle — o `objectFit:
+  // contain` já dá conta do tamanho da tabela.
+  'Scorporila': scorporilaEscudoRender,
+  'Scorporila FC': scorporilaEscudoRender,
+  'Scorporila EC': scorporilaEscudoRender,
+  'Scorporila SC': scorporilaEscudoRender,
+  // ⚓🐷 Marinheiros AS (feehcamp11) — ARTE NOVA em 16/09, mandada pelo dono.
+  // O brasão redondo de corda e âncora, com o porco marujo de cachimbo e o 2026.
+  // ⭐ É 1ª ASSINATURA (personalização de conta), NÃO é batismo: o clube não tira
+  // o lugar de ninguém na pirâmide. Por isso o post dele sai com --socio.
+  // 🧹 O escudo ANTIGO era SVG à mão aqui dentro; saiu e virou webp fora do bundle.
+  'Marinheiros': marinheirosEscudoRender,
+  'Marinheiros AS': marinheirosEscudoRender,
+  'Marinheiros AS FC': marinheirosEscudoRender,
+  'Marinheiros AS EC': marinheirosEscudoRender,
+  // ⚔️ Murriz FC (msb102010) — ARTE NOVA em 16/09, mandada pelo dono. As 4 formas
+  // do nome ficam presas ao mesmo escudo (regra dos 4 nomes reservados). O escudo
+  // ANTIGO era SVG à mão aqui dentro (era pré-regra de peso); saiu de vez e virou
+  // webp fora do bundle, como manda o CLAUDE.md.
+  'Murriz': murrizEscudoRender,
+  'Murriz FC': murrizEscudoRender,
+  'Murriz EC': murrizEscudoRender,
+  'Murriz SC': murrizEscudoRender,
   // 🦁 Leão da Estradinha (jorgericardo777) — ex-Império Samambaia. REBATISMO
   // 23/08: o dono trocou o clube pro apelido do time do coração dele, o Rio
   // Branco-PR ("Leão da Estradinha", 1913). O escudo antigo era SVG à mão no
@@ -1346,14 +1263,17 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Leite de Verdade': leiteDeVerdadeEscudoRender,
   'Leite de Verdade EC': leiteDeVerdadeEscudoRender,
   'Leite de Verdade SC': leiteDeVerdadeEscudoRender,
-  // 🧢 Tôka10 (batismo do ofc.toka10, aprovado pelo Diego 10/08): o menino da
-  // touca — ARTE PRÓPRIA do dono (imagem webp 22 KB, exceção aprovada; ver nota
-  // no topo). Selo redondo já vem no desenho; fundo é transparente.
+  // 🧢 Tôka10 (ofc.toka10) — ARTE RENOVADA em 16/09. O escudo agora é a TOUCA
+  // SOZINHA, por ordem do Diego (*"o primeiro anexo será o escudo que é uma touca
+  // sozinha"*): touca amarela/verde/azul com o 10 e o TÔKA no punho. 360x348 no
+  // arquivo (antes 322x340, o selo redondo com o menino dentro).
+  // ⚠️ O brasão redondo que veio na 2ª prancha foi DESCARTADO de propósito — ele
+  // mandou usar dali só o mascote e o manto.
   'Tôka10': (size: number) => (
     <img
       src={tokaEscudoImg}
       height={size}
-      width={Math.round(size * 322 / 340)}
+      width={Math.round(size * 360 / 348)}
       alt="Tôka10"
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />
@@ -1366,47 +1286,16 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Bicho da Seda FC': bichoDaSedaEscudoRender,
   'Bicho da Seda EC': bichoDaSedaEscudoRender,
   'Bicho da Seda SC': bichoDaSedaEscudoRender,
-  // 🐓🌙 Nightfull FC (guilhermevictor539, aprovado 09/08): o GALO BALADEIRO
-  // da noite — alvinegro, crista vermelha, óculos escuro, lua e estrela.
-  'Nightfull FC': (size: number) => {
-    const mini = size < 40
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Nightfull FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="nfClip"><path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" /></clipPath></defs>
-        <path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" fill="#141414" />
-        <g clipPath="url(#nfClip)">
-          <rect x="38" y="10" width="18" height="240" fill="#ffffff" opacity=".92" />
-          <rect x="144" y="10" width="18" height="240" fill="#ffffff" opacity=".92" />
-        </g>
-        <path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" fill="none" stroke={INK} strokeWidth={mini ? 9 : 7} strokeLinejoin="round" />
-        {mini ? (
-          <g>
-            <path d="M64 70 Q54 44 78 52 Q78 30 100 42 Q104 24 122 40 Q134 34 132 56 L122 76 Z" fill="#E8503A" stroke={INK} strokeWidth="6" />
-            <path d="M60 100 Q64 70 96 66 Q128 62 140 86 Q148 108 138 130 Q128 152 100 154 Q72 156 62 132 Q56 114 60 100 Z" fill="#141414" stroke={INK} strokeWidth="8" />
-            <path d="M58 108 L26 118 L58 130 Z" fill="#E8A200" stroke={INK} strokeWidth="6" />
-            <path d="M62 88 Q62 78 76 78 L112 82 Q124 84 120 96 Q118 110 104 110 L76 106 Q62 104 62 88 Z" fill="#0C0C0C" stroke="#fff" strokeWidth="3" />
-            <path d="M72 88 L100 92" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" opacity=".85" />
-          </g>
-        ) : (
-          <g>
-            <path d="M150 44 a16 16 0 1 0 12 26 a13 13 0 0 1 -12 -26 Z" fill="#FFC400" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-            <path d="M128 66 l2.5 6 6 1 -4.5 4 1.5 6 -5.5 -3.5 -5.5 3.5 1.5 -6 -4.5 -4 6 -1 Z" fill="#FFC400" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
-            <path d="M78 150 Q76 190 96 208 L140 208 Q142 172 128 148 Z" fill="#141414" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-            <path d="M92 154 q-2 30 10 50 M110 152 q4 26 14 48" stroke="#ffffff" strokeWidth="7" fill="none" />
-            <path d="M68 64 Q58 42 78 48 Q76 28 96 38 Q98 20 114 34 Q126 26 126 48 L118 68 Z" fill="#E8503A" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-            <path d="M64 96 Q66 70 92 64 Q120 58 132 78 Q142 96 136 118 Q130 140 106 144 Q80 148 70 128 Q62 112 64 96 Z" fill="#141414" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-            <path d="M62 104 L34 112 L62 122 Z" fill="#E8A200" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
-            <path d="M40 112 L60 116" stroke={INK} strokeWidth="3" strokeLinecap="round" />
-            <path d="M68 126 q-8 16 4 22 q10 4 14 -8 q-8 -4 -18 -14 Z" fill="#E8503A" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-            <path d="M66 86 Q66 78 76 78 L108 80 Q118 82 116 92 Q114 104 102 104 L78 102 Q66 100 66 86 Z" fill="#0C0C0C" stroke={INK} strokeWidth="4" />
-            <path d="M112 84 L134 80" stroke={INK} strokeWidth="5" strokeLinecap="round" />
-            <path d="M74 84 L96 86" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity=".8" />
-          </g>
-        )}
-      </svg>
-    )
-  },
+  // 🐓🌙 Nightfull FC (guilhermevictor539) — ARTE NOVA em 16/09, mandada pelo dono.
+  // O galo alvinegro coroado, com a crista vermelha e a lua, no brasão listrado de
+  // moldura dourada. As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4
+  // nomes reservados). O escudo ANTIGO era SVG à mão aqui dentro, com até uma
+  // versão MINI pra tabela (era pré-regra de peso); saiu de vez e virou webp fora
+  // do bundle — o `objectFit: contain` já dá conta do tamanho da tabela.
+  'Nightfull': nightfullEscudoRender,
+  'Nightfull FC': nightfullEscudoRender,
+  'Nightfull EC': nightfullEscudoRender,
+  'Nightfull SC': nightfullEscudoRender,
   // 🐦‍⬛ Manfré FC (danielmanfre5) — ex-Livre-pool, Série D. 30/08: a arte que o
   // dono mandou APOSENTA o escudo que era SVG desenhado à mão aqui dentro (o de
   // 09/08). 📛 as 4 FORMAS reservadas do nome (regra do Diego 20/08): nome puro

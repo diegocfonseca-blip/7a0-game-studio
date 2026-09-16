@@ -17,6 +17,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // O PRETO vem primeiro de propósito: listra clara em cima da tela creme do jogo
   // some (mesma ordem do Tricolor do Arruda e do Briga de Galo).
   // 🕰️ histórico: era vermelho e preto até 24/08, depois preto e prata (listrada).
+  'ofc.toka10@gmail.com': ['#FCDC04', '#055E1D'], // 🧢 Tôka10 — amarelo e verde, MEDIDOS na camisa que o dono mandou (16/09): amarelo 80,4% do manto, verde 11,5%. O AZUL #013088 da touca e do calção é a 3ª cor (MANTO_TRI) — ele é só 0,3% da camisa, mas é 21% do mascote e é a cor do escudo
   'diego.c.fonseca@gmail.com': ['#080908', '#F0EFEF'],
   'adriano.ferrari@quepazseguros.com.br': ['#C2452F', '#141414'], // 🏎️ Ferrari SC — vermelho e preto
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
@@ -41,14 +42,20 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'jh9415474@gmail.com': ['#0A0A0A', '#E3E2E1'], // 🌑 Nova Eclipse FC — preto e branco, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 72% do manto, e dos brancos das pinceladas, 07/09)
   'feliperamiro0501@hotmail.com': ['#0F0505', '#C40B0E'], // 🥊 Raiva Cajuri FC — preto e vermelho, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 78,5% do manto, e dos vermelhos dos raios, 30,5%, 16/09). SEM 3ª cor: o claro não chega a 0,4% da camisa
   'caiobegnamii@gmail.com': ['#D4121F', '#121010'], // 👑🦁 Rei da Bola FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (mediana dos vermelhos da faixa, 6,8% do manto, e dos pretos, 17,1%, 16/09). O BRANCO-CREME #ECE1D9 é a 3ª cor (MANTO_TRI): é a base da camisa, 70% dela — vem em 3º porque listra quase branca some no creme da tela, mesma escolha do Final Boss FC
+  'feehcamp11@gmail.com': ['#0D4926', '#F5EBE1'], // ⚓🐷 Marinheiros AS — verde-garrafa e creme, MEDIDOS na camisa NOVA que o dono mandou (verde 46% do manto, creme 37%, 16/09). Ele NÃO tinha linha aqui antes: o manto dele vinha só do banco (#1B7A3D/#FFFFFF). Argolas HORIZONTAIS — o `porco_marinheiro: 0` do MANTO_ANGLE já estava certo e continua valendo. ❤️ Palmeiras
+  'paisagensetrilha@gmail.com': ['#024623', '#F5EBD7'], // 🛡️🌱 Marolados FC — verde-mato e branco-creme, MEDIDOS na camisa NOVA que o dono mandou (verde 42% do manto, creme 36%, 16/09; antes era #1B7A3D/#FFFFFF). O verde vem primeiro porque listra clara na tela creme some. O AMARELO #F7C617 da faixa rasta (gola e punhos) é a 3ª cor (MANTO_TRI) — o vermelho da mesma faixa é metade disso e fica de fora
+  'lucassrribeiroo2023@gmail.com': ['#161516', '#E3DCD6'], // 🦍🦂 Scorporila FC — preto e branco, MEDIDOS na camisa NOVA que o dono mandou (preto 60% do manto, branco 32%, 16/09). ⚠️ A ORDEM FOI INVERTIDA de propósito: no banco estava o BRANCO PURO (#FFFFFF) em 1º, e listra branca em cima da tela creme do jogo SOME — é o caso exato da regra, o mesmo motivo do Tricolor do Arruda e do Briga de Galo. O DOURADO #EDB228 da cauda, da gola e dos punhos é a 3ª cor (MANTO_TRI). ❤️ Santos — alvinegro, como o time do coração dele
+  'ricardopessoafreire@gmail.com': ['#F2B010', '#013882'], // 🛡️🐈 Barcenite FC — amarelo e azul, MEDIDOS na camisa NOVA que o dono mandou (peito alto, antes da arte suja do gato: no resto da camisa a textura envelhecida puxava o amarelo pra um #DE9C09 barrento, 16/09). Listras VERTICAIS, que é o padrão. A ORDEM foi mantida como já estava no banco (amarelo primeiro) — é a cara do clube dele hoje, e trocar seria mudança visual que ninguém pediu
+  'guilhermevictor539@gmail.com': ['#0A0A0A', '#D6D2CF'], // 🐓🌙 Nightfull FC — preto e branco, MEDIDOS na camisa NOVA que o dono mandou (preto 64% do manto; o branco veio do TOPO das listras, onde a arte de penas ainda não escurece o pano, 16/09). O PRETO vem primeiro porque listra clara em cima da tela creme some (mesma ordem do Tricolor do Arruda e do Briga de Galo). O DOURADO #C5A373 da gola/punhos é a 3ª cor (MANTO_TRI). ❤️ Atlético Mineiro — alvinegro, como o time do coração dele
+  'msb102010@hotmail.com': ['#C81D1C', '#150A0A'], // ⚔️ Murriz FC — vermelho e preto, MEDIDOS na camisa NOVA que o dono mandou (mediana dos pretos, 53% do manto, e dos vermelhos das listras, 28%, 16/09). Rubro-negro de verdade: o dono é ❤️ Flamengo. SEM 3ª cor: o bronze dos rasgos é sombra, não cor de manto
   'gustavo99828@gmail.com': ['#CD0C12', '#070505'], // 🐂 Final Boss FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (mediana dos vermelhos e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa dele é branca com faixa vermelha e preta
   'stoccoassessoria@gmail.com': ['#050306', '#6A04D7'], // ⚡ Stocco FC — preto e roxo, MEDIDOS na arte que o dono mandou (mediana dos pixels escuros e o roxo vivo do corpo da camisa, 04/09)
   'contatovegetta14@gmail.com': ['#050A13', '#0C5CB3'], // 🐉 Corporação Capsule FC — preto e azul, MEDIDOS na arte que o dono mandou (mediana dos pixels pretos e dos azuis do escudo, 03/09)
-  'gabrielnegreirosamaral99@hotmail.com': ['#E00000', '#0C0C0C'], // 🐶 São Luiz FC — vermelho e preto, MEDIDOS na arte do dono (branco é a 3ª cor, em MANTO_TRI) (21/08)
+  'gabrielnegreirosamaral99@hotmail.com': ['#C70107', '#080808'], // 🐶 São Luiz FC — vermelho e preto, REMEDIDOS na camisa NOVA que o dono mandou (vermelho 41% do manto, preto 28%, branco 26%, 16/09; antes era #E00000/#0C0C0C, de 21/08). O BRANCO #D9D9D8 é a 3ª cor (MANTO_TRI), com o amortecedor de sempre — vermelho não pode encostar em preto
   'igormarquesn99@gmail.com': ['#AE1A13', '#F3B212'], // 🌽 Milhaça FC — vermelho e amarelo, MEDIDOS na camisa que o dono mandou (24/08)
   'lluchmarcel81@gmail.com': ['#C00018', '#111111'], // 🏠 Esqueceram do Lluch FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (28/08). ❤️ São Paulo (por isso o manto é TRICOLOR listrado; o branco é a 3ª cor, em MANTO_TRI)
   'danielmanfre5@gmail.com': ['#EC121C', '#0135A3'], // 🐦‍⬛ Manfré FC — vermelho e azul, MEDIDOS na 2ª camisa que o dono mandou (30/08, a da gralha AZUL). ❤️ Paraná Clube (de onde vem a gralha-azul)
-  'agrostinho88@gmail.com': ['#0C2460', '#FFFFFF'], // 🐺 Papão United Madrid — azul-marinho e branco, MEDIDOS na camisa que o dono mandou (23/08). ❤️ Paysandu (o "Papão da Curuzu", de onde vem o nome do clube)
+  'agrostinho88@gmail.com': ['#001A6C', '#D4D6DD'], // 🐺 Papão United Madrid — azul-marinho e branco, REMEDIDOS na camisa NOVA que o dono mandou (branco 50,5% do manto, azul 37,6%, 16/09; antes era #0C2460/#FFFFFF, da camisa de 23/08). O AZUL vem primeiro porque listra branca na tela creme some. O DOURADO #DC9D3B da gola, dos punhos e dos filetes é a 3ª cor (MANTO_TRI). ❤️ Paysandu (o "Papão da Curuzu", de onde vem o nome do clube)
 }
 
 // cache do MEU sócio (mesmo padrão do myEmail do apoio: pontos de uso são
@@ -138,6 +145,7 @@ export const mantoStripes = (c: [string, string], w = 9, angle = 90, c3?: string
 const MANTO_ANGLE: Record<string, number> = {
   samambaia: 45,        // 🌿 Império Samambaia — diagonais (Rio Branco)
   careca_ruivo: 0,      // 🔴⚫ Murriz FC — horizontais (rubro-negro)
+  saoluiz_pitbull: 0,   // 🔴⚫⚪ São Luiz FC — horizontais: a camisa NOVA do dono (16/09) é de argolas, não de listras em pé. Sem esta linha o manto dele sairia vertical (o padrão) e não bateria com a camisa de verdade
   porco_marinheiro: 0,  // 🐷⚓ Marinheiros AS — horizontais (marujo/Palmeiras)
 }
 // ângulo da listra do MEU manto (pelo meu mascote). Só o próprio dono decora o seu.
@@ -153,10 +161,11 @@ export function meuMantoAngle(): number {
 const MANTO_TRI: Record<string, string> = {
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
   reidabola_leao: '#ECE1D9', // 👑🦁 Rei da Bola FC (caiobegnamii) — 3ª cor BRANCO-CREME: a base da camisa, medida na arte dele (16/09)
+  toka: '#013088', // 🧢 Tôka10 — 3ª cor AZUL: a touca (que é o escudo) e o calção, medidos na arte dele (16/09)
   piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
   cobra_arruda: '#B91515', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho). 09/09: MEDIDA na camisa nova que o dono mandou (era #C2001E chutado em 16/08); preto #110D0E e branco #F5F2EF foram pro banco (esc_socios)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)
-  saoluiz_pitbull: '#FFFFFF', // 🐶 São Luiz FC — 3ª cor BRANCA (vermelho/preto/branco, medidas na camisa dele, 21/08)
+  saoluiz_pitbull: '#D9D9D8', // 🐶 São Luiz FC — 3ª cor BRANCA, REMEDIDA na camisa NOVA do dono (26% do manto, 16/09; era #FFFFFF chutado em 21/08)
   bagres_bagre: '#D9A95D', // 🐟 Bagres 1993 (caiohcris) — 3ª cor DOURADA: a moldura, a coroa e o louro do escudo (medidas na arte dele, 06/09)
   vidraceiro_vidro: '#FFFFFF', // 🪟 Vidraceiro FC (guiouriques) — 3ª cor BRANCA: a camisa é listrada azul/preto com filete branco (medidas na arte dele, 05/09)
   sistematizados_streamer: '#F3F1F6', // 🎮 Sistematizados FC (gaancaxd) — 3ª cor BRANCA: os filetes e o nome na camisa (medidos na arte dele, 07/09)
@@ -167,6 +176,10 @@ const MANTO_TRI: Record<string, string> = {
   trevo_seven: '#DCAC49', // 🍀 Seven City (glaucomiranda) — 3ª cor DOURADA: gola, listras, coroa e o 7 (medida na camisa dele, 12/09)
   leiteverdade_vaca: '#CDAA77', // 🐮 Leite de Verdade FC — 3ª cor DOURADA da coroa, da gola e do 'FC' (medida na arte dele, 10/09)
   bonanca_selecta: '#B51516', // 🔊 Bonança SSFC (duselecta) — 3ª cor VERMELHA: a listra rasta da camisa, medida na arte dele (09/09)
+  marolado: '#F7C617', // 🛡️🌱 Marolados FC (paisagensetrilha) — 3ª cor AMARELA: a faixa rasta da gola e dos punhos, e a moldura do escudo (medida na camisa NOVA dele, 16/09)
+  scorporila: '#EDB228', // 🦍🦂 Scorporila FC (lucassrribeiroo2023) — 3ª cor DOURADA: a cauda do escorpião, a gola, os punhos e o escudo do peito (medida na camisa NOVA dele, 16/09)
+  papao_lobo: '#DC9D3B', // 🐺 Papão United Madrid (agrostinho88) — 3ª cor DOURADA: a gola, os punhos, os filetes do ombro e a moldura do escudo do peito (medida na camisa NOVA dele, 16/09)
+  galo: '#C5A373', // 🐓🌙 Nightfull FC (guilhermevictor539) — 3ª cor DOURADA: a gola, os punhos e os filetes da camisa (medida na arte NOVA dele, 16/09). ⚠️ chave `galo` mesmo — é a que está no banco; não confundir com `brigadegalo_galo`, que é outro clube
   brigadegalo_galo: '#A38758', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08

@@ -92,17 +92,37 @@ export function fornValor(c: FornContrato): number {
 // Pedido dele: *"o tamanho da torcida deve ser com base no estádio, de coisas que
 // é construído"*. Assentos de hoje: Geral 21.500 · Cadeiras 18.500 · Visitante
 // 22.838 · Camarote 16.000 = 78.838. Mais um piso: clube nenhum tem torcida zero.
-export const TORCIDA_PISO = 12_000
-export function torcidaDoEstadio(st: StadiumSave | undefined): number {
+// 🧍 O PISO DA TORCIDA CRESCE COM A DIVISÃO (Diego 16/09).
+// ⚠️ ANTES era 12.000 FIXO em todas as divisões — ou seja, um clube da Série A
+// vendia EXATAMENTE a mesma camisa que um da Várzea. Palavras dele: *"a capacidade
+// do estádio e a capacidade da torcida não são coisas diferentes?"* — são, e o jogo
+// tratava como se fossem a mesma. Agora: torcida = quem gosta do clube (vem da
+// DIVISÃO) + quem cabe no estádio (vem dos LUGARES).
+// 🌱 A VÁRZEA CONTINUA EM 12.000: quem está começando não sente diferença nenhuma.
+export const TORCIDA_PISO_DIV: Record<string, number> = { V: 12_000, D: 20_000, C: 35_000, B: 60_000, A: 100_000 }
+export const TORCIDA_PISO = 12_000 // o piso da Várzea, e o padrão de quem não informa divisão
+// 🎭 O LUGAR DO CAMAROTE VALE POR DOIS (ideia do Diego 16/09: *"o camarote cobra
+// caro mas não pode render mais também?"*). Ele estava cobrando 9,4 moedas por mil
+// lugares contra 1,9 do Geral — 5× mais caro — e entregando cadeira igual. Agora o
+// preço de camarote compra torcedor de camarote: quem senta lá gasta mais.
+export const PESO_LUGAR: Record<string, number> = { camarote: 2 }
+export function torcidaDoEstadio(st: StadiumSave | undefined, div?: string): number {
   let assentos = 0
-  for (const s of STADIUM_SECTORS) assentos += Math.round(s.seats * sectorPct(st, s.k) / 100)
-  return TORCIDA_PISO + assentos
+  for (const s of STADIUM_SECTORS) assentos += Math.round(s.seats * (PESO_LUGAR[s.k] ?? 1) * sectorPct(st, s.k) / 100)
+  return (div ? (TORCIDA_PISO_DIV[div] ?? TORCIDA_PISO) : TORCIDA_PISO) + assentos
 }
 
 // 🏬 obras que levam gente pra loja (todas já existem em `STADIUM_EXTRAS`).
 // A 🛍️ Loja do Clube NÃO está aqui porque ela é a PORTA: sem ela não há loja.
 export const OBRAS_LOJA: Record<string, number> = {
   telao: .04, estac: .06, praca: .10, chopp: .06, estacao: .08, hotel: .10, retratil: .06,
+  // ☂️💡 ENTRARAM EM 16/09. Eram as DUAS ÚNICAS melhorias de fora desta lista — ou
+  // seja, as duas únicas que não levavam ninguém ao estádio. E era o avesso do que
+  // faz sentido: cobertura é não tomar chuva, refletor é jogo à noite; na vida real
+  // são justamente as duas que MAIS enchem estádio. O que provava que era
+  // esquecimento e não decisão: a Cobertura RETRÁTIL, que é o upgrade da Cobertura,
+  // já tinha o bônus (.06) — só a simples ficou de fora.
+  cober: .08, refl: .05,
 }
 export const OBRAS_TETO = 0.50
 export function bonusObras(st: StadiumSave | undefined): number {
@@ -169,9 +189,12 @@ export interface VendaResultado {
 /** a conta da temporada inteira. `pos` = colocação FINAL. */
 export function calculaVendas(opts: {
   st: StadiumSave | undefined; pos: number; preco: PrecoLoja; fornLoja?: number
+  /** 🧍 divisão do clube — manda no PISO da torcida (ver TORCIDA_PISO_DIV). Sem ela,
+   *  cai no piso da Várzea, que é o comportamento de antes de 16/09. */
+  div?: string
 }): VendaResultado {
   const { st, pos, preco } = opts
-  const torcida = torcidaDoEstadio(st)
+  const torcida = torcidaDoEstadio(st, opts.div)
   const faixa = faixaDaPos(pos)
   const bObras = bonusObras(st)
   const bForn = opts.fornLoja ?? 0

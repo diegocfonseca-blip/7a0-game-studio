@@ -45,6 +45,1040 @@ intacto · a barreira sobrevive ao cancelamento · e o online não é tocado.
    DORME (id 20), e a faixa só lê `careerCrise[youId]` — o dono nunca vê nem resolve
    enquanto estiver no clube principal.
 2. **Caixa do 2º clube afundando sem freio**: -32.255 no São Luiz. Ninguém olha isso.
+## 16/09/2026 — ✅ FEITO: as 6 mudanças do estádio (o encanamento consertado)
+
+Diego aprovou o mockup `mockup-estadio-antes-depois.mjs` inteiro: *"pode fazer
+tudo"*. A **linha 1 é ideia dele**: *"o camarote cobra caro mas não pode render
+mais também?"*.
+
+| # | o que era | o que ficou |
+| --- | --- | --- |
+| 1 | 🎭 Camarote: 16.000 lugares valendo igual aos da geral | **cada lugar vale por DOIS** (`PESO_LUGAR` em loja.ts) |
+| 2 | ☂️ Cobertura: não trazia ninguém | **+8% de venda de camisa** (`OBRAS_LOJA`) |
+| 3 | 💡 Refletores: não trazia ninguém | **+5% de venda de camisa** |
+| 4 | 🎟️ Bilheteria ignorava os lugares | **+1 moeda a cada 3.000 lugares** (`BILHETERIA_POR_LUGARES`) |
+| 5 | 🧍 Torcida 12.000 em TODAS as divisões | **V 12.000 · D 20.000 · C 35.000 · B 60.000 · A 100.000** (`TORCIDA_PISO_DIV`) |
+| 6 | 🌱 Gramado na aba das Arquibancadas | **foi pras Melhorias** |
+
+### Medido depois
+| | antes | agora |
+| --- | --- | --- |
+| 🎟️ bilheteria, estádio completo, 3º lugar | 112 | **132** |
+| 🎟️ bilheteria, estádio completo, 10º lugar | 77 | **90** |
+| 👕 camisa (estádio meio construído) | 21 em todas | V 21 · D 24 · C 30 · B 40 · **A 55** |
+| 🧍 torcida, estádio completo | 90.838 em todas | V 106.838 … **A 194.838** |
+
+### 🛡️ O QUE EU **NÃO** FIZ, E POR QUÊ
+O mockup dizia "o gramado vai pras Melhorias". **Movi só na TELA, não no dado.**
+Ele continua sendo um `STADIUM_SECTORS` por baixo, de propósito: mover de verdade
+mudaria o `sectorsDone()`, e quem já tinha o gramado pronto poderia ver obras
+**RE-TRANCAREM** (a Cobertura pede 4 setores, o Hotel pede todos, e a Agência
+destrava categorias por `sectorsDone`). Ninguém pode perder desbloqueio que já
+tinha. O efeito visível pro jogador é exatamente o que ele aprovou.
+
+### 📱 E a tela ficou honesta
+- **Renda e graça aparecem JUNTAS.** Antes o `perk` SUBSTITUÍA a renda, e isso
+  acontecia justo com as 5 que mais rendem: Retrátil (+10), Hotel (+9), Praça (+7),
+  Choperia (+6), Estação (+5). A pessoa comparava o Estacionamento ("rende +4") com
+  a Praça ("o food court do estádio") e achava que a Praça era enfeite.
+- **Obra trancada mostra preço e ganho** — dá pra planejar pra que juntar dinheiro.
+- **Setor mostra a renda REAL**: "rende +6/temp (hoje +3 — estádio 55% cheio)".
+- **O gramado diz "sem lugares"**.
+
+### Reverter
+`git revert` do commit desfaz as 6. Nenhuma tira nada de ninguém: as 6 só somam, e
+o save (`inv`/`ext`) não é tocado por nenhuma delas.
+
+## 16/09/2026 — 🔀 O ENCANAMENTO TROCADO: capacidade × torcida
+
+Diego, confuso com o meu mockup anterior: *"acho que você tá confundindo torcida
+com capacidade de estádio… a capacidade do estádio e a capacidade da torcida não
+são coisas diferentes? Tô muito confuso"*. E pediu a auditoria de verdade: *"quero
+entender cada setor, cada item, cada categoria… se tá cobrando certo, se tá
+rendendo certo, se é justo um item ser de um valor e o outro não"*.
+
+### ✅ A DÚVIDA DELE ESTAVA CERTA — e o problema é do JOGO, não da leitura dele
+Conferido no código:
+- `stadiumIncomeAt` (**bilheteria**) = `STADIUM_BASE + renda_fixa × LOTAÇÃO`.
+  → **NÃO olha os LUGARES construídos.** Nenhum. 78 mil lugares ou zero, mesma bilheteria.
+- `torcidaDoEstadio` (que manda na **camisa**) = `12.000 + LUGARES construídos`.
+  → **NÃO olha a divisão**, nem títulos. Torcedor = cadeira.
+
+**O jogo trocou as bolas.** Cadeira devia encher bilheteria; torcida devia vir de
+quem o clube É (divisão, títulos). Hoje é o contrário, e é por isso que nada
+parecia fazer sentido — construir arquibancada não enche a bilheteria, e subir de
+divisão não traz torcedor.
+👉 **Não é um número errado. É o encanamento.**
+
+### 🐛 E eu errei na comunicação (fica registrado)
+O mockup anterior mostrou "antes × depois" com **os mesmos custos dos dois lados**
+e ele pegou: *"não ficou claro o que você fez, tá sempre tendo o mesmo custo, o
+mesmo rendimento"*. Era só mudança de TEXTO, e eu não avisei. Mockup de antes ×
+depois tem que deixar explícito quando o número NÃO muda.
+
+### 🧱 AUDITORIA — SETORES (valores de hoje, já com o corte de 16/09)
+| setor | custo | renda | lugares | 💰/renda | 💰/mil lugares | veredito |
+| --- | --- | --- | --- | --- | --- | --- |
+| 🌱 Gramado | 30 | +4 | **0** | 7,5 | — | não dá lugar |
+| Geral | 40 | +4 | 21.500 | 10,0 | **1,9** | barato |
+| Cadeiras | 90 | +6 | 18.500 | 15,0 | 4,9 | justo |
+| Visitante | 120 | +8 | 22.838 | 15,0 | 5,3 | justo |
+| Camarote | 150 | +10 | 16.000 | 15,0 | **9,4** | **CARO por lugar** |
+
+**Na RENDA está consistente**: os três grandes cobram exatamente **15 por ponto de
+renda**. **Nos LUGARES está torto**: o Camarote cobra **5× mais caro por lugar** que
+o Geral, é o setor MAIS caro (150) e o que dá MENOS lugares (16.000) — e no jogo
+**uma cadeira de camarote vale igual a uma de geral**.
+
+### ✨ AUDITORIA — MELHORIAS
+*preço justo = 15 por ponto de renda + 5 por cada 1% de bônus de camisa*
+| melhoria | custo | renda | bônus | justo seria | veredito |
+| --- | --- | --- | --- | --- | --- |
+| 🛍️ Loja | 60 | +6 | — | 90 | barato |
+| 💡 Refletores | 30 | +2 | **—** | 30 | justo |
+| 📺 Telão | 60 | +3 | 4% | 65 | justo |
+| 🅿️ Estacionamento | 70 | +4 | 6% | 90 | barato |
+| 🍻 Choperia | 90 | +6 | 6% | 120 | barato |
+| 🍔 Praça | 110 | +7 | 10% | 155 | barato |
+| 🚇 Estação | 120 | +5 | 8% | 115 | justo |
+| ☂️ Cobertura | 130 | +8 | **—** | 120 | justo |
+| 🏨 Hotel | 160 | +9 | 10% | 185 | barato |
+| 🏟️ Retrátil | 180 | +10 | 6% | 180 | justo |
+
+**Quase tudo justo ou BARATO — aqui não tem roubo.** Fui procurar preço abusivo e
+não achei.
+
+### 🎯 CONCLUSÃO (mockup em `scripts/mockup-estadio-justo.mjs`)
+**Mexer em preço de item não resolve nada.** O que está errado é maior:
+1. 🔀 **O encanamento trocado** (o item acima) — é o que faz o estádio inteiro
+   não fazer sentido pra quem joga.
+2. 🎭 **Camarote** cobra 5× por lugar e entrega o mesmo que o Geral.
+3. ☂️💡 **Cobertura e Refletores** são as únicas duas que não levam ninguém.
+4. 🌱 **Gramado** está na aba das arquibancadas sem ser arquibancada.
+
+## 16/09/2026 — 🔍 AUDITORIA DAS DUAS ABAS DO ESTÁDIO (peça por peça)
+
+Diego: *"do estádio, tem certeza que das duas abas dentro do estádio as únicas
+coisas que precisamos mexer são as que você mandou agora, de tudo que tem lá? Em
+relação a que paga o que ganha, se tem sentido e etc"*.
+**Resposta: NÃO — eu tinha consertado só a ENTRADA.** Segue a varredura completa.
+
+### 🐛 E eu quase dei uma resposta ERRADA (fica registrado)
+Primeiro medi cada melhoria contra um estádio **vazio** e elas pareciam todas
+péssimas (28 a 60 temporadas pra se pagar). **Cenário errado**: a árvore de
+requisitos só libera melhoria depois da Loja e de 4 setores, e o bônus de camisa
+delas (`OBRAS_LOJA`, 4% a 10% cada) precisa de TORCIDA pra multiplicar. Refeito no
+estádio onde elas são compradas de verdade (5 setores + Loja), o quadro é outro.
+
+### ✅ A aba SETORES está saudável (medido com a Loja de pé, 10º lugar)
+| setor | custo | ganho | paga-se | assentos |
+| --- | --- | --- | --- | --- |
+| Geral | 40 | +10 | **4t** | 21.500 |
+| Cadeiras | 90 | +10 | 9t | 18.500 |
+| Visitante | 120 | +13 | 9t | 22.838 |
+| Camarote | 150 | +11 | 14t | 16.000 |
+Todos bons, e pelo mesmo motivo: **assento → torcida → camisa**.
+
+### ✅ A aba MELHORIAS também está OK — menos DUAS
+Estádio com os 5 setores + Loja:
+| melhoria | custo | renda fixa | bônus camisa | paga-se (3º) | paga-se (10º) |
+| --- | --- | --- | --- | --- | --- |
+| 🍔 Praça | 110 | +7 | +10% | 8t | 14t |
+| 🅿️ Estacionamento | 70 | +4 | +6% | 9t | 18t |
+| 🍻 Choperia | 90 | +6 | +6% | 9t | 18t |
+| 🏨 Hotel | 160 | +9 | +10% | 11t | 18t |
+| 📺 Telão | 60 | +3 | +4% | 12t | 20t |
+| 🚇 Estação | 120 | +5 | +8% | 12t | 13t |
+| 🏟️ Retrátil | 180 | +10 | +6% | 13t | 23t |
+| ☂️ **Cobertura** | 130 | +8 | **— nenhum** | 16t | **26t** |
+| 💡 **Refletores** | 30 | +2 | **— nenhum** | 15t | **30t** |
+
+### 🚨 ACHADO 9 — COBERTURA E REFLETORES NÃO LEVAM NINGUÉM AO ESTÁDIO
+São as **únicas duas** peças fora do `OBRAS_LOJA`. Todas as outras levam gente; só
+elas não. E é o avesso do que faria sentido: **cobertura é não tomar chuva,
+refletor é jogo à noite** — no futebol de verdade são justamente as duas obras que
+MAIS enchem estádio.
+🔎 O que confirma que é esquecimento e não decisão: a **Cobertura Retrátil**, que é
+o *upgrade* da Cobertura, **tem** o bônus (+6%). A versão simples ficou de fora.
+
+### 💡 Proposta (NÃO implementada — esperando o OK do Diego)
+Entrar as duas no `OBRAS_LOJA`:
+- ☂️ Cobertura **+8%** (obra grande, cobre a torcida toda — acima do retrátil não,
+  porque o retrátil é o upgrade dela; ficaria 8% + 6% = 14% pra quem fizer os dois)
+- 💡 Refletores **+5%** (jogo à noite é quando a pessoa sai do trabalho)
+Com isso a Cobertura sai de 26t pra ~15t e os Refletores de 30t pra ~17t (10º
+lugar), entrando na mesma faixa das outras. **O teto de 50% do `OBRAS_TETO`
+continua valendo**, então não tem inflação: quem faz tudo já batia no teto.
+
+## 16/09/2026 — ✅ FEITO: estádio mais barato no começo + a torcida na tela
+
+Diego aprovou as 4 partes do mockup (`scripts/mockup-estadio-comeco.mjs`), com dois
+números escolhidos por ele na lotação: *"no segundo acima da queda coloque de 35%
+pra 40% e abaixo que tava 18% coloque 27%"*.
+
+### O que mudou (tudo em `estadiodata.ts`, menos a tela)
+| peça | antes | agora | por quê |
+| --- | --- | --- | --- |
+| 🌱 Gramado | 60 | **30** | único setor com ZERO assentos — nunca vira camisa |
+| Geral | 60 | **40** | traz 21.500 lugares que só valem depois da Loja |
+| 🛍️ Loja do Clube | 80 | **60** | a MELHOR obra do jogo (se paga em 6 temporadas) |
+| 💡 Refletores | 50 | **30** | a 50 levava **50 temporadas** pra se pagar |
+| Loja: requisito | 2 setores | **1 setor** | estava trancada atrás das duas piores obras |
+| lotação 15º-16º | 35% | **40%** | escolha do Diego |
+| lotação 17º+ | 18% | **27%** | escolha do Diego |
+
+### 🧍 E a torcida apareceu na tela (`estadio.tsx`)
+O jogo **já calculava** `torcidaDoEstadio` e nunca mostrava. Agora tem uma linha
+com barrinha logo abaixo dos lugares. Motivo, medido: um clique de 20 moedas mexe
+a bilheteria em MENOS DE UMA MOEDA (a pessoa lê "+0"), mas a torcida sobe aos
+MILHARES — é o mesmo esforço mostrado por um número que se move. E não é enfeite:
+é essa torcida que vira venda de camisa.
+🖼️ O StadiumSvg continua SENDO A PRIMEIRA COISA da tela — a linha nova entra
+abaixo dele, como manda a regra.
+
+### Medido, antes × depois
+| | antes | agora |
+| --- | --- | --- |
+| moedas até a 1ª camisa vendida | **200** | **90** |
+| cliques que não mudam nada (18º lugar) | 20 de 25 | **15 de 23** |
+| cliques que não mudam nada (10º lugar) | 8 de 25 | **6 de 23** |
+| teto da bilheteria em 18º lugar | 43 | **52** |
+
+### 🛡️ NINGUÉM PERDE NADA
+`sectorPct` é `inv ÷ cost` com teto de 100. Baixar o custo só pode SUBIR o % de
+quem já investiu — quem tinha 40 no Gramado sai de 67% e vai pra **100%, setor
+pronto de graça**. Subir a lotação só ADICIONA renda. Soltar o requisito da Loja
+só destrava mais cedo. Não existe caminho em que um save fique pior.
+
+### Reverter
+`git revert` do commit desfaz tudo (os 4 preços, as 2 lotações, o requisito e a
+linha da torcida). Quem tiver ganho setor pronto no meio-tempo continua com ele —
+o `inv` gravado no save não é tocado por nada disto.
+
+## 16/09/2026 — 🎟️ A BILHETERIA NO COMEÇO: o termômetro de desânimo
+
+Diego: *"quero que fale da bilheteria apenas e tudo que tem de melhorias no
+estádio. Lembrando que no início do jogo a pessoa pensa se continua ou não
+também… ela não pode desanimar"*.
+Medido em **`scripts/bilheteria-comeco.mjs`** — simula CLIQUE A CLIQUE (o
+`STADIUM_STEP` é de 20 em 20) e mostra o que a pessoa VÊ acontecer.
+
+### 🚨 ACHADO 8 — O PRIMEIRO INVESTIMENTO DA PESSOA NÃO MUDA NADA NA TELA
+Bilheteria com o estádio zerado: **20 moedas**. Aí ela aperta investir:
+
+| o que ela gasta | 3º lugar | 10º lugar | 18º lugar |
+| --- | --- | --- | --- |
+| 20 (1º clique no Gramado) | 21 (+1) | **20 (+0)** | **20 (+0)** |
+| 60 (Gramado INTEIRO) | 24 (+4) | **22 (+2)** | **20 (+0)** |
+| 120 (Gramado + Geral) | 28 (+8) | **24 (+4)** | **21 (+1)** |
+| 500 (os 5 setores) | 52 | **37** | **25** |
+| 1.530 (estádio COMPLETO) | 112 | **77** | **43** |
+
+**Cliques que não mudam NADA:** 0 de 25 em 3º lugar · **8 de 25 em 10º** ·
+**20 de 25 em 18º**. Na Várzea, 20 moedas é **um quarto da receita da temporada
+inteira** — a pessoa gasta isso e o número não se mexe.
+
+### ⚠️ A OCUPAÇÃO É O VILÃO SILENCIOSO — e ela pune quem já está mal
+`occByPos`: 1º-4º **100%** · 5º-7º 82% · 8º-14º **55%** · 15º-16º 35% ·
+17º+ **18%**. Ela multiplica TUDO que foi construído. Um time em 17º recebe
+**18%** do estádio que pagou — e é justamente ele quem mais precisa de dinheiro.
+Um clube recém-criado na Várzea termina tipicamente entre 10º e 16º, ou seja,
+**35% a 55%**: constrói e não vê.
+
+### 🔬 HIPÓTESE TESTADA E DESCARTADA (registrando pra ninguém repetir)
+Achei que a culpa fosse da **dupla truncagem**: `stadiumIncome` faz
+`floor(inc × pct/100)` por setor e `stadiumIncomeAt` faz `floor(construído × occ)`
+de novo. Parecia óbvio que arredondar resolveria. **Medi: não resolve.** Em 10º
+lugar os cliques mortos vão de 7 pra 8 (pioram!); em 18º, de 19 pra 18.
+**A causa não é arredondamento — é que os números são pequenos demais.** Um setor
+inteiro rende de 4 a 10; dividido em 3 a 8 cliques e multiplicado por 0,55, cada
+clique vale menos de uma moeda. Não existe arredondamento que salve isso.
+
+### 💡 As saídas de verdade (NADA implementado — decisão do Diego)
+1. **Piso de ocupação.** 18% no Z4 é castigo em cima de castigo. Um mínimo de
+   ~40% faria o estádio responder mesmo pra quem está mal. É a mudança que mais
+   ajuda quem está pensando em largar o jogo.
+2. **Subir o `inc` dos setores.** Dobrando, o Gramado inteiro daria +4 em vez de
+   +2 no meio de tabela, e o estádio completo iria de 77 pra ~134 (10º lugar).
+3. **Baratear a entrada** (achado 7): Loja com 1 setor, Gramado/Geral mais baratos.
+4. 👀 **MOSTRAR A TORCIDA, não só a moeda.** O Geral traz **21.500 lugares** — isso
+   é um número grande e satisfatório, que sobe de verdade a cada clique, enquanto a
+   moeda anda de 1 em 1. Hoje a pessoa investe e vê "+0 moedas"; se visse
+   "🧍 torcida 12.000 → 19.200" ela sentiria o clube crescendo. **Esta é a única
+   das quatro que não mexe em regra nenhuma — é só tela.**
+
+## 16/09/2026 — 🏟️ ANÁLISE A FUNDO DO ESTÁDIO: custo × retorno de cada obra
+
+Diego: *"talvez diminuir um pouco mais o início dos desbloqueios das coisas do
+estádio, não sei… analise a fundo todos valores pra se completar as coisas todas"*.
+Medido em **`scripts/custo-estadio.mjs`** (roda o `stadiumIncomeAt` e o
+`calculaVendas` de verdade, time no MEIO da tabela).
+
+### ⚠️ A conta óbvia ENGANA
+Olhando só o `inc` de cada peça, o estádio inteiro parece pagar-se em 16,6
+temporadas. Mas o `inc` não é o retorno todo: **os SETORES trazem ASSENTOS**, e
+assento vira TORCIDA (`torcidaDoEstadio` = 12.000 + assentos), que vira CAMISA.
+Com a Loja de pé, uma obra rende as duas coisas.
+
+### O retorno REAL de cada obra (por temporada)
+| obra | custo | ganho | paga-se em |
+| --- | --- | --- | --- |
+| 🌱 Gramado | 60 | 2 | **30t** |
+| Geral | 60 | 2 | **30t** |
+| 🛍️ **Loja do Clube** | 80 | **13** | **6t** ⭐ |
+| 💡 Refletores | 50 | 1 | **50t** 🚨 |
+| Cadeiras | 90 | 11 | 8t |
+| 📺 Telão | 60 | 2 | 30t |
+| 🅿️ Estacionamento | 70 | 4 | 18t |
+| 🍔 Praça | 110 | 6 | 18t |
+| 🍻 Choperia | 90 | 4 | 23t |
+| 🚇 Estação | 120 | 8 | 15t |
+| Visitante | 120 | **17** | 7t ⭐ |
+| ☂️ Cobertura | 130 | 5 | 26t |
+| 🏟️ Retrátil | 180 | 8 | 23t |
+| Camarote | 150 | **15** | 10t ⭐ |
+| 🏨 Hotel | 160 | 10 | 16t |
+**Total 1.530 moedas.** Zerado rende 20/temporada · completo, 128.
+
+### 🚨 ACHADO 7 — O JOGO OBRIGA A FAZER AS DUAS PIORES OBRAS ANTES DA MELHOR
+Gramado (30t) + Geral (30t) = **120 moedas nas duas obras mais fracas do jogo**,
+e só então a 🛍️ Loja libera — que é a **melhor de todas** (6t). São **200 moedas
+até a primeira camisa vendida**; na Várzea, guardando tudo, **~5 temporadas
+fazendo obra ruim antes de ver retorno**.
+
+**Por quê:** o Geral traz **21.500 assentos, mas assento não vale nada sem a
+Loja** (assento → torcida → camisa; sem loja, não há camisa). Então a pessoa paga
+60 por 21.500 lugares que rendem **2** até ela juntar mais 140. Quando a Loja
+entra, ela sozinha ganha 13 — porque aí os assentos do Geral enfim viram dinheiro.
+E o **Gramado é pior**: **zero assentos**, nunca vai gerar camisa, rende 2 pra
+sempre.
+
+### 💡 Proposta (NADA implementado — decisão do Diego)
+1. **Loja com 1 setor pronto em vez de 2** (`extraUnlocked`, case 'loja':
+   `sectorsDone(st) >= 1`). A porta cai de **200 → 140** e a pessoa pula o
+   Gramado, que é justamente a obra sem assento. Mudança de uma linha.
+2. **Baratear a entrada**: Gramado e Geral 60 → 40, Loja 80 → 60. Com a nº1 junto,
+   a porta vai pra **100** — na Várzea ~2 temporadas em vez de 5.
+3. 💡 **Refletores estão quebrados**: 50 moedas por **+1** = 50 temporadas. É a
+   pior peça do jogo e ninguém deveria comprar. Custar menos, render mais, ou ter
+   outra função.
+4. **Repensar o Gramado**: sem assento, ele nunca escala. Ou fica bem barato (~30)
+   como primeiro passo simbólico, ou ganha um efeito que não seja dinheiro.
+
+### ⚠️ Nota: a ocupação corta a renda quase pela metade
+A renda do CONSTRUÍDO é multiplicada pela lotação (`occByPos`), e no meio de
+tabela ela é **0,55**. O time mediano recebe pouco mais da metade do que
+construiu — um segundo desconto em cima de quem já não está bem colocado.
+
+## 16/09/2026 — 🎯 ONDE AUMENTAR: a composição da receita, fonte por fonte
+
+Diego: *"precisamos entender onde aumentar na Várzea, Série D, C, B e A… em
+competições, premiações, patrocínios, TV, bico, camisa, venda, estádio, agência"*.
+
+### A composição (time no MEIO da tabela, estádio meio construído)
+| fonte | Várzea | Série D | Série C | Série B | Série A | cresce? |
+| --- | --- | --- | --- | --- | --- | --- |
+| 📺 cota de TV | 10 (12%) | 20 (20%) | 30 (21%) | 40 (23%) | 50 (19%) | **5,0×** |
+| 🏆 Master (3 anos) | 7 (9%) | 11 (11%) | 23 (16%) | 36 (20%) | 72 (27%) | **10,3×** |
+| 🤝 Pontual (não cair) | 4 (5%) | 8 (8%) | 14 (10%) | 24 (14%) | 42 (16%) | **10,5×** |
+| 👟 fornecedor | 5 (6%) | 7 (7%) | 14 (10%) | 27 (15%) | 54 (20%) | **10,8×** |
+| 🕴️ bico | 5 (6%) | 7 (7%) | 10 (7%) | **0** | **0** | morre na B |
+| 🥇 prêmio da liga | **0** | **0** | **0** | **0** | **0** | só top-4 |
+| 🎟️ bilheteria | 28 (35%) | 28 (27%) | 28 (20%) | 28 (16%) | 28 (10%) | **1,0× 🚨** |
+| 👕 venda de camisa | 21 (26%) | 21 (21%) | 21 (15%) | 21 (12%) | 21 (8%) | **1,0× 🚨** |
+| **TOTAL** | **80** | **102** | **140** | **176** | **267** | 3,3× |
+(custo do elenco cheio na mesma linha: 37 · 46 · 106 · 152 · **260** → **7,0×**)
+
+### 🚨 ACHADO 5 — BILHETERIA E CAMISA NÃO SABEM EM QUE DIVISÃO O TIME ESTÁ
+Conferido no código:
+- `torcidaDoEstadio(st)` = `TORCIDA_PISO (12.000)` + assentos construídos.
+  **Nenhuma referência à divisão.**
+- `occByPos(pos)` = ocupação pela COLOCAÇÃO (1.0 no top-4 … 0.18 no Z4).
+  **Nenhuma referência à divisão.**
+
+Ou seja: **um time em 3º na Várzea lota o estádio e vende as mesmas camisas que o
+3º da Série A.** É por isso que a margem encolhe quando se sobe — o custo do
+elenco cresce **7×** e essas duas fontes ficam **paradas**. Na Várzea elas são
+**61% da receita**; na Série A, **18%**.
+👉 É o maior buraco da economia, e o mais fácil de defender: no futebol de
+verdade, subir de divisão TRAZ torcida.
+
+### 🥇 ACHADO 6 — O MEIO DE TABELA NÃO GANHA PRÊMIO NENHUM
+`seasonRewards` só paga campeão e top-4. Quem termina em 10º leva **ZERO** em
+todas as divisões. Fica a temporada inteira jogando e não vê um centavo de
+premiação.
+
+### 🕴️ Menores, mas anotados
+- **Bico morre na Série B** (só V/D/C, e a partir da T3). Da B pra cima, nada.
+- **Agência** paga por temporada: lenda 6 · craque 4 · promessa 3 · bom 2 ·
+  foi-profissional 1 (+1 folclórico). Não escala com divisão nem com nada.
+- **Prêmio de Copa**: Copa do Brasil campeão 50 · vice 25 · semi 16 · quartas 10.
+  Copa (a outra) campeão 30 · vice 10 · semi 8. ⚠️ **A Várzea não joga Copa
+  nenhuma** (`COPA_DIV_STRENGTH` tem V: 0).
+
+### 💡 Proposta ranqueada (NADA implementado — decisão do Diego)
+1. **Torcida por divisão** (o conserto grande): multiplicar a torcida/ocupação
+   por divisão — ex.: Várzea ×1 · D ×1,3 · C ×1,8 · B ×2,5 · A ×4. Contas:
+   na Série A a camisa iria de 21 pra ~84 e a bilheteria de 28 pra ~56, e a
+   margem do elenco cheio saltaria de **+7 pra ~+98**. **A Várzea não muda nada**
+   (×1), então quem está começando não sente.
+2. **Premiação por colocação** que desça do 5º ao 16º (um valor pequeno, por
+   divisão). Hoje o meio de tabela não recebe nada.
+3. **Renovação a ⅓** (o custo escondido, achado anterior) — vale junto.
+4. Dar ao bico um sucessor nas divisões de cima, ou deixar claro que ele é
+   coisa de quem está começando (hoje ele só some, sem explicação).
+
+## 16/09/2026 — ✅ CORREÇÃO: elenco cheio NÃO quebra ninguém
+
+⚠️ **Eu errei a leitura anterior e o Diego corrigiu**: *"mas não é bem assim…
+todo mundo quer ter elenco completo pô"*. Eu tinha comparado com **22 craques**,
+que ninguém monta, e concluí que a pessoa estava "enchendo o elenco com jogador
+bom cedo demais". Isso joga a culpa em quem joga, e está errado — ter elenco
+completo é o comportamento NORMAL depois da condição física.
+
+Medido o elenco que as pessoas montam DE VERDADE (11 titulares no nível da
+divisão + 11 reservas mais em conta), em `scripts/custo-elenco-cheio.mjs`:
+
+| divisão | receita | só 11 | 18 cheio | **22 CHEIO** |
+| --- | --- | --- | --- | --- |
+| Várzea | 80 | +60 | +49 | **+43** |
+| Série D | 102 | +76 | +63 | **+56** |
+| Série C | 140 | +74 | +49 | **+34** |
+| Série B | 176 | +70 | +41 | **+24** |
+| Série A | 267 | +91 | +38 | **+7** |
+
+**Dá positivo em todas — ninguém afunda por ter elenco completo.**
+
+### 🚨 O QUE REALMENTE APARECE: a margem encolhe quando se sobe
++43 → +56 → +34 → +24 → **+7**. Na Série A um time de MEIO DE TABELA com elenco
+completo sobra **7 moedas por temporada**. Um ano ruim (zona de rebaixamento,
+receita ~178) vira **−80**. A pessoa faz tudo certo e mesmo assim não sobra nada
+exatamente na divisão onde todo mundo quer estar.
+
+### 🚨 A CAUSA: a renovação é um SEGUNDO SALÁRIO ESCONDIDO
+Conta da Série A com 22 jogadores: **folha 132 · renovações 128**. Quase iguais.
+`renewCost(p, 5)` é **metade do preço da carta** — diluído em 5 temporadas dá
+outro `preço ÷ 10`, o mesmo do salário. **Cada jogador custa o DOBRO do que está
+escrito na ficha**, e isso não aparece em lugar nenhum da tela.
+
+### 💡 Saídas medidas (NENHUMA implementada — decisão do Diego)
+Sobra por temporada na Série A, meio de tabela, elenco de 22:
+| | sobra |
+| --- | --- |
+| hoje | +7 |
+| reserva paga meio salário | +29 |
+| renovação de 5 anos custar ⅓ em vez de metade | +49 |
+| as duas juntas | +71 |
+A do **⅓ na renovação** ataca o custo escondido e premia contrato longo.
+A do **meio salário pro reserva** é a que a pessoa entende na hora ("quem não
+joga ganha menos") e deixa claro que ter banco é bom, não é castigo.
+
+## 16/09/2026 — 🧮 E COM O ELENCO CHEIO? (18 · 20 · 22 jogadores)
+
+Diego: *"não quero, né. Faça simulação tendo 22 jogadores pô, ou 20, 18… sei lá,
+que agora todo mundo quer completar time"*. É o cenário REAL depois da condição
+física — ninguém mais joga com 11.
+
+### As mesmas 120 temporadas, mudando só o tamanho do elenco
+| elenco | caixa final | folha na Série A | lesões/temporada | caixa passa de 200 na |
+| --- | --- | --- | --- | --- |
+| 11 | 44.167 | 65 | 1,88 | T12 |
+| 18 | 41.336 | 89 | 0,00 | T13 |
+| 20 | 38.945 | 98 | 0,00 | T14 |
+| 22 | 38.047 | 102 | 0,00 | **T15** |
+
+Completar o elenco custa **~6.000 moedas em 120 temporadas** (14% a menos) e
+**atrasa 3 temporadas** a hora em que o caixa respira. Em troca: **zero lesões**.
+Na Série A firmada, folha + renovação comem **24% da receita com 11** e **36% com
+22**. É caro, mas cabe.
+
+### 🚨 ACHADO 4 — O PROBLEMA NÃO É O TAMANHO, É O NÍVEL DAS CARTAS
+Receita de um time no MEIO da tabela (estádio meio construído) menos o custo do
+elenco (folha + renovação). **Negativo = caixa no vermelho:**
+
+| divisão | receita | 11 baratos | 22 baratos | 22 medianos | 22 bons | 22 craques |
+| --- | --- | --- | --- | --- | --- | --- |
+| Várzea | 80 | +60 | +40 | **−8** | −96 | −272 |
+| Série D | 102 | +82 | +62 | +14 | −74 | −250 |
+| Série C | 140 | +120 | +100 | +52 | −36 | −212 |
+| Série B | 176 | +156 | +136 | +88 | **0** | −176 |
+| Série A | 267 | +247 | +227 | +179 | +91 | **−85** |
+(carta barata ≈ 8 moedas · mediana ≈ 20 · boa ≈ 40 · craque ≈ 80)
+
+**Duas leituras que valem ouro:**
+1. **Elenco cheio de carta barata cabe em QUALQUER divisão** — até na Várzea sobra
+   40. Quem completa o time com o que a divisão dele negocia não quebra.
+2. **NINGUÉM sustenta 22 craques — nem na Série A** (−85 por temporada, e o
+   campeão da A, com 389 de receita, também não fecha). Hoje uma carta custa
+   `preço ÷ 5` por temporada (salário `÷10` + renovação de 5 anos ≈ `÷10`), então
+   22 cartas de 80 = **352/temporada** contra 267 de receita.
+👉 **É AQUI que mora a reclamação**: a pessoa completa o elenco com jogador BOM
+cedo demais (22 bons na Série C = −36/temporada) e vê a caixa afundar sem
+entender por quê.
+
+### 💡 Sugestão (não implementada — decisão do Diego)
+**Reserva pagar meio salário.** Faz sentido no jogo ("quem não joga ganha menos")
+e conserta a conta sem mexer em receita: 22 jogadores viram o custo de ~16,5, e aí
+22 craques na Série A passam de 352 pra **264** — cabe na receita do campeão.
+Premia quem completa o elenco em vez de castigar.
+As outras saídas seriam aumentar a grana da Série A ou baratear a renovação longa.
+
+## 16/09/2026 — 💰 SIMULAÇÃO DE CAIXA: 120 temporadas da Várzea à Série A (FEITO)
+
+Pedido do Diego: *"faça uma simulação de 120 temporadas começando na várzea, time
+de 11 jogadores misturados em foi profissional e bom jogador… principalmente
+CAIXA, porque muita gente reclama depois que fizemos salário, renovação e agora a
+condição física… analise todas as premiações, patrocínios, venda de camisa,
+bicos, cota de TV… e me fale com base em cada divisão o sufoco"*.
+
+### Como foi medido (nada chutado)
+Dois scripts novos, rodando o MOTOR REAL do jogo no vite + Chromium:
+- **`scripts/sim-caixa-120.mjs`** — segue UMA carreira por 120 temporadas.
+- **`scripts/sim-caixa-divisoes.mjs`** — mede a conta de cada divisão isolada.
+⚠️ `screens.tsx` tem que ser importado ANTES de `pyramidseason.tsx`: existe um
+ciclo de import com `copa-brasil.ts` e a importação direta estoura
+"Cannot access 'COPA_LEG_MS' before initialization".
+
+### 🐛 SEIS erros meus no caminho (ficam registrados pra não repetir)
+1. **Preço de catálogo ≠ preço de leilão.** Montei o elenco com o valor de
+   catálogo (57-75/carta) e a folha saiu **7× maior** que a real. A carreira
+   começa com `START_MONEY = 100` — 11 cartas somam ~90, folha ~9.
+2. **Começou na Série D.** Sem semear `placements`, o `buildPyramid` cai no
+   mundo SEM Várzea.
+3. **O cansaço não chegava no campo.** Sem passar `cardMods` pro `simulatePyramid`,
+   o time subia de V até A com o elenco inteiro em 🚑 — o desgaste existia na
+   planilha e não no jogo.
+4. **Time todo fame 3.** Pegava sempre o melhor, e o Diego pediu MISTURADO.
+
+🔁 **E o Diego pegou que a Várzea ainda não estava aparecendo** (*"eu pedi pra
+você começar na Várzea e não na Série D"*). Fui olhar e eram MAIS DOIS erros, os
+piores de todos — os dois faziam a Várzea sumir em uma temporada:
+
+5. 🥅 **A VÁRZEA ESTAVA VAZIA.** `buildCpuSquads` só gera times de fundo pra
+   **A/B/C/D** — a Várzea é preenchida pelos MANAGERS (você + os rivais de CPU do
+   leilão). Passando só `{ m0: 'V' }` eu era o **ÚNICO time da divisão**: ganhava
+   sozinho, sem adversário, e subia na 1ª temporada. Agora entram 19 rivais, com
+   a mistura de tiers do jogo (6 fracos · 7 médios · 6 fortes).
+6. 🏆 **O elenco era um monstro pra Várzea.** Eu pegava A MELHOR carta de cada
+   posição dentro do degrau — e "a melhor foi-profissional do catálogo inteiro"
+   não é time de várzea: o **top-11 do degrau V tem média 84**, enquanto a
+   **mediana dos times da Série D é 58,8**. O jogo NÃO monta assim: o
+   `makeBotSquad` monta por **SORTEIO**, com proporção de categoria por força
+   (fraco 55% foi-profissional · médio 40% · forte 22%). Agora é a mesma receita,
+   e o meu time entra como MÉDIO — que é o "misturado" que ele pediu.
+
+**Antes × depois do conserto:**
+| | 1ª versão | corrigida |
+| --- | --- | --- |
+| T1 | Várzea, **campeão** | Várzea, **16º** |
+| temporadas na Várzea | **1** | **4** (16º · 15º · 8º · campeão) |
+| chega na Série A | T5 | T8 |
+
+### 🚨 ACHADO 1 — A ARMADILHA DO MASTER LONGO (o maior de todos)
+`masterValor()` congela o valor na **divisão em que o contrato foi assinado**.
+| assinou na | 1 ano | 3 anos | 5 anos |
+| --- | --- | --- | --- |
+| Várzea | 4 | 7 | **10** |
+| Série A | 40 | 72 | **104** |
+Quem assina 5 anos na Várzea e sobe pra Série A no ano seguinte fica **4
+temporadas recebendo 10 em vez de 104** — quase **400 moedas perdidas**, e é
+exatamente o perfil de quem mais reclama de caixa (o que sobe rápido).
+👉 Sugestões: reajustar ao subir de divisão, OU avisar na tela de assinatura
+("contrato longo trava o valor da divisão de hoje").
+
+### 🚨 ACHADO 2 — O PAREDÃO DOS 15 JOGADORES
+Varredura medida (40 temporadas cada):
+| elenco | lesões/temporada | gás médio |
+| --- | --- | --- |
+| 12 | 2,0 | 0,7 |
+| 13 | 2,0 | 1,2 |
+| 14 | 1,7 | 5,4 |
+| **15** | **0,0** | **97,8** |
+| 16 | 0,0 | 98,4 |
+**Não existe meio-termo: é abismo.** A conta fecha: −1,4 por jogo, +4 por
+descanso, 38 rodadas → dá pra jogar 28 de 38 sem perder gás; 11 titulares ÷ 28
+jogos = **14,9 jogadores**. Com 15+ ninguém cansa NUNCA; com 14 o elenco inteiro
+vira 🚑 permanente. Quem joga com elenco curto está sendo punido por não saber de
+um número que o jogo não conta em lugar nenhum.
+
+### 🚨 ACHADO 3 — O REBAIXADO LEVA TRÊS CASTIGOS DE UMA VEZ
+Prêmio negativo (−10 C · −15 B · −20 A) **+** Pontual zerado **+** venda de
+camisas **ZERADA** (a curva 'caiu' é 0, não é curva baixa). Na Série C o campeão
+faz 152 e o rebaixado 73 — menos da metade.
+
+### 📊 RECEITA POR DIVISÃO (temporada, estádio zerado → completo)
+| divisão | campeão | acesso (3º) | meio (10º) | rebaixado |
+| --- | --- | --- | --- | --- |
+| Várzea | 71 → 267 | 56 → 231 | 46 → 159 | 42 → 69 |
+| Série D | 101 → 299 | 81 → 258 | 66 → 181 | 58 → 87 |
+| Série C | 152 → 357 | 117 → 301 | 97 → 219 | 73 → 109 |
+| Série B | 195 → 413 | 145 → 342 | 120 → 255 | 81 → 130 |
+| Série A | 279 → 524 | 214 → 438 | 184 → 346 | 122 → 198 |
+
+### 💸 CUSTO DE MANTER O ELENCO (folha + renovações/ano)
+| elenco | carta de 8 | de 20 | de 40 | de 80 |
+| --- | --- | --- | --- | --- |
+| 11 | 20 | 44 | 88 | 176 |
+| 16 | 29 | 64 | 128 | 256 |
+| 22 | 40 | 88 | 176 | 352 |
+
+### 📈 A CARREIRA SIMULADA (números CORRIGIDOS, com a Várzea de verdade)
+| divisão | temporadas | receita méd | despesa méd | saldo | pos. méd | lesões/temp |
+| --- | --- | --- | --- | --- | --- | --- |
+| Várzea | 4 | 54 | 47 | **+7** | 10,0 | 0,0 |
+| Série D | 1 | 82 | 82 | **0** | 2,0 | 0,0 |
+| Série C | 1 | 145 | 145 | **0** | 2,0 | 0,0 |
+| Série B | 1 | 146 | 98 | +48 | 3,0 | 0,0 |
+| Série A | 113 | 522 | 132 | **+390** | 1,7 | 2,0 |
+
+O caixa fica **travado em 30 moedas (a reserva) da T1 até a T7** — sete
+temporadas seguidas em que cada moeda que entra sai. Caixa final em 120
+temporadas: **44.167**.
+👉 O sufoco é 100% da SUBIDA. Série A firmada é máquina de dinheiro sem nada pra
+gastar — o problema lá é o oposto.
+
+**A Várzea, olhada de perto (time no meio da tabela):** receita de **44 a 50
+moedas** por temporada — TV 10 + Master 10 + bilheteria 20 + Pontual 4. Sem
+prêmio (só top-4 paga), sem bico (só da T3), sem camisa (precisa da Loja). E a
+Loja custa **200 moedas de obra** (grama 60 + geral 60 + loja 80). Ou seja:
+**~5 temporadas guardando TUDO** só pra destravar a venda de camisa — enquanto
+ele também precisa reforçar pra escapar da divisão. É esse o aperto.
+
+**Com elenco de 16 em vez de 11:** caixa final 42.129 (−2 mil), folha 83 em vez
+de 65, e **ZERO lesões em 120 temporadas**. Custa pouco e resolve tudo.
+
+### ⚠️ Detalhe: a VÁRZEA NÃO JOGA COPA
+`COPA_DIV_STRENGTH` tem V: 0 e o comentário diz "só A-D". Quem começa na Várzea
+não tem receita de copa nenhuma — mais um motivo do aperto lá embaixo.
+
+### 📌 Pendente: decisão do Diego sobre o que mexer
+Nada foi alterado no jogo — esta entrega é só MEDIÇÃO. As três sugestões
+(Master, paredão dos 15, piso do rebaixado) esperam ele escolher.
+
+## 16/09/2026 — ⚓🐷 Marinheiros AS de cara nova (FEITO, no ar)
+
+O dono (feehcamp11@gmail.com, sócio nº15, ❤️ Palmeiras) mandou a prancha completa.
+⭐ **É clube de SÓCIO (1ª assinatura), NÃO batismo** — não ocupa vaga na pirâmide.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/marinheiros-escudo.webp` — 290×360, **29 KB**.
+- **Mascote** `src/escalacao/img/marinheiros-mascote.webp` — 281×440, **42 KB**.
+- **Total 71 KB**, dentro do teto de 75 KB (o mais apertado do dia).
+- **Camisa** `scripts/kits/marinheiros-camisa.webp` +
+  `public/mantos-salao/marinheiros-camisa-v1.webp` — ele **não tinha camisa no
+  Salão** até hoje.
+- **Manto** `#0D4926` verde-garrafa + `#F5EBE1` creme, MEDIDOS na camisa nova
+  (verde 46%, creme 37%). Ele **não tinha linha em `MANTO_CONTAS`**: o manto vinha
+  só do banco, com `#1B7A3D`/`#FFFFFF`. Agora tem nos dois. Argolas HORIZONTAIS —
+  o `porco_marinheiro: 0` do `MANTO_ANGLE` já estava certo desde antes.
+
+### 🪤 A prancha mais difícil do dia — DOIS problemas juntos
+**1. O desenho é VERDE e o fundo também.** E aqui o piso de brilho padrão
+(`G > 180`) **NÃO BASTOU**: medido na prancha, o croma tem **G≈248** e a pele do
+porco vai de **G≈118 a G≈169** — ou seja, parte do verde dele passa de 180. Com o
+piso padrão a pele virou **buraco transparente** e, sobre o creme, o bicho saía
+manchado de pálido. ⚠️ **Sobre fundo branco isso era INVISÍVEL** — só apareceu
+comparando com a prancha original. É a regra do Theuzudo valendo de novo.
+Piso subiu pra `G > 210` e o despill só rampa de 205 pra cima.
+
+**2. Escudo e mascote QUASE se tocam.** O vão entre os dois existe em todas as
+linhas, mas chega a **2 px** (y≈520) — e a limpeza 5×5 que tira poeira de croma
+FECHA esse vão e funde os dois numa mancha só. Corte por mancha não serve, e reto
+também não: o vão ANDA com a altura (x≈478 em y=300, x≈526 em y=520, x≈489 em
+y=900). Corte CURVO linha por linha, igual ao Rei da Bola.
+Tudo isso está documentado em `scripts/recorta-prancha-marinheiros.py`.
+
+**3.** E a poça verde embaixo dos pés de novo: a sombra do croma (G≈184) está
+perto demais da pele (até 169), então o corte usou G>172 **e** só na faixa de
+baixo, onde só há chuteira preta e bola.
+
+### 🗄️ Banco — e uma boa notícia
+Manto atualizado. `esc_nomes_batismo`: **as 3 formas já estavam lá**
+(`marinheiros as`, `... ec`, `... fc`). **É o PRIMEIRO clube do dia com a reserva
+completa** — e faz sentido: ele é de assinatura, cadastrado depois do gatilho
+existir. Isso reforça a teoria de que o furo é dos batismos ANTIGOS.
+
+### 🛠️ `mockup-batismo.mjs`: `--renovacao` + `--socio`
+O post saiu dizendo *"já joga a Série D"* — **mentira**: clube de sócio não ocupa
+vaga. O gerador não previa as duas flags juntas. Agora a pílula vira "CLUBE DE
+SÓCIO DE CARA NOVA" e o texto diz "não tira o lugar de ninguém na pirâmide".
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.porco_marinheiro = 'O Marujo'` (não existia antes).
+
+### Reverter
+`git revert` desfaz a arte inteira. Manto volta com `update esc_socios`
+(era `#1B7A3D` / `#FFFFFF`).
+
+## 16/09/2026 — 🌴 Marolados FC de cara nova (FEITO, no ar)
+
+O dono (paisagensetrilha@gmail.com, Serjão, ❤️ Palmeiras, sócio nº18, fundador
+nº38) mandou a prancha completa. Série **B** (ex-Real Madruga).
+
+### O que entrou
+- **Escudo** `src/escalacao/img/marolados-escudo.webp` — 298×360, **28 KB**.
+- **Mascote** `src/escalacao/img/marolados-mascote.webp` — 230×440, **32 KB**.
+- **Total 60 KB**, dentro do teto de 75 KB.
+- **Camisa** `scripts/kits/marolados-camisa.webp` +
+  `public/mantos-salao/marolados-camisa-v1.webp` (já com `-vN`).
+- **Manto** `#024623` verde-mato + `#F5EBD7` branco-creme, MEDIDOS na camisa nova
+  (verde 42%, creme 36%; antes era `#1B7A3D`/`#FFFFFF`). **3ª cor AMARELA**
+  `#F7C617` (faixa rasta da gola e dos punhos) em `MANTO_TRI`. O vermelho da mesma
+  faixa é metade do amarelo (0,78% × 1,38%) e ficou de fora.
+
+### ⚠️ Esta era a prancha de maior RISCO de recorte do dia
+Fundo verde-croma **e desenho verde**: o escudo, a camisa e o short são verdes.
+É o caso do Bagres 1993 (06/09) e do Tôka10. O que salvou foi o **piso de brilho**
+(`G > 180`) que o script já carrega: o fundo é verde CLARO (G≈245) e o verde do
+desenho é ESCURO (G≈70–120). Conferido peça por peça sobre CREME — nada foi comido.
+A fumacinha do mascote é uma mancha SEPARADA (6.324 px) e foi preservada porque o
+mascote é recortado com `um_so=False`.
+
+### 🧹 Mais dois SVG à mão fora do bundle
+Escudo (com versão MINI pra tabela) e mascote eram SVG desenhados à mão no `.tsx`.
+A chave `marolado` FICOU (está no banco). O `CARIMBO_GOL` ganhou as 4 formas +
+caixa alta + o nome VELHO (**Real Madruga**). E `MASCOTE_NOME.marolado` **não
+existia** — agora é `'O Marolado'` (provisório, a arte veio sem nome).
+
+### 🗄️ Banco
+Conta, ouro, fundador nº38 e sócio nº18 já existiam. Manto atualizado.
+`esc_nomes_batismo`: **SÉTIMO clube seguido com furo** — só `marolados fc`.
+
+### 📌 Nota pro Diego (decisão dele, não minha)
+A arte nova é bem mais explícita que a anterior no tema: o mascote agora está com
+um **cigarro/baseado ACESO na boca** (antes era só fumacinha solta) e a camisa tem
+**estampa de folha de maconha** repetida no pano. O clube já era rastafari desde
+agosto e foi ele que mandou, então entrou como veio. Fica anotado porque é o tipo
+de coisa que aparece em print e em post — se preferir suavizar (tirar o cigarro,
+trocar a folha por coqueiro), é rápido.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira. Manto volta com `update esc_socios`
+(era `#1B7A3D` / `#FFFFFF`).
+
+## 16/09/2026 — 🐶 São Luiz FC: escudo e manto novos (FEITO, no ar)
+
+O dono (gabrielnegreirosamaral99@**hotmail**.com, Gabriel, ❤️ Flamengo, sócio nº46,
+fundador nº48) mandou prancha nova com **só duas peças**: escudo e camisa.
+**A MASCOTE (o Luizão, pitbull) NÃO foi tocada** — não veio na prancha.
+⚠️ O e-mail dele é **hotmail**, não gmail. Procurar por gmail não acha nada.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/saoluiz-escudo.webp` — **360×355**, 25 KB
+  (antes 283×279). A proporção no `escudos.tsx` foi atualizada junto.
+- **Camisa** `scripts/kits/saoluiz-camisa.webp` +
+  `public/mantos-salao/saoluiz-camisa-v2.webp`.
+  🧹 Limpeza de arquivo velho: o acervo tinha `saoluiz.png` (141 KB, PNG!) e o
+  Salão servia `saoluiz.webp` SEM versão no nome. Os dois foram removidos — agora
+  é webp nos dois lugares e o nome do Salão tem `-v2`, senão o cache serviria a
+  camisa velha pra quem já abriu.
+- **Manto** `#C70107` vermelho + `#080808` preto, REMEDIDOS na camisa nova
+  (vermelho 41%, preto 28%, branco 26%; antes era `#E00000`/`#0C0C0C`, de 21/08).
+  3ª cor BRANCA `#D9D9D8` — também remedida (era `#FFFFFF` chutado).
+  O amortecedor do `MANTO_TRI_BUFFER` continua: vermelho não pode encostar em preto.
+
+### 🔁 O MANTO VIROU HORIZONTAL
+A camisa nova é de **argolas**, não de listras em pé. Sem mexer, o manto dele
+sairia VERTICAL (que é o padrão, ângulo 90) e não bateria com a camisa de verdade.
+Entrou `saoluiz_pitbull: 0` no `MANTO_ANGLE` — mesma coisa que o Murriz já tem.
+
+### 🗄️ Banco
+Conta, ouro, fundador nº48 e sócio nº46 já existiam. Manto atualizado.
+`esc_nomes_batismo` estava **PELA METADE**: tinha `sao luiz` (sem til), `são luiz
+fc` e `são luiz ec` — faltavam `são luiz` (com til, puro), `sao luiz fc` e
+`sao luiz ec`. Completei: agora são **6 formas**, com e sem til.
+
+### 🔎 Placar da pendência de reserva de nome — 6 de 6
+Murriz, Nightfull, Barcenite, Scorporila (1 de 3 cada) · Papão (**zero**) ·
+São Luiz (**3 de 6**). Nenhum clube que eu abri hoje estava completo.
+**Varrer `esc_nomes_batismo` contra `batismos.ts` continua sendo a próxima coisa.**
+
+### 📌 Nota pro Diego (decisão dele, não minha)
+O escudo novo é **muito parecido com o brasão do São Paulo FC** — mesmo formato
+redondo, mesmo triângulo invertido tricolor, estrelas na mesma posição, só trocando
+"SPFC" por "SLFC". Foi o dono que mandou e o Diego pediu pra colocar, então
+entrou. Fica anotado aqui porque o CLAUDE.md diz que escudo de clube REAL não
+aparece no jogo — se um dia isso incomodar, é só pedir e a gente troca.
+
+### Reverter
+`git revert` do commit desfaz escudo, manto, ângulo e camisa.
+O manto volta com `update esc_socios` (era `#E00000` / `#0C0C0C`).
+
+## 16/09/2026 — 🦍🦂 Scorporila FC de cara nova (FEITO, no ar)
+
+O dono (lucassrribeiroo2023@gmail.com, Lucas, ❤️ Santos, sócio nº16, fundador
+nº36) mandou a prancha completa. Série **D** (ex-Realeza FC).
+⚠️ A divisão foi CONFERIDA no `data.ts` antes de gerar o post — o primeiro saiu
+como Série C por chute meu e foi refeito. Batismo antigo não tem a divisão óbvia.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/scorporila-escudo.webp` — 262×360, **28 KB**.
+- **Mascote** `src/escalacao/img/scorporila-mascote.webp` — 249×440, **36 KB**.
+- **Total 64 KB**, dentro do teto de 75 KB.
+- **Camisa** `scripts/kits/scorporila-camisa.webp` +
+  `public/mantos-salao/scorporila-camisa-v1.webp` (já com `-vN`).
+- **Manto** `#161516` preto + `#E3DCD6` branco, MEDIDOS na camisa nova (preto 60%,
+  branco 32%). **3ª cor DOURADA** `#EDB228` (cauda, gola, punhos) em `MANTO_TRI`.
+
+### 🔁 A ORDEM DO MANTO FOI INVERTIDA — de propósito
+No banco estava **`#FFFFFF` (branco puro) em 1º**. Listra branca em cima da tela
+creme do jogo SOME — é o caso exato da regra, o mesmo motivo pelo qual o Tricolor
+do Arruda e o Briga de Galo foram virados. Agora é preto primeiro.
+(Compare com o **Barcenite**, do mesmo dia, onde eu NÃO inverti: lá a cor clara é
+amarelo saturado, que aparece bem no creme. A regra é sobre cor que SOME, não
+sobre "clara primeiro é errado".)
+
+### 🧹 Mais dois SVG à mão fora do bundle
+Escudo e mascote eram SVG desenhados à mão no `.tsx` — o escudo tinha versão MINI
+pra tabela, que o `objectFit: contain` resolve sozinho. A chave `scorporila` FICOU
+(está no banco). O `CARIMBO_GOL` ganhou as 4 formas + caixa alta + o nome VELHO
+(**Realeza FC**), pra save antigo continuar carimbando o gol.
+
+### 🗄️ Banco
+Conta, ouro, fundador nº36 e sócio nº16 já existiam. Manto atualizado.
+`esc_nomes_batismo`: **QUINTO clube seguido com furo** — só `scorporila fc`.
+Inserido o nome puro; o gatilho criou o EC.
+
+### 🔎 Placar da pendência de reserva de nome
+| clube | tinha | agora |
+| --- | --- | --- |
+| Murriz FC | 1 de 3 | 3 |
+| Nightfull FC | 1 de 3 | 3 |
+| Barcenite FC | 1 de 3 | 3 |
+| Papão United Madrid | **0** | 6 (com e sem til) |
+| Scorporila FC | 1 de 3 | 3 |
+**5 de 5 clubes que eu abri estavam furados.** Varrer a tabela inteira contra
+`batismos.ts` é a próxima coisa a fazer. Só banco, sem deploy.
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.scorporila = 'O Scorporila'`.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira. Manto volta com `update esc_socios`
+(e a ordem antiga era `#FFFFFF` / `#141414`, se ele quiser de volta).
+
+## 16/09/2026 — 🐺 Papão United Madrid: escudo e manto novos (FEITO, no ar)
+
+O dono (agrostinho88@gmail.com, Agostinho, ❤️ Paysandu, sócio nº29, fundador nº39)
+mandou prancha nova. Palavras do Diego: *"alargamos o escudo e mudamos o manto.
+O mascote é o mesmo, não se mudou nada dele"*.
+
+### ⚠️ A MASCOTE NÃO FOI TOCADA
+Conferido antes de mexer: a fera da prancha nova é a MESMA que já está no jogo
+(`papao-mascote.webp`, 281×440, de 23/08) — mesma pose, mesmo tridente, mesma
+faixa. O arquivo ficou como estava. Só escudo e manto mudaram.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/papao-escudo.webp` — **232×360**, 29 KB.
+  Ele ficou MESMO mais largo: **0,64** contra **0,57** do anterior (150×263).
+  ⚠️ A proporção no `escudos.tsx` foi atualizada junto — se ficasse o `150/263`
+  velho o escudo novo entraria espremido.
+- **Camisa** `scripts/kits/papao-camisa.webp` +
+  `public/mantos-salao/papao-camisa-v2.webp`. **O nome ganhou `-v2`** e o arquivo
+  velho (`papao-camisa.webp`, sem versão) foi REMOVIDO: endereço fixo em `public/`
+  = o navegador serviria a camisa velha pra quem já abriu o Salão.
+- **Manto** `#001A6C` azul-marinho + `#D4D6DD` branco, REMEDIDOS na camisa nova
+  (branco 50,5%, azul 37,6%). Antes era `#0C2460`/`#FFFFFF`, da camisa de 23/08.
+  **3ª cor DOURADA** `#DC9D3B` (gola, punhos, filetes) em `MANTO_TRI`.
+
+### 🚫 O SWOOSH DA NIKE saiu da camisa
+A camisa vinha com o logo da Nike DOURADO e GRANDE no peito. Aqui deu pra fazer
+melhor que no Barcenite, porque as listras são VERTICAIS: cada coluna foi
+reconstruída interpolando de cima pra baixo — a listra volta EXATA e a sombra do
+pano acompanha —, e o grão do tecido foi transplantado de um trecho limpo logo
+abaixo. Tentativas que falharam antes: copiar o mesmo bloco de outra altura
+(a camisa afunila, as listras não batem) e colar sem pena (costura visível).
+
+### 🗄️ Banco — e aqui o buraco era o PIOR de todos
+`esc_nomes_batismo` para o Papão estava **COMPLETAMENTE VAZIO**: nenhuma forma do
+nome reservada. Qualquer pessoa podia registrar "Papão United Madrid" e tomar o
+nome do dono. Inseri as duas grafias-base (com til e sem til) e o gatilho gerou as
+variações: agora são **6 linhas** travadas. Manto do sócio nº29 atualizado.
+
+### 🔎 A pendência virou URGENTE (4 casos em 4 clubes)
+Murriz, Nightfull e Barcenite tinham 1 de 3 formas; o **Papão tinha ZERO**.
+**Varrer `esc_nomes_batismo` contra a lista inteira de `batismos.ts`.** Não precisa
+de deploy, é só banco. Enquanto não for feito, existem donos de batismo com o nome
+do próprio clube desprotegido.
+
+### 🛠️ `mockup-batismo.mjs` ganhou `--mascote-igual`
+O post de renovação dizia sempre "escudo, manto e mascote novos" — com a mascote
+igual, isso MENTIA. Agora a flag troca as duas frases ("com o Papão de sempre no
+gol" / "escudo e manto novos, mascote a mesma").
+
+### Reverter
+`git revert` do commit desfaz escudo, manto e camisa. O manto volta com um
+`update esc_socios`. A reserva de nome é proteção do dono — não tirar.
+
+## 16/09/2026 — 🐈 Barcenite FC de cara nova (FEITO, no ar)
+
+O dono (ricardopessoafreire@gmail.com, Ricardo, ❤️ Flamengo, sócio nº12,
+fundador nº31) mandou a prancha completa: escudo, mascote e camisa.
+
+⚠️ **Mandou DUAS pranchas.** A primeira trazia um escudo com COROA; ele corrigiu
+na hora (*"o escudo certo é esse daqui"*). **Vale a segunda** — escudo sem coroa,
+mais largo (0,74 contra 0,68). Recortei a prancha CERTA inteira de novo (escudo,
+mascote e camisa), pra tudo vir do mesmo arquivo e não misturar as duas.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/barcenite-escudo.webp` — 268×360, **25 KB**.
+- **Mascote** `src/escalacao/img/barcenite-mascote.webp` — 222×440, **34 KB**.
+- **Total 59 KB**, dentro do teto de 75 KB.
+- **Camisa** `scripts/kits/barcenite-camisa.webp` +
+  `public/mantos-salao/barcenite-camisa-v1.webp`.
+- **Manto** `#F2B010` amarelo + `#013882` azul, **MEDIDOS** no PEITO ALTO da
+  camisa — no resto dela a textura envelhecida puxa o amarelo pra um `#DE9C09`
+  barrento. A **ORDEM foi mantida** (amarelo primeiro), que é como já estava no
+  banco: é a cara do clube dele hoje e trocar seria mudança visual sem pedido.
+  Listras VERTICAIS = o padrão (ângulo 90), sem linha no `MANTO_ANGLE`.
+
+### 🚫 O SWOOSH DA NIKE SAIU das duas chuteiras
+A arte que o dono mandou vinha com o logo da Nike nas duas chuteiras. Marca real
+não entra em arte do jogo. **Duas tentativas falharam antes de achar o jeito:**
+1. **Interpolar dos vizinhos** puxou VERDE da grama que está logo abaixo do pé —
+   ficou com listras verdes atravessando a chuteira.
+2. **Preencher com cor lisa** (nearest gold / difusão) deixou um REMENDO claro e
+   chapado, e o contorno do swoosh continuava legível.
+3. ✅ **O que funcionou**: transplantar o GRÃO do próprio couro. Tira-se o campo
+   de sombra (passa-baixa pesada, só com pixel de couro pesando) e soma-se de
+   volta a textura fina de um pedaço LIMPO da MESMA chuteira. Sobrou um vinco de
+   couro, não um logo.
+O script está no repo: **`scripts/limpa-mascote-barcenite.py`**, com as caixas e o
+porquê de cada passo — serve de receita pra próxima arte que vier com marca.
+
+### 🟩 E a POÇA VERDE embaixo dos pés
+A sombra da chuteira escureceu o verde do croma e ele passou pelo piso de brilho
+do recorte. Como esta arte não tem verde NENHUM, deu pra caçar verde em qualquer
+brilho sem risco.
+
+### 🧹 Mais dois SVG à mão fora do bundle
+Escudo e mascote eram SVG desenhados à mão no `.tsx`. A chave `gatao_bfc` FICOU
+(está no banco). O `CARIMBO_GOL` ganhou as 4 formas + caixa alta + o nome VELHO
+(**Milanesa FC**), pra save antigo continuar carimbando o gol.
+
+### 🗄️ Banco
+Conta, ouro, fundador nº31 e sócio nº12 já existiam. Manto atualizado pras cores
+medidas. `esc_nomes_batismo`: **TERCEIRO clube seguido com o mesmo furo** — só
+`barcenite fc` estava travado; inseri o nome puro e o gatilho criou o EC.
+
+### 🔎 Pendência levantada (agora com 3 casos)
+**Varrer `esc_nomes_batismo` inteira.** Murriz, Nightfull e Barcenite, todos com
+só 1 das 3 formas. Confirma a teoria: os batismos ANTIGOS foram cadastrados com o
+nome já contendo "FC", antes do gatilho existir, então o gatilho nunca gerou as
+variações. Conferir todos os clubes de `batismos.ts` contra a tabela. É só banco,
+não precisa de deploy.
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.gatao_bfc = 'O Gatão'`.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira. Manto volta com `update esc_socios`.
+
+## 16/09/2026 — 🐓🌙 Nightfull FC de cara nova (FEITO, no ar)
+
+O dono (guilhermevictor539@gmail.com, Guilherme, ❤️ Atlético Mineiro, sócio nº6,
+fundador nº18) mandou a prancha completa: escudo, mascote e camisa. A arte é a
+cara do time do coração dele — o Galo alvinegro.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/nightfull-escudo.webp` — 249×360, **28 KB**.
+- **Mascote** `src/escalacao/img/nightfull-mascote.webp` — 244×440, **38 KB**.
+- **Total 67 KB**, dentro do teto de 75 KB por batismo.
+- **Camisa** `scripts/kits/nightfull-camisa.webp` (post) +
+  `public/mantos-salao/nightfull-camisa-v1.webp` (Salão, já com `-vN` no nome).
+- **Manto** `#0A0A0A` preto + `#D6D2CF` branco, **MEDIDOS** na camisa nova (preto
+  64% do manto). ⚠️ O branco veio do **TOPO** das listras: no resto da camisa a
+  arte de penas escurece o pano e a mediana dava um cinza sujo (#C1BEBB).
+  O PRETO vem primeiro porque listra clara na tela creme some (mesma ordem do
+  Tricolor do Arruda e do Briga de Galo). **3ª cor DOURADA** `#C5A373` (gola,
+  punhos e filetes) em `MANTO_TRI`. Listras VERTICAIS — que é o padrão (ângulo 90),
+  então não precisou de linha no `MANTO_ANGLE`.
+
+### 🧹 Mais dois SVG à mão fora do bundle
+Igual ao Murriz: escudo e mascote eram SVG desenhados à mão dentro do `.tsx`.
+O escudo tinha até uma versão **MINI** pra tabela (`size < 40`) — o `objectFit:
+contain` do webp já dá conta disso sozinho.
+
+### 🧷 A chave `galo` FICOU
+Gravada no banco (`esc_socios.mascote_key`). ⚠️ Não confundir com
+`brigadegalo_galo`, que é outro clube (Briga de Galo FC) — são chaves diferentes
+e cada uma tem a sua 3ª cor.
+
+### 🗄️ Banco
+| perna | estado |
+| --- | --- |
+| conta em `auth.users` | ✅ já existia |
+| `user_colors` ouro · `esc_fundadores` nº18 · `esc_socios` nº6 | ✅ já existiam |
+| manto do sócio | ✅ **atualizado** pras cores medidas |
+| `esc_nomes_batismo` | ⚠️ **estava FURADO** — corrigido |
+
+**Mesmo furo do Murriz:** só `nightfull fc` estava travado; "Nightfull" puro e
+"Nightfull EC" estavam LIVRES. Inseri o nome puro e o gatilho criou o EC.
+
+### 🔎 Pendência que isso levantou
+**Varrer `esc_nomes_batismo` inteira.** Dois clubes seguidos (Murriz e Nightfull)
+estavam com só 1 das 3 formas travadas — sinal de que os batismos ANTIGOS foram
+cadastrados com o nome JÁ com "FC", antes do gatilho existir. Vale rodar uma
+conferência de todos os batismos de `batismos.ts` contra a tabela.
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.galo = 'O Nightfull'`. A prancha veio sem nome de mascote.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira. O manto volta com um
+`update esc_socios`; a reserva do nome é proteção do dono, melhor deixar.
+
+## 16/09/2026 — ⚔️ Murriz FC de cara nova (FEITO, no ar)
+
+O dono (msb102010@hotmail.com, Robertão, ❤️ Flamengo, sócio nº7, fundador nº21)
+mandou a prancha completa: escudo, mascote e camisa. Palavras dele via Diego:
+*"Segue nova arte do Tb completa do time Murriz fc"*.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/murriz-escudo.webp` — 240×360, **28 KB**.
+- **Mascote** `src/escalacao/img/murriz-mascote.webp` — 316×440, **41 KB**.
+- **Total 69 KB**, dentro do teto de 75 KB por batismo.
+- **Camisa** `scripts/kits/murriz-camisa.webp` (post) + `public/mantos-salao/murriz-camisa-v1.webp`
+  (Salão, já com `-vN` no nome — endereço fixo em `public/` = cache do navegador).
+- **Manto** `#C81D1C` vermelho + `#150A0A` preto, **MEDIDOS** no corpo da camisa
+  (preto 53%, vermelho 28%). Rubro-negro de verdade: o dono torce pro Flamengo.
+  Sem 3ª cor — o bronze dos rasgos é sombra, não cor de manto.
+
+### 🧹 Saiu DUAS vezes do bundle
+O escudo (`escudos.tsx`) e a mascote (`mascotes.tsx:careca_ruivo`) eram **SVG
+desenhados à mão dentro do `.tsx`** — código baixado por TODO jogador, mesmo quem
+nunca cruza com o Murriz. Viraram arquivo separado, que só desce pra quem encontra
+o clube. É o que o CLAUDE.md pede desde 16/08.
+
+### 🧷 A chave `careca_ruivo` FICOU
+Não foi renomeada de propósito: está gravada no banco (`esc_socios.mascote_key`)
+e no `MANTO_ANGLE` (listras horizontais, que é como a camisa dele é de verdade).
+Só a arte trocou. Renomear a chave quebraria o manto do dono sem ganhar nada.
+
+### 🗄️ Banco (as três pernas conferidas)
+| perna | estado |
+| --- | --- |
+| conta em `auth.users` | ✅ já existia (regra de segurança de 07/09) |
+| `user_colors` tier ouro | ✅ já existia |
+| `esc_fundadores` nº21 | ✅ já existia |
+| `esc_socios` nº7 | ✅ existia — **manto atualizado** pras cores medidas |
+| `esc_nomes_batismo` | ⚠️ **estava FURADO** — só `murriz fc` travado |
+
+**O furo do nome, corrigido:** só a forma "Murriz FC" estava reservada. "Murriz"
+puro e "Murriz EC" estavam LIVRES pra qualquer um pegar. Inseri o nome PURO e o
+gatilho `esc_batismo_reserva_variacoes` criou o EC sozinho. As 3 formas + a caixa
+(a chave é minúscula) agora estão travadas. É o mesmo tipo de buraco dos 8
+batismos achados em 20/08 — vale varrer o resto da lista um dia.
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.careca_ruivo = 'O Murriz'`. A arte veio sem nome de mascote; a linha
+está marcada pra confirmar com o dono, igual às outras provisórias.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira (o escudo e a mascote voltam a ser o
+SVG antigo). As duas linhas de banco são independentes do deploy: o manto volta com
+um `update esc_socios`, e o nome reservado sai com um `delete` — mas **não convém
+tirar a reserva**, ela é proteção do dono.
 
 ## 16/09/2026 — 🪞 Antes × depois das telas da carreira (RASCUNHO PRONTO, esperando OK)
 
