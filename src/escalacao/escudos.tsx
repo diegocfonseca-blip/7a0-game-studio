@@ -39,6 +39,7 @@ import saoMarcosAntonioEscudoImg from './img/saomarcosantonio-escudo.webp' // �
 import interMadridEscudoImg from './img/internacional-madrid-escudo.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
 import raivaCajuriEscudoImg from './img/raivacajuri-escudo.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaEscudoImg from './img/reidabola-escudo.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
+import murrizEscudoImg from './img/murriz-escudo.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import interBailaoEscudoImg from './img/inter-bailao-escudo.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
@@ -639,6 +640,15 @@ const raivaCajuriEscudoRender = (size: number) => (
 // listrado vermelho/branco/preto, com o leão branco coroado e a coroa por cima.
 const reiDaBolaEscudoRender = (size: number) => (
   <img src={reiDaBolaEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Rei da Bola FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// ⚔️ Murriz FC — 240x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (msb102010, 16/09): brasão
+// rubro-negro com o guerreiro careca de barba ruiva e o letreiro "MURRIZ FC".
+// 🧹 Esta renovação TIROU do bundle um escudo que era SVG desenhado à mão — era
+// código baixado por TODO jogador, mesmo quem nunca cruza com o clube. Agora é
+// arquivo separado (28 KB), que só desce pra quem encontra o Murriz.
+const murrizEscudoRender = (size: number) => (
+  <img src={murrizEscudoImg} height={size} width={Math.round(size * 240 / 360)} alt="Murriz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🔊 Bonança SSFC — 305x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (duselecta, 09/09): escudo redondo
@@ -1287,38 +1297,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
       </svg>
     )
   },
-  // ⬇️ kit de batismo (arte própria em código — cores + símbolo folclórico, sem escudo real)
-  'Murriz FC': (size: number) => {
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Murriz FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="mcMurriz"><path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z"/></clipPath></defs>
-              <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="#141414"/>
-              <g clipPath="url(#mcMurriz)">
-                <rect x="0" y="30" width="200" height="34" fill="#C4122E"/>
-                <rect x="0" y="98" width="200" height="34" fill="#C4122E"/>
-                <rect x="0" y="166" width="200" height="34" fill="#C4122E"/>
-              </g>
-              <path d="M18 30 H182 V145 C182 188 138 214 100 234 C62 214 18 188 18 145 Z" fill="none" stroke="#0C0C0C" strokeWidth="7" strokeLinejoin="round"/>
-              <g clipPath="url(#mcMurriz)"><g transform="translate(100 108) scale(1.28)">
-              <circle cx="-42" cy="6" r="10" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <circle cx="42" cy="6" r="10" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <path d="M-40 6 Q-44 -46 0 -48 Q44 -46 40 6 Q40 20 32 30 L-32 30 Q-40 20 -40 6 Z" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-              <path d="M-22 -34 Q-4 -44 14 -36 Q-4 -30 -22 -34 Z" fill="#ffffff" opacity=".45"/>
-              <path d="M-30 -8 L-8 -2" stroke="#A2481A" strokeWidth="8" strokeLinecap="round"/>
-              <path d="M30 -8 L8 -2" stroke="#A2481A" strokeWidth="8" strokeLinecap="round"/>
-              <circle cx="-17" cy="6" r="7.5" fill="#fff" stroke="#0C0C0C" strokeWidth="3"/>
-              <circle cx="17" cy="6" r="7.5" fill="#fff" stroke="#0C0C0C" strokeWidth="3"/>
-              <circle cx="-15" cy="7" r="3.6" fill="#0C0C0C"/>
-              <circle cx="19" cy="7" r="3.6" fill="#0C0C0C"/>
-              <path d="M0 8 Q-6 22 2 24" fill="none" stroke="#DDA877" strokeWidth="5" strokeLinecap="round"/>
-              <path d="M-38 6 Q-40 44 -20 62 Q0 74 20 62 Q40 44 38 6 Q30 30 18 32 Q8 44 0 44 Q-8 44 -18 32 Q-30 30 -38 6 Z" fill="#C85A1B" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-              <path d="M-26 30 l-4 16 M-12 40 l-2 16 M0 44 l0 16 M12 40 l2 16 M26 30 l4 16" stroke="#A2481A" strokeWidth="3.5" strokeLinecap="round"/>
-              <path d="M-20 26 Q-8 34 0 30 Q8 34 20 26 Q10 40 0 38 Q-10 40 -20 26 Z" fill="#A2481A" stroke="#0C0C0C" strokeWidth="3"/>
-            </g></g>
-      </svg>
-    )
-  },
+  // ⚔️ Murriz FC (msb102010) — ARTE NOVA em 16/09, mandada pelo dono. As 4 formas
+  // do nome ficam presas ao mesmo escudo (regra dos 4 nomes reservados). O escudo
+  // ANTIGO era SVG à mão aqui dentro (era pré-regra de peso); saiu de vez e virou
+  // webp fora do bundle, como manda o CLAUDE.md.
+  'Murriz': murrizEscudoRender,
+  'Murriz FC': murrizEscudoRender,
+  'Murriz EC': murrizEscudoRender,
+  'Murriz SC': murrizEscudoRender,
   // 🦁 Leão da Estradinha (jorgericardo777) — ex-Império Samambaia. REBATISMO
   // 23/08: o dono trocou o clube pro apelido do time do coração dele, o Rio
   // Branco-PR ("Leão da Estradinha", 1913). O escudo antigo era SVG à mão no

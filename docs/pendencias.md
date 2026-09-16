@@ -1,3 +1,55 @@
+## 16/09/2026 — ⚔️ Murriz FC de cara nova (FEITO, no ar)
+
+O dono (msb102010@hotmail.com, Robertão, ❤️ Flamengo, sócio nº7, fundador nº21)
+mandou a prancha completa: escudo, mascote e camisa. Palavras dele via Diego:
+*"Segue nova arte do Tb completa do time Murriz fc"*.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/murriz-escudo.webp` — 240×360, **28 KB**.
+- **Mascote** `src/escalacao/img/murriz-mascote.webp` — 316×440, **41 KB**.
+- **Total 69 KB**, dentro do teto de 75 KB por batismo.
+- **Camisa** `scripts/kits/murriz-camisa.webp` (post) + `public/mantos-salao/murriz-camisa-v1.webp`
+  (Salão, já com `-vN` no nome — endereço fixo em `public/` = cache do navegador).
+- **Manto** `#C81D1C` vermelho + `#150A0A` preto, **MEDIDOS** no corpo da camisa
+  (preto 53%, vermelho 28%). Rubro-negro de verdade: o dono torce pro Flamengo.
+  Sem 3ª cor — o bronze dos rasgos é sombra, não cor de manto.
+
+### 🧹 Saiu DUAS vezes do bundle
+O escudo (`escudos.tsx`) e a mascote (`mascotes.tsx:careca_ruivo`) eram **SVG
+desenhados à mão dentro do `.tsx`** — código baixado por TODO jogador, mesmo quem
+nunca cruza com o Murriz. Viraram arquivo separado, que só desce pra quem encontra
+o clube. É o que o CLAUDE.md pede desde 16/08.
+
+### 🧷 A chave `careca_ruivo` FICOU
+Não foi renomeada de propósito: está gravada no banco (`esc_socios.mascote_key`)
+e no `MANTO_ANGLE` (listras horizontais, que é como a camisa dele é de verdade).
+Só a arte trocou. Renomear a chave quebraria o manto do dono sem ganhar nada.
+
+### 🗄️ Banco (as três pernas conferidas)
+| perna | estado |
+| --- | --- |
+| conta em `auth.users` | ✅ já existia (regra de segurança de 07/09) |
+| `user_colors` tier ouro | ✅ já existia |
+| `esc_fundadores` nº21 | ✅ já existia |
+| `esc_socios` nº7 | ✅ existia — **manto atualizado** pras cores medidas |
+| `esc_nomes_batismo` | ⚠️ **estava FURADO** — só `murriz fc` travado |
+
+**O furo do nome, corrigido:** só a forma "Murriz FC" estava reservada. "Murriz"
+puro e "Murriz EC" estavam LIVRES pra qualquer um pegar. Inseri o nome PURO e o
+gatilho `esc_batismo_reserva_variacoes` criou o EC sozinho. As 3 formas + a caixa
+(a chave é minúscula) agora estão travadas. É o mesmo tipo de buraco dos 8
+batismos achados em 20/08 — vale varrer o resto da lista um dia.
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.careca_ruivo = 'O Murriz'`. A arte veio sem nome de mascote; a linha
+está marcada pra confirmar com o dono, igual às outras provisórias.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira (o escudo e a mascote voltam a ser o
+SVG antigo). As duas linhas de banco são independentes do deploy: o manto volta com
+um `update esc_socios`, e o nome reservado sai com um `delete` — mas **não convém
+tirar a reserva**, ela é proteção do dono.
+
 ## 16/09/2026 — 🪞 Antes × depois das telas da carreira (RASCUNHO PRONTO, esperando OK)
 
 Diego, depois do levantamento: *"cadê mockups das ideias de como ficaria"*.

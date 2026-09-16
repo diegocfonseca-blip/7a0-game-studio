@@ -30,6 +30,7 @@ import saoMarcosAntonioMascoteImg from './img/saomarcosantonio-mascote.webp' // 
 import interMadridMascoteImg from './img/internacional-madrid-mascote.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
 import raivaCajuriMascoteImg from './img/raivacajuri-mascote.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
+import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import interBailaoMascoteImg from './img/inter-bailao-mascote.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
@@ -335,46 +336,14 @@ export const MASCOTES: Record<string, ReactNode> = {
           </g>
     </svg>
   ),
-  // 🧔 careca de barba ruiva ESTRESSADO (Murriz FC — msb102010, rubro-negro)
+  // ⚔️ O Murriz — Murriz FC (msb102010, 16/09). 316x440 no arquivo, então a largura
+  // sai da PROPORÇÃO REAL (nunca width={size} chutado). O guerreiro careca de barba
+  // ruiva, de armadura e machado-de-bola, em cima do entulho.
+  // 🧷 A CHAVE continua `careca_ruivo` de propósito: é o que está gravado no banco
+  // (esc_socios.mascote_key do dono) e no MANTO_ANGLE. Só a arte trocou — era SVG
+  // desenhado à mão aqui dentro (pré-regra de peso), agora é webp fora do bundle.
   careca_ruivo: (
-    <svg width={150} height={195} viewBox="0 0 200 260">
-      <g>
-              <ellipse cx="100" cy="248" rx="60" ry="10" fill="rgba(0,0,0,.15)"/>
-              <rect x="72" y="196" width="20" height="40" rx="6" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <rect x="108" y="196" width="20" height="40" rx="6" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <path d="M64 232 q-6 10 6 14 l24 0 0 -14 Z" fill="#141414" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <path d="M106 232 l0 14 24 0 q12 -4 6 -14 Z" fill="#141414" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <path d="M66 176 H134 L138 200 108 196 106 202 94 202 92 196 62 200 Z" fill="#141414" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <path d="M56 118 Q34 140 40 172 L60 164" fill="#C4122E" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <circle cx="42" cy="176" r="13" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <path d="M144 118 Q166 140 160 172 L140 164" fill="#C4122E" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <circle cx="158" cy="176" r="13" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-              <defs><clipPath id="tor"><path d="M60 112 Q100 104 140 112 L136 180 64 180 Z"/></clipPath></defs>
-              <path d="M60 112 Q100 104 140 112 L136 180 64 180 Z" fill="#C4122E" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <g clipPath="url(#tor)">
-                <rect x="55" y="124" width="90" height="12" fill="#141414"/>
-                <rect x="55" y="148" width="90" height="12" fill="#141414"/>
-                <rect x="55" y="172" width="90" height="12" fill="#141414"/>
-              </g>
-              <path d="M60 112 Q100 104 140 112 L136 180 64 180 Z" fill="none" stroke="#0C0C0C" strokeWidth="5" strokeLinejoin="round"/>
-              <g transform="translate(100 66) scale(1.18)">
-            <circle cx="-42" cy="6" r="10" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-            <circle cx="42" cy="6" r="10" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="5"/>
-            <path d="M-40 6 Q-44 -46 0 -48 Q44 -46 40 6 Q40 20 32 30 L-32 30 Q-40 20 -40 6 Z" fill="#F0C49B" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-            <path d="M-22 -34 Q-4 -44 14 -36 Q-4 -30 -22 -34 Z" fill="#ffffff" opacity=".45"/>
-            <path d="M-30 -8 L-8 -2" stroke="#A2481A" strokeWidth="8" strokeLinecap="round"/>
-            <path d="M30 -8 L8 -2" stroke="#A2481A" strokeWidth="8" strokeLinecap="round"/>
-            <circle cx="-17" cy="6" r="7.5" fill="#fff" stroke="#0C0C0C" strokeWidth="3"/>
-            <circle cx="17" cy="6" r="7.5" fill="#fff" stroke="#0C0C0C" strokeWidth="3"/>
-            <circle cx="-15" cy="7" r="3.6" fill="#0C0C0C"/>
-            <circle cx="19" cy="7" r="3.6" fill="#0C0C0C"/>
-            <path d="M0 8 Q-6 22 2 24" fill="none" stroke="#DDA877" strokeWidth="5" strokeLinecap="round"/>
-            <path d="M-38 6 Q-40 44 -20 62 Q0 74 20 62 Q40 44 38 6 Q30 30 18 32 Q8 44 0 44 Q-8 44 -18 32 Q-30 30 -38 6 Z" fill="#C85A1B" stroke="#0C0C0C" strokeWidth="6" strokeLinejoin="round"/>
-            <path d="M-26 30 l-4 16 M-12 40 l-2 16 M0 44 l0 16 M12 40 l2 16 M26 30 l4 16" stroke="#A2481A" strokeWidth="3.5" strokeLinecap="round"/>
-            <path d="M-20 26 Q-8 34 0 30 Q8 34 20 26 Q10 40 0 38 Q-10 40 -20 26 Z" fill="#A2481A" stroke="#0C0C0C" strokeWidth="3"/>
-          </g>
-            </g>
-    </svg>
+    <img src={murrizMascoteImg} height={176} width={Math.round(176 * 316 / 440)} alt="O Murriz — Murriz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🌿👑 samambaia BRABA coroada (Império Samambaia — jorgericardo777, Rio Branco)
   samambaia: (
@@ -887,7 +856,15 @@ export const CARIMBO_GOL: Record<string, string> = {
   'BICHO DA SEDA': 'bichodaseda_bicho',
   'BICHO DA SEDA FC': 'bichodaseda_bicho',
   'Nightfull FC': 'galo',
+  // ⚔️ Murriz FC (msb102010). CARIMBO_GOL é busca EXATA: entram as 4 formas do nome
+  // reservado + a caixa alta, senão o carimbo do gol falha quando o dono escreve
+  // o clube de outro jeito.
+  'Murriz': 'careca_ruivo',
   'Murriz FC': 'careca_ruivo',
+  'Murriz EC': 'careca_ruivo',
+  'Murriz SC': 'careca_ruivo',
+  'MURRIZ': 'careca_ruivo',
+  'MURRIZ FC': 'careca_ruivo',
   'Tôka10': 'toka',
   'SC Ferrari': 'piloto_bola',
   'Barcenite FC': 'gatao_bfc',
@@ -1129,6 +1106,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
+  careca_ruivo: 'O Murriz', // ⚔️ Murriz FC (msb102010, 16/09) — o guerreiro de barba ruiva e machado-de-bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bailao_espelho: 'O Bailão', // 🪩 Inter de Bailão (matheus223lms, 14/09) — a bola de espelho. ⚠️ a chave antiga era `alface`; o banco (esc_socios.mascote_key) foi atualizado junto.
   internacional_siuuu: 'O Siuuu', // 👑 Internacional de Madrid (matheusstefanello372, 14/09) — o grito coroado é a marca do clube. A chave fica `internacional_siuuu` porque já está gravada no banco (esc_socios.mascote_key).
   saomarcos_porco: 'Marcos', // 😇 São Marcos Antônio FC (marcomak03, 13/09) — a mascote é o próprio Marcos, o goleiro de auréola (palavras do Diego: "Mascote do São Marcos é o Marcos mesmo"); o porquinho vai junto na arte. A chave fica `saomarcos_porco` porque já está gravada no banco (esc_socios.mascote_key).
