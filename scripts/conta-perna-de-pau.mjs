@@ -25,11 +25,12 @@ console.log(await page.evaluate(async () => {
   await import(B + 'screens.tsx')
   const P = await import(B + 'pyramidseason.tsx')
   const { buildPyramid, seedCpuSquads, DIVS } = P
-  const rec = seedCpuSquads([], 20250824, 'br', false)
+  const DECK = 'todos' // 🌎 a carreira com a escada usa os TRES baralhos (store.tsx: escadaLiberada() ? 'todos')
+  const rec = seedCpuSquads([], 20250824, DECK, false)
   const nomes = Object.keys(rec)
   const squad = rec[nomes[Math.floor(nomes.length / 2)]].map(c => ({ ...c }))
   const managers = [{ id: 0, name: 'Você', teamName: 'Meu Timão', isHuman: true, auctionRival: false, formation: '4-4-2', money: 100, squad }]
-  const world = buildPyramid(managers, 0, 987654321, 'br', null, undefined)
+  const world = buildPyramid(managers, 0, 987654321, DECK, null, undefined)
   const POS = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
   // o filler tem nome de zoeira e nível baixinho — a lista está no pyramidseason
   const FIL = /perna-de-pau|ferro velho|pé de anjo|canela seca|zé ninguém|trapalhão|bola murcha|meia-boca/i

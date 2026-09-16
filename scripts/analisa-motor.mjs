@@ -35,10 +35,11 @@ const rel = await page.evaluate(async (TEMPS) => {
   await import(B + 'screens.tsx')   // 🔁 quebra o ciclo de import (ver sim-caixa-120)
   const P = await import(B + 'pyramidseason.tsx')
   const { buildPyramid, simulatePyramid, computePromotions, seedCpuSquads, DIVS } = P
+  const DECK = 'todos' // 🌎 a carreira com a escada usa os TRES baralhos (Brasil + Europa + Mundo)
 
   // o técnico humano leva um elenco MEDIANO (a receita do meio da lista de CPU),
   // pra separar "o jogador é bom" de "a regra empurra pra cima".
-  const receitas = seedCpuSquads([], 20250824, 'br', false)
+  const receitas = seedCpuSquads([], 20250824, DECK, false)
   const nomes = Object.keys(receitas)
   const meuElenco = receitas[nomes[Math.floor(nomes.length / 2)]].map(c => ({ ...c }))
   const managers = [{ id: 0, name: 'Você', teamName: 'Meu Timão', isHuman: true, auctionRival: false, formation: '4-4-2', money: 100, squad: meuElenco }]
@@ -61,7 +62,7 @@ const rel = await page.evaluate(async (TEMPS) => {
   let placements = null, cpuSquads = undefined
 
   for (let t = 1; t <= TEMPS; t++) {
-    const world = buildPyramid(managers, 0, SEED, 'br', placements, cpuSquads)
+    const world = buildPyramid(managers, 0, SEED, DECK, placements, cpuSquads)
     const seasonSeed = (SEED ^ (t * 2654435761)) >>> 0
     const live = simulatePyramid(world, seasonSeed, 38, {}, {}, 1.12, true, true)
 
