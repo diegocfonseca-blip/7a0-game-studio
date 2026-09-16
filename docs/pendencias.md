@@ -1,3 +1,57 @@
+## 16/09/2026 — 🐓🌙 Nightfull FC de cara nova (FEITO, no ar)
+
+O dono (guilhermevictor539@gmail.com, Guilherme, ❤️ Atlético Mineiro, sócio nº6,
+fundador nº18) mandou a prancha completa: escudo, mascote e camisa. A arte é a
+cara do time do coração dele — o Galo alvinegro.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/nightfull-escudo.webp` — 249×360, **28 KB**.
+- **Mascote** `src/escalacao/img/nightfull-mascote.webp` — 244×440, **38 KB**.
+- **Total 67 KB**, dentro do teto de 75 KB por batismo.
+- **Camisa** `scripts/kits/nightfull-camisa.webp` (post) +
+  `public/mantos-salao/nightfull-camisa-v1.webp` (Salão, já com `-vN` no nome).
+- **Manto** `#0A0A0A` preto + `#D6D2CF` branco, **MEDIDOS** na camisa nova (preto
+  64% do manto). ⚠️ O branco veio do **TOPO** das listras: no resto da camisa a
+  arte de penas escurece o pano e a mediana dava um cinza sujo (#C1BEBB).
+  O PRETO vem primeiro porque listra clara na tela creme some (mesma ordem do
+  Tricolor do Arruda e do Briga de Galo). **3ª cor DOURADA** `#C5A373` (gola,
+  punhos e filetes) em `MANTO_TRI`. Listras VERTICAIS — que é o padrão (ângulo 90),
+  então não precisou de linha no `MANTO_ANGLE`.
+
+### 🧹 Mais dois SVG à mão fora do bundle
+Igual ao Murriz: escudo e mascote eram SVG desenhados à mão dentro do `.tsx`.
+O escudo tinha até uma versão **MINI** pra tabela (`size < 40`) — o `objectFit:
+contain` do webp já dá conta disso sozinho.
+
+### 🧷 A chave `galo` FICOU
+Gravada no banco (`esc_socios.mascote_key`). ⚠️ Não confundir com
+`brigadegalo_galo`, que é outro clube (Briga de Galo FC) — são chaves diferentes
+e cada uma tem a sua 3ª cor.
+
+### 🗄️ Banco
+| perna | estado |
+| --- | --- |
+| conta em `auth.users` | ✅ já existia |
+| `user_colors` ouro · `esc_fundadores` nº18 · `esc_socios` nº6 | ✅ já existiam |
+| manto do sócio | ✅ **atualizado** pras cores medidas |
+| `esc_nomes_batismo` | ⚠️ **estava FURADO** — corrigido |
+
+**Mesmo furo do Murriz:** só `nightfull fc` estava travado; "Nightfull" puro e
+"Nightfull EC" estavam LIVRES. Inseri o nome puro e o gatilho criou o EC.
+
+### 🔎 Pendência que isso levantou
+**Varrer `esc_nomes_batismo` inteira.** Dois clubes seguidos (Murriz e Nightfull)
+estavam com só 1 das 3 formas travadas — sinal de que os batismos ANTIGOS foram
+cadastrados com o nome JÁ com "FC", antes do gatilho existir. Vale rodar uma
+conferência de todos os batismos de `batismos.ts` contra a tabela.
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.galo = 'O Nightfull'`. A prancha veio sem nome de mascote.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira. O manto volta com um
+`update esc_socios`; a reserva do nome é proteção do dono, melhor deixar.
+
 ## 16/09/2026 — ⚔️ Murriz FC de cara nova (FEITO, no ar)
 
 O dono (msb102010@hotmail.com, Robertão, ❤️ Flamengo, sócio nº7, fundador nº21)

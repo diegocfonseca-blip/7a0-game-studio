@@ -31,6 +31,7 @@ import interMadridMascoteImg from './img/internacional-madrid-mascote.webp' // �
 import raivaCajuriMascoteImg from './img/raivacajuri-mascote.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
 import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import nightfullMascoteImg from './img/nightfull-mascote.webp' // 🐓🌙 Nightfull FC (guilhermevictor539): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import interBailaoMascoteImg from './img/inter-bailao-mascote.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10MascoteImg from './img/falad10-mascote.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
@@ -638,34 +639,14 @@ export const MASCOTES: Record<string, ReactNode> = {
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />
   ),
-  // 🐓🌙 o GALO BALADEIRO (Nightfull FC — guilhermevictor539, aprovado 09/08):
-  // alvinegro de óculos escuro, corrente de ouro e pose Travolta da night.
+  // 🐓🌙 O Nightfull — Nightfull FC (guilhermevictor539, 16/09). 244x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O galo
+  // guerreiro alvinegro de capa de penas, crista vermelha e a lua no peito.
+  // 🧷 A CHAVE continua `galo` de propósito: é o que está gravado no banco
+  // (esc_socios.mascote_key do dono). Só a arte trocou — era SVG desenhado à mão
+  // aqui dentro (pré-regra de peso), agora é webp fora do bundle.
   galo: (
-    <svg width="126" height="176" viewBox="0 0 120 170">
-      <g transform="translate(0,4)">
-        <ellipse cx="60" cy="158" rx="42" ry="9" fill="rgba(0,0,0,.15)" />
-        <circle cx="90" cy="146" r="12" fill="#fff" stroke={INK} strokeWidth="4" />
-        <path d="M90 138 l4 5 -1 6 h-6 l-1 -6 Z" fill={INK} />
-        <path d="M50 126 l-2 18 M68 126 l2 18" stroke="#E8A200" strokeWidth="6" strokeLinecap="round" />
-        <path d="M42 146 l10 2 M64 146 l12 2 M46 140 l-6 2" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
-        <path d="M74 92 Q104 68 108 44 Q112 66 96 88 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M76 100 Q112 88 122 66 Q120 94 96 108 Z" fill="#2b2b2b" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M40 88 74 88 78 128 38 128 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M50 88 l2 40 M64 88 l2 40" stroke="#ffffff" strokeWidth="6" />
-        <path d="M70 92 Q86 74 88 56 L82 58 Q86 46 92 40 L96 52 Q98 60 92 72 Q86 84 76 94 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M92 40 l2 -10" stroke={INK} strokeWidth="4" strokeLinecap="round" />
-        <path d="M42 96 Q30 102 36 114 L46 112" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M44 90 Q58 100 70 90" stroke="#FFC400" strokeWidth="4" fill="none" strokeLinecap="round" />
-        <circle cx="57" cy="97" r="4" fill="#FFC400" stroke={INK} strokeWidth="2.5" />
-        <path d="M34 56 Q36 38 54 34 Q74 30 80 46 Q86 60 80 72 Q72 86 54 86 Q38 84 34 70 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M38 38 Q32 22 46 26 Q46 12 60 22 Q64 8 74 22 Q82 16 80 32 L72 44 Z" fill="#E8503A" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
-        <path d="M32 60 L14 66 L32 72 Z" fill="#E8A200" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
-        <path d="M36 74 q-6 12 3 16 q8 3 10 -6 q-6 -3 -13 -10 Z" fill="#E8503A" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
-        <path d="M36 50 Q36 44 44 44 L68 46 Q76 47 74 54 Q73 62 64 62 L44 60 Q36 59 36 50 Z" fill="#0C0C0C" stroke={INK} strokeWidth="3" />
-        <path d="M70 48 L82 44" stroke={INK} strokeWidth="4" strokeLinecap="round" />
-        <path d="M42 49 L60 51" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" opacity=".8" />
-      </g>
-    </svg>
+    <img src={nightfullMascoteImg} height={176} width={Math.round(176 * 244 / 440)} alt="O Nightfull — Nightfull FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐦‍⬛ Manfré FC — a GRALHA AZUL de braço cruzado (coração Paraná Clube),
   // camisa metade vermelha metade azul. Arte própria do dono (webp, fora do
@@ -855,7 +836,15 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Bicho da Seda EC': 'bichodaseda_bicho',
   'BICHO DA SEDA': 'bichodaseda_bicho',
   'BICHO DA SEDA FC': 'bichodaseda_bicho',
+  // 🐓🌙 Nightfull FC (guilhermevictor539). CARIMBO_GOL é busca EXATA: entram as 4
+  // formas do nome reservado + a caixa alta, senão o carimbo do gol falha quando o
+  // dono escreve o clube de outro jeito.
+  'Nightfull': 'galo',
   'Nightfull FC': 'galo',
+  'Nightfull EC': 'galo',
+  'Nightfull SC': 'galo',
+  'NIGHTFULL': 'galo',
+  'NIGHTFULL FC': 'galo',
   // ⚔️ Murriz FC (msb102010). CARIMBO_GOL é busca EXATA: entram as 4 formas do nome
   // reservado + a caixa alta, senão o carimbo do gol falha quando o dono escreve
   // o clube de outro jeito.
@@ -1106,6 +1095,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
+  galo: 'O Nightfull', // 🐓🌙 Nightfull FC (guilhermevictor539, 16/09) — o galo guerreiro da noite. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   careca_ruivo: 'O Murriz', // ⚔️ Murriz FC (msb102010, 16/09) — o guerreiro de barba ruiva e machado-de-bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bailao_espelho: 'O Bailão', // 🪩 Inter de Bailão (matheus223lms, 14/09) — a bola de espelho. ⚠️ a chave antiga era `alface`; o banco (esc_socios.mascote_key) foi atualizado junto.
   internacional_siuuu: 'O Siuuu', // 👑 Internacional de Madrid (matheusstefanello372, 14/09) — o grito coroado é a marca do clube. A chave fica `internacional_siuuu` porque já está gravada no banco (esc_socios.mascote_key).

@@ -40,6 +40,7 @@ import interMadridEscudoImg from './img/internacional-madrid-escudo.webp' // �
 import raivaCajuriEscudoImg from './img/raivacajuri-escudo.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaEscudoImg from './img/reidabola-escudo.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
 import murrizEscudoImg from './img/murriz-escudo.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import nightfullEscudoImg from './img/nightfull-escudo.webp' // 🐓🌙 Nightfull FC (guilhermevictor539): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import interBailaoEscudoImg from './img/inter-bailao-escudo.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
@@ -649,6 +650,15 @@ const reiDaBolaEscudoRender = (size: number) => (
 // arquivo separado (28 KB), que só desce pra quem encontra o Murriz.
 const murrizEscudoRender = (size: number) => (
   <img src={murrizEscudoImg} height={size} width={Math.round(size * 240 / 360)} alt="Murriz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+// 🐓🌙 Nightfull FC — 249x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (guilhermevictor539, 16/09):
+// brasão alvinegro de moldura dourada, com o galo coroado de crista vermelha,
+// a lua e as estrelas. ❤️ Atlético Mineiro — o Galo, alvinegro; a arte é a cara
+// do time do coração dele.
+// 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+const nightfullEscudoRender = (size: number) => (
+  <img src={nightfullEscudoImg} height={size} width={Math.round(size * 249 / 360)} alt="Nightfull FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🔊 Bonança SSFC — 305x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (duselecta, 09/09): escudo redondo
@@ -1355,47 +1365,16 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Bicho da Seda FC': bichoDaSedaEscudoRender,
   'Bicho da Seda EC': bichoDaSedaEscudoRender,
   'Bicho da Seda SC': bichoDaSedaEscudoRender,
-  // 🐓🌙 Nightfull FC (guilhermevictor539, aprovado 09/08): o GALO BALADEIRO
-  // da noite — alvinegro, crista vermelha, óculos escuro, lua e estrela.
-  'Nightfull FC': (size: number) => {
-    const mini = size < 40
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Nightfull FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="nfClip"><path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" /></clipPath></defs>
-        <path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" fill="#141414" />
-        <g clipPath="url(#nfClip)">
-          <rect x="38" y="10" width="18" height="240" fill="#ffffff" opacity=".92" />
-          <rect x="144" y="10" width="18" height="240" fill="#ffffff" opacity=".92" />
-        </g>
-        <path d="M100 22 L182 46 V142 C182 184 140 210 100 230 C60 210 18 184 18 142 V46 Z" fill="none" stroke={INK} strokeWidth={mini ? 9 : 7} strokeLinejoin="round" />
-        {mini ? (
-          <g>
-            <path d="M64 70 Q54 44 78 52 Q78 30 100 42 Q104 24 122 40 Q134 34 132 56 L122 76 Z" fill="#E8503A" stroke={INK} strokeWidth="6" />
-            <path d="M60 100 Q64 70 96 66 Q128 62 140 86 Q148 108 138 130 Q128 152 100 154 Q72 156 62 132 Q56 114 60 100 Z" fill="#141414" stroke={INK} strokeWidth="8" />
-            <path d="M58 108 L26 118 L58 130 Z" fill="#E8A200" stroke={INK} strokeWidth="6" />
-            <path d="M62 88 Q62 78 76 78 L112 82 Q124 84 120 96 Q118 110 104 110 L76 106 Q62 104 62 88 Z" fill="#0C0C0C" stroke="#fff" strokeWidth="3" />
-            <path d="M72 88 L100 92" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" opacity=".85" />
-          </g>
-        ) : (
-          <g>
-            <path d="M150 44 a16 16 0 1 0 12 26 a13 13 0 0 1 -12 -26 Z" fill="#FFC400" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-            <path d="M128 66 l2.5 6 6 1 -4.5 4 1.5 6 -5.5 -3.5 -5.5 3.5 1.5 -6 -4.5 -4 6 -1 Z" fill="#FFC400" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
-            <path d="M78 150 Q76 190 96 208 L140 208 Q142 172 128 148 Z" fill="#141414" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-            <path d="M92 154 q-2 30 10 50 M110 152 q4 26 14 48" stroke="#ffffff" strokeWidth="7" fill="none" />
-            <path d="M68 64 Q58 42 78 48 Q76 28 96 38 Q98 20 114 34 Q126 26 126 48 L118 68 Z" fill="#E8503A" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-            <path d="M64 96 Q66 70 92 64 Q120 58 132 78 Q142 96 136 118 Q130 140 106 144 Q80 148 70 128 Q62 112 64 96 Z" fill="#141414" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-            <path d="M62 104 L34 112 L62 122 Z" fill="#E8A200" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
-            <path d="M40 112 L60 116" stroke={INK} strokeWidth="3" strokeLinecap="round" />
-            <path d="M68 126 q-8 16 4 22 q10 4 14 -8 q-8 -4 -18 -14 Z" fill="#E8503A" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-            <path d="M66 86 Q66 78 76 78 L108 80 Q118 82 116 92 Q114 104 102 104 L78 102 Q66 100 66 86 Z" fill="#0C0C0C" stroke={INK} strokeWidth="4" />
-            <path d="M112 84 L134 80" stroke={INK} strokeWidth="5" strokeLinecap="round" />
-            <path d="M74 84 L96 86" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity=".8" />
-          </g>
-        )}
-      </svg>
-    )
-  },
+  // 🐓🌙 Nightfull FC (guilhermevictor539) — ARTE NOVA em 16/09, mandada pelo dono.
+  // O galo alvinegro coroado, com a crista vermelha e a lua, no brasão listrado de
+  // moldura dourada. As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4
+  // nomes reservados). O escudo ANTIGO era SVG à mão aqui dentro, com até uma
+  // versão MINI pra tabela (era pré-regra de peso); saiu de vez e virou webp fora
+  // do bundle — o `objectFit: contain` já dá conta do tamanho da tabela.
+  'Nightfull': nightfullEscudoRender,
+  'Nightfull FC': nightfullEscudoRender,
+  'Nightfull EC': nightfullEscudoRender,
+  'Nightfull SC': nightfullEscudoRender,
   // 🐦‍⬛ Manfré FC (danielmanfre5) — ex-Livre-pool, Série D. 30/08: a arte que o
   // dono mandou APOSENTA o escudo que era SVG desenhado à mão aqui dentro (o de
   // 09/08). 📛 as 4 FORMAS reservadas do nome (regra do Diego 20/08): nome puro
