@@ -1,3 +1,49 @@
+## 16/09/2026 — 🌴 Marolados FC de cara nova (FEITO, no ar)
+
+O dono (paisagensetrilha@gmail.com, Serjão, ❤️ Palmeiras, sócio nº18, fundador
+nº38) mandou a prancha completa. Série **B** (ex-Real Madruga).
+
+### O que entrou
+- **Escudo** `src/escalacao/img/marolados-escudo.webp` — 298×360, **28 KB**.
+- **Mascote** `src/escalacao/img/marolados-mascote.webp` — 230×440, **32 KB**.
+- **Total 60 KB**, dentro do teto de 75 KB.
+- **Camisa** `scripts/kits/marolados-camisa.webp` +
+  `public/mantos-salao/marolados-camisa-v1.webp` (já com `-vN`).
+- **Manto** `#024623` verde-mato + `#F5EBD7` branco-creme, MEDIDOS na camisa nova
+  (verde 42%, creme 36%; antes era `#1B7A3D`/`#FFFFFF`). **3ª cor AMARELA**
+  `#F7C617` (faixa rasta da gola e dos punhos) em `MANTO_TRI`. O vermelho da mesma
+  faixa é metade do amarelo (0,78% × 1,38%) e ficou de fora.
+
+### ⚠️ Esta era a prancha de maior RISCO de recorte do dia
+Fundo verde-croma **e desenho verde**: o escudo, a camisa e o short são verdes.
+É o caso do Bagres 1993 (06/09) e do Tôka10. O que salvou foi o **piso de brilho**
+(`G > 180`) que o script já carrega: o fundo é verde CLARO (G≈245) e o verde do
+desenho é ESCURO (G≈70–120). Conferido peça por peça sobre CREME — nada foi comido.
+A fumacinha do mascote é uma mancha SEPARADA (6.324 px) e foi preservada porque o
+mascote é recortado com `um_so=False`.
+
+### 🧹 Mais dois SVG à mão fora do bundle
+Escudo (com versão MINI pra tabela) e mascote eram SVG desenhados à mão no `.tsx`.
+A chave `marolado` FICOU (está no banco). O `CARIMBO_GOL` ganhou as 4 formas +
+caixa alta + o nome VELHO (**Real Madruga**). E `MASCOTE_NOME.marolado` **não
+existia** — agora é `'O Marolado'` (provisório, a arte veio sem nome).
+
+### 🗄️ Banco
+Conta, ouro, fundador nº38 e sócio nº18 já existiam. Manto atualizado.
+`esc_nomes_batismo`: **SÉTIMO clube seguido com furo** — só `marolados fc`.
+
+### 📌 Nota pro Diego (decisão dele, não minha)
+A arte nova é bem mais explícita que a anterior no tema: o mascote agora está com
+um **cigarro/baseado ACESO na boca** (antes era só fumacinha solta) e a camisa tem
+**estampa de folha de maconha** repetida no pano. O clube já era rastafari desde
+agosto e foi ele que mandou, então entrou como veio. Fica anotado porque é o tipo
+de coisa que aparece em print e em post — se preferir suavizar (tirar o cigarro,
+trocar a folha por coqueiro), é rápido.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira. Manto volta com `update esc_socios`
+(era `#1B7A3D` / `#FFFFFF`).
+
 ## 16/09/2026 — 🐶 São Luiz FC: escudo e manto novos (FEITO, no ar)
 
 O dono (gabrielnegreirosamaral99@**hotmail**.com, Gabriel, ❤️ Flamengo, sócio nº46,
