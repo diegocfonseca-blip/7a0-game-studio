@@ -258,8 +258,8 @@ async function fetchDbTier(email: string | null) {
     if (t && t in APOIO_PERKS) dbTier = t
   } catch { /* tabela ainda não existe / rede — segue com FOUNDERS */ }
 }
-supabase.auth.getUser().then(({ data }) => { myEmail = data?.user?.email?.toLowerCase() ?? null; if (myEmail) markHadLogin(); fetchDbTier(myEmail); fixOldEmojiName(data?.user) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { const em = s?.user?.email?.toLowerCase() ?? null; if (em) markHadLogin(); if (em !== myEmail) { myEmail = em; fetchDbTier(em) } fixOldEmojiName(s?.user) })
+supabase.auth.getUser().then(({ data }) => { if (bancadaFixa) return; myEmail = data?.user?.email?.toLowerCase() ?? null; if (myEmail) markHadLogin(); fetchDbTier(myEmail); fixOldEmojiName(data?.user) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { if (bancadaFixa) return; const em = s?.user?.email?.toLowerCase() ?? null; if (em) markHadLogin(); if (em !== myEmail) { myEmail = em; fetchDbTier(em) } fixOldEmojiName(s?.user) })
 
 // cadastro ANTIGO com emoji no nome: corrige no banco uma vez, no login.
 // (nome que era só emoji vira o prefixo do e-mail.)
@@ -289,6 +289,16 @@ export function logApoio(choice: string) {
     } catch { /* silencioso */ }
   })()
 }
+
+// 🧪 SÓ A BANCADA (`scripts/teste-elenco`) chama isto, pra ver a coluna do Olheiro
+// sem login. O app NUNCA chama.
+export function _bancadaApoio(email: string, tier: ApoioTier): void {
+  // ⚠️ PEGAJOSO: o `getUser()` do Supabase resolve depois e zeraria `myEmail`.
+  bancadaFixa = { email: email.toLowerCase(), tier }
+  myEmail = bancadaFixa.email
+  dbTier = tier
+}
+let bancadaFixa: { email: string; tier: ApoioTier } | null = null
 
 // e-mail da conta logada (pra gates de teste de features) — null se deslogado
 export function loggedEmail(): string | null { return myEmail }

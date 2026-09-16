@@ -29,7 +29,7 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
-import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
+import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
 import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -44,7 +44,7 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do cl
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural } from './copa-mundo'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useAliciarJogador, useLojaLiberada } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada } from './sport'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
 import { BICO_MARCAS, bicoValor, bicoElegivel, type BicoDiv } from './bico'
 import { fornAtivo } from './loja'
@@ -59,7 +59,7 @@ import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewM
 import type { ApoioPerk } from './apoio'
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
-import { JogadorNoCampo, type EstadoJogador } from './jogadorcampo'
+import { JogadorNoCampo, BEGE_MANTO, type EstadoJogador } from './jogadorcampo'
 import { MASCOTES, FestaoMascote, carimboDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
 import careerRoomPrivate from './img/career-setup-room-private.webp'
 import presidentCasual from './img/career-president-casual.webp'
@@ -3256,6 +3256,24 @@ const POS_LABEL: Record<Sector, string> = new Proxy(POS_LABEL_PT, { get: (_t, k)
 type ListCfg = { listed: boolean; listable: boolean; onList: () => void }
 // 🚑 âncora da lista de titulares: o atalho do cabeçalho do clube rola até aqui.
 const ID_TITULARES = 'll-titulares'
+// 🖥️📱 MONITOR OU CELULAR (aba Elenco, 16/09). O jogo inteiro mora numa coluna de
+// 576px — o que é certo em quase toda tela, mas na aba Elenco deixava o campinho do
+// tamanho de celular dentro de um monitor (o Diego pegou: *"o campinho ficou mt
+// pequeno pro espaço que tem"*). Só esta aba sai da coluna quando há espaço, porque
+// é a única que tem DUAS coisas grandes pra mostrar ao mesmo tempo: campo e lista.
+// Abaixo de 1000px nada muda — byte a byte a tela de celular de sempre.
+function useTelaLarga(min = 1000) {
+  const [larga, setLarga] = useState(() => typeof window !== 'undefined' && window.innerWidth >= min)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia(`(min-width: ${min}px)`)
+    const ver = () => setLarga(mq.matches)
+    ver()
+    mq.addEventListener('change', ver)
+    return () => mq.removeEventListener('change', ver)
+  }, [min])
+  return larga
+}
 function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boolean; col: FCol; onSwap?: () => void; list?: ListCfg }) {
   const listed = !!list?.listed
   const dim = !!list && !list.listable && !listed // modo listagem: sem poder listar (último da posição / bloqueado)
@@ -3293,24 +3311,42 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // 🧹 ENXUGADA (Diego 14/09: *"tá com muita informação desnecessária"*): o texto
   // longo do preparador só abre no "?" — quem já sabe a regra nunca mais lê.
   const [ajudaPrep, setAjudaPrep] = useState(false)
+  // 👥 ABA ELENCO NOVA (mockup aprovado pelo Diego 16/09):
+  //   🖥️ monitor → campo à ESQUERDA, lista AO LADO · 📱 celular → campo EM CIMA,
+  //   lista EMBAIXO. E a lista virou TABELA com abas (⭐ Titulares · 🔁 Reservas):
+  //   os números viram COLUNA, que é o que deixa COMPARAR — as duas listinhas lado
+  //   a lado nunca deixaram, e com o banco maior sobrava buraco na esquerda.
+  //   O campinho ficou LIMPO: gol e assistência saíram de cima do boneco e viraram
+  //   coluna (ordem dele: *"sem pôr gols no campinho… a pessoa já vê na lista"*).
+  // 🔒 POR ENQUANTO SÓ A CONTA DO DIEGO (ordem dele em 16/09: *"só p meu usuário
+  // msm por enquanto"*). Trava fechada = a aba é byte a byte a de sempre.
+  const elencoNovo = useElencoNovo()
+  const larga = useTelaLarga() && elencoNovo
+  const [abaLista, setAbaLista] = useState<'tit' | 'res'>('tit')
+  // 🧑 o rostinho da lista é a MESMA arte do campinho, na MESMA trava
+  // (`useLegendPresentation`) — nunca um rosto novo, nunca uma trava nova.
+  const rostosOn = useLegendPresentation()
   // 😓 barrinha de gás (variante A aprovada pelo Diego 12/09): mora embaixo do
   // "clube · ano", onde já mora o overall do Olheiro. Cor pelo estado; lesão em
   // volta gradual fica roxa com o %; quem está FORA (suspenso) mostra só "🩹 fora".
-  const gasChip = (c: WonCard): React.ReactNode => {
+  // 📏 `compacto` = a coluna GÁS do celular, onde não cabe barra + número: fica só
+  // a barra (a cor já conta a história de longe) e o número aparece na barra do
+  // jogador selecionado. No monitor vai barra + número, como sempre foi.
+  const gasChip = (c: WonCard, compacto = false): React.ReactNode => {
     if (!condicao || c.fake) return null
-    const barBox: React.CSSProperties = { display: 'inline-block', width: 34, height: 6, border: `1.5px solid ${INK}`, borderRadius: 4, background: '#e9dfbe', overflow: 'hidden', flex: 'none', verticalAlign: 'middle' }
+    const barBox: React.CSSProperties = { display: 'inline-block', width: compacto ? 26 : 34, height: 6, border: `1.5px solid ${INK}`, borderRadius: 4, background: '#e9dfbe', overflow: 'hidden', flex: 'none', verticalAlign: 'middle' }
     const fill = (w: number, bg: string): React.CSSProperties => ({ display: 'block', height: '100%', width: `${w}%`, background: bg, transition: 'width .6s ease' })
     const lbl: React.CSSProperties = { ...OSWALD, fontWeight: 900, fontSize: 9, lineHeight: 1, flex: 'none' }
-    if (condicao.suspensoId === c.id) return <span style={{ ...lbl, color: '#7C3AED' }}>🩹 {tr('fora', 'out')}</span>
+    if (condicao.suspensoId === c.id) return <span style={{ ...lbl, color: '#7C3AED' }}>🩹{compacto ? '' : ` ${tr('fora', 'out')}`}</span>
     const mv = condicao.volta(c.id)
-    if (mv) { const p = pctVolta(mv); return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, '#7C3AED')} /></span><span style={{ ...lbl, color: '#7C3AED' }}>🩹 {p}%</span></span> }
+    if (mv) { const p = pctVolta(mv); return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, '#7C3AED')} /></span>{!compacto && <span style={{ ...lbl, color: '#7C3AED' }}>🩹 {p}%</span>}</span> }
     // ⚠️ o gás é FLOAT desde 13/09 (−1,4 por jogo, porque o cansaço atravessa
     // temporadas): arredonda SÓ pra mostrar — a conta segue cheia.
     // 📊 A barra mostra a LEITURA do gás (pctBarra/corBarra, condicao.ts — Diego 13/09:
     // "está diminuindo muito rápido"): 1º–50º jogo = 100%→50% verde, depois amarelo e
     // cai mais rápido. O motor, o estado e o emoji seguem no gás cru.
     const g = condicao.gas[c.id] ?? 100, p = pctBarra(g), cor = corBarra(g)
-    return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, cor)} /></span><span style={{ ...lbl, color: cor }}>{p}%</span></span>
+    return <span title={`${p}%`} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, cor)} /></span>{!compacto && <span style={{ ...lbl, color: cor }}>{p}%</span>}</span>
   }
   // 😓 NO CAMPINHO NÃO (Diego 12/09: *"não quero que apareça no campinho, só onde
   // tem a listagem"*) — o gás vive só nas listas de titulares/reservas.
@@ -3339,6 +3375,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // `olheiros` vem do pai) e SÓ pós-contratação (aqui tudo já é contratado).
   // 👑 ouro/batismo vê TUDO · ⭐ prata vê de craque pra baixo · resto não vê.
   // NUNCA a palavra da categoria escrita — só a cor (lei do Diego).
+  // 📏 o chip só encolhe na TABELA NOVA em tela estreita (lá ele divide a linha com
+  // 9 colunas). Com a trava fechada ele fica do tamanho de sempre — a tela antiga
+  // não muda um pixel.
+  const chipMenor = elencoNovo && !larga
   const olheiroTier = olheiros ? myApoioPerk()?.tier : undefined
   const overallChip = (c: WonCard) => {
     if (!c.lo || !c.hi || c.fake) return null
@@ -3349,7 +3389,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       : isProm ? ['linear-gradient(150deg,#C9A9FF,#8B5CF6)', '#fff']
       : c.fame >= 2 ? ['linear-gradient(150deg,#41C07A,#2E9E5B)', '#fff']
       : ['linear-gradient(150deg,#DBD1B5,#B2A583)', INK]
-    return <span style={{ ...OSWALD, flex: 'none', fontWeight: 700, fontSize: 9.5, border: `1.5px solid ${INK}`, borderRadius: 6, padding: '0 5px', background: g, color: ink2, lineHeight: '13px' }}>{c.lo}–{c.hi}</span>
+    return <span style={{ ...OSWALD, flex: 'none', fontWeight: 700, fontSize: chipMenor ? 8.5 : 9.5, border: `1.5px solid ${INK}`, borderRadius: 6, padding: chipMenor ? '0 3px' : '0 5px', background: g, color: ink2, lineHeight: '13px' }}>{c.lo}–{c.hi}</span>
   }
   const salaryOn = (seasonNo ?? 1) >= 4 // 🔓 salário/folha só aparecem a partir da 4ª temporada
   const sel = selId ? mgr.squad.find(c => c.id === selId) ?? null : null
@@ -3405,6 +3445,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   }
   const reserves = mgr.squad.filter(c => !xiIds.has(c.id)).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || mid(b) - mid(a))
   const titulares = SECTORS.flatMap(pos => xiOf(pos)) // mesma ordem da lista de reservas (GOL→ATA)
+  // ⛔ ABAIXO: A ABA COMO SEMPRE FOI (duas listinhas de meia largura). Continua
+  // aqui inteira porque a aba nova está LIBERADA SÓ PRA CONTA DO DIEGO
+  // (`useElencoNovo`) — pra todo o resto do mundo a tela é byte a byte esta.
+  // Quando a nova abrir pra geral, este pedaço sai junto.
   // linha compartilhada titular/reserva: no campinho o nome já mal cabe, então o
   // clube · ano (que diferencia o Kaká do SP do Kaká do Milan) vive AQUI nas
   // listas — e a troca funciona igual: toca num, acende os da mesma posição.
@@ -3443,6 +3487,202 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       </span>
     </div>
   ) }
+  // ── 📋 A TABELA DO ELENCO (16/09) ──────────────────────────────────────────
+  // Saiu a dupla de listinhas de meia largura e entrou UMA tabela com abas. O
+  // ganho é comparar: os números ficam em COLUNA, alinhados, então bate o olho e
+  // vê quem joga mais, quem faz gol e quem está sem gás. As colunas que dependem
+  // de direito (OVERALL, do olheiro) ou de regra ligada (JOGOS/GÁS, da condição)
+  // só EXISTEM quando há o que mostrar — coluna vazia com título parece bug.
+  const mostraOverall = olheiroTier === 'ouro' || olheiroTier === 'prata'
+  const wNum = larga ? 24 : 16
+  const numCell = (v: number, cor: string) => <span style={{ ...OSWALD, fontWeight: 800, fontSize: larga ? 12 : 10.5, color: cor }}>{v}</span>
+  // ⭐ titular · 😓🥵🚑 o estado do gás · 🩹 fora/voltando · · reserva inteiro.
+  // Mesma escada de `condicao.ts` — nada de emoji inventado aqui.
+  const staDe = (c: WonCard, titular: boolean): string => {
+    if (condicao && !c.fake) {
+      if (condicao.suspensoId === c.id || condicao.volta(c.id) !== 0) return '🩹'
+      const e = estadoGas(condicao.gas[c.id] ?? 100)
+      if (e === 'esgotado') return '🚑'
+      if (e === 'limite') return '🥵'
+      if (e === 'cansado') return '😓'
+    }
+    return titular ? '⭐' : '·'
+  }
+  const colunas: { k: string; w: number; head: string; cell: (c: WonCard, titular: boolean) => React.ReactNode }[] = [
+    // a posição continua na COR DO TIME, como já era na listinha antiga — é o
+    // único lugar da tabela onde a cor do clube aparece, e some se tirar.
+    { k: 'pos', w: larga ? 26 : 20, head: 'POS', cell: c => <span style={{ ...OSWALD, fontWeight: 900, fontSize: larga ? 9 : 8, background: col.solid, color: '#fff', borderRadius: 3, padding: '1px 4px' }}>{c.pos}</span> },
+    ...(mostraOverall ? [{ k: 'ovr', w: larga ? 46 : 34, head: 'OVERALL', cell: (c: WonCard) => overallChip(c) }] : []),
+    ...(condicao ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell(condicao.jogos[c.id] ?? 0, 'rgba(12,12,12,.7)') }] : []),
+    { k: 'gol', w: wNum, head: larga ? tr('GOLS', 'GOALS') : '⚽', cell: c => numCell(goalsOf(c), goalsOf(c) > 0 ? GREEN : 'rgba(12,12,12,.25)') },
+    { k: 'ass', w: wNum, head: larga ? 'ASS' : '🅰️', cell: c => numCell(assistsOf(c), assistsOf(c) > 0 ? '#2F6BAE' : 'rgba(12,12,12,.25)') },
+    ...(condicao ? [{ k: 'gas', w: larga ? 58 : 26, head: larga ? tr('GÁS', 'ENERGY') : '😓', cell: (c: WonCard) => gasChip(c, !larga) }] : []),
+    { k: 'sta', w: larga ? 20 : 15, head: larga ? 'STA' : '•', cell: (c, titular) => <span style={{ fontSize: larga ? 11 : 10 }}>{staDe(c, titular)}</span> },
+  ]
+  const wNo = larga ? 15 : 11, wRosto = larga ? 34 : 26, gapCol = larga ? 5 : 2, padCol = larga ? 7 : 4
+  // 🧑 o rostinho: a arte tem 600×400 e o desenho ocupa os 73% do meio, então a
+  // célula recorta as sobras laterais — assim o boneco fica do MESMO tamanho em
+  // toda linha. Sem arte (ou com a trava fechada), a bolinha com a inicial, que
+  // leva o MANTO do dono, igual no campinho.
+  const rostoNaLinha = (c: WonCard, h: number) => {
+    const art = rostosOn && !c.fake ? avatarLote1(c.name, c.club, c.year) : null
+    if (art) return (
+      <span style={{ display: 'block', width: Math.round(h * 1.1), height: h, overflow: 'hidden', position: 'relative', flex: 'none' }}>
+        <AvatarLote1 name={c.name} club={c.club} year={c.year}
+          style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: Math.round(h * 1.5), height: h, maxWidth: 'none', filter: 'drop-shadow(1px 1px 0 rgba(0,0,0,.35))' }} />
+      </span>
+    )
+    return (
+      <span style={{ display: 'flex', width: Math.round(h * 0.82), height: Math.round(h * 0.82), borderRadius: 999, border: `2px solid ${INK}`, background: manto ? mantoStripes(manto, 4, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : BEGE_MANTO, alignItems: 'center', justifyContent: 'center', ...OSWALD, fontWeight: 900, fontSize: Math.round(h * 0.42), color: '#fff', textShadow: `1px 1px 0 ${INK}`, flex: 'none' }}>{c.name[0]}</span>
+    )
+  }
+  const cabecalhoTabela = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: gapCol, padding: `0 ${padCol}px 4px`, ...OSWALD, fontWeight: 700, fontSize: larga ? 7.5 : 8.5, letterSpacing: larga ? 1 : 0, color: 'rgba(12,12,12,.4)' }}>
+      <span style={{ width: wNo, flex: 'none', textAlign: 'right' }}>Nº</span>
+      <span style={{ width: wRosto, flex: 'none' }} />
+      <span style={{ flex: 1, minWidth: 0 }}>{tr('NOME', 'NAME')}</span>
+      {colunas.map(k => <span key={k.k} style={{ width: k.w, flex: 'none', textAlign: 'center' }}>{k.head}</span>)}
+    </div>
+  )
+  // a troca por toque continua IGUAL: toca num, acendem os da mesma posição —
+  // aqui, na outra aba e no campinho.
+  const linhaTabela = (c: WonCard, n: number, titular: boolean) => {
+    const st = stateOf(c)
+    const ct = ctInfo(c)
+    return (
+      <div key={c.id} onClick={() => onTap?.(c.id)} style={{ display: 'flex', alignItems: 'center', gap: gapCol, padding: `2px ${padCol}px`, background: st === 'sel' ? '#FFF3CE' : '#fff', border: `2px solid ${st === 'idle' ? 'rgba(12,12,12,.13)' : borderOf(st)}`, borderRadius: 7, marginBottom: 3, opacity: st === 'dim' ? 0.55 : 1, cursor: onTap ? 'pointer' : 'default', boxShadow: st === 'sel' ? `2px 2px 0 ${INK}` : 'none' }}>
+        <span style={{ ...OSWALD, fontWeight: 700, fontSize: 9, color: 'rgba(12,12,12,.38)', width: wNo, flex: 'none', textAlign: 'right' }}>{n}</span>
+        <span style={{ width: wRosto, flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{rostoNaLinha(c, larga ? 30 : 26)}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', ...OSWALD, fontWeight: titular ? 800 : 700, fontSize: larga ? 12.5 : 11, lineHeight: 1.1, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}{c.emprestado && <EmpTag />}</span>
+          <span style={{ display: 'block', fontWeight: 700, fontSize: larga ? 8.5 : 7.5, color: 'rgba(12,12,12,.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.club} · {c.year}{ct ? <> · <b style={{ color: ct.color }}>{ct.txt}</b></> : null}</span>
+        </span>
+        {colunas.map(k => <span key={k.k} style={{ width: k.w, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{k.cell(c, titular)}</span>)}
+      </div>
+    )
+  }
+  // 🎴 A BARRA DO SELECIONADO (o "Aldair preto" que ele gostou): aparece quando
+  // você toca em alguém e junta num lugar só o que estava espalhado pela linha —
+  // jogos, gols, assistências, gás, valor, salário e contrato.
+  const dadoSel = (rot: string, val: string, cor?: string) => (
+    <span key={rot} style={{ textAlign: 'center', flex: 'none', minWidth: 34 }}>
+      <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 15, color: cor ?? '#fff', lineHeight: 1 }}>{val}</span>
+      <span style={{ display: 'block', fontSize: 7, fontWeight: 800, color: 'rgba(255,255,255,.45)', letterSpacing: .6 }}>{rot}</span>
+    </span>
+  )
+  const barraSelecionado = sel && (() => {
+    const ct = ctInfo(sel)
+    const g = condicao && !sel.fake ? pctBarra(condicao.gas[sel.id] ?? 100) : null
+    const dados = [
+      ...(condicao ? [dadoSel(tr('JOGOS', 'GAMES'), String(condicao.jogos[sel.id] ?? 0))] : []),
+      dadoSel(tr('GOLS', 'GOALS'), String(goalsOf(sel)), GOLD),
+      dadoSel('ASS', String(assistsOf(sel)), '#8FC0F0'),
+      ...(g != null ? [dadoSel(tr('GÁS', 'ENERGY'), `${g}%`, corBarra(condicao!.gas[sel.id] ?? 100))] : []),
+      ...(salaryOn ? [dadoSel(tr('VALOR', 'VALUE'), String(sel.paid ?? 0), '#FFE79A'), dadoSel(tr('SAL.', 'WAGE'), String(Math.round((sel.paid ?? 0) / 10)), '#FFE79A')] : []),
+    ]
+    const ficha = (
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 14, lineHeight: 1.1, color: '#fff' }}>{sel.name} {staDe(sel, xiIds.has(sel.id))}</span>
+        <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.5)' }}>{sel.club} · {sel.year} · {sel.pos} · {xiIds.has(sel.id) ? tr('titular', 'starter') : tr('reserva', 'sub')}</span>
+        {ct && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 800, color: '#FFD9A8', marginTop: 1 }}>{ct.txt}</span>}
+      </span>
+    )
+    return (
+      <div style={{ background: 'linear-gradient(160deg,#1a1a1a,#0C0C0C)', border: `3px solid ${INK}`, borderRadius: 12, padding: larga ? '8px 11px' : '9px 10px', color: '#fff', boxShadow: '3px 3px 0 rgba(0,0,0,.3)', marginTop: 9 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: larga ? 0 : 8 }}>
+          <span style={{ flex: 'none' }}>{rostoNaLinha(sel, 40)}</span>
+          {ficha}
+          {larga && dados}
+        </div>
+        {!larga && <div style={{ display: 'flex', gap: 4, justifyContent: 'space-between', background: 'rgba(255,255,255,.06)', borderRadius: 9, padding: '6px 4px' }}>{dados}</div>}
+      </div>
+    )
+  })()
+  // 🔖 as abas da lista. O número vem do teto DE VERDADE (`slotsCheio` por posição),
+  // nunca de um 22 escrito na mão — agora que o seu banco tem +1 por posição, o
+  // texto tem que acompanhar sozinho.
+  const tetoElenco = elencoCheio(mgr)
+  const tetoBanco = Math.max(0, tetoElenco - titulares.length)
+  const abaBtn = (k: 'tit' | 'res', txt: string) => (
+    <button onClick={() => setAbaLista(k)} style={{ flex: 1, minWidth: 0, ...OSWALD, fontWeight: 900, fontSize: larga ? 11 : 10, padding: '6px 4px', border: `2.5px solid ${INK}`, borderRadius: 9, background: abaLista === k ? INK : '#fff', color: abaLista === k ? GOLD : INK, boxShadow: abaLista === k ? `2px 2px 0 ${INK}` : 'none', cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{txt}</button>
+  )
+  const listaAtual = abaLista === 'tit' ? titulares : reserves
+  // ⛔ as duas listinhas de sempre (quem não está na trava vê ISTO, igualzinho)
+  const listasDeSempre = (
+    <>
+      {/* TITULARES e RESERVAS lado a lado: no campinho não cabe o clube · ano,
+          então as listas mostram — e a troca funciona nos dois lugares (toca num
+          jogador de qualquer lista OU do campinho e completa no outro). */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, alignItems: 'start' }}>
+        <div style={{ minWidth: 0 }}>
+          {/* 🚑 alvo do atalho do cabeçalho (ver ID_TITULARES) */}
+          <p id={ID_TITULARES} style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('⭐ Titulares', '⭐ Starters')} ({titulares.length})</p>
+          {titulares.map(c => rowOf(c, true))}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('🔁 Reservas', '🔁 Subs')} ({reserves.length})</p>
+          {reserves.length === 0
+            ? (seasonNo === 1
+                ? <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>🔒 In Season 1 you play with the 11. <b>At the next auction</b> (end of this season) you fill the bench — up to 22! 🔨</> : <>🔒 Na Temporada 1 você joga com os 11. <b>No próximo leilão</b> (no fim desta temporada) você enche o banco — até 22! 🔨</>}</p>
+                : <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', margin: 0 }}>{tr('Sem reservas no banco.', 'No subs on the bench.')}</p>)
+            : reserves.map(c => rowOf(c, false))}
+        </div>
+      </div>
+    </>
+  )
+  // 🧢🌱💸 comissão técnica, a Base e a folha: no celular ficam embaixo do campinho,
+  // como sempre foram; no monitor vão pro pé da LISTA, senão sobrava um vão verde
+  // do lado direito (o campo é mais alto que a tabela).
+  const blocoClube = (
+    <>
+      {/* 🧢 o TÉCNICO logo abaixo do campinho — ele é do time, igual os jogadores */}
+    {quinze && <DepartamentoTecnico mgr={mgr} />}
+    {/* 🌱 a BASE (13/09): a caixa pra subir Cria da Base quando há vaga no elenco */}
+    {antesFolha}
+    {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
+        temporada. Fica aqui em cima das listas pra você ver o custo de relance.
+        ⚠️ Soma o salário do TÉCNICO junto: é o que o vira-temporada cobra de
+        verdade — o número da tela não pode mentir. */}
+    {salaryOn && (() => {
+      const nomeTec = quinze ? stEl.careerTecnicos?.[mgr.teamName] : null
+      const salTec = nomeTec ? Math.round((stEl.careerTecnicoPago?.[nomeTec] ?? 0) / 10) : 0
+      // 🏋️ o salário do PREPARADOR entra aqui junto com o do técnico — o número da
+      // tela tem que ser o mesmo que o vira-temporada cobra de verdade (store.tsx).
+      const salPrep = quinze ? salarioPreparador(preparadorDe(stEl.careerPreparador?.[mgr.teamName])) : 0
+      const folha = squadPayroll(mgr.squad as WonCard[]) + salTec + salPrep
+      return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(150deg,#2A241A,#17130A)', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 11px', margin: '0 0 10px', boxShadow: `2px 2px 0 0 ${INK}` }}>
+        <span style={{ fontSize: 17 }}>💸</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontWeight: 900, fontSize: 11.5, ...OSWALD, color: '#fff', letterSpacing: 0.3 }}>{tr('FOLHA DO TIME', 'TEAM PAYROLL')}</span>
+          <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>{tr('cobrada no fim da temporada · piso ÷ 10 por jogador', 'charged at the end of the season · floor ÷ 10 per player')}{salTec + salPrep > 0 ? (salPrep > 0 && salTec > 0 ? tr(' · + a comissão', ' · + the staff') : salPrep > 0 ? tr(' · + o preparador', ' · + the fitness coach') : tr(' · + o técnico', ' · + the coach')) : ''}</span>
+        </span>
+        <span style={{ textAlign: 'right', flexShrink: 0 }}>
+          <span style={{ display: 'block', fontWeight: 900, fontSize: 17, ...OSWALD, color: '#E7503A', lineHeight: 1 }}>{folha}</span>
+          <span style={{ display: 'block', fontSize: 8, fontWeight: 800, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: 0.5 }}>🪙 / {tr('ano', 'year')}</span>
+        </span>
+      </div>
+    ) })()}
+    </>
+  )
+  const tabela = (
+    <div style={{ minWidth: 0 }}>
+      {/* 🚑 alvo do atalho do cabeçalho (ver ID_TITULARES) */}
+      <div id={ID_TITULARES} style={{ display: 'flex', gap: 5, marginBottom: 7 }}>
+        {abaBtn('tit', `⭐ ${tr('TITULARES', 'STARTERS')} (${titulares.length})`)}
+        {abaBtn('res', `🔁 ${tr('RESERVAS', 'SUBS')} (${reserves.length}/${tetoBanco})`)}
+      </div>
+      <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 13, padding: larga ? 9 : 6, boxShadow: `3px 3px 0 ${INK}` }}>
+        {cabecalhoTabela}
+        {listaAtual.length === 0
+          ? (seasonNo === 1
+              ? <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '4px 2px', lineHeight: 1.4 }}>{getLang() === 'en' ? <>🔒 In Season 1 you play with the 11. <b>At the next auction</b> (end of this season) you fill the bench — up to {tetoElenco}! 🔨</> : <>🔒 Na Temporada 1 você joga com os 11. <b>No próximo leilão</b> (no fim desta temporada) você enche o banco — até {tetoElenco}! 🔨</>}</p>
+              : <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '4px 2px' }}>{tr('Sem reservas no banco.', 'No subs on the bench.')}</p>)
+          : listaAtual.map((c, i) => linhaTabela(c, i + 1, abaLista === 'tit'))}
+      </div>
+      {barraSelecionado}
+    </div>
+  )
   return (
     <div>
       {/* 🚪 porta dos olheiros (regra das portas: só pra quem NÃO tem, no lugar
@@ -3583,6 +3823,11 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           </div>
         )
       })()}
+      {/* 🖥️📱 CAMPO E LISTA (mockup aprovado 16/09): no monitor lado a lado, no
+          celular empilhado — e no celular esta caixa não muda NADA, é a tela de
+          sempre. Quem sai da coluna de 576px é a caixa verde do clube (SquadTab). */}
+      <div style={{ display: larga ? 'flex' : 'block', gap: 14, alignItems: 'flex-start' }}>
+      <div style={larga ? { width: 560, flex: 'none' } : undefined}>
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
         {/* 🌱 campinho mais vertical (09/08, pedido do Diego: "parece achatado")
             — só o CAMPO cresce (listras + respiro entre as linhas); o balão
@@ -3594,6 +3839,11 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
             A troca por toque continua igual: toca num, acende os da mesma
             posição — o anel dourado/verde saiu da borda da ficha e foi pra
             volta da bolinha. */}
+        {/* 🚫 SEM ⚽ e SEM 🅰️ em cima do boneco (ordem do Diego 16/09: *"sem pôr gols
+            no campinho e assistência no campinho tb, pq a pessoa já vê na lista"*).
+            Os dois viraram COLUNA da tabela, onde dá pra comparar — o selo solto só
+            repetia. No monitor o boneco cresce (64 → 82), porque lá o campo tem
+            espaço de verdade. */}
         {(() => {
           const peca = (c: WonCard) => {
             const j = (
@@ -3603,10 +3853,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                 clube={c.club}
                 ano={c.year}
                 tag={c.pos}
-                gols={goalsOf(c)}
-                assist={assistsOf(c)}
-                alt={64}
-                fonteNome={11}
+                gols={elencoNovo ? 0 : goalsOf(c)}
+                assist={elencoNovo ? 0 : assistsOf(c)}
+                alt={larga ? 88 : 64}
+                fonteNome={larga ? 13 : 11}
                 estado={stateOf(c) as EstadoJogador}
                 onClick={onTap ? () => onTap(c.id) : undefined}
                 mantoCss={manto ? mantoStripes(manto, 6, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : null}
@@ -3634,7 +3884,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           // e ataque sempre no mesmo lugar; o miolo se espalha na faixa do meio) —
           // o campo nunca muda de tamanho ao trocar de formação.
           return (
-            <div style={{ padding: '16px 5px 18px', minHeight: 620, display: 'flex', flexDirection: 'column', background: fundo }}>
+            <div style={{ padding: '16px 5px 18px', minHeight: larga ? 860 : 620, display: 'flex', flexDirection: 'column', background: fundo }}>
               {linha('ATA', rows[0].cards)}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
                 {meioRows.map((r, i) => linha(`MEIO${i}`, r))}
@@ -3645,51 +3895,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           )
         })()}
       </div>
-      {/* 🧢 o TÉCNICO logo abaixo do campinho — ele é do time, igual os jogadores */}
-      {quinze && <DepartamentoTecnico mgr={mgr} />}
-      {/* 🌱 a BASE (13/09): a caixa pra subir Cria da Base quando há vaga no elenco */}
-      {antesFolha}
-      {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
-          temporada. Fica aqui em cima das listas pra você ver o custo de relance.
-          ⚠️ Soma o salário do TÉCNICO junto: é o que o vira-temporada cobra de
-          verdade — o número da tela não pode mentir. */}
-      {salaryOn && (() => {
-        const nomeTec = quinze ? stEl.careerTecnicos?.[mgr.teamName] : null
-        const salTec = nomeTec ? Math.round((stEl.careerTecnicoPago?.[nomeTec] ?? 0) / 10) : 0
-        // 🏋️ o salário do PREPARADOR entra aqui junto com o do técnico — o número da
-        // tela tem que ser o mesmo que o vira-temporada cobra de verdade (store.tsx).
-        const salPrep = quinze ? salarioPreparador(preparadorDe(stEl.careerPreparador?.[mgr.teamName])) : 0
-        const folha = squadPayroll(mgr.squad as WonCard[]) + salTec + salPrep
-        return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'linear-gradient(150deg,#2A241A,#17130A)', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 11px', margin: '0 0 10px', boxShadow: `2px 2px 0 0 ${INK}` }}>
-          <span style={{ fontSize: 17 }}>💸</span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontWeight: 900, fontSize: 11.5, ...OSWALD, color: '#fff', letterSpacing: 0.3 }}>{tr('FOLHA DO TIME', 'TEAM PAYROLL')}</span>
-            <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.55)' }}>{tr('cobrada no fim da temporada · piso ÷ 10 por jogador', 'charged at the end of the season · floor ÷ 10 per player')}{salTec + salPrep > 0 ? (salPrep > 0 && salTec > 0 ? tr(' · + a comissão', ' · + the staff') : salPrep > 0 ? tr(' · + o preparador', ' · + the fitness coach') : tr(' · + o técnico', ' · + the coach')) : ''}</span>
-          </span>
-          <span style={{ textAlign: 'right', flexShrink: 0 }}>
-            <span style={{ display: 'block', fontWeight: 900, fontSize: 17, ...OSWALD, color: '#E7503A', lineHeight: 1 }}>{folha}</span>
-            <span style={{ display: 'block', fontSize: 8, fontWeight: 800, color: 'rgba(255,255,255,.5)', textTransform: 'uppercase', letterSpacing: 0.5 }}>🪙 / {tr('ano', 'year')}</span>
-          </span>
-        </div>
-      ) })()}
-      {/* TITULARES e RESERVAS lado a lado: no campinho não cabe o clube · ano,
-          então as listas mostram — e a troca funciona nos dois lugares (toca num
-          jogador de qualquer lista OU do campinho e completa no outro). */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, alignItems: 'start' }}>
-        <div style={{ minWidth: 0 }}>
-          {/* 🚑 alvo do atalho do cabeçalho (ver ID_TITULARES) */}
-          <p id={ID_TITULARES} style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('⭐ Titulares', '⭐ Starters')} ({titulares.length})</p>
-          {titulares.map(c => rowOf(c, true))}
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: 0.3, textShadow: '1px 1px 0 rgba(0,0,0,.35)' }}>{tr('🔁 Reservas', '🔁 Subs')} ({reserves.length})</p>
-          {reserves.length === 0
-            ? (seasonNo === 1
-                ? <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>🔒 In Season 1 you play with the 11. <b>At the next auction</b> (end of this season) you fill the bench — up to 22! 🔨</> : <>🔒 Na Temporada 1 você joga com os 11. <b>No próximo leilão</b> (no fim desta temporada) você enche o banco — até 22! 🔨</>}</p>
-                : <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,0.9)', margin: 0 }}>{tr('Sem reservas no banco.', 'No subs on the bench.')}</p>)
-            : reserves.map(c => rowOf(c, false))}
-        </div>
+      {!larga && blocoClube}
+      </div>
+      {/* 📋 a lista: no monitor ela ocupa o resto da largura, ao lado do campo —
+          e leva junto comissão/base/folha, senão sobrava um vão verde do lado. */}
+      <div style={larga ? { flex: 1, minWidth: 0 } : undefined}>
+        {elencoNovo ? tabela : listasDeSempre}
+        {larga && <div style={{ marginTop: 10 }}>{blocoClube}</div>}
+      </div>
       </div>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: '8px 0 0', lineHeight: 1.4, textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>
         {getLang() === 'en' ? <>💡 Each card\'s level is the <b>player\'s peak at that club and year</b>: Kaká · São Paulo 2003 is a prospect, Kaká · Milan 2007 is a legend.</> : <>💡 O nível de cada carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda.</>}
@@ -4398,6 +4611,12 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
   const shine = elenco && perk && perk.holo > 0
   // 😓 resumo do gás dos 11 do PRÓXIMO jogo — usado em dois lugares: a linha
   // "🏃 Gás do time" do cabeçalho e o atalho 🚑 logo abaixo dele.
+  // 🖥️ SÓ A ABA ELENCO SAI DA COLUNA (16/09). No monitor a caixa do clube cresce
+  // pra ~1180px e fica centrada na janela — é o que deixa campo e lista lado a
+  // lado. Fora do Elenco (elenco do rival) e abaixo de 1000px, nada muda.
+  const telaLarga = useTelaLarga()
+  const elencoNovoOk = useElencoNovo() // ⚠️ hook NUNCA depois de && (o curto-circuito pularia a chamada)
+  const largaElenco = telaLarga && elencoNovoOk
   const resumoGas = (() => {
     if (!elenco || !condicao || !xiIds) return null
     const ids = [...xiIds].filter(id => mgr.squad.some(c => c.id === id && !c.fake))
@@ -4410,16 +4629,18 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
   // os contadores, pra não repetir a mesma informação duas linhas seguidas.
   const atalhoGas = !!resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0)
   return (
-    <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12 }}>
+    <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12, ...(elenco && largaElenco ? { width: 'min(1180px, calc(100vw - 48px))', marginLeft: 'calc(50% - min(590px, 50vw - 24px))' } : {}) }}>
       {shine && <ApoioSheen holo={perk.holo} />}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}{elenco && perk?.selo ? ` ${perk.selo}` : elenco ? apoioSelo() : ''}</p>
-        {/* 22 é o normal, mas com empréstimo DA SAF o elenco passa de 22 por um
-            jogador — o selo se estica sozinho pra não parecer erro (23/23). */}
-        <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/{Math.max(22, mgr.squad.length)}{elenco ? '' : ` · 💰 ${total}`}</span>
+        {/* 🎽 o teto vem do MOTOR (`elencoCheio`), nunca de um 22 escrito na mão —
+            desde 16/09 o SEU elenco tem +1 por posição (27 no 4-4-2). E com
+            empréstimo DA SAF o elenco passa do teto por um jogador: o selo se
+            estica sozinho pra não parecer erro (28/28). */}
+        <span style={{ fontWeight: 900, fontSize: 11.5, ...OSWALD, background: elenco ? '#fff' : col.solid, color: elenco ? INK : '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}>{mgr.squad.length}/{Math.max(elencoCheio(mgr), mgr.squad.length)}{elenco ? '' : ` · 💰 ${total}`}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, background: elenco ? '#fff' : 'rgba(255,255,255,0.6)', border: `2px solid ${elenco ? INK : col.solid}`, borderRadius: 8, padding: '4px 8px', flexWrap: 'wrap' }}>
-        <span title={tr('Soma do valor de mercado dos 22 jogadores (não é a sua caixa de moedas)', 'Sum of the 22 players\' market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>
+        <span title={tr('Soma do valor de mercado do elenco (não é a sua caixa de moedas)', 'Sum of the squad\'s market value (not your coin balance)')} style={{ fontWeight: 900, fontSize: 12, ...OSWALD, color: INK }}>{elenco ? tr(`🏷️ Elenco vale ${total} 💵`, `🏷️ Squad worth ${total} 💵`) : tr(`🪙 Caixa: ${coins}`, `🪙 Till: ${coins}`)}</span>
         {caption && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647' }}>{caption}</span>}
         {/* 😓 resumo do gás do TIME (média dos 11 do próximo jogo) — a leitura de relance.
             Na tela é a mesma leitura das barrinhas (pctBarra/corBarra), nunca o gás cru. */}

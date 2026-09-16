@@ -806,6 +806,7 @@ import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiber
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'
+import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 
@@ -962,12 +963,28 @@ function healCpuSquads(s: EscState) {
 }
 
 // ─── helpers de elenco ───────────────────────────────────────────────
+// 🎽 +1 POR POSIÇÃO PRO SEU ELENCO (Diego 16/09): *"antes eram 11 reservas, agora
+// são 16 reservas, mais um por posição — um goleiro, um zagueiro, um lateral, um
+// meio e um atacante"*. Ou seja: 11 titulares + 16 de banco = 27.
+// ⚠️ Vale SÓ pro técnico HUMANO — o Diego foi explícito: *"eu não tô falando de
+// bot, de rivais, eu tô falando do usuário principal"*. Bot/rival seguem em 22, e
+// por isso o baralho do leilão não aperta (a demanda cresce 5 cartas no total, não
+// 5 por time). E, como sempre foi com o banco, **ninguém é obrigado a comprar**:
+// vaga a mais é vaga vazia até você dar um lance nela — nunca entra perna-de-pau.
+// 🌐 E O ONLINE NÃO MUDA (trava de segurança do Diego: o que está no ar não pode
+// mexer sozinho). O ponteiro abaixo espelha o modo da sala e é regravado pelo
+// reducer a cada ação; o padrão é OFFLINE, que é justamente onde a regra vale —
+// então um F5 no meio da carreira nunca "perde" o banco maior.
+let MODO_ONLINE = false
+export function marcaModoOnline(on: boolean) { MODO_ONLINE = on }
+const extraDoDono = (m: Manager): number => (ACTIVE_SPORT === 'basquete' || MODO_ONLINE || !elencoNovoLiberado() ? 0 : m.isHuman ? 1 : 0)
 export function slotsOf(m: Manager, pos: Sector): number {
   // 🏀 basquete: o alvo é POR TÉCNICO (nbaSlots) — quinteto 1 → rotação 2 →
   // elenco 3, crescendo a cada temporada só p/ você; bots sem nbaSlots = quinteto.
   if (ACTIVE_SPORT === 'basquete') return m.nbaSlots ?? NBA_BASE_SLOTS
-  // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
-  return baseSlots(m.formation, pos) * (m.deepSquad ? 2 : 1)
+  // elenco fundo (leilão de reservas): mira 2× a formação por posição — 22 pros
+  // bots, 27 pro seu (o +1 por posição). Fora do fundo o alvo é o XI e nada muda.
+  return m.deepSquad ? baseSlots(m.formation, pos) * 2 + extraDoDono(m) : baseSlots(m.formation, pos)
 }
 export function filled(m: Manager, pos: Sector): number {
   return m.squad.filter(c => c.pos === pos).length
@@ -987,7 +1004,12 @@ export function openSlots(m: Manager, pos: Sector): number {
 // quiser"* — então não há limite de quantas crias; o teto é o do elenco e ponto.
 export function slotsCheio(m: Manager, pos: Sector): number {
   if (ACTIVE_SPORT === 'basquete') return NBA_SLOTS_PER_POS.roster // 3 por posição = elenco 15
-  return baseSlots(m.formation, pos) * 2 // 2× a formação por posição = elenco 22
+  return baseSlots(m.formation, pos) * 2 + extraDoDono(m) // 2× a formação + o seu extra = elenco 27
+}
+// 🎽 o teto do SEU elenco, somado (27 no 4-4-2). É o número que a tela mostra no
+// selo "27/27" e o que a lista usa pra contar vaga — nunca um 22 escrito na mão.
+export function elencoCheio(m: Manager): number {
+  return SECTORS.reduce((s, pos) => s + slotsCheio(m, pos), 0)
 }
 export function vagaCheio(m: Manager, pos: Sector): number {
   return Math.max(0, slotsCheio(m, pos) - filled(m, pos))
@@ -4328,6 +4350,10 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
 }
 
 export function reducer(state: EscState, action: Action): EscState {
+  // 🌐 espelha o modo da sala pro teto do elenco (ver `extraDoDono`): o +1 por
+  // posição é só do offline. Fica aqui porque o reducer roda em toda ação —
+  // então o ponteiro nunca fica velho, nem depois de um F5.
+  marcaModoOnline(state.onlineMode === 'online')
   if (action.type === 'SYNC_STATE') {
     reancoraEsporte(action.newState) // o baralho/esporte segue o estado do host (reload zera o ponteiro; 🏀 sala de basquete reancora no NBA)
     // O host manda o estado do JOGO (managers, deck, leilão, temporada...),

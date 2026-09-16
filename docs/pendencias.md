@@ -1,3 +1,71 @@
+## 16/09/2026 (parte 16) — ✅ CODADO: banco de 16 + aba Elenco nova, TRAVADA na conta do Diego
+
+Ordem dele: *"antes eram 11 reservas, agora são 16 reservas, mais um por posição — um
+goleiro, um zagueiro, um lateral, um meio e um atacante"* + *"você só vai publicar agora,
+da forma que eu quero para desktop e dispositivos móveis"*, e no fim do dia:
+***"só p meu usuário msm por enquanto"*.**
+
+### O que foi pro ar (e pra quem)
+🔒 **TUDO abaixo só aparece pra `diego.c.fonseca@gmail.com`.** Trava:
+`ELENCO27_GERAL = false` + `ELENCO27_TESTERS` em `src/escalacao/sport.ts`
+(`useElencoNovo()` na tela · `elencoNovoLiberado()` no motor).
+Pra soltar pra geral: **`ELENCO27_GERAL = true`, e mais nada**.
+Com a trava fechada a aba é **byte a byte a de sempre** — conferido com print
+(`node scripts/print-elenco.mjs`, alvo `elenco-antigo-celular`).
+
+1. **Banco de 11 → 16 (elenco 22 → 27)**, `+1 por posição`, em `store.tsx`:
+   `extraDoDono()` entra em **`slotsOf` E `slotsCheio`** (as duas! só uma não adianta:
+   `slotsOf` é o alvo do LEILÃO e `slotsCheio` é o teto da Base).
+   - Vale **só pro técnico HUMANO** (bot/rival seguem 22) — palavras dele:
+     *"eu não tô falando de bot, de rivais, eu tô falando do usuário principal"*. Por isso
+     a demanda do baralho cresce 5 cartas NO TOTAL, não 5 por time.
+   - Vale **só no OFFLINE** (`MODO_ONLINE`, espelhado do `state.onlineMode` a cada ação do
+     reducer): o online no ar não muda sozinho.
+   - **Ninguém é obrigado a comprar** — vaga a mais é vaga vazia até você dar o lance.
+     Conferido: o leilão de reservas roda com `noFake`, então **nunca entra perna-de-pau**
+     pra tapar a vaga nova.
+   - O selo do cabeçalho agora lê `elencoCheio(mgr)` — acabou o `22` escrito na mão.
+2. **Aba Elenco nova** (`ElencoField`, pyramidseason.tsx):
+   - 🖥️ monitor: a caixa do clube **sai da coluna de 576px** (vai a ~1180px, centrada) e
+     fica **campo à esquerda (560px, boneco 88px) · lista à direita**; comissão, Base e
+     folha descem pro pé da lista, senão sobrava vão verde. 📱 celular: **empilhado**,
+     igual sempre.
+   - A lista virou **TABELA com abas** (⭐ TITULARES · 🔁 RESERVAS n/16):
+     `Nº · rosto · NOME (clube·ano + contrato) · POS · OVERALL · JOGOS · GOLS · ASS · GÁS · STA`.
+     Coluna que depende de direito (OVERALL, do olheiro) ou de regra ligada (JOGOS/GÁS, da
+     condição) **só existe quando tem o que mostrar** — coluna vazia com título parece bug.
+   - **Sem coluna NÍVEL** (ordem dele: *"o nível n aparece… só overall msm q já vem c a cor"*).
+   - **Campinho limpo**: saíram os selos ⚽ e 🅰️ de cima do boneco — os dois viraram coluna.
+   - **Barra do selecionado** (o "Aldair preto"): rosto + jogos · gols · ass · gás · valor ·
+     salário + o estado dele.
+   - O rostinho da lista é a **mesma arte e a mesma trava** do campinho (`avatarLote1`).
+
+### 🧪 A bancada mentia — lição do dia
+Mandei pro Diego um print da bancada com **nomes e clubes inventados**: sem rosto (o rosto
+é achado pela trinca nome+clube+ano), sem gás, sem overall. Ele: *"essa arte q vc mandou tá
+bem diferente do meu anexo q vc tinha feito antes tb"*. **Estava mesmo — e a culpada era a
+bancada, não a tela.** `scripts/teste-elenco/main.tsx` agora monta o elenco com trincas
+REAIS de `legend-avatars.json`, liga a condição e liga o Olheiro; e `scripts/print-elenco.mjs`
+tira as fotos sempre nos mesmos tamanhos.
+📌 **Régua nova: print de bancada só vale com dado REAL do jogo.** Bancada com dado
+inventado não prova tela — cria discussão à toa.
+
+### ↩️ Como voltar atrás
+- Só o visual/banco: `ELENCO27_GERAL` já está `false` e a lista de testers é uma linha.
+  Tirando o e-mail dele de `ELENCO27_TESTERS`, o jogo inteiro volta ao de hoje sem deploy
+  de código novo... (precisa de deploy, sim — mas é UMA linha).
+- Tudo: `git revert` do commit. As duas listinhas antigas e o `rowOf` continuam no
+  arquivo, inteiros, justamente porque a trava está fechada.
+
+### ⏭️ O que falta (combinado, ainda não feito)
+- [ ] **Mockup de novidade** ("antes 11 reservas, agora 16 — um por posição"), **sem falar
+      da mudança visual** (ordem dele). Só faz sentido mandar quando a trava abrir.
+- [ ] **Linha em `novidades.ts`** — NÃO entrou de propósito: anunciar pra todo mundo algo
+      que só a conta dele vê seria mentira. Entra junto com `ELENCO27_GERAL = true`.
+- [ ] **Aba 🏢 SAF na tabela** (o mockup tinha): hoje o emprestado aparece na lista com o
+      selo de empréstimo, como já era. Só vale separar se ele pedir.
+- [ ] Ideias da SAF 1/3/4 (forma do jogador, luva, jornal) — decisão dele.
+
 ## 16/09/2026 (parte 15) — 🕵️ O overall na tabela (com a trava do olheiro) + as 2 abas que EU INVENTEI
 
 Diego: *"lembrando q temos q por o overall tb e tb temos regras né pra aparecer o overall

@@ -720,8 +720,43 @@ export function useSubAbasGrudadas(): boolean {
   return pilulasOk
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email) }, () => {})
-supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email) })
+// 👥 ABA ELENCO NOVA + BANCO DE 16 (16/09) — ordem do Diego no dia da entrega:
+// *"só p meu usuário msm por enquanto"*. Enquanto está fechado, NINGUÉM MAIS VÊ
+// NADA: nem o desenho novo (campo + tabela), nem o +1 por posição — o elenco de
+// todo mundo segue 22 e a aba fica byte a byte como era.
+// ⚠️ São as DUAS coisas na MESMA trava de propósito: o banco de 16 sem a tabela
+// nova estoura a listinha de meia largura (foi o "buraco na esquerda"), e a
+// tabela sem o banco maior não tem por que existir.
+// Pra soltar pra todo mundo: `ELENCO27_GERAL = true` (e nada mais).
+const ELENCO27_GERAL = false
+const ELENCO27_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let elenco27Ok = ELENCO27_GERAL
+let elenco27Bancada = false // 🧪 só a bancada de teste liga isto (ver abaixo)
+function applyElenco27(email?: string | null): void {
+  const u = elenco27Bancada || ELENCO27_GERAL || (!!email && ELENCO27_TESTERS.has(email.toLowerCase()))
+  if (u === elenco27Ok) return
+  elenco27Ok = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+/** 🧪 SÓ A BANCADA (`scripts/teste-elenco`) chama isto, pra tirar print da tela
+ *  nova sem login. O app NUNCA chama — nenhuma tela de jogador passa por aqui. */
+export function _bancadaElencoNovo(v: boolean): void {
+  // ⚠️ tem que ser PEGAJOSO: o `getUser()` do Supabase resolve depois e chamaria
+  // `applyElenco27(undefined)`, desligando tudo no meio do print.
+  elenco27Bancada = v
+  elenco27Ok = v || ELENCO27_GERAL
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+/** versão SEM React: o motor (`store.tsx`) precisa do teto do elenco fora de tela */
+export function elencoNovoLiberado(): boolean { return elenco27Ok }
+export function useElencoNovo(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return elenco27Ok
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email) }, () => {})
+supabase.auth.onAuthStateChange((_e, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email); applyElenco27(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 
