@@ -1,3 +1,66 @@
+## 16/09/2026 — 🏟️ ANÁLISE A FUNDO DO ESTÁDIO: custo × retorno de cada obra
+
+Diego: *"talvez diminuir um pouco mais o início dos desbloqueios das coisas do
+estádio, não sei… analise a fundo todos valores pra se completar as coisas todas"*.
+Medido em **`scripts/custo-estadio.mjs`** (roda o `stadiumIncomeAt` e o
+`calculaVendas` de verdade, time no MEIO da tabela).
+
+### ⚠️ A conta óbvia ENGANA
+Olhando só o `inc` de cada peça, o estádio inteiro parece pagar-se em 16,6
+temporadas. Mas o `inc` não é o retorno todo: **os SETORES trazem ASSENTOS**, e
+assento vira TORCIDA (`torcidaDoEstadio` = 12.000 + assentos), que vira CAMISA.
+Com a Loja de pé, uma obra rende as duas coisas.
+
+### O retorno REAL de cada obra (por temporada)
+| obra | custo | ganho | paga-se em |
+| --- | --- | --- | --- |
+| 🌱 Gramado | 60 | 2 | **30t** |
+| Geral | 60 | 2 | **30t** |
+| 🛍️ **Loja do Clube** | 80 | **13** | **6t** ⭐ |
+| 💡 Refletores | 50 | 1 | **50t** 🚨 |
+| Cadeiras | 90 | 11 | 8t |
+| 📺 Telão | 60 | 2 | 30t |
+| 🅿️ Estacionamento | 70 | 4 | 18t |
+| 🍔 Praça | 110 | 6 | 18t |
+| 🍻 Choperia | 90 | 4 | 23t |
+| 🚇 Estação | 120 | 8 | 15t |
+| Visitante | 120 | **17** | 7t ⭐ |
+| ☂️ Cobertura | 130 | 5 | 26t |
+| 🏟️ Retrátil | 180 | 8 | 23t |
+| Camarote | 150 | **15** | 10t ⭐ |
+| 🏨 Hotel | 160 | 10 | 16t |
+**Total 1.530 moedas.** Zerado rende 20/temporada · completo, 128.
+
+### 🚨 ACHADO 7 — O JOGO OBRIGA A FAZER AS DUAS PIORES OBRAS ANTES DA MELHOR
+Gramado (30t) + Geral (30t) = **120 moedas nas duas obras mais fracas do jogo**,
+e só então a 🛍️ Loja libera — que é a **melhor de todas** (6t). São **200 moedas
+até a primeira camisa vendida**; na Várzea, guardando tudo, **~5 temporadas
+fazendo obra ruim antes de ver retorno**.
+
+**Por quê:** o Geral traz **21.500 assentos, mas assento não vale nada sem a
+Loja** (assento → torcida → camisa; sem loja, não há camisa). Então a pessoa paga
+60 por 21.500 lugares que rendem **2** até ela juntar mais 140. Quando a Loja
+entra, ela sozinha ganha 13 — porque aí os assentos do Geral enfim viram dinheiro.
+E o **Gramado é pior**: **zero assentos**, nunca vai gerar camisa, rende 2 pra
+sempre.
+
+### 💡 Proposta (NADA implementado — decisão do Diego)
+1. **Loja com 1 setor pronto em vez de 2** (`extraUnlocked`, case 'loja':
+   `sectorsDone(st) >= 1`). A porta cai de **200 → 140** e a pessoa pula o
+   Gramado, que é justamente a obra sem assento. Mudança de uma linha.
+2. **Baratear a entrada**: Gramado e Geral 60 → 40, Loja 80 → 60. Com a nº1 junto,
+   a porta vai pra **100** — na Várzea ~2 temporadas em vez de 5.
+3. 💡 **Refletores estão quebrados**: 50 moedas por **+1** = 50 temporadas. É a
+   pior peça do jogo e ninguém deveria comprar. Custar menos, render mais, ou ter
+   outra função.
+4. **Repensar o Gramado**: sem assento, ele nunca escala. Ou fica bem barato (~30)
+   como primeiro passo simbólico, ou ganha um efeito que não seja dinheiro.
+
+### ⚠️ Nota: a ocupação corta a renda quase pela metade
+A renda do CONSTRUÍDO é multiplicada pela lotação (`occByPos`), e no meio de
+tabela ela é **0,55**. O time mediano recebe pouco mais da metade do que
+construiu — um segundo desconto em cima de quem já não está bem colocado.
+
 ## 16/09/2026 — 🎯 ONDE AUMENTAR: a composição da receita, fonte por fonte
 
 Diego: *"precisamos entender onde aumentar na Várzea, Série D, C, B e A… em
