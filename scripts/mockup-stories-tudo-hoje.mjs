@@ -6,6 +6,17 @@
 //
 // Rodar: node scripts/mockup-stories-tudo-hoje.mjs   (gera /tmp/hoje-1..7.png)
 import { chromium } from 'playwright-core'
+import { readFileSync } from 'node:fs'
+
+// 🖼️ os escudos DE VERDADE (os mesmos arquivos que o jogo usa), embutidos em
+//    base64 — story de "arte nova" sem a arte não é story nenhum. A largura sai
+//    da PROPORÇÃO REAL do arquivo, nunca chutada.
+const esc = k => `data:image/webp;base64,${readFileSync(`src/escalacao/img/${k}-escudo.webp`).toString('base64')}`
+const CLUBES = [
+  ['murriz', 'Murriz FC', 240], ['nightfull', 'Nightfull FC', 249], ['barcenite', 'Barcenite FC', 268],
+  ['papao', 'Papão United Madrid', 232], ['scorporila', 'Scorporila FC', 262], ['saoluiz', 'São Luiz FC', 360],
+  ['marolados', 'Marolados FC', 298], ['marinheiros', 'Marinheiros AS', 290],
+]
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', VERDE = '#1B7A3D', VERM = '#C2452F'
 
@@ -42,6 +53,12 @@ const base = corpo => `<!doctype html><meta charset="utf-8">
  td.ig{text-align:right;color:#999;font-weight:800;font-size:34px}
  .cx{background:${GOLD};border:5px solid ${INK};border-radius:22px;box-shadow:8px 8px 0 ${INK};
      padding:30px;font-size:33px;font-weight:800;line-height:1.35;margin-top:14px}
+ .gr{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:6px}
+ .cl{background:#fff;border:5px solid ${INK};border-radius:20px;box-shadow:6px 6px 0 ${INK};
+     padding:18px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;
+     justify-content:flex-end;gap:10px;min-height:268px}
+ .cl img{object-fit:contain;display:block}
+ .cl b{display:block;font-size:29px;font-weight:900;line-height:1.1}
  .pe{margin-top:auto;padding-top:36px;font-size:29px;font-weight:800;color:#666;text-align:center}
  .pe b{color:${INK}}
 </style>${corpo}`
@@ -121,7 +138,15 @@ const TELAS = [
       <span>+5% de venda de camisa: jogo à noite enche mais</span></div></div>`],
 
   ['/tmp/hoje-7.png', `
-    <div class="sel k">6 · e a tela ficou honesta</div>
+    <div class="sel k">6 · e 8 clubes de cara nova</div>
+    <h1>OITO CLUBES<br><span class="g">DE CARA NOVA</span></h1>
+    <div class="lead">Os donos mandaram arte nova. Escudo, mascote e manto redesenhados.</div>
+    <div class="gr">${CLUBES.map(([k, n, w]) =>
+      `<div class="cl"><img src="${esc(k)}" height="190" width="${Math.round(190 * w / 360)}"><b>${n}</b></div>`).join('')}</div>
+    <div class="pe">Clube seu? <b>Recarrega o jogo pra ver.</b></div>`],
+
+  ['/tmp/hoje-8.png', `
+    <div class="sel k">7 · e a tela ficou honesta</div>
     <h1>AGORA DÁ<br>PRA <span class="g">PLANEJAR</span></h1>
     <div class="it"><span class="e">👀</span><div><b>Obra trancada mostra preço e ganho</b>
       <span>dá pra saber pra que você está juntando dinheiro</span></div></div>
