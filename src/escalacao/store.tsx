@@ -2342,6 +2342,52 @@ function zeraBicoUmaVez(st: EscState): EscState {
   if (st.bicoZeradoV2) return st
   return { ...st, careerBico: undefined, bicoZeradoV2: true }
 }
+
+// ─── 🏥💸 A DEVOLUÇÃO DO DEPARTAMENTO MÉDICO ───────────────────────────────
+// Em 12/09 o 🏥 Departamento Médico saiu do jogo pra virar 😓 condição física +
+// 🏋️ preparador — e naquele dia ficou SEM reembolso, por ordem do Diego (*"quem
+// comprou esquece, vai ser igual p todos"*). Em 15/09 ele voltou atrás depois de
+// eu medir o tamanho no banco (167 pessoas, 180 carreiras): *"pode doar de volta
+// p todos esses"*.
+//
+// Como é feito, e por que é seguro:
+//   · **uma vez só, pra sempre**: a marca `medicoDevolvidoV1` é gravada ao abrir
+//     o save — inclusive em quem NUNCA teve a obra —, então reabrir o jogo mil
+//     vezes não paga de novo, e nem precisa varrer o estádio toda vez;
+//   · **só clube SEU**: o principal e o 2º clube (`mine`). Time de máquina não
+//     comprou nada e nunca entra;
+//   · **a obra sai do save junto com o pagamento**, então não existe caminho que
+//     pague duas vezes nem estádio com uma obra que não existe mais no catálogo;
+//   · **nada mais é tocado**: elenco, títulos, colocação, estádio (os outros
+//     setores/obras) e a condição física ficam exatamente como estavam.
+// A obra custava 1.000 e rendia 0 por temporada (`inc: 0` em `estadiodata.ts`) —
+// ou seja, devolver o preço cheio repõe exatamente o que a pessoa perdeu.
+const MEDICO_CUSTO = 1000
+function devolveMedicoUmaVez(st: EscState): EscState {
+  if (st.medicoDevolvidoV1) return st
+  const s: EscState = { ...st, medicoDevolvidoV1: true, careerLedger: st.careerLedger ? [...st.careerLedger] : st.careerLedger }
+  const stads = s.stadiums
+  if (!stads) return s
+  // quais assentos são MEUS (o principal + o 2º clube comprado, dormindo ou não)
+  const meus = new Set<number>()
+  const eu = s.managers?.[s.youIdx]; if (eu) meus.add(eu.id)
+  for (const m of s.managers ?? []) if (m.mine) meus.add(m.id)
+  if (s.multiClube?.id != null) meus.add(s.multiClube.id)
+  const novos: typeof stads = { ...stads }
+  let clubes = 0
+  for (const [k, est] of Object.entries(stads)) {
+    const id = Number(k)
+    if (!meus.has(id) || !est?.ext?.includes('medico')) continue
+    novos[id] = { ...est, ext: est.ext.filter(e => e !== 'medico') }
+    s.careerCoins = { ...(s.careerCoins ?? {}), [id]: Math.round((s.careerCoins?.[id] ?? 0) + MEDICO_CUSTO) }
+    logFin(s, 'stadium', '🏥 Departamento Médico saiu do jogo — moedas devolvidas', MEDICO_CUSTO, undefined, id)
+    clubes++
+  }
+  if (!clubes) return s
+  s.stadiums = novos
+  s.medicoDevolvido = clubes * MEDICO_CUSTO
+  return s
+}
 function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
@@ -3670,6 +3716,7 @@ type Action =
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
   | { type: 'TV_EXTRA_VISTO' } // 📺 marca que o aviso único da cota extra (vídeo nas redes) já foi mostrado — nunca repete
+  | { type: 'MEDICO_AVISO_VISTO' } // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
   | { type: 'TV_EXTRA_CREDIT'; coins: number; qtd: number } // 📺 cota extra de TV: o RPC tv_resgatar já virou aprovado→creditado no Supabase (atômico) — aqui só entra o crédito no caixa. Só carreira solo
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
@@ -4547,6 +4594,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.tvExtraVisto = true
       return s
     }
+    // 🏥💸 o aviso da devolução só some da tela — as moedas já entraram lá atrás,
+    // em `devolveMedicoUmaVez`, e a marca `medicoDevolvidoV1` impede pagar de novo.
+    case 'MEDICO_AVISO_VISTO': {
+      s.medicoDevolvido = undefined
+      return s
+    }
     case 'TV_EXTRA_CREDIT': {
       // 📺 COTA EXTRA DE TV (Diego 23/08): a validação é do Supabase (tv_resgatar,
       // atômica: aprovado→creditado uma vez só); aqui só entra o crédito. O valor
@@ -5057,7 +5110,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // dois clubes com o mesmo nome. No-op sem 2º clube.
       // 👑 cinto e suspensório: a ficha dos jogadores entra em dia aqui também.
       // É idempotente — se o save já veio sincronizado do leitor, não faz nada.
-      const restored = zeraBicoUmaVez(sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })))
+      const restored = devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }))))
       // 😓📝 CURAS AO ABRIR (13/09, São Luiz FC): liga o gás se a carreira já está em
       // C/B/A (mesmo presa num banner, onde o PLAY_ROUND nunca chegava a ligar) e
       // devolve pro presente contrato que voltou do passado (empréstimo pra SAF).
@@ -8281,7 +8334,7 @@ function loadSoloInProgress(): EscState | null {
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
       // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
       // carreira voltava pelo aqui e o baralho continuava com o nível velho.
-      return zeraBicoUmaVez(sincronizaNiveis(s))
+      return devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(s)))
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }
   return null

@@ -75,6 +75,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Papão United Madrid', tipo: 'batismo', fundador: 39 },
   { clube: 'Eros FC', tipo: 'socio', fundador: null },
   { clube: 'Sapekeiros FC', tipo: 'batismo', fundador: 41 },
+  { clube: 'Rei da Bola FC', tipo: 'batismo', fundador: 70 },
   { clube: 'Seven City', tipo: 'batismo', fundador: 42 },
   { clube: 'Tricolor do Arruda FC', tipo: 'batismo', fundador: 43 },
   { clube: 'Coringas do Diniz', tipo: 'batismo', fundador: 44 },

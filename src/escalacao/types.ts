@@ -683,6 +683,14 @@ export interface EscState {
   // se cair de volta, volta humilde — e ganhando o teto (10), porque já foi gerente.
   /** 🕴️ marca da zeragem única do bico (15/09) — ver zeraBicoUmaVez em store.tsx */
   bicoZeradoV2?: boolean
+  /** 🏥💸 marca da DEVOLUÇÃO única das moedas do Departamento Médico (15/09).
+   *  A obra saiu do jogo em 12/09 pra virar 😓 condição física + 🏋️ preparador, e na
+   *  hora ficou sem reembolso (ordem dele). Ele voltou atrás: *"pode doar de volta p
+   *  todos esses"*. Esta marca é o que garante que ninguém receba duas vezes — ela é
+   *  gravada MESMO em quem não tinha a obra, pra não varrer o save toda vez que abre. */
+  medicoDevolvidoV1?: boolean
+  /** quanto foi devolvido agora (só pra tela avisar uma vez; some quando fecha) */
+  medicoDevolvido?: number
   /** 💰 QUAL TEMPORADA JÁ FOI PAGA em cada contrato FIXO, por técnico (15/09).
    *  Master, fornecedor de material e bico passaram a cair no caixa ao APERTAR
    *  "Começar a temporada" (ordem do Diego: *"já deve entrar na hora que ele aperta

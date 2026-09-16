@@ -37,6 +37,7 @@ import sistematizadosEscudoImg from './img/sistematizados-escudo.webp' // 🎮 S
 import brigaDeGaloEscudoImg from './img/brigadegalo-escudo.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import saoMarcosAntonioEscudoImg from './img/saomarcosantonio-escudo.webp' // 😇🐷 São Marcos Antônio FC (marcomak03): arte própria do dono, 13/09
 import interMadridEscudoImg from './img/internacional-madrid-escudo.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
+import reiDaBolaEscudoImg from './img/reidabola-escudo.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
 import interBailaoEscudoImg from './img/inter-bailao-escudo.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
 import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (diegohdsf): arte própria do dono, 09/09
@@ -626,6 +627,12 @@ const interMadridEscudoRender = (size: number) => (
 const interBailaoEscudoRender = (size: number) => (
   <img src={interBailaoEscudoImg} height={size} width={Math.round(size * 313 / 360)} alt="Inter de Bailão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 👑🦁 Rei da Bola FC — 258x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (caiobegnamii, 16/09): escudo-brasão
+// listrado vermelho/branco/preto, com o leão branco coroado e a coroa por cima.
+const reiDaBolaEscudoRender = (size: number) => (
+  <img src={reiDaBolaEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Rei da Bola FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🔊 Bonança SSFC — 305x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (duselecta, 09/09): escudo redondo
 // com o paredão de caixas de som, coroa e as bandeirinhas da Jamaica.
@@ -936,6 +943,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🪩 Inter de Bailão (matheus223lms) — RENOMEAÇÃO de 14/09: era Alfacehh, que por sua
   // vez era o bot Athletico do Porto. As 4 formas do nome NOVO + as do nome VELHO, pra
   // save antigo (e quem ainda chama de Alfacehh) continuar vendo o escudo.
+  // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — chega na Série A. As 4 formas do nome
+  // ficam presas ao mesmo escudo (regra dos 4 nomes reservados). ⚠️ SEM OLD_NAME: o
+  // Sapekeiros FC não foi renomeado, só desceu pra Série B — mapear faria os dois
+  // clubes desenharem o mesmo escudo.
+  'Rei da Bola': reiDaBolaEscudoRender,
+  'Rei da Bola FC': reiDaBolaEscudoRender,
+  'Rei da Bola EC': reiDaBolaEscudoRender,
+  'Rei da Bola SC': reiDaBolaEscudoRender,
   'Inter de Bailão': interBailaoEscudoRender,
   'Inter de Bailão FC': interBailaoEscudoRender,
   'Inter de Bailão EC': interBailaoEscudoRender,
