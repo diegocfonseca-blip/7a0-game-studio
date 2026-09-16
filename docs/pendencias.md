@@ -1,3 +1,42 @@
+## 16/09/2026 (parte 9) — 👥 A aba ELENCO refeita do zero (OPINIÃO, corrigindo a parte 8)
+
+⚠️ **Correção de leitura minha**: na parte 8 ele perguntou *"e se fosse reformular na sua
+cabeça todo visual"* e eu respondi do JOGO INTEIRO. Ele corrigiu: *"eu falei do elenco,
+cara, que a gente tava falando"*. Era a **aba Elenco**. Lição: quando a conversa está
+num assunto há várias mensagens, "todo visual" quer dizer **o visual DAQUILO**.
+
+Material: `node scripts/mockup-elenco-do-zero.mjs`. **Opinião, nada codado.**
+
+### A pergunta antes do desenho: pra que serve a aba?
+Ela faz **três** trabalhos: **escalar** (quem joga a próxima) · **conhecer** (quem eu
+tenho e como está) · **gerir** (técnico, preparador, base, folha, agência). Hoje eles vêm
+**intercalados**: campinho → Depto Técnico → Base → folha → e só então a lista. Quem
+entrou pra trocar um jogador **atravessa a gerência no caminho**.
+
+### Os 5 pontos
+1. **Agrupar por POSIÇÃO, não por titular/reserva.** Um bloco por setor (GOL/LAT/ZAG/
+   MEI/ATA), bolinha cheia = titular, vazia = reserva. Motivo forte: **a troca do jogo já
+   exige a mesma posição** (`a.pos !== b.pos` bloqueia), então a tela passa a falar a
+   língua da regra. Técnico não pensa "quem é reserva", pensa "quem substitui meu goleiro".
+2. **A escassez aparece sozinha**: o contador vai no título do setor — `GOLEIROS 2`, em
+   vermelho quando está no osso. O problema dos 2 goleiros vira óbvio sem texto.
+3. **Uma linha diz tudo do jogador**: nome · clube·ano · barra de gás · selo (🚑 😓 🔄 SAF).
+4. **A gerência sai do meio do caminho**: Depto Técnico, Base e Agenciados viram três
+   atalhos pequenos no pé, com o número que importa.
+5. **O buraco nem existe**: cada setor é um bloco de 2 colunas, então no máximo sobra
+   meia linha num setor ímpar.
+
+### 🔑 A conta que amarra tudo (é o que fecha a conversa do elenco maior)
+Hoje a lista são **16 linhas** (a coluna mais comprida) + 2 títulos.
+Agrupada por posição: **11 linhas** + 5 títulos, **sem buraco**.
+Com elenco de **27**: **14 linhas** + 5 títulos — ainda **menos** que as 16 de hoje com 22.
+👉 **A mesma mudança que deixa a tela mais fácil também abre espaço pro elenco maior.**
+Ele não precisa escolher entre as duas coisas.
+
+### Estado
+Nada codado. Ofereci montar a tela de VERDADE com o elenco real dele (como fiz com o
+bloco da SAF e com o transbordo) antes de qualquer decisão.
+
 ## 16/09/2026 (parte 8) — 🎨 "Se fosse você, como reformularia o visual?" (OPINIÃO)
 
 Diego: *"e se fosse reformular na sua cabeça todo visual sem ser influenciado por mim,
