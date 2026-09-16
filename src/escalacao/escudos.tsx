@@ -37,6 +37,7 @@ import sistematizadosEscudoImg from './img/sistematizados-escudo.webp' // 🎮 S
 import brigaDeGaloEscudoImg from './img/brigadegalo-escudo.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import saoMarcosAntonioEscudoImg from './img/saomarcosantonio-escudo.webp' // 😇🐷 São Marcos Antônio FC (marcomak03): arte própria do dono, 13/09
 import interMadridEscudoImg from './img/internacional-madrid-escudo.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
+import raivaCajuriEscudoImg from './img/raivacajuri-escudo.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaEscudoImg from './img/reidabola-escudo.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
 import interBailaoEscudoImg from './img/inter-bailao-escudo.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
@@ -627,6 +628,12 @@ const interMadridEscudoRender = (size: number) => (
 const interBailaoEscudoRender = (size: number) => (
   <img src={interBailaoEscudoImg} height={size} width={Math.round(size * 313 / 360)} alt="Inter de Bailão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🥊 Raiva Cajuri FC — 248x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (feliperamiro0501, 16/09): brasão preto e
+// vermelho com o lutador mascarado, coroa de espinhos e a bola embaixo.
+const raivaCajuriEscudoRender = (size: number) => (
+  <img src={raivaCajuriEscudoImg} height={size} width={Math.round(size * 248 / 360)} alt="Raiva Cajuri FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 👑🦁 Rei da Bola FC — 258x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (caiobegnamii, 16/09): escudo-brasão
 // listrado vermelho/branco/preto, com o leão branco coroado e a coroa por cima.
@@ -947,6 +954,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // ficam presas ao mesmo escudo (regra dos 4 nomes reservados). ⚠️ SEM OLD_NAME: o
   // Sapekeiros FC não foi renomeado, só desceu pra Série B — mapear faria os dois
   // clubes desenharem o mesmo escudo.
+  // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — chega na Série C. As 4 formas do nome
+  // presas ao mesmo escudo. ⚠️ SEM OLD_NAME: entrou no lugar de um BOT (Serra Azul FR),
+  // que não foi renomeado — simplesmente saiu da pirâmide.
+  'Raiva Cajuri': raivaCajuriEscudoRender,
+  'Raiva Cajuri FC': raivaCajuriEscudoRender,
+  'Raiva Cajuri EC': raivaCajuriEscudoRender,
+  'Raiva Cajuri SC': raivaCajuriEscudoRender,
   'Rei da Bola': reiDaBolaEscudoRender,
   'Rei da Bola FC': reiDaBolaEscudoRender,
   'Rei da Bola EC': reiDaBolaEscudoRender,

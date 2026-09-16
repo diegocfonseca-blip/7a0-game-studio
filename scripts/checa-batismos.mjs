@@ -94,7 +94,8 @@ const BATISMOS = [
   ['gabrielnegreirosamaral99@hotmail.com', 'São Luiz FC'], ['pedrinhocamisa8@gmail.com', 'Nata de SP'],
   ['agrostinho88@gmail.com', 'Papão United Madrid'], ['igormarquesn99@gmail.com', 'Milhaça FC'],
   ['lluchmarcel81@gmail.com', 'Esqueceram do Lluch'], ['tiosapeka@gmail.com', 'Sapekeiros FC'],
-  ['caiobegnamii@gmail.com', 'Rei da Bola FC'], // 👑🦁 Série A (16/09), no assento do Sapekeiros FC — que desceu pra Série B
+  ['caiobegnamii@gmail.com', 'Rei da Bola FC'],
+  ['feliperamiro0501@hotmail.com', 'Raiva Cajuri FC'], // 🥊 Série C (16/09), na vaga do bot Serra Azul FR // 👑🦁 Série A (16/09), no assento do Sapekeiros FC — que desceu pra Série B
   ['lucasigorbortoliniii@hotmail.com', 'Marreco FC'],
 ]
 // 🎫 SÓCIOS: clube próprio, SEM vaga na pirâmide e SEM número de fundador.

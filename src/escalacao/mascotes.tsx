@@ -28,6 +28,7 @@ import sistematizadosMascoteImg from './img/sistematizados-mascote.webp' // 🎮
 import brigaDeGaloMascoteImg from './img/brigadegalo-mascote.webp' // 🐓 Briga de Galo FC (pedrovianacarneiroq): arte própria do dono, 08/09
 import saoMarcosAntonioMascoteImg from './img/saomarcosantonio-mascote.webp' // 😇🐷 São Marcos Antônio FC (marcomak03): arte própria do dono, 13/09
 import interMadridMascoteImg from './img/internacional-madrid-mascote.webp' // 👑 Internacional de Madrid (matheusstefanello372): arte própria do dono, 14/09
+import raivaCajuriMascoteImg from './img/raivacajuri-mascote.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
 import interBailaoMascoteImg from './img/inter-bailao-mascote.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
@@ -577,6 +578,14 @@ export const MASCOTES: Record<string, ReactNode> = {
   internacional_siuuu: (
     <img src={interMadridMascoteImg} height={176} width={Math.round(176 * 364 / 440)} alt="O Siuuu — Internacional de Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🥊 O Raiva — Raiva Cajuri FC (feliperamiro0501, 16/09). 392x440 no arquivo, então a
+  // largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O lutador mascarado
+  // voando — E O RINGUE VAI JUNTO: ordem do Diego, *"a corda do ringue faz parte do
+  // mascote q tá pulando"*. Ele está se jogando da quina do ringue; separar os dois
+  // deixaria o bicho pulando do nada.
+  raivacajuri_lutador: (
+    <img src={raivaCajuriMascoteImg} height={176} width={Math.round(176 * 392 / 440)} alt="O Raiva — Raiva Cajuri FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 👑🦁 O Rei — Rei da Bola FC (caiobegnamii, 16/09). 440x404 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O leão branco coroado,
   // de manto vermelho, com o pé na bola em cima da pedra.
@@ -836,6 +845,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Manfré EC': 'manfre_gralha',
   'Manfre FC': 'manfre_gralha',
   'Livre-pool': 'manfre_gralha',
+  // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09). CARIMBO_GOL é busca EXATA: 4 formas
+  // do nome + CAIXA ALTA. Sem nome velho — o clube nasce agora, no lugar de um bot.
+  'Raiva Cajuri': 'raivacajuri_lutador',
+  'Raiva Cajuri FC': 'raivacajuri_lutador',
+  'Raiva Cajuri EC': 'raivacajuri_lutador',
+  'Raiva Cajuri SC': 'raivacajuri_lutador',
+  'RAIVA CAJURI': 'raivacajuri_lutador',
+  'RAIVA CAJURI FC': 'raivacajuri_lutador',
   // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09). CARIMBO_GOL é busca EXATA: entram as
   // 4 formas do nome + CAIXA ALTA. Sem nome velho — o clube nasce agora.
   'Rei da Bola': 'reidabola_leao',
@@ -1104,6 +1121,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   falad10_d10: 'O D10', // 🎙️ Fala D10 (diegohdsf, 09/09) — a caricatura do dono, de megafone. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bonanca_selecta: 'O Selecta', // 🔊 Bonança SSFC (duselecta, 09/09) — o paredão de som que joga de camisa 10. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
   bailao_espelho: 'O Bailão', // 🪩 Inter de Bailão (matheus223lms, 14/09) — a bola de espelho. ⚠️ a chave antiga era `alface`; o banco (esc_socios.mascote_key) foi atualizado junto.
   internacional_siuuu: 'O Siuuu', // 👑 Internacional de Madrid (matheusstefanello372, 14/09) — o grito coroado é a marca do clube. A chave fica `internacional_siuuu` porque já está gravada no banco (esc_socios.mascote_key).

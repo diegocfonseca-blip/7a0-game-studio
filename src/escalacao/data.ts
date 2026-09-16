@@ -2845,7 +2845,11 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Dão da Feira', team: 'Milhaça FC' }, // ⚽🌽 clube BATIZADO por apoiador (igormarquesn99 / @igumarques, jornalista — Milhaça FC, ex-Real Bets, Série C; escudo e mascote com arte própria do dono, 24/08)
     { name: 'Mão de Onça', team: 'Goiaba FC' },
     { name: 'Beto Foguete', team: 'Leve-cuscuz' },
-    { name: 'Lelê da Serra', team: 'Serra Azul FR' },
+    // 🥊 Raiva Cajuri FC (feliperamiro0501) entrou aqui em 16/09, por decisão do Diego,
+    // na vaga do bot "Serra Azul FR". ⚠️ SEM OLD_NAME: o bot não foi renomeado, saiu da
+    // pirâmide. Ele CONTINUA existindo em CPU_MANAGERS (o elenco de bots do jogo rápido),
+    // que é outra lista e não tem nada a ver com as divisões da carreira.
+    { name: 'Raivoso', team: 'Raiva Cajuri FC' }, // 🥊 clube BATIZADO por apoiador (feliperamiro0501 — Raiva Cajuri FC; preto e vermelho, mascote O Raiva pulando do ringue; Lenda + fundador nº71 + sócio nº52, 16/09)
     { name: 'Selecta', team: 'Bonança SSFC' }, // 🔊 clube BATIZADO por apoiador (duselecta — Bonança SSFC, ex-Torta de Rã, Série C; paredão de som jamaicano, preto + amarelo com vermelho; mascote O Selecta, Lenda + fundador nº63, 09/09)
     { name: 'Baixinho da Kombi', team: 'Kombi United' },
   ],
