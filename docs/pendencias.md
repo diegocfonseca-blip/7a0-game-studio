@@ -1,3 +1,38 @@
+## 16/09/2026 (parte 5) — 🏢 As 4 ideias da SAF DESENHADAS + a quantidade do elenco visual
+
+Diego: *"quero todas ideias pra saf e pro elenco quantidade visual"*.
+Material: `node scripts/mockup-saf-ideias.mjs`. **Nada foi codado** — é desenho pra ele
+aprovar ou vetar.
+
+### A quantidade do elenco, camisa por camisa
+Grade por posição (4-4-2, Série A) nas três opções, com as vagas desenhadas:
+bege = elenco próprio · roxo = vaga nova · cinza tracejado = emprestado da SAF (entra
+POR CIMA do teto). **Hoje 22 · +1 goleiro 23 · +1 em tudo 27.** A linha do GOL mostra
+sozinha o argumento: 2 em todas as 7 formações, contra 8 no MEI.
+
+### As 4 ideias, cada uma como TELA
+1. 🌱 **A SAF forma jogador** — painel da SAF com barra de jogos ("24 de 38 · piso 66→71")
+   e o cartão da virada ("Kerlon voltou da SAF · piso 66 → 71"). Quem fica no banco lá
+   volta quase igual: tem que JOGAR. Reaproveita a mecânica de piso que já existe
+   (artilheiro +10). ⚠️ mexe em ficha dentro do save (não no catálogo) e precisa de teto.
+2. 🎽 **A SAF é o teto do elenco** — a aba Elenco com bloco próprio "SEU ELENCO 22/22" +
+   "🏢 DA SUA SAF · SÉRIE B 2/3", e a escada Várzea 22 → Série A 26. Quase só leitura de
+   tela: hoje o emprestado se mistura na lista com um chip "EMP" cinza.
+3. 💰 **Emprestar vira dinheiro** — janela de empréstimo com luva por temporada
+   (+8 🪙 · +12 🪙). Vira a TERCEIRA saída da crise do caixa no vermelho (a de hoje de
+   manhã), sem perder ninguém. ⚠️ medir a régua antes: pouco dinheiro, senão vira torneira.
+4. 📰 **A SAF no jornal** — página 2 (que já existe) com "Sua SAF subiu pra Série C",
+   "Kerlon foi artilheiro da Série D", "a SAF quase se enrolou". Zero regra nova.
+
+### Ordem recomendada, se ele quiser todas
+1º jornal (mais barata, zero regra) · 2º +1 goleiro · 3º bloco da SAF no elenco ·
+4º a SAF forma jogador (a que muda o jogo — fazer com calma e com teto) ·
+5º a luva (mexe em dinheiro → medir antes).
+
+### Continua pendente
+O **+1 em todas as posições** (caminho A). Se ele mandar, MEDIR ANTES o efeito no
+tamanho da mesa do leilão (5 cartas a mais por técnico) e na folha salarial.
+
 ## 16/09/2026 (parte 4) — 👥🏢 Elenco maior + o que fazer com a SAF (LEVANTAMENTO, nada codado)
 
 Diego: *"poder colocar mais jogadores no elenco… mais um goleiro, mais um meia, mais
