@@ -42,6 +42,7 @@ import reiDaBolaEscudoImg from './img/reidabola-escudo.webp' // 👑🦁 Rei da 
 import murrizEscudoImg from './img/murriz-escudo.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import barceniteEscudoImg from './img/barcenite-escudo.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import marinheirosEscudoImg from './img/marinheiros-escudo.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import fridaoEscudoImg from './img/fridao-escudo.webp' // 🐴 Fridão FC (felipe.ofrida): arte própria do dono, batismo de 16/09
 import maroladosEscudoImg from './img/marolados-escudo.webp' // 🛡️🌱 Marolados FC (paisagensetrilha): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import scorporilaEscudoImg from './img/scorporila-escudo.webp' // 🦍🦂 Scorporila FC (lucassrribeiroo2023): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import nightfullEscudoImg from './img/nightfull-escudo.webp' // 🐓🌙 Nightfull FC (guilhermevictor539): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
@@ -691,6 +692,12 @@ const barceniteEscudoRender = (size: number) => (
 // (nunca width={size} chutado). Arte NOVA do dono (feehcamp11, 16/09): brasão
 // redondo de corda e âncora, verde e creme, com o porco marujo de cachimbo.
 // 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+// 🐴 Fridão FC — 245x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte do dono (felipe.ofrida, batismo de 16/09):
+// brasão alvinegro coroado, com o cavalo de crina branca e a bola do patrocínio.
+const fridaoEscudoRender = (size: number) => (
+  <img src={fridaoEscudoImg} height={size} width={Math.round(size * 245 / 360)} alt="Fridão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const marinheirosEscudoRender = (size: number) => (
   <img src={marinheirosEscudoImg} height={size} width={Math.round(size * 290 / 360)} alt="Marinheiros AS" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1219,6 +1226,21 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Scorporila FC': scorporilaEscudoRender,
   'Scorporila EC': scorporilaEscudoRender,
   'Scorporila SC': scorporilaEscudoRender,
+  // 🐴 Fridão FC (felipe.ofrida) — BATISMO de 16/09, com arte própria do dono.
+  // As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4 nomes
+  // reservados: puro, FC, EC e SC — a caixa já está coberta porque a chave
+  // ignora maiúscula/minúscula).
+  'Fridão': fridaoEscudoRender,
+  'Fridão FC': fridaoEscudoRender,
+  'Fridão EC': fridaoEscudoRender,
+  'Fridão SC': fridaoEscudoRender,
+  // 🔤 e as formas SEM O TIL, porque é assim que o dono digita o nome na sala
+  // ("fridao fc" no room_players e no esc_results). Sem isto o escudo não
+  // aparece pra ele nas partidas que ele já joga hoje.
+  'Fridao': fridaoEscudoRender,
+  'Fridao FC': fridaoEscudoRender,
+  'Fridao EC': fridaoEscudoRender,
+  'Fridao SC': fridaoEscudoRender,
   // ⚓🐷 Marinheiros AS (feehcamp11) — ARTE NOVA em 16/09, mandada pelo dono.
   // O brasão redondo de corda e âncora, com o porco marujo de cachimbo e o 2026.
   // ⭐ É 1ª ASSINATURA (personalização de conta), NÃO é batismo: o clube não tira

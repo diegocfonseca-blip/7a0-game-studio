@@ -105,6 +105,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'pedrohenriquedasilva315@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'gabriel.arruda.1999@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'feehcamp11@gmail.com': 'ouro', // 👑 Lenda (pago) + FUNDADOR — ouro normal em tudo, MAS verde brilhante SÓ na carreira offline (CAREER_GREEN)
+  'felipe.ofrida@gmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR nº72 + SÓCIO nº53 + batismo (Fridão FC, Série C, ex-Casa de Vó; cavalo alvinegro coroado, 16/09)
   'lucasigorbortoliniii@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marreco FC, ex-Inter Estadual)
   'fontourajoao04@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº53 + batismo (Al Takhadao FC, Série A; coração Internacional, 01/09)
   'luizguilhermeps@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº54 + SÓCIO nº32 + batismo (Jurubeba FC, Série B, ex-Ferroviário do Sul; mascote a meia 🧦, 02/09)
@@ -212,6 +213,7 @@ const FUNDADOR_N: Record<string, number> = {
   'agrostinho88@gmail.com': 39, // 🖋️ Leandro/Obina — Lenda (nome "Papão United Madrid") (11/08)
   'erosreis@outlook.com.br': 40, // 🖋️ Eros Reis — batismo Eros FC (influencer @erosreis, mascote Nina 🐶) (12/08)
   'feliperamiro0501@hotmail.com': 71, // 🖋️ Raiva Cajuri FC — batismo na Série C (16/09)
+  'felipe.ofrida@gmail.com': 72, // 🐴 Fridão FC — batismo na Série C, na vaga do bot Casa de Vó (16/09)
   'caiobegnamii@gmail.com': 70, // 🖋️ Rei da Bola FC — batismo na Série A (16/09)
   'tiosapeka@gmail.com': 41, // 🖋️ Tio Sapeka — batismo Sapekeiros FC (influencer @tiosapekagg, mascote abelha coroada 🐝) (12/08)
   'glaucomiranda@outlook.com': 42, // 🖋️ Glauco — Lenda + sócio nº22; batismo Seven FC (15/08)
