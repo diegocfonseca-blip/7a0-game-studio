@@ -12,6 +12,8 @@ import { SquadTab } from '../../src/escalacao/pyramidseason'
 import type { Manager, WonCard, Sector } from '../../src/escalacao/types'
 
 const N = Number(new URLSearchParams(location.search).get('n') ?? 22)
+// 🧪 ?layout=hoje|empilhado|transbordo — as saídas pro "buraco na esquerda" (16/09)
+const LAYOUT = (new URLSearchParams(location.search).get('layout') ?? 'hoje') as 'hoje' | 'empilhado' | 'transbordo'
 // 4-4-2 dobrado = GOL 2 · LAT 4 · ZAG 4 · MEI 8 · ATA 4 = 22 (o elenco de hoje).
 // Acima disso a gente só empilha mais nomes, pra medir a ALTURA da tela.
 //   ?n=31  → 27 PRÓPRIOS (+1 por posição) + os 4 emprestados da SAF, que entram
@@ -55,5 +57,5 @@ for (const pos of ORDEM) {
 createRoot(document.getElementById('root')!).render(
   <EscProvider><SquadTab mgr={mgr} col={col as never} coins={168} xiIds={new Set(xi.map(c => c.id))} xi={xi}
     goals={{}} assists={{}} onSwap={() => {}} selId={null} seasonNo={6} contratosOn={false} olheiros={false}
-    safDiv="Série A" safSlots={4} /></EscProvider>
+    safDiv="Série A" safSlots={4} layoutListas={LAYOUT} /></EscProvider>
 )

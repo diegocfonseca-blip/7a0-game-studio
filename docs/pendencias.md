@@ -1,3 +1,44 @@
+## 16/09/2026 (parte 7) — 🕳️ "Ficou um buraco na esquerda" (duas saídas, ele escolhe)
+
+Diego, olhando a tela real do elenco de 27: *"não sei se gostei pq ficou um buraco na
+esquerda"*. Ele está certo, e a causa é estrutural: as duas colunas da lista são
+**FIXAS** (⭐ Titulares | 🔁 Reservas). Com 27, os titulares continuam **11** e os
+reservas viram **16** — a esquerda acaba antes e sobra vazio verde.
+
+Material: `node scripts/mockup-buraco-elenco.mjs`.
+Rascunho (não commitado no jogo): `docs/rascunhos/2026-09-16-elenco-27-e-bloco-saf.patch`,
+agora com `layoutListas?: 'hoje' | 'empilhado' | 'transbordo'` em `ElencoField`/`SquadTab`.
+A bancada aceita `?layout=` pra ver as três: `/scripts/teste-elenco/index.html?n=27&layout=transbordo`
+
+### As duas saídas, medidas na tela real (454px, PT)
+| layout | elenco 27 | elenco 22 (o que está no ar) |
+|---|---|---|
+| como está | 2427px | 2152px |
+| **transbordo** | **2339px** (−88) | **2152px — IDÊNTICO** |
+| empilhado | 2350px (−77) | 2240px (**+88**) |
+
+- **transbordo** = o reserva que não cabe **continua na coluna da esquerda**, embaixo dos
+  titulares, com um risquinho `🔁 RESERVAS (CONTINUA)`. Nada some, nada muda de lugar.
+- **empilhado** = cada lista ocupa a largura toda em 2 colunas próprias (titulares em
+  cima, reservas embaixo). Título mais legível.
+
+### 👉 Recomendado: TRANSBORDO — e o motivo é o número da direita
+No elenco de **22**, que é o que está no ar pra todo mundo, o transbordo dá **2152px,
+exatamente igual** ao de hoje: com 11 e 11 as colunas já batem, então a conta
+(`porColuna - titulares.length`) dá 0 e **o risquinho nem aparece**. Ele só entra em ação
+quando o elenco cresce — que é quando o buraco existiria.
+O **empilhado** custa **+88px na tela de TODO MUNDO**, inclusive de quem nunca vai querer
+elenco maior. Por isso é a 2ª opção.
+
+### O que isso muda na decisão do elenco
+O buraco **deixa de ser motivo** pra não fazer o +1 por posição: com transbordo, 27 fica
+mais curto (2339) que 27 de hoje (2427). **Mas o que continua de pé** é o que já estava
+anotado na parte 6: o meio-campo vira **9** (já sobrava com 8) e o leilão passa a precisar
+de **5 cartas a mais por técnico** na mesa. **MEDIR ANTES.**
+
+### Estado
+Nada no ar. Esperando ele dizer qual layout quer.
+
 ## 16/09/2026 (parte 6) — 👥🏢 A tela DE VERDADE: +1 por posição e a SAF em bloco
 
 Diego: *"e como ficaria real com um jogador a mais por posição a imagem do elenco…
