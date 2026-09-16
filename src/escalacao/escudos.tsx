@@ -26,7 +26,7 @@ import theuzudoEscudoImg from './img/theuzudo-escudo.webp' // 🦇 Theuzudo FC (
 import saoluizEscudoImg from './img/saoluiz-escudo.webp' // 🐶 São Luiz FC (gabrielnegreirosamaral99): arte própria do dono
 import papaoEscudoImg from './img/papao-escudo.webp' // 🐺 Papão United Madrid (agrostinho88): arte própria do dono
 import lluchEscudoImg from './img/lluch-escudo.webp' // 🏠 Esqueceram do Lluch FC (lluchmarcel81): arte própria do dono
-import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
+import neymarzettiEscudoImg from './img/neymarzetti-escudo.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono — RENOVADA em 16/09 (morcego-N cromado + letreiro; 345x360, antes 360x299)
 import milhacaEscudoImg from './img/milhaca-escudo.webp' // 🌽 Milhaça FC (igormarquesn99 / @igumarques): arte própria do dono, 24/08
 import takahdaoEscudoImg from './img/al-takahdao-escudo.webp' // 🦜🛒 Al Takahdao FC (fontourajoao04): arte própria do dono, 01/09
 import capsuleEscudoImg from './img/capsule-escudo.webp' // 🐉 Corporação Capsule FC (contatovegetta14): arte própria do dono, 03/09
@@ -726,7 +726,7 @@ const milhacaEscudoRender = (size: number) => (
   <img src={milhacaEscudoImg} height={size} width={Math.round(size * 308 / 360)} alt="Milhaça FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 const neymarzettiEscudoRender = (size: number) => (
-  <img src={neymarzettiEscudoImg} height={size} width={Math.round(size * 360 / 299)} alt="Neymarzetti" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={neymarzettiEscudoImg} height={size} width={Math.round(size * 345 / 360)} alt="Neymarzetti" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🦇 Theuzudo FC — morcego (coração Valência), laranja e preto. 293x360 no arquivo.
 const theuzudoEscudoRender = (size: number) => (
