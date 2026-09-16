@@ -68,7 +68,7 @@ const TELAS = [
       <span>quem senta no camarote gasta mais — e agora o jogo sabe disso.</span></div></div>
     <div class="it"><span class="e">💸</span><div><b>Começar ficou mais barato</b>
       <span>gramado pela metade, e a Loja abre com 1 setor em vez de 2.</span></div></div>
-    <div class="pe"><b>A Várzea não mudou nada</b> — quem tá começando não perde nada.</div>`) },
+    <div class="pe"><b>Na Várzea a torcida segue 12.000</b> — mas construir ficou mais barato e rende mais.</div>`) },
 
   { f: '/tmp/story-3.png', html: base(`
     <div class="sel">💰 O que muda no seu caixa</div>
@@ -81,7 +81,7 @@ const TELAS = [
           <td class="h">21</td><td class="r">55</td></tr>
       <tr><td class="l">👕 Venda de camisa<br><span style="font-size:22px;font-weight:600;color:#777">na Série B</span></td>
           <td class="h">21</td><td class="r">40</td></tr>
-      <tr><td class="l">🧍 Torcida<br><span style="font-size:22px;font-weight:600;color:#777">Série A, estádio cheio</span></td>
+      <tr><td class="l">🧍 Torcedores do clube<br><span style="font-size:22px;font-weight:600;color:#777">na Série A — é quem compra camisa,<br>não é quem cabe no estádio</span></td>
           <td class="h">90 mil</td><td class="r">195 mil</td></tr>
     </table>
     <div class="it" style="margin-top:28px;background:${GOLD}"><span class="e">🛡️</span><div>
