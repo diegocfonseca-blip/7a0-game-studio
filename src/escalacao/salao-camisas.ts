@@ -26,6 +26,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Barcenite FC": "barcenite-camisa-v1.webp",
   "Scorporila FC": "scorporila-camisa-v1.webp",
   "Marolados FC": "marolados-camisa-v1.webp",
+  "Marinheiros AS": "marinheiros-camisa-v1.webp",
   "Raiva Cajuri FC": "raivacajuri-camisa-v1.webp", // 🥊 batismo de 16/09 (feliperamiro0501)
   "Tôka10": "toka10-camisa-v2.webp", // 🧢 arte renovada em 16/09 (ofc.toka10) // 👑🦁 batismo de 16/09 (caiobegnamii)
   "Inter de Bailão": "interbailao-camisa.webp", // 🪩 ex-Alfacehh (renomeado 14/09) — a 1ª camisa de verdade dele no salão

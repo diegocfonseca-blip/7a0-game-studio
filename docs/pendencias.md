@@ -1,3 +1,58 @@
+## 16/09/2026 — ⚓🐷 Marinheiros AS de cara nova (FEITO, no ar)
+
+O dono (feehcamp11@gmail.com, sócio nº15, ❤️ Palmeiras) mandou a prancha completa.
+⭐ **É clube de SÓCIO (1ª assinatura), NÃO batismo** — não ocupa vaga na pirâmide.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/marinheiros-escudo.webp` — 290×360, **29 KB**.
+- **Mascote** `src/escalacao/img/marinheiros-mascote.webp` — 281×440, **42 KB**.
+- **Total 71 KB**, dentro do teto de 75 KB (o mais apertado do dia).
+- **Camisa** `scripts/kits/marinheiros-camisa.webp` +
+  `public/mantos-salao/marinheiros-camisa-v1.webp` — ele **não tinha camisa no
+  Salão** até hoje.
+- **Manto** `#0D4926` verde-garrafa + `#F5EBE1` creme, MEDIDOS na camisa nova
+  (verde 46%, creme 37%). Ele **não tinha linha em `MANTO_CONTAS`**: o manto vinha
+  só do banco, com `#1B7A3D`/`#FFFFFF`. Agora tem nos dois. Argolas HORIZONTAIS —
+  o `porco_marinheiro: 0` do `MANTO_ANGLE` já estava certo desde antes.
+
+### 🪤 A prancha mais difícil do dia — DOIS problemas juntos
+**1. O desenho é VERDE e o fundo também.** E aqui o piso de brilho padrão
+(`G > 180`) **NÃO BASTOU**: medido na prancha, o croma tem **G≈248** e a pele do
+porco vai de **G≈118 a G≈169** — ou seja, parte do verde dele passa de 180. Com o
+piso padrão a pele virou **buraco transparente** e, sobre o creme, o bicho saía
+manchado de pálido. ⚠️ **Sobre fundo branco isso era INVISÍVEL** — só apareceu
+comparando com a prancha original. É a regra do Theuzudo valendo de novo.
+Piso subiu pra `G > 210` e o despill só rampa de 205 pra cima.
+
+**2. Escudo e mascote QUASE se tocam.** O vão entre os dois existe em todas as
+linhas, mas chega a **2 px** (y≈520) — e a limpeza 5×5 que tira poeira de croma
+FECHA esse vão e funde os dois numa mancha só. Corte por mancha não serve, e reto
+também não: o vão ANDA com a altura (x≈478 em y=300, x≈526 em y=520, x≈489 em
+y=900). Corte CURVO linha por linha, igual ao Rei da Bola.
+Tudo isso está documentado em `scripts/recorta-prancha-marinheiros.py`.
+
+**3.** E a poça verde embaixo dos pés de novo: a sombra do croma (G≈184) está
+perto demais da pele (até 169), então o corte usou G>172 **e** só na faixa de
+baixo, onde só há chuteira preta e bola.
+
+### 🗄️ Banco — e uma boa notícia
+Manto atualizado. `esc_nomes_batismo`: **as 3 formas já estavam lá**
+(`marinheiros as`, `... ec`, `... fc`). **É o PRIMEIRO clube do dia com a reserva
+completa** — e faz sentido: ele é de assinatura, cadastrado depois do gatilho
+existir. Isso reforça a teoria de que o furo é dos batismos ANTIGOS.
+
+### 🛠️ `mockup-batismo.mjs`: `--renovacao` + `--socio`
+O post saiu dizendo *"já joga a Série D"* — **mentira**: clube de sócio não ocupa
+vaga. O gerador não previa as duas flags juntas. Agora a pílula vira "CLUBE DE
+SÓCIO DE CARA NOVA" e o texto diz "não tira o lugar de ninguém na pirâmide".
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.porco_marinheiro = 'O Marujo'` (não existia antes).
+
+### Reverter
+`git revert` desfaz a arte inteira. Manto volta com `update esc_socios`
+(era `#1B7A3D` / `#FFFFFF`).
+
 ## 16/09/2026 — 🌴 Marolados FC de cara nova (FEITO, no ar)
 
 O dono (paisagensetrilha@gmail.com, Serjão, ❤️ Palmeiras, sócio nº18, fundador
