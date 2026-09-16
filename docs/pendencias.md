@@ -1,3 +1,56 @@
+## 16/09/2026 — 🐺 Papão United Madrid: escudo e manto novos (FEITO, no ar)
+
+O dono (agrostinho88@gmail.com, Agostinho, ❤️ Paysandu, sócio nº29, fundador nº39)
+mandou prancha nova. Palavras do Diego: *"alargamos o escudo e mudamos o manto.
+O mascote é o mesmo, não se mudou nada dele"*.
+
+### ⚠️ A MASCOTE NÃO FOI TOCADA
+Conferido antes de mexer: a fera da prancha nova é a MESMA que já está no jogo
+(`papao-mascote.webp`, 281×440, de 23/08) — mesma pose, mesmo tridente, mesma
+faixa. O arquivo ficou como estava. Só escudo e manto mudaram.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/papao-escudo.webp` — **232×360**, 29 KB.
+  Ele ficou MESMO mais largo: **0,64** contra **0,57** do anterior (150×263).
+  ⚠️ A proporção no `escudos.tsx` foi atualizada junto — se ficasse o `150/263`
+  velho o escudo novo entraria espremido.
+- **Camisa** `scripts/kits/papao-camisa.webp` +
+  `public/mantos-salao/papao-camisa-v2.webp`. **O nome ganhou `-v2`** e o arquivo
+  velho (`papao-camisa.webp`, sem versão) foi REMOVIDO: endereço fixo em `public/`
+  = o navegador serviria a camisa velha pra quem já abriu o Salão.
+- **Manto** `#001A6C` azul-marinho + `#D4D6DD` branco, REMEDIDOS na camisa nova
+  (branco 50,5%, azul 37,6%). Antes era `#0C2460`/`#FFFFFF`, da camisa de 23/08.
+  **3ª cor DOURADA** `#DC9D3B` (gola, punhos, filetes) em `MANTO_TRI`.
+
+### 🚫 O SWOOSH DA NIKE saiu da camisa
+A camisa vinha com o logo da Nike DOURADO e GRANDE no peito. Aqui deu pra fazer
+melhor que no Barcenite, porque as listras são VERTICAIS: cada coluna foi
+reconstruída interpolando de cima pra baixo — a listra volta EXATA e a sombra do
+pano acompanha —, e o grão do tecido foi transplantado de um trecho limpo logo
+abaixo. Tentativas que falharam antes: copiar o mesmo bloco de outra altura
+(a camisa afunila, as listras não batem) e colar sem pena (costura visível).
+
+### 🗄️ Banco — e aqui o buraco era o PIOR de todos
+`esc_nomes_batismo` para o Papão estava **COMPLETAMENTE VAZIO**: nenhuma forma do
+nome reservada. Qualquer pessoa podia registrar "Papão United Madrid" e tomar o
+nome do dono. Inseri as duas grafias-base (com til e sem til) e o gatilho gerou as
+variações: agora são **6 linhas** travadas. Manto do sócio nº29 atualizado.
+
+### 🔎 A pendência virou URGENTE (4 casos em 4 clubes)
+Murriz, Nightfull e Barcenite tinham 1 de 3 formas; o **Papão tinha ZERO**.
+**Varrer `esc_nomes_batismo` contra a lista inteira de `batismos.ts`.** Não precisa
+de deploy, é só banco. Enquanto não for feito, existem donos de batismo com o nome
+do próprio clube desprotegido.
+
+### 🛠️ `mockup-batismo.mjs` ganhou `--mascote-igual`
+O post de renovação dizia sempre "escudo, manto e mascote novos" — com a mascote
+igual, isso MENTIA. Agora a flag troca as duas frases ("com o Papão de sempre no
+gol" / "escudo e manto novos, mascote a mesma").
+
+### Reverter
+`git revert` do commit desfaz escudo, manto e camisa. O manto volta com um
+`update esc_socios`. A reserva de nome é proteção do dono — não tirar.
+
 ## 16/09/2026 — 🐈 Barcenite FC de cara nova (FEITO, no ar)
 
 O dono (ricardopessoafreire@gmail.com, Ricardo, ❤️ Flamengo, sócio nº12,

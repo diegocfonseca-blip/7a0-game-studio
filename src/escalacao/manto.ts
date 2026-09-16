@@ -52,7 +52,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'igormarquesn99@gmail.com': ['#AE1A13', '#F3B212'], // 🌽 Milhaça FC — vermelho e amarelo, MEDIDOS na camisa que o dono mandou (24/08)
   'lluchmarcel81@gmail.com': ['#C00018', '#111111'], // 🏠 Esqueceram do Lluch FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (28/08). ❤️ São Paulo (por isso o manto é TRICOLOR listrado; o branco é a 3ª cor, em MANTO_TRI)
   'danielmanfre5@gmail.com': ['#EC121C', '#0135A3'], // 🐦‍⬛ Manfré FC — vermelho e azul, MEDIDOS na 2ª camisa que o dono mandou (30/08, a da gralha AZUL). ❤️ Paraná Clube (de onde vem a gralha-azul)
-  'agrostinho88@gmail.com': ['#0C2460', '#FFFFFF'], // 🐺 Papão United Madrid — azul-marinho e branco, MEDIDOS na camisa que o dono mandou (23/08). ❤️ Paysandu (o "Papão da Curuzu", de onde vem o nome do clube)
+  'agrostinho88@gmail.com': ['#001A6C', '#D4D6DD'], // 🐺 Papão United Madrid — azul-marinho e branco, REMEDIDOS na camisa NOVA que o dono mandou (branco 50,5% do manto, azul 37,6%, 16/09; antes era #0C2460/#FFFFFF, da camisa de 23/08). O AZUL vem primeiro porque listra branca na tela creme some. O DOURADO #DC9D3B da gola, dos punhos e dos filetes é a 3ª cor (MANTO_TRI). ❤️ Paysandu (o "Papão da Curuzu", de onde vem o nome do clube)
 }
 
 // cache do MEU sócio (mesmo padrão do myEmail do apoio: pontos de uso são
@@ -172,6 +172,7 @@ const MANTO_TRI: Record<string, string> = {
   trevo_seven: '#DCAC49', // 🍀 Seven City (glaucomiranda) — 3ª cor DOURADA: gola, listras, coroa e o 7 (medida na camisa dele, 12/09)
   leiteverdade_vaca: '#CDAA77', // 🐮 Leite de Verdade FC — 3ª cor DOURADA da coroa, da gola e do 'FC' (medida na arte dele, 10/09)
   bonanca_selecta: '#B51516', // 🔊 Bonança SSFC (duselecta) — 3ª cor VERMELHA: a listra rasta da camisa, medida na arte dele (09/09)
+  papao_lobo: '#DC9D3B', // 🐺 Papão United Madrid (agrostinho88) — 3ª cor DOURADA: a gola, os punhos, os filetes do ombro e a moldura do escudo do peito (medida na camisa NOVA dele, 16/09)
   galo: '#C5A373', // 🐓🌙 Nightfull FC (guilhermevictor539) — 3ª cor DOURADA: a gola, os punhos e os filetes da camisa (medida na arte NOVA dele, 16/09). ⚠️ chave `galo` mesmo — é a que está no banco; não confundir com `brigadegalo_galo`, que é outro clube
   brigadegalo_galo: '#A38758', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)

@@ -555,14 +555,6 @@ const futpointEscudoRender = (size: number) => (
 const saoluizEscudoRender = (size: number) => (
   <img src={saoluizEscudoImg} height={size} width={Math.round(size * 283 / 279)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
-// 🐺 Papão United Madrid — lobo chifrudo com tridente, azul-marinho e branco.
-// 150x360 no arquivo (a largura sai da proporção REAL, nunca chutada).
-// 📌 O dono mandou DUAS artes. A 1ª trazia escudo, fera e camisa grudados, com um
-// xadrez falso preto+cinza por baixo — a haste da fera atravessava a borda do
-// escudo e o Diego reprovou o resultado ("ficou ruim"). A 2ª (esta) veio com as
-// três peças SEPARADAS e fundo branco: o escudo saiu inteiro, sem remendo nenhum.
-// Conferido sobre fundo CREME, nunca sobre branco — "PAPÃO UNITED" e "DE MADRID"
-// intactos, que foi o furo que ele pegou no Theuzudo.
 const leaoEstradinhaRender = (size: number) => (
   <img src={leaoEstradinhaEscudoImg} height={size} width={Math.round(size * 287 / 360)} alt="Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -575,8 +567,19 @@ const lluchEscudoRender = (size: number) => (
   <img src={lluchEscudoImg} height={size} width={Math.round(size * 296 / 360)} alt="Esqueceram do Lluch FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🐺 Papão United Madrid — brasão de coroa com o lobo chifrudo, o tridente e a
+// caravela, azul-marinho, branco e vermelho. 232x360 no arquivo, então a largura
+// sai da PROPORÇÃO REAL (nunca width={size} chutado).
+// 🔁 ESCUDO NOVO em 16/09, mandado pelo dono. Palavras do Diego: *"alargamos o
+// escudo e mudamos o manto. O mascote é o mesmo, não se mudou nada dele"* — por
+// isso a MASCOTE não foi tocada nesta entrega, só escudo e manto.
+// Ele ficou mesmo mais largo: 0,64 contra 0,57 do anterior.
+// 🕰️ histórico (23/08): o dono mandou DUAS artes na época. A 1ª trazia escudo,
+// fera e camisa grudados com xadrez falso por baixo, e o Diego reprovou ("ficou
+// ruim"); a 2ª veio com as peças separadas. Conferido sobre fundo CREME, nunca
+// sobre branco — "PAPÃO UNITED" e "DE MADRID" intactos (o furo do Theuzudo).
 const papaoEscudoRender = (size: number) => (
-  <img src={papaoEscudoImg} height={size} width={Math.round(size * 150 / 263)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={papaoEscudoImg} height={size} width={Math.round(size * 232 / 360)} alt="Papão United Madrid" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🦜🛒 Al Takahdao FC — brasão com carrinho de mercado, bola e ramos, verde e
 // laranja. 337x360 no arquivo (largura pela proporção REAL, nunca chutada).
