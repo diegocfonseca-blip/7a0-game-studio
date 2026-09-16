@@ -1,3 +1,50 @@
+## 16/09/2026 — 🔎 Levantamento visual das telas da CARREIRA (7 achados, nada mexido)
+
+Pedido do Diego: *"confira todas telas do modo carreira e modais e me sugira aonde vc
+faria mudanças visuais pra organizar melhor?"*.
+
+### Como foi feito (e como refazer)
+Nada aqui é achismo: nasceu de navegar o jogo DE VERDADE. A bancada nova
+`scripts/navega-carreira.mjs` cria a carreira do zero, joga o leilão (lance ZERO —
+o elenco vem do Monte das sobras), assina os patrocínios, corre ~35 rodadas, e então
+fotografa e MEDE cada aba e cada modal num celular de 430×900.
+```
+DEPLOY_BASE=/ npx vite --port 5199
+node scripts/navega-carreira.mjs --fase nova     # 1x: monta o save (demora)
+node scripts/navega-carreira.mjs --fase abas     # as 5 abas, com as medidas
+node scripts/navega-carreira.mjs --fase modais   # os modais
+node scripts/mockup-arrumar-carreira.mjs         # o relatório que foi pro Diego
+```
+
+### O que a medida mostrou
+Rolagem por aba: Jogos 2,8 · Tabelas 2,0 · Elenco 3,8 · Rank 2,3 · **Clube 3,8 telas**.
+As CINCO abas começam com as mesmas três coisas — caixa "Criar conta grátis" (sempre
+em y≈19–30), faixa da temporada + o placar INTEIRO, e a faixa "Acelerar e pular 🔒
+Desbloquear" (y 638–776). Dá **≈800px antes do conteúdo da aba**.
+
+### Os 7 achados (em ordem do que eu faria primeiro)
+1. **Caixa de "criar conta" abre todas as abas** → virar linha fina e só na aba Jogos.
+2. **⚠️ REGRA DELE QUEBRADA: o estádio não é a 1ª coisa da aba Clube.** O desenho começa
+   em **y=740–812px** (medido em duas passagens) — quase uma tela abaixo. Na frente
+   dele: caixa de conta, faixa da temporada, placar inteiro e o Desbloquear. A regra
+   do `CLAUDE.md` é *"o desenho do estádio é sagrado: primeira coisa visível"*.
+   → placar entra ENCOLHIDO na aba Clube + caixa de conta sai = estádio volta pra ~y200.
+3. **Estado dito 2× na aba Jogos**: a faixa diz "Bola rolando" e o cartão logo abaixo diz
+   "🟢 BOLA ROLANDO". Mais a frase fixa "Acompanhe sua divisão…", 2 linhas toda rodada.
+4. **Botão morto com cara de botão**: no modal do preparador, 2 dos 4 mostram um retângulo
+   grande e escuro escrito "moedas insuficientes" — parece clicável e o preço some.
+   → apagar o botão e dizer o caminho ("faltam 196 🪙"), como manda a regra das travas.
+5. **Elenco tem 3 andares de navegação** (abas TIME/AGENCIADOS → pastilhas da tática →
+   conteúdo) e a lista de titulares fica a 3,8 telas.
+6. **A faixa do Desbloquear TIRA do jogo**: apertar abre a página inteira de planos e você
+   perde onde estava. → virar modal + aparecer 1× por temporada.
+7. **A virada mostra PASSO 1 DE 2 e PASSO 2 DE 2 na mesma tela** (o 2 travado). Ele pediu
+   "um de cada vez" — pode ser proposital (dá pra ver o que vem). **PERGUNTA ABERTA.**
+
+### Estado
+**NADA foi alterado no jogo** — é levantamento. Esperando o Diego escolher o que entra.
+A recomendação foi fazer 1+2 juntos (é a mesma mexida: o cabeçalho comum das abas).
+
 ## 16/09/2026 — 🕴️🥇 A agência só comissiona ARTILHEIRO (campeão saiu)
 
 Ordem do Diego: *"o jogador da agência, quando for campeão, não vai ganhar moeda, o
