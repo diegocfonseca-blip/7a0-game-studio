@@ -1276,7 +1276,7 @@ function EscritorioTab({ cards, st, hasFilial }: { cards: EmpCard[]; st: Stadium
 // ── 🕴️ AGÊNCIA 2.0 (aba Elenco › Agenciados) — SÓ carreira solo NOVA ────────
 // O técnico convoca até 22 cartas do ÁLBUM dele pra "ativa": só elas rendem
 // mensalidade por categoria (👑5 ⭐4 💎3 🎯2 🪵1 · folclórico +1) e comissão por
-// acontecimento (artilheiro/campeão/negociação no leilão). A renda cai SEMPRE
+// acontecimento (artilheiro/negociação no leilão — campeão NÃO paga, 16/09). A renda cai SEMPRE
 // no caixa do 1º clube. Convocação no estilo da Copa (filtro por posição+busca).
 // 🌐 rótulo e exigência de cada categoria do escritório em EN (números ficam em EMP_META)
 const EMP_EN: Record<EmpCat, { label: string; req: string }> = {
@@ -1391,7 +1391,7 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
       <div style={{ ...box(), padding: '10px 12px', marginBottom: 10 }}>
         <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', marginBottom: 5 }}>{tr('📈 Comissões da agência', '📈 Agency commissions')}</div>
         {(!fatura || (fatura.rows.length === 0 && fatura.mensal === 0)) ? (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your clients pay commission when they <b>become top scorer</b> 🥇, <b>win a title</b> 🏆 (with any team!) or <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus agenciados pagam comissão quando <b>viram artilheiro</b> 🥇, <b>são campeões</b> 🏆 (em qualquer time!) ou <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your clients pay commission when they <b>become top scorer</b> 🥇 (in any division or in the Cup!) or <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus agenciados pagam comissão quando <b>viram artilheiro</b> 🥇 (de qualquer série ou da Copa!) ou <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p>
         ) : (
           <>
             {fatura.mensal > 0 && (
@@ -1630,7 +1630,7 @@ function AgenciaDesbloqueios({ st, hasFilial, onVerAgenciados }: { st: StadiumSa
           )
         })}
       </div>
-      <div style={{ fontSize: 9.5, fontWeight: 600, color: 'rgba(255,255,255,.75)', marginTop: 9, lineHeight: 1.45 }}>{en ? <>🃏 A <b>folk hero</b> card earns <b>+{AG_FOLK_BONUS} 🪙</b> on top — once its category is unlocked · commissions: 🥇 top scorer +1 · 🏆 champion +1 · 💸 traded at the auction +1.</> : <>🃏 Carta <b>folclórica</b> rende <b>+{AG_FOLK_BONUS} 🪙</b> por cima — junto com a categoria dela liberada · comissões: 🥇 artilheiro +1 · 🏆 campeão +1 · 💸 negociado no leilão +1.</>}</div>
+      <div style={{ fontSize: 9.5, fontWeight: 600, color: 'rgba(255,255,255,.75)', marginTop: 9, lineHeight: 1.45 }}>{en ? <>🃏 A <b>folk hero</b> card earns <b>+{AG_FOLK_BONUS} 🪙</b> on top — once its category is unlocked · commissions: 🥇 top scorer +1 · 💸 traded at the auction +1.</> : <>🃏 Carta <b>folclórica</b> rende <b>+{AG_FOLK_BONUS} 🪙</b> por cima — junto com a categoria dela liberada · comissões: 🥇 artilheiro +1 · 💸 negociado no leilão +1.</>}</div>
       {onVerAgenciados && (
         <button onClick={onVerAgenciados} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 13, padding: 10, fontWeight: 900, fontSize: 13, ...OSWALD, textTransform: 'uppercase', background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: '3px 3px 0 rgba(0,0,0,.55)', marginTop: 10, cursor: 'pointer' }}>{tr('🧢 Ver meus agenciados — Elenco › Agenciados', '🧢 See my clients — Squad › Clients')}</button>
       )}
@@ -2001,7 +2001,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
   // 🌐 rótulo do extrato gravado no save (PT) → inglês só na hora de ler
   const LEDGER_EN: Record<string, string> = {
     '🏆 Prêmios da temporada': '🏆 Season prizes', '🎟️ Bilheteria': '🎟️ Gate money', '💸 Folha salarial': '💸 Payroll', '🤝 Patrocínio': '🤝 Sponsorship',
-    '🕴️ Agência — mensalidades (na ativa)': '🕴️ Agency — monthly fees (active)', '🕴️ Agência — comissões (artilheiro/campeão)': '🕴️ Agency — commissions (top scorer/champion)',
+    '🕴️ Agência — mensalidades (na ativa)': '🕴️ Agency — monthly fees (active)', '🕴️ Agência — comissões (artilheiro)': '🕴️ Agency — commissions (top scorer)',
     '🕴️ Bico de Folga': '🕴️ Side gig', '💼 Renda do Empresário': '💼 Agent income', '🏁 Saldo inicial': '🏁 Opening balance', '🏢 Prêmios da SAF': '🏢 SAF prizes',
     '📺 Cota de TV': '📺 TV money', '🌍 Prêmio da Copa do Mundo Legends': '🌍 Legends World Cup prize',
     '🎟️ Boas-vindas de sócio (uma vez só)': '🎟️ Member welcome bonus (one time)', '🎟️ Moedas de sócio do mês': '🎟️ Member coins of the month',
@@ -7011,8 +7011,8 @@ export function PyramidSeasonScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, copa?.champion?.you, state.careerOnline, state.roomId, state.seasonNo, state.seed])
   // 🕴️ AGÊNCIA 2.0: quando a COPA termina (fim real da temporada), computa os
-  // acontecimentos dos agenciados — artilheiro de cada série + da Copa, e campeão
-  // em QUALQUER time (liga das 4 divisões + Copa Legends). Manda pro motor como
+  // acontecimentos dos agenciados — artilheiro de cada série + da Copa (campeão
+  // NÃO paga desde 16/09, ordem do Diego). Manda pro motor como
   // eventos PENDENTES (pagos na virada, aparecem na Cerimônia — zero spoiler,
   // aqui tudo já passou do apito). Idempotente: o reducer grava 1x por temporada.
   const agEvRef = useRef('')
@@ -7027,10 +7027,13 @@ export function PyramidSeasonScreen() {
       for (const d of DIVS) {
         const top = scorersAll.filter(x => x.div === d).sort((a, b) => b.goals - a.goals)[0]
         if (top && top.goals > 0 && nomes.has(top.name)) rows.push({ emoji: '🥇', texto: `${top.name} foi o artilheiro da ${DIV_NAME[d]} (${top.goals} gols)`, coins: 1, nome: top.name })
-        const champ = tables[d]?.[0]
-        if (champ) for (const p of champ.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} foi campeão da ${DIV_NAME[d]} pelo ${champ.name}`, coins: 1, nome: p.name })
+        // 🚫 CAMPEÃO NÃO PAGA MAIS COMISSÃO (Diego, 16/09): *"o jogador da agência,
+        // quando for campeão, não vai ganhar moeda… ele só ganha moeda se o jogador
+        // for artilheiro"*. Motivo prático: o time campeão tem 11+ titulares, então
+        // um único agenciado numa boa equipe pagava mais que a carreira inteira de
+        // gols — e sem o técnico ter feito nada. Artilheiro é mérito do JOGADOR.
+        // Não repropor campeão como comissão.
       }
-      if (copa.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) rows.push({ emoji: '🏆', texto: `${p.name} levou a ${copaBrOk ? 'Copa do Brasil' : 'Copa Legends'} pelo ${copa.champion.name}`, coins: 1, nome: p.name })
       if (copa.topScorer && nomes.has(copa.topScorer.name)) rows.push({ emoji: '🥇', texto: `${copa.topScorer.name} foi o artilheiro da ${copaBrOk ? 'Copa do Brasil' : 'Copa Legends'}`, coins: 1, nome: copa.topScorer.name })
     }
     dispatch({ type: 'AGENCIA_SEASON_EVENTS', season: state.seasonNo ?? 1, rows })
@@ -7696,8 +7699,9 @@ export function PyramidSeasonScreen() {
             /* 🎭 EVENTOS: manchetes do "Aconteceu na temporada" (página própria do jornal) */
             eventos={eventosOn ? (state.eventoManchetes ?? []).filter(m => m.season === state.seasonNo).map(m => ({ ic: m.emoji, titulo: m.titulo, sub: m.sub })) : undefined}
             /* 🕴️ AGÊNCIA 2.0: notícias dos agenciados pra página 2 do jornal —
-               SÓ emoção, sem moeda (decisão do Diego). Artilheiro/campeão desta
-               temporada + negociações do último mercado. Sem notícia = sem pág. 2. */
+               SÓ emoção, sem moeda (decisão do Diego). Artilheiro desta temporada
+               + negociações do último mercado (agenciado CAMPEÃO saiu do jornal em
+               16/09, a pedido dele). Sem notícia = sem pág. 2. */
             agenciaNews={(() => {
               if (!state.agenciaOn || !agLib) return undefined
               const nomes = new Set((state.agenciados ?? []).map(a => a.name))
@@ -7706,10 +7710,10 @@ export function PyramidSeasonScreen() {
               for (const d of DIVS) {
                 const top = scorersAll.filter(x => x.div === d).sort((a, b) => b.goals - a.goals)[0]
                 if (top && top.goals > 0 && nomes.has(top.name)) nn.push({ ic: '🥇', titulo: `${top.name} é o artilheiro da ${DIV_NAME[d]}`, sub: `${top.goals} gols pelo ${top.teamName}. A torcida cantou o nome dele — e o telefone da sua agência não parou de tocar.` })
-                const champ = tables[d]?.[0]
-                if (champ) for (const p of champ.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} levanta a taça pelo ${champ.name}`, sub: `Campeão da ${DIV_NAME[d]}! Ergueu o troféu e apontou pra tribuna: "esse aí é do meu agente!" 😎` })
+                // 🚫 AGENCIADO CAMPEÃO SAIU DO JORNAL TAMBÉM (Diego, 16/09): *"o
+                // jogador que for campeão e é da agência não precisa aparecer no
+                // jornal"*. Agora a página 2 é só artilheiro + negociação.
               }
-              if (copa?.champion) for (const p of copa.champion.squad) if (nomes.has(p.name)) nn.push({ ic: '🏆', titulo: `${p.name} campeão da ${copaBrOk ? 'Copa do Brasil' : 'Copa Legends'}`, sub: `Taça pelo ${copa.champion.name} — cria da sua agência dando show no mata-mata.` })
               if (copa?.topScorer && nomes.has(copa.topScorer.name)) nn.push({ ic: '🥇', titulo: `${copa.topScorer.name} é o artilheiro da Copa`, sub: `${copa.topScorer.goals} gols no mata-mata — o país inteiro quer saber quem agencia esse craque.` })
               for (const r of (state.agenciaFatura?.rows ?? []).filter(x => x.emoji === '💸').slice(0, 3)) if (r.nome) nn.push({ ic: '✍️', titulo: `${r.nome} de casa nova`, sub: 'Negociação fechada no mercado — com a bênção da sua agência.' })
               return nn.length ? nn.slice(0, 6) : undefined

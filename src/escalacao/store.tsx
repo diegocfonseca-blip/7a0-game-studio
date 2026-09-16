@@ -615,8 +615,8 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   // 💼 EMPRESÁRIO: renda das cartas ganhas (categorias destravam com estádio/SAF).
   // Offline: careerFilial + empresarioCards. Online: por técnico (Passo 2c).
   // 🕴️ AGÊNCIA 2.0 (carreira solo NOVA): troca o empresário clássico pelos 22
-  // "na ativa" — mensalidades por categoria (lenda 5 + folclórico +1) e comissões
-  // de eventos (artilheiro/campeão, acumulados em agenciaEventos). Tudo cai no
+  // "na ativa" — mensalidades por categoria (lenda 6 + folclórico +1) e comissões
+  // de eventos (artilheiro, acumulados em agenciaEventos). Tudo cai no
   // caixa do 1º CLUBE (agenciaClubeId), mesmo que ele esteja dormindo.
   if (!online && s.agenciaOn && agenciaLiberada()) { // 🔒 por enquanto só a conta do Diego
     // 🧹 saneia a ativa: só carta do cofre DESTA carreira rende (remove convocação
@@ -649,7 +649,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
       s.agenciaHist = hist
     }
     const s45 = snap()
-    // comissões pendentes da temporada que acabou (artilheiro/campeão)
+    // comissões pendentes da temporada que acabou (artilheiro; campeão saiu 16/09)
     const evs = (s.agenciaEventos && s.agenciaEventos.season === (s.seasonNo ?? 1)) ? s.agenciaEventos.rows : []
     const com = evs.reduce((n, e) => n + e.coins, 0)
     if (com > 0) {
@@ -668,7 +668,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
     // 🕴️ O BICO SAIU DAQUI (15/09): virou `applyBicoIncome`, com linha própria no
     // extrato, porque agora ele paga ao COMEÇAR a temporada. No fechamento ele só
     // aparece pra quem ficou pra trás, e por isso não é mais uma linha do resumo.
-    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro/campeão)']]
+    const rows: [LedgerEntry['kind'], string][] = [['reward', '🏆 Prêmios da temporada'], ['gate', '🎟️ Bilheteria'], ['salary', '💸 Folha salarial'], ['sponsor', '🤝 Patrocínio'], ['empresario', '🕴️ Agência — mensalidades (na ativa)'], ['empresario', '🕴️ Agência — comissões (artilheiro)']]
     const steps = [s0, s1, s2, s3, s4, s45, s5]
     const ids = dorm != null ? [y, dorm] : [y]
     for (const id of ids) for (let i = 0; i < rows.length; i++) logFin(s, rows[i][0], rows[i][1], (steps[i + 1][id] ?? 0) - (steps[i][id] ?? 0), undefined, id, true)
@@ -3646,7 +3646,7 @@ type Action =
   | { type: 'SOCIO_CREDIT'; motivo: 'mensal' | 'boas-vindas' } // 🎟️ brinde de sócio (RPC já travou no Supabase, 1× por mês / 1× na vida) — o VALOR vem do código, nunca de fora
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
   | { type: 'SET_AGENCIA_CLUBE'; mgrId: number; dividir?: boolean } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (ou dividir meio a meio) — toggle na tela dos Agenciados
-  | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
+  | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; youUid?: string }
@@ -7151,7 +7151,7 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'AGENCIA_SEASON_EVENTS': {
-      // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro/campeão) — computados na
+      // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro) — computados na
       // tela quando a Copa termina; ficam PENDENTES e são pagos na virada
       // (applySeasonMoney). Idempotente: só grava uma vez por temporada.
       if (!s.agenciaOn || !agenciaLiberada()) return s

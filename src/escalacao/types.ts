@@ -602,13 +602,14 @@ export interface EscState {
   contratosOn?: boolean // 📝 CONTRATOS de jogador ligados NESTA carreira. Só carreira NOVA nasce com true (decisão do Diego) — save antigo fica sem contratos pra sempre (nada muda no meio da carreira de ninguém)
   // 🕴️ AGÊNCIA 2.0 (carreira solo NOVA): o técnico convoca até 22 cartas do
   // ÁLBUM dele pra "ativa" — só elas rendem (mensalidade por categoria + bônus
-  // folclórico) e pagam comissão por acontecimento (artilheiro/campeão/transação).
+  // folclórico) e pagam comissão por acontecimento (artilheiro/transação — campeão
+  // NÃO paga desde 16/09, ordem do Diego).
   // A renda cai SEMPRE no caixa do 1º clube (decisão do Diego), mesmo dormindo.
   agenciaOn?: boolean // ligada SÓ em carreira solo NOVA (save antigo segue com o empresário clássico)
   agenciaClubeId?: number // clube que recebe a renda da agência (nasce = 1º clube; com 2º clube o dono troca no toggle)
   agenciaDividir?: boolean // 🤝 com 2 clubes: renda da agência meio a meio (moeda ímpar → clube no comando)
   agenciados?: AgCard[] // os até 22 convocados "na ativa" (escolhidos do álbum)
-  agenciaEventos?: { season: number; rows: AgEvento[]; eventosDone?: boolean } // eventos PENDENTES da temporada (artilheiro/campeão) — pagos na virada
+  agenciaEventos?: { season: number; rows: AgEvento[]; eventosDone?: boolean } // eventos PENDENTES da temporada (artilheiro) — pagos na virada
   agenciaFatura?: { season: number; mensal: number; rows: AgEvento[]; total: number } // fatura JÁ PAGA (mensalidades + comissões) — vira o quadro da Cerimônia/aba
   agenciaHist?: Record<string, number> // acumulado por carta (chave name|club|year) — "já te rendeu X nesta carreira"
   // 🪜 ESCADA DE CATEGORIAS (carreira solo NOVA, teste na conta do Diego): cada

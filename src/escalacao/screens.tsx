@@ -4878,7 +4878,7 @@ export function EscCerimonia() {
         </div>
       ))}
       {/* 🕴️ AGÊNCIA 2.0: fatura da temporada (mensalidades pagas na virada +
-          comissões de artilheiro/campeão + negociações do leilão que acabou).
+          comissões de artilheiro + negociações do leilão que acabou).
           Tudo JÁ caiu no caixa do 1º clube — aqui é o resumo pós-apito. */}
       {state.agenciaOn && agLibCer && state.agenciaFatura && (state.agenciaFatura.total > 0 || state.agenciaFatura.rows.length > 0) && (
         <div className="border-[3px] border-black rounded-2xl p-4" style={{ background: `linear-gradient(160deg, ${GREEN}, #14401f)`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff' }}>

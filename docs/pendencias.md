@@ -1,3 +1,39 @@
+## 16/09/2026 — 🕴️🥇 A agência só comissiona ARTILHEIRO (campeão saiu)
+
+Ordem do Diego: *"o jogador da agência, quando for campeão, não vai ganhar moeda, o
+usuário não vai ganhar moeda, ele só vai ganhar moeda se o jogador for artilheiro… E
+aí pode aparecer no jornal, mas o jogador que for campeão e é da agência não precisa
+aparecer no jornal. O que vai contar agora é o jogador artilheiro, ele aparece no
+jornal e também o que já contava antes, que é negociação"*.
+
+### Por que a regra velha inflava (medido no código, não achismo)
+A comissão de campeão varria o ELENCO INTEIRO do campeão de cada uma das 4 divisões
+**mais** o da Copa — `for (const p of champ.squad)`. Ou seja: um agenciado num time
+bom pagava 1 🪙 por estar na lista, sem ter feito nada, e dava pra empilhar várias
+comissões na mesma temporada (campeão da série + campeão da Copa). Artilheiro é UM
+por competição e é mérito do jogador. Foi exatamente essa a leitura dele.
+
+### O que mudou (3 lugares, nenhum toca no dinheiro do clube)
+- `pyramidseason.tsx` (efeito `AGENCIA_SEASON_EVENTS`): saíram as linhas 🏆 de campeão
+  da liga e da Copa. Ficaram as 🥇 de artilheiro de cada série e da Copa.
+- `pyramidseason.tsx` (`agenciaNews`, página 2 do jornal): saíram as manchetes de
+  agenciado campeão. Ficaram artilheiro + as 3 negociações do mercado.
+- Textos que a pessoa lê: caixa vazia da aba Agenciados, legenda de comissões do
+  escritório e o rótulo do extrato (`🕴️ Agência — comissões (artilheiro)`), em PT e EN.
+
+### O que NÃO mudou (conferido)
+- **Mensalidade por categoria**: `AG_VALUES` intacto (prof 1 · bom 2 · promessa 3 ·
+  craque 4 · lenda 6) + folclórico +1, com os mesmos destraves de estádio/SAF.
+- **Comissão de negociação** (1 🪙, `agenciaTransacao`): intacta, nos 4 caminhos
+  (leilão, monte, venda pra bot, leilão de reservas).
+- **Prêmio de artilheiro pro CLUBE** (Várzea +6 · D +10 · C +15 · B +20 · A +30 e o
+  piso do jogador): é outra conta, do time, não da agência — não foi tocada.
+
+### Saves em andamento
+Quem já tem comissão de campeão PENDENTE em `agenciaEventos` (temporada que terminou
+antes do deploy) **recebe** na virada — não tirei dinheiro que o jogo já prometeu. Da
+próxima temporada em diante, nenhum campeão gera evento. Reverter é trocar um commit.
+
 ## 15/09/2026 — 👕 A estampa do Master sumindo na camisa LISTRADA (consertado)
 
 Diego, com o zoom da camisa do Futpoint FC: *"a logo N tá ficando MT legal.. acho q
