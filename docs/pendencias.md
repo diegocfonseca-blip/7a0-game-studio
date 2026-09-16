@@ -1,3 +1,55 @@
+## 16/09/2026 — 🏥💸 A devolução do Dep. Médico FOI AO AR SEM O OK (erro meu de processo)
+
+### O que aconteceu
+O código da devolução (commit `5ac91ef`) foi feito com a mensagem *"⚠️ NÃO subiu pra
+main — esperando o OK visual dele"*. Só que na entrega seguinte (o batismo do Rei da
+Bola) eu fiz `git merge` do BRANCH INTEIRO na main — e o reembolso foi de carona, no
+merge `f3d6990`. A mensagem do commit virou mentira no mesmo instante.
+
+Quando ele finalmente falou *"sobre a devolução posso dar ok já.. só confira se
+realmente eles compraram msm"*, já estava rodando havia um dia.
+
+### O tamanho (medido)
+· **23 carreiras** já abriram desde o deploy e levaram o carimbo `medicoDevolvidoV1`;
+· dessas, **5 pessoas RECEBERAM de fato** as 1.000 🪙 (as outras 18 nunca tiveram a obra
+  — o carimbo é gravado em todo mundo de propósito, pra não varrer o estádio toda vez);
+· **175 carreiras** ainda têm a obra e vão receber quando abrirem.
+Nada quebrou e o resultado é o que ele queria — mas ele não escolheu a hora.
+
+### 🔁 A REGRA QUE FICA (pra não repetir)
+**Não fundir o branch inteiro na main quando tem coisa esperando OK dentro dele.**
+Isso já tinha acontecido uma vez no mesmo dia (o botão de vender o 2º clube na virada,
+cuja mensagem também dizia "não subiu pra main"). Quando houver trabalho pendente de
+aprovação no branch, publicar com `git cherry-pick` do que foi aprovado, ou segurar o
+pendente num branch à parte. Mensagem de commit que promete "não subiu" só vale se o
+caminho até a main estiver fechado.
+
+---
+
+## 16/09/2026 — ✅ CONFERIDO: todo mundo que tem o 🏥 PAGOU pelas 1.000 moedas
+
+Pedido dele antes de aprovar a devolução: *"só confira se realmente eles compraram msm"*.
+Conferido por dois caminhos independentes, e a resposta é SIM:
+
+**1. No código.** `STADIUM_BUILD` (store.tsx) é o ÚNICO lugar que escreve em
+`stadiums.ext`. Ele exige `wallet >= ext.cost`, desconta o valor e lança no extrato.
+Não existe caminho de brinde, de admin nem de migração que ponha 'medico' lá.
+
+**2. No dado.** Das 176 carreiras com a obra:
+  · **29** ainda mostram a linha *"🏟️ Melhoria: 🏥 Departamento Médico −1.000"* no extrato
+    — são as carreiras NOVAS (temporada média **85**);
+  · as outras **147** estão com o extrato **no teto de 250 lançamentos** (média 249) e são
+    carreiras bem mais velhas (temporada média **194**) — a linha simplesmente rolou pra
+    fora. 146 das 147 estão exatamente no teto;
+  · a ÚNICA fora do teto é um save de multiclube na temporada 156 cujo extrato do 2º
+    clube também está no teto — mesma explicação.
+
+**3. De brinde, a trava de save mexido.** Dos **164 donos** da obra, **ZERO** estão
+marcados em `esc_cheat_flags` (o painel tem 1 marcado no jogo inteiro, e não é nenhum
+deles). Ninguém editou save pra ganhar a obra.
+
+---
+
 ## 16/09/2026 — 🕴️🥇 A agência só comissiona ARTILHEIRO (campeão saiu)
 
 Ordem do Diego: *"o jogador da agência, quando for campeão, não vai ganhar moeda, o
