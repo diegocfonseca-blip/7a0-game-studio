@@ -7807,6 +7807,25 @@ export function PyramidSeasonScreen() {
               </div>
             ),
           })
+          // 🏥💸 A DEVOLUÇÃO DO DEPARTAMENTO MÉDICO (Diego 15/09: *"pode doar de volta
+          // p todos esses"*). O dinheiro JÁ está no caixa quando este aviso aparece —
+          // ele não é botão de resgate, é RECIBO. Aparece uma vez só, e só em quem
+          // realmente tinha a obra, e explica o PORQUÊ: ela saiu pra virar a condição
+          // física e o preparador, que valem pra todo mundo.
+          if (state.medicoDevolvido) fila.push({
+            key: 'medico', render: () => (
+              <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#123b25,#0a1f13)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
+                <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>{tr('💸 Devolvemos pra você', '💸 Refunded to you')}</span>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{getLang() === 'en' ? <>Your <span style={{ color: GOLD }}>{state.medicoDevolvido} 🪙</span> from the Medical Department are back</> : <>Suas <span style={{ color: GOLD }}>{state.medicoDevolvido} 🪙</span> do Departamento Médico voltaram</>}</p>
+                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#E3EDE3' }}>{getLang() === 'en' ? <>The 🏥 <b>Medical Department</b> left the game so we could build something better in its place: <b>😓 match fitness</b> and the <b>🏋️ fitness coach</b>. The old build only helped whoever had paid for it — now <b>everyone</b> plays by the same rule: rotate your squad and you get injured less.<br />As the build no longer exists, the coins you spent on it are <b>back in your till</b>. Nothing else in your club changed.</> : <>O 🏥 <b>Departamento Médico</b> saiu do jogo pra dar lugar a uma coisa melhor: a <b>😓 condição física</b> e o <b>🏋️ preparador</b>. A obra antiga só ajudava quem tinha pago por ela — agora a regra é <b>igual pra todo mundo</b>: quem rodizia o elenco se machuca menos.<br />Como a obra não existe mais, as moedas que você gastou nela <b>voltaram pro seu caixa</b>. Nada mais no seu clube foi mexido.</>}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>+{state.medicoDevolvido} 🪙 {tr('já no caixa do clube', 'already in the club till')}<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>{tr('· está lançado no Extrato', '· it is logged in the Statement')}</span></div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <button onClick={() => { dispatch({ type: 'MEDICO_AVISO_VISTO' }); setTab('elenco') }} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('🏋️ Ver o preparador', '🏋️ See the fitness coach')}</button>
+                  <button onClick={() => dispatch({ type: 'MEDICO_AVISO_VISTO' })} style={{ flex: 'none', background: 'transparent', color: '#E3EDE3', border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, fontWeight: 900, fontSize: 13, padding: '10px 14px', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('Entendi', 'Got it')}</button>
+                </div>
+              </div>
+            ),
+          })
           if (!fila.length) return null
           return (
             <div>

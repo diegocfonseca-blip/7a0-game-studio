@@ -37,6 +37,8 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'pedrovianacarneiroq@gmail.com': ['#0F0E0E', '#EAE5E1'], // 🐓 Briga de Galo FC — preto e branco, MEDIDOS na camisa que o dono mandou (2ª prancha; mediana dos pretos, 73% do manto, e dos brancos das listras, 08/09). O DOURADO é a 3ª cor (MANTO_TRI): coroa, "FC" e o BDG do peito
   'gaancaxd@gmail.com': ['#0D0C10', '#6E16C3'], // 🎮 Sistematizados FC — preto e roxo, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 73% do manto, e dos roxos, 07/09). O BRANCO é a 3ª cor (MANTO_TRI)
   'jh9415474@gmail.com': ['#0A0A0A', '#E3E2E1'], // 🌑 Nova Eclipse FC — preto e branco, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 72% do manto, e dos brancos das pinceladas, 07/09)
+  'feliperamiro0501@hotmail.com': ['#0F0505', '#C40B0E'], // 🥊 Raiva Cajuri FC — preto e vermelho, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 78,5% do manto, e dos vermelhos dos raios, 30,5%, 16/09). SEM 3ª cor: o claro não chega a 0,4% da camisa
+  'caiobegnamii@gmail.com': ['#D4121F', '#121010'], // 👑🦁 Rei da Bola FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (mediana dos vermelhos da faixa, 6,8% do manto, e dos pretos, 17,1%, 16/09). O BRANCO-CREME #ECE1D9 é a 3ª cor (MANTO_TRI): é a base da camisa, 70% dela — vem em 3º porque listra quase branca some no creme da tela, mesma escolha do Final Boss FC
   'gustavo99828@gmail.com': ['#CD0C12', '#070505'], // 🐂 Final Boss FC — vermelho e preto, MEDIDOS na camisa que o dono mandou (mediana dos vermelhos e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa dele é branca com faixa vermelha e preta
   'stoccoassessoria@gmail.com': ['#050306', '#6A04D7'], // ⚡ Stocco FC — preto e roxo, MEDIDOS na arte que o dono mandou (mediana dos pixels escuros e o roxo vivo do corpo da camisa, 04/09)
   'contatovegetta14@gmail.com': ['#050A13', '#0C5CB3'], // 🐉 Corporação Capsule FC — preto e azul, MEDIDOS na arte que o dono mandou (mediana dos pixels pretos e dos azuis do escudo, 03/09)
@@ -148,6 +150,7 @@ export function meuMantoAngle(): number {
 // outros times. Quem não está aqui segue com manto de 2 cores normal.
 const MANTO_TRI: Record<string, string> = {
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
+  reidabola_leao: '#ECE1D9', // 👑🦁 Rei da Bola FC (caiobegnamii) — 3ª cor BRANCO-CREME: a base da camisa, medida na arte dele (16/09)
   piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
   cobra_arruda: '#B91515', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho). 09/09: MEDIDA na camisa nova que o dono mandou (era #C2001E chutado em 16/08); preto #110D0E e branco #F5F2EF foram pro banco (esc_socios)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)

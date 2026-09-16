@@ -2742,7 +2742,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
     { name: 'Painitto', team: 'SC Ferrari' }, // ⚽ clube BATIZADO por apoiador (adriano.ferrari — SC Ferrari, ex-Painitto FC)
-    { name: 'Tico do Bar', team: 'Sapekeiros FC' }, // 🐝👑 clube BATIZADO por apoiador (tiosapeka@gmail.com / @tiosapekagg — Sapekeiros FC, ex-Pardemeias; abelha coroada, manto preto+dourado, 20/08)
+    { name: 'Majestade', team: 'Rei da Bola FC' }, // 👑🦁 clube BATIZADO por apoiador (caiobegnamii — Rei da Bola FC; leão branco coroado, manto branco com faixa vermelha e preta; Lenda + fundador nº70 + sócio nº51, 16/09). Assento que era do Sapekeiros FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Sapekeiros não foi renomeado, só mudou de divisão — e ele já tem corrente própria de nome velho (Pardemeias) que continua valendo.
     { name: 'Bagrão de Terno', team: 'Bagres de Wall Street FC' }, // 🐟📉 clube BATIZADO por apoiador (iago.cortellini — Bagres de Wall Street FC; coração São Paulo; bagre de terno, coroa e charuto na bolsa de valores, preto + dourado; Lenda + fundador nº66 + sócio nº44, 09/09). Assento que era do Manfré FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Manfré não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Livre-pool). ⚠️ NÃO é o mesmo clube que o 'Bagres 1993' (caiohcris) — são dois donos diferentes.
     { name: 'Val do Buraco', team: 'São Luiz FC' }, // ⚽ clube BATIZADO por apoiador (gabrielnegreirosamaral99 — São Luiz FC, ex-Flamengo do Sertão; coração Flamengo, mascote pitbull 🐶, 21/08)
   ],
@@ -2803,7 +2803,15 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // carreira que tem OS DOIS desenhar o escudo do Murriz no Seringueiro também.
     { name: 'Robertão', team: 'Murriz FC' }, // ⚽ clube BATIZADO por apoiador (msb102010 — Murriz FC, ex-Robertão United). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
     { name: 'Cápsula', team: 'Corporação Capsule FC' }, // 🐉 clube BATIZADO por apoiador (contatovegetta14 — Corporação Capsule FC, ex-Real Tabuleiro; mascote DragonBola, preto + azul escuro; Lenda + fundador nº55, 03/09)
-    { name: 'Mata', team: 'Íbis da Mata' },
+    // 🐝👑 Sapekeiros FC (tiosapeka / @tiosapekagg) DESCEU da Série A pra cá em 16/09,
+    // por decisão do Diego, pra abrir o assento do Rei da Bola FC. Ocupa a vaga que era
+    // do bot "Íbis da Mata" (escolhido por só existir aqui e em CLASSIC_CLUBS, em mais
+    // lugar nenhum do jogo).
+    // ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Sapekeiros FC'] = 'Íbis da Mata'`: ele
+    // não foi renomeado, só mudou de divisão — e já tem corrente própria de nome velho
+    // (Pardemeias → Sapekeiros FC) que segue valendo. Escudo, mascote e manto dele
+    // continuam exatamente os mesmos.
+    { name: 'Tico do Bar', team: 'Sapekeiros FC' }, // 🐝👑 clube BATIZADO por apoiador (tiosapeka@gmail.com / @tiosapekagg — ex-Pardemeias; abelha coroada, manto preto+dourado, 20/08)
     { name: 'Nortista', team: 'Theuzudo FC' }, // ⚽ clube BATIZADO por apoiador (matheusfilipealves — Theuzudo FC, ex-Comercial do Norte; coração Valência, mascote morcego 🦇, 21/08)
     { name: 'Litorâneo', team: 'Esqueceram do Lluch FC' }, // ⚽ clube BATIZADO por apoiador (lluchmarcel81 — Esqueceram do Lluch FC, ex-Litoral United; Lenda + fundador nº50, 28/08)
     { name: 'Meia Canela', team: 'Jurubeba FC' }, // 🧦 clube BATIZADO por apoiador (luizguilhermeps — Jurubeba FC, ex-Ferroviário do Sul; "Meia na Canela", amarelo + verde-petróleo, mascote a meia de óculos escuros; Lenda + fundador nº54 + sócio nº32, 02/09)
@@ -2837,7 +2845,11 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Dão da Feira', team: 'Milhaça FC' }, // ⚽🌽 clube BATIZADO por apoiador (igormarquesn99 / @igumarques, jornalista — Milhaça FC, ex-Real Bets, Série C; escudo e mascote com arte própria do dono, 24/08)
     { name: 'Mão de Onça', team: 'Goiaba FC' },
     { name: 'Beto Foguete', team: 'Leve-cuscuz' },
-    { name: 'Lelê da Serra', team: 'Serra Azul FR' },
+    // 🥊 Raiva Cajuri FC (feliperamiro0501) entrou aqui em 16/09, por decisão do Diego,
+    // na vaga do bot "Serra Azul FR". ⚠️ SEM OLD_NAME: o bot não foi renomeado, saiu da
+    // pirâmide. Ele CONTINUA existindo em CPU_MANAGERS (o elenco de bots do jogo rápido),
+    // que é outra lista e não tem nada a ver com as divisões da carreira.
+    { name: 'Raivoso', team: 'Raiva Cajuri FC' }, // 🥊 clube BATIZADO por apoiador (feliperamiro0501 — Raiva Cajuri FC; preto e vermelho, mascote O Raiva pulando do ringue; Lenda + fundador nº71 + sócio nº52, 16/09)
     { name: 'Selecta', team: 'Bonança SSFC' }, // 🔊 clube BATIZADO por apoiador (duselecta — Bonança SSFC, ex-Torta de Rã, Série C; paredão de som jamaicano, preto + amarelo com vermelho; mascote O Selecta, Lenda + fundador nº63, 09/09)
     { name: 'Baixinho da Kombi', team: 'Kombi United' },
   ],
@@ -2902,7 +2914,7 @@ export const CLASSIC_CLUBS: { name: string; atk: number; def: number }[] = [
   { name: 'Fluminense de Caicó', atk: 61, def: 63 },
   { name: 'Murriz FC', atk: 60, def: 60 }, // 🧔 desceu da Série A em 05/09 (abriu o assento do Vidraceiro FC) — MESMA força do bot que cedeu a vaga (Atlético Seringueiro)
   { name: 'Corporação Capsule FC', atk: 58, def: 59 }, // 🐉 ex-Real Tabuleiro (batismo 03/09) — MESMA força do bot que cedeu o assento
-  { name: 'Íbis da Mata', atk: 55, def: 54 },
+  { name: 'Sapekeiros FC', atk: 55, def: 54 }, // 🐝 desceu da Série A em 16/09 (abriu o assento do Rei da Bola FC) — MESMA força do bot que cedeu a vaga (Íbis da Mata)
 ]
 
 // ─── 🌎 LIBERTADORES: os 24 clubes do continente ──────────────────────────
