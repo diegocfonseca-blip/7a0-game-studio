@@ -43,7 +43,7 @@ import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidrace
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
 import jurubebaMascoteImg from './img/jurubeba-mascote.webp' // 🧦 Jurubeba FC (luizguilhermeps): arte própria do dono, 02/09
 import skyyMascoteImg from './img/skyy-mascote.webp' // 🦅 Skyy FC (matheusncruz1): arte própria do dono
-import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono, 24/08
+import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neymarzetti (diego.c.fonseca): arte própria do dono — RENOVADA em 16/09
 import milhacaMascoteImg from './img/milhaca-mascote.webp' // 🌽 Milhaça FC (igormarquesn99): arte própria do dono, 24/08
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
@@ -629,9 +629,13 @@ export const MASCOTES: Record<string, ReactNode> = {
   lluch_menino: (
     <img src={lluchMascoteImg} height={176} width={Math.round(176 * 252 / 440)} alt="O Esquecido — Esqueceram do Lluch FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🦇 Neymarzetti (Diego, dono do jogo) — o camisa 10 MASCARADO de manto preto
-  // e prata, com a bola no braço. arte própria do dono (webp, fora do bundle).
-  // mascote_key = "neymarzetti_mascarado". 193x440 no arquivo.
+  // 🦇 Neymarzetti (Diego, dono do jogo) — arte RENOVADA em 16/09: o camisa 10 de
+  // óculos escuros, de joelhos comemorando, de manto BRANCO com detalhe preto.
+  // 346x440 no arquivo (era 193x440, o mascarado de manto preto e prata).
+  // ⚠️ A CHAVE continua `neymarzetti_mascarado` DE PROPÓSITO: ela está gravada na
+  // `esc_socios.mascote_key` do banco e em save de gente. Trocar a chave por causa
+  // do desenho quebraria os dois — o nome de tela (MASCOTE_NOME) é que pode mudar,
+  // e esse fica como está até o Diego escolher um novo (ele não usa mais máscara).
   // 24/08: aposenta o `moicano` (SVG à mão de 09/08), que fica no arquivo só pra
   // não quebrar save antigo que tenha a chave gravada.
   // 🌽 Milhaça FC (igormarquesn99, @igumarques) — o boleiro de boné e óculos
@@ -640,7 +644,7 @@ export const MASCOTES: Record<string, ReactNode> = {
     <img src={milhacaMascoteImg} height={176} width={Math.round(176 * 199 / 440)} alt="O Milhaça — Milhaça FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   neymarzetti_mascarado: (
-    <img src={neymarzettiMascoteImg} height={176} width={Math.round(176 * 193 / 440)} alt="O Mascarado — Neymarzetti" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={neymarzettiMascoteImg} height={176} width={Math.round(176 * 346 / 440)} alt="O Mascarado — Neymarzetti" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦇 Theuzudo FC — o morcego de boné (coração Valência, laranja e preto).
   // arte própria do dono (webp, fora do bundle). mascote_key = "theuzudo_morcego".
