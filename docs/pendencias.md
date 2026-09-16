@@ -1,3 +1,55 @@
+## 16/09/2026 — 🎟️ A BILHETERIA NO COMEÇO: o termômetro de desânimo
+
+Diego: *"quero que fale da bilheteria apenas e tudo que tem de melhorias no
+estádio. Lembrando que no início do jogo a pessoa pensa se continua ou não
+também… ela não pode desanimar"*.
+Medido em **`scripts/bilheteria-comeco.mjs`** — simula CLIQUE A CLIQUE (o
+`STADIUM_STEP` é de 20 em 20) e mostra o que a pessoa VÊ acontecer.
+
+### 🚨 ACHADO 8 — O PRIMEIRO INVESTIMENTO DA PESSOA NÃO MUDA NADA NA TELA
+Bilheteria com o estádio zerado: **20 moedas**. Aí ela aperta investir:
+
+| o que ela gasta | 3º lugar | 10º lugar | 18º lugar |
+| --- | --- | --- | --- |
+| 20 (1º clique no Gramado) | 21 (+1) | **20 (+0)** | **20 (+0)** |
+| 60 (Gramado INTEIRO) | 24 (+4) | **22 (+2)** | **20 (+0)** |
+| 120 (Gramado + Geral) | 28 (+8) | **24 (+4)** | **21 (+1)** |
+| 500 (os 5 setores) | 52 | **37** | **25** |
+| 1.530 (estádio COMPLETO) | 112 | **77** | **43** |
+
+**Cliques que não mudam NADA:** 0 de 25 em 3º lugar · **8 de 25 em 10º** ·
+**20 de 25 em 18º**. Na Várzea, 20 moedas é **um quarto da receita da temporada
+inteira** — a pessoa gasta isso e o número não se mexe.
+
+### ⚠️ A OCUPAÇÃO É O VILÃO SILENCIOSO — e ela pune quem já está mal
+`occByPos`: 1º-4º **100%** · 5º-7º 82% · 8º-14º **55%** · 15º-16º 35% ·
+17º+ **18%**. Ela multiplica TUDO que foi construído. Um time em 17º recebe
+**18%** do estádio que pagou — e é justamente ele quem mais precisa de dinheiro.
+Um clube recém-criado na Várzea termina tipicamente entre 10º e 16º, ou seja,
+**35% a 55%**: constrói e não vê.
+
+### 🔬 HIPÓTESE TESTADA E DESCARTADA (registrando pra ninguém repetir)
+Achei que a culpa fosse da **dupla truncagem**: `stadiumIncome` faz
+`floor(inc × pct/100)` por setor e `stadiumIncomeAt` faz `floor(construído × occ)`
+de novo. Parecia óbvio que arredondar resolveria. **Medi: não resolve.** Em 10º
+lugar os cliques mortos vão de 7 pra 8 (pioram!); em 18º, de 19 pra 18.
+**A causa não é arredondamento — é que os números são pequenos demais.** Um setor
+inteiro rende de 4 a 10; dividido em 3 a 8 cliques e multiplicado por 0,55, cada
+clique vale menos de uma moeda. Não existe arredondamento que salve isso.
+
+### 💡 As saídas de verdade (NADA implementado — decisão do Diego)
+1. **Piso de ocupação.** 18% no Z4 é castigo em cima de castigo. Um mínimo de
+   ~40% faria o estádio responder mesmo pra quem está mal. É a mudança que mais
+   ajuda quem está pensando em largar o jogo.
+2. **Subir o `inc` dos setores.** Dobrando, o Gramado inteiro daria +4 em vez de
+   +2 no meio de tabela, e o estádio completo iria de 77 pra ~134 (10º lugar).
+3. **Baratear a entrada** (achado 7): Loja com 1 setor, Gramado/Geral mais baratos.
+4. 👀 **MOSTRAR A TORCIDA, não só a moeda.** O Geral traz **21.500 lugares** — isso
+   é um número grande e satisfatório, que sobe de verdade a cada clique, enquanto a
+   moeda anda de 1 em 1. Hoje a pessoa investe e vê "+0 moedas"; se visse
+   "🧍 torcida 12.000 → 19.200" ela sentiria o clube crescendo. **Esta é a única
+   das quatro que não mexe em regra nenhuma — é só tela.**
+
 ## 16/09/2026 — 🏟️ ANÁLISE A FUNDO DO ESTÁDIO: custo × retorno de cada obra
 
 Diego: *"talvez diminuir um pouco mais o início dos desbloqueios das coisas do
