@@ -1,3 +1,94 @@
+## 16/09/2026 — 💰 SIMULAÇÃO DE CAIXA: 120 temporadas da Várzea à Série A (FEITO)
+
+Pedido do Diego: *"faça uma simulação de 120 temporadas começando na várzea, time
+de 11 jogadores misturados em foi profissional e bom jogador… principalmente
+CAIXA, porque muita gente reclama depois que fizemos salário, renovação e agora a
+condição física… analise todas as premiações, patrocínios, venda de camisa,
+bicos, cota de TV… e me fale com base em cada divisão o sufoco"*.
+
+### Como foi medido (nada chutado)
+Dois scripts novos, rodando o MOTOR REAL do jogo no vite + Chromium:
+- **`scripts/sim-caixa-120.mjs`** — segue UMA carreira por 120 temporadas.
+- **`scripts/sim-caixa-divisoes.mjs`** — mede a conta de cada divisão isolada.
+⚠️ `screens.tsx` tem que ser importado ANTES de `pyramidseason.tsx`: existe um
+ciclo de import com `copa-brasil.ts` e a importação direta estoura
+"Cannot access 'COPA_LEG_MS' before initialization".
+
+### 🐛 Quatro erros meus no caminho (ficam registrados pra não repetir)
+1. **Preço de catálogo ≠ preço de leilão.** Montei o elenco com o valor de
+   catálogo (57-75/carta) e a folha saiu **7× maior** que a real. A carreira
+   começa com `START_MONEY = 100` — 11 cartas somam ~90, folha ~9.
+2. **Começou na Série D.** Sem semear `placements = { m0: 'V' }`, o `buildPyramid`
+   cai no mundo SEM Várzea.
+3. **O cansaço não chegava no campo.** Sem passar `cardMods` pro `simulatePyramid`,
+   o time subia de V até A com o elenco inteiro em 🚑 — o desgaste existia na
+   planilha e não no jogo.
+4. **Time todo fame 3.** Pegava sempre o melhor, e o Diego pediu MISTURADO. Um
+   time só de "bom jogador" passeia na Várzea e esconde o sufoco de baixo.
+
+### 🚨 ACHADO 1 — A ARMADILHA DO MASTER LONGO (o maior de todos)
+`masterValor()` congela o valor na **divisão em que o contrato foi assinado**.
+| assinou na | 1 ano | 3 anos | 5 anos |
+| --- | --- | --- | --- |
+| Várzea | 4 | 7 | **10** |
+| Série A | 40 | 72 | **104** |
+Quem assina 5 anos na Várzea e sobe pra Série A no ano seguinte fica **4
+temporadas recebendo 10 em vez de 104** — quase **400 moedas perdidas**, e é
+exatamente o perfil de quem mais reclama de caixa (o que sobe rápido).
+👉 Sugestões: reajustar ao subir de divisão, OU avisar na tela de assinatura
+("contrato longo trava o valor da divisão de hoje").
+
+### 🚨 ACHADO 2 — O PAREDÃO DOS 15 JOGADORES
+Varredura medida (40 temporadas cada):
+| elenco | lesões/temporada | gás médio |
+| --- | --- | --- |
+| 12 | 2,0 | 0,7 |
+| 13 | 2,0 | 1,2 |
+| 14 | 1,7 | 5,4 |
+| **15** | **0,0** | **97,8** |
+| 16 | 0,0 | 98,4 |
+**Não existe meio-termo: é abismo.** A conta fecha: −1,4 por jogo, +4 por
+descanso, 38 rodadas → dá pra jogar 28 de 38 sem perder gás; 11 titulares ÷ 28
+jogos = **14,9 jogadores**. Com 15+ ninguém cansa NUNCA; com 14 o elenco inteiro
+vira 🚑 permanente. Quem joga com elenco curto está sendo punido por não saber de
+um número que o jogo não conta em lugar nenhum.
+
+### 🚨 ACHADO 3 — O REBAIXADO LEVA TRÊS CASTIGOS DE UMA VEZ
+Prêmio negativo (−10 C · −15 B · −20 A) **+** Pontual zerado **+** venda de
+camisas **ZERADA** (a curva 'caiu' é 0, não é curva baixa). Na Série C o campeão
+faz 152 e o rebaixado 73 — menos da metade.
+
+### 📊 RECEITA POR DIVISÃO (temporada, estádio zerado → completo)
+| divisão | campeão | acesso (3º) | meio (10º) | rebaixado |
+| --- | --- | --- | --- | --- |
+| Várzea | 71 → 267 | 56 → 231 | 46 → 159 | 42 → 69 |
+| Série D | 101 → 299 | 81 → 258 | 66 → 181 | 58 → 87 |
+| Série C | 152 → 357 | 117 → 301 | 97 → 219 | 73 → 109 |
+| Série B | 195 → 413 | 145 → 342 | 120 → 255 | 81 → 130 |
+| Série A | 279 → 524 | 214 → 438 | 184 → 346 | 122 → 198 |
+
+### 💸 CUSTO DE MANTER O ELENCO (folha + renovações/ano)
+| elenco | carta de 8 | de 20 | de 40 | de 80 |
+| --- | --- | --- | --- | --- |
+| 11 | 20 | 44 | 88 | 176 |
+| 16 | 29 | 64 | 128 | 256 |
+| 22 | 40 | 88 | 176 | 352 |
+
+### 📈 A CARREIRA SIMULADA
+Caixa **preso entre 30 e 46 durante TODA a subida** (7 temporadas) — cada moeda
+que entra sai. Depois de firmado na Série A: receita média **477**, despesa
+**100**, saldo **+376/temporada**. Em 120 temporadas: **43.707 moedas**.
+👉 O sufoco é 100% da SUBIDA. Série A estabelecida é máquina de dinheiro sem nada
+pra gastar — o problema lá é o oposto.
+
+### ⚠️ Detalhe: a VÁRZEA NÃO JOGA COPA
+`COPA_DIV_STRENGTH` tem V: 0 e o comentário diz "só A-D". Quem começa na Várzea
+não tem receita de copa nenhuma — mais um motivo do aperto lá embaixo.
+
+### 📌 Pendente: decisão do Diego sobre o que mexer
+Nada foi alterado no jogo — esta entrega é só MEDIÇÃO. As três sugestões
+(Master, paredão dos 15, piso do rebaixado) esperam ele escolher.
+
 ## 16/09/2026 — ⚓🐷 Marinheiros AS de cara nova (FEITO, no ar)
 
 O dono (feehcamp11@gmail.com, sócio nº15, ❤️ Palmeiras) mandou a prancha completa.
