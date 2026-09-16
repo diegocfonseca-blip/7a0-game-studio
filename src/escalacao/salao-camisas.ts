@@ -14,7 +14,8 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Final Boss FC": "finalboss-camisa.webp",
   "Futpoint FC": "futpoint-camisa.webp",
   "Rei da Bola FC": "reidabola-camisa.webp",
-  "Raiva Cajuri FC": "raivacajuri-camisa.webp", // 🥊 batismo de 16/09 (feliperamiro0501) // 👑🦁 batismo de 16/09 (caiobegnamii)
+  "Raiva Cajuri FC": "raivacajuri-camisa.webp",
+  "Tôka10": "toka10-camisa.webp", // 🧢 arte renovada em 16/09 (ofc.toka10) // 🥊 batismo de 16/09 (feliperamiro0501) // 👑🦁 batismo de 16/09 (caiobegnamii)
   "Inter de Bailão": "interbailao-camisa.webp", // 🪩 ex-Alfacehh (renomeado 14/09) — a 1ª camisa de verdade dele no salão
   "Jurubeba FC": "jurubeba-camisa.webp",
   "Leão da Estradinha": "leao-estradinha-camisa.webp",
