@@ -1,3 +1,57 @@
+## 16/09/2026 — 🔍 AUDITORIA DAS DUAS ABAS DO ESTÁDIO (peça por peça)
+
+Diego: *"do estádio, tem certeza que das duas abas dentro do estádio as únicas
+coisas que precisamos mexer são as que você mandou agora, de tudo que tem lá? Em
+relação a que paga o que ganha, se tem sentido e etc"*.
+**Resposta: NÃO — eu tinha consertado só a ENTRADA.** Segue a varredura completa.
+
+### 🐛 E eu quase dei uma resposta ERRADA (fica registrado)
+Primeiro medi cada melhoria contra um estádio **vazio** e elas pareciam todas
+péssimas (28 a 60 temporadas pra se pagar). **Cenário errado**: a árvore de
+requisitos só libera melhoria depois da Loja e de 4 setores, e o bônus de camisa
+delas (`OBRAS_LOJA`, 4% a 10% cada) precisa de TORCIDA pra multiplicar. Refeito no
+estádio onde elas são compradas de verdade (5 setores + Loja), o quadro é outro.
+
+### ✅ A aba SETORES está saudável (medido com a Loja de pé, 10º lugar)
+| setor | custo | ganho | paga-se | assentos |
+| --- | --- | --- | --- | --- |
+| Geral | 40 | +10 | **4t** | 21.500 |
+| Cadeiras | 90 | +10 | 9t | 18.500 |
+| Visitante | 120 | +13 | 9t | 22.838 |
+| Camarote | 150 | +11 | 14t | 16.000 |
+Todos bons, e pelo mesmo motivo: **assento → torcida → camisa**.
+
+### ✅ A aba MELHORIAS também está OK — menos DUAS
+Estádio com os 5 setores + Loja:
+| melhoria | custo | renda fixa | bônus camisa | paga-se (3º) | paga-se (10º) |
+| --- | --- | --- | --- | --- | --- |
+| 🍔 Praça | 110 | +7 | +10% | 8t | 14t |
+| 🅿️ Estacionamento | 70 | +4 | +6% | 9t | 18t |
+| 🍻 Choperia | 90 | +6 | +6% | 9t | 18t |
+| 🏨 Hotel | 160 | +9 | +10% | 11t | 18t |
+| 📺 Telão | 60 | +3 | +4% | 12t | 20t |
+| 🚇 Estação | 120 | +5 | +8% | 12t | 13t |
+| 🏟️ Retrátil | 180 | +10 | +6% | 13t | 23t |
+| ☂️ **Cobertura** | 130 | +8 | **— nenhum** | 16t | **26t** |
+| 💡 **Refletores** | 30 | +2 | **— nenhum** | 15t | **30t** |
+
+### 🚨 ACHADO 9 — COBERTURA E REFLETORES NÃO LEVAM NINGUÉM AO ESTÁDIO
+São as **únicas duas** peças fora do `OBRAS_LOJA`. Todas as outras levam gente; só
+elas não. E é o avesso do que faria sentido: **cobertura é não tomar chuva,
+refletor é jogo à noite** — no futebol de verdade são justamente as duas obras que
+MAIS enchem estádio.
+🔎 O que confirma que é esquecimento e não decisão: a **Cobertura Retrátil**, que é
+o *upgrade* da Cobertura, **tem** o bônus (+6%). A versão simples ficou de fora.
+
+### 💡 Proposta (NÃO implementada — esperando o OK do Diego)
+Entrar as duas no `OBRAS_LOJA`:
+- ☂️ Cobertura **+8%** (obra grande, cobre a torcida toda — acima do retrátil não,
+  porque o retrátil é o upgrade dela; ficaria 8% + 6% = 14% pra quem fizer os dois)
+- 💡 Refletores **+5%** (jogo à noite é quando a pessoa sai do trabalho)
+Com isso a Cobertura sai de 26t pra ~15t e os Refletores de 30t pra ~17t (10º
+lugar), entrando na mesma faixa das outras. **O teto de 50% do `OBRAS_TETO`
+continua valendo**, então não tem inflação: quem faz tudo já batia no teto.
+
 ## 16/09/2026 — ✅ FEITO: estádio mais barato no começo + a torcida na tela
 
 Diego aprovou as 4 partes do mockup (`scripts/mockup-estadio-comeco.mjs`), com dois
