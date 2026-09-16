@@ -1,3 +1,45 @@
+## 16/09/2026 (parte 6) — 👥🏢 A tela DE VERDADE: +1 por posição e a SAF em bloco
+
+Diego: *"e como ficaria real com um jogador a mais por posição a imagem do elenco…
+e a SAF com bloco à parte?"*. Então saiu do desenho e foi pra tela real.
+
+### ⛔ O rascunho NÃO está no código do jogo
+Mora em **`docs/rascunhos/2026-09-16-elenco-27-e-bloco-saf.patch`**.
+Ligar quando ele aprovar: `git apply docs/rascunhos/2026-09-16-elenco-27-e-bloco-saf.patch`
+Material pro post: `node scripts/mockup-elenco-real.mjs`.
+
+### O que o rascunho faz (2 mudanças)
+1. **`slotsCheio()` em store.tsx**: `baseSlots * 2` → `baseSlots * 2 + 1` (elenco 22 → 27).
+2. **`ElencoField` em pyramidseason.tsx**: o emprestado sai da lista de reservas
+   (`reserves` agora filtra `!c.emprestado`) e ganha **bloco próprio** no pé da tela —
+   cinza-ardósia, duas colunas, contador de vagas da divisão (`4/4`) e a frase
+   *"eles jogam por você, mas são da sua SAF — não ocupam vaga do seu elenco"*.
+   Props novas `safDiv` / `safSlots`, passadas por `SquadTab`.
+
+### Medido na tela real (SquadTab de verdade, celular 454px, em PT)
+| | rolagem | titulares | reservas | bloco SAF |
+|---|---|---|---|---|
+| hoje (22) | 2152px · 2,4 telas | 11 | 11 | — |
+| +1 por posição (27) | 2427px · 2,7 telas | 11 | **16** | — |
+| 27 + 4 da SAF (31) | 2630px · 2,9 telas | 11 | 16 | **4/4** |
+
+**O campinho não muda em nada** — são sempre os 11 da formação. Todo o crescimento é
+na coluna da direita. E tirar os emprestados da lista deixa a coluna de reservas
+**mais curta** do que se eles ficassem misturados.
+
+### 🐛 Consertado de lambuja: a bancada montava o XI errado
+`scripts/teste-elenco/main.tsx` usava `squad.slice(0, 11)` como titulares — o que punha
+**3 goleiros em campo** e deixava o campinho com cara de bug. Quem olhasse o print ia
+achar que o JOGO estava quebrado. Agora o XI sai por posição (4-4-2), como o jogo escala.
+Isso é conserto de bancada e **foi commitado** (não é visual do jogo).
+
+### O que continua ABERTO
+O **+1 por posição** mexe na régua "2× a formação", que **não é só do elenco**: o leilão
+usa pra saber quantas cartas pôr na mesa, o Monte pra ordenar quem escolhe, a base pra
+saber se cabe guri. Na tela custa 5 linhas; **no jogo custa 5 cartas a mais por técnico
+na mesa do leilão** e folha salarial maior. **MEDIR ANTES de soltar.**
+O **bloco da SAF**, esse, melhora a tela mesmo SEM mexer no tamanho do elenco.
+
 ## 16/09/2026 (parte 5) — 🏢 As 4 ideias da SAF DESENHADAS + a quantidade do elenco visual
 
 Diego: *"quero todas ideias pra saf e pro elenco quantidade visual"*.

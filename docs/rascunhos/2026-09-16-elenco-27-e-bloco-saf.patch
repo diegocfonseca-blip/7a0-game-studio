@@ -1,0 +1,87 @@
+diff --git a/src/escalacao/pyramidseason.tsx b/src/escalacao/pyramidseason.tsx
+index 9efcb45f..66f29517 100644
+--- a/src/escalacao/pyramidseason.tsx
++++ b/src/escalacao/pyramidseason.tsx
+@@ -3289,7 +3289,7 @@ type CondicaoUI = {
+   prep?: Preparador | null               // 🏋️ o preparador contratado (null = nenhum → só troca na mão)
+   onDepto?: () => void                   // leva pro Departamento Técnico (onde se contrata)
+ }
+-function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, antesFolha, dicaTrocaNoTopo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean }) {
++function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, antesFolha, dicaTrocaNoTopo, safDiv, safSlots }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean; safDiv?: string; safSlots?: number }) {
+   // 🧹 ENXUGADA (Diego 14/09: *"tá com muita informação desnecessária"*): o texto
+   // longo do preparador só abre no "?" — quem já sabe a regra nunca mais lê.
+   const [ajudaPrep, setAjudaPrep] = useState(false)
+@@ -3403,7 +3403,12 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
+       if (zags[1]) recuadoIds.add(zags[1].id) // o zagueiro do MEIO vira o líbero
+     }
+   }
+-  const reserves = mgr.squad.filter(c => !xiIds.has(c.id)).sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || mid(b) - mid(a))
++  // 🧪 RASCUNHO 16/09 (não aprovado): o jogador EMPRESTADO DA SAF sai do meio dos
++  // reservas e ganha bloco próprio embaixo. Hoje ele se mistura na lista com um
++  // chipzinho "EMP" cinza, e com 4 emprestados fica difícil saber quem é seu.
++  const ordenaElenco = (a: WonCard, b: WonCard) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos) || mid(b) - mid(a)
++  const reserves = mgr.squad.filter(c => !xiIds.has(c.id) && !c.emprestado).sort(ordenaElenco)
++  const emprestados = mgr.squad.filter(c => !xiIds.has(c.id) && !!c.emprestado).sort(ordenaElenco)
+   const titulares = SECTORS.flatMap(pos => xiOf(pos)) // mesma ordem da lista de reservas (GOL→ATA)
+   // linha compartilhada titular/reserva: no campinho o nome já mal cabe, então o
+   // clube · ano (que diferencia o Kaká do SP do Kaká do Milan) vive AQUI nas
+@@ -3691,6 +3696,28 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
+             : reserves.map(c => rowOf(c, false))}
+         </div>
+       </div>
++      {/* 🧪 RASCUNHO 16/09: 🏢 BLOCO DA SAF — quem veio emprestado fica SEPARADO, com
++          o contador de vagas da divisão à vista. Cinza-ardósia de propósito: cor é
++          sagrada dos tiers, então o emprestado não empresta cor de ninguém. */}
++      {emprestados.length > 0 && (
++        <div style={{ marginTop: 10, background: 'rgba(62,74,90,.92)', border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 9px 9px' }}>
++          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
++            <p style={{ flex: 1, minWidth: 0, fontWeight: 900, fontSize: 12.5, ...OSWALD, color: '#fff', margin: 0, textTransform: 'uppercase', letterSpacing: 0.3 }}>
++              🏢 {tr('Da sua SAF', 'From your SAF')}{safDiv ? <span style={{ fontWeight: 700, fontSize: 10, opacity: .7 }}> · {safDiv}</span> : null}
++            </p>
++            <span style={{ flex: 'none', background: 'rgba(255,255,255,.14)', borderRadius: 7, padding: '2px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#fff' }}>
++              {emprestados.length}{safSlots ? <span style={{ opacity: .55 }}>/{safSlots}</span> : null}
++            </span>
++          </div>
++          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, alignItems: 'start' }}>
++            <div style={{ minWidth: 0 }}>{emprestados.filter((_, i) => i % 2 === 0).map(c => rowOf(c, false))}</div>
++            <div style={{ minWidth: 0 }}>{emprestados.filter((_, i) => i % 2 === 1).map(c => rowOf(c, false))}</div>
++          </div>
++          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.72)', margin: '6px 0 0', lineHeight: 1.4 }}>
++            {getLang() === 'en' ? <>They play for you, but they belong to your SAF — they don\'t take a spot in your squad, and you can send them back whenever you like.</> : <>Eles jogam por você, mas são da sua SAF — <b>não ocupam vaga do seu elenco</b>, e você devolve quando quiser.</>}
++          </p>
++        </div>
++      )}
+       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: '8px 0 0', lineHeight: 1.4, textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>
+         {getLang() === 'en' ? <>💡 Each card\'s level is the <b>player\'s peak at that club and year</b>: Kaká · São Paulo 2003 is a prospect, Kaká · Milan 2007 is a legend.</> : <>💡 O nível de cada carta é o <b>auge do jogador naquele clube e ano</b>: Kaká · São Paulo 2003 é promessa, Kaká · Milan 2007 é lenda.</>}
+       </p>
+@@ -4381,7 +4408,7 @@ export function BaseBox({ mgr, criaNames, seed, onSubir }: { mgr: Manager; criaN
+   )
+ }
+ 
+-export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, criaBase }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
++export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, criaBase, safDiv, safSlots }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void }; safDiv?: string; safSlots?: number }) {
+   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
+   const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
+   const need = FORMATIONS[mgr.formation]
+@@ -4613,7 +4640,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
+                 : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular gasta gás e cada rodada no banco devolve um tanto — e isso <b>atravessa as temporadas</b>, não zera na virada. Até uns <b>54 jogos</b> ele aguenta inteiro; lá pelo <b>55º</b> fica <b>cansado</b> (😓, −1 no jogo), pelo <b>60º</b> está <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>65º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (5% por jogo; 10% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
+             </UnlockBanner>
+           )}
+-          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao}
++          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} safDiv={safDiv} safSlots={safSlots}
+             dicaTrocaNoTopo={!!(elenco && onSetSubMode)}
+             antesFolha={criaBase ? <BaseBox mgr={mgr} criaNames={escSt.criaNames ?? []} seed={escSt.seed ?? 1} onSubir={criaBase.onSubir} /> : undefined} />
+         </>
+diff --git a/src/escalacao/store.tsx b/src/escalacao/store.tsx
+index c57c9e98..4354dd8e 100644
+--- a/src/escalacao/store.tsx
++++ b/src/escalacao/store.tsx
+@@ -987,7 +987,7 @@ export function openSlots(m: Manager, pos: Sector): number {
+ // quiser"* — então não há limite de quantas crias; o teto é o do elenco e ponto.
+ export function slotsCheio(m: Manager, pos: Sector): number {
+   if (ACTIVE_SPORT === 'basquete') return NBA_SLOTS_PER_POS.roster // 3 por posição = elenco 15
+-  return baseSlots(m.formation, pos) * 2 // 2× a formação por posição = elenco 22
++  return baseSlots(m.formation, pos) * 2 + 1 // 🧪 RASCUNHO 16/09: 2× a formação + 1 por posição = elenco 27 (era *2 = 22)
+ }
+ export function vagaCheio(m: Manager, pos: Sector): number {
+   return Math.max(0, slotsCheio(m, pos) - filled(m, pos))
