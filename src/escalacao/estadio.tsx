@@ -22,7 +22,7 @@ import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
 import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09)
-import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, type Fornecedor, type FornContrato } from './loja'
+import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
 
@@ -623,6 +623,14 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   const lvl = stadiumLevel(st)
   const seats = stadiumSeats(st)
   const income = stadiumIncome(st)
+  // 🧍 A TORCIDA (Diego 16/09). O jogo JÁ calculava este número e nunca mostrava.
+  // Motivo de mostrar: medido em `scripts/bilheteria-comeco.mjs`, um investimento
+  // de 20 moedas mexe a bilheteria em MENOS DE UMA MOEDA — a pessoa gasta e lê
+  // "+0". A torcida, não: o Geral sozinho traz 21.500 lugares, então ela sobe aos
+  // MILHARES a cada clique. É o mesmo esforço mostrado por um número que se move.
+  // E não é enfeite: é exatamente esta torcida que vira venda de camisa na 🛍️ Loja.
+  const torcida = torcidaDoEstadio(st)
+  const torcidaMax = TORCIDA_PISO + seats.max
   // 🏟️ nome batizado pelo sócio (esc_socios via manto.ts): troca SÓ o texto do
   // título — o desenho do estádio segue intocado e primeiro, como sempre.
   const meuSocio = useMeuSocio()
@@ -682,6 +690,19 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 8 }}>
           <div><b style={{ fontSize: 23, fontWeight: 900 }}>{seats.now.toLocaleString('pt-BR')}</b> <span style={{ fontSize: 11.5, color: 'rgba(0,0,0,.55)', fontWeight: 800 }}>/ {seats.max.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</span></div>
           <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 999, padding: '4px 11px', fontSize: 12, fontWeight: 900, ...OSW }}>{prontoPct}% {tr('pronto', 'done')}</span>
+        </div>
+        <div style={{ marginTop: 9, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 11px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: .8, textTransform: 'uppercase', color: 'rgba(0,0,0,.55)', ...OSW }}>{tr('🧍 Torcida do clube', '🧍 Club support')}</span>
+            <b style={{ fontSize: 19, fontWeight: 900, color: ACC }}>{torcida.toLocaleString('pt-BR')}</b>
+          </div>
+          <div style={{ height: 11, background: 'rgba(12,12,12,.10)', border: `2px solid ${INK}`, borderRadius: 7, overflow: 'hidden', marginTop: 5 }}>
+            <i style={{ display: 'block', height: '100%', width: `${Math.round(torcida / torcidaMax * 100)}%`, background: ACC }} />
+          </div>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '5px 1px 0', lineHeight: 1.35 }}>
+            {getLang() === 'en'
+              ? <>Every seat you build brings support. <b>Support is who buys shirts</b> at the 🛍️ Club Store — the more people, the more you sell.</>
+              : <>Cada lugar que você constrói traz torcida. <b>É a torcida que compra camisa</b> na 🛍️ Loja do Clube — quanto mais gente, mais você vende.</>}</p>
         </div>
         <UnlockBanner k="estadio" tag={tr('🏟️ sistema completo', '🏟️ full system')} title={tr('Seu estádio já rende', 'Your stadium already earns')}>
           {getLang() === 'en' ? <>Every club already sells tickets, even without building ANYTHING — the base of <b>+{STADIUM_BASE} 🪙 per season</b> lands in the till by itself. Each stand you build ADDS on top — and unlocks income per category over at the Agency.</> : <>Todo clube já vende ingresso, mesmo sem construir NADA — a base de <b>+{STADIUM_BASE} 🪙 por temporada</b> cai sozinha no caixa. Cada setor que você constrói SOMA em cima dela — e destrava a renda por categoria lá na Agência.</>}

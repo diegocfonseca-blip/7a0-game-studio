@@ -22,8 +22,18 @@ export interface StadiumSector { k: string; n: string; cost: number; inc: number
 // enchendo de verde igual qualquer setor (clica, investe 20 em 20, % sobe) —
 // e quando fica 100% é o MESMO gramado bonito de sempre, sem mudar nada nele.
 export const STADIUM_SECTORS: StadiumSector[] = [
-  { k: 'grama',     n: '🌱 Gramado',  cost: 60,  inc: 4,  seats: 0 },
-  { k: 'geral',     n: 'Geral',     cost: 60,  inc: 4,  seats: 21500 },
+  // 💸 ENTRADA BARATEADA (Diego 16/09). Medido em `scripts/custo-estadio.mjs`: o
+  // Gramado e o Geral eram as DUAS PIORES obras do jogo (30 temporadas pra se
+  // pagar cada uma) e o jogo OBRIGAVA a fazer as duas antes de liberar a 🛍️ Loja,
+  // que é a melhor de todas (6 temporadas). Eram 200 moedas até a primeira camisa
+  // vendida — na Várzea, ~5 temporadas guardando tudo sem ver retorno.
+  // O Gramado leva o corte maior porque ele é o único setor com ZERO assentos:
+  // não vira torcida, não vira camisa, e rende 2/temporada pra sempre.
+  // ⚠️ BAIXAR CUSTO NÃO TIRA NADA DE NINGUÉM: `sectorPct` é inv ÷ cost com teto de
+  // 100, então quem já tinha investido 40 no Gramado passa de 67% pra 100% —
+  // ganha o setor pronto. Ninguém perde moeda nem % nenhum.
+  { k: 'grama',     n: '🌱 Gramado',  cost: 30,  inc: 4,  seats: 0 },
+  { k: 'geral',     n: 'Geral',     cost: 40,  inc: 4,  seats: 21500 },
   { k: 'cadeiras',  n: 'Cadeiras',  cost: 90,  inc: 6,  seats: 18500 },
   { k: 'visitante', n: 'Visitante', cost: 120, inc: 8,  seats: 22838 },
   { k: 'camarote',  n: 'Camarote',  cost: 150, inc: 10, seats: 16000 },
@@ -31,9 +41,9 @@ export const STADIUM_SECTORS: StadiumSector[] = [
 
 export interface StadiumExtra { k: string; n: string; cost: number; inc: number; reqTxt: string; perk?: string }
 export const STADIUM_EXTRAS: StadiumExtra[] = [
-  { k: 'refl',  n: '💡 Refletores',       cost: 50,  inc: 2, reqTxt: 'Geral 100%' },
+  { k: 'refl',  n: '💡 Refletores',       cost: 30,  inc: 2, reqTxt: 'Geral 100%' }, // 💸 16/09: 50 → 30. A 50 ele levava CINQUENTA temporadas pra se pagar (+1 de renda) — era a pior peça do jogo, de longe
   { k: 'telao', n: '📺 Telão',            cost: 60,  inc: 3, reqTxt: 'Cadeiras 100%' },
-  { k: 'loja',  n: '🛍️ Loja do Clube',    cost: 80,  inc: 6, reqTxt: '2 setores prontos' },
+  { k: 'loja',  n: '🛍️ Loja do Clube',    cost: 60,  inc: 6, reqTxt: '1 setor pronto' }, // 💸 16/09: 80 → 60 e o requisito caiu de 2 setores pra 1 (ver extraUnlocked). É a MELHOR obra do jogo e estava trancada atrás das duas piores
   { k: 'estac', n: '🅿️ Estacionamento',   cost: 70,  inc: 4, reqTxt: 'Loja do Clube' },
   // 🏬 NOVOS ESTABELECIMENTOS (Diego 12/08) — só carreira nova (agenciaOn), mesmo
   // gate do médico/retrátil pra NUNCA mexer no meio da carreira de ninguém. Entram
@@ -215,7 +225,7 @@ export function extraUnlocked(st: StadiumSave | undefined, k: string): boolean {
   switch (k) {
     case 'refl':  return sectorPct(st, 'geral') >= 100
     case 'telao': return sectorPct(st, 'cadeiras') >= 100
-    case 'loja':  return sectorsDone(st) >= 2
+    case 'loja':  return sectorsDone(st) >= 1 // 💸 16/09: era 2. A Loja é a porta da venda de camisa e do fornecedor; trancá-la atrás de 2 setores segurava o começo do jogo inteiro
     case 'estac': return hasExtra(st, 'loja')
     case 'praca': return hasExtra(st, 'loja')       // 🍔 na ala comercial
     case 'chopp': return hasExtra(st, 'praca')      // 🍻 estende a praça de alimentação
@@ -241,8 +251,13 @@ export function occByPos(pos: number): number {
   if (pos <= 4) return 1.0    // 🥇 zona de acesso — LOTADO
   if (pos <= 7) return 0.82   // 🔵 quase lá
   if (pos <= 14) return 0.55  // ⚪ meio de tabela
-  if (pos <= 16) return 0.35  // 🟠 escapou do Z4
-  return 0.18                 // 🔴 rebaixamento — às moscas
+  if (pos <= 16) return 0.40  // 🟠 escapou do Z4 (era 0.35 — Diego 16/09)
+  // 🔴 rebaixamento. ERA 0.18, e isso era castigo em cima de castigo: quem está
+  // em 17º recebia 18% do estádio que PAGOU, justo quem mais precisa de dinheiro
+  // pra sair de lá. Medido: com 0.18, VINTE de 25 investimentos de 20 moedas não
+  // mudavam nada na tela. O Diego escolheu o número: *"abaixo que tava 18%
+  // coloque 27%"*.
+  return 0.27
 }
 export function stadiumOccupancy(pos: number, st: StadiumSave | undefined): number {
   const bump = hasExtra(st, 'estacao') ? 0.08 : 0

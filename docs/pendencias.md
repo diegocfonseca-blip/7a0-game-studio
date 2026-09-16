@@ -1,3 +1,48 @@
+## 16/09/2026 — ✅ FEITO: estádio mais barato no começo + a torcida na tela
+
+Diego aprovou as 4 partes do mockup (`scripts/mockup-estadio-comeco.mjs`), com dois
+números escolhidos por ele na lotação: *"no segundo acima da queda coloque de 35%
+pra 40% e abaixo que tava 18% coloque 27%"*.
+
+### O que mudou (tudo em `estadiodata.ts`, menos a tela)
+| peça | antes | agora | por quê |
+| --- | --- | --- | --- |
+| 🌱 Gramado | 60 | **30** | único setor com ZERO assentos — nunca vira camisa |
+| Geral | 60 | **40** | traz 21.500 lugares que só valem depois da Loja |
+| 🛍️ Loja do Clube | 80 | **60** | a MELHOR obra do jogo (se paga em 6 temporadas) |
+| 💡 Refletores | 50 | **30** | a 50 levava **50 temporadas** pra se pagar |
+| Loja: requisito | 2 setores | **1 setor** | estava trancada atrás das duas piores obras |
+| lotação 15º-16º | 35% | **40%** | escolha do Diego |
+| lotação 17º+ | 18% | **27%** | escolha do Diego |
+
+### 🧍 E a torcida apareceu na tela (`estadio.tsx`)
+O jogo **já calculava** `torcidaDoEstadio` e nunca mostrava. Agora tem uma linha
+com barrinha logo abaixo dos lugares. Motivo, medido: um clique de 20 moedas mexe
+a bilheteria em MENOS DE UMA MOEDA (a pessoa lê "+0"), mas a torcida sobe aos
+MILHARES — é o mesmo esforço mostrado por um número que se move. E não é enfeite:
+é essa torcida que vira venda de camisa.
+🖼️ O StadiumSvg continua SENDO A PRIMEIRA COISA da tela — a linha nova entra
+abaixo dele, como manda a regra.
+
+### Medido, antes × depois
+| | antes | agora |
+| --- | --- | --- |
+| moedas até a 1ª camisa vendida | **200** | **90** |
+| cliques que não mudam nada (18º lugar) | 20 de 25 | **15 de 23** |
+| cliques que não mudam nada (10º lugar) | 8 de 25 | **6 de 23** |
+| teto da bilheteria em 18º lugar | 43 | **52** |
+
+### 🛡️ NINGUÉM PERDE NADA
+`sectorPct` é `inv ÷ cost` com teto de 100. Baixar o custo só pode SUBIR o % de
+quem já investiu — quem tinha 40 no Gramado sai de 67% e vai pra **100%, setor
+pronto de graça**. Subir a lotação só ADICIONA renda. Soltar o requisito da Loja
+só destrava mais cedo. Não existe caminho em que um save fique pior.
+
+### Reverter
+`git revert` do commit desfaz tudo (os 4 preços, as 2 lotações, o requisito e a
+linha da torcida). Quem tiver ganho setor pronto no meio-tempo continua com ele —
+o `inv` gravado no save não é tocado por nada disto.
+
 ## 16/09/2026 — 🎟️ A BILHETERIA NO COMEÇO: o termômetro de desânimo
 
 Diego: *"quero que fale da bilheteria apenas e tudo que tem de melhorias no
