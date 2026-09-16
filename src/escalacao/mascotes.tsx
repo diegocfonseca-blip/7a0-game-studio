@@ -429,14 +429,16 @@ export const MASCOTES: Record<string, ReactNode> = {
   porco: (
     <img src={xurupitasMascoteImg} height={176} width={Math.round(176 * 334 / 440)} alt="O Xurupita — Xurupitas FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🧢 o MENINO DA TOUCA (Tôka10 — ofc.toka10, aprovado 10/08): arte própria do
-  // dono em imagem (webp 15 KB, exceção aprovada — ver nota em escudos.tsx).
-  // Corpo inteiro: touca azul, oclinhos, piscadinha, joinha, camisa 10 e bola.
+  // 🧢 o MENINO DA TOUCA (Tôka10 — ofc.toka10) — ARTE RENOVADA em 16/09: touca
+  // azul, oclinhos, bigode, piscadinha, joinha, camisa 10 e a bola do 10 no pé.
+  // 248x440 no arquivo (era 156x300). A largura passou a sair da PROPORÇÃO REAL —
+  // estava `width={92}` chumbado, que por sorte batia com a arte velha e ia
+  // ESTICAR a nova.
   toka: (
     <img
       src={tokaMascoteImg}
       height={176}
-      width={92}
+      width={Math.round(176 * 248 / 440)}
       alt="Tôka10"
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />

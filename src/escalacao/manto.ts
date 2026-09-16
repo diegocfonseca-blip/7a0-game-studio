@@ -17,6 +17,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // O PRETO vem primeiro de propósito: listra clara em cima da tela creme do jogo
   // some (mesma ordem do Tricolor do Arruda e do Briga de Galo).
   // 🕰️ histórico: era vermelho e preto até 24/08, depois preto e prata (listrada).
+  'ofc.toka10@gmail.com': ['#FCDC04', '#055E1D'], // 🧢 Tôka10 — amarelo e verde, MEDIDOS na camisa que o dono mandou (16/09): amarelo 80,4% do manto, verde 11,5%. O AZUL #013088 da touca e do calção é a 3ª cor (MANTO_TRI) — ele é só 0,3% da camisa, mas é 21% do mascote e é a cor do escudo
   'diego.c.fonseca@gmail.com': ['#080908', '#F0EFEF'],
   'adriano.ferrari@quepazseguros.com.br': ['#C2452F', '#141414'], // 🏎️ Ferrari SC — vermelho e preto
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
@@ -153,6 +154,7 @@ export function meuMantoAngle(): number {
 const MANTO_TRI: Record<string, string> = {
   maite: '#1BA34C', // 🟢 Desportivo Montreal — 3ª cor verde (preto/branco/verde)
   reidabola_leao: '#ECE1D9', // 👑🦁 Rei da Bola FC (caiobegnamii) — 3ª cor BRANCO-CREME: a base da camisa, medida na arte dele (16/09)
+  toka: '#013088', // 🧢 Tôka10 — 3ª cor AZUL: a touca (que é o escudo) e o calção, medidos na arte dele (16/09)
   piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
   cobra_arruda: '#B91515', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho). 09/09: MEDIDA na camisa nova que o dono mandou (era #C2001E chutado em 16/08); preto #110D0E e branco #F5F2EF foram pro banco (esc_socios)
   futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)

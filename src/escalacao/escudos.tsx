@@ -1346,14 +1346,17 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Leite de Verdade': leiteDeVerdadeEscudoRender,
   'Leite de Verdade EC': leiteDeVerdadeEscudoRender,
   'Leite de Verdade SC': leiteDeVerdadeEscudoRender,
-  // 🧢 Tôka10 (batismo do ofc.toka10, aprovado pelo Diego 10/08): o menino da
-  // touca — ARTE PRÓPRIA do dono (imagem webp 22 KB, exceção aprovada; ver nota
-  // no topo). Selo redondo já vem no desenho; fundo é transparente.
+  // 🧢 Tôka10 (ofc.toka10) — ARTE RENOVADA em 16/09. O escudo agora é a TOUCA
+  // SOZINHA, por ordem do Diego (*"o primeiro anexo será o escudo que é uma touca
+  // sozinha"*): touca amarela/verde/azul com o 10 e o TÔKA no punho. 360x348 no
+  // arquivo (antes 322x340, o selo redondo com o menino dentro).
+  // ⚠️ O brasão redondo que veio na 2ª prancha foi DESCARTADO de propósito — ele
+  // mandou usar dali só o mascote e o manto.
   'Tôka10': (size: number) => (
     <img
       src={tokaEscudoImg}
       height={size}
-      width={Math.round(size * 322 / 340)}
+      width={Math.round(size * 360 / 348)}
       alt="Tôka10"
       style={{ flex: 'none', display: 'block', objectFit: 'contain' }}
     />
