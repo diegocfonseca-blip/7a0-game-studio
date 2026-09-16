@@ -12,6 +12,7 @@
 //   2. noutro:        node scripts/navega-carreira.mjs --fase nova     (cria a carreira do zero)
 //                     node scripts/navega-carreira.mjs --fase abas     (fotografa as 5 abas)
 //                     node scripts/navega-carreira.mjs --fase modais   (fotografa os modais)
+//                     node scripts/navega-carreira.mjs --fase crise    (prova que a crise TRAVA a rodada)
 //
 // A fase `nova` é a cara: cria carreira, joga o leilão (lance ZERO — o elenco vem do
 // Monte das sobras, que serve pra olhar tela), assina os patrocínios e corre ~35
@@ -158,10 +159,60 @@ async function faseModais(p) {
   }
 }
 
+// ── FASE 4: 🚨 a crise financeira TRAVA a rodada? ───────────────────────────
+// Por que isto existe: durante um mês o código DIZIA, em comentário, que a crise
+// "trava até o técnico escolher" — e não travava. `decisoesOk` só olhava
+// patrocínio e o `canNext` do controle só olhava intervalo e pênalti. O dono do
+// Divizeiro passou 240 temporadas com o aviso pendurado, jogando e faturando.
+// Comentário não é trava: esta fase ABRE o jogo e confere que a rodada PARA.
+// Confere as duas pontas:
+//   · caixa NEGATIVO + crise pendente → a rodada não anda (é a cobrança do Diego:
+//     "ele é obrigado a resolver na hora e seguir");
+//   · caixa POSITIVO + crise pendente (o save preso do Divizeiro) → o aviso expira
+//     sozinho e o jogo segue. Sem isto, ligar a trava prenderia esses saves PRA
+//     SEMPRE numa tela sem saída — o oposto do que o Diego pede.
+async function faseCrise(p) {
+  const save = JSON.parse(readFileSync(`${PASTA}/save.json`, 'utf8'))
+  const rodada = () => p.evaluate(() => (document.body.innerText.match(/RODADA (\d+)\/38/i) || [])[1] ?? '?')
+  const temBanner = () => p.evaluate(() => /NÃO JOGO EM TIME DURO|not playing for a club this broke/i.test(document.body.innerText))
+  let falhas = 0
+  for (const caixa of [-900, 3870]) {
+    const s = { ...save }
+    for (const k of ['esc-solo-inprogress-v1', 'esc-solo-career']) {
+      if (!s[k]) continue
+      const st = JSON.parse(s[k]), m = st.managers[st.youIdx]
+      const alvo = [...m.squad].sort((a, c) => (c.fame - a.fame) || (c.hi - a.hi))[0]
+      st.careerCoins = { ...(st.careerCoins || {}), [m.id]: caixa }
+      st.careerDebtBarrier = { ...(st.careerDebtBarrier || {}), [m.id]: -500 }
+      st.careerCrise = { [m.id]: { playerId: alvo.id, playerName: alvo.name, pos: alvo.pos } }
+      s[k] = JSON.stringify(st)
+    }
+    await p.goto(URL, { waitUntil: 'domcontentloaded' })
+    await p.evaluate(x => { for (const [k, v] of Object.entries(x)) localStorage.setItem(k, v) }, s)
+    await entra(p, true)
+    const r0 = await rodada(), b0 = await temBanner()
+    await p.waitForTimeout(22000) // o modo automático anda sozinho a cada poucos segundos
+    const r1 = await rodada(), b1 = await temBanner()
+    if (caixa < 0) {
+      const ok = b0 && b1 && r0 === r1
+      console.log(`${ok ? '✅' : '❌'} caixa ${caixa}: rodada ${r0} → ${r1}, aviso ${b1 ? 'na tela' : 'sumiu'} ` +
+        `(esperado: PARADA na ${r0} com o aviso na tela)`)
+      if (!ok) falhas++
+    } else {
+      const ok = !b1 && r1 !== r0
+      console.log(`${ok ? '✅' : '❌'} caixa +${caixa}: o aviso ${b1 ? 'FICOU' : 'expirou sozinho'} e a rodada foi ${r0} → ${r1} ` +
+        `(esperado: aviso some e o jogo segue)`)
+      if (!ok) falhas++
+    }
+  }
+  if (falhas) { console.log(`💥 ${falhas} falha(s)`); process.exitCode = 1 } else console.log('🎉 a trava da crise está de pé')
+}
+
 const { b, p } = await abre()
 try {
   if (FASE === 'nova') await faseNova(p)
   else if (FASE === 'modais') await faseModais(p)
+  else if (FASE === 'crise') await faseCrise(p)
   else await faseAbas(p)
-  console.log(`📸 imagens em ${PASTA}`)
+  if (FASE !== 'crise') console.log(`📸 imagens em ${PASTA}`)
 } finally { await b.close() }

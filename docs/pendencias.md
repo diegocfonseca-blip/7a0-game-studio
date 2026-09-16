@@ -1,3 +1,47 @@
+## 16/09/2026 (parte 2) — 🚨 A trava da crise NUNCA EXISTIU (ligada agora)
+
+Diego, depois do primeiro conserto: *"eu não entendi que, se foi menos 500 lá atrás,
+a mensagem deveria aparecer, ele deveria resolver, fazer as coisas que ele tem que
+fazer na hora, OBRIGADO a fazer, e seguir. Eu não entendi como é que ele conseguiu
+seguir jogando, fazendo dinheiro, e a mensagem está aparecendo"*.
+
+Ele estava certo, e a resposta é pior do que parecia: **a trava nunca foi ligada.**
+
+### O que estava no código
+O comentário da fila de avisos dizia, desde 12/08: *"a crise trava até o técnico
+escolher"*. Mentira do comentário. Na prática:
+- `decisoesOk = sponsorBetOk && masterOk` — a crise não estava lá;
+- `SimControls canNext = roundReady && !intervalo && !pênalti` — a crise não estava lá;
+- o efeito do modo automático parava em `eventoPendente` (evento de JOGADOR) — **mas
+  não em `criseAtual`**.
+Ou seja: o evento de jogador travava a rodada; a crise financeira tinha ficado de fora.
+Era literalmente por isso que o dono do Divizeiro seguiu jogando e faturando com o
+aviso pendurado — o modo automático dele andava sozinho por cima da crise.
+
+### O que foi ligado
+`criseTrava` entra nos três portões: `decisoesOk`, o `canNext` do controle e o
+botão de começar a temporada. O rótulo vira **"🚪 Decida quem fica no lugar dele"**, e
+o selo da virada conta a crise como uma decisão pendente.
+
+### ⚠️ Por que travar só é seguro JUNTO com o conserto da parte 1
+A saída *"Nunca gostei dele mesmo"* (sobe alguém da base) não depende de nada — nem de
+moeda, nem de folclórico livre, nem de vaga. Sempre há caminho pra destravar.
+**Mas**: se a trava fosse ligada sozinha, os saves que já estavam PRESOS com o aviso e
+o caixa recuperado (o Divizeiro, +3.870) ficariam travados PRA SEMPRE numa tela que
+não faz mais sentido. É o conserto da parte 1 (o aviso expira fora do vermelho) que
+solta esses saves. As duas coisas são uma entrega só.
+
+### Provado no jogo rodando, não no papel
+`node scripts/navega-carreira.mjs --fase crise` — abre o jogo, injeta a crise e espera:
+- caixa **-900** + crise → a rodada FICA na 34 com o aviso na tela ✅
+- caixa **+3.870** + crise → o aviso expira sozinho e o jogo segue ✅
+E `npm run crise` (18 conferências no motor) continua cobrindo a escada -500/-1000.
+
+### Lição pro repo
+**Comentário não é trava.** O comentário dizia "trava" e ninguém conferiu por um mês.
+Toda regra que promete bloquear alguma coisa precisa de um teste que ABRE o jogo e
+confere que bloqueou — foi assim que este aqui foi pego.
+
 ## 16/09/2026 — 🚨 O aviso de "jogador vai sair" NÃO EXPIRAVA (consertado)
 
 Print do Diego, do dono do **Divizeiro** (temporada 240, Série B, rodada 10): a faixa

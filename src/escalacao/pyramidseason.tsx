@@ -7213,7 +7213,20 @@ export function PyramidSeasonScreen() {
   // assinar um dos 4 contratos — mesma trava do Pontual, com o porquê na tela.
   // Com contrato correndo, não há nada pra decidir e a trava nem aparece.
   const masterOk = round > 0 || masterAtivo(state.careerMaster?.[youId], state.seasonNo ?? 1)
-  const decisoesOk = sponsorBetOk && masterOk
+  // 🚨 A CRISE TRAVA A RODADA (16/09, cobrança do Diego): *"a mensagem deveria
+  // aparecer, ele deveria resolver, fazer as coisas que ele tem que fazer na hora,
+  // OBRIGADO a fazer, e seguir. Eu não entendi como é que ele conseguiu seguir
+  // jogando, fazendo dinheiro, e a mensagem está aparecendo"*.
+  // O comentário da fila de avisos SEMPRE disse "trava até o técnico escolher" —
+  // mas a trava nunca existiu: `decisoesOk` só olhava patrocínio, e o `canNext` do
+  // controle só olhava intervalo e pênalti. O evento de JOGADOR travava; a crise
+  // financeira tinha ficado de fora. Era por isso que o dono do Divizeiro seguiu
+  // 240 temporadas com o aviso pendurado.
+  // ⚠️ Travar só é seguro porque a saída "Nunca gostei dele mesmo" (sobe alguém da
+  // base) NÃO depende de nada: não precisa de moeda, nem de folclórico livre, nem
+  // de vaga. Sempre existe caminho pra destravar — nada de estado sem saída.
+  const criseTrava = !!criseAtual
+  const decisoesOk = sponsorBetOk && masterOk && !criseTrava
   // 🧹 recibo do patrocínio da temporada PASSADA (rotina, não conquista): sai do
   // caminho da decisão e vira linha depois do botão verde.
   const sponsorResult = state.careerSponsorResult?.[youId]
@@ -7893,7 +7906,7 @@ export function PyramidSeasonScreen() {
             <>
               {/* 👉 A DECISÃO DA VEZ fica sozinha em cima. O resultado da temporada
                   passada desceu pros recibos, depois do botão verde. */}
-              {!decisoesOk && (() => { const n = (sponsorBetOk ? 0 : 1) + (masterOk ? 0 : 1); return <SeloSuaVez texto={tr(`${n} ${n === 1 ? 'decisão' : 'decisões'} pra começar a T${state.seasonNo ?? 1}`, `${n} decision${n === 1 ? '' : 's'} to start S${state.seasonNo ?? 1}`)} /> })()}
+              {!decisoesOk && (() => { const n = (sponsorBetOk ? 0 : 1) + (masterOk ? 0 : 1) + (criseTrava ? 1 : 0); return <SeloSuaVez texto={tr(`${n} ${n === 1 ? 'decisão' : 'decisões'} pra começar a T${state.seasonNo ?? 1}`, `${n} decision${n === 1 ? '' : 's'} to start S${state.seasonNo ?? 1}`)} /> })()}
               {/* 🪜 A VIRADA EM PASSOS PADRONIZADOS (Diego, 15/09): *"quero padronizado
                   passo a passo igual já ocorre hoje quando abre patrocinador Master,
                   depois patrocinador pontual, depois material esportivo, depois venda de
@@ -7977,7 +7990,7 @@ export function PyramidSeasonScreen() {
           round === 0 ? (
             <button onClick={() => { if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
               style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: decisoesOk ? GREEN : '#cfc6ae', color: decisoesOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: decisoesOk ? 'pointer' : 'default', marginBottom: 10 }}>
-              {decisoesOk ? tr('▶️ Começar a temporada', '▶️ Start the season') : !masterOk ? tr('🏆 Assine um contrato Master aí em cima', '🏆 Sign a Master contract up there first') : tr('🤝 Escolha o patrocínio aí em cima', '🤝 Pick the sponsor up there first')}
+              {decisoesOk ? tr('▶️ Começar a temporada', '▶️ Start the season') : criseTrava ? tr('🚪 Decida quem fica no lugar dele aí em cima', '🚪 Decide who replaces him up there first') : !masterOk ? tr('🏆 Assine um contrato Master aí em cima', '🏆 Sign a Master contract up there first') : tr('🤝 Escolha o patrocínio aí em cima', '🤝 Pick the sponsor up there first')}
             </button>
           ) : manualAllowed ? (
           // 🧹 LIMPEZA VISUAL (Diego 13/08 — "tá confuso, botão manual deveria ter um
@@ -7987,10 +8000,10 @@ export function PyramidSeasonScreen() {
           <div className={privateCareer ? 'll25-control-shell' : undefined} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
-              onNext={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              onSkip={() => { if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              nextLabel={halfMode && !halftimeDone ? tr('⏸️ Resolva o intervalo primeiro', '⏸️ Sort out half-time first') : penMode && !penaltyDone ? tr('⚽ Bata o pênalti primeiro', '⚽ Take the penalty first') : !roundReady ? tr('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : tr('▶️ Próxima rodada', '▶️ Next round')} />
+            <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
+              onNext={() => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              onSkip={() => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              nextLabel={criseTrava ? tr('🚪 Decida quem fica no lugar dele', '🚪 Decide who replaces him') : halfMode && !halftimeDone ? tr('⏸️ Resolva o intervalo primeiro', '⏸️ Sort out half-time first') : penMode && !penaltyDone ? tr('⚽ Bata o pênalti primeiro', '⚽ Take the penalty first') : !roundReady ? tr('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : tr('▶️ Próxima rodada', '▶️ Next round')} />
           </div>
           ) : <ManualLockButton />
         )}
