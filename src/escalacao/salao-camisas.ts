@@ -41,6 +41,8 @@ export const CAMISAS_SALAO: Record<string, string> = {
 export const RECORTE_CAMISA: Record<string, [number, number, number]> = {
   "Leão da Estradinha": [332, 620, 416],
   "Papão United Madrid": [175, 321, 219],
-  "Neymarzetti": [343, 620, 420],
+  // 🦇 Neymarzetti saiu daqui em 16/09: a arte NOVA é SÓ A CAMISA (547x700). A velha
+  // era o uniforme inteiro (343x620, com calção) e por isso precisava de janela — com
+  // a janela ligada, a camisa nova sairia cortada no meio.
   "Milhaça FC": [413, 620, 425],
 }

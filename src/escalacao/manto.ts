@@ -12,10 +12,12 @@ import { getLang } from './lang' // 🌐 NOME_MSG sai no idioma do botão BR/EN
 
 // reserva no código (beta) — conta → [cor1, cor2]
 export const MANTO_CONTAS: Record<string, [string, string]> = {
-  // 🦇 Neymarzetti — PRETO e PRATA, MEDIDOS na arte que o dono mandou (24/08).
-  // Antes era vermelho e preto (❤️🖤): a camisa nova é listrada preto/prata, e a
-  // regra é que o manto sai das 2 cores da arte, nunca chutado.
-  'diego.c.fonseca@gmail.com': ['#141416', '#B6B7B8'],
+  // 🦇 Neymarzetti — PRETO e BRANCO, MEDIDOS na arte NOVA que o dono mandou (16/09):
+  // branco 83,6% do manto, preto 10,3%. A camisa virou BRANCA com detalhe preto.
+  // O PRETO vem primeiro de propósito: listra clara em cima da tela creme do jogo
+  // some (mesma ordem do Tricolor do Arruda e do Briga de Galo).
+  // 🕰️ histórico: era vermelho e preto até 24/08, depois preto e prata (listrada).
+  'diego.c.fonseca@gmail.com': ['#080908', '#F0EFEF'],
   'adriano.ferrari@quepazseguros.com.br': ['#C2452F', '#141414'], // 🏎️ Ferrari SC — vermelho e preto
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
   'fontourajoao04@gmail.com': ['#00461C', '#EE5400'], // 🦜🛒 Al Takhadao FC — verde e laranja, MEDIDOS na camisa que o dono mandou (01/09)
