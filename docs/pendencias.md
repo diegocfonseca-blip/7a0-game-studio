@@ -14,17 +14,40 @@ Dois scripts novos, rodando o MOTOR REAL do jogo no vite + Chromium:
 ciclo de import com `copa-brasil.ts` e a importação direta estoura
 "Cannot access 'COPA_LEG_MS' before initialization".
 
-### 🐛 Quatro erros meus no caminho (ficam registrados pra não repetir)
+### 🐛 SEIS erros meus no caminho (ficam registrados pra não repetir)
 1. **Preço de catálogo ≠ preço de leilão.** Montei o elenco com o valor de
    catálogo (57-75/carta) e a folha saiu **7× maior** que a real. A carreira
    começa com `START_MONEY = 100` — 11 cartas somam ~90, folha ~9.
-2. **Começou na Série D.** Sem semear `placements = { m0: 'V' }`, o `buildPyramid`
-   cai no mundo SEM Várzea.
+2. **Começou na Série D.** Sem semear `placements`, o `buildPyramid` cai no
+   mundo SEM Várzea.
 3. **O cansaço não chegava no campo.** Sem passar `cardMods` pro `simulatePyramid`,
    o time subia de V até A com o elenco inteiro em 🚑 — o desgaste existia na
    planilha e não no jogo.
-4. **Time todo fame 3.** Pegava sempre o melhor, e o Diego pediu MISTURADO. Um
-   time só de "bom jogador" passeia na Várzea e esconde o sufoco de baixo.
+4. **Time todo fame 3.** Pegava sempre o melhor, e o Diego pediu MISTURADO.
+
+🔁 **E o Diego pegou que a Várzea ainda não estava aparecendo** (*"eu pedi pra
+você começar na Várzea e não na Série D"*). Fui olhar e eram MAIS DOIS erros, os
+piores de todos — os dois faziam a Várzea sumir em uma temporada:
+
+5. 🥅 **A VÁRZEA ESTAVA VAZIA.** `buildCpuSquads` só gera times de fundo pra
+   **A/B/C/D** — a Várzea é preenchida pelos MANAGERS (você + os rivais de CPU do
+   leilão). Passando só `{ m0: 'V' }` eu era o **ÚNICO time da divisão**: ganhava
+   sozinho, sem adversário, e subia na 1ª temporada. Agora entram 19 rivais, com
+   a mistura de tiers do jogo (6 fracos · 7 médios · 6 fortes).
+6. 🏆 **O elenco era um monstro pra Várzea.** Eu pegava A MELHOR carta de cada
+   posição dentro do degrau — e "a melhor foi-profissional do catálogo inteiro"
+   não é time de várzea: o **top-11 do degrau V tem média 84**, enquanto a
+   **mediana dos times da Série D é 58,8**. O jogo NÃO monta assim: o
+   `makeBotSquad` monta por **SORTEIO**, com proporção de categoria por força
+   (fraco 55% foi-profissional · médio 40% · forte 22%). Agora é a mesma receita,
+   e o meu time entra como MÉDIO — que é o "misturado" que ele pediu.
+
+**Antes × depois do conserto:**
+| | 1ª versão | corrigida |
+| --- | --- | --- |
+| T1 | Várzea, **campeão** | Várzea, **16º** |
+| temporadas na Várzea | **1** | **4** (16º · 15º · 8º · campeão) |
+| chega na Série A | T5 | T8 |
 
 ### 🚨 ACHADO 1 — A ARMADILHA DO MASTER LONGO (o maior de todos)
 `masterValor()` congela o valor na **divisão em que o contrato foi assinado**.
@@ -74,12 +97,30 @@ faz 152 e o rebaixado 73 — menos da metade.
 | 16 | 29 | 64 | 128 | 256 |
 | 22 | 40 | 88 | 176 | 352 |
 
-### 📈 A CARREIRA SIMULADA
-Caixa **preso entre 30 e 46 durante TODA a subida** (7 temporadas) — cada moeda
-que entra sai. Depois de firmado na Série A: receita média **477**, despesa
-**100**, saldo **+376/temporada**. Em 120 temporadas: **43.707 moedas**.
-👉 O sufoco é 100% da SUBIDA. Série A estabelecida é máquina de dinheiro sem nada
-pra gastar — o problema lá é o oposto.
+### 📈 A CARREIRA SIMULADA (números CORRIGIDOS, com a Várzea de verdade)
+| divisão | temporadas | receita méd | despesa méd | saldo | pos. méd | lesões/temp |
+| --- | --- | --- | --- | --- | --- | --- |
+| Várzea | 4 | 54 | 47 | **+7** | 10,0 | 0,0 |
+| Série D | 1 | 82 | 82 | **0** | 2,0 | 0,0 |
+| Série C | 1 | 145 | 145 | **0** | 2,0 | 0,0 |
+| Série B | 1 | 146 | 98 | +48 | 3,0 | 0,0 |
+| Série A | 113 | 522 | 132 | **+390** | 1,7 | 2,0 |
+
+O caixa fica **travado em 30 moedas (a reserva) da T1 até a T7** — sete
+temporadas seguidas em que cada moeda que entra sai. Caixa final em 120
+temporadas: **44.167**.
+👉 O sufoco é 100% da SUBIDA. Série A firmada é máquina de dinheiro sem nada pra
+gastar — o problema lá é o oposto.
+
+**A Várzea, olhada de perto (time no meio da tabela):** receita de **44 a 50
+moedas** por temporada — TV 10 + Master 10 + bilheteria 20 + Pontual 4. Sem
+prêmio (só top-4 paga), sem bico (só da T3), sem camisa (precisa da Loja). E a
+Loja custa **200 moedas de obra** (grama 60 + geral 60 + loja 80). Ou seja:
+**~5 temporadas guardando TUDO** só pra destravar a venda de camisa — enquanto
+ele também precisa reforçar pra escapar da divisão. É esse o aperto.
+
+**Com elenco de 16 em vez de 11:** caixa final 42.129 (−2 mil), folha 83 em vez
+de 65, e **ZERO lesões em 120 temporadas**. Custa pouco e resolve tudo.
 
 ### ⚠️ Detalhe: a VÁRZEA NÃO JOGA COPA
 `COPA_DIV_STRENGTH` tem V: 0 e o comentário diz "só A-D". Quem começa na Várzea

@@ -87,18 +87,14 @@ const rel = await page.evaluate(async ([TEMPS, ELENCO_ALVO_COM_BANCO]) => {
       .sort((a, b) => (a.lo ?? 0) - (b.lo ?? 0))
   }
   const MOLDE = ['GOL', 'LAT', 'LAT', 'ZAG', 'ZAG', 'MEI', 'MEI', 'MEI', 'MEI', 'ATA', 'ATA'] // 4-4-2
-  // 💰 O ORÇAMENTO DE ESTREIA É 100 MOEDAS (START_MONEY no store) — e é com ELE
-  //    que o técnico compra os 11 no leilão de abertura. Isso manda na FOLHA, que
-  //    é preço ÷ 10: 11 cartas somando ~90 dão ~9 de folha, não 70.
-  //    ⚠️ Na 1ª versão desta simulação eu usei o valor de CATÁLOGO das cartas
-  //    (57-75 cada) e a folha saiu 7× maior que a de verdade. O leilão da Várzea
-  //    não paga catálogo: paga o que cabe no bolso.
-  const START_MONEY = 100
+  const START_MONEY = 100   // 💰 o que a carreira nova dá de bolso (store.tsx)
   let uid = 0
   const usados = new Set()
   const mid = c => ((c.lo ?? 1) + (c.hi ?? 2)) / 2
-  // 🪜 a escada diz QUEM cada divisão negocia (escadaAllows, no store):
-  //    V = foi-prof + bom · D = bom + promessa · C e B = promessa + craque · A = craque + lenda
+  const ident = c => `${c.name}|${c.club}|${c.year}`
+  const embaralha = (arr, rnd) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a }
+
+  // 🪜 a escada diz QUEM cada divisão negocia (escadaAllows, no store)
   const poolDaDiv = (d, pos) => {
     const todos = (FONTE[pos] ?? []).filter(c => !c.fake).map(c => ({ ...c, pos }))
     if (d === 'V') return todos.filter(c => !c.promessa && (c.fame ?? 1) <= 3)
@@ -106,48 +102,75 @@ const rel = await page.evaluate(async ([TEMPS, ELENCO_ALVO_COM_BANCO]) => {
     if (d === 'C' || d === 'B') return todos.filter(c => c.promessa || (!c.promessa && (c.fame ?? 1) === 4))
     return todos.filter(c => !c.promessa && (c.fame ?? 1) >= 4)
   }
-  /** compra a MELHOR carta da posição dentro do degrau da divisão, pagando o que
-   *  a FATIA do bolso permite.
-   *  ⚠️ O preço de CATÁLOGO (lo/hi) NÃO é o preço do leilão. Uma carta "bom
-   *  jogador" vale 57-75 no catálogo, mas na Várzea todo mundo tem as mesmas 100
-   *  moedas — então ela sai pelo que cabe no bolso de quem dá o lance, e é esse
-   *  valor (`paid`) que vira SALÁRIO (paid ÷ 10) e preço de RENOVAÇÃO.
-   *  Na 1ª versão eu filtrava por preço de catálogo e o elenco saía VAZIO. */
-  const compra = (d, pos, fatia, fameExato) => {
-    let lista = poolDaDiv(d, pos).filter(c => !usados.has(`${c.name}|${c.club}|${c.year}`))
-    if (fameExato != null) {
-      const so = lista.filter(c => (c.fame ?? 1) === fameExato)
-      if (so.length) lista = so
+
+  // ── 🥅 UM TIME DE VÁRZEA DE VERDADE ────────────────────────────────────────
+  // ⚠️ ESTE ERA O ERRO DA 1ª VERSÃO. Eu montava o elenco pegando A MELHOR carta
+  //    de cada posição dentro do degrau da Várzea — e "a melhor foi-profissional
+  //    do catálogo inteiro" é um monstro: o top-11 do degrau V tem média 84,
+  //    enquanto a MEDIANA dos times da Série D é 58,8. Resultado: o time ganhava
+  //    a Várzea, a D, a C e a B seguidas e chegava na Série A em 5 temporadas —
+  //    justamente fugindo das divisões que o Diego quer medir.
+  //    O jogo NÃO monta assim. O `makeBotSquad` (store.tsx) monta por SORTEIO,
+  //    com uma proporção de categoria por força do time:
+  //      fraco 55% foi-profissional · médio 40% · forte 22% (o resto, bom jogador)
+  //    Aqui é a mesma receita — e o meu time entra como MÉDIO, que é o que o
+  //    Diego pediu: "misturados em foi profissional e bom jogador".
+  const montaVarzea = (rnd, tier) => {
+    const foiRate = tier === 'strong' ? 0.22 : tier === 'weak' ? 0.55 : 0.40
+    const sq = []
+    for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) {
+      const need = MOLDE.filter(p => p === pos).length
+      const livres = embaralha(poolDaDiv('V', pos).filter(c => !usados.has(ident(c))), rnd)
+      const foi = livres.filter(c => (c.fame ?? 1) === 1)
+      const bom = livres.filter(c => (c.fame ?? 1) === 2 || (c.fame ?? 1) === 3)
+      const nFoi = Math.round(need * foiRate)
+      let picks = [...foi.slice(0, nFoi), ...bom.slice(0, need - nFoi)]
+      if (picks.length < need) for (const c of [...bom.slice(need - nFoi), ...foi.slice(nFoi)]) { if (picks.length >= need) break; picks.push(c) }
+      for (const c of picks) { usados.add(ident(c)); sq.push({ ...c, pos, id: `c${uid++}` }) }
     }
-    lista = lista.sort((a, b) => mid(b) - mid(a))
-    const c = lista[0]
-    if (!c || fatia < 1) return null
-    usados.add(`${c.name}|${c.club}|${c.year}`)
-    // paga o menor entre o valor de catálogo e a fatia que cabe (o leilão nunca
-    // passa do bolso, e nunca paga mais que o valor da carta)
-    const preco = Math.max(1, Math.round(Math.min(mid(c), fatia)))
-    return { ...c, id: `me${uid++}`, paid: preco, contratoAte: 0 }
-  }
-  const squad = []
-  {
-    // divide as 100 moedas pelas 11 vagas (um pouco mais pros setores de frente,
-    // como faz quem monta time) e compra o melhor que cabe em cada fatia
-    const FATIA = { GOL: 0.07, LAT: 0.07, ZAG: 0.08, MEI: 0.10, ATA: 0.11 }
-    let bolso = START_MONEY
-    // 🎯 O TIME É MISTURADO, como o Diego pediu: metade "foi profissional"
-    //    (fame 1) e metade "bom jogador" (fame 2-3). Na 1ª versão eu pegava
-    //    sempre o MELHOR disponível — saía um time todo fame 3, que passeava na
-    //    Várzea e chegava na Série A em 5 temporadas. Isso escondia justamente o
-    //    sufoco das divisões de baixo, que é o que ele quer medir.
-    MOLDE.forEach((pos, i) => {
-      const teto = Math.max(1, Math.floor(START_MONEY * (FATIA[pos] ?? 0.09)))
-      const c = compra('V', pos, Math.min(teto, bolso), i % 2 === 0 ? 1 : 3)
-      if (c) { squad.push(c); bolso -= c.paid }
-    })
+    return sq
   }
 
+  /** compra um reforço do degrau da divisão — por SORTEIO entre os bons daquele
+   *  degrau (não "o melhor do catálogo"), pagando o que a fatia do bolso permite.
+   *  O preço vira SALÁRIO (÷10) e base da RENOVAÇÃO. */
+  const compra = (d, pos, fatia, rnd) => {
+    const livres = poolDaDiv(d, pos).filter(c => !usados.has(ident(c)))
+    if (!livres.length || fatia < 1) return null
+    // sorteia entre o terço de cima do degrau (é o que um time competitivo caça)
+    const ord = livres.sort((a, b) => mid(b) - mid(a))
+    const c = ord[Math.floor((rnd ? rnd() : 0.2) * Math.max(1, Math.floor(ord.length / 3)))]
+    if (!c) return null
+    usados.add(ident(c))
+    return { ...c, id: `me${uid++}`, paid: Math.max(1, Math.round(Math.min(mid(c), fatia))), contratoAte: 0 }
+  }
+
+  // 🎲 sorteio do mundo (fixo pela semente, pra a simulação ser repetível)
+  const rndMundo = (a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let x = Math.imul(a ^ a >>> 15, 1 | a); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296 })(SEED)
+
+  // ── O MEU TIME: várzea, tier MÉDIO (misturado, como ele pediu)
+  const squad = montaVarzea(rndMundo, 'mid')
+  {
+    // divide as 100 moedas do bolso entre as 11 cartas (o leilão nunca passa disso)
+    const total = squad.reduce((n, c) => n + mid(c), 0)
+    for (const c of squad) c.paid = Math.max(1, Math.round(START_MONEY * mid(c) / total))
+  }
+
+  // ── 🏟️ A VÁRZEA PRECISA DE ADVERSÁRIOS ────────────────────────────────────
+  // ⚠️ O OUTRO ERRO DA 1ª VERSÃO. `buildCpuSquads` só gera times de fundo pra
+  //    A/B/C/D — a VÁRZEA é preenchida pelos MANAGERS (você + os rivais de CPU do
+  //    leilão). Passando só `{ m0: 'V' }` eu era o ÚNICO time da Várzea: ganhava
+  //    sozinho, com 0 adversários, e subia na primeira temporada. Por isso a
+  //    Várzea "não aparecia" na simulação, que foi o que o Diego pegou.
+  //    Agora entram 19 rivais, com a mesma mistura de tiers do jogo.
+  const TIERS = ['weak', 'weak', 'weak', 'weak', 'weak', 'weak', 'mid', 'mid', 'mid', 'mid',
+                 'mid', 'mid', 'mid', 'strong', 'strong', 'strong', 'strong', 'strong', 'strong']
   const managers = [{ id: 0, name: 'Você', teamName: 'Meu Timão', isHuman: true, auctionRival: false,
                       formation: '4-4-2', money: 0, squad }]
+  TIERS.forEach((tier, i) => {
+    managers.push({ id: i + 1, name: `Rival ${i + 1}`, teamName: `Várzea FC ${i + 1}`, isHuman: false,
+                    auctionRival: true, formation: '4-4-2', money: 0, squad: montaVarzea(rndMundo, tier) })
+  })
 
   // ── 🎲 aleatório determinístico (mesma família do motor)
   const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 }
@@ -174,7 +197,7 @@ const rel = await page.evaluate(async ([TEMPS, ELENCO_ALVO_COM_BANCO]) => {
   // 🌱 a carreira NOVA nasce na VÁRZEA (escada ligada). Sem semear isto, o
   //    buildPyramid cai no mundo SEM Várzea e joga o técnico direto na Série D —
   //    foi o que aconteceu na 1ª rodada desta simulação.
-  let placements = { m0: 'V' }
+  let placements = null   // semeado logo abaixo, com a pirâmide inteira
   let cpuSquads = undefined
   let master = null          // { div, anos, desde }
   let forn = null            // { div, anos, desde }
@@ -187,6 +210,10 @@ const rel = await page.evaluate(async ([TEMPS, ELENCO_ALVO_COM_BANCO]) => {
   const hist = []
   const porDiv = {}          // div → acumuladores
   const rngGeral = mulberry(SEED ^ 0xBEEF)
+  // 🌱 a colocação inicial: TODOS os managers na Várzea e os times de fundo nas
+  //    divisões deles — é o que o START faz no store (divsDeFundo + DIVISION_TEAMS).
+  placements = {}
+  for (const m of managers) placements[`m${m.id}`] = 'V'
 
   const chave = c => `${c.name}|${c.club}|${c.year}`
   const somaDiv = (d, campo, v) => {
@@ -320,7 +347,7 @@ const rel = await page.evaluate(async ([TEMPS, ELENCO_ALVO_COM_BANCO]) => {
         const sobra = caixa - gastoReforco - RESERVA_CAIXA
         if (sobra < 5) break
         const falta = MOLDE[squad.length % MOLDE.length]
-        const c = compra(minhaDiv, falta, Math.min(sobra, 40))
+        const c = compra(minhaDiv, falta, Math.min(sobra, 40), rng)
         if (!c) break
         squad.push(c); gastoReforco += c.paid
       }
@@ -329,7 +356,7 @@ const rel = await page.evaluate(async ([TEMPS, ELENCO_ALVO_COM_BANCO]) => {
       for (const velho of ordem.slice(0, 3)) {
         const sobra = caixa - gastoReforco - RESERVA_CAIXA
         if (sobra < 10) break
-        const novo = compra(minhaDiv, velho.pos, Math.min(sobra, 60))
+        const novo = compra(minhaDiv, velho.pos, Math.min(sobra, 60), rng)
         if (!novo) break
         if (mid(novo) <= mid(velho) * 1.15) continue   // não troca por igual
         squad[squad.indexOf(velho)] = novo
