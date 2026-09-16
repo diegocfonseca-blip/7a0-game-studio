@@ -1,3 +1,46 @@
+## 16/09/2026 (parte 10) — 👥 O elenco no estilo da REFERÊNCIA que ele mandou
+
+Diego mandou o print de um jogo de futebol (tela "MEU TIME · ESCALAÇÃO E ELENCO",
+escura/cromada, campinho à esquerda com só os 11 e tabela de reservas à direita):
+*"e algo inspirado nisso aqui, claro q no nosso padrão de arte. Os reservas de um lado
+e no campinho só os titulares e etc"*.
+
+Material: `node scripts/mockup-elenco-referencia.mjs`. **Desenho, nada codado.**
+
+### 🔑 Por que a referência dele é MELHOR que as minhas duas saídas
+Transbordo e empilhado tentavam **consertar** o problema de duas listas de tamanhos
+diferentes na mesma linha. A referência **não tem esse problema**: troca o par
+`titulares | reservas` pelo par **`campo | lista`**. Não são duas listas competindo, são
+duas coisas diferentes — **nunca sobra buraco**, e o elenco pode ir a 27 que a tabela só
+ganha linha. Anotar isso: quando o layout tem o problema embutido, **trocar o par** é
+melhor que remendar.
+
+### O que peguei dela
+- No campinho, **só os 11** (já é assim hoje — a referência confirma).
+- A lista vira **TABELA densa**: Nº · camisa · nome · POS · nível · gás.
+- Botão **TITULARES / RESERVAS** em cima da tabela (uma lista por vez).
+- Comissão técnica no pé.
+
+### O que mudei, e por quê
+- **Sem as setas "PARA RESERVAS / PARA TITULARES"**: o nosso jogo troca por toque-toque,
+  que é mais rápido no celular e ele já aprovou. As setas existem lá porque é jogo de mouse.
+- **No CELULAR, um em cima do outro** (430px não comporta campinho em metade da tela);
+  **lado a lado só no PC**, onde hoje o jogo desperdiça mais da metade do monitor
+  (~620px de 1440).
+- **O jogador tocado mostra a CARTA dele**, não ficha genérica de atributos — a carta
+  colecionável já existe no jogo.
+
+### ⛔ O que NÃO dá pra copiar (achado importante)
+A coluna **"GER"** (overall de cada jogador). No nosso jogo isso é **perk pago**:
+`olheiros` + tier (⭐ Craque vê até craque · 👑 Lenda vê tudo, ver `ElencoField`).
+Pôr o número pra todo mundo **entrega de graça o que a loja vende**.
+👉 Na versão desenhada a coluna mostra o **NÍVEL** (🪵🎯💎⭐👑), que todo mundo já vê, e
+o **número** aparece no lugar do selo só pra quem tem olheiro. Mesma tabela, sem furar a loja.
+
+### Estado
+Nada codado. Próximo passo oferecido: montar a tela DE VERDADE com o elenco real dele
+(como já foi feito com o bloco da SAF e com o transbordo) antes de qualquer commit.
+
 ## 16/09/2026 (parte 9) — 👥 A aba ELENCO refeita do zero (OPINIÃO, corrigindo a parte 8)
 
 ⚠️ **Correção de leitura minha**: na parte 8 ele perguntou *"e se fosse reformular na sua
