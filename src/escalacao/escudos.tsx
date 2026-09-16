@@ -40,6 +40,7 @@ import interMadridEscudoImg from './img/internacional-madrid-escudo.webp' // �
 import raivaCajuriEscudoImg from './img/raivacajuri-escudo.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaEscudoImg from './img/reidabola-escudo.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
 import murrizEscudoImg from './img/murriz-escudo.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import barceniteEscudoImg from './img/barcenite-escudo.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import nightfullEscudoImg from './img/nightfull-escudo.webp' // 🐓🌙 Nightfull FC (guilhermevictor539): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import interBailaoEscudoImg from './img/inter-bailao-escudo.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaEscudoImg from './img/bonanca-escudo.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
@@ -657,6 +658,16 @@ const murrizEscudoRender = (size: number) => (
 // a lua e as estrelas. ❤️ Atlético Mineiro — o Galo, alvinegro; a arte é a cara
 // do time do coração dele.
 // 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+// 🛡️🐈 Barcenite FC — 268x360 no arquivo, então a largura sai da PROPORÇÃO REAL
+// (nunca width={size} chutado). Arte NOVA do dono (ricardopessoafreire, 16/09):
+// brasão azul e amarelo com o BFC dourado, as listras e a bola no meio.
+// ⚠️ A 1ª prancha que ele mandou trazia um escudo com COROA; ele corrigiu na hora
+// (*"o escudo certo é esse daqui"*) e a arte boa é esta, SEM coroa e mais larga
+// (0,74 contra 0,68 da outra) — por isso a proporção mudou.
+// 🧹 Esta renovação TIROU do bundle mais um escudo que era SVG desenhado à mão.
+const barceniteEscudoRender = (size: number) => (
+  <img src={barceniteEscudoImg} height={size} width={Math.round(size * 268 / 360)} alt="Barcenite FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const nightfullEscudoRender = (size: number) => (
   <img src={nightfullEscudoImg} height={size} width={Math.round(size * 249 / 360)} alt="Nightfull FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1079,33 +1090,16 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Eros FC': erosEscudoRender,
   'Eros Reis FC': erosEscudoRender,
   'Eros Reis': erosEscudoRender,
-  // 🛡️🐈 Barcenite FC (batismo do ricardopessoafreire, Sócio Barão nº 12) —
-  // aprovado pelo Diego 14/08: formato que LEMBRA o brasão do Barcelona (dois
-  // "ombros" com vinco no topo — sem copiar nada do escudo real), topo azul com
-  // BFC dourado, faixa dourada e base listrada amarelo/azul com a bola.
-  // O nome velho (Milanesa FC) resolve sozinho via newestTeamName.
-  'Barcenite FC': (size: number) => {
-    const w = Math.round(size * 200 / 240)
-    return (
-      <svg width={w} height={size} viewBox="0 0 200 240" aria-label="Barcenite FC" role="img" style={{ flex: 'none', display: 'block' }}>
-        <defs><clipPath id="bfcEscClip"><path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z"/></clipPath></defs>
-        <path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z" fill="#0E3E86"/>
-        <g clipPath="url(#bfcEscClip)">
-          <text x="100" y="68" textAnchor="middle" fontFamily="Oswald,'Arial Narrow',sans-serif" fontWeight="700" fontSize="46" fill="#FFC400" letterSpacing="4">BFC</text>
-          <rect x="0" y="84" width="200" height="26" fill="#FFC400"/>
-          <rect x="0" y="84" width="200" height="26" fill="none" stroke={INK} strokeWidth="4"/>
-          <rect x="29" y="110" width="28.4" height="130" fill="#FFC400"/>
-          <rect x="57.4" y="110" width="28.4" height="130" fill="#0E3E86"/>
-          <rect x="85.8" y="110" width="28.4" height="130" fill="#FFC400"/>
-          <rect x="114.2" y="110" width="28.4" height="130" fill="#0E3E86"/>
-          <rect x="142.6" y="110" width="28.4" height="130" fill="#FFC400"/>
-          <circle cx="100" cy="162" r="26" fill="#fff" stroke={INK} strokeWidth="5"/>
-          <path d="M100 148 L112 157 L107 171 L93 171 L88 157 Z" fill={INK}/>
-        </g>
-        <path d="M30 30 C30 18 45 14 58 16 C72 18 88 24 100 24 C112 24 128 18 142 16 C155 14 170 18 170 30 L171 118 C171 172 140 208 100 231 C60 208 29 172 29 118 Z" fill="none" stroke={INK} strokeWidth="7" strokeLinejoin="round"/>
-      </svg>
-    )
-  },
+  // 🛡️🐈 Barcenite FC (ricardopessoafreire) — ARTE NOVA em 16/09, mandada pelo dono.
+  // O brasão azul e amarelo, com o BFC dourado, as listras e a bola.
+  // As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4 nomes reservados),
+  // e o nome VELHO (Milanesa FC) resolve sozinho via newestTeamName.
+  // 🧹 O escudo ANTIGO era SVG à mão aqui dentro (era pré-regra de peso); saiu de
+  // vez e virou webp fora do bundle.
+  'Barcenite': barceniteEscudoRender,
+  'Barcenite FC': barceniteEscudoRender,
+  'Barcenite EC': barceniteEscudoRender,
+  'Barcenite SC': barceniteEscudoRender,
   'Remoçada': (size: number) => {
     const w = Math.round(size * 200 / 240)
     return (

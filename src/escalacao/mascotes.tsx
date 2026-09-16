@@ -31,6 +31,7 @@ import interMadridMascoteImg from './img/internacional-madrid-mascote.webp' // �
 import raivaCajuriMascoteImg from './img/raivacajuri-mascote.webp' // 🥊 Raiva Cajuri FC (feliperamiro0501): arte própria do dono, 16/09
 import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei da Bola FC (caiobegnamii): arte própria do dono, 16/09
 import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import barceniteMascoteImg from './img/barcenite-mascote.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import nightfullMascoteImg from './img/nightfull-mascote.webp' // 🐓🌙 Nightfull FC (guilhermevictor539): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import interBailaoMascoteImg from './img/inter-bailao-mascote.webp' // 🪩 Inter de Bailão (matheus223lms, ex-Alfacehh): arte própria do dono, 14/09
 import bonancaMascoteImg from './img/bonanca-mascote.webp' // 🔊 Bonança SSFC (duselecta): arte própria do dono, 09/09
@@ -64,42 +65,17 @@ export const MASCOTES: Record<string, ReactNode> = {
   trevo_seven: (
     <img src={sevenCityMascoteImg} height={176} width={Math.round(176 * 303 / 440)} alt="O Trevo — Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🐈💛💙 O GATÃO do Barcenite FC (batismo do ricardopessoafreire, Sócio nº 12) —
-  // aprovado pelo Diego 14/08: gato-selvagem amarelo/azul inspirado no CAT (o
-  // mascote real do Barcelona dos 125 anos): orelhas pontudas, tufos na bochecha,
-  // listras na testa, presinha no sorriso, camisa listrada do clube e bola no pé.
-  // Desenhado em código (mesma linguagem do leao_thor). mascote_key = "gatao_bfc".
+  // 🐈💛💙 O Gatão — Barcenite FC (ricardopessoafreire, 16/09). 222x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O gato
+  // de braços cruzados, com o uniforme listrado azul e amarelo do clube.
+  // 🧷 A CHAVE continua `gatao_bfc` de propósito: é o que está gravado no banco
+  // (esc_socios.mascote_key do dono). Só a arte trocou — era SVG desenhado à mão
+  // aqui dentro (pré-regra de peso), agora é webp fora do bundle.
+  // 🚫 O SWOOSH da Nike saiu das duas chuteiras: marca real não entra em arte do
+  // jogo. O couro foi reconstruído com o grão do próprio calçado, então o que
+  // sobrou é vinco de couro, não logo. Mesmo tratamento que falta no Inter de Bailão.
   gatao_bfc: (
-    <svg width="140" height="168" viewBox="0 0 200 240">
-      <ellipse cx="100" cy="232" rx="54" ry="9" fill="rgba(0,0,0,.15)"/>
-      <path d="M162 178 Q188 168 184 140 Q182 124 168 122 Q178 138 170 152 Q164 164 150 170 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
-      <path d="M184 140 Q183 128 168 122 L174 132 Z" fill="#0E3E86" stroke={INK} strokeWidth="4"/>
-      <path d="M64 148 Q64 132 82 128 L118 128 Q136 132 136 148 L136 190 L64 190 Z" fill="#FFC400" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
-      <rect x="76" y="128" width="14" height="62" fill="#0E3E86"/>
-      <rect x="110" y="128" width="14" height="62" fill="#0E3E86"/>
-      <path d="M64 148 Q64 132 82 128 L118 128 Q136 132 136 148 L136 190 L64 190 Z" fill="none" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M64 140 Q46 148 44 166 Q44 176 54 176 Q62 174 64 162 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
-      <path d="M136 140 Q154 148 156 166 Q156 176 146 176 Q138 174 136 162 Z" fill="#F0B446" stroke={INK} strokeWidth="5" strokeLinejoin="round"/>
-      <rect x="68" y="188" width="64" height="20" rx="6" fill="#0E3E86" stroke={INK} strokeWidth="5"/>
-      <rect x="74" y="206" width="16" height="18" rx="6" fill="#F0B446" stroke={INK} strokeWidth="5"/>
-      <rect x="110" y="206" width="16" height="18" rx="6" fill="#F0B446" stroke={INK} strokeWidth="5"/>
-      <circle cx="146" cy="222" r="14" fill="#fff" stroke={INK} strokeWidth="5"/>
-      <path d="M146 214 L153 219 L150 227 L142 227 L139 219 Z" fill={INK}/>
-      <path d="M52 52 L68 24 L84 44 L116 44 L132 24 L148 52 Q160 68 158 88 Q156 104 144 112 L140 116 Q150 118 154 114 L148 126 Q138 130 130 124 Q116 132 84 132 Q70 130 60 124 L52 126 Q46 122 46 114 Q50 118 60 116 L56 112 Q44 104 42 88 Q40 68 52 52 Z" fill="#F0B446" stroke={INK} strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M62 42 L69 31 L76 40 Z" fill="#0E3E86"/>
-      <path d="M138 42 L131 31 L124 40 Z" fill="#0E3E86"/>
-      <path d="M74 92 Q76 78 100 78 Q124 78 126 92 Q126 112 100 116 Q74 112 74 92 Z" fill="#FFF6E0" stroke={INK} strokeWidth="4"/>
-      <ellipse cx="80" cy="72" rx="11" ry="12" fill="#fff" stroke={INK} strokeWidth="4"/>
-      <ellipse cx="120" cy="72" rx="11" ry="12" fill="#fff" stroke={INK} strokeWidth="4"/>
-      <circle cx="82" cy="74" r="4.5" fill={INK}/>
-      <circle cx="118" cy="74" r="4.5" fill={INK}/>
-      <path d="M70 58 L90 54 M130 58 L110 54" stroke={INK} strokeWidth="4" strokeLinecap="round"/>
-      <path d="M94 90 L106 90 L100 97 Z" fill={INK}/>
-      <path d="M100 97 Q100 104 92 105 M100 97 Q100 104 108 105" stroke={INK} strokeWidth="3.5" fill="none" strokeLinecap="round"/>
-      <path d="M106 105 L110 111 L113 104" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round"/>
-      <path d="M60 88 L40 84 M60 96 L42 98 M140 88 L160 84 M140 96 L158 98" stroke={INK} strokeWidth="3.5" strokeLinecap="round"/>
-      <path d="M92 48 L92 58 M100 46 L100 58 M108 48 L108 58" stroke={INK} strokeWidth="4" strokeLinecap="round" opacity=".8"/>
-    </svg>
+    <img src={barceniteMascoteImg} height={176} width={Math.round(176 * 222 / 440)} alt="O Gatão — Barcenite FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🏎️⚽ Ferrari SC (adriano.ferrari) — ARTE PRÓPRIA do dono (imagem webp): o cavalo-
   // piloto comemorando GOL, de macacão vermelho e capacete do Brasil. Pro festão do
@@ -856,7 +832,16 @@ export const CARIMBO_GOL: Record<string, string> = {
   'MURRIZ FC': 'careca_ruivo',
   'Tôka10': 'toka',
   'SC Ferrari': 'piloto_bola',
+  // 🛡️🐈 Barcenite FC (ricardopessoafreire). CARIMBO_GOL é busca EXATA: entram as 4
+  // formas do nome reservado + a caixa alta + o nome VELHO (Milanesa FC), senão o
+  // carimbo do gol falha em save antigo.
+  'Barcenite': 'gatao_bfc',
   'Barcenite FC': 'gatao_bfc',
+  'Barcenite EC': 'gatao_bfc',
+  'Barcenite SC': 'gatao_bfc',
+  'BARCENITE': 'gatao_bfc',
+  'BARCENITE FC': 'gatao_bfc',
+  'Milanesa FC': 'gatao_bfc',
   'La Bestia Negra': 'raposa',
   'Xurupitas FC': 'xurupitas_gosma',
   'Xurupitas': 'xurupitas_gosma',
@@ -1095,6 +1080,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   brigadegalo_galo: 'O Galo', // 🐓 Briga de Galo FC (pedrovianacarneiroq, 08/09) — o galo de punhos fechados do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
+  gatao_bfc: 'O Gatão', // 🛡️🐈 Barcenite FC (ricardopessoafreire, 16/09) — o gato de braços cruzados. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   galo: 'O Nightfull', // 🐓🌙 Nightfull FC (guilhermevictor539, 16/09) — o galo guerreiro da noite. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   careca_ruivo: 'O Murriz', // ⚔️ Murriz FC (msb102010, 16/09) — o guerreiro de barba ruiva e machado-de-bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   bailao_espelho: 'O Bailão', // 🪩 Inter de Bailão (matheus223lms, 14/09) — a bola de espelho. ⚠️ a chave antiga era `alface`; o banco (esc_socios.mascote_key) foi atualizado junto.

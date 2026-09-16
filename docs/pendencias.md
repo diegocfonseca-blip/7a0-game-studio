@@ -1,3 +1,67 @@
+## 16/09/2026 — 🐈 Barcenite FC de cara nova (FEITO, no ar)
+
+O dono (ricardopessoafreire@gmail.com, Ricardo, ❤️ Flamengo, sócio nº12,
+fundador nº31) mandou a prancha completa: escudo, mascote e camisa.
+
+⚠️ **Mandou DUAS pranchas.** A primeira trazia um escudo com COROA; ele corrigiu
+na hora (*"o escudo certo é esse daqui"*). **Vale a segunda** — escudo sem coroa,
+mais largo (0,74 contra 0,68). Recortei a prancha CERTA inteira de novo (escudo,
+mascote e camisa), pra tudo vir do mesmo arquivo e não misturar as duas.
+
+### O que entrou
+- **Escudo** `src/escalacao/img/barcenite-escudo.webp` — 268×360, **25 KB**.
+- **Mascote** `src/escalacao/img/barcenite-mascote.webp` — 222×440, **34 KB**.
+- **Total 59 KB**, dentro do teto de 75 KB.
+- **Camisa** `scripts/kits/barcenite-camisa.webp` +
+  `public/mantos-salao/barcenite-camisa-v1.webp`.
+- **Manto** `#F2B010` amarelo + `#013882` azul, **MEDIDOS** no PEITO ALTO da
+  camisa — no resto dela a textura envelhecida puxa o amarelo pra um `#DE9C09`
+  barrento. A **ORDEM foi mantida** (amarelo primeiro), que é como já estava no
+  banco: é a cara do clube dele hoje e trocar seria mudança visual sem pedido.
+  Listras VERTICAIS = o padrão (ângulo 90), sem linha no `MANTO_ANGLE`.
+
+### 🚫 O SWOOSH DA NIKE SAIU das duas chuteiras
+A arte que o dono mandou vinha com o logo da Nike nas duas chuteiras. Marca real
+não entra em arte do jogo. **Duas tentativas falharam antes de achar o jeito:**
+1. **Interpolar dos vizinhos** puxou VERDE da grama que está logo abaixo do pé —
+   ficou com listras verdes atravessando a chuteira.
+2. **Preencher com cor lisa** (nearest gold / difusão) deixou um REMENDO claro e
+   chapado, e o contorno do swoosh continuava legível.
+3. ✅ **O que funcionou**: transplantar o GRÃO do próprio couro. Tira-se o campo
+   de sombra (passa-baixa pesada, só com pixel de couro pesando) e soma-se de
+   volta a textura fina de um pedaço LIMPO da MESMA chuteira. Sobrou um vinco de
+   couro, não um logo.
+O script está no repo: **`scripts/limpa-mascote-barcenite.py`**, com as caixas e o
+porquê de cada passo — serve de receita pra próxima arte que vier com marca.
+
+### 🟩 E a POÇA VERDE embaixo dos pés
+A sombra da chuteira escureceu o verde do croma e ele passou pelo piso de brilho
+do recorte. Como esta arte não tem verde NENHUM, deu pra caçar verde em qualquer
+brilho sem risco.
+
+### 🧹 Mais dois SVG à mão fora do bundle
+Escudo e mascote eram SVG desenhados à mão no `.tsx`. A chave `gatao_bfc` FICOU
+(está no banco). O `CARIMBO_GOL` ganhou as 4 formas + caixa alta + o nome VELHO
+(**Milanesa FC**), pra save antigo continuar carimbando o gol.
+
+### 🗄️ Banco
+Conta, ouro, fundador nº31 e sócio nº12 já existiam. Manto atualizado pras cores
+medidas. `esc_nomes_batismo`: **TERCEIRO clube seguido com o mesmo furo** — só
+`barcenite fc` estava travado; inseri o nome puro e o gatilho criou o EC.
+
+### 🔎 Pendência levantada (agora com 3 casos)
+**Varrer `esc_nomes_batismo` inteira.** Murriz, Nightfull e Barcenite, todos com
+só 1 das 3 formas. Confirma a teoria: os batismos ANTIGOS foram cadastrados com o
+nome já contendo "FC", antes do gatilho existir, então o gatilho nunca gerou as
+variações. Conferir todos os clubes de `batismos.ts` contra a tabela. É só banco,
+não precisa de deploy.
+
+### Nome da mascote: PROVISÓRIO
+`MASCOTE_NOME.gatao_bfc = 'O Gatão'`.
+
+### Reverter
+`git revert` do commit desfaz a arte inteira. Manto volta com `update esc_socios`.
+
 ## 16/09/2026 — 🐓🌙 Nightfull FC de cara nova (FEITO, no ar)
 
 O dono (guilhermevictor539@gmail.com, Guilherme, ❤️ Atlético Mineiro, sócio nº6,
