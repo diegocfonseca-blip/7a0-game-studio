@@ -1,3 +1,31 @@
+## 16/09/2026 (parte 17) — ⚠️ CORREÇÃO: o leilão de reservas NÃO muda (são 11, sempre)
+
+Diego, logo depois da entrega da parte 16: *"o leilão de reserva são 11 jogadores sempre.
+Poder comprar mais cinco jogadores agora não tem nada a ver com o leilão de reserva, leilão
+de titulares, não tem nada a ver. É durante o jogo, durante as temporadas, o usuário, se ele
+quiser comprar para ter mais cinco reservas, ele compra. Se ele não quiser, também tá tudo
+certo. O leilão de reserva mantém-se igual, que são 11."*
+
+**Eu tinha posto o +1 por posição nos DOIS lugares** (`slotsOf` e `slotsCheio`) e escrito no
+commit que era obrigatório mexer nas duas. **Estava errado** — `slotsOf` é o ALVO DO PREGÃO,
+e o pregão ele não quer mexer. Revertido: `slotsOf` volta a `baseSlots × 2` (22), então o
+leilão de reservas é byte a byte o de antes, pra ele e pra todo mundo.
+O +1 por posição fica **só em `slotsCheio`** = **teto do elenco** (27), que é o número que a
+tela mostra e o que limita quem entra fora do pregão.
+
+### 🚧 O buraco que isso abriu — PRECISA DA DECISÃO DELE
+Hoje, na carreira, **não existe comprar jogador durante a temporada**. As entradas de jogador
+são: **leilão** (entre temporadas, agora travado em 22), **Base/cria** (respeita `vagaCheio`,
+ou seja, já usa o teto 27 ✅) e **empréstimo da SAF** (limite por divisão, `filialSlots`, e
+entra POR CIMA do teto). A própria tela diz isso: *"Contrate no leilão ou traga da SAF"*.
+
+👉 Então, com o leilão em 22, **as 5 vagas novas só se enchem pela Base** — que é de propósito
+fraca. Precisa saber dele **onde** ele quer comprar esses 5:
+- (a) nos leilões das temporadas seguintes (2ª em diante), deixando só o PRIMEIRO leilão
+  — o que enche o banco de 11 — travado em 22; ou
+- (b) numa **janela de mercado nova durante a temporada** (feature que não existe hoje).
+⚠️ Não chutar: são caminhos bem diferentes de trabalho.
+
 ## 16/09/2026 (parte 16) — ✅ CODADO: banco de 16 + aba Elenco nova, TRAVADA na conta do Diego
 
 Ordem dele: *"antes eram 11 reservas, agora são 16 reservas, mais um por posição — um

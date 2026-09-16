@@ -982,9 +982,12 @@ export function slotsOf(m: Manager, pos: Sector): number {
   // 🏀 basquete: o alvo é POR TÉCNICO (nbaSlots) — quinteto 1 → rotação 2 →
   // elenco 3, crescendo a cada temporada só p/ você; bots sem nbaSlots = quinteto.
   if (ACTIVE_SPORT === 'basquete') return m.nbaSlots ?? NBA_BASE_SLOTS
-  // elenco fundo (leilão de reservas): mira 2× a formação por posição — 22 pros
-  // bots, 27 pro seu (o +1 por posição). Fora do fundo o alvo é o XI e nada muda.
-  return m.deepSquad ? baseSlots(m.formation, pos) * 2 + extraDoDono(m) : baseSlots(m.formation, pos)
+  // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
+  // ⛔ AQUI NÃO ENTRA O +1 POR POSIÇÃO (correção do Diego, 16/09): *"o leilão de
+  // reserva são 11 jogadores sempre… poder comprar mais cinco não tem nada a ver
+  // com o leilão de reserva. O leilão de reserva mantém-se igual, que são 11"*.
+  // O +1 por posição é TETO DE ELENCO (`slotsCheio`), não alvo de pregão.
+  return baseSlots(m.formation, pos) * (m.deepSquad ? 2 : 1)
 }
 export function filled(m: Manager, pos: Sector): number {
   return m.squad.filter(c => c.pos === pos).length
