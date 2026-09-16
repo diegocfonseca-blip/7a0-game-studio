@@ -1,3 +1,47 @@
+## 16/09/2026 (parte 15) — 🕵️ O overall na tabela (com a trava do olheiro) + as 2 abas que EU INVENTEI
+
+Diego: *"lembrando q temos q por o overall tb e tb temos regras né pra aparecer o overall
+de acordo c o usuário pagante q pode ver como já funciona hoje. Além disso n entendi q
+aba é aquela escrito números, conquistas…"*.
+Material: `node scripts/mockup-elenco-overall.mjs`. **Desenho, nada codado.**
+
+### 1) O overall entra — e a regra foi COPIADA do código, não inventada
+`ElencoField` (pyramidseason.tsx):
+```
+if (olheiroTier !== 'ouro' && !(olheiroTier === 'prata' && c.fame < 5)) return null
+```
+- 👑 **ouro (Lenda) e batismo** → vê TUDO
+- ⭐ **prata (Craque)** → vê de craque pra baixo; **a LENDA fica escondida** (`fame < 5`)
+- **sem olheiro** → não vê, e aparece a **porta** (o mesmo texto que já existe no jogo)
+
+⚠️ **Dois detalhes que eu quase errei:**
+- **Não é um número só, é a FAIXA `lo–hi`** (ex. 90–96), no degradê do tier da carta.
+- **Lei do Diego escrita no código:** *"nunca a palavra da categoria escrita — só a cor"*.
+
+O material mostra as **três visões lado a lado** (ouro / prata / sem olheiro) com o mesmo
+elenco. A do prata é a mais interessante: Rogério Ceni, Cafu, Zico e Romário (lendas)
+ficam **só com o 👑** — o buraco cai **exatamente nos melhores jogadores dele**. A coluna
+vira vitrine sozinha, sem anúncio.
+
+👉 **A tabela não muda de forma nas três visões** — muda só o que a coluna mostra. Ninguém
+fica com buraco de layout.
+
+### 2) 🙋 As abas NÚMEROS e CONQUISTAS: eu inventei, e ele pegou
+Ele estava certo em não entender: **elas não existem no jogo**. Eu copiei da referência
+dele ("ESTATÍSTICAS" e "CONQUISTAS") **sem conferir se tinham correspondente aqui**.
+E pior: o que elas mostrariam **já existe** —
+**NÚMEROS** = artilharia e garçons, que estão na aba **📊 Tabelas**;
+**CONQUISTAS** = títulos, que estão na aba **🏆 Rank**.
+**Tiradas.** Ficam só as três reais: **ELENCO · TÁTICA · COMISSÃO**.
+
+📌 **Lição:** criar aba que duplica navegação é exatamente o defeito que eu apontei no
+levantamento de telas — e eu fui e fiz igual, por copiar a referência sem checar.
+**Antes de trazer um elemento de outro jogo, perguntar: isso já existe aqui? onde?**
+
+### Estado
+Nada codado. Ofereci montar de verdade com o elenco real dele, **testando as três visões
+do olheiro na bancada** (ouro, prata, sem) antes de qualquer commit.
+
 ## 16/09/2026 (parte 14) — 🖥️ "O campinho ficou pequeno pro espaço?" — sim, era o do CELULAR
 
 Diego, olhando o desktop: *"mas o campinho ficou mt pequeno pro espaço que tem, não? Ou
