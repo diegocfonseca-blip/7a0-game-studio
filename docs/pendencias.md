@@ -1,3 +1,48 @@
+## 16/09/2026 — 🪞 Antes × depois das telas da carreira (RASCUNHO PRONTO, esperando OK)
+
+Diego, depois do levantamento: *"cadê mockups das ideias de como ficaria"*.
+
+Em vez de desenhar, fiz as mudanças de verdade num rascunho local e refotografei o
+jogo com a mesma bancada e o MESMO save — então os dois lados são comparáveis.
+
+### ⛔ O rascunho NÃO está no código
+Ele está em **`docs/rascunhos/2026-09-16-organizar-telas-carreira.patch`**. Não foi
+commitado no `pyramidseason.tsx` de propósito: regra do Diego é mostrar e esperar OK
+antes de commitar qualquer coisa VISUAL — e como várias sessões mexem neste repo, uma
+branch com visual não aprovado poderia ser mergeada na main por engano.
+Pra ligar quando ele aprovar: `git apply docs/rascunhos/2026-09-16-organizar-telas-carreira.patch`
+
+### O que o rascunho faz (3 mexidas, zero regra de jogo)
+1. **`AvisoContaCarreira` só na aba Jogos** (`{tab === 'jogos' && …}`).
+   ⚠️ **A caixa continua GRANDE** — ela ficou assim porque ele pediu em 21/08
+   (*"a parte do criar conta deixe um pouco mais chamativo"*). O rascunho não a
+   diminui, só para de repeti-la nas outras 4 abas.
+2. **`PlacarQueEncolhe` ganhou `sempreMini`**: nas abas que não são a Jogos o placar
+   já entra como a faixinha fina grudada no topo (toca e abre inteiro). O cartão
+   grande fica com `display:none` e o IntersectionObserver é pulado.
+3. **Botão travado do preparador deixa de ser `<button>`**: vira etiqueta lisa e
+   tracejada com `🔒 300 🪙 · faltam 196 🪙 pra contratar`. Antes era um retângulo
+   escuro idêntico ao de comprar, escrito "moedas insuficientes", e o preço sumia.
++ duas pequenas: o "Bola rolando" sai da faixa da temporada (o cartão logo abaixo já
+diz) e a frase "Acompanhe sua divisão…" passa a aparecer só na 1ª temporada.
+
+### Medido nas duas versões (celular 430×900, mesmo save)
+| aba | antes | depois |
+|---|---|---|
+| Jogos | 2,8 telas | 2,7 (igual de propósito — nada saiu de lá) |
+| Tabelas | 2,0 | **1,5** (−25%) |
+| Elenco | 3,8 | **3,4** (−11%) |
+| Rank | 2,3 | **1,8** (−22%) |
+| Clube | 3,8 | **3,4** (−11%) |
+
+**E o número que importa:** o desenho do estádio na aba Clube sai de **y=740** para
+**y=318** — volta a ser a primeira coisa visível, que é a regra do `CLAUDE.md`.
+
+### Continua ABERTO (não entrou no rascunho, esperando ele)
+- a faixa do Desbloquear virar modal em vez de abrir a página inteira dos planos;
+- os três andares de navegação da aba Elenco;
+- a virada mostrar um passo de cada vez (hoje PASSO 1 e 2 na mesma tela).
+
 ## 16/09/2026 — 🔎 Levantamento visual das telas da CARREIRA (7 achados, nada mexido)
 
 Pedido do Diego: *"confira todas telas do modo carreira e modais e me sugira aonde vc

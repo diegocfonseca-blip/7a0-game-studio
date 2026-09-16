@@ -1,0 +1,119 @@
+diff --git a/src/escalacao/pyramidseason.tsx b/src/escalacao/pyramidseason.tsx
+index 97c6961b..4c182164 100644
+--- a/src/escalacao/pyramidseason.tsx
++++ b/src/escalacao/pyramidseason.tsx
+@@ -2751,13 +2751,17 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
+ // 🚫 ANTI-SPOILER: o placar da faixinha é o placar NAQUELE minuto, com a mesma
+ // conta do LiveScoreCard (gols filtrados por `min`), e zera na virada de rodada.
+ const MINI_PLACAR_H = 30
+-function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu }: {
++function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, sempreMini }: {
+   m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
+   pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
+-  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void
++  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void; sempreMini?: boolean
+ }) {
+   const [min, setMin] = useState(finished ? 93 : 0)
+   const [fora, setFora] = useState(false)
++  // 🧪 RASCUNHO 16/09 (não aprovado): `sempreMini` = nas abas que NÃO são a Jogos,
++  // o placar já entra como a faixinha fina. É o que devolve o topo da aba pro
++  // conteúdo dela — e, no Clube, devolve o estádio pra primeira coisa visível.
++  const mini = sempreMini || fora
+   const caixa = useRef<HTMLDivElement | null>(null)
+   const reportar = useCallback((n: number) => { setMin(n); onMinuteChange?.(n) }, [onMinuteChange])
+   // rodada nova: zera JÁ na renderização (mesma guarda do LiveScoreCard), senão a
+@@ -2766,6 +2770,7 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
+   if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0) }
+   useEffect(() => {
+     const el = caixa.current
++    if (sempreMini) { onEncolheu(true); return () => onEncolheu(false) } // 🧪 rascunho: já nasce fininho
+     if (!el || typeof IntersectionObserver === 'undefined') return
+     // só liga quando o placar saiu POR CIMA (a pessoa rolou pra baixo).
+     const io = new IntersectionObserver(([e]) => {
+@@ -2774,7 +2779,7 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
+     }, { threshold: 0 })
+     io.observe(el)
+     return () => { io.disconnect(); onEncolheu(false) }
+-  }, [onEncolheu])
++  }, [onEncolheu, sempreMini])
+   const fim = !!finished || min >= 93
+   const vistos = fim ? m.goals : m.goals.filter(g => g.min <= min)
+   const hg = vistos.filter(g => g.home).length
+@@ -2785,11 +2790,11 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
+   )
+   return (
+     <>
+-      <div ref={caixa}>
++      <div ref={caixa} style={{ display: sempreMini ? 'none' : undefined }}>
+         <MyMatchCard m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
+           roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} />
+       </div>
+-      {fora && !escondido && (
++      {mini && !escondido && (
+         <button type="button" onClick={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+           title={tr('toque pra abrir o placar inteiro', 'tap to open the full scoreboard')}
+           style={{ position: 'fixed', top: topo, left: 0, right: 0, zIndex: 99987, height: MINI_PLACAR_H, width: '100%',
+@@ -3905,13 +3910,27 @@ function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; on
+                   {tr(`o titular joga ${Math.floor(p.banco / 1.4)} seguidas e senta 1 — e nunca cansa`, `starters play ${Math.floor(p.banco / 1.4)} in a row, then rest 1 — and never get tired`)}
+                   {temAutomatico(p) ? <b style={{ display: 'block', color: GREEN, marginTop: 2 }}>🤖 {tr('e troca sozinho: o rodízio automático é só dele', 'and rotates on its own: auto-rotation is his alone')}</b> : null}
+                 </p>
+-                <button onClick={() => pode && onEscolher(p.key)} disabled={!pode}
+-                  style={{ width: '100%', marginTop: 8, border: `3px solid ${INK}`, borderRadius: 10, background: pode ? INK : '#CBBF9E', color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 15, padding: '8px', boxShadow: `3px 3px 0 0 rgba(0,0,0,.35)`, cursor: pode ? 'pointer' : 'not-allowed' }}>
+-                  {p.preco} 🪙
+-                  <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, opacity: .78, marginTop: 1 }}>
+-                    {pode ? tr(`salário ${salarioPreparador(p)}/temporada · contrato de 5`, `salary ${salarioPreparador(p)}/season · 5-season contract`) : tr('moedas insuficientes', 'not enough coins')}
+-                  </span>
+-                </button>
++                {/* 🧪 RASCUNHO 16/09 (não aprovado): quem não dá pra comprar deixa de ter
++                    cara de botão — vira etiqueta lisa, sem sombra dura e sem borda grossa —
++                    e diz QUANTO FALTA, que é o caminho pra destravar (regra do Diego: toda
++                    trava explica o porquê e a saída). Antes dizia só "moedas insuficientes"
++                    num retângulo escuro igualzinho ao de comprar. */}
++                {pode ? (
++                  <button onClick={() => onEscolher(p.key)}
++                    style={{ width: '100%', marginTop: 8, border: `3px solid ${INK}`, borderRadius: 10, background: INK, color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 15, padding: '8px', boxShadow: `3px 3px 0 0 rgba(0,0,0,.35)`, cursor: 'pointer' }}>
++                    {p.preco} 🪙
++                    <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, opacity: .78, marginTop: 1 }}>
++                      {tr(`salário ${salarioPreparador(p)}/temporada · contrato de 5`, `salary ${salarioPreparador(p)}/season · 5-season contract`)}
++                    </span>
++                  </button>
++                ) : (
++                  <div style={{ width: '100%', marginTop: 8, border: `2px dashed rgba(12,12,12,.3)`, borderRadius: 10, background: 'rgba(12,12,12,.05)', color: 'rgba(12,12,12,.55)', ...OSWALD, fontWeight: 900, fontSize: 13, padding: '7px 8px', textAlign: 'center' }}>
++                    🔒 {p.preco} 🪙
++                    <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9.5, marginTop: 2 }}>
++                      {tr(`faltam ${p.preco - moedas} 🪙 pra contratar`, `${p.preco - moedas} 🪙 short`)}
++                    </span>
++                  </div>
++                )}
+               </div>
+             </div>
+           )
+@@ -7501,7 +7520,7 @@ export function PyramidSeasonScreen() {
+       })()}
+       <div className="max-w-xl mx-auto" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
+-        <AvisoContaCarreira />
++        {tab === 'jogos' && <AvisoContaCarreira />}
+         <SocioBaraoBanner />
+         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
+             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
+@@ -7520,8 +7539,8 @@ export function PyramidSeasonScreen() {
+             kind={!copaPlaying ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
+             title={`${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
+             phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : tr('Liga', 'League')} · ${done ? tr('Encerrada', 'Over') : tr('Rodada ', 'Round ')+round+'/38'}`}
+-            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : tr('Acompanhe sua divisão e os jogos das outras séries sem sair da tela.', 'Follow your division and the other divisions\' matches without leaving the screen.')}
+-            status={copaPlaying ? copaPos >= copaFaseTotal ? tr('Fase encerrada · confira os resultados e os pênaltis', 'Round over · check the results and the penalties') : tr('Bola rolando · acompanhe os confrontos', 'Ball rolling · follow the ties') : done ? tr('Confira a edição de encerramento', 'Check the closing edition') : round===0 ? tr('Tudo pronto para a primeira rodada', 'All set for the first round') : revealed >= round ? tr('Resultados revelados', 'Results revealed') : tr('Bola rolando', 'Ball rolling')}>
++            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : ((state.seasonNo ?? 1) > 1 ? '' : tr('Acompanhe sua divisão e os jogos das outras séries sem sair da tela.', 'Follow your division and the other divisions\' matches without leaving the screen.'))}
++            status={copaPlaying ? copaPos >= copaFaseTotal ? tr('Fase encerrada · confira os resultados e os pênaltis', 'Round over · check the results and the penalties') : tr('Bola rolando · acompanhe os confrontos', 'Ball rolling · follow the ties') : done ? tr('Confira a edição de encerramento', 'Check the closing edition') : round===0 ? tr('Tudo pronto para a primeira rodada', 'All set for the first round') : revealed >= round ? tr('Resultados revelados', 'Results revealed') : ''}>
+             <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>motivoTorcida(h.motivo)).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
+             {copaPlaying && <CareerCompetitionHelp kind={supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}/>}
+           </CareerCompetitionStage>
+@@ -7722,7 +7741,7 @@ export function PyramidSeasonScreen() {
+         {copaFinished && copa?.champion && (
+           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? tr('👉 Ver fases e resultados na aba Tabelas', '👉 See rounds and results in the Tables tab') : tr('👉 ver o chaveamento da Copa na aba Tabelas', '👉 see the Cup bracket in the Tables tab')}</button>
+         )}
+-        {!done && myMatch && me && <PlacarQueEncolhe onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
++        {!done && myMatch && me && <PlacarQueEncolhe onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} sempreMini={tab !== 'jogos'} />}
+         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
+             quando resolve" na mesma hora (evento de jogador + crise financeira +
+             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez
