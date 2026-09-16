@@ -1,3 +1,48 @@
+## 16/09/2026 — ✅ CORREÇÃO: elenco cheio NÃO quebra ninguém
+
+⚠️ **Eu errei a leitura anterior e o Diego corrigiu**: *"mas não é bem assim…
+todo mundo quer ter elenco completo pô"*. Eu tinha comparado com **22 craques**,
+que ninguém monta, e concluí que a pessoa estava "enchendo o elenco com jogador
+bom cedo demais". Isso joga a culpa em quem joga, e está errado — ter elenco
+completo é o comportamento NORMAL depois da condição física.
+
+Medido o elenco que as pessoas montam DE VERDADE (11 titulares no nível da
+divisão + 11 reservas mais em conta), em `scripts/custo-elenco-cheio.mjs`:
+
+| divisão | receita | só 11 | 18 cheio | **22 CHEIO** |
+| --- | --- | --- | --- | --- |
+| Várzea | 80 | +60 | +49 | **+43** |
+| Série D | 102 | +76 | +63 | **+56** |
+| Série C | 140 | +74 | +49 | **+34** |
+| Série B | 176 | +70 | +41 | **+24** |
+| Série A | 267 | +91 | +38 | **+7** |
+
+**Dá positivo em todas — ninguém afunda por ter elenco completo.**
+
+### 🚨 O QUE REALMENTE APARECE: a margem encolhe quando se sobe
++43 → +56 → +34 → +24 → **+7**. Na Série A um time de MEIO DE TABELA com elenco
+completo sobra **7 moedas por temporada**. Um ano ruim (zona de rebaixamento,
+receita ~178) vira **−80**. A pessoa faz tudo certo e mesmo assim não sobra nada
+exatamente na divisão onde todo mundo quer estar.
+
+### 🚨 A CAUSA: a renovação é um SEGUNDO SALÁRIO ESCONDIDO
+Conta da Série A com 22 jogadores: **folha 132 · renovações 128**. Quase iguais.
+`renewCost(p, 5)` é **metade do preço da carta** — diluído em 5 temporadas dá
+outro `preço ÷ 10`, o mesmo do salário. **Cada jogador custa o DOBRO do que está
+escrito na ficha**, e isso não aparece em lugar nenhum da tela.
+
+### 💡 Saídas medidas (NENHUMA implementada — decisão do Diego)
+Sobra por temporada na Série A, meio de tabela, elenco de 22:
+| | sobra |
+| --- | --- |
+| hoje | +7 |
+| reserva paga meio salário | +29 |
+| renovação de 5 anos custar ⅓ em vez de metade | +49 |
+| as duas juntas | +71 |
+A do **⅓ na renovação** ataca o custo escondido e premia contrato longo.
+A do **meio salário pro reserva** é a que a pessoa entende na hora ("quem não
+joga ganha menos") e deixa claro que ter banco é bom, não é castigo.
+
 ## 16/09/2026 — 🧮 E COM O ELENCO CHEIO? (18 · 20 · 22 jogadores)
 
 Diego: *"não quero, né. Faça simulação tendo 22 jogadores pô, ou 20, 18… sei lá,
