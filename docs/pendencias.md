@@ -1,3 +1,61 @@
+## 16/09/2026 — 🎯 ONDE AUMENTAR: a composição da receita, fonte por fonte
+
+Diego: *"precisamos entender onde aumentar na Várzea, Série D, C, B e A… em
+competições, premiações, patrocínios, TV, bico, camisa, venda, estádio, agência"*.
+
+### A composição (time no MEIO da tabela, estádio meio construído)
+| fonte | Várzea | Série D | Série C | Série B | Série A | cresce? |
+| --- | --- | --- | --- | --- | --- | --- |
+| 📺 cota de TV | 10 (12%) | 20 (20%) | 30 (21%) | 40 (23%) | 50 (19%) | **5,0×** |
+| 🏆 Master (3 anos) | 7 (9%) | 11 (11%) | 23 (16%) | 36 (20%) | 72 (27%) | **10,3×** |
+| 🤝 Pontual (não cair) | 4 (5%) | 8 (8%) | 14 (10%) | 24 (14%) | 42 (16%) | **10,5×** |
+| 👟 fornecedor | 5 (6%) | 7 (7%) | 14 (10%) | 27 (15%) | 54 (20%) | **10,8×** |
+| 🕴️ bico | 5 (6%) | 7 (7%) | 10 (7%) | **0** | **0** | morre na B |
+| 🥇 prêmio da liga | **0** | **0** | **0** | **0** | **0** | só top-4 |
+| 🎟️ bilheteria | 28 (35%) | 28 (27%) | 28 (20%) | 28 (16%) | 28 (10%) | **1,0× 🚨** |
+| 👕 venda de camisa | 21 (26%) | 21 (21%) | 21 (15%) | 21 (12%) | 21 (8%) | **1,0× 🚨** |
+| **TOTAL** | **80** | **102** | **140** | **176** | **267** | 3,3× |
+(custo do elenco cheio na mesma linha: 37 · 46 · 106 · 152 · **260** → **7,0×**)
+
+### 🚨 ACHADO 5 — BILHETERIA E CAMISA NÃO SABEM EM QUE DIVISÃO O TIME ESTÁ
+Conferido no código:
+- `torcidaDoEstadio(st)` = `TORCIDA_PISO (12.000)` + assentos construídos.
+  **Nenhuma referência à divisão.**
+- `occByPos(pos)` = ocupação pela COLOCAÇÃO (1.0 no top-4 … 0.18 no Z4).
+  **Nenhuma referência à divisão.**
+
+Ou seja: **um time em 3º na Várzea lota o estádio e vende as mesmas camisas que o
+3º da Série A.** É por isso que a margem encolhe quando se sobe — o custo do
+elenco cresce **7×** e essas duas fontes ficam **paradas**. Na Várzea elas são
+**61% da receita**; na Série A, **18%**.
+👉 É o maior buraco da economia, e o mais fácil de defender: no futebol de
+verdade, subir de divisão TRAZ torcida.
+
+### 🥇 ACHADO 6 — O MEIO DE TABELA NÃO GANHA PRÊMIO NENHUM
+`seasonRewards` só paga campeão e top-4. Quem termina em 10º leva **ZERO** em
+todas as divisões. Fica a temporada inteira jogando e não vê um centavo de
+premiação.
+
+### 🕴️ Menores, mas anotados
+- **Bico morre na Série B** (só V/D/C, e a partir da T3). Da B pra cima, nada.
+- **Agência** paga por temporada: lenda 6 · craque 4 · promessa 3 · bom 2 ·
+  foi-profissional 1 (+1 folclórico). Não escala com divisão nem com nada.
+- **Prêmio de Copa**: Copa do Brasil campeão 50 · vice 25 · semi 16 · quartas 10.
+  Copa (a outra) campeão 30 · vice 10 · semi 8. ⚠️ **A Várzea não joga Copa
+  nenhuma** (`COPA_DIV_STRENGTH` tem V: 0).
+
+### 💡 Proposta ranqueada (NADA implementado — decisão do Diego)
+1. **Torcida por divisão** (o conserto grande): multiplicar a torcida/ocupação
+   por divisão — ex.: Várzea ×1 · D ×1,3 · C ×1,8 · B ×2,5 · A ×4. Contas:
+   na Série A a camisa iria de 21 pra ~84 e a bilheteria de 28 pra ~56, e a
+   margem do elenco cheio saltaria de **+7 pra ~+98**. **A Várzea não muda nada**
+   (×1), então quem está começando não sente.
+2. **Premiação por colocação** que desça do 5º ao 16º (um valor pequeno, por
+   divisão). Hoje o meio de tabela não recebe nada.
+3. **Renovação a ⅓** (o custo escondido, achado anterior) — vale junto.
+4. Dar ao bico um sucessor nas divisões de cima, ou deixar claro que ele é
+   coisa de quem está começando (hoje ele só some, sem explicação).
+
 ## 16/09/2026 — ✅ CORREÇÃO: elenco cheio NÃO quebra ninguém
 
 ⚠️ **Eu errei a leitura anterior e o Diego corrigiu**: *"mas não é bem assim…
