@@ -1,3 +1,51 @@
+## 16/09/2026 (parte 8) — 🎨 "Se fosse você, como reformularia o visual?" (OPINIÃO)
+
+Diego: *"e se fosse reformular na sua cabeça todo visual sem ser influenciado por mim,
+como vc faria?"*. Material: `node scripts/mockup-se-fosse-eu.mjs`.
+**É opinião, está marcada como opinião, e nada foi codado.**
+
+### A tese
+**Não trocaria o estilo — trocaria a HIERARQUIA.** A identidade (creme, borda preta
+grossa, sombra dura, Oswald) é patrimônio: quase todo jogo de celular parece o mesmo
+app cinza, e este parece álbum de figurinha. O problema é que ela está aplicada em
+TUDO IGUAL — a faixa "Torcida 45%" tem a mesma borda, a mesma sombra e o mesmo peso do
+jogo ao vivo. Quando tudo grita, nada é ouvido.
+
+### Os 6 princípios (com a tela redesenhada da aba Jogos, lado a lado com a real)
+1. **Três pesos de superfície, não um** — moldura+sombra só no HERÓI; contexto vira
+   linha lisa; ajuste vira texto. ⭐ **É a que eu faria se pudesse fazer só uma**: não é
+   redesenho, é RÉGUA, e melhora toda tela junto, inclusive as que ainda não existem.
+2. **Uma tela, um assunto** — a 1ª tela de cada aba responde UMA pergunta; o resto é um
+   toque, não um rolar ("ver a tabela inteira →" em vez de 100 linhas).
+3. **O botão mora sempre no mesmo lugar** — barra de ação fixa no pé, acima das abas; só
+   o rótulo muda (Começar a temporada · Próxima rodada · Decida quem fica).
+4. **O dourado só pode querer dizer UMA coisa** — hoje é tier 👑 E botão E destaque E
+   moeda. Dourado = identidade de quem você é; botão vira verde. Reforça a regra dele de
+   "cor é sagrada" em vez de enfraquecer.
+5. **Oswald é para número e título** — parágrafo em fonte de sistema, caixa normal.
+6. **O vazio trabalha** — borda 2px/sombra 2px no secundário encolheria ~20% de toda tela.
+
+### E o ELENCO POR POSIÇÃO (a mudança que eu mais defenderia)
+Hoje são duas colunas (titulares | reservas) e a pessoa **filtra por posição com o olho**.
+Técnico não pensa "quem é reserva" — pensa **"quem substitui meu goleiro?"**. Agrupado por
+setor (GOL/LAT/ZAG/MEI/ATA) com bolinha cheia = titular, o problema dos **2 goleiros**
+aparece sozinho na tela, sem precisar de texto explicando.
+
+### Onde eu discordo dele — dito na cara (e ele pediu assim)
+1. **A caixa grande de "criar conta"** (que ELE pediu chamativa em 21/08): é a 1ª coisa
+   das 5 abas e só some pra quem JÁ fez conta — quem mais joga sem conta é quem mais
+   apanha dela. Eu faria discreta no dia a dia e GRANDE uma vez, na hora que dói (acabou
+   de ser campeão e a carta só existe com conta).
+2. **A faixa do Desbloquear**: aparece em toda aba de toda rodada e TIRA do jogo. Uma vez
+   por temporada, como modal. A regra de ouro dele é "nada atrasa o ritmo".
+3. **O estádio sagrado**: concordo com a regra, discordo da execução — hoje ele começa em
+   y=740. A regra está certa; falta ela valer na prática.
+
+### O que eu jamais tocaria, mesmo com carta branca
+Paleta · Oswald · sombra dura · campinho · desenho do estádio · zoeira dos textos.
+O jogo tem cara própria, que é a coisa mais difícil de conseguir. O trabalho seria
+**fazer essa cara aparecer mais, usando ela menos.**
+
 ## 16/09/2026 (parte 7) — 🕳️ "Ficou um buraco na esquerda" (duas saídas, ele escolhe)
 
 Diego, olhando a tela real do elenco de 27: *"não sei se gostei pq ficou um buraco na
