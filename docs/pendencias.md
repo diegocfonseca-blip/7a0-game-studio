@@ -1,3 +1,45 @@
+## 16/09/2026 (parte 13) — 👥 A ABA ELENCO FECHADA NO DESENHO (desktop lado a lado · celular empilhado)
+
+Ordem do Diego: *"talvez p desktop vc deixa lateral o campo e a lista lateral ao campo…
+e dispositivo móvel deixe o campo em cima e lista dos jogadores embaixo… e c esses dados
+assim. Faça agora c seu visual, sem pôr gols no campinho e assistência no campinho tb,
+pq a pessoa já vê na lista"*.
+Material: `node scripts/mockup-elenco-final.mjs`. **Desenho, nada codado.**
+
+### ⚠️ Duas correções que ELE fez em mim (anotar, pra não repetir)
+1. **O campinho mostra ROSTO, não camisa com número.** Eu tinha copiado a camisa da
+   referência. Os rostos existem no repo: `src/escalacao/legend-avatars.json` →
+   **157 avatares** em `public/avatars/lendas-v1/`. O mockup agora usa os de verdade.
+   Lição: **antes de desenhar peça do jogo, procurar a peça no repo.**
+2. **Sem selo de gol/assistência no campinho** — e o motivo dele é melhor que o meu:
+   agora GOLS e ASS são **coluna da tabela**, com o número de todo mundo alinhado; o
+   selo virava repetição. (A régua de ontem — campinho = história, lista = operação —
+   continua válida: a lista passou a dar conta da história também.)
+3. A barrinha de gás ganhou **6px + borda + número**; no tracinho de 4px ela sumia.
+
+### O layout fechado
+- **Desktop**: campo à ESQUERDA (330px) · tabela à DIREITA · barra do selecionado FIXA no
+  pé · atalhos Comissão/Base/SAF embaixo do campo · abas do topo
+  ELENCO/TÁTICA/COMISSÃO/NÚMEROS/CONQUISTAS.
+- **Celular**: campo EM CIMA · abas TITULARES/RESERVAS/SAF · tabela EMBAIXO · barra do
+  selecionado no pé (peça PRÓPRIA — a do desktop não cabe no estreito, vira sopa).
+- **Colunas**: Nº · NOME (clube · ano) · POS · NÍVEL · JOGOS · GOLS · ASS · GÁS · STATUS.
+- **Barra do selecionado** (o "Aldair preto" que ele gostou): jogos · gols · ass · gás ·
+  valor · salário · contrato + a faixa do que está acontecendo + botão DETALHES.
+
+### ⛔ O GER continua fora (decisão mantida)
+A referência tem coluna GER (overall) = **perk pago do olheiro**. A coluna é **NÍVEL**
+(🪵🎯💎⭐👑) e, pra quem TEM olheiro, o número aparece **no lugar do selo**, na mesma
+coluna. Ninguém perde nada e a loja continua de pé.
+
+### De onde vem cada dado (tudo já existe)
+jogos → `condicao.jogos[id]` · gols/ass → `goals`/`assists` · gás e volta de lesão →
+`condicao` · valor → `c.paid` · contrato → `c.contratoAte` · nível → `c.fame` ·
+bio → `c.bio` · salário = piso ÷ 10.
+
+### Estado
+**Nada codado.** Próximo passo, já oferecido: montar DE VERDADE com o elenco real dele.
+
 ## 16/09/2026 (parte 12) — ⚽🅰️ Gol e assistência no campinho do layout novo: cabe?
 
 Diego: *"gostei, porém teria q continuar mostrando gols e assistência tb no campinho.
