@@ -992,8 +992,21 @@ export function slotsOf(m: Manager, pos: Sector): number {
 export function filled(m: Manager, pos: Sector): number {
   return m.squad.filter(c => c.pos === pos).length
 }
+// "cabe mais um?" — é ISTO que anula (ou não) um lance, libera a repescagem e
+// deixa pegar carta do monte.
+// 🎽 PRO TÉCNICO HUMANO QUEM MANDA É O TETO DO ELENCO, não o alvo do pregão
+// (Diego 16/09: *"ele contrata quando ele quiser, quando aparecer leilão ou mesmo
+// time… não tem exigência nenhuma"*). O leilão continua sendo montado igual — a
+// mira dele é 22, os 11 reservas de sempre —, mas ninguém mais é BARRADO no 22º:
+// se ele quiser gastar e levar até o 27º, leva. Nada o obriga, e nada entra
+// sozinho: vaga sem lance é vaga vazia.
+// Bot/rival seguem no alvo do pregão, exatamente como era.
 export function openSlots(m: Manager, pos: Sector): number {
-  return Math.max(0, slotsOf(m, pos) - filled(m, pos))
+  // ⚠️ SÓ COM O PREGÃO ABERTO (`deepSquad`). Fora dele o alvo volta pra 11 e este
+  // número é usado pra outras coisas (o "−N 🕳️" do gerenciar, a vez do monte);
+  // mexer nele o ano inteiro faria a tela dizer que falta gente sem faltar.
+  const teto = m.isHuman && m.deepSquad ? Math.max(slotsOf(m, pos), slotsCheio(m, pos)) : slotsOf(m, pos)
+  return Math.max(0, teto - filled(m, pos))
 }
 // ─── 🌱 VAGA PRO ELENCO CHEIO (14/09) ────────────────────────────────────────
 // ⚠️ POR QUE ISTO EXISTE, separado do `slotsOf`: o alvo do elenco MUDA durante o

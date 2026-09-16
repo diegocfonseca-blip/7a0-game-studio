@@ -13,18 +13,37 @@ leilão de reservas é byte a byte o de antes, pra ele e pra todo mundo.
 O +1 por posição fica **só em `slotsCheio`** = **teto do elenco** (27), que é o número que a
 tela mostra e o que limita quem entra fora do pregão.
 
-### 🚧 O buraco que isso abriu — PRECISA DA DECISÃO DELE
+### ✅ RESOLVIDO na mesma conversa — onde ele compra os 5
+Perguntei e ele respondeu: *"ele contrata quando ele quiser, quando aparecer leilão ou
+mesmo time… não tem exigência nenhuma"*. Ou seja: **é no leilão mesmo**, sem obrigação
+nenhuma e sem tela nova.
+
+Como ficou no código (duas regras que não brigam):
+1. **O pregão é montado igual ao de sempre** — `slotsOf` (a mira, que decide o tamanho do
+   baralho e a fome dos bots) segue **22**. "O leilão de reserva mantém-se igual, que são 11."
+2. **Mas o técnico HUMANO nunca é BARRADO no 22º.** `openSlots` — que é quem ANULA lance,
+   libera a repescagem e deixa pegar do monte — passou a usar o **teto do elenco**
+   (`slotsCheio`, 27) **quando o pregão está aberto** (`deepSquad`). Se ele quiser gastar e
+   levar o 27º, leva; se não quiser, fica em 22 e está tudo certo.
+   ⚠️ **Só com o pregão aberto**, de propósito: fora dele o alvo volta pra 11 e esse mesmo
+   número alimenta o "−N 🕳️" do gerenciar e a vez do monte — se crescesse o ano inteiro, a
+   tela ia dizer que falta gente sem faltar. (Peguei isso porque `npx tsx
+   scripts/testa-cria-base.mjs` quebrou na hora.)
+3. Bot, rival e **o online inteiro** seguem em 22.
+
+🧪 **Trava nova: `npm run elenco27`** (`scripts/testa-elenco-27.mjs`) — 15 conferências que
+viram a regra dele em teste: trava fechada não muda nada · trava aberta mantém a mira em 22
+e ainda deixa 1 vaga por posição · elenco 27 fecha · bot/rival/online intocados · fora do
+pregão o número de vagas não muda.
+
+#### (o levantamento que gerou a pergunta, guardado pra memória)
 Hoje, na carreira, **não existe comprar jogador durante a temporada**. As entradas de jogador
 são: **leilão** (entre temporadas, agora travado em 22), **Base/cria** (respeita `vagaCheio`,
 ou seja, já usa o teto 27 ✅) e **empréstimo da SAF** (limite por divisão, `filialSlots`, e
 entra POR CIMA do teto). A própria tela diz isso: *"Contrate no leilão ou traga da SAF"*.
 
-👉 Então, com o leilão em 22, **as 5 vagas novas só se enchem pela Base** — que é de propósito
-fraca. Precisa saber dele **onde** ele quer comprar esses 5:
-- (a) nos leilões das temporadas seguintes (2ª em diante), deixando só o PRIMEIRO leilão
-  — o que enche o banco de 11 — travado em 22; ou
-- (b) numa **janela de mercado nova durante a temporada** (feature que não existe hoje).
-⚠️ Não chutar: são caminhos bem diferentes de trabalho.
+Foi por isso que eu perguntei em vez de chutar — e a resposta dele (acima) fechou pelo
+caminho mais barato: **nada de tela nova, é no pregão que já existe**.
 
 ## 16/09/2026 (parte 16) — ✅ CODADO: banco de 16 + aba Elenco nova, TRAVADA na conta do Diego
 
