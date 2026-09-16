@@ -1,3 +1,44 @@
+## 16/09/2026 (parte 12) — ⚽🅰️ Gol e assistência no campinho do layout novo: cabe?
+
+Diego: *"gostei, porém teria q continuar mostrando gols e assistência tb no campinho.
+Daria ou ficaria MT informação???"*.
+Material: `node scripts/mockup-campinho-gols.mjs`. **Desenho, nada codado.**
+
+### Resposta: cabe — e a prova é o PIOR CASO
+Não dá pra responder "fica muita informação?" com a tela vazia, então o material mostra
+**três momentos da mesma temporada**, contando os selos:
+- **Rodada 1 → 0 selos.** O campo é só o time. Os selos só existem com número > 0.
+- **Rodada 19 → 13 selos.**
+- **Rodada 38 → 21 selos** — e esse é o teto prático (máximo absoluto 22: 2 por jogador
+  × 11, que nem acontece porque zagueiro e goleiro quase não pontuam).
+👉 A tela mais cheia possível tem **21 selinhos de 8px, nos cantos, sem encostar em nome
+nenhum**.
+
+### Por que cabe (o desenho, não a sorte)
+- Selos no canto de **CIMA** da camisa; o nome fica **embaixo**. Nunca disputam espaço.
+- São **dois no máximo**, empilhados — e sem gol a assistência **sobe** pro lugar de cima
+  (regra dele de 24/08, já no código).
+- São a **única coisa colorida** sobre a camisa, então o olho vai direto neles.
+
+### 🔧 O ajuste necessário (achado ao desenhar)
+No código hoje os selos ficam **pendurados 10px pra fora** da camisa (`right: -10` em
+`jogadorcampo.tsx`). No campinho do layout novo, com 4 meias na mesma linha, eles
+**encostam no vizinho**. No desenho ficaram em `right: -7, top: -5` — mesmo tamanho e
+mesma cor, só não invadem mais o colega.
+
+### 🎯 E isto FECHA a conversa do gás, com uma régua
+Os dois selos dizem **o que o jogador FEZ** (gol, assistência = história, orgulho).
+O gás diz **como ele ESTÁ** (estado, operação, decisão da próxima rodada).
+👉 **O campinho é o lugar da HISTÓRIA; a lista é o lugar da OPERAÇÃO.**
+Por isso gol e assistência ficam e o gás não — e por isso a ordem dele de 12/09
+(*"não quero no campinho, só onde tem a listagem"*) **estava certa desde o começo**, só
+não tinha sido dito o porquê. Guardar essa régua: serve pra decidir o que entra no
+campinho daqui pra frente, sem ter que perguntar caso a caso.
+
+### Estado
+Nada codado. Se o layout for aprovado, os selos entram junto — são os mesmos de hoje,
+reposicionados 3px pra dentro.
+
 ## 16/09/2026 (parte 11) — 👥⚡ O elenco de 31 no layout novo + "como se vê o gás dos titulares?"
 
 Diego: *"eu teria q ver a foto de +1 por posição q dá 5 e +4 da saf pra ver como fica…
