@@ -1,3 +1,43 @@
+## 16/09/2026 (parte 11) — 👥⚡ O elenco de 31 no layout novo + "como se vê o gás dos titulares?"
+
+Diego: *"eu teria q ver a foto de +1 por posição q dá 5 e +4 da saf pra ver como fica…
+E como q vê a energia dos titulares? No campo? N sei…"*.
+Material: `node scripts/mockup-elenco-31-e-gas.mjs`. **Desenho, nada codado.**
+
+### A conta de 31 (4-4-2, +1 por posição)
+`GOL 3 · LAT 5 · ZAG 5 · MEI 9 · ATA 5 = 27` · titulares 11 → **reservas 16** · +4 da SAF
+= **31 na tela**. No layout campo|lista isso vira **três abas** sobre uma tabela:
+`⭐ TITULARES (11)` · `🔁 RESERVAS (16)` · `🏢 SAF (4)`.
+
+### 🔑 A pergunta dele achou o FURO do layout
+Se **só uma lista aparece por vez**, quem está vendo os reservas **não vê o gás dos
+titulares**. Isso é um defeito real do layout da referência, e não tinha sido notado por
+mim — foi ele que achou. Anotar: **toda vez que um layout esconde metade da informação,
+perguntar "e a parte escondida, quando é que ela importa?"**.
+
+### ⚠️ E tem uma ORDEM DELE no meio (12/09, está no código com as palavras dele)
+`pyramidseason.tsx`: *"não quero que apareça no campinho, só onde tem a listagem"*.
+Então as três opções foram apresentadas com isso na mesa:
+1. **A aba TITULARES mostra o gás** — já resolve, e respeita a regra. Bônus: hoje é PIOR,
+   porque a lista de titulares é a coluna estreita da esquerda; no layout novo ela ocupa
+   a largura toda.
+2. **Faixa de aviso em cima do campinho** (⚡ "1 no vermelho (Edmundo 🥵) · 3 no amarelo ·
+   VER") — **recomendada junto com a 1**. Não põe gás no campinho (respeita a regra), mas
+   avisa que existe problema, e o VER pula pra lista filtrada. Resolve o caso REAL: ele não
+   quer olhar o gás de 11, quer saber **se tem alguém ruim**.
+3. **Gás embaixo da camisa no campinho** — desenhado, mas marcado como
+   **"PRECISA VOCÊ MUDAR DE IDEIA"**, porque contraria a ordem dele. Minha opinião dada:
+   ele tinha razão — 11 barrinhas transformam o campinho em painel de indicadores.
+
+### 📐 A conta de altura com 31
+A maior das três listas é a de reservas (16 linhas). Como **só uma aparece por vez**, a
+tela tem sempre a altura da MAIOR, não a soma: **31 jogadores cabem na mesma altura que
+os 16 reservas de hoje**. E se o elenco crescer de novo, a tela **não cresce junto** — só
+a rolagem de dentro da tabela.
+
+### Estado
+Nada codado. Próximo passo oferecido: montar de verdade, com o elenco real dele.
+
 ## 16/09/2026 (parte 10) — 👥 O elenco no estilo da REFERÊNCIA que ele mandou
 
 Diego mandou o print de um jogo de futebol (tela "MEU TIME · ESCALAÇÃO E ELENCO",
