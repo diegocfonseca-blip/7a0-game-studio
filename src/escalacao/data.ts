@@ -930,7 +930,7 @@ const MEI: C[] = [
   { name: "Assis", club: "Fluminense", year: 1984, fame: 4, lo: 82, hi: 89, bio: "Meia de muito talento e visão, parceiro histórico do Renato Gaúcho — pura magia no meio-campo." },
   { name: "Falcão (do Futsal)", club: "São Paulo", year: 2005, fame: 1, lo: 56, hi: 80, folk: true, bio: "O maior craque da história do futsal — magia absurda na quadra, mas no campo pelo São Paulo quase não deu as caras. Folclore garantido." },
   { name: "Richard Ríos", club: "Palmeiras", year: 2024, fame: 3, lo: 76, hi: 84, bio: "Volante box-to-box colombiano que explodiu no Palmeiras — do futsal à Copa América, motor de força e passe que rendeu transferência à Europa." },
-  { name: "Zito", club: "Santos", year: 1962, fame: 4, lo: 84, hi: 91, bio: "Camisa 5 do Santos de Pelé e da Seleção bicampeã do mundo — equilíbrio, liderança e o gol no título da Copa de 1962." },
+  { name: "Zito", club: "Santos", year: 1962, fame: 5, lo: 84, hi: 91, bio: "Camisa 5 do Santos de Pelé e da Seleção bicampeã do mundo — equilíbrio, liderança e o gol no título da Copa de 1962." },
   { name: "Somália", club: "Botafogo", year: 2010, fame: 1, lo: 55, hi: 78, folk: true },
   { name: "Pedrinho", club: "Vasco", year: 2000, fame: 3, lo: 72, hi: 87, bio: "Meia-craque do Vasco campeão brasileiro de 2000 — drible curto, passe e gols que fizeram a alegria de São Januário." },
   { name: "Felipe Bastos", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, bio: "Meia de bom pé em bola parada — rodou o país com passagens marcantes por Vasco e Goiás." },
