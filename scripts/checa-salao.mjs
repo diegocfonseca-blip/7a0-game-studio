@@ -28,6 +28,10 @@ const cadastrados = new Set(pares.map(([, a]) => a))
 const { readdirSync } = await import('node:fs')
 const orfaos = readdirSync('public/mantos-salao').filter(f => f.endsWith('.webp') && !cadastrados.has(f))
 
+// 🕰️ CACHE: arquivo em public/ tem endereço FIXO (sem hash). Arte trocada sem
+// trocar o nome = navegador servindo a VELHA. Por isso toda camisa deve levar -vN.
+const semVersao = pares.filter(([, a]) => !/-v\d+\.webp$/.test(a))
+
 console.log(`\n🏛️  Salão: ${pares.length} camisas cadastradas\n`)
 if (faltando.length) {
   console.log('❌ CADASTRADA MAS NÃO PUBLICADA (o clube mostra "arte não disponível"):')
@@ -35,5 +39,11 @@ if (faltando.length) {
   console.log('\n   Conserto: publicar o arquivo (recomprimido) de scripts/kits/ pra public/mantos-salao/.\n')
 }
 if (orfaos.length) console.log(`⚠️  publicadas sem cadastro (peso morto): ${orfaos.join(', ')}\n`)
+if (semVersao.length) {
+  console.log(`⏳ ${semVersao.length} camisa(s) SEM -vN no nome. Não quebra nada hoje, mas no dia`)
+  console.log('   em que a arte trocar, quem já abriu o clube vai continuar vendo a VELHA')
+  console.log('   (endereço fixo = cache do navegador). Ao trocar a arte, troque o nome:')
+  console.log('   ' + semVersao.slice(0, 6).map(([, a]) => a).join(', ') + (semVersao.length > 6 ? ', …' : '') + '\n')
+}
 if (!faltando.length && !orfaos.length) console.log('✅ toda camisa cadastrada está publicada, e nenhuma sobrando.\n')
 process.exit(faltando.length ? 1 : 0)
