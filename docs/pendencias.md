@@ -1,3 +1,23 @@
+## 16/09/2026 (parte 14) — 🖥️ "O campinho ficou pequeno pro espaço?" — sim, era o do CELULAR
+
+Diego, olhando o desktop: *"mas o campinho ficou mt pequeno pro espaço que tem, não? Ou
+ele tá do tamanho q sempre foi??"*.
+
+**Resposta: estava do tamanho de sempre — o do celular.** Eu tinha feito o erro clássico
+de responsivo mal feito: **cresci a COLUNA e deixei o CONTEÚDO dela igual**. A coluna do
+campo tinha 330px de 980 (34%) com o rosto em 44px, que é a medida do telefone.
+
+**Consertado** (`scripts/mockup-elenco-final.mjs`): no desktop o campo passa a ocupar
+**480px de 1120 (~45%)** e o rosto vai de **44 → 64px**; o campinho ganhou linha de meio
+de campo e círculo central proporcionais. **No celular nada mudou** — lá o tamanho já
+estava certo.
+
+### 📌 Lição pro repo (vale pra QUALQUER tela nova de desktop)
+`checa-telas.mjs` já garante que a tela não fica presa em 384px no PC. Mas ele olha a
+**caixa**, não o **conteúdo**. Uma tela pode passar no guarda e ainda assim ser "o celular
+esticado". Quando desenhar desktop, perguntar: **o que dentro da coluna também deveria
+crescer?** (aqui: o rosto, o gap entre linhas, a espessura das linhas do campo).
+
 ## 16/09/2026 (parte 13) — 👥 A ABA ELENCO FECHADA NO DESENHO (desktop lado a lado · celular empilhado)
 
 Ordem do Diego: *"talvez p desktop vc deixa lateral o campo e a lista lateral ao campo…

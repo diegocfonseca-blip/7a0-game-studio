@@ -43,15 +43,18 @@ const XI = [
    ['Bellini', 'ZAG', '/avatars/lendas-v1/hilderaldo-bellini-vasco-1958.webp'], ['Cafu', 'LAT', '/avatars/lendas-v1/cafu-milan-2004.webp']],
   [['R. Ceni', 'GOL', '/avatars/lendas-v1/rogerio-ceni-sao-paulo-2005.webp']],
 ]
-const campinho = (d = 46) => `
-  <div style="background:repeating-linear-gradient(180deg,#2d7a41 0 22px,#286e3a 22px 44px);
-    border:3px solid ${INK};border-radius:11px;padding:12px 5px 10px;box-shadow:3px 3px 0 ${INK};position:relative;overflow:hidden">
-    <div style="position:absolute;left:7%;right:7%;top:4%;bottom:4%;border:2px solid rgba(255,255,255,.2);border-radius:4px"></div>
-    <div style="position:absolute;left:50%;top:50%;width:${d + 8}px;height:${d + 8}px;transform:translate(-50%,-50%);
-      border:2px solid rgba(255,255,255,.18);border-radius:999px"></div>
-    <div style="position:relative;display:flex;flex-direction:column;gap:5px">
-      ${XI.map(l => `<div style="display:flex;justify-content:center;gap:1px">${l.map(j => noCampo(j[0], j[1], j[2], d)).join('')}</div>`).join('')}
-    </div></div>`
+const campinho = (d = 46) => { const g = Math.round(d * 0.26), pad = Math.round(d * 0.34)
+  return `
+  <div style="background:repeating-linear-gradient(180deg,#2d7a41 0 ${Math.round(d / 2)}px,#286e3a ${Math.round(d / 2)}px ${d}px);
+    border:3px solid ${INK};border-radius:13px;padding:${pad}px ${Math.round(d * 0.12)}px ${Math.round(pad * 0.8)}px;
+    box-shadow:3px 3px 0 ${INK};position:relative;overflow:hidden">
+    <div style="position:absolute;left:6%;right:6%;top:3.5%;bottom:3.5%;border:${d > 50 ? 3 : 2}px solid rgba(255,255,255,.2);border-radius:5px"></div>
+    <div style="position:absolute;left:50%;top:50%;width:${Math.round(d * 1.5)}px;height:${Math.round(d * 1.5)}px;transform:translate(-50%,-50%);
+      border:${d > 50 ? 3 : 2}px solid rgba(255,255,255,.18);border-radius:999px"></div>
+    <div style="position:absolute;left:0;right:0;top:50%;height:${d > 50 ? 3 : 2}px;background:rgba(255,255,255,.14)"></div>
+    <div style="position:relative;display:flex;flex-direction:column;gap:${g}px">
+      ${XI.map(l => `<div style="display:flex;justify-content:center;gap:${Math.round(d * 0.08)}px">${l.map(j => noCampo(j[0], j[1], j[2], d)).join('')}</div>`).join('')}
+    </div></div>` }
 
 // 📋 a tabela com as colunas que ele pediu
 const NIVEL = { lenda: ['👑', GOLD], craque: ['⭐', '#CBD4DE'], promessa: ['💎', '#C9A9FF'], bom: ['🎯', '#41C07A'], prof: ['🪵', '#B2A583'] }
@@ -165,8 +168,13 @@ const atalho = (e, t, s) => `
 const topoAbas = ['👥 ELENCO', '⚔️ TÁTICA', '🏛️ COMISSÃO', '📊 NÚMEROS', '🏆 CONQUISTAS']
 
 // ── DESKTOP ────────────────────────────────────────────────────────────────
+// 🖥️ NO DESKTOP O CAMPINHO CRESCE (Diego 16/09: *"o campinho ficou mt pequeno pro
+// espaço que tem, não? ou ele tá do tamanho q sempre foi?"* — estava do tamanho do
+// CELULAR dentro de um monitor, que é o erro clássico de "responsivo" mal feito:
+// a coluna cresce e o conteúdo dela não). Agora o campo ocupa ~45% da largura e o
+// rosto vai de 44 pra 64px.
 const desktop = `
-<div style="width:980px;background:${CREME};border:5px solid ${INK};border-radius:20px;overflow:hidden;box-shadow:7px 7px 0 ${INK}">
+<div style="width:1120px;background:${CREME};border:5px solid ${INK};border-radius:20px;overflow:hidden;box-shadow:7px 7px 0 ${INK}">
   <div style="background:${INK};color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px">
     <span style="${OSW};font-weight:700;font-size:20px">MEU TIME</span>
     <span style="${SYS};font-size:9px;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,.42)">ESCALAÇÃO E ELENCO</span>
@@ -175,11 +183,11 @@ const desktop = `
       background:${i === 0 ? GOLD : 'rgba(255,255,255,.08)'};color:${i === 0 ? INK : 'rgba(255,255,255,.65)'}">${t}</span>`).join('')}
   </div>
   <div style="display:flex;gap:12px;padding:12px 14px 10px">
-    <div style="width:330px;flex:none">
+    <div style="width:480px;flex:none">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
         <span style="${OSW};font-weight:700;font-size:12px;letter-spacing:1px">⭐ TITULARES (11)</span><span style="flex:1"></span>
         <span style="${OSW};font-weight:700;font-size:10.5px;border:2px solid ${INK};border-radius:7px;padding:2px 8px;background:#fff">4-4-2 ▾</span></div>
-      ${campinho(44)}
+      ${campinho(64)}
       <div style="display:flex;gap:6px;margin-top:9px">${atalho('🏛️', 'Comissão', 'téc · prep')}${atalho('🌱', 'Base', '11 vagas')}${atalho('🏢', 'SAF', '0 de 4')}</div>
     </div>
     <div style="flex:1;min-width:0">
@@ -231,10 +239,18 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
   ROSTOS DE VERDADE DO REPO · SEM SELO NO CAMPINHO (ORDEM SUA) · DESENHO, NADA CODADO</div>
 <h1 style="${OSW};font-weight:700;font-size:44px;line-height:1.02;text-transform:uppercase;margin:5px 0 7px">
   Desktop lado a lado, <span style="color:${ROXO}">celular empilhado</span></h1>
-<p style="${OSW};font-weight:400;font-size:15px;line-height:1.5;margin:0 0 20px;max-width:1250px;opacity:.88">
+<p style="${OSW};font-weight:400;font-size:15px;line-height:1.5;margin:0 0 8px;max-width:1250px;opacity:.88">
   Do jeito que você mandou: no monitor o campo fica <b>à esquerda e a lista ao lado</b>; no celular o campo
   <b>em cima e a lista embaixo</b>. E o campinho ficou <b>limpo</b> — gol e assistência agora são
   <b>coluna na tabela</b>, então o selo virava repetição. Você tem razão.</p>
+<div style="background:#F1F6F2;border:4px solid ${GREEN};border-radius:14px;padding:11px 15px;margin:0 0 20px;max-width:1250px">
+  <span style="${OSW};font-weight:700;font-size:14px;color:${GREEN};text-transform:uppercase">✅ Consertado: o campinho do desktop</span>
+  <div style="${OSW};font-weight:400;font-size:13.5px;line-height:1.55;margin-top:4px">
+    Você perguntou se ele estava pequeno demais pro espaço ou se era o tamanho de sempre.
+    <b>Era o tamanho de sempre — o do CELULAR.</b> Eu tinha crescido a coluna e deixado o conteúdo dela igual,
+    que é o erro clássico de responsivo mal feito. Agora, no monitor, o campo ocupa <b>45% da largura</b> e o
+    rosto vai de <b>44 pra 64px</b>. No celular ele continua igual, porque lá o tamanho estava certo.</div>
+</div>
 
 <div style="display:flex;gap:26px;align-items:flex-start;margin-bottom:26px">
   <div style="flex:none">
