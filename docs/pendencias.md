@@ -1,3 +1,52 @@
+## 16/09/2026 — 🐴 BATISMO: Fridão FC (felipe.ofrida) na Série C — ✅ 3 pernas prontas
+
+Pedido do Diego: *"coloque ele de batismo na Série C no lugar de um bot, time
+chamado Fridão FC"*. Antes ele perguntou se já existia algum time com esse nome —
+não existia: "fridao fc" era só o **nome de treinador** que o Felipe digita nas
+salas (`room_players` e 3 linhas em `esc_results`). Agora é clube de verdade.
+
+⛔ **Conta conferida ANTES de qualquer linha** (regra de 07/09):
+`auth.users` tem `felipe.ofrida@gmail.com` desde 08/09. Sem isso, nada seria criado.
+
+- **Assento**: entrou na **Série C** na vaga do bot **Casa de Vó**, com
+  `OLD_NAME['Fridão FC'] = 'Casa de Vó'` (save antigo abre já com o nome novo).
+  O bot continua vivo em `CPU_MANAGERS`, que é o jogo rápido — outra lista.
+- **Arte** (prancha do dono, chroma verde): escudo 245×360 **23,8 KB** · mascote
+  272×440 **40,2 KB** · camisa em `scripts/kits/` (é do post, fora do bundle).
+  Conferida sobre CREME, não sobre branco — as letras brancas do "FRIDÃO"
+  sobreviveram. Recorte em `scripts/recorta-prancha-fridao.py`.
+  ⚠️ **O recorte por coluna vazia não serviu aqui** e isso é novo: a crina e o
+  rabo do cavalo passam POR CIMA do escudo, então as janelas se cruzam e nenhuma
+  coluna zera. Resolvido por **manchas ligadas** (`ndi.label`): cada peça é
+  cortada pela máscara dela, não por uma faixa de x. Fica de receita pra próxima
+  prancha em que as peças se encostam.
+- **Manto**: preto `#161616` + branco `#D5D5D5`, **medidos na camisa** (preto 65%
+  do manto, branco 15%). Preto primeiro porque listra clara na tela creme SOME.
+  Listras verticais (padrão) — sem linha em `MANTO_ANGLE`.
+  ⚠️ **SEM 3ª cor de propósito**: o amarelo é o **patrocínio "Meia na Canela"**
+  (0,7% da camisa), não cor de manto. Se o Diego quiser o amarelo como 3ª cor, é
+  uma linha em `MANTO_TRI`.
+- **Código**: `escudos.tsx` (4 formas do nome **+ as 4 sem o til**, porque é assim
+  que ele digita) · `mascotes.tsx` (`fridao_cavalo` + `MASCOTE_NOME` +
+  `CARIMBO_GOL` nas 10 formas) · `manto.ts` · `data.ts` (assento + `OLD_NAME`) ·
+  `apoio.tsx` (ouro + `FUNDADOR_N` 72) · `batismos.ts` · `checa-batismos.mjs`.
+- **Banco** (as 4 linhas): `esc_socios` nº **53** (`valido_ate 2099-12-31`,
+  `origem batismo`) · `esc_fundadores` nº **72** · `esc_nomes_batismo` com
+  **6 nomes travados** (o gatilho criou FC e EC das DUAS grafias, com e sem til) ·
+  `user_colors` **ouro + manual**.
+- **Post**: `/tmp/fridao-post.png`, sem `--antigo` (o post nunca diz de quem era
+  o assento).
+
+### ⏳ Fica pendente
+- ❤️ **Time de coração dele**: não sei, então `time_coracao` ficou vazio e o post
+  saiu sem a linha. Quando ele falar, é um UPDATE e uma regeração do post.
+- 🐴 **Nome da mascote "O Fridão" é PROVISÓRIO** — a arte veio sem nome.
+- 📣 O nome **"Meia na Canela"** no patch é o mesmo do clube renomeado do
+  Jurubeba FC (luizguilhermeps). Pode ser patrocínio combinado entre eles — vale
+  o Diego saber, não mexi em nada por causa disso.
+
+---
+
 ## 16/09/2026 — 🚨 O aviso de "jogador vai sair" NÃO EXPIRAVA (consertado)
 
 Print do Diego, do dono do **Divizeiro** (temporada 240, Série B, rodada 10): a faixa

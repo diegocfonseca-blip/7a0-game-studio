@@ -97,6 +97,7 @@ const BATISMOS = [
   ['caiobegnamii@gmail.com', 'Rei da Bola FC'],
   ['feliperamiro0501@hotmail.com', 'Raiva Cajuri FC'], // 🥊 Série C (16/09), na vaga do bot Serra Azul FR // 👑🦁 Série A (16/09), no assento do Sapekeiros FC — que desceu pra Série B
   ['lucasigorbortoliniii@hotmail.com', 'Marreco FC'],
+  ['felipe.ofrida@gmail.com', 'Fridão FC'], // 🐴 Série C (16/09), na vaga do bot Casa de Vó
 ]
 // 🎫 SÓCIOS: clube próprio, SEM vaga na pirâmide e SEM número de fundador.
 const SOCIOS = [

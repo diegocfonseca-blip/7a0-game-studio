@@ -2535,6 +2535,7 @@ export const OLD_NAME: Record<string, string> = {
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
   'Inter de Bailão': 'Alfacehh', // 🪩 RENOMEAÇÃO do mesmo dono (matheus223lms, 14/09): o Alfacehh virou Inter de Bailão. Save antigo segue a corrente (Athletico do Porto → Alfacehh → Inter de Bailão) e chega no nome novo.
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
+  'Fridão FC': 'Casa de Vó', // 🐴 batismo do felipe.ofrida (16/09): assumiu o assento da Série C que era do Casa de Vó — save antigo com Casa de Vó vira Fridão FC ao abrir. (O Casa de Vó continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Internacional de Madrid': 'Adão Esporte', // 👑 batismo do matheusstefanello372 (14/09): assumiu o assento da Série C que era do Adão Esporte — save antigo com Adão Esporte vira Internacional de Madrid ao abrir. (O Adão Esporte continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Bonança SSFC': 'Torta de Rã', // 🔊 batismo do duselecta: assumiu o assento da Série C que era do Torta de Rã — save antigo com Torta de Rã (ou Fogaréu EC, o nome mais velho ainda) vira Bonança SSFC ao carregar (09/09)
   'Final Boss FC': 'Ponte Branca', // 🐂 batismo do gustavo99828: assumiu o assento da Série C que era do Ponte Branca — save antigo com Ponte Branca (ou Grelha SAF, o nome mais velho ainda) vira Final Boss FC ao carregar (05/09)
@@ -2828,7 +2829,11 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Dedé Bigode', team: 'Marreco FC' }, // ⚽ clube BATIZADO por apoiador (lucasigorbortoliniii — Marreco FC, ex-Inter Estadual)
   ],
   C: [
-    { name: 'Casa de Vó', team: 'Casa de Vó' },
+    // 🐴 Fridão FC (felipe.ofrida) entrou aqui em 16/09, por decisão do Diego, na
+    // vaga do bot "Casa de Vó". Save antigo com Casa de Vó vira Fridão FC ao abrir
+    // (ver OLD_NAME). O bot CONTINUA existindo em CPU_MANAGERS — que é o elenco de
+    // bots do jogo rápido, outra lista, sem nada a ver com as divisões da carreira.
+    { name: 'Fridão', team: 'Fridão FC' }, // 🐴 clube BATIZADO por apoiador (felipe.ofrida — Fridão FC, ex-Casa de Vó, Série C; escudo alvinegro coroado com o cavalo de crina branca, mascote O Fridão; preto #161616 + branco #D5D5D5 MEDIDOS na camisa do dono; Lenda + fundador nº72 + sócio nº53, 16/09)
     { name: 'Zé Colmeia', team: 'Zé Colmeia' },
     { name: 'DJ Bailão', team: 'Inter de Bailão' }, // 🪩 clube BATIZADO por apoiador (matheus223lms — Inter de Bailão, ex-Alfacehh, ex-Athletico do Porto; escudo com as caixas de som e o monograma IDB, mascote a bola de espelho de chapéu-bucket, azul #0040CD + preto MEDIDOS na camisa do dono; Lenda + fundador nº30 + sócio nº3). DESCEU da Série B pra cá em 14/09, na troca 1:1 com o Fatality FC.
     { name: 'Miúdo do Gol', team: 'Miúdo EC' },

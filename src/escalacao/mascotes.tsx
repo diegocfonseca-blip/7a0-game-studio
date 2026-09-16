@@ -33,6 +33,7 @@ import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei d
 import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import barceniteMascoteImg from './img/barcenite-mascote.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import marinheirosMascoteImg from './img/marinheiros-mascote.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import fridaoMascoteImg from './img/fridao-mascote.webp' // 🐴 Fridão FC (felipe.ofrida): arte própria do dono, batismo de 16/09
 import maroladosMascoteImg from './img/marolados-mascote.webp' // 🛡️🌱 Marolados FC (paisagensetrilha): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import scorporilaMascoteImg from './img/scorporila-mascote.webp' // 🦍🦂 Scorporila FC (lucassrribeiroo2023): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import nightfullMascoteImg from './img/nightfull-mascote.webp' // 🐓🌙 Nightfull FC (guilhermevictor539): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
@@ -194,6 +195,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // aqui dentro (pré-regra de peso), agora é webp fora do bundle.
   scorporila: (
     <img src={scorporilaMascoteImg} height={176} width={Math.round(176 * 249 / 440)} alt="O Scorporila — Scorporila FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐴 O Fridão — Fridão FC (felipe.ofrida, batismo de 16/09). 272x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O cavalo
+  // alvinegro de crina branca, ajoelhado com a mão na bola, apontando pra frente.
+  fridao_cavalo: (
+    <img src={fridaoMascoteImg} height={176} width={Math.round(176 * 272 / 440)} alt="O Fridão — Fridão FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // ⚓🐷 O Marujo — Marinheiros AS (feehcamp11, 16/09). 281x440 no arquivo, então a
   // largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O porco marujo de
@@ -745,6 +752,19 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Leite de Verdade EC': 'leiteverdade_vaca',
   'LEITE DE VERDADE FC': 'leiteverdade_vaca',
   'LEITE DE VERDADE': 'leiteverdade_vaca',
+  // 🐴 Fridão FC (felipe.ofrida, batismo 16/09). CARIMBO_GOL é busca EXATA, então
+  // entram as 4 formas reservadas do nome E as mesmas SEM O TIL — "fridao fc" é
+  // como o dono digita o nome dele nas salas online (conferido no room_players).
+  'Fridão': 'fridao_cavalo',
+  'Fridão FC': 'fridao_cavalo',
+  'Fridão EC': 'fridao_cavalo',
+  'Fridão SC': 'fridao_cavalo',
+  'FRIDÃO FC': 'fridao_cavalo',
+  'Fridao': 'fridao_cavalo',
+  'Fridao FC': 'fridao_cavalo',
+  'Fridao EC': 'fridao_cavalo',
+  'Fridao SC': 'fridao_cavalo',
+  'FRIDAO FC': 'fridao_cavalo',
   // ⚓🐷 Marinheiros AS (feehcamp11). CARIMBO_GOL é busca EXATA: entram as formas
   // do nome + a caixa alta. ⚠️ O clube dele termina em "AS", não em FC/EC — as
   // variações reservadas são "Marinheiros AS FC/EC", que é o que o gatilho do
@@ -998,6 +1018,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
   porco_marinheiro: 'O Marujo', // ⚓🐷 Marinheiros AS (feehcamp11, 16/09) — o porco marujo de cachimbo e espinafre. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  fridao_cavalo: 'O Fridão', // 🐴 Fridão FC (felipe.ofrida, 16/09) — o cavalo alvinegro coroado, de crina branca. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   marolado: 'O Marolado', // 🛡️🌱 Marolados FC (paisagensetrilha, 16/09) — o moleque rastafari da várzea. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   scorporila: 'O Scorporila', // 🦍🦂 Scorporila FC (lucassrribeiroo2023, 16/09) — o gorila-escorpião. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   gatao_bfc: 'O Gatão', // 🛡️🐈 Barcenite FC (ricardopessoafreire, 16/09) — o gato de braços cruzados. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
