@@ -3259,6 +3259,7 @@ const ID_TITULARES = 'll-titulares'
 // 🏛️🌱 âncoras das caixas que desceram pro pé da aba Elenco (os atalhos rolam até elas)
 const ID_COMISSAO = 'll-comissao'
 const ID_BASE = 'll-base'
+const ID_PAINEL = 'll-painel-elenco'
 // 📝 QUANTAS TEMPORADAS FALTAM no contrato da comissão — com TETO.
 // Diego (18/09), com dois prints de amigos: *"técnico com 100 temporadas… 100
 // temporadas não existe, pô"* (98 no técnico, 115 no preparador). A causa e a cura
@@ -3334,6 +3335,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   const elencoNovo = useElencoNovo()
   const larga = useTelaLarga() && elencoNovo
   const [abaLista, setAbaLista] = useState<'tit' | 'res' | 'saf'>('tit')
+  // 🏛️🌱 AS PÍLULAS VIRARAM DESTINO (Diego 18/09, pegou AO VIVO na live do Futpoint:
+  // *"hoje quando apertava nessas pílulas tava jogando pro final da tela sem nada"*).
+  // Elas nasceram em 18/09 como ATALHO — só rolavam a tela até a caixa lá no pé. Num
+  // elenco de 27 a lista ficou comprida, e o rolar terminava no rodapé, longe do que
+  // a pessoa pediu. Agora cada pílula ABRE a área dela NO LUGAR DA LISTA, que é o que
+  // ele pediu: *"base deveria jogar o usuário pra base… comissão deveria jogar pra
+  // área de comissão mostrando técnico e preparador"*.
+  const [painel, setPainel] = useState<'nenhum' | 'comissao' | 'base'>('nenhum')
   // 🧑 o rostinho da lista é a MESMA arte do campinho, na MESMA trava
   // (`useLegendPresentation`) — nunca um rosto novo, nunca uma trava nova.
   const rostosOn = useLegendPresentation()
@@ -3685,12 +3694,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // 🧢🌱💸 comissão técnica, a Base e a folha: no celular ficam embaixo do campinho,
   // como sempre foram; no monitor vão pro pé da LISTA, senão sobrava um vão verde
   // do lado direito (o campo é mais alto que a tabela).
-  const blocoClube = (
+  const folhaBox = (
     <>
-      {/* 🧢 o TÉCNICO: na tela nova ele desceu pro pé (o atalho 🏛️ traz você até aqui) */}
-    {quinze && <div id={ID_COMISSAO}><DepartamentoTecnico mgr={mgr} /></div>}
-    {/* 🌱 a BASE (13/09): a caixa pra subir Cria da Base quando há vaga no elenco */}
-    <div id={ID_BASE}>{antesFolha}</div>
     {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
         temporada. Fica aqui em cima das listas pra você ver o custo de relance.
         ⚠️ Soma o salário do TÉCNICO junto: é o que o vira-temporada cobra de
@@ -3717,6 +3722,15 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     ) })()}
     </>
   )
+  // 📦 a tela ANTIGA (sem `elencoNovo`) continua exatamente como era: as três caixas
+  // inteiras, uma embaixo da outra. Só a tela NOVA ganhou as pílulas-destino.
+  const blocoClube = (
+    <>
+    {quinze && <div id={ID_COMISSAO}><DepartamentoTecnico mgr={mgr} /></div>}
+    <div id={ID_BASE}>{antesFolha}</div>
+    {folhaBox}
+    </>
+  )
   // 🧹 O MEIO DA TELA LIMPO (Diego 18/09, olhando o celular: *"não gostei, c mts
   // coisas no meio atrapalhando"*). Entre o campinho e a lista moravam TRÊS caixas
   // grandes — Departamento Técnico, Base e Folha — então pra ver o elenco você
@@ -3724,17 +3738,40 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // três ATALHOS de uma linha (era o que o desenho aprovado mostrava), e as caixas
   // inteiras descem pro pé da tela. Nada sumiu: o atalho leva até elas.
   const vaPra = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  const atalho = (emoji: string, titulo: string, sub: string, onClick: () => void) => (
-    <button key={titulo} onClick={onClick} style={{ flex: 1, minWidth: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 5px', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
-      <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: larga ? 11 : 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emoji} {titulo}</span>
-      <span style={{ display: 'block', fontSize: 7.5, fontWeight: 700, color: 'rgba(12,12,12,.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
+  const atalho = (emoji: string, titulo: string, sub: string, onClick: () => void, aberta = false) => (
+    <button key={titulo} onClick={onClick} aria-pressed={aberta} style={{ flex: 1, minWidth: 0, background: aberta ? INK : '#fff', color: aberta ? GOLD : INK, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 5px', textAlign: 'center', boxShadow: aberta ? 'none' : `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
+      <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: larga ? 11 : 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emoji} {titulo} {aberta ? '▴' : '▾'}</span>
+      <span style={{ display: 'block', fontSize: 7.5, fontWeight: 700, color: aberta ? 'rgba(255,255,255,.6)' : 'rgba(12,12,12,.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
     </button>
   )
+  // toca de novo na mesma pílula = fecha e volta pro elenco. O `requestAnimationFrame`
+  // é porque a área só existe DEPOIS do React desenhar — rolar antes não acha nada
+  // (foi exatamente o "joga pro final da tela sem nada" que ele pegou).
+  const abrePainel = (p: 'comissao' | 'base') => {
+    setPainel(x => (x === p ? 'nenhum' : p))
+    requestAnimationFrame(() => vaPra(ID_PAINEL))
+  }
+  // 🚫 A PÍLULA DE SAF SAIU (ordem dele): *"primeiro que precisa ter essa pílula de
+  // SAF, porque já tem embaixo SAF"*. Estava certo — a aba 🏢 SAF fica logo abaixo,
+  // na mesma tela, com o mesmo conteúdo. Dois botões pro mesmo lugar é poluição.
   const atalhos = (
     <div style={{ display: 'flex', gap: 6, margin: '9px 0 10px' }}>
-      {quinze && atalho('🏛️', tr('Comissão', 'Staff'), tr('técnico e preparador', 'coach and fitness'), () => vaPra(ID_COMISSAO))}
-      {antesFolha && atalho('🌱', tr('Base', 'Academy'), tr('subir do sub-20', 'promote from U-20'), () => vaPra(ID_BASE))}
-      {atalho('🏢', 'SAF', emprestados ? tr(`${emprestados} emprestado${emprestados > 1 ? 's' : ''}`, `${emprestados} on loan`) : tr('ninguém emprestado', 'nobody on loan'), () => { setAbaLista('saf'); vaPra(ID_TITULARES) })}
+      {quinze && atalho('🏛️', tr('Comissão', 'Staff'), tr('técnico e preparador', 'coach and fitness'), () => abrePainel('comissao'), painel === 'comissao')}
+      {antesFolha && atalho('🌱', tr('Base', 'Academy'), tr('subir do sub-20', 'promote from U-20'), () => abrePainel('base'), painel === 'base')}
+    </div>
+  )
+  // 🏛️🌱 A ÁREA QUE A PÍLULA ABRE — entra NO LUGAR da lista, com o caminho de volta
+  // sempre à vista. Nada de conteúdo mudou: é o MESMO Departamento Técnico e a MESMA
+  // caixa da Base que já existiam, só que agora onde a pessoa pediu pra ir.
+  const painelAberto = (
+    <div id={ID_PAINEL} style={{ minWidth: 0 }}>
+      <button onClick={() => setPainel('nenhum')}
+        style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', background: '#fff', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 11.5 }}>
+        ← {tr('VOLTAR PRO ELENCO', 'BACK TO THE SQUAD')}
+      </button>
+      {painel === 'comissao'
+        ? (quinze ? <DepartamentoTecnico mgr={mgr} /> : null)
+        : antesFolha}
     </div>
   )
   const tabela = (
@@ -3759,7 +3796,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
             É onde você sente a falta de reserva, então é onde o caminho tem que estar.
             Não duplica nada: leva pra MESMA caixa da Base, que mora no pé da tela. */}
         {abaLista === 'res' && antesFolha && (
-          <button onClick={() => vaPra(ID_BASE)} style={{ width: '100%', marginTop: 5, border: `2.5px dashed ${INK}`, borderRadius: 9, padding: '7px 9px', background: '#EFF7F1', cursor: 'pointer', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 11, color: GREEN }}>
+          <button onClick={() => abrePainel('base')} style={{ width: '100%', marginTop: 5, border: `2.5px dashed ${INK}`, borderRadius: 9, padding: '7px 9px', background: '#EFF7F1', cursor: 'pointer', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 11, color: GREEN }}>
             🌱 {tr('SUBIR DA BASE', 'PROMOTE FROM THE ACADEMY')}
             <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, color: 'rgba(12,12,12,.5)', textTransform: 'none' }}>{tr('tapa uma vaga do banco com um guri do sub-20 — de graça, e ele é fraco de propósito', 'fill a bench spot with a U-20 kid — free, and weak on purpose')}</span>
           </button>
@@ -3987,8 +4024,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       {/* 📋 a lista: no monitor ela ocupa o resto da largura, ao lado do campo —
           e leva junto comissão/base/folha, senão sobrava um vão verde do lado. */}
       <div style={larga ? { flex: 1, minWidth: 0 } : undefined}>
-        {elencoNovo ? tabela : listasDeSempre}
-        {elencoNovo && <div style={{ marginTop: 10 }}>{blocoClube}</div>}
+        {elencoNovo ? (painel !== 'nenhum' ? painelAberto : tabela) : listasDeSempre}
+        {elencoNovo && <div style={{ marginTop: 10 }}>{folhaBox}</div>}
       </div>
       </div>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: '8px 0 0', lineHeight: 1.4, textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>
