@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, Component, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
+import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { revealOffers, revealIdentityVisible } from './reveal-presentation'
@@ -48,7 +48,7 @@ import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
 import { POS_LABELS, basketClockLabel } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
-import { MASCOTES, FestaoMascote } from './mascotes'
+import { MASCOTES, FESTA_JEITO, FestaoMascote } from './mascotes'
 import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
 import { JanelaConta } from './conta'
 import './home-ilustrada.css'
@@ -2862,7 +2862,22 @@ async function chamarMaisGente(roomId: string | undefined | null, dispatch: Retu
   let ok = true
   try { ok = window.confirm(msg) } catch { ok = true }
   if (!ok) return
-  if (roomId) { try { await supabase.from('game_rooms').update({ status: 'waiting', updated_at: new Date().toISOString() }).eq('id', roomId) } catch { /* segue: o reducer leva pra espera mesmo assim */ } }
+  // 🧹 E O PREGÃO VELHO TEM QUE MORRER NO BANCO, não só na tela (18/09, bug do Bruno).
+  // O `status: 'waiting'` sozinho não bastava: o `game_state` continuava com a partida
+  // inteira lá dentro (managers + `screen: 'auction'`), e a próxima largada caía no
+  // ramo "partida em andamento" do `triggerStart` — que RESTAURA em vez de montar de
+  // novo. Daí os dois sintomas juntos: o amigo novo não entrava (ele não está nos
+  // managers velhos) e *"o pregão continua de onde parou"*.
+  // Marcar `screen: 'lobby'` DENTRO do game_state é o suficiente e é cirúrgico: é
+  // exatamente o campo que o `triggerStart` olha, e nada mais da sala se perde
+  // (liga, regras, baralho, senha continuam onde estão).
+  if (roomId) {
+    try {
+      const { data } = await supabase.from('game_rooms').select('game_state').eq('id', roomId).maybeSingle()
+      const gs = (data?.game_state ?? {}) as Record<string, unknown>
+      await supabase.from('game_rooms').update({ status: 'waiting', game_state: { ...gs, screen: 'lobby' }, updated_at: new Date().toISOString() }).eq('id', roomId)
+    } catch { /* segue: o reducer leva pra espera mesmo assim */ }
+  }
   dispatch({ type: 'VOLTA_ESPERA' })
 }
 
@@ -3018,7 +3033,12 @@ function FloatingEmotes() {
   return (
     <div className="fixed inset-x-0 bottom-20 z-50 pointer-events-none flex flex-col-reverse items-center gap-1 px-3">
       <AnimatePresence>
-        {emotes.slice(-6).map(e => {
+        {/* 🐊 a mascote que o `MascoteAtravessa` já está desenhando GRANDE sai daqui —
+            senão vira a mesma coisa duas vezes na tela (a fichinha de 52px + o bicho
+            cruzando), que é exatamente a reclamação que o Diego fez da faixa dos
+            cansados em 18/09. Chave que este aparelho NÃO sabe desenhar continua na
+            fila, com o 🎭 — aí a fila é o único lugar, e nada se perde. */}
+        {emotes.filter(e => !(e.kind.startsWith('masc:') && MASCOTES[e.kind.slice(5)])).slice(-6).map(e => {
           // resolve o autor pelo CRACHÁ (fromId) — estável entre aparelhos; cai
           // pra cadeira (e.from) só em evento antigo sem fromId
           const m = (e.fromId != null ? state.managers.find(x => x.id === e.fromId) : undefined) ?? state.managers[e.from]
@@ -3050,6 +3070,79 @@ function FloatingEmotes() {
           )
         })}
       </AnimatePresence>
+    </div>
+  )
+}
+
+// 🐊 SOLTOU O BICHO: a mascote do clube batizado ATRAVESSA A TELA de todo mundo.
+//
+// Diego (18/09): *"esse solta o mascote das salas online está mt pequeno e sem
+// graça"*. E estava mesmo: soltar a mascote punha uma fichinha de 52px na fila de
+// reações — menos teatro do que a cantada 💸, que já derrubava chuva de dinheiro na
+// tela inteira. A mascote é a coisa MAIS pessoal do jogo (só quem tem clube
+// batizado tem uma); era a que menos aparecia.
+//
+// Ele aprovou o desenho e escolheu o jeito: *"atravessa a tela"* — entra por um
+// lado, cruza e sai, ~2,2 s. Uma passada só.
+//
+// 🎽 CADA BICHO DO JEITO DELE: reusa o `FESTA_JEITO` da festa de campeão (🦅 quem
+// voa plana alto e sem sombra no chão · 🐍 quem rasteja ondula rente · o resto
+// quica). Arte e movimento são os MESMOS da festa — o bundle não cresce um byte.
+//
+// ⏱️ NÃO ATRASA O JOGO (regra de ouro do Diego): camada fixa, `pointer-events:none`,
+// fora do reducer — a MESMA receita da chuva de dinheiro logo abaixo. Não encosta em
+// lance, tempo nem resultado; quem está lacrando continua lacrando por cima.
+//
+// 👥 DOIS AO MESMO TEMPO cruzam juntos, em alturas diferentes — cada emote é um
+// bicho, igual a chuva trata cada rajada.
+const MASC_ALTURAS = ['14%', '30%', '46%'] // onde cada bicho cruza (quem voa sobe mais)
+function MascoteAtravessa() {
+  const { state, emotes } = useEsc()
+  if (state.onlineMode !== 'online') return null
+  // 🛟 só entra quem este aparelho SABE desenhar: chave desconhecida (versão velha,
+  // clube que ele não conhece) segue pelo caminho antigo, com o 🎭 no balão.
+  const soltos = emotes.filter(e => e.kind.startsWith('masc:') && MASCOTES[e.kind.slice(5)])
+  if (soltos.length === 0) return null
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 99981, pointerEvents: 'none', overflow: 'hidden' }}>
+      <style>{`
+        @keyframes escMascCruza{0%{left:-34%;opacity:0}7%{opacity:1}93%{opacity:1}100%{left:110%;opacity:0}}
+        @keyframes escMascQuica{0%,100%{transform:translateY(0) rotate(-7deg) scaleY(.96)}50%{transform:translateY(-54px) rotate(7deg) scaleY(1.03)}}
+        @keyframes escMascPlana{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-24px) rotate(3deg)}}
+        @keyframes escMascOndula{0%,100%{transform:translateY(0) rotate(-9deg) scaleX(1.03)}50%{transform:translateY(-12px) rotate(9deg) scaleX(.97)}}
+        @keyframes escMascConf{0%{top:-8%;opacity:1}100%{top:106%;opacity:0}}
+        @keyframes escMascFaixa{0%{transform:translateY(16px) scale(.85);opacity:0}14%{transform:translateY(0) scale(1);opacity:1}84%{opacity:1}100%{opacity:0}}
+      `}</style>
+      {soltos.map((e, idx) => {
+        const key = e.kind.slice(5)
+        const jeito = FESTA_JEITO[key] ?? 'quica'
+        const voa = jeito === 'voa'
+        const m = (e.fromId != null ? state.managers.find(x => x.id === e.fromId) : undefined) ?? state.managers[e.from]
+        const quem = m ? (m.teamName || m.name) : ''
+        // semente estável no id: re-render não faz o bicho pular de altura
+        const h = moneySeed(e.id)
+        const chao = MASC_ALTURAS[h % MASC_ALTURAS.length]
+        return (
+          <Fragment key={e.id}>
+            {Array.from({ length: 12 }, (_, i) => {
+              const c = moneySeed(`${e.id}:${i}`)
+              const cor = [GOLD, '#E8503A', PURPLE, '#41C07A', '#fff'][c % 5]
+              const w = 5 + (c % 3) * 2
+              return <span key={i} style={{ position: 'absolute', left: `${3 + (c % 92)}%`, top: '-8%', width: w, height: w + 4, background: cor, transform: `rotate(${c % 360}deg)`, animation: `escMascConf ${1.4 + ((c >> 3) % 80) / 100}s linear ${((c >> 7) % 55) / 100}s forwards` }} />
+            })}
+            <div style={{ position: 'absolute', bottom: voa ? '46%' : chao, left: '-34%', animation: 'escMascCruza 2.2s linear forwards' }}>
+              <div style={{ animation: `${voa ? 'escMascPlana 1.4s' : jeito === 'rasteja' ? 'escMascOndula .8s' : 'escMascQuica .55s'} ease-in-out infinite` }}>{MASCOTES[key]}</div>
+              {/* sombra no chão só pra quem PISA no chão — bicho voando não tem */}
+              {!voa && <div style={{ width: 96, height: 13, borderRadius: 999, background: 'rgba(0,0,0,.28)', margin: '2px auto 0' }} />}
+            </div>
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 20 + idx * 46, textAlign: 'center', animation: 'escMascFaixa 2.2s ease-out forwards' }}>
+              <span style={{ display: 'inline-block', background: PURPLE, color: '#fff', border: `3px solid ${INK}`, borderRadius: 999, padding: '6px 16px', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>
+                🐊 {quem} {tr('soltou o bicho!', 'let the mascot loose!')}
+              </span>
+            </div>
+          </Fragment>
+        )
+      })}
     </div>
   )
 }
@@ -3218,7 +3311,7 @@ export function EscAuction() {
   if (state.phase === 'envelope' || state.phase === 'resq_envelope') sub = <Envelope />
   else if (state.phase === 'tiebreak') sub = <Tiebreak />
   else sub = <Reveal />
-  return <>{sub}<FloatingEmotes /><MoneyRain /></>
+  return <>{sub}<FloatingEmotes /><MoneyRain /><MascoteAtravessa /></>
 }
 
 function Envelope() {

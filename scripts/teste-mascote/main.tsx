@@ -11,6 +11,11 @@
 // quica) — zero arte nova, bundle não cresce.
 //
 //   ?masc=<chave>  qual mascote (padrão: leao_thor)
+//
+// 🔁 ESTA BANCADA É ESPELHO, NÃO IMPORTA O COMPONENTE. O `MascoteAtravessa` mora no
+// `screens.tsx` e depende do `useEsc()` (estado da SALA + fila de emotes), que não dá
+// pra montar aqui. Então os keyframes têm os MESMOS nomes e os MESMOS valores dos do
+// jogo de propósito: `print-mascote.mjs` compara os dois e reclama se um mudar sozinho.
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
 import { MASCOTES, FESTA_JEITO } from '../../src/escalacao/mascotes'
@@ -57,21 +62,21 @@ const Solta = ({ n }: { n: number }) => {
   return (
     <div key={n} style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 9 }}>
       <style>{`
-        @keyframes mjCruza{0%{left:-34%;opacity:0}8%{opacity:1}92%{opacity:1}100%{left:108%;opacity:0}}
-        @keyframes mjQuica{0%,100%{transform:translateY(0) rotate(-7deg) scaleY(.96)}50%{transform:translateY(-54px) rotate(7deg) scaleY(1.03)}}
-        @keyframes mjPlana{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-24px) rotate(3deg)}}
-        @keyframes mjOndula{0%,100%{transform:translateY(0) rotate(-9deg) scaleX(1.03)}50%{transform:translateY(-12px) rotate(9deg) scaleX(.97)}}
-        @keyframes mjConf{0%{top:-8%;opacity:1}100%{top:106%;opacity:0}}
-        @keyframes mjBalao{0%{transform:translateY(16px) scale(.8);opacity:0}14%{transform:translateY(0) scale(1);opacity:1}86%{opacity:1}100%{opacity:0}}
+        @keyframes escMascCruza{0%{left:-34%;opacity:0}8%{opacity:1}92%{opacity:1}100%{left:108%;opacity:0}}
+        @keyframes escMascQuica{0%,100%{transform:translateY(0) rotate(-7deg) scaleY(.96)}50%{transform:translateY(-54px) rotate(7deg) scaleY(1.03)}}
+        @keyframes escMascPlana{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-24px) rotate(3deg)}}
+        @keyframes escMascOndula{0%,100%{transform:translateY(0) rotate(-9deg) scaleX(1.03)}50%{transform:translateY(-12px) rotate(9deg) scaleX(.97)}}
+        @keyframes escMascConf{0%{top:-8%;opacity:1}100%{top:106%;opacity:0}}
+        @keyframes escMascFaixa{0%{transform:translateY(16px) scale(.85);opacity:0}14%{transform:translateY(0) scale(1);opacity:1}84%{opacity:1}100%{opacity:0}}
       `}</style>
       {conf.map((c, i) => (
-        <span key={i} style={{ position: 'absolute', left: `${c.x}%`, top: '-8%', width: c.w, height: c.w + 4, background: c.cor, transform: `rotate(${c.rot}deg)`, animation: `mjConf ${c.dur}s linear ${c.delay}s forwards` }} />
+        <span key={i} style={{ position: 'absolute', left: `${c.x}%`, top: '-8%', width: c.w, height: c.w + 4, background: c.cor, transform: `rotate(${c.rot}deg)`, animation: `escMascConf ${c.dur}s linear ${c.delay}s forwards` }} />
       ))}
-      <div style={{ position: 'absolute', bottom: alto ? '46%' : '14%', left: '-34%', animation: 'mjCruza 2.2s linear forwards' }}>
-        <div style={{ animation: `${alto ? 'mjPlana 1.4s' : JEITO === 'rasteja' ? 'mjOndula .8s' : 'mjQuica .55s'} ease-in-out infinite` }}>{ART}</div>
+      <div style={{ position: 'absolute', bottom: alto ? '46%' : '14%', left: '-34%', animation: 'escMascCruza 2.2s linear forwards' }}>
+        <div style={{ animation: `${alto ? 'escMascPlana 1.4s' : JEITO === 'rasteja' ? 'escMascOndula .8s' : 'escMascQuica .55s'} ease-in-out infinite` }}>{ART}</div>
         {!alto && <div style={{ width: 96, height: 13, borderRadius: 999, background: 'rgba(0,0,0,.28)', margin: '2px auto 0' }} />}
       </div>
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 20, textAlign: 'center', animation: 'mjBalao 2.2s ease-out forwards' }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 20, textAlign: 'center', animation: 'escMascFaixa 2.2s ease-out forwards' }}>
         <span style={{ display: 'inline-block', background: ROXO, color: '#fff', border: `3px solid ${INK}`, borderRadius: 999, padding: '6px 16px', boxShadow: `3px 3px 0 ${INK}`, ...OSW, fontSize: 14, textTransform: 'uppercase' }}>
           🐊 Diego soltou o bicho!
         </span>

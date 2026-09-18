@@ -8,10 +8,9 @@
 // são keyframes de CSS, o Playwright GRAVA A TELA em tempo real (webm) e o ffmpeg
 // converte pra mp4 do Instagram/WhatsApp.
 //
-// ⚠️ A FITA FINAL DIZ "CHEGANDO", NÃO "JÁ ESTÁ NO AR" — e isso é de propósito: em
-// 18/09 o banco de 16 está TRAVADO na conta do Diego (`ELENCO27_GERAL = false` em
-// `sport.ts`). No dia em que ele soltar pra geral, trocar a pílula da cena ⑥ pra
-// `pill('já está no ar', GREEN, '#fff', 40)`. Fita não pode contradizer o jogo.
+// 🚀 ATUALIZADO 18/09: a trava ABRIU (`ELENCO27_GERAL = true`), então a fita final diz
+// "já está no ar" (verde), não mais "chegando". A legenda do post diz o mesmo — fita não
+// pode contradizer o jogo.
 //
 // 🧾 OS NÚMEROS SÃO OS DO CÓDIGO, não chute:
 //   · salário = `salaryOfCard` (store.tsx): **piso ÷ 10** por jogador, por temporada
@@ -161,8 +160,8 @@ ${cena(22.6, 40, `
   <p style="font-size:150px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 22.75s both">🔁</p>
   <p style="${OSW};font-size:96px;text-transform:uppercase;text-align:center;line-height:1;margin:20px 0 34px;
     animation:sobe .45s 23.05s both">banco de <span style="color:${GREEN}">16</span><br>no modo carreira</p>
-  <!-- ⚠️ enquanto ELENCO27_GERAL = false, a fita diz CHEGANDO (ver o topo do arquivo) -->
-  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 23.5s both">${pill('chegando', GOLD, INK, 40)}</div>
+  <!-- 🚀 no ar pra todo mundo desde 18/09 (ver o topo do arquivo) -->
+  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 23.5s both">${pill('já está no ar', GREEN, '#fff', 40)}</div>
   <p style="${OSW};font-size:64px;margin-top:60px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 24.0s infinite">
     ⚽ Leilão <span style="color:${RED}">Legends</span></p>
   <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.55);margin-top:12px">leilaolegends.com</p>`)}

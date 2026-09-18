@@ -28,8 +28,10 @@ const N = Number(q.get('n') ?? 27)
 const OLHEIRO = q.get('olheiro') ?? 'ouro'
 const GAS = q.get('gas') !== '0'
 
-// 🔓 a tela nova está travada na conta do Diego — a bancada abre a trava só aqui.
-_bancadaElencoNovo(q.get('novo') !== '0') // ?novo=0 → confere a tela ANTIGA (trava fechada)
+// 🔓 desde 18/09 a tela nova é de TODO MUNDO (`ELENCO27_GERAL = true`), então isto aqui
+// virou herança: o `?novo=0` não fecha mais nada, porque o GERAL ganha da lista de
+// e-mails. Fica só pro dia em que alguém precisar reabrir o teste por conta.
+_bancadaElencoNovo(q.get('novo') !== '0')
 if (OLHEIRO !== 'nenhum') _bancadaApoio('bancada@teste', OLHEIRO === 'prata' ? 'prata' : 'ouro')
 
 // 🧑 o elenco sai do CATÁLOGO DE ROSTOS: assim cada linha tem a trinca certa

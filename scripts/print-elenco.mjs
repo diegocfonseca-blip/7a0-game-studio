@@ -23,7 +23,10 @@ const ALVOS = [
   ['elenco-celular-reservas', 390, 'n=27&olheiro=ouro', true],
   ['elenco-celular-sem-olheiro', 390, 'n=27&olheiro=nenhum', false],
   ['elenco-celular-saf', 390, 'n=31&olheiro=ouro', 'saf'], // 🏢 a aba SAF com os 4 emprestados
-  ['elenco-antigo-celular', 390, 'n=22&novo=0', false], // a tela de TODO MUNDO (trava fechada)
+  // ⚠️ o alvo `novo=0` SAIU em 18/09: a trava abriu pra todo mundo (`ELENCO27_GERAL =
+  // true`), então não existe mais "a tela antiga" pra comparar — o `?novo=0` hoje
+  // desenha a MESMA tela e o print só enganaria quem viesse conferir depois.
+  ['elenco-celular-22', 390, 'n=22&olheiro=ouro', false], // elenco ainda por encher
 ]
 
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })

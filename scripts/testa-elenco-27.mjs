@@ -30,18 +30,21 @@ const encher = (m, n) => {
   return m
 }
 
-console.log('1) 🔒 TRAVA FECHADA (todo mundo, hoje): nada muda')
-_bancadaElencoNovo(false)
+console.log('1) 🔓 AGORA É DE TODO MUNDO (a trava abriu em 18/09)')
+// Ficou uma tarde travado na conta do Diego, telinha por telinha, até ele mandar:
+// *"publique isso pra todos já, não só no meu usuário"*. `ELENCO27_GERAL = true`.
+// ⚠️ Esta seção guardava o mundo ANTIGO (trava fechada = elenco 22) e QUEBROU no dia
+// em que a trava abriu — que é exatamente o serviço dela. Agora guarda o mundo novo.
+_bancadaElencoNovo(false) // sem efeito: com o GERAL ligado, a lista de e-mails é só reserva
 marcaModoOnline(false)
 {
-  const eu = time({ isHuman: true, deepSquad: true })
-  ok(elencoCheio(eu) === 22, `teto do elenco = ${elencoCheio(eu)} (tem que ser 22)`)
-  ok(soma(eu, slotsOf) === 22, `mira do pregão = ${soma(eu, slotsOf)} (22)`)
-  encher(eu, 22)
-  ok(soma(eu, openSlots) === 0, 'elenco 22/22 no pregão: nenhuma vaga — é barrado, como sempre foi')
+  const qualquerUm = time({ isHuman: true, deepSquad: true })
+  ok(elencoCheio(qualquerUm) === 27, `teto de QUALQUER conta = ${elencoCheio(qualquerUm)} (27)`)
+  encher(qualquerUm, 22)
+  ok(soma(qualquerUm, openSlots) === 5, `elenco 22 no pregão: ainda cabem ${soma(qualquerUm, openSlots)} — sem precisar de conta liberada`)
 }
 
-console.log('2) 🔓 TRAVA ABERTA, offline: o pregão continua 22, mas ele chega a 27')
+console.log('2) 🔓 O pregão continua 22, mas o elenco chega a 27')
 _bancadaElencoNovo(true)
 {
   const eu = time({ isHuman: true, deepSquad: true })

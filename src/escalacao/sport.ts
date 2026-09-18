@@ -727,8 +727,11 @@ export function useSubAbasGrudadas(): boolean {
 // ⚠️ São as DUAS coisas na MESMA trava de propósito: o banco de 16 sem a tabela
 // nova estoura a listinha de meia largura (foi o "buraco na esquerda"), e a
 // tabela sem o banco maior não tem por que existir.
-// Pra soltar pra todo mundo: `ELENCO27_GERAL = true` (e nada mais).
-const ELENCO27_GERAL = false
+// 🔓 SOLTO PRA TODO MUNDO em 18/09 (*"publique isso pra todos já, não só no meu
+// usuário"*). Ficou uma tarde inteira travado na conta dele, telinha por telinha.
+// A lista abaixo virou RESERVA — se precisar fechar de novo, é só voltar pra `false`
+// e ela reassume (o e-mail dele continua lá).
+const ELENCO27_GERAL = true
 const ELENCO27_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let elenco27Ok = ELENCO27_GERAL
 let elenco27Bancada = false // 🧪 só a bancada de teste liga isto (ver abaixo)

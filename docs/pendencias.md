@@ -1,4 +1,76 @@
-## 18/09/2026 (parte 4) — 🐊 "Solta a mascote" está pequeno demais ⏳ PROPOSTA, ESPERANDO O OK
+## 18/09/2026 (parte 6) — 🔓 O banco de 16 ABRIU PRA TODO MUNDO
+
+Ordem dele, no fim do dia: *"publique isso pra todos já, não só no meu usuário"*.
+`ELENCO27_GERAL = true` em `sport.ts`. A lista `ELENCO27_TESTERS` virou RESERVA — pra
+fechar de novo é voltar pra `false` e ela reassume (o e-mail dele continua lá).
+
+**As três pernas saíram juntas, como manda o roteiro** (código + o que o jogador vê + o
+anúncio):
+1. **Trava aberta** → elenco 27, aba Elenco nova, pílulas, aba SAF, atalhos, barrinha de
+   gás no campinho: tudo de todo mundo agora.
+2. **Linha em `novidades.ts`** (PT + EN) — o banco de 11 → 16, com o aviso do salário e
+   da renovação na mesma frase. Era a pendência que estava aberta desde 16/09.
+3. **A fita trocou o fecho**: `chegando` (dourado) → **`já está no ar`** (verde).
+   Regravada. Fita não pode contradizer o jogo — a mesma regra que o reels do preparador
+   registrou em 15/09.
+
+### 🧪 A trava quebrou — e era pra quebrar
+`npm run elenco27` reprovou na hora: a seção 1 dela guardava o mundo ANTIGO ("trava
+fechada = elenco 22"), que deixou de existir. **Isso é o serviço dela**, não um defeito.
+Atualizada pro mundo novo: hoje a seção 1 prova que **qualquer conta** chega a 27.
+📌 Mesma limpeza no que virou herança: o alvo `elenco-antigo-celular` (`?novo=0`) saiu do
+`print-elenco.mjs` — o `?novo=0` não fecha mais nada (o GERAL ganha da lista de e-mails),
+então aquele print só enganaria quem viesse conferir depois.
+
+## 18/09/2026 (parte 5) — 🌐 Minhas Ligas: os DOIS bugs do Bruno, com a causa achada
+
+Diego trouxe o áudio do Bruno + a cobrança: *"eu já tinha pedido pra você arrumar o
+Minhas Ligas do online, mas pelo visto ainda tem erros"*. Tinha mesmo. As duas causas:
+
+### 1) 📣 "Chamar mais gente" — o amigo novo não entrava e o pregão continuava de onde parou
+Bruno: *"tô jogando entre duas pessoas, chega um amigo, eu clico pra voltar pra sala de
+espera, ele entra, eu abro o pregão de novo e continua só eu e o outro — o novo não entra
+e o pregão continua de onde parou"*.
+**Eram DUAS travas engolindo a largada nova, e em 15/09 eu consertei só UMA:**
+- ✅ (15/09) `jaTocoAquiComoDono` — a guarda do eco da largada. Ganhou o `emJogoVivo`.
+- ❌ **`jaIniciouRef`** — guarda "já montei ESTA sala" pela VIDA do componente. A 2ª
+  largada da MESMA sala caía num `return true` e **não montava nada**. Agora o aviso do
+  banco zera esse ref quando a sala volta pra `waiting` (chega em TODO aparelho, então
+  host e convidados voltam a largar juntos).
+- ❌ **o `game_state` guardava a partida inteira.** O `status: 'waiting'` sozinho não
+  bastava: o estado salvo continuava com `managers` + `screen: 'auction'`, então a
+  largada seguinte caía no ramo *"partida em andamento"* do `triggerStart`, que
+  **RESTAURA** em vez de montar. Daí os dois sintomas de uma vez. Agora o
+  `chamarMaisGente` grava `screen: 'lobby'` DENTRO do game_state — cirúrgico: é o campo
+  exato que a conta olha, e liga/regras/baralho/senha ficam intactos.
+
+### 2) 🌎 Baralho do MUNDO virando BRASIL
+Bruno: *"colocou baralho mundo, porém quando jogou de novo apareceu baralho do Brasil…
+depois de um tempo na sala começa a aparecer só jogador brasileiro"*.
+**CAUSA: dois bichos com o mesmo nome.** A sala guardava a escolha em
+`game_state.deck` — e `deck` é TAMBÉM o baralho de CARTAS do estado do jogo
+(`Record<Sector, Card[]>`). No **primeiro save do host** (3 s depois de abrir o pregão)
+as cartas gravavam **por cima** da escolha. Daí em diante `gs.deck` era um objeto; como
+não é `'todos'` nem `'eu'`, caía no padrão: **Brasil**.
+**Não dava pra só proteger o `deck`** — quem reconecta PRECISA das cartas nesse campo.
+Então a escolha mudou de nome: **`deckSala`**, que entrou na lista protegida do save
+(`salaFixaRef`, store.tsx) junto com `rivals`/`rivalTeams` (que sumiam pelo mesmo
+motivo: não existem no estado do jogo). O `deck` velho só é lido se ainda for TEXTO.
+
+📊 **O tamanho do estrago, medido no banco** (últimos 7 dias): **773 de 844 salas** com a
+escolha destruída (`deck` virou objeto) — 92%. As 71 intactas são salas que nunca
+abriram o pregão, ou seja, nunca chegaram no primeiro save.
+⚠️ **Sala criada ANTES deste conserto não tem como recuperar a escolha** — a informação
+foi sobrescrita. Sala nova nasce certa.
+
+🧪 **Trava nova: `npm run sala`** (`scripts/testa-sala-online.mjs`) — as duas contas do
+jogo copiadas (a de "restaura o pregão velho?" e a do baralho da sala), incluindo sala
+velha intacta, sala velha já estragada e dez saves seguidos.
+⚠️ **O que a trava NÃO cobre:** a sala de verdade. Este ambiente **não alcança o
+Supabase**, então o que está travado é a REGRA, não a fiação.
+↩️ Reverter: `git revert` do commit — são três pontos pequenos (lobby, screens, store).
+
+## 18/09/2026 (parte 4) — 🐊 "Solta a mascote": agora ATRAVESSA A TELA ✅ CODADO E NO AR
 
 Diego: *"esse solta o mascote das salas online está mt pequeno e sem graça… sei lá"*.
 
@@ -22,8 +94,26 @@ baixo do jeito DELA, solta confete e deixa a faixa roxa *"Fulano soltou o bicho!
 🎥 **Bancada: `scripts/teste-mascote/` + `node scripts/print-mascote.mjs [--masc chave]`**
 — grava ANTES × PROPOSTA lado a lado num mp4. Animação não se julga em print parado.
 
-### ⏭️ Pendente
-- [ ] **OK do Diego** pra codar (e escolher se o bicho cruza uma vez ou vai-e-volta).
+### ✅ Aprovado e feito
+Ele escolheu: ***"atravessa a tela"*** — uma passada só, ~2,2 s. Entrou como
+`MascoteAtravessa` (screens.tsx), montado ao lado do `MoneyRain`. **Este vale pra TODO
+MUNDO** (não tem trava de conta): é cosmético, e quem não tem clube batizado continua
+sem botão nenhum.
+- 🧹 **A fichinha de 52px SAIU da fila de reações** quando o bicho grande está cruzando —
+  senão era a mesma coisa duas vezes na tela, exatamente a bronca da faixa dos cansados.
+  Chave que o aparelho NÃO sabe desenhar continua na fila com o 🎭 (nada se perde).
+- 👥 Dois ao mesmo tempo cruzam juntos, em alturas diferentes (`MASC_ALTURAS`, sorteadas
+  pelo id do emote, então re-render não faz o bicho pular).
+
+### ⚠️ O que NÃO deu pra testar daqui — e por quê
+O `MascoteAtravessa` lê `useEsc()` (estado da SALA + fila de emotes), que **só existe
+numa sala online de verdade** — e este ambiente **não alcança o Supabase** (o proxy
+bloqueia `faabglpjutwursgmrpny.supabase.co`, achado em 18/09 no bug do host).
+Então a bancada é **ESPELHO, não importação**: ela copia os keyframes com os MESMOS
+nomes e valores, e o `print-mascote.mjs` **compara os dois arquivos antes de gravar** e
+falha se um mudar sozinho (hoje: 6 animações em sincronia). Ou seja, o movimento está
+provado; o que falta ver com gente de verdade é a **fiação** (o emote chegando na sala).
+↩️ Reverter é tirar `<MascoteAtravessa />` de uma linha no `screens.tsx`.
 ## 18/09/2026 (parte 3) — 🎬 Reels do banco de 16 (com o aviso de salário/renovação)
 
 Pedido dele: *"preciso de mockup agora com vídeo padrão q sempre fazemos, dizendo q agora

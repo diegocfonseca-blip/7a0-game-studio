@@ -65,7 +65,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -980,6 +980,17 @@ export function EscLobby() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, () => fetchPlayers(room.id))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` },
         ({ new: r }: { new: RoomInfo }) => {
+          // 📣 A SALA VOLTOU PRA ESPERA → a PRÓXIMA largada é uma largada NOVA.
+          // (18/09, relato do Bruno pro Diego: *"eu tô jogando entre duas pessoas, chega
+          // um amigo, eu clico pra voltar pra sala de espera, ele entra, eu abro o pregão
+          // de novo e só continua eu e o outro — o novo não entra e o pregão continua de
+          // onde parou"*.) Em 15/09 eu consertei UMA das duas travas que engoliam essa
+          // largada (o `jaTocoAquiComoDono`) e não vi a outra: o `jaIniciouRef` guarda
+          // "já montei ESTA sala" pela VIDA do componente, então a 2ª largada da MESMA
+          // sala caía no `return true` e não montava nada — com o elenco velho, sem o
+          // amigo novo. Zerar aqui é o lugar certo: o aviso do banco chega em TODO
+          // aparelho, então host e convidados voltam a poder largar juntos.
+          if (r.status !== 'started') jaIniciouRef.current = null
           if (r.status === 'started') { triggerStart(r); return }
           // 🌍 SALA DE COPA: aqui o `game_state` é minúsculo (não tem elenco de
           // ninguém) e é justamente por ele que a FICHA da Copa chega. Só neste
@@ -1320,7 +1331,18 @@ export function EscLobby() {
       manual: !!gs?.manual, // 🎮 sala manual: host controla o ritmo (botão manual/auto no jogo)
       chatOff: !!gs?.chatOff, // 💬 chat ligado/desligado (escolha do host na criação)
       auctionSecs: gs?.auctionSecs, // ⏱️ tempo do leilão (undefined=45s · N=N seg · 0=host avança)
-      deck: gs?.deck ?? 'br', // carreira = 'both'; rápido = escolha do host (br/eu/both)
+      // 🌎 O BARALHO DA SALA VEM DO `deckSala` (18/09 — bug do Bruno: *"colocou baralho
+      // mundo, porém quando jogou de novo apareceu baralho do Brasil… depois de um tempo
+      // na sala começa a aparecer só jogador brasileiro"*).
+      // A CAUSA: a sala guardava a escolha em `game_state.deck` — e `deck` é TAMBÉM o
+      // nome do baralho de CARTAS no estado do jogo (`Record<Sector, Card[]>`). No
+      // primeiro save do host (3 s depois de abrir o pregão) as cartas gravavam por cima
+      // da escolha, e daí em diante `gs.deck` era um objeto. Como não é 'todos' nem 'eu',
+      // caía no padrão: Brasil. Não dava pra só "proteger" o `deck`, porque quem
+      // reconecta PRECISA das cartas nesse campo — então a escolha mudou de nome.
+      // `deckSala` está na lista protegida do save (ver `salaFixaRef` no store.tsx), e o
+      // `deck` velho só entra se ainda for TEXTO (sala criada antes deste conserto).
+      deck: (typeof gs?.deckSala === 'string' ? gs.deckSala : typeof gs?.deck === 'string' ? gs.deck : 'br') as GS['deck'],
       varzea: !!gs?.varzea, // 🥅 rápido + BR, categoria "Sem craques" (só bom jogador + foi profissional)
       career: gs?.mode === 'carreira',
       // 🏀 o ESPORTE da sala (14/09). Vem gravado no game_state de quem criou — é a
@@ -1634,7 +1656,7 @@ export function EscLobby() {
       }
       ligaAt = quando.toISOString()
     }
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1701,7 +1723,7 @@ export function EscLobby() {
     type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (r.gdeck ?? undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
+      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
