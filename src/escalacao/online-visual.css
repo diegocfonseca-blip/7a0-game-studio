@@ -108,6 +108,7 @@
   .ll-desk > * { grid-column: 1 / -1; min-width: 0; }
   .ll-desk > .ll-col-main { grid-column: 1; }   /* 📊 a tabela: a coluna grande */
   .ll-desk > .ll-col-side { grid-column: 2; }   /* ⚔️ próximo jogo, notícias */
+  .ll-desk > .ll-lado { grid-column: 2; }       /* 🗂️ as duas metades, JUNTAS, na direita */
   /* o `space-y-5` do Tailwind é margem entre irmãos; no grid quem separa é o gap */
   .ll-desk > * + * { margin-top: 0 !important; }
 
@@ -117,4 +118,64 @@
   .ll-desk .ll-col-side > * { font-size: 13px; }
   .ll-desk .ll-col-side .grid.grid-cols-3 > button { padding-top: 6px !important; padding-bottom: 6px !important; font-size: 11.5px !important; }
   .ll-desk .ll-col-side p.text-\[11px\] { font-size: 10px !important; line-height: 1.35 !important; opacity: .72; }
+  /* ⚖️ a PÍLULA da tática é coisa de celular: aqui sobra largura, então os
+     três botões continuam sempre à mostra, como ele aprovou em 18/09 */
+  .ll-desk .ll-pilula-tatica { display: none; }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   📱 O ONLINE NO CELULAR (Diego 18/09) — "a tabela fica lá embaixo"
+   ─────────────────────────────────────────────────────────────────────────────
+   No celular a tela é uma FILA vertical, e a TABELA era a última da fila: pra ver
+   a classificação a pessoa rolava por tudo. Aqui a fila é reordenada — e SÓ a
+   ordem muda. Nada encolhe, nada some: o placar (com a mascote do gol), os cards
+   dos outros jogos e a zoeira ficam exatamente do tamanho que já eram.
+
+   A fila nova segue o RELÓGIO — o que muda agora vem primeiro:
+     1. seu placar  2. outros jogos ao vivo  3. próximo jogo + tática (a decisão)
+     4. 🏆 A TABELA  5. notícia + giro da rodada  6. rodapé
+
+   🛡️ Tudo aqui exige `.ll25-shell` (só a tela da sala online) E `.ll-desk`, e
+   mora dentro de @media (max-width:1099.98px) — a faixa que o bloco de desktop
+   NÃO cobre. Desktop e jogo offline não veem uma regra sequer.
+   Pra desfazer: apagar este bloco (a fila volta a ser a ordem do HTML). */
+@media (max-width: 1099.98px) {
+  /* flex só pra existir `order`; coluna = a mesma pilha de antes */
+  .ll25-shell .ll-desk { display: flex; flex-direction: column; }
+  /* o invólucro da direita se dissolve: as duas metades viram irmãs da tabela */
+  .ll25-shell .ll-desk > .ll-lado { display: contents; }
+  /* o `space-y-5` do Tailwind só alcança filho DIRETO — a 1ª metade perdeu a
+     margem quando entrou no invólucro; devolvida aqui (20px = space-y-5) */
+  .ll25-shell .ll-desk > .ll-lado > .ll-col-side:first-child { margin-top: 20px; }
+  /* 🏆 a tabela fica onde está no HTML (ordem 0) e o resto desce por cima dela */
+  .ll25-shell .ll-desk .ll-depois-da-tabela { order: 1; }
+  .ll25-shell .ll-desk > .ll-rabicho { order: 2; }
+}
+
+/* ⚖️ A TÁTICA VIRA PÍLULA NO CELULAR (Diego 18/09: *"tem que diminuir esse modal
+   aí de equilíbrio, ataque, defesa nos móveis"*).
+   Não é invenção nova: é o MESMO padrão que ele aprovou na aba Elenco no mesmo
+   dia (`🎽 4-4-2 ▾`), com a régua que ele deu lá — *"campo e lista você olha toda
+   rodada; formação e modo de troca você mexe de vez em quando. Altura fixa pra
+   ação rara é troca ruim"*. Tática é ação de UMA vez por rodada.
+   Nada some e nenhuma regra muda: os três botões continuam os mesmos, a um toque.
+   Pra desfazer: apagar este bloco (a caixa volta a ficar sempre aberta). */
+@media (max-width: 1099.98px) {
+  .ll25-shell .ll-linha-tatica { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ll25-shell .ll-linha-tatica > p { flex: 1 1 60%; min-width: 0; margin: 0; }
+  .ll25-shell .ll-taticas[data-aberta='nao'] { display: none; }
+}
+
+/* 🧭 UMA NAVEGAÇÃO SÓ NO CELULAR (Diego 18/09) — e SÓ no celular.
+   A tela da sala tinha DOIS menus: as abas em cima (jogos · números · elenco) e a
+   barra fixa embaixo (rank · estante · temporadas · ajustes). Sete botões de
+   navegação disputando um celular. Ordem dele: *"você pode talvez unificar algumas
+   coisas dessas que já tinham, sei lá, pra não ficar muito também"*.
+   No celular a barra de baixo vira a navegação única: as três abas da partida
+   entram nela e Rank/Estante/Temporadas viram um botão só (📚 Estante), com as três
+   em pílulas dentro do painel — nada de conteúdo mudou, só a porta.
+   No desktop NADA disso vale: abas em cima e a barra de sempre com os quatro,
+   igual ele aprovou em 18/09.
+   Pra desfazer: apagar este bloco (voltam os dois menus no celular). */
+@media (min-width: 1100px) { .ll-barra-cel { display: none !important; } }
+@media (max-width: 1099.98px) { .ll-barra-desk, .ll-abas-topo { display: none !important; } }
