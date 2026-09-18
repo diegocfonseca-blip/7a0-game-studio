@@ -3740,6 +3740,16 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
               ? <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '4px 2px', lineHeight: 1.4 }}>{getLang() === 'en' ? <>🔒 In Season 1 you play with the 11. <b>At the next auction</b> (end of this season) you fill the bench — up to {tetoElenco}! 🔨</> : <>🔒 Na Temporada 1 você joga com os 11. <b>No próximo leilão</b> (no fim desta temporada) você enche o banco — até {tetoElenco}! 🔨</>}</p>
               : <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '4px 2px' }}>{tr('Sem reservas no banco.', 'No subs on the bench.')}</p>
           : listaAtual.map(c => linhaTabela(c, abaLista === 'tit'))}
+        {/* 🌱 SUBIR DA BASE, DENTRO DO BANCO (Diego 18/09: *"tem algum botão da base
+            na área do banco? pra poder subir da base pros reservas se o cara quiser"*).
+            É onde você sente a falta de reserva, então é onde o caminho tem que estar.
+            Não duplica nada: leva pra MESMA caixa da Base, que mora no pé da tela. */}
+        {abaLista === 'res' && antesFolha && (
+          <button onClick={() => vaPra(ID_BASE)} style={{ width: '100%', marginTop: 5, border: `2.5px dashed ${INK}`, borderRadius: 9, padding: '7px 9px', background: '#EFF7F1', cursor: 'pointer', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 11, color: GREEN }}>
+            🌱 {tr('SUBIR DA BASE', 'PROMOTE FROM THE ACADEMY')}
+            <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, color: 'rgba(12,12,12,.5)', textTransform: 'none' }}>{tr('tapa uma vaga do banco com um guri do sub-20 — de graça, e ele é fraco de propósito', 'fill a bench spot with a U-20 kid — free, and weak on purpose')}</span>
+          </button>
+        )}
       </div>
       {barraSelecionado}
     </div>
@@ -4675,6 +4685,14 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
   // 🖥️ SÓ A ABA ELENCO SAI DA COLUNA (16/09). No monitor a caixa do clube cresce
   // pra ~1180px e fica centrada na janela — é o que deixa campo e lista lado a
   // lado. Fora do Elenco (elenco do rival) e abaixo de 1000px, nada muda.
+  // 🎽🔁 AS DUAS GAVETAS (Diego 18/09, olhando a tela dele: *"essa foto tb tá c mt
+  // informação"*). Acima do campinho moravam duas caixas grandes e PERMANENTES —
+  // Formação (171px no celular) e Trocas — pra duas decisões que se toma de vez em
+  // quando; sem técnico, a de Formação tem UM botão e um parágrafo explicando que
+  // não dá pra trocar. Agora as duas viram PÍLULA e só abrem no toque. Os botões e
+  // os textos são os MESMOS — só deixaram de ficar abertos o tempo todo.
+  const [abreFormacao, setAbreFormacao] = useState(false)
+  const [abreTrocas, setAbreTrocas] = useState(false)
   const telaLarga = useTelaLarga()
   const elencoNovoOk = useElencoNovo() // ⚠️ hook NUNCA depois de && (o curto-circuito pularia a chamada)
   const largaElenco = telaLarga && elencoNovoOk
@@ -4740,7 +4758,23 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 17, color: '#8a2318', flexShrink: 0 }}>›</span>
         </button>
       )}
-      {elenco && onSetFormation && (() => {
+      {/* 🎽🔁 as pílulas: o que está valendo, em uma linha. Toca e a caixa abre embaixo. */}
+      {elencoNovoOk && elenco && (onSetFormation || onSetSubMode) && (() => {
+        const rotuloForm = quinze15 ? formacaoAtual(mgr).rotulo : mgr.formation
+        const modoAgora = (subMode ?? 'dinamico') === 'dinamico' ? tr('🔄 Dinâmico', '🔄 Dynamic') : tr('⏸️ Intervalo', '⏸️ Half-time')
+        const pilula = (txt: string, aberta: boolean, onClick: () => void) => (
+          <button onClick={onClick} style={{ flex: 1, minWidth: 0, ...OSWALD, fontWeight: 900, fontSize: 11.5, padding: '6px 8px', border: `2.5px solid ${INK}`, borderRadius: 9, background: aberta ? INK : '#fff', color: aberta ? GOLD : INK, boxShadow: aberta ? 'none' : `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {txt} {aberta ? '▴' : '▾'}
+          </button>
+        )
+        return (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {onSetFormation && pilula(`🎽 ${rotuloForm}`, abreFormacao, () => setAbreFormacao(v => !v))}
+            {onSetSubMode && pilula(modoAgora, abreTrocas, () => setAbreTrocas(v => !v))}
+          </div>
+        )
+      })()}
+      {elenco && onSetFormation && (!elencoNovoOk || abreFormacao) && (() => {
         // 🎽 troca de formação: libera pra QUALQUER formação que você consiga preencher
         // por posição com jogadores REAIS e SEUS (emprestado não conta — é extra que
         // volta na virada; nunca entra perna-de-pau). Sem exigir 22 e sem teto: o
@@ -4857,7 +4891,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
       )}
       {/* 🔁 TOGGLE: como o técnico faz troca (só carreira offline). Padrão = dinâmico
           (como sempre foi). "Só no intervalo" faz o jogo pausar aos 45' pra trocar. */}
-      {elenco && onSetSubMode && (() => {
+      {elenco && onSetSubMode && (!elencoNovoOk || abreTrocas) && (() => {
         const mode = subMode ?? 'dinamico'
         // 🎨 CORES DO ELENCO (Diego 13/08): substituição ganha verde PRÓPRIO, em vez
         // da cor do time — evita se misturar com a navegação (mockup aprovado).

@@ -1,4 +1,4 @@
-## 18/09/2026 — 👥 Aba Elenco: aba SAF, fora o Nº, e o meio da tela limpo ⏳ ESPERANDO O OK
+## 18/09/2026 — 👥 Aba Elenco: aba SAF, fora o Nº, o meio limpo, pílulas e a Base no banco ✅ NO AR (só a conta dele)
 
 Diego, olhando a tela NO CELULAR dele (não mais a bancada): *"faltou a aba da SAF, como
 pode ver na primeira foto q tá ótimo… Número n entendi pq significa… e já disse q nível n
@@ -6,8 +6,8 @@ precisa pq já basta o over c gás e a regra q o tier do usuário pode ver… e 
 desktop e móveis como ficará, pois do jeito q tá c essa segunda foto n gostei, c mts coisas
 no meio atrapalhando"*.
 
-⏳ **COMMITADO SÓ NA BRANCH, NÃO FOI PRA MAIN.** Regra dele: visual novo espera OK. As
-fotos foram mandadas (celular titulares · celular na aba SAF · desktop).
+✅ **OK DADO E PUBLICADO** (*"ok faça tudo aí… como falei atualize apenas pro meu usuário"*).
+Segue travado em `ELENCO27_TESTERS`.
 
 1. **🏢 Aba SAF** — agora são três (⭐ TITULARES · 🔁 RESERVAS · 🏢 SAF). Ela estava no
    desenho aprovado e eu tinha entregado só com duas. Emprestado tem lugar próprio porque é
@@ -36,8 +36,22 @@ fotos foram mandadas (celular titulares · celular na aba SAF · desktop).
 por `domcontentloaded`, não `networkidle` — o ambiente não alcança o Supabase, então o
 `networkidle` pendurava pra sempre. E ganhou o alvo `elenco-celular-saf` (n=31).
 
+7. **🎽🔁 O TOPO TAMBÉM ESTAVA CHEIO** (*"essa foto tb tá c mt informação"* — a foto era o
+   topo: Formação + Trocas + Quem está cansado, tudo aberto ao mesmo tempo). Medi: a caixa
+   da **Formação sozinha tem 171px** no celular — e isso **com UMA formação só** (sem
+   técnico), ou seja, um botão e um parágrafo explicando que não dá pra trocar. A de Trocas
+   é do mesmo tipo. As duas viraram **PÍLULA** (`🎽 4-4-2 ▾` · `🔄 Dinâmico ▾`) e só abrem no
+   toque — os botões e os textos são os MESMOS, só pararam de ficar abertos o tempo todo.
+   Régua que decidiu: **campo e lista você olha toda rodada; formação e modo de troca você
+   mexe de vez em quando.** Altura fixa pra ação rara é troca ruim.
+   ⚠️ O que NÃO virou pílula: 😓 **Quem está cansado**. Aquilo é ação com hora marcada (os
+   nomes + o 🔁 RODIZIAR) — esconder seria esconder o problema.
+8. **🌱 SUBIR DA BASE dentro do banco** (*"tem algum botão da base na área do banco? pra
+   poder subir da base pros reservas se o cara quiser"*). Entrou no pé da aba 🔁 RESERVAS,
+   que é onde se sente a falta de reserva. **Não duplica nada**: leva pra MESMA caixa da
+   Base. Só aparece quando existe vaga (a caixa da Base já respeita `vagaCheio`).
+
 ### ⏭️ Pendente
-- [ ] **OK do Diego** → aí sim `main` (segue travado na conta dele).
 - [ ] Mockup da novidade (11 → 16 reservas), só quando ele mandar abrir pra geral.
 
 ## 16/09/2026 (parte 18) — 🏢 A SAF entra POR CIMA: 27 + 4 = 31

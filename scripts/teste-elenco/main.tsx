@@ -112,7 +112,8 @@ createRoot(document.getElementById('root')!).render(
       goals={Object.fromEntries(squad.map((c, k) => [c.id, k % 4 === 0 ? k % 11 : 0]))}
       assists={Object.fromEntries(squad.map((c, k) => [c.id, k % 3 === 0 ? k % 7 : 0]))}
       onSwap={() => {}} selId={null} seasonNo={6} contratosOn olheiros
-      onSetFormation={() => {}}
+      onSetFormation={() => {}} onSetSubMode={() => {}} subMode="dinamico"
+      criaBase={{ onSubir: () => {} }}
       condicao={condicao as never} safDiv="Série A" safSlots={4} />
   </div></EscProvider>
 )
