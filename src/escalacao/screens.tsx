@@ -735,7 +735,7 @@ function HoldButton({ onStep, disabled = false, className = '', style, children 
   )
 }
 
-export function Shell({ children, bar, hideExit = false, className = '' }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string }) {
+export function Shell({ children, bar, hideExit = false, className = '', wide = false }: { children: React.ReactNode; bar?: React.ReactNode; hideExit?: boolean; className?: string; /** 🖥️ tela larga (só o online da temporada usa): vira duas colunas a partir de 1100px — ver `.ll-desk` no online-visual.css. Em celular não muda NADA. */ wide?: boolean }) {
   const previewAccount = useOnlinePreview()
   // O CSS base do estúdio usa texto claro (creme). Como este jogo é todo em
   // fundos claros, forçamos texto escuro por padrão aqui — quem precisa de
@@ -787,7 +787,7 @@ export function Shell({ children, bar, hideExit = false, className = '' }: { chi
           {bar}
         </div>
       )}
-      <div className="max-w-xl mx-auto px-4 pt-5 space-y-5">{children}</div>
+      <div className={`max-w-xl mx-auto px-4 pt-5 space-y-5${wide ? ' ll-desk' : ''}`}>{children}</div>
       {inGame && !hideExit && (
         <div className="max-w-xl mx-auto px-4 pt-6 pb-4 text-center space-y-2">
           {state.onlineMode === 'online' ? (
@@ -5502,7 +5502,9 @@ export function EscSeason() {
   }, [copaTieKey, copaLive, firstLegPending, speedFactor, copaLegMs])
 
   return (
-    <Shell bar={
+    // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
+    // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
+    <Shell wide bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
@@ -5850,7 +5852,7 @@ export function EscSeason() {
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
         return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
       })}</div></section>}
-      <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5">
+      <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5 ll-col-side">
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: myGoals === oppGoals ? INK : '#fff' }}>
@@ -5941,7 +5943,7 @@ export function EscSeason() {
       {/* 🚫 ANTI-SPOILER: a artilharia da Copa soma os gols da perna JÁ no sim; se
           aparecer durante a animação (relógio < 93'), entrega quem marcou antes do
           gol animar. Só mostra depois do apito. */}
-      <div hidden={privateVisual && visualTab !== 'jogos'} className={privateVisual && !copaLive ? 'll26-league-content' : undefined} id="ll26-classification">
+      <div hidden={privateVisual && visualTab !== 'jogos'} className={`ll-col-main${privateVisual && !copaLive ? ' ll26-league-content' : ''}`} id="ll26-classification">
         {privateVisual && !copaLive && state.lastResults.length > 0 && <section className="ll26-round-list" id="ll26-round-games"><h3>{LS('TODOS OS JOGOS · RODADA', 'ALL MATCHES · ROUND')} {state.round}</h3><p>{resultRevealed ? LS('Rodada encerrada. Confira os resultados e a classificação.', 'Round over. Check the results and the standings.') : LS('Acompanhe a sala. A classificação atualiza após o apito.', 'Follow the room. Standings update after the final whistle.')}</p><div>
           {state.lastResults.map(r => {
             const h = state.league.find(t => t.id === r.homeId), a = state.league.find(t => t.id === r.awayId)

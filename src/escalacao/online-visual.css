@@ -81,3 +81,40 @@
 @media(min-width:900px){.online-room-art{padding-top:70px!important;background-size:100% 100%,cover!important;background-attachment:scroll,fixed}.online-room-art[data-online-phase='menu']>.col-tela{max-width:900px}.online-room-art .salas-grade{grid-template-columns:repeat(2,minmax(0,1fr))}.online-room-art .salas-grade>p{grid-column:1/-1}.online-welcome-heading h1{font-size:58px!important}.online-room-art[data-online-phase='waiting']>.col-tela{max-width:780px}}
 @media(max-width:420px){.online-room-art{padding-inline:14px!important}.online-room-row{gap:8px!important;padding:12px!important}.online-room-row>button,.online-room-row>span{padding:10px 8px!important}.online-banter button{font-size:12px!important}.online-newspaper{margin-inline:5px!important;padding:14px!important}.online-newspaper .newspaper-champion{min-height:235px}}
 @media(prefers-reduced-motion:reduce){.online-room-art *,.online-reward *{animation:none!important;transition:none!important}}
+
+/* ─── 🖥️ O ONLINE NO DESKTOP (Diego 18/09, mockup aprovado) ───────────────────
+   Palavras dele, com print do ultrawide: "deveríamos fazer pra desktop usar mais
+   o espaço que temos, não? Porque a tabela fica lá embaixo… esse negócio de
+   próximo jogo ninguém vê e é muito grande… equilíbrio, retranca e ataque grande
+   também".
+
+   A causa era uma linha: a tela inteira é `max-w-xl` (576px). No monitor dele
+   isso usava menos de um quinto da largura, e o que não cabia descia pra baixo
+   da dobra — a tabela era a última da fila.
+
+   🛡️ TUDO AQUI MORA DENTRO DE @media (min-width:1100px). Abaixo disso não existe
+   nem uma regra — o CELULAR fica byte a byte o que já era. Era a condição pra
+   mexer numa tela que roda AO VIVO com sala cheia.
+
+   E não remonta JSX nenhum: o placar continua o MESMO componente (por isso a
+   mascote do gol, o flash e as frases continuam iguais — só o lugar na página
+   muda). A mágica é `grid-auto-flow: dense`: a tabela vem DEPOIS no HTML mas
+   pede a coluna 1, e o `dense` sobe ela pro buraco que sobrou ao lado do bloco
+   da direita. Sem isso ela cairia numa linha de baixo. */
+@media (min-width: 1100px) {
+  .ll-desk { max-width: 1180px !important; display: grid; grid-template-columns: minmax(0, 1fr) 340px;
+             gap: 14px; align-items: start; grid-auto-flow: row dense; }
+  /* o padrão é atravessar as duas colunas: placar, abas, faixas, rodapé */
+  .ll-desk > * { grid-column: 1 / -1; min-width: 0; }
+  .ll-desk > .ll-col-main { grid-column: 1; }   /* 📊 a tabela: a coluna grande */
+  .ll-desk > .ll-col-side { grid-column: 2; }   /* ⚔️ próximo jogo, notícias */
+  /* o `space-y-5` do Tailwind é margem entre irmãos; no grid quem separa é o gap */
+  .ll-desk > * + * { margin-top: 0 !important; }
+
+  /* ⚔️ O "PRÓXIMO JOGO" ENCOLHE (a reclamação nº 2 e nº 3 dele). Some a moldura
+     gorda, o texto da regra vira dica no hover e os botões de tática voltam a ter
+     tamanho de botão. Nada some: é o mesmo bloco, só sem o caixote. */
+  .ll-desk .ll-col-side > * { font-size: 13px; }
+  .ll-desk .ll-col-side .grid.grid-cols-3 > button { padding-top: 6px !important; padding-bottom: 6px !important; font-size: 11.5px !important; }
+  .ll-desk .ll-col-side p.text-\[11px\] { font-size: 10px !important; line-height: 1.35 !important; opacity: .72; }
+}
