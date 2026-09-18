@@ -26,7 +26,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao'
-import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
+import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, CONTRATO_TEMPORADAS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
@@ -3259,6 +3259,14 @@ const ID_TITULARES = 'll-titulares'
 // 🏛️🌱 âncoras das caixas que desceram pro pé da aba Elenco (os atalhos rolam até elas)
 const ID_COMISSAO = 'll-comissao'
 const ID_BASE = 'll-base'
+// 📝 QUANTAS TEMPORADAS FALTAM no contrato da comissão — com TETO.
+// Diego (18/09), com dois prints de amigos: *"técnico com 100 temporadas… 100
+// temporadas não existe, pô"* (98 no técnico, 115 no preparador). A causa e a cura
+// moram no `store.tsx` (`curaContratoComissao`); aqui fica a rede de segurança da
+// TELA: contrato de comissão é de 5 temporadas, então a tela nunca mostra mais que
+// 5 — mesmo que chegue um save torto que não passou pela cura.
+const faltaContrato = (fim: number | undefined, seasonNo: number): number =>
+  fim == null ? 0 : Math.min(fim - seasonNo + 1, CONTRATO_TEMPORADAS)
 // 🖥️📱 MONITOR OU CELULAR (aba Elenco, 16/09). O jogo inteiro mora numa coluna de
 // 576px — o que é certo em quase toda tela, mas na aba Elenco deixava o campinho do
 // tamanho de celular dentro de um monitor (o Diego pegou: *"o campinho ficou mt
@@ -4132,7 +4140,7 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
   const [loja, setLoja] = useState(false)
   const prep = preparadorDe(state.careerPreparador?.[mgr.teamName])
   const fimPrep = state.careerPreparadorContrato?.[mgr.teamName]
-  const faltaPrep = fimPrep != null ? fimPrep - state.seasonNo + 1 : 0
+  const faltaPrep = faltaContrato(fimPrep, state.seasonNo)
   const prepVencido = fimPrep != null && faltaPrep <= 0
   const moedas = state.careerCoins?.[mgr.id] ?? 0
   const contrato = (fim: number | undefined, falta: number) => fim == null ? '—'
@@ -4244,7 +4252,7 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
   const nome = state.careerTecnicos?.[mgr.teamName] ?? null
   const fim = state.careerTecnicoContrato?.[mgr.teamName]
   const valor = nome ? (state.careerTecnicoPago?.[nome] ?? 0) : 0
-  const falta = fim != null ? fim - state.seasonNo + 1 : 0
+  const falta = faltaContrato(fim, state.seasonNo)
   return (
     <div>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: .7, color: '#8a8266', margin: '0 0 6px', textTransform: 'uppercase' }}>{tr('🧢 Técnico', '🧢 Head coach')}</p>
@@ -4447,7 +4455,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                     {(() => {
                       // 📝 contrato de 5 anos de TODO técnico: só se alicia quem está SEM
                       const fim = state.careerTecnicoContrato?.[c.teamName]
-                      const falta = fim != null ? fim - state.seasonNo + 1 : 0
+                      const falta = faltaContrato(fim, state.seasonNo)
                       const marcado = marcadosT.includes(nome)
                       const trava = falta > 0 ? (getLang() === 'en' ? `contract: ${falta} season${falta > 1 ? 's' : ''} left` : `contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}`) : (!marcado && marcadosT.length >= 1 ? tr('já sondou 1 técnico nesta temporada', 'already scouted 1 coach this season') : undefined)
                       return (

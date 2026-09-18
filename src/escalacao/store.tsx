@@ -13,7 +13,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
-import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato } from './preparadores' // 🏋️ preparador físico (15/09)
+import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato, CONTRATO_TEMPORADAS } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
@@ -568,6 +568,45 @@ function curaContratosVencidos(s: EscState): void {
     }
   }
 }
+// ─── 📝 CURA DO CONTRATO DA COMISSÃO (18/09) ────────────────────────────────
+// Bug que o Diego recebeu de dois amigos: *"empresário com 100 temporadas,
+// técnico com 100 temporadas… 100 temporadas não existe, pô"*. Os prints
+// mostraram **"contrato: faltam 98 temporadas"** num técnico e **"faltam 115"**
+// num preparador.
+//
+// 🔍 A CAUSA, achada no código: contrato de comissão é SEMPRE escrito como
+// `seasonNo + 4` (5 temporadas — `CONTRATO_TEMPORADAS`), e a tela mostra
+// `fim − seasonNo + 1`. Pra dar 115, o `fim` teria que estar 114 temporadas à
+// frente — o que nenhuma escrita faz. Ou seja: **o contrato não subiu, a
+// temporada é que voltou**. E o caminho estava aberto: o `RESTORE_CAREER` tem
+// uma faxina grande (19/08, o bug dos títulos herdados) que zera honras, caixa,
+// estádio, multiclube… mas os mapas da COMISSÃO nasceram DEPOIS (técnico 26/08,
+// preparador 15/09) e nunca entraram nessa lista. Retomar uma carreira antiga
+// (temporada baixa) logo depois de uma adiantada deixava o contrato da outra
+// para trás — e ele ainda era SALVO assim, então viajava pra sempre.
+//
+// Esta cura é a rede: nenhum contrato de comissão pode faltar MAIS que as 5
+// temporadas que a regra permite. Passou disso, o número é impossível — então
+// vale o MÁXIMO legal (5 a partir de agora), nunca "vencido". Quem pagou não
+// perde o funcionário por causa de um número torto: a casa não tira nada de
+// ninguém pra consertar contabilidade.
+function curaContratoComissao(s: EscState): void {
+  const teto = CONTRATO_TEMPORADAS
+  const sn = s.seasonNo ?? 1
+  const conserta = (m?: Record<string, number>): Record<string, number> | undefined => {
+    if (!m) return m
+    let mexeu = false
+    const novo: Record<string, number> = {}
+    for (const [clube, fim] of Object.entries(m)) {
+      if (typeof fim === 'number' && fim - sn + 1 > teto) { novo[clube] = sn + teto - 1; mexeu = true }
+      else novo[clube] = fim
+    }
+    return mexeu ? novo : m
+  }
+  s.careerTecnicoContrato = conserta(s.careerTecnicoContrato)
+  s.careerPreparadorContrato = conserta(s.careerPreparadorContrato)
+}
+
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>, finalPos?: Record<number, number>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
@@ -5161,7 +5200,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 😓📝 CURAS AO ABRIR (13/09, São Luiz FC): liga o gás se a carreira já está em
       // C/B/A (mesmo presa num banner, onde o PLAY_ROUND nunca chegava a ligar) e
       // devolve pro presente contrato que voltou do passado (empréstimo pra SAF).
-      try { ligaCondicaoSeCabe(restored); curaContratosVencidos(restored) } catch { /* save torto: abre mesmo assim */ }
+      try { ligaCondicaoSeCabe(restored); curaContratosVencidos(restored); curaContratoComissao(restored) } catch { /* save torto: abre mesmo assim */ }
       normalizeMultiSeats(restored)
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
@@ -8020,6 +8059,17 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.careerCopaSeasons = []; s.careerSupercopaSeasons = []
       s.careerCoins = {}; s.stadiums = {}; s.careerFilial = undefined
+      // 🧢🏋️ A COMISSÃO TAMBÉM É DA OUTRA CARREIRA (18/09). Os mapas do técnico e do
+      // preparador nasceram DEPOIS desta faxina (26/08 e 15/09) e ficaram de fora —
+      // então retomar uma carreira antiga logo depois de uma adiantada trazia junto o
+      // técnico, o preparador e, principalmente, o CONTRATO deles, marcado numa
+      // temporada lá na frente. Era o "faltam 98/115 temporadas" que os amigos do
+      // Diego mandaram. Carreira retomada começa sem comissão nenhuma — ela é
+      // semeada de novo pela própria carreira, como sempre foi.
+      s.careerTecnicos = undefined; s.careerTecnicosDesde = undefined
+      s.careerTecnicoContrato = undefined; s.careerTecnicoPago = undefined
+      s.careerTecnicoExDono = undefined; s.careerFormacaoExtra = undefined
+      s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
       s.careerScorersAll = {}; s.statsSeason = 0

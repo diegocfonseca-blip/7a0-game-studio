@@ -142,6 +142,37 @@ console.log('\n7) 🛡️ sem preparador NADA trava')
   ok(s.condicaoAuto === true, 'a preferência do automático continua guardando (quem comprar o Lenda já acha ligada)')
 }
 
+console.log('\n8) 📝 "100 temporadas não existe" — o contrato da comissão tem TETO')
+{
+  // Diego (18/09), com print de dois amigos: *"empresário com 100 temporadas, técnico
+  // com 100 temporadas… 100 temporadas não existe, pô"* (98 no técnico, 115 no
+  // preparador). A causa: o RESTORE_CAREER zerava honras, caixa e estádio da carreira
+  // anterior, mas os mapas da COMISSÃO nasceram depois e ficaram de fora — retomar uma
+  // carreira ANTIGA carregava o contrato da ADIANTADA, marcado lá na frente.
+  // Aqui a cura: contrato de comissão nunca falta mais que CONTRATO_TEMPORADAS.
+  const torto = base({
+    seasonNo: 5,
+    careerPreparador: { 'Meia na Canela': 'seirulo' },
+    careerPreparadorContrato: { 'Meia na Canela': 119 },   // 115 faltando — impossível
+    careerTecnicoContrato: { 'Meia na Canela': 102, 'Bot': 7 },
+  })
+  const s = reducer({ ...base(), screen: 'intro' }, { type: 'RESUME_CAREER_SOLO', saved: torto })
+  const fimPrep = s.careerPreparadorContrato?.['Meia na Canela']
+  const fimTec = s.careerTecnicoContrato?.['Meia na Canela']
+  ok(fimPrep - s.seasonNo + 1 === 5, `preparador voltou pro teto de 5 temporadas (era 115, virou ${fimPrep - s.seasonNo + 1})`)
+  ok(fimTec - s.seasonNo + 1 === 5, `tecnico voltou pro teto de 5 temporadas (era 98, virou ${fimTec - s.seasonNo + 1})`)
+  ok(s.careerPreparador?.['Meia na Canela'] === 'seirulo', 'ninguem perde o funcionario que pagou — so o numero e consertado')
+  ok(s.careerTecnicoContrato?.['Bot'] === 7, 'contrato que ja estava dentro da regra nao e tocado')
+}
+{
+  // e a faxina do RESTORE_CAREER agora leva a comissão junto
+  const sujo = { ...base({ seasonNo: 90 }), careerPreparador: { X: 'seirulo' }, careerPreparadorContrato: { X: 94 }, careerTecnicos: { X: 'Alguem' }, careerTecnicoContrato: { X: 94 } }
+  const s = reducer(sujo, { type: 'RESTORE_CAREER', save: { division: 'D', seasonNo: 6, titles: 0, teamName: 'Meia na Canela', formation: '4-3-3', squad: [] } })
+  ok(!s.careerPreparadorContrato || Object.keys(s.careerPreparadorContrato).length === 0, 'carreira retomada nao herda contrato de preparador da outra')
+  ok(!s.careerTecnicoContrato || Object.keys(s.careerTecnicoContrato).length === 0, 'carreira retomada nao herda contrato de tecnico da outra')
+  ok(!s.careerPreparador || Object.keys(s.careerPreparador).length === 0, 'nem o preparador em si')
+}
+
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)
 await vite.close()
 process.exit(falhas === 0 ? 0 : 1)
