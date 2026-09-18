@@ -42,6 +42,13 @@ export interface Batismo {
    * e-mail, não — por isso ele continua fora deste arquivo.
    *
    * 🔒 As duas listas têm que bater: `npm run batismos` compara e reclama.
+   *
+   * 🎨 NEM TODA COR AQUI FOI MEDIDA EM ARTE. Clube cujo dono nunca mandou camisa
+   * tem manto ESCOLHIDO pelo Diego no painel (mora em `esc_socios`, sem linha em
+   * `MANTO_CONTAS`). Essas cores também entram aqui, porque são o uniforme do
+   * clube no jogo — e a regra que ele deu pra foto do campeão foi por CLUBE, não
+   * por origem da cor: *"quando for genérico, mantém genérico"* vale pra clube de
+   * CPU, não pra batismo que tem manto.
    */
   manto?: [string, string]
 }
@@ -59,9 +66,9 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Nightfull FC', tipo: 'batismo', fundador: 18, manto: ['#0A0A0A', '#D6D2CF'] },
   { clube: 'Murriz FC', tipo: 'batismo', fundador: 21, manto: ['#C81D1C', '#150A0A'] },
   { clube: 'Tôka10', tipo: 'batismo', fundador: 23, manto: ['#FCDC04', '#055E1D'] },
-  { clube: 'Skyy FC', tipo: 'batismo', fundador: 24 },
+  { clube: 'Skyy FC', tipo: 'batismo', fundador: 24, manto: ['#237581', '#0D3558'] },
   { clube: 'Marinheiros AS', tipo: 'socio', fundador: null, manto: ['#0D4926', '#F5EBE1'] },
-  { clube: 'Leão da Estradinha', tipo: 'batismo', fundador: 28 },
+  { clube: 'Leão da Estradinha', tipo: 'batismo', fundador: 28, manto: ['#A32A28', '#FFFFFF'] },
   { clube: 'Marreco FC', tipo: 'batismo', fundador: 29 },
   { clube: 'Al Takhadao FC', tipo: 'batismo', fundador: 53, manto: ['#00461C', '#EE5400'] },
   { clube: 'Jurubeba FC', tipo: 'batismo', fundador: 54, manto: ['#F6BB06', '#053F42'] },
@@ -84,25 +91,25 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Manfré FC', tipo: 'batismo', fundador: 34, manto: ['#EC121C', '#0135A3'] },
   { clube: 'Remoçada', tipo: 'batismo', fundador: 35, manto: ['#072246', '#F8F8F8'] },
   { clube: 'Scorporila FC', tipo: 'batismo', fundador: 36, manto: ['#161516', '#E3DCD6'] },
-  { clube: 'Deportivo Montreal', tipo: 'batismo', fundador: 37 },
+  { clube: 'Deportivo Montreal', tipo: 'batismo', fundador: 37, manto: ['#0C0C0C', '#FFFFFF'] },
   { clube: 'Marolados FC', tipo: 'batismo', fundador: 38, manto: ['#024623', '#F5EBD7'] },
   { clube: 'Papão United Madrid', tipo: 'batismo', fundador: 39, manto: ['#001A6C', '#D4D6DD'] },
-  { clube: 'Eros FC', tipo: 'socio', fundador: null },
-  { clube: 'Sapekeiros FC', tipo: 'batismo', fundador: 41 },
+  { clube: 'Eros FC', tipo: 'socio', fundador: null, manto: ['#C2452F', '#7C7C7C'] },
+  { clube: 'Sapekeiros FC', tipo: 'batismo', fundador: 41, manto: ['#0C0C0C', '#C9A227'] },
   { clube: 'Rei da Bola FC', tipo: 'batismo', fundador: 70, manto: ['#D4121F', '#121010'] },
   { clube: 'Raiva Cajuri FC', tipo: 'batismo', fundador: 71, manto: ['#0F0505', '#C40B0E'] },
   { clube: 'Seven City', tipo: 'batismo', fundador: 42, manto: ['#032F13', '#F8EEDC'] },
   { clube: 'Tricolor do Arruda FC', tipo: 'batismo', fundador: 43, manto: ['#110D0E', '#F5F2EF'] },
-  { clube: 'Coringas do Diniz', tipo: 'batismo', fundador: 44 },
-  { clube: 'Nata de SP', tipo: 'batismo', fundador: 45 },
-  { clube: 'Crias do Bigão', tipo: 'batismo', fundador: 46 },
+  { clube: 'Coringas do Diniz', tipo: 'batismo', fundador: 44, manto: ['#FFFFFF', '#0C0C0C'] },
+  { clube: 'Nata de SP', tipo: 'batismo', fundador: 45, manto: ['#FFC400', '#0C0C0C'] },
+  { clube: 'Crias do Bigão', tipo: 'batismo', fundador: 46, manto: ['#0E62AA', '#FCD111'] },
   { clube: 'Theuzudo FC', tipo: 'batismo', fundador: 47, manto: ['#F06000', '#0C0C0C'] },
   { clube: 'São Luiz FC', tipo: 'batismo', fundador: 48, manto: ['#C70107', '#080808'] },
   { clube: 'Milhaça FC', tipo: 'batismo', fundador: 49, manto: ['#AE1A13', '#F3B212'] },
   { clube: 'Esqueceram do Lluch', tipo: 'batismo', fundador: 50, manto: ['#C00018', '#111111'] },
   { clube: 'La Bestia Negra', tipo: 'batismo', fundador: 51, manto: ['#011B8A', '#E8E8EB'] },
   { clube: 'SC Ferrari', tipo: 'batismo', fundador: 52, manto: ['#C2452F', '#141414'] },
-  { clube: 'Futpoint FC', tipo: 'socio', fundador: null },
+  { clube: 'Futpoint FC', tipo: 'socio', fundador: null, manto: ['#181818', '#B89040'] },
   { clube: 'Internacional de Madrid', tipo: 'batismo', fundador: 69, manto: ['#A90605', '#FCF6F1'] },
   { clube: 'Fridão FC', tipo: 'batismo', fundador: 72, manto: ['#161616', '#D5D5D5'] },
   { clube: 'Pesadelo Verde FC', tipo: 'batismo', fundador: 73, manto: ['#030A04', '#597751'] },

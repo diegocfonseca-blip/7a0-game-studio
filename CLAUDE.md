@@ -171,6 +171,14 @@ FORA do bundle. Então, sem exceção:
      direito?"* e a resposta era NÃO: o código estava completo, o banco não.
      Nenhuma trava pega isso, porque `checa-batismos.mjs` roda offline.
      Todo batismo precisa de:
+     ⚠️ **E O BANCO GANHA DO CÓDIGO NO MANTO** (achado 18/09). `meuManto()` lê
+     `esc_socios` PRIMEIRO e só cai no `MANTO_CONTAS` se o banco não tiver nada.
+     Então **remedir a cor e mexer só no código não muda nada pro dono** — ele
+     continua vendo a cor velha. Foi o que estava acontecendo com o **Manfré FC**:
+     a cor foi medida na camisa dele em 30/08, o código foi atualizado, e o banco
+     ficou com `#0E3E86/#C2452F` — 19 dias com o manto errado na tela dele, sem
+     ninguém perceber, porque `checa-batismos.mjs` roda offline. **Toda vez que
+     remedir um manto, rodar o `update esc_socios` junto.**
      - **`esc_socios`** — `socio_n` (o próximo), `desde`, `valido_ate =
        '2099-12-31'` (batismo é pra sempre), `manto_c1`/`manto_c2`,
        `mascote_key`, `escudo_time`, `time_coracao`, `origem = 'batismo'`.

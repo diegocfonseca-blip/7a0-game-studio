@@ -160,9 +160,13 @@ const brigas = []
 for (const [em, clube] of [...BATISMOS, ...SOCIOS]) {
   const a = mantoCor.get(em); const b = batCor.get(chave(clube))
   if (!a && !b) continue
+  // ⚠️ SÓ UM DOS LADOS PODE FALTAR, e é sempre o mesmo: `MANTO_CONTAS` só tem
+  // quem mandou CAMISA. Clube com manto escolhido no painel (que mora só em
+  // `esc_socios`) entra em `batismos.ts` e não aqui — isso é certo, não é furo.
+  // O contrário É furo: cor por e-mail sem cor por nome = foto do campeão saindo
+  // genérica pra um clube que tem manto.
   if (!b) brigas.push(`${clube}: tem cor por e-mail, mas FALTA em batismos.ts (o jornal vai sair genérico)`)
-  else if (!a) brigas.push(`${clube}: tem cor em batismos.ts, mas FALTA em MANTO_CONTAS`)
-  else if (a[0] !== b[0] || a[1] !== b[1]) brigas.push(`${clube}: ${a.join('/')} (manto.ts) × ${b.join('/')} (batismos.ts)`)
+  else if (a && (a[0] !== b[0] || a[1] !== b[1])) brigas.push(`${clube}: ${a.join('/')} (manto.ts) × ${b.join('/')} (batismos.ts)`)
 }
 if (brigas.length) {
   console.log('🔴 MANTO EM DESACORDO — as duas listas têm que dizer a mesma coisa:')

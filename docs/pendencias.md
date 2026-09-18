@@ -1,3 +1,48 @@
+## 18/09/2026 (parte 11) — 🗄️ O banco ganha do código: o manto errado do Manfré e mais 9 clubes no jornal
+
+O Diego liberou o Supabase pra eu fechar a perna do banco do Remoçada. Fechei — e
+a varredura que fiz de carona achou duas coisas.
+
+### 1. 🔴 O Manfré FC estava com o manto errado há 19 dias
+`meuManto()` lê `esc_socios` PRIMEIRO e só cai no `MANTO_CONTAS` se o banco não
+tiver nada. Ou seja: **remedir a cor e mexer só no código não muda nada pro dono**.
+
+Foi exatamente o que aconteceu. A cor do Manfré foi medida na 2ª camisa que o dono
+mandou (30/08), o código virou `#EC121C/#0135A3` — e o banco continuou com
+`#0E3E86/#C2452F`. O Daniel passou 19 dias vendo o manto velho, e **nenhuma trava
+pegava**, porque `checa-batismos.mjs` roda offline.
+✅ Corrigido no banco. E a lição virou regra no `CLAUDE.md`: **remediu manto, roda
+o `update esc_socios` junto.**
+
+Varri os 52 clubes com manto no banco contra o código: **era o único em desacordo**.
+
+### 2. 🎽 9 clubes ficariam de fora da foto do campeão
+A peça de hoje à noite lê a cor de `batismos.ts`, que eu tinha preenchido a partir
+do `MANTO_CONTAS` — e o `MANTO_CONTAS` só tem quem **mandou camisa**. Clube cujo
+manto o Diego escolheu no painel mora só em `esc_socios`, então ficou sem cor no
+código e a foto ia sair genérica pra ele.
+
+Entraram agora, com a cor que já está valendo no jogo: **Coringas do Diniz ·
+Crias do Bigão · Deportivo Montreal · Eros FC · Futpoint FC · Leão da Estradinha ·
+Nata de SP · Sapekeiros FC · Skyy FC**. Conferi os quatro primeiros na bancada: o
+Nata sai amarelo e preto, o Bigão azul e amarelo, o Montreal preto e branco, o
+Manfré vermelho e azul (já com a cor corrigida).
+
+Isso segue a regra que ele deu — *"quando for genérico, mantém genérico"* vale pra
+clube de CPU, não pra batismo que tem manto.
+
+O guarda foi ajustado pra entender a diferença: **cor só em `batismos.ts` é
+normal** (manto do painel); **cor só em `MANTO_CONTAS` é furo** (a foto sairia
+genérica pra quem tem camisa).
+
+### Remoçada: as outras pernas conferidas
+Fundador ✅ · tier ouro ✅ · nomes reservados (`remoçada`, `remoçada fc`,
+`remoçada ec`) ✅ · `esc_socios` com manto novo, `mascote_key = leao_thor` e
+`escudo_time = Remoçada` ✅.
+
+- **Dá pra voltar atrás?** Nas duas coisas. No banco é um `update` de volta
+  (`#0E3E86/#C2452F` no Manfré, `#12256B/#FFFFFF` no Remoçada); no código é
+  reverter o commit.
 ## 18/09/2026 (parte 10) — 🦁⚡ Remoçada de cara nova: a arte do dono entrou
 
 O Diego mandou a prancha do clube (escudo + mascote + camisa, em tela verde) com
