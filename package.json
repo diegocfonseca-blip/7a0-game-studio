@@ -23,7 +23,9 @@
     "crise": "node scripts/testa-crise.mjs",
     "salao": "node scripts/checa-salao.mjs",
     "elenco27": "tsx scripts/testa-elenco-27.mjs",
-    "sala": "node scripts/testa-sala-online.mjs"
+    "sala": "node scripts/testa-sala-online.mjs",
+    "mimos": "node scripts/testa-mimos.mjs",
+    "preparador": "node scripts/testa-preparador.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
