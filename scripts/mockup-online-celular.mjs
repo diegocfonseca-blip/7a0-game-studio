@@ -61,6 +61,21 @@
 // `⚖️ Equilíbrio ▾`. Tocou, abrem os três. Nada some, nada muda de regra —
 // some só a altura parada.
 //
+// 🔁 VERSÃO 6 — *"e não gostei de você diminuir o tamanho dos jogos"*.
+// Ele está certo e eu errei feio na v4: pra caber "rolando de lado" eu espremi os
+// cards dos outros jogos pra 132px, e aí morreu justamente o que é BOM neles — o
+// "⚽ GOL!" piscando, o "ENCERRADO", os escudos e o nome de quem fez o gol com o
+// minuto. Aquele card é conteúdo, não enfeite: é por ele que a pessoa acompanha
+// o jogo do amigo.
+// 👉 Os cards voltam ao TAMANHO DE HOJE, com tudo dentro. E vão a UM POR LINHA, não
+// dois: no celular, dois lado a lado deixam ~150px pra cada, e aí "Leite de Verdade
+// FC" quebra em três linhas e o outro nome corta — isso AINDA é diminuir, só que
+// disfarçado. Um por linha, largura cheia, o nome inteiro cabe e o placar respira.
+// O que muda é só o LUGAR: sobem pra logo abaixo do placar, porque são ao vivo.
+// 📏 Regra que fica pro resto deste desenho: **encolher só o que é MOLDURA**
+// (caixote, margem, altura parada). Nunca o CONTEÚDO — placar, mascote e agora os
+// cards dos outros jogos.
+//
 // ⚠️ SÓ DESENHO. Nada mexido. Rodar: node scripts/mockup-online-celular.mjs
 import { chromium } from 'playwright-core'
 import { readFileSync } from 'node:fs'
@@ -117,18 +132,28 @@ const proximo = (aberta) => `<div style="background:#F7F4EA;border:3px solid ${I
   <p style="font-size:9.5px;font-weight:700;color:#8a8270;margin-top:7px;line-height:1.35">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>` : ''}
   </div>`
 
-// 📺 OS OUTROS JOGOS — faixa que rola de LADO (cresce pro lado, não pra baixo)
-const outrosJogos = `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:8px 0 9px">
-  <div style="font-size:10px;font-weight:900;color:#7a7364;letter-spacing:.7px;padding:0 10px 6px">📺 OUTROS JOGOS · RODADA 6 <span style="float:right;color:#b0a894;font-weight:700">role de lado →</span></div>
-  <div style="display:flex;gap:7px;padding:0 10px;overflow:hidden">
-    ${[['SC Ferrari', '1', '1', 'Leite de Verdade', '⚽ GOL!', 1], ['Nata de SP', '1', '0', 'Vidraceiro FC', '', 0], ['São Luiz FC', '0', '0', 'Al Takhadao', '', 0]].map(([a, x, y, b, flash, on]) =>
-      `<div style="flex:none;width:132px;background:${on ? GOLD : '#fff'};border:2.5px solid ${INK};border-radius:9px;overflow:hidden">
-        ${flash ? `<div style="font-size:8.5px;font-weight:900;padding:2px 6px;background:${INK};color:${GOLD}">${flash}</div>` : ''}
-        <div style="padding:6px;font-size:10px;font-weight:800;line-height:1.25">
-          <div style="display:flex;justify-content:space-between;gap:4px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a}</span><b>${x}</b></div>
-          <div style="display:flex;justify-content:space-between;gap:4px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b}</span><b>${y}</b></div>
-        </div></div>`).join('')}
-  </div></div>`
+// 📺 OS OUTROS JOGOS — do TAMANHO DE HOJE, com tudo dentro (correção do Diego v6).
+// Card fiel ao print dele: faixa de estado (⚽ GOL! / ENCERRADO), os dois times com
+// escudo, o placar grande e os goleadores com o minuto. Dois por linha, como já é.
+const cardJogo = (a, x, y, b, flash, fim, golA, golB) => `
+  <div style="flex:1;min-width:0;background:#fff;border:${flash ? `3px solid ${GOLD}` : `2.5px solid ${INK}`};border-radius:11px;overflow:hidden;${flash ? `box-shadow:0 0 0 2px ${INK}` : ''}">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:${flash ? GOLD : '#efeade'};font-size:9.5px;font-weight:900;letter-spacing:.4px">
+      <span>${flash || 'JOGO DA RODADA'}</span>${fim ? `<span style="color:${VERDE}">ENCERRADO</span>` : ''}</div>
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 8px 5px">
+      <span style="flex:1;min-width:0;font-size:12.5px;font-weight:900;line-height:1.2">${a}</span>
+      <b style="font-size:19px;font-weight:900;flex:none">${x} <span style="color:#b8b0a0;font-size:12px">×</span> ${y}</b>
+      <span style="flex:1;min-width:0;font-size:12.5px;font-weight:900;line-height:1.2;text-align:right">${b}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:6px;padding:0 9px 9px;font-size:10.5px;font-weight:700;color:#8a8270">
+      <span>${golA}</span><span style="text-align:right">${golB}</span></div>
+  </div>`
+const outrosJogos = `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:9px 10px 10px">
+  <div style="font-size:10px;font-weight:900;color:#7a7364;letter-spacing:.7px;margin-bottom:7px">📺 OUTROS JOGOS · RODADA 6</div>
+  <div style="display:flex;flex-direction:column;gap:7px">
+    ${cardJogo('SC Ferrari', '1', '1', 'Leite de Verdade FC', '⚽ GOL!', true, "Jobson 2'", "A. Pereira 90+3'")}
+    ${cardJogo('Nata de SP', '1', '0', 'Vidraceiro FC', '', false, "Mario Yepes 86'", '')}
+  </div>
+  <div style="text-align:center;font-size:10px;font-weight:900;color:#8a8270;padding-top:7px">+ 7 jogos da rodada ▾</div></div>`
 
 const bx = (t, c = '#F7F4EA') => `<div style="background:${c};border:3px solid ${INK};border-radius:12px;padding:10px 11px;font-size:12px;font-weight:800">${t}</div>`
 
@@ -231,9 +256,12 @@ momento. Quem encolheu foi só o <b>caixote do próximo jogo</b>, e ele ganhou a
   <b>⚖️ Equilíbrio ▾</b> à direita. <b>Tocou, abrem os três botões</b> e a frase da regra — igual você já
   aprovou na aba Elenco (🎽 4-4-2 ▾). Mesma régua de lá: <b>altura fixa pra ação rara é troca ruim</b>, e
   tática você mexe uma vez por rodada. Nada some e nenhuma regra muda — some só a altura parada.<br>
-  📺 <b>Os outros jogos da rodada ficam LOGO ABAIXO do seu placar</b>, numa faixa que <b>rola de lado</b>
-  (é o formato que eles já têm hoje: cards lado a lado). Eles são AO VIVO — piscam "GOL!", viram
-  "ENCERRADO" —, então têm que estar na hora em que acontecem. Crescendo pro lado, gastam pouca altura.<br>
+  📺 <b>Os outros jogos ficam LOGO ABAIXO do seu placar — e do TAMANHO QUE SÃO HOJE</b> (correção sua).
+  Eu tinha espremido eles e matei o que é bom: o "GOL!" piscando, o "ENCERRADO", os escudos e quem fez
+  o gol. <b>Eles não encolhem</b>; só sobem de lugar, porque são AO VIVO e têm que estar na hora em que
+  acontecem.<br>
+  📏 <b>A régua deste desenho:</b> encolher só o que é MOLDURA (caixote, margem, altura parada) —
+  <b>nunca o conteúdo</b>: placar, mascote e os cards dos outros jogos ficam do tamanho que são.<br>
   ⏱️ <b>A ordem da aba do jogo segue o relógio</b>: o que muda AGORA vem primeiro —
   seu placar → outros jogos → próximo + tática → tabela → giro da rodada.<br>
   📊 <b>A tela do jogo mostra o jogo + a TABELA INTEIRA</b> (ordem sua: "prefiro que mostre a tabela toda").
