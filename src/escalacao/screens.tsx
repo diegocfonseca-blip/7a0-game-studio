@@ -5867,6 +5867,11 @@ export function EscSeason() {
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
         return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
       })}</div></section>}
+      {/* 🗂️ O INVÓLUCRO DA COLUNA DA DIREITA. No DESKTOP ele é UM bloco só na coluna
+          2 — por isso a tela larga que o Diego aprovou em 18/09 fica intacta. No
+          CELULAR ele se dissolve (`display:contents`) e as duas metades viram irmãs
+          soltas, pra a TABELA poder entrar entre elas. */}
+      <div className="ll-lado space-y-5">
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5 ll-col-side">
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
@@ -5927,7 +5932,18 @@ export function EscSeason() {
           </div>
         </Box>
       )}
+      </div>
 
+      {/* 📱 A COLUNA DE APOIO É PARTIDA EM DUAS — e só o CELULAR sente (Diego 18/09:
+          *"a tabela fica lá embaixo"*). No desktop as duas metades continuam caindo
+          na MESMA coluna da direita, uma embaixo da outra, na mesma ordem de sempre
+          (as duas têm `ll-col-side`, que o grid manda pra coluna 2) — a tela larga
+          não muda NADA. No celular a CSS encaixa a TABELA entre elas: placar →
+          outros jogos → próximo jogo + tática → 🏆 TABELA → notícia + giro.
+          Por que partir em vez de mover a tabela pra cima inteira: a tática é a
+          DECISÃO da rodada e não pode cair embaixo de 20 linhas de tabela + a lista
+          de todos os jogos. */}
+      <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5 ll-col-side ll-depois-da-tabela">
       {personalNews && (
         <Box bg="#6C43C0" className="p-2.5 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{personalNews}</p>
@@ -5947,6 +5963,7 @@ export function EscSeason() {
         return <GiroDaRodada news={shownNews} isCopa={copaLive} />
       })()}
 
+      </div>
       </div>
       {state.careerOnline && (
         <button onClick={() => setShowPyramid(true)}
@@ -6005,11 +6022,16 @@ export function EscSeason() {
           com a linha avisando que a sala some). */}
       {/* ⚠️ SÓ NO RÁPIDO/LIGA: a CARREIRA online já tem a barra dela embaixo
           (`BarraCarreira`), e duas barras fixas na mesma tela brigariam. */}
+      {/* 🧵 O RABICHO: o que fecha a página. No celular ele tem que ficar DEPOIS do
+          giro da rodada — senão, com a tabela subindo, os créditos apareceriam no
+          meio da tela. No desktop continua atravessando as duas colunas, igual. */}
+      <div className="ll-rabicho">
       {online && state.roomId && !state.careerOnline && (
         <LigaHub roomId={state.roomId} souDono={state.isHost}
           humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)} />
       )}
       <CreditLine className="pt-4 pb-2" />
+      </div>
       {showPyramid && state.careerOnline && (
         <PyramidOverlay league={state.league} scorers={state.scorers} managers={state.managers} youId={you.id}
           seed={state.seed} round={state.round} deckLeague={state.deckLeague} onClose={() => setShowPyramid(false)} />
