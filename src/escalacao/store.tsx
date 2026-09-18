@@ -10003,6 +10003,75 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId, state.screen])
 
+  // ─── 👑 A COROA VOLTA PRO DONO (efeito PRÓPRIO, 18/09) ──────────────────────
+  //
+  // Por que nasceu separado: já existia um socorro igual DENTRO do vigia acima,
+  // criado em 07/09 pra sala do Sistematizados. Só que ele mora atrás de um monte
+  // de condição do vigia (silêncio do host, tela de abertura, contador de
+  // checagem) e, na prática, NÃO RODAVA: em 10 dias de caixa-preta ele gravou UMA
+  // linha, e nenhuma na tela de abertura. Enquanto isso o banco mostrava ~18% de
+  // todas as travas sendo o DONO se achando convidado (51 casos num dia, 29
+  // pessoas). Em vez de caçar qual das condições o engasgava, o socorro passa a
+  // ser uma coisa só, sozinha, com uma regra e nada mais.
+  //
+  // 🚫 ISTO NÃO TROCA DONO DE SALA — e é por isso que ele pode rodar sempre.
+  // A regra do Diego (21/08, RECONFIRMADA 18/09: *"o host que cria a sala nunca
+  // pode mudar"*) proíbe ELEIÇÃO de dono novo. Aqui não há eleição, não há
+  // candidato, não há votação: o aparelho pergunta ao banco *"quem é o dono desta
+  // sala?"* e só age se a resposta for **ele mesmo**. É o caso que o Diego sempre
+  // autorizou — *"quem já é dono no banco reassume sozinho ao voltar"* — só que
+  // agora sem precisar de F5.
+  //
+  // Se o banco disser qualquer outro uid, ou não responder, ele NÃO FAZ NADA.
+  const voltaCoroaRef = useRef(0)
+  useEffect(() => {
+    // só interessa a quem está ONLINE, numa sala, e se achando CONVIDADO.
+    if (state.onlineMode !== 'online' || state.isHost || !state.roomId) return
+    if (state.screen === 'intro' || state.screen === 'lobby') return
+    let vivo = true
+    const conferir = async () => {
+      if (!vivo) return
+      try {
+        const st = stateRef.current
+        if (!st.roomId || st.isHost) return
+        // crachá LOCAL primeiro (já está no estado); a rede é só plano B — quando a
+        // sala trava é justamente a hora em que o `auth.getUser()` falha (23/08).
+        let uid = st.youUid
+        if (!uid) { const { data: u } = await supabase.auth.getUser(); uid = u?.user?.id ?? undefined }
+        if (!uid || !vivo) return
+        const { data: r } = await supabase.from('game_rooms').select('host_id').eq('id', st.roomId).maybeSingle()
+        const hostId = (r as { host_id?: string } | null)?.host_id
+        if (!hostId) return                    // leitura que falhou não decide nada
+        if (hostId !== uid) return              // o dono é outro: não é da minha conta
+        const agora = stateRef.current
+        if (!vivo || agora.isHost) return       // alguém já devolveu no meio do caminho
+        claimForcadoRef.current = true
+        anotaTrava({ room_id: agora.roomId, sala: agora.roomCode || null, papel: 'convidado', momento: 'envelope',
+          setor: agora.sectorIdx ?? null, segundos: 0, reenvios: 0, canal: fotoDaConexao().canal,
+          host_calado_ms: Math.round(Date.now() - lastHostMsgRef.current),
+          extra: { quando: 'coroa_devolvida', tela: agora.screen, fase: agora.phase } }, true)
+        rawDispatch({ type: 'BECOME_HOST' })
+      } catch { /* a próxima volta tenta de novo */ }
+    }
+    // ⚡ A PRIMEIRA CONFERE QUASE NA HORA (800ms): é ela que resolve o caso do
+    // streamer — o dono cai na tela de abertura como convidado e a coroa volta
+    // antes de ele perceber, sem F5.
+    const t0 = setTimeout(conferir, 800)
+    // 💸 E DEPOIS SÓ INSISTE QUANDO HÁ MOTIVO — senão isto vira consulta ao banco
+    // de TODO convidado de TODA sala a cada 4s (numa sala de 14, 13 aparelhos
+    // batendo à toa). Convidado de verdade ouve o "tô vivo" do dono a cada ~4s,
+    // então pra ele a conta acima roda UMA vez e para. Quem continua consultando
+    // é exatamente quem está no problema: o aparelho que não ouve host NENHUM —
+    // porque o host é ele mesmo e ele não sabe.
+    const iv = setInterval(() => {
+      if (Date.now() - lastHostMsgRef.current < 6_000) return // tem dono vivo falando: nada a fazer
+      if (Date.now() - voltaCoroaRef.current < 3_500) return
+      voltaCoroaRef.current = Date.now()
+      void conferir()
+    }, 4000)
+    return () => { vivo = false; clearTimeout(t0); clearInterval(iv) }
+  }, [state.onlineMode, state.isHost, state.roomId, state.screen]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // 🔨 vigia do MEU envelope: lacrado → reaberto, ainda no envelope = o dono da
   // sala trocou e o meu lance voltou pra minha mão. Mostra o porquê (senão o
   // botão "reaparece do nada" e parece bug).
