@@ -22,16 +22,20 @@ const ALVOS = [
   ['elenco-celular', 390, 'n=27&olheiro=ouro', false],
   ['elenco-celular-reservas', 390, 'n=27&olheiro=ouro', true],
   ['elenco-celular-sem-olheiro', 390, 'n=27&olheiro=nenhum', false],
+  ['elenco-celular-saf', 390, 'n=31&olheiro=ouro', 'saf'], // 🏢 a aba SAF com os 4 emprestados
   ['elenco-antigo-celular', 390, 'n=22&novo=0', false], // a tela de TODO MUNDO (trava fechada)
 ]
 
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
+// 🇧🇷 o print sai em PORTUGUÊS (ver o `bl_lang` abaixo): sem isso a bancada cai no
+// inglês, porque o navegador do ambiente não é pt-BR — e aí o print não é a tela dele.
 for (const [nome, w, qs, reservas] of ALVOS) {
-  const p = await b.newPage({ viewport: { width: w, height: 900 }, deviceScaleFactor: 2 })
-  await p.goto(`http://localhost:${PORTA}/scripts/teste-elenco/?${qs}`, { waitUntil: 'networkidle' })
+  const p = await b.newPage({ viewport: { width: w, height: 900 }, deviceScaleFactor: 2, locale: 'pt-BR' })
+  await p.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt') } catch { /* ignora */ } })
+  await p.goto(`http://localhost:${PORTA}/scripts/teste-elenco/?${qs}`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(1200) // os rostos são .webp com loading=lazy
   if (reservas) {
-    const btn = p.locator('button', { hasText: /RESERVAS|SUBS/ }).first()
+    const btn = p.locator('button', { hasText: reservas === 'saf' ? /SAF \(/ : /RESERVAS|SUBS/ }).first()
     if (await btn.count()) { await btn.click(); await p.waitForTimeout(400) }
   }
   const arq = `${SAIDA}/${nome}.png`

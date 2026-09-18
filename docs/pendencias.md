@@ -1,3 +1,45 @@
+## 18/09/2026 — 👥 Aba Elenco: aba SAF, fora o Nº, e o meio da tela limpo ⏳ ESPERANDO O OK
+
+Diego, olhando a tela NO CELULAR dele (não mais a bancada): *"faltou a aba da SAF, como
+pode ver na primeira foto q tá ótimo… Número n entendi pq significa… e já disse q nível n
+precisa pq já basta o over c gás e a regra q o tier do usuário pode ver… e quero ver no
+desktop e móveis como ficará, pois do jeito q tá c essa segunda foto n gostei, c mts coisas
+no meio atrapalhando"*.
+
+⏳ **COMMITADO SÓ NA BRANCH, NÃO FOI PRA MAIN.** Regra dele: visual novo espera OK. As
+fotos foram mandadas (celular titulares · celular na aba SAF · desktop).
+
+1. **🏢 Aba SAF** — agora são três (⭐ TITULARES · 🔁 RESERVAS · 🏢 SAF). Ela estava no
+   desenho aprovado e eu tinha entregado só com duas. Emprestado tem lugar próprio porque é
+   outra coisa: não é do elenco, não gasta vaga e volta na virada. Quem está emprestado **e
+   escalado** aparece nos titulares também, com o selo 🔁 EMP — esconder ele do time em
+   campo seria mentira. Dentro da aba SAF o selo some (ali todo mundo é emprestado).
+2. **🔢 Coluna Nº saiu** — e ele está certo: a carta NÃO tem número de camisa, então aquilo
+   era só a ordem da linha. Número que não quer dizer nada, comendo a largura que o NOME
+   precisava no celular. Inventar camisa seria pior: seria dado falso.
+3. **Nível já estava fora** — a foto 1 dele é do DESENHO velho, que ainda tinha a coluna. O
+   código mostra só OVERALL, com a trava do tier de sempre.
+4. **🧹 O MEIO DA TELA (a bronca principal)** — entre o campinho e a lista moravam TRÊS
+   caixas grandes (Departamento Técnico · Base · Folha), então pra ver o elenco ele rolava
+   meia tela de coisa que não é elenco. Agora embaixo do campo ficam só **atalhos de uma
+   linha** (🏛️ Comissão · 🌱 Base, quando tem vaga · 🏢 SAF) e a lista vem em seguida. As
+   caixas inteiras desceram pro PÉ da tela — **nada sumiu**, o atalho rola até elas
+   (`ID_COMISSAO`/`ID_BASE`) e o de SAF troca a aba na hora.
+5. **📝 Contrato enxuto no estreito** — por extenso ele cortava o clube no meio ("São Paulo ·
+   2005 · ⏳ ú…"). No celular sobrou só o EMOJI, e só quando é aviso (❗ vencido · ⏳ último
+   ano · 🌱 sem contrato); "📝 4 anos" (tudo certo) saiu da linha e vive na barra do
+   selecionado. No monitor continua por extenso.
+6. 🏷️ O selo 🔁 EMP saiu de DENTRO do nome que corta — em nome comprido (David Beckham) o
+   "…" comia justamente o selo.
+
+🖨️ `node scripts/print-elenco.mjs` agora tira o print **em português** (`bl_lang`) e espera
+por `domcontentloaded`, não `networkidle` — o ambiente não alcança o Supabase, então o
+`networkidle` pendurava pra sempre. E ganhou o alvo `elenco-celular-saf` (n=31).
+
+### ⏭️ Pendente
+- [ ] **OK do Diego** → aí sim `main` (segue travado na conta dele).
+- [ ] Mockup da novidade (11 → 16 reservas), só quando ele mandar abrir pra geral.
+
 ## 16/09/2026 (parte 18) — 🏢 A SAF entra POR CIMA: 27 + 4 = 31
 
 Diego: *"tem a SAF também, né? A SAF o usuário pode pegar emprestado quatro jogadores.
