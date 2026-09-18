@@ -50,6 +50,17 @@
 //   1. seu placar → 2. outros jogos (ao vivo) → 3. próximo + tática (decisão) →
 //   4. tabela inteira → 5. giro da rodada (notícia, pode esperar)
 //
+// 🔁 VERSÃO 5 — ele ainda achou o bloco da tática grande no celular: *"tem que
+// diminuir esse modal aí de equilíbrio, ataque, defesa nos móveis"*.
+// 👉 A saída NÃO é inventar nada: é o padrão que ELE JÁ APROVOU na aba Elenco em
+// 18/09 — Formação e Trocas viraram **PÍLULA** (`🎽 4-4-2 ▾`) e só abrem no
+// toque. A régua que ele deu lá vale igual aqui: *"campo e lista você olha toda
+// rodada; formação e modo de troca você mexe de vez em quando. Altura fixa pra
+// ação rara é troca ruim"*. Tática é ação de UMA vez por rodada.
+// Então o caixote de três botões vira UMA LINHA: `⚔️ Xurupitas (fora)` + a pílula
+// `⚖️ Equilíbrio ▾`. Tocou, abrem os três. Nada some, nada muda de regra —
+// some só a altura parada.
+//
 // ⚠️ SÓ DESENHO. Nada mexido. Rodar: node scripts/mockup-online-celular.mjs
 import { chromium } from 'playwright-core'
 import { readFileSync } from 'node:fs'
@@ -91,14 +102,20 @@ const placar = (gol, alto) => `
   </div>
 </div>`
 
-// ⚔️ o próximo jogo + a tática, ENXUTO — mora na aba do JOGO (correção do Diego)
-const proximo = `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:9px 10px">
-  <div style="font-size:10px;font-weight:900;color:#7a7364;letter-spacing:.7px;margin-bottom:7px">⚔️ PRÓXIMO · XURUPITAS FC (FORA)</div>
-  <div style="display:flex;gap:5px">
+// ⚔️ PRÓXIMO + TÁTICA EM UMA LINHA SÓ — a pílula, padrão que ele já aprovou.
+// `aberta = true` mostra o que acontece ao TOCAR nela.
+const proximo = (aberta) => `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:8px 10px">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="flex:1;min-width:0;font-size:11px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">⚔️ Xurupitas FC <span style="font-weight:700;color:#8a8270">(fora)</span></div>
+    <div style="flex:none;background:${GOLD};border:2.5px solid ${INK};border-radius:999px;padding:4px 11px;font-size:11px;font-weight:900">⚖️ Equilíbrio ▾</div>
+  </div>
+  ${aberta ? `<div style="display:flex;gap:5px;margin-top:8px">
     <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:#fff">🛡️ Retranca</div>
     <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:${GOLD}">⚖️ Equilíbrio</div>
     <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:#fff">🔥 Ataque</div>
-  </div></div>`
+  </div>
+  <p style="font-size:9.5px;font-weight:700;color:#8a8270;margin-top:7px;line-height:1.35">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>` : ''}
+  </div>`
 
 // 📺 OS OUTROS JOGOS — faixa que rola de LADO (cresce pro lado, não pra baixo)
 const outrosJogos = `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:8px 0 9px">
@@ -168,13 +185,19 @@ continuam sem encolher, como você exigiu.</div>
   ${tela('✅ momento 1 · bola rolando', `
     ${placar(false, true)}
     ${outrosJogos}
-    ${proximo}
+    ${proximo(false)}
     ${tabelaMini}
     ${barra(0)}`, VERDE)}
 
   ${tela('✅ momento 2 · GOL', `
     ${placar(true, true)}
     ${bx('⚽ Neymar Jr 23′ · assistência de Zico', '#FFF3D6')}
+    ${tabelaMini}
+    ${barra(0)}`, VERDE)}
+
+  ${tela('✅ tocou na pílula da tática', `
+    ${placar(false, false)}
+    ${proximo(true)}
     ${tabelaMini}
     ${barra(0)}`, VERDE)}
 
@@ -203,8 +226,11 @@ momento. Quem encolheu foi só o <b>caixote do próximo jogo</b>, e ele ganhou a
   📚 <b>O 4º botão chama ESTANTE</b> (correção sua) — é o nome que já existe no jogo. Rank, Estante e
   Temporadas moram lá dentro, <b>exatamente como são hoje</b>. <b>Nada some e nada muda de nome.</b><br>
   ⚔️ <b>O próximo jogo e a tática ficam na aba do JOGO</b> (correção sua): tática não é histórico, é a
-  DECISÃO da próxima rodada — tem que estar onde você está vendo a bola rolar. Logo abaixo do placar,
-  enxuto, em uma linha de três botões.<br>
+  DECISÃO da próxima rodada — tem que estar onde você está vendo a bola rolar.<br>
+  💊 <b>E o caixote da tática virou UMA LINHA</b> (correção sua): o adversário à esquerda e a pílula
+  <b>⚖️ Equilíbrio ▾</b> à direita. <b>Tocou, abrem os três botões</b> e a frase da regra — igual você já
+  aprovou na aba Elenco (🎽 4-4-2 ▾). Mesma régua de lá: <b>altura fixa pra ação rara é troca ruim</b>, e
+  tática você mexe uma vez por rodada. Nada some e nenhuma regra muda — some só a altura parada.<br>
   📺 <b>Os outros jogos da rodada ficam LOGO ABAIXO do seu placar</b>, numa faixa que <b>rola de lado</b>
   (é o formato que eles já têm hoje: cards lado a lado). Eles são AO VIVO — piscam "GOL!", viram
   "ENCERRADO" —, então têm que estar na hora em que acontecem. Crescendo pro lado, gastam pouca altura.<br>
