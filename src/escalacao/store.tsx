@@ -9577,9 +9577,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // — ou quase — vai pra caixa-preta com o MOTIVO e os valores, pra parar de
   // chutar qual das três foi.
   const suspeitaCoroaRef = useRef<string | null>(null)
+  const abaNovaAnotadaRef = useRef<string | null>(null) // 🧾 "aba mais nova": anota uma vez, não age
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     suspeitaCoroaRef.current = null
+    abaNovaAnotadaRef.current = null
     const iv = setInterval(() => {
       ;(async () => {
         try {
@@ -9594,16 +9596,44 @@ export function EscProvider({ children }: { children: ReactNode }) {
           const claimDeLa = Number(row?.claim)
           const humilde = Date.now() < humildeAteRef.current
           // qual condição está pedindo o rebaixamento nesta leitura (ou nenhuma)
+          // 🚫 'outra_aba_mais_nova' NÃO REBAIXA MAIS NINGUÉM (18/09).
+          // ⚠️ ESTE ERA O BURACO, e a caixa-preta provou com número: em 3 dias esse
+          // motivo rebaixou **19 vezes, em 6 pessoas — e nas 19 o `host_id` DO BANCO
+          // era o próprio aparelho que se rebaixou**. Zero acerto. Enquanto isso o
+          // Fridão FC estava AO VIVO com 14 pessoas e travou 3 vezes no "ENVIANDO",
+          // com o lance dele mesmo marcado como "pensando" — dono preso fora da
+          // própria sala, e quando trava pro dono trava pra TODOS.
+          // Por que mentia tanto: `__hostTab`/`__hostClaimAt` são MARCADOR DE ABA
+          // gravados dentro do `game_state`. Basta a linha ser regravada com outro
+          // carimbo (aba remontada, save de outro aparelho, escrita fora de ordem)
+          // pra o dono legítimo achar que "uma aba mais nova" assumiu — sem ninguém
+          // ter assumido nada.
+          // A regra do Diego (CLAUDE.md, e repetida hoje: *"o host que cria a sala
+          // nunca pode mudar"*): decisão sobre a coroa só com PROVA. Marcador de aba
+          // NÃO é prova — prova é o `host_id` do banco. E o banco estava dizendo que
+          // ele era o dono.
+          // O caso de verdade (a posse é de OUTRO uid) continua rebaixando igual,
+          // porque ali existe prova. A aba mais nova segue sendo ANOTADA, só não age.
+          const abaMaisNova = hostId === uid && outraAba && Number.isFinite(claimDeLa) && claimDeLa > hostClaimAtRef.current
           const motivo: string | null =
             (hostId && hostId !== uid) ? 'posse_de_outro'
             : (hostId === uid && humilde && outraAba && saveFresco) ? 'humilde_outra_aba'
-            : (hostId === uid && outraAba && Number.isFinite(claimDeLa) && claimDeLa > hostClaimAtRef.current) ? 'outra_aba_mais_nova'
             : null
           const foto = {
             motivo, host_no_banco: hostId ?? null, meu_uid: uid, minha_aba: tabIdRef.current, aba_no_banco: row?.tab ?? null,
             save_fresco: saveFresco, claim_de_la: Number.isFinite(claimDeLa) ? claimDeLa : null, minha_claim: hostClaimAtRef.current,
             humilde, tela: st.screen, fase: st.phase, setor: st.sectorIdx,
           }
+          // 🧾 a aba mais nova vira só ANOTAÇÃO (uma por vez que aparece, não a cada
+          // 5s): serve pra continuarmos vendo se ela existe de verdade, sem que ela
+          // encoste na coroa de ninguém.
+          if (abaMaisNova && abaNovaAnotadaRef.current !== st.roomId) {
+            abaNovaAnotadaRef.current = st.roomId
+            anotaTrava({ room_id: st.roomId, sala: st.roomCode || null, papel: 'host', momento: 'envelope', setor: st.sectorIdx ?? null,
+              segundos: 0, reenvios: 0, canal: fotoDaConexao().canal, host_calado_ms: 0,
+              extra: { ...foto, motivo: 'outra_aba_mais_nova', quando: 'aba_nova_ignorada' } }, true)
+          }
+          if (!abaMaisNova) abaNovaAnotadaRef.current = null
           if (!motivo) {
             // leitura limpa: a posse humilde vira plena se a sala está em silêncio
             if (hostId === uid && humilde && !saveFresco) { claimForcadoRef.current = true; humildeAteRef.current = 0 }
