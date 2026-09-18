@@ -4706,7 +4706,16 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
   })()
   // o atalho 🚑 só existe quando tem 🥵 ou 🚑 no time — e é ele que passa a carregar
   // os contadores, pra não repetir a mesma informação duas linhas seguidas.
-  const atalhoGas = !!resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0)
+  // 🧹 E NA TELA NOVA ELE NÃO EXISTE MAIS (Diego 18/09: *"não entendi por que tá
+  // aparecendo duas linhas da mesma coisa, esgotados em cima e embaixo também
+  // falando dos nomes cansados. Tá muita informação pra uma coisa só"*).
+  // Ele tinha razão: a faixa vermelha dizia "9 esgotados — toque pra ver quem" e,
+  // 100px abaixo, a caixa 😓 QUEM ESTÁ CANSADO já mostrava QUEM. A faixa nasceu em
+  // 15/09 pra resolver *"o cara tem q descer lá embaixo p ver os cansados"* — e isso
+  // acabou: nesta tela a lista subiu, porque comissão/base/folha desceram pro pé.
+  // Então some a FAIXA (o atalho) e ficam as duas coisas que não se repetem:
+  // o RESUMO na linha do gás (com os contadores de volta) e os NOMES na caixa.
+  const atalhoGas = !!resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0) && !elencoNovoOk
   return (
     <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12, ...(elenco && largaElenco ? { width: 'min(1180px, calc(100vw - 48px))', marginLeft: 'calc(50% - min(590px, 50vw - 24px))' } : {}) }}>
       {shine && <ApoioSheen holo={perk.holo} />}

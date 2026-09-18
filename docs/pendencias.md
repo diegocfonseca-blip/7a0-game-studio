@@ -51,6 +51,20 @@ por `domcontentloaded`, não `networkidle` — o ambiente não alcança o Supaba
    que é onde se sente a falta de reserva. **Não duplica nada**: leva pra MESMA caixa da
    Base. Só aparece quando existe vaga (a caixa da Base já respeita `vagaCheio`).
 
+9. **🚑 A FAIXA VERMELHA SAIU — eram duas caixas dizendo a mesma coisa** (*"não entendi
+   por que tá aparecendo duas linhas da mesma coisa, esgotados em cima e embaixo também
+   falando dos nomes cansados. Tá muita informação pra uma coisa só"*). Ele está certo: a
+   faixa dizia *"9 esgotados — toque pra ver quem"* e, 100px abaixo, a caixa 😓 QUEM ESTÁ
+   CANSADO já mostrava QUEM.
+   👉 **Por que a faixa existia, e por que não precisa mais:** ela nasceu em 15/09 pra
+   resolver *"o cara tem q descer lá embaixo p ver os cansados"*. Nesta tela isso **acabou**
+   — a lista subiu, porque comissão/base/folha desceram pro pé. O atalho virou atalho pra
+   uma coisa que já está na tela.
+   Ficaram as duas que **não** se repetem: o **RESUMO** na linha do gás (`68% · 1 🥵`, com os
+   contadores de volta, já que era a faixa que os carregava) e os **NOMES** na caixa.
+   🔒 Trava fechada: `atalhoGas` ganhou `&& !elencoNovoOk`, então pra todo mundo a
+   condição é a de sempre — não é screenshot, é o próprio `&&`.
+
 ### ⏭️ Pendente
 - [ ] Mockup da novidade (11 → 16 reservas), só quando ele mandar abrir pra geral.
 
