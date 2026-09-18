@@ -146,8 +146,17 @@ FORA do bundle. Então, sem exceção:
      (com as variações do nome + o nome velho) · `MASCOTES` + `MASCOTE_NOME` +
      `CARIMBO_GOL` · `data.ts` (`OLD_NAME` + a divisão) · `apoio.tsx`
      (tier `'ouro'` **e** `FUNDADOR_N`) · `manto.ts` (`MANTO_CONTAS`) ·
-     `batismos.ts` · e o clube na lista `BATISMOS` de `scripts/checa-batismos.mjs`
+     `batismos.ts` (**a linha do clube E o campo `manto` com as MESMAS 2 cores** —
+     desde 18/09; `npm run batismos` reprova se as duas listas discordarem) ·
+     `salao-camisas.ts` + o arquivo em `public/mantos-salao/` (a camisa da Loja do
+     Clube; **publicar não é só pôr em `scripts/kits/`** — ver 18/09) · e o clube
+     na lista `BATISMOS` de `scripts/checa-batismos.mjs`
      (senão a trava nunca confere esse clube).
+     💡 Por que o manto agora aparece em DOIS lugares: em `manto.ts` a chave é o
+     E-MAIL, e e-mail só decora a tela do próprio dono. A foto do campeão em O
+     MARTELO é vista por qualquer um e acha o campeão pelo NOME DO CLUBE — por
+     isso a cor (que já é pública, está à vista na Loja) desce em `batismos.ts`,
+     e o e-mail continua fora dele.
    - 🗄️ **E MAIS DUAS LINHAS NO BANCO — a parte que some fácil (achado 01/09).**
      ⛔ **ANTES DE QUALQUER LINHA: A CONTA DO DONO TEM QUE EXISTIR** (regra de
      segurança, 07/09). Conferir `select 1 from auth.users where email = …`. O

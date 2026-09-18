@@ -142,4 +142,31 @@ for (const [f, clubes] of [...porFalta].sort((a, b) => b[1].length - a[1].length
 // no relatório porque é bom saber de quem falta pedir, mas não é defeito.
 console.log('💡 "manto medido" só existe quando o dono manda a camisa — é lista de')
 console.log('   a-quem-pedir, não defeito. O resto é buraco de verdade.\n')
-process.exit(repetidos.length ? 1 : 0)
+
+// ─── 🎽 AS DUAS LISTAS DE MANTO TÊM QUE BATER (18/09) ───────────────────────
+// Desde a foto do campeão em O MARTELO, as 2 cores existem em DOIS lugares:
+//   · `MANTO_CONTAS` (manto.ts) — por E-MAIL, decora a tela do próprio dono;
+//   · `BATISMOS`     (batismos.ts) — por NOME DO CLUBE, porque quem lê o jornal
+//     pode ser qualquer um e o campeão é achado pelo nome.
+// Duas listas sempre acabam discordando: um dia alguém remede a camisa e troca
+// só uma. Aqui elas são comparadas clube a clube.
+const mantoCor = new Map([...bloco(manto, 'export const MANTO_CONTAS')
+  .matchAll(/'([^']+@[^']+)':\s*\['(#[0-9A-Fa-f]{6})',\s*'(#[0-9A-Fa-f]{6})'\]/g)]
+  .map(m => [m[1], [m[2].toUpperCase(), m[3].toUpperCase()]]))
+const batCor = new Map([...ler('src/escalacao/batismos.ts')
+  .matchAll(/clube: '([^']+)'[^}]*manto: \['(#[0-9A-Fa-f]{6})',\s*'(#[0-9A-Fa-f]{6})'\]/g)]
+  .map(m => [chave(m[1]), [m[2].toUpperCase(), m[3].toUpperCase()]]))
+const brigas = []
+for (const [em, clube] of [...BATISMOS, ...SOCIOS]) {
+  const a = mantoCor.get(em); const b = batCor.get(chave(clube))
+  if (!a && !b) continue
+  if (!b) brigas.push(`${clube}: tem cor por e-mail, mas FALTA em batismos.ts (o jornal vai sair genérico)`)
+  else if (!a) brigas.push(`${clube}: tem cor em batismos.ts, mas FALTA em MANTO_CONTAS`)
+  else if (a[0] !== b[0] || a[1] !== b[1]) brigas.push(`${clube}: ${a.join('/')} (manto.ts) × ${b.join('/')} (batismos.ts)`)
+}
+if (brigas.length) {
+  console.log('🔴 MANTO EM DESACORDO — as duas listas têm que dizer a mesma coisa:')
+  for (const b of brigas) console.log(`   · ${b}`)
+  console.log()
+}
+process.exit(repetidos.length || brigas.length ? 1 : 0)

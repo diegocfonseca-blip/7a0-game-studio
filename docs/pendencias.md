@@ -1,3 +1,70 @@
+## 18/09/2026 (parte 8) — 📰 A foto do campeão em O MARTELO sai com o manto do clube
+
+Pergunta do Diego, com o print do jornal na mão: *"teria como, principalmente
+quando for algum time de batismo, aparecer a camisa do time de batismo no lugar
+desses jogadores? Ou seria muito trabalho? Ou você quer fazer uma arte nova… ou
+mantém a mesma arte que já tem da foto, mas só botando a camisa?"*
+
+**Escolhido (e aprovado por ele): manter a arte e repintar o uniforme.** Foi
+mockup antes, commit depois — ele viu as cinco variações e respondeu *"Ok pode
+fazer"*.
+
+### Por que não foi arte nova por clube
+~60 KB vezes 53 clubes, e o alvo dele é **10 mil batismos**. Morre na regra de
+peso (a mesma que mandou escudo e mascote virarem `.webp` fora do bundle). Aqui é
+**UM arquivinho de máscara por foto** — `jornal-liga-manto-v1.webp` (2,6 KB) e
+`jornal-copa-manto-v1.webp` (3,7 KB) — que serve pra **todos os clubes**,
+inclusive os que ainda não mandaram camisa e os batismos que nem existem ainda.
+**Zero KB por clube.**
+
+### Como funciona
+1. A máscara marca, pixel a pixel, o que é listra CLARA e o que é listra ESCURA.
+   Gerada por `python3 scripts/mascara-jornal.py` (roda uma vez; se a arte do
+   jornal trocar, roda de novo).
+2. `src/escalacao/jornal-manto.tsx` desenha a foto num canvas e troca as duas
+   cores **mantendo o brilho original** — por isso dobra de pano, sombra e vinco
+   continuam lá; muda só a cor.
+3. As 2 cores saem de `batismos.ts` (campo `manto`), pelo **NOME do clube**.
+
+### 🔑 A parte que não é óbvia: por que o manto agora vive em dois lugares
+`MANTO_CONTAS` (manto.ts) é chaveado por **e-mail** — e e-mail só serve pra
+decorar a tela do PRÓPRIO dono. A foto do campeão é diferente: quem lê o jornal
+pode ser qualquer um, e o campeão é achado pelo **nome do clube**. Então a cor
+(que já é pública — está à vista na Loja do Clube) desce em `batismos.ts`, e o
+**e-mail continua fora** desse arquivo, como sempre foi.
+🔒 `npm run batismos` compara as duas listas clube a clube e **reprova** se
+discordarem — duas listas sem trava sempre acabam brigando.
+
+### Onde aparece
+Carreira (`jornal-career-visual`), online (`jornal-online-visual`) e as **duas
+imagens de compartilhar** (o canvas de `jornal.tsx` e o `buildOnlineSalaBlob`) —
+a capa que ele manda no grupo sai igual à tela. Vale pro campeão da liga **e**
+pro dono da Copa.
+
+### O que NÃO muda
+- **Genérico continua genérico**, como ele pediu: clube de CPU e batismo sem
+  camisa cadastrada ficam com a foto de sempre.
+- **Não atrasa nada** (regra de ouro do leilão): a pintura roda uma vez por
+  clube, na abertura do jornal — fim de temporada, hora de pausa — e fica
+  guardada. A tela mostra a arte genérica no mesmo instante e troca quando a
+  pintada fica pronta. Qualquer erro (canvas bloqueado, arte que não carregou) cai
+  na genérica, sem buraco na tela.
+- **Dá pra voltar atrás**: apagar os 2 arquivos de máscara e o
+  `jornal-manto.tsx`, e devolver o `<img src={ligaArt}>` nos três lugares. Nada
+  do jogo depende disso.
+
+### 🧪 Bancada nova: `scripts/teste-jornal/` + `node scripts/print-jornal.mjs`
+Monta `CareerNewspaperStories` DE VERDADE e mostra os três casos de uma vez:
+batismo com camisa (pinta), batismo sem camisa (genérico) e clube de CPU
+(genérico). Existe porque a pintura roda no NAVEGADOR — medir a máscara em
+Python prova metade do caminho.
+
+### Pendências que ficam
+- 🎽 **A manga sobra**: em uns jogadores o ombro/manga continua na cor velha,
+  porque ali o pano não tem listra clara ao lado pra ancorar. Não parece bug (lê
+  como manga de outra cor), mas dá pra melhorar numa próxima rodada da máscara.
+- A foto do **artilheiro** não tem camisa listrada (é a chuteira de ouro), então
+  fica fora disso de propósito.
 ## 18/09/2026 (parte 7) — 👕 A GAVETA ESQUECIDA: 5 camisas de batismo que nunca chegaram na Loja
 
 Cobrança do Diego, com a foto da Loja do Clube na mão: *"a camisa do La Bestia Negra não

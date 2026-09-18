@@ -19,6 +19,7 @@ import { onlinePreviewEnabled } from './online-preview' // 🔒 prévia das duas
 import { LEGEND_AVATARS_RELEASED } from './career-feature-release' // 🧑 rosto das lendas: LIBERADO geral
 import { fotoDoJogador } from './rostos'
 import { VADICO_LOGO } from './vadico' // 🪧 placa atrás do gol, igual à tela
+import { fotoJornal } from './jornal-manto' // 🎽 a foto do campeão com o manto do batismo
 import ligaArtSrc from './img/jornal-liga-v22.webp'
 import copaArtSrc from './img/jornal-copa-v22.webp'
 import scorerArtSrc from './img/jornal-artilheiro-v22.webp'
@@ -83,9 +84,15 @@ function loadImg(src: string): Promise<HTMLImageElement | null> {
   return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src })
 }
 // 📐 desenha a imagem PREENCHENDO o retângulo (igual object-fit: cover do CSS)
-function drawCover(x: CanvasRenderingContext2D, img: HTMLImageElement, px: number, py: number, w: number, h: number) {
-  const r = Math.max(w / img.naturalWidth, h / img.naturalHeight)
-  const dw = img.naturalWidth * r, dh = img.naturalHeight * r
+// 🎽 aceita CANVAS também (não só `<img>`): a foto do campeão pode vir pintada
+// com o manto do batismo, e pintura sai de canvas. Por isso o tamanho é lido de
+// `width/height`, que os dois têm — `naturalWidth` só existe na imagem.
+type Foto = HTMLImageElement | HTMLCanvasElement
+const largura = (i: Foto) => (i instanceof HTMLCanvasElement ? i.width : i.naturalWidth)
+const altura = (i: Foto) => (i instanceof HTMLCanvasElement ? i.height : i.naturalHeight)
+function drawCover(x: CanvasRenderingContext2D, img: Foto, px: number, py: number, w: number, h: number) {
+  const r = Math.max(w / largura(img), h / altura(img))
+  const dw = largura(img) * r, dh = altura(img) * r
   x.save(); x.beginPath(); x.rect(px, py, w, h); x.clip()
   x.drawImage(img, px + (w - dw) / 2, py + (h - dh) / 2, dw, dh); x.restore()
 }
@@ -585,9 +592,17 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     y += 30
 
     // ── AS MATÉRIAS (a peça nova da tela): foto grande + duas do lado
-    const [imgLiga, imgCopa, imgArt] = await Promise.all([loadImg(ligaArtSrc), loadImg(copaArtSrc), loadImg(scorerArtSrc)])
     const campeao = tables[me.div]?.[0]?.name
     const artDiv = divTop[me.div]
+    // 🎽 A CAPA QUE ELE MANDA NO GRUPO SAI IGUAL À TELA. Se o campeão é clube de
+    // batismo, a foto vem com o manto dele; senão, `fotoJornal` devolve null e
+    // fica a arte genérica de sempre.
+    const [baseLiga, baseCopa, imgArt, pintLiga, pintCopa] = await Promise.all([
+      loadImg(ligaArtSrc), loadImg(copaArtSrc), loadImg(scorerArtSrc),
+      fotoJornal('liga', campeao), fotoJornal('copa', copa?.champion?.name),
+    ])
+    const imgLiga: Foto | null = pintLiga ?? baseLiga
+    const imgCopa: Foto | null = pintCopa ?? baseCopa
     const gapS = 18
     const mainW = Math.round((R - L - gapS) * 0.63), sideW = R - L - gapS - mainW
     const mainH = Math.round(mainW * 2 / 3)
@@ -623,7 +638,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     const sx = L + mainW + gapS
     let sy = y
     const sideH = Math.round(sideW * 2 / 3)
-    const miniMateria = async (titulo: string, img: HTMLImageElement | null, crest: string | null, legenda: string) => {
+    const miniMateria = async (titulo: string, img: Foto | null, crest: string | null, legenda: string) => {
       x.textAlign = 'left'; x.fillStyle = INK; x.font = `700 24px ${OSW}`
       x.fillText(cortar(titulo.toUpperCase(), `700 24px ${OSW}`, sideW), sx, sy + 20)
       sy += 34

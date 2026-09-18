@@ -1,8 +1,7 @@
 // Apresentação V22. Os dados e as notas vêm integralmente de montaEdicao.
 import type { EdicaoSala } from './jornal-sala'
 import { Escudo } from './escudos'
-import ligaArt from './img/jornal-liga-v22.webp'
-import copaArt from './img/jornal-copa-v22.webp'
+import { FotoJornal, FOTO_GENERICA, fotoJornal } from './jornal-manto' // 🎽 a foto sai com o manto do campeão, quando ele é batismo
 import scorerArt from './img/jornal-artilheiro-v22.webp'
 import './jornal-online-visual.css'
 import { tr, ordinal } from './lang' // 🌐 BR/EN
@@ -17,13 +16,13 @@ export function JornalOnlineVisual({ ed, onCompartilhar, compartilhando }: { ed:
     <h2 className="jv-headline">{ed.manchete}</h2>
     <div className={`jv-stories${!ed.campeaoCopa && !ed.artilheiro ? ' jv-single-story' : ''}`}>
       {ed.campeaoLiga && <figure className="jv-main-story">
-        <div className="jv-photo"><img src={ligaArt} alt="Ilustração de uma equipe comemorando um título" /><span className="jv-crest"><Escudo nome={ed.campeaoLiga.nome} size={56} /></span></div>
+        <div className="jv-photo"><FotoJornal qual="liga" clube={ed.campeaoLiga.nome} alt="Ilustração de uma equipe comemorando um título" /><span className="jv-crest"><Escudo nome={ed.campeaoLiga.nome} size={56} /></span></div>
         <figcaption><small>{tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION')}</small><h3>{ed.campeaoLiga.nome}</h3><p>{ed.campeaoLiga.quem && tr(`O time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `)}{ed.campeaoLiga.pts} {tr('pontos', 'points')}</p></figcaption>
       </figure>}
       <div className="jv-side-stories">
         {ed.campeaoCopa && <figure>
           <h3>{tr(`${ed.campeaoCopa.nome} conquista a ${ed.copaNome}`, `${ed.campeaoCopa.nome} wins the ${ed.copaNome}`)}</h3>
-          <div className="jv-photo"><img src={copaArt} alt="Ilustração de uma equipe levantando uma copa" loading="lazy" /><span className="jv-crest"><Escudo nome={ed.campeaoCopa.nome} size={40} /></span></div>
+          <div className="jv-photo"><FotoJornal qual="copa" clube={ed.campeaoCopa.nome} alt="Ilustração de uma equipe levantando uma copa" loading="lazy" /><span className="jv-crest"><Escudo nome={ed.campeaoCopa.nome} size={40} /></span></div>
           {ed.campeaoCopa.quem && <figcaption>{tr(`O time do ${ed.campeaoCopa.quem}`, `${ed.campeaoCopa.quem}'s team`)}</figcaption>}
         </figure>}
         {ed.artilheiro && <figure>
@@ -56,7 +55,14 @@ export async function buildOnlineSalaBlob(ed: EdicaoSala): Promise<Blob | null> 
     const img = new Image(), timeout = setTimeout(() => resolve(null), 2500)
     img.onload = () => { clearTimeout(timeout); resolve(img) }; img.onerror = () => { clearTimeout(timeout); resolve(null) }; img.src = src
   })
-  const [liga, copa, scorer] = await Promise.all([load(ligaArt), load(copaArt), load(scorerArt)])
+  // 🎽 a capa que sai no grupo tem que bater com a tela: campeão de batismo leva
+  // o manto dele; `fotoJornal` devolve null pra CPU e pra quem não mandou camisa.
+  const [baseLiga, baseCopa, scorer, pintLiga, pintCopa] = await Promise.all([
+    load(FOTO_GENERICA.liga), load(FOTO_GENERICA.copa), load(scorerArt),
+    fotoJornal('liga', ed.campeaoLiga?.nome), fotoJornal('copa', ed.campeaoCopa?.nome),
+  ])
+  const liga = pintLiga ?? baseLiga
+  const copa = pintCopa ?? baseCopa
   try { await document.fonts.load('700 60px Oswald') } catch { /* fontes de reserva */ }
   const W = 1080, M = 48, CW = W - M * 2, gap = 26, nw = (CW - gap) / 2
   const osw = 'Oswald, sans-serif', ser = 'Georgia, serif'
@@ -81,7 +87,7 @@ export async function buildOnlineSalaBlob(ed: EdicaoSala): Promise<Blob | null> 
   x.fillStyle = paper; x.fillRect(0, 0, W, H); x.strokeStyle = '#72634c'; x.lineWidth = 2; x.strokeRect(16, 16, W - 32, H - 32)
   const line = (y: number, left = M, width = CW) => { x.strokeStyle = '#4c4231'; x.lineWidth = 2; x.beginPath(); x.moveTo(left, y); x.lineTo(left + width, y); x.stroke() }
   const text = (t: string, px: number, py: number, font: string, width?: number) => { x.font = font; x.fillStyle = '#0c0c0c'; x.fillText(t, px, py, width) }
-  const photo = (img: HTMLImageElement | null, px: number, py: number, w: number, h: number) => {
+  const photo = (img: HTMLImageElement | HTMLCanvasElement | null, px: number, py: number, w: number, h: number) => {
     x.fillStyle = '#223426'; x.fillRect(px, py, w, h)
     if (img) { const scale = Math.max(w / img.width, h / img.height), sw = w / scale, sh = h / scale; x.drawImage(img, (img.width-sw)/2, (img.height-sh)/2, sw, sh, px, py, w, h) }
   }
