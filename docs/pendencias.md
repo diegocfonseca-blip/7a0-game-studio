@@ -1,3 +1,27 @@
+## 18/09/2026 (parte 6) — 🔓 O banco de 16 ABRIU PRA TODO MUNDO
+
+Ordem dele, no fim do dia: *"publique isso pra todos já, não só no meu usuário"*.
+`ELENCO27_GERAL = true` em `sport.ts`. A lista `ELENCO27_TESTERS` virou RESERVA — pra
+fechar de novo é voltar pra `false` e ela reassume (o e-mail dele continua lá).
+
+**As três pernas saíram juntas, como manda o roteiro** (código + o que o jogador vê + o
+anúncio):
+1. **Trava aberta** → elenco 27, aba Elenco nova, pílulas, aba SAF, atalhos, barrinha de
+   gás no campinho: tudo de todo mundo agora.
+2. **Linha em `novidades.ts`** (PT + EN) — o banco de 11 → 16, com o aviso do salário e
+   da renovação na mesma frase. Era a pendência que estava aberta desde 16/09.
+3. **A fita trocou o fecho**: `chegando` (dourado) → **`já está no ar`** (verde).
+   Regravada. Fita não pode contradizer o jogo — a mesma regra que o reels do preparador
+   registrou em 15/09.
+
+### 🧪 A trava quebrou — e era pra quebrar
+`npm run elenco27` reprovou na hora: a seção 1 dela guardava o mundo ANTIGO ("trava
+fechada = elenco 22"), que deixou de existir. **Isso é o serviço dela**, não um defeito.
+Atualizada pro mundo novo: hoje a seção 1 prova que **qualquer conta** chega a 27.
+📌 Mesma limpeza no que virou herança: o alvo `elenco-antigo-celular` (`?novo=0`) saiu do
+`print-elenco.mjs` — o `?novo=0` não fecha mais nada (o GERAL ganha da lista de e-mails),
+então aquele print só enganaria quem viesse conferir depois.
+
 ## 18/09/2026 (parte 5) — 🌐 Minhas Ligas: os DOIS bugs do Bruno, com a causa achada
 
 Diego trouxe o áudio do Bruno + a cobrança: *"eu já tinha pedido pra você arrumar o

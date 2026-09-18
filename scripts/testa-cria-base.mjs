@@ -10,10 +10,13 @@ console.log('1) vagas por posição (o botão só aparece quando há vaga)')
 const sq = []
 for (const pos of ['GOL', 'LAT', 'LAT', 'ZAG', 'ZAG', 'MEI', 'MEI', 'MEI', 'ATA', 'ATA', 'ATA']) sq.push({ id: `t${sq.length}`, pos, lo: 80, hi: 90 })
 const m = { id: 1, isHuman: true, formation: '4-3-3', deepSquad: true, squad: sq }
-ok(totalHoles(m) === 11, `elenco de 11 numa carreira com banco fundo: ${totalHoles(m)} vagas (mira 22)`)
-ok(openSlots(m, 'GOL') === 1 && openSlots(m, 'MEI') === 3, `GOL ${openSlots(m, 'GOL')} vaga · MEI ${openSlots(m, 'MEI')} vagas`)
+// 🎽 OS NÚMEROS CRESCERAM EM 18/09, e é pra terem crescido: o banco foi de 11 pra 16
+// (elenco 22 → 27, +1 por posição) e a trava abriu pra todo mundo. Este teste reprovou
+// na hora com os números velhos — o serviço dele. No 4-3-3: GOL 1×2+1=3 · MEI 3×2+1=7.
+ok(totalHoles(m) === 16, `elenco de 11 numa carreira com banco fundo: ${totalHoles(m)} vagas (mira 27)`)
+ok(openSlots(m, 'GOL') === 2 && openSlots(m, 'MEI') === 4, `GOL ${openSlots(m, 'GOL')} vagas · MEI ${openSlots(m, 'MEI')} vagas`)
 m.squad.push({ id: 'c1', pos: 'GOL', lo: 48, hi: 58, cria: true })
-ok(openSlots(m, 'GOL') === 0, 'subiu um cria de GOL → GOL sem vaga (o cria ocupa a vaga, não fura o teto)')
+ok(openSlots(m, 'GOL') === 1, 'subiu um cria de GOL → sobrou 1 vaga de GOL (o cria ocupa a vaga, não fura o teto)')
 
 console.log('3) 🌱 a caixa da Base vale O ANO INTEIRO (conserto de 14/09)')
 // Diego (14/09): "não achei o botão no elenco". Motivo: fora do leilão de reservas
@@ -24,9 +27,11 @@ const meio = { id: 2, isHuman: true, formation: '4-3-3', deepSquad: false, squad
 ok(openSlots(meio, 'MEI') === 0, 'regra velha no meio da temporada: MEI sem vaga (mira 11) — era isto que escondia o botão')
 ok(vagaCheio(meio, 'MEI') > 0, `regra nova: MEI com ${vagaCheio(meio, 'MEI')} vaga(s) pro elenco cheio, com o leilão fechado`)
 const cheio = { id: 3, isHuman: true, formation: '4-3-3', deepSquad: false, squad: [] }
-for (const pos of ['GOL','GOL','LAT','LAT','LAT','LAT','ZAG','ZAG','ZAG','ZAG','MEI','MEI','MEI','MEI','MEI','MEI','ATA','ATA','ATA','ATA','ATA','ATA'])
-  cheio.squad.push({ id: `f${cheio.squad.length}`, pos, lo: 80, hi: 90 })
-ok(['GOL','LAT','ZAG','MEI','ATA'].every(p => vagaCheio(cheio, p) === 0), 'elenco 22/22: nenhuma vaga — a caixa some, que é o certo')
+// 4-3-3 CHEIO agora = 27: GOL 3 · LAT 5 · ZAG 5 · MEI 7 · ATA 7 (2× a formação + 1)
+for (const [pos, n] of [['GOL', 3], ['LAT', 5], ['ZAG', 5], ['MEI', 7], ['ATA', 7]])
+  for (let i = 0; i < n; i++) cheio.squad.push({ id: `f${cheio.squad.length}`, pos, lo: 80, hi: 90 })
+ok(cheio.squad.length === 27, `elenco cheio do 4-3-3 = ${cheio.squad.length} (27)`)
+ok(['GOL','LAT','ZAG','MEI','ATA'].every(p => vagaCheio(cheio, p) === 0), 'elenco 27/27: nenhuma vaga — a caixa da Base some, que é o certo')
 
 console.log('2) nomes: nunca repete o que já subiu')
 const rng = (() => { let x = 7; return () => { x = (x * 1103515245 + 12345) % 2147483648; return x / 2147483648 } })()
