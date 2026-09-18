@@ -1,3 +1,53 @@
+## 18/09/2026 (parte 7) — 📱 A TELA DA SALA ONLINE NO CELULAR ✅ NO AR
+
+Fecha o pedido dele depois de aprovar o desktop: *"quero uma ideia melhor visual também
+pra dispositivos móveis igual fez pro desktop. Consegue? **Sem diminuir a área dos gols e
+tamanhos de mascote e etc**"*.
+
+### 😅 Antes: seis versões de mockup e ele se perdeu
+Fui mandando desenho atrás de desenho e ele parou tudo: *"mas não o giro da rodada, as
+zoeiras e etc? Sei lá, tô confuso, não sei o que faço"*. **A culpa era do método**, não
+dele: eu nunca mostrei a LISTA do que existe na tela, só recortes.
+Parei de desenhar e fui conferir bloco por bloco no código (`scripts/mockup-celular-lista.mjs`).
+Duas coisas caíram por terra ali:
+- **Os OUTROS JOGOS já estavam certos.** `.ll27-ticker` já é `overflow-x:auto` com card de
+  230px logo abaixo do placar. Eu tinha inventado um problema — e na v4 encolhi o card pra
+  132px, que foi o *"não gostei de você diminuir o tamanho dos jogos"*.
+- **A zoeira nunca esteve na fila.** `ChatWidget` é montado no `index.tsx`, nível de app,
+  como balão flutuante. Não tinha o que decidir sobre ela.
+Sobraram 3 decisões de 12 blocos. Ele respondeu: *"ok publique"*.
+
+### O que foi ao ar (3 commits isolados, cada um revertível sozinho)
+1. **🏆 A tabela sobe.** No celular ela era a ÚLTIMA da fila. A fila passa a seguir o
+   relógio: placar → outros jogos ao vivo → próximo jogo + tática → **TABELA** → giro.
+2. **⚖️ A tática vira pílula.** O padrão que ele aprovou no Elenco no mesmo dia
+   (`🎽 4-4-2 ▾`). Medido: a caixa cai de **197px → 94px** fechada.
+3. **🧭 Uma navegação só.** As abas de cima (jogos · números · elenco) descem pra barra
+   que já existe embaixo; Rank/Estante/Temporadas viram **📚 Estante** com as três em
+   pílulas dentro do painel. Eram 7 botões de navegação; viraram 5.
+
+### 🛡️ O desktop não foi tocado — e isso foi condição, não sorte
+Ele aprovou a tela larga poucas horas antes. Tudo que é novo mora em
+`@media (max-width:1099.98px)` e exige `.ll25-shell`:
+- a coluna da direita virou duas metades dentro de um invólucro (`.ll-lado`) que no
+  desktop é UM bloco na coluna 2 e no celular se dissolve (`display:contents`);
+- a barra desenha os DOIS conjuntos de botões e a CSS escolhe qual aparece
+  (`ll-barra-cel` / `ll-barra-desk` / `ll-abas-topo`) — **nada é remontado pelo React no
+  meio da rodada**.
+Medido na bancada com a CSS do build: desktop com tabela e próximo jogo no **mesmo y=502**
+e o giro colado embaixo (sem buraco); barra de 5 botões cabe em **320px** em PT e EN.
+
+### Não existe estado sem navegação
+Sem a barra na tela (preview do Diego offline, ou durante a Copa) as abas de cima
+continuam onde sempre estiveram. Foi a primeira coisa conferida antes de mexer.
+
+### 📌 Lição pro repo
+**Mockup não substitui inventário.** Quando o dono se perde entre versões, o problema
+quase nunca é a versão — é que ninguém listou o que existe hoje. A lista fez duas das
+seis versões virarem pó e o trabalho encolher de 12 decisões pra 3.
+
+---
+
 ## 18/09/2026 (parte 6) — 🔓 O banco de 16 ABRIU PRA TODO MUNDO
 
 Ordem dele, no fim do dia: *"publique isso pra todos já, não só no meu usuário"*.
