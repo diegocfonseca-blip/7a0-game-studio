@@ -1,3 +1,29 @@
+## 18/09/2026 (parte 4) — 🐊 "Solta a mascote" está pequeno demais ⏳ PROPOSTA, ESPERANDO O OK
+
+Diego: *"esse solta o mascote das salas online está mt pequeno e sem graça… sei lá"*.
+
+**Ele tem razão, e dá pra medir:** hoje o botão SOLTA A SUA MASCOTE (`MascoteJab`,
+screens.tsx) manda um emote `masc:<chave>`, e o que aparece é uma **fichinha de 52px** na
+fila de reações, do lado de *"soltou o bicho!"*. Comparando com o que já existe no jogo:
+a cantada 💸 tem **chuva de dinheiro na tela inteira** (`MoneyRain`, ~2,4 s). Ou seja, a
+mascote do **clube batizado** — a coisa mais pessoal que o jogo tem — tem MENOS teatro
+que um emoji.
+
+### A proposta (nada codado no jogo; só a bancada)
+A mascote **ATRAVESSA a tela**, grande, por ~2,2 s: entra por um lado, cruza a parte de
+baixo do jeito DELA, solta confete e deixa a faixa roxa *"Fulano soltou o bicho!"*.
+- **Zero arte nova**: é a mesma arte e os mesmos keyframes da festa de campeão, incluindo
+  o `FESTA_JEITO` (🦅 quem voa plana alto e sem sombra · 🐍 quem rasteja ondula rente ·
+  o resto quica).
+- **Não atrasa o jogo** (regra de ouro): camada fixa, `pointer-events: none`, fora do
+  reducer — a MESMA receita da chuva de dinheiro. Não toca em lance, tempo nem resultado.
+- Quem não tem clube batizado continua sem ver botão nenhum (régua dele).
+
+🎥 **Bancada: `scripts/teste-mascote/` + `node scripts/print-mascote.mjs [--masc chave]`**
+— grava ANTES × PROPOSTA lado a lado num mp4. Animação não se julga em print parado.
+
+### ⏭️ Pendente
+- [ ] **OK do Diego** pra codar (e escolher se o bicho cruza uma vez ou vai-e-volta).
 ## 18/09/2026 (parte 3) — 🎬 Reels do banco de 16 (com o aviso de salário/renovação)
 
 Pedido dele: *"preciso de mockup agora com vídeo padrão q sempre fazemos, dizendo q agora
