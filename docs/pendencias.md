@@ -1,4 +1,4 @@
-## 18/09/2026 (parte 4) — 🐊 "Solta a mascote" está pequeno demais ⏳ PROPOSTA, ESPERANDO O OK
+## 18/09/2026 (parte 4) — 🐊 "Solta a mascote": agora ATRAVESSA A TELA ✅ CODADO E NO AR
 
 Diego: *"esse solta o mascote das salas online está mt pequeno e sem graça… sei lá"*.
 
@@ -22,8 +22,26 @@ baixo do jeito DELA, solta confete e deixa a faixa roxa *"Fulano soltou o bicho!
 🎥 **Bancada: `scripts/teste-mascote/` + `node scripts/print-mascote.mjs [--masc chave]`**
 — grava ANTES × PROPOSTA lado a lado num mp4. Animação não se julga em print parado.
 
-### ⏭️ Pendente
-- [ ] **OK do Diego** pra codar (e escolher se o bicho cruza uma vez ou vai-e-volta).
+### ✅ Aprovado e feito
+Ele escolheu: ***"atravessa a tela"*** — uma passada só, ~2,2 s. Entrou como
+`MascoteAtravessa` (screens.tsx), montado ao lado do `MoneyRain`. **Este vale pra TODO
+MUNDO** (não tem trava de conta): é cosmético, e quem não tem clube batizado continua
+sem botão nenhum.
+- 🧹 **A fichinha de 52px SAIU da fila de reações** quando o bicho grande está cruzando —
+  senão era a mesma coisa duas vezes na tela, exatamente a bronca da faixa dos cansados.
+  Chave que o aparelho NÃO sabe desenhar continua na fila com o 🎭 (nada se perde).
+- 👥 Dois ao mesmo tempo cruzam juntos, em alturas diferentes (`MASC_ALTURAS`, sorteadas
+  pelo id do emote, então re-render não faz o bicho pular).
+
+### ⚠️ O que NÃO deu pra testar daqui — e por quê
+O `MascoteAtravessa` lê `useEsc()` (estado da SALA + fila de emotes), que **só existe
+numa sala online de verdade** — e este ambiente **não alcança o Supabase** (o proxy
+bloqueia `faabglpjutwursgmrpny.supabase.co`, achado em 18/09 no bug do host).
+Então a bancada é **ESPELHO, não importação**: ela copia os keyframes com os MESMOS
+nomes e valores, e o `print-mascote.mjs` **compara os dois arquivos antes de gravar** e
+falha se um mudar sozinho (hoje: 6 animações em sincronia). Ou seja, o movimento está
+provado; o que falta ver com gente de verdade é a **fiação** (o emote chegando na sala).
+↩️ Reverter é tirar `<MascoteAtravessa />` de uma linha no `screens.tsx`.
 ## 18/09/2026 (parte 3) — 🎬 Reels do banco de 16 (com o aviso de salário/renovação)
 
 Pedido dele: *"preciso de mockup agora com vídeo padrão q sempre fazemos, dizendo q agora

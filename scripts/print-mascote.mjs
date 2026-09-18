@@ -8,6 +8,18 @@ import { createRequire } from 'node:module'
 import { chromium } from 'playwright-core'
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d }
 const MASC = arg('--masc', 'leao_thor'), SAIDA = arg('--saida', '/tmp/solta-mascote.mp4'), PORTA = arg('--porta', '5199')
+// 🔁 GUARDA DO ESPELHO: a bancada não IMPORTA o componente do jogo (ele depende do
+// `useEsc()`), então ela copia os keyframes. Se um dos dois mudar sozinho, o print
+// vira mentira — por isso comparamos os dois arquivos antes de gravar.
+import { readFileSync } from 'node:fs'
+const kf = (txt) => Object.fromEntries([...txt.matchAll(/@keyframes escMasc(\w+)\{([^}]*)\}/g)]
+  .map(m => [m[1].toLowerCase(), m[2].replace(/\s/g, '')]))
+const noJogo = kf(readFileSync('src/escalacao/screens.tsx', 'utf8'))
+const naBanca = kf(readFileSync('scripts/teste-mascote/main.tsx', 'utf8'))
+const difs = Object.keys(noJogo).filter(k => noJogo[k] !== naBanca[k])
+if (difs.length) { console.error(`❌ a bancada saiu de sincronia com o jogo: ${difs.join(', ')}`); process.exit(1) }
+console.log(`✅ bancada em sincronia com o jogo (${Object.keys(noJogo).length} animações)`)
+
 const REC = '/tmp/rec-solta-mascote'
 rmSync(REC, { recursive: true, force: true }); mkdirSync(REC, { recursive: true })
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
