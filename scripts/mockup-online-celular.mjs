@@ -36,8 +36,16 @@ const b64 = p => 'data:image/webp;base64,' + readFileSync(p).toString('base64')
 const MASCOTE = b64('src/escalacao/img/neymarzetti-mascote.webp')
 const ESCUDO = b64('src/escalacao/img/neymarzetti-escudo.webp')
 
+// 🏆 A TABELA INTEIRA — ordem do Diego (18/09): *"prefiro que mostre a tabela toda"*.
+// São os 20 da divisão, não um pedaço. Com ela inteira aqui, nem precisa de um
+// botão só pra tabela: ela mora na tela do jogo, que é onde ele quer olhar.
 const TAB = [[1, 'Neymarzetti 👑', 12, 5, 1], [2, 'Flapingas', 11, 6, 0], [3, 'Bagres de Wall St.', 9, 2, 0],
-  [4, 'Só Deus Sabe FC', 8, 6, 0], [5, 'Rei da Bola FC', 8, 4, 0], [6, 'Fala D10', 8, 2, 0], [7, 'Xurupitas FC', 8, 2, 0]]
+  [4, 'Só Deus Sabe FC', 8, 6, 0], [5, 'Rei da Bola FC', 8, 4, 0], [6, 'Fala D10', 8, 2, 0], [7, 'Xurupitas FC', 8, 2, 0],
+  [8, 'Vidraceiro FC', 7, 1, 0], [9, 'Nata de SP', 7, 0, 0], [10, 'Al Takhadao FC', 6, 0, 0],
+  [11, 'Bagres 1993', 6, -1, 0], [12, 'São Luiz FC', 5, -2, 0], [13, 'Murriz FC', 5, -2, 0],
+  [14, 'Papão United', 4, -3, 0], [15, 'Scorporila FC', 4, -4, 0], [16, 'Marolados FC', 3, -5, 0],
+  [17, 'Barcenite FC', 3, -6, 0], [18, 'Fridão FC', 2, -7, 0], [19, 'Pesadelo Verde', 2, -8, 0],
+  [20, 'La Bestia Negra', 1, -9, 0]]
 
 // o placar, do MESMO tamanho nos dois lados — é a regra do pedido
 const placar = (gol, alto) => `
@@ -62,11 +70,11 @@ const placar = (gol, alto) => `
 const bx = (t, c = '#F7F4EA') => `<div style="background:${c};border:3px solid ${INK};border-radius:12px;padding:10px 11px;font-size:12px;font-weight:800">${t}</div>`
 
 const tabelaMini = `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;overflow:hidden">
-  <div style="font-size:10px;font-weight:900;letter-spacing:1px;color:#7a7364;padding:8px 10px 4px">🏆 LIGA LEGENDS</div>
+  <div style="font-size:10px;font-weight:900;letter-spacing:1px;color:#7a7364;padding:8px 10px 4px">🏆 LIGA LEGENDS <span style="float:right;font-weight:700;color:#9aa">os 20</span></div>
   <table style="width:100%;border-collapse:collapse;font-size:12px">
-   ${TAB.map(([p, t, P, SG, eu]) => `<tr style="${eu ? 'background:#FFF0C4' : ''}"><td style="padding:5px 10px;font-weight:700;border-top:1px solid rgba(0,0,0,.08)">${p}. ${t}</td>
-     <td style="padding:5px 4px;text-align:right;font-weight:900;border-top:1px solid rgba(0,0,0,.08)">${P}</td>
-     <td style="padding:5px 10px 5px 4px;text-align:right;font-weight:700;color:#888;border-top:1px solid rgba(0,0,0,.08)">${SG}</td></tr>`).join('')}
+   ${TAB.map(([p, t, P, SG, eu]) => `<tr style="${eu ? 'background:#FFF0C4' : p <= 8 ? 'background:#EAF5EE' : p >= 17 ? 'background:#FDECEA' : ''}"><td style="padding:4px 10px;font-weight:700;border-top:1px solid rgba(0,0,0,.08)">${p}. ${t}</td>
+     <td style="padding:4px 4px;text-align:right;font-weight:900;border-top:1px solid rgba(0,0,0,.08)">${P}</td>
+     <td style="padding:4px 10px 4px 4px;text-align:right;font-weight:700;color:#888;border-top:1px solid rgba(0,0,0,.08)">${SG}</td></tr>`).join('')}
   </table></div>`
 
 const barra = (ativo) => `<div style="display:flex;gap:5px;background:#101a13;border:3px solid ${INK};border-radius:12px;padding:5px">
@@ -153,8 +161,9 @@ momento. Quem encolheu foi só o <b>caixote do próximo jogo</b>, e ele ganhou a
   &nbsp;&nbsp;&nbsp;⚽ <b>Jogo</b> (placar + tabela) · 📊 <b>Estatísticas</b> · 👥 <b>Elenco</b> · 🏆 <b>Liga</b><br>
   🏆 <b>Rank, Estante e Temporadas viram UM botão só (Liga)</b> — as três são a mesma coisa: a história da
   liga. Lá dentro elas continuam <b>exatamente como são hoje</b>, nas abinhas delas. <b>Nada some.</b><br>
-  📊 <b>A tela do jogo mostra só o jogo</b>: placar grande + os 7 primeiros da tabela, que é o que interessa
-  enquanto a bola rola. Outros jogos, giro da rodada e próximo jogo ficam na aba 🏆 Liga.<br>
+  📊 <b>A tela do jogo mostra o jogo + a TABELA INTEIRA</b> (ordem sua: "prefiro que mostre a tabela toda").
+  São os 20, com a zona de cima em verde e o Z4 em vermelho. Como ela está aqui, <b>nem precisa de um botão
+  só pra tabela</b> — sobra espaço na barra. Outros jogos, giro da rodada e próximo jogo ficam na aba 🏆 Liga.<br>
   ⚽ <b>O momento do GOL abre espaço</b>: a mascote entra maior e nasce embaixo a linha do goleador com a
   assistência. Passado o gol, volta ao normal sozinho.<br>
   🖥️ <b>O desktop que você já aprovou não muda</b> — isto só vale em tela estreita.
