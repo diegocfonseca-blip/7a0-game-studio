@@ -25,8 +25,23 @@
 // Sem imports de propósito: escudos.tsx, mascotes.tsx, manto.ts e store.tsx
 // importam daqui, então este arquivo não pode depender de nenhum deles.
 
-/** chave de comparação de nome de clube: sem acento, minúsculo, sem FC/EC/SC no fim */
+/** chave de comparação de nome de clube: sem selo, sem acento, minúsculo, sem FC/EC/SC no fim */
 export const chaveEscudo = (n: string): string => n
+  // 🏅 TIRA O SELO DE TIER ANTES DE TUDO (bug do Leite de Verdade, 18/09).
+  // Palavras do Diego: *"o usuário do Leite de Verdade, que tem batismo, disse que
+  // quando ele joga online o gol do mascote dele não tá aparecendo"*.
+  // No ONLINE o nome do clube é o que a pessoa DIGITA, e o jogo gruda o selo do
+  // apoiador nele — no banco o clube dele está gravado como "Loopesmiranda FC 👑🖋️".
+  // A TELA já limpava o selo antes de procurar (`nomeLimpo`), mas o REGISTRO de
+  // "qual é o meu clube" guardava o nome COM o selo. As duas chaves nunca batiam:
+  //   registro → "loopesmiranda fc 👑🖋️"   ·   busca → "loopesmiranda"
+  // (e o emoji no fim ainda impedia o corte do "FC", dobrando o estrago).
+  // Como isto é a chave dos DOIS lados, limpar aqui acerta registro e busca juntos —
+  // e vale pro escudo e pro manto pelo mesmo caminho, não só pra mascote.
+  // ⚠️ A regex é cópia da de `escudos.tsx` de propósito: este arquivo não importa
+  // ninguém (escudos/mascotes/manto/store importam DAQUI — ver o cabeçalho).
+  .replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u{200D}\u{FE0F}\u{FE0E}\u{20E3}]/gu, '')
+  .replace(/\s*\((você|voce)\)\s*$/i, '') // sufixo de tela, igual ao `nomeLimpo`
   .normalize('NFD').replace(/[̀-ͯ]/g, '') // tira acento (Bigão = Bigao)
   .toLowerCase().trim()
   .replace(/\s+/g, ' ')
