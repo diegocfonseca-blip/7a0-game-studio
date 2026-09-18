@@ -26,6 +26,16 @@
 // Estante e Temporadas são a mesma coisa (a história da liga), então viram UM
 // botão 🏆 Liga — e lá dentro as três abas continuam exatamente como são hoje.
 //
+// 🔁 VERSÃO 3 — duas correções dele: *"mas o próximo jogo e tática retranca,
+// equilíbrio e ataque não está legal na área de liga… e ligas tem que tá na
+// estante, sei lá"*.
+//  1. ⚔️ O PRÓXIMO JOGO E A TÁTICA VOLTAM PRA ABA DO JOGO. Eu tinha jogado eles
+//     na aba de liga e estava errado: tática não é histórico, é a DECISÃO da
+//     próxima rodada — ela tem que estar onde a pessoa está vendo a bola rolar.
+//  2. 📚 O 4º BOTÃO CHAMA ESTANTE, não "Liga". É o nome que já existe no jogo, e
+//     é lá que Rank/Estante/Temporadas moram. Nome novo pra coisa velha só
+//     confunde.
+//
 // ⚠️ SÓ DESENHO. Nada mexido. Rodar: node scripts/mockup-online-celular.mjs
 import { chromium } from 'playwright-core'
 import { readFileSync } from 'node:fs'
@@ -67,6 +77,15 @@ const placar = (gol, alto) => `
   </div>
 </div>`
 
+// ⚔️ o próximo jogo + a tática, ENXUTO — mora na aba do JOGO (correção do Diego)
+const proximo = `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:9px 10px">
+  <div style="font-size:10px;font-weight:900;color:#7a7364;letter-spacing:.7px;margin-bottom:7px">⚔️ PRÓXIMO · XURUPITAS FC (FORA)</div>
+  <div style="display:flex;gap:5px">
+    <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:#fff">🛡️ Retranca</div>
+    <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:${GOLD}">⚖️ Equilíbrio</div>
+    <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:#fff">🔥 Ataque</div>
+  </div></div>`
+
 const bx = (t, c = '#F7F4EA') => `<div style="background:${c};border:3px solid ${INK};border-radius:12px;padding:10px 11px;font-size:12px;font-weight:800">${t}</div>`
 
 const tabelaMini = `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;overflow:hidden">
@@ -78,7 +97,7 @@ const tabelaMini = `<div style="background:#F7F4EA;border:3px solid ${INK};borde
   </table></div>`
 
 const barra = (ativo) => `<div style="display:flex;gap:5px;background:#101a13;border:3px solid ${INK};border-radius:12px;padding:5px">
-  ${[['⚽', 'Jogo'], ['📊', 'Estatísticas'], ['👥', 'Elenco'], ['🏆', 'Liga']].map(([e, n], i) =>
+  ${[['⚽', 'Jogo'], ['📊', 'Estatísticas'], ['👥', 'Elenco'], ['📚', 'Estante']].map(([e, n], i) =>
     `<div style="flex:1;text-align:center;padding:6px 0;border-radius:8px;font-size:10px;font-weight:900;${i === ativo ? `background:${ROXO};color:#fff` : 'color:#9aa79f'}">
       <div style="font-size:16px;line-height:1">${e}</div>${n}</div>`).join('')}</div>`
 
@@ -121,6 +140,7 @@ continuam sem encolher, como você exigiu.</div>
 
   ${tela('✅ momento 1 · bola rolando', `
     ${placar(false, true)}
+    ${proximo}
     ${tabelaMini}
     ${barra(0)}`, VERDE)}
 
@@ -130,24 +150,17 @@ continuam sem encolher, como você exigiu.</div>
     ${tabelaMini}
     ${barra(0)}`, VERDE)}
 
-  ${tela('✅ aba 🏆 liga (o que já existia)', `
-    ${placar(false, false)}
+  ${tela('✅ aba 📚 estante (o que já existia)', `
     <div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:11px">
-      <div style="display:flex;gap:4px;margin-bottom:9px">
+      <div style="display:flex;gap:4px;margin-bottom:10px">
         <div style="flex:1;text-align:center;font-size:10px;font-weight:900;padding:5px 0;border-radius:7px;background:#B8860B;color:#fff">🏅 RANK</div>
         <div style="flex:1;text-align:center;font-size:10px;font-weight:900;padding:5px 0;border-radius:7px;color:#8a8270">📚 ESTANTE</div>
         <div style="flex:1;text-align:center;font-size:10px;font-weight:900;padding:5px 0;border-radius:7px;color:#8a8270">📄 TEMPORADAS</div>
       </div>
-      <div style="font-size:11px;font-weight:900;color:#7a7364;letter-spacing:.8px;margin-bottom:8px">⚔️ PRÓXIMO · XURUPITAS FC (FORA)</div>
-      <div style="display:flex;gap:6px">
-        <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:7px 0;font-size:11px;font-weight:900;background:#fff">🛡️<br>Retranca</div>
-        <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:7px 0;font-size:11px;font-weight:900;background:${GOLD}">⚖️<br>Equilíbrio</div>
-        <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:7px 0;font-size:11px;font-weight:900;background:#fff">🔥<br>Ataque</div>
-      </div>
-      <p style="font-size:10px;font-weight:700;color:#8a8270;margin-top:8px;line-height:1.35">Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.</p>
+      <div style="font-size:11px;font-weight:800;color:#555;line-height:1.5">🏅 Pontos da liga, 🏆 troféus de cada temporada e o histórico — <b>exatamente as três abas de hoje</b>, sem mudar nada.</div>
     </div>
-    ${bx('OUTROS JOGOS · rodada 6')}
-    ${bx('📣 Giro da rodada')}
+    ${bx('🏆 Campeões · temporada 1 · Flapingas')}
+    ${bx('🏆 Campeões · temporada 2 · Neymarzetti')}
     ${barra(3)}`, VERDE)}
 </div>
 
@@ -158,12 +171,16 @@ momento. Quem encolheu foi só o <b>caixote do próximo jogo</b>, e ele ganhou a
 <div class="nota">
   <b>A unificação, em linguagem de jogo</b><br>
   🔗 <b>Uma barra só, com 4 botões</b> — as abas de cima DESCEM pra barra que já existe embaixo:<br>
-  &nbsp;&nbsp;&nbsp;⚽ <b>Jogo</b> (placar + tabela) · 📊 <b>Estatísticas</b> · 👥 <b>Elenco</b> · 🏆 <b>Liga</b><br>
-  🏆 <b>Rank, Estante e Temporadas viram UM botão só (Liga)</b> — as três são a mesma coisa: a história da
-  liga. Lá dentro elas continuam <b>exatamente como são hoje</b>, nas abinhas delas. <b>Nada some.</b><br>
+  &nbsp;&nbsp;&nbsp;⚽ <b>Jogo</b> (placar + próximo + tabela) · 📊 <b>Estatísticas</b> · 👥 <b>Elenco</b> · 📚 <b>Estante</b><br>
+  📚 <b>O 4º botão chama ESTANTE</b> (correção sua) — é o nome que já existe no jogo. Rank, Estante e
+  Temporadas moram lá dentro, <b>exatamente como são hoje</b>. <b>Nada some e nada muda de nome.</b><br>
+  ⚔️ <b>O próximo jogo e a tática ficam na aba do JOGO</b> (correção sua): tática não é histórico, é a
+  DECISÃO da próxima rodada — tem que estar onde você está vendo a bola rolar. Logo abaixo do placar,
+  enxuto, em uma linha de três botões.<br>
   📊 <b>A tela do jogo mostra o jogo + a TABELA INTEIRA</b> (ordem sua: "prefiro que mostre a tabela toda").
   São os 20, com a zona de cima em verde e o Z4 em vermelho. Como ela está aqui, <b>nem precisa de um botão
-  só pra tabela</b> — sobra espaço na barra. Outros jogos, giro da rodada e próximo jogo ficam na aba 🏆 Liga.<br>
+  só pra tabela</b> — sobra espaço na barra. Outros jogos e giro da rodada ficam logo abaixo dela, no fim da
+  aba do jogo (é notícia da rodada, então fica depois do que importa).<br>
   ⚽ <b>O momento do GOL abre espaço</b>: a mascote entra maior e nasce embaixo a linha do goleador com a
   assistência. Passado o gol, volta ao normal sozinho.<br>
   🖥️ <b>O desktop que você já aprovou não muda</b> — isto só vale em tela estreita.
