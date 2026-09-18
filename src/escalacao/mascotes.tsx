@@ -33,6 +33,8 @@ import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei d
 import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import barceniteMascoteImg from './img/barcenite-mascote.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import marinheirosMascoteImg from './img/marinheiros-mascote.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import pesadeloMascoteImg from './img/pesadelo-mascote.webp' // 🌑🐺 Pesadelo Verde FC (portaltech.ep): arte própria do dono, batismo de 18/09
+import bestiaMascoteImg from './img/bestia-mascote.webp' // 🦊 La Bestia Negra (eltonfrossard45): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
 import fridaoMascoteImg from './img/fridao-mascote.webp' // 🐴 Fridão FC (felipe.ofrida): arte própria do dono, batismo de 16/09
 import maroladosMascoteImg from './img/marolados-mascote.webp' // 🛡️🌱 Marolados FC (paisagensetrilha): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import scorporilaMascoteImg from './img/scorporila-mascote.webp' // 🦍🦂 Scorporila FC (lucassrribeiroo2023): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
@@ -584,33 +586,20 @@ export const MASCOTES: Record<string, ReactNode> = {
   mariposa: (
     <img src={bichoDaSedaMascoteImg} height={176} width={Math.round(176 * 436 / 440)} alt="O Bicho da Seda — Bicho da Seda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🦊 raposa azul do La Bestia Negra (Elton) — cara IGUAL à do escudo (pedido
-  // do Diego 09/08): orelhão com miolo preto, bigodinho, focinho creme.
+  // 🌑🐺 O Pesadelo — Pesadelo Verde FC (portaltech.ep, batismo 18/09). 312x440 no
+  // arquivo, então a largura sai da PROPORÇÃO REAL. O lobo uivando pra lua cheia
+  // em cima da pedra, com o raio verde em volta.
+  pesadelo_lobo: (
+    <img src={pesadeloMascoteImg} height={176} width={Math.round(176 * 312 / 440)} alt="O Pesadelo — Pesadelo Verde FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🦊 A Bestia — La Bestia Negra (eltonfrossard45, 18/09). 368x440 no arquivo,
+  // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). A raposa
+  // azul rosnando em cima do entulho, com o galo derrubado embaixo da pata — a
+  // zoeira Cruzeiro × Galo que o próprio dono desenhou.
+  // 🧷 A CHAVE continua `raposa` de propósito: é o que está gravado no banco
+  // (`esc_socios.mascote_key` dele). Só a arte trocou — era SVG à mão aqui dentro.
   raposa: (
-    <svg width="120" height="164" viewBox="0 0 120 170">
-      <g transform="translate(0,6)">
-        <path d="M88 110 q26 -6 24 -34 q14 30 -8 50 q-12 10 -22 4 Z" fill="#1B62C9" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M108 82 q8 16 -4 32 l-10 -8 q10 -10 8 -22 Z" fill="#F4ECD6" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
-        <path d="M48 118 48 140 40 146 56 146 55 118 Z" fill={INK} />
-        <path d="M72 118 72 140 80 146 64 146 65 118 Z" fill={INK} />
-        <path d="M44 104 76 104 78 122 62 118 60 122 42 122 Z" fill="#141414" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M40 66 80 66 88 110 32 110 Z" fill="#0E3E86" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M52 66 68 66 66 84 60 90 54 84 Z" fill="#F4ECD6" stroke={INK} strokeWidth="3" />
-        <path d="M42 70 L28 46 L36 40 L50 66" fill="#0E3E86" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M78 70 L92 46 L84 40 L70 66" fill="#0E3E86" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <circle cx="32" cy="42" r="7" fill="#1B62C9" stroke={INK} strokeWidth="3.5" />
-        <circle cx="88" cy="42" r="7" fill="#1B62C9" stroke={INK} strokeWidth="3.5" />
-        <g transform="translate(2,-26.7) scale(0.58)">
-          <path d="M64 58 L80 88 L52 92 Z M136 58 L120 88 L148 92 Z" fill="#1B62C9" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          <path d="M70 66 L78 84 L60 86 Z M130 66 L122 84 L140 86 Z" fill={INK} />
-          <path d="M62 88 Q100 72 138 88 L144 108 L128 118 L138 128 Q120 158 100 164 Q80 158 62 128 L72 118 L56 108 Z" fill="#1B62C9" stroke={INK} strokeWidth="7" strokeLinejoin="round" />
-          <path d="M100 132 q-16 -4 -24 8 q10 20 24 24 q14 -4 24 -24 q-8 -12 -24 -8 Z" fill="#F4ECD6" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-          <circle cx="84" cy="110" r="7" fill={INK} /><circle cx="116" cy="110" r="7" fill={INK} />
-          <path d="M100 152 l-9 -11 h18 Z" fill={INK} />
-          <path d="M70 126 l-12 -3 M70 132 l-11 3 M130 126 l12 -3 M130 132 l11 3" stroke={INK} strokeWidth="4" strokeLinecap="round" />
-        </g>
-      </g>
-    </svg>
+    <img src={bestiaMascoteImg} height={176} width={Math.round(176 * 368 / 440)} alt="A Bestia — La Bestia Negra" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   alface: (
     <svg width="120" height="164" viewBox="0 0 120 170">
@@ -740,7 +729,22 @@ export const CARIMBO_GOL: Record<string, string> = {
   'BARCENITE': 'gatao_bfc',
   'BARCENITE FC': 'gatao_bfc',
   'Milanesa FC': 'gatao_bfc',
+  // 🌑🐺 Pesadelo Verde FC (portaltech.ep). CARIMBO_GOL é busca EXATA: entram as
+  // 4 formas reservadas do nome e as maiúsculas.
+  'Pesadelo Verde': 'pesadelo_lobo',
+  'Pesadelo Verde FC': 'pesadelo_lobo',
+  'Pesadelo Verde EC': 'pesadelo_lobo',
+  'Pesadelo Verde SC': 'pesadelo_lobo',
+  'PESADELO VERDE': 'pesadelo_lobo',
+  'PESADELO VERDE FC': 'pesadelo_lobo',
+  // 🦊 La Bestia Negra (eltonfrossard45). As 4 formas do nome + as maiúsculas —
+  // CARIMBO_GOL é busca EXATA, então cada forma precisa estar escrita aqui.
   'La Bestia Negra': 'raposa',
+  'La Bestia Negra FC': 'raposa',
+  'La Bestia Negra EC': 'raposa',
+  'La Bestia Negra SC': 'raposa',
+  'LA BESTIA NEGRA': 'raposa',
+  'LA BESTIA NEGRA FC': 'raposa',
   'Xurupitas FC': 'xurupitas_gosma',
   'Xurupitas': 'xurupitas_gosma',
   'Xurupitas EC': 'xurupitas_gosma',
@@ -1018,6 +1022,8 @@ export const MASCOTE_NOME: Record<string, string> = {
   raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
   porco_marinheiro: 'O Marujo', // ⚓🐷 Marinheiros AS (feehcamp11, 16/09) — o porco marujo de cachimbo e espinafre. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  pesadelo_lobo: 'O Pesadelo', // 🌑🐺 Pesadelo Verde FC (portaltech.ep, 18/09) — o lobo uivando pra lua. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  raposa: 'A Bestia', // 🦊 La Bestia Negra (eltonfrossard45, 18/09) — a raposa azul do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   fridao_cavalo: 'O Fridão', // 🐴 Fridão FC (felipe.ofrida, 16/09) — o cavalo alvinegro coroado, de crina branca. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   marolado: 'O Marolado', // 🛡️🌱 Marolados FC (paisagensetrilha, 16/09) — o moleque rastafari da várzea. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   scorporila: 'O Scorporila', // 🦍🦂 Scorporila FC (lucassrribeiroo2023, 16/09) — o gorila-escorpião. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono

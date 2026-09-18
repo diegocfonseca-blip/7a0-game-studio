@@ -21,6 +21,56 @@
    script falha com o stack na tela se a arte estourar.
    ⚠️ E ela caiu na primeira tentativa por culpa minha: usei `find(...)!` num nome que não
    está no catálogo de rostos e o `undefined` derrubou tudo. Agora tem fallback.
+## 18/09/2026 — 🌑🐺 BATISMO: Pesadelo Verde FC (portaltech.ep) na Série C + 🦊 arte nova do La Bestia Negra
+
+### 🌑🐺 Pesadelo Verde FC — batismo novo, 3 pernas fechadas
+Pedido do Diego: *"faça batismo desse usuário aqui, que hoje é craque mas vai ser
+batismo, troque por um time da Série C"*. Ele era **prata (Craque)** e subiu.
+
+⛔ **Conta conferida ANTES de qualquer linha** (regra de 07/09): existe em `auth.users`.
+
+- **Assento**: Série C, na vaga do bot **Zé Colmeia**, com
+  `OLD_NAME['Pesadelo Verde FC'] = 'Zé Colmeia'`. O bot segue vivo em `CPU_MANAGERS`.
+- **Manto**: quase-preto `#030A04` + verde-musgo `#597751`, **medidos na camisa**
+  (84% e 7%); branco `#D8D6D1` da gola como 3ª cor (`MANTO_TRI`).
+- **Banco** (feito e conferido): `esc_socios` nº **54** (`valido_ate 2099-12-31`,
+  `origem batismo`) · `esc_fundadores` nº **73** · `user_colors` **ouro + manual** ·
+  `esc_nomes_batismo` com **3 nomes travados** (o gatilho criou FC e EC).
+
+### 🎨 RECEITA NOVA: recortar arte VERDE em chroma VERDE
+Vale guardar, porque vai repetir. Medido nesta prancha: **5.319 pixels do pelo do
+lobo e 3.553 do halo da lua** estão a menos de 60 de distância da cor EXATA do
+fundo. Cortar por "verde forte" (o jeito das outras pranchas) comeria o raio e o
+brilho — que é a identidade do clube.
+👉 **A saída é cortar por LIGAÇÃO, não por cor**: o fundo é a mancha cor-de-chroma
+que **encosta na borda da imagem**. Verde igualzinho dentro do desenho não encosta
+em borda nenhuma, então fica. Buraco preso (vão entre as patas) só sai se for
+grande. Está em `scripts/recorta-prancha-pesadelo.py` — é o script a copiar quando
+a arte tiver a cor do chroma.
+
+### 🦊 La Bestia Negra — arte nova do dono (renovação)
+- Escudo e mascote **eram SVG desenhado à mão dentro do código** (de 09/08, antes
+  da regra de peso). Saíram e viraram `.webp` fora do bundle.
+- **Manto remedido**: azul `#011B8A` + branco `#E8E8EB`. O azul saiu da leitura do
+  PANO (p65-p75 do brilho) — a mediana crua puxava pro quase-preto por causa do
+  sombreado pesado. ⚠️ E a 2ª cor que estava no banco era `#F4ECD6`, que é
+  **exatamente o creme da tela do jogo**: a listra clara dele sumia no fundo.
+  Corrigido no banco também.
+- 🕳️ **Buraco antigo fechado de lambuja**: ele tinha `FUNDADOR_N` mas **não tinha a
+  linha de tier ouro** em `apoio.tsx` desde 09/08. No banco (`user_colors`, a fonte
+  oficial) já era ouro, então nunca deixou de ver o dourado — a RESERVA é que
+  estava vazia. `npm run batismos` foi de 40 → **42 completos**.
+
+### ⏳ Pendente (avisar o Diego quando souber)
+- 🦊 Nome da mascote do La Bestia (**"A Bestia"**) e do Pesadelo (**"O Pesadelo"**)
+  são PROVISÓRIOS — as artes vieram sem nome.
+- ❤️ Time de coração do dono do Pesadelo Verde: não sei, `time_coracao` vazio e o
+  post saiu sem a linha.
+- 📝 O escudo do La Bestia escreve **"LÁ BESTIA NEGRA"** (com acento). O clube no
+  jogo é "La Bestia Negra" — **não renomeei**, nome de clube batizado é identidade
+  e chave de save.
+
+---
 
 ## 18/09/2026 — 👥 Aba Elenco: aba SAF, fora o Nº, o meio limpo, pílulas e a Base no banco ✅ NO AR (só a conta dele)
 
