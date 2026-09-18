@@ -1,3 +1,27 @@
+## 18/09/2026 (parte 2) — 😓 Gás volta ao campinho · 📤 compartilhar com o banco LISTADO
+
+1. **A barrinha de energia VOLTOU pro campinho** (*"tá faltando a barrinha de energia no
+   time titular do campinho"*). ⚠️ Isto **revoga a regra de 12/09** (*"não quero que
+   apareça no campinho, só onde tem a listagem"*) — CLAUDE.md atualizado. Por que mudou:
+   em 12/09 a barra dividia o boneco com ⚽, 🅰️ e cia., e virava painel; hoje o campinho
+   está limpo (gol e assistência são COLUNA), então sobrou lugar pra única coisa que
+   importa olhando o time que vai entrar. Vai a **barra crua**, sem número (o % vive na
+   lista), e **só na tela nova**.
+2. **📤 O compartilhar: banco LISTADO, não um segundo campinho** (*"ajuste o botão de
+   compartilhar pra vir apenas os titulares do campo + o time reserva listado"*).
+   Antes a arte desenhava **dois gramados** — o segundo era o banco —, o que dava a
+   entender que os reservas também estavam em campo; e com o banco de 16 aquilo virava
+   um campão de 4 linhas. Agora: campinho = quem JOGA; banco = ficha em **duas colunas**
+   (rosto · POS · nome · clube·ano · ⚽), no fundo creme com a borda e a sombra da casa.
+   🧹 De quebra: `titulares` saiu do pacote do compartilhar — era **dado morto**, ninguém
+   desenhava com ele, e ficava parecendo que existia uma lista de titulares na arte.
+3. 🧪 **Bancada nova: `scripts/teste-share/` + `node scripts/print-share.mjs`.** A arte é
+   CANVAS — o `tsc` não enxerga UM erro de desenho ali. Sem bancada, eu só ia descobrir
+   que quebrou quando ele tentasse postar. Ela desenha o pior caso (16 reservas) e o
+   script falha com o stack na tela se a arte estourar.
+   ⚠️ E ela caiu na primeira tentativa por culpa minha: usei `find(...)!` num nome que não
+   está no catálogo de rostos e o `undefined` derrubou tudo. Agora tem fallback.
+
 ## 18/09/2026 — 👥 Aba Elenco: aba SAF, fora o Nº, o meio limpo, pílulas e a Base no banco ✅ NO AR (só a conta dele)
 
 Diego, olhando a tela NO CELULAR dele (não mais a bancada): *"faltou a aba da SAF, como

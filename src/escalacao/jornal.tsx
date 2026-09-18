@@ -1018,7 +1018,9 @@ export type ElencoShareOpts = {
   // faixa de cada campinho saem listrados igual à tela, e a bolinha de quem não
   // tem rosto leva o manto. Ausente → cor chapada do time, como era.
   manto?: [string, string] | null
-  titulares: ElencoPlayerRow[]; reservas: ElencoPlayerRow[]
+  // ⛔ NÃO existe lista de titulares na arte: eles aparecem SÓ no campinho
+  // (`fieldRows`) — regra do Diego, 18/09. O banco é que vem listado.
+  reservas: ElencoPlayerRow[]
 }
 // degradê CSS do tier → paradas de gradiente de canvas (só hex + % opcional)
 function gradStops(css: string): { p: number; c: string }[] {
@@ -1214,11 +1216,80 @@ export async function buildElencoBlob(o: ElencoShareOpts): Promise<Blob | null> 
     y += 48
   }
 
+  // 🔁 O BANCO AGORA É LISTA, NÃO UM SEGUNDO CAMPINHO (Diego 18/09: *"ajuste o botão
+  // de compartilhar pra vir apenas os titulares do campo + o time reserva listado"*).
+  // Fazia sentido: dois gramados na mesma imagem davam a entender que o banco também
+  // estava em campo, e com o banco de 16 aquilo virava um campão de 4 linhas. Agora o
+  // campinho é só quem JOGA, e o banco vem em ficha de time, duas colunas.
+  const listaBanco = async (linhas: Cd[], titulo: string) => {
+    const BAR = 50
+    listras(0, y, W, BAR, 18)
+    if (manto) veu(0, y, W, BAR, 0.62)
+    x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = `900 23px ${OSW}`
+    x.save(); x.shadowColor = 'rgba(0,0,0,.9)'; x.shadowOffsetX = 1; x.shadowOffsetY = 1
+    x.fillText(titulo.toUpperCase(), W / 2, y + 33); x.restore()
+    x.fillStyle = INK; x.fillRect(0, y + BAR - 4, W, 4)
+    y += BAR
+    const COLS = 2, ROWH = 74, PAD = 22, GAP = 14
+    const colW = (W - PAD * 2 - GAP) / COLS
+    const filas = Math.ceil(linhas.length / COLS)
+    const alturaBloco = filas * ROWH + PAD
+    x.fillStyle = '#F4ECD6'; x.fillRect(0, y, W, alturaBloco)
+    for (let i = 0; i < linhas.length; i++) {
+      const c = linhas[i]
+      const col = i % COLS, fila = Math.floor(i / COLS)
+      const rx = PAD + col * (colW + GAP), ry = y + PAD / 2 + fila * ROWH
+      // a fichinha branca com a borda grossa e a sombra dura da casa
+      x.fillStyle = INK; rrf(rx + 4, ry + 5, colW, ROWH - 12, 12); x.fill()
+      x.fillStyle = '#fff'; rrf(rx, ry, colW, ROWH - 12, 12); x.fill()
+      x.strokeStyle = INK; x.lineWidth = 3; rrf(rx, ry, colW, ROWH - 12, 12); x.stroke()
+      // rosto da lenda (o mesmo do campinho); sem arte, a bolinha com a posição
+      const d = ROWH - 26
+      const art = rostoOn ? avatarLote1(c.name, c.club, c.year) : null
+      const foto = art ? `${import.meta.env.BASE_URL}${art.src.slice(1)}` : fotoDoJogador(c.name)
+      const img = foto ? await loadImg(foto) : null
+      const fx0 = rx + 10
+      if (img && img.naturalWidth) {
+        x.save(); x.beginPath(); rr(x, fx0, ry + 6, d, d, 8); x.clip()
+        const ih = d, iw = ih * img.naturalWidth / img.naturalHeight
+        x.drawImage(img, fx0 + d / 2 - iw / 2, ry + 6, iw, ih)
+        x.restore()
+      } else {
+        x.beginPath(); x.arc(fx0 + d / 2, ry + 6 + d / 2, d / 2, 0, Math.PI * 2)
+        x.fillStyle = '#DBD1B5'; x.fill(); x.strokeStyle = INK; x.lineWidth = 3; x.stroke()
+      }
+      // POS · NOME em cima, clube · ano embaixo
+      const tx = fx0 + d + 12
+      const larguraTexto = colW - (tx - rx) - 14
+      x.textAlign = 'left'
+      x.fillStyle = INK; x.font = `900 17px ${OSW}`
+      const posW = x.measureText(c.pos).width + 14
+      x.fillStyle = INK; rrf(tx, ry + 12, posW, 22, 5); x.fill()
+      x.fillStyle = GOLD_HEX; x.fillText(c.pos, tx + 7, ry + 29)
+      x.fillStyle = INK; x.font = `900 22px ${OSW}`
+      x.fillText(cortar(c.name, `900 22px ${OSW}`, larguraTexto - posW - 8), tx + posW + 8, ry + 30)
+      if (c.club) {
+        x.fillStyle = 'rgba(0,0,0,.5)'; x.font = `700 15px ${ARI}`
+        x.fillText(cortar(`${c.club}${c.year ? ` · ${c.year}` : ''}`, `700 15px ${ARI}`, larguraTexto), tx, ry + 50)
+      }
+      if (c.goals > 0) {
+        const lbl = `⚽ ${c.goals}`
+        x.font = `900 16px ${OSW}`
+        const w = x.measureText(lbl).width + 18
+        x.fillStyle = GOLD; rrf(rx + colW - w - 10, ry + 14, w, 26, 13); x.fill()
+        x.strokeStyle = INK; x.lineWidth = 2.5; rrf(rx + colW - w - 10, ry + 14, w, 26, 13); x.stroke()
+        x.fillStyle = INK; x.textAlign = 'center'; x.fillText(lbl, rx + colW - w / 2 - 10, ry + 33)
+        x.textAlign = 'left'
+      }
+    }
+    y += alturaBloco
+    x.fillStyle = INK; x.fillRect(0, y, W, 4); y += 4
+  }
+
   await campinho(o.fieldRows, tr('⭐ Titulares', '⭐ Starting XI'), 100)
   if (o.reservas.length) {
-    const banco: Cd[][] = []
-    for (let i = 0; i < o.reservas.length; i += 4) banco.push(o.reservas.slice(i, i + 4).map(r => ({ pos: r.pos, name: r.name, goals: r.goals, club: r.club, year: r.year })))
-    await campinho(banco, tr('🔁 Reservas', '🔁 Subs'), 78)
+    await listaBanco(o.reservas.map(r => ({ pos: r.pos, name: r.name, goals: r.goals, club: r.club, year: r.year })),
+      tr(`🔁 Reservas (${o.reservas.length})`, `🔁 Subs (${o.reservas.length})`))
   }
 
   // ── RODAPÉ dourado com a mascote do clube

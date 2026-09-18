@@ -3351,8 +3351,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     const g = condicao.gas[c.id] ?? 100, p = pctBarra(g), cor = corBarra(g)
     return <span title={`${p}%`} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none' }}><span style={barBox}><span style={fill(p, cor)} /></span>{!compacto && <span style={{ ...lbl, color: cor }}>{p}%</span>}</span>
   }
-  // 😓 NO CAMPINHO NÃO (Diego 12/09: *"não quero que apareça no campinho, só onde
-  // tem a listagem"*) — o gás vive só nas listas de titulares/reservas.
+  // 😓 NO CAMPINHO: VOLTOU (Diego 18/09: *"tá faltando a barrinha de energia no time
+  // titular do campinho"*). Em 12/09 ele tinha mandado o CONTRÁRIO — *"não quero que
+  // apareça no campinho, só onde tem a listagem"* —, e naquela época ele estava certo:
+  // a barra ia junto do gol, da assistência e do resto, e o boneco virava um painel.
+  // Agora o campinho está LIMPO (⚽ e 🅰️ viraram coluna da tabela), então sobrou lugar
+  // pra única coisa que você precisa ver OLHANDO O TIME QUE VAI ENTRAR: quem está sem
+  // gás. Vai a barra CRUA, sem número — o % vive na lista.
+  // ⚠️ Só na tela nova; com a trava fechada o campinho segue sem nada.
   // 📝 CONTRATO SUTIL (pedido do Diego 04/08): vive na coluna da DIREITA,
   // embaixo do 💰 piso e 💸 salário — ali nunca corta em tela estreita, e a
   // linha "clube · ano" da esquerda fica inteira. Cinza quando está tudo certo
@@ -3931,7 +3937,9 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
                 estado={stateOf(c) as EstadoJogador}
                 onClick={onTap ? () => onTap(c.id) : undefined}
                 mantoCss={manto ? mantoStripes(manto, 6, meuMantoAngle(), meuMantoC3(), meuMantoC3Buffer()) : null}
-                extra={c.emprestado ? <EmpTag mini /> : undefined}
+                extra={elencoNovo && condicao && !c.fake
+                  ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>{c.emprestado && <EmpTag mini />}{gasChip(c, true)}</span>
+                  : c.emprestado ? <EmpTag mini /> : undefined}
               />
             )
             // recuo sutil (alas do 3-5-2 / líbero) — só um deslocamento de desenho,
@@ -4006,7 +4014,6 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
       const fieldRows = [of('GOL'), def, of('MEI'), of('ATA')].map(cards =>
         cards.map(c => ({ pos: c.pos, name: c.name, goals: g(c), club: c.club, year: c.year })))
       const toRow = (c: WonCard): ElencoPlayerRow => ({ pos: c.pos, name: c.name, goals: g(c), paid: c.paid ?? 0, club: c.club, year: c.year })
-      const titulares = SECTORS.flatMap(pos => of(pos)).map(toRow)
       const reservas = mgr.squad.filter(c => !xiIds.has(c.id))
         .sort((a, b) => SECTORS.indexOf(a.pos) - SECTORS.indexOf(b.pos)).map(toRow)
       // 🎨 fidelidade de tier na arte: quem tem tier leva o manto (degradê +
@@ -4015,7 +4022,7 @@ function ShareElencoBtn({ mgr, col, xi, xiIds, goals, divName, tablePos, seasonN
       await shareElenco({
         teamName: mgr.teamName + apoioSelo(), divName, tablePos, seasonNo, formation: mgr.formation,
         titles, squadValue: mgr.squad.reduce((s2, c) => s2 + (c.paid ?? 0), 0), coins,
-        color: col.solid, tierGrad: perk?.grad, tierHolo: perk?.holo ?? 0, fieldRows, titulares, reservas,
+        color: col.solid, tierGrad: perk?.grad, tierHolo: perk?.holo ?? 0, fieldRows, reservas,
         // 🛡️👕 nome LIMPO (chave do escudo/mascote) e o manto medido do clube
         teamRaw: mgr.teamName, manto: meuManto(), rostos: rostosOn,
       })

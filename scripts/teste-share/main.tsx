@@ -1,63 +1,52 @@
-// 🧪 Bancada das imagens de COMPARTILHAR (jornal + elenco). Não entra no jogo:
-// é uma página solta que roda no vite e desenha as duas artes pra conferir.
+// 🧪 Bancada da ARTE DE COMPARTILHAR O ELENCO — desenha a imagem de verdade
+// (`buildElencoBlob`) e põe na tela, pra conferir antes de o Diego postar.
+//
+// Existe porque isto é CANVAS: o `tsc` não vê erro de desenho nenhum. A arte só
+// prova que funciona sendo desenhada. Em 18/09 o banco deixou de ser um segundo
+// campinho e virou LISTA (ordem dele: *"apenas os titulares do campo + o time
+// reserva listado"*) — sem bancada, eu só ia descobrir se quebrou quando ele
+// tentasse postar.
 import { createRoot } from 'react-dom/client'
-import { buildElencoBlob, SeasonJornal } from '../../src/escalacao/jornal'
-import type { SimTeam, SeasonScorer, Div } from '../../src/escalacao/pyramidseason'
+import { useEffect, useState } from 'react'
+import { buildElencoBlob } from '../../src/escalacao/jornal'
+import LENDAS from '../../src/escalacao/legend-avatars.json'
+import type { Sector } from '../../src/escalacao/types'
 
-const put = (b: Blob | null, tag: string) => {
-  const el = document.getElementById('saida')!
-  if (!b) { el.insertAdjacentHTML('beforeend', `<p style="color:#f66">${tag}: NULL</p>`); return }
-  const i = new Image(); i.src = URL.createObjectURL(b); i.alt = tag
-  el.appendChild(i); (window as unknown as Record<string, unknown>)[tag] = 'ok'
+type Lenda = { name: string; club: string; year: number }
+const TODAS = LENDAS as Lenda[]
+const linha = (l: Lenda, pos: Sector, goals = 0) => ({ pos, name: l.name, goals, paid: 20, club: l.club, year: l.year })
+// ⚠️ nome que NÃO está no catálogo de rostos derruba a bancada inteira — e o
+// catálogo muda (157 hoje). Então: acha pelo nome, senão pega qualquer um.
+let vez = 0
+const acha = (n: string): Lenda => TODAS.find(l => l.name === n) ?? TODAS[vez++ % TODAS.length]
+
+const xi: Record<Sector, string[]> = {
+  GOL: ['Rogério Ceni'], LAT: ['Cafu', 'Roberto Carlos'], ZAG: ['Aldair', 'Lúcio'],
+  MEI: ['Zico', 'Sócrates', 'Raí', 'Falcão'], ATA: ['Romário', 'Careca'],
 }
+const of_ = (p: Sector) => xi[p].map((n, i) => linha(acha(n), p, i === 0 ? 7 : 0))
+const lats = of_('LAT')
+const fieldRows = [of_('GOL'), [lats[0], ...of_('ZAG'), lats[1]], of_('MEI'), of_('ATA')]
+  .map(cs => cs.map(c => ({ pos: c.pos, name: c.name, goals: c.goals, club: c.club, year: c.year })))
+// 16 reservas: é o banco novo cheio — o pior caso da lista
+const usados = new Set(Object.values(xi).flat())
+const reservas = TODAS.filter(l => !usados.has(l.name)).slice(0, 16)
+  .map((l, i) => linha(l, (['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as Sector[])[i % 5], i % 3 === 0 ? i : 0))
 
-const time = (name: string, you = false, pts = 40): SimTeam => ({
-  name, you, human: you, teamId: Math.floor(Math.random() * 1e6), squad: [],
-  pts, w: 12, d: 4, l: 6, gf: 40, ga: 30,
-} as unknown as SimTeam)
-const art = (name: string, teamName: string, div: Div, goals: number): SeasonScorer =>
-  ({ name, teamName, teamId: 1, div, goals, you: false, human: false } as SeasonScorer)
-
-const tables = {
-  A: [time('Nova Eclipse', true, 71), time('Murriz FC'), time('Tôka10')],
-  B: [time('Comercial da Baixada')], C: [time('Barcenite FC')],
-  D: [time('Bagres de Wall Street FC')], V: [time('Ressaca United')],
-} as unknown as Record<Div, SimTeam[]>
-const divTop = {
-  A: art('Vinícius Júnior', 'Corporação Capsule FC', 'A', 19),
-  B: art('Zagallo', 'White Thigs do GuGu', 'B', 20),
-  C: art('Rummenigge', 'Ferroviário da Serra', 'C', 19),
-  D: art('Son Heung-min', 'Bagres de Wall Street FC', 'D', 25),
-  V: art('Alan Shearer', 'Continental Real', 'V', 23),
-} as unknown as Record<Div, SeasonScorer | undefined>
-
-async function elenco() {
-  const c = (pos: string, name: string, club: string, year: number, goals = 0) => ({ pos, name, goals, club, year })
-  const blob = await buildElencoBlob({
-    teamName: 'Nova Eclipse 👑', teamRaw: 'Nova Eclipse', divName: 'Série A', tablePos: 1, seasonNo: 388,
-    formation: '4-3-3', titles: 3, squadValue: 412, coins: 168, color: '#1B7A3D',
-    manto: ['#0A0A0A', '#E3E2E1'],
-    fieldRows: [
-      [c('GOL', 'Rogério Ceni', 'São Paulo', 2005, 4)],
-      [c('LAT', 'Cafu', 'Milan', 2004, 1), c('ZAG', 'Aldair', 'Roma', 1994, 2), c('ZAG', 'Lúcio', 'Inter', 2010, 3), c('LAT', 'Roberto Carlos', 'Real Madrid', 2002, 6)],
-      [c('MEI', 'Falcão', 'Internacional', 1979, 5), c('MEI', 'Sócrates', 'Corinthians', 1983, 7), c('MEI', 'Zico', 'Flamengo', 1981, 14)],
-      [c('ATA', 'Romário', 'Vasco', 2000, 19), c('ATA', 'Careca', 'São Paulo', 1986, 11), c('ATA', 'Bebeto', 'Vasco', 1989, 9)],
-    ],
-    titulares: [], 
-    reservas: [
-      { pos: 'GOL', name: 'Taffarel', goals: 0, paid: 12, club: 'Internacional', year: 1989 },
-      { pos: 'ZAG', name: 'Mozer', goals: 1, paid: 13, club: 'Flamengo', year: 1987 },
-      { pos: 'MEI', name: 'Raí', goals: 6, paid: 18, club: 'São Paulo', year: 1992 },
-      { pos: 'ATA', name: 'Edmundo', goals: 8, paid: 20, club: 'Vasco', year: 1997 },
-    ],
-  })
-  put(blob, 'ELENCO')
+function App() {
+  const [url, setUrl] = useState<string | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
+  useEffect(() => {
+    buildElencoBlob({
+      teamName: 'Nova Eclipse 👑', divName: 'Série A', tablePos: 3, seasonNo: 6, formation: '4-4-2',
+      titles: 2, squadValue: 1377, coins: 168, color: '#1B7A3D', tierGrad: undefined, tierHolo: 0,
+      fieldRows, reservas, teamRaw: 'Nova Eclipse', manto: null, rostos: true,
+    } as never)
+      .then(b => setUrl(b ? URL.createObjectURL(b) : null))
+      .catch(e => setErro(String(e?.stack || e)))
+  }, [])
+  if (erro) return <pre style={{ padding: 20, color: '#C2452F', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{erro}</pre>
+  if (!url) return <p style={{ padding: 20, fontFamily: 'system-ui' }}>desenhando…</p>
+  return <img id="arte" src={url} style={{ width: 540, display: 'block', margin: '0 auto' }} />
 }
-
-function jornal() {
-  createRoot(document.getElementById('root')!).render(
-    <SeasonJornal privateVisual me={{ div: 'A', pos: 1, team: 'Nova Eclipse' }} tables={tables}
-      copa={{ champion: { name: 'Nova Eclipse', you: true }, topScorer: { name: 'Luis Suárez', teamName: 'Leão da Estradinha', goals: 7 } } as never}
-      divTop={divTop} seasonNo={388} />)
-}
-;(async () => { await elenco(); jornal() })()
+createRoot(document.getElementById('root')!).render(<App />)

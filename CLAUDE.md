@@ -355,8 +355,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   lesão ou "obra que encurta lesão". A escada do gás (1º–10º jogo inteiro · 11º 😓 ·
   12º 🥵 · 13º+ 🚑, −7 por jogo, banco +15) e a lesão por desgaste (15%/30% por jogo) moram em
   `src/escalacao/condicao.ts`; mudar número = mudar lá e rodar
-  `npx tsx scripts/testa-condicao.mjs`. Gás aparece SÓ nas listas do Elenco,
-  nunca no campinho (ordem dele). **Liga ao CHEGAR na Série C e não desliga**
+  `npx tsx scripts/testa-condicao.mjs`.
+  🔁 **ONDE O GÁS APARECE MUDOU EM 18/09 — a regra de 12/09 está REVOGADA.** Ele pediu:
+  *"tá faltando a barrinha de energia no time titular do campinho"*. Em 12/09 tinha
+  mandado o contrário (*"não quero que apareça no campinho, só onde tem a listagem"*) —
+  e naquela época ele estava certo, porque a barra ia junto do ⚽, do 🅰️ e do resto, e o
+  boneco virava painel. Hoje o campinho está limpo (gol e assistência viraram COLUNA da
+  tabela), então cabe. Vale: **barra CRUA no campinho** (sem número; o % fica na lista)
+  e **só na aba Elenco nova** (`useElencoNovo`). Nunca no campinho do LEILÃO. **Liga ao CHEGAR na Série C e não desliga**
   (quem já está em C/B/A liga na próxima rodada). ⚠️ Em 12/09 à noite eu li um
   *"é pra todos né"* como "todas as divisões" e soltei ~1h de gás na Várzea; ele
   corrigiu: *"a condição física não libera de cara. Ele precisa primeiro chegar
