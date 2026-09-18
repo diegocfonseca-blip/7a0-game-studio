@@ -32,7 +32,47 @@ const orfaos = readdirSync('public/mantos-salao').filter(f => f.endsWith('.webp'
 // trocar o nome = navegador servindo a VELHA. Por isso toda camisa deve levar -vN.
 const semVersao = pares.filter(([, a]) => !/-v\d+\.webp$/.test(a))
 
+// ── 🧺 O TERCEIRO BURACO (18/09) ───────────────────────────────────────────
+// Os dois testes acima olham só as camisas CADASTRADAS — então o dia em que o
+// clube não está na lista, o guarda dá verde e o dono vê o molde genérico.
+// Foi assim que o Diego pegou o La Bestia Negra: *"a camisa do La Bestia Negra
+// não atualizou"*. A arte dele estava em `scripts/kits/` desde o batismo (o post
+// saiu com ela), mas ninguém publicou. Na varredura, mais quatro clubes estavam
+// no mesmo estado. Agora o guarda cobra clube por clube.
+// A lista de quem tem direito é a MESMA do `checa-batismos.mjs` — lida de lá pra
+// não existirem duas listas de batismo que possam discordar.
+const cb = readFileSync('scripts/checa-batismos.mjs', 'utf8')
+const listaDe = nome => {
+  const m = new RegExp(`const ${nome} = \\[([\\s\\S]*?)^\\]`, 'm').exec(cb)
+  return m ? [...m[1].matchAll(/\['([^']+)',\s*'([^']+)'\]/g)].map(x => x[2]) : []
+}
+const clubes = [...listaDe('BATISMOS'), ...listaDe('SOCIOS')]
+const temCamisa = new Set(pares.map(([c]) => c))
+// achado no acervo: mesmo nome sem acento/espaço/FC, com ou sem "-camisa"
+const semAcento = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '')
+const acervo = readdirSync('scripts/kits').filter(f => /\.(webp|png)$/i.test(f))
+const noAcervo = clube => {
+  const k = semAcento(clube)
+  return acervo.find(f => {
+    const n = semAcento(f.replace(/\.(webp|png)$/i, '').replace(/camisa/gi, ''))
+    return n.length > 3 && (k.includes(n) || n.includes(k))
+  })
+}
+const semCadastro = clubes.filter(c => !temCamisa.has(c)).map(c => [c, noAcervo(c)])
+const esquecidos = semCadastro.filter(([, a]) => a)   // ❌ arte existe: é erro nosso
+const semArte = semCadastro.filter(([, a]) => !a)     // ⏳ o dono ainda não mandou
+
 console.log(`\n🏛️  Salão: ${pares.length} camisas cadastradas\n`)
+if (esquecidos.length) {
+  console.log('❌ ARTE NO ACERVO E NUNCA PUBLICADA (o clube mostra o molde genérico):')
+  for (const [clube, arq] of esquecidos) console.log(`   · ${clube.padEnd(26)} scripts/kits/${arq}`)
+  console.log('\n   Conserto: recomprimir pra public/mantos-salao/<nome>-camisa-v1.webp e cadastrar em CAMISAS_SALAO.\n')
+}
+if (semArte.length) {
+  console.log(`⏳ ${semArte.length} clube(s) SEM camisa no salão porque o dono nunca mandou arte`)
+  console.log('   (mostram o molde genérico, e isso é o certo até a arte chegar):')
+  console.log('   ' + semArte.map(([c]) => c).join(' · ') + '\n')
+}
 if (faltando.length) {
   console.log('❌ CADASTRADA MAS NÃO PUBLICADA (o clube mostra "arte não disponível"):')
   for (const [clube, arq] of faltando) console.log(`   · ${clube.padEnd(26)} public/mantos-salao/${arq}`)
@@ -45,5 +85,5 @@ if (semVersao.length) {
   console.log('   (endereço fixo = cache do navegador). Ao trocar a arte, troque o nome:')
   console.log('   ' + semVersao.slice(0, 6).map(([, a]) => a).join(', ') + (semVersao.length > 6 ? ', …' : '') + '\n')
 }
-if (!faltando.length && !orfaos.length) console.log('✅ toda camisa cadastrada está publicada, e nenhuma sobrando.\n')
-process.exit(faltando.length ? 1 : 0)
+if (!faltando.length && !orfaos.length && !esquecidos.length) console.log('✅ toda arte que existe está publicada, cadastrada e servida.\n')
+process.exit(faltando.length || esquecidos.length ? 1 : 0)

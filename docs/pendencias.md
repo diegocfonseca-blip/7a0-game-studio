@@ -1,3 +1,57 @@
+## 18/09/2026 (parte 7) — 👕 A GAVETA ESQUECIDA: 5 camisas de batismo que nunca chegaram na Loja
+
+Cobrança do Diego, com a foto da Loja do Clube na mão: *"a camisa do La Bestia Negra não
+atualizou… então outros de batismo ainda não devem? Ou só ele?"*
+
+**Não era cache nem arte errada — o clube nunca esteve na lista.** A camisa que o dono
+manda no batismo é usada em DOIS lugares diferentes:
+- `scripts/kits/` → o ACERVO, que o **post** usa (por isso o post do batismo sempre saiu
+  com a camisa certa, e ninguém desconfiou);
+- `public/mantos-salao/` + `CAMISAS_SALAO` em `salao-camisas.ts` → o que o **site** serve
+  na Loja do Clube.
+
+Quando só o acervo é alimentado, a Loja cai no molde genérico (camisa creme/preta de
+galão + escudo com a letra do clube) — exatamente o print que ele mandou.
+
+**A varredura dos 53 batismos/sócios**: 40 tinham camisa, 13 não. Desses 13, **5 já
+tinham a arte parada no acervo** e foram publicadas agora:
+
+| clube | dono | arte parada desde |
+|---|---|---|
+| 🦊 La Bestia Negra | eltonfrossard45 | 09/08 (renovada 18/09) |
+| 🌑🐺 Pesadelo Verde FC | portaltech.ep | 18/09 |
+| 🐴 Fridão FC | felipe.ofrida | 16/09 |
+| 😇🐷 São Marcos Antônio FC | marcomak03 | 13/09 |
+| 👑 Internacional de Madrid | matheusstefanello372 | 14/09 |
+
+Os **8 restantes** (Deportivo Montreal · SC Ferrari · Coringas do Diniz · Remoçada ·
+Nata de SP · Sapekeiros FC · Marreco FC · Eros FC) seguem no molde genérico porque o
+**dono nunca mandou camisa** — e isso é o certo até a arte chegar (nada de inventar
+manto: regra do Diego de 18/08).
+
+### 🛡️ A trava que deixou passar, e o conserto dela
+`scripts/checa-salao.mjs` (`npm run salao`) conferia só as camisas **cadastradas** —
+então no dia em que o clube não estava na lista, ele dava ✅. Agora ele lê a lista de
+batismos/sócios do próprio `checa-batismos.mjs` (uma lista só, pra não discordarem) e
+cobra clube por clube, separando:
+- ❌ **arte no acervo e nunca publicada** → erro nosso, quebra o guarda (exit 1);
+- ⏳ **dono nunca mandou arte** → aviso, não quebra.
+
+### 🧪 Bancada nova: `scripts/teste-camisa/`
+Monta a `CamisaLoja` DE VERDADE (o componente do jogo, com fornecedor no peito e Master
+na barriga) pra qualquer clube cadastrado. `?molde=1` desenha o ANTES. Serve pra conferir,
+em toda camisa nova, se a arte encaixa na janela e se as estampas caem no pano.
+
+- **Dá pra voltar atrás?** Dá, e é barato: são 5 arquivos novos em `public/mantos-salao/`
+  e 5 linhas em `CAMISAS_SALAO`. Tirando as linhas, o clube volta ao molde genérico na
+  hora. Nada do jogo mudou — só o que a Loja serve.
+
+### Pendências que ficam
+- 🎽 **Pedir a camisa** pros 8 clubes sem arte (lista acima) — é o que falta pra Loja
+  ficar 100% batizada.
+- ⏳ 28 camisas antigas ainda sem `-vN` no nome (o guarda avisa). Não quebra nada hoje;
+  no dia em que a arte de uma delas trocar, trocar o nome junto.
+
 ## 18/09/2026 (parte 6) — 🔓 O banco de 16 ABRIU PRA TODO MUNDO
 
 Ordem dele, no fim do dia: *"publique isso pra todos já, não só no meu usuário"*.

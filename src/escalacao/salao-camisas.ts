@@ -47,7 +47,19 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Neymarzetti": "neymarzetti-camisa-v2.webp",
   "Milhaça FC": "milhaca.webp",
   "São Luiz FC": "saoluiz-camisa-v2.webp",
-  "Theuzudo FC": "theuzudo.webp"
+  "Theuzudo FC": "theuzudo.webp",
+  // ── 🧺 A GAVETA ESQUECIDA (18/09) ─────────────────────────────────────────
+  // O Diego pegou: *"a camisa do La Bestia Negra não atualizou"*. Não era cache,
+  // nem arte errada: o clube NUNCA esteve nesta lista. A arte que o dono mandou
+  // estava parada em `scripts/kits/` desde o dia do batismo — ou seja, o post
+  // saiu com a camisa certa e a LOJA DO CLUBE mostrava o molde genérico (camisa
+  // creme + escudo de letra). Varrendo os 53 batismos/sócios, o mesmo tinha
+  // acontecido com outros quatro. Publicados todos de uma vez aqui.
+  "La Bestia Negra": "bestia-camisa-v1.webp",                       // 🦊 eltonfrossard45 (arte do dono desde 09/08; renovada em 18/09)
+  "Pesadelo Verde FC": "pesadelo-camisa-v1.webp",                   // 🌑🐺 portaltech.ep (18/09)
+  "Fridão FC": "fridao-camisa-v1.webp",                             // 🐴 felipe.ofrida (16/09)
+  "São Marcos Antônio FC": "saomarcosantonio-camisa-v1.webp",       // 😇🐷 marcomak03 (13/09)
+  "Internacional de Madrid": "internacional-madrid-camisa-v1.webp", // 👑 matheusstefanello372 (14/09)
 }
 
 // Janela de exibição das camisas em quatro artes antigas que também têm shorts.
