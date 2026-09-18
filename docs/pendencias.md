@@ -54,8 +54,154 @@ por `domcontentloaded`, não `networkidle` — o ambiente não alcança o Supaba
 ### ⏭️ Pendente
 - [ ] Mockup da novidade (11 → 16 reservas), só quando ele mandar abrir pra geral.
 
-## 16/09/2026 (parte 18) — 🏢 A SAF entra POR CIMA: 27 + 4 = 31
+## 18/09/2026 — 👑 O DONO ENTRA NA PRÓPRIA SALA COMO CONVIDADO (medido: ~18% das travas)
 
+Relato do Diego, com dois prints da live do canalmeianacanela (sala KIKO6I):
+*"toda vez que um streamer vai fazer live… ele vem pra essa sala e, mesmo sendo
+host, aparece no final o botão escrito 'o host vai começar o leilão', sendo que a
+tela dele era pra ter o botão de iniciar… e quando ele atualiza no F5 volta ao
+normal. Muita gente não sabe que precisa atualizar e acaba desistindo"*.
+
+### 🧾 A PROVA (caixa-preta `esc_travas` × `game_rooms`)
+Cruzei cada trava com o dono da sala no banco (`papel = 'convidado'` E
+`game_rooms.host_id = esc_travas.uid` = o aparelho do DONO se achando convidado):
+
+| dia | travas com a sala ainda no banco | dono como convidado | % |
+| --- | --- | --- | --- |
+| 18/09 | 263 | **51** (29 pessoas) | 19,4% |
+| 17/09 | 738 | **129** (67 pessoas) | 17,5% |
+| 16/09 | 634 | **118** (58 pessoas) | 18,6% |
+
+⚠️ **NÃO é regressão nova** — eu quase disse que era. A conta crua parecia um salto
+no dia 16 (2 → 118), mas é ilusão: sala some do banco quando o dono sai, e de 15/09
+pra trás só **1%** das salas ainda existe, então os casos velhos ficam invisíveis.
+Olhando só onde dá pra ver, a taxa é **estável em ~18%** — o defeito é antigo.
+
+### O que isso significa de verdade
+Não é só o botão sumido. As linhas têm `momento = 'envelope'`: o dono **entra no
+pregão** como convidado. Com o jogo host-autoritativo, aí **ninguém é host** — e é
+por isso que essas linhas existem, elas são relatos de "travou". Ou seja: 1 em cada
+5 salas travadas é uma sala **sem dono nenhum**, com o dono lá dentro.
+
+### 🚨 E o socorro que deveria consertar isso está MORTO
+Existe desde 07/09 (sala do Sistematizados) um resgate no `store.tsx` (~9870): na
+tela de abertura ele pergunta ao banco a cada 5 s quem é o dono e, se for este
+aparelho, dá `BECOME_HOST` sozinho. Ele grava `extra.quando = 'reassumiu'`.
+**Em 10 dias ele gravou UMA linha — e nenhuma na `streamIntro`.** Na prática não
+roda. Conferido que não é o registro que falha: `anotaTrava` é à prova de erro e o
+resgate chama com `semFreio = true`.
+👉 Isso é o conserto de maior retorno: devolver a coroa a quem **o banco já diz que
+é o dono** não é troca de dono — é exatamente o que o Diego permite (*"quem já é
+dono no banco reassume sozinho ao voltar"*).
+
+### 🔎 Mecanismo mais provável (hipótese, ainda não provada)
+No `lobby.tsx` o `triggerStart` roda DUAS vezes no aparelho do dono na largada:
+uma pelo botão (`startGame` → `update status='started'` → relê → `triggerStart`) e
+outra pelo ECO do banco (`postgres_changes` → `if (r.status === 'started')
+triggerStart(r)`). Desde **83735ee (15/09)** a guarda `jaTocoAquiComoDono` exige
+`emJogoVivo` (tela ≠ lobby) — e o dono está EXATAMENTE no lobby quando aperta o
+botão, então a guarda não cobre. As duas chamadas correm juntas; o `jaIniciouRef`
+só é marcado no fim, depois de vários `await`, então as duas passam por ele e as
+duas despacham `START_ONLINE`. A última a chegar manda — e a do eco calcula o dono
+a partir de um `host_id` que o próprio código já avisa que "chega picado".
+⚠️ Marcado como HIPÓTESE de propósito: a taxa estável desde antes de 15/09 diz que
+existe pelo menos mais uma porta. Não mexer sem instrumentar primeiro.
+
+### ✅ CONSERTADO (18/09) — o Diego liberou: *"faz os 2 logo cara, lembrando que o
+host que cria a sala nunca pode mudar"*. Dois commits separados, revertíveis um a um:
+
+**1. `store.tsx` — a coroa volta sozinha pro dono.** Efeito PRÓPRIO, fora do vigia
+(era lá que o socorro velho morria). Pergunta ao banco quem é o dono e só age se a
+resposta for ELE MESMO; se for outro uid, ou se a leitura falhar, não faz nada.
+1ª checagem em 800 ms (é a que resolve o caso do streamer, sem F5); depois só
+insiste quando o aparelho não ouve host NENHUM há 6 s — convidado de verdade ouve
+o "tô vivo" do dono a cada ~4 s, então pra ele roda uma vez e para (isso segura o
+custo de banco: sem esse freio seriam 13 aparelhos consultando a cada 4 s numa
+sala de 14).
+
+**2. `lobby.tsx` — a coroa só cai com PROVA, e uma largada por vez.**
+- `donoDaSala === user.id` tratava "não sei quem é o dono" e "o dono é outro" como
+  a MESMA coisa: as duas leituras falhando davam `undefined === user.id` = FALSE e
+  o dono se rebaixava sozinho. Agora, sem dono na leitura, quem já é dono DESTA
+  sala continua dono. Handoff de verdade (banco apontando outro uid) segue igual.
+- Cadeado de largada: o `triggerStart` rodava DUAS vezes no aparelho do dono (o
+  botão e o eco do banco), as duas penduradas em `await`, e o `jaIniciouRef` só era
+  marcado no fim — as duas passavam e as duas montavam o jogo. Agora, enquanto uma
+  largada da sala está em voo, a outra devolve na hora.
+- Registro novo na caixa-preta: `coroa_preservada` (leitura sem dono, coroa
+  mantida) e `coroa_devolvida` (o socorro agiu). É com isso que dá pra conferir
+  amanhã se funcionou, sem depender de relato.
+
+🚫 **A COROA CONTINUA SEM TROCAR DE DONO.** Conferido no diff: **nenhuma das duas
+mudanças escreve `host_id`** em lugar nenhum. Não há eleição, candidato nem votação
+— o aparelho só pergunta "sou eu o dono?" e, se for, volta a ser. É o caso que o
+Diego sempre autorizou (*"quem já é dono no banco reassume sozinho ao voltar"*).
+
+### 📊 COMO CONFERIR SE DEU CERTO (rodar amanhã)
+```sql
+select date_trunc('day', t.created_at)::date dia,
+       count(*) filter (where t.extra->>'quando' = 'coroa_devolvida')  as socorro_agiu,
+       count(*) filter (where t.extra->>'quando' = 'coroa_preservada') as rebaixamento_evitado,
+       count(*) filter (where t.papel = 'convidado' and g.host_id = t.uid) as dono_como_convidado,
+       count(*) filter (where g.id is not null) as base
+from esc_travas t left join game_rooms g on g.id = t.room_id
+where t.created_at > now() - interval '4 days' group by 1 order by 1 desc;
+```
+O que esperar: `dono_como_convidado / base` cair dos ~18% de hoje. Se não cair mas
+`coroa_devolvida` subir, o socorro está tapando o buraco sem fechá-lo — aí a caça
+continua na largada. **Se `coroa_preservada` aparecer muito, a hipótese da leitura
+picada estava certa.**
+
+---
+
+## 16/09/2026 (parte 2) — 🚨 A trava da crise NUNCA EXISTIU (ligada agora)
+
+Diego, depois do primeiro conserto: *"eu não entendi que, se foi menos 500 lá atrás,
+a mensagem deveria aparecer, ele deveria resolver, fazer as coisas que ele tem que
+fazer na hora, OBRIGADO a fazer, e seguir. Eu não entendi como é que ele conseguiu
+seguir jogando, fazendo dinheiro, e a mensagem está aparecendo"*.
+
+Ele estava certo, e a resposta é pior do que parecia: **a trava nunca foi ligada.**
+
+### O que estava no código
+O comentário da fila de avisos dizia, desde 12/08: *"a crise trava até o técnico
+escolher"*. Mentira do comentário. Na prática:
+- `decisoesOk = sponsorBetOk && masterOk` — a crise não estava lá;
+- `SimControls canNext = roundReady && !intervalo && !pênalti` — a crise não estava lá;
+- o efeito do modo automático parava em `eventoPendente` (evento de JOGADOR) — **mas
+  não em `criseAtual`**.
+Ou seja: o evento de jogador travava a rodada; a crise financeira tinha ficado de fora.
+Era literalmente por isso que o dono do Divizeiro seguiu jogando e faturando com o
+aviso pendurado — o modo automático dele andava sozinho por cima da crise.
+
+### O que foi ligado
+`criseTrava` entra nos três portões: `decisoesOk`, o `canNext` do controle e o
+botão de começar a temporada. O rótulo vira **"🚪 Decida quem fica no lugar dele"**, e
+o selo da virada conta a crise como uma decisão pendente.
+
+### ⚠️ Por que travar só é seguro JUNTO com o conserto da parte 1
+A saída *"Nunca gostei dele mesmo"* (sobe alguém da base) não depende de nada — nem de
+moeda, nem de folclórico livre, nem de vaga. Sempre há caminho pra destravar.
+**Mas**: se a trava fosse ligada sozinha, os saves que já estavam PRESOS com o aviso e
+o caixa recuperado (o Divizeiro, +3.870) ficariam travados PRA SEMPRE numa tela que
+não faz mais sentido. É o conserto da parte 1 (o aviso expira fora do vermelho) que
+solta esses saves. As duas coisas são uma entrega só.
+
+### Provado no jogo rodando, não no papel
+`node scripts/navega-carreira.mjs --fase crise` — abre o jogo, injeta a crise e espera:
+- caixa **-900** + crise → a rodada FICA na 34 com o aviso na tela ✅
+- caixa **+3.870** + crise → o aviso expira sozinho e o jogo segue ✅
+E `npm run crise` (18 conferências no motor) continua cobrindo a escada -500/-1000.
+
+### Lição pro repo
+**Comentário não é trava.** O comentário dizia "trava" e ninguém conferiu por um mês.
+Toda regra que promete bloquear alguma coisa precisa de um teste que ABRE o jogo e
+confere que bloqueou — foi assim que este aqui foi pego.
+---
+
+---
+
+## 16/09/2026 (parte 18) — 🏢 A SAF entra POR CIMA: 27 + 4 = 31
 Diego: *"tem a SAF também, né? A SAF o usuário pode pegar emprestado quatro jogadores.
 Então pode ir de 27 para 31. Era isso que dava para marcar."*
 
