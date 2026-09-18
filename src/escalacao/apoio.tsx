@@ -106,6 +106,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'gabriel.arruda.1999@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'feehcamp11@gmail.com': 'ouro', // 👑 Lenda (pago) + FUNDADOR — ouro normal em tudo, MAS verde brilhante SÓ na carreira offline (CAREER_GREEN)
   'felipe.ofrida@gmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR nº72 + SÓCIO nº53 + batismo (Fridão FC, Série C, ex-Casa de Vó; cavalo alvinegro coroado, 16/09)
+  'eltonfrossard45@gmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR nº51 + SÓCIO nº13 + batismo (La Bestia Negra, Série D, ex-River Prato; raposa azul, ❤️ Cruzeiro). ⚠️ ESTA LINHA FALTAVA desde 09/08 e o `npm run batismos` cobrava: no BANCO (`user_colors`, que é a fonte oficial) ele já era ouro, então ele nunca deixou de ver o dourado — mas a RESERVA do código estava vazia. Fechado em 18/09, junto da arte nova
   'lucasigorbortoliniii@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marreco FC, ex-Inter Estadual)
   'fontourajoao04@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº53 + batismo (Al Takhadao FC, Série A; coração Internacional, 01/09)
   'luizguilhermeps@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº54 + SÓCIO nº32 + batismo (Jurubeba FC, Série B, ex-Ferroviário do Sul; mascote a meia 🧦, 02/09)
