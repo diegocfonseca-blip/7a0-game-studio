@@ -7,9 +7,15 @@
 // manda mockup"*.
 //
 // ⚠️ O QUE EXISTE HOJE, DE VERDADE (conferido no código, não no chute):
-//   · JOGOS já é da CARREIRA INTEIRA — o `condicaoCarry` carrega `j` de uma
-//     temporada pra outra. Por isso o print dele mostra "304 JOGOS": é o Gilmar
-//     somado de todas as temporadas, mas o rótulo diz só "JOGOS" e engana.
+//   · JOGOS já soma de uma temporada pra outra (`condicaoCarry` carrega o `j`).
+//     Por isso o print dele mostra "304 JOGOS": é o Gilmar somado, mas o rótulo
+//     diz só "JOGOS" e engana.
+//   · 🔑 E É SEMPRE NO CLUBE DELE — o Diego perguntou e a conta confirma: o
+//     `guardaCansaco` tem `if (!m.isHuman) continue`, ou seja **só o elenco do
+//     usuário é anotado**. Bot nunca acumula. Então o número nunca inclui jogo
+//     feito em outro clube: é o tempo dele NO TEU time. (Se você vender e
+//     recomprar a mesma carta, o número volta inteiro — é de propósito.)
+//     Por isso o rótulo certo é "NO CLUBE", não "carreira".
 //   · GOLS e ASS são só da TEMPORADA (saem do `goalsByCard`/`assistsByCard`, que
 //     o pregão refaz do zero a cada ano).
 //   · O TOTAL de gols e de assistências **não existe em lugar nenhum** — ninguém
@@ -33,7 +39,7 @@ const FONTES = [400, 500, 600, 700].map(w =>
 const INK = '#0C0C0C', CREME = '#F4ECD6', GOLD = '#FFC400'
 const AZUL = '#8FC0F0', VERDE = '#4ED07E', AREIA = '#FFE79A'
 
-// o jogador do print dele: Gilmar, goleiro reserva, 304 jogos de carreira
+// o jogador do print dele: Gilmar, goleiro reserva, 304 jogos somados no clube
 const J = {
   nome: 'Gilmar', sub: 'Santos · 1962 · GOL · reserva', ct: '📝 4 anos',
   jogosTemp: 11, jogosTot: 304, golsTemp: 0, golsTot: 0,
@@ -70,17 +76,17 @@ const faixa = (conteudo, fundo = 'rgba(255,255,255,.06)') =>
 const caixa = dentro => `
   <div style="background:linear-gradient(160deg,#1a1a1a,#0C0C0C);border:3px solid ${INK};border-radius:12px;padding:9px 10px;color:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.3)">${dentro}</div>`
 
-// ── HOJE: uma linha só, e o rótulo "JOGOS" não diz que é da carreira ─────────
+// ── HOJE: uma linha só, e o rótulo "JOGOS" não diz que é somado ─────────────
 const hoje = j => caixa(cabeca(j) + faixa(
   dado('JOGOS', j.jogosTot) + dado('GOLS', j.golsTemp, GOLD) + dado('ASS', j.assTemp, AZUL) +
   dado('GÁS', `${j.gas}%`, VERDE) + dado('VALOR', j.valor, AREIA) + dado('SAL.', j.sal, AREIA)))
 
-// ── A) DUAS FAIXAS: "NA TEMPORADA" e "NA CARREIRA" ──────────────────────────
+// ── A) DUAS FAIXAS: "NESTA TEMPORADA" e "NO CLUBE" ──────────────────────────
 const rotulo = t => `<span style="flex:none;width:52px;font-family:Oswald,sans-serif;font-weight:700;font-size:8px;letter-spacing:.7px;color:rgba(255,255,255,.4);line-height:1.15">${t}</span>`
 const opcaoA = j => caixa(cabeca(j) +
-  faixa(rotulo('NA<br>TEMPORADA') + dado('JOGOS', j.jogosTemp) + dado('GOLS', j.golsTemp, GOLD) + dado('ASS', j.assTemp, AZUL) + dado('GÁS', `${j.gas}%`, VERDE)) +
+  faixa(rotulo('NESTA<br>TEMPORADA') + dado('JOGOS', j.jogosTemp) + dado('GOLS', j.golsTemp, GOLD) + dado('ASS', j.assTemp, AZUL) + dado('GÁS', `${j.gas}%`, VERDE)) +
   `<div style="height:5px"></div>` +
-  faixa(rotulo('NA<br>CARREIRA') + dado('JOGOS', j.jogosTot) + dado('GOLS', j.golsTot, GOLD) + dado('ASS', j.assTot, AZUL) + dado('VALOR', j.valor, AREIA) + dado('SAL.', j.sal, AREIA), 'rgba(255,196,0,.07)'))
+  faixa(rotulo('NO<br>CLUBE') + dado('JOGOS', j.jogosTot) + dado('GOLS', j.golsTot, GOLD) + dado('ASS', j.assTot, AZUL) + dado('VALOR', j.valor, AREIA) + dado('SAL.', j.sal, AREIA), 'rgba(255,196,0,.07)'))
 
 // ── B) NÚMERO DUPLO no mesmo lugar: "28 / 188" ──────────────────────────────
 const duplo = (rot, temp, tot, cor) => `
@@ -95,7 +101,7 @@ const duplo = (rot, temp, tot, cor) => `
 const opcaoB = j => caixa(cabeca(j) +
   faixa(duplo('JOGOS', j.jogosTemp, j.jogosTot, '#fff') + duplo('GOLS', j.golsTemp, j.golsTot, GOLD) + duplo('ASS', j.assTemp, j.assTot, AZUL) +
     dado('GÁS', `${j.gas}%`, VERDE) + dado('VALOR', j.valor, AREIA) + dado('SAL.', j.sal, AREIA)) +
-  `<div style="text-align:center;font-size:7.5px;font-weight:800;color:rgba(255,255,255,.34);letter-spacing:.5px;margin-top:5px">ESTA TEMPORADA / CARREIRA INTEIRA</div>`)
+  `<div style="text-align:center;font-size:7.5px;font-weight:800;color:rgba(255,255,255,.34);letter-spacing:.5px;margin-top:5px">NESTA TEMPORADA / DESDE QUE CHEGOU</div>`)
 
 // ── C) DUAS COLUNAS lado a lado ─────────────────────────────────────────────
 const coluna = (titulo, linhas, fundo) => `
@@ -106,7 +112,7 @@ const coluna = (titulo, linhas, fundo) => `
 const opcaoC = j => caixa(cabeca(j) +
   `<div style="display:flex;gap:6px">
      ${coluna('ESTA TEMPORADA', dado('JOGOS', j.jogosTemp) + dado('GOLS', j.golsTemp, GOLD) + dado('ASS', j.assTemp, AZUL), 'rgba(255,255,255,.06)')}
-     ${coluna('CARREIRA', dado('JOGOS', j.jogosTot) + dado('GOLS', j.golsTot, GOLD) + dado('ASS', j.assTot, AZUL), 'rgba(255,196,0,.08)')}
+     ${coluna('NO SEU CLUBE', dado('JOGOS', j.jogosTot) + dado('GOLS', j.golsTot, GOLD) + dado('ASS', j.assTot, AZUL), 'rgba(255,196,0,.08)')}
    </div>
    <div style="height:5px"></div>` +
   faixa(dado('GÁS', `${j.gas}%`, VERDE) + dado('VALOR', j.valor, AREIA) + dado('SAL.', j.sal, AREIA)))
@@ -124,21 +130,22 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
 </style></head><body>
   <div style="font-family:Oswald,sans-serif;font-weight:700;font-size:26px;color:${INK};line-height:1.05">A FICHA DO JOGADOR</div>
   <div style="font-size:12px;color:rgba(12,12,12,.6);margin:3px 0 16px;line-height:1.5">
-    Gols, jogos e assistências <b>na temporada</b> e <b>na carreira</b>. Três jeitos — escolhe um.
+    Gols, jogos e assistências <b>nesta temporada</b> e <b>no seu clube</b>. Três jeitos — escolhe um.
   </div>
 
-  ${bloco('Hoje', 'Uma linha só. O <b>JOGOS</b> já é da carreira inteira (o 304 do seu print), mas o rótulo não diz isso — e gols e assistências são só da temporada. Dá pra confundir.', hoje)}
-  ${bloco('A · Duas faixas', 'Uma faixa pra temporada, outra pra carreira (a de baixo, dourada). É o mais fácil de ler, e é o "espaço embaixo" que você falou. Gasta mais altura.', opcaoA)}
-  ${bloco('B · Número duplo', 'Os dois números no mesmo lugar: <b>temporada</b> em destaque, <b>carreira</b> menor do lado. Continua em uma linha só — não cresce nada.', opcaoB)}
-  ${bloco('C · Duas colunas', 'Temporada de um lado, carreira do outro (dourada). Gás, valor e salário descem pra uma faixa própria, porque não são de temporada nem de carreira.', opcaoC)}
+  ${bloco('Hoje', 'Uma linha só. O <b>JOGOS</b> já vem somado de todas as temporadas no seu clube (o 304 do seu print), mas o rótulo não diz isso — e gols e assistências, do lado, são só da temporada. Três números juntos falando de tempos diferentes.', hoje)}
+  ${bloco('A · Duas faixas', 'Uma faixa pra temporada, outra pro total no seu clube (a de baixo, dourada). É o mais fácil de ler, e é o "espaço embaixo" que você falou. Gasta mais altura.', opcaoA)}
+  ${bloco('B · Número duplo', 'Os dois números no mesmo lugar: <b>temporada</b> em destaque, <b>total no clube</b> menor do lado. Continua em uma linha só — não cresce nada.', opcaoB)}
+  ${bloco('C · Duas colunas', 'Temporada de um lado, total no clube do outro (dourada). Gás, valor e salário descem pra uma faixa própria, porque não são de temporada nem de total.', opcaoC)}
 
   <div style="background:#FFF6E0;border:3px solid ${INK};border-radius:12px;padding:11px 12px;box-shadow:3px 3px 0 rgba(0,0,0,.2)">
-    <div style="font-family:Oswald,sans-serif;font-weight:700;font-size:14px;color:${INK}">⚠️ UMA COISA PRA VOCÊ SABER ANTES</div>
+    <div style="font-family:Oswald,sans-serif;font-weight:700;font-size:14px;color:${INK}">📌 RESPONDENDO A TUA PERGUNTA</div>
     <div style="font-size:12px;color:rgba(12,12,12,.75);margin-top:5px;line-height:1.5">
-      Hoje o jogo guarda os <b>jogos</b> de uma temporada pra outra, mas <b>não guarda gols nem assistências</b> — ninguém nunca gravou.
-      Então, em carreira que já está rolando, o total de gols e de assistências começa do <b>zero</b> e vai contando daqui pra frente.
-      Os <b>jogos totais</b> continuam certos, porque esses já vinham sendo somados.
-      <br><br>Se preferir, eu posso escrever <b>"desde agora"</b> na primeira temporada, pra ninguém achar que é bug.
+      ✅ <b>É sempre no SEU clube</b>, como você falou — o jogo só anota o elenco do usuário, nunca o dos bots.
+      Jogo feito em outro time não entra. (Se você vender e recomprar a mesma carta, o número dela volta inteiro.)
+      <br><br>⚠️ Mas hoje o jogo guarda só os <b>jogos</b> de uma temporada pra outra. <b>Gols e assistências ele não guarda</b> — nunca gravou.
+      Então, em carreira que já está rolando, esses dois começam do <b>zero</b> e vão contando daqui pra frente. Os <b>jogos</b> continuam certos.
+      <br><br>Se preferir, eu escrevo <b>"desde agora"</b> na primeira temporada, pra ninguém achar que é bug.
     </div>
   </div>
 </body></html>`
