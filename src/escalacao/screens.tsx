@@ -5866,7 +5866,19 @@ export function EscSeason() {
           nextLabel={!(state.round === 0 || resultRevealed) ? LS('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : state.round === 0 && !myLast ? LS('▶️ Começar a temporada', '▶️ Start the season') : LS('▶️ Próxima rodada', '▶️ Next round')} />
       )}
       {/* (os controles da COPA mudaram pro TOPO da tela — veja lá em cima) */}
-      {privateVisual && !copaLive && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+      {/* 🧭 UMA NAVEGAÇÃO SÓ, MAS SÓ NO CELULAR (Diego 18/09: *"você pode talvez
+          unificar algumas coisas dessas que já tinham, pra não ficar muito"*).
+          No celular a barra de baixo passa a carregar jogos · números · elenco, e
+          estas abas de cima somem — dois menus dizendo a mesma coisa comiam a tela.
+          No DESKTOP elas continuam aqui, porque lá sobra largura e a tela é a que
+          ele aprovou em 18/09. Quem faz esse corte é a CSS (`ll-abas-topo`), não o
+          React: assim ninguém remonta nada no meio da rodada.
+          Sem a barra na tela (preview, ou durante a Copa), as abas ficam sempre. */}
+      {privateVisual && !copaLive && (
+        <div className={online && state.roomId && !state.careerOnline ? 'll-abas-topo' : undefined}>
+          <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />
+        </div>
+      )}
       {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
         return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
@@ -6046,7 +6058,8 @@ export function EscSeason() {
       <div className="ll-rabicho">
       {online && state.roomId && !state.careerOnline && (
         <LigaHub roomId={state.roomId} souDono={state.isHost}
-          humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)} />
+          humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
+          abasJogo={privateVisual && !copaLive ? { valor: visualTab, escolher: setVisualTab } : undefined} />
       )}
       <CreditLine className="pt-4 pb-2" />
       </div>

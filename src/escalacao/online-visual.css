@@ -165,3 +165,17 @@
   .ll25-shell .ll-linha-tatica > p { flex: 1 1 60%; min-width: 0; margin: 0; }
   .ll25-shell .ll-taticas[data-aberta='nao'] { display: none; }
 }
+
+/* 🧭 UMA NAVEGAÇÃO SÓ NO CELULAR (Diego 18/09) — e SÓ no celular.
+   A tela da sala tinha DOIS menus: as abas em cima (jogos · números · elenco) e a
+   barra fixa embaixo (rank · estante · temporadas · ajustes). Sete botões de
+   navegação disputando um celular. Ordem dele: *"você pode talvez unificar algumas
+   coisas dessas que já tinham, sei lá, pra não ficar muito também"*.
+   No celular a barra de baixo vira a navegação única: as três abas da partida
+   entram nela e Rank/Estante/Temporadas viram um botão só (📚 Estante), com as três
+   em pílulas dentro do painel — nada de conteúdo mudou, só a porta.
+   No desktop NADA disso vale: abas em cima e a barra de sempre com os quatro,
+   igual ele aprovou em 18/09.
+   Pra desfazer: apagar este bloco (voltam os dois menus no celular). */
+@media (min-width: 1100px) { .ll-barra-cel { display: none !important; } }
+@media (max-width: 1099.98px) { .ll-barra-desk, .ll-abas-topo { display: none !important; } }
