@@ -118,6 +118,9 @@
   .ll-desk .ll-col-side > * { font-size: 13px; }
   .ll-desk .ll-col-side .grid.grid-cols-3 > button { padding-top: 6px !important; padding-bottom: 6px !important; font-size: 11.5px !important; }
   .ll-desk .ll-col-side p.text-\[11px\] { font-size: 10px !important; line-height: 1.35 !important; opacity: .72; }
+  /* ⚖️ a PÍLULA da tática é coisa de celular: aqui sobra largura, então os
+     três botões continuam sempre à mostra, como ele aprovou em 18/09 */
+  .ll-desk .ll-pilula-tatica { display: none; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -147,4 +150,18 @@
   /* 🏆 a tabela fica onde está no HTML (ordem 0) e o resto desce por cima dela */
   .ll25-shell .ll-desk .ll-depois-da-tabela { order: 1; }
   .ll25-shell .ll-desk > .ll-rabicho { order: 2; }
+}
+
+/* ⚖️ A TÁTICA VIRA PÍLULA NO CELULAR (Diego 18/09: *"tem que diminuir esse modal
+   aí de equilíbrio, ataque, defesa nos móveis"*).
+   Não é invenção nova: é o MESMO padrão que ele aprovou na aba Elenco no mesmo
+   dia (`🎽 4-4-2 ▾`), com a régua que ele deu lá — *"campo e lista você olha toda
+   rodada; formação e modo de troca você mexe de vez em quando. Altura fixa pra
+   ação rara é troca ruim"*. Tática é ação de UMA vez por rodada.
+   Nada some e nenhuma regra muda: os três botões continuam os mesmos, a um toque.
+   Pra desfazer: apagar este bloco (a caixa volta a ficar sempre aberta). */
+@media (max-width: 1099.98px) {
+  .ll25-shell .ll-linha-tatica { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ll25-shell .ll-linha-tatica > p { flex: 1 1 60%; min-width: 0; margin: 0; }
+  .ll25-shell .ll-taticas[data-aberta='nao'] { display: none; }
 }
