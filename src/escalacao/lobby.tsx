@@ -13,6 +13,7 @@ import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
 import { isMuted } from './sound'
+import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
@@ -1112,7 +1113,22 @@ export function EscLobby() {
   // 🧯 já montei o jogo desta sala? (guarda contra montar DUAS vezes quando o
   // início direto do host e o eco do banco chegam juntos)
   const jaIniciouRef = useRef<string | null>(null)
+  // 🔒 UMA LARGADA POR VEZ (18/09). Na largada o `triggerStart` roda DUAS vezes no
+  // aparelho do DONO: uma pelo botão (`startGame` → marca 'started' → relê → chama)
+  // e outra pelo ECO do banco (`postgres_changes` → status 'started' → chama). As
+  // duas ficam penduradas em `await` de rede, e o `jaIniciouRef` só é marcado no
+  // FIM — então as duas passam por ele e as duas montam o jogo. A última a chegar
+  // manda, e é a do eco (que trabalha com a cópia do evento, a que "chega picada").
+  // Este cadeado serializa: enquanto uma largada desta sala está em voo, a outra
+  // devolve na hora. Solta no `finally`, então nunca tranca pra sempre.
+  const largadaEmVooRef = useRef<string | null>(null)
   async function triggerStart(roomData: RoomInfo, allowFresh = true): Promise<boolean> {
+    if (largadaEmVooRef.current === roomData.id) return true
+    largadaEmVooRef.current = roomData.id
+    try { return await triggerStartRaw(roomData, allowFresh) }
+    finally { largadaEmVooRef.current = null }
+  }
+  async function triggerStartRaw(roomData: RoomInfo, allowFresh = true): Promise<boolean> {
     if (!user) return false
     // pega o estado salvo MAIS recente (não confia no payload do evento, que
     // pode vir defasado) — é o que permite retomar a partida na reconexão.
@@ -1188,7 +1204,25 @@ export function EscLobby() {
     // sumindo. A linha fresca é a única verdade; a cópia velha só entra se a
     // leitura falhar.
     const donoDaSala = (freshRoom as { host_id?: string } | null)?.host_id ?? roomData.host_id
-    const amHost = donoDaSala === user.id
+    // 👑 REBAIXAR SÓ COM PROVA (Diego 18/09: *"o host que cria a sala nunca pode
+    // mudar"* — e a regra permanente do CLAUDE.md: leitura que falhou, veio picada
+    // ou sem o dono NUNCA rebaixa ninguém).
+    // ⚠️ O QUE ESTAVA ERRADO: `donoDaSala === user.id` trata "não sei quem é o dono"
+    // e "o dono é outro" como a MESMA coisa. Se as DUAS leituras falham (a fresca e
+    // a cópia velha), `undefined === user.id` dá FALSE — e o dono se rebaixa sozinho
+    // sem ninguém ter tomado nada dele. Medido no banco em 18/09: 51 casos no dia,
+    // 29 pessoas, ~18% de todas as travas eram o DONO se achando convidado (e com
+    // `momento='envelope'`, ou seja, já dentro do pregão, com a sala sem host nenhum).
+    // Agora: sem dono na leitura, quem já é dono DESTA sala continua dono.
+    // Handoff de verdade (o banco aponta OUTRO uid) continua valendo igual.
+    const souDonoDestaSala = jogo.onlineMode === 'online' && jogo.roomId === roomData.id && !!jogo.isHost
+    const amHost = donoDaSala ? donoDaSala === user.id : souDonoDestaSala
+    // 🧾 deixa registro quando a leitura falhou E a coroa foi PRESERVADA — é o que
+    // vai provar (ou desmentir) que este era o buraco, sem depender de relato.
+    if (!donoDaSala && souDonoDestaSala) {
+      anotaTrava({ room_id: roomData.id, sala: roomData.code ?? null, papel: 'host', momento: 'envelope',
+        segundos: 0, reenvios: 0, extra: { quando: 'coroa_preservada', tela: jogo.screen, motivo: 'leitura sem host_id' } }, true)
+    }
     // partida já em andamento salva no banco → RESTAURA (evita resetar tudo
     // quando alguém reconecta ou o host recarrega/cai). Caso contrário, é o
     // início de verdade: monta o jogo do zero (determinístico pelo código).
