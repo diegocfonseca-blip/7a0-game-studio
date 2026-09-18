@@ -106,10 +106,13 @@ createRoot(document.getElementById('root')!).render(
   // a bancada mente no desktop: a aba Elenco só sai da coluna de 576px porque ela
   // EXISTE — medir sem a coluna dá um número que o jogo nunca vai ter.
   <EscProvider><div className="max-w-xl mx-auto" style={{ padding: '16px 14px 48px' }}>
+    {/* 🎽 `onSetFormation` é obrigatório pro seletor de FORMAÇÃO desenhar — foi ele
+        que o Diego perguntou onde fica (18/09). Sem a prop, a bancada mente de novo. */}
     <SquadTab mgr={mgr} col={col as never} coins={168} xiIds={new Set(xi.map(c => c.id))} xi={xi}
       goals={Object.fromEntries(squad.map((c, k) => [c.id, k % 4 === 0 ? k % 11 : 0]))}
       assists={Object.fromEntries(squad.map((c, k) => [c.id, k % 3 === 0 ? k % 7 : 0]))}
       onSwap={() => {}} selId={null} seasonNo={6} contratosOn olheiros
+      onSetFormation={() => {}}
       condicao={condicao as never} safDiv="Série A" safSlots={4} />
   </div></EscProvider>
 )
