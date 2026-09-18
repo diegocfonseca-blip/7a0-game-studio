@@ -91,6 +91,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Futpoint FC', tipo: 'socio', fundador: null },
   { clube: 'Internacional de Madrid', tipo: 'batismo', fundador: 69 },
   { clube: 'Fridão FC', tipo: 'batismo', fundador: 72 },
+  { clube: 'Pesadelo Verde FC', tipo: 'batismo', fundador: 73 },
 ]
 
 /** chave de comparação: ignora caixa, acento e o FC/EC/SC/AS do fim */

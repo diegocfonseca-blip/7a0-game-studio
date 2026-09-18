@@ -43,6 +43,7 @@ import murrizEscudoImg from './img/murriz-escudo.webp' // ⚔️ Murriz FC (msb1
 import barceniteEscudoImg from './img/barcenite-escudo.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import marinheirosEscudoImg from './img/marinheiros-escudo.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import fridaoEscudoImg from './img/fridao-escudo.webp' // 🐴 Fridão FC (felipe.ofrida): arte própria do dono, batismo de 16/09
+import pesadeloEscudoImg from './img/pesadelo-escudo.webp' // 🌑🐺 Pesadelo Verde FC (portaltech.ep): arte própria do dono, batismo de 18/09
 import bestiaEscudoImg from './img/bestia-escudo.webp' // 🦊 La Bestia Negra (eltonfrossard45): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
 import maroladosEscudoImg from './img/marolados-escudo.webp' // 🛡️🌱 Marolados FC (paisagensetrilha): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import scorporilaEscudoImg from './img/scorporila-escudo.webp' // 🦍🦂 Scorporila FC (lucassrribeiroo2023): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
@@ -699,6 +700,12 @@ const barceniteEscudoRender = (size: number) => (
 // 🦊 La Bestia Negra — 274x360 no arquivo, então a largura sai da PROPORÇÃO REAL
 // (nunca width={size} chutado). Arte do dono (eltonfrossard45, 18/09): brasão
 // azul com a raposa e as 5 estrelas do Cruzeiro, o time de coração dele.
+// 🌑🐺 Pesadelo Verde FC — 231x360 no arquivo, então a largura sai da PROPORÇÃO
+// REAL (nunca width={size} chutado). Arte do dono (portaltech.ep, batismo 18/09):
+// brasão escuro com a lua cheia, a floresta de pinheiros e o rio.
+const pesadeloEscudoRender = (size: number) => (
+  <img src={pesadeloEscudoImg} height={size} width={Math.round(size * 231 / 360)} alt="Pesadelo Verde FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const bestiaEscudoRender = (size: number) => (
   <img src={bestiaEscudoImg} height={size} width={Math.round(size * 274 / 360)} alt="La Bestia Negra" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1354,6 +1361,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Neymarzetti FC': neymarzettiEscudoRender,
   'Neymarzetti EC': neymarzettiEscudoRender,
   Paixandu: neymarzettiEscudoRender, // 🕰️ o nome VELHO: save antigo abre com o escudo novo
+  // 🌑🐺 Pesadelo Verde FC (portaltech.ep) — BATISMO de 18/09, com arte do dono.
+  // As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4 nomes reservados).
+  'Pesadelo Verde': pesadeloEscudoRender,
+  'Pesadelo Verde FC': pesadeloEscudoRender,
+  'Pesadelo Verde EC': pesadeloEscudoRender,
+  'Pesadelo Verde SC': pesadeloEscudoRender,
   // 🦊 La Bestia Negra (eltonfrossard45) — ARTE NOVA em 18/09, mandada pelo dono.
   // Brasão azul com a cabeça da raposa e as 5 estrelas do Cruzeiro (❤️ dele).
   // As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4 nomes).

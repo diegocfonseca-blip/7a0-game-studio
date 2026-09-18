@@ -33,6 +33,7 @@ import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei d
 import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import barceniteMascoteImg from './img/barcenite-mascote.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import marinheirosMascoteImg from './img/marinheiros-mascote.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import pesadeloMascoteImg from './img/pesadelo-mascote.webp' // 🌑🐺 Pesadelo Verde FC (portaltech.ep): arte própria do dono, batismo de 18/09
 import bestiaMascoteImg from './img/bestia-mascote.webp' // 🦊 La Bestia Negra (eltonfrossard45): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
 import fridaoMascoteImg from './img/fridao-mascote.webp' // 🐴 Fridão FC (felipe.ofrida): arte própria do dono, batismo de 16/09
 import maroladosMascoteImg from './img/marolados-mascote.webp' // 🛡️🌱 Marolados FC (paisagensetrilha): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
@@ -585,6 +586,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   mariposa: (
     <img src={bichoDaSedaMascoteImg} height={176} width={Math.round(176 * 436 / 440)} alt="O Bicho da Seda — Bicho da Seda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🌑🐺 O Pesadelo — Pesadelo Verde FC (portaltech.ep, batismo 18/09). 312x440 no
+  // arquivo, então a largura sai da PROPORÇÃO REAL. O lobo uivando pra lua cheia
+  // em cima da pedra, com o raio verde em volta.
+  pesadelo_lobo: (
+    <img src={pesadeloMascoteImg} height={176} width={Math.round(176 * 312 / 440)} alt="O Pesadelo — Pesadelo Verde FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🦊 A Bestia — La Bestia Negra (eltonfrossard45, 18/09). 368x440 no arquivo,
   // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). A raposa
   // azul rosnando em cima do entulho, com o galo derrubado embaixo da pata — a
@@ -722,6 +729,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'BARCENITE': 'gatao_bfc',
   'BARCENITE FC': 'gatao_bfc',
   'Milanesa FC': 'gatao_bfc',
+  // 🌑🐺 Pesadelo Verde FC (portaltech.ep). CARIMBO_GOL é busca EXATA: entram as
+  // 4 formas reservadas do nome e as maiúsculas.
+  'Pesadelo Verde': 'pesadelo_lobo',
+  'Pesadelo Verde FC': 'pesadelo_lobo',
+  'Pesadelo Verde EC': 'pesadelo_lobo',
+  'Pesadelo Verde SC': 'pesadelo_lobo',
+  'PESADELO VERDE': 'pesadelo_lobo',
+  'PESADELO VERDE FC': 'pesadelo_lobo',
   // 🦊 La Bestia Negra (eltonfrossard45). As 4 formas do nome + as maiúsculas —
   // CARIMBO_GOL é busca EXATA, então cada forma precisa estar escrita aqui.
   'La Bestia Negra': 'raposa',
@@ -1007,6 +1022,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
   porco_marinheiro: 'O Marujo', // ⚓🐷 Marinheiros AS (feehcamp11, 16/09) — o porco marujo de cachimbo e espinafre. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  pesadelo_lobo: 'O Pesadelo', // 🌑🐺 Pesadelo Verde FC (portaltech.ep, 18/09) — o lobo uivando pra lua. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   raposa: 'A Bestia', // 🦊 La Bestia Negra (eltonfrossard45, 18/09) — a raposa azul do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   fridao_cavalo: 'O Fridão', // 🐴 Fridão FC (felipe.ofrida, 16/09) — o cavalo alvinegro coroado, de crina branca. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   marolado: 'O Marolado', // 🛡️🌱 Marolados FC (paisagensetrilha, 16/09) — o moleque rastafari da várzea. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
