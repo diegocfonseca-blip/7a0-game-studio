@@ -36,6 +36,20 @@
 //     é lá que Rank/Estante/Temporadas moram. Nome novo pra coisa velha só
 //     confunde.
 //
+// 🔁 VERSÃO 4 — ele perguntou: *"e os outros jogos da rodada que ficavam na home
+// e etc? Foi pra onde? Qual melhor local pra ir"*.
+// Na v3 eu tinha jogado eles pro FIM da aba do jogo, depois da tabela. Errado, e
+// o print dele explica por quê: aqueles cards têm "⚽ GOL!" piscando, "ENCERRADO"
+// e o gol aos 90+3 — eles são **AO VIVO**, mudam a cada segundo enquanto a rodada
+// roda. Enterrar depois de 20 linhas de tabela é o mesmo que apagar: quando a
+// pessoa rolar até lá, a rodada acabou.
+// 👉 Lugar certo: logo ABAIXO do placar, numa FAIXA QUE ROLA DE LADO — que já é o
+// formato deles hoje (cards lado a lado). Fica no momento em que importa e gasta
+// pouca ALTURA, porque cresce pro lado.
+// A ordem da aba do jogo passa a seguir o relógio: o que muda agora primeiro.
+//   1. seu placar → 2. outros jogos (ao vivo) → 3. próximo + tática (decisão) →
+//   4. tabela inteira → 5. giro da rodada (notícia, pode esperar)
+//
 // ⚠️ SÓ DESENHO. Nada mexido. Rodar: node scripts/mockup-online-celular.mjs
 import { chromium } from 'playwright-core'
 import { readFileSync } from 'node:fs'
@@ -84,6 +98,19 @@ const proximo = `<div style="background:#F7F4EA;border:3px solid ${INK};border-r
     <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:#fff">🛡️ Retranca</div>
     <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:${GOLD}">⚖️ Equilíbrio</div>
     <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:6px 0;font-size:10.5px;font-weight:900;background:#fff">🔥 Ataque</div>
+  </div></div>`
+
+// 📺 OS OUTROS JOGOS — faixa que rola de LADO (cresce pro lado, não pra baixo)
+const outrosJogos = `<div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:8px 0 9px">
+  <div style="font-size:10px;font-weight:900;color:#7a7364;letter-spacing:.7px;padding:0 10px 6px">📺 OUTROS JOGOS · RODADA 6 <span style="float:right;color:#b0a894;font-weight:700">role de lado →</span></div>
+  <div style="display:flex;gap:7px;padding:0 10px;overflow:hidden">
+    ${[['SC Ferrari', '1', '1', 'Leite de Verdade', '⚽ GOL!', 1], ['Nata de SP', '1', '0', 'Vidraceiro FC', '', 0], ['São Luiz FC', '0', '0', 'Al Takhadao', '', 0]].map(([a, x, y, b, flash, on]) =>
+      `<div style="flex:none;width:132px;background:${on ? GOLD : '#fff'};border:2.5px solid ${INK};border-radius:9px;overflow:hidden">
+        ${flash ? `<div style="font-size:8.5px;font-weight:900;padding:2px 6px;background:${INK};color:${GOLD}">${flash}</div>` : ''}
+        <div style="padding:6px;font-size:10px;font-weight:800;line-height:1.25">
+          <div style="display:flex;justify-content:space-between;gap:4px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a}</span><b>${x}</b></div>
+          <div style="display:flex;justify-content:space-between;gap:4px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b}</span><b>${y}</b></div>
+        </div></div>`).join('')}
   </div></div>`
 
 const bx = (t, c = '#F7F4EA') => `<div style="background:${c};border:3px solid ${INK};border-radius:12px;padding:10px 11px;font-size:12px;font-weight:800">${t}</div>`
@@ -140,6 +167,7 @@ continuam sem encolher, como você exigiu.</div>
 
   ${tela('✅ momento 1 · bola rolando', `
     ${placar(false, true)}
+    ${outrosJogos}
     ${proximo}
     ${tabelaMini}
     ${barra(0)}`, VERDE)}
@@ -177,10 +205,14 @@ momento. Quem encolheu foi só o <b>caixote do próximo jogo</b>, e ele ganhou a
   ⚔️ <b>O próximo jogo e a tática ficam na aba do JOGO</b> (correção sua): tática não é histórico, é a
   DECISÃO da próxima rodada — tem que estar onde você está vendo a bola rolar. Logo abaixo do placar,
   enxuto, em uma linha de três botões.<br>
+  📺 <b>Os outros jogos da rodada ficam LOGO ABAIXO do seu placar</b>, numa faixa que <b>rola de lado</b>
+  (é o formato que eles já têm hoje: cards lado a lado). Eles são AO VIVO — piscam "GOL!", viram
+  "ENCERRADO" —, então têm que estar na hora em que acontecem. Crescendo pro lado, gastam pouca altura.<br>
+  ⏱️ <b>A ordem da aba do jogo segue o relógio</b>: o que muda AGORA vem primeiro —
+  seu placar → outros jogos → próximo + tática → tabela → giro da rodada.<br>
   📊 <b>A tela do jogo mostra o jogo + a TABELA INTEIRA</b> (ordem sua: "prefiro que mostre a tabela toda").
   São os 20, com a zona de cima em verde e o Z4 em vermelho. Como ela está aqui, <b>nem precisa de um botão
-  só pra tabela</b> — sobra espaço na barra. Outros jogos e giro da rodada ficam logo abaixo dela, no fim da
-  aba do jogo (é notícia da rodada, então fica depois do que importa).<br>
+  só pra tabela</b> — sobra espaço na barra.<br>
   ⚽ <b>O momento do GOL abre espaço</b>: a mascote entra maior e nasce embaixo a linha do goleador com a
   assistência. Passado o gol, volta ao normal sozinho.<br>
   🖥️ <b>O desktop que você já aprovou não muda</b> — isto só vale em tela estreita.
