@@ -1,3 +1,62 @@
+## 18/09/2026 — 👑 O DONO ENTRA NA PRÓPRIA SALA COMO CONVIDADO (medido: ~18% das travas)
+
+Relato do Diego, com dois prints da live do canalmeianacanela (sala KIKO6I):
+*"toda vez que um streamer vai fazer live… ele vem pra essa sala e, mesmo sendo
+host, aparece no final o botão escrito 'o host vai começar o leilão', sendo que a
+tela dele era pra ter o botão de iniciar… e quando ele atualiza no F5 volta ao
+normal. Muita gente não sabe que precisa atualizar e acaba desistindo"*.
+
+### 🧾 A PROVA (caixa-preta `esc_travas` × `game_rooms`)
+Cruzei cada trava com o dono da sala no banco (`papel = 'convidado'` E
+`game_rooms.host_id = esc_travas.uid` = o aparelho do DONO se achando convidado):
+
+| dia | travas com a sala ainda no banco | dono como convidado | % |
+| --- | --- | --- | --- |
+| 18/09 | 263 | **51** (29 pessoas) | 19,4% |
+| 17/09 | 738 | **129** (67 pessoas) | 17,5% |
+| 16/09 | 634 | **118** (58 pessoas) | 18,6% |
+
+⚠️ **NÃO é regressão nova** — eu quase disse que era. A conta crua parecia um salto
+no dia 16 (2 → 118), mas é ilusão: sala some do banco quando o dono sai, e de 15/09
+pra trás só **1%** das salas ainda existe, então os casos velhos ficam invisíveis.
+Olhando só onde dá pra ver, a taxa é **estável em ~18%** — o defeito é antigo.
+
+### O que isso significa de verdade
+Não é só o botão sumido. As linhas têm `momento = 'envelope'`: o dono **entra no
+pregão** como convidado. Com o jogo host-autoritativo, aí **ninguém é host** — e é
+por isso que essas linhas existem, elas são relatos de "travou". Ou seja: 1 em cada
+5 salas travadas é uma sala **sem dono nenhum**, com o dono lá dentro.
+
+### 🚨 E o socorro que deveria consertar isso está MORTO
+Existe desde 07/09 (sala do Sistematizados) um resgate no `store.tsx` (~9870): na
+tela de abertura ele pergunta ao banco a cada 5 s quem é o dono e, se for este
+aparelho, dá `BECOME_HOST` sozinho. Ele grava `extra.quando = 'reassumiu'`.
+**Em 10 dias ele gravou UMA linha — e nenhuma na `streamIntro`.** Na prática não
+roda. Conferido que não é o registro que falha: `anotaTrava` é à prova de erro e o
+resgate chama com `semFreio = true`.
+👉 Isso é o conserto de maior retorno: devolver a coroa a quem **o banco já diz que
+é o dono** não é troca de dono — é exatamente o que o Diego permite (*"quem já é
+dono no banco reassume sozinho ao voltar"*).
+
+### 🔎 Mecanismo mais provável (hipótese, ainda não provada)
+No `lobby.tsx` o `triggerStart` roda DUAS vezes no aparelho do dono na largada:
+uma pelo botão (`startGame` → `update status='started'` → relê → `triggerStart`) e
+outra pelo ECO do banco (`postgres_changes` → `if (r.status === 'started')
+triggerStart(r)`). Desde **83735ee (15/09)** a guarda `jaTocoAquiComoDono` exige
+`emJogoVivo` (tela ≠ lobby) — e o dono está EXATAMENTE no lobby quando aperta o
+botão, então a guarda não cobre. As duas chamadas correm juntas; o `jaIniciouRef`
+só é marcado no fim, depois de vários `await`, então as duas passam por ele e as
+duas despacham `START_ONLINE`. A última a chegar manda — e a do eco calcula o dono
+a partir de um `host_id` que o próprio código já avisa que "chega picado".
+⚠️ Marcado como HIPÓTESE de propósito: a taxa estável desde antes de 15/09 diz que
+existe pelo menos mais uma porta. Não mexer sem instrumentar primeiro.
+
+### ⛔ NADA FOI MEXIDO
+Só medição. O conserto encosta na parte mais perigosa do repo (coroa + online ao
+vivo) e está esperando o OK do Diego.
+
+---
+
 ## 16/09/2026 (parte 2) — 🚨 A trava da crise NUNCA EXISTIU (ligada agora)
 
 Diego, depois do primeiro conserto: *"eu não entendi que, se foi menos 500 lá atrás,
