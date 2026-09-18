@@ -1,3 +1,28 @@
+## 18/09/2026 (parte 3) — 🎬 Reels do banco de 16 (com o aviso de salário/renovação)
+
+Pedido dele: *"preciso de mockup agora com vídeo padrão q sempre fazemos, dizendo q agora
+aumentou o número de reservas incluindo mais um por posição, tendo agora mais 5. Porém,
+abrindo mais vagas tb tem q tomar cuidado com salário e renovação. Portanto é algo mt bom
+ter mais reservas e tal, mas com cuidado"*.
+
+**`node scripts/video-reservas-reels.mjs`** — 1080×1920, ~26 s, mesma técnica dos outros
+(cenas em keyframes de CSS, Playwright grava a tela, ffmpeg converte). Roteiro: banco
+11→16 · +1 em cada posição · a conta (11+16=27, e a SAF por cima até 31) · ⚠️ o cuidado
+(salário todo ano · renovação · o emprestado é de graça) · vaga a mais não é obrigação ·
+marca.
+
+🧾 **Os números saíram do CÓDIGO, não de cabeça** (pra fita não mentir):
+- salário = `salaryOfCard`: **piso ÷ 10** por jogador, por temporada
+- emprestado da SAF paga **ZERO** (primeira linha da mesma função) — virou cena
+- renovar (`renewCost`): **5 temporadas = metade** · **10 = 90%**
+- caixa no vermelho trava contratar/investir (já existia; entrou como aviso)
+
+⚠️ **A FITA FINAL DIZ "CHEGANDO", NÃO "JÁ ESTÁ NO AR"** — de propósito: o banco de 16 está
+travado na conta dele (`ELENCO27_GERAL = false`). **No dia de abrir pra geral**, trocar a
+pílula da cena ⑥ pra `pill('já está no ar', GREEN, '#fff', 40)` **e** pôr a linha em
+`novidades.ts` (com o campo `en`). Fita não pode contradizer o jogo — foi o cuidado que o
+reels do preparador registrou em 15/09.
+
 ## 18/09/2026 (parte 2) — 😓 Gás volta ao campinho · 📤 compartilhar com o banco LISTADO
 
 1. **A barrinha de energia VOLTOU pro campinho** (*"tá faltando a barrinha de energia no
