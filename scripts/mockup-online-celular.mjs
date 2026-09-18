@@ -13,6 +13,19 @@
 // O problema medido na tela de hoje: pra ver a TABELA o jogador rola ~4 telas,
 // passando por blocos que ele não está olhando naquele minuto.
 //
+// 🔁 VERSÃO 2 — o Diego pegou um erro meu na v1: *"mas embaixo das abas não tem
+// negócio de estante ou troféu, sei lá"*. Ele estava certo: o LigaHub JÁ desenha
+// uma barra FIXA embaixo (Rank · Estante · Temporadas · Ajustes,
+// `position:fixed;bottom:0` em ligahub.tsx). A barra que eu propus viraria uma
+// SEGUNDA barra colada na dela.
+// E aí ele deu a direção: *"você pode talvez unificar algumas coisas dessas que
+// já tinham, sei lá, pra não ficar muito também"*. É isso: hoje a MESMA tela tem
+// DOIS sistemas de navegação (as abas em cima + a barra embaixo). Some 3 + 4 = 7
+// controles de navegação disputando a tela do celular.
+// 👉 Esta v2 não SOMA nada: junta os dois numa barra só, com 4 botões. Rank,
+// Estante e Temporadas são a mesma coisa (a história da liga), então viram UM
+// botão 🏆 Liga — e lá dentro as três abas continuam exatamente como são hoje.
+//
 // ⚠️ SÓ DESENHO. Nada mexido. Rodar: node scripts/mockup-online-celular.mjs
 import { chromium } from 'playwright-core'
 import { readFileSync } from 'node:fs'
@@ -57,7 +70,7 @@ const tabelaMini = `<div style="background:#F7F4EA;border:3px solid ${INK};borde
   </table></div>`
 
 const barra = (ativo) => `<div style="display:flex;gap:5px;background:#101a13;border:3px solid ${INK};border-radius:12px;padding:5px">
-  ${[['⚽', 'Jogo'], ['🏆', 'Tabela'], ['⚔️', 'Próximo'], ['👥', 'Elenco']].map(([e, n], i) =>
+  ${[['⚽', 'Jogo'], ['📊', 'Estatísticas'], ['👥', 'Elenco'], ['🏆', 'Liga']].map(([e, n], i) =>
     `<div style="flex:1;text-align:center;padding:6px 0;border-radius:8px;font-size:10px;font-weight:900;${i === ativo ? `background:${ROXO};color:#fff` : 'color:#9aa79f'}">
       <div style="font-size:16px;line-height:1">${e}</div>${n}</div>`).join('')}</div>`
 
@@ -76,9 +89,11 @@ h1{font-size:44px;font-weight:900;text-transform:uppercase;line-height:.95}h1 .g
 .cx{background:#EAF5EE;border:3px solid ${VERDE};border-radius:13px;padding:13px 16px;margin-top:14px;font-size:15px;font-weight:700;line-height:1.5}.cx b{color:${VERDE}}</style>
 
 <h1>O ONLINE NO <span class="g">CELULAR</span></h1>
-<div class="lead">📱 No celular não dá pra abrir colunas — o espaço é vertical. Então a ideia NÃO é espremer:
-é <b>tirar da fila</b> o que não é do momento. <b>A regra que você deu manda em tudo: o placar e a mascote
-NÃO encolhem</b> — em dois dos três momentos o placar até cresce.</div>
+<div class="lead">🔁 <b>Refeito com a sua correção.</b> Eu tinha proposto uma barra nova embaixo — e você lembrou que
+<b>já existe uma</b> (Rank · Estante · Temporadas). A minha ia virar uma SEGUNDA barra colada na dela.<br>
+Então agora a ideia não SOMA nada: <b>hoje a mesma tela tem DOIS sistemas de navegação</b> (3 abas em cima
++ 4 botões embaixo = 7 controles). Isto <b>junta os dois numa barra só, com 4</b>. E o placar e a mascote
+continuam sem encolher, como você exigiu.</div>
 
 <div class="linha">
   ${tela('❌ como está hoje', `
@@ -89,7 +104,12 @@ NÃO encolhem</b> — em dois dos três momentos o placar até cresce.</div>
     ${bx('👑 Você é o novo LÍDER!', '#ded5f7')}
     ${bx('📣 Giro da rodada')}
     <div style="text-align:center;color:${VERM};font-size:11px;font-weight:900;padding:6px 0">↓ ↓ ↓ role mais ↓ ↓ ↓</div>
-    ${bx('🏆 A TABELA fica aqui embaixo', '#fff0c4')}`, VERM)}
+    ${bx('🏆 A TABELA fica aqui embaixo', '#fff0c4')}
+    <div style="display:flex;gap:4px;background:rgba(250,247,238,.97);border:3px solid ${INK};border-radius:12px;padding:6px">
+      ${[['🏅', 'Rank'], ['📚', 'Estante'], ['📄', 'Temporadas']].map(([e, n]) =>
+        `<div style="flex:1;text-align:center;font-size:9.5px;font-weight:900;color:#8a8270"><div style="font-size:15px;line-height:1">${e}</div>${n}</div>`).join('')}
+    </div>
+    <div style="text-align:center;color:${VERM};font-size:10.5px;font-weight:900">☝️ e esta barra JÁ existe, fixa embaixo</div>`, VERM)}
 
   ${tela('✅ momento 1 · bola rolando', `
     ${placar(false, true)}
@@ -102,9 +122,14 @@ NÃO encolhem</b> — em dois dos três momentos o placar até cresce.</div>
     ${tabelaMini}
     ${barra(0)}`, VERDE)}
 
-  ${tela('✅ aba ⚔️ próximo', `
+  ${tela('✅ aba 🏆 liga (o que já existia)', `
     ${placar(false, false)}
     <div style="background:#F7F4EA;border:3px solid ${INK};border-radius:12px;padding:11px">
+      <div style="display:flex;gap:4px;margin-bottom:9px">
+        <div style="flex:1;text-align:center;font-size:10px;font-weight:900;padding:5px 0;border-radius:7px;background:#B8860B;color:#fff">🏅 RANK</div>
+        <div style="flex:1;text-align:center;font-size:10px;font-weight:900;padding:5px 0;border-radius:7px;color:#8a8270">📚 ESTANTE</div>
+        <div style="flex:1;text-align:center;font-size:10px;font-weight:900;padding:5px 0;border-radius:7px;color:#8a8270">📄 TEMPORADAS</div>
+      </div>
       <div style="font-size:11px;font-weight:900;color:#7a7364;letter-spacing:.8px;margin-bottom:8px">⚔️ PRÓXIMO · XURUPITAS FC (FORA)</div>
       <div style="display:flex;gap:6px">
         <div style="flex:1;text-align:center;border:2.5px solid ${INK};border-radius:9px;padding:7px 0;font-size:11px;font-weight:900;background:#fff">🛡️<br>Retranca</div>
@@ -115,7 +140,7 @@ NÃO encolhem</b> — em dois dos três momentos o placar até cresce.</div>
     </div>
     ${bx('OUTROS JOGOS · rodada 6')}
     ${bx('📣 Giro da rodada')}
-    ${barra(2)}`, VERDE)}
+    ${barra(3)}`, VERDE)}
 </div>
 
 <div class="cx">🦇 <b>O placar e a mascote NÃO encolhem</b> — foi a sua condição. Na tela de "bola rolando" e na
@@ -123,12 +148,14 @@ de GOL ele fica <b>MAIOR</b> do que é hoje, porque deixou de dividir a tela com
 momento. Quem encolheu foi só o <b>caixote do próximo jogo</b>, e ele ganhou aba própria.</div>
 
 <div class="nota">
-  <b>As três ideias, em linguagem de jogo</b><br>
-  1️⃣ <b>Uma barrinha fixa embaixo, com 4 botões</b> (⚽ Jogo · 🏆 Tabela · ⚔️ Próximo · 👥 Elenco) — igual barra
-  de app. A tabela deixa de ser "role até o fim" e vira <b>um toque</b>, de qualquer lugar da tela.<br>
-  2️⃣ <b>A tela do jogo mostra só o jogo</b>: placar grande + os 7 primeiros da tabela (é o que interessa
-  enquanto a bola rola). Outros jogos, giro da rodada e próximo jogo mudam pras abas deles — <b>nada some</b>.<br>
-  3️⃣ <b>O momento do GOL abre espaço</b>: a mascote entra maior e nasce embaixo a linha do goleador com a
+  <b>A unificação, em linguagem de jogo</b><br>
+  🔗 <b>Uma barra só, com 4 botões</b> — as abas de cima DESCEM pra barra que já existe embaixo:<br>
+  &nbsp;&nbsp;&nbsp;⚽ <b>Jogo</b> (placar + tabela) · 📊 <b>Estatísticas</b> · 👥 <b>Elenco</b> · 🏆 <b>Liga</b><br>
+  🏆 <b>Rank, Estante e Temporadas viram UM botão só (Liga)</b> — as três são a mesma coisa: a história da
+  liga. Lá dentro elas continuam <b>exatamente como são hoje</b>, nas abinhas delas. <b>Nada some.</b><br>
+  📊 <b>A tela do jogo mostra só o jogo</b>: placar grande + os 7 primeiros da tabela, que é o que interessa
+  enquanto a bola rola. Outros jogos, giro da rodada e próximo jogo ficam na aba 🏆 Liga.<br>
+  ⚽ <b>O momento do GOL abre espaço</b>: a mascote entra maior e nasce embaixo a linha do goleador com a
   assistência. Passado o gol, volta ao normal sozinho.<br>
   🖥️ <b>O desktop que você já aprovou não muda</b> — isto só vale em tela estreita.
 </div>`
