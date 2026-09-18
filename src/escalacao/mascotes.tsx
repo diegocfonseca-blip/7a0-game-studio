@@ -34,6 +34,7 @@ import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (ms
 import barceniteMascoteImg from './img/barcenite-mascote.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import marinheirosMascoteImg from './img/marinheiros-mascote.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import pesadeloMascoteImg from './img/pesadelo-mascote.webp' // 🌑🐺 Pesadelo Verde FC (portaltech.ep): arte própria do dono, batismo de 18/09
+import remocadaMascoteImg from './img/remocada-mascote.webp' // 🦁⚡ Remoçada (luiz.maia.luiz): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
 import bestiaMascoteImg from './img/bestia-mascote.webp' // 🦊 La Bestia Negra (eltonfrossard45): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
 import fridaoMascoteImg from './img/fridao-mascote.webp' // 🐴 Fridão FC (felipe.ofrida): arte própria do dono, batismo de 16/09
 import maroladosMascoteImg from './img/marolados-mascote.webp' // 🛡️🌱 Marolados FC (paisagensetrilha): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
@@ -89,51 +90,14 @@ export const MASCOTES: Record<string, ReactNode> = {
   piloto_bola: (
     <img src={ferrariMascoteImg} height={188} width={188} alt="Ferrari SC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🦁⚡ Leão Azul do Remo fantasiado de THOR (Remoçada — luiz.maia.luiz, Lenda+fundador).
-  // Elmo alado, Mjölnir erguido, camisa azul-marinho/branca, capa vermelha. mascote_key = "leao_thor".
+  // 🦁⚡ O Leão de Thor — Remoçada (luiz.maia.luiz). ARTE DO DONO, mandada pelo
+  // Diego em 18/09: o Leão do Remo de elmo alado com o Mjölnir, capa vermelha e
+  // uniforme azul-marinho. 280x440 no arquivo, então a largura sai da PROPORÇÃO
+  // REAL (nunca width={size} chutado).
+  // 🧷 A CHAVE continua `leao_thor` de propósito: é o que está gravado no banco
+  // (`esc_socios.mascote_key` dele). Só a arte trocou — era SVG à mão aqui dentro.
   leao_thor: (
-    <svg width="126" height="178" viewBox="0 0 120 170">
-      <g transform="translate(0,2)">
-      <ellipse cx="60" cy="160" rx="44" ry="9" fill="rgba(0,0,0,.15)"/>
-      <path d="M42 66 Q18 98 24 142 L46 130 Q40 100 52 78 Z" fill="#C2452F" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
-      <path d="M78 66 Q102 98 96 142 L74 130 Q80 100 68 78 Z" fill="#9A2E20" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
-      <circle cx="90" cy="150" r="12" fill="#fff" stroke="#0C0C0C" strokeWidth="4"/>
-      <path d="M90 143 l4 4 -2 6 h-4 l-2 -6 Z" fill="#12256B"/>
-      <path d="M50 120 48 150 60 150 60 122 Z" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
-      <path d="M62 122 64 146 76 148 72 120 Z" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
-      <path d="M42 150 h18 v6 h-20 Z" fill="#12256B" stroke="#0C0C0C" strokeWidth="3.5" strokeLinejoin="round"/>
-      <path d="M62 146 l14 2 2 6 -16 -2 Z" fill="#12256B" stroke="#0C0C0C" strokeWidth="3.5" strokeLinejoin="round"/>
-      <path d="M40 84 H80 L84 124 H36 Z" fill="#12256B" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
-      <path d="M60 84 H80 L84 124 H60 Z" fill="#F7F4EC"/>
-      <path d="M40 84 H80 L84 124 H36 Z" fill="none" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
-      <path d="M40 92 Q24 98 30 116 L40 112" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
-      <circle cx="30" cy="116" r="7" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4"/>
-      <path d="M80 90 Q98 78 96 58 L86 62 Q86 80 74 92 Z" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
-      <circle cx="93" cy="56" r="8" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4"/>
-      <rect x="90" y="20" width="7" height="40" rx="3" fill="#7A5230" stroke="#0C0C0C" strokeWidth="4"/>
-      <rect x="76" y="8" width="36" height="22" rx="6" fill="#C2CAD9" stroke="#0C0C0C" strokeWidth="4.5"/>
-      <rect x="76" y="8" width="36" height="7" rx="3" fill="#8B96AE"/>
-      <rect x="76" y="8" width="36" height="22" rx="6" fill="none" stroke="#0C0C0C" strokeWidth="4.5"/>
-      <path d="M70 14 l-10 -2 6 6 -8 2 12 4" fill="none" stroke="#FFC400" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M60 40
-      L82 34 76 52 96 50 84 66 100 76 82 82 90 98 72 92 70 108 60 100
-      50 108 48 92 30 98 38 82 20 76 36 66 24 50 44 52 38 34 Z"
-      fill="#B4732A" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
-      <ellipse cx="60" cy="66" rx="23" ry="21" fill="#E4A950" stroke="#0C0C0C" strokeWidth="4.5"/>
-      <circle cx="43" cy="54" r="7" fill="#B4732A" stroke="#0C0C0C" strokeWidth="4"/>
-      <circle cx="77" cy="54" r="7" fill="#B4732A" stroke="#0C0C0C" strokeWidth="4"/>
-      <path d="M40 56 Q60 38 80 56 L76 62 Q60 48 44 62 Z" fill="#C7CEDB" stroke="#0C0C0C" strokeWidth="4.5" strokeLinejoin="round"/>
-      <path d="M60 40 L60 56" stroke="#0C0C0C" strokeWidth="4"/>
-      <path d="M40 56 Q24 46 12 50 Q24 55 28 62 Q18 61 12 68 Q26 70 40 62 Z" fill="#EDEFF5" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
-      <path d="M80 56 Q96 46 108 50 Q96 55 92 62 Q102 61 108 68 Q94 70 80 62 Z" fill="#EDEFF5" stroke="#0C0C0C" strokeWidth="4" strokeLinejoin="round"/>
-      <ellipse cx="60" cy="80" rx="13" ry="10" fill="#F2E4C4" stroke="#0C0C0C" strokeWidth="3.2"/>
-      <path d="M48 64 L58 68 M72 64 L62 68" stroke="#0C0C0C" strokeWidth="4.5" strokeLinecap="round"/>
-      <circle cx="53" cy="72" r="4" fill="#0C0C0C"/><circle cx="67" cy="72" r="4" fill="#0C0C0C"/>
-      <path d="M55 77 Q60 74 65 77 Q63 83 60 83 Q57 83 55 77 Z" fill="#3A2410" stroke="#0C0C0C" strokeWidth="2.6" strokeLinejoin="round"/>
-      <path d="M60 83 Q53 88 48 84 M60 83 Q67 88 72 84" stroke="#0C0C0C" strokeWidth="3.2" fill="none" strokeLinecap="round"/>
-      <path d="M47 79 L34 77 M47 83 L36 87 M73 79 L86 77 M73 83 L84 87" stroke="#0C0C0C" strokeWidth="2.2" strokeLinecap="round"/>
-      </g>
-    </svg>
+    <img src={remocadaMascoteImg} height={176} width={Math.round(176 * 280 / 440)} alt="O Leão de Thor — Remoçada" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🤙🌱 O Marolado — Marolados FC (paisagensetrilha, 16/09). 230x440 no arquivo,
   // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O moleque
@@ -799,7 +763,13 @@ export const CARIMBO_GOL: Record<string, string> = {
   'MAROLADOS': 'marolado',
   'MAROLADOS FC': 'marolado',
   'Real Madruga': 'marolado',
+  // 🦁⚡ Remoçada (luiz.maia.luiz) — as 4 formas do nome + o nome VELHO, como manda
+  // a regra dos batismos (o Olimpo FC vira Remoçada ao carregar save antigo).
   'Remoçada': 'leao_thor',
+  'Remoçada FC': 'leao_thor',
+  'Remoçada EC': 'leao_thor',
+  'Remoçada SC': 'leao_thor',
+  'Olimpo FC': 'leao_thor',
   'Eros FC': 'eros_nina',
   'Sapekeiros FC': 'sapek_abelha',
   'Tricolor do Arruda FC': 'cobra_arruda', // 🐍 a cobra do cachimbo carimba o placar (16/08)
@@ -1023,6 +993,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
   porco_marinheiro: 'O Marujo', // ⚓🐷 Marinheiros AS (feehcamp11, 16/09) — o porco marujo de cachimbo e espinafre. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   pesadelo_lobo: 'O Pesadelo', // 🌑🐺 Pesadelo Verde FC (portaltech.ep, 18/09) — o lobo uivando pra lua. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  leao_thor: 'O Leão de Thor', // 🦁⚡ Remoçada (luiz.maia.luiz, arte do dono em 18/09) — o Leão do Remo de elmo alado com o Mjölnir. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   raposa: 'A Bestia', // 🦊 La Bestia Negra (eltonfrossard45, 18/09) — a raposa azul do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   fridao_cavalo: 'O Fridão', // 🐴 Fridão FC (felipe.ofrida, 16/09) — o cavalo alvinegro coroado, de crina branca. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   marolado: 'O Marolado', // 🛡️🌱 Marolados FC (paisagensetrilha, 16/09) — o moleque rastafari da várzea. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono

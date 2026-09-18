@@ -1,3 +1,57 @@
+## 18/09/2026 (parte 10) — 🦁⚡ Remoçada de cara nova: a arte do dono entrou
+
+O Diego mandou a prancha do clube (escudo + mascote + camisa, em tela verde) com
+*"Remoçada eu fiz já ué"* — respondendo à lista dos 8 clubes que eu tinha dado
+como "sem camisa". Ele tinha razão: a arte existia, só não estava no jogo.
+
+O Remoçada era um dos **poucos que ainda tinham escudo e mascote em SVG desenhado
+à mão** (de 08/08, antes da regra de peso). Agora os dois são `.webp` fora do
+bundle, como manda a regra.
+
+| peça | antes | agora | peso |
+|---|---|---|---|
+| 🛡️ escudo | SVG à mão no `.tsx` | `remocada-escudo.webp` 291×360 | 27,5 KB (teto 30) |
+| 🦁 mascote | SVG à mão no `.tsx` | `remocada-mascote.webp` 280×440 | 43,1 KB (teto 45) |
+| 🎽 camisa | não existia | Loja + acervo do post | 42,5 KB (fora do bundle) |
+
+**Total do batismo: 70,6 KB** — dentro do teto de 75 KB.
+
+### 🎨 O manto, medido (não chutado)
+`['#072246', '#F8F8F8']` — azul-marinho e branco. O azul é **86% da camisa** e o
+branco **4%** (gola, punhos e as duas listras da manga).
+⚠️ A mediana crua dava `#031936`, quase preto, porque a arte tem sombreado pesado
+e um leão estampado escuro no peito. A leitura boa veio do **pano dos ombros**,
+longe da sombra — mesmo cuidado que o La Bestia Negra exigiu hoje de manhã.
+❤️ Clube do Remo (o Leão Azul do norte, e daí o "impondo respeito no norte do
+Brasil" da faixa do escudo). **Sem 3ª cor**: o vermelho é da CAPA da mascote, não
+da camisa.
+
+### Onde foi cadastrado
+`escudos.tsx` (4 formas do nome) · `mascotes.tsx` (`leao_thor` — **a chave não
+mudou**, é a que está no banco; entraram as 4 formas + o nome velho Olimpo FC, e
+o `MASCOTE_NOME`) · `manto.ts` · `batismos.ts` (campo `manto`) ·
+`salao-camisas.ts` + `public/mantos-salao/remocada-camisa-v1.webp` ·
+`scripts/kits/remocada-camisa.webp` (a do post).
+
+Com isso ele já entra de graça na foto do campeão de O MARTELO (a peça de hoje à
+noite) — azul e branco, sem mais nenhum passo.
+
+### ⛔ A PERNA DO BANCO AINDA FALTA — e ela GANHA do código
+`meuManto()` lê `esc_socios` PRIMEIRO e só cai no `MANTO_CONTAS` se o banco não
+tiver nada. Se a linha do `luiz.maia.luiz@gmail.com` tiver manto antigo gravado,
+**ele vai continuar vendo o manto velho na própria tela** mesmo com o deploy
+verde. Falta rodar (não consegui: o MCP do Supabase pediu aprovação):
+```sql
+update esc_socios set manto_c1 = '#072246', manto_c2 = '#F8F8F8',
+       mascote_key = 'leao_thor', escudo_time = 'Remoçada'
+ where email = 'luiz.maia.luiz@gmail.com';
+```
+É o mesmo erro do Al Takhadao (01/09): código pronto ≠ jogador atendido.
+
+- 🦁 **Nome da mascote ("O Leão de Thor") é PROVISÓRIO** — a arte veio sem nome.
+  Confirmar com o dono, igual às outras da lista.
+- **Dá pra voltar atrás?** Dá: os SVGs antigos estão no histórico do git; é
+  reverter o commit. Nada do jogo depende da arte nova.
 ## 18/09/2026 (parte 9) — 📰 A foto do campeão em O MARTELO sai com o manto do clube
 
 Pergunta do Diego, com o print do jornal na mão: *"teria como, principalmente

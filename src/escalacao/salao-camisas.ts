@@ -60,6 +60,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Fridão FC": "fridao-camisa-v1.webp",                             // 🐴 felipe.ofrida (16/09)
   "São Marcos Antônio FC": "saomarcosantonio-camisa-v1.webp",       // 😇🐷 marcomak03 (13/09)
   "Internacional de Madrid": "internacional-madrid-camisa-v1.webp", // 👑 matheusstefanello372 (14/09)
+  "Remoçada": "remocada-camisa-v1.webp",                            // 🦁⚡ luiz.maia.luiz (arte do dono em 18/09)
 }
 
 // Janela de exibição das camisas em quatro artes antigas que também têm shorts.

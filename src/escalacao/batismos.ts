@@ -82,7 +82,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Inter de Bailão', tipo: 'batismo', fundador: 30, manto: ['#0040CD', '#040609'] }, // 🪩 ex-Alfacehh (renomeado pelo dono em 14/09)
   { clube: 'Barcenite FC', tipo: 'batismo', fundador: 31, manto: ['#F2B010', '#013882'] },
   { clube: 'Manfré FC', tipo: 'batismo', fundador: 34, manto: ['#EC121C', '#0135A3'] },
-  { clube: 'Remoçada', tipo: 'batismo', fundador: 35 },
+  { clube: 'Remoçada', tipo: 'batismo', fundador: 35, manto: ['#072246', '#F8F8F8'] },
   { clube: 'Scorporila FC', tipo: 'batismo', fundador: 36, manto: ['#161516', '#E3DCD6'] },
   { clube: 'Deportivo Montreal', tipo: 'batismo', fundador: 37 },
   { clube: 'Marolados FC', tipo: 'batismo', fundador: 38, manto: ['#024623', '#F5EBD7'] },
