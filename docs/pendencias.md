@@ -1,3 +1,51 @@
+## 18/09/2026 (parte 5) — 🌐 Minhas Ligas: os DOIS bugs do Bruno, com a causa achada
+
+Diego trouxe o áudio do Bruno + a cobrança: *"eu já tinha pedido pra você arrumar o
+Minhas Ligas do online, mas pelo visto ainda tem erros"*. Tinha mesmo. As duas causas:
+
+### 1) 📣 "Chamar mais gente" — o amigo novo não entrava e o pregão continuava de onde parou
+Bruno: *"tô jogando entre duas pessoas, chega um amigo, eu clico pra voltar pra sala de
+espera, ele entra, eu abro o pregão de novo e continua só eu e o outro — o novo não entra
+e o pregão continua de onde parou"*.
+**Eram DUAS travas engolindo a largada nova, e em 15/09 eu consertei só UMA:**
+- ✅ (15/09) `jaTocoAquiComoDono` — a guarda do eco da largada. Ganhou o `emJogoVivo`.
+- ❌ **`jaIniciouRef`** — guarda "já montei ESTA sala" pela VIDA do componente. A 2ª
+  largada da MESMA sala caía num `return true` e **não montava nada**. Agora o aviso do
+  banco zera esse ref quando a sala volta pra `waiting` (chega em TODO aparelho, então
+  host e convidados voltam a largar juntos).
+- ❌ **o `game_state` guardava a partida inteira.** O `status: 'waiting'` sozinho não
+  bastava: o estado salvo continuava com `managers` + `screen: 'auction'`, então a
+  largada seguinte caía no ramo *"partida em andamento"* do `triggerStart`, que
+  **RESTAURA** em vez de montar. Daí os dois sintomas de uma vez. Agora o
+  `chamarMaisGente` grava `screen: 'lobby'` DENTRO do game_state — cirúrgico: é o campo
+  exato que a conta olha, e liga/regras/baralho/senha ficam intactos.
+
+### 2) 🌎 Baralho do MUNDO virando BRASIL
+Bruno: *"colocou baralho mundo, porém quando jogou de novo apareceu baralho do Brasil…
+depois de um tempo na sala começa a aparecer só jogador brasileiro"*.
+**CAUSA: dois bichos com o mesmo nome.** A sala guardava a escolha em
+`game_state.deck` — e `deck` é TAMBÉM o baralho de CARTAS do estado do jogo
+(`Record<Sector, Card[]>`). No **primeiro save do host** (3 s depois de abrir o pregão)
+as cartas gravavam **por cima** da escolha. Daí em diante `gs.deck` era um objeto; como
+não é `'todos'` nem `'eu'`, caía no padrão: **Brasil**.
+**Não dava pra só proteger o `deck`** — quem reconecta PRECISA das cartas nesse campo.
+Então a escolha mudou de nome: **`deckSala`**, que entrou na lista protegida do save
+(`salaFixaRef`, store.tsx) junto com `rivals`/`rivalTeams` (que sumiam pelo mesmo
+motivo: não existem no estado do jogo). O `deck` velho só é lido se ainda for TEXTO.
+
+📊 **O tamanho do estrago, medido no banco** (últimos 7 dias): **773 de 844 salas** com a
+escolha destruída (`deck` virou objeto) — 92%. As 71 intactas são salas que nunca
+abriram o pregão, ou seja, nunca chegaram no primeiro save.
+⚠️ **Sala criada ANTES deste conserto não tem como recuperar a escolha** — a informação
+foi sobrescrita. Sala nova nasce certa.
+
+🧪 **Trava nova: `npm run sala`** (`scripts/testa-sala-online.mjs`) — as duas contas do
+jogo copiadas (a de "restaura o pregão velho?" e a do baralho da sala), incluindo sala
+velha intacta, sala velha já estragada e dez saves seguidos.
+⚠️ **O que a trava NÃO cobre:** a sala de verdade. Este ambiente **não alcança o
+Supabase**, então o que está travado é a REGRA, não a fiação.
+↩️ Reverter: `git revert` do commit — são três pontos pequenos (lobby, screens, store).
+
 ## 18/09/2026 (parte 4) — 🐊 "Solta a mascote": agora ATRAVESSA A TELA ✅ CODADO E NO AR
 
 Diego: *"esse solta o mascote das salas online está mt pequeno e sem graça… sei lá"*.

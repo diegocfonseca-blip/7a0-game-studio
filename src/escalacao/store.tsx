@@ -10248,7 +10248,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // 🌍 `mundoNaLiga` entra na lista (01/09): é a marca de "esta sala joga a
         // Copa do Mundo quando a liga acabar". Ela nasce na criação e o jogo nunca
         // toca — exatamente o caso que esta guarda existe pra proteger.
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga']) {
+        // 🌎 `deckSala` entra na lista (18/09): é a ESCOLHA de baralho da sala, e ela
+        // precisa sobreviver a todo save porque o estado do jogo não tem esse campo —
+        // o que ele tem é `deck`, o baralho de CARTAS, que é outra coisa com o mesmo
+        // nome. Foi isso que apagava o "todos" e devolvia o Brasil (bug do Bruno).
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'deckSala', 'rivals', 'rivalTeams']) {
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda

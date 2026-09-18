@@ -2862,7 +2862,22 @@ async function chamarMaisGente(roomId: string | undefined | null, dispatch: Retu
   let ok = true
   try { ok = window.confirm(msg) } catch { ok = true }
   if (!ok) return
-  if (roomId) { try { await supabase.from('game_rooms').update({ status: 'waiting', updated_at: new Date().toISOString() }).eq('id', roomId) } catch { /* segue: o reducer leva pra espera mesmo assim */ } }
+  // 🧹 E O PREGÃO VELHO TEM QUE MORRER NO BANCO, não só na tela (18/09, bug do Bruno).
+  // O `status: 'waiting'` sozinho não bastava: o `game_state` continuava com a partida
+  // inteira lá dentro (managers + `screen: 'auction'`), e a próxima largada caía no
+  // ramo "partida em andamento" do `triggerStart` — que RESTAURA em vez de montar de
+  // novo. Daí os dois sintomas juntos: o amigo novo não entrava (ele não está nos
+  // managers velhos) e *"o pregão continua de onde parou"*.
+  // Marcar `screen: 'lobby'` DENTRO do game_state é o suficiente e é cirúrgico: é
+  // exatamente o campo que o `triggerStart` olha, e nada mais da sala se perde
+  // (liga, regras, baralho, senha continuam onde estão).
+  if (roomId) {
+    try {
+      const { data } = await supabase.from('game_rooms').select('game_state').eq('id', roomId).maybeSingle()
+      const gs = (data?.game_state ?? {}) as Record<string, unknown>
+      await supabase.from('game_rooms').update({ status: 'waiting', game_state: { ...gs, screen: 'lobby' }, updated_at: new Date().toISOString() }).eq('id', roomId)
+    } catch { /* segue: o reducer leva pra espera mesmo assim */ }
+  }
   dispatch({ type: 'VOLTA_ESPERA' })
 }
 
