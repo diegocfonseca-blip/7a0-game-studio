@@ -5217,6 +5217,10 @@ export function EscSeason() {
   const previewAccount = useOnlinePreview()
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
+  // ⚖️ a caixa de tática do CELULAR começa FECHADA (no desktop a CSS ignora isto e
+  // os três botões ficam sempre à mostra). Nasce fechada porque tática é decisão de
+  // uma vez por rodada — o que a pessoa olha toda hora é o placar e a tabela.
+  const [abreTatica, setAbreTatica] = useState(false)
   const leagueStartedAt = useRoundPresentationStart(state.round)
   const [seasonLang] = useLang()
   const bbS = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
@@ -5862,11 +5866,28 @@ export function EscSeason() {
           nextLabel={!(state.round === 0 || resultRevealed) ? LS('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : state.round === 0 && !myLast ? LS('▶️ Começar a temporada', '▶️ Start the season') : LS('▶️ Próxima rodada', '▶️ Next round')} />
       )}
       {/* (os controles da COPA mudaram pro TOPO da tela — veja lá em cima) */}
-      {privateVisual && !copaLive && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+      {/* 🧭 UMA NAVEGAÇÃO SÓ, MAS SÓ NO CELULAR (Diego 18/09: *"você pode talvez
+          unificar algumas coisas dessas que já tinham, pra não ficar muito"*).
+          No celular a barra de baixo passa a carregar jogos · números · elenco, e
+          estas abas de cima somem — dois menus dizendo a mesma coisa comiam a tela.
+          No DESKTOP elas continuam aqui, porque lá sobra largura e a tela é a que
+          ele aprovou em 18/09. Quem faz esse corte é a CSS (`ll-abas-topo`), não o
+          React: assim ninguém remonta nada no meio da rodada.
+          Sem a barra na tela (preview, ou durante a Copa), as abas ficam sempre. */}
+      {privateVisual && !copaLive && (
+        <div className={online && state.roomId && !state.careerOnline ? 'll-abas-topo' : undefined}>
+          <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />
+        </div>
+      )}
       {privateVisual && !copaLive && visualTab==='jogos' && state.lastResults.length>1 && <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{LS('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {state.round}</h3><div className="ll27-ticker" tabIndex={0}>{state.lastResults.filter(r=>r.homeId!==you.id&&r.awayId!==you.id).map(r=>{
         const home=state.league.find(t=>t.id===r.homeId)?.name??'Clube',away=state.league.find(t=>t.id===r.awayId)?.name??'Clube'
         return <RoundMatchPresentation basket={bbS} key={r.homeId} startedAt={leagueStartedAt} roundKey={state.round} roundMs={roundMs} finished={resultRevealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20}/>} awayCrest={<Escudo nome={away} size={20}/>} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g=>({name:g.text,min:g.min,home:g.teamId===r.homeId}))}/>
       })}</div></section>}
+      {/* 🗂️ O INVÓLUCRO DA COLUNA DA DIREITA. No DESKTOP ele é UM bloco só na coluna
+          2 — por isso a tela larga que o Diego aprovou em 18/09 fica intacta. No
+          CELULAR ele se dissolve (`display:contents`) e as duas metades viram irmãs
+          soltas, pra a TABELA poder entrar entre elas. */}
+      <div className="ll-lado space-y-5">
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5 ll-col-side">
       {!copaLive && lastWasClassico && lastRiv && resultRevealed && (
         <Box bg={myGoals > oppGoals ? GREEN : myGoals < oppGoals ? RED : '#fff'} className="p-3 text-center" shadow={4}>
@@ -5893,11 +5914,25 @@ export function EscSeason() {
               )}
             </div>
           )}
-          <p className="font-black text-lg" style={OSWALD}>
-            {LS('PRÓXIMO', 'NEXT')}: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
-            <span className="text-xs text-black/70"> {fixture[0] === you.id ? LS('(em casa)', '(home)') : LS('(fora)', '(away)')}</span>
-          </p>
-          <div className="grid grid-cols-3 gap-2">
+          {/* ⚔️ A LINHA DO PRÓXIMO JOGO. No CELULAR ela ganha ao lado a PÍLULA com a
+              tática que está valendo — o padrão que ele aprovou no Elenco em 18/09
+              (`🎽 4-4-2 ▾`): *"campo e lista você olha toda rodada; formação e modo
+              de troca você mexe de vez em quando"*. Tática é decisão de UMA vez por
+              rodada, então os três botões ficam guardados atrás do toque.
+              No DESKTOP a pílula é escondida por CSS e os três botões seguem sempre
+              à mostra, exatamente como ele aprovou — lá sobra largura. */}
+          <div className="ll-linha-tatica">
+            <p className="font-black text-lg" style={OSWALD}>
+              {LS('PRÓXIMO', 'NEXT')}: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
+              <span className="text-xs text-black/70"> {fixture[0] === you.id ? LS('(em casa)', '(home)') : LS('(fora)', '(away)')}</span>
+            </p>
+            <button type="button" className="ll-pilula-tatica" onClick={() => setAbreTatica(v => !v)}
+              aria-expanded={abreTatica}
+              style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, padding: '6px 9px', border: `2.5px solid ${INK}`, borderRadius: 9, background: abreTatica ? INK : '#fff', color: abreTatica ? GOLD : INK, boxShadow: abreTatica ? 'none' : `2px 2px 0 ${INK}`, whiteSpace: 'nowrap' }}>
+              {tacticLabel(myTactic, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')} {abreTatica ? '▴' : '▾'}
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-2 ll-taticas" data-aberta={abreTatica ? 'sim' : 'nao'}>
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
                 className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
@@ -5909,7 +5944,7 @@ export function EscSeason() {
           {/* 🎨 Diego 14/08: box mais clean, igual o da Copa — tirei a barra de
               progresso + o textão "temporada rolando sozinha" (decorativo, a
               Copa nunca teve isso e ficava mais poluído aqui). */}
-          <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? LS('Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.', 'Defense holds run-and-gun · run-and-gun runs over balance · balance breaks the defense.') : LS('Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.', 'Park the bus holds attack · attack runs over balanced · balanced breaks the bus.')}</p>
+          <p className="text-[11px] font-semibold text-black/70 ll-taticas" data-aberta={abreTatica ? 'sim' : 'nao'}>{state.sport === 'basquete' ? LS('Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.', 'Defense holds run-and-gun · run-and-gun runs over balance · balance breaks the defense.') : LS('Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.', 'Park the bus holds attack · attack runs over balanced · balanced breaks the bus.')}</p>
         </Box>
       )}
 
@@ -5927,7 +5962,18 @@ export function EscSeason() {
           </div>
         </Box>
       )}
+      </div>
 
+      {/* 📱 A COLUNA DE APOIO É PARTIDA EM DUAS — e só o CELULAR sente (Diego 18/09:
+          *"a tabela fica lá embaixo"*). No desktop as duas metades continuam caindo
+          na MESMA coluna da direita, uma embaixo da outra, na mesma ordem de sempre
+          (as duas têm `ll-col-side`, que o grid manda pra coluna 2) — a tela larga
+          não muda NADA. No celular a CSS encaixa a TABELA entre elas: placar →
+          outros jogos → próximo jogo + tática → 🏆 TABELA → notícia + giro.
+          Por que partir em vez de mover a tabela pra cima inteira: a tática é a
+          DECISÃO da rodada e não pode cair embaixo de 20 linhas de tabela + a lista
+          de todos os jogos. */}
+      <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5 ll-col-side ll-depois-da-tabela">
       {personalNews && (
         <Box bg="#6C43C0" className="p-2.5 text-center" shadow={4}>
           <p className="font-black text-sm" style={{ ...OSWALD, color: '#fff' }}>{personalNews}</p>
@@ -5947,6 +5993,7 @@ export function EscSeason() {
         return <GiroDaRodada news={shownNews} isCopa={copaLive} />
       })()}
 
+      </div>
       </div>
       {state.careerOnline && (
         <button onClick={() => setShowPyramid(true)}
@@ -6005,11 +6052,17 @@ export function EscSeason() {
           com a linha avisando que a sala some). */}
       {/* ⚠️ SÓ NO RÁPIDO/LIGA: a CARREIRA online já tem a barra dela embaixo
           (`BarraCarreira`), e duas barras fixas na mesma tela brigariam. */}
+      {/* 🧵 O RABICHO: o que fecha a página. No celular ele tem que ficar DEPOIS do
+          giro da rodada — senão, com a tabela subindo, os créditos apareceriam no
+          meio da tela. No desktop continua atravessando as duas colunas, igual. */}
+      <div className="ll-rabicho">
       {online && state.roomId && !state.careerOnline && (
         <LigaHub roomId={state.roomId} souDono={state.isHost}
-          humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)} />
+          humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
+          abasJogo={privateVisual && !copaLive ? { valor: visualTab, escolher: setVisualTab } : undefined} />
       )}
       <CreditLine className="pt-4 pb-2" />
+      </div>
       {showPyramid && state.careerOnline && (
         <PyramidOverlay league={state.league} scorers={state.scorers} managers={state.managers} youId={you.id}
           seed={state.seed} round={state.round} deckLeague={state.deckLeague} onClose={() => setShowPyramid(false)} />

@@ -179,11 +179,16 @@ const MICO_FRASES: ((t: string) => string)[] = [
 
 // ─── a área em pílulas ──────────────────────────────────────────────────────
 type Aba = 'rank' | 'estante' | 'temporadas' | 'ajustes'
+// 📱 os botões que a barra desenha. Desde 18/09 ela também carrega as ABAS DA
+// PARTIDA (jogos · estatísticas · elenco), que antes eram uma SEGUNDA navegação
+// em cima da tela. Ordem do Diego: *"você pode talvez unificar algumas coisas
+// dessas que já tinham, sei lá, pra não ficar muito também"*.
+type Botao = Aba | 'jogos' | 'estatisticas' | 'elenco'
 
 // 🎨 ícones desenhados (duotone) — MESMO traço da barra da carreira, 0 KB de
 // imagem. O Diego mandou a foto da barra da carreira e pediu igual:
 // *"quero q essas pílulas fique na parte de baixo igual fizemos no modo carreira"*.
-function IconeLiga({ nome, cor }: { nome: Aba; cor: string }) {
+function IconeLiga({ nome, cor }: { nome: Botao; cor: string }) {
   const fill = 'rgba(12,12,12,.10)'
   const p = { fill: 'none', stroke: cor, strokeWidth: 2, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
   return (
@@ -192,17 +197,33 @@ function IconeLiga({ nome, cor }: { nome: Aba; cor: string }) {
       {nome === 'estante' && <><path d="M4 4.5h16v4.2H4z" {...p} fill={fill} /><path d="M5.5 8.7v11h13v-11M9 12.2h6M9 15.8h6" {...p} /></>}
       {nome === 'temporadas' && <><path d="M6 3.5h9l4 4v13H6z" {...p} fill={fill} /><path d="M15 3.5v4h4M9 12h7M9 15.6h7" {...p} /></>}
       {nome === 'ajustes' && <><circle cx={12} cy={12} r={3.2} {...p} fill={fill} /><path d="M12 3.2v2.4M12 18.4v2.4M4.8 12H2.4M21.6 12h-2.4M6.9 6.9L5.2 5.2M18.8 18.8l-1.7-1.7M6.9 17.1l-1.7 1.7M18.8 5.2l-1.7 1.7" {...p} /></>}
+      {/* ⚽ JOGOS — a bola: é a tela do placar rolando e da tabela */}
+      {nome === 'jogos' && <><circle cx={12} cy={12} r={8.4} {...p} fill={fill} /><path d="M12 6.4l3.6 2.6-1.4 4.2h-4.4L8.4 9z" {...p} /><path d="M12 3.6v2.8M4.3 10.2l3.9-1.2M19.7 10.2l-3.9-1.2M7 19.6l2.8-6.4M17 19.6l-2.8-6.4" {...p} /></>}
+      {/* 📊 ESTATÍSTICAS — as barrinhas da artilharia */}
+      {nome === 'estatisticas' && <><path d="M4.5 20h15" {...p} /><path d="M6.8 20v-6.4h3.2V20zM13.9 20V5.2h3.3V20z" {...p} fill={fill} /></>}
+      {/* 👥 ELENCO — a dupla de jogadores */}
+      {nome === 'elenco' && <><circle cx={9.3} cy={8.1} r={3.1} {...p} fill={fill} /><path d="M3.6 19.4c0-3.1 2.6-5.2 5.7-5.2s5.7 2.1 5.7 5.2" {...p} /><path d="M15.6 5.6a3.1 3.1 0 0 1 0 5.9M17 14.6c2.2.6 3.6 2.4 3.6 4.8" {...p} /></>}
     </svg>
   )
 }
-const ROTULO_ABA_PT: Record<Aba, string> = { rank: 'Rank', estante: 'Estante', temporadas: 'Temporadas', ajustes: 'Ajustes' }
-const ROTULO_ABA_EN: Record<Aba, string> = { rank: 'Rank', estante: 'Shelf', temporadas: 'Seasons', ajustes: 'Settings' }
-const ROTULO_ABA: Record<Aba, string> = new Proxy(ROTULO_ABA_PT, { get: (_t, k: string) => (getLang() === 'en' ? ROTULO_ABA_EN : ROTULO_ABA_PT)[k as Aba] })
+const ROTULO_ABA_PT: Record<Botao, string> = { rank: 'Rank', estante: 'Estante', temporadas: 'Temporadas', ajustes: 'Ajustes', jogos: 'Jogos', estatisticas: 'Números', elenco: 'Elenco' }
+const ROTULO_ABA_EN: Record<Botao, string> = { rank: 'Rank', estante: 'Shelf', temporadas: 'Seasons', ajustes: 'Settings', jogos: 'Matches', estatisticas: 'Stats', elenco: 'Squad' }
+const ROTULO_ABA: Record<Botao, string> = new Proxy(ROTULO_ABA_PT, { get: (_t, k: string) => (getLang() === 'en' ? ROTULO_ABA_EN : ROTULO_ABA_PT)[k as Botao] })
 
-export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
+export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo }: {
   roomId: string
   souDono: boolean
   humanos: string[]                 // 👥 times de GENTE nesta sala — só eles pontuam
+  /** 📱 AS ABAS DA PARTIDA DENTRO DESTA BARRA (18/09). Antes a tela do jogo tinha
+   *  DUAS navegações: as abas em cima (jogos · estatísticas · elenco) e esta barra
+   *  embaixo (rank · estante · temporadas · ajustes) — 7 botões de navegação
+   *  disputando o celular. Ordem do Diego: *"você pode talvez unificar algumas
+   *  coisas dessas que já tinham, sei lá, pra não ficar muito também"*.
+   *  Quando isto vem preenchido, a barra passa a ser a navegação ÚNICA: os três
+   *  botões da partida entram aqui e Rank/Estante/Temporadas viram UM botão só
+   *  (📚 Estante), com as três abas de sempre dentro do painel.
+   *  Sem isto, a barra continua exatamente como sempre foi. */
+  abasJogo?: { valor: string; escolher: (aba: 'jogos' | 'estatisticas' | 'elenco') => void }
   gravar?: {                        // 🖊️ só no FIM do jogo: o host grava a temporada
     seasonNo: number; matchSeed?: number
     champName: string; scorerName?: string; scorerGoals?: number; scorerTeamName?: string
@@ -213,6 +234,9 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
   const [rows, setRows] = useState<LinhaCampeao[] | null>(null)
   const [sala, setSala] = useState<{ ehLiga: boolean; nome: string; regras: LigaRegras; ligaAt?: string; semBots: boolean } | null>(null)
   const [aba, setAba] = useState<Aba | null>(null) // 🔽 barra começa FECHADA: nada tapa o jogo rolando
+  // 📚 qual das três (Rank · Estante · Temporadas) está aberta DENTRO do painel,
+  // quando elas viram um botão só. Nada mudou de conteúdo — só de porta.
+  const [subAba, setSubAba] = useState<Aba>('rank')
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -332,7 +356,26 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
   // acabar") — que é trava explicando o porquê, do jeito que a casa manda.
   const vazio = rows.length === 0
 
-  const abas: Aba[] = ['rank', 'estante', 'temporadas', ...(sala.ehLiga && souDono ? ['ajustes' as Aba] : [])]
+  // 🧭 A BARRA. Sem `abasJogo` ela é a de sempre (rank · estante · temporadas ·
+  // ajustes). Com `abasJogo` ela vira a navegação ÚNICA da tela: as três abas da
+  // partida na frente — que é o que a pessoa troca toda hora — e a história da
+  // liga recolhida num botão só (📚 Estante), porque Rank, Estante e Temporadas
+  // são a mesma coisa: o passado. O ⚙️ Ajustes do dono continua à parte.
+  // 🖥️📱 E a UNIFICAÇÃO É SÓ DO CELULAR. No desktop a tela que o Diego aprovou em
+  // 18/09 continua igualzinha: abas em cima, e aqui embaixo Rank · Estante ·
+  // Temporadas · Ajustes. Por isso a barra desenha os DOIS conjuntos e cada um
+  // aparece no tamanho de tela que é dele (`ll-barra-cel` / `ll-barra-desk`) —
+  // largura é o que falta no celular, não no monitor.
+  const ehAbaDaPartida = (b: Botao): b is 'jogos' | 'estatisticas' | 'elenco' => b === 'jogos' || b === 'estatisticas' || b === 'elenco'
+  const juntas = !!abasJogo
+  const abas: Botao[] = juntas
+    ? ['jogos', 'estatisticas', 'elenco', 'rank', 'estante', 'temporadas', ...(sala.ehLiga && souDono ? ['ajustes' as Botao] : [])]
+    : ['rank', 'estante', 'temporadas', ...(sala.ehLiga && souDono ? ['ajustes' as Botao] : [])]
+  // quem só existe no celular (as abas da partida) e quem só existe no desktop
+  // (Rank e Temporadas soltos — no celular eles moram dentro do 📚 Estante)
+  const faixaDoBotao = (b: Botao) => !juntas ? '' : ehAbaDaPartida(b) ? 'll-barra-cel' : (b === 'rank' || b === 'temporadas') ? 'll-barra-desk' : ''
+  // qual painel de história está desenhado: com as três juntas, manda a sub-aba
+  const abaConteudo: Aba | null = aba === 'estante' && juntas ? subAba : aba
 
   return (
     <>
@@ -357,16 +400,31 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
             <style>{'@keyframes escMicoWiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}'}</style>
             <div className="flex items-center gap-2 mb-2">
               <p className="flex-1 min-w-0 font-black text-[13px] truncate" style={OSWALD}>
-                {sala.ehLiga ? `🏆 ${sala.nome || tr('A liga', 'The league')}` : tr('🏆 Esta sala', '🏆 This room')} · {ROTULO_ABA[aba]}
+                {sala.ehLiga ? `🏆 ${sala.nome || tr('A liga', 'The league')}` : tr('🏆 Esta sala', '🏆 This room')} · {ROTULO_ABA[abaConteudo ?? aba]}
               </p>
               <button onClick={() => setAba(null)} aria-label={tr('Fechar', 'Close')}
                 className="flex-none border-2 border-black rounded-lg px-2.5 py-1 font-black text-[12px] bg-white active:translate-y-0.5" style={OSWALD}>✕</button>
             </div>
             {erro && <p className="text-[11px] font-extrabold mb-2 rounded-lg px-2.5 py-1.5" style={{ background: '#FDECEA', border: '2px solid #C2452F', color: '#7a2418' }}>{erro}</p>}
-            {aba === 'rank' && <AbaRank ranking={ranking} regras={regras} temLinhas={!vazio} ehLiga={sala.ehLiga} />}
-            {aba === 'estante' && <AbaEstante rows={rows} gente={gente} />}
-            {aba === 'temporadas' && <AbaTemporadas roomId={roomId} rows={rows} souDono={souDono && sala.ehLiga} nomes={humanos} recarregar={carregar} />}
-            {aba === 'ajustes' && <AbaAjustes sala={sala} regras={regras} busy={busy} salvarRegras={salvarRegras} patch={patch} excluir={excluir} />}
+            {/* 📚 as TRÊS de sempre viraram um botão só na barra — aqui elas voltam
+                a aparecer inteiras, em pílulas. Nada de conteúdo mudou: é a mesma
+                Rank, a mesma Estante e as mesmas Temporadas, só que atrás de uma
+                porta em vez de três. */}
+            {juntas && aba === 'estante' && (
+              <div className="flex gap-1.5 mb-2.5 ll-barra-cel">
+                {(['rank', 'estante', 'temporadas'] as Aba[]).map(s => (
+                  <button key={s} onClick={() => setSubAba(s)} aria-pressed={subAba === s}
+                    className="flex-1 min-w-0 border-2 border-black rounded-lg px-1 py-1.5 font-black text-[11px] truncate active:translate-y-0.5"
+                    style={{ ...OSWALD, background: subAba === s ? INK : '#fff', color: subAba === s ? GOLD : INK }}>
+                    {ROTULO_ABA[s]}
+                  </button>
+                ))}
+              </div>
+            )}
+            {abaConteudo === 'rank' && <AbaRank ranking={ranking} regras={regras} temLinhas={!vazio} ehLiga={sala.ehLiga} />}
+            {abaConteudo === 'estante' && <AbaEstante rows={rows} gente={gente} />}
+            {abaConteudo === 'temporadas' && <AbaTemporadas roomId={roomId} rows={rows} souDono={souDono && sala.ehLiga} nomes={humanos} recarregar={carregar} />}
+            {abaConteudo === 'ajustes' && <AbaAjustes sala={sala} regras={regras} busy={busy} salvarRegras={salvarRegras} patch={patch} excluir={excluir} />}
             {/* 🌍 SALA RÁPIDA: a verdade sobre a estante — ela some quando a galera
                 sai. Prometer história numa sala que evapora seria enganar. */}
             {!sala.ehLiga && (
@@ -382,10 +440,24 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir }: {
           fundo creme translúcido, ícone duotone e rótulo em Oswald maiúsculo. */}
       <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
         {abas.map(t => {
-          const on = aba === t
+          // ⚽📊👥 abas da PARTIDA: elas trocam o conteúdo da PÁGINA (não abrem
+          // painel nenhum), então acendem quando são a aba da vez — e tocar numa
+          // delas fecha o painel da história, senão ele ficaria tapando o que a
+          // pessoa acabou de pedir pra ver.
+          const daPartida = ehAbaDaPartida(t)
+          const on = daPartida ? abasJogo!.valor === t : aba === t
           const cor = on ? '#B8860B' : 'rgba(12,12,12,.45)'
+          // 📚 tocar no Estante SEMPRE abre na Estante (o botão promete isso). No
+          // celular as pílulas de dentro levam pra Rank e Temporadas.
+          // ⬆️ e volta pro topo: a barra fica embaixo, então dá pra trocar de aba
+          // com a tela rolada lá no fim — sem isto a pessoa tocava em "Elenco" e
+          // continuava olhando o vazio do rodapé, achando que não aconteceu nada.
+          // Salto seco (sem animação) pra não atrasar o ritmo do jogo.
+          const tocar = daPartida
+            ? () => { abasJogo!.escolher(t); setAba(null); window.scrollTo({ top: 0 }) }
+            : () => { if (t === 'estante') setSubAba('estante'); setAba(aba === t ? null : t as Aba) }
           return (
-            <button key={t} onClick={() => setAba(on ? null : t)} aria-label={ROTULO_ABA[t]}
+            <button key={t} onClick={tocar} aria-label={ROTULO_ABA[t]} aria-pressed={on} className={faixaDoBotao(t)}
               style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: cor }}>
               <IconeLiga nome={t} cor={cor} />
               <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{ROTULO_ABA[t]}</span>
