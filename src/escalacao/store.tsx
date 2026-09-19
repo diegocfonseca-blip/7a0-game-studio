@@ -7328,6 +7328,11 @@ export function reducer(state: EscState, action: Action): EscState {
       if (coins < p.preco) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
       s.careerPreparador = { ...(s.careerPreparador ?? {}), [you.teamName]: p.key }
+      // 🤖 o automático NASCE DESLIGADO (19/09). A preferência podia ter ficado ligada
+      // de 13–15/09, quando era de graça: quem comprava o 👑 Lenda achava o botão já
+      // verde, tocava pra "ligar" e DESLIGAVA — e a caixa sumia (Rei da Bola FC).
+      // Nada liga sem a pessoa mandar.
+      s.condicaoAuto = undefined
       // 🎲 o prazo é sorteado UMA vez e guardado — o log tem que dizer o número REAL
       const fimNovo = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
       const anosNovo = fimNovo - s.seasonNo + 1

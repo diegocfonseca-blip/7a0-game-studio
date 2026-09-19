@@ -44,6 +44,37 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 16) — 🐛 O botão 🤖 AUTOMÁTICO "sumiu" pro Rei da Bola FC
+
+Ele avisou: o dono do Rei da Bola FC comprou o Seirulo (👑, o único com automático),
+*"apertou, mas depois que apertou sumiu o botão"*.
+
+### 🔎 O que acontecia
+O interruptor do automático mora na caixa **😓 Quem está cansado**, em cima do campinho.
+Essa caixa só existia (a) com alguém cansado ou (b) com o automático **LIGADO**. Então:
+- De 13 a 15/09 o automático era de graça pra todo mundo, e a preferência
+  (`condicaoAuto`) ficou gravada no save de quem ligou na época. Quem comprava o
+  Lenda achava o botão **já verde (✔ ligado)**, tocava pra "ligar" e na verdade
+  **desligava** → ninguém cansado → a caixa sumia → o botão junto. É a história dele.
+- Sem preferência antiga o mesmo buraco existia: desligou de propósito, sem cansado,
+  a caixa some e não tem como religar até alguém cansar.
+
+### ✅ Conserto (commit desta parte)
+- **Quem tem o direito (Lenda) vê a caixa SEMPRE**, ligado ou desligado. Desligado e
+  sem cansado ela diz: *"Todo mundo inteiro (💪). 🤖 O automático está desligado —
+  ligue e o preparador troca os cansados sozinho."*
+- **Comprar preparador ZERA a preferência**: o automático nasce desligado, ninguém
+  encontra botão verde sem ter apertado (regra dele: nada liga sem a pessoa mandar).
+- No Departamento Técnico a linha do 🤖 agora diz o ESTADO (ligado/desligado) e ONDE
+  fica o interruptor. Se o gás ainda não ligou na carreira (antes da Série C), diz que
+  o automático liga junto com o gás.
+- ⚠️ Continua igual: na **1ª temporada** não existe substituição (`canSub`), então nem
+  RODIZIAR nem AUTOMÁTICO aparecem — o gás nem liga antes da Série C, então isso não
+  chega a aparecer na prática.
+
+Pro Rei da Bola: não precisa fazer nada — abrir a aba Elenco depois do deploy, a caixa
+😓 estará lá com o botão 🤖 AUTOMÁTICO, é só tocar uma vez (fica verde ✔).
+
 ## 19/09/2026 (parte 15) — 🏋️ Renovar preparador = METADE do preço + o texto do gás que confundia
 
 Duas cobranças dele no mesmo áudio, olhando a loja do preparador:

@@ -4175,7 +4175,12 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         // olhar, então ninguém fica ruim, a caixa sumia e o interruptor de DESLIGAR
         // ia junto: o técnico ligava e não achava mais como desligar. Com o
         // automático ligado a caixa fica sempre, dizendo que está tudo inteiro.
-        if (!ruins.length && !(condicao.auto && condicao.onRodizio)) return null
+        // 🐛 19/09 (Rei da Bola FC): *"apertou, mas depois que apertou sumiu o botão"*.
+        // A caixa só ficava com o automático LIGADO; DESLIGOU (ou veio ligado de antes,
+        // de quando o automático era de graça, e ele tocou pra "ligar") e, sem ninguém
+        // cansado, a caixa sumia — e o interruptor junto. Agora: quem tem o DIREITO
+        // (👑 Lenda) vê a caixa sempre, ligado ou desligado.
+        if (!ruins.length && !(condicao.onAuto && condicao.onRodizio)) return null
         const esgotados = ruins.filter(c => estadoGas(gasDe(c)) === 'esgotado')
         const limite = ruins.filter(c => estadoGas(gasDe(c)) === 'limite')
         const cansados = ruins.filter(c => estadoGas(gasDe(c)) === 'cansado')
@@ -4217,6 +4222,9 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
               {/* automático ligado e ninguém ruim: é ele que já arrumou — precisa dizer,
                   senão a caixa fica vazia e parece bug */}
               {!ruins.length && condicao.auto && (en ? <>Everyone in the XI is <b style={{ color: GREEN }}>fit</b> (💪) — the coach is taking care of the rotation.</> : <>Todo mundo do time está <b style={{ color: GREEN }}>inteiro</b> (💪) — o preparador está cuidando do rodízio.</>)}
+              {/* direito ao automático mas DESLIGADO e ninguém cansado: a caixa fica pra
+                  o interruptor não sumir — e diz o que o botão faz */}
+              {!ruins.length && !condicao.auto && condicao.onAuto && (en ? <>Everyone in the XI is <b style={{ color: GREEN }}>fit</b> (💪). 🤖 Auto-rotation is <b>off</b> — turn it on and the coach swaps tired players by himself.</> : <>Todo mundo do time está <b style={{ color: GREEN }}>inteiro</b> (💪). 🤖 O automático está <b>desligado</b> — ligue e o preparador troca os cansados sozinho.</>)}
             </p>
             {/* 🧹 os dois botões LADO A LADO (mockup aprovado 14/09). A linha só existe
                 se algum dos dois vai aparecer — senão sobrava um vão em branco. */}
@@ -4588,7 +4596,12 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
               </div>
               <p style={{ fontSize: 9.5, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0' }}>
                 💰 {prep.preco} · 💸 {tr('salário', 'salary')} {salarioPreparador(prep)}/{tr('temporada', 'season')} · 📝 {tr('contrato', 'contract')}: {contrato(fimPrep, faltaPrep)}
-                {temAutomatico(prep) ? <b style={{ color: GREEN }}> · 🤖 {tr('automático liberado', 'auto unlocked')}</b> : null}
+                {/* 🤖 diz o ESTADO e ONDE fica o interruptor (Rei da Bola, 19/09: "sumiu o botão") */}
+                {temAutomatico(prep) ? <b style={{ color: GREEN }}> · 🤖 {!condicaoAtiva(state)
+                  ? tr('automático liberado — liga junto com o gás, na Série C', 'auto unlocked — turns on with energy, in Serie C')
+                  : state.condicaoAuto
+                    ? tr('automático LIGADO (interruptor na caixa 😓, em cima do campinho)', 'auto ON (switch in the 😓 box, above the pitch)')
+                    : tr('automático desligado (interruptor na caixa 😓, em cima do campinho)', 'auto off (switch in the 😓 box, above the pitch)')}</b> : null}
               </p>
               {prepVencido && (
                 <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
