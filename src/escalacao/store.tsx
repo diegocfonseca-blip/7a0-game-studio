@@ -3977,7 +3977,7 @@ type Action =
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: RenewAnos } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — prazo e preço vêm de renewOptions/renewCost (escada por valor; 10+ moedas = só 5/10 anos). Prazo real sai com tempero (±1, exceto 1-2 anos) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); Várzea NÃO RENOVA (vai pro leilão com teto de venda); quem não renovar nas outras divisões também
   | { type: 'CONFIRM_MESMO_TIME' } // 🔒 fecha a janela de contratos do voto "mesmo time" (sem leilão): processa Deixar ir/Renovar decididos e volta pra temporada
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
-  | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean; cardId?: string; club?: string; year?: number }[]; assists?: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; assists: number; you: boolean; human: boolean; cardId?: string; club?: string; year?: number }[] } // carreira online: soma os artilheiros da temporada (LIGA + COPAS) no acumulado de todos os tempos. 🃏 `club`/`year` = a identidade da carta, que é a chave do acumulado desde 19/09
+  | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean; cardId?: string; club?: string; year?: number }[]; assists?: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; assists: number; you: boolean; human: boolean; cardId?: string; club?: string; year?: number }[]; melhor?: { name: string; club?: string; year?: number; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; you: boolean; human: boolean; goals: number; assists: number; total: number } | null } // carreira online: soma os artilheiros da temporada (LIGA + COPAS) no acumulado de todos os tempos. 🃏 `club`/`year` = a identidade da carta, que é a chave do acumulado desde 19/09
   | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
   | { type: 'CAREER_FROM_QUICK' } // 🪜 "continuar com esse time": o jogo rápido que acabou vira uma CARREIRA — a liga inteira (você + adversários, com os elencos) vira a divisão de estreia. Sem pregão: o time já está montado.
   | { type: 'SOCIO_CREDIT'; motivo: 'mensal' | 'boas-vindas' } // 🎟️ brinde de sócio (RPC já travou no Supabase, 1× por mês / 1× na vida) — o VALOR vem do código, nunca de fora
@@ -5251,7 +5251,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const nm of eliteNaSerieA(s.managers, pl)) pl[nm] = 'A'
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
-      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.statsSeason = 0
+      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 🤝🏆🛍️ patrocínio por aposta, Master e Loja começam zerados
@@ -5360,7 +5360,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // vazando pra cá. Só o que NÃO se apaga é o elenco — que é o ponto disto.
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.marketValues = {}; s.marketLog = []
-      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.statsSeason = 0
+      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.empresarioCards = []; s.empresarioClaimKeys = []
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
@@ -5501,7 +5501,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = [] // títulos (liga, Copa e Supercopa) começam do zero — e o RECIBO por temporada também
         s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
         s.marketLog = []
-        s.careerScorersAll = {}; s.careerAssistsAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
+        s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
         s.clubCash = seedClubCash({}, pl) // todo time da pirâmide começa com caixa (base por divisão)
         s.careerFilials = {}; s.careerSponsorBet = {}; s.careerSponsorResult = {}; s.careerMaster = {}; s.careerLoja = {} // 🏢🤝🏆🛍️ Clube online por técnico começa zerado
       }
@@ -7477,6 +7477,10 @@ export function reducer(state: EscState, action: Action): EscState {
         }
         s.careerAssistsAll = Object.fromEntries(Object.values(todas).sort((a, b) => b.assists - a.assists).slice(0, 2500).map(x => [skey(x), x]))
       }
+      // 🥇 MELHOR DO MUNDO do ano (gol + assistência somados). Vem calculado da
+      // tela, como os artilheiros — e entra no mesmo portão idempotente, então
+      // uma temporada nunca é premiada duas vezes.
+      if (action.melhor) s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
       s.statsSeason = s.seasonNo
       return s
     }
@@ -8315,7 +8319,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
-      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.statsSeason = 0
+      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
       s.reserveAuction = false; s.reserveListed = {}

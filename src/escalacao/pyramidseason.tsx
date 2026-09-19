@@ -957,6 +957,61 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
   return { rewards, clubRewards, values }
 }
 
+// ─── 🥇 MELHOR DO MUNDO — o prêmio que junta GOL + ASSISTÊNCIA (19/09) ──────
+//
+// Ideia do Diego, e ele foi bem específico: *"quero que tenha do jogador que teve
+// mais gols com assistência junto. Esse jogador será considerado o melhor do mundo
+// no ano. Será o prêmio da FIFA de melhor do mundo. Lembrando que NÃO é o
+// artilheiro e também NÃO é o garçom: é o cara que conseguiu unir os dois juntos"*.
+//
+// A conta, então:  **gols + assistências**, somados na temporada inteira.
+//   · Conta LIGA + TODAS AS COPAS (Copa do Brasil, Copa Legends, Supercopa) — a
+//     mesma régua que o histórico de todos os tempos usa desde hoje.
+//   · Conta o MUNDO inteiro: as cinco divisões, humano, rival e bot. É "melhor do
+//     mundo", não "melhor do seu time".
+//   · É por CARTA (nome|clube|ano), nunca por nome — regra dele de hoje. Sem isso,
+//     os dois Cafus juntariam os números e um deles levaria um prêmio que não fez.
+//
+// ⚖️ DESEMPATE, em ordem, e TUDO determinístico (mesma temporada = mesmo ganhador,
+//    em qualquer aparelho — no online isso não pode divergir entre os jogadores):
+//    1. maior total (gol + assistência)
+//    2. mais GOLS — gol decide jogo, então quem fez mais leva a taça no empate
+//    3. divisão mais alta (A › B › C › D › Várzea)
+//    4. nome em ordem alfabética (último critério, só pra nunca ficar no sorteio)
+export interface MelhorDoMundo {
+  name: string; club?: string; year?: number
+  teamName: string; teamId: number; div: Div
+  you: boolean; human: boolean
+  goals: number; assists: number; total: number
+}
+const MM_DIV_PESO: Record<Div, number> = { A: 5, B: 4, C: 3, D: 2, V: 1 }
+export function melhorDoMundo(scorers: SeasonScorer[], assists: SeasonAssist[]): MelhorDoMundo | null {
+  const chave = (x: { name: string; club?: string; year?: number }) => x.club ? `${x.name}|${x.club}|${x.year}` : x.name
+  const m = new Map<string, MelhorDoMundo>()
+  const pega = (k: string, base: Omit<MelhorDoMundo, 'goals' | 'assists' | 'total'>) =>
+    m.get(k) ?? (m.set(k, { ...base, goals: 0, assists: 0, total: 0 }), m.get(k)!)
+  for (const s of scorers) {
+    const r = pega(chave(s), { name: s.name, club: s.club, year: s.year, teamName: s.teamName, teamId: s.teamId, div: s.div, you: s.you, human: s.human })
+    r.goals += s.goals
+  }
+  for (const a of assists) {
+    const r = pega(chave(a), { name: a.name, club: a.club, year: a.year, teamName: a.teamName, teamId: a.teamId, div: a.div, you: a.you, human: a.human })
+    r.assists += a.assists
+  }
+  let melhor: MelhorDoMundo | null = null
+  for (const r of m.values()) {
+    r.total = r.goals + r.assists
+    if (r.total <= 0) continue
+    if (!melhor) { melhor = r; continue }
+    const ganha = r.total !== melhor.total ? r.total > melhor.total
+      : r.goals !== melhor.goals ? r.goals > melhor.goals
+      : MM_DIV_PESO[r.div] !== MM_DIV_PESO[melhor.div] ? MM_DIV_PESO[r.div] > MM_DIV_PESO[melhor.div]
+      : r.name.localeCompare(melhor.name) < 0
+    if (ganha) melhor = r
+  }
+  return melhor
+}
+
 // ── COPA LEGENDS: mata-mata dos 16 (top-4 de cada divisão), sorteio aleatório,
 // ida e volta, final única, pênaltis no empate. Determinística (semente +
 // temporada + classificação), então bate igual offline e em todos os clientes
@@ -7640,6 +7695,9 @@ export function PyramidSeasonScreen() {
   // 🅰️ o espelho dos garçons (19/09) — *"todos dados que tá fazendo de gols sempre
   // serve pra assistência também"*. Carreira antiga começa vazia: isto nunca foi
   // guardado antes, então não há passado pra trazer (e inventar não é opção).
+  // 🥇 o MELHOR DO MUNDO da temporada — gol + assistência, liga + todas as copas,
+  // o mundo inteiro. Só faz sentido com a temporada fechada (`done`).
+  const melhorDoAno = useMemo(() => (done ? melhorDoMundo([...scorersAll, ...(copa?.scorersAll ?? [])], [...assistsAll, ...(copa?.assistsAll ?? [])]) : null), [done, scorersAll, assistsAll, copa])
   const allTimeAssists = useMemo(() => Object.values((state.careerAssistsAll ?? {}) as Record<string, SeasonAssist>).sort((a, b) => b.assists - a.assists).slice(0, 20), [state.careerAssistsAll])
   // ao FIM da temporada, soma os artilheiros dela no acumulado (uma vez por
   // temporada; o reducer é idempotente por statsSeason). Cada cliente pode
@@ -7659,7 +7717,7 @@ export function PyramidSeasonScreen() {
     // Supercopa (que é uma fase da Copa do Brasil, então vem no mesmo pacote)
     // ficava de fora. A lista da copa é a COMPLETA (`scorersAll`), não o top 20 da
     // tela: senão quem fez 1 gol de copa continuava sumindo da conta.
-    dispatch({ type: 'RECORD_SEASON_STATS', scorers: [...scorersAll, ...(copa?.scorersAll ?? [])], assists: [...assistsAll, ...(copa?.assistsAll ?? [])] })
+    dispatch({ type: 'RECORD_SEASON_STATS', scorers: [...scorersAll, ...(copa?.scorersAll ?? [])], assists: [...assistsAll, ...(copa?.assistsAll ?? [])], melhor: melhorDoAno })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // MATERIALIZA a ficha dos times de fundo (80 com Várzea) (1x): antes eram recalculados na
