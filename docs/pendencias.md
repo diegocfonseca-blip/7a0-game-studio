@@ -1,3 +1,37 @@
+## 19/09/2026 (parte 21) — ⏱️ Mais 1 segundo na partida, agora incluindo TODAS as copas
+
+Ordem dele: *"aumente mais um segundo qualquer copa do online e offline… e também
+no jogo normal… qualquer modo offline carreira ou online… enfim aumente 1 segundo
+da simulação da partida pras copas todas e ligas"*.
+
+| onde | era | ficou |
+|---|---|---|
+| rodada do rápido/online (e basquete) | ~5,7s | **~6,7s** |
+| carreira · manual | 10s | **11s** |
+| carreira · auto | 11s | **12s** |
+| Copa da carreira (Legends / Brasil) | 9s | **10s** |
+| Copa dos 8 (rápido/online) | 15s | **16s** |
+| Copa do Mundo · offline | 9s | **10s** |
+| Copa do Mundo · online | 14s | **15s** |
+
+Um número só por lugar: `ROUND_EXTRA_MS` (rápido/online), `ROUND_MS` (carreira),
+`COPA_LEG_MS` (as duas copas de clube — a do rápido sai dele com +6s) e o par do
+`copa-mundo.tsx`.
+
+### 🗄️ ⚠️ FALTA RODAR O SQL — e sem ele a sala online fica pra trás
+Na sala **sincronizada**, quem manda no relógio da Copa do Mundo é o BANCO
+(`esc_copa_clock_preview.duration_ms`), pra todo mundo ver o mesmo minuto. O
+código só usa o número dele quando não há relógio sincronizado. Então:
+
+👉 **rodar `docs/sql/online-copa-clock-mais-1s.sql`** (única mudança: `14000` →
+`15000`). Sem isso, a Copa da sala continua em 14s enquanto o resto do jogo já
+está 1s mais devagar — e nada na tela avisa.
+
+**Trava: `npm run ritmo`, seção 1b** — confere os sete tempos E se o SQL bate com
+o código (se alguém mexer num e esquecer do outro, reprova).
+
+---
+
 ## 19/09/2026 (parte 20) — 🎯 Sobra de VERDADE antes do perna-de-pau (e o que eu desfiz)
 
 ### ⛔ Primeiro: o que eu desfiz, porque passei do ponto

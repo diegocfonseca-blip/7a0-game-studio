@@ -4,6 +4,10 @@
 // Diego (18/09), depois de ouvir a simulação de som: *"aumente em mais 1s a
 // simulação de uma partida, tanto no modo offline qualquer ou modo online
 // qualquer também"*.
+// 🔁 E DE NOVO em 19/09, agora incluindo TODAS as copas: *"aumente mais um segundo
+// qualquer copa do online e offline… e também no jogo normal… qualquer modo offline
+// carreira ou online… enfim aumente 1 segundo da simulação da partida pras copas
+// todas e ligas"*. Daí a seção 1b.
 //
 // Por que virou trava: o tempo da rodada é um número solto em DOIS arquivos
 // (`screens.tsx` pro rápido/online e `pyramidseason.tsx` pra carreira), e ele
@@ -25,14 +29,34 @@ const TOTAL = num(tela, /SEASON_TOTAL_MS = ([\d_]+)/.source ? /SEASON_TOTAL_MS =
 const EXTRA = num(tela, /ROUND_EXTRA_MS = (\d+)/)
 const CARR = num(carr, /const ROUND_MS = (\d+)/)
 const AUTO = num(carr, /AUTO_EXTRA_MS = (\d+)/)
+const COPA = num(carr, /COPA_LEG_MS = (\d+)/)
+const QUICK = num(tela, /QUICK_COPA_LEG_MS = COPA_LEG_MS \+ (\d+)/)
+const mundo = readFileSync('src/escalacao/copa-mundo.tsx', 'utf8')
+const MUNDO_ON = num(mundo, /\(online \? (\d+) : \d+\)/)
+const MUNDO_OFF = num(mundo, /\(online \? \d+ : (\d+)\)/)
+const sql = readFileSync('docs/sql/online-copa-clock-mais-1s.sql', 'utf8')
+const SQL_MS = num(sql, /duration_ms:=round\((\d+)\/r\.speed\)/)
 const online = Math.round(180000 / 38) + EXTRA
 
 console.log('\n1) ⏱️ a rodada dura o que a gente acha que dura')
 {
-  ok(EXTRA === 1000, `o segundo a mais existe e vale ${EXTRA}ms`)
-  ok(CARR === 10000, `carreira no manual: ${CARR / 1000}s (era 9s antes de 18/09)`)
-  ok(CARR + AUTO === 11000, `carreira no auto: ${(CARR + AUTO) / 1000}s (o +1s do auto, de 13/09, continua)`)
-  ok(online >= 5500 && online <= 6000, `rápido/online: ${(online / 1000).toFixed(1)}s`)
+  ok(EXTRA === 2000, `o extra da rodada vale ${EXTRA}ms (1s de 18/09 + 1s de 19/09)`)
+  ok(CARR === 11000, `carreira no manual: ${CARR / 1000}s (9s → 10s em 18/09 → 11s em 19/09)`)
+  ok(CARR + AUTO === 12000, `carreira no auto: ${(CARR + AUTO) / 1000}s (o +1s do auto, de 13/09, continua por cima)`)
+  ok(online >= 6500 && online <= 7000, `rápido/online: ${(online / 1000).toFixed(1)}s`)
+}
+
+console.log('\n1b) 🏆 E AS COPAS GANHARAM O MESMO SEGUNDO (Diego 19/09)')
+{
+  // *"aumente mais um segundo qualquer copa do online e offline… enfim aumente 1
+  // segundo da simulação da partida pras copas todas e ligas"*.
+  ok(COPA === 10000, `Copa da carreira: ${COPA / 1000}s por jogo (era 9s)`)
+  ok(COPA + QUICK === 16000, `Copa dos 8 (rápido/online): ${(COPA + QUICK) / 1000}s por jogo — sai do COPA_LEG_MS + ${QUICK / 1000}s`)
+  ok(MUNDO_OFF === 10000, `Copa do Mundo offline: ${MUNDO_OFF / 1000}s (era 9s)`)
+  ok(MUNDO_ON === 15000, `Copa do Mundo online (sem relógio sincronizado): ${MUNDO_ON / 1000}s (era 14s)`)
+  // 🗄️ a sala SINCRONIZADA lê o tempo do BANCO — se o SQL não subir junto, o online
+  // fica 1s atrás do resto do jogo e ninguém percebe olhando o código.
+  ok(SQL_MS === MUNDO_ON, `o SQL do relógio da sala (${SQL_MS}ms) bate com o código (${MUNDO_ON}ms)`)
 }
 
 console.log('\n2) 🥅 o gol CABE na rodada nas velocidades que têm som')

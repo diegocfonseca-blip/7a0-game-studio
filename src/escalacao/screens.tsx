@@ -5093,7 +5093,12 @@ export const SEASON_TOTAL_MS = 180_000
 // ⚠️ Somado AQUI e não no `SEASON_TOTAL_MS`, de propósito: aquela constante é o
 // orçamento da temporada e também divide o basquete (82 jogos). Mexer nela mudaria
 // duas coisas de uma vez; o segundo a mais é da RODADA.
-export const ROUND_EXTRA_MS = 1000
+// 🔁 19/09: virou **2000** — ele pediu MAIS um segundo, com as mesmas palavras de
+// antes: *"aumente mais um segundo qualquer copa do online e offline, e também no
+// jogo normal, qualquer modo offline carreira ou online… enfim aumente 1 segundo da
+// simulação da partida pras copas todas e ligas"*. Ou seja: a rodada do rápido/online
+// saiu de ~5,7s pra ~6,7s, e o gol (3,1s) passa a ocupar 46% dela.
+export const ROUND_EXTRA_MS = 2000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + ROUND_EXTRA_MS // ~5,7s por rodada
 // 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.

@@ -2570,14 +2570,19 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 // ➕ 10s por rodada desde 18/09 — eram 9s. Diego: *"aumente em mais 1s a simulação
 // de uma partida, tanto no modo offline qualquer ou modo online qualquer também"*.
 // No AUTO ainda entra o `AUTO_EXTRA_MS` por cima (11s), como desde 13/09.
-const ROUND_MS = 10000
+// 🔁 19/09: 11s (eram 10). Ele pediu o segundo de novo, pra TODOS os modos e TODAS
+// as competições — liga e copa, online e offline. No AUTO vira 12s.
+const ROUND_MS = 11000
 // ⏱️ +1s SÓ no AUTO da carreira (Diego 13/09: "aumente mais 1s o tempo da simulação da
 // partida no modo carreira em auto"). No manual o técnico já controla o ritmo (🐢/⏩).
 // ⏱️ …e desde 15/09 vale pra COPA também, nas palavras dele: *"aumente p 1s a simulação
 // dos jogos das Copas nos jogos rolando no modo auto, nos jogos das copas dos modos online
 // e no off-line do modo carreira"*. Mesmo +1s, mesma regra: só no AUTO.
 export const AUTO_EXTRA_MS = 1000
-export const COPA_LEG_MS = 9000 // cada JOGO da Copa rola ~9s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
+// 🔁 19/09: 10s (eram 9). Este número é a COPA inteira do jogo: a Copa da carreira
+// usa ele direto, e a Copa dos 8 do rápido/online sai dele (`QUICK_COPA_LEG_MS =
+// COPA_LEG_MS + 6000`). Então o +1s dele cobre as duas de uma vez.
+export const COPA_LEG_MS = 10000 // cada JOGO da Copa rola ~10s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
 
 // COR DO TIME: todo mundo começa na cor BEGE do "Foi Profissional" — a cor
 // de todo mundo. Cor diferente (verde/roxo/prata/OURO com brilho) é benefício
