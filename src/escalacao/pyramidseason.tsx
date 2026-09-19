@@ -2339,7 +2339,10 @@ export function myStanding(tables: Record<Div, SimTeam[]>): { div: Div; pos: num
 const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série C', D: 'Série D', V: 'Várzea' }
 // ritmo da carreira online: +1s por jogo em relação aos outros modos, pra dar
 // tempo de decidir tática/Time A-B durante a partida: 8s por rodada (fixo). Só aqui.
-const ROUND_MS = 9000
+// ➕ 10s por rodada desde 18/09 — eram 9s. Diego: *"aumente em mais 1s a simulação
+// de uma partida, tanto no modo offline qualquer ou modo online qualquer também"*.
+// No AUTO ainda entra o `AUTO_EXTRA_MS` por cima (11s), como desde 13/09.
+const ROUND_MS = 10000
 // ⏱️ +1s SÓ no AUTO da carreira (Diego 13/09: "aumente mais 1s o tempo da simulação da
 // partida no modo carreira em auto"). No manual o técnico já controla o ritmo (🐢/⏩).
 // ⏱️ …e desde 15/09 vale pra COPA também, nas palavras dele: *"aumente p 1s a simulação

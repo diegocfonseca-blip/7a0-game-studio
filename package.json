@@ -30,7 +30,8 @@
     "jornal": "node scripts/testa-jornal-donos.mjs",
     "mascote": "node scripts/testa-mascote-lance.mjs",
     "giro": "node scripts/testa-giro.mjs",
-    "som": "node scripts/testa-som.mjs"
+    "som": "node scripts/testa-som.mjs",
+    "ritmo": "node scripts/testa-ritmo.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
