@@ -27,6 +27,7 @@ const q = new URLSearchParams(location.search)
 const N = Number(q.get('n') ?? 27)
 const OLHEIRO = q.get('olheiro') ?? 'ouro'
 const GAS = q.get('gas') !== '0'
+// 🎴 qual jogador já vem TOCADO (pra a ficha preta aparecer no print). `?sel=` troca.
 
 // 🔓 desde 18/09 a tela nova é de TODO MUNDO (`ELENCO27_GERAL = true`), então isto aqui
 // virou herança: o `?novo=0` não fecha mais nada, porque o GERAL ganha da lista de
@@ -95,13 +96,26 @@ squad.forEach((c, k) => {
   gas[c.id] = ehTitular(c.id) ? [72, 58, 44, 88, 26, 12, 64, 79, 35, 91, 53][k % 11] : 88 + (k % 12)
   jogos[c.id] = ehTitular(c.id) ? 18 + (k % 12) : k % 9
 })
+// 🧾 o que ele já tinha NO CLUBE antes desta temporada — é daqui que sai a coluna
+// "NO SEU CLUBE" da ficha (o `jogos` acima JÁ vem somado, então o "nesta temporada"
+// é a subtração dos dois). Números de pior caso de propósito: 3 dígitos em tudo.
+const antes = {
+  j: Object.fromEntries(squad.map((c, k) => [c.id, [260, 93, 12, 0, 147, 38][k % 6]])),
+  gl: Object.fromEntries(squad.map((c, k) => [c.id, [160, 41, 3, 0, 77, 9][k % 6]])),
+  as: Object.fromEntries(squad.map((c, k) => [c.id, [55, 18, 1, 0, 30, 4][k % 6]])),
+}
+// o `jogos` da tela tem que ser MAIOR que o `antes.j`, senão a subtração dá zero
+for (const c of squad) jogos[c.id] += antes.j[c.id]
 const condicao = GAS ? {
   gas,
   jogos,
+  antes,
   volta: (id: string) => (id === squad[13]?.id ? 2 : 0),
   suspensoId: squad[16]?.id,
   prep: null,
 } : undefined
+
+const SEL = q.get('sel') === 'nenhum' ? null : (squad[Number(q.get('sel') ?? 0)] ?? squad[0]).id
 
 createRoot(document.getElementById('root')!).render(
   // 📐 a MESMA moldura da carreira de verdade (`max-w-xl mx-auto` + padding), senão
@@ -113,7 +127,7 @@ createRoot(document.getElementById('root')!).render(
     <SquadTab mgr={mgr} col={col as never} coins={168} xiIds={new Set(xi.map(c => c.id))} xi={xi}
       goals={Object.fromEntries(squad.map((c, k) => [c.id, k % 4 === 0 ? k % 11 : 0]))}
       assists={Object.fromEntries(squad.map((c, k) => [c.id, k % 3 === 0 ? k % 7 : 0]))}
-      onSwap={() => {}} selId={null} seasonNo={6} contratosOn olheiros
+      onSwap={() => {}} selId={SEL} seasonNo={6} contratosOn olheiros
       onSetFormation={() => {}} onSetSubMode={() => {}} subMode="dinamico"
       criaBase={{ onSubir: () => {} }}
       condicao={condicao as never} safDiv="Série A" safSlots={4} />

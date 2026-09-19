@@ -387,6 +387,17 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   "Pra todos" = todos os USUÁRIOS, nunca "todas as divisões". Carreira antiga sem
   Agência fica fora, como em toda regra nova da carreira.
 
+- **🧾 O total do jogador é "NO SEU CLUBE", nunca "carreira" (19/09).** Ele
+  perguntou direto, olhando a ficha: *"são dados dele no clube que ele tá atual né…
+  não são jogos totais contando outros clubes"*. E está certo — `guardaCansaco`
+  tem `if (!m.isHuman) continue`, ou seja **só o elenco do usuário é anotado**, bot
+  nunca acumula. Então **nunca escrever "carreira"** nesses números: é o tempo dele
+  NO TIME DE QUEM JOGA. (Vender e recomprar a mesma carta devolve o número inteiro —
+  de propósito.) A ficha aprovada é a de DUAS COLUNAS: `ESTA TEMPORADA` de um lado,
+  `NO SEU CLUBE` do outro em dourado, e gás/valor/salário numa faixa própria
+  embaixo, porque esses são de AGORA. Quem guarda o acumulado é o `condicaoCarry`
+  (`g` gás · `j` jogos · `gl` gols · `as` assistências).
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

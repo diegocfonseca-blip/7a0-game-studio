@@ -3301,7 +3301,12 @@ function PlayerRow({ c, titular, col, onSwap, list }: { c: WonCard; titular: boo
 // condição desligada nesta carreira → a aba fica byte a byte como era.
 type CondicaoUI = {
   gas: Record<string, number>            // gás de cada carta ANTES do próximo jogo (0-100)
-  jogos: Record<string, number>          // jogos como titular na temporada
+  jogos: Record<string, number>          // jogos dele NO SEU CLUBE (soma as temporadas)
+  antes?: {                              // o que ele já tinha NO CLUBE antes desta temporada
+    j: Record<string, number>            // (serve pra tirar e achar o "nesta temporada")
+    gl: Record<string, number>
+    as: Record<string, number>
+  }
   volta: (id: string) => number          // 🩹 volta gradual: −2 (60%) · −1 (80%) · 0
   onRodizio?: () => void                 // botão 🔁 RODIZIAR (ausente = ainda não pode trocar)
   suspensoId?: string                    // quem está fora (lesão/gancho) até a rodada da volta
@@ -3597,15 +3602,47 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       <span style={{ display: 'block', fontSize: 7, fontWeight: 800, color: 'rgba(255,255,255,.45)', letterSpacing: .6 }}>{rot}</span>
     </span>
   )
+  // 🧾 A COLUNA DE NÚMEROS (opção C, escolhida pelo Diego em 18/09): "ESTA
+  // TEMPORADA" de um lado, "NO SEU CLUBE" do outro, em dourado.
+  const colunaSel = (titulo: string, dados: React.ReactNode[], fundo: string) => (
+    <div style={{ flex: 1, background: fundo, borderRadius: 9, padding: '6px 7px 7px' }}>
+      <div style={{ ...OSWALD, fontWeight: 900, fontSize: 8, letterSpacing: .8, color: 'rgba(255,255,255,.42)', textAlign: 'center', marginBottom: 4 }}>{titulo}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-around' }}>{dados}</div>
+    </div>
+  )
   const barraSelecionado = sel && (() => {
     const ct = ctInfo(sel)
     const g = condicao && !sel.fake ? pctBarra(condicao.gas[sel.id] ?? 100) : null
-    const dados = [
-      ...(condicao ? [dadoSel(tr('JOGOS', 'GAMES'), String(condicao.jogos[sel.id] ?? 0))] : []),
-      dadoSel(tr('GOLS', 'GOALS'), String(goalsOf(sel)), GOLD),
-      dadoSel('ASS', String(assistsOf(sel)), '#8FC0F0'),
+    const gasValorSal = [
       ...(g != null ? [dadoSel(tr('GÁS', 'ENERGY'), `${g}%`, corBarra(condicao!.gas[sel.id] ?? 100))] : []),
       ...(salaryOn ? [dadoSel(tr('VALOR', 'VALUE'), String(sel.paid ?? 0), '#FFE79A'), dadoSel(tr('SAL.', 'WAGE'), String(Math.round((sel.paid ?? 0) / 10)), '#FFE79A')] : []),
+    ]
+    // 🔢 O TOTAL É SEMPRE NO SEU CLUBE, não a carreira do cara no futebol: o jogo
+    // só anota elenco de humano, então jogo feito em outro time não entra. Ele
+    // perguntou isso direto (18/09) e é o que o rótulo tem que dizer.
+    // O "nesta temporada" sai por subtração: `condicao.jogos` já vem somado, e o
+    // `antes` é o que ele tinha antes desta temporada.
+    const totais = condicao && !sel.fake && (() => {
+      const a = condicao.antes
+      const jTot = condicao.jogos[sel.id] ?? 0
+      const glTemp = goalsOf(sel), asTemp = assistsOf(sel)
+      return {
+        jTemp: Math.max(0, jTot - (a?.j[sel.id] ?? 0)), jTot,
+        glTemp, glTot: (a?.gl[sel.id] ?? 0) + glTemp,
+        asTemp, asTot: (a?.as[sel.id] ?? 0) + asTemp,
+      }
+    })()
+    const trio = (j: number, gl: number, as: number) => [
+      dadoSel(tr('JOGOS', 'GAMES'), String(j)),
+      dadoSel(tr('GOLS', 'GOALS'), String(gl), GOLD),
+      dadoSel('ASS', String(as), '#8FC0F0'),
+    ]
+    // ⛳ sem condição física (Várzea, Série D, carreira antiga) não existe contagem
+    // de jogos — aí fica a faixa única de sempre, sem inventar coluna vazia.
+    const dados = totais ? [] : [
+      dadoSel(tr('GOLS', 'GOALS'), String(goalsOf(sel)), GOLD),
+      dadoSel('ASS', String(assistsOf(sel)), '#8FC0F0'),
+      ...gasValorSal,
     ]
     const ficha = (
       <span style={{ flex: 1, minWidth: 0 }}>
@@ -3616,12 +3653,20 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     )
     return (
       <div style={{ background: 'linear-gradient(160deg,#1a1a1a,#0C0C0C)', border: `3px solid ${INK}`, borderRadius: 12, padding: larga ? '8px 11px' : '9px 10px', color: '#fff', boxShadow: '3px 3px 0 rgba(0,0,0,.3)', marginTop: 9 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: larga ? 0 : 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: totais || !larga ? 8 : 0 }}>
           <span style={{ flex: 'none' }}>{rostoNaLinha(sel, 40)}</span>
           {ficha}
-          {larga && dados}
+          {larga && !totais && dados}
         </div>
-        {!larga && <div style={{ display: 'flex', gap: 4, justifyContent: 'space-between', background: 'rgba(255,255,255,.06)', borderRadius: 9, padding: '6px 4px' }}>{dados}</div>}
+        {totais ? <>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {colunaSel(tr('ESTA TEMPORADA', 'THIS SEASON'), trio(totais.jTemp, totais.glTemp, totais.asTemp), 'rgba(255,255,255,.06)')}
+            {colunaSel(tr('NO SEU CLUBE', 'AT YOUR CLUB'), trio(totais.jTot, totais.glTot, totais.asTot), 'rgba(255,196,0,.08)')}
+          </div>
+          {/* ⚡💰 gás, valor e salário não são de temporada nem de total — são de
+              AGORA. Por isso descem pra faixa própria, como o mockup aprovado. */}
+          {!!gasValorSal.length && <div style={{ display: 'flex', gap: 4, justifyContent: 'space-around', background: 'rgba(255,255,255,.06)', borderRadius: 9, padding: '6px 4px', marginTop: 5 }}>{gasValorSal}</div>}
+        </> : !larga && <div style={{ display: 'flex', gap: 4, justifyContent: 'space-between', background: 'rgba(255,255,255,.06)', borderRadius: 9, padding: '6px 4px' }}>{dados}</div>}
       </div>
     )
   })()
@@ -6677,11 +6722,13 @@ export function PyramidSeasonScreen() {
     const me = state.managers[state.youIdx]
     if (!carry || !me) return undefined
     const g: Record<string, number> = {}, j: Record<string, number> = {}
+    // ⚽🅰️ o que ele já tinha feito NO CLUBE antes desta temporada
+    const gl: Record<string, number> = {}, as: Record<string, number> = {}
     for (const c of me.squad as WonCard[]) {
       const k = carry[`${c.name}|${c.club}|${c.year}`]
-      if (k) { g[c.id] = k.g; j[c.id] = k.j }
+      if (k) { g[c.id] = k.g; j[c.id] = k.j; gl[c.id] = k.gl ?? 0; as[c.id] = k.as ?? 0 }
     }
-    return { g, j }
+    return { g, j, gl, as }
   }, [state.condicaoCarry, state.managers, state.youIdx])
   // 1ª rodada que conta: só na temporada em que a regra chegou pra quem já estava em C/B/A
   const condDesdeR = state.condicaoDesde === (state.seasonNo ?? 1) ? (state.condicaoDesdeR ?? 0) : 0
@@ -8473,7 +8520,9 @@ export function PyramidSeasonScreen() {
           // Diego 16/08: "não são coisas novas, só alterou o nome" — quem já tinha
           // títulos de Copa Legends não perde nada, o histórico é contínuo.
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
-          const args = () => ({ placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
+          // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
+          // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
+          const args = () => ({ golsCard: goalsByCard, assCard: assistsByCard, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
@@ -9196,7 +9245,7 @@ export function PyramidSeasonScreen() {
               </div>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={goalsByCard} assists={assistsByCard} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
-              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
+              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
               criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba

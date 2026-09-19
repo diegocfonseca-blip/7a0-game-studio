@@ -1,3 +1,51 @@
+## 19/09/2026 — 🧾 A ficha do jogador: "esta temporada" × "no seu clube"
+
+Pedido do Diego, com o print da barra preta: *"eu quero que tenha gols na temporada,
+gols totais… e também jogos totais, e assistência na temporada e assistências
+totais… poderia ter um espaço embaixo"*. Mandei três mockups; ele escolheu a
+**letra C** (duas colunas).
+
+### 🔑 O que a pergunta dele esclareceu
+Depois do 1º mockup ele perguntou: *"são dados dele no clube que ele tá atual né?
+Não são jogos totais contando outros clubes"*. Fui conferir e **ele está certo**:
+`guardaCansaco` tem `if (!m.isHuman) continue` — **só o elenco do usuário é
+anotado**, bot nunca acumula. Então jogo feito em outro clube não entra em lugar
+nenhum. Por isso o rótulo virou **"NO SEU CLUBE"**, nunca "carreira" (isso virou
+regra no `CLAUDE.md`).
+Detalhe de propósito: vender e recomprar a mesma carta **devolve o número inteiro**.
+
+### O que estava errado antes
+Os três números ficavam lado a lado falando de tempos diferentes, sem avisar:
+**JOGOS** já vinha somado de todas as temporadas (o 304 do Gilmar), **GOLS** e
+**ASS** eram só da temporada. Dá pra ler tudo errado.
+
+### O que foi feito
+- **Motor**: `condicaoCarry` passou a carregar `gl` (gols) e `as` (assistências)
+  junto do `g`/`j` que já levava. Os números da temporada vão na ação da virada
+  (`golsCard`/`assCard`), porque quem os calcula é a tela, não o reducer.
+- **Tela**: a ficha virou duas colunas — `ESTA TEMPORADA` (cinza) e `NO SEU CLUBE`
+  (dourada), com jogos/gols/assistências nas duas. **Gás, valor e salário** desceram
+  pra faixa própria, porque não são de temporada nem de total: são de AGORA.
+- O "nesta temporada" sai por **subtração** (`jogos` já vem somado menos o `antes`),
+  então não existe segunda contagem pra desencontrar da primeira.
+
+### Onde NÃO mudou nada
+Sem condição física (Várzea, Série D, carreira antiga sem Agência) não existe
+contagem de jogos — lá fica a faixa única de sempre, sem coluna vazia inventada.
+
+### ⚠️ O que o Diego já sabe e aceitou
+Carreira que já está rolando **começa o total de gols e assistências do ZERO** — o
+passado nunca foi gravado, não dá pra recuperar. Os **jogos** continuam certos.
+- ⏳ **Pendente**: ele não respondeu se quer o aviso **"desde agora"** escrito na
+  tela na 1ª temporada. Não pus, porque é texto novo e ele decide o visual.
+
+### Pendências
+- 🧮 **Gol de COPA não entra** na conta da temporada (o `goalsByCard` é do pregão
+  da liga). Era assim antes e continua — mas agora que o número vira acumulado,
+  vale perguntar a ele se a Copa devia somar.
+- **Dá pra voltar atrás?** Dá: reverter o commit. O `gl`/`as` do save são campos
+  opcionais — save novo aberto em versão velha simplesmente ignora os dois.
+
 ## 18/09/2026 (parte 11) — 🗄️ O banco ganha do código: o manto errado do Manfré e mais 9 clubes no jornal
 
 O Diego liberou o Supabase pra eu fechar a perna do banco do Remoçada. Fechei — e

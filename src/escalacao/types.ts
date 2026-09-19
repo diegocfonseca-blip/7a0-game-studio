@@ -644,7 +644,14 @@ export interface EscState {
   // Chave = IDENTIDADE da carta (`nome|clube|ano`), NÃO o id: no leilão as cartas
   // ganham id novo, e é a pessoa que continua cansada. `g` = gás (0-100) · `j` =
   // jogos somados na carreira. Ausente = 100 e 0 (save antigo entra inteiro).
-  condicaoCarry?: Record<string, { g: number; j: number }>
+  // ⚽🅰️ `gl` e `as` (18/09) = GOLS e ASSISTÊNCIAS somados do mesmo jeito, pra ficha
+  // do jogador mostrar "nesta temporada × no seu clube" (pedido do Diego).
+  // ⚠️ São OPCIONAIS de propósito: carreira que já estava rolando não tem esse
+  // passado gravado — ninguém nunca guardou —, então esses dois começam do ZERO e
+  // contam daqui pra frente. Os jogos continuam certos, porque já vinham.
+  // 🔑 E é sempre NO SEU CLUBE: o `guardaCansaco` só anota elenco de humano, nunca
+  // de bot, então jogo/gol feito em outro time não entra em lugar nenhum.
+  condicaoCarry?: Record<string, { g: number; j: number; gl?: number; as?: number }>
   // 🕵️🏟️ alvo sondado num TIME DE FUNDO (13/09). Esses clubes são adversários de
   // verdade da sua divisão, mas não têm manager nem elenco guardado — o time deles é
   // receita, desenhada na hora. Então a tela manda a carta junto e ela espera aqui até
