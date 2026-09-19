@@ -4072,7 +4072,8 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
-  | { type: 'SET_SPONSOR_BET'; tier: 1 | 2 | 3; brandId: string; mgrId?: number } // 🤝 aposta do patrocínio da temporada (nível escolhido + marca) — banner de início de temporada
+  // 🚫🤝 SET_SPONSOR_BET saiu em 19/09 junto com o patrocinador pontual (ordem do
+  // Diego). O campo `careerSponsorBet` segue no save, sem ninguém escrever nem ler.
   | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
   // 🛍️ LOJA DO CLUBE (15/09; liberada geral no mesmo dia — sport.ts/LOJA_GERAL)
   | { type: 'LOJA_PRECO'; preco: import('./loja').PrecoLoja; mgrId?: number } // 💰 preço da camisa da temporada (a aposta)
@@ -5852,14 +5853,6 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.monteIdx >= s.monteOrder.length || s.managers.every(m => totalHoles(m) === 0)) {
         enterCerimonia(s)
       }
-      return s
-    }
-    case 'SET_SPONSOR_BET': {
-      // 🤝 aposta do patrocínio da temporada (nível + marca) — banner de início de
-      // temporada. Guarda por mgrId (solo e online usam a mesma chave).
-      if (!s.careerOnline) return s
-      const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
-      s.careerSponsorBet = { ...(s.careerSponsorBet ?? {}), [id]: { tier: action.tier, brandId: action.brandId, season: s.seasonNo ?? 1 } }
       return s
     }
     case 'SET_MASTER': {

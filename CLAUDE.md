@@ -438,6 +438,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Time todo de mentira faz o gol no placar e **ninguém leva o gol na súmula**.
   ⚠️ Quem mexer aqui: o **rng tem que ser consumido igual, com autor ou sem** — senão
   muda placar de rodada já jogada. E **Cria da Base NÃO é fake**: o guri é real.
+- **🚫🤝 O PATROCINADOR PONTUAL NÃO EXISTE MAIS (19/09).** Palavras dele: *"tá ficando
+  muito patrocinador, patrocinador, patrocinador, tá ficando chato. Tira esse
+  patrocinador pontual e a pessoa também não vai mais ganhar esse dinheiro"*. A virada
+  começa no 🏆 Master e segue pro fornecedor, camisas e bico. **Não propor de volta**
+  (nem como "aposta opcional") sem ele pedir. O que sobrou no save (`careerSponsorBet`)
+  é só resíduo: ninguém escreve, ninguém lê, ninguém paga.
 - **🥇 A BOLA DE OURO PAGA (19/09): 20 🪙 pro clube + 10 de piso no jogador.** Palavras
   dele: *"todo bola de ouro q o time tiver o clube ganhará 20 moedas extras e o jogador
   passa a valorizar mais 10 de piso"*. Acumula por título, o piso vale mesmo se o

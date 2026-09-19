@@ -74,6 +74,37 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 24) — 🚫🤝 O PATROCINADOR PONTUAL FOI REMOVIDO
+
+Ordem dele: *"eu acho que eu vou tirar esse patrocinador pontual. Tá ficando muito
+patrocinador, patrocinador, patrocinador, tá ficando chato. Tira esse patrocinador
+pontual e a pessoa também não vai mais ganhar esse dinheiro. Hoje vai ter o
+patrocinador master ali no início, aí logo depois vai pro próximo passo."*
+
+### ✅ O que saiu
+- O **passo do roteiro** da virada. A ordem agora é 🏆 Master → 👟 Fornecedor →
+  🛍️ Camisas → 🕴️ Bico. A pílula "PASSO X DE N" conta sozinha, então o N caiu junto.
+- A **trava de começar a temporada** não olha mais o pontual (só Master e crise).
+- O **pagamento**, nos DOIS caminhos que existiam: o `CLOSE_SEASON_BOOKS` (temporada
+  que fecha sem leilão) e o `OPEN_RESERVE_LIST`/`REAUCTION_ONLINE` (virada com leilão).
+  Ninguém recebe mais nada da aposta, nem quem tinha aposta feita na temporada passada.
+- O **recibo** "o patrocínio pagou", as telas de acompanhamento (`SponsorBetStatus` e
+  `CareerSponsorOverview`) e a action `SET_SPONSOR_BET`.
+
+### 🗄️ O que FICOU de propósito
+- `careerSponsorBet` / `careerSponsorResult` continuam no save e nos tipos: apagar
+  campo de save não desfaz nada e só arrisca quebrar quem está no meio da temporada.
+  Ninguém escreve e ninguém lê.
+- `sponsorBetRewards` e a tabela `SPONSOR_BET_PAY` seguem exportadas (as simulações de
+  caixa `sim-caixa-120`/`sim-caixa-divisoes` ainda importam). Se ele mandar voltar, é
+  religar o passo e os dois pontos de pagamento.
+- O componente `SponsorBetBanner` continua em `estadio.tsx`, sem quem chame.
+
+### 💰 Quanto some do caixa (por temporada, se batesse a meta)
+Várzea 4/6/8 · D 8/12/16 · C 14/22/30 · B 24/40/56 · A 42/74/106 (nível 1/2/3).
+Master, bilheteria, Loja, TV e bico não mudaram. Novidade na home avisando.
+Reverter: `git revert` do commit desta parte.
+
 ## 19/09/2026 (parte 23) — 🐛🔒 TELA TRAVADA NO MONTE (Rei da Bola FC) — sem PEGAR e sem PASSAR
 
 Relato dele: *"deu um erro no leilão do Rei da Bola FC. Quando foi pro monte, aparecia

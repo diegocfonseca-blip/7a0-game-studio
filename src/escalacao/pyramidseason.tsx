@@ -30,15 +30,14 @@ import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoReno
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
-import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
+import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
-import { StadiumTab, StadiumSvg, SponsorBetBanner, SponsorBetStatus, MasterBanner, MasterFaixa, sponsorLogoEstampa, FornFaixa, FornBanner } from './estadio'
+import { StadiumTab, StadiumSvg, MasterBanner, MasterFaixa, sponsorLogoEstampa, FornFaixa, FornBanner } from './estadio'
 import { CareerStadiumView } from './career-stadium-view'
-import { CareerSponsorOverview } from './career-sponsor-visual'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
@@ -6863,14 +6862,6 @@ function ReciboLinha({ ic, titulo, sub, valor, valorCor, onClick, ultimo }: {
     </button>
   )
 }
-function CaixaRecibos({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: '.06em', color: 'rgba(0,0,0,.42)', margin: '0 2px 6px' }}>{titulo}</p>
-      <div style={{ ...box('#fff'), overflow: 'hidden' }}>{children}</div>
-    </div>
-  )
-}
 // ─── 🏆 TELA DE DESFECHO DA TEMPORADA (21/08) ───────────────────────────────
 // UMA tela, UM toque. Antes disto: o campeão tinha uma faixa dourada de uma
 // linha; quem SUBIA ou CAÍA de divisão não tinha NADA — descobria pela setinha
@@ -7642,7 +7633,6 @@ export function PyramidSeasonScreen() {
     const sb = scorerRewards(divTop)
     const cr = copaBrOk && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] })
     const mrg = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
-    const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult)
     // 🎟️ ocupação por técnico (carreira nova) — colocação final vira renda do estádio
     const stadiumOcc: Record<number, number> = {}
     // 🛍️ e a COLOCAÇÃO FINAL crua, que é o que a Loja usa (a ocupação já vem
@@ -7650,7 +7640,7 @@ export function PyramidSeasonScreen() {
     // classificação · se manteve · caiu)
     const finalPos: Record<number, number> = {}
     for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) { stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]); finalPos[t.teamId] = i + 1 } })
-    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), sponsorRewards: spb.rewards, sponsorResults: spb.results, stadiumOcc, finalPos })
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), stadiumOcc, finalPos })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
@@ -8188,7 +8178,11 @@ export function PyramidSeasonScreen() {
   // 🤝 no AUTO (offline, sem manual), a rodada 0 NÃO pode andar sozinha antes do
   // técnico escolher a meta do patrocínio — senão os 9s do ROUND_MS viravam um
   // cronômetro escondido pra escolher (Diego pediu SEM tempo nenhum nessa área).
-  const sponsorBetOk = round > 0 || !!(state.careerSponsorBet?.[youId] && state.careerSponsorBet[youId].season === state.seasonNo)
+  // 🚫🤝 O PATROCINADOR PONTUAL FOI REMOVIDO (Diego 19/09): *"tá ficando muito
+  // patrocinador, patrocinador, patrocinador, tá ficando chato. Tira esse patrocinador
+  // pontual e a pessoa também não vai mais ganhar esse dinheiro"*. Sobrou o MASTER no
+  // começo da temporada e o resto do roteiro segue igual. O campo `careerSponsorBet`
+  // continua no save (não se apaga passado de ninguém), só não é mais lido nem pago.
   // 🏆 PATROCINADOR MASTER (13/09): na temporada em que NÃO há contrato cobrindo
   // (a 1ª, e toda vez que um contrato termina) a temporada só começa depois de
   // assinar um dos 4 contratos — mesma trava do Pontual, com o porquê na tela.
@@ -8207,11 +8201,9 @@ export function PyramidSeasonScreen() {
   // base) NÃO depende de nada: não precisa de moeda, nem de folclórico livre, nem
   // de vaga. Sempre existe caminho pra destravar — nada de estado sem saída.
   const criseTrava = !!criseAtual
-  const decisoesOk = sponsorBetOk && masterOk && !criseTrava
+  const decisoesOk = masterOk && !criseTrava
   // 🧹 recibo do patrocínio da temporada PASSADA (rotina, não conquista): sai do
   // caminho da decisão e vira linha depois do botão verde.
-  const sponsorResult = state.careerSponsorResult?.[youId]
-  const sponsorResultFresh = !!(sponsorResult && sponsorResult.season === (state.seasonNo ?? 1) - 1)
   // 🚫 no MANUAL, "Próxima rodada" só libera DEPOIS que o jogo termina de animar —
   // igual ao stream/rápido. Sem isto dava pra clicar sem parar e pular os jogos.
   const [roundReady, setRoundReady] = useState(false)
@@ -8319,7 +8311,7 @@ export function PyramidSeasonScreen() {
   const [viuClube, setViuClube] = useState(false)
   useEffect(() => { setViuClube(false) }, [state.seasonNo])
   useEffect(() => { if (tab === 'estadio') setViuClube(true) }, [tab])
-  const temRecibo = (round === 0 && sponsorResultFresh) || (done && state.booksSeason === state.seasonNo)
+  const temRecibo = done && state.booksSeason === state.seasonNo   // 🧹 o recibo do pontual saiu com ele (19/09)
   const reciboNoClube = temRecibo && !viuClube
   // 🐛 CONSERTO (21/08, o Diego achou): a barra sumia MUITO mais do que devia.
   // Eu tinha escrito `penMode || halfMode || copaPlaying`, mas nenhum desses três
@@ -8912,20 +8904,20 @@ export function PyramidSeasonScreen() {
             resultado virou faixa fina, o banner de fidelidade virou selo dentro do
             botão da marca e a tabela de valores mudou pra aba 🤝 Patrocínio. */}
         {round === 0 && me && (() => {
-          const myBet = state.careerSponsorBet?.[youId]
           return (
             <>
               {/* 👉 A DECISÃO DA VEZ fica sozinha em cima. O resultado da temporada
                   passada desceu pros recibos, depois do botão verde. */}
-              {!decisoesOk && (() => { const n = (sponsorBetOk ? 0 : 1) + (masterOk ? 0 : 1) + (criseTrava ? 1 : 0); return <SeloSuaVez texto={tr(`${n} ${n === 1 ? 'decisão' : 'decisões'} pra começar a T${state.seasonNo ?? 1}`, `${n} decision${n === 1 ? '' : 's'} to start S${state.seasonNo ?? 1}`)} /> })()}
+              {!decisoesOk && (() => { const n = (masterOk ? 0 : 1) + (criseTrava ? 1 : 0); return <SeloSuaVez texto={tr(`${n} ${n === 1 ? 'decisão' : 'decisões'} pra começar a T${state.seasonNo ?? 1}`, `${n} decision${n === 1 ? '' : 's'} to start S${state.seasonNo ?? 1}`)} /> })()}
               {/* 🪜 A VIRADA EM PASSOS PADRONIZADOS (Diego, 15/09): *"quero padronizado
                   passo a passo igual já ocorre hoje quando abre patrocinador Master,
                   depois patrocinador pontual, depois material esportivo, depois venda de
                   camisas e depois o bico"*.
-                  ORDEM NOVA: 🏆 Master → 🤝 Pontual → 👟 Fornecedor → 🛍️ Camisas → 🕴️ Bico
-                  (antes o fornecedor vinha antes do Pontual).
-                  QUEM APARECE: toda temporada caem só o Pontual e a venda de camisas
-                  (são as duas apostas); Master e fornecedor voltam quando o contrato
+                  ORDEM DE HOJE: 🏆 Master → 👟 Fornecedor → 🛍️ Camisas → 🕴️ Bico.
+                  🚫 O PONTUAL SAIU em 19/09 (*"tá ficando muito patrocinador… tira esse
+                  patrocinador pontual"*), então a virada tem um passo a menos.
+                  QUEM APARECE: toda temporada cai a venda de camisas (a aposta que
+                  sobrou); Master e fornecedor voltam quando o contrato
                   acaba; o bico volta quando a DIVISÃO muda — *"o bico, depois de
                   escolhido, só troca se subir de divisão ou cair"*.
                   O NÚMERO do passo é contado aqui, e só entre os que estão na tela:
@@ -8944,7 +8936,6 @@ export function PyramidSeasonScreen() {
                   && (!state.careerBico || bicoDiv !== dv)
                 const passos: string[] = []
                 if (!masterAtivo(state.careerMaster?.[youId], sn)) passos.push('master')
-                passos.push('pontual') // 🤝 é aposta: cai TODA temporada
                 if (temLoja && !fornAtivo(lj?.forn, sn)) passos.push('forn')
                 if (temLoja && lj?.precoSeason !== sn) passos.push('camisas')
                 if (mostraBico) passos.push('bico')
@@ -8957,12 +8948,6 @@ export function PyramidSeasonScreen() {
                     <MasterBanner cinematic={privateCareer} div={me.div} seasonNo={sn}
                       contrato={state.careerMaster?.[youId]} passo={p('master')}
                       onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })} />
-                    {/* 🤝 2 — PONTUAL. fielBrandId segue a MESMA regra que sponsorBetRewards
-                        usa pro mínimo: acertou a meta na temporada PASSADA com essa marca. */}
-                    <SponsorBetBanner cinematic={privateCareer} div={me.div} passo={p('pontual')}
-                      chosen={myBet && myBet.season === state.seasonNo ? myBet : undefined}
-                      fielBrandId={sponsorResultFresh && sponsorResult!.hit ? sponsorResult!.brandId : undefined}
-                      onPick={(tier, brandId) => dispatch({ type: 'SET_SPONSOR_BET', tier, brandId, mgrId: youId })} />
                     {/* 👟 3 — FORNECEDOR, no mesmo escritório do Master. E SOME depois de
                         fechado: *"depois não fica info na home mais, ali é só pra tomar as
                         decisões"*. */}
@@ -9021,16 +9006,6 @@ export function PyramidSeasonScreen() {
         {/* 🧹 RECIBOS DA VIRADA: o que já aconteceu e não depende de você — uma
             linha cada, DEPOIS da decisão e do botão verde. Nada some: cada linha
             leva pro lugar onde a coisa mora inteira. */}
-        {round === 0 && sponsorResultFresh && sponsorResult && me && (
-          <CaixaRecibos titulo={`${tr('ENQUANTO ISSO, NA TEMPORADA', 'MEANWHILE, IN SEASON')} ${(state.seasonNo ?? 2) - 1}`}>
-            <ReciboLinha ic={sponsorResult.hit ? '🛡️' : sponsorResult.floored ? '🎖️' : '🚫'}
-              titulo={sponsorResult.hit ? tr('O patrocínio pagou', 'The sponsor paid out') : sponsorResult.floored ? tr('Não bateu — a fidelidade pagou', 'Missed the target — loyalty paid') : tr('A aposta do patrocínio não vingou', 'The sponsor bet did not pay')}
-              sub={`${sponsorBrandOf(sponsorResult.brandId)?.name ?? 'patrocinador'} · ${sponsorBetMeta(sponsorResult.tier).label.toLowerCase()}${sponsorResult.hit && sponsorResult.tier < 3 && sponsorResult.amount < sponsorBetValue(me.div, 3) ? ' · dava pra mirar mais alto 😉' : ''}`}
-              valor={`${sponsorResult.amount > 0 ? '+' : ''}${sponsorResult.amount} 🪙`}
-              valorCor={sponsorResult.amount > 0 ? GREEN : '#B23A2A'}
-              onClick={() => { setTab('estadio'); setClubeSub('patrocinio') }} ultimo />
-          </CaixaRecibos>
-        )}
         {/* 🎮 CONVIDADO (online): NÃO controla o ritmo (só o host), mas VÊ o estado —
             e a mudança reflete na hora quando o host troca manual↔auto (manualRoom
             sincroniza). Assim ele entende por que a temporada pausou ou seguiu. */}
@@ -9104,7 +9079,6 @@ export function PyramidSeasonScreen() {
           const sb = scorerRewards(divTop)
           const cr = copaBrOk && copaBR ? copaBrasilRewardsAsCopaRewards(copaBR, supercopaTie) : copaRewards(copa ?? { rounds: [], champion: null, championDiv: null, vice: null, viceDiv: null, scorers: [] }) // Copa do Brasil (testers) ou Copa Legends (todo mundo)
           const mrg = (a: Record<string | number, number>, b: Record<string | number, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
-          const spb = sponsorBetRewards(tables, state.careerSponsorBet, copa?.champion?.teamId ?? null, state.careerSponsorResult) // 🤝 aposta do patrocínio (por técnico) da temporada que ACABOU
           const newPlacements = computePromotions(tables)
           const torcDeltas = torcidaDeltas(tables, newPlacements)
           // 🎟️ OCUPAÇÃO por técnico (carreira nova): quão cheio o estádio ficou pela
@@ -9123,7 +9097,7 @@ export function PyramidSeasonScreen() {
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
           // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
           // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
-          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, sponsorRewards: spb.rewards, sponsorResults: spb.results, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
+          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
@@ -9531,7 +9505,6 @@ export function PyramidSeasonScreen() {
                           : tr('Nenhuma marca patrocina quem ainda não vende camisa — construa a 🛍️ Loja do Clube no estádio.', 'No brand sponsors a club that does not sell shirts yet — build the 🛍️ Club Store at the stadium.')}
                       </p>
                     </div>)}
-                {me && (privateCareer ? <CareerSponsorOverview chosen={state.careerSponsorBet?.[youId]} div={me.div} /> : <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} div={me.div} />)}
                 {me && <TVContrato div={me.div} clube={me.team} foco={tvFoco} onFocoFim={() => setTvFoco(false)} />}
                 {agenciaOk && (() => {
                   const myDiv = (state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string
@@ -9601,7 +9574,6 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            {!agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
             <StadiumTab cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
@@ -9662,7 +9634,6 @@ export function PyramidSeasonScreen() {
                 desbloqueios da Agência morava aqui — mudou pra Elenco › Agenciados
                 (14/08, pedido do Diego: tudo de Agência num lugar só, junto da
                 escalação de verdade, em vez de espalhado em duas abas). */}
-            {agenciaOk && me && <SponsorBetStatus bet={state.careerSponsorBet?.[youId]} />}
             {/* 🏛️ MULTICLUBES · SELETOR LIVRE (Opção B): troca de clube a qualquer hora,
                 fora do leilão (outra tela) e de jogo/Copa rolando.
                 ⚠️ O comentário aqui dizia "só testers" e estava VELHO (achado 15/09, o
