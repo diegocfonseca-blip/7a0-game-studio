@@ -50,6 +50,15 @@ régua de desempate. `npm run copa` verde. Bancada: `scripts/teste-copa-grupos/`
 saldo → gols marcados** (ele achava "vitórias → gols → saldo"); trocar gols ↔ saldo é
 uma linha em `groupTable`/`melhoresTerceiros` se ele quiser.
 
+### ✅ 3c. Tabela em colunas + VOCÊ em roxo (19/09, "faça tudo") — no ar
+Depois das oitavas ele pegou dois problemas: *"tá faltando organizar melhor os pts,
+vitória e saldo"* e *"a cor amarela é a mesma do usuário selecionado?"* — era. Agora:
+cabeçalho **# · SELEÇÃO · PTS · V · SG · GP** com colunas fixas (`cabecalhoTabela` /
+`linhaTabela` no `CupScreen`), e a cor da linha é SÓ a zona (verde/amarelo); o
+usuário é contorno **roxo #7C3AED + selo "VOCÊ"** (mesma linguagem do "SEU JOGO").
+⚠️ Selo em `<em>`, não `<span>`: o CSS `.ll26-world-group>div span span{display:block}`
+vira qualquer span interno em bloco e esticava o selo.
+
 ### ❓ 3. Oitavas: NÃO EXISTIAM — e ele viu certo (histórico)
 Formato de hoje: 4 grupos de 6, passam 2 = **8 seleções → quartas direto**. Se
 ele quiser oitavas, o formato natural de 24 seleções é o da **Copa de 86/90/94**:
