@@ -17,6 +17,9 @@
 //     todos os tempos sai — artilheiros, garçons e os anos de Bola de Ouro.
 //  5. 🅰️ GOL E ASSISTÊNCIA ANDAM JUNTOS (regra permanente dele): se um dia
 //     alguém peneirar só o gol, esta trava reprova.
+//  6. 🎯 SOBRA DE VERDADE ANTES DO PERNA-DE-PAU: o time de fundo que vendeu e não
+//     repôs no leilão pega um jogador REAL que está sobrando; o perna-de-pau só
+//     entra quando não sobrou mais ninguém daquela posição.
 //
 // Roda o CÓDIGO DE VERDADE no navegador (não uma cópia da regra aqui).
 // uso: node scripts/testa-fake-stats.mjs [--porta 5237]
@@ -98,23 +101,29 @@ const r = await p.evaluate(async () => {
   // e o de verdade não perde nada
   ok(limpo.careerScorersAll['romário|vasco|1994']?.goals === 30, 'a limpeza mexeu nos gols de quem é de verdade')
 
-  // 6️⃣ 🏷️ O FILLER NASCE COM O SELO — e a porta do leilão reconhece o velho
-  // Este é o buraco que o print do Diego mostrou (19/09): um "ATA · Zé Ninguém
-  // (Várzea 2000)" comprado no LEILÃO por 50 moedas. O filler não tinha
-  // `fake: true`, então o jogo inteiro — que pergunta `!c.fake` pra saber se a
-  // carta é de gente de verdade — o tratava como jogador real e o mandava pro
-  // leilão. Pior: a regra que garante "pelo menos 1 carta por posição" pega a
-  // carta MAIS FRACA do bot, e a mais fraca é sempre o filler.
-  const daPiramide = ps.seedCpuSquads([], 777, 'todos', true)
-  let semSelo = 0, comSelo = 0
-  for (const nome of Object.keys(daPiramide)) for (const c of daPiramide[nome]) {
-    if (!f.ehCartaFake(c)) continue
-    if (c.fake === true) comSelo++; else semSelo++
-  }
-  ok(comSelo > 0, 'nenhum filler nasceu na pirâmide — a trava não conseguiu conferir o selo')
-  ok(semSelo === 0, `${semSelo} filler(s) nasceram SEM o selo fake: true — a porta do leilão volta a deixar passar`)
-  // e o filler VELHO (save antigo, sem o selo) continua sendo pego pela regra
-  ok(f.ehCartaFake({ id: 'fil-s-3', name: 'Zé Ninguém', club: 'Várzea', pos: 'ATA' }), 'filler de save ANTIGO (sem selo) não foi reconhecido — carreira que já existe continuaria vendendo ele no leilão')
+  // 6️⃣ 🎯 SOBRA DE VERDADE ANTES DO PERNA-DE-PAU (regra do Diego, 19/09)
+  // Palavras dele: *"se ele também não comprar nenhum atacante nesse leilão, ele
+  // poderia ganhar um jogador que está sobrando das sobras, de atacante de sobra"*.
+  // O time de fundo que vendeu e não repôs era completado DIRETO com um Zé Ninguém,
+  // mesmo com dezenas de atacantes reais sem dono. Agora a sobra vem primeiro.
+  const onze = (sobras) => st.fillToEleven(
+    // elenco com 10: falta 1 ATA no 4-3-3
+    [...Array(1)].map(() => ({ id: 'g', name: 'Goleiro', club: 'X', year: 2000, pos: 'GOL', fame: 2, lo: 60, hi: 70 }))
+      .concat([...Array(2)].map((_, i) => ({ id: `l${i}`, name: 'Lateral', club: 'X', year: 2000, pos: 'LAT', fame: 2, lo: 60, hi: 70 })))
+      .concat([...Array(2)].map((_, i) => ({ id: `z${i}`, name: 'Zagueiro', club: 'X', year: 2000, pos: 'ZAG', fame: 2, lo: 60, hi: 70 })))
+      .concat([...Array(3)].map((_, i) => ({ id: `m${i}`, name: 'Meia', club: 'X', year: 2000, pos: 'MEI', fame: 2, lo: 60, hi: 70 })))
+      .concat([...Array(2)].map((_, i) => ({ id: `a${i}`, name: 'Atacante', club: 'X', year: 2000, pos: 'ATA', fame: 2, lo: 60, hi: 70 }))),
+    '4-3-3', () => 0.5, sobras,
+  )
+  const comSobra = onze({ GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [{ name: 'Atacante de Sobra', club: 'Sobra FC', year: 1999, pos: 'ATA', fame: 2, lo: 62, hi: 72 }] })
+  const novoComSobra = comSobra[comSobra.length - 1]
+  ok(comSobra.length === 11, `o time devia fechar em 11 e fechou em ${comSobra.length}`)
+  ok(!f.ehCartaFake(novoComSobra), `com sobra de verdade na fila, o time ainda pegou um perna-de-pau (${novoComSobra.name})`)
+  ok(novoComSobra.name === 'Atacante de Sobra', `pegou "${novoComSobra.name}" em vez da sobra real`)
+  // e quando NÃO há sobra, o perna-de-pau continua existindo (senão o time joga com 10)
+  const semSobra = onze({ GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] })
+  ok(semSobra.length === 11, 'sem sobra real, o time ficou com menos de 11 — isso não pode')
+  ok(f.ehCartaFake(semSobra[semSobra.length - 1]), 'sem sobra real, devia entrar o perna-de-pau (é a rede de segurança)')
 
   return { falhas, cartas: todas.length }
 })

@@ -1,42 +1,54 @@
-## 19/09/2026 (parte 20) — 🏷️ A RAIZ: o perna-de-pau nunca teve selo de "fake"
+## 19/09/2026 (parte 20) — 🎯 Sobra de VERDADE antes do perna-de-pau (e o que eu desfiz)
 
-O Diego mandou o print que fechou o caso (elenco do Geovany Souza):
-**`ATA · Zé Ninguém (Várzea 2000) · leilão · pagou 50 · 31–37`**. Ou seja: o
-perna-de-pau **foi pro LEILÃO** e um usuário comprou.
+### ⛔ Primeiro: o que eu desfiz, porque passei do ponto
+Vendo o print do Geovany (`ATA · Zé Ninguém (Várzea 2000) · pagou 50`), eu concluí
+que o perna-de-pau estava vazando pro LEILÃO e fechei a porta: pus `fake: true` nas
+quatro fábricas de filler e troquei 6 guardas do leilão. **O Diego mandou desfazer**:
+*"não queria que você fizesse muito bem assim não… o Geovany comprou no SONDAR
+jogador. Deixa ele poder ir pro sondar, não tem problema não — o usuário pode
+comprar sim lá no sondar se ele quiser"*.
 
-### O buraco
-As quatro fábricas de filler (`pyramidseason.tsx`, `store.tsx` e duas em
-`dinastia.tsx`) criavam a carta **sem `fake: true`** — só com clube `Várzea`. E o
-jogo inteiro pergunta **`!c.fake`** pra saber se a carta é de gente de verdade.
-Resultado: o filler passava por TODAS as portas como se fosse jogador real.
+E ele estava certo também no efeito colateral: com o selo, o perna-de-pau comprado
+**deixaria de contar pra fechar os 11** no elenco de quem comprou, perderia contrato
+e sumiria da sondagem. Mudança grande demais. **Tudo revertido.**
+👉 Quem mantém o perna-de-pau fora de RANKING continua sendo o `ehCartaFake()`
+(`fake.ts`), que reconhece pelo clube e pelo id — não precisa de selo nenhum.
 
-E tinha uma ironia: a regra que garante *"pelo menos 1 carta por posição no
-leilão"* pega a carta **MAIS FRACA** do bot. A mais fraca é **sempre** o filler.
-Ou seja, o jogo não só deixava ele passar — ele era o **preferido** pra ir pro leilão.
+### ✅ O que ele pediu de verdade, e que está feito
+Palavras dele: *"a gente tem um sorteio de um jogador que vai pro leilão, e o time
+desse jogador também participa do leilão. Se ele também não comprar nenhum atacante
+nesse leilão, ele poderia ganhar um jogador que está sobrando das sobras, de
+atacante de sobra. Mas só se ele não conseguir repor esse atacante no leilão"*.
 
-### Por que ele era ATACANTE (a parte que a medição da parte 19 não explicava)
-A medição mostrou que o filler nasce só em GOL/LAT/ZAG. Mas existe um segundo
-nascedouro: `fillToEleven` (`store.tsx`), que completa o time de fundo que vendeu
-e não repôs — e esse completa **qualquer posição, inclusive ATA**. Daí o ciclo:
-time de fundo entra no mercado → vende → é completado com um ATA Zé Ninguém →
-na temporada seguinte ele é a carta mais fraca → vai pro leilão → usuário compra
-→ joga de titular e vira artilheiro.
+Era exatamente o buraco: `fillToEleven` (a rede que devolve o time de fundo pra 11
+depois do mercado) ia **direto pro perna-de-pau**, sem nunca olhar as sobras. Por
+isso nascia um Zé Ninguém ATACANTE com 31 de nível enquanto dezenas de atacantes
+reais estavam sem dono — a resposta pra pergunta dele.
 
-### O conserto (duas pernas)
-1. **O filler nasce com `fake: true`** nas quatro fábricas. Com o selo, todas as
-   travas que já existiam passam a funcionar sozinhas (leilão, contrato, salário,
-   fechar os 11).
-2. **As portas do leilão passaram a usar `ehCartaFake()`** em vez de `!c.fake` —
-   6 lugares. Isto é o que cobre **carreira que JÁ existe**: o filler velho está
-   gravado no save sem o selo, e a regra compartilhada reconhece ele pelo clube
-   e pelo id mesmo assim.
+Agora a ordem é **1º sobra real · 2º perna-de-pau**:
+- `sobrasReais(s)` monta a fila por posição com quem não está em elenco nenhum
+  (nem de técnico, nem de fundo, nem no baralho do leilão);
+- ordenada do mais FRACO pro mais forte — quem tapa buraco de time de fundo é a
+  sobra modesta, não o craque esquecido (esse continua aparecendo no leilão);
+- consumida com `shift()`, então dois times nunca levam a mesma carta;
+- o perna-de-pau **continua existindo** como última rede: sem ele, time de fundo
+  entraria em campo com 10.
 
-**Trava: `npm run fake`, seção 6** — reprova se um filler nascer sem selo ou se o
-filler de save antigo deixar de ser reconhecido.
+**Trava: `npm run fake`, seção 6.**
 
-⚠️ O que **não** muda: o filler continua existindo e continua jogando pelos times
-de fundo (é ele que mantém o time com 11). Ele só não é mais tratado como
-jogador de verdade.
+### 📊 Quantas cartas faltam pra acabar com o perna-de-pau de vez
+Medido (`npm run pernadepau`), com 20 técnicos de elenco CHEIO (27 cartas):
+| posição | faltando |
+|---|---|
+| GOL | 47 |
+| LAT | 77 |
+| ZAG | 58 |
+| MEI | **0** |
+| ATA | **0** |
+
+Ou seja: **não falta atacante nem meia — falta goleiro, lateral e zagueiro.** E o
+corte em 4 faixas de força pede margem, então na prática são ~+100 GOL, ~+150 LAT e
+~+120 ZAG (≈ 370 cartas novas, baralho indo pra ~1.840). Não precisa de 2.500.
 
 ---
 
