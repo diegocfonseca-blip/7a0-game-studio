@@ -27,6 +27,14 @@ const ALVOS = [
   // true`), então não existe mais "a tela antiga" pra comparar — o `?novo=0` hoje
   // desenha a MESMA tela e o print só enganaria quem viesse conferir depois.
   ['elenco-celular-22', 390, 'n=22&olheiro=ouro', false], // elenco ainda por encher
+  // 🔒 A PERGUNTA DO DIEGO (19/09): *"mas ele não vai aparecer no campinho dos
+  // reservas, né, esse terceiro? não sei como fica"*. Os dois prints abaixo
+  // respondem: 4-2-3-1 com 2 atacantes (o caso dele) e com 3. O campinho é o
+  // mesmo nos dois — ele só desenha os 11 titulares —, e o 3º atacante entra
+  // como MAIS UMA LINHA na lista de reservas. Nada fica escondido.
+  ['elenco-4231-2-atacantes', 390, 'n=27&form=4-2-3-1&ata=2&olheiro=ouro', true],
+  ['elenco-4231-3-atacantes', 390, 'n=27&form=4-2-3-1&ata=3&olheiro=ouro', true],
+  ['elenco-4231-3-atacantes-campinho', 390, 'n=27&form=4-2-3-1&ata=3&olheiro=ouro', false],
 ]
 
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
