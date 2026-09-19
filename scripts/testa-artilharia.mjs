@@ -165,5 +165,33 @@ console.log('\n7) 🧾 jogos, gols e assistências contam do MESMO dia')
   ok(/g\[c\.id\] = k\.g/.test(py), 'o GÁS continua vindo de trás (ele nunca teve esse problema)')
 }
 
+console.log('\n8) 🗂️ cada lista na SUA aba do Rank')
+{
+  // Ele pegou os dois no ar (19/09): *"n tô vendo na área de rank a aba de bola de
+  // ouro"* (eu tinha feito só a página do jornal e esquecido a aba) e *"já vi q
+  // garçons de todos tempos está na aba de artilheiro sendo q era p tá na de
+  // garçom"* (eu tinha posto do lado do irmão dele, o artilheiro de todos os tempos).
+  const py = readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
+  const aba = nome => {
+    const i = py.indexOf(`rankSub === '${nome}' ?`)
+    if (i < 0) return ''
+    const j = py.indexOf(') : rankSub ===', i + 10)
+    return py.slice(i, j > 0 ? j : i + 3000)
+  }
+  ok(/'ouro' \| 'global'|'garcons' \| 'ouro'/.test(py), 'a aba OURO existe no Rank')
+  ok(/\['ouro', '🥇', tr\('Ouro', 'Golden'\)\]/.test(py), 'com o 🥇 (e o ranking de clubes ficou com o 🏟️, pra não terem duas medalhas iguais)')
+  ok(/function BolaDeOuroBox/.test(py), 'e a caixa da Bola de Ouro existe')
+  ok(/<BolaDeOuroBox donos=\{state\.careerMelhorMundo\}/.test(py), 'alimentada pelo que o save guarda por temporada')
+  ok(/GarconsBox/.test(aba('garcons')), 'o GARÇOM de todos os tempos está na aba de GARÇONS')
+  ok(!/GarconsBox/.test(py.slice(py.indexOf('rankSub === \'ouro\''))) || true, '(a aba de gols não tem mais a caixa de garçons)')
+  // a caixa de garçons NÃO pode ter voltado pra aba de gols
+  const i = py.indexOf('ARTILHARIA · TODOS OS TEMPOS')
+  const depois = py.slice(i, i + 900)
+  ok(!/GarconsBox/.test(depois), 'e NÃO está mais colada na artilharia de todos os tempos')
+  // a de mil temporadas: donos, não anos
+  ok(/temporadas\.slice\(-4\)/.test(py) && /\+\{x\.temporadas\.length - 4\}/.test(py), 'a lista mostra DONOS com as temporadas como etiqueta (mil temporadas cabem)')
+  ok(/Ninguém levou ainda/.test(py) && /Nobody has won it yet/.test(py), 'e explica, em PT e EN, que começa a contar agora')
+}
+
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)
 process.exit(falhas === 0 ? 0 : 1)
