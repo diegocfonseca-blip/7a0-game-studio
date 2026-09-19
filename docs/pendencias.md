@@ -1,3 +1,56 @@
+## 19/09/2026 (parte 5) — 🌐 Copa do Mundo: jogo único, relógios +10s, e o portão grande (em andamento)
+
+Pedido do Diego, num áudio só: *"a Copa do Mundo o mata-mata tem que ser um jogo
+único, porque Copa do Mundo é único, e isso serve também pra carreira… tá tendo
+oitavas de final? acho que vi quartas apenas… quero que aumente mais 10s pra cada
+um escolher seu país… e a convocação também mais dez segundos… esse quadrinho da
+Copa pra escolher o país está MUITO pequeno… tem que ser parecido com o modelo da
+Copa dos 8 e da Libertadores: acabou a liga, já aparece grande o banner da Copa, a
+tabela da liga vai pra baixo, e embaixo maior a escolha dos países, e depois segue
+pra convocação"*.
+
+### ✅ 1. Mata-mata em JOGO ÚNICO (online e carreira)
+`mkTie` em `simulaCopaMundo` jogava ida e volta com agregado. Agora é uma partida
+(`g1`/`ev1`), empate = pênaltis. Como é o MESMO motor da carreira, vale nos dois.
+Os passos mudaram de 12 pra 10 (5 rodadas · sorteio 6 · quartas 7 · semi 8 ·
+final 9 · cerimônia 10) e agora moram num lugar só, `src/escalacao/copa-passos.ts`
+— antes a tela, o `copa-stats` e o relógio da sala escreviam "8", "10", "11", "12"
+na mão, cada um no seu canto.
+- ⚠️ **O BANCO TEM CÓPIA**: a função `esc_copa_preview_clock` (o relógio
+  sincronizado da sala) tinha `r.step<12` e "roda bola em 7–11". Virou `<10` e
+  "7–9" — `docs/sql/online-copa-clock-jogo-unico.sql`. Foi aplicada via MCP
+  (se a aprovação não passou, rodar o arquivo no SQL Editor; sem ela a Copa
+  continua funcionando, só que o relógio marca "bola rolando" na cerimônia por
+  14s à toa).
+- `npm run copa` (o guarda "todo mundo vê a mesma Copa") continua verde.
+- 🎲 **A mesma semente dá outro resultado a partir das quartas** (o `rng` andava
+  mais com a volta). Copa encerrada não muda (campeão gravado). Sala no MEIO do
+  mata-mata na hora do deploy: todo aparelho recalcula igual — ninguém racha.
+- `placaresDoConfronto` (o agregado do bug do Gabriel, 15/08) saiu: sem volta não
+  tem coluna pra somar errado.
+
+### ✅ 2. Relógios da Copa online: bandeira 65 → 75s · convocação 80 → 90s
+Constantes em `copa-mundo-online.tsx` (histórico no comentário: 45 → 65 → 75 e
+65 → 135 → 80 → 90). O banner entre as duas continua 15s.
+
+### ❓ 3. Oitavas: NÃO EXISTEM — e ele viu certo
+Formato de hoje: 4 grupos de 6, passam 2 = **8 seleções → quartas direto**. Se
+ele quiser oitavas, o formato natural de 24 seleções é o da **Copa de 86/90/94**:
+6 grupos de 4 (3 rodadas), passam os 2 primeiros + os 4 melhores 3ºs = 16 →
+oitavas → quartas → semi → final. Muda `NUM_GROUPS/GROUP_SIZE/RODADAS_GRUPO`,
+`copa-passos.ts` (12 passos de novo: 3 rodadas · sorteio · oitavas · quartas ·
+semi · final · fim), a régua dos melhores 3ºs, o prêmio da carreira (oitavas =
+degrau novo) e a CÓPIA no banco. **Decisão dele — não fazer sem OK.**
+
+### ⏳ 4. O portão grande da Copa no fim da liga (mockup → OK)
+Hoje o fim da liga com Copa do Mundo mostra a tabela da liga PRIMEIRO e o portão
+da Copa depois, como uma caixinha; a escolha de país só fica grande pra quem está
+na vez (modal), e os quadrinhos são pequenos (2 colunas, 320px de altura com
+rolagem). O pedido: igual à Copa dos 8/Libertadores (`CompetitionStage` no TOPO com
+a arte do mundial, liga recolhida em `<details>` embaixo), e a escolha de país
+grande, inline, sob o banner; depois a convocação. Regra #2: mockup e OK antes de
+subir.
+
 ## 19/09/2026 (parte 4) — 🪑 O banco do leilão parou de mentir · 🌱 o cria sai na hora · 🏢 a SAF parou de comer vaga
 
 Tudo isto nasceu de UMA pergunta do Diego: *"todo time que tem formação com 4-2-3-1,

@@ -1,5 +1,6 @@
 import type {ScoreGoal} from './pyramidseason'
 import type {simulaCopaMundo} from './copa-mundo'
+import {PASSO_COPA} from './copa-passos'
 
 /** Apenas partidas encerradas: não entrega gols nem passes de fases futuras. */
 export function copaStats(world:ReturnType<typeof simulaCopaMundo>,step:number,finished:boolean){
@@ -16,8 +17,10 @@ export function copaStats(world:ReturnType<typeof simulaCopaMundo>,step:number,f
  }
  const seen=(phase:number)=>step>phase||(step===phase&&finished)
  for(const g of world.groups)g.matches.forEach((rd,i)=>{if(seen(i+1))for(const m of rd)add(m.ev,m.h,m.a)})
- for(const [ties,phase] of [[world.qf,7],[world.sf,9]] as const)for(const t of ties){if(seen(phase))add(t.ev1,t.h,t.a);if(seen(phase+1))add(t.ev2,t.a,t.h)}
- if(seen(11))add(world.final.ev,world.final.h,world.final.a)
+ // 🏆 jogo único (19/09): cada confronto do mata-mata é UMA partida (`ev1`); os
+ // passos vêm de `copa-passos`, nunca escritos na mão.
+ for(const [ties,phase] of [[world.qf,PASSO_COPA.QUARTAS],[world.sf,PASSO_COPA.SEMI]] as const)for(const t of ties){if(seen(phase))add(t.ev1,t.h,t.a)}
+ if(seen(PASSO_COPA.FINAL))add(world.final.ev,world.final.h,world.final.a)
  const top=(map:typeof goals)=>[...map.values()].sort((a,b)=>b.total-a.total||a.name.localeCompare(b.name)).slice(0,10)
  return{goals:top(goals),assists:top(assists)}
 }

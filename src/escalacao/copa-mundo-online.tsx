@@ -38,6 +38,7 @@ import { CompetitionStage } from './online-match-visual'
 import { NationalCrest } from './national-crest'
 import { useCopaClockPreview } from './copa-clock-preview'
 import { simulaCopaMundo } from './copa-mundo'
+import { PASSO_COPA } from './copa-passos'
 import { pensRevealDelay } from './pyramidseason'
 import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
@@ -201,10 +202,12 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   const cinematic = ONLINE_VISUAL_RELEASED
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
   const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao):null,[cinematic,entrants,ficha.seed,ficha.edicao])
+  // ⏱️ o tempo a mais dos PÊNALTIS de cada passo, pro relógio da sala esperar a
+  // disputa inteira. Os passos vêm de `copa-passos` (jogo único desde 19/09).
   const extraForStep=(step:number)=>{
     if(!clockWorld)return 0
-    const ties=step===8?clockWorld.qf:step===10?clockWorld.sf:[]
-    if(step===11&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen)*1000)
+    const ties=step===PASSO_COPA.QUARTAS?clockWorld.qf:step===PASSO_COPA.SEMI?clockWorld.sf:[]
+    if(step===PASSO_COPA.FINAL&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen)*1000)
     return Math.round(Math.max(0,...ties.map(t=>t.pen?pensRevealDelay(t.pen)*1000:0)))
   }
   const clock=useCopaClockPreview(cinematic,roomId,ficha.edicao,ficha.seed,souDono,extraForStep)
@@ -378,7 +381,10 @@ interface LinhaSala { user_id: string; player_index: number; manager_name: strin
 //     convocar no online é agora de 80 segundos… e não mais de 100s, no rápido,
 //     minhas ligas etc."*). Vale pra TODO online que tem Copa do Mundo — é uma
 //     constante só, então não tem como um modo ficar diferente do outro.
-const SEG_BANDEIRA = 65, SEG_BANNER = 15, SEG_CONVOCA = 80
+//   · 19/09: +10s nos dois (Diego: *"quero que aumente mais 10s pra cada um
+//     escolher seu país… e a convocação também aumente mais dez segundos"*).
+//     Bandeira 65 → 75s · convocação 80 → 90s. O banner continua 15s.
+const SEG_BANDEIRA = 75, SEG_BANNER = 15, SEG_CONVOCA = 90
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */
