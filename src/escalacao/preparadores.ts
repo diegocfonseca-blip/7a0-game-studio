@@ -17,7 +17,11 @@
 //
 // 💸 SALÁRIO E CONTRATO COPIAM O TÉCNICO, sem inventar regra nova:
 //   · salário = 10% do preço, por temporada (a mesma conta de `careerTecnicoPago`/10)
-//   · contrato de 5 temporadas (`seasonNo + 4`), renova pelo MESMO preço quando vence
+//   · contrato de 5 temporadas (`seasonNo + 4`)
+//   · 🔁 RENOVAÇÃO PELA METADE DO PREÇO (Diego 19/09): *"tá mt caro renovar contrato
+//     de preparador, principalmente o de mil… quero q seja metade todos eles, como se
+//     o valor desse é mil mas fosse 500 p cálculos de renovação"*. Antes copiava o
+//     técnico (preço cheio). Vale pros QUATRO: 50 · 150 · 300 · 500.
 //   · dispensa sem multa depois de vencido
 import type { ApoioTier } from './apoio'
 
@@ -43,9 +47,9 @@ export type Preparador = {
 // preparador de brinde).
 export const temAutomatico = (p: Preparador | null): boolean => p?.key === 'seirulo'
 
-// ⚖️ o banco hoje devolve +4 e cada jogo gasta 1,4 (condicao.ts) → "joga 2, senta 1"
-// é o ritmo em que o tanque nunca desce. Cada preparador só mexe NESSE número:
-//   +6 → joga 4 e senta 1 · +9 → joga 6 · +12 → joga 8 · +20 → joga 14
+// ⚖️ o banco hoje devolve +4 e cada jogo gasta 1,4 (condicao.ts) → 1 descanso paga 2
+// jogos. Cada preparador só mexe NESSE número (ver `jogosPorDescanso`):
+//   +6 → 1 descanso paga 4 jogos · +9 → 6 · +12 → 8 · +20 → 14
 export const PREPARADORES: Preparador[] = [
   {
     key: 'faria', nome: 'Rui Faria', pais: '🇵🇹', tier: 'verde', selo: '', cat: ['Bom', 'Good'],
@@ -78,6 +82,19 @@ export const preparadorDe = (key?: string | null): Preparador | null =>
 
 /** salário por temporada — a MESMA conta do técnico (10% do preço) */
 export const salarioPreparador = (p: Preparador | null): number => (p ? Math.round(p.preco / 10) : 0)
+
+/** 📝 renovar custa METADE do preço de contratação (Diego 19/09) — vale pros quatro */
+export const precoRenovacaoPreparador = (p: Preparador | null): number => (p ? Math.round(p.preco / 2) : 0)
+
+// 🔋 O QUE O PREPARADOR FAZ, EM PALAVRAS QUE NÃO CONFUNDEM (Diego 19/09): *"tá mt
+// confuso esse negócio de joga 8 seguidas e senta 1… o jogador q nem tem preparador
+// cansa só dps de 50 partidas"*. Ele tem razão: o "joga N, senta 1" era o ritmo em
+// que o tanque NUNCA DESCE, não o ponto em que o cara cansa. O jogador aguenta 54
+// jogos seguidos antes do 😓 COM OU SEM preparador — o preparador não muda a escada,
+// muda quanto UMA rodada no banco devolve (+4 sem ele; +6/+9/+12/+20 com).
+// Então a tela agora diz isso: quanto o banco devolve e quantos jogos um descanso paga.
+/** quantos jogos de titular UMA rodada no banco paga (gás devolvido ÷ gasto por jogo) */
+export const jogosPorDescanso = (banco: number): number => Math.floor(banco / 1.4)
 
 // ─── 📝 O PRAZO DO CONTRATO DA COMISSÃO (18/09) ──────────────────────────────
 // Antes era SEMPRE 5 temporadas, cravado. O Diego olhou e pediu variedade, com a

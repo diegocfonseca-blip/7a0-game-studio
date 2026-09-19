@@ -422,6 +422,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   "Pra todos" = todos os USUÁRIOS, nunca "todas as divisões". Carreira antiga sem
   Agência fica fora, como em toda regra nova da carreira.
 
+- **🏋️ Renovar preparador físico custa METADE do preço de contratar (19/09).**
+  Palavras dele: *"como se o valor desse é mil mas fosse 500 p cálculos de
+  renovação… serve p outros preparadores tb"*. Mora em `precoRenovacaoPreparador`
+  (`preparadores.ts`). Só o preparador; o técnico ele não pediu. E o texto do
+  preparador nunca mais diz "joga N seguidas e senta 1" — ele confundiu com o ponto
+  em que o jogador cansa (54 jogos, igual pra todos). Diz-se quanto o BANCO devolve
+  e quantos jogos um descanso paga.
 - **🧾 O total do jogador é "NO SEU CLUBE", nunca "carreira" (19/09).** Ele
   perguntou direto, olhando a ficha: *"são dados dele no clube que ele tá atual né…
   não são jogos totais contando outros clubes"*. E está certo — `guardaCansaco`

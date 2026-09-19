@@ -26,7 +26,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao'
-import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
+import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
@@ -4583,7 +4583,7 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
                 <span style={{ flex: 'none', width: 40, height: 40, border: `3px solid ${INK}`, borderRadius: 10, background: APOIO_PERKS[prep.tier].grad, boxShadow: `2px 2px 0 0 ${INK}`, display: 'grid', placeItems: 'center', fontSize: 19 }}>🏋️</span>
                 <span style={{ minWidth: 0 }}>
                   <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 15, lineHeight: 1.1 }}>{prep.nome} <span style={{ fontSize: 12 }}>{prep.pais}</span></span>
-                  <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, color: '#5a5647' }}>{prep.selo} {tr(prep.cat[0], prep.cat[1])} · {tr(`o titular joga ${Math.floor(prep.banco / 1.4)} seguidas e senta 1`, `starters play ${Math.floor(prep.banco / 1.4)} in a row, then rest 1`)}</span>
+                  <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, color: '#5a5647' }}>{prep.selo} {tr(prep.cat[0], prep.cat[1])} · {tr(`banco devolve +${prep.banco} de gás por rodada (sem ele: +4) — 1 descanso paga ${jogosPorDescanso(prep.banco)} jogos`, `bench gives back +${prep.banco} energy per round (without him: +4) — 1 rest pays for ${jogosPorDescanso(prep.banco)} games`)}</span>
                 </span>
               </div>
               <p style={{ fontSize: 9.5, fontWeight: 800, color: '#5a5647', margin: '6px 2px 0' }}>
@@ -4592,9 +4592,9 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
               </p>
               {prepVencido && (
                 <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-                  <button onClick={() => dispatch({ type: 'RENOVAR_PREPARADOR' })} disabled={moedas < prep.preco}
-                    style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: moedas < prep.preco ? '#CBBF9E' : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: moedas < prep.preco ? 'not-allowed' : 'pointer' }}>
-                    {tr('📝 RENOVAR', '📝 RENEW')} <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .9, textTransform: 'none' }}>{prep.preco} 🪙 · {CONTRATO_PRAZOS.join(' · ')} {tr('temporadas (sorteio)', 'seasons (drawn)')}</span>
+                  <button onClick={() => dispatch({ type: 'RENOVAR_PREPARADOR' })} disabled={moedas < precoRenovacaoPreparador(prep)}
+                    style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: moedas < precoRenovacaoPreparador(prep) ? '#CBBF9E' : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: moedas < precoRenovacaoPreparador(prep) ? 'not-allowed' : 'pointer' }}>
+                    {tr('📝 RENOVAR', '📝 RENEW')} <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .9, textTransform: 'none' }}>{precoRenovacaoPreparador(prep)} 🪙 ({tr('metade do preço', 'half price')}) · {CONTRATO_PRAZOS.join(' · ')} {tr('temporadas (sorteio)', 'seasons (drawn)')}</span>
                   </button>
                   <button onClick={() => dispatch({ type: 'DISPENSAR_PREPARADOR' })}
                     style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
@@ -4630,8 +4630,8 @@ function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; on
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '0 0 2px', textTransform: 'uppercase' }}>{tr('🏋️ Contratar preparador', '🏋️ Hire a fitness coach')}</p>
         <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.4 }}>
           {getLang() === 'en'
-            ? <>The better the coach, the more energy the bench gives back — and the longer your star plays without getting tired. Salary is <b>10% of the price</b> per season. The contract length is <b>drawn when he signs</b>: {CONTRATO_PRAZOS.join(', ')} seasons — same ladder as a player's.</>
-            : <>Quanto melhor o preparador, mais o banco devolve — e mais tempo o seu craque joga sem cansar. Salário de <b>10% do preço</b> por temporada. O tempo de contrato é <b>sorteado na assinatura</b>: {CONTRATO_PRAZOS.join(', ')} temporadas — a mesma escada do jogador.</>}
+            ? <>Every player lasts <b>54 straight games</b> before getting tired 😓, with or without a coach. What the coach changes is the <b>bench</b>: without him, a round on the bench gives back only <b>+4 energy</b> (a game costs 1.4). The better the coach, the more one rest refills — and the longer your star goes without ever running low. Salary is <b>10% of the price</b> per season, renewal costs <b>half the price</b>. The contract length is <b>drawn when he signs</b>: {CONTRATO_PRAZOS.join(', ')} seasons — same ladder as a player's.</>
+            : <>Todo jogador aguenta <b>54 jogos seguidos</b> antes de cansar 😓, com ou sem preparador. O que o preparador muda é o <b>banco</b>: sem ele, uma rodada no banco devolve só <b>+4 de gás</b> (um jogo gasta 1,4). Quanto melhor o preparador, mais um descanso enche o tanque — e mais tempo o seu craque fica sem baixar. Salário de <b>10% do preço</b> por temporada, renovação pela <b>metade do preço</b>. O tempo de contrato é <b>sorteado na assinatura</b>: {CONTRATO_PRAZOS.join(', ')} temporadas — a mesma escada do jogador.</>}
         </p>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 8px', color: '#5a5647' }}>💰 {tr('seu caixa', 'your cash')}: {moedas} 🪙</p>
         {PREPARADORES.map(p => {
@@ -4643,7 +4643,8 @@ function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; on
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, lineHeight: 1.05, margin: '1px 0 0' }}>{p.nome} <span style={{ fontSize: 14 }}>{p.pais}</span></p>
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#4a4636', lineHeight: 1.4, margin: '4px 0 7px' }}>{tr(p.bio[0], p.bio[1])}</p>
                 <p style={{ fontSize: 10.5, fontWeight: 800, background: '#F1F7F2', borderLeft: `4px solid ${GREEN}`, borderRadius: 5, padding: '6px 8px', margin: 0, lineHeight: 1.4 }}>
-                  {tr(`o titular joga ${Math.floor(p.banco / 1.4)} seguidas e senta 1 — e nunca cansa`, `starters play ${Math.floor(p.banco / 1.4)} in a row, then rest 1 — and never get tired`)}
+                  {tr(`🔋 banco devolve +${p.banco} de gás por rodada (sem preparador: +4)`, `🔋 bench gives back +${p.banco} energy per round (no coach: +4)`)}
+                  <span style={{ display: 'block', fontWeight: 700, color: '#4a4636' }}>{tr(`1 rodada sentado paga ${jogosPorDescanso(p.banco)} jogos de titular — descansando nesse ritmo, o gás nunca baixa`, `1 round on the bench pays for ${jogosPorDescanso(p.banco)} games as a starter — rest at that pace and the tank never drops`)}</span>
                   {temAutomatico(p) ? <b style={{ display: 'block', color: GREEN, marginTop: 2 }}>🤖 {tr('e troca sozinho: o rodízio automático é só dele', 'and rotates on its own: auto-rotation is his alone')}</b> : null}
                 </p>
                 <button onClick={() => pode && onEscolher(p.key)} disabled={!pode}
