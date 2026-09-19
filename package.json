@@ -39,7 +39,8 @@
     "roteiro": "node scripts/mockup-fim-temporada-roteiro.mjs",
     "fim": "node scripts/testa-roteiro.mjs",
     "fake": "node scripts/testa-fake-stats.mjs",
-    "pernadepau": "node scripts/mede-perna-de-pau.mjs"
+    "pernadepau": "node scripts/mede-perna-de-pau.mjs",
+    "proximo": "node scripts/testa-proximo-jogo.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

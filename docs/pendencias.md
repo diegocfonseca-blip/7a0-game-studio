@@ -1,3 +1,40 @@
+## 19/09/2026 (parte 22) — ⚔️ A linha do próximo jogo mais sutil + rivalidade só entre usuários
+
+Mockup aprovado por ele (*"sobre o mockup anterior está aprovado"*). O pedido veio
+vendo a tela da sala em live: *"tá mt exagerado esse negócio de próximo jogo e
+equilíbrio retranca e ataque… não precisa escrever o que é retranca, equilíbrio e
+ataque, só bote. E de forma mais sutil também o próximo jogo"*.
+
+### O que mudou
+1. 🧹 **Saiu a explicação das táticas** ("retranca segura ataque · ataque atropela
+   equilíbrio…"), nos DOIS blocos — o da liga e o da Copa. Ele mexe na tática toda
+   rodada; a explicação era ruído fixo. **A regra no jogo continua a mesma.**
+2. 🔇 **O título encolheu**: "PRÓXIMO" e "(em casa)" viraram uma etiqueta miúda em
+   cima (10px, cinza), e o nome do jogo caiu de 18px pra 15px. No celular ele
+   ocupava três linhas.
+3. ⚔️ **A rivalidade virou pílula**: `⚔️ RIVALIDADE V=2 · E=1 · D=1`.
+
+### A regra da rivalidade (palavras dele)
+*"Se tiver alguma rivalidade mostre se já teve jogo entre usuários APENAS. Se for
+usuário e bot não mostre nada… mas só vale entre usuários"*. Dois cortes:
+- o adversário tem que ser **gente** (`isHuman`) — **rival-bot da carreira não
+  conta**, mesmo continuando a ser "clássico" pra cor da caixa e pra etiqueta;
+- e eles já têm que **ter se enfrentado** — no primeiro duelo não existe
+  retrospecto, e "0 × 0" seria ruído.
+
+O `rivalry` velho (que misturava usuário e rival-bot num retrospecto por extenso)
+foi embora junto com o parágrafo de clássico.
+
+**Trava: `npm run proximo`** — 3 seções: a explicação não volta · a pílula sai do
+corte de usuário e exige jogo · o título continua miúdo.
+
+### ⏳ Ficou de fora, e ele ainda não respondeu
+A **faixa de DEPOIS do jogo** ("⚔️ CLÁSSICO VENCIDO contra X · Rivalidade: você 2 ×
+1") ainda mostra retrospecto **contra rival-bot da carreira**. Ele falou só do
+próximo jogo, e eu não quis estender por conta — perguntei e está esperando.
+
+---
+
 ## 19/09/2026 (parte 21) — ⏱️ Mais 1 segundo na partida, agora incluindo TODAS as copas
 
 Ordem dele: *"aumente mais um segundo qualquer copa do online e offline… e também
