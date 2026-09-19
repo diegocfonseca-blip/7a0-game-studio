@@ -4844,32 +4844,42 @@ export function EscMonte() {
             const afford = bloq !== 'caixa'
             const podePegar = bloq === null
             return (
-            <Box key={c.id} className="p-3 flex items-center justify-between">
-              <CardFace c={c} />
-              <div className="flex items-center gap-2 shrink-0">
-                {own && val > 0 && (
-                  <span className="text-right leading-tight" style={{ color: GREEN }}>
-                    <span className="text-sm font-black" style={OSWALD}>{tr('🫵 seu', '🫵 yours')}</span>
-                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: 'rgba(0,0,0,0.5)' }}>{tr('recupere grátis · vale', 'recover for free · worth')} {val}</span>
-                  </span>
-                )}
-                {paidCard && (
-                  <span className="text-right leading-tight" style={{ color: afford ? '#B8860B' : RED }}>
-                    <span className="text-sm font-black" style={OSWALD}>💰 {val}</span>
-                    <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>{tr('pague sem leilão', 'buy without auction')}</span>
-                  </span>
-                )}
-                {/* 📝 contrato vencido do seu próprio clube: diz o PORQUÊ e o CAMINHO */}
-                {bloq === 'semcontrato' && (
-                  <span className="text-right leading-tight" style={{ color: RED, maxWidth: 150 }}>
-                    <span className="text-[11px] font-black" style={OSWALD}>{tr('📝 CONTRATO VENCIDO', '📝 CONTRACT EXPIRED')}</span>
-                    <br /><span className="text-[8px] font-bold" style={{ color: 'rgba(0,0,0,0.55)', textTransform: 'none' }}>{tr('ele não volta de graça pro seu clube. Outro time pode levar — e um dia você recompra.', 'he does not come back to your club for free. Another club can take him — and one day you buy him back.')}</span>
-                  </span>
-                )}
-                <Btn onClick={() => podePegar && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id, by: state.youUid })} bg={bloq === 'semcontrato' ? '#CBBF9E' : paidCard ? GOLD : GREEN} disabled={!podePegar}>
-                  <span style={{ color: bloq === 'semcontrato' ? INK : paidCard ? INK : '#fff' }}>{bloq === 'semcontrato' ? tr('NÃO DÁ', 'CAN\u2019T') : paidCard ? (afford ? `${tr('PAGAR', 'PAY')} ${val}` : tr('SEM CAIXA', 'NO CASH')) : tr('PEGAR', 'TAKE')}</span>
-                </Btn>
+            <Box key={c.id} className="p-3">
+              <div className="flex items-center justify-between gap-2">
+                <CardFace c={c} />
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* 🫵 "recupere grátis" SÓ quando ele PODE MESMO recuperar. O Diego pegou
+                      a contradição no print do Rei da Bola (19/09): a mesma carta dizia
+                      "RECUPERE GRÁTIS" e "CONTRATO VENCIDO — não volta pro seu clube". */}
+                  {own && val > 0 && bloq !== 'semcontrato' && (
+                    <span className="text-right leading-tight" style={{ color: GREEN }}>
+                      <span className="text-sm font-black" style={OSWALD}>{tr('🫵 seu', '🫵 yours')}</span>
+                      <br /><span className="text-[8px] font-bold uppercase" style={{ color: 'rgba(0,0,0,0.5)' }}>{tr('recupere grátis · vale', 'recover for free · worth')} {val}</span>
+                    </span>
+                  )}
+                  {paidCard && (
+                    <span className="text-right leading-tight" style={{ color: afford ? '#B8860B' : RED }}>
+                      <span className="text-sm font-black" style={OSWALD}>💰 {val}</span>
+                      <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>{tr('pague sem leilão', 'buy without auction')}</span>
+                    </span>
+                  )}
+                  <Btn onClick={() => podePegar && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id, by: state.youUid })} bg={bloq === 'semcontrato' ? '#CBBF9E' : paidCard ? GOLD : GREEN} disabled={!podePegar}>
+                    <span style={{ color: bloq === 'semcontrato' ? INK : paidCard ? INK : '#fff' }}>{bloq === 'semcontrato' ? tr('NÃO DÁ', 'NO') : paidCard ? (afford ? `${tr('PAGAR', 'PAY')} ${val}` : tr('SEM CAIXA', 'NO CASH')) : tr('PEGAR', 'TAKE')}</span>
+                  </Btn>
+                </div>
               </div>
+              {/* 📝 CONTRATO VENCIDO: o aviso virou LINHA INTEIRA embaixo (do lado, o texto
+                  vazava pra fora do card no celular — print dele) e responde a pergunta que
+                  ele fez na hora: *"ele não vai ganhar dinheiro nenhum?"*. Vai sim: quando
+                  alguém levar, o valor cai na caixa dele; se ninguém levar, os bots fiadores
+                  varrem o monte no fim e PAGAM igual. Quem não pode levar é ele. */}
+              {bloq === 'semcontrato' && (
+                <p className="mt-2 rounded-lg border-2 border-black px-2 py-1.5 text-[10px] font-bold leading-snug" style={{ background: '#FDECEA', color: '#7a2418' }}>
+                  {getLang() === 'en'
+                    ? <><b style={OSWALD}>📝 CONTRACT EXPIRED.</b> He does not come back to your club — you let it run out. Another club takes him and <b>you get {val} 🪙</b>; if nobody does, a machine club picks him up at the end and pays the same. One day he may show up at the auction again.</>
+                    : <><b style={OSWALD}>📝 CONTRATO VENCIDO.</b> Ele não volta pro seu clube — você deixou vencer. Outro time leva e <b>você recebe {val} 🪙</b>; se ninguém levar, um time da máquina fica com ele no fim e paga igual. Um dia ele pode reaparecer no leilão.</>}
+                </p>
+              )}
             </Box>
             )
           })}
