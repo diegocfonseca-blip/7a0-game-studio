@@ -7767,6 +7767,24 @@ export function PyramidSeasonScreen() {
   // 🥇 o MELHOR DO MUNDO da temporada — gol + assistência, liga + todas as copas,
   // o mundo inteiro. Só faz sentido com a temporada fechada (`done`).
   const melhorDoAno = useMemo(() => (done ? melhorDoMundo([...scorersAll, ...(copa?.scorersAll ?? [])], [...assistsAll, ...(copa?.assistsAll ?? [])]) : null), [done, scorersAll, assistsAll, copa])
+  // 🏆🅰️ TOP 5 DO ANO pra página dos prêmios do jornal — liga + todas as copas,
+  // somados POR CARTA (a mesma identidade do resto: nome|clube|ano).
+  const top5Jornal = useMemo(() => {
+    const junta = <T,>(linhas: (T & { name: string; club?: string; year?: number; teamName: string; you: boolean })[], quanto: (x: T) => number) => {
+      const m = new Map<string, { name: string; club?: string; year?: number; teamName: string; n: number; you: boolean }>()
+      for (const x of linhas) {
+        const k = x.club ? `${x.name}|${x.club}|${x.year}` : x.name
+        const r = m.get(k)
+        if (r) r.n += quanto(x)
+        else m.set(k, { name: x.name, club: x.club, year: x.year, teamName: x.teamName, n: quanto(x), you: x.you })
+      }
+      return [...m.values()].filter(x => x.n > 0).sort((a, b) => b.n - a.n).slice(0, 5)
+    }
+    return {
+      artilheiros: junta([...scorersAll, ...(copa?.scorersAll ?? [])], x => x.goals),
+      garcons: junta([...assistsAll, ...(copa?.assistsAll ?? [])], x => x.assists),
+    }
+  }, [scorersAll, assistsAll, copa])
   const allTimeAssists = useMemo(() => Object.values((state.careerAssistsAll ?? {}) as Record<string, SeasonAssist>).sort((a, b) => b.assists - a.assists).slice(0, 20), [state.careerAssistsAll])
   // ao FIM da temporada, soma os artilheiros dela no acumulado (uma vez por
   // temporada; o reducer é idempotente por statsSeason). Cada cliente pode
@@ -8551,6 +8569,13 @@ export function PyramidSeasonScreen() {
                não está gravado — a crônica só grava na virada). */
             memoria={manchetesDeMemoria(state.careerCronica?.[`m${youId}`], { div: me.div, campeao: me.pos === 1, copa: !!(copa?.champion && (copa.champion as { you?: boolean }).you), titulosTotais: undefined })}
             copaRun={copaRun} superRun={superRun} superChamp={superChamp}
+            /* 🥇 OS PRÊMIOS DO ANO (19/09) — a página nova do jornal. O melhor do
+               mundo é gol + assistência somados (liga + todas as copas, o mundo
+               inteiro, por carta); as duas listas são o top 5 de cada, com o clube
+               da carta embaixo do nome, que é a identidade que virou regra hoje. */
+            melhor={melhorDoAno}
+            artilheiros={top5Jornal.artilheiros}
+            garcons={top5Jornal.garcons}
             /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
                na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
                temporada exata (pedido do Diego 05/08). */

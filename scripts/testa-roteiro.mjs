@@ -23,6 +23,7 @@
 // uso: node scripts/testa-roteiro.mjs
 import { readFileSync } from 'node:fs'
 const py = readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
+const jo = readFileSync('src/escalacao/jornal.tsx', 'utf8')
 let falhas = 0
 const ok = (cond, msg) => { console.log(`  ${cond ? '✅' : '❌'} ${msg}`); if (!cond) falhas++ }
 
@@ -71,6 +72,24 @@ console.log('\n5) 📰 cada coisa no seu passo')
   // e fora do roteiro (online) tudo continua aparecendo junto, como antes
   ok(/!roteiroOn \|\|/.test(py), 'sem roteiro (online), tudo aparece junto como antes')
   ok(/!\(roteiroOn && tab === 'jogos'\)/.test(py), 'os chips das fases saem da aba Jogos no fim (ficam em Tabelas)')
+}
+
+console.log('\n6) 📰 o jornal avisa que tem mais página')
+{
+  // Diego (19/09): *"já dava p passar a página do jornal... Porém ng percebe...
+  // Tem q ter alguma dobra sei lá.. Algo q de vontade de virar a página"*.
+  // As páginas EXISTIAM desde sempre; o convite eram 2 bolinhas de 8px.
+  ok(/'capa', \.\.\.\(prem \? \['premios' as const\]/.test(jo), 'a página dos prêmios entra na lista de páginas')
+  ok(/const prem = melhor \?\? null/.test(jo), 'e só existe quando houve Bola de Ouro na temporada')
+  ok(/clipPath: 'polygon\(100% 0,100% 100%,0 100%\)'/.test(jo), '1. a ORELHA (canto de papel levantado) está lá')
+  ok(/VIRAR PARA A PÁGINA \$\{prox \+ 1\}/.test(jo) && /TURN TO PAGE/.test(jo), '2. a barra diz pra QUAL página vai (PT e EN)')
+  ok(/NOME_PAG\[pags\[prox\]\]/.test(jo), 'e diz O QUE tem lá — é isso que dá vontade de virar')
+  ok(/PÁG\. \$\{i \+ 1\} DE \$\{pags\.length\}/.test(jo) && /PAGE \$\{i \+ 1\} OF/.test(jo), '3. o número da página aparece (PT e EN)')
+  ok(/NESTA EDIÇÃO/.test(jo) && /IN THIS EDITION/.test(jo), '4. a chamada de capa anuncia o miolo (PT e EN)')
+  ok(/pags\.slice\(1\)\.map/.test(jo), 'e cada linha da chamada leva direto pra página dela')
+  ok(/import bolaOuroArtSrc from '\.\/img\/jornal-bola-ouro-v1\.webp'/.test(jo), 'a arte da Bola de Ouro é ARQUIVO (fora do bundle), como as outras do jornal')
+  ok(/Não foi o artilheiro do ano, nem quem mais deu passes/.test(jo), 'e a página explica o prêmio sem precisar de manual')
+  ok(/melhor=\{melhorDoAno\}/.test(py) && /artilheiros=\{top5Jornal\.artilheiros\}/.test(py) && /garcons=\{top5Jornal\.garcons\}/.test(py), 'a tela alimenta a página com o melhor do mundo e os dois top 5')
 }
 
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)

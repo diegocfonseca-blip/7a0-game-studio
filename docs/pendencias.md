@@ -1,3 +1,43 @@
+## 19/09/2026 (parte 12) — 🎬 ROTEIRO + 📰 JORNAL QUE VIRA PÁGINA + 🥇 BOLA DE OURO (FEITO)
+
+Ele aprovou os mockups (*"pode seguir faça e publique já tb"*). O que entrou:
+
+### 🎬 O roteiro do fim de temporada
+4 passos, um por tela: **📰 jornal → 💰 caixa → 🌍 Copa do Mundo → 🔨 decisão**.
+Barrinha de progresso em cima; dá pra VOLTAR num passo já feito, não dá pra pular
+pra frente. O caixa deixou de ser uma linha fininha e virou quadro com o saldo em
+número grande + os 5 maiores lançamentos. A Copa do Mundo saiu do topo (onde
+competia com a decisão) e virou um passo discreto depois do jornal.
+- ⚠️ **O buraco que eu tive que fechar**: passo a passo é lugar de PRENDER gente.
+  Temporada sem lançamento nenhum não desenha o quadro do caixa → passo 2 ficaria
+  sem botão → carreira travada. Agora tem aviso com saída, e o `npm run fim` reprova
+  se qualquer passo ficar sem porta.
+- 🌐 **O ONLINE não foi tocado** (lá é votação entre os técnicos da sala).
+- 🧹 Os chips das fases saíram da aba JOGOS no fim; em TABELAS continuam.
+
+### 📰 O jornal: as páginas já existiam — faltava AVISAR
+🔑 **Achado**: `SeasonJornal` já tinha páginas (`capa`/`agencia`/`eventos`/`memoria`)
+desde sempre. O convite eram **duas bolinhas de 8px e uma linha de 9px** — por isso
+*"ninguém percebe"*. Agora tem as quatro pernas: **orelha** do papel no canto ·
+**barra** dizendo pra qual página vai **e o que tem lá** · **"PÁG. X DE Y"** ·
+**"NESTA EDIÇÃO"** na capa (e cada linha dela leva direto pra página).
+
+### 🥇 A página da Bola de Ouro
+Arte dele (com a marca apagada), o nome do melhor do mundo, a conta
+`gols + assistências = total`, a frase que explica o prêmio, e os **top 5
+artilheiros e top 5 garçons** do ano lado a lado — tudo por CARTA, com o clube
+embaixo do nome. A página só existe quando houve Bola de Ouro na temporada.
+
+### ⏳ O que ficou de fora (e por quê)
+- **O compartilhar ainda manda a imagem inteira.** A pergunta "esta página ou o
+  jornal todo?" é obra à parte (o canvas é outro código); não entrou agora.
+- **A página 4 do mapa ("MERCADO")** não foi criada: o que ela teria já mora no
+  Caderno do Empresário, que é uma página do jornal desde antes.
+- **O flip automático da capa depois de 5s** continua como era. Ele existia
+  justamente porque ninguém achava a página 2 — agora que a capa ANUNCIA as
+  páginas, talvez ele só atrapalhe quem está lendo a manchete. Candidato a sair;
+  não mexi porque ninguém pediu.
+
 ## 19/09/2026 (parte 11) — 🎬 O FIM DE TEMPORADA VIRA UM ROTEIRO
 
 Ideia dele, com o print da tela na mão: *"e se fizéssemos de uma forma q tivesse q
