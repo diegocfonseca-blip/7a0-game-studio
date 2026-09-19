@@ -1,3 +1,41 @@
+## 19/09/2026 (parte 10) — 📰 O MARTELO VIRA JORNAL DE VÁRIAS PÁGINAS
+
+Ele viu o mockup da página 2 e pegou o buraco de cara: *"agora q eu vi q já dava p
+passar a página do jornal... Porém ng percebe... Tem q ter alguma dobra sei lá..
+Algo q de vontade de virar a página… Outras páginas na verdade q são mais de duas"*.
+
+### 🔑 O problema não é CABER, é AVISAR
+O jornal já cresce pra baixo. O que falta é o papel **dizer** que tem mais. Num
+jornal de verdade isso se resolve com **três coisas**, e o mockup
+(`npm run jornalpags`) propõe as três:
+
+1. **A ORELHA** — o canto do papel levantado no fim da página, com a de baixo
+   espiando. É o sinal mais antigo que existe de "tem mais", e dá vontade de puxar.
+   Tocar nela vira a página.
+2. **A BARRA QUE DIZ O QUE TEM LÁ** — "próxima página" não convence ninguém; o que
+   convence é *"🥇 Os prêmios do ano — quem levou a Bola de Ouro, e não foi o
+   artilheiro"*. Fica grudada no fim de cada página.
+3. **A CHAMADA DE CAPA ("nesta edição")** — logo abaixo da manchete. É ela que faz a
+   pessoa saber que existem 4 páginas **antes mesmo de rolar**.
+4. (+ o **número da página** sempre à vista, com bolinhas: some a dúvida de
+   "acabou ou não?")
+
+### 🗺️ Mapa proposto (4 páginas)
+| pág | assunto |
+|---|---|
+| 1 | **CAPA** — a manchete e os teus números (fica LEVE de novo; hoje ela carrega tudo) |
+| 2 | **PRÊMIOS** — Bola de Ouro · artilharia · garçons |
+| 3 | **DONOS** — campeões de A, B, C, D, Copa, Supercopa e Mundial |
+| 4 | **MERCADO** — a agência, quem valorizou, quem despencou |
+
+### 🤔 E o compartilhar (pergunta que o multipágina cria)
+Numa IMAGEM ninguém vira página. Proposta: o botão passa a perguntar **"esta
+página"** (curta, boa pro grupo) ou **"o jornal inteiro"** (as 4 emendadas, com as
+dobras desenhadas). O palpite é que a maioria mande só a página.
+
+⏳ Esperando o OK dele. Nada no código — os três mockups do dia (página 2, páginas,
+e o da Bola de Ouro) são só desenho.
+
 ## 19/09/2026 (parte 9) — 📰 A SEGUNDA PÁGINA DE O MARTELO
 
 Ideia dele: *"acho q vc deveria prolongar o jornal p baixo… como se fosse uma
