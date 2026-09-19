@@ -8602,6 +8602,7 @@ type FichaJogador = { fame: number; lo: number; hi: number; folk?: boolean; prom
 const FICHA_ATUAL = (() => {
   const exato = new Map<string, FichaJogador>()
   const porNome = new Map<string, FichaJogador>()
+  const endereco = new Map<string, { club: string; year: number }>()
   const repetidos = new Set<string>()
   for (const cat of [CATALOG_WORLD, CATALOG_EU, CATALOG]) {
     for (const lista of Object.values(cat)) {
@@ -8609,6 +8610,9 @@ const FICHA_ATUAL = (() => {
         const ficha: FichaJogador = { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bio: c.bio }
         exato.set(`${c.name}|${clubCanon(c.club)}|${c.year}`, ficha)
         if (porNome.has(c.name)) repetidos.add(c.name); else porNome.set(c.name, ficha)
+        // 🏷️ onde a carta MORA hoje (clube + ano). Só pra nome que existe numa
+        // carta só — ver `endereco.delete` logo abaixo.
+        if (!endereco.has(c.name)) endereco.set(c.name, { club: clubCanon(c.club), year: c.year })
       }
     }
   }
@@ -8618,7 +8622,8 @@ const FICHA_ATUAL = (() => {
   // pelo nome daria a ficha errada, e a de fora da Europa é MUITO mais fraca.
   // Nesses casos só o casamento exato (nome+clube+ano) vale.
   for (const n of repetidos) porNome.delete(n)
-  return { exato, porNome }
+  for (const n of repetidos) endereco.delete(n)
+  return { exato, porNome, endereco }
 })()
 // 🏀 A MESMA REGRA PRO BASQUETE, EM MAPA SEPARADO. A regra permanente do Diego
 // (21/08) é "mexeu no jogador, TODO save atualiza" — mas a ficha acima só olha os
@@ -8646,6 +8651,22 @@ const FICHA_NBA = (() => {
 function sincronizaNiveis(save: EscState): EscState {
   let mexeu = 0
   const vistos = new Set<object>()
+  // 🏷️ CARTA QUE TROCOU DE ENDEREÇO (Diego 18/09: *"Zidane tá aparecendo Real
+  // Madrid… ele é Juventus, pow"*).
+  // Em 03/09 ele mesmo mandou trocar a carta: saiu o Zidane do Real Madrid 2002,
+  // entrou o da Juve de 1998. O CATÁLOGO trocou — mas a carta é COPIADA pro save e
+  // congela, e esta função só regravava a FICHA (nível, categoria, bio), nunca o
+  // clube e o ano, que são a identidade. Resultado: quem já tinha o Zidane seguia
+  // com um endereço que não existe mais em lugar nenhum do jogo.
+  // 👉 Agora o endereço acompanha, com DUAS travas pra não inventar carta:
+  //   1. só quando o trio nome+clube+ano NÃO existe mais no catálogo (carta órfã);
+  //   2. só quando o nome tem UMA carta só (`endereco`, que já ignora nome repetido
+  //      pelo mesmo motivo do `porNome`). Kaká SP × Kaká Milan, Messi Barça × Miami,
+  //      CR7 Real × Al-Nassr — esses NUNCA são tocados, senão a gente trocaria a
+  //      carta de um jogador pela do outro momento dele.
+  // 💰 E o livro de preços vai junto (`marketValues` é `nome|clube`): sem isso o
+  //    valor de mercado que o clube dele construiu ficaria órfão na chave velha.
+  const mudouDeClube: [string, string][] = []
   // 🏀 save de basquete lê a ficha do baralho NBA; o de futebol nunca passa por lá.
   const nba = save.sport === 'basquete'
   const bioNba = (f: FichaNba) => (getLang() === 'en' ? f.bioEn : f.bioPt)
@@ -8665,6 +8686,15 @@ function sincronizaNiveis(save: EscState): EscState {
         const f: FichaJogador | undefined = fNba
           ? { fame: fNba.fame, lo: fNba.lo, hi: fNba.hi, folk: fNba.folk, promessa: fNba.promessa, bio: bioNba(fNba) }
           : (FICHA_ATUAL.exato.get(chave) ?? FICHA_ATUAL.porNome.get(o.name))
+        // 🏷️ carta órfã de nome único: o endereço acompanha o catálogo
+        if (!FICHA_ATUAL.exato.has(chave) && !nba && !o.cria) {
+          const end = FICHA_ATUAL.endereco.get(o.name)
+          if (end && (clubCanon(o.club) !== end.club || o.year !== end.year)) {
+            mudouDeClube.push([`${o.name}|${clubCanon(o.club)}`, `${o.name}|${end.club}`])
+            o.club = end.club; o.year = end.year
+            mexeu++
+          }
+        }
         if (f) {
           const dif = o.fame !== f.fame || o.lo !== f.lo || o.hi !== f.hi
             || !!o.folk !== !!f.folk || !!o.promessa !== !!f.promessa || (f.bio != null && o.bio !== f.bio)
@@ -8682,6 +8712,17 @@ function sincronizaNiveis(save: EscState): EscState {
     for (const k of Object.keys(o)) anda(o[k], prof + 1)
   }
   try { anda(save, 0) } catch { /* save torto: melhor não sincronizar do que quebrar o load */ }
+  // 💰 o livro de preços segue a carta que mudou de clube (fica o MAIOR, mesma
+  // regra da junção de chaves do `migrateTeamNames`)
+  if (mudouDeClube.length && save.marketValues) {
+    const mv = { ...save.marketValues }
+    for (const [velha, nova] of mudouDeClube) {
+      if (velha === nova || !(velha in mv)) continue
+      mv[nova] = Math.max(mv[nova] ?? 0, mv[velha])
+      delete mv[velha]
+    }
+    save.marketValues = mv
+  }
   return mexeu > 0 ? { ...save } : save
 }
 /** tudo que um save de carreira leva ao ser aberto: faxina do caixa + nível das cartas em dia
