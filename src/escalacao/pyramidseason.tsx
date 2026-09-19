@@ -12,7 +12,7 @@ import { useCareerPresentation as useOnlinePreview, useLegendPresentation } from
 import { usePenaltyPresentation as usePenaltyArtPreview } from './presentation-release' // ⚡ pênalti ilustrado: LIBERADO geral (12/09)
 import { PenaltyArt } from './penalty-art'
 import type { PenaltyArtHandle } from './penalty-art'
-import { PRESIDENT_ROOM_RELEASED } from './career-feature-release'
+import { PRESIDENT_ROOM_RELEASED, CAREER_VISUAL_RELEASED, publicCareerVisual } from './career-feature-release'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
@@ -2716,7 +2716,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
   footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void }) {
   const privatePreview = useOnlinePreview()
-  const cinematic = (privatePreview || (ONLINE_VISUAL_RELEASED && enhancedOnline)) && !basket
+  // 🔓 19/09: a apresentação da CARREIRA saiu da prévia e foi pra todo mundo, por ordem
+  // do Diego (*"pode publicar p todos"*). Uma chave só, `CAREER_VISUAL_RELEASED` — pôr
+  // `false` devolve a carreira ao visual antigo inteirinha, sem tocar no online.
+  const carreiraPublica = CAREER_VISUAL_RELEASED && !!enhancedCareer
+  const cinematic = (privatePreview || (ONLINE_VISUAL_RELEASED && enhancedOnline) || carreiraPublica) && !basket
   // 🏀 basquete: `basket` traz os PONTOS finais (ex.: 112/98). O placar então SOBE
   // até esse total conforme o relógio (não conta lances). SÓ o basquete passa isto
   // — no futebol `basket` é undefined e TUDO fica exatamente como hoje.
@@ -2925,12 +2929,12 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     golsOuvidosRef.current = n   // rodada nova zera junto (shown volta a 0)
   }, [shown.length, youIsHome, roundMs])
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
-  // 🎙️🔒 PLACAR GRANDE + LANCE DO GOL (Diego 19/09) — SÓ NA PRÉVIA DA CONTA DELE
-  // (`privatePreview`). Pedido: *"aumentar a área do placar… ampliar as frases… dar
-  // mais emoção"*. A emoção é o LANCE (como a bola entrou, banco em `lances.ts`) e o
-  // apito final dizendo o resultado. Sem faixa colorida e sem confete (ele barrou os
-  // dois). Pra todo mundo fora da prévia, nada aqui muda uma vírgula.
-  const grande = privatePreview && !basket
+  // 🎙️ PLACAR GRANDE + LANCE DO GOL (Diego 19/09). Pedido: *"aumentar a área do placar…
+  // ampliar as frases… dar mais emoção"*. A emoção é o LANCE (como a bola entrou, banco
+  // em `lances.ts`) e o apito final dizendo o resultado. Sem faixa colorida e sem
+  // confete (ele barrou os dois). Nasceu travado na conta dele e foi LIBERADO PRA TODOS
+  // no mesmo dia, depois que ele viu no celular.
+  const grande = (privatePreview || carreiraPublica) && !basket
   const minTxt = (m: number) => (m > 90 ? `90+${m - 90}` : `${m}`)
   const lanceUltimo = grande && last ? lanceDoGol(last, roundKey) : ''
   // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
@@ -6077,7 +6081,8 @@ function MyCopaMatch(props: { tie: CopaTie; pos: number; phase: number; colors: 
   return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
 }
 function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed, footTint, legMs = COPA_LEG_MS, final=false }: { tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
-  const privateMatch = useOnlinePreview()
+  // 🔓 19/09: o visual novo da Copa da carreira também saiu da prévia (mesma chave)
+  const privateMatch = useOnlinePreview() || CAREER_VISUAL_RELEASED
   const legG = tie.legGoals.length ? tie.legGoals : [tie.goals]
   const nLegs = legG.length
   const total = nLegs * 90
@@ -6150,7 +6155,7 @@ function CopaMatchList(props: { ties: CopaTie[]; pos: number; colors: Record<num
   return <ZonaSegura nome="copa-outros-jogos" aviso={tr('⏳ atualizando os jogos da fase…', '⏳ refreshing the round…')}><CopaMatchListInner {...props} /></ZonaSegura>
 }
 function CopaMatchListInner({ ties, pos, colors, safName, title }: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
-  const privateMatches = useOnlinePreview()
+  const privateMatches = useOnlinePreview() || CAREER_VISUAL_RELEASED   // 🔓 19/09: liberado geral
   if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>}/>} />
   const nameCol = (t: SimTeam) => t.you ? (colors[t.teamId]?.solid ?? INK) : (safName && t.name === safName) ? (colors[t.teamId]?.solid ?? INK) : (t.human || t.rival) ? (colors[t.teamId]?.solid ?? INK) : INK
   const markOf = (t: SimTeam) => t.you ? '👤 ' : (safName && t.name === safName) ? '💼 ' : t.rival ? '⚔️ ' : t.dorm ? '🏛️ ' : t.human ? '🔥 ' : ''
@@ -7078,7 +7083,10 @@ export function PyramidSeasonScreen() {
   const privatePreview = useOnlinePreview()
   // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
   // a autoridade do host continuam passando pelos mesmos caminhos abaixo.
-  const privateCareer = privatePreview && state.sport !== 'basquete'
+  // 🔓 19/09: liberado pra TODO MUNDO (*"pode publicar p todos"*). `publicCareerVisual`
+  // = `CAREER_VISUAL_RELEASED` + carreira + não-basquete; reverter é a chave em
+  // `career-feature-release.ts`, e a carreira volta inteira ao visual antigo.
+  const privateCareer = (privatePreview || publicCareerVisual(state)) && state.sport !== 'basquete'
   const [divisionView, setDivisionView] = useState<Div | null>(null)
   const [scoreClock, setScoreClock] = useState({ round: -1, minute: 0 })
   const reportMinute = useCallback((minute:number) => setScoreClock({round:state.round,minute}),[state.round])
@@ -8507,7 +8515,7 @@ export function PyramidSeasonScreen() {
             kind={!copaPlaying ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
             title={`${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
             phase={copaPlaying ? copaFaseName : `${me ? DIV_NAME[me.div] : tr('Liga', 'League')} · ${done ? tr('Encerrada', 'Over') : tr('Rodada ', 'Round ')+round+'/38'}`}
-            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : tr('Acompanhe sua divisão e os jogos das outras séries sem sair da tela.', 'Follow your division and the other divisions\' matches without leaving the screen.')}
+            detail={copaPlaying ? `${copaFase?.ties.length ?? 0} ${tr('confrontos', 'ties')} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')} · ${sub}` : ''}
             status={copaPlaying ? copaPos >= copaFaseTotal ? tr('Fase encerrada · confira os resultados e os pênaltis', 'Round over · check the results and the penalties') : tr('Bola rolando · acompanhe os confrontos', 'Ball rolling · follow the ties') : done ? tr('Confira a edição de encerramento', 'Check the closing edition') : round===0 ? tr('Tudo pronto para a primeira rodada', 'All set for the first round') : revealed >= round ? tr('Resultados revelados', 'Results revealed') : tr('Bola rolando', 'Ball rolling')}>
             <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>motivoTorcida(h.motivo)).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
             {copaPlaying && <CareerCompetitionHelp kind={supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}/>}

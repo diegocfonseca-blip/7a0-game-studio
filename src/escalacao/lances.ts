@@ -19,6 +19,11 @@
 //  · 🌐 PT e EN com a MESMA quantidade de frases em cada banco (o sorteio é por índice).
 //  · 😄 Cômico com moderação: uma a cada ~8 frases, e nada que humilhe o jogador de
 //    verdade (nomes reais — regra do "não inventar como uma pessoa é").
+//  · ⚽🚫 NADA DE PÊNALTI AQUI (Diego 19/09): *"texto de pênalti não pode ter, porque
+//    quando é pênalti tem batida manual pra eu bater, lembra?"*. O pênalti tem tela
+//    própria (mira + barra de força, `PENALTY_ART_RELEASED`), então narrar "pênalti no
+//    canto" num gol de jogada normal seria contar uma história que não aconteceu — e
+//    comportamento fora das regras mapeadas é bug, não sabor.
 import { getLang } from './lang'
 
 type Par = [pt: string, en: string]
@@ -65,7 +70,7 @@ const SEM_ASSIST: Par[] = [
   ['pegou o rebote e só colocou pra dentro na cara do gol', 'picked up the rebound and just placed it in from point-blank range'],
   ['falta batida com efeito, por cima da barreira, no cantinho', 'a curling free kick over the wall, into the corner'],
   ['puxou pra perna boa e soltou uma bomba de fora da área', 'shifted onto his good foot and unleashed a rocket from outside the box'],
-  ['pênalti batido no canto e o goleiro foi pro outro lado', 'penalty into the corner and the keeper went the other way'],
+  ['girou em cima do zagueiro na entrada da área e bateu sem deixar cair', 'spun past the defender at the edge of the box and hit it on the volley'],
   ['chapéu no zagueiro e toque por cobertura na saída do goleiro', 'flicked it over the defender and chipped the keeper as he came out'],
   ['roubou a bola no meio-campo, saiu cara a cara e bateu rasteiro', 'stole the ball in midfield, went one on one and shot low'],
   ['deu uns dribles da vaga e chutou cruzado, sem chance', 'a couple of quick dribbles and a shot across goal, no chance'],
@@ -76,7 +81,7 @@ const SEM_ASSIST: Par[] = [
   ['falta batida rasteira por baixo da barreira, que pulou', 'a low free kick under the wall, which jumped'],
   ['bicicleta! Sim, bicicleta, no meio da área', 'bicycle kick! Yes, a bicycle kick, in the middle of the box'],
   ['pegou de primeira uma bola que sobrou na entrada da área', 'hit first time a ball that dropped at the edge of the box'],
-  ['tocou de cavadinha na cobrança de pênalti. Coragem', 'a Panenka from the spot. Brave'],
+  ['tirou o goleiro da jogada com um toque de cavadinha. Coragem', 'took the keeper out of the play with a cheeky chip. Brave'],
   ['bateu mal, a bola desviou na zaga e enganou o goleiro', 'mishit it, the ball deflected off a defender and fooled the keeper'],
   ['entrou driblando pela ponta, cortou pra dentro e bateu cruzado', 'dribbled in from the wing, cut inside and shot across goal'],
   ['cobrança de falta direta e o goleiro engoliu um frango', 'direct free kick and the keeper let one slip through'],
@@ -89,7 +94,7 @@ const SEM_ASSIST: Par[] = [
   ['driblou o goleiro e tocou pro gol vazio, sem pressa', 'rounded the keeper and rolled it into the empty net, no rush'],
   ['pegou a sobra do escanteio e bateu de primeira, rasteiro', 'got the loose ball from the corner and hit it first time, low'],
   ['gol de cabeça depois de um cruzamento que ninguém cortou', 'a header after a cross nobody dealt with'],
-  ['pênalti forte no meio do gol, o goleiro pulou', 'a powerful penalty down the middle, the keeper dived'],
+  ['chutou forte no meio do gol e o goleiro pulou pro canto', 'blasted it down the middle and the keeper dived to the corner'],
   ['finalização de fora da área que explodiu no travessão e entrou', 'a shot from outside the box that smashed the bar and went in'],
   ['tocou de letra na pequena área. Não faz sentido, mas entrou', 'a flick with the back of the boot in the six-yard box. Makes no sense, but it went in'],
   ['gol de barriga, sem querer, depois de escorregar na área', 'a belly goal, by accident, after slipping in the box'],

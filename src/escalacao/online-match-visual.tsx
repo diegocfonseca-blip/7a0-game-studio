@@ -69,7 +69,9 @@ export function CompetitionStage({ kind, title, phase, detail, status, children 
   detail: string; status?: string; children?: ReactNode
 }) {
   return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`}>
-    <div className="ll26-competition-copy"><small>{title}</small><h2>{phase}</h2><p>{detail}</p></div>
+    {/* 🧹 `detail` vazio não vira parágrafo em branco (Diego 19/09: a liga não precisa
+        da linha "acompanhe sua divisão…"; a Copa continua dizendo o formato da fase) */}
+    <div className="ll26-competition-copy"><small>{title}</small><h2>{phase}</h2>{detail ? <p>{detail}</p> : null}</div>
     {status && <div className="ll26-competition-status"><span />{status}</div>}
     {children}
   </section>

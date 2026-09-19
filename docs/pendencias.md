@@ -44,6 +44,31 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 20) — 🔓 A carreira nova saiu da prévia: PUBLICADA PRA TODOS
+
+Ele olhou a aba Jogos no celular e fechou três coisas de uma vez:
+1. *"Essa frase 'acompanhe sua divisão e os jogos etc' não precisa escrever."* → o
+   subtítulo da liga saiu do palco (`CareerCompetitionStage`). O `CompetitionStage` só
+   desenha o `<p>` quando tem texto, então **a Copa continua dizendo o formato da fase**
+   (quantos confrontos · jogo único/ida e volta) — quem perdeu a linha foi só a liga.
+2. *"Texto de pênalti não pode ter, porque quando é pênalti tem batida manual pra eu
+   bater, lembra?"* → as 3 frases de pênalti saíram de `lances.ts` e foram **trocadas
+   por outras 3** (o acervo continua com 80). Motivo, que vale pra qualquer frase nova:
+   o pênalti tem TELA PRÓPRIA (mira + força); narrar "pênalti no canto" num gol de
+   jogada normal seria contar uma história que não aconteceu.
+3. *"Pode publicar p todos."* → a apresentação da carreira saiu da trava de conta.
+
+### 🔓 Como ficou a liberação (e como reverter)
+- `privateCareer` agora é `privatePreview || publicCareerVisual(state)`, e o placar
+  (`grande`/`cinematic`) e as duas telas da Copa da carreira usam a MESMA chave:
+  **`CAREER_VISUAL_RELEASED` em `career-feature-release.ts`**.
+- 👉 **Reverter é UMA linha**: essa chave pra `false` devolve a carreira inteira ao
+  visual antigo, **sem tocar no online** (que tem a chave dele, `ONLINE_VISUAL_RELEASED`).
+- A casca da carreira (fundo de estádio, abas) já era pública desde antes — quem não
+  era a conta dele via casca nova com miolo velho. Agora está coerente.
+- Novidade na home (a do placar que conta o lance). O conserto do som não entra em
+  novidade, que é regra da casa.
+
 ## 19/09/2026 (parte 19) — 🐛 O som AMBIENTE sumiu (só tocava o gol)
 
 Ele: *"não sei por que não tá parecendo o som ambiente mais durante os jogos, só tô
@@ -96,11 +121,7 @@ também; e dar mais emoção ao placar"*. Mockup em `scripts/mockup-placar-emoca
 - Bancada: `scripts/teste-placar-grande/` (`?cena=rolando|gol|fim&res=v|d|e`, print
   com `print.mjs`).
 
-⏳ **Fora da prévia nada mudou.** Quando ele aprovar no celular, liberar pra todo
-mundo = trocar o gate (`privatePreview`) por uma chave de release, como o
-`ONLINE_VISUAL_RELEASED`. Aí sim entra novidade na home.
-⏳ O cabeçalho da aba JOGOS é outro (`CareerCompetitionStage`, 205px no celular) — ele
-não falou dele; se reclamar, é o mesmo tratamento.
+✅ **PUBLICADO PRA TODOS no mesmo dia** — ver a parte 20 logo abaixo.
 
 ## 19/09/2026 (parte 17) — 🔁 No rodízio entra o MAIS CHEIO (e o cria só sem reserva de verdade)
 

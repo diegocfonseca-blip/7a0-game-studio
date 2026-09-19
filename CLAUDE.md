@@ -435,7 +435,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   vitória. O que ele quer é narração de COMO a bola entrou, com acervo GRANDE
   (*"muitas e muitas frases, senão fica chato"*), cômico com moderação. Banco em
   `src/escalacao/lances.ts` — quem for adicionar frase, adiciona em PT **e** EN, na
-  mesma posição. Por enquanto só na prévia da conta dele (`useOnlinePreview`).
+  mesma posição. **Publicado pra todos em 19/09** (chave `CAREER_VISUAL_RELEASED`).
+  ⛔ **NUNCA escrever lance de PÊNALTI** (ordem dele, 19/09): *"texto de pênalti não
+  pode ter, porque quando é pênalti tem batida manual pra eu bater"*. O pênalti tem
+  tela própria; narrar pênalti num gol de jogada normal inventa um lance que não
+  aconteceu. Falta, escanteio e gol olímpico podem.
 - **🔁 No rodízio ENTRA O MAIS CHEIO, não o mais forte (19/09).** *"Tem que pôr o
   cheio."* Nível só desempata gás igual. **Cria da Base entra só quando não tem
   reserva de verdade inteiro** na posição (*"quando só tem a base no banco também
