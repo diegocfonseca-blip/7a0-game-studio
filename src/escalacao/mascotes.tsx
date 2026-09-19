@@ -575,11 +575,19 @@ export const MASCOTES: Record<string, ReactNode> = {
   gugu_bigode: (
     <img src={guguMascoteImg} height={176} width={Math.round(176 * 320 / 440)} alt="O Bigode — White Thigs do GuGu" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
-  // 🌑🐺 O Pesadelo — Pesadelo Verde FC (portaltech.ep, batismo 18/09). 312x440 no
-  // arquivo, então a largura sai da PROPORÇÃO REAL. O lobo uivando pra lua cheia
-  // em cima da pedra, com o raio verde em volta.
+  // 🌑🐺 O Pesadelo — Pesadelo Verde FC (portaltech.ep, batismo 18/09).
+  // 🔁 ARTE NOVA em 19/09, a pedido do dono pelo Diego (*"troque o mascote do
+  // pesadelo verde por esse aqui"*): saiu o lobo uivando na pedra, entrou o LOBO
+  // DE ARMADURA, de capa esfarrapada, espada fincada e o pé em cima da bola —
+  // com a mesma cena atrás (lua cheia, fumaça verde e os pinheiros), que é a cara
+  // do clube e já era assim na arte antiga.
+  // 📏 287×440, 43,8 KB (com o escudo dá 72,8 KB dos 75 do teto) — a largura sai
+  // da PROPORÇÃO REAL do arquivo, que mudou (era 312×440).
+  // ⚠️ O recorte tem script próprio (`scripts/recorta-pesadelo-mascote.py`): o
+  //    clube é VERDE-NEON em cima de fundo VERDE CHROMA, e o critério de sempre
+  //    apagava 20% do desenho. Lá o alvo é a COR EXATA do chroma, não "o verde".
   pesadelo_lobo: (
-    <img src={pesadeloMascoteImg} height={176} width={Math.round(176 * 312 / 440)} alt="O Pesadelo — Pesadelo Verde FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={pesadeloMascoteImg} height={176} width={Math.round(176 * 287 / 440)} alt="O Pesadelo — Pesadelo Verde FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦊 A Bestia — La Bestia Negra (eltonfrossard45, 18/09). 368x440 no arquivo,
   // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). A raposa
@@ -1035,7 +1043,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
   porco_marinheiro: 'O Marujo', // ⚓🐷 Marinheiros AS (feehcamp11, 16/09) — o porco marujo de cachimbo e espinafre. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   gugu_bigode: 'O Bigode', // ⚽🥋 White Thigs do GuGu (18/09) — o torcedor de bucket hat no bloco "COXA SEMPRE". ⚠️ nome PROVISÓRIO: a prancha veio sem nome de mascote, confirmar com o dono
-  pesadelo_lobo: 'O Pesadelo', // 🌑🐺 Pesadelo Verde FC (portaltech.ep, 18/09) — o lobo uivando pra lua. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  pesadelo_lobo: 'O Pesadelo', // 🌑🐺 Pesadelo Verde FC (portaltech.ep, 18/09) — desde 19/09 é o lobo de armadura com a espada e o pé na bola (era o lobo uivando). ⚠️ nome PROVISÓRIO: as duas artes vieram sem nome de mascote, confirmar com o dono
   leao_thor: 'O Leão de Thor', // 🦁⚡ Remoçada (luiz.maia.luiz, arte do dono em 18/09) — o Leão do Remo de elmo alado com o Mjölnir. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   raposa: 'A Bestia', // 🦊 La Bestia Negra (eltonfrossard45, 18/09) — a raposa azul do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   fridao_cavalo: 'O Fridão', // 🐴 Fridão FC (felipe.ofrida, 16/09) — o cavalo alvinegro coroado, de crina branca. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono

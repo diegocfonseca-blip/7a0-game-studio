@@ -1,3 +1,33 @@
+## 19/09/2026 (parte 17) — 🌑🐺 Mascote NOVA do Pesadelo Verde FC
+
+Ordem dele, curta: *"troque o mascote do pesadelo verde por esse aqui"*. Saiu o
+lobo uivando na pedra, entrou o **lobo de armadura** com capa esfarrapada, espada
+fincada e o pé em cima da bola — mesma cena atrás (lua, fumaça verde, pinheiros),
+que é a cara do clube e já era assim na arte antiga. **Só a mascote trocou**:
+escudo e camisa continuam os de 18/09.
+
+- 📏 **287×440 · 43,8 KB** (com o escudo de 29,0 KB dá **72,8 KB** dos 75 do teto).
+  A largura mudou (era 312×440), então a proporção foi atualizada junto.
+- ⚠️ **O corte mais perigoso até hoje, e por isso tem script próprio**
+  (`scripts/recorta-pesadelo-mascote.py`): o clube é VERDE-NEON sobre fundo VERDE
+  CHROMA. Medi antes de cortar — o critério de sempre (`g > 150 e muito acima de
+  R/B`) apagava **20% do desenho**: a fumaça, o brilho da espada, as rachaduras da
+  bola e os olhos do lobo. A saída foi mirar a **COR EXATA** do chroma
+  (`(10,243,94)`, distância RGB < 60): a distância é bimodal (41,4% abaixo de 40 e
+  só +1,9% entre 40 e 100), ou seja o fundo é um bloco isolado e a arte não encosta.
+- ✂️ **A mascote estava GRUDADA na camisa** — a fumaça encosta no ombro dela e não
+  existe coluna vazia entre as duas, então régua não separa e erosão não quebra a
+  ponte. Quem separa é a CAMISA: maior ilha sem neon da direita, contorno
+  preenchido e tirada do quadro.
+- 🩹 **E isso deixava um RISCO RETO na nuvem** (pareceu tesourada na conferência).
+  A borda nascida do corte agora recua numa **onda** de 8–38 px, só nos pixels de
+  fumaça: nuvem tem borda irregular, reta não.
+
+⏳ **O nome da mascote segue provisório** ("O Pesadelo") — as duas artes vieram sem
+nome. Vale perguntar pro dono.
+
+---
+
 ## 19/09/2026 (parte 16) — 📍 Futpoint FC de CARA NOVA (arte que o dono refez)
 
 Ele mandou a prancha nova do **Futpoint FC** (gfpicolo13, **SÓCIO nº27** — não é
