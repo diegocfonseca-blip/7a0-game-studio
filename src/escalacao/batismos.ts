@@ -57,7 +57,10 @@ export const BATISMOS: Batismo[] = [
   // 🥋 O 1º batismo da história (dono/e-mail desconhecido até hoje — por isso sem
   // nº de fundador). Diego, 08/09: *"todos esses entram sim"*. Se o e-mail aparecer,
   // dar o próximo FUNDADOR_N e trocar o selo pelo número.
-  { clube: 'White Thigs do GuGu', tipo: 'batismo', fundador: null, selo: '🥇 1º da história' },
+  // 🎽 manto MEDIDO na camisa que o dono mandou em 18/09 (verde 10,2% · claro 59,5%).
+  // O VERDE vem primeiro de propósito: o fundo do jogo é creme, e listra branca em
+  // creme some (a mesma lição do Papão United Madrid).
+  { clube: 'White Thigs do GuGu', tipo: 'batismo', fundador: null, selo: '🥇 1º da história', manto: ['#0A3020', '#D9D3C8'] },
   // 🏦 Batismo a pedido do próprio Diego (03/08, ex-Magrão EC) — sem dono/e-mail.
   { clube: 'Vasco da Grana', tipo: 'batismo', fundador: null, selo: '🖋️ batismo' },
   { clube: 'Neymarzetti', tipo: 'batismo', fundador: 1, manto: ['#080908', '#F0EFEF'] },

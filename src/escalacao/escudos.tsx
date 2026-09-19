@@ -43,6 +43,7 @@ import murrizEscudoImg from './img/murriz-escudo.webp' // ⚔️ Murriz FC (msb1
 import barceniteEscudoImg from './img/barcenite-escudo.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import marinheirosEscudoImg from './img/marinheiros-escudo.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import fridaoEscudoImg from './img/fridao-escudo.webp' // 🐴 Fridão FC (felipe.ofrida): arte própria do dono, batismo de 16/09
+import guguEscudoImg from './img/gugu-escudo.webp' // ⚽🥋 White Thigs do GuGu: arte própria do dono — o 1º BATISMO da história finalmente com escudo (18/09)
 import pesadeloEscudoImg from './img/pesadelo-escudo.webp' // 🌑🐺 Pesadelo Verde FC (portaltech.ep): arte própria do dono, batismo de 18/09
 import remocadaEscudoImg from './img/remocada-escudo.webp' // 🦁⚡ Remoçada (luiz.maia.luiz): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
 import bestiaEscudoImg from './img/bestia-escudo.webp' // 🦊 La Bestia Negra (eltonfrossard45): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
@@ -704,6 +705,12 @@ const barceniteEscudoRender = (size: number) => (
 // 🌑🐺 Pesadelo Verde FC — 231x360 no arquivo, então a largura sai da PROPORÇÃO
 // REAL (nunca width={size} chutado). Arte do dono (portaltech.ep, batismo 18/09):
 // brasão escuro com a lua cheia, a floresta de pinheiros e o rio.
+// ⚽🥋 White Thigs do GuGu — 238x360 no arquivo, então a largura sai da PROPORÇÃO
+// real (nunca `width={size}` chutado: o escudo é alto e estreito, com a coroa e a
+// estrela em cima, e chutar quadrado achataria o desenho).
+const guguEscudoRender = (size: number) => (
+  <img src={guguEscudoImg} height={size} width={Math.round(size * 238 / 360)} alt="White Thigs do GuGu" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 const pesadeloEscudoRender = (size: number) => (
   <img src={pesadeloEscudoImg} height={size} width={Math.round(size * 231 / 360)} alt="Pesadelo Verde FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1329,6 +1336,15 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   Paixandu: neymarzettiEscudoRender, // 🕰️ o nome VELHO: save antigo abre com o escudo novo
   // 🌑🐺 Pesadelo Verde FC (portaltech.ep) — BATISMO de 18/09, com arte do dono.
   // As 4 formas do nome ficam presas ao mesmo escudo (regra dos 4 nomes reservados).
+  // ⚽🥋 White Thigs do GuGu — as 4 formas do nome E os dois nomes VELHOS da
+  // corrente dele (`OLD_NAME`): quem tem carreira antiga como Astronáutico ou
+  // Sinhô Futebol vê o escudo novo no mesmo clube, sem perder nada.
+  'White Thigs do GuGu': guguEscudoRender,
+  'White Thigs do GuGu FC': guguEscudoRender,
+  'White Thigs do GuGu EC': guguEscudoRender,
+  'White Thigs do GuGu SC': guguEscudoRender,
+  'Astronáutico': guguEscudoRender,
+  'Sinhô Futebol': guguEscudoRender,
   'Pesadelo Verde': pesadeloEscudoRender,
   'Pesadelo Verde FC': pesadeloEscudoRender,
   'Pesadelo Verde EC': pesadeloEscudoRender,
