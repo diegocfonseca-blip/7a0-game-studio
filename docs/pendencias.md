@@ -1,3 +1,35 @@
+## 19/09/2026 (parte 15) — 🏋️ Renovar preparador = METADE do preço + o texto do gás que confundia
+
+Duas cobranças dele no mesmo áudio, olhando a loja do preparador:
+
+1. *"tá mt caro renovar contrato de preparador, principalmente o de mil… quero q seja
+   metade todos eles, como se o valor desse é mil mas fosse 500 p cálculos de
+   renovação… e serve p outros preparadores tb"*.
+2. *"tá mt confuso esse negócio de joga 8 seguidas e senta 1… tá difícil entender pq o
+   jogador q nem tem preparador cansa só dps de 50 partidas"*.
+
+### ✅ 1. Renovação pela metade (`precoRenovacaoPreparador` em `preparadores.ts`)
+- `RENOVAR_PREPARADOR` cobra `round(preco/2)`: **50 · 150 · 300 · 500**. Antes copiava
+  o técnico e cobrava o preço cheio (100/300/600/1000).
+- O botão RENOVAR mostra o valor novo e escreve "(metade do preço)"; o extrato e o
+  aviso da renovação dizem o mesmo. Salário não mudou (10% do preço cheio).
+- **Só o preparador.** O técnico continua renovando pelo valor dele — ele não pediu.
+- Reverter: um commit só, `git revert`.
+
+### ✅ 2. O texto "joga N seguidas e senta 1" tinha razão de confundir
+Ele estava certo. Aquela frase era o **ritmo em que o tanque nunca desce** (banco
+devolve +N ÷ 1,4 por jogo), não o ponto em que o cara cansa. E o jogador aguenta
+**54 jogos seguidos** antes do 😓 **com ou sem** preparador — o preparador não mexe na
+escada, mexe em quanto **uma rodada no banco devolve** (+4 sem ele; +6/+9/+12/+20 com).
+Agora a tela diz exatamente isso:
+- Loja: cabeçalho explica os 54 jogos e o +4 do banco sem preparador; cada card diz
+  *"🔋 banco devolve +N de gás por rodada (sem preparador: +4)"* e *"1 rodada sentado
+  paga X jogos de titular — descansando nesse ritmo, o gás nunca baixa"*.
+- Departamento Técnico: a linha do preparador contratado ficou *"banco devolve +N…
+  — 1 descanso paga X jogos"*.
+- A conta mora em `jogosPorDescanso(banco)` (`preparadores.ts`), em vez de
+  `Math.floor(banco/1.4)` espalhado.
+
 ## 19/09/2026 (parte 14) — 🥇 A aba da Bola de Ouro no Rank (o que eu tinha ESQUECIDO)
 
 Ele cobriu no ar: *"n tô vendo na área de rank a aba de bola de ouro e nem tô vendo

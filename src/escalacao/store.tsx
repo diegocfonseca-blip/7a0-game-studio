@@ -13,7 +13,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
-import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
+import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
@@ -7341,7 +7341,8 @@ export function reducer(state: EscState, action: Action): EscState {
       return s
     }
     case 'RENOVAR_PREPARADOR': {
-      // 📝 só renova VENCIDO, pelo MESMO preço — regra copiada do técnico
+      // 📝 só renova VENCIDO, pela METADE do preço (Diego 19/09: *"tá mt caro renovar…
+      // quero q seja metade todos eles"*). Antes copiava o técnico e cobrava o preço cheio.
       if (!s.careerOnline) return s
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
@@ -7350,13 +7351,14 @@ export function reducer(state: EscState, action: Action): EscState {
       const fim = s.careerPreparadorContrato?.[you.teamName]
       if (fim == null || fim >= s.seasonNo) return s
       const coins = s.careerCoins?.[you.id] ?? 0
-      if (coins < p.preco) return s
-      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
+      const custo = precoRenovacaoPreparador(p)
+      if (coins < custo) return s
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - custo }
       const fimRenov = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
       const anosRenov = fimRenov - s.seasonNo + 1
       s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimRenov }
-      logFin(s, 'buy', `📝 Renovação do preparador ${p.nome} (+${anosRenov} temporada${anosRenov > 1 ? 's' : ''})`, -p.preco)
-      s.aliciarLog = { titulo: `📝 ${p.nome} renovou!`, corpo: `Mais ${anosRenov} temporada${anosRenov > 1 ? 's' : ''} (até a T${fimRenov}) por ${p.preco} 🪙.`, venceu: true }
+      logFin(s, 'buy', `📝 Renovação do preparador ${p.nome} (+${anosRenov} temporada${anosRenov > 1 ? 's' : ''}, metade do preço)`, -custo)
+      s.aliciarLog = { titulo: `📝 ${p.nome} renovou!`, corpo: `Mais ${anosRenov} temporada${anosRenov > 1 ? 's' : ''} (até a T${fimRenov}) por ${custo} 🪙 — renovação é metade do preço de contratar.`, venceu: true }
       return s
     }
     case 'DISPENSAR_PREPARADOR': {
