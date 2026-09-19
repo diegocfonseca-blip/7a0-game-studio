@@ -855,7 +855,9 @@ function turfColors(state: EscState): [string, string] {
 // 🎽 `manto`: cores do coração do DONO do time (só o próprio usuário vê o seu) —
 // faixinha listrada no topo das fichinhas + barrinha de título nas cores.
 // Aprovado pelo Diego 09/08 (arte manto-real.png). Sem manto, nada muda.
-function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90, mantoC3 = null, mantoC3Buf = false }: { m: Manager; small?: boolean; bench?: boolean; title?: string; manto?: [string, string] | null; mantoDir?: number; mantoC3?: string | null; mantoC3Buf?: boolean }) {
+// 🧪 exportado SÓ pra bancada (`scripts/teste-campinho-leilao`) poder montar o
+// campinho do leilão de verdade — nada do jogo muda por causa do `export`.
+export function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90, mantoC3 = null, mantoC3Buf = false }: { m: Manager; small?: boolean; bench?: boolean; title?: string; manto?: [string, string] | null; mantoDir?: number; mantoC3?: string | null; mantoC3Buf?: boolean }) {
   const { state } = useEsc()
   const [g1, g2] = turfColors(state)
   // ⚽🅰️ SELOS NO CAMPINHO DO RÁPIDO (Diego 24/08: *"o campinho de gols coloque
@@ -872,8 +874,19 @@ function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90
       // titular: os primeiros `slots` por posição. reserva (banco): os `slots`
       // seguintes — o leilão de reservas mira 22 (2× a formação), então cada
       // posição ganha um espelho no campinho de baixo.
+      // 🪑 E O BANCO CRESCE SE PRECISAR (Diego 19/09: *"o campinho que eu tava
+      // falando era o do leilão, quando vai pro leilão aparecem dois
+      // campinhos"*). O banco tinha EXATAMENTE `slots` lugares — o espelho do
+      // time titular —, então quem passasse disso na posição sumia do desenho:
+      // ficava no elenco, dava lance, jogava, e não aparecia em campinho nenhum.
+      // Isso já acontecia desde o elenco de 27 (o +1 por posição do 16/09) e com
+      // o emprestado da SAF. Agora o banco desenha SEMPRE pelo menos o espelho,
+      // e ganha um lugar a mais por jogador que sobrar: ninguém fica invisível.
+      // ⚠️ Só o banco muda. O campinho dos TITULARES continua sendo a formação e
+      // ponto — lá o número de lugares é regra de jogo, não é mostruário.
       const start = bench ? slots : 0
-      return Array.from({ length: slots }, (_, i) => ({ pos: p, card: have[start + i] ?? null }))
+      const lugares = bench ? Math.max(slots, have.length - slots) : slots
+      return Array.from({ length: lugares }, (_, i) => ({ pos: p, card: have[start + i] ?? null }))
     }
     const lats = buildRow('LAT') // [esquerda, direita] quando existirem
     const zags = buildRow('ZAG')
