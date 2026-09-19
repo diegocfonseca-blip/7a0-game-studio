@@ -2319,6 +2319,90 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: {
   )
 }
 
+// ─── 🥇 BOLA DE OURO · TODOS OS TEMPOS ──────────────────────────────────────
+//
+// Ele cobrou no ar (19/09): *"n tô vendo na área de rank a aba de bola de ouro"*.
+// E tinha razão: eu montei a página do JORNAL e deixei a aba do Rank pra trás,
+// mesmo tendo desenhado ela no mockup que ele aprovou.
+//
+// 🧩 A DÚVIDA DELE ERA O PROBLEMA DE VERDADE: *"não sei como seria o mockup disso,
+//    se o cara tem mil temporadas, não sei como apareceria uma por uma"*.
+//    👉 A resposta: **a lista mostra os DONOS, não as temporadas.** Quem ganhou 12
+//    bolas ocupa UMA linha, com as temporadas dele como etiquetas (T3 T5 T6 +9).
+//    Mil temporadas cabem em 20 linhas, porque ganhadores são muito menos que anos.
+//
+// 🃏 Por carta (nome|clube|ano), como tudo que é histórico de jogador aqui — o
+//    clube vai miúdo embaixo do nome, que é o que separa os 62 xarás do baralho.
+function BolaDeOuroBox({ donos }: { donos?: Record<string, { name: string; club?: string; year?: number; teamName: string; goals: number; assists: number; total: number; you: boolean }> }) {
+  const linhas = Object.entries(donos ?? {})
+  // agrupa por CARTA: cada dono vira uma linha, com as temporadas dele juntas
+  const porCarta = new Map<string, { name: string; club?: string; year?: number; teamName: string; you: boolean; temporadas: number[] }>()
+  for (const [temp, d] of linhas) {
+    const k = d.club ? `${d.name}|${d.club}|${d.year}` : d.name
+    const r = porCarta.get(k)
+    if (r) { r.temporadas.push(Number(temp)); if (d.you) r.you = true }
+    else porCarta.set(k, { name: d.name, club: d.club, year: d.year, teamName: d.teamName, you: d.you, temporadas: [Number(temp)] })
+  }
+  const lista = [...porCarta.values()]
+    .map(x => ({ ...x, temporadas: x.temporadas.sort((a, b) => a - b) }))
+    .sort((a, b) => b.temporadas.length - a.temporadas.length || b.temporadas[b.temporadas.length - 1] - a.temporadas[a.temporadas.length - 1])
+    .slice(0, 20)
+  // 🆕 o último a levar (a temporada mais recente de todas)
+  const ultima = linhas.map(([t]) => Number(t)).sort((a, b) => b - a)[0]
+  const atual = ultima != null ? donos?.[String(ultima)] : undefined
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12 }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{tr('🥇 BOLA DE OURO · TODOS OS TEMPOS', '🥇 GOLDEN BALL · ALL TIME')}</p>
+      <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 9px', lineHeight: 1.35 }}>
+        {tr('O melhor do mundo de cada ano: quem SOMOU mais gols + assistências, na liga e nas copas. Não é o artilheiro nem o garçom.', 'The world’s best of each year: whoever ADDED UP the most goals + assists, in the league and the cups. Not the top scorer, not the assist king.')}
+      </p>
+      {!lista.length ? (
+        <>
+          <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700, margin: 0 }}>{tr('Ninguém levou ainda.', 'Nobody has won it yet.')}</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.4)', margin: '6px 0 0', lineHeight: 1.4 }}>
+            {tr('O prêmio é entregue no fim de cada temporada, e começa a contar a partir de agora — vire a temporada e o primeiro nome aparece aqui.', 'The award is handed out at the end of each season, and counting starts now — finish the season and the first name shows up here.')}
+          </p>
+        </>
+      ) : (
+        <>
+          {atual && (
+            <div style={{ background: 'linear-gradient(160deg,#1a1a1a,#0C0C0C)', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '9px 11px', marginBottom: 9, color: '#fff' }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9, letterSpacing: 1.6, color: GOLD, margin: 0 }}>{tr('O ÚLTIMO A LEVAR', 'THE LATEST WINNER')} · T{ultima}</p>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 18, lineHeight: 1.1, margin: '1px 0 0' }}>{atual.you ? '👤 ' : ''}{atual.name}</p>
+              <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.6)', margin: 0 }}>
+                {atual.club ? `${atual.club} · ${atual.year} — ` : ''}{atual.teamName} · {atual.goals} {tr('gols', 'goals')} + {atual.assists} {tr('ass', 'ast')} = <b style={{ color: GOLD }}>{atual.total}</b>
+              </p>
+            </div>
+          )}
+          <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+            <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Jogador · temporadas', 'Player · seasons')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('Bolas', 'Balls')}</th></tr></thead>
+            <tbody>
+              {lista.map((x, i) => (
+                <tr key={i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: x.you ? 'rgba(255,196,0,.14)' : undefined }}>
+                  <td style={{ paddingRight: 4, verticalAlign: 'top', paddingTop: 5 }}>{i + 1}</td>
+                  <td style={{ verticalAlign: 'top', paddingTop: 4, paddingBottom: 4 }}>
+                    <span style={{ display: 'block', fontWeight: 900, fontSize: 12, lineHeight: 1.1 }}>{x.you ? '👤 ' : ''}{x.name}</span>
+                    {x.club && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.45)', lineHeight: 1.15 }}>{x.club} · {x.year}</span>}
+                    <span style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 3 }}>
+                      {/* 🏷️ as temporadas viram etiqueta: 12 títulos = 1 linha, não 12 */}
+                      {x.temporadas.slice(-4).map(t => <span key={t} style={{ fontSize: 8.5, fontWeight: 800, color: '#8a6d1f', background: 'rgba(255,196,0,.20)', borderRadius: 4, padding: '0 4px' }}>T{t}</span>)}
+                      {x.temporadas.length > 4 && <span style={{ fontSize: 8.5, fontWeight: 800, color: 'rgba(0,0,0,.4)' }}>+{x.temporadas.length - 4}</span>}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'center', verticalAlign: 'top', paddingTop: 5 }}><b style={{ ...OSWALD, fontWeight: 900, fontSize: 16 }}>{x.temporadas.length}</b> 🥇</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.4)', margin: '8px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
+            {tr('A lista mostra os donos, não as temporadas — por isso mil temporadas cabem aqui.', 'The list shows the winners, not the seasons — that is how a thousand seasons fit here.')}
+          </p>
+        </>
+      )}
+    </div>
+  )
+}
+
 // 🅰️ GARÇONS DE TODOS OS TEMPOS — espelho exato da ArtilhariaBox (19/09).
 // Ordem do Diego: *"todos dados q tá fazendo de gols sempre serve p assistência
 // tb hein"*. Mesma tabela, mesmo clube-da-carta embaixo do nome, mesmas cores.
@@ -7020,7 +7104,7 @@ export function PyramidSeasonScreen() {
   }, [seasonOver, speedFactor, baseRoundMs])
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
-  const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'global'>('arti')
+  const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
   const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
@@ -9616,18 +9700,29 @@ export function PyramidSeasonScreen() {
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
               {/* 🌍 a aba Global aparece SEMPRE (Diego 28/08). Carreira sem Agência
                   2.0 abre o CONVITE (GlobalRankConvite) — vê a aba, não vê os times. */}
-              {([['arti', '⚽', tr('Gols', 'Goals')], ['garcons', '🅰️', tr('Garçons', 'Assists')], ['clubes', '🥇', tr('Local', 'Local')], ['global', '🌍', 'Global']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
+              {([['arti', '⚽', tr('Gols', 'Goals')], ['garcons', '🅰️', tr('Garçons', 'Assists')], ['ouro', '🥇', tr('Ouro', 'Golden')], ['clubes', '🏟️', tr('Local', 'Local')], ['global', '🌍', 'Global']] as [typeof rankSub, string, string][]).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setRankSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', background: rankSub === s ? GOLD : '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
             </div>
             {rankSub === 'clubes' ? (
               <RankingTab tables={tables} honors={(state.careerHonors ?? {}) as Record<string, Honors>} copaHonors={state.careerCopaHonors ?? {}} supercopaHonors={state.careerSupercopaHonors ?? {}} coins={state.careerCoins ?? {}} clubCash={state.clubCash ?? {}} colors={colors} youId={youId} seasonNo={state.seasonNo} myDiv={myDiv} safTeam={safTeamName} seed={state.seed} brasil={copaBrOk} />
             ) : rankSub === 'garcons' ? (
-              /* 🅰️ GARÇONS (24/08): quem DÁ o passe finalmente tem tabela. O
-                 meião que ganha o campeonato sem fazer gol agora aparece. */
+              <>
+              {/* 🅰️ GARÇONS (24/08): quem DÁ o passe finalmente tem tabela. O
+                 meião que ganha o campeonato sem fazer gol agora aparece. */}
               <GarconsByDiv assists={privateCareer && done && copa ? copaAssistsShown : assistsAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined}
                 title={privateCareer && done && copa ? tr('🅰️ GARÇONS · COPA', '🅰️ ASSISTS · CUP') : tr('🅰️ GARÇONS · TEMPORADA', '🅰️ ASSISTS · SEASON')} sub={privateCareer && done && copa ? tr('Assistências das fases já encerradas da Copa.', 'Assists from the Cup rounds already played.') : tr('Assistências da temporada atual — top 5 de cada série.', 'Assists this season — top 5 of each division.')}
                 foot={tr('Cerca de 3 em cada 4 gols saem de um passe; o resto é jogada individual, pênalti ou rebote.', 'About 3 in 4 goals come from a pass; the rest are solo plays, penalties or rebounds.')} />
+                {/* 🅰️ O GARÇOM DE TODOS OS TEMPOS MORA AQUI, e não na aba de gols.
+                    Ele pegou no ar (19/09): *"já vi q garçons de todos tempos está na
+                    aba de artilheiro sendo q era p tá na de garçom"*. Era isso mesmo —
+                    eu tinha posto do lado da artilharia porque é lá que o irmão dele
+                    (o artilheiro de todos os tempos) vive. Cada um na sua aba. */}
+                <GarconsBox assists={allTimeAssists} colors={colors} safTeam={safTeamName} title={tr('🅰️ GARÇONS · TODOS OS TEMPOS', '🅰️ ASSISTS · ALL TIME')} sub={tr('Assistências de liga e de copa somadas de todas as temporadas — top 20.', 'League and cup assists added up across every season — top 20.')} foot={allTimeAssists.length === 0 ? tr('Começa a contar a partir de agora — assistência nunca foi guardada antes.', 'Counting starts now — assists were never recorded before.') : undefined} />
+              </>
+            ) : rankSub === 'ouro' ? (
+              /* 🥇 BOLA DE OURO · TODOS OS TEMPOS — ver `BolaDeOuroBox` */
+              <BolaDeOuroBox donos={state.careerMelhorMundo} />
             ) : rankSub === 'global' ? (
               agenciaOk
                 ? <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} />
@@ -9640,7 +9735,6 @@ export function PyramidSeasonScreen() {
                   ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? tr('Gols do mata-mata da Copa — top 20.', 'Goals in the Cup knockout — top 20.') : tr(`Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`, `Goals up to ${copaRound === 0 ? 'now' : copa.rounds[copaRound - 1].name} — updates every round.`)} foot={tr(`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube e sobe +10 no piso do jogador.`, `🏅 The Cup top scorer earns the club +${copaBrOk ? 10 : 16} and raises the player\'s floor by +10.`)} />
                   : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money and becomes the player\'s floor: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols de liga e de copa somados de todas as temporadas — top 20. Cada CARTA conta a sua (o clube vai embaixo do nome).', 'League and cup goals added up across every season — top 20. Each CARD keeps its own tally (the club shows under the name).')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
-                <GarconsBox assists={allTimeAssists} colors={colors} safTeam={safTeamName} title={tr('🅰️ GARÇONS · TODOS OS TEMPOS', '🅰️ ASSISTS · ALL TIME')} sub={tr('Assistências de liga e de copa somadas de todas as temporadas — top 20.', 'League and cup assists added up across every season — top 20.')} foot={allTimeAssists.length === 0 ? tr('Começa a contar a partir de agora — assistência nunca foi guardada antes.', 'Counting starts now — assists were never recorded before.') : undefined} />
               </>
             )}
           </>

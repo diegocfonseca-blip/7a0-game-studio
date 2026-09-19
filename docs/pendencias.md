@@ -1,3 +1,34 @@
+## 19/09/2026 (parte 14) — 🥇 A aba da Bola de Ouro no Rank (o que eu tinha ESQUECIDO)
+
+Ele cobriu no ar: *"n tô vendo na área de rank a aba de bola de ouro e nem tô vendo
+em aba de assistência o item de assistências de todos os tempos"*, e logo depois
+*"já vi q garçons de todos tempos está na aba de artilheiro sendo q era p tá na de
+garçom"*.
+
+### ❌ Os dois erros eram meus
+1. **A aba da Bola de Ouro no Rank eu simplesmente não fiz.** Desenhei ela no
+   mockup, ele aprovou, e eu montei **só a página do jornal**. Lição: quando o
+   mockup tem DUAS telas, a entrega tem duas telas — conferir o mockup item a item
+   antes de dizer "publicado".
+2. **O garçom de todos os tempos estava na aba de GOLS**, colado no irmão dele (o
+   artilheiro de todos os tempos). Fazia sentido pra quem escreveu o código e
+   nenhum pra quem usa.
+
+### ✅ O que ficou
+- **Aba nova 🥇 OURO** no Rank (5 abas agora: ⚽ Gols · 🅰️ Garçons · 🥇 Ouro ·
+  🏟️ Local · 🌍 Global). Medido a 430px: **nenhuma aba corta o texto** — a lição do
+  "Estatísticas" (cabe ≠ fica bom) virou medição antes de subir.
+- ⚠️ **Troquei o ícone do ranking de clubes de 🥇 pra 🏟️**: com a aba nova, ficavam
+  **duas medalhas iguais** lado a lado. Estádio diz melhor o que aquela aba é.
+- **A caixa 🥇 BOLA DE OURO · TODOS OS TEMPOS**: o último a levar em destaque
+  (preto/dourado) + a lista dos **DONOS**, com as temporadas como etiquetas
+  (`T3 T5 T6 +9`) — a resposta da dúvida das mil temporadas.
+- **O garçom de todos os tempos mudou pra aba de GARÇONS.**
+- Trava: `npm run artilharia` seção 8 — reprova se a caixa de garçons voltar pra
+  aba de gols ou se a aba de ouro sumir.
+
+⏳ As duas listas **nascem vazias** e explicam isso na tela: o prêmio é entregue na
+virada da temporada, então o primeiro nome só aparece depois que ele fechar a T27.
 ## 19/09/2026 (parte 9) — 🐛 As pílulas Comissão/Base jogavam pro fim da tela no celular
 
 Diego, com três prints do celular: *"quando aperto nessas pílulas de comissão e base
