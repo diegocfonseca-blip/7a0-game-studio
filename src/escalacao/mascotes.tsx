@@ -33,6 +33,7 @@ import reiDaBolaMascoteImg from './img/reidabola-mascote.webp' // 👑🦁 Rei d
 import murrizMascoteImg from './img/murriz-mascote.webp' // ⚔️ Murriz FC (msb102010): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import barceniteMascoteImg from './img/barcenite-mascote.webp' // 🛡️🐈 Barcenite FC (ricardopessoafreire): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
 import marinheirosMascoteImg from './img/marinheiros-mascote.webp' // ⚓🐷 Marinheiros AS (feehcamp11): arte própria do dono, RENOVADA em 16/09 (antes era SVG desenhado à mão)
+import guguMascoteImg from './img/gugu-mascote.webp' // ⚽🥋 White Thigs do GuGu: arte própria do dono — o 1º BATISMO da história finalmente com mascote (18/09)
 import pesadeloMascoteImg from './img/pesadelo-mascote.webp' // 🌑🐺 Pesadelo Verde FC (portaltech.ep): arte própria do dono, batismo de 18/09
 import remocadaMascoteImg from './img/remocada-mascote.webp' // 🦁⚡ Remoçada (luiz.maia.luiz): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
 import bestiaMascoteImg from './img/bestia-mascote.webp' // 🦊 La Bestia Negra (eltonfrossard45): arte própria do dono, RENOVADA em 18/09 (antes era SVG desenhado à mão)
@@ -550,6 +551,14 @@ export const MASCOTES: Record<string, ReactNode> = {
   mariposa: (
     <img src={bichoDaSedaMascoteImg} height={176} width={Math.round(176 * 436 / 440)} alt="O Bicho da Seda — Bicho da Seda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // ⚽🥋 O Bigode — White Thigs do GuGu (o 1º BATISMO da história, arte de 18/09).
+  // 320x440 no arquivo, então a largura sai da PROPORÇÃO REAL.
+  // O torcedor de bucket hat e cachecol, sentado no bloco "COXA SEMPRE", com a
+  // bandeira do clube atrás. ⚠️ o nome "O Bigode" é PROVISÓRIO — a prancha veio sem
+  // nome de mascote; confirmar com o Diego/dono (regra: não inventar gente real).
+  gugu_bigode: (
+    <img src={guguMascoteImg} height={176} width={Math.round(176 * 320 / 440)} alt="O Bigode — White Thigs do GuGu" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🌑🐺 O Pesadelo — Pesadelo Verde FC (portaltech.ep, batismo 18/09). 312x440 no
   // arquivo, então a largura sai da PROPORÇÃO REAL. O lobo uivando pra lua cheia
   // em cima da pedra, com o raio verde em volta.
@@ -695,6 +704,16 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Milanesa FC': 'gatao_bfc',
   // 🌑🐺 Pesadelo Verde FC (portaltech.ep). CARIMBO_GOL é busca EXATA: entram as
   // 4 formas reservadas do nome e as maiúsculas.
+  // ⚽🥋 White Thigs do GuGu. CARIMBO_GOL é busca EXATA (nem caixa ele normaliza),
+  // então entram as 4 formas, a CAIXA ALTA e os dois nomes VELHOS da corrente dele
+  // (Astronáutico / Sinhô Futebol) — carreira antiga carimba o gol igual.
+  'White Thigs do GuGu': 'gugu_bigode',
+  'White Thigs do GuGu FC': 'gugu_bigode',
+  'White Thigs do GuGu EC': 'gugu_bigode',
+  'White Thigs do GuGu SC': 'gugu_bigode',
+  'WHITE THIGS DO GUGU': 'gugu_bigode',
+  'Astronáutico': 'gugu_bigode',
+  'Sinhô Futebol': 'gugu_bigode',
   'Pesadelo Verde': 'pesadelo_lobo',
   'Pesadelo Verde FC': 'pesadelo_lobo',
   'Pesadelo Verde EC': 'pesadelo_lobo',
@@ -992,6 +1011,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   raivacajuri_lutador: 'O Raiva', // 🥊 Raiva Cajuri FC (feliperamiro0501, 16/09) — o lutador mascarado
   reidabola_leao: 'O Rei', // 👑🦁 Rei da Bola FC (caiobegnamii, 16/09) — o leão coroado
   porco_marinheiro: 'O Marujo', // ⚓🐷 Marinheiros AS (feehcamp11, 16/09) — o porco marujo de cachimbo e espinafre. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
+  gugu_bigode: 'O Bigode', // ⚽🥋 White Thigs do GuGu (18/09) — o torcedor de bucket hat no bloco "COXA SEMPRE". ⚠️ nome PROVISÓRIO: a prancha veio sem nome de mascote, confirmar com o dono
   pesadelo_lobo: 'O Pesadelo', // 🌑🐺 Pesadelo Verde FC (portaltech.ep, 18/09) — o lobo uivando pra lua. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   leao_thor: 'O Leão de Thor', // 🦁⚡ Remoçada (luiz.maia.luiz, arte do dono em 18/09) — o Leão do Remo de elmo alado com o Mjölnir. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
   raposa: 'A Bestia', // 🦊 La Bestia Negra (eltonfrossard45, 18/09) — a raposa azul do escudo. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o dono
