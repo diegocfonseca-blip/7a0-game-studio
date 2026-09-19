@@ -1,3 +1,17 @@
+## 19/09/2026 (parte 13) — 🎬 ROTEIRO SEMPRE (pergunta fechada)
+
+Eu tinha deixado uma pergunta aberta no mockup e no commit: o roteiro do fim de
+temporada é obrigatório **sempre**, ou só na **primeira vez** (com um "ver tudo de
+novo" depois)? Meu medo era a 20ª temporada cansar.
+
+**Resposta dele: *"Roteiro sempre."*** Fechado, e virou regra permanente no
+`CLAUDE.md`. **Não propor de novo** botão de pular, atalho pra decisão nem "só na
+estreia". Nada a mudar no código — é exatamente como já subiu.
+
+O que segura o risco do cansaço continua sendo o CUSTO do roteiro: um toque por
+passo, nenhum passo pede pra pensar (só o último), e dá pra voltar. Se um dia ele
+reclamar de ritmo, o lugar de mexer é aí — encurtar os passos —, nunca pular.
+
 ## 19/09/2026 (parte 12) — 🎬 ROTEIRO + 📰 JORNAL QUE VIRA PÁGINA + 🥇 BOLA DE OURO (FEITO)
 
 Ele aprovou os mockups (*"pode seguir faça e publique já tb"*). O que entrou:
