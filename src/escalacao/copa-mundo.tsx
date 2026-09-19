@@ -1141,7 +1141,13 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
             <div key={gi} className={privateVisual ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 {tr('GRUPO', 'GROUP')} {'ABCD'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               {groupTable(g, shownRounds).map((r, i) => (
-                <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? 'rgba(255,196,0,.18)' : i < 2 ? 'rgba(255,255,255,.06)' : 'transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
+                /* 🟩 FAIXA DOS CLASSIFICADOS (Diego 19/09: *"precisa de faixa de
+                   classificação com cor pros dois primeiros do grupo, não?"*). Era um
+                   branco a 6% — invisível no creme e quase invisível no preto. Agora é o
+                   MESMO verde da zona de classificação da tabela da liga (`#D8F0DE`),
+                   com a barra verde na esquerda; a SUA linha continua dourada e, se
+                   está classificando, leva a barra também. */
+                <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? 'rgba(255,196,0,.28)' : i < 2 ? (privateVisual ? '#D8F0DE' : 'rgba(27,122,61,.35)') : 'transparent', borderLeft: i < 2 ? `4px solid ${GREEN}` : '4px solid transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
                   <span style={{ width: 12, color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
                   {privateVisual ? <NationalCrest country={entrants[r.t].pais} size={24} /> : <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />}
                   <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} {online && <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {club(r.t)}</span>}</span>
@@ -1159,7 +1165,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
               )}
             </div>
           ))}
-          <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.5)', textAlign: 'center', margin: '0 0 8px' }}>{tr('classificam 2 por grupo · desempate: vitórias, depois saldo', '2 per group go through · tie-break: wins, then goal difference')}</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo) · desempate: vitórias, depois saldo', 'green = goes through (2 per group) · tie-break: wins, then goal difference')}</p>
         </>
       )}
 
