@@ -88,6 +88,28 @@ ok(s && !s.trocas.some(t => t.sai.id === 't0'), 'reserva cansado NÃO entra — 
 s = sugerirRodizio(xi, squad, gas, new Set(['r12']))
 ok(s && !s.trocas.some(t => t.entra.id === 'r12'), 'suspenso não entra')
 ok(sugerirRodizio(xi, squad, Object.fromEntries(squad.map(c => [c.id, 100]))) === null, 'todo mundo inteiro → null (nada a sugerir)')
+// 🔋 19/09: entra o MAIS CHEIO, não o mais forte (Diego: "tem que pôr o cheio")
+{
+  const sq = [...squad, { id: 'r20', pos: squad.find(c => c.id === 't8').pos, lo: 60, hi: 70 }]
+  const g2 = Object.fromEntries(sq.map(c => [c.id, 100])); g2.t8 = 20
+  const r8 = sq.filter(c => c.pos === sq.find(x => x.id === 't8').pos && !xi.includes(c.id) && c.id !== 'r20')
+  for (const c of r8) g2[c.id] = 60 // os reservas fortes estão pela metade; o r20 (mais fraco) está cheio
+  const s2 = sugerirRodizio(xi, sq, g2)
+  ok(s2 && s2.trocas.some(t => t.sai.id === 't8' && t.entra.id === 'r20'), 'entra o reserva MAIS CHEIO, mesmo sendo mais fraco')
+  g2.r20 = 60
+  const s3 = sugerirRodizio(xi, sq, g2)
+  const forte = r8.sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]
+  ok(s3 && s3.trocas.some(t => t.sai.id === 't8' && t.entra.id === forte.id), 'gás igual → desempata pelo nível (o mais forte)')
+  // 🌱 cria só entra sem reserva de verdade
+  const sq3 = [...squad.filter(c => !(c.pos === forte.pos && !xi.includes(c.id))), { id: 'cria1', pos: forte.pos, lo: 48, hi: 58, cria: true }]
+  const g3 = Object.fromEntries(sq3.map(c => [c.id, 100])); g3.t8 = 20
+  const s4 = sugerirRodizio(xi, sq3, g3)
+  ok(s4 && s4.trocas.some(t => t.sai.id === 't8' && t.entra.id === 'cria1'), 'banco SÓ de cria → o cria entra')
+  const sq4 = [...sq3, { id: 'r30', pos: forte.pos, lo: 70, hi: 80 }]
+  const g4 = { ...g3, r30: 30 } // reserva de verdade inteiro (30 ≥ 25), cria cheio
+  const s5 = sugerirRodizio(xi, sq4, g4)
+  ok(s5 && s5.trocas.some(t => t.sai.id === 't8' && t.entra.id === 'r30'), 'reserva de verdade inteiro ganha do cria, mesmo o cria mais cheio')
+}
 ok(sugerirRodizio(xi, squad.filter(c => xi.includes(c.id)), gas) === null || sugerirRodizio(xi, squad.filter(c => xi.includes(c.id)), gas).trocas.length === 0, 'só 11 no elenco → nenhuma troca (ninguém falso entra)')
 
 console.log('6) 🩹 lesão por desgaste')

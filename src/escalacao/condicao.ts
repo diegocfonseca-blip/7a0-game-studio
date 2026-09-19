@@ -287,12 +287,19 @@ export function modsDoElenco(
 }
 
 // ─── 🔁 RODIZIAR: a sugestão do preparador (nunca aplica sozinho) ────────────
-// Pra cada titular cansado (pior primeiro), entra o MELHOR reserva da mesma
-// posição que esteja inteiro e não seja suspenso/fake. Mantém a vaga (mesmo
-// índice) — o campinho não embaralha. Devolve null se não há o que trocar.
-// 🌱 Cria da Base (13/09) também fica de fora da sugestão: trocar um titular de 85
-// por um guri de 50 pra poupar −1 de gás é piorar o time — e no automático isso
-// aconteceria sem o técnico ver. Quem quiser o cria em campo escala na mão.
+// Pra cada titular cansado (pior primeiro), entra um reserva da mesma posição
+// que esteja inteiro e não seja suspenso/fake. Mantém a vaga (mesmo índice) —
+// o campinho não embaralha. Devolve null se não há o que trocar.
+// 🔋 QUEM ENTRA É O MAIS CHEIO (Diego 19/09): *"se for dois atacantes no banco
+// sendo que um tá mais cheio que o outro, mesmo que seja nível um pouco pior, ele
+// põe o cheio né… Tem que pôr o cheio."* Até 19/09 entrava o mais FORTE entre os
+// inteiros; agora entra o de mais gás, e o nível só desempata gás igual. Assim o
+// desgaste se espalha pelo banco em vez de gastar sempre o mesmo reserva.
+// 🌱 Cria da Base: só entra se NÃO tiver reserva de verdade inteiro na posição
+// (*"só o 2 se for jogador da base… quando só tem a base no banco também vai ela
+// mesma né"* — 19/09). Um guri nunca ganha de um jogador de verdade só por estar
+// mais cheio; mas banco só de cria, entra o cria (antes, desde 13/09, ele ficava
+// de fora e o titular jogava cansado).
 export function sugerirRodizio<T extends { id: string; pos: string; lo: number; hi: number; fake?: boolean; cria?: boolean }>(
   xiIds: string[], squad: T[], gas: Record<string, number>, bloqueados: Set<string> = new Set(),
 ): { ids: string[]; trocas: { sai: T; entra: T }[] } | null {
@@ -303,9 +310,12 @@ export function sugerirRodizio<T extends { id: string; pos: string; lo: number; 
   // quem já virou 😓 — ordem do Diego. Pior barra primeiro, como sempre.
   const cansados = ids.map(id => byId.get(id)).filter((c): c is T => !!c && pedeRodizio(gas[c.id] ?? 100)).sort((a, b) => (gas[a.id] ?? 100) - (gas[b.id] ?? 100))
   const trocas: { sai: T; entra: T }[] = []
+  const g = (c: T) => gas[c.id] ?? 100
   for (const sai of cansados) {
-    const cand = squad.filter(c => c.pos === sai.pos && !emCampo.has(c.id) && !c.fake && !c.cria && !bloqueados.has(c.id) && prontoPraEntrar(gas[c.id] ?? 100))
-      .sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]
+    const aptos = squad.filter(c => c.pos === sai.pos && !emCampo.has(c.id) && !c.fake && !bloqueados.has(c.id) && prontoPraEntrar(g(c)))
+    const reais = aptos.filter(c => !c.cria)
+    const cand = (reais.length ? reais : aptos)
+      .sort((a, b) => (g(b) - g(a)) || ((b.lo + b.hi) - (a.lo + a.hi)))[0]
     if (!cand) continue
     const i = ids.indexOf(sai.id); if (i < 0) continue
     ids[i] = cand.id; emCampo.delete(sai.id); emCampo.add(cand.id)

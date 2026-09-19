@@ -44,6 +44,23 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 17) — 🔁 No rodízio entra o MAIS CHEIO (e o cria só sem reserva de verdade)
+
+Ele perguntou como o preparador escolhe entre dois reservas, e ao saber que era "o
+mais forte entre os inteiros" decidiu: *"Tem que pôr o cheio. Número 1. Somente o 2
+se for jogador da base. Agora quando só tem a base no banco também vai ela mesma né."*
+
+### ✅ Regra nova (`sugerirRodizio` em `condicao.ts` — vale pro botão E pro automático)
+1. Entre os reservas da posição que estão inteiros, entra o de **mais gás**. Nível só
+   desempata gás igual.
+2. **Cria da Base** entra **só se não houver reserva de verdade inteiro** na posição
+   (era excluído desde 13/09 — o titular jogava cansado). Um jogador de verdade
+   inteiro sempre passa na frente do cria, mesmo o cria mais cheio.
+3. O resto não mudou: sai o mais cansado primeiro, mesma vaga no campinho, reserva
+   já 😓 não entra, suspenso/lesionado não entra.
+- Trava: `npx tsx scripts/testa-condicao.mjs` seção 5 ganhou 4 checagens disso.
+- Novidade na home. Reverter: `git revert` do commit desta parte.
+
 ## 19/09/2026 (parte 16) — 🐛 O botão 🤖 AUTOMÁTICO "sumiu" pro Rei da Bola FC
 
 Ele avisou: o dono do Rei da Bola FC comprou o Seirulo (👑, o único com automático),

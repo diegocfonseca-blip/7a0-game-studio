@@ -430,6 +430,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   preparador nunca mais diz "joga N seguidas e senta 1" — ele confundiu com o ponto
   em que o jogador cansa (54 jogos, igual pra todos). Diz-se quanto o BANCO devolve
   e quantos jogos um descanso paga.
+- **🔁 No rodízio ENTRA O MAIS CHEIO, não o mais forte (19/09).** *"Tem que pôr o
+  cheio."* Nível só desempata gás igual. **Cria da Base entra só quando não tem
+  reserva de verdade inteiro** na posição (*"quando só tem a base no banco também
+  vai ela mesma"*) — jogador de verdade inteiro sempre passa na frente do cria.
+  Mora em `sugerirRodizio` (`condicao.ts`), que serve o botão e o automático.
 - **🧾 O total do jogador é "NO SEU CLUBE", nunca "carreira" (19/09).** Ele
   perguntou direto, olhando a ficha: *"são dados dele no clube que ele tá atual né…
   não são jogos totais contando outros clubes"*. E está certo — `guardaCansaco`
