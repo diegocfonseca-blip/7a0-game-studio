@@ -468,73 +468,207 @@ function Relogio({ seg, total, cor = GOLD }: { seg: number; total: number; cor?:
   )
 }
 
+// ── 🗺️ A GRADE DAS 24 SELEÇÕES — GRANDE, do tamanho da tela ──────────────────
+// Diego (19/09): *"esses quadrinhos da Copa do Mundo pra escolher o país estão
+// MUITO pequenos"*. Eram 2 colunas apertadas, escudo de 36px, numa caixa de 320px
+// com rolagem — a pessoa escolhia a seleção dela por um buraco de fechadura.
+// Agora: escudo grande (56px), nome em Oswald de 15, 2 colunas no celular e 3 no
+// monitor, e SEM caixa com rolagem — a lista é a própria tela. Quem não é a vez
+// vê a mesma grade (só sem poder tocar): fica sabendo quem já levou o quê.
+function GradeDeSelecoes({ pegas, marcado, podeMarcar, aoMarcar }: {
+  pegas: Map<string, string>
+  marcado: string | null
+  podeMarcar: boolean
+  aoMarcar: (p: string) => void
+}) {
+  const paises = useMemo(paisesDaCopa, [])
+  return (
+    <div className="ll27-selecoes">
+      {paises.map(p => {
+        const dono = pegas.get(p)
+        const eu = marcado === p
+        return (
+          <button key={p} disabled={!!dono || !podeMarcar} onClick={() => aoMarcar(p)}
+            className={`ll27-selecao${dono ? ' tomada' : ''}${eu ? ' marcada' : ''}`}>
+            <NationalCrest country={p} size={56} />
+            <span className="ll27-selecao-nome">{p}</span>
+            <span className="ll27-selecao-status">{dono ? `${tr('de', 'taken by')} ${dono}` : eu ? tr('✔️ marcada', '✔️ marked') : tr('livre', 'free')}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── a escolha da BANDEIRA: toca pra marcar, confirma pra levar ──
+// Mora DENTRO do portão (abaixo do banner da Copa), não num modal: o Diego pediu
+// o formato da Copa dos 8/Libertadores — *"de cara aparece o banner top da Copa e
+// embaixo, maior, a escolha dos países"*. Quando vira a MINHA vez, a tela rola
+// até aqui sozinha (`scrollIntoView`), que é o "aparecer de cara" sem tapar nada.
 function EscolheBandeira({ pegas, seg, aoConfirmar }: {
   pegas: Map<string, string>
   seg: number
   aoConfirmar: (pais: string) => void
 }) {
   const [marcado, setMarcado] = useState<string | null>(null)
-  const privateVisual = ONLINE_VISUAL_RELEASED
-  const paises = useMemo(paisesDaCopa, [])
   const enviado = useRef(false)
   const marcadoRef = useRef<string | null>(null)
+  const topo = useRef<HTMLDivElement>(null)
   marcadoRef.current = marcado
-  // ⏰ os 45s estouraram no MEU aparelho: mando o que estava marcado — e, se eu
+  useEffect(() => { topo.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, [])
+  // ⏰ os 75s estouraram no MEU aparelho: mando o que estava marcado — e, se eu
   // não marquei nada, o dono carimba a pior livre por mim (ele é a rede).
   useEffect(() => {
     if (seg > 0 || enviado.current) return
     enviado.current = true
     if (marcadoRef.current) aoConfirmar(marcadoRef.current)
   }, [seg]) // eslint-disable-line react-hooks/exhaustive-deps
+  const confirmar = () => { if (marcado) { enviado.current = true; aoConfirmar(marcado) } }
   return (
-    <div style={{ ...box(privateVisual ? '#F4ECD6' : '#fff'), padding: '10px 11px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
-      {privateVisual && <div className="ll25-world-art ll25-cup-heading" style={{borderRadius:10,marginBottom:12,minHeight:200}}><h2 style={{...OSWALD,color:'#F4ECD6',fontSize:24,padding:12}}>{tr('QUEM VOCÊ VAI REPRESENTAR?', 'WHO WILL YOU REPRESENT?')}</h2></div>}
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>{tr('🌐 É a sua vez — escolha a seleção', '🌐 Your turn — pick the national team')}</p>
+    <div ref={topo} style={{ scrollMarginTop: 8 }}>
+      <h3 style={{ margin: '0 0 2px' }}>{tr('🌐 É A SUA VEZ — ESCOLHA A SELEÇÃO', '🌐 YOUR TURN — PICK THE NATIONAL TEAM')}</h3>
       <Relogio seg={seg} total={SEG_BANDEIRA} />
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 0 7px', textAlign: 'center', lineHeight: 1.35 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '6px 0 10px', lineHeight: 1.4 }}>
         {getLang() === 'en' ? <>Tap to mark and confirm. If time runs out, you take the one marked — and, with none marked, <b>the worst one left</b>.</> : <>Toque pra marcar e confirme. Se o tempo acabar, você leva a que estiver marcada — e, sem nenhuma marcada, <b>a pior que sobrou</b>.</>}
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, maxHeight: 320, overflowY: 'auto' }}>
-        {paises.map(p => {
-          const dono = pegas.get(p)
-          const eu = marcado === p
-          return (
-            <button key={p} disabled={!!dono} onClick={() => setMarcado(p)}
-              style={{ textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 9, padding: '6px 8px',
-                background: dono ? '#ded5bd' : eu ? GOLD : '#fff', opacity: dono ? .6 : 1,
-                cursor: dono ? 'default' : 'pointer', boxShadow: dono ? 'none' : `2px 2px 0 0 ${INK}` }}>
-              <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, display: 'block' }}>{privateVisual ? <NationalCrest country={p} size={36} /> : flagOf(p)} {p}</span>
-              <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{dono ? `${tr('de', 'taken by')} ${dono}` : eu ? tr('✔️ marcada', '✔️ marked') : tr('livre', 'free')}</span>
-            </button>
-          )
-        })}
+      <GradeDeSelecoes pegas={pegas} marcado={marcado} podeMarcar aoMarcar={setMarcado} />
+      {/* 📌 o CONFIRMAR gruda no pé da tela: a grade é comprida e ninguém tem que
+          rolar até o fim pra fechar a escolha com o relógio correndo. */}
+      <div className="ll27-confirmar-barra">
+        <button onClick={confirmar} disabled={!marcado} className={`ll27-confirmar${marcado ? ' pronto' : ''}`}>
+          {marcado ? `${tr('✅ CONFIRMAR', '✅ CONFIRM')} ${marcado.toUpperCase()}` : tr('toque numa seleção', 'tap a national team')}
+        </button>
       </div>
-      <button onClick={() => { if (marcado) { enviado.current = true; aoConfirmar(marcado) } }} disabled={!marcado}
-        style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 0', ...OSWALD, fontWeight: 900, fontSize: 14,
-          background: marcado ? GREEN : '#ded5bd', color: marcado ? '#fff' : INK, boxShadow: marcado ? `4px 4px 0 0 ${INK}` : 'none', cursor: marcado ? 'pointer' : 'default' }}>
-        {marcado ? `${tr('✅ CONFIRMAR', '✅ CONFIRM')} ${marcado.toUpperCase()}` : tr('toque numa seleção', 'tap a national team')}
-      </button>
     </div>
   )
 }
 
-// ── o BANNER de 15s entre a bandeira e a convocação ──
+// ── o BANNER de 15s entre a bandeira e a convocação (inline, dentro do portão) ──
 function BannerDaCopa({ seg }: { seg: number }) {
-  const privateVisual = ONLINE_VISUAL_RELEASED
-  if (privateVisual) return <CompetitionStage kind="world" title={tr('COPA DO MUNDO', 'WORLD CUP')} phase={tr('É hora de convocar', 'Time to call up')} detail={getLang() === 'en' ? `All national teams have been picked. You will have ${SEG_CONVOCA}s to call up your 11 players.` : `Todas as seleções foram escolhidas. Você terá ${SEG_CONVOCA}s para convocar seus 11 jogadores.`} status={`${tr('A convocação abre em', 'Call-up opens in')} ${seg}s`}>
-    <div className="ll26-cup-entry"><p style={{fontSize:13,lineHeight:1.5}}>{tr('Escolha o time que vai representar seu país. Quem deixar o prazo terminar sem convocar recebe os 11 de menor nível, conforme a regra da sala.', 'Pick the team that will represent your country. Whoever lets the deadline pass without calling up gets the 11 lowest-rated players, as per the room rule.')}</p><Relogio seg={seg} total={SEG_BANNER} /></div>
-  </CompetitionStage>
   return (
-    <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '14px 13px', marginTop: 9, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '14px 13px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       <span style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.7) 48%,transparent 60%)', backgroundSize: '250% 250%', animation: 'cmSheen 2.4s linear infinite' }} />
       <p style={{ fontSize: 40, margin: 0, position: 'relative' }}>🌐</p>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{tr('Começa a Copa do Mundo', 'The World Cup begins')}</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '2px 0 0', textTransform: 'uppercase', position: 'relative' }}>{tr('Todas as seleções escolhidas!', 'All national teams picked!')}</p>
       <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '5px 0 0', lineHeight: 1.4, position: 'relative' }}>
-        {getLang() === 'en' ? <>Everyone has their national team. Now you have <b>{SEG_CONVOCA} seconds</b> to call up <b>11 players</b> from the country.<br />⚠️ Whoever doesn't call up enters with the <b>worst 11</b> — the machine picks, and shows no mercy.</> : <>Todo mundo já tem sua seleção. Agora vocês têm <b>{SEG_CONVOCA} segundos</b> pra convocar <b>11 jogadores</b> do país.<br />⚠️ Quem não convocar entra com os <b>piores 11</b> — a máquina escolhe, e não tem dó.</>}
+        {getLang() === 'en' ? <>Now you have <b>{SEG_CONVOCA} seconds</b> to call up <b>11 players</b> from the country.<br />⚠️ Whoever doesn't call up enters with the <b>worst 11</b> — the machine picks, and shows no mercy.</> : <>Agora vocês têm <b>{SEG_CONVOCA} segundos</b> pra convocar <b>11 jogadores</b> do país.<br />⚠️ Quem não convocar entra com os <b>piores 11</b> — a máquina escolhe, e não tem dó.</>}
       </p>
       <div style={{ position: 'relative' }}><Relogio seg={seg} total={SEG_BANNER} cor="#fff" /></div>
     </div>
+  )
+}
+
+// ─── 🚪 O PORTÃO DA COPA — o que a sala inteira vê quando a liga acaba ────────
+// Diego (19/09): *"às vezes a pessoa, quando acaba a liga, nem tá percebendo que
+// vai começar a Copa do Mundo. Tem que ser parecido com o modelo da Copa dos 8 e
+// da Libertadores: acabou a liga, já aparece grande o banner da Copa, a tabela da
+// liga vai pra baixo, e embaixo, maior, a escolha dos países; depois da escolha o
+// passo segue pra convocação"*.
+// É exatamente o desenho da Copa dos 8 no fim da liga: `CompetitionStage` com a
+// arte do mundial em cima, e o "miolo" (`ll26-cup-entry`) troca conforme a fase —
+// fila e botão do dono → grade das seleções → banner → convocação → torneio.
+// Só desenho: quem manda na fase, no relógio e no banco continua sendo o
+// `CopaDaLigaGate` (e só o dono escreve).
+export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila, picks, pegas, seg, meuUid, minha, souAVez, daVezNome, temFicha, aberta, aoComecar, aoConfirmarPais, aoConvocar, aoVoltarCopa }: {
+  nLiga: number
+  fase: FaseCopa | null
+  lido: boolean
+  souDono: boolean
+  comecando: boolean
+  erro: string
+  fila: { uid: string; nome: string; vez: number }[]
+  picks: Map<string, CopaPick>
+  pegas: Map<string, string>
+  seg: number
+  meuUid?: string
+  minha: CopaPick | null
+  souAVez: boolean
+  daVezNome: string
+  temFicha: boolean
+  aberta: boolean
+  aoComecar: () => void
+  aoConfirmarPais: (pais: string) => void
+  aoConvocar: () => void
+  aoVoltarCopa: () => void
+}) {
+  const en = getLang() === 'en'
+  const status = fase === 'bandeira' ? (souAVez ? tr('É a sua vez de escolher a seleção', 'Your turn to pick a national team') : `${daVezNome} ${tr('está escolhendo a seleção', 'is picking a national team')} · ${seg}s`)
+    : fase === 'banner' ? `${tr('A convocação abre em', 'Call-up opens in')} ${seg}s`
+    : fase === 'convocacao' ? (temTime(minha) ? tr('Seu time está convocado · esperando a turma', 'Your team is called up · waiting for the crew') : `${tr('Convoque os seus 11', 'Call up your 11')} · ${seg}s`)
+    : fase === 'torneio' ? tr('Competição em andamento', 'Competition in progress')
+    : tr('Aguardando o dono abrir a Copa', 'Waiting for the host to open the Cup')
+  const detail = en ? `${nLiga} league teams become national teams. The standings set the picking order.` : `${nLiga} times da liga viram seleções. A classificação define a ordem de escolha.`
+  const botaoGrande = (txt: string, onClick: () => void, cor = GOLD, disabled = false) => (
+    <button onClick={onClick} disabled={disabled} className={`ll27-portao-botao${cor === GREEN ? ' verde' : ''}`}>{txt}</button>
+  )
+  return (
+    <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={tr('Copa do Mundo', 'World Cup')} detail={detail} status={status}>
+      <div className="ll26-cup-entry">
+        {/* 🥇 a fila, na ordem da tabela — some depois que todo mundo tem bandeira */}
+        {!!fila.length && fase !== 'torneio' && fase !== 'convocacao' && (
+          <div className="ll27-fila">
+            <h3>{tr('🥇 QUEM TERMINOU NA FRENTE ESCOLHE PRIMEIRO', '🥇 WHOEVER FINISHED HIGHER PICKS FIRST')}</h3>
+            {fila.map(f => {
+              const p = picks.get(f.uid)
+              const euSou = f.uid === meuUid
+              const daVez = fase === 'bandeira' && !p && fila.find(x => !picks.get(x.uid))?.uid === f.uid
+              return (
+                <div key={f.uid} className={`ll27-fila-linha${daVez ? ' vez' : ''}${euSou ? ' eu' : ''}`}>
+                  <span className="ll27-fila-n">{ordinal(f.vez)}</span>
+                  <span className="ll27-fila-nome">{f.nome}{euSou ? tr(' (você)', ' (you)') : ''}</span>
+                  {p
+                    ? <span className="ll27-fila-pais"><NationalCrest country={p.pais} size={22} /> {p.pais}{temTime(p) ? ' ✔️' : ''}</span>
+                    : <span className="ll27-fila-espera">{daVez ? `⏳ ${seg}s` : tr('na fila', 'in line')}</span>}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ainda não começou: o dono puxa — só depois da 1ª leitura bem-sucedida do banco */}
+        {!fase && lido && (souDono
+          ? <>
+              {botaoGrande(comecando ? tr('⏳ Começando…', '⏳ Starting…') : tr('🌐 COMEÇAR A COPA DO MUNDO', '🌐 START THE WORLD CUP'), aoComecar, GOLD, comecando)}
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '8px 2px 0', lineHeight: 1.45 }}>
+                {en ? <>From then on the clock runs: <b>{SEG_BANDEIRA}s</b> for each one to pick a national team, in table order, and then <b>{SEG_CONVOCA}s</b> for everyone to call up their 11 together.</> : <>A partir daí o relógio corre: <b>{SEG_BANDEIRA}s</b> pra cada um escolher a seleção, na ordem da tabela, e depois <b>{SEG_CONVOCA}s</b> pra todos convocarem os 11 juntos.</>}
+              </p>
+            </>
+          : <p className="ll27-portao-aviso">{tr('⏳ O dono da sala abre a Copa do Mundo — segura aí.', '⏳ The room owner opens the World Cup — hang on.')}</p>)}
+        <details className="ll26-format" style={{ marginTop: fase ? 0 : 6 }}><summary>{tr('REGULAMENTO', 'FORMAT')}</summary><p>{tr(`${COPA_TEAMS} seleções em 4 grupos de 6, turno único; passam os 2 primeiros de cada grupo. Quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11. O campeão do mundo leva título no Rank, a carta do campeão e o troféu na estante da sala.`, `${COPA_TEAMS} national teams in 4 groups of 6, single round-robin; the top 2 of each group go through. Quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Everyone calls up 11 players from their own country; whoever doesn't call up gets the worst 11. The world champion gets a Rank title, the champion's card and the trophy on the room's shelf.`)}</p></details>
+
+        {/* fase 1 — a bandeira: quem é a vez escolhe AQUI; os outros veem a grade travada */}
+        {fase === 'bandeira' && (souAVez
+          ? <EscolheBandeira pegas={pegas} seg={seg} aoConfirmar={aoConfirmarPais} />
+          : <>
+              <p className="ll27-portao-aviso">
+                {minha
+                  ? (en ? <><NationalCrest country={minha.pais} size={22} /> You are <b>{minha.pais}</b>. Now wait for the line — <b>{daVezNome}</b> is picking ({seg}s).</> : <><NationalCrest country={minha.pais} size={22} /> Você é a <b>{minha.pais}</b>. Agora é esperar a fila — <b>{daVezNome}</b> está escolhendo ({seg}s).</>)
+                  : (en ? <>⏳ <b>{daVezNome}</b> is picking a national team ({seg}s). Your turn comes in table order.</> : <>⏳ <b>{daVezNome}</b> está escolhendo a seleção ({seg}s). A sua vez vem na ordem da tabela.</>)}
+              </p>
+              <GradeDeSelecoes pegas={pegas} marcado={minha?.pais ?? null} podeMarcar={false} aoMarcar={() => {}} />
+            </>)}
+
+        {/* fase 2 — os 15s de respiro */}
+        {fase === 'banner' && <BannerDaCopa seg={seg} />}
+
+        {/* fase 3 — a convocação, todo mundo junto (a tela dos 11 abre sozinha por cima) */}
+        {fase === 'convocacao' && (
+          <div className="ll27-convoca">
+            <h3>{temTime(minha) ? tr('✅ TIME CONVOCADO', '✅ TEAM CALLED UP') : tr('⚽ CONVOQUE OS 11', '⚽ CALL UP THE 11')}</h3>
+            <Relogio seg={seg} total={SEG_CONVOCA} />
+            {minha && !temTime(minha) && <div style={{ marginTop: 10 }}>{botaoGrande(tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP'), aoConvocar, GREEN)}</div>}
+            {temTime(minha) && (
+              <p className="ll27-portao-aviso" style={{ marginTop: 8 }}>
+                <NationalCrest country={minha!.pais} size={22} /> <b>{minha!.pais}</b> {tr('com 11 no papel. A Copa começa quando o tempo acabar (ou quando todo mundo terminar).', 'with 11 on paper. The Cup starts when time runs out (or when everyone finishes).')}
+              </p>
+            )}
+          </div>
+        )}
+
+        {!!erro && <p style={{ fontSize: 11, fontWeight: 800, color: '#B23B2E', margin: '8px 2px 0', lineHeight: 1.4 }}>{erro}</p>}
+        {temFicha && !aberta && <div style={{ marginTop: 8 }}>{botaoGrande(tr('🌐 VOLTAR PRA COPA', '🌐 BACK TO THE CUP'), aoVoltarCopa)}</div>}
+      </div>
+    </CompetitionStage>
   )
 }
 
@@ -762,105 +896,20 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   return (
     <>
       <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
-      {privateVisual && <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={tr('Copa do Mundo', 'World Cup')} detail={getLang() === 'en' ? `${classificacao.length} league teams become national teams. The standings set the picking order.` : `${classificacao.length} times da liga viram seleções. A classificação define a ordem de escolha.`} status={fase?.fase === 'bandeira' ? tr('Escolha das seleções em andamento', 'National team picks in progress') : fase?.fase === 'convocacao' ? tr('Cada técnico está convocando seus 11', 'Each manager is calling up their 11') : fase?.fase === 'torneio' ? tr('Competição em andamento', 'Competition in progress') : tr('Aguardando o host abrir a Copa', 'Waiting for the host to open the Cup')} />}
-      <div className={privateVisual ? 'll26-world-gate' : undefined} style={{ ...box(privateVisual ? '#F4ECD6' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '11px 13px', marginBottom: 10 }}>
-        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>{tr('🌐 Copa do Mundo', '🌐 World Cup')}</p>
-        <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '2px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
-          {getLang() === 'en' ? `league over — the ${classificacao.length} teams become national teams (+ ${Math.max(0, COPA_TEAMS - classificacao.length)} from the machine)` : `acabou a liga — os ${classificacao.length} times viram seleções (+ ${Math.max(0, COPA_TEAMS - classificacao.length)} da máquina)`}
-        </p>
-
-        {/* a fila, na ordem da tabela — quem já tem bandeira, quem está na vez */}
-        {!!fila.length && (
-          <div style={{ ...box('#fff'), padding: '8px 10px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 10.5, margin: '0 0 3px', textTransform: 'uppercase', color: 'rgba(0,0,0,.5)' }}>
-              {tr('🥇 quem terminou na frente escolhe primeiro', '🥇 whoever finished higher picks first')}
-            </p>
-            {fila.map(f => {
-              const p = picks.get(f.uid)
-              const euSou = f.uid === meuUid
-              const daVez = fase?.fase === 'bandeira' && fase.vez_uid === f.uid
-              return (
-                <div key={f.uid} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: euSou ? 900 : 700,
-                  padding: '3px 5px', borderTop: '1px solid rgba(0,0,0,.08)', borderRadius: 6, background: daVez ? '#FFF4CF' : 'transparent' }}>
-                  <span style={{ ...OSWALD, color: 'rgba(0,0,0,.45)', width: 20 }}>{ordinal(f.vez)}</span>
-                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.nome}{euSou ? tr(' (você)', ' (you)') : ''}</span>
-                  {p
-                    ? <span style={{ ...OSWALD, fontWeight: 900, color: temTime(p) ? GREEN : 'rgba(0,0,0,.6)' }}>{flagOf(p.pais)} {p.pais}{temTime(p) ? ' ✔️' : ''}</span>
-                    : <span style={{ fontSize: 10.5, fontWeight: 800, color: daVez ? '#B23B2E' : 'rgba(0,0,0,.4)' }}>{daVez ? `⏳ ${seg}s` : tr('na fila', 'in line')}</span>}
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* ainda não começou: o dono puxa — só depois da 1ª leitura bem-sucedida
-            do banco (antes disso não dá pra afirmar que a Copa não existe) */}
-        {!fase && lido && (souDono
-          ? <>
-              <button onClick={() => { void comecar() }} disabled={comecando}
-                style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
-                  background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>
-                {comecando ? tr('⏳ Começando…', '⏳ Starting…') : tr('🌐 COMEÇAR A COPA DO MUNDO', '🌐 START THE WORLD CUP')}
-              </button>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '5px 2px 0', lineHeight: 1.4 }}>
-                {getLang() === 'en' ? <>From then on the clock runs: <b>{SEG_BANDEIRA}s</b> for each one to pick a national team, in table order, and then <b>{SEG_CONVOCA}s</b> for everyone to call up their 11 together.</> : <>A partir daí o relógio corre: <b>{SEG_BANDEIRA}s</b> pra cada um escolher a seleção, na ordem da tabela, e depois <b>{SEG_CONVOCA}s</b> pra todos convocarem os 11 juntos.</>}
-              </p>
-            </>
-          : <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '9px 2px 0', textAlign: 'center', lineHeight: 1.4 }}>
-              {tr('⏳ O dono da sala abre a Copa do Mundo — segura aí.', '⏳ The room owner opens the World Cup — hang on.')}
-            </p>)}
-
-        {/* fase 1: quem NÃO é a vez fica sabendo aqui (a vez em si é tela cheia) */}
-        {fase?.fase === 'bandeira' && (souAVez
-          ? null
-          : <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '9px 2px 0', textAlign: 'center', lineHeight: 1.4 }}>
-              {minha
-                ? (getLang() === 'en' ? <>{flagOf(minha.pais)} You are <b>{minha.pais}</b>. Now wait for the line — <b>{daVezNome}</b> is picking ({seg}s).</> : <>{flagOf(minha.pais)} Você é a <b>{minha.pais}</b>. Agora é esperar a fila — <b>{daVezNome}</b> está escolhendo ({seg}s).</>)
-                : (getLang() === 'en' ? <>⏳ <b>{daVezNome}</b> is picking a national team ({seg}s). Your turn comes in table order.</> : <>⏳ <b>{daVezNome}</b> está escolhendo a seleção ({seg}s). A sua vez vem na ordem da tabela.</>)}
-            </p>)}
-
-
-        {/* fase 3: a convocação, todo mundo junto */}
-        {fase?.fase === 'convocacao' && (
-          <div style={{ ...box('#fff'), padding: '10px 11px', marginTop: 9, boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', textAlign: 'center' }}>
-              {temTime(minha) ? tr('✅ Time convocado', '✅ Team called up') : tr('⚽ Convoque os 11', '⚽ Call up the 11')}
-            </p>
-            <Relogio seg={seg} total={SEG_CONVOCA} />
-            {minha && !temTime(minha) && (
-              <button onClick={() => { convocando.current = true; setAgora(Date.now()) }}
-                style={{ width: '100%', marginTop: 7, border: `3px solid ${INK}`, borderRadius: 12, padding: '10px 0', ...OSWALD, fontWeight: 900, fontSize: 14,
-                  background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP')}</button>
-            )}
-            {temTime(minha) && (
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '6px 0 0', textAlign: 'center', lineHeight: 1.35 }}>
-                {flagOf(minha!.pais)} <b>{minha!.pais}</b> {tr('com 11 no papel. A Copa começa quando o tempo acabar (ou quando todo mundo terminar).', 'with 11 on paper. The Cup starts when time runs out (or when everyone finishes).')}
-              </p>
-            )}
-          </div>
-        )}
-
-        {!!erro && <p style={{ fontSize: 11, fontWeight: 800, color: '#B23B2E', margin: '7px 2px 0', lineHeight: 1.4 }}>{erro}</p>}
-        {ficha && !aberta && (
-          <button onClick={() => setAberta(true)}
-            style={{ width: '100%', marginTop: 9, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 0', ...OSWALD, fontWeight: 900, fontSize: 15,
-              background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('🌐 VOLTAR PRA COPA', '🌐 BACK TO THE CUP')}</button>
-        )}
-      </div>
-
-      {/* 🖥️ AS FASES SÃO TELA CHEIA (Diego 01/09: *"o banner pra escolher seleção
-          deve ser MUITO maior e aparecer de cara na tela pros usuários"*). Antes
-          era uma caixinha no meio do fim de temporada e a pessoa tinha que rolar
-          a tela pra achar — com 65s correndo. Agora sobe por cima de tudo. */}
-      {fase?.fase === 'bandeira' && souAVez && (
-        <CMModal>
-          <EscolheBandeira pegas={pegas} seg={seg} aoConfirmar={p => { void gravaPais(p) }} />
-        </CMModal>
-      )}
-      {fase?.fase === 'banner' && <CMModal><BannerDaCopa seg={seg} /></CMModal>}
+      {/* 🚪 O PORTÃO (19/09): o banner grande da Copa no TOPO do fim da liga, com a
+          fila, a grade das seleções e a convocação embaixo dele — o mesmo desenho
+          da Copa dos 8/Libertadores. Antes a escolha da bandeira subia num modal
+          por cima de tudo (Diego 01/09) e o resto era uma caixinha depois da tabela;
+          ele pediu de volta o formato das outras copas, com a tabela indo pra baixo.
+          A tela rola sozinha até a grade quando vira a sua vez. */}
+      <PortaoDaCopa nLiga={classificacao.length} fase={fase?.fase ?? null} lido={lido} souDono={souDono} comecando={comecando} erro={erro}
+        fila={fila} picks={picks} pegas={pegas} seg={seg} meuUid={meuUid} minha={minha} souAVez={souAVez} daVezNome={daVezNome}
+        temFicha={!!ficha} aberta={aberta}
+        aoComecar={() => { void comecar() }} aoConfirmarPais={p => { void gravaPais(p) }}
+        aoConvocar={() => { convocando.current = true; setAgora(Date.now()) }} aoVoltarCopa={() => setAberta(true)} />
 
       {/* a tela de convocação (a MESMA da carreira) — ela ABRE SOZINHA quando o
-          banner acaba: o banner acabou de avisar que são 60s, então mandar a
+          banner acaba: o banner acabou de avisar que são 90s, então mandar a
           pessoa procurar um botão seria queimar metade do tempo dela. */}
       {fase?.fase === 'convocacao' && (convocando.current || !convocouRef.current) && minha && !temTime(minha) && (
         <CMModal>

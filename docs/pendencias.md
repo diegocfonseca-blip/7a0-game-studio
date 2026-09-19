@@ -42,7 +42,15 @@ oitavas → quartas → semi → final. Muda `NUM_GROUPS/GROUP_SIZE/RODADAS_GRUP
 semi · final · fim), a régua dos melhores 3ºs, o prêmio da carreira (oitavas =
 degrau novo) e a CÓPIA no banco. **Decisão dele — não fazer sem OK.**
 
-### ⏳ 4. O portão grande da Copa no fim da liga (mockup → OK)
+### ⏳ 4. O portão grande da Copa no fim da liga — CÓDIGO PRONTO NO BRANCH, esperando o OK dele
+Feito (não está na main): `PortaoDaCopa` em `copa-mundo-online.tsx` (o desenho, sem
+banco), `GradeDeSelecoes` (escudo 56px, 2/3 colunas, sem rolagem, CONFIRMAR grudado no
+pé), CSS `ll27-*` em `online-match-visual.css`, e em `screens.tsx` o portão subiu pra
+CIMA da liga com a liga recolhida (`mundoEsperando`). Bancada:
+`scripts/teste-copa-portao/` (`?fase=inicio|bandeira|espera|banner|convocacao|torneio`);
+mockup: `scripts/mockup-portao-copa.mjs`. **Mandado pro Diego em 19/09 — só sobe com o OK.**
+
+Como era o pedido:
 Hoje o fim da liga com Copa do Mundo mostra a tabela da liga PRIMEIRO e o portão
 da Copa depois, como uma caixinha; a escolha de país só fica grande pra quem está
 na vez (modal), e os quadrinhos são pequenos (2 colunas, 320px de altura com
