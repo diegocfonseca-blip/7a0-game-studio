@@ -3434,7 +3434,72 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
     heads.push(`💥 ${nameOf(winId)} ${bbNews ? 'atropelou' : 'goleou'} o ${nameOf(loseId)}: ${Math.max(big.r.hg, big.r.ag)}×${Math.min(big.r.hg, big.r.ag)}.`)
   }
 
-  return heads.slice(0, 3).map(h => `R${roundNum} · ${h}`)
+  // ─── 🎤 MAIS ZOEIRA (Diego 18/09: *"e quero MAIS zueira… o que pode fazer??"*) ──
+  // O giro tinha QUATRO tipos de manchete — líder, artilheiro, zebra e goleada — e
+  // no futebol três deles só acontecem de vez em quando. Resultado: rodada atrás de
+  // rodada sem nada pra ler, e quando vinha era sempre a mesma frase.
+  // Estes seis tipos novos saem de dado que o jogo JÁ TEM (gols sofridos, minuto do
+  // gol, posição antes e depois) — nenhuma regra nova, nenhum número inventado, e
+  // continuam NEUTROS: a sala inteira lê a mesma coisa.
+  const jogadas = s.league.reduce((a2, t) => a2 + t.w + t.d + t.l, 0) / Math.max(1, s.league.length)
+
+  // 🧤 MURALHA: o menos vazado da liga passou em branco outra vez
+  if (jogadas >= 3) {
+    const muralha = [...s.league].sort((x, y) => x.ga - y.ga)[0]
+    const passouEmBranco = results.some(r =>
+      (r.homeId === muralha?.id && r.ag === 0) || (r.awayId === muralha?.id && r.hg === 0))
+    if (muralha && passouEmBranco) heads.push(`🧤 ${muralha.name} não toma gol nem por decreto: só ${muralha.ga} sofridos na temporada.`)
+  }
+
+  // 🕳️ PENEIRA: o mais vazado da liga levou mais um caminhão hoje
+  if (jogadas >= 3) {
+    const peneira = [...s.league].sort((x, y) => y.ga - x.ga)[0]
+    const levouHoje = results.reduce((n, r) =>
+      r.homeId === peneira?.id ? r.ag : r.awayId === peneira?.id ? r.hg : n, 0)
+    if (peneira && levouHoje >= 3) heads.push(`🕳️ A zaga do ${peneira.name} virou peneira: ${levouHoje} tomados só hoje, ${peneira.ga} na temporada.`)
+  }
+
+  // ⏱️ NO ÚLTIMO SUSPIRO: gol dos 85' em diante que decidiu o jogo
+  for (const r of results) {
+    if (r.hg === r.ag) continue
+    const lances = (r.presentationGoals ?? r.highlights) ?? []
+    const tarde = lances.filter(g => g.min >= 85).sort((x, y) => y.min - x.min)[0]
+    if (!tarde) continue
+    const quem = r.hg > r.ag ? r.homeId : r.awayId
+    if (tarde.teamId !== quem || Math.abs(r.hg - r.ag) !== 1) continue
+    heads.push(`⏱️ ${nameOf(quem)} decidiu no último suspiro: gol aos ${tarde.min}' e ${Math.max(r.hg, r.ag)}×${Math.min(r.hg, r.ag)}.`)
+    break
+  }
+
+  // 🪑 O LANTERNA ACORDOU: o último colocado da rodada passada venceu
+  const lanternaId = [...prevRank.entries()].sort((x, y) => y[1] - x[1])[0]?.[0]
+  if (lanternaId != null && prevRank.size >= 6) {
+    const jogo = results.find(r => (r.homeId === lanternaId && r.hg > r.ag) || (r.awayId === lanternaId && r.ag > r.hg))
+    if (jogo) {
+      const vitima = jogo.homeId === lanternaId ? jogo.awayId : jogo.homeId
+      heads.push(`🪑 O lanterna acordou! ${nameOf(lanternaId)} ganhou do ${nameOf(vitima)} e tirou o pé do buraco.`)
+    }
+  }
+
+  // 📉 TOMBO DA RODADA: quem mais despencou de posição (4 lugares ou mais)
+  let tombo: { id: number; n: number; agora: number } | null = null
+  nowSorted.forEach((t, i) => {
+    const antes = prevRank.get(t.id)
+    if (antes == null) return
+    const caiu = (i + 1) - antes
+    if (caiu >= 4 && (!tombo || caiu > tombo.n)) tombo = { id: t.id, n: caiu, agora: i + 1 }
+  })
+  if (tombo) heads.push(`📉 Tombo da rodada: ${nameOf((tombo as { id: number }).id)} despencou ${(tombo as { n: number }).n} posições e caiu pro ${(tombo as { agora: number }).agora}º.`)
+
+  // 💤 RODADA DE GOLEIRO FELIZ: metade ou mais dos jogos sem gol nenhum
+  if (!bbNews && results.length >= 4) {
+    const secos = results.filter(r => r.hg + r.ag === 0).length
+    if (secos >= Math.ceil(results.length / 2)) heads.push(`💤 Rodada de goleiro feliz: ${secos} jogos terminaram sem gol nenhum.`)
+  }
+
+  // 📢 e passam a caber QUATRO por rodada, não três: com o dobro de tipos, três
+  // cortava justamente a manchete diferente (elas entram na ordem em que nascem).
+  return heads.slice(0, 4).map(h => `R${roundNum} · ${h}`)
 }
 
 // ─── monte final: ordem serpente por buracos ─────────────────────────
