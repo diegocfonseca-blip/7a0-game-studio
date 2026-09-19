@@ -27,7 +27,7 @@ await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
 const r = await p.evaluate(async () => {
   const ps = await import('/src/escalacao/pyramidseason.tsx')
   const st = await import('/src/escalacao/store.tsx')
-  const f = await import('/src/escalacao/fake.ts')
+  const f = await import('/src/escalacao/store.tsx')
   const SECTORS = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
   const NEED = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
   const cat = st.catalogTodos()
@@ -42,7 +42,7 @@ const r = await p.evaluate(async () => {
   for (const nome of times) {
     let n = 0
     for (const c of squads[nome]) {
-      if (f.ehCartaFake(c)) { fakePorPos[c.pos]++; n++ } else realPorPos[c.pos]++
+      if (f.ehFake(c)) { fakePorPos[c.pos]++; n++ } else realPorPos[c.pos]++
     }
     if (n) fakePorTime[nome] = n
   }
@@ -79,7 +79,7 @@ const r = await p.evaluate(async () => {
     const sq = ps.seedCpuSquads(usados, 12345, 'todos', true)
     let n = 0
     const porPos = Object.fromEntries(SECTORS.map(p => [p, 0]))
-    for (const nome of Object.keys(sq)) for (const c of sq[nome]) if (f.ehCartaFake(c)) { n++; porPos[c.pos]++ }
+    for (const nome of Object.keys(sq)) for (const c of sq[nome]) if (f.ehFake(c)) { n++; porPos[c.pos]++ }
     return { n, porPos }
   }
   const cenarios = [[20, 11], [20, 15], [20, 20], [20, 27]].map(([q2, k]) => { const x = comDonos(q2, k); return { tecnicos: q2, cartas: k, fake: x.n, porPos: x.porPos } })

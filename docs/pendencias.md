@@ -1,3 +1,37 @@
+## 19/09/2026 (parte 24) — 🔀 DUAS SESSÕES fizeram o perna-de-pau, e ficou UMA régua
+
+Na hora de publicar, a `main` já tinha o commit `6f2754c` de OUTRA sessão fazendo a
+MESMA coisa que eu tinha feito no branch: tirar o perna-de-pau da estatística. Sete
+conflitos, todos nos mesmos pedaços.
+
+**Resolvi tudo pro lado da `main`**, e desfiz a minha metade. Motivo, e vale pra
+próxima vez que isso acontecer:
+- a versão deles **já estava no ar** — é a que o Diego está vendo;
+- ela vai mais longe e do jeito certo: o filler **nem entra no sorteio** do gol
+  (`xi.filter(c => !ehFake(c))`), em vez de marcar e ser peneirado depois;
+- ela trouxe junto o **prêmio da Bola de Ouro** (20 moedas + 10 de piso), que é
+  pedido dele e eu não tinha;
+- e, acima de tudo: **duas réguas pra mesma regra é fábrica de bug.** Meu
+  `fake.ts` foi APAGADO e tudo passou a usar o `ehFake()` do `store.tsx`.
+
+### 🎯 O que sobrou de meu, porque a `main` não tinha
+- **Sobra de verdade antes do perna-de-pau** (`sobrasReais` + `fillToEleven`) — o
+  pedido dele de *"ele poderia ganhar um atacante de sobra"*. Não tem equivalente lá.
+- **O jogo rápido e a sala online** (`simMatch`): a régua deles pegou a carreira
+  (liga e copa), mas o rápido/online roda em **outro motor** — e é lá que a sala
+  grande enche de incógnita. Agora peneira nos dois, com a MESMA régua.
+
+⚠️ **A diferença de comportamento que o Diego precisa saber**: ele me disse *"eles
+podem fazer gols durante o jogo, não tem problema"*, e a versão que ficou é mais
+dura — o perna-de-pau **nem marca na súmula** (o gol sai como gol do time). Como é a
+que já está no ar e ele não reclamou, fica. Se ele quiser o meio-termo (marcar na
+súmula mas não no ranking), é voltar o sorteio e peneirar só a lista.
+
+**Trava: `npm run fake`** — reapontada pra régua da `main` e ampliada com as duas
+partes que sobraram (rápido/online e sobra antes do filler).
+
+---
+
 ## 19/09/2026 (parte 23) — 🏋️💸 Troco de 200 pra quem já tinha o preparador 👑
 
 Ordem dele: *"aumente 200 de moedas pra quem tem o preparador [👑 Lenda], igual o
@@ -338,6 +372,207 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 26) — 📝 LISTAR NÃO É ABANDONAR (o Garrincha e o Maradona voltam)
+
+Ele juntou as peças depois de três relatos (Rei da Bola FC, Raiva Cajuri FC e o print do
+Garrincha): *"o erro que eles estão reclamando não é apertar SAIR na renovação de
+contrato — aí tudo bem. É que ele está LISTANDO o jogador, ainda em contrato. O jogador
+é dele, pô. Ele pode pegar o jogador dele de volta se ninguém pegar e for pro monte.
+Quando lista, ele pode até vender por mais; se ninguém comprar vai pro monte e aí sim
+vale a metade. É diferente do caso de sair por contrato."*
+
+### 🔎 A causa (e era antiga, não veio de hoje)
+Ao consumir a lista de transferências, o reducer carimbava `semContrato` na carta
+listada se o contrato dela já tivesse acabado. **Só que essa linha roda DEPOIS do
+`s.seasonNo++` da virada.** Então o contrato que valia durante a temporada recém
+encerrada já contava como vencido: quem listou o próprio jogador na janela levava o selo
+de quem ABANDONOU, e o `semContrato` faz duas coisas ao mesmo tempo — limita o dinheiro
+da venda **e** proíbe o ex-dono de recuperar a carta (no leilão e no monte).
+Resultado: o dono listava, ninguém comprava, a carta caía no monte e ele não podia mais
+pegá-la de volta. Foi o Garrincha e o Maradona.
+
+### ✅ Conserto: um selo pra cada coisa
+- **`semContrato`** = saiu por CONTRATO ENCERRADO (o dono apertou DEIXAR IR). Continua
+  fazendo as duas coisas: teto de venda **e** proibição de recuperar. A regra dele não
+  mudou uma vírgula.
+- **`tetoOficial`** (novo) = só o TETO. É o que a listagem usa quando o contrato já tinha
+  acabado, pra não virar atalho de quem deixou vencer — **mas o dono mantém o direito de
+  recuperar a carta que ele mesmo pôs à venda**.
+- Os dois selos morrem quando a carta entra num elenco.
+- **Perdão único no save**: as cartas presas HOJE no leilão/monte com o selo errado e
+  dono humano viram `tetoOficial` na abertura do save. O Garrincha e o Maradona voltam a
+  poder ser recuperados. Carta de bot não muda.
+  ⚠️ Efeito colateral aceito: quem REALMENTE apertou DEIXAR IR nesta virada também ganha
+  o perdão nessas cartas específicas, uma vez só. Sem registro no save, não há como
+  separar os dois casos no passado — e o erro foi nosso.
+- Travas novas em `npm run monte`: carta listada é recuperável mesmo com teto; carta de
+  contrato vencido segue barrada.
+
+## 19/09/2026 (parte 25) — 🚨 A REMOÇÃO DO PONTUAL PRENDEU TODO MUNDO NA RODADA 0
+
+Print do **Cr7 Leilão** minutos depois do deploy: T48, Série A, botão verde
+**"▶️ Começar a temporada"** aceso, e o jogo não começava de jeito nenhum.
+
+### ❌ O erro foi meu, e é o MESMO do monte, no mesmo dia
+O `PLAY_ROUND` tinha um "cinto de segurança" de 07/08: **a rodada 0 não anda sem a
+aposta do patrocinador pontual da temporada**. Eu tirei a TELA que fazia a aposta e
+deixei o cinto lá. Sem tela, a aposta nunca existia → o reducer devolvia o estado
+igual, calado → botão mudo, carreira parada. Valia pra TODO mundo em carreira solo,
+não só pra quem virou temporada agora.
+
+### ✅ Conserto
+- O cinto saiu (o comentário no lugar conta a história, pra ninguém reintroduzir).
+- **Trava nova** em `scripts/testa-loja.mjs`: rodada 0 → 1 sem aposta nenhuma, e
+  também com resíduo de aposta velha no save.
+- 🧠 **REGRA que vale pra sempre**: quando uma regra sai da TELA, tem que sair também
+  do REDUCER. Duas regras decidindo a mesma coisa = botão que não faz nada. Hoje isso
+  aconteceu duas vezes (monte e início de temporada).
+
+## 19/09/2026 (parte 24) — 🚫🤝 O PATROCINADOR PONTUAL FOI REMOVIDO
+
+Ordem dele: *"eu acho que eu vou tirar esse patrocinador pontual. Tá ficando muito
+patrocinador, patrocinador, patrocinador, tá ficando chato. Tira esse patrocinador
+pontual e a pessoa também não vai mais ganhar esse dinheiro. Hoje vai ter o
+patrocinador master ali no início, aí logo depois vai pro próximo passo."*
+
+### ✅ O que saiu
+- O **passo do roteiro** da virada. A ordem agora é 🏆 Master → 👟 Fornecedor →
+  🛍️ Camisas → 🕴️ Bico. A pílula "PASSO X DE N" conta sozinha, então o N caiu junto.
+- A **trava de começar a temporada** não olha mais o pontual (só Master e crise).
+- O **pagamento**, nos DOIS caminhos que existiam: o `CLOSE_SEASON_BOOKS` (temporada
+  que fecha sem leilão) e o `OPEN_RESERVE_LIST`/`REAUCTION_ONLINE` (virada com leilão).
+  Ninguém recebe mais nada da aposta, nem quem tinha aposta feita na temporada passada.
+- O **recibo** "o patrocínio pagou", as telas de acompanhamento (`SponsorBetStatus` e
+  `CareerSponsorOverview`) e a action `SET_SPONSOR_BET`.
+
+### 🗄️ O que FICOU de propósito
+- `careerSponsorBet` / `careerSponsorResult` continuam no save e nos tipos: apagar
+  campo de save não desfaz nada e só arrisca quebrar quem está no meio da temporada.
+  Ninguém escreve e ninguém lê.
+- `sponsorBetRewards` e a tabela `SPONSOR_BET_PAY` seguem exportadas (as simulações de
+  caixa `sim-caixa-120`/`sim-caixa-divisoes` ainda importam). Se ele mandar voltar, é
+  religar o passo e os dois pontos de pagamento.
+- O componente `SponsorBetBanner` continua em `estadio.tsx`, sem quem chame.
+
+### 💰 Quanto some do caixa (por temporada, se batesse a meta)
+Várzea 4/6/8 · D 8/12/16 · C 14/22/30 · B 24/40/56 · A 42/74/106 (nível 1/2/3).
+Master, bilheteria, Loja, TV e bico não mudaram. Novidade na home avisando.
+Reverter: `git revert` do commit desta parte.
+
+## 19/09/2026 (parte 23) — 🐛🔒 TELA TRAVADA NO MONTE (Rei da Bola FC) — sem PEGAR e sem PASSAR
+
+Relato dele: *"deu um erro no leilão do Rei da Bola FC. Quando foi pro monte, aparecia
+um jogador pela metade pra ele pegar. Ele tentava pegar, pegar, pegar e não acontecia
+nada — ficou travado na tela. Se aconteceu com ele, pode acontecer com outros."*
+
+### 🔎 Eram DUAS regras diferentes decidindo a mesma coisa
+1. **A tela** montava a lista com régua PRÓPRIA (`openSlots` + `monteLocked`).
+   **O reducer** recusava por MAIS duas que a tela não conhecia: a anti-malandragem do
+   **contrato vencido** (carta que saiu do seu clube não volta de graça pelo monte) e o
+   **caixa**. Resultado: botão verde PEGAR que não fazia nada, sem dizer por quê.
+2. **Pior**: com buraco no XI, o botão **PASSAR A VEZ some** se existir "alguma carta" —
+   e essa conta só olhava o caixa. A carta travada contava como disponível, então ele
+   ficava **sem PEGAR e sem PASSAR**: tela morta, exatamente o relato.
+
+### ✅ Conserto
+- **`monteBloqueio(state, m, c)`** no `store.tsx` é agora o ÚNICO juiz, e devolve o
+  MOTIVO: `vaga` · `reservado` · `semcontrato` · `caixa` · `null`. O `montePickable`
+  (que o reducer usa) virou uma linha em cima dele, então tela e regra não podem mais
+  divergir.
+- A tela esconde só `vaga` e `reservado` (nada de novidade pra quem olha). `caixa` e
+  `semcontrato` **aparecem com o motivo e o caminho** — regra da casa pra toda trava:
+  *"ele não volta de graça pro seu clube. Outro time pode levar — e um dia você
+  recompra."*
+- **PASSAR A VEZ fica liberado sempre que nenhuma carta for pegável DE VERDADE**,
+  mesmo com buraco no XI. Ninguém mais fica preso.
+- Trava nova: **`npm run monte`** (`scripts/testa-monte.mts`) — 11 checagens, incluindo
+  a situação exata do Rei da Bola.
+- Sem novidade na home (é conserto). Reverter: `git revert` desta parte.
+
+## 19/09/2026 (parte 22) — 🚫🧍 PERNA-DE-PAU NÃO TEM ESTATÍSTICA (nem gol, nem assistência)
+
+Ele mandou um print do jornal da T43 dele: **🥇 Zé Ninguém (Várzea · 2000) BOLA DE OURO**,
+com 10 gols e 39 assistências, e a lista de garçons inteira tomada por Perna-de-pau,
+Bola Murcha, Pé de Anjo e Meia-Boca. Palavras dele: *"jogadores fakes não quero que
+tenha estatísticas pra eles, nem assistência e nem gols"*. É o "estado quebrado" nº 1
+da casa: jogador de mentira premiado.
+
+### 🔎 Por que acontecia
+O peso por nível (`goalW`) só DIMINUÍA a chance do filler, não zerava. Nos times de
+fundo da Várzea **todo mundo é filler** — então alguém de mentira tinha que marcar, e
+com 38 rodadas ele acumulava mais que os craques das divisões de cima.
+
+### ✅ Como ficou
+- **`ehFake(c)`** (`store.tsx`), a régua única: `fake === true` **ou** clube de filler
+  (`Várzea`/`Pickup` — o filler dos bots não carrega a flag, só o clube).
+- **Gol e assistência na liga e na Copa** só sorteiam jogador de verdade. Time 100% de
+  mentira faz o gol no PLACAR e **o gol fica sem dono na súmula** — nada trava.
+- ⚠️ **O dado (rng) é consumido igual, com autor ou sem** — o minuto do gol passou pra
+  antes da guarda de propósito. Sem isso, um gol sem autor desalinharia o sorteio e
+  mudaria PLACAR de rodada já jogada (o passado é imutável, regra da casa).
+- **Segunda tranca** no `RECORD_SEASON_STATS`: fake não entra no histórico de todos os
+  tempos nem leva Bola de Ouro, mesmo que um caminho novo deixe passar.
+- **Limpeza do passado na abertura do save**: os fakes somem de `careerScorersAll`,
+  `careerAssistsAll` e `careerMelhorMundo`. O save dele perde o 🥇 Zé Ninguém sozinho,
+  sem migração manual. **Cria da Base não é fake** — o guri é jogador de verdade do
+  clube e mantém tudo o que fez.
+- Sem novidade na home (é conserto, regra da casa). Reverter: `git revert` desta parte.
+
+## 19/09/2026 (parte 21) — 🥇💰 A Bola de Ouro passa a PAGAR (20 🪙 + 10 de piso)
+
+Ordem dele, junto com o pedido de mockup e vídeo: *"todo bola de ouro q o time tiver o
+clube ganhará 20 moedas extras e a jogador passa a valorizar mais 10 de piso"*.
+
+### ✅ A regra (no ar)
+- Mora no `RECORD_SEASON_STATS` (`store.tsx`), **dentro do portão idempotente**
+  (`statsSeason`), então nenhuma temporada paga duas vezes nem recarregando a tela.
+- **20 🪙 pro CLUBE do premiado**, e só pra clube de gente (`teamId >= 0` = id do
+  manager, a mesma régua do `teamKey`). Entra no caixa e escreve linha no extrato
+  (`logFin` tipo `reward`) e no `marketLog`.
+- **+10 de piso pro JOGADOR**, em campo próprio `careerBolaOuroPiso` (chave `ident` =
+  `nome|clube`), somado DEPOIS do `max` dentro de `valorOficial`. Dois motivos pra não
+  escrever no `marketValues`: o livro de preços é reescrito por toda venda/leilão (o
+  bônus sumiria) e, com o `max`, um craque de tabela alta (fame 5 = 30) não sentiria
+  o prêmio. Como está, vale em renovação, teto de venda, SAF e ficha.
+- **Acumula**: 2 bolas = +20. E o piso sobe **mesmo quando o premiado é de bot** — a
+  carta encarece pra todo mundo no leilão seguinte (só as moedas exigem dono humano).
+- Os dois números moram em `BOLA_OURO_MOEDAS` / `BOLA_OURO_PISO`, lado a lado.
+- Novidade na home. Reverter: `git revert` do commit desta parte.
+
+### ⏳ O visual está ESPERANDO O OK DELE (mockup + vídeo entregues)
+`node scripts/mockup-bola-ouro.mjs` desenha os três lugares onde o prêmio aparece, e
+`node scripts/video-bola-ouro-reels.mjs` é o reels de ~27s explicando. O que ainda NÃO
+foi codado, porque é visual novo e a regra da casa é esperar o OK:
+1. a **faixa dourada do prêmio** na página da Bola de Ouro do jornal ("+20 🪙 pro clube
+   · +10 de piso"),
+2. o **selo 🥇 2× BOLA DE OURO** na ficha do jogador, com o valor mostrando `30 + 20 🥇`.
+Hoje o jogador só vê o prêmio pelo **extrato** e pelo **mural de mercado**.
+
+## 19/09/2026 (parte 20) — 🔓 A carreira nova saiu da prévia: PUBLICADA PRA TODOS
+
+Ele olhou a aba Jogos no celular e fechou três coisas de uma vez:
+1. *"Essa frase 'acompanhe sua divisão e os jogos etc' não precisa escrever."* → o
+   subtítulo da liga saiu do palco (`CareerCompetitionStage`). O `CompetitionStage` só
+   desenha o `<p>` quando tem texto, então **a Copa continua dizendo o formato da fase**
+   (quantos confrontos · jogo único/ida e volta) — quem perdeu a linha foi só a liga.
+2. *"Texto de pênalti não pode ter, porque quando é pênalti tem batida manual pra eu
+   bater, lembra?"* → as 3 frases de pênalti saíram de `lances.ts` e foram **trocadas
+   por outras 3** (o acervo continua com 80). Motivo, que vale pra qualquer frase nova:
+   o pênalti tem TELA PRÓPRIA (mira + força); narrar "pênalti no canto" num gol de
+   jogada normal seria contar uma história que não aconteceu.
+3. *"Pode publicar p todos."* → a apresentação da carreira saiu da trava de conta.
+
+### 🔓 Como ficou a liberação (e como reverter)
+- `privateCareer` agora é `privatePreview || publicCareerVisual(state)`, e o placar
+  (`grande`/`cinematic`) e as duas telas da Copa da carreira usam a MESMA chave:
+  **`CAREER_VISUAL_RELEASED` em `career-feature-release.ts`**.
+- 👉 **Reverter é UMA linha**: essa chave pra `false` devolve a carreira inteira ao
+  visual antigo, **sem tocar no online** (que tem a chave dele, `ONLINE_VISUAL_RELEASED`).
+- A casca da carreira (fundo de estádio, abas) já era pública desde antes — quem não
+  era a conta dele via casca nova com miolo velho. Agora está coerente.
+- Novidade na home (a do placar que conta o lance). O conserto do som não entra em
+  novidade, que é regra da casa.
+
 ## 19/09/2026 (parte 19) — 🐛 O som AMBIENTE sumiu (só tocava o gol)
 
 Ele: *"não sei por que não tá parecendo o som ambiente mais durante os jogos, só tô
@@ -390,11 +625,7 @@ também; e dar mais emoção ao placar"*. Mockup em `scripts/mockup-placar-emoca
 - Bancada: `scripts/teste-placar-grande/` (`?cena=rolando|gol|fim&res=v|d|e`, print
   com `print.mjs`).
 
-⏳ **Fora da prévia nada mudou.** Quando ele aprovar no celular, liberar pra todo
-mundo = trocar o gate (`privatePreview`) por uma chave de release, como o
-`ONLINE_VISUAL_RELEASED`. Aí sim entra novidade na home.
-⏳ O cabeçalho da aba JOGOS é outro (`CareerCompetitionStage`, 205px no celular) — ele
-não falou dele; se reclamar, é o mesmo tratamento.
+✅ **PUBLICADO PRA TODOS no mesmo dia** — ver a parte 20 logo abaixo.
 
 ## 19/09/2026 (parte 17) — 🔁 No rodízio entra o MAIS CHEIO (e o cria só sem reserva de verdade)
 

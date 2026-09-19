@@ -16,7 +16,6 @@ import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './co
 import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
-import { ehCartaFake, ehLinhaFake, isFillerClub as ehClubeTapaBuraco } from './fake' // 🃏🚫 tapa-buraco fora de artilharia/garçons/Bola de Ouro (Diego 19/09)
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
@@ -155,7 +154,16 @@ function applyRewards(coins: Record<number, number> | undefined, rewards?: Recor
 }
 // clube-sentinela dos fillers "perna-de-pau" (tampa-buraco, não colecionável, sem
 // salário): 'Várzea' no futebol, 'Pickup' no basquete (Street League). Mesmo papel.
-export const isFillerClub = ehClubeTapaBuraco // 🏠 a regra mora em `fake.ts` agora (junto de quem mais é tapa-buraco); o nome fica aqui porque meia dúzia de telas importa dele
+export const isFillerClub = (club: string): boolean => club === 'Várzea' || club === 'Pickup'
+// 🚫🧍 JOGADOR DE MENTIRA — ordem do Diego (19/09): *"jogadores fakes não quero que
+// tenha estatísticas pra eles, nem assistência e nem gols"*. Ele pegou um 🥇 Zé
+// Ninguém (Várzea · 2000) como BOLA DE OURO da T43, com 39 assistências — perna-de-pau
+// premiado é exatamente o "estado quebrado" que ele mais odeia.
+// Dois jeitos de nascer, e os dois entram aqui: a carta com `fake: true` (o
+// preenchimento de elenco incompleto) e o FILLER dos times de fundo, que não carrega
+// a flag mas tem clube 'Várzea'/'Pickup'. Quem decide gol e assistência chama ISTO —
+// assim o critério é um só e não escapa por um caminho novo.
+export const ehFake = (c: { fake?: boolean; club?: string }): boolean => !!c.fake || isFillerClub(c.club ?? '')
 // 💸 SALÁRIO de um jogador = piso (paid) ÷ 10, arredondado. Incógnita (fake/Várzea)
 // não tem salário. É o MESMO número mostrado no elenco (💰 paid), pra bater certinho.
 export function salaryOfCard(c: WonCard): number {
@@ -962,8 +970,8 @@ function fillerCard(pos: Sector, rng: () => number): WonCard {
   // comprar sim lá no sondar se ele quiser"*. Com o selo, o perna-de-pau deixaria
   // de contar pra fechar os 11 no elenco de quem comprou, perderia contrato e
   // sumiria da sondagem — mudança grande demais pro que ele queria.
-  // 👉 Quem NÃO deixa ele entrar em ranking é `ehCartaFake()` (`fake.ts`), que
-  //    reconhece pelo clube e pelo id, sem precisar de selo.
+  // 👉 Quem NÃO deixa ele entrar em ranking é o `ehFake()` aqui de cima, que
+  //    reconhece pelo CLUBE ('Várzea'/'Pickup') e não precisa de selo nenhum.
   return { id: `fil-s-${fillCounter++}`, name: names[Math.floor(rng() * names.length)], club: nba ? 'Pickup' : 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4), paid: 0, via: 'bot' }
 }
 // completa um elenco de time de fundo até o mínimo da formação (11), por posição.
@@ -1424,8 +1432,18 @@ function voltaCriaSeSobrou(s: EscState, m: Manager, pos: Sector): void {
   }
 }
 export function valorOficial(state: EscState, c: Card): number {
+  // 🥇 +10 de piso POR BOLA DE OURO (Diego 19/09). Soma DEPOIS do max, senão um
+  // craque de tabela alta (fame 5 = 30) não sentiria o prêmio. Vale em tudo que lê
+  // o valor oficial: renovação, teto de venda, SAF e a ficha do jogador.
   return Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
+    + (state.careerBolaOuroPiso?.[ident(c)] ?? 0)
 }
+/** 🥇 quanto de piso esta carta ganhou em Bolas de Ouro (0 = nunca levou) */
+export const pisoBolaOuro = (state: EscState, c: { name: string; club: string }): number =>
+  state.careerBolaOuroPiso?.[ident(c)] ?? 0
+/** 🥇 os dois números do prêmio, num lugar só (mexeu aqui, mudou no jogo e nos textos) */
+export const BOLA_OURO_MOEDAS = 20
+export const BOLA_OURO_PISO = 10
 export type RenewAnos = 1 | 2 | 3 | 5 | 10
 // 📝💰 RENOVAÇÃO POR VALOR (decisão do Diego 14/08, várias rodadas de ajuste fino):
 // regra de ouro — um prazo mais LONGO nunca pode custar igual ou menos que um mais
@@ -1483,7 +1501,10 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
   if (sellerId == null || amount <= 0 || sellerId === buyerId) return
   const seller = state.managers.find(m => m.id === sellerId)
   let credit = amount
-  if (card.semContrato) {
+  // 💰 teto do valor oficial: vale pra quem saiu por contrato encerrado E pra quem foi
+  // listado já vencido (`tetoOficial`) — a diferença entre os dois é só o direito de
+  // recuperar a carta, que o listado mantém.
+  if (card.semContrato || (card as { tetoOficial?: boolean }).tetoOficial) {
     const teto = valorOficial(state, card)
     if (credit > teto) {
       const familia = credit - teto
@@ -1927,7 +1948,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     // novo de lance, ele não consegue mais criar dívida do nada.
     m.money = Math.max(0, m.money - top)
     // 📝 clube novo = contrato novo: limpa selo/prazo — a próxima cerimônia sorteia 5-10
-    m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
+    m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
     queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
   }
   return { queue, unsold, ties }
@@ -1955,7 +1976,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
   const m = state.managers.find(x => x.id === winner)!
   m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
-  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
+  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   voltaCriaSeSobrou(state, m, tb.card.pos) // 🌱 reforço chegou pelo desempate: o guri volta pra base
   recordPrice(state, tb.card, max) // livro de preços
@@ -2802,26 +2823,41 @@ export function migrateTeamNames(st: EscState): EscState {
   // 🏢 saves antigos gravavam UM empréstimo (objeto); agora são LISTAS por divisão
   if (st.careerFilial) st.careerFilial = { ...st.careerFilial, loanOut: loanList(st.careerFilial.loanOut), loanIn: loanList(st.careerFilial.loanIn) }
   st.careerScorersAll = migraArtilhariaPorCarta(st.careerScorersAll)
-  // 🃏🚫 LIMPEZA DO PASSADO (Diego, 19/09): *"tem um monte de jogador fake, Zé
-  // Ninguém, Trapalhão, ganhando a bola de ouro"*. A trava nova impede que entre
-  // mais; esta linha tira quem JÁ ENTROU, na hora em que o save abre. Sem ela, a
-  // carreira dele continuaria com o Trapalhão no topo do Rank pra sempre.
-  st.careerScorersAll = limpaFakeDoHistorico(st.careerScorersAll)
-  st.careerAssistsAll = limpaFakeDoHistorico(st.careerAssistsAll)
-  // 🥇 E a Bola de Ouro de um ano ganho por tapa-buraco SAI da lista. Não dá pra
-  // recalcular quem seria o certo (os números daquela temporada não ficam
-  // guardados), então o ano some do quadro de campeões em vez de mentir.
-  if (st.careerMelhorMundo) {
-    const anos = Object.entries(st.careerMelhorMundo).filter(([, v]) => !ehLinhaFake(v))
-    if (anos.length !== Object.keys(st.careerMelhorMundo).length) st.careerMelhorMundo = Object.fromEntries(anos)
+  // 🚫🧍 LIMPA O PASSADO DOS PERNA-DE-PAU (Diego 19/09, no save dele): a regra nova
+  // impede o filler de marcar daqui pra frente, mas o histórico já gravado continuaria
+  // mostrando 🥇 Zé Ninguém (Várzea · 2000) como Bola de Ouro da T43, com 39
+  // assistências. Some com isso na abertura do save — jogador de mentira não deixa
+  // rastro. NÃO encosta em ninguém de verdade: a régua é a mesma do jogo (`ehFake`),
+  // e um Cria da Base (jogador real do clube, só fraquinho) continua com tudo dele.
+  const semFake = <T extends { name: string; club?: string }>(rec: Record<string, T> | undefined) => {
+    if (!rec) return rec
+    const limpo = Object.fromEntries(Object.entries(rec).filter(([, l]) => !ehFake(l)))
+    return Object.keys(limpo).length === Object.keys(rec).length ? rec : limpo
   }
+  st.careerScorersAll = semFake(st.careerScorersAll)
+  st.careerAssistsAll = semFake(st.careerAssistsAll)
+  st.careerMelhorMundo = semFake(st.careerMelhorMundo)
+  // 🩹 PERDÃO ÚNICO DO SELO ERRADO (19/09) — Garrincha do Rei da Bola FC, Maradona do
+  // Raiva Cajuri FC. Até hoje, LISTAR um jogador na virada carimbava `semContrato` se o
+  // contrato acabava naquela temporada (a marcação roda depois do `seasonNo++`), e o
+  // dono perdia o direito de recuperar a carta que ele mesmo pôs à venda. O conserto já
+  // está feito daqui pra frente; aqui a gente desfaz o estrago nas cartas que FICARAM
+  // penduradas no leilão/monte deste save: elas mantêm o teto de venda (`tetoOficial`,
+  // pra economia não furar) e voltam a poder ser recuperadas pelo dono.
+  // ⚠️ Passa uma vez por carta e só em quem TEM dono humano; carta de bot não muda.
+  const humanos = new Set((st.managers ?? []).filter(m => m.isHuman).map(m => m.id))
+  const perdoa = (lista: Card[] | undefined) => {
+    if (!lista?.length) return lista
+    return lista.map(c => {
+      const sc = c as Card & { tetoOficial?: boolean }
+      if (!sc.semContrato || sc.seller == null || !humanos.has(sc.seller)) return c
+      return { ...sc, semContrato: undefined, tetoOficial: true }
+    })
+  }
+  st.monte = perdoa(st.monte) ?? st.monte
+  st.currentCards = perdoa(st.currentCards) ?? st.currentCards
+  st.sectorUnsoldAccum = perdoa(st.sectorUnsoldAccum) ?? st.sectorUnsoldAccum
   return st
-}
-/** tira do histórico de todos os tempos quem é tapa-buraco (filler/incógnita) */
-function limpaFakeDoHistorico<T extends { name: string; club?: string }>(m?: Record<string, T>): Record<string, T> | undefined {
-  if (!m) return m
-  const limpo = Object.entries(m).filter(([, v]) => !ehLinhaFake(v))
-  return limpo.length === Object.keys(m).length ? m : Object.fromEntries(limpo)
 }
 
 // ─── 🃏 ARTILHARIA DE TODOS OS TEMPOS: DE NOME PRA CARTA (19/09) ─────────────
@@ -3105,7 +3141,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       // jogo). O nível manda na média; o dia deixa um coadjuvante brilhar às vezes.
       const pool = m.squad.map(c => {
         const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-        return { name: c.name, fake: ehCartaFake(c), w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
+        return { name: c.name, fake: ehFake(c), w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
       })
       pool.sort((a, b) => b.w - a.w)
       // 🏀 só a ROTAÇÃO pontua (topo ~9); banco fundo quase não marca, igual à NBA.
@@ -3178,7 +3214,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           // de várzea brigava na artilharia com o Pelé.
           const posW = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)
           const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-          pool.push({ name: c.name, fake: ehCartaFake(c), w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
+          pool.push({ name: c.name, fake: ehFake(c), w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
         }
         const total = pool.reduce((s, p) => s + p.w, 0)
         // 🧤 elenco degenerado (só goleiros/zagueiros sem peso = total 0): NÃO credita
@@ -3221,7 +3257,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         // 🃏🚫 o passe do tapa-buraco vale no jogo e sai na narração, mas não entra
         // na lista de garçons — o que vale pro gol vale pra assistência (19/09).
         const carta = m.squad.find(c => c.name === nome)
-        if (!carta || !ehCartaFake(carta)) {
+        if (!carta || !ehFake(carta)) {
           const row = lista.find(a => a.name === nome && a.teamId === id)
           if (row) row.assists++
           else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
@@ -3808,13 +3844,28 @@ export function monteLocked(state: EscState, m: Manager, c: Card): boolean {
 }
 // pode o técnico m pegar a carta c AGORA? vaga na posição + consegue pagar + não
 // está reservada pro dono.
-export function montePickable(state: EscState, m: Manager, c: Card): boolean {
+// 🐛 POR QUE ISTO VIROU UMA FUNÇÃO COM MOTIVO (Rei da Bola FC, 19/09) — o Diego:
+// *"ele tava tentando pegar, pegar, pegar e não acontecia nada, ele tava travado na
+// tela"*. A TELA do monte decidia o que mostrar por conta própria (só `openSlots` +
+// `monteLocked`) e o REDUCER recusava em silêncio por outras duas regras que a tela
+// não conhecia: a anti-malandragem do contrato vencido e o caixa. Resultado: botão
+// verde, aceso, que não fazia nada — o pior tipo de trava, porque não explica nada.
+// Agora existe UM lugar só que decide, e ele devolve o PORQUÊ; a tela mostra o motivo
+// e o caminho, que é a regra da casa pra toda trava.
+export type MonteBloqueio = null | 'vaga' | 'reservado' | 'semcontrato' | 'caixa'
+export function monteBloqueio(state: EscState, m: Manager, c: Card): MonteBloqueio {
   const open = state.careerOnline ? careerOpenSlots(m, c.pos) : openSlots(m, c.pos)
+  if (open <= 0) return 'vaga'                       // some da lista (não é novidade nenhuma)
+  if (monteLocked(state, m, c)) return 'reservado'   // some: é a preferência do dono
   // 📝 ANTI-MALANDRAGEM: contrato vencido não volta de graça pro ex-dono pelo
   // monte (senão "deixar vencer" saía mais barato que renovar). Vale pros DOIS
   // clubes do dono (😤 magoado). Só com outro clube comprando e voltando um dia.
-  if ((c as { semContrato?: boolean }).semContrato && mesmoDono(state, m.id, (c as { seller?: number }).seller)) return false
-  return open > 0 && monteAfford(m, c, !!state.careerOnline) && !monteLocked(state, m, c)
+  if ((c as { semContrato?: boolean }).semContrato && mesmoDono(state, m.id, (c as { seller?: number }).seller)) return 'semcontrato'
+  if (!monteAfford(m, c, !!state.careerOnline)) return 'caixa'
+  return null
+}
+export function montePickable(state: EscState, m: Manager, c: Card): boolean {
+  return monteBloqueio(state, m, c) === null
 }
 function monteAutoPick(state: EscState, m: Manager, monte: Card[], rng: () => number): Card | null {
   const valid = monte.filter(c => montePickable(state, m, c))
@@ -3878,7 +3929,7 @@ function takeFromMonte(state: EscState, cardId: string) {
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
-  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
+  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, tetoOficial: undefined, contratoAte: undefined })
   voltaCriaSeSobrou(state, m, card.pos) // 🌱 chegou reforço de verdade: o guri volta pra base NA HORA
   mirrorWallets(state) // 💰 compra no monte sai da caixa NA HORA
 }
@@ -4147,7 +4198,8 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
-  | { type: 'SET_SPONSOR_BET'; tier: 1 | 2 | 3; brandId: string; mgrId?: number } // 🤝 aposta do patrocínio da temporada (nível escolhido + marca) — banner de início de temporada
+  // 🚫🤝 SET_SPONSOR_BET saiu em 19/09 junto com o patrocinador pontual (ordem do
+  // Diego). O campo `careerSponsorBet` segue no save, sem ninguém escrever nem ler.
   | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
   // 🛍️ LOJA DO CLUBE (15/09; liberada geral no mesmo dia — sport.ts/LOJA_GERAL)
   | { type: 'LOJA_PRECO'; preco: import('./loja').PrecoLoja; mgrId?: number } // 💰 preço da camisa da temporada (a aposta)
@@ -4228,7 +4280,7 @@ function sweepMonteToBackstops(st: EscState) {
     // conta: bot paga = vendedor recebe. (Carta nova/sem vendedor segue grátis.)
     if (listed && paid > 0) bot.money = (bot.money ?? 0) - paid
     agenciaTransacao(st, card) // 🕴️ agenciado indo pra bot também é negócio → comissão
-    bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
+    bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, tetoOficial: undefined, contratoAte: undefined })
     if (paid > 0) recordPrice(st, card, paid)
     // resumo dos bots (visibilidade na cerimônia)
     const msg = listed
@@ -5935,14 +5987,6 @@ export function reducer(state: EscState, action: Action): EscState {
       }
       return s
     }
-    case 'SET_SPONSOR_BET': {
-      // 🤝 aposta do patrocínio da temporada (nível + marca) — banner de início de
-      // temporada. Guarda por mgrId (solo e online usam a mesma chave).
-      if (!s.careerOnline) return s
-      const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
-      s.careerSponsorBet = { ...(s.careerSponsorBet ?? {}), [id]: { tier: action.tier, brandId: action.brandId, season: s.seasonNo ?? 1 } }
-      return s
-    }
     case 'SET_MASTER': {
       // 🏆 PATROCINADOR MASTER (13/09): assina um dos 4 contratos. Travas:
       //  · só na carreira; · só quem NÃO tem contrato cobrindo esta temporada (sem
@@ -6525,7 +6569,7 @@ export function reducer(state: EscState, action: Action): EscState {
                 usados.add(idR(ganho))
                 // ⚠️ carta do CATÁLOGO não carrega `pos` (a posição vem da chave do
                 // setor) — injetar aqui é OBRIGATÓRIO, senão nasce carta sem posição
-                m.squad.push({ ...ganho, pos, id: `repo-${m.id}-${pos}-${Math.floor(rngR() * 1e9)}`, paid: 0, via: 'monte', emprestado: undefined, seller: undefined, semContrato: undefined, contratoAte: undefined } as WonCard)
+                m.squad.push({ ...ganho, pos, id: `repo-${m.id}-${pos}-${Math.floor(rngR() * 1e9)}`, paid: 0, via: 'monte', emprestado: undefined, seller: undefined, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined } as WonCard)
               } else {
                 m.squad.push(fillerCard(pos, rngR))
               }
@@ -6959,16 +7003,12 @@ export function reducer(state: EscState, action: Action): EscState {
       // 4 divisões vem dos elencos reais + semente + rodada). Aqui só avançamos a
       // rodada (o host conduz, e isso já sincroniza) — nada de simular a liga viva.
       if (s.careerOnline) {
-        // 🤝 CINTO DE SEGURANÇA (07/08, relato do Diego): a rodada 0→1 nunca pode
-        // andar sem o patrocínio escolhido — mesmo que algum caminho da tela
-        // dispare PLAY_ROUND sem passar pelo botão. É a mesma checagem da tela,
-        // só que aqui no reducer ninguém escapa dela. Só solo (o online decide
-        // por si, o host não tem como saber a escolha de CADA humano aqui).
-        if (s.round === 0 && s.onlineMode !== 'online') {
-          const youId = s.managers[s.youIdx]?.id
-          const bet = s.careerSponsorBet?.[youId]
-          if (!bet || bet.season !== s.seasonNo) return s
-        }
+        // 🚫🤝 AQUI MORAVA O CINTO DE SEGURANÇA DO PATROCINADOR PONTUAL, e ele PRENDEU
+        // TODO MUNDO na rodada 0 quando o pontual saiu (19/09, print do Cr7 Leilão na
+        // T48: botão verde aceso, toque, e a temporada não começava). O cinto exigia a
+        // aposta da temporada — e, sem a tela que fazia a aposta, ela nunca existia.
+        // ⚠️ LIÇÃO, a MESMA do monte no mesmo dia: quando uma regra sai da tela, tem
+        // que sair TAMBÉM do reducer. Tela e motor discordando = botão mudo.
         // 🎭 EVENTOS (solo): banner PENDENTE trava o avanço da rodada — o técnico
         // decide primeiro (a tela nem dispara, isto é o cinto de segurança).
         // 🩹 CURA: carreira SEM agenciaOn não pode ter evento (vazou no lançamento
@@ -7593,12 +7633,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // repartindo o total embolado entre os xarás — ver o comentário de lá.
       const skey = chaveArtilheiro
       const all = { ...(s.careerScorersAll ?? {}) }
-      // 🃏🚫 PORTA DE ENTRADA DO HISTÓRICO: aqui é o último lugar por onde um
-      // tapa-buraco poderia virar artilheiro de todos os tempos. A peneira já
-      // acontece lá na simulação, mas ela é repetida aqui de propósito — se um
-      // dia aparecer uma competição nova que esqueça de peneirar, esta porta
-      // segura. Ordem do Diego, 19/09.
-      for (const sc of action.scorers.filter(x => !ehLinhaFake(x))) {
+      // 🚫🧍 segunda tranca contra o perna-de-pau (Diego 19/09): quem decide o gol já
+      // não escolhe carta de mentira, mas o histórico de TODOS OS TEMPOS é pra sempre —
+      // se algum caminho novo deixar um filler passar, ele morre aqui.
+      for (const sc of action.scorers.filter(x => !ehFake(x))) {
         const prev = all[skey(sc)]
         // 🧹 `cardId` NÃO entra no que fica guardado: ele muda a cada leilão, não
         // quer dizer nada de uma temporada pra outra e só engorda o save.
@@ -7619,7 +7657,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // porque isto nunca foi guardado antes — não há passado pra repartir.
       if (action.assists?.length) {
         const todas = { ...(s.careerAssistsAll ?? {}) }
-        for (const as of action.assists.filter(x => !ehLinhaFake(x))) {
+        for (const as of action.assists.filter(x => !ehFake(x))) {
           const k = skey(as)
           const { cardId: _semId, ...linha } = as
           todas[k] = { ...linha, assists: (todas[k]?.assists ?? 0) + as.assists }
@@ -7629,8 +7667,29 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🥇 MELHOR DO MUNDO do ano (gol + assistência somados). Vem calculado da
       // tela, como os artilheiros — e entra no mesmo portão idempotente, então
       // uma temporada nunca é premiada duas vezes.
-      // 🃏🚫 e a Bola de Ouro nunca é gravada pra tapa-buraco (Diego, 19/09)
-      if (action.melhor && !ehLinhaFake(action.melhor)) s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
+      if (action.melhor && !ehFake(action.melhor)) {
+        s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
+        // 🥇💰 O PRÊMIO (Diego 19/09): *"todo bola de ouro q o time tiver o clube ganhará
+        // 20 moedas extras e o jogador passa a valorizar mais 10 de piso"*.
+        //  · O PISO é da CARTA e vale pro mundo inteiro (bot também): quem ganhou Bola de
+        //    Ouro fica mais caro pra todo mundo, é o que "valorizar" quer dizer.
+        //  · As MOEDAS são do CLUBE do premiado, e só existem pra clube de gente (bot não
+        //    tem caixa). `teamId >= 0` é o id do manager — a mesma régua do `teamKey`.
+        //  · Tudo aqui dentro do portão idempotente do RECORD_SEASON_STATS (`statsSeason`),
+        //    então nenhuma temporada paga duas vezes, nem recarregando a tela.
+        const mel = action.melhor
+        if (mel.club) {
+          const k = ident({ name: mel.name, club: mel.club })
+          s.careerBolaOuroPiso = { ...(s.careerBolaOuroPiso ?? {}), [k]: (s.careerBolaOuroPiso?.[k] ?? 0) + BOLA_OURO_PISO }
+        }
+        const dono = s.managers.find(m => m.id === mel.teamId && m.isHuman)
+        if (dono) {
+          const caixa = s.careerCoins?.[dono.id] ?? 0
+          s.careerCoins = { ...(s.careerCoins ?? {}), [dono.id]: caixa + BOLA_OURO_MOEDAS }
+          logFin(s, 'reward', `🥇 Bola de Ouro: ${mel.name} é o melhor do mundo`, BOLA_OURO_MOEDAS, undefined, dono.id)
+          ;(s.marketLog = s.marketLog ?? []).push(`🥇 ${mel.name} levou a BOLA DE OURO da T${s.seasonNo} (${mel.goals} gols + ${mel.assists} assistências)! O ${dono.teamName} fatura ${BOLA_OURO_MOEDAS} 🪙 e ele valoriza +${BOLA_OURO_PISO} de piso.`)
+        }
+      }
       s.statsSeason = s.seasonNo
       return s
     }
@@ -8040,9 +8099,19 @@ export function reducer(state: EscState, action: Action): EscState {
         const keep: WonCard[] = [], out: WonCard[] = []
         for (const c of m.squad) (ids.has(c.id) ? out : keep).push(c)
         m.squad = keep
-        // 📝 se a carta listada JÁ está com contrato encerrado, leva o selo mesmo
-        // assim (senão listar manualmente o vencido furava o teto da venda)
-        for (const c of out) listedCards.push({ ...c, seller: m.id, ...(c.contratoAte != null && c.contratoAte < s.seasonNo ? { semContrato: true } : {}) })
+        // 📝 LISTAR NÃO É ABANDONAR (conserto de 19/09 — Garrincha do Rei da Bola FC e
+        // Maradona do Raiva Cajuri FC). Palavras do Diego: *"ele está listando o jogador,
+        // ainda está em contrato… ele pode pegar o jogador dele de volta se ninguém pegar
+        // e for pro monte. É diferente do caso de sair por contrato"*.
+        // 🐛 O QUE ACONTECIA: esta linha carimbava `semContrato` (que BLOQUEIA a
+        // recuperação) quando o contrato já tinha acabado — só que ela roda DEPOIS do
+        // `s.seasonNo++` da virada, então o contrato que valia durante a temporada recém
+        // encerrada já contava como vencido. Quem listou um jogador seu perdia o direito
+        // de recuperá-lo, sem nunca ter ido na janela de renovação.
+        // ✅ AGORA: listar só pode limitar o DINHEIRO (teto do valor oficial, pra não
+        // virar atalho de quem deixou vencer), nunca o direito de pegar de volta. Quem
+        // perde o jogador é só quem apertou DEIXAR IR na janela de contratos.
+        for (const c of out) listedCards.push({ ...c, seller: m.id, ...(c.contratoAte != null && c.contratoAte < s.seasonNo ? { tetoOficial: true } : {}) })
       }
       // 1a-bis) 🎯 JOGADOR ALICIADO (27/08, do jeito que o Diego mandou: "é a
       // mesma coisa de quando listo pra venda — ele vai pro leilão! Só que nos

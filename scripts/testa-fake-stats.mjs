@@ -1,27 +1,25 @@
-// ─── 🃏🚫 TRAVA: JOGADOR TAPA-BURACO NÃO ENTRA EM ESTATÍSTICA (19/09) ───────
+// ─── 🚫🧍 TRAVA: PERNA-DE-PAU NÃO VIRA ESTATÍSTICA (19/09) ──────────────────
 //
-// Ordem do Diego: *"tem um monte de jogador fake, Zé Ninguém, Trapalhão, ganhando
-// a bola de ouro. Eles podem fazer gols ou assistência durante o jogo, não tem
-// problema nenhum. Mas não podem contar pra estatística de artilharia,
-// assistência e bola de ouro"*.
+// Ordem do Diego, com print na mão (o 🥇 Zé Ninguém, Várzea 2000, Bola de Ouro da
+// T43 com 39 assistências): *"jogadores fakes não quero que tenha estatísticas pra
+// eles, nem assistência e nem gols"*.
 //
-// O que esta trava protege, uma seção por risco:
-//  1. 🔎 QUEM É TAPA-BURACO o código reconhece — filler de várzea (`fil-`, clube
-//     Várzea/Pickup) e incógnita (`inc-`, `fake: true`).
-//  2. 🛡️ E NENHUM JOGADOR DE VERDADE é confundido com um. Varre o baralho
-//     INTEIRO (BR + Europa + Mundo) e exige zero falso positivo — é a parte que
-//     protege o jogador real de sumir do Rank por engano.
-//  3. 🥇 A BOLA DE OURO nunca vai pro tapa-buraco, nem quando ele lidera com
-//     folga (é exatamente o caso que ele viu na tela).
-//  4. 🧹 O PASSADO É LIMPO ao abrir o save: quem já tinha entrado no histórico de
-//     todos os tempos sai — artilheiros, garçons e os anos de Bola de Ouro.
-//  5. 🅰️ GOL E ASSISTÊNCIA ANDAM JUNTOS (regra permanente dele): se um dia
-//     alguém peneirar só o gol, esta trava reprova.
-//  6. 🎯 SOBRA DE VERDADE ANTES DO PERNA-DE-PAU: o time de fundo que vendeu e não
-//     repôs no leilão pega um jogador REAL que está sobrando; o perna-de-pau só
-//     entra quando não sobrou mais ninguém daquela posição.
+// ⚠️ DUAS SESSÕES ATACARAM ISTO NO MESMO DIA, e a régua ficou sendo a da outra
+//    (`ehFake` em `store.tsx`, que já foi pra main): quem decide gol e assistência
+//    **não sorteia carta de mentira**. Esta trava passou a apontar pra ela — ter
+//    duas réguas pra mesma regra é fábrica de bug, que é justo o que ele odeia.
 //
-// Roda o CÓDIGO DE VERDADE no navegador (não uma cópia da regra aqui).
+// O que esta trava segura:
+//  1. 🔎 A RÉGUA reconhece os dois tipos de tapa-buraco: o filler dos times de
+//     fundo (clube `Várzea`/`Pickup`, sem selo) e a incógnita (`fake: true`).
+//  2. 🛡️ E NENHUM JOGADOR DE VERDADE é confundido — varre o baralho INTEIRO.
+//  3. 🧹 O PASSADO é limpo ao abrir o save (artilheiros, garçons e Bola de Ouro).
+//  4. 🎮 O JOGO RÁPIDO / SALA ONLINE também peneira. A régua da carreira não passa
+//     por lá (`simMatch` é outro motor), e em sala grande os bots têm incógnita.
+//  5. 🎯 SOBRA DE VERDADE ANTES DO PERNA-DE-PAU: o time de fundo que vendeu e não
+//     repôs pega um jogador REAL que está sobrando; o filler só entra se não
+//     sobrou mais ninguém da posição (*"ele poderia ganhar um atacante de sobra"*).
+//
 // uso: node scripts/testa-fake-stats.mjs [--porta 5237]
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
@@ -38,77 +36,52 @@ const p = await b.newPage()
 await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
 
 const r = await p.evaluate(async () => {
-  const f = await import('/src/escalacao/fake.ts')
-  const ps = await import('/src/escalacao/pyramidseason.tsx')
   const st = await import('/src/escalacao/store.tsx')
   const d = await import('/src/escalacao/data.ts')
   const falhas = []
   const ok = (cond, msg) => { if (!cond) falhas.push(msg) }
+  const ehFake = st.ehFake
 
-  // 1️⃣ reconhece os dois tipos de tapa-buraco
+  // 1️⃣ a régua reconhece os dois tipos
   const filler = { id: 'fil-7', name: 'Zé Ninguém', club: 'Várzea', year: 2000, pos: 'ATA', fame: 1, lo: 32, hi: 40 }
-  const incog = d.makeIncognita('ATA', 3, false, () => 0.5, 'x')
   const cestinha = { id: 'fil-9', name: 'Trapalhão', club: 'Pickup', year: 2000, pos: 'ATA', fame: 1, lo: 30, hi: 38 }
-  ok(f.ehCartaFake(filler), 'filler de várzea não foi reconhecido como tapa-buraco')
-  ok(f.ehCartaFake(incog), 'incógnita não foi reconhecida como tapa-buraco')
-  ok(f.ehCartaFake(cestinha), 'filler do basquete (Pickup) não foi reconhecido')
-  ok(incog.fake === true && incog.id.startsWith('inc-'), 'makeIncognita mudou de forma — remedir a trava')
-  ok(f.ehLinhaFake({ name: 'Zé Ninguém', club: 'Várzea' }), 'linha de histórico do filler não foi reconhecida')
-  ok(f.ehLinhaFake({ name: incog.name, club: incog.club }), 'linha de histórico da incógnita não foi reconhecida')
+  const incog = d.makeIncognita('ATA', 3, false, () => 0.5, 'x')
+  ok(ehFake(filler), 'filler de várzea não foi reconhecido')
+  ok(ehFake(cestinha), 'filler do basquete (Pickup) não foi reconhecido')
+  ok(ehFake(incog), 'incógnita não foi reconhecida')
+  ok(incog.fake === true, 'makeIncognita parou de marcar `fake: true` — a régua depende disso')
 
-  // 2️⃣ NENHUM jogador de verdade é confundido
+  // 2️⃣ nenhum jogador de verdade é confundido
   const todas = [...Object.values(d.CATALOG).flat(), ...Object.values(d.CATALOG_EU).flat(), ...Object.values(d.CATALOG_WORLD).flat()]
-  const falsos = todas.filter(c => f.ehCartaFake(c) || f.ehLinhaFake({ name: c.name, club: c.club }))
-  ok(falsos.length === 0, `${falsos.length} carta(s) REAIS marcadas como tapa-buraco (ex.: ${falsos.slice(0, 3).map(c => `${c.name}/${c.club}`).join(', ')})`)
+  const falsos = todas.filter(c => ehFake(c))
+  ok(falsos.length === 0, `${falsos.length} carta(s) REAIS marcadas como perna-de-pau (ex.: ${falsos.slice(0, 3).map(c => `${c.name}/${c.club}`).join(', ')})`)
   ok(todas.length > 1000, 'o baralho veio pequeno demais — a varredura não valeu')
 
-  // 3️⃣ a Bola de Ouro nunca vai pro tapa-buraco
+  // 3️⃣ o passado é limpo quando o save abre
   const lin = (name, club, extra) => ({ name, club, year: 2000, teamName: 'Time X', teamId: 9, div: 'A', you: false, human: false, ...extra })
-  const melhor = ps.melhorDoMundo(
-    [lin('Zé Ninguém', 'Várzea', { goals: 99, fake: true }), lin('Romário', 'Vasco', { goals: 10 })],
-    [lin('Zé Ninguém', 'Várzea', { assists: 99, fake: true }), lin('Romário', 'Vasco', { assists: 4 })],
-  )
-  ok(melhor && melhor.name === 'Romário', `a Bola de Ouro foi pro ${melhor ? melhor.name : 'ninguém'} — devia ser do Romário`)
-  // e a peneira vale pra quem só é reconhecido pelo NOME (linha velha, sem `fake`)
-  const melhor2 = ps.melhorDoMundo([lin('Trapalhão', 'Várzea', { goals: 50 }), lin('Romário', 'Vasco', { goals: 3 })], [])
-  ok(melhor2 && melhor2.name === 'Romário', 'linha velha sem o campo `fake` ainda levou a Bola de Ouro')
-
-  // 5️⃣ gol e assistência peneirados IGUAL
-  ok(ps.semFake([lin('Zé Ninguém', 'Várzea', { goals: 9 }), lin('Romário', 'Vasco', { goals: 1 })]).length === 1, 'a peneira deixou passar tapa-buraco na artilharia')
-  ok(ps.semFake([lin('Zé Ninguém', 'Várzea', { assists: 9 }), lin('Romário', 'Vasco', { assists: 1 })]).length === 1, 'a peneira deixou passar tapa-buraco nos garçons')
-
-  // 4️⃣ o PASSADO é limpo quando o save abre
   const save = {
     careerOnline: true, seasonNo: 3,
-    careerScorersAll: {
-      'zé ninguém|várzea|2000': lin('Zé Ninguém', 'Várzea', { goals: 120 }),
-      'romário|vasco|1994': lin('Romário', 'Vasco', { goals: 30 }),
-    },
-    careerAssistsAll: {
-      'trapalhão|várzea|2000': lin('Trapalhão', 'Várzea', { assists: 80 }),
-      'rivellino|corinthians|1974': lin('Rivellino', 'Corinthians', { assists: 12 }),
-    },
-    careerMelhorMundo: {
-      1: lin('Bola Murcha', 'Várzea', { goals: 40, assists: 40, total: 80 }),
-      2: lin('Romário', 'Vasco', { goals: 20, assists: 10, total: 30 }),
-    },
+    careerScorersAll: { a: lin('Zé Ninguém', 'Várzea', { goals: 120 }), b: lin('Romário', 'Vasco', { goals: 30 }) },
+    careerAssistsAll: { a: lin('Trapalhão', 'Várzea', { assists: 80 }), b: lin('Rivellino', 'Corinthians', { assists: 12 }) },
+    careerMelhorMundo: { 1: lin('Bola Murcha', 'Várzea', { total: 80 }), 2: lin('Romário', 'Vasco', { total: 30 }) },
   }
   const limpo = st.migrateTeamNames(JSON.parse(JSON.stringify(save)))
   const nomes = o => Object.values(o ?? {}).map(x => x.name).sort()
   ok(JSON.stringify(nomes(limpo.careerScorersAll)) === JSON.stringify(['Romário']), `artilheiros depois da limpeza: ${nomes(limpo.careerScorersAll).join(', ')}`)
   ok(JSON.stringify(nomes(limpo.careerAssistsAll)) === JSON.stringify(['Rivellino']), `garçons depois da limpeza: ${nomes(limpo.careerAssistsAll).join(', ')}`)
   ok(JSON.stringify(nomes(limpo.careerMelhorMundo)) === JSON.stringify(['Romário']), `Bola de Ouro depois da limpeza: ${nomes(limpo.careerMelhorMundo).join(', ')}`)
-  // e o de verdade não perde nada
-  ok(limpo.careerScorersAll['romário|vasco|1994']?.goals === 30, 'a limpeza mexeu nos gols de quem é de verdade')
+  ok(limpo.careerScorersAll.b?.goals === 30, 'a limpeza mexeu nos gols de quem é de verdade')
 
-  // 6️⃣ 🎯 SOBRA DE VERDADE ANTES DO PERNA-DE-PAU (regra do Diego, 19/09)
-  // Palavras dele: *"se ele também não comprar nenhum atacante nesse leilão, ele
-  // poderia ganhar um jogador que está sobrando das sobras, de atacante de sobra"*.
-  // O time de fundo que vendeu e não repôs era completado DIRETO com um Zé Ninguém,
-  // mesmo com dezenas de atacantes reais sem dono. Agora a sobra vem primeiro.
+  // 4️⃣ o JOGO RÁPIDO / SALA ONLINE peneira (motor próprio, `simMatch`)
+  const fonte = await (await fetch('/src/escalacao/store.tsx')).text()
+  ok(/fake: ehFake\(c\)/.test(fonte), 'o sorteio do gol do rápido/online marca quem é perna-de-pau')
+  ok(/if \(golFake\) return|if \(!golFake\) \{/.test(fonte), 'e o gol dele NÃO entra na artilharia do rápido/online')
+  ok(/if \(p\.fake\) return/.test(fonte), 'a cestinha do basquete também peneira')
+  ok(/!carta \|\| !ehFake\(carta\)/.test(fonte), 'e a assistência do rápido/online segue a mesma régua')
+
+  // 5️⃣ 🎯 sobra de verdade antes do perna-de-pau
   const onze = (sobras) => st.fillToEleven(
-    // elenco com 10: falta 1 ATA no 4-3-3
-    [...Array(1)].map(() => ({ id: 'g', name: 'Goleiro', club: 'X', year: 2000, pos: 'GOL', fame: 2, lo: 60, hi: 70 }))
+    [{ id: 'g', name: 'Goleiro', club: 'X', year: 2000, pos: 'GOL', fame: 2, lo: 60, hi: 70 }]
       .concat([...Array(2)].map((_, i) => ({ id: `l${i}`, name: 'Lateral', club: 'X', year: 2000, pos: 'LAT', fame: 2, lo: 60, hi: 70 })))
       .concat([...Array(2)].map((_, i) => ({ id: `z${i}`, name: 'Zagueiro', club: 'X', year: 2000, pos: 'ZAG', fame: 2, lo: 60, hi: 70 })))
       .concat([...Array(3)].map((_, i) => ({ id: `m${i}`, name: 'Meia', club: 'X', year: 2000, pos: 'MEI', fame: 2, lo: 60, hi: 70 })))
@@ -116,14 +89,12 @@ const r = await p.evaluate(async () => {
     '4-3-3', () => 0.5, sobras,
   )
   const comSobra = onze({ GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [{ name: 'Atacante de Sobra', club: 'Sobra FC', year: 1999, pos: 'ATA', fame: 2, lo: 62, hi: 72 }] })
-  const novoComSobra = comSobra[comSobra.length - 1]
+  const novo = comSobra[comSobra.length - 1]
   ok(comSobra.length === 11, `o time devia fechar em 11 e fechou em ${comSobra.length}`)
-  ok(!f.ehCartaFake(novoComSobra), `com sobra de verdade na fila, o time ainda pegou um perna-de-pau (${novoComSobra.name})`)
-  ok(novoComSobra.name === 'Atacante de Sobra', `pegou "${novoComSobra.name}" em vez da sobra real`)
-  // e quando NÃO há sobra, o perna-de-pau continua existindo (senão o time joga com 10)
+  ok(!ehFake(novo) && novo.name === 'Atacante de Sobra', `com sobra real na fila, o time pegou "${novo.name}"`)
   const semSobra = onze({ GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] })
   ok(semSobra.length === 11, 'sem sobra real, o time ficou com menos de 11 — isso não pode')
-  ok(f.ehCartaFake(semSobra[semSobra.length - 1]), 'sem sobra real, devia entrar o perna-de-pau (é a rede de segurança)')
+  ok(ehFake(semSobra[semSobra.length - 1]), 'sem sobra real, devia entrar o perna-de-pau (é a rede de segurança)')
 
   return { falhas, cartas: todas.length }
 })
@@ -131,11 +102,11 @@ const r = await p.evaluate(async () => {
 await b.close()
 try { process.kill(-vite.pid) } catch { /* já foi */ }
 
-console.log(`\n🃏🚫 TAPA-BURACO FORA DA ESTATÍSTICA · ${r.cartas} cartas reais varridas\n`)
+console.log(`\n🚫🧍 PERNA-DE-PAU FORA DA ESTATÍSTICA · ${r.cartas} cartas reais varridas\n`)
 if (r.falhas.length) {
   for (const f of r.falhas) console.log(`   🔴 ${f}`)
   console.log(`\n❌ ${r.falhas.length} problema(s).\n`)
   process.exit(1)
 }
-console.log('✅ tapa-buraco marca e dá assistência no jogo, mas não entra em artilharia,')
-console.log('   garçons nem Bola de Ouro — e nenhum jogador de verdade foi confundido.\n')
+console.log('✅ perna-de-pau não entra em artilharia, garçons nem Bola de Ouro — na carreira,')
+console.log('   no rápido e no online — e a sobra de verdade tem a vez antes dele.\n')

@@ -188,12 +188,21 @@ ok(tem(antigo, /Master/) && tem(antigo, /Material/) && tem(antigo, /Bico/),
 ok(antigo.pagoAdiantado?.[1]?.master === 5, 'e fica marcado como pago, pra não repetir')
 
 // e) e na temporada SEGUINTE ele volta a receber no começo
-const proxima = reducer({ ...antigo, seasonNo: 6, round: 0, careerSponsorBet: { 1: { season: 6, tier: 1, brandId: 'padaria' } } }, { type: 'PLAY_ROUND' })
+const proxima = reducer({ ...antigo, seasonNo: 6, round: 0 }, { type: 'PLAY_ROUND' })
 ok(proxima.careerCoins[1] > antigo.careerCoins[1], 'na temporada seguinte os contratos fixos caem no COMEÇO, como combinado')
 
 // f) quem não tem nada disso não é tocado
-const semNada = reducer({ ...base, round: 0, careerSponsorBet: { 1: { season: 5, tier: 1, brandId: 'padaria' } } }, { type: 'PLAY_ROUND' })
+const semNada = reducer({ ...base, round: 0 }, { type: 'PLAY_ROUND' })
 ok(semNada.careerCoins[1] === 100, 'carreira sem Master/fornecedor/bico não ganha moeda nenhuma ao começar')
+
+// g) 🚫🤝 A TRAVA QUE PRENDEU TODO MUNDO (19/09): com o patrocinador pontual removido,
+//    a rodada 0 tem que ANDAR sem aposta nenhuma. O reducer exigia a aposta da
+//    temporada — e, sem a tela que apostava, o botão verde virava botão mudo (print do
+//    Cr7 Leilão, T48). Este check existe pra isso nunca mais voltar.
+const semAposta = reducer({ ...base, round: 0 }, { type: 'PLAY_ROUND' })
+ok(semAposta.round === 1, 'sem patrocinador pontual, COMEÇAR A TEMPORADA funciona (rodada 0 → 1)')
+const comRestoDeAposta = reducer({ ...base, round: 0, careerSponsorBet: { 1: { season: 1, tier: 1, brandId: 'padaria' } } }, { type: 'PLAY_ROUND' })
+ok(comRestoDeAposta.round === 1, 'e save antigo com aposta velha guardada também anda (o resíduo não trava nada)')
 
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ tudo certo')
 await server.close()

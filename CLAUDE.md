@@ -430,12 +430,51 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   preparador nunca mais diz "joga N seguidas e senta 1" — ele confundiu com o ponto
   em que o jogador cansa (54 jogos, igual pra todos). Diz-se quanto o BANCO devolve
   e quantos jogos um descanso paga.
+- **🚫🧍 JOGADOR DE MENTIRA NÃO TEM ESTATÍSTICA (19/09).** Palavras dele: *"jogadores
+  fakes não quero que tenha estatísticas pra eles, nem assistência e nem gols"* (ele
+  pegou um 🥇 Zé Ninguém, da Várzea, como Bola de Ouro). A régua é `ehFake()` em
+  `store.tsx` (`fake: true` **ou** clube `Várzea`/`Pickup`, que é como o filler dos bots
+  nasce). Vale pra gol, assistência, artilharia de todos os tempos e Bola de Ouro.
+  Time todo de mentira faz o gol no placar e **ninguém leva o gol na súmula**.
+  ⚠️ Quem mexer aqui: o **rng tem que ser consumido igual, com autor ou sem** — senão
+  muda placar de rodada já jogada. E **Cria da Base NÃO é fake**: o guri é real.
+- **📝 LISTAR ≠ DEIXAR VENCER (19/09, regra permanente).** Palavras dele: *"ele está
+  listando o jogador, ainda em contrato. O jogador é dele, pô — ele pode pegar de volta
+  se ninguém pegar e for pro monte. É diferente do caso de sair por contrato"*. Quem
+  LISTA vende por vontade própria e **mantém o direito de recuperar**; quem apertou
+  DEIXAR IR na janela de renovação perde o jogador de vez (no leilão o lance dele é
+  anulado, no monte a carta fica travada). No código: `semContrato` = abandonou (teto +
+  proibição) · `tetoOficial` = só o teto do valor, usado quando a listagem pega um
+  contrato já vencido. **Nunca carimbar `semContrato` numa carta que o dono listou.**
+- **🔒 REGRA DE OURO CONTRA BOTÃO MUDO (19/09, aprendida DUAS vezes no mesmo dia).**
+  Tela e reducer não podem ter regras próprias pra mesma coisa. Aconteceu no monte
+  (a tela acendia PEGAR e o reducer recusava por contrato vencido) e no início de
+  temporada (tirei o patrocinador pontual da tela e deixei no `PLAY_ROUND` o cinto que
+  exigia a aposta — **todo mundo ficou preso na rodada 0**, print do Cr7 Leilão).
+  Quem tira uma regra tira dos DOIS lados; quem cria uma trava faz a tela ler a MESMA
+  função do motor, e a trava sempre diz o porquê.
+- **🚫🤝 O PATROCINADOR PONTUAL NÃO EXISTE MAIS (19/09).** Palavras dele: *"tá ficando
+  muito patrocinador, patrocinador, patrocinador, tá ficando chato. Tira esse
+  patrocinador pontual e a pessoa também não vai mais ganhar esse dinheiro"*. A virada
+  começa no 🏆 Master e segue pro fornecedor, camisas e bico. **Não propor de volta**
+  (nem como "aposta opcional") sem ele pedir. O que sobrou no save (`careerSponsorBet`)
+  é só resíduo: ninguém escreve, ninguém lê, ninguém paga.
+- **🥇 A BOLA DE OURO PAGA (19/09): 20 🪙 pro clube + 10 de piso no jogador.** Palavras
+  dele: *"todo bola de ouro q o time tiver o clube ganhará 20 moedas extras e o jogador
+  passa a valorizar mais 10 de piso"*. Acumula por título, o piso vale mesmo se o
+  premiado for de bot (a carta encarece pra todos) e as moedas só pra clube de gente.
+  Números em `BOLA_OURO_MOEDAS`/`BOLA_OURO_PISO` (`store.tsx`); o piso mora em
+  `careerBolaOuroPiso` e entra no `valorOficial`.
 - **🎙️ Emoção no placar = o LANCE DO GOL, nunca faixa colorida nem confete (19/09).**
   Ele barrou a faixa verde/vermelha de resultado (*"não gostei"*) e o confete de
   vitória. O que ele quer é narração de COMO a bola entrou, com acervo GRANDE
   (*"muitas e muitas frases, senão fica chato"*), cômico com moderação. Banco em
   `src/escalacao/lances.ts` — quem for adicionar frase, adiciona em PT **e** EN, na
-  mesma posição. Por enquanto só na prévia da conta dele (`useOnlinePreview`).
+  mesma posição. **Publicado pra todos em 19/09** (chave `CAREER_VISUAL_RELEASED`).
+  ⛔ **NUNCA escrever lance de PÊNALTI** (ordem dele, 19/09): *"texto de pênalti não
+  pode ter, porque quando é pênalti tem batida manual pra eu bater"*. O pênalti tem
+  tela própria; narrar pênalti num gol de jogada normal inventa um lance que não
+  aconteceu. Falta, escanteio e gol olímpico podem.
 - **🔁 No rodízio ENTRA O MAIS CHEIO, não o mais forte (19/09).** *"Tem que pôr o
   cheio."* Nível só desempata gás igual. **Cria da Base entra só quando não tem
   reserva de verdade inteiro** na posição (*"quando só tem a base no banco também

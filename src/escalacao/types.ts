@@ -90,7 +90,18 @@ export interface Card {
   promessa?: boolean // 5º tier: foi só promessa aqui e virou estrela na Europa (nível abaixo de craque)
   fake?: boolean // jogador INCÓGNITO (nome gerado, não é do catálogo real) — usado só pra completar elenco quando o baralho real acaba; nunca entra no mercado de venda dos bots
   seller?: number // carreira online: id do técnico/bot que LISTOU esta carta pro mercado — quando ela é vendida (leilão ou monte), ele recebe a grana na caixa
+  /** 📝 CONTRATO ENCERRADO: a carta chegou ao mercado porque o contrato VENCEU e o dono
+   *  deixou ir. Faz duas coisas: (1) o ex-dono NÃO pode recomprá-la neste leilão nem
+   *  pegá-la no monte (senão "deixar vencer" sairia mais barato que renovar) e (2) ele
+   *  recebe no máximo o valor oficial quando ela é vendida. */
   semContrato?: boolean
+  /** 💰 SÓ O TETO, sem a punição de não poder recuperar (19/09). Nasceu do caso do
+   *  Garrincha (Rei da Bola FC) e do Maradona (Raiva Cajuri FC): quem LISTA um jogador
+   *  está vendendo por vontade própria, e o Diego é categórico — *"ele listou o jogador,
+   *  ele pode pegar o jogador dele de volta se ninguém pegar e for pro monte. É diferente
+   *  do caso de sair por contrato"*. Antes a listagem carimbava `semContrato` quando o
+   *  contrato acabava naquela virada, e o dono perdia a carta pra sempre. */
+  tetoOficial?: boolean
   cria?: boolean // 🌱 Cria da Base: tapa-buraco sem contrato, ruim de doer, invendável — some quando chega reforço // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
 }
 
@@ -544,6 +555,14 @@ export interface EscState {
   // unir os dois"*. Guardado por temporada (chave = o número dela) pra dar pra
   // dizer um dia "fulano foi 3× melhor do mundo". Custa ~100 bytes por ano.
   careerMelhorMundo?: Record<string, { name: string; club?: string; year?: number; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; you: boolean; human: boolean; goals: number; assists: number; total: number }>
+  /** 🥇💰 O PRÊMIO DA BOLA DE OURO (Diego 19/09): *"todo bola de ouro q o time tiver o
+   *  clube ganhará 20 moedas extras e o jogador passa a valorizar mais 10 de piso"*.
+   *  Aqui mora a PARTE DO JOGADOR: chave `nome|clube` (o mesmo `ident` do livro de
+   *  preços) → quanto de piso ele ganhou, somando 10 por título (2 bolas = 20).
+   *  Fica em campo PRÓPRIO, e não no `marketValues`, por dois motivos: o livro de
+   *  preços é reescrito por toda venda/leilão (o bônus sumiria), e assim dá pra
+   *  mostrar na ficha de onde veio o dinheiro. O `valorOficial` soma os dois. */
+  careerBolaOuroPiso?: Record<string, number>
   statsSeason?: number // carreira online: última temporada cujos artilheiros já foram somados no acumulado (evita contar 2x)
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)
