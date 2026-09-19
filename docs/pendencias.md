@@ -82,18 +82,32 @@ Deportivo Montreal · SC Ferrari · Coringas do Diniz · Nata de SP · Sapekeiro
 Marreco FC · Eros FC. **Não é defeito**: é lista de a-quem-pedir. Todos os 7 já
 aparecem com a cor certa na foto do campeão (o manto deles vem do painel).
 
-### ❤️ Time de coração em branco — 8 (eram 13)
-O Diego foi soltando em 19/09; todos gravados em `esc_socios.time_coracao` **e**
-anotados no `manto.ts`, do lado das cores de cada um:
-~~Bagres 1993~~ → **São Paulo** · ~~Leite de Verdade~~ → **Grêmio** ·
-~~Seven City~~ → **Corinthians** · ~~Milhaça FC~~ → **São Paulo** ·
-~~Skyy FC~~ → **Vasco da Gama**.
-⚠️ O do **Skyy** ficou anotado no `batismos.ts`, não no `manto.ts`: ele não tem
-linha lá, porque o manto dele foi escolhido no painel e mora só em `esc_socios`.
+### ❤️ TIME DE CORAÇÃO — e a conta que eu tinha errado
+⚠️ **CORREÇÃO do relatório de mais cedo.** Eu disse "13 sem time de coração"
+olhando SÓ o `esc_socios.time_coracao`. Errado: o ranking do Salão (aba TORCIDAS,
+RPC `esc_salao_torcidas`) tem **TRÊS fontes**, e eu só tinha olhado a primeira:
+1. `esc_socios.time_coracao` — o que a gente preenche na mão;
+2. **`auth.users.raw_user_meta_data->>'time_coracao'`** — o time que a pessoa
+   escolheu **no próprio cadastro**. É por isso que Fridão e Sistematizados já
+   apareciam no ranking sem eu ter gravado nada;
+3. **`esc_torcida_sem_dono`** — tabela pra clube SEM dono (era só o Vasco da Grana).
 
-Faltam **8**: Corporação Capsule · Bonança SSFC · Eros FC · Fridão FC ·
-Sistematizados · Crias do Bigão · Meia na Canela (ex-Jurubeba) · Stocco FC.
-Só serve pro post do batismo — não muda nada no jogo.
+O Diego soltou 6 em 19/09, todos gravados no banco e anotados no código:
+Pesadelo Verde → **Palmeiras** · Bagres 1993 → **São Paulo** · Leite de Verdade →
+**Grêmio** · Seven City → **Corinthians** · Milhaça → **São Paulo** · Skyy FC →
+**Vasco da Gama**.
+
+🥇 E o **White Thigs do GuGu → Coritiba** entrou em `esc_torcida_sem_dono`, que é
+o lugar certo pra clube sem dono. **Seguro**: a aba TORCIDAS mostra só o time e a
+%, nunca o nome do clube (o `clubes[]` da RPC nem é lido na tela) — então o clube
+continua oculto no Salão, como o Diego pediu em 13/09.
+
+**Estado de hoje: 48 dos 55 no ranking.** Faltam **7**:
+Marreco FC · Jurubeba FC (hoje Meia na Canela) · Stocco FC · Bonança SSFC ·
+Corporação Capsule FC · Eros FC · Crias do Bigão.
+
+📌 O ranking **não precisa de deploy**: a tela lê a RPC ao vivo. Gravou no banco,
+aparece no próximo F5.
 
 ### ✅ O que está inteiro
 **43 dos 53** completos no código. No banco, todos os 53 têm `esc_socios` com
