@@ -53,13 +53,14 @@ function hero(depois) {
   </div>`
 }
 
-function placar(depois, res = 'derrota') {
+function placar(depois, res = 'derrota', semFaixa = false) {
+  const fraseFim = { vitoria: '📢 Apito final — VITÓRIA! Três pontos no bolso 🎉', derrota: '📢 Apito final — derrota por 1 a 2. Bola pra frente 😤', empate: '📢 Apito final — empate, um ponto cada 🤝' }[res]
   const faixa = { vitoria: ['v', '🎉 VITÓRIA! Três pontos no bolso — a torcida foi embora cantando'], derrota: ['r', '😤 DERROTA — a torcida saiu calada. Bola pra frente na próxima'], empate: ['e', '🤝 EMPATE — um ponto cada, ninguém saiu feliz'] }[res]
   const win = res === 'vitoria' ? 'h' : res === 'derrota' ? 'a' : ''
   return `
   <section class="score ${depois ? 'd' : 'a'}">
-    <div class="narr">📢 Soou o apito final — é isso aí!</div>
-    ${depois ? `<div class="res ${faixa[0]}">${faixa[1]}</div>` : ''}
+    <div class="narr${semFaixa ? ' two' : ''}">${semFaixa ? fraseFim : '📢 Soou o apito final — é isso aí!'}</div>
+    ${depois && !semFaixa ? `<div class="res ${faixa[0]}">${faixa[1]}</div>` : ''}
     <div class="duel">
       <div class="team ${win === 'h' ? 'win' : win === 'a' ? 'lose' : ''}" style="border-color:${GOLD}"><div class="crest"><img src="${IMG}/neymarzetti-escudo.webp"></div><strong>Neymarzetti</strong><small>VOCÊ</small></div>
       <div class="nums"><small><i></i>FIM</small><strong>1 <span>×</span> 2</strong></div>
@@ -102,6 +103,7 @@ const css = `
 .narr{text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Oswald;font-weight:700;background:#0c0c0ca8;letter-spacing:.035em;border-bottom:1px solid #f4ecd633}
 .score.a .narr{height:36px;line-height:36px;font-size:13px;padding:0 10px}
 .score.d .narr{height:46px;line-height:46px;font-size:17px;padding:0 12px}
+.score.d .narr.two{height:auto;min-height:46px;line-height:1.25;padding:9px 12px;white-space:normal;font-size:17px}
 .res{font:700 13px/1.25 Oswald;text-align:center;padding:8px 12px;letter-spacing:.02em;border-bottom:1px solid #0006}
 .res.v{background:${VERDE};color:#fff}.res.r{background:${VERM};color:#fff}.res.e{background:${GOLD};color:${INK}}
 .duel{display:grid;align-items:center;gap:8px}
@@ -146,10 +148,10 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</st
 </div>
 <p class="legend" style="margin-top:12px"><b>O que muda:</b> header 176 → ~120px (rodada e divisão na mesma linha; histórico da torcida vira "14º · 13º · 9º" ao lado da barra) · frase do apito 13 → 17px · escudos 76 → 96px · nomes 15 → 18px · placar 32 → 44px · goleadores 12 → 14px com ⚽.<br><b>Emoção no apito final:</b> faixa colorida com o resultado (verde VITÓRIA · vermelha DERROTA · dourada EMPATE, frases variadas), escudo de quem ganhou brilha, o de quem perdeu apaga. Durante o jogo a faixa não existe — nada de spoiler.</p>
 </div>
-<div class="col" style="width:412px"><h1>Se fosse vitória <span>a mesma faixa, em verde</span></h1><div class="phone" style="min-height:0">
-  ${placar(true, 'vitoria')}
+<div class="col" style="width:412px"><h1>Sem faixa <span>o resultado vai na própria frase do apito · escudo de quem ganhou brilha</span></h1><div class="phone" style="min-height:0">
+  ${placar(true, 'derrota', true)}
   <div style="height:8px"></div>
-  ${placar(true, 'empate').replace('1 <span>×</span> 2', '2 <span>×</span> 2')}
+  ${placar(true, 'vitoria', true).replace('1 <span>×</span> 2', '3 <span>×</span> 2')}
 </div></div>
 </div></body></html>`
 
