@@ -6,7 +6,7 @@
 // resultado. A Série D tem os humanos com os times montados no pregão; A/B/C são
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useCareerPresentation as useOnlinePreview, useLegendPresentation } from './presentation-release'
 import { usePenaltyPresentation as usePenaltyArtPreview } from './presentation-release' // ⚡ pênalti ilustrado: LIBERADO geral (12/09)
@@ -3854,20 +3854,32 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // rolava meia tela de coisa que não é elenco. Agora, embaixo do campo ficam só
   // três ATALHOS de uma linha (era o que o desenho aprovado mostrava), e as caixas
   // inteiras descem pro pé da tela. Nada sumiu: o atalho leva até elas.
-  const vaPra = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   const atalho = (emoji: string, titulo: string, sub: string, onClick: () => void, aberta = false) => (
     <button key={titulo} onClick={onClick} aria-pressed={aberta} style={{ flex: 1, minWidth: 0, background: aberta ? INK : '#fff', color: aberta ? GOLD : INK, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 5px', textAlign: 'center', boxShadow: aberta ? 'none' : `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
       <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: larga ? 11 : 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emoji} {titulo} {aberta ? '▴' : '▾'}</span>
       <span style={{ display: 'block', fontSize: 7.5, fontWeight: 700, color: aberta ? 'rgba(255,255,255,.6)' : 'rgba(12,12,12,.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
     </button>
   )
-  // toca de novo na mesma pílula = fecha e volta pro elenco. O `requestAnimationFrame`
-  // é porque a área só existe DEPOIS do React desenhar — rolar antes não acha nada
-  // (foi exatamente o "joga pro final da tela sem nada" que ele pegou).
-  const abrePainel = (p: 'comissao' | 'base') => {
-    setPainel(x => (x === p ? 'nenhum' : p))
-    requestAnimationFrame(() => vaPra(ID_PAINEL))
-  }
+  // toca de novo na mesma pílula = fecha e volta pro elenco.
+  // 🐛 19/09 (Diego, no celular: *"quando aperto nessas pílulas tá me jogando pro
+  // final da tela e nem consigo subir mais"*). O `scrollIntoView` SUAVE rodava no
+  // mesmo instante em que a lista comprida (27 linhas) sumia e o painel curto
+  // entrava no lugar — a página encolhe uns 800px no meio da animação de rolagem, e
+  // o Chrome do celular se perde: pára num lugar que não existe mais, com um vazio
+  // amarelo embaixo e a rolagem travada. Na bancada (desktop) não acontece; no
+  // aparelho dele, acontece. A animação saiu: o painel entra exatamente onde a
+  // lista estava, logo abaixo das pílulas, e o `useLayoutEffect` abaixo só dá um
+  // empurrão SECO (sem animação, depois do layout) se o topo do painel ficou fora
+  // da tela. Rolagem instantânea depois do layout não tem como brigar com o
+  // encolhimento.
+  const abrePainel = (p: 'comissao' | 'base') => setPainel(x => (x === p ? 'nenhum' : p))
+  useLayoutEffect(() => {
+    if (painel === 'nenhum') return
+    const r = document.getElementById(ID_PAINEL)?.getBoundingClientRect()
+    if (!r) return
+    const teto = 96 // o cabeçalho fixo da carreira (temporada + placar)
+    if (r.top > window.innerHeight * 0.55 || r.top < teto) window.scrollBy({ top: r.top - teto, behavior: 'auto' })
+  }, [painel])
   // 🚫 A PÍLULA DE SAF SAIU (ordem dele): *"primeiro que precisa ter essa pílula de
   // SAF, porque já tem embaixo SAF"*. Estava certo — a aba 🏢 SAF fica logo abaixo,
   // na mesma tela, com o mesmo conteúdo. Dois botões pro mesmo lugar é poluição.
