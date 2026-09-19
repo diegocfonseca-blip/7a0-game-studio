@@ -1,3 +1,63 @@
+## 19/09/2026 (parte 2) — 🔎 VARREDURA DOS BATISMOS: código + banco, clube por clube
+
+O Diego pediu: *"me fale quais de batismos q faltam"*. Com o acesso ao Supabase
+liberado, deu pra conferir as DUAS metades pela primeira vez — o código
+(`npm run batismos` + `npm run salao`) **e o banco**, que nenhuma trava enxerga
+porque os guardas rodam offline.
+
+❤️ Antes disso: **Pesadelo Verde FC é PALMEIRAS** (ordem dele). Gravado em
+`esc_socios.time_coracao` de `portaltech.ep@gmail.com`.
+
+### 🔴 Buraco de verdade — 1 clube
+- **Marreco FC** (lucasigorbortoliniii) — é o único batismo sem **escudo próprio**,
+  sem **mascote que carimba o gol**, sem **manto** (nem no código nem no banco) e
+  sem **camisa na Loja**. Tem só a vaga na pirâmide, o ouro e o nº de fundador.
+  É o mais atrasado da lista inteira, e de longe.
+
+### 🟠 A linha OFICIAL do ouro não existe — 3 clubes
+`user_colors` é a fonte oficial do tier, e **não tem linha nenhuma** pra:
+**Crias do Bigão** · **Coringas do Diniz** · **Nata de SP**.
+Hoje os três **veem dourado assim mesmo**, porque o `apoio.tsx` é a reserva e o
+Modo Manual também sai do tier. Ou seja: não há prejuízo na tela HOJE — mas no dia
+em que alguém limpar a reserva do código, os três perdem tudo de uma vez.
+
+### 🟡 Nome reservado pela METADE — 4 clubes
+A regra das 4 formas depende do gatilho, e o gatilho só dispara quando entra o
+**nome PURO**. Nestes quatro entrou direto a forma com sufixo, então o gatilho
+nunca rodou e **o nome puro está LIVRE pra qualquer um pegar**:
+| clube | reservado | livre |
+|---|---|---|
+| Skyy FC | `skyy fc` | `skyy`, `skyy ec` |
+| Marreco FC | `marreco fc` | `marreco`, `marreco ec` |
+| Futpoint FC | `futpoint fc` | `futpoint`, `futpoint ec` |
+| Marinheiros AS | `marinheiros as` | `marinheiros`, `marinheiros fc/ec` |
+Conserto: inserir o nome puro em `esc_nomes_batismo` que o gatilho completa sozinho.
+(Os outros 49 estão com as 3+ formas certas.)
+
+### 🎽 Camisa na Loja do Clube — 7 sem arte
+Deportivo Montreal · SC Ferrari · Coringas do Diniz · Nata de SP · Sapekeiros FC ·
+Marreco FC · Eros FC. **Não é defeito**: é lista de a-quem-pedir. Todos os 7 já
+aparecem com a cor certa na foto do campeão (o manto deles vem do painel).
+
+### ❤️ Time de coração em branco — 13
+Leite de Verdade · Bagres 1993 · Corporação Capsule · Bonança SSFC · Eros FC ·
+Fridão FC · Sistematizados · Crias do Bigão · Seven City · Milhaça FC ·
+Meia na Canela (ex-Jurubeba) · Skyy FC · Stocco FC.
+Só serve pro post do batismo — não muda nada no jogo.
+
+### ✅ O que está inteiro
+**43 dos 53** completos no código. No banco, todos os 53 têm `esc_socios` com
+sócio, manto, mascote e escudo apontados, e `valido_ate` de batismo eterno.
+Fundador bate com o código em todos (os dois sem número são **sócios**, que por
+regra não têm mesmo: Futpoint FC e o assinante `delaofut`).
+
+### Pendências que saem daqui
+- 🔴 **Marreco FC**: pedir arte ao dono, ou avisar o Diego que vai de peça neutra.
+- 🟠 Criar as 3 linhas de `user_colors` (ouro + manual). **Não fiz sozinho**: são
+  contas de gente de verdade e ele pediu o RELATÓRIO, não a mexida.
+- 🟡 Destravar os 4 nomes puros.
+- 🦁 Confirmar com o Luiz o nome da mascote do Remoçada ("O Leão de Thor" é chute).
+
 ## 19/09/2026 — 🧾 A ficha do jogador: "esta temporada" × "no seu clube"
 
 Pedido do Diego, com o print da barra preta: *"eu quero que tenha gols na temporada,
