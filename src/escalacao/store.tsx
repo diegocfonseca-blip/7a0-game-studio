@@ -13,6 +13,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
+import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { ehCartaFake, ehLinhaFake, isFillerClub as ehClubeTapaBuraco } from './fake' // 🃏🚫 tapa-buraco fora de artilharia/garçons/Bola de Ouro (Diego 19/09)
@@ -2594,6 +2595,44 @@ function devolveMedicoUmaVez(st: EscState): EscState {
   s.medicoDevolvido = clubes * MEDICO_CUSTO
   return s
 }
+// ─── 🏋️💸 O TROCO DO PREPARADOR (19/09) ────────────────────────────────────
+// Palavras dele: *"aumente 200 de moedas pra quem tem o preparador [👑 Lenda],
+// igual o time Rei da Bola — porque eu diminuí o valor de 1000 pra 800"*.
+// Quem comprou o 👑 antes pagou 1.000 por uma coisa que agora custa 800. Ele mandou
+// devolver a diferença, e é justo: ninguém pode sair no prejuízo por causa de um
+// ajuste de preço que a gente fez depois.
+//
+// 🧾 A TABELA é o que manda, e é UMA LINHA por preparador de propósito: se ele
+//    mandar devolver o troco do ⭐ (que caiu de 600 pra 500) é só acrescentar
+//    `paixao: 100` aqui — nada mais no código muda.
+// 🛡️ Mesmas garantias do reembolso do Dep. Médico (15/09), que é o irmão disto:
+//   · UMA VEZ SÓ: a marca `preparadorDevolvidoV1` é gravada ao abrir o save,
+//     inclusive em quem não tem preparador nenhum — reabrir mil vezes não paga de novo;
+//   · SÓ CLUBE SEU: o principal e o 2º clube (`mine`/multiclube). Time de máquina
+//     nunca entra;
+//   · NADA MAIS É TOCADO: o preparador continua contratado, com o mesmo contrato e o
+//     mesmo salário. Só entra moeda no caixa;
+//   · o lançamento vai pro EXTRATO, então dá pra conferir de onde veio.
+const PREPARADOR_DEVOLVE: Partial<Record<PreparadorKey, number>> = { seirulo: 200 }
+// 🔓 exportado só pra trava (`npm run preparador`). Nenhuma tela chama de fora.
+export function devolvePreparadorUmaVez(st: EscState): EscState {
+  if (st.preparadorDevolvidoV1) return st
+  const s: EscState = { ...st, preparadorDevolvidoV1: true, careerLedger: st.careerLedger ? [...st.careerLedger] : st.careerLedger }
+  const meus: { id: number; teamName: string }[] = []
+  const eu = s.managers?.[s.youIdx]; if (eu) meus.push({ id: eu.id, teamName: eu.teamName })
+  for (const m of s.managers ?? []) if (m.mine && m.id !== eu?.id) meus.push({ id: m.id, teamName: m.teamName })
+  let total = 0
+  for (const { id, teamName } of meus) {
+    const troco = PREPARADOR_DEVOLVE[s.careerPreparador?.[teamName] as PreparadorKey]
+    if (!troco) continue
+    s.careerCoins = { ...(s.careerCoins ?? {}), [id]: Math.round((s.careerCoins?.[id] ?? 0) + troco) }
+    logFin(s, 'buy', '🏋️ Preparador ficou mais barato — troco devolvido', troco, undefined, id)
+    total += troco
+  }
+  if (total) s.preparadorDevolvido = total
+  return s
+}
+
 // 🔓 exportado só pra TRAVA (`npm run fake`) poder abrir um save de mentira e
 // conferir que o tapa-buraco sai do histórico. Nenhuma tela chama de fora.
 export function migrateTeamNames(st: EscState): EscState {
@@ -4092,7 +4131,8 @@ type Action =
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
   | { type: 'TV_EXTRA_VISTO' } // 📺 marca que o aviso único da cota extra (vídeo nas redes) já foi mostrado — nunca repete
-  | { type: 'MEDICO_AVISO_VISTO' } // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
+  | { type: 'MEDICO_AVISO_VISTO' }
+  | { type: 'PREPARADOR_AVISO_VISTO' } // 🏋️💸 fecha o recibo do troco do preparador (19/09) // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
   | { type: 'TV_EXTRA_CREDIT'; coins: number; qtd: number } // 📺 cota extra de TV: o RPC tv_resgatar já virou aprovado→creditado no Supabase (atômico) — aqui só entra o crédito no caixa. Só carreira solo
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
@@ -4984,6 +5024,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.medicoDevolvido = undefined
       return s
     }
+    // 🏋️💸 idem pro troco do preparador: o aviso só some da tela — a moeda já entrou
+    // em `devolvePreparadorUmaVez`, e a marca impede pagar de novo.
+    case 'PREPARADOR_AVISO_VISTO': {
+      s.preparadorDevolvido = undefined
+      return s
+    }
     case 'TV_EXTRA_CREDIT': {
       // 📺 COTA EXTRA DE TV (Diego 23/08): a validação é do Supabase (tv_resgatar,
       // atômica: aprovado→creditado uma vez só); aqui só entra o crédito. O valor
@@ -5494,7 +5540,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // dois clubes com o mesmo nome. No-op sem 2º clube.
       // 👑 cinto e suspensório: a ficha dos jogadores entra em dia aqui também.
       // É idempotente — se o save já veio sincronizado do leitor, não faz nada.
-      const restored = devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }))))
+      const restored = devolvePreparadorUmaVez(devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })))))
       // 😓📝 CURAS AO ABRIR (13/09, São Luiz FC): liga o gás se a carreira já está em
       // C/B/A (mesmo presa num banner, onde o PLAY_ROUND nunca chegava a ligar) e
       // devolve pro presente contrato que voltou do passado (empréstimo pra SAF).
@@ -8795,7 +8841,7 @@ function loadSoloInProgress(): EscState | null {
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
       // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
       // carreira voltava pelo aqui e o baralho continuava com o nível velho.
-      return devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(s)))
+      return devolvePreparadorUmaVez(devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(s))))
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }
   return null

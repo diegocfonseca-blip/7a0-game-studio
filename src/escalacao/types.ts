@@ -709,6 +709,15 @@ export interface EscState {
   medicoDevolvidoV1?: boolean
   /** quanto foi devolvido agora (só pra tela avisar uma vez; some quando fecha) */
   medicoDevolvido?: number
+  /** 🏋️💸 TROCO DO PREPARADOR 👑 LENDA (19/09). Ele baixou o preço de 1.000 pra 800
+   *  e mandou devolver a diferença a quem já tinha comprado: *"aumente 200 de moedas
+   *  pra quem tem o preparador [👑], igual o time Rei da Bola, porque eu diminuí o
+   *  valor de 1000 pra 800"*. Mesma mecânica do reembolso do Dep. Médico: a marca é
+   *  gravada ao abrir o save (mesmo em quem não tem preparador nenhum), então ninguém
+   *  recebe duas vezes e o save não precisa ser varrido toda vez. */
+  preparadorDevolvidoV1?: boolean
+  /** quanto de troco entrou agora (só pra tela avisar uma vez; some quando fecha) */
+  preparadorDevolvido?: number
   /** 💰 QUAL TEMPORADA JÁ FOI PAGA em cada contrato FIXO, por técnico (15/09).
    *  Master, fornecedor de material e bico passaram a cair no caixa ao APERTAR
    *  "Começar a temporada" (ordem do Diego: *"já deve entrar na hora que ele aperta

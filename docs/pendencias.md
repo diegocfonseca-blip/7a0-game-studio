@@ -1,3 +1,34 @@
+## 19/09/2026 (parte 23) — 🏋️💸 Troco de 200 pra quem já tinha o preparador 👑
+
+Ordem dele: *"aumente 200 de moedas pra quem tem o preparador [👑 Lenda], igual o
+time Rei da Bola — porque eu diminuí o valor de 1000 pra 800"*.
+
+Quem comprou o 👑 antes pagou **1.000** por uma coisa que agora custa **800**. O
+troco entra no caixa quando o save abre, com **recibo na tela** (mesmo formato do
+reembolso do Dep. Médico de 15/09 — não inventei layout novo).
+
+Garantias, as mesmas do irmão dele:
+- **uma vez só**: `preparadorDevolvidoV1` é gravada ao abrir, inclusive em quem não
+  tem preparador nenhum (assim o save não é varrido toda vez);
+- **só clube SEU** (principal + 2º clube); time de máquina nunca entra;
+- **nada mais é tocado**: contrato, salário e tanque do preparador ficam iguais;
+- **vai pro Extrato**, então dá pra conferir de onde veio a moeda.
+
+A tabela `PREPARADOR_DEVOLVE` é uma linha por preparador de propósito.
+
+### ⏳ O ⭐ também baixou, e ele não falou dele
+O ⭐ caiu de **600 pra 500** na mesma mexida — quem comprou antes está 100 no
+prejuízo, exatamente pelo mesmo motivo. **Não devolvi por conta**: perguntei. É só
+acrescentar `paixao: 100` na tabela.
+
+### 🩹 E de quebra: a trava do preparador estava REPROVANDO há dois dias
+`npm run preparador` falhava em duas linhas desde a mexida de preços de 19/09 (a
+outra sessão baixou 600→500 e 1000→800 e fez a renovação virar metade, mas os dois
+números estavam escritos à mão na trava). Consertado — agora os preços **saem do
+catálogo**, então a próxima mudança de preço não quebra a trava de novo.
+
+---
+
 ## 19/09/2026 (parte 22) — ⚔️ A linha do próximo jogo mais sutil + rivalidade só entre usuários
 
 Mockup aprovado por ele (*"sobre o mockup anterior está aprovado"*). O pedido veio
