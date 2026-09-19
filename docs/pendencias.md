@@ -39,10 +39,22 @@ passado nunca foi gravado, não dá pra recuperar. Os **jogos** continuam certos
 - ⏳ **Pendente**: ele não respondeu se quer o aviso **"desde agora"** escrito na
   tela na 1ª temporada. Não pus, porque é texto novo e ele decide o visual.
 
+### ✅ Fechado no mesmo dia: a COPA SOMA, e sem aviso
+Perguntei as duas coisas que tinham ficado; resposta dele: *"deve somar sim. E não
+precisa de aviso não"*.
+- 🧮 **Gol e assistência de COPA agora contam** na temporada do jogador. Não dava
+  pra usar a lista `scorers` da Copa: ela é cortada no **top 20 da competição**, e
+  quem fez 1 gol de copa simplesmente não aparecia. Então `CopaResult` e
+  `CopaBrasilResult` ganharam `goalsByCard`/`assistsByCard` — a conta COMPLETA por
+  carta —, e a tela soma liga + copa num mapa só (`golsTemporada`/`assTemporada`).
+  Os QUATRO lugares passaram a usar o mesmo número: a ficha, a coluna ⚽/🅰️ do
+  elenco, a imagem de compartilhar e o acumulado que atravessa a virada.
+  ⚠️ **O `goalsByCard` CRU ficou intocado de propósito**: é ele que alimenta a
+  ARTILHARIA e o prêmio do artilheiro, que são do CAMPEONATO. Misturar copa lá
+  mudaria quem leva o prêmio, e isso ninguém pediu.
+- 🔕 **Sem aviso "desde agora"** na tela — ele dispensou.
+
 ### Pendências
-- 🧮 **Gol de COPA não entra** na conta da temporada (o `goalsByCard` é do pregão
-  da liga). Era assim antes e continua — mas agora que o número vira acumulado,
-  vale perguntar a ele se a Copa devia somar.
 - **Dá pra voltar atrás?** Dá: reverter o commit. O `gl`/`as` do save são campos
   opcionais — save novo aberto em versão velha simplesmente ignora os dois.
 

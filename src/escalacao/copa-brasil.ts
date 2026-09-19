@@ -43,6 +43,14 @@ export interface CBTie {
   goals: Goal[]; legs: [number, number][]; legGoals: Goal[][]
 }
 export interface CBRound { name: string; ties: CBTie[]; slot?: number } // slot = rodada-fantasma que essa fase lê pra saber a escalação (38, 39, 40…)
+// ⚽🅰️ a lista vira mapa por carta (e só quem TEM carta entra: time de fundo não
+// tem elenco guardado, o gol dele não pertence a jogador nenhum).
+const porCarta = <T extends { cardId?: string }>(lista: T[], quanto: (x: T) => number): Record<string, number> => {
+  const m: Record<string, number> = {}
+  for (const x of lista) if (x.cardId) m[x.cardId] = (m[x.cardId] ?? 0) + quanto(x)
+  return m
+}
+
 export interface CopaBrasilResult {
   groups: CBGroup[] // 🈳 sempre vazio na v2 (sem fase de grupos) — mantido só pra não quebrar tipos/telas antigas
   round64: CBRound | null // guarda a PENEIRA (72→36) — nome mantido pelo campo, mas o `.name` interno já diz "Peneira"
@@ -51,6 +59,11 @@ export interface CopaBrasilResult {
   vice: SimTeam | null; viceDiv: Div | null
   scorers: SeasonScorer[]; topScorer?: SeasonScorer
   assists?: SeasonAssist[]; topAssist?: SeasonAssist
+  // ⚽🅰️ gol/assistência de COPA por CARTA (19/09). A lista acima é cortada no
+  // top 20 da competição inteira, então não serve pra somar na ficha do jogador —
+  // quem fez 1 gol de copa simplesmente não aparecia. Estes dois mapas são a conta
+  // COMPLETA, e é deles que sai o "esta temporada" do elenco.
+  goalsByCard?: Record<string, number>; assistsByCard?: Record<string, number>
 }
 
 // prestígio por divisão (Várzea joga a Copa do Brasil inteira, ao contrário
@@ -247,6 +260,8 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     topScorer: list[0],
     assists: listA.slice(0, 20),
     topAssist: listA[0],
+    goalsByCard: porCarta(list, s => s.goals),
+    assistsByCard: porCarta(listA, a => a.assists),
   }
 }
 
@@ -378,7 +393,7 @@ export function copaBrasilAsCopaResult(r: CopaBrasilResult, supercopa?: CBTie | 
   if (r.round64) rounds.push({ name: r.round64.name, ties: r.round64.ties, slot: r.round64.slot })
   rounds.push(...r.rounds)
   if (supercopa) rounds.push({ name: 'Supercopa', ties: [supercopa], slot: 38 + ROUND_NAMES.length + 1 })
-  return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, topScorer: r.topScorer, assists: r.assists, topAssist: r.topAssist }
+  return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, topScorer: r.topScorer, assists: r.assists, topAssist: r.topAssist, goalsByCard: r.goalsByCard, assistsByCard: r.assistsByCard }
 }
 
 export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult, supercopa?: CBTie | null): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {
