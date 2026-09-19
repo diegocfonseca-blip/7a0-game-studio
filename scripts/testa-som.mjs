@@ -24,19 +24,34 @@ const rapido = readFileSync('src/escalacao/screens.tsx', 'utf8')
 let falhas = 0
 const ok = (cond, msg) => { console.log(`  ${cond ? '✅' : '❌'} ${msg}`); if (!cond) falhas++ }
 
-console.log('\n1) 🪶 o som do jogo não baixa arquivo (0 KB no bundle)')
+console.log('\n1) 🪶 peso: o som da partida é ARQUIVO, e fica leve e fora do bundle')
 {
-  for (const f of ['startCrowd', 'crowdChant', 'crowdRoar', 'playWhistle']) {
-    const i = som.indexOf(`export function ${f}`)
-    const corpo = som.slice(i, i + 2600)
-    ok(i > 0, `${f}() existe`)
-    ok(!/new Audio\(|\.mp3|fetch\(/.test(corpo), `${f}() é sintetizado — não baixa arquivo`)
-  }
-  // e os .mp3 que existem (memes do leilão) continuam pequenos
+  // 🔁 MUDOU EM 19/09. Antes esta seção exigia que TUDO fosse sintetizado. O Diego
+  // escolheu os áudios dele: *"quero só os áudios que eu mandei, do ambiente, gol,
+  // e o apito que você já tinha mesmo"*. Então ambiente e gol agora SÃO arquivo —
+  // e o que a trava protege deixou de ser "não pode arquivo" e passou a ser
+  // "arquivo sim, mas leve e em `public/`, nunca embutido no código".
+  const AMBIENTE = 'torcida-estadio-v1.mp3', GOL = 'gol-torcida-v1.mp3'
   const arqs = readdirSync('public/sfx').map(f => ({ f, kb: statSync(`public/sfx/${f}`).size / 1024 }))
-  const total = arqs.reduce((a, x) => a + x.kb, 0)
+  const acha = n => arqs.find(x => x.f === n)
+  for (const [nome, teto] of [[AMBIENTE, 200], [GOL, 60]]) {
+    const a = acha(nome)
+    ok(!!a, `${nome} existe em public/sfx/`)
+    ok(!!a && a.kb <= teto, a ? `${nome}: ${a.kb.toFixed(0)} KB (teto ${teto})` : `${nome} não medido`)
+  }
+  const somaPartida = [AMBIENTE, GOL].reduce((s, n) => s + (acha(n)?.kb ?? 0), 0)
+  ok(somaPartida <= 250, `o som de partida inteiro pesa ${somaPartida.toFixed(0)} KB (teto 250) — e só baixa pra quem liga o 🔊`)
   const gordo = arqs.find(x => x.kb > 200)
-  ok(!gordo, gordo ? `⚠️ ${gordo.f} tem ${gordo.kb.toFixed(0)} KB` : `os ${arqs.length} sons de arquivo somam ${total.toFixed(0)} KB (nenhum acima de 200)`)
+  ok(!gordo, gordo ? `⚠️ ${gordo.f} tem ${gordo.kb.toFixed(0)} KB` : `os ${arqs.length} sons de arquivo somam ${arqs.reduce((a, x) => a + x.kb, 0).toFixed(0)} KB (nenhum acima de 200)`)
+  // o apito continua SINTETIZADO — é o "que você já tinha mesmo" da fala dele
+  {
+    const i = som.indexOf('export function playWhistle')
+    const corpo = som.slice(i, som.indexOf('\n}', i))   // só o CORPO da função
+    ok(i > 0, 'playWhistle() existe')
+    ok(!/new Audio\(|\.mp3|fetch\(/.test(corpo), 'playWhistle() continua sintetizado — 0 KB, como ele aprovou')
+  }
+  // e nenhum áudio entrou no CÓDIGO (base64 num .ts desce pra todo jogador)
+  ok(!/data:audio\//.test(som), 'nenhum áudio embutido em base64 no código')
 }
 
 console.log('\n2) 🔔 o APITO toca nos dois modos (é o único som que ele liberou)')
@@ -64,28 +79,40 @@ console.log('\n2b) 🔁 o apito NÃO se repete (só no início)')
   }
 }
 
-console.log('\n3) 🔇 a TORCIDA NOVA fica segurada até ele aprovar o som')
+console.log('\n3) 🎧 o som da partida é EXATAMENTE o que ele escolheu — nada mais')
 {
-  // Diego (18/09), depois de ouvir as gravações: *"não suba nenhum som ainda…
-  // por enquanto só o apito mesmo"*. A chave guarda canto, urro e a torcida da
-  // carreira. Se alguém ligar sem ele pedir, esta trava avisa.
-  ok(/export const TORCIDA_NOVA = false/.test(som), 'a chave TORCIDA_NOVA está DESLIGADA')
-  ok(/if \(TORCIDA_NOVA\) agenda\(\)/.test(som), 'o canto da arquibancada só agenda com a chave ligada')
-  ok(/if \(TORCIDA_NOVA\) crowdRoar\(/.test(carreira), 'o urro do gol só sai com a chave ligada')
-  ok(/if \(!TORCIDA_NOVA\) return; startCrowd\(\)/.test(carreira), 'a torcida de fundo da carreira só liga com a chave')
-  // e o que JÁ estava no ar continua onde estava
-  ok(/startCrowd\(\)/.test(rapido), 'a torcida do rápido/online, que já estava no ar desde antes, NÃO foi desligada')
+  // Diego (19/09): *"quero só os áudios que eu mandei, do ambiente, gol, e o apito
+  // que você já tinha mesmo"*. É uma lista FECHADA de três. Esta trava existe pra
+  // ninguém reintroduzir som inventado por engano.
+  ok(/export const TORCIDA_NOVA = true/.test(som), 'a chave TORCIDA_NOVA está LIGADA (ele aprovou em 19/09)')
+  ok(/crowdRoar\(/.test(carreira), 'o gol toca no placar — o mesmo componente serve carreira e rápido/online')
+  ok(/startCrowd\(\)/.test(carreira), 'a carreira tem o ambiente de fundo')
+  ok(/startCrowd\(\)/.test(rapido), 'o rápido/online tem o ambiente de fundo')
+  // 🗑️ o canto sintetizado (palmas + "ôôô") foi APOSENTADO: o ambiente que ele
+  // mandou já tem torcida cantando ao longe, e os dois juntos embolavam.
+  ok(!/crowdChant/.test(som), 'o canto sintetizado foi aposentado (não existe mais no código)')
+  ok(!/crowdChant/.test(carreira) && !/crowdChant/.test(rapido), 'e nenhuma tela ficou chamando o canto')
+  // 🗑️ e o ambiente/urro de RUÍDO também saíram: quem faz esse papel agora é o mp3
+  {
+    const i = som.indexOf('export function startCrowd')
+    const corpo = som.slice(i, som.indexOf('export function stopCrowd'))
+    ok(/SFX_AMBIENTE/.test(corpo), 'o ambiente é o ARQUIVO dele, não ruído sintetizado')
+    ok(/loop = true/.test(corpo), 'e roda em loop enquanto a partida está na tela')
+    ok(/stopCrowd/.test(rapido) && /stopCrowd/.test(carreira), 'ao sair da tela o ambiente para (nada toca fora do jogo)')
+  }
 }
 
-console.log('\n4) 🎤 o canto, quando ligar, não vira barulho de fundo')
+console.log('\n4) 🥅 o gol convive com a partida (não vira bagunça)')
 {
-  const i = som.indexOf('export function startCrowd')
-  const corpo = som.slice(i, som.indexOf('export function stopCrowd'))
-  ok(/crowdChant\(\)/.test(corpo), 'o canto entra sozinho enquanto a torcida está no ar')
-  const m = corpo.match(/setTimeout\(.*?,\s*(\d+)\s*\+\s*Math\.random\(\)\s*\*\s*(\d+)\)/)
-  ok(!!m && Number(m[1]) >= 10000, `o canto espera ${m ? (Number(m[1]) / 1000) : '?'}s no mínimo entre um e outro`)
-  ok(!!m && Number(m[2]) > 0, 'e o intervalo é SORTEADO — canto de relógio fixo vira barulho e a pessoa desliga o som')
-  ok(/clearTimeout/.test(corpo) || /clearTimeout/.test(som.slice(i, i + 3000)), 'ao sair da tela o canto é cancelado (nada toca fora do jogo)')
+  // Reclamação dele sobre o arquivo original: *"acho q tá mt longo pq o gol
+  // acontece e a partida continua"*. As quatro regras que resolvem isso:
+  const i = som.indexOf('export function crowdRoar')
+  const corpo = som.slice(i, i + 2600)
+  ok(/golAtual/.test(corpo), '1. UM gol por vez — o anterior sai de fininho se vier outro')
+  ok(/ritmoMs < 2000/.test(corpo), '2. rodada curta demais (⚡4×) fica SÓ com o ambiente')
+  ok(/ritmoMs \/ 1000\) \* 0\.85/.test(corpo), '3. o gol é cortado em 85% da rodada — nunca invade o jogo seguinte')
+  ok(/DUCK/.test(corpo), '4. o ambiente abaixa enquanto o gol toca (senão os dois somados estouram)')
+  ok(/crowdRoar\([^)]*,\s*roundMs\)/.test(carreira), 'e quem chama passa o tempo REAL da rodada (o placar é quem sabe)')
 }
 
 console.log('\n5) 🔇 ninguém leva susto')

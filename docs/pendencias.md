@@ -1,4 +1,4 @@
-## 19/09/2026 (parte 4) — ⏱️ +1s por rodada e o som esperando o ouvido dele
+## 19/09/2026 (parte 4) — ⏱️ +1s por rodada, apito só na largada e o SOM fechado
 
 ### ⏱️ A simulação da partida ficou 1 segundo mais longa (FEITO, no branch)
 Ordem dele: *"aumente em mais 1s a simulação de uma partida tanto no modo off-line
@@ -32,20 +32,43 @@ mudo porque a rodada 1 já passou), e **temporada nova ganha apito novo** mesmo 
 a tela não tiver sido fechada no caminho. O `npm run som` ganhou a seção **2b**,
 que reprova se alguém voltar com o `playWhistle()` solto.
 
-### 🔊 O som: 3 coisas esperando a palavra do Diego
-O apito JÁ ESTÁ NO AR (subiu em 0c9605b). A torcida e o gol estão no repo
-(`public/sfx/`) mas **desligados** atrás de `TORCIDA_NOVA = false` em `sound.ts` —
-ordem dele: *"N suba nenhum som ainda.. Por enquanto só o apito msm"*. Falta:
+### 🔊 O SOM DA PARTIDA ESTÁ FECHADO (FEITO, no branch)
+Palavras dele: *"quero só os áudios que eu mandei, do ambiente, gol, e o apito que
+você já tinha mesmo"*. Isso respondeu de uma vez as três perguntas que estavam
+abertas. A lista do som de partida é **FECHADA em três**:
 
-1. **O enquadramento por velocidade.** Com o +1s de hoje o gol (3,1s) cabe em quase
-   tudo: 28% da rodada na carreira auto, 54% no online normal, 108% no online ⚡2×
-   e **216% no ⚡4×** (não cabe de jeito nenhum). Proposta que ainda não foi codada:
-   apito só nas velocidades lentas · um gol por vez, com fade-out se vier outro ·
-   **⚡4× fica só com o ambiente** · ambiente abaixa pra 35% durante o gol (ducking),
-   senão estoura (medido: 107% de pico).
-2. **O canto sintetizado (palma + "ôôô") se aposenta?** O ambiente que ele mandou já
-   tem torcida cantando ao longe; os dois juntos podem embolar.
-3. **Ligar a chave** `TORCIDA_NOVA` — só quando ele ouvir e aprovar.
+| o quê | de onde vem | peso |
+|---|---|---|
+| 🏟️ ambiente | `public/sfx/torcida-estadio-v1.mp3` (arquivo DELE), em loop | 137 KB |
+| 🥅 gol | `public/sfx/gol-torcida-v1.mp3` (a opção **B**, que ele escolheu) | 21 KB |
+| 📣 apito | sintetizado, o de sempre (`playWhistle`) | 0 KB |
+
+🗑️ **Aposentados**: o murmúrio de ruído rosa que fazia de ambiente, o urro
+sintetizado do gol e o **canto de palmas + "ôôô"** — o ambiente dele já tem torcida
+cantando ao longe, e os dois juntos embolavam. O `crowdChant` foi APAGADO do código
+(não é chave desligada: sumiu mesmo), e o `npm run som` reprova se voltar.
+
+🔑 `TORCIDA_NOVA = true` desde 19/09. **É o botão de pânico**: `false` numa linha
+devolve o jogo ao silêncio de hoje, sem mexer em mais nada.
+
+**As 4 regras de convivência do gol** (isto era a pendência nº 1, agora codada):
+1. **Um gol por vez** — o anterior sai de fininho em 0,12s se vier outro.
+2. **O gol nunca passa da rodada** — cortado em 85% do tempo dela, com 0,25s de
+   saída (o tempo vem do `roundMs` do próprio placar, não de estado solto).
+3. **Rodada abaixo de 2s (o ⚡4×) fica SÓ com o ambiente** — gol nenhum cabe ali.
+4. **Ducking**: o ambiente cai pra 35% durante o gol e volta em 1,2s.
+
+📏 **Medido nos arquivos dele** (não estimado): ambiente pica em 9,8%, gol em 32,5%,
+os dois somados no gol dão 35,9% com ducking e 42,3% sem. **Nenhum estoura** — o
+número de 107% que eu tinha anotado antes era de outra montagem, sem o master de
+0.32. Então o ducking aqui é decisão de SOM (fazer o gol saltar), não conserto de
+estouro. ⚠️ Corrigido também no comentário do código, que repetia o 107%.
+
+✅ **Conferido de ponta a ponta no navegador**, não só no papel: o módulo real roda,
+os dois arquivos baixam (200) e decodificam, apito + ambiente + dois gols
+sobrepostos + um gol de ⚡4× (ignorado) + saída da tela, tudo sem erro.
+
+🎚️ Se ele achar o ambiente baixo ou alto: `AMBIENTE_VOL` em `sound.ts`, uma linha.
 
 ## 19/09/2026 (parte 3) — 🟢⚪ Dirceu Krüger entra no baralho + o coração do White Thigs
 

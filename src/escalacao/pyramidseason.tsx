@@ -2686,10 +2686,13 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (n > golsOuvidosRef.current) {
       const ultimo = shown[n - 1]
       const meu = ultimo ? (ultimo.home === youIsHome) : false
-      if (TORCIDA_NOVA) crowdRoar(meu ? 1.15 : 0.75)  // 🔇 segurado: ele só liberou o apito por enquanto
+      // ⏱️ o `roundMs` vai junto: é o próprio placar que sabe quanto dura a rodada
+      // na tela, e o som usa isso pra cortar o gol antes do próximo jogo começar
+      // (e pra ficar SÓ no ambiente no ⚡4×, onde gol nenhum caberia).
+      if (TORCIDA_NOVA) crowdRoar(meu ? 1.15 : 0.75, roundMs)
     }
     golsOuvidosRef.current = n   // rodada nova zera junto (shown volta a 0)
-  }, [shown.length, youIsHome])
+  }, [shown.length, youIsHome, roundMs])
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
   if (cinematic) return <OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}

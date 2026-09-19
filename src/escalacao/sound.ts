@@ -1,6 +1,9 @@
 // ─── SOM DO JOGO (sintetizado, sem baixar arquivo) ────────────────────────
 // Motor de áudio via Web Audio API: cliques, moeda, martelada, lacre,
-// tique-taque, chime de LENDA, torcida (ruído filtrado) e apito.
+// tique-taque, chime de LENDA e apito — tudo sintetizado, 0 KB.
+// 🎧 A ÚNICA exceção é o som de PARTIDA (ambiente de estádio + gol): são os dois
+//    arquivos que o Diego escolheu em 19/09, em `public/sfx/`, fora do bundle.
+//    Ver o bloco "O SOM DA PARTIDA" lá embaixo.
 //
 // 🔓 JÁ LIBERADO PRA TODO MUNDO (`setSoundAllowed(true)` no `index.tsx`). Este
 //    comentário dizia "só pro login do Diego" e estava velho — corrigido em 18/09,
@@ -120,120 +123,161 @@ export function playWhistle() {
   } catch { /* ignora */ }
 }
 
-// 🏟️ torcida: ruído rosa filtrado com ondulação lenta (murmúrio de estádio).
-// Loop até stopCrowd(). Volume BEM baixo pra ficar no fundo.
-// 🔇 CHAVE DA TORCIDA NOVA — DESLIGADA, ESPERANDO O OUVIDO DELE (18/09).
-// Palavras do Diego, depois de ouvir as gravações: *"não suba nenhum som ainda…
-// por enquanto só o apito mesmo"*.
-// O que esta chave segura (tudo já escrito e testado, só não ligado):
-//   👏 o CANTO de arquibancada que entra sozinho durante o jogo;
-//   🎉 o URRO da torcida no gol;
-//   📣 a torcida de fundo na CARREIRA (que era muda).
-// ⚠️ O que ela NÃO toca: a torcida de fundo do jogo rápido/online, que já estava
-//    no ar desde antes — desligar aquilo seria mudar o que ele não pediu.
-// 👉 Pra ligar quando ele aprovar: `true` aqui, e só. Nada mais a mexer.
-export const TORCIDA_NOVA = false
+// ─── 🎧 O SOM DA PARTIDA: SÓ OS ÁUDIOS QUE ELE ESCOLHEU (Diego 19/09) ───────
+// Palavras dele, fechando o assunto: *"quero só os áudios que eu mandei, do
+// ambiente, gol, e o apito que você já tinha mesmo"*.
+// Traduzindo, e é a lista COMPLETA do som de partida — nada além disto toca:
+//   🏟️ AMBIENTE  → `torcida-estadio-v1.mp3`, o arquivo que ele mandou, em loop
+//   🥅 GOL       → `gol-torcida-v1.mp3`, o arquivo que ele mandou (opção B)
+//   📣 APITO     → o sintetizado de sempre (`playWhistle`), que ele aprovou
+// 🗑️ APOSENTADOS na mesma ordem: o murmúrio de ruído rosa que fazia de ambiente,
+//    o URRO sintetizado do gol e o CANTO de palmas + "ôôô". O ambiente que ele
+//    mandou já tem torcida cantando ao longe — os dois juntos embolavam.
+//
+// 🪶 PESO: os dois arquivos somam 158 KB e moram em `public/sfx/`, FORA do
+//    bundle. Só descem pra quem liga o 🔊 e entra numa partida — quem joga mudo
+//    não baixa nada. Mesma lógica da regra de peso da arte de batismo.
+//
+// 🔌 Por que passam pelo Web Audio (e não por `new Audio()`): é o único jeito de
+//    (a) obedecer o mudo/permissão pelo MESMO `master`, (b) ABAIXAR o ambiente no
+//    gol (ducking) e (c) CORTAR o gol quando a rodada é mais curta que ele.
+export const TORCIDA_NOVA = true   // 🔁 ligada em 19/09, quando ele escolheu os áudios
 
-let crowd: { stop: () => void } | null = null
+const SFX_AMBIENTE = 'sfx/torcida-estadio-v1.mp3'
+const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
+
+// cache de arquivo já baixado e decodificado (um download por sessão, no máximo)
+const bufs = new Map<string, AudioBuffer>()
+const baixando = new Map<string, Promise<AudioBuffer | null>>()
+function carrega(nome: string): Promise<AudioBuffer | null> {
+  const pronto = bufs.get(nome)
+  if (pronto) return Promise.resolve(pronto)
+  const indo = baixando.get(nome)
+  if (indo) return indo
+  const c = ac()
+  if (!c) return Promise.resolve(null)
+  const p = fetch(`${import.meta.env.BASE_URL}${nome}`)
+    .then(r => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('404'))))
+    .then(ab => c.decodeAudioData(ab))
+    .then(buf => { bufs.set(nome, buf); return buf })
+    .catch(() => null)   // som NUNCA quebra o jogo: falhou, fica mudo e pronto
+    .finally(() => { baixando.delete(nome) })
+  baixando.set(nome, p)
+  return p
+}
+
+// 🎚️ Os três números do mix. Medidos nos arquivos DELE (ver o bloco do gol):
+// o ambiente fica ~16 dB abaixo do gol, que é onde um estádio de verdade fica.
+// Se ele achar o ambiente baixo ou alto demais, é aqui que se mexe — uma linha.
+const AMBIENTE_VOL = 0.5    // fica ao FUNDO; o master geral já corta tudo pra 0.32
+const GOL_VOL = 0.95
+const DUCK = 0.35           // o ambiente cai pra 35% enquanto o gol toca
+
+let crowd: { gain: GainNode; stop: () => void } | null = null
 export function startCrowd() {
   if (crowd) return
   const c = ac(); if (!c || !master) return
-  try {
-    const dur = 4 // buffer de 4s em loop
-    const n = Math.floor(c.sampleRate * dur)
-    const buf = c.createBuffer(1, n, c.sampleRate)
-    const d = buf.getChannelData(0)
-    let last = 0
-    for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5 } // ruído "rosa" simples
-    const src = c.createBufferSource(); src.buffer = buf; src.loop = true
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900
-    const g = c.createGain(); g.gain.value = 0.11 // torcida BEM ao fundo
-    // ondulação lenta (a torcida "respira")
-    const lfo = c.createOscillator(); const lg = c.createGain()
-    lfo.type = 'sine'; lfo.frequency.value = 0.18; lg.gain.value = 0.05
-    lfo.connect(lg); lg.connect(g.gain)
-    src.connect(lp); lp.connect(g); g.connect(master)
-    const t = c.currentTime
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.11, t + 0.8) // fade-in suave
-    src.start(); lfo.start()
-    // 👏 E ELA CANTA DE VEZ EM QUANDO (Diego 18/09: *"cantos de torcida durante o
-    // jogo"*). Um canto curto a cada 13–22s, sorteado — de propósito NÃO é de
-    // relógio fixo: toda hora vira barulho de fundo e a pessoa desliga o som.
-    // ⏱️ É `setTimeout`, fora do reducer: não encosta em lance, tempo nem placar.
-    let cantoT: ReturnType<typeof setTimeout> | null = null
-    const agenda = () => { cantoT = setTimeout(() => { crowdChant(); agenda() }, 13000 + Math.random() * 9000) }
-    if (TORCIDA_NOVA) agenda()   // 🔇 segurado até ele aprovar o som (ver a chave acima)
-    crowd = { stop: () => { try { if (cantoT) clearTimeout(cantoT); const now = c.currentTime; g.gain.cancelScheduledValues(now); g.gain.setValueAtTime(g.gain.value, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5); src.stop(now + 0.55); lfo.stop(now + 0.55) } catch { /* ignora */ } } }
-  } catch { /* ignora */ }
+  // marca o lugar JÁ (síncrono), senão dois renders seguidos abrem duas torcidas
+  const g = c.createGain()
+  g.gain.value = 0.0001
+  g.connect(master)
+  let src: AudioBufferSourceNode | null = null
+  let morto = false
+  crowd = {
+    gain: g,
+    stop: () => {
+      morto = true
+      try {
+        const now = c.currentTime
+        g.gain.cancelScheduledValues(now)
+        g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), now)
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5)
+        if (src) src.stop(now + 0.55)
+      } catch { /* ignora */ }
+    },
+  }
+  carrega(SFX_AMBIENTE).then(buf => {
+    if (!buf || morto || !crowd) return
+    try {
+      src = c.createBufferSource()
+      src.buffer = buf
+      src.loop = true   // o ambiente roda o jogo inteiro, sem emenda audível
+      src.connect(g)
+      const t = c.currentTime
+      g.gain.setValueAtTime(0.0001, t)
+      g.gain.exponentialRampToValueAtTime(AMBIENTE_VOL, t + 0.8)   // entra suave
+      src.start()
+    } catch { /* ignora */ }
+  })
+  // 🥅 já deixa o gol baixado enquanto o ambiente sobe: o primeiro gol da partida
+  // não pode chegar mudo por estar esperando download.
+  carrega(SFX_GOL)
 }
 export function stopCrowd() { if (crowd) { crowd.stop(); crowd = null } }
 
-// ─── 📣 A TORCIDA REAGE (Diego 18/09) ───────────────────────────────────────
-// Palavras dele: *"precisamos colocar som de torcida nos jogos, seja online ou
-// offline, pra dar mais emoção ao jogo… apito sempre que iniciar partida e cantos
-// de torcida durante o jogo"*.
-// A torcida de fundo já existia, mas era um zumbido PARADO: o mesmo ruído do
-// começo ao fim, mesmo no gol. Sem reação não tem emoção — era o que faltava.
-// 🪶 Tudo aqui é SINTETIZADO, como o resto do arquivo: zero arquivo baixado, zero
-// KB no bundle. A regra de peso do repo vale pro som igual vale pra arte.
+// ─── 🥅 O GOL ───────────────────────────────────────────────────────────────
+// Regras de convivência, pra não virar bagunça (é o que ele reclamou do arquivo
+// original: *"acho q tá mt longo pq o gol acontece e a partida continua"*):
+//   1. UM GOL POR VEZ — se outro gol sai antes do primeiro acabar, o primeiro
+//      sai de fininho em 0,12s. Dois gols empilhados estouram o som.
+//   2. O GOL NUNCA PASSA DA RODADA — ele é cortado em 85% do tempo da rodada,
+//      com 0,25s de saída. Na rodada de 5,7s toca inteiro; na de 2,9s do ⚡2×
+//      toca o auge e sai antes do próximo jogo começar.
+//   3. RODADA CURTA DEMAIS (abaixo de 2s, que é o ⚡4×) fica SÓ com o ambiente.
+//      Gol nenhum cabe ali, e picotado soa como defeito.
+//   4. O AMBIENTE ABAIXA no gol (ducking) e volta em 1,2s — é o que faz o gol
+//      SALTAR em vez de se misturar com o zunzum. Medido nos arquivos reais:
+//      ambiente sozinho pica em 9,8% · o gol em 32,5% · os dois no gol, com o
+//      ducking, em 35,9% (sem ducking daria 42,3%). Nenhum dos dois estoura —
+//      o mix da casa já é baixo de propósito —, então isto é DECISÃO DE SOM,
+//      não conserto de estouro.
+let golAtual: { g: GainNode; src: AudioBufferSourceNode } | null = null
 
-/** 🎉 O URRO DO GOL — a torcida explode e volta ao normal em ~2,5s. */
-export function crowdRoar(forca = 1) {
+/**
+ * 🎉 O gol que ele mandou.
+ * @param forca  > 1 = gol SEU (a torcida da casa grita mais alto)
+ * @param ritmoMs quanto dura a RODADA na tela — quem chama já sabe (é prop do
+ *   placar), então o número vem de lá em vez de virar estado solto aqui.
+ */
+export function crowdRoar(forca = 1, ritmoMs = 5700) {
   const c = ac(); if (!c || !master) return
-  try {
-    const t = c.currentTime
-    const n = Math.floor(c.sampleRate * 2.6)
-    const buf = c.createBuffer(1, n, c.sampleRate)
-    const d = buf.getChannelData(0)
-    let last = 0
-    for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; last = (last + 0.035 * w) / 1.035; d[i] = last * 3.2 }
-    const src = c.createBufferSource(); src.buffer = buf
-    // o filtro ABRE junto com o grito: grave no começo, agudo no auge (é isso que
-    // faz soar "uuuuUUUAAA" e não um chiado)
-    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.8
-    bp.frequency.setValueAtTime(320, t)
-    bp.frequency.linearRampToValueAtTime(1500, t + 0.35)
-    bp.frequency.linearRampToValueAtTime(600, t + 2.4)
-    const g = c.createGain()
-    const pico = Math.min(0.42, 0.3 * forca)
-    g.gain.setValueAtTime(0.0001, t)
-    g.gain.exponentialRampToValueAtTime(pico, t + 0.28)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 2.5)
-    src.connect(bp); bp.connect(g); g.connect(master)
-    src.start(t); src.stop(t + 2.6)
-  } catch { /* ignora */ }
-}
-
-/** 👏 UM CANTO CURTO — quatro palmas no ritmo e um "ôôô" por cima. */
-export function crowdChant() {
-  const c = ac(); if (!c || !master) return
-  try {
-    const t0 = c.currentTime
-    // 👏 as palmas: estouro curto de ruído, no compasso de arquibancada
-    for (const [i, quando] of [0, 0.34, 0.68, 1.02].entries()) {
-      const n = Math.floor(c.sampleRate * 0.13)
-      const buf = c.createBuffer(1, n, c.sampleRate)
-      const d = buf.getChannelData(0)
-      for (let k = 0; k < n; k++) d[k] = (Math.random() * 2 - 1) * (1 - k / n)
+  if (ritmoMs < 2000) return   // regra 3: no ultra-rápido fica só o ambiente
+  carrega(SFX_GOL).then(buf => {
+    if (!buf) return
+    try {
+      const t = c.currentTime
+      // regra 1: o gol anterior sai de fininho
+      if (golAtual) {
+        const { g: gv, src: sv } = golAtual
+        gv.gain.cancelScheduledValues(t)
+        gv.gain.setValueAtTime(Math.max(0.0001, gv.gain.value), t)
+        gv.gain.exponentialRampToValueAtTime(0.0001, t + 0.12)
+        try { sv.stop(t + 0.15) } catch { /* já parou */ }
+        golAtual = null
+      }
+      const teto = Math.max(0.6, (ritmoMs / 1000) * 0.85)   // regra 2
+      const dur = Math.min(buf.duration, teto)
       const src = c.createBufferSource(); src.buffer = buf
-      const hp = c.createBiquadFilter(); hp.type = 'bandpass'; hp.frequency.value = 1700; hp.Q.value = 0.7
-      const g = c.createGain(); g.gain.value = 0.16 - i * 0.012
-      src.connect(hp); hp.connect(g); g.connect(master)
-      src.start(t0 + quando)
-    }
-    // 🗣️ o "ôôô" da massa, por baixo das palmas
-    const n2 = Math.floor(c.sampleRate * 1.5)
-    const b2 = c.createBuffer(1, n2, c.sampleRate)
-    const d2 = b2.getChannelData(0)
-    let last = 0
-    for (let i = 0; i < n2; i++) { const w = Math.random() * 2 - 1; last = (last + 0.03 * w) / 1.03; d2[i] = last * 3 }
-    const s2 = c.createBufferSource(); s2.buffer = b2
-    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 520; bp.Q.value = 1.6
-    const g2 = c.createGain()
-    g2.gain.setValueAtTime(0.0001, t0)
-    g2.gain.exponentialRampToValueAtTime(0.13, t0 + 0.3)
-    g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.45)
-    s2.connect(bp); bp.connect(g2); g2.connect(master)
-    s2.start(t0); s2.stop(t0 + 1.5)
-  } catch { /* ignora */ }
+      const g = c.createGain()
+      const pico = Math.min(1, GOL_VOL * forca)
+      g.gain.setValueAtTime(pico, t)
+      if (dur < buf.duration) {   // cortou: sai com fade, não com tesourada
+        g.gain.setValueAtTime(pico, t + Math.max(0.05, dur - 0.25))
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+      }
+      src.connect(g); g.connect(master!)
+      src.start(t); src.stop(t + dur + 0.02)
+      golAtual = { g, src }
+      src.onended = () => { if (golAtual && golAtual.src === src) golAtual = null }
+      // regra 4: o ambiente se encolhe enquanto o gol toca
+      if (crowd) {
+        const cg = crowd.gain
+        cg.gain.cancelScheduledValues(t)
+        cg.gain.setValueAtTime(Math.max(0.0001, cg.gain.value), t)
+        cg.gain.exponentialRampToValueAtTime(AMBIENTE_VOL * DUCK, t + 0.15)
+        cg.gain.setValueAtTime(AMBIENTE_VOL * DUCK, t + dur)
+        cg.gain.exponentialRampToValueAtTime(AMBIENTE_VOL, t + dur + 1.2)
+      }
+    } catch { /* ignora */ }
+  })
 }
