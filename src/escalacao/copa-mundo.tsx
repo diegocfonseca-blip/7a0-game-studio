@@ -1115,6 +1115,35 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
       </div>
     )
   }
+  // ─── 📊 A TABELA DO GRUPO EM COLUNAS DE VERDADE (Diego 19/09) ───────────────
+  // *"tá faltando organizar melhor os pts, vitória e saldo"* — era "6pt 2V +3"
+  // corrido, sem cabeçalho. Agora: colunas fixas com PTS · V · SG · GP em cima.
+  // *"qual a cor do usuário, amarela? e também é amarela o 3º melhor?"* — era, e
+  // brigavam. A cor da LINHA agora é só a zona (verde = classifica · amarelo = 3º
+  // entre os melhores); VOCÊ é o contorno ROXO + selo "VOCÊ", a mesma linguagem do
+  // "SEU JOGO" (`ll26-fixture-mine`). Nunca mais dourado disputando com amarelo.
+  const COLS = '16px 26px minmax(0,1fr) 34px 26px 34px 30px'
+  const cabecalhoTabela = () => (
+    <div style={{ display: 'grid', gridTemplateColumns: COLS, alignItems: 'center', gap: 6, padding: '0 6px 3px 10px', ...OSWALD, fontWeight: 700, fontSize: 9.5, letterSpacing: .5, color: privateVisual ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.5)' }}>
+      <span>#</span><span /><span>{tr('SELEÇÃO', 'TEAM')}</span><span style={{ textAlign: 'right' }}>PTS</span><span style={{ textAlign: 'right' }}>{tr('V', 'W')}</span><span style={{ textAlign: 'right' }}>{tr('SG', 'GD')}</span><span style={{ textAlign: 'right' }}>{tr('GP', 'GF')}</span>
+    </div>
+  )
+  const linhaTabela = (r: { t: number; pts: number; w: number; sg: number; gp: number }, i: number, zona: 'verde' | 'amarelo' | null, nota?: string) => {
+    const eu = isYou(r.t)
+    const fundo = zona === 'verde' ? (privateVisual ? '#D8F0DE' : 'rgba(27,122,61,.35)') : zona === 'amarelo' ? (privateVisual ? '#FFF1BF' : 'rgba(255,196,0,.22)') : 'transparent'
+    const barra = zona === 'verde' ? GREEN : zona === 'amarelo' ? GOLD : 'transparent'
+    return (
+      <div key={r.t} style={{ display: 'grid', gridTemplateColumns: COLS, alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: eu ? 900 : 600, background: fundo, borderLeft: `4px solid ${barra}`, outline: eu ? '2.5px solid #7C3AED' : undefined, outlineOffset: -2, borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
+        <span style={{ color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
+        {privateVisual ? <NationalCrest country={entrants[r.t].pais} size={24} /> : <span style={{ width: 10, height: 10, borderRadius: 3, background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />}
+        <span style={{ color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{nm(r.t)}{eu && <span style={{ ...OSWALD, fontWeight: 900, fontSize: 8.5, background: '#7C3AED', color: '#fff', borderRadius: 5, padding: '1px 5px', marginLeft: 5, verticalAlign: 'middle' }}>{tr('VOCÊ', 'YOU')}</span>}{nota ? <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}> · {nota}</span> : online && !eu ? <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}> · {club(r.t)}</span> : null}</span>
+        <span style={{ fontWeight: 900, color: '#fff', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.pts}</span>
+        <span style={{ color: 'rgba(255,255,255,.7)', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.w}</span>
+        <span style={{ color: 'rgba(255,255,255,.7)', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
+        <span style={{ color: 'rgba(255,255,255,.7)', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.gp}</span>
+      </div>
+    )
+  }
   // o MEU confronto: placar ao vivo + pênaltis com o suspense OFICIAL
   const meuConfronto = (t: KoTie) => (
     <div key={`c${t.h}`}>
@@ -1169,23 +1198,11 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
           ).map(({ g, gi }) => (
             <div key={gi} className={privateVisual ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 {tr('GRUPO', 'GROUP')} {'ABCDEF'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
-              {groupTable(g, shownRounds).map((r, i) => (
-                /* 🟩 FAIXA DOS CLASSIFICADOS (Diego 19/09: *"precisa de faixa de
-                   classificação com cor pros dois primeiros do grupo, não?"*). Era um
-                   branco a 6% — invisível no creme e quase invisível no preto. Agora é o
-                   MESMO verde da zona de classificação da tabela da liga (`#D8F0DE`),
-                   com a barra verde na esquerda; a SUA linha continua dourada e, se
-                   está classificando, leva a barra também.
-                   🟨 E O 3º (Diego 19/09: *"uma faixa clara do 3º lugar em tempo real pra
-                   quem tiver se classificando, a cor amarela"*): amarelo SÓ enquanto ele
-                   está entre os 4 melhores 3ºs — sai da conta, perde a cor. */
-                <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? 'rgba(255,196,0,.28)' : i < 2 ? (privateVisual ? '#D8F0DE' : 'rgba(27,122,61,.35)') : i === 2 && terceirosAgora.vagas.has(r.t) ? (privateVisual ? '#FFF1BF' : 'rgba(255,196,0,.22)') : 'transparent', borderLeft: i < 2 ? `4px solid ${GREEN}` : i === 2 && terceirosAgora.vagas.has(r.t) ? `4px solid ${GOLD}` : '4px solid transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
-                  <span style={{ width: 12, color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
-                  {privateVisual ? <NationalCrest country={entrants[r.t].pais} size={24} /> : <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />}
-                  <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} {online && <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {club(r.t)}</span>}</span>
-                  <span style={{ fontWeight: 900, color: '#fff' }}>{r.pts}{tr('pt', 'pts')}</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.w}{tr('V', 'W')}</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
-                </div>
-              ))}
+              {/* 🟩 verde = classifica (2 por grupo) · 🟨 amarelo = o 3º SÓ enquanto está
+                  entre os 4 melhores 3ºs (Diego 19/09: *"faixa clara do 3º lugar em
+                  tempo real… a cor amarela"*) — sai da conta, perde a cor. */}
+              {cabecalhoTabela()}
+              {groupTable(g, shownRounds).map((r, i) => linhaTabela(r, i, i < 2 ? 'verde' : i === 2 && terceirosAgora.vagas.has(r.t) ? 'amarelo' : null))}
               {privateVisual && step >= 1 && step <= GR && <section className="ll26-group-fixtures"><h3>{tr('JOGOS DO GRUPO · RODADA', 'GROUP GAMES · ROUND')} {gRound}</h3>{g.matches[gRound-1]?.map((m,k) => <CompetitionMatch showOwners key={k} goals={(m.ev??[]).filter(g=>liveDone||g.min<=liveMin)} home={entrants[m.h].pais} away={entrants[m.a].pais} homeOwner={owner(m.h)} awayOwner={owner(m.a)} homeCrest={<NationalCrest country={entrants[m.h].pais} size={25} />} awayCrest={<NationalCrest country={entrants[m.a].pais} size={25} />} mine={isYou(m.h)||isYou(m.a)} homeScore={liveDone ? (m.gh ?? 0) : (m.ev??[]).filter(e=>e.home&&e.min<=liveMin).length} awayScore={liveDone ? (m.ga ?? 0) : (m.ev??[]).filter(e=>!e.home&&e.min<=liveMin).length} status={liveDone?tr('ENCERRADO', 'FULL TIME'):`${Math.min(90,liveMin)}′ · ${tr('AO VIVO', 'LIVE')}`} />)}</section>}
               {!privateVisual && step >= 1 && step <= GR && !liveDone && g.matches[gRound - 1]?.filter(m => m.h !== myIdx && m.a !== myIdx).map((m, k) => (
                 <MiniLive privateVisual={privateVisual} key={k} homeOwner={owner(m.h)} nmH={nm(m.h)} awayOwner={owner(m.a)} nmA={nm(m.a)} hPais={entrants[m.h].pais} aPais={entrants[m.a].pais} ev={m.ev ?? []} min={liveMin} />
@@ -1197,7 +1214,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
               )}
             </div>
           ))}
-          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo)', 'green = goes through (2 per group)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#FFF1BF', border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GOLD, marginLeft: 4 }} />{tr('amarelo = 3º entre os 4 melhores (passa também) · desempate: pontos, vitórias, saldo, gols', 'yellow = 3rd among the best 4 (also through) · tie-break: points, wins, goal difference, goals')}</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo)', 'green = goes through (2 per group)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#FFF1BF', border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GOLD, marginLeft: 4 }} />{tr('amarelo = 3º entre os 4 melhores (passa também)', 'yellow = 3rd among the best 4 (also through)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', border: '2px solid #7C3AED', marginLeft: 4 }} />{tr('roxo = você · desempate: PTS, V, SG, GP', 'purple = you · tie-break: PTS, W, GD, GF')}</p>
           {/* 🥉 A BRIGA DOS TERCEIROS — a tabela cruzada dos seis 3ºs, pra ficar CLARO que
               o melhor terceiro passa (Diego 19/09: *"será que vai ser claro pras pessoas
               que o melhor terceiro colocado passa?"*). Só entra com rodada apitada. */}
@@ -1205,14 +1222,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
             <div className={privateVisual ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 3px', display: 'flex', alignItems: 'center', gap: 6 }}>🥉 {tr('OS MELHORES TERCEIROS', 'THE BEST THIRD-PLACED')}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               <p style={{ fontSize: 10, fontWeight: 700, color: privateVisual ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.6)', margin: '0 0 7px', lineHeight: 1.4 }}>{tr(`Os seis 3ºs colocados, lado a lado. Os ${VAGAS_TERCEIROS} melhores também vão pras oitavas — em amarelo. Conta só o que já apitou (rodada ${shownRounds} de ${GR}).`, `The six 3rd-placed teams, side by side. The best ${VAGAS_TERCEIROS} also reach the round of 16 — in yellow. Only finished rounds count (round ${shownRounds} of ${GR}).`)}</p>
-              {terceirosAgora.lista.map((r, i) => (
-                <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: i < VAGAS_TERCEIROS ? (privateVisual ? '#FFF1BF' : 'rgba(255,196,0,.22)') : 'transparent', borderLeft: i < VAGAS_TERCEIROS ? `4px solid ${GOLD}` : '4px solid transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
-                  <span style={{ width: 12, color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
-                  {privateVisual ? <NationalCrest country={entrants[r.t].pais} size={24} /> : <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />}
-                  <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {tr('grupo', 'group')} {'ABCDEF'[r.g]}</span></span>
-                  <span style={{ fontWeight: 900, color: '#fff' }}>{r.pts}{tr('pt', 'pts')}</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.w}{tr('V', 'W')}</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.gp}{tr('g', 'g')}</span>
-                </div>
-              ))}
+              {cabecalhoTabela()}
+              {terceirosAgora.lista.map((r, i) => linhaTabela(r, i, i < VAGAS_TERCEIROS ? 'amarelo' : null, `${tr('grupo', 'group')} ${'ABCDEF'[r.g]}`))}
             </div>
           )}
         </>
