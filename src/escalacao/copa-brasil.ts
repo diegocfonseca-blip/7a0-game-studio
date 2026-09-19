@@ -41,6 +41,13 @@ export interface CBTie {
   pens?: [number, number]
   win: 'a' | 'b'
   goals: Goal[]; legs: [number, number][]; legGoals: Goal[][]
+  // 🏆🔵 SÓ A SUPERCOPA PREENCHE: os artilheiros daquele jogo único, já com a
+  // identidade da carta. Ela é calculada FORA da Copa do Brasil (`computeSupercopa`)
+  // e entra na chave só como uma fase a mais — então os gols dela não estavam em
+  // lugar nenhum na hora de somar o histórico de todos os tempos. Diego (19/09):
+  // *"todas as ligas e todas as copas"*, e a Supercopa é uma delas.
+  scorers?: SeasonScorer[]
+  assists?: SeasonAssist[]
 }
 export interface CBRound { name: string; ties: CBTie[]; slot?: number } // slot = rodada-fantasma que essa fase lê pra saber a escalação (38, 39, 40…)
 // ⚽🅰️ a lista vira mapa por carta (e só quem TEM carta entra: time de fundo não
@@ -58,7 +65,12 @@ export interface CopaBrasilResult {
   champion: SimTeam | null; championDiv: Div | null
   vice: SimTeam | null; viceDiv: Div | null
   scorers: SeasonScorer[]; topScorer?: SeasonScorer
+  // 🏆 artilharia COMPLETA (sem o corte do top 20) — é ela que soma no histórico
+  // de todos os tempos (*"todas as ligas e todas as copas"*, Diego 19/09).
+  scorersAll?: SeasonScorer[]
   assists?: SeasonAssist[]; topAssist?: SeasonAssist
+  // 🅰️ espelho do `scorersAll`: a lista COMPLETA de garçons da competição.
+  assistsAll?: SeasonAssist[]
   // ⚽🅰️ gol/assistência de COPA por CARTA (19/09). A lista acima é cortada no
   // top 20 da competição inteira, então não serve pra somar na ficha do jogador —
   // quem fez 1 gol de copa simplesmente não aparecia. Estes dois mapas são a conta
@@ -125,7 +137,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       if (!pick) continue
       const key = `${e.t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id, club: pick.club, year: pick.year })
       evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90), id: pick.id })
     }
     return evs
@@ -145,7 +157,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
       evs[i].assist = a.name
       const k = `${e.t.name}:${a.id}`, row = assists.get(k)
       if (row) row.assists++
-      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id })
+      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id, club: a.club, year: a.year })
     })
     return evs
   }
@@ -257,8 +269,10 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     vice: viceEnt?.t ?? null,
     viceDiv: viceEnt?.div ?? null,
     scorers: list.slice(0, 20),
+    scorersAll: list,
     topScorer: list[0],
     assists: listA.slice(0, 20),
+    assistsAll: listA,
     topAssist: listA[0],
     goalsByCard: porCarta(list, s => s.goals),
     assistsByCard: porCarta(listA, a => a.assists),
@@ -339,11 +353,15 @@ export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: S
     return evs
   }
   // 🅰️ passe do gol também na Supercopa — jogo único, mesmo dado próprio.
+  // 🅰️ `passes` guarda a CARTA de quem deu o passe, e não só o nome: o histórico
+  // de todos os tempos é por carta (Diego 19/09: *"todos dados que tá fazendo de
+  // gols sempre serve pra assistência também"*), e o nome sozinho não diz qual é.
+  const passes: PoolCard[] = []
   const marcaPasses = (nome: string, xi: PoolCard[], evs: { name: string; min: number; id: string; assist?: string }[]) => {
     if (!evs.length) return evs
     const escolhidos = evs.map(g => pickAssist(seed, nome, xi, g.id, g.min, false))
     if (evs.length >= 3 && !escolhidos.some(Boolean)) escolhidos[0] = pickAssist(seed, nome, xi, evs[0].id, evs[0].min, true)
-    escolhidos.forEach((a, i) => { if (a) evs[i].assist = a.name })
+    escolhidos.forEach((a, i) => { if (a) { evs[i].assist = a.name; passes.push(a) } })
     return evs
   }
   const th = TACS[Math.floor(rng() * 3)] as Tac, ta = TACS[Math.floor(rng() * 3)] as Tac
@@ -361,7 +379,30 @@ export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: S
   let pens: [number, number] | undefined, win: 'a' | 'b'
   if (hg === ag) { let x = 2 + Math.floor(rng() * 4), y = 2 + Math.floor(rng() * 4); if (x === y) (rng() < 0.5 ? x++ : y++); pens = [x, y]; win = x > y ? 'a' : 'b' }
   else win = hg > ag ? 'a' : 'b'
-  return { a: ligaEnt.t, b: copaEnt.t, aDiv: 'A', bDiv: 'A', aggA: hg, aggB: ag, pens, win, goals, legs: [[hg, ag]], legGoals: [goals] }
+  // 🏆🔵 artilheiros da Supercopa, pelo id do gol de volta na carta que o marcou
+  // (o XI está aqui do lado, então dá pra pegar clube e ano — que é a chave do
+  // histórico desde 19/09). Time de fundo sem elenco não entra: gol dele não é de
+  // jogador nenhum, mesma regra do `porCarta`.
+  const linhas = new Map<string, SeasonScorer>()
+  const creditaLinhas = (t: SimTeam, evs: { name: string; id: string }[]) => {
+    for (const e of evs) {
+      const c = t.xi.find(x => x.id === e.id) ?? t.squad.find(x => x.id === e.id)
+      if (!c) continue
+      const k = `${t.name}:${e.id}`, r = linhas.get(k)
+      if (r) r.goals++
+      else linhas.set(k, { name: c.name, teamName: t.name, teamId: t.teamId, div: 'A', goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: c.id, club: c.club, year: c.year })
+    }
+  }
+  creditaLinhas(ligaEnt.t, hEvs); creditaLinhas(copaEnt.t, aEvs)
+  // 🅰️ os garçons da Supercopa, pela mesma régua dos artilheiros
+  const linhasA = new Map<string, SeasonAssist>()
+  for (const c of passes) {
+    const t = ligaEnt.t.xi.some(x => x.id === c.id) ? ligaEnt.t : copaEnt.t
+    const k = `${t.name}:${c.id}`, r = linhasA.get(k)
+    if (r) r.assists++
+    else linhasA.set(k, { name: c.name, teamName: t.name, teamId: t.teamId, div: 'A', assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: c.id, club: c.club, year: c.year })
+  }
+  return { a: ligaEnt.t, b: copaEnt.t, aDiv: 'A', bDiv: 'A', aggA: hg, aggB: ag, pens, win, goals, legs: [[hg, ag]], legGoals: [goals], scorers: [...linhas.values()], assists: [...linhasA.values()] }
 }
 
 export const SUPERCOPA_PAY = { vice: 8, camp: 20 }
@@ -393,7 +434,7 @@ export function copaBrasilAsCopaResult(r: CopaBrasilResult, supercopa?: CBTie | 
   if (r.round64) rounds.push({ name: r.round64.name, ties: r.round64.ties, slot: r.round64.slot })
   rounds.push(...r.rounds)
   if (supercopa) rounds.push({ name: 'Supercopa', ties: [supercopa], slot: 38 + ROUND_NAMES.length + 1 })
-  return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, topScorer: r.topScorer, assists: r.assists, topAssist: r.topAssist, goalsByCard: r.goalsByCard, assistsByCard: r.assistsByCard }
+  return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, scorersAll: [...(r.scorersAll ?? []), ...(supercopa?.scorers ?? [])], topScorer: r.topScorer, assists: r.assists, assistsAll: [...(r.assistsAll ?? []), ...(supercopa?.assists ?? [])], topAssist: r.topAssist, goalsByCard: r.goalsByCard, assistsByCard: r.assistsByCard }
 }
 
 export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult, supercopa?: CBTie | null): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {

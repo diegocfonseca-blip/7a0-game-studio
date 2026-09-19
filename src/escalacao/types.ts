@@ -532,7 +532,18 @@ export interface EscState {
   careerEra?: number // 🎮 carreira SOLO: "geração" da carreira. Ausente = carreira ANTIGA (começou antes da cobrança do Modo Manual) → manual liberado pra sempre (grandfather). Preenchido = carreira NOVA, o manual pede o apoio. Nunca mexe em save antigo.
   marketSellers?: Record<Sector, number[]> // carreira online: por posição, os ids dos BOTS que perderam um jogador pro mercado neste leilão — são justamente eles que podem dar lance NAQUELA posição (rebuscar o que perderam), quando 0 ou 1 humano oferta.
   seasonVotes?: Record<number, 'leilao' | 'mesmo'> // carreira online: no fim da temporada cada humano vota entre abrir o leilão de transferências ou seguir com o mesmo time. O host só inicia quando todos votam; empate → o voto do host decide. Zera ao iniciar a próxima temporada.
-  careerScorersAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }> // carreira online: artilharia de TODOS OS TEMPOS (gols somados de cada jogador entre as temporadas), por nome. Alimenta a aba Rank › Artilheiros.
+  careerScorersAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean; club?: string; year?: number }> // carreira online: artilharia de TODOS OS TEMPOS (gols de liga E de copa somados entre as temporadas). Alimenta a aba Rank › Artilheiros. 🃏 A chave é a CARTA (nome|clube|ano), não o nome — ordem do Diego 19/09; save antigo é convertido na abertura (`migraArtilhariaPorCarta`).
+  // 🅰️ GARÇONS DE TODOS OS TEMPOS — o espelho do `careerScorersAll` (19/09).
+  // Ordem do Diego: *"todos dados q tá fazendo de gols sempre serve p assistência
+  // tb hein"*. Não existia nada: assistência NUNCA teve histórico, em canto nenhum.
+  // Mesma chave (a CARTA), mesmas competições (liga + todas as copas), mesmo teto.
+  careerAssistsAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; assists: number; you: boolean; human: boolean; club?: string; year?: number }>
+  // 🥇 MELHOR DO MUNDO por temporada (19/09) — o que somou mais GOL + ASSISTÊNCIA
+  // no ano, em qualquer divisão. Ideia do Diego: *"será o prêmio da FIFA de melhor
+  // do mundo… não é o artilheiro e também não é o garçom, é o cara que conseguiu
+  // unir os dois"*. Guardado por temporada (chave = o número dela) pra dar pra
+  // dizer um dia "fulano foi 3× melhor do mundo". Custa ~100 bytes por ano.
+  careerMelhorMundo?: Record<string, { name: string; club?: string; year?: number; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; you: boolean; human: boolean; goals: number; assists: number; total: number }>
   statsSeason?: number // carreira online: última temporada cujos artilheiros já foram somados no acumulado (evita contar 2x)
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)

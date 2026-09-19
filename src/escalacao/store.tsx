@@ -2713,7 +2713,75 @@ function migrateTeamNames(st: EscState): EscState {
   st.careerSupercopaHonors = mapKeys(st.careerSupercopaHonors) ?? st.careerSupercopaHonors
   // 🏢 saves antigos gravavam UM empréstimo (objeto); agora são LISTAS por divisão
   if (st.careerFilial) st.careerFilial = { ...st.careerFilial, loanOut: loanList(st.careerFilial.loanOut), loanIn: loanList(st.careerFilial.loanIn) }
+  st.careerScorersAll = migraArtilhariaPorCarta(st.careerScorersAll)
   return st
+}
+
+// ─── 🃏 ARTILHARIA DE TODOS OS TEMPOS: DE NOME PRA CARTA (19/09) ─────────────
+// Ordem do Diego: *"primeira que não pode ser por nome, e sim por carta"*.
+// Ele está certo, e era pior do que eu tinha dito: o reducer até previa uma chave
+// com `cardId`, mas quem despacha nunca mandava o campo — então, na prática, a
+// chave era SÓ O NOME, e dois jogadores diferentes com o mesmo nome somavam gols
+// num registro só. Medido no baralho inteiro: **62 nomes repetidos, 125 cartas**.
+//
+// 🔪 O QUE FAZER COM O PASSADO EMBOLADO — decisão dele: *"pros 62 divida entre
+// eles"*. Então o total é PRESERVADO e repartido em partes iguais entre as cartas
+// homônimas (a sobra vai pras primeiras, em ordem fixa de clube+ano, pra a conta
+// nunca depender de sorte nem de ordem de leitura).
+// ⚠️ Isto é uma REPARTIÇÃO DECLARADA, não um palpite sobre quem fez o gol: ninguém
+// anotou de quem era cada um, e o Diego escolheu dividir em vez de zerar ou de
+// dar tudo pro mais provável (que seria eu chutando). Daqui pra frente cada carta
+// conta a própria conta, e nunca mais embola.
+//
+// 🔁 Roda uma vez por save: linha que JÁ tem `club` está migrada e passa direto.
+// 🧒 Cria da base e folclórico não existem no baralho — ficam pelo nome mesmo
+//    (não há outra carta com aquele nome pra confundir).
+export type LinhaArtilheiro = { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean; club?: string; year?: number }
+let _idxNome: Map<string, { club: string; year: number }[]> | null = null
+function cartasDoNome(nome: string): { club: string; year: number }[] {
+  if (!_idxNome) {
+    _idxNome = new Map()
+    for (const cat of [CATALOG, CATALOG_EU, CATALOG_WORLD]) {
+      for (const arr of Object.values(cat)) {
+        for (const c of arr as { name: string; club: string; year: number }[]) {
+          const l = _idxNome.get(c.name) ?? []
+          if (!l.some(x => clubCanon(x.club) === clubCanon(c.club) && x.year === c.year)) l.push({ club: c.club, year: c.year })
+          _idxNome.set(c.name, l)
+        }
+      }
+    }
+    // ordem FIXA (clube, depois ano): a sobra da divisão tem que cair sempre no
+    // mesmo lugar, senão o mesmo save migraria diferente em aparelhos diferentes.
+    for (const l of _idxNome.values()) l.sort((a, b) => clubCanon(a.club).localeCompare(clubCanon(b.club)) || a.year - b.year)
+  }
+  return _idxNome.get(nome) ?? []
+}
+export const chaveArtilheiro = (x: { name: string; club?: string; year?: number }): string =>
+  x.club ? `${x.name}|${clubCanon(x.club)}|${x.year}` : x.name
+export function migraArtilhariaPorCarta(rec: Record<string, LinhaArtilheiro> | undefined): Record<string, LinhaArtilheiro> | undefined {
+  if (!rec) return rec
+  const linhas = Object.values(rec)
+  if (!linhas.length || linhas.every(l => l.club)) return rec // já está por carta
+  const novo: Record<string, LinhaArtilheiro> = {}
+  const soma = (k: string, l: LinhaArtilheiro) => { novo[k] = novo[k] ? { ...novo[k], goals: novo[k].goals + l.goals } : l }
+  for (const l of linhas) {
+    if (l.club) { soma(chaveArtilheiro(l), l); continue }
+    const cartas = cartasDoNome(l.name)
+    if (cartas.length <= 1) {
+      const c = cartas[0]
+      soma(chaveArtilheiro(c ? { ...l, club: c.club, year: c.year } : l), c ? { ...l, club: c.club, year: c.year } : l)
+      continue
+    }
+    const base = Math.floor(l.goals / cartas.length)
+    const sobra = l.goals - base * cartas.length
+    cartas.forEach((c, i) => {
+      const gols = base + (i < sobra ? 1 : 0)
+      if (gols <= 0) return // linha de zero gol é só peso no save
+      const carta = { ...l, club: c.club, year: c.year, goals: gols }
+      soma(chaveArtilheiro(carta), carta)
+    })
+  }
+  return novo
 }
 
 function makeCareerManagers(teamName: string, formation: FormationKey, div: Division, rivalDefs: CareerTeam[], otherRivalDefs: CareerTeam[], rng: () => number): { managers: Manager[]; botPlans: BotPlan[] } {
@@ -3915,7 +3983,7 @@ type Action =
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: RenewAnos } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — prazo e preço vêm de renewOptions/renewCost (escada por valor; 10+ moedas = só 5/10 anos). Prazo real sai com tempero (±1, exceto 1-2 anos) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); Várzea NÃO RENOVA (vai pro leilão com teto de venda); quem não renovar nas outras divisões também
   | { type: 'CONFIRM_MESMO_TIME' } // 🔒 fecha a janela de contratos do voto "mesmo time" (sem leilão): processa Deixar ir/Renovar decididos e volta pra temporada
   | { type: 'CAST_SEASON_VOTE'; mgrId: number; vote: 'leilao' | 'mesmo' } // carreira online: voto de fim de temporada (leilão de transferências x mesmo time)
-  | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean }[] } // carreira online: soma os artilheiros da temporada no acumulado de todos os tempos
+  | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean; cardId?: string; club?: string; year?: number }[]; assists?: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; assists: number; you: boolean; human: boolean; cardId?: string; club?: string; year?: number }[]; melhor?: { name: string; club?: string; year?: number; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; you: boolean; human: boolean; goals: number; assists: number; total: number } | null } // carreira online: soma os artilheiros da temporada (LIGA + COPAS) no acumulado de todos os tempos. 🃏 `club`/`year` = a identidade da carta, que é a chave do acumulado desde 19/09
   | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
   | { type: 'CAREER_FROM_QUICK' } // 🪜 "continuar com esse time": o jogo rápido que acabou vira uma CARREIRA — a liga inteira (você + adversários, com os elencos) vira a divisão de estreia. Sem pregão: o time já está montado.
   | { type: 'SOCIO_CREDIT'; motivo: 'mensal' | 'boas-vindas' } // 🎟️ brinde de sócio (RPC já travou no Supabase, 1× por mês / 1× na vida) — o VALOR vem do código, nunca de fora
@@ -5189,7 +5257,7 @@ export function reducer(state: EscState, action: Action): EscState {
       for (const nm of eliteNaSerieA(s.managers, pl)) pl[nm] = 'A'
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
-      s.careerScorersAll = {}; s.statsSeason = 0
+      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 🤝🏆🛍️ patrocínio por aposta, Master e Loja começam zerados
@@ -5298,7 +5366,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // vazando pra cá. Só o que NÃO se apaga é o elenco — que é o ponto disto.
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.marketValues = {}; s.marketLog = []
-      s.careerScorersAll = {}; s.statsSeason = 0
+      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.empresarioCards = []; s.empresarioClaimKeys = []
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
@@ -5439,7 +5507,7 @@ export function reducer(state: EscState, action: Action): EscState {
         s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = [] // títulos (liga, Copa e Supercopa) começam do zero — e o RECIBO por temporada também
         s.marketValues = {} // livro de preços começa vazio (leilão inicial sem piso)
         s.marketLog = []
-        s.careerScorersAll = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
+        s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0 // artilharia de todos os tempos começa do zero
         s.clubCash = seedClubCash({}, pl) // todo time da pirâmide começa com caixa (base por divisão)
         s.careerFilials = {}; s.careerSponsorBet = {}; s.careerSponsorResult = {}; s.careerMaster = {}; s.careerLoja = {} // 🏢🤝🏆🛍️ Clube online por técnico começa zerado
       }
@@ -7375,21 +7443,50 @@ export function reducer(state: EscState, action: Action): EscState {
       // nome). Idempotente: só grava uma vez por temporada.
       if (!s.careerOnline) return s
       if ((s.statsSeason ?? 0) >= s.seasonNo) return s
-      // 🔑 chave por NOME + carta (10/08): antes era só o nome, então dois
-      // jogadores DIFERENTES com o mesmo nome (94 casos no baralho) somavam gols
-      // num registro só — número inflado. O cardId separa os xarás. (Sem cardId,
-      // cai no nome, como antes.) A exibição continua mostrando só o nome.
-      const skey = (x: { name: string; cardId?: string }) => x.cardId ? `${x.name}|${x.cardId}` : x.name
+      // 🔑 CHAVE PELA CARTA (19/09). Ordem do Diego: *"primeira que não pode ser
+      // por nome, e sim por carta"*.
+      // ⚠️ A chave que existia aqui (`nome|cardId`) NUNCA funcionou: quem despacha
+      // não mandava `cardId`, então caía no nome sempre — e dois jogadores
+      // diferentes com o mesmo nome somavam num registro só (62 nomes, 125 cartas
+      // no baralho). E `cardId` não serviria mesmo: o leilão dá id novo pra mesma
+      // pessoa todo ano. Quem não muda é **nome|clube|ano**, a mesma identidade
+      // que o `condicaoCarry` usa desde 13/09.
+      // 🗄️ Save antigo é convertido no `migraArtilhariaPorCarta` (na abertura),
+      // repartindo o total embolado entre os xarás — ver o comentário de lá.
+      const skey = chaveArtilheiro
       const all = { ...(s.careerScorersAll ?? {}) }
       for (const sc of action.scorers) {
         const prev = all[skey(sc)]
-        all[skey(sc)] = { ...sc, goals: (prev?.goals ?? 0) + sc.goals } // teamName/div = os da última temporada (display)
+        // 🧹 `cardId` NÃO entra no que fica guardado: ele muda a cada leilão, não
+        // quer dizer nada de uma temporada pra outra e só engorda o save.
+        const { cardId: _ignora, ...linha } = sc
+        all[skey(sc)] = { ...linha, goals: (prev?.goals ?? 0) + sc.goals } // teamName/div = os da última temporada (display)
       }
-      // guarda os 1000 MELHORES de todos os tempos (era 300): o ranking mostra 20,
-      // mas o teto maior evita que o total histórico de quem sai e volta ao top
-      // "encolha" — antes ~40% dos gols de quem caía do top-300 sumiam.
-      const top = Object.values(all).sort((a, b) => b.goals - a.goals).slice(0, 1000)
+      // 🏔️ TETO: 2500 cartas (era 1000). O Diego perguntou o que era o "top mil" e
+      // a resposta era ruim: o save guardava só os 1000 maiores artilheiros de
+      // todos os tempos e JOGAVA FORA o resto a cada temporada — quem caía do
+      // 1000º perdia o histórico. O save dele estava EXATAMENTE em 1000, ou seja,
+      // lotado. O baralho inteiro tem 1466 cartas, então 2500 cobre todo mundo do
+      // catálogo com folga pra crias e folclóricos, e o teto deixa de morder.
+      const top = Object.values(all).sort((a, b) => b.goals - a.goals).slice(0, 2500)
       s.careerScorersAll = Object.fromEntries(top.map(x => [skey(x), x]))
+      // 🅰️ E A ASSISTÊNCIA VAI JUNTO — regra dele, 19/09: *"todos dados q tá fazendo
+      // de gols sempre serve p assistência tb hein"*. Mesma chave (a carta), mesmas
+      // competições (liga + todas as copas), mesmo teto. Nasce vazio pra todo mundo,
+      // porque isto nunca foi guardado antes — não há passado pra repartir.
+      if (action.assists?.length) {
+        const todas = { ...(s.careerAssistsAll ?? {}) }
+        for (const as of action.assists) {
+          const k = skey(as)
+          const { cardId: _semId, ...linha } = as
+          todas[k] = { ...linha, assists: (todas[k]?.assists ?? 0) + as.assists }
+        }
+        s.careerAssistsAll = Object.fromEntries(Object.values(todas).sort((a, b) => b.assists - a.assists).slice(0, 2500).map(x => [skey(x), x]))
+      }
+      // 🥇 MELHOR DO MUNDO do ano (gol + assistência somados). Vem calculado da
+      // tela, como os artilheiros — e entra no mesmo portão idempotente, então
+      // uma temporada nunca é premiada duas vezes.
+      if (action.melhor) s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
       s.statsSeason = s.seasonNo
       return s
     }
@@ -8228,7 +8325,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
-      s.careerScorersAll = {}; s.statsSeason = 0
+      s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
       s.reserveAuction = false; s.reserveListed = {}
