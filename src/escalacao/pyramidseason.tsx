@@ -201,10 +201,16 @@ function roundRobin(n: number): [number, number][][] {
 }
 
 export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; formation?: FormationKey; pts: number; w: number; d: number; l: number; gf: number; ga: number }
-export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
+// 🃏 `club`/`year` = a IDENTIDADE DA CARTA (19/09). Ordem do Diego: *"primeira que
+// não pode ser por nome, e sim por carta"*. O `cardId` não serve pra isso porque o
+// leilão dá id novo pra mesma pessoa todo ano; quem não muda é nome|clube|ano — a
+// mesma chave que o `condicaoCarry` já usa. Opcional porque save antigo não tem.
+export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number }
 // 🅰️ GARÇOM DA TEMPORADA (assistências, 24/08). Mesma forma do artilheiro, só
 // que contando passes pro gol.
-export interface SeasonAssist { name: string; teamName: string; teamId: number; div: Div; assists: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
+// 🃏 mesma identidade de carta do artilheiro — ordem do Diego (19/09): *"todos
+// dados que tá fazendo de gols sempre serve pra assistência também hein"*.
+export interface SeasonAssist { name: string; teamName: string; teamId: number; div: Div; assists: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number }
 // ─── 🅰️ QUEM DEU O PASSE ────────────────────────────────────────────────────
 // ⚠️ A REGRA DE OURO DESTA FUNÇÃO (medo do Diego, 24/08: *"não quero gente
 // falando: meu time fez 7 gols e não teve assistência… as coisas têm que bater
@@ -751,7 +757,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       // artilheiro nesse gol (o placar já foi somado à parte). Mesma guarda da Copa.
       if (!pick) continue
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id, club: pick.club, year: pick.year })
       const min = half === 2
         ? (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 46 + Math.floor(rngUse() * 45)) // 2º tempo: 46..90 (+ acréscimos)
         : (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 1 + Math.floor(rngUse() * 90)) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
@@ -780,7 +786,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       if (!e.assist || !e.assistId) continue
       const k = `${t.name}:${e.assistId}`, row = assists.get(k)
       if (row) row.assists++
-      else assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId })
+      else assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId, club: t.squad.find(x => x.id === e.assistId)?.club, year: t.squad.find(x => x.id === e.assistId)?.year })
     }
   }
   const nr = Math.min(round, 38)
@@ -888,7 +894,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       const tk = humM.squad.find(c => c.id === pd.taker)
       const nm = tk?.name ?? 'Cobrador'
       const pkey = `${humM.name}:${pd.taker}`, prow = scorers.get(pkey)
-      if (prow) prow.goals++; else scorers.set(pkey, { name: nm, teamName: humM.name, teamId: humM.teamId, div, goals: 1, you: humM.you, human: humM.human, rival: humM.rival, dorm: humM.dorm, cardId: pd.taker })
+      if (prow) prow.goals++; else scorers.set(pkey, { name: nm, teamName: humM.name, teamId: humM.teamId, div, goals: 1, you: humM.you, human: humM.human, rival: humM.rival, dorm: humM.dorm, cardId: pd.taker, club: tk?.club, year: tk?.year })
       const penEv = { name: nm, min: 90, id: pd.taker }
       if (H.human) { hgF += 1; hFinal = [...hFinal, penEv] } else { agF += 1; aFinal = [...aFinal, penEv] }
     }
@@ -951,6 +957,61 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
   return { rewards, clubRewards, values }
 }
 
+// ─── 🥇 MELHOR DO MUNDO — o prêmio que junta GOL + ASSISTÊNCIA (19/09) ──────
+//
+// Ideia do Diego, e ele foi bem específico: *"quero que tenha do jogador que teve
+// mais gols com assistência junto. Esse jogador será considerado o melhor do mundo
+// no ano. Será o prêmio da FIFA de melhor do mundo. Lembrando que NÃO é o
+// artilheiro e também NÃO é o garçom: é o cara que conseguiu unir os dois juntos"*.
+//
+// A conta, então:  **gols + assistências**, somados na temporada inteira.
+//   · Conta LIGA + TODAS AS COPAS (Copa do Brasil, Copa Legends, Supercopa) — a
+//     mesma régua que o histórico de todos os tempos usa desde hoje.
+//   · Conta o MUNDO inteiro: as cinco divisões, humano, rival e bot. É "melhor do
+//     mundo", não "melhor do seu time".
+//   · É por CARTA (nome|clube|ano), nunca por nome — regra dele de hoje. Sem isso,
+//     os dois Cafus juntariam os números e um deles levaria um prêmio que não fez.
+//
+// ⚖️ DESEMPATE, em ordem, e TUDO determinístico (mesma temporada = mesmo ganhador,
+//    em qualquer aparelho — no online isso não pode divergir entre os jogadores):
+//    1. maior total (gol + assistência)
+//    2. mais GOLS — gol decide jogo, então quem fez mais leva a taça no empate
+//    3. divisão mais alta (A › B › C › D › Várzea)
+//    4. nome em ordem alfabética (último critério, só pra nunca ficar no sorteio)
+export interface MelhorDoMundo {
+  name: string; club?: string; year?: number
+  teamName: string; teamId: number; div: Div
+  you: boolean; human: boolean
+  goals: number; assists: number; total: number
+}
+const MM_DIV_PESO: Record<Div, number> = { A: 5, B: 4, C: 3, D: 2, V: 1 }
+export function melhorDoMundo(scorers: SeasonScorer[], assists: SeasonAssist[]): MelhorDoMundo | null {
+  const chave = (x: { name: string; club?: string; year?: number }) => x.club ? `${x.name}|${x.club}|${x.year}` : x.name
+  const m = new Map<string, MelhorDoMundo>()
+  const pega = (k: string, base: Omit<MelhorDoMundo, 'goals' | 'assists' | 'total'>) =>
+    m.get(k) ?? (m.set(k, { ...base, goals: 0, assists: 0, total: 0 }), m.get(k)!)
+  for (const s of scorers) {
+    const r = pega(chave(s), { name: s.name, club: s.club, year: s.year, teamName: s.teamName, teamId: s.teamId, div: s.div, you: s.you, human: s.human })
+    r.goals += s.goals
+  }
+  for (const a of assists) {
+    const r = pega(chave(a), { name: a.name, club: a.club, year: a.year, teamName: a.teamName, teamId: a.teamId, div: a.div, you: a.you, human: a.human })
+    r.assists += a.assists
+  }
+  let melhor: MelhorDoMundo | null = null
+  for (const r of m.values()) {
+    r.total = r.goals + r.assists
+    if (r.total <= 0) continue
+    if (!melhor) { melhor = r; continue }
+    const ganha = r.total !== melhor.total ? r.total > melhor.total
+      : r.goals !== melhor.goals ? r.goals > melhor.goals
+      : MM_DIV_PESO[r.div] !== MM_DIV_PESO[melhor.div] ? MM_DIV_PESO[r.div] > MM_DIV_PESO[melhor.div]
+      : r.name.localeCompare(melhor.name) < 0
+    if (ganha) melhor = r
+  }
+  return melhor
+}
+
 // ── COPA LEGENDS: mata-mata dos 16 (top-4 de cada divisão), sorteio aleatório,
 // ida e volta, final única, pênaltis no empate. Determinística (semente +
 // temporada + classificação), então bate igual offline e em todos os clientes
@@ -961,7 +1022,12 @@ export interface CopaRound { name: string; ties: CopaTie[]; slot?: number } // s
 // `scorers`/`assists` acima são cortadas no top 20 da competição, então não servem
 // pra somar na ficha do jogador — quem fez 1 gol de copa não aparecia nelas.
 // Ordem do Diego: *"deve somar sim"* — gol de copa conta na temporada do jogador.
-export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer; assists?: SeasonAssist[]; topAssist?: SeasonAssist; goalsByCard?: Record<string, number>; assistsByCard?: Record<string, number> }
+export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; scorersAll?: SeasonScorer[]; topScorer?: SeasonScorer; assists?: SeasonAssist[]; assistsAll?: SeasonAssist[]; topAssist?: SeasonAssist; goalsByCard?: Record<string, number>; assistsByCard?: Record<string, number> }
+// 🏆 `scorersAll` (19/09) = a artilharia COMPLETA da Copa, sem o corte do top 20.
+// Ordem do Diego: *"deve contar gols na liga também e gols na copa… aliás todas as
+// ligas e todas as copas"*. O `scorers` acima continua cortado porque é o que a
+// TELA mostra; quem soma no histórico de todos os tempos precisa da lista inteira,
+// senão quem fez 1 gol de copa some da conta (o mesmo furo que a ficha teve).
 // 🏆 Copa Legends PAGA POR FASE (Diego 11/08) — valores FIXOS, IGUAIS em toda
 // divisão (não escala por série): participação 2 · quartas 4 · semi 8 · vice 10
 // · campeão 30. Antes só campeão/vice levavam; agora cada fase já rende algo.
@@ -1004,7 +1070,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       if (!pick) continue
       const key = `${e.t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id, club: pick.club, year: pick.year })
       evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90), id: pick.id })
     }
     return evs
@@ -1029,7 +1095,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
       evs[i].assist = a.name
       const k = `${e.t.name}:${a.id}`, row = assists.get(k)
       if (row) row.assists++
-      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id })
+      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id, club: a.club, year: a.year })
     })
     return evs
   }
@@ -1109,7 +1175,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     for (const x of l) if (x.cardId) m[x.cardId] = (m[x.cardId] ?? 0) + quanto(x)
     return m
   }
-  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), topScorer: list[0], assists: listA.slice(0, 20), topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, x => x.assists) }
+  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), scorersAll: list, topScorer: list[0], assists: listA.slice(0, 20), assistsAll: listA, topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, x => x.assists) }
 }
 
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
@@ -2230,9 +2296,54 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: {
               return (
               <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
+                {/* 🃏 O CLUBE DA CARTA embaixo do nome (Diego 19/09: *"sobre os gols
+                    quero que seja pelo clube da carta apenas"*). É o que separa os
+                    xarás: o baralho tem 62 nomes repetidos em 125 cartas, e em 6 deles
+                    os dois são do MESMO baralho (Marcelo Lomba Internacional × Bahia),
+                    então uma letra de baralho não resolveria. O clube resolve os 62.
+                    ⚠️ Não é tradução nem apelido: é a identidade da carta, a mesma que
+                    o jogo usa pra tudo ("Kaká São Paulo é promessa, Kaká Milan é lenda"). */}
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>
+                  <span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}
+                  {s.club && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,0.45)', marginLeft: 22, lineHeight: 1.15 }}>{s.club} · {s.year}</span>}
+                </td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.dorm ? '🏛️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
+              </tr>
+            )})}
+          </tbody>
+        </table>
+      )}
+      {foot && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.4)', margin: '8px 0 0', textAlign: 'center' }}>{foot}</p>}
+    </div>
+  )
+}
+
+// 🅰️ GARÇONS DE TODOS OS TEMPOS — espelho exato da ArtilhariaBox (19/09).
+// Ordem do Diego: *"todos dados q tá fazendo de gols sempre serve p assistência
+// tb hein"*. Mesma tabela, mesmo clube-da-carta embaixo do nome, mesmas cores.
+function GarconsBox({ assists, colors, title, sub, foot, safTeam, safCol }: { assists: SeasonAssist[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
+  const cols = colors ?? {}
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
+      {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
+      {assists.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Sem assistência ainda. Bola rolando…', 'No assists yet. Ball rolling…')}</p> : (
+        <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+          <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Jogador', 'Player')}</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('Ass', 'Ast')}</th></tr></thead>
+          <tbody>
+            {assists.map((a, i) => {
+              const isSaf = !a.you && !!safTeam && a.teamName === safTeam
+              const fc = isSaf ? safCol : ((a.human || a.rival) ? cols[a.teamId] : undefined)
+              return (
+              <tr key={a.name + a.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
+                <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>
+                  <span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[a.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[a.div].l}</span>{a.name}
+                  {a.club && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,0.45)', marginLeft: 22, lineHeight: 1.15 }}>{a.club} · {a.year}</span>}
+                </td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{a.you ? '👤 ' : isSaf ? '💼 ' : a.rival ? '⚔️ ' : a.dorm ? '🏛️ ' : a.human ? '🔥 ' : ''}{(() => { const pk = a.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(a.teamName)}</span> : a.teamName })()}</td>
+                <td style={{ textAlign: 'center', fontWeight: 900 }}>{a.assists}</td>
               </tr>
             )})}
           </tbody>
@@ -3719,6 +3830,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         jTemp: Math.max(0, jTot - (a?.j[sel.id] ?? 0)), jTot,
         glTemp, glTot: (a?.gl[sel.id] ?? 0) + glTemp,
         asTemp, asTot: (a?.as[sel.id] ?? 0) + asTemp,
+        // 🧾 O DESENCONTRO DO 337 JOGOS × 10 GOLS foi resolvido em OUTRO lugar, e
+        // por outra sessão no mesmo dia: quando o carry ainda não tem `gl` (carreira
+        // anterior a 19/09), os JOGOS de trás também ficam de fora — então jogos,
+        // gols e assistências nascem juntos, da mesma temporada. Ver `condInicio`
+        // logo acima e `guardaCansaco` no store. Foi a ideia original do Diego
+        // (*"se coloco os totais também contando no mesmo dia do gol?"*), e ele
+        // fechou com eles — então o "—" que eu tinha posto aqui saiu: os dois juntos
+        // dariam 17 jogos e "—" gols, que é o pior dos dois mundos.
       }
     })()
     const trio = (j: number, gl: number, as: number) => [
@@ -6735,6 +6854,66 @@ function SeloSuaVez({ texto }: { texto: string }) {
   )
 }
 
+// ─── 🎬 O ROTEIRO DO FIM DE TEMPORADA (19/09) ───────────────────────────────
+//
+// Ideia do Diego, com o print da tela na mão: *"e se fizéssemos de uma forma q
+// tivesse q ter o passo a passo obrigado e c isso teria q ler.. pq hj aparece
+// essas coisas aqui misturadas embaixo tb q n estão legais… A copa do mundo quero
+// algo sutil msm mas após o jornal"*.
+//
+// 📋 O QUE ESTAVA ERRADO: seis coisas empilhadas na MESMA rolagem — o jornal, o
+//    cadeado da Copa do Mundo, o fechamento do caixa, a decisão da próxima
+//    temporada, os chips das fases e o "sair e salvar". A DECISÃO (o que mais
+//    importa) dividia espaço com um cadeado que só abre daqui a 74 temporadas, e o
+//    fechamento do caixa — a parte gostosa de ver — era uma linha fininha que
+//    ninguém abria. Ninguém lia porque estava tudo com o MESMO PESO.
+//
+// 🎯 AGORA é um passo por vez, na ordem que a cabeça pede:
+//    1 📰 a NOTÍCIA · 2 💰 o DINHEIRO · 3 🌍 o que está LONGE · 4 🔨 a DECISÃO.
+//
+// ⚡ E a regra de ouro dele continua de pé (*"nada pode atrasar o ritmo do jogo"*):
+//    cada passo é UM TOQUE, nenhum pede pra pensar — só o último. Quem quer correr
+//    faz os quatro em uns 3 segundos. E dá pra VOLTAR tocando num passo já feito,
+//    pra ninguém ficar preso adiante do que queria ver.
+const FIM_PASSOS = [
+  { ic: '📰', pt: 'Jornal', en: 'Paper' },
+  { ic: '💰', pt: 'Caixa', en: 'Money' },
+  { ic: '🌍', pt: 'Mundo', en: 'World' },
+  { ic: '🔨', pt: 'Próxima', en: 'Next' },
+] as const
+function RoteiroFim({ passo, onIr }: { passo: number; onIr: (n: number) => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 10 }}>
+      {FIM_PASSOS.map((p, i) => {
+        const n = i + 1, feito = n < passo, ativo = n === passo
+        return (
+          <Fragment key={p.pt}>
+            {i > 0 && <div style={{ flex: 1, height: 3, background: n <= passo ? INK : 'rgba(12,12,12,.18)', marginTop: 14 }} />}
+            <button
+              onClick={() => { if (feito) onIr(n) }}
+              disabled={!feito}
+              aria-label={tr(p.pt, p.en)}
+              style={{ flex: 'none', width: 54, background: 'none', border: 'none', padding: 0, cursor: feito ? 'pointer' : 'default', textAlign: 'center' }}>
+              <span style={{ display: 'flex', width: 30, height: 30, margin: '0 auto', border: `2.5px solid ${INK}`, borderRadius: 9, alignItems: 'center', justifyContent: 'center', fontSize: 14,
+                background: ativo ? GOLD : feito ? INK : '#fff', color: feito ? '#fff' : INK, boxShadow: ativo ? `2px 2px 0 ${INK}` : 'none' }}>{feito ? '✓' : p.ic}</span>
+              <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 8.5, letterSpacing: .4, marginTop: 3, color: ativo ? INK : 'rgba(12,12,12,.45)' }}>{tr(p.pt, p.en).toUpperCase()}</span>
+            </button>
+          </Fragment>
+        )
+      })}
+    </div>
+  )
+}
+/** o botão de UM TOQUE que leva pro passo seguinte */
+function BotaoPasso({ texto, sub, onClick }: { texto: string; sub?: string; onClick: () => void }) {
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button onClick={onClick} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>{texto}</button>
+      {sub && <p style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'rgba(12,12,12,.5)', margin: '5px 0 0' }}>{sub}</p>}
+    </div>
+  )
+}
+
 function PresidenciaPrivate({ president, st, team, season, games, trophies, onNavigate }: {
   onNavigate: (page: 'estadio' | 'patrocinio' | 'financas') => void
   president?: { name: string; outfit: 'casual' | 'polo' | 'social' | 'terno' }
@@ -7239,6 +7418,15 @@ export function PyramidSeasonScreen() {
   const nCopaRounds = copa?.rounds.length ?? 0
   const copaPlaying = done && !!copa && nCopaRounds > 0 && copaRound < nCopaRounds
   const copaFinished = done && (!copa || nCopaRounds === 0 || copaRound >= nCopaRounds)
+  // 🎬 O ROTEIRO DO FIM DE TEMPORADA (19/09) — ver o comentário do `RoteiroFim`.
+  // Só existe no SOLO: no ONLINE o fim de temporada é uma VOTAÇÃO entre os
+  // técnicos da sala, e pôr passo a passo ali mexeria no que todo mundo vê ao
+  // mesmo tempo. Lá fica como está — regra 1 da casa, não quebrar o que está no ar.
+  const roteiroOn = copaFinished && state.onlineMode !== 'online'
+  const [fimPasso, setFimPasso] = useState(1)
+  // temporada nova recomeça o roteiro do 1 (senão a próxima virada já abria na decisão)
+  useEffect(() => { setFimPasso(1) }, [state.seasonNo])
+  const irPasso = (n: number) => { setFimPasso(n); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }
   // 📰 A SUA CAMPANHA NA COPA pro jornal (Diego 16/08: "como é que o cara foi
   // na Copa do Brasil, em que fase que ele caiu, se ganhou"). Varre as fases
   // procurando a ÚLTIMA em que você apareceu — daí sai campeão/vice/onde caiu.
@@ -7565,6 +7753,31 @@ export function PyramidSeasonScreen() {
 
   // artilheiros de TODOS OS TEMPOS (acumulado entre temporadas) — top 20
   const allTimeScorers = useMemo(() => Object.values((state.careerScorersAll ?? {}) as Record<string, SeasonScorer>).sort((a, b) => b.goals - a.goals).slice(0, 20), [state.careerScorersAll])
+  // 🅰️ o espelho dos garçons (19/09) — *"todos dados que tá fazendo de gols sempre
+  // serve pra assistência também"*. Carreira antiga começa vazia: isto nunca foi
+  // guardado antes, então não há passado pra trazer (e inventar não é opção).
+  // 🥇 o MELHOR DO MUNDO da temporada — gol + assistência, liga + todas as copas,
+  // o mundo inteiro. Só faz sentido com a temporada fechada (`done`).
+  const melhorDoAno = useMemo(() => (done ? melhorDoMundo([...scorersAll, ...(copa?.scorersAll ?? [])], [...assistsAll, ...(copa?.assistsAll ?? [])]) : null), [done, scorersAll, assistsAll, copa])
+  // 🏆🅰️ TOP 5 DO ANO pra página dos prêmios do jornal — liga + todas as copas,
+  // somados POR CARTA (a mesma identidade do resto: nome|clube|ano).
+  const top5Jornal = useMemo(() => {
+    const junta = <T,>(linhas: (T & { name: string; club?: string; year?: number; teamName: string; you: boolean })[], quanto: (x: T) => number) => {
+      const m = new Map<string, { name: string; club?: string; year?: number; teamName: string; n: number; you: boolean }>()
+      for (const x of linhas) {
+        const k = x.club ? `${x.name}|${x.club}|${x.year}` : x.name
+        const r = m.get(k)
+        if (r) r.n += quanto(x)
+        else m.set(k, { name: x.name, club: x.club, year: x.year, teamName: x.teamName, n: quanto(x), you: x.you })
+      }
+      return [...m.values()].filter(x => x.n > 0).sort((a, b) => b.n - a.n).slice(0, 5)
+    }
+    return {
+      artilheiros: junta([...scorersAll, ...(copa?.scorersAll ?? [])], x => x.goals),
+      garcons: junta([...assistsAll, ...(copa?.assistsAll ?? [])], x => x.assists),
+    }
+  }, [scorersAll, assistsAll, copa])
+  const allTimeAssists = useMemo(() => Object.values((state.careerAssistsAll ?? {}) as Record<string, SeasonAssist>).sort((a, b) => b.assists - a.assists).slice(0, 20), [state.careerAssistsAll])
   // ao FIM da temporada, soma os artilheiros dela no acumulado (uma vez por
   // temporada; o reducer é idempotente por statsSeason). Cada cliente pode
   // disparar — guests roteiam pro host, que grava e sincroniza.
@@ -7577,7 +7790,13 @@ export function PyramidSeasonScreen() {
     // rival), de todas as 4 divisões — nenhum gol é jogado fora. O ranking mostra
     // o top 20; o reducer guarda bem mais (top 300) pra ninguém perto de entrar
     // ficar de fora, sem o save crescer sem limite.
-    dispatch({ type: 'RECORD_SEASON_STATS', scorers: scorersAll })
+    // 🏆 LIGA + COPA (Diego 19/09): *"deve contar gols na liga também e gols na
+    // copa… aliás todas as ligas e todas as copas"*. Até aqui só a LIGA entrava no
+    // histórico de todos os tempos — gol de Copa do Brasil, Copa Legends e
+    // Supercopa (que é uma fase da Copa do Brasil, então vem no mesmo pacote)
+    // ficava de fora. A lista da copa é a COMPLETA (`scorersAll`), não o top 20 da
+    // tela: senão quem fez 1 gol de copa continuava sumindo da conta.
+    dispatch({ type: 'RECORD_SEASON_STATS', scorers: [...scorersAll, ...(copa?.scorersAll ?? [])], assists: [...assistsAll, ...(copa?.assistsAll ?? [])], melhor: melhorDoAno })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // MATERIALIZA a ficha dos times de fundo (80 com Várzea) (1x): antes eram recalculados na
@@ -8332,13 +8551,23 @@ export function PyramidSeasonScreen() {
         {/* 📰 O MARTELO: jornal da temporada JÁ ABERTO — manchete única pra cada
             uma das 80 posições + os donos da temporada (campeões e artilheiros).
             O painel antigo de campeões saiu: o jornal cobre tudo aquilo. */}
-        {copaFinished && me && (
+        {/* 🎬 A BARRA DO ROTEIRO — só no fim de temporada do solo (ver `RoteiroFim`) */}
+        {roteiroOn && <RoteiroFim passo={fimPasso} onIr={irPasso} />}
+        {/* 📰 PASSO 1: a NOTÍCIA. Primeiro o jornal, que é o que a cabeça quer saber. */}
+        {copaFinished && me && (!roteiroOn || fimPasso === 1) && (
           <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}
             /* 📼 O JORNAL LEMBRA (Diego 24/08): manchetes de HISTÓRIA calculadas
                da crônica da carreira + o resultado desta temporada (que ainda
                não está gravado — a crônica só grava na virada). */
             memoria={manchetesDeMemoria(state.careerCronica?.[`m${youId}`], { div: me.div, campeao: me.pos === 1, copa: !!(copa?.champion && (copa.champion as { you?: boolean }).you), titulosTotais: undefined })}
             copaRun={copaRun} superRun={superRun} superChamp={superChamp}
+            /* 🥇 OS PRÊMIOS DO ANO (19/09) — a página nova do jornal. O melhor do
+               mundo é gol + assistência somados (liga + todas as copas, o mundo
+               inteiro, por carta); as duas listas são o top 5 de cada, com o clube
+               da carta embaixo do nome, que é a identidade que virou regra hoje. */
+            melhor={melhorDoAno}
+            artilheiros={top5Jornal.artilheiros}
+            garcons={top5Jornal.garcons}
             /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
                na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
                temporada exata (pedido do Diego 05/08). */
@@ -8370,8 +8599,12 @@ export function PyramidSeasonScreen() {
               return nn.length ? nn.slice(0, 6) : undefined
             })()} />
         )}
-        {copaFinished && copa?.champion && (
+        {copaFinished && copa?.champion && (!roteiroOn || fimPasso === 1) && (
           <button onClick={() => setTab('tabelas')} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', color: privateCareer ? '#f4ecd6' : 'rgba(0,0,0,.5)', fontWeight: 800, fontSize: 11, ...OSWALD, margin: '-4px 0 12px', textDecoration: 'underline' }}>{privateCareer ? tr('👉 Ver fases e resultados na aba Tabelas', '👉 See rounds and results in the Tables tab') : tr('👉 ver o chaveamento da Copa na aba Tabelas', '👉 see the Cup bracket in the Tables tab')}</button>
+        )}
+        {/* ➡️ o toque que fecha o passo 1 */}
+        {roteiroOn && fimPasso === 1 && (
+          <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
         {!done && myMatch && me && <PlacarQueEncolhe onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
@@ -8812,26 +9045,98 @@ export function PyramidSeasonScreen() {
           // pra um save torto (2 humanos ativos) não cair na votação sem sentido.
           if (state.onlineMode !== 'online' || humans.length <= 1) return (
             <div style={{ ...box('#EAF3FF'), padding: 13, marginBottom: 12 }}>
-              {copaGate}
-              {/* 💰 FECHAMENTO DA TEMPORADA — o que entrou e o que saiu, na hora em
-                  que a temporada (liga + copas) acabou. Sem surpresa depois no leilão. */}
-              {/* 🧹 (21/08) o FECHAMENTO virou RECIBO: era um quadro com a lista
-                  inteira bem no meio do caminho da decisão. Agora é uma linha com
-                  o saldo, e o extrato completo continua onde ele mora de verdade —
-                  Clube › Finanças. Nada de número mudou. */}
-              {state.booksSeason === state.seasonNo && (() => {
+              {/* 🌍 PASSO 3: a COPA DO MUNDO, discreta e DEPOIS do jornal (pedido
+                  dele: *"quero algo sutil msm mas após o jornal"*). Antes ela abria
+                  a tela com um cadeado de 74 temporadas à frente, competindo com a
+                  decisão. Agora tem a vez dela, e só. */}
+              {(!roteiroOn || fimPasso === 3) && copaGate}
+              {roteiroOn && fimPasso === 3 && (
+                <>
+                  <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(12,12,12,.45)', margin: '2px 0 0', lineHeight: 1.4 }}>
+                    {tr('Aparece uma vez por temporada, e só. Nada pra fazer aqui — é só pra você saber que ela existe.', 'Shows up once a season, that’s it. Nothing to do here — just so you know it exists.')}
+                  </p>
+                  <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('agora é a sua decisão', 'now it’s your call')} onClick={() => irPasso(4)} />
+                </>
+              )}
+              {/* 💰 PASSO 2: O CAIXA DA TEMPORADA — o que entrou e o que saiu, na hora
+                  em que a temporada (liga + copas) acabou. Sem surpresa depois no leilão. */}
+              {/* 🧹 (21/08) o fechamento tinha virado uma LINHA fininha, porque o quadro
+                  antigo ficava no meio do caminho da decisão.
+                  🔁 (19/09) com o roteiro ele deixa de estar no caminho de coisa nenhuma —
+                  tem a tela só pra ele —, então volta a ser um QUADRO, com o saldo em
+                  número grande. Diego: *"o fechamento do caixa… deveria aparecer melhor
+                  dps msm e até c visual melhor"*. O extrato completo continua morando em
+                  Clube › Finanças; aqui é o resumo. Nenhum número mudou. */}
+              {/* 🛟 TRAVA DE SEGURANÇA DO ROTEIRO: o passo 2 NUNCA pode ficar sem
+                  botão. Se a temporada não tiver lançamento nenhum (ou os livros
+                  ainda não fecharam), o quadro do caixa não desenha — e sem isto o
+                  jogador ficaria PRESO numa tela vazia, sem jeito de seguir pra
+                  decisão. Mesma regra da casa: trava sempre com caminho de saída. */}
+              {roteiroOn && fimPasso === 2 && !(state.booksSeason === state.seasonNo && (state.careerLedger ?? []).some(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario', 'saf'].includes(e.kind))) && (
+                <>
+                  <div style={{ ...box('#fff'), padding: 13, textAlign: 'center' }}>
+                    <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0 }}>{tr('💰 Sem movimento no caixa', '💰 No money moved')}</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(12,12,12,.55)', margin: '4px 0 0', lineHeight: 1.4 }}>
+                      {tr('Esta temporada não teve lançamento nenhum. O extrato completo fica em Clube › Finanças.', 'No entries this season. The full statement lives in Club › Finances.')}
+                    </p>
+                  </div>
+                  <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} onClick={() => irPasso(3)} />
+                </>
+              )}
+              {state.booksSeason === state.seasonNo && (!roteiroOn || fimPasso === 2) && (() => {
                 const led = (state.careerLedger ?? []).filter(e => e.season === state.seasonNo && ['reward', 'gate', 'salary', 'sponsor', 'empresario', 'saf'].includes(e.kind))
                 if (!led.length) return null
                 const total = led.reduce((n, e) => n + e.amount, 0)
+                const caixa = Math.round(state.careerCoins?.[youId] ?? 0)
+                if (roteiroOn) {
+                  // 🔝 os maiores lançamentos primeiro (o que mais pesou no ano)
+                  const top = [...led].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 5)
+                  return (
+                    <>
+                      <div style={{ background: 'linear-gradient(160deg,#1a1a1a,#0C0C0C)', border: `3px solid ${INK}`, borderRadius: 12, padding: 13, color: '#fff', boxShadow: '3px 3px 0 rgba(0,0,0,.3)', marginBottom: 9 }}>
+                        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,.5)', textAlign: 'center', margin: 0 }}>
+                          {tr(`O CAIXA DA TEMPORADA ${state.seasonNo}`, `SEASON ${state.seasonNo} BOOKS`)}
+                        </p>
+                        <p style={{ textAlign: 'center', margin: '6px 0 2px', lineHeight: 1 }}>
+                          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 46, color: total < 0 ? '#E8503A' : GOLD }}>{total > 0 ? '+' : ''}{total}</span>
+                          <span style={{ fontSize: 22 }}> 🪙</span>
+                        </p>
+                        <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(255,255,255,.55)', margin: 0 }}>
+                          {enFim ? <>from {caixa - total} to <b style={{ color: '#fff' }}>{caixa}</b> coins</> : <>de {caixa - total} pra <b style={{ color: '#fff' }}>{caixa}</b> moedas</>}
+                        </p>
+                      </div>
+                      <div style={{ ...box('#fff'), padding: '9px 11px', marginBottom: 2 }}>
+                        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: 1.2, color: 'rgba(12,12,12,.5)', margin: 0 }}>
+                          {tr(`OS ${led.length} LANÇAMENTOS`, `THE ${led.length} ENTRIES`)}
+                        </p>
+                        {top.map((e, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px solid rgba(12,12,12,.1)' }}>
+                            <span style={{ flex: 1, fontSize: 11.5, fontWeight: 700, color: 'rgba(12,12,12,.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.label}</span>
+                            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: e.amount < 0 ? '#C2452F' : GREEN }}>{e.amount > 0 ? '+' : ''}{e.amount}</span>
+                          </div>
+                        ))}
+                        <button onClick={() => { setTab('estadio'); setClubeSub('financas') }}
+                          style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD, fontWeight: 900, fontSize: 10, color: 'rgba(12,12,12,.45)', marginTop: 7, textDecoration: 'underline' }}>
+                          {tr('ver o extrato completo em Clube › Finanças', 'see the full statement in Club › Finances')}
+                        </button>
+                      </div>
+                      <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} onClick={() => irPasso(3)} />
+                    </>
+                  )
+                }
                 return (
                   <div style={{ ...box('#fff'), overflow: 'hidden', marginBottom: 10 }}>
                     <ReciboLinha ic="💰" titulo={tr(`Fechamento da temporada ${state.seasonNo}`, `Season ${state.seasonNo} closing`)}
-                      sub={enFim ? `${led.length} ${led.length > 1 ? 'entries' : 'entry'} · already in the till (${Math.round(state.careerCoins?.[youId] ?? 0)} 🪙)` : `${led.length} lançamento${led.length > 1 ? 's' : ''} · já caiu no caixa (${Math.round(state.careerCoins?.[youId] ?? 0)} 🪙)`}
+                      sub={enFim ? `${led.length} ${led.length > 1 ? 'entries' : 'entry'} · already in the till (${caixa} 🪙)` : `${led.length} lançamento${led.length > 1 ? 's' : ''} · já caiu no caixa (${caixa} 🪙)`}
                       valor={`${total > 0 ? '+' : ''}${total} 🪙`} valorCor={total < 0 ? '#C2452F' : GREEN}
                       onClick={() => { setTab('estadio'); setClubeSub('financas') }} ultimo />
                   </div>
                 )
               })()}
+              {/* 🔨 PASSO 4: A DECISÃO, sozinha na tela. É a ÚNICA hora do roteiro em
+                  que ele precisa pensar — e agora chega aqui já sabendo tudo que
+                  aconteceu no ano (jornal, caixa e Copa do Mundo já passaram). */}
+              {(!roteiroOn || fimPasso === 4) && (<>
               {noVermelho && (
                 <div style={{ background: '#C2452F', color: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 11px', marginBottom: 10, ...OSWALD }}>
                   <p style={{ fontWeight: 900, fontSize: 12.5, margin: 0 }}>{tr('🚫 Transfer ban — clube no vermelho', '🚫 Transfer ban — club in the red')} ({state.careerCoins?.[youId] ?? 0} 🪙)</p>
@@ -8916,6 +9221,7 @@ export function PyramidSeasonScreen() {
               })()}
               <button onClick={openLeilao} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD, marginBottom: 9 }}>🔨 {leilaoLabel}</button>
               <button onClick={openMesmo} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 13, fontWeight: 900, fontSize: 15, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>{tr('▶️ Mesmo time (sem leilão)', '▶️ Same team (no auction)')}</button>
+              </>)}
             </div>
           )
           // ONLINE com amigos: VOTAÇÃO. O host só inicia quando todos votam;
@@ -9333,7 +9639,8 @@ export function PyramidSeasonScreen() {
                 {done && copa && copaScorersShown.length > 0
                   ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? tr('Gols do mata-mata da Copa — top 20.', 'Goals in the Cup knockout — top 20.') : tr(`Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`, `Goals up to ${copaRound === 0 ? 'now' : copa.rounds[copaRound - 1].name} — updates every round.`)} foot={tr(`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube e sobe +10 no piso do jogador.`, `🏅 The Cup top scorer earns the club +${copaBrOk ? 10 : 16} and raises the player\'s floor by +10.`)} />
                   : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money and becomes the player\'s floor: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
-                <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols somados de todas as temporadas da sala — top 20.', 'Goals added up across every season — top 20.')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
+                <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols de liga e de copa somados de todas as temporadas — top 20. Cada CARTA conta a sua (o clube vai embaixo do nome).', 'League and cup goals added up across every season — top 20. Each CARD keeps its own tally (the club shows under the name).')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
+                <GarconsBox assists={allTimeAssists} colors={colors} safTeam={safTeamName} title={tr('🅰️ GARÇONS · TODOS OS TEMPOS', '🅰️ ASSISTS · ALL TIME')} sub={tr('Assistências de liga e de copa somadas de todas as temporadas — top 20.', 'League and cup assists added up across every season — top 20.')} foot={allTimeAssists.length === 0 ? tr('Começa a contar a partir de agora — assistência nunca foi guardada antes.', 'Counting starts now — assists were never recorded before.') : undefined} />
               </>
             )}
           </>
@@ -9496,7 +9803,13 @@ export function PyramidSeasonScreen() {
           <section className="ll29-board" aria-label="Competições da carreira">
             {!done && round > 0 && tab==='jogos' && renderCareerTicker()}
             {done && copa && copa.rounds.length ? <>
-              <nav className="ll29-phases" aria-label="Etapas da Copa">{copa.rounds.map((r,i)=><span key={i} aria-current={copaPlaying && i===copaRound ? 'step' : undefined}>{i<copaRound || copaFinished ? '✓ ' : ''}{r.name}</span>)}</nav>
+              {/* 🧹 OS CHIPS DAS FASES SAEM DA ABA JOGOS NO FIM DE TEMPORADA (19/09).
+                  Diego, com o print na mão: *"aparece essas coisas aqui misturadas
+                  embaixo tb q n estão legais"*. No meio do roteiro eles são ruído —
+                  a Copa já acabou, e o lugar dos resultados é a aba TABELAS (que é
+                  justamente pra onde o link "ver fases e resultados" aponta). Em
+                  Tabelas eles continuam intactos, e durante a Copa também. */}
+              {!(roteiroOn && tab === 'jogos') && <nav className="ll29-phases" aria-label="Etapas da Copa">{copa.rounds.map((r,i)=><span key={i} aria-current={copaPlaying && i===copaRound ? 'step' : undefined}>{i<copaRound || copaFinished ? '✓ ' : ''}{r.name}</span>)}</nav>}
               {tab==='jogos' && copaPlaying && copaFase && <CopaMatchList ties={otherCopaTies} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('OUTROS JOGOS', 'OTHER MATCHES')}`}/>}
               {tab==='tabelas' && <>
                 {copaPlaying && copaFase && <CopaMatchList ties={copaFase.ties} pos={copaPos} colors={colors} safName={safTeamName} title={`${copaFaseName} · ${tr('CONFRONTOS DA FASE', 'TIES OF THE ROUND')}`}/>}

@@ -1,4 +1,4 @@
-## 19/09/2026 (parte 8) — 🐛 As pílulas Comissão/Base jogavam pro fim da tela no celular
+## 19/09/2026 (parte 9) — 🐛 As pílulas Comissão/Base jogavam pro fim da tela no celular
 
 Diego, com três prints do celular: *"quando aperto nessas pílulas de comissão e base
 tá me jogando pro final da tela e nem consigo subir mais"* — um vazio amarelo de mais
@@ -20,6 +20,293 @@ conteúdo muda de tamanho** — primeiro o React desenha, depois (se precisar) u
 `scrollBy` seco. O atalho do cabeçalho (`ID_TITULARES`) continua suave porque lá a
 página não muda de tamanho.
 
+## 19/09/2026 (parte 13) — 🎬 ROTEIRO SEMPRE (pergunta fechada)
+
+Eu tinha deixado uma pergunta aberta no mockup e no commit: o roteiro do fim de
+temporada é obrigatório **sempre**, ou só na **primeira vez** (com um "ver tudo de
+novo" depois)? Meu medo era a 20ª temporada cansar.
+
+**Resposta dele: *"Roteiro sempre."*** Fechado, e virou regra permanente no
+`CLAUDE.md`. **Não propor de novo** botão de pular, atalho pra decisão nem "só na
+estreia". Nada a mudar no código — é exatamente como já subiu.
+
+O que segura o risco do cansaço continua sendo o CUSTO do roteiro: um toque por
+passo, nenhum passo pede pra pensar (só o último), e dá pra voltar. Se um dia ele
+reclamar de ritmo, o lugar de mexer é aí — encurtar os passos —, nunca pular.
+
+## 19/09/2026 (parte 12) — 🎬 ROTEIRO + 📰 JORNAL QUE VIRA PÁGINA + 🥇 BOLA DE OURO (FEITO)
+
+Ele aprovou os mockups (*"pode seguir faça e publique já tb"*). O que entrou:
+
+### 🎬 O roteiro do fim de temporada
+4 passos, um por tela: **📰 jornal → 💰 caixa → 🌍 Copa do Mundo → 🔨 decisão**.
+Barrinha de progresso em cima; dá pra VOLTAR num passo já feito, não dá pra pular
+pra frente. O caixa deixou de ser uma linha fininha e virou quadro com o saldo em
+número grande + os 5 maiores lançamentos. A Copa do Mundo saiu do topo (onde
+competia com a decisão) e virou um passo discreto depois do jornal.
+- ⚠️ **O buraco que eu tive que fechar**: passo a passo é lugar de PRENDER gente.
+  Temporada sem lançamento nenhum não desenha o quadro do caixa → passo 2 ficaria
+  sem botão → carreira travada. Agora tem aviso com saída, e o `npm run fim` reprova
+  se qualquer passo ficar sem porta.
+- 🌐 **O ONLINE não foi tocado** (lá é votação entre os técnicos da sala).
+- 🧹 Os chips das fases saíram da aba JOGOS no fim; em TABELAS continuam.
+
+### 📰 O jornal: as páginas já existiam — faltava AVISAR
+🔑 **Achado**: `SeasonJornal` já tinha páginas (`capa`/`agencia`/`eventos`/`memoria`)
+desde sempre. O convite eram **duas bolinhas de 8px e uma linha de 9px** — por isso
+*"ninguém percebe"*. Agora tem as quatro pernas: **orelha** do papel no canto ·
+**barra** dizendo pra qual página vai **e o que tem lá** · **"PÁG. X DE Y"** ·
+**"NESTA EDIÇÃO"** na capa (e cada linha dela leva direto pra página).
+
+### 🥇 A página da Bola de Ouro
+Arte dele (com a marca apagada), o nome do melhor do mundo, a conta
+`gols + assistências = total`, a frase que explica o prêmio, e os **top 5
+artilheiros e top 5 garçons** do ano lado a lado — tudo por CARTA, com o clube
+embaixo do nome. A página só existe quando houve Bola de Ouro na temporada.
+
+### ⏳ O que ficou de fora (e por quê)
+- **O compartilhar ainda manda a imagem inteira.** A pergunta "esta página ou o
+  jornal todo?" é obra à parte (o canvas é outro código); não entrou agora.
+- **A página 4 do mapa ("MERCADO")** não foi criada: o que ela teria já mora no
+  Caderno do Empresário, que é uma página do jornal desde antes.
+- **O flip automático da capa depois de 5s** continua como era. Ele existia
+  justamente porque ninguém achava a página 2 — agora que a capa ANUNCIA as
+  páginas, talvez ele só atrapalhe quem está lendo a manchete. Candidato a sair;
+  não mexi porque ninguém pediu.
+
+## 19/09/2026 (parte 11) — 🎬 O FIM DE TEMPORADA VIRA UM ROTEIRO
+
+Ideia dele, com o print da tela na mão: *"e se fizéssemos de uma forma q tivesse q
+ter o passo a passo obrigado e c isso teria q ler.. pq hj aparece essas coisas aqui
+misturadas embaixo tb q n estão legais… A copa do mundo quero algo sutil msm mas
+após o jornal, seria algo novo, tudo novo pra essa tela"*.
+
+### 📋 O diagnóstico (conferido no print dele)
+Seis coisas empilhadas na MESMA rolagem: aviso das Tabelas · cadeado da Copa do
+Mundo · fechamento do caixa · a decisão da próxima temporada · os chips das fases ·
+sair e salvar. **O que mais importa (a decisão) divide espaço com o que menos
+importa agora** — um cadeado que só abre daqui a 74 temporadas. E o fechamento do
+caixa, que é a melhor parte de ver, virou uma linha fininha que ninguém abre.
+👉 Ninguém lê porque **está tudo com o mesmo peso**, não por falta de vontade.
+
+### 🎯 A proposta (`npm run roteiro`)
+Um passo por tela, na ordem que a cabeça pede, com barrinha de progresso em cima:
+| passo | o quê |
+|---|---|
+| 1 📰 **JORNAL** | a notícia. A capa já anuncia as 4 páginas; a orelha chama a próxima; a Bola de Ouro mora aqui |
+| 2 💰 **CAIXA** | o fechamento ganha a tela e um NÚMERO GRANDE (+50 🪙), com os lançamentos embaixo |
+| 3 🌍 **MUNDO** | a Copa do Mundo **discreta**, como ele pediu: aparece uma vez, mostra "faltam 74", sai de cena |
+| 4 🔨 **PRÓXIMA** | a decisão SOZINHA na tela — a única hora em que ele precisa pensar |
+
+### ⚡ O risco, e o que fiz pra segurar
+A regra de ouro dele é *"nada pode atrasar o ritmo do jogo"*, e passo a passo
+obrigatório pode virar pedágio. Por isso: cada passo é **um toque**, nenhum pede pra
+pensar (só o último), o jornal tem **"pular pro fim"**, e os 4 toques levam ~3s.
+- ⏳ **PERGUNTA ABERTA PRA ELE**: obrigatório **sempre**, ou só na **primeira vez**
+  (e depois um "ver tudo de novo")? Minha dúvida é a 20ª temporada cansar.
+
+⏳ Esperando o OK. Nada no código.
+
+## 19/09/2026 (parte 10) — 📰 O MARTELO VIRA JORNAL DE VÁRIAS PÁGINAS
+
+Ele viu o mockup da página 2 e pegou o buraco de cara: *"agora q eu vi q já dava p
+passar a página do jornal... Porém ng percebe... Tem q ter alguma dobra sei lá..
+Algo q de vontade de virar a página… Outras páginas na verdade q são mais de duas"*.
+
+### 🔑 O problema não é CABER, é AVISAR
+O jornal já cresce pra baixo. O que falta é o papel **dizer** que tem mais. Num
+jornal de verdade isso se resolve com **três coisas**, e o mockup
+(`npm run jornalpags`) propõe as três:
+
+1. **A ORELHA** — o canto do papel levantado no fim da página, com a de baixo
+   espiando. É o sinal mais antigo que existe de "tem mais", e dá vontade de puxar.
+   Tocar nela vira a página.
+2. **A BARRA QUE DIZ O QUE TEM LÁ** — "próxima página" não convence ninguém; o que
+   convence é *"🥇 Os prêmios do ano — quem levou a Bola de Ouro, e não foi o
+   artilheiro"*. Fica grudada no fim de cada página.
+3. **A CHAMADA DE CAPA ("nesta edição")** — logo abaixo da manchete. É ela que faz a
+   pessoa saber que existem 4 páginas **antes mesmo de rolar**.
+4. (+ o **número da página** sempre à vista, com bolinhas: some a dúvida de
+   "acabou ou não?")
+
+### 🗺️ Mapa proposto (4 páginas)
+| pág | assunto |
+|---|---|
+| 1 | **CAPA** — a manchete e os teus números (fica LEVE de novo; hoje ela carrega tudo) |
+| 2 | **PRÊMIOS** — Bola de Ouro · artilharia · garçons |
+| 3 | **DONOS** — campeões de A, B, C, D, Copa, Supercopa e Mundial |
+| 4 | **MERCADO** — a agência, quem valorizou, quem despencou |
+
+### 🤔 E o compartilhar (pergunta que o multipágina cria)
+Numa IMAGEM ninguém vira página. Proposta: o botão passa a perguntar **"esta
+página"** (curta, boa pro grupo) ou **"o jornal inteiro"** (as 4 emendadas, com as
+dobras desenhadas). O palpite é que a maioria mande só a página.
+
+⏳ Esperando o OK dele. Nada no código — os três mockups do dia (página 2, páginas,
+e o da Bola de Ouro) são só desenho.
+
+## 19/09/2026 (parte 9) — 📰 A SEGUNDA PÁGINA DE O MARTELO
+
+Ideia dele: *"acho q vc deveria prolongar o jornal p baixo… como se fosse uma
+segunda página, mas embaixo, com mesmo estilo e arte, pra poder caber mais coisas"*.
+
+### ✅ E dá, sem obra grande
+O jornal **já cresce pra baixo**: o canvas é desenhado num buffer alto e depois
+**cortado na altura que o conteúdo usou** (`const H = Math.min(MAXH, Math.round(y))`
+em `jornal.tsx`). O que existe é um **teto**: `MAXH = 2520` no jornal de temporada
+(2600 no de elenco). "Segunda página" = **subir o teto e desenhar mais blocos**.
+A página 1 não precisa ser tocada.
+
+### O que o mockup propõe pra página 2 (`npm run jornal2`)
+1. **A dobra** — filete duplo + "CONTINUA NA PÁGINA 2", e o masthead menor repetido
+   ("PÁGINA 2 · OS PRÊMIOS DO ANO"). É o que faz parecer jornal, e não rolagem.
+2. **🥇 A BOLA DE OURO** — a arte dele em cima, o nome do melhor do mundo por cima
+   do degradê, e a conta `24 GOLS + 13 ASSIST. = 37` embaixo, com a linha
+   *"Não foi o artilheiro do ano, nem quem mais deu passes. Foi o único que fez as
+   duas coisas."*
+3. **🏆 Artilharia do ano** e **🅰️ Os garçons do ano**, lado a lado, top 5 de cada,
+   com o clube da carta embaixo do nome (a identidade que virou regra hoje).
+4. **🥇 A galeria das bolas de ouro** — os donos, com as temporadas como etiquetas.
+   É a mesma solução da dúvida das mil temporadas: lista DONOS, não anos.
+
+📏 A página 2 mede **~1900px** de altura em 1080 de largura, então o jornal inteiro
+passaria de ~2500 pra ~4400px. **O teto (`MAXH`) precisa subir junto** — se ficar em
+2520, a página 2 é desenhada e cortada fora, e ninguém entende por quê.
+
+⏳ Esperando o OK visual dele. Nada no código ainda.
+
+## 19/09/2026 (parte 8) — 🥇 BOLA DE OURO (melhor do mundo do ano)
+
+### A regra
+Ideia dele: *"o jogador que teve mais gols COM assistência junto… será considerado
+o melhor do mundo no ano… NÃO é o artilheiro e também NÃO é o garçom, é o cara que
+conseguiu unir os dois"*. Depois batizou: **Bola de Ouro**, por temporada, *"não
+importa se o cara ganhar vários anos seguidos"*, e *"começa a contar a partir de
+agora"*.
+
+**Motor FEITO e testado** (`npm run melhor`): gols + assistências somados · liga +
+todas as copas · o mundo inteiro (5 divisões, humano, rival e bot) · **por CARTA** ·
+desempate fixo (total → mais gols → divisão mais alta → alfabético), **sem sorteio**,
+porque no online cada aparelho calcula no próprio celular e dois amigos não podem ver
+campeões diferentes. Guardado em `careerMelhorMundo`, por temporada, ~100 bytes/ano.
+**Não mexe em dinheiro** — é honraria (ele disse "não" a prêmio de garçom, então não
+inventei caixa nova).
+
+### 🧩 A dúvida dele: "e se o cara tem mil temporadas?"
+*"Não sei como seria o mockup disso… não sei como apareceria uma por uma"*.
+👉 **Resposta: a lista não mostra TEMPORADAS, mostra DONOS.** Quem ganhou 12 bolas
+ocupa **uma** linha, com as temporadas dele como etiquetas (`T3 T5 T6 T9 +8`). Mil
+temporadas cabem numa tabela de 20 linhas, porque os ganhadores são muito menos que
+os anos. Mockup mandado.
+
+### ⚠️ A ARTE VEIO COM MARCA DE TERCEIRO
+A imagem que ele mandou tinha **"FIFA BALLON D'OR"** escrito na bola. Não pode entrar
+num jogo no ar. **Apaguei só o escrito**: o painel do pentágono foi RECONSTRUÍDO —
+superfície quadrática ajustada nos pixels limpos do próprio painel + grão do mesmo
+desvio, com a borda desvanecida dentro da margem que já era limpa. Sem letra, sem
+fantasma, sem emenda. O resto da arte é exatamente a dele.
+📦 `src/escalacao/img/jornal-bola-ouro-v1.webp` · 1080×608 · **57 KB** (a chuteira do
+artilheiro tem 56 KB).
+⚠️ Lição pra qualquer arte que chegar pronta: **procurar marca escrita antes de usar**.
+
+### ⏳ O QUE FALTA (esperando o OK visual dele)
+1. O bloco no **jornal** (Os donos da temporada, no topo).
+2. A seção **🥇 BOLA DE OURO · TODOS OS TEMPOS** no Rank, por donos.
+Nada disso está no código ainda — só a arte e o motor.
+
+## 19/09/2026 (parte 7) — 🅰️ Assistência anda junto com gol · 🕳️ o "—" na ficha
+
+### 📏 REGRA PERMANENTE NOVA (19/09): gol e assistência andam JUNTOS
+Palavras dele: *"todos dados q tá fazendo de gols sempre serve p assistência tb
+hein"*. Vale daqui pra frente, sem precisar pedir caso a caso. Já está gravado no
+`CLAUDE.md`. O `npm run artilharia` tem uma seção só pra isso — inclusive
+conferindo que os dois são ZERADOS nos mesmos lugares, pra nenhum reinício de
+carreira esquecer um deles.
+
+**Feito hoje**: `careerAssistsAll` (não existia — assistência nunca teve histórico
+em canto nenhum), pela mesma chave (a carta), nas mesmas competições (liga +
+Copa do Brasil + Copa Legends + Supercopa), com o mesmo teto de 2500, e a caixa
+🅰️ GARÇONS · TODOS OS TEMPOS no Rank, do lado da artilharia.
+⚠️ Ela **nasce vazia pra todo mundo** — não há passado pra trazer, e inventar não
+é opção.
+
+### 🕳️ A ficha: o "—" (o que ele estranhou)
+Dúvida dele: *"pra quem chega hoje e vê gols iguais na temporada e no total…
+porém jogos ele vê poucos da temporada e 300 total. Tá estranho. Não sei o que
+fazer"*.
+
+🔑 **A chave que faltava, e que eu só achei agora**: **o 337 jogos TAMBÉM é
+parcial**. Jogos só começaram a ser gravados em **13/09** (vieram com o gás); gol
+e assistência, em **19/09**. Não são "um certo e um errado" — são **dois números
+com datas de nascimento diferentes**, e é isso que faz a coluna parecer torta.
+
+**O que ficou** (a opção B do mockup, que eu tinha recomendado): enquanto a
+carreira não tem passado de gol, a coluna dourada mostra **`—`** em GOLS e ASS,
+com a linha `⚽ 🅰️ COMEÇAM A CONTAR NA PRÓXIMA TEMPORADA` embaixo. JOGOS continua
+à mostra. Assim ninguém compara "337 jogos × 10 gols", e o jogo **assume que não
+sabe** em vez de mostrar um número que parece defeito.
+
+🔁 **Some sozinho**: a marca é "tem carry mas nenhuma carta com `gl` gravado", o
+que só acontece em carreira anterior a hoje. Depois da 1ª virada toda carta tem
+`gl` (mesmo que 0) e o `—` vira número, sem ninguém mexer. Carreira nova nunca vê
+o aviso.
+
+⏳ **Falta o OK visual dele** — está no branch, não publicado. Trocar pro aviso da
+opção A (mostrar o número com uma notinha) é uma linha.
+
+## 19/09/2026 (parte 6) — 🏆 A artilharia de todos os tempos virou POR CARTA
+
+Veio do 337 jogos × 10 gols do Álvarez. Ele perguntou *"não seria melhor você
+conferir os gols que o cara já fez, pelo usuário? Não dá?"* — fui procurar no
+save e **achei um histórico que ninguém estava usando direito**.
+
+### 🔎 O que eu achei
+`careerScorersAll` (o Rank › Artilheiros) soma os gols de todo mundo desde a 1ª
+temporada. O save da carreira T25 dele tem **1000 jogadores guardados, com 24
+temporadas somadas**. Só que com **três defeitos**:
+
+1. **A chave era o NOME.** O reducer até previa `nome|cardId`, mas quem despacha
+   nunca mandou `cardId` — então caía no nome sempre, e dois jogadores diferentes
+   com o mesmo nome somavam num registro só. Medido no baralho inteiro:
+   **1466 cartas · 1403 nomes · 62 nomes repetidos em 125 cartas**.
+2. **Só contava LIGA.** Copa do Brasil, Copa Legends e Supercopa ficavam de fora.
+3. **Teto de 1000**, e o save dele estava EXATAMENTE em 1000 — lotado. Quem caía
+   abaixo do 1000º perdia o histórico.
+
+### ✅ O que ficou (decisões dele, 19/09)
+- **Chave = a CARTA** (`nome|clube|ano`), a mesma identidade do `condicaoCarry`.
+  **Não é o `cardId`**: o leilão dá id novo pra mesma pessoa todo ano.
+- **O passado embolado foi DIVIDIDO**, não zerado — palavras dele: *"pros 62
+  divida entre eles"*. Partes iguais, sobra pras primeiras em ordem fixa de
+  clube+ano. **O total é preservado**, e é uma repartição DECLARADA, não um
+  palpite sobre quem fez o gol.
+- **Liga + TODAS as copas** contam. A Supercopa precisou de trabalho à parte: ela
+  é calculada FORA da Copa do Brasil (`computeSupercopa`) e entra na chave só
+  como uma fase a mais, então os gols dela não estavam em lugar nenhum.
+- **Teto 1000 → 2500**: o baralho tem 1466 cartas, então ninguém mais é
+  descartado.
+- **Na tela**: o clube da carta aparece miúdo embaixo do nome. Escolha dele
+  (*"sobre os gols quero que seja pelo clube da carta apenas"*), depois de eu
+  medir que a letra (M)/(E) que ele tinha sugerido **não fecha**: em 6 dos 62 os
+  dois xarás são do MESMO baralho (Marcelo Lomba Internacional × Bahia, Felipe,
+  Diego, Reinaldo, Paulinho, Andreas Pereira) e levariam a mesma letra.
+- ⚠️ **ASSISTÊNCIA continua sem histórico nenhum** — não existe `careerAssistsAll`
+  em lugar nenhum do código. Se ele pedir, é obra nova.
+
+### 🛡️ Travas: `npm run artilharia` (novo)
+Roda o código DE VERDADE no navegador (não uma cópia da regra): a chave é a
+carta · a divisão preserva o total · é **determinística** (dois aparelhos migram
+igual — senão no online viraria briga de números) · é **idempotente** (abrir o
+save 10 vezes não pica o histórico em migalhas) · cria da base fica pelo nome ·
+e liga + Copa Legends + Copa do Brasil + Supercopa estão ligadas.
+
+### 📌 O QUE ISSO **NÃO** RESOLVE (e ele já sabe)
+Esse histórico é **gol em QUALQUER clube**, não "no seu clube". Então **não serve
+pra ficha do jogador** — ele foi claro: *"quero apenas esse modal preto… apenas
+dados do jogador do meu clube"*. A coluna dourada continua sendo só do clube dele,
+e continua começando do zero nesta temporada.
+- ⏳ **PENDENTE, esperando ele**: na ficha, **A** (notinha "contando desde esta
+  temporada") ou **B** (tracinho "—" no lugar do número). Mockup já mandado.
 ## 19/09/2026 (parte 7) — 🧾 A ficha "NO SEU CLUBE": jogos passam a contar junto com os gols
 
 Diego, olhando a ficha preta do Álvarez: *"300 partidas com 10 gols apenas, tá

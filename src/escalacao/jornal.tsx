@@ -23,6 +23,7 @@ import { fotoJornal } from './jornal-manto' // 🎽 a foto do campeão com o man
 import ligaArtSrc from './img/jornal-liga-v22.webp'
 import copaArtSrc from './img/jornal-copa-v22.webp'
 import scorerArtSrc from './img/jornal-artilheiro-v22.webp'
+import bolaOuroArtSrc from './img/jornal-bola-ouro-v1.webp' // 🥇 a arte que o Diego mandou (marca apagada — ver o commit dela)
 
 // 🛡️→🖼️ rasteriza o escudo (o MESMO <Escudo> da tela) pra desenhar no canvas do
 // compartilhar. Antes a imagem do jornal mostrava só a 1ª LETRA do time — então a
@@ -454,7 +455,7 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, brasil, copaRun, superRun, superChamp, privateVisual = false }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, privateVisual = false }: {
   privateVisual?: boolean
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
@@ -469,6 +470,13 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   copaRun?: CopaRun // 🏆 como VOCÊ foi na Copa (fase que caiu / vice / campeão)
   superRun?: SuperRun // 👑 só existe se VOCÊ jogou a final da Supercopa
   superChamp?: { name: string; you: boolean; vs: string } | null // 👑 quem levou a Supercopa (pra linha dos donos da temporada)
+  // 🥇 A PÁGINA DOS PRÊMIOS (19/09). Ideia do Diego: *"o jogador que teve mais gols
+  // COM assistência junto… será o melhor do mundo no ano… não é o artilheiro e
+  // também não é o garçom, é o cara que conseguiu unir os dois"*. Depois batizou de
+  // **Bola de Ouro** e mandou prolongar o jornal pra caber.
+  melhor?: { name: string; club?: string; year?: number; teamName: string; div: Div; goals: number; assists: number; total: number; you: boolean } | null
+  artilheiros?: { name: string; club?: string; year?: number; teamName: string; n: number; you: boolean }[]
+  garcons?: { name: string; club?: string; year?: number; teamName: string; n: number; you: boolean }[]
 }) {
   // abre EXPANDIDO por padrão (a manchete é a estrela do fim de temporada);
   // o "Fechar" recolhe pro botãozinho se a pessoa quiser limpar a tela.
@@ -484,7 +492,18 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   // 📼 página "O jornal lembra" — só existe quando a história tem o que contar
   // (streak de títulos, jejum, marco de temporadas na divisão…).
   const mem = (memoria && memoria.length > 0) ? memoria : null
-  const pags: ('capa' | 'agencia' | 'eventos' | 'memoria')[] = ['capa', ...(news ? ['agencia' as const] : []), ...(evs ? ['eventos' as const] : []), ...(mem ? ['memoria' as const] : [])]
+  // 🥇 a página dos PRÊMIOS só existe quando houve Bola de Ouro na temporada
+  // (temporada sem gol nenhum no mundo não premia ninguém — ver `melhorDoMundo`).
+  const prem = melhor ?? null
+  const pags: ('capa' | 'premios' | 'agencia' | 'eventos' | 'memoria')[] = ['capa', ...(prem ? ['premios' as const] : []), ...(news ? ['agencia' as const] : []), ...(evs ? ['eventos' as const] : []), ...(mem ? ['memoria' as const] : [])]
+  // 📖 o nome de cada página, pra a chamada de capa e pra barra de virar
+  const NOME_PAG: Record<typeof pags[number], { t: string; s: string }> = {
+    capa: { t: tr('A capa', 'The cover'), s: tr('A manchete e os seus números.', 'The headline and your numbers.') },
+    premios: { t: tr('🥇 A Bola de Ouro', '🥇 The Golden Ball'), s: tr('Ele não foi o artilheiro. Nem o garçom.', 'He wasn’t the top scorer. Nor the assist king.') },
+    agencia: { t: tr('🕴️ O Caderno do Empresário', '🕴️ The Agent’s Pages'), s: tr('Os seus agenciados nas manchetes.', 'Your clients in the headlines.') },
+    eventos: { t: tr('📻 Aconteceu na temporada', '📻 What happened this season'), s: tr('Os causos que o vestiário viveu.', 'The stories the dressing room lived.') },
+    memoria: { t: tr('📼 O jornal lembra', '📼 The paper remembers'), s: tr('O que a sua história já escreveu.', 'What your story has written so far.') },
+  }
   const [page, setPage] = useState(0)
   const [barGo, setBarGo] = useState(false)
   const flippedRef = useRef(false)
@@ -803,14 +822,59 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       {privateVisual ? <header className="jv-masthead"><h1>O MARTELO</h1><p>TEMPORADA {seasonNo} · {J_DIV_NAME[me.div].toUpperCase()}</p><div><span>O DIÁRIO DO LEILÃO LEGENDS</span><span>{pk === 'agencia' ? 'NEGÓCIOS' : pk === 'eventos' ? 'BASTIDORES' : pk === 'memoria' ? 'MEMÓRIA' : 'FIM DE TEMPORADA'}</span></div></header> : <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `4px double ${INK}`, paddingBottom: 6 }}>
         <div style={{ ...SERIF, fontWeight: 900, fontSize: 26, letterSpacing: 1 }}>O <span style={{ color: '#B23A2A' }}>MARTELO</span></div>
-        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{pk === 'agencia' ? 'CADERNO 2 · NEGÓCIOS' : pk === 'eventos' ? 'CADERNO · BASTIDORES' : pk === 'memoria' ? 'CADERNO · MEMÓRIA' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
+        <div style={{ textAlign: 'right', fontSize: 8.5, fontWeight: 800, lineHeight: 1.35, color: '#3a3527' }}>EDIÇÃO Nº {seasonNo}<br />{pk === 'premios' ? tr('CADERNO · OS PRÊMIOS', 'SECTION · THE AWARDS') : pk === 'agencia' ? 'CADERNO 2 · NEGÓCIOS' : pk === 'eventos' ? 'CADERNO · BASTIDORES' : pk === 'memoria' ? 'CADERNO · MEMÓRIA' : `TEMPORADA ${seasonNo} · ${J_DIV_NAME[me.div].toUpperCase()}`}<br />PREÇO: 1 MOEDA</div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: 'uppercase', borderBottom: `1.5px solid ${INK}`, padding: '3px 1px', color: '#3a3527' }}>
-        {pk === 'agencia' ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : pk === 'eventos' ? <><span>📻 ACONTECEU NA TEMPORADA</span><span>OS BASTIDORES</span></> : pk === 'memoria' ? <><span>📼 O JORNAL LEMBRA</span><span>A HISTÓRIA DO CLUBE</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
+        {pk === 'premios' ? <><span>🥇 OS PRÊMIOS DO ANO</span><span>{tr('O MELHOR DO MUNDO', 'THE WORLD’S BEST')}</span></> : pk === 'agencia' ? <><span>🕴️ CADERNO DO EMPRESÁRIO</span><span>SEUS AGENCIADOS</span></> : pk === 'eventos' ? <><span>📻 ACONTECEU NA TEMPORADA</span><span>OS BASTIDORES</span></> : pk === 'memoria' ? <><span>📼 O JORNAL LEMBRA</span><span>A HISTÓRIA DO CLUBE</span></> : <><span>⚽ O DIÁRIO DO LEILÃO LEGENDS</span><span>FIM DE TEMPORADA</span></>}
       </div>
 
       </>}
-      {pk === 'memoria' && mem ? (
+      {pk === 'premios' && prem ? (
+        <>
+          {/* ── 🥇 A BOLA DE OURO: o prêmio de quem UNIU gol e assistência ──
+              Diego (19/09): *"não é o artilheiro e também não é o garçom, é o cara
+              que conseguiu unir os dois juntos"*. A arte é a que ele mandou — com a
+              marca de terceiro apagada, ver o commit da imagem. */}
+          <div style={{ position: 'relative', border: `3px solid ${INK}`, marginTop: 9, overflow: 'hidden' }}>
+            <img src={bolaOuroArtSrc} alt="" style={{ width: '100%', display: 'block' }} />
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '34px 11px 8px', background: 'linear-gradient(to top,rgba(0,0,0,.93) 26%,rgba(0,0,0,0))' }}>
+              <div style={{ ...COND, fontWeight: 900, fontSize: 9, letterSpacing: 1.6, color: GOLD }}>🥇 {tr('BOLA DE OURO', 'GOLDEN BALL')} · {tr('TEMPORADA', 'SEASON')} {seasonNo}</div>
+              <div style={{ ...COND, fontWeight: 900, fontSize: 21, lineHeight: 1, color: '#fff' }}>{prem.you ? '👤 ' : ''}{prem.name}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.66)' }}>{prem.club ? `${prem.club} · ${prem.year} — ` : ''}{prem.teamName}</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 8, margin: '10px 0 2px' }}>
+            <span><b style={{ ...COND, fontWeight: 900, fontSize: 21, color: INK }}>{prem.goals}</b><span style={{ fontSize: 9, fontWeight: 800, color: '#615039' }}> {tr('GOLS', 'GOALS')}</span></span>
+            <span style={{ fontSize: 15, color: '#615039', fontWeight: 900 }}>+</span>
+            <span><b style={{ ...COND, fontWeight: 900, fontSize: 21, color: INK }}>{prem.assists}</b><span style={{ fontSize: 9, fontWeight: 800, color: '#615039' }}> {tr('ASSIST.', 'ASSISTS')}</span></span>
+            <span style={{ fontSize: 15, color: '#615039', fontWeight: 900 }}>=</span>
+            <span style={{ background: GOLD, border: `2.5px solid ${INK}`, borderRadius: 8, padding: '0 10px', boxShadow: `2px 2px 0 ${INK}` }}>
+              <b style={{ ...COND, fontWeight: 900, fontSize: 21, color: INK }}>{prem.total}</b>
+            </span>
+          </div>
+          <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '8px 0 10px', lineHeight: 1.4 }}>
+            {tr('Não foi o artilheiro do ano, nem quem mais deu passes. Foi o único que fez as duas coisas.', 'He wasn’t the season’s top scorer, nor the one with most assists. He was the only one who did both.')}
+          </p>
+          {/* 🏆🅰️ as duas listas do ano, lado a lado */}
+          <div style={{ display: 'flex', gap: 9 }}>
+            {([[tr('🏆 ARTILHARIA', '🏆 TOP SCORERS'), artilheiros], [tr('🅰️ OS GARÇONS', '🅰️ ASSISTS'), garcons]] as const).map(([titulo, lista], k) => (
+              <div key={k} style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, background: '#fff' }}>
+                <div style={{ background: INK, color: GOLD, fontSize: 8.5, fontWeight: 900, letterSpacing: 1.2, padding: '3px 7px' }}>{titulo}</div>
+                {(lista ?? []).slice(0, 5).map((x, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 7px', borderTop: i > 0 ? '1px solid rgba(0,0,0,.1)' : 'none', background: x.you ? '#fdf6dd' : undefined }}>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 10.5, fontWeight: 900, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.you ? '👤 ' : ''}{x.name}</span>
+                      {x.club && <span style={{ display: 'block', fontSize: 8, fontWeight: 700, color: '#615039', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.club} · {x.year}</span>}
+                    </span>
+                    <span style={{ ...COND, fontWeight: 900, fontSize: 14, color: INK }}>{x.n}</span>
+                  </div>
+                ))}
+                {!(lista ?? []).length && <div style={{ padding: '6px 7px', fontSize: 9.5, fontWeight: 700, color: '#615039' }}>{tr('Sem números nesta temporada.', 'No numbers this season.')}</div>}
+              </div>
+            ))}
+          </div>
+        </>
+      ) : pk === 'memoria' && mem ? (
         <>
           {/* ── 📼 "O JORNAL LEMBRA": manchetes de HISTÓRIA, puxadas da crônica
               da carreira (careerCronica) — streaks, jejuns e marcos. A primeira
@@ -875,6 +939,27 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       {/* manchete (única pra cada uma das 80 posições) */}
       <h2 className={privateVisual ? 'jv-headline' : undefined} style={privateVisual ? undefined : { ...SERIF, fontWeight: 900, fontSize: 25, lineHeight: 1.02, margin: '9px 0 4px', letterSpacing: -0.5, color: INK }}>{hl.h}</h2>
       <p style={{ fontSize: 11.5, fontWeight: 700, fontStyle: 'italic', color: '#3a3527', margin: '0 0 9px', lineHeight: 1.3 }}>{hl.s}{meuEstadioNome() ? <> Direto do <b>🏟️ {meuEstadioNome()}</b>.</> : null}</p>
+      {/* 📢 A CHAMADA DE CAPA (19/09) — a quarta perna do "dá vontade de virar".
+          Jornal de verdade anuncia o miolo na capa, e é ela que faz a pessoa saber
+          que existem outras páginas ANTES de rolar a tela. Sem ela, quem não
+          chegasse até o rodapé nunca ficava sabendo. Só na capa, e só quando há
+          mais de uma página. */}
+      {pags.length > 1 && (
+        <div style={{ border: `2.5px solid ${INK}`, background: 'rgba(255,255,255,.35)', padding: '7px 9px', margin: '0 0 10px' }}>
+          <div style={{ ...COND, fontWeight: 900, fontSize: 8.5, letterSpacing: 2, color: '#615039', textAlign: 'center' }}>{tr('NESTA EDIÇÃO', 'IN THIS EDITION')}</div>
+          <div style={{ height: 1.5, background: '#413825', margin: '5px 0 6px' }} />
+          {pags.slice(1).map((pp, k) => (
+            <button key={pp} onClick={() => virar(k + 1)}
+              style={{ display: 'flex', gap: 7, alignItems: 'baseline', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '0 0 4px', cursor: 'pointer' }}>
+              <span style={{ flex: 'none', ...COND, fontWeight: 900, fontSize: 11, color: GOLD, background: INK, borderRadius: 3, padding: '0 5px' }}>{k + 2}</span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', ...COND, fontWeight: 900, fontSize: 12.5, color: INK, lineHeight: 1.1 }}>{NOME_PAG[pp].t}</span>
+                <span style={{ display: 'block', fontSize: 10, fontWeight: 600, fontStyle: 'italic', color: '#615039' }}>{NOME_PAG[pp].s}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {privateVisual && <CareerNewspaperStories champion={tables[me.div]?.[0]?.name} division={J_DIV_NAME[me.div]} cup={copa?.champion?.name} scorer={divTop[me.div]}/>}
       <div className={privateVisual ? 'll34-career-numbers' : undefined} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
@@ -995,27 +1080,60 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       </>
       )}
 
-      {/* 📄 rodapé de páginas: barrinha dos 5s (na capa) + bolinhas pra ir/voltar.
-          Só aparece quando a temporada teve notícia de agenciado. */}
-      {pags.length > 1 && (
-        <>
-          {pk === 'capa' && news && !flippedRef.current && (
-            <div style={{ height: 5, border: `1.5px solid ${INK}`, borderRadius: 99, overflow: 'hidden', background: '#fff', marginTop: 9 }}>
-              <div style={{ height: '100%', background: GOLD, width: barGo ? '100%' : '0%', transition: 'width 5s linear' }} />
+      {/* 📄 VIRAR A PÁGINA — e que DÊ VONTADE de virar (Diego 19/09) ───────────
+          Palavras dele, olhando o jornal: *"agora q eu vi q já dava p passar a
+          página do jornal... Porém ng percebe... Tem q ter alguma dobra sei lá..
+          Algo q de vontade de virar a página"*.
+          👉 Ele estava certo: as páginas EXISTIAM desde sempre, mas o convite eram
+          duas bolinhas de 8px e uma linha de 9px. Num jornal de papel isso se
+          resolve com três coisas, e agora estão aqui as três:
+            1. a ORELHA do canto (o papel levantado) — o sinal mais antigo de "tem mais";
+            2. a BARRA DIZENDO O QUE TEM LÁ — "próxima página" não convence ninguém,
+               o que convence é saber que a Bola de Ouro está do outro lado;
+            3. o NÚMERO DA PÁGINA ("PÁG. 1 DE 4") — some a dúvida de "acabou ou não?".
+          (A chamada de capa, a quarta perna, fica lá em cima, na capa.) */}
+      {pags.length > 1 && (() => {
+        const i = pags.indexOf(pk)
+        const prox = (i + 1) % pags.length
+        const info = NOME_PAG[pags[prox]]
+        const voltandoPraCapa = pags[prox] === 'capa'
+        return (
+          <>
+            {pk === 'capa' && news && !flippedRef.current && (
+              <div style={{ height: 5, border: `1.5px solid ${INK}`, borderRadius: 99, overflow: 'hidden', background: '#fff', marginTop: 9 }}>
+                <div style={{ height: '100%', background: GOLD, width: barGo ? '100%' : '0%', transition: 'width 5s linear' }} />
+              </div>
+            )}
+            <button onClick={() => virar(prox)}
+              style={{ position: 'relative', width: '100%', textAlign: 'left', cursor: 'pointer', marginTop: 9, padding: '9px 11px',
+                       background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 10, boxShadow: `3px 3px 0 rgba(12,12,12,.25)`, overflow: 'hidden' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ flex: 'none', width: 30, height: 30, borderRadius: 8, border: `2.5px solid ${GOLD}`, display: 'flex', alignItems: 'center', justifyContent: 'center', ...COND, fontWeight: 900, fontSize: 15, color: GOLD }}>
+                  {voltandoPraCapa ? '↺' : prox + 1}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', ...COND, fontWeight: 900, fontSize: 8.5, letterSpacing: 1.6, color: 'rgba(255,255,255,.55)' }}>
+                    {voltandoPraCapa ? tr('VOLTAR PARA A CAPA', 'BACK TO THE COVER') : tr(`VIRAR PARA A PÁGINA ${prox + 1}`, `TURN TO PAGE ${prox + 1}`)}
+                  </span>
+                  <span style={{ display: 'block', ...COND, fontWeight: 900, fontSize: 14.5, lineHeight: 1.1 }}>{info.t}</span>
+                  <span style={{ display: 'block', fontSize: 9.5, fontWeight: 600, color: 'rgba(255,255,255,.6)', lineHeight: 1.3 }}>{info.s}</span>
+                </span>
+                <span style={{ flex: 'none', fontSize: 20, color: GOLD }}>›</span>
+              </span>
+              {/* 📄 a ORELHA: o canto de papel levantado, no canto de baixo do botão */}
+              <span style={{ position: 'absolute', right: 0, bottom: 0, width: 34, height: 34, pointerEvents: 'none',
+                             background: 'linear-gradient(225deg,#d9c39a 0%,#efe3c6 45%,#fbf5e6 100%)',
+                             clipPath: 'polygon(100% 0,100% 100%,0 100%)' }} />
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 7 }}>
+              {pags.map(pp => <span key={pp} style={{ width: pp === pk ? 16 : 7, height: 7, borderRadius: 4, background: pp === pk ? INK : 'rgba(12,12,12,.28)' }} />)}
+              <span style={{ ...COND, fontWeight: 900, fontSize: 9, color: '#3a3527', marginLeft: 3 }}>
+                {tr(`PÁG. ${i + 1} DE ${pags.length}`, `PAGE ${i + 1} OF ${pags.length}`)}
+              </span>
             </div>
-          )}
-          <button onClick={() => virar((pags.indexOf(pk) + 1) % pags.length)} style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8, padding: 0 }}>
-            {pags.map(p => <span key={p} style={{ width: 8, height: 8, borderRadius: 999, border: `2px solid ${INK}`, background: p === pk ? INK : 'transparent' }} />)}
-            <span style={{ fontSize: 9, fontWeight: 800, color: '#3a3527' }}>{(() => {
-              const next = pags[(pags.indexOf(pk) + 1) % pags.length]
-              if (next === 'capa') return 'toque pra voltar à capa'
-              if (next === 'agencia') return pk === 'capa' && news && !flippedRef.current ? 'vira sozinho em 5s · toque pra virar já' : 'toque pra ver o Caderno do Empresário 🕴️'
-              if (next === 'memoria') return 'toque pra ver O Jornal Lembra 📼'
-              return 'toque pra ver o Aconteceu na temporada 📻'
-            })()}</span>
-          </button>
-        </>
-      )}
+          </>
+        )
+      })()}
 
       {/* rodapé: compartilhar + fechar */}
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>

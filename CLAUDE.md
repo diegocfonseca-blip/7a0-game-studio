@@ -318,6 +318,31 @@ Agora:
    guardado dos bots** e do `cpuSquads`, não do catálogo. Ele cobrou DUAS vezes;
    não deixar essa regra enferrujar.
 
+- **🅰️ REGRA PERMANENTE (19/09): o que vale pro GOL vale pra ASSISTÊNCIA.**
+  Palavras dele: *"todos dados q tá fazendo de gols sempre serve p assistência tb
+  hein"*. Toda vez que gol ganhar contagem, histórico, coluna, tela ou trava, a
+  assistência ganha junto **na mesma entrega** — sem ele precisar pedir de novo.
+  Onde isso mora hoje: `careerScorersAll`/`careerAssistsAll` (histórico por CARTA,
+  liga + todas as copas), `condicaoCarry` (`gl`/`as`), a ficha de duas colunas e as
+  caixas do Rank. A trava é o `npm run artilharia`, que reprova se um dos dois
+  ficar pra trás (inclusive se só um for zerado ao começar carreira nova).
+- **🃏 E o histórico de jogador é por CARTA, nunca por nome** (mesma conversa):
+  *"N pode ser por nome.. E sim por carta"*. A chave é `nome|clube|ano` — **nunca o
+  `cardId`**, que o leilão troca todo ano. O baralho tem **62 nomes repetidos em
+  125 cartas**, e em 6 deles os dois xarás são do MESMO baralho, então marca de
+  baralho ((BR)/(E)/(M)) não separa: quem separa é o **clube da carta**, que é o que
+  aparece miúdo embaixo do nome no Rank (escolha dele: *"pelo clube da carta apenas"*).
+
+- **🎬 REGRA PERMANENTE (19/09): o ROTEIRO do fim de temporada é OBRIGATÓRIO SEMPRE.**
+  Eu perguntei se era obrigatório toda vez ou só na primeira (com medo de cansar na
+  20ª temporada). Resposta dele, seca: *"Roteiro sempre."* Então **não propor
+  "pular o roteiro", nem "só na estreia", nem atalho pra decisão.** Os 4 passos
+  (📰 jornal · 💰 caixa · 🌍 Copa do Mundo · 🔨 decisão) valem em toda virada de
+  temporada da carreira solo. O que continua valendo é o CUSTO baixo: um toque por
+  passo, nenhum pede pra pensar (só o último) e dá pra voltar em passo já feito —
+  isso é o que mantém a regra de ouro dele (*"nada pode atrasar o ritmo do jogo"*)
+  de pé. Trava: `npm run fim`.
+
 ## 🔄 Protocolo de memória compartilhada (OBRIGATÓRIO em toda sessão)
 As sessões não se veem — o repo é a memória comum. Então TODA sessão deve:
 1. **Ao começar**: `git pull` e ler `git log --oneline -15` (o que as outras
