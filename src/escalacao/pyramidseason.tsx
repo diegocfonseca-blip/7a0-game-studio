@@ -3493,7 +3493,6 @@ type CondicaoUI = {
     j: Record<string, number>            // (serve pra tirar e achar o "nesta temporada")
     gl: Record<string, number>
     as: Record<string, number>
-    semPassado?: boolean                 // 🕳️ carreira que já existia antes de 19/09: gol e assistência ainda não têm passado gravado
   }
   volta: (id: string) => number          // 🩹 volta gradual: −2 (60%) · −1 (80%) · 0
   onRodizio?: () => void                 // botão 🔁 RODIZIAR (ausente = ainda não pode trocar)
@@ -3831,14 +3830,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         jTemp: Math.max(0, jTot - (a?.j[sel.id] ?? 0)), jTot,
         glTemp, glTot: (a?.gl[sel.id] ?? 0) + glTemp,
         asTemp, asTot: (a?.as[sel.id] ?? 0) + asTemp,
-        // 🕳️ AINDA NÃO SEI O TOTAL DE GOL/ASSISTÊNCIA (19/09). Ele pegou a
-        // esquisitice na ficha do Álvarez: 337 jogos no clube e os MESMOS 10 gols
-        // nas duas colunas. Não é conta errada — é que JOGOS começou a ser gravado
-        // em 13/09 e GOL/ASSISTÊNCIA só em 19/09, então numa carreira que já rolava
-        // o total de gol nasce igual ao da temporada e o de jogos não.
-        // 👉 Em vez de mostrar um número que parece defeito, a coluna dourada diz
-        //    "—" (não sei) e avisa embaixo. Some sozinha na virada da temporada.
-        semPassado: !!a?.semPassado,
+        // 🧾 O DESENCONTRO DO 337 JOGOS × 10 GOLS foi resolvido em OUTRO lugar, e
+        // por outra sessão no mesmo dia: quando o carry ainda não tem `gl` (carreira
+        // anterior a 19/09), os JOGOS de trás também ficam de fora — então jogos,
+        // gols e assistências nascem juntos, da mesma temporada. Ver `condInicio`
+        // logo acima e `guardaCansaco` no store. Foi a ideia original do Diego
+        // (*"se coloco os totais também contando no mesmo dia do gol?"*), e ele
+        // fechou com eles — então o "—" que eu tinha posto aqui saiu: os dois juntos
+        // dariam 17 jogos e "—" gols, que é o pior dos dois mundos.
       }
     })()
     const trio = (j: number, gl: number, as: number) => [
@@ -3870,20 +3869,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         {totais ? <>
           <div style={{ display: 'flex', gap: 6 }}>
             {colunaSel(tr('ESTA TEMPORADA', 'THIS SEASON'), trio(totais.jTemp, totais.glTemp, totais.asTemp), 'rgba(255,255,255,.06)')}
-            {totais.semPassado
-              ? colunaSel(tr('NO SEU CLUBE', 'AT YOUR CLUB'), [
-                  dadoSel(tr('JOGOS', 'GAMES'), String(totais.jTot)),
-                  dadoSel(tr('GOLS', 'GOALS'), '—', 'rgba(255,196,0,.45)'),
-                  dadoSel('ASS', '—', 'rgba(143,192,240,.45)'),
-                ], 'rgba(255,196,0,.08)')
-              : colunaSel(tr('NO SEU CLUBE', 'AT YOUR CLUB'), trio(totais.jTot, totais.glTot, totais.asTot), 'rgba(255,196,0,.08)')}
+            {colunaSel(tr('NO SEU CLUBE', 'AT YOUR CLUB'), trio(totais.jTot, totais.glTot, totais.asTot), 'rgba(255,196,0,.08)')}
           </div>
-          {/* 🕳️ o aviso do "—": curto, no lugar exato, e SOME SOZINHO na virada */}
-          {totais.semPassado && (
-            <div style={{ textAlign: 'center', fontSize: 7.5, fontWeight: 800, color: 'rgba(255,196,0,.62)', letterSpacing: .3, marginTop: 4 }}>
-              {tr('⚽ 🅰️ COMEÇAM A CONTAR NA PRÓXIMA TEMPORADA', '⚽ 🅰️ START COUNTING NEXT SEASON')}
-            </div>
-          )}
           {/* ⚡💰 gás, valor e salário não são de temporada nem de total — são de
               AGORA. Por isso descem pra faixa própria, como o mockup aprovado. */}
           {!!gasValorSal.length && <div style={{ display: 'flex', gap: 4, justifyContent: 'space-around', background: 'rgba(255,255,255,.06)', borderRadius: 9, padding: '6px 4px', marginTop: 5 }}>{gasValorSal}</div>}
@@ -7105,20 +7092,13 @@ export function PyramidSeasonScreen() {
     const gl: Record<string, number> = {}, as: Record<string, number> = {}
     for (const c of me.squad as WonCard[]) {
       const k = carry[`${c.name}|${c.club}|${c.year}`]
-      if (k) { g[c.id] = k.g; j[c.id] = k.j; gl[c.id] = k.gl ?? 0; as[c.id] = k.as ?? 0 }
+      // 🧾 carry sem `gl` (de antes de 19/09, quando o gol passou a contar): os jogos
+      // de trás não entram — jogos, gols e assistências contam a partir da MESMA
+      // temporada (Diego: *"300 partidas com 10 gols apenas, tá estranho"*). A mesma
+      // régua vive em `guardaCansaco` (store.tsx). O gás (`g`) continua vindo de trás.
+      if (k) { g[c.id] = k.g; j[c.id] = k.gl == null ? 0 : k.j; gl[c.id] = k.gl ?? 0; as[c.id] = k.as ?? 0 }
     }
-    // 🕳️ ESTE SAVE AINDA NÃO TEM PASSADO DE GOL (19/09). Ele pegou isso olhando a
-    // ficha do Álvarez: *"jogos ele vê poucos da temporada e 300 total, porém gols
-    // iguais nos dois… tá estranho"*. E está mesmo — só que a conta está certa: cada
-    // número começou a ser GRAVADO num dia diferente (jogos em 13/09, com o gás;
-    // gol e assistência só em 19/09). Numa carreira que já rolava, o total de gols
-    // nasce igual ao da temporada, e o de jogos não — daí a esquisitice.
-    // 👉 A marca é ter CARTA NO CARRY mas NENHUMA com `gl` gravado: isso só acontece
-    //    em carreira que existia antes de 19/09. Carreira nova nasce com tudo junto,
-    //    e depois da 1ª virada toda carta tem `gl` (mesmo que 0) — então isto se
-    //    apaga sozinho, sem ninguém precisar mexer.
-    const semPassado = Object.keys(carry).length > 0 && !Object.values(carry).some(v => v.gl != null)
-    return { g, j, gl, as, semPassado }
+    return { g, j, gl, as }
   }, [state.condicaoCarry, state.managers, state.youIdx])
   // 1ª rodada que conta: só na temporada em que a regra chegou pra quem já estava em C/B/A
   const condDesdeR = state.condicaoDesde === (state.seasonNo ?? 1) ? (state.condicaoDesdeR ?? 0) : 0
@@ -9776,7 +9756,7 @@ export function PyramidSeasonScreen() {
               </div>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
-              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as, semPassado: condInicio.semPassado } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
+              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
               criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba

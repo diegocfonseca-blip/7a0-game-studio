@@ -149,20 +149,20 @@ console.log('\n6) 🅰️ A ASSISTÊNCIA ANDA JUNTO COM O GOL')
   ok(/GarconsBox/.test(py), 'e o Rank mostra a caixa de garçons de todos os tempos')
 }
 
-console.log('\n7) 🕳️ a ficha não mostra total que ela ainda não sabe')
+console.log('\n7) 🧾 jogos, gols e assistências contam do MESMO dia')
 {
-  // Dúvida dele (19/09): *"minha dúvida ainda é pra quem chega hoje e vê gols
-  // iguais em gols da temporada e gols que já fez pelo clube total… porém jogos
-  // ele vê poucos da temporada e 300 total. Tá estranho"*.
-  // A causa: JOGOS é gravado desde 13/09 e GOL/ASSISTÊNCIA só desde 19/09.
+  // O 337 jogos × 10 gols do Álvarez. Duas sessões atacaram isso no mesmo dia e o
+  // Diego fechou com a OUTRA — a ideia original dele: *"se coloco os totais também
+  // contando no mesmo dia do gol?"*. Ou seja: carry sem `gl` (carreira anterior a
+  // 19/09) deixa os JOGOS de trás de fora também, e os três nascem juntos.
+  // ⚠️ Esta trava existe pra o "—" que eu tinha posto na ficha não voltar por
+  // engano: os dois juntos dariam "17 jogos e — gols", o pior dos dois mundos.
   const py = readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
-  ok(/const semPassado = Object\.keys\(carry\)\.length > 0 && !Object\.values\(carry\)\.some\(v => v\.gl != null\)/.test(py),
-    'a marca é: TEM carry mas NENHUMA carta com gol gravado (= carreira anterior a hoje)')
-  ok(/semPassado: !!a\?\.semPassado/.test(py), 'e ela chega na ficha')
-  ok(/totais\.semPassado[\s\S]{0,400}?'—'[\s\S]{0,200}?'—'/.test(py), 'com a marca ligada, GOLS e ASS do clube mostram "—" em vez de número')
-  ok(/COMEÇAM A CONTAR NA PRÓXIMA TEMPORADA/.test(py) && /START COUNTING NEXT SEASON/.test(py), 'e o aviso está em PT e EN')
-  ok(/totais\.semPassado\s*\n\s*\? colunaSel/.test(py) || /semPassado[\s\S]{0,120}colunaSel/.test(py), 'só a coluna DOURADA muda — a da temporada fica como estava')
-  ok(/jTot/.test(py), 'e os JOGOS continuam à mostra (esses estão certos)')
+  const stx = readFileSync('src/escalacao/store.tsx', 'utf8')
+  ok(/j\[c\.id\] = k\.gl == null \? 0 : k\.j/.test(py), 'na TELA: sem histórico de gol, os jogos de trás não entram')
+  ok(/gl == null/.test(stx), 'e a MESMA régua vale na virada (store), pra tela e save não discordarem')
+  ok(!/semPassado/.test(py), 'e o "—" que eu tinha posto saiu — não pode ter duas respostas pro mesmo problema')
+  ok(/g\[c\.id\] = k\.g/.test(py), 'o GÁS continua vindo de trás (ele nunca teve esse problema)')
 }
 
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)

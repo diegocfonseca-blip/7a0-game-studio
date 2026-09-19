@@ -24,7 +24,7 @@ try {
     const e = entrantesDaFicha(ficha, uid)
     const w = simulaCopaMundo(e, ficha.seed, ficha.edicao)
     const gols = w.groups.flatMap(g => g.matches.flat()).map(m => m.gh + '-' + m.ga).join(',')
-    const ko = [...w.qf, ...w.sf].map(t => t.g1.join('') + t.g2.join('') + t.winner).join(',')
+    const ko = [...w.r16, ...w.qf, ...w.sf].map(t => t.g1.join('') + (t.pen ? 'p' + t.pen.join('') : '') + t.winner).join(',') // jogo único (19/09): só g1 + pênaltis
     return { txt: 'campeao=' + e[w.final.champion].club + '|final=' + e[w.final.h].club + ' ' + w.final.g[0] + 'x' + w.final.g[1] + ' ' + e[w.final.a].club, all: gols + '|' + ko + '|' + w.final.champion }
   }
   const a = resumo('uid-0'), b = resumo('uid-1'), c = resumo(undefined)

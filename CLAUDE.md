@@ -363,6 +363,16 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   peça NEUTRA**, marcando na tela que é neutra (foi o que aconteceu com o
   Vozinha, goleiro de Cabo Verde). Chute com cara de retrato é pior que rosto
   genérico: o Diego prefere "não sei" do que algo que não tem nada a ver.
+- **🌐 Copa do Mundo é JOGO ÚNICO (19/09)**: *"o mata-mata tem que ser um jogo
+  único, porque Copa do Mundo é único"*. Quartas, semi e final = uma partida,
+  empate = pênaltis, no online E na carreira (mesmo motor, `simulaCopaMundo`).
+  Os passos da Copa moram em `copa-passos.ts` e têm CÓPIA no banco
+  (`esc_copa_preview_clock`, `docs/sql/online-copa-clock-jogo-unico.sql`) —
+  mudou o formato, muda nos dois. **Formato (19/09, "Ok ok ok"): 6 grupos de 4
+  (3 rodadas), passam os 2 primeiros + os 4 melhores 3ºs = 16 → oitavas** (Copa
+  de 24, estilo 86/90/94). Tabela: verde nos 2 primeiros, amarelo no 3º enquanto
+  está entre os 4 melhores, e um quadro só dos terceiros. Desempate: pontos →
+  vitórias → saldo → gols.
 - **Odeia spoiler**: tabela, giro, artilharia — NADA revela resultado antes da
   animação/apito na tela.
 - **Nada pode atrasar o ritmo do jogo**: zoeira/interação nova entra nos tempos

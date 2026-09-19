@@ -9206,6 +9206,8 @@ export function EscEnd() {
   // Começa TRUE quando a sala é liga+mundo: melhor segurar e soltar do que
   // piscar o jornal na cara e sumir.
   const [mundoPendente, setMundoPendente] = useState(false)
+  // 🚪 a liga recolhe embaixo do portão enquanto a Copa do Mundo não acaba (19/09)
+  const mundoEsperando = online && !!state.roomId && mundoNaLiga && !copaPending && !libPending && mundoPendente
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
   useEffect(() => { if (mundoNaLiga) setMundoPendente(true) }, [mundoNaLiga])
   useEffect(() => {
@@ -9526,7 +9528,28 @@ export function EscEnd() {
           )}
         </Box>
       ))}
-      {privateEnd && (copaPending || libPending) ? <details className="ll26-bracket-history"><summary>{LE('LIGA ENCERRADA · CAMPEÃO, CLASSIFICAÇÃO E ESTATÍSTICAS', 'LEAGUE OVER · CHAMPION, STANDINGS AND STATS')}</summary>{ligaOnlyHeader('pt-2')}{ligaBlocks}</details> : <>{(copaPending || libPending) && ligaOnlyHeader('pt-2')}{ligaBlocks}</>}
+            {/* 🌍 COPA DO MUNDO DA SALA — só em sala criada como "liga + Copa do Mundo".
+          Ela entra DEPOIS da liga estar decidida e ANTES do jornal: o jornal é o
+          fecho da noite, e a Copa ainda é jogo.
+          🚪 19/09: ela vem ANTES da tabela da liga, e a liga recolhe num <details>
+          embaixo — o mesmo desenho da Copa dos 8/Libertadores (pedido do Diego: *"acabou
+          a liga, já aparece grande o banner da Copa… a tabela vai pra baixo"*).
+          ⚠️ Igual à Copa da carreira, ela NÃO passa pelo motor do leilão: nada de
+          assento, nada de reducer. É uma tela por cima. Tirar daqui = a sala volta
+          a ser uma liga comum, e nada mais muda. */}
+      {online && state.roomId && mundoNaLiga && !copaPending && !libPending && (
+        <CercaDaCopa><Suspense fallback={null}>
+          <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
+            matchSeed={state.seed}
+            seasonNo={state.seasonNo ?? 1}
+            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            classificacao={table.map(t => {
+              const m = state.managers.find(mm => mm.id === t.id)
+              return { id: t.id, nome: t.name, humano: !!m?.isHuman }
+            })} />
+        </Suspense></CercaDaCopa>
+      )}
+      {privateEnd && (copaPending || libPending || mundoEsperando) ? <details className="ll26-bracket-history"><summary>{LE('LIGA ENCERRADA · CAMPEÃO, CLASSIFICAÇÃO E ESTATÍSTICAS', 'LEAGUE OVER · CHAMPION, STANDINGS AND STATS')}</summary>{ligaOnlyHeader('pt-2')}{ligaBlocks}</details> : <>{(copaPending || libPending || mundoEsperando) && ligaOnlyHeader('pt-2')}{ligaBlocks}</>}
       </>
       )}
       {/* 🏆 A LIGA NUM LUGAR SÓ (pílulas). Aqui, no FIM, ela também GRAVA a
@@ -9546,24 +9569,6 @@ export function EscEnd() {
           cima (portal), então o campeão vê a carta primeiro e cai no jornal quando
           fecha — e a gravação da carta, que dispara ao montar aquela tela, não é
           atrasada por nada daqui. */}
-      {/* 🌍 COPA DO MUNDO DA SALA — só em sala criada como "liga + Copa do Mundo".
-          Ela entra DEPOIS da liga estar decidida e ANTES do jornal: o jornal é o
-          fecho da noite, e a Copa ainda é jogo.
-          ⚠️ Igual à Copa da carreira, ela NÃO passa pelo motor do leilão: nada de
-          assento, nada de reducer. É uma tela por cima. Tirar daqui = a sala volta
-          a ser uma liga comum, e nada mais muda. */}
-      {online && state.roomId && mundoNaLiga && !copaPending && !libPending && (
-        <CercaDaCopa><Suspense fallback={null}>
-          <CopaDaLigaLazy roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
-            matchSeed={state.seed}
-            seasonNo={state.seasonNo ?? 1}
-            aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
-            classificacao={table.map(t => {
-              const m = state.managers.find(mm => mm.id === t.id)
-              return { id: t.id, nome: t.name, humano: !!m?.isHuman }
-            })} />
-        </Suspense></CercaDaCopa>
-      )}
       {/* 🖥️ OFFLINE TAMBÉM (Diego 04/09: "no modo rápido offline tem q ter jornal
           tb pow… igual no rápido online, qd acaba o torneio"). É o MESMO jornal e
           o MESMO lugar: esta tela de fim já é compartilhada pelos dois modos, só

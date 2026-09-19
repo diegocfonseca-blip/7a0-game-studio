@@ -1,5 +1,6 @@
 import {useCallback,useEffect,useRef,useState} from 'react'
 import {supabase} from '../lib/supabase'
+import {PASSO_COPA} from './copa-passos'
 
 export type CopaClockRow={revision:number;step:number;running:boolean;manual:boolean;speed:number;started_at:string;updated_at:string;duration_ms:number;extra_ms:number}
 export type CopaClockCommand='next'|'skip'|'finish'|'manual'|'auto'|'speed'
@@ -11,7 +12,8 @@ export function clockMinute(row:CopaClockRow,now:number){
 }
 export function dueClockCommand(row:CopaClockRow,now:number):'finish'|'next'|null{
  if(row.running)return now>=Date.parse(row.started_at)+row.duration_ms+row.extra_ms?'finish':null
- return !row.manual&&row.step<12&&now>=Date.parse(row.updated_at)+(row.step===0?500:1600)?'next':null
+ // o último passo é a cerimônia (`PASSO_COPA.FIM`); o banco tem a mesma trava
+ return !row.manual&&row.step<PASSO_COPA.FIM&&now>=Date.parse(row.updated_at)+(row.step===0?500:1600)?'next':null
 }
 
 export function useCopaClockPreview(enabled:boolean,roomId:string,edicao:number,seed:number,isHost:boolean,extraForStep:(step:number)=>number):CopaClockController|undefined{

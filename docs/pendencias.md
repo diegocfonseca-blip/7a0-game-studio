@@ -271,6 +271,110 @@ dados do jogador do meu clube"*. A coluna dourada continua sendo só do clube de
 e continua começando do zero nesta temporada.
 - ⏳ **PENDENTE, esperando ele**: na ficha, **A** (notinha "contando desde esta
   temporada") ou **B** (tracinho "—" no lugar do número). Mockup já mandado.
+## 19/09/2026 (parte 7) — 🧾 A ficha "NO SEU CLUBE": jogos passam a contar junto com os gols
+
+Diego, olhando a ficha preta do Álvarez: *"300 partidas com 10 gols apenas, tá
+estranho… se coloco os totais também contando no mesmo dia do gol?"*. Tinha razão: os
+JOGOS vinham sendo guardados no `condicaoCarry` desde a condição física (12/09), e
+gol/assistência só desde hoje de manhã — a ficha somava os dois como se fossem do
+mesmo período.
+
+**Regra (a proposta dele):** a história no clube começa no dia em que o gol passou
+a contar. Carry ainda sem `gl` → os jogos de trás ficam de fora; jogos, gols e
+assistências nascem juntos, da mesma temporada. Vive em DOIS lugares com a mesma
+linha: `guardaCansaco` (store.tsx, a virada) e `condInicio` (pyramidseason.tsx, a
+tela). O gás (`g`) continua vindo de trás — ele é de agora, não é histórico.
+⚠️ Quem virou temporada entre o deploy da manhã (ficha nova) e este, já tem `gl` no
+carry e ficou com os jogos velhos somados — não dá pra separar depois; é um punhado de
+saves, e o número só cresce dali pra frente com os três juntos.
+
+## 19/09/2026 (parte 6) — 🌐 Copa do Mundo: jogo único, relógios +10s, e o portão grande (em andamento)
+
+Pedido do Diego, num áudio só: *"a Copa do Mundo o mata-mata tem que ser um jogo
+único, porque Copa do Mundo é único, e isso serve também pra carreira… tá tendo
+oitavas de final? acho que vi quartas apenas… quero que aumente mais 10s pra cada
+um escolher seu país… e a convocação também mais dez segundos… esse quadrinho da
+Copa pra escolher o país está MUITO pequeno… tem que ser parecido com o modelo da
+Copa dos 8 e da Libertadores: acabou a liga, já aparece grande o banner da Copa, a
+tabela da liga vai pra baixo, e embaixo maior a escolha dos países, e depois segue
+pra convocação"*.
+
+### ✅ 1. Mata-mata em JOGO ÚNICO (online e carreira)
+`mkTie` em `simulaCopaMundo` jogava ida e volta com agregado. Agora é uma partida
+(`g1`/`ev1`), empate = pênaltis. Como é o MESMO motor da carreira, vale nos dois.
+Os passos mudaram de 12 pra 10 (5 rodadas · sorteio 6 · quartas 7 · semi 8 ·
+final 9 · cerimônia 10) e agora moram num lugar só, `src/escalacao/copa-passos.ts`
+— antes a tela, o `copa-stats` e o relógio da sala escreviam "8", "10", "11", "12"
+na mão, cada um no seu canto.
+- ⚠️ **O BANCO TEM CÓPIA**: a função `esc_copa_preview_clock` (o relógio
+  sincronizado da sala) tinha `r.step<12` e "roda bola em 7–11". Virou `<10` e
+  "7–9" — `docs/sql/online-copa-clock-jogo-unico.sql`. Foi aplicada via MCP
+  (se a aprovação não passou, rodar o arquivo no SQL Editor; sem ela a Copa
+  continua funcionando, só que o relógio marca "bola rolando" na cerimônia por
+  14s à toa).
+- `npm run copa` (o guarda "todo mundo vê a mesma Copa") continua verde.
+- 🎲 **A mesma semente dá outro resultado a partir das quartas** (o `rng` andava
+  mais com a volta). Copa encerrada não muda (campeão gravado). Sala no MEIO do
+  mata-mata na hora do deploy: todo aparelho recalcula igual — ninguém racha.
+- `placaresDoConfronto` (o agregado do bug do Gabriel, 15/08) saiu: sem volta não
+  tem coluna pra somar errado.
+
+### ✅ 2. Relógios da Copa online: bandeira 65 → 75s · convocação 80 → 90s
+Constantes em `copa-mundo-online.tsx` (histórico no comentário: 45 → 65 → 75 e
+65 → 135 → 80 → 90). O banner entre as duas continua 15s.
+
+### ✅ 3b. OITAVAS — feito ("Ok ok ok", 19/09): 6 grupos de 4 + 4 melhores 3ºs = 16
+`NUM_GROUPS 6 · GROUP_SIZE 4 · RODADAS_GRUPO 3`, `PASSO_COPA` ganhou `OITAVAS` (9
+passos: 3 rodadas · sorteio 4 · oitavas 5 · quartas 6 · semi 7 · final 8 · fim 9),
+`melhoresTerceiros()` (mesma régua da tabela: pontos → vitórias → saldo → gols;
+empate total = letra do grupo), sorteio das oitavas sem reencontro de grupo (até 40
+tentativas semeadas), prêmio da carreira ganhou o degrau **oitavas = 20**, e a CÓPIA do
+banco (`docs/sql/online-copa-clock-oitavas.sql`, `r.step<9`, bola em 1–3 e 5–8) —
+aplicada via MCP (se a aprovação não passou, rodar no SQL Editor).
+Tela: 🟩 verde nos 2 primeiros · 🟨 amarelo no 3º **só enquanto está entre os 4
+melhores** (recalculado a cada rodada apitada — a rodada rolando não entra, zero
+spoiler) · quadro **OS MELHORES TERCEIROS** com os seis lado a lado · legenda com a
+régua de desempate. `npm run copa` verde. Bancada: `scripts/teste-copa-grupos/`
+(`?passo=3` grupos fechados · `4` sorteio · `5` oitavas).
+⚠️ O que ele perguntou e eu respondi: a régua de desempate é **pontos → vitórias →
+saldo → gols marcados** (ele achava "vitórias → gols → saldo"); trocar gols ↔ saldo é
+uma linha em `groupTable`/`melhoresTerceiros` se ele quiser.
+
+### ✅ 3c. Tabela em colunas + VOCÊ em roxo (19/09, "faça tudo") — no ar
+Depois das oitavas ele pegou dois problemas: *"tá faltando organizar melhor os pts,
+vitória e saldo"* e *"a cor amarela é a mesma do usuário selecionado?"* — era. Agora:
+cabeçalho **# · SELEÇÃO · PTS · V · SG · GP** com colunas fixas (`cabecalhoTabela` /
+`linhaTabela` no `CupScreen`), e a cor da linha é SÓ a zona (verde/amarelo); o
+usuário é contorno **roxo #7C3AED + selo "VOCÊ"** (mesma linguagem do "SEU JOGO").
+⚠️ Selo em `<em>`, não `<span>`: o CSS `.ll26-world-group>div span span{display:block}`
+vira qualquer span interno em bloco e esticava o selo.
+
+### ❓ 3. Oitavas: NÃO EXISTIAM — e ele viu certo (histórico)
+Formato de hoje: 4 grupos de 6, passam 2 = **8 seleções → quartas direto**. Se
+ele quiser oitavas, o formato natural de 24 seleções é o da **Copa de 86/90/94**:
+6 grupos de 4 (3 rodadas), passam os 2 primeiros + os 4 melhores 3ºs = 16 →
+oitavas → quartas → semi → final. Muda `NUM_GROUPS/GROUP_SIZE/RODADAS_GRUPO`,
+`copa-passos.ts` (12 passos de novo: 3 rodadas · sorteio · oitavas · quartas ·
+semi · final · fim), a régua dos melhores 3ºs, o prêmio da carreira (oitavas =
+degrau novo) e a CÓPIA no banco. **Decisão dele — não fazer sem OK.**
+
+### ✅ 4. O portão grande da Copa no fim da liga — APROVADO ("Ok correto", 19/09) e no ar
+Feito (não está na main): `PortaoDaCopa` em `copa-mundo-online.tsx` (o desenho, sem
+banco), `GradeDeSelecoes` (escudo 56px, 2/3 colunas, sem rolagem, CONFIRMAR grudado no
+pé), CSS `ll27-*` em `online-match-visual.css`, e em `screens.tsx` o portão subiu pra
+CIMA da liga com a liga recolhida (`mundoEsperando`). Bancada:
+`scripts/teste-copa-portao/` (`?fase=inicio|bandeira|espera|banner|convocacao|torneio`);
+mockup: `scripts/mockup-portao-copa.mjs`. **Aprovado e na main em 19/09.** Junto foi a 🟩 faixa verde dos 2 primeiros de cada grupo (era um branco a 6%, invisível — igual no online e na carreira). O formato 6 grupos de 4 → oitavas ficou pra ele confirmar à parte (muda o motor).
+
+Como era o pedido:
+Hoje o fim da liga com Copa do Mundo mostra a tabela da liga PRIMEIRO e o portão
+da Copa depois, como uma caixinha; a escolha de país só fica grande pra quem está
+na vez (modal), e os quadrinhos são pequenos (2 colunas, 320px de altura com
+rolagem). O pedido: igual à Copa dos 8/Libertadores (`CompetitionStage` no TOPO com
+a arte do mundial, liga recolhida em `<details>` embaixo), e a escolha de país
+grande, inline, sob o banner; depois a convocação. Regra #2: mockup e OK antes de
+subir.
+
 
 ## 19/09/2026 (parte 5) — ⏱️ +1s por rodada · 📣 a regra do apito · 🏟️ o SOM fechado
 
