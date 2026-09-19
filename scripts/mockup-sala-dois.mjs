@@ -26,7 +26,7 @@ const CELULAR = `
   ${bl('📣', 'Zoeira: o giro da rodada', 40, '#7C3AED')}
   ${bl('🏆', 'A TABELA', 118, VERDE)}
   ${bl('📺', 'Outros jogos da rodada', 58, '#8a6d00')}
-  ${bl('🧭', 'barra: jogos · estatísticas · elenco · 📚 · ⚙️', 30, '#fff', INK)}
+  ${bl('🧭', 'barra: jogos · números · elenco · 📚 · ⚙️', 30, '#fff', INK)}
 </div>`
 
 // 🖥️ o monitor: DUAS COLUNAS. nada espera a vez
