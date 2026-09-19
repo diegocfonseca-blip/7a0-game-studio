@@ -63,8 +63,19 @@ console.log(`
    • "careerOpenSlots" parou de cortar o humano no alvo do pregão (o "Math.min"
      era pro zé do bot) — o +1 por posição agora vale também no monte.
 
-⚠️ AINDA ABERTO (medido acima, linha da SAF): o emprestado gasta vaga no
-   "filled()", contra a regra do Diego de 16/09 (*"o empréstimo não gasta vaga"*).
-   Mexer nisso muda o que "vaga" significa em várias telas — fica pra uma passada
-   própria, anotada no docs/pendencias.md.
+✅ CONSERTADO TAMBÉM (19/09, depois do Diego reconfirmar a regra: *"o elenco é de
+   27 jogadores + a SAF, que pode ser de um até 4 emprestados conforme as
+   regras"*): o "filled()" parou de contar o emprestado. Repare na 3a linha da
+   tabela de cima — antes dava "tem 3 / vaga 0" (pegar reforco na SAF te impedia
+   de comprar reforco); agora da "tem 2 / vaga 1".
+   ⚠️ Quem continua contando o emprestado e o "xiHoles" — e tem que contar mesmo,
+   porque ele JOGA e tapa buraco de escalacao. Sao duas perguntas diferentes:
+   "cabe mais um no meu elenco?" (nao conta) x "falta gente em campo?" (conta).
+
+⏳ AINDA ABERTO, menor: o jogador SEU que esta emprestado NA SAF (loanOut) sai do
+   squad, entao ele libera vaga enquanto esta fora — se voce comprasse um
+   substituto, na volta dele o elenco passaria de 27. Ja era assim antes desta
+   mudanca (nao e regressao) e na pratica quase nao acontece, porque o emprestimo
+   volta pra SAF na virada e a compra vem depois. A conta certa existe pronta em
+   "ownedRealCount" (ela soma o loanOut), se um dia precisar.
 `)

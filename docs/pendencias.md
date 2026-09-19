@@ -1,4 +1,4 @@
-## 19/09/2026 (parte 4) — 🪑 O banco do leilão parou de mentir · 🌱 o cria sai na hora
+## 19/09/2026 (parte 4) — 🪑 O banco do leilão parou de mentir · 🌱 o cria sai na hora · 🏢 a SAF parou de comer vaga
 
 Tudo isto nasceu de UMA pergunta do Diego: *"todo time que tem formação com 4-2-3-1,
 4-5-1 etc, sempre tão ficando preso o atacante e o usuário não consegue mais pôr pra
@@ -69,20 +69,39 @@ Fora do leilão de reservas nada muda — lá `openSlots` já mira o time titula
   aparece na aba Elenco (campinho = 11; reserva = LISTA).
 - `scripts/mede-vaga-atacante.mts` — a medição acima.
 
-### ⏳ FICOU ABERTO: o emprestado da SAF gasta vaga
-Medido na tabela acima. `filled()` conta o emprestado, então ele consome vaga do
-elenco — contra a regra do Diego de 16/09 (*"tem a SAF também… então pode ir de 27
-para 31"*). A aba Elenco já conta certo (ela tem a conta própria dela); quem não
-conta é `filled`/`openSlots`/`vagaCheio`. Mexer nisso muda o que "vaga" significa em
-várias telas (inclusive o "−N 🕳️" do gerenciar), então merece uma passada PRÓPRIA,
-com medição antes e depois. **Na prática hoje quase não morde**, porque o empréstimo
-volta pra SAF na virada e o leilão de reservas acontece depois disso — mas morde o
-`vagaCheio` no meio do ano (subir cria da base).
+### 🏢 4. O emprestado da SAF gastava vaga do elenco — CONSERTADO no mesmo dia
+Eu tinha deixado isto como "fica pra depois", e o Diego fechou a questão na hora:
+*"uma coisa que te digo é que o elenco é de 27 jogadores + a SAF, que pode ser de
+um ou até 4 emprestados conforme regras"*. Com a regra dita assim, não tem dúvida
+nenhuma pra resolver — era só conta errada.
+
+`filled()` olhava o `squad` inteiro, então **cada jogador pego emprestado comia uma
+das 27 vagas que são dele**. Medido: no 4-2-3-1 com 2 atacantes **+ 1 atacante
+emprestado**, a vaga de atacante caía de 1 pra **ZERO**. Na prática: *pegar reforço
+na SAF te impedia de comprar reforço*.
+
+Agora `filled()` ignora quem está `emprestado`. São só 3 chamadas dela, todas conta
+de vaga (`openSlots`, `vagaCheio` e a poda de zé do bot — e bot não pega
+emprestado), então o alcance é exatamente esse.
+
+⚠️ **O que continua contando o emprestado, de propósito: `xiHoles`.** São duas
+perguntas diferentes e elas têm que responder diferente:
+- *"cabe mais um no meu elenco?"* → o emprestado **não** conta (ele é o +1 da SAF);
+- *"falta gente em campo?"* → o emprestado **conta**, porque ele JOGA e tapa buraco
+  de escalação.
+
+⏳ **Sobrou um pedaço menor, anotado**: o jogador SEU que está emprestado NA SAF
+(`loanOut`) sai do `squad`, então ele libera vaga enquanto está fora — se você
+comprasse um substituto, na volta dele o elenco passaria de 27. **Já era assim
+antes** (não é regressão) e quase não acontece, porque o empréstimo volta na virada
+e a compra vem depois. A conta certa já existe pronta em `ownedRealCount` (ela soma
+o `loanOut`), se um dia morder.
 
 ### ↩️ Como reverter
-Os três consertos são pequenos e independentes: o do banco é uma linha em
-`Campinho`, o do cria é o `voltaCriaSeSobrou` + 3 chamadas, o do teto é um `if`.
-Cada um volta atrás num commit sozinho.
+Os quatro consertos são pequenos e independentes: o do banco é uma linha em
+`Campinho`, o do cria é o `voltaCriaSeSobrou` + 3 chamadas, o do teto é um `if`, e
+o da SAF é um `&& !c.emprestado` no `filled`. Cada um volta atrás num commit
+sozinho.
 
 ## 19/09/2026 (parte 3) — 🟢⚪ Dirceu Krüger entra no baralho + o coração do White Thigs
 

@@ -1036,8 +1036,20 @@ export function slotsOf(m: Manager, pos: Sector): number {
   // O +1 por posição é TETO DE ELENCO (`slotsCheio`), não alvo de pregão.
   return baseSlots(m.formation, pos) * (m.deepSquad ? 2 : 1)
 }
+// 🏢 O EMPRESTADO DA SAF NÃO GASTA VAGA DO SEU ELENCO (Diego 16/09, reconfirmado
+// em 19/09: *"o elenco é de 27 jogadores + a SAF, que pode ser de um até 4
+// emprestados conforme as regras"*). O motor sempre soube disso — o empréstimo é
+// contado pela vaga da DIVISÃO (A 4 · B 3 · C 2 · D 1), não pelo teto do elenco —,
+// e a aba Elenco já mostrava certo desde 16/09. Quem não sabia era ESTA conta:
+// ela olhava o `squad` inteiro, então cada jogador pego emprestado comia uma vaga
+// das 27 que são dele. Medido em 19/09 (`scripts/mede-vaga-atacante.mts`): no
+// 4-2-3-1 com 2 atacantes + 1 atacante emprestado, a vaga de atacante caía de 1
+// pra ZERO — ou seja, pegar reforço na SAF te impedia de comprar reforço.
+// ⚠️ Isto é a conta de VAGA (quantos ainda cabem). "Quem está em campo nesta
+// posição" é outra pergunta e tem função própria (`xiHoles`), que continua
+// contando o emprestado — porque ele JOGA, e tapa buraco de escalação.
 export function filled(m: Manager, pos: Sector): number {
-  return m.squad.filter(c => c.pos === pos).length
+  return m.squad.filter(c => c.pos === pos && !c.emprestado).length
 }
 // "cabe mais um?" — é ISTO que anula (ou não) um lance, libera a repescagem e
 // deixa pegar carta do monte.
