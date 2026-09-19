@@ -26,14 +26,14 @@ const CELULAR = `
   ${bl('📣', 'Zoeira: o giro da rodada', 40, '#7C3AED')}
   ${bl('🏆', 'A TABELA', 118, VERDE)}
   ${bl('📺', 'Outros jogos da rodada', 58, '#8a6d00')}
-  ${bl('🧭', 'barra: jogos · números · elenco · 📚 · ⚙️', 30, '#fff', INK)}
+  ${bl('🧭', 'barra: jogos · estatísticas · elenco · 📚 · ⚙️', 30, '#fff', INK)}
 </div>`
 
 // 🖥️ o monitor: DUAS COLUNAS. nada espera a vez
 const DESKTOP = `
 <div style="display:flex;flex-direction:column;gap:7px">
   ${bl('🟢', 'Placar ao vivo — faixa larga, mascote MAIOR', 74, '#22352a')}
-  ${bl('🔖', 'abas: jogos · números · elenco', 26, '#fff', INK)}
+  ${bl('🔖', 'abas: jogos · estatísticas · elenco', 26, '#fff', INK)}
   ${bl('📺', 'Outros jogos da rodada (faixa cheia)', 52, '#8a6d00')}
   <div style="display:flex;gap:7px;align-items:flex-start">
     <div style="flex:1.9">${bl('🏆', 'A TABELA', 172, VERDE)}</div>
