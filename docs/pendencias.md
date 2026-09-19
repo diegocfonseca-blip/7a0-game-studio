@@ -1,3 +1,33 @@
+## 19/09/2026 (parte 9) — 📰 A SEGUNDA PÁGINA DE O MARTELO
+
+Ideia dele: *"acho q vc deveria prolongar o jornal p baixo… como se fosse uma
+segunda página, mas embaixo, com mesmo estilo e arte, pra poder caber mais coisas"*.
+
+### ✅ E dá, sem obra grande
+O jornal **já cresce pra baixo**: o canvas é desenhado num buffer alto e depois
+**cortado na altura que o conteúdo usou** (`const H = Math.min(MAXH, Math.round(y))`
+em `jornal.tsx`). O que existe é um **teto**: `MAXH = 2520` no jornal de temporada
+(2600 no de elenco). "Segunda página" = **subir o teto e desenhar mais blocos**.
+A página 1 não precisa ser tocada.
+
+### O que o mockup propõe pra página 2 (`npm run jornal2`)
+1. **A dobra** — filete duplo + "CONTINUA NA PÁGINA 2", e o masthead menor repetido
+   ("PÁGINA 2 · OS PRÊMIOS DO ANO"). É o que faz parecer jornal, e não rolagem.
+2. **🥇 A BOLA DE OURO** — a arte dele em cima, o nome do melhor do mundo por cima
+   do degradê, e a conta `24 GOLS + 13 ASSIST. = 37` embaixo, com a linha
+   *"Não foi o artilheiro do ano, nem quem mais deu passes. Foi o único que fez as
+   duas coisas."*
+3. **🏆 Artilharia do ano** e **🅰️ Os garçons do ano**, lado a lado, top 5 de cada,
+   com o clube da carta embaixo do nome (a identidade que virou regra hoje).
+4. **🥇 A galeria das bolas de ouro** — os donos, com as temporadas como etiquetas.
+   É a mesma solução da dúvida das mil temporadas: lista DONOS, não anos.
+
+📏 A página 2 mede **~1900px** de altura em 1080 de largura, então o jornal inteiro
+passaria de ~2500 pra ~4400px. **O teto (`MAXH`) precisa subir junto** — se ficar em
+2520, a página 2 é desenhada e cortada fora, e ninguém entende por quê.
+
+⏳ Esperando o OK visual dele. Nada no código ainda.
+
 ## 19/09/2026 (parte 8) — 🥇 BOLA DE OURO (melhor do mundo do ano)
 
 ### A regra

@@ -33,7 +33,8 @@
     "som": "node scripts/testa-som.mjs",
     "ritmo": "node scripts/testa-ritmo.mjs",
     "artilharia": "node scripts/testa-artilharia.mjs",
-    "melhor": "node scripts/testa-melhor-mundo.mjs"
+    "melhor": "node scripts/testa-melhor-mundo.mjs",
+    "jornal2": "node scripts/mockup-jornal-pagina2.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
