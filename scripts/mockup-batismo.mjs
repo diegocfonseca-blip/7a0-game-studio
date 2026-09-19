@@ -115,6 +115,7 @@ const JEITOS = {
   cobra:   { gol: 'RASTEJA por cima do placar', festa: 'atravessa ONDULANDO, rente ao chão' },
   coringa: { gol: 'VIRA NO AR feito carta sendo dada', festa: 'atravessa a tela aos pulos' },
   abelha:  { gol: 'chega ZUMBINDO e para no ar', festa: 'atravessa a tela VOANDO' },
+  marreco: { gol: 'MERGULHA de cima e sobe planando', festa: 'atravessa a tela VOANDO lá no alto' }, // 🦆 pato voa (coVoa + FESTA_JEITO 'voa')
   generico:{ gol: 'CARIMBA a tela', festa: 'atravessa a tela aos pulos' },
 }
 const jeito = JEITOS[arg('jeito', 'generico')] || JEITOS.generico

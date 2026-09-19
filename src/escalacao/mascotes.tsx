@@ -58,6 +58,7 @@ import neymarzettiMascoteImg from './img/neymarzetti-mascote.webp' // 🦇 Neyma
 import milhacaMascoteImg from './img/milhaca-mascote.webp' // 🌽 Milhaça FC (igormarquesn99): arte própria do dono, 24/08
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
+import marrecoMascoteImg from './img/marreco-mascote.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
 import manfreMascoteImg from './img/manfre-mascote.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 
 const INK = '#0C0C0C'
@@ -294,6 +295,14 @@ export const MASCOTES: Record<string, ReactNode> = {
   // dando joinha. Arte própria do dono (webp, fora do bundle).
   // SÓCIO, não batismo: o clube é o dele e não substitui time de CPU nenhum.
   // mascote_key = "futpoint_bola".
+  // 🦆👑 O REI DO CAIS (mascote do Marreco FC — lucasigorbortoliniii, 19/09):
+  // marreco de coroa, corrente de ouro e braços cruzados, com a placa "MARRECO É
+  // ATITUDE" e a bola no pé. Arte do próprio dono; aqui só tiramos o fundo verde
+  // chroma, cortamos no limite do desenho e reduzimos (na tela ele dá 176px).
+  // 📏 321×440, 42,1 KB. mascote_key = "marreco_rei".
+  marreco_rei: (
+    <img src={marrecoMascoteImg} height={176} width={Math.round(176 * 321 / 440)} alt="O Rei do Cais — Marreco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   futpoint_bola: (
     <img src={futpointMascoteImg} height={176} width={Math.round(176 * 310 / 440)} alt="O Pontinho — Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -969,6 +978,13 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Theuzudo EC': 'theuzudo_morcego',
   'Skyy FC': 'skyy_aguia', // 🦅 a águia carimba o placar (matheusncruz1, 17/08)
   'Crias do Bigão': 'bigao', // 🧢 o Bigão carimba o placar (giovannecastro784, 17/08)
+  // 🦆👑 o Rei do Cais carimba o gol do Marreco FC (lucasigorbortoliniii, 19/09).
+  // CARIMBO_GOL é busca EXATA: entram as 4 formas do nome e o nome VELHO.
+  'Marreco FC': 'marreco_rei',
+  'Marreco': 'marreco_rei',
+  'Marreco EC': 'marreco_rei',
+  'Marreco SC': 'marreco_rei',
+  'Inter Estadual': 'marreco_rei',
   'Futpoint FC': 'futpoint_bola', // 📍 o Pontinho carimba o placar (gfpicolo13, 19/08) — RESERVA DE NOME (sócio, não batismo)
 }
 
@@ -1035,6 +1051,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   milhaca_boleiro: 'O Milhaça',  // 🌽 Milhaça FC (igormarquesn99, 24/08)
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
+  marreco_rei: 'O Rei do Cais', // 🦆👑 Marreco FC (lucasigorbortoliniii, 19/09)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
   manfre_gralha: 'A Gralha',   // 🐦‍⬛ Manfré FC (danielmanfre5, 30/08)
 }
@@ -1117,6 +1134,7 @@ export const CARIMBO_ANIM: Record<string, string> = {
   coringa_diniz: 'coCarta',   // 🃏 vira no ar como carta sendo dada na mesa
   sapek_abelha: 'coZumbe',    // 🐝 chega vibrando, parando no ar
   eros_nina: 'coPulinho',     // 🐶 pulinho curto e feliz
+  marreco_rei: 'coVoa',       // 🦆 marreco VOA: entra planando, como pato entra no brejo
   futpoint_bola: 'coQuica',   // 📍 é uma BOLA: entra quicando, como bola faz
   manfre_gralha: 'coVoa',     // 🐦‍⬛ gralha: mergulha de cima e sobe planando
 }
@@ -1128,6 +1146,7 @@ export const carimboAnimDoTime = (time: string): string =>
 // todos: a águia quicando no gramado feito bola). Quem RASTEJA ondula colado no
 // chão. O resto continua quicando, igual sempre foi.
 export const FESTA_JEITO: Record<string, 'voa' | 'rasteja' | 'quica'> = {
+  marreco_rei: 'voa', // 🦆 pato voa — na festa de campeão ele plana por cima do placar
   skyy_aguia: 'voa',
   sapek_abelha: 'voa',
   cobra_arruda: 'rasteja',

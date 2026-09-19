@@ -20,6 +20,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Fala D10": "falad10-camisa.webp",
   "Final Boss FC": "finalboss-camisa.webp",
   "Futpoint FC": "futpoint-camisa.webp",
+  "Marreco FC": "marreco-camisa-v1.webp",
   "Rei da Bola FC": "reidabola-camisa-v1.webp",
   "Murriz FC": "murriz-camisa-v1.webp",
   "Nightfull FC": "nightfull-camisa-v1.webp",

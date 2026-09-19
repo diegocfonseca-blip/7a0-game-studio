@@ -66,6 +66,7 @@ import leaoEstradinhaEscudoImg from './img/leao-estradinha-escudo.webp' // 🦁 
 import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
 import futpointEscudoImg from './img/futpoint-escudo.webp'
+import marrecoEscudoImg from './img/marreco-escudo.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import manfreEscudoImg from './img/manfre-escudo.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
@@ -551,6 +552,20 @@ const bigaoEscudoRender = (size: number) => (
 // dentro, faixa com o nome e "EST. 2024". Arte enviada pelo próprio dono; aqui
 // só tiramos o fundo branco, cortamos no limite do desenho e reduzimos (o
 // escudo nunca passa de 78px na tela).
+// 🦆👑 MARRECO FC (lucasigorbortoliniii) — ex-Inter Estadual, batismo com fundador
+// nº29 que estava há tempos SEM ARTE NENHUMA (o `npm run batismos` cobrava escudo,
+// mascote e manto). Em 19/09 o dono mandou a prancha: escudo, mascote e camisa.
+// Escudo verde-escuro e creme, com o marreco coroado, taboas do brejo e a faixa
+// "RESPEITO É DE CAIS".
+// ⚠️ A prancha veio sobre FUNDO VERDE CHROMA e o clube É VERDE — o recorte tem
+//    script próprio (`scripts/recorta-marreco.py`) justamente por isso: corta só o
+//    verde claro saturado, apaga o verde PRESO entre as pernas da mascote (erro do
+//    Skyy FC) e separa as três peças pelo desenho, não por régua.
+// 📏 241×360, 27,8 KB — a largura é declarada pela proporção REAL do arquivo.
+const marrecoEscudoRender = (size: number) => (
+  <img src={marrecoEscudoImg} height={size} width={Math.round(size * 241 / 360)} alt="Marreco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const futpointEscudoRender = (size: number) => (
   <img src={futpointEscudoImg} height={size} width={Math.round(size * 293 / 360)} alt="Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1143,6 +1158,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Crias do Bigão': bigaoEscudoRender,
   'Crias do Bigao': bigaoEscudoRender,
   'Crias do Bigão FC': bigaoEscudoRender,
+  // 🦆👑 Marreco FC (lucasigorbortoliniii) — BATISMO. Entram as 4 formas do nome
+  // (a regra de 20/08) e o NOME VELHO, porque save antigo abre como Inter Estadual
+  // e o `OLD_NAME` do data.ts vira o clube pra Marreco ao carregar.
+  'Marreco FC': marrecoEscudoRender,
+  'Marreco': marrecoEscudoRender,
+  'Marreco EC': marrecoEscudoRender,
+  'Marreco SC': marrecoEscudoRender,
+  'Inter Estadual': marrecoEscudoRender,
   // 📍⚫🟡 Futpoint FC (gfpicolo13) — SÓCIO com clube próprio (reserva de nome):
   // não tira o lugar de ninguém na pirâmide, o escudo aparece quando o dono usa
   // o nome dele. Só as variações do nome — nenhum clube de CPU entra aqui.

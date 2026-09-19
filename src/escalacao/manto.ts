@@ -22,6 +22,14 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'adriano.ferrari@quepazseguros.com.br': ['#C2452F', '#141414'], // 🏎️ Ferrari SC — vermelho e preto
   'matheusfilipealves@hotmail.com': ['#F06000', '#0C0C0C'], // 🦇 Theuzudo FC — laranja e preto, MEDIDOS na arte que o dono mandou (21/08)
   'fontourajoao04@gmail.com': ['#00461C', '#EE5400'], // 🦜🛒 Al Takhadao FC — verde e laranja, MEDIDOS na camisa que o dono mandou (01/09)
+  // 🦆👑 Marreco FC — VERDE e CREME, MEDIDOS na prancha que o dono mandou (19/09).
+  // ⚠️ O verde veio do ESCUDO, não da camisa, e isso é escolha consciente: a camisa
+  //    foi renderizada numa cena escura e o pano dela mede #072E1F mesmo na metade
+  //    ILUMINADA — quase preto, que na listra fininha do jogo lê como preto e some.
+  //    O escudo tem a MESMA tinta, com luz par: #04512A. O creme é da camisa (#E4CDA6,
+  //    metade iluminada), que é o tom de areia do pano — o do escudo é mais claro
+  //    porque ali é letra. Os dois medidos, nenhum chutado.
+  'lucasigorbortoliniii@hotmail.com': ['#04512A', '#E4CDA6'],
   'luizguilhermeps@hotmail.com': ['#F6BB06', '#053F42'], // 🧦 Jurubeba FC — amarelo e verde-petróleo, MEDIDOS na camisa que o dono mandou (02/09)
   'caiohcris@gmail.com': ['#084C2C', '#F3F1EC'], // 🐟 Bagres 1993 — verde-mato e branco, MEDIDOS na camisa que o dono mandou (mediana dos verdes e dos brancos do manto, 06/09). O DOURADO é a 3ª cor, em MANTO_TRI: é a moldura, a coroa e o louro do escudo. ❤️ São Paulo (o Diego confirmou em 19/09)
   'guiouriques@hotmail.com': ['#2186D9', '#080809'], // 🪟 Vidraceiro FC — azul-vidro e preto, MEDIDOS na camisa que o dono mandou (mediana dos azuis e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa é listrada azul/preto com filete branco
