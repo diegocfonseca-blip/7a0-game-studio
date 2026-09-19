@@ -430,6 +430,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   preparador nunca mais diz "joga N seguidas e senta 1" — ele confundiu com o ponto
   em que o jogador cansa (54 jogos, igual pra todos). Diz-se quanto o BANCO devolve
   e quantos jogos um descanso paga.
+- **🎙️ Emoção no placar = o LANCE DO GOL, nunca faixa colorida nem confete (19/09).**
+  Ele barrou a faixa verde/vermelha de resultado (*"não gostei"*) e o confete de
+  vitória. O que ele quer é narração de COMO a bola entrou, com acervo GRANDE
+  (*"muitas e muitas frases, senão fica chato"*), cômico com moderação. Banco em
+  `src/escalacao/lances.ts` — quem for adicionar frase, adiciona em PT **e** EN, na
+  mesma posição. Por enquanto só na prévia da conta dele (`useOnlinePreview`).
 - **🔁 No rodízio ENTRA O MAIS CHEIO, não o mais forte (19/09).** *"Tem que pôr o
   cheio."* Nível só desempata gás igual. **Cria da Base entra só quando não tem
   reserva de verdade inteiro** na posição (*"quando só tem a base no banco também

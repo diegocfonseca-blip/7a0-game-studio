@@ -44,6 +44,44 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 18) — 🎙️ Placar GRANDE com o LANCE do gol (só na prévia do Diego)
+
+Ele olhou a aba Elenco no celular: *"esse header (temporada, rodada, torcidômetro)
+está muito grande — diminui um cadinho e aumenta a área do placar; ampliar as frases
+também; e dar mais emoção ao placar"*. Mockup em `scripts/mockup-placar-emocao.mjs`
+(3 colunas: antes · com faixa · sem faixa). Decisões dele no caminho:
+- 🚫 **Faixa colorida de resultado (verde/vermelha/dourada): NÃO.** *"Não gostei."*
+- 🚫 **Confete na vitória: NÃO.** (o confete do GOL, que já existia na cena dourada,
+  ficou como estava — ele não falou dele.)
+- ✅ **A emoção é o LANCE DO GOL**: *"driblou dois, chutou de fora da área, gol
+  olímpico, tabelou, chutou cruzado, só colocou pra dentro na cara do gol… muitas e
+  muitas frases, senão fica chato; alguns cômicos, tipo gol de barriga após um lindo
+  cruzamento, mas sem exagerar no cômico"*.
+- 🔒 **Só pra conta dele por enquanto** (*"code só pro meu usuário"*).
+
+### ✅ O que subiu (tudo atrás de `useOnlinePreview()` = e-mails do Diego)
+- **`src/escalacao/lances.ts`** (novo): 32 lances COM assistência (citam quem deu o
+  passe) + 48 SEM (individual, bola parada, rebote), PT e EN com a mesma contagem.
+  Sorteio determinístico por nome+minuto+rodada (a sala online lê o mesmo; o texto não
+  troca a cada tique). Cômico ≈ 1 em 8, nunca humilhando o jogador real.
+- **Placar (`OnlineScorePresentation` com `big`)**: no GOL o selo vira *"⚽ GOOOL!
+  Petit 90+1′ — tabelou com Gerson e só empurrou"*; depois do flash a barra escura
+  fica com *"⚽ 90+1′ Petit — <lance>"* até o próximo evento (antes voltava pra "bola
+  rolando"). Apito final diz o RESULTADO na própria frase (4 variações × vitória/
+  derrota/empate), escudo de quem ganhou brilha e o do outro apaga.
+- **Tamanhos** (`.ll30-big` em `online-match-visual.css`): frase 17px em até 2 linhas ·
+  escudo 92 · nome 18 · número 44 · goleadores 14 com ⚽.
+- **Header compacto** (`privateCareer`): 176 → 118px; rodada e divisão na mesma linha;
+  torcida numa linha com o histórico ("14º · 13º · 9º") ao lado.
+- Bancada: `scripts/teste-placar-grande/` (`?cena=rolando|gol|fim&res=v|d|e`, print
+  com `print.mjs`).
+
+⏳ **Fora da prévia nada mudou.** Quando ele aprovar no celular, liberar pra todo
+mundo = trocar o gate (`privatePreview`) por uma chave de release, como o
+`ONLINE_VISUAL_RELEASED`. Aí sim entra novidade na home.
+⏳ O cabeçalho da aba JOGOS é outro (`CareerCompetitionStage`, 205px no celular) — ele
+não falou dele; se reclamar, é o mesmo tratamento.
+
 ## 19/09/2026 (parte 17) — 🔁 No rodízio entra o MAIS CHEIO (e o cria só sem reserva de verdade)
 
 Ele perguntou como o preparador escolhe entre dois reservas, e ao saber que era "o
