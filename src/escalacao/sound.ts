@@ -26,15 +26,41 @@ const listeners = new Set<() => void>()
 export function onSoundChange(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn) } }
 function notify() { listeners.forEach(fn => { try { fn() } catch { /* ignora */ } }) }
 
-export function setSoundAllowed(v: boolean) { if (allowed === v) return; allowed = v; if (!allowed) stopCrowd(); notify() }
+// 🐛 19/09 (Diego: *"não tá parecendo o som ambiente mais durante os jogos, só tô
+// ouvindo o do gol"*). O ambiente era ligado UMA vez, quando a tela do jogo abria — e
+// se naquele instante o som estava MUDO (é o padrão) ou ainda não estava liberado
+// (o `setSoundAllowed(true)` do pai roda DEPOIS do efeito da tela filha), ele nunca
+// começava; ligar o 🔊 depois não tentava de novo. O gol funcionava porque ele é
+// criado na hora do gol. Agora a tela só diz que QUER o ambiente (`crowdWanted`) e
+// ligar o som / liberar o áudio acende a torcida sozinho. Desligar o 🔊 apaga sem
+// esquecer que a tela quer — religou, volta.
+export function setSoundAllowed(v: boolean) { if (allowed === v) return; allowed = v; if (!allowed) apagaCrowd(); else if (crowdWanted) acendeCrowd(); notify() }
 export function isSoundAllowed() { return allowed }
 export function isMuted() { return muted }
 export function toggleMuted() { setMuted(!muted) }
 export function setMuted(v: boolean) {
   muted = v
   try { localStorage.setItem('esc-sound-muted', v ? '1' : '0') } catch { /* ignora */ }
-  if (muted) stopCrowd()
+  if (muted) apagaCrowd(); else if (crowdWanted) acendeCrowd()
   notify()
+}
+
+// 🔓 AUTOPLAY: o navegador deixa o AudioContext SUSPENSO até um gesto. Se o contexto
+// nasceu suspenso (som já ligado de outra visita, tela abriu sem toque), o primeiro
+// toque em qualquer lugar acorda ele — senão o ambiente que já foi "ligado" fica
+// esperando um som sintetizado qualquer chamar `resume()`.
+let acordando = false
+function acordaNoGesto(c: AudioContext) {
+  if (acordando || typeof document === 'undefined') return
+  acordando = true
+  const acorda = () => {
+    c.resume().catch(() => { /* ignora */ })
+    document.removeEventListener('pointerdown', acorda, true)
+    document.removeEventListener('keydown', acorda, true)
+    acordando = false
+  }
+  document.addEventListener('pointerdown', acorda, true)
+  document.addEventListener('keydown', acorda, true)
 }
 
 // só cria/acorda o contexto quando REALMENTE vai tocar (após um gesto)
@@ -49,7 +75,7 @@ function ac(): AudioContext | null {
       master.gain.value = 0.32 // mix geral BAIXO de propósito (não atrapalhar)
       master.connect(ctx.destination)
     }
-    if (ctx.state === 'suspended') ctx.resume().catch(() => { /* ignora */ })
+    if (ctx.state === 'suspended') { ctx.resume().catch(() => { /* ignora */ }); acordaNoGesto(ctx) }
     return ctx
   } catch { return null }
 }
@@ -174,7 +200,17 @@ const GOL_VOL = 0.95
 const DUCK = 0.35           // o ambiente cai pra 35% enquanto o gol toca
 
 let crowd: { gain: GainNode; stop: () => void } | null = null
-export function startCrowd() {
+// 🔢 CONTADOR, não booleano: a Copa do Mundo abre DENTRO da carreira e as duas telas
+// pedem o ambiente. Quando a Copa fechava, o `stopCrowd` dela matava a torcida da
+// carreira, que continuava aberta — outro jeito de "só ouço o gol". Agora cada tela
+// soma 1 ao abrir e tira 1 ao fechar; o ambiente vive enquanto alguém quiser.
+let crowdWanted = 0
+/** a tela de jogo abriu: quer o ambiente (toca agora se puder; senão, quando o 🔊 ligar) */
+export function startCrowd() { crowdWanted++; acendeCrowd() }
+/** a tela de jogo fechou: não quer mais (a torcida só apaga quando NENHUMA tela quer) */
+export function stopCrowd() { crowdWanted = Math.max(0, crowdWanted - 1); if (!crowdWanted) apagaCrowd() }
+function apagaCrowd() { if (crowd) { crowd.stop(); crowd = null } }
+function acendeCrowd() {
   if (crowd) return
   const c = ac(); if (!c || !master) return
   // marca o lugar JÁ (síncrono), senão dois renders seguidos abrem duas torcidas
@@ -213,7 +249,6 @@ export function startCrowd() {
   // não pode chegar mudo por estar esperando download.
   carrega(SFX_GOL)
 }
-export function stopCrowd() { if (crowd) { crowd.stop(); crowd = null } }
 
 // ─── 🥅 O GOL ───────────────────────────────────────────────────────────────
 // Regras de convivência, pra não virar bagunça (é o que ele reclamou do arquivo

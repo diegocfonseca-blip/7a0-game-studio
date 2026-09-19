@@ -44,6 +44,26 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 19) — 🐛 O som AMBIENTE sumiu (só tocava o gol)
+
+Ele: *"não sei por que não tá parecendo o som ambiente mais durante os jogos, só tô
+ouvindo o do gol"*. Duas causas, as duas em `sound.ts`:
+1. **O ambiente só era ligado UMA vez, ao abrir a tela do jogo.** Se naquele instante o
+   som estava MUDO (é o padrão) ou ainda não liberado (o `setSoundAllowed(true)` do
+   componente-pai roda DEPOIS do efeito da tela filha), `startCrowd` desistia — e
+   ligar o 🔊 depois não tentava de novo. O gol funcionava porque é criado na hora.
+   👉 Agora a tela só diz que QUER o ambiente (`crowdWanted`); ligar o 🔊 ou liberar o
+   áudio acende a torcida sozinho. Desligar apaga sem esquecer; religou, volta.
+2. **A Copa do Mundo abre DENTRO da carreira e as duas pedem o ambiente**; quando a
+   Copa fechava, o `stopCrowd` dela matava a torcida da carreira, ainda aberta.
+   👉 `crowdWanted` virou CONTADOR: cada tela soma 1 ao abrir, tira 1 ao fechar.
+3. Bônus: AudioContext que nasce SUSPENSO (som já ligado de outra visita, tela abriu
+   sem toque) agora acorda no primeiro toque em qualquer lugar (`acordaNoGesto`).
+Sem novidade (é conserto). Reverter: `git revert` do commit desta parte.
+
+E o header da prévia: o "TEMPORADA 28 · LIGA LEGENDS" ficou numa linha só, com 5px de
+respiro antes da "Rodada N" (ele achou colado).
+
 ## 19/09/2026 (parte 18) — 🎙️ Placar GRANDE com o LANCE do gol (só na prévia do Diego)
 
 Ele olhou a aba Elenco no celular: *"esse header (temporada, rodada, torcidômetro)

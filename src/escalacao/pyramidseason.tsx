@@ -8525,7 +8525,9 @@ export function PyramidSeasonScreen() {
                   no topo — "Liga Legends" — pra dar par com a Copa do Brasil
                   Legends. A divisão desce pra linha de baixo (mesmo lugar onde
                   a Copa mostra o formato da fase). */}
-              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{tr('Temporada', 'Season')} {state.seasonNo} · {copaPlaying ? label : '⚽ Liga Legends'}</div>
+              {/* 🔒 na prévia: uma linha só (sem quebrar em cima da rodada) e um respiro
+                  entre ela e a "Rodada N" — ele achou colada demais (19/09) */}
+              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: privateCareer ? 1.1 : 1.5, textTransform: 'uppercase', color: GOLD, ...(privateCareer ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 5 } : null) }}>{tr('Temporada', 'Season')} {state.seasonNo} · {copaPlaying ? label : '⚽ Liga Legends'}</div>
               <div style={{ ...OSWALD, fontWeight: 800, fontSize: privateCareer ? 17 : 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? copaFaseName : done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : <>{tr('Rodada', 'Round')} <b style={{ fontSize: privateCareer ? 20 : 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}{privateCareer && !copaPlaying && me ? <span style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}> · {DIV_NAME[me.div]}</span> : null}</div>
               {!(privateCareer && !copaPlaying) && <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.3 }}>{copaPlaying ? `${sub} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')}` : me ? DIV_NAME[me.div] : ''}</div>}
             </div>
