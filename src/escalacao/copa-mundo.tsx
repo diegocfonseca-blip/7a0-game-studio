@@ -21,7 +21,8 @@ import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // placar AO VIVO oficial (relógio 0→90', GOOOL, bump) + pênaltis com suspense —
 // os MESMOS componentes da liga/copa da carreira. Import circular com
 // pyramidseason é seguro: são function declarations usadas só no render.
-import { LiveScoreCard, PensShootout, pensRevealDelay, AUTO_EXTRA_MS as COPA_AUTO_EXTRA_MS, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill } from './pyramidseason'
+import { LiveScoreCard, PensShootout, pensRevealDelay, AUTO_EXTRA_MS as COPA_AUTO_EXTRA_MS, type ScoreGoal, copaSideColor, _inkFor, copaCenterChip, type CopaFill, useApitoDeLargada } from './pyramidseason'
+import { startCrowd, stopCrowd } from './sound' // 🏟️ a Copa do Mundo era MUDA (19/09)
 import { disputaPenaltis } from './penaltis'
 import { clockMinute, type CopaClockController } from './copa-clock-preview'
 import { copaStats } from './copa-stats'
@@ -866,7 +867,16 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   const step = synced ? synced.row?.step ?? 0 : localStep
   const liveDone = synced ? !!synced.row && !synced.row.running : localLiveDone
   const roundKey = synced ? step : localRoundKey
-  const LIVE = passoRodaBola
+  const LIVE = passoRodaBola // os passos que rodam bola (jogo único desde 19/09) moram em copa-passos.ts
+  // 🏟️ AMBIENTE DE ESTÁDIO enquanto a Copa do Mundo roda. Ela ficou de fora do som
+  // de 18/09 e ninguém tinha notado — a tela é própria, não é a da liga. O Diego
+  // pediu o som em *"qualquer modo também"*, e uma final de Copa muda era o avesso
+  // disso. Para ao sair da tela, como em todas as outras.
+  useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
+  // 📣 E APITA EM TODA PARTIDA: Copa do Mundo é copa (*"quando for copa"*), da
+  // primeira rodada de grupo até a final. Fora dos jogos (sorteio, cerimônia) o
+  // `LIVE` é falso e nada apita.
+  useApitoDeLargada('copa-mundo', LIVE(step) ? roundKey : null, true)
   const gRound = Math.min(GR, step)
   const shownRounds = step <= GR && !liveDone ? Math.max(0, gRound - 1) : gRound // tabela/resultados só DEPOIS do apito
   const done = step >= FIM
