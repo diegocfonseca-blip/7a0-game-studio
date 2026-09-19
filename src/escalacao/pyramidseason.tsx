@@ -29,7 +29,7 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
-import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
+import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
 import { sectorNome, extraNome, sponsorBetMeta, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -240,7 +240,8 @@ export function pickAssist(base: number, teamName: string, xi: PoolCard[], score
   if (!forcado && dado() < A_SEM_PASSE) return null // jogada individual
   else if (forcado) dado() // queima o mesmo número pra trava não mudar quem é o garçom
   // peso por posição (quem serve gol no futebol) × qualidade da carta
-  const pool = xi.filter(c => c.id !== scorerId).map(c => ({
+  // 🚫 garçom de mentira não existe (Diego 19/09) — mesma regra do gol
+  const pool = xi.filter(c => c.id !== scorerId && !ehFake(c)).map(c => ({
     c, w: (c.pos === 'MEI' ? 5 : c.pos === 'LAT' ? 3 : c.pos === 'ATA' ? 2.4 : c.pos === 'ZAG' ? 0.6 : 0.08) * (0.5 + Math.max(0, (mid(c) - 40) / 60)),
   }))
   const total = pool.reduce((s, p) => s + p.w, 0)
@@ -750,18 +751,25 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const day = new Map<string, number>()
     for (const c of xi) day.set(c.id, 0.4 + rngUse() * 2.2)
     for (let g = 0; g < goals; g++) {
-      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
+      // 🚫 PERNA-DE-PAU NÃO FAZ GOL (Diego 19/09). O sorteio só olha jogador de
+      // verdade; time 100% de mentira faz o gol no placar e NINGUÉM leva o gol na
+      // súmula. O peso baixo não bastava: na Várzea, onde todo mundo é filler, o
+      // perna-de-pau virava artilheiro e até Bola de Ouro.
+      const pool = xi.filter(c => !ehFake(c)).map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
       const total = pool.reduce((s, p) => s + p.w, 0)
       let r = rngUse() * total, pick = pool[0]?.c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
-      // 🛟 XI vazio (save torto / time sem elenco) → não crasha a tela: só não credita
-      // artilheiro nesse gol (o placar já foi somado à parte). Mesma guarda da Copa.
-      if (!pick) continue
-      const key = `${t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id, club: pick.club, year: pick.year })
+      // 🎲 o MINUTO é sorteado ANTES da guarda de propósito: assim o dado é consumido
+      // do mesmo jeito havendo autor ou não, e nenhum placar das rodadas seguintes
+      // muda por causa desta regra (o passado é imutável, regra da casa).
       const min = half === 2
         ? (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 46 + Math.floor(rngUse() * 45)) // 2º tempo: 46..90 (+ acréscimos)
         : (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 1 + Math.floor(rngUse() * 90)) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
+      // 🛟 sem autor possível (XI vazio ou só perna-de-pau) → o gol fica sem dono:
+      // o placar já foi somado à parte e a tela não quebra.
+      if (!pick) continue
+      const key = `${t.name}:${pick.id}`, row = scorers.get(key)
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id, club: pick.club, year: pick.year })
       evs.push({ name: pick.name, min, id: pick.id })
     }
     // 🅰️ QUEM DEU O PASSE — calculado DEPOIS que os gols já saíram, com dado
@@ -1003,6 +1011,7 @@ export function melhorDoMundo(scorers: SeasonScorer[], assists: SeasonAssist[]):
   for (const r of m.values()) {
     r.total = r.goals + r.assists
     if (r.total <= 0) continue
+    if (ehFake(r)) continue   // 🚫 perna-de-pau nunca é melhor do mundo (Diego 19/09)
     if (!melhor) { melhor = r; continue }
     const ganha = r.total !== melhor.total ? r.total > melhor.total
       : r.goals !== melhor.goals ? r.goals > melhor.goals
@@ -1066,13 +1075,15 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     const day = new Map<string, number>()
     for (const c of xi) day.set(c.id, 0.4 + rng() * 2.2)
     for (let g = 0; g < goals; g++) {
-      const pool = xi.map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
+      // 🚫 perna-de-pau não faz gol na Copa também (Diego 19/09)
+      const pool = xi.filter(c => !ehFake(c)).map(c => ({ c, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)) * goalW(c) * (day.get(c.id) ?? 1) }))
       const total = pool.reduce((s, p) => s + p.w, 0); let r = rng() * total, pick = pool[0]?.c
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
+      const min = 1 + Math.floor(rng() * 90)   // 🎲 sempre consome, com autor ou sem
       if (!pick) continue
       const key = `${e.t.name}:${pick.id}`, row = scorers.get(key)
       if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id, club: pick.club, year: pick.year })
-      evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90), id: pick.id })
+      evs.push({ name: pick.name, min, id: pick.id })
     }
     return evs
   }

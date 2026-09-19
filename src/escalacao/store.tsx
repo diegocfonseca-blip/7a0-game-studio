@@ -154,6 +154,15 @@ function applyRewards(coins: Record<number, number> | undefined, rewards?: Recor
 // clube-sentinela dos fillers "perna-de-pau" (tampa-buraco, não colecionável, sem
 // salário): 'Várzea' no futebol, 'Pickup' no basquete (Street League). Mesmo papel.
 export const isFillerClub = (club: string): boolean => club === 'Várzea' || club === 'Pickup'
+// 🚫🧍 JOGADOR DE MENTIRA — ordem do Diego (19/09): *"jogadores fakes não quero que
+// tenha estatísticas pra eles, nem assistência e nem gols"*. Ele pegou um 🥇 Zé
+// Ninguém (Várzea · 2000) como BOLA DE OURO da T43, com 39 assistências — perna-de-pau
+// premiado é exatamente o "estado quebrado" que ele mais odeia.
+// Dois jeitos de nascer, e os dois entram aqui: a carta com `fake: true` (o
+// preenchimento de elenco incompleto) e o FILLER dos times de fundo, que não carrega
+// a flag mas tem clube 'Várzea'/'Pickup'. Quem decide gol e assistência chama ISTO —
+// assim o critério é um só e não escapa por um caminho novo.
+export const ehFake = (c: { fake?: boolean; club?: string }): boolean => !!c.fake || isFillerClub(c.club ?? '')
 // 💸 SALÁRIO de um jogador = piso (paid) ÷ 10, arredondado. Incógnita (fake/Várzea)
 // não tem salário. É o MESMO número mostrado no elenco (💰 paid), pra bater certinho.
 export function salaryOfCard(c: WonCard): number {
@@ -2724,6 +2733,20 @@ function migrateTeamNames(st: EscState): EscState {
   // 🏢 saves antigos gravavam UM empréstimo (objeto); agora são LISTAS por divisão
   if (st.careerFilial) st.careerFilial = { ...st.careerFilial, loanOut: loanList(st.careerFilial.loanOut), loanIn: loanList(st.careerFilial.loanIn) }
   st.careerScorersAll = migraArtilhariaPorCarta(st.careerScorersAll)
+  // 🚫🧍 LIMPA O PASSADO DOS PERNA-DE-PAU (Diego 19/09, no save dele): a regra nova
+  // impede o filler de marcar daqui pra frente, mas o histórico já gravado continuaria
+  // mostrando 🥇 Zé Ninguém (Várzea · 2000) como Bola de Ouro da T43, com 39
+  // assistências. Some com isso na abertura do save — jogador de mentira não deixa
+  // rastro. NÃO encosta em ninguém de verdade: a régua é a mesma do jogo (`ehFake`),
+  // e um Cria da Base (jogador real do clube, só fraquinho) continua com tudo dele.
+  const semFake = <T extends { name: string; club?: string }>(rec: Record<string, T> | undefined) => {
+    if (!rec) return rec
+    const limpo = Object.fromEntries(Object.entries(rec).filter(([, l]) => !ehFake(l)))
+    return Object.keys(limpo).length === Object.keys(rec).length ? rec : limpo
+  }
+  st.careerScorersAll = semFake(st.careerScorersAll)
+  st.careerAssistsAll = semFake(st.careerAssistsAll)
+  st.careerMelhorMundo = semFake(st.careerMelhorMundo)
   return st
 }
 
@@ -7472,7 +7495,10 @@ export function reducer(state: EscState, action: Action): EscState {
       // repartindo o total embolado entre os xarás — ver o comentário de lá.
       const skey = chaveArtilheiro
       const all = { ...(s.careerScorersAll ?? {}) }
-      for (const sc of action.scorers) {
+      // 🚫🧍 segunda tranca contra o perna-de-pau (Diego 19/09): quem decide o gol já
+      // não escolhe carta de mentira, mas o histórico de TODOS OS TEMPOS é pra sempre —
+      // se algum caminho novo deixar um filler passar, ele morre aqui.
+      for (const sc of action.scorers.filter(x => !ehFake(x))) {
         const prev = all[skey(sc)]
         // 🧹 `cardId` NÃO entra no que fica guardado: ele muda a cada leilão, não
         // quer dizer nada de uma temporada pra outra e só engorda o save.
@@ -7493,7 +7519,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // porque isto nunca foi guardado antes — não há passado pra repartir.
       if (action.assists?.length) {
         const todas = { ...(s.careerAssistsAll ?? {}) }
-        for (const as of action.assists) {
+        for (const as of action.assists.filter(x => !ehFake(x))) {
           const k = skey(as)
           const { cardId: _semId, ...linha } = as
           todas[k] = { ...linha, assists: (todas[k]?.assists ?? 0) + as.assists }
@@ -7503,7 +7529,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🥇 MELHOR DO MUNDO do ano (gol + assistência somados). Vem calculado da
       // tela, como os artilheiros — e entra no mesmo portão idempotente, então
       // uma temporada nunca é premiada duas vezes.
-      if (action.melhor) {
+      if (action.melhor && !ehFake(action.melhor)) {
         s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
         // 🥇💰 O PRÊMIO (Diego 19/09): *"todo bola de ouro q o time tiver o clube ganhará
         // 20 moedas extras e o jogador passa a valorizar mais 10 de piso"*.

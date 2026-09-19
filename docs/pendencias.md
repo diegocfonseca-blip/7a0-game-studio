@@ -74,6 +74,35 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 22) — 🚫🧍 PERNA-DE-PAU NÃO TEM ESTATÍSTICA (nem gol, nem assistência)
+
+Ele mandou um print do jornal da T43 dele: **🥇 Zé Ninguém (Várzea · 2000) BOLA DE OURO**,
+com 10 gols e 39 assistências, e a lista de garçons inteira tomada por Perna-de-pau,
+Bola Murcha, Pé de Anjo e Meia-Boca. Palavras dele: *"jogadores fakes não quero que
+tenha estatísticas pra eles, nem assistência e nem gols"*. É o "estado quebrado" nº 1
+da casa: jogador de mentira premiado.
+
+### 🔎 Por que acontecia
+O peso por nível (`goalW`) só DIMINUÍA a chance do filler, não zerava. Nos times de
+fundo da Várzea **todo mundo é filler** — então alguém de mentira tinha que marcar, e
+com 38 rodadas ele acumulava mais que os craques das divisões de cima.
+
+### ✅ Como ficou
+- **`ehFake(c)`** (`store.tsx`), a régua única: `fake === true` **ou** clube de filler
+  (`Várzea`/`Pickup` — o filler dos bots não carrega a flag, só o clube).
+- **Gol e assistência na liga e na Copa** só sorteiam jogador de verdade. Time 100% de
+  mentira faz o gol no PLACAR e **o gol fica sem dono na súmula** — nada trava.
+- ⚠️ **O dado (rng) é consumido igual, com autor ou sem** — o minuto do gol passou pra
+  antes da guarda de propósito. Sem isso, um gol sem autor desalinharia o sorteio e
+  mudaria PLACAR de rodada já jogada (o passado é imutável, regra da casa).
+- **Segunda tranca** no `RECORD_SEASON_STATS`: fake não entra no histórico de todos os
+  tempos nem leva Bola de Ouro, mesmo que um caminho novo deixe passar.
+- **Limpeza do passado na abertura do save**: os fakes somem de `careerScorersAll`,
+  `careerAssistsAll` e `careerMelhorMundo`. O save dele perde o 🥇 Zé Ninguém sozinho,
+  sem migração manual. **Cria da Base não é fake** — o guri é jogador de verdade do
+  clube e mantém tudo o que fez.
+- Sem novidade na home (é conserto, regra da casa). Reverter: `git revert` desta parte.
+
 ## 19/09/2026 (parte 21) — 🥇💰 A Bola de Ouro passa a PAGAR (20 🪙 + 10 de piso)
 
 Ordem dele, junto com o pedido de mockup e vídeo: *"todo bola de ouro q o time tiver o

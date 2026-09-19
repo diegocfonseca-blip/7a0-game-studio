@@ -430,6 +430,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   preparador nunca mais diz "joga N seguidas e senta 1" — ele confundiu com o ponto
   em que o jogador cansa (54 jogos, igual pra todos). Diz-se quanto o BANCO devolve
   e quantos jogos um descanso paga.
+- **🚫🧍 JOGADOR DE MENTIRA NÃO TEM ESTATÍSTICA (19/09).** Palavras dele: *"jogadores
+  fakes não quero que tenha estatísticas pra eles, nem assistência e nem gols"* (ele
+  pegou um 🥇 Zé Ninguém, da Várzea, como Bola de Ouro). A régua é `ehFake()` em
+  `store.tsx` (`fake: true` **ou** clube `Várzea`/`Pickup`, que é como o filler dos bots
+  nasce). Vale pra gol, assistência, artilharia de todos os tempos e Bola de Ouro.
+  Time todo de mentira faz o gol no placar e **ninguém leva o gol na súmula**.
+  ⚠️ Quem mexer aqui: o **rng tem que ser consumido igual, com autor ou sem** — senão
+  muda placar de rodada já jogada. E **Cria da Base NÃO é fake**: o guri é real.
 - **🥇 A BOLA DE OURO PAGA (19/09): 20 🪙 pro clube + 10 de piso no jogador.** Palavras
   dele: *"todo bola de ouro q o time tiver o clube ganhará 20 moedas extras e o jogador
   passa a valorizar mais 10 de piso"*. Acumula por título, o piso vale mesmo se o
