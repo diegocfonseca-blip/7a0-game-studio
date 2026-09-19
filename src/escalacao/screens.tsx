@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -855,7 +855,9 @@ function turfColors(state: EscState): [string, string] {
 // 🎽 `manto`: cores do coração do DONO do time (só o próprio usuário vê o seu) —
 // faixinha listrada no topo das fichinhas + barrinha de título nas cores.
 // Aprovado pelo Diego 09/08 (arte manto-real.png). Sem manto, nada muda.
-function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90, mantoC3 = null, mantoC3Buf = false }: { m: Manager; small?: boolean; bench?: boolean; title?: string; manto?: [string, string] | null; mantoDir?: number; mantoC3?: string | null; mantoC3Buf?: boolean }) {
+// 🧪 exportado SÓ pra bancada (`scripts/teste-campinho-leilao`) poder montar o
+// campinho do leilão de verdade — nada do jogo muda por causa do `export`.
+export function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90, mantoC3 = null, mantoC3Buf = false }: { m: Manager; small?: boolean; bench?: boolean; title?: string; manto?: [string, string] | null; mantoDir?: number; mantoC3?: string | null; mantoC3Buf?: boolean }) {
   const { state } = useEsc()
   const [g1, g2] = turfColors(state)
   // ⚽🅰️ SELOS NO CAMPINHO DO RÁPIDO (Diego 24/08: *"o campinho de gols coloque
@@ -872,8 +874,28 @@ function Campinho({ m, small = false, bench = false, title, manto, mantoDir = 90
       // titular: os primeiros `slots` por posição. reserva (banco): os `slots`
       // seguintes — o leilão de reservas mira 22 (2× a formação), então cada
       // posição ganha um espelho no campinho de baixo.
+      // 🪑 O BANCO MOSTRA O BANCO INTEIRO (Diego 19/09: *"o campinho que eu tava
+      // falando era o do leilão, quando vai pro leilão aparecem dois
+      // campinhos"* — e antes: *"não consigo comprar, já tô com campinho do
+      // titular cheio e campinho de reserva cheio no 4-2-3-1"*).
+      // O banco tinha EXATAMENTE `slots` lugares — um espelho do time titular.
+      // Isso dava dois estragos de uma vez:
+      //  1) quem passasse disso na posição SUMIA do desenho (ficava no elenco,
+      //     dava lance, jogava, e não aparecia em campinho nenhum) — já acontecia
+      //     com o +1 por posição do elenco de 27 e com o emprestado da SAF;
+      //  2) o banco parecia CHEIO quando ainda tinha vaga, que foi exatamente o
+      //     que fez o Diego achar que não podia mais comprar atacante.
+      // Agora o banco desenha o TETO DE ELENCO da posição menos os titulares
+      // (`slotsCheio - slots`), e cresce mais se alguém sobrar. Ou seja: a vaga
+      // livre aparece como lugar VAZIO, que é a verdade — no 4-2-3-1 o elenco
+      // separa 3 atacantes, então o banco tem 2 lugares, não 1.
+      // ⚠️ Só o banco muda. O campinho dos TITULARES continua sendo a formação e
+      // ponto — lá o número de lugares é regra de jogo, não é mostruário.
       const start = bench ? slots : 0
-      return Array.from({ length: slots }, (_, i) => ({ pos: p, card: have[start + i] ?? null }))
+      const lugares = bench
+        ? Math.max(slots, slotsCheio(m, p) - slots, have.length - slots)
+        : slots
+      return Array.from({ length: lugares }, (_, i) => ({ pos: p, card: have[start + i] ?? null }))
     }
     const lats = buildRow('LAT') // [esquerda, direita] quando existirem
     const zags = buildRow('ZAG')

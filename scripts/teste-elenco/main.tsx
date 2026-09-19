@@ -14,6 +14,13 @@
 //   ?n=31  → 27 + os 4 emprestados da SAF na Série A
 //   ?olheiro=ouro|prata|nenhum → as três visões da coluna OVERALL
 //   ?gas=0 → desliga a condição física (carreira que ainda não chegou na Série C)
+//   ?form=4-2-3-1 → monta o elenco NAQUELA formação (rótulo do Diego; por dentro
+//                   o motor roda a FormationKey equivalente)
+//   ?ata=3 → força N atacantes no elenco, pra responder a pergunta do Diego (19/09):
+//            *"mas ele não vai aparecer no campinho dos reservas, né, esse terceiro?"*
+//            Resposta que o print dá: o CAMPINHO só desenha os 11 titulares; os
+//            reservas são LISTA, sem número fixo de lugares — o 3º atacante entra
+//            como mais uma linha ATA.
 import { createRoot } from 'react-dom/client'
 import { EscProvider } from '../../src/escalacao/store'
 import '../../src/escalacao/screens' // mesma ordem do app (o ciclo store↔pyramidseason quebra sem isto)
@@ -21,10 +28,17 @@ import { SquadTab } from '../../src/escalacao/pyramidseason'
 import { _bancadaElencoNovo } from '../../src/escalacao/sport'
 import { _bancadaApoio } from '../../src/escalacao/apoio'
 import LENDAS from '../../src/escalacao/legend-avatars.json'
-import type { Manager, WonCard, Sector } from '../../src/escalacao/types'
+import { FORMATIONS } from '../../src/escalacao/types'
+import type { Manager, WonCard, Sector, FormationKey } from '../../src/escalacao/types'
 
 const q = new URLSearchParams(location.search)
 const N = Number(q.get('n') ?? 27)
+// 🎭 rótulo → conta do motor (o mesmo par que `formacoes.ts` usa em produção):
+// o 4-2-3-1 JOGA como 4-5-1, 1 homem na frente.
+const COMO_RODA: Record<string, FormationKey> = { '4-2-3-1': '4-5-1', '4-1-4-1': '4-5-1', '4-3-1-2': '4-4-2' }
+const ROTULO = q.get('form') ?? '4-4-2'
+const FORM: FormationKey = (COMO_RODA[ROTULO] ?? (ROTULO as FormationKey))
+const ATA_FORCADO = q.get('ata') ? Number(q.get('ata')) : null
 const OLHEIRO = q.get('olheiro') ?? 'ouro'
 const GAS = q.get('gas') !== '0'
 // 🎴 qual jogador já vem TOCADO (pra a ficha preta aparecer no print). `?sel=` troca.
@@ -52,14 +66,17 @@ const nomeados = new Set(Object.values(POR_POS).flat())
 const sobra = TODAS.filter(l => !nomeados.has(l.name))
 
 const ORDEM: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
-const BASE: Record<Sector, number> = { GOL: 2, LAT: 4, ZAG: 4, MEI: 8, ATA: 4 }
+// 2× o que a formação pede em cada posição (era escrito na mão pro 4-4-2; agora
+// segue a formação escolhida, senão a bancada mente em qualquer outra).
+const BASE: Record<Sector, number> = Object.fromEntries(
+  ORDEM.map(p => [p, 2 * FORMATIONS[FORM][p]])) as Record<Sector, number>
 const squad: WonCard[] = []
 let i = 0, sobraI = 0
 const proximo = (pos: Sector, k: number): Lenda =>
   acha(POR_POS[pos][k] ?? '') ?? sobra[sobraI++] ?? { name: `Reserva ${i}`, club: 'Várzea', year: 1990 }
 for (const pos of ORDEM) {
   const PROPRIOS = Math.min(N, 27) // acima de 27 o que entra é empréstimo da SAF, não elenco
-  const quantos = BASE[pos] + (PROPRIOS > 22 ? 1 : 0)
+  const quantos = pos === 'ATA' && ATA_FORCADO != null ? ATA_FORCADO : BASE[pos] + (PROPRIOS > 22 ? 1 : 0)
   for (let k = 0; k < quantos && squad.length < PROPRIOS; k++, i++) {
     const l = proximo(pos, k)
     squad.push({ id: `c${i}`, name: l.name, club: l.club, year: l.year,
@@ -75,17 +92,18 @@ if (N > 27) {
     squad.push({ id: `emp${k}`, name: l.name, club: l.club, year: l.year, pos: EMP[k], fame: 3, lo: 70, hi: 84, paid: 0, via: 'saf', emprestado: 'saf' } as unknown as WonCard)
   }
 }
-const mgr = { id: 7, name: 'Diego', teamName: 'Nova Eclipse', isHuman: true, auctionRival: false, squad, formation: '4-4-2' } as unknown as Manager
+const mgr = { id: 7, name: 'Diego', teamName: 'Nova Eclipse', isHuman: true, auctionRival: false, squad,
+  formation: FORM, formationView: ROTULO === FORM ? undefined : ROTULO, formUnlocked: true } as unknown as Manager
 const col = { solid: '#1B7A3D', light: '#CBEFD7' }
 // ⚠️ O XI TEM QUE RESPEITAR A FORMAÇÃO (erro pego em 16/09): antes era
 // `squad.slice(0, 11)`, que punha 3 GOLEIROS em campo e deixava o campinho com cara
 // de bug — e quem olhasse o print ia achar que o JOGO estava quebrado.
-const XI_442: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 4, ATA: 2 }
+const XI_FORM: Record<Sector, number> = FORMATIONS[FORM]
 const xi: WonCard[] = []
 for (const pos of ORDEM) {
   // emprestado NÃO entra no XI da bancada: aqui o ponto é olhar o elenco próprio
   const desta = squad.filter(c => c.pos === pos && !(c as { emprestado?: string }).emprestado)
-  xi.push(...desta.slice(0, XI_442[pos]))
+  xi.push(...desta.slice(0, XI_FORM[pos]))
 }
 const ehTitular = (id: string) => xi.some(x => x.id === id)
 // 😓 gás e jogos plausíveis: titular gasta, banco está inteiro — e entra um de cada
