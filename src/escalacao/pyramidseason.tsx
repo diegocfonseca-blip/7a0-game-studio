@@ -66,6 +66,7 @@ import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
+import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -2670,6 +2671,22 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // narração de baixo, que agora mora só em cima). Usa `shown`, que já é
   // travado pelo relógio (min <= relógio) — mesma trava anti-spoiler de
   // sempre, nunca revela um gol antes da hora.
+  // 🎉 A TORCIDA EXPLODE NO GOL (Diego 18/09: *"pra dar mais emoção ao jogo"*).
+  // Aqui é o lugar certo porque este placar é o MESMO componente dos dois modos —
+  // carreira e rápido/online —, então o urro sai nos dois sem duplicar nada.
+  // 🔊 Mais forte quando o gol é SEU: no estádio a torcida da casa grita mais alto.
+  // Só reage a gol que JÁ apareceu na tela (`shown` respeita o relógio) — ou seja,
+  // nunca entrega um gol antes da animação, que é a lei anti-spoiler da casa.
+  const golsOuvidosRef = useRef(0)
+  useEffect(() => {
+    const n = shown.length
+    if (n > golsOuvidosRef.current) {
+      const ultimo = shown[n - 1]
+      const meu = ultimo ? (ultimo.home === youIsHome) : false
+      if (TORCIDA_NOVA) crowdRoar(meu ? 1.15 : 0.75)  // 🔇 segurado: ele só liberou o apito por enquanto
+    }
+    golsOuvidosRef.current = n   // rodada nova zera junto (shown volta a 0)
+  }, [shown.length, youIsHome])
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
   if (cinematic) return <OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
@@ -6711,6 +6728,18 @@ export function PyramidSeasonScreen() {
   const [divisionView, setDivisionView] = useState<Div | null>(null)
   const [scoreClock, setScoreClock] = useState({ round: -1, minute: 0 })
   const reportMinute = useCallback((minute:number) => setScoreClock({round:state.round,minute}),[state.round])
+  // 📣 A TORCIDA E O APITO, TAMBÉM NA CARREIRA (Diego 18/09: *"precisamos colocar
+  // som de torcida nos jogos, seja online ou offline… apito sempre que iniciar
+  // partida e cantos de torcida durante o jogo"*).
+  // Isto já existia — mas SÓ na tela do jogo rápido/online (`screens.tsx`). A
+  // carreira, que é onde ele mais joga, era muda. Foi o "e aí, cadê?" dele.
+  // 🔇 Nada toca sem a pessoa ligar o 🔊 (o som nasce MUDO, opt-in) e nada baixa:
+  // torcida, canto e apito são sintetizados, 0 KB.
+  // 🔇 POR ENQUANTO SÓ O APITO (Diego 18/09, depois de ouvir as gravações: *"não
+  // suba nenhum som ainda… por enquanto só o apito mesmo"*). A torcida de fundo da
+  // carreira fica pronta atrás da chave `TORCIDA_NOVA`, em `sound.ts`.
+  useEffect(() => { if (!TORCIDA_NOVA) return; startCrowd(); return () => stopCrowd() }, [])
+  useEffect(() => { if (state.round > 0) playWhistle() }, [state.round])
   // 🟢 liga o "contexto verde" da carreira OFFLINE (feehcamp etc. veem verde SÓ aqui;
   // ouro em todo o resto). Inline (roda antes dos filhos, sem flash) + limpa ao sair.
   setCareerColorCtx(state.careerOnline && state.onlineMode !== 'online' ? 'offline' : null)
