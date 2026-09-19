@@ -94,12 +94,26 @@ sócio, manto, mascote e escudo apontados, e `valido_ate` de batismo eterno.
 Fundador bate com o código em todos (os dois sem número são **sócios**, que por
 regra não têm mesmo: Futpoint FC e o assinante `delaofut`).
 
+### ✅ Dois dos três consertos, feitos no mesmo dia (ele mandou: *"2 ok"* · *"3 são
+todos times de batismo igual aos outros"*)
+- 🟠 **Ouro oficial criado** pros três: `user_colors` (tier ouro + manual) pra
+  **Crias do Bigão**, **Coringas do Diniz** e **Nata de SP**. Conferido depois:
+  **zero** batismo sem a linha oficial. Não mudou nada na tela deles (já viam
+  dourado pela reserva do código) — o que mudou é que agora a fonte oficial
+  concorda com o código, e é a única perna que funciona sem deploy.
+- 🟡 **Os 4 nomes puros foram trancados**: entrou `skyy`, `marreco`, `futpoint` e
+  `marinheiros` em `esc_nomes_batismo`, e **o gatilho completou o FC e o EC
+  sozinho**, como manda a regra das 4 formas. Antes dava pra qualquer um criar um
+  time chamado "Skyy" — agora não dá. (Marinheiros ficou com as 4 + o `as`.)
+  📌 **A lição**: o gatilho só dispara com o **nome PURO**. Quem cadastrar direto a
+  forma com sufixo deixa o nome puro livre e não percebe, porque nenhuma trava
+  olha o banco. Vale conferir isso a cada batismo novo.
+
 ### Pendências que saem daqui
 - 🔴 **Marreco FC**: pedir arte ao dono, ou avisar o Diego que vai de peça neutra.
-- 🟠 Criar as 3 linhas de `user_colors` (ouro + manual). **Não fiz sozinho**: são
-  contas de gente de verdade e ele pediu o RELATÓRIO, não a mexida.
-- 🟡 Destravar os 4 nomes puros.
+  É o único batismo sem escudo, sem mascote, sem manto e sem camisa.
 - 🦁 Confirmar com o Luiz o nome da mascote do Remoçada ("O Leão de Thor" é chute).
+- 📅 O ano do **Dirceu Krüger** (1973) ficou aprovado por ele: *"1- ok segue"*.
 
 ## 19/09/2026 — 🧾 A ficha do jogador: "esta temporada" × "no seu clube"
 
