@@ -30,7 +30,8 @@
 //   Final (2→1, jogo único, travada)
 
 import type { Div, SimTeam, Goal, SeasonScorer, SeasonAssist, RoundLineups, PoolCard, Tac, CopaResult, CopaRound } from './pyramidseason'
-import { mulberry, shuffle, poisson, rollForm, lineupAt, TACS, GOAL_TUNE, teamKey, mid, pickAssist } from './pyramidseason'
+import { mulberry, shuffle, poisson, rollForm, lineupAt, TACS, GOAL_TUNE, teamKey, mid, pickAssist, semFake } from './pyramidseason'
+import { ehCartaFake } from './fake' // 🃏🚫 tapa-buraco marca, mas não entra em ranking (Diego 19/09)
 
 type Entrant = { t: SimTeam; div: Div }
 
@@ -137,7 +138,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       if (!pick) continue
       const key = `${e.t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id, club: pick.club, year: pick.year })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id, club: pick.club, year: pick.year, fake: ehCartaFake(pick) })
       evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90), id: pick.id })
     }
     return evs
@@ -157,7 +158,7 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
       evs[i].assist = a.name
       const k = `${e.t.name}:${a.id}`, row = assists.get(k)
       if (row) row.assists++
-      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id, club: a.club, year: a.year })
+      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id, club: a.club, year: a.year, fake: ehCartaFake(a) })
     })
     return evs
   }
@@ -257,8 +258,12 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
   const fin = rounds[rounds.length - 1]
   const ft = fin && fin.ties.length === 1 ? fin.ties[0] : null
   const viceEnt: Entrant | null = ft ? (ft.win === 'a' ? { t: ft.b, div: ft.bDiv } : { t: ft.a, div: ft.aDiv }) : null
-  const list = [...scorers.values()].sort((a, b) => b.goals - a.goals)
-  const listA = [...assists.values()].sort((a, b) => b.assists - a.assists)
+  // 🃏🚫 a CRUA fica pro `goalsByCard` (ficha do jogador); o RANKING vai sem
+  // tapa-buraco — inclusive o artilheiro da Copa, que paga prêmio. Diego 19/09.
+  const crua = [...scorers.values()].sort((a, b) => b.goals - a.goals)
+  const cruaA = [...assists.values()].sort((a, b) => b.assists - a.assists)
+  const list = semFake(crua)
+  const listA = semFake(cruaA)
 
   return {
     groups: [], // sem fase de grupos na v2
@@ -274,8 +279,8 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
     assists: listA.slice(0, 20),
     assistsAll: listA,
     topAssist: listA[0],
-    goalsByCard: porCarta(list, s => s.goals),
-    assistsByCard: porCarta(listA, a => a.assists),
+    goalsByCard: porCarta(crua, s => s.goals),
+    assistsByCard: porCarta(cruaA, a => a.assists),
   }
 }
 

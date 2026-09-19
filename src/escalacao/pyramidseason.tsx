@@ -18,6 +18,7 @@ import { OnlineScorePresentation, CompactPenalties } from './online-match-visual
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
+import { ehCartaFake, ehLinhaFake } from './fake' // 🃏🚫 tapa-buraco joga e marca, mas não entra em ranking (Diego 19/09)
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00 (mesma conta em toda tela)
 import { exactPenaltyRows } from './online-penalties'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, DIVISION_TEAMS, TIMES_ELITE, EXTRA_D_TEAMS, oldChain, newestTeamName, ehPromessa } from './data'
@@ -206,12 +207,23 @@ export interface SimTeam { name: string; you: boolean; human: boolean; rival?: b
 // não pode ser por nome, e sim por carta"*. O `cardId` não serve pra isso porque o
 // leilão dá id novo pra mesma pessoa todo ano; quem não muda é nome|clube|ano — a
 // mesma chave que o `condicaoCarry` já usa. Opcional porque save antigo não tem.
-export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number }
+// 🃏🚫 `fake` = jogador TAPA-BURACO (filler de várzea ou incógnita). Ordem do
+// Diego (19/09): *"eles podem fazer gols ou assistência durante o jogo, não tem
+// problema nenhum. Mas não podem contar pra estatística de artilharia,
+// assistência e bola de ouro"*. Por isso ele CONTINUA sendo creditado aqui — o
+// gol é dele, aparece no placar e na ficha do time — e é peneirado só na hora de
+// montar RANKING (ver `semFake`, em `fake.ts` mora quem é quem).
+export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number; fake?: boolean }
 // 🅰️ GARÇOM DA TEMPORADA (assistências, 24/08). Mesma forma do artilheiro, só
 // que contando passes pro gol.
 // 🃏 mesma identidade de carta do artilheiro — ordem do Diego (19/09): *"todos
 // dados que tá fazendo de gols sempre serve pra assistência também hein"*.
-export interface SeasonAssist { name: string; teamName: string; teamId: number; div: Div; assists: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number }
+export interface SeasonAssist { name: string; teamName: string; teamId: number; div: Div; assists: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number; fake?: boolean }
+// 🃏🚫 A PENEIRA DO RANKING: tira o tapa-buraco de qualquer lista que vira
+// classificação (artilharia, garçons, artilheiro da divisão, artilheiro de copa,
+// Bola de Ouro). Uma função só, usada em todos os lugares — assim não existe
+// ranking que esqueceu de peneirar.
+export const semFake = <T extends { name: string; club?: string; fake?: boolean; cardId?: string }>(l: T[]): T[] => l.filter(x => !ehLinhaFake(x))
 // ─── 🅰️ QUEM DEU O PASSE ────────────────────────────────────────────────────
 // ⚠️ A REGRA DE OURO DESTA FUNÇÃO (medo do Diego, 24/08: *"não quero gente
 // falando: meu time fez 7 gols e não teve assistência… as coisas têm que bater
@@ -758,7 +770,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       // artilheiro nesse gol (o placar já foi somado à parte). Mesma guarda da Copa.
       if (!pick) continue
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id, club: pick.club, year: pick.year })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id, club: pick.club, year: pick.year, fake: ehCartaFake(pick) })
       const min = half === 2
         ? (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 46 + Math.floor(rngUse() * 45)) // 2º tempo: 46..90 (+ acréscimos)
         : (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 1 + Math.floor(rngUse() * 90)) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
@@ -787,7 +799,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       if (!e.assist || !e.assistId) continue
       const k = `${t.name}:${e.assistId}`, row = assists.get(k)
       if (row) row.assists++
-      else assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId, club: t.squad.find(x => x.id === e.assistId)?.club, year: t.squad.find(x => x.id === e.assistId)?.year })
+      else {
+        const carta = t.squad.find(x => x.id === e.assistId)
+        assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId, club: carta?.club, year: carta?.year, fake: carta ? ehCartaFake(carta) : ehLinhaFake({ name: e.assist }) })
+      }
     }
   }
   const nr = Math.min(round, 38)
@@ -895,7 +910,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       const tk = humM.squad.find(c => c.id === pd.taker)
       const nm = tk?.name ?? 'Cobrador'
       const pkey = `${humM.name}:${pd.taker}`, prow = scorers.get(pkey)
-      if (prow) prow.goals++; else scorers.set(pkey, { name: nm, teamName: humM.name, teamId: humM.teamId, div, goals: 1, you: humM.you, human: humM.human, rival: humM.rival, dorm: humM.dorm, cardId: pd.taker, club: tk?.club, year: tk?.year })
+      if (prow) prow.goals++; else scorers.set(pkey, { name: nm, teamName: humM.name, teamId: humM.teamId, div, goals: 1, you: humM.you, human: humM.human, rival: humM.rival, dorm: humM.dorm, cardId: pd.taker, club: tk?.club, year: tk?.year, fake: tk ? ehCartaFake(tk) : false })
       const penEv = { name: nm, min: 90, id: pd.taker }
       if (H.human) { hgF += 1; hFinal = [...hFinal, penEv] } else { agF += 1; aFinal = [...aFinal, penEv] }
     }
@@ -934,10 +949,16 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   const assistsByCard: Record<string, number> = {}
   for (const a of assists.values()) if (a.cardId) assistsByCard[a.cardId] = a.assists
   // ARTILHEIRO de cada divisão (o #1 em gols) — pra premiar time + subir piso
+  // 🃏🚫 SEM TAPA-BURACO: o prêmio do artilheiro dá caixa pro clube e sobe o PISO
+  // do jogador. Filler não tem salário nem piso, então premiar um era prêmio
+  // jogado fora — e ainda tirava o troféu de quem jogou de verdade.
   const divTop = {} as Record<Div, SeasonScorer | undefined>
-  for (const s of scorers.values()) if (s.goals > 0 && (!divTop[s.div] || s.goals > divTop[s.div]!.goals)) divTop[s.div] = s
-  const sorted = [...scorers.values()].sort((a, b) => b.goals - a.goals)
-  const assistsSorted = [...assists.values()].sort((a, b) => b.assists - a.assists)
+  for (const s of scorers.values()) if (s.goals > 0 && !s.fake && (!divTop[s.div] || s.goals > divTop[s.div]!.goals)) divTop[s.div] = s
+  // ⚠️ `goalsByCard`/`assistsByCard` acima são de PROPÓSITO com todo mundo: eles
+  // servem a ficha do jogador e a coluna do elenco, não ranking. O tapa-buraco
+  // marcou, então o gol dele existe — ele só não entra na classificação.
+  const sorted = semFake([...scorers.values()]).sort((a, b) => b.goals - a.goals)
+  const assistsSorted = semFake([...assists.values()]).sort((a, b) => b.assists - a.assists)
   return { tables, scorers: sorted.slice(0, 20), scorersAll: sorted, matches, goalsByCard, assistsByCard, assistsAll: assistsSorted, divTop }
 }
 // prêmio do artilheiro: CAIXA do time por divisão (A 30 · B 20 · C 15 · D 10) +
@@ -986,7 +1007,13 @@ export interface MelhorDoMundo {
   goals: number; assists: number; total: number
 }
 const MM_DIV_PESO: Record<Div, number> = { A: 5, B: 4, C: 3, D: 2, V: 1 }
-export function melhorDoMundo(scorers: SeasonScorer[], assists: SeasonAssist[]): MelhorDoMundo | null {
+export function melhorDoMundo(scorersIn: SeasonScorer[], assistsIn: SeasonAssist[]): MelhorDoMundo | null {
+  // 🃏🚫 A BOLA DE OURO NUNCA VAI PRO TAPA-BURACO (ordem do Diego, 19/09). As
+  // listas que chegam aqui já vêm peneiradas, mas a peneira é repetida de
+  // propósito: este prêmio é o que ele viu indo pro Zé Ninguém, e é o último
+  // lugar onde eu quero depender de quem chamou a função ter lembrado.
+  const scorers = semFake(scorersIn)
+  const assists = semFake(assistsIn)
   const chave = (x: { name: string; club?: string; year?: number }) => x.club ? `${x.name}|${x.club}|${x.year}` : x.name
   const m = new Map<string, MelhorDoMundo>()
   const pega = (k: string, base: Omit<MelhorDoMundo, 'goals' | 'assists' | 'total'>) =>
@@ -1071,7 +1098,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       if (!pick) continue
       const key = `${e.t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id, club: pick.club, year: pick.year })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id, club: pick.club, year: pick.year, fake: ehCartaFake(pick) })
       evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90), id: pick.id })
     }
     return evs
@@ -1169,14 +1196,19 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   const ft = fin && fin.ties.length === 1 ? fin.ties[0] : null
   const vice = ft ? (ft.win === 'a' ? ft.b : ft.a) : null
   const viceDiv = ft ? (ft.win === 'a' ? ft.bDiv : ft.aDiv) : null
-  const list = [...scorers.values()].sort((a, b) => b.goals - a.goals)
-  const listA = [...assists.values()].sort((a, b) => b.assists - a.assists)
+  // 🃏🚫 DUAS listas de propósito: a CRUA (com tapa-buraco, pra ficha/elenco pelo
+  // `goalsByCard`) e a do RANKING (sem tapa-buraco — artilharia, garçons e o
+  // artilheiro da Copa, que paga prêmio). Ordem do Diego, 19/09.
+  const crua = [...scorers.values()].sort((a, b) => b.goals - a.goals)
+  const cruaA = [...assists.values()].sort((a, b) => b.assists - a.assists)
+  const list = semFake(crua)
+  const listA = semFake(cruaA)
   const porCarta = <T extends { cardId?: string }>(l: T[], quanto: (x: T) => number): Record<string, number> => {
     const m: Record<string, number> = {}
     for (const x of l) if (x.cardId) m[x.cardId] = (m[x.cardId] ?? 0) + quanto(x)
     return m
   }
-  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), scorersAll: list, topScorer: list[0], assists: listA.slice(0, 20), assistsAll: listA, topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, x => x.assists) }
+  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), scorersAll: list, topScorer: list[0], assists: listA.slice(0, 20), assistsAll: listA, topAssist: listA[0], goalsByCard: porCarta(crua, x => x.goals), assistsByCard: porCarta(cruaA, x => x.assists) }
 }
 
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao

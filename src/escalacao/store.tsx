@@ -15,6 +15,7 @@ import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from '
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
+import { ehCartaFake, ehLinhaFake, isFillerClub as ehClubeTapaBuraco } from './fake' // 🃏🚫 tapa-buraco fora de artilharia/garçons/Bola de Ouro (Diego 19/09)
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
@@ -153,7 +154,7 @@ function applyRewards(coins: Record<number, number> | undefined, rewards?: Recor
 }
 // clube-sentinela dos fillers "perna-de-pau" (tampa-buraco, não colecionável, sem
 // salário): 'Várzea' no futebol, 'Pickup' no basquete (Street League). Mesmo papel.
-export const isFillerClub = (club: string): boolean => club === 'Várzea' || club === 'Pickup'
+export const isFillerClub = ehClubeTapaBuraco // 🏠 a regra mora em `fake.ts` agora (junto de quem mais é tapa-buraco); o nome fica aqui porque meia dúzia de telas importa dele
 // 💸 SALÁRIO de um jogador = piso (paid) ÷ 10, arredondado. Incógnita (fake/Várzea)
 // não tem salário. É o MESMO número mostrado no elenco (💰 paid), pra bater certinho.
 export function salaryOfCard(c: WonCard): number {
@@ -2551,7 +2552,9 @@ function devolveMedicoUmaVez(st: EscState): EscState {
   s.medicoDevolvido = clubes * MEDICO_CUSTO
   return s
 }
-function migrateTeamNames(st: EscState): EscState {
+// 🔓 exportado só pra TRAVA (`npm run fake`) poder abrir um save de mentira e
+// conferir que o tapa-buraco sai do histórico. Nenhuma tela chama de fora.
+export function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
     const out: Record<string, V> = {}
@@ -2714,7 +2717,26 @@ function migrateTeamNames(st: EscState): EscState {
   // 🏢 saves antigos gravavam UM empréstimo (objeto); agora são LISTAS por divisão
   if (st.careerFilial) st.careerFilial = { ...st.careerFilial, loanOut: loanList(st.careerFilial.loanOut), loanIn: loanList(st.careerFilial.loanIn) }
   st.careerScorersAll = migraArtilhariaPorCarta(st.careerScorersAll)
+  // 🃏🚫 LIMPEZA DO PASSADO (Diego, 19/09): *"tem um monte de jogador fake, Zé
+  // Ninguém, Trapalhão, ganhando a bola de ouro"*. A trava nova impede que entre
+  // mais; esta linha tira quem JÁ ENTROU, na hora em que o save abre. Sem ela, a
+  // carreira dele continuaria com o Trapalhão no topo do Rank pra sempre.
+  st.careerScorersAll = limpaFakeDoHistorico(st.careerScorersAll)
+  st.careerAssistsAll = limpaFakeDoHistorico(st.careerAssistsAll)
+  // 🥇 E a Bola de Ouro de um ano ganho por tapa-buraco SAI da lista. Não dá pra
+  // recalcular quem seria o certo (os números daquela temporada não ficam
+  // guardados), então o ano some do quadro de campeões em vez de mentir.
+  if (st.careerMelhorMundo) {
+    const anos = Object.entries(st.careerMelhorMundo).filter(([, v]) => !ehLinhaFake(v))
+    if (anos.length !== Object.keys(st.careerMelhorMundo).length) st.careerMelhorMundo = Object.fromEntries(anos)
+  }
   return st
+}
+/** tira do histórico de todos os tempos quem é tapa-buraco (filler/incógnita) */
+function limpaFakeDoHistorico<T extends { name: string; club?: string }>(m?: Record<string, T>): Record<string, T> | undefined {
+  if (!m) return m
+  const limpo = Object.entries(m).filter(([, v]) => !ehLinhaFake(v))
+  return limpo.length === Object.keys(m).length ? m : Object.fromEntries(limpo)
 }
 
 // ─── 🃏 ARTILHARIA DE TODOS OS TEMPOS: DE NOME PRA CARTA (19/09) ─────────────
@@ -2998,7 +3020,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       // jogo). O nível manda na média; o dia deixa um coadjuvante brilhar às vezes.
       const pool = m.squad.map(c => {
         const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-        return { name: c.name, w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
+        return { name: c.name, fake: ehCartaFake(c), w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
       })
       pool.sort((a, b) => b.w - a.w)
       // 🏀 só a ROTAÇÃO pontua (topo ~9); banco fundo quase não marca, igual à NBA.
@@ -3015,6 +3037,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         const share = i === rotation.length - 1 ? left : Math.max(0, Math.min(left, Math.round(pts * shareW[i] / shareTot)))
         left -= share
         if (share <= 0) return
+        // 🃏🚫 tapa-buraco PONTUA no jogo (o placar é dele também), mas não entra
+        // na cestinha. Mesma regra do futebol — ordem do Diego, 19/09.
+        if (p.fake) return
         const row = scorersList.find(s => s.name === p.name && s.teamId === id)
         if (row) row.goals += share
         else scorersList.push({ name: p.name, teamId: id, teamName: prefix, goals: share })
@@ -3059,15 +3084,16 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       // exibido diverge da tabela: vitória vira empate etc.).
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 90)
       let scorerName: string | null = null
+      let golFake = false // 🃏🚫 marcou, mas não entra na artilharia (Diego 19/09)
       if (m && m.squad.length > 0) {
-        const pool: { name: string; w: number }[] = []
+        const pool: { name: string; fake: boolean; w: number }[] = []
         for (const c of m.squad) {
           // posição × NÍVEL² (igual à carreira): craque leva a maioria dos gols,
           // perna-de-pau quase nunca marca — antes era só por posição e o filler
           // de várzea brigava na artilharia com o Pelé.
           const posW = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)
           const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-          pool.push({ name: c.name, w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
+          pool.push({ name: c.name, fake: ehCartaFake(c), w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
         }
         const total = pool.reduce((s, p) => s + p.w, 0)
         // 🧤 elenco degenerado (só goleiros/zagueiros sem peso = total 0): NÃO credita
@@ -3075,15 +3101,21 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         // um GOLEIRO podia ser cravado artilheiro (fere a regra do "sem perna-de-pau").
         if (total > 0) {
           let r = rng() * total
-          for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; break } }
-          if (!scorerName) scorerName = pool[0].name
+          for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; golFake = p.fake; break } }
+          if (!scorerName) { scorerName = pool[0].name; golFake = pool[0].fake }
         }
       }
       if (scorerName) {
         // credita no ranking (liga = state.scorers; Copa = qc.scorers, passado à parte)
-        const row = scorersList.find(s => s.name === scorerName && s.teamId === id)
-        if (row) row.goals++
-        else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
+        // 🃏🚫 …MENOS se quem fez é tapa-buraco: o gol dele vale no placar e sai na
+        // narração igual (é gol do time), mas ele não aparece na artilharia. Ordem
+        // do Diego, 19/09: *"podem fazer gols durante o jogo, não tem problema
+        // nenhum, mas não podem contar pra estatística"*.
+        if (!golFake) {
+          const row = scorersList.find(s => s.name === scorerName && s.teamId === id)
+          if (row) row.goals++
+          else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
+        }
         golsDoJogo.push({ nome: scorerName, min })
         if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
         if (capturePresentation) presentationGoals.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
@@ -3101,9 +3133,14 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       const lista = assistsList ?? (state.assists = state.assists ?? [])
       escolhidos.forEach((nome, i) => {
         if (!nome) return
-        const row = lista.find(a => a.name === nome && a.teamId === id)
-        if (row) row.assists++
-        else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
+        // 🃏🚫 o passe do tapa-buraco vale no jogo e sai na narração, mas não entra
+        // na lista de garçons — o que vale pro gol vale pra assistência (19/09).
+        const carta = m.squad.find(c => c.name === nome)
+        if (!carta || !ehCartaFake(carta)) {
+          const row = lista.find(a => a.name === nome && a.teamId === id)
+          if (row) row.assists++
+          else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
+        }
         if (involveHuman) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id, kind: 'assist' })
       })
     }
@@ -7462,7 +7499,12 @@ export function reducer(state: EscState, action: Action): EscState {
       // repartindo o total embolado entre os xarás — ver o comentário de lá.
       const skey = chaveArtilheiro
       const all = { ...(s.careerScorersAll ?? {}) }
-      for (const sc of action.scorers) {
+      // 🃏🚫 PORTA DE ENTRADA DO HISTÓRICO: aqui é o último lugar por onde um
+      // tapa-buraco poderia virar artilheiro de todos os tempos. A peneira já
+      // acontece lá na simulação, mas ela é repetida aqui de propósito — se um
+      // dia aparecer uma competição nova que esqueça de peneirar, esta porta
+      // segura. Ordem do Diego, 19/09.
+      for (const sc of action.scorers.filter(x => !ehLinhaFake(x))) {
         const prev = all[skey(sc)]
         // 🧹 `cardId` NÃO entra no que fica guardado: ele muda a cada leilão, não
         // quer dizer nada de uma temporada pra outra e só engorda o save.
@@ -7483,7 +7525,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // porque isto nunca foi guardado antes — não há passado pra repartir.
       if (action.assists?.length) {
         const todas = { ...(s.careerAssistsAll ?? {}) }
-        for (const as of action.assists) {
+        for (const as of action.assists.filter(x => !ehLinhaFake(x))) {
           const k = skey(as)
           const { cardId: _semId, ...linha } = as
           todas[k] = { ...linha, assists: (todas[k]?.assists ?? 0) + as.assists }
@@ -7493,7 +7535,8 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🥇 MELHOR DO MUNDO do ano (gol + assistência somados). Vem calculado da
       // tela, como os artilheiros — e entra no mesmo portão idempotente, então
       // uma temporada nunca é premiada duas vezes.
-      if (action.melhor) s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
+      // 🃏🚫 e a Bola de Ouro nunca é gravada pra tapa-buraco (Diego, 19/09)
+      if (action.melhor && !ehLinhaFake(action.melhor)) s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
       s.statsSeason = s.seasonNo
       return s
     }

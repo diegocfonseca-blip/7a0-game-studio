@@ -1,3 +1,56 @@
+## 19/09/2026 (parte 18) — 🃏🚫 Jogador tapa-buraco fora de artilharia, garçons e Bola de Ouro
+
+Ordem do Diego: *"tem um monte de jogador fake, Zé Ninguém, Trapalhão, ganhando a
+bola de ouro… eles podem fazer gols ou assistência durante o jogo, não tem problema
+nenhum. Mas não podem contar pra estatística de artilharia, assistência e bola de
+ouro"*.
+
+### A regra, em uma linha
+**Tapa-buraco joga, marca e some.** O gol dele conta no PLACAR, sai na narração e
+entra na ficha do time — ele só não aparece em NENHUMA classificação.
+
+### Quem é tapa-buraco (são DOIS tipos, e valem os dois)
+| tipo | como é | de onde vem |
+|---|---|---|
+| **filler de várzea** | `fil-…`, clube `Várzea` (no basquete, `Pickup`), nível 30–40, nome de zoeira | `filler()` em `pyramidseason.tsx` — fecha elenco de time de CPU |
+| **incógnita** | `inc-…`, `fake: true`, nome e clube inventados | `makeIncognita()` em `data.ts` — quando o catálogo real de uma posição acaba |
+
+Quem responde "é tapa-buraco?" é `src/escalacao/fake.ts`, um arquivo só — assim não
+existe lista de ranking que peneirou com régua diferente.
+
+### Onde a peneira entrou
+- **Liga** (`simulatePyramid`): artilharia, garçons **e o artilheiro da divisão** —
+  este último paga caixa pro clube e sobe o PISO do jogador, e filler não tem piso
+  nem salário, então o prêmio ia pro ralo e ainda tirava o troféu de quem jogou.
+- **Copa Legends** e **Copa do Brasil**: artilharia, garçons e o artilheiro da Copa.
+- **Jogo rápido / sala online** (`simMatch`), inclusive a **cestinha do basquete**.
+- **Bola de Ouro** (`melhorDoMundo`): peneira repetida de propósito — é o prêmio que
+  ele viu indo pro Zé Ninguém, é o último lugar onde eu quero depender de quem chamou.
+- **Porta do histórico** (`RECORD_SEASON_STATS`): peneira de novo, pra competição
+  nova que nasça esquecendo de peneirar não furar o acumulado.
+
+### 🧹 E o PASSADO é limpo
+Trava nova só impede que entre MAIS. Ao abrir o save (`migrateTeamNames`), sai quem
+já entrou: artilheiros e garçons de todos os tempos, e **o ano de Bola de Ouro
+ganho por tapa-buraco some do quadro de campeões** — não dá pra recalcular quem
+seria o certo (os números daquela temporada não ficam guardados), e some é melhor
+do que mentir.
+
+### 🛡️ O medo, e como ele foi medido
+O risco desta mudança é o contrário dela: sumir com jogador DE VERDADE do Rank.
+Varri o baralho inteiro (**1.466 cartas**): zero cartas reais com clube
+Várzea/Pickup, zero com nome de filler e zero que batem nome de incógnita E clube de
+incógnita ao mesmo tempo. **Nenhum falso positivo.** A varredura é parte da trava,
+então ela reprova sozinha se um dia entrar no baralho um jogador que caia na regra.
+
+**Trava: `npm run fake`** (5 seções: reconhecimento · zero falso positivo · Bola de
+Ouro · limpeza do passado · gol e assistência peneirados igual).
+
+🚫 **Não virou novidade da home**: é conserto, e a regra dele é *"menos bugs, que
+nunca lance"*.
+
+---
+
 ## 19/09/2026 (parte 17) — 🌑🐺 Mascote NOVA do Pesadelo Verde FC
 
 Ordem dele, curta: *"troque o mascote do pesadelo verde por esse aqui"*. Saiu o
