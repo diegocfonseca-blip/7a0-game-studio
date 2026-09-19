@@ -11,10 +11,15 @@ export function OnlineScorePresentation(p: {
   homeOwner?: string; awayOwner?: string; clock: string; homeScore: number; awayScore: number;
   goals: Goal[]; goalSide: 'h' | 'a' | null; mascot: ReactNode; stamp: string;
   narration: string; eventKey: number; enhanced?: boolean;
+  // 🔒 `big` = placar GRANDE da prévia (19/09: escudo 92, nome 18, número 44, frase 17 em
+  // até 2 linhas). `result` = quem ganhou no apito final: o escudo dele brilha e o do
+  // outro apaga. Fora da prévia os dois ficam de fora e nada muda.
+  big?: boolean; result?: 'h' | 'a' | null;
 }) {
   const team = (home: boolean) => {
     const name = home ? p.homeName : p.awayName
-    return <div className="ll25-team" style={{ borderColor: home ? p.homeColor : p.awayColor }}>
+    const fim = p.big && p.result ? (p.result === (home ? 'h' : 'a') ? ' ll30-win' : ' ll30-lose') : ''
+    return <div className={`ll25-team${fim}`} style={{ borderColor: home ? p.homeColor : p.awayColor }}>
       <div className="ll25-crest-slot">
         {!p.enhanced && p.goalSide === (home ? 'h' : 'a') ? <div className="ll25-mascot">{p.mascot}</div> : home ? p.homeCrest : p.awayCrest}
       </div>
@@ -22,7 +27,7 @@ export function OnlineScorePresentation(p: {
       <small>{(home ? p.homeOwner : p.awayOwner) ?? ((home === p.youIsHome) ? tr('VOCÊ', 'YOU') : tr('RIVAL', 'RIVAL'))}</small>
     </div>
   }
-  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''}`} aria-label="Placar da partida">
+  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''}`} aria-label="Placar da partida">
     <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>
       {p.goalSide ? p.stamp : p.narration}
     </div>
@@ -38,7 +43,7 @@ export function OnlineScorePresentation(p: {
       {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}
     </div>}
     <div className="ll25-scorers">{[true, false].map(home => <div key={String(home)}>
-      {p.goals.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`}>{g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
+      {p.goals.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`}>{p.big ? '⚽ ' : ''}{g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
       {!p.goals.some(g => g.home === home) && <p>{tr('Sem gols', 'No goals')}</p>}
     </div>)}</div>
   </section>

@@ -67,6 +67,7 @@ import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
+import { lanceDoGol } from './lances' // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -2924,14 +2925,32 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     golsOuvidosRef.current = n   // rodada nova zera junto (shown volta a 0)
   }, [shown.length, youIsHome, roundMs])
   const homeGoals = shown.filter(g => g.home), awayGoals = shown.filter(g => !g.home)
+  // 🎙️🔒 PLACAR GRANDE + LANCE DO GOL (Diego 19/09) — SÓ NA PRÉVIA DA CONTA DELE
+  // (`privatePreview`). Pedido: *"aumentar a área do placar… ampliar as frases… dar
+  // mais emoção"*. A emoção é o LANCE (como a bola entrou, banco em `lances.ts`) e o
+  // apito final dizendo o resultado. Sem faixa colorida e sem confete (ele barrou os
+  // dois). Pra todo mundo fora da prévia, nada aqui muda uma vírgula.
+  const grande = privatePreview && !basket
+  const minTxt = (m: number) => (m > 90 ? `90+${m - 90}` : `${m}`)
+  const lanceUltimo = grande && last ? lanceDoGol(last, roundKey) : ''
+  // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
+  const meusGols = youIsHome ? hg : ag, delesGols = youIsHome ? ag : hg
+  const resultado: 'h' | 'a' | null = done && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null
+  const FIM_RES = meusGols > delesGols
+    ? (emIngles ? ['📢 Final whistle — VICTORY! Three points in the bag 🎉', '📢 It\'s over — WE WON! The crowd goes home singing 🎉', '📢 Full time — VICTORY, and it was deserved 🎉', '📢 The referee ends it: WIN! Job done 🎉'] : ['📢 Apito final — VITÓRIA! Três pontos no bolso 🎉', '📢 Acabou — GANHAMOS! A torcida vai embora cantando 🎉', '📢 Fim de jogo — VITÓRIA, e merecida 🎉', '📢 O juiz encerrou: VITÓRIA! Missão cumprida 🎉'])
+    : meusGols < delesGols
+      ? (emIngles ? [`📢 Final whistle — defeat, ${meusGols} to ${delesGols}. On to the next one 😤`, '📢 It\'s over — lost this one. The crowd went home quiet 😤', '📢 Full time — not our night. Heads up 😤', '📢 The referee ends it: defeat. Next round we go again 😤'] : [`📢 Apito final — derrota por ${meusGols} a ${delesGols}. Bola pra frente 😤`, '📢 Acabou — perdemos essa. A torcida saiu calada 😤', '📢 Fim de jogo — não foi a nossa noite. Cabeça erguida 😤', '📢 O juiz encerrou: derrota. Na próxima a gente volta 😤'])
+      : (emIngles ? ['📢 Final whistle — a draw, one point each 🤝', '📢 It\'s over — all square. Nobody left happy 🤝', '📢 Full time — a draw, and it felt like less 🤝', '📢 The referee ends it: even on the night 🤝'] : ['📢 Apito final — empate, um ponto pra cada 🤝', '📢 Acabou — tudo igual. Ninguém saiu feliz 🤝', '📢 Fim de jogo — empate, com gosto de pouco 🤝', '📢 O juiz encerrou: igualdade na noite 🤝'])
+  const fimTxt = grande && ritual === 'end' ? FIM_RES[rk % FIM_RES.length] : null
   if (cinematic) return <OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
+    big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
-    homeCrest={homeEmblem ?? <Escudo nome={homeName} size={58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={58} />}
+    homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}
     youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={shown}
     goalSide={golSide} mascot={carimboArt} eventKey={goalSeed}
-    stamp={`${goalStamp}${last ? ` ${last.name} ${last.min}′` : ''}`}
-    narration={ritualTxt ?? (done ? tr('FIM DE JOGO', 'FULL TIME') : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))} />
+    stamp={`${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}′` : ''}${lanceUltimo ? ` — ${lanceUltimo}` : ''}`}
+    narration={fimTxt ?? ritualTxt ?? (done ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name} — ${lanceUltimo}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING')))} />
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
@@ -8496,15 +8515,21 @@ export function PyramidSeasonScreen() {
           return (
         <div className={privateCareer ? `ll25-career-hero${artClass}` : undefined} style={{ ...box(bg), position: 'relative', overflow: 'hidden', color: '#fff', marginBottom: 8 }}>
           {copaPlaying && <CopaLegSheen />}
-          <div style={{ padding: '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, position: 'relative', zIndex: 2 }}>
+          {/* 🔒 COMPACTO (Diego 19/09, só na prévia da conta dele — `privateCareer`):
+              *"esse header me parece que está muito grande, poderia diminuir um cadinho"*.
+              Rodada e divisão na MESMA linha, torcida numa linha só com o histórico ao
+              lado. Nada some. Fora da prévia, o cabeçalho é o de sempre. */}
+          <div style={{ padding: privateCareer ? '9px 12px 6px' : '12px 14px 15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, position: 'relative', zIndex: 2 }}>
             <div style={{ minWidth: 0 }}>
               {/* 🏷️ (16/08) o campeonato de pontos corridos ganhou nome próprio
                   no topo — "Liga Legends" — pra dar par com a Copa do Brasil
                   Legends. A divisão desce pra linha de baixo (mesmo lugar onde
                   a Copa mostra o formato da fase). */}
-              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: GOLD }}>{tr('Temporada', 'Season')} {state.seasonNo} · {copaPlaying ? label : '⚽ Liga Legends'}</div>
-              <div style={{ ...OSWALD, fontWeight: 800, fontSize: 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? copaFaseName : done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : <>{tr('Rodada', 'Round')} <b style={{ fontSize: 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}</div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.3 }}>{copaPlaying ? `${sub} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')}` : me ? DIV_NAME[me.div] : ''}</div>
+              {/* 🔒 na prévia: uma linha só (sem quebrar em cima da rodada) e um respiro
+                  entre ela e a "Rodada N" — ele achou colada demais (19/09) */}
+              <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: privateCareer ? 1.1 : 1.5, textTransform: 'uppercase', color: GOLD, ...(privateCareer ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 5 } : null) }}>{tr('Temporada', 'Season')} {state.seasonNo} · {copaPlaying ? label : '⚽ Liga Legends'}</div>
+              <div style={{ ...OSWALD, fontWeight: 800, fontSize: privateCareer ? 17 : 18, marginTop: 2, lineHeight: 1 }}>{copaPlaying ? copaFaseName : done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : <>{tr('Rodada', 'Round')} <b style={{ fontSize: privateCareer ? 20 : 21 }}>{round}</b><span style={{ fontSize: 12, opacity: 0.5, fontWeight: 700 }}> / 38</span></>}{privateCareer && !copaPlaying && me ? <span style={{ fontSize: 12, opacity: 0.75, fontWeight: 600 }}> · {DIV_NAME[me.div]}</span> : null}</div>
+              {!(privateCareer && !copaPlaying) && <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.7)', marginTop: 4, lineHeight: 1.3 }}>{copaPlaying ? `${sub} · ${copaNLegs === 1 ? tr('jogo único', 'one-off') : tr('ida e volta', 'two legs')}` : me ? DIV_NAME[me.div] : ''}</div>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
               {!done && me && <span style={{ fontWeight: 800, fontSize: 12, ...OSWALD, border: '2px solid rgba(255,255,255,0.25)', borderRadius: 999, padding: '3px 9px', whiteSpace: 'nowrap' }}>{me.pos === 1 ? '🥇' : '🏅'} {ordinal(me.pos)}</span>}
@@ -8515,6 +8540,15 @@ export function PyramidSeasonScreen() {
               aqui no cabeçalho do clube, junto do escudo/nome/dinheiro. Sobe/desce
               pela colocação final de cada temporada (nunca desconta o fixo do
               estádio, só dá bônus por cima quando tá alto). */}
+          {privateCareer ? (
+            <div style={{ padding: '0 12px 10px', display: 'flex', alignItems: 'center', gap: 6, position: 'relative', zIndex: 2 }}>
+              <span style={{ fontSize: 15, lineHeight: 1 }}>{torcidaFace(torcidaPct)}</span>
+              <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: .5, textTransform: 'uppercase', color: 'rgba(255,255,255,.55)' }}>{tr('Torcida', 'Fans')}</span>
+              <div style={{ flex: 1, minWidth: 40, height: 5, borderRadius: 4, background: 'rgba(255,255,255,.15)', overflow: 'hidden' }}><div style={{ height: '100%', width: `${torcidaPct}%`, background: torcidaCor(torcidaPct) }} /></div>
+              <span style={{ fontWeight: 900, fontSize: 12, ...OSWALD }}>{torcidaPct}%</span>
+              {torcidaHist.length > 0 && <span style={{ fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,.5)', whiteSpace: 'nowrap' }}>{torcidaHist.map(h => motivoTorcida(h.motivo).replace(/ lugar/g, '')).join(' · ')}</span>}
+            </div>
+          ) : (
           <div style={{ padding: '0 14px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 20, lineHeight: 1 }}>{torcidaFace(torcidaPct)}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -8523,10 +8557,11 @@ export function PyramidSeasonScreen() {
             </div>
             <span style={{ fontWeight: 900, fontSize: 13, ...OSWALD }}>{torcidaPct}%</span>
           </div>
+          )}
           {/* 🎪 histórico sutil: SÓ o motivo do humor da torcida (Diego 12/08: tirar o
               ±número pra não parecer "lucro" — a renda agora vem da lotação, não daqui).
               Ex.: "20º lugar · caiu de divisão". Texto bem discreto, é rodapé. */}
-          {torcidaHist.length > 0 && (
+          {!privateCareer && torcidaHist.length > 0 && (
             <p style={{ padding: '0 14px 12px', margin: 0, marginTop: -8, fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.5)' }}>
               {torcidaHist.map(h => motivoTorcida(h.motivo)).join('  ·  ')}
             </p>
