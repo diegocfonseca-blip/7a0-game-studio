@@ -79,6 +79,31 @@ export const preparadorDe = (key?: string | null): Preparador | null =>
 /** salário por temporada — a MESMA conta do técnico (10% do preço) */
 export const salarioPreparador = (p: Preparador | null): number => (p ? Math.round(p.preco / 10) : 0)
 
-/** 📝 contrato de 5 temporadas, igual ao técnico */
+// ─── 📝 O PRAZO DO CONTRATO DA COMISSÃO (18/09) ──────────────────────────────
+// Antes era SEMPRE 5 temporadas, cravado. O Diego olhou e pediu variedade, com a
+// régua já existente: *"sobre contratos, mesmo tempo igual faz pro jogador"* e,
+// quando ofereci um sorteio curtinho de 4/5/6, *"opção A, mas quero mais tempos,
+// acho que falta um de dez, sei lá"*.
+// 👉 Então o prazo sai SORTEADO na assinatura, na MESMA escada do jogador
+// (`renewOptions` em store.tsx oferece 1 · 2 · 3 · 5 · 10). Pra comissão ficam os
+// três degraus que fazem sentido pra quem custa moeda contada: **3 · 5 · 10**.
+// ⚖️ Os pesos são de propósito: o 5 é o normal, o 3 é o azar e o 10 é a sorte
+// grande. Na média dá 5,65 — ou seja, ninguém fica pior do que era, e ainda pode
+// tirar um contratão. Um item PAGO não pode virar aposta ruim.
+// 🔎 E o número sorteado aparece na hora de assinar: a tela nunca promete 5 e
+// entrega 3.
+export const CONTRATO_PRAZOS = [3, 5, 10] as const
+/** o prazo de referência (o que a loja mostra como "normal") */
 export const CONTRATO_TEMPORADAS = 5
-export const fimDoContrato = (seasonNo: number): number => seasonNo + CONTRATO_TEMPORADAS - 1
+/** teto absoluto: nenhuma ficha de comissão pode faltar mais que isto */
+export const CONTRATO_MAX = 10
+
+/** sorteia o prazo: 3 (30%) · 5 (45%) · 10 (25%) */
+export function sorteiaPrazo(rng: () => number): number {
+  const r = rng()
+  return r < 0.30 ? 3 : r < 0.75 ? 5 : 10
+}
+
+/** temporada em que o contrato ENCERRA. Sem `rng` (saves/telas antigas) vale o prazo normal. */
+export const fimDoContrato = (seasonNo: number, rng?: () => number): number =>
+  seasonNo + (rng ? sorteiaPrazo(rng) : CONTRATO_TEMPORADAS) - 1
