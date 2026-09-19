@@ -68,7 +68,7 @@ import futpointEscudoImg from './img/futpoint-escudo.webp'
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import manfreEscudoImg from './img/manfre-escudo.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
-import { chaveEscudo, ehMeuClube, meuEscudoBatismo } from './mimos' // 🎁 escudo do dono segue o e-mail
+import { chaveEscudo, ehMeuClube, meuEscudoBatismo, escudoDaSala } from './mimos' // 🎁 escudo do dono segue o e-mail (e a sala inteira enxerga)
 
 const INK = '#0C0C0C'
 
@@ -1371,7 +1371,12 @@ const LOGOS_POR_CHAVE: Map<string, (size: number) => ReactNode> =
 // perde o escudo (regra do Diego: mimo segue o E-MAIL). Ver mimos.ts.
 const logoPronta = (n: string) => {
   const fixa = LOGOS_POR_CHAVE.get(chaveEscudo(n))
-  if (fixa) return fixa
+  if (fixa) return fixa // 1º a lista FIXA: nome de clube batizado sempre ganha
+  // 2º o que o SERVIDOR disse sobre os assentos DESTA sala (18/09) — é isto que faz
+  // o batismo do amigo aparecer pra todo mundo, mesmo com ele jogando com outro nome
+  const daSala = escudoDaSala(n)
+  if (daSala) { const l = LOGOS_POR_CHAVE.get(chaveEscudo(daSala)); if (l) return l }
+  // 3º o meu próprio batismo (vale offline também, onde não existe sala)
   const meu = ehMeuClube(n) ? meuEscudoBatismo() : null
   return meu ? LOGOS_POR_CHAVE.get(chaveEscudo(meu)) : undefined
 }

@@ -6,7 +6,7 @@
 // esc_socios.mascote_key (Diego seta pelo painel).
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { ehMeuClube, meuMascoteBatismo } from './mimos' // 🎁 mascote do dono segue o e-mail
+import { ehMeuClube, meuMascoteBatismo, mascoteDaSala } from './mimos' // 🎁 mascote do dono segue o e-mail (e a sala inteira enxerga)
 import tokaMascoteImg from './img/toka10-mascote.webp'
 import erosNinaImg from './img/eros-nina-mascote.webp'
 import sapekAbelhaImg from './img/sapek-mascote.webp'
@@ -1044,8 +1044,19 @@ const bustoDe = (src: string, alt: string) => (
 // 🎁 08/09: a chave da mascote de um clube — lista fixa primeiro; se o nome não
 // está lá MAS é o do MEU clube e eu sou dono de batismo, vale a minha mascote
 // (regra do Diego: mimo segue o E-MAIL, o dono renomeia e não perde). Ver mimos.ts.
-const carimboKey = (time: string): string | undefined =>
-  CARIMBO_GOL[time] ?? (ehMeuClube(time) ? (meuMascoteBatismo() ?? undefined) : undefined)
+const carimboKey = (time: string): string | undefined => {
+  // 1º a lista FIXA: nome de clube batizado ganha de tudo — assim ninguém rouba
+  //    arte alheia digitando o nome do clube dos outros
+  const fixa = CARIMBO_GOL[time]
+  if (fixa) return fixa
+  // 2º o que o SERVIDOR disse sobre os assentos DESTA sala (18/09): é o que faz a
+  //    mascote do amigo carimbar o gol pra TODO MUNDO, mesmo com ele jogando com
+  //    outro nome — ordem do Diego, *"deve aparecer nos times de batismo p todo mundo"*
+  const daSala = mascoteDaSala(time)
+  if (daSala) return daSala
+  // 3º o meu próprio batismo (vale offline também, onde não existe sala)
+  return ehMeuClube(time) ? (meuMascoteBatismo() ?? undefined) : undefined
+}
 
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)
 export const carimboDoTime = (time: string): ReactNode | null => {
