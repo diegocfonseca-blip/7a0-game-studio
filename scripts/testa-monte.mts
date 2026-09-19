@@ -54,6 +54,19 @@ console.log('1) o motivo de cada bloqueio')
   ok(monteBloqueio(estado(m), m, carta()) === 'vaga', 'sem vaga na posição → some da lista (bloqueio de VAGA)')
 }
 
+console.log('1b) LISTAR não é abandonar (Garrincha do Rei da Bola · Maradona do Raiva Cajuri)')
+{
+  const m = tecnico()
+  const s = estado(m)
+  // quem o dono LISTOU volta pra ele: o selo do teto não bloqueia a recuperação
+  const listado = carta({ seller: m.id, paid: 5, tetoOficial: true } as Partial<Card>)
+  ok(monteBloqueio(s, m, listado) === null, 'carta LISTADA pelo dono pode ser recuperada, mesmo com teto de venda')
+  ok(montePickable(s, m, listado), 'e o reducer aceita — é o mesmo juiz')
+  // quem saiu por contrato encerrado continua barrado
+  const abandonado = carta({ seller: m.id, semContrato: true } as Partial<Card>)
+  ok(monteBloqueio(s, m, abandonado) === 'semcontrato', 'quem saiu por CONTRATO VENCIDO segue barrado — a regra do Diego não mudou')
+}
+
 console.log('2) a regra do botão PASSAR (a que prendeu o Rei da Bola)')
 {
   const m = tecnico()

@@ -74,6 +74,42 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 26) — 📝 LISTAR NÃO É ABANDONAR (o Garrincha e o Maradona voltam)
+
+Ele juntou as peças depois de três relatos (Rei da Bola FC, Raiva Cajuri FC e o print do
+Garrincha): *"o erro que eles estão reclamando não é apertar SAIR na renovação de
+contrato — aí tudo bem. É que ele está LISTANDO o jogador, ainda em contrato. O jogador
+é dele, pô. Ele pode pegar o jogador dele de volta se ninguém pegar e for pro monte.
+Quando lista, ele pode até vender por mais; se ninguém comprar vai pro monte e aí sim
+vale a metade. É diferente do caso de sair por contrato."*
+
+### 🔎 A causa (e era antiga, não veio de hoje)
+Ao consumir a lista de transferências, o reducer carimbava `semContrato` na carta
+listada se o contrato dela já tivesse acabado. **Só que essa linha roda DEPOIS do
+`s.seasonNo++` da virada.** Então o contrato que valia durante a temporada recém
+encerrada já contava como vencido: quem listou o próprio jogador na janela levava o selo
+de quem ABANDONOU, e o `semContrato` faz duas coisas ao mesmo tempo — limita o dinheiro
+da venda **e** proíbe o ex-dono de recuperar a carta (no leilão e no monte).
+Resultado: o dono listava, ninguém comprava, a carta caía no monte e ele não podia mais
+pegá-la de volta. Foi o Garrincha e o Maradona.
+
+### ✅ Conserto: um selo pra cada coisa
+- **`semContrato`** = saiu por CONTRATO ENCERRADO (o dono apertou DEIXAR IR). Continua
+  fazendo as duas coisas: teto de venda **e** proibição de recuperar. A regra dele não
+  mudou uma vírgula.
+- **`tetoOficial`** (novo) = só o TETO. É o que a listagem usa quando o contrato já tinha
+  acabado, pra não virar atalho de quem deixou vencer — **mas o dono mantém o direito de
+  recuperar a carta que ele mesmo pôs à venda**.
+- Os dois selos morrem quando a carta entra num elenco.
+- **Perdão único no save**: as cartas presas HOJE no leilão/monte com o selo errado e
+  dono humano viram `tetoOficial` na abertura do save. O Garrincha e o Maradona voltam a
+  poder ser recuperados. Carta de bot não muda.
+  ⚠️ Efeito colateral aceito: quem REALMENTE apertou DEIXAR IR nesta virada também ganha
+  o perdão nessas cartas específicas, uma vez só. Sem registro no save, não há como
+  separar os dois casos no passado — e o erro foi nosso.
+- Travas novas em `npm run monte`: carta listada é recuperável mesmo com teto; carta de
+  contrato vencido segue barrada.
+
 ## 19/09/2026 (parte 25) — 🚨 A REMOÇÃO DO PONTUAL PRENDEU TODO MUNDO NA RODADA 0
 
 Print do **Cr7 Leilão** minutos depois do deploy: T48, Série A, botão verde

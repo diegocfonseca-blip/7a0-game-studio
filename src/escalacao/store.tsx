@@ -1458,7 +1458,10 @@ function creditSeller(state: EscState, card: Card, amount: number, buyerId?: num
   if (sellerId == null || amount <= 0 || sellerId === buyerId) return
   const seller = state.managers.find(m => m.id === sellerId)
   let credit = amount
-  if (card.semContrato) {
+  // 💰 teto do valor oficial: vale pra quem saiu por contrato encerrado E pra quem foi
+  // listado já vencido (`tetoOficial`) — a diferença entre os dois é só o direito de
+  // recuperar a carta, que o listado mantém.
+  if (card.semContrato || (card as { tetoOficial?: boolean }).tetoOficial) {
     const teto = valorOficial(state, card)
     if (credit > teto) {
       const familia = credit - teto
@@ -1902,7 +1905,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     // novo de lance, ele não consegue mais criar dívida do nada.
     m.money = Math.max(0, m.money - top)
     // 📝 clube novo = contrato novo: limpa selo/prazo — a próxima cerimônia sorteia 5-10
-    m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
+    m.squad.push({ ...card, paid: top, buyPrice: top, via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(reforco && m.isHuman ? { reforco: true } : {}) } as WonCard)
     queue.push({ card, bids: sorted, winner: wid, paid: top, voided })
   }
   return { queue, unsold, ties }
@@ -1930,7 +1933,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   else { winner = top[Math.floor(rng() * top.length)]; tb.viaRoulette = true } // empatou de novo → roleta
   const m = state.managers.find(x => x.id === winner)!
   m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
-  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
+  m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   voltaCriaSeSobrou(state, m, tb.card.pos) // 🌱 reforço chegou pelo desempate: o guri volta pra base
   recordPrice(state, tb.card, max) // livro de preços
@@ -2747,6 +2750,26 @@ function migrateTeamNames(st: EscState): EscState {
   st.careerScorersAll = semFake(st.careerScorersAll)
   st.careerAssistsAll = semFake(st.careerAssistsAll)
   st.careerMelhorMundo = semFake(st.careerMelhorMundo)
+  // 🩹 PERDÃO ÚNICO DO SELO ERRADO (19/09) — Garrincha do Rei da Bola FC, Maradona do
+  // Raiva Cajuri FC. Até hoje, LISTAR um jogador na virada carimbava `semContrato` se o
+  // contrato acabava naquela temporada (a marcação roda depois do `seasonNo++`), e o
+  // dono perdia o direito de recuperar a carta que ele mesmo pôs à venda. O conserto já
+  // está feito daqui pra frente; aqui a gente desfaz o estrago nas cartas que FICARAM
+  // penduradas no leilão/monte deste save: elas mantêm o teto de venda (`tetoOficial`,
+  // pra economia não furar) e voltam a poder ser recuperadas pelo dono.
+  // ⚠️ Passa uma vez por carta e só em quem TEM dono humano; carta de bot não muda.
+  const humanos = new Set((st.managers ?? []).filter(m => m.isHuman).map(m => m.id))
+  const perdoa = (lista: Card[] | undefined) => {
+    if (!lista?.length) return lista
+    return lista.map(c => {
+      const sc = c as Card & { tetoOficial?: boolean }
+      if (!sc.semContrato || sc.seller == null || !humanos.has(sc.seller)) return c
+      return { ...sc, semContrato: undefined, tetoOficial: true }
+    })
+  }
+  st.monte = perdoa(st.monte) ?? st.monte
+  st.currentCards = perdoa(st.currentCards) ?? st.currentCards
+  st.sectorUnsoldAccum = perdoa(st.sectorUnsoldAccum) ?? st.sectorUnsoldAccum
   return st
 }
 
@@ -3804,7 +3827,7 @@ function takeFromMonte(state: EscState, cardId: string) {
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
-  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
+  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, tetoOficial: undefined, contratoAte: undefined })
   voltaCriaSeSobrou(state, m, card.pos) // 🌱 chegou reforço de verdade: o guri volta pra base NA HORA
   mirrorWallets(state) // 💰 compra no monte sai da caixa NA HORA
 }
@@ -4154,7 +4177,7 @@ function sweepMonteToBackstops(st: EscState) {
     // conta: bot paga = vendedor recebe. (Carta nova/sem vendedor segue grátis.)
     if (listed && paid > 0) bot.money = (bot.money ?? 0) - paid
     agenciaTransacao(st, card) // 🕴️ agenciado indo pra bot também é negócio → comissão
-    bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
+    bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, tetoOficial: undefined, contratoAte: undefined })
     if (paid > 0) recordPrice(st, card, paid)
     // resumo dos bots (visibilidade na cerimônia)
     const msg = listed
@@ -6437,7 +6460,7 @@ export function reducer(state: EscState, action: Action): EscState {
                 usados.add(idR(ganho))
                 // ⚠️ carta do CATÁLOGO não carrega `pos` (a posição vem da chave do
                 // setor) — injetar aqui é OBRIGATÓRIO, senão nasce carta sem posição
-                m.squad.push({ ...ganho, pos, id: `repo-${m.id}-${pos}-${Math.floor(rngR() * 1e9)}`, paid: 0, via: 'monte', emprestado: undefined, seller: undefined, semContrato: undefined, contratoAte: undefined } as WonCard)
+                m.squad.push({ ...ganho, pos, id: `repo-${m.id}-${pos}-${Math.floor(rngR() * 1e9)}`, paid: 0, via: 'monte', emprestado: undefined, seller: undefined, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined } as WonCard)
               } else {
                 m.squad.push(fillerCard(pos, rngR))
               }
@@ -7965,9 +7988,19 @@ export function reducer(state: EscState, action: Action): EscState {
         const keep: WonCard[] = [], out: WonCard[] = []
         for (const c of m.squad) (ids.has(c.id) ? out : keep).push(c)
         m.squad = keep
-        // 📝 se a carta listada JÁ está com contrato encerrado, leva o selo mesmo
-        // assim (senão listar manualmente o vencido furava o teto da venda)
-        for (const c of out) listedCards.push({ ...c, seller: m.id, ...(c.contratoAte != null && c.contratoAte < s.seasonNo ? { semContrato: true } : {}) })
+        // 📝 LISTAR NÃO É ABANDONAR (conserto de 19/09 — Garrincha do Rei da Bola FC e
+        // Maradona do Raiva Cajuri FC). Palavras do Diego: *"ele está listando o jogador,
+        // ainda está em contrato… ele pode pegar o jogador dele de volta se ninguém pegar
+        // e for pro monte. É diferente do caso de sair por contrato"*.
+        // 🐛 O QUE ACONTECIA: esta linha carimbava `semContrato` (que BLOQUEIA a
+        // recuperação) quando o contrato já tinha acabado — só que ela roda DEPOIS do
+        // `s.seasonNo++` da virada, então o contrato que valia durante a temporada recém
+        // encerrada já contava como vencido. Quem listou um jogador seu perdia o direito
+        // de recuperá-lo, sem nunca ter ido na janela de renovação.
+        // ✅ AGORA: listar só pode limitar o DINHEIRO (teto do valor oficial, pra não
+        // virar atalho de quem deixou vencer), nunca o direito de pegar de volta. Quem
+        // perde o jogador é só quem apertou DEIXAR IR na janela de contratos.
+        for (const c of out) listedCards.push({ ...c, seller: m.id, ...(c.contratoAte != null && c.contratoAte < s.seasonNo ? { tetoOficial: true } : {}) })
       }
       // 1a-bis) 🎯 JOGADOR ALICIADO (27/08, do jeito que o Diego mandou: "é a
       // mesma coisa de quando listo pra venda — ele vai pro leilão! Só que nos

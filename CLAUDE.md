@@ -438,6 +438,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Time todo de mentira faz o gol no placar e **ninguém leva o gol na súmula**.
   ⚠️ Quem mexer aqui: o **rng tem que ser consumido igual, com autor ou sem** — senão
   muda placar de rodada já jogada. E **Cria da Base NÃO é fake**: o guri é real.
+- **📝 LISTAR ≠ DEIXAR VENCER (19/09, regra permanente).** Palavras dele: *"ele está
+  listando o jogador, ainda em contrato. O jogador é dele, pô — ele pode pegar de volta
+  se ninguém pegar e for pro monte. É diferente do caso de sair por contrato"*. Quem
+  LISTA vende por vontade própria e **mantém o direito de recuperar**; quem apertou
+  DEIXAR IR na janela de renovação perde o jogador de vez (no leilão o lance dele é
+  anulado, no monte a carta fica travada). No código: `semContrato` = abandonou (teto +
+  proibição) · `tetoOficial` = só o teto do valor, usado quando a listagem pega um
+  contrato já vencido. **Nunca carimbar `semContrato` numa carta que o dono listou.**
 - **🔒 REGRA DE OURO CONTRA BOTÃO MUDO (19/09, aprendida DUAS vezes no mesmo dia).**
   Tela e reducer não podem ter regras próprias pra mesma coisa. Aconteceu no monte
   (a tela acendia PEGAR e o reducer recusava por contrato vencido) e no início de
