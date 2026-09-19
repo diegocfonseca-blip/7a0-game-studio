@@ -21,7 +21,7 @@ import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecni
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
-import { registraMeusNomes } from './mimos'
+import { registraMeusNomes, registraMimosDaSala, limpaMimosDaSala } from './mimos'
 import { buildNbaCatalog, NBA_CLUBS } from './basquete-deck'
 import { CATALOG_NBA } from './data-basquete' // 🏀 ficha das cartas do basquete (sincronizaNiveis)
 import { NBA_SLOTS_PER_POS } from './sportcfg'
@@ -9964,6 +9964,35 @@ export function EscProvider({ children }: { children: ReactNode }) {
     return ativo?.isHuman ? ativo.teamName : undefined
   })()
   useEffect(() => { registraMeusNomes([meuNomeAtual]) }, [meuNomeAtual])
+
+  // 🏟️ OS MIMOS DA SALA INTEIRA (18/09). Ordem do Diego: *"o mascote, seja no modo
+  // carreira ou online, ele deve aparecer nos times de batismo pra todo mundo"*.
+  // O MANTO já viajava assim desde 10/08 (`esc_mantos_sala`); agora a mesma porta
+  // traz também a MASCOTE e o ESCUDO, pela RPC irmã `esc_mimos_sala`.
+  // Fica aqui no provider, e não numa tela, porque o carimbo do gol é desenhado em
+  // vários lugares (sala rápida, liga, carreira online) — registrando num ponto só,
+  // todos enxergam sem cada tela ter que buscar de novo.
+  // 🔒 O servidor é quem diz de quem é cada assento (ele junta assento → conta →
+  // sócio). Aqui só traduzimos assento → NOME DO CLUBE daquele assento.
+  // 🧹 Fora de sala a lista é ZERADA: mimo de sala não pode sobrar pro jogo solo
+  // seguinte — seria arte de outra pessoa no clube de um bot.
+  const salaDosMimos = state.onlineMode === 'online' ? state.roomId : ''
+  const assentosDaSala = state.managers.map(m => `${m.id}:${m.teamName}`).join('|')
+  useEffect(() => {
+    if (!salaDosMimos) { limpaMimosDaSala(); return }
+    let vivo = true
+    const nomePorAssento = new Map(stateRef.current.managers.map(m => [m.id, m.teamName]))
+    supabase.rpc('esc_mimos_sala', { p_room: salaDosMimos }).then(({ data }) => {
+      if (!vivo || !Array.isArray(data)) return
+      const linhas: { clube: string; mascote?: string | null; escudo?: string | null }[] = []
+      for (const r of data as { player_index: number; mascote_key: string | null; escudo_time: string | null }[]) {
+        const clube = nomePorAssento.get(r.player_index)
+        if (clube) linhas.push({ clube, mascote: r.mascote_key, escudo: r.escudo_time })
+      }
+      registraMimosDaSala(linhas)
+    }, () => { /* sem rede: fica sem os mimos dos outros, nada quebra */ })
+    return () => { vivo = false }
+  }, [salaDosMimos, assentosDaSala])
 
   // 🛟 AUTO-CURA DE IDENTIDADE (online): depois de um "jogar de novo"/reconexão o
   // índice local ("quem sou eu") pode DESLIZAR — você passa a controlar o assento

@@ -61,6 +61,43 @@ export function registraMeuBatismo(escudoTime: string | null, mascoteKey: string
   meuMascoteKey = mascoteKey && mascoteKey.trim() ? mascoteKey : null
 }
 
+// ─── 🏟️ OS MIMOS DA SALA: batismo aparece pra TODO MUNDO (18/09) ────────────
+// Ordem do Diego: *"o mascote, seja no modo carreira ou online, ele deve aparecer
+// nos times de batismo pra todo mundo"*.
+//
+// Até aqui, o de cima (`meusNomes`) só decorava a tela do PRÓPRIO dono. Quem não é
+// ele desenha o clube pelo NOME — e no online o nome é DIGITADO, então o dono do
+// Leite de Verdade jogando como "Loopesmiranda FC" ficava sem mascote pros outros.
+//
+// 🔒 Quem manda aqui é o SERVIDOR, não o aparelho: a lista vem da RPC
+// `esc_mimos_sala`, que junta assento → conta → `esc_socios` e devolve SÓ
+// assento → mimo. O e-mail nunca sai do servidor, ninguém consegue reivindicar o
+// batismo de outro, e sócio vencido não entra. É o mesmo caminho que o MANTO da
+// sala já usava desde 10/08 — não é porta nova, é a mesma porta levando mais coisa.
+// ⚖️ E a lista FIXA (`CARIMBO_GOL`/`LOGOS_PRONTAS`) continua ganhando de tudo: se
+// alguém digitar o nome de um clube batizado alheio, é a arte DAQUELE clube que
+// aparece, não a do digitador.
+let mimosDaSala = new Map<string, { mascote: string | null; escudo: string | null }>()
+
+/** store.tsx: o que o SERVIDOR disse sobre os mimos de cada clube desta sala */
+export function registraMimosDaSala(linhas: { clube: string; mascote?: string | null; escudo?: string | null }[]): void {
+  const m = new Map<string, { mascote: string | null; escudo: string | null }>()
+  for (const l of linhas) {
+    if (!l.clube || !l.clube.trim()) continue
+    const mascote = l.mascote && l.mascote.trim() ? l.mascote : null
+    const escudo = l.escudo && l.escudo.trim() ? l.escudo : null
+    if (!mascote && !escudo) continue
+    m.set(chaveEscudo(l.clube), { mascote, escudo })
+  }
+  mimosDaSala = m
+}
+/** limpa ao sair da sala — mimo de sala não pode vazar pro jogo solo seguinte */
+export const limpaMimosDaSala = (): void => { mimosDaSala = new Map() }
+/** mascote de batismo do dono DESTE clube da sala (null = não é de ninguém) */
+export const mascoteDaSala = (nome: string): string | null => mimosDaSala.get(chaveEscudo(nome))?.mascote ?? null
+/** clube de batismo do dono DESTE clube da sala (pra achar o escudo na lista fixa) */
+export const escudoDaSala = (nome: string): string | null => mimosDaSala.get(chaveEscudo(nome))?.escudo ?? null
+
 /** esse nome é o do MEU clube (o que eu comando agora)? */
 export const ehMeuClube = (nome: string): boolean => meusNomes.size > 0 && meusNomes.has(chaveEscudo(nome))
 /** nome do clube de batismo do dono logado (pra achar o escudo dele na lista fixa) */

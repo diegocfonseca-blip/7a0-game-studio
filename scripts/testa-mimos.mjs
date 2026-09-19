@@ -24,7 +24,9 @@ import { createServer } from 'vite'
 const vite = await createServer({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error', optimizeDeps: { noDiscovery: true } })
 const M = await vite.ssrLoadModule('/src/escalacao/mimos.ts')
 const E = await vite.ssrLoadModule('/src/escalacao/escudos.tsx')
-const { chaveEscudo, registraMeusNomes, registraMeuBatismo, ehMeuClube, meuMascoteBatismo, meuEscudoBatismo } = M
+const { chaveEscudo, registraMeusNomes, registraMeuBatismo, ehMeuClube, meuMascoteBatismo, meuEscudoBatismo, registraMimosDaSala, limpaMimosDaSala, mascoteDaSala, escudoDaSala } = M
+const MA = await vite.ssrLoadModule('/src/escalacao/mascotes.tsx')
+const { carimboDoTime, CARIMBO_GOL } = MA
 const { nomeLimpo } = E
 
 let falhas = 0
@@ -74,6 +76,56 @@ console.log('\n4) 🚪 deslogado / sem batismo: nada aparece, e nada quebra')
   ok(meuMascoteBatismo() === null && meuEscudoBatismo() === null, 'sem batismo ativo, o clube volta ao automático')
   registraMeuBatismo('   ', '   ')
   ok(meuMascoteBatismo() === null, 'campo do banco em branco conta como SEM batismo (não vira chave vazia)')
+}
+
+console.log('\n5) 🏟️ O BATISMO APARECE PRA TODO MUNDO NA SALA (18/09)')
+{
+  // Diego: *"o mascote, seja no modo carreira ou online, ele deve aparecer nos times
+  // de batismo pra todo mundo"*. Quem diz de quem e cada assento e o SERVIDOR
+  // (RPC esc_mimos_sala); aqui so testamos o que o aparelho faz com a resposta.
+  limpaMimosDaSala()
+  registraMeusNomes(['Meu Clube'])   // eu sou OUTRA pessoa nesta sala
+  registraMeuBatismo(null, null)     // e eu NAO tenho batismo nenhum
+  registraMimosDaSala([{ clube: 'Loopesmiranda FC 👑🖋️', mascote: 'leiteverdade_vaca', escudo: 'Leite de Verdade FC' }])
+  ok(mascoteDaSala('Loopesmiranda FC') === 'leiteverdade_vaca', 'eu vejo a mascote do batismo DELE, mesmo ele jogando com outro nome')
+  ok(escudoDaSala('loopesmiranda') === 'Leite de Verdade FC', 'o escudo dele tambem — e a chave ignora caixa e selo')
+  ok(carimboDoTime('Loopesmiranda FC 👑🖋️') !== null, 'o carimbo de gol dele desenha na MINHA tela')
+  ok(mascoteDaSala('Meu Clube') === null, 'o meu clube, que nao tem batismo, continua sem mascote')
+  ok(mascoteDaSala('Bagres 1993') === null, 'um bot da sala nao ganha mascote de ninguem')
+}
+
+console.log('\n6) 🛡️ NINGUEM ROUBA A ARTE DE UM CLUBE BATIZADO DIGITANDO O NOME DELE')
+{
+  // o perigo real de abrir isto: alguem digita "Neymarzetti" como nome do proprio
+  // clube. A lista FIXA tem que ganhar do que vem da sala, sempre.
+  const batizado = Object.keys(CARIMBO_GOL)[0]
+  limpaMimosDaSala()
+  registraMimosDaSala([{ clube: batizado, mascote: 'leiteverdade_vaca', escudo: 'Leite de Verdade FC' }])
+  ok(carimboDoTime(batizado) !== null, `"${batizado}" continua desenhando`)
+  // e desenha a arte DELE, nao a que veio da sala
+  ok(mascoteDaSala(batizado) === 'leiteverdade_vaca' && CARIMBO_GOL[batizado] !== 'leiteverdade_vaca',
+    'a lista fixa e consultada ANTES da sala — a arte do clube batizado e a dele')
+}
+
+console.log('\n7) 🧹 MIMO DE SALA NAO SOBRA PRO JOGO SEGUINTE')
+{
+  registraMimosDaSala([{ clube: 'Loopesmiranda FC', mascote: 'leiteverdade_vaca' }])
+  ok(mascoteDaSala('Loopesmiranda FC') === 'leiteverdade_vaca', 'dentro da sala, aparece')
+  limpaMimosDaSala()
+  ok(mascoteDaSala('Loopesmiranda FC') === null, 'saiu da sala, some — senao seria arte de outra pessoa num bot do solo')
+}
+
+console.log('\n8) 🚪 linha torta do servidor nao quebra nada')
+{
+  limpaMimosDaSala()
+  registraMimosDaSala([
+    { clube: '', mascote: 'x' },                    // sem clube
+    { clube: '  ', mascote: 'x' },                  // clube em branco
+    { clube: 'Time A', mascote: null, escudo: null }, // socio sem mimo nenhum
+    { clube: 'Time B', mascote: '   ' },            // campo em branco no banco
+  ])
+  ok(mascoteDaSala('Time A') === null && mascoteDaSala('Time B') === null, 'socio sem mimo nao vira chave vazia')
+  ok(mascoteDaSala('') === null, 'nome vazio nunca casa')
 }
 
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)
