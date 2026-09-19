@@ -26,7 +26,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao'
-import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
+import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
 import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
@@ -3259,6 +3259,15 @@ const ID_TITULARES = 'll-titulares'
 // 🏛️🌱 âncoras das caixas que desceram pro pé da aba Elenco (os atalhos rolam até elas)
 const ID_COMISSAO = 'll-comissao'
 const ID_BASE = 'll-base'
+const ID_PAINEL = 'll-painel-elenco'
+// 📝 QUANTAS TEMPORADAS FALTAM no contrato da comissão — com TETO.
+// Diego (18/09), com dois prints de amigos: *"técnico com 100 temporadas… 100
+// temporadas não existe, pô"* (98 no técnico, 115 no preparador). A causa e a cura
+// moram no `store.tsx` (`curaContratoComissao`); aqui fica a rede de segurança da
+// TELA: o maior contrato que o sorteio dá é `CONTRATO_MAX`, então a tela nunca
+// mostra mais que isso — mesmo que chegue um save torto que não passou pela cura.
+const faltaContrato = (fim: number | undefined, seasonNo: number): number =>
+  fim == null ? 0 : Math.min(fim - seasonNo + 1, CONTRATO_MAX)
 // 🖥️📱 MONITOR OU CELULAR (aba Elenco, 16/09). O jogo inteiro mora numa coluna de
 // 576px — o que é certo em quase toda tela, mas na aba Elenco deixava o campinho do
 // tamanho de celular dentro de um monitor (o Diego pegou: *"o campinho ficou mt
@@ -3331,6 +3340,19 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   const elencoNovo = useElencoNovo()
   const larga = useTelaLarga() && elencoNovo
   const [abaLista, setAbaLista] = useState<'tit' | 'res' | 'saf'>('tit')
+  // 🏛️🌱 AS PÍLULAS VIRARAM DESTINO (Diego 18/09, pegou AO VIVO na live do Futpoint:
+  // *"hoje quando apertava nessas pílulas tava jogando pro final da tela sem nada"*).
+  // Elas nasceram em 18/09 como ATALHO — só rolavam a tela até a caixa lá no pé. Num
+  // elenco de 27 a lista ficou comprida, e o rolar terminava no rodapé, longe do que
+  // a pessoa pediu. Agora cada pílula ABRE a área dela NO LUGAR DA LISTA, que é o que
+  // ele pediu: *"base deveria jogar o usuário pra base… comissão deveria jogar pra
+  // área de comissão mostrando técnico e preparador"*.
+  const [painel, setPainel] = useState<'nenhum' | 'comissao' | 'base'>('nenhum')
+  // 🙅 "AGORA NÃO" da pergunta da Base: guarda QUAL situação foi recusada (os ids de
+  // quem ficou sem troca). Assim o "não" vale pra esta rodada e some sozinho quando
+  // muda quem está cansado — botão que não faz nada seria mentira, e aviso que volta
+  // toda hora vira aviso que ninguém lê.
+  const [recusouBase, setRecusouBase] = useState<string | null>(null)
   // 🧑 o rostinho da lista é a MESMA arte do campinho, na MESMA trava
   // (`useLegendPresentation`) — nunca um rosto novo, nunca uma trava nova.
   const rostosOn = useLegendPresentation()
@@ -3722,12 +3744,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // 🧢🌱💸 comissão técnica, a Base e a folha: no celular ficam embaixo do campinho,
   // como sempre foram; no monitor vão pro pé da LISTA, senão sobrava um vão verde
   // do lado direito (o campo é mais alto que a tabela).
-  const blocoClube = (
+  const folhaBox = (
     <>
-      {/* 🧢 o TÉCNICO: na tela nova ele desceu pro pé (o atalho 🏛️ traz você até aqui) */}
-    {quinze && <div id={ID_COMISSAO}><DepartamentoTecnico mgr={mgr} /></div>}
-    {/* 🌱 a BASE (13/09): a caixa pra subir Cria da Base quando há vaga no elenco */}
-    <div id={ID_BASE}>{antesFolha}</div>
     {/* 💸 FOLHA total do time — soma dos salários (piso ÷ 10). Cobrada no fim da
         temporada. Fica aqui em cima das listas pra você ver o custo de relance.
         ⚠️ Soma o salário do TÉCNICO junto: é o que o vira-temporada cobra de
@@ -3754,6 +3772,15 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     ) })()}
     </>
   )
+  // 📦 a tela ANTIGA (sem `elencoNovo`) continua exatamente como era: as três caixas
+  // inteiras, uma embaixo da outra. Só a tela NOVA ganhou as pílulas-destino.
+  const blocoClube = (
+    <>
+    {quinze && <div id={ID_COMISSAO}><DepartamentoTecnico mgr={mgr} /></div>}
+    <div id={ID_BASE}>{antesFolha}</div>
+    {folhaBox}
+    </>
+  )
   // 🧹 O MEIO DA TELA LIMPO (Diego 18/09, olhando o celular: *"não gostei, c mts
   // coisas no meio atrapalhando"*). Entre o campinho e a lista moravam TRÊS caixas
   // grandes — Departamento Técnico, Base e Folha — então pra ver o elenco você
@@ -3761,17 +3788,40 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
   // três ATALHOS de uma linha (era o que o desenho aprovado mostrava), e as caixas
   // inteiras descem pro pé da tela. Nada sumiu: o atalho leva até elas.
   const vaPra = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  const atalho = (emoji: string, titulo: string, sub: string, onClick: () => void) => (
-    <button key={titulo} onClick={onClick} style={{ flex: 1, minWidth: 0, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 5px', textAlign: 'center', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
-      <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: larga ? 11 : 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emoji} {titulo}</span>
-      <span style={{ display: 'block', fontSize: 7.5, fontWeight: 700, color: 'rgba(12,12,12,.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
+  const atalho = (emoji: string, titulo: string, sub: string, onClick: () => void, aberta = false) => (
+    <button key={titulo} onClick={onClick} aria-pressed={aberta} style={{ flex: 1, minWidth: 0, background: aberta ? INK : '#fff', color: aberta ? GOLD : INK, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 5px', textAlign: 'center', boxShadow: aberta ? 'none' : `2px 2px 0 ${INK}`, cursor: 'pointer' }}>
+      <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: larga ? 11 : 10, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emoji} {titulo} {aberta ? '▴' : '▾'}</span>
+      <span style={{ display: 'block', fontSize: 7.5, fontWeight: 700, color: aberta ? 'rgba(255,255,255,.6)' : 'rgba(12,12,12,.45)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
     </button>
   )
+  // toca de novo na mesma pílula = fecha e volta pro elenco. O `requestAnimationFrame`
+  // é porque a área só existe DEPOIS do React desenhar — rolar antes não acha nada
+  // (foi exatamente o "joga pro final da tela sem nada" que ele pegou).
+  const abrePainel = (p: 'comissao' | 'base') => {
+    setPainel(x => (x === p ? 'nenhum' : p))
+    requestAnimationFrame(() => vaPra(ID_PAINEL))
+  }
+  // 🚫 A PÍLULA DE SAF SAIU (ordem dele): *"primeiro que precisa ter essa pílula de
+  // SAF, porque já tem embaixo SAF"*. Estava certo — a aba 🏢 SAF fica logo abaixo,
+  // na mesma tela, com o mesmo conteúdo. Dois botões pro mesmo lugar é poluição.
   const atalhos = (
     <div style={{ display: 'flex', gap: 6, margin: '9px 0 10px' }}>
-      {quinze && atalho('🏛️', tr('Comissão', 'Staff'), tr('técnico e preparador', 'coach and fitness'), () => vaPra(ID_COMISSAO))}
-      {antesFolha && atalho('🌱', tr('Base', 'Academy'), tr('subir do sub-20', 'promote from U-20'), () => vaPra(ID_BASE))}
-      {atalho('🏢', 'SAF', emprestados ? tr(`${emprestados} emprestado${emprestados > 1 ? 's' : ''}`, `${emprestados} on loan`) : tr('ninguém emprestado', 'nobody on loan'), () => { setAbaLista('saf'); vaPra(ID_TITULARES) })}
+      {quinze && atalho('🏛️', tr('Comissão', 'Staff'), tr('técnico e preparador', 'coach and fitness'), () => abrePainel('comissao'), painel === 'comissao')}
+      {antesFolha && atalho('🌱', tr('Base', 'Academy'), tr('subir do sub-20', 'promote from U-20'), () => abrePainel('base'), painel === 'base')}
+    </div>
+  )
+  // 🏛️🌱 A ÁREA QUE A PÍLULA ABRE — entra NO LUGAR da lista, com o caminho de volta
+  // sempre à vista. Nada de conteúdo mudou: é o MESMO Departamento Técnico e a MESMA
+  // caixa da Base que já existiam, só que agora onde a pessoa pediu pra ir.
+  const painelAberto = (
+    <div id={ID_PAINEL} style={{ minWidth: 0 }}>
+      <button onClick={() => setPainel('nenhum')}
+        style={{ width: '100%', marginBottom: 8, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', background: '#fff', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 11.5 }}>
+        ← {tr('VOLTAR PRO ELENCO', 'BACK TO THE SQUAD')}
+      </button>
+      {painel === 'comissao'
+        ? (quinze ? <DepartamentoTecnico mgr={mgr} /> : null)
+        : antesFolha}
     </div>
   )
   const tabela = (
@@ -3796,7 +3846,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
             É onde você sente a falta de reserva, então é onde o caminho tem que estar.
             Não duplica nada: leva pra MESMA caixa da Base, que mora no pé da tela. */}
         {abaLista === 'res' && antesFolha && (
-          <button onClick={() => vaPra(ID_BASE)} style={{ width: '100%', marginTop: 5, border: `2.5px dashed ${INK}`, borderRadius: 9, padding: '7px 9px', background: '#EFF7F1', cursor: 'pointer', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 11, color: GREEN }}>
+          <button onClick={() => abrePainel('base')} style={{ width: '100%', marginTop: 5, border: `2.5px dashed ${INK}`, borderRadius: 9, padding: '7px 9px', background: '#EFF7F1', cursor: 'pointer', textAlign: 'left', ...OSWALD, fontWeight: 900, fontSize: 11, color: GREEN }}>
             🌱 {tr('SUBIR DA BASE', 'PROMOTE FROM THE ACADEMY')}
             <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, color: 'rgba(12,12,12,.5)', textTransform: 'none' }}>{tr('tapa uma vaga do banco com um guri do sub-20 — de graça, e ele é fraco de propósito', 'fill a bench spot with a U-20 kid — free, and weak on purpose')}</span>
           </button>
@@ -3928,9 +3978,60 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
             )}
             </div>
             )}
+            {/* 🤖🌱 O AUTOMÁTICO LIGADO E SEM NINGUÉM PRA TROCAR (Diego 18/09).
+                Palavras dele: *"vamos supor que eu tenho três meio-campos, os três
+                cansaram, o modo automático ligado e não tem reserva. Aí tem que
+                aparecer uma pergunta falando: ó, você não tem reservas, o automático
+                está ligado mas você não tem reservas — você quer que suba um jogador
+                da base? Aí ele responde sim e cai na área da base… porque às vezes a
+                pessoa está com o automático e não sabe que está sem reserva"*.
+                👉 SÓ COM O AUTOMÁTICO LIGADO, por ordem dele (quem troca na mão segue
+                com o aviso curto de sempre, logo abaixo). Faz sentido: com o
+                automático ligado o botão verde de RODIZIAR nem aparece — o piloto já
+                fez o que dava —, então não sobra nada na tela dizendo que ele travou.
+                🚫 Nada sobe sozinho: o guri da Base só entra se a pessoa mandar. */}
+            {semReserva && condicao.auto && condicao.onAuto && (() => {
+              // QUEM ficou sem troca: os cansados que o rodízio não conseguiu cobrir.
+              // É daí que sai a POSIÇÃO que falta — dizer "MEI" vale mais que "alguma".
+              const cobertos = new Set((sug?.trocas ?? []).map(t => t.sai.id))
+              const orfaos = [...esgotados, ...limite, ...cansados].filter(c => !cobertos.has(c.id))
+              const posFalta = [...new Set(orfaos.map(c => c.pos))]
+              const quais = posFalta.map(p => POS_LABEL[p]).join(' · ')
+              const chaveSituacao = orfaos.map(c => c.id).sort().join('|')
+              if (recusouBase === chaveSituacao) return null
+              return (
+                <div style={{ border: '2.5px solid #C2452F', background: '#FDECEA', borderRadius: 10, padding: '9px 10px', marginTop: 8 }}>
+                  <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 3px', color: '#8a2318', lineHeight: 1.3 }}>
+                    {tr('🤖 O automático está ligado — mas não tem por quem trocar.', '🤖 Auto-rotation is on — but there is nobody to swap in.')}
+                  </p>
+                  <p style={{ fontSize: 10.5, fontWeight: 700, color: '#7a2418', margin: 0, lineHeight: 1.45 }}>
+                    {quais
+                      ? (en ? <>You have <b>no rested backup for {quais}</b>. {orfaos.length > 1 ? 'They' : 'He'} will take the pitch tired.</> : <>Você não tem <b>reserva inteiro de {quais}</b>. {orfaos.length > 1 ? 'Eles vão entrar' : 'Ele vai entrar'} em campo cansado{orfaos.length > 1 ? 's' : ''}.</>)
+                      : (en ? <>You have <b>no rested backup</b> for every spot.</> : <>Você não tem <b>reserva inteiro</b> pra toda vaga.</>)}
+                    {antesFolha
+                      ? (en ? <> <b>Do you want to call a kid up from the Academy?</b> It is free — but he is <b>weak on purpose</b>. A real bench is built at the auction.</> : <> <b>Quer subir um guri da Base pro banco?</b> É de graça — mas ele é <b>fraco de propósito</b>. O time de verdade se monta no leilão.</>)
+                      : (en ? <> <b>Build a real bench at the transfer auction.</b></> : <> <b>Monte um banco de verdade no leilão de transferências.</b></>)}
+                  </p>
+                  {antesFolha && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                      <button onClick={() => abrePainel('base')}
+                        style={{ flex: 1.3, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', background: GREEN, color: '#fff', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', ...OSWALD, fontWeight: 900, fontSize: 11.5 }}>
+                        🌱 {tr('SIM, VER A BASE', 'YES, SEE THE ACADEMY')}
+                        <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .9, textTransform: 'none' }}>{tr('abre o sub-20 aqui mesmo', 'opens the U-20 right here')}</span>
+                      </button>
+                      <button onClick={() => setRecusouBase(chaveSituacao)}
+                        style={{ flex: 1, minWidth: 0, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 9px', background: '#fff', color: INK, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', ...OSWALD, fontWeight: 900, fontSize: 11.5 }}>
+                        {tr('AGORA NÃO', 'NOT NOW')}
+                        <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .6, textTransform: 'none' }}>{tr('jogam cansados mesmo', 'they play tired')}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
             {/* ⚠️ sem reserva inteiro: aviso CURTO sempre (é trava com caminho); o
                 resto da explicação mora no "?" */}
-            {semReserva && !ajudaPrep && (
+            {semReserva && !ajudaPrep && !(semReserva && condicao.auto && condicao.onAuto) && (
               <p style={{ fontSize: 10, fontWeight: 800, color: '#8a6d00', margin: '6px 0 0', lineHeight: 1.4 }}>{tr('⚠️ Sem reserva inteiro pra toda vaga — monte banco no leilão.', '⚠️ No rested backup for every spot — build a bench at the auction.')}</p>
             )}
             {ajudaPrep && <p style={{ fontSize: 10, fontWeight: 700, color: '#5a5647', margin: '6px 0 0', lineHeight: 1.4 }}>
@@ -4024,8 +4125,8 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       {/* 📋 a lista: no monitor ela ocupa o resto da largura, ao lado do campo —
           e leva junto comissão/base/folha, senão sobrava um vão verde do lado. */}
       <div style={larga ? { flex: 1, minWidth: 0 } : undefined}>
-        {elencoNovo ? tabela : listasDeSempre}
-        {elencoNovo && <div style={{ marginTop: 10 }}>{blocoClube}</div>}
+        {elencoNovo ? (painel !== 'nenhum' ? painelAberto : tabela) : listasDeSempre}
+        {elencoNovo && <div style={{ marginTop: 10 }}>{folhaBox}</div>}
       </div>
       </div>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: '8px 0 0', lineHeight: 1.4, textShadow: '1px 1px 0 rgba(0,0,0,.25)' }}>
@@ -4177,7 +4278,7 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
   const [loja, setLoja] = useState(false)
   const prep = preparadorDe(state.careerPreparador?.[mgr.teamName])
   const fimPrep = state.careerPreparadorContrato?.[mgr.teamName]
-  const faltaPrep = fimPrep != null ? fimPrep - state.seasonNo + 1 : 0
+  const faltaPrep = faltaContrato(fimPrep, state.seasonNo)
   const prepVencido = fimPrep != null && faltaPrep <= 0
   const moedas = state.careerCoins?.[mgr.id] ?? 0
   const contrato = (fim: number | undefined, falta: number) => fim == null ? '—'
@@ -4211,7 +4312,7 @@ function DepartamentoTecnico({ mgr }: { mgr: Manager }) {
                 <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
                   <button onClick={() => dispatch({ type: 'RENOVAR_PREPARADOR' })} disabled={moedas < prep.preco}
                     style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: moedas < prep.preco ? '#CBBF9E' : GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: moedas < prep.preco ? 'not-allowed' : 'pointer' }}>
-                    {tr('📝 RENOVAR', '📝 RENEW')} <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .9, textTransform: 'none' }}>{prep.preco} 🪙 · +5 {tr('temporadas', 'seasons')}</span>
+                    {tr('📝 RENOVAR', '📝 RENEW')} <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 8.5, opacity: .9, textTransform: 'none' }}>{prep.preco} 🪙 · {CONTRATO_PRAZOS.join(' · ')} {tr('temporadas (sorteio)', 'seasons (drawn)')}</span>
                   </button>
                   <button onClick={() => dispatch({ type: 'DISPENSAR_PREPARADOR' })}
                     style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 9, padding: '7px 8px', ...OSWALD, fontWeight: 900, fontSize: 11.5, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer' }}>
@@ -4247,8 +4348,8 @@ function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; on
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 17, margin: '0 0 2px', textTransform: 'uppercase' }}>{tr('🏋️ Contratar preparador', '🏋️ Hire a fitness coach')}</p>
         <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 10px', lineHeight: 1.4 }}>
           {getLang() === 'en'
-            ? <>The better the coach, the more energy the bench gives back — and the longer your star plays without getting tired. Salary is <b>10% of the price</b> per season, contract of <b>5 seasons</b>.</>
-            : <>Quanto melhor o preparador, mais o banco devolve — e mais tempo o seu craque joga sem cansar. Salário de <b>10% do preço</b> por temporada, contrato de <b>5 temporadas</b>.</>}
+            ? <>The better the coach, the more energy the bench gives back — and the longer your star plays without getting tired. Salary is <b>10% of the price</b> per season. The contract length is <b>drawn when he signs</b>: {CONTRATO_PRAZOS.join(', ')} seasons — same ladder as a player's.</>
+            : <>Quanto melhor o preparador, mais o banco devolve — e mais tempo o seu craque joga sem cansar. Salário de <b>10% do preço</b> por temporada. O tempo de contrato é <b>sorteado na assinatura</b>: {CONTRATO_PRAZOS.join(', ')} temporadas — a mesma escada do jogador.</>}
         </p>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 8px', color: '#5a5647' }}>💰 {tr('seu caixa', 'your cash')}: {moedas} 🪙</p>
         {PREPARADORES.map(p => {
@@ -4267,7 +4368,7 @@ function LojaPreparadores({ moedas, onEscolher, onFechar }: { moedas: number; on
                   style={{ width: '100%', marginTop: 8, border: `3px solid ${INK}`, borderRadius: 10, background: pode ? INK : '#CBBF9E', color: '#fff', ...OSWALD, fontWeight: 900, fontSize: 15, padding: '8px', boxShadow: `3px 3px 0 0 rgba(0,0,0,.35)`, cursor: pode ? 'pointer' : 'not-allowed' }}>
                   {p.preco} 🪙
                   <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 9, opacity: .78, marginTop: 1 }}>
-                    {pode ? tr(`salário ${salarioPreparador(p)}/temporada · contrato de 5`, `salary ${salarioPreparador(p)}/season · 5-season contract`) : tr('moedas insuficientes', 'not enough coins')}
+                    {pode ? tr(`salário ${salarioPreparador(p)}/temporada · contrato ${CONTRATO_PRAZOS.join('/')} (sorteio)`, `salary ${salarioPreparador(p)}/season · ${CONTRATO_PRAZOS.join('/')}-season contract (drawn)`) : tr('moedas insuficientes', 'not enough coins')}
                   </span>
                 </button>
               </div>
@@ -4289,7 +4390,7 @@ function MeuTecnicoBox({ mgr }: { mgr: Manager }) {
   const nome = state.careerTecnicos?.[mgr.teamName] ?? null
   const fim = state.careerTecnicoContrato?.[mgr.teamName]
   const valor = nome ? (state.careerTecnicoPago?.[nome] ?? 0) : 0
-  const falta = fim != null ? fim - state.seasonNo + 1 : 0
+  const falta = faltaContrato(fim, state.seasonNo)
   return (
     <div>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: .7, color: '#8a8266', margin: '0 0 6px', textTransform: 'uppercase' }}>{tr('🧢 Técnico', '🧢 Head coach')}</p>
@@ -4492,7 +4593,7 @@ function AliciarSection({ mgr }: { mgr: Manager }) {
                     {(() => {
                       // 📝 contrato de 5 anos de TODO técnico: só se alicia quem está SEM
                       const fim = state.careerTecnicoContrato?.[c.teamName]
-                      const falta = fim != null ? fim - state.seasonNo + 1 : 0
+                      const falta = faltaContrato(fim, state.seasonNo)
                       const marcado = marcadosT.includes(nome)
                       const trava = falta > 0 ? (getLang() === 'en' ? `contract: ${falta} season${falta > 1 ? 's' : ''} left` : `contrato: falta${falta > 1 ? 'm' : ''} ${falta} temporada${falta > 1 ? 's' : ''}`) : (!marcado && marcadosT.length >= 1 ? tr('já sondou 1 técnico nesta temporada', 'already scouted 1 coach this season') : undefined)
                       return (
@@ -9320,7 +9421,7 @@ export function PyramidSeasonScreen() {
                 </> : <>
                 Agora seu clube tem <b>técnico</b>: são <b>105 comandantes</b>, do 🤎 Foi profissional ao 👑 Lenda, e o <b>nível dele soma no seu time</b> em toda partida da liga.
                 <br /><br />🎽 E vieram junto as <b>15 formações</b> — mas <b>quem abre elas é o técnico</b>: sem técnico, o time joga só o esquema que já treina. Quanto maior a categoria dele, mais esquemas ele traz (👑 Lenda traz 5).
-                <br /><br />📍 <b>Pra contratar:</b> na janela <b>antes do leilão</b>, aba <b>🕵️ SONDAR</b> — você marca o técnico que quer e briga por ele no pregão, no envelope, igual jogador. 🔨 Contrato de <b>5 temporadas</b>, com salário na folha.
+                <br /><br />📍 <b>Pra contratar:</b> na janela <b>antes do leilão</b>, aba <b>🕵️ SONDAR</b> — você marca o técnico que quer e briga por ele no pregão, no envelope, igual jogador. 🔨 O tempo de contrato é <b>sorteado na assinatura</b> ({CONTRATO_PRAZOS.join(', ')} temporadas, a mesma escada do jogador), com salário na folha.
                 </>}
               </UnlockBanner>
             )}
@@ -9492,7 +9593,7 @@ export function ReserveListScreen() {
           return (
             <div style={{ ...box('#fff'), padding: '11px 12px', marginBottom: 10 }}>
               <p style={{ fontWeight: 900, fontSize: 12.5, ...OSWALD, margin: '0 0 3px', color: INK }}>{tr('🧢 Contrato do técnico ENCERROU', '🧢 Head coach contract ENDED')}</p>
-              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px', lineHeight: 1.4 }}>{getLang() === 'en' ? <><b>{nomeTec}</b> completed the 5 seasons (expired in S{fim}). Renew for <b>💰 {custo}</b> (+5 seasons) or let go — no fee, the contract ran its course.</> : <><b>{nomeTec}</b> cumpriu as 5 temporadas (venceu na T{fim}). Renove por <b>💰 {custo}</b> (+5 temporadas) ou deixe ir — sem multa, ele foi até o fim.</>}</p>
+              <p style={{ fontSize: 10.5, fontWeight: 700, color: '#5a5647', margin: '0 0 8px', lineHeight: 1.4 }}>{getLang() === 'en' ? <><b>{nomeTec}</b> served out his contract (expired in S{fim}). Renew for <b>💰 {custo}</b> (a new length is drawn) or let go — no fee, the contract ran its course.</> : <><b>{nomeTec}</b> cumpriu o contrato (venceu na T{fim}). Renove por <b>💰 {custo}</b> (o tempo novo é sorteado) ou deixe ir — sem multa, ele foi até o fim.</>}</p>
               <div style={{ display: 'flex', gap: 7 }}>
                 <button disabled={caixa < custo} onClick={() => dispatch({ type: 'RENOVAR_TECNICO' })}
                   style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '8px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, textTransform: 'uppercase', background: caixa < custo ? '#d8cfb5' : '#1B7A3D', color: caixa < custo ? 'rgba(0,0,0,.4)' : '#fff', boxShadow: caixa < custo ? 'none' : `2px 2px 0 0 ${INK}`, cursor: caixa < custo ? 'not-allowed' : 'pointer' }}>{tr('📝 Renovar', '📝 Renew')} (💰 {custo})</button>

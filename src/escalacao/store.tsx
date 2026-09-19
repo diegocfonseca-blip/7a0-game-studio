@@ -13,7 +13,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
-import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato } from './preparadores' // 🏋️ preparador físico (15/09)
+import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
@@ -567,6 +567,53 @@ function curaContratosVencidos(s: EscState): void {
       m.squad = (m.squad as WonCard[]).map(c => curaContratoVoltando(c, sn))
     }
   }
+}
+// ─── 📝 CURA DO CONTRATO DA COMISSÃO (18/09) ────────────────────────────────
+// Bug que o Diego recebeu de dois amigos: *"empresário com 100 temporadas,
+// técnico com 100 temporadas… 100 temporadas não existe, pô"*. Os prints
+// mostraram **"contrato: faltam 98 temporadas"** num técnico e **"faltam 115"**
+// num preparador.
+//
+// 🔍 A CAUSA, achada no código: contrato de comissão é SEMPRE escrito como
+// `seasonNo + 4` (5 temporadas — `CONTRATO_TEMPORADAS`), e a tela mostra
+// `fim − seasonNo + 1`. Pra dar 115, o `fim` teria que estar 114 temporadas à
+// frente — o que nenhuma escrita faz. Ou seja: **o contrato não subiu, a
+// temporada é que voltou**. E o caminho estava aberto: o `RESTORE_CAREER` tem
+// uma faxina grande (19/08, o bug dos títulos herdados) que zera honras, caixa,
+// estádio, multiclube… mas os mapas da COMISSÃO nasceram DEPOIS (técnico 26/08,
+// preparador 15/09) e nunca entraram nessa lista. Retomar uma carreira antiga
+// (temporada baixa) logo depois de uma adiantada deixava o contrato da outra
+// para trás — e ele ainda era SALVO assim, então viajava pra sempre.
+//
+// Esta cura é a rede: nenhum contrato de comissão pode faltar MAIS que o maior
+// prazo que o sorteio consegue dar (10 — ver `CONTRATO_MAX`). Passou disso, o
+// número é impossível — então vale o MÁXIMO legal, nunca "vencido". Quem pagou não
+// perde o funcionário por causa de um número torto: a casa não tira nada de
+// ninguém pra consertar contabilidade.
+function curaContratoComissao(s: EscState): void {
+  const teto = CONTRATO_MAX // 10: o maior prazo que o sorteio pode dar (preparadores.ts)
+  const sn = s.seasonNo ?? 1
+  const conserta = (m?: Record<string, number>): Record<string, number> | undefined => {
+    if (!m) return m
+    let mexeu = false
+    const novo: Record<string, number> = {}
+    for (const [clube, fim] of Object.entries(m)) {
+      if (typeof fim === 'number' && fim - sn + 1 > teto) { novo[clube] = sn + teto - 1; mexeu = true }
+      else novo[clube] = fim
+    }
+    return mexeu ? novo : m
+  }
+  s.careerTecnicoContrato = conserta(s.careerTecnicoContrato)
+  s.careerPreparadorContrato = conserta(s.careerPreparadorContrato)
+}
+
+// 🎲 O SORTEIO DO PRAZO DA COMISSÃO — determinístico, igual ao dos jogadores.
+// Usa o MESMO tempero do contrato de jogador (`seed ^ temporada*65537 ^ 0x5EED`) com
+// um sal por TIPO de ficha: sem ele, técnico e preparador assinados na mesma
+// temporada tirariam sempre o mesmo número, e o sorteio pareceria viciado.
+function rngPrazoComissao(s: EscState, tipo: 'tecnico' | 'preparador'): () => number {
+  const sal = tipo === 'tecnico' ? 0x7EC1C0 : 0x9A1A17
+  return mulberry(((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED ^ sal) >>> 0))
 }
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>, finalPos?: Record<number, number>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
@@ -4032,7 +4079,7 @@ function sealAndResolveTec(state: EscState) {
       pago[lote.nome] = top.amount
       if (lote.clube) map[lote.clube] = null
       map[winM.teamName] = lote.nome
-      state.careerTecnicoContrato = { ...(state.careerTecnicoContrato ?? {}), [winM.teamName]: state.seasonNo + 4 } // 📝 5 temporadas
+      state.careerTecnicoContrato = { ...(state.careerTecnicoContrato ?? {}), [winM.teamName]: fimDoContrato(state.seasonNo, rngPrazoComissao(state, 'tecnico')) } // 📝 prazo SORTEADO: 3 · 5 · 10
       state.careerTecnicosDesde = { ...(state.careerTecnicosDesde ?? {}), [winM.teamName]: { t: state.seasonNo, r: state.round }, ...(lote.clube ? { [lote.clube]: { t: state.seasonNo, r: state.round } } : {}) }
       if (t) {
         // 🏠 formação da casa: a que o time já usava soma ao cardápio (sem dobrar)
@@ -5176,7 +5223,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 😓📝 CURAS AO ABRIR (13/09, São Luiz FC): liga o gás se a carreira já está em
       // C/B/A (mesmo presa num banner, onde o PLAY_ROUND nunca chegava a ligar) e
       // devolve pro presente contrato que voltou do passado (empréstimo pra SAF).
-      try { ligaCondicaoSeCabe(restored); curaContratosVencidos(restored) } catch { /* save torto: abre mesmo assim */ }
+      try { ligaCondicaoSeCabe(restored); curaContratosVencidos(restored); curaContratoComissao(restored) } catch { /* save torto: abre mesmo assim */ }
       normalizeMultiSeats(restored)
       // 🧾 RECONCILIAÇÃO 1x de saves ANTIGOS (feitos antes do extrato registrar
       // saldo inicial, estádio e SAF): se o extrato não tem o 'saldo inicial', lança
@@ -7085,11 +7132,14 @@ export function reducer(state: EscState, action: Action): EscState {
       if (coins < p.preco) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
       s.careerPreparador = { ...(s.careerPreparador ?? {}), [you.teamName]: p.key }
-      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimDoContrato(s.seasonNo) }
+      // 🎲 o prazo é sorteado UMA vez e guardado — o log tem que dizer o número REAL
+      const fimNovo = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
+      const anosNovo = fimNovo - s.seasonNo + 1
+      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimNovo }
       logFin(s, 'buy', `🏋️ ${p.nome} chegou ao Departamento Técnico`, -p.preco)
       s.aliciarLog = {
         titulo: `🏋️ ${p.nome} é do ${you.teamName}!`,
-        corpo: `Contrato de 5 temporadas (até a T${fimDoContrato(s.seasonNo)}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora o banco devolve ${p.banco} de gás por rodada e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
+        corpo: `Contrato de ${anosNovo} temporada${anosNovo > 1 ? 's' : ''} (até a T${fimNovo}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora o banco devolve ${p.banco} de gás por rodada e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
         venceu: true,
       }
       return s
@@ -7106,9 +7156,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < p.preco) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
-      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimDoContrato(s.seasonNo) }
-      logFin(s, 'buy', `📝 Renovação do preparador ${p.nome} (+5 temporadas)`, -p.preco)
-      s.aliciarLog = { titulo: `📝 ${p.nome} renovou!`, corpo: `Mais 5 temporadas (até a T${fimDoContrato(s.seasonNo)}) por ${p.preco} 🪙.`, venceu: true }
+      const fimRenov = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
+      const anosRenov = fimRenov - s.seasonNo + 1
+      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimRenov }
+      logFin(s, 'buy', `📝 Renovação do preparador ${p.nome} (+${anosRenov} temporada${anosRenov > 1 ? 's' : ''})`, -p.preco)
+      s.aliciarLog = { titulo: `📝 ${p.nome} renovou!`, corpo: `Mais ${anosRenov} temporada${anosRenov > 1 ? 's' : ''} (até a T${fimRenov}) por ${p.preco} 🪙.`, venceu: true }
       return s
     }
     case 'DISPENSAR_PREPARADOR': {
@@ -7143,9 +7195,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < custo) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - custo }
-      s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [you.teamName]: s.seasonNo + 4 }
+      const fimTecRenov = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'tecnico'))
+      const anosTecRenov = fimTecRenov - s.seasonNo + 1
+      s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [you.teamName]: fimTecRenov }
       logFin(s, 'buy', `📝 Renovação do técnico ${nome} (+5 temporadas)`, -custo)
-      s.aliciarLog = { titulo: `📝 ${nome} renovou!`, corpo: `Mais 5 temporadas (até a T${s.seasonNo + 4}) por ${custo} 🪙.`, venceu: true }
+      s.aliciarLog = { titulo: `📝 ${nome} renovou!`, corpo: `Mais ${anosTecRenov} temporada${anosTecRenov > 1 ? 's' : ''} (até a T${fimTecRenov}) por ${custo} 🪙.`, venceu: true }
       return s
     }
     case 'DISPENSAR_TECNICO': {
@@ -8035,6 +8089,17 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.careerCopaSeasons = []; s.careerSupercopaSeasons = []
       s.careerCoins = {}; s.stadiums = {}; s.careerFilial = undefined
+      // 🧢🏋️ A COMISSÃO TAMBÉM É DA OUTRA CARREIRA (18/09). Os mapas do técnico e do
+      // preparador nasceram DEPOIS desta faxina (26/08 e 15/09) e ficaram de fora —
+      // então retomar uma carreira antiga logo depois de uma adiantada trazia junto o
+      // técnico, o preparador e, principalmente, o CONTRATO deles, marcado numa
+      // temporada lá na frente. Era o "faltam 98/115 temporadas" que os amigos do
+      // Diego mandaram. Carreira retomada começa sem comissão nenhuma — ela é
+      // semeada de novo pela própria carreira, como sempre foi.
+      s.careerTecnicos = undefined; s.careerTecnicosDesde = undefined
+      s.careerTecnicoContrato = undefined; s.careerTecnicoPago = undefined
+      s.careerTecnicoExDono = undefined; s.careerFormacaoExtra = undefined
+      s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
       s.careerScorersAll = {}; s.statsSeason = 0
@@ -8552,6 +8617,7 @@ type FichaJogador = { fame: number; lo: number; hi: number; folk?: boolean; prom
 const FICHA_ATUAL = (() => {
   const exato = new Map<string, FichaJogador>()
   const porNome = new Map<string, FichaJogador>()
+  const endereco = new Map<string, { club: string; year: number }>()
   const repetidos = new Set<string>()
   for (const cat of [CATALOG_WORLD, CATALOG_EU, CATALOG]) {
     for (const lista of Object.values(cat)) {
@@ -8559,6 +8625,9 @@ const FICHA_ATUAL = (() => {
         const ficha: FichaJogador = { fame: c.fame, lo: c.lo, hi: c.hi, folk: c.folk, promessa: c.promessa, bio: c.bio }
         exato.set(`${c.name}|${clubCanon(c.club)}|${c.year}`, ficha)
         if (porNome.has(c.name)) repetidos.add(c.name); else porNome.set(c.name, ficha)
+        // 🏷️ onde a carta MORA hoje (clube + ano). Só pra nome que existe numa
+        // carta só — ver `endereco.delete` logo abaixo.
+        if (!endereco.has(c.name)) endereco.set(c.name, { club: clubCanon(c.club), year: c.year })
       }
     }
   }
@@ -8568,7 +8637,8 @@ const FICHA_ATUAL = (() => {
   // pelo nome daria a ficha errada, e a de fora da Europa é MUITO mais fraca.
   // Nesses casos só o casamento exato (nome+clube+ano) vale.
   for (const n of repetidos) porNome.delete(n)
-  return { exato, porNome }
+  for (const n of repetidos) endereco.delete(n)
+  return { exato, porNome, endereco }
 })()
 // 🏀 A MESMA REGRA PRO BASQUETE, EM MAPA SEPARADO. A regra permanente do Diego
 // (21/08) é "mexeu no jogador, TODO save atualiza" — mas a ficha acima só olha os
@@ -8596,6 +8666,22 @@ const FICHA_NBA = (() => {
 function sincronizaNiveis(save: EscState): EscState {
   let mexeu = 0
   const vistos = new Set<object>()
+  // 🏷️ CARTA QUE TROCOU DE ENDEREÇO (Diego 18/09: *"Zidane tá aparecendo Real
+  // Madrid… ele é Juventus, pow"*).
+  // Em 03/09 ele mesmo mandou trocar a carta: saiu o Zidane do Real Madrid 2002,
+  // entrou o da Juve de 1998. O CATÁLOGO trocou — mas a carta é COPIADA pro save e
+  // congela, e esta função só regravava a FICHA (nível, categoria, bio), nunca o
+  // clube e o ano, que são a identidade. Resultado: quem já tinha o Zidane seguia
+  // com um endereço que não existe mais em lugar nenhum do jogo.
+  // 👉 Agora o endereço acompanha, com DUAS travas pra não inventar carta:
+  //   1. só quando o trio nome+clube+ano NÃO existe mais no catálogo (carta órfã);
+  //   2. só quando o nome tem UMA carta só (`endereco`, que já ignora nome repetido
+  //      pelo mesmo motivo do `porNome`). Kaká SP × Kaká Milan, Messi Barça × Miami,
+  //      CR7 Real × Al-Nassr — esses NUNCA são tocados, senão a gente trocaria a
+  //      carta de um jogador pela do outro momento dele.
+  // 💰 E o livro de preços vai junto (`marketValues` é `nome|clube`): sem isso o
+  //    valor de mercado que o clube dele construiu ficaria órfão na chave velha.
+  const mudouDeClube: [string, string][] = []
   // 🏀 save de basquete lê a ficha do baralho NBA; o de futebol nunca passa por lá.
   const nba = save.sport === 'basquete'
   const bioNba = (f: FichaNba) => (getLang() === 'en' ? f.bioEn : f.bioPt)
@@ -8615,6 +8701,15 @@ function sincronizaNiveis(save: EscState): EscState {
         const f: FichaJogador | undefined = fNba
           ? { fame: fNba.fame, lo: fNba.lo, hi: fNba.hi, folk: fNba.folk, promessa: fNba.promessa, bio: bioNba(fNba) }
           : (FICHA_ATUAL.exato.get(chave) ?? FICHA_ATUAL.porNome.get(o.name))
+        // 🏷️ carta órfã de nome único: o endereço acompanha o catálogo
+        if (!FICHA_ATUAL.exato.has(chave) && !nba && !o.cria) {
+          const end = FICHA_ATUAL.endereco.get(o.name)
+          if (end && (clubCanon(o.club) !== end.club || o.year !== end.year)) {
+            mudouDeClube.push([`${o.name}|${clubCanon(o.club)}`, `${o.name}|${end.club}`])
+            o.club = end.club; o.year = end.year
+            mexeu++
+          }
+        }
         if (f) {
           const dif = o.fame !== f.fame || o.lo !== f.lo || o.hi !== f.hi
             || !!o.folk !== !!f.folk || !!o.promessa !== !!f.promessa || (f.bio != null && o.bio !== f.bio)
@@ -8632,6 +8727,17 @@ function sincronizaNiveis(save: EscState): EscState {
     for (const k of Object.keys(o)) anda(o[k], prof + 1)
   }
   try { anda(save, 0) } catch { /* save torto: melhor não sincronizar do que quebrar o load */ }
+  // 💰 o livro de preços segue a carta que mudou de clube (fica o MAIOR, mesma
+  // regra da junção de chaves do `migrateTeamNames`)
+  if (mudouDeClube.length && save.marketValues) {
+    const mv = { ...save.marketValues }
+    for (const [velha, nova] of mudouDeClube) {
+      if (velha === nova || !(velha in mv)) continue
+      mv[nova] = Math.max(mv[nova] ?? 0, mv[velha])
+      delete mv[velha]
+    }
+    save.marketValues = mv
+  }
   return mexeu > 0 ? { ...save } : save
 }
 /** tudo que um save de carreira leva ao ser aberto: faxina do caixa + nível das cartas em dia

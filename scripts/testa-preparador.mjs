@@ -24,7 +24,7 @@ const C = await vite.ssrLoadModule('/src/escalacao/condicao.ts')
 const P = await vite.ssrLoadModule('/src/escalacao/preparadores.ts')
 const { reducer } = S
 const { gasDoElenco, sugerirRodizio, pctBarra, pedeRodizio, estadoGas, modGas, corBarra, corGas, GAS_BANCO, GAS_JOGO } = C
-const { PREPARADORES, preparadorDe, salarioPreparador, temAutomatico } = P
+const { PREPARADORES, preparadorDe, salarioPreparador, temAutomatico, CONTRATO_PRAZOS, CONTRATO_MAX, sorteiaPrazo } = P
 
 let falhas = 0
 const ok = (cond, msg) => { console.log(`  ${cond ? '✅' : '❌'} ${msg}`); if (!cond) falhas++ }
@@ -43,7 +43,8 @@ console.log('\n1) 💰 comprar — o preço sai do CATÁLOGO, nunca de fora')
   const s = reducer(base(), { type: 'BUY_PREPARADOR', key: 'faria' })
   ok(s.careerPreparador?.['Meia na Canela'] === 'faria', 'contratou o Rui Faria')
   ok(s.careerCoins[0] === 1200 - 100, `cobrou 100 (ficou ${s.careerCoins[0]})`)
-  ok(s.careerPreparadorContrato?.['Meia na Canela'] === 3 + 4, 'contrato de 5 temporadas (T3 → T7)')
+  const prazo1 = s.careerPreparadorContrato?.['Meia na Canela'] - 3 + 1
+  ok(CONTRATO_PRAZOS.includes(prazo1), `o prazo sai da escada 3/5/10 (saiu ${prazo1})`)
   const log = (s.careerLedger ?? []).at(-1)
   ok(log && log.amount === -100 && log.kind === 'buy', 'saiu no extrato do clube como −100')
 }
@@ -74,7 +75,8 @@ console.log('\n2) 📝 renovar e dispensar — as MESMAS regras do técnico')
   ok(cedo.careerCoins[0] === 1100, 'contrato em dia NÃO renova (nem cobra)')
   const naT8 = { ...comprado, seasonNo: 8 } // venceu no fim da T7
   const renov = reducer(naT8, { type: 'RENOVAR_PREPARADOR' })
-  ok(renov.careerPreparadorContrato['Meia na Canela'] === 8 + 4 && renov.careerCoins[0] === 1000, 'vencido renova por +5 temporadas pelo mesmo preço')
+  const prazoR = renov.careerPreparadorContrato['Meia na Canela'] - 8 + 1
+  ok(CONTRATO_PRAZOS.includes(prazoR) && renov.careerCoins[0] === 1000, `vencido renova pelo mesmo preço, com prazo novo sorteado (saiu ${prazoR})`)
   const solto = reducer(naT8, { type: 'DISPENSAR_PREPARADOR' })
   ok(solto.careerPreparador['Meia na Canela'] === null && solto.careerCoins[0] === 1100, 'dispensa vencido sem multa (não cobra nada)')
   const naoSolta = reducer(naT5, { type: 'DISPENSAR_PREPARADOR' })
@@ -140,6 +142,56 @@ console.log('\n7) 🛡️ sem preparador NADA trava')
   ok(preparadorDe(null) === null && preparadorDe(undefined) === null, 'save antigo (sem o campo) = sem preparador, sem quebrar')
   const s = reducer(base(), { type: 'SET_CONDICAO_AUTO', on: true })
   ok(s.condicaoAuto === true, 'a preferência do automático continua guardando (quem comprar o Lenda já acha ligada)')
+}
+
+console.log('\n8) 📝 "100 temporadas não existe" — o contrato da comissão tem TETO')
+{
+  // Diego (18/09), com print de dois amigos: *"empresário com 100 temporadas, técnico
+  // com 100 temporadas… 100 temporadas não existe, pô"* (98 no técnico, 115 no
+  // preparador). A causa: o RESTORE_CAREER zerava honras, caixa e estádio da carreira
+  // anterior, mas os mapas da COMISSÃO nasceram depois e ficaram de fora — retomar uma
+  // carreira ANTIGA carregava o contrato da ADIANTADA, marcado lá na frente.
+  // Aqui a cura: contrato de comissão nunca falta mais que CONTRATO_TEMPORADAS.
+  const torto = base({
+    seasonNo: 5,
+    careerPreparador: { 'Meia na Canela': 'seirulo' },
+    careerPreparadorContrato: { 'Meia na Canela': 119 },   // 115 faltando — impossivel mesmo com o teto de 10
+    careerTecnicoContrato: { 'Meia na Canela': 102, 'Bot': 7 }, // Bot: falta 3, dentro da regra
+  })
+  const s = reducer({ ...base(), screen: 'intro' }, { type: 'RESUME_CAREER_SOLO', saved: torto })
+  const fimPrep = s.careerPreparadorContrato?.['Meia na Canela']
+  const fimTec = s.careerTecnicoContrato?.['Meia na Canela']
+  ok(fimPrep - s.seasonNo + 1 === CONTRATO_MAX, `preparador voltou pro teto de ${CONTRATO_MAX} temporadas (era 115, virou ${fimPrep - s.seasonNo + 1})`)
+  ok(fimTec - s.seasonNo + 1 === CONTRATO_MAX, `tecnico voltou pro teto de ${CONTRATO_MAX} temporadas (era 98, virou ${fimTec - s.seasonNo + 1})`)
+  ok(s.careerPreparador?.['Meia na Canela'] === 'seirulo', 'ninguem perde o funcionario que pagou — so o numero e consertado')
+  ok(s.careerTecnicoContrato?.['Bot'] === 7, 'contrato que ja estava dentro da regra nao e tocado')
+}
+{
+  // e a faxina do RESTORE_CAREER agora leva a comissão junto
+  const sujo = { ...base({ seasonNo: 90 }), careerPreparador: { X: 'seirulo' }, careerPreparadorContrato: { X: 94 }, careerTecnicos: { X: 'Alguem' }, careerTecnicoContrato: { X: 94 } }
+  const s = reducer(sujo, { type: 'RESTORE_CAREER', save: { division: 'D', seasonNo: 6, titles: 0, teamName: 'Meia na Canela', formation: '4-3-3', squad: [] } })
+  ok(!s.careerPreparadorContrato || Object.keys(s.careerPreparadorContrato).length === 0, 'carreira retomada nao herda contrato de preparador da outra')
+  ok(!s.careerTecnicoContrato || Object.keys(s.careerTecnicoContrato).length === 0, 'carreira retomada nao herda contrato de tecnico da outra')
+  ok(!s.careerPreparador || Object.keys(s.careerPreparador).length === 0, 'nem o preparador em si')
+}
+
+console.log('\n9) 🎲 o PRAZO SORTEADO (Diego 18/09: "opcao A, mas quero mais tempos, falta um de dez")')
+{
+  // o prazo da comissao passou a sair sorteado na MESMA escada do jogador.
+  // A trava garante tres coisas: so sai da escada, nunca passa do teto, e a media
+  // nao pode ser PIOR que os 5 fixos de antes — item pago nao vira aposta ruim.
+  const conta = {}
+  let soma = 0
+  const N = 20000
+  let rngI = 0
+  const rng = () => { rngI = (rngI * 1664525 + 1013904223) >>> 0; return rngI / 4294967296 }
+  for (let i = 0; i < N; i++) { const v = sorteiaPrazo(rng); conta[v] = (conta[v] ?? 0) + 1; soma += v }
+  const saiu = Object.keys(conta).map(Number).sort((a, b) => a - b)
+  ok(saiu.every(v => CONTRATO_PRAZOS.includes(v)), `so sai da escada ${CONTRATO_PRAZOS.join('/')} (saiu ${saiu.join('/')})`)
+  ok(saiu.length === CONTRATO_PRAZOS.length, 'todos os degraus acontecem — nenhum e inalcancavel')
+  ok(Math.max(...saiu) <= CONTRATO_MAX, `nenhum sorteio passa do teto de ${CONTRATO_MAX}`)
+  const media = soma / N
+  ok(media >= 5, `a media (${media.toFixed(2)}) nao e pior que os 5 fixos de antes`)
 }
 
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)
