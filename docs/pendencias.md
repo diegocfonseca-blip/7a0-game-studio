@@ -1,3 +1,46 @@
+## 19/09/2026 (parte 3) — 🟢⚪ Dirceu Krüger entra no baralho + o coração do White Thigs
+
+### ❤️ White Thigs do GuGu é CORITIBA
+Ordem do Diego. Este é o **1º batismo da história** e **não tem dono nem e-mail
+conhecido** — logo não existe linha em `esc_socios` pra guardar o coração. Ficou
+anotado no `batismos.ts`, junto do clube. No dia em que o dono aparecer, o coração
+vai pro banco junto com o nº de fundador.
+
+### 🃏 A carta do Dirceu Krüger
+Pedido dele na mesma mensagem: *"pesquise qual auge, o ano dele, e nível e
+categoria se enquadraria"*. **Nada aqui foi chutado** — a regra dele de 18/08 vale
+justamente pra isso.
+
+**O que a pesquisa deu** (ESPN, Gazeta do Povo, Gazeta Esportiva, Câmara de
+Curitiba):
+- Coritiba **1966–1976**: **252 jogos, 58 gols**
+- **7 títulos paranaenses**: 1968, 1969 e o **penta de 1971 a 1975**
+- Apelido **"Flecha Loira"**
+- **1999**: eleito numa enquete da imprensa esportiva o **melhor jogador da
+  história do Coritiba** (53,3%) e escalado no **MEIO** do time de todos os tempos
+- **Estátua** em tamanho real na frente do Couto Pereira (2016)
+- Em 1970 quase morreu em campo; a dor no local da cirurgia o **aposentou aos 30**,
+  em 1975. Depois virou o técnico com mais jogos pelo clube (185)
+
+**A carta que saiu:**
+`Dirceu Krüger · Coritiba · 1973 · MEI · fame 3 · 70-86`
+
+**Por que cada número** (e o que é decisão, não fato):
+- **MEI** — é FATO: foi escalado no meio no time de todos os tempos do clube.
+- **fame 3 (BOM JOGADOR)** — calibrado pelos VIZINHOS, não pelo olho. O perfil
+  "ídolo máximo de clube grande de estado, recordista e multicampeão, **sem
+  Seleção**" já existe no baralho: **Pedro Basílio** (Fortaleza, 1973) é fame 3. O
+  **Givanildo Oliveira** (Santa Cruz, 1976) é fame 4 *porque foi convocado* —
+  Krüger não foi. Faixa 70-86, larga como as outras cartas de ídolo de clube.
+- **1973** — ⚠️ **isto é CURADORIA, e o Diego sabe**: as fontes dão um CICLO de
+  títulos, não um "melhor ano" isolado. 1973 é o meio do penta, ele com 28 anos,
+  depois de se recuperar do lance de 70 e antes da dor que o aposentou. **Trocar o
+  ano é uma linha** se ele preferir outro.
+
+Rodados junto, como manda a regra: `npm run novidades` (1 entrou) e
+`npm run paises` (nenhuma carta sem seleção, nenhum nome repetido). Commitados os
+três: `data.ts`, a foto do catálogo e o arquivo gerado.
+
 ## 19/09/2026 (parte 2) — 🔎 VARREDURA DOS BATISMOS: código + banco, clube por clube
 
 O Diego pediu: *"me fale quais de batismos q faltam"*. Com o acesso ao Supabase

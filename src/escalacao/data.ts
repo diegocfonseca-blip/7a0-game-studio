@@ -815,6 +815,21 @@ const ZAG: C[] = [
 
 const MEI: C[] = [
   { name: "Givanildo Oliveira", club: "Santa Cruz", year: 1976, fame: 4, lo: 76, hi: 87, bio: "Volante-símbolo do Santa Cruz, dono do recorde de jogos pelo clube (599, em duas passagens) e 7× campeão pernambucano. Em 1976, direto do Arruda, foi convocado pra Seleção e ganhou o Torneio do Bicentenário dos EUA — raridade pra época fora do eixo Rio-SP." },
+  // 🟢⚪ DIRCEU KRÜGER — pedido do Diego (19/09), junto com a descoberta de que o
+  // White Thigs do GuGu torce pro Coritiba. Tudo aqui é PESQUISADO, não chutado:
+  // 252 jogos e 58 gols pelo Coritiba (1966-1976), 7 títulos paranaenses (68, 69 e
+  // o penta de 71 a 75), eleito em 1999 o melhor jogador da história do clube numa
+  // enquete da imprensa esportiva (53,3%), e escalado no MEIO do time de todos os
+  // tempos — por isso a carta é MEI. Tem estátua na frente do Couto Pereira.
+  // 📅 O ANO É ESCOLHA DE CURADORIA, e o Diego sabe: as fontes dão um CICLO de
+  // títulos, não um "melhor ano" isolado. 1973 é o meio do penta, ele com 28 anos —
+  // depois de se recuperar do lance de 1970 que quase o matou e antes da dor que o
+  // aposentou aos 30, em 1975. Se ele quiser outro ano, é uma linha.
+  // 🎚️ NÍVEL calibrado pelos vizinhos, não pelo olho: ídolo máximo de clube grande
+  // de estado, recordista e multicampeão, mas SEM Seleção = fame 3, a mesma faixa
+  // do Pedro Basílio (Fortaleza). O Givanildo Oliveira é fame 4 porque foi
+  // convocado; Krüger não foi.
+  { name: "Dirceu Krüger", club: "Coritiba", year: 1973, fame: 3, lo: 70, hi: 86, bio: "A 'Flecha Loira' — o maior ídolo da história do Coritiba: 252 jogos, 58 gols e 7 títulos paranaenses. Em 1999 a imprensa elegeu ele o melhor jogador da história do clube. Tem estátua no Couto Pereira." },
   { name: "Mazinho Deus Ébano", club: "Santa Cruz", year: 1975, fame: 2, lo: 62, hi: 83, folk: true, bio: "Armador batizado 'Deus de Ébano' pela imprensa assim que chegou ao Arruda em 1975 — peça-chave na melhor campanha da história do Santa Cruz: 4º lugar no Brasileirão daquele ano." },
   { name: "Roger Flores", club: "Fluminense", year: 2002, fame: 3, lo: 74, hi: 84, bio: "Meia canhoto de técnica e liderança revelado no Fluminense — dribles, passe e chute forte. Capitão raçudo; depois campeão brasileiro pelo Corinthians em 2005." },
   { name: "Mineiro", club: "São Paulo", year: 2005, fame: 3, lo: 74, hi: 85, bio: "Volante raçudo do São Paulo campeão de tudo em 2005 — dele o gol do título Mundial sobre o Liverpool em Yokohama. Tri pela Seleção na Copa América 2007." },

@@ -57,6 +57,10 @@ export const BATISMOS: Batismo[] = [
   // 🥋 O 1º batismo da história (dono/e-mail desconhecido até hoje — por isso sem
   // nº de fundador). Diego, 08/09: *"todos esses entram sim"*. Se o e-mail aparecer,
   // dar o próximo FUNDADOR_N e trocar o selo pelo número.
+  // ❤️ CORITIBA — o Diego confirmou em 19/09. Fica AQUI, no código, e não em
+  // `esc_socios.time_coracao` como os outros, porque este clube não tem dono nem
+  // e-mail conhecido: não existe linha no banco pra guardar. No dia em que o dono
+  // aparecer, leva o coração junto com o nº de fundador.
   { clube: 'White Thigs do GuGu', tipo: 'batismo', fundador: null, selo: '🥇 1º da história' },
   // 🏦 Batismo a pedido do próprio Diego (03/08, ex-Magrão EC) — sem dono/e-mail.
   { clube: 'Vasco da Grana', tipo: 'batismo', fundador: null, selo: '🖋️ batismo' },
