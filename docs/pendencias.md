@@ -1,3 +1,42 @@
+## 19/09/2026 (parte 8) — 🥇 BOLA DE OURO (melhor do mundo do ano)
+
+### A regra
+Ideia dele: *"o jogador que teve mais gols COM assistência junto… será considerado
+o melhor do mundo no ano… NÃO é o artilheiro e também NÃO é o garçom, é o cara que
+conseguiu unir os dois"*. Depois batizou: **Bola de Ouro**, por temporada, *"não
+importa se o cara ganhar vários anos seguidos"*, e *"começa a contar a partir de
+agora"*.
+
+**Motor FEITO e testado** (`npm run melhor`): gols + assistências somados · liga +
+todas as copas · o mundo inteiro (5 divisões, humano, rival e bot) · **por CARTA** ·
+desempate fixo (total → mais gols → divisão mais alta → alfabético), **sem sorteio**,
+porque no online cada aparelho calcula no próprio celular e dois amigos não podem ver
+campeões diferentes. Guardado em `careerMelhorMundo`, por temporada, ~100 bytes/ano.
+**Não mexe em dinheiro** — é honraria (ele disse "não" a prêmio de garçom, então não
+inventei caixa nova).
+
+### 🧩 A dúvida dele: "e se o cara tem mil temporadas?"
+*"Não sei como seria o mockup disso… não sei como apareceria uma por uma"*.
+👉 **Resposta: a lista não mostra TEMPORADAS, mostra DONOS.** Quem ganhou 12 bolas
+ocupa **uma** linha, com as temporadas dele como etiquetas (`T3 T5 T6 T9 +8`). Mil
+temporadas cabem numa tabela de 20 linhas, porque os ganhadores são muito menos que
+os anos. Mockup mandado.
+
+### ⚠️ A ARTE VEIO COM MARCA DE TERCEIRO
+A imagem que ele mandou tinha **"FIFA BALLON D'OR"** escrito na bola. Não pode entrar
+num jogo no ar. **Apaguei só o escrito**: o painel do pentágono foi RECONSTRUÍDO —
+superfície quadrática ajustada nos pixels limpos do próprio painel + grão do mesmo
+desvio, com a borda desvanecida dentro da margem que já era limpa. Sem letra, sem
+fantasma, sem emenda. O resto da arte é exatamente a dele.
+📦 `src/escalacao/img/jornal-bola-ouro-v1.webp` · 1080×608 · **57 KB** (a chuteira do
+artilheiro tem 56 KB).
+⚠️ Lição pra qualquer arte que chegar pronta: **procurar marca escrita antes de usar**.
+
+### ⏳ O QUE FALTA (esperando o OK visual dele)
+1. O bloco no **jornal** (Os donos da temporada, no topo).
+2. A seção **🥇 BOLA DE OURO · TODOS OS TEMPOS** no Rank, por donos.
+Nada disso está no código ainda — só a arte e o motor.
+
 ## 19/09/2026 (parte 7) — 🅰️ Assistência anda junto com gol · 🕳️ o "—" na ficha
 
 ### 📏 REGRA PERMANENTE NOVA (19/09): gol e assistência andam JUNTOS
