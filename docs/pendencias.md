@@ -82,12 +82,15 @@ Deportivo Montreal · SC Ferrari · Coringas do Diniz · Nata de SP · Sapekeiro
 Marreco FC · Eros FC. **Não é defeito**: é lista de a-quem-pedir. Todos os 7 já
 aparecem com a cor certa na foto do campeão (o manto deles vem do painel).
 
-### ❤️ Time de coração em branco — 12 (eram 13)
-~~Bagres 1993~~ → **São Paulo** (o Diego falou em 19/09; gravado em `esc_socios`
-e anotado no `manto.ts`).
-Faltam: Leite de Verdade · Corporação Capsule · Bonança SSFC · Eros FC ·
-Fridão FC · Sistematizados · Crias do Bigão · Seven City · Milhaça FC ·
-Meia na Canela (ex-Jurubeba) · Skyy FC · Stocco FC.
+### ❤️ Time de coração em branco — 9 (eram 13)
+O Diego foi soltando em 19/09; todos gravados em `esc_socios.time_coracao` **e**
+anotados no `manto.ts`, do lado das cores de cada um:
+~~Bagres 1993~~ → **São Paulo** · ~~Leite de Verdade~~ → **Grêmio** ·
+~~Seven City~~ → **Corinthians** · ~~Milhaça FC~~ → **São Paulo**.
+
+Faltam **9**: Corporação Capsule · Bonança SSFC · Eros FC · Fridão FC ·
+Sistematizados · Crias do Bigão · Meia na Canela (ex-Jurubeba) · Skyy FC ·
+Stocco FC.
 Só serve pro post do batismo — não muda nada no jogo.
 
 ### ✅ O que está inteiro
