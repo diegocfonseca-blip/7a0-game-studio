@@ -3138,13 +3138,13 @@ export function EscLobby() {
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} selos={{ liga_mundo: seloNovo() }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
-                      ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 4 groups and one-off knockout ties (quarters, semi and final). Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
+                      ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 League over, the <b>top 8</b> enter the Libertadores with <b>24 clubs from the continent</b> (32 in total): 8 groups of 4, 2 go through, and the knockouts run to a single final. <b>No Cup of 8</b> in this room.</>
                       : rapidoCopaMode === 'liga_copa'
                         ? <>🏆 League over, the top 8 play the Cup of 8 — home and away up to a single final.</>
                         : <>📊 Just the table, start to finish. The champion is whoever gets the most points.</>) : rapidoCopaMode === 'liga_mundo'
-                      ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 4 grupos e mata-mata em jogo único (quartas, semi e final). Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
+                      ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 6 grupos de 4, passam 16 (os 2 primeiros + os 4 melhores 3ºs) e mata-mata em jogo único, das oitavas à final. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_copa'

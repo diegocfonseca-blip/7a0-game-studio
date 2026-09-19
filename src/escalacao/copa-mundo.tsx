@@ -3,9 +3,10 @@
 // Vaga e ordem de escolha = TOP 24 do RANKING DE CLUBES (o mural do Rank).
 // Dentro da seleção NÃO tem leilão: é CONVOCAÇÃO pura — TODAS as cartas do país
 // aparecem (sem categoria na tela!) e o técnico escolhe SÓ 11.
-// Formato: 4 grupos de 6 em turno único (desempate vitórias > saldo) → sorteio →
-// quartas, semi e final em JOGO ÚNICO (Diego 19/09: *"Copa do Mundo é único"*;
-// até então quartas e semi eram ida e volta). Prêmio: ⭐ eterna + mural.
+// Formato (19/09, o de Copa de 24 — México 86/Itália 90/EUA 94): 6 grupos de 4 em
+// turno único (desempate pontos > vitórias > saldo > gols) → passam os 2 primeiros
+// + os 4 MELHORES TERCEIROS = 16 → sorteio → oitavas, quartas, semi e final em
+// JOGO ÚNICO (Diego: *"Copa do Mundo é único"*). Prêmio: ⭐ eterna + mural.
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
@@ -295,15 +296,15 @@ function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away
   return [...hEv, ...aEv].sort((a, b) => a.min - b.min)
 }
 
-// 🌍 formato da Copa: 4 grupos de 6 (turno único = 5 rodadas) → top 2 de cada = 8
-// → quartas/semis/final, cada fase em JOGO ÚNICO. (Era 4 grupos de 4 ida-volta =
-// 16; depois 4 de 5 = 20; desde 17/08 são 4 de 6 = 24, quando Croácia/Dinamarca/
-// Peru/Equador fecharam 22 cartas cada.) Com 6 (par) o turno único continua dando
-// 5 rodadas, só que sem o "bye" que sobrava no grupo de 5.
-// ⚠️ NÃO existem oitavas: só 8 classificam (o Diego perguntou em 19/09 e é isso
-// mesmo). Se um dia entrarem, mexer aqui, em `copa-passos.ts` E no banco.
+// 🌍 formato da Copa (19/09): 6 grupos de 4 (turno único = 3 rodadas) → passam os
+// 2 primeiros + os 4 melhores 3ºs = 16 → oitavas/quartas/semis/final, cada fase em
+// JOGO ÚNICO. Histórico: 4 grupos de 4 ida-volta = 16 · 4 de 5 = 20 · 4 de 6 = 24
+// (17/08) sem oitavas · 6 de 4 = 24 COM oitavas (19/09, Diego: *"pra ter as oitavas
+// não deveria ter mais grupos? tem muito time no mesmo grupo"*).
 // `GROUP_ROUNDS` mora em `copa-passos.ts` porque o relógio da sala conta por ele.
-const NUM_GROUPS = 4, GROUP_SIZE = 6, GROUP_ROUNDS = RODADAS_GRUPO
+// ⚠️ Mudou o formato → mexer aqui, em `copa-passos.ts` E na cópia do banco.
+const NUM_GROUPS = 6, GROUP_SIZE = 4, GROUP_ROUNDS = RODADAS_GRUPO
+export const VAGAS_TERCEIROS = 4 // quantos 3ºs passam (os melhores entre os 6)
 export const COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 24
 
 // turno único (round-robin) pra N times — cada um joga contra todos UMA vez. N ímpar
@@ -330,6 +331,16 @@ function groupTable(g: Group, upTo: number) {
   }
   return [...g.teams].sort((x, y) => st[y].pts - st[x].pts || st[y].w - st[x].w || st[y].sg - st[x].sg || st[y].gp - st[x].gp)
     .map(t => ({ t, ...st[t] }))
+}
+// 🥉 OS MELHORES TERCEIROS (19/09): os seis 3ºs colocados, na MESMA régua da
+// tabela do grupo (pontos → vitórias → saldo → gols); empate total, decide a
+// letra do grupo (determinístico, todo aparelho vê o mesmo). Os 4 primeiros
+// desta lista passam pras oitavas. É a MESMA função pro motor (rodadas completas)
+// e pra tela (só as rodadas já apitadas — nunca vaza a que está rolando).
+export function melhoresTerceiros(groups: Group[], upTo: number): { lista: { t: number; g: number; pts: number; w: number; sg: number; gp: number }[]; vagas: Set<number> } {
+  const lista = groups.map((g, gi) => ({ g: gi, ...groupTable(g, upTo)[2] })).filter(r => r && r.t != null)
+    .sort((x, y) => y.pts - x.pts || y.w - x.w || y.sg - x.sg || y.gp - x.gp || x.g - y.g)
+  return { lista, vagas: new Set(lista.slice(0, VAGAS_TERCEIROS).map(r => r.t)) }
 }
 
 // ⏱️ minuto ao vivo compartilhado (mesmo pace do LiveScoreCard: 82% do roundMs)
@@ -810,7 +821,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
     const groups: Group[] = Array.from({ length: NUM_GROUPS }, (_, g) => {
       const teams = idx.slice(g * GROUP_SIZE, g * GROUP_SIZE + GROUP_SIZE)
-      const matches = roundRobin(teams) // 4 grupos de 5 = turno único (5 rodadas, 1 folga/rodada)
+      const matches = roundRobin(teams) // 6 grupos de 4 = turno único (3 rodadas)
       for (const rd of matches) for (const m of rd) {
         const [gh, ga] = playMatch(rng, entrants[m.h], entrants[m.a])
         m.gh = gh; m.ga = ga
@@ -818,9 +829,21 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       }
       return { teams, matches }
     })
-    const q8 = groups.flatMap(g => groupTable(g, GROUP_ROUNDS).slice(0, 2).map(r => r.t))
-    const ord = [...q8]
-    for (let i = ord.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [ord[i], ord[j]] = [ord[j], ord[i]] }
+    // 🥉 16 classificados: os 2 primeiros de cada grupo + os 4 melhores 3ºs
+    const terceiros = melhoresTerceiros(groups, GROUP_ROUNDS)
+    const q16 = [...groups.flatMap(g => groupTable(g, GROUP_ROUNDS).slice(0, 2).map(r => r.t)), ...terceiros.lista.slice(0, VAGAS_TERCEIROS).map(r => r.t)]
+    const grupoDe = (t: number) => groups.findIndex(g => g.teams.includes(t))
+    // 🎲 sorteio livre das oitavas, com UMA regra de Copa: quem já se enfrentou no
+    // grupo não se reencontra nas oitavas. Tenta algumas vezes (semeado, então todo
+    // aparelho tenta igual); se não fechar, vale o último sorteio mesmo.
+    let ord = [...q16]
+    for (let tent = 0; tent < 40; tent++) {
+      ord = [...q16]
+      for (let i = ord.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [ord[i], ord[j]] = [ord[j], ord[i]] }
+      let ok = true
+      for (let k = 0; k < ord.length; k += 2) if (grupoDe(ord[k]) === grupoDe(ord[k + 1])) { ok = false; break }
+      if (ok) break
+    }
     // 🏆 JOGO ÚNICO (19/09): uma partida por confronto, empate = pênaltis.
     // ⚠️ Antes rodava a volta aqui (`g2`), e o `rng` andava mais: a mesma semente
     // agora dá OUTRO chaveamento/resultado a partir das quartas. Copa já encerrada
@@ -834,14 +857,15 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
       else { t.pen = pens(rng); t.winner = t.pen[0] > t.pen[1] ? h : a }
       return t
     }
-    const qf = [mkTie(ord[0], ord[1]), mkTie(ord[2], ord[3]), mkTie(ord[4], ord[5]), mkTie(ord[6], ord[7])]
+    const r16 = Array.from({ length: 8 }, (_, k) => mkTie(ord[2 * k], ord[2 * k + 1]))
+    const qf = Array.from({ length: 4 }, (_, k) => mkTie(r16[2 * k].winner!, r16[2 * k + 1].winner!))
     const sf = [mkTie(qf[0].winner!, qf[1].winner!), mkTie(qf[2].winner!, qf[3].winner!)]
     const fh = sf[0].winner!, fa = sf[1].winner!
     const fg = playMatch(rng, entrants[fh], entrants[fa])
     const fev = goalEvents(rng, fg[0], fg[1], entrants[fh], entrants[fa], aBase, `final-${fh}-${fa}`)
     const fpen = fg[0] === fg[1] ? pens(rng) : null
     const champion = fg[0] > fg[1] ? fh : fg[1] > fg[0] ? fa : (fpen![0] > fpen![1] ? fh : fa)
-    return { groups, qf, sf, final: { h: fh, a: fa, g: fg, ev: fev, pen: fpen, champion } }
+    return { groups, terceiros, r16, qf, sf, final: { h: fh, a: fa, g: fg, ev: fev, pen: fpen, champion } }
   }
 }
 
@@ -855,11 +879,11 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo), [entrants, seed, seasonNo])
 
   // step = revelações FEITAS (GR = rodadas de grupo): 1..GR rodadas de grupo ·
-  // GR+1 sorteio · GR+2 quartas · GR+3 semis · GR+4 final · GR+5 cerimônia
-  // (jogo único desde 19/09 — os números moram em `copa-passos.ts`, junto com
-  // a cópia que o relógio da sala usa no banco).
+  // GR+1 sorteio · GR+2 oitavas · GR+3 quartas · GR+4 semis · GR+5 final ·
+  // GR+6 cerimônia (jogo único e oitavas desde 19/09 — os números moram em
+  // `copa-passos.ts`, junto com a cópia que o relógio da sala usa no banco).
   const GR = GROUP_ROUNDS
-  const { SORTEIO, QUARTAS, SEMI, FINAL, FIM } = PASSO_COPA
+  const { SORTEIO, OITAVAS, QUARTAS, SEMI, FINAL, FIM } = PASSO_COPA
   const synced = privateOnline ? online?.clock : undefined
   const [localStep, setStep] = useState(0)
   const [localLiveDone, setLiveDone] = useState(true)
@@ -879,6 +903,8 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   useApitoDeLargada('copa-mundo', LIVE(step) ? roundKey : null, true)
   const gRound = Math.min(GR, step)
   const shownRounds = step <= GR && !liveDone ? Math.max(0, gRound - 1) : gRound // tabela/resultados só DEPOIS do apito
+  // 🥉 a briga dos terceiros, com o que JÁ apitou (a rodada rolando não entra — zero spoiler)
+  const terceirosAgora = useMemo(() => melhoresTerceiros(world.groups, shownRounds), [world, shownRounds])
   const done = step >= FIM
   // 🐛 (07/08, relato de jogador via Diego): "pulei a final, ganhei, mas não veio
   // carta nem troféu". Causa: prêmio/carta só gravavam em `done` (depois do
@@ -948,6 +974,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
     // a fase virava no meio da animação e a disputa morria pela metade. Agora a
     // espera cobre a disputa mais longa da fase, seja de quem for.
     const penMs = (t: KoTie) => t.pen ? pensRevealDelay(t.pen) * 1000 : 0
+    if (step === OITAVAS) extra += Math.max(0, ...world.r16.map(penMs)) // oitavas (jogo único)
     if (step === QUARTAS) extra += Math.max(0, ...world.qf.map(penMs)) // quartas (jogo único)
     if (step === SEMI) extra += Math.max(0, ...world.sf.map(penMs)) // semis (jogo único)
     if (step === FINAL && world.final.pen) extra += pensRevealDelay(world.final.pen) * 1000 // final
@@ -1009,13 +1036,15 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
     // re-disparar no reload não dobra. A ordem inversa (played antes) fazia as
     // 100 moedas se perderem pra sempre.
     // 💰 prêmio POR PARTICIPAÇÃO (Diego 11/08): campeão 100 · vice 70 · semi 50 ·
-    // quartas 32 · fase de grupos 10. Todo mundo que jogou leva algo (só solo — no
-    // online o caixa é do host). O TÍTULO/estrela continua só do campeão (abaixo).
+    // quartas 32 · oitavas 20 (degrau novo, 19/09, com as oitavas) · fase de grupos
+    // 10. Todo mundo que jogou leva algo (só solo — no online o caixa é do host).
+    // O TÍTULO/estrela continua só do campeão (abaixo).
     const cmPrize = myIdx < 0 ? 0
       : world.final.champion === myIdx ? 100
       : (world.final.h === myIdx || world.final.a === myIdx) ? 70
       : world.sf.some(t => t.h === myIdx || t.a === myIdx) ? 50
       : world.qf.some(t => t.h === myIdx || t.a === myIdx) ? 32
+      : world.r16.some(t => t.h === myIdx || t.a === myIdx) ? 20
       : 10
     if (cmPrize > 0) onPrize?.(cmPrize)
     const novaEntrada = { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }
@@ -1043,7 +1072,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finalSeen])
 
-  const nextLabel = !liveDone ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : step < GR ? `${tr('▶️ Rodada', '▶️ Round')} ${step + 1} ${tr('de', 'of')} ${GR}` : step === GR ? tr('🎲 Sortear o mata-mata', '🎲 Draw the knockouts') : step === SORTEIO ? tr('▶️ Jogar as quartas', '▶️ Play the quarter-finals') : step === QUARTAS ? tr('▶️ Jogar as semifinais', '▶️ Play the semi-finals') : step === SEMI ? tr('🏆 A GRANDE FINAL', '🏆 THE GRAND FINAL') : tr('🎉 Cerimônia', '🎉 Ceremony')
+  const nextLabel = !liveDone ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : step < GR ? `${tr('▶️ Rodada', '▶️ Round')} ${step + 1} ${tr('de', 'of')} ${GR}` : step === GR ? tr('🎲 Sortear o mata-mata', '🎲 Draw the knockouts') : step === SORTEIO ? tr('▶️ Jogar as oitavas', '▶️ Play the round of 16') : step === OITAVAS ? tr('▶️ Jogar as quartas', '▶️ Play the quarter-finals') : step === QUARTAS ? tr('▶️ Jogar as semifinais', '▶️ Play the semi-finals') : step === SEMI ? tr('🏆 A GRANDE FINAL', '🏆 THE GRAND FINAL') : tr('🎉 Cerimônia', '🎉 Ceremony')
 
   // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
   const live = (h: number, a: number, ev: ScoreGoal[]) => (
@@ -1101,7 +1130,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
 
   return (
     <>
-      {privateVisual ? <CompetitionStage kind="world" title={online ? tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP') : `${tr('COPA DO MUNDO LEGENDS · TEMPORADA', 'LEGENDS WORLD CUP · SEASON')} ${seasonNo}`} phase={done ? tr('Campeão definido', 'Champion decided') : step <= GR ? tr('Fase de grupos', 'Group stage') : step === SORTEIO ? tr('Sorteio do mata-mata', 'Knockout draw') : step === QUARTAS ? tr('Quartas de final', 'Quarter-finals') : step === SEMI ? tr('Semifinais', 'Semi-finals') : tr('A grande final', 'The grand final')} detail={step <= GR ? `${tr('Rodada', 'Round')} ${Math.max(1, gRound)} ${tr('de', 'of')} ${GR} · ${tr('os dois primeiros de cada grupo avançam', 'top two of each group advance')}` : step === SORTEIO ? tr('Oito seleções classificadas · sorteio livre · jogo único', 'Eight teams through · open draw · one-off ties') : step <= SEMI ? tr('Jogo único · empate leva aos pênaltis', 'Single match · a draw goes to penalties') : tr('Jogo único · o campeão ganha uma carta', 'Single match · the champion wins a card')} status={!liveDone ? tr('Bola rolando · resultados revelados no ritmo da partida', 'Ball rolling · results revealed at match pace') : done ? tr('Competição encerrada', 'Competition over') : tr('Confira os resultados e a próxima fase', 'Check the results and the next stage')} /> : <div className={privateVisual ? 'll25-world-art ll25-cup-heading' : undefined} style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
+      {privateVisual ? <CompetitionStage kind="world" title={online ? tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP') : `${tr('COPA DO MUNDO LEGENDS · TEMPORADA', 'LEGENDS WORLD CUP · SEASON')} ${seasonNo}`} phase={done ? tr('Campeão definido', 'Champion decided') : step <= GR ? tr('Fase de grupos', 'Group stage') : step === SORTEIO ? tr('Sorteio do mata-mata', 'Knockout draw') : step === OITAVAS ? tr('Oitavas de final', 'Round of 16') : step === QUARTAS ? tr('Quartas de final', 'Quarter-finals') : step === SEMI ? tr('Semifinais', 'Semi-finals') : tr('A grande final', 'The grand final')} detail={step <= GR ? `${tr('Rodada', 'Round')} ${Math.max(1, gRound)} ${tr('de', 'of')} ${GR} · ${tr('passam os 2 primeiros de cada grupo + os 4 melhores 3ºs', 'top 2 of each group + the 4 best 3rd-placed go through')}` : step === SORTEIO ? tr('Dezesseis seleções classificadas · sorteio livre · jogo único', 'Sixteen teams through · open draw · one-off ties') : step <= SEMI ? tr('Jogo único · empate leva aos pênaltis', 'Single match · a draw goes to penalties') : tr('Jogo único · o campeão ganha uma carta', 'Single match · the champion wins a card')} status={!liveDone ? tr('Bola rolando · resultados revelados no ritmo da partida', 'Ball rolling · results revealed at match pace') : done ? tr('Competição encerrada', 'Competition over') : tr('Confira os resultados e a próxima fase', 'Check the results and the next stage')} /> : <div className={privateVisual ? 'll25-world-art ll25-cup-heading' : undefined} style={{ position: 'relative', overflow: 'hidden', border: '3px solid #000', borderRadius: 16, boxShadow: '4px 4px 0 0 #000', padding: '16px 12px', marginBottom: 12, textAlign: 'center', background: 'linear-gradient(155deg,#1a1a1a,#0a0a0a 55%,#000)' }}>
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: .5, background: 'radial-gradient(circle at 15% 20%, rgba(255,196,0,.25), transparent 22%), radial-gradient(circle at 85% 75%, rgba(255,196,0,.2), transparent 25%)' }} />
         {!privateVisual && <p style={{ position: 'relative', fontSize: 30, lineHeight: 1, margin: 0 }}>🏆</p>}
         <p style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 19, margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: .4, background: 'linear-gradient(180deg,#FFE79A,#FFC400 55%,#B8860B)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>{tr('Copa do Mundo Legends', 'Legends World Cup')}</p>
@@ -1114,7 +1143,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
         <div style={{ position: 'relative', height: 2, margin: '9px auto 0', width: '65%', background: 'linear-gradient(90deg,transparent,#FFC400,transparent)' }} />
       </div>}
 
-      {privateVisual && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>{tr('GRUPOS', 'GROUPS')}</span><span aria-current={step > GR && step <= QUARTAS ? 'step' : undefined}>{tr('QUARTAS', 'QUARTERS')}</span><span aria-current={step === SEMI ? 'step' : undefined}>{tr('SEMIFINAIS', 'SEMI-FINALS')}</span><span aria-current={step > SEMI ? 'step' : undefined}>FINAL</span></div>}
+      {privateVisual && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>{tr('GRUPOS', 'GROUPS')}</span><span aria-current={step > GR && step <= OITAVAS ? 'step' : undefined}>{tr('OITAVAS', 'ROUND OF 16')}</span><span aria-current={step === QUARTAS ? 'step' : undefined}>{tr('QUARTAS', 'QUARTERS')}</span><span aria-current={step === SEMI ? 'step' : undefined}>{tr('SEMIFINAIS', 'SEMI-FINALS')}</span><span aria-current={step > SEMI ? 'step' : undefined}>FINAL</span></div>}
       {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
           resultados só entram DEPOIS do apito — zero spoiler. */}
       {step >= 1 && step <= GR && (() => {
@@ -1139,15 +1168,18 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
             (y.g.teams.includes(myIdx) ? 1 : 0) - (x.g.teams.includes(myIdx) ? 1 : 0)
           ).map(({ g, gi }) => (
             <div key={gi} className={privateVisual ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 {tr('GRUPO', 'GROUP')} {'ABCD'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 {tr('GRUPO', 'GROUP')} {'ABCDEF'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               {groupTable(g, shownRounds).map((r, i) => (
                 /* 🟩 FAIXA DOS CLASSIFICADOS (Diego 19/09: *"precisa de faixa de
                    classificação com cor pros dois primeiros do grupo, não?"*). Era um
                    branco a 6% — invisível no creme e quase invisível no preto. Agora é o
                    MESMO verde da zona de classificação da tabela da liga (`#D8F0DE`),
                    com a barra verde na esquerda; a SUA linha continua dourada e, se
-                   está classificando, leva a barra também. */
-                <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? 'rgba(255,196,0,.28)' : i < 2 ? (privateVisual ? '#D8F0DE' : 'rgba(27,122,61,.35)') : 'transparent', borderLeft: i < 2 ? `4px solid ${GREEN}` : '4px solid transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
+                   está classificando, leva a barra também.
+                   🟨 E O 3º (Diego 19/09: *"uma faixa clara do 3º lugar em tempo real pra
+                   quem tiver se classificando, a cor amarela"*): amarelo SÓ enquanto ele
+                   está entre os 4 melhores 3ºs — sai da conta, perde a cor. */
+                <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: isYou(r.t) ? 'rgba(255,196,0,.28)' : i < 2 ? (privateVisual ? '#D8F0DE' : 'rgba(27,122,61,.35)') : i === 2 && terceirosAgora.vagas.has(r.t) ? (privateVisual ? '#FFF1BF' : 'rgba(255,196,0,.22)') : 'transparent', borderLeft: i < 2 ? `4px solid ${GREEN}` : i === 2 && terceirosAgora.vagas.has(r.t) ? `4px solid ${GOLD}` : '4px solid transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
                   <span style={{ width: 12, color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
                   {privateVisual ? <NationalCrest country={entrants[r.t].pais} size={24} /> : <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />}
                   <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} {online && <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {club(r.t)}</span>}</span>
@@ -1165,16 +1197,51 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
               )}
             </div>
           ))}
-          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo) · desempate: vitórias, depois saldo', 'green = goes through (2 per group) · tie-break: wins, then goal difference')}</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo)', 'green = goes through (2 per group)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#FFF1BF', border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GOLD, marginLeft: 4 }} />{tr('amarelo = 3º entre os 4 melhores (passa também) · desempate: pontos, vitórias, saldo, gols', 'yellow = 3rd among the best 4 (also through) · tie-break: points, wins, goal difference, goals')}</p>
+          {/* 🥉 A BRIGA DOS TERCEIROS — a tabela cruzada dos seis 3ºs, pra ficar CLARO que
+              o melhor terceiro passa (Diego 19/09: *"será que vai ser claro pras pessoas
+              que o melhor terceiro colocado passa?"*). Só entra com rodada apitada. */}
+          {shownRounds > 0 && (
+            <div className={privateVisual ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 3px', display: 'flex', alignItems: 'center', gap: 6 }}>🥉 {tr('OS MELHORES TERCEIROS', 'THE BEST THIRD-PLACED')}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: privateVisual ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.6)', margin: '0 0 7px', lineHeight: 1.4 }}>{tr(`Os seis 3ºs colocados, lado a lado. Os ${VAGAS_TERCEIROS} melhores também vão pras oitavas — em amarelo. Conta só o que já apitou (rodada ${shownRounds} de ${GR}).`, `The six 3rd-placed teams, side by side. The best ${VAGAS_TERCEIROS} also reach the round of 16 — in yellow. Only finished rounds count (round ${shownRounds} of ${GR}).`)}</p>
+              {terceirosAgora.lista.map((r, i) => (
+                <div key={r.t} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, fontWeight: isYou(r.t) ? 900 : 600, background: i < VAGAS_TERCEIROS ? (privateVisual ? '#FFF1BF' : 'rgba(255,196,0,.22)') : 'transparent', borderLeft: i < VAGAS_TERCEIROS ? `4px solid ${GOLD}` : '4px solid transparent', borderRadius: 8, padding: '4px 6px', marginBottom: 3 }}>
+                  <span style={{ width: 12, color: 'rgba(255,255,255,.4)' }}>{i + 1}</span>
+                  {privateVisual ? <NationalCrest country={entrants[r.t].pais} size={24} /> : <span style={{ width: 10, height: 10, borderRadius: 3, flex: 'none', background: paisColor(entrants[r.t].pais), border: '1px solid rgba(255,255,255,.35)' }} />}
+                  <span style={{ flex: 1, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nm(r.t)} <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 8.5 }}>· {tr('grupo', 'group')} {'ABCDEF'[r.g]}</span></span>
+                  <span style={{ fontWeight: 900, color: '#fff' }}>{r.pts}{tr('pt', 'pts')}</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.w}{tr('V', 'W')}</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span><span style={{ color: 'rgba(255,255,255,.7)' }}>{r.gp}{tr('g', 'g')}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 
       {/* MATA-MATA: seu confronto ao vivo; os demais aparecem pós-apito */}
-      {step >= QUARTAS && !done && (() => {
+      {step >= OITAVAS && !done && (() => {
+        const myR16 = world.r16.find(t => isYou(t.h) || isYou(t.a))
         const myQf = world.qf.find(t => isYou(t.h) || isYou(t.a))
         const mySf = world.sf.find(t => isYou(t.h) || isYou(t.a))
+        // uma fase do chaveamento: ao vivo (MiniLive dos outros) → apito (linhas resolvidas)
+        const fase = (ties: KoTie[], passo: number, titulo: string) => (<>
+          {privateVisual && step <= passo && <p style={{ ...OSWALD, color: GOLD, fontSize: 13, margin: '12px 0 6px' }}>{titulo} · {tr('JOGO ÚNICO', 'ONE-OFF')}</p>}
+          {!privateVisual && step > passo && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px', color: GOLD }}>{titulo}</p>}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
+            {ties.map((t, i) => {
+              if (privateVisual && step > passo) return null
+              const mine = isYou(t.h) || isYou(t.a)
+              // 🏆 jogo único: durante a partida os outros rolam em MiniLive (o seu
+              // está lá em cima, ao vivo); no apito todos viram linha resolvida —
+              // o seu com o "avança" segurado até a última cobrança dos pênaltis.
+              if (step === passo) return <div key={i}>{liveDone ? tieRow(t, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
+              return <div key={i}>{tieRow(t)}</div>
+            })}
+          </div>
+        </>)
         return (
           <>
+            {step === OITAVAS && myR16 && meuConfronto(myR16)}
             {step === QUARTAS && myQf && meuConfronto(myQf)}
             {step === SEMI && mySf && meuConfronto(mySf)}
             {step === FINAL && live(world.final.h, world.final.a, world.final.ev)}
@@ -1186,29 +1253,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
             )}
             <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>{tr('⚔️ MATA-MATA', '⚔️ KNOCKOUTS')} <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'none' }}>{tr('(sorteio livre — jogo único)', '(open draw — one-off ties)')}</span><span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
-              {privateVisual && step <= QUARTAS && <p style={{ ...OSWALD, color: GOLD, fontSize: 13, margin: '12px 0 6px' }}>{tr('QUARTAS DE FINAL', 'QUARTER-FINALS')} · {tr('JOGO ÚNICO', 'ONE-OFF')}</p>}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
-                {world.qf.map((t, i) => {
-                  if (privateVisual && step > QUARTAS) return null
-                  const mine = isYou(t.h) || isYou(t.a)
-                  // 🏆 jogo único: durante a partida os outros rolam em MiniLive (o seu
-                  // está lá em cima, ao vivo); no apito todos viram linha resolvida —
-                  // o seu com o "avança" segurado até a última cobrança dos pênaltis.
-                  if (step === QUARTAS) return <div key={i}>{liveDone ? tieRow(t, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
-                  return <div key={i}>{tieRow(t)}</div>
-                })}
-              </div>
-              {step >= SEMI && (<>
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px', color: GOLD }}>{tr('SEMIFINAIS', 'SEMI-FINALS')} · {tr('JOGO ÚNICO', 'ONE-OFF')}</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 6 }}>
-                  {world.sf.map((t, i) => {
-                    if (privateVisual && step > SEMI) return null
-                    const mine = isYou(t.h) || isYou(t.a)
-                    if (step === SEMI) return <div key={i}>{liveDone ? tieRow(t, true, mine && t.pen ? pensRevealDelay(t.pen) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
-                    return <div key={i}>{tieRow(t)}</div>
-                  })}
-                </div>
-              </>)}
+              {fase(world.r16, OITAVAS, tr('OITAVAS DE FINAL', 'ROUND OF 16'))}
+              {step >= QUARTAS && fase(world.qf, QUARTAS, tr('QUARTAS DE FINAL', 'QUARTER-FINALS'))}
+              {step >= SEMI && fase(world.sf, SEMI, tr('SEMIFINAIS', 'SEMI-FINALS'))}
               {step === FINAL && liveDone && (
                 <>
                   <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px', color: GOLD }}>{tr('🏆 FINAL ÚNICA', '🏆 SINGLE FINAL')}</p>
@@ -1221,12 +1268,15 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
         )
       })()}
 
+      {privateVisual && step > OITAVAS && <details className="ll26-bracket-history"><summary>{tr('OITAVAS ENCERRADAS · RESULTADOS E CLASSIFICADOS', 'ROUND OF 16 OVER · RESULTS AND QUALIFIERS')}</summary>{world.r16.map(t => <div key={t.h}>{tieRow(t)}</div>)}</details>}
       {privateVisual && step > QUARTAS && <details className="ll26-bracket-history"><summary>{tr('QUARTAS ENCERRADAS · RESULTADOS E CLASSIFICADOS', 'QUARTERS OVER · RESULTS AND QUALIFIERS')}</summary>{world.qf.map(t => <div key={t.h}>{tieRow(t)}</div>)}</details>}
       {privateVisual && step > SEMI && <details className="ll26-bracket-history"><summary>{tr('SEMIFINAIS ENCERRADAS · RESULTADOS E FINALISTAS', 'SEMI-FINALS OVER · RESULTS AND FINALISTS')}</summary>{world.sf.map(t => <div key={t.h}>{tieRow(t)}</div>)}</details>}
       {step === SORTEIO && (
-        <div style={{ ...box('#fff'), padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>{tr('🎲 O SORTEIO DAS QUARTAS (jogo único)', '🎲 THE QUARTER-FINAL DRAW (one-off ties)')}</p>
-          {world.qf.map((t, i) => (
+        // `color: INK` de propósito: dentro do modal cinematográfico o texto herda creme,
+        // e a caixa é branca — o sorteio ficava ilegível (pego no print de 19/09).
+        <div style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>{tr('🎲 O SORTEIO DAS OITAVAS (jogo único · ninguém reencontra o próprio grupo)', '🎲 THE ROUND-OF-16 DRAW (one-off · nobody meets their own group)')}</p>
+          {world.r16.map((t, i) => (
             <div key={i} style={{ borderTop: '2px solid rgba(0,0,0,.08)', padding: '5px 2px', fontSize: 11, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>{nm(t.h)} × {nm(t.a)}{(isYou(t.h) || isYou(t.a)) ? tr(' 👈 VOCÊ', ' 👈 YOU') : ''}</div>
           ))}
         </div>
@@ -1284,7 +1334,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
         const tally: Record<string, { goals: number; team: number }> = {}
         const add = (evs: ScoreGoal[] | undefined, h: number, a: number) => { for (const e of evs ?? []) { const t = e.home ? h : a; const k = e.name + '|' + t; tally[k] = { goals: (tally[k]?.goals ?? 0) + 1, team: t } } }
         for (const g of world.groups) for (const rd of g.matches) for (const m of rd) add(m.ev, m.h, m.a)
-        for (const t of [...world.qf, ...world.sf]) add(t.ev1, t.h, t.a) // jogo único: só uma partida por confronto
+        for (const t of [...world.r16, ...world.qf, ...world.sf]) add(t.ev1, t.h, t.a) // jogo único: só uma partida por confronto
         add(world.final.ev, world.final.h, world.final.a)
         const top = Object.entries(tally).map(([k, v]) => ({ name: k.split('|')[0], ...v })).sort((x, y) => y.goals - x.goals).slice(0, 8)
         return (

@@ -33,7 +33,24 @@ na mão, cada um no seu canto.
 Constantes em `copa-mundo-online.tsx` (histórico no comentário: 45 → 65 → 75 e
 65 → 135 → 80 → 90). O banner entre as duas continua 15s.
 
-### ❓ 3. Oitavas: NÃO EXISTEM — e ele viu certo
+### ✅ 3b. OITAVAS — feito ("Ok ok ok", 19/09): 6 grupos de 4 + 4 melhores 3ºs = 16
+`NUM_GROUPS 6 · GROUP_SIZE 4 · RODADAS_GRUPO 3`, `PASSO_COPA` ganhou `OITAVAS` (9
+passos: 3 rodadas · sorteio 4 · oitavas 5 · quartas 6 · semi 7 · final 8 · fim 9),
+`melhoresTerceiros()` (mesma régua da tabela: pontos → vitórias → saldo → gols;
+empate total = letra do grupo), sorteio das oitavas sem reencontro de grupo (até 40
+tentativas semeadas), prêmio da carreira ganhou o degrau **oitavas = 20**, e a CÓPIA do
+banco (`docs/sql/online-copa-clock-oitavas.sql`, `r.step<9`, bola em 1–3 e 5–8) —
+aplicada via MCP (se a aprovação não passou, rodar no SQL Editor).
+Tela: 🟩 verde nos 2 primeiros · 🟨 amarelo no 3º **só enquanto está entre os 4
+melhores** (recalculado a cada rodada apitada — a rodada rolando não entra, zero
+spoiler) · quadro **OS MELHORES TERCEIROS** com os seis lado a lado · legenda com a
+régua de desempate. `npm run copa` verde. Bancada: `scripts/teste-copa-grupos/`
+(`?passo=3` grupos fechados · `4` sorteio · `5` oitavas).
+⚠️ O que ele perguntou e eu respondi: a régua de desempate é **pontos → vitórias →
+saldo → gols marcados** (ele achava "vitórias → gols → saldo"); trocar gols ↔ saldo é
+uma linha em `groupTable`/`melhoresTerceiros` se ele quiser.
+
+### ❓ 3. Oitavas: NÃO EXISTIAM — e ele viu certo (histórico)
 Formato de hoje: 4 grupos de 6, passam 2 = **8 seleções → quartas direto**. Se
 ele quiser oitavas, o formato natural de 24 seleções é o da **Copa de 86/90/94**:
 6 grupos de 4 (3 rodadas), passam os 2 primeiros + os 4 melhores 3ºs = 16 →

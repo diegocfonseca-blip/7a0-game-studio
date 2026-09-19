@@ -206,7 +206,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   // disputa inteira. Os passos vêm de `copa-passos` (jogo único desde 19/09).
   const extraForStep=(step:number)=>{
     if(!clockWorld)return 0
-    const ties=step===PASSO_COPA.QUARTAS?clockWorld.qf:step===PASSO_COPA.SEMI?clockWorld.sf:[]
+    const ties=step===PASSO_COPA.OITAVAS?clockWorld.r16:step===PASSO_COPA.QUARTAS?clockWorld.qf:step===PASSO_COPA.SEMI?clockWorld.sf:[]
     if(step===PASSO_COPA.FINAL&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen)*1000)
     return Math.round(Math.max(0,...ties.map(t=>t.pen?pensRevealDelay(t.pen)*1000:0)))
   }
@@ -634,7 +634,7 @@ export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila
               </p>
             </>
           : <p className="ll27-portao-aviso">{tr('⏳ O dono da sala abre a Copa do Mundo — segura aí.', '⏳ The room owner opens the World Cup — hang on.')}</p>)}
-        <details className="ll26-format" style={{ marginTop: fase ? 0 : 6 }}><summary>{tr('REGULAMENTO', 'FORMAT')}</summary><p>{tr(`${COPA_TEAMS} seleções em 4 grupos de 6, turno único; passam os 2 primeiros de cada grupo. Quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11. O campeão do mundo leva título no Rank, a carta do campeão e o troféu na estante da sala.`, `${COPA_TEAMS} national teams in 4 groups of 6, single round-robin; the top 2 of each group go through. Quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Everyone calls up 11 players from their own country; whoever doesn't call up gets the worst 11. The world champion gets a Rank title, the champion's card and the trophy on the room's shelf.`)}</p></details>
+        <details className="ll26-format" style={{ marginTop: fase ? 0 : 6 }}><summary>{tr('REGULAMENTO', 'FORMAT')}</summary><p>{tr(`${COPA_TEAMS} seleções em 6 grupos de 4, turno único (3 rodadas); passam os 2 primeiros de cada grupo + os 4 melhores 3ºs = 16. Oitavas, quartas, semifinal e final em JOGO ÚNICO — empatou, pênaltis. Desempate: pontos, vitórias, saldo, gols. Cada um convoca 11 jogadores do próprio país; quem não convocar entra com os piores 11. O campeão do mundo leva título no Rank, a carta do campeão e o troféu na estante da sala.`, `${COPA_TEAMS} national teams in 6 groups of 4, single round-robin (3 rounds); the top 2 of each group + the 4 best 3rd-placed go through = 16. Round of 16, quarter-finals, semi-final and final are ONE-OFF — a draw goes to penalties. Tie-break: points, wins, goal difference, goals. Everyone calls up 11 players from their own country; whoever doesn't call up gets the worst 11. The world champion gets a Rank title, the champion's card and the trophy on the room's shelf.`)}</p></details>
 
         {/* fase 1 — a bandeira: quem é a vez escolhe AQUI; os outros veem a grade travada */}
         {fase === 'bandeira' && (souAVez
