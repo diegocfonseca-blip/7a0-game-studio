@@ -1,3 +1,39 @@
+## 19/09/2026 (parte 4) — ⏱️ +1s por rodada e o som esperando o ouvido dele
+
+### ⏱️ A simulação da partida ficou 1 segundo mais longa (FEITO, no branch)
+Ordem dele: *"aumente em mais 1s a simulação de uma partida tanto no modo off-line
+qlqr ou modo online qlqr Tb"*. Medido pelo `npm run ritmo` (novo):
+
+| modo | antes | agora |
+|---|---|---|
+| carreira no manual | 9,0s | **10,0s** |
+| carreira no auto | 10,0s | **11,0s** (o +1s do auto, de 13/09, continua por cima) |
+| rápido / online | 4,7s | **5,7s** |
+| basquete | 2,2s | **3,2s** |
+
+Temporada online inteira: 180s → **218s**.
+
+⚠️ **Onde o segundo mora** (pra ninguém somar de novo depois): `ROUND_EXTRA_MS`
+em `screens.tsx`, somado no `ROUND_MS` e no `baseRoundMs` do basquete — **nunca**
+no `SEASON_TOTAL_MS`, que é o orçamento da temporada E divide os 82 jogos do
+basquete. Na carreira é o `ROUND_MS` próprio do `pyramidseason.tsx`. O teste
+`npm run ritmo` reprova se aparecer um segundo `ROUND_MS` em qualquer um dos dois.
+
+### 🔊 O som: 3 coisas esperando a palavra do Diego
+O apito JÁ ESTÁ NO AR (subiu em 0c9605b). A torcida e o gol estão no repo
+(`public/sfx/`) mas **desligados** atrás de `TORCIDA_NOVA = false` em `sound.ts` —
+ordem dele: *"N suba nenhum som ainda.. Por enquanto só o apito msm"*. Falta:
+
+1. **O enquadramento por velocidade.** Com o +1s de hoje o gol (3,1s) cabe em quase
+   tudo: 28% da rodada na carreira auto, 54% no online normal, 108% no online ⚡2×
+   e **216% no ⚡4×** (não cabe de jeito nenhum). Proposta que ainda não foi codada:
+   apito só nas velocidades lentas · um gol por vez, com fade-out se vier outro ·
+   **⚡4× fica só com o ambiente** · ambiente abaixa pra 35% durante o gol (ducking),
+   senão estoura (medido: 107% de pico).
+2. **O canto sintetizado (palma + "ôôô") se aposenta?** O ambiente que ele mandou já
+   tem torcida cantando ao longe; os dois juntos podem embolar.
+3. **Ligar a chave** `TORCIDA_NOVA` — só quando ele ouvir e aprovar.
+
 ## 19/09/2026 (parte 3) — 🟢⚪ Dirceu Krüger entra no baralho + o coração do White Thigs
 
 ### ❤️ White Thigs do GuGu é CORITIBA
