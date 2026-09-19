@@ -524,7 +524,12 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   // notas em duas colunas) e este canvas ainda desenhava o layout velho — quadro
   // verde chapado, tabela de números e lista corrida. Agora ele copia a tela.
   async function buildJornalBlob(): Promise<Blob | null> {
-    const W = 1080, MAXH = 2400
+    // 📏 MAXH é CORTE, não moldura: o que passar disso some da imagem sem avisar.
+    // Subiu de 2400 pra 2520 em 18/09, junto com a entrada da Supercopa na lista dos
+    // donos — uma linha nova pode empurrar uma fila de notas (106px) pra baixo, e o
+    // último título do ano não pode ser o que fica de fora. Jornal que já cabia não
+    // muda em nada (a altura final é `min(MAXH, conteúdo)`).
+    const W = 1080, MAXH = 2520
     const cv = document.createElement('canvas'); cv.width = W; cv.height = MAXH
     const x = cv.getContext('2d'); if (!x) return null
     try { await document.fonts.load('900 60px Oswald'); await document.fonts.load('700 60px Oswald') } catch { /* segue */ }
@@ -680,13 +685,23 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     x.textAlign = 'center'; x.fillStyle = INK; x.font = `700 38px ${OSW}`
     x.fillText(tr('Os donos da temporada', 'The season’s winners'), W / 2, y)
     y += 18
-    const donos: { col: string; label: string; champ: string; isYou: boolean; art?: string }[] = []
+    // 🧾 `art` sai com o prefixo "Artilheiro:"; `sub` é linha CRUA (Supercopa e
+    // Mundial não têm artilheiro — têm o adversário e a seleção campeã).
+    const donos: { col: string; label: string; champ: string; isYou: boolean; art?: string; sub?: string }[] = []
     for (const d of J_DIVS) {
       const c = tables[d]?.[0]; const a = divTop[d]
       if (c) donos.push({ col: J_DIV_COLOR[d], label: J_DIV_NAME[d].toUpperCase(), champ: c.name, isYou: !!c.you, art: a ? `${a.name} (${a.teamName}), ${a.goals} ${tr('gols', 'goals')}` : undefined })
     }
     if (copa?.champion) donos.push({ col: brasil ? '#0EA658' : '#F5B301', label: brasil ? tr('COPA DO BRASIL', 'COPA DO BRASIL') : tr('COPA LEGENDS', 'LEGENDS CUP'), champ: copa.champion.name, isYou: !!copa.champion.you, art: copa.topScorer ? `${copa.topScorer.name} (${copa.topScorer.teamName}), ${copa.topScorer.goals} ${tr('gols', 'goals')}` : undefined })
-    if (mundial) donos.push({ col: '#2563EB', label: tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP'), champ: mundial.selecao, isYou: !!mundial.voce, art: mundial.campeao })
+    // 👑 A SUPERCOPA (conserto 18/09). Diego, com a foto do jornal compartilhado na
+    // mão: *"não apareceu Supercopa"*. Ela SEMPRE esteve na tela (o bloco `superChamp`
+    // lá embaixo), mas nunca tinha sido posta AQUI, na lista que vira imagem — então
+    // quem compartilhava o fim de temporada perdia justamente o último título do ano.
+    // Mesma ordem da tela: divisões → Copa → Supercopa → Mundo.
+    if (superChamp) donos.push({ col: '#0D4FCC', label: tr('SUPERCOPA LEGENDS', 'LEGENDS SUPER CUP'), champ: superChamp.name, isYou: !!superChamp.you, sub: tr(`Jogo único contra o ${superChamp.vs}.`, `One-off match against ${superChamp.vs}.`) })
+    // 🌍 e o Mundial deixa de sair rotulado como "Artilheiro: <seleção>" — ali é a
+    // seleção campeã, não artilheiro nenhum (na tela já era texto solto).
+    if (mundial) donos.push({ col: '#2563EB', label: tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP'), champ: mundial.selecao, isYou: !!mundial.voce, sub: mundial.campeao })
     const cGap = 26, cW = (R - L - cGap) / 2, noteH = 106
     for (let i = 0; i < donos.length; i++) {
       const dn = donos[i]
@@ -718,9 +733,10 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       x.fillText(`· ${dn.label}`, tx + nw + (dn.isYou ? 70 : 10), ey + 20)
       x.fillStyle = TINTA3; x.font = `400 14px ${SER}`
       x.fillText(tr('campeão da temporada', 'season champion'), tx, ey + 42)
-      if (dn.art) {
+      const linha2 = dn.art ? `${tr('Artilheiro', 'Top scorer')}: ${dn.art}` : dn.sub
+      if (linha2) {
         x.fillStyle = INK; x.font = `400 15px ${SER}`
-        x.fillText(cortar(`${tr('Artilheiro', 'Top scorer')}: ${dn.art}`, `400 15px ${SER}`, tw), tx, ey + 66)
+        x.fillText(cortar(linha2, `400 15px ${SER}`, tw), tx, ey + 66)
       }
     }
     y += Math.ceil(donos.length / 2) * noteH + 18
