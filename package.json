@@ -26,7 +26,8 @@
     "sala": "node scripts/testa-sala-online.mjs",
     "mimos": "node scripts/testa-mimos.mjs",
     "preparador": "node scripts/testa-preparador.mjs",
-    "carta": "node scripts/testa-carta-endereco.mjs"
+    "carta": "node scripts/testa-carta-endereco.mjs",
+    "jornal": "node scripts/testa-jornal-donos.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
