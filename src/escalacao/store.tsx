@@ -13,7 +13,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
-import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato, CONTRATO_TEMPORADAS } from './preparadores' // 🏋️ preparador físico (15/09)
+import { PREPARADORES, preparadorDe, salarioPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
@@ -585,13 +585,13 @@ function curaContratosVencidos(s: EscState): void {
 // (temporada baixa) logo depois de uma adiantada deixava o contrato da outra
 // para trás — e ele ainda era SALVO assim, então viajava pra sempre.
 //
-// Esta cura é a rede: nenhum contrato de comissão pode faltar MAIS que as 5
-// temporadas que a regra permite. Passou disso, o número é impossível — então
-// vale o MÁXIMO legal (5 a partir de agora), nunca "vencido". Quem pagou não
+// Esta cura é a rede: nenhum contrato de comissão pode faltar MAIS que o maior
+// prazo que o sorteio consegue dar (10 — ver `CONTRATO_MAX`). Passou disso, o
+// número é impossível — então vale o MÁXIMO legal, nunca "vencido". Quem pagou não
 // perde o funcionário por causa de um número torto: a casa não tira nada de
 // ninguém pra consertar contabilidade.
 function curaContratoComissao(s: EscState): void {
-  const teto = CONTRATO_TEMPORADAS
+  const teto = CONTRATO_MAX // 10: o maior prazo que o sorteio pode dar (preparadores.ts)
   const sn = s.seasonNo ?? 1
   const conserta = (m?: Record<string, number>): Record<string, number> | undefined => {
     if (!m) return m
@@ -607,6 +607,14 @@ function curaContratoComissao(s: EscState): void {
   s.careerPreparadorContrato = conserta(s.careerPreparadorContrato)
 }
 
+// 🎲 O SORTEIO DO PRAZO DA COMISSÃO — determinístico, igual ao dos jogadores.
+// Usa o MESMO tempero do contrato de jogador (`seed ^ temporada*65537 ^ 0x5EED`) com
+// um sal por TIPO de ficha: sem ele, técnico e preparador assinados na mesma
+// temporada tirariam sempre o mesmo número, e o sorteio pareceria viciado.
+function rngPrazoComissao(s: EscState, tipo: 'tecnico' | 'preparador'): () => number {
+  const sal = tipo === 'tecnico' ? 0x7EC1C0 : 0x9A1A17
+  return mulberry(((s.seed ^ ((s.seasonNo ?? 1) * 65537) ^ 0x5EED ^ sal) >>> 0))
+}
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>, finalPos?: Record<number, number>) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
@@ -4056,7 +4064,7 @@ function sealAndResolveTec(state: EscState) {
       pago[lote.nome] = top.amount
       if (lote.clube) map[lote.clube] = null
       map[winM.teamName] = lote.nome
-      state.careerTecnicoContrato = { ...(state.careerTecnicoContrato ?? {}), [winM.teamName]: state.seasonNo + 4 } // 📝 5 temporadas
+      state.careerTecnicoContrato = { ...(state.careerTecnicoContrato ?? {}), [winM.teamName]: fimDoContrato(state.seasonNo, rngPrazoComissao(state, 'tecnico')) } // 📝 prazo SORTEADO: 3 · 5 · 10
       state.careerTecnicosDesde = { ...(state.careerTecnicosDesde ?? {}), [winM.teamName]: { t: state.seasonNo, r: state.round }, ...(lote.clube ? { [lote.clube]: { t: state.seasonNo, r: state.round } } : {}) }
       if (t) {
         // 🏠 formação da casa: a que o time já usava soma ao cardápio (sem dobrar)
@@ -7109,11 +7117,14 @@ export function reducer(state: EscState, action: Action): EscState {
       if (coins < p.preco) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
       s.careerPreparador = { ...(s.careerPreparador ?? {}), [you.teamName]: p.key }
-      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimDoContrato(s.seasonNo) }
+      // 🎲 o prazo é sorteado UMA vez e guardado — o log tem que dizer o número REAL
+      const fimNovo = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
+      const anosNovo = fimNovo - s.seasonNo + 1
+      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimNovo }
       logFin(s, 'buy', `🏋️ ${p.nome} chegou ao Departamento Técnico`, -p.preco)
       s.aliciarLog = {
         titulo: `🏋️ ${p.nome} é do ${you.teamName}!`,
-        corpo: `Contrato de 5 temporadas (até a T${fimDoContrato(s.seasonNo)}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora o banco devolve ${p.banco} de gás por rodada e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
+        corpo: `Contrato de ${anosNovo} temporada${anosNovo > 1 ? 's' : ''} (até a T${fimNovo}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora o banco devolve ${p.banco} de gás por rodada e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
         venceu: true,
       }
       return s
@@ -7130,9 +7141,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < p.preco) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - p.preco }
-      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimDoContrato(s.seasonNo) }
-      logFin(s, 'buy', `📝 Renovação do preparador ${p.nome} (+5 temporadas)`, -p.preco)
-      s.aliciarLog = { titulo: `📝 ${p.nome} renovou!`, corpo: `Mais 5 temporadas (até a T${fimDoContrato(s.seasonNo)}) por ${p.preco} 🪙.`, venceu: true }
+      const fimRenov = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'preparador'))
+      const anosRenov = fimRenov - s.seasonNo + 1
+      s.careerPreparadorContrato = { ...(s.careerPreparadorContrato ?? {}), [you.teamName]: fimRenov }
+      logFin(s, 'buy', `📝 Renovação do preparador ${p.nome} (+${anosRenov} temporada${anosRenov > 1 ? 's' : ''})`, -p.preco)
+      s.aliciarLog = { titulo: `📝 ${p.nome} renovou!`, corpo: `Mais ${anosRenov} temporada${anosRenov > 1 ? 's' : ''} (até a T${fimRenov}) por ${p.preco} 🪙.`, venceu: true }
       return s
     }
     case 'DISPENSAR_PREPARADOR': {
@@ -7167,9 +7180,11 @@ export function reducer(state: EscState, action: Action): EscState {
       const coins = s.careerCoins?.[you.id] ?? 0
       if (coins < custo) return s
       s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: coins - custo }
-      s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [you.teamName]: s.seasonNo + 4 }
+      const fimTecRenov = fimDoContrato(s.seasonNo, rngPrazoComissao(s, 'tecnico'))
+      const anosTecRenov = fimTecRenov - s.seasonNo + 1
+      s.careerTecnicoContrato = { ...(s.careerTecnicoContrato ?? {}), [you.teamName]: fimTecRenov }
       logFin(s, 'buy', `📝 Renovação do técnico ${nome} (+5 temporadas)`, -custo)
-      s.aliciarLog = { titulo: `📝 ${nome} renovou!`, corpo: `Mais 5 temporadas (até a T${s.seasonNo + 4}) por ${custo} 🪙.`, venceu: true }
+      s.aliciarLog = { titulo: `📝 ${nome} renovou!`, corpo: `Mais ${anosTecRenov} temporada${anosTecRenov > 1 ? 's' : ''} (até a T${fimTecRenov}) por ${custo} 🪙.`, venceu: true }
       return s
     }
     case 'DISPENSAR_TECNICO': {

@@ -1,3 +1,65 @@
+## 18/09/2026 (parte 9) — 🎁📝🤖 Três pedidos dele numa tacada ✅ NO AR
+
+### 🐮 A mascote de gol do dono sumia no ONLINE — e não era cadastro
+*"O usuário do Leite de Verdade, que tem batismo, disse que quando ele joga online o
+gol do mascote dele não tá aparecendo"*.
+**Causa (medida no banco, não chutada):** no online o nome do clube é o que a pessoa
+DIGITA, e o jogo cola o selo do apoiador. No banco o clube dele está como
+**"Loopesmiranda FC 👑🖋️"**, não "Leite de Verdade FC" — então `CARIMBO_GOL` não acha, e
+quem deveria salvar é a regra de 08/09 (mimo segue o E-MAIL). Só que as duas pontas
+usavam chaves diferentes:
+- REGISTRO ("qual é o meu clube") → `loopesmiranda fc 👑🖋️`
+- BUSCA (a tela, com `nomeLimpo`) → `loopesmiranda`
+
+A tela limpava o selo; o registro guardava com ele. E o emoji no fim ainda impedia o
+corte do "FC", dobrando o estrago. **Conserto num lugar só**: `chaveEscudo` (mimos.ts)
+tira selo, "(você)" e acento ANTES de cortar FC/EC/SC — como é a chave dos DOIS lados,
+acerta registro e busca juntos, e vale pro escudo e pro manto pelo mesmo caminho.
+A linha dele em `esc_socios` estava completa (sócio 45, escudo_time, mascote_key).
+🧪 Trava nova: **`npm run mimos`**. Cobre o caso real, a limpeza do que é enfeite, e —
+o que mais importa — que **mimo meu nunca vai pro clube de outro humano nem de bot**.
+
+### ⚠️ PENDÊNCIA QUE FICA: os OUTROS ainda veem pelo nome
+Isto conserta a tela **do dono**. Os outros jogadores da sala continuam desenhando o
+clube dele pelo NOME — é a "Etapa 3" aberta desde 08/09. Pra a sala inteira ver a
+Mimosa no gol dele, ou o nome que ele usa online entra em `CARIMBO_GOL`, ou o mimo
+passa a viajar pelo e-mail na sala. **O Diego foi avisado e não decidiu ainda.**
+
+### 📝 O contrato da comissão passou a VARIAR
+*"Sobre contratos: mesmo tempo, igual faz pro jogador"* e, sobre o sorteio curto que
+ofereci, *"opção A, mas quero mais tempos, acho que falta um de dez, sei lá"*.
+O prazo agora é **sorteado na assinatura: 3 · 5 · 10** — a MESMA escada do jogador
+(`renewOptions` já oferece 1/2/3/5/10). Pesos 30/45/25 → média **5,65**, de propósito:
+item PAGO não pode virar aposta ruim, então ninguém fica pior que os 5 fixos de antes.
+O número sorteado **aparece no log da assinatura** — a tela nunca promete 5 e entrega 3.
+⚠️ O teto da cura e o da tela subiram de 5 pra `CONTRATO_MAX` (10) junto — senão o
+conserto de hoje de manhã cortaria contrato legítimo.
+
+### 🤖🌱 O automático avisa quando fica sem reserva
+*"Os três meio-campos cansaram, o automático ligado e não tem reserva. Tem que aparecer
+uma pergunta: você quer que suba um jogador da base? Aí ele responde sim e cai na área
+da base"*. Feito — **só com o automático ligado**, por ordem dele (quem troca na mão
+segue com o aviso curto). Faz sentido: com o automático ligado o botão verde de
+RODIZIAR nem aparece, então nada na tela dizia que ele tinha travado.
+A caixa diz **qual posição** está faltando, e o "AGORA NÃO" guarda a situação recusada
+(volta sozinho quando muda quem está cansado). **Nada sobe sozinho.**
+
+---
+
+## 18/09/2026 (parte 8b) — 🏛️🌱 As pílulas do Elenco viram DESTINO ✅ NO AR
+
+Ele pegou AO VIVO: *"hoje quando apertava nessas pílulas tava jogando pro final da tela
+sem nada"*. Culpa da entrega de 18/09 de manhã: eu limpei o meio da tela e deixei as
+caixas no PÉ da página, com as pílulas só ROLANDO até lá — com elenco de 27 a lista
+ficou comprida e o rolar terminava no rodapé.
+1. **A pílula de SAF saiu** (*"já tem embaixo SAF"* — a ABA continua).
+2. **Base** abre a área da Base no lugar da lista.
+3. **Comissão** abre o Departamento Técnico ali mesmo — e por isso ele saiu do pé.
+Detalhe da causa: a área só existe DEPOIS do React desenhar, então rolar no mesmo
+instante do clique não achava nada. Agora rola no `requestAnimationFrame`.
+
+---
+
 ## 18/09/2026 (parte 11) — 🗄️ O banco ganha do código: o manto errado do Manfré e mais 9 clubes no jornal
 
 O Diego liberou o Supabase pra eu fechar a perna do banco do Remoçada. Fechei — e
