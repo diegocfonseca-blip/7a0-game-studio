@@ -147,24 +147,32 @@
   /* o `space-y-5` do Tailwind só alcança filho DIRETO — a 1ª metade perdeu a
      margem quando entrou no invólucro; devolvida aqui (20px = space-y-5) */
   .ll25-shell .ll-desk > .ll-lado > .ll-col-side:first-child { margin-top: 20px; }
-  /* 🏆 a tabela fica onde está no HTML (ordem 0) e o resto desce por cima dela */
-  .ll25-shell .ll-desk .ll-depois-da-tabela { order: 1; }
+  /* 🔁 A FILA MUDOU DE NOVO EM 18/09 À NOITE, com ele jogando de verdade:
+     *"remova esses jogos passando aí em cima do próximo jogo e equilíbrio, porque
+     fica atrapalhando, fica desalinhado quando sai muito gol… aí atrapalha a tabela.
+     E os jogos ficam abaixo da tabela, e o texto das zoeiras que hoje está embaixo
+     da tabela volta lá pra cima"*.
+     Ele tem razão e o motivo é medido na tela dele: o card dos OUTROS JOGOS cresce
+     com a lista de gols (o SC Ferrari 1×4 tem 5 linhas), então a faixa fica de
+     altura irregular — e, ficando ANTES da tabela, empurra a tabela pra baixo um
+     tanto diferente a cada rodada. Embaixo da tabela ela pode crescer à vontade.
+     E o GIRO (a zoeira) tinha descido de manhã junto com a tabela; ele quer de volta
+     no alto, perto do placar, que é onde se lê. Fila de hoje:
+       placar → zoeira/giro → próximo jogo + tática → 🏆 TABELA → outros jogos → rodapé */
+  .ll25-shell .ll-desk > .ll27-room-summary { order: 1; }
   .ll25-shell .ll-desk > .ll-rabicho { order: 2; }
 }
 
-/* ⚖️ A TÁTICA VIRA PÍLULA NO CELULAR (Diego 18/09: *"tem que diminuir esse modal
-   aí de equilíbrio, ataque, defesa nos móveis"*).
-   Não é invenção nova: é o MESMO padrão que ele aprovou na aba Elenco no mesmo
-   dia (`🎽 4-4-2 ▾`), com a régua que ele deu lá — *"campo e lista você olha toda
-   rodada; formação e modo de troca você mexe de vez em quando. Altura fixa pra
-   ação rara é troca ruim"*. Tática é ação de UMA vez por rodada.
-   Nada some e nenhuma regra muda: os três botões continuam os mesmos, a um toque.
-   Pra desfazer: apagar este bloco (a caixa volta a ficar sempre aberta). */
-@media (max-width: 1099.98px) {
-  .ll25-shell .ll-linha-tatica { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .ll25-shell .ll-linha-tatica > p { flex: 1 1 60%; min-width: 0; margin: 0; }
-  .ll25-shell .ll-taticas[data-aberta='nao'] { display: none; }
-}
+/* ⚖️ A PÍLULA DA TÁTICA DUROU UMA TARDE — E FOI ELE QUEM DESFEZ.
+   De manhã ele pediu pra encolher o caixote (*"tem que diminuir esse modal aí de
+   equilíbrio, ataque, defesa nos móveis"*) e aprovou a pílula. À noite, jogando:
+   *"volte com a linha das táticas um lado do outro: retranca, equilíbrio e ataque"*.
+   👉 Os três botões voltaram a ficar sempre à mostra, no celular e no desktop.
+   Fica a lição pro repo: esconder atrás de um toque vale pra ação RARA (formação,
+   modo de troca). Tática ele mexe TODA rodada, olhando o próximo adversário — pra
+   isso, um toque a mais é um toque a mais toda rodada.
+   A linha `.ll-linha-tatica` continua existindo (é ela que põe o nome do jogo e a
+   pílula lado a lado quando houver), só que sem nada pra esconder. */
 
 /* 🧭 UMA NAVEGAÇÃO SÓ NO CELULAR (Diego 18/09) — e SÓ no celular.
    A tela da sala tinha DOIS menus: as abas em cima (jogos · números · elenco) e a

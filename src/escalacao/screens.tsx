@@ -5236,10 +5236,6 @@ export function EscSeason() {
   const previewAccount = useOnlinePreview()
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
-  // ⚖️ a caixa de tática do CELULAR começa FECHADA (no desktop a CSS ignora isto e
-  // os três botões ficam sempre à mostra). Nasce fechada porque tática é decisão de
-  // uma vez por rodada — o que a pessoa olha toda hora é o placar e a tabela.
-  const [abreTatica, setAbreTatica] = useState(false)
   const leagueStartedAt = useRoundPresentationStart(state.round)
   const [seasonLang] = useLang()
   const bbS = state.sport === 'basquete' // 🏀 no basquete a "Copa dos 8" vira "Playoffs"
@@ -5933,25 +5929,22 @@ export function EscSeason() {
               )}
             </div>
           )}
-          {/* ⚔️ A LINHA DO PRÓXIMO JOGO. No CELULAR ela ganha ao lado a PÍLULA com a
-              tática que está valendo — o padrão que ele aprovou no Elenco em 18/09
-              (`🎽 4-4-2 ▾`): *"campo e lista você olha toda rodada; formação e modo
-              de troca você mexe de vez em quando"*. Tática é decisão de UMA vez por
-              rodada, então os três botões ficam guardados atrás do toque.
-              No DESKTOP a pílula é escondida por CSS e os três botões seguem sempre
-              à mostra, exatamente como ele aprovou — lá sobra largura. */}
+          {/* ⚔️ A LINHA DO PRÓXIMO JOGO + OS TRÊS BOTÕES DE TÁTICA, SEMPRE À MOSTRA.
+              De manhã (18/09) eles viraram uma PÍLULA que abria no toque, a pedido
+              dele (*"tem que diminuir esse modal aí de equilíbrio, ataque, defesa nos
+              móveis"*). À noite, jogando de verdade, ele desfez: *"volte com a linha
+              das táticas um lado do outro: retranca, equilíbrio e ataque"*.
+              📌 Lição que fica: esconder atrás de um toque vale pra ação RARA
+              (formação, modo de troca — foi onde ele aprovou e manteve). Tática ele
+              mexe TODA rodada, olhando o próximo adversário; ali um toque a mais é um
+              toque a mais toda rodada. */}
           <div className="ll-linha-tatica">
             <p className="font-black text-lg" style={OSWALD}>
               {LS('PRÓXIMO', 'NEXT')}: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
               <span className="text-xs text-black/70"> {fixture[0] === you.id ? LS('(em casa)', '(home)') : LS('(fora)', '(away)')}</span>
             </p>
-            <button type="button" className="ll-pilula-tatica" onClick={() => setAbreTatica(v => !v)}
-              aria-expanded={abreTatica}
-              style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, padding: '6px 9px', border: `2.5px solid ${INK}`, borderRadius: 9, background: abreTatica ? INK : '#fff', color: abreTatica ? GOLD : INK, boxShadow: abreTatica ? 'none' : `2px 2px 0 ${INK}`, whiteSpace: 'nowrap' }}>
-              {tacticLabel(myTactic, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')} {abreTatica ? '▴' : '▾'}
-            </button>
           </div>
-          <div className="grid grid-cols-3 gap-2 ll-taticas" data-aberta={abreTatica ? 'sim' : 'nao'}>
+          <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
                 className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
@@ -5963,7 +5956,7 @@ export function EscSeason() {
           {/* 🎨 Diego 14/08: box mais clean, igual o da Copa — tirei a barra de
               progresso + o textão "temporada rolando sozinha" (decorativo, a
               Copa nunca teve isso e ficava mais poluído aqui). */}
-          <p className="text-[11px] font-semibold text-black/70 ll-taticas" data-aberta={abreTatica ? 'sim' : 'nao'}>{state.sport === 'basquete' ? LS('Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.', 'Defense holds run-and-gun · run-and-gun runs over balance · balance breaks the defense.') : LS('Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.', 'Park the bus holds attack · attack runs over balanced · balanced breaks the bus.')}</p>
+          <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? LS('Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.', 'Defense holds run-and-gun · run-and-gun runs over balance · balance breaks the defense.') : LS('Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.', 'Park the bus holds attack · attack runs over balanced · balanced breaks the bus.')}</p>
         </Box>
       )}
 
@@ -6310,6 +6303,13 @@ function traduzManchete(h: string): string {
   if ((r = t.match(/^🎯 (.+) \((.+)\) tá pegando fogo: (\d+) (gols|pontos) na temporada!$/))) return `${pre}🎯 ${r[1]} (${r[2]}) is on fire: ${r[3]} ${r[4] === 'gols' ? 'goals' : 'points'} this season!`
   if ((r = t.match(/^😱 ZEBRA! (.+) \((\d+)º\) derrubou o (.+) \((\d+)º\): (\d+)×(\d+)\.$/))) return `${pre}😱 UPSET! ${r[1]} (${ordinal(+r[2], 'en')}) brought down ${r[3]} (${ordinal(+r[4], 'en')}): ${r[5]}×${r[6]}.`
   if ((r = t.match(/^💥 (.+) (goleou|atropelou) o (.+): (\d+)×(\d+)\.$/))) return `${pre}💥 ${r[1]} ${r[2] === 'goleou' ? 'thrashed' : 'steamrolled'} ${r[3]}: ${r[4]}×${r[5]}.`
+  // 🎤 os seis tipos novos de zoeira (18/09) — todo texto novo nasce em PT E EN
+  if ((r = t.match(/^🧤 (.+) não toma gol nem por decreto: só (\d+) sofridos na temporada\.$/))) return `${pre}🧤 ${r[1]} just will not concede: only ${r[2]} against all season.`
+  if ((r = t.match(/^🕳️ A zaga do (.+) virou peneira: (\d+) tomados só hoje, (\d+) na temporada\.$/))) return `${pre}🕳️ ${r[1]}'s defence is a sieve: ${r[2]} shipped today alone, ${r[3]} on the season.`
+  if ((r = t.match(/^⏱️ (.+) decidiu no último suspiro: gol aos (\d+)' e (\d+)×(\d+)\.$/))) return `${pre}⏱️ ${r[1]} settled it at the death: goal on ${r[2]}' and ${r[3]}×${r[4]}.`
+  if ((r = t.match(/^🪑 O lanterna acordou! (.+) ganhou do (.+) e tirou o pé do buraco\.$/))) return `${pre}🪑 The bottom club woke up! ${r[1]} beat ${r[2]} and climbed out of the hole.`
+  if ((r = t.match(/^📉 Tombo da rodada: (.+) despencou (\d+) posições e caiu pro (\d+)º\.$/))) return `${pre}📉 Slide of the round: ${r[1]} dropped ${r[2]} places, down to ${ordinal(+r[3], 'en')}.`
+  if ((r = t.match(/^💤 Rodada de goleiro feliz: (\d+) jogos terminaram sem gol nenhum\.$/))) return `${pre}💤 A round for happy keepers: ${r[1]} matches ended goalless.`
   if ((r = t.match(/^⚽ (Copa|Liberta) (FINAL|SEMI|OITAVAS|QUARTAS)( · ida| · volta)?: (.+)$/))) {
     const fase = { FINAL: 'FINAL', SEMI: 'SEMI', OITAVAS: 'R16', QUARTAS: 'QUARTERS' }[r[2]] ?? r[2]
     const perna = r[3] === ' · ida' ? ' · 1st leg' : r[3] === ' · volta' ? ' · 2nd leg' : ''
