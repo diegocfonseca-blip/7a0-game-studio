@@ -61,7 +61,10 @@ export const BATISMOS: Batismo[] = [
   // `esc_socios.time_coracao` como os outros, porque este clube não tem dono nem
   // e-mail conhecido: não existe linha no banco pra guardar. No dia em que o dono
   // aparecer, leva o coração junto com o nº de fundador.
-  { clube: 'White Thigs do GuGu', tipo: 'batismo', fundador: null, selo: '🥇 1º da história' },
+  // 🎽 manto MEDIDO na camisa que o dono mandou em 18/09 (verde 10,2% · claro 59,5%).
+  // O VERDE vem primeiro de propósito: o fundo do jogo é creme, e listra branca em
+  // creme some (a mesma lição do Papão United Madrid).
+  { clube: 'White Thigs do GuGu', tipo: 'batismo', fundador: null, selo: '🥇 1º da história', manto: ['#0A3020', '#D9D3C8'] },
   // 🏦 Batismo a pedido do próprio Diego (03/08, ex-Magrão EC) — sem dono/e-mail.
   { clube: 'Vasco da Grana', tipo: 'batismo', fundador: null, selo: '🖋️ batismo' },
   { clube: 'Neymarzetti', tipo: 'batismo', fundador: 1, manto: ['#080908', '#F0EFEF'] },

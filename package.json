@@ -27,7 +27,10 @@
     "mimos": "node scripts/testa-mimos.mjs",
     "preparador": "node scripts/testa-preparador.mjs",
     "carta": "node scripts/testa-carta-endereco.mjs",
-    "jornal": "node scripts/testa-jornal-donos.mjs"
+    "jornal": "node scripts/testa-jornal-donos.mjs",
+    "mascote": "node scripts/testa-mascote-lance.mjs",
+    "giro": "node scripts/testa-giro.mjs",
+    "som": "node scripts/testa-som.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

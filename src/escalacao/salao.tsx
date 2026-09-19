@@ -18,7 +18,9 @@ const porChegada = (a: Batismo, b: Batismo) => (a.fundador ?? 999) - (b.fundador
 // saindo conforme a arte chegava — o Alfacehh em 14/09 (virou Inter de Bailão), e em
 // 19/09 o Diego liberou os dois últimos mesmo SEM arte: *"pode tirar ele de ser oculto,
 // pode mostrar já. Marreco também"*.
-// ⚠️ Os dois aparecem com as peças VAZIAS: escudo genérico de letra, e as abas de
+// 🎨 E em 18-19/09 um dos dois deixou de ser "sem arte": o White Thigs do GuGu, o 1º
+//    batismo da história, ganhou escudo, mascote e camisa próprios. Sobra o Marreco.
+// ⚠️ Quem ainda não tem arte aparece com as peças VAZIAS: escudo genérico de letra, e as abas de
 // mascote e manto com o aviso de "ainda não disponível". É o comportamento esperado —
 // a tela já tem texto pra isso e não quebra. Quando a arte chegar, só some o aviso.
 // 🔒 A lista FICA (não apagar): é a porta pra esconder um clube de novo sem mexer em

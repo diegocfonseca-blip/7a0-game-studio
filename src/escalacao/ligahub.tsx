@@ -206,6 +206,14 @@ function IconeLiga({ nome, cor }: { nome: Botao; cor: string }) {
     </svg>
   )
 }
+// 📊 O RÓTULO DESTA ABA É "NÚMEROS", E FOI DECIDIDO OLHANDO A TELA (18/09).
+// Ele pediu "Estatísticas" (é como as abas de cima chamam), eu troquei, ele viu no
+// celular dele e mandou voltar: *"Estatísticas é grande, coloque Números mesmo"*.
+// ⚠️ Fica registrado porque a MEDIDA me disse que cabia — 55px de texto num botão
+// de 60px no celular de 320px — e cabia mesmo. Só que "cabe" não é "fica bom": ao
+// lado de Jogos, Elenco e Estante, a palavra comprida encostava nas bordas e
+// desequilibrava a barra. Quem decide isso é o olho dele, não a régua.
+// 👉 Não trocar de novo sem ele pedir.
 const ROTULO_ABA_PT: Record<Botao, string> = { rank: 'Rank', estante: 'Estante', temporadas: 'Temporadas', ajustes: 'Ajustes', jogos: 'Jogos', estatisticas: 'Números', elenco: 'Elenco' }
 const ROTULO_ABA_EN: Record<Botao, string> = { rank: 'Rank', estante: 'Shelf', temporadas: 'Seasons', ajustes: 'Settings', jogos: 'Matches', estatisticas: 'Stats', elenco: 'Squad' }
 const ROTULO_ABA: Record<Botao, string> = new Proxy(ROTULO_ABA_PT, { get: (_t, k: string) => (getLang() === 'en' ? ROTULO_ABA_EN : ROTULO_ABA_PT)[k as Botao] })

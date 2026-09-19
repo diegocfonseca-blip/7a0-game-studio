@@ -33,6 +33,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Jurubeba FC": "jurubeba-camisa.webp",
   "Leão da Estradinha": "leao-estradinha-camisa.webp",
   "Leite de Verdade FC": "leitedeverdade-camisa.webp",
+  "White Thigs do GuGu": "gugu-camisa-v1.webp", // ⚽🥋 o 1º batismo da história — a 1ª camisa de verdade dele na Loja (18/09)
   "Esqueceram do Lluch": "lluch-camisa.webp",
   "Manfré FC": "manfre-camisa.webp",
   "Nova Eclipse FC": "novaeclipse-camisa.webp",
