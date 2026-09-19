@@ -39,16 +39,26 @@ console.log('\n1) 🪶 o som do jogo não baixa arquivo (0 KB no bundle)')
   ok(!gordo, gordo ? `⚠️ ${gordo.f} tem ${gordo.kb.toFixed(0)} KB` : `os ${arqs.length} sons de arquivo somam ${total.toFixed(0)} KB (nenhum acima de 200)`)
 }
 
-console.log('\n2) 📣 torcida e apito nos DOIS modos')
+console.log('\n2) 🔔 o APITO toca nos dois modos (é o único som que ele liberou)')
 {
-  ok(/startCrowd\(\)/.test(carreira) && /stopCrowd\(\)/.test(carreira), 'CARREIRA: liga a torcida ao abrir e desliga ao sair')
-  ok(/playWhistle\(\)/.test(carreira), 'CARREIRA: apito a cada rodada nova')
-  ok(/startCrowd\(\)/.test(rapido) && /stopCrowd\(\)/.test(rapido), 'RÁPIDO/ONLINE: liga a torcida ao abrir e desliga ao sair')
+  ok(/playWhistle\(\)/.test(carreira), 'CARREIRA: apito a cada rodada nova — era o que faltava')
   ok(/playWhistle\(\)/.test(rapido), 'RÁPIDO/ONLINE: apito a cada rodada nova')
-  ok(/crowdRoar\(/.test(carreira), 'o urro do gol sai do placar, que é o MESMO componente dos dois modos')
 }
 
-console.log('\n3) 🎤 a torcida canta sozinha, mas não vira barulho de fundo')
+console.log('\n3) 🔇 a TORCIDA NOVA fica segurada até ele aprovar o som')
+{
+  // Diego (18/09), depois de ouvir as gravações: *"não suba nenhum som ainda…
+  // por enquanto só o apito mesmo"*. A chave guarda canto, urro e a torcida da
+  // carreira. Se alguém ligar sem ele pedir, esta trava avisa.
+  ok(/export const TORCIDA_NOVA = false/.test(som), 'a chave TORCIDA_NOVA está DESLIGADA')
+  ok(/if \(TORCIDA_NOVA\) agenda\(\)/.test(som), 'o canto da arquibancada só agenda com a chave ligada')
+  ok(/if \(TORCIDA_NOVA\) crowdRoar\(/.test(carreira), 'o urro do gol só sai com a chave ligada')
+  ok(/if \(!TORCIDA_NOVA\) return; startCrowd\(\)/.test(carreira), 'a torcida de fundo da carreira só liga com a chave')
+  // e o que JÁ estava no ar continua onde estava
+  ok(/startCrowd\(\)/.test(rapido), 'a torcida do rápido/online, que já estava no ar desde antes, NÃO foi desligada')
+}
+
+console.log('\n4) 🎤 o canto, quando ligar, não vira barulho de fundo')
 {
   const i = som.indexOf('export function startCrowd')
   const corpo = som.slice(i, som.indexOf('export function stopCrowd'))
@@ -59,7 +69,7 @@ console.log('\n3) 🎤 a torcida canta sozinha, mas não vira barulho de fundo')
   ok(/clearTimeout/.test(corpo) || /clearTimeout/.test(som.slice(i, i + 3000)), 'ao sair da tela o canto é cancelado (nada toca fora do jogo)')
 }
 
-console.log('\n4) 🔇 ninguém leva susto')
+console.log('\n5) 🔇 ninguém leva susto')
 {
   ok(/let muted = true/.test(som), 'o som nasce MUDO — quem quiser liga no botão 🔊')
   ok(/getItem\('esc-sound-muted'\)/.test(som), 'e a escolha fica lembrada no aparelho')

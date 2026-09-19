@@ -66,7 +66,7 @@ import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
-import { startCrowd, stopCrowd, playWhistle, crowdRoar } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
+import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -2683,7 +2683,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (n > golsOuvidosRef.current) {
       const ultimo = shown[n - 1]
       const meu = ultimo ? (ultimo.home === youIsHome) : false
-      crowdRoar(meu ? 1.15 : 0.75)
+      if (TORCIDA_NOVA) crowdRoar(meu ? 1.15 : 0.75)  // 🔇 segurado: ele só liberou o apito por enquanto
     }
     golsOuvidosRef.current = n   // rodada nova zera junto (shown volta a 0)
   }, [shown.length, youIsHome])
@@ -6735,7 +6735,10 @@ export function PyramidSeasonScreen() {
   // carreira, que é onde ele mais joga, era muda. Foi o "e aí, cadê?" dele.
   // 🔇 Nada toca sem a pessoa ligar o 🔊 (o som nasce MUDO, opt-in) e nada baixa:
   // torcida, canto e apito são sintetizados, 0 KB.
-  useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
+  // 🔇 POR ENQUANTO SÓ O APITO (Diego 18/09, depois de ouvir as gravações: *"não
+  // suba nenhum som ainda… por enquanto só o apito mesmo"*). A torcida de fundo da
+  // carreira fica pronta atrás da chave `TORCIDA_NOVA`, em `sound.ts`.
+  useEffect(() => { if (!TORCIDA_NOVA) return; startCrowd(); return () => stopCrowd() }, [])
   useEffect(() => { if (state.round > 0) playWhistle() }, [state.round])
   // 🟢 liga o "contexto verde" da carreira OFFLINE (feehcamp etc. veem verde SÓ aqui;
   // ouro em todo o resto). Inline (roda antes dos filhos, sem flash) + limpa ao sair.

@@ -122,6 +122,18 @@ export function playWhistle() {
 
 // 🏟️ torcida: ruído rosa filtrado com ondulação lenta (murmúrio de estádio).
 // Loop até stopCrowd(). Volume BEM baixo pra ficar no fundo.
+// 🔇 CHAVE DA TORCIDA NOVA — DESLIGADA, ESPERANDO O OUVIDO DELE (18/09).
+// Palavras do Diego, depois de ouvir as gravações: *"não suba nenhum som ainda…
+// por enquanto só o apito mesmo"*.
+// O que esta chave segura (tudo já escrito e testado, só não ligado):
+//   👏 o CANTO de arquibancada que entra sozinho durante o jogo;
+//   🎉 o URRO da torcida no gol;
+//   📣 a torcida de fundo na CARREIRA (que era muda).
+// ⚠️ O que ela NÃO toca: a torcida de fundo do jogo rápido/online, que já estava
+//    no ar desde antes — desligar aquilo seria mudar o que ele não pediu.
+// 👉 Pra ligar quando ele aprovar: `true` aqui, e só. Nada mais a mexer.
+export const TORCIDA_NOVA = false
+
 let crowd: { stop: () => void } | null = null
 export function startCrowd() {
   if (crowd) return
@@ -150,7 +162,7 @@ export function startCrowd() {
     // ⏱️ É `setTimeout`, fora do reducer: não encosta em lance, tempo nem placar.
     let cantoT: ReturnType<typeof setTimeout> | null = null
     const agenda = () => { cantoT = setTimeout(() => { crowdChant(); agenda() }, 13000 + Math.random() * 9000) }
-    agenda()
+    if (TORCIDA_NOVA) agenda()   // 🔇 segurado até ele aprovar o som (ver a chave acima)
     crowd = { stop: () => { try { if (cantoT) clearTimeout(cantoT); const now = c.currentTime; g.gain.cancelScheduledValues(now); g.gain.setValueAtTime(g.gain.value, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5); src.stop(now + 0.55); lfo.stop(now + 0.55) } catch { /* ignora */ } } }
   } catch { /* ignora */ }
 }
