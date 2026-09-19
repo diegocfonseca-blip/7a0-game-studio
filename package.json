@@ -35,7 +35,8 @@
     "artilharia": "node scripts/testa-artilharia.mjs",
     "melhor": "node scripts/testa-melhor-mundo.mjs",
     "jornal2": "node scripts/mockup-jornal-pagina2.mjs",
-    "jornalpags": "node scripts/mockup-jornal-paginas.mjs"
+    "jornalpags": "node scripts/mockup-jornal-paginas.mjs",
+    "roteiro": "node scripts/mockup-fim-temporada-roteiro.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

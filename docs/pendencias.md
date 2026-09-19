@@ -1,3 +1,36 @@
+## 19/09/2026 (parte 11) — 🎬 O FIM DE TEMPORADA VIRA UM ROTEIRO
+
+Ideia dele, com o print da tela na mão: *"e se fizéssemos de uma forma q tivesse q
+ter o passo a passo obrigado e c isso teria q ler.. pq hj aparece essas coisas aqui
+misturadas embaixo tb q n estão legais… A copa do mundo quero algo sutil msm mas
+após o jornal, seria algo novo, tudo novo pra essa tela"*.
+
+### 📋 O diagnóstico (conferido no print dele)
+Seis coisas empilhadas na MESMA rolagem: aviso das Tabelas · cadeado da Copa do
+Mundo · fechamento do caixa · a decisão da próxima temporada · os chips das fases ·
+sair e salvar. **O que mais importa (a decisão) divide espaço com o que menos
+importa agora** — um cadeado que só abre daqui a 74 temporadas. E o fechamento do
+caixa, que é a melhor parte de ver, virou uma linha fininha que ninguém abre.
+👉 Ninguém lê porque **está tudo com o mesmo peso**, não por falta de vontade.
+
+### 🎯 A proposta (`npm run roteiro`)
+Um passo por tela, na ordem que a cabeça pede, com barrinha de progresso em cima:
+| passo | o quê |
+|---|---|
+| 1 📰 **JORNAL** | a notícia. A capa já anuncia as 4 páginas; a orelha chama a próxima; a Bola de Ouro mora aqui |
+| 2 💰 **CAIXA** | o fechamento ganha a tela e um NÚMERO GRANDE (+50 🪙), com os lançamentos embaixo |
+| 3 🌍 **MUNDO** | a Copa do Mundo **discreta**, como ele pediu: aparece uma vez, mostra "faltam 74", sai de cena |
+| 4 🔨 **PRÓXIMA** | a decisão SOZINHA na tela — a única hora em que ele precisa pensar |
+
+### ⚡ O risco, e o que fiz pra segurar
+A regra de ouro dele é *"nada pode atrasar o ritmo do jogo"*, e passo a passo
+obrigatório pode virar pedágio. Por isso: cada passo é **um toque**, nenhum pede pra
+pensar (só o último), o jornal tem **"pular pro fim"**, e os 4 toques levam ~3s.
+- ⏳ **PERGUNTA ABERTA PRA ELE**: obrigatório **sempre**, ou só na **primeira vez**
+  (e depois um "ver tudo de novo")? Minha dúvida é a 20ª temporada cansar.
+
+⏳ Esperando o OK. Nada no código.
+
 ## 19/09/2026 (parte 10) — 📰 O MARTELO VIRA JORNAL DE VÁRIAS PÁGINAS
 
 Ele viu o mockup da página 2 e pegou o buraco de cara: *"agora q eu vi q já dava p
