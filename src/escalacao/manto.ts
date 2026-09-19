@@ -30,6 +30,17 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   //    metade iluminada), que é o tom de areia do pano — o do escudo é mais claro
   //    porque ali é letra. Os dois medidos, nenhum chutado.
   'lucasigorbortoliniii@hotmail.com': ['#04512A', '#E4CDA6'],
+  // 📍 Futpoint FC — PRETO e DOURADO. O manto dele vivia só na lista pública
+  // (`batismos.ts`), e por isso o `npm run batismos` cobrava "manto medido" desde
+  // sempre: aqui a chave é o E-MAIL, e é esta lista que decora a tela do PRÓPRIO
+  // dono. Em 19/09 o dono mandou a prancha nova e eu REMEDI na camisa dela:
+  // preto #0C0909 e dourado #BE8F47 — ou seja, a arte nova CONFIRMOU a cor que o
+  // jogo já usava. Fica #181818/#B89040 (o mesmo par de `batismos.ts`, que o
+  // `npm run batismos` exige igual): o preto é levantado de propósito, porque
+  // #0C0909 é preto de cena escura e na listra fininha do jogo lê como buraco.
+  // ⚠️ O BANCO GANHA DO CÓDIGO: `meuManto()` lê `esc_socios` primeiro. Se a linha
+  //    dele no banco tiver outra cor, é ela que ele vê — conferir lá também.
+  'gfpicolo13@gmail.com': ['#181818', '#B89040'],
   'luizguilhermeps@hotmail.com': ['#F6BB06', '#053F42'], // 🧦 Jurubeba FC — amarelo e verde-petróleo, MEDIDOS na camisa que o dono mandou (02/09)
   'caiohcris@gmail.com': ['#084C2C', '#F3F1EC'], // 🐟 Bagres 1993 — verde-mato e branco, MEDIDOS na camisa que o dono mandou (mediana dos verdes e dos brancos do manto, 06/09). O DOURADO é a 3ª cor, em MANTO_TRI: é a moldura, a coroa e o louro do escudo. ❤️ São Paulo (o Diego confirmou em 19/09)
   'guiouriques@hotmail.com': ['#2186D9', '#080809'], // 🪟 Vidraceiro FC — azul-vidro e preto, MEDIDOS na camisa que o dono mandou (mediana dos azuis e dos pretos do manto, 05/09). O BRANCO é a 3ª cor, em MANTO_TRI: a camisa é listrada azul/preto com filete branco
@@ -176,7 +187,7 @@ const MANTO_TRI: Record<string, string> = {
   toka: '#013088', // 🧢 Tôka10 — 3ª cor AZUL: a touca (que é o escudo) e o calção, medidos na arte dele (16/09)
   piloto_bola: '#FFFFFF', // 🏎️ Ferrari SC (adriano) — 3ª cor BRANCA (vermelho/preto/branco)
   cobra_arruda: '#B91515', // 🐍 Tricolor do Arruda FC (Geovany Souza) — 3ª cor VERMELHA (preto/branco/vermelho). 09/09: MEDIDA na camisa nova que o dono mandou (era #C2001E chutado em 16/08); preto #110D0E e branco #F5F2EF foram pro banco (esc_socios)
-  futpoint_bola: '#FFFFFF', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA (preto/dourado/branco, medidas na camisa dele, 19/08)
+  futpoint_bola: '#EAE2E0', // 📍 Futpoint FC (gfpicolo13) — 3ª cor BRANCA: a faixa do meio da camisa. REMEDIDA na prancha nova do dono (19/09; era #FFFFFF de 19/08) — branco de pano, não branco de papel
   saoluiz_pitbull: '#D9D9D8', // 🐶 São Luiz FC — 3ª cor BRANCA, REMEDIDA na camisa NOVA do dono (26% do manto, 16/09; era #FFFFFF chutado em 21/08)
   bagres_bagre: '#D9A95D', // 🐟 Bagres 1993 (caiohcris) — 3ª cor DOURADA: a moldura, a coroa e o louro do escudo (medidas na arte dele, 06/09)
   vidraceiro_vidro: '#FFFFFF', // 🪟 Vidraceiro FC (guiouriques) — 3ª cor BRANCA: a camisa é listrada azul/preto com filete branco (medidas na arte dele, 05/09)

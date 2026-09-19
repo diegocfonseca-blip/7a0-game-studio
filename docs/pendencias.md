@@ -1,3 +1,49 @@
+## 19/09/2026 (parte 16) — 📍 Futpoint FC de CARA NOVA (arte que o dono refez)
+
+Ele mandou a prancha nova do **Futpoint FC** (gfpicolo13, **SÓCIO nº27** — não é
+batismo, não tira o lugar de ninguém): escudo, mascote e camisa, tudo redesenhado.
+Recorte, peso e cadastro feitos; **esperando o OK visual dele pra publicar**.
+
+### ✅ O que ficou pronto (no branch)
+- **Escudo novo** 228×360 · 17,7 KB (saiu o alfinete de mapa, entrou o brasão
+  preto/dourado com o monograma FP em prata). **Mascote novo** 285×440 · 39,0 KB —
+  **total 56,7 KB** dos 75 do teto.
+- **Camisa nova na Loja** como `futpoint-camisa-v2.webp`: nome novo de propósito,
+  porque `public/` tem endereço fixo e quem já abriu a Loja veria a velha pra
+  sempre (a lição do Neymarzetti, 16/09).
+- **Manto REMEDIDO na camisa nova**: preto `#0C0909` e dourado `#BE8F47` — ou seja,
+  a arte nova **confirmou** a cor que o jogo já usa (`#181818`/`#B89040`, com o
+  preto levantado de propósito pra listra fininha não virar buraco). O branco da
+  faixa foi remedido pra `#EAE2E0` (era `#FFFFFF` chutado em 19/08).
+- **`MANTO_CONTAS` ganhou a linha dele** (`gfpicolo13@gmail.com`), que faltava
+  desde sempre: a chave lá é o E-MAIL e é ela que decora a tela do próprio dono.
+  Por isso o `npm run batismos` cobrava "manto medido" no Futpoint — agora são
+  **45 completos** (era 44).
+- **Recorte virou script de todo mundo**: `scripts/recorta-prancha-chroma.py`
+  (o do Marreco era só do Marreco). Prancha sobre fundo verde é o padrão agora.
+
+### 🚫 Marca de terceiro que SAIU da arte
+A mascote vinha com o **símbolo da Nike nas duas chuteiras**. É marca de outra
+empresa e ia DENTRO do arquivo que todo jogador baixa (e que carimba o gol), então
+saiu — `scripts/tira-marcas-futpoint.py`. Ficou a chuteira preta, o friso e as
+travas douradas. Mesma régua do letreiro da bola de ouro (19/09).
+⚠️ **Lição de método**: nessa reconstrução **não se põe grão**. Em pano claro o grão
+salva; em couro PRETO o desvio que a conta estima vem dos vincos e do brilho, e as
+duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfície fecha.
+
+### ⏳ O que falta (perguntado pro Diego)
+- **▶️ O botão de play na mão da mascote** é o do YouTube. Mandei as duas opções:
+  como veio (vermelho) e **dourado com o play preto** (as cores do clube — vira uma
+  plaquinha de ouro, que combina com dono de canal). **Ele escolhe.**
+- **O nome do dono** pro rodapé do post ("CLUBE DE ___"): não invento nome de gente
+  de verdade — está em branco até ele falar.
+- 🗄️ **Banco**: `meuManto()` lê `esc_socios` ANTES do código. Se a linha do
+  gfpicolo13 lá tiver outra cor, é ela que ele vê. Conferir junto das linhas do
+  **Marreco FC** (`manto_c1`/`manto_c2`/`mascote_key`/`escudo_time`), que continuam
+  pendentes porque a chamada do Supabase precisa da autorização dele.
+
+---
+
 ## 19/09/2026 (parte 14) — 🥇 A aba da Bola de Ouro no Rank (o que eu tinha ESQUECIDO)
 
 Ele cobriu no ar: *"n tô vendo na área de rank a aba de bola de ouro e nem tô vendo
@@ -696,11 +742,15 @@ porque os guardas rodam offline.
 ❤️ Antes disso: **Pesadelo Verde FC é PALMEIRAS** (ordem dele). Gravado em
 `esc_socios.time_coracao` de `portaltech.ep@gmail.com`.
 
-### 🔴 Buraco de verdade — 1 clube
-- **Marreco FC** (lucasigorbortoliniii) — é o único batismo sem **escudo próprio**,
+### ~~🔴 Buraco de verdade — 1 clube~~ ✅ FECHADO em 19/09
+- ~~**Marreco FC** (lucasigorbortoliniii) — é o único batismo sem **escudo próprio**,
   sem **mascote que carimba o gol**, sem **manto** (nem no código nem no banco) e
-  sem **camisa na Loja**. Tem só a vaga na pirâmide, o ouro e o nº de fundador.
-  É o mais atrasado da lista inteira, e de longe.
+  sem **camisa na Loja**.~~ O dono mandou a prancha em 19/09 e as quatro coisas
+  entraram de uma vez (escudo 241×360 · mascote 321×440 · manto `#04512A`/`#E4CDA6`
+  · camisa `marreco-camisa-v1.webp`). **Publicado na main em 19/09.**
+  🗄️ **Falta só o BANCO**: `esc_socios` dele (`manto_c1`/`manto_c2`/`mascote_key`/
+  `escudo_time`) ainda não foi gravado, e o banco GANHA do código no manto — sem
+  isso ele continua vendo a cor velha.
 
 ### 🟠 A linha OFICIAL do ouro não existe — 3 clubes
 `user_colors` é a fonte oficial do tier, e **não tem linha nenhuma** pra:
@@ -722,9 +772,9 @@ nunca rodou e **o nome puro está LIVRE pra qualquer um pegar**:
 Conserto: inserir o nome puro em `esc_nomes_batismo` que o gatilho completa sozinho.
 (Os outros 49 estão com as 3+ formas certas.)
 
-### 🎽 Camisa na Loja do Clube — 7 sem arte
+### 🎽 Camisa na Loja do Clube — 6 sem arte (era 7; o Marreco saiu em 19/09)
 Deportivo Montreal · SC Ferrari · Coringas do Diniz · Nata de SP · Sapekeiros FC ·
-Marreco FC · Eros FC. **Não é defeito**: é lista de a-quem-pedir. Todos os 7 já
+Eros FC. **Não é defeito**: é lista de a-quem-pedir. Todos os 7 já
 aparecem com a cor certa na foto do campeão (o manto deles vem do painel).
 
 ### ❤️ TIME DE CORAÇÃO — e a conta que eu tinha errado

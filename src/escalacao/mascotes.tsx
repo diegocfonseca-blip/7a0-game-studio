@@ -303,8 +303,15 @@ export const MASCOTES: Record<string, ReactNode> = {
   marreco_rei: (
     <img src={marrecoMascoteImg} height={176} width={Math.round(176 * 321 / 440)} alt="O Rei do Cais — Marreco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
+  // 🔁 O PONTINHO GANHOU ARTE NOVA em 19/09 (mesma personagem, desenho refeito
+  // pelo dono): bola de boné virado, moletom preto e dourado, joinha e a plaquinha
+  // de play na mão, com o pé em cima da bola.
+  // ⚠️ SAIU DA ARTE o símbolo da NIKE das duas chuteiras (`scripts/tira-marcas-
+  //    futpoint.py`): é marca de outra empresa e ia dentro do arquivo que TODO
+  //    jogador baixa. O que ficou é a chuteira preta, o friso e as travas douradas.
+  // 📏 285×440, 39,0 KB. mascote_key segue "futpoint_bola".
   futpoint_bola: (
-    <img src={futpointMascoteImg} height={176} width={Math.round(176 * 310 / 440)} alt="O Pontinho — Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={futpointMascoteImg} height={176} width={Math.round(176 * 285 / 440)} alt="O Pontinho — Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   bigao: (
     <img src={bigaoMascoteImg} height={176} width={Math.round(176 * 319 / 440)} alt="O Bigão — Crias do Bigão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
