@@ -19,7 +19,10 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Corporação Capsule FC": "capsule-camisa.webp",
   "Fala D10": "falad10-camisa.webp",
   "Final Boss FC": "finalboss-camisa.webp",
-  "Futpoint FC": "futpoint-camisa.webp",
+  // 🔁 19/09: camisa NOVA (o dono refez a prancha). O nome do arquivo mudou de
+  // propósito — endereço fixo é cache de navegador, e quem já tinha aberto a Loja
+  // continuaria vendo a camisa velha pra sempre. É o aviso que o `npm run salao` dá.
+  "Futpoint FC": "futpoint-camisa-v2.webp",
   "Marreco FC": "marreco-camisa-v1.webp",
   "Rei da Bola FC": "reidabola-camisa-v1.webp",
   "Murriz FC": "murriz-camisa-v1.webp",

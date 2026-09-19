@@ -566,8 +566,14 @@ const marrecoEscudoRender = (size: number) => (
   <img src={marrecoEscudoImg} height={size} width={Math.round(size * 241 / 360)} alt="Marreco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🔁 ESCUDO NOVO em 19/09: o dono mandou a prancha refeita (escudo, mascote e
+// camisa). Saiu o alfinete de mapa e entrou o brasão preto/dourado com o
+// monograma "FP" em prata e a bolinha no meio do P. O arquivo é o MESMO endereço
+// (`futpoint-escudo.webp`) porque arte de dentro do jogo leva carimbo do Vite —
+// cache não segura. A do SALÃO é que precisou de nome novo (ver salao-camisas).
+// 📏 228×360, 17,7 KB — a largura sai da proporção REAL (antes era 293×360).
 const futpointEscudoRender = (size: number) => (
-  <img src={futpointEscudoImg} height={size} width={Math.round(size * 293 / 360)} alt="Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={futpointEscudoImg} height={size} width={Math.round(size * 228 / 360)} alt="Futpoint FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
 // 🤡🟡⚫ Nata de SP (pedrinhocamisa8) — ex-Paris São Geraldo, Série D. Escudo
