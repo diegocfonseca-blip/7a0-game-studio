@@ -9,7 +9,7 @@ import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Se
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
 import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
-import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
+import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -31,7 +31,7 @@ const CopaDaLigaLazy = lazy(() => import('./copa-mundo-online').then(m => ({ def
 import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estante · Temporadas · Ajustes
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
@@ -5085,7 +5085,16 @@ function tacticLabel(t: Tactic, bb: boolean, lang: 'pt' | 'en'): string {
   return bb ? TACTIC_LABEL_NBA[t][lang] : lang === 'en' ? TACTIC_LABEL_EN[t] : TACTIC_LABEL[t]
 }
 export const SEASON_TOTAL_MS = 180_000
-const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) // ~4,7s por rodada
+// ➕ 1 SEGUNDO A MAIS POR RODADA (Diego 18/09): *"aumente em mais 1s a simulação de
+// uma partida, tanto no modo offline qualquer ou modo online qualquer também"*.
+// Ele pediu logo depois de ouvir a simulação de som — e ajuda dos dois lados: dá
+// tempo de LER o que acontece na rodada, e faz o gol (3,1s) caber melhor dentro
+// dela (era 65% da rodada no online normal, passa a 54%).
+// ⚠️ Somado AQUI e não no `SEASON_TOTAL_MS`, de propósito: aquela constante é o
+// orçamento da temporada e também divide o basquete (82 jogos). Mexer nela mudaria
+// duas coisas de uma vez; o segundo a mais é da RODADA.
+export const ROUND_EXTRA_MS = 1000
+const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + ROUND_EXTRA_MS // ~5,7s por rodada
 // 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
 const QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000
@@ -5315,7 +5324,7 @@ export function EscSeason() {
   // 🏀 basquete tem 82 rodadas (não 38): acelera cada rodada pra a temporada
   // caber no MESMO tempo total (~3 min), senão levaria mais que o dobro. Futebol
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
-  const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) : ROUND_MS
+  const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : ROUND_MS // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
   const roundMs = Math.round(baseRoundMs / speedFactor)
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -5358,8 +5367,9 @@ export function EscSeason() {
   }, [state.round, seasonSettled])
   // 🏟️ torcida ao fundo enquanto a temporada roda (para ao sair da tela)
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
-  // 📣 apito no início de cada jogo (kickoff) — só quando há partida rolando
-  useEffect(() => { if (state.round > 0 && state.round <= totalRounds) playWhistle() }, [state.round])
+  // 📣 LIGA DO RÁPIDO/ONLINE: apita só na LARGADA da temporada (a regra mora em
+  // `useApitoDeLargada`, no `pyramidseason.tsx`, e é a MESMA nos três modos).
+  useApitoDeLargada(`liga-${state.seasonNo ?? 1}`, state.round > 0 && state.round <= totalRounds ? state.round : null)
 
   // manchete PESSOAL (por quem vê): detecta quando VOCÊ muda de faixa na
   // tabela. Feito no cliente pra ficar certo pra cada um no online.
@@ -5447,6 +5457,9 @@ export function EscSeason() {
   const copaLive = cupNow || (state.round >= totalRounds && !!state.quickCopa && state.quickCopa.phase !== 'done')
   const bbSerie = bbS && !cupNow // 🏀 série melhor de 3 = só nos playoffs; na Cup é jogo único
   const copaTieKey = qc ? `${qc.phase}:${qc.legIdx}:${qc.ties.map(t => t.legs.length).join(',')}` : ''
+  // 📣 COPA APITA SEMPRE (Diego 19/09) — Copa dos 8, Libertadores do rápido, NBA
+  // Cup e playoffs passam todos por aqui, e o `copaTieKey` já muda a cada partida.
+  useApitoDeLargada('copa-rapida', copaLive ? copaTieKey : null, true)
   // primeira partida da Copa (quartas, ainda ninguém jogou nada): dá um tempo
   // de LEITURA (30s) pra explicar o formato antes de começar a rolar bola — as
   // demais trocas de fase seguem no ritmo normal, sem essa pausa extra.
@@ -6866,7 +6879,9 @@ export function EscLiberta() {
     return () => clearTimeout(t)
   }, [lb?.rodada])
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
-  useEffect(() => { if ((lb?.rodada ?? 0) > 0) playWhistle() }, [lb?.rodada])
+  // 📣 LIBERTADORES: é COPA, então apita em TODA partida (Diego 19/09: *"qualquer
+  // copa nova ou liga"*) — inclusive nas rodadas de grupo, que já são de torneio.
+  useApitoDeLargada('libertadores', (lb?.rodada ?? 0) > 0 ? `${lb?.fase ?? ''}-${lb?.rodada ?? 0}` : null, true)
   // autoplay: só quem conduz dispara a rodada seguinte (os outros recebem o
   // resultado já sincronizado e animam localmente).
   useEffect(() => {

@@ -1,3 +1,98 @@
+## 19/09/2026 (parte 5) — ⏱️ +1s por rodada · 📣 a regra do apito · 🏟️ o SOM fechado
+
+### ⏱️ A simulação da partida ficou 1 segundo mais longa (FEITO, no branch)
+Ordem dele: *"aumente em mais 1s a simulação de uma partida tanto no modo off-line
+qlqr ou modo online qlqr Tb"*. Medido pelo `npm run ritmo` (novo):
+
+| modo | antes | agora |
+|---|---|---|
+| carreira no manual | 9,0s | **10,0s** |
+| carreira no auto | 10,0s | **11,0s** (o +1s do auto, de 13/09, continua por cima) |
+| rápido / online | 4,7s | **5,7s** |
+| basquete | 2,2s | **3,2s** |
+
+Temporada online inteira: 180s → **218s**.
+
+⚠️ **Onde o segundo mora** (pra ninguém somar de novo depois): `ROUND_EXTRA_MS`
+em `screens.tsx`, somado no `ROUND_MS` e no `baseRoundMs` do basquete — **nunca**
+no `SEASON_TOTAL_MS`, que é o orçamento da temporada E divide os 82 jogos do
+basquete. Na carreira é o `ROUND_MS` próprio do `pyramidseason.tsx`. O teste
+`npm run ritmo` reprova se aparecer um segundo `ROUND_MS` em qualquer um dos dois.
+
+### 🔔 O APITO tem REGRA agora (FEITO, no branch)
+Isto virou pergunta dele, e a pergunta foi boa: *"não entendi sobre o apito.. vai
+ter em uma partida só ou no início de todas as partidas?"*. Eu tinha lido o
+*"apito coloque só no início do jogo p N ficar repetitivo"* como **um por
+temporada**, e ele quis o meio-termo. Escolha dele: *"isso número 3.. qd for copa
+e sempre a primeira partida tb né.. e qlqr copa nova ou liga.. e vale tb pro modo
+online qlqr modo tb"*.
+
+**A regra, em três linhas:**
+1. A **primeira partida de qualquer competição** apita — liga nova, copa nova.
+2. **Toda partida de COPA** apita — mata-mata é jogo grande, sempre.
+3. Da **2ª rodada de liga** em diante, silêncio — era isso que ficava repetitivo
+   (38 apitos por temporada).
+
+Mora num lugar só: **`useApitoDeLargada`** (em `pyramidseason.tsx`, ao lado do
+`LiveScoreCard`). As 6 telas de partida chamam esse gancho e nenhuma apita por
+fora — o `npm run som` reprova `playWhistle()` solto:
+
+| tela | competição | apita |
+|---|---|---|
+| liga da carreira | `liga-carreira-<temporada>` | só na largada |
+| Copa da carreira (Brasil/Legends/Supercopa) | `copa-carreira` | **toda partida** |
+| liga do rápido/online | `liga-<temporada>` | só na largada |
+| Copa dos 8 / NBA Cup / playoffs | `copa-rapida` | **toda partida** |
+| Libertadores | `libertadores` | **toda partida** |
+| Copa do Mundo | `copa-mundo` | **toda partida** |
+
+⚠️ **Por que o gancho tem DUAS chaves** (competição + partida): sem a competição, a
+temporada nº 2 não apitaria (a rodada volta a ser 1, que o gancho já teria visto);
+sem a partida, a copa não apitaria a cada jogo. São perguntas diferentes, e juntar
+as duas numa chave só quebra uma das pontas.
+
+🏟️ **DE QUEBRA: a Copa do Mundo estava MUDA e ninguém tinha notado.** Ela tem tela
+própria (`copa-mundo.tsx`), não é a da liga — então o som de 18/09 passou por fora
+dela. Ganhou ambiente + apito agora. O `npm run som` passou a varrer as telas pelo
+`LiveScoreCard`, pra nenhuma outra ficar de fora de novo.
+
+### 🔊 O SOM DA PARTIDA ESTÁ FECHADO (FEITO, no branch)
+Palavras dele: *"quero só os áudios que eu mandei, do ambiente, gol, e o apito que
+você já tinha mesmo"*. Isso respondeu de uma vez as três perguntas que estavam
+abertas. A lista do som de partida é **FECHADA em três**:
+
+| o quê | de onde vem | peso |
+|---|---|---|
+| 🏟️ ambiente | `public/sfx/torcida-estadio-v1.mp3` (arquivo DELE), em loop | 137 KB |
+| 🥅 gol | `public/sfx/gol-torcida-v1.mp3` (a opção **B**, que ele escolheu) | 21 KB |
+| 📣 apito | sintetizado, o de sempre (`playWhistle`) | 0 KB |
+
+🗑️ **Aposentados**: o murmúrio de ruído rosa que fazia de ambiente, o urro
+sintetizado do gol e o **canto de palmas + "ôôô"** — o ambiente dele já tem torcida
+cantando ao longe, e os dois juntos embolavam. O `crowdChant` foi APAGADO do código
+(não é chave desligada: sumiu mesmo), e o `npm run som` reprova se voltar.
+
+🔑 `TORCIDA_NOVA = true` desde 19/09. **É o botão de pânico**: `false` numa linha
+devolve o jogo ao silêncio de hoje, sem mexer em mais nada.
+
+**As 4 regras de convivência do gol** (isto era a pendência nº 1, agora codada):
+1. **Um gol por vez** — o anterior sai de fininho em 0,12s se vier outro.
+2. **O gol nunca passa da rodada** — cortado em 85% do tempo dela, com 0,25s de
+   saída (o tempo vem do `roundMs` do próprio placar, não de estado solto).
+3. **Rodada abaixo de 2s (o ⚡4×) fica SÓ com o ambiente** — gol nenhum cabe ali.
+4. **Ducking**: o ambiente cai pra 35% durante o gol e volta em 1,2s.
+
+📏 **Medido nos arquivos dele** (não estimado): ambiente pica em 9,8%, gol em 32,5%,
+os dois somados no gol dão 35,9% com ducking e 42,3% sem. **Nenhum estoura** — o
+número de 107% que eu tinha anotado antes era de outra montagem, sem o master de
+0.32. Então o ducking aqui é decisão de SOM (fazer o gol saltar), não conserto de
+estouro. ⚠️ Corrigido também no comentário do código, que repetia o 107%.
+
+✅ **Conferido de ponta a ponta no navegador**, não só no papel: o módulo real roda,
+os dois arquivos baixam (200) e decodificam, apito + ambiente + dois gols
+sobrepostos + um gol de ⚡4× (ignorado) + saída da tela, tudo sem erro.
+
+🎚️ Se ele achar o ambiente baixo ou alto: `AMBIENTE_VOL` em `sound.ts`, uma linha.
 ## 19/09/2026 (parte 4) — 🪑 O banco do leilão parou de mentir · 🌱 o cria sai na hora · 🏢 a SAF parou de comer vaga
 
 Tudo isto nasceu de UMA pergunta do Diego: *"todo time que tem formação com 4-2-3-1,
