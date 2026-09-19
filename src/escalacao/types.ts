@@ -533,6 +533,11 @@ export interface EscState {
   marketSellers?: Record<Sector, number[]> // carreira online: por posição, os ids dos BOTS que perderam um jogador pro mercado neste leilão — são justamente eles que podem dar lance NAQUELA posição (rebuscar o que perderam), quando 0 ou 1 humano oferta.
   seasonVotes?: Record<number, 'leilao' | 'mesmo'> // carreira online: no fim da temporada cada humano vota entre abrir o leilão de transferências ou seguir com o mesmo time. O host só inicia quando todos votam; empate → o voto do host decide. Zera ao iniciar a próxima temporada.
   careerScorersAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean; club?: string; year?: number }> // carreira online: artilharia de TODOS OS TEMPOS (gols de liga E de copa somados entre as temporadas). Alimenta a aba Rank › Artilheiros. 🃏 A chave é a CARTA (nome|clube|ano), não o nome — ordem do Diego 19/09; save antigo é convertido na abertura (`migraArtilhariaPorCarta`).
+  // 🅰️ GARÇONS DE TODOS OS TEMPOS — o espelho do `careerScorersAll` (19/09).
+  // Ordem do Diego: *"todos dados q tá fazendo de gols sempre serve p assistência
+  // tb hein"*. Não existia nada: assistência NUNCA teve histórico, em canto nenhum.
+  // Mesma chave (a CARTA), mesmas competições (liga + todas as copas), mesmo teto.
+  careerAssistsAll?: Record<string, { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; assists: number; you: boolean; human: boolean; club?: string; year?: number }>
   statsSeason?: number // carreira online: última temporada cujos artilheiros já foram somados no acumulado (evita contar 2x)
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)

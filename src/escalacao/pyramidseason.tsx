@@ -208,7 +208,9 @@ export interface SimTeam { name: string; you: boolean; human: boolean; rival?: b
 export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number }
 // 🅰️ GARÇOM DA TEMPORADA (assistências, 24/08). Mesma forma do artilheiro, só
 // que contando passes pro gol.
-export interface SeasonAssist { name: string; teamName: string; teamId: number; div: Div; assists: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
+// 🃏 mesma identidade de carta do artilheiro — ordem do Diego (19/09): *"todos
+// dados que tá fazendo de gols sempre serve pra assistência também hein"*.
+export interface SeasonAssist { name: string; teamName: string; teamId: number; div: Div; assists: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number }
 // ─── 🅰️ QUEM DEU O PASSE ────────────────────────────────────────────────────
 // ⚠️ A REGRA DE OURO DESTA FUNÇÃO (medo do Diego, 24/08: *"não quero gente
 // falando: meu time fez 7 gols e não teve assistência… as coisas têm que bater
@@ -784,7 +786,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       if (!e.assist || !e.assistId) continue
       const k = `${t.name}:${e.assistId}`, row = assists.get(k)
       if (row) row.assists++
-      else assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId })
+      else assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId, club: t.squad.find(x => x.id === e.assistId)?.club, year: t.squad.find(x => x.id === e.assistId)?.year })
     }
   }
   const nr = Math.min(round, 38)
@@ -965,7 +967,7 @@ export interface CopaRound { name: string; ties: CopaTie[]; slot?: number } // s
 // `scorers`/`assists` acima são cortadas no top 20 da competição, então não servem
 // pra somar na ficha do jogador — quem fez 1 gol de copa não aparecia nelas.
 // Ordem do Diego: *"deve somar sim"* — gol de copa conta na temporada do jogador.
-export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; scorersAll?: SeasonScorer[]; topScorer?: SeasonScorer; assists?: SeasonAssist[]; topAssist?: SeasonAssist; goalsByCard?: Record<string, number>; assistsByCard?: Record<string, number> }
+export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; scorersAll?: SeasonScorer[]; topScorer?: SeasonScorer; assists?: SeasonAssist[]; assistsAll?: SeasonAssist[]; topAssist?: SeasonAssist; goalsByCard?: Record<string, number>; assistsByCard?: Record<string, number> }
 // 🏆 `scorersAll` (19/09) = a artilharia COMPLETA da Copa, sem o corte do top 20.
 // Ordem do Diego: *"deve contar gols na liga também e gols na copa… aliás todas as
 // ligas e todas as copas"*. O `scorers` acima continua cortado porque é o que a
@@ -1038,7 +1040,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
       evs[i].assist = a.name
       const k = `${e.t.name}:${a.id}`, row = assists.get(k)
       if (row) row.assists++
-      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id })
+      else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id, club: a.club, year: a.year })
     })
     return evs
   }
@@ -1118,7 +1120,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     for (const x of l) if (x.cardId) m[x.cardId] = (m[x.cardId] ?? 0) + quanto(x)
     return m
   }
-  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), scorersAll: list, topScorer: list[0], assists: listA.slice(0, 20), topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, x => x.assists) }
+  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), scorersAll: list, topScorer: list[0], assists: listA.slice(0, 20), assistsAll: listA, topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, x => x.assists) }
 }
 
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
@@ -2252,6 +2254,41 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: {
                 </td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.dorm ? '🏛️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
+              </tr>
+            )})}
+          </tbody>
+        </table>
+      )}
+      {foot && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.4)', margin: '8px 0 0', textAlign: 'center' }}>{foot}</p>}
+    </div>
+  )
+}
+
+// 🅰️ GARÇONS DE TODOS OS TEMPOS — espelho exato da ArtilhariaBox (19/09).
+// Ordem do Diego: *"todos dados q tá fazendo de gols sempre serve p assistência
+// tb hein"*. Mesma tabela, mesmo clube-da-carta embaixo do nome, mesmas cores.
+function GarconsBox({ assists, colors, title, sub, foot, safTeam, safCol }: { assists: SeasonAssist[]; colors?: Record<number, FCol>; title: string; sub?: string; foot?: string; safTeam?: string; safCol?: FCol }) {
+  const cols = colors ?? {}
+  return (
+    <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
+      <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{title}</p>
+      {sub && <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{sub}</p>}
+      {assists.length === 0 ? <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 700 }}>{tr('Sem assistência ainda. Bola rolando…', 'No assists yet. Ball rolling…')}</p> : (
+        <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+          <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Jogador', 'Player')}</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('Ass', 'Ast')}</th></tr></thead>
+          <tbody>
+            {assists.map((a, i) => {
+              const isSaf = !a.you && !!safTeam && a.teamName === safTeam
+              const fc = isSaf ? safCol : ((a.human || a.rival) ? cols[a.teamId] : undefined)
+              return (
+              <tr key={a.name + a.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
+                <td style={{ paddingRight: 4 }}>{i + 1}</td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>
+                  <span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[a.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[a.div].l}</span>{a.name}
+                  {a.club && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,0.45)', marginLeft: 22, lineHeight: 1.15 }}>{a.club} · {a.year}</span>}
+                </td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{a.you ? '👤 ' : isSaf ? '💼 ' : a.rival ? '⚔️ ' : a.dorm ? '🏛️ ' : a.human ? '🔥 ' : ''}{(() => { const pk = a.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(a.teamName)}</span> : a.teamName })()}</td>
+                <td style={{ textAlign: 'center', fontWeight: 900 }}>{a.assists}</td>
               </tr>
             )})}
           </tbody>
@@ -3401,6 +3438,7 @@ type CondicaoUI = {
     j: Record<string, number>            // (serve pra tirar e achar o "nesta temporada")
     gl: Record<string, number>
     as: Record<string, number>
+    semPassado?: boolean                 // 🕳️ carreira que já existia antes de 19/09: gol e assistência ainda não têm passado gravado
   }
   volta: (id: string) => number          // 🩹 volta gradual: −2 (60%) · −1 (80%) · 0
   onRodizio?: () => void                 // botão 🔁 RODIZIAR (ausente = ainda não pode trocar)
@@ -3738,6 +3776,14 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         jTemp: Math.max(0, jTot - (a?.j[sel.id] ?? 0)), jTot,
         glTemp, glTot: (a?.gl[sel.id] ?? 0) + glTemp,
         asTemp, asTot: (a?.as[sel.id] ?? 0) + asTemp,
+        // 🕳️ AINDA NÃO SEI O TOTAL DE GOL/ASSISTÊNCIA (19/09). Ele pegou a
+        // esquisitice na ficha do Álvarez: 337 jogos no clube e os MESMOS 10 gols
+        // nas duas colunas. Não é conta errada — é que JOGOS começou a ser gravado
+        // em 13/09 e GOL/ASSISTÊNCIA só em 19/09, então numa carreira que já rolava
+        // o total de gol nasce igual ao da temporada e o de jogos não.
+        // 👉 Em vez de mostrar um número que parece defeito, a coluna dourada diz
+        //    "—" (não sei) e avisa embaixo. Some sozinha na virada da temporada.
+        semPassado: !!a?.semPassado,
       }
     })()
     const trio = (j: number, gl: number, as: number) => [
@@ -3769,8 +3815,20 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
         {totais ? <>
           <div style={{ display: 'flex', gap: 6 }}>
             {colunaSel(tr('ESTA TEMPORADA', 'THIS SEASON'), trio(totais.jTemp, totais.glTemp, totais.asTemp), 'rgba(255,255,255,.06)')}
-            {colunaSel(tr('NO SEU CLUBE', 'AT YOUR CLUB'), trio(totais.jTot, totais.glTot, totais.asTot), 'rgba(255,196,0,.08)')}
+            {totais.semPassado
+              ? colunaSel(tr('NO SEU CLUBE', 'AT YOUR CLUB'), [
+                  dadoSel(tr('JOGOS', 'GAMES'), String(totais.jTot)),
+                  dadoSel(tr('GOLS', 'GOALS'), '—', 'rgba(255,196,0,.45)'),
+                  dadoSel('ASS', '—', 'rgba(143,192,240,.45)'),
+                ], 'rgba(255,196,0,.08)')
+              : colunaSel(tr('NO SEU CLUBE', 'AT YOUR CLUB'), trio(totais.jTot, totais.glTot, totais.asTot), 'rgba(255,196,0,.08)')}
           </div>
+          {/* 🕳️ o aviso do "—": curto, no lugar exato, e SOME SOZINHO na virada */}
+          {totais.semPassado && (
+            <div style={{ textAlign: 'center', fontSize: 7.5, fontWeight: 800, color: 'rgba(255,196,0,.62)', letterSpacing: .3, marginTop: 4 }}>
+              {tr('⚽ 🅰️ COMEÇAM A CONTAR NA PRÓXIMA TEMPORADA', '⚽ 🅰️ START COUNTING NEXT SEASON')}
+            </div>
+          )}
           {/* ⚡💰 gás, valor e salário não são de temporada nem de total — são de
               AGORA. Por isso descem pra faixa própria, como o mockup aprovado. */}
           {!!gasValorSal.length && <div style={{ display: 'flex', gap: 4, justifyContent: 'space-around', background: 'rgba(255,255,255,.06)', borderRadius: 9, padding: '6px 4px', marginTop: 5 }}>{gasValorSal}</div>}
@@ -6934,7 +6992,18 @@ export function PyramidSeasonScreen() {
       const k = carry[`${c.name}|${c.club}|${c.year}`]
       if (k) { g[c.id] = k.g; j[c.id] = k.j; gl[c.id] = k.gl ?? 0; as[c.id] = k.as ?? 0 }
     }
-    return { g, j, gl, as }
+    // 🕳️ ESTE SAVE AINDA NÃO TEM PASSADO DE GOL (19/09). Ele pegou isso olhando a
+    // ficha do Álvarez: *"jogos ele vê poucos da temporada e 300 total, porém gols
+    // iguais nos dois… tá estranho"*. E está mesmo — só que a conta está certa: cada
+    // número começou a ser GRAVADO num dia diferente (jogos em 13/09, com o gás;
+    // gol e assistência só em 19/09). Numa carreira que já rolava, o total de gols
+    // nasce igual ao da temporada, e o de jogos não — daí a esquisitice.
+    // 👉 A marca é ter CARTA NO CARRY mas NENHUMA com `gl` gravado: isso só acontece
+    //    em carreira que existia antes de 19/09. Carreira nova nasce com tudo junto,
+    //    e depois da 1ª virada toda carta tem `gl` (mesmo que 0) — então isto se
+    //    apaga sozinho, sem ninguém precisar mexer.
+    const semPassado = Object.keys(carry).length > 0 && !Object.values(carry).some(v => v.gl != null)
+    return { g, j, gl, as, semPassado }
   }, [state.condicaoCarry, state.managers, state.youIdx])
   // 1ª rodada que conta: só na temporada em que a regra chegou pra quem já estava em C/B/A
   const condDesdeR = state.condicaoDesde === (state.seasonNo ?? 1) ? (state.condicaoDesdeR ?? 0) : 0
@@ -7568,6 +7637,10 @@ export function PyramidSeasonScreen() {
 
   // artilheiros de TODOS OS TEMPOS (acumulado entre temporadas) — top 20
   const allTimeScorers = useMemo(() => Object.values((state.careerScorersAll ?? {}) as Record<string, SeasonScorer>).sort((a, b) => b.goals - a.goals).slice(0, 20), [state.careerScorersAll])
+  // 🅰️ o espelho dos garçons (19/09) — *"todos dados que tá fazendo de gols sempre
+  // serve pra assistência também"*. Carreira antiga começa vazia: isto nunca foi
+  // guardado antes, então não há passado pra trazer (e inventar não é opção).
+  const allTimeAssists = useMemo(() => Object.values((state.careerAssistsAll ?? {}) as Record<string, SeasonAssist>).sort((a, b) => b.assists - a.assists).slice(0, 20), [state.careerAssistsAll])
   // ao FIM da temporada, soma os artilheiros dela no acumulado (uma vez por
   // temporada; o reducer é idempotente por statsSeason). Cada cliente pode
   // disparar — guests roteiam pro host, que grava e sincroniza.
@@ -7586,7 +7659,7 @@ export function PyramidSeasonScreen() {
     // Supercopa (que é uma fase da Copa do Brasil, então vem no mesmo pacote)
     // ficava de fora. A lista da copa é a COMPLETA (`scorersAll`), não o top 20 da
     // tela: senão quem fez 1 gol de copa continuava sumindo da conta.
-    dispatch({ type: 'RECORD_SEASON_STATS', scorers: [...scorersAll, ...(copa?.scorersAll ?? [])] })
+    dispatch({ type: 'RECORD_SEASON_STATS', scorers: [...scorersAll, ...(copa?.scorersAll ?? [])], assists: [...assistsAll, ...(copa?.assistsAll ?? [])] })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // MATERIALIZA a ficha dos times de fundo (80 com Várzea) (1x): antes eram recalculados na
@@ -9342,7 +9415,8 @@ export function PyramidSeasonScreen() {
                 {done && copa && copaScorersShown.length > 0
                   ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? tr('Gols do mata-mata da Copa — top 20.', 'Goals in the Cup knockout — top 20.') : tr(`Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`, `Goals up to ${copaRound === 0 ? 'now' : copa.rounds[copaRound - 1].name} — updates every round.`)} foot={tr(`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube e sobe +10 no piso do jogador.`, `🏅 The Cup top scorer earns the club +${copaBrOk ? 10 : 16} and raises the player\'s floor by +10.`)} />
                   : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money and becomes the player\'s floor: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
-                <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols somados de todas as temporadas da sala — top 20.', 'Goals added up across every season — top 20.')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
+                <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols de liga e de copa somados de todas as temporadas — top 20. Cada CARTA conta a sua (o clube vai embaixo do nome).', 'League and cup goals added up across every season — top 20. Each CARD keeps its own tally (the club shows under the name).')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
+                <GarconsBox assists={allTimeAssists} colors={colors} safTeam={safTeamName} title={tr('🅰️ GARÇONS · TODOS OS TEMPOS', '🅰️ ASSISTS · ALL TIME')} sub={tr('Assistências de liga e de copa somadas de todas as temporadas — top 20.', 'League and cup assists added up across every season — top 20.')} foot={allTimeAssists.length === 0 ? tr('Começa a contar a partir de agora — assistência nunca foi guardada antes.', 'Counting starts now — assists were never recorded before.') : undefined} />
               </>
             )}
           </>
@@ -9470,7 +9544,7 @@ export function PyramidSeasonScreen() {
               </div>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
-              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
+              condicao={condGas && condJogos ? { gas: condGas, jogos: condJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as, semPassado: condInicio.semPassado } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
               criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
                 `!state.agenciaOn` — a carreira NOVA (Agência 2.0, com a sub-aba

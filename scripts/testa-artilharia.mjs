@@ -128,5 +128,42 @@ console.log('\n5) 🏆 LIGA + TODAS AS COPAS entram na conta')
     'o teto subiu de 1000 pra 2500 — o baralho tem 1466 cartas, ninguém mais é descartado')
 }
 
+console.log('\n6) 🅰️ A ASSISTÊNCIA ANDA JUNTO COM O GOL')
+{
+  // Regra permanente dele (19/09): *"todos dados q tá fazendo de gols sempre serve
+  // p assistência tb hein"*. Esta seção existe pra a assistência nunca mais ficar
+  // pra trás — ela NÃO tinha histórico nenhum até hoje.
+  const py = readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
+  const cb = readFileSync('src/escalacao/copa-brasil.ts', 'utf8')
+  const stx = readFileSync('src/escalacao/store.tsx', 'utf8')
+  const ty = readFileSync('src/escalacao/types.ts', 'utf8')
+  ok(/careerAssistsAll\?: Record</.test(ty), 'o save tem o acumulado de garçons (não existia)')
+  ok(/assists: \[\.\.\.assistsAll, \.\.\.\(copa\?\.assistsAll \?\? \[\]\)\]/.test(py), 'a virada manda LIGA + COPA de assistências também')
+  ok(/assistsAll: listA,/.test(py) && /assistsAll: listA,/.test(cb), 'as duas copas devolvem a lista COMPLETA de garçons')
+  ok(/assistsAll: \[\.\.\.\(r\.assistsAll \?\? \[\]\), \.\.\.\(supercopa\?\.assists \?\? \[\]\)\]/.test(cb), 'e a Supercopa entra junto nas assistências')
+  ok(/s\.careerAssistsAll = Object\.fromEntries/.test(stx), 'o reducer grava o acumulado de garçons')
+  ok(/careerScorersAll = \{\}; s\.careerAssistsAll = \{\}/.test(stx), 'e carreira nova zera os DOIS juntos')
+  ok((stx.match(/careerAssistsAll = \{\}/g) ?? []).length === (stx.match(/careerScorersAll = \{\}/g) ?? []).length,
+    'os dois são zerados nos MESMOS lugares (nenhum reinício esquece um deles)')
+  ok(/interface SeasonAssist \{[^}]*club\?: string; year\?: number/.test(py), 'o garçom carrega a identidade da carta, igual ao artilheiro')
+  ok(/GarconsBox/.test(py), 'e o Rank mostra a caixa de garçons de todos os tempos')
+}
+
+console.log('\n7) 🕳️ a ficha não mostra total que ela ainda não sabe')
+{
+  // Dúvida dele (19/09): *"minha dúvida ainda é pra quem chega hoje e vê gols
+  // iguais em gols da temporada e gols que já fez pelo clube total… porém jogos
+  // ele vê poucos da temporada e 300 total. Tá estranho"*.
+  // A causa: JOGOS é gravado desde 13/09 e GOL/ASSISTÊNCIA só desde 19/09.
+  const py = readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
+  ok(/const semPassado = Object\.keys\(carry\)\.length > 0 && !Object\.values\(carry\)\.some\(v => v\.gl != null\)/.test(py),
+    'a marca é: TEM carry mas NENHUMA carta com gol gravado (= carreira anterior a hoje)')
+  ok(/semPassado: !!a\?\.semPassado/.test(py), 'e ela chega na ficha')
+  ok(/totais\.semPassado[\s\S]{0,400}?'—'[\s\S]{0,200}?'—'/.test(py), 'com a marca ligada, GOLS e ASS do clube mostram "—" em vez de número')
+  ok(/COMEÇAM A CONTAR NA PRÓXIMA TEMPORADA/.test(py) && /START COUNTING NEXT SEASON/.test(py), 'e o aviso está em PT e EN')
+  ok(/totais\.semPassado\s*\n\s*\? colunaSel/.test(py) || /semPassado[\s\S]{0,120}colunaSel/.test(py), 'só a coluna DOURADA muda — a da temporada fica como estava')
+  ok(/jTot/.test(py), 'e os JOGOS continuam à mostra (esses estão certos)')
+}
+
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)
 process.exit(falhas === 0 ? 0 : 1)

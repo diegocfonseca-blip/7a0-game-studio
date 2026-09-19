@@ -1,3 +1,43 @@
+## 19/09/2026 (parte 7) — 🅰️ Assistência anda junto com gol · 🕳️ o "—" na ficha
+
+### 📏 REGRA PERMANENTE NOVA (19/09): gol e assistência andam JUNTOS
+Palavras dele: *"todos dados q tá fazendo de gols sempre serve p assistência tb
+hein"*. Vale daqui pra frente, sem precisar pedir caso a caso. Já está gravado no
+`CLAUDE.md`. O `npm run artilharia` tem uma seção só pra isso — inclusive
+conferindo que os dois são ZERADOS nos mesmos lugares, pra nenhum reinício de
+carreira esquecer um deles.
+
+**Feito hoje**: `careerAssistsAll` (não existia — assistência nunca teve histórico
+em canto nenhum), pela mesma chave (a carta), nas mesmas competições (liga +
+Copa do Brasil + Copa Legends + Supercopa), com o mesmo teto de 2500, e a caixa
+🅰️ GARÇONS · TODOS OS TEMPOS no Rank, do lado da artilharia.
+⚠️ Ela **nasce vazia pra todo mundo** — não há passado pra trazer, e inventar não
+é opção.
+
+### 🕳️ A ficha: o "—" (o que ele estranhou)
+Dúvida dele: *"pra quem chega hoje e vê gols iguais na temporada e no total…
+porém jogos ele vê poucos da temporada e 300 total. Tá estranho. Não sei o que
+fazer"*.
+
+🔑 **A chave que faltava, e que eu só achei agora**: **o 337 jogos TAMBÉM é
+parcial**. Jogos só começaram a ser gravados em **13/09** (vieram com o gás); gol
+e assistência, em **19/09**. Não são "um certo e um errado" — são **dois números
+com datas de nascimento diferentes**, e é isso que faz a coluna parecer torta.
+
+**O que ficou** (a opção B do mockup, que eu tinha recomendado): enquanto a
+carreira não tem passado de gol, a coluna dourada mostra **`—`** em GOLS e ASS,
+com a linha `⚽ 🅰️ COMEÇAM A CONTAR NA PRÓXIMA TEMPORADA` embaixo. JOGOS continua
+à mostra. Assim ninguém compara "337 jogos × 10 gols", e o jogo **assume que não
+sabe** em vez de mostrar um número que parece defeito.
+
+🔁 **Some sozinho**: a marca é "tem carry mas nenhuma carta com `gl` gravado", o
+que só acontece em carreira anterior a hoje. Depois da 1ª virada toda carta tem
+`gl` (mesmo que 0) e o `—` vira número, sem ninguém mexer. Carreira nova nunca vê
+o aviso.
+
+⏳ **Falta o OK visual dele** — está no branch, não publicado. Trocar pro aviso da
+opção A (mostrar o número com uma notinha) é uma linha.
+
 ## 19/09/2026 (parte 6) — 🏆 A artilharia de todos os tempos virou POR CARTA
 
 Veio do 337 jogos × 10 gols do Álvarez. Ele perguntou *"não seria melhor você
