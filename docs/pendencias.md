@@ -74,6 +74,36 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 23) — 🐛🔒 TELA TRAVADA NO MONTE (Rei da Bola FC) — sem PEGAR e sem PASSAR
+
+Relato dele: *"deu um erro no leilão do Rei da Bola FC. Quando foi pro monte, aparecia
+um jogador pela metade pra ele pegar. Ele tentava pegar, pegar, pegar e não acontecia
+nada — ficou travado na tela. Se aconteceu com ele, pode acontecer com outros."*
+
+### 🔎 Eram DUAS regras diferentes decidindo a mesma coisa
+1. **A tela** montava a lista com régua PRÓPRIA (`openSlots` + `monteLocked`).
+   **O reducer** recusava por MAIS duas que a tela não conhecia: a anti-malandragem do
+   **contrato vencido** (carta que saiu do seu clube não volta de graça pelo monte) e o
+   **caixa**. Resultado: botão verde PEGAR que não fazia nada, sem dizer por quê.
+2. **Pior**: com buraco no XI, o botão **PASSAR A VEZ some** se existir "alguma carta" —
+   e essa conta só olhava o caixa. A carta travada contava como disponível, então ele
+   ficava **sem PEGAR e sem PASSAR**: tela morta, exatamente o relato.
+
+### ✅ Conserto
+- **`monteBloqueio(state, m, c)`** no `store.tsx` é agora o ÚNICO juiz, e devolve o
+  MOTIVO: `vaga` · `reservado` · `semcontrato` · `caixa` · `null`. O `montePickable`
+  (que o reducer usa) virou uma linha em cima dele, então tela e regra não podem mais
+  divergir.
+- A tela esconde só `vaga` e `reservado` (nada de novidade pra quem olha). `caixa` e
+  `semcontrato` **aparecem com o motivo e o caminho** — regra da casa pra toda trava:
+  *"ele não volta de graça pro seu clube. Outro time pode levar — e um dia você
+  recompra."*
+- **PASSAR A VEZ fica liberado sempre que nenhuma carta for pegável DE VERDADE**,
+  mesmo com buraco no XI. Ninguém mais fica preso.
+- Trava nova: **`npm run monte`** (`scripts/testa-monte.mts`) — 11 checagens, incluindo
+  a situação exata do Rei da Bola.
+- Sem novidade na home (é conserto). Reverter: `git revert` desta parte.
+
 ## 19/09/2026 (parte 22) — 🚫🧍 PERNA-DE-PAU NÃO TEM ESTATÍSTICA (nem gol, nem assistência)
 
 Ele mandou um print do jornal da T43 dele: **🥇 Zé Ninguém (Várzea · 2000) BOLA DE OURO**,

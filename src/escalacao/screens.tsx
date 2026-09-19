@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -4762,8 +4762,13 @@ export function EscMonte() {
   const isYourTurn = state.monteOrder[state.monteIdx] === you.id && totalHoles(you) > 0
   // 🤝 DUPLA: dentro da vez do time, só quem ficou com a categoria MONTE decide
   const monteMinhaVez = duplaPodeAgir(state.duplas, you.id, 'MONTE', state.youUid)
-  // esconde o que está reservado pro dono (prioridade); afford fica no botão
-  const valid = state.monte.filter(c => openSlots(you, c.pos) > 0 && !monteLocked(state, you, c))
+  // 🐛 19/09 (Rei da Bola FC): a lista usava regra PRÓPRIA (só vaga + reserva) e o
+  // reducer recusava por outras duas (contrato vencido e caixa) — dava botão aceso que
+  // não fazia nada. Agora quem decide é o `monteBloqueio` do store, o MESMO que o
+  // reducer usa, e ele diz o motivo. Some da lista o que não é novidade (sem vaga ·
+  // reservado pro dono); o resto aparece com o botão explicando por que não dá.
+  const comMotivo = state.monte.map(c => ({ c, bloq: monteBloqueio(state, you, c) }))
+  const valid = comMotivo.filter(x => x.bloq !== 'vaga' && x.bloq !== 'reservado')
   const online = state.onlineMode === 'online'
   const curMgr = state.managers.find(m => m.id === state.monteOrder[state.monteIdx])
 
@@ -4832,11 +4837,12 @@ export function EscMonte() {
               {tr('SUA VEZ — escolha uma carta', 'YOUR TURN — pick a card')}{remaining !== null ? ` · ${remaining}s` : ''}
             </p>
           </Box>
-          {valid.map(c => {
+          {valid.map(({ c, bloq }) => {
             const val = (c as { paid?: number }).paid ?? 0 // piso: carta com valor é compra sem leilão
             const own = (c as { seller?: number }).seller === you.id // sua carta listada: de graça
             const paidCard = state.careerOnline && val > 0 && !own
-            const afford = !paidCard || you.money >= val
+            const afford = bloq !== 'caixa'
+            const podePegar = bloq === null
             return (
             <Box key={c.id} className="p-3 flex items-center justify-between">
               <CardFace c={c} />
@@ -4853,18 +4859,27 @@ export function EscMonte() {
                     <br /><span className="text-[8px] font-bold uppercase" style={{ color: afford ? 'rgba(0,0,0,0.5)' : RED }}>{tr('pague sem leilão', 'buy without auction')}</span>
                   </span>
                 )}
-                <Btn onClick={() => afford && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id, by: state.youUid })} bg={paidCard ? GOLD : GREEN} disabled={!afford}>
-                  <span style={{ color: paidCard ? INK : '#fff' }}>{paidCard ? (afford ? `${tr('PAGAR', 'PAY')} ${val}` : tr('SEM CAIXA', 'NO CASH')) : tr('PEGAR', 'TAKE')}</span>
+                {/* 📝 contrato vencido do seu próprio clube: diz o PORQUÊ e o CAMINHO */}
+                {bloq === 'semcontrato' && (
+                  <span className="text-right leading-tight" style={{ color: RED, maxWidth: 150 }}>
+                    <span className="text-[11px] font-black" style={OSWALD}>{tr('📝 CONTRATO VENCIDO', '📝 CONTRACT EXPIRED')}</span>
+                    <br /><span className="text-[8px] font-bold" style={{ color: 'rgba(0,0,0,0.55)', textTransform: 'none' }}>{tr('ele não volta de graça pro seu clube. Outro time pode levar — e um dia você recompra.', 'he does not come back to your club for free. Another club can take him — and one day you buy him back.')}</span>
+                  </span>
+                )}
+                <Btn onClick={() => podePegar && dispatch({ type: 'MONTE_PICK', mgrId: you.id, cardId: c.id, by: state.youUid })} bg={bloq === 'semcontrato' ? '#CBBF9E' : paidCard ? GOLD : GREEN} disabled={!podePegar}>
+                  <span style={{ color: bloq === 'semcontrato' ? INK : paidCard ? INK : '#fff' }}>{bloq === 'semcontrato' ? tr('NÃO DÁ', 'CAN\u2019T') : paidCard ? (afford ? `${tr('PAGAR', 'PAY')} ${val}` : tr('SEM CAIXA', 'NO CASH')) : tr('PEGAR', 'TAKE')}</span>
                 </Btn>
               </div>
             </Box>
             )
           })}
-          {state.careerOnline && (xiHoles(you) === 0 || valid.filter(c => {
-            const val = (c as { paid?: number }).paid ?? 0
-            const own = (c as { seller?: number }).seller === you.id
-            return !(state.careerOnline && val > 0 && !own) || you.money >= val
-          }).length === 0 ? (
+          {/* 🔓 A TRAVA QUE PRENDEU O REI DA BOLA FC (19/09). O botão PASSAR sumia quando
+              o técnico tinha buraco no XI E existia alguma carta na lista — só que a conta
+              de "existe carta" olhava apenas o CAIXA. Uma carta que ele NÃO podia pegar por
+              outro motivo (contrato vencido do próprio clube) segurava o botão: ficava sem
+              PEGAR e sem PASSAR, tela morta. Agora quem decide é o mesmo `monteBloqueio`:
+              se nenhuma carta é pegável DE VERDADE, passar a vez está sempre liberado. */}
+          {state.careerOnline && (xiHoles(you) === 0 || !valid.some(x => x.bloq === null) ? (
             <>
               <button onClick={() => dispatch({ type: 'MONTE_PASS', mgrId: you.id, by: state.youUid })}
                 className="w-full rounded-xl border-[3px] border-black bg-white font-black text-sm py-3 active:translate-y-0.5"

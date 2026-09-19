@@ -3719,13 +3719,28 @@ export function monteLocked(state: EscState, m: Manager, c: Card): boolean {
 }
 // pode o técnico m pegar a carta c AGORA? vaga na posição + consegue pagar + não
 // está reservada pro dono.
-export function montePickable(state: EscState, m: Manager, c: Card): boolean {
+// 🐛 POR QUE ISTO VIROU UMA FUNÇÃO COM MOTIVO (Rei da Bola FC, 19/09) — o Diego:
+// *"ele tava tentando pegar, pegar, pegar e não acontecia nada, ele tava travado na
+// tela"*. A TELA do monte decidia o que mostrar por conta própria (só `openSlots` +
+// `monteLocked`) e o REDUCER recusava em silêncio por outras duas regras que a tela
+// não conhecia: a anti-malandragem do contrato vencido e o caixa. Resultado: botão
+// verde, aceso, que não fazia nada — o pior tipo de trava, porque não explica nada.
+// Agora existe UM lugar só que decide, e ele devolve o PORQUÊ; a tela mostra o motivo
+// e o caminho, que é a regra da casa pra toda trava.
+export type MonteBloqueio = null | 'vaga' | 'reservado' | 'semcontrato' | 'caixa'
+export function monteBloqueio(state: EscState, m: Manager, c: Card): MonteBloqueio {
   const open = state.careerOnline ? careerOpenSlots(m, c.pos) : openSlots(m, c.pos)
+  if (open <= 0) return 'vaga'                       // some da lista (não é novidade nenhuma)
+  if (monteLocked(state, m, c)) return 'reservado'   // some: é a preferência do dono
   // 📝 ANTI-MALANDRAGEM: contrato vencido não volta de graça pro ex-dono pelo
   // monte (senão "deixar vencer" saía mais barato que renovar). Vale pros DOIS
   // clubes do dono (😤 magoado). Só com outro clube comprando e voltando um dia.
-  if ((c as { semContrato?: boolean }).semContrato && mesmoDono(state, m.id, (c as { seller?: number }).seller)) return false
-  return open > 0 && monteAfford(m, c, !!state.careerOnline) && !monteLocked(state, m, c)
+  if ((c as { semContrato?: boolean }).semContrato && mesmoDono(state, m.id, (c as { seller?: number }).seller)) return 'semcontrato'
+  if (!monteAfford(m, c, !!state.careerOnline)) return 'caixa'
+  return null
+}
+export function montePickable(state: EscState, m: Manager, c: Card): boolean {
+  return monteBloqueio(state, m, c) === null
 }
 function monteAutoPick(state: EscState, m: Manager, monte: Card[], rng: () => number): Card | null {
   const valid = monte.filter(c => montePickable(state, m, c))
