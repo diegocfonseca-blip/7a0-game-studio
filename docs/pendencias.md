@@ -716,9 +716,11 @@ o lugar certo pra clube sem dono. **Seguro**: a aba TORCIDAS mostra só o time e
 %, nunca o nome do clube (o `clubes[]` da RPC nem é lido na tela) — então o clube
 continua oculto no Salão, como o Diego pediu em 13/09.
 
-**Estado de hoje: 48 dos 55 no ranking.** Faltam **7**:
-Marreco FC · Jurubeba FC (hoje Meia na Canela) · Stocco FC · Bonança SSFC ·
+**Estado de hoje: 49 dos 55 no ranking.** Faltam **6**:
+Marreco FC · Jurubeba FC (hoje Meia na Canela) · Stocco FC ·
 Corporação Capsule FC · Eros FC · Crias do Bigão.
+(19/09, mais tarde: **Bonança SSFC torce pro São Paulo** — `update esc_socios set
+time_coracao='São Paulo'`, anotado também no `manto.ts` e no `batismos.ts`.)
 
 📌 O ranking **não precisa de deploy**: a tela lê a RPC ao vivo. Gravou no banco,
 aparece no próximo F5.

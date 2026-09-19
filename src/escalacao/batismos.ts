@@ -87,7 +87,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Sistematizados FC', tipo: 'batismo', fundador: 61, manto: ['#0D0C10', '#6E16C3'] },
   { clube: 'Briga de Galo FC', tipo: 'batismo', fundador: 62, manto: ['#0F0E0E', '#EAE5E1'] },
   { clube: 'São Marcos Antônio FC', tipo: 'batismo', fundador: 68, manto: ['#033E23', '#ECEAD4'] },
-  { clube: 'Bonança SSFC', tipo: 'batismo', fundador: 63, manto: ['#101210', '#F1C02C'] },
+  { clube: 'Bonança SSFC', tipo: 'batismo', fundador: 63, manto: ['#101210', '#F1C02C'] }, // 🔊 ❤️ São Paulo (19/09)
   { clube: 'Só Deus Sabe FC', tipo: 'batismo', fundador: 65, manto: ['#12100F', '#D19B36'] },
   { clube: 'Bagres de Wall Street FC', tipo: 'batismo', fundador: 66, manto: ['#100E0D', '#EAAD3D'] },
   { clube: 'Leite de Verdade FC', tipo: 'batismo', fundador: 67, manto: ['#EBE0CD', '#090908'] },
