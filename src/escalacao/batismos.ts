@@ -70,7 +70,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Nightfull FC', tipo: 'batismo', fundador: 18, manto: ['#0A0A0A', '#D6D2CF'] },
   { clube: 'Murriz FC', tipo: 'batismo', fundador: 21, manto: ['#C81D1C', '#150A0A'] },
   { clube: 'Tôka10', tipo: 'batismo', fundador: 23, manto: ['#FCDC04', '#055E1D'] },
-  { clube: 'Skyy FC', tipo: 'batismo', fundador: 24, manto: ['#237581', '#0D3558'] },
+  { clube: 'Skyy FC', tipo: 'batismo', fundador: 24, manto: ['#237581', '#0D3558'] }, // 🦅 ❤️ Vasco da Gama (o Diego confirmou em 19/09). O coração dele fica ANOTADO AQUI, e não no `manto.ts`, porque o Skyy não tem linha lá: o manto dele foi escolhido no painel e mora só em `esc_socios`
   { clube: 'Marinheiros AS', tipo: 'socio', fundador: null, manto: ['#0D4926', '#F5EBE1'] },
   { clube: 'Leão da Estradinha', tipo: 'batismo', fundador: 28, manto: ['#A32A28', '#FFFFFF'] },
   { clube: 'Marreco FC', tipo: 'batismo', fundador: 29 },
