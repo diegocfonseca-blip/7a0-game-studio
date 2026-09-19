@@ -1093,6 +1093,15 @@ function cpuFakes(m: Manager, pos: Sector): number {
   return m.isHuman ? 0 : m.squad.filter(c => c.pos === pos && c.fake).length
 }
 function careerOpenSlots(m: Manager, pos: Sector): number {
+  // 🎽 O `Math.min(slotsOf, …)` existe por causa do BOT: o zé (fake) dele não
+  // segura vaga, então `cpuFakes` abre buraco — e sem a trava o bot pediria mais
+  // jogador do que o alvo do pregão dele.
+  // ⛔ Mas ela estava pegando o HUMANO junto, e aí cortava fora o +1 por posição
+  // do elenco de 27 (Diego 16/09): no monte da carreira o teto voltava a ser o
+  // alvo do pregão (2× a formação) em vez do teto do elenco. O humano não tem
+  // fake nenhum pra descontar, então pra ele a trava só tirava vaga que é dele.
+  // Fora do leilão de reservas nada muda: lá `openSlots` já mira o time titular.
+  if (m.isHuman) return openSlots(m, pos)
   return Math.min(slotsOf(m, pos), openSlots(m, pos) + cpuFakes(m, pos))
 }
 function careerHoles(m: Manager): number {
@@ -1320,6 +1329,37 @@ function spawnCriaCore(s: EscState, m: Manager, pos: Sector, saiu: string, rng: 
   ;(s.marketLog = s.marketLog ?? []).push(motivo === 'vaga'
     ? `🌱 ${m.teamName}: ${nome} subiu da base pra vaga de ${pos} (de graça, sem contrato — some quando chegar reforço)`
     : `🌱 ${m.teamName}: ${nome} subiu da base pra tapar o buraco do ${saiu} (de graça, sem contrato)`)
+}
+// ─── 🌱 O CRIA VOLTA PRA BASE ASSIM QUE CHEGA REFORÇO (19/09) ────────────────
+// ⚠️ O JOGO PROMETIA E NÃO CUMPRIA. A tela do Sub-20 diz, com todas as letras:
+// *"ele some sozinho assim que você comprar um reforço de verdade pra vaga"* —
+// e o botão repete *"volta pra base sozinho quando chegar reforço"*. Só que o
+// único lugar que tirava o cria era a VIRADA da temporada
+// (`OPEN_RESERVE_LIST`). No meio do ano ele ficava, e ficava ATRAPALHANDO: o
+// cria conta vaga igual a qualquer jogador (`filled`), é invendável e não entra
+// em "deixar ir" — ou seja, o técnico não tinha NENHUM jeito de se livrar dele
+// e ainda perdia a vaga da posição a temporada inteira. O Diego pegou isso em
+// 19/09 perguntando se a base era substituída sozinha na compra: não era.
+//
+// Régua: a MESMA da virada, de propósito (um lugar só pra pensar). O cria só sai
+// se a posição CONTINUAR fechando a formação sem ele — contando jogador de
+// verdade, sem emprestado da SAF e sem perna-de-pau. Se a saída dele fosse
+// quebrar o XI, ele fica. Nunca sai mais de um por chegada.
+// 🤖 Só time HUMANO: bot nunca teve cria.
+// ⚠️ Pode haver MAIS DE UM cria na mesma posição (o Diego liberou em 14/09:
+// *"sim, quero que possa preencher o elenco com as crias se eu quiser"*), então
+// aqui é um laço que reavalia a cada saída — nunca um `find` só.
+function voltaCriaSeSobrou(s: EscState, m: Manager, pos: Sector): void {
+  if (!m.isHuman || m.dormindo) return
+  const need = FORMATIONS[m.formation][pos]
+  for (;;) {
+    const cria = (m.squad as WonCard[]).find(c => c.cria && c.pos === pos)
+    if (!cria) return
+    const semEle = m.squad.filter(x => x.pos === pos && !x.emprestado && !x.fake && x.id !== cria.id).length
+    if (semEle < need) return
+    m.squad = m.squad.filter(x => x.id !== cria.id)
+    ;(s.marketLog = s.marketLog ?? []).push(`🌱 ${cria.name} voltou pra base de cabeça erguida — missão cumprida, chegou reforço. Valeu, guri! 💚`)
+  }
 }
 export function valorOficial(state: EscState, c: Card): number {
   return Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
@@ -1855,6 +1895,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
   m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
+  voltaCriaSeSobrou(state, m, tb.card.pos) // 🌱 reforço chegou pelo desempate: o guri volta pra base
   recordPrice(state, tb.card, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
   agenciaTransacao(state, tb.card) // 🕴️ agenciado negociado → comissão de agente
@@ -3565,6 +3606,7 @@ function takeFromMonte(state: EscState, cardId: string) {
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
   m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, contratoAte: undefined })
+  voltaCriaSeSobrou(state, m, card.pos) // 🌱 chegou reforço de verdade: o guri volta pra base NA HORA
   mirrorWallets(state) // 💰 compra no monte sai da caixa NA HORA
 }
 
@@ -4194,6 +4236,9 @@ function sealAndResolve(state: EscState) {
     // bot arrematou famoso e tá com o banco cheio? tira um FAKE (incógnito) pra dar
     // lugar ao famoso — não deixa o elenco do bot inchar de carta de brincadeira.
     if (w && !w.isHuman && w.squad.length > 20) { const fi = w.squad.findIndex(c => c.fake); if (fi >= 0) w.squad.splice(fi, 1) }
+    // 🌱 e o espelho disso pro HUMANO: chegou reforço de verdade na posição, o
+    // guri do Sub-20 volta pra base na hora (é o que a tela dele já prometia).
+    if (w?.isHuman) voltaCriaSeSobrou(state, w, q.card.pos)
   }
   mirrorWallets(state) // 💰 arremates e vendas do pregão entram na caixa NA HORA
   state.revealQueue = queue
@@ -7458,17 +7503,15 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🌱 cria que não é mais necessário SOME do jogo ("volta pra base"): se a
       // posição fecha a formação sem ele (chegou reforço de verdade), ele sai de
       // graça, com carinho no resumo. Nunca sai se a saída quebrar o XI.
+      // 🔁 19/09: a conta que morava AQUI virou `voltaCriaSeSobrou`, porque desde
+      // hoje ela roda também na hora da compra (leilão, desempate e monte). Esta
+      // varredura da virada continua, como rede de segurança — pega o caso em que
+      // a posição só fechou por outro caminho (troca de formação, volta de
+      // empréstimo, contrato renovado).
       for (const m of s.managers) {
         if (!m.isHuman || m.dormindo) continue
-        for (const c of [...(m.squad as WonCard[])]) {
-          if (!c.cria) continue
-          const need = FORMATIONS[m.formation][c.pos]
-          const semEle = m.squad.filter(x => x.pos === c.pos && !x.emprestado && !x.fake && x.id !== c.id).length
-          if (semEle >= need) {
-            m.squad = m.squad.filter(x => x.id !== c.id)
-            ;(s.marketLog = s.marketLog ?? []).push(`🌱 ${c.name} voltou pra base de cabeça erguida — missão cumprida, chegou reforço. Valeu, guri! 💚`)
-          }
-        }
+        // pode haver cria em mais de uma posição; o ajudante trata uma por vez
+        for (const pos of SECTORS) voltaCriaSeSobrou(s, m, pos)
       }
       s.seasonNo++
       s.round = 0; s.champion = null

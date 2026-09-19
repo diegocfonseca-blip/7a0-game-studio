@@ -23,6 +23,7 @@ const PORTA = arg('porta', '5212')
 const SAIDA = arg('saida', '/tmp/banco-leilao.png')
 const ANTES = arg('antes', '')
 const SO_TIRA = process.argv.includes('--so-tira') // só fotografa a bancada e sai
+const ATA = arg('ata', '3') // quantos atacantes o elenco do print tem
 
 const INK = '#0C0C0C', CREME = '#F4ECD6', VERDE = '#1B7A3D', VERM = '#C2452F'
 const b64 = w => fs.readFileSync(`scripts/fonts/oswald-latin-${w}-normal.woff2`).toString('base64')
@@ -34,7 +35,7 @@ const nav = await chromium.launch({ executablePath: process.env.PW_CHROME || '/o
 const tira = async () => {
   const p = await nav.newPage({ viewport: { width: 420, height: 1000 }, deviceScaleFactor: 2, locale: 'pt-BR' })
   await p.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt') } catch { /* ignora */ } })
-  await p.goto(`http://localhost:${PORTA}/scripts/teste-campinho-leilao/?form=4-2-3-1&ata=3`, { waitUntil: 'domcontentloaded' })
+  await p.goto(`http://localhost:${PORTA}/scripts/teste-campinho-leilao/?form=4-2-3-1&ata=${ATA}`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(1600) // os rostos são .webp
   // corta no PÉ DO ÚLTIMO CAMPINHO, senão sobra uma faixa preta de fundo vazio
   // (o #root herda a altura da tela, não a do conteúdo)
@@ -76,25 +77,25 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
 </style></head><body>
  <div style="font-family:Oswald,sans-serif;font-weight:700;font-size:33px;color:${INK};line-height:1.05">OS DOIS CAMPINHOS DO LEILÃO</div>
  <div style="font-size:14px;color:rgba(12,12,12,.68);margin:6px 0 20px;line-height:1.5;max-width:920px">
-   Você tinha razão. No leilão aparecem <b>dois campinhos</b>: o <b>Banco</b> em cima e os <b>Titulares</b> embaixo.
-   O de baixo é a formação — e tem que ser mesmo. Só que o <b>de cima também era</b>: ele desenhava exatamente
-   o mesmo número de lugares, como um espelho. Resultado: quem passasse disso na posição
-   <b>não aparecia em campinho nenhum</b>. Não é só o 3º atacante —
-   <b>já acontece hoje</b> com o +1 do elenco de 27 e com o emprestado da SAF.
+   Você tinha razão — e o estrago era maior do que parecia. No leilão aparecem <b>dois campinhos</b>:
+   <b>Banco</b> em cima, <b>Titulares</b> embaixo. O de baixo é a formação, e tem que ser mesmo.
+   Só que o <b>de cima era um espelho dele</b>: o mesmo número de lugares. Então o banco
+   <b>mentia que estava cheio</b> — foi por isso que você achou que não dava mais pra comprar atacante.
+   Agora o banco mostra o <b>banco de verdade</b>: o que o elenco de 27 separa pra posição.
  </div>
 
  <div style="display:flex;gap:20px;align-items:flex-start">
-   ${antes ? lado('HOJE', VERM, 'o banco é espelho', 'Elenco 4-2-3-1 com <b>3 atacantes</b>. O banco só tem <b>1 lugar de ATA</b> — o terceiro simplesmente não está no desenho.', antes) : ''}
-   ${lado('CONSERTADO', VERDE, 'o banco cresce', 'Mesmo elenco. O banco ganhou <b>o lugar que faltava</b> e o atacante aparece. Nenhum outro campinho mudou.', depois)}
+   ${antes ? lado('HOJE', VERM, 'o banco mente', 'O seu caso: 4-2-3-1 com <b>2 atacantes</b>. O banco tem <b>1 lugar de ATA</b>, e ele está ocupado — <b>parece cheio</b>. Só que não está: o elenco ainda tem vaga.', antes) : ''}
+   ${lado('CONSERTADO', VERDE, 'o banco diz a verdade', 'Mesmo elenco, mesmo time. O banco agora tem <b>2 lugares de ATA</b> — e o <b>vazio</b> é a sua vaga livre, esperando o 3º atacante.', depois)}
  </div>
 
  <div style="background:#FFF6E0;border:4px solid ${INK};border-radius:16px;box-shadow:5px 5px 0 rgba(0,0,0,.25);padding:14px 16px;margin-top:22px">
    <div style="font-family:Oswald,sans-serif;font-weight:700;font-size:19px;color:${INK}">✅ O QUE MUDA E O QUE NÃO MUDA</div>
    <ul style="margin:9px 0 0;padding-left:20px;font-size:13.5px;color:rgba(12,12,12,.8);line-height:1.7">
      <li><b>Só o campinho de cima (o Banco).</b> O dos Titulares continua sendo a formação e ponto — lá o número de lugares é regra de jogo.</li>
-     <li><b>O banco continua com o mesmo desenho de sempre</b> pra quem não tem ninguém sobrando: ele só ganha um lugar quando há um jogador pra ocupar.</li>
-     <li><b>Não é vaga nova.</b> Ninguém passa a poder comprar mais por causa disto — é só o desenho parando de esconder gente.</li>
-     <li><b>Conserta dois buracos que já existem hoje</b>, sem o 4-2-3-1 entrar na história: o +1 por posição do elenco de 27 e o emprestado da SAF.</li>
+     <li><b>Não é vaga nova.</b> A vaga <b>já era sua</b> desde o elenco de 27 — o desenho é que não mostrava. O teto continua 27.</li>
+     <li><b>Ninguém entra sozinho.</b> Lugar vazio é lugar vazio: só enche com lance seu. Nenhum perna-de-pau.</li>
+     <li><b>Ninguém mais fica invisível.</b> Se sobrar gente na posição (emprestado da SAF, por exemplo), o banco cresce mais ainda em vez de esconder.</li>
      <li><b>Reversível num commit.</b></li>
    </ul>
  </div>

@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -874,18 +874,27 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
       // titular: os primeiros `slots` por posição. reserva (banco): os `slots`
       // seguintes — o leilão de reservas mira 22 (2× a formação), então cada
       // posição ganha um espelho no campinho de baixo.
-      // 🪑 E O BANCO CRESCE SE PRECISAR (Diego 19/09: *"o campinho que eu tava
+      // 🪑 O BANCO MOSTRA O BANCO INTEIRO (Diego 19/09: *"o campinho que eu tava
       // falando era o do leilão, quando vai pro leilão aparecem dois
-      // campinhos"*). O banco tinha EXATAMENTE `slots` lugares — o espelho do
-      // time titular —, então quem passasse disso na posição sumia do desenho:
-      // ficava no elenco, dava lance, jogava, e não aparecia em campinho nenhum.
-      // Isso já acontecia desde o elenco de 27 (o +1 por posição do 16/09) e com
-      // o emprestado da SAF. Agora o banco desenha SEMPRE pelo menos o espelho,
-      // e ganha um lugar a mais por jogador que sobrar: ninguém fica invisível.
+      // campinhos"* — e antes: *"não consigo comprar, já tô com campinho do
+      // titular cheio e campinho de reserva cheio no 4-2-3-1"*).
+      // O banco tinha EXATAMENTE `slots` lugares — um espelho do time titular.
+      // Isso dava dois estragos de uma vez:
+      //  1) quem passasse disso na posição SUMIA do desenho (ficava no elenco,
+      //     dava lance, jogava, e não aparecia em campinho nenhum) — já acontecia
+      //     com o +1 por posição do elenco de 27 e com o emprestado da SAF;
+      //  2) o banco parecia CHEIO quando ainda tinha vaga, que foi exatamente o
+      //     que fez o Diego achar que não podia mais comprar atacante.
+      // Agora o banco desenha o TETO DE ELENCO da posição menos os titulares
+      // (`slotsCheio - slots`), e cresce mais se alguém sobrar. Ou seja: a vaga
+      // livre aparece como lugar VAZIO, que é a verdade — no 4-2-3-1 o elenco
+      // separa 3 atacantes, então o banco tem 2 lugares, não 1.
       // ⚠️ Só o banco muda. O campinho dos TITULARES continua sendo a formação e
       // ponto — lá o número de lugares é regra de jogo, não é mostruário.
       const start = bench ? slots : 0
-      const lugares = bench ? Math.max(slots, have.length - slots) : slots
+      const lugares = bench
+        ? Math.max(slots, slotsCheio(m, p) - slots, have.length - slots)
+        : slots
       return Array.from({ length: lugares }, (_, i) => ({ pos: p, card: have[start + i] ?? null }))
     }
     const lats = buildRow('LAT') // [esquerda, direita] quando existirem

@@ -1,3 +1,89 @@
+## 19/09/2026 (parte 4) — 🪑 O banco do leilão parou de mentir · 🌱 o cria sai na hora
+
+Tudo isto nasceu de UMA pergunta do Diego: *"todo time que tem formação com 4-2-3-1,
+4-5-1 etc, sempre tão ficando preso o atacante e o usuário não consegue mais pôr pra
+4-3-3, porque preenche o campo de titular e reserva"*. Depois ele fechou o caso:
+*"é se não tiver ninguém da SAF e apenas 2 atacantes, um titular e um reserva. Mas
+quero ir pro leilão pegar novo atacante, não deixa porque o campinho do titular tá
+ocupado e o campinho do reserva tá ocupado"*. E, quando eu respondi olhando a aba
+Elenco, ele corrigiu: **"o campinho que eu tava falando era o do leilão, quando vai
+pro leilão aparecem dois campinhos"**.
+
+Antes de mexer em qualquer coisa eu MEDI, com as funções do jogo
+(`scripts/mede-vaga-atacante.mts` — roda com `npx tsx`). O que os números disseram:
+
+| situação (4-2-3-1, ATACANTE) | tem | alvo do pregão | teto do elenco | vaga pra comprar |
+|---|---|---|---|---|
+| fora do leilão de reservas, 2 atacantes | 2 | 1 | 3 | **0** |
+| dentro do leilão de reservas, 2 atacantes | 2 | 2 | 3 | **1** |
+| dentro, com 1 atacante EMPRESTADO da SAF | 3 | 2 | 3 | **0** |
+
+Ou seja: **a vaga existia** (o elenco de 27 separa 3 atacantes no 4-2-3-1) — quem
+mentia era o DESENHO.
+
+### 🪑 1. O campinho do BANCO mostrava a formação, não o banco
+`Campinho` (`screens.tsx`) desenhava, no modo `bench`, exatamente `slots` lugares —
+um espelho do time titular. Dois estragos de uma vez:
+1. **parecia cheio quando não estava** (o caso do Diego: 1 lugar de ATA, ocupado);
+2. **quem passasse de `2× a formação` na posição SUMIA** — ficava no elenco, dava
+   lance, jogava, e não aparecia em campinho nenhum. Já acontecia desde o elenco de
+   27 (o +1 por posição, 16/09) e com o emprestado da SAF.
+
+Agora: `max(slots, slotsCheio - slots, have.length - slots)`. A vaga livre aparece
+como **lugar VAZIO** (que é a verdade) e ninguém mais fica invisível. O campinho dos
+**Titulares não mudou** — lá o número de lugares é regra de jogo.
+
+### 🌱 2. O cria da base não saía na compra — e o jogo PROMETIA que saía
+A tela do Sub-20 diz, com todas as letras: *"ele some sozinho assim que você comprar
+um reforço de verdade pra vaga"* (`pyramidseason.tsx:5060`), e o botão repete
+*"volta pra base sozinho quando chegar reforço"*. **Não era verdade**: o único lugar
+que tirava o cria era a virada (`OPEN_RESERVE_LIST`). No meio do ano ele ficava — e
+atrapalhava, porque o cria conta vaga igual a qualquer um (`filled`), é invendável e
+não entra em "deixar ir": o técnico não tinha NENHUM jeito de se livrar dele.
+
+Agora a conta virou um ajudante só, `voltaCriaSeSobrou(s, m, pos)`, com a MESMA régua
+da virada (só sai se a posição continuar fechando a formação sem ele), chamado em:
+leilão (`resolve`), desempate (`tiebreak`) e monte/mercado. A varredura da virada
+continua, como rede de segurança (pega o que fechou por outro caminho — troca de
+formação, volta de empréstimo, contrato renovado).
+
+⚠️ Não quebra escalação: `lineupAt` já trata "um titular saiu" completando SÓ aquela
+vaga com o melhor do banco na posição. E o cria só sai quando existe jogador real
+naquela posição pra assumir.
+
+### 🔓 3. `careerOpenSlots` cortava o humano no alvo do pregão
+`Math.min(slotsOf, openSlots + cpuFakes)` existe por causa do BOT (o zé dele não
+segura vaga). Só que pegava o humano junto e comia o +1 por posição do elenco de 27
+no monte da carreira. O humano não tem fake pra descontar, então pra ele a trava só
+tirava vaga que era dele. Agora `if (m.isHuman) return openSlots(m, pos)`.
+Fora do leilão de reservas nada muda — lá `openSlots` já mira o time titular.
+
+### 🧪 Bancadas novas (pra próxima sessão não refazer na mão)
+- `scripts/teste-campinho-leilao/` — monta os DOIS campinhos do leilão de verdade
+  (`?form=4-2-3-1&ata=3`). O `Campinho` virou `export` só por causa disto.
+- `scripts/mockup-banco-leilao.mjs` — gera o antes/depois lado a lado (`--antes`,
+  `--ata`, `--so-tira`).
+- `scripts/teste-elenco/` ganhou `?form=` e `?ata=`; antes era 4-4-2 escrito na mão
+  e mentia em qualquer outra formação.
+- `scripts/mockup-terceiro-atacante.mjs` — o desenho que mostra onde o 3º atacante
+  aparece na aba Elenco (campinho = 11; reserva = LISTA).
+- `scripts/mede-vaga-atacante.mts` — a medição acima.
+
+### ⏳ FICOU ABERTO: o emprestado da SAF gasta vaga
+Medido na tabela acima. `filled()` conta o emprestado, então ele consome vaga do
+elenco — contra a regra do Diego de 16/09 (*"tem a SAF também… então pode ir de 27
+para 31"*). A aba Elenco já conta certo (ela tem a conta própria dela); quem não
+conta é `filled`/`openSlots`/`vagaCheio`. Mexer nisso muda o que "vaga" significa em
+várias telas (inclusive o "−N 🕳️" do gerenciar), então merece uma passada PRÓPRIA,
+com medição antes e depois. **Na prática hoje quase não morde**, porque o empréstimo
+volta pra SAF na virada e o leilão de reservas acontece depois disso — mas morde o
+`vagaCheio` no meio do ano (subir cria da base).
+
+### ↩️ Como reverter
+Os três consertos são pequenos e independentes: o do banco é uma linha em
+`Campinho`, o do cria é o `voltaCriaSeSobrou` + 3 chamadas, o do teto é um `if`.
+Cada um volta atrás num commit sozinho.
+
 ## 19/09/2026 (parte 3) — 🟢⚪ Dirceu Krüger entra no baralho + o coração do White Thigs
 
 ### ❤️ White Thigs do GuGu é CORITIBA
