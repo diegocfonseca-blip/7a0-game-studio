@@ -201,7 +201,11 @@ function roundRobin(n: number): [number, number][][] {
 }
 
 export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; formation?: FormationKey; pts: number; w: number; d: number; l: number; gf: number; ga: number }
-export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
+// 🃏 `club`/`year` = a IDENTIDADE DA CARTA (19/09). Ordem do Diego: *"primeira que
+// não pode ser por nome, e sim por carta"*. O `cardId` não serve pra isso porque o
+// leilão dá id novo pra mesma pessoa todo ano; quem não muda é nome|clube|ano — a
+// mesma chave que o `condicaoCarry` já usa. Opcional porque save antigo não tem.
+export interface SeasonScorer { name: string; teamName: string; teamId: number; div: Div; goals: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string; club?: string; year?: number }
 // 🅰️ GARÇOM DA TEMPORADA (assistências, 24/08). Mesma forma do artilheiro, só
 // que contando passes pro gol.
 export interface SeasonAssist { name: string; teamName: string; teamId: number; div: Div; assists: number; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; cardId?: string }
@@ -751,7 +755,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       // artilheiro nesse gol (o placar já foi somado à parte). Mesma guarda da Copa.
       if (!pick) continue
       const key = `${t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: t.name, teamId: t.teamId, div, goals: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: pick.id, club: pick.club, year: pick.year })
       const min = half === 2
         ? (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 46 + Math.floor(rngUse() * 45)) // 2º tempo: 46..90 (+ acréscimos)
         : (rngUse() < 0.08 ? 90 + 1 + Math.floor(rngUse() * 3) : 1 + Math.floor(rngUse() * 90)) // acréscimos SÓ até 90+3 (o relógio do card vai até 93)
@@ -888,7 +892,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       const tk = humM.squad.find(c => c.id === pd.taker)
       const nm = tk?.name ?? 'Cobrador'
       const pkey = `${humM.name}:${pd.taker}`, prow = scorers.get(pkey)
-      if (prow) prow.goals++; else scorers.set(pkey, { name: nm, teamName: humM.name, teamId: humM.teamId, div, goals: 1, you: humM.you, human: humM.human, rival: humM.rival, dorm: humM.dorm, cardId: pd.taker })
+      if (prow) prow.goals++; else scorers.set(pkey, { name: nm, teamName: humM.name, teamId: humM.teamId, div, goals: 1, you: humM.you, human: humM.human, rival: humM.rival, dorm: humM.dorm, cardId: pd.taker, club: tk?.club, year: tk?.year })
       const penEv = { name: nm, min: 90, id: pd.taker }
       if (H.human) { hgF += 1; hFinal = [...hFinal, penEv] } else { agF += 1; aFinal = [...aFinal, penEv] }
     }
@@ -961,7 +965,12 @@ export interface CopaRound { name: string; ties: CopaTie[]; slot?: number } // s
 // `scorers`/`assists` acima são cortadas no top 20 da competição, então não servem
 // pra somar na ficha do jogador — quem fez 1 gol de copa não aparecia nelas.
 // Ordem do Diego: *"deve somar sim"* — gol de copa conta na temporada do jogador.
-export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; topScorer?: SeasonScorer; assists?: SeasonAssist[]; topAssist?: SeasonAssist; goalsByCard?: Record<string, number>; assistsByCard?: Record<string, number> }
+export interface CopaResult { rounds: CopaRound[]; champion: SimTeam | null; championDiv: Div | null; vice: SimTeam | null; viceDiv: Div | null; scorers: SeasonScorer[]; scorersAll?: SeasonScorer[]; topScorer?: SeasonScorer; assists?: SeasonAssist[]; topAssist?: SeasonAssist; goalsByCard?: Record<string, number>; assistsByCard?: Record<string, number> }
+// 🏆 `scorersAll` (19/09) = a artilharia COMPLETA da Copa, sem o corte do top 20.
+// Ordem do Diego: *"deve contar gols na liga também e gols na copa… aliás todas as
+// ligas e todas as copas"*. O `scorers` acima continua cortado porque é o que a
+// TELA mostra; quem soma no histórico de todos os tempos precisa da lista inteira,
+// senão quem fez 1 gol de copa some da conta (o mesmo furo que a ficha teve).
 // 🏆 Copa Legends PAGA POR FASE (Diego 11/08) — valores FIXOS, IGUAIS em toda
 // divisão (não escala por série): participação 2 · quartas 4 · semi 8 · vice 10
 // · campeão 30. Antes só campeão/vice levavam; agora cada fase já rende algo.
@@ -1004,7 +1013,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
       for (const p of pool) { r -= p.w; if (r <= 0) { pick = p.c; break } }
       if (!pick) continue
       const key = `${e.t.name}:${pick.id}`, row = scorers.get(key)
-      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id })
+      if (row) row.goals++; else scorers.set(key, { name: pick.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, goals: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: pick.id, club: pick.club, year: pick.year })
       evs.push({ name: pick.name, min: 1 + Math.floor(rng() * 90), id: pick.id })
     }
     return evs
@@ -1109,7 +1118,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     for (const x of l) if (x.cardId) m[x.cardId] = (m[x.cardId] ?? 0) + quanto(x)
     return m
   }
-  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), topScorer: list[0], assists: listA.slice(0, 20), topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, x => x.assists) }
+  return { rounds, champion: champ?.t ?? null, championDiv: champ?.div ?? null, vice, viceDiv, scorers: list.slice(0, 20), scorersAll: list, topScorer: list[0], assists: listA.slice(0, 20), topAssist: listA[0], goalsByCard: porCarta(list, x => x.goals), assistsByCard: porCarta(listA, x => x.assists) }
 }
 
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
@@ -2230,7 +2239,17 @@ function ArtilhariaBox({ scorers, colors, title, sub, foot, safTeam, safCol }: {
               return (
               <tr key={s.name + s.teamName + i} style={{ borderTop: '1px solid rgba(0,0,0,0.1)', fontWeight: 600, background: fc?.light }}>
                 <td style={{ paddingRight: 4 }}>{i + 1}</td>
-                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}><span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}</td>
+                {/* 🃏 O CLUBE DA CARTA embaixo do nome (Diego 19/09: *"sobre os gols
+                    quero que seja pelo clube da carta apenas"*). É o que separa os
+                    xarás: o baralho tem 62 nomes repetidos em 125 cartas, e em 6 deles
+                    os dois são do MESMO baralho (Marcelo Lomba Internacional × Bahia),
+                    então uma letra de baralho não resolveria. O clube resolve os 62.
+                    ⚠️ Não é tradução nem apelido: é a identidade da carta, a mesma que
+                    o jogo usa pra tudo ("Kaká São Paulo é promessa, Kaká Milan é lenda"). */}
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 130 }}>
+                  <span style={{ display: 'inline-block', fontSize: 8, fontWeight: 800, color: '#fff', background: DIV_TAG[s.div].bg, borderRadius: 4, padding: '0 4px', marginRight: 4, verticalAlign: 'middle' }}>{DIV_TAG[s.div].l}</span>{s.name}
+                  {s.club && <span style={{ display: 'block', fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,0.45)', marginLeft: 22, lineHeight: 1.15 }}>{s.club} · {s.year}</span>}
+                </td>
                 <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 110, color: fc?.solid ?? 'rgba(0,0,0,0.7)', fontWeight: fc ? 800 : 600 }}>{s.you ? '👤 ' : isSaf ? '💼 ' : s.rival ? '⚔️ ' : s.dorm ? '🏛️ ' : s.human ? '🔥 ' : ''}{(() => { const pk = s.you ? myApoioPerk() : null; return pk ? <span style={apoioText(pk)}>{apoioName(s.teamName)}</span> : s.teamName })()}</td>
                 <td style={{ textAlign: 'center', fontWeight: 900 }}>{s.goals}</td>
               </tr>
@@ -7561,7 +7580,13 @@ export function PyramidSeasonScreen() {
     // rival), de todas as 4 divisões — nenhum gol é jogado fora. O ranking mostra
     // o top 20; o reducer guarda bem mais (top 300) pra ninguém perto de entrar
     // ficar de fora, sem o save crescer sem limite.
-    dispatch({ type: 'RECORD_SEASON_STATS', scorers: scorersAll })
+    // 🏆 LIGA + COPA (Diego 19/09): *"deve contar gols na liga também e gols na
+    // copa… aliás todas as ligas e todas as copas"*. Até aqui só a LIGA entrava no
+    // histórico de todos os tempos — gol de Copa do Brasil, Copa Legends e
+    // Supercopa (que é uma fase da Copa do Brasil, então vem no mesmo pacote)
+    // ficava de fora. A lista da copa é a COMPLETA (`scorersAll`), não o top 20 da
+    // tela: senão quem fez 1 gol de copa continuava sumindo da conta.
+    dispatch({ type: 'RECORD_SEASON_STATS', scorers: [...scorersAll, ...(copa?.scorersAll ?? [])] })
   }, [done, state.careerOnline, state.seasonNo, state.statsSeason]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // MATERIALIZA a ficha dos times de fundo (80 com Várzea) (1x): antes eram recalculados na

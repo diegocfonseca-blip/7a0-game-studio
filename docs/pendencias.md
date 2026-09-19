@@ -1,3 +1,57 @@
+## 19/09/2026 (parte 6) — 🏆 A artilharia de todos os tempos virou POR CARTA
+
+Veio do 337 jogos × 10 gols do Álvarez. Ele perguntou *"não seria melhor você
+conferir os gols que o cara já fez, pelo usuário? Não dá?"* — fui procurar no
+save e **achei um histórico que ninguém estava usando direito**.
+
+### 🔎 O que eu achei
+`careerScorersAll` (o Rank › Artilheiros) soma os gols de todo mundo desde a 1ª
+temporada. O save da carreira T25 dele tem **1000 jogadores guardados, com 24
+temporadas somadas**. Só que com **três defeitos**:
+
+1. **A chave era o NOME.** O reducer até previa `nome|cardId`, mas quem despacha
+   nunca mandou `cardId` — então caía no nome sempre, e dois jogadores diferentes
+   com o mesmo nome somavam num registro só. Medido no baralho inteiro:
+   **1466 cartas · 1403 nomes · 62 nomes repetidos em 125 cartas**.
+2. **Só contava LIGA.** Copa do Brasil, Copa Legends e Supercopa ficavam de fora.
+3. **Teto de 1000**, e o save dele estava EXATAMENTE em 1000 — lotado. Quem caía
+   abaixo do 1000º perdia o histórico.
+
+### ✅ O que ficou (decisões dele, 19/09)
+- **Chave = a CARTA** (`nome|clube|ano`), a mesma identidade do `condicaoCarry`.
+  **Não é o `cardId`**: o leilão dá id novo pra mesma pessoa todo ano.
+- **O passado embolado foi DIVIDIDO**, não zerado — palavras dele: *"pros 62
+  divida entre eles"*. Partes iguais, sobra pras primeiras em ordem fixa de
+  clube+ano. **O total é preservado**, e é uma repartição DECLARADA, não um
+  palpite sobre quem fez o gol.
+- **Liga + TODAS as copas** contam. A Supercopa precisou de trabalho à parte: ela
+  é calculada FORA da Copa do Brasil (`computeSupercopa`) e entra na chave só
+  como uma fase a mais, então os gols dela não estavam em lugar nenhum.
+- **Teto 1000 → 2500**: o baralho tem 1466 cartas, então ninguém mais é
+  descartado.
+- **Na tela**: o clube da carta aparece miúdo embaixo do nome. Escolha dele
+  (*"sobre os gols quero que seja pelo clube da carta apenas"*), depois de eu
+  medir que a letra (M)/(E) que ele tinha sugerido **não fecha**: em 6 dos 62 os
+  dois xarás são do MESMO baralho (Marcelo Lomba Internacional × Bahia, Felipe,
+  Diego, Reinaldo, Paulinho, Andreas Pereira) e levariam a mesma letra.
+- ⚠️ **ASSISTÊNCIA continua sem histórico nenhum** — não existe `careerAssistsAll`
+  em lugar nenhum do código. Se ele pedir, é obra nova.
+
+### 🛡️ Travas: `npm run artilharia` (novo)
+Roda o código DE VERDADE no navegador (não uma cópia da regra): a chave é a
+carta · a divisão preserva o total · é **determinística** (dois aparelhos migram
+igual — senão no online viraria briga de números) · é **idempotente** (abrir o
+save 10 vezes não pica o histórico em migalhas) · cria da base fica pelo nome ·
+e liga + Copa Legends + Copa do Brasil + Supercopa estão ligadas.
+
+### 📌 O QUE ISSO **NÃO** RESOLVE (e ele já sabe)
+Esse histórico é **gol em QUALQUER clube**, não "no seu clube". Então **não serve
+pra ficha do jogador** — ele foi claro: *"quero apenas esse modal preto… apenas
+dados do jogador do meu clube"*. A coluna dourada continua sendo só do clube dele,
+e continua começando do zero nesta temporada.
+- ⏳ **PENDENTE, esperando ele**: na ficha, **A** (notinha "contando desde esta
+  temporada") ou **B** (tracinho "—" no lugar do número). Mockup já mandado.
+
 ## 19/09/2026 (parte 5) — ⏱️ +1s por rodada · 📣 a regra do apito · 🏟️ o SOM fechado
 
 ### ⏱️ A simulação da partida ficou 1 segundo mais longa (FEITO, no branch)
