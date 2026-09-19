@@ -1,3 +1,41 @@
+## 18/09/2026 (parte 10) — 🏟️ ETAPA 3 FECHADA: o batismo aparece pra TODA a sala ✅ NO AR
+
+Diego, depois do conserto da mascote do Leite de Verdade: *"ué, pra mim já era assim
+normalmente… o mascote, seja no modo carreira ou online, ele deve aparecer nos times de
+batismo pra todo mundo"*.
+
+**Ele estava meio certo — e a diferença importa.** Pra clube batizado jogando com o NOME
+DO BATISMO, sempre foi assim: a lista fixa (`CARIMBO_GOL`/`LOGOS_PRONTAS`) é pública, todo
+mundo enxerga, na carreira e no online. O furo era só quando o DONO joga com **outro
+nome** — o normal no online, onde o nome do clube é digitado. Aí a arte vinha pelo E-MAIL
+(regra de 08/09) e e-mail só decora a tela do próprio dono.
+👉 Era exatamente a **"Etapa 3"** anotada em 08/09. **Fica fechada aqui.**
+
+### O caminho já existia
+Desde 10/08 o MANTO de cada assento viaja pra sala inteira por `esc_mantos_sala`
+(assento → conta → `esc_socios`, devolvendo SÓ assento → cores; o e-mail nunca sai do
+servidor). Agora a MASCOTE e o ESCUDO usam a mesma porta.
+- **Banco**: `esc_mimos_sala`, **irmã** da antiga e não substituta — a `esc_mantos_sala`
+  fica intocada, pra nenhum navegador aberto quebrar no meio de um jogo.
+- **Código**: o registro mora no **provider** (`store.tsx`), não numa tela — o carimbo do
+  gol é desenhado em vários lugares, e assim sala rápida, liga e carreira online passam a
+  enxergar de uma vez.
+
+### ⚖️ A ordem da busca É a segurança (não mexer sem entender)
+1. **lista FIXA** (clube batizado pelo nome) — ganha de tudo, então ninguém rouba arte
+   alheia digitando o nome do clube dos outros;
+2. o que o **servidor** disse sobre os assentos DESTA sala;
+3. o **meu próprio** batismo (vale offline, onde sala não existe).
+E ao sair da sala a lista é **zerada**: mimo de sala sobrando viraria arte de outra pessoa
+num bot do jogo solo seguinte.
+🧪 `npm run mimos` seções 5–8 guardam isso, incluindo a tentativa de roubo de arte.
+
+### 🚫 Sem linha de novidade — de propósito
+Anunciar "agora aparece pra todo mundo" é dizer "antes não aparecia". Regra da casa:
+**bug nunca vira novidade**.
+
+---
+
 ## 18/09/2026 (parte 9) — 🎁📝🤖 Três pedidos dele numa tacada ✅ NO AR
 
 ### 🐮 A mascote de gol do dono sumia no ONLINE — e não era cadastro
