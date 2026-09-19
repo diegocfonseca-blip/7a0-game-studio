@@ -6913,7 +6913,11 @@ export function PyramidSeasonScreen() {
     const gl: Record<string, number> = {}, as: Record<string, number> = {}
     for (const c of me.squad as WonCard[]) {
       const k = carry[`${c.name}|${c.club}|${c.year}`]
-      if (k) { g[c.id] = k.g; j[c.id] = k.j; gl[c.id] = k.gl ?? 0; as[c.id] = k.as ?? 0 }
+      // 🧾 carry sem `gl` (de antes de 19/09, quando o gol passou a contar): os jogos
+      // de trás não entram — jogos, gols e assistências contam a partir da MESMA
+      // temporada (Diego: *"300 partidas com 10 gols apenas, tá estranho"*). A mesma
+      // régua vive em `guardaCansaco` (store.tsx). O gás (`g`) continua vindo de trás.
+      if (k) { g[c.id] = k.g; j[c.id] = k.gl == null ? 0 : k.j; gl[c.id] = k.gl ?? 0; as[c.id] = k.as ?? 0 }
     }
     return { g, j, gl, as }
   }, [state.condicaoCarry, state.managers, state.youIdx])

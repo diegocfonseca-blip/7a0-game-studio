@@ -1184,7 +1184,13 @@ function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?:
     const inicioAs: Record<string, number> = {}
     for (const c of squad) {
       const k = antes[chave(c)]
-      if (k) { inicioG[c.id] = k.g; inicioJ[c.id] = k.j; inicioGl[c.id] = k.gl ?? 0; inicioAs[c.id] = k.as ?? 0 }
+      // 🧾 A HISTÓRIA NO CLUBE COMEÇA NO DIA EM QUE O GOL PASSOU A CONTAR (Diego
+      // 19/09: *"300 partidas com 10 gols apenas, tá estranho"*). Os jogos vinham
+      // sendo guardados há semanas; gol e assistência só desde hoje — e a ficha
+      // mostrava as duas coisas juntas como se fossem do mesmo período. Regra: carry
+      // ainda SEM `gl` (nunca contou gol) → os jogos de trás ficam de fora, e os três
+      // números (jogos, gols, assistências) nascem juntos, da mesma temporada.
+      if (k) { inicioG[c.id] = k.g; inicioJ[c.id] = k.gl == null ? 0 : k.j; inicioGl[c.id] = k.gl ?? 0; inicioAs[c.id] = k.as ?? 0 }
     }
     // 🏋️ o banco devolve o que o preparador DESTE clube devolve (sem preparador, o
     // +4 de sempre). É o mesmo número que a tela usa — os dois têm que casar, senão

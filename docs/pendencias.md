@@ -1,3 +1,20 @@
+## 19/09/2026 (parte 7) — 🧾 A ficha "NO SEU CLUBE": jogos passam a contar junto com os gols
+
+Diego, olhando a ficha preta do Álvarez: *"300 partidas com 10 gols apenas, tá
+estranho… se coloco os totais também contando no mesmo dia do gol?"*. Tinha razão: os
+JOGOS vinham sendo guardados no `condicaoCarry` desde a condição física (12/09), e
+gol/assistência só desde hoje de manhã — a ficha somava os dois como se fossem do
+mesmo período.
+
+**Regra (a proposta dele):** a história no clube começa no dia em que o gol passou
+a contar. Carry ainda sem `gl` → os jogos de trás ficam de fora; jogos, gols e
+assistências nascem juntos, da mesma temporada. Vive em DOIS lugares com a mesma
+linha: `guardaCansaco` (store.tsx, a virada) e `condInicio` (pyramidseason.tsx, a
+tela). O gás (`g`) continua vindo de trás — ele é de agora, não é histórico.
+⚠️ Quem virou temporada entre o deploy da manhã (ficha nova) e este, já tem `gl` no
+carry e ficou com os jogos velhos somados — não dá pra separar depois; é um punhado de
+saves, e o número só cresce dali pra frente com os três juntos.
+
 ## 19/09/2026 (parte 6) — 🌐 Copa do Mundo: jogo único, relógios +10s, e o portão grande (em andamento)
 
 Pedido do Diego, num áudio só: *"a Copa do Mundo o mata-mata tem que ser um jogo
