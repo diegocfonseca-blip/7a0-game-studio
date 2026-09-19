@@ -130,9 +130,23 @@ todos times de batismo igual aos outros"*)
   forma com sufixo deixa o nome puro livre e não percebe, porque nenhuma trava
   olha o banco. Vale conferir isso a cada batismo novo.
 
+### 🏛️ E o Salão ficou SEM NINGUÉM oculto (19/09)
+Ordem dele: *"pode tirar ele de ser oculto, pode mostrar já. Marreco também"*.
+`SALAO_OCULTOS` foi esvaziado — **Marreco FC** e **White Thigs do GuGu** entraram
+na lista de clubes.
+O que aparece, conferido na bancada nova `scripts/teste-salao/`:
+- **ESCUDO**: os dois TÊM escudo — não é o de letra, é o automático de cor + bicho
+  (o do Marreco é um peixe amarelo em roxo). Fica bonito, não parece buraco.
+- **MASCOTE e MANTO**: as folhas abrem com o aviso *"Este clube ainda não tem arte
+  de mascote disponível no salão"* / *"A arte da camisa… não está disponível"*. A
+  tela já tinha esse texto pronto; não quebra nada.
+🔒 A lista `SALAO_OCULTOS` **ficou no código, vazia** — é a porta pra esconder um
+clube de novo sem mexer em mais nada.
+
 ### Pendências que saem daqui
-- 🔴 **Marreco FC**: pedir arte ao dono, ou avisar o Diego que vai de peça neutra.
-  É o único batismo sem escudo, sem mascote, sem manto e sem camisa.
+- 🔴 **Marreco FC**: segue sem mascote, sem manto e sem camisa (o escudo é o
+  automático). Pedir arte ao dono — agora ele está VISÍVEL no Salão, então a falta
+  aparece pra todo mundo.
 - 🦁 Confirmar com o Luiz o nome da mascote do Remoçada ("O Leão de Thor" é chute).
 - 📅 O ano do **Dirceu Krüger** (1973) ficou aprovado por ele: *"1- ok segue"*.
 

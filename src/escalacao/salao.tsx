@@ -12,12 +12,19 @@ import './salao.css'
 
 interface Torcida { time_nome: string; gente: number }
 const porChegada = (a: Batismo, b: Batismo) => (a.fundador ?? 999) - (b.fundador ?? 999) || a.clube.localeCompare(b.clube)
-// 🙈 FORA DO SALÃO POR ENQUANTO (Diego 13/09): clubes que ainda estão com escudo/mascote
-// provisórios (genérico ou SVG antigo). Palavras dele: *"tire do menu de salão de batismo
-// por enquanto, só até arrumar as logos dele, mascote e etc… só tô falando daqui ocultar
-// até eu melhorar os deles"*. SÓ o Salão: no jogo, na pirâmide, na estante e no
-// `checa-batismos` eles continuam iguais. Quando a arte nova chegar, tirar daqui.
-const SALAO_OCULTOS = new Set(['Marreco FC', 'White Thigs do GuGu']) // 🪩 o Alfacehh saiu daqui em 14/09: virou Inter de Bailão e ganhou escudo, mascote e manto de verdade
+// 🙈 FORA DO SALÃO — HOJE NÃO TEM NINGUÉM (esvaziado em 19/09).
+// Nasceu em 13/09 pra esconder clube com escudo/mascote provisório: *"tire do menu de
+// salão de batismo por enquanto, só até arrumar as logos dele, mascote e etc"*. Foram
+// saindo conforme a arte chegava — o Alfacehh em 14/09 (virou Inter de Bailão), e em
+// 19/09 o Diego liberou os dois últimos mesmo SEM arte: *"pode tirar ele de ser oculto,
+// pode mostrar já. Marreco também"*.
+// ⚠️ Os dois aparecem com as peças VAZIAS: escudo genérico de letra, e as abas de
+// mascote e manto com o aviso de "ainda não disponível". É o comportamento esperado —
+// a tela já tem texto pra isso e não quebra. Quando a arte chegar, só some o aviso.
+// 🔒 A lista FICA (não apagar): é a porta pra esconder um clube de novo sem mexer em
+// mais nada. SÓ o Salão — no jogo, na pirâmide, na estante e no `checa-batismos` nada
+// muda com isto aqui.
+const SALAO_OCULTOS = new Set<string>([])
 const pecas = () => [tr('Escudo', 'Crest'), tr('Mascote', 'Mascot'), tr('Manto', 'Shirt')]
 function Arte({ clube, peca }: { clube: string; peca: number }) {
   const [erro, setErro] = useState(false)
