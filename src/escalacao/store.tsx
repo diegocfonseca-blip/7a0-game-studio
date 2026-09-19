@@ -7335,7 +7335,7 @@ export function reducer(state: EscState, action: Action): EscState {
       logFin(s, 'buy', `🏋️ ${p.nome} chegou ao Departamento Técnico`, -p.preco)
       s.aliciarLog = {
         titulo: `🏋️ ${p.nome} é do ${you.teamName}!`,
-        corpo: `Contrato de ${anosNovo} temporada${anosNovo > 1 ? 's' : ''} (até a T${fimNovo}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora o banco devolve ${p.banco} de gás por rodada e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
+        corpo: `Contrato de ${anosNovo} temporada${anosNovo > 1 ? 's' : ''} (até a T${fimNovo}) por ${p.preco} 🪙. Salário de ${salarioPreparador(p)} por temporada, na folha. Agora 1 rodada no banco vale ${Math.floor(p.banco / 1.4)} jogos de fôlego (era 2) e o 🔁 RODIZIAR está liberado${p.key === 'seirulo' ? ' — com o 🤖 AUTOMÁTICO junto' : ''}.`,
         venceu: true,
       }
       return s

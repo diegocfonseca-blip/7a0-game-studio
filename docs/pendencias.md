@@ -80,6 +80,12 @@ Agora a tela diz exatamente isso:
   — 1 descanso paga X jogos"*.
 - A conta mora em `jogosPorDescanso(banco)` (`preparadores.ts`), em vez de
   `Math.floor(banco/1.4)` espalhado.
+- 🔁 **Segunda rodada de texto** (ele: *"tá confuso ainda… ng entendeu"*): saiu
+  "gás/descanso/paga" e entrou **FÔLEGO**, uma linha só: *"🔋 1 rodada no banco =
+  8 jogos de fôlego"* + *"sem preparador, 1 rodada no banco devolve o fôlego de só
+  2 jogos"*. O cabeçalho da loja explica os 54 jogos e que o preparador só muda o
+  quanto RECUPERA no banco. Se ainda confundir, o próximo passo é um desenho
+  (barra de gás antes/depois do banco), não mais texto.
 
 ## 19/09/2026 (parte 14) — 🥇 A aba da Bola de Ouro no Rank (o que eu tinha ESQUECIDO)
 
