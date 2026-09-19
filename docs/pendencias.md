@@ -74,6 +74,26 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 25) — 🚨 A REMOÇÃO DO PONTUAL PRENDEU TODO MUNDO NA RODADA 0
+
+Print do **Cr7 Leilão** minutos depois do deploy: T48, Série A, botão verde
+**"▶️ Começar a temporada"** aceso, e o jogo não começava de jeito nenhum.
+
+### ❌ O erro foi meu, e é o MESMO do monte, no mesmo dia
+O `PLAY_ROUND` tinha um "cinto de segurança" de 07/08: **a rodada 0 não anda sem a
+aposta do patrocinador pontual da temporada**. Eu tirei a TELA que fazia a aposta e
+deixei o cinto lá. Sem tela, a aposta nunca existia → o reducer devolvia o estado
+igual, calado → botão mudo, carreira parada. Valia pra TODO mundo em carreira solo,
+não só pra quem virou temporada agora.
+
+### ✅ Conserto
+- O cinto saiu (o comentário no lugar conta a história, pra ninguém reintroduzir).
+- **Trava nova** em `scripts/testa-loja.mjs`: rodada 0 → 1 sem aposta nenhuma, e
+  também com resíduo de aposta velha no save.
+- 🧠 **REGRA que vale pra sempre**: quando uma regra sai da TELA, tem que sair também
+  do REDUCER. Duas regras decidindo a mesma coisa = botão que não faz nada. Hoje isso
+  aconteceu duas vezes (monte e início de temporada).
+
 ## 19/09/2026 (parte 24) — 🚫🤝 O PATROCINADOR PONTUAL FOI REMOVIDO
 
 Ordem dele: *"eu acho que eu vou tirar esse patrocinador pontual. Tá ficando muito

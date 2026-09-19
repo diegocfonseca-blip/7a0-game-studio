@@ -438,6 +438,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Time todo de mentira faz o gol no placar e **ninguém leva o gol na súmula**.
   ⚠️ Quem mexer aqui: o **rng tem que ser consumido igual, com autor ou sem** — senão
   muda placar de rodada já jogada. E **Cria da Base NÃO é fake**: o guri é real.
+- **🔒 REGRA DE OURO CONTRA BOTÃO MUDO (19/09, aprendida DUAS vezes no mesmo dia).**
+  Tela e reducer não podem ter regras próprias pra mesma coisa. Aconteceu no monte
+  (a tela acendia PEGAR e o reducer recusava por contrato vencido) e no início de
+  temporada (tirei o patrocinador pontual da tela e deixei no `PLAY_ROUND` o cinto que
+  exigia a aposta — **todo mundo ficou preso na rodada 0**, print do Cr7 Leilão).
+  Quem tira uma regra tira dos DOIS lados; quem cria uma trava faz a tela ler a MESMA
+  função do motor, e a trava sempre diz o porquê.
 - **🚫🤝 O PATROCINADOR PONTUAL NÃO EXISTE MAIS (19/09).** Palavras dele: *"tá ficando
   muito patrocinador, patrocinador, patrocinador, tá ficando chato. Tira esse
   patrocinador pontual e a pessoa também não vai mais ganhar esse dinheiro"*. A virada

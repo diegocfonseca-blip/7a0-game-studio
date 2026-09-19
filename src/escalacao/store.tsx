@@ -6869,16 +6869,12 @@ export function reducer(state: EscState, action: Action): EscState {
       // 4 divisões vem dos elencos reais + semente + rodada). Aqui só avançamos a
       // rodada (o host conduz, e isso já sincroniza) — nada de simular a liga viva.
       if (s.careerOnline) {
-        // 🤝 CINTO DE SEGURANÇA (07/08, relato do Diego): a rodada 0→1 nunca pode
-        // andar sem o patrocínio escolhido — mesmo que algum caminho da tela
-        // dispare PLAY_ROUND sem passar pelo botão. É a mesma checagem da tela,
-        // só que aqui no reducer ninguém escapa dela. Só solo (o online decide
-        // por si, o host não tem como saber a escolha de CADA humano aqui).
-        if (s.round === 0 && s.onlineMode !== 'online') {
-          const youId = s.managers[s.youIdx]?.id
-          const bet = s.careerSponsorBet?.[youId]
-          if (!bet || bet.season !== s.seasonNo) return s
-        }
+        // 🚫🤝 AQUI MORAVA O CINTO DE SEGURANÇA DO PATROCINADOR PONTUAL, e ele PRENDEU
+        // TODO MUNDO na rodada 0 quando o pontual saiu (19/09, print do Cr7 Leilão na
+        // T48: botão verde aceso, toque, e a temporada não começava). O cinto exigia a
+        // aposta da temporada — e, sem a tela que fazia a aposta, ela nunca existia.
+        // ⚠️ LIÇÃO, a MESMA do monte no mesmo dia: quando uma regra sai da tela, tem
+        // que sair TAMBÉM do reducer. Tela e motor discordando = botão mudo.
         // 🎭 EVENTOS (solo): banner PENDENTE trava o avanço da rodada — o técnico
         // decide primeiro (a tela nem dispara, isto é o cinto de segurança).
         // 🩹 CURA: carreira SEM agenciaOn não pode ter evento (vazou no lançamento
