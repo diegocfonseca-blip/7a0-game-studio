@@ -13,7 +13,8 @@
 // 💰 Preços fechados com ele (ele achou 300/800/1500 caro: *"pode ser cem,
 // quinhentos e mil"*) e depois pediu um 4º degrau, o 💎 roxo: *"pode ter mais um
 // q seria roxo da categoria promessa pq acho q o preparador de seleção deveria
-// encher o tanque em menos rodadas ainda"*.
+// encher o tanque em menos rodadas ainda"*. Em 19/09 ele baixou os dois de cima:
+// **100 · 300 · 500 · 800** (ver nota da renovação abaixo).
 //
 // 💸 SALÁRIO E CONTRATO COPIAM O TÉCNICO, sem inventar regra nova:
 //   · salário = 10% do preço, por temporada (a mesma conta de `careerTecnicoPago`/10)
@@ -21,7 +22,10 @@
 //   · 🔁 RENOVAÇÃO PELA METADE DO PREÇO (Diego 19/09): *"tá mt caro renovar contrato
 //     de preparador, principalmente o de mil… quero q seja metade todos eles, como se
 //     o valor desse é mil mas fosse 500 p cálculos de renovação"*. Antes copiava o
-//     técnico (preço cheio). Vale pros QUATRO: 50 · 150 · 300 · 500.
+//     técnico (preço cheio). Vale pros QUATRO.
+//   · 💰 PREÇOS DE 19/09 (ordem dele, logo depois): *"coloque preço principal de
+//     100, 300, 500, 800"*. Era 100/300/600/1000. Com isso: salário 10/30/50/80 e
+//     renovação 50/150/250/400.
 //   · dispensa sem multa depois de vencido
 import type { ApoioTier } from './apoio'
 
@@ -67,13 +71,13 @@ export const PREPARADORES: Preparador[] = [
     key: 'paixao', nome: 'Paulo Paixão', pais: '🇧🇷', tier: 'prata', selo: '⭐', cat: ['Craque', 'Star'],
     bio: ['Preparador físico da Seleção Brasileira em quatro Copas do Mundo seguidas.',
       'Fitness coach for the Brazil national team in four straight World Cups.'],
-    preco: 600, banco: 12,
+    preco: 500, banco: 12,
   },
   {
     key: 'seirulo', nome: 'Paco Seirulo', pais: '🇪🇸', tier: 'ouro', selo: '👑', cat: ['Lenda', 'Legend'],
     bio: ['Décadas no Barcelona — a preparação física por trás da era mais vitoriosa do clube.',
       'Decades at Barcelona — the fitness work behind the club\'s most successful era.'],
-    preco: 1000, banco: 20,
+    preco: 800, banco: 20,
   },
 ]
 

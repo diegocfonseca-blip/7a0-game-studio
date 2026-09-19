@@ -425,7 +425,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **🏋️ Renovar preparador físico custa METADE do preço de contratar (19/09).**
   Palavras dele: *"como se o valor desse é mil mas fosse 500 p cálculos de
   renovação… serve p outros preparadores tb"*. Mora em `precoRenovacaoPreparador`
-  (`preparadores.ts`). Só o preparador; o técnico ele não pediu. E o texto do
+  (`preparadores.ts`). Só o preparador; o técnico ele não pediu. **Catálogo desde
+  19/09: 100 · 300 · 500 · 800** (*"coloque preço principal de 100, 300, 500, 800"*). E o texto do
   preparador nunca mais diz "joga N seguidas e senta 1" — ele confundiu com o ponto
   em que o jogador cansa (54 jogos, igual pra todos). Diz-se quanto o BANCO devolve
   e quantos jogos um descanso paga.

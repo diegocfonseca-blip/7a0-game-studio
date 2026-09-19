@@ -9,8 +9,13 @@ Duas cobranças dele no mesmo áudio, olhando a loja do preparador:
    jogador q nem tem preparador cansa só dps de 50 partidas"*.
 
 ### ✅ 1. Renovação pela metade (`precoRenovacaoPreparador` em `preparadores.ts`)
-- `RENOVAR_PREPARADOR` cobra `round(preco/2)`: **50 · 150 · 300 · 500**. Antes copiava
-  o técnico e cobrava o preço cheio (100/300/600/1000).
+- `RENOVAR_PREPARADOR` cobra `round(preco/2)`. Antes copiava o técnico e cobrava o
+  preço cheio.
+- 💰 **E logo depois ele baixou o catálogo**: *"coloque preço principal de 100, 300,
+  500, 800"* (era 100/300/600/1000). Ficou: contratar **100 · 300 · 500 · 800** ·
+  salário **10 · 30 · 50 · 80** · renovar **50 · 150 · 250 · 400**. Quem já tem o
+  Paixão ou o Seirulo contratado não devolve nem paga nada — só o salário da
+  próxima temporada já sai menor, porque é calculado do catálogo na hora.
 - O botão RENOVAR mostra o valor novo e escreve "(metade do preço)"; o extrato e o
   aviso da renovação dizem o mesmo. Salário não mudou (10% do preço cheio).
 - **Só o preparador.** O técnico continua renovando pelo valor dele — ele não pediu.

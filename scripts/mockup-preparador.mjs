@@ -7,8 +7,8 @@
 // 🪜 2ª volta (14/09): ele pediu um QUARTO degrau, o 💎 roxo da categoria promessa,
 // *"pq acho q o preparador de seleção deveria encher o tanque em menos rodadas
 // ainda"* — ou seja, o topo ficou mais forte e abriu espaço no meio. Ficou:
-// 🟢 Rui Faria (100) · 💎 Antonio Pintus (300) · ⭐ Paulo Paixão (600) ·
-// 👑 Paco Seirulo (1000). Salário = 10% do preço por temporada (regra do técnico).
+// 🟢 Rui Faria (100) · 💎 Antonio Pintus (300) · ⭐ Paulo Paixão (500) ·
+// 👑 Paco Seirulo (800). Salário = 10% do preço por temporada (regra do técnico).
 // NADA aqui está no jogo — é só pra ele aprovar o visual antes de codar (regra nº 2).
 // Rodar: node scripts/mockup-preparador.mjs
 import { chromium } from 'playwright-core'
@@ -83,8 +83,8 @@ const PREP = { emoji: '🏋️', papel: 'PREPARADOR FÍSICO', nome: 'Rui Faria',
 const LOJA = [
   { grad: G_VERDE, selo: '🟢', cat: 'BOM', nome: 'Rui Faria', pais: '🇵🇹', bio: 'Começou como preparador físico do Mourinho e virou auxiliar dele no Porto, Chelsea, Inter, Real e United.', preco: 100, banco: 6 },
   { grad: G_ROXO, selo: '💎', cat: 'PROMESSA', nome: 'Antonio Pintus', pais: '🇮🇹', bio: 'Preparador físico da Juventus, Inter, Monaco e do Real Madrid.', preco: 300, banco: 9 },
-  { grad: G_PRATA, selo: '⭐', cat: 'CRAQUE', nome: 'Paulo Paixão', pais: '🇧🇷', bio: 'Preparador físico da Seleção Brasileira em quatro Copas do Mundo seguidas.', preco: 600, banco: 12 },
-  { grad: G_OURO, selo: '👑', cat: 'LENDA', nome: 'Paco Seirulo', pais: '🇪🇸', bio: 'Décadas no Barcelona — a preparação física por trás da era mais vitoriosa do clube.', preco: 1000, banco: 20 },
+  { grad: G_PRATA, selo: '⭐', cat: 'CRAQUE', nome: 'Paulo Paixão', pais: '🇧🇷', bio: 'Preparador físico da Seleção Brasileira em quatro Copas do Mundo seguidas.', preco: 500, banco: 12 },
+  { grad: G_OURO, selo: '👑', cat: 'LENDA', nome: 'Paco Seirulo', pais: '🇪🇸', bio: 'Décadas no Barcelona — a preparação física por trás da era mais vitoriosa do clube.', preco: 800, banco: 20 },
 ]
 const seguidas = b => Math.floor(b / 1.4)
 const encher = b => Math.ceil(100 / b)
@@ -196,7 +196,7 @@ const html = `<!doctype html><meta charset="utf-8">
 
 <div class="nota">
   <b>As regras, em uma linha cada.</b><br>
-  · <b>Salário igual ao do técnico</b>: 10% do preço, por temporada (100 → 10 · 300 → 30 · 600 → 60 · 1000 → 100), e entra na <b>Folha do Time</b>.<br>
+  · <b>Salário igual ao do técnico</b>: 10% do preço, por temporada (100 → 10 · 300 → 30 · 500 → 50 · 800 → 80), e entra na <b>Folha do Time</b>.<br>
   · <b>Contrato de 5 temporadas</b>, igual ao técnico. Venceu, aparece <b>RENOVAR</b> pelo mesmo preço, ou você deixa ir sem multa.<br>
   · <b>Sem preparador nada trava</b>: você continua trocando na mão, tocando no cansado e no reserva. O que ele dá é o <b>botão</b>.<br>
   · <b>O 🤖 automático é só do 👑 Lenda</b> — 🟢 💎 ⭐ dão o botão, o 👑 cuida do time sozinho.<br>

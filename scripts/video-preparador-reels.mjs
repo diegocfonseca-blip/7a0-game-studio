@@ -143,8 +143,8 @@ ${cena(11.4, 18.6, `
   <div style="display:flex;flex-direction:column;gap:20px">
     ${card(G_VERDE, '🟢', 'bom', 'Rui Faria', '🇵🇹', 'joga <b>4</b> seguidas e senta 1', 100, 12.1)}
     ${card(G_ROXO, '💎', 'promessa', 'Antonio Pintus', '🇮🇹', 'joga <b>6</b> seguidas e senta 1', 300, 13.3)}
-    ${card(G_PRATA, '⭐', 'craque', 'Paulo Paixão', '🇧🇷', 'joga <b>8</b> seguidas e senta 1', 600, 14.5)}
-    ${card(G_OURO, '👑', 'lenda', 'Paco Seirulo', '🇪🇸', 'joga <b>14</b> seguidas e senta 1', 1000, 15.7)}
+    ${card(G_PRATA, '⭐', 'craque', 'Paulo Paixão', '🇧🇷', 'joga <b>8</b> seguidas e senta 1', 500, 14.5)}
+    ${card(G_OURO, '👑', 'lenda', 'Paco Seirulo', '🇪🇸', 'joga <b>14</b> seguidas e senta 1', 800, 15.7)}
   </div>
   <p style="font-size:38px;font-weight:800;color:rgba(12,12,12,.68);margin-top:40px;text-align:center;line-height:1.3;
     animation:sobe .45s 16.9s both">com o 👑 o tanque vazio enche em <b>5 rodadas</b><br>no banco — hoje leva <b>25</b></p>`)}
