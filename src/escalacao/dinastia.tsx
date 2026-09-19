@@ -80,7 +80,7 @@ function filler(pos: Sector, rng: () => number): PoolCard {
   // fake da várzea: SEMPRE abaixo dos reais e com faixa ESTREITA (spread < 14),
   // pra nunca ter "dia inspirado" e não brigar na artilharia com os craques.
   const lo = 40 + Math.floor(rng() * 6) // 40–45
-  return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 7 + Math.floor(rng() * 4) }
+  return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 7 + Math.floor(rng() * 4), fake: true }
 }
 
 // ─── valor ──────────────────────────────────────────────────────────────
@@ -1343,7 +1343,7 @@ function FillSquadScreen({ save, persist, onReady, onBack }: { save: Save; persi
     const floorMid = mids.length ? Math.min(...mids) : 52
     const hi = Math.max(40, Math.round(floorMid))
     const lo = Math.max(30, hi - 12)
-    return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi }
+    return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi, fake: true }
   }
   // completa os buracos que sobraram com reservas fakes (último recurso) e joga
   const playWithFakes = () => {

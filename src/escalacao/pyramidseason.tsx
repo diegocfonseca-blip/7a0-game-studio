@@ -162,7 +162,7 @@ let filCounter = 0
 const FIL_NAMES = ['Perna-de-pau', 'Ferro Velho', 'Pé de Anjo', 'Canela Seca', 'Zé Ninguém', 'Trapalhão', 'Bola Murcha', 'Meia-Boca']
 // fillers de várzea: nível bem baixo (abaixo de semi-pro) — perna-de-pau mesmo,
 // pra não brigarem na artilharia com os craques de verdade.
-function filler(pos: Sector, rng: () => number): PoolCard { const lo = 30 + Math.floor(rng() * 6); return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4) } }
+function filler(pos: Sector, rng: () => number): PoolCard { const lo = 30 + Math.floor(rng() * 6); return { id: `fil-${filCounter++}`, name: FIL_NAMES[Math.floor(rng() * FIL_NAMES.length)], club: 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4), fake: true } }
 export type Tac = 'retranca' | 'equilibrio' | 'ataque'
 export const TACS: Tac[] = ['retranca', 'equilibrio', 'ataque']
 export function rollForm(squad: PoolCard[], tac: Tac, _opp: Tac, rng: () => number) {

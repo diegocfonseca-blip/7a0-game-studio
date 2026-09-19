@@ -98,6 +98,24 @@ const r = await p.evaluate(async () => {
   // e o de verdade não perde nada
   ok(limpo.careerScorersAll['romário|vasco|1994']?.goals === 30, 'a limpeza mexeu nos gols de quem é de verdade')
 
+  // 6️⃣ 🏷️ O FILLER NASCE COM O SELO — e a porta do leilão reconhece o velho
+  // Este é o buraco que o print do Diego mostrou (19/09): um "ATA · Zé Ninguém
+  // (Várzea 2000)" comprado no LEILÃO por 50 moedas. O filler não tinha
+  // `fake: true`, então o jogo inteiro — que pergunta `!c.fake` pra saber se a
+  // carta é de gente de verdade — o tratava como jogador real e o mandava pro
+  // leilão. Pior: a regra que garante "pelo menos 1 carta por posição" pega a
+  // carta MAIS FRACA do bot, e a mais fraca é sempre o filler.
+  const daPiramide = ps.seedCpuSquads([], 777, 'todos', true)
+  let semSelo = 0, comSelo = 0
+  for (const nome of Object.keys(daPiramide)) for (const c of daPiramide[nome]) {
+    if (!f.ehCartaFake(c)) continue
+    if (c.fake === true) comSelo++; else semSelo++
+  }
+  ok(comSelo > 0, 'nenhum filler nasceu na pirâmide — a trava não conseguiu conferir o selo')
+  ok(semSelo === 0, `${semSelo} filler(s) nasceram SEM o selo fake: true — a porta do leilão volta a deixar passar`)
+  // e o filler VELHO (save antigo, sem o selo) continua sendo pego pela regra
+  ok(f.ehCartaFake({ id: 'fil-s-3', name: 'Zé Ninguém', club: 'Várzea', pos: 'ATA' }), 'filler de save ANTIGO (sem selo) não foi reconhecido — carreira que já existe continuaria vendendo ele no leilão')
+
   return { falhas, cartas: todas.length }
 })
 

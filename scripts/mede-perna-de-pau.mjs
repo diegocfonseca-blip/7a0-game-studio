@@ -78,10 +78,11 @@ const r = await p.evaluate(async () => {
     }
     const sq = ps.seedCpuSquads(usados, 12345, 'todos', true)
     let n = 0
-    for (const nome of Object.keys(sq)) for (const c of sq[nome]) if (f.ehCartaFake(c)) n++
-    return n
+    const porPos = Object.fromEntries(SECTORS.map(p => [p, 0]))
+    for (const nome of Object.keys(sq)) for (const c of sq[nome]) if (f.ehCartaFake(c)) { n++; porPos[c.pos]++ }
+    return { n, porPos }
   }
-  const cenarios = [[20, 11], [20, 15], [20, 20], [20, 27]].map(([q2, k]) => ({ tecnicos: q2, cartas: k, fake: comDonos(q2, k) }))
+  const cenarios = [[20, 11], [20, 15], [20, 20], [20, 27]].map(([q2, k]) => { const x = comDonos(q2, k); return { tecnicos: q2, cartas: k, fake: x.n, porPos: x.porPos } })
 
   return { temPorPos, fakePorPos, realPorPos, totalCartas, totalFake, totalVagas, nTimes: times.length, NEED, porFaixa, cenarios, piores: Object.entries(fakePorTime).sort((a, b) => b[1] - a[1]).slice(0, 5) }
 })
@@ -114,6 +115,6 @@ for (const fx of r.porFaixa) {
   console.log(`   ${fx.nome}     │ ${cel.join(' │ ')}`)
 }
 console.log('\n🧑‍🤝‍🧑 E QUANDO OS TÉCNICOS ESTÃO EM CAMPO (as cartas deles saem do pool antes):\n')
-for (const c of r.cenarios) console.log(`   ${c.tecnicos} técnicos × ${String(c.cartas).padStart(2)} cartas = ${String(c.tecnicos * c.cartas).padStart(3)} cartas fora do pool → ${String(c.fake).padStart(3)} tapa-buraco na pirâmide`)
+for (const c of r.cenarios) console.log(`   ${c.tecnicos} técnicos × ${String(c.cartas).padStart(2)} cartas = ${String(c.tecnicos * c.cartas).padStart(3)} fora do pool → ${String(c.fake).padStart(3)} tapa-buraco  (${SECTORS.map(p => `${p} ${c.porPos[p]}`).join(' · ')})`)
 console.log('\n💡 A conta que importa é COLUNA A COLUNA, não o total: o sorteio distribui')
 console.log('   POR POSIÇÃO e POR FAIXA — sobrar atacante não tapa buraco de lateral.\n')

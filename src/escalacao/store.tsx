@@ -955,7 +955,10 @@ function fillerCard(pos: Sector, rng: () => number): WonCard {
   const lo = 30 + Math.floor(rng() * 6)
   const nba = ACTIVE_SPORT === 'basquete'
   const names = nba ? FIL_NAMES_NBA : FIL_NAMES
-  return { id: `fil-s-${fillCounter++}`, name: names[Math.floor(rng() * names.length)], club: nba ? 'Pickup' : 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4), paid: 0, via: 'bot' }
+  // 🏷️ `fake: true` DESDE 19/09 — ver o comentário grande em `fake.ts`. Sem o selo,
+  // o jogo inteiro (que pergunta `!c.fake` pra saber se a carta é de gente de
+  // verdade) tratava o perna-de-pau como jogador real e o mandava pro LEILÃO.
+  return { id: `fil-s-${fillCounter++}`, name: names[Math.floor(rng() * names.length)], club: nba ? 'Pickup' : 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4), fake: true, paid: 0, via: 'bot' }
 }
 // completa um elenco de time de fundo até o mínimo da formação (11) com filler,
 // por posição — a rede de segurança pra nunca ficar com menos de 11.
@@ -7928,7 +7931,7 @@ export function reducer(state: EscState, action: Action): EscState {
           if (nList === 0) continue
           const spares: WonCard[] = []
           for (const pos of SECTORS) {
-            const real = m.squad.filter(c => c.pos === pos && !c.fake).sort((a, b) => rate(a) - rate(b))
+            const real = m.squad.filter(c => c.pos === pos && !ehCartaFake(c)).sort((a, b) => rate(a) - rate(b))
             spares.push(...real.slice(0, Math.max(0, real.length - FORMATIONS[m.formation][pos]))) // as que passam do XI (mais fracas)
           }
           spares.sort((a, b) => rate(a) - rate(b))
@@ -7978,7 +7981,7 @@ export function reducer(state: EscState, action: Action): EscState {
           // (`MEI-42`) tem a mesma forma do id do baralho e poderia bater com outro
           // lote. A identidade (nome|clube|ano) é a mesma, que é o que importa.
           const f = s.aliciarFundo
-          if (f && f.cardId === cid && !f.card.fake) {
+          if (f && f.cardId === cid && !ehCartaFake(f.card)) {
             listedCards.push({ ...f.card, id: `sond-${cid}`, semContrato: true })
             // 🎯 O CLUBE SONDADO ENTRA NO LEILÃO INTEIRO (Diego 13/09): *"esse time
             // sondado tem direito a participar da leva inteira do leilão também, seja
@@ -8143,9 +8146,9 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) {
           // junta TODOS os famosos da posição (bots da liga + 60 de fundo) e pega UM ao acaso
           const cands: { card: Card; ownerBot?: Manager; ownerName?: string }[] = []
-          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !c.fake && famosoOk(c)) cands.push({ card: c, ownerBot: bot })
+          for (const bot of s.managers.filter(isMktBot)) for (const c of bot.squad) if (c.pos === pos && !ehCartaFake(c) && famosoOk(c)) cands.push({ card: c, ownerBot: bot })
           // 🏢 jogador de EMPRÉSTIMO na SAF nunca entra no sorteio — não é dela, é do dono
-          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !c.fake && famosoOk(c) && !(c as WonCard).emprestado) cands.push({ card: c, ownerName: name })
+          for (const name in cpuSq) for (const c of cpuSq[name]) if (c.pos === pos && !ehCartaFake(c) && famosoOk(c) && !(c as WonCard).emprestado) cands.push({ card: c, ownerName: name })
           if (cands.length) {
             const pick = cands[Math.floor(rng() * cands.length)]
             const owner = pick.ownerBot ?? materialize(pick.ownerName!)
@@ -8174,7 +8177,7 @@ export function reducer(state: EscState, action: Action): EscState {
           bot.backstop = true // bot fica em 11 (sem elenco fundo) — só repõe o que perder
           // solta as reservas REAIS do bot (o que passa do XI) pro baralho
           for (const pos of SECTORS) {
-            const realInPos = bot.squad.filter(c => c.pos === pos && !c.fake)
+            const realInPos = bot.squad.filter(c => c.pos === pos && !ehCartaFake(c))
             const spare = realInPos.slice(FORMATIONS[bot.formation][pos])
             for (const c of spare) { bot.squad = bot.squad.filter(x => x.id !== c.id); s.deck[pos].push({ ...c, seller: bot.id }) }
           }
@@ -8216,7 +8219,7 @@ export function reducer(state: EscState, action: Action): EscState {
           if (s.deck[pos].length > 0) continue
           let done = false
           for (const bot of shuffle(s.managers.filter(m => !m.isHuman && !m.rival), rng)) {
-            const spare = (bot.squad as WonCard[]).filter(c => c.pos === pos && !c.fake).sort((a, b) => rate(a) - rate(b))[0]
+            const spare = (bot.squad as WonCard[]).filter(c => c.pos === pos && !ehCartaFake(c)).sort((a, b) => rate(a) - rate(b))[0]
             if (!spare) continue
             bot.squad = bot.squad.filter(c => c.id !== spare.id)
             bot.backstop = true // agora repõe o que soltou E pode brigar em todas as posições

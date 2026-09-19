@@ -1,3 +1,45 @@
+## 19/09/2026 (parte 20) — 🏷️ A RAIZ: o perna-de-pau nunca teve selo de "fake"
+
+O Diego mandou o print que fechou o caso (elenco do Geovany Souza):
+**`ATA · Zé Ninguém (Várzea 2000) · leilão · pagou 50 · 31–37`**. Ou seja: o
+perna-de-pau **foi pro LEILÃO** e um usuário comprou.
+
+### O buraco
+As quatro fábricas de filler (`pyramidseason.tsx`, `store.tsx` e duas em
+`dinastia.tsx`) criavam a carta **sem `fake: true`** — só com clube `Várzea`. E o
+jogo inteiro pergunta **`!c.fake`** pra saber se a carta é de gente de verdade.
+Resultado: o filler passava por TODAS as portas como se fosse jogador real.
+
+E tinha uma ironia: a regra que garante *"pelo menos 1 carta por posição no
+leilão"* pega a carta **MAIS FRACA** do bot. A mais fraca é **sempre** o filler.
+Ou seja, o jogo não só deixava ele passar — ele era o **preferido** pra ir pro leilão.
+
+### Por que ele era ATACANTE (a parte que a medição da parte 19 não explicava)
+A medição mostrou que o filler nasce só em GOL/LAT/ZAG. Mas existe um segundo
+nascedouro: `fillToEleven` (`store.tsx`), que completa o time de fundo que vendeu
+e não repôs — e esse completa **qualquer posição, inclusive ATA**. Daí o ciclo:
+time de fundo entra no mercado → vende → é completado com um ATA Zé Ninguém →
+na temporada seguinte ele é a carta mais fraca → vai pro leilão → usuário compra
+→ joga de titular e vira artilheiro.
+
+### O conserto (duas pernas)
+1. **O filler nasce com `fake: true`** nas quatro fábricas. Com o selo, todas as
+   travas que já existiam passam a funcionar sozinhas (leilão, contrato, salário,
+   fechar os 11).
+2. **As portas do leilão passaram a usar `ehCartaFake()`** em vez de `!c.fake` —
+   6 lugares. Isto é o que cobre **carreira que JÁ existe**: o filler velho está
+   gravado no save sem o selo, e a regra compartilhada reconhece ele pelo clube
+   e pelo id mesmo assim.
+
+**Trava: `npm run fake`, seção 6** — reprova se um filler nascer sem selo ou se o
+filler de save antigo deixar de ser reconhecido.
+
+⚠️ O que **não** muda: o filler continua existindo e continua jogando pelos times
+de fundo (é ele que mantém o time com 11). Ele só não é mais tratado como
+jogador de verdade.
+
+---
+
 ## 19/09/2026 (parte 19) — 🧮 Por que aparece perna-de-pau se o baralho tem 1.466 cartas
 
 Pergunta do Diego: *"se eu tenho 1466 cartas, por que essas cartas todas não estão
