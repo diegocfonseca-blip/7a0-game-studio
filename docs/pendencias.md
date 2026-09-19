@@ -19,18 +19,42 @@ no `SEASON_TOTAL_MS`, que é o orçamento da temporada E divide os 82 jogos do
 basquete. Na carreira é o `ROUND_MS` próprio do `pyramidseason.tsx`. O teste
 `npm run ritmo` reprova se aparecer um segundo `ROUND_MS` em qualquer um dos dois.
 
-### 🔔 O apito agora é UM SÓ, na largada (FEITO, no branch)
-Ordem dele: *"apito coloque só no início do jogo p N ficar repetitivo"*. Ele tinha
-razão: o `useEffect` disparava a cada `state.round`, ou seja **38 apitos por
-temporada** — virou tique-taque. Agora o guarda é um `useRef` que **conta a
-TEMPORADA** (`jaApitou.current === state.seasonNo`), nos 3 lugares que apitavam:
-liga do rápido/online, Libertadores e carreira.
+### 🔔 O APITO tem REGRA agora (FEITO, no branch)
+Isto virou pergunta dele, e a pergunta foi boa: *"não entendi sobre o apito.. vai
+ter em uma partida só ou no início de todas as partidas?"*. Eu tinha lido o
+*"apito coloque só no início do jogo p N ficar repetitivo"* como **um por
+temporada**, e ele quis o meio-termo. Escolha dele: *"isso número 3.. qd for copa
+e sempre a primeira partida tb né.. e qlqr copa nova ou liga.. e vale tb pro modo
+online qlqr modo tb"*.
 
-Dois detalhes de propósito: o gatilho é a **primeira rodada que a TELA anima**
-(quem abre um save no meio da temporada também ouve a largada, em vez de ficar
-mudo porque a rodada 1 já passou), e **temporada nova ganha apito novo** mesmo se
-a tela não tiver sido fechada no caminho. O `npm run som` ganhou a seção **2b**,
-que reprova se alguém voltar com o `playWhistle()` solto.
+**A regra, em três linhas:**
+1. A **primeira partida de qualquer competição** apita — liga nova, copa nova.
+2. **Toda partida de COPA** apita — mata-mata é jogo grande, sempre.
+3. Da **2ª rodada de liga** em diante, silêncio — era isso que ficava repetitivo
+   (38 apitos por temporada).
+
+Mora num lugar só: **`useApitoDeLargada`** (em `pyramidseason.tsx`, ao lado do
+`LiveScoreCard`). As 6 telas de partida chamam esse gancho e nenhuma apita por
+fora — o `npm run som` reprova `playWhistle()` solto:
+
+| tela | competição | apita |
+|---|---|---|
+| liga da carreira | `liga-carreira-<temporada>` | só na largada |
+| Copa da carreira (Brasil/Legends/Supercopa) | `copa-carreira` | **toda partida** |
+| liga do rápido/online | `liga-<temporada>` | só na largada |
+| Copa dos 8 / NBA Cup / playoffs | `copa-rapida` | **toda partida** |
+| Libertadores | `libertadores` | **toda partida** |
+| Copa do Mundo | `copa-mundo` | **toda partida** |
+
+⚠️ **Por que o gancho tem DUAS chaves** (competição + partida): sem a competição, a
+temporada nº 2 não apitaria (a rodada volta a ser 1, que o gancho já teria visto);
+sem a partida, a copa não apitaria a cada jogo. São perguntas diferentes, e juntar
+as duas numa chave só quebra uma das pontas.
+
+🏟️ **DE QUEBRA: a Copa do Mundo estava MUDA e ninguém tinha notado.** Ela tem tela
+própria (`copa-mundo.tsx`), não é a da liga — então o som de 18/09 passou por fora
+dela. Ganhou ambiente + apito agora. O `npm run som` passou a varrer as telas pelo
+`LiveScoreCard`, pra nenhuma outra ficar de fora de novo.
 
 ### 🔊 O SOM DA PARTIDA ESTÁ FECHADO (FEITO, no branch)
 Palavras dele: *"quero só os áudios que eu mandei, do ambiente, gol, e o apito que

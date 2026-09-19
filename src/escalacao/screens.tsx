@@ -9,7 +9,7 @@ import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Se
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
 import { lanceEhGol, useEsc, openSlots, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteLocked, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
-import { playCoin, playSeal, playTick, playHammer, playMp3, playWhistle, startCrowd, stopCrowd } from './sound'
+import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
 import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
@@ -31,7 +31,7 @@ const CopaDaLigaLazy = lazy(() => import('./copa-mundo-online').then(m => ({ def
 import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estante · Temporadas · Ajustes
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
-import { playerColors, perkFromSelo, LiveScoreCard, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
+import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
@@ -5345,19 +5345,9 @@ export function EscSeason() {
   }, [state.round, seasonSettled])
   // 🏟️ torcida ao fundo enquanto a temporada roda (para ao sair da tela)
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
-  // 📣 APITO SÓ UMA VEZ, NO COMEÇO (Diego 19/09): *"apito coloque só no início do
-  // jogo p N ficar repetitivo"*. Antes tocava a CADA rodada — 38 apitos por
-  // temporada, e ele cansou. Agora é um só.
-  // ⚠️ O gatilho é a PRIMEIRA rodada que ESTA tela anima, não a rodada nº 1 do
-  // calendário: quem retoma a temporada no meio também ouve o apito de largada.
-  // O contador é a TEMPORADA, então temporada nova ganha apito novo.
-  const jaApitou = useRef<number | null>(null)
-  useEffect(() => {
-    if (state.round <= 0 || state.round > totalRounds) return
-    if (jaApitou.current === (state.seasonNo ?? 1)) return
-    jaApitou.current = state.seasonNo ?? 1
-    playWhistle()
-  }, [state.round, state.seasonNo])
+  // 📣 LIGA DO RÁPIDO/ONLINE: apita só na LARGADA da temporada (a regra mora em
+  // `useApitoDeLargada`, no `pyramidseason.tsx`, e é a MESMA nos três modos).
+  useApitoDeLargada(`liga-${state.seasonNo ?? 1}`, state.round > 0 && state.round <= totalRounds ? state.round : null)
 
   // manchete PESSOAL (por quem vê): detecta quando VOCÊ muda de faixa na
   // tabela. Feito no cliente pra ficar certo pra cada um no online.
@@ -5445,6 +5435,9 @@ export function EscSeason() {
   const copaLive = cupNow || (state.round >= totalRounds && !!state.quickCopa && state.quickCopa.phase !== 'done')
   const bbSerie = bbS && !cupNow // 🏀 série melhor de 3 = só nos playoffs; na Cup é jogo único
   const copaTieKey = qc ? `${qc.phase}:${qc.legIdx}:${qc.ties.map(t => t.legs.length).join(',')}` : ''
+  // 📣 COPA APITA SEMPRE (Diego 19/09) — Copa dos 8, Libertadores do rápido, NBA
+  // Cup e playoffs passam todos por aqui, e o `copaTieKey` já muda a cada partida.
+  useApitoDeLargada('copa-rapida', copaLive ? copaTieKey : null, true)
   // primeira partida da Copa (quartas, ainda ninguém jogou nada): dá um tempo
   // de LEITURA (30s) pra explicar o formato antes de começar a rolar bola — as
   // demais trocas de fase seguem no ritmo normal, sem essa pausa extra.
@@ -6864,13 +6857,9 @@ export function EscLiberta() {
     return () => clearTimeout(t)
   }, [lb?.rodada])
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
-  // 📣 um apito só, na largada da Libertadores (mesma regra da liga, Diego 19/09)
-  const jaApitouLib = useRef(false)
-  useEffect(() => {
-    if (jaApitouLib.current || (lb?.rodada ?? 0) <= 0) return
-    jaApitouLib.current = true
-    playWhistle()
-  }, [lb?.rodada])
+  // 📣 LIBERTADORES: é COPA, então apita em TODA partida (Diego 19/09: *"qualquer
+  // copa nova ou liga"*) — inclusive nas rodadas de grupo, que já são de torneio.
+  useApitoDeLargada('libertadores', (lb?.rodada ?? 0) > 0 ? `${lb?.fase ?? ''}-${lb?.rodada ?? 0}` : null, true)
   // autoplay: só quem conduz dispara a rodada seguinte (os outros recebem o
   // resultado já sincronizado e animam localmente).
   useEffect(() => {

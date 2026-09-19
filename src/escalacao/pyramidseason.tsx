@@ -2478,7 +2478,42 @@ function GoalsCol({ list, align, basket }: { list: ScoreGoal[]; align: 'left' | 
   )
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange }: 
+// ─── 📣 APITO DE LARGADA — a regra fechada com o Diego em 19/09 ─────────────
+// Ele perguntou: *"vai ter em uma partida só ou no início de todas as partidas?"*
+// e escolheu o meio-termo: *"isso, número 3.. quando for copa, e sempre a primeira
+// partida também né.. e qualquer copa nova ou liga.. e vale também pro modo online,
+// qualquer modo também"*.
+//
+// A regra, em três linhas:
+//   1. A **primeira partida de qualquer competição** apita — liga nova, copa nova.
+//   2. **Toda partida de COPA** apita — mata-mata é jogo grande, sempre.
+//   3. Da 2ª rodada de LIGA em diante, silêncio — era o que ficava repetitivo
+//      (38 apitos por temporada, um a cada rodada).
+//
+// 🌐 E vale igual nos três modos (*"qualquer modo também"*): carreira, jogo rápido
+//    e online. Dá pra garantir isso porque as TELAS de partida são as mesmas nos
+//    três — quem chama este gancho é a tela, não o modo.
+//
+// ⚠️ Por que DUAS chaves e não uma: sem a `competicao`, a temporada nº 2 não
+//    apitaria (a rodada volta a ser 1, que este gancho já teria visto). Sem a
+//    `partida`, a copa não apitaria a cada jogo. São perguntas diferentes.
+// ⚠️ E o gatilho é a primeira partida que a TELA VÊ, não a de número 1: quem abre
+//    um save no meio da temporada também ouve a largada, em vez de ficar mudo.
+export function useApitoDeLargada(competicao: string | null | undefined, partida: string | number | null | undefined, copa = false) {
+  const compVista = useRef<string | null>(null)
+  const partidaVista = useRef<string | null>(null)
+  useEffect(() => {
+    if (!competicao || partida == null || partida === '') return
+    const p = String(partida)
+    const novaCompeticao = compVista.current !== competicao
+    const novaPartida = partidaVista.current !== p
+    compVista.current = competicao
+    partidaVista.current = p
+    if (novaCompeticao || (copa && novaPartida)) playWhistle()
+  }, [competicao, partida, copa])
+}
+
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
@@ -5812,6 +5847,11 @@ function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed,
   // este card e a lista de jogos, TÊM que sair do mesmo número, senão o placar do
   // seu jogo apita fora de hora em relação aos outros.
   const roundMs = Math.max(400, (legMs / sf) / 0.82)
+  // 📣 COPA APITA SEMPRE (Diego 19/09: *"quando for copa"*) — e por partida, não
+  // por fase: o jogo de IDA e o de VOLTA são duas partidas, e o `roundKey` abaixo
+  // já muda entre eles. Vale Copa do Brasil, Copa Legends e Supercopa, que passam
+  // todas por este mesmo card.
+  useApitoDeLargada('copa-carreira', phase * 10 + legIdx, true)
   const aWin = tie.win === 'a'
   const winName = aWin ? copaName(tie.a) : copaName(tie.b)
   const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens) : 0
@@ -6745,18 +6785,9 @@ export function PyramidSeasonScreen() {
   // suba nenhum som ainda… por enquanto só o apito mesmo"*). A torcida de fundo da
   // carreira fica pronta atrás da chave `TORCIDA_NOVA`, em `sound.ts`.
   useEffect(() => { if (!TORCIDA_NOVA) return; startCrowd(); return () => stopCrowd() }, [])
-  // 📣 APITO SÓ UMA VEZ, NO COMEÇO (Diego 19/09): *"apito coloque só no início do
-  // jogo p N ficar repetitivo"*. Na carreira era pior que no rápido — ele joga
-  // temporada atrás de temporada, e o apito vinha em TODA rodada.
-  // ⚠️ Gatilho = a primeira rodada que ESTA tela anima (quem abre um save no meio
-  // da temporada também ouve a largada), e o contador é a TEMPORADA: temporada
-  // nova = um apito novo, mesmo que a tela não tenha sido fechada no caminho.
-  const jaApitou = useRef<number | null>(null)
-  useEffect(() => {
-    if (state.round <= 0 || jaApitou.current === (state.seasonNo ?? 1)) return
-    jaApitou.current = state.seasonNo ?? 1
-    playWhistle()
-  }, [state.round, state.seasonNo])
+  // 📣 LIGA DA CARREIRA: apita só na LARGADA da temporada (ver `useApitoDeLargada`).
+  // A Copa da carreira tem apito próprio, em toda partida — mora no `MyCopaMatch`.
+  useApitoDeLargada(`liga-carreira-${state.seasonNo ?? 1}`, state.round > 0 ? state.round : null)
   // 🟢 liga o "contexto verde" da carreira OFFLINE (feehcamp etc. veem verde SÓ aqui;
   // ouro em todo o resto). Inline (roda antes dos filhos, sem flash) + limpa ao sair.
   setCareerColorCtx(state.careerOnline && state.onlineMode !== 'online' ? 'offline' : null)

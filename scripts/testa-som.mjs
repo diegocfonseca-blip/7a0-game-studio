@@ -1,26 +1,33 @@
 #!/usr/bin/env node
-// 🔊 TRAVA DO SOM DO JOGO — torcida, canto e apito.
+// 🔊 TRAVA DO SOM DO JOGO — ambiente, gol e apito.
 //
-// Diego (18/09): *"precisamos colocar som de torcida nos jogos, seja online ou
-// offline, pra dar mais emoção ao jogo.. apito sempre que iniciar partida e cantos
-// de torcida durante o jogo... e aí, cadê?"*.
-//
-// O "cadê" tinha resposta: existia, mas só na tela do RÁPIDO/ONLINE. A carreira —
-// que é onde ele mais joga — era muda. E a torcida era um zumbido PARADO: o mesmo
-// ruído do começo ao fim, sem reagir nem ao gol.
+// Como o som ficou depois das decisões do Diego em 18 e 19/09:
+//   🏟️ AMBIENTE → o arquivo que ELE mandou, em loop, em toda tela de partida
+//   🥅 GOL      → o arquivo que ELE mandou (a opção B)
+//   📣 APITO    → sintetizado, o de sempre, mas com REGRA: na largada de qualquer
+//                 competição e em TODA partida de copa; na liga, só na 1ª rodada
+// Palavras dele: *"quero só os áudios que eu mandei, do ambiente, gol, e o apito
+// que você já tinha mesmo"* e *"quando for copa e sempre a primeira partida também…
+// e qualquer copa nova ou liga… e vale também pro modo online, qualquer modo"*.
 //
 // O que esta trava protege, em ordem de perigo:
-//  1. 🪶 PESO: som do jogo é SINTETIZADO. Se alguém um dia empurrar um .mp3 de
-//     torcida (loop de estádio passa fácil de 1 MB), ela reprova — a regra de peso
-//     da casa vale pro som igual vale pra arte de batismo.
-//  2. 🔇 NINGUÉM LEVA SUSTO: o som nasce MUDO e é opt-in no botão.
-//  3. 📣 os DOIS modos têm torcida e apito (era o furo).
+//  1. 🪶 PESO: o som de partida é ARQUIVO em `public/` (fora do bundle) e leve.
+//     Se alguém empurrar um loop de estádio de 1 MB, ou embutir áudio em base64
+//     no código, ela reprova — a regra de peso vale pro som igual vale pra arte.
+//  2. 🔇 NINGUÉM LEVA SUSTO: o som nasce MUDO e é opt-in no botão 🔊.
+//  3. 📣 A REGRA DO APITO MORA NUM LUGAR SÓ (`useApitoDeLargada`). Apito solto
+//     numa tela = duas versões da regra, e uma delas envelhece errado.
+//  4. 🏟️ NENHUMA TELA DE PARTIDA FICA MUDA. A Copa do Mundo ficou de fora do som
+//     de 18/09 e ninguém notou por um dia — a tela dela é própria, não é a da liga.
+//  5. 🥅 O GOL CONVIVE com a partida: um por vez, cortado no tamanho da rodada,
+//     ausente no ⚡4× e com o ambiente abaixando por baixo dele.
 //
 // uso: node scripts/testa-som.mjs
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 const som = readFileSync('src/escalacao/sound.ts', 'utf8')
 const carreira = readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
 const rapido = readFileSync('src/escalacao/screens.tsx', 'utf8')
+const mundo = readFileSync('src/escalacao/copa-mundo.tsx', 'utf8')
 let falhas = 0
 const ok = (cond, msg) => { console.log(`  ${cond ? '✅' : '❌'} ${msg}`); if (!cond) falhas++ }
 
@@ -54,28 +61,50 @@ console.log('\n1) 🪶 peso: o som da partida é ARQUIVO, e fica leve e fora do 
   ok(!/data:audio\//.test(som), 'nenhum áudio embutido em base64 no código')
 }
 
-console.log('\n2) 🔔 o APITO toca nos dois modos (é o único som que ele liberou)')
+console.log('\n2) 🔔 o APITO: a regra que ele fechou em 19/09')
 {
-  ok(/playWhistle\(\)/.test(carreira), 'CARREIRA: o apito existe — era o que faltava')
-  ok(/playWhistle\(\)/.test(rapido), 'RÁPIDO/ONLINE: o apito existe')
+  // Ele perguntou *"vai ter em uma partida só ou no início de todas as partidas?"*
+  // e escolheu: *"isso número 3.. qd for copa e sempre a primeira partida tb né..
+  // e qlqr copa nova ou liga.. e vale tb pro modo online qlqr modo tb"*.
+  //   1. a PRIMEIRA partida de qualquer competição apita (liga nova, copa nova)
+  //   2. TODA partida de COPA apita
+  //   3. da 2ª rodada de LIGA em diante, silêncio (era o repetitivo)
+  ok(/export function useApitoDeLargada/.test(carreira), 'a regra mora num lugar só: `useApitoDeLargada`')
+  // ⛔ ninguém apita por fora — se alguém soltar um `playWhistle()` numa tela, a
+  // regra passa a ter duas versões e uma delas vai envelhecer errado.
+  for (const [nome, src] of [['CARREIRA', carreira], ['RÁPIDO/ONLINE', rapido], ['COPA DO MUNDO', mundo]]) {
+    const soltos = [...src.matchAll(/playWhistle\(\)/g)].filter(m => {
+      const antes = src.slice(Math.max(0, m.index - 900), m.index)
+      return !/useApitoDeLargada/.test(antes)
+    })
+    ok(soltos.length === 0, `${nome}: nenhum apito solto por fora da regra`)
+  }
+  const usos = [
+    ['liga da carreira', carreira, /useApitoDeLargada\(`liga-carreira-\$\{[^}]+\}`,[^)]*\)/, false],
+    ['copa da carreira', carreira, /useApitoDeLargada\('copa-carreira',[\s\S]{0,160}?,\s*true\)/, true],
+    ['liga do rápido/online', rapido, /useApitoDeLargada\(`liga-\$\{[^}]+\}`,[^)]*\)/, false],
+    ['copa do rápido/online', rapido, /useApitoDeLargada\('copa-rapida',[\s\S]{0,160}?,\s*true\)/, true],
+    ['Libertadores', rapido, /useApitoDeLargada\('libertadores',[\s\S]{0,160}?,\s*true\)/, true],
+    ['Copa do Mundo', mundo, /useApitoDeLargada\('copa-mundo',[\s\S]{0,160}?,\s*true\)/, true],
+  ]
+  for (const [nome, src, re, copa] of usos) {
+    ok(re.test(src), `${nome}: ${copa ? 'apita em TODA partida (é copa)' : 'apita só na largada (é liga)'}`)
+  }
+  // 🧪 e a LIGA não pode ter virado copa por engano (o `true` no fim)
+  for (const [nome, src, re] of usos.filter(u => !u[3])) {
+    const m = src.match(re)
+    ok(!!m && !/,\s*true\)\s*$/.test(m[0]), `${nome}: continua SEM o "toda partida" — senão volta o apito a cada rodada`)
+  }
 }
 
-// 🔔 UM APITO POR TEMPORADA, NÃO UM POR RODADA (Diego 19/09): *"apito coloque só
-// no início do jogo p N ficar repetitivo"*. Esta é a trava que impede alguém de
-// voltar pro `useEffect` solto de antes — que tocava 38 vezes por temporada.
-console.log('\n2b) 🔁 o apito NÃO se repete (só no início)')
+console.log('\n2b) 🏟️ toda tela que mostra partida tem o som (nenhuma fica muda)')
 {
-  for (const [nome, src] of [['CARREIRA', carreira], ['RÁPIDO/ONLINE', rapido]]) {
-    // cada chamada de playWhistle() tem que estar atrás de um guarda `jaApitou`
-    const chamadas = [...src.matchAll(/playWhistle\(\)/g)]
-    ok(chamadas.length > 0, `${nome}: ${chamadas.length} lugar(es) que apitam`)
-    for (const c of chamadas) {
-      const antes = src.slice(Math.max(0, c.index - 700), c.index)
-      ok(/jaApitou\w*\.current\s*=/.test(antes), `${nome}: o apito está travado por \`jaApitou\` (não toca de novo)`)
-    }
-    ok(/jaApitou\w*\s*=\s*useRef</.test(src), `${nome}: o guarda é um useRef (sobrevive ao redesenho da tela)`)
-    ok(/jaApitou\w*\.current\s*=\s*state\.seasonNo|jaApitou\w*\.current\s*=\s*\(?state\.seasonNo/.test(src) || nome !== 'CARREIRA',
-      `${nome}: o contador é a TEMPORADA — temporada nova ganha apito novo`)
+  // A Copa do Mundo ficou de fora do som de 18/09 e ninguém notou: a tela é
+  // própria, não é a da liga. Esta trava conta as telas pelo LiveScoreCard.
+  for (const [nome, src] of [['CARREIRA', carreira], ['RÁPIDO/ONLINE', rapido], ['COPA DO MUNDO', mundo]]) {
+    ok(/LiveScoreCard/.test(src), `${nome}: mostra partida na tela`)
+    ok(/startCrowd\(\)/.test(src) && /stopCrowd\(\)/.test(src), `${nome}: tem ambiente, e ele PARA ao sair da tela`)
+    ok(/useApitoDeLargada\(/.test(src), `${nome}: tem apito pela regra`)
   }
 }
 
