@@ -206,7 +206,11 @@ function IconeLiga({ nome, cor }: { nome: Botao; cor: string }) {
     </svg>
   )
 }
-const ROTULO_ABA_PT: Record<Botao, string> = { rank: 'Rank', estante: 'Estante', temporadas: 'Temporadas', ajustes: 'Ajustes', jogos: 'Jogos', estatisticas: 'Números', elenco: 'Elenco' }
+// 📊 "Números" virou "Estatísticas" por ordem do Diego (18/09), pra a barra falar a
+// MESMA palavra que as abas de cima sempre falaram — dois nomes pra mesma tela
+// confunde. Medido antes de trocar: o rótulo tem 55px em Oswald 9,5 e o menor
+// botão da barra tem 60px num celular de 320px, então cabe inteiro sem cortar.
+const ROTULO_ABA_PT: Record<Botao, string> = { rank: 'Rank', estante: 'Estante', temporadas: 'Temporadas', ajustes: 'Ajustes', jogos: 'Jogos', estatisticas: 'Estatísticas', elenco: 'Elenco' }
 const ROTULO_ABA_EN: Record<Botao, string> = { rank: 'Rank', estante: 'Shelf', temporadas: 'Seasons', ajustes: 'Settings', jogos: 'Matches', estatisticas: 'Stats', elenco: 'Squad' }
 const ROTULO_ABA: Record<Botao, string> = new Proxy(ROTULO_ABA_PT, { get: (_t, k: string) => (getLang() === 'en' ? ROTULO_ABA_EN : ROTULO_ABA_PT)[k as Botao] })
 
