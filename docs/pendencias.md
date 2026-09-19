@@ -16,10 +16,11 @@ Garantias, as mesmas do irmão dele:
 
 A tabela `PREPARADOR_DEVOLVE` é uma linha por preparador de propósito.
 
-### ⏳ O ⭐ também baixou, e ele não falou dele
-O ⭐ caiu de **600 pra 500** na mesma mexida — quem comprou antes está 100 no
-prejuízo, exatamente pelo mesmo motivo. **Não devolvi por conta**: perguntei. É só
-acrescentar `paixao: 100` na tabela.
+### ✅ E o ⭐ também (ele liberou: *"perfeito, pode tb"*)
+O ⭐ caiu de **600 pra 500** na mesma mexida, então quem comprou antes recebe **100**
+pelo mesmo motivo. A tabela ficou: `{ seirulo: 200, paixao: 100 }` — 🟢 e 💎 não
+mudaram de preço e não têm troco. O texto do recibo virou genérico (cita os dois
+preços novos), porque agora são dois valores diferentes na mesma tela.
 
 ### 🩹 E de quebra: a trava do preparador estava REPROVANDO há dois dias
 `npm run preparador` falhava em duas linhas desde a mexida de preços de 19/09 (a

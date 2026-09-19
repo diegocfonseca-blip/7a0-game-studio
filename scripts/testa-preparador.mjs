@@ -216,9 +216,12 @@ console.log('\n5) 🏋️💸 O TROCO DO PREPARADOR (Diego 19/09)')
   // 🔁 e não paga duas vezes, por mais que o save abra
   const denovo = S.devolvePreparadorUmaVez(S.devolvePreparadorUmaVez(pago))
   ok(denovo.careerCoins[0] === 1400, `reabrir o save não paga de novo: ${denovo.careerCoins[0]}`)
-  // 🚫 quem tem OUTRO preparador não recebe nada (só o 👑 mudou de preço)
+  // ⭐ o de 600 virou 500, então o troco dele é 100 (ele liberou: *"perfeito, pode tb"*)
+  const comPaixao = S.devolvePreparadorUmaVez({ ...base(), careerPreparador: { 'Meia na Canela': 'paixao' } })
+  ok(comPaixao.careerCoins[0] === 1300 && comPaixao.preparadorDevolvido === 100, `quem tem o ⭐ recebe 100: ${comPaixao.careerCoins[0]}`)
+  // 🚫 quem tem preparador que NÃO mudou de preço não recebe nada
   const comFaria = S.devolvePreparadorUmaVez({ ...base(), careerPreparador: { 'Meia na Canela': 'faria' } })
-  ok(comFaria.careerCoins[0] === 1200 && !comFaria.preparadorDevolvido, 'quem tem outro preparador não recebe troco')
+  ok(comFaria.careerCoins[0] === 1200 && !comFaria.preparadorDevolvido, 'quem tem preparador que não mudou de preço não recebe troco')
   // 🚫 e quem não tem preparador nenhum também não — mas a marca é gravada mesmo assim
   const semNada = S.devolvePreparadorUmaVez(base())
   ok(semNada.careerCoins[0] === 1200 && semNada.preparadorDevolvidoV1 === true, 'sem preparador: não paga, mas marca (pra não varrer o save toda vez)')

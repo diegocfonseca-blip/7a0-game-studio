@@ -2613,7 +2613,11 @@ function devolveMedicoUmaVez(st: EscState): EscState {
 //   · NADA MAIS É TOCADO: o preparador continua contratado, com o mesmo contrato e o
 //     mesmo salário. Só entra moeda no caixa;
 //   · o lançamento vai pro EXTRATO, então dá pra conferir de onde veio.
-const PREPARADOR_DEVOLVE: Partial<Record<PreparadorKey, number>> = { seirulo: 200 }
+// 🧾 A TABELA: preparador → quanto voltou pro bolso de quem comprou pelo preço velho.
+//   · 👑 seirulo: 1.000 → 800  = 200 (ordem dele, 19/09)
+//   · ⭐ paixao:    600 → 500  = 100 (ele liberou logo depois: *"perfeito, pode tb"*)
+//   · 🟢 faria e 💎 pintus não mudaram de preço, então não têm troco.
+const PREPARADOR_DEVOLVE: Partial<Record<PreparadorKey, number>> = { seirulo: 200, paixao: 100 }
 // 🔓 exportado só pra trava (`npm run preparador`). Nenhuma tela chama de fora.
 export function devolvePreparadorUmaVez(st: EscState): EscState {
   if (st.preparadorDevolvidoV1) return st
