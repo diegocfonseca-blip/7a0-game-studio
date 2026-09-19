@@ -6742,7 +6742,18 @@ export function PyramidSeasonScreen() {
   // suba nenhum som ainda… por enquanto só o apito mesmo"*). A torcida de fundo da
   // carreira fica pronta atrás da chave `TORCIDA_NOVA`, em `sound.ts`.
   useEffect(() => { if (!TORCIDA_NOVA) return; startCrowd(); return () => stopCrowd() }, [])
-  useEffect(() => { if (state.round > 0) playWhistle() }, [state.round])
+  // 📣 APITO SÓ UMA VEZ, NO COMEÇO (Diego 19/09): *"apito coloque só no início do
+  // jogo p N ficar repetitivo"*. Na carreira era pior que no rápido — ele joga
+  // temporada atrás de temporada, e o apito vinha em TODA rodada.
+  // ⚠️ Gatilho = a primeira rodada que ESTA tela anima (quem abre um save no meio
+  // da temporada também ouve a largada), e o contador é a TEMPORADA: temporada
+  // nova = um apito novo, mesmo que a tela não tenha sido fechada no caminho.
+  const jaApitou = useRef<number | null>(null)
+  useEffect(() => {
+    if (state.round <= 0 || jaApitou.current === (state.seasonNo ?? 1)) return
+    jaApitou.current = state.seasonNo ?? 1
+    playWhistle()
+  }, [state.round, state.seasonNo])
   // 🟢 liga o "contexto verde" da carreira OFFLINE (feehcamp etc. veem verde SÓ aqui;
   // ouro em todo o resto). Inline (roda antes dos filhos, sem flash) + limpa ao sair.
   setCareerColorCtx(state.careerOnline && state.onlineMode !== 'online' ? 'offline' : null)

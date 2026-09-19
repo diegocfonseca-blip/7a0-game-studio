@@ -19,6 +19,19 @@ no `SEASON_TOTAL_MS`, que é o orçamento da temporada E divide os 82 jogos do
 basquete. Na carreira é o `ROUND_MS` próprio do `pyramidseason.tsx`. O teste
 `npm run ritmo` reprova se aparecer um segundo `ROUND_MS` em qualquer um dos dois.
 
+### 🔔 O apito agora é UM SÓ, na largada (FEITO, no branch)
+Ordem dele: *"apito coloque só no início do jogo p N ficar repetitivo"*. Ele tinha
+razão: o `useEffect` disparava a cada `state.round`, ou seja **38 apitos por
+temporada** — virou tique-taque. Agora o guarda é um `useRef` que **conta a
+TEMPORADA** (`jaApitou.current === state.seasonNo`), nos 3 lugares que apitavam:
+liga do rápido/online, Libertadores e carreira.
+
+Dois detalhes de propósito: o gatilho é a **primeira rodada que a TELA anima**
+(quem abre um save no meio da temporada também ouve a largada, em vez de ficar
+mudo porque a rodada 1 já passou), e **temporada nova ganha apito novo** mesmo se
+a tela não tiver sido fechada no caminho. O `npm run som` ganhou a seção **2b**,
+que reprova se alguém voltar com o `playWhistle()` solto.
+
 ### 🔊 O som: 3 coisas esperando a palavra do Diego
 O apito JÁ ESTÁ NO AR (subiu em 0c9605b). A torcida e o gol estão no repo
 (`public/sfx/`) mas **desligados** atrás de `TORCIDA_NOVA = false` em `sound.ts` —

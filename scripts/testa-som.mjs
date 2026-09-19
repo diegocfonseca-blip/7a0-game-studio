@@ -41,8 +41,27 @@ console.log('\n1) 🪶 o som do jogo não baixa arquivo (0 KB no bundle)')
 
 console.log('\n2) 🔔 o APITO toca nos dois modos (é o único som que ele liberou)')
 {
-  ok(/playWhistle\(\)/.test(carreira), 'CARREIRA: apito a cada rodada nova — era o que faltava')
-  ok(/playWhistle\(\)/.test(rapido), 'RÁPIDO/ONLINE: apito a cada rodada nova')
+  ok(/playWhistle\(\)/.test(carreira), 'CARREIRA: o apito existe — era o que faltava')
+  ok(/playWhistle\(\)/.test(rapido), 'RÁPIDO/ONLINE: o apito existe')
+}
+
+// 🔔 UM APITO POR TEMPORADA, NÃO UM POR RODADA (Diego 19/09): *"apito coloque só
+// no início do jogo p N ficar repetitivo"*. Esta é a trava que impede alguém de
+// voltar pro `useEffect` solto de antes — que tocava 38 vezes por temporada.
+console.log('\n2b) 🔁 o apito NÃO se repete (só no início)')
+{
+  for (const [nome, src] of [['CARREIRA', carreira], ['RÁPIDO/ONLINE', rapido]]) {
+    // cada chamada de playWhistle() tem que estar atrás de um guarda `jaApitou`
+    const chamadas = [...src.matchAll(/playWhistle\(\)/g)]
+    ok(chamadas.length > 0, `${nome}: ${chamadas.length} lugar(es) que apitam`)
+    for (const c of chamadas) {
+      const antes = src.slice(Math.max(0, c.index - 700), c.index)
+      ok(/jaApitou\w*\.current\s*=/.test(antes), `${nome}: o apito está travado por \`jaApitou\` (não toca de novo)`)
+    }
+    ok(/jaApitou\w*\s*=\s*useRef</.test(src), `${nome}: o guarda é um useRef (sobrevive ao redesenho da tela)`)
+    ok(/jaApitou\w*\.current\s*=\s*state\.seasonNo|jaApitou\w*\.current\s*=\s*\(?state\.seasonNo/.test(src) || nome !== 'CARREIRA',
+      `${nome}: o contador é a TEMPORADA — temporada nova ganha apito novo`)
+  }
 }
 
 console.log('\n3) 🔇 a TORCIDA NOVA fica segurada até ele aprovar o som')

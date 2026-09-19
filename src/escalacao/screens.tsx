@@ -5345,8 +5345,19 @@ export function EscSeason() {
   }, [state.round, seasonSettled])
   // 🏟️ torcida ao fundo enquanto a temporada roda (para ao sair da tela)
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
-  // 📣 apito no início de cada jogo (kickoff) — só quando há partida rolando
-  useEffect(() => { if (state.round > 0 && state.round <= totalRounds) playWhistle() }, [state.round])
+  // 📣 APITO SÓ UMA VEZ, NO COMEÇO (Diego 19/09): *"apito coloque só no início do
+  // jogo p N ficar repetitivo"*. Antes tocava a CADA rodada — 38 apitos por
+  // temporada, e ele cansou. Agora é um só.
+  // ⚠️ O gatilho é a PRIMEIRA rodada que ESTA tela anima, não a rodada nº 1 do
+  // calendário: quem retoma a temporada no meio também ouve o apito de largada.
+  // O contador é a TEMPORADA, então temporada nova ganha apito novo.
+  const jaApitou = useRef<number | null>(null)
+  useEffect(() => {
+    if (state.round <= 0 || state.round > totalRounds) return
+    if (jaApitou.current === (state.seasonNo ?? 1)) return
+    jaApitou.current = state.seasonNo ?? 1
+    playWhistle()
+  }, [state.round, state.seasonNo])
 
   // manchete PESSOAL (por quem vê): detecta quando VOCÊ muda de faixa na
   // tabela. Feito no cliente pra ficar certo pra cada um no online.
@@ -6853,7 +6864,13 @@ export function EscLiberta() {
     return () => clearTimeout(t)
   }, [lb?.rodada])
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
-  useEffect(() => { if ((lb?.rodada ?? 0) > 0) playWhistle() }, [lb?.rodada])
+  // 📣 um apito só, na largada da Libertadores (mesma regra da liga, Diego 19/09)
+  const jaApitouLib = useRef(false)
+  useEffect(() => {
+    if (jaApitouLib.current || (lb?.rodada ?? 0) <= 0) return
+    jaApitouLib.current = true
+    playWhistle()
+  }, [lb?.rodada])
   // autoplay: só quem conduz dispara a rodada seguinte (os outros recebem o
   // resultado já sincronizado e animam localmente).
   useEffect(() => {
