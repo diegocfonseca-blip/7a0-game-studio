@@ -29,6 +29,27 @@ garçom"*.
 
 ⏳ As duas listas **nascem vazias** e explicam isso na tela: o prêmio é entregue na
 virada da temporada, então o primeiro nome só aparece depois que ele fechar a T27.
+## 19/09/2026 (parte 9) — 🐛 As pílulas Comissão/Base jogavam pro fim da tela no celular
+
+Diego, com três prints do celular: *"quando aperto nessas pílulas de comissão e base
+tá me jogando pro final da tela e nem consigo subir mais"* — um vazio amarelo de mais
+de uma tela embaixo da folha, e a rolagem presa.
+
+**Causa:** `abrePainel` fazia `setPainel` e, no `requestAnimationFrame`, um
+`scrollIntoView({ behavior: 'smooth' })` pro painel. Só que no mesmo instante a lista
+de 27 linhas (~1400px) sai e o painel curto (~600px) entra: a página encolhe ~800px
+NO MEIO da animação de rolagem, e o Chrome do celular se perde (para num ponto que
+não existe mais, deixa um vazio e trava a rolagem). Na bancada de desktop não
+reproduz; com emulação de celular também não — é coisa do Chrome Android real.
+
+**Conserto:** saiu a animação. O painel entra onde a lista estava (logo abaixo das
+pílulas); um `useLayoutEffect` só dá um empurrão SECO (`scrollBy` com `behavior:
+'auto'`, depois do layout) se o topo do painel ficou fora da tela. Rolagem
+instantânea depois do layout não tem como brigar com o encolhimento.
+⚠️ Lição pra qualquer tela: **nunca rolar com `smooth` na mesma batida em que o
+conteúdo muda de tamanho** — primeiro o React desenha, depois (se precisar) um
+`scrollBy` seco. O atalho do cabeçalho (`ID_TITULARES`) continua suave porque lá a
+página não muda de tamanho.
 
 ## 19/09/2026 (parte 13) — 🎬 ROTEIRO SEMPRE (pergunta fechada)
 
