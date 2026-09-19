@@ -3096,9 +3096,28 @@ function FloatingEmotes() {
 // 👥 DOIS AO MESMO TEMPO cruzam juntos, em alturas diferentes — cada emote é um
 // bicho, igual a chuva trata cada rajada.
 const MASC_ALTURAS = ['14%', '30%', '46%'] // onde cada bicho cruza (quem voa sobe mais)
+// 🔇 E ELA NÃO ATRAVESSA A TELA DE QUEM AINDA VAI DAR LANCE (Diego 18/09):
+// *"o soltar o mascote, deixe que apareça aqui nessa tela… não deixe que vaze pra
+// tela de quem tá dando lances, ok? Apenas os emojis que já tem"*.
+// Faz todo sentido e é a regra de ouro dele de sempre: nada pode atrapalhar quem
+// está DECIDINDO. Quem já lacrou está esperando os outros — ali o teatro é bem-vindo,
+// é o tempo morto. Quem ainda escolhe o valor não pode ter um bicho de 2 segundos
+// passando por cima do que ele está lendo.
+// Vale nos DOIS momentos de decisão: o envelope antes de lacrar e o desempate antes
+// de mandar o lance. No resto (esperando, revelação, martelo) ela passa igual.
+// ⚠️ É trava LOCAL, de TELA: quem soltou continua soltando e todo mundo que já
+// lacrou vê. Ninguém perde o emote — ele só não interrompe quem está no meio da
+// decisão. Os emojis/cantadas que já existiam continuam exatamente como eram.
 function MascoteAtravessa() {
   const { state, emotes } = useEsc()
   if (state.onlineMode !== 'online') return null
+  const eu = state.managers[state.youIdx]
+  if (eu) {
+    const noEnvelope = (state.phase === 'envelope' || state.phase === 'resq_envelope') && !state.submitted.includes(eu.id)
+    const tb = state.tiebreaks[state.tiebreakIdx]
+    const noDesempate = state.phase === 'tiebreak' && !!tb && tb.managers.includes(eu.id) && !tb.submitted.includes(eu.id)
+    if (noEnvelope || noDesempate) return null
+  }
   // 🛟 só entra quem este aparelho SABE desenhar: chave desconhecida (versão velha,
   // clube que ele não conhece) segue pelo caminho antigo, com o 🎭 no balão.
   const soltos = emotes.filter(e => e.kind.startsWith('masc:') && MASCOTES[e.kind.slice(5)])
