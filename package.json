@@ -38,7 +38,8 @@
     "jornalpags": "node scripts/mockup-jornal-paginas.mjs",
     "roteiro": "node scripts/mockup-fim-temporada-roteiro.mjs",
     "fim": "node scripts/testa-roteiro.mjs",
-    "fake": "node scripts/testa-fake-stats.mjs"
+    "fake": "node scripts/testa-fake-stats.mjs",
+    "pernadepau": "node scripts/mede-perna-de-pau.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

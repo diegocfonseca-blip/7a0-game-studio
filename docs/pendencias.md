@@ -1,3 +1,57 @@
+## 19/09/2026 (parte 19) — 🧮 Por que aparece perna-de-pau se o baralho tem 1.466 cartas
+
+Pergunta do Diego: *"se eu tenho 1466 cartas, por que essas cartas todas não estão
+preenchidas no baralho? Por que está aparecendo um monte de jogador fake?"*
+
+Medido com o código de verdade (`npm run pernadepau` → `scripts/mede-perna-de-pau.mjs`,
+que roda o `seedCpuSquads`, o mesmo que monta os times de fundo). **Não é que as
+1.466 não são usadas — é que elas têm o FORMATO errado.**
+
+### 1. O baralho não é uma pilha só: são CINCO, uma por posição
+| posição | tem no baralho | a pirâmide precisa (80 times × 11) |
+|---|---|---|
+| GOL | 153 | 80 |
+| LAT | **204** | **160** |
+| ZAG | **202** | **160** |
+| MEI | 413 | 240 |
+| ATA | 494 | 240 |
+
+Sobra atacante (494 pra 240) e quase não sobra lateral. Atacante que sobra **não
+tapa buraco de lateral** — o sorteio é posição por posição.
+
+### 2. E o pool ainda é cortado em QUATRO faixas de força (uma por divisão)
+Cada faixa precisa, sozinha, de 20 GOL · 40 LAT · 40 ZAG · 60 MEI · 60 ATA:
+
+| faixa | GOL | LAT | ZAG | MEI | ATA |
+|---|---|---|---|---|---|
+| A (mais forte) | 37 | **23** 🔴 | 41 | 121 | 145 |
+| B | 42 | 44 | 64 | 95 | 122 |
+| C | 30 | 57 | 47 | 115 | 118 |
+| D | 44 | 80 | 50 | 82 | 109 |
+
+A Série A tem **23 laterais pra 40 vagas** — e sobra lateral na D (80 pra 40). Hoje
+a faixa A **não empresta** da B: inventa filler. São 17 fillers só por isso, com o
+baralho INTEIRO disponível.
+
+### 3. E as cartas do usuário e dos rivais saem do pool ANTES
+| elencos em campo | cartas fora do pool | tapa-buraco na pirâmide |
+|---|---|---|
+| 20 × 11 | 220 | 46 |
+| 20 × 15 | 300 | 70 |
+| 20 × 20 | 400 | 100 |
+| 20 × 27 (elenco cheio) | 540 | **182** |
+
+### 🔧 Os dois consertos possíveis (decisão do Diego)
+1. **Faixa empresta da vizinha** antes de inventar filler: falta lateral na A, pega
+   o melhor lateral da B. Custa uma linha de código e derruba quase todo o
+   tapa-buraco. Só vale pra carreira NOVA (elenco de bot já salvo não muda).
+2. **Mais cartas de LAT/ZAG/GOL no baralho** — o conserto de raiz. Hoje o baralho
+   tem 2,4 atacantes pra cada lateral.
+
+⏳ **Não fiz nenhum dos dois ainda**: é mudança de regra de carreira, ele decide.
+
+---
+
 ## 19/09/2026 (parte 18) — 🃏🚫 Jogador tapa-buraco fora de artilharia, garçons e Bola de Ouro
 
 Ordem do Diego: *"tem um monte de jogador fake, Zé Ninguém, Trapalhão, ganhando a
