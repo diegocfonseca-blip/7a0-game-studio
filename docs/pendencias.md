@@ -74,6 +74,36 @@ duas janelas viraram dois retângulos chuviscados bem visíveis. Só a superfíc
 
 ---
 
+## 19/09/2026 (parte 21) — 🥇💰 A Bola de Ouro passa a PAGAR (20 🪙 + 10 de piso)
+
+Ordem dele, junto com o pedido de mockup e vídeo: *"todo bola de ouro q o time tiver o
+clube ganhará 20 moedas extras e a jogador passa a valorizar mais 10 de piso"*.
+
+### ✅ A regra (no ar)
+- Mora no `RECORD_SEASON_STATS` (`store.tsx`), **dentro do portão idempotente**
+  (`statsSeason`), então nenhuma temporada paga duas vezes nem recarregando a tela.
+- **20 🪙 pro CLUBE do premiado**, e só pra clube de gente (`teamId >= 0` = id do
+  manager, a mesma régua do `teamKey`). Entra no caixa e escreve linha no extrato
+  (`logFin` tipo `reward`) e no `marketLog`.
+- **+10 de piso pro JOGADOR**, em campo próprio `careerBolaOuroPiso` (chave `ident` =
+  `nome|clube`), somado DEPOIS do `max` dentro de `valorOficial`. Dois motivos pra não
+  escrever no `marketValues`: o livro de preços é reescrito por toda venda/leilão (o
+  bônus sumiria) e, com o `max`, um craque de tabela alta (fame 5 = 30) não sentiria
+  o prêmio. Como está, vale em renovação, teto de venda, SAF e ficha.
+- **Acumula**: 2 bolas = +20. E o piso sobe **mesmo quando o premiado é de bot** — a
+  carta encarece pra todo mundo no leilão seguinte (só as moedas exigem dono humano).
+- Os dois números moram em `BOLA_OURO_MOEDAS` / `BOLA_OURO_PISO`, lado a lado.
+- Novidade na home. Reverter: `git revert` do commit desta parte.
+
+### ⏳ O visual está ESPERANDO O OK DELE (mockup + vídeo entregues)
+`node scripts/mockup-bola-ouro.mjs` desenha os três lugares onde o prêmio aparece, e
+`node scripts/video-bola-ouro-reels.mjs` é o reels de ~27s explicando. O que ainda NÃO
+foi codado, porque é visual novo e a regra da casa é esperar o OK:
+1. a **faixa dourada do prêmio** na página da Bola de Ouro do jornal ("+20 🪙 pro clube
+   · +10 de piso"),
+2. o **selo 🥇 2× BOLA DE OURO** na ficha do jogador, com o valor mostrando `30 + 20 🥇`.
+Hoje o jogador só vê o prêmio pelo **extrato** e pelo **mural de mercado**.
+
 ## 19/09/2026 (parte 20) — 🔓 A carreira nova saiu da prévia: PUBLICADA PRA TODOS
 
 Ele olhou a aba Jogos no celular e fechou três coisas de uma vez:

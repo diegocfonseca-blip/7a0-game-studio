@@ -544,6 +544,14 @@ export interface EscState {
   // unir os dois"*. Guardado por temporada (chave = o número dela) pra dar pra
   // dizer um dia "fulano foi 3× melhor do mundo". Custa ~100 bytes por ano.
   careerMelhorMundo?: Record<string, { name: string; club?: string; year?: number; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; you: boolean; human: boolean; goals: number; assists: number; total: number }>
+  /** 🥇💰 O PRÊMIO DA BOLA DE OURO (Diego 19/09): *"todo bola de ouro q o time tiver o
+   *  clube ganhará 20 moedas extras e o jogador passa a valorizar mais 10 de piso"*.
+   *  Aqui mora a PARTE DO JOGADOR: chave `nome|clube` (o mesmo `ident` do livro de
+   *  preços) → quanto de piso ele ganhou, somando 10 por título (2 bolas = 20).
+   *  Fica em campo PRÓPRIO, e não no `marketValues`, por dois motivos: o livro de
+   *  preços é reescrito por toda venda/leilão (o bônus sumiria), e assim dá pra
+   *  mostrar na ficha de onde veio o dinheiro. O `valorOficial` soma os dois. */
+  careerBolaOuroPiso?: Record<string, number>
   statsSeason?: number // carreira online: última temporada cujos artilheiros já foram somados no acumulado (evita contar 2x)
   lastResults: MatchResult[] // resultados da última rodada simulada
   news: string[] // manchetes (dias inspirados etc.)

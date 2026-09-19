@@ -430,6 +430,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   preparador nunca mais diz "joga N seguidas e senta 1" — ele confundiu com o ponto
   em que o jogador cansa (54 jogos, igual pra todos). Diz-se quanto o BANCO devolve
   e quantos jogos um descanso paga.
+- **🥇 A BOLA DE OURO PAGA (19/09): 20 🪙 pro clube + 10 de piso no jogador.** Palavras
+  dele: *"todo bola de ouro q o time tiver o clube ganhará 20 moedas extras e o jogador
+  passa a valorizar mais 10 de piso"*. Acumula por título, o piso vale mesmo se o
+  premiado for de bot (a carta encarece pra todos) e as moedas só pra clube de gente.
+  Números em `BOLA_OURO_MOEDAS`/`BOLA_OURO_PISO` (`store.tsx`); o piso mora em
+  `careerBolaOuroPiso` e entra no `valorOficial`.
 - **🎙️ Emoção no placar = o LANCE DO GOL, nunca faixa colorida nem confete (19/09).**
   Ele barrou a faixa verde/vermelha de resultado (*"não gostei"*) e o confete de
   vitória. O que ele quer é narração de COMO a bola entrou, com acervo GRANDE

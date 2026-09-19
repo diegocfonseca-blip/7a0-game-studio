@@ -1380,8 +1380,18 @@ function voltaCriaSeSobrou(s: EscState, m: Manager, pos: Sector): void {
   }
 }
 export function valorOficial(state: EscState, c: Card): number {
+  // 🥇 +10 de piso POR BOLA DE OURO (Diego 19/09). Soma DEPOIS do max, senão um
+  // craque de tabela alta (fame 5 = 30) não sentiria o prêmio. Vale em tudo que lê
+  // o valor oficial: renovação, teto de venda, SAF e a ficha do jogador.
   return Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
+    + (state.careerBolaOuroPiso?.[ident(c)] ?? 0)
 }
+/** 🥇 quanto de piso esta carta ganhou em Bolas de Ouro (0 = nunca levou) */
+export const pisoBolaOuro = (state: EscState, c: { name: string; club: string }): number =>
+  state.careerBolaOuroPiso?.[ident(c)] ?? 0
+/** 🥇 os dois números do prêmio, num lugar só (mexeu aqui, mudou no jogo e nos textos) */
+export const BOLA_OURO_MOEDAS = 20
+export const BOLA_OURO_PISO = 10
 export type RenewAnos = 1 | 2 | 3 | 5 | 10
 // 📝💰 RENOVAÇÃO POR VALOR (decisão do Diego 14/08, várias rodadas de ajuste fino):
 // regra de ouro — um prazo mais LONGO nunca pode custar igual ou menos que um mais
@@ -7493,7 +7503,29 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🥇 MELHOR DO MUNDO do ano (gol + assistência somados). Vem calculado da
       // tela, como os artilheiros — e entra no mesmo portão idempotente, então
       // uma temporada nunca é premiada duas vezes.
-      if (action.melhor) s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
+      if (action.melhor) {
+        s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
+        // 🥇💰 O PRÊMIO (Diego 19/09): *"todo bola de ouro q o time tiver o clube ganhará
+        // 20 moedas extras e o jogador passa a valorizar mais 10 de piso"*.
+        //  · O PISO é da CARTA e vale pro mundo inteiro (bot também): quem ganhou Bola de
+        //    Ouro fica mais caro pra todo mundo, é o que "valorizar" quer dizer.
+        //  · As MOEDAS são do CLUBE do premiado, e só existem pra clube de gente (bot não
+        //    tem caixa). `teamId >= 0` é o id do manager — a mesma régua do `teamKey`.
+        //  · Tudo aqui dentro do portão idempotente do RECORD_SEASON_STATS (`statsSeason`),
+        //    então nenhuma temporada paga duas vezes, nem recarregando a tela.
+        const mel = action.melhor
+        if (mel.club) {
+          const k = ident({ name: mel.name, club: mel.club })
+          s.careerBolaOuroPiso = { ...(s.careerBolaOuroPiso ?? {}), [k]: (s.careerBolaOuroPiso?.[k] ?? 0) + BOLA_OURO_PISO }
+        }
+        const dono = s.managers.find(m => m.id === mel.teamId && m.isHuman)
+        if (dono) {
+          const caixa = s.careerCoins?.[dono.id] ?? 0
+          s.careerCoins = { ...(s.careerCoins ?? {}), [dono.id]: caixa + BOLA_OURO_MOEDAS }
+          logFin(s, 'reward', `🥇 Bola de Ouro: ${mel.name} é o melhor do mundo`, BOLA_OURO_MOEDAS, undefined, dono.id)
+          ;(s.marketLog = s.marketLog ?? []).push(`🥇 ${mel.name} levou a BOLA DE OURO da T${s.seasonNo} (${mel.goals} gols + ${mel.assists} assistências)! O ${dono.teamName} fatura ${BOLA_OURO_MOEDAS} 🪙 e ele valoriza +${BOLA_OURO_PISO} de piso.`)
+        }
+      }
       s.statsSeason = s.seasonNo
       return s
     }
