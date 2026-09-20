@@ -278,7 +278,43 @@ export interface ResolvedCard {
   voided: number[] // managers cujo lance foi anulado (setor já cheio)
 }
 
-export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_reveal' | 'tiebreak'
+export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_reveal' | 'tiebreak' | 'holandes'
+
+// ─── 🔻 LEILÃO HOLANDÊS (modo à parte, aprovado pelo Diego 20/09) ───────────
+// O leilão de sempre é CEGO: todo mundo escreve escondido e o maior lance leva.
+// O holandês é o contrário — o preço COMEÇA LÁ EM CIMA (100, que é o que todo
+// mundo tem no bolso) e vai CAINDO na frente de todos. Quem apertar primeiro
+// leva pelo preço que estiver na tela. Ninguém apertou até o preço chegar a 0?
+// O jogador vai pras SOBRAS, igual acontece hoje.
+//
+// ⚠️ O QUE ELE **NÃO** MUDA (de propósito): o holandês só troca o jeito de
+// COLETAR o lance. Quem paga, quem entra no elenco, o livro de preços, a
+// comissão do agente, a revelação, a repescagem e o monte continuam sendo o
+// MESMO código do leilão de hoje (`sealAndResolve` → `resolve`). Por isso ele
+// não tem como estragar o pregão que já está no ar.
+export type HolandesState = {
+  /** preço na tela agora (vai caindo pela escada) */
+  preco: number
+  /** em que degrau da escada de preços a gente está */
+  passo: number
+  /** a carta na roda */
+  cardId: string
+  /** ids das cartas que ainda vão passar nesta leva, na ordem */
+  fila: string[]
+  /**
+   * teto de cada técnico de CPU por carta (`cardId` → `mgrId` → moedas).
+   * Calculado UMA VEZ ao abrir a leva, com o MESMO `cpuEnvelope` do leilão
+   * cego — então o bot gasta exatamente o mesmo dinheiro que gastaria hoje,
+   * só que apertando o botão quando o preço chega no valor dele.
+   */
+  tetos: Record<string, Record<number, number>>
+  /** quem já arrematou nesta leva (vira o bidMap na hora de resolver) */
+  levados: { cardId: string; mgr: number; preco: number }[]
+  /** faixa "ARREMATADO!" da carta que acabou de sair (só visual) */
+  ultimo?: { nome: string; time: string; preco: number } | null
+  /** o preço parou de cair (alguém levou / acabou): a tela segura por um instante */
+  parado?: boolean
+}
 
 // desempate: quando ≥2 técnicos empatam no MAIOR lance de uma carta, eles
 // re-lançam às cegas só nela (quem paga mais leva). Empatou de novo → roleta
@@ -486,6 +522,17 @@ export interface EscState {
   stock: Record<Sector, number> // estoque restante no baralho (contador vivo)
   sectorCursor: number // até onde já foi dealt do deck[pos] atual (levas)
   sectorUnsoldAccum: Card[] // não vendidos acumulados nas levas do setor até a repescagem
+  /** 🔻 modo LEILÃO HOLANDÊS ligado nesta partida (o pregão cego de hoje é o padrão) */
+  holandes?: boolean
+  /** 🔻 estado vivo do holandês (só existe enquanto `phase === 'holandes'`) */
+  hol?: HolandesState
+  /**
+   * 🔻 marca de UM instante: o holandês já decidiu quem levou cada carta e está
+   * entregando o resultado pro `sealAndResolve`. Sem isto, os bots dariam lance
+   * DE NOVO no fechamento e brigariam com o próprio arremate. Nunca fica ligada
+   * entre uma ação e outra (liga e desliga dentro da mesma chamada).
+   */
+  holFechando?: boolean
   roundIdx: number // rodada por vaga dentro do setor atual (só modo online)
   // monte final
   monte: Card[]

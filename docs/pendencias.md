@@ -1,3 +1,83 @@
+## 20/09/2026 (parte 25) — 🔻 LEILÃO HOLANDÊS: o modo novo, pronto e esperando o OK visual
+
+Ideia aprovada por ele em 19/09, com as regras ditadas: *"a hi q tem q começar com
+100 p qlwr jogador até pq ng tem 200… todo mundo começa C 100"* · *"preço cair até
+0… se ng pegar esse jogador vai pras sobras igual ocorre hoje Tb já"* · *"oq manda
+e o ID do host sempre"* · *"quantidade de jogadores q aparece no leilão e regras
+com quantidades q jogam tudo igual Tb"* · *"quero usar tudo parecido C oq já
+funciona hoje no motor e visual"*.
+
+### 🔑 A decisão de arquitetura que faz isso NÃO poder quebrar o jogo no ar
+O holandês **só troca o jeito de COLETAR o lance**. Quando a leva acaba, ele
+escreve os arremates em `pendingEnvelopes` — o MESMO lugar de onde o pregão cego lê
+— e chama o `sealAndResolve` de sempre. Daí pra frente é 100% código antigo:
+`resolve` paga, move a carta pro elenco, anota no livro de preços, credita o
+vendedor, cobra a comissão do agente, monta a revelação e manda o que ninguém quis
+pra repescagem/monte. **Nenhuma regra nova toca em dinheiro.**
+
+A bandeira `holFechando` liga por um instante só pra avisar o `sealAndResolve` que
+não é pra gerar envelope de CPU (senão o bot disputaria contra o próprio arremate).
+
+### 📐 Como ficou
+- **Escada de preços** (`holEscada`): 100 · 90 · 80 · 70 · 60 · 52 · 44 · 36 · 31 ·
+  26 · 21 · 16 · 14 · 12 · 10 · 8 · 7 … 1 · 0. Degrau **gordo em cima** (ninguém
+  paga 90 num lateral) e **miúdo embaixo**, que é onde a decisão acontece. No
+  basquete abre em 50, que é o bolso de lá.
+- **Abertura IGUAL pra toda carta** — de propósito: preço de abertura diferente
+  entregaria o nível, que é segredo até a Cerimônia.
+- **O bot** não ganhou cérebro novo: o teto dele sai do MESMO `cpuEnvelope`,
+  calculado uma vez quando a leva abre. Ele só passa a "apertar o botão" quando o
+  preço desce até o valor que ele teria escrito no envelope.
+- **Repescagem e setor técnico continuam no envelope cego.** Sobra é sobra.
+- **Online**: quem faz o preço cair é SÓ o host (`HOLANDES_TICK`), e o toque do
+  convidado vai roteado pra ele. ⚠️ A perna de roteamento online ainda **não foi
+  ligada** — ver pendências abaixo.
+
+### ⏱️💰 Medido, não chutado (`npm run holandes`)
+O MESMO pregão (93 cartas, 8 técnicos, humano só assistindo), nos dois modos:
+
+| | cartas | arremates | preço médio | tempo de pregão |
+|---|---|---|---|---|
+| 🔻 holandês | 93 | 54 | 10,4 🪙 | ~5:52 |
+| ✉️ cego (hoje) | 93 | 48 | 12,4 🪙 | ~6:00 |
+
+Ou seja: **não atrasa o ritmo** (regra de ouro dele) e a economia fica praticamente
+igual. As duas diferenças naturais do formato, que ele precisa saber:
+- o holandês **vende um pouco mais** (54 × 48): quem perdeu uma carta ainda pega a
+  seguinte quando o preço chega nela — no envelope cego o lance perdido é lance
+  jogado fora;
+- e **paga um pouco menos** (10,4 × 12,4), porque a escada é de degraus: o bot leva
+  no primeiro degrau ABAIXO do teto dele, nunca exatamente no teto.
+
+### 🔒 Travas
+`npm run holandes` roda um pregão INTEIRO no motor de verdade e reprova se:
+abertura ≠ 100 · a escada não chegar a 0 · alguém ficar com caixa negativa · alguém
+estourar vaga de posição · uma carta cair em dois elencos · a tela acender PEGAR e
+o motor recusar (botão mudo) ou o contrário (arremate fantasma) · um toque com
+**preço velho** for aceito · e — o mais importante — se o **pregão cego de hoje**
+deixar de fechar igualzinho.
+
+`npm run mockup-holandes` tira as fotos da tela no jogo de verdade (não é desenho).
+
+### ⏳ O que FALTA (não está pronto)
+1. **OK visual do Diego** — ele decide o visual, e nada disso vai pra `main` antes.
+2. **Roteamento online** (`HOLANDES_PEGAR` do convidado → host, e o host
+   transmitindo o preço). Hoje o modo só aparece na **partida rápida offline**.
+   Quando ligar: o vigia de prazo do online precisa de uma rede pra host sumido no
+   meio da escada (hoje `phaseDeadline` é `null` no holandês).
+3. **Linha em `novidades.ts`** — só entra na entrega que ligar isso pro pessoal.
+4. **Envelope Mudo** (a outra ideia que ele gostou) continua sem construir; faltava
+   ele responder se a carta muda ENTRA a mais na leva ou SUBSTITUI uma, e se pode
+   dividir leilão com o 🎁 Surpresa.
+
+### ↩️ Dá pra voltar atrás?
+Dá, e é barato: o modo nasce DESLIGADO (`holandes: false` no `INITIAL`) e só liga
+por escolha na tela de montar a partida rápida. Sem a escolha, o jogo roda o mesmo
+código de sempre — o `npm run holandes` prova isso a cada rodada. Pra sumir de vez:
+reverter o commit.
+
+---
+
 ## 19/09/2026 (parte 24) — 🔀 DUAS SESSÕES fizeram o perna-de-pau, e ficou UMA régua
 
 Na hora de publicar, a `main` já tinha o commit `6f2754c` de OUTRA sessão fazendo a
