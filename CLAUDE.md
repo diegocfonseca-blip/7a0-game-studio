@@ -492,6 +492,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   · 🗣️ **LIÇÃO DE CONVERSA (20/09)**: eu respondi a dúvida dele com tabela, opções e
     histórico e ele travou. Com o Diego, resposta de 4 linhas, em linguagem de jogo,
     e o resto só se ele pedir.
+    🔁 **E EU REPETI O ERRO NO MESMO DIA, PIOR** (teto do bot): ele perguntou uma coisa
+    simples e eu devolvi SEIS rodadas de simulação, tabela atrás de tabela, modelo com
+    nome de letra. Resposta dele: *"N entendi ndi nadaaa.. e ainda não sei o que
+    fazer"*. **Simulação é pra MIM, não pra ele.** O que vai pro Diego é a decisão
+    pronta em uma frase + uma pergunta de sim/não. Se em duas respostas ele ainda não
+    entendeu, o problema NÃO é ele: é a resposta — então corta tudo e oferece UMA coisa
+    só. E quando ele diz *"ainda não tô convencido"*, isso é NÃO: para de insistir e de
+    trazer variação nova da mesma ideia.
   · 🛟 Os 4 ids antigos continuam vivos com o MESMO prazo (`naique` 5 · `pumba` 3 ·
     `adibas`→Abibas 2 · `penalti`→Penality 1): contrato correndo em save antigo não
     pode mudar de tamanho no meio da carreira.

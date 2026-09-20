@@ -110,6 +110,16 @@ antes (955 / 854 / 696) contavam o teto DO PRÓPRIO trapaceiro, cujo caixa a ban
 abastece de propósito. A pergunta é se um **BOT** paga absurdo — a medição agora
 exclui o clube dele. Os números certos são os da tabela acima.
 
+### 🛑 ASSUNTO ENCERRADO (20/09): o teto do bot FICA COMO ESTÁ
+Depois de 6 rodadas de bancada ele respondeu *"N entendi ndi nadaaa.. e ainda não sei
+o que fazer"*. Erro meu: despejei simulação em cima dele em vez de entregar decisão.
+**Não reabrir o teto do bot sem ele pedir** — nem "índice de mercado", nem "teto
+duro", nem "teto perseguindo o preço", nem "teto pelo dinheiro da liga". Tudo isso
+está medido e guardado em `scripts/simula-teto.mts` caso um dia ele queira.
+O que ficou na mesa pra ele decidir é UMA coisa só, com sim ou não:
+**a carta que volta pro próprio dono no monte volta COMO SAIU, não pela metade** —
+mata o lucro da artimanha sem encostar no bot nem em teto nenhum.
+
 ### ⏳ PENDENTE — esperando a palavra do Diego (nada implementado)
 1. Livro de preços gravar só até o teto de mercado (`recordPrice`).
 2. Carta que volta pro dono no monte voltar "como saiu" (mesmo valor, mesmo contrato).
