@@ -473,7 +473,7 @@ const r = await p.evaluate(async () => {
   //    `game_state` e mostrar o nome vindo da fonte ÚNICA (`MODO_NOME`).
   {
     const lob = await (await fetch('/src/escalacao/lobby.tsx')).text()
-    ok(/const holandesRoom = /.test(lob), 'a lista de salas não sabe se a sala é de Pescaria')
+    ok(/const holandesRoom = /.test(lob), 'a lista de salas não sabe se a sala é de Tocaia')
     ok(/holandesRoom &&/.test(lob), 'a lista de salas não desenha o selo do modo')
     ok(/MODO_NOME/.test(lob), 'o selo da lista escreve o nome na mão em vez de puxar da fonte única')
     // e o nome mora num lugar SÓ: se alguém renomear, renomeia em todas as telas
@@ -483,13 +483,14 @@ const r = await p.evaluate(async () => {
     // 🏷️ o nome é HOLANDÊS por ordem dele (20/09) — *"eu falei pra manter
     //    holandês mesmo"*. A trava segura o nome pra ninguém rebatizar sem pedido.
     // 🎣 o nome saiu de VOTAÇÃO do pessoal dele (20/09) — não se troca sem pedido
-    ok(st.MODO_NOME.pt === 'Pescaria' && st.MODO_NOME.en === 'Fishing',
+    ok(st.MODO_NOME.pt === 'Tocaia' && st.MODO_NOME.en === 'Ambush',
       `o nome do modo foi trocado sem ele pedir: ${st.MODO_NOME.pt} / ${st.MODO_NOME.en}`)
-    ok(st.MODO_FISGOU.pt === 'FISGOU!' && st.MODO_FISGOU.en === 'HOOKED!', 'o grito do arremate mudou sem pedido')
+    ok(st.MODO_FISGOU.pt === 'PEGUEI!' && st.MODO_FISGOU.en === 'GOT IT!', 'o grito do arremate mudou sem pedido')
+    ok(st.MODO_EMOJI === '🐊', `o emoji do modo mudou sem pedido: ${st.MODO_EMOJI}`)
     // e nenhuma tela escreve o nome na mão (senão trocar um dia vira caça ao texto)
     const tela = await (await fetch('/src/escalacao/screens.tsx')).text()
     for (const [arq, txt] of [['lobby', lob], ['screens', tela]]) {
-      ok(!/Pescaria'/.test(txt.replace(/MODO_NOME[^\n]*/g, '')) || /MODO_NOME/.test(txt), `${arq}: o nome do modo está escrito na mão — tem que puxar de MODO_NOME`)
+      ok(!/Tocaia'/.test(txt.replace(/MODO_NOME[^\n]*/g, '')) || /MODO_NOME/.test(txt), `${arq}: o nome do modo está escrito na mão — tem que puxar de MODO_NOME`)
     }
   }
 

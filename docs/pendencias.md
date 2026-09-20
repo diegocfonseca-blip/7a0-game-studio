@@ -1,3 +1,44 @@
+## 20/09/2026 (parte 46) — 🐊 FECHADO: o modo é TOCAIA, com o jacaré
+
+*"Coloque Tocaia mesmo, com emoji de jacaré."* Decisão final dele, depois de o
+nome passar por **Holandês → Queda Livre → Holandês → Pescaria → Tocaia** em um
+único dia.
+
+### 🐊 Como ficou
+- nome: **🐊 Tocaia / Ambush**;
+- emoji: **🐊** em todas as telas (montar partida, montar sala, selo da lista de
+  salas abertas, topo do pregão, novidade da home);
+- grito do arremate: **PEGUEI! / GOT IT!** na tarja da carta que é sua (era
+  "FISGOU!" na versão Pescaria, que durou uma mensagem);
+- a faixa do último martelo segue com **🔨** — é o martelo do leilão, símbolo do
+  jogo, e não é do modo.
+
+### 🧠 Por que Tocaia é o nome certo (e fica registrado)
+É o único dos cinco que carrega o **RIVAL**. A emoção do modo não é o preço
+caindo — é o amigo te passando na frente. Tocaia tem alvo e tem disputa; pescaria
+é você contra o peixe, e o peixe não está competindo com você. O jacaré fecha a
+imagem: fica parado, de olho, e dá o bote na hora certa.
+
+⚠️ **Não repropor outro nome sem ele pedir.** Os descartados, pro caso de ele
+voltar ao assunto: Queda Livre (Free Fall) · Pescaria (Fishing) · Bote (virava
+"bot") · Às Claras · Chapéu · Caçada · Sniper · Anzol.
+
+### 💡 O que essa novela ensinou, e que vale pra qualquer coisa "de gosto"
+O nome mudou **cinco vezes**. Custou barato porque, na terceira troca, eu parei de
+espalhar a palavra pelas telas e criei uma **fonte única com identificador
+NEUTRO**: `MODO_NOME` / `MODO_EMOJI` / `MODO_FISGOU`. Da quarta em diante, trocar
+o nome do modo virou **trocar uma string** — não renomear código em sete lugares.
+👉 Quando um assunto for de GOSTO do Diego, assuma que vai mudar e **prepare o
+código pra mudar barato desde a primeira vez**.
+
+E a chave do estado nunca se mexeu: continua `holandes` no save, no reducer e no
+`game_state` da sala. Sala criada com o nome antigo abre normalmente.
+
+🛡️ `npm run holandes` verde · `npm run ascegas` com as mesmas digitais
+(`28bea2df` · `d65041f6` · `06bab491`).
+
+---
+
 ## 20/09/2026 (parte 45) — 🎣 O modo virou PESCARIA (votação do pessoal dele) — PRONTO, NÃO PUBLICADO
 
 Depois de rodar vários nomes com ele, o pessoal votou: *"pescaria, pessoal tá

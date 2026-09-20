@@ -4399,24 +4399,28 @@ export function holEscada(start: number): number[] {
 }
 // 🏷️ O NOME DO MODO — em UM lugar só, e é daqui que TODA tela puxa.
 //
-// **É 🎣 PESCARIA**, escolhido por VOTAÇÃO do pessoal dele (20/09: *"pescaria,
-// pessoal tá votando aqui"*). Antes se chamava "Holandês"; o nome mudou porque
-// ele queria algo que a galera falasse — e "bora de pescaria?" sai da boca
-// sozinho. A ideia é a do pescador: tu fica esperando o preço descer e, na hora
-// certa, FISGA. Por isso o grito do arremate é **FISGOU!**.
+// **É 🐊 TOCAIA** — decisão dele em 20/09, com o emoji escolhido a dedo:
+// *"coloque Tocaia mesmo, com emoji de jacaré"*.
 //
-// ⚠️ O IDENTIFICADOR AQUI É NEUTRO (`MODO_NOME`) DE PROPÓSITO. Este nome já
-// mudou duas vezes num dia; deixar "PESCARIA" no identificador obrigaria a
-// renomear código toda vez. Assim, trocar o nome do modo é trocar UMA STRING.
+// Por que Tocaia e não os outros que passaram pela mesa (Holandês, Queda Livre,
+// Pescaria): é o único que carrega o RIVAL. A emoção do modo não é o preço
+// caindo — é o amigo te passando na frente. Tocaia tem alvo e tem disputa;
+// pescaria é você contra o peixe, e o peixe não está competindo com você. O
+// jacaré fecha a imagem: fica parado, de olho, e dá o bote na hora certa.
 //
-// ⚠️ E A CHAVE DO CÓDIGO CONTINUA `holandes` — no estado, no save e no
+// ⚠️ O IDENTIFICADOR AQUI É NEUTRO (`MODO_NOME`) DE PROPÓSITO. Este nome mudou
+// TRÊS vezes em um dia. Com o identificador neutro, trocar o nome do modo é
+// trocar UMA STRING — não é renomear código em sete telas.
+//
+// ⚠️ E A CHAVE DO ESTADO CONTINUA `holandes` — no save, no reducer e no
 // `game_state` da sala. Nome que o código compara ou guarda NUNCA se rebatiza:
-// sala criada ontem continua abrindo certinho hoje.
-export const MODO_NOME = { pt: 'Pescaria', en: 'Fishing' } as const
-export const MODO_EMOJI = '🎣'
+// sala criada ontem continua abrindo hoje. O nome de tela e a chave do código
+// são coisas diferentes, e é de propósito que elas não andem juntas.
+export const MODO_NOME = { pt: 'Tocaia', en: 'Ambush' } as const
+export const MODO_EMOJI = '🐊'
 export const modoNomeDe = (en: boolean) => (en ? MODO_NOME.en : MODO_NOME.pt)
-/** o grito do arremate — a parte afiada da pescaria */
-export const MODO_FISGOU = { pt: 'FISGOU!', en: 'HOOKED!' } as const
+/** o grito do arremate — o bote, o instante em que a carta é sua */
+export const MODO_FISGOU = { pt: 'PEGUEI!', en: 'GOT IT!' } as const
 /**
  * 🏷️ quando o modo nasceu — é daqui que sai a tarja "NOVO" das telas de montar.
  * Some sozinha 45 dias depois, igual às novidades da home.

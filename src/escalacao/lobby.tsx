@@ -3102,7 +3102,7 @@ export function EscLobby() {
                   <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} selos={{ true: seloNovoDe(MODO_NOME_NASCEU) }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {rapidoHolandes
-                      ? tr('🎣 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🎣 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                      ? tr('🐊 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🐊 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
                       : tr('✉️ O leilão de sempre: cada um escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: everyone writes a secret bid and the highest wins at the hammer.')}
                   </p>
                 </SegField>
@@ -3230,7 +3230,7 @@ export function EscLobby() {
                 {roomStream && rapidoHolandes && (
                   <div className="mt-2 rounded-xl border-[2.5px] border-black p-2.5" style={{ background: 'rgba(194,69,47,.18)' }}>
                     <p className="text-white/85 text-[11.5px] font-bold leading-snug">
-                      {MODO_EMOJI} {tr('Na Pescaria não tem tempo pra escolher: quem manda o relógio é o PREÇO caindo, e a descida é a mesma em toda sala — igual à da Partida Rápida. O Modo Stream continua valendo (os valores ficam escondidos e você dá o start).', 'In Fishing there is no timer to pick: the falling PRICE runs the clock, and the drop is the same in every room — just like in Quick Match. Stream mode still applies (values stay hidden and you give the start).')}
+                      {MODO_EMOJI} {tr('Na Tocaia não tem tempo pra escolher: quem manda o relógio é o PREÇO caindo, e a descida é a mesma em toda sala — igual à da Partida Rápida. O Modo Stream continua valendo (os valores ficam escondidos e você dá o start).', 'In Ambush there is no timer to pick: the falling PRICE runs the clock, and the drop is the same in every room — just like in Quick Match. Stream mode still applies (values stay hidden and you give the start).')}
                     </p>
                   </div>
                 )}
@@ -3315,7 +3315,7 @@ export function EscLobby() {
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão', 'World Cup: everyone picks a nation and calls up 11 — no auction')}>{tr('🌐 COPA', '🌐 CUP')}</span>
                     )}
                     {holandesRoom && (
-                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Pescaria: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Fishing: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()}`}</span>
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Tocaia: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Ambush: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()}`}</span>
                     )}
                   </p>
                   <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
