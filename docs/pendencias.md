@@ -1,3 +1,40 @@
+## 20/09/2026 (parte 4) — 📊 O TETO DO BOT: ANÁLISE, NADA MEXIDO NO JOGO
+
+O Diego contou que usuários estão **pagando muito acima do mercado** pra nenhum bot
+disputar, depois **listando** a carta: ninguém cobre, ela cai no monte **pela metade**
+e ele repesca de graça. Ordem dele: *"não faz nada, só analisa e me fala o que tu
+acha"*. Depois: *"não acha que deveria subir um pouco mais o piso com base no nível e
+categoria do jogador… e conforme o jogo avança? Igual é no mundo real"* e *"não quero
+prender somente a Série A — se tem time com dinheiro lá embaixo, deixe ofertar sim"*.
+
+### Bancadas (não mexem em nada do jogo)
+- **`scripts/simula-economia.mts`** — 250 temporadas, 3 estratégias (honesto ·
+  lavador · inflador). Achado: o teto do bot **congela em 360** (lenda 90 × econ 4×)
+  por volta da temporada 25 e nunca mais sobe; o lance do USUÁRIO é a única coisa
+  sem teto no jogo; `recordPrice` grava o lance inteiro no livro de preços.
+- **`scripts/simula-teto.mts`** — 40 clubes espalhados nas 5 divisões, 250 temporadas,
+  4 réguas de teto comparadas (hoje · pelo bolso · bolso+nível · bolso+nível+tempo).
+
+### O que a segunda bancada mostrou
+- **Hoje o teto não olha pro bolso de ninguém.** É a média da sala. Clube com
+  **8.396** de caixa dá o mesmo lance de um com **35** — e por isso o dinheiro
+  EMPOÇA (o mais rico termina as 250 temporadas com 8.396 sem ter no que gastar).
+- **Teto pelo bolso DAQUELE clube** resolve o pedido do Diego: time rico da Várzea
+  volta a ofertar de verdade (chegou a 390 quando o melhor da liga era 435) e o
+  dinheiro deixa de empoçar (mais rico termina com 718 em vez de 8.396).
+- **Só isso NÃO faz o preço subir com o tempo** — os prêmios são fixos por divisão,
+  então a economia estabiliza. Pra ter "igual mundo real", a RECEITA tem que subir
+  junto. Testado: +1,2%/temporada nos dois, parando em 2,5×. Maior lance da liga vai
+  de 360 (congelado) pra **612 na temporada 100**; a lenda sai de ~99 pra ~207 em 250
+  temporadas (dobrou, não explodiu); o rico da Várzea alcança **68%** do bolso da elite.
+- **Contra a artimanha**: hoje basta passar de ~355 *pra sempre* (número decorável).
+  Com teto pelo bolso + tempo, o alvo sobe junto com o jogo e nunca vira número fixo.
+
+### ⏳ PENDENTE — esperando a palavra do Diego (nada implementado)
+1. Livro de preços gravar só até o teto de mercado (`recordPrice`).
+2. Carta que volta pro dono no monte voltar "como saiu" (mesmo valor, mesmo contrato).
+3. Teto do bot pelo BOLSO do clube + NÍVEL da carta + inflação por temporada.
+
 ## 20/09/2026 (parte 3) — 👟 AS 20 MARCAS DE MATERIAL ESPORTIVO
 
 Ele mandou as 20 paródias e perguntou: *"vai ser com base na divisão ou você acha
