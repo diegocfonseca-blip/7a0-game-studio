@@ -35,11 +35,15 @@ const CARTAS = [
   { name: 'Dirceu Krüger', club: 'Coritiba', year: 1973, pos: 'MEI', fame: 3, deck: 'BR', nota: 'a Flecha Loira do Coritiba' },
   { name: 'Wesley', club: 'Roma', year: 2026, pos: 'LAT', fame: 4, deck: 'EU', nota: 'o lateral do Flamengo virou titular na Itália' },
   { name: 'Vitor Reis', club: 'Palmeiras', year: 2024, pos: 'ZAG', fame: 3, promessa: true, deck: 'BR', nota: 'saiu daqui pro Manchester City' },
-  { name: 'Patrik Schick', club: 'Leverkusen', year: 2022, pos: 'ATA', fame: 4, deck: 'EU', nota: 'o do gol do meio-campo na Euro' },
   { name: 'Fábio Rochemback', club: 'Sporting', year: 2005, pos: 'MEI', fame: 3, deck: 'EU', nota: 'bomba de fora da área' },
   { name: 'Tuta', club: 'Fluminense', year: 2006, pos: 'ATA', fame: 3, deck: 'BR', nota: 'centroavante raçudo dos anos 2000' },
 ]
-const RODAPE = 'E o Wesley do Flamengo virou 💎 PROMESSA'
+// 🔁 cartas que JÁ existiam e mudaram de categoria — ocupam o último quadrado
+const MUDANCAS = [
+  { de: '⭐ CRAQUE', para: '👑 LENDA', name: 'Paul Scholes', sub: 'Man United · 2003' },
+  { de: '🎯 BOM', para: '💎 PROMESSA', name: 'Wesley', sub: 'Flamengo · 2023' },
+]
+const RODAPE = 'Toda semana entra gente nova no baralho'
 // ────────────────────────────────────────────────────────────────────────────
 
 const carta = c => {
@@ -88,6 +92,12 @@ h1 em{font-style:normal;display:block;color:#C2452F}
 .nota{font-size:19px;font-weight:700;font-style:italic;opacity:.8;margin-top:7px;line-height:1.2}
 .dir{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
 .deck{background:rgba(0,0,0,.72);color:#fff;font-family:Oswald;font-weight:700;font-size:17px;letter-spacing:1px;padding:4px 12px;border-radius:999px;white-space:nowrap}
+.mudou{border:5px solid ${INK};border-radius:26px;box-shadow:8px 9px 0 0 ${INK};background:${INK};color:#fff;padding:22px 20px;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.mt{font-family:Oswald;font-weight:700;font-size:31px;color:${GOLD};text-transform:uppercase;line-height:1}
+.linha b{display:block;font-family:Oswald;font-weight:700;font-size:34px;line-height:1.05}
+.linha i{display:block;font-style:normal;font-weight:800;font-size:19px;color:rgba(255,255,255,.55);margin-top:1px}
+.linha span{display:block;font-weight:800;font-size:20px;color:rgba(255,255,255,.85);margin-top:5px}
+.linha u{text-decoration:none;color:${GOLD};font-family:Oswald;font-weight:700;font-size:23px}
 .rodape{margin-top:26px;background:${INK};border-radius:22px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .rodape b{font-family:Oswald;font-weight:700;font-size:34px;color:${GOLD};text-transform:uppercase;letter-spacing:.5px}
 .rodape span{font-size:23px;font-weight:800;color:rgba(255,255,255,.82);text-align:right}
@@ -96,7 +106,11 @@ h1 em{font-style:normal;display:block;color:#C2452F}
   <div><span class="chip">⚽ LEILÃO LEGENDS</span></div>
   <h1>Cartas novas<em>no baralho</em></h1>
   <p class="sub">Entraram agora e já aparecem no leilão da sua próxima temporada 👀</p>
-  <div class="grade">${CARTAS.map(carta).join('')}</div>
+  <div class="grade">${CARTAS.map(carta).join('')}${MUDANCAS.length ? `
+    <div class="mudou">
+      <p class="mt">🔁 Subiram de categoria</p>
+      ${MUDANCAS.map(m => `<div class="linha"><b>${m.name}</b><i>${m.sub}</i><span>${m.de} → <u>${m.para}</u></span></div>`).join('')}
+    </div>` : ''}</div>
   <div class="rodape"><b>${RODAPE}</b><span>leilaolegends.com</span></div>
 </div>`
 
