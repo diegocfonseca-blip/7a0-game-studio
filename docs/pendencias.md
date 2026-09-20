@@ -1,3 +1,43 @@
+## 20/09/2026 (parte 36) — 🙈 "Ainda não tô vendo no online ao criar sala" — dois motivos, os dois meus
+
+Ele foi olhar e não achou. Duas coisas, e a segunda era bug meu:
+
+### 1️⃣ Não está na `main` — nada disso foi pro ar
+O trabalho todo do holandês vive no branch `claude/denis-save-file-x1osct`. O site
+ao vivo é a `main`, que não tem uma linha disso. **Ele estava olhando o jogo no
+ar.** Enquanto não houver o OK dele + merge, não vai aparecer.
+
+### 2️⃣ E, quando aparecesse, estaria NO LUGAR ERRADO (bug meu)
+Eu pus o campo "Como é o leilão" na seção velha da tela de criar sala. Só que a
+tela **v2 está ligada pra todo mundo** (`CRIAR2_GERAL = true` em `sport.ts`) e ela
+**recolhe aquelas seções dentro de um ⚙️ Ajustes**. Ou seja: o campo existia, mas
+escondido atrás de uma engrenagem. Escolher o tipo de pregão é a decisão mais
+importante da sala — não pode ficar lá.
+
+**Movido pra Section "⚽ A partida"**, que é visível nas DUAS telas (a v2 e a
+antiga).
+
+### 3️⃣ E ele aparecia em modo que NEM TEM LEILÃO
+O `{!isCareer && …}` que eu usei liberava também o **🃏 Bafo** (*"SEM LEILÃO — cada
+um traz o time da própria carreira"*) e a **🌍 Copa do Mundo** (sala de seleções,
+sem leilão). Perguntar "como é o leilão" numa sala sem leilão é justo o tipo de
+tela torta que ele odeia.
+
+Agora a condição é explícita e é a ordem dele: **`roomMode === 'rapido' || liga`**
+— ⚡ Rápido online e 🏆 Minhas Ligas, mais nada. E a gravação no `game_state`
+ganhou a MESMA condição, senão escolher Holandês no rápido e depois trocar pro
+Bafo deixava `holandes: true` guardado numa sala sem pregão.
+
+⚠️ **Lição**: `!isCareer` **não** quer dizer "tem leilão". Esta tela tem 5 modos, e
+dois deles não leiloam nada. Quem for pôr opção de pregão aqui, liste os modos na
+mão.
+
+### 🛡️ Conferido depois de tudo
+`npm run holandes` verde · `npm run ascegas` com as MESMAS digitais da main
+(`28bea2df` · `d65041f6` · `06bab491`).
+
+---
+
 ## 20/09/2026 (parte 35) — 🌐 Holandês LIGADO no online (Rápido online + 🏆 Minhas Ligas)
 
 Ordem dele: *"ok pode criar no partida rápida e no modo rápido online e minhas
