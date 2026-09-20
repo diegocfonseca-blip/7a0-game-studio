@@ -1,3 +1,55 @@
+## 20/09/2026 (parte 41) — 🎚️ A escada afina a partir do 50 — e o holandês passou a ser MAIS LENTO que o cego
+
+2º pedido dele sobre o relógio: *"sobre o tempo ainda acho q qd chegar no 50 na
+regressiva pode ter mais números próximos… não tem problema demorar um pouco mais o
+leilão não"*.
+
+### 🎚️ A escada agora
+```
+100 · 90 · 80 · 70 · 60          ← pulo de 10 (enfeite puro)
+55 · 50                          ← pulo de 5
+46 · 42 · 38 · 34 · 30           ← pulo de 4   ← ERA 52 · 44 · 36 (de 8 em 8)
+27 · 24 · 21                     ← pulo de 3
+18 · 16                          ← pulo de 2
+14 · 13 · 12 … 2 · 1 · 0         ← de 1 em 1
+```
+`v > 60 ? 10 : v > 50 ? 5 : v > 30 ? 4 : v > 20 ? 3 : v > 14 ? 2 : 1`.
+De 50 pra baixo eram **3 degraus** (52·44·36), agora são **12** até o 14.
+
+### 🕰️ E a marcha do meio passou a começar no 55 (era 40)
+De nada adianta pôr mais número na faixa dos 50 se ele passar voando. Então:
+| faixa | por degrau |
+|---|---|
+| acima de 55 | 0,5s (era 0,6 — acelerou, porque ali NUNCA acontece nada) |
+| 23 a 55 | 1,4s |
+| 22 pra baixo | 2,0s |
+
+### ⚠️ O NÚMERO QUE ELE PRECISA SABER: o holandês virou o modo MAIS LENTO
+| | pregão inteiro (93 cartas) |
+|---|---|
+| 🔻 holandês | **12:05** |
+| ✉️ cego (hoje) | 11:15 |
+
+Ele autorizou (*"não tem problema demorar um pouco mais"*), então **fica** — mas
+registrando: até a parte 37 o holandês era a opção mais RÁPIDA (9:36, depois
+10:57). Agora é **50s mais lento** que o pregão de hoje. Se um dia isso incomodar,
+a alavanca mais barata é **abrir em 50 em vez de 100** (o topo 100→60 nunca vende
+nada): corta ~2,5s por leva sem tocar na parte fina que ele pediu. A segunda é
+baixar a marcha do fundo de 2,0s pra 1,7s — mas aí encosta no anti-delay, que é o
+que protege quem tem internet pior.
+
+Economia segue igual: 52 × 46 arremates · preço médio 12,1 × 13,3.
+
+### 🔒 Travas novas
+`npm run holandes` agora também reprova se: de 50 pra baixo aparecer pulo maior que
+4 · houver menos de 20 degraus abaixo de 50 · o degrau do 50 durar menos de 1,2s
+(passaria voando) · a descida passar de **55s** (teto novo, autorizado por ele — não
+subir mais sem pedido).
+
+🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
 ## 20/09/2026 (parte 40) — ↩️ O nome VOLTOU a ser HOLANDÊS (eu tinha lido errado)
 
 *"Eu falei pra manter holandês mesmo."*

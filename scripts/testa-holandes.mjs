@@ -53,6 +53,13 @@ const r = await p.evaluate(async () => {
     `a escada tem um pulo que AUMENTA na descida: ${pulos.join(',')}`)
   const de30 = esc.filter(v => v > 0 && v <= 30)
   ok(de30.every((v, i) => i === 0 || v - de30[i] <= 5), 'de 30 pra baixo tem pulo maior que 5')
+  // 🎚️ E A PARTIR DO 50 TAMBÉM (2º pedido dele): *"qd chegar no 50 na regressiva
+  //    pode ter mais números próximos"*. Antes pulava de 8 em 8 ali (52 → 44).
+  const de50 = esc.filter(v => v > 0 && v <= 50)
+  ok(de50.every((v, i) => i === 0 || de50[i - 1] - v <= 4), `de 50 pra baixo tem pulo maior que 4: ${de50.join(',')}`)
+  ok(de50.length >= 20, `de 50 pra baixo só tem ${de50.length} degraus — ele pediu MAIS números ali`)
+  // ⏱️ e eles têm que dar tempo de LER: de nada adianta mais número passando voando
+  ok(st.holPassoMs(50, 100) >= 1200, `o degrau do 50 dura ${st.holPassoMs(50, 100)}ms — passa voando`)
   const ultimos = esc.slice(-15, -1) // os 14 últimos degraus antes do zero
   ok(ultimos.every((v, i) => i === 0 || ultimos[i - 1] - v === 1),
     `os últimos degraus deviam cair de 1 em 1 e caem assim: ${ultimos.join(',')}`)
@@ -257,7 +264,12 @@ const r = await p.evaluate(async () => {
   // (d) ⏱️ E O DEGRAU TEM QUE DURAR O BASTANTE PRA DAR TEMPO DE REAGIR. É esta
   //     conta que faz o delay parar de decidir a partida.
   ok(st.holPassoMs(10, 100) >= 1500, `o degrau de baixo dura só ${st.holPassoMs(10, 100)}ms — pouco pra quem tem internet ruim`)
-  ok(msCheio <= 50000, `a leva inteira leva ${(msCheio / 1000).toFixed(1)}s e hoje leva 45s — está atrasando o jogo`)
+  // ⏱️ ELE AUTORIZOU O TEMPO MAIOR (20/09, duas vezes): *"pode aumentar um
+  //    pouco mais, não tem problema"* e *"não tem problema demorar um pouco mais
+  //    o leilão não"*. O teto vira 55s — ainda perto dos 45s do envelope cego, e
+  //    o bastante pra caber a escada fina dos 50 pra baixo que ele pediu. Não
+  //    subir mais sem ele pedir: acima disso a leva começa a cansar.
+  ok(msCheio <= 55000, `a leva inteira leva ${(msCheio / 1000).toFixed(1)}s — passou do teto de 55s que ele autorizou`)
 
   // 5️⃣-zero ⚡ APERTOU = É SEU NA HORA, NO MESMO TOQUE (decisão dele, 20/09:
   //    *"eu ainda acho que deveria ter que ser por tempo"*). Nada de janela,

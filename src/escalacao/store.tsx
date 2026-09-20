@@ -4386,7 +4386,13 @@ export function holEscada(start: number): number[] {
     // lateral), e de 30 pra baixo é onde a carta realmente muda de mão: o preço
     // médio de arremate medido é ~12 🪙. Então: pulo GORDO no enfeite, pulo
     // MIÚDO onde dói, e de 14 pra baixo é de 1 em 1.
-    v = Math.max(0, v - (v > 60 ? 10 : v > 40 ? 8 : v > 30 ? 5 : v > 20 ? 3 : v > 14 ? 2 : 1))
+    // 🎚️ AFINA A PARTIR DO 50 (2º pedido dele, 20/09): *"qd chegar no 50 na
+    // regressiva pode ter mais números próximos… não tem problema demorar um
+    // pouco mais o leilão não"*. Antes a faixa dos 50 pulava de 8 em 8 (52 → 44)
+    // e passava voando. Agora: acima de 60 continua pulo GORDO (ninguém paga
+    // isso), e de 60 pra baixo o pulo encolhe de degrau em degrau —
+    // 5 · 4 · 3 · 2 · 1 — até virar de 1 em 1 no fim.
+    v = Math.max(0, v - (v > 60 ? 10 : v > 50 ? 5 : v > 30 ? 4 : v > 20 ? 3 : v > 14 ? 2 : 1))
   }
   out.push(0) // 0 = ninguém quis → sobras (não dá pra levar de graça, senão nada sobraria)
   return out
@@ -4412,8 +4418,8 @@ export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // mesmo, a descida engordaria ~11s e o pregão passaria a ser mais LENTO que o
 // envelope cego — matando justo a vantagem que ele tem hoje. Então o relógio
 // desce junto: corre no enfeite, anda no meio e RESPIRA embaixo.
-//   · acima de 40% da abertura (>40): enfeite, ninguém paga isso → 0,6s
-//   · entre 22% e 40% (23–40): a tensão começa → 1,4s
+//   · acima de 55% da abertura (>55): enfeite puro, ninguém paga isso → 0,5s
+//   · entre 22% e 55% (23–55): a tensão começa → 1,4s
 //   · 22% pra baixo (≤22): é aqui que a carta troca de mão → 2,0s
 // 🕰️ E ELE AUTORIZOU FOLGA (20/09): *"pode aumentar um pouco mais, não tem
 // problema… só um pouco mais também"*. Então o fundo ganhou tempo em vez de
@@ -4422,12 +4428,15 @@ export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // Mesmo com a folga, a leva fecha em ~44s — ainda abaixo dos 45s do envelope
 // cego. Mexeu num número? Rode `npm run holandes`: a trava reprova se o fundo
 // ficar abaixo de 1,5s ou se a descida passar de 50s.
-export const HOL_MS_ALTO = 600
+// 🕰️ A marcha do MEIO passou a começar no 55 (e não no 40) junto com a escada
+// mais fina: de nada adianta pôr mais números na faixa dos 50 se eles passarem
+// voando. Em troca, o topo (100→60), onde NUNCA acontece nada, acelerou.
+export const HOL_MS_ALTO = 500
 export const HOL_MS_MEIO = 1400
 export const HOL_MS_BAIXO = 2000
 export const holPassoMs = (preco: number, start: number) => {
   const f = preco / Math.max(1, start)
-  return f > 0.40 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO
+  return f > 0.55 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO
 }
 
 // quem pode levar ESTA carta por ESTE preço. Mesma régua que o `resolve` usa na
