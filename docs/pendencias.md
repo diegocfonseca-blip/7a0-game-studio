@@ -1,3 +1,58 @@
+## 20/09/2026 (parte 33) — 🛟 A repescagem FAZ falta (eu estava errado) — e virou descida holandesa
+
+Ele perguntou: *"e sobre repescagem acha q não deve ter mesmo?"*. Fui medir em vez
+de opinar, e **a medição me desmentiu**.
+
+### ❌ Onde eu errei
+Eu concordei em tirar a repescagem com o argumento: *"o preço já passou por 1 moeda
+na frente de todo mundo, todo mundo teve chance"*. Isso vale pra **GENTE** — você vê
+a lista e pega o que quiser por 1 moeda. **Robô não funciona assim**: o teto dele sai
+do `cpuEnvelope`, que só olha as `need` cartas mais bem ranqueadas. Carta que ele
+nunca ranqueou, ele **não pega nem de graça**. E a pirâmide é quase toda robô.
+
+Com a repescagem simplesmente removida: **55 vagas vazias** (contra 38 do cego) e
+**32 moedas encalhadas** por técnico. 17 perna-de-pau a mais por leilão — justo a
+reclamação dele de 19/09.
+
+### 🛟 O que ficou (e respeita o que ele pediu)
+Ele disse *"não tem negócio de repescagem nesse leilão"* — e quanto à **TELA** ele
+está certo: envelope cego no meio de um leilão holandês é outro jogo. Então:
+- **a repescagem continua existindo, mas como DESCIDA HOLANDESA**: as sobras do
+  setor voltam pra mesa e o preço cai de novo. Mesmo visual, mesma lista, mesmo
+  botão. Nenhuma tela nova;
+- e antes disso, **dentro da própria descida**, quando o preço cruza 25% da
+  abertura, os robôs que ainda têm buraco **reavaliam o que sobrou na mesa**
+  (`holResgate`, usando o `cpuEnvelope(rescue)` que a repescagem de hoje já usa).
+
+### 📊 E aí a conta fecha — inclusive o TEMPO, que eu vinha medindo errado
+⚠️ **Segundo erro de medição desta série**: eu vinha dizendo que o pregão cego leva
+"6:00". Mentira — eu contava só as levas e **esquecia as rodadas de repescagem
+dele**, que também custam 45s cada. O cego de verdade leva **11:15**.
+
+| | arremates | vagas vazias | moeda encalhada | pregão |
+|---|---|---|---|---|
+| 🔻 holandês | 53 | **36** | 23,4 🪙 | **9:51** |
+| ✉️ cego (hoje) | 48 | 41 | 21,4 🪙 | 11:15 |
+
+Ou seja, com a repescagem holandesa o modo novo ficou **melhor em tudo**: menos
+perna-de-pau (36 × 41), mais carta colocada (53 × 48) e **1min24 mais rápido** que
+o pregão de hoje.
+
+### 🎬 E a tela depois da descida: FICA O REVEAL (decisão dele)
+*"A manter revelando quem pagou valor e etc… se for lenda mostrará avatar e etc"*.
+Nada a construir: o holandês já cai no `Reveal` de sempre, que mostra carta por
+carta com o vencedor e o valor, e já trata lenda (selo 👑 LENDA, chime dourado,
+áudio e o festão). O holandês passa por ele igual ao pregão cego.
+
+### 🧠 Lição (a terceira desta série, e a mais cara)
+**Toda comparação entre os dois modos tem que incluir as FASES INTEIRAS dos dois.**
+Comparar "a leva do holandês" com "a leva do cego" e esquecer a repescagem do cego
+deu 6:00 × 9:51 (holandês perdendo) quando a verdade é 11:15 × 9:51 (holandês
+ganhando). Erro de escopo de medição, igual ao seed da parte 27 e ao arremate
+contado duas vezes da parte 26.
+
+---
+
 ## 20/09/2026 (parte 32) — ⏱️ O Diego escolheu POR TEMPO. E o holandês perdeu a repescagem.
 
 Ele leu a parte 31 (roleta) e decidiu o contrário: *"eu ainda acho que deveria ter

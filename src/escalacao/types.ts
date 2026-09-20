@@ -330,6 +330,14 @@ export type HolandesState = {
    */
   pedidos: { cardId: string; mgr: number; humano: boolean }[]
   /**
+   * 🛟 a "virada do resgate" já aconteceu nesta leva (o preço cruzou a faixa
+   * baixa e os robôs com buraco reavaliaram o que ainda está na mesa).
+   * É o que substitui a REPESCAGEM dentro da própria descida — ver `store.tsx`.
+   */
+  resgateFeito?: boolean
+  /** esta descida é a REPESCAGEM do setor (as sobras voltando pra mesa) */
+  resgate?: boolean
+  /**
    * o que aconteceu no degrau que acabou de fechar (faixa da tela).
    * `perdedores` = quem pediu esta carta e NÃO levou. É por causa desta lista
    * que quem perdeu a corrida vê o motivo na tela, em vez da carta simplesmente

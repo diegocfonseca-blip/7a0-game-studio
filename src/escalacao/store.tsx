@@ -4427,7 +4427,7 @@ function holNaMesa(state: EscState): Card[] {
 // MESMO `cpuEnvelope` do leilão cego. Assim o bot distribui o bolso do setor
 // entre as cartas exatamente como distribuiria hoje — ele só passa a "apertar o
 // botão" quando o preço desce até o valor que ele tinha escrito no envelope.
-function abreHolandes(state: EscState) {
+function abreHolandes(state: EscState, rescue = false) {
   const rng = rngOf(state)
   const econ = state.careerOnline ? escadaEconFactor(state) : 0
   const tetos: Record<string, Record<number, number>> = {}
@@ -4437,15 +4437,15 @@ function abreHolandes(state: EscState) {
   for (const m of state.managers) {
     if (m.isHuman) continue
     if (m.auctionRival) {
-      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, false, econ)) poe(m.id, b.cardId, b.amount)
+      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) poe(m.id, b.cardId, b.amount)
     } else if (state.careerOnline && (m.backstop || m.marketCpu)) {
       // mesmo cinto do envelope: o bot do mercado nunca estoura num jogador só
       const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
       const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
-      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, false, econ)) poe(m.id, b.cardId, Math.min(b.amount, capPerCard))
+      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) poe(m.id, b.cardId, Math.min(b.amount, capPerCard))
     }
   }
-  state.hol = { preco: HOL_ABERTURA(state), passo: 0, tetos, levados: [], pedidos: [], ultimo: null }
+  state.hol = { preco: HOL_ABERTURA(state), passo: 0, tetos, levados: [], pedidos: [], ultimo: null, resgate: rescue }
   state.phase = 'holandes'
   state.submitted = []
   state.pendingEnvelopes = {}
@@ -4464,9 +4464,12 @@ function fechaHolandes(state: EscState) {
   const env: Record<number, { cardId: string; amount: number }[]> = {}
   for (const l of hol.levados) (env[l.mgr] = env[l.mgr] ?? []).push({ cardId: l.cardId, amount: l.preco })
   state.pendingEnvelopes = env
+  const eraResgate = !!hol.resgate
   state.holFechando = true // ⚠️ avisa o sealAndResolve: NÃO gere lance de CPU, o holandês já decidiu tudo
   state.hol = undefined
-  state.phase = 'envelope' // só pra o `sealAndResolve` saber que não é repescagem
+  // o `sealAndResolve` lê a fase pra saber se é pregão ou repescagem — e é ela
+  // que manda o `afterReveal` jogar o que sobrou no monte em vez de repescar.
+  state.phase = eraResgate ? 'resq_envelope' : 'envelope'
   sealAndResolve(state)
   state.holFechando = false
 }
@@ -4568,6 +4571,46 @@ function holNinguemPodeMais(state: EscState): boolean {
 //   3. os robôs que chegaram no teto entram na fila do degrau novo.
 // No online quem chama é SEMPRE o HOST — regra dele: *"oq manda e o ID do host
 // sempre"*. O convidado só desenha o preço que o host mandar.
+// 🛟 A VIRADA DO RESGATE — a repescagem DENTRO da própria descida.
+//
+// Por que existe (achado medindo, 20/09): o Diego disse *"não tem negócio de
+// repescagem nesse leilão"* e eu concordei com o argumento errado — "o preço já
+// passou por 1 moeda, todo mundo teve chance". Isso vale pra GENTE, que vê a
+// lista e pega o que quiser por 1. **Robô não funciona assim**: o teto dele sai
+// do `cpuEnvelope`, que só olha as `need` cartas mais bem ranqueadas. Carta que
+// ele nunca ranqueou, ele não pega NEM DE GRAÇA.
+//
+// Medido, com a repescagem simplesmente removida: **55 vagas vazias** contra 39
+// do pregão cego (= 16 perna-de-pau a mais por leilão, justo a reclamação dele
+// de 19/09) e **32 moedas encalhadas** no bolso de cada técnico.
+//
+// A solução não é devolver a tela da repescagem (ele tem razão: seria leiloar a
+// mesma carta duas vezes). É fazer o robô REAVALIAR o que ainda está na mesa
+// quando o preço fica barato — que é exatamente o que o `cpuEnvelope(rescue)`
+// já faz na repescagem de hoje. Mesma função, mesmo bolso de repescagem, só que
+// sem parar o pregão: zero tela nova, zero segundo a mais.
+const HOL_RESGATE_FRAC = 0.25 // a 25% da abertura (25 no futebol, 12 no basquete)
+function holResgate(state: EscState) {
+  const hol = state.hol
+  if (!hol || hol.resgateFeito) return
+  hol.resgateFeito = true
+  const mesa = holNaMesa(state)
+  if (!mesa.length) return
+  const rng = rngOf(state)
+  const econ = state.careerOnline ? escadaEconFactor(state) : 0
+  const pos = SECTORS[state.sectorIdx]
+  for (const m of state.managers) {
+    if (m.isHuman) continue
+    if (!m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
+    // só quem AINDA tem buraco nesta posição — quem já encheu não volta pra mesa
+    if (openSlots(m, pos) - holVagasUsadas(hol, m.id, pos, state.currentCards) <= 0) continue
+    for (const b of cpuEnvelope(m, mesa, state.sectorIdx, rng, true, econ)) {
+      const t = (hol.tetos[b.cardId] = hol.tetos[b.cardId] ?? {})
+      t[m.id] = Math.max(t[m.id] ?? 0, b.amount)
+    }
+  }
+}
+
 function holandesTick(state: EscState) {
   const hol = state.hol
   if (!hol) return
@@ -4577,8 +4620,10 @@ function holandesTick(state: EscState) {
   if (passo >= escada.length || escada[passo] <= 0) { fechaHolandes(state); return }
   hol.passo = passo
   hol.preco = escada[passo] // 2) o preço cai
+  // 3) 🛟 ficou barato: os robôs com buraco reavaliam o que sobrou na mesa
+  if (hol.preco <= Math.round(HOL_ABERTURA(state) * HOL_RESGATE_FRAC)) holResgate(state)
   if (holNaMesa(state).length === 0 || holNinguemPodeMais(state)) { fechaHolandes(state); return }
-  holBotsPedem(state) // 3) os robôs entram na fila
+  holBotsPedem(state) // 4) os robôs entram na fila
 }
 
 // 🫵 VOCÊ APERTOU numa carta da lista.
@@ -4688,9 +4733,14 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ((state.auctionSecs && state.auctionSecs > 0 ? state.auctionSecs * 1000 : ENVELOPE_MS))
   // 🔻 HOLANDÊS: a leva é a MESMA (mesma fatia, mesma quantidade, mesmas regras
   // de vaga — pedido dele). Só o jeito de dar lance muda: em vez do envelope
-  // cego, o preço cai carta por carta na frente de todo mundo. Repescagem e
-  // setor técnico seguem no envelope de sempre, de propósito: sobra é sobra.
-  if (state.holandes && !rescue && state.currentCards.length > 0) { abreHolandes(state); return }
+  // cego, o preço cai na frente de todo mundo.
+  // 🛟 E A REPESCAGEM TAMBÉM É HOLANDESA (20/09): ele não quer envelope cego
+  // dentro deste leilão (*"não tem negócio de repescagem nesse leilão"*), e ele
+  // está certo quanto à TELA — mas a MEDIÇÃO mostrou que tirar a segunda
+  // passada custa caro (55 vagas vazias contra 38, e 32 moedas encalhadas por
+  // técnico). Então a sobra volta pra mesa numa descida curta, com o MESMO
+  // visual: nenhuma tela nova, nenhum envelope, e o buraco não explode.
+  if (state.holandes && state.currentCards.length > 0) { abreHolandes(state, rescue); return }
   // 🛟 LEVA/SETOR VAZIO: não tem NENHUMA carta pra leiloar (ex.: leilão de reservas
   // onde TODOS os laterais do catálogo já têm dono). Sem isto, aparecia um envelope
   // VAZIO ("laterais sem lateral nenhum") e, ao lacrar, dava a tela de erro. Agora
@@ -4983,19 +5033,6 @@ function afterReveal(state: EscState) {
     state.currentCards = []
     if (state.sectorCursor < state.deck[pos].length) {
       startAuctionPhase(state, false) // ainda tem leva pra vir nesse setor
-      return
-    }
-    // 🔻 HOLANDÊS: NÃO TEM REPESCAGEM (decisão do Diego, 20/09). Palavras dele:
-    // *"não tem negócio de repescagem nesse leilão eu acho… quem não pegou se
-    // ferra que vai ter que ir pro monte mesmo então. No 0 não tem empate
-    // também, é monte direto"*. E ele está certo: a repescagem existe pra dar
-    // uma última chance de PAGAR pelas sobras — mas no holandês essa chance já
-    // foi dada, o preço passou por 1 moeda na frente de todo mundo. Repescar
-    // depois de um leilão holandês é leiloar a mesma carta duas vezes.
-    if (state.holandes) {
-      montePush(state, state.sectorUnsoldAccum)
-      state.sectorUnsoldAccum = []
-      advanceSectorOrFinish(state, rng)
       return
     }
     // fechou todas as levas do setor: repescagem ÚNICA com tudo que sobrou (só

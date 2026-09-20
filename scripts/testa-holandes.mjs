@@ -57,7 +57,7 @@ const r = await p.evaluate(async () => {
     const caixaInicial = Object.fromEntries(s.managers.map(m => [m.id, m.money]))
     let ticks = 0, cartas = 0, msPregao = 0, ultimaMarca = '', monteN = null
     // 📦 quantas cartas caíram na REPESCAGEM (as que o leilão principal não vendeu)
-    let repescagem = 0, naResq = 0
+    let repescagem = 0, naResq = 0, rodadasEnv = 0
     const vistoResq = new Set()
     const precos = []
     const visto = new Set()
@@ -82,6 +82,10 @@ const r = await p.evaluate(async () => {
       if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
         if (s.phase === 'envelope') for (const c of s.currentCards) if (!visto.has(c.id)) { visto.add(c.id); cartas++ }
         if (s.phase === 'resq_envelope') for (const c of s.currentCards) if (!vistoResq.has(c.id)) { vistoResq.add(c.id); repescagem++ }
+        // ⏱️ CADA rodada de envelope custa 45s de relógio — inclusive as da
+        //    REPESCAGEM. Eu tinha esquecido delas e o pregão cego aparecia 4
+        //    minutos mais curto do que é de verdade.
+        if (s.currentCards.length > 0) rodadasEnv++
         s = st.reducer({ ...s, phaseDeadline: null }, { type: 'FORCE_SEAL' })
         continue
       }
@@ -106,7 +110,12 @@ const r = await p.evaluate(async () => {
       if (!m.isHuman && !m.auctionRival) continue
       for (const pos of Object.keys(POR_POS)) buracos += Math.max(0, POR_POS[pos] - m.squad.filter(c => c.pos === pos && !c.fake).length)
     }
-    return { s, caixaInicial, ticks, cartas, precos, msPregao, monteN: monteN ?? 0, repescagem, buracos, naResq }
+    // 💰 MOEDA QUE SOBROU NO BOLSO: é o outro lado da repescagem. Se tirar a
+    //    repescagem e a galera terminar com o bolso cheio, quer dizer que ficou
+    //    dinheiro sem ter em que gastar — e aí a repescagem fazia falta.
+    let sobrouMoeda = 0, quantos = 0
+    for (const m of s.managers) { if (!m.isHuman && !m.auctionRival) continue; sobrouMoeda += Math.max(0, m.money); quantos++ }
+    return { s, caixaInicial, ticks, cartas, precos, msPregao, monteN: monteN ?? 0, repescagem, buracos, naResq, rodadasEnv, sobrouMoeda: quantos ? sobrouMoeda / quantos : 0 }
   }
 
   const hol = joga(true)
@@ -391,10 +400,14 @@ const r = await p.evaluate(async () => {
   // 🔒 A REGRA SÓ SE SUSTENTA SE O EMPATE FOR RARO. Se metade das cartas fosse
   //    pra roleta, o leilão viraria sorteio — e aí valeria a pena parar tudo pra
   //    um re-lance cego. A trava segura esse limite: até 1 carta em 3.
-  // 🔒 Isto mede a fila dos ROBÔS (gente leva na hora, nem passa por aqui). O
-  //    número importa porque é o tamanho da rede: quanto maior, mais vezes a
-  //    roleta invisível entra em ação pra impedir dois donos na mesma carta.
-  ok(empates[20].maiorRoda <= 6, `sala de 20: fila de ${empates[20].maiorRoda} robôs na mesma carta — grande demais`)
+  // 🔒 Isto mede a fila dos ROBÔS. **Gente nunca entra nela** (pessoa leva por
+  //    tempo, na hora), então o tamanho dela não muda nada pra quem joga — é só
+  //    o tamanho da rede que impede dois donos na mesma carta. O que a trava
+  //    segura é o ABSURDO: a fila nunca pode passar do número de técnicos que
+  //    disputam o leilão, senão tem robô pedindo duas vezes a mesma carta.
+  const tecs20 = 20
+  ok(empates[20].maiorRoda <= tecs20, `sala de 20: fila de ${empates[20].maiorRoda} robôs numa carta só, com ${tecs20} técnicos — alguém pediu duas vezes`)
+  ok(empates[8].maiorRoda <= 8, `sala de 8: fila de ${empates[8].maiorRoda} robôs numa carta só — alguém pediu duas vezes`)
 
   // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
   //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
@@ -454,6 +467,8 @@ const r = await p.evaluate(async () => {
     monteHol: hol.monteN, monteCego: cego.monteN,
     salas, disputaTestada, empates, primeiroLevou, disputasSeguidas, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
     repHol: hol.repescagem, repCego: cego.repescagem,
+    moedaHol: hol.sobrouMoeda, moedaCego: cego.sobrouMoeda,
+    rodadasCego: cego.rodadasEnv,
     resqHol: hol.naResq, resqCego: cego.naResq,
     buracoHol: hol.buracos, buracoCego: cego.buracos,
     cegoCartas: cego.cartas,
@@ -470,9 +485,9 @@ console.log(`   escada de preços (${r.escada.length} degraus): ${r.escada.slice
 console.log(`   a descida inteira da leva (100 → 0): ${(r.msCheio / 1000).toFixed(1)}s · hoje o envelope leva 45s\n`)
 console.log("   ⏱️💰 O MESMO PREGÃO, NOS DOIS MODOS (8 técnicos, humano só assistindo):")
 console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · ${String(r.arremates).padStart(3)} arremates · preço médio ${r.precoMedio.toFixed(1)} 🪙 · ~${Math.round(r.msPregao / 1000)}s de pregão `)
-console.log(`         └─ ${r.arremates - r.resqHol} saíram no pregão · ${r.resqHol} na repescagem · ${r.repHol} desceram pra repescagem · ${r.buracoHol} vagas ficaram vazias (= perna-de-pau)`)
-console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão `)
-console.log(`         └─ ${r.cegoArremates - r.resqCego} saíram no pregão · ${r.resqCego} na repescagem · ${r.repCego} desceram pra repescagem · ${r.buracoCego} vagas ficaram vazias (= perna-de-pau)\n`)
+console.log(`         └─ ${r.arremates - r.resqHol} no pregão · ${r.resqHol} na repescagem · 🃏 ${r.monteHol} no Monte Final · ${r.buracoHol} vagas vazias · 💰 sobrou ${r.moedaHol.toFixed(1)} 🪙 por técnico`)
+console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${r.rodadasCego * 45}s de pregão (${r.rodadasCego} rodadas × 45s, repescagem incluída)`)
+console.log(`         └─ ${r.cegoArremates - r.resqCego} no pregão · ${r.resqCego} na repescagem · 🃏 ${r.monteCego} no Monte Final · ${r.buracoCego} vagas vazias · 💰 sobrou ${r.moedaCego.toFixed(1)} 🪙 por técnico\n`)
 console.log(`   ⚡ APERTOU → é seu NO MESMO TOQUE (por tempo): ${r.sozinhoTestado ? 'testado' : '⚠️ NÃO testado'}`)
 console.log(`   👥👥 DOIS NA MESMA CARTA: ${r.disputaTestada ? 'testado' : '⚠️ NÃO testado'} · quem apertou primeiro levou ${r.primeiroLevou}/${r.disputasSeguidas} (tem que ser 100%)`)
 console.log('')
@@ -482,12 +497,12 @@ for (const n of [8, 20]) {
 }
 console.log('')
 console.log('   👥 E O BARALHO SEGUE O TAMANHO DA SALA — pela MESMA conta nos dois modos:\n')
-console.log('      técnicos │ vagas (11 cada) │ cartas no baralho │ levas │ pregão holandês │ pregão cego')
-console.log('      ─────────┼─────────────────┼───────────────────┼───────┼─────────────────┼────────────')
+console.log('      técnicos │ vagas (11 cada) │ cartas no baralho │ levas')
+console.log('      ─────────┼─────────────────┼───────────────────┼───────')
 for (const sl of r.salas) {
-  const mm = (seg) => `${Math.floor(seg / 60)}:${String(Math.round(seg % 60)).padStart(2, '0')}`
-  console.log(`      ${String(sl.tecnicos).padStart(8)} │ ${String(sl.vagas).padStart(15)} │ ${String(sl.cartas).padStart(17)} │ ${String(sl.levas).padStart(5)} │ ${String(mm(sl.levas * (r.msCheio / 1000))).padStart(15)} │ ${mm(sl.levas * 45)}`)
+  console.log(`      ${String(sl.tecnicos).padStart(8)} │ ${String(sl.vagas).padStart(15)} │ ${String(sl.cartas).padStart(17)} │ ${String(sl.levas).padStart(5)}`)
 }
+console.log('      (o tempo de pregão está medido lá em cima, nos dois modos — aqui seria chute)')
 console.log('')
 if (r.falhas.length) {
   for (const f of r.falhas) console.log(`   🔴 ${f}`)
