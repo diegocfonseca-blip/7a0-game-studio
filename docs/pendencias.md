@@ -1,3 +1,52 @@
+## 20/09/2026 (parte 37) — 🎚️ A escada afina perto do 30 (pedido dele, com o jogo já no ar)
+
+Ele jogou e aprovou (*"tô adorando"*), com um pedido: *"só acho q tem q qd começa a
+chegar próximo do 30 começar a cair os números cada vez mais próximo de um por um
+sabe"*. E logo depois: *"sim, pode aumentar um pouco mais, não tem problema… só um
+pouco mais também"* — ou seja, autorizou a descida ficar mais longa.
+
+### 🎚️ A escada agora
+```
+100 · 90 · 80 · 70 · 60 · 52 · 44   ← pulos de 10 e 8 (enfeite: ninguém paga isso)
+36 · 31                             ← pulos de 5
+26 · 23                             ← pulos de 3
+20 · 18 · 16                        ← pulos de 2
+14 · 13 · 12 · 11 · 10 · 9 … 1 · 0  ← de 1 em 1
+```
+A conta é `v > 60 ? 10 : v > 40 ? 8 : v > 30 ? 5 : v > 20 ? 3 : v > 14 ? 2 : 1`.
+Bate com o que ele quis: **de 30 pra baixo o pulo vai encolhendo até virar 1**. E
+faz sentido no jogo — o preço médio de arremate medido é ~12 🪙, então é ali que a
+carta troca de mão de verdade.
+
+### ⏱️ E o relógio virou TRÊS marchas (senão o modo perdia a vantagem)
+Só afinar a escada engordava a descida em ~11s e o holandês passaria a ser mais
+LENTO que o envelope cego — matando a única vantagem de tempo que ele tem. Então o
+relógio desce junto com a escada:
+| faixa | tempo por degrau | por quê |
+|---|---|---|
+| acima de 40 | 0,6s | enfeite, ninguém paga |
+| 23 a 40 | 1,4s | a tensão começa |
+| 22 pra baixo | 2,0s | é aqui que a carta troca de mão |
+
+Os **2,0s do fundo** são a peça do anti-delay: com dois segundos pra reagir, meio
+segundo de internet ruim não decide carta nenhuma.
+
+### 📊 Medido depois (`npm run holandes`)
+- descida da leva: **43,8s** (era 39,4s) — ainda **abaixo** dos 45s do envelope cego;
+- pregão inteiro: **10:57** contra **11:15** do cego. Continua mais rápido, com folga
+  menor — que foi exatamente o que ele autorizou;
+- economia igual: 49 × 51 arremates · 40 × 38 vagas vazias · 12,3 × 11,6 de preço.
+
+### 🔒 E virou LEI na trava
+`npm run holandes` agora reprova se: algum pulo **aumentar** na descida · de 30 pra
+baixo aparecer pulo maior que 5 · os 14 últimos degraus não caírem de 1 em 1 · o
+fundo não for a marcha mais lenta das três. Ninguém desfaz isso sem o teste gritar.
+
+### 🛡️ `npm run ascegas` depois de tudo
+`28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
 ## 20/09/2026 (parte 36) — 🙈 "Ainda não tô vendo no online ao criar sala" — dois motivos, os dois meus
 
 Ele foi olhar e não achou. Duas coisas, e a segunda era bug meu:

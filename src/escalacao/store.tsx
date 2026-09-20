@@ -4380,20 +4380,40 @@ export function holEscada(start: number): number[] {
   let v = Math.max(1, Math.round(start))
   while (v > 0) {
     out.push(v)
-    v = Math.max(0, v - (v > 60 ? 10 : v > 40 ? 8 : v > 20 ? 5 : v > 8 ? 2 : 1))
+    // 🎚️ AFINA CONFORME DESCE (pedido dele, 20/09): *"qd começa a chegar
+    // próximo do 30 começar a cair os números cada vez mais próximo de um por
+    // um"*. Faz sentido — lá em cima o número é enfeite (ninguém paga 80 num
+    // lateral), e de 30 pra baixo é onde a carta realmente muda de mão: o preço
+    // médio de arremate medido é ~12 🪙. Então: pulo GORDO no enfeite, pulo
+    // MIÚDO onde dói, e de 14 pra baixo é de 1 em 1.
+    v = Math.max(0, v - (v > 60 ? 10 : v > 40 ? 8 : v > 30 ? 5 : v > 20 ? 3 : v > 14 ? 2 : 1))
   }
   out.push(0) // 0 = ninguém quis → sobras (não dá pra levar de graça, senão nada sobraria)
   return out
 }
 export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
-// ⏱️ TEMPO DE CADA DEGRAU. Corre lá em cima (ninguém paga 90 num lateral) e
-// RESPIRA embaixo, que é onde a decisão acontece. Os ~2s do degrau de baixo são
-// a peça central do anti-delay: com 2 segundos pra reagir, meio segundo de
-// internet ruim não decide mais nada. A leva inteira fecha em ~40s — o mesmo
-// tempo do envelope cego de hoje (45s), então o ritmo do jogo não muda.
+// ⏱️ TEMPO DE CADA DEGRAU — TRÊS marchas, e elas casam com a escada de preços.
+// A escada foi afinada de 30 pra baixo (pedido dele); se o relógio ficasse o
+// mesmo, a descida engordaria ~11s e o pregão passaria a ser mais LENTO que o
+// envelope cego — matando justo a vantagem que ele tem hoje. Então o relógio
+// desce junto: corre no enfeite, anda no meio e RESPIRA embaixo.
+//   · acima de 40% da abertura (>40): enfeite, ninguém paga isso → 0,6s
+//   · entre 22% e 40% (23–40): a tensão começa → 1,4s
+//   · 22% pra baixo (≤22): é aqui que a carta troca de mão → 2,0s
+// 🕰️ E ELE AUTORIZOU FOLGA (20/09): *"pode aumentar um pouco mais, não tem
+// problema… só um pouco mais também"*. Então o fundo ganhou tempo em vez de
+// ser espremido pra caber. Os 2s do fundo são a peça do anti-delay: com dois
+// segundos pra reagir, meio segundo de internet ruim não decide carta nenhuma.
+// Mesmo com a folga, a leva fecha em ~44s — ainda abaixo dos 45s do envelope
+// cego. Mexeu num número? Rode `npm run holandes`: a trava reprova se o fundo
+// ficar abaixo de 1,5s ou se a descida passar de 50s.
 export const HOL_MS_ALTO = 600
-export const HOL_MS_BAIXO = 2200
-export const holPassoMs = (preco: number, start: number) => (preco > Math.round(start * 0.4) ? HOL_MS_ALTO : HOL_MS_BAIXO)
+export const HOL_MS_MEIO = 1400
+export const HOL_MS_BAIXO = 2000
+export const holPassoMs = (preco: number, start: number) => {
+  const f = preco / Math.max(1, start)
+  return f > 0.40 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO
+}
 
 // quem pode levar ESTA carta por ESTE preço. Mesma régua que o `resolve` usa na
 // hora de fechar (vaga aberta + dinheiro + piso), pra ninguém "ganhar" na tela e

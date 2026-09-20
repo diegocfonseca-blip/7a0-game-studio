@@ -45,6 +45,20 @@ const r = await p.evaluate(async () => {
   const degrauEmBaixo = esc[esc.length - 3] - esc[esc.length - 2]
   ok(degrauEmCima > degrauEmBaixo, `degrau de cima (${degrauEmCima}) tinha que ser maior que o de baixo (${degrauEmBaixo})`)
   ok(esc.filter(v => v > 0 && v <= 30).length >= 14, 'a escada é rala embaixo — é lá que dá pra decidir')
+  // 🎚️ AFINA CONFORME DESCE (pedido dele, 20/09: *"qd começa a chegar próximo
+  //    do 30 começar a cair os números cada vez mais próximo de um por um"*).
+  //    Duas regras, e as duas são LEI daqui pra frente:
+  const pulos = esc.slice(0, -1).map((v, i) => v - esc[i + 1])
+  ok(pulos.every((p2, i) => i === 0 || p2 <= pulos[i - 1]),
+    `a escada tem um pulo que AUMENTA na descida: ${pulos.join(',')}`)
+  const de30 = esc.filter(v => v > 0 && v <= 30)
+  ok(de30.every((v, i) => i === 0 || v - de30[i] <= 5), 'de 30 pra baixo tem pulo maior que 5')
+  const ultimos = esc.slice(-15, -1) // os 14 últimos degraus antes do zero
+  ok(ultimos.every((v, i) => i === 0 || ultimos[i - 1] - v === 1),
+    `os últimos degraus deviam cair de 1 em 1 e caem assim: ${ultimos.join(',')}`)
+  // ⏱️ e o FUNDO é o mais devagar dos três (é onde a carta troca de mão)
+  ok(st.holPassoMs(8, 100) > st.holPassoMs(30, 100), 'o fundo da escada não é mais devagar que o meio')
+  ok(st.holPassoMs(30, 100) > st.holPassoMs(80, 100), 'o meio da escada não é mais devagar que o topo')
   ok(st.holEscada(50)[0] === 50, 'no basquete a abertura tem que ser o bolso de lá (50)')
 
   // ⏱️ e o relógio: a leva inteira não pode custar mais que os 45s de hoje.
