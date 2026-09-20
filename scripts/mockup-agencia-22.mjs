@@ -66,7 +66,7 @@ const tela = `
 <div class="bloco">
   <p class="tt">🃏 NA ATIVA <span>22 de 31 clientes</span></p>
   <!-- ③ o porquê do 22, escrito -->
-  <p class="pq">Você cuida de <b>22 ao mesmo tempo</b> — é quanta gente uma agência dá conta de acompanhar. Só quem está na ativa paga mensalidade; o resto espera a vez.</p>
+  <p class="pq">Você cuida de <b>22 ao mesmo tempo</b> — é quanta gente uma agência dá conta de acompanhar. Só quem está na ativa paga mensalidade. Quem está fora <b>não rende nada e não acumula nada</b> — passa a render no dia em que entra.</p>
   ${cliente('Romário', 'Vasco · 1997', 'lenda', 7)}
   ${cliente('Jairzinho', 'Botafogo · 1972', 'lenda', 6)}
   ${cliente('Bebeto', 'Flamengo · 1989', 'craque', 4)}
@@ -79,10 +79,10 @@ const tela = `
 
 <!-- ⑤ quem está de fora, com o número -->
 <div class="bloco fora">
-  <p class="tt">💤 ESPERANDO A VEZ <span>9 clientes</span></p>
+  <p class="tt">💤 ESPERANDO A VEZ <span>9 clientes · não rendem</span></p>
   ${cliente('Edmundo', 'Palmeiras · 1996', 'craque', 4, 'off')}
   ${cliente('Zé Carlos', 'Guarani · 1988', 'prof', 1, 'off')}
-  <p class="mais">+ 7 esperando · juntos renderiam <b>+21</b> se coubessem</p>
+  <p class="mais">+ 7 esperando a vez · <b>quem está fora não rende nada</b></p>
 </div>
 
 <!-- ⑦ o dinheiro parado nas obras -->
@@ -98,7 +98,7 @@ const notas = `
   <ul>
     <li><b>Sai do Elenco, vai pro Clube.</b> Agência não é escalação — o lugar dela é junto de estádio, finanças e patrocínio. O desenho do estádio continua sendo a primeira coisa da área do clube.</li>
     <li><b>Nome e frase.</b> "Sua Agência", e embaixo o que é: todo título traz um cliente, cliente paga mensalidade todo ano.</li>
-    <li><b>O 22 deixa de ser número mágico.</b> A tela diz por que é 22 e o que acontece com quem fica de fora.</li>
+    <li><b>O 22 deixa de ser número mágico.</b> A tela diz por que é 22 — e deixa claro que quem está fora <b>não rende nada e não acumula nada</b>: começa a render no dia em que entra na ativa.</li>
     <li><b>Um toque resolve.</b> O botão ⚡ põe na ativa quem mais rende. Quem gosta de mexer continua com o "escolher na mão".</li>
     <li><b>Chegou carta boa, o jogo avisa</b> e compara com o pior da ativa. Antes você tinha que descobrir sozinho.</li>
     <li><b>O dinheiro aparece</b>: no extrato, no recibo da virada e no total da carreira. Hoje ele some dentro do caixa.</li>
