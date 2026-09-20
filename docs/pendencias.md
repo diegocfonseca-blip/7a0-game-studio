@@ -1,3 +1,38 @@
+## 20/09/2026 (parte 2) — 🥇 A AGÊNCIA PAGA POR ARTILHEIRO E POR BOLA DE OURO
+
+Ordem dele, no mesmo dia da tela nova: *"o usuário tem q ganhar 1 moeda na temporada
+se o jogador for artilheiro de qlqr competição ou mais uma se for bola de ouro também.
+Desses ativos logicamente"*.
+
+### Como ficou
+- **Artilheiro de QUALQUER competição = 1 🪙.** Já valia pra cada série da liga e pra
+  Copa (a Supercopa entra dentro dela, porque o `copaBrasilAsCopaResult` soma os gols
+  do jogo do título). **Faltava a Copa do Mundo — agora entra.**
+- **Bola de Ouro = mais 1 🪙**, em linha separada: quem foi artilheiro *e* melhor do
+  mundo leva as duas. Cai na virada, junto das outras comissões.
+- **Só quem está NA ATIVA** (`agenciados`). Quem espera a vez não paga nada e não
+  acumula nada — a mesma regra das mensalidades.
+- 🚫 **Campeão continua sem pagar** (ordem de 16/09). Nada mudou aí.
+
+### O pulo do gato da Copa do Mundo
+Ela acontece no **passo 3 do roteiro**, ou seja **depois de o caixa fechar** — então
+não dava pra pendurar em `agenciaEventos` (que já foi pago na virada). A comissão dela
+é paga **na hora**, pela ação nova `AGENCIA_COMISSAO_MUNDO`, com trava por
+`nome+temporada` dentro do `copaPrizeDone` (o mesmo mapa do prêmio de 100 🪙, que
+persiste no autosave). Reabrir o jogo não paga duas vezes.
+O artilheiro sai do `artilhariaDaCopa()` — a MESMA conta que a tela da Copa já
+mostrava, agora em função. **Ela só LÊ o torneio simulado: não encosta no `rng`**,
+então placar e campeão continuam idênticos.
+
+### Travas
+`npm run agencia` (novo) — paga 1 pro ativo, 0 pra quem espera a vez, não paga duas
+vezes e não mexe em carreira antiga (`agenciaOn` desligado).
+
+**Reverter**: commit só de regra de dinheiro + textos; `git revert` volta tudo e
+nenhum save quebra (o que já foi pago fica pago, como qualquer moeda do jogo).
+
+---
+
 ## 20/09/2026 — 🕴️ SUA AGÊNCIA: saiu do Elenco, foi pro Clube e ficou legível
 
 Decisão dele depois de recusar seis direções novas (transferências, fantasy, álbum,

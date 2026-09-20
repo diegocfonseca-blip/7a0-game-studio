@@ -1574,7 +1574,7 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
       <div style={{ ...box(), padding: '10px 12px', marginBottom: 10 }}>
         <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', marginBottom: 5 }}>{tr('📈 Comissões da agência', '📈 Agency commissions')}</div>
         {(!fatura || (fatura.rows.length === 0 && fatura.mensal === 0)) ? (
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your clients pay commission when they <b>become top scorer</b> 🥇 (in any division or in the Cup!) or <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus agenciados pagam comissão quando <b>viram artilheiro</b> 🥇 (de qualquer série ou da Copa!) ou <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#8a8069', margin: 0, lineHeight: 1.4 }}>{getLang() === 'en' ? <>Nothing here yet. Your active clients pay commission when they <b>finish top scorer</b> 🥇 of ANY competition (your division, the Cup, the World Cup), when they <b>win the Golden Ball</b> 🥇 (that is one more) or when they <b>get traded at the auction</b> 💸 — it all shows up here and at the Ceremony.</> : <>Ainda nada por aqui. Seus clientes na ativa pagam comissão quando <b>terminam artilheiros</b> 🥇 de QUALQUER competição (a sua série, a Copa, a Copa do Mundo), quando <b>levam a Bola de Ouro</b> 🥇 (essa é mais uma) ou quando <b>são negociados no leilão</b> 💸 — tudo aparece aqui e na Cerimônia.</>}</p>
         ) : (
           <>
             {fatura.mensal > 0 && (
@@ -1812,7 +1812,7 @@ function ConvocacaoAgencia({ current, pool, st, hasFilial, onClose, onSave }: { 
 
         <div style={{ ...box('#FFF7DB'), padding: '9px 11px', marginBottom: 10 }}>
           <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', marginBottom: 3 }}>{tr('💡 Quem tá na ativa rende', '💡 Active players earn')}</div>
-          <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>💰 Flat per season: 👑 6 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folk hero +1 on top<br />🥇 Top scorer in your career <b>+1</b> · 🏆 Champion with any team <b>+1</b> · 💸 Traded at the auction <b>+1</b></> : <>💰 Fixo por temporada: 👑 6 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folclórico +1 por cima<br />🥇 Artilheiro na sua carreira <b>+1</b> · 🏆 Campeão em qualquer time <b>+1</b> · 💸 Negociado no leilão <b>+1</b></>}</p>
+          <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>💰 Flat per season: 👑 6 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folk hero +1 on top<br />🥇 Top scorer of ANY competition <b>+1</b> · 🥇 Golden Ball <b>+1</b> more · 💸 Traded at the auction <b>+1</b></> : <>💰 Fixo por temporada: 👑 6 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folclórico +1 por cima<br />🥇 Artilheiro de QUALQUER competição <b>+1</b> · 🥇 Bola de Ouro <b>+1</b> a mais · 💸 Negociado no leilão <b>+1</b></>}</p>
         </div>
 
         <button onClick={() => onSave(Object.values(sel))} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
@@ -8185,10 +8185,15 @@ export function PyramidSeasonScreen() {
         // Não repropor campeão como comissão.
       }
       if (copa.topScorer && nomes.has(copa.topScorer.name)) rows.push({ emoji: '🥇', texto: `${copa.topScorer.name} foi o artilheiro da ${copaBrOk ? 'Copa do Brasil' : 'Copa Legends'}`, coins: 1, nome: copa.topScorer.name })
+      // 🥇 BOLA DE OURO paga MAIS UMA (Diego 20/09: *"1 moeda se o jogador for
+      // artilheiro de qualquer competição, ou mais uma se for bola de ouro
+      // também"*). São linhas separadas de propósito: quem foi artilheiro E melhor
+      // do mundo leva as duas, porque são duas conquistas.
+      if (melhorDoAno && nomes.has(melhorDoAno.name)) rows.push({ emoji: '🥇', texto: `${melhorDoAno.name} levou a Bola de Ouro (${melhorDoAno.goals} gols + ${melhorDoAno.assists} assistências)`, coins: 1, nome: melhorDoAno.name })
     }
     dispatch({ type: 'AGENCIA_SEASON_EVENTS', season: state.seasonNo ?? 1, rows })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [copaFinished, state.agenciaOn, agLib, state.seasonNo, state.seed])
+  }, [copaFinished, state.agenciaOn, agLib, state.seasonNo, state.seed, melhorDoAno])
   // substituição libera na 2ª temporada — INCLUSIVE no fim de temporada, pra você
   // já montar o time da próxima (a troca no fim não muda o campeonato que acabou;
   // o SET_LINEUP grava além da rodada 38 e só carrega pra próxima temporada).
@@ -9346,6 +9351,7 @@ export function PyramidSeasonScreen() {
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
+              onArtilheiro={(nome, gols) => dispatch({ type: 'AGENCIA_COMISSAO_MUNDO', nome, gols, season: state.seasonNo ?? 1 })}
               onGoRank={() => { setTab('ranking'); setRankSub('clubes') }}
               onMural={entries => dispatch({ type: 'COPA_MUNDO_MURAL_SYNC', entries })} />
           })()
