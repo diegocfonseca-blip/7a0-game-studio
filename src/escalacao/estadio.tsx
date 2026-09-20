@@ -22,7 +22,7 @@ import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
 import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09)
-import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO_DIV, type Fornecedor, type FornContrato } from './loja'
+import { fornPorTemporada, fornLiberado, fornOfertas, fornBonusLoja, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO_DIV, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
 
@@ -1153,7 +1153,7 @@ export function FornFaixa({ contrato, seasonNo }: { contrato: FornContrato; seas
           <div style={{ ...OSW, fontWeight: 600, fontSize: 10, letterSpacing: '.08em', color: GOLD }}>👟 {tr('FORNECEDOR DE MATERIAL', 'KIT SUPPLIER')} · {divNome(contrato.div).toUpperCase()}</div>
           <div style={{ ...OSW, fontWeight: 700, fontSize: 20, lineHeight: 1.1, marginTop: 2 }}>{f?.simb} {f?.nome ?? contrato.fornId}</div>
           <div style={{ fontSize: 10.5, fontWeight: 700, opacity: .8, marginTop: 2 }}>
-            {tr('temporada', 'season')} {ano} {tr('de', 'of')} {contrato.anos} · {faltam > 0 ? tr(`faltam ${faltam}`, `${faltam} to go`) : tr('última', 'last one')} · +{Math.round((f?.loja ?? 0) * 100)}% {tr('nas vendas da loja', 'on store sales')}
+            {tr('temporada', 'season')} {ano} {tr('de', 'of')} {contrato.anos} · {faltam > 0 ? tr(`faltam ${faltam}`, `${faltam} to go`) : tr('última', 'last one')} · +{Math.round(fornBonusLoja(contrato) * 100)}% {tr('nas vendas da loja', 'on store sales')}
           </div>
         </div>
         <div style={{ textAlign: 'right', flex: 'none' }}>
@@ -1169,8 +1169,8 @@ export function FornFaixa({ contrato, seasonNo }: { contrato: FornContrato; seas
   )
 }
 /** os 4 contratos de material, na cena do escritório (igual ao Master) */
-export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic = false, onIrEstrutura, passo }: {
-  div: string; contrato?: FornContrato; seasonNo: number; temLoja: boolean
+export function FornBanner({ div, contrato, seasonNo, seed = 0, temLoja, onPick, cinematic = false, onIrEstrutura, passo }: {
+  div: string; contrato?: FornContrato; seasonNo: number; seed?: number; temLoja: boolean
   onPick: (fornId: string) => void; cinematic?: boolean; onIrEstrutura?: () => void; passo?: PassoVirada
 }) {
   const [sel, setSel] = useState<string | undefined>(undefined)
@@ -1187,11 +1187,14 @@ export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic
       {onIrEstrutura && <button onClick={onIrEstrutura} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: 8, ...OSW, fontWeight: 900, fontSize: 12, background: GOLD, color: INK, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>{tr('Ir pra 🏗️ Estrutura', 'Go to 🏗️ Facilities')}</button>}
     </div>
   )
-  const esc = FORNECEDORES.find(f => f.id === sel)
+  // 🎲 as 4 da vez: sorteadas no andar (veja fornOfertas em loja.ts). A marca que
+  // já era dele sai da grade — ela aparece na faixa de RENOVAR, logo acima.
+  const ofertas = fornOfertas(div, seed, seasonNo)
+  const esc = ofertas.find(f => f.id === sel)
   const porTemp = esc ? fornPorTemporada(div, esc.anos) : 0
   const total = esc ? porTemp * esc.anos : 0
   const grade = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-    {FORNECEDORES.map(f => <FornPapel key={f.id} f={f} div={div} sel={sel === f.id} onPick={() => setSel(f.id)} />)}
+    {ofertas.map(f => <FornPapel key={f.id} f={f} div={div} sel={sel === f.id} onPick={() => setSel(f.id)} />)}
   </div>
   const explica = esc
     ? tr(`${total} moedas em ${esc.anos} temporada${esc.anos > 1 ? 's' : ''} = +${porTemp} por temporada, e +${Math.round(esc.loja * 100)}% em tudo que a loja vender. O valor trava na ${divNome(div)}: subiu ou caiu, continua igual até o fim.`,

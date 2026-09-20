@@ -522,7 +522,7 @@ function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
     //    (TORCIDA_PISO_DIV, em loja.ts). Um clube da Série A tem mais torcedor que
     //    um da Várzea, então vende mais camisa — antes as duas vendiam igual.
     const divDaLoja = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
-    const r = calculaVendas({ st, pos, preco, div: divDaLoja, fornLoja: fornAtivo(fc, season) ? (fornecedorDe(fc.fornId)?.loja ?? 0) : 0 })
+    const r = calculaVendas({ st, pos, preco, div: divDaLoja, fornLoja: fornAtivo(fc, season) ? fornBonusLoja(fc) : 0 })
     if (r.moedas > 0) {
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + r.moedas }
       logFin(s, 'reward', `🛍️ Loja · ${r.camisas.toLocaleString('pt-BR')} camisas`, r.moedas, undefined, id, true)
@@ -865,7 +865,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 import type { CareerTeam } from './data'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
-import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, lojaConstruida, calculaVendas } from './loja'
+import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'

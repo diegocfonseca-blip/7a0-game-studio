@@ -18,7 +18,7 @@ const server = await createServer({ server: { middlewareMode: true }, appType: '
 const loja = await server.ssrLoadModule('/src/escalacao/loja.ts')
 const store = await server.ssrLoadModule('/src/escalacao/store.tsx')
 const {
-  fornPorTemporada, fornLiberado, fornAtivo, fornValor, fornecedorDe, FORNECEDORES,
+  fornPorTemporada, fornLiberado, fornOfertas, fornBonusLoja, fornAtivo, fornValor, fornecedorDe, FORNECEDORES,
   calculaVendas, torcidaDoEstadio, faixaDaPos,
 } = loja
 const { reducer, INITIAL } = store
@@ -44,9 +44,18 @@ ok(menorSempre, 'o fornecedor paga MENOS que o Master em TODA divisão e prazo (
 console.log('\n🔒 2) marca grande só procura quem subiu')
 const naique = FORNECEDORES.find(f => f.id === 'naique')
 const penalti = FORNECEDORES.find(f => f.id === 'penalti')
-ok(!fornLiberado(naique, 'C'), 'Naique (5 temporadas) NÃO fecha com clube da Série C')
-ok(fornLiberado(naique, 'B'), 'Naique fecha da Série B pra cima')
-ok(fornLiberado(penalti, 'V'), 'Pênalti do Bairro fecha até na Várzea (ninguém fica sem opção)')
+ok(!fornLiberado(naique, 'B'), 'Naique (Elite e Luxo) NÃO fecha com clube da Série B')
+ok(fornLiberado(naique, 'A'), 'Naique só fecha na Série A')
+ok(!fornLiberado(penalti, 'V'), 'Penality (Clássicas Regionais) não desce até a Várzea')
+const hawaianos = FORNECEDORES.find(f => f.id === 'hawaianos')
+ok(fornLiberado(hawaianos, 'V'), 'a Várzea tem marca própria (ninguém fica sem opção)')
+// 🎲 e a vitrine da vez: 4 papéis, um de cada prazo, do meu andar e do de baixo
+const ofertas = fornOfertas('A', 12345, 7)
+ok(ofertas.length === 4, `a vitrine traz 4 propostas (deu ${ofertas.length})`)
+ok(new Set(ofertas.map(f => f.anos)).size === 4, 'uma de cada prazo (1 · 2 · 3 · 5)')
+ok(ofertas.every(f => ['A', 'B'].includes(f.desde)), 'na Série A só aparecem marcas da A e da B')
+ok(JSON.stringify(fornOfertas('A', 12345, 7)) === JSON.stringify(ofertas), 'o sorteio é preso na semente: reabrir o jogo dá a MESMA vitrine')
+ok(fornOfertas('V', 12345, 7).every(f => f.desde === 'V'), 'na Várzea só aparecem as 4 do bairro')
 
 // ── 3) contrato congela e não quebra ────────────────────────────────────────
 console.log('\n👟 3) o contrato congela na divisão da assinatura')
@@ -103,13 +112,19 @@ ok(comLoja.careerLoja?.[1]?.balanco?.pos === 1, 'o balanço guarda a colocação
 // ── 8) sem rescisão ─────────────────────────────────────────────────────────
 console.log('\n✍️ 8) não dá pra trocar de fornecedor no meio do contrato')
 let s2 = { ...base, careerLoja: { 1: {} } }
-s2 = reducer(s2, { type: 'LOJA_FORNECEDOR', fornId: 'adibas', mgrId: 1 })
-ok(s2.careerLoja[1].forn?.fornId === 'adibas', 'assinou a Adibas (2 temporadas, Série C)')
+s2 = reducer(s2, { type: 'LOJA_FORNECEDOR', fornId: 'ombro', mgrId: 1 })
+ok(s2.careerLoja[1].forn?.fornId === 'ombro', 'assinou a Ombro (2 temporadas, Série C)')
 ok(s2.careerLoja[1].forn?.porTemporada === 11, `valor congelado da Série C: 11 (deu ${s2.careerLoja[1].forn?.porTemporada})`)
-s2 = reducer(s2, { type: 'LOJA_FORNECEDOR', fornId: 'pumba', mgrId: 1 })
-ok(s2.careerLoja[1].forn?.fornId === 'adibas', 'tentou trocar pela Pumba no meio: RECUSADO')
+s2 = reducer(s2, { type: 'LOJA_FORNECEDOR', fornId: 'meuzuno', mgrId: 1 })
+ok(s2.careerLoja[1].forn?.fornId === 'ombro', 'tentou trocar pela Meuzuno no meio: RECUSADO')
 let s3 = reducer({ ...base, careerLoja: { 1: {} } }, { type: 'LOJA_FORNECEDOR', fornId: 'naique', mgrId: 1 })
 ok(!s3.careerLoja[1].forn, 'Naique na Série C: RECUSADO pelo reducer (a trava não é só da tela)')
+// 🚫 RENOVAÇÃO NÃO EXISTE (o Diego tirou em 20/09: *"sem renovar com 5% também,
+// deixa ele escolher normal"*). Assinar é assinar: nenhum caminho dá bônus extra.
+let s4 = { ...base, careerLoja: { 1: {} } }
+s4 = reducer(s4, { type: 'LOJA_FORNECEDOR', fornId: 'ombro', mgrId: 1, fidelidade: true })
+ok(!s4.careerLoja[1].forn?.fidelidade, 'nem mandando `fidelidade` o contrato ganha selo — o campo morreu')
+ok(Math.abs(fornBonusLoja(s4.careerLoja[1].forn) - 0.20) < 1e-9, 'o bônus da loja é o da marca, limpo (20%)')
 
 // ── 9) SEM A LOJA NÃO HÁ FORNECEDOR (ordem do Diego, 15/09) ────────────────
 console.log('\n🔒 9) sem a loja construída não há fornecedor nem venda')

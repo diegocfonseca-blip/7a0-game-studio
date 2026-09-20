@@ -47,21 +47,54 @@ export function fornPorTemporada(div: string, anos: number): number {
 
 export interface Fornecedor {
   id: string; nome: string; simb: string; anos: number
-  /** bônus nas vendas da loja (0.30 = +30%) */
+  /** bônus nas vendas da loja (0.30 = +30%) — vem do PRAZO, igual pra toda marca */
   loja: number
-  /** divisão a partir da qual a marca bate na porta */
+  /** andar de ambição: a divisão a partir da qual a marca bate na porta */
   desde: string
   cor: string
 }
-// 🏷️ Nome cômico no estilo das marcas de verdade (pedido dele), mas **símbolo
-// NEUTRO**: o jogo não imita o desenho da Nike/Adidas/Puma. Só o nome é paródia.
+// 🏷️ 20 MARCAS — a escada que o DIEGO montou (20/09), com o nome que ele deu a
+// cada andar. Nome cômico no estilo das marcas de verdade, **símbolo NEUTRO**:
+// o jogo não imita o desenho de ninguém, só o nome é paródia.
+//
+// ⚠️ REGRA QUE ELE FECHOU NO MESMO DIA: *"não quero que diferencie marca por ser
+// Havaianas e coisas do tipo"*. Marca NÃO tem regra própria — quem manda no
+// dinheiro é o PRAZO (1/2/3/5) e a DIVISÃO. A marca é a cara e o nome na camisa.
+// Por isso o bônus de loja é o mesmo dentro de cada prazo: 10 · 20 · 30 · 45.
+//
+// 🛟 AS 4 DE SEMPRE CONTINUAM VIVAS, com o MESMO id e o MESMO prazo — Naique 5 ·
+// Pumba 3 · Abibas (era Adibas) 2 · Penality (era Pênalti do Bairro) 1. Se o prazo
+// mudasse, contrato correndo de save antigo mudaria de tamanho no meio da carreira.
+export const BONUS_LOJA: Record<number, number> = { 1: 0.10, 2: 0.20, 3: 0.30, 5: 0.45 }
 export const FORNECEDORES: Fornecedor[] = [
-  { id: 'penalti', nome: 'Pênalti do Bairro', simb: '⚡', anos: 1, loja: 0.10, desde: 'V', cor: '#8A1E1E' },
-  { id: 'adibas', nome: 'Adibas', simb: '◣', anos: 2, loja: 0.20, desde: 'V', cor: '#0E3E86' },
-  { id: 'pumba', nome: 'Pumba', simb: '🐆', anos: 3, loja: 0.30, desde: 'D', cor: '#B5651D' },
-  { id: 'naique', nome: 'Naique', simb: '✓', anos: 5, loja: 0.45, desde: 'B', cor: '#1B7A3D' },
+  // 5ª — Várzea e Improviso
+  { id: 'hawaianos', nome: 'Hawaianos', simb: '🩴', anos: 1, loja: 0.10, desde: 'V', cor: '#1E6E8C' },
+  { id: 'vanps', nome: 'Vanps', simb: '▤', anos: 2, loja: 0.20, desde: 'V', cor: '#2B2B2B' },
+  { id: 'filia', nome: 'Filia', simb: 'Ⅎ', anos: 3, loja: 0.30, desde: 'V', cor: '#8A1E4A' },
+  { id: 'reboque', nome: 'Reboque', simb: '↺', anos: 5, loja: 0.45, desde: 'V', cor: '#7A4B1E' },
+  // 4ª — Clássicas Regionais
+  { id: 'penalti', nome: 'Penality', simb: '⬤', anos: 1, loja: 0.10, desde: 'D', cor: '#8A1E1E' },
+  { id: 'olimpicos', nome: 'Olímpicos', simb: '◎', anos: 2, loja: 0.20, desde: 'D', cor: '#1B5E9E' },
+  { id: 'toppeira', nome: 'Toppeira', simb: '▲', anos: 3, loja: 0.30, desde: 'D', cor: '#B03A2E' },
+  { id: 'tiadora', nome: 'Tiadora', simb: '◐', anos: 5, loja: 0.45, desde: 'D', cor: '#245A9E' },
+  // 3ª — Forças Tradicionais
+  { id: 'kasppa', nome: 'Kasppa', simb: '◈', anos: 1, loja: 0.10, desde: 'C', cor: '#1C4B8A' },
+  { id: 'ombro', nome: 'Ombro', simb: '◣', anos: 2, loja: 0.20, desde: 'C', cor: '#0E3E86' },
+  { id: 'meuzuno', nome: 'Meuzuno', simb: '〜', anos: 3, loja: 0.30, desde: 'C', cor: '#1B7A6B' },
+  { id: 'underamor', nome: 'Under Amor', simb: '⩓', anos: 5, loja: 0.45, desde: 'C', cor: '#2B2B2B' },
+  // 2ª — Desafiantes de Peso
+  { id: 'luisvitao', nome: 'Luis Vitão', simb: '⧗', anos: 1, loja: 0.10, desde: 'B', cor: '#6B4A1E' },
+  { id: 'lacospe', nome: 'Lacospe', simb: '🐊', anos: 2, loja: 0.20, desde: 'B', cor: '#1B7A3D' },
+  { id: 'eisics', nome: 'Eisics', simb: '≋', anos: 3, loja: 0.30, desde: 'B', cor: '#1C4B8A' },
+  { id: 'newbala', nome: 'New Bala', simb: 'N', anos: 5, loja: 0.45, desde: 'B', cor: '#9E1B1B' },
+  // 1ª — Elite e Luxo
+  { id: 'guchiguchi', nome: 'GuchiGuchi', simb: '⊛', anos: 1, loja: 0.10, desde: 'A', cor: '#1B5E3A' },
+  { id: 'adibas', nome: 'Abibas', simb: '◤', anos: 2, loja: 0.20, desde: 'A', cor: '#0E3E86' },
+  { id: 'pumba', nome: 'Pumba', simb: '🐆', anos: 3, loja: 0.30, desde: 'A', cor: '#B5651D' },
+  { id: 'naique', nome: 'Naique', simb: '✓', anos: 5, loja: 0.45, desde: 'A', cor: '#1B7A3D' },
 ]
 export const ORDEM_DIV = ['V', 'D', 'C', 'B', 'A']
+export const PRAZOS_FORN = [1, 2, 3, 5]
 /** a marca já procura clube desta divisão? (o degrau de ambição — marca grande só
  *  bate na porta de quem subiu; a trava na tela explica o porquê e o caminho) */
 export function fornLiberado(f: Fornecedor, div: string): boolean {
@@ -70,8 +103,52 @@ export function fornLiberado(f: Fornecedor, div: string): boolean {
 export function fornecedorDe(id?: string): Fornecedor | undefined {
   return FORNECEDORES.find(f => f.id === id)
 }
+// 🎲 AS 4 PROPOSTAS DA VEZ (Diego 20/09). A FORMA não muda — 4 papéis, um de cada
+// prazo — mas quem OCUPA cada papel é sorteado no seu andar, então a vitrine nunca
+// é a mesma duas viradas seguidas. Você vê as marcas do SEU andar e as do de baixo:
+// na Série A são 8 brigando por 4 vagas, na Várzea são as 4 do bairro mesmo.
+// ⚠️ O sorteio é PRESO na semente da carreira + temporada: fechar e reabrir o jogo
+// devolve a MESMA vitrine (nada de ficar rolando dado até vir a marca bonita), e a
+// temporada continua re-simulável igual a tudo no jogo.
+function dado(seed: number, seasonNo: number) {
+  let x = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0xF0FA) >>> 0
+  return () => { x |= 0; x = (x + 0x6D2B79F5) | 0; let t = Math.imul(x ^ (x >>> 15), 1 | x); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
+}
+export function fornOfertas(div: string, seed: number, seasonNo: number): Fornecedor[] {
+  const nivel = Math.max(0, ORDEM_DIV.indexOf(div))
+  const rng = dado(seed, seasonNo)
+  const out: Fornecedor[] = []
+  for (const anos of PRAZOS_FORN) {
+    // candidatas: mesmo prazo, do meu andar e do de baixo. A marca que já era minha
+    // concorre igual às outras — se ela cair no papel, é só assinar de novo. (Diego
+    // 20/09: *"sem renovar com 5% também, deixa ele escolher normal"*.)
+    const doPrazo = FORNECEDORES.filter(f => f.anos === anos)
+    // 🎯 o andar de CIMA (o seu) tem preferência: se não fosse assim, dava vitrine
+    // inteira do andar de baixo e subir de divisão não teria gosto de nada. O de
+    // baixo entra como tempero, não como regra.
+    const meu = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) === nivel)
+    const abaixo = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) === nivel - 1)
+    let cand = meu.length && (!abaixo.length || rng() < 0.7) ? meu : (abaixo.length ? abaixo : meu)
+    // 🛟 nunca deixar papel vazio: se o andar não tem ninguém desse prazo, desce a
+    // escada até achar.
+    if (!cand.length) cand = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) <= nivel)
+    if (!cand.length) cand = doPrazo
+    if (cand.length) out.push(cand[Math.floor(rng() * cand.length) % cand.length])
+  }
+  return out
+}
 
-export interface FornContrato { fornId: string; anos: number; div: string; desde: number; porTemporada: number }
+export interface FornContrato { fornId: string; anos: number; div: string; desde: number; porTemporada: number
+  /** 🗑️ resíduo do bônus de fidelidade que viveu algumas horas em 20/09 — o Diego
+   *  mandou tirar ("sem renovar com 5% também, deixa ele escolher normal"). Fica no
+   *  tipo só pra save que pegou aquela janela não dar erro; ninguém lê mais. */
+  fidelidade?: boolean }
+/** quanto a marca rende na LOJA neste contrato. Fonte ÚNICA: vendas, vitrine e a
+ *  faixa do contrato leem daqui, pra nunca discordarem entre si. */
+export function fornBonusLoja(c: FornContrato | undefined): number {
+  const f = fornecedorDe(c?.fornId)
+  return f && c ? f.loja : 0
+}
 /** o contrato cobre a temporada `seasonNo`? (desde … desde+anos−1) */
 export function fornAtivo(c: FornContrato | undefined, seasonNo: number): c is FornContrato {
   return !!c && seasonNo >= c.desde && seasonNo < c.desde + c.anos

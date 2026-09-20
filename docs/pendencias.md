@@ -27,6 +27,46 @@ pedir pra um envelhecer sem o outro. E, como as novidades da home, **ninguém pr
 lembrar de tirar**: em 04/11 a tarja some sozinha.
 
 🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+---
+
+## 20/09/2026 (parte 3) — 👟 AS 20 MARCAS DE MATERIAL ESPORTIVO
+
+Ele mandou as 20 paródias e perguntou: *"vai ser com base na divisão ou você acha
+melhor variar? A pessoa pode renovar contrato com a atual?"*. Depois montou a escada
+inteira, corrigiu dois nomes (**Abibas**, e **Luis Vitão** no lugar de Bibas) e
+cortou a ideia de marca com regra própria: *"não quero que diferencie marca por ser
+Havaianas e coisas do tipo"*.
+
+### O que entrou
+- **20 marcas** em 5 andares, com o `desde` de cada uma (a escada é dele).
+- **`fornOfertas(div, seed, season, excluir)`**: 4 papéis, um de cada prazo,
+  sorteados no seu andar (70%) ou no de baixo, com dado preso em semente+temporada
+  — reabrir o jogo devolve a MESMA vitrine. A marca que já é sua sai dos papéis.
+- **Renovação** (`LOJA_FORNECEDOR` com `fidelidade: true`): só com a marca que já era
+  dele, valor recalculado na divisão de hoje, `+5` pontos de loja via
+  `fornBonusLoja(contrato)` — que virou a fonte única do bônus (vendas, Loja e faixa).
+- **Aviso do contrato longo** na tela, pra o custo parar de ser invisível.
+
+### 🔁 E NO MESMO DIA ELE TIROU A RENOVAÇÃO
+A faixa "a marca quer ficar" com +5% de loja viveu ~20 minutos na main. Ele leu a
+explicação, achou confuso (*"confuso demais, entendi nada"*) e mandou: *"mantenha
+nosso padrão mesmo e sem renovar com 5% também, deixa ele escolher normal... mas pelo
+menos já deixe todas as marcas novas em cada divisão"*. Então a tela voltou a ser
+EXATAMENTE a de sempre (4 papéis e só), ficou o que ele quis: as 20 marcas se
+revezando por divisão. Saiu junto o aviso do contrato longo. O campo `fidelidade`
+continua no tipo só pra não quebrar save de quem pegou aquela janela.
+
+### O que ele decidiu NÃO mexer
+Preço, prazo e formato. Levantei que o contrato de 5 temporadas domina (paga mais por
+temporada **e** dá mais loja) e ele respondeu *"mantenha preços iguais já eram e
+formatos / prazos"*. **Se um dia quiser resolver**: bônus de loja pelo ANDAR em vez do
+prazo, ou inverter a régua (curto paga mais por temporada). As duas estão medidas na
+conversa — e a segunda esbarra na trava de que o fornecedor paga menos que o Master.
+
+**Reverter**: `git revert` volta as 4 marcas de antes; contrato correndo não quebra
+porque os 4 ids e prazos antigos continuam os mesmos.
+
+**Bancada**: `scripts/teste-rosto/index.html?fornecedor&div=A` (ou `&div=D`).
 
 ---
 
