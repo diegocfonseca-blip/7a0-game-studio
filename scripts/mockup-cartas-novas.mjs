@@ -75,7 +75,6 @@ const LEVA = [
     { n: 'Vanderson', c: 'Monaco', y: 2025 },
     { n: 'Álvaro Carreras', c: 'Benfica', y: 2025 },
     { n: 'Milos Kerkez', c: 'Bournemouth', y: 2025 },
-    { n: 'Yan Couto', c: 'Girona', y: 2024 },
     { n: 'Varela', c: 'Flamengo', y: 2025, br: true },
     { n: 'Vanderlan', c: 'Palmeiras', y: 2024, br: true },
     { n: 'Agustín Giay', c: 'Palmeiras', y: 2025, br: true },
