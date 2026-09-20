@@ -57,7 +57,12 @@ const RECEITA_ESTADIO: Record<Div, number> = { A: 120, B: 70, C: 40, D: 22, V: 1
 //    ⚠️ O PERIGO: se o inflador contamina o histórico, o teto sobe junto e a
 //    artimanha vira bola de neve. Por isso o índice usa MEDIANA (o do meio),
 //    não média — um lance maluco de 1000 não move o do meio.
-type Modelo = 'hoje' | 'bolso' | 'bolso+nivel' | 'bolso+nivel+tempo' | 'mercado' | 'mercado-media' | 'mercado-so-bots'
+// 🅵️ RECOMENDADO: bolso + nível, com TETO DURO por cima. O teto duro é um número
+//    escrito no código que NENHUM caminho pode furar (nem bot riquíssimo, nem
+//    índice, nem lance de usuário). Mantém a proporção sagrada da escada:
+//    🪵 nunca alcança ⭐, por mais rica que a liga fique.
+type Modelo = 'hoje' | 'bolso' | 'bolso+nivel' | 'bolso+nivel+tempo' | 'mercado' | 'mercado-media' | 'mercado-so-bots' | 'recomendado'
+const TETO_DURO = (c: Carta) => catPriceCap(c) * 5   // 👑450 ⭐325 💎210 🎯130 🪵80
 const FAIXA_NIVEL = (n: number) => Math.floor(n / 5) * 5      // 50-54, 55-59, …
 const JANELA = 5                                              // últimas 5 temporadas
 const FOLGA = 1.3                                             // teto = mediana × 1,3
@@ -88,7 +93,8 @@ function tetoDoBot(modelo: Modelo, c: Carta, caixaBot: number, mediaSala: number
   }
   let base = catPriceCap(c) * (modelo !== 'bolso' ? fatorNivel(c) : 1)
   if (modelo === 'bolso+nivel+tempo') base *= inflacaoTempo(temp)
-  return Math.max(1, Math.min(Math.round(base * econBolso(caixaBot)), Math.round(caixaBot * FATIA_BOLSO)))
+  const v = Math.min(Math.round(base * econBolso(caixaBot)), Math.round(caixaBot * FATIA_BOLSO))
+  return Math.max(1, modelo === 'recomendado' ? Math.min(v, TETO_DURO(c)) : v)
 }
 
 // ── mundo ───────────────────────────────────────────────────────────────────
@@ -278,7 +284,7 @@ const mediaElenco = (cs: Clube[]) => {
 // ── relatório ───────────────────────────────────────────────────────────────
 const T = 250
 const marcos = [1, 5, 10, 25, 50, 100, 150, 200, 250]
-const MODELOS: Modelo[] = ['hoje', 'bolso', 'bolso+nivel', 'bolso+nivel+tempo', 'mercado']
+const MODELOS: Modelo[] = ['hoje', 'bolso+nivel+tempo', 'mercado', 'recomendado']
 const res = Object.fromEntries(MODELOS.map(m => [m, simula(m, T)])) as Record<Modelo, ReturnType<typeof simula>>
 
 for (const m of MODELOS) {
@@ -334,4 +340,16 @@ for (const m of ['mercado-media', 'mercado', 'mercado-so-bots'] as Modelo[]) {
   console.log(`${''.padEnd(14)}   COM inflador: t25 ${String(q(sujo, 25)).padStart(5)} · t100 ${String(q(sujo, 100)).padStart(5)} · t250 ${String(q(sujo, 250)).padStart(6)}`)
   const razao = q(sujo, 250) / Math.max(1, q(limpo, 250))
   console.log(`${''.padEnd(14)}   → o inflador multiplicou a referência por ${razao.toFixed(1)}×\n`)
+}
+
+
+console.log('\n═══ 7) 🚨 O BOT PODE, DO NADA, PAGAR UM ABSURDO? ═══')
+console.log('(o MAIOR lance que um bot chegou a dar em QUALQUER das 250 temporadas)')
+console.log('régua               | sem inflador | com inflador solto | pior caso')
+for (const m of ['hoje', 'bolso+nivel', 'bolso+nivel+tempo', 'mercado', 'mercado-so-bots', 'recomendado'] as Modelo[]) {
+  const limpo = simula(m, T), sujo = simula(m, T, true)
+  const pico = (d: ReturnType<typeof simula>) => Math.max(...d.map(x => x.maiorTetoGeral))
+  const a = pico(limpo), b = pico(sujo)
+  const risco = b > a * 2 ? '🚨 DISPARA' : b > a * 1.3 ? '⚠️ sobe' : '✅ seguro'
+  console.log(`${m.padEnd(19)} | ${String(a).padStart(12)} | ${String(b).padStart(18)} | ${risco}`)
 }

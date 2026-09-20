@@ -44,6 +44,30 @@ de preços de cartas daquele nível. Testado na bancada (modelo `mercado`):
 - 👉 Conclusão pra quando ele aprovar: se o teto vier do histórico, tem que ser
   **mediana** e **sem contar o lance de quem joga**. O usuário não é mercado.
 
+### 🚨 PERGUNTA DELE: *"não pode correr risco do bot do nada pagar dois mil?"*
+Medido: o MAIOR lance que um bot deu em qualquer das 250 temporadas, com o inflador
+solto na liga. E o risco **não estava no índice** — estava na perna do BOLSO (bot que
+juntou 2.400 dá 840 num lance só).
+
+| régua | pico sem inflador | pico com inflador | veredito |
+|---|---|---|---|
+| hoje | 360 | 360 | ✅ seguro (mas congelado) |
+| bolso+nível | 546 | 959 | ⚠️ sobe |
+| bolso+nível+tempo | 704 | 941 | ⚠️ sobe |
+| mercado (índice) | 350 | 854 | 🚨 dispara |
+| **recomendado** | **450** | **450** | ✅ **seguro** |
+
+### ✅ RECOMENDAÇÃO FECHADA (esperando o OK dele)
+`recomendado` = **categoria × nível da carta × bolso DAQUELE clube**, com **TETO DURO**
+por cima (`catPriceCap × 5` → 👑450 ⭐325 💎210 🎯130 🪵80) que nenhum caminho fura.
+- Nunca passa de 450, com ou sem trapaceiro na liga — não existe "bot pagando 2 mil".
+- Time rico da Várzea volta a ofertar (43% do bolso da elite, contra os 100% FALSOS de
+  hoje — hoje é 100% só porque o teto ignora o dinheiro de todo mundo).
+- O dinheiro para de empoçar: mais rico termina com 975 em vez de 8.396.
+- 🚫 **Índice de mercado DESCARTADO**: se alimenta do próprio resultado, e foi o único
+  modelo que disparou (854) — é exatamente o tipo de comportamento emergente que o
+  Diego não quer.
+
 ### ⏳ PENDENTE — esperando a palavra do Diego (nada implementado)
 1. Livro de preços gravar só até o teto de mercado (`recordPrice`).
 2. Carta que volta pro dono no monte voltar "como saiu" (mesmo valor, mesmo contrato).
