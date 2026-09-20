@@ -33,13 +33,20 @@ const porTemp = (div, anos) => Math.round(FORN_BASE[div] * (1.25 + (anos - 1) / 
 // 🛍️ o bônus de loja continua preso ao PRAZO (como hoje): 10 · 20 · 30 · 45
 const BONUS = { 1: 10, 2: 20, 3: 30, 5: 45 }
 
-// 🪜 os 5 andares de ambição — um prazo de cada em cada andar
+// 🪜 OS 5 ANDARES — a escada que o DIEGO montou (20/09), com os nomes dele:
+//   1ª Elite e Luxo · 2ª Desafiantes de Peso · 3ª Forças Tradicionais ·
+//   4ª Clássicas Regionais · 5ª Várzea e Improviso.
+// O PRAZO de cada marca dentro do andar é proposta minha (esperando OK): quanto
+// mais "de futebol" a marca, mais longo o contrato; grife faz contrato curto.
+// ⚠️ As 4 marcas que JÁ EXISTEM no jogo mantêm o prazo que sempre tiveram —
+// Naique 5 · Pumba 3 · Abibas (Adibas) 2 · Penality (Pênalti do Bairro) 1 —
+// senão contrato correndo de save antigo mudaria de tamanho no meio.
 const ANDARES = {
-  V: { nome: 'Várzea',   marcas: [['Toppeira', '👟', 1], ['Penality', '⬤', 2], ['Olímpicos', '◎', 3], ['Hawaianos', '🩴', 5]] },
-  D: { nome: 'Série D',  marcas: [['Reboque', '↺', 1], ['Luis Vitão', '⧗', 2], ['Kasppa', '◈', 3], ['Tiadora', '◐', 5]] },
-  C: { nome: 'Série C',  marcas: [['Ombro', '◣', 1], ['Meuzuno', '〜', 2], ['Filia', 'Ⅎ', 3], ['Eisics', '≋', 5]] },
-  B: { nome: 'Série B',  marcas: [['New Bala', 'N', 1], ['Vanps', '▤', 2], ['Under Amor', '⩓', 3], ['Lacospe', '🐊', 5]] },
-  A: { nome: 'Série A',  marcas: [['Mike', '✓', 1], ['Abibas', '◤', 2], ['Pumba', '🐆', 3], ['GuchiGuchi', '⊛', 5]] },
+  V: { nome: 'Várzea', apelido: 'Várzea e Improviso', marcas: [['Hawaianos', '🩴', 1], ['Vanps', '▤', 2], ['Filia', 'Ⅎ', 3], ['Reboque', '↺', 5]] },
+  D: { nome: 'Série D', apelido: 'Clássicas Regionais', marcas: [['Penality', '⬤', 1], ['Olímpicos', '◎', 2], ['Toppeira', '👟', 3], ['Tiadora', '◐', 5]] },
+  C: { nome: 'Série C', apelido: 'Forças Tradicionais', marcas: [['Kasppa', '◈', 1], ['Ombro', '◣', 2], ['Meuzuno', '〜', 3], ['Under Amor', '⩓', 5]] },
+  B: { nome: 'Série B', apelido: 'Desafiantes de Peso', marcas: [['Luis Vitão', '⧗', 1], ['Lacospe', '🐊', 2], ['Eisics', '≋', 3], ['New Bala', 'N', 5]] },
+  A: { nome: 'Série A', apelido: 'Elite e Luxo', marcas: [['GuchiGuchi', '⊛', 1], ['Abibas', '◤', 2], ['Pumba', '🐆', 3], ['Naique', '✓', 5]] },
 }
 
 const papel = (div, [nome, simb, anos], sel) => `
@@ -80,7 +87,7 @@ const tela = (div, atual, selIdx) => {
 }
 
 const escada = Object.entries(ANDARES).map(([k, a]) => `
-  <div class="lin"><b>${a.nome}</b><span>${a.marcas.map(m => m[0]).join(' · ')}</span></div>`).join('')
+  <div class="lin"><b>${a.nome}<i>${a.apelido}</i></b><span>${a.marcas.map(m => `${m[0]} <em>${m[2]}</em>`).join(' · ')}</span></div>`).reverse().join('')
 
 const html = `<!doctype html><meta charset="utf-8"><style>
 ${FONTES}
@@ -122,18 +129,20 @@ h1 span{display:block;font-family:system-ui;font-weight:700;font-size:13px;color
 .nota li b{font-weight:800}
 .lin{display:flex;gap:8px;align-items:baseline;padding:6px 0;border-bottom:2px solid rgba(0,0,0,.07)}
 .lin:last-child{border-bottom:0}
-.lin b{font-family:Oswald;font-weight:700;font-size:15px;width:78px;flex:none}
+.lin b{font-family:Oswald;font-weight:700;font-size:15px;width:118px;flex:none}
+.lin b i{display:block;font-style:normal;font-family:system-ui;font-weight:700;font-size:10px;color:#8a8069;margin-top:1px}
+.lin em{font-style:normal;background:#0C0C0C;color:#FFC400;border-radius:4px;padding:0 4px;font-size:10px}
 .lin span{font-size:12.5px;font-weight:700;color:#4e4936}
 .tag{display:inline-block;background:${INK};color:${GOLD};font-family:Oswald;font-weight:700;font-size:11px;letter-spacing:1px;padding:3px 10px;border-radius:999px}
 </style>
 <div class="board">
   <div class="col">
     <h1>Quem está começando<span>Série D · a vitrine que bate na porta de quem ainda sobe</span></h1>
-    ${tela('D', ['Kasppa', '◈', 3], 1)}
+    ${tela('D', ['Toppeira', '👟', 3], 3)}
   </div>
   <div class="col">
     <h1>Quem chegou lá<span>Série A · mesma tela, marcas e cifras de gente grande</span></h1>
-    ${tela('A', ['Abibas', '◤', 2], 3)}
+    ${tela('A', ['Abibas', '◤', 2], 2)}
   </div>
   <div class="col notas">
     <h1>As regras<span>o que muda e o que continua igual</span></h1>
@@ -152,11 +161,11 @@ h1 span{display:block;font-family:system-ui;font-weight:700;font-size:13px;color
     <div class="nota">
       <h2>🪜 Os cinco andares</h2>
       ${escada}
-      <p style="font-size:12px;font-weight:700;color:#6b6453;margin-top:8px;line-height:1.45">Em cada andar tem uma marca de cada prazo, e <b>todas valem o mesmo dentro do prazo</b>. Você vê as do <b>seu andar e do de baixo</b> — na Série A são 8 concorrendo a 4 vagas, na Várzea são as 4 do bairro mesmo.</p>
+      <p style="font-size:12px;font-weight:700;color:#6b6453;margin-top:8px;line-height:1.45">O numerinho preto é o <b>prazo</b> de cada marca. Em cada andar tem uma de cada prazo, e <b>todas valem o mesmo dentro do prazo</b>. Você vê as do <b>seu andar e do de baixo</b> — na Série A são 8 concorrendo a 4 vagas, na Várzea são as 4 do bairro mesmo.</p>
     </div>
     <div class="nota">
       <h2>🛟 Quem já tem contrato</h2>
-      <p style="font-size:13px;font-weight:600;line-height:1.5">Os 4 nomes de hoje continuam vivos por dentro (Adibas vira <b>Abibas</b>, Naique vira <b>Mike</b>, Pênalti do Bairro vira <b>Penality</b>, Pumba fica). Assim <b>ninguém com contrato correndo perde a marca</b> nem vê a faixa quebrar no meio da carreira.</p>
+      <p style="font-size:13px;font-weight:600;line-height:1.5">Os 4 nomes de hoje continuam vivos por dentro (Adibas vira <b>Abibas</b>, Pênalti do Bairro vira <b>Penality</b>, <b>Naique</b> e <b>Pumba</b> ficam como estão) — e com o MESMO prazo de sempre: Naique 5, Pumba 3, Abibas 2, Penality 1. Assim <b>ninguém com contrato correndo perde a marca</b> nem vê a faixa quebrar no meio da carreira.</p>
     </div>
   </div>
 </div>`
