@@ -23,7 +23,7 @@ import { tr } from './lang'
 import { CAMISAS_SALAO } from './salao-camisas'
 import {
   PRECOS, PRECO_EN, PRECO_PADRAO, CORES_PADRAO,
-  fornecedorDe, fornAtivo, fornAnoAtual, fornValor,
+  fornecedorDe, fornAtivo, fornAnoAtual, fornValor, fornBonusLoja,
   torcidaDoEstadio, bonusObras, lojaConstruida, calculaVendas,
   type LojaSave, type PrecoLoja,
 } from './loja'
@@ -387,7 +387,7 @@ export function LojaTab({
         </div>
         {linha(<>👥 {tr('Torcida', 'Fan base')}</>, <>{fmt(torcidaDoEstadio(st))}{bonusObras(st) > 0 && <span style={{ fontWeight: 400, fontSize: 10, opacity: .7 }}> · {tr('obras', 'works')} +{Math.round(bonusObras(st) * 100)}%</span>}</>)}
         {linha(<>👟 {tr('Fornecedor', 'Kit supplier')}</>, ativo && fornMeta
-          ? <>{fornMeta.simb} {fornMeta.nome} <span style={{ fontWeight: 400, fontSize: 10, opacity: .7 }}>· {tr('ano', 'yr')} {fornAnoAtual(forn, seasonNo)}/{forn.anos} · +{fornValor(forn)} 🪙 · +{Math.round(fornMeta.loja * 100)}%</span></>
+          ? <>{fornMeta.simb} {fornMeta.nome} <span style={{ fontWeight: 400, fontSize: 10, opacity: .7 }}>· {tr('ano', 'yr')} {fornAnoAtual(forn, seasonNo)}/{forn.anos} · +{fornValor(forn)} 🪙 · +{Math.round(fornBonusLoja(forn) * 100)}%</span></>
           : <span style={{ fontWeight: 400, opacity: .6 }}>{tr('nenhum', 'none')}</span>)}
         {linha(<>🤝 {tr('Master', 'Master')}</>, masterNome
           ? <>{masterNome}</>
@@ -456,7 +456,6 @@ export function PrecoVirada({
 }) {
   const forn = loja?.forn
   const ativo = fornAtivo(forn, seasonNo)
-  const fornMeta = ativo ? fornecedorDe(forn.fornId) : undefined
   const arteFile = CAMISAS_SALAO[time]
   const arteBatismo = arteFile ? import.meta.env.BASE_URL + 'mantos-salao/' + arteFile : undefined
   const [sel, setSel] = useState<PrecoLoja>(loja?.preco ?? PRECO_PADRAO)
@@ -464,8 +463,8 @@ export function PrecoVirada({
   const altCamisa = Math.max(140, Math.round((larg || 420) * 0.66))
   const p = PRECOS[sel]
   // as duas pontas da aposta, com a conta REAL: se só se manteve × se for campeão
-  const rManteve = calculaVendas({ st, pos: 10, preco: sel, fornLoja: fornMeta?.loja ?? 0 })
-  const rCampeao = calculaVendas({ st, pos: 1, preco: sel, fornLoja: fornMeta?.loja ?? 0 })
+  const rManteve = calculaVendas({ st, pos: 10, preco: sel, fornLoja: fornBonusLoja(forn) })
+  const rCampeao = calculaVendas({ st, pos: 1, preco: sel, fornLoja: fornBonusLoja(forn) })
   const QUANDO: Record<PrecoLoja, { pt: string; en: string }> = {
     popular: { pt: 'se só se manter', en: 'if you just stay up' },
     normal: { pt: 'se pegar o acesso', en: 'if you go up' },

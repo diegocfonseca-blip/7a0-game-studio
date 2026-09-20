@@ -522,7 +522,7 @@ function applyLojaIncome(s: EscState, finalPos?: Record<number, number>) {
     //    (TORCIDA_PISO_DIV, em loja.ts). Um clube da Série A tem mais torcedor que
     //    um da Várzea, então vende mais camisa — antes as duas vendiam igual.
     const divDaLoja = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
-    const r = calculaVendas({ st, pos, preco, div: divDaLoja, fornLoja: fornAtivo(fc, season) ? (fornecedorDe(fc.fornId)?.loja ?? 0) : 0 })
+    const r = calculaVendas({ st, pos, preco, div: divDaLoja, fornLoja: fornAtivo(fc, season) ? fornBonusLoja(fc) : 0 })
     if (r.moedas > 0) {
       s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + r.moedas }
       logFin(s, 'reward', `🛍️ Loja · ${r.camisas.toLocaleString('pt-BR')} camisas`, r.moedas, undefined, id, true)
@@ -865,7 +865,7 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
 import type { CareerTeam } from './data'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
-import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, lojaConstruida, calculaVendas } from './loja'
+import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada } from './sport'
@@ -4210,7 +4210,7 @@ type Action =
   | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
   // 🛍️ LOJA DO CLUBE (15/09; liberada geral no mesmo dia — sport.ts/LOJA_GERAL)
   | { type: 'LOJA_PRECO'; preco: import('./loja').PrecoLoja; mgrId?: number } // 💰 preço da camisa da temporada (a aposta)
-  | { type: 'LOJA_FORNECEDOR'; fornId: string; mgrId?: number } // 👟 assina o fornecedor de material (o prazo vem da marca; o valor congela na divisão de hoje)
+  | { type: 'LOJA_FORNECEDOR'; fornId: string; mgrId?: number; fidelidade?: boolean } // 👟 assina o fornecedor de material (o prazo vem da marca; o valor congela na divisão de hoje). `fidelidade` = renovou com a marca que já era dele
   | { type: 'BUY_FILIAL'; team: string; mgrId?: number } // 🏢 compra o clube-filial (solo: careerFilial · online: careerFilials[mgrId])
   | { type: 'BUY_MULTICLUBE'; team: string } // 🏛️ MULTICLUBES (solo): compra um 2º clube da Série D por 4.000 moedas (só Lenda; trava de tier fica na UI)
   | { type: 'SELL_MULTICLUBE' } // 🏛️ MULTICLUBES (solo): vende o 2º clube. Volta 4.000 e desconta 300 (o churrasco). SÓ o 2º clube — o principal nunca.
@@ -6030,6 +6030,9 @@ export function reducer(state: EscState, action: Action): EscState {
       const f = FORNECEDORES.find(x => x.id === action.fornId); if (!f) return s
       const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
       const season = s.seasonNo ?? 1
+      // ⬅️ guardado ANTES da trava: o `fornAtivo` é type guard e depois dele a
+      // marca anterior vira `undefined` pro TypeScript (ver a renovação embaixo)
+      const anteriorId = s.careerLoja?.[id]?.forn?.fornId
       if (fornAtivo(s.careerLoja?.[id]?.forn, season)) return s
       // 🔒 SEM LOJA NÃO HÁ FORNECEDOR (ordem do Diego, 15/09): *"pra quem não
       // desbloqueou os dois setores e também não comprou a loja ainda, não poderá ter
@@ -6037,9 +6040,13 @@ export function reducer(state: EscState, action: Action): EscState {
       // loja não está vendendo ainda"*. Marca de material patrocina quem VENDE.
       if (!lojaConstruida(s.stadiums?.[id])) return s
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
-      if (!fornLiberado(f, div)) return s
+      // 🤝 RENOVAÇÃO (Diego 20/09): a marca que JÁ era dele pode ficar, mesmo que o
+      // andar dela esteja acima da divisão de hoje — quem é fiel é a marca, não o
+      // degrau de ambição. Fora isso, marca grande só fecha com quem subiu.
+      const renova = !!action.fidelidade && anteriorId === f.id
+      if (!renova && !fornLiberado(f, div)) return s
       s.careerLoja = { ...(s.careerLoja ?? {}), [id]: { ...(s.careerLoja?.[id] ?? {}),
-        forn: { fornId: f.id, anos: f.anos, div, desde: season, porTemporada: fornPorTemporada(div, f.anos) } } }
+        forn: { fornId: f.id, anos: f.anos, div, desde: season, porTemporada: fornPorTemporada(div, f.anos), ...(renova ? { fidelidade: true } : {}) } } }
       return s
     }
     case 'BUY_FILIAL': {
