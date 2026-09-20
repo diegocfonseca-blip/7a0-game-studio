@@ -161,9 +161,9 @@ const r = await p.evaluate(async () => {
     let mexi = false
     for (const c of s2.currentCards) {
       const pode = st.holPodeAgora(s2, eu.id, c.id)
-      const antes = s2.hol.pedidos.filter(x => x.mgr === eu.id).length
+      const antes = s2.hol.levados.filter(x => x.mgr === eu.id).length
       const depois = st.reducer(s2, { type: 'HOLANDES_PEGAR', mgrId: eu.id, cardId: c.id, preco: s2.hol.preco })
-      const entrou = depois.hol && depois.hol.pedidos.filter(x => x.mgr === eu.id).length > antes
+      const entrou = !depois.hol || depois.hol.levados.filter(x => x.mgr === eu.id).length > antes
       if (pode) { ok(entrou, `a tela acendeu PEGAR em ${c.name} e o motor recusou — botão mudo`); achouCaso = true; s2 = depois; mexi = true }
       else ok(!entrou, `a tela apagou PEGAR em ${c.name} e o motor aceitou — arremate fantasma`)
     }
@@ -196,21 +196,18 @@ const r = await p.evaluate(async () => {
     if (s4.phase === 'holandes') {
       const eu4 = s4.managers[s4.youIdx]
       const alvo = s4.currentCards.find(c => st.holPodeAgora(s4, eu4.id, c.id))
-      s4 = st.reducer(s4, { type: 'HOLANDES_PEGAR', mgrId: eu4.id, cardId: alvo.id, preco: s4.hol.preco })
-      const um = s4.hol.pedidos.filter(x => x.cardId === alvo.id && x.mgr === eu4.id).length
-      ok(um === 1, `o 1º toque devia virar 1 pedido e virou ${um}`)
-      ok(!st.holPodeAgora(s4, eu4.id, alvo.id), 'depois de pedir, a tela ainda acende o botão da MESMA carta')
-      const dobrado = st.reducer(s4, { type: 'HOLANDES_PEGAR', mgrId: eu4.id, cardId: alvo.id, preco: s4.hol.preco })
-      ok(dobrado.hol.pedidos.filter(x => x.cardId === alvo.id && x.mgr === eu4.id).length === 1, 'apertar duas vezes na mesma carta virou DOIS pedidos')
-      // e quando o degrau fecha, a carta sai pra TODO MUNDO com um dono só
-      const fechou = st.reducer(s4, { type: 'HOLANDES_TICK' })
-      const dono = fechou.hol ? fechou.hol.levados.filter(l => l.cardId === alvo.id) : []
-      if (fechou.hol) {
-        ok(dono.length === 1, `a carta pedida devia sair com UM dono e saiu com ${dono.length}`)
-        ok(dono[0]?.mgr === eu4.id, 'quem pediu sozinho não levou a carta')
-        ok(!st.holPodeAgora(fechou, eu4.id, alvo.id), 'a carta já arrematada continua com botão aceso')
-        ok(!!st.holDono(fechou, alvo.id), 'a tela não consegue ver quem levou a carta')
-      }
+      const precoB = s4.hol.preco
+      s4 = st.reducer(s4, { type: 'HOLANDES_PEGAR', mgrId: eu4.id, cardId: alvo.id, preco: precoB })
+      const um = s4.hol.levados.filter(x => x.cardId === alvo.id).length
+      ok(um === 1, `o 1º toque devia arrematar 1 vez e arrematou ${um}`)
+      ok(!st.holPodeAgora(s4, eu4.id, alvo.id), 'depois de levar, a tela ainda acende o botão da MESMA carta')
+      // 🔁 O SEGUNDO TOQUE (botão que não atualizou, dedo nervoso, rede repetindo
+      //    a ação): tem que ser ENGOLIDO. Nada de cobrar duas vezes.
+      const dobrado = st.reducer(s4, { type: 'HOLANDES_PEGAR', mgrId: eu4.id, cardId: alvo.id, preco: precoB })
+      ok(dobrado.hol.levados.filter(x => x.cardId === alvo.id).length === 1, 'apertar duas vezes na mesma carta arrematou DUAS vezes')
+      ok(dobrado.hol.levados.filter(x => x.mgr === eu4.id).reduce((t, l) => t + l.preco, 0) === s4.hol.levados.filter(x => x.mgr === eu4.id).reduce((t, l) => t + l.preco, 0), 'o 2º toque cobrou de novo')
+      ok(!!st.holDono(dobrado, alvo.id), 'a tela não consegue ver quem levou a carta')
+      ok(st.holDono(dobrado, alvo.id)?.mgr === eu4.id, 'quem apertou não ficou como dono')
     }
   }
 
@@ -239,10 +236,10 @@ const r = await p.evaluate(async () => {
   ok(st.holPassoMs(10, 100) >= 1500, `o degrau de baixo dura só ${st.holPassoMs(10, 100)}ms — pouco pra quem tem internet ruim`)
   ok(msCheio <= 50000, `a leva inteira leva ${(msCheio / 1000).toFixed(1)}s e hoje leva 45s — está atrasando o jogo`)
 
-  // 5️⃣-zero ⚡ APERTOU SOZINHO = É SEU NA HORA (pergunta dele, 20/09):
-  //    *"qd o cara aperta ele não pega na hora e já não vai pro campinho dele??"*.
-  //    Vai sim. A janela de meio segundo fecha e a carta entra em `levados`, que
-  //    é o que o campinho desenha — SEM esperar o degrau inteiro.
+  // 5️⃣-zero ⚡ APERTOU = É SEU NA HORA, NO MESMO TOQUE (decisão dele, 20/09:
+  //    *"eu ainda acho que deveria ter que ser por tempo"*). Nada de janela,
+  //    nada de esperar o degrau: a carta entra em `levados` — que é o que o
+  //    campinho desenha — na mesma ação.
   let sozinhoTestado = 0
   {
     let s0 = novoJogo()
@@ -252,13 +249,12 @@ const r = await p.evaluate(async () => {
       const alvo = s0.currentCards.find(c => st.holPodeAgora(s0, eu0.id, c.id))
       const precoNaTela = s0.hol.preco
       const passoAntes = s0.hol.passo
-      s0 = st.reducer(s0, { type: 'HOLANDES_PEGAR', mgrId: eu0.id, cardId: alvo.id, preco: precoNaTela })
-      // ⏱️ fecha SÓ a janela (meio segundo) — o degrau NÃO andou
-      const pego = st.reducer(s0, { type: 'HOLANDES_JANELA' })
-      ok(!!pego.hol, 'a janela fechou a leva inteira — ela só devia entregar a carta')
+      // ⏱️ UM TOQUE SÓ. Sem janela, sem tick: a carta tem que ser dele já.
+      const pego = st.reducer(s0, { type: 'HOLANDES_PEGAR', mgrId: eu0.id, cardId: alvo.id, preco: precoNaTela })
+      ok(!!pego.hol, 'o toque fechou a leva inteira — ele só devia entregar a carta')
       if (pego.hol) {
-        ok(pego.hol.passo === passoAntes, `a janela mexeu no degrau (${passoAntes} → ${pego.hol.passo}) — ela não pode mexer no preço`)
-        ok(pego.hol.preco === precoNaTela, 'a janela mudou o preço')
+        ok(pego.hol.passo === passoAntes, `o toque mexeu no degrau (${passoAntes} → ${pego.hol.passo}) — pegar não pode mexer no preço`)
+        ok(pego.hol.preco === precoNaTela, 'o toque mudou o preço')
         const meu = pego.hol.levados.find(l => l.cardId === alvo.id)
         ok(!!meu, '❗ apertou sozinho e a carta NÃO virou dele — é a pergunta dele: "não pega na hora?"')
         ok(meu?.mgr === eu0.id, 'apertou sozinho e a carta foi pra outro')
@@ -271,9 +267,6 @@ const r = await p.evaluate(async () => {
     }
   }
   ok(sozinhoTestado === 1, 'o caso "apertou sozinho" não chegou a ser testado — verde falso')
-  // ⏱️ e meio segundo tem que ser CURTO de verdade (o Diego achou 2s demorado)
-  ok(st.HOL_JANELA_MS <= 700, `a janela do aperto está em ${st.HOL_JANELA_MS}ms — isso já se sente na mão`)
-  ok(st.HOL_JANELA_MS >= 250, `a janela está em ${st.HOL_JANELA_MS}ms — curta demais pra caber a diferença de internet`)
 
   // 5️⃣-bis 👥👥 DUAS PESSOAS APERTAM NA MESMA CARTA, NO MESMO PREÇO.
   //    Pergunta dele (20/09): *"será q vai os dois pôr o jogador no campinho?? O
@@ -296,17 +289,16 @@ const r = await p.evaluate(async () => {
       // os dois apertam no MESMO preço, um logo depois do outro
       s6 = st.reducer(s6, { type: 'HOLANDES_PEGAR', mgrId: a.id, cardId: alvo.id, preco: precoDisputa })
       s6 = st.reducer(s6, { type: 'HOLANDES_PEGAR', mgrId: bb.id, cardId: alvo.id, preco: precoDisputa })
-      ok(s6.hol.pedidos.filter(x => x.cardId === alvo.id).length === 2, 'os dois pedidos deviam entrar na fila do degrau')
-      // ✅ e NENHUM DOS DOIS tem a carta ainda: pedido não é arremate
-      ok(!s6.hol.levados.some(l => l.cardId === alvo.id), 'a carta foi dada antes do degrau fechar — é o arremate por ordem de chegada que ele teme')
-
-      const fim6 = st.reducer(s6, { type: 'HOLANDES_JANELA' }) // fecha a janela de meio segundo
+      // ⏱️ POR TEMPO: o PRIMEIRO toque a chegar no host leva, na hora. O
+      //    segundo encontra a carta com dono e é recusado — é exatamente isto
+      //    que impede o jogador de cair em DOIS campinhos.
+      const fim6 = s6
       const hol6 = fim6.hol
       if (hol6) {
         const donos = hol6.levados.filter(l => l.cardId === alvo.id)
         // 🔒 A TRAVA QUE RESPONDE A PERGUNTA DELE, EM TRÊS PARTES:
         ok(donos.length === 1, `❗ a MESMA carta saiu com ${donos.length} donos — os dois iam pôr o jogador no campinho`)
-        ok(donos[0].mgr === a.id || donos[0].mgr === bb.id, 'a carta disputada foi parar num terceiro')
+        ok(donos[0].mgr === a.id, 'quem apertou PRIMEIRO não levou — a regra é por tempo')
         ok(donos[0].preco === precoDisputa, `pagou ${donos[0].preco} e o preço na tela era ${precoDisputa}`)
         // (b) o PERDEDOR não paga nada e continua com a vaga aberta
         const perdedor = donos[0].mgr === a.id ? bb : a
@@ -314,13 +306,11 @@ const r = await p.evaluate(async () => {
         const gastoPerdedor = hol6.levados.filter(l => l.mgr === perdedor.id).reduce((t, l) => t + l.preco, 0)
         ok(gastoPerdedor === 0, `quem perdeu a disputa foi cobrado ${gastoPerdedor} 🪙 — pedido que não vence não cobra`)
         ok(fim6.managers.find(m => m.id === perdedor.id).money === caixaPerdedor, 'a caixa de quem perdeu mexeu')
-        // (c) e o perdedor VÊ o porquê na tela (a faixa 😤 lê esta lista)
-        ok(hol6.ultimo?.perdedores?.includes(perdedor.id), 'quem perdeu a disputa não é avisado — a carta sumia em silêncio')
-        // (d) 🏟️ O CAMPINHO: é `levados` que o `YourPitch` desenha. Se só tem um
+        // (c) 🏟️ O CAMPINHO: é `levados` que o `YourPitch` desenha. Se só tem um
         //     dono ali, é impossível o mesmo jogador aparecer em dois campinhos.
         const noCampinhoDe = (id) => hol6.levados.filter(l => l.mgr === id && l.cardId === alvo.id).length
         ok(noCampinhoDe(a.id) + noCampinhoDe(bb.id) === 1, 'o mesmo jogador entrou em DOIS campinhos')
-        // (e) e o botão apaga pros dois: ninguém aperta numa carta já arrematada
+        // (d) e o botão apaga pros dois: ninguém aperta numa carta já arrematada
         ok(!st.holPodeAgora(fim6, a.id, alvo.id) && !st.holPodeAgora(fim6, bb.id, alvo.id), 'carta arrematada ainda aceita toque')
         disputaTestada = 1
       }
@@ -332,39 +322,32 @@ const r = await p.evaluate(async () => {
   //    silêncio, a trava fica verde sem ter conferido nada.
   ok(disputaTestada === 1, 'a disputa de DOIS humanos na mesma carta não chegou a ser testada — verde falso')
 
-  let roletaPlacar = '—'
-  // 5️⃣-ter 🎲 E A ROLETA NÃO É VICIADA: repetindo a mesma disputa muitas vezes,
-  //    os dois têm que ganhar. Se o host ganhasse sempre, o convidado largava a
-  //    sala na primeira noite.
-  {
-    const vitorias = { 0: 0, 1: 0 }
-    for (let r2 = 0; r2 < 40; r2++) {
-      let s7 = novoJogo()
-      s7 = { ...s7, managers: s7.managers.map((m, i) => (i === 1 ? { ...m, isHuman: true, dormindo: false } : m)) }
-      let guard = 0
-      while (s7.phase === 'holandes' && guard++ < 40 && !s7.currentCards.some(c => st.holPodeAgora(s7, s7.managers[0].id, c.id) && st.holPodeAgora(s7, s7.managers[1].id, c.id))) {
-        s7 = st.reducer(s7, { type: 'HOLANDES_TICK' })
-      }
-      if (s7.phase !== 'holandes') continue
-      const [a, bb] = [s7.managers[0], s7.managers[1]]
-      const alvo = s7.currentCards.find(c => st.holPodeAgora(s7, a.id, c.id) && st.holPodeAgora(s7, bb.id, c.id))
-      if (!alvo) continue
-      s7 = st.reducer(s7, { type: 'HOLANDES_PEGAR', mgrId: a.id, cardId: alvo.id, preco: s7.hol.preco })
-      s7 = st.reducer(s7, { type: 'HOLANDES_PEGAR', mgrId: bb.id, cardId: alvo.id, preco: s7.hol.preco })
-      const f7 = st.reducer(s7, { type: 'HOLANDES_JANELA' })
-      const d = f7.hol?.levados.find(l => l.cardId === alvo.id)
-      if (!d) continue
-      if (d.mgr === a.id) vitorias[0]++
-      else if (d.mgr === bb.id) vitorias[1]++
+  // 5️⃣-ter ⏱️ E O "PRIMEIRO LEVA" VALE SEMPRE, não foi sorte de uma rodada.
+  //    Repete a disputa 40 vezes trocando quem aperta primeiro: o resultado tem
+  //    que seguir SEMPRE quem chegou antes, nunca o assento nem o sorteio.
+  let primeiroLevou = 0, disputasSeguidas = 0
+  for (let r2 = 0; r2 < 40; r2++) {
+    let s7 = novoJogo()
+    s7 = { ...s7, managers: s7.managers.map((m, i) => (i === 1 ? { ...m, isHuman: true, dormindo: false } : m)) }
+    let guard = 0
+    while (s7.phase === 'holandes' && guard++ < 40 && !s7.currentCards.some(c => st.holPodeAgora(s7, s7.managers[0].id, c.id) && st.holPodeAgora(s7, s7.managers[1].id, c.id))) {
+      s7 = st.reducer(s7, { type: 'HOLANDES_TICK' })
     }
-    roletaPlacar = `${vitorias[0]} × ${vitorias[1]}`
-    const total = vitorias[0] + vitorias[1]
-    ok(total >= 20, `a roleta só foi testada ${total} vezes — pouco pra confiar`)
-    if (total >= 20) {
-      ok(vitorias[0] > 0 && vitorias[1] > 0, `a roleta deu ${vitorias[0]} x ${vitorias[1]} — um dos dois NUNCA ganha`)
-      ok(Math.min(vitorias[0], vitorias[1]) / total >= 0.25, `a roleta está torta: ${vitorias[0]} x ${vitorias[1]}`)
-    }
+    if (s7.phase !== 'holandes') continue
+    const [a, bb] = [s7.managers[0], s7.managers[1]]
+    const alvo = s7.currentCards.find(c => st.holPodeAgora(s7, a.id, c.id) && st.holPodeAgora(s7, bb.id, c.id))
+    if (!alvo) continue
+    // alterna quem aperta primeiro, pra provar que não é o assento que decide
+    const [p1, p2] = r2 % 2 === 0 ? [a, bb] : [bb, a]
+    s7 = st.reducer(s7, { type: 'HOLANDES_PEGAR', mgrId: p1.id, cardId: alvo.id, preco: s7.hol.preco })
+    s7 = st.reducer(s7, { type: 'HOLANDES_PEGAR', mgrId: p2.id, cardId: alvo.id, preco: s7.hol.preco })
+    const d = s7.hol?.levados.filter(l => l.cardId === alvo.id) ?? []
+    disputasSeguidas++
+    ok(d.length === 1, `a carta disputada saiu ${d.length} vezes — é o arremate duplo que ele teme`)
+    if (d[0]?.mgr === p1.id) primeiroLevou++
   }
+  ok(disputasSeguidas >= 20, `só deu pra testar ${disputasSeguidas} disputas — pouco pra confiar`)
+  ok(primeiroLevou === disputasSeguidas, `quem apertou primeiro levou ${primeiroLevou} de ${disputasSeguidas} — a regra é por TEMPO, tem que ser sempre`)
 
   // 5️⃣-quater 🎰 QUANTAS VEZES DÁ EMPATE DE VERDADE? (pergunta dele, 20/09:
   //    *"imagina uma sala c/ 20 pessoas, tudo pode ocorrer"*).
@@ -408,8 +391,10 @@ const r = await p.evaluate(async () => {
   // 🔒 A REGRA SÓ SE SUSTENTA SE O EMPATE FOR RARO. Se metade das cartas fosse
   //    pra roleta, o leilão viraria sorteio — e aí valeria a pena parar tudo pra
   //    um re-lance cego. A trava segura esse limite: até 1 carta em 3.
-  ok(empates[20].pct <= 34, `sala de 20: ${empates[20].pct}% das cartas foram pra roleta — virou sorteio, não leilão`)
-  ok(empates[20].maiorRoda <= 6, `sala de 20: teve roleta com ${empates[20].maiorRoda} técnicos — gente demais num sorteio só`)
+  // 🔒 Isto mede a fila dos ROBÔS (gente leva na hora, nem passa por aqui). O
+  //    número importa porque é o tamanho da rede: quanto maior, mais vezes a
+  //    roleta invisível entra em ação pra impedir dois donos na mesma carta.
+  ok(empates[20].maiorRoda <= 6, `sala de 20: fila de ${empates[20].maiorRoda} robôs na mesma carta — grande demais`)
 
   // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
   //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
@@ -467,7 +452,7 @@ const r = await p.evaluate(async () => {
     ticks: hol.ticks,
     msPregao: hol.msPregao,
     monteHol: hol.monteN, monteCego: cego.monteN,
-    salas, disputaTestada, roletaPlacar, empates, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
+    salas, disputaTestada, empates, primeiroLevou, disputasSeguidas, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
     repHol: hol.repescagem, repCego: cego.repescagem,
     resqHol: hol.naResq, resqCego: cego.naResq,
     buracoHol: hol.buracos, buracoCego: cego.buracos,
@@ -488,11 +473,12 @@ console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · $
 console.log(`         └─ ${r.arremates - r.resqHol} saíram no pregão · ${r.resqHol} na repescagem · ${r.repHol} desceram pra repescagem · ${r.buracoHol} vagas ficaram vazias (= perna-de-pau)`)
 console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão `)
 console.log(`         └─ ${r.cegoArremates - r.resqCego} saíram no pregão · ${r.resqCego} na repescagem · ${r.repCego} desceram pra repescagem · ${r.buracoCego} vagas ficaram vazias (= perna-de-pau)\n`)
-console.log(`   ⚡ APERTOU SOZINHO → é seu em ${r.janelaMs}ms (não espera o degrau): ${r.sozinhoTestado ? 'testado' : '⚠️ NÃO testado'}`)
-console.log(`   👥👥 DOIS APERTANDO A MESMA CARTA, NO MESMO PREÇO: ${r.disputaTestada ? 'testado' : '⚠️ NÃO testado'} · a 🎰 roleta deu ${r.roletaPlacar} em 40 disputas\n`)
+console.log(`   ⚡ APERTOU → é seu NO MESMO TOQUE (por tempo): ${r.sozinhoTestado ? 'testado' : '⚠️ NÃO testado'}`)
+console.log(`   👥👥 DOIS NA MESMA CARTA: ${r.disputaTestada ? 'testado' : '⚠️ NÃO testado'} · quem apertou primeiro levou ${r.primeiroLevou}/${r.disputasSeguidas} (tem que ser 100%)`)
+console.log('')
 for (const n of [8, 20]) {
   const e = r.empates[n]
-  console.log(`   🎰 SALA DE ${n}: ${e.comDisputa} de ${e.resolvidas} cartas deram empate no mesmo preço (${e.pct}%) · roleta média entre ${e.mediaRoda.toFixed(1)} técnicos · maior roleta: ${e.maiorRoda}`)
+  console.log(`   🤖 SALA DE ${n}: ${e.comDisputa} de ${e.resolvidas} cartas tiveram 2+ ROBÔS na fila (${e.pct}%) · média ${e.mediaRoda.toFixed(1)} · maior ${e.maiorRoda} — é só aqui que a roleta invisível age; gente leva por tempo e nem passa por essa fila`)
 }
 console.log('')
 console.log('   👥 E O BARALHO SEGUE O TAMANHO DA SALA — pela MESMA conta nos dois modos:\n')

@@ -4198,7 +4198,6 @@ type Action =
   // No online QUEM DISPARA O TICK É SEMPRE O HOST — o convidado só desenha o
   // preço que chegou e roteia o PEGAR pro host, como toda ação da sala.
   | { type: 'HOLANDES_TICK' }
-  | { type: 'HOLANDES_JANELA' } // ✋ meio segundo depois do 1º aperto: entrega a carta
   | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
@@ -4385,19 +4384,6 @@ export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // a peça central do anti-delay: com 2 segundos pra reagir, meio segundo de
 // internet ruim não decide mais nada. A leva inteira fecha em ~40s — o mesmo
 // tempo do envelope cego de hoje (45s), então o ritmo do jogo não muda.
-// ✋ A JANELA DO APERTO (meio segundo). Quando alguém aperta, o jogo espera SÓ
-// este tiquinho antes de entregar a carta — não o degrau inteiro.
-// Por que existe, e por que é curta:
-//  · se **ninguém mais** apertou nesse meio segundo, a carta é sua e pronto —
-//    do lado de quem joga, é "na hora" (meio segundo ninguém sente);
-//  · se **outra pessoa** apertou junto, os dois estão na disputa e a roleta
-//    decide. Meio segundo é mais do que a diferença de internet entre dois
-//    celulares na mesma partida, então ninguém perde carta por causa de rede.
-// ⚠️ NÃO dá pra ser ZERO no online: o toque do convidado precisa VIAJAR até o
-// host de qualquer jeito. Entregar na hora na tela dele e o host responder
-// depois "não foi você" obrigaria a TIRAR o jogador do campinho — que é
-// exatamente o estado quebrado que o Diego não quer ver nunca.
-export const HOL_JANELA_MS = 500
 export const HOL_MS_ALTO = 600
 export const HOL_MS_BAIXO = 2200
 export const holPassoMs = (preco: number, start: number) => (preco > Math.round(start * 0.4) ? HOL_MS_ALTO : HOL_MS_BAIXO)
@@ -4485,15 +4471,19 @@ function fechaHolandes(state: EscState) {
   state.holFechando = false
 }
 
-// ✋ RESOLVE OS PEDIDOS DO DEGRAU QUE ACABOU DE FECHAR.
-// Esta função é a resposta ao medo do delay. Ela NÃO decide por ordem de
-// chegada — quem apertou primeiro no relógio do host levaria vantagem só por
-// ter internet melhor. Ela junta TODO MUNDO que apertou naquele preço e decide:
-//   1. carta com um pedido só → é dele, simples assim;
-//   2. carta com gente E robô  → **a GENTE passa na frente**. O robô aperta no
-//      milissegundo; se ele competisse na reação, ganharia sempre;
-//   3. carta com duas pessoas  → 🎰 ROLETA entre elas (o mesmo sorteio que o
-//      desempate do pregão já usa). Ninguém é roubado por meio segundo de rede.
+// 🤖 SERVE A FILA DOS ROBÔS no fim do degrau.
+//
+// Gente não passa por aqui: pessoa leva NA HORA, por tempo (ver `holandesPegar`).
+// Esta fila é só dos robôs — eles "apertariam" no milissegundo em que o preço
+// bate no teto deles, então segurar até o fim do degrau é o que dá à pessoa a
+// chance de chegar antes. Regra do Diego: **gente nunca perde pra robô**.
+//
+// 🎰 A ROLETA CONTINUA AQUI, como REDE, e é o que ele pediu: *"só quando der
+// alguma merda e o jogo não entender é aí sim iria pro desempate. Eles não
+// precisariam saber disso também"*. Dois robôs com o mesmo teto, ou qualquer
+// caminho novo que um dia deposite dois pedidos na mesma carta, caem no
+// sorteio em vez de gerar dois donos. Ninguém vê nada: pra quem joga, foi
+// simplesmente "o outro chegou antes".
 function holResolvePedidos(state: EscState) {
   const hol = state.hol
   if (!hol || hol.pedidos.length === 0) return
@@ -4591,19 +4581,49 @@ function holandesTick(state: EscState) {
   holBotsPedem(state) // 3) os robôs entram na fila
 }
 
-// 🫵 VOCÊ APERTOU numa carta da lista. Não arremata na hora: vira um PEDIDO
-// deste degrau (é assim que o delay deixa de decidir a partida). A tela tranca
-// a carta pra você na mesma hora, então não tem como apertar duas vezes.
+// 🫵 VOCÊ APERTOU numa carta da lista.
+//
+// ⏱️ **POR TEMPO, E A CARTA É SUA NA HORA** — decisão do Diego (20/09): *"eu
+// ainda acho que deveria ter que ser por tempo… só quando der alguma merda e o
+// jogo não entender é aí sim iria pro desempate. Eles não precisariam saber
+// disso também, pra eles é como se fosse ao mesmo tempo"*.
+//
+// Eu tinha feito com janela de meio segundo pra tirar a vantagem de quem tem
+// internet melhor; ele ouviu o argumento e escolheu o tempo mesmo. Então: quem
+// chega primeiro NO HOST leva, e leva imediatamente.
+//
+// 🔒 E É ISTO QUE GARANTE QUE O JOGADOR NUNCA CAI EM DOIS CAMPINHOS — o medo
+// dele. Quem escreve em `levados` é SÓ O HOST, um de cada vez, e a primeira
+// linha da carta tranca todas as outras (`levados.some` logo abaixo). O
+// segundo toque a chegar encontra a carta com dono e é recusado. Não existe
+// ordem de execução em que os dois passem.
+//
+// 📱 ⚠️ REGRA PRO ONLINE (quando o cano for ligado): o convidado NÃO pode
+// escrever `levados` no próprio aparelho. Ele mostra "✋ enviando…" e só desenha
+// o jogador no campinho quando o host confirmar — igual o "ENVIANDO…" que o
+// envelope cego já faz. Se a tela dele entregasse na hora e o host dissesse
+// "não foi você", o jogador APARECERIA e SUMIRIA do campinho, que é o estado
+// quebrado que ele não quer ver nunca.
 function holandesPegar(state: EscState, mgrId: number, cardId: string) {
   const hol = state.hol
   if (!hol) return
   const card = state.currentCards.find(c => c.id === cardId)
   const m = state.managers.find(x => x.id === mgrId)
   if (!card || !m) return
-  if (hol.levados.some(l => l.cardId === cardId)) return // já é de alguém
-  if (hol.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)) return // pediu duas vezes
+  if (hol.levados.some(l => l.cardId === cardId)) return // 🔒 já tem dono: chegou tarde
   if (!holPodeLevar(state, m, card, hol.preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))) return
-  hol.pedidos.push({ cardId, mgr: mgrId, humano: !!m.isHuman })
+  // 🏃 GENTE LEVA NA HORA. (O robô não: ele entra na fila `pedidos` e só é
+  // servido no fim do degrau — senão apertaria no milissegundo e ganharia
+  // sempre. Regra dele, mantida: gente nunca perde pra robô.)
+  if (m.isHuman) {
+    hol.levados.push({ cardId, mgr: mgrId, preco: hol.preco })
+    hol.ultimo = { nome: card.name, time: m.teamName, preco: hol.preco, roleta: false, perdedores: [] }
+    // tira da fila dos robôs qualquer pedido nesta carta: ela já tem dono
+    hol.pedidos = hol.pedidos.filter(p => p.cardId !== cardId)
+    return
+  }
+  if (hol.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)) return
+  hol.pedidos.push({ cardId, mgr: mgrId, humano: false })
 }
 
 // a tela pergunta isto pra acender (ou não) o botão PEGAR de cada carta —
@@ -4618,12 +4638,9 @@ export function holPodeAgora(state: EscState, mgrId: number, cardId: string): bo
   if (hol.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)) return false
   return holPodeLevar(state, m, card, hol.preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))
 }
-// e o resto da tela pergunta estas duas (pra não recalcular régua em lugar nenhum)
+// e o resto da tela pergunta esta (pra não recalcular régua em lugar nenhum)
 export function holDono(state: EscState, cardId: string): { mgr: number; preco: number } | null {
   return state.hol?.levados.find(l => l.cardId === cardId) ?? null
-}
-export function holPedi(state: EscState, mgrId: number, cardId: string): boolean {
-  return !!state.hol?.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)
 }
 
 function startAuctionPhase(state: EscState, rescue: boolean) {
@@ -4966,6 +4983,19 @@ function afterReveal(state: EscState) {
     state.currentCards = []
     if (state.sectorCursor < state.deck[pos].length) {
       startAuctionPhase(state, false) // ainda tem leva pra vir nesse setor
+      return
+    }
+    // 🔻 HOLANDÊS: NÃO TEM REPESCAGEM (decisão do Diego, 20/09). Palavras dele:
+    // *"não tem negócio de repescagem nesse leilão eu acho… quem não pegou se
+    // ferra que vai ter que ir pro monte mesmo então. No 0 não tem empate
+    // também, é monte direto"*. E ele está certo: a repescagem existe pra dar
+    // uma última chance de PAGAR pelas sobras — mas no holandês essa chance já
+    // foi dada, o preço passou por 1 moeda na frente de todo mundo. Repescar
+    // depois de um leilão holandês é leiloar a mesma carta duas vezes.
+    if (state.holandes) {
+      montePush(state, state.sectorUnsoldAccum)
+      state.sectorUnsoldAccum = []
+      advanceSectorOrFinish(state, rng)
       return
     }
     // fechou todas as levas do setor: repescagem ÚNICA com tudo que sobrou (só
@@ -6203,15 +6233,6 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'HOLANDES_TICK': {
       if (s.phase !== 'holandes' || !s.hol) return s
       holandesTick(s)
-      return s
-    }
-    // ✋ FECHOU A JANELA DO APERTO (meio segundo depois do 1º toque): entrega a
-    // carta AGORA, sem esperar o degrau inteiro. É isto que faz o arremate ser
-    // "na hora" pra quem joga. Quem fecha a janela é o HOST (mesma coroa do
-    // relógio) — o convidado só desenha o resultado.
-    case 'HOLANDES_JANELA': {
-      if (s.phase !== 'holandes' || !s.hol || s.hol.pedidos.length === 0) return s
-      holResolvePedidos(s)
       return s
     }
     case 'HOLANDES_PEGAR': {

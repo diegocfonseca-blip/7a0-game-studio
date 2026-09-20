@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, holPedi, HOL_JANELA_MS, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -3435,16 +3435,20 @@ function Holandes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hol?.passo, euTico])
 
-  // ✋ A JANELA DO APERTO: alguém apertou → meio segundo depois a carta é
-  // entregue, sem esperar o degrau inteiro. É isto que faz o arremate parecer
-  // instantâneo pra quem joga. Só o host fecha a janela (mesma coroa do relógio).
-  const temPedido = (hol?.pedidos.length ?? 0) > 0
+  // 📱 "ENVIANDO…" — só no ONLINE. O toque do convidado precisa viajar até o
+  // host, e até ele responder este aparelho NÃO desenha o jogador no campinho.
+  // É o mesmo padrão do "ENVIANDO…" que o envelope cego já usa, e existe por um
+  // motivo só: se a tela entregasse na hora e o host dissesse "não foi você", o
+  // jogador APARECERIA e SUMIRIA do campinho — o estado quebrado que ele não
+  // quer ver nunca. No solo isso nem pisca (o motor responde no mesmo toque).
+  const [enviando, setEnviando] = useState<string | null>(null)
   useEffect(() => {
-    if (!temPedido || !euTico) return
-    const t = setTimeout(() => dispatch({ type: 'HOLANDES_JANELA' }), HOL_JANELA_MS)
+    if (!enviando) return
+    // o host respondeu (a carta ganhou dono, qualquer que seja) → some o aviso
+    if (hol?.levados.some(l => l.cardId === enviando)) { setEnviando(null); return }
+    const t = setTimeout(() => setEnviando(null), 4000) // rede muda: não trava a tela pra sempre
     return () => clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [temPedido, euTico])
+  }, [enviando, hol?.levados])
 
   // 🔊 tique-taque do preço caindo + martelo quando uma carta sai
   useEffect(() => { if (hol) playTick() }, [hol?.passo]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -3528,16 +3532,17 @@ function Holandes() {
       <div className="space-y-2 mt-2">
         {state.currentCards.map(c => {
           const dono = holDono(state, c.id)
-          const pedi = holPedi(state, you.id, c.id)
           const pode = holPodeAgora(state, you.id, c.id)
           const t = dono ? state.managers.find(m => m.id === dono.mgr) : null
           const ehSurpresa = state.surpriseId === c.id
           return (
             <div key={c.id} className="border-[3px] border-black rounded-xl p-2.5 flex items-center gap-2"
               style={{
-                background: dono ? '#EDE9DC' : pedi ? '#EAF7EE' : '#fff',
-                boxShadow: dono ? 'none' : `3px 3px 0 0 ${INK}`,
-                opacity: dono ? 0.62 : 1,
+                // 🫵 a carta que VOCÊ levou fica verdinha e em pé (é conquista,
+                // não descarte); a que foi pra outro apaga e vai pro canto.
+                background: dono ? (dono.mgr === you.id ? '#EAF7EE' : '#EDE9DC') : '#fff',
+                boxShadow: dono && dono.mgr !== you.id ? 'none' : `3px 3px 0 0 ${INK}`,
+                opacity: dono && dono.mgr !== you.id ? 0.62 : 1,
               }}>
               <div className="flex-1 min-w-0">
                 <CardFace c={c} surprise={ehSurpresa} highlight={ehSurpresa} />
@@ -3552,16 +3557,17 @@ function Holandes() {
                   </p>
                   <p className="text-[11px] font-bold text-black/55">{dono.preco} 🪙</p>
                 </div>
-              ) : pedi ? (
-                // ✋ VOCÊ PEDIU: tranca na hora, no SEU aparelho, antes mesmo do host
-                // responder. É isto que impede apertar duas vezes na mesma carta.
+              ) : enviando === c.id ? (
+                // 📱 ESPERANDO O HOST (só pisca no online). O jogador NÃO entra no
+                // campinho enquanto o host não confirma — nada de jogador que
+                // aparece e some. No solo isto nem chega a ser visto.
                 <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center shrink-0"
-                  style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}` }}>
-                  <p className="text-[13px] font-black leading-none" style={OSWALD}>✋ {L('É SEU!', 'YOURS!')}</p>
+                  style={{ background: '#2E6FB0', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}` }}>
+                  <p className="text-[12px] font-black leading-none" style={OSWALD}>✋ {L('ENVIANDO', 'SENDING')}</p>
                   <p className="text-[9px] font-bold leading-tight mt-0.5">{preco} 🪙</p>
                 </div>
               ) : (
-                <button onClick={() => { playCoin(); dispatch({ type: 'HOLANDES_PEGAR', mgrId: you.id, cardId: c.id, preco }) }}
+                <button onClick={() => { playCoin(); setEnviando(c.id); dispatch({ type: 'HOLANDES_PEGAR', mgrId: you.id, cardId: c.id, preco }) }}
                   disabled={!pode}
                   className="border-[3px] border-black rounded-xl px-3 py-2 font-black shrink-0 active:translate-y-0.5"
                   style={{
@@ -3625,7 +3631,7 @@ function Holandes() {
       {/* ℹ️ POR QUE O SEU TOQUE NÃO ARREMATA NO MILÉSIMO — explicado no lugar
           exato, embaixo do botão, do jeito que ele gosta. */}
       <p className="text-[10.5px] font-bold text-black/45 text-center mt-2 leading-snug">
-        ✋ {L('Apertou, é seu — o jogador cai no seu campinho em meio segundo. Esse tiquinho existe só pro caso de outra pessoa apertar junto: aí os dois entram na 🎰 roleta e internet melhor não leva vantagem. Robô nunca passa na frente de gente.', 'Tapped, it is yours — the player lands on your pitch in half a second. That blink exists only in case someone taps at the same time: then both enter the 🎰 wheel and a better connection wins you nothing. Bots never come before people.')}
+        ⏱️ {L('Apertou primeiro, levou — e o jogador cai no seu campinho na hora. Se outro apertar um tiquinho antes, a carta já sai com o nome dele e a sua moeda nem é tocada. Robô nunca passa na frente de gente.', 'First to tap wins — and the player lands on your pitch right away. If someone taps a blink earlier, the card leaves with their name and your coins are never touched. Bots never come before people.')}
       </p>
       {online && !state.isHost && (
         <p className="text-[10.5px] font-bold text-black/45 text-center mt-1">

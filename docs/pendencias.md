@@ -1,3 +1,65 @@
+## 20/09/2026 (parte 32) — ⏱️ O Diego escolheu POR TEMPO. E o holandês perdeu a repescagem.
+
+Ele leu a parte 31 (roleta) e decidiu o contrário: *"eu ainda acho que deveria ter
+que ser por tempo… só quando der alguma merda e o jogo não entender é aí sim iria
+pro desempate. Eles não precisariam saber disso também, pra eles é como se fosse ao
+mesmo tempo"*. Eu tinha levantado o argumento da internet; ele ouviu e escolheu.
+**Decisão dele, implementada.**
+
+### ⏱️ A regra agora
+- **Pessoa aperta → a carta é dela NO MESMO TOQUE.** Sem janela, sem esperar
+  degrau. Entra em `levados` na hora, e o campinho desenha na hora.
+- **Chegou em segundo → recusado**, e a carta já aparece com o nome do outro.
+- **Robô continua atrás da gente**: ele entra numa fila (`pedidos`) e só é servido
+  no FIM do degrau. Se uma pessoa apertar naquele degrau, ela passa na frente.
+  Regra antiga dele, mantida — senão o robô apertaria no milissegundo e ganharia
+  sempre.
+- **A roleta virou REDE INVISÍVEL**, que é exatamente o que ele pediu: ela só age
+  na fila dos robôs (dois com o mesmo teto) ou se algum caminho novo um dia
+  depositar dois pedidos na mesma carta. Ninguém vê: pra quem joga, "o outro
+  chegou antes".
+
+### 🔒 E o medo dele — "os dois põem o jogador no campinho?" — fica ainda MAIS seguro
+Por tempo é mais simples de garantir que por janela: quem escreve `levados` é **só
+o host, uma ação de cada vez**, e a primeira linha da carta tranca todas as outras.
+Não existe ordem de execução em que os dois passem.
+**Trava**: 40 disputas seguidas, alternando quem aperta primeiro — *quem apertou
+primeiro levou **40/40***, e a carta nunca saiu duas vezes.
+
+### 📱 A regra que o ONLINE vai ter que respeitar (ainda não ligado)
+O convidado **não escreve `levados` no próprio aparelho**. Ele mostra **"✋
+ENVIANDO"** e só desenha o jogador no campinho quando o host confirmar — o mesmo
+padrão do "ENVIANDO…" do envelope cego. Se a tela dele entregasse na hora e o host
+dissesse "não foi você", o jogador **apareceria e sumiria** do campinho. O estado
+da tela já está pronto pra isso (`enviando` local); falta só o cano.
+
+### 🗑️ E o holandês NÃO TEM MAIS REPESCAGEM
+Palavras dele: *"não tem negócio de repescagem nesse leilão eu acho… quem não pegou
+se ferra que vai ter que ir pro monte mesmo então. No 0 não tem empate também, é
+monte direto"*. **Ele está certo**: a repescagem existe pra dar uma última chance de
+PAGAR pelas sobras — mas no holandês essa chance já foi dada, o preço passou por 1
+moeda na frente de todo mundo. Repescar depois seria leiloar a mesma carta duas
+vezes. Agora, no holandês: **acabou a descida → o que sobrou vai direto pro Monte
+Final**. (No pregão cego a repescagem continua exatamente como sempre.)
+
+### ❓ O QUE FICOU EM ABERTO — precisa da decisão dele
+Ele levantou, e eu NÃO construí pra não chutar: *"a próxima tela eu acho que já
+seria outra lista não?? Ou apenas mostrar as cartas de quem pegou quem?? Até porque
+se tiver lendas mostra também a carta da lenda com avatar também faz sentido assim.
+E aí nessa área apareceria o desempate."*
+
+São duas perguntas:
+1. **Depois da descida, vai direto pra próxima lista (próximo setor) ou tem uma
+   tela de resumo** mostrando quem levou quem, com a carta da lenda e avatar?
+   → hoje está indo pro `Reveal` de sempre, que já mostra carta por carta com o
+   vencedor. Dá pra: (a) manter, (b) pular direto pro próximo setor, ou (c) fazer
+   um resumo novo em grade, com destaque pra lenda.
+2. Ele falou em pôr o **desempate nessa área**. Com a regra por TEMPO isso perdeu a
+   função (não sobra empate pra decidir) — mas se ele quiser o re-lance cego de
+   volta pros casos de empate, é aqui que ele moraria.
+
+---
+
 ## 20/09/2026 (parte 31) — 🎰 O desempate afunilado: NEM valor, NEM tempo — roleta. E o número numa sala de 20
 
 Perguntas dele: *"e se der ao mesmo tempo alguém pegando junto? Como desempata…
