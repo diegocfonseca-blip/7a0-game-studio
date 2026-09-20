@@ -173,7 +173,7 @@ export const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.
 // OUTRA seleção (relato de usuário: "quando não dá certo eu atualizo e troco").
 // Com o carimbo, o F5 volta pro MESMO torneio (mesma seleção, mesmo time, mesmo
 // resultado — a simulação é semeada). Limpa quando a final é gravada.
-export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation } | null }
+export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean } | null }
 const skey = (seed: number) => `llcopa:${seed}`
 export function loadCopaSave(seed: number): CopaSave | null {
   try { const r = localStorage.getItem(skey(seed)); return r ? JSON.parse(r) as CopaSave : null } catch { return null }
@@ -573,14 +573,14 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
         // 🔒 CARIMBA a escolha AGORA (antes do 1º jogo): F5 daqui pra frente
         // volta pro MESMO torneio — acabou o "atualiza e troca de seleção".
         const cur = loadCopaSave(seed) ?? save
-        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f } })
+        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f, potes: true } })
         setMyXI(xi); setMyForm(f); setPhase('cup')
       }} />
     </CMModal>
   )
   if (phase === 'cup' && entrants) return (
     <CMModal wide cinematic={CAREER_VISUAL_RELEASED}>
-      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} myForm={myForm} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
+      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} potes={!!carimbo?.potes} myForm={myForm} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
     </CMModal>
   )
   return null
@@ -813,14 +813,51 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }:
 // gerador já tinha avançado, saíam OUTROS placares e OUTRO campeão. Agora o
 // gerador nasce AQUI de uma semente fixa: rodar 100 vezes dá SEMPRE o mesmo
 // resultado (mesma regra determinística da liga).
-export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number) {
+// 🏺 OS QUATRO POTES (Diego, 20/09): *"a Copa do Mundo deveria sempre ter os
+// países mais fortes sendo cabeça de chave, seja em qualquer modo"*. Ele estava
+// certo, e o buraco era grande: o sorteio era um embaralhamento CRU das 24, sem
+// pote nenhum. Medido em 20 mil Copas, com o sorteio velho:
+//   · 63,8% delas tinham DUAS das 4 mais fortes no mesmo grupo
+//   · 4,4% tinham TRÊS juntas
+//   · 6,6% das vezes um time do meio pegava 2 gigantes de uma vez
+// Ou seja: em 2 de cada 3 Copas existia grupo da morte, e um gigante caía fora
+// na primeira fase por azar de sorteio — enquanto do outro lado da chave alguém
+// passeava.
+//
+// Agora é o formato de Copa de 24 de verdade: **4 potes de 6**. O pote 1 (as 6
+// mais fortes) espalha UMA em cada grupo; os potes 2, 3 e 4 caem por cima,
+// também um por grupo. Dois cabeças de chave nunca se cruzam antes do mata-mata.
+//
+// 💪 A FORÇA É A DO TIME QUE ENTROU (`str`), não uma lista fixa de países — então
+//    quem convoca um baralho bom com um país médio é premiado, e não fica refém
+//    do nome da seleção. Vale igual na carreira e no online, que é o que ele
+//    pediu ("seja em qualquer modo").
+function sorteiaComPotes(entrants: Entrant[], rng: () => number): number[][] {
+  const ordem = entrants.map((e, i) => ({ i, s: e.str })).sort((a, b) => b.s - a.s || a.i - b.i)
+  const grupos: number[][] = Array.from({ length: NUM_GROUPS }, () => [])
+  for (let pote = 0; pote < GROUP_SIZE; pote++) {
+    const dentro = ordem.slice(pote * NUM_GROUPS, (pote + 1) * NUM_GROUPS).map(x => x.i)
+    // embaralha DENTRO do pote: o pote diz a força, o acaso diz o grupo
+    for (let i = dentro.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [dentro[i], dentro[j]] = [dentro[j], dentro[i]] }
+    dentro.forEach((t, g) => grupos[g % NUM_GROUPS].push(t))
+  }
+  return grupos
+}
+
+/** @param potes 🏺 sorteio com cabeça de chave. Fica DESLIGADO por padrão de
+ *  propósito: a Copa é recalculada da semente toda vez que a tela abre, então
+ *  ligar isso numa Copa JÁ ROLANDO trocaria o chaveamento no meio do caminho —
+ *  é o mesmo estrago do "mudou o resultado da Copa" de 04/08. Quem liga é o
+ *  chamador, e só pra Copa que NASCEU depois da mudança. */
+export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: number, potes = false) {
   {
     const rng = mulberry((seed ^ Math.imul(seasonNo, 2654435761) ^ 0xC0FA) >>> 0)
     const aBase = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0x5A5511) >>> 0 // 🅰️ dado das assistências (não encosta no rng)
     const idx = entrants.map((_, i) => i)
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
+    const porPote = potes ? sorteiaComPotes(entrants, rng) : null
     const groups: Group[] = Array.from({ length: NUM_GROUPS }, (_, g) => {
-      const teams = idx.slice(g * GROUP_SIZE, g * GROUP_SIZE + GROUP_SIZE)
+      const teams = porPote ? porPote[g] : idx.slice(g * GROUP_SIZE, g * GROUP_SIZE + GROUP_SIZE)
       const matches = roundRobin(teams) // 6 grupos de 4 = turno único (3 rodadas)
       for (const rd of matches) for (const m of rd) {
         const [gh, ga] = playMatch(rng, entrants[m.h], entrants[m.a])
@@ -882,14 +919,14 @@ export function artilhariaDaCopa(world: ReturnType<typeof simulaCopaMundo>): { n
   return Object.entries(tally).map(([k, v]) => ({ name: k.split('|')[0], ...v })).sort((x, y) => y.goals - x.goals || x.name.localeCompare(y.name))
 }
 
-export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onArtilheiro, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; myForm: Formation; onArtilheiro?: (nome: string, gols: number) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCard, onArtilheiro, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; myForm: Formation; onArtilheiro?: (nome: string, gols: number) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
   const [allGroups, setAllGroups] = useState(!!online)
   // tudo pré-computado com a MESMA seed (placares, gols, pênaltis) — mas só é
   // MOSTRADO com o relógio rolando, na velocidade padrão da liga (9s a rodada).
-  const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo), [entrants, seed, seasonNo])
+  const world = useMemo(() => simulaCopaMundo(entrants, seed, seasonNo, potes), [entrants, seed, seasonNo, potes])
 
   // step = revelações FEITAS (GR = rodadas de grupo): 1..GR rodadas de grupo ·
   // GR+1 sorteio · GR+2 oitavas · GR+3 quartas · GR+4 semis · GR+5 final ·

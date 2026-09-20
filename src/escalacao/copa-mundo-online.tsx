@@ -67,7 +67,21 @@ export const copaPickOk = (p?: CopaPick | null): p is CopaPick =>
 // na tabela. `uid` só existe nas seleções de GENTE: é por ele que cada aparelho
 // descobre qual das 24 é a dele (o `you`), sem depender de assento nenhum.
 export interface CopaTime { pais: string; nome: string; uid?: string; xiKeys?: string[] }
-export interface CopaFicha { seed: number; edicao: number; times: CopaTime[] }
+export interface CopaFicha {
+  seed: number; edicao: number; times: CopaTime[]
+  /** 🏺 esta Copa nasceu DEPOIS do sorteio por potes? Vem de `criada_em` da linha
+   *  no banco (ver `POTES_DESDE`). Copa que já estava rolando termina com o
+   *  sorteio velho — trocar o chaveamento no meio do caminho é o estrago de
+   *  04/08 ("mudou o resultado da Copa"). */
+  potes?: boolean
+}
+
+// 🏺 O INSTANTE EM QUE O SORTEIO POR POTES ENTROU NO AR (Diego, 20/09: *"a Copa
+// do Mundo deveria sempre ter os países mais fortes sendo cabeça de chave"*).
+// Copa criada ANTES disto segue com o embaralhamento cru até acabar.
+export const POTES_DESDE = Date.parse('2026-09-20T22:00:00Z')
+export const copaTemPotes = (criadaEm?: string | null): boolean =>
+  !!criadaEm && Date.parse(criadaEm) >= POTES_DESDE
 
 /** as 24 seleções do jogo, na ordem de quem tem mais carta no baralho */
 export const paisesDaCopa = (): string[] => rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais)
@@ -202,7 +216,7 @@ const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: nu
 export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
   const cinematic = ONLINE_VISUAL_RELEASED
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
-  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao):null,[cinematic,entrants,ficha.seed,ficha.edicao])
+  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao,ficha.potes):null,[cinematic,entrants,ficha.seed,ficha.edicao,ficha.potes])
   // ⏱️ o tempo a mais dos PÊNALTIS de cada passo, pro relógio da sala esperar a
   // disputa inteira. Os passos vêm de `copa-passos` (jogo único desde 19/09).
   const extraForStep=(step:number)=>{
@@ -219,7 +233,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   if(!visible)return null
   return (
     <CMModal wide cinematic={cinematic}>
-      <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO}
+      <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO} potes={ficha.potes}
         myForm="4-3-3" online={online} onClose={aoFechar} />
     </CMModal>
   )
@@ -367,7 +381,7 @@ export function useEscolhasDaCopa(roomId: string | null, versao: number): Record
 
 export type FaseCopa = 'bandeira' | 'banner' | 'convocacao' | 'torneio'
 export interface LugarNaLiga { id: number; nome: string; humano: boolean }
-interface LinhaFase { edicao: number; seed: number; fase: FaseCopa; vez_uid: string | null; ate: string | null; times: CopaTime[] | null; campeao: string | null }
+interface LinhaFase { edicao: number; seed: number; fase: FaseCopa; vez_uid: string | null; ate: string | null; times: CopaTime[] | null; campeao: string | null; criada_em?: string | null }
 interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: CopaPick | null }
 
 // ⏱️ OS TRÊS RELÓGIOS, todos escolhidos pelo Diego (01/09):
@@ -728,7 +742,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try {
       const [{ data: pls, error: e1 }, { data: fs, error: e2 }] = await Promise.all([
         supabase.from('room_players').select('user_id, player_index, manager_name, copa').eq('room_id', roomId),
-        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).eq('edicao', edicaoDaTemporada).limit(1),
+        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao, criada_em').eq('room_id', roomId).eq('edicao', edicaoDaTemporada).limit(1),
       ])
       if (e1 || e2 || !pls || !fs) return null
       setLinhas(pls as LinhaSala[])
@@ -865,7 +879,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
 
-  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times } : null
+  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em) } : null
   // 🎬 abre SOZINHA só enquanto a Copa está por decidir. Com campeão já gravado
   // (a noite acabou), a pessoa que voltar do pacote/jornal NÃO leva o torneio
   // inteiro de novo na cara — o botão "VOLTAR PRA COPA" fica ali pra quem quiser

@@ -1,3 +1,63 @@
+## 20/09/2026 (parte 52) — 🏺 COPA DO MUNDO COM CABEÇA DE CHAVE (4 potes de 6)
+
+*"A Copa do Mundo deveria sempre ter os países mais fortes sendo cabeça de chave,
+seja em qualquer modo. Não acha não?"*
+
+Achava. E o buraco era maior do que parecia: **não existia pote nenhum**. O
+sorteio embaralhava as 24 e cortava em 6 grupos de 4, cru. Medido em 20 mil
+Copas do jeito velho:
+
+| | antes | agora |
+|---|---|---|
+| 2 das 4 mais fortes no mesmo grupo | **63,8%** | 0% |
+| 3 das 4 mais fortes juntas | 4,4% | 0% |
+| 2 cabeças de chave no mesmo grupo | 97,3% | 0% |
+
+Ou seja: em **2 de cada 3 Copas** tinha grupo da morte, e um gigante caía fora na
+primeira fase por azar de sorteio — enquanto do outro lado da chave alguém
+passeava até a final.
+
+### 🏺 Como ficou
+**4 potes de 6** — o formato de Copa de 24 de verdade (México 86, Itália 90). O
+pote 1 espalha uma em cada grupo; os potes 2, 3 e 4 caem por cima, um por grupo.
+Dois cabeças de chave só se encontram no mata-mata.
+
+💪 **A força é a do time que ENTROU** (`Entrant.str`), não uma lista fixa de
+países. Então quem convoca um 11 bom com um país médio vira cabeça de chave, e
+não fica refém do nome da seleção. Vale na carreira e no online — "em qualquer
+modo", como ele pediu.
+
+🎲 **E continua sendo SORTEIO**: o embaralhamento agora é DENTRO do pote. O pote
+diz a força, o acaso diz o grupo — a trava exige que a seleção mais forte caia em
+pelo menos 5 grupos diferentes em 60 Copas, senão virou fila e a Copa fica igual
+todo ano.
+
+### 🔒 O cuidado que custou o dobro do trabalho (e valeu)
+A Copa é **recalculada da semente toda vez que a tela abre**. Ligar o sorteio
+novo numa Copa JÁ ROLANDO trocaria o chaveamento no meio do caminho — é o mesmo
+estrago do *"mudou o resultado da Copa"* de 04/08, e aqui seria pior: não é um
+placar, é a chave inteira.
+
+Então a regra vale **só pra Copa que NASCEU depois da mudança**, e cada modo tem
+o seu carimbo, sem migração de banco nenhuma:
+- **online**: a tabela `esc_copa_salas` já tinha `criada_em` — agora ela entra na
+  leitura, e `copaTemPotes()` compara com `POTES_DESDE`;
+- **carreira**: o `emAndamento` do `CopaSave` (o carimbo anti-F5 que já existia)
+  ganhou o campo `potes`, gravado quando a pessoa confirma a convocação. Save
+  velho não tem o campo → sorteio velho até aquela Copa acabar.
+
+E `simulaCopaMundo` nasce **sem** potes por padrão: quem liga é o chamador. Assim
+qualquer caminho esquecido cai no comportamento de hoje, não no novo.
+
+🛡️ `npm run potes` (trava nova, com a tabela antes×agora) · `npm run copa` ·
+`npm run ascegas` com as mesmas digitais (`28bea2df` · `d65041f6` · `06bab491`).
+Linha em `novidades.ts` (PT + EN) — é regra de jogo, não conserto.
+
+### ↩️ Dá pra voltar atrás?
+Dá, num commit. E mesmo sem reverter: é só o chamador parar de passar a bandeira
+que tudo volta ao sorteio de hoje.
+
+---
 ## 20/09/2026 (parte 51) — 🐆👑 BATISMO: PANTERA NEGRA FC (Série C)
 
 Dono: **ericrabelo29@gmail.com** (Eric). Assento da **Série C** que era do

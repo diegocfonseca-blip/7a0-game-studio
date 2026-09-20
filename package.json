@@ -17,6 +17,7 @@
     "telas": "node scripts/checa-telas.mjs",
     "batismos": "node scripts/checa-batismos.mjs",
     "copa": "node scripts/checa-copa-online.mjs",
+    "potes": "node scripts/testa-potes.mjs",
     "piramide": "node scripts/checa-piramide.mjs",
     "tracos": "node scripts/checa-tracos.mjs",
     "penaltis": "node scripts/checa-penaltis.mjs",
