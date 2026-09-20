@@ -122,7 +122,12 @@ export function fornOfertas(div: string, seed: number, seasonNo: number, excluir
     // candidatas: mesmo prazo, do meu andar e do de baixo, tirando a marca que já é
     // minha (ela aparece na faixa de RENOVAR, não faria sentido repetir no papel)
     const doPrazo = FORNECEDORES.filter(f => f.anos === anos && f.id !== excluirId)
-    let cand = doPrazo.filter(f => { const n = ORDEM_DIV.indexOf(f.desde); return n <= nivel && n >= nivel - 1 })
+    // 🎯 o andar de CIMA (o seu) tem preferência: se não fosse assim, dava vitrine
+    // inteira do andar de baixo e subir de divisão não teria gosto de nada. O de
+    // baixo entra como tempero, não como regra.
+    const meu = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) === nivel)
+    const abaixo = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) === nivel - 1)
+    let cand = meu.length && (!abaixo.length || rng() < 0.7) ? meu : (abaixo.length ? abaixo : meu)
     // 🛟 nunca deixar papel vazio: se o andar não tem ninguém livre desse prazo
     // (aconteceu de a única ser a minha), desce a escada até achar.
     if (!cand.length) cand = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) <= nivel)

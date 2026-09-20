@@ -465,6 +465,31 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   premiado for de bot (a carta encarece pra todos) e as moedas só pra clube de gente.
   Números em `BOLA_OURO_MOEDAS`/`BOLA_OURO_PISO` (`store.tsx`); o piso mora em
   `careerBolaOuroPiso` e entra no `valorOficial`.
+- **👟 FORNECEDOR DE MATERIAL: 20 marcas, a FORMA não muda (20/09).** Ele mandou as
+  20 paródias e montou a escada em 5 andares (1ª Elite e Luxo → 5ª Várzea e
+  Improviso). Regras que ele fechou, e que não se mexem sem ele pedir:
+  · **Sempre 4 papéis, um de cada prazo (1 · 2 · 3 · 5)** — quem muda é a MARCA, não
+    a forma da decisão. O sorteio (`fornOfertas`) é preso na semente + temporada e
+    prefere o SEU andar, com o de baixo de tempero.
+  · 🚫 **Marca não tem regra própria**: *"não quero que diferencie marca por ser
+    Havaianas e coisas do tipo"*. Quem manda no dinheiro é o PRAZO e a DIVISÃO.
+  · 💰 **Preço, prazo e formato ficam como sempre foram** (ordem dele quando
+    perguntei se dava pra mexer na régua: *"mantenha preços iguais já eram e
+    formatos / prazos"*). A trava do `npm run loja` continua exigindo que o
+    fornecedor pague MENOS que o Master em toda divisão e prazo.
+  · 🤝 **Renovar com a marca atual** é uma faixa em cima dos papéis: mesmo prazo,
+    valor recalculado na divisão de HOJE e **+5 pontos no bônus da Loja**
+    (`FIDELIDADE_LOJA`). É o único lugar do jogo onde ser fiel rende mais.
+  · ⏳ Ele perguntou se *"não é meio óbvio que todo mundo vai escolher sempre a
+    Naique"* — e é: o contrato longo paga mais por temporada E dá mais loja. Como
+    ele não quis mexer na régua, o que a tela faz é **dizer o preço do contrato
+    longo** (trava o valor da divisão de hoje e segura as marcas do andar de cima
+    até acabar). Se um dia ele quiser resolver de verdade, as opções levantadas
+    foram: bônus de loja pelo ANDAR em vez do prazo, ou inverter a régua (curto
+    paga mais por temporada, que é como o jogo já trata contrato de jogador).
+  · 🛟 Os 4 ids antigos continuam vivos com o MESMO prazo (`naique` 5 · `pumba` 3 ·
+    `adibas`→Abibas 2 · `penalti`→Penality 1): contrato correndo em save antigo não
+    pode mudar de tamanho no meio da carreira.
 - **🕴️💰 COMISSÃO DA AGÊNCIA (20/09, regra permanente): artilheiro de QUALQUER
   competição paga 1 🪙 · Bola de Ouro paga MAIS 1 · só dos ATIVOS.** Palavras dele:
   *"o usuário tem q ganhar 1 moeda na temporada se o jogador for artilheiro de qlqr

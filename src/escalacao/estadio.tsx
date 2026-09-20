@@ -22,7 +22,7 @@ import { useMeuSocio, batizarEstadio } from './manto'
 import { stripEmoji } from './apoio'
 import { UnlockBanner } from './unlockbanner'
 import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (liberada geral em 15/09)
-import { FORNECEDORES, fornPorTemporada, fornLiberado, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO_DIV, type Fornecedor, type FornContrato } from './loja'
+import { fornPorTemporada, fornLiberado, fornOfertas, fornBonusLoja, FIDELIDADE_LOJA, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO_DIV, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
 
@@ -1153,7 +1153,7 @@ export function FornFaixa({ contrato, seasonNo }: { contrato: FornContrato; seas
           <div style={{ ...OSW, fontWeight: 600, fontSize: 10, letterSpacing: '.08em', color: GOLD }}>👟 {tr('FORNECEDOR DE MATERIAL', 'KIT SUPPLIER')} · {divNome(contrato.div).toUpperCase()}</div>
           <div style={{ ...OSW, fontWeight: 700, fontSize: 20, lineHeight: 1.1, marginTop: 2 }}>{f?.simb} {f?.nome ?? contrato.fornId}</div>
           <div style={{ fontSize: 10.5, fontWeight: 700, opacity: .8, marginTop: 2 }}>
-            {tr('temporada', 'season')} {ano} {tr('de', 'of')} {contrato.anos} · {faltam > 0 ? tr(`faltam ${faltam}`, `${faltam} to go`) : tr('última', 'last one')} · +{Math.round((f?.loja ?? 0) * 100)}% {tr('nas vendas da loja', 'on store sales')}
+            {tr('temporada', 'season')} {ano} {tr('de', 'of')} {contrato.anos} · {faltam > 0 ? tr(`faltam ${faltam}`, `${faltam} to go`) : tr('última', 'last one')} · +{Math.round(fornBonusLoja(contrato) * 100)}% {tr('nas vendas da loja', 'on store sales')}{contrato.fidelidade ? tr(' (com fidelidade 🤝)', ' (loyalty bonus 🤝)') : ''}
           </div>
         </div>
         <div style={{ textAlign: 'right', flex: 'none' }}>
@@ -1168,12 +1168,32 @@ export function FornFaixa({ contrato, seasonNo }: { contrato: FornContrato; seas
     </div>
   )
 }
+// 🤝 RENOVAR COM A MARCA ATUAL (Diego 20/09). Fica ACIMA dos 4 papéis porque é a
+// decisão mais rápida: um toque e acabou, pra quem não quer nem olhar a vitrine.
+// O valor é recalculado na divisão de HOJE (subiu, ganha mais) e o bônus da loja
+// leva +5 pontos de fidelidade — é o único lugar do jogo onde ficar rende mais.
+function FornRenovar({ marca, anosDeCasa, div, onRenovar }: { marca: Fornecedor; anosDeCasa: number; div: string; onRenovar: () => void }) {
+  const porTemp = fornPorTemporada(div, marca.anos)
+  return (
+    <div style={{ background: INK, color: '#fff', borderRadius: 12, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ ...OSW, fontWeight: 700, fontSize: 15, color: GOLD }}>🤝 {marca.simb} {tr(`A ${marca.nome} quer ficar`, `${marca.nome} wants to stay`)}</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.8)', marginTop: 2, lineHeight: 1.35 }}>
+          {anosDeCasa} {anosDeCasa > 1 ? tr('temporadas de casa', 'seasons together') : tr('temporada de casa', 'season together')} · {tr(`renova por mais ${marca.anos}`, `renews for ${marca.anos} more`)} · +{porTemp} {tr('por temporada', 'per season')} · <b style={{ color: '#9BE3B0' }}>+{Math.round((marca.loja + FIDELIDADE_LOJA) * 100)}% {tr('na loja', 'on store')}</b>
+        </div>
+      </div>
+      <button onClick={onRenovar} style={{ flex: 'none', background: GOLD, color: INK, ...OSW, fontWeight: 900, fontSize: 13, border: `3px solid ${INK}`, borderRadius: 10, padding: '8px 12px', boxShadow: '2px 2px 0 rgba(255,255,255,.25)', cursor: 'pointer' }}>{tr('RENOVAR', 'RENEW')}</button>
+    </div>
+  )
+}
 /** os 4 contratos de material, na cena do escritório (igual ao Master) */
-export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic = false, onIrEstrutura, passo }: {
-  div: string; contrato?: FornContrato; seasonNo: number; temLoja: boolean
-  onPick: (fornId: string) => void; cinematic?: boolean; onIrEstrutura?: () => void; passo?: PassoVirada
+export function FornBanner({ div, contrato, seasonNo, seed = 0, temLoja, onPick, cinematic = false, onIrEstrutura, passo }: {
+  div: string; contrato?: FornContrato; seasonNo: number; seed?: number; temLoja: boolean
+  onPick: (fornId: string, fidelidade?: boolean) => void; cinematic?: boolean; onIrEstrutura?: () => void; passo?: PassoVirada
 }) {
   const [sel, setSel] = useState<string | undefined>(undefined)
+  const anteriorId = contrato?.fornId            // ⬅️ lidos ANTES do guard (ver comentário)
+  const anosDeCasa = contrato?.anos ?? 0
   if (fornAtivo(contrato, seasonNo)) return <FornFaixa contrato={contrato} seasonNo={seasonNo} />
   // 🔒 SEM LOJA NÃO HÁ FORNECEDOR (ordem do Diego): marca de material patrocina quem
   // vende camisa. A trava diz o porquê e o caminho, e leva pro lugar de resolver.
@@ -1187,21 +1207,38 @@ export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic
       {onIrEstrutura && <button onClick={onIrEstrutura} style={{ width: '100%', marginTop: 8, border: `2.5px solid ${INK}`, borderRadius: 11, padding: 8, ...OSW, fontWeight: 900, fontSize: 12, background: GOLD, color: INK, boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer' }}>{tr('Ir pra 🏗️ Estrutura', 'Go to 🏗️ Facilities')}</button>}
     </div>
   )
-  const esc = FORNECEDORES.find(f => f.id === sel)
+  // 🎲 as 4 da vez: sorteadas no andar (veja fornOfertas em loja.ts). A marca que
+  // já era dele sai da grade — ela aparece na faixa de RENOVAR, logo acima.
+  const ofertas = fornOfertas(div, seed, seasonNo, anteriorId)
+  const atual = fornecedorDe(anteriorId)
+  const esc = ofertas.find(f => f.id === sel)
   const porTemp = esc ? fornPorTemporada(div, esc.anos) : 0
   const total = esc ? porTemp * esc.anos : 0
-  const grade = <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-    {FORNECEDORES.map(f => <FornPapel key={f.id} f={f} div={div} sel={sel === f.id} onPick={() => setSel(f.id)} />)}
-  </div>
+  const grade = <>
+    {atual && <FornRenovar marca={atual} anosDeCasa={anosDeCasa} div={div} onRenovar={() => onPick(atual.id, true)} />}
+    {atual && <p style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#6b6453', margin: '0 0 9px' }}>{tr('— ou escolha uma das quatro que bateram na porta —', '— or pick one of the four that knocked on the door —')}</p>}
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      {ofertas.map(f => <FornPapel key={f.id} f={f} div={div} sel={sel === f.id} onPick={() => setSel(f.id)} />)}
+    </div>
+  </>
   const explica = esc
     ? tr(`${total} moedas em ${esc.anos} temporada${esc.anos > 1 ? 's' : ''} = +${porTemp} por temporada, e +${Math.round(esc.loja * 100)}% em tudo que a loja vender. O valor trava na ${divNome(div)}: subiu ou caiu, continua igual até o fim.`,
       `${total} coins over ${esc.anos} season${esc.anos > 1 ? 's' : ''} = +${porTemp} per season, plus +${Math.round(esc.loja * 100)}% on everything the store sells. The amount locks in ${divNome(div)}: up or down, it stays until the end.`)
     : tr('Cada marca oferece o seu prazo. Além da moeda por temporada, ela aumenta TUDO que a sua loja vender — e o valor trava na sua divisão de hoje.',
       'Each brand offers its own term. Beyond the coins per season, it boosts everything your store sells — and the amount locks in at your current division.')
   const btnTxt = esc ? `✍️ ${tr('ASSINAR', 'SIGN')} · ${esc.nome.toUpperCase()} · ${esc.anos} ${esc.anos > 1 ? tr('TEMPORADAS', 'SEASONS') : tr('TEMPORADA', 'SEASON')}` : tr('ESCOLHA UM CONTRATO ACIMA', 'CHOOSE A CONTRACT ABOVE')
+  // ⏳ O PREÇO DO CONTRATO LONGO, escrito (Diego 20/09: *"não é meio óbvio que todo
+  // mundo vai escolher sempre a Naique?"*). A moeda não mudou — o que faltava era
+  // dizer o que se PERDE: assinar longo tranca o valor da divisão de hoje e segura
+  // você longe das marcas do andar de cima até o contrato acabar.
+  const travaLonga = esc && esc.anos >= 3
+    ? tr(`⏳ Contrato de ${esc.anos} temporadas: o valor fica travado na ${divNome(div)} até a temporada ${seasonNo + esc.anos - 1}. Se você subir de divisão nesse meio-tempo, só renegocia lá na frente — e as marcas do andar de cima só batem na porta quando este acabar.`,
+        `⏳ A ${esc.anos}-season deal: the amount stays locked at ${divNome(div)} until season ${seasonNo + esc.anos - 1}. If you go up in the meantime, you only renegotiate much later — and the brands from the floor above only knock once this one ends.`)
+    : null
   const corpo = <>
     {grade}
     <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, margin: '10px 0 0', color: 'rgba(0,0,0,.7)' }}>{explica}</p>
+    {travaLonga && <p style={{ fontSize: 10, fontWeight: 700, lineHeight: 1.4, margin: '6px 0 0', color: '#8a5a1e', background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px' }}>{travaLonga}</p>}
     <button disabled={!esc} onClick={() => esc && onPick(esc.id)}
       style={{ width: '100%', marginTop: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 10px', fontWeight: 900, fontSize: 13.5, ...OSW, background: esc ? GOLD : '#cfc6ae', color: esc ? INK : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: esc ? 'pointer' : 'default' }}>{btnTxt}</button>
   </>
@@ -1220,6 +1257,7 @@ export function FornBanner({ div, contrato, seasonNo, temLoja, onPick, cinematic
       </article></div>
       <div className="ll29-sponsor-bottom">
         <p>{explica}</p>
+        {travaLonga && <p style={{ fontWeight: 700 }}>{travaLonga}</p>}
         <button disabled={!esc} onClick={() => esc && onPick(esc.id)}>{btnTxt}</button>
         <small>{tr('Soma com o Master e com o Pontual. Proposta nova só quando este acabar.', 'Adds up with the Master and the one-season sponsor. New offers only when this one ends.')}</small>
       </div>

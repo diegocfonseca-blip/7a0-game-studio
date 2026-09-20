@@ -9142,8 +9142,8 @@ export function PyramidSeasonScreen() {
                         decisões"*. */}
                     {temLoja && !fornAtivo(lj?.forn, sn) && (
                       <FornBanner div={me.div} contrato={lj?.forn} passo={p('forn')}
-                        seasonNo={sn} temLoja cinematic={privateCareer}
-                        onPick={fornId => dispatch({ type: 'LOJA_FORNECEDOR', fornId, mgrId: youId })} />
+                        seasonNo={sn} seed={state.seed} temLoja cinematic={privateCareer}
+                        onPick={(fornId, fidelidade) => dispatch({ type: 'LOJA_FORNECEDOR', fornId, fidelidade, mgrId: youId })} />
                     )}
                     {/* 🛍️ 4 — A CAMISA. Aposta, então cai toda temporada; decidiu, some. */}
                     {temLoja && lj?.precoSeason !== sn && (

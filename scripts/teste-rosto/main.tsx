@@ -27,7 +27,7 @@ import '../../src/escalacao/screens'
 import { AgenciadosTab, BaseBox } from '../../src/escalacao/pyramidseason'
 import Salao from '../../src/escalacao/salao'
 import { CareerSponsorVisual, CareerSponsorOverview } from '../../src/escalacao/career-sponsor-visual'
-import { MasterBanner, MasterFaixa, MasterRegua, SponsorBetBanner } from '../../src/escalacao/estadio'
+import { MasterBanner, MasterFaixa, MasterRegua, SponsorBetBanner, FornBanner } from '../../src/escalacao/estadio'
 import { useState } from 'react'
 import { VADICO_LOGO } from '../../src/escalacao/vadico'
 import { ERO_LOGO } from '../../src/escalacao/ero'
@@ -362,6 +362,16 @@ createRoot(document.getElementById('root')!).render(
           <div style={{ maxWidth: 430, margin: '0 auto' }}>
             <AgenciadosTab cards={CARDS} pool={CARDS} hist={{}} fatura={undefined}
               st={estadio} hasFilial={false} primeiroClube="Neymarzetti" onSet={() => {}} />
+          </div>
+        </div>
+      : q.has('fornecedor')
+      // 👟 a tela REAL do fornecedor com as 20 marcas: faixa de renovar + as 4
+      // sorteadas + o aviso do contrato longo. `&div=D` troca a divisão.
+      ? <div style={{ background: '#F4ECD6', color: '#0C0C0C', minHeight: '100vh', padding: 14 }}>
+          <div style={{ maxWidth: 430, margin: '0 auto' }}>
+            <FornBanner div={q.get('div') ?? 'A'} seasonNo={12} seed={20260920} temLoja
+              contrato={{ fornId: q.get('div') === 'D' ? 'toppeira' : 'adibas', anos: q.get('div') === 'D' ? 3 : 2, div: q.get('div') ?? 'A', desde: 9, porTemporada: 20 }}
+              onPick={() => {}} />
           </div>
         </div>
       : q.has('agencia2')
