@@ -239,6 +239,42 @@ const r = await p.evaluate(async () => {
   ok(st.holPassoMs(10, 100) >= 1500, `o degrau de baixo dura só ${st.holPassoMs(10, 100)}ms — pouco pra quem tem internet ruim`)
   ok(msCheio <= 50000, `a leva inteira leva ${(msCheio / 1000).toFixed(1)}s e hoje leva 45s — está atrasando o jogo`)
 
+  // 5️⃣-zero ⚡ APERTOU SOZINHO = É SEU NA HORA (pergunta dele, 20/09):
+  //    *"qd o cara aperta ele não pega na hora e já não vai pro campinho dele??"*.
+  //    Vai sim. A janela de meio segundo fecha e a carta entra em `levados`, que
+  //    é o que o campinho desenha — SEM esperar o degrau inteiro.
+  let sozinhoTestado = 0
+  {
+    let s0 = novoJogo()
+    while (s0.phase === 'holandes' && !s0.currentCards.some(c => st.holPodeAgora(s0, s0.managers[s0.youIdx].id, c.id))) s0 = st.reducer(s0, { type: 'HOLANDES_TICK' })
+    if (s0.phase === 'holandes') {
+      const eu0 = s0.managers[s0.youIdx]
+      const alvo = s0.currentCards.find(c => st.holPodeAgora(s0, eu0.id, c.id))
+      const precoNaTela = s0.hol.preco
+      const passoAntes = s0.hol.passo
+      s0 = st.reducer(s0, { type: 'HOLANDES_PEGAR', mgrId: eu0.id, cardId: alvo.id, preco: precoNaTela })
+      // ⏱️ fecha SÓ a janela (meio segundo) — o degrau NÃO andou
+      const pego = st.reducer(s0, { type: 'HOLANDES_JANELA' })
+      ok(!!pego.hol, 'a janela fechou a leva inteira — ela só devia entregar a carta')
+      if (pego.hol) {
+        ok(pego.hol.passo === passoAntes, `a janela mexeu no degrau (${passoAntes} → ${pego.hol.passo}) — ela não pode mexer no preço`)
+        ok(pego.hol.preco === precoNaTela, 'a janela mudou o preço')
+        const meu = pego.hol.levados.find(l => l.cardId === alvo.id)
+        ok(!!meu, '❗ apertou sozinho e a carta NÃO virou dele — é a pergunta dele: "não pega na hora?"')
+        ok(meu?.mgr === eu0.id, 'apertou sozinho e a carta foi pra outro')
+        ok(meu?.preco === precoNaTela, `apertou vendo ${precoNaTela} e pagou ${meu?.preco}`)
+        // 🏟️ e é ISTO que o campinho desenha (o `YourPitch` lê `hol.levados`)
+        ok(pego.hol.levados.filter(l => l.mgr === eu0.id && l.cardId === alvo.id).length === 1, 'a carta não entrou no campinho dele')
+        ok(!pego.hol.ultimo?.perdedores?.length, 'apertou sozinho e alguém apareceu como perdedor')
+        sozinhoTestado = 1
+      }
+    }
+  }
+  ok(sozinhoTestado === 1, 'o caso "apertou sozinho" não chegou a ser testado — verde falso')
+  // ⏱️ e meio segundo tem que ser CURTO de verdade (o Diego achou 2s demorado)
+  ok(st.HOL_JANELA_MS <= 700, `a janela do aperto está em ${st.HOL_JANELA_MS}ms — isso já se sente na mão`)
+  ok(st.HOL_JANELA_MS >= 250, `a janela está em ${st.HOL_JANELA_MS}ms — curta demais pra caber a diferença de internet`)
+
   // 5️⃣-bis 👥👥 DUAS PESSOAS APERTAM NA MESMA CARTA, NO MESMO PREÇO.
   //    Pergunta dele (20/09): *"será q vai os dois pôr o jogador no campinho?? O
   //    mesmo jogador"*. É o pesadelo clássico do leilão ao vivo, e a resposta
@@ -264,7 +300,7 @@ const r = await p.evaluate(async () => {
       // ✅ e NENHUM DOS DOIS tem a carta ainda: pedido não é arremate
       ok(!s6.hol.levados.some(l => l.cardId === alvo.id), 'a carta foi dada antes do degrau fechar — é o arremate por ordem de chegada que ele teme')
 
-      const fim6 = st.reducer(s6, { type: 'HOLANDES_TICK' }) // fecha o degrau
+      const fim6 = st.reducer(s6, { type: 'HOLANDES_JANELA' }) // fecha a janela de meio segundo
       const hol6 = fim6.hol
       if (hol6) {
         const donos = hol6.levados.filter(l => l.cardId === alvo.id)
@@ -315,7 +351,7 @@ const r = await p.evaluate(async () => {
       if (!alvo) continue
       s7 = st.reducer(s7, { type: 'HOLANDES_PEGAR', mgrId: a.id, cardId: alvo.id, preco: s7.hol.preco })
       s7 = st.reducer(s7, { type: 'HOLANDES_PEGAR', mgrId: bb.id, cardId: alvo.id, preco: s7.hol.preco })
-      const f7 = st.reducer(s7, { type: 'HOLANDES_TICK' })
+      const f7 = st.reducer(s7, { type: 'HOLANDES_JANELA' })
       const d = f7.hol?.levados.find(l => l.cardId === alvo.id)
       if (!d) continue
       if (d.mgr === a.id) vitorias[0]++
@@ -386,7 +422,7 @@ const r = await p.evaluate(async () => {
     ticks: hol.ticks,
     msPregao: hol.msPregao,
     monteHol: hol.monteN, monteCego: cego.monteN,
-    salas, disputaTestada, roletaPlacar,
+    salas, disputaTestada, roletaPlacar, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
     repHol: hol.repescagem, repCego: cego.repescagem,
     resqHol: hol.naResq, resqCego: cego.naResq,
     buracoHol: hol.buracos, buracoCego: cego.buracos,
@@ -407,6 +443,7 @@ console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · $
 console.log(`         └─ ${r.arremates - r.resqHol} saíram no pregão · ${r.resqHol} na repescagem · ${r.repHol} desceram pra repescagem · ${r.buracoHol} vagas ficaram vazias (= perna-de-pau)`)
 console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão `)
 console.log(`         └─ ${r.cegoArremates - r.resqCego} saíram no pregão · ${r.resqCego} na repescagem · ${r.repCego} desceram pra repescagem · ${r.buracoCego} vagas ficaram vazias (= perna-de-pau)\n`)
+console.log(`   ⚡ APERTOU SOZINHO → é seu em ${r.janelaMs}ms (não espera o degrau): ${r.sozinhoTestado ? 'testado' : '⚠️ NÃO testado'}`)
 console.log(`   👥👥 DOIS APERTANDO A MESMA CARTA, NO MESMO PREÇO: ${r.disputaTestada ? 'testado' : '⚠️ NÃO testado'} · a 🎰 roleta deu ${r.roletaPlacar} em 40 disputas\n`)
 console.log('   👥 E O BARALHO SEGUE O TAMANHO DA SALA — pela MESMA conta nos dois modos:\n')
 console.log('      técnicos │ vagas (11 cada) │ cartas no baralho │ levas │ pregão holandês │ pregão cego')

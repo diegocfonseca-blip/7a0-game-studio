@@ -77,8 +77,8 @@ if (await pegar.count()) {
   await pegar.click({ force: true }).catch(() => {})
   await p.waitForTimeout(250)
   await tira('holandes-4-pedi', 'apertou: a carta tranca na hora como ✋ PEDI (não dá pra apertar de novo)')
-  await p.waitForTimeout(2600) // espera o degrau fechar
-  await tira('holandes-5-campinho', 'degrau fechou: o jogador saiu da lista E já está no campinho de baixo')
+  await p.waitForTimeout(800) // meio segundo da janela + folga
+  await tira('holandes-5-campinho', 'meio segundo depois: o jogador já saiu da lista E já está no campinho de baixo')
 }
 
 await b.close()

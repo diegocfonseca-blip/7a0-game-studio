@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, holPedi, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, holPedi, HOL_JANELA_MS, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -3435,6 +3435,17 @@ function Holandes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hol?.passo, euTico])
 
+  // ✋ A JANELA DO APERTO: alguém apertou → meio segundo depois a carta é
+  // entregue, sem esperar o degrau inteiro. É isto que faz o arremate parecer
+  // instantâneo pra quem joga. Só o host fecha a janela (mesma coroa do relógio).
+  const temPedido = (hol?.pedidos.length ?? 0) > 0
+  useEffect(() => {
+    if (!temPedido || !euTico) return
+    const t = setTimeout(() => dispatch({ type: 'HOLANDES_JANELA' }), HOL_JANELA_MS)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [temPedido, euTico])
+
   // 🔊 tique-taque do preço caindo + martelo quando uma carta sai
   useEffect(() => { if (hol) playTick() }, [hol?.passo]) // eslint-disable-line react-hooks/exhaustive-deps
   const levadosN = hol?.levados.length ?? 0
@@ -3537,7 +3548,7 @@ function Holandes() {
                 // responder. É isto que impede apertar duas vezes na mesma carta.
                 <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center shrink-0"
                   style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}` }}>
-                  <p className="text-[13px] font-black leading-none" style={OSWALD}>✋ {L('PEDI', 'ASKED')}</p>
+                  <p className="text-[13px] font-black leading-none" style={OSWALD}>✋ {L('É SEU!', 'YOURS!')}</p>
                   <p className="text-[9px] font-bold leading-tight mt-0.5">{preco} 🪙</p>
                 </div>
               ) : (
@@ -3605,7 +3616,7 @@ function Holandes() {
       {/* ℹ️ POR QUE O SEU TOQUE NÃO ARREMATA NO MILÉSIMO — explicado no lugar
           exato, embaixo do botão, do jeito que ele gosta. */}
       <p className="text-[10.5px] font-bold text-black/45 text-center mt-2 leading-snug">
-        ✋ {L('Apertou? O jogador fica reservado pra você e sai no fim do degrau (uns 2 segundos). Duas pessoas no MESMO preço: 🎰 roleta entre elas — internet melhor não leva vantagem. Pessoa sempre passa na frente de robô.', 'Tapped? The player is reserved for you and leaves at the end of the step (about 2 seconds). Two people at the SAME price: 🎰 the wheel decides — a better connection wins you nothing. People always come before bots.')}
+        ✋ {L('Apertou, é seu — o jogador cai no seu campinho em meio segundo. Esse tiquinho existe só pro caso de outra pessoa apertar junto: aí os dois entram na 🎰 roleta e internet melhor não leva vantagem. Robô nunca passa na frente de gente.', 'Tapped, it is yours — the player lands on your pitch in half a second. That blink exists only in case someone taps at the same time: then both enter the 🎰 wheel and a better connection wins you nothing. Bots never come before people.')}
       </p>
       {online && !state.isHost && (
         <p className="text-[10.5px] font-bold text-black/45 text-center mt-1">

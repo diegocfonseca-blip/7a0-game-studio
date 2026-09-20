@@ -4198,6 +4198,7 @@ type Action =
   // No online QUEM DISPARA O TICK É SEMPRE O HOST — o convidado só desenha o
   // preço que chegou e roteia o PEGAR pro host, como toda ação da sala.
   | { type: 'HOLANDES_TICK' }
+  | { type: 'HOLANDES_JANELA' } // ✋ meio segundo depois do 1º aperto: entrega a carta
   | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
@@ -4384,6 +4385,19 @@ export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // a peça central do anti-delay: com 2 segundos pra reagir, meio segundo de
 // internet ruim não decide mais nada. A leva inteira fecha em ~40s — o mesmo
 // tempo do envelope cego de hoje (45s), então o ritmo do jogo não muda.
+// ✋ A JANELA DO APERTO (meio segundo). Quando alguém aperta, o jogo espera SÓ
+// este tiquinho antes de entregar a carta — não o degrau inteiro.
+// Por que existe, e por que é curta:
+//  · se **ninguém mais** apertou nesse meio segundo, a carta é sua e pronto —
+//    do lado de quem joga, é "na hora" (meio segundo ninguém sente);
+//  · se **outra pessoa** apertou junto, os dois estão na disputa e a roleta
+//    decide. Meio segundo é mais do que a diferença de internet entre dois
+//    celulares na mesma partida, então ninguém perde carta por causa de rede.
+// ⚠️ NÃO dá pra ser ZERO no online: o toque do convidado precisa VIAJAR até o
+// host de qualquer jeito. Entregar na hora na tela dele e o host responder
+// depois "não foi você" obrigaria a TIRAR o jogador do campinho — que é
+// exatamente o estado quebrado que o Diego não quer ver nunca.
+export const HOL_JANELA_MS = 500
 export const HOL_MS_ALTO = 600
 export const HOL_MS_BAIXO = 2200
 export const holPassoMs = (preco: number, start: number) => (preco > Math.round(start * 0.4) ? HOL_MS_ALTO : HOL_MS_BAIXO)
@@ -6189,6 +6203,15 @@ export function reducer(state: EscState, action: Action): EscState {
     case 'HOLANDES_TICK': {
       if (s.phase !== 'holandes' || !s.hol) return s
       holandesTick(s)
+      return s
+    }
+    // ✋ FECHOU A JANELA DO APERTO (meio segundo depois do 1º toque): entrega a
+    // carta AGORA, sem esperar o degrau inteiro. É isto que faz o arremate ser
+    // "na hora" pra quem joga. Quem fecha a janela é o HOST (mesma coroa do
+    // relógio) — o convidado só desenha o resultado.
+    case 'HOLANDES_JANELA': {
+      if (s.phase !== 'holandes' || !s.hol || s.hol.pedidos.length === 0) return s
+      holResolvePedidos(s)
       return s
     }
     case 'HOLANDES_PEGAR': {

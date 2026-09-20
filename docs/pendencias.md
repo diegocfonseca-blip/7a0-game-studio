@@ -1,3 +1,47 @@
+## 20/09/2026 (parte 30) — ⚡ "Quando o cara aperta ele não pega na hora?" — agora pega (meio segundo)
+
+Ele leu a parte 29 e estranhou, com razão: *"não entendi. Qd o cara aperta ele não
+pega na hora e já não vai pro campinho dele??"*.
+
+**Eu tinha exagerado na dose.** Na parte 29 o arremate só saía quando o DEGRAU
+fechava — até 2 segundos parado olhando pra tela sem saber se era seu. Chato, e
+contra a regra de ouro dele (*"nada pode atrasar o ritmo do jogo"*).
+
+Agora a entrega tem **janela própria de meio segundo** (`HOL_JANELA_MS = 500`,
+ação `HOLANDES_JANELA`), separada do relógio do preço:
+- **apertou e ninguém mais apertou → a carta é sua em 0,5s**, sem esperar o degrau.
+  O preço nem se mexe. Do lado de quem joga, é "na hora";
+- **alguém apertou junto** → os dois entram na 🎰 roleta, como na parte 29.
+
+### 🤔 Por que não pode ser ZERO (a pergunta por trás da pergunta)
+No online o toque do convidado **precisa viajar até o host** de qualquer jeito. As
+opções eram:
+- **entregar na hora na tela dele** e o host responder depois "não foi você" → aí o
+  jogador APARECE no campinho e SOME. É exatamente o estado quebrado que ele odeia
+  (regra nº 3 do CLAUDE.md);
+- **esperar o host** → a espera existe do mesmo jeito, só que honesta.
+
+Ou seja: a espera não é escolha minha, é a rede. O que dá pra escolher é o tamanho
+dela e se ela é justa. Meio segundo é maior que a diferença de internet entre dois
+celulares na mesma partida e menor que o que a mão sente.
+
+### 🧪 Travas (`npm run holandes`)
+- **5-zero** (nova): aperta SOZINHO → `HOLANDES_JANELA` entrega a carta, o degrau
+  **não anda**, o preço **não muda**, paga o que estava na tela e entra em
+  `levados` (que é o que o campinho desenha). Com contador anti-verde-falso.
+- `HOL_JANELA_MS` tem que ficar entre **250ms e 700ms** — abaixo disso não cabe a
+  diferença de internet, acima disso a mão sente.
+- A disputa de dois humanos (parte 29) passou a fechar pela JANELA também. Roleta:
+  **20 × 20** em 40 disputas.
+
+### 🏷️ E o texto mudou junto
+O botão travado deixou de dizer "✋ PEDI" (que soava "torce pra dar certo") e passou
+a dizer **"✋ É SEU!"**. A explicação de baixo agora é: *"Apertou, é seu — o jogador
+cai no seu campinho em meio segundo. Esse tiquinho existe só pro caso de outra
+pessoa apertar junto."*
+
+---
+
 ## 20/09/2026 (parte 29) — 👥👥 "E se os DOIS apertarem quase junto? Vão os dois pôr o jogador no campinho?"
 
 Pergunta dele, e é o pesadelo clássico do leilão ao vivo: *"agora é sobre o delay e
