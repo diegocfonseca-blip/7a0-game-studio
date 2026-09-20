@@ -1035,7 +1035,25 @@ function YourPitch({ small = false }: { small?: boolean }) {
   const pendingIds = revealing
     ? new Set((state.revealQueue ?? []).slice(state.phase === 'tiebreak' ? 0 : state.revealIdx + 1).map(it => it.card.id))
     : new Set<string>()
-  const shown = pendingIds.size ? { ...you, squad: you.squad.filter(c => !pendingIds.has(c.id)) } : you
+  // 🔻 HOLANDÊS: a carta que você acabou de arrematar só entra no elenco de
+  // verdade quando a LEVA fecha — quem paga e move é o `resolve` de sempre. Mas
+  // o Diego quer ver o jogador no campinho NA HORA (*"conseguiu o jogador
+  // aparece no campinho do usuário embaixo também"*), então o campinho já
+  // desenha o que você levou nesta leva.
+  // ✅ E isso NÃO é spoiler: no holandês o martelo cai na frente de todo mundo,
+  // não existe revelação escondida. O NÍVEL continua secreto até a Cerimônia —
+  // o campinho nunca mostrou nível, só nome e posição.
+  const holMeus: WonCard[] = (state.phase === 'holandes' && state.hol)
+    ? state.hol.levados
+      .filter(l => l.mgr === you.id)
+      .map(l => {
+        const c = state.currentCards.find(x => x.id === l.cardId)
+        return c ? ({ ...c, paid: l.preco, buyPrice: l.preco, via: 'leilao' } as WonCard) : null
+      })
+      .filter((c): c is WonCard => !!c)
+    : []
+  const base = holMeus.length ? { ...you, squad: [...you.squad, ...holMeus] } : you
+  const shown = pendingIds.size ? { ...base, squad: base.squad.filter(c => !pendingIds.has(c.id)) } : base
   // 🏀 basquete: a QUADRA no lugar do campinho (mesma lógica anti-spoiler acima).
   if (state.sport === 'basquete') return <NbaCourt m={shown} />
   // 🎽 manto do coração: só decora o PRÓPRIO time de quem está vendo
@@ -3557,6 +3575,14 @@ function Holandes() {
             {j.ic} {j.t}
           </button>
         ))}
+      </div>
+
+      {/* ⚽ O CAMPINHO, embaixo da lista, igual ao resto do pregão. Pedido dele:
+          *"conseguiu o jogador aparece no campinho do usuário embaixo também"*.
+          Aqui ele enche NA HORA — o jogador que você arrematou aparece no
+          desenho no mesmo instante em que sai da lista. */}
+      <div className="mt-3">
+        <YourPitch small />
       </div>
 
       {/* ℹ️ POR QUE O SEU TOQUE NÃO ARREMATA NO MILÉSIMO — explicado no lugar

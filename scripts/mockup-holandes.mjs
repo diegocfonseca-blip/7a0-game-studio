@@ -68,8 +68,18 @@ await esperaPreco(80, 20)
 await tira('holandes-1-preco-alto', 'a leva inteira listada, preço lá em cima e ninguém apertou ainda')
 await esperaPreco(31, 6)
 await tira('holandes-2-preco-meio', 'no meio da descida: cartas já arrematadas ficam cinza com o nome de quem levou')
-await esperaPreco(10, 3)
+await esperaPreco(14, 4)
 await tira('holandes-3-martelo', 'mais embaixo: o que sobrou fica barato — é a hora de garimpar')
+
+// 4) 🫵 APERTA DE VERDADE e mostra o jogador caindo no campinho de baixo
+const pegar = p.locator('button', { hasText: 'PEGAR' }).first()
+if (await pegar.count()) {
+  await pegar.click({ force: true }).catch(() => {})
+  await p.waitForTimeout(250)
+  await tira('holandes-4-pedi', 'apertou: a carta tranca na hora como ✋ PEDI (não dá pra apertar de novo)')
+  await p.waitForTimeout(2600) // espera o degrau fechar
+  await tira('holandes-5-campinho', 'degrau fechou: o jogador saiu da lista E já está no campinho de baixo')
+}
 
 await b.close()
 try { process.kill(-vite.pid) } catch { /* já foi */ }

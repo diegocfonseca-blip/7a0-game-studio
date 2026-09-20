@@ -1,3 +1,34 @@
+## 20/09/2026 (parte 28) — ⚽ O campinho enche NA HORA no holandês
+
+Pedido dele: *"além disso conseguiu o jogador aparece no campinho do usuário embaixo
+também"*. Feito — e o campinho é o `YourPitch` de sempre, o MESMO que o pregão cego
+já mostra embaixo da tela. Nada de desenho novo.
+
+**O detalhe que precisou de código**: no holandês a carta arrematada só entra no
+elenco de verdade quando a LEVA FECHA (quem paga e move é o `resolve` de sempre —
+foi assim que a gente garantiu que o holandês não mexe no dinheiro). Então, no meio
+da descida, o campinho mostraria só as levas ANTERIORES e o jogador que você acabou
+de levar não apareceria. Agora o `YourPitch` desenha também o que está em
+`hol.levados` no seu nome.
+
+✅ **E isso não vaza nada**: no holandês o martelo cai na frente de todo mundo, não
+existe revelação escondida pra estragar. O NÍVEL continua secreto até a Cerimônia —
+o campinho nunca mostrou nível, só nome e posição. A trava anti-spoiler da
+revelação (`pendingIds`) continua intacta e vem depois, então o pregão cego não
+mudou em nada.
+
+Conferido na tela: apertei PEGAR no Cortês a 16 🪙 → a carta saiu da lista pra "🫵
+VOCÊ", a caixa foi de 100 pra 84, a vaga de lateral foi de 2 pra 1 e ele apareceu
+no campinho de baixo, tudo no mesmo instante.
+
+### 👥 E a regra do baralho por número de usuários (ele repetiu)
+Continua valendo o que a parte 27 mediu: **é a mesma regra de hoje**, e o holandês
+não encosta nela. O baralho sai do `buildDeck(auctioningManagers(...))` antes do
+pregão; o holandês só entra no `startAuctionPhase`, depois. 20 técnicos = 220 vagas
+= 225 cartas = 21 levas, idêntico nos dois modos.
+
+---
+
 ## 20/09/2026 (parte 27) — 👥 "O baralho segue a quantidade de usuários, igual à regra que já funciona?" — SIM
 
 Pergunta dele: *"tem q ser msm regra c/ base na quantidade de jogadores usuários q
