@@ -26,6 +26,7 @@ import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao'
+import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
@@ -10216,7 +10217,7 @@ export function ReserveListScreen() {
   const mgr = state.managers[state.youIdx]
   const youId = mgr?.id ?? 0
   const listed = useMemo(() => new Set(state.reserveListed?.[youId] ?? []), [state.reserveListed, youId])
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(agoraSala())
   // ⏱️ o relógio só existe ONLINE (offline a janela espera o botão, sem prazo).
   // 🐛 28/08 (Diego, vendo alguém jogar carreira SOLO: "a aba do sondar e vender
   // apareceu e sumiu, uns errinhos"): este intervalo rodava SEMPRE, redesenhando
@@ -10226,7 +10227,9 @@ export function ReserveListScreen() {
   const relogioOn = state.onlineMode === 'online'
   useEffect(() => {
     if (!relogioOn) return
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    // ⏱️ na hora do DONO da sala (`agoraSala()`), não na do meu celular: o prazo
+    // nasce no aparelho dele, e relógio atrasado inflava a contagem (bug 20/09).
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [relogioOn])
   const remaining = Math.max(0, Math.ceil(((state.phaseDeadline ?? 0) - now) / 1000))

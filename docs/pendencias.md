@@ -1,3 +1,74 @@
+## 20/09/2026 (parte 47) — ⏱️ UM RELÓGIO SÓ PRA SALA (o "154s" do print dele)
+
+Ele mandou cinco prints da Copa do Mundo online e o recado:
+*"os tempos de escolhas estão MT longos… tem que ser igual ao modo às cegas. E o
+monte de sobras também, que era 15s e tava bem mais também."*
+
+### 🔍 O que estava acontecendo (não era a Copa, nem o Monte)
+Nos prints: **154s** onde são 75s (escolher a seleção), **84s** onde são 15s (o
+banner) e **129s** onde são 90s (a convocação). Os três batem com a MESMA conta:
+o número certo **+ 79 segundos**.
+
+O relógio do celular dele estava **~79 segundos atrasado**. Todo prazo do online
+nasce no aparelho do **DONO** da sala (`Date.now() + 15s`) e viaja como um
+INSTANTE; quem recebia fazia a conta com a hora do **próprio** celular. Celular
+atrasado = todo prazo parece maior do que é.
+
+A prova de que era relógio, e não a Copa: o **Monte de sobras** deu o mesmo erro,
+e ele vem por um caminho de código **completamente diferente** (broadcast do
+estado, não a tabela `esc_copa_salas`). Dois lugares sem nenhuma ligação, o mesmo
+desvio — é a assinatura de relógio torto.
+
+E o pior não era o número feio: a fase acabava **na hora certa** (quem manda é o
+relógio do dono), então quem tinha o celular atrasado levava um susto — *"mas
+ainda tinha um minuto!"*.
+
+### ✅ O conserto — `src/escalacao/relogio.ts`
+O dono carimba a hora dele nas **duas mensagens que já manda** (o estado e o "tô
+vivo" de 4 em 4 segundos — uns 20 bytes, zero mensagem nova, zero banco). Cada
+convidado aprende o **desvio** entre os dois relógios, e daí pra frente toda
+contagem do online é lida com `agoraSala()` — a hora do DONO.
+
+Vale pra **tudo** de uma vez: envelope do leilão às cegas (45s), desempate,
+🐊 Tocaia, Monte de sobras (15s), cerimônia e os três relógios da Copa do Mundo
+(75s · 15s · 90s).
+
+🛡️ Por que não quebra nada:
+- pro **DONO** o desvio é SEMPRE zero (ele não recebe carimbo de ninguém, e
+  `souODono()` zera na hora que alguém assume) → o jogo dele fica idêntico;
+- **offline** nunca recebe carimbo → desvio zero, idêntico;
+- host numa versão velha (janela de deploy) não manda carimbo → o convidado fica
+  exatamente como era hoje, sem erro novo;
+- **zona morta de 1,5s**: a variação da rede não faz a contagem pular na tela;
+- carimbo inválido ou absurdo (> 12h) não encosta no relógio;
+- só **PRAZO** usa essa hora. Salvar, assinar, ordenar e registrar continuam no
+  relógio do próprio aparelho.
+
+### ⚙️ E o botão que ele pediu junto
+*"no final também tem que ter o botão de gerenciar técnicos perto de sair, igual
+também tem no outro modo."* Durante a partida o ⚙️ mora no rodapé do `Shell` — só
+que a tela de FIM do online abre com `hideExit`, e o rodapé inteiro some. Agora
+ele aparece na linha das saídas do quadro roxo "🗳️ E agora?", ao lado de
+🏠 Voltar pro menu e 🚪 Sair da sala. Mesmas regras de sempre: **só o host**, só os
+OUTROS técnicos, humanos e rivais CPU, com os buracos (`−N 🕳️`) à mostra. É
+justamente aqui que ele é mais útil: o host está decidindo o "novo leilão" e
+precisa tirar da frente quem largou o jogo.
+
+### 🛡️ Trava nova: `npm run relogio`
+Confere a conta do desvio, a zona morta, o lixo que não pode entrar, que o DONO
+nunca tem desvio, que assumir a coroa zera na hora — e, por texto, que nenhuma
+das telas de contagem (leilão, desempate, Monte, cerimônia, Copa) voltou a usar
+`Date.now()` cru.
+
+`npm run ascegas` com as mesmas digitais (`28bea2df` · `d65041f6` · `06bab491`) ·
+`npm run holandes`, `npm run revanche`, `npm run copa`, `npm run sala` e
+`npm run vigias` verdes.
+
+### ↩️ Dá pra voltar atrás?
+Dá, e é um commit só. Voltando, tudo fica exatamente como estava hoje (o número
+inflado volta pra quem tem o celular fora de hora, e o ⚙️ some do fim).
+
+---
 ## 20/09/2026 (parte 46) — 🐊 FECHADO: o modo é TOCAIA, com o jacaré
 
 *"Coloque Tocaia mesmo, com emoji de jacaré."* Decisão final dele, depois de o

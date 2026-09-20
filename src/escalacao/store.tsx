@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { onlinePreviewEnabled } from './online-preview'
 import { disputaPenaltis } from './penaltis'
 import { anotaTrava } from './caixa-preta'
+import { agoraSala, ajustaRelogioSala, souODono } from './relogio' // ⏱️ um relógio só pra sala (o do dono) — ver relogio.ts
 import { publicOnlineVisual } from './online-release'
 import { publicCareerVisual } from './career-feature-release'
 import type {
@@ -10067,7 +10068,7 @@ function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, dispar
     if (!ligado || !prazo) return
     let tentativas = 0
     const tenta = () => {
-      if (Date.now() < prazo) return               // ainda não venceu
+      if (agoraSala() < prazo) return              // ainda não venceu (hora do DONO, não a do meu celular)
       if (tentativas >= VIGIA_MAX_TENTATIVAS) return
       tentativas++
       // 🧊 a 2ª tentativa é a NOTÍCIA: o 1º tiro se perdeu e esta sala ia
@@ -10075,7 +10076,7 @@ function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, dispar
       if (tentativas === 2) marcaRef.current?.()
       fnRef.current()
     }
-    const t = setTimeout(tenta, Math.max(0, prazo - Date.now()) + 800)
+    const t = setTimeout(tenta, Math.max(0, prazo - agoraSala()) + 800)
     const iv = setInterval(tenta, VIGIA_RETENTA_MS)
     const onVis = () => { if (typeof document !== 'undefined' && !document.hidden) tenta() }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
@@ -10102,6 +10103,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
+  // ⏱️ QUEM É O DONO NÃO TEM DESVIO. Ele é quem CARIMBA os prazos, então a hora
+  // do aparelho dele É a hora da sala — e quem está fora do online não tem sala
+  // nenhuma. Isso também deixa a passagem de coroa segura: no instante em que
+  // alguém assume, o relógio dele vira a referência (e os outros reaprendem o
+  // desvio no primeiro "tô vivo", em ~4s).
+  useEffect(() => { if (state.isHost || state.onlineMode !== 'online') souODono() }, [state.isHost, state.onlineMode])
 
   // "host caiu?": convidado marca quando recebeu a última atualização do host.
   // Sem heartbeat por ~10s, mostra aviso (o host reemite estado a cada 3s).
@@ -10446,7 +10453,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
       ch.on('broadcast', { event: 'request_state' }, () => {
-        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
+        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
       })
     } else {
       ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => {
@@ -10455,6 +10462,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
         let next: EscState
         try { next = readState(payload) } catch { return }
         if (!next || typeof next !== 'object') return
+        // ⏱️ acerta o relógio pelo do DONO: todo prazo da sala (leilão, Monte,
+        // cerimônia, Copa) nasce no aparelho dele. Sem isso, celular atrasado
+        // mostra "154s" onde são 75s — o bug que o Diego pegou em 20/09.
+        ajustaRelogioSala((payload as { t?: unknown } | null)?.t)
         lastHostMsgRef.current = Date.now() // notícia fresca do host
         donoSumidoNoBancoRef.current = false // deu as caras: a acusação cai na hora
         setDonoForaSeg(0)
@@ -10470,7 +10481,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // aqui — assim ficar quieto pra economizar egress NÃO parece mais que o dono
     // caiu (era o gatilho do bug: host demorava e viravam dois donos). Não toca no
     // banco; custo insignificante (vs. reemitir o estado inteiro de ~100 KB).
-    ch.on('broadcast', { event: 'host_ping' }, () => { lastHostMsgRef.current = Date.now(); donoSumidoNoBancoRef.current = false; setDonoForaSeg(0) })
+    ch.on('broadcast', { event: 'host_ping' }, ({ payload }: { payload?: { t?: unknown } }) => { ajustaRelogioSala(payload?.t); lastHostMsgRef.current = Date.now(); donoSumidoNoBancoRef.current = false; setDonoForaSeg(0) })
     // host removeu alguém: se for EU, saio da partida DE VEZ e caio no menu online.
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       // payload.playerIndex é o CRACHÁ (id) do expulso — comparo com o MEU id, não com
@@ -10570,7 +10581,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (typeof document === 'undefined' || document.visibilityState !== 'visible') return
       const alive = (ch as unknown as { state?: string }).state === 'joined'
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
+        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
@@ -10594,7 +10605,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     if (prevRef.current === state) return
     prevRef.current = state
-    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(state) })
+    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(state) })
     lastStateSendRef.current = Date.now()
   }, [state])
 
@@ -10664,7 +10675,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       if (Date.now() - lastStateSendRef.current < 12000) return // teve jogada recente → já sincronizado
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
+      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
       lastStateSendRef.current = Date.now()
     }, 6000)
     return () => clearInterval(iv)
@@ -10679,7 +10690,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
-      channelRef.current?.send({ type: 'broadcast', event: 'host_ping', payload: {} })
+      // ⏱️ o "tô vivo" leva o carimbo de hora do dono junto (uns 20 bytes): é a
+      // mensagem mais frequente da sala, então o relógio de quem chega atrasado
+      // acerta em ~4s mesmo com o jogo parado.
+      channelRef.current?.send({ type: 'broadcast', event: 'host_ping', payload: { t: Date.now() } })
     }, 4000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
@@ -10839,7 +10853,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (!ch) return
       if (st === 'joined' || st === 'joining') return // saudável ou conectando — não mexe
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
+        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       try { ch.subscribe(async () => { resync(); await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
@@ -11660,6 +11674,15 @@ function packState(state: EscState): { z: string } {
   _packSrc = state
   _packOut = { z: pack(sanitize(state)) }
   return _packOut
+}
+// ⏱️ O CARIMBO DE HORA DO DONO vai POR FORA do pacote comprimido, de propósito:
+// o `packState` guarda o pacote por identidade de estado (e o mesmo estado é
+// reenviado várias vezes), então a hora tem que ser a de AGORA, não a de quando
+// o estado nasceu. São ~20 bytes; o convidado usa isso pra acertar o relógio
+// dele com o do dono (ver `relogio.ts`). Host em versão velha simplesmente não
+// manda `t` — e aí o convidado fica como era antes.
+function pacoteDeEstado(state: EscState): { z: string; t: number } {
+  return { ...packState(state), t: Date.now() }
 }
 // lê o payload do evento 'state': aceita o novo formato comprimido { z } e também
 // o antigo (estado cru) — pra não quebrar na janela de deploy, quando host e

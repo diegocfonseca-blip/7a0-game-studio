@@ -46,7 +46,8 @@
     "holandes": "node scripts/testa-holandes.mjs",
     "mockup-holandes": "node scripts/mockup-holandes.mjs",
     "ascegas": "node scripts/prova-as-cegas.mjs",
-    "revanche": "node scripts/testa-revanche.mjs"
+    "revanche": "node scripts/testa-revanche.mjs",
+    "relogio": "node scripts/testa-relogio.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -39,6 +39,7 @@ import { NationalCrest } from './national-crest'
 import { useCopaClockPreview } from './copa-clock-preview'
 import { simulaCopaMundo } from './copa-mundo'
 import { PASSO_COPA } from './copa-passos'
+import { agoraSala } from './relogio' // ⏱️ o relógio da sala é o do DONO (ver relogio.ts)
 import { pensRevealDelay } from './pyramidseason'
 import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
@@ -393,8 +394,12 @@ const piorLivre = (pegos: Set<string>): string => {
   for (let i = todas.length - 1; i >= 0; i--) if (!pegos.has(todas[i])) return todas[i]
   return todas[todas.length - 1]
 }
+// ⏱️ NA HORA DO DONO, não na do meu celular (`agoraSala()` — ver `relogio.ts`).
+// O `ate` é carimbado pelo aparelho do dono da sala; lido com o relógio local,
+// um celular 79s atrasado mostrava "154s" onde eram os 75s da bandeira, "84s" no
+// banner de 15s e "129s" na convocação de 90s — os prints do Diego de 20/09.
 const segundosAte = (ate?: string | null): number =>
-  ate ? Math.max(0, Math.ceil((new Date(ate).getTime() - Date.now()) / 1000)) : 0
+  ate ? Math.max(0, Math.ceil((new Date(ate).getTime() - agoraSala()) / 1000)) : 0
 
 /** monta as 24: os times da liga na ordem da tabela + a máquina completando */
 export function montaFichaDaLiga(
@@ -769,7 +774,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     for (const l of lido.linhas) if (temPais(l.copa)) pk.set(l.user_id, l.copa)
     const filaAgora = classificacao.filter(c => c.humano).map(c => ({ id: c.id, uid: new Map(lido.linhas.map(l => [l.player_index, l.user_id])).get(c.id) }))
       .filter((x): x is { id: number; uid: string } => !!x.uid)
-    const venceu = f.ate ? Date.now() >= new Date(f.ate).getTime() : true
+    const venceu = f.ate ? agoraSala() >= new Date(f.ate).getTime() : true
 
     if (f.fase === 'bandeira') {
       const semPais = filaAgora.filter(x => !pk.has(x.uid))

@@ -35,6 +35,7 @@ import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShoot
 import { useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
+import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
@@ -3757,9 +3758,11 @@ function Envelope() {
   const amHost = !!state.isHost
 
   // ─── cronômetro de 45s ───────────────────────────────────────────
-  const [now, setNow] = useState(() => Date.now())
+  // ⏱️ `agoraSala()` = a hora do DONO. O prazo nasce no aparelho dele; com o
+  // relógio do próprio celular, quem está atrasado via "124s" onde são 45s.
+  const [now, setNow] = useState(() => agoraSala())
   useEffect(() => {
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [])
   const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 45
@@ -4319,10 +4322,10 @@ function Tiebreak() {
     setPending(false)
   }, [tb?.cardId, tb?.amount])
 
-  // cronômetro
-  const [now, setNow] = useState(() => Date.now())
+  // cronômetro (na hora do DONO da sala — ver `relogio.ts`)
+  const [now, setNow] = useState(() => agoraSala())
   useEffect(() => {
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [])
   const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 30
@@ -5091,10 +5094,10 @@ export function EscMonte() {
   const curMgr = state.managers.find(m => m.id === state.monteOrder[state.monteIdx])
 
   // contagem regressiva (só online, quando há prazo)
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => agoraSala())
   useEffect(() => {
     if (!online || !state.monteDeadline) return
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [online, state.monteDeadline])
   const remaining = online && state.monteDeadline ? Math.max(0, Math.ceil((state.monteDeadline - now) / 1000)) : null
@@ -5285,10 +5288,10 @@ export function EscCerimonia() {
 
   // cronômetro de 45s (igual leilão): dá tempo de olhar os times e começa
   // o campeonato sozinho quando zerar (o vigia no provider dispara o FINISH).
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(agoraSala())
   useEffect(() => {
     if (!state.cerimoniaDeadline) return
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [state.cerimoniaDeadline])
   const secsLeft = state.cerimoniaDeadline ? Math.max(0, Math.ceil((state.cerimoniaDeadline - now) / 1000)) : null
@@ -8865,6 +8868,15 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const votes = state.seasonVotes ?? {}
   const myVote = votes[youId]
   const humans = state.managers.filter(m => m.isHuman)
+  // ⚙️ GERENCIAR TÉCNICOS TAMBÉM NO FIM (Diego 20/09): *"no final também tem que
+  // ter o botão de gerenciar técnicos perto de sair, igual também tem no outro
+  // modo"*. Durante a partida ele mora no rodapé do `Shell` — mas a tela de fim
+  // do online abre com `hideExit`, e o rodapé (com o gerenciar junto) some. E é
+  // JUSTO AQUI que ele é mais preciso: o host está decidindo o "novo leilão" e
+  // precisa tirar da frente quem largou o jogo. Mesmas regras do `Shell`: só o
+  // host, só os OUTROS, humanos e rivais CPU, com os buracos à mostra.
+  const [gerenciar, setGerenciar] = useState(false)
+  const outrosTecnicos = state.managers.filter(m => m.id !== youId && (m.isHuman || m.auctionRival))
   // o host é o DECISOR (não vota) — placar e chips contam só os convidados
   const guests = humans.filter(m => m.id !== youId)
   const nMesmo = guests.filter(m => votes[m.id] === 'mesmo').length
@@ -9197,11 +9209,37 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>{V('🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!', '🏆 A champion is grabbing their card — the host starts right after. Hang tight!')}</p>}
         </>
       )}
-      {/* saídas — uma linha só, discreta, pra todos */}
+      {/* saídas — uma linha só, discreta, pra todos (e o ⚙️ do host junto) */}
       <div className="flex items-center justify-center gap-6 pt-2 mt-1 border-t-2 border-white/20">
         <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-white/70 text-xs font-bold underline active:opacity-60" title={V('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but stays in the room — you can come back')}>{V('🏠 Voltar pro menu', '🏠 Back to menu')}</button>
         <button onClick={exitLeave} className="text-white/70 text-xs font-bold underline active:opacity-60" title={V('Sai da sala de vez', 'Leaves the room for good')}>{V('🚪 Sair da sala', '🚪 Leave the room')}</button>
+        {isHost && outrosTecnicos.length > 0 && (
+          <button onClick={() => setGerenciar(v => !v)} className="text-white/70 text-xs font-bold underline active:opacity-60" title={V('Remover quem largou o jogo antes de começar a próxima', 'Remove whoever left the game before starting the next one')}>{gerenciar ? V('fechar', 'close') : V('⚙️ Gerenciar técnicos', '⚙️ Manage managers')}</button>
+        )}
       </div>
+      {isHost && gerenciar && (
+        <div className="rounded-xl border-2 border-black p-2 space-y-1.5 text-left" style={{ background: '#fff' }}>
+          <p className="text-black/40 text-[10px] font-black uppercase tracking-widest px-1" style={OSWALD}>{V('Remover da partida', 'Remove from the match')}</p>
+          {outrosTecnicos.map(m => (
+            <div key={m.id} className="flex items-center gap-2">
+              <span className="flex-1 min-w-0 truncate text-xs font-bold text-black/70" style={OSWALD}>{m.isHuman ? '' : '🤖 '}{m.teamName}</span>
+              {/* 🕳️ os buracos do time dele — informação pra DECIDIR, igual ao gerenciar da partida */}
+              {(() => {
+                const h = totalHoles(m)
+                return <span className="shrink-0 text-[11px] font-black tabular-nums" style={{ ...OSWALD, color: h > 0 ? '#B23A2A' : 'rgba(0,0,0,.3)' }} title={V(`${h} vaga(s) sem jogador`, `${h} empty slot(s)`)}>{h > 0 ? `−${h} 🕳️` : '✅'}</span>
+              })()}
+              <button onClick={() => {
+                const msg = m.isHuman
+                  ? V(`Remover ${m.teamName}? Vira um RIVAL CPU: continua no leilão dando lance com o time e o dinheiro dele.`, `Remove ${m.teamName}? Becomes a CPU RIVAL: stays in the auction bidding with their team and money.`)
+                  : V(`Excluir o rival CPU ${m.teamName}? Ele para de dar lance no leilão (fica só na tabela).`, `Delete CPU rival ${m.teamName}? They stop bidding at the auction (stay only in the table).`)
+                if (window.confirm(msg)) kickPlayer(m.id)
+              }}
+                className="shrink-0 border border-black/20 rounded-lg px-2 py-1 text-[11px] font-black active:opacity-60"
+                style={{ background: '#F4ECD6', color: '#B23A2A', ...OSWALD }}>{m.isHuman ? V('remover', 'remove') : V('excluir', 'delete')}</button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* modal do host: alguém ainda não decidiu — esperar, começar com eles, ou excluir */}
       {askStart && (
