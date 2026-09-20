@@ -5,6 +5,13 @@
 export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU' | 'MUNDO'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
+    "tipo": "entrou",
+    "nome": "Marlon Freitas",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-20"
+  },
+  {
     "tipo": "nivel",
     "nome": "Paul Scholes",
     "baralho": "EU",
@@ -425,13 +432,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Cléber Santana",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-08-21"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Bruno Rangel",
     "baralho": "BR",
     "nivel": "bom jogador",
     "data": "2026-08-21"
