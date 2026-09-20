@@ -12,6 +12,15 @@
 //    PISTA VERDADEIRA, tirada da própria carta (nacionalidade, década, continente).
 //    Revela igual, no martelo, como ele mesmo disse.
 //
+// 🎯 CORREÇÃO DELE, e é ela que faz a peça fechar: *"tem que entrar na POSIÇÃO que
+//    é a do leilão no momento que ele entra. Então a dica já é a posição do momento,
+//    que tão todos listados, mais a dica que o jogo vai dar"*.
+//    Ou seja: a carta muda cai DENTRO da leva do setor que está rolando — se a leva
+//    é de atacantes, ela é atacante, e isso a própria lista já diz. Esconde-se o
+//    NOME, o CLUBE e o ANO; a posição nunca foi pra esconder.
+//    👉 E isso mata o único risco que eu tinha levantado: não existe mais "e se ela
+//       cair num setor que o time já fechou" — ela é sempre do setor da vez.
+//
 // E o segundo mockup é o ⏬ LEILÃO HOLANDÊS, que ele não entendeu escrito —
 // desenhado é uma linha: o preço cai sozinho e quem apertar primeiro leva.
 //
@@ -65,7 +74,7 @@ const listaHtml = `<!doctype html><meta charset="utf-8"><style>${base}
 .rev p{font-size:12px;margin:0;color:#ded6c2;line-height:1.5}
 </style>
 <h1>🙈 Envelope Mudo — como ele aparece na lista</h1>
-<p class="sub">Um por leilão, sorteado em qualquer posição — igualzinho ao 🎁 Surpresa que já existe. A lista é a mesma de hoje; só entram duas cartas diferentes no meio dela.</p>
+<p class="sub">Um por leilão, sorteado em qualquer posição — igualzinho ao 🎁 Surpresa que já existe. Ela cai <b>na leva do setor da vez</b>, então a posição tu já sabe: o que some é o nome, o clube e o ano.</p>
 <div class="col">
   <div>
     <p class="rot">A leva, do jeito que fica</p>
@@ -73,10 +82,10 @@ const listaHtml = `<!doctype html><meta charset="utf-8"><style>${base}
     ${linha('ATA', 'Romário', 'Vasco · 2000')}
     ${linha('ATA', '🎁 <span class="borrado">Jogador</span>', 'Barcelona · 1999', '', ROXO)}
     ${linha('ATA', 'Bebeto', 'Flamengo · 1989')}
-    ${linha('?', '🙈 <span class="borrado">Envelope</span>', 'clube e ano escondidos', '<span class="pista">🔎 É ARGENTINO</span>', VERM)}
+    ${linha('ATA', '🙈 <span class="borrado">Envelope</span>', 'clube e ano escondidos', '<span class="pista">🔎 É ARGENTINO</span>', VERM)}
     ${linha('ATA', 'Careca', 'Napoli · 1988')}
-    <p class="nota">A carta <b style="color:${ROXO}">🎁 SURPRESA</b> é a de hoje: esconde só o <b>nome</b>, mas tu ainda vê que é atacante, de que clube e de que ano.<br>
-    A <b style="color:${VERM}">🙈 MUDA</b> é a nova: <b>nem a posição tu vê</b>. Sobra uma pista verdadeira, tirada da própria carta.</p>
+    <p class="nota">A carta <b style="color:${ROXO}">🎁 SURPRESA</b> é a de hoje: esconde só o <b>nome</b> — clube e ano ficam à mostra.<br>
+    A <b style="color:${VERM}">🙈 MUDA</b> é a nova: esconde <b>nome, clube e ano</b>. A <b>posição tu já sabe</b>, porque ela cai na leva do setor da vez — e no lugar do resto vem uma pista verdadeira.</p>
   </div>
   <div>
     <p class="rot">De onde sai a pista (tudo verdade, nada inventado)</p>
@@ -88,7 +97,7 @@ const listaHtml = `<!doctype html><meta charset="utf-8"><style>${base}
       <h3>🔨 revela igual à surpresa</h3>
       <p>O envelope abre na <b>Cerimônia da Revelação</b>, junto com todos os outros — do mesmo jeito que o 🎁 Surpresa abre hoje. Ninguém descobre antes, ninguém descobre depois.</p>
     </div>
-    <p class="nota">⚠️ <b>Uma regra pra tu decidir:</b> se a carta muda cair numa posição que o teu time <b>já fechou</b>, o jogo hoje <b>anula o lance e devolve a moeda</b> (é a regra de setor cheio, que já existe). Dá pra manter assim, ou deixar ela entrar como reserva. Eu manteria a devolução — é a que não deixa ninguém no prejuízo por azar.</p>
+    <p class="nota">✅ <b>Ela entra na leva do setor da vez</b> — se a leva é de atacantes, ela é atacante. Por isso a posição não é segredo: a própria lista já entrega.<br>Isso fecha a única brecha que existia: <b>não tem como cair numa posição que teu time já fechou</b>, então ninguém perde moeda por azar.</p>
   </div>
 </div>`
 
