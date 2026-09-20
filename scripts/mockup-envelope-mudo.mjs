@@ -102,38 +102,55 @@ const listaHtml = `<!doctype html><meta charset="utf-8"><style>${base}
 </div>`
 
 // ── 2) O LEILÃO HOLANDÊS ────────────────────────────────────────────────────
-const quadro = (t, preco, dono, destaque) => `<div style="flex:1;min-width:0;background:#fff;border:3px solid ${INK};border-radius:16px;box-shadow:4px 4px 0 ${INK};padding:14px;text-align:center;${destaque ? `outline:4px solid ${VERDE};outline-offset:3px` : ''}">
-  <p style="font:800 11px Oswald;letter-spacing:1.4px;color:#6b6252;margin:0 0 8px;text-transform:uppercase">${t}</p>
-  <div style="border:3px solid ${INK};border-radius:12px;background:${INK};color:#fff;padding:10px 6px">
-    <p style="font:800 11px Oswald;margin:0 0 2px;color:#bdb49e;letter-spacing:1px">ATA · ROMÁRIO</p>
-    <p style="font:800 40px/1 Oswald;margin:0;color:${destaque ? '#7CE0A0' : OURO}">${preco} 🪙</p>
+// 🧱 REAPROVEITA TUDO (ordem dele, 20/09): *"quero usar tudo parecido com o que já
+//    funciona hoje no motor e visual e etc do nosso leilão"*. Então: a MESMA linha
+//    de carta (selo da posição + nome + clube · ano), o MESMO cabeçalho de setor
+//    com relógio, a MESMA Cerimônia da Revelação no fim e o MESMO monte pra quem
+//    sobrar. O que muda é UMA coisa: no lugar do −/+ do envelope, entra o preço
+//    caindo e o botão PEGAR.
+// 💰 E COMEÇA EM 100: *"tem que começar com 100 pra qualquer jogador, até porque
+//    ninguém tem 200 — todo mundo começa com 100"*. Conferido no `store.tsx`
+//    (`m.money = 100` no rápido/online). O basquete começa com 50, então lá o
+//    preço abre em 50: a regra é **abre no orçamento inicial da sala**.
+// 🙈 E o preço é IGUAL pra toda carta de propósito — se ele saísse do valor real,
+//    entregaria o nível, que é o segredo que só abre na Cerimônia.
+const quadro = (t, preco, dono, destaque) => `<div style="flex:1;min-width:0;background:#fff;border:3px solid ${INK};border-radius:16px;box-shadow:4px 4px 0 ${INK};padding:14px;${destaque ? `outline:4px solid ${VERDE};outline-offset:3px` : ''}">
+  <p style="font:800 11px Oswald;letter-spacing:1.4px;color:#6b6252;margin:0 0 9px;text-transform:uppercase;text-align:center">${t}</p>
+  <div style="display:flex;align-items:center;gap:10px;border-bottom:2px solid #e6dcc4;padding-bottom:10px;margin-bottom:10px">
+    <span class="pos">ATA</span>
+    <div><p class="nome">Romário</p><p class="meta">Vasco · 2000</p></div>
   </div>
+  <p style="font:800 ${destaque ? 46 : 42}px/1 Oswald;margin:0;text-align:center;color:${destaque ? VERDE : INK}">${preco} 🪙</p>
   <button style="width:100%;margin-top:10px;background:${destaque ? VERDE : OURO};color:${destaque ? '#fff' : INK};border:3px solid ${INK};border-radius:12px;box-shadow:3px 3px 0 ${INK};font:800 15px Oswald;padding:10px 0;text-transform:uppercase">${destaque ? '✋ Peguei!' : 'Pegar'}</button>
-  <p style="font-size:11.5px;font-weight:700;color:rgba(0,0,0,.6);margin:8px 0 0;min-height:32px">${dono}</p>
+  <p style="font-size:11.5px;font-weight:700;color:rgba(0,0,0,.6);margin:8px 0 0;min-height:32px;text-align:center">${dono}</p>
 </div>`
 
 const holandesHtml = `<!doctype html><meta charset="utf-8"><style>${base}
 .fila{display:flex;gap:18px;align-items:start}
 .seta{align-self:center;font:800 26px Oswald;color:#9c917c}
-.nota{font-size:12.5px;color:#4a4437;line-height:1.55;margin:16px 2px 0;max-width:900px}
-.regra{background:#fff;border:3px solid ${INK};border-radius:14px;box-shadow:4px 4px 0 ${INK};padding:12px 14px;margin-top:14px;max-width:900px}
+.nota{font-size:12.5px;color:#4a4437;line-height:1.55;margin:16px 2px 0;max-width:940px}
+.regra{background:#fff;border:3px solid ${INK};border-radius:14px;box-shadow:4px 4px 0 ${INK};padding:12px 14px;margin-top:14px;max-width:940px}
 .regra b{color:${VERM}}
+.topo{display:flex;align-items:center;justify-content:space-between;border:3px solid ${INK};border-radius:14px;background:${INK};color:${CREME};padding:9px 14px;margin-bottom:14px;box-shadow:4px 4px 0 rgba(0,0,0,.25);max-width:940px}
+.topo b{font:800 15px Oswald}
 </style>
 <h1>⏬ Leilão Holandês — o preço CAI sozinho</h1>
-<p class="sub">Ninguém dá lance. A carta abre cara e vai barateando na tela, segundo a segundo. Quem apertar PEGAR primeiro leva — pelo preço que estiver na tela naquele instante.</p>
+<p class="sub">Ninguém dá lance. A carta abre em <b>100</b> (o que todo mundo tem no bolso) e vai barateando na tela. Quem apertar PEGAR primeiro leva, pelo preço daquele instante. <b>Mesma carta, mesmo cabeçalho, mesma Cerimônia no fim</b> — só o −/+ do envelope é que sai.</p>
+<div class="topo"><b>⚽ ATACANTES · carta 4 de 12</b><b>0:04</b></div>
 <div class="fila">
-  ${quadro('abre assim', '200', 'ninguém apertou.<br>tá caro demais.', false)}
+  ${quadro('abre assim', '100', 'ninguém apertou.<br>é o bolso inteiro.', false)}
   <span class="seta">→</span>
-  ${quadro('4 segundos depois', '120', 'ninguém apertou ainda.<br>quem segura, paga menos…', false)}
+  ${quadro('2 segundos depois', '55', 'ninguém apertou ainda.<br>quem segura, paga menos…', false)}
   <span class="seta">→</span>
-  ${quadro('7 segundos', '60', '<b>o Felipe apertou.</b><br>Romário é dele por 60.', true)}
+  ${quadro('3 segundos e meio', '25', '<b>o Felipe apertou.</b><br>Romário é dele por 25.', true)}
 </div>
 <div class="regra">
   <p style="font:800 15px Oswald;margin:0 0 6px">A pegadinha é essa:</p>
   <p style="margin:0;font-size:13px;line-height:1.55">Esperar mais um segundo é <b>pagar menos</b> — e é <b>ver o outro levar na tua cara</b>. Não tem conta pra fazer, não tem envelope: é só nervo.<br>
-  Se ninguém apertar até o preço chegar a zero, a carta vai pro <b>monte</b>, igual hoje.</p>
+  E o nível continua <b>escondido até a Cerimônia</b>, como sempre: tu aperta sem saber se é craque ou perna-de-pau.</p>
 </div>
-<p class="nota">⏱️ <b>E cabe no relógio.</b> Hoje são 45 segundos pra uma leva de 12 cartas. No holandês cada carta cai em ~4 segundos: 12 × 4 = <b>48 segundos</b>. Praticamente o mesmo tempo — só que em vez de todo mundo mexendo em 12 envelopes ao mesmo tempo, é uma carta de cada vez, todo mundo olhando a mesma coisa.</p>`
+<p class="nota">⏱️ <b>E não estica o jogo.</b> Numa sala de 8, o leilão inteiro hoje leva <b>6min</b> (levas de 12 a cada 45s). No holandês, com ~4s por carta, dá <b>6min12s</b>. Praticamente o mesmo — só que em vez de todo mundo mexendo em 12 envelopes ao mesmo tempo, é uma carta de cada vez, todo mundo olhando a mesma coisa.</p>
+<p class="nota">💰 <b>Por que 100:</b> é com isso que todo mundo começa o rápido/online. Então a regra é "abre no orçamento inicial da sala" — no basquete, que começa com 50, a carta abre em 50 sozinha.</p>`
 
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
 for (const [html, saida, w] of [[listaHtml, arg('saida-lista', 'mockup-envelope-mudo.png'), 1080], [holandesHtml, arg('saida-holandes', 'mockup-holandes.png'), 1000]]) {
