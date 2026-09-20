@@ -38,11 +38,18 @@ JSON e nunca mais vai ler.
   essa parte **não depende de banco nenhum** (lá o `game_state` inteiro está na
   mão). Quem entrou pelo código precisa saber em que jogo se meteu.
 
-### ⏳ O que falta (não é código) — ⚠️ PENDENTE
-Rodar o `docs/sql/lista-salas-modo-pregao.sql` no Supabase (ele deu o OK em
-20/09, mas a escrita no banco está bloqueada pra mim — só leitura passa; ele vai
-colar no SQL Editor). Até lá o selo aparece **dentro da sala de espera**, mas não
-na lista de salas abertas.
+### ✅ BANCO RODADO em 20/09 — a entrega está COMPLETA (código + banco + main)
+`docs/sql/lista-salas-modo-pregao.sql` aplicado no Supabase. Conferência na hora:
+**44 salas** nas últimas 6h — **4 de 🐊 Tocaia** (todas em jogo) e 40 de envelope
+cego, 3 delas com a coluna nula (o normal: sala às cegas não grava a chave).
+Permissões conferidas (`anon`/`authenticated` leem a coluna nova) e
+`notify pgrst, 'reload schema'` disparado — sem isso o PostgREST poderia demorar
+a enxergar a coluna, a consulta daria erro e a lista cairia na rede do formato
+antigo (funcionando, mas sem o selo).
+
+⚠️ **Armadilha pra quem for conferir isso à mão:** NÃO peça `ls_deck` num
+`select` de várias salas. Em sala velha "estragada" essa coluna guarda o baralho
+INTEIRO — um `select` de 20 linhas voltou com 209 mil caracteres.
 
 O arquivo foi escrito **em cima do `pg_get_functiondef` LIDO DO BANCO** (não de
 memória): é o mesmo gatilho `game_rooms_colunas_magras`, com UMA linha a mais e

@@ -84,8 +84,23 @@ update public.game_rooms
  where created_at > now() - interval '6 hours'
    and ls_holandes is distinct from (game_state->>'holandes');
 
--- 4) conferência: deve listar as salas das últimas 6h com o modo de cada uma
-select code, ls_name, ls_holandes, status
+-- 4) o PostgREST guarda um CACHE do schema: sem isto a coluna nova pode demorar
+--    a aparecer na API (a consulta da lista daria erro e cairia na rede do
+--    formato antigo — a lista funcionaria, mas sem o selo).
+notify pgrst, 'reload schema';
+
+-- 5) conferência (o resumo; NÃO peça `ls_deck` numa lista grande — em sala velha
+--    "estragada" essa coluna guarda o baralho inteiro e a resposta vem com
+--    centenas de milhares de caracteres)
+select count(*) as salas,
+       count(*) filter (where ls_holandes = 'true') as tocaia,
+       count(*) filter (where ls_holandes is distinct from 'true') as as_cegas
   from public.game_rooms
- where created_at > now() - interval '6 hours'
- order by created_at desc;
+ where created_at > now() - interval '6 hours';
+
+-- ✅ RODADO EM 20/09/2026. Resultado na hora: 44 salas nas últimas 6h — 4 de
+--    🐊 Tocaia (todas 'started') e 40 de envelope cego, sendo 3 delas com a
+--    coluna NULA. Esses NULOS são o normal e não são falha: sala às cegas NÃO
+--    grava a chave `holandes` no estado, então o `->>` devolve nulo. O código
+--    trata exatamente assim — NULO = às cegas · campo AUSENTE (consulta sem a
+--    coluna) = não sei, não carimbo nada.
