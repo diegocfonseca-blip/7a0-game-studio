@@ -366,6 +366,51 @@ const r = await p.evaluate(async () => {
     }
   }
 
+  // 5️⃣-quater 🎰 QUANTAS VEZES DÁ EMPATE DE VERDADE? (pergunta dele, 20/09:
+  //    *"imagina uma sala c/ 20 pessoas, tudo pode ocorrer"*).
+  //    Aqui a gente conta, degrau a degrau, quantas cartas tiveram MAIS DE UM
+  //    pedido no MESMO preço — que é o único caso em que a roleta gira. Sala de
+  //    20 é o pior caso do jogo, então é ela que manda no desenho da regra.
+  const empates = {}
+  for (const tecnicos of [8, 20]) {
+    let s8 = st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: tecnicos - 1, holandes: true })
+    let cartasResolvidas = 0, comDisputa = 0, maiorRoda = 0, somaRoda = 0
+    let marca8 = '', parado8 = 0
+    for (let g = 0; g < 4000; g++) {
+      if (s8.screen !== 'auction') break
+      if (s8.phase !== 'holandes') {
+        if (s8.phase === 'envelope' || s8.phase === 'resq_envelope') { s8 = st.reducer({ ...s8, phaseDeadline: null }, { type: 'FORCE_SEAL' }); continue }
+        if (s8.phase === 'reveal' || s8.phase === 'resq_reveal') { s8 = st.reducer(s8, { type: 'ADVANCE_REVEAL' }); continue }
+        if (s8.phase === 'tiebreak') { s8 = st.reducer({ ...s8, phaseDeadline: null }, { type: 'FORCE_TIEBREAK' }); continue }
+        break
+      }
+      const m8 = `${s8.sectorIdx}|${s8.sectorCursor}|${s8.hol.passo}|${s8.hol.levados.length}`
+      if (m8 === marca8) { if (++parado8 > 3) break } else parado8 = 0
+      marca8 = m8
+      // 📏 olha a fila do degrau ANTES de ela ser resolvida: é aqui que o
+      //    empate existe (dois ou mais pedidos na MESMA carta, no MESMO preço).
+      const fila = {}
+      for (const pd of s8.hol.pedidos) fila[pd.cardId] = (fila[pd.cardId] ?? 0) + 1
+      for (const n of Object.values(fila)) {
+        cartasResolvidas++
+        if (n > 1) { comDisputa++; somaRoda += n; if (n > maiorRoda) maiorRoda = n }
+      }
+      s8 = st.reducer(s8, { type: 'HOLANDES_TICK' })
+    }
+    empates[tecnicos] = {
+      resolvidas: cartasResolvidas,
+      comDisputa,
+      pct: cartasResolvidas ? Math.round(100 * comDisputa / cartasResolvidas) : 0,
+      mediaRoda: comDisputa ? (somaRoda / comDisputa) : 0,
+      maiorRoda,
+    }
+  }
+  // 🔒 A REGRA SÓ SE SUSTENTA SE O EMPATE FOR RARO. Se metade das cartas fosse
+  //    pra roleta, o leilão viraria sorteio — e aí valeria a pena parar tudo pra
+  //    um re-lance cego. A trava segura esse limite: até 1 carta em 3.
+  ok(empates[20].pct <= 34, `sala de 20: ${empates[20].pct}% das cartas foram pra roleta — virou sorteio, não leilão`)
+  ok(empates[20].maiorRoda <= 6, `sala de 20: teve roleta com ${empates[20].maiorRoda} técnicos — gente demais num sorteio só`)
+
   // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
   //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
   //    jogadores usuários q entram no online igual a regra q já funciona ou tô
@@ -422,7 +467,7 @@ const r = await p.evaluate(async () => {
     ticks: hol.ticks,
     msPregao: hol.msPregao,
     monteHol: hol.monteN, monteCego: cego.monteN,
-    salas, disputaTestada, roletaPlacar, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
+    salas, disputaTestada, roletaPlacar, empates, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
     repHol: hol.repescagem, repCego: cego.repescagem,
     resqHol: hol.naResq, resqCego: cego.naResq,
     buracoHol: hol.buracos, buracoCego: cego.buracos,
@@ -445,6 +490,11 @@ console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} carta
 console.log(`         └─ ${r.cegoArremates - r.resqCego} saíram no pregão · ${r.resqCego} na repescagem · ${r.repCego} desceram pra repescagem · ${r.buracoCego} vagas ficaram vazias (= perna-de-pau)\n`)
 console.log(`   ⚡ APERTOU SOZINHO → é seu em ${r.janelaMs}ms (não espera o degrau): ${r.sozinhoTestado ? 'testado' : '⚠️ NÃO testado'}`)
 console.log(`   👥👥 DOIS APERTANDO A MESMA CARTA, NO MESMO PREÇO: ${r.disputaTestada ? 'testado' : '⚠️ NÃO testado'} · a 🎰 roleta deu ${r.roletaPlacar} em 40 disputas\n`)
+for (const n of [8, 20]) {
+  const e = r.empates[n]
+  console.log(`   🎰 SALA DE ${n}: ${e.comDisputa} de ${e.resolvidas} cartas deram empate no mesmo preço (${e.pct}%) · roleta média entre ${e.mediaRoda.toFixed(1)} técnicos · maior roleta: ${e.maiorRoda}`)
+}
+console.log('')
 console.log('   👥 E O BARALHO SEGUE O TAMANHO DA SALA — pela MESMA conta nos dois modos:\n')
 console.log('      técnicos │ vagas (11 cada) │ cartas no baralho │ levas │ pregão holandês │ pregão cego')
 console.log('      ─────────┼─────────────────┼───────────────────┼───────┼─────────────────┼────────────')

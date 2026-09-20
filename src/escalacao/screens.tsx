@@ -3496,7 +3496,7 @@ function Holandes() {
           <p className="text-[12px] font-bold text-black leading-snug min-w-0">
             {L('Você pediu o', 'You asked for')} <b>{hol.ultimo.nome}</b> {L('por', 'for')} <b>{hol.ultimo.preco} 🪙</b>{' '}
             {hol.ultimo.roleta
-              ? <>{L('e a 🎰 roleta deu pro', 'and the 🎰 wheel gave it to')} <b>{hol.ultimo.time}</b>. {L('Sua moeda continua no bolso.', 'Your coins stayed in your pocket.')}</>
+              ? <>— {L(`${(hol.ultimo.perdedores?.length ?? 1) + 1} pediram no mesmo preço e a 🎰 roleta deu pro`, `${(hol.ultimo.perdedores?.length ?? 1) + 1} asked at the same price and the 🎰 wheel gave it to`)} <b>{hol.ultimo.time}</b>. {L('Sua moeda continua no bolso. Pra não depender de sorteio, aperte MAIS CEDO: quem paga mais caro não divide com ninguém.', 'Your coins stayed in your pocket. To stop depending on the wheel, tap EARLIER: whoever pays more shares with nobody.')}</>
               : <>{L('mas foi pro', 'but it went to')} <b>{hol.ultimo.time}</b>. {L('Sua moeda continua no bolso.', 'Your coins stayed in your pocket.')}</>}
           </p>
         </div>
@@ -3509,7 +3509,16 @@ function Holandes() {
           <span className="text-lg leading-none">{hol.ultimo.roleta ? '🎰' : '🔨'}</span>
           <p className="text-[12px] font-bold text-black leading-snug min-w-0">
             <b>{hol.ultimo.nome}</b> → <b>{hol.ultimo.time}</b> {L('por', 'for')} <b>{hol.ultimo.preco} 🪙</b>
-            {hol.ultimo.roleta && <span className="text-black/55"> · {L('dois pediram no mesmo preço, a roleta girou', 'two asked at the same price, the wheel decided')}</span>}
+            {/* 🎰 a disputa vira MOMENTO, não perda silenciosa: diz quantos
+                brigaram. Medido: numa sala de 20, 1 carta em 5 dá empate, com
+                2 ou 3 técnicos em média — então isso aparece bastante e tem
+                que ser bonito de ver, não um susto. */}
+            {hol.ultimo.roleta && (
+              <span className="text-black/55"> · {L(
+                `${(hol.ultimo.perdedores?.length ?? 1) + 1} pediram no mesmo preço — a roleta girou`,
+                `${(hol.ultimo.perdedores?.length ?? 1) + 1} asked at the same price — the wheel decided`,
+              )}</span>
+            )}
           </p>
         </div>
       )}

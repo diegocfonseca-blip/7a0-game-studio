@@ -1,3 +1,63 @@
+## 20/09/2026 (parte 31) — 🎰 O desempate afunilado: NEM valor, NEM tempo — roleta. E o número numa sala de 20
+
+Perguntas dele: *"e se der ao mesmo tempo alguém pegando junto? Como desempata…
+ou já vai mostrar na hora alguma informação q o outro pegou um milésimo de segundo
+na frente? E é com base no valor ou no tempo?? Precisamos afunilar tudo isso pq
+imagina uma sala c/ 20 pessoas, tudo pode ocorrer"*.
+
+### 📏 A REGRA, afunilada (é esta, e não muda)
+Na janela de meio segundo, **a ordem de chegada NÃO conta**. Quem apertou naquele
+preço está na disputa, ponto. Aí, nesta ordem:
+1. **Gente ganha de robô.** Sempre. Se tem uma pessoa na fila, nenhum bot leva.
+2. **Gente × gente → 🎰 roleta**, chance igual pra todos.
+3. **Preço**: é o MESMO pra todo mundo (é o número da tela), então valor não
+   desempata — não tem como, ninguém ofereceu mais que ninguém.
+
+### 🤔 Por que NÃO é por tempo
+"Quem apertou um milésimo antes" = **quem tem a internet melhor**. No online o
+toque viaja até o host, e essa viagem não é igual pra todo mundo. Decidir por
+tempo é decidir por operadora. Numa sala de 20 isso vira "o host e o do wifi bom
+ganham tudo" — e o resto larga a sala.
+
+### 🤔 E por que NÃO é por valor (mas o valor JÁ decidiu antes)
+Não dá pra desempatar por valor porque os dois ofereceram **o mesmo preço**: o da
+tela. Mas repare que o valor decide o jogo inteiro **antes** disso: quem quer o
+Cafu de verdade aperta em **44**, não espera chegar em 16. Quem espera ganha
+preço e arrisca dividir. **A roleta é só o que sobra quando duas pessoas quiseram
+exatamente igual** — e aí o sorteio é o único juiz que não é a operadora de
+celular.
+
+### 📊 E COM 20 PESSOAS, QUANTO ISSO ACONTECE? (medido)
+| sala | cartas resolvidas | deram empate | % | roleta média | maior roleta |
+|---|---|---|---|---|---|
+| 8 técnicos | 35 | 6 | **17%** | 2,2 técnicos | 3 |
+| 20 técnicos | 78 | 17 | **22%** | 2,6 técnicos | 4 |
+
+Ou seja: **4 em cada 5 cartas vão pra quem quis mais** (apertou mais cedo, pagou
+mais). A roleta é 1 em 5, quase sempre entre 2 ou 3, e nunca passou de 4 numa sala
+cheia. A trava reprova se passar de **34% das cartas** ou se der roleta com **mais
+de 6 técnicos** — se um dia passar disso, o leilão virou sorteio e a regra precisa
+mudar.
+
+### 👀 E mostra na hora?
+Mostra, e agora com o número da briga:
+- pra todos: `🎰 Cafu → Rei da Bola FC por 16 🪙 · 3 pediram no mesmo preço — a
+  roleta girou`;
+- pra **quem perdeu**, faixa vermelha própria: *"Você pediu o Cafu por 16 🪙 — 3
+  pediram no mesmo preço e a roleta deu pro Rei da Bola FC. Sua moeda continua no
+  bolso. Pra não depender de sorteio, aperte MAIS CEDO: quem paga mais caro não
+  divide com ninguém."* — a trava explica o porquê **e o caminho**, como ele exige.
+
+### 🔀 A ALTERNATIVA que existe e NÃO foi ligada (decisão dele)
+Dava pra mandar o empate pro **re-lance cego** que o pregão já tem
+(`resolveOneTiebreak`): os empatados escrevem escondido e quem paga mais leva.
+É mais "leilão" que sorteio. **Não liguei** porque, com 22% de empate e 21 levas
+numa sala de 20, seriam **~17 paradas** no meio do pregão — e a regra de ouro dele
+é que *nada pode atrasar o ritmo do jogo*. Se ele preferir o re-lance mesmo assim,
+é ligar: o motor do desempate já existe e está testado.
+
+---
+
 ## 20/09/2026 (parte 30) — ⚡ "Quando o cara aperta ele não pega na hora?" — agora pega (meio segundo)
 
 Ele leu a parte 29 e estranhou, com razão: *"não entendi. Qd o cara aperta ele não
