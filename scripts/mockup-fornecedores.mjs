@@ -35,14 +35,14 @@ const BONUS = { 1: 10, 2: 20, 3: 30, 5: 45 }
 
 // 🪜 os 5 andares de ambição — um prazo de cada em cada andar
 const ANDARES = {
-  V: { nome: 'Várzea',   marcas: [['Toppeira', '👟', 1], ['Penality', '⬤', 2], ['Olímpicos', '◎', 3], ['Hawaianos', '🩴', 5, 'esq']] },
-  D: { nome: 'Série D',  marcas: [['Reboque', '↺', 1], ['Luis Vitão', '⧗', 2, 'esq'], ['Kasppa', '◈', 3], ['Tiadora', '◐', 5]] },
+  V: { nome: 'Várzea',   marcas: [['Toppeira', '👟', 1], ['Penality', '⬤', 2], ['Olímpicos', '◎', 3], ['Hawaianos', '🩴', 5]] },
+  D: { nome: 'Série D',  marcas: [['Reboque', '↺', 1], ['Luis Vitão', '⧗', 2], ['Kasppa', '◈', 3], ['Tiadora', '◐', 5]] },
   C: { nome: 'Série C',  marcas: [['Ombro', '◣', 1], ['Meuzuno', '〜', 2], ['Filia', 'Ⅎ', 3], ['Eisics', '≋', 5]] },
-  B: { nome: 'Série B',  marcas: [['New Bala', 'N', 1], ['Vanps', '▤', 2], ['Under Amor', '⩓', 3], ['Lacospe', '🐊', 5, 'esq']] },
-  A: { nome: 'Série A',  marcas: [['Mike', '✓', 1], ['Abibas', '◤', 2], ['Pumba', '🐆', 3], ['GuchiGuchi', '⊛', 5, 'esq']] },
+  B: { nome: 'Série B',  marcas: [['New Bala', 'N', 1], ['Vanps', '▤', 2], ['Under Amor', '⩓', 3], ['Lacospe', '🐊', 5]] },
+  A: { nome: 'Série A',  marcas: [['Mike', '✓', 1], ['Abibas', '◤', 2], ['Pumba', '🐆', 3], ['GuchiGuchi', '⊛', 5]] },
 }
 
-const papel = (div, [nome, simb, anos, esq], sel) => `
+const papel = (div, [nome, simb, anos], sel) => `
   <button class="papel${sel ? ' sel' : ''}">
     <span class="rot">MATERIAL ESPORTIVO</span>
     <span class="simb">${simb}</span>
@@ -51,7 +51,7 @@ const papel = (div, [nome, simb, anos, esq], sel) => `
     <span class="total">${porTemp(div, anos) * anos} 🪙</span>
     <span class="mini">no total</span>
     <span class="temp">= +${porTemp(div, anos)} por temporada</span>
-    <span class="loja">+${esq ? BONUS[anos] - 10 : BONUS[anos]}% na loja${esq ? ' · 💰 paga mais' : ''}</span>
+    <span class="loja">+${BONUS[anos]}% na loja</span>
     <span class="pe">${sel ? 'toque em ASSINAR embaixo' : 'toque pra escolher'}</span>
   </button>`
 
@@ -73,14 +73,14 @@ const tela = (div, atual, selIdx) => {
       <p class="ou">— ou escolha uma das quatro que bateram na porta —</p>
       <div class="grade">${a.marcas.map((m, i) => papel(div, m, i === selIdx)).join('')}</div>
       <p class="expl">${(() => { const m = a.marcas[selIdx]; const t = porTemp(div, m[2]) * m[2]
-        return `${t} moedas em ${m[2]} temporada${m[2] > 1 ? 's' : ''} = +${porTemp(div, m[2])} por temporada, e +${m[3] ? BONUS[m[2]] - 10 : BONUS[m[2]]}% em tudo que a loja vender. O valor trava na ${a.nome}: subiu ou caiu, continua igual até o fim.` })()}</p>
+        return `${t} moedas em ${m[2]} temporada${m[2] > 1 ? 's' : ''} = +${porTemp(div, m[2])} por temporada, e +${BONUS[m[2]]}% em tudo que a loja vender. O valor trava na ${a.nome}: subiu ou caiu, continua igual até o fim.` })()}</p>
       <div class="assinar">✍️ ASSINAR · ${a.marcas[selIdx][0].toUpperCase()} · ${a.marcas[selIdx][2]} ${a.marcas[selIdx][2] > 1 ? 'TEMPORADAS' : 'TEMPORADA'}</div>
     </div>
   </div>`
 }
 
 const escada = Object.entries(ANDARES).map(([k, a]) => `
-  <div class="lin"><b>${a.nome}</b><span>${a.marcas.map(m => `${m[0]}${m[4] ? ' 💰' : ''}`).join(' · ')}</span></div>`).join('')
+  <div class="lin"><b>${a.nome}</b><span>${a.marcas.map(m => m[0]).join(' · ')}</span></div>`).join('')
 
 const html = `<!doctype html><meta charset="utf-8"><style>
 ${FONTES}
@@ -145,14 +145,14 @@ h1 span{display:block;font-family:system-ui;font-weight:700;font-size:13px;color
         <li><b>O sorteio é preso na semente da carreira</b>: ninguém fecha e reabre o jogo pra "rolar de novo", e a temporada continua re-simulável igualzinho.</li>
         <li><b>Subir de divisão = marca maior bate na porta.</b> É o degrau de ambição que já existe hoje, agora com 20 nomes em vez de 4.</li>
         <li><b>A atual pode renovar</b>, na faixa preta em cima: mesmo prazo dela, com <b>+5% de fidelidade</b> na Loja. Dá pra ficar 12 anos com a mesma marca e virar história do clube.</li>
-        <li><b>💰 As esquisitas</b> (Hawaianos, Luis Vitão, Lacospe, GuchiGuchi) <b>pagam mais moeda e dão menos bônus de Loja</b> — chinelo e bolsa não vendem camisa de futebol.</li>
+        <li><b>Toda marca do mesmo prazo vale o mesmo.</b> Não existe marca com regra especial: quem manda no dinheiro é o <b>prazo</b> e a <b>divisão</b>. A marca é só a cara e o nome na camisa.</li>
       </ul>
       <p style="font-size:12.5px;font-weight:700;line-height:1.5;margin-top:4px">⚖️ <b>Nada muda na economia:</b> o valor continua saindo da régua de hoje (base da divisão × prazo) e <b>trava na divisão em que você assinou</b> — subiu ou caiu, o contrato não quebra. Proposta nova só quando acabar.</p>
     </div>
     <div class="nota">
       <h2>🪜 Os cinco andares</h2>
       ${escada}
-      <p style="font-size:12px;font-weight:700;color:#6b6453;margin-top:8px;line-height:1.45">Em cada andar tem uma marca de cada prazo. Você vê as do <b>seu andar e do de baixo</b> — na Série A são 8 concorrendo a 4 vagas, na Várzea são as 4 do bairro mesmo.</p>
+      <p style="font-size:12px;font-weight:700;color:#6b6453;margin-top:8px;line-height:1.45">Em cada andar tem uma marca de cada prazo, e <b>todas valem o mesmo dentro do prazo</b>. Você vê as do <b>seu andar e do de baixo</b> — na Série A são 8 concorrendo a 4 vagas, na Várzea são as 4 do bairro mesmo.</p>
     </div>
     <div class="nota">
       <h2>🛟 Quem já tem contrato</h2>
