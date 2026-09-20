@@ -465,6 +465,19 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   premiado for de bot (a carta encarece pra todos) e as moedas só pra clube de gente.
   Números em `BOLA_OURO_MOEDAS`/`BOLA_OURO_PISO` (`store.tsx`); o piso mora em
   `careerBolaOuroPiso` e entra no `valorOficial`.
+- **🕴️💰 COMISSÃO DA AGÊNCIA (20/09, regra permanente): artilheiro de QUALQUER
+  competição paga 1 🪙 · Bola de Ouro paga MAIS 1 · só dos ATIVOS.** Palavras dele:
+  *"o usuário tem q ganhar 1 moeda na temporada se o jogador for artilheiro de qlqr
+  competição ou mais uma se for bola de ouro também. Desses ativos logicamente"*.
+  Quem foi artilheiro **e** melhor do mundo leva as duas (são duas conquistas).
+  "Qualquer competição" = cada série da liga · a Copa (do Brasil/Legends, com a
+  Supercopa dentro dela) · a **Copa do Mundo**. Quem está esperando a vez não paga
+  nada — nem mensalidade, nem comissão, e não acumula pra depois.
+  ⚠️ **A Copa do Mundo é a única paga NA HORA**, porque ela rola no passo 3 do
+  roteiro, depois de o caixa fechar: `AGENCIA_COMISSAO_MUNDO`, com trava por
+  nome+temporada no `copaPrizeDone`. As outras ficam em `agenciaEventos` e caem na
+  virada. 🚫 **CAMPEÃO continua NÃO pagando** (ordem de 16/09) — não repropor.
+  Trava: `npm run agencia`.
 - **🎙️ Emoção no placar = o LANCE DO GOL, nunca faixa colorida nem confete (19/09).**
   Ele barrou a faixa verde/vermelha de resultado (*"não gostei"*) e o confete de
   vitória. O que ele quer é narração de COMO a bola entrou, com acervo GRANDE

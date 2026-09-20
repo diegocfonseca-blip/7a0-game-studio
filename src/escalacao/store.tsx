@@ -311,23 +311,29 @@ const agKey = (c: { name: string; club?: string; year?: number }) => `${c.name}|
 // ATIVO, entra no dinheiro do leilão (m.money — o write-back da Cerimônia leva);
 // se está DORMINDO, cai na caixa dele (extrato roteado pro stash pelo logFin).
 // O evento entra na fatura pra aparecer na Cerimônia. Só carreira solo NOVA.
-function agenciaTransacao(s: EscState, card: { name: string; club?: string; year?: number }) {
+function agenciaComissao(s: EscState, nome: string, emoji: string, texto: string, extrato: string) {
   if (!s.agenciaOn || !agenciaLiberada()) return // 🔒 por enquanto só a conta do Diego
-  const ag = (s.agenciados ?? []).find(a => a.name === card.name)
+  // ⚠️ SÓ QUEM ESTÁ NA ATIVA (regra do Diego, 20/09: *"desses ativos logicamente"*).
+  // Quem está esperando a vez não rende nada e não acumula nada — nem mensalidade,
+  // nem comissão; começa a valer no dia em que entra na ativa.
+  const ag = (s.agenciados ?? []).find(a => a.name === nome)
   if (!ag) return
   const active = s.managers[s.youIdx]?.id
-  // 🤝 no modo DIVIDIR, a comissão de negociação (1 🪙) não tem como rachar:
-  // fica com o clube NO COMANDO (mesma regra da moeda ímpar da virada)
+  // 🤝 no modo DIVIDIR, a comissão (1 🪙) não tem como rachar: fica com o clube
+  // NO COMANDO (mesma regra da moeda ímpar da virada)
   const dest = (s.agenciaDividir && s.multiClube) ? (active ?? 0) : (s.agenciaClubeId ?? active ?? 0)
   if (dest === active) { const m = s.managers[s.youIdx]; if (m) m.money += 1 }
   else s.careerCoins = { ...(s.careerCoins ?? {}), [dest]: (s.careerCoins?.[dest] ?? 0) + 1 }
-  logFin(s, 'empresario', `🕴️ Comissão de agente: ${card.name} negociado`, 1, { player: card.name }, dest)
+  logFin(s, 'empresario', extrato, 1, { player: nome }, dest)
   const fat = (s.agenciaFatura && s.agenciaFatura.season === (s.seasonNo ?? 1))
     ? s.agenciaFatura
     : (s.agenciaFatura = { season: s.seasonNo ?? 1, mensal: 0, rows: [], total: 0 })
-  fat.rows.push({ emoji: '💸', texto: `${card.name} foi negociado no leilão`, coins: 1, nome: ag.name })
+  fat.rows.push({ emoji, texto, coins: 1, nome: ag.name })
   fat.total += 1
   s.agenciaHist = { ...(s.agenciaHist ?? {}), [agKey(ag)]: (s.agenciaHist?.[agKey(ag)] ?? 0) + 1 }
+}
+function agenciaTransacao(s: EscState, card: { name: string; club?: string; year?: number }) {
+  agenciaComissao(s, card.name, '💸', `${card.name} foi negociado no leilão`, `🕴️ Comissão de agente: ${card.name} negociado`)
 }
 // 🕴️ qual estádio a agência usa pros destraves/renda: o do clube escolhido no
 // toggle — e no modo 🤝 DIVIDIR, o que RENDE MAIS dos dois (você construiu, vale).
@@ -4164,6 +4170,7 @@ type Action =
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
   | { type: 'SET_AGENCIA_CLUBE'; mgrId: number; dividir?: boolean } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (ou dividir meio a meio) — toggle na tela dos Agenciados
   | { type: 'AGENCIA_SEASON_EVENTS'; season: number; rows: AgEvento[] } // 🕴️ AGÊNCIA 2.0: eventos da temporada (artilheiro dos agenciados) — computados na tela quando a Copa termina; pagos na virada. Idempotente por temporada
+  | { type: 'AGENCIA_COMISSAO_MUNDO'; nome: string; gols: number; season: number } // 🕴️🌍 artilheiro da COPA DO MUNDO: ela rola DEPOIS do caixa fechar, então a comissão é paga na hora (idempotente por nome+temporada)
   | { type: 'SEED_CPU_SQUADS'; squads: Record<string, Card[]> } // pirâmide: materializa a ficha dos times de fundo (1x)
   | { type: 'RESERVE_AUCTION_ONLINE' } // carreira online: fecha a venda e ABRE o leilão de reservas (compra) — consome a lista, mira 22, orçamento = caixa
   | { type: 'RESTORE_ONLINE'; state: EscState; roomId: string; roomCode: string; isHost: boolean; playerIndex: number; youUid?: string }
@@ -8151,6 +8158,21 @@ export function reducer(state: EscState, action: Action): EscState {
         list.push({ name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, promessa: c.promessa || undefined, folk: c.folk || undefined })
       }
       s.agenciados = list
+      return s
+    }
+    case 'AGENCIA_COMISSAO_MUNDO': {
+      // 🕴️🌍 ARTILHEIRO DA COPA DO MUNDO paga comissão como qualquer outra
+      // competição (Diego 20/09: *"1 moeda na temporada se o jogador for artilheiro
+      // de qualquer competição"*). Só que a Copa do Mundo acontece no passo 3 do
+      // roteiro, DEPOIS de o caixa fechar — então não dá pra pendurar em
+      // `agenciaEventos` (que já foi pago). Paga na hora, com trava por
+      // nome+temporada no MESMO mapa do prêmio da Copa (`copaPrizeDone`), que
+      // persiste no autosave: reabrir o jogo não paga duas vezes.
+      if (!s.agenciaOn || !agenciaLiberada()) return s
+      const chave = `agmundo:${action.nome}:${action.season}`
+      if (s.copaPrizeDone?.[chave]) return s
+      s.copaPrizeDone = { ...(s.copaPrizeDone ?? {}), [chave]: true }
+      agenciaComissao(s, action.nome, '🥇', `${action.nome} foi o artilheiro da Copa do Mundo (${action.gols} gols)`, `🕴️ Comissão de agente: ${action.nome} artilheiro da Copa do Mundo`)
       return s
     }
     case 'AGENCIA_SEASON_EVENTS': {

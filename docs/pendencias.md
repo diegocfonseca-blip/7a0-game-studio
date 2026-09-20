@@ -491,6 +491,82 @@ Dá, e é barato: o modo nasce DESLIGADO (`holandes: false` no `INITIAL`) e só 
 por escolha na tela de montar a partida rápida. Sem a escolha, o jogo roda o mesmo
 código de sempre — o `npm run holandes` prova isso a cada rodada. Pra sumir de vez:
 reverter o commit.
+---
+
+## 20/09/2026 (parte 2) — 🥇 A AGÊNCIA PAGA POR ARTILHEIRO E POR BOLA DE OURO
+
+Ordem dele, no mesmo dia da tela nova: *"o usuário tem q ganhar 1 moeda na temporada
+se o jogador for artilheiro de qlqr competição ou mais uma se for bola de ouro também.
+Desses ativos logicamente"*.
+
+### Como ficou
+- **Artilheiro de QUALQUER competição = 1 🪙.** Já valia pra cada série da liga e pra
+  Copa (a Supercopa entra dentro dela, porque o `copaBrasilAsCopaResult` soma os gols
+  do jogo do título). **Faltava a Copa do Mundo — agora entra.**
+- **Bola de Ouro = mais 1 🪙**, em linha separada: quem foi artilheiro *e* melhor do
+  mundo leva as duas. Cai na virada, junto das outras comissões.
+- **Só quem está NA ATIVA** (`agenciados`). Quem espera a vez não paga nada e não
+  acumula nada — a mesma regra das mensalidades.
+- 🚫 **Campeão continua sem pagar** (ordem de 16/09). Nada mudou aí.
+
+### O pulo do gato da Copa do Mundo
+Ela acontece no **passo 3 do roteiro**, ou seja **depois de o caixa fechar** — então
+não dava pra pendurar em `agenciaEventos` (que já foi pago na virada). A comissão dela
+é paga **na hora**, pela ação nova `AGENCIA_COMISSAO_MUNDO`, com trava por
+`nome+temporada` dentro do `copaPrizeDone` (o mesmo mapa do prêmio de 100 🪙, que
+persiste no autosave). Reabrir o jogo não paga duas vezes.
+O artilheiro sai do `artilhariaDaCopa()` — a MESMA conta que a tela da Copa já
+mostrava, agora em função. **Ela só LÊ o torneio simulado: não encosta no `rng`**,
+então placar e campeão continuam idênticos.
+
+### Travas
+`npm run agencia` (novo) — paga 1 pro ativo, 0 pra quem espera a vez, não paga duas
+vezes e não mexe em carreira antiga (`agenciaOn` desligado).
+
+**Reverter**: commit só de regra de dinheiro + textos; `git revert` volta tudo e
+nenhum save quebra (o que já foi pago fica pago, como qualquer moeda do jogo).
+
+---
+
+## 20/09/2026 — 🕴️ SUA AGÊNCIA: saiu do Elenco, foi pro Clube e ficou legível
+
+Decisão dele depois de recusar seis direções novas (transferências, fantasy, álbum,
+ranking de empresários, museu de ídolos, telefone do empresário): *"a minha forma
+dos 22 ainda parece melhor. Quero que melhore, aperfeiçoe"* + *"tem que tirar do
+elenco e pôr lá no clube também, mostrar dinheiro onde ela olha"* + *"E pode
+fazer"*. A MECÂNICA não mudou nada: título dá carta · até 22 na ativa · cada
+categoria rende o mesmo de sempre · as obras destravam igual.
+
+### O que entrou (`src/escalacao/pyramidseason.tsx`)
+- **Mudou de lugar**: `Clube › 🕴️ Sua Agência` (era `Elenco › Agenciados`; a
+  sub-aba do Elenco sumiu, o `elencoSub` foi embora). A escada de desbloqueios
+  (`AgenciaDesbloqueios`) veio junto — agência num lugar só.
+- **A frase que explica o negócio** no cabeçalho + o dinheiro em cima:
+  "mensalidades desta temporada", onde ele cai (extrato 🕴️ Agência) e o
+  **total que a agência já rendeu na carreira** (soma do `agenciaHist`).
+- **O 22 deixou de ser número mágico**: a regra que ele ditou está escrita na
+  tela — *"quem não está ativo não recebe nada e nem o que teria ganhado; só
+  quando ativo, a partir daquele momento"*.
+- **⚡ um toque** põe na ativa quem mais rende (o que PAGA hoje manda; carta
+  travada não fura fila) e **🧢 escolher na mão** continua pra quem gosta.
+- **💤 Esperando a vez**: quem está fora aparece, apagado, com o número do que
+  renderia. Antes era cofre invisível.
+- **🆕 Aviso de troca** quando chega carta que rende MAIS que a pior da ativa
+  (só quando a troca põe dinheiro hoje — nada de "ele rende +0 e o outro +0").
+- **🔒 O dinheiro parado virou chamada** ("+24 🪙 por temporada parados"), com o
+  caminho da obra.
+- **🃏 E a ESCOLHA virou CARTA** (*"ao ele escolher os jogadores ele vê as
+  cartinhas também né?"*): a convocação era uma LISTA de nomes e virou grade de
+  cartinhas (cor do tier, rosto quando existe, clube · ano, quanto rende), com
+  🔍 pra abrir a carta inteira com bio. O quadradinho virou um componente só
+  (`AgMini`), usado na ativa, na espera e na convocação.
+- Correção de régua: a legenda dizia 👑 **5** e o valor real é **6**.
+
+**Reverter**: é um commit só, e é só de tela — `git revert` põe a agência de volta
+no Elenco sem mexer em save nenhum (nada de economia mudou).
+
+**Bancada**: `scripts/teste-rosto/index.html?agencia2` monta a tela com carteira
+cheia (31 clientes, 22 na ativa, SAF por fazer) — é de lá que saíram os prints.
 
 ---
 
