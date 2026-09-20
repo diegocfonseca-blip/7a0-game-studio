@@ -56,6 +56,9 @@ const r = await p.evaluate(async () => {
     let s = st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: 7, holandes })
     const caixaInicial = Object.fromEntries(s.managers.map(m => [m.id, m.money]))
     let ticks = 0, cartas = 0, msPregao = 0, ultimaMarca = '', monteN = null
+    // 📦 quantas cartas caíram na REPESCAGEM (as que o leilão principal não vendeu)
+    let repescagem = 0, naResq = 0
+    const vistoResq = new Set()
     const precos = []
     const visto = new Set()
     let parado = 0
@@ -67,22 +70,27 @@ const r = await p.evaluate(async () => {
       if (s.phase === 'holandes') {
         for (const c of s.currentCards) if (!visto.has(c.id)) { visto.add(c.id); cartas++ }
         msPregao += st.holPassoMs(s.hol.preco, 100)
-        const antes = s.hol.levados.length
         s = st.reducer(s, { type: 'HOLANDES_TICK' })
         ticks++
-        if (s.hol) for (const l of s.hol.levados.slice(antes)) precos.push(l.preco)
-        else for (const env of Object.values(s.pendingEnvelopes ?? {})) for (const b of env) precos.push(b.amount)
+        // ⚠️ NÃO conta o arremate aqui: quem conta é a REVELAÇÃO, que é o mesmo
+        // lugar nos dois modos. Contar nos dois dava o MESMO arremate duas vezes
+        // e inflava o holandês (foi assim que eu quase mandei 84 x 46 pro Diego).
         continue
       }
       // 🕐 o relógio do pregão cego é de VERDADE (45s) — aqui a gente adianta o
       // ponteiro pra rodar o pregão inteiro em milissegundos.
       if (s.phase === 'envelope' || s.phase === 'resq_envelope') {
         if (s.phase === 'envelope') for (const c of s.currentCards) if (!visto.has(c.id)) { visto.add(c.id); cartas++ }
+        if (s.phase === 'resq_envelope') for (const c of s.currentCards) if (!vistoResq.has(c.id)) { vistoResq.add(c.id); repescagem++ }
         s = st.reducer({ ...s, phaseDeadline: null }, { type: 'FORCE_SEAL' })
         continue
       }
       if (s.phase === 'reveal' || s.phase === 'resq_reveal') {
-        for (const q of (s.revealQueue ?? [])) if (q.winner !== null && q.paid > 0 && !visto.has(`v:${q.card.id}`)) { visto.add(`v:${q.card.id}`); precos.push(q.paid) }
+        for (const q of (s.revealQueue ?? [])) if (q.winner !== null && q.paid > 0 && !visto.has(`v:${q.card.id}`)) {
+          visto.add(`v:${q.card.id}`)
+          precos.push(q.paid)
+          if (s.phase === 'resq_reveal') naResq++ // 📦 este saiu na REPESCAGEM, não no pregão principal
+        }
         s = st.reducer(s, { type: 'ADVANCE_REVEAL' }); continue
       }
       if (s.phase === 'tiebreak') { s = st.reducer({ ...s, phaseDeadline: null }, { type: 'FORCE_TIEBREAK' }); continue }
@@ -90,7 +98,15 @@ const r = await p.evaluate(async () => {
       if (s.screen === 'monte') { const alvo = s.monteOrder[s.monteIdx]; if (alvo == null || !s.monte.length) break; s = st.reducer(s, { type: 'MONTE_PICK', mgrId: alvo, cardId: s.monte[0].id }); continue }
       break
     }
-    return { s, caixaInicial, ticks, cartas, precos, msPregao, monteN: monteN ?? 0 }
+    // 🕳️ VAGAS QUE SOBRARAM no fim do pregão = é exatamente isto que vira
+    //    perna-de-pau depois (o `fillToEleven` tapa buraco com jogador de mentira).
+    const POR_POS = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+    let buracos = 0
+    for (const m of s.managers) {
+      if (!m.isHuman && !m.auctionRival) continue
+      for (const pos of Object.keys(POR_POS)) buracos += Math.max(0, POR_POS[pos] - m.squad.filter(c => c.pos === pos && !c.fake).length)
+    }
+    return { s, caixaInicial, ticks, cartas, precos, msPregao, monteN: monteN ?? 0, repescagem, buracos, naResq }
   }
 
   const hol = joga(true)
@@ -232,8 +248,10 @@ const r = await p.evaluate(async () => {
     precoMedio: hol.precos.length ? (hol.precos.reduce((a, c) => a + c, 0) / hol.precos.length) : 0,
     ticks: hol.ticks,
     msPregao: hol.msPregao,
-    monteHol: hol.monteN,
-    monteCego: cego.monteN,
+    monteHol: hol.monteN, monteCego: cego.monteN,
+    repHol: hol.repescagem, repCego: cego.repescagem,
+    resqHol: hol.naResq, resqCego: cego.naResq,
+    buracoHol: hol.buracos, buracoCego: cego.buracos,
     cegoCartas: cego.cartas,
     cegoArremates: cego.precos.length,
     cegoPrecoMedio: cego.precos.length ? (cego.precos.reduce((a, c) => a + c, 0) / cego.precos.length) : 0,
@@ -247,8 +265,10 @@ console.log('\n🔻 LEILÃO HOLANDÊS · pregão inteiro rodado no motor de verd
 console.log(`   escada de preços (${r.escada.length} degraus): ${r.escada.slice(0, 8).join(' · ')} … ${r.escada.slice(-6).join(' · ')}`)
 console.log(`   a descida inteira da leva (100 → 0): ${(r.msCheio / 1000).toFixed(1)}s · hoje o envelope leva 45s\n`)
 console.log("   ⏱️💰 O MESMO PREGÃO, NOS DOIS MODOS (8 técnicos, humano só assistindo):")
-console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · ${String(r.arremates).padStart(3)} arremates · preço médio ${r.precoMedio.toFixed(1)} 🪙 · ~${Math.round(r.msPregao / 1000)}s de pregão · 🃏 ${r.monteHol} no Monte Final`)
-console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão · 🃏 ${r.monteCego} no Monte Final\n`)
+console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · ${String(r.arremates).padStart(3)} arremates · preço médio ${r.precoMedio.toFixed(1)} 🪙 · ~${Math.round(r.msPregao / 1000)}s de pregão `)
+console.log(`         └─ ${r.arremates - r.resqHol} saíram no pregão · ${r.resqHol} na repescagem · ${r.repHol} desceram pra repescagem · ${r.buracoHol} vagas ficaram vazias (= perna-de-pau)`)
+console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão `)
+console.log(`         └─ ${r.cegoArremates - r.resqCego} saíram no pregão · ${r.resqCego} na repescagem · ${r.repCego} desceram pra repescagem · ${r.buracoCego} vagas ficaram vazias (= perna-de-pau)\n`)
 if (r.falhas.length) {
   for (const f of r.falhas) console.log(`   🔴 ${f}`)
   console.log(`\n❌ ${r.falhas.length} problema(s).\n`)

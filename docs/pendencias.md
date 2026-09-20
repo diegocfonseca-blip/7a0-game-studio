@@ -28,19 +28,34 @@ segundos** (10× mais folga) e a leva fecha em ~39s, contra os 45s do envelope c
 4. E a trava velha continua: **toque com preço VELHO não vale** (nada de pagar um
    preço que ninguém viu na tela).
 
-### 📊 O que mudou nos números (`npm run holandes`)
-| | cartas | arremates | preço médio | pregão | Monte Final |
-|---|---|---|---|---|---|
-| 🔻 holandês | 93 | 80 | 13,7 🪙 | ~6:34 | 0 |
-| ✉️ cego (hoje) | 93 | 47 | 13,0 🪙 | ~6:00 | 0 |
+### 📊 O que mudou nos números — e o ERRO que ele pegou
 
-- **Preço médio praticamente igual** (13,7 × 13,0) — a economia não muda.
-- **Vende bem mais** (80 × 47): no holandês, quem perdeu uma carta ainda tem moeda e
-  vaga, então pega a seguinte quando o preço chega nela. No envelope cego, lance
-  perdido é lance jogado fora. **Efeito colateral BOM**: mais carta de verdade
-  colocada = menos perna-de-pau na pirâmide (a reclamação dele de 19/09).
-- **Monte Final igual (0 nos dois)** — a repescagem já absorve as sobras.
-- 34s a mais no pregão inteiro. Dentro do aceitável.
+⚠️ **Primeiro a correção, porque foi feia.** Eu mandei pra ele *"o holandês vende
+muito mais: 80 × 47"* e contei isso como coisa boa (menos perna-de-pau). Ele
+respondeu: *"não entendi pq ter mais jogadores… pq se não perde oferta e demanda"*.
+**Ele estava certo e o número era MEU ERRO**: a medição contava o mesmo arremate
+duas vezes no holandês — uma vez ao vivo (`hol.levados`) e outra na revelação —
+enquanto no pregão cego contava só uma. O pregão cego não tem "ao vivo", então a
+comparação era torta desde o começo. Agora só a REVELAÇÃO conta, que é o mesmo
+lugar nos dois modos.
+
+Medido de novo, direito (`npm run holandes`, 93 cartas, 8 técnicos):
+
+| | arremates | no pregão | na repescagem | desceram p/ repescagem | vagas vazias | preço médio | tempo |
+|---|---|---|---|---|---|---|---|
+| 🔻 holandês | 48 | 32 | 16 | 61 | 41 | 12,5 🪙 | ~6:23 |
+| ✉️ cego (hoje) | 51 | 33 | 18 | 60 | 37 | 12,7 🪙 | ~6:00 |
+
+**São a MESMA coisa.** E tem que ser mesmo, pelo motivo que ele deu: a oferta (93
+cartas) e a procura (as vagas dos 8 técnicos) não mudaram — o holandês só troca o
+jeito de DESCOBRIR o preço, não quantos jogadores existem nem quantas vagas tem.
+Se vendesse muito mais, era sinal de bug, não de feature.
+
+A única diferença de verdade são os **23 segundos a mais** no pregão inteiro.
+
+🧠 **Lição pra quem mexer nisto depois**: quando um modo novo parecer "melhor" num
+número de balanço, desconfiar da MEDIÇÃO antes de comemorar. Os dois modos têm que
+ser medidos no MESMO ponto do código (aqui: a revelação), senão a conta mente.
 
 ### 🔒 Travas novas no `npm run holandes`
 Além das de ontem: apertar 2× na mesma carta não vira 2 pedidos · a carta sai com UM
