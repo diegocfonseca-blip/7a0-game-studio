@@ -239,6 +239,52 @@ const r = await p.evaluate(async () => {
   ok(st.holPassoMs(10, 100) >= 1500, `o degrau de baixo dura só ${st.holPassoMs(10, 100)}ms — pouco pra quem tem internet ruim`)
   ok(msCheio <= 50000, `a leva inteira leva ${(msCheio / 1000).toFixed(1)}s e hoje leva 45s — está atrasando o jogo`)
 
+  // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
+  //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
+  //    jogadores usuários q entram no online igual a regra q já funciona ou tô
+  //    errado?"*. Ele está certo, e já é assim: o baralho é montado pelo
+  //    `buildDeck(auctioningManagers(...))` ANTES do pregão começar — o holandês
+  //    entra depois e não encosta nele.
+  //
+  //    ⚠️ E NÃO DÁ PRA COMPARAR OS DOIS MODOS CARTA A CARTA: o `START` sorteia um
+  //    `seed` novo a cada partida, então em duas partidas diferentes os bots
+  //    sorteiam formações diferentes (4-3-3 × 4-4-2) e a divisão entre MEI e ATA
+  //    muda — por SORTEIO, não por modo. (Foi essa a primeira versão errada desta
+  //    trava.) O que se confere é a CONTA, que é a mesma nos dois: cada posição
+  //    tem que ter pelo menos a demanda daquela partida, e o total tem que ser
+  //    11 vagas por técnico.
+  const salas = []
+  for (const rivais of [2, 5, 7, 11, 19]) {
+    const conta = (holandes) => {
+      const x = st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: rivais, holandes })
+      const tecs = x.managers.filter(m => m.isHuman || m.auctionRival)
+      const porPos = {}, demanda = {}
+      for (const pz of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) {
+        porPos[pz] = x.deck[pz].length
+        demanda[pz] = tecs.reduce((a, m) => a + st.slotsOf(m, pz), 0)
+      }
+      const total = Object.values(porPos).reduce((a, c) => a + c, 0)
+      const totalDemanda = Object.values(demanda).reduce((a, c) => a + c, 0)
+      const levas = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].reduce((a, pz) => a + st.batchCount(x.deck[pz].length), 0)
+      return { total, totalDemanda, porPos, demanda, levas, tecnicos: tecs.length, holandes: x.holandes }
+    }
+    for (const modo of [true, false]) {
+      const g = conta(modo)
+      const nome = modo ? 'holandês' : 'cego'
+      ok(g.holandes === modo, `a bandeira do modo não pegou na sala de ${g.tecnicos}`)
+      // (a) cada posição tem que cobrir a demanda DAQUELA partida
+      for (const pz of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']) {
+        ok(g.porPos[pz] >= g.demanda[pz], `sala de ${g.tecnicos} (${nome}): ${pz} veio com ${g.porPos[pz]} carta(s) pra ${g.demanda[pz]} vaga(s)`)
+      }
+      // (b) e a demanda é 11 vagas por técnico — a regra que já funciona hoje
+      ok(g.totalDemanda === g.tecnicos * 11, `sala de ${g.tecnicos} (${nome}): a demanda deu ${g.totalDemanda} e devia ser ${g.tecnicos * 11}`)
+      // (c) baralho = demanda + a folga de 1 por posição (nem apertado, nem inflado)
+      ok(g.total >= g.totalDemanda && g.total <= g.totalDemanda + 10,
+        `sala de ${g.tecnicos} (${nome}): ${g.total} cartas pra ${g.totalDemanda} vagas — fora da regra "demanda + 1 por posição"`)
+      if (modo) salas.push({ tecnicos: g.tecnicos, cartas: g.total, vagas: g.totalDemanda, levas: g.levas })
+    }
+  }
+
   return {
     falhas,
     escada: esc,
@@ -249,6 +295,7 @@ const r = await p.evaluate(async () => {
     ticks: hol.ticks,
     msPregao: hol.msPregao,
     monteHol: hol.monteN, monteCego: cego.monteN,
+    salas,
     repHol: hol.repescagem, repCego: cego.repescagem,
     resqHol: hol.naResq, resqCego: cego.naResq,
     buracoHol: hol.buracos, buracoCego: cego.buracos,
@@ -269,6 +316,14 @@ console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · $
 console.log(`         └─ ${r.arremates - r.resqHol} saíram no pregão · ${r.resqHol} na repescagem · ${r.repHol} desceram pra repescagem · ${r.buracoHol} vagas ficaram vazias (= perna-de-pau)`)
 console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão `)
 console.log(`         └─ ${r.cegoArremates - r.resqCego} saíram no pregão · ${r.resqCego} na repescagem · ${r.repCego} desceram pra repescagem · ${r.buracoCego} vagas ficaram vazias (= perna-de-pau)\n`)
+console.log('   👥 E O BARALHO SEGUE O TAMANHO DA SALA — pela MESMA conta nos dois modos:\n')
+console.log('      técnicos │ vagas (11 cada) │ cartas no baralho │ levas │ pregão holandês │ pregão cego')
+console.log('      ─────────┼─────────────────┼───────────────────┼───────┼─────────────────┼────────────')
+for (const sl of r.salas) {
+  const mm = (seg) => `${Math.floor(seg / 60)}:${String(Math.round(seg % 60)).padStart(2, '0')}`
+  console.log(`      ${String(sl.tecnicos).padStart(8)} │ ${String(sl.vagas).padStart(15)} │ ${String(sl.cartas).padStart(17)} │ ${String(sl.levas).padStart(5)} │ ${String(mm(sl.levas * (r.msCheio / 1000))).padStart(15)} │ ${mm(sl.levas * 45)}`)
+}
+console.log('')
 if (r.falhas.length) {
   for (const f of r.falhas) console.log(`   🔴 ${f}`)
   console.log(`\n❌ ${r.falhas.length} problema(s).\n`)

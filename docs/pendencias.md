@@ -1,3 +1,44 @@
+## 20/09/2026 (parte 27) — 👥 "O baralho segue a quantidade de usuários, igual à regra que já funciona?" — SIM
+
+Pergunta dele: *"tem q ser msm regra c/ base na quantidade de jogadores usuários q
+entram no online igual a regra q já funciona ou tô errado?"*.
+
+**Ele está certo, e já é assim** — não precisou mexer em nada. O baralho é montado
+pelo `buildDeck(auctioningManagers(s.managers), rng, 1.0, …, extra = 1)` **antes**
+do pregão começar. O holandês só entra em `startAuctionPhase`, que roda DEPOIS. Ele
+não encosta no baralho, na formação, na vaga nem na leva.
+
+Medido, sala por sala (`npm run holandes`):
+
+| técnicos | vagas (11 cada) | cartas no baralho | levas | pregão 🔻 holandês | pregão ✉️ cego |
+|---|---|---|---|---|---|
+| 3 | 33 | 38 | 5 | 3:17 | 3:45 |
+| 6 | 66 | 71 | 7 | 4:36 | 5:15 |
+| 8 | 88 | 93 | 10 | 6:34 | 7:30 |
+| 12 | 132 | 137 | 12 | 7:53 | 9:00 |
+| 20 | 220 | 225 | 20 | 13:08 | 15:00 |
+
+Sempre **demanda + 1 carta por posição**, e a leva continua sendo a de hoje
+(`BATCH_SIZE = 12`, `batchCount`). De brinde: o holandês fecha **mais rápido** que o
+cego em toda sala, porque a descida da leva custa 39s contra 45s do envelope.
+
+### 🧨 E a trava pegou um erro meu DE NOVO — vale a lição
+A primeira versão desta trava comparava o baralho dos dois modos **carta a carta** e
+acusava diferença em MEI e ATA em toda sala acima de 6. Não era o modo: o `START`
+sorteia um `seed` NOVO a cada partida, então nas duas partidas os bots sorteavam
+formações diferentes (4-3-3 × 4-4-2) e a divisão MEI/ATA mudava **por sorteio**.
+
+👉 **Regra pra quem for medir dois modos deste jogo**: `START` é aleatório. Ou se
+pina o seed, ou se compara a **CONTA** (cada posição cobre a demanda daquela
+partida; a demanda é 11 × técnicos; o baralho é demanda + folga), nunca o número
+cru de uma partida contra o da outra. É o segundo erro de medição meu em dois dias
+— o primeiro foi o "80 × 47" da parte 26.
+
+Com o ruído do seed fora, a comparação de 8 técnicos ficou **49 arremates × 49** e
+**39 vagas vazias × 39**: a economia é a MESMA, como ele previu.
+
+---
+
 ## 20/09/2026 (parte 26) — 🔻 Holandês virou LISTA (ideia dele) e ganhou o anti-delay
 
 Ele bateu em dois pontos ao ver a primeira versão (uma carta por vez):
