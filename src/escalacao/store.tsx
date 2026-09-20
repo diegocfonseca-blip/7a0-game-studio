@@ -4198,7 +4198,7 @@ type Action =
   // No online QUEM DISPARA O TICK É SEMPRE O HOST — o convidado só desenha o
   // preço que chegou e roteia o PEGAR pro host, como toda ação da sala.
   | { type: 'HOLANDES_TICK' }
-  | { type: 'HOLANDES_PEGAR'; mgrId: number; preco: number; by?: string } // by = 🤝 crachá da dupla
+  | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
   | { type: 'FORCE_TIEBREAK' }
@@ -4379,19 +4379,21 @@ export function holEscada(start: number): number[] {
   return out
 }
 export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
-// tempo de cada degrau: corre em cima, respira embaixo. Medido pra a leva
-// inteira custar o mesmo que os 45s do envelope cego (ver `npm run holandes`).
-export const HOL_MS_ALTO = 150
-export const HOL_MS_BAIXO = 220
+// ⏱️ TEMPO DE CADA DEGRAU. Corre lá em cima (ninguém paga 90 num lateral) e
+// RESPIRA embaixo, que é onde a decisão acontece. Os ~2s do degrau de baixo são
+// a peça central do anti-delay: com 2 segundos pra reagir, meio segundo de
+// internet ruim não decide mais nada. A leva inteira fecha em ~40s — o mesmo
+// tempo do envelope cego de hoje (45s), então o ritmo do jogo não muda.
+export const HOL_MS_ALTO = 600
+export const HOL_MS_BAIXO = 2200
 export const holPassoMs = (preco: number, start: number) => (preco > Math.round(start * 0.4) ? HOL_MS_ALTO : HOL_MS_BAIXO)
 
-// quem pode levar a carta AGORA, por este preço. Mesma régua que o `resolve`
-// usa na hora de fechar (vaga aberta + dinheiro), pra ninguém "ganhar" na tela
-// e ter o arremate anulado depois — isso seria justo o estado quebrado que o
-// Diego odeia.
-function holPodeLevar(state: EscState, m: Manager, card: Card, preco: number, gastoNaLeva: number, levadosNaLeva: number): boolean {
+// quem pode levar ESTA carta por ESTE preço. Mesma régua que o `resolve` usa na
+// hora de fechar (vaga aberta + dinheiro + piso), pra ninguém "ganhar" na tela e
+// ter o arremate anulado depois — isso seria o estado quebrado que ele odeia.
+function holPodeLevar(state: EscState, m: Manager, card: Card, preco: number, gastoNaLeva: number, vagasUsadas: number): boolean {
   if (m.dormindo) return false
-  if (openSlots(m, card.pos) - levadosNaLeva <= 0) return false
+  if (openSlots(m, card.pos) - vagasUsadas <= 0) return false
   if (m.money - gastoNaLeva < preco) return false
   const piso = (card as { paid?: number }).paid ?? 0
   if (preco < piso) return false // jogador listado vale no mínimo o que pagaram por ele
@@ -4401,15 +4403,24 @@ function holPodeLevar(state: EscState, m: Manager, card: Card, preco: number, ga
   return true
 }
 
-// quanto cada técnico já comprometeu / quantas vagas já encheu NESTA leva
+// quanto o técnico já comprometeu e quantas vagas já encheu NESTA leva —
+// contando os PEDIDOS ainda não resolvidos, senão dava pra pedir 3 laterais no
+// mesmo degrau tendo uma vaga só.
 function holGasto(hol: HolandesState, mgr: number): number {
-  return hol.levados.reduce((s, l) => (l.mgr === mgr ? s + l.preco : s), 0)
+  let t = hol.levados.reduce((s, l) => (l.mgr === mgr ? s + l.preco : s), 0)
+  t += hol.pedidos.filter(p => p.mgr === mgr).length * hol.preco
+  return t
 }
 function holVagasUsadas(hol: HolandesState, mgr: number, pos: Sector, cards: Card[]): number {
-  return hol.levados.reduce((s, l) => {
-    if (l.mgr !== mgr) return s
-    return cards.find(c => c.id === l.cardId)?.pos === pos ? s + 1 : s
-  }, 0)
+  const daPos = (cardId: string) => cards.find(c => c.id === cardId)?.pos === pos
+  return hol.levados.filter(l => l.mgr === mgr && daPos(l.cardId)).length
+    + hol.pedidos.filter(p => p.mgr === mgr && daPos(p.cardId)).length
+}
+// as cartas que ainda estão na mesa (ninguém levou)
+function holNaMesa(state: EscState): Card[] {
+  const hol = state.hol
+  if (!hol) return []
+  return state.currentCards.filter(c => !hol.levados.some(l => l.cardId === c.id))
 }
 
 // abre a leva: calcula de uma vez o teto de CADA bot pra CADA carta usando o
@@ -4434,44 +4445,14 @@ function abreHolandes(state: EscState) {
       for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, false, econ)) poe(m.id, b.cardId, Math.min(b.amount, capPerCard))
     }
   }
-  const abertura = HOL_ABERTURA(state)
-  state.hol = {
-    preco: abertura,
-    passo: 0,
-    cardId: state.currentCards[0]?.id ?? '',
-    fila: state.currentCards.slice(1).map(c => c.id),
-    tetos,
-    levados: [],
-    ultimo: null,
-  }
+  state.hol = { preco: HOL_ABERTURA(state), passo: 0, tetos, levados: [], pedidos: [], ultimo: null }
   state.phase = 'holandes'
   state.submitted = []
   state.pendingEnvelopes = {}
   state.revealQueue = []
   state.revealIdx = 0
-  // sem cronômetro de leva: quem manda o relógio é a escada de preços. O prazo
-  // existe só como rede do online (host sumido não trava a sala pra sempre).
+  // sem cronômetro de leva: quem manda o relógio é a escada de preços.
   state.phaseDeadline = null
-}
-
-// passa pra próxima carta da leva — ou fecha a leva e devolve tudo pro motor de
-// sempre. `levou` é quem arrematou (null = ninguém quis, vai pras sobras).
-function holProxima(state: EscState, levou: { mgr: number; preco: number } | null) {
-  const hol = state.hol
-  if (!hol) return
-  const card = state.currentCards.find(c => c.id === hol.cardId)
-  if (levou && card) {
-    hol.levados.push({ cardId: card.id, mgr: levou.mgr, preco: levou.preco })
-    const t = state.managers.find(m => m.id === levou.mgr)
-    hol.ultimo = { nome: card.name, time: t?.teamName ?? '—', preco: levou.preco }
-  } else if (card) {
-    hol.ultimo = { nome: card.name, time: '', preco: -1 } // -1 = ninguém quis
-  }
-  const prox = hol.fila.shift()
-  if (!prox) { fechaHolandes(state); return }
-  hol.cardId = prox
-  hol.passo = 0
-  hol.preco = HOL_ABERTURA(state)
 }
 
 // fecha a leva: escreve os arremates no MESMO lugar de onde o pregão cego lê os
@@ -4490,68 +4471,139 @@ function fechaHolandes(state: EscState) {
   state.holFechando = false
 }
 
-// 🤖 O BOT APERTA O BOTÃO: chamado a cada degrau, depois que o preço novo já
-// está na tela. Entre os bots que querem a carta por este preço, leva o de
-// MAIOR teto (foi ele que teria apertado primeiro na descida). Empate no teto →
-// sorteio, com o mesmo rng do pregão.
-function holBotQueLeva(state: EscState, card: Card, preco: number): number | null {
+// ✋ RESOLVE OS PEDIDOS DO DEGRAU QUE ACABOU DE FECHAR.
+// Esta função é a resposta ao medo do delay. Ela NÃO decide por ordem de
+// chegada — quem apertou primeiro no relógio do host levaria vantagem só por
+// ter internet melhor. Ela junta TODO MUNDO que apertou naquele preço e decide:
+//   1. carta com um pedido só → é dele, simples assim;
+//   2. carta com gente E robô  → **a GENTE passa na frente**. O robô aperta no
+//      milissegundo; se ele competisse na reação, ganharia sempre;
+//   3. carta com duas pessoas  → 🎰 ROLETA entre elas (o mesmo sorteio que o
+//      desempate do pregão já usa). Ninguém é roubado por meio segundo de rede.
+function holResolvePedidos(state: EscState) {
   const hol = state.hol
-  if (!hol) return null
-  const tetos = hol.tetos[card.id] ?? {}
-  let melhor: { id: number; teto: number }[] = []
-  for (const [idStr, teto] of Object.entries(tetos)) {
-    if (teto < preco) continue
-    const id = Number(idStr)
-    const m = state.managers.find(x => x.id === id)
-    if (!m) continue
-    if (!holPodeLevar(state, m, card, preco, holGasto(hol, id), holVagasUsadas(hol, id, card.pos, state.currentCards))) continue
-    if (!melhor.length || teto > melhor[0].teto) melhor = [{ id, teto }]
-    else if (teto === melhor[0].teto) melhor.push({ id, teto })
+  if (!hol || hol.pedidos.length === 0) return
+  const rng = rngOf(state)
+  const porCarta = new Map<string, { mgr: number; humano: boolean }[]>()
+  for (const p of hol.pedidos) porCarta.set(p.cardId, [...(porCarta.get(p.cardId) ?? []), { mgr: p.mgr, humano: p.humano }])
+  hol.pedidos = []
+  // carta mais disputada primeiro, só pra a faixa da tela contar a melhor história
+  for (const [cardId, lista] of [...porCarta.entries()].sort((a, b) => b[1].length - a[1].length)) {
+    const card = state.currentCards.find(c => c.id === cardId)
+    if (!card || hol.levados.some(l => l.cardId === cardId)) continue
+    const gente = lista.filter(x => x.humano)
+    const fila = gente.length > 0 ? gente : lista
+    // 💰 confere de novo, agora com o que já foi levado NESTE degrau: um técnico
+    // pode ter pedido duas cartas e só caber uma.
+    const podem = fila.filter(x => {
+      const m = state.managers.find(y => y.id === x.mgr)
+      return !!m && holPodeLevar(state, m, card, hol.preco, holGasto(hol, x.mgr), holVagasUsadas(hol, x.mgr, card.pos, state.currentCards))
+    })
+    if (!podem.length) continue
+    const roleta = podem.length > 1
+    const ganhador = podem[roleta ? Math.floor(rng() * podem.length) : 0]
+    hol.levados.push({ cardId, mgr: ganhador.mgr, preco: hol.preco })
+    const t = state.managers.find(m => m.id === ganhador.mgr)
+    hol.ultimo = { nome: card.name, time: t?.teamName ?? '—', preco: hol.preco, roleta }
   }
-  if (!melhor.length) return null
-  if (melhor.length === 1) return melhor[0].id
-  return melhor[Math.floor(rngOf(state)() * melhor.length)].id
 }
 
-// ⏬ UM DEGRAU: baixa o preço e vê se alguém leva. É a única coisa que o relógio
-// do holandês faz. No online quem chama é o HOST (regra dele: *"oq manda e o ID
-// do host sempre"*) — o convidado só desenha o que o host mandar.
+// 🤖 OS ROBÔS PEDEM: quando o preço desce até o teto que o bot tinha escrito, ele
+// entra na fila do degrau — na MESMA fila da gente, não na frente dela.
+function holBotsPedem(state: EscState) {
+  const hol = state.hol
+  if (!hol) return
+  // do teto mais alto pro mais baixo: o bot que mais quer a carta pede primeiro
+  const querem: { mgr: number; cardId: string; teto: number }[] = []
+  for (const card of holNaMesa(state)) {
+    for (const [idStr, teto] of Object.entries(hol.tetos[card.id] ?? {})) {
+      if (teto >= hol.preco) querem.push({ mgr: Number(idStr), cardId: card.id, teto })
+    }
+  }
+  querem.sort((a, b) => b.teto - a.teto)
+  for (const q of querem) {
+    const card = state.currentCards.find(c => c.id === q.cardId)
+    const m = state.managers.find(x => x.id === q.mgr)
+    if (!card || !m) continue
+    if (hol.pedidos.some(p => p.cardId === q.cardId && p.mgr === q.mgr)) continue
+    if (!holPodeLevar(state, m, card, hol.preco, holGasto(hol, q.mgr), holVagasUsadas(hol, q.mgr, card.pos, state.currentCards))) continue
+    hol.pedidos.push({ cardId: q.cardId, mgr: q.mgr, humano: false })
+  }
+}
+
+// 🧮 NINGUÉM MAIS PODE COMPRAR NADA? então a descida virou espera à toa. Pula
+// direto pro fim da leva. Não vaza informação nenhuma (o motivo é "acabou a
+// vaga/moeda de todo mundo", não "esta carta é ruim") e respeita a regra de
+// ouro dele: nada pode atrasar o ritmo do jogo.
+function holNinguemPodeMais(state: EscState): boolean {
+  const hol = state.hol
+  if (!hol) return true
+  const mesa = holNaMesa(state)
+  if (!mesa.length) return true
+  for (const m of state.managers) {
+    if (!m.isHuman && !m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
+    for (const card of mesa) {
+      // o humano pode esperar o preço cair mais; o robô só age até o teto dele
+      const teto = m.isHuman ? hol.preco : (hol.tetos[card.id]?.[m.id] ?? 0)
+      if (!m.isHuman && teto <= 0) continue
+      if (holPodeLevar(state, m, card, m.isHuman ? 1 : Math.min(hol.preco, teto), holGasto(hol, m.id), holVagasUsadas(hol, m.id, card.pos, state.currentCards))) return false
+    }
+  }
+  return true
+}
+
+// ⏬ UM DEGRAU. É a única coisa que o relógio do holandês faz:
+//   1. fecha o degrau anterior (resolve quem apertou naquele preço);
+//   2. baixa o preço;
+//   3. os robôs que chegaram no teto entram na fila do degrau novo.
+// No online quem chama é SEMPRE o HOST — regra dele: *"oq manda e o ID do host
+// sempre"*. O convidado só desenha o preço que o host mandar.
 function holandesTick(state: EscState) {
   const hol = state.hol
   if (!hol) return
-  const card = state.currentCards.find(c => c.id === hol.cardId)
-  if (!card) { holProxima(state, null); return }
+  holResolvePedidos(state) // 1) fecha o degrau que estava aberto
   const escada = holEscada(HOL_ABERTURA(state))
   const passo = hol.passo + 1
-  if (passo >= escada.length) { holProxima(state, null); return } // chegou no 0: ninguém quis → sobras
+  if (passo >= escada.length || escada[passo] <= 0) { fechaHolandes(state); return }
   hol.passo = passo
-  hol.preco = escada[passo]
-  if (hol.preco <= 0) { holProxima(state, null); return }
-  const bot = holBotQueLeva(state, card, hol.preco)
-  if (bot != null) holProxima(state, { mgr: bot, preco: hol.preco })
+  hol.preco = escada[passo] // 2) o preço cai
+  if (holNaMesa(state).length === 0 || holNinguemPodeMais(state)) { fechaHolandes(state); return }
+  holBotsPedem(state) // 3) os robôs entram na fila
 }
 
-// 🫵 VOCÊ APERTOU: leva a carta pelo preço que está na tela agora. É aqui que a
-// trava mora — a tela só acende o botão quando isto passa, então o botão nunca
-// é mudo (regra de ouro dele: tela e motor leem a MESMA função).
-function holandesPegar(state: EscState, mgrId: number) {
+// 🫵 VOCÊ APERTOU numa carta da lista. Não arremata na hora: vira um PEDIDO
+// deste degrau (é assim que o delay deixa de decidir a partida). A tela tranca
+// a carta pra você na mesma hora, então não tem como apertar duas vezes.
+function holandesPegar(state: EscState, mgrId: number, cardId: string) {
   const hol = state.hol
   if (!hol) return
-  const card = state.currentCards.find(c => c.id === hol.cardId)
+  const card = state.currentCards.find(c => c.id === cardId)
   const m = state.managers.find(x => x.id === mgrId)
   if (!card || !m) return
+  if (hol.levados.some(l => l.cardId === cardId)) return // já é de alguém
+  if (hol.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)) return // pediu duas vezes
   if (!holPodeLevar(state, m, card, hol.preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))) return
-  holProxima(state, { mgr: mgrId, preco: hol.preco })
+  hol.pedidos.push({ cardId, mgr: mgrId, humano: !!m.isHuman })
 }
 
-// a tela pergunta isto pra acender (ou não) o botão PEGAR — fonte ÚNICA.
-export function holPodeAgora(state: EscState, mgrId: number): boolean {
+// a tela pergunta isto pra acender (ou não) o botão PEGAR de cada carta —
+// fonte ÚNICA, a mesma que o motor usa pra aceitar o toque.
+export function holPodeAgora(state: EscState, mgrId: number, cardId: string): boolean {
   const hol = state.hol
   if (!hol) return false
-  const card = state.currentCards.find(c => c.id === hol.cardId)
+  const card = state.currentCards.find(c => c.id === cardId)
   const m = state.managers.find(x => x.id === mgrId)
   if (!card || !m) return false
+  if (hol.levados.some(l => l.cardId === cardId)) return false
+  if (hol.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)) return false
   return holPodeLevar(state, m, card, hol.preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))
+}
+// e o resto da tela pergunta estas duas (pra não recalcular régua em lugar nenhum)
+export function holDono(state: EscState, cardId: string): { mgr: number; preco: number } | null {
+  return state.hol?.levados.find(l => l.cardId === cardId) ?? null
+}
+export function holPedi(state: EscState, mgrId: number, cardId: string): boolean {
+  return !!state.hol?.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)
 }
 
 function startAuctionPhase(state: EscState, rescue: boolean) {
@@ -6135,19 +6187,20 @@ export function reducer(state: EscState, action: Action): EscState {
     }
     case 'HOLANDES_PEGAR': {
       if (s.phase !== 'holandes' || !s.hol) return s
-      const card = s.currentCards.find(c => c.id === s.hol!.cardId)
+      const card = s.currentCards.find(c => c.id === action.cardId)
       if (!card) return s
       // 🔒 O PREÇO TEM QUE SER O DA TELA DELE. Sem isto, um toque que saiu do
       // aparelho quando marcava 40 e chegou no host depois do preço cair pra 36
       // levaria por 36 — e, pior, o contrário também: chegar atrasado e pagar
-      // MAIS do que ele viu. Se o preço já mudou, o toque simplesmente não vale
-      // (o preço segue caindo e ele aperta de novo). Nada de arremate fantasma.
+      // MAIS do que ele viu. Se o preço já mudou, o toque não vale e a tela
+      // avisa (o preço segue caindo e ele aperta de novo). Com ~2s por degrau,
+      // isso praticamente não acontece — mas a trava fica, porque rede é rede.
       if (action.preco !== s.hol.preco) return s
       // 🤝 DUPLA: no setor da vez só quem MANDA na categoria pega pelo time.
       // Mesma trava do envelope, e pela mesma razão: esconder o botão na tela do
       // parceiro não basta — é a família de bug de assento que já mordeu.
       if (!duplaPodeAgir(s.duplas, action.mgrId, card.pos, action.by)) return s
-      holandesPegar(s, action.mgrId)
+      holandesPegar(s, action.mgrId, action.cardId)
       return s
     }
     case 'ADVANCE_REVEAL': {

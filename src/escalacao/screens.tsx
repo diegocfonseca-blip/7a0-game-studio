@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, holPedi, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -3399,7 +3399,6 @@ function Holandes() {
   const lang: 'pt' | 'en' = blLang === 'en' ? 'en' : 'pt'
   const L = (pt: string, en: string) => (lang === 'en' ? en : pt)
   const posName = secLabel(sport, pos, lang)
-  const card = hol ? state.currentCards.find(c => c.id === hol.cardId) : undefined
   const online = state.onlineMode === 'online'
   // 👑 REGRA DA COROA: no online quem faz o preço cair é SÓ o host — *"oq manda
   // e o ID do host sempre"*. O convidado desenha o preço que chega e roteia o
@@ -3407,150 +3406,167 @@ function Holandes() {
   const euTico = !online || state.isHost
   const preco = hol?.preco ?? 0
   const abertura = state.sport === 'basquete' ? 50 : 100
-  // 🔒 FONTE ÚNICA: quem acende o botão é a MESMA função que o motor usa pra
-  // aceitar o toque (`holPodeAgora`). Regra de ouro dele: nada de botão mudo.
-  const podePegar = !!hol && !!card && holPodeAgora(state, you.id)
-  const minhasVagas = card ? openSlots(you, card.pos) - (hol?.levados.filter(l => l.mgr === you.id).length ?? 0) : 0
-  const gastei = hol?.levados.reduce((s, l) => (l.mgr === you.id ? s + l.preco : s), 0) ?? 0
-  const caixa = Math.max(0, you.money - gastei)
 
   // ⏬ O RELÓGIO: um degrau de cada vez. Rápido em cima (ninguém paga 90 num
-  // lateral), devagar embaixo, que é onde a decisão acontece.
+  // lateral), ~2s embaixo — e são esses 2s que fazem a internet de cada um
+  // parar de decidir quem leva a carta.
   useEffect(() => {
     if (!hol || !euTico) return
     const t = setTimeout(() => dispatch({ type: 'HOLANDES_TICK' }), holPassoMs(preco, abertura))
     return () => clearTimeout(t)
-    // `hol.cardId` + `hol.passo` são o relógio: cada degrau novo agenda o próximo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hol?.cardId, hol?.passo, euTico])
+  }, [hol?.passo, euTico])
 
-  // 🔊 tique-taque do preço caindo (o mesmo som do pregão) e martelo no arremate
-  const ultimoRef = useRef<string>('')
-  useEffect(() => { if (hol) playTick() }, [hol?.passo, hol?.cardId]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    const u = hol?.ultimo
-    if (!u) return
-    const k = `${u.nome}|${u.preco}`
-    if (k === ultimoRef.current) return
-    ultimoRef.current = k
-    if (u.preco >= 0) playHammer() // 🔨 martelo só quando alguém LEVOU
-  }, [hol?.ultimo]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🔊 tique-taque do preço caindo + martelo quando uma carta sai
+  useEffect(() => { if (hol) playTick() }, [hol?.passo]) // eslint-disable-line react-hooks/exhaustive-deps
+  const levadosN = hol?.levados.length ?? 0
+  useEffect(() => { if (levadosN > 0) playHammer() }, [levadosN])
 
-  if (!hol || !card) return <Shell bar={<AuctionBar />}><div className="pt-10 text-center text-5xl">🔨</div></Shell>
+  if (!hol) return <Shell bar={<AuctionBar />}><div className="pt-10 text-center text-5xl">🔨</div></Shell>
 
-  // 🎨 cor da faixa do preço: dourado lá em cima, esquentando conforme cai.
+  // 🎨 cor do preço: dourado lá em cima, esquentando conforme cai
   const frac = preco / abertura
   const corPreco = frac > 0.5 ? GOLD : frac > 0.22 ? '#E8963A' : frac > 0.08 ? '#E8503A' : '#C2452F'
-  const restam = hol.fila.length
-  const ehSurpresa = state.surpriseId === card.id
+  const meusLevados = hol.levados.filter(l => l.mgr === you.id)
+  const gastei = meusLevados.reduce((s2, l) => s2 + l.preco, 0)
+  const caixa = Math.max(0, you.money - gastei)
+  const minhasVagas = Math.max(0, openSlots(you, pos) - meusLevados.length - hol.pedidos.filter(p => p.mgr === you.id).length)
+  const naMesa = state.currentCards.filter(c => !hol.levados.some(l => l.cardId === c.id))
 
   return (
     <Shell bar={<AuctionBar vagas={minhasVagas > 0 ? minhasVagas : undefined} />}>
-      <div className="pt-1 flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <h2 className="font-black text-3xl leading-none" style={OSWALD}>🔻 {posName.toUpperCase()}</h2>
-          <p className="text-sm font-semibold text-black/70 mt-0.5">
-            {L('O preço CAI. Quem apertar primeiro leva — e paga o que estiver na tela.', 'The price DROPS. First to tap wins — and pays what is on screen.')}
-          </p>
-        </div>
-        <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center min-w-[70px]"
-          style={{ backgroundColor: '#2E6FB0', boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <p className="text-[9px] font-black uppercase text-white">{L('Ainda vêm', 'Still coming')}</p>
-          <p className="font-black text-2xl leading-none text-white" style={OSWALD}>{restam}</p>
-        </div>
+      <div className="pt-1">
+        <h2 className="font-black text-3xl leading-none" style={OSWALD}>🔻 {posName.toUpperCase()}</h2>
+        <p className="text-sm font-semibold text-black/70 mt-0.5">
+          {L('Um preço só pra todos. Ele CAI. Quem apertar primeiro leva o jogador por ele.', 'One price for all of them. It DROPS. First to tap takes the player at that price.')}
+        </p>
       </div>
 
-      {/* 💰 O PREÇO — o astro da tela. Número gigante, caindo. */}
-      <div className="border-[4px] border-black rounded-2xl px-4 py-3 text-center mt-2"
-        style={{ background: corPreco, boxShadow: `4px 4px 0 0 ${INK}`, transition: 'background 200ms linear' }}>
-        <p className="text-[10px] font-black uppercase tracking-widest text-black/55" style={OSWALD}>{L('Preço agora', 'Price now')}</p>
-        <p className="font-black leading-none" style={{ ...OSWALD, fontSize: 68, color: INK }}>{preco} <span style={{ fontSize: 30 }}>🪙</span></p>
-        {/* barrinha: o quanto já caiu (sem número — o número é o de cima) */}
-        <div className="h-2.5 border-2 border-black rounded-full mt-2 overflow-hidden" style={{ background: 'rgba(255,255,255,.55)' }}>
-          <div style={{ width: `${Math.max(2, frac * 100)}%`, height: '100%', background: INK, transition: 'width 200ms linear' }} />
+      {/* 💰 O PREÇO — um só pra leva inteira. GRUDADO no topo: a lista tem até 13
+          cartas e, sem isto, o preço sumia da tela justo na hora de decidir. */}
+      <div className="border-[4px] border-black rounded-2xl px-4 py-2.5 text-center mt-2 sticky z-20"
+        style={{ top: 4, background: corPreco, boxShadow: `4px 4px 0 0 ${INK}`, transition: 'background 300ms linear' }}>
+        <p className="text-[10px] font-black uppercase tracking-widest text-black/55" style={OSWALD}>{L('Preço agora · vale pra todos', 'Price now · same for all')}</p>
+        <p className="font-black leading-none" style={{ ...OSWALD, fontSize: 60, color: INK }}>{preco} <span style={{ fontSize: 26 }}>🪙</span></p>
+        <div className="h-2.5 border-2 border-black rounded-full mt-1.5 overflow-hidden" style={{ background: 'rgba(255,255,255,.55)' }}>
+          <div style={{ width: `${Math.max(2, frac * 100)}%`, height: '100%', background: INK, transition: 'width 300ms linear' }} />
         </div>
+        <p className="text-[10.5px] font-bold text-black/60 mt-1">
+          {naMesa.length} {L('na mesa', 'on the table')} · {L('já saíram', 'gone')} {hol.levados.length}
+        </p>
       </div>
 
-      {/* 🃏 A CARTA — a mesma CardFace do leilão de hoje. Nível continua escondido. */}
-      <Box className="p-3 mt-2">
-        <CardFace c={card} big surprise={ehSurpresa} highlight={ehSurpresa} />
-        <p className="text-[11px] font-bold text-black/45 mt-1">
-          {L('O nível só aparece na Cerimônia da Revelação, como sempre.', 'The level only shows at the Reveal Ceremony, as always.')}
-        </p>
-      </Box>
-
-      {/* 🫵 O BOTÃO. Grande, um toque, sem formulário. */}
-      <button
-        onClick={() => { if (podePegar) { playCoin(); dispatch({ type: 'HOLANDES_PEGAR', mgrId: you.id, preco }) } }}
-        disabled={!podePegar}
-        className="w-full border-[4px] border-black rounded-2xl py-4 mt-2 font-black active:translate-y-0.5"
-        style={{
-          background: podePegar ? GREEN : '#D8D2C2',
-          color: podePegar ? '#fff' : 'rgba(0,0,0,.35)',
-          boxShadow: podePegar ? `4px 4px 0 0 ${INK}` : 'none',
-          fontSize: 26, ...OSWALD, cursor: podePegar ? 'pointer' : 'not-allowed',
-        }}>
-        {podePegar ? L(`PEGAR POR ${preco} 🪙`, `TAKE FOR ${preco} 🪙`) : L('PEGAR', 'TAKE')}
-      </button>
-      {/* 🚧 TODA TRAVA DIZ O PORQUÊ (regra dele). E o caminho pra destravar. */}
-      {!podePegar && (
-        <p className="text-[12px] font-bold text-black/60 text-center mt-1.5 leading-snug">
-          {minhasVagas <= 0
-            ? L(`Seu setor de ${posName.toLowerCase()} está completo — nesta leva você só assiste.`, `Your ${posName.toLowerCase()} slots are full — you just watch this batch.`)
-            : caixa < preco
-              ? L(`Você tem ${caixa} 🪙. Espera o preço cair até lá.`, `You have ${caixa} 🪙. Wait for the price to drop.`)
-              : L('Este jogador tem piso — o preço ainda não chegou nele.', 'This player has a floor price — the price has not reached it yet.')}
-        </p>
-      )}
-
-      {/* 🔨 O QUE ACABOU DE ACONTECER: a faixa do último martelo. */}
+      {/* 🔨 o que aconteceu no degrau que acabou de fechar */}
       {hol.ultimo && (
-        <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-2 flex items-center gap-2"
-          style={{ background: hol.ultimo.preco >= 0 ? '#FFF7DB' : '#EDE9DC', boxShadow: `3px 3px 0 0 ${INK}` }}>
-          {/* 📦 emoji simples de propósito: celular velho não desenha os novos */}
-          <span className="text-xl leading-none">{hol.ultimo.preco >= 0 ? '🔨' : '📦'}</span>
-          <p className="text-[12.5px] font-bold text-black leading-snug min-w-0">
-            {hol.ultimo.preco >= 0
-              ? <><b>{hol.ultimo.nome}</b> {L('foi pra', 'went to')} <b>{hol.ultimo.time}</b> {L('por', 'for')} <b>{hol.ultimo.preco} 🪙</b></>
-              : <><b>{hol.ultimo.nome}</b>: {L('ninguém quis — vai pras sobras.', 'nobody wanted him — off to the leftovers.')}</>}
+        <div className="border-[3px] border-black rounded-xl px-3 py-1.5 mt-2 flex items-center gap-2"
+          style={{ background: '#FFF7DB', boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <span className="text-lg leading-none">{hol.ultimo.roleta ? '🎰' : '🔨'}</span>
+          <p className="text-[12px] font-bold text-black leading-snug min-w-0">
+            <b>{hol.ultimo.nome}</b> → <b>{hol.ultimo.time}</b> {L('por', 'for')} <b>{hol.ultimo.preco} 🪙</b>
+            {hol.ultimo.roleta && <span className="text-black/55"> · {L('dois pediram no mesmo preço, a roleta girou', 'two asked at the same price, the wheel decided')}</span>}
           </p>
         </div>
       )}
 
-      {/* 🧾 o que EU já peguei nesta leva (e quanto ainda tenho) */}
+      {/* 📋 A LISTA — a MESMA cara do pregão de hoje. Só que no lugar do campo de
+          lance, cada carta tem um botão PEGAR pelo preço da tela. */}
+      <div className="space-y-2 mt-2">
+        {state.currentCards.map(c => {
+          const dono = holDono(state, c.id)
+          const pedi = holPedi(state, you.id, c.id)
+          const pode = holPodeAgora(state, you.id, c.id)
+          const t = dono ? state.managers.find(m => m.id === dono.mgr) : null
+          const ehSurpresa = state.surpriseId === c.id
+          return (
+            <div key={c.id} className="border-[3px] border-black rounded-xl p-2.5 flex items-center gap-2"
+              style={{
+                background: dono ? '#EDE9DC' : pedi ? '#EAF7EE' : '#fff',
+                boxShadow: dono ? 'none' : `3px 3px 0 0 ${INK}`,
+                opacity: dono ? 0.62 : 1,
+              }}>
+              <div className="flex-1 min-w-0">
+                <CardFace c={c} surprise={ehSurpresa} highlight={ehSurpresa} />
+              </div>
+              {dono ? (
+                // ✅ JÁ SAIU: a carta some da disputa NA HORA em que o degrau fecha,
+                // com o nome de quem levou e por quanto. Sem botão, sem dúvida.
+                <div className="text-right shrink-0">
+                  <p className="text-[9px] font-black uppercase text-black/45" style={OSWALD}>{L('Arrematado', 'Sold')}</p>
+                  <p className="text-[12px] font-black leading-tight" style={{ ...OSWALD, color: dono.mgr === you.id ? GREEN : INK }}>
+                    {dono.mgr === you.id ? L('🫵 VOCÊ', '🫵 YOU') : (t?.teamName ?? '—')}
+                  </p>
+                  <p className="text-[11px] font-bold text-black/55">{dono.preco} 🪙</p>
+                </div>
+              ) : pedi ? (
+                // ✋ VOCÊ PEDIU: tranca na hora, no SEU aparelho, antes mesmo do host
+                // responder. É isto que impede apertar duas vezes na mesma carta.
+                <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center shrink-0"
+                  style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}` }}>
+                  <p className="text-[13px] font-black leading-none" style={OSWALD}>✋ {L('PEDI', 'ASKED')}</p>
+                  <p className="text-[9px] font-bold leading-tight mt-0.5">{preco} 🪙</p>
+                </div>
+              ) : (
+                <button onClick={() => { playCoin(); dispatch({ type: 'HOLANDES_PEGAR', mgrId: you.id, cardId: c.id, preco }) }}
+                  disabled={!pode}
+                  className="border-[3px] border-black rounded-xl px-3 py-2 font-black shrink-0 active:translate-y-0.5"
+                  style={{
+                    background: pode ? GREEN : '#E4DFD0', color: pode ? '#fff' : 'rgba(0,0,0,.32)',
+                    boxShadow: pode ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD,
+                    fontSize: 15, cursor: pode ? 'pointer' : 'not-allowed',
+                  }}>
+                  {L('PEGAR', 'TAKE')}<br /><span style={{ fontSize: 11 }}>{preco} 🪙</span>
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 🚧 TODA TRAVA DIZ O PORQUÊ, e o caminho pra destravar (regra dele) */}
+      {minhasVagas <= 0 ? (
+        <Box bg="#FFE9B0" className="p-2.5 mt-2">
+          <p className="text-[12.5px] font-bold text-black">
+            {L(`Seu setor de ${posName.toLowerCase()} está completo — nesta leva você só assiste.`, `Your ${posName.toLowerCase()} slots are full — you just watch this batch.`)}
+          </p>
+        </Box>
+      ) : caixa < preco ? (
+        <Box bg="#FFE9B0" className="p-2.5 mt-2">
+          <p className="text-[12.5px] font-bold text-black">
+            {L(`Você tem ${caixa} 🪙 e o preço está ${preco}. Segura — daqui a pouco ele passa por baixo da sua caixa.`, `You have ${caixa} 🪙 and the price is ${preco}. Hold on — it will drop below your purse soon.`)}
+          </p>
+        </Box>
+      ) : null}
+
+      {/* 🧾 o resumo de sempre */}
       <div className="flex items-center justify-between gap-2 mt-2 text-[12px] font-bold text-black/70">
         <span>💰 {L('Sua caixa', 'Your coins')}: <b style={{ color: INK }}>{caixa} 🪙</b></span>
-        <span>🎽 {L('Vagas de', 'Open')} {posName.toLowerCase()}: <b style={{ color: INK }}>{Math.max(0, minhasVagas)}</b></span>
+        <span>🎽 {L('Vagas de', 'Open')} {posName.toLowerCase()}: <b style={{ color: INK }}>{minhasVagas}</b></span>
       </div>
-      {hol.levados.filter(l => l.mgr === you.id).length > 0 && (
-        <Box bg="#EAF7EE" className="p-2.5 mt-1.5">
-          <p className="text-[10px] font-black uppercase tracking-wide text-black/50" style={OSWALD}>{L('Você já pegou nesta leva', 'You already took this batch')}</p>
-          {hol.levados.filter(l => l.mgr === you.id).map((l, i) => {
-            const c = state.currentCards.find(x => x.id === l.cardId)
-            return <p key={i} className="text-[12.5px] font-bold text-black">✅ {c?.name ?? '—'} · {l.preco} 🪙</p>
-          })}
-        </Box>
-      )}
 
-      {/* 😏 a zoeira de sempre — mesma barra do pregão, só que aqui ela cabe
-          porque não tem formulário nenhum ocupando a tela. */}
+      {/* 😏 a zoeira de sempre */}
       <div className="flex flex-wrap gap-1.5 justify-center mt-2">
         {[
-          { ic: '😏', t: 'Deixa cair mais!' },
-          { ic: '💸', t: 'Tá caro ainda!' },
-          { ic: '🫣', t: 'Não aperta, não aperta…' },
-          { ic: '🔥', t: 'Esse é MEU!' },
+          { ic: '😏', t: L('Deixa cair mais!', 'Let it drop!') },
+          { ic: '💸', t: L('Tá caro ainda!', 'Still too pricey!') },
+          { ic: '🫣', t: L('Não aperta, não aperta…', "Don't tap, don't tap…") },
+          { ic: '🔥', t: L('Esse é MEU!', 'That one is MINE!') },
         ].map(j => (
-          <button key={j.ic} onClick={() => emote(j.ic, card.id, j.t)}
+          <button key={j.ic} onClick={() => emote(j.ic, undefined, j.t)}
             className="border-2 border-black rounded-full px-2.5 py-1 text-[11px] font-black bg-white text-black active:translate-y-0.5"
             style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>
             {j.ic} {j.t}
           </button>
         ))}
       </div>
+
+      {/* ℹ️ POR QUE O SEU TOQUE NÃO ARREMATA NO MILÉSIMO — explicado no lugar
+          exato, embaixo do botão, do jeito que ele gosta. */}
+      <p className="text-[10.5px] font-bold text-black/45 text-center mt-2 leading-snug">
+        ✋ {L('Apertou? O jogador fica reservado pra você e sai no fim do degrau (uns 2 segundos). Duas pessoas no MESMO preço: 🎰 roleta entre elas — internet melhor não leva vantagem. Pessoa sempre passa na frente de robô.', 'Tapped? The player is reserved for you and leaves at the end of the step (about 2 seconds). Two people at the SAME price: 🎰 the wheel decides — a better connection wins you nothing. People always come before bots.')}
+      </p>
       {online && !state.isHost && (
-        <p className="text-[10.5px] font-bold text-black/45 text-center mt-2">
-          👑 {L('Quem faz o preço cair é o host da sala — o seu toque vai pra ele.', 'The room host runs the clock — your tap goes to them.')}
+        <p className="text-[10.5px] font-bold text-black/45 text-center mt-1">
+          👑 {L('Quem faz o preço cair é o host da sala.', 'The room host runs the clock.')}
         </p>
       )}
     </Shell>

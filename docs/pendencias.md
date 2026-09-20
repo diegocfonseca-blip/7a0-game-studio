@@ -1,3 +1,63 @@
+## 20/09/2026 (parte 26) — 🔻 Holandês virou LISTA (ideia dele) e ganhou o anti-delay
+
+Ele bateu em dois pontos ao ver a primeira versão (uma carta por vez):
+
+1. *"Qd alguém apertar vai sair o jogador na hr?? Pq o problema é alguém apertar e o
+   botão não atualizar e com isso ainda ter esse botão de apertar e o outro jogador
+   apertar… tô preocupado com delay também."*
+2. *"Achei q fosse tipo aparecer todos listados igual já é no nosso leilão e a barra
+   de 100 moedas caindo c/ botão ali da pessoa pegar… mas por mim tanto faz, quero
+   o que seja melhor. Só me explique por que você acha assim."*
+
+**A ideia dele é melhor, e os dois problemas são O MESMO problema.** Com uma carta
+por vez, a leva de 12 precisava de 12 descidas — pra caber no tempo de hoje, cada
+degrau durava ~0,2s. Nesse ritmo quem tem internet melhor ganha a carta, sempre.
+Com a leva INTEIRA na tela e **uma descida só**, o degrau passa a durar **~2
+segundos** (10× mais folga) e a leva fecha em ~39s, contra os 45s do envelope cego.
+
+### ✋ O anti-delay, em três camadas
+1. **Apertar não arremata na hora — vira um PEDIDO daquele degrau.** A carta tranca
+   na hora **no seu aparelho** (vira "✋ PEDI"), antes do host responder. Não existe
+   apertar duas vezes: o motor também engole o 2º toque, não é só a tela escondendo.
+2. **O host não decide por ordem de chegada.** Ele espera o degrau FECHAR e resolve
+   todos os pedidos daquele preço juntos. Internet melhor não vale nada.
+3. **Empate no mesmo preço**: 🎰 roleta entre as pessoas — e **gente sempre passa na
+   frente de robô** (o robô aperta no milissegundo; se competisse na reação, ganharia
+   sempre). Quando o degrau fecha, a carta sai da lista pra TODO MUNDO, em cinza, com
+   o nome de quem levou e por quanto.
+4. E a trava velha continua: **toque com preço VELHO não vale** (nada de pagar um
+   preço que ninguém viu na tela).
+
+### 📊 O que mudou nos números (`npm run holandes`)
+| | cartas | arremates | preço médio | pregão | Monte Final |
+|---|---|---|---|---|---|
+| 🔻 holandês | 93 | 80 | 13,7 🪙 | ~6:34 | 0 |
+| ✉️ cego (hoje) | 93 | 47 | 13,0 🪙 | ~6:00 | 0 |
+
+- **Preço médio praticamente igual** (13,7 × 13,0) — a economia não muda.
+- **Vende bem mais** (80 × 47): no holandês, quem perdeu uma carta ainda tem moeda e
+  vaga, então pega a seguinte quando o preço chega nela. No envelope cego, lance
+  perdido é lance jogado fora. **Efeito colateral BOM**: mais carta de verdade
+  colocada = menos perna-de-pau na pirâmide (a reclamação dele de 19/09).
+- **Monte Final igual (0 nos dois)** — a repescagem já absorve as sobras.
+- 34s a mais no pregão inteiro. Dentro do aceitável.
+
+### 🔒 Travas novas no `npm run holandes`
+Além das de ontem: apertar 2× na mesma carta não vira 2 pedidos · a carta sai com UM
+dono só quando duas pessoas pedem no mesmo preço · gente ganha de robô no empate ·
+a carta arrematada não volta a acender botão · e o degrau de baixo tem que durar
+**≥1,5s** (é a conta que faz o delay parar de decidir a partida).
+
+### ⏳ Continua faltando
+1. **OK visual do Diego.**
+2. **Roteamento online** do `HOLANDES_PEGAR` (convidado → host) e uma rede pra host
+   que some no meio da escada (hoje `phaseDeadline` é `null` no holandês).
+3. Linha em `novidades.ts` — só na entrega que ligar isso pro pessoal.
+4. **Envelope Mudo** segue sem construir (falta ele dizer se a carta muda ENTRA a
+   mais na leva ou SUBSTITUI uma, e se pode dividir leilão com o 🎁 Surpresa).
+
+---
+
 ## 20/09/2026 (parte 25) — 🔻 LEILÃO HOLANDÊS: o modo novo, pronto e esperando o OK visual
 
 Ideia aprovada por ele em 19/09, com as regras ditadas: *"a hi q tem q começar com

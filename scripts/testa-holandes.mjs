@@ -55,20 +55,23 @@ const r = await p.evaluate(async () => {
   const joga = (holandes) => {
     let s = st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: 7, holandes })
     const caixaInicial = Object.fromEntries(s.managers.map(m => [m.id, m.money]))
-    let ticks = 0, cartas = 0, msPregao = 0, ultimaMarca = ''
+    let ticks = 0, cartas = 0, msPregao = 0, ultimaMarca = '', monteN = null
     const precos = []
     const visto = new Set()
     let parado = 0
     for (let guard = 0; guard < 6000; guard++) {
       if (s.screen !== 'auction' && s.screen !== 'monte') break
-      const marca = `${s.screen}|${s.phase}|${s.sectorIdx}|${s.sectorCursor}|${s.revealIdx}|${s.monteIdx}|${s.hol?.cardId ?? ''}|${s.hol?.passo ?? ''}`
+      const marca = `${s.screen}|${s.phase}|${s.sectorIdx}|${s.sectorCursor}|${s.revealIdx}|${s.monteIdx}|${s.hol?.passo ?? ''}|${s.hol?.levados.length ?? ''}`
       if (marca === ultimaMarca) { if (++parado > 3) break } else parado = 0
       ultimaMarca = marca
       if (s.phase === 'holandes') {
-        if (!visto.has(s.hol.cardId)) { visto.add(s.hol.cardId); cartas++ }
+        for (const c of s.currentCards) if (!visto.has(c.id)) { visto.add(c.id); cartas++ }
         msPregao += st.holPassoMs(s.hol.preco, 100)
+        const antes = s.hol.levados.length
         s = st.reducer(s, { type: 'HOLANDES_TICK' })
         ticks++
+        if (s.hol) for (const l of s.hol.levados.slice(antes)) precos.push(l.preco)
+        else for (const env of Object.values(s.pendingEnvelopes ?? {})) for (const b of env) precos.push(b.amount)
         continue
       }
       // 🕐 o relógio do pregão cego é de VERDADE (45s) — aqui a gente adianta o
@@ -83,10 +86,11 @@ const r = await p.evaluate(async () => {
         s = st.reducer(s, { type: 'ADVANCE_REVEAL' }); continue
       }
       if (s.phase === 'tiebreak') { s = st.reducer({ ...s, phaseDeadline: null }, { type: 'FORCE_TIEBREAK' }); continue }
+      if (s.screen === 'monte' && monteN === null) monteN = s.monte.length
       if (s.screen === 'monte') { const alvo = s.monteOrder[s.monteIdx]; if (alvo == null || !s.monte.length) break; s = st.reducer(s, { type: 'MONTE_PICK', mgrId: alvo, cardId: s.monte[0].id }); continue }
       break
     }
-    return { s, caixaInicial, ticks, cartas, precos, msPregao }
+    return { s, caixaInicial, ticks, cartas, precos, msPregao, monteN: monteN ?? 0 }
   }
 
   const hol = joga(true)
@@ -131,36 +135,93 @@ const r = await p.evaluate(async () => {
 
   // 4️⃣ 🔒 O BOTÃO NÃO É MUDO: a tela pergunta `holPodeAgora`, e é a MESMA
   //    função que o motor usa pra aceitar o toque (regra de ouro de 19/09).
-  //    ⚠️ o arremate NÃO entra no elenco na hora: ele fica anotado em `levados` e
-  //    só vira carta quando a leva fecha (é o mesmo `resolve` do pregão cego que
-  //    paga e move). Então é `levados` que a gente olha aqui.
-  let s2 = st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: 7, holandes: true })
-  let achouCaso = false, pegueiTudo = 0
-  for (let g = 0; g < 4000 && s2.phase === 'holandes'; g++) {
+  //    ⚠️ apertar NÃO arremata na hora: vira um PEDIDO do degrau. Então o que se
+  //    confere é se o pedido entrou.
+  const novoJogo = () => st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: 7, holandes: true })
+  let s2 = novoJogo()
+  let achouCaso = false
+  for (let g = 0; g < 3000 && s2.phase === 'holandes'; g++) {
     const eu = s2.managers[s2.youIdx]
-    const pode = st.holPodeAgora(s2, eu.id)
-    const antes = s2.hol.levados.filter(l => l.mgr === eu.id).length
-    const depois = st.reducer(s2, { type: 'HOLANDES_PEGAR', mgrId: eu.id, preco: s2.hol.preco })
-    const levou = !depois.hol || depois.hol.levados.filter(l => l.mgr === eu.id).length > antes
-    if (pode) { ok(levou, 'a tela acendeu PEGAR e o motor recusou — botão mudo'); achouCaso = true; pegueiTudo++; s2 = depois; continue }
-    ok(!levou, 'a tela apagou PEGAR e o motor aceitou — arremate fantasma')
-    s2 = st.reducer(s2, { type: 'HOLANDES_TICK' })
+    let mexi = false
+    for (const c of s2.currentCards) {
+      const pode = st.holPodeAgora(s2, eu.id, c.id)
+      const antes = s2.hol.pedidos.filter(x => x.mgr === eu.id).length
+      const depois = st.reducer(s2, { type: 'HOLANDES_PEGAR', mgrId: eu.id, cardId: c.id, preco: s2.hol.preco })
+      const entrou = depois.hol && depois.hol.pedidos.filter(x => x.mgr === eu.id).length > antes
+      if (pode) { ok(entrou, `a tela acendeu PEGAR em ${c.name} e o motor recusou — botão mudo`); achouCaso = true; s2 = depois; mexi = true }
+      else ok(!entrou, `a tela apagou PEGAR em ${c.name} e o motor aceitou — arremate fantasma`)
+    }
+    if (!mexi) s2 = st.reducer(s2, { type: 'HOLANDES_TICK' })
+    else s2 = st.reducer(s2, { type: 'HOLANDES_TICK' })
   }
   ok(achouCaso, 'não deu pra testar o botão: o humano nunca pôde pegar nada')
-  // 💸 e o guloso não estoura: quem aperta em TUDO para quando enche a posição
-  // ou acaba a moeda — nunca fica devendo (a tela nem deixa apertar).
-  const euFim = s2.managers[s2.youIdx]
-  ok(euFim.money >= 0, `apertando em tudo, o humano ficou com caixa ${euFim.money}`)
+  ok(s2.managers[s2.youIdx].money >= 0, `apertando em TUDO, o humano ficou com caixa ${s2.managers[s2.youIdx].money}`)
 
-  // 5️⃣ 🔒 PREÇO ATRASADO NÃO VALE (toque que saiu do aparelho antes do preço cair)
-  let s3 = st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: 7, holandes: true })
-  while (s3.phase === 'holandes' && !st.holPodeAgora(s3, s3.managers[s3.youIdx].id)) s3 = st.reducer(s3, { type: 'HOLANDES_TICK' })
-  if (s3.phase === 'holandes') {
-    const eu3 = s3.managers[s3.youIdx]
-    const antes3 = eu3.squad.length
-    const velho = st.reducer(s3, { type: 'HOLANDES_PEGAR', mgrId: eu3.id, preco: s3.hol.preco + 6 })
-    ok(velho.managers[velho.youIdx].squad.length === antes3, 'toque com preço VELHO foi aceito — dá arremate por preço que ninguém viu')
+  // 5️⃣ 📶 O MEDO DO DELAY — as três perguntas dele, uma a uma.
+  const abrePregao = () => { let x = novoJogo(); while (x.phase === 'holandes' && !x.currentCards.some(c => st.holPodeAgora(x, x.managers[x.youIdx].id, c.id))) x = st.reducer(x, { type: 'HOLANDES_TICK' }); return x }
+
+  // (a) 🔒 TOQUE COM PREÇO VELHO NÃO VALE — o toque que saiu do aparelho antes
+  //     do preço cair não pode virar arremate por um preço que ninguém viu.
+  {
+    const s3 = abrePregao()
+    if (s3.phase === 'holandes') {
+      const eu3 = s3.managers[s3.youIdx]
+      const alvo = s3.currentCards.find(c => st.holPodeAgora(s3, eu3.id, c.id))
+      const velho = st.reducer(s3, { type: 'HOLANDES_PEGAR', mgrId: eu3.id, cardId: alvo.id, preco: s3.hol.preco + 7 })
+      ok(velho.hol.pedidos.length === 0, 'toque com preço VELHO foi aceito — dá arremate por preço que ninguém viu')
+    }
   }
+
+  // (b) ✋ APERTAR DUAS VEZES NA MESMA CARTA NÃO DOBRA NADA. É o medo dele:
+  //     *"o botão não atualizar e a pessoa apertar de novo"*. O 2º toque é
+  //     engolido no motor, não só escondido na tela.
+  {
+    let s4 = abrePregao()
+    if (s4.phase === 'holandes') {
+      const eu4 = s4.managers[s4.youIdx]
+      const alvo = s4.currentCards.find(c => st.holPodeAgora(s4, eu4.id, c.id))
+      s4 = st.reducer(s4, { type: 'HOLANDES_PEGAR', mgrId: eu4.id, cardId: alvo.id, preco: s4.hol.preco })
+      const um = s4.hol.pedidos.filter(x => x.cardId === alvo.id && x.mgr === eu4.id).length
+      ok(um === 1, `o 1º toque devia virar 1 pedido e virou ${um}`)
+      ok(!st.holPodeAgora(s4, eu4.id, alvo.id), 'depois de pedir, a tela ainda acende o botão da MESMA carta')
+      const dobrado = st.reducer(s4, { type: 'HOLANDES_PEGAR', mgrId: eu4.id, cardId: alvo.id, preco: s4.hol.preco })
+      ok(dobrado.hol.pedidos.filter(x => x.cardId === alvo.id && x.mgr === eu4.id).length === 1, 'apertar duas vezes na mesma carta virou DOIS pedidos')
+      // e quando o degrau fecha, a carta sai pra TODO MUNDO com um dono só
+      const fechou = st.reducer(s4, { type: 'HOLANDES_TICK' })
+      const dono = fechou.hol ? fechou.hol.levados.filter(l => l.cardId === alvo.id) : []
+      if (fechou.hol) {
+        ok(dono.length === 1, `a carta pedida devia sair com UM dono e saiu com ${dono.length}`)
+        ok(dono[0]?.mgr === eu4.id, 'quem pediu sozinho não levou a carta')
+        ok(!st.holPodeAgora(fechou, eu4.id, alvo.id), 'a carta já arrematada continua com botão aceso')
+        ok(!!st.holDono(fechou, alvo.id), 'a tela não consegue ver quem levou a carta')
+      }
+    }
+  }
+
+  // (c) 🎰 DOIS APERTARAM NO MESMO PREÇO → um só leva, e a GENTE passa na frente
+  //     do robô. Aqui a gente força o caso: dois assentos pedindo a mesma carta.
+  {
+    let s5 = abrePregao()
+    if (s5.phase === 'holandes') {
+      const eu5 = s5.managers[s5.youIdx]
+      const bot = s5.managers.find(m => !m.isHuman && m.auctionRival && m.money > 0)
+      const alvo = s5.currentCards.find(c => st.holPodeAgora(s5, eu5.id, c.id))
+      s5 = st.reducer(s5, { type: 'HOLANDES_PEGAR', mgrId: eu5.id, cardId: alvo.id, preco: s5.hol.preco })
+      s5 = st.reducer(s5, { type: 'HOLANDES_PEGAR', mgrId: bot.id, cardId: alvo.id, preco: s5.hol.preco })
+      const n = s5.hol.pedidos.filter(x => x.cardId === alvo.id).length
+      const fechou = st.reducer(s5, { type: 'HOLANDES_TICK' })
+      if (fechou.hol) {
+        const dono = fechou.hol.levados.filter(l => l.cardId === alvo.id)
+        ok(dono.length <= 1, `dois pediram e a carta saiu ${dono.length} vezes — é o arremate duplo que ele teme`)
+        if (n === 2 && dono.length === 1) ok(dono[0].mgr === eu5.id, 'no mesmo preço, o ROBÔ passou na frente da pessoa')
+      }
+    }
+  }
+
+  // (d) ⏱️ E O DEGRAU TEM QUE DURAR O BASTANTE PRA DAR TEMPO DE REAGIR. É esta
+  //     conta que faz o delay parar de decidir a partida.
+  ok(st.holPassoMs(10, 100) >= 1500, `o degrau de baixo dura só ${st.holPassoMs(10, 100)}ms — pouco pra quem tem internet ruim`)
+  ok(msCheio <= 50000, `a leva inteira leva ${(msCheio / 1000).toFixed(1)}s e hoje leva 45s — está atrasando o jogo`)
 
   return {
     falhas,
@@ -171,6 +232,8 @@ const r = await p.evaluate(async () => {
     precoMedio: hol.precos.length ? (hol.precos.reduce((a, c) => a + c, 0) / hol.precos.length) : 0,
     ticks: hol.ticks,
     msPregao: hol.msPregao,
+    monteHol: hol.monteN,
+    monteCego: cego.monteN,
     cegoCartas: cego.cartas,
     cegoArremates: cego.precos.length,
     cegoPrecoMedio: cego.precos.length ? (cego.precos.reduce((a, c) => a + c, 0) / cego.precos.length) : 0,
@@ -182,10 +245,10 @@ try { process.kill(-vite.pid) } catch { /* já foi */ }
 
 console.log('\n🔻 LEILÃO HOLANDÊS · pregão inteiro rodado no motor de verdade\n')
 console.log(`   escada de preços (${r.escada.length} degraus): ${r.escada.slice(0, 8).join(' · ')} … ${r.escada.slice(-6).join(' · ')}`)
-console.log(`   carta que ninguém quer (cai até 0): ${(r.msCheio / 1000).toFixed(1)}s\n`)
-console.log('   ⏱️💰 O MESMO PREGÃO, NOS DOIS MODOS (8 técnicos, humano só assistindo):')
-console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · ${String(r.arremates).padStart(3)} arremates · preço médio ${r.precoMedio.toFixed(1)} 🪙 · ~${Math.round(r.msPregao / 1000)}s de pregão`)
-console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão\n`)
+console.log(`   a descida inteira da leva (100 → 0): ${(r.msCheio / 1000).toFixed(1)}s · hoje o envelope leva 45s\n`)
+console.log("   ⏱️💰 O MESMO PREGÃO, NOS DOIS MODOS (8 técnicos, humano só assistindo):")
+console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · ${String(r.arremates).padStart(3)} arremates · preço médio ${r.precoMedio.toFixed(1)} 🪙 · ~${Math.round(r.msPregao / 1000)}s de pregão · 🃏 ${r.monteHol} no Monte Final`)
+console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão · 🃏 ${r.monteCego} no Monte Final\n`)
 if (r.falhas.length) {
   for (const f of r.falhas) console.log(`   🔴 ${f}`)
   console.log(`\n❌ ${r.falhas.length} problema(s).\n`)

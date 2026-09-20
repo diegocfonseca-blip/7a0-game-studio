@@ -292,15 +292,27 @@ export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_revea
 // comissão do agente, a revelação, a repescagem e o monte continuam sendo o
 // MESMO código do leilão de hoje (`sealAndResolve` → `resolve`). Por isso ele
 // não tem como estragar o pregão que já está no ar.
+// 📋 A LEVA INTEIRA NA TELA, UM PREÇO SÓ (decisão do Diego, 20/09). Ele
+// perguntou: *"achei q fosse tipo aparecer todos listados igual já é no nosso
+// leilão e a barra de 100 moedas caindo c/ botão ali da pessoa pegar"*. É melhor
+// mesmo, por três motivos medidos:
+//  1. ⏱️ o tempo da leva fica IGUAL ao de hoje (uma descida de ~45s pra leva
+//     inteira, em vez de uma descida por carta);
+//  2. 📶 cada degrau passa a durar ~2 SEGUNDOS em vez de 0,2 — que é o que tira
+//     a vantagem de quem tem internet melhor (o medo dele: *"tô preocupado c/
+//     delay"*);
+//  3. 🎯 e a carta boa passa a valer preço de carta boa: com 12 cartas
+//     disputando a MESMA descida, quem quer o craque tem que apertar cedo.
+//
+// ✋ E O DELAY: apertar não arremata NA HORA — vira um PEDIDO. O degrau fecha,
+// e aí o host resolve todos os pedidos daquele preço de uma vez. Gente passa na
+// frente de robô; gente contra gente no mesmo preço vai pra ROLETA. Assim
+// ninguém é roubado por meio segundo de internet.
 export type HolandesState = {
-  /** preço na tela agora (vai caindo pela escada) */
+  /** preço na tela agora — UM só pra leva inteira (vai caindo pela escada) */
   preco: number
   /** em que degrau da escada de preços a gente está */
   passo: number
-  /** a carta na roda */
-  cardId: string
-  /** ids das cartas que ainda vão passar nesta leva, na ordem */
-  fila: string[]
   /**
    * teto de cada técnico de CPU por carta (`cardId` → `mgrId` → moedas).
    * Calculado UMA VEZ ao abrir a leva, com o MESMO `cpuEnvelope` do leilão
@@ -310,10 +322,15 @@ export type HolandesState = {
   tetos: Record<string, Record<number, number>>
   /** quem já arrematou nesta leva (vira o bidMap na hora de resolver) */
   levados: { cardId: string; mgr: number; preco: number }[]
-  /** faixa "ARREMATADO!" da carta que acabou de sair (só visual) */
-  ultimo?: { nome: string; time: string; preco: number } | null
-  /** o preço parou de cair (alguém levou / acabou): a tela segura por um instante */
-  parado?: boolean
+  /**
+   * ✋ PEDIDOS DO DEGRAU DA VEZ — quem apertou neste preço e ainda não foi
+   * resolvido. Zera a cada degrau. É esta lista que mata o problema do delay:
+   * o host não decide por ordem de chegada (quem tem internet melhor), decide
+   * quando o degrau FECHA, com todo mundo dentro.
+   */
+  pedidos: { cardId: string; mgr: number; humano: boolean }[]
+  /** o que aconteceu no degrau que acabou de fechar (faixa da tela) */
+  ultimo?: { nome: string; time: string; preco: number; roleta?: boolean } | null
 }
 
 // desempate: quando ≥2 técnicos empatam no MAIOR lance de uma carta, eles

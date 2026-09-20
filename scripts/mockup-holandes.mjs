@@ -54,23 +54,22 @@ for (let i = 0; i < 6; i++) {
 }
 await p.waitForTimeout(1500)
 
-// 3) o preço caindo: espera o número da tela bater no alvo e fotografa.
-//    (a escada é rápida — foto no relógio sai sempre no 1)
+// 3) o preço caindo: a leva INTEIRA na tela com um preço só
 const esperaPreco = async (alvo, tolerancia = 12) => {
-  for (let i = 0; i < 400; i++) {
+  for (let i = 0; i < 600; i++) {
     const txt = await p.locator('p', { hasText: /^\d+ 🪙$/ }).first().innerText().catch(() => '')
     const v = Number((txt.match(/\d+/) ?? [])[0])
     if (Number.isFinite(v) && Math.abs(v - alvo) <= tolerancia) return v
-    await p.waitForTimeout(60)
+    await p.waitForTimeout(80)
   }
   return null
 }
 await esperaPreco(80, 20)
-await tira('holandes-1-preco-alto', 'o preço lá em cima, logo que a carta entra')
-await esperaPreco(36, 8)
-await tira('holandes-2-preco-meio', 'o preço no meio da descida — é aqui que aperta o coração')
-await esperaPreco(8, 4)
-await tira('holandes-3-martelo', 'mais embaixo: botão aceso e a faixa do último martelo')
+await tira('holandes-1-preco-alto', 'a leva inteira listada, preço lá em cima e ninguém apertou ainda')
+await esperaPreco(31, 6)
+await tira('holandes-2-preco-meio', 'no meio da descida: cartas já arrematadas ficam cinza com o nome de quem levou')
+await esperaPreco(10, 3)
+await tira('holandes-3-martelo', 'mais embaixo: o que sobrou fica barato — é a hora de garimpar')
 
 await b.close()
 try { process.kill(-vite.pid) } catch { /* já foi */ }
