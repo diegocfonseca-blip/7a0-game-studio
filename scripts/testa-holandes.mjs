@@ -480,15 +480,29 @@ const r = await p.evaluate(async (espelho) => {
     ok(pacoteCego.holandes === false, 'sala cega saiu marcada como holandesa')
   }
 
-  // 7️⃣-bis 🏷️ O NOME DO MODO APARECE NAS SALAS ABERTAS (pedido dele, 20/09:
-  //    *"as salas abertas colocar ali holandês sei lá pra diferenciar"*).
+  // 7️⃣-bis 🏷️ O MODO DO PREGÃO APARECE NAS SALAS ABERTAS (pedido dele, 20/09:
+  //    *"as salas abertas colocar ali holandês sei lá pra diferenciar"* e, no
+  //    mesmo dia, vendo que não aparecia: *"ainda não tá aparecendo o selo do
+  //    modo Tocaia… e o padrão às cegas coloque outro emoji"*).
   //    Isto não dá pra fotografar — a lista de salas exige login — então a
-  //    conferência é na fonte: o selo tem que existir, ler a bandeira do
-  //    `game_state` e mostrar o nome vindo da fonte ÚNICA (`MODO_NOME`).
+  //    conferência é na fonte.
   {
     const lob = await (await fetch('/src/escalacao/lobby.tsx')).text()
     ok(/const holandesRoom = /.test(lob), 'a lista de salas não sabe se a sala é de Tocaia')
-    ok(/holandesRoom &&/.test(lob), 'a lista de salas não desenha o selo do modo')
+    ok(/holandesRoom \?/.test(lob), 'a lista de salas não desenha o selo do modo')
+    // ⚠️ A ARMADILHA QUE MORDEU DE VERDADE: o selo lia `game_state.holandes`, mas
+    //    a lista de salas NÃO BAIXA o `game_state` desde 09/09 (15 campos por
+    //    `->>` derrubaram o banco). O dado tem que vir da coluna magra própria.
+    ok(/gholandes:ls_holandes/.test(lob), 'a lista de salas voltou a procurar o modo no `game_state`, que ela não baixa — o selo nunca vai acender')
+    // e sem a coluna no banco a lista NÃO pode voltar vazia (ninguém entraria em sala nenhuma)
+    ok(/semColunaPregao/.test(lob), 'a lista perdeu a rede: banco sem a coluna `ls_holandes` deixaria a lista de salas VAZIA')
+    // os DOIS modos têm selo — sem selo ninguém sabe se a sala é a de sempre ou a nova
+    ok(/ÀS CEGAS/.test(lob), 'o envelope cego ficou sem selo na lista — só a Tocaia carimbada não diferencia nada')
+    // ⚖️ e não se carimba "às cegas" em sala cujo modo a lista não conseguiu ler
+    ok(/const pregaoLido = /.test(lob), 'a lista carimba o modo mesmo sem ter lido o modo — pode anunciar uma sala de Tocaia como envelope cego')
+    ok(/pregaoLido &&/.test(lob), 'o selo do pregão não espera a leitura do modo')
+    // 🏟️ e DENTRO da sala de espera também (lá o `game_state` inteiro está na mão)
+    ok(/ÀS CEGAS · cada um lacra/.test(lob), 'a sala de espera não diz em que pregão a pessoa acabou de entrar')
     ok(/MODO_NOME/.test(lob), 'o selo da lista escreve o nome na mão em vez de puxar da fonte única')
     // e o nome mora num lugar SÓ: se alguém renomear, renomeia em todas as telas
     ok(st.MODO_NOME?.pt && st.MODO_NOME?.en, 'o nome do modo sumiu da fonte única (MODO_NOME)')

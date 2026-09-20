@@ -591,6 +591,12 @@ function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: str
   )
 }
 
+// 🛟 o banco desta sessão já tem a coluna `ls_holandes` (o modo do pregão na
+// lista de salas)? O primeiro erro desliga a tentativa pelo resto da sessão —
+// ver `fetchOpenRooms`. Fora do componente de propósito: é estado do BANCO, não
+// da tela, e não pode se perder a cada render.
+let semColunaPregao = false
+
 export function EscLobby() {
   const privateOnline = ONLINE_VISUAL_RELEASED
   const { state: escState, dispatch } = useEsc()
@@ -1725,17 +1731,37 @@ export function EscLobby() {
     // tabela, preenchidas por gatilho SÓ quando o game_state muda — a lista não
     // toca mais no JSON. Os apelidos (gname, gdeck…) continuam os mesmos, então o
     // resto da função não mudou.
-    const { data: rooms } = await supabase.from('game_rooms')
-      .select('id, code, host_id, max_players, status, updated_at, gname:ls_name, gdeck:ls_deck, gvarzea:ls_varzea, gmode:ls_mode, gat:ls_at, gcareer:ls_career, gmanual:ls_manual, gcopa:ls_copa, gliga:ls_liga, glocked:ls_locked, gstream:ls_stream, gpw:ls_pw, gchat:ls_chat, gduplas:ls_duplas')
+    // 🐊 O MODO DO PREGÃO NA LISTA (Diego, 20/09: *"ainda não tá aparecendo o selo
+    // do modo Tocaia… pode ser um jacaré talvez. E o padrão às cegas coloque outro
+    // emoji"*). Ele estava certo e o motivo era este: o selo lia
+    // `game_state.holandes`, mas ESTA lista **não baixa o `game_state`** desde
+    // 09/09 (ver o comentário acima — 15 campos por `->>` derrubaram o banco).
+    // Então `holandes` chegava sempre `undefined` e o selo nunca acendia. O modo
+    // do pregão passa a ter coluna magra própria, `ls_holandes`, igual aos outros
+    // 15 campos: o gatilho do banco preenche, a lista só lê.
+    // 🛟 E LÊ COM REDE: se a coluna ainda não existir (janela entre o deploy e o
+    // SQL), o Postgres devolve erro e a lista voltaria VAZIA — ninguém entraria em
+    // sala nenhuma. Aqui o primeiro erro faz a consulta cair pro formato antigo
+    // pelo resto da sessão: a lista continua de pé, só sem o selo do pregão.
+    const COLS = 'id, code, host_id, max_players, status, updated_at, gname:ls_name, gdeck:ls_deck, gvarzea:ls_varzea, gmode:ls_mode, gat:ls_at, gcareer:ls_career, gmanual:ls_manual, gcopa:ls_copa, gliga:ls_liga, glocked:ls_locked, gstream:ls_stream, gpw:ls_pw, gchat:ls_chat, gduplas:ls_duplas'
+    const busca = (cols: string) => supabase.from('game_rooms')
+      .select(cols)
       .in('status', ['waiting', 'started'])
       .eq('ls_tag', tagAtual())
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(50)
-    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null }
+    let rooms: unknown[] | null = null
+    if (!semColunaPregao) {
+      const r1 = await busca(`${COLS}, gholandes:ls_holandes`)
+      if (r1.error) semColunaPregao = true   // banco ainda sem a coluna: não tenta de novo nesta sessão
+      else rooms = r1.data as unknown[]
+    }
+    if (rooms === null) rooms = ((await busca(COLS)).data ?? []) as unknown[]
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined } as GS,
+      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true' } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -3290,12 +3316,24 @@ export function EscLobby() {
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
             const mundoRoom = r.game_state?.mode === 'mundo' // 🌍 Copa do Mundo: sala de seleções, sem leilão
-            // 🔻 QUEDA LIVRE: a sala roda o pregão de preço caindo, não o envelope
-            // cego. Pedido dele (20/09): *"as salas abertas, colocar ali holandês
-            // sei lá, pra diferenciar"*. Vai como SELO no nome (não na linha de
-            // baixo) porque é a diferença mais grossa entre duas salas: quem entra
-            // sem saber cai num jogo com outra regra de lance.
-            const holandesRoom = !!(r.game_state as GS & { holandes?: boolean })?.holandes
+            // 🐊 O MODO DO PREGÃO, SEMPRE À VISTA. Pedido dele (20/09): *"as salas
+            // abertas, colocar ali holandês sei lá, pra diferenciar"* e, vendo que
+            // não aparecia: *"ainda não tá aparecendo o selo do modo Tocaia… pode
+            // ser um jacaré talvez. E o padrão às cegas coloque outro emoji"*.
+            // Vai como SELO no nome (não na linha de baixo) porque é a diferença
+            // mais grossa entre duas salas: quem entra sem saber cai num jogo com
+            // outra regra de lance. E agora os DOIS modos têm selo — sem selo
+            // ninguém sabe se a sala é a de sempre ou a nova.
+            // ⚖️ TRÊS ESTADOS, não dois: `true` = Tocaia · `false` = envelope cego ·
+            // `undefined` = a lista NÃO conseguiu ler o modo (banco ainda sem a
+            // coluna). Só carimba quando leu de verdade — senão um banco velho
+            // faria TODA sala, inclusive as de Tocaia, se anunciar como "às
+            // cegas", que é mentir pra quem vai entrar. Sem leitura, nenhum selo.
+            const pregaoDaSala = (r.game_state as GS & { holandes?: boolean })?.holandes
+            const holandesRoom = pregaoDaSala === true
+            const pregaoLido = pregaoDaSala !== undefined
+            // 🌍 Copa do Mundo e 🃏 Bafo não têm pregão nenhum: nada de selo de modo
+            const temPregao = !mundoRoom && r.game_state?.mode !== 'elenco'
             return (
               <div key={r.id} className="online-room-row flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
@@ -3314,9 +3352,11 @@ export function EscLobby() {
                     {mundoRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão', 'World Cup: everyone picks a nation and calls up 11 — no auction')}>{tr('🌐 COPA', '🌐 CUP')}</span>
                     )}
-                    {holandesRoom && (
+                    {temPregao && pregaoLido && (holandesRoom ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Tocaia: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Ambush: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()}`}</span>
-                    )}
+                    ) : (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#fff', color: '#000', ...OSWALD }} title={tr('Às cegas: cada um escreve o lance no envelope e só abre no martelo. É o pregão de sempre.', 'Sealed bid: everyone writes their bid in an envelope and it only opens at the hammer. The usual auction.')}>{tr('✉️ ÀS CEGAS', '✉️ SEALED')}</span>
+                    ))}
                   </p>
                   <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>
                   {ligaRoom && (
@@ -3610,6 +3650,21 @@ export function EscLobby() {
         {room.game_state?.roomName && <p className="text-white font-black text-xl mb-1" style={OSWALD}>{room.game_state.roomName}</p>}
         <p className="text-white/50 text-[11px] font-black uppercase tracking-widest">{tr('Código da Sala', 'Room Code')}</p>
         <p className="font-black text-5xl text-white tracking-[0.2em] mt-1">{room.code}</p>
+        {/* 🐊 O MODO DO PREGÃO, DENTRO DA SALA (Diego 20/09). Aqui NÃO depende de
+            banco nenhum: a sala de espera já tem o `game_state` inteiro na mão.
+            Quem entrou pelo código precisa saber em que jogo está se metendo —
+            Tocaia e envelope cego são regras de lance diferentes. Some nas salas
+            que não têm pregão (Copa do Mundo e Bafo). */}
+        {!ehMundoSala && !elencoOn && (
+          <p className="mt-2">
+            <span className="inline-block text-[10px] font-black px-2 py-1 rounded-full border-2 border-black leading-none"
+              style={{ ...OSWALD, background: (room.game_state as GS & { holandes?: boolean })?.holandes ? '#C2452F' : '#fff', color: (room.game_state as GS & { holandes?: boolean })?.holandes ? '#fff' : '#000' }}>
+              {(room.game_state as GS & { holandes?: boolean })?.holandes
+                ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()} · ${tr('o preço CAI e quem apertar primeiro leva', 'the price DROPS and first to tap wins')}`
+                : tr('✉️ ÀS CEGAS · cada um lacra o lance no envelope', '✉️ SEALED BID · everyone seals their bid')}
+            </span>
+          </p>
+        )}
       </div>
 
       {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima) */}

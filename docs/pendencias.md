@@ -1,3 +1,52 @@
+## 20/09/2026 (parte 49) — 🐊 O SELO DO PREGÃO NA LISTA (e por que ele não acendia)
+
+*"Ainda não tá aparecendo o selo do modo Tocaia… pode ser um jacaré talvez. E o
+padrão às cegas coloque outro emoji."*
+
+### 🔍 A causa: não era o selo, era o DADO
+O selo lia `game_state.holandes` — mas a **lista de salas abertas não baixa o
+`game_state`** desde 09/09. Naquela noite ela extraía 15 campos com `->>` e o
+Postgres descomprimia o JSON (50–200 KB) **uma vez por campo**: 3,5 s por
+consulta, 400 consultas/min, o banco parou (timeout em login, sala e save).
+Desde então os campos moram em colunas magras `ls_*`, preenchidas por gatilho.
+
+`holandes` nasceu depois e **nunca ganhou coluna**. Então na lista ele chegava
+sempre `undefined` e o selo nunca tinha como acender. O código do selo estava
+certo desde ontem; faltava o dado chegar até ele.
+
+👉 **Lição pra quem for pôr qualquer coisa nova na lista de salas abertas:** não
+basta gravar no `game_state`. **Tem que ter coluna `ls_*`** — a lista não lê o
+JSON e nunca mais vai ler.
+
+### ✅ O que foi feito
+- **`docs/sql/lista-salas-modo-pregao.sql`** — cria `ls_holandes` e um gatilho
+  **próprio e separado**, que NÃO encosta no `game_rooms_colunas_magras` que já
+  está no ar (a lição do `online-copa-clock-preview.sql`). Coluna nula =
+  instantâneo, sem travar a tabela; não precisa preencher as salas de pé, porque
+  toda sala viva é regravada em segundos.
+- **Os DOIS modos têm selo agora**: 🐊 TOCAIA (vermelho) e ✉️ ÀS CEGAS (branco).
+  Só carimbar a Tocaia não diferenciava nada pra quem olha a lista.
+- **Três estados, não dois**: `true` = Tocaia · `false` = envelope cego ·
+  `undefined` = a lista não conseguiu ler. **Sem leitura, nenhum selo** — senão
+  um banco ainda sem a coluna faria toda sala, inclusive as de Tocaia, se
+  anunciar como "às cegas", que é mentir pra quem vai entrar.
+- 🛟 **Rede na consulta**: se a coluna não existir, o Postgres devolve erro e a
+  lista voltaria **VAZIA** — ninguém entraria em sala nenhuma. O primeiro erro
+  faz a consulta cair pro formato antigo pelo resto da sessão. Por isso o código
+  pode subir antes do SQL, em qualquer ordem, sem risco.
+- 🏟️ **E dentro da sala de espera também**, logo abaixo do código da sala — e
+  essa parte **não depende de banco nenhum** (lá o `game_state` inteiro está na
+  mão). Quem entrou pelo código precisa saber em que jogo se meteu.
+
+### ⏳ O que falta (não é código)
+Rodar o `docs/sql/lista-salas-modo-pregao.sql` no Supabase. Até lá o selo aparece
+**dentro da sala**, mas não na lista de salas abertas.
+
+🛡️ `npm run holandes` (com 6 travas novas, inclusive a que reprova quem voltar a
+procurar o modo no `game_state`) · `npm run ascegas` com as mesmas digitais
+(`28bea2df` · `d65041f6` · `06bab491`) · `npm run sala` e `npm run relogio` verdes.
+
+---
 ## 20/09/2026 (parte 48) — 🎬 REELS DA TOCAIA (`npm run tocaia`)
 
 *"Preciso de um vídeo top agora, padrão de vídeos que fazemos, falando dessa
