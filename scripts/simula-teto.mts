@@ -78,7 +78,7 @@ const RECEITA_ESTADIO: Record<Div, number> = { A: 120, B: 70, C: 40, D: 22, V: 1
 //    E cresce sozinho conforme o jogo avança, porque a liga vai enriquecendo.
 type Modelo = 'hoje' | 'bolso' | 'bolso+nivel' | 'bolso+nivel+tempo' | 'mercado' | 'mercado-media' | 'mercado-so-bots' | 'recomendado' | 'persegue' | 'persegue+duro' | 'dinheiro'
 const PROPORCAO = (c: Carta) => catPriceCap(c) / 90   // 👑1,00 ⭐0,72 💎0,47 🎯0,29 🪵0,18
-const K_DINHEIRO = 2.5                                // uma lenda custa ~1,5 caixa mediano
+const K_DINHEIRO = 2.5                                // uma lenda custa ~2,5 caixa mediano
 const PASSO = 0.25                       // sobe/desce no máximo 25% por temporada
 const TETO_DURO = (c: Carta) => catPriceCap(c) * 5   // 👑450 ⭐325 💎210 🎯130 🪵80
 const FAIXA_NIVEL = (n: number) => Math.floor(n / 5) * 5      // 50-54, 55-59, …
@@ -102,14 +102,6 @@ function fatorNivel(c: Carta): number {
 }
 function tetoDoBot(modelo: Modelo, c: Carta, caixaBot: number, mediaSala: number, temp = 1, indice?: Map<number, number>): number {
   if (modelo === 'hoje') return Math.round(catPriceCap(c) * econSala(mediaSala))
-  if (modelo === 'dinheiro') {
-    const ref = indice?.get(-1) ?? 100                  // caixa mediano da liga
-    const v = Math.min(
-      Math.round(ref * K_DINHEIRO * PROPORCAO(c) * fatorNivel(c)),
-      Math.round(caixaBot * FATIA_BOLSO),
-    )
-    return Math.max(1, v)
-  }
   if (modelo === 'dinheiro') {
     const ref = indice?.get(-1) ?? 100                  // caixa mediano da liga
     return Math.max(1, Math.min(
@@ -410,4 +402,13 @@ for (const m of ['hoje', 'mercado', 'recomendado', 'persegue', 'persegue+duro', 
   const a = pico(limpo), b = pico(sujo)
   const risco = b > a * 2 ? '🚨 DISPARA' : b > a * 1.3 ? '⚠️ sobe' : '✅ seguro'
   console.log(`${m.padEnd(19)} | ${String(a).padStart(12)} | ${String(b).padStart(18)} | ${risco}`)
+}
+
+
+console.log('\n═══ 8) ⏳ E NA TEMPORADA 1200? (medo do Diego: gente já está lá) ═══')
+for (const m of ['hoje', 'dinheiro'] as Modelo[]) {
+  const d = simula(m, 1200)
+  const q = (t: number) => d[t - 1].maiorTetoGeral
+  const pico = Math.max(...d.map(x => x.maiorTetoGeral))
+  console.log(`${m.padEnd(10)} → temp 100: ${String(q(100)).padStart(4)} · 300: ${String(q(300)).padStart(4)} · 600: ${String(q(600)).padStart(4)} · 900: ${String(q(900)).padStart(4)} · 1200: ${String(q(1200)).padStart(4)} · o MAIOR que já chegou em 1200 temporadas: ${pico}`)
 }
