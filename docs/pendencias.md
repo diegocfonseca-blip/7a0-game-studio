@@ -68,6 +68,25 @@ por cima (`catPriceCap × 5` → 👑450 ⭐325 💎210 🎯130 🪵80) que nenh
   modelo que disparou (854) — é exatamente o tipo de comportamento emergente que o
   Diego não quer.
 
+### 🧠 A IDEIA DELE (20/09) — "o teto persegue o que o usuário pagou"
+Palavras dele: *"se um usuário pagar no nível 90 mil, o teto máximo que o bot pode
+chegar agora é mil também… porém sendo inteligente"* — e o medo, que é o certo:
+*"pode ser que no próximo ele pague 1500, aí o bot aumenta pra 1500 e daqui a pouco
+o jogo tá em 10k hahaha"*.
+
+Bancada (modelo `persegue`): teto anda no máximo **25% por temporada** na direção do
+preço que SE SUSTENTOU (mediana — um lance maluco sozinho não move, dois já é preço),
+e desce do mesmo jeito.
+
+| régua | pico sem trapaceiro | pico com trapaceiro |
+|---|---|---|
+| persegue (só com freio) | 511 | **955** ⚠️ |
+| **persegue + teto duro** | **450** | **450** ✅ |
+
+👉 **O freio sozinho NÃO impede o 10k** — só faz demorar, porque o trapaceiro
+realimenta o índice toda temporada. Quem realmente fecha a porta é o **teto duro**.
+Ou seja: o teto duro é a resposta pro medo QUE ELE MESMO levantou, não um capricho meu.
+
 ### ⏳ PENDENTE — esperando a palavra do Diego (nada implementado)
 1. Livro de preços gravar só até o teto de mercado (`recordPrice`).
 2. Carta que volta pro dono no monte voltar "como saiu" (mesmo valor, mesmo contrato).
