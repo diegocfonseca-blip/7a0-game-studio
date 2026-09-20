@@ -1,3 +1,35 @@
+## 20/09/2026 (parte 44) — 🏷️ Tarja "NOVO" no Holandês (nas duas telas de montar)
+
+Pedido dele, com o print da tela de criar sala: *"aonde tá holandês coloque uma obs
+de novo"* — igual à que o **🌐 Liga + Mundo** já tem ali do lado.
+
+### O que foi feito
+O componente `Seg` do `lobby.tsx` **já sabia** desenhar essa tarja (`selos`), então
+não teve desenho novo — só faltava usar. Mas ela estava presa numa data FIXA
+(`NOVO_ATE = 16/10`), que era a validade da Copa do Mundo online (nascida em 01/09).
+Se eu reaproveitasse, a tarja do holandês morreria 26 dias antes da hora.
+
+Virou genérica: **`seloNovoDe(nascimento)`** — a tarja some sozinha **45 dias**
+depois de o modo nascer, e a data da Copa do Mundo continua a dela.
+
+### 📍 E está nas DUAS telas de montar
+- **Sala online** (`lobby.tsx`), via o `Seg`;
+- **Partida Rápida** (`screens.tsx`), onde o seletor é feito à mão — a tarja foi
+  desenhada com o MESMO estilo (mesma pílula, mesmo tamanho, mesma inversão de cor
+  quando o botão está escolhido).
+
+Se ficasse só numa, as duas telas contariam histórias diferentes sobre o mesmo modo.
+
+### 🗓️ A data mora junto do NOME
+`MODO_HOLANDES_NASCEU = '2026-09-20'` ficou em `store.tsx`, ao lado de
+`MODO_HOLANDES`. É a mesma informação ("este é o modo novo") — separar os dois seria
+pedir pra um envelhecer sem o outro. E, como as novidades da home, **ninguém precisa
+lembrar de tirar**: em 04/11 a tarja some sozinha.
+
+🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
 ## 20/09/2026 (parte 43) — ⏱️ No holandês o host NÃO escolhe tempo (ele desfez o que eu tinha feito)
 
 Na parte 42 eu tinha "consertado" o `auctionSecs` (o tempo do pregão da sala de

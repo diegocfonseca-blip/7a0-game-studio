@@ -5,7 +5,7 @@ import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG } from './manto'
-import { useEsc, listAllCareers, MODO_HOLANDES } from './store'
+import { useEsc, listAllCareers, MODO_HOLANDES, MODO_HOLANDES_NASCEU } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
 import { AdminButton, useCanCareerOnline } from './admin'
@@ -563,8 +563,12 @@ function Seg<T extends string | number | boolean>({ options, value, onSet, small
 // 🏷️ até quando a tarja "NOVO" fica na tela. Mesma ideia das novidades da home:
 // ninguém precisa lembrar de tirar — ela some sozinha. (A Copa do Mundo online
 // nasceu em 01/09; 45 dias depois vira mais um modo de sempre.)
-const NOVO_ATE = new Date('2026-10-16T00:00:00')
-const seloNovo = (): string | undefined => (Date.now() < NOVO_ATE.getTime() ? tr('novo', 'new') : undefined)
+const NOVO_DIAS = 45
+/** tarja "NOVO" que some sozinha 45 dias depois de o modo nascer */
+const seloNovoDe = (nascimento: string): string | undefined =>
+  (Date.now() < new Date(`${nascimento}T00:00:00`).getTime() + NOVO_DIAS * 24 * 3600_000 ? tr('novo', 'new') : undefined)
+// 🌍 a Copa do Mundo online nasceu em 01/09
+const seloNovo = (): string | undefined => seloNovoDe('2026-09-01')
 // chavinha (switch) liga/desliga
 function Sw({ on }: { on: boolean }) {
   return (
@@ -3095,7 +3099,7 @@ export function EscLobby() {
                   Carreira online fica no pregão de sempre por decisão. */}
               {(roomMode === 'rapido' || roomMode === 'liga') && (
                 <SegField label={tr('Como é o leilão', 'Auction format')}>
-                  <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `🔻 ${tr(MODO_HOLANDES.pt, MODO_HOLANDES.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />
+                  <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `🔻 ${tr(MODO_HOLANDES.pt, MODO_HOLANDES.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} selos={{ true: seloNovoDe(MODO_HOLANDES_NASCEU) }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {rapidoHolandes
                       ? tr('🔻 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🔻 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')

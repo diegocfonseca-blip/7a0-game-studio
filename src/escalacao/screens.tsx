@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_HOLANDES, modoHolandesNome, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_HOLANDES, MODO_HOLANDES_NASCEU, modoHolandesNome, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -2621,6 +2621,19 @@ export function EscSetup() {
                 <button key={String(m)} onClick={() => setHolandes(m)}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
                   style={{ backgroundColor: holandes === m ? GOLD : '#fff', boxShadow: holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  {/* 🏷️ tarja NOVO — a MESMA da sala online, pra as duas telas não
+                      contarem histórias diferentes. Ela some sozinha 45 dias depois
+                      de o modo nascer (`MODO_HOLANDES_NASCEU`), igual às novidades
+                      da home: ninguém precisa lembrar de tirar. A cor inverte
+                      quando o botão está escolhido, senão o dourado sumiria dentro
+                      do dourado justo na hora em que a pessoa escolhe. */}
+                  {m === true && seloNovoHolandes() && (
+                    <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+                      letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
+                      border: `1.5px solid ${INK}`, background: holandes ? INK : GOLD, color: holandes ? GOLD : INK }}>
+                      {seloNovoHolandes()}
+                    </span>
+                  )}
                   {label}
                 </button>
               ))}
@@ -3387,6 +3400,13 @@ function CardReact({ cardId }: { cardId: string }) {
     </div>
   )
 }
+
+// 🏷️ a tarja "NOVO" do pregão holandês nas telas de montar. Some sozinha 45
+// dias depois de o modo nascer — a data mora junto do NOME, em `store.tsx`.
+const seloNovoHolandes = (): string | undefined =>
+  (Date.now() < new Date(`${MODO_HOLANDES_NASCEU}T00:00:00`).getTime() + 45 * 24 * 3600_000
+    ? (getLang() === 'en' ? 'new' : 'novo')
+    : undefined)
 
 export function EscAuction() {
   const { state } = useEsc()

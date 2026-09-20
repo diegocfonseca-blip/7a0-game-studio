@@ -4410,6 +4410,15 @@ export function holEscada(start: number): number[] {
 // criada antes continua abrindo. Esta constante é só o que a pessoa LÊ, e existe
 // num lugar só pra que trocar o nome um dia seja UMA linha, não sete telas.
 export const MODO_HOLANDES = { pt: 'Holandês', en: 'Dutch' } as const
+/**
+ * 🏷️ quando o modo nasceu — é daqui que sai a tarja "NOVO" das telas de montar
+ * (pedido dele, 20/09: *"aonde tá holandês coloque uma obs de novo"*). Mesma
+ * ideia das novidades da home: ninguém precisa lembrar de tirar a tarja, ela
+ * some sozinha 45 dias depois. Mora aqui do lado do nome porque é a MESMA
+ * informação — "este modo é o novo" — e separar os dois seria pedir pra um
+ * envelhecer sem o outro.
+ */
+export const MODO_HOLANDES_NASCEU = '2026-09-20'
 export const modoHolandesNome = (en: boolean) => (en ? MODO_HOLANDES.en : MODO_HOLANDES.pt)
 
 export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
