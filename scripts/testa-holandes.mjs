@@ -409,6 +409,37 @@ const r = await p.evaluate(async () => {
   ok(empates[20].maiorRoda <= tecs20, `sala de 20: fila de ${empates[20].maiorRoda} robôs numa carta só, com ${tecs20} técnicos — alguém pediu duas vezes`)
   ok(empates[8].maiorRoda <= 8, `sala de 8: fila de ${empates[8].maiorRoda} robôs numa carta só — alguém pediu duas vezes`)
 
+  // 7️⃣ 🌐 ONLINE: o que o convidado PODE e o que ele NÃO PODE receber.
+  //    Liberado em 20/09 pro Rápido online e pro 🏆 Minhas Ligas (ordem dele:
+  //    *"ok pode criar no partida rápida e no modo rápido online e minhas ligas"*).
+  {
+    let so = st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: 7, holandes: true })
+    ok(so.phase === 'holandes' && !!so.hol, 'o holandês nem abriu — o resto deste teste não vale')
+    const pacote = st.sanitizeParaSala(so)
+
+    // 🔒 (a) O SEGREDO QUE NÃO PODE VAZAR: os TETOS dos robôs. Eles dizem por
+    //     quanto cada bot vai apertar em cada carta. Convidado com isso na mão
+    //     sabe a hora exata de cortar o robô em TODA carta do pregão — acabou o
+    //     jogo. Mesma regra do envelope cego, que também não vaza.
+    ok(pacote.hol && Object.keys(pacote.hol.tetos ?? {}).length === 0,
+      `os tetos dos robôs foram no pacote da sala (${Object.keys(pacote.hol?.tetos ?? {}).length} cartas) — isso entrega o pregão`)
+    ok(Object.keys(so.hol.tetos).length > 0, 'o host ficou SEM os tetos — aí o pregão não anda')
+    ok(Object.keys(pacote.pendingEnvelopes ?? {}).length === 0, 'o envelope cego vazou no pacote da sala')
+
+    // 👀 (b) E O QUE O CONVIDADO PRECISA VER, ele vê: preço, degrau, quem já
+    //     levou o quê e por quanto. Sem isso a tela dele não desenha nada.
+    ok(pacote.hol?.preco === so.hol.preco, 'o preço não chegou no convidado')
+    ok(pacote.hol?.passo === so.hol.passo, 'o degrau não chegou no convidado')
+    ok(Array.isArray(pacote.hol?.levados), 'a lista de quem levou o quê não chegou no convidado')
+    ok(pacote.holandes === true, 'o convidado não fica sabendo que a sala é holandesa')
+
+    // 🔁 (c) e o pacote continua servindo pro pregão CEGO igualzinho
+    const cego2 = st.reducer(st.INITIAL, { type: 'START', teamName: 'Meu Time', formation: '4-3-3', rivals: 7 })
+    const pacoteCego = st.sanitizeParaSala(cego2)
+    ok(!pacoteCego.hol, 'sala cega saiu com estado de holandês no pacote')
+    ok(pacoteCego.holandes === false, 'sala cega saiu marcada como holandesa')
+  }
+
   // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
   //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
   //    jogadores usuários q entram no online igual a regra q já funciona ou tô

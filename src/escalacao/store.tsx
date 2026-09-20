@@ -4155,7 +4155,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -6008,6 +6008,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // indefinido e tudo cai no caminho de sempre.
       const onlineNba = action.sport === 'basquete'
       const onlineVarzea = !onlineNba && !action.career && (action.deck ?? 'br') === 'br' && !!action.varzea
+      // 🔻 PREGÃO HOLANDÊS: escolha do HOST na hora de montar a sala, e vale pra
+      // sala inteira (vem no `game_state`, então quem entra depois pega a mesma).
+      // Padrão é SEMPRE o leilão cego de hoje — sala antiga nem tem o campo.
+      // 🚫 Fora da CARREIRA online: lá o pregão é o de sempre, sem novidade.
+      s.holandes = !action.career && !!action.holandes
       s.varzea = onlineVarzea
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = false // online rápido/liga: não é a carreira salva do basquete
@@ -10236,6 +10241,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // é imune a lance repetido — chegar pelas duas estradas não duplica nada.
       // Vale só pros DOIS recados que travam a sala quando somem: o envelope e o
       // re-lance do empate. Com folga de 5s pra não inundar o banco.
+      // 🔻 O PEGAR DO HOLANDÊS ENTRA AQUI TAMBÉM, e é o recado mais urgente de
+      // todos: se ele se perder, o jogador some da mão de quem apertou e a carta
+      // vai pra outro (ou pras sobras) sem ninguém entender. Diferente do lance
+      // cego, aqui NÃO tem folga de 5s — o preço está caindo, cada toque é único
+      // e não dá pra "segurar o próximo". O reducer recusa o toque com preço
+      // velho, então chegar pelas duas estradas nunca compra duas vezes.
+      if (action.type === 'HOLANDES_PEGAR' && stateRef.current.roomId) {
+        supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+      }
       if ((action.type === 'SUBMIT_ENVELOPE' || action.type === 'SUBMIT_TIEBREAK') && stateRef.current.roomId) {
         const agora = Date.now()
         if (agora - acaoReservaTsRef.current > 5_000) {
@@ -10641,7 +10655,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         try {
           const st = stateRef.current
           if (!st.roomId || !st.isHost) return
-          if (st.screen !== 'auction' && st.phase !== 'envelope' && st.phase !== 'resq_envelope') return
+          if (st.screen !== 'auction' && st.phase !== 'envelope' && st.phase !== 'resq_envelope' && st.phase !== 'holandes') return
           const { data } = await supabase.from('room_acoes').select('id, payload')
             .eq('room_id', st.roomId).gt('id', acoesVistasRef.current)
             .order('id', { ascending: true }).limit(25)
@@ -10653,7 +10667,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 📮 os 4 recados que travam a sala quando somem: os dois lances e os
             // dois "acabou o tempo, fecha". O reducer reconfere prazo e duplicata,
             // então aplicar de novo o que já chegou pelo rádio não muda nada.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK')) rawDispatch(a)
+            // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
+            // jogador da mão de quem apertou. O reducer confere o preço da tela
+            // e recusa carta que já tem dono, então repetido não faz mal.
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
@@ -11472,8 +11489,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
 // mantém o leilão cego: convidados nunca recebem os envelopes pendentes,
 // só quem já lacrou (contador) — os valores só aparecem na revelação.
+// exportado só pra trava (`npm run holandes`) poder conferir o que sai daqui —
+// é o pacote que o host manda pra sala, e o que vaza nele vaza pra todo mundo.
+export const sanitizeParaSala = (state: EscState): EscState => sanitize(state)
 function sanitize(state: EscState): EscState {
-  return { ...state, pendingEnvelopes: {}, tiebreakPending: {} }
+  // 🔻 HOLANDÊS: o `hol` inteiro é público (o pregão acontece na cara de todo
+  // mundo) MENOS os `tetos` — eles dizem exatamente por quanto cada robô vai
+  // apertar em cada carta. Convidado com isso na mão saberia a hora exata de
+  // cortar o bot em toda carta do pregão. Mesma regra do `pendingEnvelopes`:
+  // o que é segredo não sai do host.
+  const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
+  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.hol ? { hol } : {}) }
 }
 
 // 📦 o estado que o host manda pros convidados chega a ~80 KB e ESTOURAVA o limite

@@ -1,3 +1,52 @@
+## 20/09/2026 (parte 35) — 🌐 Holandês LIGADO no online (Rápido online + 🏆 Minhas Ligas)
+
+Ordem dele: *"ok pode criar no partida rápida e no modo rápido online e minhas
+ligas"*. Os três estão ligados. **A Carreira online fica de fora** de propósito: lá
+o pregão é o de sempre, e carreira é save longo — não é lugar de estrear modo.
+
+### 🎛️ Onde o host escolhe
+Na tela de montar a sala, um `SegField` novo — **"Como é o leilão"**, com `✉️
+Envelope cego` (padrão) e `🔻 Holandês` — no mesmo lugar e estilo do "Baralho de
+craques" e da "Formação". A escolha **é do HOST e vale pra sala inteira**: vai
+gravada no `game_state` (`holandes: true`), então quem entra depois joga o mesmo
+pregão, não o que o aparelho dele preferia. **Sala antiga não tem o campo → leilão
+cego**, como sempre.
+
+### 🔒 O SEGREDO QUE NÃO PODE VAZAR (o perigo real do online)
+O estado do holandês é quase todo público — o pregão acontece na cara de todo
+mundo. **Menos os `tetos`**: eles dizem por quanto cada robô vai apertar em cada
+carta. Convidado com isso na mão sabe a hora exata de cortar o bot em TODA carta do
+pregão — acabou o jogo. Então o `sanitize` (o mesmo que já esconde o
+`pendingEnvelopes`) passou a **zerar `hol.tetos`** antes de o host mandar o pacote
+pra sala. **Trava nova (seção 7)** confere as duas pontas: que o teto NÃO sai, e
+que preço/degrau/`levados` SAEM (senão a tela do convidado não desenha nada).
+
+### 📮 E o toque do convidado ganhou ESTRADA RESERVA
+O `HOLANDES_PEGAR` entrou na lista dos recados que também vão **pelo banco**
+(`room_acoes`, por HTTPS), além do rádio — e o host passou a lê-lo. Motivo: é o
+recado mais urgente do jogo. Se o lance cego se perde, dá pra reenviar em 4s; aqui
+**o preço está caindo**, cada toque vale por um preço que não volta. Diferente dos
+outros, ele vai **sem folga de espera** — e chegar pelas duas estradas não compra
+duas vezes, porque o reducer recusa toque com preço velho e carta que já tem dono.
+O vigia do host também passou a acordar na fase `'holandes'`.
+
+### 👑 Host sumido no meio da descida
+Continua valendo a **regra permanente da coroa**: a sala PARA e espera o dono. No
+holandês o `phaseDeadline` é `null` (quem manda o relógio é a escada de preços),
+então não existe "fecha sozinho". É o comportamento desejado, não bug.
+
+### 🛡️ E o às cegas continua intocado
+`npm run ascegas` rodado DEPOIS de toda a fiação do online: `28bea2df` · `d65041f6`
+· `06bab491` — as mesmas três digitais da `origin/main`.
+
+### 📷 O que eu NÃO consegui mostrar
+A tela de criar sala **exige login**, e eu não vou entrar na conta dele pra tirar
+print. Então o botão novo do lobby é a única peça deste trabalho que ele ainda não
+viu em foto — as do pregão (partida rápida) estão todas conferidas. Quando ele abrir
+uma sala, é o 3º campo da tela, logo acima da Formação.
+
+---
+
 ## 20/09/2026 (parte 34) — 🛡️ PROVA de que o leilão às cegas não foi tocado (`npm run ascegas`)
 
 Ordem dele: *"tudo q estamos fazendo aqui, não mexa em nada o que já funciona no
