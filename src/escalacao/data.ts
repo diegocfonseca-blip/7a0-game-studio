@@ -715,7 +715,7 @@ const LAT: C[] = [
   { name: "Cortez", club: "Grêmio", year: 2018, fame: 2, lo: 62, hi: 79 },
   { name: "Rodinei", club: "Flamengo", year: 2019, fame: 2, lo: 62, hi: 80, folk: true },
   { name: "Isla", club: "Flamengo", year: 2020, fame: 2, lo: 66, hi: 82 },
-  { name: "Wesley", club: "Flamengo", year: 2023, fame: 2, lo: 68, hi: 82 },
+  { name: "Wesley", club: "Flamengo", year: 2023, fame: 3, lo: 70, hi: 86, promessa: true },
   { name: "Ruy Cabeção", club: "Grêmio", year: 2009, fame: 1, lo: 56, hi: 78, folk: true },
   { name: "Reinaldo", club: "São Paulo", year: 2020, fame: 3, lo: 72, hi: 84, bio: "Lateral-esquerdo de chegada e cobrador oficial do Morumbi — pênalti, falta e gol de lateral como poucos." },
   // 💚 UMA carta só, ano 2016 (decisão do Diego 28/08). Ele tinha duas — 2016 e
@@ -1436,7 +1436,32 @@ const L30_BR_MEI: C[] = [
   // é fame 2 porque era peça de rodízio — o Marlon era o capitão que jogava sempre.
   { name: 'Marlon Freitas', club: 'Botafogo', year: 2024, fame: 3, lo: 76, hi: 85, bio: 'Capitão e dono do meio-campo do Botafogo campeão da Libertadores e do Brasileiro em 2024 — volante de marcação, saída de bola e liderança na maior temporada da história do clube.' },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA] }
+// ─── LEVA 31 (20/09/2026) — goleiros, zagueiros e laterais de agora, pedido do
+// Diego: *"me dê uma lista de jogadores recentes pelo mundo que estão fazendo fama
+// … na lateral, goleiro e zagueiro"*. Toda carta é o AUGE do cara, não o clube de
+// hoje — regra dele. Nível calibrado pelos vizinhos de mesma categoria. ─────────
+const L31_BR_GOL: C[] = [
+  { name: "Rafael", club: "São Paulo", year: 2024, fame: 3, lo: 79, hi: 87, bio: "Paredão do São Paulo: chegou como reserva e virou um dos goleiros mais regulares do Brasileirão, decisivo em pênaltis." },
+  { name: "Bento", club: "Athletico-PR", year: 2023, fame: 3, lo: 78, hi: 87, bio: "Formado no Athletico, virou goleiro da Seleção Brasileira pela regularidade e pelas defesas difíceis — saiu do Brasil valendo fortuna." },
+  { name: "Agustín Rossi", club: "Flamengo", year: 2025, fame: 3, lo: 78, hi: 86, bio: "Goleiro argentino do Flamengo, ex-Boca Juniors — fama de pegador de pênalti em decisão." },
+  { name: "Lucas Perri", club: "Botafogo", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Botafogo da campanha de 2023 — sequência de defesaças que o levou direto pro futebol francês." },
+  { name: "João Ricardo", club: "Fortaleza", year: 2026, fame: 2, lo: 72, hi: 84, bio: "Goleiro tardio que virou ídolo no Fortaleza — dono de uma das melhores sequências de jogos sem sofrer gol do Brasileirão." },
+]
+const L31_BR_ZAG: C[] = [
+  { name: "Vitor Reis", club: "Palmeiras", year: 2024, fame: 3, lo: 70, hi: 84, promessa: true, bio: "Zagueiro canhoto da base do Palmeiras: estourou com 18 anos, saída de bola de meia, e foi vendido ao Manchester City por 37 milhões de euros." },
+  { name: "Murilo", club: "Palmeiras", year: 2024, fame: 3, lo: 78, hi: 86, bio: "Zagueiro canhoto do Palmeiras — velocidade pra cobrir espaço e regularidade que rendeu convocação à Seleção." },
+  { name: "Bastos", club: "Botafogo", year: 2024, fame: 3, lo: 77, hi: 85, bio: "Zagueiro angolano do Botafogo campeão da Libertadores e do Brasileiro em 2024 — força física e velocidade." },
+  { name: "Bruno Fuchs", club: "Atlético-MG", year: 2024, fame: 3, lo: 76, hi: 84, bio: "Zagueiro alto e de bom jogo aéreo, pilar da defesa do Atlético-MG — carreira construída depois de rodar por Internacional e futebol árabe." },
+]
+const L31_BR_LAT: C[] = [
+  { name: "Varela", club: "Flamengo", year: 2025, fame: 2, lo: 72, hi: 83, bio: "Lateral-direito uruguaio do Flamengo, ex-Manchester United e Dínamo de Moscou — raça e chegada ao ataque." },
+  { name: "Vanderlan", club: "Palmeiras", year: 2024, fame: 3, lo: 70, hi: 82, promessa: true, bio: "Lateral-esquerdo da base do Palmeiras — arrancada longa e bom cruzamento, ganhando espaço entre os titulares." },
+  { name: "Agustín Giay", club: "Palmeiras", year: 2025, fame: 3, lo: 70, hi: 82, promessa: true, bio: "Lateral-direito argentino, campeão mundial sub-20, comprado pelo Palmeiras ao San Lorenzo ainda jovem." },
+]
+const L31_BR_ATA: C[] = [
+  { name: "Tuta", club: "Fluminense", year: 2006, fame: 3, lo: 72, hi: 85, bio: "Centroavante raçudo que rodou o Brasil inteiro — Athletico, Flamengo, Palmeiras, Grêmio e Coritiba — e encontrou a melhor fase no Fluminense dos anos 2000." },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -2091,7 +2116,7 @@ const L27_EU_ZAG: C[] = [
   { name: 'Cris', club: 'Lyon', year: 2008, fame: 3, lo: 76, hi: 86, bio: 'Zagueiro brasileiro que virou capitão do Lyon na fila de títulos franceses — velocidade e porrada na bola dividida.' },
 ]
 const L27_EU_LAT: C[] = [
-  { name: 'Yan Couto', club: 'Girona', year: 2024, fame: 3, lo: 74, hi: 84, bio: 'Lateral-direito brasileiro de cruzamento afiado — foi dele boa parte das assistências do Girona que assustou a Espanha.' },
+  { name: 'Yan Couto', club: 'Girona', year: 2024, fame: 3, lo: 74, hi: 84, promessa: true, bio: 'Lateral-direito brasileiro de cruzamento afiado — foi dele boa parte das assistências do Girona que assustou a Espanha.' },
 ]
 const L27_EU_MEI: C[] = [
   { name: 'Felipe Anderson', club: 'Lazio', year: 2018, fame: 4, lo: 80, hi: 88, bio: 'Ponta canhoto de drible curto e arrancada — o craque da Lazio antes de rodar a Europa.' },
@@ -2133,7 +2158,53 @@ const L29_EU_ATA: C[] = [
 const L30_EU_ATA: C[] = [
   { name: 'Yan Diomandé', club: 'RB Leipzig', year: 2025, fame: 3, lo: 74, hi: 88, promessa: true, bio: 'Marfinense de Abidjan que o Leipzig comprou do Leganés em 2025: na primeira temporada na Alemanha foram 15 gols e 11 assistências, e a Europa inteira passou a brigar por ele.' },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA] }
+// ─── LEVA 31 (20/09/2026) — a defesa do futebol de AGORA no baralho Europa.
+// Mesma regra: cada carta é o AUGE do jogador. ─────────────────────────────────
+const L31_EU_GOL: C[] = [
+  { name: "David Raya", club: "Arsenal", year: 2025, fame: 4, lo: 84, hi: 90, bio: "Goleiro espanhol do Arsenal: duas Luvas de Ouro seguidas na Premier League, jogo com os pés de zagueiro e saída de área confiante." },
+  { name: "Diogo Costa", club: "Porto", year: 2026, fame: 4, lo: 83, hi: 90, bio: "Goleiro português do Porto — reflexo curto, jogo com os pés e fama de pegador de pênaltis pela seleção." },
+  { name: "Gregor Kobel", club: "Dortmund", year: 2024, fame: 3, lo: 81, hi: 88, bio: "Goleiro suíço do Borussia Dortmund — dos mais regulares da Bundesliga e peça da campanha europeia do clube." },
+  { name: "Lucas Chevalier", club: "Lille", year: 2025, fame: 3, lo: 74, hi: 88, promessa: true, bio: "Revelado no Lille, virou o goleiro do momento na França e trocou o clube por um gigante ainda jovem — do jogo brilhante ao jogo de falha, na mesma temporada." },
+  { name: "Mamardashvili", club: "Liverpool", year: 2026, fame: 3, lo: 76, hi: 88, promessa: true, bio: "Goleiro georgiano de quase dois metros que brilhou no Valencia e foi comprado pelo Liverpool — envergadura e defesas impossíveis." },
+  { name: "Matz Sels", club: "Nottingham Forest", year: 2025, fame: 3, lo: 78, hi: 86, bio: "Goleiro belga do Nottingham Forest — luva de ouro na Premier League numa temporada surpreendente do clube." },
+  { name: "Vicario", club: "Tottenham", year: 2024, fame: 3, lo: 78, hi: 86, bio: "Goleiro italiano do Tottenham — ótimo com os pés e nas defesas de curta distância." },
+]
+const L31_EU_ZAG: C[] = [
+  { name: "Marquinhos", club: "PSG", year: 2023, fame: 5, lo: 87, hi: 93, bio: "Zagueiro-capitão do PSG e da Seleção. Mais de uma década no topo, com saída de bola, antecipação e liderança." },
+  { name: "Éder Militão", club: "Real Madrid", year: 2022, fame: 4, lo: 85, hi: 91, bio: "Zagueiro brasileiro do Real Madrid — velocidade e força de sobra, campeão de tudo pelo clube antes de as lesões cobrarem o preço." },
+  { name: "Bastoni", club: "Inter", year: 2023, fame: 4, lo: 85, hi: 91, bio: "Zagueiro canhoto da Inter e da Itália — saída de bola de meio-campista e leitura de jogo rara pra idade." },
+  { name: "Cristian Romero", club: "Tottenham", year: 2025, fame: 4, lo: 84, hi: 91, bio: "Zagueiro argentino campeão do mundo em 2022 e capitão do Tottenham — marcação agressiva, com cartão fácil no pacote." },
+  { name: "Jules Koundé", club: "Barcelona", year: 2024, fame: 4, lo: 84, hi: 90, bio: "Zagueiro francês do Barcelona que virou lateral-direito de elite sem perder a categoria de zagueiro." },
+  { name: "Willian Pacho", club: "PSG", year: 2025, fame: 4, lo: 84, hi: 90, bio: "Zagueiro equatoriano do PSG campeão da Europa — regularidade impressionante e quase nenhum erro na temporada." },
+  { name: "Dean Huijsen", club: "Real Madrid", year: 2026, fame: 4, lo: 82, hi: 90, promessa: true, bio: "Zagueiro altíssimo que estourou no Bournemouth e foi comprado pelo Real Madrid com 20 anos — saída de bola de meia." },
+  { name: "Ilya Zabarnyi", club: "PSG", year: 2026, fame: 3, lo: 78, hi: 88, promessa: true, bio: "Zagueiro ucraniano que se firmou na Premier League e foi pro PSG — jogo aéreo e calma com a bola no pé." },
+  { name: "Calafiori", club: "Bologna", year: 2024, fame: 3, lo: 76, hi: 88, promessa: true, bio: "Zagueiro canhoto italiano da campanha histórica do Bologna na Champions — sobe como lateral e conduz como meia." },
+  { name: "Leny Yoro", club: "Lille", year: 2024, fame: 3, lo: 74, hi: 88, promessa: true, bio: "Joia francesa do Lille: titular na Champions adolescente e vendido ao Manchester United antes dos 19 anos." },
+  { name: "Lucas Beraldo", club: "PSG", year: 2025, fame: 3, lo: 72, hi: 86, promessa: true, bio: "Zagueiro canhoto revelado no São Paulo que foi direto pro PSG com 20 anos e ganhou a Champions." },
+  { name: "Niklas Süle", club: "Bayern", year: 2020, fame: 3, lo: 80, hi: 88, bio: "Zagueirão alemão do Bayern campeão de tudo — força e velocidade raras pro tamanho; a forma física sempre foi o assunto." },
+  { name: "Konaté", club: "Liverpool", year: 2025, fame: 3, lo: 80, hi: 89, bio: "Zagueiro francês do Liverpool — velocidade e porte de elite quando está inteiro." },
+  { name: "Schlotterbeck", club: "Dortmund", year: 2024, fame: 3, lo: 80, hi: 88, bio: "Zagueiro canhoto alemão do Borussia Dortmund — passe vertical e agressividade pra jogar com a linha adiantada." },
+  { name: "Van de Ven", club: "Tottenham", year: 2025, fame: 3, lo: 79, hi: 88, bio: "Zagueiro holandês do Tottenham — um dos jogadores mais rápidos da Premier League, apaga contra-ataque sozinho." },
+  { name: "Sven Botman", club: "Newcastle", year: 2023, fame: 3, lo: 78, hi: 86, bio: "Zagueiro holandês do Newcastle — jogo aéreo e cobertura na defesa mais sólida da campanha do clube." },
+  { name: "Murillo", club: "Nottingham Forest", year: 2025, fame: 3, lo: 78, hi: 86, bio: "Zagueiro brasileiro revelado no Corinthians que virou peça fixa do Nottingham Forest na Premier League." },
+]
+const L31_EU_LAT: C[] = [
+  { name: "Nuno Mendes", club: "PSG", year: 2025, fame: 4, lo: 86, hi: 92, bio: "Lateral-esquerdo português do PSG campeão da Europa: ataca como ponta e marca como zagueiro — eleito o melhor da posição no mundo." },
+  { name: "Grimaldo", club: "Leverkusen", year: 2024, fame: 4, lo: 83, hi: 90, bio: "Lateral-esquerdo espanhol do Leverkusen invicto — número de gols e assistências de meia-atacante, e bola parada de sobra." },
+  { name: "Dimarco", club: "Inter", year: 2024, fame: 4, lo: 83, hi: 90, bio: "Lateral-esquerdo italiano da Inter — canhota mágica: cruzamento, chute de fora e bola parada." },
+  { name: "Wesley", club: "Roma", year: 2026, fame: 4, lo: 83, hi: 90, bio: "Lateral-direito brasileiro revelado no Flamengo: potência, arrancada e chegada ao ataque que viraram titularidade na Itália." },
+  { name: "Dumfries", club: "Inter", year: 2025, fame: 3, lo: 80, hi: 88, bio: "Lateral-direito holandês da Inter — força física e faro de gol nas chegadas à área." },
+  { name: "Frimpong", club: "Leverkusen", year: 2024, fame: 3, lo: 79, hi: 88, bio: "Lateral-direito holandês do Leverkusen invicto — joga tão adiantado que parece ponta." },
+  { name: "Pedro Porro", club: "Tottenham", year: 2025, fame: 3, lo: 78, hi: 88, bio: "Lateral-direito espanhol do Tottenham — cruzamento de primeira linha e defesa que oscila na mesma medida." },
+  { name: "Aït-Nouri", club: "Wolves", year: 2025, fame: 3, lo: 78, hi: 86, bio: "Lateral-esquerdo argelino que se destacou no Wolverhampton pelo drible e pela chegada no último terço." },
+  { name: "Vanderson", club: "Monaco", year: 2025, fame: 3, lo: 77, hi: 86, bio: "Lateral-direito brasileiro revelado no Grêmio, titular do Monaco na França e na Champions." },
+  { name: "Álvaro Carreras", club: "Benfica", year: 2025, fame: 3, lo: 76, hi: 86, promessa: true, bio: "Lateral-esquerdo espanhol que explodiu no Benfica e foi comprado pelo Real Madrid." },
+  { name: "Milos Kerkez", club: "Bournemouth", year: 2025, fame: 3, lo: 74, hi: 86, promessa: true, bio: "Lateral-esquerdo húngaro de pulmão infinito que se destacou no Bournemouth e foi pro Liverpool." },
+]
+const L31_EU_MEI: C[] = [
+  { name: "Fábio Rochemback", club: "Sporting", year: 2005, fame: 3, lo: 74, hi: 86, bio: "Volante revelado no Internacional que teve a melhor fase no Sporting — chute de fora da área como marca registrada e final de Copa da UEFA." },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────

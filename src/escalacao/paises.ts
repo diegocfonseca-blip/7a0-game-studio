@@ -435,6 +435,26 @@ export const PAIS: Record<string, string> = {
   'Frickson Erazo': 'Equador', 'Edison Méndez': 'Equador', 'Christian Noboa': 'Equador',
   'Renato Ibarra': 'Equador', 'Agustín Delgado': 'Equador', 'Felipe Caicedo': 'Equador',
   'Jefferson Montero': 'Equador', 'Ángel Mena': 'Equador', 'Michael Estrada': 'Equador',
+
+  // ─── 🛡️ LEVA 31 (20/09/2026): a defesa do futebol de agora ────────────────
+  // Goleiros
+  'David Raya': 'Espanha', 'Diogo Costa': 'Portugal', 'Gregor Kobel': 'Suíça',
+  'Lucas Chevalier': 'França', 'Mamardashvili': 'Geórgia', 'Matz Sels': 'Bélgica',
+  'Vicario': 'Itália',
+  // Zagueiros
+  'Bastoni': 'Itália', 'Cristian Romero': 'Argentina', 'Jules Koundé': 'França',
+  'Willian Pacho': 'Equador', 'Ilya Zabarnyi': 'Ucrânia', 'Calafiori': 'Itália',
+  'Leny Yoro': 'França', 'Lucas Beraldo': 'Brasil', 'Niklas Süle': 'Alemanha',
+  'Konaté': 'França', 'Schlotterbeck': 'Alemanha', 'Van de Ven': 'Holanda',
+  'Sven Botman': 'Holanda', 'Murillo': 'Brasil',
+  // 🇳🇱→🇪🇸 Dean Huijsen nasceu na Holanda e cresceu na Espanha: optou pela
+  //        SELEÇÃO ESPANHOLA, e aqui vale onde ele joga (regra do Diego).
+  'Dean Huijsen': 'Espanha',
+  // Laterais
+  'Nuno Mendes': 'Portugal', 'Grimaldo': 'Espanha', 'Dimarco': 'Itália',
+  'Dumfries': 'Holanda', 'Frimpong': 'Holanda', 'Pedro Porro': 'Espanha',
+  'Aït-Nouri': 'Argélia', 'Vanderson': 'Brasil', 'Álvaro Carreras': 'Espanha',
+  'Milos Kerkez': 'Hungria', // (Yan Couto já estava etiquetado mais acima)
 }
 
 export type Baralho = 'BR' | 'EU' | 'WORLD'
@@ -505,6 +525,23 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   //     tinha se aposentado em 1998. Estava sendo convocado pela GANA.
   'Abedi Pelé|Marseille|1993': 'Gana',
   'Abedi Pelé|Vasco|2007': 'Brasil',
+
+  // ─── 🃏 LEVA 31: o MESMO cara em dois baralhos (o jogo permite — um auge por
+  //     baralho). Escrevo carta a carta pra ninguém herdar país errado depois.
+  'Marquinhos|Corinthians|2012': 'Brasil',
+  'Marquinhos|PSG|2023': 'Brasil',
+  'Éder Militão|São Paulo|2018': 'Brasil',
+  'Éder Militão|Real Madrid|2022': 'Brasil',
+  'Wesley|Flamengo|2023': 'Brasil',
+  'Wesley|Roma|2026': 'Brasil',
+  'Fábio Rochemback|Internacional|2000': 'Brasil',
+  'Fábio Rochemback|Sporting|2005': 'Brasil',
+  // ─── 🇦🇷🇺🇾🇦🇴 estrangeiros da leva 31 que jogam no BRASIL (baralho BR não
+  //     quer dizer nacionalidade — regra fechada com o Diego em 28/08)
+  'Agustín Rossi|Flamengo|2025': 'Argentina',
+  'Agustín Giay|Palmeiras|2025': 'Argentina',
+  'Varela|Flamengo|2025': 'Uruguai',
+  'Bastos|Botafogo|2024': 'Angola',
 }
 
 /**
