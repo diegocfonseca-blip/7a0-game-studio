@@ -1782,6 +1782,78 @@ function pickSurprise(deck: Record<Sector, Card[]>, rng: () => number): string |
   return all.length ? all[Math.floor(rng() * all.length)] : undefined
 }
 
+// ─── 🕵️ O JOGADOR ENIGMA ────────────────────────────────────────────────────
+// Diego (20/09): *"ele só tira o lugar de outro jogador, igual já existe com o
+// jogador surpresa. É um jogador que já iria pro leilão, e aí a gente faz essa
+// opção nele, dele ficar escondido com a dica. Mas não vai ter que botar um
+// jogador a mais."*
+//
+// Diferença pro 🎁 Surpresa, que já existia: o surpresa esconde só o NOME — o
+// clube e o ano continuam à mostra, e com esses dois muita gente adivinha quem
+// é. O Enigma esconde **nome, clube E ano**. O que sobra é a POSIÇÃO (que já é
+// dica, palavras dele: *"a dica já é a posição do momento que tão todos
+// listados"*) mais **uma dica que o jogo dá**.
+//
+// ⚠️ ELE NÃO CONSOME O `rng` — DE PROPÓSITO. Todo sorteio do leilão sai da mesma
+// fila de números aleatórios; puxar UM número a mais aqui empurraria todos os
+// lances dos bots pra frente e o pregão às cegas de hoje fecharia diferente —
+// exatamente o que o `npm run ascegas` existe pra impedir. Então o Enigma é
+// escolhido por uma CONTA em cima da semente da partida (determinística: a mesma
+// sala sorteia o mesmo Enigma), sem encostar na fila.
+function hashDeterminista(txt: string): number {
+  let h = 2166136261 >>> 0
+  for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0 }
+  return h >>> 0
+}
+function pickMudo(deck: Record<Sector, Card[]>, seed: number, exceto?: string): string | undefined {
+  const all: string[] = []
+  for (const p of SECTORS) for (const c of deck[p]) if (c.id !== exceto) all.push(c.id)
+  if (!all.length) return undefined
+  // 🧪 bancada: a foto e a trava precisam do Enigma na PRIMEIRA leva, senão ele
+  // cai num setor qualquer e a máquina fotografa/confere a tela errada.
+  if (enigmaNaPrimeira) return all[0]
+  return all[hashDeterminista(`enigma|${seed}|${all.length}|${all[0]}`) % all.length]
+}
+/** sorteia os DOIS especiais do pregão de uma vez — assim nunca ficam fora de sincronia */
+// 🧪 exportado SÓ pra bancada (`npm run enigma-trava`): nada do jogo muda por causa disto
+export function sorteiaEspeciaisParaTeste(s: EscState, rng: () => number) { sorteiaEspeciais(s, rng) }
+function sorteiaEspeciais(s: EscState, rng: () => number) {
+  s.surpriseId = pickSurprise(s.deck, rng)
+  s.mudoId = ENIGMA_LIGADO ? pickMudo(s.deck, s.seed, s.surpriseId) : undefined
+}
+
+// 🔒 EM CONSTRUÇÃO: nasce DESLIGADO. Só liga quando o Diego aprovar o visual
+// (regra dele: mockup primeiro). Desligado, `mudoId` fica `undefined` e o jogo
+// roda exatamente como hoje.
+export let ENIGMA_LIGADO = false
+let enigmaNaPrimeira = false
+/** 🧪 SÓ PRA BANCADA (`npm run enigma` e `npm run enigma-trava`): liga o modo na
+ *  página que já está aberta. Antes eu fazia isso EDITANDO o `store.tsx` e
+ *  desfazendo depois — se o processo morresse no meio, a bandeira ficava ligada
+ *  no arquivo e ia parar num commit. Aqui não encosta em arquivo nenhum. */
+export function bancadaEnigma(ligado: boolean, naPrimeiraLeva = false) {
+  ENIGMA_LIGADO = ligado
+  enigmaNaPrimeira = naPrimeiraLeva
+}
+
+// 🏷️ O NOME NUM LUGAR SÓ (lição da Tocaia, que mudou de nome cinco vezes num dia):
+// identificador NEUTRO no código, nome bonito só aqui. Trocar o nome = trocar
+// esta linha, não caçar a palavra em sete telas.
+export const ENIGMA_NOME = { pt: 'Enigma', en: 'Enigma' } as const
+export const ENIGMA_EMOJI = '🕵️'
+export const enigmaNomeDe = (en: boolean) => (en ? ENIGMA_NOME.en : ENIGMA_NOME.pt)
+
+/** 🕰️ A DICA que o jogo dá: a ÉPOCA da carta. Dá pra apostar (craque velho? moleque
+ *  novo?) sem entregar o nome. Sai do próprio ano da carta, então é sempre verdade. */
+export function dicaDoEnigma(card: Card, en = false): string {
+  const dec = Math.floor(card.year / 10) * 10
+  if (dec <= 1960) return en ? '🕰️ the 1960s or before' : '🕰️ dos anos 60 ou antes'
+  if (dec >= 2020) return en ? '🕰️ the 2020s' : '🕰️ dos anos 2020'
+  const pt: Record<number, string> = { 1970: 'dos anos 70', 1980: 'dos anos 80', 1990: 'dos anos 90', 2000: 'dos anos 2000', 2010: 'dos anos 2010' }
+  const ing: Record<number, string> = { 1970: 'the 70s', 1980: 'the 80s', 1990: 'the 90s', 2000: 'the 2000s', 2010: 'the 2010s' }
+  return `🕰️ ${en ? ing[dec] : pt[dec]}`
+}
+
 // managers que efetivamente brigam no leilão (exclui bots de preenchimento e o
 // 🏛️ MULTICLUBES que está DORMINDO — o 2º clube não-selecionado não dá lance).
 function auctioningManagers(managers: Manager[]): Manager[] {
@@ -5154,7 +5226,7 @@ function redraftSeason(s: EscState): EscState {
     s.duplas = novo
   }
   s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-  s.surpriseId = pickSurprise(s.deck, rng)
+  sorteiaEspeciais(s, rng)
   dealBotSquads(s.managers, botPlans, rng, used)
   for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
   s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
@@ -5617,7 +5689,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.dinastia) { const b = action.budget ?? 50; for (const m of s.managers) m.money = b }
       const soloUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -5679,7 +5751,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -5731,7 +5803,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -5817,7 +5889,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const used = new Set<string>()
         for (const m of s.managers) for (const c of m.squad) used.add(ident(c))
         s.deck = buildDeck([you], rng, 2.0, used, 1) // baralho só pras suas vagas novas
-        s.surpriseId = pickSurprise(s.deck, rng)
+        sorteiaEspeciais(s, rng)
         for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
         s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []
         s.tactics = {}
@@ -5961,7 +6033,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🪜 escada ligada: leilão de estreia = degrau D (foi-prof + bom) e bots
       // montados no modo várzea (fracos primeiro) — mesmo nível do usuário.
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used, !!s.escadaOn)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -6252,7 +6324,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, onlineVarzea)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, onlineVarzea)
       if (onlineVarzea) setActiveCatalog(s.deckLeague) // baralho várzea já foi montado → restaura o cheio pro resto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -8378,7 +8450,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.managers = managers
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
@@ -8974,7 +9046,7 @@ export function reducer(state: EscState, action: Action): EscState {
         else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
         else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
       }
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
@@ -9054,7 +9126,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // TROCAR TUDO: novo leilão na divisão de destino
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0
@@ -9147,7 +9219,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.redraft) {
         const used = new Set<string>()
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-        s.surpriseId = pickSurprise(s.deck, rng)
+        sorteiaEspeciais(s, rng)
         dealBotSquads(s.managers, botPlans, rng, used)
         for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
         s.cpuAtkAdj = 0; s.cpuDefAdj = 0

@@ -1,3 +1,72 @@
+## 20/09/2026 (parte 50) — 🕵️ O JOGADOR ENIGMA (no branch, esperando OK visual)
+
+Ele perguntou se já estava feito. **Não estava** — dos dois modos que saíram
+daquela conversa de ideias, só a 🐊 Tocaia foi construída; este ficou parado no
+"mockup" desde então.
+
+### 🎯 A regra, com as palavras dele
+- *"Ele só tira o lugar de outro jogador, igual já existe com o jogador surpresa.
+  É um jogador que já iria pro leilão, e aí a gente faz essa opção nele, dele
+  ficar escondido com a dica. **Mas não vai ter que botar um jogador a mais**."*
+- *"Ele pode aparecer uma vez só no leilão… pode ser algum leilão no gol, no
+  ataque ou outro, mas só uma vez."*
+- *"É só revelar igual é com o surpresa."*
+- *"Tem que entrar na posição que é a do leilão no momento que ele entra. Então a
+  dica já é a posição do momento que tão todos listados, mais a dica que o jogo
+  vai dar."*
+
+### 🆚 A diferença pro 🎁 Surpresa, que já existia
+O Surpresa esconde **só o nome** — clube e ano continuam à mostra, e com esses
+dois muita gente adivinha quem é. O Enigma esconde **nome, clube E ano**. Sobra
+a POSIÇÃO (que já é dica) + **uma dica**: a ÉPOCA (`🕰️ dos anos 2010`). Escolhi
+a época porque dá pra apostar ("craque velho ou moleque novo?") sem entregar
+ninguém — mas é justamente o que ele tem que aprovar.
+
+### ⚙️ Onde mora
+`mudoId` no estado (irmão do `surpriseId`) · `pickMudo` + `sorteiaEspeciais` +
+`dicaDoEnigma` no `store.tsx` · a prop `mudo` do `CardFace` no `screens.tsx`.
+Nome numa fonte ÚNICA e com identificador NEUTRO (`ENIGMA_NOME`/`ENIGMA_EMOJI`)
+— lição da Tocaia, que mudou de nome cinco vezes num dia.
+
+### 🎲 Ele NÃO puxa número da fila do acaso — e isso foi de propósito
+Todo sorteio do leilão sai da mesma fila de números aleatórios. Se o Enigma
+puxasse UM número a mais, todos os lances dos bots andariam pra frente e o
+pregão às cegas fecharia diferente — exatamente o que o `npm run ascegas`
+existe pra impedir. Então o Enigma é escolhido por uma CONTA em cima da semente
+da sala (a mesma sala sorteia o mesmo Enigma), sem encostar na fila.
+✅ As três digitais seguem `28bea2df` · `d65041f6` · `06bab491`.
+
+### 🔒 `npm run enigma-trava` (e como ela quase nasceu inútil)
+Confere: não é carta a mais · não consome acaso · nunca cai na mesma carta do
+Surpresa · a dica é verdade e não entrega nome/clube/ano · e o principal:
+**nome, clube e ano NÃO estão no HTML antes do martelo** (o Surpresa já teve
+esse bug — ia pro HTML e só era borrado por CSS, dava pra ler no "inspecionar").
+
+⚠️ **Duas vezes a trava mentiu pra mim antes de prestar:**
+1. ela rodava com o remendo que fixa o Enigma na 1ª carta (pro mockup) e acusava
+   "o sorteio está viciado" — estava mesmo, **por culpa do remendo**. Sumiu o
+   remendo: agora o modo liga por um interruptor de bancada (`bancadaEnigma`) na
+   página que já está aberta, sem editar arquivo nenhum. De quebra, acabou o
+   risco de o processo morrer no meio e a bandeira ir ligada pro commit.
+2. o recorte que tirava a dica apagava "tudo do 🕰️ pra frente" — então um
+   clube+ano colados DEPOIS da dica sumiam junto e **a trava passava num
+   vazamento de verdade** (testei: passou). Agora ela remove só os textos que a
+   função de dica sabe gerar, e o que sobrar tem que ser posição + 🕵️ + "?".
+   Testada nos dois sentidos: com o vazamento plantado, ela pega
+   (`"GOL🕵️ ? ? ? ? Sport · 2008"`).
+
+### ⏳ O que falta
+1. **OK visual do Diego** — nasce DESLIGADO (`ENIGMA_LIGADO = false`) e nada vai
+   pra `main` antes disso.
+2. Ele decidir a **DICA** (fiquei na época; dá pra ser "🌍 jogou na Europa",
+   "🏆 jogou Copa do Mundo"…) e o **NOME** do bicho (fiquei em "Enigma").
+3. Linha em `novidades.ts` — só na entrega que ligar isso pro pessoal.
+
+### ↩️ Dá pra voltar atrás?
+Dá, e nem precisa reverter: com `ENIGMA_LIGADO = false` o `mudoId` fica vazio e
+todas as telas caem no caminho de sempre. Pra sumir de vez, reverter o commit.
+
+---
 ## 20/09/2026 (parte 49) — 🐊 O SELO DO PREGÃO NA LISTA (e por que ele não acendia)
 
 *"Ainda não tá aparecendo o selo do modo Tocaia… pode ser um jacaré talvez. E o
