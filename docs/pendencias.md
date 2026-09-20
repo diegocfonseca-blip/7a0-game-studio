@@ -1,3 +1,38 @@
+## 20/09/2026 (parte 40) — ↩️ O nome VOLTOU a ser HOLANDÊS (eu tinha lido errado)
+
+*"Eu falei pra manter holandês mesmo."*
+
+**Erro meu de leitura, e vale anotar como se deu**: ele perguntou *"qual nome eu
+poderia dar pra esse modo, sem ser o nome holandês?"*, eu ofereci quatro opções, ele
+respondeu **"[sem preferência]"** nas duas perguntas — e logo em seguida mandou
+*"tô falando as salas abertas, colocar ali holandês sei lá, pra diferenciar"*.
+
+Eu li aquele "holandês" como EXEMPLO ("põe o nome do modo aí, sei lá"). Era
+**decisão**: manter Holandês. As duas leituras cabiam na frase, e eu escolhi a
+errada — e, pior, escolhi sozinho num assunto que é 100% gosto dele.
+
+👉 **Lição pra qualquer sessão**: "[sem preferência]" numa pergunta de GOSTO não é
+carta branca — é sinal de que a pergunta não era a que ele queria responder. Quando
+a resposta seguinte usar uma das palavras da pergunta, ela provavelmente É a
+resposta. Na dúvida em assunto de gosto, perguntar de novo com uma frase, não
+decidir.
+
+### O que voltou e o que FICOU
+- **Voltou**: o nome visível é **🔻 Holandês / 🔻 Dutch** em todas as telas e na
+  novidade da home. `MODO_QUEDA` → **`MODO_HOLANDES`**.
+- **Ficou** (foi o que ele pediu de verdade nesta rodada): o **selo na lista de
+  salas abertas** (`🔻 HOLANDÊS`, vermelho, no nome da sala) e o **nome no topo do
+  pregão**. Era isso o *"colocar ali… pra diferenciar"*.
+- **Ficou também** a fonte única: o nome mora em UM lugar (`MODO_HOLANDES` em
+  `store.tsx`) e toda tela puxa de lá. Foi o que fez este desfazer custar uma
+  linha em vez de sete telas — e é o que vai deixar barato se ele um dia trocar.
+- 🔒 A trava agora **segura o nome**: `npm run holandes` reprova se alguém
+  rebatizar sem ele pedir, e reprova se alguma tela escrever o nome na mão.
+- ⛔ **Não repropor outro nome.** Os quatro que ofereci (Queda Livre · Quem Pega,
+  Leva · Liquidação · Quem Pisca, Perde) ficam só como registro.
+
+---
+
 ## 20/09/2026 (parte 39) — 🏷️ O modo virou 🔻 QUEDA LIVRE, e aparece nas salas abertas
 
 Ele pediu: *"qual nome eu poderia dar pra esse modo do leilão, sem ser o nome

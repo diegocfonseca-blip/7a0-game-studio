@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_QUEDA, modoQuedaNome, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_HOLANDES, modoHolandesNome, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -2617,7 +2617,7 @@ export function EscSetup() {
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Como é o leilão', 'Auction format')}</p>
             <div className="grid grid-cols-2 gap-2">
-              {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `🔻 ${t(MODO_QUEDA.pt, MODO_QUEDA.en)}`]] as [boolean, string][]).map(([m, label]) => (
+              {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `🔻 ${t(MODO_HOLANDES.pt, MODO_HOLANDES.en)}`]] as [boolean, string][]).map(([m, label]) => (
                 <button key={String(m)} onClick={() => setHolandes(m)}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
                   style={{ backgroundColor: holandes === m ? GOLD : '#fff', boxShadow: holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
@@ -3473,7 +3473,7 @@ function Holandes() {
             pessoa criou descobre AQUI em que pregão está jogando, sem precisar
             ter visto a tela de montar a sala. */}
         <p className="text-[10px] font-black uppercase tracking-widest" style={{ ...OSWALD, color: '#C2452F' }}>
-          🔻 {modoQuedaNome(lang === 'en').toUpperCase()}
+          🔻 {modoHolandesNome(lang === 'en').toUpperCase()}
         </p>
         <h2 className="font-black text-3xl leading-none" style={OSWALD}>{posName.toUpperCase()}</h2>
         <p className="text-sm font-semibold text-black/70 mt-0.5">

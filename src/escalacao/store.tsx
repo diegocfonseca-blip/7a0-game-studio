@@ -4393,18 +4393,18 @@ export function holEscada(start: number): number[] {
 }
 // 🏷️ O NOME DO MODO — em UM lugar só, e é daqui que TODA tela puxa.
 //
-// O Diego batizou em 20/09: *"qual nome eu poderia dar pra esse modo do leilão,
-// sem ser o nome holandês?"* e deixou a escolha comigo. Ficou **Queda Livre**
-// (Free Fall em inglês), porque nomeia o que a pessoa VÊ — o número despencando
-// — cabe num selo pequeno e não promete que tudo sai barato (nesse modo o craque
-// sai CEDO e CARO, então "Liquidação"/"Pechincha" mentiriam).
+// **É HOLANDÊS, e é ordem dele** (20/09): *"eu falei pra manter holandês mesmo"*.
+// Eu tinha entendido ao contrário (ele perguntou que nome dar "sem ser holandês",
+// e quando respondeu *"colocar ali holandês sei lá pra diferenciar"* eu li como
+// exemplo, não como decisão) e cheguei a rebatizar pra "Queda Livre". Voltou.
+// **Não repropor outro nome sem ele pedir.**
 //
-// ⚠️ A CHAVE NO CÓDIGO CONTINUA `holandes`. Isso é de propósito e é a regra da
-// casa: nome que o código compara, guarda no save ou grava no `game_state` da
-// sala NUNCA é traduzido nem rebatizado — sala criada antes desta linha
-// continua abrindo certinho. O que muda é só o que a pessoa LÊ.
-export const MODO_QUEDA = { pt: 'Queda Livre', en: 'Free Fall' } as const
-export const modoQuedaNome = (en: boolean) => (en ? MODO_QUEDA.en : MODO_QUEDA.pt)
+// ⚠️ A CHAVE NO CÓDIGO é `holandes` e sempre foi. Nome que o código compara,
+// guarda no save ou grava no `game_state` da sala NUNCA é rebatizado — sala
+// criada antes continua abrindo. Esta constante é só o que a pessoa LÊ, e existe
+// num lugar só pra que trocar o nome um dia seja UMA linha, não sete telas.
+export const MODO_HOLANDES = { pt: 'Holandês', en: 'Dutch' } as const
+export const modoHolandesNome = (en: boolean) => (en ? MODO_HOLANDES.en : MODO_HOLANDES.pt)
 
 export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // ⏱️ TEMPO DE CADA DEGRAU — TRÊS marchas, e elas casam com a escada de preços.
