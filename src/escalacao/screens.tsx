@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_HOLANDES, MODO_HOLANDES_NASCEU, modoHolandesNome, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -2617,13 +2617,13 @@ export function EscSetup() {
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Como é o leilão', 'Auction format')}</p>
             <div className="grid grid-cols-2 gap-2">
-              {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `🔻 ${t(MODO_HOLANDES.pt, MODO_HOLANDES.en)}`]] as [boolean, string][]).map(([m, label]) => (
+              {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${t(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]).map(([m, label]) => (
                 <button key={String(m)} onClick={() => setHolandes(m)}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
                   style={{ backgroundColor: holandes === m ? GOLD : '#fff', boxShadow: holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {/* 🏷️ tarja NOVO — a MESMA da sala online, pra as duas telas não
                       contarem histórias diferentes. Ela some sozinha 45 dias depois
-                      de o modo nascer (`MODO_HOLANDES_NASCEU`), igual às novidades
+                      de o modo nascer (`MODO_NOME_NASCEU`), igual às novidades
                       da home: ninguém precisa lembrar de tirar. A cor inverte
                       quando o botão está escolhido, senão o dourado sumiria dentro
                       do dourado justo na hora em que a pessoa escolhe. */}
@@ -2640,7 +2640,7 @@ export function EscSetup() {
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">
               {holandes
-                ? t('🔻 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🔻 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                ? t('🎣 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🎣 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
                 : t('✉️ O leilão de sempre: você escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: you write your bid in secret and the highest wins at the hammer.')}
             </p>
           </div>
@@ -3404,7 +3404,7 @@ function CardReact({ cardId }: { cardId: string }) {
 // 🏷️ a tarja "NOVO" do pregão holandês nas telas de montar. Some sozinha 45
 // dias depois de o modo nascer — a data mora junto do NOME, em `store.tsx`.
 const seloNovoHolandes = (): string | undefined =>
-  (Date.now() < new Date(`${MODO_HOLANDES_NASCEU}T00:00:00`).getTime() + 45 * 24 * 3600_000
+  (Date.now() < new Date(`${MODO_NOME_NASCEU}T00:00:00`).getTime() + 45 * 24 * 3600_000
     ? (getLang() === 'en' ? 'new' : 'novo')
     : undefined)
 
@@ -3493,7 +3493,7 @@ function Holandes() {
             pessoa criou descobre AQUI em que pregão está jogando, sem precisar
             ter visto a tela de montar a sala. */}
         <p className="text-[10px] font-black uppercase tracking-widest" style={{ ...OSWALD, color: '#C2452F' }}>
-          🔻 {modoHolandesNome(lang === 'en').toUpperCase()}
+          {MODO_EMOJI} {modoNomeDe(lang === 'en').toUpperCase()}
         </p>
         <h2 className="font-black text-3xl leading-none" style={OSWALD}>{posName.toUpperCase()}</h2>
         <p className="text-sm font-semibold text-black/70 mt-0.5">
@@ -3577,7 +3577,12 @@ function Holandes() {
                 // ✅ JÁ SAIU: a carta some da disputa NA HORA em que o degrau fecha,
                 // com o nome de quem levou e por quanto. Sem botão, sem dúvida.
                 <div className="text-right shrink-0">
-                  <p className="text-[9px] font-black uppercase text-black/45" style={OSWALD}>{L('Arrematado', 'Sold')}</p>
+                  {/* 🎣 O GRITO DO ARREMATE. A pescaria é calma só até a hora de
+                      fisgar — aí é seco. Quando a carta é SUA, a tarja não diz
+                      "arrematado", diz FISGOU!, que é o que a pessoa sente. */}
+                  <p className="text-[9px] font-black uppercase" style={{ ...OSWALD, color: dono.mgr === you.id ? GREEN : 'rgba(0,0,0,.45)' }}>
+                    {dono.mgr === you.id ? (lang === 'en' ? MODO_FISGOU.en : MODO_FISGOU.pt) : L('Arrematado', 'Sold')}
+                  </p>
                   <p className="text-[12px] font-black leading-tight" style={{ ...OSWALD, color: dono.mgr === you.id ? GREEN : INK }}>
                     {dono.mgr === you.id ? L('🫵 VOCÊ', '🫵 YOU') : (t?.teamName ?? '—')}
                   </p>

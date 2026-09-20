@@ -4399,27 +4399,29 @@ export function holEscada(start: number): number[] {
 }
 // 🏷️ O NOME DO MODO — em UM lugar só, e é daqui que TODA tela puxa.
 //
-// **É HOLANDÊS, e é ordem dele** (20/09): *"eu falei pra manter holandês mesmo"*.
-// Eu tinha entendido ao contrário (ele perguntou que nome dar "sem ser holandês",
-// e quando respondeu *"colocar ali holandês sei lá pra diferenciar"* eu li como
-// exemplo, não como decisão) e cheguei a rebatizar pra "Queda Livre". Voltou.
-// **Não repropor outro nome sem ele pedir.**
+// **É 🎣 PESCARIA**, escolhido por VOTAÇÃO do pessoal dele (20/09: *"pescaria,
+// pessoal tá votando aqui"*). Antes se chamava "Holandês"; o nome mudou porque
+// ele queria algo que a galera falasse — e "bora de pescaria?" sai da boca
+// sozinho. A ideia é a do pescador: tu fica esperando o preço descer e, na hora
+// certa, FISGA. Por isso o grito do arremate é **FISGOU!**.
 //
-// ⚠️ A CHAVE NO CÓDIGO é `holandes` e sempre foi. Nome que o código compara,
-// guarda no save ou grava no `game_state` da sala NUNCA é rebatizado — sala
-// criada antes continua abrindo. Esta constante é só o que a pessoa LÊ, e existe
-// num lugar só pra que trocar o nome um dia seja UMA linha, não sete telas.
-export const MODO_HOLANDES = { pt: 'Holandês', en: 'Dutch' } as const
+// ⚠️ O IDENTIFICADOR AQUI É NEUTRO (`MODO_NOME`) DE PROPÓSITO. Este nome já
+// mudou duas vezes num dia; deixar "PESCARIA" no identificador obrigaria a
+// renomear código toda vez. Assim, trocar o nome do modo é trocar UMA STRING.
+//
+// ⚠️ E A CHAVE DO CÓDIGO CONTINUA `holandes` — no estado, no save e no
+// `game_state` da sala. Nome que o código compara ou guarda NUNCA se rebatiza:
+// sala criada ontem continua abrindo certinho hoje.
+export const MODO_NOME = { pt: 'Pescaria', en: 'Fishing' } as const
+export const MODO_EMOJI = '🎣'
+export const modoNomeDe = (en: boolean) => (en ? MODO_NOME.en : MODO_NOME.pt)
+/** o grito do arremate — a parte afiada da pescaria */
+export const MODO_FISGOU = { pt: 'FISGOU!', en: 'HOOKED!' } as const
 /**
- * 🏷️ quando o modo nasceu — é daqui que sai a tarja "NOVO" das telas de montar
- * (pedido dele, 20/09: *"aonde tá holandês coloque uma obs de novo"*). Mesma
- * ideia das novidades da home: ninguém precisa lembrar de tirar a tarja, ela
- * some sozinha 45 dias depois. Mora aqui do lado do nome porque é a MESMA
- * informação — "este modo é o novo" — e separar os dois seria pedir pra um
- * envelhecer sem o outro.
+ * 🏷️ quando o modo nasceu — é daqui que sai a tarja "NOVO" das telas de montar.
+ * Some sozinha 45 dias depois, igual às novidades da home.
  */
-export const MODO_HOLANDES_NASCEU = '2026-09-20'
-export const modoHolandesNome = (en: boolean) => (en ? MODO_HOLANDES.en : MODO_HOLANDES.pt)
+export const MODO_NOME_NASCEU = '2026-09-20'
 
 export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // ⏱️ TEMPO DE CADA DEGRAU — TRÊS marchas, e elas casam com a escada de preços.

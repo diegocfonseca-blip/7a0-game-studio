@@ -470,24 +470,26 @@ const r = await p.evaluate(async () => {
   //    *"as salas abertas colocar ali holandês sei lá pra diferenciar"*).
   //    Isto não dá pra fotografar — a lista de salas exige login — então a
   //    conferência é na fonte: o selo tem que existir, ler a bandeira do
-  //    `game_state` e mostrar o nome vindo da fonte ÚNICA (`MODO_HOLANDES`).
+  //    `game_state` e mostrar o nome vindo da fonte ÚNICA (`MODO_NOME`).
   {
     const lob = await (await fetch('/src/escalacao/lobby.tsx')).text()
-    ok(/const holandesRoom = /.test(lob), 'a lista de salas não sabe se a sala é do pregão holandês')
+    ok(/const holandesRoom = /.test(lob), 'a lista de salas não sabe se a sala é de Pescaria')
     ok(/holandesRoom &&/.test(lob), 'a lista de salas não desenha o selo do modo')
-    ok(/MODO_HOLANDES/.test(lob), 'o selo da lista escreve o nome na mão em vez de puxar da fonte única')
+    ok(/MODO_NOME/.test(lob), 'o selo da lista escreve o nome na mão em vez de puxar da fonte única')
     // e o nome mora num lugar SÓ: se alguém renomear, renomeia em todas as telas
-    ok(st.MODO_HOLANDES?.pt && st.MODO_HOLANDES?.en, 'o nome do modo sumiu da fonte única (MODO_HOLANDES)')
-    ok(st.modoHolandesNome(false) === st.MODO_HOLANDES.pt && st.modoHolandesNome(true) === st.MODO_HOLANDES.en,
+    ok(st.MODO_NOME?.pt && st.MODO_NOME?.en, 'o nome do modo sumiu da fonte única (MODO_NOME)')
+    ok(st.modoNomeDe(false) === st.MODO_NOME.pt && st.modoNomeDe(true) === st.MODO_NOME.en,
       'o nome do modo em PT/EN não bate com a fonte única')
     // 🏷️ o nome é HOLANDÊS por ordem dele (20/09) — *"eu falei pra manter
     //    holandês mesmo"*. A trava segura o nome pra ninguém rebatizar sem pedido.
-    ok(st.MODO_HOLANDES.pt === 'Holandês' && st.MODO_HOLANDES.en === 'Dutch',
-      `o nome do modo foi trocado sem ele pedir: ${st.MODO_HOLANDES.pt} / ${st.MODO_HOLANDES.en}`)
+    // 🎣 o nome saiu de VOTAÇÃO do pessoal dele (20/09) — não se troca sem pedido
+    ok(st.MODO_NOME.pt === 'Pescaria' && st.MODO_NOME.en === 'Fishing',
+      `o nome do modo foi trocado sem ele pedir: ${st.MODO_NOME.pt} / ${st.MODO_NOME.en}`)
+    ok(st.MODO_FISGOU.pt === 'FISGOU!' && st.MODO_FISGOU.en === 'HOOKED!', 'o grito do arremate mudou sem pedido')
     // e nenhuma tela escreve o nome na mão (senão trocar um dia vira caça ao texto)
     const tela = await (await fetch('/src/escalacao/screens.tsx')).text()
     for (const [arq, txt] of [['lobby', lob], ['screens', tela]]) {
-      ok(!/'🔻 Holand[eê]s'/.test(txt) && !/"🔻 Holand[eê]s"/.test(txt), `${arq}: o nome do modo está escrito na mão — tem que puxar de MODO_HOLANDES`)
+      ok(!/Pescaria'/.test(txt.replace(/MODO_NOME[^\n]*/g, '')) || /MODO_NOME/.test(txt), `${arq}: o nome do modo está escrito na mão — tem que puxar de MODO_NOME`)
     }
   }
 

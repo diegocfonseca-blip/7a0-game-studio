@@ -1,3 +1,44 @@
+## 20/09/2026 (parte 45) — 🎣 O modo virou PESCARIA (votação do pessoal dele) — PRONTO, NÃO PUBLICADO
+
+Depois de rodar vários nomes com ele, o pessoal votou: *"pescaria, pessoal tá
+votando aqui"*. Feito — e com o **FISGOU!** junto, que era a condição pra Pescaria
+funcionar (ver abaixo).
+
+### 🎣 O que mudou na tela
+- nome: **🎣 Pescaria / Fishing** (era Holandês / Dutch);
+- emoji do modo: 🔻 → **🎣** em todo lugar (telas de montar, selo da lista de salas,
+  topo do pregão, novidade da home);
+- **o grito do arremate**: quando a carta é SUA, a tarja não diz "Arrematado", diz
+  **FISGOU!** (**HOOKED!** em EN). É o que resolve o único problema do nome.
+
+### 🔑 Duas decisões de engenharia que vão importar na PRÓXIMA troca de nome
+1. **O identificador virou NEUTRO**: `MODO_HOLANDES` → **`MODO_NOME`** (e
+   `MODO_EMOJI`, `MODO_FISGOU`, `MODO_NOME_NASCEU`). Este nome mudou **duas vezes
+   em um dia**; deixar "PESCARIA" no identificador obrigaria a renomear código
+   toda vez. Agora trocar o nome do modo é trocar **uma string**.
+2. **A chave do estado continua `holandes`** — no save, no reducer e no
+   `game_state` da sala. Nome que o código compara ou guarda NUNCA se rebatiza:
+   sala criada ontem continua abrindo hoje.
+
+### 🗣️ O que eu respondi quando ele perguntou se eu achava mesmo Pescaria melhor
+Ele cobrou franqueza (*"fala verdade"*). Minha resposta, registrada porque é uma
+opinião de design que pode voltar à mesa: **na minha opinião Tocaia é o melhor nome
+pro modo**, porque *na pescaria não existe rival* — a emoção do modo não é o preço,
+é o amigo te passando na frente, e tocaia tem alvo e disputa. **Mas o voto do
+pessoal ganha da minha opinião**: nome de modo existe pra ser FALADO, e quem vai
+falar é a turma dele, não eu.
+
+### ⏸️ ESTÁ NO BRANCH, NÃO NA MAIN
+Parei antes de publicar porque ele pediu a minha opinião no meio da troca — é
+decisão dele, não minha. A `main` segue com **Holandês** até ele bater o martelo.
+Pra publicar: `git checkout main && git merge claude/denis-save-file-x1osct`.
+Pra voltar pra Tocaia (ou qualquer outro): uma string em `MODO_NOME`.
+
+🛡️ Conferido no branch: `npm run holandes` verde · `npm run ascegas` com as mesmas
+digitais (`28bea2df` · `d65041f6` · `06bab491`).
+
+---
+
 ## 20/09/2026 (parte 44) — 🏷️ Tarja "NOVO" no Holandês (nas duas telas de montar)
 
 Pedido dele, com o print da tela de criar sala: *"aonde tá holandês coloque uma obs
