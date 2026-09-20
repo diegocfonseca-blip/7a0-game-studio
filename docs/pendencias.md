@@ -45,6 +45,29 @@ público · a lista do `checa-batismos.mjs`.
   `escudo_time`, válido até 2099-12-31 ✅ · `esc_nomes_batismo` → o nome PURO,
   e o gatilho criou FC e EC sozinho (**3 formas travadas**) ✅.
 
+### 👟❌ A NIKE SAIU (ordem dele, no mesmo dia)
+*"Tire a Nike do peito do manto também."* A prancha vinha com o símbolo em TRÊS
+lugares: o peito da camisa e as DUAS chuteiras do mascote. Marca registrada de
+outra empresa não entra no jogo — é a mesma decisão das chuteiras do Pontinho
+(Futpoint, 19/09) e do letreiro da bola de ouro. Script:
+`scripts/tira-marcas-pantera.py`.
+
+⚠️ **A receita do Futpoint NÃO serviu nas chuteiras.** Lá (e no pelo da pantera
+aqui) funciona ajustar uma superfície quadrática no RETÂNGULO e repintar com
+grão. No couro da chuteira isso deixou um **remendo quadrado de borda dura, com
+granulado cinza** — porque o brilho do couro muda rápido demais dentro da janela
+pra uma superfície suave acompanhar. A saída foi mais humilde e melhor:
+**mexer só nos pixels da marca** — marca o dourado, engorda 2 px e deixa o
+`inpaint` do OpenCV costurar pelo que está em volta. O couro, o brilho e o grão
+do lado nem são tocados.
+👉 Pra próxima marca a apagar: **comece pelo inpaint do risco**; a superfície
+quadrática é pra fundo LISO, não pra material brilhante.
+
+🟩 De quebra saíram **36 px de chroma** presos entre a chuteira e a bola-galáxia
+(escaparam do recorte por serem menores que o corte de buracos presos, > 700 px).
+Viraram vão, não pintura. A grama do pé da plaquinha também é verde e **não foi
+tocada** — o alvo foi só a janela da chuteira.
+
 ### 📮 O post
 `node scripts/mockup-batismo.mjs` com `--camisa` (a que ele mandou). **Sem
 `--antigo`**, pela regra de 05/09: o post diz só "chega na Série C", nunca de
