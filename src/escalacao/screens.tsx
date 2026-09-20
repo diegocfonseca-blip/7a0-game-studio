@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_HOLANDES, modoHolandesNome, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -35,6 +35,7 @@ import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShoot
 import { useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
+import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
@@ -1078,7 +1079,7 @@ function YourPitch({ small = false }: { small?: boolean }) {
 // `claro` = a carta está sobre fundo ESCURO (hoje só o vermelho do desempate):
 // nome e clube em branco. Sem a prop, tudo fica EXATAMENTE como sempre foi — é
 // por isso que ela é opcional, pra não encostar nos outros 4 lugares que usam.
-function CardFace({ c, big = false, surprise = false, highlight = false, claro = false }: { c: Card; big?: boolean; surprise?: boolean; highlight?: boolean; claro?: boolean }) {
+function CardFace({ c, big = false, surprise = false, mudo = false, highlight = false, claro = false }: { c: Card; big?: boolean; surprise?: boolean; /** 🕵️ ENIGMA: esconde nome, clube E ano — sobra a posição e a dica */ mudo?: boolean; highlight?: boolean; claro?: boolean }) {
   // 🧢 carta de TÉCNICO no pregão (id 'tec:...'): às cegas — só TEC + nome +
   // clube atual. Categoria/nível/formações se revelam quando ele for SEU.
   if (c.id.startsWith('tec:')) {
@@ -1096,13 +1097,24 @@ function CardFace({ c, big = false, surprise = false, highlight = false, claro =
     <div className="text-left">
       <div className="flex items-center gap-2">
         <span className="border-2 border-black rounded-full px-2 py-0.5 text-[10px] font-black" style={{ backgroundColor: INK, color: '#fff' }}>{posTag(c.pos)}</span>
-        {surprise
+        {mudo
+          // 🕵️ ENIGMA: nem nome, nem clube, nem ano vão pro HTML — só a posição
+          // (que já está no selo ao lado) e a dica na linha de baixo.
+          ? <span className={`font-black ${big ? 'text-2xl' : 'text-base'} inline-flex items-center gap-1.5`} style={{ ...OSWALD, color: claro ? '#fff' : INK }}>{ENIGMA_EMOJI} <span aria-hidden style={{ filter: 'blur(4px)', letterSpacing: 3, userSelect: 'none' }}>? ? ? ?</span></span>
+          : surprise
           // 🙈 ANTI-SPOILER: o nome REAL não vai pro HTML (antes só era borrado por CSS —
           // dava pra ler no "inspecionar"). Placeholder mascarado até a revelação.
           ? <span className={`font-black ${big ? 'text-2xl' : 'text-base'} inline-flex items-center gap-1.5`} style={{ ...OSWALD, color: PURPLE }}>🎁 <span aria-hidden style={{ filter: 'blur(4px)', letterSpacing: 3, userSelect: 'none' }}>? ? ? ?</span></span>
           : <p className={`font-black ${big ? 'text-2xl' : 'text-base'}`} style={{ ...OSWALD, color: highlight ? PURPLE : (claro ? '#fff' : INK) }}>{c.name}{highlight ? ' 🎁' : ''}</p>}
       </div>
-      <p className={`${big ? 'text-sm' : 'text-xs'} font-semibold mt-0.5 ${claro ? 'text-white/75' : 'text-black/60'}`}>{c.club} · {c.year}</p>
+      {/* 🕵️ no Enigma esta linha é a ÚNICA informação: a dica. Clube e ano ficam
+          fora do HTML — com esses dois muita gente adivinha o jogador. */}
+      {mudo
+        // 🔇 SÓ A DICA, sem explicação junto: no celular "clube e ano escondidos"
+        // quebrava a linha e a fichinha virava um parágrafo. O 🕵️ com o nome
+        // borrado já diz que o resto está escondido — não precisa escrever.
+        ? <p className={`${big ? 'text-sm' : 'text-xs'} font-black mt-0.5 ${claro ? 'text-white/85' : 'text-black/70'}`}>{dicaDoEnigma(c, getLang() === 'en')}</p>
+        : <p className={`${big ? 'text-sm' : 'text-xs'} font-semibold mt-0.5 ${claro ? 'text-white/75' : 'text-black/60'}`}>{c.club} · {c.year}</p>}
     </div>
   )
 }
@@ -2617,17 +2629,30 @@ export function EscSetup() {
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Como é o leilão', 'Auction format')}</p>
             <div className="grid grid-cols-2 gap-2">
-              {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `🔻 ${t(MODO_HOLANDES.pt, MODO_HOLANDES.en)}`]] as [boolean, string][]).map(([m, label]) => (
+              {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${t(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]).map(([m, label]) => (
                 <button key={String(m)} onClick={() => setHolandes(m)}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
                   style={{ backgroundColor: holandes === m ? GOLD : '#fff', boxShadow: holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  {/* 🏷️ tarja NOVO — a MESMA da sala online, pra as duas telas não
+                      contarem histórias diferentes. Ela some sozinha 45 dias depois
+                      de o modo nascer (`MODO_NOME_NASCEU`), igual às novidades
+                      da home: ninguém precisa lembrar de tirar. A cor inverte
+                      quando o botão está escolhido, senão o dourado sumiria dentro
+                      do dourado justo na hora em que a pessoa escolhe. */}
+                  {m === true && seloNovoHolandes() && (
+                    <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+                      letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
+                      border: `1.5px solid ${INK}`, background: holandes ? INK : GOLD, color: holandes ? GOLD : INK }}>
+                      {seloNovoHolandes()}
+                    </span>
+                  )}
                   {label}
                 </button>
               ))}
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">
               {holandes
-                ? t('🔻 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🔻 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                ? t('🐊 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🐊 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
                 : t('✉️ O leilão de sempre: você escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: you write your bid in secret and the highest wins at the hammer.')}
             </p>
           </div>
@@ -3089,6 +3114,7 @@ function FloatingEmotes() {
     // 🎁 carta surpresa: o nome fica escondido até o martelo — a reação NÃO pode
     // vazar (antes mostrava "Você → Cafu" e entregava o jogador oculto).
     if (id === state.surpriseId) return '🎁 Surpresa'
+    if (id === state.mudoId) return `${ENIGMA_EMOJI} ${getLang() === 'en' ? ENIGMA_NOME.en : ENIGMA_NOME.pt}`
     const c = state.currentCards.find(x => x.id === id)
       ?? state.revealQueue.find(q => q.card.id === id)?.card
       ?? state.tiebreaks.find(t => t.card.id === id)?.card
@@ -3388,6 +3414,13 @@ function CardReact({ cardId }: { cardId: string }) {
   )
 }
 
+// 🏷️ a tarja "NOVO" do pregão holandês nas telas de montar. Some sozinha 45
+// dias depois de o modo nascer — a data mora junto do NOME, em `store.tsx`.
+const seloNovoHolandes = (): string | undefined =>
+  (Date.now() < new Date(`${MODO_NOME_NASCEU}T00:00:00`).getTime() + 45 * 24 * 3600_000
+    ? (getLang() === 'en' ? 'new' : 'novo')
+    : undefined)
+
 export function EscAuction() {
   const { state } = useEsc()
   let sub
@@ -3473,7 +3506,7 @@ function Holandes() {
             pessoa criou descobre AQUI em que pregão está jogando, sem precisar
             ter visto a tela de montar a sala. */}
         <p className="text-[10px] font-black uppercase tracking-widest" style={{ ...OSWALD, color: '#C2452F' }}>
-          🔻 {modoHolandesNome(lang === 'en').toUpperCase()}
+          {MODO_EMOJI} {modoNomeDe(lang === 'en').toUpperCase()}
         </p>
         <h2 className="font-black text-3xl leading-none" style={OSWALD}>{posName.toUpperCase()}</h2>
         <p className="text-sm font-semibold text-black/70 mt-0.5">
@@ -3541,6 +3574,7 @@ function Holandes() {
           const pode = holPodeAgora(state, you.id, c.id)
           const t = dono ? state.managers.find(m => m.id === dono.mgr) : null
           const ehSurpresa = state.surpriseId === c.id
+          const ehEnigma = state.mudoId === c.id
           return (
             <div key={c.id} className="border-[3px] border-black rounded-xl p-2.5 flex items-center gap-2"
               style={{
@@ -3551,13 +3585,18 @@ function Holandes() {
                 opacity: dono && dono.mgr !== you.id ? 0.62 : 1,
               }}>
               <div className="flex-1 min-w-0">
-                <CardFace c={c} surprise={ehSurpresa} highlight={ehSurpresa} />
+                <CardFace c={c} surprise={ehSurpresa} mudo={ehEnigma} highlight={ehSurpresa} />
               </div>
               {dono ? (
                 // ✅ JÁ SAIU: a carta some da disputa NA HORA em que o degrau fecha,
                 // com o nome de quem levou e por quanto. Sem botão, sem dúvida.
                 <div className="text-right shrink-0">
-                  <p className="text-[9px] font-black uppercase text-black/45" style={OSWALD}>{L('Arrematado', 'Sold')}</p>
+                  {/* 🎣 O GRITO DO ARREMATE. A pescaria é calma só até a hora de
+                      fisgar — aí é seco. Quando a carta é SUA, a tarja não diz
+                      "arrematado", diz FISGOU!, que é o que a pessoa sente. */}
+                  <p className="text-[9px] font-black uppercase" style={{ ...OSWALD, color: dono.mgr === you.id ? GREEN : 'rgba(0,0,0,.45)' }}>
+                    {dono.mgr === you.id ? (lang === 'en' ? MODO_FISGOU.en : MODO_FISGOU.pt) : L('Arrematado', 'Sold')}
+                  </p>
                   <p className="text-[12px] font-black leading-tight" style={{ ...OSWALD, color: dono.mgr === you.id ? GREEN : INK }}>
                     {dono.mgr === you.id ? L('🫵 VOCÊ', '🫵 YOU') : (t?.teamName ?? '—')}
                   </p>
@@ -3732,9 +3771,11 @@ function Envelope() {
   const amHost = !!state.isHost
 
   // ─── cronômetro de 45s ───────────────────────────────────────────
-  const [now, setNow] = useState(() => Date.now())
+  // ⏱️ `agoraSala()` = a hora do DONO. O prazo nasce no aparelho dele; com o
+  // relógio do próprio celular, quem está atrasado via "124s" onde são 45s.
+  const [now, setNow] = useState(() => agoraSala())
   useEffect(() => {
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [])
   const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 45
@@ -4072,6 +4113,15 @@ function Envelope() {
               ? <p className="text-sm font-black" style={{ color: '#146c33' }}>{L('Você tem ', 'You have ')}<b>{L('1 vaga', '1 slot')}</b>{L(' — dê seu lance em quem quer levar.', ' — bid on the one you want.')}</p>
               : <p className="text-sm font-black" style={{ color: '#146c33' }}>{L('Você tem ', 'You have ')}<b>{L(`${bidLimit} vagas`, `${bidLimit} slots`)}</b>{L(` — pode dar lance em até ${bidLimit} jogadores DE UMA VEZ nesta rodada, não só em um! 👈`, ` — you can bid on up to ${bidLimit} players AT ONCE this round, not just one! 👈`)}</p>}
           </div>
+          {/* 🕵️ ENIGMA nesta rodada: o irmão mais fechado do surpresa. Caixa ESCURA
+              (o surpresa é roxo) pra ninguém confundir os dois numa olhada. */}
+          {ENIGMA_LIGADO && cards.some(c => c.id === state.mudoId) && (
+            <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5"
+              style={{ background: INK, color: GOLD, boxShadow: `3px 3px 0 0 ${INK}` }}>
+              <p className="text-sm font-black" style={OSWALD}>{`${ENIGMA_EMOJI} ${L(`JOGADOR ${ENIGMA_NOME.pt.toUpperCase()}`, `${ENIGMA_NOME.en.toUpperCase()} PLAYER`)}`} {L('nesta rodada!', 'in this round!')}</p>
+              <p className="text-[11px] font-bold text-white/85">{L('Esse esconde MAIS: nome, clube e ano. Você só tem a posição e uma dica. O nome sai no martelo.', 'This one hides MORE: name, club and year. All you get is the position and a hint. The name comes out at the hammer.')}</p>
+            </div>
+          )}
           {cards.some(c => c.id === state.surpriseId) && (
             <div className="text-center border-[3px] border-black rounded-xl px-3 py-1.5 text-white"
               style={{ background: PURPLE, boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -4121,7 +4171,7 @@ function Envelope() {
                     : (isMine ? L('🫵 seu jogador', '🫵 your player') : `${sellerM.rival ? '⚔️' : sellerM.isHuman ? '🔥' : '🔁'} ${sellerM.teamName}`)}
                 </span>
               )}
-              <CardFace c={c} surprise={c.id === state.surpriseId} />
+              <CardFace c={c} surprise={c.id === state.surpriseId} mudo={c.id === state.mudoId} />
             </div>
             <div className="flex items-center gap-1.5">
               {/* 📝 ANTI-MALANDRAGEM: você deixou o contrato vencer → não recompra
@@ -4210,7 +4260,8 @@ function Envelope() {
         const floor = (c as { paid?: number }).paid ?? 0
         const others = Object.entries(bids).reduce((s, [k, v]) => (k === c.id ? s : s + v), 0)
         const room = you.money - others // teto que cabe pra ESTA carta
-        const cName = c.id === state.surpriseId ? L('🎁 Jogador Surpresa', '🎁 Mystery Player') : c.name
+        const cName = c.id === state.surpriseId ? L('🎁 Jogador Surpresa', '🎁 Mystery Player')
+          : c.id === state.mudoId ? `${ENIGMA_EMOJI} ${L(`Jogador ${ENIGMA_NOME.pt}`, `${ENIGMA_NOME.en} Player`)}` : c.name
         const masked = state.streamMode && !peek
         const typed = parseInt(typeVal || '0', 10)
         const min = Math.max(1, floor)
@@ -4294,10 +4345,10 @@ function Tiebreak() {
     setPending(false)
   }, [tb?.cardId, tb?.amount])
 
-  // cronômetro
-  const [now, setNow] = useState(() => Date.now())
+  // cronômetro (na hora do DONO da sala — ver `relogio.ts`)
+  const [now, setNow] = useState(() => agoraSala())
   useEffect(() => {
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [])
   const remaining = state.phaseDeadline ? Math.max(0, Math.ceil((state.phaseDeadline - now) / 1000)) : 30
@@ -4763,7 +4814,8 @@ function Reveal() {
   const mesaModo = online && !state.careerOnline
   const privateReveal = avatarPreview && state.sport !== 'basquete'
   const mesaOn = mesaModo && item.bids.length > 0 && !privateReveal
-  const identityVisible = revealIdentityVisible(item.card.id === state.surpriseId, hammered, sold)
+  const ehEnigma = item.card.id === state.mudoId
+  const identityVisible = revealIdentityVisible(item.card.id === state.surpriseId || ehEnigma, hammered, sold)
   const offerRows = privateReveal
     ? revealOffers(item.bids, item.voided, item.winner, hammered)
     : [...item.bids].sort((a, b) => b.amount - a.amount)
@@ -4792,12 +4844,15 @@ function Reveal() {
           {item.card.id === state.surpriseId && (
             <span className="absolute top-2 left-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black text-white" style={{ ...OSWALD, background: PURPLE }}>🎁 SURPRESA</span>
           )}
+          {ehEnigma && (
+            <span className="absolute top-2 left-2 z-10 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black" style={{ ...OSWALD, background: INK, color: GOLD }}>{`${ENIGMA_EMOJI} ${ENIGMA_NOME.pt.toUpperCase()}`}</span>
+          )}
           {/* 🎁 SURPRESA anti-spoiler: o nome fica BORRADO até alguém GANHAR de fato
               (martelo com vencedor). Sem lance = nunca revela (vai pro Monte às cegas);
               com lance = borrado até o martelo bater. */}
           {!mesaOn && (privateReveal && identityVisible && avatarLote1(item.card.name, item.card.club, item.card.year)
             ? <div className="ll-lote1-reveal-card"><CollectibleCard {...item.card}/></div>
-            : <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />)}
+            : <CardFace c={item.card} big surprise={item.card.id === state.surpriseId && !(hammered && sold)} mudo={ehEnigma && !(hammered && sold)} highlight={item.card.id === state.surpriseId} />)}
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
           {/* (carimbo grande "VENDIDO!" removido — vazava da carta e repetia o texto
               "🔨 VENDIDO pro X por Y!" que já existe embaixo. O festão da Lenda fica.) */}
@@ -4811,26 +4866,27 @@ function Reveal() {
                 // centro da mesa, do tamanho que merece.
                 // 🙈 O anti-spoiler da SURPRESA é o MESMO do CardFace: o nome real
                 // nem entra no HTML enquanto não bate o martelo com vencedor.
-                const escondido = item.card.id === state.surpriseId && !(hammered && sold)
+                const escondido = (item.card.id === state.surpriseId || ehEnigma) && !(hammered && sold)
                 if (avatarPreview && hammered && sold && !escondido && avatarLote1(item.card.name, item.card.club, item.card.year)) return <div className="ll-lote1-reveal-card"><CollectibleCard {...item.card}/></div>
                 const lenda = item.card.fame >= 5
                 return (
                   <div className="rounded-2xl text-center relative overflow-hidden"
                     style={{ border: `3px solid ${INK}`, boxShadow: `3px 3px 0 0 ${INK}`, background: lenda ? GOLD : '#fff' }}>
-                    {(lenda || item.card.id === state.surpriseId) && (
+                    {(lenda || item.card.id === state.surpriseId || ehEnigma) && (
                       <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 8.5, letterSpacing: '.14em', padding: '2px 0 3px',
                         background: item.card.id === state.surpriseId ? PURPLE : INK, color: item.card.id === state.surpriseId ? '#fff' : GOLD }}>
-                        {item.card.id === state.surpriseId ? '🎁 Surpresa' : '👑 Lenda'}
+                        {item.card.id === state.surpriseId ? '🎁 Surpresa' : ehEnigma ? `${ENIGMA_EMOJI} ${ENIGMA_NOME.pt}` : '👑 Lenda'}
                       </p>
                     )}
                     <div style={{ padding: '7px 6px 8px' }}>
                       <span className="inline-block border-2 border-black rounded-full font-black"
                         style={{ ...OSWALD, fontSize: 9, padding: '0 7px 1px', background: INK, color: '#fff' }}>{posTag(item.card.pos)}</span>
                       {escondido
-                        ? <p className="font-black" style={{ ...OSWALD, fontSize: 17, lineHeight: 1.05, marginTop: 4, color: PURPLE }}>
-                            🎁 <span aria-hidden style={{ filter: 'blur(4px)', letterSpacing: 3, userSelect: 'none' }}>? ? ?</span></p>
+                        ? <p className="font-black" style={{ ...OSWALD, fontSize: 17, lineHeight: 1.05, marginTop: 4, color: ehEnigma ? INK : PURPLE }}>
+                            {ehEnigma ? ENIGMA_EMOJI : '🎁'} <span aria-hidden style={{ filter: 'blur(4px)', letterSpacing: 3, userSelect: 'none' }}>? ? ?</span></p>
                         : <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 15, lineHeight: 1.05, marginTop: 4 }}>{item.card.name}</p>}
-                      <p className="font-bold" style={{ fontSize: 9, marginTop: 3, color: 'rgba(0,0,0,.55)' }}>{item.card.club} · {item.card.year}</p>
+                      {/* 🕵️ no Enigma o clube e o ano NÃO entram no HTML até o martelo — é o que ele esconde a mais que o surpresa */}
+                      <p className="font-bold" style={{ fontSize: 9, marginTop: 3, color: 'rgba(0,0,0,.55)' }}>{ehEnigma && !(hammered && sold) ? dicaDoEnigma(item.card, getLang() === 'en') : `${item.card.club} · ${item.card.year}`}</p>
                     </div>
                   </div>
                 )
@@ -5066,10 +5122,10 @@ export function EscMonte() {
   const curMgr = state.managers.find(m => m.id === state.monteOrder[state.monteIdx])
 
   // contagem regressiva (só online, quando há prazo)
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => agoraSala())
   useEffect(() => {
     if (!online || !state.monteDeadline) return
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [online, state.monteDeadline])
   const remaining = online && state.monteDeadline ? Math.max(0, Math.ceil((state.monteDeadline - now) / 1000)) : null
@@ -5262,10 +5318,10 @@ export function EscCerimonia() {
 
   // cronômetro de 45s (igual leilão): dá tempo de olhar os times e começa
   // o campeonato sozinho quando zerar (o vigia no provider dispara o FINISH).
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(agoraSala())
   useEffect(() => {
     if (!state.cerimoniaDeadline) return
-    const iv = setInterval(() => setNow(Date.now()), 250)
+    const iv = setInterval(() => setNow(agoraSala()), 250)
     return () => clearInterval(iv)
   }, [state.cerimoniaDeadline])
   const secsLeft = state.cerimoniaDeadline ? Math.max(0, Math.ceil((state.cerimoniaDeadline - now) / 1000)) : null
@@ -8842,6 +8898,15 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const votes = state.seasonVotes ?? {}
   const myVote = votes[youId]
   const humans = state.managers.filter(m => m.isHuman)
+  // ⚙️ GERENCIAR TÉCNICOS TAMBÉM NO FIM (Diego 20/09): *"no final também tem que
+  // ter o botão de gerenciar técnicos perto de sair, igual também tem no outro
+  // modo"*. Durante a partida ele mora no rodapé do `Shell` — mas a tela de fim
+  // do online abre com `hideExit`, e o rodapé (com o gerenciar junto) some. E é
+  // JUSTO AQUI que ele é mais preciso: o host está decidindo o "novo leilão" e
+  // precisa tirar da frente quem largou o jogo. Mesmas regras do `Shell`: só o
+  // host, só os OUTROS, humanos e rivais CPU, com os buracos à mostra.
+  const [gerenciar, setGerenciar] = useState(false)
+  const outrosTecnicos = state.managers.filter(m => m.id !== youId && (m.isHuman || m.auctionRival))
   // o host é o DECISOR (não vota) — placar e chips contam só os convidados
   const guests = humans.filter(m => m.id !== youId)
   const nMesmo = guests.filter(m => votes[m.id] === 'mesmo').length
@@ -9174,11 +9239,37 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {otherHumanChamp && <p className="text-[11px] font-bold text-center mt-1" style={{ color: '#FFE08A' }}>{V('🏆 Um campeão está pegando a carta dele — o host começa logo depois. Segura aí!', '🏆 A champion is grabbing their card — the host starts right after. Hang tight!')}</p>}
         </>
       )}
-      {/* saídas — uma linha só, discreta, pra todos */}
+      {/* saídas — uma linha só, discreta, pra todos (e o ⚙️ do host junto) */}
       <div className="flex items-center justify-center gap-6 pt-2 mt-1 border-t-2 border-white/20">
         <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-white/70 text-xs font-bold underline active:opacity-60" title={V('Sai pro menu mas continua na sala — dá pra voltar', 'Goes to the menu but stays in the room — you can come back')}>{V('🏠 Voltar pro menu', '🏠 Back to menu')}</button>
         <button onClick={exitLeave} className="text-white/70 text-xs font-bold underline active:opacity-60" title={V('Sai da sala de vez', 'Leaves the room for good')}>{V('🚪 Sair da sala', '🚪 Leave the room')}</button>
+        {isHost && outrosTecnicos.length > 0 && (
+          <button onClick={() => setGerenciar(v => !v)} className="text-white/70 text-xs font-bold underline active:opacity-60" title={V('Remover quem largou o jogo antes de começar a próxima', 'Remove whoever left the game before starting the next one')}>{gerenciar ? V('fechar', 'close') : V('⚙️ Gerenciar técnicos', '⚙️ Manage managers')}</button>
+        )}
       </div>
+      {isHost && gerenciar && (
+        <div className="rounded-xl border-2 border-black p-2 space-y-1.5 text-left" style={{ background: '#fff' }}>
+          <p className="text-black/40 text-[10px] font-black uppercase tracking-widest px-1" style={OSWALD}>{V('Remover da partida', 'Remove from the match')}</p>
+          {outrosTecnicos.map(m => (
+            <div key={m.id} className="flex items-center gap-2">
+              <span className="flex-1 min-w-0 truncate text-xs font-bold text-black/70" style={OSWALD}>{m.isHuman ? '' : '🤖 '}{m.teamName}</span>
+              {/* 🕳️ os buracos do time dele — informação pra DECIDIR, igual ao gerenciar da partida */}
+              {(() => {
+                const h = totalHoles(m)
+                return <span className="shrink-0 text-[11px] font-black tabular-nums" style={{ ...OSWALD, color: h > 0 ? '#B23A2A' : 'rgba(0,0,0,.3)' }} title={V(`${h} vaga(s) sem jogador`, `${h} empty slot(s)`)}>{h > 0 ? `−${h} 🕳️` : '✅'}</span>
+              })()}
+              <button onClick={() => {
+                const msg = m.isHuman
+                  ? V(`Remover ${m.teamName}? Vira um RIVAL CPU: continua no leilão dando lance com o time e o dinheiro dele.`, `Remove ${m.teamName}? Becomes a CPU RIVAL: stays in the auction bidding with their team and money.`)
+                  : V(`Excluir o rival CPU ${m.teamName}? Ele para de dar lance no leilão (fica só na tabela).`, `Delete CPU rival ${m.teamName}? They stop bidding at the auction (stay only in the table).`)
+                if (window.confirm(msg)) kickPlayer(m.id)
+              }}
+                className="shrink-0 border border-black/20 rounded-lg px-2 py-1 text-[11px] font-black active:opacity-60"
+                style={{ background: '#F4ECD6', color: '#B23A2A', ...OSWALD }}>{m.isHuman ? V('remover', 'remove') : V('excluir', 'delete')}</button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* modal do host: alguém ainda não decidiu — esperar, começar com eles, ou excluir */}
       {askStart && (

@@ -2620,6 +2620,7 @@ export const OLD_NAME: Record<string, string> = {
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
   'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
+  'Pantera Negra FC': 'Miúdo EC', // 🐆👑 batismo do ericrabelo29 (20/09): assumiu o assento da Série C que era do Miúdo EC — save antigo com Miúdo EC vira Pantera Negra FC ao abrir. (O Miúdo do Gol continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
   'Leão da Estradinha': 'Império Samambaia', // 🦁 REBATISMO do mesmo dono (23/08): o Império Samambaia virou Leão da Estradinha (Rio Branco-PR) — save antigo segue a corrente e chega no nome novo
@@ -2931,7 +2932,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // que é o elenco do jogo rápido, outra lista, sem nada a ver com a carreira.
     { name: 'Pesadelo', team: 'Pesadelo Verde FC' }, // 🌑🐺 clube BATIZADO por apoiador (portaltech.ep — Pesadelo Verde FC, ex-Zé Colmeia, Série C; brasão da lua cheia sobre a floresta, mascote O Pesadelo; quase-preto #030A04 + verde-musgo #597751 MEDIDOS na camisa do dono; Lenda + fundador nº73 + sócio nº54, 18/09)
     { name: 'DJ Bailão', team: 'Inter de Bailão' }, // 🪩 clube BATIZADO por apoiador (matheus223lms — Inter de Bailão, ex-Alfacehh, ex-Athletico do Porto; escudo com as caixas de som e o monograma IDB, mascote a bola de espelho de chapéu-bucket, azul #0040CD + preto MEDIDOS na camisa do dono; Lenda + fundador nº30 + sócio nº3). DESCEU da Série B pra cá em 14/09, na troca 1:1 com o Fatality FC.
-    { name: 'Miúdo do Gol', team: 'Miúdo EC' },
+    { name: 'Pantera', team: 'Pantera Negra FC' }, // 🐆👑 clube BATIZADO por apoiador (ericrabelo29 — Pantera Negra FC; o dono em uniforme de pantera, preto + dourado, bola-galáxia no pé; Lenda + fundador nº74, 20/09). Assento que era do Miúdo EC. ⚠️ Isto aqui é memória do repo — no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Eclipse', team: 'Nova Eclipse FC' }, // 🌑 clube BATIZADO por apoiador (jh9415474 — Nova Eclipse FC, ex-Zequinha SAF, Série C; mascote O Eclipse, preto + branco; Lenda + fundador nº60, 07/09)
     { name: 'Nego do Xote', team: 'Mano Paulista' },
     { name: 'Zé Chapéu', team: 'Brodeiragem' },

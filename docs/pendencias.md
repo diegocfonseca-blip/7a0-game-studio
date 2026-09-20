@@ -135,6 +135,511 @@ saiu". Novidade PT/EN na home. Trava: `npm run monte` (seção 1a).
    não extrapole"*. As réguas medidas estão em `scripts/simula-teto.mts`. Levar UMA
    proposta, em uma frase, com sim/não — nunca mais tabela atrás de tabela.
 2. Livro de preços gravar só até o teto de mercado (`recordPrice`) — não decidido.
+## 20/09/2026 (parte 52) — 🏺 COPA DO MUNDO COM CABEÇA DE CHAVE (4 potes de 6)
+
+*"A Copa do Mundo deveria sempre ter os países mais fortes sendo cabeça de chave,
+seja em qualquer modo. Não acha não?"*
+
+Achava. E o buraco era maior do que parecia: **não existia pote nenhum**. O
+sorteio embaralhava as 24 e cortava em 6 grupos de 4, cru. Medido em 20 mil
+Copas do jeito velho:
+
+| | antes | agora |
+|---|---|---|
+| 2 das 4 mais fortes no mesmo grupo | **63,8%** | 0% |
+| 3 das 4 mais fortes juntas | 4,4% | 0% |
+| 2 cabeças de chave no mesmo grupo | 97,3% | 0% |
+
+Ou seja: em **2 de cada 3 Copas** tinha grupo da morte, e um gigante caía fora na
+primeira fase por azar de sorteio — enquanto do outro lado da chave alguém
+passeava até a final.
+
+### 🏺 Como ficou
+**4 potes de 6** — o formato de Copa de 24 de verdade (México 86, Itália 90). O
+pote 1 espalha uma em cada grupo; os potes 2, 3 e 4 caem por cima, um por grupo.
+Dois cabeças de chave só se encontram no mata-mata.
+
+💪 **A força é a do time que ENTROU** (`Entrant.str`), não uma lista fixa de
+países. Então quem convoca um 11 bom com um país médio vira cabeça de chave, e
+não fica refém do nome da seleção. Vale na carreira e no online — "em qualquer
+modo", como ele pediu.
+
+🎲 **E continua sendo SORTEIO**: o embaralhamento agora é DENTRO do pote. O pote
+diz a força, o acaso diz o grupo — a trava exige que a seleção mais forte caia em
+pelo menos 5 grupos diferentes em 60 Copas, senão virou fila e a Copa fica igual
+todo ano.
+
+### 🔒 O cuidado que custou o dobro do trabalho (e valeu)
+A Copa é **recalculada da semente toda vez que a tela abre**. Ligar o sorteio
+novo numa Copa JÁ ROLANDO trocaria o chaveamento no meio do caminho — é o mesmo
+estrago do *"mudou o resultado da Copa"* de 04/08, e aqui seria pior: não é um
+placar, é a chave inteira.
+
+Então a regra vale **só pra Copa que NASCEU depois da mudança**, e cada modo tem
+o seu carimbo, sem migração de banco nenhuma:
+- **online**: a tabela `esc_copa_salas` já tinha `criada_em` — agora ela entra na
+  leitura, e `copaTemPotes()` compara com `POTES_DESDE`;
+- **carreira**: o `emAndamento` do `CopaSave` (o carimbo anti-F5 que já existia)
+  ganhou o campo `potes`, gravado quando a pessoa confirma a convocação. Save
+  velho não tem o campo → sorteio velho até aquela Copa acabar.
+
+E `simulaCopaMundo` nasce **sem** potes por padrão: quem liga é o chamador. Assim
+qualquer caminho esquecido cai no comportamento de hoje, não no novo.
+
+🛡️ `npm run potes` (trava nova, com a tabela antes×agora) · `npm run copa` ·
+`npm run ascegas` com as mesmas digitais (`28bea2df` · `d65041f6` · `06bab491`).
+Linha em `novidades.ts` (PT + EN) — é regra de jogo, não conserto.
+
+### ↩️ Dá pra voltar atrás?
+Dá, num commit. E mesmo sem reverter: é só o chamador parar de passar a bandeira
+que tudo volta ao sorteio de hoje.
+
+---
+## 20/09/2026 (parte 51) — 🐆👑 BATISMO: PANTERA NEGRA FC (Série C)
+
+Dono: **ericrabelo29@gmail.com** (Eric). Assento da **Série C** que era do
+🤖 Miúdo EC. Arte inteira mandada pelo dono (escudo, mascote e camisa).
+
+### 🎨 A arte
+- escudo `292×360` · **27,7 KB** (teto 30)
+- mascote `400×440` · **40,6 KB** (teto 45) · **total 68,4 KB** (teto 75)
+- camisa `626×760` · 67,4 KB — em `scripts/kits/` (post) e `public/mantos-salao/`
+  (Loja), com `-v1` no nome de propósito (endereço fixo = cache de navegador).
+- recorte: `scripts/recorta-prancha-pantera.py` (chroma verde, corte por LIGAÇÃO
+  com a borda, despill só na franja, poeira de alfa apagada, bbox medido com
+  alfa ≥ 40 e ≥ 3 pixels).
+
+### ⚠️ O ERRO QUE ELE PEGOU, e a lição
+Na 1ª versão eu tirei o **balão de fala** e a **plaquinha de madeira** do mascote,
+achando que eram peça de POST. Ele corrigiu: *"faltou a plaquinha com frase
+embaixo do mascote ao lado da bola e também em cima o balão com frase"*. O
+mascote dele é a **CENA inteira** — balão em cima, jogador com a bola-galáxia no
+pé, plaquinha embaixo.
+👉 **Regra pra qualquer arte que venha do dono: o que entra e o que sai é decisão
+DELE.** Na dúvida, perguntar — não podar por conta própria. (Irmã da regra de
+18/08: "quando você não souber como a pessoa é, me fala".)
+
+### 🎽 O manto: preto e dourado, MEDIDOS
+Medição nas três peças, e elas concordam: dourado `#CB9D3E` na camisa (11,3%
+dela), `#DEA152` no escudo, `#D38952` no mascote; escuro `#0E0C0C` na camisa
+(82,8%). O preto foi **levantado pra `#191615`** pelo mesmo motivo já escrito na
+linha do Futpoint: preto de arte escura, na listra fininha do jogo, lê como
+buraco. O tom quente é o medido; só a luz subiu.
+
+### ✅ As TRÊS pernas da entrega (código + banco + main)
+**Código:** `escudos.tsx` (4 formas do nome + o nome velho) · `mascotes.tsx`
+(`pantera_negra` + `MASCOTE_NOME` + `CARIMBO_GOL`) · `data.ts` (`OLD_NAME` +
+o assento da Série C) · `apoio.tsx` (ouro + `FUNDADOR_N` 74) · `manto.ts` ·
+`batismos.ts` (com o MESMO par de cores) · `salao-camisas.ts` + o arquivo
+público · a lista do `checa-batismos.mjs`.
+
+**Banco (rodado e CONFERIDO no mesmo dia):**
+- ⛔ a trava de segurança de 07/09 passou primeiro: **a conta existe**
+  (`auth.users`), então o batismo não ficou à espera de quem criasse a conta
+  com esse e-mail;
+- `user_colors` → ouro, manual ✅ · `esc_fundadores` → **74** ✅ ·
+  `esc_socios` → sócio **55**, manto `#191615`/`#CB9D3E`, `mascote_key`,
+  `escudo_time`, válido até 2099-12-31 ✅ · `esc_nomes_batismo` → o nome PURO,
+  e o gatilho criou FC e EC sozinho (**3 formas travadas**) ✅.
+
+### 👟❌ A NIKE SAIU (ordem dele, no mesmo dia)
+*"Tire a Nike do peito do manto também."* A prancha vinha com o símbolo em TRÊS
+lugares: o peito da camisa e as DUAS chuteiras do mascote. Marca registrada de
+outra empresa não entra no jogo — é a mesma decisão das chuteiras do Pontinho
+(Futpoint, 19/09) e do letreiro da bola de ouro. Script:
+`scripts/tira-marcas-pantera.py`.
+
+⚠️ **A receita do Futpoint NÃO serviu nas chuteiras.** Lá (e no pelo da pantera
+aqui) funciona ajustar uma superfície quadrática no RETÂNGULO e repintar com
+grão. No couro da chuteira isso deixou um **remendo quadrado de borda dura, com
+granulado cinza** — porque o brilho do couro muda rápido demais dentro da janela
+pra uma superfície suave acompanhar. A saída foi mais humilde e melhor:
+**mexer só nos pixels da marca** — marca o dourado, engorda 2 px e deixa o
+`inpaint` do OpenCV costurar pelo que está em volta. O couro, o brilho e o grão
+do lado nem são tocados.
+👉 Pra próxima marca a apagar: **comece pelo inpaint do risco**; a superfície
+quadrática é pra fundo LISO, não pra material brilhante.
+
+🟩 De quebra saíram **36 px de chroma** presos entre a chuteira e a bola-galáxia
+(escaparam do recorte por serem menores que o corte de buracos presos, > 700 px).
+Viraram vão, não pintura. A grama do pé da plaquinha também é verde e **não foi
+tocada** — o alvo foi só a janela da chuteira.
+
+### 📮 O post
+`node scripts/mockup-batismo.mjs` com `--camisa` (a que ele mandou). **Sem
+`--antigo`**, pela regra de 05/09: o post diz só "chega na Série C", nunca de
+quem era o assento.
+
+### ⏳ Falta
+❤️ **O time de coração dele.** O post leva `--coracao` sempre que a gente sabe —
+aqui ninguém disse. Quando o Diego souber, é só regerar o post e preencher
+`time_coracao` em `esc_socios`.
+
+🛡️ `npm run batismos` (Pantera Negra completo) · `salao` · `piramide`
+(C segue com 20) · `mimos` · `telas` · `carta` · e `npm run ascegas` com as
+mesmas digitais (`28bea2df` · `d65041f6` · `06bab491`).
+
+---
+## 20/09/2026 (parte 50) — 🕵️ O JOGADOR ENIGMA (no branch, esperando OK visual)
+
+Ele perguntou se já estava feito. **Não estava** — dos dois modos que saíram
+daquela conversa de ideias, só a 🐊 Tocaia foi construída; este ficou parado no
+"mockup" desde então.
+
+### 🎯 A regra, com as palavras dele
+- *"Ele só tira o lugar de outro jogador, igual já existe com o jogador surpresa.
+  É um jogador que já iria pro leilão, e aí a gente faz essa opção nele, dele
+  ficar escondido com a dica. **Mas não vai ter que botar um jogador a mais**."*
+- *"Ele pode aparecer uma vez só no leilão… pode ser algum leilão no gol, no
+  ataque ou outro, mas só uma vez."*
+- *"É só revelar igual é com o surpresa."*
+- *"Tem que entrar na posição que é a do leilão no momento que ele entra. Então a
+  dica já é a posição do momento que tão todos listados, mais a dica que o jogo
+  vai dar."*
+
+### 🆚 A diferença pro 🎁 Surpresa, que já existia
+O Surpresa esconde **só o nome** — clube e ano continuam à mostra, e com esses
+dois muita gente adivinha quem é. O Enigma esconde **nome, clube E ano**. Sobra
+a POSIÇÃO (que já é dica) + **uma dica**: a ÉPOCA (`🕰️ dos anos 2010`). Escolhi
+a época porque dá pra apostar ("craque velho ou moleque novo?") sem entregar
+ninguém — mas é justamente o que ele tem que aprovar.
+
+### ⚙️ Onde mora
+`mudoId` no estado (irmão do `surpriseId`) · `pickMudo` + `sorteiaEspeciais` +
+`dicaDoEnigma` no `store.tsx` · a prop `mudo` do `CardFace` no `screens.tsx`.
+Nome numa fonte ÚNICA e com identificador NEUTRO (`ENIGMA_NOME`/`ENIGMA_EMOJI`)
+— lição da Tocaia, que mudou de nome cinco vezes num dia.
+
+### 🎲 Ele NÃO puxa número da fila do acaso — e isso foi de propósito
+Todo sorteio do leilão sai da mesma fila de números aleatórios. Se o Enigma
+puxasse UM número a mais, todos os lances dos bots andariam pra frente e o
+pregão às cegas fecharia diferente — exatamente o que o `npm run ascegas`
+existe pra impedir. Então o Enigma é escolhido por uma CONTA em cima da semente
+da sala (a mesma sala sorteia o mesmo Enigma), sem encostar na fila.
+✅ As três digitais seguem `28bea2df` · `d65041f6` · `06bab491`.
+
+### 🔒 `npm run enigma-trava` (e como ela quase nasceu inútil)
+Confere: não é carta a mais · não consome acaso · nunca cai na mesma carta do
+Surpresa · a dica é verdade e não entrega nome/clube/ano · e o principal:
+**nome, clube e ano NÃO estão no HTML antes do martelo** (o Surpresa já teve
+esse bug — ia pro HTML e só era borrado por CSS, dava pra ler no "inspecionar").
+
+⚠️ **Duas vezes a trava mentiu pra mim antes de prestar:**
+1. ela rodava com o remendo que fixa o Enigma na 1ª carta (pro mockup) e acusava
+   "o sorteio está viciado" — estava mesmo, **por culpa do remendo**. Sumiu o
+   remendo: agora o modo liga por um interruptor de bancada (`bancadaEnigma`) na
+   página que já está aberta, sem editar arquivo nenhum. De quebra, acabou o
+   risco de o processo morrer no meio e a bandeira ir ligada pro commit.
+2. o recorte que tirava a dica apagava "tudo do 🕰️ pra frente" — então um
+   clube+ano colados DEPOIS da dica sumiam junto e **a trava passava num
+   vazamento de verdade** (testei: passou). Agora ela remove só os textos que a
+   função de dica sabe gerar, e o que sobrar tem que ser posição + 🕵️ + "?".
+   Testada nos dois sentidos: com o vazamento plantado, ela pega
+   (`"GOL🕵️ ? ? ? ? Sport · 2008"`).
+
+### ⏳ O que falta
+1. **OK visual do Diego** — nasce DESLIGADO (`ENIGMA_LIGADO = false`) e nada vai
+   pra `main` antes disso.
+2. Ele decidir a **DICA** (fiquei na época; dá pra ser "🌍 jogou na Europa",
+   "🏆 jogou Copa do Mundo"…) e o **NOME** do bicho (fiquei em "Enigma").
+3. Linha em `novidades.ts` — só na entrega que ligar isso pro pessoal.
+
+### ↩️ Dá pra voltar atrás?
+Dá, e nem precisa reverter: com `ENIGMA_LIGADO = false` o `mudoId` fica vazio e
+todas as telas caem no caminho de sempre. Pra sumir de vez, reverter o commit.
+
+---
+## 20/09/2026 (parte 49) — 🐊 O SELO DO PREGÃO NA LISTA (e por que ele não acendia)
+
+*"Ainda não tá aparecendo o selo do modo Tocaia… pode ser um jacaré talvez. E o
+padrão às cegas coloque outro emoji."*
+
+### 🔍 A causa: não era o selo, era o DADO
+O selo lia `game_state.holandes` — mas a **lista de salas abertas não baixa o
+`game_state`** desde 09/09. Naquela noite ela extraía 15 campos com `->>` e o
+Postgres descomprimia o JSON (50–200 KB) **uma vez por campo**: 3,5 s por
+consulta, 400 consultas/min, o banco parou (timeout em login, sala e save).
+Desde então os campos moram em colunas magras `ls_*`, preenchidas por gatilho.
+
+`holandes` nasceu depois e **nunca ganhou coluna**. Então na lista ele chegava
+sempre `undefined` e o selo nunca tinha como acender. O código do selo estava
+certo desde ontem; faltava o dado chegar até ele.
+
+👉 **Lição pra quem for pôr qualquer coisa nova na lista de salas abertas:** não
+basta gravar no `game_state`. **Tem que ter coluna `ls_*`** — a lista não lê o
+JSON e nunca mais vai ler.
+
+### ✅ O que foi feito
+- **`docs/sql/lista-salas-modo-pregao.sql`** — cria `ls_holandes` e um gatilho
+  **próprio e separado**, que NÃO encosta no `game_rooms_colunas_magras` que já
+  está no ar (a lição do `online-copa-clock-preview.sql`). Coluna nula =
+  instantâneo, sem travar a tabela; não precisa preencher as salas de pé, porque
+  toda sala viva é regravada em segundos.
+- **Os DOIS modos têm selo agora**: 🐊 TOCAIA (vermelho) e ✉️ ÀS CEGAS (branco).
+  Só carimbar a Tocaia não diferenciava nada pra quem olha a lista.
+- **Três estados, não dois**: `true` = Tocaia · `false` = envelope cego ·
+  `undefined` = a lista não conseguiu ler. **Sem leitura, nenhum selo** — senão
+  um banco ainda sem a coluna faria toda sala, inclusive as de Tocaia, se
+  anunciar como "às cegas", que é mentir pra quem vai entrar.
+- 🛟 **Rede na consulta**: se a coluna não existir, o Postgres devolve erro e a
+  lista voltaria **VAZIA** — ninguém entraria em sala nenhuma. O primeiro erro
+  faz a consulta cair pro formato antigo pelo resto da sessão. Por isso o código
+  pode subir antes do SQL, em qualquer ordem, sem risco.
+- 🏟️ **E dentro da sala de espera também**, logo abaixo do código da sala — e
+  essa parte **não depende de banco nenhum** (lá o `game_state` inteiro está na
+  mão). Quem entrou pelo código precisa saber em que jogo se meteu.
+
+### ✅ BANCO RODADO em 20/09 — a entrega está COMPLETA (código + banco + main)
+`docs/sql/lista-salas-modo-pregao.sql` aplicado no Supabase. Conferência na hora:
+**44 salas** nas últimas 6h — **4 de 🐊 Tocaia** (todas em jogo) e 40 de envelope
+cego, 3 delas com a coluna nula (o normal: sala às cegas não grava a chave).
+Permissões conferidas (`anon`/`authenticated` leem a coluna nova) e
+`notify pgrst, 'reload schema'` disparado — sem isso o PostgREST poderia demorar
+a enxergar a coluna, a consulta daria erro e a lista cairia na rede do formato
+antigo (funcionando, mas sem o selo).
+
+⚠️ **Armadilha pra quem for conferir isso à mão:** NÃO peça `ls_deck` num
+`select` de várias salas. Em sala velha "estragada" essa coluna guarda o baralho
+INTEIRO — um `select` de 20 linhas voltou com 209 mil caracteres.
+
+O arquivo foi escrito **em cima do `pg_get_functiondef` LIDO DO BANCO** (não de
+memória): é o mesmo gatilho `game_rooms_colunas_magras`, com UMA linha a mais e
+nada mais tocado. Dois achados da leitura que mudaram o plano:
+- o gatilho é `BEFORE INSERT OR UPDATE **OF game_state**` — e a sala parada na
+  espera só grava `updated_at` (batimento do host de 30s). Sem o passo 3
+  (o `update` de preenchimento) as salas que já estão de pé ficariam sem selo
+  até o pregão começar. O plano original dizia que elas se preencheriam
+  sozinhas; **estava errado**, e só a leitura do banco mostrou isso;
+- as outras 15 colunas guardam o `->>` cru, então sala às cegas fica com
+  `ls_holandes` **NULL** (ela não grava a chave). O código já trata: NULL = às
+  cegas, campo AUSENTE (consulta velha) = não sei, não carimbo nada.
+
+🛡️ `npm run holandes` (com 6 travas novas, inclusive a que reprova quem voltar a
+procurar o modo no `game_state`) · `npm run ascegas` com as mesmas digitais
+(`28bea2df` · `d65041f6` · `06bab491`) · `npm run sala` e `npm run relogio` verdes.
+
+---
+## 20/09/2026 (parte 48) — 🎬 REELS DA TOCAIA (`npm run tocaia`)
+
+*"Preciso de um vídeo top agora, padrão de vídeos que fazemos, falando dessa
+baita novidade!! E mostrando o tempo rolando e etc."*
+
+`scripts/video-tocaia-reels.mjs` · 1080×1920 · ~36s · mesmo padrão dos outros
+reels (creme, bordas grossas, sombra dura, Oswald, cenas por `animation-delay`).
+
+### 🎞️ As 7 cenas
+1. 🐊 **CHEGOU A TOCAIA** — a novidade antes de qualquer regra (regra do reels do
+   Bola de Ouro: *"primeiro você tem que começar o vídeo falando da novidade"*);
+2. às cegas × Tocaia — envelope lacrado × preço à vista de todo mundo;
+3. ⭐ **O PREÇO ROLANDO** — a parte que ele pediu: a leva inteira listada com o
+   botão PEGAR, o número gigante caindo `100·90·80·70·60·55·50·46·42·38·34·30·27·24·21·18`
+   e uma barrinha vermelha esvaziando. No 18 o 🫵 desce e a carta vira dourada
+   com **PEGUEI! · 18 🪙**;
+4. quem aperta **primeiro** leva — é por TEMPO, não por valor (PEGUEI! × 😤 QUASE!);
+5. o jogador **cai no campinho na hora**;
+6. ninguém quis? preço até zero → Monte de sobras, e **o às cegas não mudou nada**;
+7. onde jogar (rápida · sala online · Minhas Ligas) + marca.
+
+### ✅ Os números do vídeo são os DO JOGO
+A escada saiu pra `scripts/escada-tocaia.mjs` (espelho em JS puro do `holEscada`
+do `store.tsx` — `.mjs` não importa `.tsx`), e o **`npm run holandes` agora
+compara as duas**: mexeu na escada do jogo e esqueceu o espelho, a trava reprova.
+Motivo: vídeo é o que vai pro Instagram — anunciar preço que o jogo não tem é
+propaganda enganosa.
+
+⏱️ **A descida do vídeo corre em DOBRO** (100→18 leva 17,1s de verdade, no vídeo
+leva 8,5s). A ordem e os números são os reais e **a própria tela avisa**:
+*"no jogo a descida inteira leva ~49s · aqui está acelerada"*. Reel não aguenta
+17s de contagem, mas ninguém pode chegar no jogo e se sentir enganado.
+
+### 🚫 O que ficou DE FORA de propósito
+O conserto do relógio (parte 47) **não entra no vídeo nem nas novidades**: é
+bug, e a regra dele é *"menos bugs, que nunca lance"*.
+
+---
+## 20/09/2026 (parte 47) — ⏱️ UM RELÓGIO SÓ PRA SALA (o "154s" do print dele)
+
+Ele mandou cinco prints da Copa do Mundo online e o recado:
+*"os tempos de escolhas estão MT longos… tem que ser igual ao modo às cegas. E o
+monte de sobras também, que era 15s e tava bem mais também."*
+
+### 🔍 O que estava acontecendo (não era a Copa, nem o Monte)
+Nos prints: **154s** onde são 75s (escolher a seleção), **84s** onde são 15s (o
+banner) e **129s** onde são 90s (a convocação). Os três batem com a MESMA conta:
+o número certo **+ 79 segundos**.
+
+O relógio do celular dele estava **~79 segundos atrasado**. Todo prazo do online
+nasce no aparelho do **DONO** da sala (`Date.now() + 15s`) e viaja como um
+INSTANTE; quem recebia fazia a conta com a hora do **próprio** celular. Celular
+atrasado = todo prazo parece maior do que é.
+
+A prova de que era relógio, e não a Copa: o **Monte de sobras** deu o mesmo erro,
+e ele vem por um caminho de código **completamente diferente** (broadcast do
+estado, não a tabela `esc_copa_salas`). Dois lugares sem nenhuma ligação, o mesmo
+desvio — é a assinatura de relógio torto.
+
+E o pior não era o número feio: a fase acabava **na hora certa** (quem manda é o
+relógio do dono), então quem tinha o celular atrasado levava um susto — *"mas
+ainda tinha um minuto!"*.
+
+### ✅ O conserto — `src/escalacao/relogio.ts`
+O dono carimba a hora dele nas **duas mensagens que já manda** (o estado e o "tô
+vivo" de 4 em 4 segundos — uns 20 bytes, zero mensagem nova, zero banco). Cada
+convidado aprende o **desvio** entre os dois relógios, e daí pra frente toda
+contagem do online é lida com `agoraSala()` — a hora do DONO.
+
+Vale pra **tudo** de uma vez: envelope do leilão às cegas (45s), desempate,
+🐊 Tocaia, Monte de sobras (15s), cerimônia e os três relógios da Copa do Mundo
+(75s · 15s · 90s).
+
+🛡️ Por que não quebra nada:
+- pro **DONO** o desvio é SEMPRE zero (ele não recebe carimbo de ninguém, e
+  `souODono()` zera na hora que alguém assume) → o jogo dele fica idêntico;
+- **offline** nunca recebe carimbo → desvio zero, idêntico;
+- host numa versão velha (janela de deploy) não manda carimbo → o convidado fica
+  exatamente como era hoje, sem erro novo;
+- **zona morta de 1,5s**: a variação da rede não faz a contagem pular na tela;
+- carimbo inválido ou absurdo (> 12h) não encosta no relógio;
+- só **PRAZO** usa essa hora. Salvar, assinar, ordenar e registrar continuam no
+  relógio do próprio aparelho.
+
+### ⚙️ E o botão que ele pediu junto
+*"no final também tem que ter o botão de gerenciar técnicos perto de sair, igual
+também tem no outro modo."* Durante a partida o ⚙️ mora no rodapé do `Shell` — só
+que a tela de FIM do online abre com `hideExit`, e o rodapé inteiro some. Agora
+ele aparece na linha das saídas do quadro roxo "🗳️ E agora?", ao lado de
+🏠 Voltar pro menu e 🚪 Sair da sala. Mesmas regras de sempre: **só o host**, só os
+OUTROS técnicos, humanos e rivais CPU, com os buracos (`−N 🕳️`) à mostra. É
+justamente aqui que ele é mais útil: o host está decidindo o "novo leilão" e
+precisa tirar da frente quem largou o jogo.
+
+### 🛡️ Trava nova: `npm run relogio`
+Confere a conta do desvio, a zona morta, o lixo que não pode entrar, que o DONO
+nunca tem desvio, que assumir a coroa zera na hora — e, por texto, que nenhuma
+das telas de contagem (leilão, desempate, Monte, cerimônia, Copa) voltou a usar
+`Date.now()` cru.
+
+`npm run ascegas` com as mesmas digitais (`28bea2df` · `d65041f6` · `06bab491`) ·
+`npm run holandes`, `npm run revanche`, `npm run copa`, `npm run sala` e
+`npm run vigias` verdes.
+
+### ↩️ Dá pra voltar atrás?
+Dá, e é um commit só. Voltando, tudo fica exatamente como estava hoje (o número
+inflado volta pra quem tem o celular fora de hora, e o ⚙️ some do fim).
+
+---
+## 20/09/2026 (parte 46) — 🐊 FECHADO: o modo é TOCAIA, com o jacaré
+
+*"Coloque Tocaia mesmo, com emoji de jacaré."* Decisão final dele, depois de o
+nome passar por **Holandês → Queda Livre → Holandês → Pescaria → Tocaia** em um
+único dia.
+
+### 🐊 Como ficou
+- nome: **🐊 Tocaia / Ambush**;
+- emoji: **🐊** em todas as telas (montar partida, montar sala, selo da lista de
+  salas abertas, topo do pregão, novidade da home);
+- grito do arremate: **PEGUEI! / GOT IT!** na tarja da carta que é sua (era
+  "FISGOU!" na versão Pescaria, que durou uma mensagem);
+- a faixa do último martelo segue com **🔨** — é o martelo do leilão, símbolo do
+  jogo, e não é do modo.
+
+### 🧠 Por que Tocaia é o nome certo (e fica registrado)
+É o único dos cinco que carrega o **RIVAL**. A emoção do modo não é o preço
+caindo — é o amigo te passando na frente. Tocaia tem alvo e tem disputa; pescaria
+é você contra o peixe, e o peixe não está competindo com você. O jacaré fecha a
+imagem: fica parado, de olho, e dá o bote na hora certa.
+
+⚠️ **Não repropor outro nome sem ele pedir.** Os descartados, pro caso de ele
+voltar ao assunto: Queda Livre (Free Fall) · Pescaria (Fishing) · Bote (virava
+"bot") · Às Claras · Chapéu · Caçada · Sniper · Anzol.
+
+### 💡 O que essa novela ensinou, e que vale pra qualquer coisa "de gosto"
+O nome mudou **cinco vezes**. Custou barato porque, na terceira troca, eu parei de
+espalhar a palavra pelas telas e criei uma **fonte única com identificador
+NEUTRO**: `MODO_NOME` / `MODO_EMOJI` / `MODO_FISGOU`. Da quarta em diante, trocar
+o nome do modo virou **trocar uma string** — não renomear código em sete lugares.
+👉 Quando um assunto for de GOSTO do Diego, assuma que vai mudar e **prepare o
+código pra mudar barato desde a primeira vez**.
+
+E a chave do estado nunca se mexeu: continua `holandes` no save, no reducer e no
+`game_state` da sala. Sala criada com o nome antigo abre normalmente.
+
+🛡️ `npm run holandes` verde · `npm run ascegas` com as mesmas digitais
+(`28bea2df` · `d65041f6` · `06bab491`).
+
+---
+
+## 20/09/2026 (parte 45) — 🎣 O modo virou PESCARIA (votação do pessoal dele) — PRONTO, NÃO PUBLICADO
+
+Depois de rodar vários nomes com ele, o pessoal votou: *"pescaria, pessoal tá
+votando aqui"*. Feito — e com o **FISGOU!** junto, que era a condição pra Pescaria
+funcionar (ver abaixo).
+
+### 🎣 O que mudou na tela
+- nome: **🎣 Pescaria / Fishing** (era Holandês / Dutch);
+- emoji do modo: 🔻 → **🎣** em todo lugar (telas de montar, selo da lista de salas,
+  topo do pregão, novidade da home);
+- **o grito do arremate**: quando a carta é SUA, a tarja não diz "Arrematado", diz
+  **FISGOU!** (**HOOKED!** em EN). É o que resolve o único problema do nome.
+
+### 🔑 Duas decisões de engenharia que vão importar na PRÓXIMA troca de nome
+1. **O identificador virou NEUTRO**: `MODO_HOLANDES` → **`MODO_NOME`** (e
+   `MODO_EMOJI`, `MODO_FISGOU`, `MODO_NOME_NASCEU`). Este nome mudou **duas vezes
+   em um dia**; deixar "PESCARIA" no identificador obrigaria a renomear código
+   toda vez. Agora trocar o nome do modo é trocar **uma string**.
+2. **A chave do estado continua `holandes`** — no save, no reducer e no
+   `game_state` da sala. Nome que o código compara ou guarda NUNCA se rebatiza:
+   sala criada ontem continua abrindo hoje.
+
+### 🗣️ O que eu respondi quando ele perguntou se eu achava mesmo Pescaria melhor
+Ele cobrou franqueza (*"fala verdade"*). Minha resposta, registrada porque é uma
+opinião de design que pode voltar à mesa: **na minha opinião Tocaia é o melhor nome
+pro modo**, porque *na pescaria não existe rival* — a emoção do modo não é o preço,
+é o amigo te passando na frente, e tocaia tem alvo e disputa. **Mas o voto do
+pessoal ganha da minha opinião**: nome de modo existe pra ser FALADO, e quem vai
+falar é a turma dele, não eu.
+
+### ⏸️ ESTÁ NO BRANCH, NÃO NA MAIN
+Parei antes de publicar porque ele pediu a minha opinião no meio da troca — é
+decisão dele, não minha. A `main` segue com **Holandês** até ele bater o martelo.
+Pra publicar: `git checkout main && git merge claude/denis-save-file-x1osct`.
+Pra voltar pra Tocaia (ou qualquer outro): uma string em `MODO_NOME`.
+
+🛡️ Conferido no branch: `npm run holandes` verde · `npm run ascegas` com as mesmas
+digitais (`28bea2df` · `d65041f6` · `06bab491`).
+
+---
+
+## 20/09/2026 (parte 44) — 🏷️ Tarja "NOVO" no Holandês (nas duas telas de montar)
+
+Pedido dele, com o print da tela de criar sala: *"aonde tá holandês coloque uma obs
+de novo"* — igual à que o **🌐 Liga + Mundo** já tem ali do lado.
+
+### O que foi feito
+O componente `Seg` do `lobby.tsx` **já sabia** desenhar essa tarja (`selos`), então
+não teve desenho novo — só faltava usar. Mas ela estava presa numa data FIXA
+(`NOVO_ATE = 16/10`), que era a validade da Copa do Mundo online (nascida em 01/09).
+Se eu reaproveitasse, a tarja do holandês morreria 26 dias antes da hora.
+
+Virou genérica: **`seloNovoDe(nascimento)`** — a tarja some sozinha **45 dias**
+depois de o modo nascer, e a data da Copa do Mundo continua a dela.
+
+### 📍 E está nas DUAS telas de montar
+- **Sala online** (`lobby.tsx`), via o `Seg`;
+- **Partida Rápida** (`screens.tsx`), onde o seletor é feito à mão — a tarja foi
+  desenhada com o MESMO estilo (mesma pílula, mesmo tamanho, mesma inversão de cor
+  quando o botão está escolhido).
+
+Se ficasse só numa, as duas telas contariam histórias diferentes sobre o mesmo modo.
+
+### 🗓️ A data mora junto do NOME
+`MODO_HOLANDES_NASCEU = '2026-09-20'` ficou em `store.tsx`, ao lado de
+`MODO_HOLANDES`. É a mesma informação ("este é o modo novo") — separar os dois seria
+pedir pra um envelhecer sem o outro. E, como as novidades da home, **ninguém precisa
+lembrar de tirar**: em 04/11 a tarja some sozinha.
+
+🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+---
 
 ## 20/09/2026 (parte 3) — 👟 AS 20 MARCAS DE MATERIAL ESPORTIVO
 

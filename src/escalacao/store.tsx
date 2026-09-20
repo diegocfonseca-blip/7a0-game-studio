@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { onlinePreviewEnabled } from './online-preview'
 import { disputaPenaltis } from './penaltis'
 import { anotaTrava } from './caixa-preta'
+import { agoraSala, ajustaRelogioSala, souODono } from './relogio' // ⏱️ um relógio só pra sala (o do dono) — ver relogio.ts
 import { publicOnlineVisual } from './online-release'
 import { publicCareerVisual } from './career-feature-release'
 import type {
@@ -1779,6 +1780,78 @@ function pickSurprise(deck: Record<Sector, Card[]>, rng: () => number): string |
   const all: string[] = []
   for (const p of SECTORS) for (const c of deck[p]) all.push(c.id)
   return all.length ? all[Math.floor(rng() * all.length)] : undefined
+}
+
+// ─── 🕵️ O JOGADOR ENIGMA ────────────────────────────────────────────────────
+// Diego (20/09): *"ele só tira o lugar de outro jogador, igual já existe com o
+// jogador surpresa. É um jogador que já iria pro leilão, e aí a gente faz essa
+// opção nele, dele ficar escondido com a dica. Mas não vai ter que botar um
+// jogador a mais."*
+//
+// Diferença pro 🎁 Surpresa, que já existia: o surpresa esconde só o NOME — o
+// clube e o ano continuam à mostra, e com esses dois muita gente adivinha quem
+// é. O Enigma esconde **nome, clube E ano**. O que sobra é a POSIÇÃO (que já é
+// dica, palavras dele: *"a dica já é a posição do momento que tão todos
+// listados"*) mais **uma dica que o jogo dá**.
+//
+// ⚠️ ELE NÃO CONSOME O `rng` — DE PROPÓSITO. Todo sorteio do leilão sai da mesma
+// fila de números aleatórios; puxar UM número a mais aqui empurraria todos os
+// lances dos bots pra frente e o pregão às cegas de hoje fecharia diferente —
+// exatamente o que o `npm run ascegas` existe pra impedir. Então o Enigma é
+// escolhido por uma CONTA em cima da semente da partida (determinística: a mesma
+// sala sorteia o mesmo Enigma), sem encostar na fila.
+function hashDeterminista(txt: string): number {
+  let h = 2166136261 >>> 0
+  for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0 }
+  return h >>> 0
+}
+function pickMudo(deck: Record<Sector, Card[]>, seed: number, exceto?: string): string | undefined {
+  const all: string[] = []
+  for (const p of SECTORS) for (const c of deck[p]) if (c.id !== exceto) all.push(c.id)
+  if (!all.length) return undefined
+  // 🧪 bancada: a foto e a trava precisam do Enigma na PRIMEIRA leva, senão ele
+  // cai num setor qualquer e a máquina fotografa/confere a tela errada.
+  if (enigmaNaPrimeira) return all[0]
+  return all[hashDeterminista(`enigma|${seed}|${all.length}|${all[0]}`) % all.length]
+}
+/** sorteia os DOIS especiais do pregão de uma vez — assim nunca ficam fora de sincronia */
+// 🧪 exportado SÓ pra bancada (`npm run enigma-trava`): nada do jogo muda por causa disto
+export function sorteiaEspeciaisParaTeste(s: EscState, rng: () => number) { sorteiaEspeciais(s, rng) }
+function sorteiaEspeciais(s: EscState, rng: () => number) {
+  s.surpriseId = pickSurprise(s.deck, rng)
+  s.mudoId = ENIGMA_LIGADO ? pickMudo(s.deck, s.seed, s.surpriseId) : undefined
+}
+
+// 🔒 EM CONSTRUÇÃO: nasce DESLIGADO. Só liga quando o Diego aprovar o visual
+// (regra dele: mockup primeiro). Desligado, `mudoId` fica `undefined` e o jogo
+// roda exatamente como hoje.
+export let ENIGMA_LIGADO = false
+let enigmaNaPrimeira = false
+/** 🧪 SÓ PRA BANCADA (`npm run enigma` e `npm run enigma-trava`): liga o modo na
+ *  página que já está aberta. Antes eu fazia isso EDITANDO o `store.tsx` e
+ *  desfazendo depois — se o processo morresse no meio, a bandeira ficava ligada
+ *  no arquivo e ia parar num commit. Aqui não encosta em arquivo nenhum. */
+export function bancadaEnigma(ligado: boolean, naPrimeiraLeva = false) {
+  ENIGMA_LIGADO = ligado
+  enigmaNaPrimeira = naPrimeiraLeva
+}
+
+// 🏷️ O NOME NUM LUGAR SÓ (lição da Tocaia, que mudou de nome cinco vezes num dia):
+// identificador NEUTRO no código, nome bonito só aqui. Trocar o nome = trocar
+// esta linha, não caçar a palavra em sete telas.
+export const ENIGMA_NOME = { pt: 'Enigma', en: 'Enigma' } as const
+export const ENIGMA_EMOJI = '🕵️'
+export const enigmaNomeDe = (en: boolean) => (en ? ENIGMA_NOME.en : ENIGMA_NOME.pt)
+
+/** 🕰️ A DICA que o jogo dá: a ÉPOCA da carta. Dá pra apostar (craque velho? moleque
+ *  novo?) sem entregar o nome. Sai do próprio ano da carta, então é sempre verdade. */
+export function dicaDoEnigma(card: Card, en = false): string {
+  const dec = Math.floor(card.year / 10) * 10
+  if (dec <= 1960) return en ? '🕰️ the 1960s or before' : '🕰️ dos anos 60 ou antes'
+  if (dec >= 2020) return en ? '🕰️ the 2020s' : '🕰️ dos anos 2020'
+  const pt: Record<number, string> = { 1970: 'dos anos 70', 1980: 'dos anos 80', 1990: 'dos anos 90', 2000: 'dos anos 2000', 2010: 'dos anos 2010' }
+  const ing: Record<number, string> = { 1970: 'the 70s', 1980: 'the 80s', 1990: 'the 90s', 2000: 'the 2000s', 2010: 'the 2010s' }
+  return `🕰️ ${en ? ing[dec] : pt[dec]}`
 }
 
 // managers que efetivamente brigam no leilão (exclui bots de preenchimento e o
@@ -4414,18 +4487,33 @@ export function holEscada(start: number): number[] {
 }
 // 🏷️ O NOME DO MODO — em UM lugar só, e é daqui que TODA tela puxa.
 //
-// **É HOLANDÊS, e é ordem dele** (20/09): *"eu falei pra manter holandês mesmo"*.
-// Eu tinha entendido ao contrário (ele perguntou que nome dar "sem ser holandês",
-// e quando respondeu *"colocar ali holandês sei lá pra diferenciar"* eu li como
-// exemplo, não como decisão) e cheguei a rebatizar pra "Queda Livre". Voltou.
-// **Não repropor outro nome sem ele pedir.**
+// **É 🐊 TOCAIA** — decisão dele em 20/09, com o emoji escolhido a dedo:
+// *"coloque Tocaia mesmo, com emoji de jacaré"*.
 //
-// ⚠️ A CHAVE NO CÓDIGO é `holandes` e sempre foi. Nome que o código compara,
-// guarda no save ou grava no `game_state` da sala NUNCA é rebatizado — sala
-// criada antes continua abrindo. Esta constante é só o que a pessoa LÊ, e existe
-// num lugar só pra que trocar o nome um dia seja UMA linha, não sete telas.
-export const MODO_HOLANDES = { pt: 'Holandês', en: 'Dutch' } as const
-export const modoHolandesNome = (en: boolean) => (en ? MODO_HOLANDES.en : MODO_HOLANDES.pt)
+// Por que Tocaia e não os outros que passaram pela mesa (Holandês, Queda Livre,
+// Pescaria): é o único que carrega o RIVAL. A emoção do modo não é o preço
+// caindo — é o amigo te passando na frente. Tocaia tem alvo e tem disputa;
+// pescaria é você contra o peixe, e o peixe não está competindo com você. O
+// jacaré fecha a imagem: fica parado, de olho, e dá o bote na hora certa.
+//
+// ⚠️ O IDENTIFICADOR AQUI É NEUTRO (`MODO_NOME`) DE PROPÓSITO. Este nome mudou
+// TRÊS vezes em um dia. Com o identificador neutro, trocar o nome do modo é
+// trocar UMA STRING — não é renomear código em sete telas.
+//
+// ⚠️ E A CHAVE DO ESTADO CONTINUA `holandes` — no save, no reducer e no
+// `game_state` da sala. Nome que o código compara ou guarda NUNCA se rebatiza:
+// sala criada ontem continua abrindo hoje. O nome de tela e a chave do código
+// são coisas diferentes, e é de propósito que elas não andem juntas.
+export const MODO_NOME = { pt: 'Tocaia', en: 'Ambush' } as const
+export const MODO_EMOJI = '🐊'
+export const modoNomeDe = (en: boolean) => (en ? MODO_NOME.en : MODO_NOME.pt)
+/** o grito do arremate — o bote, o instante em que a carta é sua */
+export const MODO_FISGOU = { pt: 'PEGUEI!', en: 'GOT IT!' } as const
+/**
+ * 🏷️ quando o modo nasceu — é daqui que sai a tarja "NOVO" das telas de montar.
+ * Some sozinha 45 dias depois, igual às novidades da home.
+ */
+export const MODO_NOME_NASCEU = '2026-09-20'
 
 export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // ⏱️ TEMPO DE CADA DEGRAU — TRÊS marchas, e elas casam com a escada de preços.
@@ -5153,7 +5241,7 @@ function redraftSeason(s: EscState): EscState {
     s.duplas = novo
   }
   s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-  s.surpriseId = pickSurprise(s.deck, rng)
+  sorteiaEspeciais(s, rng)
   dealBotSquads(s.managers, botPlans, rng, used)
   for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
   s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0
@@ -5616,7 +5704,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.dinastia) { const b = action.budget ?? 50; for (const m of s.managers) m.money = b }
       const soloUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -5678,7 +5766,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -5730,7 +5818,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.dinastia = false; s.dinastiaBudget = undefined
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -5816,7 +5904,7 @@ export function reducer(state: EscState, action: Action): EscState {
         const used = new Set<string>()
         for (const m of s.managers) for (const c of m.squad) used.add(ident(c))
         s.deck = buildDeck([you], rng, 2.0, used, 1) // baralho só pras suas vagas novas
-        s.surpriseId = pickSurprise(s.deck, rng)
+        sorteiaEspeciais(s, rng)
         for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
         s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []
         s.tactics = {}
@@ -5960,7 +6048,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🪜 escada ligada: leilão de estreia = degrau D (foi-prof + bom) e bots
       // montados no modo várzea (fracos primeiro) — mesmo nível do usuário.
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used, !!s.escadaOn)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
@@ -6251,7 +6339,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, onlineVarzea)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, onlineVarzea)
       if (onlineVarzea) setActiveCatalog(s.deckLeague) // baralho várzea já foi montado → restaura o cheio pro resto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -8377,7 +8465,7 @@ export function reducer(state: EscState, action: Action): EscState {
       s.managers = managers
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1, s.marketValues, false, false, escadaDivOf(s))
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
@@ -8973,7 +9061,7 @@ export function reducer(state: EscState, action: Action): EscState {
         else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
         else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
       }
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}; s.submitted = []; s.pendingEnvelopes = {}; s.tiebreaks = []; s.tiebreakIdx = 0; s.tiebreakPending = {}
@@ -9053,7 +9141,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // TROCAR TUDO: novo leilão na divisão de destino
       const used = new Set<string>()
       s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-      s.surpriseId = pickSurprise(s.deck, rng)
+      sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0
@@ -9146,7 +9234,7 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.redraft) {
         const used = new Set<string>()
         s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
-        s.surpriseId = pickSurprise(s.deck, rng)
+        sorteiaEspeciais(s, rng)
         dealBotSquads(s.managers, botPlans, rng, used)
         for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
         s.cpuAtkAdj = 0; s.cpuDefAdj = 0
@@ -10067,7 +10155,7 @@ function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, dispar
     if (!ligado || !prazo) return
     let tentativas = 0
     const tenta = () => {
-      if (Date.now() < prazo) return               // ainda não venceu
+      if (agoraSala() < prazo) return              // ainda não venceu (hora do DONO, não a do meu celular)
       if (tentativas >= VIGIA_MAX_TENTATIVAS) return
       tentativas++
       // 🧊 a 2ª tentativa é a NOTÍCIA: o 1º tiro se perdeu e esta sala ia
@@ -10075,7 +10163,7 @@ function useVigiaPrazo(ligado: boolean, prazo: number | null | undefined, dispar
       if (tentativas === 2) marcaRef.current?.()
       fnRef.current()
     }
-    const t = setTimeout(tenta, Math.max(0, prazo - Date.now()) + 800)
+    const t = setTimeout(tenta, Math.max(0, prazo - agoraSala()) + 800)
     const iv = setInterval(tenta, VIGIA_RETENTA_MS)
     const onVis = () => { if (typeof document !== 'undefined' && !document.hidden) tenta() }
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVis)
@@ -10102,6 +10190,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
+  // ⏱️ QUEM É O DONO NÃO TEM DESVIO. Ele é quem CARIMBA os prazos, então a hora
+  // do aparelho dele É a hora da sala — e quem está fora do online não tem sala
+  // nenhuma. Isso também deixa a passagem de coroa segura: no instante em que
+  // alguém assume, o relógio dele vira a referência (e os outros reaprendem o
+  // desvio no primeiro "tô vivo", em ~4s).
+  useEffect(() => { if (state.isHost || state.onlineMode !== 'online') souODono() }, [state.isHost, state.onlineMode])
 
   // "host caiu?": convidado marca quando recebeu a última atualização do host.
   // Sem heartbeat por ~10s, mostra aviso (o host reemite estado a cada 3s).
@@ -10446,7 +10540,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
       ch.on('broadcast', { event: 'request_state' }, () => {
-        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
+        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
       })
     } else {
       ch.on('broadcast', { event: 'state' }, ({ payload }: { payload: unknown }) => {
@@ -10455,6 +10549,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
         let next: EscState
         try { next = readState(payload) } catch { return }
         if (!next || typeof next !== 'object') return
+        // ⏱️ acerta o relógio pelo do DONO: todo prazo da sala (leilão, Monte,
+        // cerimônia, Copa) nasce no aparelho dele. Sem isso, celular atrasado
+        // mostra "154s" onde são 75s — o bug que o Diego pegou em 20/09.
+        ajustaRelogioSala((payload as { t?: unknown } | null)?.t)
         lastHostMsgRef.current = Date.now() // notícia fresca do host
         donoSumidoNoBancoRef.current = false // deu as caras: a acusação cai na hora
         setDonoForaSeg(0)
@@ -10470,7 +10568,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // aqui — assim ficar quieto pra economizar egress NÃO parece mais que o dono
     // caiu (era o gatilho do bug: host demorava e viravam dois donos). Não toca no
     // banco; custo insignificante (vs. reemitir o estado inteiro de ~100 KB).
-    ch.on('broadcast', { event: 'host_ping' }, () => { lastHostMsgRef.current = Date.now(); donoSumidoNoBancoRef.current = false; setDonoForaSeg(0) })
+    ch.on('broadcast', { event: 'host_ping' }, ({ payload }: { payload?: { t?: unknown } }) => { ajustaRelogioSala(payload?.t); lastHostMsgRef.current = Date.now(); donoSumidoNoBancoRef.current = false; setDonoForaSeg(0) })
     // host removeu alguém: se for EU, saio da partida DE VEZ e caio no menu online.
     ch.on('broadcast', { event: 'kick' }, ({ payload }: { payload: { playerIndex: number } }) => {
       // payload.playerIndex é o CRACHÁ (id) do expulso — comparo com o MEU id, não com
@@ -10570,7 +10668,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (typeof document === 'undefined' || document.visibilityState !== 'visible') return
       const alive = (ch as unknown as { state?: string }).state === 'joined'
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
+        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       if (alive) { resync(); return }
@@ -10594,7 +10692,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     if (prevRef.current === state) return
     prevRef.current = state
-    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(state) })
+    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(state) })
     lastStateSendRef.current = Date.now()
   }, [state])
 
@@ -10664,7 +10762,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
       if (Date.now() - lastStateSendRef.current < 12000) return // teve jogada recente → já sincronizado
-      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
+      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
       lastStateSendRef.current = Date.now()
     }, 6000)
     return () => clearInterval(iv)
@@ -10679,7 +10777,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
-      channelRef.current?.send({ type: 'broadcast', event: 'host_ping', payload: {} })
+      // ⏱️ o "tô vivo" leva o carimbo de hora do dono junto (uns 20 bytes): é a
+      // mensagem mais frequente da sala, então o relógio de quem chega atrasado
+      // acerta em ~4s mesmo com o jogo parado.
+      channelRef.current?.send({ type: 'broadcast', event: 'host_ping', payload: { t: Date.now() } })
     }, 4000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
@@ -10839,7 +10940,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       if (!ch) return
       if (st === 'joined' || st === 'joining') return // saudável ou conectando — não mexe
       const resync = () => {
-        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: packState(stateRef.current) })
+        if (isHostRef.current) channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
         else channelRef.current?.send({ type: 'broadcast', event: 'request_state', payload: {} })
       }
       try { ch.subscribe(async () => { resync(); await ch.track({ playerIndex: stateRef.current.youIdx, uid: await meuCracha() }) }) } catch { /* tenta de novo no próximo tique */ }
@@ -11660,6 +11761,15 @@ function packState(state: EscState): { z: string } {
   _packSrc = state
   _packOut = { z: pack(sanitize(state)) }
   return _packOut
+}
+// ⏱️ O CARIMBO DE HORA DO DONO vai POR FORA do pacote comprimido, de propósito:
+// o `packState` guarda o pacote por identidade de estado (e o mesmo estado é
+// reenviado várias vezes), então a hora tem que ser a de AGORA, não a de quando
+// o estado nasceu. São ~20 bytes; o convidado usa isso pra acertar o relógio
+// dele com o do dono (ver `relogio.ts`). Host em versão velha simplesmente não
+// manda `t` — e aí o convidado fica como era antes.
+function pacoteDeEstado(state: EscState): { z: string; t: number } {
+  return { ...packState(state), t: Date.now() }
 }
 // lê o payload do evento 'state': aceita o novo formato comprimido { z } e também
 // o antigo (estado cru) — pra não quebrar na janela de deploy, quando host e

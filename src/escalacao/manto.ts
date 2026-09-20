@@ -30,6 +30,18 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   //    metade iluminada), que é o tom de areia do pano — o do escudo é mais claro
   //    porque ali é letra. Os dois medidos, nenhum chutado.
   'lucasigorbortoliniii@hotmail.com': ['#04512A', '#E4CDA6'],
+  // 🐆👑 Pantera Negra FC — PRETO e DOURADO, MEDIDOS na prancha que o dono mandou
+  // (20/09). Medição nas TRÊS peças, e elas concordam: dourado #CB9D3E na camisa
+  // (11,3% dela), #DEA152 no escudo, #D38952 no mascote; escuro #0E0C0C na camisa
+  // (82,8%).
+  // ⚠️ O PRETO É LEVANTADO DE PROPÓSITO (#0E0C0C → #191615), pelo MESMO motivo
+  //    já escrito na linha do Futpoint aqui em cima: preto de arte escura, na
+  //    listra fininha do jogo, lê como BURACO em vez de tecido. O tom quente
+  //    (R>G>B) é o medido; só a luz subiu.
+  // ⚠️ E O BANCO GANHA DO CÓDIGO: `meuManto()` lê `esc_socios` primeiro — a linha
+  //    dele no banco tem que sair com ESTE par (foi o furo do Manfré, 19 dias com
+  //    a cor errada na tela do dono).
+  'ericrabelo29@gmail.com': ['#191615', '#CB9D3E'],
   // 📍 Futpoint FC — PRETO e DOURADO. O manto dele vivia só na lista pública
   // (`batismos.ts`), e por isso o `npm run batismos` cobrava "manto medido" desde
   // sempre: aqui a chave é o E-MAIL, e é esta lista que decora a tela do PRÓPRIO

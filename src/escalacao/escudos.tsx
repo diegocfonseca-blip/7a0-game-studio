@@ -67,6 +67,7 @@ import skyyEscudoImg from './img/skyy-escudo.webp'
 import bigaoEscudoImg from './img/bigao-escudo.webp'
 import futpointEscudoImg from './img/futpoint-escudo.webp'
 import marrecoEscudoImg from './img/marreco-escudo.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
+import panteraEscudoImg from './img/pantera-escudo.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import manfreEscudoImg from './img/manfre-escudo.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
@@ -562,6 +563,17 @@ const bigaoEscudoRender = (size: number) => (
 //    verde claro saturado, apaga o verde PRESO entre as pernas da mascote (erro do
 //    Skyy FC) e separa as três peças pelo desenho, não por régua.
 // 📏 241×360, 27,8 KB — a largura é declarada pela proporção REAL do arquivo.
+// 🐆👑 PANTERA NEGRA FC (ericrabelo29, batismo de 20/09) — Série C.
+// 📏 292×360, 27,7 KB — a largura é declarada pela PROPORÇÃO REAL do arquivo
+//    (regra de peso, item 4): `width={size}` chutado deixaria o escudo gordo.
+// ✂️ Recorte por `scripts/recorta-prancha-pantera.py`. A prancha veio em chroma
+//    verde com CINCO peças (escudo, mascote, camisa, plaquinha e balão de fala):
+//    as peças são escolhidas por POSIÇÃO no eixo X, não por tamanho, senão a
+//    plaquinha entrava no lugar da camisa.
+const panteraEscudoRender = (size: number) => (
+  <img src={panteraEscudoImg} height={size} width={Math.round(size * 292 / 360)} alt="Pantera Negra FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const marrecoEscudoRender = (size: number) => (
   <img src={marrecoEscudoImg} height={size} width={Math.round(size * 241 / 360)} alt="Marreco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1167,6 +1179,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🦆👑 Marreco FC (lucasigorbortoliniii) — BATISMO. Entram as 4 formas do nome
   // (a regra de 20/08) e o NOME VELHO, porque save antigo abre como Inter Estadual
   // e o `OLD_NAME` do data.ts vira o clube pra Marreco ao carregar.
+  // 🐆👑 Pantera Negra FC (ericrabelo29) — BATISMO. As 4 formas do nome (regra
+  // de 20/08) + o nome VELHO: save antigo abre como Miúdo EC e o `OLD_NAME` do
+  // data.ts vira o clube pra Pantera Negra ao carregar.
+  'Pantera Negra FC': panteraEscudoRender,
+  'Pantera Negra': panteraEscudoRender,
+  'Pantera Negra EC': panteraEscudoRender,
+  'Pantera Negra SC': panteraEscudoRender,
+  'Miúdo EC': panteraEscudoRender,
   'Marreco FC': marrecoEscudoRender,
   'Marreco': marrecoEscudoRender,
   'Marreco EC': marrecoEscudoRender,

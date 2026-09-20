@@ -64,6 +64,7 @@ for (const d of ['A', 'B', 'C', 'D']) {
 // ── quem é quem. Fonte: o que o Diego já decidiu, clube por clube. ──────────
 // (só o e-mail identifica; o nome do clube é o ATUAL)
 const BATISMOS = [
+  ['ericrabelo29@gmail.com', 'Pantera Negra FC'], // 🐆👑 Série C, no assento do Miúdo EC (20/09)
   ['fontourajoao04@gmail.com', 'Al Takhadao FC'], ['luizguilhermeps@hotmail.com', 'Jurubeba FC'],
   ['stoccoassessoria@gmail.com', 'Stocco FC'], ['gustavo99828@gmail.com', 'Final Boss FC'],
   // 🪟 Vidraceiro FC (05/09) e 🐟 Bagres 1993 (06/09): os dois entraram na Série A

@@ -17,6 +17,7 @@
     "telas": "node scripts/checa-telas.mjs",
     "batismos": "node scripts/checa-batismos.mjs",
     "copa": "node scripts/checa-copa-online.mjs",
+    "potes": "node scripts/testa-potes.mjs",
     "piramide": "node scripts/checa-piramide.mjs",
     "tracos": "node scripts/checa-tracos.mjs",
     "penaltis": "node scripts/checa-penaltis.mjs",
@@ -46,7 +47,11 @@
     "holandes": "node scripts/testa-holandes.mjs",
     "mockup-holandes": "node scripts/mockup-holandes.mjs",
     "ascegas": "node scripts/prova-as-cegas.mjs",
-    "revanche": "node scripts/testa-revanche.mjs"
+    "revanche": "node scripts/testa-revanche.mjs",
+    "relogio": "node scripts/testa-relogio.mjs",
+    "tocaia": "node scripts/video-tocaia-reels.mjs",
+    "enigma": "node scripts/mockup-enigma.mjs",
+    "enigma-trava": "node scripts/testa-enigma.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

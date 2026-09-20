@@ -17,6 +17,7 @@
 //
 // uso: node scripts/testa-holandes.mjs [--porta 5239]
 import { chromium } from 'playwright-core'
+import { holEscada as escadaEspelho, holPassoMs as passoEspelho } from './escada-tocaia.mjs'
 import { spawn } from 'node:child_process'
 
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i > 0 && process.argv[i + 1] ? process.argv[i + 1] : d }
@@ -30,7 +31,12 @@ const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt
 const p = await b.newPage()
 await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
 
-const r = await p.evaluate(async () => {
+// 🎬 o espelho da escada que o VÍDEO do modo usa (scripts/escada-tocaia.mjs).
+// Vai junto pro navegador pra ser comparado com o que o jogo gera de verdade:
+// vídeo mostrando número que o jogo não tem é propaganda enganosa.
+const espelho = { esc100: escadaEspelho(100), esc50: escadaEspelho(50), passos: [100, 60, 55, 30, 21, 12, 3].map(v => passoEspelho(v)) }
+
+const r = await p.evaluate(async (espelho) => {
   const st = await import('/src/escalacao/store.tsx')
   const falhas = []
   const ok = (cond, msg) => { if (!cond) falhas.push(msg) }
@@ -45,6 +51,14 @@ const r = await p.evaluate(async () => {
   const degrauEmBaixo = esc[esc.length - 3] - esc[esc.length - 2]
   ok(degrauEmCima > degrauEmBaixo, `degrau de cima (${degrauEmCima}) tinha que ser maior que o de baixo (${degrauEmBaixo})`)
   ok(esc.filter(v => v > 0 && v <= 30).length >= 14, 'a escada é rala embaixo — é lá que dá pra decidir')
+  // 🎬 E O VÍDEO DO MODO MOSTRA ESTES MESMOS NÚMEROS. O reels tem a escada
+  //    copiada em JS puro (`scripts/escada-tocaia.mjs`) porque .mjs não importa
+  //    .tsx; se mexerem aqui e esquecerem lá, o vídeo passa a anunciar preço que
+  //    o jogo não tem — e é ele que vai pro Instagram.
+  ok(espelho.esc100.join(',') === esc.join(','), `a escada do VÍDEO não bate com a do jogo\n      jogo:  ${esc.join(' ')}\n      vídeo: ${espelho.esc100.join(' ')}`)
+  ok(espelho.esc50.join(',') === st.holEscada(50).join(','), 'a escada do VÍDEO não bate com a do jogo na abertura de 50 (basquete)')
+  const passosJogo = [100, 60, 55, 30, 21, 12, 3].map(v => st.holPassoMs(v, 100))
+  ok(espelho.passos.join(',') === passosJogo.join(','), `a cadência do VÍDEO não bate com a do jogo (jogo ${passosJogo.join('/')} · vídeo ${espelho.passos.join('/')})`)
   // 🎚️ AFINA CONFORME DESCE (pedido dele, 20/09: *"qd começa a chegar próximo
   //    do 30 começar a cair os números cada vez mais próximo de um por um"*).
   //    Duas regras, e as duas são LEI daqui pra frente:
@@ -466,28 +480,45 @@ const r = await p.evaluate(async () => {
     ok(pacoteCego.holandes === false, 'sala cega saiu marcada como holandesa')
   }
 
-  // 7️⃣-bis 🏷️ O NOME DO MODO APARECE NAS SALAS ABERTAS (pedido dele, 20/09:
-  //    *"as salas abertas colocar ali holandês sei lá pra diferenciar"*).
+  // 7️⃣-bis 🏷️ O MODO DO PREGÃO APARECE NAS SALAS ABERTAS (pedido dele, 20/09:
+  //    *"as salas abertas colocar ali holandês sei lá pra diferenciar"* e, no
+  //    mesmo dia, vendo que não aparecia: *"ainda não tá aparecendo o selo do
+  //    modo Tocaia… e o padrão às cegas coloque outro emoji"*).
   //    Isto não dá pra fotografar — a lista de salas exige login — então a
-  //    conferência é na fonte: o selo tem que existir, ler a bandeira do
-  //    `game_state` e mostrar o nome vindo da fonte ÚNICA (`MODO_HOLANDES`).
+  //    conferência é na fonte.
   {
     const lob = await (await fetch('/src/escalacao/lobby.tsx')).text()
-    ok(/const holandesRoom = /.test(lob), 'a lista de salas não sabe se a sala é do pregão holandês')
-    ok(/holandesRoom &&/.test(lob), 'a lista de salas não desenha o selo do modo')
-    ok(/MODO_HOLANDES/.test(lob), 'o selo da lista escreve o nome na mão em vez de puxar da fonte única')
+    ok(/const holandesRoom = /.test(lob), 'a lista de salas não sabe se a sala é de Tocaia')
+    ok(/holandesRoom \?/.test(lob), 'a lista de salas não desenha o selo do modo')
+    // ⚠️ A ARMADILHA QUE MORDEU DE VERDADE: o selo lia `game_state.holandes`, mas
+    //    a lista de salas NÃO BAIXA o `game_state` desde 09/09 (15 campos por
+    //    `->>` derrubaram o banco). O dado tem que vir da coluna magra própria.
+    ok(/gholandes:ls_holandes/.test(lob), 'a lista de salas voltou a procurar o modo no `game_state`, que ela não baixa — o selo nunca vai acender')
+    // e sem a coluna no banco a lista NÃO pode voltar vazia (ninguém entraria em sala nenhuma)
+    ok(/semColunaPregao/.test(lob), 'a lista perdeu a rede: banco sem a coluna `ls_holandes` deixaria a lista de salas VAZIA')
+    // os DOIS modos têm selo — sem selo ninguém sabe se a sala é a de sempre ou a nova
+    ok(/ÀS CEGAS/.test(lob), 'o envelope cego ficou sem selo na lista — só a Tocaia carimbada não diferencia nada')
+    // ⚖️ e não se carimba "às cegas" em sala cujo modo a lista não conseguiu ler
+    ok(/const pregaoLido = /.test(lob), 'a lista carimba o modo mesmo sem ter lido o modo — pode anunciar uma sala de Tocaia como envelope cego')
+    ok(/pregaoLido &&/.test(lob), 'o selo do pregão não espera a leitura do modo')
+    // 🏟️ e DENTRO da sala de espera também (lá o `game_state` inteiro está na mão)
+    ok(/ÀS CEGAS · cada um lacra/.test(lob), 'a sala de espera não diz em que pregão a pessoa acabou de entrar')
+    ok(/MODO_NOME/.test(lob), 'o selo da lista escreve o nome na mão em vez de puxar da fonte única')
     // e o nome mora num lugar SÓ: se alguém renomear, renomeia em todas as telas
-    ok(st.MODO_HOLANDES?.pt && st.MODO_HOLANDES?.en, 'o nome do modo sumiu da fonte única (MODO_HOLANDES)')
-    ok(st.modoHolandesNome(false) === st.MODO_HOLANDES.pt && st.modoHolandesNome(true) === st.MODO_HOLANDES.en,
+    ok(st.MODO_NOME?.pt && st.MODO_NOME?.en, 'o nome do modo sumiu da fonte única (MODO_NOME)')
+    ok(st.modoNomeDe(false) === st.MODO_NOME.pt && st.modoNomeDe(true) === st.MODO_NOME.en,
       'o nome do modo em PT/EN não bate com a fonte única')
     // 🏷️ o nome é HOLANDÊS por ordem dele (20/09) — *"eu falei pra manter
     //    holandês mesmo"*. A trava segura o nome pra ninguém rebatizar sem pedido.
-    ok(st.MODO_HOLANDES.pt === 'Holandês' && st.MODO_HOLANDES.en === 'Dutch',
-      `o nome do modo foi trocado sem ele pedir: ${st.MODO_HOLANDES.pt} / ${st.MODO_HOLANDES.en}`)
+    // 🎣 o nome saiu de VOTAÇÃO do pessoal dele (20/09) — não se troca sem pedido
+    ok(st.MODO_NOME.pt === 'Tocaia' && st.MODO_NOME.en === 'Ambush',
+      `o nome do modo foi trocado sem ele pedir: ${st.MODO_NOME.pt} / ${st.MODO_NOME.en}`)
+    ok(st.MODO_FISGOU.pt === 'PEGUEI!' && st.MODO_FISGOU.en === 'GOT IT!', 'o grito do arremate mudou sem pedido')
+    ok(st.MODO_EMOJI === '🐊', `o emoji do modo mudou sem pedido: ${st.MODO_EMOJI}`)
     // e nenhuma tela escreve o nome na mão (senão trocar um dia vira caça ao texto)
     const tela = await (await fetch('/src/escalacao/screens.tsx')).text()
     for (const [arq, txt] of [['lobby', lob], ['screens', tela]]) {
-      ok(!/'🔻 Holand[eê]s'/.test(txt) && !/"🔻 Holand[eê]s"/.test(txt), `${arq}: o nome do modo está escrito na mão — tem que puxar de MODO_HOLANDES`)
+      ok(!/Tocaia'/.test(txt.replace(/MODO_NOME[^\n]*/g, '')) || /MODO_NOME/.test(txt), `${arq}: o nome do modo está escrito na mão — tem que puxar de MODO_NOME`)
     }
   }
 
@@ -630,7 +661,7 @@ const r = await p.evaluate(async () => {
     cegoArremates: cego.precos.length,
     cegoPrecoMedio: cego.precos.length ? (cego.precos.reduce((a, c) => a + c, 0) / cego.precos.length) : 0,
   }
-})
+}, espelho)
 
 await b.close()
 try { process.kill(-vite.pid) } catch { /* já foi */ }

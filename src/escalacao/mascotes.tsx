@@ -59,6 +59,7 @@ import milhacaMascoteImg from './img/milhaca-mascote.webp' // 🌽 Milhaça FC (
 import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (giovannecastro784): arte própria do dono
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
 import marrecoMascoteImg from './img/marreco-mascote.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
+import panteraMascoteImg from './img/pantera-mascote.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
 import manfreMascoteImg from './img/manfre-mascote.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 
 const INK = '#0C0C0C'
@@ -302,6 +303,22 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 321×440, 42,1 KB. mascote_key = "marreco_rei".
   marreco_rei: (
     <img src={marrecoMascoteImg} height={176} width={Math.round(176 * 321 / 440)} alt="O Rei do Cais — Marreco FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐆👑 A PANTERA (mascote do Pantera Negra FC — ericrabelo29, 20/09): o próprio
+  // dono em uniforme preto e dourado de pantera, braços cruzados e o pé em cima
+  // de uma bola-galáxia. Arte do próprio dono; aqui só tiramos o fundo verde
+  // chroma, cortamos no limite do desenho e reduzimos (na tela ele dá 176px).
+  // ⚠️ O MASCOTE DELE É A CENA INTEIRA, não só o boneco: o BALÃO de fala em cima
+  //    ("se eu chuto com as duas? eu sou tridestro") e a PLAQUINHA de madeira
+  //    embaixo, ao lado da bola ("joguei em 16 países, 14 continentes e 36
+  //    galáxias"). Ordem do Diego (20/09): *"faltou a plaquinha com frase embaixo
+  //    do mascote ao lado da bola e também em cima o balão com frase"*.
+  //    Na primeira versão eu tinha jogado os dois fora achando que eram peça de
+  //    post — eram identidade do clube. Arte que vem do dono: perguntar o que
+  //    entra, não decidir por ele.
+  // 📏 400×440, 40,6 KB. mascote_key = "pantera_negra".
+  pantera_negra: (
+    <img src={panteraMascoteImg} height={176} width={Math.round(176 * 400 / 440)} alt="A Pantera — Pantera Negra FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🔁 O PONTINHO GANHOU ARTE NOVA em 19/09 (mesma personagem, desenho refeito
   // pelo dono): bola de boné virado, moletom preto e dourado, joinha e a plaquinha
@@ -995,6 +1012,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Crias do Bigão': 'bigao', // 🧢 o Bigão carimba o placar (giovannecastro784, 17/08)
   // 🦆👑 o Rei do Cais carimba o gol do Marreco FC (lucasigorbortoliniii, 19/09).
   // CARIMBO_GOL é busca EXATA: entram as 4 formas do nome e o nome VELHO.
+  // 🐆👑 a Pantera carimba o gol do Pantera Negra FC (ericrabelo29, 20/09).
+  'Pantera Negra FC': 'pantera_negra',
+  'Pantera Negra': 'pantera_negra',
+  'Pantera Negra EC': 'pantera_negra',
+  'Pantera Negra SC': 'pantera_negra',
+  'Miúdo EC': 'pantera_negra',
   'Marreco FC': 'marreco_rei',
   'Marreco': 'marreco_rei',
   'Marreco EC': 'marreco_rei',
@@ -1067,6 +1090,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   skyy_aguia: 'A Águia',       // 🦅 Skyy FC (matheusncruz1, 17/08)
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   marreco_rei: 'O Rei do Cais', // 🦆👑 Marreco FC (lucasigorbortoliniii, 19/09)
+  pantera_negra: 'A Pantera',  // 🐆👑 Pantera Negra FC (ericrabelo29, 20/09)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
   manfre_gralha: 'A Gralha',   // 🐦‍⬛ Manfré FC (danielmanfre5, 30/08)
 }

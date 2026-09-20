@@ -39,6 +39,7 @@ import { NationalCrest } from './national-crest'
 import { useCopaClockPreview } from './copa-clock-preview'
 import { simulaCopaMundo } from './copa-mundo'
 import { PASSO_COPA } from './copa-passos'
+import { agoraSala } from './relogio' // ⏱️ o relógio da sala é o do DONO (ver relogio.ts)
 import { pensRevealDelay } from './pyramidseason'
 import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
@@ -66,7 +67,21 @@ export const copaPickOk = (p?: CopaPick | null): p is CopaPick =>
 // na tabela. `uid` só existe nas seleções de GENTE: é por ele que cada aparelho
 // descobre qual das 24 é a dele (o `you`), sem depender de assento nenhum.
 export interface CopaTime { pais: string; nome: string; uid?: string; xiKeys?: string[] }
-export interface CopaFicha { seed: number; edicao: number; times: CopaTime[] }
+export interface CopaFicha {
+  seed: number; edicao: number; times: CopaTime[]
+  /** 🏺 esta Copa nasceu DEPOIS do sorteio por potes? Vem de `criada_em` da linha
+   *  no banco (ver `POTES_DESDE`). Copa que já estava rolando termina com o
+   *  sorteio velho — trocar o chaveamento no meio do caminho é o estrago de
+   *  04/08 ("mudou o resultado da Copa"). */
+  potes?: boolean
+}
+
+// 🏺 O INSTANTE EM QUE O SORTEIO POR POTES ENTROU NO AR (Diego, 20/09: *"a Copa
+// do Mundo deveria sempre ter os países mais fortes sendo cabeça de chave"*).
+// Copa criada ANTES disto segue com o embaralhamento cru até acabar.
+export const POTES_DESDE = Date.parse('2026-09-20T22:00:00Z')
+export const copaTemPotes = (criadaEm?: string | null): boolean =>
+  !!criadaEm && Date.parse(criadaEm) >= POTES_DESDE
 
 /** as 24 seleções do jogo, na ordem de quem tem mais carta no baralho */
 export const paisesDaCopa = (): string[] => rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais)
@@ -201,7 +216,7 @@ const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: nu
 export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
   const cinematic = ONLINE_VISUAL_RELEASED
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
-  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao):null,[cinematic,entrants,ficha.seed,ficha.edicao])
+  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao,ficha.potes):null,[cinematic,entrants,ficha.seed,ficha.edicao,ficha.potes])
   // ⏱️ o tempo a mais dos PÊNALTIS de cada passo, pro relógio da sala esperar a
   // disputa inteira. Os passos vêm de `copa-passos` (jogo único desde 19/09).
   const extraForStep=(step:number)=>{
@@ -218,7 +233,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   if(!visible)return null
   return (
     <CMModal wide cinematic={cinematic}>
-      <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO}
+      <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO} potes={ficha.potes}
         myForm="4-3-3" online={online} onClose={aoFechar} />
     </CMModal>
   )
@@ -366,7 +381,7 @@ export function useEscolhasDaCopa(roomId: string | null, versao: number): Record
 
 export type FaseCopa = 'bandeira' | 'banner' | 'convocacao' | 'torneio'
 export interface LugarNaLiga { id: number; nome: string; humano: boolean }
-interface LinhaFase { edicao: number; seed: number; fase: FaseCopa; vez_uid: string | null; ate: string | null; times: CopaTime[] | null; campeao: string | null }
+interface LinhaFase { edicao: number; seed: number; fase: FaseCopa; vez_uid: string | null; ate: string | null; times: CopaTime[] | null; campeao: string | null; criada_em?: string | null }
 interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: CopaPick | null }
 
 // ⏱️ OS TRÊS RELÓGIOS, todos escolhidos pelo Diego (01/09):
@@ -393,8 +408,12 @@ const piorLivre = (pegos: Set<string>): string => {
   for (let i = todas.length - 1; i >= 0; i--) if (!pegos.has(todas[i])) return todas[i]
   return todas[todas.length - 1]
 }
+// ⏱️ NA HORA DO DONO, não na do meu celular (`agoraSala()` — ver `relogio.ts`).
+// O `ate` é carimbado pelo aparelho do dono da sala; lido com o relógio local,
+// um celular 79s atrasado mostrava "154s" onde eram os 75s da bandeira, "84s" no
+// banner de 15s e "129s" na convocação de 90s — os prints do Diego de 20/09.
 const segundosAte = (ate?: string | null): number =>
-  ate ? Math.max(0, Math.ceil((new Date(ate).getTime() - Date.now()) / 1000)) : 0
+  ate ? Math.max(0, Math.ceil((new Date(ate).getTime() - agoraSala()) / 1000)) : 0
 
 /** monta as 24: os times da liga na ordem da tabela + a máquina completando */
 export function montaFichaDaLiga(
@@ -723,7 +742,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try {
       const [{ data: pls, error: e1 }, { data: fs, error: e2 }] = await Promise.all([
         supabase.from('room_players').select('user_id, player_index, manager_name, copa').eq('room_id', roomId),
-        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).eq('edicao', edicaoDaTemporada).limit(1),
+        supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao, criada_em').eq('room_id', roomId).eq('edicao', edicaoDaTemporada).limit(1),
       ])
       if (e1 || e2 || !pls || !fs) return null
       setLinhas(pls as LinhaSala[])
@@ -769,7 +788,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     for (const l of lido.linhas) if (temPais(l.copa)) pk.set(l.user_id, l.copa)
     const filaAgora = classificacao.filter(c => c.humano).map(c => ({ id: c.id, uid: new Map(lido.linhas.map(l => [l.player_index, l.user_id])).get(c.id) }))
       .filter((x): x is { id: number; uid: string } => !!x.uid)
-    const venceu = f.ate ? Date.now() >= new Date(f.ate).getTime() : true
+    const venceu = f.ate ? agoraSala() >= new Date(f.ate).getTime() : true
 
     if (f.fase === 'bandeira') {
       const semPais = filaAgora.filter(x => !pk.has(x.uid))
@@ -860,7 +879,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
 
-  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times } : null
+  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em) } : null
   // 🎬 abre SOZINHA só enquanto a Copa está por decidir. Com campeão já gravado
   // (a noite acabou), a pessoa que voltar do pacote/jornal NÃO leva o torneio
   // inteiro de novo na cara — o botão "VOLTAR PRA COPA" fica ali pra quem quiser

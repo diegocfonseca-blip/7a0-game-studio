@@ -539,6 +539,12 @@ export interface EscState {
   sectorIdx: number // 0..4 dentro de SECTORS
   deck: Record<Sector, Card[]>
   surpriseId?: string // 1 jogador surpresa por leilão: nome escondido no lance, revelado no martelo
+  /** 🕵️ 1 jogador ENIGMA por leilão: além do nome, esconde CLUBE e ANO — só a posição
+   *  e uma DICA aparecem. Não é carta a mais: toma o lugar de uma carta que já ia pro
+   *  pregão, igual o `surpriseId` faz (ordem do Diego, 20/09: *"ele só tira o lugar de
+   *  outro jogador… é um jogador que já iria pro leilão"*). Nunca é a MESMA carta do
+   *  surpresa. Revela no martelo, igual. */
+  mudoId?: string
   phase: AuctionPhase
   currentCards: Card[] // cartas em disputa nesta fase
   revealQueue: ResolvedCard[] // ordenado por pote crescente
