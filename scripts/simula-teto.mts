@@ -68,7 +68,17 @@ const RECEITA_ESTADIO: Record<Div, number> = { A: 120, B: 70, C: 40, D: 22, V: 1
 //    FREIO: o teto anda no máximo PASSO por temporada na direção do preço praticado,
 //    e desce do mesmo jeito. Preço só conta se SE SUSTENTOU (mediana: um lance
 //    maluco sozinho não move nada, dois ou mais já é preço).
-type Modelo = 'hoje' | 'bolso' | 'bolso+nivel' | 'bolso+nivel+tempo' | 'mercado' | 'mercado-media' | 'mercado-so-bots' | 'recomendado' | 'persegue' | 'persegue+duro'
+// 🅷️ DINHEIRO (resposta ao 'mas aí ele trava nos 450 de novo'): o teto não vem de
+//    PREÇO nenhum — vem do DINHEIRO QUE EXISTE NA LIGA. Moeda no jogo só nasce de
+//    prêmio, patrocínio e estádio; pagar caro NÃO cria moeda, só troca de bolso.
+//    Então não existe bola de neve: o trapaceiro pode pagar 10 mil que a referência
+//    não se mexe, porque ele não criou um centavo.
+//    Referência = caixa MEDIANO dos clubes (o do meio, não a média — um clube
+//    riquíssimo não deve puxar o mercado inteiro sozinho).
+//    E cresce sozinho conforme o jogo avança, porque a liga vai enriquecendo.
+type Modelo = 'hoje' | 'bolso' | 'bolso+nivel' | 'bolso+nivel+tempo' | 'mercado' | 'mercado-media' | 'mercado-so-bots' | 'recomendado' | 'persegue' | 'persegue+duro' | 'dinheiro'
+const PROPORCAO = (c: Carta) => catPriceCap(c) / 90   // 👑1,00 ⭐0,72 💎0,47 🎯0,29 🪵0,18
+const K_DINHEIRO = 2.5                                // uma lenda custa ~1,5 caixa mediano
 const PASSO = 0.25                       // sobe/desce no máximo 25% por temporada
 const TETO_DURO = (c: Carta) => catPriceCap(c) * 5   // 👑450 ⭐325 💎210 🎯130 🪵80
 const FAIXA_NIVEL = (n: number) => Math.floor(n / 5) * 5      // 50-54, 55-59, …
@@ -92,6 +102,21 @@ function fatorNivel(c: Carta): number {
 }
 function tetoDoBot(modelo: Modelo, c: Carta, caixaBot: number, mediaSala: number, temp = 1, indice?: Map<number, number>): number {
   if (modelo === 'hoje') return Math.round(catPriceCap(c) * econSala(mediaSala))
+  if (modelo === 'dinheiro') {
+    const ref = indice?.get(-1) ?? 100                  // caixa mediano da liga
+    const v = Math.min(
+      Math.round(ref * K_DINHEIRO * PROPORCAO(c) * fatorNivel(c)),
+      Math.round(caixaBot * FATIA_BOLSO),
+    )
+    return Math.max(1, v)
+  }
+  if (modelo === 'dinheiro') {
+    const ref = indice?.get(-1) ?? 100                  // caixa mediano da liga
+    return Math.max(1, Math.min(
+      Math.round(ref * K_DINHEIRO * PROPORCAO(c) * fatorNivel(c)),
+      Math.round(caixaBot * FATIA_BOLSO),
+    ))
+  }
   if (modelo === 'persegue' || modelo === 'persegue+duro') {
     const base = indice?.get(FAIXA_NIVEL(c.nivel)) ?? catPriceCap(c)
     const v = Math.min(Math.round(base * fatorNivel(c) * econBolso(caixaBot) / 2), Math.round(caixaBot * FATIA_BOLSO))
@@ -146,6 +171,8 @@ function simula(modelo: Modelo, temporadas: number, comInflador = false) {
   //    no relatório sobre o inflador). Guarda as últimas JANELA temporadas.
   const historico = new Map<number, number[][]>()
   const indiceDoMercado = (): Map<number, number> => {
+    // o 'dinheiro' não olha preço: guarda o caixa MEDIANO da liga na chave -1
+    if (modelo === 'dinheiro') return new Map([[-1, mediana(clubes.map(c => Math.round(c.caixa)))]])
     if (modelo === 'persegue' || modelo === 'persegue+duro') return new Map(tetoPersegue)
     const idx = new Map<number, number>()
     for (const [faixa, temps] of historico) {
@@ -254,7 +281,7 @@ function simula(modelo: Modelo, temporadas: number, comInflador = false) {
 
     // 🐌 O FREIO: o teto anda no máximo PASSO por temporada em direção ao preço
     //    que SE SUSTENTOU (mediana da faixa). Sobe devagar e DESCE devagar.
-    if (modelo === 'persegue' || modelo === 'persegue+duro') {
+  if (modelo === 'persegue' || modelo === 'persegue+duro') {
       for (const [fx, lista] of pagosDaTemporada) {
         const alvo = mediana(lista)
         const atual = tetoPersegue.get(fx) ?? 0
@@ -290,7 +317,10 @@ function simula(modelo: Modelo, temporadas: number, comInflador = false) {
     hist.push({
       t, media: Math.round(media), tetoLenda,
       maiorTetoV: varzea.length ? Math.max(...varzea.map(c => tetoDoBot(modelo, lendaRef, c.caixa, media, t, indice))) : 0,
-      maiorTetoGeral: Math.max(...clubes.map(c => tetoDoBot(modelo, lendaRef, c.caixa, media, t, indice))),
+      // ⚠️ o TRAPACEIRO é o clube 0 e tem o caixa abastecido de propósito pela bancada.
+      // Contar o teto DELE aqui responderia a pergunta errada: o Diego quer saber se
+      // um BOT pode, do nada, pagar um absurdo.
+      maiorTetoGeral: Math.max(...clubes.filter(c => !(comInflador && c === clubes[0])).map(c => tetoDoBot(modelo, lendaRef, c.caixa, media, t, indice))),
       elencoMedioA: Math.round(mediaElenco(clubes.filter(c => c.div === 'A'))),
       elencoMedioV: Math.round(mediaElenco(varzea)),
       caixaMax: Math.round(Math.max(...clubes.map(c => c.caixa))),
@@ -312,7 +342,7 @@ const mediaElenco = (cs: Clube[]) => {
 // ── relatório ───────────────────────────────────────────────────────────────
 const T = 250
 const marcos = [1, 5, 10, 25, 50, 100, 150, 200, 250]
-const MODELOS: Modelo[] = ['hoje', 'recomendado', 'persegue', 'persegue+duro']
+const MODELOS: Modelo[] = ['hoje', 'persegue+duro', 'dinheiro']
 const res = Object.fromEntries(MODELOS.map(m => [m, simula(m, T)])) as Record<Modelo, ReturnType<typeof simula>>
 
 for (const m of MODELOS) {
@@ -359,7 +389,7 @@ for (const m of MODELOS) {
 
 console.log('\n═══ 6) 🧪 O INFLADOR CONSEGUE ENVENENAR O ÍNDICE DE MERCADO? ═══')
 console.log('(um clube paga 10× o maior lance pra ninguém disputar — a artimanha que o Diego viu)')
-for (const m of ['mercado-media', 'mercado', 'persegue', 'persegue+duro'] as Modelo[]) {
+for (const m of ['mercado-media', 'persegue+duro', 'dinheiro'] as Modelo[]) {
   const limpo = simula(m, T), sujo = simula(m, T, true)
   // mede a REFERÊNCIA do mercado (nível 90-94), que é o número contaminável —
   // o teto final costuma estar preso no bolso do clube e esconde o estrago.
@@ -374,7 +404,7 @@ for (const m of ['mercado-media', 'mercado', 'persegue', 'persegue+duro'] as Mod
 console.log('\n═══ 7) 🚨 O BOT PODE, DO NADA, PAGAR UM ABSURDO? ═══')
 console.log('(o MAIOR lance que um bot chegou a dar em QUALQUER das 250 temporadas)')
 console.log('régua               | sem inflador | com inflador solto | pior caso')
-for (const m of ['hoje', 'mercado', 'recomendado', 'persegue', 'persegue+duro'] as Modelo[]) {
+for (const m of ['hoje', 'mercado', 'recomendado', 'persegue', 'persegue+duro', 'dinheiro'] as Modelo[]) {
   const limpo = simula(m, T), sujo = simula(m, T, true)
   const pico = (d: ReturnType<typeof simula>) => Math.max(...d.map(x => x.maiorTetoGeral))
   const a = pico(limpo), b = pico(sujo)

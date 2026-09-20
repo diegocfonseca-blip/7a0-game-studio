@@ -87,6 +87,29 @@ e desce do mesmo jeito.
 realimenta o índice toda temporada. Quem realmente fecha a porta é o **teto duro**.
 Ou seja: o teto duro é a resposta pro medo QUE ELE MESMO levantou, não um capricho meu.
 
+### 💰 A SAÍDA PRO "MAS AÍ TRAVA NOS 450 DE NOVO" — teto pelo DINHEIRO DA LIGA
+Reclamação justa dele: parede fixa é o mesmo problema de hoje, só com número maior.
+E ele sugeriu usar a MÉDIA dos preços. Duas respostas:
+- ⚠️ **Mal-entendido meu**: o modelo nunca usou o MAIOR preço, usa o DO MEIO (mediana).
+  E a **média é a pior** das três — medido: com média, um lance de 1000 leva a
+  referência de 72 pra **477**; com o do meio, 137.
+- ✅ **A saída de verdade**: o teto não sair de PREÇO nenhum, e sim do **dinheiro que
+  existe na liga** (caixa MEDIANO dos clubes × 2,5 × a proporção da categoria). Moeda
+  no jogo só nasce de prêmio, patrocínio e estádio — **pagar caro não cria moeda**, só
+  troca de bolso. Então não existe bola de neve, e **não precisa de parede**.
+
+| régua | pico normal | pico com trapaceiro | cresce com o jogo? | precisa de parede? |
+|---|---|---|---|---|
+| hoje | 360 | 360 | 🚫 congela | — |
+| índice de preço | 350 | 527 | sim | sim |
+| persegue + parede | 450 | 450 | até a parede | sim |
+| **dinheiro da liga** | **433** | **574** | **acompanha a liga** | **não** |
+
+⚠️ **ERRO DE BANCADA CORRIGIDO**: os picos "com trapaceiro" que eu tinha reportado
+antes (955 / 854 / 696) contavam o teto DO PRÓPRIO trapaceiro, cujo caixa a bancada
+abastece de propósito. A pergunta é se um **BOT** paga absurdo — a medição agora
+exclui o clube dele. Os números certos são os da tabela acima.
+
 ### ⏳ PENDENTE — esperando a palavra do Diego (nada implementado)
 1. Livro de preços gravar só até o teto de mercado (`recordPrice`).
 2. Carta que volta pro dono no monte voltar "como saiu" (mesmo valor, mesmo contrato).
