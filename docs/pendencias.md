@@ -30,6 +30,988 @@ porque os 4 ids e prazos antigos continuam os mesmos.
 
 ---
 
+## 20/09/2026 (parte 43) — ⏱️ No holandês o host NÃO escolhe tempo (ele desfez o que eu tinha feito)
+
+Na parte 42 eu tinha "consertado" o `auctionSecs` (o tempo do pregão da sala de
+stream) fazendo ele ESTICAR ou ENCOLHER a descida do holandês. Ele leu e mandou
+desfazer:
+
+*"No stream não quero que tenha tempo pra escolher não, quando ele selecionar
+holandês e stream remova a opção de escolher esse tempo. Só se for no padrão que
+ele pode, senão vai dar merda — porque tem que ser com base na regra que fizemos
+pro modo rápido."*
+
+### ✅ Ele está certo, e é mais simples
+Meu conserto criava **duas regras pro mesmo modo**: o pregão holandês da sala de
+stream sairia com um ritmo e o da Partida Rápida com outro. Isso é exatamente a
+fábrica de bug que ele odeia — e ainda por cima eu tinha inventado um PISO
+(`HOL_PISO_MS`) pra segurar o caso em que o tempo pedido não cabia. Peça a mais pra
+manter, problema a mais pra acontecer.
+
+**Agora: o holandês tem UM relógio só, em toda sala.** Quem manda é a escada de
+preços, e ela é idêntica na Partida Rápida, no Rápido online, no Minhas Ligas e no
+Stream. `HOL_PISO_MS` e o escalonamento saíram do código.
+
+### 🎛️ E o seletor de tempo SOME da tela
+Na sala de stream, escolher 🔻 Holandês **tira o seletor de segundos** e põe no
+lugar um aviso que explica (regra dele: toda trava diz o porquê):
+> 🔻 No pregão Holandês não tem tempo pra escolher: quem manda o relógio é o PREÇO
+> caindo, e a descida é a mesma em toda sala — igual à da Partida Rápida. O Modo
+> Stream continua valendo (os valores ficam escondidos e você dá o start).
+
+E o tempo não é nem **gravado** no estado da sala quando o pregão é holandês —
+senão ficaria um número morto guardado lá, esperando alguém ler por engano.
+
+### 🔒 A trava virou do avesso
+`npm run holandes` agora reprova o CONTRÁRIO do que reprovava ontem:
+- se o `holPassoMs` voltar a aceitar um tempo de sala (assinatura com 3 parâmetros);
+- se a descida da sala ficar diferente da descida da Partida Rápida;
+- se o seletor de tempo voltar a aparecer com o holandês ligado;
+- se faltar o aviso explicando o porquê;
+- se a sala holandesa voltar a gravar um tempo de pregão.
+
+⚠️ **Lição**: quando uma opção da sala não faz sentido num modo, o certo é **tirar a
+opção da tela**, não fazer o modo se contorcer pra atender. Eu fui pelo caminho
+difícil primeiro.
+
+🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
+## 20/09/2026 (parte 42) — 🎥🏆 Holandês no STREAM e no MINHAS LIGAS: funciona, e achei um furo de ritmo
+
+Pedido dele: *"agora veja se vai funcionar normal no modo stream e também em
+minhas ligas"*. Fui rodar o pregão INTEIRO em cada uma em vez de supor.
+
+### ✅ As cinco salas rodam até o fim
+| sala | resultado |
+|---|---|
+| 🎥 stream (`auctionSecs = 0`) | 310 degraus · host deu o start · fecha no Monte |
+| 🎮 manual | 310 degraus · fecha no Monte |
+| ⏱️ tempo do host (20s) | 310 degraus · fecha no Monte |
+| 🏆 Minhas Ligas | 310 degraus · fecha no Monte |
+| 🏆 liga + stream | 310 degraus · host deu o start · fecha no Monte |
+
+Nenhuma trava, nenhuma caixa negativa. O detalhe que o teste me ensinou: a **sala
+de stream não abre no pregão** — ela abre no `streamIntro` e espera o HOST apertar
+(`START_STREAM_AUCTION`). O holandês sobrevive a esse degrau a mais, e a trava
+agora confere que depois do start a sala abre o pregão **holandês** e não o cego.
+
+⚠️ Na 1ª rodada a trava acusou "stream travou" e "manual travou" — **era o meu
+teste**, não o jogo: ele não sabia passar pelo `streamIntro` e não aceitava o Monte
+Final como fim válido (o teste principal aceita). Consertado. Fica a lição: teste
+novo que acusa bug em código que já roda merece uma segunda olhada NO TESTE antes
+de sair mexendo no jogo.
+
+### 🐛 O furo que apareceu: o tempo do host virava enfeite
+Na sala de stream o host escolhe o tempo do pregão (`auctionSecs`) porque está
+**narrando pra plateia**. O holandês **ignorava** esse número: ele pedia 20s e a
+descida insistia nos 49s dela. É a família do "botão mudo" — a tela promete uma
+coisa e o motor faz outra.
+
+**Consertado**: a descida inteira passa a CABER no tempo pedido, mantendo a
+proporção entre as marchas (corre em cima, respira embaixo).
+
+| host pede | descida de verdade |
+|---|---|
+| 20s | **27s** ← o piso segurou |
+| 30s | 30s |
+| 45s | 45s |
+| 60s | 60s |
+| 90s | 90s |
+
+🕳️ **O piso (`HOL_PISO_MS = 1200`) é deliberado**: por mais apertado que o host
+peça, o degrau do fundo nunca fica mais curto que 1,2s — são esses milissegundos
+que impedem meio segundo de internet ruim de decidir quem leva a carta. Quando o
+tempo pedido não cabe, **o pregão estoura o relógio em vez de roubar carta de quem
+está no 4G**. É a troca certa, e está escrita no código.
+
+E `auctionSecs = 0` ("o host avança no botão") **não** virou 32 cliques por leva: o
+host já deu o start na tela de abertura, daí pra frente a escada toca sozinha.
+
+### 🔒 Travas novas em `npm run holandes`
+Roda o pregão inteiro nas 5 salas · confere que a sala de stream passa pela tela do
+host e abre HOLANDESA · que pedir mais tempo estica e pedir menos encurta · que o
+piso do fundo segura mesmo num pedido absurdo (5s) · e que `0` não muda o ritmo.
+
+🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
+## 20/09/2026 (parte 41) — 🎚️ A escada afina a partir do 50 — e o holandês passou a ser MAIS LENTO que o cego
+
+2º pedido dele sobre o relógio: *"sobre o tempo ainda acho q qd chegar no 50 na
+regressiva pode ter mais números próximos… não tem problema demorar um pouco mais o
+leilão não"*.
+
+### 🎚️ A escada agora
+```
+100 · 90 · 80 · 70 · 60          ← pulo de 10 (enfeite puro)
+55 · 50                          ← pulo de 5
+46 · 42 · 38 · 34 · 30           ← pulo de 4   ← ERA 52 · 44 · 36 (de 8 em 8)
+27 · 24 · 21                     ← pulo de 3
+18 · 16                          ← pulo de 2
+14 · 13 · 12 … 2 · 1 · 0         ← de 1 em 1
+```
+`v > 60 ? 10 : v > 50 ? 5 : v > 30 ? 4 : v > 20 ? 3 : v > 14 ? 2 : 1`.
+De 50 pra baixo eram **3 degraus** (52·44·36), agora são **12** até o 14.
+
+### 🕰️ E a marcha do meio passou a começar no 55 (era 40)
+De nada adianta pôr mais número na faixa dos 50 se ele passar voando. Então:
+| faixa | por degrau |
+|---|---|
+| acima de 55 | 0,5s (era 0,6 — acelerou, porque ali NUNCA acontece nada) |
+| 23 a 55 | 1,4s |
+| 22 pra baixo | 2,0s |
+
+### ⚠️ O NÚMERO QUE ELE PRECISA SABER: o holandês virou o modo MAIS LENTO
+| | pregão inteiro (93 cartas) |
+|---|---|
+| 🔻 holandês | **12:05** |
+| ✉️ cego (hoje) | 11:15 |
+
+Ele autorizou (*"não tem problema demorar um pouco mais"*), então **fica** — mas
+registrando: até a parte 37 o holandês era a opção mais RÁPIDA (9:36, depois
+10:57). Agora é **50s mais lento** que o pregão de hoje. Se um dia isso incomodar,
+a alavanca mais barata é **abrir em 50 em vez de 100** (o topo 100→60 nunca vende
+nada): corta ~2,5s por leva sem tocar na parte fina que ele pediu. A segunda é
+baixar a marcha do fundo de 2,0s pra 1,7s — mas aí encosta no anti-delay, que é o
+que protege quem tem internet pior.
+
+Economia segue igual: 52 × 46 arremates · preço médio 12,1 × 13,3.
+
+### 🔒 Travas novas
+`npm run holandes` agora também reprova se: de 50 pra baixo aparecer pulo maior que
+4 · houver menos de 20 degraus abaixo de 50 · o degrau do 50 durar menos de 1,2s
+(passaria voando) · a descida passar de **55s** (teto novo, autorizado por ele — não
+subir mais sem pedido).
+
+🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
+## 20/09/2026 (parte 40) — ↩️ O nome VOLTOU a ser HOLANDÊS (eu tinha lido errado)
+
+*"Eu falei pra manter holandês mesmo."*
+
+**Erro meu de leitura, e vale anotar como se deu**: ele perguntou *"qual nome eu
+poderia dar pra esse modo, sem ser o nome holandês?"*, eu ofereci quatro opções, ele
+respondeu **"[sem preferência]"** nas duas perguntas — e logo em seguida mandou
+*"tô falando as salas abertas, colocar ali holandês sei lá, pra diferenciar"*.
+
+Eu li aquele "holandês" como EXEMPLO ("põe o nome do modo aí, sei lá"). Era
+**decisão**: manter Holandês. As duas leituras cabiam na frase, e eu escolhi a
+errada — e, pior, escolhi sozinho num assunto que é 100% gosto dele.
+
+👉 **Lição pra qualquer sessão**: "[sem preferência]" numa pergunta de GOSTO não é
+carta branca — é sinal de que a pergunta não era a que ele queria responder. Quando
+a resposta seguinte usar uma das palavras da pergunta, ela provavelmente É a
+resposta. Na dúvida em assunto de gosto, perguntar de novo com uma frase, não
+decidir.
+
+### O que voltou e o que FICOU
+- **Voltou**: o nome visível é **🔻 Holandês / 🔻 Dutch** em todas as telas e na
+  novidade da home. `MODO_QUEDA` → **`MODO_HOLANDES`**.
+- **Ficou** (foi o que ele pediu de verdade nesta rodada): o **selo na lista de
+  salas abertas** (`🔻 HOLANDÊS`, vermelho, no nome da sala) e o **nome no topo do
+  pregão**. Era isso o *"colocar ali… pra diferenciar"*.
+- **Ficou também** a fonte única: o nome mora em UM lugar (`MODO_HOLANDES` em
+  `store.tsx`) e toda tela puxa de lá. Foi o que fez este desfazer custar uma
+  linha em vez de sete telas — e é o que vai deixar barato se ele um dia trocar.
+- 🔒 A trava agora **segura o nome**: `npm run holandes` reprova se alguém
+  rebatizar sem ele pedir, e reprova se alguma tela escrever o nome na mão.
+- ⛔ **Não repropor outro nome.** Os quatro que ofereci (Queda Livre · Quem Pega,
+  Leva · Liquidação · Quem Pisca, Perde) ficam só como registro.
+
+---
+
+## 20/09/2026 (parte 39) — 🏷️ O modo virou 🔻 QUEDA LIVRE, e aparece nas salas abertas
+
+Ele pediu: *"qual nome eu poderia dar pra esse modo do leilão, sem ser o nome
+holandês? Outra coisa: o nome do modo tem que aparecer nas salas criadas né, de
+alguma forma"* — e depois, com o print da lista: *"tô falando as salas abertas,
+colocar ali holandês sei lá, pra diferenciar"*. Ofereci quatro nomes e ele deixou a
+escolha comigo.
+
+### 🔻 Ficou **Queda Livre** (Free Fall)
+Por quê, entre os quatro:
+- **nomeia o que a pessoa VÊ** — o número despencando na tela;
+- **cabe no selo** da lista de salas (duas palavras);
+- **não mente**: "Liquidação" e "Pechincha" prometeriam que tudo sai barato, e
+  nesse modo o craque sai CEDO e CARO (o barato é o que sobra no fim);
+- **traduz limpo** (Free Fall), e o jogo é BR/EN.
+Os descartados ficam registrados caso ele mude de ideia: Quem Pega, Leva (First to
+Grab) · Liquidação (Clearance) · Quem Pisca, Perde (Blink and Lose).
+
+### 🔑 A chave no código CONTINUA `holandes`
+De propósito, e é regra da casa: nome que o código compara, guarda no save ou grava
+no `game_state` da sala **não é rebatizado** — senão toda sala criada antes desta
+linha deixaria de abrir. O que mudou é só o que a pessoa LÊ.
+
+### 📍 Onde o nome aparece agora
+1. **Lista de salas abertas** — selo VERMELHO no nome da sala, do lado do `BR`
+   (`🔻 QUEDA LIVRE`). Foi pra lá e não pra linha de baixo porque essa é a
+   diferença mais grossa entre duas salas: quem entra sem saber cai num jogo com
+   outra regra de lance. Tem `title` explicando, pra quem passa o dedo.
+2. **Topo do pregão** — `🔻 QUEDA LIVRE` em vermelho miúdo, acima de `GOLEIROS`.
+   Quem entrou numa sala que outra pessoa criou descobre ali.
+3. **As duas telas de montar** (partida rápida e sala online) — o botão de escolha.
+4. **A novidade da home** (PT + EN) — reescrita com o nome novo.
+
+### 🔒 Trava: o nome mora num lugar SÓ
+`MODO_QUEDA` em `store.tsx` é a fonte única; toda tela puxa de lá. O
+`npm run holandes` agora reprova se: a lista de salas não souber ler a bandeira ·
+o selo não for desenhado · alguma tela escrever o nome na mão em vez de puxar da
+fonte · ou se sobrar "🔻 Holandês" escrito em qualquer tela.
+
+📷 **O que não deu pra fotografar**: a lista de salas exige login, e eu não entro na
+conta dele. Por isso o selo é conferido na FONTE (existe, lê a bandeira certa, usa o
+nome da fonte única) em vez de por print.
+
+---
+
+## 20/09/2026 (parte 38) — 🐛 Dois bugs que ele pegou JOGANDO com o pessoal (os dois do mesmo print)
+
+Ele terminou uma sala com os amigos e mandou duas fotos.
+
+### 🐛 1 — o "novo leilão" voltava pro ENVELOPE CEGO
+Palavras dele: *"tava no modo holandês e todo mundo votou pra uma nova. Porém foi
+criado no modo às cegas. Sendo que estávamos jogando modo holandês… então tem que
+seguir com a mesma regra e modos e tudo que foi feito a sala"*.
+
+**Causa, e ela é estrutural**: o `START_ONLINE` **zera tudo que não vier na ação**.
+Então cada escolha da sala tem que ser REENVIADA na revanche, uma a uma, na mão. Eu
+liguei o holandês e não reenviei. **É a MESMA falha de 08/08** (naquele dia o que
+sumiu foi o modo stream) — ou seja, a 2ª vez que a revanche come uma regra da sala.
+
+**Consertado**: a revanche reenvia `holandes` — e também **`sport`**, que estava
+faltando do mesmo jeito e é pior: uma sala de **BidLegends virava futebol** no novo
+leilão. Ninguém tinha reclamado só porque o basquete abre pra uma conta só.
+
+### 🐛 2 — o campinho do LEILÃO mostrava ⚽ e 🅰️ antes de a bola rolar
+Na 2ª foto, o Bernabei aparece na escalação com gol e assistência **durante a
+revelação do pregão**, sem nenhuma partida jogada.
+
+**Causa**: o campinho acha o número pelo **NOME + time** (`golsDe`/`assistDe` em
+`screens.tsx`), e os **sete** caminhos de "começar leilão novo" zeravam `news`,
+`champion` e `round` — mas **não** `scorers`, `assists` e `lastResults`. Quem
+reaparecia na mesma cadeira herdava o número do ano anterior.
+
+**Consertado em CINCO dos sete**, e a escolha foi deliberada:
+- ✅ zeram: `START` (rápido) · `START_NBA` · `START_NBA_CAREER` ·
+  `START_CAREER_SOLO` · `START_ONLINE`;
+- ⛔ **NÃO zeram**: `REAUCTION_ONLINE` e `RESERVE_AUCTION_ONLINE` — esses dois são
+  de MEIO de carreira (o `round` nem volta a 0). Zerar ali apagaria a artilharia da
+  temporada **em andamento**, que seria um bug pior que o consertado.
+- **A régua**: zera junto com o `round = 0` e o `champion = null`. Se a temporada
+  virou, a artilharia vira junto.
+- ⚠️ `rivalries` fica FORA: o retrospecto entre amigos atravessa temporada (é o
+  "Rivalidade V=2 D=1" da tela de próximo jogo).
+- 🅰️ E, como manda a regra permanente, **gol e assistência zeram na MESMA linha** —
+  pra ninguém esquecer metade.
+
+### 🔒 Trava nova: `npm run revanche`
+Ela confere as duas coisas, e a 1ª é a que importa pro futuro:
+1. **as 15 escolhas da sala** têm que estar na chamada do "novo leilão" (baralho,
+   várzea, copa, **holandês**, **esporte**, stream, manual, chat, tempo, liga sem
+   bots, Minhas Ligas, senha, hash, temporada, duplas). Esquecer uma é bug MUDO —
+   a sala volta pro padrão e ninguém entende;
+2. artilharia/assistência/resultados zeram nos três caminhos principais, e o
+   retrospecto entre amigos **não** zera.
+
+⚠️ Detalhe pra quem for mexer nela: o Vite serve o `.tsx` **já transpilado**, então
+cortar o bloco por indentação ou por número de caracteres não funciona (tentei, e a
+trava acusou falta de campo que estava lá). A janela é achada **contando chaves** a
+partir do `type: 'START_ONLINE'`.
+
+### 🛡️ `npm run ascegas` depois de tudo
+`28bea2df` · `d65041f6` · `06bab491` — iguais. O leilão cego segue intocado mesmo
+com o `START` dele tendo ganhado a linha de zerar artilharia.
+
+---
+
+## 20/09/2026 (parte 37) — 🎚️ A escada afina perto do 30 (pedido dele, com o jogo já no ar)
+
+Ele jogou e aprovou (*"tô adorando"*), com um pedido: *"só acho q tem q qd começa a
+chegar próximo do 30 começar a cair os números cada vez mais próximo de um por um
+sabe"*. E logo depois: *"sim, pode aumentar um pouco mais, não tem problema… só um
+pouco mais também"* — ou seja, autorizou a descida ficar mais longa.
+
+### 🎚️ A escada agora
+```
+100 · 90 · 80 · 70 · 60 · 52 · 44   ← pulos de 10 e 8 (enfeite: ninguém paga isso)
+36 · 31                             ← pulos de 5
+26 · 23                             ← pulos de 3
+20 · 18 · 16                        ← pulos de 2
+14 · 13 · 12 · 11 · 10 · 9 … 1 · 0  ← de 1 em 1
+```
+A conta é `v > 60 ? 10 : v > 40 ? 8 : v > 30 ? 5 : v > 20 ? 3 : v > 14 ? 2 : 1`.
+Bate com o que ele quis: **de 30 pra baixo o pulo vai encolhendo até virar 1**. E
+faz sentido no jogo — o preço médio de arremate medido é ~12 🪙, então é ali que a
+carta troca de mão de verdade.
+
+### ⏱️ E o relógio virou TRÊS marchas (senão o modo perdia a vantagem)
+Só afinar a escada engordava a descida em ~11s e o holandês passaria a ser mais
+LENTO que o envelope cego — matando a única vantagem de tempo que ele tem. Então o
+relógio desce junto com a escada:
+| faixa | tempo por degrau | por quê |
+|---|---|---|
+| acima de 40 | 0,6s | enfeite, ninguém paga |
+| 23 a 40 | 1,4s | a tensão começa |
+| 22 pra baixo | 2,0s | é aqui que a carta troca de mão |
+
+Os **2,0s do fundo** são a peça do anti-delay: com dois segundos pra reagir, meio
+segundo de internet ruim não decide carta nenhuma.
+
+### 📊 Medido depois (`npm run holandes`)
+- descida da leva: **43,8s** (era 39,4s) — ainda **abaixo** dos 45s do envelope cego;
+- pregão inteiro: **10:57** contra **11:15** do cego. Continua mais rápido, com folga
+  menor — que foi exatamente o que ele autorizou;
+- economia igual: 49 × 51 arremates · 40 × 38 vagas vazias · 12,3 × 11,6 de preço.
+
+### 🔒 E virou LEI na trava
+`npm run holandes` agora reprova se: algum pulo **aumentar** na descida · de 30 pra
+baixo aparecer pulo maior que 5 · os 14 últimos degraus não caírem de 1 em 1 · o
+fundo não for a marcha mais lenta das três. Ninguém desfaz isso sem o teste gritar.
+
+### 🛡️ `npm run ascegas` depois de tudo
+`28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
+## 20/09/2026 (parte 36) — 🙈 "Ainda não tô vendo no online ao criar sala" — dois motivos, os dois meus
+
+Ele foi olhar e não achou. Duas coisas, e a segunda era bug meu:
+
+### 1️⃣ Não está na `main` — nada disso foi pro ar
+O trabalho todo do holandês vive no branch `claude/denis-save-file-x1osct`. O site
+ao vivo é a `main`, que não tem uma linha disso. **Ele estava olhando o jogo no
+ar.** Enquanto não houver o OK dele + merge, não vai aparecer.
+
+### 2️⃣ E, quando aparecesse, estaria NO LUGAR ERRADO (bug meu)
+Eu pus o campo "Como é o leilão" na seção velha da tela de criar sala. Só que a
+tela **v2 está ligada pra todo mundo** (`CRIAR2_GERAL = true` em `sport.ts`) e ela
+**recolhe aquelas seções dentro de um ⚙️ Ajustes**. Ou seja: o campo existia, mas
+escondido atrás de uma engrenagem. Escolher o tipo de pregão é a decisão mais
+importante da sala — não pode ficar lá.
+
+**Movido pra Section "⚽ A partida"**, que é visível nas DUAS telas (a v2 e a
+antiga).
+
+### 3️⃣ E ele aparecia em modo que NEM TEM LEILÃO
+O `{!isCareer && …}` que eu usei liberava também o **🃏 Bafo** (*"SEM LEILÃO — cada
+um traz o time da própria carreira"*) e a **🌍 Copa do Mundo** (sala de seleções,
+sem leilão). Perguntar "como é o leilão" numa sala sem leilão é justo o tipo de
+tela torta que ele odeia.
+
+Agora a condição é explícita e é a ordem dele: **`roomMode === 'rapido' || liga`**
+— ⚡ Rápido online e 🏆 Minhas Ligas, mais nada. E a gravação no `game_state`
+ganhou a MESMA condição, senão escolher Holandês no rápido e depois trocar pro
+Bafo deixava `holandes: true` guardado numa sala sem pregão.
+
+⚠️ **Lição**: `!isCareer` **não** quer dizer "tem leilão". Esta tela tem 5 modos, e
+dois deles não leiloam nada. Quem for pôr opção de pregão aqui, liste os modos na
+mão.
+
+### 🛡️ Conferido depois de tudo
+`npm run holandes` verde · `npm run ascegas` com as MESMAS digitais da main
+(`28bea2df` · `d65041f6` · `06bab491`).
+
+---
+
+## 20/09/2026 (parte 35) — 🌐 Holandês LIGADO no online (Rápido online + 🏆 Minhas Ligas)
+
+Ordem dele: *"ok pode criar no partida rápida e no modo rápido online e minhas
+ligas"*. Os três estão ligados. **A Carreira online fica de fora** de propósito: lá
+o pregão é o de sempre, e carreira é save longo — não é lugar de estrear modo.
+
+### 🎛️ Onde o host escolhe
+Na tela de montar a sala, um `SegField` novo — **"Como é o leilão"**, com `✉️
+Envelope cego` (padrão) e `🔻 Holandês` — no mesmo lugar e estilo do "Baralho de
+craques" e da "Formação". A escolha **é do HOST e vale pra sala inteira**: vai
+gravada no `game_state` (`holandes: true`), então quem entra depois joga o mesmo
+pregão, não o que o aparelho dele preferia. **Sala antiga não tem o campo → leilão
+cego**, como sempre.
+
+### 🔒 O SEGREDO QUE NÃO PODE VAZAR (o perigo real do online)
+O estado do holandês é quase todo público — o pregão acontece na cara de todo
+mundo. **Menos os `tetos`**: eles dizem por quanto cada robô vai apertar em cada
+carta. Convidado com isso na mão sabe a hora exata de cortar o bot em TODA carta do
+pregão — acabou o jogo. Então o `sanitize` (o mesmo que já esconde o
+`pendingEnvelopes`) passou a **zerar `hol.tetos`** antes de o host mandar o pacote
+pra sala. **Trava nova (seção 7)** confere as duas pontas: que o teto NÃO sai, e
+que preço/degrau/`levados` SAEM (senão a tela do convidado não desenha nada).
+
+### 📮 E o toque do convidado ganhou ESTRADA RESERVA
+O `HOLANDES_PEGAR` entrou na lista dos recados que também vão **pelo banco**
+(`room_acoes`, por HTTPS), além do rádio — e o host passou a lê-lo. Motivo: é o
+recado mais urgente do jogo. Se o lance cego se perde, dá pra reenviar em 4s; aqui
+**o preço está caindo**, cada toque vale por um preço que não volta. Diferente dos
+outros, ele vai **sem folga de espera** — e chegar pelas duas estradas não compra
+duas vezes, porque o reducer recusa toque com preço velho e carta que já tem dono.
+O vigia do host também passou a acordar na fase `'holandes'`.
+
+### 👑 Host sumido no meio da descida
+Continua valendo a **regra permanente da coroa**: a sala PARA e espera o dono. No
+holandês o `phaseDeadline` é `null` (quem manda o relógio é a escada de preços),
+então não existe "fecha sozinho". É o comportamento desejado, não bug.
+
+### 🛡️ E o às cegas continua intocado
+`npm run ascegas` rodado DEPOIS de toda a fiação do online: `28bea2df` · `d65041f6`
+· `06bab491` — as mesmas três digitais da `origin/main`.
+
+### 📷 O que eu NÃO consegui mostrar
+A tela de criar sala **exige login**, e eu não vou entrar na conta dele pra tirar
+print. Então o botão novo do lobby é a única peça deste trabalho que ele ainda não
+viu em foto — as do pregão (partida rápida) estão todas conferidas. Quando ele abrir
+uma sala, é o 3º campo da tela, logo acima da Formação.
+
+---
+
+## 20/09/2026 (parte 34) — 🛡️ PROVA de que o leilão às cegas não foi tocado (`npm run ascegas`)
+
+Ordem dele: *"tudo q estamos fazendo aqui, não mexa em nada o que já funciona no
+modo às cegas, pelo amor de Deus"*.
+
+Ler o diff e dizer "não mexi" **não vale** — é exatamente assim que bug entra.
+Então virou prova, e a prova mora no repo: **`npm run ascegas`**.
+
+### 🔬 Como ela funciona
+Ela joga **três pregões às cegas INTEIROS** (sala de 6 · 8 · 12, formações e
+baralhos diferentes) com o acaso **travado** — o `Math.random` é trocado por um
+gerador de semente fixa, então baralho, bots, lances, empates e monte saem sempre
+iguais. No fim imprime uma **impressão digital**: caixa + elenco + preço pago +
+via, de todos os técnicos, resumido num número.
+
+Se um dígito mudar, alguma coisa do modo às cegas mudou.
+
+### ✅ O resultado (rodado nos dois lados)
+| pregão | meu branch (com o holandês) | `origin/main` pura |
+|---|---|---|
+| sala de 6 · 4-3-3 · BR | `28bea2df` | `28bea2df` |
+| sala de 8 · 4-4-2 · BR | `d65041f6` | `d65041f6` |
+| sala de 12 · 4-3-3 · Europa | `06bab491` | `06bab491` |
+
+**Idênticas.** Todo o trabalho do holandês (partes 25 a 33) não muda **uma moeda**
+do pregão de hoje.
+
+### 🧰 Como repetir
+```
+git worktree add /tmp/antes origin/main
+ln -s "$PWD/node_modules" /tmp/antes/node_modules
+cp scripts/prova-as-cegas.mjs /tmp/antes/scripts/
+cd /tmp/antes && node scripts/prova-as-cegas.mjs --porta 5246
+```
+⚠️ **Compare sempre contra a MESMA base.** Na 1ª tentativa eu comparei com a
+`origin/main` que já tinha as 49 cartas novas de outra sessão — as digitais não
+bateram por causa do BARALHO, não do meu código. Ou se compara contra o
+`git merge-base`, ou se traz a main pro branch antes (foi o que fiz).
+
+### 🔀 Main trazida pro branch
+`origin/main` andou (49 cartas novas, e a agência pagando por artilheiro/Bola de
+Ouro). Merge feito; o único conflito foi este arquivo, com as duas sessões
+escrevendo no topo — ficaram as duas.
+
+Com o baralho novo, o holandês continua batendo o cego: **51 × 51 arremates,
+37 × 37 vagas vazias, 12,5 × 12,2 de preço médio — e 9:36 contra 11:15.**
+
+---
+
+## 20/09/2026 (parte 33) — 🛟 A repescagem FAZ falta (eu estava errado) — e virou descida holandesa
+
+Ele perguntou: *"e sobre repescagem acha q não deve ter mesmo?"*. Fui medir em vez
+de opinar, e **a medição me desmentiu**.
+
+### ❌ Onde eu errei
+Eu concordei em tirar a repescagem com o argumento: *"o preço já passou por 1 moeda
+na frente de todo mundo, todo mundo teve chance"*. Isso vale pra **GENTE** — você vê
+a lista e pega o que quiser por 1 moeda. **Robô não funciona assim**: o teto dele sai
+do `cpuEnvelope`, que só olha as `need` cartas mais bem ranqueadas. Carta que ele
+nunca ranqueou, ele **não pega nem de graça**. E a pirâmide é quase toda robô.
+
+Com a repescagem simplesmente removida: **55 vagas vazias** (contra 38 do cego) e
+**32 moedas encalhadas** por técnico. 17 perna-de-pau a mais por leilão — justo a
+reclamação dele de 19/09.
+
+### 🛟 O que ficou (e respeita o que ele pediu)
+Ele disse *"não tem negócio de repescagem nesse leilão"* — e quanto à **TELA** ele
+está certo: envelope cego no meio de um leilão holandês é outro jogo. Então:
+- **a repescagem continua existindo, mas como DESCIDA HOLANDESA**: as sobras do
+  setor voltam pra mesa e o preço cai de novo. Mesmo visual, mesma lista, mesmo
+  botão. Nenhuma tela nova;
+- e antes disso, **dentro da própria descida**, quando o preço cruza 25% da
+  abertura, os robôs que ainda têm buraco **reavaliam o que sobrou na mesa**
+  (`holResgate`, usando o `cpuEnvelope(rescue)` que a repescagem de hoje já usa).
+
+### 📊 E aí a conta fecha — inclusive o TEMPO, que eu vinha medindo errado
+⚠️ **Segundo erro de medição desta série**: eu vinha dizendo que o pregão cego leva
+"6:00". Mentira — eu contava só as levas e **esquecia as rodadas de repescagem
+dele**, que também custam 45s cada. O cego de verdade leva **11:15**.
+
+| | arremates | vagas vazias | moeda encalhada | pregão |
+|---|---|---|---|---|
+| 🔻 holandês | 53 | **36** | 23,4 🪙 | **9:51** |
+| ✉️ cego (hoje) | 48 | 41 | 21,4 🪙 | 11:15 |
+
+Ou seja, com a repescagem holandesa o modo novo ficou **melhor em tudo**: menos
+perna-de-pau (36 × 41), mais carta colocada (53 × 48) e **1min24 mais rápido** que
+o pregão de hoje.
+
+### 🎬 E a tela depois da descida: FICA O REVEAL (decisão dele)
+*"A manter revelando quem pagou valor e etc… se for lenda mostrará avatar e etc"*.
+Nada a construir: o holandês já cai no `Reveal` de sempre, que mostra carta por
+carta com o vencedor e o valor, e já trata lenda (selo 👑 LENDA, chime dourado,
+áudio e o festão). O holandês passa por ele igual ao pregão cego.
+
+### 🧠 Lição (a terceira desta série, e a mais cara)
+**Toda comparação entre os dois modos tem que incluir as FASES INTEIRAS dos dois.**
+Comparar "a leva do holandês" com "a leva do cego" e esquecer a repescagem do cego
+deu 6:00 × 9:51 (holandês perdendo) quando a verdade é 11:15 × 9:51 (holandês
+ganhando). Erro de escopo de medição, igual ao seed da parte 27 e ao arremate
+contado duas vezes da parte 26.
+
+---
+
+## 20/09/2026 (parte 32) — ⏱️ O Diego escolheu POR TEMPO. E o holandês perdeu a repescagem.
+
+Ele leu a parte 31 (roleta) e decidiu o contrário: *"eu ainda acho que deveria ter
+que ser por tempo… só quando der alguma merda e o jogo não entender é aí sim iria
+pro desempate. Eles não precisariam saber disso também, pra eles é como se fosse ao
+mesmo tempo"*. Eu tinha levantado o argumento da internet; ele ouviu e escolheu.
+**Decisão dele, implementada.**
+
+### ⏱️ A regra agora
+- **Pessoa aperta → a carta é dela NO MESMO TOQUE.** Sem janela, sem esperar
+  degrau. Entra em `levados` na hora, e o campinho desenha na hora.
+- **Chegou em segundo → recusado**, e a carta já aparece com o nome do outro.
+- **Robô continua atrás da gente**: ele entra numa fila (`pedidos`) e só é servido
+  no FIM do degrau. Se uma pessoa apertar naquele degrau, ela passa na frente.
+  Regra antiga dele, mantida — senão o robô apertaria no milissegundo e ganharia
+  sempre.
+- **A roleta virou REDE INVISÍVEL**, que é exatamente o que ele pediu: ela só age
+  na fila dos robôs (dois com o mesmo teto) ou se algum caminho novo um dia
+  depositar dois pedidos na mesma carta. Ninguém vê: pra quem joga, "o outro
+  chegou antes".
+
+### 🔒 E o medo dele — "os dois põem o jogador no campinho?" — fica ainda MAIS seguro
+Por tempo é mais simples de garantir que por janela: quem escreve `levados` é **só
+o host, uma ação de cada vez**, e a primeira linha da carta tranca todas as outras.
+Não existe ordem de execução em que os dois passem.
+**Trava**: 40 disputas seguidas, alternando quem aperta primeiro — *quem apertou
+primeiro levou **40/40***, e a carta nunca saiu duas vezes.
+
+### 📱 A regra que o ONLINE vai ter que respeitar (ainda não ligado)
+O convidado **não escreve `levados` no próprio aparelho**. Ele mostra **"✋
+ENVIANDO"** e só desenha o jogador no campinho quando o host confirmar — o mesmo
+padrão do "ENVIANDO…" do envelope cego. Se a tela dele entregasse na hora e o host
+dissesse "não foi você", o jogador **apareceria e sumiria** do campinho. O estado
+da tela já está pronto pra isso (`enviando` local); falta só o cano.
+
+### 🗑️ E o holandês NÃO TEM MAIS REPESCAGEM
+Palavras dele: *"não tem negócio de repescagem nesse leilão eu acho… quem não pegou
+se ferra que vai ter que ir pro monte mesmo então. No 0 não tem empate também, é
+monte direto"*. **Ele está certo**: a repescagem existe pra dar uma última chance de
+PAGAR pelas sobras — mas no holandês essa chance já foi dada, o preço passou por 1
+moeda na frente de todo mundo. Repescar depois seria leiloar a mesma carta duas
+vezes. Agora, no holandês: **acabou a descida → o que sobrou vai direto pro Monte
+Final**. (No pregão cego a repescagem continua exatamente como sempre.)
+
+### ❓ O QUE FICOU EM ABERTO — precisa da decisão dele
+Ele levantou, e eu NÃO construí pra não chutar: *"a próxima tela eu acho que já
+seria outra lista não?? Ou apenas mostrar as cartas de quem pegou quem?? Até porque
+se tiver lendas mostra também a carta da lenda com avatar também faz sentido assim.
+E aí nessa área apareceria o desempate."*
+
+São duas perguntas:
+1. **Depois da descida, vai direto pra próxima lista (próximo setor) ou tem uma
+   tela de resumo** mostrando quem levou quem, com a carta da lenda e avatar?
+   → hoje está indo pro `Reveal` de sempre, que já mostra carta por carta com o
+   vencedor. Dá pra: (a) manter, (b) pular direto pro próximo setor, ou (c) fazer
+   um resumo novo em grade, com destaque pra lenda.
+2. Ele falou em pôr o **desempate nessa área**. Com a regra por TEMPO isso perdeu a
+   função (não sobra empate pra decidir) — mas se ele quiser o re-lance cego de
+   volta pros casos de empate, é aqui que ele moraria.
+
+---
+
+## 20/09/2026 (parte 31) — 🎰 O desempate afunilado: NEM valor, NEM tempo — roleta. E o número numa sala de 20
+
+Perguntas dele: *"e se der ao mesmo tempo alguém pegando junto? Como desempata…
+ou já vai mostrar na hora alguma informação q o outro pegou um milésimo de segundo
+na frente? E é com base no valor ou no tempo?? Precisamos afunilar tudo isso pq
+imagina uma sala c/ 20 pessoas, tudo pode ocorrer"*.
+
+### 📏 A REGRA, afunilada (é esta, e não muda)
+Na janela de meio segundo, **a ordem de chegada NÃO conta**. Quem apertou naquele
+preço está na disputa, ponto. Aí, nesta ordem:
+1. **Gente ganha de robô.** Sempre. Se tem uma pessoa na fila, nenhum bot leva.
+2. **Gente × gente → 🎰 roleta**, chance igual pra todos.
+3. **Preço**: é o MESMO pra todo mundo (é o número da tela), então valor não
+   desempata — não tem como, ninguém ofereceu mais que ninguém.
+
+### 🤔 Por que NÃO é por tempo
+"Quem apertou um milésimo antes" = **quem tem a internet melhor**. No online o
+toque viaja até o host, e essa viagem não é igual pra todo mundo. Decidir por
+tempo é decidir por operadora. Numa sala de 20 isso vira "o host e o do wifi bom
+ganham tudo" — e o resto larga a sala.
+
+### 🤔 E por que NÃO é por valor (mas o valor JÁ decidiu antes)
+Não dá pra desempatar por valor porque os dois ofereceram **o mesmo preço**: o da
+tela. Mas repare que o valor decide o jogo inteiro **antes** disso: quem quer o
+Cafu de verdade aperta em **44**, não espera chegar em 16. Quem espera ganha
+preço e arrisca dividir. **A roleta é só o que sobra quando duas pessoas quiseram
+exatamente igual** — e aí o sorteio é o único juiz que não é a operadora de
+celular.
+
+### 📊 E COM 20 PESSOAS, QUANTO ISSO ACONTECE? (medido)
+| sala | cartas resolvidas | deram empate | % | roleta média | maior roleta |
+|---|---|---|---|---|---|
+| 8 técnicos | 35 | 6 | **17%** | 2,2 técnicos | 3 |
+| 20 técnicos | 78 | 17 | **22%** | 2,6 técnicos | 4 |
+
+Ou seja: **4 em cada 5 cartas vão pra quem quis mais** (apertou mais cedo, pagou
+mais). A roleta é 1 em 5, quase sempre entre 2 ou 3, e nunca passou de 4 numa sala
+cheia. A trava reprova se passar de **34% das cartas** ou se der roleta com **mais
+de 6 técnicos** — se um dia passar disso, o leilão virou sorteio e a regra precisa
+mudar.
+
+### 👀 E mostra na hora?
+Mostra, e agora com o número da briga:
+- pra todos: `🎰 Cafu → Rei da Bola FC por 16 🪙 · 3 pediram no mesmo preço — a
+  roleta girou`;
+- pra **quem perdeu**, faixa vermelha própria: *"Você pediu o Cafu por 16 🪙 — 3
+  pediram no mesmo preço e a roleta deu pro Rei da Bola FC. Sua moeda continua no
+  bolso. Pra não depender de sorteio, aperte MAIS CEDO: quem paga mais caro não
+  divide com ninguém."* — a trava explica o porquê **e o caminho**, como ele exige.
+
+### 🔀 A ALTERNATIVA que existe e NÃO foi ligada (decisão dele)
+Dava pra mandar o empate pro **re-lance cego** que o pregão já tem
+(`resolveOneTiebreak`): os empatados escrevem escondido e quem paga mais leva.
+É mais "leilão" que sorteio. **Não liguei** porque, com 22% de empate e 21 levas
+numa sala de 20, seriam **~17 paradas** no meio do pregão — e a regra de ouro dele
+é que *nada pode atrasar o ritmo do jogo*. Se ele preferir o re-lance mesmo assim,
+é ligar: o motor do desempate já existe e está testado.
+
+---
+
+## 20/09/2026 (parte 30) — ⚡ "Quando o cara aperta ele não pega na hora?" — agora pega (meio segundo)
+
+Ele leu a parte 29 e estranhou, com razão: *"não entendi. Qd o cara aperta ele não
+pega na hora e já não vai pro campinho dele??"*.
+
+**Eu tinha exagerado na dose.** Na parte 29 o arremate só saía quando o DEGRAU
+fechava — até 2 segundos parado olhando pra tela sem saber se era seu. Chato, e
+contra a regra de ouro dele (*"nada pode atrasar o ritmo do jogo"*).
+
+Agora a entrega tem **janela própria de meio segundo** (`HOL_JANELA_MS = 500`,
+ação `HOLANDES_JANELA`), separada do relógio do preço:
+- **apertou e ninguém mais apertou → a carta é sua em 0,5s**, sem esperar o degrau.
+  O preço nem se mexe. Do lado de quem joga, é "na hora";
+- **alguém apertou junto** → os dois entram na 🎰 roleta, como na parte 29.
+
+### 🤔 Por que não pode ser ZERO (a pergunta por trás da pergunta)
+No online o toque do convidado **precisa viajar até o host** de qualquer jeito. As
+opções eram:
+- **entregar na hora na tela dele** e o host responder depois "não foi você" → aí o
+  jogador APARECE no campinho e SOME. É exatamente o estado quebrado que ele odeia
+  (regra nº 3 do CLAUDE.md);
+- **esperar o host** → a espera existe do mesmo jeito, só que honesta.
+
+Ou seja: a espera não é escolha minha, é a rede. O que dá pra escolher é o tamanho
+dela e se ela é justa. Meio segundo é maior que a diferença de internet entre dois
+celulares na mesma partida e menor que o que a mão sente.
+
+### 🧪 Travas (`npm run holandes`)
+- **5-zero** (nova): aperta SOZINHO → `HOLANDES_JANELA` entrega a carta, o degrau
+  **não anda**, o preço **não muda**, paga o que estava na tela e entra em
+  `levados` (que é o que o campinho desenha). Com contador anti-verde-falso.
+- `HOL_JANELA_MS` tem que ficar entre **250ms e 700ms** — abaixo disso não cabe a
+  diferença de internet, acima disso a mão sente.
+- A disputa de dois humanos (parte 29) passou a fechar pela JANELA também. Roleta:
+  **20 × 20** em 40 disputas.
+
+### 🏷️ E o texto mudou junto
+O botão travado deixou de dizer "✋ PEDI" (que soava "torce pra dar certo") e passou
+a dizer **"✋ É SEU!"**. A explicação de baixo agora é: *"Apertou, é seu — o jogador
+cai no seu campinho em meio segundo. Esse tiquinho existe só pro caso de outra
+pessoa apertar junto."*
+
+---
+
+## 20/09/2026 (parte 29) — 👥👥 "E se os DOIS apertarem quase junto? Vão os dois pôr o jogador no campinho?"
+
+Pergunta dele, e é o pesadelo clássico do leilão ao vivo: *"agora é sobre o delay e
+sobre o usuário apertar pegar ao mesmo tempo quase?? E aí?? Será q vai os dois pôr
+o jogador no campinho e tal?? O mesmo jogador"*.
+
+**NÃO VAI — e não é promessa, é como o código foi montado.** Apertar não arremata:
+vira um PEDIDO do degrau. Quando o degrau fecha, o `holResolvePedidos` junta TODOS
+os pedidos daquela carta e escreve **UMA linha** em `hol.levados`. E `levados` é a
+fonte ÚNICA de tudo: o campinho (`YourPitch`), a caixa, a vaga e o
+`pendingEnvelopes` que fecha a leva. Não existe caminho no código em que a mesma
+carta saia com dois donos.
+
+### 🧪 A trava que prova (`npm run holandes`, seção 5-bis)
+Simula a sala online de verdade: **dois assentos HUMANOS** pedindo a MESMA carta no
+MESMO degrau. Confere, uma a uma:
+- antes do degrau fechar, **nenhum dos dois** tem a carta (pedido ≠ arremate — é o
+  arremate por ordem de chegada que ele temia);
+- depois de fechar, a carta sai com **1 dono**, e pelo preço que estava na tela;
+- **quem perdeu não paga NADA** e continua com a vaga aberta (a caixa dele nem se
+  mexe — conferido moeda a moeda);
+- quem perdeu **vê o porquê** numa faixa 😤 (`ultimo.perdedores`), em vez da carta
+  sumir em silêncio;
+- **o mesmo jogador não entra em dois campinhos** (soma dos `levados` dos dois = 1);
+- e o botão apaga pros DOIS: ninguém aperta numa carta já arrematada.
+
+### 🎲 E a roleta não é viciada
+40 disputas repetidas deram **22 × 18**. A trava reprova se um dos dois nunca ganhar
+ou se ficar abaixo de 25%. Isso importa: se o host ganhasse sempre, o convidado
+largava a sala na primeira noite — e "o host manda" (regra dele) é sobre QUEM
+arbitra, não sobre quem leva a carta.
+
+⚠️ **E a trava confere que ela própria RODOU** (`disputaTestada`). A simulação tem
+`if`s (precisa achar uma carta que os dois possam pegar); sem esse contador, ela
+podia ficar verde sem ter conferido nada. Teste que não roda é pior que teste nenhum.
+
+### 📶 E o delay, em uma frase
+Cada degrau dura **~2 segundos**. O host não olha quem chegou primeiro — ele espera
+o degrau FECHAR e resolve todo mundo junto. Então meio segundo de internet ruim não
+tira a carta de ninguém: quem apertou naquele preço está na disputa, ponto.
+
+### ⏳ O que ainda falta pra isso valer online de verdade
+O **roteamento** (`HOLANDES_PEGAR` do convidado → host, e o host transmitindo preço
+e `levados`). A REGRA que decide já está pronta e travada; o que falta é o cano.
+Enquanto não for ligado, o holandês só aparece na partida rápida offline.
+
+---
+
+## 20/09/2026 (parte 28) — ⚽ O campinho enche NA HORA no holandês
+
+Pedido dele: *"além disso conseguiu o jogador aparece no campinho do usuário embaixo
+também"*. Feito — e o campinho é o `YourPitch` de sempre, o MESMO que o pregão cego
+já mostra embaixo da tela. Nada de desenho novo.
+
+**O detalhe que precisou de código**: no holandês a carta arrematada só entra no
+elenco de verdade quando a LEVA FECHA (quem paga e move é o `resolve` de sempre —
+foi assim que a gente garantiu que o holandês não mexe no dinheiro). Então, no meio
+da descida, o campinho mostraria só as levas ANTERIORES e o jogador que você acabou
+de levar não apareceria. Agora o `YourPitch` desenha também o que está em
+`hol.levados` no seu nome.
+
+✅ **E isso não vaza nada**: no holandês o martelo cai na frente de todo mundo, não
+existe revelação escondida pra estragar. O NÍVEL continua secreto até a Cerimônia —
+o campinho nunca mostrou nível, só nome e posição. A trava anti-spoiler da
+revelação (`pendingIds`) continua intacta e vem depois, então o pregão cego não
+mudou em nada.
+
+Conferido na tela: apertei PEGAR no Cortês a 16 🪙 → a carta saiu da lista pra "🫵
+VOCÊ", a caixa foi de 100 pra 84, a vaga de lateral foi de 2 pra 1 e ele apareceu
+no campinho de baixo, tudo no mesmo instante.
+
+### 👥 E a regra do baralho por número de usuários (ele repetiu)
+Continua valendo o que a parte 27 mediu: **é a mesma regra de hoje**, e o holandês
+não encosta nela. O baralho sai do `buildDeck(auctioningManagers(...))` antes do
+pregão; o holandês só entra no `startAuctionPhase`, depois. 20 técnicos = 220 vagas
+= 225 cartas = 21 levas, idêntico nos dois modos.
+
+---
+
+## 20/09/2026 (parte 27) — 👥 "O baralho segue a quantidade de usuários, igual à regra que já funciona?" — SIM
+
+Pergunta dele: *"tem q ser msm regra c/ base na quantidade de jogadores usuários q
+entram no online igual a regra q já funciona ou tô errado?"*.
+
+**Ele está certo, e já é assim** — não precisou mexer em nada. O baralho é montado
+pelo `buildDeck(auctioningManagers(s.managers), rng, 1.0, …, extra = 1)` **antes**
+do pregão começar. O holandês só entra em `startAuctionPhase`, que roda DEPOIS. Ele
+não encosta no baralho, na formação, na vaga nem na leva.
+
+Medido, sala por sala (`npm run holandes`):
+
+| técnicos | vagas (11 cada) | cartas no baralho | levas | pregão 🔻 holandês | pregão ✉️ cego |
+|---|---|---|---|---|---|
+| 3 | 33 | 38 | 5 | 3:17 | 3:45 |
+| 6 | 66 | 71 | 7 | 4:36 | 5:15 |
+| 8 | 88 | 93 | 10 | 6:34 | 7:30 |
+| 12 | 132 | 137 | 12 | 7:53 | 9:00 |
+| 20 | 220 | 225 | 20 | 13:08 | 15:00 |
+
+Sempre **demanda + 1 carta por posição**, e a leva continua sendo a de hoje
+(`BATCH_SIZE = 12`, `batchCount`). De brinde: o holandês fecha **mais rápido** que o
+cego em toda sala, porque a descida da leva custa 39s contra 45s do envelope.
+
+### 🧨 E a trava pegou um erro meu DE NOVO — vale a lição
+A primeira versão desta trava comparava o baralho dos dois modos **carta a carta** e
+acusava diferença em MEI e ATA em toda sala acima de 6. Não era o modo: o `START`
+sorteia um `seed` NOVO a cada partida, então nas duas partidas os bots sorteavam
+formações diferentes (4-3-3 × 4-4-2) e a divisão MEI/ATA mudava **por sorteio**.
+
+👉 **Regra pra quem for medir dois modos deste jogo**: `START` é aleatório. Ou se
+pina o seed, ou se compara a **CONTA** (cada posição cobre a demanda daquela
+partida; a demanda é 11 × técnicos; o baralho é demanda + folga), nunca o número
+cru de uma partida contra o da outra. É o segundo erro de medição meu em dois dias
+— o primeiro foi o "80 × 47" da parte 26.
+
+Com o ruído do seed fora, a comparação de 8 técnicos ficou **49 arremates × 49** e
+**39 vagas vazias × 39**: a economia é a MESMA, como ele previu.
+
+---
+
+## 20/09/2026 (parte 26) — 🔻 Holandês virou LISTA (ideia dele) e ganhou o anti-delay
+
+Ele bateu em dois pontos ao ver a primeira versão (uma carta por vez):
+
+1. *"Qd alguém apertar vai sair o jogador na hr?? Pq o problema é alguém apertar e o
+   botão não atualizar e com isso ainda ter esse botão de apertar e o outro jogador
+   apertar… tô preocupado com delay também."*
+2. *"Achei q fosse tipo aparecer todos listados igual já é no nosso leilão e a barra
+   de 100 moedas caindo c/ botão ali da pessoa pegar… mas por mim tanto faz, quero
+   o que seja melhor. Só me explique por que você acha assim."*
+
+**A ideia dele é melhor, e os dois problemas são O MESMO problema.** Com uma carta
+por vez, a leva de 12 precisava de 12 descidas — pra caber no tempo de hoje, cada
+degrau durava ~0,2s. Nesse ritmo quem tem internet melhor ganha a carta, sempre.
+Com a leva INTEIRA na tela e **uma descida só**, o degrau passa a durar **~2
+segundos** (10× mais folga) e a leva fecha em ~39s, contra os 45s do envelope cego.
+
+### ✋ O anti-delay, em três camadas
+1. **Apertar não arremata na hora — vira um PEDIDO daquele degrau.** A carta tranca
+   na hora **no seu aparelho** (vira "✋ PEDI"), antes do host responder. Não existe
+   apertar duas vezes: o motor também engole o 2º toque, não é só a tela escondendo.
+2. **O host não decide por ordem de chegada.** Ele espera o degrau FECHAR e resolve
+   todos os pedidos daquele preço juntos. Internet melhor não vale nada.
+3. **Empate no mesmo preço**: 🎰 roleta entre as pessoas — e **gente sempre passa na
+   frente de robô** (o robô aperta no milissegundo; se competisse na reação, ganharia
+   sempre). Quando o degrau fecha, a carta sai da lista pra TODO MUNDO, em cinza, com
+   o nome de quem levou e por quanto.
+4. E a trava velha continua: **toque com preço VELHO não vale** (nada de pagar um
+   preço que ninguém viu na tela).
+
+### 📊 O que mudou nos números — e o ERRO que ele pegou
+
+⚠️ **Primeiro a correção, porque foi feia.** Eu mandei pra ele *"o holandês vende
+muito mais: 80 × 47"* e contei isso como coisa boa (menos perna-de-pau). Ele
+respondeu: *"não entendi pq ter mais jogadores… pq se não perde oferta e demanda"*.
+**Ele estava certo e o número era MEU ERRO**: a medição contava o mesmo arremate
+duas vezes no holandês — uma vez ao vivo (`hol.levados`) e outra na revelação —
+enquanto no pregão cego contava só uma. O pregão cego não tem "ao vivo", então a
+comparação era torta desde o começo. Agora só a REVELAÇÃO conta, que é o mesmo
+lugar nos dois modos.
+
+Medido de novo, direito (`npm run holandes`, 93 cartas, 8 técnicos):
+
+| | arremates | no pregão | na repescagem | desceram p/ repescagem | vagas vazias | preço médio | tempo |
+|---|---|---|---|---|---|---|---|
+| 🔻 holandês | 48 | 32 | 16 | 61 | 41 | 12,5 🪙 | ~6:23 |
+| ✉️ cego (hoje) | 51 | 33 | 18 | 60 | 37 | 12,7 🪙 | ~6:00 |
+
+**São a MESMA coisa.** E tem que ser mesmo, pelo motivo que ele deu: a oferta (93
+cartas) e a procura (as vagas dos 8 técnicos) não mudaram — o holandês só troca o
+jeito de DESCOBRIR o preço, não quantos jogadores existem nem quantas vagas tem.
+Se vendesse muito mais, era sinal de bug, não de feature.
+
+A única diferença de verdade são os **23 segundos a mais** no pregão inteiro.
+
+🧠 **Lição pra quem mexer nisto depois**: quando um modo novo parecer "melhor" num
+número de balanço, desconfiar da MEDIÇÃO antes de comemorar. Os dois modos têm que
+ser medidos no MESMO ponto do código (aqui: a revelação), senão a conta mente.
+
+### 🔒 Travas novas no `npm run holandes`
+Além das de ontem: apertar 2× na mesma carta não vira 2 pedidos · a carta sai com UM
+dono só quando duas pessoas pedem no mesmo preço · gente ganha de robô no empate ·
+a carta arrematada não volta a acender botão · e o degrau de baixo tem que durar
+**≥1,5s** (é a conta que faz o delay parar de decidir a partida).
+
+### ⏳ Continua faltando
+1. **OK visual do Diego.**
+2. **Roteamento online** do `HOLANDES_PEGAR` (convidado → host) e uma rede pra host
+   que some no meio da escada (hoje `phaseDeadline` é `null` no holandês).
+3. Linha em `novidades.ts` — só na entrega que ligar isso pro pessoal.
+4. **Envelope Mudo** segue sem construir (falta ele dizer se a carta muda ENTRA a
+   mais na leva ou SUBSTITUI uma, e se pode dividir leilão com o 🎁 Surpresa).
+
+---
+
+## 20/09/2026 (parte 25) — 🔻 LEILÃO HOLANDÊS: o modo novo, pronto e esperando o OK visual
+
+Ideia aprovada por ele em 19/09, com as regras ditadas: *"a hi q tem q começar com
+100 p qlwr jogador até pq ng tem 200… todo mundo começa C 100"* · *"preço cair até
+0… se ng pegar esse jogador vai pras sobras igual ocorre hoje Tb já"* · *"oq manda
+e o ID do host sempre"* · *"quantidade de jogadores q aparece no leilão e regras
+com quantidades q jogam tudo igual Tb"* · *"quero usar tudo parecido C oq já
+funciona hoje no motor e visual"*.
+
+### 🔑 A decisão de arquitetura que faz isso NÃO poder quebrar o jogo no ar
+O holandês **só troca o jeito de COLETAR o lance**. Quando a leva acaba, ele
+escreve os arremates em `pendingEnvelopes` — o MESMO lugar de onde o pregão cego lê
+— e chama o `sealAndResolve` de sempre. Daí pra frente é 100% código antigo:
+`resolve` paga, move a carta pro elenco, anota no livro de preços, credita o
+vendedor, cobra a comissão do agente, monta a revelação e manda o que ninguém quis
+pra repescagem/monte. **Nenhuma regra nova toca em dinheiro.**
+
+A bandeira `holFechando` liga por um instante só pra avisar o `sealAndResolve` que
+não é pra gerar envelope de CPU (senão o bot disputaria contra o próprio arremate).
+
+### 📐 Como ficou
+- **Escada de preços** (`holEscada`): 100 · 90 · 80 · 70 · 60 · 52 · 44 · 36 · 31 ·
+  26 · 21 · 16 · 14 · 12 · 10 · 8 · 7 … 1 · 0. Degrau **gordo em cima** (ninguém
+  paga 90 num lateral) e **miúdo embaixo**, que é onde a decisão acontece. No
+  basquete abre em 50, que é o bolso de lá.
+- **Abertura IGUAL pra toda carta** — de propósito: preço de abertura diferente
+  entregaria o nível, que é segredo até a Cerimônia.
+- **O bot** não ganhou cérebro novo: o teto dele sai do MESMO `cpuEnvelope`,
+  calculado uma vez quando a leva abre. Ele só passa a "apertar o botão" quando o
+  preço desce até o valor que ele teria escrito no envelope.
+- **Repescagem e setor técnico continuam no envelope cego.** Sobra é sobra.
+- **Online**: quem faz o preço cair é SÓ o host (`HOLANDES_TICK`), e o toque do
+  convidado vai roteado pra ele. ⚠️ A perna de roteamento online ainda **não foi
+  ligada** — ver pendências abaixo.
+
+### ⏱️💰 Medido, não chutado (`npm run holandes`)
+O MESMO pregão (93 cartas, 8 técnicos, humano só assistindo), nos dois modos:
+
+| | cartas | arremates | preço médio | tempo de pregão |
+|---|---|---|---|---|
+| 🔻 holandês | 93 | 54 | 10,4 🪙 | ~5:52 |
+| ✉️ cego (hoje) | 93 | 48 | 12,4 🪙 | ~6:00 |
+
+Ou seja: **não atrasa o ritmo** (regra de ouro dele) e a economia fica praticamente
+igual. As duas diferenças naturais do formato, que ele precisa saber:
+- o holandês **vende um pouco mais** (54 × 48): quem perdeu uma carta ainda pega a
+  seguinte quando o preço chega nela — no envelope cego o lance perdido é lance
+  jogado fora;
+- e **paga um pouco menos** (10,4 × 12,4), porque a escada é de degraus: o bot leva
+  no primeiro degrau ABAIXO do teto dele, nunca exatamente no teto.
+
+### 🔒 Travas
+`npm run holandes` roda um pregão INTEIRO no motor de verdade e reprova se:
+abertura ≠ 100 · a escada não chegar a 0 · alguém ficar com caixa negativa · alguém
+estourar vaga de posição · uma carta cair em dois elencos · a tela acender PEGAR e
+o motor recusar (botão mudo) ou o contrário (arremate fantasma) · um toque com
+**preço velho** for aceito · e — o mais importante — se o **pregão cego de hoje**
+deixar de fechar igualzinho.
+
+`npm run mockup-holandes` tira as fotos da tela no jogo de verdade (não é desenho).
+
+### ⏳ O que FALTA (não está pronto)
+1. **OK visual do Diego** — ele decide o visual, e nada disso vai pra `main` antes.
+2. **Roteamento online** (`HOLANDES_PEGAR` do convidado → host, e o host
+   transmitindo o preço). Hoje o modo só aparece na **partida rápida offline**.
+   Quando ligar: o vigia de prazo do online precisa de uma rede pra host sumido no
+   meio da escada (hoje `phaseDeadline` é `null` no holandês).
+3. **Linha em `novidades.ts`** — só entra na entrega que ligar isso pro pessoal.
+4. **Envelope Mudo** (a outra ideia que ele gostou) continua sem construir; faltava
+   ele responder se a carta muda ENTRA a mais na leva ou SUBSTITUI uma, e se pode
+   dividir leilão com o 🎁 Surpresa.
+
+### ↩️ Dá pra voltar atrás?
+Dá, e é barato: o modo nasce DESLIGADO (`holandes: false` no `INITIAL`) e só liga
+por escolha na tela de montar a partida rápida. Sem a escolha, o jogo roda o mesmo
+código de sempre — o `npm run holandes` prova isso a cada rodada. Pra sumir de vez:
+reverter o commit.
+---
+
 ## 20/09/2026 (parte 2) — 🥇 A AGÊNCIA PAGA POR ARTILHEIRO E POR BOLA DE OURO
 
 Ordem dele, no mesmo dia da tela nova: *"o usuário tem q ganhar 1 moeda na temporada

@@ -5,7 +5,7 @@ import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG } from './manto'
-import { useEsc, listAllCareers } from './store'
+import { useEsc, listAllCareers, MODO_HOLANDES } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
 import { AdminButton, useCanCareerOnline } from './admin'
@@ -65,7 +65,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[] }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -665,6 +665,10 @@ export function EscLobby() {
   const careerDeck: DeckChoice = 'both' // carreira: sempre BR + Europa juntos (preenche os 80 times das 4 divisões)
   const [rapidoDeck, setRapidoDeck] = useState<DeckChoice>('br') // rápido online: host escolhe o baralho (BR / Europa / os dois)
   const [rapidoVarzea, setRapidoVarzea] = useState(false) // 🥅 rápido online + BR: categoria "Sem craques" (várzea) — só bom jogador + foi profissional
+  // 🔻 PREGÃO HOLANDÊS: escolha do HOST, vale pra sala inteira. Padrão SEMPRE o
+  // leilão cego de hoje. Vale no Rápido online e no 🏆 Minhas Ligas; a Carreira
+  // online fica de fora (lá o pregão é o de sempre, sem novidade).
+  const [rapidoHolandes, setRapidoHolandes] = useState(false)
   // 🃏 BAFO: o host decide se a partida vale carta (padrão) ou se é amistoso.
   // Ausente/antigo = VALENDO — é a identidade do modo; só o "não" é gravado.
   const [bafoValendo, setBafoValendo] = useState(true)
@@ -1344,6 +1348,10 @@ export function EscLobby() {
       // `deck` velho só entra se ainda for TEXTO (sala criada antes deste conserto).
       deck: (typeof gs?.deckSala === 'string' ? gs.deckSala : typeof gs?.deck === 'string' ? gs.deck : 'br') as GS['deck'],
       varzea: !!gs?.varzea, // 🥅 rápido + BR, categoria "Sem craques" (só bom jogador + foi profissional)
+      // 🔻 PREGÃO HOLANDÊS: a escolha é do HOST e vem gravada na sala, igual ao
+      // baralho e ao esporte — quem entra depois joga o mesmo pregão, não o que
+      // o aparelho dele preferia. Sala antiga não tem o campo → leilão cego.
+      holandes: !!gs?.holandes,
       career: gs?.mode === 'carreira',
       // 🏀 o ESPORTE da sala (14/09). Vem gravado no game_state de quem criou — é a
       // sala que manda, não o aparelho de quem entra. Sala de futebol não tem o
@@ -1656,7 +1664,7 @@ export function EscLobby() {
       }
       ligaAt = quando.toISOString()
     }
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -3078,6 +3086,23 @@ export function EscLobby() {
           {/* ② A PARTIDA — só no rápido (a carreira tem regras próprias) */}
           {!isCareer && (
             <Section num={criar2 ? 3 : 2} title={tr('A partida', 'The match')} icon="⚽">
+              {/* 🔻 COMO É O LEILÃO — a escolha mais importante da sala, então mora
+                  na seção À VISTA (a tela v2 recolhe as outras num ⚙️ Ajustes, e
+                  escolher o tipo de pregão não pode ficar escondido atrás de
+                  engrenagem). Só nos DOIS modos que o Diego liberou em 20/09:
+                  ⚡ Rápido online e 🏆 Minhas Ligas. Fora deles nem aparece —
+                  🃏 Bafo e 🌍 Copa do Mundo **não têm leilão nenhum**, e a
+                  Carreira online fica no pregão de sempre por decisão. */}
+              {(roomMode === 'rapido' || roomMode === 'liga') && (
+                <SegField label={tr('Como é o leilão', 'Auction format')}>
+                  <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `🔻 ${tr(MODO_HOLANDES.pt, MODO_HOLANDES.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {rapidoHolandes
+                      ? tr('🔻 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🔻 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                      : tr('✉️ O leilão de sempre: cada um escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: everyone writes a secret bid and the highest wins at the hammer.')}
+                  </p>
+                </SegField>
+              )}
               {/* 🚫 "SEM BOTS" É SÓ DA LIGA FECHADA (Diego 23/08, decisão fechada).
                   Palavras dele: *"sem bots n deve ter na sala aberta, apenas em liga
                   fechada"*. Aqui existia um seletor 🌍 Aberta × 🏆 Liga Fechada na
@@ -3188,8 +3213,24 @@ export function EscLobby() {
             {!isCareer && (
               <div>
                 <ToggleRow icon="🎥" title={tr('Modo Stream', 'Stream mode')} sub={roomStream ? tr('Valores dos lances ocultos', 'Bid values hidden') : tr('Esconde os valores (pra live)', 'Hides the values (for streaming)')} on={roomStream} onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }} />
-                {/* ⏱️ TEMPO DO LEILÃO — sub-opção do streamer (só com o Stream ligado) */}
-                {roomStream && (
+                {/* ⏱️ TEMPO DO LEILÃO — sub-opção do streamer (só com o Stream ligado).
+                    🔻 E SÓ NO PREGÃO CEGO (ordem dele, 20/09): *"no stream não quero
+                    que tenha tempo pra escolher não, quando ele selecionar holandês e
+                    stream remova a opção de escolher esse tempo. Só se for no padrão
+                    que ele pode, senão vai dar merda — porque tem que ser com base na
+                    regra que fizemos pro modo rápido"*.
+                    Ele está certo e é mais simples: no holandês quem manda o relógio é
+                    a ESCADA DE PREÇOS, e ela é a MESMA em todo lugar. Deixar o host
+                    pedir 20s aqui criaria um pregão holandês diferente do da partida
+                    rápida — duas regras pro mesmo modo, que é fábrica de bug. */}
+                {roomStream && rapidoHolandes && (
+                  <div className="mt-2 rounded-xl border-[2.5px] border-black p-2.5" style={{ background: 'rgba(194,69,47,.18)' }}>
+                    <p className="text-white/85 text-[11.5px] font-bold leading-snug">
+                      🔻 {tr('No pregão Holandês não tem tempo pra escolher: quem manda o relógio é o PREÇO caindo, e a descida é a mesma em toda sala — igual à da Partida Rápida. O Modo Stream continua valendo (os valores ficam escondidos e você dá o start).', 'In the Dutch auction there is no timer to pick: the falling PRICE runs the clock, and the drop is the same in every room — just like in Quick Match. Stream mode still applies (values stay hidden and you give the start).')}
+                    </p>
+                  </div>
+                )}
+                {roomStream && !rapidoHolandes && (
                   <div className="mt-2 rounded-xl border-[2.5px] border-black p-2.5" style={{ background: 'rgba(46,111,176,.16)' }}>
                     <p className="text-white/60 text-[10px] font-black uppercase mb-1.5" style={{ letterSpacing: '.12em' }}>{tr('⏱️ Tempo do leilão (pregão)', '⏱️ Auction timer')}</p>
                     <Seg small dim={auctionSecs === 0}
@@ -3245,6 +3286,12 @@ export function EscLobby() {
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
             const mundoRoom = r.game_state?.mode === 'mundo' // 🌍 Copa do Mundo: sala de seleções, sem leilão
+            // 🔻 QUEDA LIVRE: a sala roda o pregão de preço caindo, não o envelope
+            // cego. Pedido dele (20/09): *"as salas abertas, colocar ali holandês
+            // sei lá, pra diferenciar"*. Vai como SELO no nome (não na linha de
+            // baixo) porque é a diferença mais grossa entre duas salas: quem entra
+            // sem saber cai num jogo com outra regra de lance.
+            const holandesRoom = !!(r.game_state as GS & { holandes?: boolean })?.holandes
             return (
               <div key={r.id} className="online-room-row flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
                 <div className="flex-1 min-w-0">
@@ -3262,6 +3309,9 @@ export function EscLobby() {
                         bate o olho na lista tem que saber antes de entrar. */}
                     {mundoRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão', 'World Cup: everyone picks a nation and calls up 11 — no auction')}>{tr('🌐 COPA', '🌐 CUP')}</span>
+                    )}
+                    {holandesRoom && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Leilão Holandês: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Dutch auction: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`🔻 ${tr(MODO_HOLANDES.pt, MODO_HOLANDES.en).toUpperCase()}`}</span>
                     )}
                   </p>
                   <p className="text-black/60 text-xs font-bold mt-0.5">👥 {r.count}{duplasRoom ? ` ${r.count === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `/${r.max_players}`} · {r.code}{ligaFechadaRoom ? tr(' · 🚫 sem bots', ' · 🚫 no bots') : ''}{!isCareerRoom && !mundoRoom ? ` · ${ritmoLbl} · ${copaLbl}` : ''}{r.game_state?.locked ? tr(' · fechada', ' · locked') : ''}{r.game_state?.stream ? ' · stream' : ''}{live ? tr(' · 🔴 jogo rolando', ' · 🔴 game on') : ''}</p>

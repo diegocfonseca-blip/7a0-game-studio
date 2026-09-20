@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_HOLANDES, modoHolandesNome, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
 import type { CareerSave } from './store'
@@ -1035,7 +1035,25 @@ function YourPitch({ small = false }: { small?: boolean }) {
   const pendingIds = revealing
     ? new Set((state.revealQueue ?? []).slice(state.phase === 'tiebreak' ? 0 : state.revealIdx + 1).map(it => it.card.id))
     : new Set<string>()
-  const shown = pendingIds.size ? { ...you, squad: you.squad.filter(c => !pendingIds.has(c.id)) } : you
+  // 🔻 HOLANDÊS: a carta que você acabou de arrematar só entra no elenco de
+  // verdade quando a LEVA fecha — quem paga e move é o `resolve` de sempre. Mas
+  // o Diego quer ver o jogador no campinho NA HORA (*"conseguiu o jogador
+  // aparece no campinho do usuário embaixo também"*), então o campinho já
+  // desenha o que você levou nesta leva.
+  // ✅ E isso NÃO é spoiler: no holandês o martelo cai na frente de todo mundo,
+  // não existe revelação escondida. O NÍVEL continua secreto até a Cerimônia —
+  // o campinho nunca mostrou nível, só nome e posição.
+  const holMeus: WonCard[] = (state.phase === 'holandes' && state.hol)
+    ? state.hol.levados
+      .filter(l => l.mgr === you.id)
+      .map(l => {
+        const c = state.currentCards.find(x => x.id === l.cardId)
+        return c ? ({ ...c, paid: l.preco, buyPrice: l.preco, via: 'leilao' } as WonCard) : null
+      })
+      .filter((c): c is WonCard => !!c)
+    : []
+  const base = holMeus.length ? { ...you, squad: [...you.squad, ...holMeus] } : you
+  const shown = pendingIds.size ? { ...base, squad: base.squad.filter(c => !pendingIds.has(c.id)) } : base
   // 🏀 basquete: a QUADRA no lugar do campinho (mesma lógica anti-spoiler acima).
   if (state.sport === 'basquete') return <NbaCourt m={shown} />
   // 🎽 manto do coração: só decora o PRÓPRIO time de quem está vendo
@@ -2351,6 +2369,7 @@ export function EscSetup() {
   const [rivals, setRivals] = useState(5)
   const [league, setLeague] = useState<'br' | 'eu' | 'both'>('br') // baralho: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos
   const [copaMode, setCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta'>('liga_copa') // rápido offline: liga só, liga + copa dos 8 ou liga + Libertadores
+  const [holandes, setHolandes] = useState(false) // 🔻 pregão holandês (modo à parte); padrão = o leilão cego de hoje
   // 🌎 a Libertadores também aparece no rápido OFFLINE — é onde dá pra testar
   // sozinho, sem juntar 8 pessoas. Mesma trava de conta do online.
   const libertaOn = useLibertaLiberada()
@@ -2416,7 +2435,7 @@ export function EscSetup() {
         president: privatePreview ? { name: stripEmoji(presidentName).trim() || 'Presidente', outfit: presidentOutfit } : undefined,
       })
     }
-    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, holandes, intro: true })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -2588,6 +2607,29 @@ export function EscSetup() {
               ))}
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">{copaMode === 'liga_liberta' ? t('🌎 Quando a liga acaba, os 8 primeiros entram na Libertadores com 24 clubes do continente: 8 grupos de 4, passam 2, mata-mata até a final única. Nesta partida NÃO tem Copa dos 8.', '🌎 When the league ends, the top 8 join the continental cup with 24 clubs: 8 groups of 4, top 2 advance, knockouts to a single final. This match has NO Cup of 8.') : copaMode === 'liga_copa' ? t('🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes do fim de jogo.', '🏆 When the league ends, the top 8 play the Cup (two legs, single final) before the game is over.') : t('📊 Termina a liga e já mostra o resultado — jogo mais curto.', '📊 League ends and the result comes straight away — a shorter game.')}</p>
+          </div>
+        )}
+        {/* 🔻 COMO É O PREGÃO — só no jogo rápido, e o padrão é SEMPRE o leilão
+            de hoje. É um modo à parte: escolher holandês não muda nada do resto
+            (mesmo baralho, mesma quantidade de jogadores, mesmas vagas, mesmas
+            sobras) — só troca o jeito de dar lance. */}
+        {!career && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">{t('Como é o leilão', 'Auction format')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `🔻 ${t(MODO_HOLANDES.pt, MODO_HOLANDES.en)}`]] as [boolean, string][]).map(([m, label]) => (
+                <button key={String(m)} onClick={() => setHolandes(m)}
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  style={{ backgroundColor: holandes === m ? GOLD : '#fff', boxShadow: holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] font-semibold text-black/55 mt-1">
+              {holandes
+                ? t('🔻 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🔻 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
+                : t('✉️ O leilão de sempre: você escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: you write your bid in secret and the highest wins at the hammer.')}
+            </p>
           </div>
         )}
         <div>
@@ -3349,10 +3391,261 @@ function CardReact({ cardId }: { cardId: string }) {
 export function EscAuction() {
   const { state } = useEsc()
   let sub
-  if (state.phase === 'envelope' || state.phase === 'resq_envelope') sub = <Envelope />
+  if (state.phase === 'holandes') sub = <Holandes />
+  else if (state.phase === 'envelope' || state.phase === 'resq_envelope') sub = <Envelope />
   else if (state.phase === 'tiebreak') sub = <Tiebreak />
   else sub = <Reveal />
   return <>{sub}<FloatingEmotes /><MoneyRain /><MascoteAtravessa /></>
+}
+
+// ─── 🔻 LEILÃO HOLANDÊS ─────────────────────────────────────────────────────
+//
+// Modo à parte (aprovado 20/09). O pregão de hoje é CEGO: você escreve escondido
+// e o maior lance leva. Aqui é o contrário — o preço abre em 100 (que é o que
+// todo mundo tem no bolso) e vai CAINDO na frente de todos, carta por carta.
+// Quem apertar primeiro leva pelo preço que estiver na tela.
+//
+// 🎨 Tudo é peça de casa: `Shell` + `AuctionBar` + `CardFace` + as cores/sombras
+// duras de sempre. Nenhuma arte nova — é o MESMO leilão, com outro relógio.
+function Holandes() {
+  const { state, dispatch, emote } = useEsc()
+  const [blLang] = useLang()
+  const you = state.managers[state.youIdx]
+  const hol = state.hol
+  const pos = SECTORS[state.sectorIdx]
+  const sport: Sport = state.sport === 'basquete' ? 'basquete' : 'futebol'
+  const lang: 'pt' | 'en' = blLang === 'en' ? 'en' : 'pt'
+  const L = (pt: string, en: string) => (lang === 'en' ? en : pt)
+  const posName = secLabel(sport, pos, lang)
+  const online = state.onlineMode === 'online'
+  // 👑 REGRA DA COROA: no online quem faz o preço cair é SÓ o host — *"oq manda
+  // e o ID do host sempre"*. O convidado desenha o preço que chega e roteia o
+  // toque pro host, como toda ação da sala. No solo, o relógio é deste aparelho.
+  const euTico = !online || state.isHost
+  const preco = hol?.preco ?? 0
+  const abertura = state.sport === 'basquete' ? 50 : 100
+
+  // ⏬ O RELÓGIO: um degrau de cada vez. Rápido em cima (ninguém paga 90 num
+  // lateral), ~2s embaixo — e são esses 2s que fazem a internet de cada um
+  // parar de decidir quem leva a carta.
+  useEffect(() => {
+    if (!hol || !euTico) return
+    const t = setTimeout(() => dispatch({ type: 'HOLANDES_TICK' }), holPassoMs(preco, abertura))
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hol?.passo, euTico])
+
+  // 📱 "ENVIANDO…" — só no ONLINE. O toque do convidado precisa viajar até o
+  // host, e até ele responder este aparelho NÃO desenha o jogador no campinho.
+  // É o mesmo padrão do "ENVIANDO…" que o envelope cego já usa, e existe por um
+  // motivo só: se a tela entregasse na hora e o host dissesse "não foi você", o
+  // jogador APARECERIA e SUMIRIA do campinho — o estado quebrado que ele não
+  // quer ver nunca. No solo isso nem pisca (o motor responde no mesmo toque).
+  const [enviando, setEnviando] = useState<string | null>(null)
+  useEffect(() => {
+    if (!enviando) return
+    // o host respondeu (a carta ganhou dono, qualquer que seja) → some o aviso
+    if (hol?.levados.some(l => l.cardId === enviando)) { setEnviando(null); return }
+    const t = setTimeout(() => setEnviando(null), 4000) // rede muda: não trava a tela pra sempre
+    return () => clearTimeout(t)
+  }, [enviando, hol?.levados])
+
+  // 🔊 tique-taque do preço caindo + martelo quando uma carta sai
+  useEffect(() => { if (hol) playTick() }, [hol?.passo]) // eslint-disable-line react-hooks/exhaustive-deps
+  const levadosN = hol?.levados.length ?? 0
+  useEffect(() => { if (levadosN > 0) playHammer() }, [levadosN])
+
+  if (!hol) return <Shell bar={<AuctionBar />}><div className="pt-10 text-center text-5xl">🔨</div></Shell>
+
+  // 🎨 cor do preço: dourado lá em cima, esquentando conforme cai
+  const frac = preco / abertura
+  const corPreco = frac > 0.5 ? GOLD : frac > 0.22 ? '#E8963A' : frac > 0.08 ? '#E8503A' : '#C2452F'
+  const meusLevados = hol.levados.filter(l => l.mgr === you.id)
+  const gastei = meusLevados.reduce((s2, l) => s2 + l.preco, 0)
+  const caixa = Math.max(0, you.money - gastei)
+  const minhasVagas = Math.max(0, openSlots(you, pos) - meusLevados.length - hol.pedidos.filter(p => p.mgr === you.id).length)
+  const naMesa = state.currentCards.filter(c => !hol.levados.some(l => l.cardId === c.id))
+
+  return (
+    <Shell bar={<AuctionBar vagas={minhasVagas > 0 ? minhasVagas : undefined} />}>
+      <div className="pt-1">
+        {/* 🏷️ O NOME DO MODO em cima do setor: quem entrou numa sala que outra
+            pessoa criou descobre AQUI em que pregão está jogando, sem precisar
+            ter visto a tela de montar a sala. */}
+        <p className="text-[10px] font-black uppercase tracking-widest" style={{ ...OSWALD, color: '#C2452F' }}>
+          🔻 {modoHolandesNome(lang === 'en').toUpperCase()}
+        </p>
+        <h2 className="font-black text-3xl leading-none" style={OSWALD}>{posName.toUpperCase()}</h2>
+        <p className="text-sm font-semibold text-black/70 mt-0.5">
+          {L('Um preço só pra todos. Ele CAI. Quem apertar primeiro leva o jogador por ele.', 'One price for all of them. It DROPS. First to tap takes the player at that price.')}
+        </p>
+      </div>
+
+      {/* 💰 O PREÇO — um só pra leva inteira. GRUDADO no topo: a lista tem até 13
+          cartas e, sem isto, o preço sumia da tela justo na hora de decidir. */}
+      <div className="border-[4px] border-black rounded-2xl px-4 py-2.5 text-center mt-2 sticky z-20"
+        style={{ top: 4, background: corPreco, boxShadow: `4px 4px 0 0 ${INK}`, transition: 'background 300ms linear' }}>
+        <p className="text-[10px] font-black uppercase tracking-widest text-black/55" style={OSWALD}>{L('Preço agora · vale pra todos', 'Price now · same for all')}</p>
+        <p className="font-black leading-none" style={{ ...OSWALD, fontSize: 60, color: INK }}>{preco} <span style={{ fontSize: 26 }}>🪙</span></p>
+        <div className="h-2.5 border-2 border-black rounded-full mt-1.5 overflow-hidden" style={{ background: 'rgba(255,255,255,.55)' }}>
+          <div style={{ width: `${Math.max(2, frac * 100)}%`, height: '100%', background: INK, transition: 'width 300ms linear' }} />
+        </div>
+        <p className="text-[10.5px] font-bold text-black/60 mt-1">
+          {naMesa.length} {L('na mesa', 'on the table')} · {L('já saíram', 'gone')} {hol.levados.length}
+        </p>
+      </div>
+
+      {/* 😤 VOCÊ PEDIU E NÃO LEVOU — a carta não some em silêncio. Medo dele:
+          *"será q vai os dois pôr o jogador no campinho?"*. Não vai: a carta tem
+          UM dono só. Quem perdeu a corrida vê aqui por quê, e segue no pregão
+          com a moeda no bolso (pedido que não vence não cobra nada). */}
+      {hol.ultimo?.perdedores?.includes(you.id) && (
+        <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-2 flex items-center gap-2"
+          style={{ background: '#FFE3DC', boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <span className="text-xl leading-none">😤</span>
+          <p className="text-[12px] font-bold text-black leading-snug min-w-0">
+            {L('Você pediu o', 'You asked for')} <b>{hol.ultimo.nome}</b> {L('por', 'for')} <b>{hol.ultimo.preco} 🪙</b>{' '}
+            {hol.ultimo.roleta
+              ? <>— {L(`${(hol.ultimo.perdedores?.length ?? 1) + 1} pediram no mesmo preço e a 🎰 roleta deu pro`, `${(hol.ultimo.perdedores?.length ?? 1) + 1} asked at the same price and the 🎰 wheel gave it to`)} <b>{hol.ultimo.time}</b>. {L('Sua moeda continua no bolso. Pra não depender de sorteio, aperte MAIS CEDO: quem paga mais caro não divide com ninguém.', 'Your coins stayed in your pocket. To stop depending on the wheel, tap EARLIER: whoever pays more shares with nobody.')}</>
+              : <>{L('mas foi pro', 'but it went to')} <b>{hol.ultimo.time}</b>. {L('Sua moeda continua no bolso.', 'Your coins stayed in your pocket.')}</>}
+          </p>
+        </div>
+      )}
+
+      {/* 🔨 o que aconteceu no degrau que acabou de fechar */}
+      {hol.ultimo && (
+        <div className="border-[3px] border-black rounded-xl px-3 py-1.5 mt-2 flex items-center gap-2"
+          style={{ background: '#FFF7DB', boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <span className="text-lg leading-none">{hol.ultimo.roleta ? '🎰' : '🔨'}</span>
+          <p className="text-[12px] font-bold text-black leading-snug min-w-0">
+            <b>{hol.ultimo.nome}</b> → <b>{hol.ultimo.time}</b> {L('por', 'for')} <b>{hol.ultimo.preco} 🪙</b>
+            {/* 🎰 a disputa vira MOMENTO, não perda silenciosa: diz quantos
+                brigaram. Medido: numa sala de 20, 1 carta em 5 dá empate, com
+                2 ou 3 técnicos em média — então isso aparece bastante e tem
+                que ser bonito de ver, não um susto. */}
+            {hol.ultimo.roleta && (
+              <span className="text-black/55"> · {L(
+                `${(hol.ultimo.perdedores?.length ?? 1) + 1} pediram no mesmo preço — a roleta girou`,
+                `${(hol.ultimo.perdedores?.length ?? 1) + 1} asked at the same price — the wheel decided`,
+              )}</span>
+            )}
+          </p>
+        </div>
+      )}
+
+      {/* 📋 A LISTA — a MESMA cara do pregão de hoje. Só que no lugar do campo de
+          lance, cada carta tem um botão PEGAR pelo preço da tela. */}
+      <div className="space-y-2 mt-2">
+        {state.currentCards.map(c => {
+          const dono = holDono(state, c.id)
+          const pode = holPodeAgora(state, you.id, c.id)
+          const t = dono ? state.managers.find(m => m.id === dono.mgr) : null
+          const ehSurpresa = state.surpriseId === c.id
+          return (
+            <div key={c.id} className="border-[3px] border-black rounded-xl p-2.5 flex items-center gap-2"
+              style={{
+                // 🫵 a carta que VOCÊ levou fica verdinha e em pé (é conquista,
+                // não descarte); a que foi pra outro apaga e vai pro canto.
+                background: dono ? (dono.mgr === you.id ? '#EAF7EE' : '#EDE9DC') : '#fff',
+                boxShadow: dono && dono.mgr !== you.id ? 'none' : `3px 3px 0 0 ${INK}`,
+                opacity: dono && dono.mgr !== you.id ? 0.62 : 1,
+              }}>
+              <div className="flex-1 min-w-0">
+                <CardFace c={c} surprise={ehSurpresa} highlight={ehSurpresa} />
+              </div>
+              {dono ? (
+                // ✅ JÁ SAIU: a carta some da disputa NA HORA em que o degrau fecha,
+                // com o nome de quem levou e por quanto. Sem botão, sem dúvida.
+                <div className="text-right shrink-0">
+                  <p className="text-[9px] font-black uppercase text-black/45" style={OSWALD}>{L('Arrematado', 'Sold')}</p>
+                  <p className="text-[12px] font-black leading-tight" style={{ ...OSWALD, color: dono.mgr === you.id ? GREEN : INK }}>
+                    {dono.mgr === you.id ? L('🫵 VOCÊ', '🫵 YOU') : (t?.teamName ?? '—')}
+                  </p>
+                  <p className="text-[11px] font-bold text-black/55">{dono.preco} 🪙</p>
+                </div>
+              ) : enviando === c.id ? (
+                // 📱 ESPERANDO O HOST (só pisca no online). O jogador NÃO entra no
+                // campinho enquanto o host não confirma — nada de jogador que
+                // aparece e some. No solo isto nem chega a ser visto.
+                <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center shrink-0"
+                  style={{ background: '#2E6FB0', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}` }}>
+                  <p className="text-[12px] font-black leading-none" style={OSWALD}>✋ {L('ENVIANDO', 'SENDING')}</p>
+                  <p className="text-[9px] font-bold leading-tight mt-0.5">{preco} 🪙</p>
+                </div>
+              ) : (
+                <button onClick={() => { playCoin(); setEnviando(c.id); dispatch({ type: 'HOLANDES_PEGAR', mgrId: you.id, cardId: c.id, preco }) }}
+                  disabled={!pode}
+                  className="border-[3px] border-black rounded-xl px-3 py-2 font-black shrink-0 active:translate-y-0.5"
+                  style={{
+                    background: pode ? GREEN : '#E4DFD0', color: pode ? '#fff' : 'rgba(0,0,0,.32)',
+                    boxShadow: pode ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD,
+                    fontSize: 15, cursor: pode ? 'pointer' : 'not-allowed',
+                  }}>
+                  {L('PEGAR', 'TAKE')}<br /><span style={{ fontSize: 11 }}>{preco} 🪙</span>
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 🚧 TODA TRAVA DIZ O PORQUÊ, e o caminho pra destravar (regra dele) */}
+      {minhasVagas <= 0 ? (
+        <Box bg="#FFE9B0" className="p-2.5 mt-2">
+          <p className="text-[12.5px] font-bold text-black">
+            {L(`Seu setor de ${posName.toLowerCase()} está completo — nesta leva você só assiste.`, `Your ${posName.toLowerCase()} slots are full — you just watch this batch.`)}
+          </p>
+        </Box>
+      ) : caixa < preco ? (
+        <Box bg="#FFE9B0" className="p-2.5 mt-2">
+          <p className="text-[12.5px] font-bold text-black">
+            {L(`Você tem ${caixa} 🪙 e o preço está ${preco}. Segura — daqui a pouco ele passa por baixo da sua caixa.`, `You have ${caixa} 🪙 and the price is ${preco}. Hold on — it will drop below your purse soon.`)}
+          </p>
+        </Box>
+      ) : null}
+
+      {/* 🧾 o resumo de sempre */}
+      <div className="flex items-center justify-between gap-2 mt-2 text-[12px] font-bold text-black/70">
+        <span>💰 {L('Sua caixa', 'Your coins')}: <b style={{ color: INK }}>{caixa} 🪙</b></span>
+        <span>🎽 {L('Vagas de', 'Open')} {posName.toLowerCase()}: <b style={{ color: INK }}>{minhasVagas}</b></span>
+      </div>
+
+      {/* 😏 a zoeira de sempre */}
+      <div className="flex flex-wrap gap-1.5 justify-center mt-2">
+        {[
+          { ic: '😏', t: L('Deixa cair mais!', 'Let it drop!') },
+          { ic: '💸', t: L('Tá caro ainda!', 'Still too pricey!') },
+          { ic: '🫣', t: L('Não aperta, não aperta…', "Don't tap, don't tap…") },
+          { ic: '🔥', t: L('Esse é MEU!', 'That one is MINE!') },
+        ].map(j => (
+          <button key={j.ic} onClick={() => emote(j.ic, undefined, j.t)}
+            className="border-2 border-black rounded-full px-2.5 py-1 text-[11px] font-black bg-white text-black active:translate-y-0.5"
+            style={{ ...OSWALD, boxShadow: `2px 2px 0 0 ${INK}` }}>
+            {j.ic} {j.t}
+          </button>
+        ))}
+      </div>
+
+      {/* ⚽ O CAMPINHO, embaixo da lista, igual ao resto do pregão. Pedido dele:
+          *"conseguiu o jogador aparece no campinho do usuário embaixo também"*.
+          Aqui ele enche NA HORA — o jogador que você arrematou aparece no
+          desenho no mesmo instante em que sai da lista. */}
+      <div className="mt-3">
+        <YourPitch small />
+      </div>
+
+      {/* ℹ️ POR QUE O SEU TOQUE NÃO ARREMATA NO MILÉSIMO — explicado no lugar
+          exato, embaixo do botão, do jeito que ele gosta. */}
+      <p className="text-[10.5px] font-bold text-black/45 text-center mt-2 leading-snug">
+        ⏱️ {L('Apertou primeiro, levou — e o jogador cai no seu campinho na hora. Se outro apertar um tiquinho antes, a carta já sai com o nome dele e a sua moeda nem é tocada. Robô nunca passa na frente de gente.', 'First to tap wins — and the player lands on your pitch right away. If someone taps a blink earlier, the card leaves with their name and your coins are never touched. Bots never come before people.')}
+      </p>
+      {online && !state.isHost && (
+        <p className="text-[10.5px] font-bold text-black/45 text-center mt-1">
+          👑 {L('Quem faz o preço cair é o host da sala.', 'The room host runs the clock.')}
+        </p>
+      )}
+    </Shell>
+  )
 }
 
 function Envelope() {
@@ -8746,6 +9039,18 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         auctionSecs: state.auctionSecs, ligaFechada: state.ligaFechada,
         liga: state.ligaMode, // 🏆 continua sendo Minhas Ligas no novo leilão (13/09)
         locked: state.locked, pwHash: state.pwHash,
+        // 🔻 O PREGÃO DA SALA CONTINUA O MESMO NO NOVO LEILÃO (20/09). Palavras
+        // dele, com a sala do pessoal na mão: *"tava no modo holandês e todo
+        // mundo votou pra uma nova, porém foi criado no modo às cegas… tem que
+        // seguir com a mesma regra e modos e tudo que foi feito a sala"*. Ele
+        // está certo, e é a MESMA falha do stream em 08/08: o `START_ONLINE`
+        // zera o que não vier na ação, então cada escolha da sala tem que ser
+        // reenviada aqui, uma a uma.
+        holandes: state.holandes,
+        // 🏀 E O ESPORTE TAMBÉM. Ninguém tinha reclamado porque o basquete só
+        // abre pra conta dele — mas o buraco era o mesmo e pior: uma sala de
+        // BidLegends virava futebol no "novo leilão".
+        sport: state.sport === 'basquete' ? 'basquete' : undefined,
       })
     } catch { dispatch({ type: 'REMATCH' }) }
   }

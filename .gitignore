@@ -63,3 +63,6 @@ bench-sim.html
 # a imagem sai dela em 2 segundos, não precisa versionar PNG de 1 MB)
 /divulgacao-feed.png
 /divulgacao-stories.png
+
+# 🖼️ fotos geradas pelo mockup-holandes (script sim, arquivo nao)
+/mockups/

@@ -9,7 +9,7 @@ import type {
   EscState, Manager, Card, WonCard, Sector, FormationKey, Tactic, Bid, Division, CareerRival,
   ResolvedCard, LeagueTeam, MatchResult, MatchHighlight, ScorerRow, AssistRow, TieBreak,
   QuickCopaState, QuickCopaTie, LibertaState, LibertaTeam, LedgerEntry, EmpCard, AgCard, AgEvento,
-  EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame,
+  EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame, HolandesState,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
@@ -4116,6 +4116,7 @@ export const INITIAL: EscState = {
   monteDeadline: null, cerimoniaDeadline: null,
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false, manualRoom: false,
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
+  holandes: false, hol: undefined, holFechando: false, // 🔻 modo holandês desligado: o pregão cego é o padrão
   seasonNo: 1,
   restartPending: false, restartReady: [],
   tiebreaks: [], tiebreakIdx: 0, tiebreakPending: {},
@@ -4131,7 +4132,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; intro?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; intro?: boolean; holandes?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -4154,7 +4155,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -4200,6 +4201,11 @@ type Action =
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'ADVANCE_REVEAL' }
   | { type: 'FORCE_SEAL' }
+  // 🔻 LEILÃO HOLANDÊS: o relógio (um degrau de preço) e o botão PEGAR.
+  // No online QUEM DISPARA O TICK É SEMPRE O HOST — o convidado só desenha o
+  // preço que chegou e roteia o PEGAR pro host, como toda ação da sala.
+  | { type: 'HOLANDES_TICK' }
+  | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
   | { type: 'FORCE_TIEBREAK' }
@@ -4348,6 +4354,395 @@ export function batchCount(total: number): number {
   return n > 1 && total % BATCH_SIZE === 1 ? n - 1 : n
 }
 
+// ─── 🔻 LEILÃO HOLANDÊS ─────────────────────────────────────────────────────
+//
+// Modo À PARTE, aprovado pelo Diego em 20/09. O pregão cego de hoje continua
+// exatamente como está: nada aqui roda com `state.holandes` desligado.
+//
+// Como funciona, nas palavras dele: *"a hi q tem q começar com 100 p qlwr
+// jogador até pq ng tem 200… todo mundo começa C 100"*, *"preço cair até 0… se
+// ng pegar esse jogador vai pras sobras igual ocorre hoje"*, *"oq manda e o ID
+// do host sempre"*, *"quantidade de jogadores q aparece no leilão e regras com
+// quantidades q jogam tudo igual"*.
+//
+// 🔑 A IDEIA QUE FAZ ISSO SER SEGURO: o holandês só troca o jeito de COLETAR o
+// lance. No fim da leva ele entrega ao `sealAndResolve` a MESMA coisa que os
+// envelopes entregam — um lance por carta — e daí pra frente é o código de
+// hoje que paga, move a carta, anota no livro de preços, credita o vendedor,
+// revela e manda o que sobrou pra repescagem/monte. Zero regra nova no dinheiro.
+
+// 🎚️ A ESCADA DE PREÇOS: degraus GORDOS em cima (ninguém paga 90 num lateral,
+// então não vale gastar o relógio lá) e MIÚDOS embaixo, que é onde a decisão
+// realmente acontece. Começa no bolso inicial da sala (100 no futebol, 50 no
+// basquete — ninguém tem 200, então abrir em 200 só desperdiçaria tempo).
+export function holEscada(start: number): number[] {
+  const out: number[] = []
+  let v = Math.max(1, Math.round(start))
+  while (v > 0) {
+    out.push(v)
+    // 🎚️ AFINA CONFORME DESCE (pedido dele, 20/09): *"qd começa a chegar
+    // próximo do 30 começar a cair os números cada vez mais próximo de um por
+    // um"*. Faz sentido — lá em cima o número é enfeite (ninguém paga 80 num
+    // lateral), e de 30 pra baixo é onde a carta realmente muda de mão: o preço
+    // médio de arremate medido é ~12 🪙. Então: pulo GORDO no enfeite, pulo
+    // MIÚDO onde dói, e de 14 pra baixo é de 1 em 1.
+    // 🎚️ AFINA A PARTIR DO 50 (2º pedido dele, 20/09): *"qd chegar no 50 na
+    // regressiva pode ter mais números próximos… não tem problema demorar um
+    // pouco mais o leilão não"*. Antes a faixa dos 50 pulava de 8 em 8 (52 → 44)
+    // e passava voando. Agora: acima de 60 continua pulo GORDO (ninguém paga
+    // isso), e de 60 pra baixo o pulo encolhe de degrau em degrau —
+    // 5 · 4 · 3 · 2 · 1 — até virar de 1 em 1 no fim.
+    v = Math.max(0, v - (v > 60 ? 10 : v > 50 ? 5 : v > 30 ? 4 : v > 20 ? 3 : v > 14 ? 2 : 1))
+  }
+  out.push(0) // 0 = ninguém quis → sobras (não dá pra levar de graça, senão nada sobraria)
+  return out
+}
+// 🏷️ O NOME DO MODO — em UM lugar só, e é daqui que TODA tela puxa.
+//
+// **É HOLANDÊS, e é ordem dele** (20/09): *"eu falei pra manter holandês mesmo"*.
+// Eu tinha entendido ao contrário (ele perguntou que nome dar "sem ser holandês",
+// e quando respondeu *"colocar ali holandês sei lá pra diferenciar"* eu li como
+// exemplo, não como decisão) e cheguei a rebatizar pra "Queda Livre". Voltou.
+// **Não repropor outro nome sem ele pedir.**
+//
+// ⚠️ A CHAVE NO CÓDIGO é `holandes` e sempre foi. Nome que o código compara,
+// guarda no save ou grava no `game_state` da sala NUNCA é rebatizado — sala
+// criada antes continua abrindo. Esta constante é só o que a pessoa LÊ, e existe
+// num lugar só pra que trocar o nome um dia seja UMA linha, não sete telas.
+export const MODO_HOLANDES = { pt: 'Holandês', en: 'Dutch' } as const
+export const modoHolandesNome = (en: boolean) => (en ? MODO_HOLANDES.en : MODO_HOLANDES.pt)
+
+export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
+// ⏱️ TEMPO DE CADA DEGRAU — TRÊS marchas, e elas casam com a escada de preços.
+// A escada foi afinada de 30 pra baixo (pedido dele); se o relógio ficasse o
+// mesmo, a descida engordaria ~11s e o pregão passaria a ser mais LENTO que o
+// envelope cego — matando justo a vantagem que ele tem hoje. Então o relógio
+// desce junto: corre no enfeite, anda no meio e RESPIRA embaixo.
+//   · acima de 55% da abertura (>55): enfeite puro, ninguém paga isso → 0,5s
+//   · entre 22% e 55% (23–55): a tensão começa → 1,4s
+//   · 22% pra baixo (≤22): é aqui que a carta troca de mão → 2,0s
+// 🕰️ E ELE AUTORIZOU FOLGA (20/09): *"pode aumentar um pouco mais, não tem
+// problema… só um pouco mais também"*. Então o fundo ganhou tempo em vez de
+// ser espremido pra caber. Os 2s do fundo são a peça do anti-delay: com dois
+// segundos pra reagir, meio segundo de internet ruim não decide carta nenhuma.
+// Mesmo com a folga, a leva fecha em ~44s — ainda abaixo dos 45s do envelope
+// cego. Mexeu num número? Rode `npm run holandes`: a trava reprova se o fundo
+// ficar abaixo de 1,5s ou se a descida passar de 50s.
+// 🕰️ A marcha do MEIO passou a começar no 55 (e não no 40) junto com a escada
+// mais fina: de nada adianta pôr mais números na faixa dos 50 se eles passarem
+// voando. Em troca, o topo (100→60), onde NUNCA acontece nada, acelerou.
+export const HOL_MS_ALTO = 500
+export const HOL_MS_MEIO = 1400
+export const HOL_MS_BAIXO = 2000
+// ⏱️ O RELÓGIO DO HOLANDÊS É UM SÓ, EM TODA SALA (ordem dele, 20/09): *"tem que
+// ser com base na regra que fizemos pro modo rápido"*. Eu tinha feito o tempo do
+// host (`auctionSecs`, da sala de stream) ESTICAR ou ENCOLHER a descida — ele
+// mandou tirar, e está certo: seriam duas regras pro mesmo modo, e o pregão
+// holandês da sala de stream sairia diferente do da Partida Rápida. Agora o
+// seletor de tempo nem aparece quando o host escolhe holandês (ver `lobby.tsx`),
+// e aqui o `auctionSecs` simplesmente não existe. Uma regra, um relógio.
+export const holPassoMs = (preco: number, start: number) => {
+  const f = preco / Math.max(1, start)
+  return f > 0.55 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO
+}
+
+function holPodeLevar(state: EscState, m: Manager, card: Card, preco: number, gastoNaLeva: number, vagasUsadas: number): boolean {
+  if (m.dormindo) return false
+  if (openSlots(m, card.pos) - vagasUsadas <= 0) return false
+  if (m.money - gastoNaLeva < preco) return false
+  const piso = (card as { paid?: number }).paid ?? 0
+  if (preco < piso) return false // jogador listado vale no mínimo o que pagaram por ele
+  // 📝 anti-malandragem: quem deixou o contrato vencer não recompra o próprio
+  const exDono = (card as { semContrato?: boolean }).semContrato ? (card as { seller?: number }).seller : undefined
+  if (exDono != null && mesmoDono(state, m.id, exDono)) return false
+  return true
+}
+
+// quanto o técnico já comprometeu e quantas vagas já encheu NESTA leva —
+// contando os PEDIDOS ainda não resolvidos, senão dava pra pedir 3 laterais no
+// mesmo degrau tendo uma vaga só.
+function holGasto(hol: HolandesState, mgr: number): number {
+  let t = hol.levados.reduce((s, l) => (l.mgr === mgr ? s + l.preco : s), 0)
+  t += hol.pedidos.filter(p => p.mgr === mgr).length * hol.preco
+  return t
+}
+function holVagasUsadas(hol: HolandesState, mgr: number, pos: Sector, cards: Card[]): number {
+  const daPos = (cardId: string) => cards.find(c => c.id === cardId)?.pos === pos
+  return hol.levados.filter(l => l.mgr === mgr && daPos(l.cardId)).length
+    + hol.pedidos.filter(p => p.mgr === mgr && daPos(p.cardId)).length
+}
+// as cartas que ainda estão na mesa (ninguém levou)
+function holNaMesa(state: EscState): Card[] {
+  const hol = state.hol
+  if (!hol) return []
+  return state.currentCards.filter(c => !hol.levados.some(l => l.cardId === c.id))
+}
+
+// abre a leva: calcula de uma vez o teto de CADA bot pra CADA carta usando o
+// MESMO `cpuEnvelope` do leilão cego. Assim o bot distribui o bolso do setor
+// entre as cartas exatamente como distribuiria hoje — ele só passa a "apertar o
+// botão" quando o preço desce até o valor que ele tinha escrito no envelope.
+function abreHolandes(state: EscState, rescue = false) {
+  const rng = rngOf(state)
+  const econ = state.careerOnline ? escadaEconFactor(state) : 0
+  const tetos: Record<string, Record<number, number>> = {}
+  const poe = (mgrId: number, cardId: string, amount: number) => {
+    ;(tetos[cardId] = tetos[cardId] ?? {})[mgrId] = Math.max(tetos[cardId]?.[mgrId] ?? 0, amount)
+  }
+  for (const m of state.managers) {
+    if (m.isHuman) continue
+    if (m.auctionRival) {
+      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) poe(m.id, b.cardId, b.amount)
+    } else if (state.careerOnline && (m.backstop || m.marketCpu)) {
+      // mesmo cinto do envelope: o bot do mercado nunca estoura num jogador só
+      const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
+      const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
+      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) poe(m.id, b.cardId, Math.min(b.amount, capPerCard))
+    }
+  }
+  state.hol = { preco: HOL_ABERTURA(state), passo: 0, tetos, levados: [], pedidos: [], ultimo: null, resgate: rescue }
+  state.phase = 'holandes'
+  state.submitted = []
+  state.pendingEnvelopes = {}
+  state.revealQueue = []
+  state.revealIdx = 0
+  // sem cronômetro de leva: quem manda o relógio é a escada de preços.
+  state.phaseDeadline = null
+}
+
+// fecha a leva: escreve os arremates no MESMO lugar de onde o pregão cego lê os
+// lances e chama o `sealAndResolve` de sempre. Daqui pra frente tudo é código
+// antigo — pagamento, elenco, livro de preços, revelação, sobras.
+function fechaHolandes(state: EscState) {
+  const hol = state.hol
+  if (!hol) return
+  const env: Record<number, { cardId: string; amount: number }[]> = {}
+  for (const l of hol.levados) (env[l.mgr] = env[l.mgr] ?? []).push({ cardId: l.cardId, amount: l.preco })
+  state.pendingEnvelopes = env
+  const eraResgate = !!hol.resgate
+  state.holFechando = true // ⚠️ avisa o sealAndResolve: NÃO gere lance de CPU, o holandês já decidiu tudo
+  state.hol = undefined
+  // o `sealAndResolve` lê a fase pra saber se é pregão ou repescagem — e é ela
+  // que manda o `afterReveal` jogar o que sobrou no monte em vez de repescar.
+  state.phase = eraResgate ? 'resq_envelope' : 'envelope'
+  sealAndResolve(state)
+  state.holFechando = false
+}
+
+// 🤖 SERVE A FILA DOS ROBÔS no fim do degrau.
+//
+// Gente não passa por aqui: pessoa leva NA HORA, por tempo (ver `holandesPegar`).
+// Esta fila é só dos robôs — eles "apertariam" no milissegundo em que o preço
+// bate no teto deles, então segurar até o fim do degrau é o que dá à pessoa a
+// chance de chegar antes. Regra do Diego: **gente nunca perde pra robô**.
+//
+// 🎰 A ROLETA CONTINUA AQUI, como REDE, e é o que ele pediu: *"só quando der
+// alguma merda e o jogo não entender é aí sim iria pro desempate. Eles não
+// precisariam saber disso também"*. Dois robôs com o mesmo teto, ou qualquer
+// caminho novo que um dia deposite dois pedidos na mesma carta, caem no
+// sorteio em vez de gerar dois donos. Ninguém vê nada: pra quem joga, foi
+// simplesmente "o outro chegou antes".
+function holResolvePedidos(state: EscState) {
+  const hol = state.hol
+  if (!hol || hol.pedidos.length === 0) return
+  const rng = rngOf(state)
+  const porCarta = new Map<string, { mgr: number; humano: boolean }[]>()
+  for (const p of hol.pedidos) porCarta.set(p.cardId, [...(porCarta.get(p.cardId) ?? []), { mgr: p.mgr, humano: p.humano }])
+  hol.pedidos = []
+  // carta mais disputada primeiro, só pra a faixa da tela contar a melhor história
+  for (const [cardId, lista] of [...porCarta.entries()].sort((a, b) => b[1].length - a[1].length)) {
+    const card = state.currentCards.find(c => c.id === cardId)
+    if (!card || hol.levados.some(l => l.cardId === cardId)) continue
+    const gente = lista.filter(x => x.humano)
+    const fila = gente.length > 0 ? gente : lista
+    // 💰 confere de novo, agora com o que já foi levado NESTE degrau: um técnico
+    // pode ter pedido duas cartas e só caber uma.
+    const podem = fila.filter(x => {
+      const m = state.managers.find(y => y.id === x.mgr)
+      return !!m && holPodeLevar(state, m, card, hol.preco, holGasto(hol, x.mgr), holVagasUsadas(hol, x.mgr, card.pos, state.currentCards))
+    })
+    if (!podem.length) continue
+    const roleta = podem.length > 1
+    const ganhador = podem[roleta ? Math.floor(rng() * podem.length) : 0]
+    // 🔒 UM DONO SÓ, SEMPRE. A carta entra em `levados` UMA vez e `levados` é a
+    // única fonte de tudo: o campinho, a caixa, a vaga e o `pendingEnvelopes`
+    // que fecha a leva. Não existe caminho no código em que dois técnicos
+    // saiam com a MESMA carta — nem que os dois apertem no mesmo milissegundo.
+    hol.levados.push({ cardId, mgr: ganhador.mgr, preco: hol.preco })
+    const t = state.managers.find(m => m.id === ganhador.mgr)
+    // quem pediu e não levou fica anotado, pra tela poder explicar a derrota
+    const perdedores = lista.filter(x => x.mgr !== ganhador.mgr).map(x => x.mgr)
+    hol.ultimo = { nome: card.name, time: t?.teamName ?? '—', preco: hol.preco, roleta, perdedores }
+  }
+}
+
+// 🤖 OS ROBÔS PEDEM: quando o preço desce até o teto que o bot tinha escrito, ele
+// entra na fila do degrau — na MESMA fila da gente, não na frente dela.
+function holBotsPedem(state: EscState) {
+  const hol = state.hol
+  if (!hol) return
+  // do teto mais alto pro mais baixo: o bot que mais quer a carta pede primeiro
+  const querem: { mgr: number; cardId: string; teto: number }[] = []
+  for (const card of holNaMesa(state)) {
+    for (const [idStr, teto] of Object.entries(hol.tetos[card.id] ?? {})) {
+      if (teto >= hol.preco) querem.push({ mgr: Number(idStr), cardId: card.id, teto })
+    }
+  }
+  querem.sort((a, b) => b.teto - a.teto)
+  for (const q of querem) {
+    const card = state.currentCards.find(c => c.id === q.cardId)
+    const m = state.managers.find(x => x.id === q.mgr)
+    if (!card || !m) continue
+    if (hol.pedidos.some(p => p.cardId === q.cardId && p.mgr === q.mgr)) continue
+    if (!holPodeLevar(state, m, card, hol.preco, holGasto(hol, q.mgr), holVagasUsadas(hol, q.mgr, card.pos, state.currentCards))) continue
+    hol.pedidos.push({ cardId: q.cardId, mgr: q.mgr, humano: false })
+  }
+}
+
+// 🧮 NINGUÉM MAIS PODE COMPRAR NADA? então a descida virou espera à toa. Pula
+// direto pro fim da leva. Não vaza informação nenhuma (o motivo é "acabou a
+// vaga/moeda de todo mundo", não "esta carta é ruim") e respeita a regra de
+// ouro dele: nada pode atrasar o ritmo do jogo.
+function holNinguemPodeMais(state: EscState): boolean {
+  const hol = state.hol
+  if (!hol) return true
+  const mesa = holNaMesa(state)
+  if (!mesa.length) return true
+  for (const m of state.managers) {
+    if (!m.isHuman && !m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
+    for (const card of mesa) {
+      // o humano pode esperar o preço cair mais; o robô só age até o teto dele
+      const teto = m.isHuman ? hol.preco : (hol.tetos[card.id]?.[m.id] ?? 0)
+      if (!m.isHuman && teto <= 0) continue
+      if (holPodeLevar(state, m, card, m.isHuman ? 1 : Math.min(hol.preco, teto), holGasto(hol, m.id), holVagasUsadas(hol, m.id, card.pos, state.currentCards))) return false
+    }
+  }
+  return true
+}
+
+// ⏬ UM DEGRAU. É a única coisa que o relógio do holandês faz:
+//   1. fecha o degrau anterior (resolve quem apertou naquele preço);
+//   2. baixa o preço;
+//   3. os robôs que chegaram no teto entram na fila do degrau novo.
+// No online quem chama é SEMPRE o HOST — regra dele: *"oq manda e o ID do host
+// sempre"*. O convidado só desenha o preço que o host mandar.
+// 🛟 A VIRADA DO RESGATE — a repescagem DENTRO da própria descida.
+//
+// Por que existe (achado medindo, 20/09): o Diego disse *"não tem negócio de
+// repescagem nesse leilão"* e eu concordei com o argumento errado — "o preço já
+// passou por 1 moeda, todo mundo teve chance". Isso vale pra GENTE, que vê a
+// lista e pega o que quiser por 1. **Robô não funciona assim**: o teto dele sai
+// do `cpuEnvelope`, que só olha as `need` cartas mais bem ranqueadas. Carta que
+// ele nunca ranqueou, ele não pega NEM DE GRAÇA.
+//
+// Medido, com a repescagem simplesmente removida: **55 vagas vazias** contra 39
+// do pregão cego (= 16 perna-de-pau a mais por leilão, justo a reclamação dele
+// de 19/09) e **32 moedas encalhadas** no bolso de cada técnico.
+//
+// A solução não é devolver a tela da repescagem (ele tem razão: seria leiloar a
+// mesma carta duas vezes). É fazer o robô REAVALIAR o que ainda está na mesa
+// quando o preço fica barato — que é exatamente o que o `cpuEnvelope(rescue)`
+// já faz na repescagem de hoje. Mesma função, mesmo bolso de repescagem, só que
+// sem parar o pregão: zero tela nova, zero segundo a mais.
+const HOL_RESGATE_FRAC = 0.25 // a 25% da abertura (25 no futebol, 12 no basquete)
+function holResgate(state: EscState) {
+  const hol = state.hol
+  if (!hol || hol.resgateFeito) return
+  hol.resgateFeito = true
+  const mesa = holNaMesa(state)
+  if (!mesa.length) return
+  const rng = rngOf(state)
+  const econ = state.careerOnline ? escadaEconFactor(state) : 0
+  const pos = SECTORS[state.sectorIdx]
+  for (const m of state.managers) {
+    if (m.isHuman) continue
+    if (!m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
+    // só quem AINDA tem buraco nesta posição — quem já encheu não volta pra mesa
+    if (openSlots(m, pos) - holVagasUsadas(hol, m.id, pos, state.currentCards) <= 0) continue
+    for (const b of cpuEnvelope(m, mesa, state.sectorIdx, rng, true, econ)) {
+      const t = (hol.tetos[b.cardId] = hol.tetos[b.cardId] ?? {})
+      t[m.id] = Math.max(t[m.id] ?? 0, b.amount)
+    }
+  }
+}
+
+function holandesTick(state: EscState) {
+  const hol = state.hol
+  if (!hol) return
+  holResolvePedidos(state) // 1) fecha o degrau que estava aberto
+  const escada = holEscada(HOL_ABERTURA(state))
+  const passo = hol.passo + 1
+  if (passo >= escada.length || escada[passo] <= 0) { fechaHolandes(state); return }
+  hol.passo = passo
+  hol.preco = escada[passo] // 2) o preço cai
+  // 3) 🛟 ficou barato: os robôs com buraco reavaliam o que sobrou na mesa
+  if (hol.preco <= Math.round(HOL_ABERTURA(state) * HOL_RESGATE_FRAC)) holResgate(state)
+  if (holNaMesa(state).length === 0 || holNinguemPodeMais(state)) { fechaHolandes(state); return }
+  holBotsPedem(state) // 4) os robôs entram na fila
+}
+
+// 🫵 VOCÊ APERTOU numa carta da lista.
+//
+// ⏱️ **POR TEMPO, E A CARTA É SUA NA HORA** — decisão do Diego (20/09): *"eu
+// ainda acho que deveria ter que ser por tempo… só quando der alguma merda e o
+// jogo não entender é aí sim iria pro desempate. Eles não precisariam saber
+// disso também, pra eles é como se fosse ao mesmo tempo"*.
+//
+// Eu tinha feito com janela de meio segundo pra tirar a vantagem de quem tem
+// internet melhor; ele ouviu o argumento e escolheu o tempo mesmo. Então: quem
+// chega primeiro NO HOST leva, e leva imediatamente.
+//
+// 🔒 E É ISTO QUE GARANTE QUE O JOGADOR NUNCA CAI EM DOIS CAMPINHOS — o medo
+// dele. Quem escreve em `levados` é SÓ O HOST, um de cada vez, e a primeira
+// linha da carta tranca todas as outras (`levados.some` logo abaixo). O
+// segundo toque a chegar encontra a carta com dono e é recusado. Não existe
+// ordem de execução em que os dois passem.
+//
+// 📱 ⚠️ REGRA PRO ONLINE (quando o cano for ligado): o convidado NÃO pode
+// escrever `levados` no próprio aparelho. Ele mostra "✋ enviando…" e só desenha
+// o jogador no campinho quando o host confirmar — igual o "ENVIANDO…" que o
+// envelope cego já faz. Se a tela dele entregasse na hora e o host dissesse
+// "não foi você", o jogador APARECERIA e SUMIRIA do campinho, que é o estado
+// quebrado que ele não quer ver nunca.
+function holandesPegar(state: EscState, mgrId: number, cardId: string) {
+  const hol = state.hol
+  if (!hol) return
+  const card = state.currentCards.find(c => c.id === cardId)
+  const m = state.managers.find(x => x.id === mgrId)
+  if (!card || !m) return
+  if (hol.levados.some(l => l.cardId === cardId)) return // 🔒 já tem dono: chegou tarde
+  if (!holPodeLevar(state, m, card, hol.preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))) return
+  // 🏃 GENTE LEVA NA HORA. (O robô não: ele entra na fila `pedidos` e só é
+  // servido no fim do degrau — senão apertaria no milissegundo e ganharia
+  // sempre. Regra dele, mantida: gente nunca perde pra robô.)
+  if (m.isHuman) {
+    hol.levados.push({ cardId, mgr: mgrId, preco: hol.preco })
+    hol.ultimo = { nome: card.name, time: m.teamName, preco: hol.preco, roleta: false, perdedores: [] }
+    // tira da fila dos robôs qualquer pedido nesta carta: ela já tem dono
+    hol.pedidos = hol.pedidos.filter(p => p.cardId !== cardId)
+    return
+  }
+  if (hol.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)) return
+  hol.pedidos.push({ cardId, mgr: mgrId, humano: false })
+}
+
+// a tela pergunta isto pra acender (ou não) o botão PEGAR de cada carta —
+// fonte ÚNICA, a mesma que o motor usa pra aceitar o toque.
+export function holPodeAgora(state: EscState, mgrId: number, cardId: string): boolean {
+  const hol = state.hol
+  if (!hol) return false
+  const card = state.currentCards.find(c => c.id === cardId)
+  const m = state.managers.find(x => x.id === mgrId)
+  if (!card || !m) return false
+  if (hol.levados.some(l => l.cardId === cardId)) return false
+  if (hol.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)) return false
+  return holPodeLevar(state, m, card, hol.preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))
+}
+// e o resto da tela pergunta esta (pra não recalcular régua em lugar nenhum)
+export function holDono(state: EscState, cardId: string): { mgr: number; preco: number } | null {
+  return state.hol?.levados.find(l => l.cardId === cardId) ?? null
+}
+
 function startAuctionPhase(state: EscState, rescue: boolean) {
   // 🧹 no ARRANQUE do leilão (1ª posição, nada distribuído ainda): tira qualquer
   // jogador repetido do baralho — fecha o "dois Van der Sar". Roda 1x por leilão
@@ -4391,6 +4786,16 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
   // botão), N = N segundos, undefined = padrão (45s). Só o online usa 0; no solo
   // auctionSecs é sempre undefined → 45s como sempre.
   state.phaseDeadline = state.auctionSecs === 0 ? null : Date.now() + ((state.auctionSecs && state.auctionSecs > 0 ? state.auctionSecs * 1000 : ENVELOPE_MS))
+  // 🔻 HOLANDÊS: a leva é a MESMA (mesma fatia, mesma quantidade, mesmas regras
+  // de vaga — pedido dele). Só o jeito de dar lance muda: em vez do envelope
+  // cego, o preço cai na frente de todo mundo.
+  // 🛟 E A REPESCAGEM TAMBÉM É HOLANDESA (20/09): ele não quer envelope cego
+  // dentro deste leilão (*"não tem negócio de repescagem nesse leilão"*), e ele
+  // está certo quanto à TELA — mas a MEDIÇÃO mostrou que tirar a segunda
+  // passada custa caro (55 vagas vazias contra 38, e 32 moedas encalhadas por
+  // técnico). Então a sobra volta pra mesa numa descida curta, com o MESMO
+  // visual: nenhuma tela nova, nenhum envelope, e o buraco não explode.
+  if (state.holandes && state.currentCards.length > 0) { abreHolandes(state, rescue); return }
   // 🛟 LEVA/SETOR VAZIO: não tem NENHUMA carta pra leiloar (ex.: leilão de reservas
   // onde TODOS os laterais do catálogo já têm dono). Sem isto, aparecia um envelope
   // VAZIO ("laterais sem lateral nenhum") e, ao lacrar, dava a tela de erro. Agora
@@ -4504,8 +4909,13 @@ function sealAndResolve(state: EscState) {
   const rescue = state.phase === 'resq_envelope'
   const bidMap: BidMap = new Map()
   const econ = state.careerOnline ? escadaEconFactor(state) : 0 // 💰 teto por categoria × riqueza da sala (TODA carreira — pedido do Diego: 'Pelé por 409' na carreira longa)
+  // 🔻 HOLANDÊS: os lances JÁ estão prontos em `pendingEnvelopes` (um por carta,
+  // no preço em que o martelo caiu na tela). Gerar envelope de CPU aqui faria o
+  // bot disputar contra o arremate que ele mesmo acabou de fazer.
+  const holandesJaDecidiu = !!state.holFechando
   // CPUs (só quem disputa o leilão — bots de preenchimento nunca dão lance)
   for (const m of state.managers) {
+    if (holandesJaDecidiu) break
     if (m.isHuman || !m.auctionRival) continue
     for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) {
       pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
@@ -4522,7 +4932,7 @@ function sealAndResolve(state: EscState) {
   // entraram como fiadores) agora disputam o leilão INTEIRO — repõem a perda E
   // podem pegar reservas em qualquer posição, como um técnico de verdade. Cada
   // um decide sozinho (cpuEnvelope) se compra e por quanto; pagam com a caixa.
-  if (state.careerOnline) {
+  if (state.careerOnline && !holandesJaDecidiu) {
     {
       for (const m of state.managers) {
         if (m.isHuman || !(m.backstop || m.marketCpu)) continue
@@ -5170,6 +5580,9 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerTitles = 0
       s.careerTitlesA = 0
       s.copaMode = action.copaMode ?? 'liga_copa' // 🏆 padrão: liga + copa dos 8 (rápido)
+      // 🔻 modo do pregão: holandês (preço caindo) ou o cego de sempre. Escolha
+      // por partida — o padrão é SEMPRE o leilão de hoje.
+      s.holandes = !!action.holandes
       s.careerRivalCount = action.rivals
       s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams, action.teamName) : []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
@@ -5192,6 +5605,22 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}
       s.seasonNo = 1
       // 🌱 mesma faxina do online: partida rápida NÃO herda a Cria da Base nem os
@@ -5238,6 +5667,22 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}; s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -5274,6 +5719,22 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}; s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -5488,6 +5949,22 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used, !!s.escadaOn)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       // 🛟 flag do leilão de RESERVAS (carreira) não pode vazar pro jogo novo: quem
       // saía de uma carreira NO MEIO do leilão de reservas e abria um jogo novo via
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
@@ -5643,6 +6120,11 @@ export function reducer(state: EscState, action: Action): EscState {
       // indefinido e tudo cai no caminho de sempre.
       const onlineNba = action.sport === 'basquete'
       const onlineVarzea = !onlineNba && !action.career && (action.deck ?? 'br') === 'br' && !!action.varzea
+      // 🔻 PREGÃO HOLANDÊS: escolha do HOST na hora de montar a sala, e vale pra
+      // sala inteira (vem no `game_state`, então quem entra depois pega a mesma).
+      // Padrão é SEMPRE o leilão cego de hoje — sala antiga nem tem o campo.
+      // 🚫 Fora da CARREIRA online: lá o pregão é o de sempre, sem novidade.
+      s.holandes = !action.career && !!action.holandes
       s.varzea = onlineVarzea
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = false // online rápido/liga: não é a carreira salva do basquete
@@ -5759,6 +6241,22 @@ export function reducer(state: EscState, action: Action): EscState {
       if (onlineVarzea) setActiveCatalog(s.deckLeague) // baralho várzea já foi montado → restaura o cheio pro resto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       // 🛟 flag do leilão de RESERVAS (carreira) não pode vazar pro jogo novo: quem
       // saía de uma carreira NO MEIO do leilão de reservas e abria um jogo novo via
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
@@ -5906,6 +6404,30 @@ export function reducer(state: EscState, action: Action): EscState {
       // o host controla cada avanço no botão (FORCE_SEAL). Com cronômetro, fecha
       // na hora que todos lacram, como sempre.
       if (allIn && s.auctionSecs !== 0) sealAndResolve(s)
+      return s
+    }
+    // ─── 🔻 LEILÃO HOLANDÊS ────────────────────────────────────────────────
+    case 'HOLANDES_TICK': {
+      if (s.phase !== 'holandes' || !s.hol) return s
+      holandesTick(s)
+      return s
+    }
+    case 'HOLANDES_PEGAR': {
+      if (s.phase !== 'holandes' || !s.hol) return s
+      const card = s.currentCards.find(c => c.id === action.cardId)
+      if (!card) return s
+      // 🔒 O PREÇO TEM QUE SER O DA TELA DELE. Sem isto, um toque que saiu do
+      // aparelho quando marcava 40 e chegou no host depois do preço cair pra 36
+      // levaria por 36 — e, pior, o contrário também: chegar atrasado e pagar
+      // MAIS do que ele viu. Se o preço já mudou, o toque não vale e a tela
+      // avisa (o preço segue caindo e ele aperta de novo). Com ~2s por degrau,
+      // isso praticamente não acontece — mas a trava fica, porque rede é rede.
+      if (action.preco !== s.hol.preco) return s
+      // 🤝 DUPLA: no setor da vez só quem MANDA na categoria pega pelo time.
+      // Mesma trava do envelope, e pela mesma razão: esconder o botão na tela do
+      // parceiro não basta — é a família de bug de assento que já mordeu.
+      if (!duplaPodeAgir(s.duplas, action.mgrId, card.pos, action.by)) return s
+      holandesPegar(s, action.mgrId, action.cardId)
       return s
     }
     case 'ADVANCE_REVEAL': {
@@ -9854,6 +10376,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // é imune a lance repetido — chegar pelas duas estradas não duplica nada.
       // Vale só pros DOIS recados que travam a sala quando somem: o envelope e o
       // re-lance do empate. Com folga de 5s pra não inundar o banco.
+      // 🔻 O PEGAR DO HOLANDÊS ENTRA AQUI TAMBÉM, e é o recado mais urgente de
+      // todos: se ele se perder, o jogador some da mão de quem apertou e a carta
+      // vai pra outro (ou pras sobras) sem ninguém entender. Diferente do lance
+      // cego, aqui NÃO tem folga de 5s — o preço está caindo, cada toque é único
+      // e não dá pra "segurar o próximo". O reducer recusa o toque com preço
+      // velho, então chegar pelas duas estradas nunca compra duas vezes.
+      if (action.type === 'HOLANDES_PEGAR' && stateRef.current.roomId) {
+        supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+      }
       if ((action.type === 'SUBMIT_ENVELOPE' || action.type === 'SUBMIT_TIEBREAK') && stateRef.current.roomId) {
         const agora = Date.now()
         if (agora - acaoReservaTsRef.current > 5_000) {
@@ -10259,7 +10790,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         try {
           const st = stateRef.current
           if (!st.roomId || !st.isHost) return
-          if (st.screen !== 'auction' && st.phase !== 'envelope' && st.phase !== 'resq_envelope') return
+          if (st.screen !== 'auction' && st.phase !== 'envelope' && st.phase !== 'resq_envelope' && st.phase !== 'holandes') return
           const { data } = await supabase.from('room_acoes').select('id, payload')
             .eq('room_id', st.roomId).gt('id', acoesVistasRef.current)
             .order('id', { ascending: true }).limit(25)
@@ -10271,7 +10802,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 📮 os 4 recados que travam a sala quando somem: os dois lances e os
             // dois "acabou o tempo, fecha". O reducer reconfere prazo e duplicata,
             // então aplicar de novo o que já chegou pelo rádio não muda nada.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK')) rawDispatch(a)
+            // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
+            // jogador da mão de quem apertou. O reducer confere o preço da tela
+            // e recusa carta que já tem dono, então repetido não faz mal.
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
@@ -11090,8 +11624,17 @@ export function EscProvider({ children }: { children: ReactNode }) {
 
 // mantém o leilão cego: convidados nunca recebem os envelopes pendentes,
 // só quem já lacrou (contador) — os valores só aparecem na revelação.
+// exportado só pra trava (`npm run holandes`) poder conferir o que sai daqui —
+// é o pacote que o host manda pra sala, e o que vaza nele vaza pra todo mundo.
+export const sanitizeParaSala = (state: EscState): EscState => sanitize(state)
 function sanitize(state: EscState): EscState {
-  return { ...state, pendingEnvelopes: {}, tiebreakPending: {} }
+  // 🔻 HOLANDÊS: o `hol` inteiro é público (o pregão acontece na cara de todo
+  // mundo) MENOS os `tetos` — eles dizem exatamente por quanto cada robô vai
+  // apertar em cada carta. Convidado com isso na mão saberia a hora exata de
+  // cortar o bot em toda carta do pregão. Mesma regra do `pendingEnvelopes`:
+  // o que é segredo não sai do host.
+  const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
+  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.hol ? { hol } : {}) }
 }
 
 // 📦 o estado que o host manda pros convidados chega a ~80 KB e ESTOURAVA o limite

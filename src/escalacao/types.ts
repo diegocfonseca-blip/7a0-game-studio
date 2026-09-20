@@ -278,7 +278,73 @@ export interface ResolvedCard {
   voided: number[] // managers cujo lance foi anulado (setor já cheio)
 }
 
-export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_reveal' | 'tiebreak'
+export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_reveal' | 'tiebreak' | 'holandes'
+
+// ─── 🔻 LEILÃO HOLANDÊS (modo à parte, aprovado pelo Diego 20/09) ───────────
+// O leilão de sempre é CEGO: todo mundo escreve escondido e o maior lance leva.
+// O holandês é o contrário — o preço COMEÇA LÁ EM CIMA (100, que é o que todo
+// mundo tem no bolso) e vai CAINDO na frente de todos. Quem apertar primeiro
+// leva pelo preço que estiver na tela. Ninguém apertou até o preço chegar a 0?
+// O jogador vai pras SOBRAS, igual acontece hoje.
+//
+// ⚠️ O QUE ELE **NÃO** MUDA (de propósito): o holandês só troca o jeito de
+// COLETAR o lance. Quem paga, quem entra no elenco, o livro de preços, a
+// comissão do agente, a revelação, a repescagem e o monte continuam sendo o
+// MESMO código do leilão de hoje (`sealAndResolve` → `resolve`). Por isso ele
+// não tem como estragar o pregão que já está no ar.
+// 📋 A LEVA INTEIRA NA TELA, UM PREÇO SÓ (decisão do Diego, 20/09). Ele
+// perguntou: *"achei q fosse tipo aparecer todos listados igual já é no nosso
+// leilão e a barra de 100 moedas caindo c/ botão ali da pessoa pegar"*. É melhor
+// mesmo, por três motivos medidos:
+//  1. ⏱️ o tempo da leva fica IGUAL ao de hoje (uma descida de ~45s pra leva
+//     inteira, em vez de uma descida por carta);
+//  2. 📶 cada degrau passa a durar ~2 SEGUNDOS em vez de 0,2 — que é o que tira
+//     a vantagem de quem tem internet melhor (o medo dele: *"tô preocupado c/
+//     delay"*);
+//  3. 🎯 e a carta boa passa a valer preço de carta boa: com 12 cartas
+//     disputando a MESMA descida, quem quer o craque tem que apertar cedo.
+//
+// ✋ E O DELAY: apertar não arremata NA HORA — vira um PEDIDO. O degrau fecha,
+// e aí o host resolve todos os pedidos daquele preço de uma vez. Gente passa na
+// frente de robô; gente contra gente no mesmo preço vai pra ROLETA. Assim
+// ninguém é roubado por meio segundo de internet.
+export type HolandesState = {
+  /** preço na tela agora — UM só pra leva inteira (vai caindo pela escada) */
+  preco: number
+  /** em que degrau da escada de preços a gente está */
+  passo: number
+  /**
+   * teto de cada técnico de CPU por carta (`cardId` → `mgrId` → moedas).
+   * Calculado UMA VEZ ao abrir a leva, com o MESMO `cpuEnvelope` do leilão
+   * cego — então o bot gasta exatamente o mesmo dinheiro que gastaria hoje,
+   * só que apertando o botão quando o preço chega no valor dele.
+   */
+  tetos: Record<string, Record<number, number>>
+  /** quem já arrematou nesta leva (vira o bidMap na hora de resolver) */
+  levados: { cardId: string; mgr: number; preco: number }[]
+  /**
+   * ✋ PEDIDOS DO DEGRAU DA VEZ — quem apertou neste preço e ainda não foi
+   * resolvido. Zera a cada degrau. É esta lista que mata o problema do delay:
+   * o host não decide por ordem de chegada (quem tem internet melhor), decide
+   * quando o degrau FECHA, com todo mundo dentro.
+   */
+  pedidos: { cardId: string; mgr: number; humano: boolean }[]
+  /**
+   * 🛟 a "virada do resgate" já aconteceu nesta leva (o preço cruzou a faixa
+   * baixa e os robôs com buraco reavaliaram o que ainda está na mesa).
+   * É o que substitui a REPESCAGEM dentro da própria descida — ver `store.tsx`.
+   */
+  resgateFeito?: boolean
+  /** esta descida é a REPESCAGEM do setor (as sobras voltando pra mesa) */
+  resgate?: boolean
+  /**
+   * o que aconteceu no degrau que acabou de fechar (faixa da tela).
+   * `perdedores` = quem pediu esta carta e NÃO levou. É por causa desta lista
+   * que quem perdeu a corrida vê o motivo na tela, em vez da carta simplesmente
+   * sumir ("toda trava explica o porquê" — regra do Diego).
+   */
+  ultimo?: { nome: string; time: string; preco: number; roleta?: boolean; perdedores?: number[] } | null
+}
 
 // desempate: quando ≥2 técnicos empatam no MAIOR lance de uma carta, eles
 // re-lançam às cegas só nela (quem paga mais leva). Empatou de novo → roleta
@@ -486,6 +552,17 @@ export interface EscState {
   stock: Record<Sector, number> // estoque restante no baralho (contador vivo)
   sectorCursor: number // até onde já foi dealt do deck[pos] atual (levas)
   sectorUnsoldAccum: Card[] // não vendidos acumulados nas levas do setor até a repescagem
+  /** 🔻 modo LEILÃO HOLANDÊS ligado nesta partida (o pregão cego de hoje é o padrão) */
+  holandes?: boolean
+  /** 🔻 estado vivo do holandês (só existe enquanto `phase === 'holandes'`) */
+  hol?: HolandesState
+  /**
+   * 🔻 marca de UM instante: o holandês já decidiu quem levou cada carta e está
+   * entregando o resultado pro `sealAndResolve`. Sem isto, os bots dariam lance
+   * DE NOVO no fechamento e brigariam com o próprio arremate. Nunca fica ligada
+   * entre uma ação e outra (liga e desliga dentro da mesma chamada).
+   */
+  holFechando?: boolean
   roundIdx: number // rodada por vaga dentro do setor atual (só modo online)
   // monte final
   monte: Card[]
