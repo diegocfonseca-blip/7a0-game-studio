@@ -13,6 +13,7 @@ import type {
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
+import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
@@ -963,15 +964,57 @@ function fillerCard(pos: Sector, rng: () => number): WonCard {
   const lo = 30 + Math.floor(rng() * 6)
   const nba = ACTIVE_SPORT === 'basquete'
   const names = nba ? FIL_NAMES_NBA : FIL_NAMES
+  // 🏷️ NÃO leva `fake: true` — e isso é DECISÃO do Diego (19/09), não esquecimento.
+  // Eu tinha posto o selo pra fechar a porta do leilão, e ele mandou desfazer:
+  // *"deixa ele poder ir pro sondar jogador, não tem problema não… o usuário pode
+  // comprar sim lá no sondar se ele quiser"*. Com o selo, o perna-de-pau deixaria
+  // de contar pra fechar os 11 no elenco de quem comprou, perderia contrato e
+  // sumiria da sondagem — mudança grande demais pro que ele queria.
+  // 👉 Quem NÃO deixa ele entrar em ranking é o `ehFake()` aqui de cima, que
+  //    reconhece pelo CLUBE ('Várzea'/'Pickup') e não precisa de selo nenhum.
   return { id: `fil-s-${fillCounter++}`, name: names[Math.floor(rng() * names.length)], club: nba ? 'Pickup' : 'Várzea', year: 2000, pos, fame: 1, lo, hi: lo + 6 + Math.floor(rng() * 4), paid: 0, via: 'bot' }
 }
-// completa um elenco de time de fundo até o mínimo da formação (11) com filler,
-// por posição — a rede de segurança pra nunca ficar com menos de 11.
-function fillToEleven(squad: WonCard[], formation: FormationKey, rng: () => number): WonCard[] {
+// completa um elenco de time de fundo até o mínimo da formação (11), por posição.
+//
+// 🎯 REGRA DO DIEGO (19/09), com as palavras dele: *"se ele também não comprar
+//    nenhum atacante nesse leilão, ele poderia ganhar um jogador que está sobrando
+//    das sobras, de atacante de sobra… mas só se ele não conseguir repor esse
+//    atacante quando ele for disputar no leilão"*.
+//    Então a ordem é: **1º uma SOBRA DE VERDADE, 2º (e só aí) o perna-de-pau**.
+//    Antes ia direto pro perna-de-pau — e era isso que ele não entendia: o jogo
+//    inventava um Zé Ninguém atacante com 31 de nível enquanto sobravam dezenas
+//    de atacantes reais sem dono.
+// `sobras` é uma fila POR POSIÇÃO, já sem quem tem dono. Ela é consumida com
+// `shift()`, então dois times nunca levam a mesma carta.
+// 🔓 exportados pra TRAVA (`npm run fake`): nenhuma tela chama de fora.
+export function fillToEleven(squad: WonCard[], formation: FormationKey, rng: () => number, sobras?: Record<Sector, Card[]>): WonCard[] {
   const out = [...squad]
   for (const pos of SECTORS) {
     let have = out.filter(c => c.pos === pos).length
-    while (have < FORMATIONS[formation][pos]) { out.push(fillerCard(pos, rng)); have++ }
+    while (have < FORMATIONS[formation][pos]) {
+      const real = sobras?.[pos]?.shift()
+      out.push(real ? { ...real, pos, id: `sob-${pos}-${fillCounter++}`, paid: 0, via: 'bot' } as WonCard : fillerCard(pos, rng))
+      have++
+    }
+  }
+  return out
+}
+// 🧮 A FILA DE SOBRAS: jogadores REAIS do catálogo que não estão em elenco nenhum
+// (nem de técnico, nem de time de fundo, nem no baralho do leilão). É a mesma
+// ideia da "SOBRAS DO BARALHO" que o leilão já usa — hoje o ataque sobra dezenas.
+// Ordenada do mais FRACO pro mais forte: quem tapa buraco de time de fundo é a
+// sobra modesta, não o craque esquecido (esse continua aparecendo no leilão).
+export function sobrasReais(s: EscState): Record<Sector, Card[]> {
+  const donos = new Set<string>()
+  for (const m of s.managers) for (const c of m.squad) donos.add(ident(c))
+  for (const name in (s.cpuSquads ?? {})) for (const c of s.cpuSquads![name]) donos.add(ident(c))
+  for (const pos of SECTORS) for (const c of (s.deck?.[pos] ?? [])) donos.add(ident(c))
+  const out = {} as Record<Sector, Card[]>
+  for (const pos of SECTORS) {
+    out[pos] = ACTIVE_CATALOG[pos]
+      .filter(c => !donos.has(ident(c as Card)))
+      .map(c => ({ ...c, pos } as Card))
+      .sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi))
   }
   return out
 }
@@ -2573,7 +2616,51 @@ function devolveMedicoUmaVez(st: EscState): EscState {
   s.medicoDevolvido = clubes * MEDICO_CUSTO
   return s
 }
-function migrateTeamNames(st: EscState): EscState {
+// ─── 🏋️💸 O TROCO DO PREPARADOR (19/09) ────────────────────────────────────
+// Palavras dele: *"aumente 200 de moedas pra quem tem o preparador [👑 Lenda],
+// igual o time Rei da Bola — porque eu diminuí o valor de 1000 pra 800"*.
+// Quem comprou o 👑 antes pagou 1.000 por uma coisa que agora custa 800. Ele mandou
+// devolver a diferença, e é justo: ninguém pode sair no prejuízo por causa de um
+// ajuste de preço que a gente fez depois.
+//
+// 🧾 A TABELA é o que manda, e é UMA LINHA por preparador de propósito: se ele
+//    mandar devolver o troco do ⭐ (que caiu de 600 pra 500) é só acrescentar
+//    `paixao: 100` aqui — nada mais no código muda.
+// 🛡️ Mesmas garantias do reembolso do Dep. Médico (15/09), que é o irmão disto:
+//   · UMA VEZ SÓ: a marca `preparadorDevolvidoV1` é gravada ao abrir o save,
+//     inclusive em quem não tem preparador nenhum — reabrir mil vezes não paga de novo;
+//   · SÓ CLUBE SEU: o principal e o 2º clube (`mine`/multiclube). Time de máquina
+//     nunca entra;
+//   · NADA MAIS É TOCADO: o preparador continua contratado, com o mesmo contrato e o
+//     mesmo salário. Só entra moeda no caixa;
+//   · o lançamento vai pro EXTRATO, então dá pra conferir de onde veio.
+// 🧾 A TABELA: preparador → quanto voltou pro bolso de quem comprou pelo preço velho.
+//   · 👑 seirulo: 1.000 → 800  = 200 (ordem dele, 19/09)
+//   · ⭐ paixao:    600 → 500  = 100 (ele liberou logo depois: *"perfeito, pode tb"*)
+//   · 🟢 faria e 💎 pintus não mudaram de preço, então não têm troco.
+const PREPARADOR_DEVOLVE: Partial<Record<PreparadorKey, number>> = { seirulo: 200, paixao: 100 }
+// 🔓 exportado só pra trava (`npm run preparador`). Nenhuma tela chama de fora.
+export function devolvePreparadorUmaVez(st: EscState): EscState {
+  if (st.preparadorDevolvidoV1) return st
+  const s: EscState = { ...st, preparadorDevolvidoV1: true, careerLedger: st.careerLedger ? [...st.careerLedger] : st.careerLedger }
+  const meus: { id: number; teamName: string }[] = []
+  const eu = s.managers?.[s.youIdx]; if (eu) meus.push({ id: eu.id, teamName: eu.teamName })
+  for (const m of s.managers ?? []) if (m.mine && m.id !== eu?.id) meus.push({ id: m.id, teamName: m.teamName })
+  let total = 0
+  for (const { id, teamName } of meus) {
+    const troco = PREPARADOR_DEVOLVE[s.careerPreparador?.[teamName] as PreparadorKey]
+    if (!troco) continue
+    s.careerCoins = { ...(s.careerCoins ?? {}), [id]: Math.round((s.careerCoins?.[id] ?? 0) + troco) }
+    logFin(s, 'buy', '🏋️ Preparador ficou mais barato — troco devolvido', troco, undefined, id)
+    total += troco
+  }
+  if (total) s.preparadorDevolvido = total
+  return s
+}
+
+// 🔓 exportado só pra TRAVA (`npm run fake`) poder abrir um save de mentira e
+// conferir que o tapa-buraco sai do histórico. Nenhuma tela chama de fora.
+export function migrateTeamNames(st: EscState): EscState {
   const mapKeys = <V,>(rec: Record<string, V> | null | undefined): typeof rec => {
     if (!rec) return rec
     const out: Record<string, V> = {}
@@ -3054,7 +3141,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       // jogo). O nível manda na média; o dia deixa um coadjuvante brilhar às vezes.
       const pool = m.squad.map(c => {
         const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-        return { name: c.name, w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
+        return { name: c.name, fake: ehFake(c), w: (POS_W[c.pos] ?? 3) * (0.3 + Math.pow(n, 1.3) * 1.1) * (0.5 + rng() * 1.5) }
       })
       pool.sort((a, b) => b.w - a.w)
       // 🏀 só a ROTAÇÃO pontua (topo ~9); banco fundo quase não marca, igual à NBA.
@@ -3071,6 +3158,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         const share = i === rotation.length - 1 ? left : Math.max(0, Math.min(left, Math.round(pts * shareW[i] / shareTot)))
         left -= share
         if (share <= 0) return
+        // 🃏🚫 tapa-buraco PONTUA no jogo (o placar é dele também), mas não entra
+        // na cestinha. Mesma regra do futebol — ordem do Diego, 19/09.
+        if (p.fake) return
         const row = scorersList.find(s => s.name === p.name && s.teamId === id)
         if (row) row.goals += share
         else scorersList.push({ name: p.name, teamId: id, teamName: prefix, goals: share })
@@ -3115,15 +3205,16 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       // exibido diverge da tabela: vitória vira empate etc.).
       const min = rng() < 0.08 ? 90 + 1 + Math.floor(rng() * 3) : 1 + Math.floor(rng() * 90)
       let scorerName: string | null = null
+      let golFake = false // 🃏🚫 marcou, mas não entra na artilharia (Diego 19/09)
       if (m && m.squad.length > 0) {
-        const pool: { name: string; w: number }[] = []
+        const pool: { name: string; fake: boolean; w: number }[] = []
         for (const c of m.squad) {
           // posição × NÍVEL² (igual à carreira): craque leva a maioria dos gols,
           // perna-de-pau quase nunca marca — antes era só por posição e o filler
           // de várzea brigava na artilharia com o Pelé.
           const posW = c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : (/chilavert|ceni/i.test(c.name) ? 0.05 : 0)
           const n = Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42)
-          pool.push({ name: c.name, w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
+          pool.push({ name: c.name, fake: ehFake(c), w: posW * (0.12 + n * n * 1.8) * (day.get(c.id) ?? 1) })
         }
         const total = pool.reduce((s, p) => s + p.w, 0)
         // 🧤 elenco degenerado (só goleiros/zagueiros sem peso = total 0): NÃO credita
@@ -3131,15 +3222,21 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
         // um GOLEIRO podia ser cravado artilheiro (fere a regra do "sem perna-de-pau").
         if (total > 0) {
           let r = rng() * total
-          for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; break } }
-          if (!scorerName) scorerName = pool[0].name
+          for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; golFake = p.fake; break } }
+          if (!scorerName) { scorerName = pool[0].name; golFake = pool[0].fake }
         }
       }
       if (scorerName) {
         // credita no ranking (liga = state.scorers; Copa = qc.scorers, passado à parte)
-        const row = scorersList.find(s => s.name === scorerName && s.teamId === id)
-        if (row) row.goals++
-        else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
+        // 🃏🚫 …MENOS se quem fez é tapa-buraco: o gol dele vale no placar e sai na
+        // narração igual (é gol do time), mas ele não aparece na artilharia. Ordem
+        // do Diego, 19/09: *"podem fazer gols durante o jogo, não tem problema
+        // nenhum, mas não podem contar pra estatística"*.
+        if (!golFake) {
+          const row = scorersList.find(s => s.name === scorerName && s.teamId === id)
+          if (row) row.goals++
+          else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
+        }
         golsDoJogo.push({ nome: scorerName, min })
         if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
         if (capturePresentation) presentationGoals.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
@@ -3157,9 +3254,14 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
       const lista = assistsList ?? (state.assists = state.assists ?? [])
       escolhidos.forEach((nome, i) => {
         if (!nome) return
-        const row = lista.find(a => a.name === nome && a.teamId === id)
-        if (row) row.assists++
-        else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
+        // 🃏🚫 o passe do tapa-buraco vale no jogo e sai na narração, mas não entra
+        // na lista de garçons — o que vale pro gol vale pra assistência (19/09).
+        const carta = m.squad.find(c => c.name === nome)
+        if (!carta || !ehFake(carta)) {
+          const row = lista.find(a => a.name === nome && a.teamId === id)
+          if (row) row.assists++
+          else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
+        }
         if (involveHuman) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id, kind: 'assist' })
       })
     }
@@ -4084,7 +4186,8 @@ type Action =
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
   | { type: 'TV_EXTRA_VISTO' } // 📺 marca que o aviso único da cota extra (vídeo nas redes) já foi mostrado — nunca repete
-  | { type: 'MEDICO_AVISO_VISTO' } // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
+  | { type: 'MEDICO_AVISO_VISTO' }
+  | { type: 'PREPARADOR_AVISO_VISTO' } // 🏋️💸 fecha o recibo do troco do preparador (19/09) // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
   | { type: 'TV_EXTRA_CREDIT'; coins: number; qtd: number } // 📺 cota extra de TV: o RPC tv_resgatar já virou aprovado→creditado no Supabase (atômico) — aqui só entra o crédito no caixa. Só carreira solo
   | { type: 'KICK_PLAYER'; playerIndex: number }
   | { type: 'SUBMIT_ENVELOPE'; mgrId: number; bids: { cardId: string; amount: number }[]; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
@@ -4977,6 +5080,12 @@ export function reducer(state: EscState, action: Action): EscState {
       s.medicoDevolvido = undefined
       return s
     }
+    // 🏋️💸 idem pro troco do preparador: o aviso só some da tela — a moeda já entrou
+    // em `devolvePreparadorUmaVez`, e a marca impede pagar de novo.
+    case 'PREPARADOR_AVISO_VISTO': {
+      s.preparadorDevolvido = undefined
+      return s
+    }
     case 'TV_EXTRA_CREDIT': {
       // 📺 COTA EXTRA DE TV (Diego 23/08): a validação é do Supabase (tv_resgatar,
       // atômica: aprovado→creditado uma vez só); aqui só entra o crédito. O valor
@@ -5487,7 +5596,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // dois clubes com o mesmo nome. No-op sem 2º clube.
       // 👑 cinto e suspensório: a ficha dos jogadores entra em dia aqui também.
       // É idempotente — se o save já veio sincronizado do leitor, não faz nada.
-      const restored = devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true }))))
+      const restored = devolvePreparadorUmaVez(devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(migrateTeamNames({ ...action.saved, screen: scr, onlineMode: 'cpu', isHost: true, roomId: '', roomCode: '', roomName: undefined, youIdx: 0, humanCount: 1, careerOnline: true })))))
       // 😓📝 CURAS AO ABRIR (13/09, São Luiz FC): liga o gás se a carreira já está em
       // C/B/A (mesmo presa num banner, onde o PLAY_ROUND nunca chegava a ligar) e
       // devolve pro presente contrato que voltou do passado (empréstimo pra SAF).
@@ -6525,8 +6634,10 @@ export function reducer(state: EscState, action: Action): EscState {
         const frng = rngOf(s)
         const sq = { ...(s.cpuSquads ?? {}) }
         const cash = { ...(s.clubCash ?? {}) }
+        // 🎯 a fila de sobras REAIS vem primeiro que o perna-de-pau (ver `fillToEleven`)
+        const sobras = sobrasReais(s)
         for (const m of s.managers) if (m.marketCpu && m.marketTeam) {
-          sq[m.marketTeam] = fillToEleven(m.squad, m.formation, frng)
+          sq[m.marketTeam] = fillToEleven(m.squad, m.formation, frng, sobras)
           cash[m.marketTeam] = Math.max(0, Math.round(m.money))
         }
         s.cpuSquads = sq
@@ -8803,7 +8914,7 @@ function loadSoloInProgress(): EscState | null {
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
       // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
       // carreira voltava pelo aqui e o baralho continuava com o nível velho.
-      return devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(s)))
+      return devolvePreparadorUmaVez(devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(s))))
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }
   return null

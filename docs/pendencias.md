@@ -40,6 +40,304 @@ cheia (31 clientes, 22 na ativa, SAF por fazer) — é de lá que saíram os pri
 
 ---
 
+## 19/09/2026 (parte 24) — 🔀 DUAS SESSÕES fizeram o perna-de-pau, e ficou UMA régua
+
+Na hora de publicar, a `main` já tinha o commit `6f2754c` de OUTRA sessão fazendo a
+MESMA coisa que eu tinha feito no branch: tirar o perna-de-pau da estatística. Sete
+conflitos, todos nos mesmos pedaços.
+
+**Resolvi tudo pro lado da `main`**, e desfiz a minha metade. Motivo, e vale pra
+próxima vez que isso acontecer:
+- a versão deles **já estava no ar** — é a que o Diego está vendo;
+- ela vai mais longe e do jeito certo: o filler **nem entra no sorteio** do gol
+  (`xi.filter(c => !ehFake(c))`), em vez de marcar e ser peneirado depois;
+- ela trouxe junto o **prêmio da Bola de Ouro** (20 moedas + 10 de piso), que é
+  pedido dele e eu não tinha;
+- e, acima de tudo: **duas réguas pra mesma regra é fábrica de bug.** Meu
+  `fake.ts` foi APAGADO e tudo passou a usar o `ehFake()` do `store.tsx`.
+
+### 🎯 O que sobrou de meu, porque a `main` não tinha
+- **Sobra de verdade antes do perna-de-pau** (`sobrasReais` + `fillToEleven`) — o
+  pedido dele de *"ele poderia ganhar um atacante de sobra"*. Não tem equivalente lá.
+- **O jogo rápido e a sala online** (`simMatch`): a régua deles pegou a carreira
+  (liga e copa), mas o rápido/online roda em **outro motor** — e é lá que a sala
+  grande enche de incógnita. Agora peneira nos dois, com a MESMA régua.
+
+⚠️ **A diferença de comportamento que o Diego precisa saber**: ele me disse *"eles
+podem fazer gols durante o jogo, não tem problema"*, e a versão que ficou é mais
+dura — o perna-de-pau **nem marca na súmula** (o gol sai como gol do time). Como é a
+que já está no ar e ele não reclamou, fica. Se ele quiser o meio-termo (marcar na
+súmula mas não no ranking), é voltar o sorteio e peneirar só a lista.
+
+**Trava: `npm run fake`** — reapontada pra régua da `main` e ampliada com as duas
+partes que sobraram (rápido/online e sobra antes do filler).
+
+---
+
+## 19/09/2026 (parte 23) — 🏋️💸 Troco de 200 pra quem já tinha o preparador 👑
+
+Ordem dele: *"aumente 200 de moedas pra quem tem o preparador [👑 Lenda], igual o
+time Rei da Bola — porque eu diminuí o valor de 1000 pra 800"*.
+
+Quem comprou o 👑 antes pagou **1.000** por uma coisa que agora custa **800**. O
+troco entra no caixa quando o save abre, com **recibo na tela** (mesmo formato do
+reembolso do Dep. Médico de 15/09 — não inventei layout novo).
+
+Garantias, as mesmas do irmão dele:
+- **uma vez só**: `preparadorDevolvidoV1` é gravada ao abrir, inclusive em quem não
+  tem preparador nenhum (assim o save não é varrido toda vez);
+- **só clube SEU** (principal + 2º clube); time de máquina nunca entra;
+- **nada mais é tocado**: contrato, salário e tanque do preparador ficam iguais;
+- **vai pro Extrato**, então dá pra conferir de onde veio a moeda.
+
+A tabela `PREPARADOR_DEVOLVE` é uma linha por preparador de propósito.
+
+### ✅ E o ⭐ também (ele liberou: *"perfeito, pode tb"*)
+O ⭐ caiu de **600 pra 500** na mesma mexida, então quem comprou antes recebe **100**
+pelo mesmo motivo. A tabela ficou: `{ seirulo: 200, paixao: 100 }` — 🟢 e 💎 não
+mudaram de preço e não têm troco. O texto do recibo virou genérico (cita os dois
+preços novos), porque agora são dois valores diferentes na mesma tela.
+
+### 🩹 E de quebra: a trava do preparador estava REPROVANDO há dois dias
+`npm run preparador` falhava em duas linhas desde a mexida de preços de 19/09 (a
+outra sessão baixou 600→500 e 1000→800 e fez a renovação virar metade, mas os dois
+números estavam escritos à mão na trava). Consertado — agora os preços **saem do
+catálogo**, então a próxima mudança de preço não quebra a trava de novo.
+
+---
+
+## 19/09/2026 (parte 22) — ⚔️ A linha do próximo jogo mais sutil + rivalidade só entre usuários
+
+Mockup aprovado por ele (*"sobre o mockup anterior está aprovado"*). O pedido veio
+vendo a tela da sala em live: *"tá mt exagerado esse negócio de próximo jogo e
+equilíbrio retranca e ataque… não precisa escrever o que é retranca, equilíbrio e
+ataque, só bote. E de forma mais sutil também o próximo jogo"*.
+
+### O que mudou
+1. 🧹 **Saiu a explicação das táticas** ("retranca segura ataque · ataque atropela
+   equilíbrio…"), nos DOIS blocos — o da liga e o da Copa. Ele mexe na tática toda
+   rodada; a explicação era ruído fixo. **A regra no jogo continua a mesma.**
+2. 🔇 **O título encolheu**: "PRÓXIMO" e "(em casa)" viraram uma etiqueta miúda em
+   cima (10px, cinza), e o nome do jogo caiu de 18px pra 15px. No celular ele
+   ocupava três linhas.
+3. ⚔️ **A rivalidade virou pílula**: `⚔️ RIVALIDADE V=2 · E=1 · D=1`.
+
+### A regra da rivalidade (palavras dele)
+*"Se tiver alguma rivalidade mostre se já teve jogo entre usuários APENAS. Se for
+usuário e bot não mostre nada… mas só vale entre usuários"*. Dois cortes:
+- o adversário tem que ser **gente** (`isHuman`) — **rival-bot da carreira não
+  conta**, mesmo continuando a ser "clássico" pra cor da caixa e pra etiqueta;
+- e eles já têm que **ter se enfrentado** — no primeiro duelo não existe
+  retrospecto, e "0 × 0" seria ruído.
+
+O `rivalry` velho (que misturava usuário e rival-bot num retrospecto por extenso)
+foi embora junto com o parágrafo de clássico.
+
+**Trava: `npm run proximo`** — 3 seções: a explicação não volta · a pílula sai do
+corte de usuário e exige jogo · o título continua miúdo.
+
+### ⏳ Ficou de fora, e ele ainda não respondeu
+A **faixa de DEPOIS do jogo** ("⚔️ CLÁSSICO VENCIDO contra X · Rivalidade: você 2 ×
+1") ainda mostra retrospecto **contra rival-bot da carreira**. Ele falou só do
+próximo jogo, e eu não quis estender por conta — perguntei e está esperando.
+
+---
+
+## 19/09/2026 (parte 21) — ⏱️ Mais 1 segundo na partida, agora incluindo TODAS as copas
+
+Ordem dele: *"aumente mais um segundo qualquer copa do online e offline… e também
+no jogo normal… qualquer modo offline carreira ou online… enfim aumente 1 segundo
+da simulação da partida pras copas todas e ligas"*.
+
+| onde | era | ficou |
+|---|---|---|
+| rodada do rápido/online (e basquete) | ~5,7s | **~6,7s** |
+| carreira · manual | 10s | **11s** |
+| carreira · auto | 11s | **12s** |
+| Copa da carreira (Legends / Brasil) | 9s | **10s** |
+| Copa dos 8 (rápido/online) | 15s | **16s** |
+| Copa do Mundo · offline | 9s | **10s** |
+| Copa do Mundo · online | 14s | **15s** |
+
+Um número só por lugar: `ROUND_EXTRA_MS` (rápido/online), `ROUND_MS` (carreira),
+`COPA_LEG_MS` (as duas copas de clube — a do rápido sai dele com +6s) e o par do
+`copa-mundo.tsx`.
+
+### 🗄️ ⚠️ FALTA RODAR O SQL — e sem ele a sala online fica pra trás
+Na sala **sincronizada**, quem manda no relógio da Copa do Mundo é o BANCO
+(`esc_copa_clock_preview.duration_ms`), pra todo mundo ver o mesmo minuto. O
+código só usa o número dele quando não há relógio sincronizado. Então:
+
+👉 **rodar `docs/sql/online-copa-clock-mais-1s.sql`** (única mudança: `14000` →
+`15000`). Sem isso, a Copa da sala continua em 14s enquanto o resto do jogo já
+está 1s mais devagar — e nada na tela avisa.
+
+**Trava: `npm run ritmo`, seção 1b** — confere os sete tempos E se o SQL bate com
+o código (se alguém mexer num e esquecer do outro, reprova).
+
+---
+
+## 19/09/2026 (parte 20) — 🎯 Sobra de VERDADE antes do perna-de-pau (e o que eu desfiz)
+
+### ⛔ Primeiro: o que eu desfiz, porque passei do ponto
+Vendo o print do Geovany (`ATA · Zé Ninguém (Várzea 2000) · pagou 50`), eu concluí
+que o perna-de-pau estava vazando pro LEILÃO e fechei a porta: pus `fake: true` nas
+quatro fábricas de filler e troquei 6 guardas do leilão. **O Diego mandou desfazer**:
+*"não queria que você fizesse muito bem assim não… o Geovany comprou no SONDAR
+jogador. Deixa ele poder ir pro sondar, não tem problema não — o usuário pode
+comprar sim lá no sondar se ele quiser"*.
+
+E ele estava certo também no efeito colateral: com o selo, o perna-de-pau comprado
+**deixaria de contar pra fechar os 11** no elenco de quem comprou, perderia contrato
+e sumiria da sondagem. Mudança grande demais. **Tudo revertido.**
+👉 Quem mantém o perna-de-pau fora de RANKING continua sendo o `ehCartaFake()`
+(`fake.ts`), que reconhece pelo clube e pelo id — não precisa de selo nenhum.
+
+### ✅ O que ele pediu de verdade, e que está feito
+Palavras dele: *"a gente tem um sorteio de um jogador que vai pro leilão, e o time
+desse jogador também participa do leilão. Se ele também não comprar nenhum atacante
+nesse leilão, ele poderia ganhar um jogador que está sobrando das sobras, de
+atacante de sobra. Mas só se ele não conseguir repor esse atacante no leilão"*.
+
+Era exatamente o buraco: `fillToEleven` (a rede que devolve o time de fundo pra 11
+depois do mercado) ia **direto pro perna-de-pau**, sem nunca olhar as sobras. Por
+isso nascia um Zé Ninguém ATACANTE com 31 de nível enquanto dezenas de atacantes
+reais estavam sem dono — a resposta pra pergunta dele.
+
+Agora a ordem é **1º sobra real · 2º perna-de-pau**:
+- `sobrasReais(s)` monta a fila por posição com quem não está em elenco nenhum
+  (nem de técnico, nem de fundo, nem no baralho do leilão);
+- ordenada do mais FRACO pro mais forte — quem tapa buraco de time de fundo é a
+  sobra modesta, não o craque esquecido (esse continua aparecendo no leilão);
+- consumida com `shift()`, então dois times nunca levam a mesma carta;
+- o perna-de-pau **continua existindo** como última rede: sem ele, time de fundo
+  entraria em campo com 10.
+
+**Trava: `npm run fake`, seção 6.**
+
+### 📊 Quantas cartas faltam pra acabar com o perna-de-pau de vez
+Medido (`npm run pernadepau`), com 20 técnicos de elenco CHEIO (27 cartas):
+| posição | faltando |
+|---|---|
+| GOL | 47 |
+| LAT | 77 |
+| ZAG | 58 |
+| MEI | **0** |
+| ATA | **0** |
+
+Ou seja: **não falta atacante nem meia — falta goleiro, lateral e zagueiro.** E o
+corte em 4 faixas de força pede margem, então na prática são ~+100 GOL, ~+150 LAT e
+~+120 ZAG (≈ 370 cartas novas, baralho indo pra ~1.840). Não precisa de 2.500.
+
+---
+
+## 19/09/2026 (parte 19) — 🧮 Por que aparece perna-de-pau se o baralho tem 1.466 cartas
+
+Pergunta do Diego: *"se eu tenho 1466 cartas, por que essas cartas todas não estão
+preenchidas no baralho? Por que está aparecendo um monte de jogador fake?"*
+
+Medido com o código de verdade (`npm run pernadepau` → `scripts/mede-perna-de-pau.mjs`,
+que roda o `seedCpuSquads`, o mesmo que monta os times de fundo). **Não é que as
+1.466 não são usadas — é que elas têm o FORMATO errado.**
+
+### 1. O baralho não é uma pilha só: são CINCO, uma por posição
+| posição | tem no baralho | a pirâmide precisa (80 times × 11) |
+|---|---|---|
+| GOL | 153 | 80 |
+| LAT | **204** | **160** |
+| ZAG | **202** | **160** |
+| MEI | 413 | 240 |
+| ATA | 494 | 240 |
+
+Sobra atacante (494 pra 240) e quase não sobra lateral. Atacante que sobra **não
+tapa buraco de lateral** — o sorteio é posição por posição.
+
+### 2. E o pool ainda é cortado em QUATRO faixas de força (uma por divisão)
+Cada faixa precisa, sozinha, de 20 GOL · 40 LAT · 40 ZAG · 60 MEI · 60 ATA:
+
+| faixa | GOL | LAT | ZAG | MEI | ATA |
+|---|---|---|---|---|---|
+| A (mais forte) | 37 | **23** 🔴 | 41 | 121 | 145 |
+| B | 42 | 44 | 64 | 95 | 122 |
+| C | 30 | 57 | 47 | 115 | 118 |
+| D | 44 | 80 | 50 | 82 | 109 |
+
+A Série A tem **23 laterais pra 40 vagas** — e sobra lateral na D (80 pra 40). Hoje
+a faixa A **não empresta** da B: inventa filler. São 17 fillers só por isso, com o
+baralho INTEIRO disponível.
+
+### 3. E as cartas do usuário e dos rivais saem do pool ANTES
+| elencos em campo | cartas fora do pool | tapa-buraco na pirâmide |
+|---|---|---|
+| 20 × 11 | 220 | 46 |
+| 20 × 15 | 300 | 70 |
+| 20 × 20 | 400 | 100 |
+| 20 × 27 (elenco cheio) | 540 | **182** |
+
+### 🔧 Os dois consertos possíveis (decisão do Diego)
+1. **Faixa empresta da vizinha** antes de inventar filler: falta lateral na A, pega
+   o melhor lateral da B. Custa uma linha de código e derruba quase todo o
+   tapa-buraco. Só vale pra carreira NOVA (elenco de bot já salvo não muda).
+2. **Mais cartas de LAT/ZAG/GOL no baralho** — o conserto de raiz. Hoje o baralho
+   tem 2,4 atacantes pra cada lateral.
+
+⏳ **Não fiz nenhum dos dois ainda**: é mudança de regra de carreira, ele decide.
+
+---
+
+## 19/09/2026 (parte 18) — 🃏🚫 Jogador tapa-buraco fora de artilharia, garçons e Bola de Ouro
+
+Ordem do Diego: *"tem um monte de jogador fake, Zé Ninguém, Trapalhão, ganhando a
+bola de ouro… eles podem fazer gols ou assistência durante o jogo, não tem problema
+nenhum. Mas não podem contar pra estatística de artilharia, assistência e bola de
+ouro"*.
+
+### A regra, em uma linha
+**Tapa-buraco joga, marca e some.** O gol dele conta no PLACAR, sai na narração e
+entra na ficha do time — ele só não aparece em NENHUMA classificação.
+
+### Quem é tapa-buraco (são DOIS tipos, e valem os dois)
+| tipo | como é | de onde vem |
+|---|---|---|
+| **filler de várzea** | `fil-…`, clube `Várzea` (no basquete, `Pickup`), nível 30–40, nome de zoeira | `filler()` em `pyramidseason.tsx` — fecha elenco de time de CPU |
+| **incógnita** | `inc-…`, `fake: true`, nome e clube inventados | `makeIncognita()` em `data.ts` — quando o catálogo real de uma posição acaba |
+
+Quem responde "é tapa-buraco?" é `src/escalacao/fake.ts`, um arquivo só — assim não
+existe lista de ranking que peneirou com régua diferente.
+
+### Onde a peneira entrou
+- **Liga** (`simulatePyramid`): artilharia, garçons **e o artilheiro da divisão** —
+  este último paga caixa pro clube e sobe o PISO do jogador, e filler não tem piso
+  nem salário, então o prêmio ia pro ralo e ainda tirava o troféu de quem jogou.
+- **Copa Legends** e **Copa do Brasil**: artilharia, garçons e o artilheiro da Copa.
+- **Jogo rápido / sala online** (`simMatch`), inclusive a **cestinha do basquete**.
+- **Bola de Ouro** (`melhorDoMundo`): peneira repetida de propósito — é o prêmio que
+  ele viu indo pro Zé Ninguém, é o último lugar onde eu quero depender de quem chamou.
+- **Porta do histórico** (`RECORD_SEASON_STATS`): peneira de novo, pra competição
+  nova que nasça esquecendo de peneirar não furar o acumulado.
+
+### 🧹 E o PASSADO é limpo
+Trava nova só impede que entre MAIS. Ao abrir o save (`migrateTeamNames`), sai quem
+já entrou: artilheiros e garçons de todos os tempos, e **o ano de Bola de Ouro
+ganho por tapa-buraco some do quadro de campeões** — não dá pra recalcular quem
+seria o certo (os números daquela temporada não ficam guardados), e some é melhor
+do que mentir.
+
+### 🛡️ O medo, e como ele foi medido
+O risco desta mudança é o contrário dela: sumir com jogador DE VERDADE do Rank.
+Varri o baralho inteiro (**1.466 cartas**): zero cartas reais com clube
+Várzea/Pickup, zero com nome de filler e zero que batem nome de incógnita E clube de
+incógnita ao mesmo tempo. **Nenhum falso positivo.** A varredura é parte da trava,
+então ela reprova sozinha se um dia entrar no baralho um jogador que caia na regra.
+
+**Trava: `npm run fake`** (5 seções: reconhecimento · zero falso positivo · Bola de
+Ouro · limpeza do passado · gol e assistência peneirados igual).
+
+🚫 **Não virou novidade da home**: é conserto, e a regra dele é *"menos bugs, que
+nunca lance"*.
+
+---
+
 ## 19/09/2026 (parte 17) — 🌑🐺 Mascote NOVA do Pesadelo Verde FC
 
 Ordem dele, curta: *"troque o mascote do pesadelo verde por esse aqui"*. Saiu o

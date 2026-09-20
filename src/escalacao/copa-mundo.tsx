@@ -937,7 +937,11 @@ export function CupScreen({ entrants, seasonNo, seed, save, onPrize, onCard, onM
   // a MESMA regra que a partida da liga segue desde 13/09. No manual quem manda no ritmo
   // é o 🐢/⏩ do técnico. Na sala com relógio sincronizado quem soma o segundo é o banco
   // (`esc_copa_preview_clock`), pra todo mundo ver o mesmo minuto.
-  const roundMs = synced?.row?.duration_ms ?? Math.round(((online ? 14000 : 9000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
+  // 🔁 19/09: 15s online / 10s offline (eram 14/9) — o +1s que ele pediu pra TODAS as
+// copas. ⚠️ No ONLINE SINCRONIZADO quem manda é `synced.row.duration_ms`, que vem do
+// BANCO (`esc_copa_clock_preview`): lá o segundo só entra rodando o SQL de
+// `docs/sql/online-copa-clock-mais-1s.sql`. Sem isso, a sala sincronizada segue em 14s.
+  const roundMs = synced?.row?.duration_ms ?? Math.round(((online ? 15000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
 
   const localLiveMin = useLiveMin(roundKey, roundMs, liveDone)
   const liveMin = synced ? synced.row ? clockMinute(synced.row, synced.now) : 0 : localLiveMin

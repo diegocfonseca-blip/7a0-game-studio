@@ -794,7 +794,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
       if (!e.assist || !e.assistId) continue
       const k = `${t.name}:${e.assistId}`, row = assists.get(k)
       if (row) row.assists++
-      else assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId, club: t.squad.find(x => x.id === e.assistId)?.club, year: t.squad.find(x => x.id === e.assistId)?.year })
+      else {
+        const carta = t.squad.find(x => x.id === e.assistId)
+        assists.set(k, { name: e.assist, teamName: t.name, teamId: t.teamId, div, assists: 1, you: t.you, human: t.human, rival: t.rival, dorm: t.dorm, cardId: e.assistId, club: carta?.club, year: carta?.year })
+      }
     }
   }
   const nr = Math.min(round, 38)
@@ -2708,14 +2711,19 @@ const DIV_NAME: Record<Div, string> = { A: 'Série A', B: 'Série B', C: 'Série
 // ➕ 10s por rodada desde 18/09 — eram 9s. Diego: *"aumente em mais 1s a simulação
 // de uma partida, tanto no modo offline qualquer ou modo online qualquer também"*.
 // No AUTO ainda entra o `AUTO_EXTRA_MS` por cima (11s), como desde 13/09.
-const ROUND_MS = 10000
+// 🔁 19/09: 11s (eram 10). Ele pediu o segundo de novo, pra TODOS os modos e TODAS
+// as competições — liga e copa, online e offline. No AUTO vira 12s.
+const ROUND_MS = 11000
 // ⏱️ +1s SÓ no AUTO da carreira (Diego 13/09: "aumente mais 1s o tempo da simulação da
 // partida no modo carreira em auto"). No manual o técnico já controla o ritmo (🐢/⏩).
 // ⏱️ …e desde 15/09 vale pra COPA também, nas palavras dele: *"aumente p 1s a simulação
 // dos jogos das Copas nos jogos rolando no modo auto, nos jogos das copas dos modos online
 // e no off-line do modo carreira"*. Mesmo +1s, mesma regra: só no AUTO.
 export const AUTO_EXTRA_MS = 1000
-export const COPA_LEG_MS = 9000 // cada JOGO da Copa rola ~9s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
+// 🔁 19/09: 10s (eram 9). Este número é a COPA inteira do jogo: a Copa da carreira
+// usa ele direto, e a Copa dos 8 do rápido/online sai dele (`QUICK_COPA_LEG_MS =
+// COPA_LEG_MS + 6000`). Então o +1s dele cobre as duas de uma vez.
+export const COPA_LEG_MS = 10000 // cada JOGO da Copa rola ~10s (como uma partida da liga: 90'+acréscimos). Fase de ida-e-volta = 2×; final (jogo único) = 1×.
 
 // COR DO TIME: todo mundo começa na cor BEGE do "Foi Profissional" — a cor
 // de todo mundo. Cor diferente (verde/roxo/prata/OURO com brilho) é benefício
@@ -9009,6 +9017,23 @@ export function PyramidSeasonScreen() {
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                   <button onClick={() => { dispatch({ type: 'MEDICO_AVISO_VISTO' }); setTab('elenco') }} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('🏋️ Ver o preparador', '🏋️ See the fitness coach')}</button>
                   <button onClick={() => dispatch({ type: 'MEDICO_AVISO_VISTO' })} style={{ flex: 'none', background: 'transparent', color: '#E3EDE3', border: '3px solid rgba(255,255,255,.35)', borderRadius: 12, fontWeight: 900, fontSize: 13, padding: '10px 14px', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('Entendi', 'Got it')}</button>
+                </div>
+              </div>
+            ),
+          })
+          // 🏋️💸 O TROCO DO PREPARADOR (Diego 19/09: *"aumente 200 de moedas pra quem
+          // tem o preparador [👑], igual o time Rei da Bola, porque eu diminuí o valor
+          // de 1000 pra 800"*). MESMA CARA do recibo do Dep. Médico de propósito — é o
+          // mesmo tipo de aviso (dinheiro que JÁ entrou), então não inventa layout novo.
+          if (state.preparadorDevolvido) fila.push({
+            key: 'preparador-troco', render: () => (
+              <div style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(150deg,#123b25,#0a1f13)', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14, marginBottom: 12, color: '#fff' }}>
+                <span style={{ display: 'inline-block', background: GOLD, color: INK, fontWeight: 900, fontSize: 10.5, padding: '3px 9px', borderRadius: 999, border: `2px solid ${INK}`, textTransform: 'uppercase' }}>{tr('💸 Troco pra você', '💸 Change for you')}</span>
+                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '8px 0 0', textTransform: 'uppercase', lineHeight: 1.05 }}>{getLang() === 'en' ? <>Your fitness coach got <span style={{ color: GOLD }}>{state.preparadorDevolvido} 🪙</span> cheaper</> : <>Seu preparador ficou <span style={{ color: GOLD }}>{state.preparadorDevolvido} 🪙</span> mais barato</>}</p>
+                <p style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.45, margin: '8px 0 0', color: '#E3EDE3' }}>{getLang() === 'en' ? <>The fitness coaches got cheaper: ⭐ <b>500</b> (was 600) and 👑 <b>800</b> (was 1,000). You had already paid the old price — so the difference is <b>back in your till</b>. Your coach stays exactly as he was: same contract, same wage, same tank.</> : <>Os preparadores ficaram mais baratos: ⭐ <b>500</b> (era 600) e 👑 <b>800</b> (era 1.000). Você já tinha pago o preço antigo — então a diferença <b>voltou pro seu caixa</b>. O seu preparador continua igualzinho: mesmo contrato, mesmo salário, mesmo tanque.</>}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: GREEN, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '9px 12px', margin: '10px 0 0', fontWeight: 900, fontSize: 13, lineHeight: 1.3 }}>+{state.preparadorDevolvido} 🪙 {tr('já no caixa do clube', 'already in the club till')}<span style={{ opacity: .85, fontWeight: 700, fontSize: 10.5 }}>{tr('· está lançado no Extrato', '· it is logged in the Statement')}</span></div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <button onClick={() => dispatch({ type: 'PREPARADOR_AVISO_VISTO' })} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, fontWeight: 900, fontSize: 13, padding: '10px 0', textTransform: 'uppercase', cursor: 'pointer', ...OSWALD }}>{tr('Entendi', 'Got it')}</button>
                 </div>
               </div>
             ),

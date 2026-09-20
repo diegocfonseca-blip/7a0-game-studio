@@ -24,7 +24,12 @@ const C = await vite.ssrLoadModule('/src/escalacao/condicao.ts')
 const P = await vite.ssrLoadModule('/src/escalacao/preparadores.ts')
 const { reducer } = S
 const { gasDoElenco, sugerirRodizio, pctBarra, pedeRodizio, estadoGas, modGas, corBarra, corGas, GAS_BANCO, GAS_JOGO } = C
-const { PREPARADORES, preparadorDe, salarioPreparador, temAutomatico, CONTRATO_PRAZOS, CONTRATO_MAX, sorteiaPrazo } = P
+const { PREPARADORES, preparadorDe, salarioPreparador, temAutomatico, CONTRATO_PRAZOS, CONTRATO_MAX, sorteiaPrazo, precoRenovacaoPreparador } = P
+// 💰 os preços SAEM DO CATÁLOGO, nunca escritos à mão aqui: em 19/09 outra sessão
+// baixou os dois de cima (600→500, 1000→800) e a renovação virou METADE, e esta
+// trava ficou reprovando por dois dias por causa de dois números fixos.
+const PRECO_TOPO = preparadorDe('seirulo').preco
+const PRECO_FARIA = preparadorDe('faria').preco
 
 let falhas = 0
 const ok = (cond, msg) => { console.log(`  ${cond ? '✅' : '❌'} ${msg}`); if (!cond) falhas++ }
@@ -54,8 +59,9 @@ console.log('\n1) 💰 comprar — o preço sai do CATÁLOGO, nunca de fora')
   ok(!s.careerPreparador?.['Meia na Canela'] && s.careerCoins[0] === 1200, 'chave inventada não compra nem cobra')
 }
 {
-  const s = reducer(base({ careerCoins: { 0: 999 } }), { type: 'BUY_PREPARADOR', key: 'seirulo' })
-  ok(!s.careerPreparador?.['Meia na Canela'] && s.careerCoins[0] === 999, 'sem moedas suficientes não compra (999 < 1000)')
+  const curto = PRECO_TOPO - 1
+  const s = reducer(base({ careerCoins: { 0: curto } }), { type: 'BUY_PREPARADOR', key: 'seirulo' })
+  ok(!s.careerPreparador?.['Meia na Canela'] && s.careerCoins[0] === curto, `sem moedas suficientes não compra (${curto} < ${PRECO_TOPO})`)
 }
 {
   const um = reducer(base(), { type: 'BUY_PREPARADOR', key: 'faria' })
@@ -76,7 +82,11 @@ console.log('\n2) 📝 renovar e dispensar — as MESMAS regras do técnico')
   const naT8 = { ...comprado, seasonNo: 8 } // venceu no fim da T7
   const renov = reducer(naT8, { type: 'RENOVAR_PREPARADOR' })
   const prazoR = renov.careerPreparadorContrato['Meia na Canela'] - 8 + 1
-  ok(CONTRATO_PRAZOS.includes(prazoR) && renov.careerCoins[0] === 1000, `vencido renova pelo mesmo preço, com prazo novo sorteado (saiu ${prazoR})`)
+  // 🔁 19/09: renovar custa METADE do preço (*"tá mt caro renovar contrato de
+  // preparador… quero q seja metade todos eles"*). Antes era o preço cheio.
+  const custoRenov = precoRenovacaoPreparador(preparadorDe('faria'))
+  const esperado = 1200 - PRECO_FARIA - custoRenov
+  ok(CONTRATO_PRAZOS.includes(prazoR) && renov.careerCoins[0] === esperado, `vencido renova pela METADE (${custoRenov} de ${PRECO_FARIA}), com prazo novo sorteado (saiu ${prazoR})`)
   const solto = reducer(naT8, { type: 'DISPENSAR_PREPARADOR' })
   ok(solto.careerPreparador['Meia na Canela'] === null && solto.careerCoins[0] === 1100, 'dispensa vencido sem multa (não cobra nada)')
   const naoSolta = reducer(naT5, { type: 'DISPENSAR_PREPARADOR' })
@@ -192,6 +202,29 @@ console.log('\n9) 🎲 o PRAZO SORTEADO (Diego 18/09: "opcao A, mas quero mais t
   ok(Math.max(...saiu) <= CONTRATO_MAX, `nenhum sorteio passa do teto de ${CONTRATO_MAX}`)
   const media = soma / N
   ok(media >= 5, `a media (${media.toFixed(2)}) nao e pior que os 5 fixos de antes`)
+}
+
+console.log('\n5) 🏋️💸 O TROCO DO PREPARADOR (Diego 19/09)')
+{
+  // *"aumente 200 de moedas pra quem tem o preparador [👑], igual o time Rei da Bola,
+  // porque eu diminuí o valor de 1000 pra 800"*. Quem pagou 1.000 recebe a diferença.
+  const comSeirulo = { ...base(), careerPreparador: { 'Meia na Canela': 'seirulo' } }
+  const pago = S.devolvePreparadorUmaVez(comSeirulo)
+  ok(pago.careerCoins[0] === 1400, `quem tem o 👑 recebe o troco: ${pago.careerCoins[0]} (era 1200)`)
+  ok(pago.preparadorDevolvido === 200, 'a tela recebe o recibo de 200')
+  ok(pago.preparadorDevolvidoV1 === true, 'a marca de "já paguei" fica gravada')
+  // 🔁 e não paga duas vezes, por mais que o save abra
+  const denovo = S.devolvePreparadorUmaVez(S.devolvePreparadorUmaVez(pago))
+  ok(denovo.careerCoins[0] === 1400, `reabrir o save não paga de novo: ${denovo.careerCoins[0]}`)
+  // ⭐ o de 600 virou 500, então o troco dele é 100 (ele liberou: *"perfeito, pode tb"*)
+  const comPaixao = S.devolvePreparadorUmaVez({ ...base(), careerPreparador: { 'Meia na Canela': 'paixao' } })
+  ok(comPaixao.careerCoins[0] === 1300 && comPaixao.preparadorDevolvido === 100, `quem tem o ⭐ recebe 100: ${comPaixao.careerCoins[0]}`)
+  // 🚫 quem tem preparador que NÃO mudou de preço não recebe nada
+  const comFaria = S.devolvePreparadorUmaVez({ ...base(), careerPreparador: { 'Meia na Canela': 'faria' } })
+  ok(comFaria.careerCoins[0] === 1200 && !comFaria.preparadorDevolvido, 'quem tem preparador que não mudou de preço não recebe troco')
+  // 🚫 e quem não tem preparador nenhum também não — mas a marca é gravada mesmo assim
+  const semNada = S.devolvePreparadorUmaVez(base())
+  ok(semNada.careerCoins[0] === 1200 && semNada.preparadorDevolvidoV1 === true, 'sem preparador: não paga, mas marca (pra não varrer o save toda vez)')
 }
 
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)

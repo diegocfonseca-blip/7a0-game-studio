@@ -5118,7 +5118,12 @@ export const SEASON_TOTAL_MS = 180_000
 // ⚠️ Somado AQUI e não no `SEASON_TOTAL_MS`, de propósito: aquela constante é o
 // orçamento da temporada e também divide o basquete (82 jogos). Mexer nela mudaria
 // duas coisas de uma vez; o segundo a mais é da RODADA.
-export const ROUND_EXTRA_MS = 1000
+// 🔁 19/09: virou **2000** — ele pediu MAIS um segundo, com as mesmas palavras de
+// antes: *"aumente mais um segundo qualquer copa do online e offline, e também no
+// jogo normal, qualquer modo offline carreira ou online… enfim aumente 1 segundo da
+// simulação da partida pras copas todas e ligas"*. Ou seja: a rodada do rápido/online
+// saiu de ~5,7s pra ~6,7s, e o gol (3,1s) passa a ocupar 46% dela.
+export const ROUND_EXTRA_MS = 2000
 const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + ROUND_EXTRA_MS // ~5,7s por rodada
 // 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
@@ -5364,7 +5369,22 @@ export function EscSeason() {
   const toWLD = (rv?: { h2h: [number, number, number] }) => rv ? { w: rv.h2h[0], l: rv.h2h[2], d: rv.h2h[1] } : null
   const oppCareerRiv = careerRivalOf(opp?.name)
   const isClassico = (!!opp && state.managers.some(m => m.id === opp.id && m.isHuman)) || !!oppCareerRiv
-  const rivalry = isClassico && opp ? (oppCareerRiv ? toWLD(oppCareerRiv) : rivalryOf(state.rivalries, you.id, opp.id)) : null
+  // 🧹 19/09: o `rivalry` (retrospecto que misturava usuário e rival-bot) saiu junto
+  // com o parágrafo de clássico — quem mostra retrospecto agora é o `rivChip`, e ele é
+  // só de usuário contra usuário. O `toWLD`/`oppCareerRiv` continuam vivos pro CLÁSSICO
+  // (a cor da caixa e a etiqueta) e pra faixa de depois do jogo.
+  // ⚔️ RIVALIDADE NO PRÓXIMO JOGO — SÓ ENTRE USUÁRIOS (Diego 19/09, mockup aprovado):
+  // *"se tiver alguma rivalidade mostre se já teve jogo entre usuários APENAS. Se for
+  // usuário e bot não mostre nada. Mas se for entre dois usuários que já jogaram entre
+  // si, mostra quantidade de vitórias tipo Rivalidade V=2 D=1"*.
+  // Dois cortes, e os dois importam:
+  //  · o adversário tem que ser GENTE (`isHuman`) — rival-bot da carreira não conta,
+  //    mesmo sendo "clássico" pro resto da tela;
+  //  · e eles já têm que ter se enfrentado — no primeiro duelo não existe retrospecto
+  //    pra mostrar, e inventar "0 × 0" seria ruído.
+  const oppEhGente = !!opp && state.managers.some(m => m.id === opp.id && m.isHuman)
+  const rivUser = oppEhGente && opp ? rivalryOf(state.rivalries, you.id, opp.id) : null
+  const rivChip = rivUser && (rivUser.w + rivUser.l + rivUser.d) > 0 ? rivUser : null
   const myLast = state.lastResults.find(r => r.homeId === you.id || r.awayId === you.id)
   // clássico recém-jogado: mostra o resultado com peso de rivalidade
   const lastOppId = myLast ? (myLast.homeId === you.id ? myLast.awayId : myLast.homeId) : undefined
@@ -5883,7 +5903,10 @@ export function EscSeason() {
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? LS('Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.', 'Defense holds run-and-gun · run-and-gun runs over balance · balance breaks the defense.') : LS('Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.', 'Park the bus holds attack · attack runs over balanced · balanced breaks the bus.')}</p>
+                {/* 🧹 19/09: SAIU a linha "retranca segura ataque · ataque atropela
+                    equilíbrio…". Palavras dele: *"não precisa escrever o que é retranca,
+                    equilíbrio e ataque, só bote"*. Ele mexe na tática toda rodada — a
+                    explicação virou ruído fixo na tela. A regra continua a mesma no jogo. */}
               </Box>
             )}
             {qc.ties.length > 0 && (!privateVisual || visualTab === 'jogos') && (
@@ -5977,18 +6000,6 @@ export function EscSeason() {
 
       {fixture && opp && (
         <Box bg={isClassico ? GOLD : '#fff'} className="p-4 space-y-3">
-          {isClassico && (
-            <div>
-              <p className="font-black text-xs uppercase tracking-wide" style={OSWALD}>{oppCareerRiv ? LS(`🔥 CLÁSSICO — contra ${opp.name}, seu rival de sempre!`, `🔥 DERBY — against ${opp.name}, your rival of old!`) : LS('🥊 CLÁSSICO — é contra a galera!', '🥊 DERBY — it\'s against a friend!')}</p>
-              {rivalry && (
-                <p className="font-black text-[11px] mt-0.5" style={OSWALD}>
-                  {rivalry.w + rivalry.l + rivalry.d === 0
-                    ? LS('⚔️ Primeiro duelo de vocês — começa a rivalidade!', '⚔️ Your first duel — the rivalry begins!')
-                    : enS ? `⚔️ Head-to-head: you ${rivalry.w} × ${rivalry.l} ${opp.name}${rivalry.d ? ` · ${rivalry.d} draw${rivalry.d > 1 ? 's' : ''}` : ''}` : `⚔️ Retrospecto: você ${rivalry.w} × ${rivalry.l} ${opp.name}${rivalry.d ? ` · ${rivalry.d} empate${rivalry.d > 1 ? 's' : ''}` : ''}`}
-                </p>
-              )}
-            </div>
-          )}
           {/* ⚔️ A LINHA DO PRÓXIMO JOGO + OS TRÊS BOTÕES DE TÁTICA, SEMPRE À MOSTRA.
               De manhã (18/09) eles viraram uma PÍLULA que abria no toque, a pedido
               dele (*"tem que diminuir esse modal aí de equilíbrio, ataque, defesa nos
@@ -5997,12 +6008,28 @@ export function EscSeason() {
               📌 Lição que fica: esconder atrás de um toque vale pra ação RARA
               (formação, modo de troca — foi onde ele aprovou e manteve). Tática ele
               mexe TODA rodada, olhando o próximo adversário; ali um toque a mais é um
-              toque a mais toda rodada. */}
+              toque a mais toda rodada.
+              🔇 19/09 — MAIS SUTIL (mockup aprovado). Ele viu a tela em live: *"tá mt
+              exagerado esse negócio de próximo jogo… de forma mais sutil também"*.
+              O que mudou: "PRÓXIMO" e "(em casa)" viraram uma ETIQUETA miúda em cima,
+              o nome do jogo caiu de 18px pra 15px, e a faixa de clássico (que era um
+              parágrafo próprio + o retrospecto por extenso) virou a própria etiqueta
+              mais uma PÍLULA de rivalidade. Três linhas de texto viraram duas. */}
           <div className="ll-linha-tatica">
-            <p className="font-black text-lg" style={OSWALD}>
-              {LS('PRÓXIMO', 'NEXT')}: {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
-              <span className="text-xs text-black/70"> {fixture[0] === you.id ? LS('(em casa)', '(home)') : LS('(fora)', '(away)')}</span>
+            <p className="font-black text-[10px] uppercase tracking-[1.4px] text-black/45" style={OSWALD}>
+              {isClassico ? LS('🔥 Clássico', '🔥 Derby') : LS('Próximo jogo', 'Next match')} · {fixture[0] === you.id ? LS('em casa', 'home') : LS('fora', 'away')}
             </p>
+            <p className="font-black text-[15px] leading-tight" style={OSWALD}>
+              {fixture[0] === you.id ? `${you.teamName} × ${opp.name}` : `${opp.name} × ${you.teamName}`}
+            </p>
+            {/* ⚔️ a pílula só existe entre DOIS USUÁRIOS que JÁ se enfrentaram — ver
+                `rivChip`. Contra bot (inclusive o rival de sempre da carreira) não
+                aparece nada, que é a regra dele. */}
+            {rivChip && (
+              <span className="inline-flex items-center gap-1.5 mt-1.5 border-2 border-black rounded-full px-2 py-0.5 bg-white font-black text-[11px]" style={OSWALD}>
+                ⚔️ {LS('RIVALIDADE', 'HEAD-TO-HEAD')} <b>{LS('V', 'W')}={rivChip.w}{rivChip.d ? ` · ${LS('E', 'D')}=${rivChip.d}` : ''} · {LS('D', 'L')}={rivChip.l}</b>
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
@@ -6016,7 +6043,6 @@ export function EscSeason() {
           {/* 🎨 Diego 14/08: box mais clean, igual o da Copa — tirei a barra de
               progresso + o textão "temporada rolando sozinha" (decorativo, a
               Copa nunca teve isso e ficava mais poluído aqui). */}
-          <p className="text-[11px] font-semibold text-black/70">{state.sport === 'basquete' ? LS('Defesa segura o run-and-gun · run-and-gun atropela o equilíbrio · equilíbrio fura a defesa.', 'Defense holds run-and-gun · run-and-gun runs over balance · balance breaks the defense.') : LS('Retranca segura ataque · ataque atropela equilíbrio · equilíbrio fura retranca.', 'Park the bus holds attack · attack runs over balanced · balanced breaks the bus.')}</p>
         </Box>
       )}
 
