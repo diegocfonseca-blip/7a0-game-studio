@@ -446,6 +446,19 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   anulado, no monte a carta fica travada). No código: `semContrato` = abandonou (teto +
   proibição) · `tetoOficial` = só o teto do valor, usado quando a listagem pega um
   contrato já vencido. **Nunca carimbar `semContrato` numa carta que o dono listou.**
+- **🔁 A CARTA QUE O DONO RECUPERA NO MONTE VOLTA COMO SAIU (20/09, regra permanente).**
+  Palavras dele: *"gostei disso de voltar pro dono sem custo pelo mesmo valor de mil, se
+  ele botou por mil"*. Contexto: usuários (Rei da Bola, Cajuri Raiva) pagavam caro pra
+  bot nenhum disputar, listavam, ninguém cobria, a carta caía no monte pela METADE e
+  eles repescavam de graça — salário, renovação e teto de venda caíam pela metade sem
+  vender nada. Agora `halveListed` guarda `paidAntes` e `takeFromMonte`, quando é o
+  PRÓPRIO dono, devolve `paid = paidAntes` + o contrato de quando saiu (curado por
+  `curaContratoVoltando`) e regrava o livro com o valor verdadeiro. Continua DE GRAÇA.
+  Pros OUTROS clubes, metade e contrato zerado, como sempre. Trava: `npm run monte`.
+  🛑 **E o TETO DO BOT ficou como está** — depois de 6 rodadas de bancada ele disse
+  *"não entendi nada"* e a lição está no fornecedor (🗣️ abaixo). Ele quer *"algo
+  inteligente que funcione mas não extrapole"* pro teto crescer: as réguas medidas
+  estão em `scripts/simula-teto.mts`; só levar pra ele UMA proposta, em uma frase.
 - **🔒 REGRA DE OURO CONTRA BOTÃO MUDO (19/09, aprendida DUAS vezes no mesmo dia).**
   Tela e reducer não podem ter regras próprias pra mesma coisa. Aconteceu no monte
   (a tela acendia PEGAR e o reducer recusava por contrato vencido) e no início de

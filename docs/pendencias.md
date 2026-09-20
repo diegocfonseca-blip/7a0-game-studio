@@ -120,10 +120,21 @@ O que ficou na mesa pra ele decidir é UMA coisa só, com sim ou não:
 **a carta que volta pro próprio dono no monte volta COMO SAIU, não pela metade** —
 mata o lucro da artimanha sem encostar no bot nem em teto nenhum.
 
-### ⏳ PENDENTE — esperando a palavra do Diego (nada implementado)
-1. Livro de preços gravar só até o teto de mercado (`recordPrice`).
-2. Carta que volta pro dono no monte voltar "como saiu" (mesmo valor, mesmo contrato).
-3. Teto do bot pelo BOLSO do clube + NÍVEL da carta + inflação por temporada.
+### ✅ FEITO (20/09, aprovado): a carta que o dono recupera no monte VOLTA COMO SAIU
+Palavras dele: *"gostei disso de voltar pro dono sem custo pelo mesmo valor de mil, se
+ele botou por mil"*. `halveListed` guarda `paidAntes`; `takeFromMonte` devolve ao PRÓPRIO
+dono `paid = paidAntes` + o contrato de quando saiu, e regrava o livro com o valor
+verdadeiro. De graça, como sempre. Pros outros clubes, metade e contrato zerado.
+Tela do Monte mostra o valor de antes na sua carta e o texto de ajuda diz "volta como
+saiu". Novidade PT/EN na home. Trava: `npm run monte` (seção 1a).
+
+### ⏳ PENDENTE
+1. **Teto do bot crescer sem extrapolar** — ele pediu de novo (20/09, depois do
+   "não entendi nada"): *"precisamos bolar alguma ideia pro piso dos bots de todos os
+   clubes aumentar e não ficar preso no 450… algo inteligente que funcione mas também
+   não extrapole"*. As réguas medidas estão em `scripts/simula-teto.mts`. Levar UMA
+   proposta, em uma frase, com sim/não — nunca mais tabela atrás de tabela.
+2. Livro de preços gravar só até o teto de mercado (`recordPrice`) — não decidido.
 
 ## 20/09/2026 (parte 3) — 👟 AS 20 MARCAS DE MATERIAL ESPORTIVO
 

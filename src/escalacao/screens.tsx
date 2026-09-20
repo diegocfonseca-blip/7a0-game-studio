@@ -5090,7 +5090,7 @@ export function EscMonte() {
       </p>
       {state.careerOnline && state.monte.some(c => ((c as { paid?: number }).paid ?? 0) > 0) && (
         <p className="text-xs font-semibold text-black/60">
-          {getLang() === 'en' ? <>🆓 A leftover <b>with no value</b> is <b>free</b>. A player <b>with a floor</b> (💰) is a <b>buy without auction</b> — pay the fixed value. On players <b>you listed</b> you have <b>priority</b>: first chance to recover for free (already worth half). Let it pass, and the others take him — paying half. And <b>nobody is forced</b>: you can pass.</> : <>🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Nos jogadores que <b>você listou</b> você tem <b>preferência</b>: a primeira chance de recuperar de graça (já valendo a metade). Se deixar passar, aí os outros levam — pagando metade. E <b>ninguém é obrigado</b>: dá pra passar a vez.</>}
+          {getLang() === 'en' ? <>🆓 A leftover <b>with no value</b> is <b>free</b>. A player <b>with a floor</b> (💰) is a <b>buy without auction</b> — pay the fixed value. On players <b>you listed</b> you have <b>priority</b>: first chance to recover for free — and he comes back <b>as he left</b>: same value, same contract. Let it pass, and the others take him — paying half. And <b>nobody is forced</b>: you can pass.</> : <>🆓 Sobra <b>sem valor</b> é de <b>graça</b>. Jogador <b>com piso</b> (💰) é <b>compra sem leilão</b> — paga o valor fixo. Nos jogadores que <b>você listou</b> você tem <b>preferência</b>: a primeira chance de recuperar de graça — e ele volta <b>como saiu</b>: mesmo valor, mesmo contrato. Se deixar passar, aí os outros levam — pagando metade. E <b>ninguém é obrigado</b>: dá pra passar a vez.</>}
         </p>
       )}
       {online && (
@@ -5131,8 +5131,10 @@ export function EscMonte() {
             </p>
           </Box>
           {valid.map(({ c, bloq }) => {
-            const val = (c as { paid?: number }).paid ?? 0 // piso: carta com valor é compra sem leilão
             const own = (c as { seller?: number }).seller === you.id // sua carta listada: de graça
+            // piso: carta com valor é compra sem leilão. 🔁 A SUA volta COMO SAIU (20/09):
+            // mostra o valor de antes da metade, que é o que ela vai valer no seu elenco.
+            const val = (own ? (c as { paidAntes?: number }).paidAntes : undefined) ?? (c as { paid?: number }).paid ?? 0
             const paidCard = state.careerOnline && val > 0 && !own
             const afford = bloq !== 'caixa'
             const podePegar = bloq === null

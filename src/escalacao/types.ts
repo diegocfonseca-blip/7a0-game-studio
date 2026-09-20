@@ -102,6 +102,11 @@ export interface Card {
    *  do caso de sair por contrato"*. Antes a listagem carimbava `semContrato` quando o
    *  contrato acabava naquela virada, e o dono perdia a carta pra sempre. */
   tetoOficial?: boolean
+  /** 🔁 VOLTA COMO SAIU (Diego 20/09): o valor que a carta tinha ANTES de cair no monte
+   *  pela metade. Só existe enquanto ela está no monte. Se o PRÓPRIO dono a recupera,
+   *  ela volta com este valor (e o contrato de quando saiu) — não pela metade, não com
+   *  contrato novo de graça. Pra qualquer outro clube, vale a metade, como sempre. */
+  paidAntes?: number
   cria?: boolean // 🌱 Cria da Base: tapa-buraco sem contrato, ruim de doer, invendável — some quando chega reforço // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
 }
 
