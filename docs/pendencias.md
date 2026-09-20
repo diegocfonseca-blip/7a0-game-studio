@@ -1,3 +1,51 @@
+## 20/09/2026 (parte 43) — ⏱️ No holandês o host NÃO escolhe tempo (ele desfez o que eu tinha feito)
+
+Na parte 42 eu tinha "consertado" o `auctionSecs` (o tempo do pregão da sala de
+stream) fazendo ele ESTICAR ou ENCOLHER a descida do holandês. Ele leu e mandou
+desfazer:
+
+*"No stream não quero que tenha tempo pra escolher não, quando ele selecionar
+holandês e stream remova a opção de escolher esse tempo. Só se for no padrão que
+ele pode, senão vai dar merda — porque tem que ser com base na regra que fizemos
+pro modo rápido."*
+
+### ✅ Ele está certo, e é mais simples
+Meu conserto criava **duas regras pro mesmo modo**: o pregão holandês da sala de
+stream sairia com um ritmo e o da Partida Rápida com outro. Isso é exatamente a
+fábrica de bug que ele odeia — e ainda por cima eu tinha inventado um PISO
+(`HOL_PISO_MS`) pra segurar o caso em que o tempo pedido não cabia. Peça a mais pra
+manter, problema a mais pra acontecer.
+
+**Agora: o holandês tem UM relógio só, em toda sala.** Quem manda é a escada de
+preços, e ela é idêntica na Partida Rápida, no Rápido online, no Minhas Ligas e no
+Stream. `HOL_PISO_MS` e o escalonamento saíram do código.
+
+### 🎛️ E o seletor de tempo SOME da tela
+Na sala de stream, escolher 🔻 Holandês **tira o seletor de segundos** e põe no
+lugar um aviso que explica (regra dele: toda trava diz o porquê):
+> 🔻 No pregão Holandês não tem tempo pra escolher: quem manda o relógio é o PREÇO
+> caindo, e a descida é a mesma em toda sala — igual à da Partida Rápida. O Modo
+> Stream continua valendo (os valores ficam escondidos e você dá o start).
+
+E o tempo não é nem **gravado** no estado da sala quando o pregão é holandês —
+senão ficaria um número morto guardado lá, esperando alguém ler por engano.
+
+### 🔒 A trava virou do avesso
+`npm run holandes` agora reprova o CONTRÁRIO do que reprovava ontem:
+- se o `holPassoMs` voltar a aceitar um tempo de sala (assinatura com 3 parâmetros);
+- se a descida da sala ficar diferente da descida da Partida Rápida;
+- se o seletor de tempo voltar a aparecer com o holandês ligado;
+- se faltar o aviso explicando o porquê;
+- se a sala holandesa voltar a gravar um tempo de pregão.
+
+⚠️ **Lição**: quando uma opção da sala não faz sentido num modo, o certo é **tirar a
+opção da tela**, não fazer o modo se contorcer pra atender. Eu fui pelo caminho
+difícil primeiro.
+
+🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
 ## 20/09/2026 (parte 42) — 🎥🏆 Holandês no STREAM e no MINHAS LIGAS: funciona, e achei um furo de ritmo
 
 Pedido dele: *"agora veja se vai funcionar normal no modo stream e também em

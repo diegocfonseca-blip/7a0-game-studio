@@ -543,27 +543,26 @@ const r = await p.evaluate(async () => {
     especiais[nome] = { degraus, fim: sx.screen, intro: viaStreamIntro }
   }
 
-  // ⏱️ E O TEMPO QUE O HOST ESCOLHEU NA SALA DE STREAM tem que MANDAR no ritmo.
-  //    Se ele pede 20s e a descida insiste em 49s, o número da tela dele virou
-  //    enfeite — é a família do "botão mudo". Mas tem um limite: o degrau do
-  //    fundo nunca pode ficar curto a ponto de a internet decidir quem leva.
-  const descidaCom = (secs) => esc.slice(0, -1).reduce((t, v) => t + st.holPassoMs(v, 100, secs), 0)
-  const semTempo = descidaCom(undefined)
-  const tempos = {}
-  for (const secs of [20, 30, 45, 60, 90]) {
-    const d = descidaCom(secs)
-    tempos[secs] = Math.round(d / 100) / 10
-    // pediu MAIS tempo que o padrão → tem que caber quase exato
-    if (secs * 1000 >= semTempo) ok(Math.abs(d - secs * 1000) < 1500, `host pediu ${secs}s e a descida deu ${(d / 1000).toFixed(1)}s`)
+  // ⏱️ 🔻 O RELÓGIO DO HOLANDÊS É UM SÓ, EM TODA SALA (ordem dele, 20/09):
+  //    *"no stream não quero que tenha tempo pra escolher não… só se for no
+  //    padrão que ele pode, senão vai dar merda — porque tem que ser com base na
+  //    regra que fizemos pro modo rápido"*.
+  //    Eu tinha feito o `auctionSecs` esticar/encolher a descida; ele mandou
+  //    tirar. Esta trava agora segura os DOIS lados da ordem:
+  const descidaPadrao = esc.slice(0, -1).reduce((t, v) => t + st.holPassoMs(v, 100), 0)
+  // (a) o motor IGNORA qualquer tempo que alguém tente passar
+  ok(st.holPassoMs.length <= 2, 'o `holPassoMs` voltou a aceitar um tempo de sala — o holandês tem UM relógio só')
+  // (b) e a descida é IDÊNTICA à da Partida Rápida, que é a régua
+  ok(Math.abs(descidaPadrao - msCheio) < 1, `a descida da sala (${descidaPadrao}ms) ficou diferente da do rápido (${msCheio}ms)`)
+  // (c) o SELETOR DE TEMPO não pode nem aparecer quando o host escolhe holandês
+  {
+    const lob2 = await (await fetch('/src/escalacao/lobby.tsx')).text()
+    ok(/roomStream && !rapidoHolandes/.test(lob2), 'o seletor de tempo ainda aparece na sala de stream com o holandês ligado')
+    ok(/roomStream && rapidoHolandes/.test(lob2), 'falta o aviso explicando por que não tem tempo pra escolher no holandês')
+    // e o tempo não pode nem ser GRAVADO na sala quando o pregão é holandês
+    ok(/roomStream && !rapidoHolandes && auctionSecs/.test(lob2), 'a sala holandesa ainda grava um tempo de pregão')
   }
-  ok(descidaCom(90) > descidaCom(30), 'pedir mais tempo não deixou a descida mais longa')
-  ok(descidaCom(20) < semTempo, 'pedir MENOS tempo não encurtou nada — o número do host virou enfeite')
-  // 🕳️ mas o PISO segura: mesmo pedindo 20s, o degrau do fundo continua legível
-  ok(st.holPassoMs(5, 100, 20) >= st.HOL_PISO_MS, `com 20s o degrau do fundo caiu pra ${st.holPassoMs(5, 100, 20)}ms — a internet volta a decidir`)
-  ok(st.holPassoMs(5, 100, 5) >= st.HOL_PISO_MS, 'com um tempo absurdo (5s) o piso do fundo não segurou')
-  // e `0` ("o host avança no botão") NÃO vira 32 cliques: segue o ritmo padrão
-  ok(st.holPassoMs(5, 100, 0) === st.holPassoMs(5, 100), 'auctionSecs=0 mudou o ritmo — ali o host já deu o start, a escada toca sozinha')
-  const respeitaTempo = descidaCom(20) < semTempo
+  const respeitaTempo = false
 
   // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
   //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
@@ -621,7 +620,7 @@ const r = await p.evaluate(async () => {
     ticks: hol.ticks,
     msPregao: hol.msPregao,
     monteHol: hol.monteN, monteCego: cego.monteN,
-    salas, disputaTestada, empates, primeiroLevou, disputasSeguidas, especiais, respeitaTempo, tempos, semTempo, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
+    salas, disputaTestada, empates, primeiroLevou, disputasSeguidas, especiais, respeitaTempo, descidaPadrao, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
     repHol: hol.repescagem, repCego: cego.repescagem,
     moedaHol: hol.sobrouMoeda, moedaCego: cego.sobrouMoeda,
     rodadasCego: cego.rodadasEnv,
@@ -654,7 +653,7 @@ for (const n of [8, 20]) {
 console.log('')
 console.log('   🎥🏆 E NAS SALAS ESPECIAIS (pregão inteiro rodado em cada uma):')
 for (const [nome, v] of Object.entries(r.especiais)) console.log(`      ${nome.padEnd(24)} ${String(v.degraus).padStart(4)} degraus · ${v.intro ? 'host deu o start · ' : ''}terminou em ${v.fim}`)
-console.log(`      ⏱️ tempo pedido pelo host (sala stream) × descida de verdade: ${Object.entries(r.tempos).map(([k, v]) => `${k}s→${v}s`).join(' · ')}  (padrão ${(r.semTempo / 1000).toFixed(1)}s)\n`)
+console.log(`      ⏱️ a descida é a MESMA em toda sala (${(r.descidaPadrao / 1000).toFixed(1)}s) — no holandês o host não escolhe tempo, quem manda é o preço caindo\n`)
 console.log('   👥 E O BARALHO SEGUE O TAMANHO DA SALA — pela MESMA conta nos dois modos:\n')
 console.log('      técnicos │ vagas (11 cada) │ cartas no baralho │ levas')
 console.log('      ─────────┼─────────────────┼───────────────────┼───────')

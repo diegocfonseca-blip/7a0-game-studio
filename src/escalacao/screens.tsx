@@ -3430,8 +3430,7 @@ function Holandes() {
   // parar de decidir quem leva a carta.
   useEffect(() => {
     if (!hol || !euTico) return
-    // ⏱️ o tempo que o host escolheu na sala de stream manda no ritmo da descida
-    const t = setTimeout(() => dispatch({ type: 'HOLANDES_TICK' }), holPassoMs(preco, abertura, state.auctionSecs))
+    const t = setTimeout(() => dispatch({ type: 'HOLANDES_TICK' }), holPassoMs(preco, abertura))
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hol?.passo, euTico])

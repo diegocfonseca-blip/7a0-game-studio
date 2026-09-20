@@ -1664,7 +1664,7 @@ export function EscLobby() {
       }
       ligaAt = quando.toISOString()
     }
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -3213,8 +3213,24 @@ export function EscLobby() {
             {!isCareer && (
               <div>
                 <ToggleRow icon="🎥" title={tr('Modo Stream', 'Stream mode')} sub={roomStream ? tr('Valores dos lances ocultos', 'Bid values hidden') : tr('Esconde os valores (pra live)', 'Hides the values (for streaming)')} on={roomStream} onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }} />
-                {/* ⏱️ TEMPO DO LEILÃO — sub-opção do streamer (só com o Stream ligado) */}
-                {roomStream && (
+                {/* ⏱️ TEMPO DO LEILÃO — sub-opção do streamer (só com o Stream ligado).
+                    🔻 E SÓ NO PREGÃO CEGO (ordem dele, 20/09): *"no stream não quero
+                    que tenha tempo pra escolher não, quando ele selecionar holandês e
+                    stream remova a opção de escolher esse tempo. Só se for no padrão
+                    que ele pode, senão vai dar merda — porque tem que ser com base na
+                    regra que fizemos pro modo rápido"*.
+                    Ele está certo e é mais simples: no holandês quem manda o relógio é
+                    a ESCADA DE PREÇOS, e ela é a MESMA em todo lugar. Deixar o host
+                    pedir 20s aqui criaria um pregão holandês diferente do da partida
+                    rápida — duas regras pro mesmo modo, que é fábrica de bug. */}
+                {roomStream && rapidoHolandes && (
+                  <div className="mt-2 rounded-xl border-[2.5px] border-black p-2.5" style={{ background: 'rgba(194,69,47,.18)' }}>
+                    <p className="text-white/85 text-[11.5px] font-bold leading-snug">
+                      🔻 {tr('No pregão Holandês não tem tempo pra escolher: quem manda o relógio é o PREÇO caindo, e a descida é a mesma em toda sala — igual à da Partida Rápida. O Modo Stream continua valendo (os valores ficam escondidos e você dá o start).', 'In the Dutch auction there is no timer to pick: the falling PRICE runs the clock, and the drop is the same in every room — just like in Quick Match. Stream mode still applies (values stay hidden and you give the start).')}
+                    </p>
+                  </div>
+                )}
+                {roomStream && !rapidoHolandes && (
                   <div className="mt-2 rounded-xl border-[2.5px] border-black p-2.5" style={{ background: 'rgba(46,111,176,.16)' }}>
                     <p className="text-white/60 text-[10px] font-black uppercase mb-1.5" style={{ letterSpacing: '.12em' }}>{tr('⏱️ Tempo do leilão (pregão)', '⏱️ Auction timer')}</p>
                     <Seg small dim={auctionSecs === 0}

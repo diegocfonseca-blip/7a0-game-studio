@@ -4434,50 +4434,18 @@ export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 export const HOL_MS_ALTO = 500
 export const HOL_MS_MEIO = 1400
 export const HOL_MS_BAIXO = 2000
-// 🕳️ PISO DO DEGRAU DE BAIXO. Por mais apertado que o host peça o pregão, o
-// fundo da escada nunca desce disto: são esses milissegundos que impedem meio
-// segundo de internet ruim de decidir quem leva a carta. Se o tempo pedido não
-// couber, o pregão fica um pouco mais longo que o pedido — e isso é de
-// propósito: é melhor estourar o relógio do que roubar carta de quem tem 4G.
-export const HOL_PISO_MS = 1200
-const holCheioCache = new Map<number, number>()
-/** quanto dura a descida INTEIRA no ritmo padrão (usado pra caber no tempo do host) */
-function holDescidaMs(start: number): number {
-  const posto = holCheioCache.get(start)
-  if (posto != null) return posto
-  const esc = holEscada(start)
-  let t = 0
-  for (const v of esc.slice(0, -1)) { const f = v / Math.max(1, start); t += f > 0.55 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO }
-  holCheioCache.set(start, t)
-  return t
-}
-/**
- * ⏱️ O TEMPO DE UM DEGRAU.
- *
- * `secs` = o tempo de pregão que o HOST escolheu na sala de stream
- * (`auctionSecs`). Sem ele, é o ritmo padrão de três marchas.
- *
- * 🎥 POR QUE ELE IMPORTA (achado testando o stream, 20/09): naquela sala o host
- * escolhe o ritmo porque está NARRANDO pra plateia. Se ele pede 20s e a descida
- * insiste em 49s, o número da tela dele virou enfeite — é a família do "botão
- * mudo" que o Diego odeia (a tela promete uma coisa e o motor faz outra).
- * Então a descida inteira passa a CABER no tempo pedido, mantendo a proporção
- * entre as marchas (corre em cima, respira embaixo) e respeitando o piso.
- * `secs = 0` ("o host avança no botão") NÃO vira 32 cliques por leva: ele já deu
- * o start na tela de abertura, daí pra frente o relógio é a escada.
- */
-export const holPassoMs = (preco: number, start: number, secs?: number) => {
+// ⏱️ O RELÓGIO DO HOLANDÊS É UM SÓ, EM TODA SALA (ordem dele, 20/09): *"tem que
+// ser com base na regra que fizemos pro modo rápido"*. Eu tinha feito o tempo do
+// host (`auctionSecs`, da sala de stream) ESTICAR ou ENCOLHER a descida — ele
+// mandou tirar, e está certo: seriam duas regras pro mesmo modo, e o pregão
+// holandês da sala de stream sairia diferente do da Partida Rápida. Agora o
+// seletor de tempo nem aparece quando o host escolhe holandês (ver `lobby.tsx`),
+// e aqui o `auctionSecs` simplesmente não existe. Uma regra, um relógio.
+export const holPassoMs = (preco: number, start: number) => {
   const f = preco / Math.max(1, start)
-  const base = f > 0.55 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO
-  if (!secs || secs <= 0) return base
-  const fator = (secs * 1000) / holDescidaMs(start)
-  if (fator >= 1) return Math.round(base * fator) // host pediu MAIS tempo: estica tudo
-  return Math.max(f > 0.22 ? 300 : HOL_PISO_MS, Math.round(base * fator))
+  return f > 0.55 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO
 }
 
-// quem pode levar ESTA carta por ESTE preço. Mesma régua que o `resolve` usa na
-// hora de fechar (vaga aberta + dinheiro + piso), pra ninguém "ganhar" na tela e
-// ter o arremate anulado depois — isso seria o estado quebrado que ele odeia.
 function holPodeLevar(state: EscState, m: Manager, card: Card, preco: number, gastoNaLeva: number, vagasUsadas: number): boolean {
   if (m.dormindo) return false
   if (openSlots(m, card.pos) - vagasUsadas <= 0) return false
