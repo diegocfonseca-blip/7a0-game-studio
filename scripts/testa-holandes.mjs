@@ -17,6 +17,7 @@
 //
 // uso: node scripts/testa-holandes.mjs [--porta 5239]
 import { chromium } from 'playwright-core'
+import { holEscada as escadaEspelho, holPassoMs as passoEspelho } from './escada-tocaia.mjs'
 import { spawn } from 'node:child_process'
 
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i > 0 && process.argv[i + 1] ? process.argv[i + 1] : d }
@@ -30,7 +31,12 @@ const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt
 const p = await b.newPage()
 await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
 
-const r = await p.evaluate(async () => {
+// 🎬 o espelho da escada que o VÍDEO do modo usa (scripts/escada-tocaia.mjs).
+// Vai junto pro navegador pra ser comparado com o que o jogo gera de verdade:
+// vídeo mostrando número que o jogo não tem é propaganda enganosa.
+const espelho = { esc100: escadaEspelho(100), esc50: escadaEspelho(50), passos: [100, 60, 55, 30, 21, 12, 3].map(v => passoEspelho(v)) }
+
+const r = await p.evaluate(async (espelho) => {
   const st = await import('/src/escalacao/store.tsx')
   const falhas = []
   const ok = (cond, msg) => { if (!cond) falhas.push(msg) }
@@ -45,6 +51,14 @@ const r = await p.evaluate(async () => {
   const degrauEmBaixo = esc[esc.length - 3] - esc[esc.length - 2]
   ok(degrauEmCima > degrauEmBaixo, `degrau de cima (${degrauEmCima}) tinha que ser maior que o de baixo (${degrauEmBaixo})`)
   ok(esc.filter(v => v > 0 && v <= 30).length >= 14, 'a escada é rala embaixo — é lá que dá pra decidir')
+  // 🎬 E O VÍDEO DO MODO MOSTRA ESTES MESMOS NÚMEROS. O reels tem a escada
+  //    copiada em JS puro (`scripts/escada-tocaia.mjs`) porque .mjs não importa
+  //    .tsx; se mexerem aqui e esquecerem lá, o vídeo passa a anunciar preço que
+  //    o jogo não tem — e é ele que vai pro Instagram.
+  ok(espelho.esc100.join(',') === esc.join(','), `a escada do VÍDEO não bate com a do jogo\n      jogo:  ${esc.join(' ')}\n      vídeo: ${espelho.esc100.join(' ')}`)
+  ok(espelho.esc50.join(',') === st.holEscada(50).join(','), 'a escada do VÍDEO não bate com a do jogo na abertura de 50 (basquete)')
+  const passosJogo = [100, 60, 55, 30, 21, 12, 3].map(v => st.holPassoMs(v, 100))
+  ok(espelho.passos.join(',') === passosJogo.join(','), `a cadência do VÍDEO não bate com a do jogo (jogo ${passosJogo.join('/')} · vídeo ${espelho.passos.join('/')})`)
   // 🎚️ AFINA CONFORME DESCE (pedido dele, 20/09: *"qd começa a chegar próximo
   //    do 30 começar a cair os números cada vez mais próximo de um por um"*).
   //    Duas regras, e as duas são LEI daqui pra frente:
@@ -633,7 +647,7 @@ const r = await p.evaluate(async () => {
     cegoArremates: cego.precos.length,
     cegoPrecoMedio: cego.precos.length ? (cego.precos.reduce((a, c) => a + c, 0) / cego.precos.length) : 0,
   }
-})
+}, espelho)
 
 await b.close()
 try { process.kill(-vite.pid) } catch { /* já foi */ }

@@ -1,3 +1,41 @@
+## 20/09/2026 (parte 48) — 🎬 REELS DA TOCAIA (`npm run tocaia`)
+
+*"Preciso de um vídeo top agora, padrão de vídeos que fazemos, falando dessa
+baita novidade!! E mostrando o tempo rolando e etc."*
+
+`scripts/video-tocaia-reels.mjs` · 1080×1920 · ~36s · mesmo padrão dos outros
+reels (creme, bordas grossas, sombra dura, Oswald, cenas por `animation-delay`).
+
+### 🎞️ As 7 cenas
+1. 🐊 **CHEGOU A TOCAIA** — a novidade antes de qualquer regra (regra do reels do
+   Bola de Ouro: *"primeiro você tem que começar o vídeo falando da novidade"*);
+2. às cegas × Tocaia — envelope lacrado × preço à vista de todo mundo;
+3. ⭐ **O PREÇO ROLANDO** — a parte que ele pediu: a leva inteira listada com o
+   botão PEGAR, o número gigante caindo `100·90·80·70·60·55·50·46·42·38·34·30·27·24·21·18`
+   e uma barrinha vermelha esvaziando. No 18 o 🫵 desce e a carta vira dourada
+   com **PEGUEI! · 18 🪙**;
+4. quem aperta **primeiro** leva — é por TEMPO, não por valor (PEGUEI! × 😤 QUASE!);
+5. o jogador **cai no campinho na hora**;
+6. ninguém quis? preço até zero → Monte de sobras, e **o às cegas não mudou nada**;
+7. onde jogar (rápida · sala online · Minhas Ligas) + marca.
+
+### ✅ Os números do vídeo são os DO JOGO
+A escada saiu pra `scripts/escada-tocaia.mjs` (espelho em JS puro do `holEscada`
+do `store.tsx` — `.mjs` não importa `.tsx`), e o **`npm run holandes` agora
+compara as duas**: mexeu na escada do jogo e esqueceu o espelho, a trava reprova.
+Motivo: vídeo é o que vai pro Instagram — anunciar preço que o jogo não tem é
+propaganda enganosa.
+
+⏱️ **A descida do vídeo corre em DOBRO** (100→18 leva 17,1s de verdade, no vídeo
+leva 8,5s). A ordem e os números são os reais e **a própria tela avisa**:
+*"no jogo a descida inteira leva ~49s · aqui está acelerada"*. Reel não aguenta
+17s de contagem, mas ninguém pode chegar no jogo e se sentir enganado.
+
+### 🚫 O que ficou DE FORA de propósito
+O conserto do relógio (parte 47) **não entra no vídeo nem nas novidades**: é
+bug, e a regra dele é *"menos bugs, que nunca lance"*.
+
+---
 ## 20/09/2026 (parte 47) — ⏱️ UM RELÓGIO SÓ PRA SALA (o "154s" do print dele)
 
 Ele mandou cinco prints da Copa do Mundo online e o recado:
