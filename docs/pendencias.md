@@ -1,3 +1,65 @@
+## 20/09/2026 (parte 51) — 🐆👑 BATISMO: PANTERA NEGRA FC (Série C)
+
+Dono: **ericrabelo29@gmail.com** (Eric). Assento da **Série C** que era do
+🤖 Miúdo EC. Arte inteira mandada pelo dono (escudo, mascote e camisa).
+
+### 🎨 A arte
+- escudo `292×360` · **27,7 KB** (teto 30)
+- mascote `400×440` · **40,6 KB** (teto 45) · **total 68,4 KB** (teto 75)
+- camisa `626×760` · 67,4 KB — em `scripts/kits/` (post) e `public/mantos-salao/`
+  (Loja), com `-v1` no nome de propósito (endereço fixo = cache de navegador).
+- recorte: `scripts/recorta-prancha-pantera.py` (chroma verde, corte por LIGAÇÃO
+  com a borda, despill só na franja, poeira de alfa apagada, bbox medido com
+  alfa ≥ 40 e ≥ 3 pixels).
+
+### ⚠️ O ERRO QUE ELE PEGOU, e a lição
+Na 1ª versão eu tirei o **balão de fala** e a **plaquinha de madeira** do mascote,
+achando que eram peça de POST. Ele corrigiu: *"faltou a plaquinha com frase
+embaixo do mascote ao lado da bola e também em cima o balão com frase"*. O
+mascote dele é a **CENA inteira** — balão em cima, jogador com a bola-galáxia no
+pé, plaquinha embaixo.
+👉 **Regra pra qualquer arte que venha do dono: o que entra e o que sai é decisão
+DELE.** Na dúvida, perguntar — não podar por conta própria. (Irmã da regra de
+18/08: "quando você não souber como a pessoa é, me fala".)
+
+### 🎽 O manto: preto e dourado, MEDIDOS
+Medição nas três peças, e elas concordam: dourado `#CB9D3E` na camisa (11,3%
+dela), `#DEA152` no escudo, `#D38952` no mascote; escuro `#0E0C0C` na camisa
+(82,8%). O preto foi **levantado pra `#191615`** pelo mesmo motivo já escrito na
+linha do Futpoint: preto de arte escura, na listra fininha do jogo, lê como
+buraco. O tom quente é o medido; só a luz subiu.
+
+### ✅ As TRÊS pernas da entrega (código + banco + main)
+**Código:** `escudos.tsx` (4 formas do nome + o nome velho) · `mascotes.tsx`
+(`pantera_negra` + `MASCOTE_NOME` + `CARIMBO_GOL`) · `data.ts` (`OLD_NAME` +
+o assento da Série C) · `apoio.tsx` (ouro + `FUNDADOR_N` 74) · `manto.ts` ·
+`batismos.ts` (com o MESMO par de cores) · `salao-camisas.ts` + o arquivo
+público · a lista do `checa-batismos.mjs`.
+
+**Banco (rodado e CONFERIDO no mesmo dia):**
+- ⛔ a trava de segurança de 07/09 passou primeiro: **a conta existe**
+  (`auth.users`), então o batismo não ficou à espera de quem criasse a conta
+  com esse e-mail;
+- `user_colors` → ouro, manual ✅ · `esc_fundadores` → **74** ✅ ·
+  `esc_socios` → sócio **55**, manto `#191615`/`#CB9D3E`, `mascote_key`,
+  `escudo_time`, válido até 2099-12-31 ✅ · `esc_nomes_batismo` → o nome PURO,
+  e o gatilho criou FC e EC sozinho (**3 formas travadas**) ✅.
+
+### 📮 O post
+`node scripts/mockup-batismo.mjs` com `--camisa` (a que ele mandou). **Sem
+`--antigo`**, pela regra de 05/09: o post diz só "chega na Série C", nunca de
+quem era o assento.
+
+### ⏳ Falta
+❤️ **O time de coração dele.** O post leva `--coracao` sempre que a gente sabe —
+aqui ninguém disse. Quando o Diego souber, é só regerar o post e preencher
+`time_coracao` em `esc_socios`.
+
+🛡️ `npm run batismos` (Pantera Negra completo) · `salao` · `piramide`
+(C segue com 20) · `mimos` · `telas` · `carta` · e `npm run ascegas` com as
+mesmas digitais (`28bea2df` · `d65041f6` · `06bab491`).
+
+---
 ## 20/09/2026 (parte 50) — 🕵️ O JOGADOR ENIGMA (no branch, esperando OK visual)
 
 Ele perguntou se já estava feito. **Não estava** — dos dois modos que saíram

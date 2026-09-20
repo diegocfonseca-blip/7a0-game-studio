@@ -24,6 +24,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   // continuaria vendo a camisa velha pra sempre. É o aviso que o `npm run salao` dá.
   "Futpoint FC": "futpoint-camisa-v2.webp",
   "Marreco FC": "marreco-camisa-v1.webp",
+  "Pantera Negra FC": "pantera-camisa-v1.webp", // 🐆👑 com -v1 de propósito: endereço fixo é cache de navegador, e no dia em que a arte trocar quem já abriu a Loja continuaria vendo a velha
   "Rei da Bola FC": "reidabola-camisa-v1.webp",
   "Murriz FC": "murriz-camisa-v1.webp",
   "Nightfull FC": "nightfull-camisa-v1.webp",
