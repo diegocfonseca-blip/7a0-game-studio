@@ -38,9 +38,23 @@ JSON e nunca mais vai ler.
   essa parte **não depende de banco nenhum** (lá o `game_state` inteiro está na
   mão). Quem entrou pelo código precisa saber em que jogo se meteu.
 
-### ⏳ O que falta (não é código)
-Rodar o `docs/sql/lista-salas-modo-pregao.sql` no Supabase. Até lá o selo aparece
-**dentro da sala**, mas não na lista de salas abertas.
+### ⏳ O que falta (não é código) — ⚠️ PENDENTE
+Rodar o `docs/sql/lista-salas-modo-pregao.sql` no Supabase (ele deu o OK em
+20/09, mas a escrita no banco está bloqueada pra mim — só leitura passa; ele vai
+colar no SQL Editor). Até lá o selo aparece **dentro da sala de espera**, mas não
+na lista de salas abertas.
+
+O arquivo foi escrito **em cima do `pg_get_functiondef` LIDO DO BANCO** (não de
+memória): é o mesmo gatilho `game_rooms_colunas_magras`, com UMA linha a mais e
+nada mais tocado. Dois achados da leitura que mudaram o plano:
+- o gatilho é `BEFORE INSERT OR UPDATE **OF game_state**` — e a sala parada na
+  espera só grava `updated_at` (batimento do host de 30s). Sem o passo 3
+  (o `update` de preenchimento) as salas que já estão de pé ficariam sem selo
+  até o pregão começar. O plano original dizia que elas se preencheriam
+  sozinhas; **estava errado**, e só a leitura do banco mostrou isso;
+- as outras 15 colunas guardam o `->>` cru, então sala às cegas fica com
+  `ls_holandes` **NULL** (ela não grava a chave). O código já trata: NULL = às
+  cegas, campo AUSENTE (consulta velha) = não sei, não carimbo nada.
 
 🛡️ `npm run holandes` (com 6 travas novas, inclusive a que reprova quem voltar a
 procurar o modo no `game_state`) · `npm run ascegas` com as mesmas digitais
