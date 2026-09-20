@@ -329,8 +329,13 @@ export type HolandesState = {
    * quando o degrau FECHA, com todo mundo dentro.
    */
   pedidos: { cardId: string; mgr: number; humano: boolean }[]
-  /** o que aconteceu no degrau que acabou de fechar (faixa da tela) */
-  ultimo?: { nome: string; time: string; preco: number; roleta?: boolean } | null
+  /**
+   * o que aconteceu no degrau que acabou de fechar (faixa da tela).
+   * `perdedores` = quem pediu esta carta e NÃO levou. É por causa desta lista
+   * que quem perdeu a corrida vê o motivo na tela, em vez da carta simplesmente
+   * sumir ("toda trava explica o porquê" — regra do Diego).
+   */
+  ultimo?: { nome: string; time: string; preco: number; roleta?: boolean; perdedores?: number[] } | null
 }
 
 // desempate: quando ≥2 técnicos empatam no MAIOR lance de uma carta, eles

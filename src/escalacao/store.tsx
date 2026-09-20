@@ -4502,9 +4502,15 @@ function holResolvePedidos(state: EscState) {
     if (!podem.length) continue
     const roleta = podem.length > 1
     const ganhador = podem[roleta ? Math.floor(rng() * podem.length) : 0]
+    // 🔒 UM DONO SÓ, SEMPRE. A carta entra em `levados` UMA vez e `levados` é a
+    // única fonte de tudo: o campinho, a caixa, a vaga e o `pendingEnvelopes`
+    // que fecha a leva. Não existe caminho no código em que dois técnicos
+    // saiam com a MESMA carta — nem que os dois apertem no mesmo milissegundo.
     hol.levados.push({ cardId, mgr: ganhador.mgr, preco: hol.preco })
     const t = state.managers.find(m => m.id === ganhador.mgr)
-    hol.ultimo = { nome: card.name, time: t?.teamName ?? '—', preco: hol.preco, roleta }
+    // quem pediu e não levou fica anotado, pra tela poder explicar a derrota
+    const perdedores = lista.filter(x => x.mgr !== ganhador.mgr).map(x => x.mgr)
+    hol.ultimo = { nome: card.name, time: t?.teamName ?? '—', preco: hol.preco, roleta, perdedores }
   }
 }
 

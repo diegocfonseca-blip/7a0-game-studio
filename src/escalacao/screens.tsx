@@ -3474,6 +3474,23 @@ function Holandes() {
         </p>
       </div>
 
+      {/* 😤 VOCÊ PEDIU E NÃO LEVOU — a carta não some em silêncio. Medo dele:
+          *"será q vai os dois pôr o jogador no campinho?"*. Não vai: a carta tem
+          UM dono só. Quem perdeu a corrida vê aqui por quê, e segue no pregão
+          com a moeda no bolso (pedido que não vence não cobra nada). */}
+      {hol.ultimo?.perdedores?.includes(you.id) && (
+        <div className="border-[3px] border-black rounded-xl px-3 py-2 mt-2 flex items-center gap-2"
+          style={{ background: '#FFE3DC', boxShadow: `3px 3px 0 0 ${INK}` }}>
+          <span className="text-xl leading-none">😤</span>
+          <p className="text-[12px] font-bold text-black leading-snug min-w-0">
+            {L('Você pediu o', 'You asked for')} <b>{hol.ultimo.nome}</b> {L('por', 'for')} <b>{hol.ultimo.preco} 🪙</b>{' '}
+            {hol.ultimo.roleta
+              ? <>{L('e a 🎰 roleta deu pro', 'and the 🎰 wheel gave it to')} <b>{hol.ultimo.time}</b>. {L('Sua moeda continua no bolso.', 'Your coins stayed in your pocket.')}</>
+              : <>{L('mas foi pro', 'but it went to')} <b>{hol.ultimo.time}</b>. {L('Sua moeda continua no bolso.', 'Your coins stayed in your pocket.')}</>}
+          </p>
+        </div>
+      )}
+
       {/* 🔨 o que aconteceu no degrau que acabou de fechar */}
       {hol.ultimo && (
         <div className="border-[3px] border-black rounded-xl px-3 py-1.5 mt-2 flex items-center gap-2"

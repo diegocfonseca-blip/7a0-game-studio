@@ -1,3 +1,51 @@
+## 20/09/2026 (parte 29) — 👥👥 "E se os DOIS apertarem quase junto? Vão os dois pôr o jogador no campinho?"
+
+Pergunta dele, e é o pesadelo clássico do leilão ao vivo: *"agora é sobre o delay e
+sobre o usuário apertar pegar ao mesmo tempo quase?? E aí?? Será q vai os dois pôr
+o jogador no campinho e tal?? O mesmo jogador"*.
+
+**NÃO VAI — e não é promessa, é como o código foi montado.** Apertar não arremata:
+vira um PEDIDO do degrau. Quando o degrau fecha, o `holResolvePedidos` junta TODOS
+os pedidos daquela carta e escreve **UMA linha** em `hol.levados`. E `levados` é a
+fonte ÚNICA de tudo: o campinho (`YourPitch`), a caixa, a vaga e o
+`pendingEnvelopes` que fecha a leva. Não existe caminho no código em que a mesma
+carta saia com dois donos.
+
+### 🧪 A trava que prova (`npm run holandes`, seção 5-bis)
+Simula a sala online de verdade: **dois assentos HUMANOS** pedindo a MESMA carta no
+MESMO degrau. Confere, uma a uma:
+- antes do degrau fechar, **nenhum dos dois** tem a carta (pedido ≠ arremate — é o
+  arremate por ordem de chegada que ele temia);
+- depois de fechar, a carta sai com **1 dono**, e pelo preço que estava na tela;
+- **quem perdeu não paga NADA** e continua com a vaga aberta (a caixa dele nem se
+  mexe — conferido moeda a moeda);
+- quem perdeu **vê o porquê** numa faixa 😤 (`ultimo.perdedores`), em vez da carta
+  sumir em silêncio;
+- **o mesmo jogador não entra em dois campinhos** (soma dos `levados` dos dois = 1);
+- e o botão apaga pros DOIS: ninguém aperta numa carta já arrematada.
+
+### 🎲 E a roleta não é viciada
+40 disputas repetidas deram **22 × 18**. A trava reprova se um dos dois nunca ganhar
+ou se ficar abaixo de 25%. Isso importa: se o host ganhasse sempre, o convidado
+largava a sala na primeira noite — e "o host manda" (regra dele) é sobre QUEM
+arbitra, não sobre quem leva a carta.
+
+⚠️ **E a trava confere que ela própria RODOU** (`disputaTestada`). A simulação tem
+`if`s (precisa achar uma carta que os dois possam pegar); sem esse contador, ela
+podia ficar verde sem ter conferido nada. Teste que não roda é pior que teste nenhum.
+
+### 📶 E o delay, em uma frase
+Cada degrau dura **~2 segundos**. O host não olha quem chegou primeiro — ele espera
+o degrau FECHAR e resolve todo mundo junto. Então meio segundo de internet ruim não
+tira a carta de ninguém: quem apertou naquele preço está na disputa, ponto.
+
+### ⏳ O que ainda falta pra isso valer online de verdade
+O **roteamento** (`HOLANDES_PEGAR` do convidado → host, e o host transmitindo preço
+e `levados`). A REGRA que decide já está pronta e travada; o que falta é o cano.
+Enquanto não for ligado, o holandês só aparece na partida rápida offline.
+
+---
+
 ## 20/09/2026 (parte 28) — ⚽ O campinho enche NA HORA no holandês
 
 Pedido dele: *"além disso conseguiu o jogador aparece no campinho do usuário embaixo

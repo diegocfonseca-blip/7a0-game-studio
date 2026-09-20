@@ -239,6 +239,97 @@ const r = await p.evaluate(async () => {
   ok(st.holPassoMs(10, 100) >= 1500, `o degrau de baixo dura só ${st.holPassoMs(10, 100)}ms — pouco pra quem tem internet ruim`)
   ok(msCheio <= 50000, `a leva inteira leva ${(msCheio / 1000).toFixed(1)}s e hoje leva 45s — está atrasando o jogo`)
 
+  // 5️⃣-bis 👥👥 DUAS PESSOAS APERTAM NA MESMA CARTA, NO MESMO PREÇO.
+  //    Pergunta dele (20/09): *"será q vai os dois pôr o jogador no campinho?? O
+  //    mesmo jogador"*. É o pesadelo clássico do leilão ao vivo, e a resposta
+  //    tem que ser NÃO — provada, não prometida. Aqui a gente simula a sala
+  //    online: dois assentos HUMANOS pedindo a mesma carta no mesmo degrau.
+  let disputaTestada = 0
+  {
+    let s6 = novoJogo()
+    // vira o 2º assento em gente (é o que a sala online faz de verdade)
+    s6 = { ...s6, managers: s6.managers.map((m, i) => (i === 1 ? { ...m, isHuman: true, dormindo: false } : m)) }
+    while (s6.phase === 'holandes' && !s6.currentCards.some(c => st.holPodeAgora(s6, s6.managers[0].id, c.id) && st.holPodeAgora(s6, s6.managers[1].id, c.id))) {
+      s6 = st.reducer(s6, { type: 'HOLANDES_TICK' })
+    }
+    if (s6.phase === 'holandes') {
+      const [a, bb] = [s6.managers[0], s6.managers[1]]
+      const alvo = s6.currentCards.find(c => st.holPodeAgora(s6, a.id, c.id) && st.holPodeAgora(s6, bb.id, c.id))
+      const precoDisputa = s6.hol.preco
+      const caixaA = a.money, caixaB = bb.money
+      // os dois apertam no MESMO preço, um logo depois do outro
+      s6 = st.reducer(s6, { type: 'HOLANDES_PEGAR', mgrId: a.id, cardId: alvo.id, preco: precoDisputa })
+      s6 = st.reducer(s6, { type: 'HOLANDES_PEGAR', mgrId: bb.id, cardId: alvo.id, preco: precoDisputa })
+      ok(s6.hol.pedidos.filter(x => x.cardId === alvo.id).length === 2, 'os dois pedidos deviam entrar na fila do degrau')
+      // ✅ e NENHUM DOS DOIS tem a carta ainda: pedido não é arremate
+      ok(!s6.hol.levados.some(l => l.cardId === alvo.id), 'a carta foi dada antes do degrau fechar — é o arremate por ordem de chegada que ele teme')
+
+      const fim6 = st.reducer(s6, { type: 'HOLANDES_TICK' }) // fecha o degrau
+      const hol6 = fim6.hol
+      if (hol6) {
+        const donos = hol6.levados.filter(l => l.cardId === alvo.id)
+        // 🔒 A TRAVA QUE RESPONDE A PERGUNTA DELE, EM TRÊS PARTES:
+        ok(donos.length === 1, `❗ a MESMA carta saiu com ${donos.length} donos — os dois iam pôr o jogador no campinho`)
+        ok(donos[0].mgr === a.id || donos[0].mgr === bb.id, 'a carta disputada foi parar num terceiro')
+        ok(donos[0].preco === precoDisputa, `pagou ${donos[0].preco} e o preço na tela era ${precoDisputa}`)
+        // (b) o PERDEDOR não paga nada e continua com a vaga aberta
+        const perdedor = donos[0].mgr === a.id ? bb : a
+        const caixaPerdedor = perdedor.id === a.id ? caixaA : caixaB
+        const gastoPerdedor = hol6.levados.filter(l => l.mgr === perdedor.id).reduce((t, l) => t + l.preco, 0)
+        ok(gastoPerdedor === 0, `quem perdeu a disputa foi cobrado ${gastoPerdedor} 🪙 — pedido que não vence não cobra`)
+        ok(fim6.managers.find(m => m.id === perdedor.id).money === caixaPerdedor, 'a caixa de quem perdeu mexeu')
+        // (c) e o perdedor VÊ o porquê na tela (a faixa 😤 lê esta lista)
+        ok(hol6.ultimo?.perdedores?.includes(perdedor.id), 'quem perdeu a disputa não é avisado — a carta sumia em silêncio')
+        // (d) 🏟️ O CAMPINHO: é `levados` que o `YourPitch` desenha. Se só tem um
+        //     dono ali, é impossível o mesmo jogador aparecer em dois campinhos.
+        const noCampinhoDe = (id) => hol6.levados.filter(l => l.mgr === id && l.cardId === alvo.id).length
+        ok(noCampinhoDe(a.id) + noCampinhoDe(bb.id) === 1, 'o mesmo jogador entrou em DOIS campinhos')
+        // (e) e o botão apaga pros dois: ninguém aperta numa carta já arrematada
+        ok(!st.holPodeAgora(fim6, a.id, alvo.id) && !st.holPodeAgora(fim6, bb.id, alvo.id), 'carta arrematada ainda aceita toque')
+        disputaTestada = 1
+      }
+    }
+  }
+
+  // ⚠️ TESTE QUE NÃO RODA É PIOR QUE TESTE NENHUM: a simulação acima tem `if`s
+  //    (precisa achar uma carta que OS DOIS possam pegar). Se ela for pulada em
+  //    silêncio, a trava fica verde sem ter conferido nada.
+  ok(disputaTestada === 1, 'a disputa de DOIS humanos na mesma carta não chegou a ser testada — verde falso')
+
+  let roletaPlacar = '—'
+  // 5️⃣-ter 🎲 E A ROLETA NÃO É VICIADA: repetindo a mesma disputa muitas vezes,
+  //    os dois têm que ganhar. Se o host ganhasse sempre, o convidado largava a
+  //    sala na primeira noite.
+  {
+    const vitorias = { 0: 0, 1: 0 }
+    for (let r2 = 0; r2 < 40; r2++) {
+      let s7 = novoJogo()
+      s7 = { ...s7, managers: s7.managers.map((m, i) => (i === 1 ? { ...m, isHuman: true, dormindo: false } : m)) }
+      let guard = 0
+      while (s7.phase === 'holandes' && guard++ < 40 && !s7.currentCards.some(c => st.holPodeAgora(s7, s7.managers[0].id, c.id) && st.holPodeAgora(s7, s7.managers[1].id, c.id))) {
+        s7 = st.reducer(s7, { type: 'HOLANDES_TICK' })
+      }
+      if (s7.phase !== 'holandes') continue
+      const [a, bb] = [s7.managers[0], s7.managers[1]]
+      const alvo = s7.currentCards.find(c => st.holPodeAgora(s7, a.id, c.id) && st.holPodeAgora(s7, bb.id, c.id))
+      if (!alvo) continue
+      s7 = st.reducer(s7, { type: 'HOLANDES_PEGAR', mgrId: a.id, cardId: alvo.id, preco: s7.hol.preco })
+      s7 = st.reducer(s7, { type: 'HOLANDES_PEGAR', mgrId: bb.id, cardId: alvo.id, preco: s7.hol.preco })
+      const f7 = st.reducer(s7, { type: 'HOLANDES_TICK' })
+      const d = f7.hol?.levados.find(l => l.cardId === alvo.id)
+      if (!d) continue
+      if (d.mgr === a.id) vitorias[0]++
+      else if (d.mgr === bb.id) vitorias[1]++
+    }
+    roletaPlacar = `${vitorias[0]} × ${vitorias[1]}`
+    const total = vitorias[0] + vitorias[1]
+    ok(total >= 20, `a roleta só foi testada ${total} vezes — pouco pra confiar`)
+    if (total >= 20) {
+      ok(vitorias[0] > 0 && vitorias[1] > 0, `a roleta deu ${vitorias[0]} x ${vitorias[1]} — um dos dois NUNCA ganha`)
+      ok(Math.min(vitorias[0], vitorias[1]) / total >= 0.25, `a roleta está torta: ${vitorias[0]} x ${vitorias[1]}`)
+    }
+  }
+
   // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
   //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
   //    jogadores usuários q entram no online igual a regra q já funciona ou tô
@@ -295,7 +386,7 @@ const r = await p.evaluate(async () => {
     ticks: hol.ticks,
     msPregao: hol.msPregao,
     monteHol: hol.monteN, monteCego: cego.monteN,
-    salas,
+    salas, disputaTestada, roletaPlacar,
     repHol: hol.repescagem, repCego: cego.repescagem,
     resqHol: hol.naResq, resqCego: cego.naResq,
     buracoHol: hol.buracos, buracoCego: cego.buracos,
@@ -316,6 +407,7 @@ console.log(`      🔻 holandês  : ${String(r.cartas).padStart(3)} cartas · $
 console.log(`         └─ ${r.arremates - r.resqHol} saíram no pregão · ${r.resqHol} na repescagem · ${r.repHol} desceram pra repescagem · ${r.buracoHol} vagas ficaram vazias (= perna-de-pau)`)
 console.log(`      ✉️ cego (hoje): ${String(r.cegoCartas).padStart(3)} cartas · ${String(r.cegoArremates).padStart(3)} arremates · preço médio ${r.cegoPrecoMedio.toFixed(1)} 🪙 · ~${Math.round(r.cegoCartas / 12 + 0.5) * 45}s de pregão `)
 console.log(`         └─ ${r.cegoArremates - r.resqCego} saíram no pregão · ${r.resqCego} na repescagem · ${r.repCego} desceram pra repescagem · ${r.buracoCego} vagas ficaram vazias (= perna-de-pau)\n`)
+console.log(`   👥👥 DOIS APERTANDO A MESMA CARTA, NO MESMO PREÇO: ${r.disputaTestada ? 'testado' : '⚠️ NÃO testado'} · a 🎰 roleta deu ${r.roletaPlacar} em 40 disputas\n`)
 console.log('   👥 E O BARALHO SEGUE O TAMANHO DA SALA — pela MESMA conta nos dois modos:\n')
 console.log('      técnicos │ vagas (11 cada) │ cartas no baralho │ levas │ pregão holandês │ pregão cego')
 console.log('      ─────────┼─────────────────┼───────────────────┼───────┼─────────────────┼────────────')
