@@ -1,3 +1,52 @@
+## 20/09/2026 (parte 34) — 🛡️ PROVA de que o leilão às cegas não foi tocado (`npm run ascegas`)
+
+Ordem dele: *"tudo q estamos fazendo aqui, não mexa em nada o que já funciona no
+modo às cegas, pelo amor de Deus"*.
+
+Ler o diff e dizer "não mexi" **não vale** — é exatamente assim que bug entra.
+Então virou prova, e a prova mora no repo: **`npm run ascegas`**.
+
+### 🔬 Como ela funciona
+Ela joga **três pregões às cegas INTEIROS** (sala de 6 · 8 · 12, formações e
+baralhos diferentes) com o acaso **travado** — o `Math.random` é trocado por um
+gerador de semente fixa, então baralho, bots, lances, empates e monte saem sempre
+iguais. No fim imprime uma **impressão digital**: caixa + elenco + preço pago +
+via, de todos os técnicos, resumido num número.
+
+Se um dígito mudar, alguma coisa do modo às cegas mudou.
+
+### ✅ O resultado (rodado nos dois lados)
+| pregão | meu branch (com o holandês) | `origin/main` pura |
+|---|---|---|
+| sala de 6 · 4-3-3 · BR | `28bea2df` | `28bea2df` |
+| sala de 8 · 4-4-2 · BR | `d65041f6` | `d65041f6` |
+| sala de 12 · 4-3-3 · Europa | `06bab491` | `06bab491` |
+
+**Idênticas.** Todo o trabalho do holandês (partes 25 a 33) não muda **uma moeda**
+do pregão de hoje.
+
+### 🧰 Como repetir
+```
+git worktree add /tmp/antes origin/main
+ln -s "$PWD/node_modules" /tmp/antes/node_modules
+cp scripts/prova-as-cegas.mjs /tmp/antes/scripts/
+cd /tmp/antes && node scripts/prova-as-cegas.mjs --porta 5246
+```
+⚠️ **Compare sempre contra a MESMA base.** Na 1ª tentativa eu comparei com a
+`origin/main` que já tinha as 49 cartas novas de outra sessão — as digitais não
+bateram por causa do BARALHO, não do meu código. Ou se compara contra o
+`git merge-base`, ou se traz a main pro branch antes (foi o que fiz).
+
+### 🔀 Main trazida pro branch
+`origin/main` andou (49 cartas novas, e a agência pagando por artilheiro/Bola de
+Ouro). Merge feito; o único conflito foi este arquivo, com as duas sessões
+escrevendo no topo — ficaram as duas.
+
+Com o baralho novo, o holandês continua batendo o cego: **51 × 51 arremates,
+37 × 37 vagas vazias, 12,5 × 12,2 de preço médio — e 9:36 contra 11:15.**
+
+---
+
 ## 20/09/2026 (parte 33) — 🛟 A repescagem FAZ falta (eu estava errado) — e virou descida holandesa
 
 Ele perguntou: *"e sobre repescagem acha q não deve ter mesmo?"*. Fui medir em vez
