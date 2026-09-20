@@ -16,6 +16,15 @@ Havaianas e coisas do tipo"*.
   `fornBonusLoja(contrato)` — que virou a fonte única do bônus (vendas, Loja e faixa).
 - **Aviso do contrato longo** na tela, pra o custo parar de ser invisível.
 
+### 🔁 E NO MESMO DIA ELE TIROU A RENOVAÇÃO
+A faixa "a marca quer ficar" com +5% de loja viveu ~20 minutos na main. Ele leu a
+explicação, achou confuso (*"confuso demais, entendi nada"*) e mandou: *"mantenha
+nosso padrão mesmo e sem renovar com 5% também, deixa ele escolher normal... mas pelo
+menos já deixe todas as marcas novas em cada divisão"*. Então a tela voltou a ser
+EXATAMENTE a de sempre (4 papéis e só), ficou o que ele quis: as 20 marcas se
+revezando por divisão. Saiu junto o aviso do contrato longo. O campo `fidelidade`
+continua no tipo só pra não quebrar save de quem pegou aquela janela.
+
 ### O que ele decidiu NÃO mexer
 Preço, prazo e formato. Levantei que o contrato de 5 temporadas domina (paga mais por
 temporada **e** dá mais loja) e ele respondeu *"mantenha preços iguais já eram e

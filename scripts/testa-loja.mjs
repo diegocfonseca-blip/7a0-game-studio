@@ -55,8 +55,6 @@ ok(ofertas.length === 4, `a vitrine traz 4 propostas (deu ${ofertas.length})`)
 ok(new Set(ofertas.map(f => f.anos)).size === 4, 'uma de cada prazo (1 · 2 · 3 · 5)')
 ok(ofertas.every(f => ['A', 'B'].includes(f.desde)), 'na Série A só aparecem marcas da A e da B')
 ok(JSON.stringify(fornOfertas('A', 12345, 7)) === JSON.stringify(ofertas), 'o sorteio é preso na semente: reabrir o jogo dá a MESMA vitrine')
-ok(!fornOfertas('A', 12345, 7, 'naique').some(f => f.id === 'naique'), 'a marca que já é minha sai dos papéis (ela fica na faixa de RENOVAR)')
-ok(fornOfertas('A', 12345, 7, 'naique').length === 4, 'e mesmo assim nenhum papel fica vazio')
 ok(fornOfertas('V', 12345, 7).every(f => f.desde === 'V'), 'na Várzea só aparecem as 4 do bairro')
 
 // ── 3) contrato congela e não quebra ────────────────────────────────────────
@@ -121,16 +119,12 @@ s2 = reducer(s2, { type: 'LOJA_FORNECEDOR', fornId: 'meuzuno', mgrId: 1 })
 ok(s2.careerLoja[1].forn?.fornId === 'ombro', 'tentou trocar pela Meuzuno no meio: RECUSADO')
 let s3 = reducer({ ...base, careerLoja: { 1: {} } }, { type: 'LOJA_FORNECEDOR', fornId: 'naique', mgrId: 1 })
 ok(!s3.careerLoja[1].forn, 'Naique na Série C: RECUSADO pelo reducer (a trava não é só da tela)')
-// 🤝 RENOVAÇÃO (20/09): a marca que já era dele fica, com o selo de fidelidade —
-// e o valor é recalculado na divisão de HOJE, não no contrato velho.
-let s4 = { ...base, careerLoja: { 1: { forn: { fornId: 'ombro', anos: 2, div: 'D', desde: 1, porTemporada: fornPorTemporada('D', 2) } } } }
+// 🚫 RENOVAÇÃO NÃO EXISTE (o Diego tirou em 20/09: *"sem renovar com 5% também,
+// deixa ele escolher normal"*). Assinar é assinar: nenhum caminho dá bônus extra.
+let s4 = { ...base, careerLoja: { 1: {} } }
 s4 = reducer(s4, { type: 'LOJA_FORNECEDOR', fornId: 'ombro', mgrId: 1, fidelidade: true })
-ok(s4.careerLoja[1].forn?.fidelidade === true, 'renovou com a mesma marca e ganhou o selo de fidelidade')
-ok(s4.careerLoja[1].forn?.porTemporada === fornPorTemporada('C', 2), 'e o valor foi recalculado na divisão de HOJE (subiu de D pra C)')
-ok(Math.abs(fornBonusLoja(s4.careerLoja[1].forn) - 0.25) < 1e-9, 'o bônus de loja vira 25% (20% da marca + 5% de fidelidade)')
-let s5 = { ...base, careerLoja: { 1: { forn: { fornId: 'ombro', anos: 2, div: 'D', desde: 1, porTemporada: 5 } } } }
-s5 = reducer(s5, { type: 'LOJA_FORNECEDOR', fornId: 'naique', mgrId: 1, fidelidade: true })
-ok(!s5.careerLoja[1].forn || s5.careerLoja[1].forn.fornId === 'ombro', 'não dá pra "renovar" com uma marca que nunca foi sua')
+ok(!s4.careerLoja[1].forn?.fidelidade, 'nem mandando `fidelidade` o contrato ganha selo — o campo morreu')
+ok(Math.abs(fornBonusLoja(s4.careerLoja[1].forn) - 0.20) < 1e-9, 'o bônus da loja é o da marca, limpo (20%)')
 
 // ── 9) SEM A LOJA NÃO HÁ FORNECEDOR (ordem do Diego, 15/09) ────────────────
 console.log('\n🔒 9) sem a loja construída não há fornecedor nem venda')

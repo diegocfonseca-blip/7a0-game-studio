@@ -477,16 +477,21 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
     perguntei se dava pra mexer na régua: *"mantenha preços iguais já eram e
     formatos / prazos"*). A trava do `npm run loja` continua exigindo que o
     fornecedor pague MENOS que o Master em toda divisão e prazo.
-  · 🤝 **Renovar com a marca atual** é uma faixa em cima dos papéis: mesmo prazo,
-    valor recalculado na divisão de HOJE e **+5 pontos no bônus da Loja**
-    (`FIDELIDADE_LOJA`). É o único lugar do jogo onde ser fiel rende mais.
+  · 🚫 **NÃO existe renovação com bônus.** Chegou a existir por algumas horas em
+    20/09 (faixa "a marca quer ficar" com +5% de loja) e ele mandou tirar: *"sem
+    renovar com 5% também, deixa ele escolher normal"*. A marca que já era dele
+    concorre nos papéis como qualquer outra. **Não repropor.**
   · ⏳ Ele perguntou se *"não é meio óbvio que todo mundo vai escolher sempre a
-    Naique"* — e é: o contrato longo paga mais por temporada E dá mais loja. Como
-    ele não quis mexer na régua, o que a tela faz é **dizer o preço do contrato
-    longo** (trava o valor da divisão de hoje e segura as marcas do andar de cima
-    até acabar). Se um dia ele quiser resolver de verdade, as opções levantadas
-    foram: bônus de loja pelo ANDAR em vez do prazo, ou inverter a régua (curto
-    paga mais por temporada, que é como o jogo já trata contrato de jogador).
+    Naique"* — e é: o contrato longo paga mais por temporada E dá mais loja. Ele
+    preferiu **não mexer em nada** (*"mantenha preços iguais já eram e formatos /
+    prazos"*) e a tela **voltou a ser a de sempre**, sem aviso nem texto extra —
+    ele achou a versão explicadinha confusa (*"confuso demais, entendi nada"*).
+    Se um dia quiser atacar o problema, as saídas medidas foram: bônus de loja pelo
+    ANDAR em vez do prazo, ou inverter a régua (curto paga mais por temporada, que
+    é como o jogo já trata contrato de jogador).
+  · 🗣️ **LIÇÃO DE CONVERSA (20/09)**: eu respondi a dúvida dele com tabela, opções e
+    histórico e ele travou. Com o Diego, resposta de 4 linhas, em linguagem de jogo,
+    e o resto só se ele pedir.
   · 🛟 Os 4 ids antigos continuam vivos com o MESMO prazo (`naique` 5 · `pumba` 3 ·
     `adibas`→Abibas 2 · `penalti`→Penality 1): contrato correndo em save antigo não
     pode mudar de tamanho no meio da carreira.

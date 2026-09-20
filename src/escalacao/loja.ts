@@ -114,22 +114,23 @@ function dado(seed: number, seasonNo: number) {
   let x = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0xF0FA) >>> 0
   return () => { x |= 0; x = (x + 0x6D2B79F5) | 0; let t = Math.imul(x ^ (x >>> 15), 1 | x); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
 }
-export function fornOfertas(div: string, seed: number, seasonNo: number, excluirId?: string): Fornecedor[] {
+export function fornOfertas(div: string, seed: number, seasonNo: number): Fornecedor[] {
   const nivel = Math.max(0, ORDEM_DIV.indexOf(div))
   const rng = dado(seed, seasonNo)
   const out: Fornecedor[] = []
   for (const anos of PRAZOS_FORN) {
-    // candidatas: mesmo prazo, do meu andar e do de baixo, tirando a marca que já é
-    // minha (ela aparece na faixa de RENOVAR, não faria sentido repetir no papel)
-    const doPrazo = FORNECEDORES.filter(f => f.anos === anos && f.id !== excluirId)
+    // candidatas: mesmo prazo, do meu andar e do de baixo. A marca que já era minha
+    // concorre igual às outras — se ela cair no papel, é só assinar de novo. (Diego
+    // 20/09: *"sem renovar com 5% também, deixa ele escolher normal"*.)
+    const doPrazo = FORNECEDORES.filter(f => f.anos === anos)
     // 🎯 o andar de CIMA (o seu) tem preferência: se não fosse assim, dava vitrine
     // inteira do andar de baixo e subir de divisão não teria gosto de nada. O de
     // baixo entra como tempero, não como regra.
     const meu = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) === nivel)
     const abaixo = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) === nivel - 1)
     let cand = meu.length && (!abaixo.length || rng() < 0.7) ? meu : (abaixo.length ? abaixo : meu)
-    // 🛟 nunca deixar papel vazio: se o andar não tem ninguém livre desse prazo
-    // (aconteceu de a única ser a minha), desce a escada até achar.
+    // 🛟 nunca deixar papel vazio: se o andar não tem ninguém desse prazo, desce a
+    // escada até achar.
     if (!cand.length) cand = doPrazo.filter(f => ORDEM_DIV.indexOf(f.desde) <= nivel)
     if (!cand.length) cand = doPrazo
     if (cand.length) out.push(cand[Math.floor(rng() * cand.length) % cand.length])
@@ -138,15 +139,15 @@ export function fornOfertas(div: string, seed: number, seasonNo: number, excluir
 }
 
 export interface FornContrato { fornId: string; anos: number; div: string; desde: number; porTemporada: number
-  /** 🤝 renovou com a marca que já era dele: +5 pontos no bônus da Loja (Diego 20/09) */
+  /** 🗑️ resíduo do bônus de fidelidade que viveu algumas horas em 20/09 — o Diego
+   *  mandou tirar ("sem renovar com 5% também, deixa ele escolher normal"). Fica no
+   *  tipo só pra save que pegou aquela janela não dar erro; ninguém lê mais. */
   fidelidade?: boolean }
-/** 🤝 quanto a marca rende na LOJA neste contrato — com a fidelidade, se houver.
- *  É o número que as vendas e as telas leem; ninguém soma os 5% na mão. */
-export const FIDELIDADE_LOJA = 0.05
+/** quanto a marca rende na LOJA neste contrato. Fonte ÚNICA: vendas, vitrine e a
+ *  faixa do contrato leem daqui, pra nunca discordarem entre si. */
 export function fornBonusLoja(c: FornContrato | undefined): number {
   const f = fornecedorDe(c?.fornId)
-  if (!f || !c) return 0
-  return f.loja + (c.fidelidade ? FIDELIDADE_LOJA : 0)
+  return f && c ? f.loja : 0
 }
 /** o contrato cobre a temporada `seasonNo`? (desde … desde+anos−1) */
 export function fornAtivo(c: FornContrato | undefined, seasonNo: number): c is FornContrato {
