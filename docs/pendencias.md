@@ -30,6 +30,20 @@ prender somente a Série A — se tem time com dinheiro lá embaixo, deixe ofert
 - **Contra a artimanha**: hoje basta passar de ~355 *pra sempre* (número decorável).
   Com teto pelo bolso + tempo, o alvo sobe junto com o jogo e nunca vira número fixo.
 
+### 📈 E A IDEIA DELE: o teto sair do que o MERCADO PAGOU naquele nível
+Pergunta dele: *"sobre o nível do jogador e valor e o que o mercado pagou naquele
+nível… pra entender qual piso máximo pode chegar com base no que saiu"*. Ou seja: em
+vez da tabelinha chutada (16 · 26 · 42 · 65 · 90 por estrela), o teto sai do HISTÓRICO
+de preços de cartas daquele nível. Testado na bancada (modelo `mercado`):
+- **Funciona e não explode**: o índice se auto-corrige, sobe quando a liga enriquece e
+  desce quando empobrece. Em 250 temporadas ficou estável (~223 de teto máximo).
+- **Mas dá pra ENVENENAR.** Com o inflador reciclando dinheiro (lista → monte pela
+  metade → repesca), a referência do nível 90-94 foi de 72 pra **477 (6,7×)** quando o
+  índice usa MÉDIA. Com MEDIANA cai pra 137 (1,9×). Com **mediana + só o que BOT pagou
+  entrando no índice**, cai pra 85 (**1,2×** — resíduo de mercado, não distorção).
+- 👉 Conclusão pra quando ele aprovar: se o teto vier do histórico, tem que ser
+  **mediana** e **sem contar o lance de quem joga**. O usuário não é mercado.
+
 ### ⏳ PENDENTE — esperando a palavra do Diego (nada implementado)
 1. Livro de preços gravar só até o teto de mercado (`recordPrice`).
 2. Carta que volta pro dono no monte voltar "como saiu" (mesmo valor, mesmo contrato).

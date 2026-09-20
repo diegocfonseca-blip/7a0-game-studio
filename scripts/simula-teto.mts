@@ -49,7 +49,24 @@ const RECEITA_ESTADIO: Record<Div, number> = { A: 120, B: 70, C: 40, D: 22, V: 1
 //    (é o "igual no mundo real" que o Diego pediu). Só funciona se a RECEITA
 //    subir junto — senão o teto sobe e ninguém tem dinheiro pra alcançar, e o
 //    número vira enfeite. Por isso este modelo mexe nos DOIS ao mesmo tempo.
-type Modelo = 'hoje' | 'bolso' | 'bolso+nivel' | 'bolso+nivel+tempo'
+// 🅴️ MERCADO: o teto NÃO é tabela chutada — sai do que o mercado REALMENTE pagou
+//    em cartas daquele NÍVEL nas últimas temporadas. O jogo lê o próprio histórico
+//    ("nível 91 tem saído por ~180") e usa isso como referência. Sobe sozinho
+//    quando a liga enriquece e desce sozinho quando empobrece — sem eu chutar
+//    número nenhum e sem inventar taxa de inflação.
+//    ⚠️ O PERIGO: se o inflador contamina o histórico, o teto sobe junto e a
+//    artimanha vira bola de neve. Por isso o índice usa MEDIANA (o do meio),
+//    não média — um lance maluco de 1000 não move o do meio.
+type Modelo = 'hoje' | 'bolso' | 'bolso+nivel' | 'bolso+nivel+tempo' | 'mercado' | 'mercado-media' | 'mercado-so-bots'
+const FAIXA_NIVEL = (n: number) => Math.floor(n / 5) * 5      // 50-54, 55-59, …
+const JANELA = 5                                              // últimas 5 temporadas
+const FOLGA = 1.3                                             // teto = mediana × 1,3
+function mediana(v: number[]): number {
+  if (!v.length) return 0
+  const a = [...v].sort((x, y) => x - y)
+  const m = Math.floor(a.length / 2)
+  return a.length % 2 ? a[m] : Math.round((a[m - 1] + a[m]) / 2)
+}
 const FATIA_BOLSO = 0.35                 // no máximo 35% do caixa numa carta só
 // +1,2% por temporada, parando em 2,5× (não existe inflação infinita no jogo)
 const inflacaoTempo = (t: number): number => Math.min(2.5, 1 + t * 0.012)
@@ -60,8 +77,15 @@ function fatorNivel(c: Carta): number {
   const p = Math.min(1, Math.max(0, (c.nivel - faixa[0]) / (faixa[1] - faixa[0])))
   return 0.75 + p * 0.5
 }
-function tetoDoBot(modelo: Modelo, c: Carta, caixaBot: number, mediaSala: number, temp = 1): number {
+function tetoDoBot(modelo: Modelo, c: Carta, caixaBot: number, mediaSala: number, temp = 1, indice?: Map<number, number>): number {
   if (modelo === 'hoje') return Math.round(catPriceCap(c) * econSala(mediaSala))
+  if (modelo === 'mercado' || modelo === 'mercado-media' || modelo === 'mercado-so-bots') {
+    // referência do mercado pra ESTE nível; se ainda não tem histórico, cai na
+    // tabela de hoje (é o que faz o jogo começar funcionando na temporada 1)
+    const ref = indice?.get(FAIXA_NIVEL(c.nivel)) ?? 0
+    const base = Math.max(catPriceCap(c), Math.round(ref * FOLGA))
+    return Math.max(1, Math.min(Math.round(base * econBolso(caixaBot)), Math.round(caixaBot * FATIA_BOLSO)))
+  }
   let base = catPriceCap(c) * (modelo !== 'bolso' ? fatorNivel(c) : 1)
   if (modelo === 'bolso+nivel+tempo') base *= inflacaoTempo(temp)
   return Math.max(1, Math.min(Math.round(base * econBolso(caixaBot)), Math.round(caixaBot * FATIA_BOLSO)))
@@ -88,7 +112,7 @@ function novaCarta(rng: () => number, forte = false): Carta {
 const N_CLUBES = 40
 const POR_DIV = N_CLUBES / 5
 
-function simula(modelo: Modelo, temporadas: number) {
+function simula(modelo: Modelo, temporadas: number, comInflador = false) {
   const rng = rngDe(20250920)
   const clubes: Clube[] = []
   for (let i = 0; i < N_CLUBES; i++) {
@@ -99,6 +123,21 @@ function simula(modelo: Modelo, temporadas: number) {
     //    guarda dinheiro temporada após temporada mesmo sem subir de divisão.
     clubes.push({ id: i, div, caixa: 80 + rng() * 60, elenco, gastador: 0.25 + rng() * 0.7, nome: `C${i}` })
   }
+  // 📚 histórico de preços por FAIXA DE NÍVEL (só o que BOT pagou — ver nota
+  //    no relatório sobre o inflador). Guarda as últimas JANELA temporadas.
+  const historico = new Map<number, number[][]>()
+  const indiceDoMercado = (): Map<number, number> => {
+    const idx = new Map<number, number>()
+    for (const [faixa, temps] of historico) {
+      const v = temps.flat()
+      // 🧪 a diferença que decide o modelo: MEDIANA (o do meio) ignora o lance
+      //    maluco; MÉDIA engole ele e o teto vira bola de neve.
+      idx.set(faixa, modelo === 'mercado-media'
+        ? Math.round(v.reduce((a, b) => a + b, 0) / Math.max(1, v.length))
+        : mediana(v))
+    }
+    return idx
+  }
   const hist: {
     t: number; media: number
     tetoLenda: Record<Div, number>          // teto médio pra uma LENDA, por divisão
@@ -107,10 +146,13 @@ function simula(modelo: Modelo, temporadas: number) {
     elencoMedioA: number; elencoMedioV: number
     caixaMax: number; caixaMin: number
     precoLendaPago: number                   // preço médio REALMENTE pago numa lenda
+    refNivel90: number                       // a REFERÊNCIA do mercado pra nível 90-94
   }[] = []
 
   for (let t = 1; t <= temporadas; t++) {
     const media = clubes.reduce((s, c) => s + c.caixa, 0) / clubes.length
+    const indice = indiceDoMercado()
+    const pagosDaTemporada = new Map<number, number[]>()
 
     // ── 1) folha. 🛟 Clube que não fecha a conta VENDE pra sobreviver (é o que
     //     o jogo faz na prática: lista jogador caro, ele cai pro monte pela
@@ -153,10 +195,20 @@ function simula(modelo: Modelo, temporadas: number) {
         if ((vagas.get(c.id) ?? 0) <= 0) continue
         const bolso = c.caixa - (reserva.get(c.id) ?? 0)   // o que sobra depois da folha
         if (bolso <= 0) continue
-        const teto = Math.min(tetoDoBot(modelo, carta, c.caixa, media, t), bolso)
+        const teto = Math.min(tetoDoBot(modelo, carta, c.caixa, media, t, indice), bolso)
         // o bot não torra tudo numa carta: agressividade sorteada dentro do teto
         const lance = Math.max(0, Math.round(teto * (0.55 + rng() * 0.45) * c.gastador * 1.3))
         if (lance > melhor) { melhor = Math.min(lance, teto); vencedor = c }
+      }
+      // 💸 O INFLADOR (o usuário da artimanha): paga 10× o maior lance pra que
+      //    nenhum bot dispute. É o que o Diego viu acontecendo no jogo.
+      if (comInflador && rng() > 0.6) {
+        const eu = clubes[0]
+        // 🔁 a artimanha RECICLA o dinheiro: ele lista, ninguém cobre o preço
+        //    inflado, a carta cai no monte pela metade e ele repesca. Na prática
+        //    o caixa dele não seca — por isso a bancada o mantém abastecido.
+        eu.caixa = Math.max(eu.caixa, 3000)
+        melhor = Math.max(melhor * 10, 200); vencedor = eu
       }
       if (vencedor && melhor > 0) {
         vencedor.caixa -= melhor
@@ -167,7 +219,23 @@ function simula(modelo: Modelo, temporadas: number) {
         vencedor.elenco.shift()
         vencedor.elenco.push(carta)
         if (carta.fame >= 5) pagosLenda.push(melhor)
+        // 🛡️ TRAVA: no modelo 'mercado-so-bots' o lance de QUEM JOGA não entra na
+        //    referência de preço. O índice mede o que o MERCADO aceita, e o
+        //    usuário não é mercado — é justamente quem quer distorcê-lo.
+        const ehUsuario = comInflador && vencedor === clubes[0]
+        if (!(modelo === 'mercado-so-bots' && ehUsuario)) {
+          const fx = FAIXA_NIVEL(carta.nivel)
+          pagosDaTemporada.set(fx, [...(pagosDaTemporada.get(fx) ?? []), melhor])
+        }
       }
+    }
+
+    // fecha a temporada no histórico (janela deslizante)
+    for (const [fx, lista] of pagosDaTemporada) {
+      const temps = historico.get(fx) ?? []
+      temps.push(lista)
+      while (temps.length > JANELA) temps.shift()
+      historico.set(fx, temps)
     }
 
     // ── 4) sobe/desce pela força do elenco
@@ -182,18 +250,19 @@ function simula(modelo: Modelo, temporadas: number) {
     const tetoLenda = {} as Record<Div, number>
     for (const d of ORDEM) {
       const dela = clubes.filter(c => c.div === d)
-      tetoLenda[d] = dela.length ? Math.round(dela.reduce((s, c) => s + tetoDoBot(modelo, lendaRef, c.caixa, media, t), 0) / dela.length) : 0
+      tetoLenda[d] = dela.length ? Math.round(dela.reduce((s, c) => s + tetoDoBot(modelo, lendaRef, c.caixa, media, t, indice), 0) / dela.length) : 0
     }
     const varzea = clubes.filter(c => c.div === 'V')
     hist.push({
       t, media: Math.round(media), tetoLenda,
-      maiorTetoV: varzea.length ? Math.max(...varzea.map(c => tetoDoBot(modelo, lendaRef, c.caixa, media, t))) : 0,
-      maiorTetoGeral: Math.max(...clubes.map(c => tetoDoBot(modelo, lendaRef, c.caixa, media, t))),
+      maiorTetoV: varzea.length ? Math.max(...varzea.map(c => tetoDoBot(modelo, lendaRef, c.caixa, media, t, indice))) : 0,
+      maiorTetoGeral: Math.max(...clubes.map(c => tetoDoBot(modelo, lendaRef, c.caixa, media, t, indice))),
       elencoMedioA: Math.round(mediaElenco(clubes.filter(c => c.div === 'A'))),
       elencoMedioV: Math.round(mediaElenco(varzea)),
       caixaMax: Math.round(Math.max(...clubes.map(c => c.caixa))),
       caixaMin: Math.round(Math.min(...clubes.map(c => c.caixa))),
       precoLendaPago: pagosLenda.length ? Math.round(pagosLenda.reduce((a, b) => a + b, 0) / pagosLenda.length) : 0,
+      refNivel90: indice.get(90) ?? 0,
     })
   }
   return hist
@@ -209,7 +278,7 @@ const mediaElenco = (cs: Clube[]) => {
 // ── relatório ───────────────────────────────────────────────────────────────
 const T = 250
 const marcos = [1, 5, 10, 25, 50, 100, 150, 200, 250]
-const MODELOS: Modelo[] = ['hoje', 'bolso', 'bolso+nivel', 'bolso+nivel+tempo']
+const MODELOS: Modelo[] = ['hoje', 'bolso', 'bolso+nivel', 'bolso+nivel+tempo', 'mercado']
 const res = Object.fromEntries(MODELOS.map(m => [m, simula(m, T)])) as Record<Modelo, ReturnType<typeof simula>>
 
 for (const m of MODELOS) {
@@ -251,4 +320,18 @@ console.log('\n═══ 5) DESIGUALDADE: caixa do mais rico × do mais pobre (t
 for (const m of MODELOS) {
   const f = res[m][T - 1]
   console.log(`${m.padEnd(18)} → mais rico ${String(f.caixaMax).padStart(6)} · mais pobre ${String(f.caixaMin).padStart(5)} · elenco médio A ${String(f.elencoMedioA).padStart(4)} · elenco médio V ${String(f.elencoMedioV).padStart(4)}`)
+}
+
+
+console.log('\n═══ 6) 🧪 O INFLADOR CONSEGUE ENVENENAR O ÍNDICE DE MERCADO? ═══')
+console.log('(um clube paga 10× o maior lance pra ninguém disputar — a artimanha que o Diego viu)')
+for (const m of ['mercado-media', 'mercado', 'mercado-so-bots'] as Modelo[]) {
+  const limpo = simula(m, T), sujo = simula(m, T, true)
+  // mede a REFERÊNCIA do mercado (nível 90-94), que é o número contaminável —
+  // o teto final costuma estar preso no bolso do clube e esconde o estrago.
+  const q = (d: ReturnType<typeof simula>, t: number) => d[t - 1].refNivel90
+  console.log(`${m.padEnd(14)} → SEM inflador: t25 ${String(q(limpo, 25)).padStart(5)} · t100 ${String(q(limpo, 100)).padStart(5)} · t250 ${String(q(limpo, 250)).padStart(6)}`)
+  console.log(`${''.padEnd(14)}   COM inflador: t25 ${String(q(sujo, 25)).padStart(5)} · t100 ${String(q(sujo, 100)).padStart(5)} · t250 ${String(q(sujo, 250)).padStart(6)}`)
+  const razao = q(sujo, 250) / Math.max(1, q(limpo, 250))
+  console.log(`${''.padEnd(14)}   → o inflador multiplicou a referência por ${razao.toFixed(1)}×\n`)
 }
