@@ -5577,6 +5577,22 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}
       s.seasonNo = 1
       // 🌱 mesma faxina do online: partida rápida NÃO herda a Cria da Base nem os
@@ -5623,6 +5639,22 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}; s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -5659,6 +5691,22 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}; s.seasonNo = 1
       s.screen = 'auction'
       startAuctionPhase(s, false)
@@ -5873,6 +5921,22 @@ export function reducer(state: EscState, action: Action): EscState {
       dealBotSquads(s.managers, botPlans, rng, used, !!s.escadaOn)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       // 🛟 flag do leilão de RESERVAS (carreira) não pode vazar pro jogo novo: quem
       // saía de uma carreira NO MEIO do leilão de reservas e abria um jogo novo via
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").
@@ -6149,6 +6213,22 @@ export function reducer(state: EscState, action: Action): EscState {
       if (onlineVarzea) setActiveCatalog(s.deckLeague) // baralho várzea já foi montado → restaura o cheio pro resto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
+      // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
+      // no print de 20/09: o campinho do LEILÃO já mostrava ⚽ e 🅰️ no Bernabei
+      // ANTES de a bola rolar). Aqui se zerava `news`, `champion` e `round` — mas
+      // os artilheiros, os garçons e os últimos resultados ficavam. Como o
+      // campinho acha o gol pelo NOME + time (`golsDe`/`assistDe` em
+      // `screens.tsx`), quem reaparecia na mesma cadeira herdava o número do ano
+      // anterior. Faltava nos CINCO caminhos que começam temporada nova.
+      // 🅰️ regra permanente: o que vale pro gol vale pra assistência — os dois
+      // zeram juntos, na MESMA linha, pra ninguém esquecer metade.
+      // ⚠️ A RÉGUA PRA SABER SE ZERA AQUI: só onde o `round` volta a 0 E o
+      // `champion` é limpo, porque aí a temporada é OUTRA. O leilão de reservas
+      // e o re-leilão da carreira online NÃO passam por esta linha de propósito
+      // — lá a temporada continua, e zerar apagaria a artilharia em andamento.
+      // ⚠️ `rivalries` também fica fora: o retrospecto entre amigos atravessa
+      // temporada (é o "Rivalidade V=2 D=1" da tela de próximo jogo).
+      s.scorers = []; s.assists = []; s.lastResults = []
       // 🛟 flag do leilão de RESERVAS (carreira) não pode vazar pro jogo novo: quem
       // saía de uma carreira NO MEIO do leilão de reservas e abria um jogo novo via
       // o pregão nascer com BANCO e mirando 22 (bug "tá com reservas no rápido?!").

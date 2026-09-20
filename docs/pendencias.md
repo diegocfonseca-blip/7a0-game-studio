@@ -1,3 +1,63 @@
+## 20/09/2026 (parte 38) — 🐛 Dois bugs que ele pegou JOGANDO com o pessoal (os dois do mesmo print)
+
+Ele terminou uma sala com os amigos e mandou duas fotos.
+
+### 🐛 1 — o "novo leilão" voltava pro ENVELOPE CEGO
+Palavras dele: *"tava no modo holandês e todo mundo votou pra uma nova. Porém foi
+criado no modo às cegas. Sendo que estávamos jogando modo holandês… então tem que
+seguir com a mesma regra e modos e tudo que foi feito a sala"*.
+
+**Causa, e ela é estrutural**: o `START_ONLINE` **zera tudo que não vier na ação**.
+Então cada escolha da sala tem que ser REENVIADA na revanche, uma a uma, na mão. Eu
+liguei o holandês e não reenviei. **É a MESMA falha de 08/08** (naquele dia o que
+sumiu foi o modo stream) — ou seja, a 2ª vez que a revanche come uma regra da sala.
+
+**Consertado**: a revanche reenvia `holandes` — e também **`sport`**, que estava
+faltando do mesmo jeito e é pior: uma sala de **BidLegends virava futebol** no novo
+leilão. Ninguém tinha reclamado só porque o basquete abre pra uma conta só.
+
+### 🐛 2 — o campinho do LEILÃO mostrava ⚽ e 🅰️ antes de a bola rolar
+Na 2ª foto, o Bernabei aparece na escalação com gol e assistência **durante a
+revelação do pregão**, sem nenhuma partida jogada.
+
+**Causa**: o campinho acha o número pelo **NOME + time** (`golsDe`/`assistDe` em
+`screens.tsx`), e os **sete** caminhos de "começar leilão novo" zeravam `news`,
+`champion` e `round` — mas **não** `scorers`, `assists` e `lastResults`. Quem
+reaparecia na mesma cadeira herdava o número do ano anterior.
+
+**Consertado em CINCO dos sete**, e a escolha foi deliberada:
+- ✅ zeram: `START` (rápido) · `START_NBA` · `START_NBA_CAREER` ·
+  `START_CAREER_SOLO` · `START_ONLINE`;
+- ⛔ **NÃO zeram**: `REAUCTION_ONLINE` e `RESERVE_AUCTION_ONLINE` — esses dois são
+  de MEIO de carreira (o `round` nem volta a 0). Zerar ali apagaria a artilharia da
+  temporada **em andamento**, que seria um bug pior que o consertado.
+- **A régua**: zera junto com o `round = 0` e o `champion = null`. Se a temporada
+  virou, a artilharia vira junto.
+- ⚠️ `rivalries` fica FORA: o retrospecto entre amigos atravessa temporada (é o
+  "Rivalidade V=2 D=1" da tela de próximo jogo).
+- 🅰️ E, como manda a regra permanente, **gol e assistência zeram na MESMA linha** —
+  pra ninguém esquecer metade.
+
+### 🔒 Trava nova: `npm run revanche`
+Ela confere as duas coisas, e a 1ª é a que importa pro futuro:
+1. **as 15 escolhas da sala** têm que estar na chamada do "novo leilão" (baralho,
+   várzea, copa, **holandês**, **esporte**, stream, manual, chat, tempo, liga sem
+   bots, Minhas Ligas, senha, hash, temporada, duplas). Esquecer uma é bug MUDO —
+   a sala volta pro padrão e ninguém entende;
+2. artilharia/assistência/resultados zeram nos três caminhos principais, e o
+   retrospecto entre amigos **não** zera.
+
+⚠️ Detalhe pra quem for mexer nela: o Vite serve o `.tsx` **já transpilado**, então
+cortar o bloco por indentação ou por número de caracteres não funciona (tentei, e a
+trava acusou falta de campo que estava lá). A janela é achada **contando chaves** a
+partir do `type: 'START_ONLINE'`.
+
+### 🛡️ `npm run ascegas` depois de tudo
+`28bea2df` · `d65041f6` · `06bab491` — iguais. O leilão cego segue intocado mesmo
+com o `START` dele tendo ganhado a linha de zerar artilharia.
+
+---
+
 ## 20/09/2026 (parte 37) — 🎚️ A escada afina perto do 30 (pedido dele, com o jogo já no ar)
 
 Ele jogou e aprovou (*"tô adorando"*), com um pedido: *"só acho q tem q qd começa a

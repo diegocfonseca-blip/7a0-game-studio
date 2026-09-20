@@ -9033,6 +9033,18 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         auctionSecs: state.auctionSecs, ligaFechada: state.ligaFechada,
         liga: state.ligaMode, // 🏆 continua sendo Minhas Ligas no novo leilão (13/09)
         locked: state.locked, pwHash: state.pwHash,
+        // 🔻 O PREGÃO DA SALA CONTINUA O MESMO NO NOVO LEILÃO (20/09). Palavras
+        // dele, com a sala do pessoal na mão: *"tava no modo holandês e todo
+        // mundo votou pra uma nova, porém foi criado no modo às cegas… tem que
+        // seguir com a mesma regra e modos e tudo que foi feito a sala"*. Ele
+        // está certo, e é a MESMA falha do stream em 08/08: o `START_ONLINE`
+        // zera o que não vier na ação, então cada escolha da sala tem que ser
+        // reenviada aqui, uma a uma.
+        holandes: state.holandes,
+        // 🏀 E O ESPORTE TAMBÉM. Ninguém tinha reclamado porque o basquete só
+        // abre pra conta dele — mas o buraco era o mesmo e pior: uma sala de
+        // BidLegends virava futebol no "novo leilão".
+        sport: state.sport === 'basquete' ? 'basquete' : undefined,
       })
     } catch { dispatch({ type: 'REMATCH' }) }
   }
