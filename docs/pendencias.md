@@ -1,3 +1,48 @@
+## 20/09/2026 (parte 39) — 🏷️ O modo virou 🔻 QUEDA LIVRE, e aparece nas salas abertas
+
+Ele pediu: *"qual nome eu poderia dar pra esse modo do leilão, sem ser o nome
+holandês? Outra coisa: o nome do modo tem que aparecer nas salas criadas né, de
+alguma forma"* — e depois, com o print da lista: *"tô falando as salas abertas,
+colocar ali holandês sei lá, pra diferenciar"*. Ofereci quatro nomes e ele deixou a
+escolha comigo.
+
+### 🔻 Ficou **Queda Livre** (Free Fall)
+Por quê, entre os quatro:
+- **nomeia o que a pessoa VÊ** — o número despencando na tela;
+- **cabe no selo** da lista de salas (duas palavras);
+- **não mente**: "Liquidação" e "Pechincha" prometeriam que tudo sai barato, e
+  nesse modo o craque sai CEDO e CARO (o barato é o que sobra no fim);
+- **traduz limpo** (Free Fall), e o jogo é BR/EN.
+Os descartados ficam registrados caso ele mude de ideia: Quem Pega, Leva (First to
+Grab) · Liquidação (Clearance) · Quem Pisca, Perde (Blink and Lose).
+
+### 🔑 A chave no código CONTINUA `holandes`
+De propósito, e é regra da casa: nome que o código compara, guarda no save ou grava
+no `game_state` da sala **não é rebatizado** — senão toda sala criada antes desta
+linha deixaria de abrir. O que mudou é só o que a pessoa LÊ.
+
+### 📍 Onde o nome aparece agora
+1. **Lista de salas abertas** — selo VERMELHO no nome da sala, do lado do `BR`
+   (`🔻 QUEDA LIVRE`). Foi pra lá e não pra linha de baixo porque essa é a
+   diferença mais grossa entre duas salas: quem entra sem saber cai num jogo com
+   outra regra de lance. Tem `title` explicando, pra quem passa o dedo.
+2. **Topo do pregão** — `🔻 QUEDA LIVRE` em vermelho miúdo, acima de `GOLEIROS`.
+   Quem entrou numa sala que outra pessoa criou descobre ali.
+3. **As duas telas de montar** (partida rápida e sala online) — o botão de escolha.
+4. **A novidade da home** (PT + EN) — reescrita com o nome novo.
+
+### 🔒 Trava: o nome mora num lugar SÓ
+`MODO_QUEDA` em `store.tsx` é a fonte única; toda tela puxa de lá. O
+`npm run holandes` agora reprova se: a lista de salas não souber ler a bandeira ·
+o selo não for desenhado · alguma tela escrever o nome na mão em vez de puxar da
+fonte · ou se sobrar "🔻 Holandês" escrito em qualquer tela.
+
+📷 **O que não deu pra fotografar**: a lista de salas exige login, e eu não entro na
+conta dele. Por isso o selo é conferido na FONTE (existe, lê a bandeira certa, usa o
+nome da fonte única) em vez de por print.
+
+---
+
 ## 20/09/2026 (parte 38) — 🐛 Dois bugs que ele pegou JOGANDO com o pessoal (os dois do mesmo print)
 
 Ele terminou uma sala com os amigos e mandou duas fotos.

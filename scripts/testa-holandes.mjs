@@ -454,6 +454,27 @@ const r = await p.evaluate(async () => {
     ok(pacoteCego.holandes === false, 'sala cega saiu marcada como holandesa')
   }
 
+  // 7️⃣-bis 🏷️ O NOME DO MODO APARECE NAS SALAS ABERTAS (pedido dele, 20/09:
+  //    *"as salas abertas colocar ali holandês sei lá pra diferenciar"*).
+  //    Isto não dá pra fotografar — a lista de salas exige login — então a
+  //    conferência é na fonte: o selo tem que existir, ler a bandeira do
+  //    `game_state` e mostrar o nome vindo da fonte ÚNICA (`MODO_QUEDA`).
+  {
+    const lob = await (await fetch('/src/escalacao/lobby.tsx')).text()
+    ok(/const quedaRoom = /.test(lob), 'a lista de salas não sabe se a sala é de Queda Livre')
+    ok(/quedaRoom &&/.test(lob), 'a lista de salas não desenha o selo do modo')
+    ok(/MODO_QUEDA/.test(lob), 'o selo da lista escreve o nome na mão em vez de puxar da fonte única')
+    // e o nome mora num lugar SÓ: se alguém renomear, renomeia em todas as telas
+    ok(st.MODO_QUEDA?.pt && st.MODO_QUEDA?.en, 'o nome do modo sumiu da fonte única (MODO_QUEDA)')
+    ok(st.modoQuedaNome(false) === st.MODO_QUEDA.pt && st.modoQuedaNome(true) === st.MODO_QUEDA.en,
+      'o nome do modo em PT/EN não bate com a fonte única')
+    // 🚫 e ninguém pode ter deixado "Holandês" escrito na tela
+    const tela = await (await fetch('/src/escalacao/screens.tsx')).text()
+    for (const [arq, txt] of [['lobby', lob], ['screens', tela]]) {
+      ok(!/'🔻 Holand/.test(txt) && !/"🔻 Holand/.test(txt), `sobrou "Holandês" escrito na tela (${arq})`)
+    }
+  }
+
   // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
   //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
   //    jogadores usuários q entram no online igual a regra q já funciona ou tô

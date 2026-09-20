@@ -4391,6 +4391,21 @@ export function holEscada(start: number): number[] {
   out.push(0) // 0 = ninguém quis → sobras (não dá pra levar de graça, senão nada sobraria)
   return out
 }
+// 🏷️ O NOME DO MODO — em UM lugar só, e é daqui que TODA tela puxa.
+//
+// O Diego batizou em 20/09: *"qual nome eu poderia dar pra esse modo do leilão,
+// sem ser o nome holandês?"* e deixou a escolha comigo. Ficou **Queda Livre**
+// (Free Fall em inglês), porque nomeia o que a pessoa VÊ — o número despencando
+// — cabe num selo pequeno e não promete que tudo sai barato (nesse modo o craque
+// sai CEDO e CARO, então "Liquidação"/"Pechincha" mentiriam).
+//
+// ⚠️ A CHAVE NO CÓDIGO CONTINUA `holandes`. Isso é de propósito e é a regra da
+// casa: nome que o código compara, guarda no save ou grava no `game_state` da
+// sala NUNCA é traduzido nem rebatizado — sala criada antes desta linha
+// continua abrindo certinho. O que muda é só o que a pessoa LÊ.
+export const MODO_QUEDA = { pt: 'Queda Livre', en: 'Free Fall' } as const
+export const modoQuedaNome = (en: boolean) => (en ? MODO_QUEDA.en : MODO_QUEDA.pt)
+
 export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // ⏱️ TEMPO DE CADA DEGRAU — TRÊS marchas, e elas casam com a escada de preços.
 // A escada foi afinada de 30 pra baixo (pedido dele); se o relógio ficasse o

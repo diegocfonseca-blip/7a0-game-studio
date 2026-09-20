@@ -42,7 +42,7 @@ await clica('LEILÃO LEGENDS 38', 1400)
 await clica('✕', 400)
 await clica('BR', 800)
 await clica('PARTIDA RÁPIDA', 1400)
-await clica('Holandês', 500)
+await clica('Queda Livre', 500)
 await tira('holandes-0-escolha', 'a escolha do modo, na tela de começar o jogo rápido')
 
 // 2) nome do time → avança até o pregão abrir
