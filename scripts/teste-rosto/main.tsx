@@ -302,6 +302,43 @@ function BaseBench() {
   )
 }
 
+// ─── 🕴️ AGÊNCIA CHEIA (bancada da tela nova) ───────────────────────────────
+// Carteira de quem já foi campeão várias vezes: 31 clientes, 22 na ativa. A ativa
+// entra de propósito com os PIORES — assim aparecem os dois avisos novos (o "chegou
+// carta melhor" e o ⚡). Estádio sem SAF: lenda travada = dinheiro parado na tela.
+function AgenciaCheia() {
+  const pool: AgCard[] = (() => {
+    const porFama = new Map<number, AgCard[]>()
+    const nomes = new Set<string>()
+    const todas: AgCard[] = []
+    for (const cat of [CATALOG, CATALOG_EU]) {
+      for (const [pos, lista] of Object.entries(cat)) {
+        for (const c of lista) todas.push({ name: c.name, club: c.club, year: c.year, pos: pos as AgCard['pos'], fame: c.fame, folk: c.folk || undefined, promessa: c.promessa || undefined })
+      }
+    }
+    const porFamaPos = new Map<string, number>()
+    for (const c of todas) {
+      if (nomes.has(c.name)) continue
+      const kp = `${c.fame}|${c.pos}`
+      if ((porFamaPos.get(kp) ?? 0) >= 2) continue   // no máximo 2 por fama+posição
+      const lista = porFama.get(c.fame) ?? []
+      if (lista.length >= 8) continue
+      nomes.add(c.name); porFamaPos.set(kp, (porFamaPos.get(kp) ?? 0) + 1)
+      lista.push(c)
+      porFama.set(c.fame, lista)
+    }
+    return [...porFama.values()].flat().slice(0, 31)
+  })()
+  const [cards, setCards] = useState<AgCard[]>(() => [...pool].sort((a, b) => a.fame - b.fame).slice(0, 22))
+  const hist = Object.fromEntries(cards.map((c, i) => [`${c.name}|${c.club}|${c.year}`, 6 + (i % 5) * 7]))
+  return (
+    <AgenciadosTab cards={cards} pool={pool} hist={hist}
+      fatura={{ season: 5, mensal: 41, rows: [{ emoji: '🥇', texto: 'Artilheiro da Série C', coins: 4 } as never], total: 45 }}
+      st={{ inv: { grama: 999, norte: 999, sul: 999, leste: 999, oeste: 999 }, ext: [] }} hasFilial={false}
+      primeiroClube="Neymarzetti" onSet={setCards} />
+  )
+}
+
 createRoot(document.getElementById('root')!).render(
   <EscProvider>
     {q.has('base')
@@ -325,6 +362,17 @@ createRoot(document.getElementById('root')!).render(
           <div style={{ maxWidth: 430, margin: '0 auto' }}>
             <AgenciadosTab cards={CARDS} pool={CARDS} hist={{}} fatura={undefined}
               st={estadio} hasFilial={false} primeiroClube="Neymarzetti" onSet={() => {}} />
+          </div>
+        </div>
+      : q.has('agencia2')
+      // 🕴️ SUA AGÊNCIA (19/09) — a tela de verdade com carteira CHEIA: 22 na ativa,
+      // gente esperando a vez, histórico da carreira e a SAF ainda por fazer (pra
+      // aparecer o aviso do dinheiro parado). Serve pro OK do Diego antes do deploy.
+      // ⚠️ `color` no wrapper: no jogo quem pinta a tinta é o .palco; sem isso a
+      // bancada mostra título creme sobre creme (não é bug da tela).
+      ? <div style={{ background: '#F4ECD6', color: '#0C0C0C', minHeight: '100vh', padding: 14 }}>
+          <div style={{ maxWidth: 430, margin: '0 auto' }}>
+            <AgenciaCheia />
           </div>
         </div>
       : <Salao />}

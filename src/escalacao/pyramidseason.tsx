@@ -1380,12 +1380,51 @@ const agTier = (c: { name: string; club?: string; year?: number; fame?: number; 
     : (c.fame ?? 1) === 4 ? { grad: 'linear-gradient(150deg,#F4F7FB,#CBD4DE,#9BA7B5)', ink: INK, holo: true }
     : (c.fame ?? 1) >= 2 ? { grad: 'linear-gradient(150deg,#41C07A,#2E9E5B,#1E7A45)', ink: '#fff' }
     : { grad: 'linear-gradient(150deg,#DBD1B5,#CBBF9E,#B2A583)', ink: INK }
-const agChip = (c: { name: string; club?: string; year?: number; fame?: number; promessa?: boolean }) =>
-  ehPromessa(c) ? { t: tr('💎 PROMESSA', '💎 PROSPECT'), bg: '#8B5CF6', ink: '#fff' }
-    : (c.fame ?? 1) >= 5 ? { t: tr('👑 LENDA', '👑 LEGEND'), bg: GOLD, ink: INK }
-    : (c.fame ?? 1) === 4 ? { t: tr('⭐ CRAQUE', '⭐ STAR'), bg: '#E4E9F0', ink: INK }
-    : (c.fame ?? 1) >= 2 ? { t: tr('🎯 BOM', '🎯 GOOD'), bg: '#2E9E5B', ink: '#fff' }
-    : { t: tr('🪵 FOI PROF.', '🪵 EX-PRO'), bg: '#CBBF9E', ink: INK }
+
+// 🃏 QUADRADINHO DA CARTA — a MESMA cara na ativa e na hora de escolher.
+// Pedido do Diego (19/09), olhando a convocação: *"ao ele escolher os jogadores ele
+// vê as cartinhas também né?"*. Antes a escolha era uma LISTA de nomes: ninguém
+// escolhe cliente lendo nome em linha. Agora é carta, com a cor do tier, o rosto
+// (quando existe), quanto rende e o clube · ano — que é o que separa dois xarás.
+function AgMini({ c, rostoOn, on, apagado, valor, marca, detalhe, onClick, onLupa, disabled }: {
+  c: AgCard; rostoOn: boolean
+  on?: boolean            // ✓ está na ativa / convocado
+  apagado?: boolean       // quem está de fora (não rende)
+  valor?: number | null   // +N 🪙 por temporada · null = categoria travada
+  marca?: string          // selo no rodapé (ex.: "já convocado")
+  detalhe?: boolean       // mostra clube · ano embaixo do nome
+  onClick?: () => void
+  onLupa?: () => void     // 🔍 abre a carta inteira (some quando não é preciso)
+  disabled?: boolean
+}) {
+  const t = agTier(c)
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ border: `${on ? 3.5 : 2.5}px solid ${on ? GREEN : INK}`, borderRadius: 11, aspectRatio: '3/4', padding: '5px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', boxShadow: `2px 2px 0 0 ${INK}`, position: 'relative', overflow: 'hidden', background: t.grad, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? .38 : apagado ? .62 : 1, filter: apagado ? 'grayscale(.55)' : undefined }}>
+      {t.holo && <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.6) 48%,transparent 62%)', pointerEvents: 'none' }} />}
+      {c.folk && <span style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(0,0,0,.75)', color: '#fff', borderRadius: 999, fontSize: 6.5, fontWeight: 900, padding: '1px 5px' }}>🃏 +1</span>}
+      {on && <span style={{ position: 'absolute', top: 3, left: 3, width: 15, height: 15, borderRadius: 999, background: GREEN, border: '2px solid #fff', color: '#fff', fontSize: 9, fontWeight: 900, display: 'grid', placeItems: 'center' }}>✓</span>}
+      {rostoOn && avatarLote1(c.name, c.club, c.year)
+        ? <span style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', flex: '1 1 0', minHeight: 0, overflow: 'hidden', lineHeight: 0 }}><AvatarLote1 name={c.name} club={c.club} year={c.year} /></span>
+        : <span style={{ position: 'relative', width: 26, height: 26, borderRadius: 999, border: '2px solid rgba(0,0,0,.28)', display: 'grid', placeItems: 'center', ...OSWALD, fontWeight: 900, fontSize: 13, background: 'rgba(255,255,255,.85)', color: INK }}>{c.name.trim()[0]?.toUpperCase() ?? '?'}</span>}
+      {/* ⬆️ `position:relative` no nome e no rodapé: o brilho holo é absoluto e
+          pintava POR CIMA do texto, deixando o nome lavado. */}
+      <span style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.1, color: t.ink }}>
+        {c.name}
+        {detalhe && <span style={{ display: 'block', fontFamily: 'system-ui', fontWeight: 700, fontSize: 6.5, opacity: .72, marginTop: 1, textTransform: 'none' }}>{c.club} · {c.year}</span>}
+      </span>
+      <span style={{ position: 'relative', fontSize: 6.5, letterSpacing: .5, color: t.ink }}>
+        {marca ? <b style={{ fontFamily: 'system-ui', fontSize: 6.5 }}>{marca}</b>
+          : valor === undefined ? (ehPromessa(c) ? '💎💎💎' : '⭐'.repeat(Math.max(1, Math.min(5, c.fame))))
+          : valor === null ? <b style={{ fontFamily: 'system-ui', fontSize: 7 }}>🔒 {tr('travado', 'locked')}</b>
+          : <b style={{ ...OSWALD, fontSize: 9.5 }}>+{valor} 🪙</b>}
+      </span>
+      {onLupa && <span role="button" aria-label={tr('ver a carta', 'see the card')} tabIndex={0}
+        onClick={e => { e.stopPropagation(); onLupa() }}
+        style={{ position: 'absolute', bottom: 3, right: 3, width: 17, height: 17, borderRadius: 999, border: `2px solid ${INK}`, background: '#fff', fontSize: 8, lineHeight: 1, display: 'grid', placeItems: 'center', cursor: 'pointer' }}>🔍</span>}
+    </button>
+  )
+}
 
 // 🔬 exportado só pra bancada de conferência (`scripts/teste-rosto/`), igual o SquadTab
 export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primeiroClube, onSet, clubes, destinoId, dividir, onSetDestino }: {
@@ -1401,12 +1440,56 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
 }) {
   const [open, setOpen] = useState<AgCard | null>(null)
   const [convocando, setConvocando] = useState(false)
+  const [dispensadas, setDispensadas] = useState<Set<string>>(new Set()) // "deixa assim" do aviso de troca
+  const [verFora, setVerFora] = useState(false)                          // 💤 mostra todos os que esperam a vez
   // 🧑 rosto de lenda no quadradinho (pedido do Diego 13/09: *"os agenciados estão
   // sem avatar… claro, os que têm foto apenas"*). Hoje TODA arte é de carta 👑 LENDA,
   // então quem não é lenda segue na letra, como sempre foi.
   const rostoOn = useLegendPresentation()
   const renda = agenciaRenda(cards, st, hasFilial)
   const locked = EMP_ORDER.filter(k => !renda.by[k].unlocked && renda.by[k].count > 0)
+  // 🏦 quanto a agência já rendeu NESTA carreira (soma do histórico por carta)
+  const carreiraTotal = Object.values(hist ?? {}).reduce((s, n) => s + (n || 0), 0)
+  // 💰 quanto UMA carta rende por temporada (0 = categoria ainda travada)
+  const rendeDe = (c: AgCard) => {
+    const k = empCat(c)
+    return empCatUnlocked(k, st, hasFilial) ? AG_VALUES[k] + (c.folk ? AG_FOLK_BONUS : 0) : 0
+  }
+  // 🥇 régua do "quem rende mais": o que paga hoje manda; empate desempata pelo
+  // que a carta VALERIA destravada (pra lenda travada não ficar atrás de ninguém)
+  const peso = (c: AgCard) => rendeDe(c) * 100 + AG_VALUES[empCat(c)] * 10 + (c.folk ? 1 : 0)
+  const ativaKeys = new Set(cards.map(agKeyOf))
+  const ativaNomes = new Set(cards.map(c => c.name))
+  // 💤 quem está de fora (não rende nada e não acumula nada — regra dita pelo Diego)
+  const fora = pool.filter(c => !ativaKeys.has(agKeyOf(c))).sort((a, b) => peso(b) - peso(a) || a.name.localeCompare(b.name))
+  // 🔒 dinheiro parado: o que os da ativa renderiam se a obra estivesse pronta
+  const travado = cards.reduce((s, c) => s + (rendeDe(c) > 0 ? 0 : AG_VALUES[empCat(c)] + (c.folk ? AG_FOLK_BONUS : 0)), 0)
+  // ⚡ um toque põe na ativa quem mais rende (respeitando: mesma PESSOA só uma vez)
+  const melhores22 = () => {
+    const nomes = new Set<string>(); const out: AgCard[] = []
+    for (const c of [...pool].sort((a, b) => peso(b) - peso(a) || a.name.localeCompare(b.name))) {
+      if (out.length >= 22) break
+      if (nomes.has(c.name)) continue
+      nomes.add(c.name); out.push(c)
+    }
+    return out
+  }
+  const jaOtimo = (() => {
+    const ideal = new Set(melhores22().map(agKeyOf))
+    return cards.length === Math.min(22, new Set(pool.map(c => c.name)).size) && cards.every(c => ideal.has(agKeyOf(c)))
+  })()
+  // 🆕 chegou carta melhor que alguém da ativa? o jogo AVISA (antes a pessoa
+  // tinha que descobrir sozinha, comparando na mão)
+  const sugestao = (() => {
+    if (cards.length === 0 || fora.length === 0) return null
+    const entra = fora.find(c => !ativaNomes.has(c.name) && !dispensadas.has(agKeyOf(c)))
+    if (!entra) return null
+    const sai = [...cards].sort((a, b) => peso(a) - peso(b))[0]
+    // ⚠️ só avisa quando a troca põe DINHEIRO no bolso hoje. Sem isto, com a obra
+    // travada a tela dizia "ele rende +0 e o outro rende +0 — quer trocar?".
+    if (!sai || rendeDe(entra) <= rendeDe(sai)) return null
+    return { entra, sai }
+  })()
   return (
     <>
       {/* 🕴️ APRESENTAÇÃO (Diego 13/08 — "não tá claro o que é Agenciados"): conta a
@@ -1420,7 +1503,9 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
         <span style={{ fontSize: 26 }}>🕴️</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ ...OSWALD, fontWeight: 900, fontSize: 15, textTransform: 'uppercase' }}>{tr('Sua Agência', 'Your Agency')}</div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>{getLang() === 'en' ? <>Call up to 22 title cards from THIS career as "active" — only they earn. {dividir ? <>The money is split <b>half and half between both clubs</b>.</> : <>The money goes to <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1st club)'}.</>}</> : <>Convoque até 22 cartas de título DESTA carreira pra "ativa" — só elas rendem. {dividir ? <>A grana cai <b>meio a meio nos dois clubes</b>.</> : <>A grana cai no <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1º clube)'}.</>}</>}</div>
+          {/* 🗣️ a frase que explica o negócio em UMA linha (mockup aprovado 19/09).
+              Antes a tela começava no painel técnico e ninguém entendia o que era. */}
+          <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.65)', marginTop: 2 }}>{getLang() === 'en' ? <>Your agents' agency. Every title brings you a client — and a client pays a fee every year. {dividir ? <>The money is split <b>half and half between both clubs</b>.</> : <>It lands in <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1st club)'}.</>}</> : <>Sua agência de empresários. Todo título te traz um cliente — e cliente paga mensalidade todo ano. {dividir ? <>A grana cai <b>meio a meio nos dois clubes</b>.</> : <>Ela cai no <b>{primeiroClube}</b>{clubes && clubes.length === 2 ? '' : ' (1º clube)'}.</>}</>}</div>
         </div>
         <div style={{ background: GOLD, border: '2px solid rgba(255,255,255,.25)', borderRadius: 10, padding: '4px 10px', textAlign: 'center', color: INK }}>
           <b style={{ display: 'block', ...OSWALD, fontSize: 16, lineHeight: 1 }}>{cards.length}/22</b>
@@ -1449,10 +1534,18 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
         </div>
       )}
 
-      {/* RENDA GARANTIDA por temporada */}
+      {/* 💰 MENSALIDADES DESTA TEMPORADA — o dinheiro onde a pessoa olha (Diego
+          19/09: *"mostrar dinheiro onde ela olha"*). Além do total do ano, agora
+          diz ONDE ele cai (extrato) e quanto a agência já rendeu na carreira. */}
       <div style={{ ...box(), background: `linear-gradient(160deg, ${GREEN}, #14401f)`, color: '#fff', padding: '11px 13px', marginBottom: 10 }}>
-        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('💰 Renda garantida por temporada', '💰 Guaranteed income per season')}</div>
+        <div style={{ fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,.65)', fontWeight: 800 }}>{tr('💰 Mensalidades desta temporada', '💰 This season\'s fees')}</div>
         <div style={{ ...OSWALD, fontSize: 26, fontWeight: 900, lineHeight: 1.1, marginTop: 2 }}>+{renda.total} 🪙</div>
+        <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.62)', marginTop: 1 }}>{getLang() === 'en' ? <>lands in the till at the turnover · shows up in the statement as <u>🕴️ Agency</u></> : <>cai no caixa na virada · no extrato aparece como <u>🕴️ Agência</u></>}</div>
+        {carreiraTotal > 0 && (
+          <div style={{ marginTop: 7, background: 'rgba(0,0,0,.28)', border: '2px solid rgba(255,255,255,.22)', borderRadius: 9, padding: '5px 9px', fontSize: 10.5, fontWeight: 800 }}>
+            {getLang() === 'en' ? <>🏦 the agency has already earned you <b>{carreiraTotal} 🪙</b> in this career</> : <>🏦 a agência já te rendeu <b>{carreiraTotal} 🪙</b> nesta carreira</>}
+          </div>
+        )}
         <div style={{ marginTop: 6 }}>
           {EMP_ORDER.map(k => {
             const b = renda.by[k]; if (b.count === 0) return null
@@ -1500,43 +1593,87 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
         )}
       </div>
 
-      {/* GRADE dos agenciados (toque abre a carta igual álbum) */}
-      {cards.length > 0 && (
-        <>
-          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', margin: '2px 2px 6px' }}>{tr('🃏 Seus agenciados (toque pra abrir a carta)', '🃏 Your clients (tap to open the card)')}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7, marginBottom: 10 }}>
-            {cards.map(c => {
-              const t = agTier(c)
-              return (
-                <button key={agKeyOf(c)} onClick={() => setOpen(c)} style={{ border: `2.5px solid ${INK}`, borderRadius: 11, aspectRatio: '3/4', padding: '5px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', boxShadow: `2px 2px 0 0 ${INK}`, position: 'relative', overflow: 'hidden', background: t.grad, cursor: 'pointer' }}>
-                  {t.holo && <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.6) 48%,transparent 62%)', pointerEvents: 'none' }} />}
-                  {c.folk && <span style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(0,0,0,.75)', color: '#fff', borderRadius: 999, fontSize: 6.5, fontWeight: 900, padding: '1px 5px' }}>🃏 +1</span>}
-                  {rostoOn && avatarLote1(c.name, c.club, c.year)
-                    ? <span style={{ position: 'relative', display: 'block', width: '100%', lineHeight: 0 }}><AvatarLote1 name={c.name} club={c.club} year={c.year} /></span>
-                    : <span style={{ position: 'relative', width: 26, height: 26, borderRadius: 999, border: '2px solid rgba(0,0,0,.28)', display: 'grid', placeItems: 'center', ...OSWALD, fontWeight: 900, fontSize: 13, background: 'rgba(255,255,255,.85)', color: INK }}>{c.name.trim()[0]?.toUpperCase() ?? '?'}</span>}
-                  {/* ⬆️ `position:relative` no nome e nas estrelas: o brilho holo é
-                      absoluto e pintava POR CIMA do texto, deixando o nome lavado. */}
-                  <span style={{ position: 'relative', ...OSWALD, fontWeight: 900, fontSize: 8.5, textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.1, color: t.ink }}>{c.name}</span>
-                  <span style={{ position: 'relative', fontSize: 6.5, letterSpacing: .5 }}>{ehPromessa(c) ? '💎💎💎' : '⭐'.repeat(Math.max(1, Math.min(5, c.fame)))}</span>
-                </button>
-              )
-            })}
+      {/* 🆕 CHEGOU CARTA MELHOR — o jogo avisa e compara com o pior da ativa.
+          Antes a pessoa tinha que descobrir sozinha, carta por carta. */}
+      {sugestao && (
+        <div style={{ ...box('#F3ECFF'), borderColor: '#7C3AED', padding: '9px 11px', marginBottom: 10 }}>
+          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', color: '#5B2FB0' }}>🆕 {sugestao.entra.name} {tr('chegou na sua carteira', 'joined your books')}</div>
+          <p style={{ fontSize: 10.5, fontWeight: 700, margin: '3px 0 7px', lineHeight: 1.4 }}>{getLang() === 'en'
+            ? <>He earns <b>+{rendeDe(sugestao.entra)}</b> and <b>{sugestao.sai.name}</b>, who is active, earns <b>+{rendeDe(sugestao.sai)}</b>. Want to swap?</>
+            : <>Ele rende <b>+{rendeDe(sugestao.entra)}</b> e o <b>{sugestao.sai.name}</b>, que está na ativa, rende <b>+{rendeDe(sugestao.sai)}</b>. Quer trocar?</>}</p>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={() => onSet([...cards.filter(c => agKeyOf(c) !== agKeyOf(sugestao.sai)), sugestao.entra])}
+              style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 4px', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: '#7C3AED', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('Trocar', 'Swap')}</button>
+            <button onClick={() => setDispensadas(prev => new Set([...prev, agKeyOf(sugestao.entra)]))}
+              style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 4px', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: '#fff', color: INK, cursor: 'pointer' }}>{tr('Deixa assim', 'Leave it')}</button>
           </div>
-        </>
-      )}
-      {cards.length === 0 && (
-        <div style={{ ...box('#FBF6E9'), padding: 16, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12.5, marginBottom: 10 }}>
-          {getLang() === 'en' ? <>Nobody active yet. You win agency cards by becoming <b>champion IN THIS career</b> (the title pack) — then just call up to 22 as active.</> : <>Ninguém na ativa ainda. As cartas da agência você ganha sendo <b>campeão NESTA carreira</b> (o pacote do título) — aí é só convocar até 22 pra ativa.</>}
         </div>
       )}
 
-      {/* CONVOCAR + trava explicada */}
-      <button onClick={() => setConvocando(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', marginBottom: 8 }}>
-        {tr('🧢 Convocar agenciados', '🧢 Call up clients')} — {cards.length > 0 ? tr('trocar os 22', 'swap the 22') : tr('escolher do cofre da carreira', 'pick from the career vault')}
-      </button>
-      {locked.length > 0 && (
-        <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.6)', background: '#FFF7DB', border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 9px' }}>
-          🔒 {locked.map(k => `${empMeta(k).label} ${tr('destrava', 'unlocks')}: ${empMeta(k).req}`).join(' · ')} — {getLang() === 'en' ? <>unlocks live in <b>Club › 🏗️ Structure</b> (stadium works unlock them).</> : <>os desbloqueios ficam em <b>Clube › 🏗️ Estrutura</b> (a obra do estádio destrava).</>}
+      {/* 🃏 NA ATIVA — a grade de sempre (a forma que o Diego escolheu manter),
+          agora com o PORQUÊ do 22 escrito e com o dinheiro em cada carta. */}
+      <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase' }}>{tr('🃏 Na ativa', '🃏 Active')}</span>
+          <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 800, color: '#8a8069' }}>{cards.length} {tr('de', 'of')} {pool.length} {tr('clientes', 'clients')}</span>
+        </div>
+        {/* ③ o 22 deixa de ser número mágico — e a regra que o Diego ditou em
+            19/09 fica escrita: *"quem não está ativo não recebe nada e nem o que
+            ele teria ganhado. Só quando ativo, a partir daquele momento"*. */}
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#6b6453', margin: '0 0 8px', lineHeight: 1.45 }}>{getLang() === 'en'
+          ? <>You look after <b>22 at a time</b> — that's how many an agency can really follow. Only the active ones pay a fee. Whoever is out <b>earns nothing and stacks nothing</b> — they start earning the day they come in.</>
+          : <>Você cuida de <b>22 ao mesmo tempo</b> — é quanta gente uma agência dá conta de acompanhar. Só quem está na ativa paga mensalidade. Quem está fora <b>não rende nada e não acumula nada</b> — passa a render no dia em que entra.</>}</p>
+        {cards.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7, marginBottom: 9 }}>
+            {[...cards].sort((a, b) => peso(b) - peso(a) || a.name.localeCompare(b.name)).map(c => (
+              <AgMini key={agKeyOf(c)} c={c} rostoOn={rostoOn} valor={rendeDe(c) || null} onClick={() => setOpen(c)} />
+            ))}
+          </div>
+        ) : (
+          <div style={{ ...box('#FBF6E9'), padding: 14, textAlign: 'center', fontWeight: 700, color: '#8a7d59', fontSize: 12, marginBottom: 9 }}>
+            {getLang() === 'en' ? <>Nobody active yet. You win agency cards by becoming <b>champion IN THIS career</b> (the title pack) — then just call up to 22 as active.</> : <>Ninguém na ativa ainda. As cartas da agência você ganha sendo <b>campeão NESTA carreira</b> (o pacote do título) — aí é só convocar até 22 pra ativa.</>}
+          </div>
+        )}
+        {/* ④ UM TOQUE RESOLVE. Quem gosta de mexer continua com o "na mão". */}
+        {pool.length > 0 && !jaOtimo && (
+          <button onClick={() => onSet(melhores22())} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 13, ...OSWALD, color: INK, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', marginBottom: 6 }}>
+            ⚡ {tr('Deixar os que mais rendem na ativa', 'Put the top earners on active duty')}
+          </button>
+        )}
+        <button onClick={() => setConvocando(true)} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: 9, fontWeight: 900, fontSize: 12, ...OSWALD, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
+          🧢 {tr('Escolher na mão', 'Pick by hand')}
+        </button>
+      </div>
+
+      {/* ⑤ 💤 QUEM ESTÁ DE FORA aparece, e diz quanto renderia — decisão com
+          informação na mão, em vez de um cofre invisível. */}
+      {fora.length > 0 && (
+        <div style={{ ...box('#F2EDDE'), padding: '10px 12px', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 7 }}>
+            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase' }}>{tr('💤 Esperando a vez', '💤 Waiting their turn')}</span>
+            <span style={{ marginLeft: 'auto', fontSize: 9.5, fontWeight: 800, color: '#8a8069' }}>{fora.length} {tr('clientes · não rendem', 'clients · earn nothing')}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7 }}>
+            {(verFora ? fora : fora.slice(0, 8)).map(c => (
+              <AgMini key={agKeyOf(c)} c={c} rostoOn={rostoOn} apagado valor={rendeDe(c) || null} onClick={() => setOpen(c)} />
+            ))}
+          </div>
+          {fora.length > 8 && (
+            <button onClick={() => setVerFora(v => !v)} style={{ background: 'none', border: 0, marginTop: 7, fontSize: 10.5, fontWeight: 900, textDecoration: 'underline', color: INK, cursor: 'pointer', width: '100%' }}>
+              {verFora ? tr('▲ mostrar menos', '▲ show less') : `▼ ${tr('ver os outros', 'see the other')} ${fora.length - 8}`}
+            </button>
+          )}
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: '#8a8069', margin: '6px 0 0', lineHeight: 1.4 }}>{getLang() === 'en' ? <>The number is what they'd earn <b>if they were active</b>. Out of the active list, <b>nothing is earned and nothing stacks up</b>.</> : <>O número é o que renderia <b>se estivesse na ativa</b>. Fora da ativa, <b>não rende nada e não acumula nada</b>.</>}</p>
+        </div>
+      )}
+
+      {/* ⑦ O DINHEIRO PARADO vira chamada, não letra miúda */}
+      {travado > 0 && locked.length > 0 && (
+        <div style={{ ...box('#FFF7DB'), padding: '10px 12px', marginBottom: 10 }}>
+          <div style={{ ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase' }}>🔒 +{travado} 🪙 {tr('por temporada parados', 'per season sitting still')}</div>
+          <p style={{ fontSize: 10.5, fontWeight: 700, margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en'
+            ? <>You have clients that only pay after the work is done: {locked.map(k => `${empMeta(k).label} — ${empMeta(k).req}`).join(' · ')}. The works are in <b>Club › 🏗️ Structure</b>, and the money starts coming in by itself.</>
+            : <>Você tem clientes que só pagam depois da obra: {locked.map(k => `${empMeta(k).label} — ${empMeta(k).req}`).join(' · ')}. As obras ficam em <b>Clube › 🏗️ Estrutura</b>, e esse dinheiro entra sozinho.</>}</p>
         </div>
       )}
 
@@ -1567,7 +1704,7 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
         )
       })()}
 
-      {convocando && <ConvocacaoAgencia current={cards} pool={pool} onClose={() => setConvocando(false)} onSave={list => { onSet(list); setConvocando(false) }} />}
+      {convocando && <ConvocacaoAgencia current={cards} pool={pool} st={st} hasFilial={hasFilial} onClose={() => setConvocando(false)} onSave={list => { onSet(list); setConvocando(false) }} />}
     </>
   )
 }
@@ -1576,9 +1713,16 @@ export function AgenciadosTab({ cards, pool, hist, fatura, st, hasFilial, primei
 // filtro por posição + busca). Mesma PESSOA só uma vez (auges diferentes = 1 vaga).
 // ⚠️ CORREÇÃO (relato do Diego 04/08): a agência usa SÓ as cartas ganhas NESTA
 // carreira (pacotes de título daqui) — nada de puxar o álbum global da conta.
-function ConvocacaoAgencia({ current, pool, onClose, onSave }: { current: AgCard[]; pool: AgCard[]; onClose: () => void; onSave: (cards: AgCard[]) => void }) {
+function ConvocacaoAgencia({ current, pool, st, hasFilial, onClose, onSave }: { current: AgCard[]; pool: AgCard[]; st: StadiumSave | undefined; hasFilial: boolean; onClose: () => void; onSave: (cards: AgCard[]) => void }) {
   const [tab, setTab] = useState<Sector>('GOL')
   const [q, setQ] = useState('')
+  const [olhando, setOlhando] = useState<AgCard | null>(null)   // 🔍 carta aberta por cima
+  const rostoOn = useLegendPresentation()
+  // 💰 quanto a carta rende por temporada (null = a categoria dela ainda está travada)
+  const rende = (c: AgCard): number | null => {
+    const k = empCat(c)
+    return empCatUnlocked(k, st, hasFilial) ? AG_VALUES[k] + (c.folk ? AG_FOLK_BONUS : 0) : null
+  }
   const [sel, setSel] = useState<Record<string, AgCard>>(() => Object.fromEntries(current.map(c => [agKeyOf(c), c])))
   const total = Object.keys(sel).length
   const usedNames = new Set(Object.values(sel).map(c => c.name))
@@ -1620,36 +1764,52 @@ function ConvocacaoAgencia({ current, pool, onClose, onSave }: { current: AgCard
         <input value={q} onChange={e => setQ(e.target.value)} placeholder={`${tr('🔎 buscar nos', '🔎 search the')} ${pool.filter(c => c.pos === tab).length} ${tr('da posição…', 'in this position…')}`}
           style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
 
-        <div style={{ ...box('#fff'), borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
-          <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+        {/* 🃏 AS CARTINHAS (Diego 19/09: *"ao ele escolher os jogadores ele vê as
+            cartinhas também né?"*). Era uma LISTA de nomes — escolher cliente sem
+            ver a carta não tinha graça nenhuma. Toque marca/desmarca; o 🔍 abre a
+            carta inteira com a bio, igual no álbum. */}
+        <div style={{ ...box('#fff'), borderRadius: 12, padding: 8, marginBottom: 10 }}>
+          <div style={{ maxHeight: 340, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 7 }}>
             {list.map(c => {
               const k = agKeyOf(c)
               const on = !!sel[k]
               const otherVersion = !on && usedNames.has(c.name)
               const full = !on && total >= 22
-              const chip = agChip(c)
               return (
-                <button key={k} onClick={() => toggle(c)} disabled={otherVersion}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : '#fff', cursor: otherVersion ? 'not-allowed' : 'pointer', opacity: otherVersion ? .4 : full ? .65 : 1, textAlign: 'left' }}>
-                  <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : ''}</span>
-                  <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                  {c.folk && <span style={{ background: INK, color: '#fff', borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 6px', flexShrink: 0 }}>🃏 +1</span>}
-                  <span style={{ background: chip.bg, color: chip.ink, border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 6px', flexShrink: 0 }}>{otherVersion ? tr('já convocado', 'already called') : chip.t}</span>
-                  <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.club} · {c.year}</span>
-                </button>
+                <AgMini key={k} c={c} rostoOn={rostoOn} on={on} detalhe apagado={full} disabled={otherVersion}
+                  marca={otherVersion ? tr('já convocado', 'already called') : undefined}
+                  valor={otherVersion ? undefined : rende(c)}
+                  onClick={() => toggle(c)} onLupa={() => setOlhando(c)} />
               )
             })}
-            {list.length === 0 && (
-              <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>
-                {pool.length === 0 ? tr('O cofre desta carreira ainda está vazio — seja CAMPEÃO aqui pra ganhar cartas! 🏆', 'This career\'s vault is still empty — become CHAMPION here to win cards! 🏆') : tr('ninguém com esse nome aqui… 🔎', 'nobody with that name here… 🔎')}
-              </p>
-            )}
           </div>
+          {list.length === 0 && (
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14, margin: 0 }}>
+              {pool.length === 0 ? tr('O cofre desta carreira ainda está vazio — seja CAMPEÃO aqui pra ganhar cartas! 🏆', 'This career\'s vault is still empty — become CHAMPION here to win cards! 🏆') : tr('ninguém com esse nome aqui… 🔎', 'nobody with that name here… 🔎')}
+            </p>
+          )}
         </div>
+
+        {/* 🔍 a carta inteira, com bio — por cima da convocação, sem perder a escolha */}
+        {olhando && (
+          <div onClick={() => setOlhando(null)} style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
+            <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 300 }}>
+              <CollectibleCard name={olhando.name} club={olhando.club} year={olhando.year} pos={olhando.pos} fame={olhando.fame} folk={olhando.folk} promessa={olhando.promessa} big showBio />
+              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                {!(!sel[agKeyOf(olhando)] && usedNames.has(olhando.name)) && (
+                  <button onClick={() => { toggle(olhando); setOlhando(null) }} style={{ flex: 1, background: sel[agKeyOf(olhando)] ? '#fff' : GREEN, color: sel[agKeyOf(olhando)] ? INK : '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
+                    {sel[agKeyOf(olhando)] ? tr('Tirar da ativa', 'Take off active') : tr('Pôr na ativa', 'Put on active')}
+                  </button>
+                )}
+                <button onClick={() => setOlhando(null)} style={{ flex: 1, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 13, ...OSWALD, boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>{tr('Fechar', 'Close')}</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div style={{ ...box('#FFF7DB'), padding: '9px 11px', marginBottom: 10 }}>
           <div style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', marginBottom: 3 }}>{tr('💡 Quem tá na ativa rende', '💡 Active players earn')}</div>
-          <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>💰 Flat per season: 👑 5 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folk hero +1 on top<br />🥇 Top scorer in your career <b>+1</b> · 🏆 Champion with any team <b>+1</b> · 💸 Traded at the auction <b>+1</b></> : <>💰 Fixo por temporada: 👑 5 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folclórico +1 por cima<br />🥇 Artilheiro na sua carreira <b>+1</b> · 🏆 Campeão em qualquer time <b>+1</b> · 💸 Negociado no leilão <b>+1</b></>}</p>
+          <p style={{ fontSize: 10, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{getLang() === 'en' ? <>💰 Flat per season: 👑 6 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folk hero +1 on top<br />🥇 Top scorer in your career <b>+1</b> · 🏆 Champion with any team <b>+1</b> · 💸 Traded at the auction <b>+1</b></> : <>💰 Fixo por temporada: 👑 6 · ⭐ 4 · 💎 3 · 🎯 2 · 🪵 1 · 🃏 folclórico +1 por cima<br />🥇 Artilheiro na sua carreira <b>+1</b> · 🏆 Campeão em qualquer time <b>+1</b> · 💸 Negociado no leilão <b>+1</b></>}</p>
         </div>
 
         <button onClick={() => onSave(Object.values(sel))} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase' }}>
@@ -7148,9 +7308,8 @@ export function PyramidSeasonScreen() {
   const done = seasonOver && endShown
   const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
-  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia'>('estadio') // 🏟️/💰/💼/🤝 sub-abas da aba Clube
+  const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
-  const [elencoSub, setElencoSub] = useState<'elenco' | 'agencia'>('elenco') // 👥/🕴️ sub-abas do Elenco (Agenciados só na Agência 2.0 — carreira nova)
   const lojaLib = useLojaLiberada() // 🛍️ Loja do Clube (liberada geral em 15/09; a porta de verdade é a OBRA da loja no estádio)
   const agLib = useAgenciaLiberada() // 🔒 Agência 2.0 por enquanto SÓ a conta do Diego — pros outros o jogo fica 100% igual
   const agenciaOk = !!state.agenciaOn && agLib // 🏗️ Clube vira "Estrutura" (estádio→patrocínio→agência) SÓ na Agência 2.0
@@ -9428,9 +9587,11 @@ export function PyramidSeasonScreen() {
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
             <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
             <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(privateCareer && PRESIDENT_ROOM_RELEASED ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
-                // 🕴️ Agência 2.0 ligada: a agência mora em Elenco › Agenciados e os
-                // desbloqueios DENTRO da Estrutura — some a sub-aba daqui (pedido do Diego)
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(privateCareer && PRESIDENT_ROOM_RELEASED ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
+                // 🕴️ SAIU DO ELENCO, VEIO PRO CLUBE (Diego 19/09): *"tem que tirar do
+                // elenco e pôr lá no clube também"*. Agência não é escalação — o lugar
+                // dela é junto de estádio, finanças e patrocínio. O 💼 escritório velho
+                // (saves antigos, sem Agência 2.0) continua onde estava.
                 .filter(([sb]) => !(sb === 'escritorio' && agenciaOk)).map(([s, ic, label]) => (
                 <button key={s} onClick={() => setClubeSub(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '8px 2px', fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', background: clubeSub === s ? myCol.solid : '#fff', color: clubeSub === s ? '#fff' : INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, ...OSWALD }}><span style={{ fontSize: 14 }}>{ic}</span>{label}</button>
               ))}
@@ -9446,6 +9607,33 @@ export function PyramidSeasonScreen() {
                 games={Math.max(0, ((state.seasonNo ?? 1) - 1) * 38 + Math.min(state.round, 38))}
                 trophies={(() => { const h = state.careerHonors?.[`m${youId}`]; return (h?.A ?? 0) + (h?.B ?? 0) + (h?.C ?? 0) + (h?.D ?? 0) + (h?.V ?? 0) + (state.careerCopaHonors?.[`m${youId}`] ?? 0) + (state.careerSupercopaHonors?.[`m${youId}`] ?? 0) })()}
               />
+            ) : clubeSub === 'agencia' && agenciaOk ? (
+              <>
+              {/* 🕴️ SUA AGÊNCIA — saiu do Elenco e veio pro Clube (Diego 19/09).
+                  A escada de desbloqueios vem junto: tudo de agência num lugar só. */}
+              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial} />
+              <AgenciadosTab cards={state.agenciados ?? []}
+                pool={(() => {
+                  const seen = new Set<string>(); const out: AgCard[] = []
+                  for (const c of [...(state.empresarioCards ?? []), ...(state.multiClube?.empresario ?? [])]) {
+                    const k = `${c.name}|${c.club}|${c.year}`
+                    if (seen.has(k)) continue
+                    seen.add(k)
+                    out.push({ name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk || undefined, promessa: c.promessa || undefined })
+                  }
+                  return out.sort((a, b) => (b.fame - a.fame) || a.name.localeCompare(b.name))
+                })()}
+                hist={state.agenciaHist} fatura={state.agenciaFatura}
+                st={agenciaEstadio(state)} hasFilial={!!state.careerFilial}
+                primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}
+                clubes={state.multiClube ? [
+                  { id: youId, nome: state.managers[state.youIdx]?.teamName ?? '', dorme: false },
+                  { id: state.multiClube.id, nome: state.multiClube.team, dorme: true },
+                ] : undefined}
+                destinoId={state.agenciaClubeId ?? youId} dividir={!!state.agenciaDividir}
+                onSetDestino={(id, dividir) => dispatch({ type: 'SET_AGENCIA_CLUBE', mgrId: id, dividir })}
+                onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} />
+              </>
             ) : clubeSub === 'escritorio' && !agenciaOk ? (
               // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
@@ -9779,58 +9967,6 @@ export function PyramidSeasonScreen() {
           </>
         ) : tab === 'elenco' ? (
           <>
-            {/* 🕴️ AGÊNCIA 2.0: sub-abas Time | Agenciados (só carreira nova). A
-                sub-aba do elenco em si NÃO se chama mais "Elenco" — tinha o MESMO
-                nome/ícone da aba-mãe "Elenco", confundindo (14/08, pedido do Diego). */}
-            {state.agenciaOn && agLib && (
-              <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
-              {/* 🎛️ FORMA SEGUE PAPEL (Diego 15/09): NAVEGAR não é apertar. Estas duas
-                  eram caixas com borda grossa e sombra dura, iguaizinhas aos botões de
-                  ação logo acima — quatro fileiras de botão empilhadas ("tudo parecido").
-                  Viraram aba de TEXTO com sublinhado: continuam no mesmo lugar, fazem a
-                  mesma coisa, só não competem mais com o que precisa ser apertado. */}
-              <div style={{ display: 'flex', gap: 18, borderBottom: '3px solid rgba(12,12,12,.14)', marginBottom: subGrudadas ? 0 : 10 }}>
-                {(([['elenco', '🎽', tr('Time', 'Team')], ['agencia', '🕴️', tr('Agenciados', 'Clients')]]) as [typeof elencoSub, string, string][]).map(([sb, ic, label]) => {
-                  const on = elencoSub === sb
-                  return (
-                    <button key={sb} onClick={() => setElencoSub(sb)} aria-current={on ? 'page' : undefined}
-                      style={{ background: 'none', border: 0, borderBottom: `4px solid ${on ? myCol.solid : 'transparent'}`, marginBottom: -3, padding: '0 2px 7px', fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', color: on ? INK : 'rgba(12,12,12,.42)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, ...OSWALD }}>
-                      <span style={{ fontSize: 14 }}>{ic}</span>{label}
-                    </button>
-                  )
-                })}
-              </div>
-              </SubAbasGrudadas>
-            )}
-            {state.agenciaOn && agLib && elencoSub === 'agencia' ? (
-              <>
-              {/* 🪜 escada de desbloqueios da Agência: mudou de Clube›Estrutura pra
-                  cá (14/08) — tudo de Agência agora mora num lugar só, junto da
-                  escalação de verdade. Sem onVerAgenciados: já estamos aqui. */}
-              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial} />
-              <AgenciadosTab cards={state.agenciados ?? []}
-                pool={(() => {
-                  const seen = new Set<string>(); const out: AgCard[] = []
-                  for (const c of [...(state.empresarioCards ?? []), ...(state.multiClube?.empresario ?? [])]) {
-                    const k = `${c.name}|${c.club}|${c.year}`
-                    if (seen.has(k)) continue
-                    seen.add(k)
-                    out.push({ name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk || undefined, promessa: c.promessa || undefined })
-                  }
-                  return out.sort((a, b) => (b.fame - a.fame) || a.name.localeCompare(b.name))
-                })()}
-                hist={state.agenciaHist} fatura={state.agenciaFatura}
-                st={agenciaEstadio(state)} hasFilial={!!state.careerFilial}
-                primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}
-                clubes={state.multiClube ? [
-                  { id: youId, nome: state.managers[state.youIdx]?.teamName ?? '', dorme: false },
-                  { id: state.multiClube.id, nome: state.multiClube.team, dorme: true },
-                ] : undefined}
-                destinoId={state.agenciaClubeId ?? youId} dividir={!!state.agenciaDividir}
-                onSetDestino={(id, dividir) => dispatch({ type: 'SET_AGENCIA_CLUBE', mgrId: id, dividir })}
-                onSet={cards => dispatch({ type: 'SET_AGENCIA', cards })} />
-              </>
-            ) : (
             <>
             {/* tática do SEU time — POR JOGO, vale do PRÓXIMO jogo em diante. Agora
                 fica AQUI no topo do elenco (era na aba Jogos). */}
@@ -9930,7 +10066,6 @@ export function PyramidSeasonScreen() {
               </div>
             </GoldTeaser>
             </>
-            )}
           </>
         ) : privateCareer && (tab === 'jogos' || tab === 'tabelas') ? (
           <section className="ll29-board" aria-label="Competições da carreira">
