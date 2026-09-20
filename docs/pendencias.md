@@ -1,3 +1,63 @@
+## 20/09/2026 (parte 42) — 🎥🏆 Holandês no STREAM e no MINHAS LIGAS: funciona, e achei um furo de ritmo
+
+Pedido dele: *"agora veja se vai funcionar normal no modo stream e também em
+minhas ligas"*. Fui rodar o pregão INTEIRO em cada uma em vez de supor.
+
+### ✅ As cinco salas rodam até o fim
+| sala | resultado |
+|---|---|
+| 🎥 stream (`auctionSecs = 0`) | 310 degraus · host deu o start · fecha no Monte |
+| 🎮 manual | 310 degraus · fecha no Monte |
+| ⏱️ tempo do host (20s) | 310 degraus · fecha no Monte |
+| 🏆 Minhas Ligas | 310 degraus · fecha no Monte |
+| 🏆 liga + stream | 310 degraus · host deu o start · fecha no Monte |
+
+Nenhuma trava, nenhuma caixa negativa. O detalhe que o teste me ensinou: a **sala
+de stream não abre no pregão** — ela abre no `streamIntro` e espera o HOST apertar
+(`START_STREAM_AUCTION`). O holandês sobrevive a esse degrau a mais, e a trava
+agora confere que depois do start a sala abre o pregão **holandês** e não o cego.
+
+⚠️ Na 1ª rodada a trava acusou "stream travou" e "manual travou" — **era o meu
+teste**, não o jogo: ele não sabia passar pelo `streamIntro` e não aceitava o Monte
+Final como fim válido (o teste principal aceita). Consertado. Fica a lição: teste
+novo que acusa bug em código que já roda merece uma segunda olhada NO TESTE antes
+de sair mexendo no jogo.
+
+### 🐛 O furo que apareceu: o tempo do host virava enfeite
+Na sala de stream o host escolhe o tempo do pregão (`auctionSecs`) porque está
+**narrando pra plateia**. O holandês **ignorava** esse número: ele pedia 20s e a
+descida insistia nos 49s dela. É a família do "botão mudo" — a tela promete uma
+coisa e o motor faz outra.
+
+**Consertado**: a descida inteira passa a CABER no tempo pedido, mantendo a
+proporção entre as marchas (corre em cima, respira embaixo).
+
+| host pede | descida de verdade |
+|---|---|
+| 20s | **27s** ← o piso segurou |
+| 30s | 30s |
+| 45s | 45s |
+| 60s | 60s |
+| 90s | 90s |
+
+🕳️ **O piso (`HOL_PISO_MS = 1200`) é deliberado**: por mais apertado que o host
+peça, o degrau do fundo nunca fica mais curto que 1,2s — são esses milissegundos
+que impedem meio segundo de internet ruim de decidir quem leva a carta. Quando o
+tempo pedido não cabe, **o pregão estoura o relógio em vez de roubar carta de quem
+está no 4G**. É a troca certa, e está escrita no código.
+
+E `auctionSecs = 0` ("o host avança no botão") **não** virou 32 cliques por leva: o
+host já deu o start na tela de abertura, daí pra frente a escada toca sozinha.
+
+### 🔒 Travas novas em `npm run holandes`
+Roda o pregão inteiro nas 5 salas · confere que a sala de stream passa pela tela do
+host e abre HOLANDESA · que pedir mais tempo estica e pedir menos encurta · que o
+piso do fundo segura mesmo num pedido absurdo (5s) · e que `0` não muda o ritmo.
+
+🛡️ `npm run ascegas`: `28bea2df` · `d65041f6` · `06bab491` — iguais.
+
+---
+
 ## 20/09/2026 (parte 41) — 🎚️ A escada afina a partir do 50 — e o holandês passou a ser MAIS LENTO que o cego
 
 2º pedido dele sobre o relógio: *"sobre o tempo ainda acho q qd chegar no 50 na

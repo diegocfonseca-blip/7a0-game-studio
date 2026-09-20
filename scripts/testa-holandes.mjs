@@ -491,6 +491,80 @@ const r = await p.evaluate(async () => {
     }
   }
 
+  // 8️⃣ 🎥🏆 O HOLANDÊS NAS SALAS ESPECIAIS (pedido dele, 20/09: *"veja se vai
+  //    funcionar normal no modo stream e também em minhas ligas"*).
+  //    As duas têm regras PRÓPRIAS de ritmo, e o holandês tem relógio próprio —
+  //    é exatamente o tipo de cruzamento que trava sala.
+  const especiais = {}
+  for (const [nome, extra] of [
+    ['🎥 stream', { stream: true, auctionSecs: 0 }],
+    ['🎮 manual', { manual: true, auctionSecs: 0 }],
+    ['⏱️ tempo do host (20s)', { auctionSecs: 20 }],
+    ['🏆 Minhas Ligas', { liga: true }],
+    ['🏆 liga + stream', { liga: true, stream: true, auctionSecs: 0 }],
+  ]) {
+    let sx = st.reducer(st.INITIAL, {
+      type: 'START_ONLINE', roomId: 'r', roomCode: 'ZZZ111', isHost: true,
+      playerIndex: 0, playerNames: ['Eu'], formation: '4-3-3', holandes: true, ...extra,
+    })
+    ok(sx.holandes === true, `${nome}: a sala não ficou holandesa`)
+    // 🎬 SALA DE STREAM COMEÇA NA ABERTURA, não no pregão: o host é que dá o
+    //    start (`START_STREAM_AUCTION`). Não é travamento — é o desenho da sala,
+    //    e o holandês tem que sobreviver a esse degrau a mais.
+    let viaStreamIntro = false
+    if (sx.screen === 'streamIntro') {
+      viaStreamIntro = true
+      sx = st.reducer(sx, { type: 'START_STREAM_AUCTION' })
+      ok(sx.screen === 'auction', `${nome}: o host deu o start e a sala não abriu o pregão`)
+      ok(sx.phase === 'holandes', `${nome}: o host deu o start e a sala abriu o pregão CEGO em vez do holandês`)
+    }
+    // corre o pregão inteiro, como o relógio faria
+    let marca = '', parado = 0, degraus = 0, chegou = false
+    for (let g = 0; g < 6000; g++) {
+      // 🃏 o MONTE FINAL é fim de pregão válido (é onde o teste principal para
+      //    também) — o que não pode é parar ANTES, no meio do leilão.
+      if (sx.screen !== 'auction') { chegou = true; break }
+      const m = `${sx.screen}|${sx.phase}|${sx.sectorIdx}|${sx.sectorCursor}|${sx.revealIdx}|${sx.monteIdx}|${sx.hol?.passo ?? ''}|${sx.hol?.levados.length ?? ''}`
+      if (m === marca) { if (++parado > 3) break } else parado = 0
+      marca = m
+      if (sx.phase === 'holandes') { sx = st.reducer(sx, { type: 'HOLANDES_TICK' }); degraus++; continue }
+      if (sx.phase === 'envelope' || sx.phase === 'resq_envelope') { sx = st.reducer({ ...sx, phaseDeadline: null }, { type: 'FORCE_SEAL' }); continue }
+      if (sx.phase === 'reveal' || sx.phase === 'resq_reveal') { sx = st.reducer(sx, { type: 'ADVANCE_REVEAL' }); continue }
+      if (sx.phase === 'tiebreak') { sx = st.reducer({ ...sx, phaseDeadline: null }, { type: 'FORCE_TIEBREAK' }); continue }
+      if (sx.screen === 'monte') { const a2 = sx.monteOrder[sx.monteIdx]; if (a2 == null || !sx.monte.length) break; sx = st.reducer(sx, { type: 'MONTE_PICK', mgrId: a2, cardId: sx.monte[0].id }); continue }
+      break
+    }
+    // 🔒 O QUE NÃO PODE ACONTECER EM NENHUMA DELAS:
+    ok(degraus > 0, `${nome}: o holandês nem começou a descer`)
+    ok(chegou, `${nome}: o pregão TRAVOU no meio (parou em screen=${sx.screen} / phase=${sx.phase}) — sala morta`)
+    for (const m2 of sx.managers) ok(m2.money >= 0, `${nome}: ${m2.teamName} ficou com caixa negativa`)
+    // 🎥 e a sala de stream tem que ter passado MESMO pela tela de abertura
+    if (String(nome).includes('stream')) ok(viaStreamIntro, `${nome}: a sala de stream pulou a tela de abertura do host`)
+    especiais[nome] = { degraus, fim: sx.screen, intro: viaStreamIntro }
+  }
+
+  // ⏱️ E O TEMPO QUE O HOST ESCOLHEU NA SALA DE STREAM tem que MANDAR no ritmo.
+  //    Se ele pede 20s e a descida insiste em 49s, o número da tela dele virou
+  //    enfeite — é a família do "botão mudo". Mas tem um limite: o degrau do
+  //    fundo nunca pode ficar curto a ponto de a internet decidir quem leva.
+  const descidaCom = (secs) => esc.slice(0, -1).reduce((t, v) => t + st.holPassoMs(v, 100, secs), 0)
+  const semTempo = descidaCom(undefined)
+  const tempos = {}
+  for (const secs of [20, 30, 45, 60, 90]) {
+    const d = descidaCom(secs)
+    tempos[secs] = Math.round(d / 100) / 10
+    // pediu MAIS tempo que o padrão → tem que caber quase exato
+    if (secs * 1000 >= semTempo) ok(Math.abs(d - secs * 1000) < 1500, `host pediu ${secs}s e a descida deu ${(d / 1000).toFixed(1)}s`)
+  }
+  ok(descidaCom(90) > descidaCom(30), 'pedir mais tempo não deixou a descida mais longa')
+  ok(descidaCom(20) < semTempo, 'pedir MENOS tempo não encurtou nada — o número do host virou enfeite')
+  // 🕳️ mas o PISO segura: mesmo pedindo 20s, o degrau do fundo continua legível
+  ok(st.holPassoMs(5, 100, 20) >= st.HOL_PISO_MS, `com 20s o degrau do fundo caiu pra ${st.holPassoMs(5, 100, 20)}ms — a internet volta a decidir`)
+  ok(st.holPassoMs(5, 100, 5) >= st.HOL_PISO_MS, 'com um tempo absurdo (5s) o piso do fundo não segurou')
+  // e `0` ("o host avança no botão") NÃO vira 32 cliques: segue o ritmo padrão
+  ok(st.holPassoMs(5, 100, 0) === st.holPassoMs(5, 100), 'auctionSecs=0 mudou o ritmo — ali o host já deu o start, a escada toca sozinha')
+  const respeitaTempo = descidaCom(20) < semTempo
+
   // 6️⃣ 👥 O BARALHO SEGUE O TAMANHO DA SALA — NOS DOIS MODOS, PELA MESMA CONTA.
   //    Pergunta dele (20/09): *"tem q ser msm regra c/ base na quantidade de
   //    jogadores usuários q entram no online igual a regra q já funciona ou tô
@@ -547,7 +621,7 @@ const r = await p.evaluate(async () => {
     ticks: hol.ticks,
     msPregao: hol.msPregao,
     monteHol: hol.monteN, monteCego: cego.monteN,
-    salas, disputaTestada, empates, primeiroLevou, disputasSeguidas, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
+    salas, disputaTestada, empates, primeiroLevou, disputasSeguidas, especiais, respeitaTempo, tempos, semTempo, sozinhoTestado, janelaMs: st.HOL_JANELA_MS,
     repHol: hol.repescagem, repCego: cego.repescagem,
     moedaHol: hol.sobrouMoeda, moedaCego: cego.sobrouMoeda,
     rodadasCego: cego.rodadasEnv,
@@ -578,6 +652,9 @@ for (const n of [8, 20]) {
   console.log(`   🤖 SALA DE ${n}: ${e.comDisputa} de ${e.resolvidas} cartas tiveram 2+ ROBÔS na fila (${e.pct}%) · média ${e.mediaRoda.toFixed(1)} · maior ${e.maiorRoda} — é só aqui que a roleta invisível age; gente leva por tempo e nem passa por essa fila`)
 }
 console.log('')
+console.log('   🎥🏆 E NAS SALAS ESPECIAIS (pregão inteiro rodado em cada uma):')
+for (const [nome, v] of Object.entries(r.especiais)) console.log(`      ${nome.padEnd(24)} ${String(v.degraus).padStart(4)} degraus · ${v.intro ? 'host deu o start · ' : ''}terminou em ${v.fim}`)
+console.log(`      ⏱️ tempo pedido pelo host (sala stream) × descida de verdade: ${Object.entries(r.tempos).map(([k, v]) => `${k}s→${v}s`).join(' · ')}  (padrão ${(r.semTempo / 1000).toFixed(1)}s)\n`)
 console.log('   👥 E O BARALHO SEGUE O TAMANHO DA SALA — pela MESMA conta nos dois modos:\n')
 console.log('      técnicos │ vagas (11 cada) │ cartas no baralho │ levas')
 console.log('      ─────────┼─────────────────┼───────────────────┼───────')
