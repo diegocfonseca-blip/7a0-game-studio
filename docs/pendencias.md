@@ -13,12 +13,18 @@ sala e não sabe que tem GENTE DE VERDADE atrás deles — acha que é bot.
 Top 8 +1 · 🔻 Rebaixamento −1…"), no MESMO tamanho miúdo. O clique abre a tela de
 apoio, que é onde mora o batismo (o que dá escudo e mascote).
 
-**As 3 opções** (`node scripts/mockup-trofeus-convite.mjs`):
-- **A** 🛡️ *Esses escudos e mascotes são de gente de verdade, não de bot.* → Quer o seu aqui?
-- **B** 🐊 *Todo mascote que pula na tela tem dono.* → Quer ver o seu?
-- **C** 🛡️ *Cada escudo aí em cima é de um jogador de verdade.* → Tenha o seu também →
+🖊️ **A FRASE VIROU DELE** (2ª rodada): *"o escudo que aparece nos times e o mascote
+que pula na tela são de jogadores de verdade. Algo assim, melhore"*. Ele acertou o
+miolo — citar as DUAS coisas que a pessoa vê.
+⚠️ **A única palavra trocada: "jogadores" → "gente".** No jogo, **jogador é a CARTA**
+(Pelé, Romário); "jogadores de verdade" leria como *carta real*, não *pessoa real* —
+o contrário do que ele quer dizer. Vale pra qualquer texto novo: quando o assunto é
+a PESSOA que joga, escrever "gente"/"usuário", nunca "jogador".
 
-Recomendei a **A** (ataca direto o "não é bot" e cabe numa linha).
+**Os 3 acabamentos** (`node scripts/mockup-trofeus-convite.mjs`):
+- **A** 🛡️ *O escudo dos times e o mascote que pula na tela são de gente de verdade.* → Quer o seu aqui?
+- **B** 🛡️ *Escudo no time, mascote pulando na tela — tudo de gente de verdade, não de bot.* → Quer o seu?
+- **C** 🛡️ *Todo escudo e todo mascote daí tem dono de verdade.* → Quer ser um deles?
 🚫 **Nada codado** — é UI nova, espera o OK dele (regra 2).
 
 ## 21/09/2026 — 📬 O contato sutil voltou pras salas online

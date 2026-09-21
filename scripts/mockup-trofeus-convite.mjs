@@ -26,21 +26,28 @@ const FONTS = [400, 500, 600, 700].map(w =>
 const CREME = '#F4ECD6', INK = '#0C0C0C', GOLD = '#FFC400', ROXO = '#7C3AED'
 
 // as 3 formas de escrever — a régua é a MESMA: uma linha, miúda, com o clique no fim
+// 🖊️ A FRASE É DELE (21/09): *"o escudo que aparece nos times e o mascote que pula
+// na tela são de jogadores de verdade. Algo assim, melhore"*. Ele acertou o miolo —
+// citar as DUAS coisas que a pessoa vê (o escudo no time e o bicho pulando).
+//
+// ⚠️ A ÚNICA troca na palavra dele: **"jogador" no jogo é a CARTA** (Pelé, Romário).
+// "Jogadores de verdade" leria como "cartas reais", não como "pessoas reais" — que
+// é o contrário do que ele quer dizer. Por isso as três usam "gente de verdade".
 const OPCOES = [
   {
-    id: 'A', titulo: 'Tira a dúvida do bot',
-    txt: `🛡️ Esses escudos e mascotes são de <b>gente de verdade</b>, não de bot. <a>Quer o seu aqui?</a>`,
-    nota: 'Responde direto o que você quer: ninguém acha que é bot. É a mais clara.',
+    id: 'A', titulo: 'A frase dele, limpa',
+    txt: `🛡️ O escudo dos times e o mascote que pula na tela são de <b>gente de verdade</b>. <a>Quer o seu aqui?</a>`,
+    nota: 'A dele, só enxugada e com "gente" no lugar de "jogadores". A mais direta.',
   },
   {
-    id: 'B', titulo: 'Curta e convidativa',
-    txt: `🐊 <b>Todo mascote que pula na tela tem dono.</b> <a>Quer ver o seu?</a>`,
-    nota: 'A mais curta das três. Fala pelo bicho, que é o que chama atenção na tela.',
+    id: 'B', titulo: 'Com o "não é bot" escrito',
+    txt: `🛡️ Escudo no time, mascote pulando na tela — tudo de <b>gente de verdade</b>, não de bot. <a>Quer o seu?</a>`,
+    nota: 'Diz com todas as letras o que te incomodou. Uma linha mais cheia.',
   },
   {
-    id: 'C', titulo: 'Mostra que é gente',
-    txt: `🛡️ Cada escudo aí em cima é de um jogador de verdade. <a>Tenha o seu também →</a>`,
-    nota: 'Puxa pelo pertencimento — "esses caras existem, você pode estar aqui".',
+    id: 'C', titulo: 'Puxando pro convite',
+    txt: `🛡️ Todo escudo e todo mascote daí tem <b>dono de verdade</b>. <a>Quer ser um deles?</a>`,
+    nota: '"Quer ser um deles" convida mais que "quer o seu". A mais curta das três.',
   },
 ]
 
@@ -89,7 +96,7 @@ h1 span{display:block;font-size:11px;font-weight:500;text-transform:none;opacity
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>
 <div class="wrap">${OPCOES.map(bloco).join('')}</div>
-<div class="nota">📏 <b>As três são uma linha só, no mesmo tamanho miúdo da regra de pontuação</b> — separadas dela por um tracinho leve, pra ler como "recado", não como banner. O clique abre a tela de apoio (onde mora o batismo, que é o que dá escudo e mascote). Só falta você escolher <b>A</b>, <b>B</b> ou <b>C</b> — ou misturar.</div>
+<div class="nota">📏 <b>As três são uma linha só, no mesmo tamanho miúdo da regra de pontuação</b> — separadas dela por um tracinho leve, pra ler como "recado", não como banner. O clique abre a tela de apoio (onde mora o batismo, que é o que dá escudo e mascote). A frase é a SUA. A única coisa que mexi foi trocar <b>jogadores</b> por <b>gente</b>: no jogo, <b>jogador é a CARTA</b> (Pelé, Romário), então "jogadores de verdade" leria como carta real em vez de pessoa real.</div>
 </body></html>`
 
 const out = process.argv[2] ?? 'mockup-trofeus.png'
