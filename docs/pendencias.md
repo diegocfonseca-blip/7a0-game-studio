@@ -8,6 +8,57 @@ o bicho cruzando continua igual. A fila de reações já escondia a mascote quan
 consegue desenhá-la, então não sobrou duplicata em lugar nenhum.
 Regra gravada no CLAUDE.md: animação grande não ganha legenda escrita repetindo.
 
+## 21/09/2026 — 🐊 O "SOLTA A SUA MASCOTE" NO MONTE DE SOBRAS (só na Tocaia)
+
+*"Coloque o solta mascote botão embaixo do campinho. Apenas no modo Tocaia e
+quando aparece o monte de sobras… porque o solta o mascote já tem no modo
+envelope às cegas."* E, confirmando depois: *"é no monte final de sobras que
+aparece 15s pra pessoa pegar o jogador de graça. Mas só no modo Tocaia."*
+
+### 🧨 EU ESPALHEI, ELE CORTOU — e a lição vale pra qualquer pedido de lugar
+Na primeira volta eu pus o botão em DUAS telas: o pregão da Tocaia **e** o Monte.
+Resposta dele, na hora: *"como assim em cada um?? Eu disse APENAS no monte de
+sobras."*
+
+👉 **"Apenas no X" quer dizer apenas no X.** Quando ele nomeia UM lugar, não é
+"esse e os parecidos" — mesmo quando o outro lugar parece fazer sentido pra mim.
+Se eu achar que falta em outro canto, eu PERGUNTO; não emendo por conta.
+
+### ✅ Como ficou
+Um lugar só: **`EscMonte`, logo abaixo do campinho**, e travado em
+`state.holandes` — sala de envelope cego não mostra nada. O botão do envelope
+continua exatamente onde sempre esteve (na barra "😈 CUTUCA QUEM TÁ PENSANDO" do
+pregão, que só nasce depois de lacrar). A regra de sempre segue valendo: só
+aparece pra quem tem clube batizado, sem placeholder pra quem não comprou.
+
+**Por que faltava:** na Tocaia ninguém lacra (quem corre é o preço), então aquela
+barra do envelope não existe — e quem tem mascote ficava sem soltar o bicho a
+noite inteira nesse modo.
+
+### 🔒 `npm run mascote-botao`
+- exige **2** usos do botão no `screens.tsx` (o do envelope + o do Monte). Três
+  significa que eu espalhei de novo — a trava nasceu desse erro;
+- exige o `state.holandes &&` na frente do botão do Monte;
+- prova, no jogo de verdade, que ele **não** aparece no pregão da Tocaia;
+- e o Monte fica atrás de `-- --completo`, porque pra chegar nele a máquina tem
+  que jogar o pregão inteiro (~8-10 min, medido: ~2 min por setor). Trava que
+  demora 10 minutos ninguém roda, e trava que ninguém roda não protege nada.
+
+### 🧪 `bancadaSocio` (novo, em `manto.ts`)
+O botão só existe pra quem tem clube batizado, e a bancada não faz login — então
+não dava pra fotografar nem conferir. Agora um hook de bancada finge o sócio na
+página aberta. Ninguém do jogo chama isso.
+
+### ⚠️ Duas vezes a trava mentiu antes de prestar (de novo)
+1. a janela do casamento `YourPitch → MascoteJab` era curta demais e reprovava
+   código CERTO (conferido na foto);
+2. ela procurava o texto **"MONTE FINAL"** pra saber se tinha chegado no Monte —
+   só que essa frase também aparece na REVELAÇÃO (*"Nenhum lance. Vai pro Monte
+   Final 🪣"*). A trava achava que já estava no Monte enquanto ainda rolava o
+   pregão, e cobrava um botão que ali nem devia existir. A marca boa é
+   *"As sobras do pregão"*, que só a tela do Monte tem.
+
+---
 ## 21/09/2026 — 🔑 "ENTRO NA SALA, ATUALIZO E ME DESLIGA" (Neymarzetti, sala JCQO35)
 
 Relato do Diego: *"quando eu entro numa sala e atualizo a página tá me desligando…

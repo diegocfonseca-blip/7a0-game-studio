@@ -5281,6 +5281,16 @@ export function EscMonte() {
         )
       })()}
       <YourPitch />
+      {/* 🐊 SOLTA A SUA MASCOTE — SÓ AQUI, e SÓ EM SALA DE TOCAIA (Diego 21/09):
+          *"eu disse apenas no monte de sobras, onde fica embaixo do campinho. E
+          só no modo Tocaia. Porque no modo envelope já tá ótimo onde está ele"*.
+          ⚠️ Eu tinha entendido errado e espalhado o botão em DUAS telas (o pregão
+          da Tocaia também) — ele corrigiu na hora: *"como assim em cada um??"*.
+          É UM lugar só. No envelope cego a mascote continua onde sempre esteve,
+          na barra "😈 CUTUCA QUEM TÁ PENSANDO" do pregão, e o Monte dessas salas
+          segue sem botão — do jeito que ele quer.
+          Regra de sempre: só aparece pra quem tem clube batizado. */}
+      {state.holandes && <div className="flex justify-center"><MascoteJab /></div>}
       <FloatingEmotes />
     </Shell>
   )
