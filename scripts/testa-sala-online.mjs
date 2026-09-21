@@ -10,6 +10,10 @@
 // decidem "restaura o pregão velho?" e "qual é o baralho da sala?".
 //
 // Rodar: node scripts/testa-sala-online.mjs
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 let falhas = 0
 const ok = (cond, txt) => { console.log(`  ${cond ? '✅' : '❌'} ${txt}`); if (!cond) falhas++ }
 
@@ -63,6 +67,22 @@ console.log('3) 🛟 sala ANTIGA (criada antes do conserto) não quebra')
   ok(baralhoDaSala({ deck: { GOL: [] } }) === 'br', 'sala velha JÁ estragada (cartas no `deck`): cai no padrão Brasil, sem quebrar')
   ok(baralhoDaSala({}) === 'br', 'sala sem nada: padrão Brasil')
   ok(baralhoDaSala({ deck: { GOL: [] }, deckSala: 'todos' }) === 'todos', 'sala nova com as cartas por cima do `deck`: o `deckSala` manda')
+}
+
+console.log('4) 👑 COROA LOCAL: o próprio dono reassume sem abrir envelopes')
+{
+  const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
+  const store = readFileSync(join(raiz, 'src/escalacao/store.tsx'), 'utf8')
+  const recuperacao = store.match(/case 'RECOVER_LOCAL_HOST': \{([\s\S]*?)\n    \}/)?.[1] ?? ''
+  const usos = store.match(/rawDispatch\(\{ type: 'RECOVER_LOCAL_HOST' \}\)/g) ?? []
+  const troca = store.match(/case 'BECOME_HOST': \{([\s\S]*?)\n    \}/)?.[1] ?? ''
+
+  ok(/s\.isHost = true/.test(recuperacao), 'a recuperação devolve a coroa local')
+  ok(!/(submitted|pendingEnvelopes|tiebreakPending)/.test(recuperacao), 'a recuperação não toca em lacres, envelopes nem desempates')
+  ok(usos.length >= 2, 'a abertura Streamer e o socorro durante a partida usam a recuperação segura')
+  ok(/pendingEnvelopes/.test(troca) && /submitted/.test(troca), 'a troca REAL de dono mantém a proteção que reabre envelopes')
+  ok(!/['"]humilde_outra_aba['"]/.test(store), 'marcador de outra aba não rebaixa quem o banco ainda confirma como dono')
+  ok(/hostId && hostId !== uid/.test(store), 'host só perde a coroa quando o banco comprova outro dono')
 }
 
 console.log(falhas ? `\n❌ ${falhas} trava(s) quebrada(s)` : '\n✅ tudo certo')

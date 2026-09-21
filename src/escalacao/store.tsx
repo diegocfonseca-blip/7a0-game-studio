@@ -4276,6 +4276,7 @@ type Action =
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
+  | { type: 'RECOVER_LOCAL_HOST' } // 👑 o banco confirma que EU continuo dono: recupera só a coroa local, sem tocar em envelopes/lances
   | { type: 'STEP_DOWN_HOST' } // 🪑 host antigo ABAIXA A BOLA: a posse (game_rooms.host_id) já é de outro no banco → deixo de ser autoritativo e volto a só RECEBER. Garante "um dono só" (nunca dois hosts brigando).
   | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
@@ -5551,6 +5552,16 @@ export function reducer(state: EscState, action: Action): EscState {
         for (const k in s.pendingEnvelopes) if (souEu(Number(k))) meusEnv[Number(k)] = s.pendingEnvelopes[Number(k)]
         s.pendingEnvelopes = meusEnv
       }
+      return s
+    }
+    // 👑 RECUPERAÇÃO LOCAL ≠ TROCA DE DONO. Se o game_rooms.host_id ainda é o
+    // meu uid, eu nunca deixei de ser o dono de verdade: só o `isHost` deste
+    // aparelho piscou para falso. Nesse caso os envelopes secretos CONTINUAM
+    // nesta memória e devem ficar exatamente como estão. Limpar `submitted` ou
+    // `pendingEnvelopes` aqui faria o próprio host aparecer como "pensando" logo
+    // depois de lacrar — o travamento que o F5 escondia.
+    case 'RECOVER_LOCAL_HOST': {
+      s.isHost = true
       return s
     }
     // 🪑 host antigo cede o comando: volto a ser convidado. O efeito do canal
@@ -10841,10 +10852,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
           // O caso de verdade (a posse é de OUTRO uid) continua rebaixando igual,
           // porque ali existe prova. A aba mais nova segue sendo ANOTADA, só não age.
           const abaMaisNova = hostId === uid && outraAba && Number.isFinite(claimDeLa) && claimDeLa > hostClaimAtRef.current
-          const motivo: string | null =
-            (hostId && hostId !== uid) ? 'posse_de_outro'
-            : (hostId === uid && humilde && outraAba && saveFresco) ? 'humilde_outra_aba'
-            : null
+          // Só uma PROVA rebaixa o host: o banco apontar outro uid. Marcador de
+          // aba, save fresco e "posse humilde" são pistas locais — nunca posse.
+          // Se o host_id ainda é meu, tirar minha coroa aqui cria exatamente o
+          // falso convidado visto no início Streamer e depois do lacre.
+          const motivo: string | null = (hostId && hostId !== uid) ? 'posse_de_outro' : null
           const foto = {
             motivo, host_no_banco: hostId ?? null, meu_uid: uid, minha_aba: tabIdRef.current, aba_no_banco: row?.tab ?? null,
             save_fresco: saveFresco, claim_de_la: Number.isFinite(claimDeLa) ? claimDeLa : null, minha_claim: hostClaimAtRef.current,
@@ -10877,9 +10889,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           suspeitaCoroaRef.current = null
           anotaTrava({ room_id: st.roomId, sala: st.roomCode || null, papel: 'host', momento: 'envelope', setor: st.sectorIdx ?? null,
             segundos: 0, reenvios: 0, canal: fotoDaConexao().canal, host_calado_ms: 0, extra: { ...foto, quando: 'rebaixou' } }, true)
-          if (motivo === 'humilde_outra_aba') humildeAteRef.current = 0
           rawDispatch({ type: 'STEP_DOWN_HOST' })
-          if (motivo !== 'posse_de_outro') setHostOutroAparelho(true)
         } catch { /* leitura falhou: não rebaixa (evita perder o dono por rede ruim) */ }
       })()
     }, 5000)
@@ -11233,7 +11243,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
                 anotaTrava({ room_id: st.roomId, sala: st.roomCode || null, papel: 'convidado', momento: 'envelope', setor: st.sectorIdx ?? null,
                   segundos: 0, reenvios: 0, canal: fotoDaConexao().canal, host_calado_ms: Math.round(Date.now() - lastHostMsgRef.current),
                   extra: { quando: 'reassumiu', tela: st.screen, fase: st.phase } }, true)
-                rawDispatch({ type: 'BECOME_HOST' })
+                rawDispatch({ type: 'RECOVER_LOCAL_HOST' })
               }
               return
             }
@@ -11380,7 +11390,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
           setor: agora.sectorIdx ?? null, segundos: 0, reenvios: 0, canal: fotoDaConexao().canal,
           host_calado_ms: Math.round(Date.now() - lastHostMsgRef.current),
           extra: { quando: 'coroa_devolvida', tela: agora.screen, fase: agora.phase } }, true)
-        rawDispatch({ type: 'BECOME_HOST' })
+        rawDispatch({ type: 'RECOVER_LOCAL_HOST' })
       } catch { /* a próxima volta tenta de novo */ }
     }
     // ⚡ A PRIMEIRA CONFERE QUASE NA HORA (800ms): é ela que resolve o caso do
@@ -11609,7 +11619,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             <p style={{ margin: '3px 0 0', fontWeight: 700, fontSize: 12, color: 'rgba(12,12,12,.7)', lineHeight: 1.4 }}>
               {getLang() === 'en' ? <>The crown went there (the room goes on on the other device) and <b>this one became view-only</b> — two owners at once used to freeze the auction. If you meant to play HERE, tap the button.</> : <>A coroa foi pra lá (a sala segue no outro aparelho) e <b>este aqui virou só tela</b> — dois donos ao mesmo tempo travavam o leilão. Se era pra jogar AQUI, toque no botão.</>}
             </p>
-            <button onClick={() => { claimForcadoRef.current = true; hostClaimAtRef.current = Date.now(); humildeAteRef.current = 0; setHostOutroAparelho(false); rawDispatch({ type: 'BECOME_HOST' }) }}
+            <button onClick={() => { claimForcadoRef.current = true; hostClaimAtRef.current = Date.now(); humildeAteRef.current = 0; setHostOutroAparelho(false); rawDispatch({ type: 'RECOVER_LOCAL_HOST' }) }}
               style={{ marginTop: 8, width: '100%', background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 12, padding: '10px 0', fontWeight: 900, fontSize: 14, fontFamily: 'Oswald, sans-serif', cursor: 'pointer' }}>
               {tr('👑 RETOMAR AQUI', '👑 TAKE OVER HERE')}
             </button>
