@@ -69,6 +69,14 @@ const MASCOTE = img('scripts/kits/pantera-mascote-post.webp')
 const SALA_LEILAO = img('src/escalacao/img/home-leilao-v07.webp')
 const MESA_LANCE = img('src/escalacao/img/online-sala-v20.webp')
 const ESTADIO = img('src/escalacao/img/online-estadio-v25.webp')
+// 🎴 As cartas REAIS do jogo, tiradas com `scripts/carta/print.mjs` (o mesmo
+// <CollectibleCard> que o jogador vê no álbum) — nada redesenhado pro post.
+// Elas mostram sozinhas a distância que o Diego quis dizer com "do Pelé ao
+// Obina": a dourada de 👑 LENDA e a verde de 🃏 FOLCLÓRICO.
+// ⚠️ A carta do Pelé NÃO tem rosto desenhado, e isso é regra do Diego (18/08):
+// não se inventa como uma pessoa real é. O avatar do jogo é a silhueta neutra.
+const CARTA_PELE = img('scripts/kits/carta-pele.webp')
+const CARTA_OBINA = img('scripts/kits/carta-obina.webp')
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', CREME_ARTE = '#FAF1DB'
 const PRETO = '#191615', DOURADO = '#CB9D3E' // 🐆 as cores do manto, medidas na prancha do dono
@@ -137,38 +145,59 @@ const PARTE1 = [
 // Pro seguidor DELE, que nunca ouviu falar do jogo. Um passo por tela, na ordem
 // em que a pessoa vai viver: entra → dá o lance → martelo → monta o time → joga.
 const PARTE2 = [
-  { d: 3.6, html: base(`
+  { d: 3.8, html: base(`
       <span class="pill">🔨 como joga</span>
-      <h1 style="font-size:104px;margin-top:44px">O que é o<br><span class="ouro">Leilão Legends</span>?</h1>
+      <h1 style="font-size:100px;margin-top:44px">O que é o<br><span class="ouro">Leilão Legends</span>?</h1>
       <p class="sub" style="margin-top:36px">Em 1 minuto você entende. Prometo.</p>`) },
+  // 🕹️ A REFERÊNCIA QUE O DIEGO PEDIU: *"é um jogo inspirado no Brasfoot"*. Pro
+  // público dele isso explica o jogo inteiro numa palavra — e a linha de baixo
+  // diz na hora o que MUDA, senão a pessoa espera um Brasfoot igualzinho.
   { d: 4.4, html: base(`
-      <p class="passo">1 · a sala</p>
-      <div class="foto" style="margin-top:30px"><img src="${SALA_LEILAO}"></div>
-      <h1 style="font-size:70px;margin-top:34px">Um leilão<br><span class="ouro">às cegas</span> de lendas</h1>
-      <p class="leg" style="margin-top:20px">sozinho contra o computador ou numa sala com os amigos</p>`) },
+      <h1 style="font-size:96px">Inspirado no<br><span class="ouro">Brasfoot</span></h1>
+      <p class="sub" style="margin-top:40px">Só que aqui o elenco <b>não vem pronto</b>.<br>Você arremata os jogadores num leilão.</p>`) },
+  { d: 4.4, html: base(`
+      <p class="passo">o baralho</p>
+      <h1 style="font-size:72px;margin-top:22px">Mais de <span class="ouro">1.500 cartas</span></h1>
+      <img src="${CARTA_PELE}" style="height:900px;margin-top:28px;object-fit:contain">
+      <p class="leg" style="margin-top:22px">tem do Pelé…</p>`) },
+  // 🎴 As DUAS juntas: sozinha na tela, a carta verde do Obina é quase vazia (ele
+  // não tem avatar) e o vídeo dá um buraco. Lado a lado com a dourada do Pelé,
+  // o vazio vira a piada — dá pra VER a distância que o Diego quis dizer.
+  { d: 4.2, html: base(`
+      <div style="display:flex;gap:34px;align-items:flex-end;justify-content:center">
+        <img src="${CARTA_PELE}" style="height:700px;object-fit:contain;transform:rotate(-4deg)">
+        <img src="${CARTA_OBINA}" style="height:700px;object-fit:contain;transform:rotate(4deg)">
+      </div>
+      <h1 style="font-size:78px;margin-top:44px">…<span class="ouro">ao Obina</span>.</h1>
+      <p class="leg" style="margin-top:18px">Brasil, Europa e resto do mundo</p>`) },
+  { d: 4.4, html: base(`
+      <p class="passo">1 · o lance</p>
+      <div class="foto" style="margin-top:28px"><img src="${MESA_LANCE}"></div>
+      <h1 style="font-size:62px;margin-top:32px">Aparece o craque.<br>Você escreve<br><span class="ouro">quanto vale</span></h1>
+      <p class="leg" style="margin-top:18px">no envelope, escondido</p>`) },
+  { d: 4.2, html: base(`
+      <p class="passo">2 · o martelo</p>
+      <p style="font-size:180px;line-height:1;margin-top:20px">🔨</p>
+      <h1 style="font-size:70px;margin-top:22px">Ninguém vê<br>o lance <span class="ouro">do outro</span></h1>
+      <p class="sub" style="margin-top:28px">Quem pagou mais leva. Quem pagou de menos<br>fica falando sozinho.</p>`) },
+  { d: 4.4, html: base(`
+      <p class="passo">3 · o time</p>
+      <div class="foto" style="margin-top:28px"><img src="${SALA_LEILAO}"></div>
+      <h1 style="font-size:70px;margin-top:32px">Você monta<br><span class="ouro">o elenco</span></h1>
+      <p class="leg" style="margin-top:18px">goleiro, zaga, meio e ataque — com o que sobrou no caixa</p>`) },
   { d: 4.6, html: base(`
-      <p class="passo">2 · o lance</p>
-      <div class="foto" style="margin-top:30px"><img src="${MESA_LANCE}"></div>
-      <h1 style="font-size:64px;margin-top:34px">Aparece um craque.<br>Você escreve<br><span class="ouro">quanto vale</span></h1>
-      <p class="leg" style="margin-top:20px">Romário, Zico, Rivaldo, Cafu, Roberto Carlos…</p>`) },
+      <p class="passo">4 · a subida</p>
+      <div class="foto" style="margin-top:28px"><img src="${ESTADIO}"></div>
+      <h1 style="font-size:62px;margin-top:32px">Começa na <span class="ouro">Várzea</span><br>e leva o time<br>até a <span class="ouro">Série A</span></h1>`) },
+  // 👥 20 é o número REAL: `MAX_PLAYERS = 20` no lobby.tsx (a tabela tem 20 times
+  // e as vagas que sobram viram bot). Não arredondar isso em anúncio.
   { d: 4.4, html: base(`
-      <p class="passo">3 · o martelo</p>
-      <p style="font-size:190px;line-height:1;margin-top:26px">🔨</p>
-      <h1 style="font-size:74px;margin-top:26px">Ninguém vê<br>o lance <span class="ouro">do outro</span></h1>
-      <p class="sub" style="margin-top:30px">Quem pagou mais leva o craque. Quem pagou de menos<br>fica falando sozinho.</p>`) },
-  { d: 4.4, html: base(`
-      <p class="passo">4 · o time</p>
-      <h1 style="font-size:78px;margin-top:30px">Você monta<br><span class="ouro">o elenco</span></h1>
-      <p class="sub" style="margin-top:34px">Goleiro, zaga, meio e ataque — com o dinheiro que sobrou.<br>Gastou tudo num craque? Boa sorte no resto.</p>`) },
-  { d: 4.6, html: base(`
-      <p class="passo">5 · o campeonato</p>
-      <div class="foto" style="margin-top:30px"><img src="${ESTADIO}"></div>
-      <h1 style="font-size:66px;margin-top:34px">Aí é rodada<br>atrás de rodada</h1>
-      <p class="leg" style="margin-top:20px">da <b>Várzea</b> até a <b>Série A</b> — subindo de divisão</p>`) },
+      <h1 style="font-size:74px">Sozinho contra o<br>computador — ou com<br><span class="ouro">até 20 pessoas</span></h1>
+      <p class="sub" style="margin-top:36px">na mesma sala online, todo mundo dando lance<br>na mesma lenda ao mesmo tempo.</p>`) },
   { d: 4.2, html: base(`
       <h1 style="font-size:84px">E o clube do<br><span class="ouro">Pantera</span> está lá</h1>
-      <img src="${ESCUDO}" style="height:560px;margin-top:34px;object-fit:contain">
-      <p class="leg" style="margin-top:22px">Pantera Negra FC · Série C</p>`, { fundo: CREME_ARTE }) },
+      <img src="${ESCUDO}" style="height:540px;margin-top:30px;object-fit:contain">
+      <p class="leg" style="margin-top:20px">Pantera Negra FC · Série C</p>`, { fundo: CREME_ARTE }) },
   { d: 4.8, html: base(`
       <h1 style="font-size:100px">De <span class="ouro">graça</span>.<br>No navegador.</h1>
       <p class="sub" style="margin-top:34px">Não tem loja de aplicativo. Não tem download.<br>Abre e joga.</p>
