@@ -29,7 +29,7 @@ import { PyramidOverlay } from './pyramid'
 // puxa o torneio inteiro junto, e só quem termina uma sala 'liga + Copa do
 // Mundo' precisa dele. Ninguém mais baixa um byte a mais.
 const CopaDaLigaLazy = lazy(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate })))
-import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estante · Temporadas · Ajustes
+import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
@@ -9132,16 +9132,17 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   // aviso do host quando ainda tem gente sem decidir: um mini-modal com 3 saídas
   // (esperar · começar com eles · excluir e começar). Se todos prontos, começa direto.
   const [askStart, setAskStart] = useState<'mesmo' | 'leilao' | null>(null)
-  // 👥 QUEM AINDA ESTÁ NA SALA (pra ninguém decidir "jogar de novo" no escuro —
-  // ex.: a sala era 10 e agora só tem 3). Presença via realtime (+ eu mesmo);
-  // quem fechou o app aparece esmaecido como "saiu". A tag 👑 HOST vem do banco
-  // (host_id → player_index) — é a fonte de verdade, inclusive após passar a coroa.
-  // presença chega por CADEIRA (playerIndex) — converte pra CRACHÁ pra casar com m.id
-  const present = new Set<number>([
+  // Conexão é só uma luz de estado. Ela NUNCA decide se alguém saiu: no celular,
+  // trocar pra tela do campeão ou congelar a aba derruba a presença por instantes.
+  const connected = new Set<number>([
     ...(state.presence ?? []).map(idx => state.managers[idx]?.id).filter((id): id is number => id != null),
     youId,
   ])
-  const pend = pendTodos.filter(m => present.has(m.id)) // só quem está NA SALA segura o começo
+  // Membro da sala vem da linha durável em room_players. Só o botão SAIR ou uma
+  // remoção do host apaga essa linha; portanto é a única régua para "🚪 saiu".
+  const [memberIds, setMemberIds] = useState<number[]>(() => humans.map(m => m.id))
+  const members = new Set(memberIds)
+  const pend = pendTodos.filter(m => members.has(m.id))
   // 🤝 DUPLA (09/08, relato do Diego jogando com o Didico): o parceiro do HOST
   // compartilha o MESMO time (youId), então nunca aparece em `guests`/`pend` —
   // o host conseguia começar sem o parceiro ter votado, porque pro código
@@ -9154,19 +9155,38 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
   const [hostId, setHostId] = useState<number | null>(isHost ? youId : null)
   useEffect(() => {
     if (!state.roomId) return
-    ;(async () => {
+    let vivo = true
+    const carregarMembros = async () => {
       try {
         const [{ data: room }, { data: pls }] = await Promise.all([
           supabase.from('game_rooms').select('host_id').eq('id', state.roomId).maybeSingle(),
           supabase.from('room_players').select('user_id, player_index').eq('room_id', state.roomId),
         ])
+        if (!vivo) return
+        const ids = [...new Set(((pls ?? []) as { user_id: string; player_index: number }[])
+          .map(p => state.managers.find(m => m.id === p.player_index)?.id)
+          .filter((id): id is number => id != null))]
+        setMemberIds(ids)
         const hid = (room as { host_id?: string } | null)?.host_id
         const row = ((pls ?? []) as { user_id: string; player_index: number }[]).find(p => p.user_id === hid)
         if (row) setHostId(state.managers[row.player_index]?.id ?? row.player_index)
       } catch { /* sem tag de host — segue */ }
-    })()
-  }, [state.roomId, isHost])
-  const startMesmo = () => dispatch({ type: 'REPLAY_SEASON' })
+    }
+    void carregarMembros()
+    const timer = window.setInterval(() => void carregarMembros(), 3000)
+    return () => { vivo = false; window.clearInterval(timer) }
+  }, [state.roomId, state.managers])
+  const startMesmo = async () => {
+    // Segunda conferência no toque: se alguém saiu explicitamente e o broadcast
+    // falhou, o banco ainda impede que ele volte como humano fantasma.
+    const { data } = await supabase.from('room_players').select('player_index').eq('room_id', state.roomId)
+    if (data) {
+      const ativos = new Set((data as { player_index: number }[]).map(p => p.player_index))
+      for (const m of state.managers.filter(m => m.isHuman && m.id !== youId)) if (!ativos.has(m.id)) kickPlayer(m.id)
+      await new Promise(r => setTimeout(r, 120))
+    }
+    dispatch({ type: 'REPLAY_SEASON' })
+  }
   // "Novo leilão": a MESMA galera segue na sala, com um leilão do zero (jogadores
   // novos) — SEM voltar pra sala de espera. O host monta e transmite; os
   // convidados seguem via SYNC_STATE. Fallback seguro: qualquer erro → fluxo
@@ -9191,50 +9211,9 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       const donos = state.duplasMode ? sorted.filter(p => !temDono(p.dupla_partner_of)) : sorted
       const seen = new Set<string>()
       const semRepetir = donos.filter(p => (seen.has(p.user_id) ? false : (seen.add(p.user_id), true)))
-      // 🚪 QUEM SAIU NÃO VOLTA (Diego 16/08 — relato jogando com dois amigos):
-      // esta lista vem do BANCO (`room_players`), que guarda todo mundo que um dia
-      // entrou na sala. Quem fechou o app continuava lá — então, no "novo leilão",
-      // o amigo que tinha SAÍDO (e nem votou) ganhava um assento de novo e o
-      // pregão ficava esperando o envelope de um fantasma. O host tinha que ir no
-      // "gerenciar" e remover na mão, no meio do jogo.
-      //
-      // Régua: entra quem está ONLINE agora (presença) ou quem VOTOU (votar prova
-      // que estava lá) — e o host sempre. É a mesma régua que a lista de cima da
-      // tela usa pra marcar "🚪 saiu", então o que o host vê é o que acontece.
-      //
-      // 🛡️ Trava de segurança: se a presença não chegou (realtime caindo,
-      // `presenceUids` vazio), NÃO corta ninguém — melhor um a mais, que o host
-      // remove, do que cortar quem estava jogando.
-      const uidsPresentes = new Set<string>((state.presenceUids ?? []).filter((u): u is string => !!u))
-      // quem VOTOU: a linha do banco guarda o assento (`player_index`), e o voto é
-      // guardado pelo crachá do técnico daquele assento — dá pra casar os dois.
-      const uidsQueVotaram = new Set<string>()
-      for (const p of sorted) {
-        const crachá = state.managers[p.player_index]?.id
-        if (crachá != null && (state.seasonVotes ?? {})[crachá]) uidsQueVotaram.add(p.user_id)
-      }
-      const meuUidAgora = auth?.user?.id
-      // 🚪 REGRA DO DIEGO (09/09, sala do Futpoint): *"se o cara saiu na votação
-      // então ele saiu de vez. Ele saiu da sala. Mesma coisa de apertar o botão
-      // sair… quando o host reiniciar, começa com quem não saiu e votou"*.
-      // Isto SUBSTITUI a trava de 23/08 ("só corta com a lista de crachás
-      // COMPLETA"). Aquela trava fazia o corte NUNCA acontecer quando alguém fechava
-      // o app: a vaga dele fica no banco, então a lista nunca fica completa. Foi
-      // assim que o Dérick e o Florminense, marcados como "🚪 saiu" na tela,
-      // entraram no leilão novo e travaram o setor esperando envelope de fantasma.
-      // Régua nova = EXATAMENTE a que a tela mostra: quem aparece como "🚪 saiu"
-      // (não está na presença nem por cadeira nem por crachá) e NÃO votou fica de
-      // fora. Votar continua provando presença — cobre a presença que chega pela
-      // metade, o caso de 23/08. O host vê na lista quem vai ficar de fora ANTES
-      // de tocar, e o aviso de "X pessoas saíram e não entraram" continua saindo.
-      // 🛡️ A única guarda que sobra: presença VAZIA (realtime morto) → não corta
-      // ninguém, porque aí não dá pra afirmar nada sobre ninguém.
-      const cadeiraPresente = (p: { player_index: number }) => present.has(state.managers[p.player_index]?.id ?? -1)
-      const temPresenca = uidsPresentes.size > 0 || (state.presence ?? []).length > 0
-      const uniq = temPresenca
-        ? semRepetir.filter(p => p.user_id === meuUidAgora || uidsPresentes.has(p.user_id) || cadeiraPresente(p) || uidsQueVotaram.has(p.user_id))
-        : semRepetir
-      const cortados = semRepetir.length - uniq.length
+      // A consulta já traz SOMENTE membros reais. Ausência no Realtime não corta
+      // ninguém: trocar de tela, minimizar ou reconectar não é sair da sala.
+      const uniq = semRepetir
       const duplas: Record<number, DuplaSeat> = {}
       const playerNames = uniq.map((p, i) => {
         if (!state.duplasMode) return p.manager_name
@@ -9255,10 +9234,6 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         try { alert(V('Você ficou sozinho na sala — o novo leilão precisa de pelo menos 2 pessoas. Te levei pra sala de espera: chama a galera por lá! 📣', 'You are alone in the room — a new auction needs at least 2 people. I took you to the waiting room: call the crew from there! 📣')) } catch { /* ignora */ }
         dispatch({ type: 'REMATCH' })
         return
-      }
-      if (cortados > 0) {
-        // 📢 nada acontece no escuro: o host fica sabendo quem não entrou.
-        try { alert(enV ? `${cortados === 1 ? 'One person left the room and did not join' : `${cortados} people left the room and did not join`} the new auction. If anyone comes back, just invite them again with the code. 👋` : `${cortados === 1 ? 'Uma pessoa saiu da sala e não entrou' : `${cortados} pessoas saíram da sala e não entraram`} no novo leilão. Se alguém voltar, é só chamar de novo pelo código. 👋`) } catch { /* ignora */ }
       }
       // 🪑 ARRUMA OS ASSENTOS NO BANCO ANTES DE REMONTAR (12/09, sala EHWPR4 do
       // Futpoint × Cajuri). O jogo novo numera os humanos pela POSIÇÃO na lista limpa
@@ -9348,11 +9323,12 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           de cada um (com brilho), nome, 👑 HOST e status (na sala / saiu). */}
       {humans.length > 0 && (
         <div className="online-vote-people rounded-xl border-2 border-black px-3 py-2" style={{ background: 'rgba(255,255,255,.95)' }}>
-          <p className="text-[10px] font-black uppercase tracking-widest text-black/50 mb-1.5" style={OSWALD}>{V('👥 Na sala agora', '👥 In the room now')} · {humans.filter(m => present.has(m.id)).length}/{humans.length}</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-black/50 mb-1.5" style={OSWALD}>{V('👥 Na sala agora', '👥 In the room now')} · {humans.filter(m => members.has(m.id)).length}/{humans.length}</p>
           <div className="space-y-1.5">
             {humans.map(m => {
               const pk = (m.id === youId ? myApoioPerk() : perkFromSelo(m.teamName)) ?? APOIO_PERKS.bege
-              const here = present.has(m.id)
+              const here = members.has(m.id)
+              const onlineNow = connected.has(m.id)
               return (
                 <div key={m.id} className="online-vote-person flex items-center gap-2" style={{ opacity: here ? 1 : 0.45 }}>
                   <div className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center text-xs font-black shrink-0" style={{ background: pk.grad, color: TIER_INK[pk.tier], position: 'relative', overflow: 'hidden' }}>
@@ -9364,11 +9340,11 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
                   {/* status: saiu · voto de cada um (▶️/🔨) · ainda não votou. Host não vota (decide). */}
                   {(() => {
                     if (!here) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#8a8672' }}>{V('🚪 saiu', '🚪 left')}</span>
-                    if (m.id === hostId) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{V('🟢 na sala', '🟢 in the room')}</span>
+                    if (m.id === hostId) return <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: onlineNow ? '#166534' : '#92600A' }}>{onlineNow ? V('🟢 na sala', '🟢 in the room') : V('🟡 reconectando', '🟡 reconnecting')}</span>
                     const v = votes[m.id]
                     return v
                       ? <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#166534' }}>{v === 'mesmo' ? V('✅ ▶️ mesmo time', '✅ ▶️ same team') : V('✅ 🔨 novo leilão', '✅ 🔨 new auction')}</span>
-                      : <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#92600A' }}>{V('⏳ não votou ainda…', '⏳ hasn\'t voted yet…')}</span>
+                      : <span className="text-[10px] font-black shrink-0" style={{ ...OSWALD, color: '#92600A' }}>{onlineNow ? V('⏳ não votou ainda…', '⏳ hasn\'t voted yet…') : V('🟡 reconectando…', '🟡 reconnecting…')}</span>
                   })()}
                 </div>
               )
@@ -9389,11 +9365,11 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
           {/* prontidão da galera (só os convidados): nome grande + PRONTO claro */}
           {guests.length > 0 && (
             <div className="online-vote-repeat space-y-1.5">
-              {guests.map(m => { const v = votes[m.id]; const here = present.has(m.id); return (
+              {guests.map(m => { const v = votes[m.id]; const here = members.has(m.id); const onlineNow = connected.has(m.id); return (
                 <div key={m.id} className="flex items-center justify-between rounded-xl border-2 border-black px-3 py-2" style={{ background: v ? '#DCFCE7' : here ? '#FFF7DE' : '#EFEAD9', opacity: v || here ? 1 : 0.6 }}>
                   <span className="font-black text-sm text-black" style={OSWALD}>{v ? '✅' : here ? '⏳' : '🚪'} {m.teamName}</span>
                   <span className="text-[11px] font-black" style={{ ...OSWALD, color: v ? '#166534' : here ? '#92600A' : '#8a8672' }}>
-                    {v ? (enV ? `READY · wants ${v === 'mesmo' ? '▶️ same team' : '🔨 new auction'}` : `PRONTO · quer ${v === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'}`) : here ? V('ainda não votou…', 'hasn\'t voted yet…') : V('saiu da sala — não segura o começo', 'left the room — doesn\'t hold up the start')}
+                    {v ? (enV ? `READY · wants ${v === 'mesmo' ? '▶️ same team' : '🔨 new auction'}` : `PRONTO · quer ${v === 'mesmo' ? '▶️ mesmo time' : '🔨 novo leilão'}`) : here ? (onlineNow ? V('ainda não votou…', 'hasn\'t voted yet…') : V('reconectando…', 'reconnecting…')) : V('saiu da sala — não segura o começo', 'left the room — doesn\'t hold up the start')}
                   </span>
                 </div>
               )})}
@@ -9871,6 +9847,7 @@ export function EscEnd() {
   // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
   // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
   const [mundoNaLiga, setMundoNaLiga] = useState(false)
+  const [mundoChecado, setMundoChecado] = useState(false)
   // 🌍 a noite só acaba DEPOIS da Copa (Diego 01/09: *"a votação é somente quando
   // acabar tudo, a liga e a Copa do Mundo — mesma coisa o jornal"*). Enquanto
   // `mundoPendente` for true, o jornal e o "e agora?" ficam escondidos, exatamente
@@ -9886,7 +9863,7 @@ export function EscEnd() {
     if (!online || !state.roomId) return
     let vivo = true
     void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga').eq('id', state.roomId).maybeSingle()
-      .then(({ data }) => { if (vivo) setMundoNaLiga(String((data as { flag?: string } | null)?.flag) === 'true') }, () => {})
+      .then(({ data }) => { if (vivo) { setMundoNaLiga(String((data as { flag?: string } | null)?.flag) === 'true'); setMundoChecado(true) } }, () => {})
     return () => { vivo = false }
   }, [online, state.roomId])
   // 🌎 nesta sala o mata-mata é a LIBERTADORES (não a Copa dos 8) — muda só o
@@ -10286,8 +10263,23 @@ export function EscEnd() {
       {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
         <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} mundo={campeaoDoMundo} />
       )}
-      {online && state.roomId && !state.careerOnline && !copaPending && !libPending && (() => {
+      {online && state.roomId && !state.careerOnline && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
+        const resultados: ResultadoHumanoEntrada[] = state.managers.filter(m => m.isHuman).map(m => {
+          const pos = table.findIndex(t => t.id === m.id)
+          const cupTitles: TituloSalaRapida[] = []
+          if (copaDone && state.quickCopa?.champion?.id === m.id) cupTitles.push(libEnd ? 'libertadores' : 'copa')
+          if (campeaoDoMundo?.nome === m.teamName) cupTitles.push('mundial')
+          return {
+            managerId: m.id,
+            teamName: m.teamName,
+            position: pos >= 0 ? pos + 1 : 0,
+            qualified: pos >= 0 && pos < copaN(table.length),
+            relegated: pos >= 0 && pos + 1 >= zoneBot(table.length),
+            leagueChampion: champ.id === m.id,
+            cupTitles,
+          }
+        })
         return (
           <LigaHub roomId={state.roomId} souDono={state.isHost}
             humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
@@ -10296,8 +10288,9 @@ export function EscEnd() {
               scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
               scorerTeamName: state.managers.find(m => m.id === myScorer?.teamId)?.teamName,
               micoName: table.length > 1 ? table[table.length - 1]?.name : undefined,
-              copaChampName: copaDone ? (state.quickCopa?.champion?.name ?? undefined) : undefined,
+              copaChampName: campeaoDoMundo ? `${campeaoDoMundo.nome} (${campeaoDoMundo.pais})` : copaDone ? (state.quickCopa?.champion?.name ?? undefined) : undefined,
               copaScorerName: copaDone ? copaSc?.name : undefined, copaScorerGoals: copaDone ? copaSc?.goals : undefined,
+              humanResults: resultados,
             }} />
         )
       })()}

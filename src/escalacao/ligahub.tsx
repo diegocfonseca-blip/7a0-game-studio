@@ -99,7 +99,30 @@ export type LinhaCampeao = {
   // 👥 quem era GENTE naquela temporada. Gravado a partir de 29/08; linha antiga
   // vem `null` e cai no jeito velho (só quem está na sala agora).
   humanos?: string[] | null
+  human_results?: ResultadoHumano[] | null
 }
+
+export type TituloSalaRapida = 'copa' | 'libertadores' | 'mundial'
+export type ResultadoHumanoEntrada = {
+  managerId: number
+  teamName: string
+  position: number
+  qualified: boolean
+  relegated: boolean
+  leagueChampion: boolean
+  cupTitles: TituloSalaRapida[]
+}
+type ResultadoHumano = {
+  user_id: string | null
+  display_name: string
+  team_name: string
+  position: number
+  qualified: boolean
+  relegated: boolean
+  league_champion: boolean
+  cup_titles: TituloSalaRapida[]
+}
+type MembroSala = { user_id: string; manager_name: string; player_index: number }
 
 // 📊 O RANKING sai das MESMAS linhas de troféu, com a regra que o dono escolheu.
 // Um lugar só, então arrumar um troféu já arruma o ranking na mesma hora.
@@ -144,6 +167,64 @@ export function rankingDaLiga(rows: LinhaCampeao[], regras: LigaRegras, gente: S
     return A.time.localeCompare(B.time)
   })
   return lista
+}
+
+type PlacarSalaRapida = {
+  key: string; nome: string; time: string; pts: number
+  liga: number; classificacao: number; rebaixamento: number
+  copas: Record<TituloSalaRapida, number>
+}
+
+export function rankingSalaRapida(rows: LinhaCampeao[], membros: MembroSala[], humanos: string[]): PlacarSalaRapida[] {
+  const atuais = new Map<string, PlacarSalaRapida>()
+  const porNome = new Map<string, string>()
+  const normal = (v: string | null | undefined) => (v ?? '').trim()
+  const nova = (key: string, nome: string, time = nome): PlacarSalaRapida => ({
+    key, nome, time, pts: 0, liga: 0, classificacao: 0, rebaixamento: 0,
+    copas: { copa: 0, libertadores: 0, mundial: 0 },
+  })
+  for (const m of membros) {
+    if (atuais.has(m.user_id)) continue
+    atuais.set(m.user_id, nova(m.user_id, normal(m.manager_name) || tr('Técnico', 'Manager')))
+    porNome.set(normal(m.manager_name), m.user_id)
+  }
+  // Enquanto a consulta dos membros chega, todo humano da partida já nasce no
+  // placar com zero. Assim ninguém desaparece só porque ainda não ganhou taça.
+  for (const nome of humanos.map(normal).filter(Boolean)) {
+    if (porNome.has(nome)) continue
+    const key = `nome:${nome}`
+    if (!atuais.has(key)) atuais.set(key, nova(key, nome))
+    porNome.set(nome, key)
+  }
+  const acha = (r: ResultadoHumano) => {
+    if (r.user_id && atuais.has(r.user_id)) return atuais.get(r.user_id)!
+    const key = porNome.get(normal(r.display_name)) ?? porNome.get(normal(r.team_name))
+    return key ? atuais.get(key) : undefined
+  }
+  const pertence = (premio: string | null | undefined, nome: string) => {
+    const p = normal(premio), n = normal(nome)
+    return !!p && !!n && (p === n || p.startsWith(`${n} (`))
+  }
+  for (const row of rows) {
+    if (row.human_results?.length) {
+      for (const r of row.human_results) {
+        const p = acha(r); if (!p) continue
+        p.time = normal(r.team_name) || p.time
+        if (r.league_champion) { p.liga++; p.pts += 5 }
+        if (r.qualified) { p.classificacao++; p.pts += 1 }
+        if (r.relegated) { p.rebaixamento++; p.pts -= 1 }
+        for (const titulo of r.cup_titles ?? []) if (titulo in p.copas) { p.copas[titulo]++; p.pts += 5 }
+      }
+      continue
+    }
+    // Compatibilidade com temporadas antigas: só atribui taça quando o nome
+    // casa com um usuário atual. Colocação/rebaixamento antigos não eram salvos.
+    for (const p of atuais.values()) {
+      if (pertence(row.champion_name, p.nome) || pertence(row.champion_name, p.time)) { p.liga++; p.pts += 5 }
+      if (pertence(row.copa_champion_name, p.nome) || pertence(row.copa_champion_name, p.time)) { p.copas.copa++; p.pts += 5 }
+    }
+  }
+  return [...atuais.values()].sort((a, b) => b.pts - a.pts || b.liga - a.liga || (b.copas.copa + b.copas.libertadores + b.copas.mundial) - (a.copas.copa + a.copas.libertadores + a.copas.mundial) || a.nome.localeCompare(b.nome))
 }
 
 // 🙈 zoeira do mico — uma por temporada, sorteio ESTÁVEL pela temporada (todo
@@ -237,10 +318,12 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
     seasonNo: number; matchSeed?: number
     champName: string; scorerName?: string; scorerGoals?: number; scorerTeamName?: string
     micoName?: string; copaChampName?: string; copaScorerName?: string; copaScorerGoals?: number
+    humanResults?: ResultadoHumanoEntrada[]
   }
   aoExcluir?: () => void            // o que fazer depois de excluir a liga (sair da sala)
 }) {
   const [rows, setRows] = useState<LinhaCampeao[] | null>(null)
+  const [membros, setMembros] = useState<MembroSala[]>([])
   const [sala, setSala] = useState<{ ehLiga: boolean; nome: string; regras: LigaRegras; ligaAt?: string; semBots: boolean } | null>(null)
   const [aba, setAba] = useState<Aba | null>(null) // 🔽 barra começa FECHADA: nada tapa o jogo rolando
   // 📚 qual das três (Rank · Estante · Temporadas) está aberta DENTRO do painel,
@@ -248,12 +331,18 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
   const [subAba, setSubAba] = useState<Aba>('rank')
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState('')
+  const gravarKey = JSON.stringify({ gravar: gravar ?? null, humanos })
 
   const carregar = useCallback(() => {
-    void supabase.from('game_champions')
-      .select('season_no, champion_name, top_scorer_name, top_scorer_goals, top_scorer_team, mico_name, copa_champion_name, humanos')
-      .eq('room_id', roomId).order('season_no', { ascending: true })
-      .then(({ data }) => setRows((data ?? []) as LinhaCampeao[]), () => setRows([]))
+    void Promise.all([
+      supabase.from('game_champions')
+        .select('season_no, champion_name, top_scorer_name, top_scorer_goals, top_scorer_team, mico_name, copa_champion_name, humanos, human_results')
+        .eq('room_id', roomId).order('season_no', { ascending: true }),
+      supabase.from('room_players').select('user_id, manager_name, player_index').eq('room_id', roomId).order('player_index'),
+    ]).then(([hist, atuais]) => {
+      setRows((hist.data ?? []) as LinhaCampeao[])
+      setMembros((atuais.data ?? []) as MembroSala[])
+    }, () => { setRows([]); setMembros([]) })
   }, [roomId])
 
   // 1) o HOST grava (ou corrige) a temporada ANTES de ler — senão a leitura corre
@@ -264,6 +353,23 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
     let vivo = true
     ;(async () => {
       if (gravar && souDono) {
+        const { data: jogadores } = await supabase.from('room_players')
+          .select('user_id, manager_name, player_index').eq('room_id', roomId)
+        const membrosAgora = (jogadores ?? []) as MembroSala[]
+        const resultados: ResultadoHumano[] = (gravar.humanResults ?? []).flatMap(r => {
+          const donos = membrosAgora.filter(m => m.player_index === r.managerId)
+          const bases = donos.length ? donos : [{ user_id: null, manager_name: r.teamName, player_index: r.managerId }]
+          return bases.map(m => ({
+            user_id: m.user_id,
+            display_name: m.manager_name || r.teamName,
+            team_name: r.teamName,
+            position: r.position,
+            qualified: r.qualified,
+            relegated: r.relegated,
+            league_champion: r.leagueChampion,
+            cup_titles: r.cupTitles,
+          }))
+        })
         const payload = {
           champion_name: gravar.champName, top_scorer_name: gravar.scorerName ?? null,
           top_scorer_goals: gravar.scorerGoals ?? null, top_scorer_team: gravar.scorerTeamName ?? null,
@@ -272,19 +378,24 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
           // 👥 carimba QUEM ERA GENTE nesta temporada — é o que deixa o amigo que
           // faltou continuar no ranking com os títulos dele (ver `rankingDaLiga`).
           humanos,
+          human_results: resultados,
         }
         for (let i = 0; i < 3; i++) {
           // 🏆 A LINHA É DA PARTIDA, não do número da temporada (Diego 16/08 —
           // "joguei a segunda e não contou no hall"): o "novo leilão" zera a
           // temporada pra 1 e a 2ª partida escrevia POR CIMA da 1ª. Com a SEMENTE,
           // partida diferente = linha nova, sempre.
-          const busca = gravar.matchSeed != null
-            ? supabase.from('game_champions').select('id').eq('room_id', roomId).eq('match_seed', gravar.matchSeed).maybeSingle()
-            : supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', gravar.seasonNo).maybeSingle()
-          const { data: existe } = await busca
-          const { error } = existe
-            ? await supabase.from('game_champions').update(payload).eq('id', existe.id)
-            : await supabase.from('game_champions').insert({ room_id: roomId, season_no: gravar.seasonNo, ...(gravar.matchSeed != null ? { match_seed: gravar.matchSeed } : {}), ...payload })
+          const { error } = gravar.matchSeed != null
+            ? await supabase.from('game_champions').upsert(
+              { room_id: roomId, season_no: gravar.seasonNo, match_seed: gravar.matchSeed, ...payload },
+              { onConflict: 'room_id,match_seed' },
+            )
+            : await (async () => {
+              const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', gravar.seasonNo).maybeSingle()
+              return existe
+                ? supabase.from('game_champions').update(payload).eq('id', existe.id)
+                : supabase.from('game_champions').insert({ room_id: roomId, season_no: gravar.seasonNo, ...payload })
+            })()
           if (!error) break
           await new Promise(r => setTimeout(r, 400 * (i + 1)))
         }
@@ -294,7 +405,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
     })()
     return () => { vivo = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId, souDono, gravar?.seasonNo, gravar?.matchSeed, gravar?.champName])
+  }, [roomId, souDono, gravarKey, carregar])
 
   // 2) quem é a sala: liga ou rápida, e as regras do dono
   useEffect(() => {
@@ -331,6 +442,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
   }, [humanos, rows])
   const regras = sala?.regras ?? LIGA_REGRAS_PADRAO
   const ranking = useMemo(() => rankingDaLiga(rows ?? [], regras, gente), [rows, regras, gente])
+  const rankingRapido = useMemo(() => rankingSalaRapida(rows ?? [], membros, humanos), [rows, membros, humanos])
 
   async function salvarRegras(r: LigaRegras) {
     if (!sala) return
@@ -377,14 +489,18 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
   // largura é o que falta no celular, não no monitor.
   const ehAbaDaPartida = (b: Botao): b is 'jogos' | 'estatisticas' | 'elenco' => b === 'jogos' || b === 'estatisticas' || b === 'elenco'
   const juntas = !!abasJogo
-  const abas: Botao[] = juntas
-    ? ['jogos', 'estatisticas', 'elenco', 'rank', 'estante', 'temporadas', ...(sala.ehLiga && souDono ? ['ajustes' as Botao] : [])]
-    : ['rank', 'estante', 'temporadas', ...(sala.ehLiga && souDono ? ['ajustes' as Botao] : [])]
+  const abas: Botao[] = sala.ehLiga
+    ? (juntas
+      ? ['jogos', 'estatisticas', 'elenco', 'rank', 'estante', 'temporadas', ...(souDono ? ['ajustes' as Botao] : [])]
+      : ['rank', 'estante', 'temporadas', ...(souDono ? ['ajustes' as Botao] : [])])
+    : (juntas ? ['jogos', 'estatisticas', 'elenco', 'estante'] : ['estante'])
   // quem só existe no celular (as abas da partida) e quem só existe no desktop
   // (Rank e Temporadas soltos — no celular eles moram dentro do 📚 Estante)
   const faixaDoBotao = (b: Botao) => !juntas ? '' : ehAbaDaPartida(b) ? 'll-barra-cel' : (b === 'rank' || b === 'temporadas') ? 'll-barra-desk' : ''
   // qual painel de história está desenhado: com as três juntas, manda a sub-aba
   const abaConteudo: Aba | null = aba === 'estante' && juntas ? subAba : aba
+  const conteudoRapido = !sala.ehLiga && aba === 'estante'
+  const rotulo = (b: Botao) => (!sala.ehLiga && b === 'estante') ? tr('Troféus', 'Trophies') : ROTULO_ABA[b]
 
   return (
     <>
@@ -409,7 +525,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
             <style>{'@keyframes escMicoWiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}'}</style>
             <div className="flex items-center gap-2 mb-2">
               <p className="flex-1 min-w-0 font-black text-[13px] truncate" style={OSWALD}>
-                {sala.ehLiga ? `🏆 ${sala.nome || tr('A liga', 'The league')}` : tr('🏆 Esta sala', '🏆 This room')} · {ROTULO_ABA[abaConteudo ?? aba]}
+                {sala.ehLiga ? `🏆 ${sala.nome || tr('A liga', 'The league')} · ${ROTULO_ABA[abaConteudo ?? aba]}` : tr('🏆 Sala de Troféus', '🏆 Trophy Room')}
               </p>
               <button onClick={() => setAba(null)} aria-label={tr('Fechar', 'Close')}
                 className="flex-none border-2 border-black rounded-lg px-2.5 py-1 font-black text-[12px] bg-white active:translate-y-0.5" style={OSWALD}>✕</button>
@@ -419,7 +535,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
                 a aparecer inteiras, em pílulas. Nada de conteúdo mudou: é a mesma
                 Rank, a mesma Estante e as mesmas Temporadas, só que atrás de uma
                 porta em vez de três. */}
-            {juntas && aba === 'estante' && (
+            {sala.ehLiga && juntas && aba === 'estante' && (
               <div className="flex gap-1.5 mb-2.5 ll-barra-cel">
                 {(['rank', 'estante', 'temporadas'] as Aba[]).map(s => (
                   <button key={s} onClick={() => setSubAba(s)} aria-pressed={subAba === s}
@@ -430,17 +546,11 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
                 ))}
               </div>
             )}
-            {abaConteudo === 'rank' && <AbaRank ranking={ranking} regras={regras} temLinhas={!vazio} ehLiga={sala.ehLiga} />}
-            {abaConteudo === 'estante' && <AbaEstante rows={rows} gente={gente} />}
-            {abaConteudo === 'temporadas' && <AbaTemporadas roomId={roomId} rows={rows} souDono={souDono && sala.ehLiga} nomes={humanos} recarregar={carregar} />}
+            {conteudoRapido && <SalaTrofeusRapida ranking={rankingRapido} rows={rows} />}
+            {sala.ehLiga && abaConteudo === 'rank' && <AbaRank ranking={ranking} regras={regras} temLinhas={!vazio} ehLiga />}
+            {sala.ehLiga && abaConteudo === 'estante' && <AbaEstante rows={rows} gente={gente} />}
+            {sala.ehLiga && abaConteudo === 'temporadas' && <AbaTemporadas roomId={roomId} rows={rows} souDono={souDono} nomes={humanos} recarregar={carregar} />}
             {abaConteudo === 'ajustes' && <AbaAjustes sala={sala} regras={regras} busy={busy} salvarRegras={salvarRegras} patch={patch} excluir={excluir} />}
-            {/* 🌍 SALA RÁPIDA: a verdade sobre a estante — ela some quando a galera
-                sai. Prometer história numa sala que evapora seria enganar. */}
-            {!sala.ehLiga && (
-              <p className="text-[10px] font-bold text-black/55 leading-snug mt-2.5 pt-2" style={{ borderTop: '2px solid rgba(12,12,12,.15)' }}>
-                {getLang() === 'en' ? <>ℹ️ This is the history of <b>this room</b>. A quick room <b>disappears</b> when the crew leaves — for a championship that carries on every week, with a set time and a saved ranking, create a <b>🏆 League</b>.</> : <>ℹ️ Isto é o histórico <b>desta sala</b>. Sala rápida <b>some</b> quando a galera sai — pra ter um campeonato que continua toda semana, com hora marcada e ranking guardado, crie uma <b>🏆 Liga</b>.</>}
-              </p>
-            )}
           </div>
         </div>
       )}
@@ -466,10 +576,10 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
             ? () => { abasJogo!.escolher(t); setAba(null); window.scrollTo({ top: 0 }) }
             : () => { if (t === 'estante') setSubAba('estante'); setAba(aba === t ? null : t as Aba) }
           return (
-            <button key={t} onClick={tocar} aria-label={ROTULO_ABA[t]} aria-pressed={on} className={faixaDoBotao(t)}
+            <button key={t} onClick={tocar} aria-label={rotulo(t)} aria-pressed={on} className={faixaDoBotao(t)}
               style={{ flex: 1, minWidth: 0, position: 'relative', background: 'transparent', border: 'none', padding: '3px 0 1px', cursor: 'pointer', color: cor }}>
               <IconeLiga nome={t} cor={cor} />
-              <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{ROTULO_ABA[t]}</span>
+              <span style={{ display: 'block', ...OSWALD, fontWeight: on ? 900 : 700, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '.02em', marginTop: 2 }}>{rotulo(t)}</span>
             </button>
           )
         })}
@@ -480,6 +590,79 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
 }
 
 // ─── 🏆 RANK — o que a regra do dono produz ─────────────────────────────────
+function SalaTrofeusRapida({ ranking, rows }: { ranking: PlacarSalaRapida[]; rows: LinhaCampeao[] }) {
+  const totalCopas = (r: PlacarSalaRapida) => r.copas.copa + r.copas.libertadores + r.copas.mundial
+  const chip = (texto: string, tom: 'ouro' | 'verde' | 'vermelho' | 'roxo' = 'ouro') => {
+    const cores = { ouro: ['#FFF1A8', '#7A4D00'], verde: ['#DCFCE7', '#166534'], vermelho: ['#FDE2DE', '#9C2F22'], roxo: ['#EFE3FF', '#5B21B6'] } as const
+    return <span key={texto} className="inline-flex items-center rounded-md border border-black/20 px-1.5 py-0.5 text-[9px] font-black" style={{ ...OSWALD, background: cores[tom][0], color: cores[tom][1] }}>{texto}</span>
+  }
+  const nomes = new Set(ranking.flatMap(r => [r.nome.trim(), r.time.trim()]).filter(Boolean))
+  const premioHumano = (v: string | null | undefined) => {
+    const p = (v ?? '').trim()
+    return [...nomes].find(n => p === n || p.startsWith(`${n} (`))
+  }
+  const resumo = (row: LinhaCampeao) => {
+    const itens: string[] = []
+    if (row.human_results?.length) {
+      for (const r of row.human_results) {
+        const feitos: string[] = []
+        if (r.league_champion) feitos.push(tr('Liga', 'League'))
+        for (const c of r.cup_titles ?? []) feitos.push(c === 'mundial' ? tr('Mundial', 'World Cup') : c === 'libertadores' ? 'Libertadores' : tr('Copa', 'Cup'))
+        if (r.qualified) feitos.push(tr('Top 8', 'Top 8'))
+        if (r.relegated) feitos.push(tr('rebaixado', 'relegated'))
+        if (feitos.length) itens.push(`${r.display_name || r.team_name}: ${feitos.join(' · ')}`)
+      }
+    } else {
+      const liga = premioHumano(row.champion_name); if (liga) itens.push(`${liga}: ${tr('Liga', 'League')}`)
+      const copa = premioHumano(row.copa_champion_name); if (copa) itens.push(`${copa}: ${tr('Copa', 'Cup')}`)
+    }
+    return itens
+  }
+  return (
+    <>
+      <p className="font-black text-[11.5px] uppercase tracking-wider text-black/45 mb-2" style={OSWALD}>{tr('🏆 Ranking da galera', '🏆 Crew ranking')} · {ranking.length} {ranking.length === 1 ? tr('usuário', 'player') : tr('usuários', 'players')}</p>
+      {ranking.length === 0 ? <p className="text-black/50 text-[11.5px] font-bold">{tr('A sala de troféus abre assim que a primeira temporada terminar.', 'The trophy room opens as soon as the first season ends.')}</p> : (
+        <div className="space-y-2">
+          {ranking.map((r, i) => (
+            <div key={r.key} className="border-[2.5px] border-black rounded-xl bg-white px-2.5 py-2" style={{ boxShadow: '2px 2px 0 #0C0C0C' }}>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-[15px] w-7 text-center shrink-0" style={{ ...OSWALD, color: i === 0 ? '#7A4D00' : 'rgba(12,12,12,.45)' }}>{i === 0 ? '🥇' : ordinal(i + 1)}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-black text-[13px] truncate" style={OSWALD}>{r.nome}</p>
+                  {r.time && r.time !== r.nome && <p className="text-[9.5px] font-bold text-black/45 truncate">⚽ {r.time}</p>}
+                </div>
+                <span className="rounded-lg border-2 border-black px-2 py-0.5 font-black text-[14px] shrink-0" style={{ ...OSWALD, background: r.pts < 0 ? '#FDE2DE' : GOLD, color: r.pts < 0 ? '#9C2F22' : INK }}>{r.pts} pts</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-2 ml-9">
+                {r.liga > 0 && chip(`🏆 Liga ×${r.liga}`)}
+                {r.copas.copa > 0 && chip(`🏆 Copa ×${r.copas.copa}`, 'roxo')}
+                {r.copas.libertadores > 0 && chip(`🌎 Libertadores ×${r.copas.libertadores}`, 'roxo')}
+                {r.copas.mundial > 0 && chip(`🌍 Mundial ×${r.copas.mundial}`, 'roxo')}
+                {r.classificacao > 0 && chip(`🎟️ Top 8 ×${r.classificacao}`, 'verde')}
+                {r.rebaixamento > 0 && chip(`🔻 Rebaixamento ×${r.rebaixamento}`, 'vermelho')}
+                {r.liga === 0 && totalCopas(r) === 0 && r.classificacao === 0 && r.rebaixamento === 0 && <span className="text-[9.5px] font-bold text-black/40">{tr('Ainda sem conquista nesta sala', 'No achievement in this room yet')}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-[10px] font-bold text-black/55 leading-snug mt-2.5">{tr('🏆 Título +5 · 🎟️ Top 8 +1 · 🔻 Rebaixamento −1. Nas Copas, só o campeão pontua. Bots não entram.', '🏆 Title +5 · 🎟️ Top 8 +1 · 🔻 Relegation −1. In Cups, only the champion scores. Bots are excluded.')}</p>
+      {rows.length > 0 && (
+        <details className="mt-2.5 border-2 border-black rounded-xl bg-white overflow-hidden">
+          <summary className="cursor-pointer px-3 py-2 font-black text-[11.5px]" style={OSWALD}>{tr(`📜 Histórico da sala · ${rows.length} temporada${rows.length > 1 ? 's' : ''}`, `📜 Room history · ${rows.length} season${rows.length > 1 ? 's' : ''}`)}</summary>
+          <div className="border-t-2 border-black px-3 py-2 space-y-1.5">
+            {[...rows].sort((a, b) => b.season_no - a.season_no).map(row => {
+              const itens = resumo(row)
+              return <div key={row.season_no} className="flex gap-2 text-[10px] font-bold leading-snug"><span className="shrink-0 rounded bg-black text-[#FFC400] px-1.5 py-0.5 font-black" style={OSWALD}>T{row.season_no}</span><span>{itens.length ? itens.join(' · ') : tr('Nenhum usuário levou título nesta temporada.', 'No player won a title this season.')}</span></div>
+            })}
+          </div>
+        </details>
+      )}
+      <p className="text-[10px] font-bold text-black/45 leading-snug mt-2">{tr('ℹ️ Mesmo time ou novo leilão mantém tudo. O usuário só sai quando toca em “Sair da sala” ou quando o host o remove.', 'ℹ️ Same team or a new auction keeps everything. A player only leaves by tapping “Leave room” or when the host removes them.')}</p>
+    </>
+  )
+}
+
 function AbaRank({ ranking, regras, temLinhas, ehLiga }: { ranking: ReturnType<typeof rankingDaLiga>; regras: LigaRegras; temLinhas: boolean; ehLiga: boolean }) {
   if (!temLinhas) return <p className="text-black/50 text-[11.5px] font-bold">{tr('Ainda não tem temporada encerrada aqui. O primeiro campeão aparece quando este jogo acabar. 🏆', 'No finished season here yet. The first champion shows up when this game ends. 🏆')}</p>
   if (ranking.length === 0) return <p className="text-black/50 text-[11.5px] font-bold">{tr('Nenhum título de gente ainda — os campeões até agora foram bots, e bot não entra no ranking. 🤖', 'No human titles yet — the champions so far were bots, and bots don\'t enter the ranking. 🤖')}</p>
