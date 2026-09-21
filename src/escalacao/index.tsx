@@ -8,6 +8,7 @@ import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia,
 import { EscLobby } from './lobby'
 import { useSport, useSportUnlocked, SPORT_BRAND } from './sport'
 import { hadLogin } from './apoio'
+import { testaEscrita, medeStorage, guardaStorage, type ProbeStorage } from '../storage-guard' // 🧹 sessão que cai por armazenamento cheio (21/09)
 import { AdminPanel } from './admin'
 import { DinastiaGame } from './dinastia'
 import { CareerOnlineGame } from './careeronline'
@@ -252,9 +253,17 @@ function SoundGate() {
 // 🔑 SESSÃO CAÍDA: aparece SÓ pra quem já logou antes (hadLogin) e agora está sem
 // sessão (token expirou). Quem NUNCA logou não tem o marcador → nunca vê nada.
 // Dispensável (X) por sessão de navegação. "Entrar" leva pra tela de login.
+// 🧹 E DIZ O PORQUÊ QUANDO É FALTA DE ESPAÇO (21/09, sala do Neymarzetti): se o
+// armazenamento do navegador está CHEIO, a biblioteca de login guarda a sessão
+// só na memória e ela morre a cada reload. Mandar a pessoa "entrar de novo" não
+// resolve nada — ela já entrou 8 vezes. Aqui a faixa faz o mesmo teste de escrita
+// que a biblioteca faz e, se der cheio, explica e dá o botão de liberar espaço.
+// Os números miúdos ("detalhes") existem pra quem for investigar pelo print.
 function SessionExpiredBanner() {
   const { dispatch } = useEsc()
   const [show, setShow] = useState(false)
+  const [probe, setProbe] = useState<ProbeStorage | null>(null)
+  const [detalhes, setDetalhes] = useState(false)
   useEffect(() => {
     let alive = true
     let dismissed = false
@@ -263,7 +272,10 @@ function SessionExpiredBanner() {
       if (!alive) return
       if (dismissed || !hadLogin()) { setShow(false); return }
       const { data } = await supabase.auth.getSession()
-      if (alive) setShow(!data.session) // já logou antes, mas sem sessão agora = caiu
+      if (!alive) return
+      const caiu = !data.session // já logou antes, mas sem sessão agora = caiu
+      setShow(caiu)
+      if (caiu) { try { setProbe({ escrita: testaEscrita(), ...medeStorage() }) } catch { /* sem diagnóstico, faixa normal */ } }
     }
     check()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => check())
@@ -271,12 +283,34 @@ function SessionExpiredBanner() {
   }, [])
   if (!show) return null
   const close = () => { try { sessionStorage.setItem('esc-sess-x', '1') } catch { /* ignora */ } setShow(false) }
+  const cheio = probe?.escrita === 'cheio'
+  const liberar = () => {
+    const r = guardaStorage()
+    setProbe(r)
+    // liberou de verdade → recarrega pra biblioteca refazer o teste e voltar a gravar o login
+    if (r.escrita === 'ok') { try { window.location.reload() } catch { /* ignora */ } }
+  }
   return (
-    <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99997, margin: '0 auto', maxWidth: 460, background: '#F5B301', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', boxShadow: '0 4px 14px rgba(0,0,0,.3)', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Oswald, sans-serif' }}>
-      <span style={{ fontSize: 18, lineHeight: 1 }}>🔑</span>
-      <span style={{ flex: 1, fontWeight: 800, fontSize: 11.5, lineHeight: 1.25 }}>{tr('Sua sessão caiu — entre de novo pra ganhar cartas, aparecer no ranking e usar a SAF.', 'Your session expired — log in again to earn cards, show up in the ranking and use the SAF.')}</span>
-      <button onClick={() => { dispatch({ type: 'GO_LOBBY_ONLINE' }); setShow(false) }} style={{ flexShrink: 0, background: '#0C0C0C', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 11.5, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>{tr('Entrar', 'Log in')}</button>
-      <button onClick={close} aria-label={tr('Dispensar', 'Dismiss')} style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 999, background: '#fff', border: '2px solid #000', fontWeight: 900, fontSize: 11, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+    <div style={{ position: 'fixed', top: 8, left: 8, right: 8, zIndex: 99997, margin: '0 auto', maxWidth: 460, background: '#F5B301', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', boxShadow: '0 4px 14px rgba(0,0,0,.3)', fontFamily: 'Oswald, sans-serif' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 18, lineHeight: 1 }}>{cheio ? '🧹' : '🔑'}</span>
+        <span style={{ flex: 1, fontWeight: 800, fontSize: 11.5, lineHeight: 1.25 }}>
+          {cheio
+            ? tr('Seu navegador está SEM ESPAÇO pra guardar o login — por isso ele cai toda vez que a página recarrega. Toque em liberar espaço.', 'Your browser is OUT OF SPACE to store the login — that is why it drops every time the page reloads. Tap free up space.')
+            : tr('Sua sessão caiu — entre de novo pra ganhar cartas, aparecer no ranking e usar a SAF.', 'Your session expired — log in again to earn cards, show up in the ranking and use the SAF.')}
+        </span>
+        {cheio
+          ? <button onClick={liberar} style={{ flexShrink: 0, background: '#0C0C0C', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 11.5, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>{tr('🧹 Liberar espaço', '🧹 Free up space')}</button>
+          : <button onClick={() => { dispatch({ type: 'GO_LOBBY_ONLINE' }); setShow(false) }} style={{ flexShrink: 0, background: '#0C0C0C', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 10px', fontWeight: 900, fontSize: 11.5, cursor: 'pointer', fontFamily: 'Oswald, sans-serif' }}>{tr('Entrar', 'Log in')}</button>}
+        <button onClick={close} aria-label={tr('Dispensar', 'Dismiss')} style={{ flexShrink: 0, width: 22, height: 22, borderRadius: 999, background: '#fff', border: '2px solid #000', fontWeight: 900, fontSize: 11, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+      </div>
+      {probe && (
+        <p onClick={() => setDetalhes(d => !d)} style={{ margin: '5px 0 0', fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', lineHeight: 1.3, cursor: 'pointer' }}>
+          {detalhes
+            ? `${tr('armazenamento', 'storage')}: ${probe.escrita} · ${probe.usadoKB} KB · ${probe.chaves} ${tr('chaves', 'keys')} · ${probe.maiores.map(m => `${m.chave.slice(0, 22)} ${m.kb}KB`).join(' · ')}`
+            : tr('detalhes ▸', 'details ▸')}
+        </p>
+      )}
     </div>
   )
 }

@@ -1,3 +1,7 @@
+// 🧹 PRIMEIRO de tudo: libera espaço no armazenamento ANTES de o cliente do
+// Supabase nascer — ele testa a escrita na criação e, se estiver cheio, guarda o
+// login só na memória (morre no reload). Ver src/storage-guard.ts.
+import './storage-guard'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

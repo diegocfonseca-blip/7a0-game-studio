@@ -6,6 +6,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { logout } from './apoio'
+import { guardaStorage, medeStorage, testaEscrita, type ProbeStorage } from '../storage-guard' // 🗄️ armazenamento do aparelho (21/09)
 
 const ADMIN_EMAIL = 'diego.c.fonseca@gmail.com'
 // contas liberadas pra testar o MODO MANAGER (além do criador) — não dá acesso
@@ -214,6 +215,40 @@ export function AdminButton() {
 // e escolhe o tier — a pessoa recebe na próxima aberta do jogo, SEM deploy.
 // Escreve na tabela user_colors (que o jogo já lê com prioridade sobre a lista
 // do código) através de uma função que só aceita o e-mail do Diego.
+// 🗄️ ARMAZENAMENTO DESTE APARELHO (21/09, sala do Neymarzetti): o Diego abre o
+// painel no PRÓPRIO celular e vê se o navegador está cheio — que é o que faz o
+// login morrer a cada reload (a biblioteca de login desiste do localStorage quando
+// o teste de escrita estoura a cota). Mostra o teste, o total e as maiores chaves,
+// e o botão de limpar chat de sala velha (o único lixo que a gente apaga sozinho).
+function StorageAdmin() {
+  const [p, setP] = useState<(ProbeStorage & { apagadas?: number }) | null>(null)
+  const mede = () => { try { setP({ escrita: testaEscrita(), ...medeStorage() }) } catch { setP(null) } }
+  useEffect(() => { mede() }, [])
+  const limpar = () => { try { setP(guardaStorage()) } catch { /* ignora */ } }
+  return (
+    <div style={card()}>
+      <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 6 }}>🗄️ Armazenamento deste aparelho</p>
+      <p style={{ opacity: 0.7, fontSize: 12.5, marginBottom: 10, lineHeight: 1.4 }}>
+        Se o teste de escrita der <b>cheio</b>, o login deste navegador vive só na memória e cai a cada reload. O botão apaga só chat de sala velha — save, cofre e login ficam.
+      </p>
+      {p ? (
+        <>
+          <p style={{ fontSize: 14, marginBottom: 6 }}>
+            teste de escrita: <b style={{ color: p.escrita === 'ok' ? '#7CE38B' : '#FF6B5A' }}>{p.escrita}</b> · <b>{p.usadoKB} KB</b> em <b>{p.chaves}</b> chaves{p.apagadas != null ? ` · apagadas agora: ${p.apagadas}` : ''}
+          </p>
+          <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 10 }}>
+            {p.maiores.map(m => <div key={m.chave} style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.chave}</span><b>{m.kb} KB</b></div>)}
+          </div>
+        </>
+      ) : <p style={{ opacity: 0.6, fontSize: 13 }}>Não deu pra ler o armazenamento (bloqueado?).</p>}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={limpar} style={btn(GOLD, INK)}>🧹 Limpar chat de salas velhas</button>
+        <button onClick={mede} style={btn('#333', '#fff')}>medir de novo</button>
+      </div>
+    </div>
+  )
+}
+
 function ApoioAdmin() {
   const [email, setEmail] = useState('')
   const [tier, setTier] = useState<'roxo' | 'prata' | 'ouro'>('prata')
@@ -870,7 +905,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><CampanhaEmailAdmin /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

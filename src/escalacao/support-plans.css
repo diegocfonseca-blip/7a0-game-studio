@@ -2,3 +2,4 @@
 @media(max-width:360px){.ll-support-summary-head{font-size:20px}.ll-support-summary{padding:12px}.ll-support-plan header{padding:12px}.ll-support-plan h2{font-size:21px}.ll-support-plan header strong{font-size:22px}}
 .ll-support-home-tail{background:#0c0c0c;padding:1px 15px 20px;width:100%}
 .ll-support-home-tail .ll-support-footer{padding:12px 14px;margin-top:10px;max-width:560px}.ll-support-home-tail .ll-support-footer h3{font-size:17px;margin-bottom:6px}.ll-support-home-tail .ll-support-footer p{font-size:12px;line-height:1.45;margin:6px 0 9px}.ll-support-home-tail .ll-support-footer>button{padding:8px!important;font-size:13px!important;min-height:44px}.ll-support-story strong.ll-support-luca-legend{font:inherit;font-weight:800;color:#ffcf3e;text-shadow:0 0 8px #dca92255}
+.ll-support-addon{font:12px/1.5 Arial,sans-serif;color:#565143;margin:12px 0 0!important;padding-top:11px;border-top:1px solid #e4dfd3}.ll-support-addon+.ll-support-button{margin-top:10px}

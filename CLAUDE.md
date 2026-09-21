@@ -446,6 +446,19 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   anulado, no monte a carta fica travada). No código: `semContrato` = abandonou (teto +
   proibição) · `tetoOficial` = só o teto do valor, usado quando a listagem pega um
   contrato já vencido. **Nunca carimbar `semContrato` numa carta que o dono listou.**
+- **🔁 A CARTA QUE O DONO RECUPERA NO MONTE VOLTA COMO SAIU (20/09, regra permanente).**
+  Palavras dele: *"gostei disso de voltar pro dono sem custo pelo mesmo valor de mil, se
+  ele botou por mil"*. Contexto: usuários (Rei da Bola, Cajuri Raiva) pagavam caro pra
+  bot nenhum disputar, listavam, ninguém cobria, a carta caía no monte pela METADE e
+  eles repescavam de graça — salário, renovação e teto de venda caíam pela metade sem
+  vender nada. Agora `halveListed` guarda `paidAntes` e `takeFromMonte`, quando é o
+  PRÓPRIO dono, devolve `paid = paidAntes` + o contrato de quando saiu (curado por
+  `curaContratoVoltando`) e regrava o livro com o valor verdadeiro. Continua DE GRAÇA.
+  Pros OUTROS clubes, metade e contrato zerado, como sempre. Trava: `npm run monte`.
+  🛑 **E o TETO DO BOT ficou como está** — depois de 6 rodadas de bancada ele disse
+  *"não entendi nada"* e a lição está no fornecedor (🗣️ abaixo). Ele quer *"algo
+  inteligente que funcione mas não extrapole"* pro teto crescer: as réguas medidas
+  estão em `scripts/simula-teto.mts`; só levar pra ele UMA proposta, em uma frase.
 - **🔒 REGRA DE OURO CONTRA BOTÃO MUDO (19/09, aprendida DUAS vezes no mesmo dia).**
   Tela e reducer não podem ter regras próprias pra mesma coisa. Aconteceu no monte
   (a tela acendia PEGAR e o reducer recusava por contrato vencido) e no início de
@@ -492,6 +505,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   · 🗣️ **LIÇÃO DE CONVERSA (20/09)**: eu respondi a dúvida dele com tabela, opções e
     histórico e ele travou. Com o Diego, resposta de 4 linhas, em linguagem de jogo,
     e o resto só se ele pedir.
+    🔁 **E EU REPETI O ERRO NO MESMO DIA, PIOR** (teto do bot): ele perguntou uma coisa
+    simples e eu devolvi SEIS rodadas de simulação, tabela atrás de tabela, modelo com
+    nome de letra. Resposta dele: *"N entendi ndi nadaaa.. e ainda não sei o que
+    fazer"*. **Simulação é pra MIM, não pra ele.** O que vai pro Diego é a decisão
+    pronta em uma frase + uma pergunta de sim/não. Se em duas respostas ele ainda não
+    entendeu, o problema NÃO é ele: é a resposta — então corta tudo e oferece UMA coisa
+    só. E quando ele diz *"ainda não tô convencido"*, isso é NÃO: para de insistir e de
+    trazer variação nova da mesma ideia.
   · 🛟 Os 4 ids antigos continuam vivos com o MESMO prazo (`naique` 5 · `pumba` 3 ·
     `adibas`→Abibas 2 · `penalti`→Penality 1): contrato correndo em save antigo não
     pode mudar de tamanho no meio da carreira.
@@ -533,6 +554,17 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   `NO SEU CLUBE` do outro em dourado, e gás/valor/salário numa faixa própria
   embaixo, porque esses são de AGORA. Quem guarda o acumulado é o `condicaoCarry`
   (`g` gás · `j` jogos · `gl` gols · `as` assistências).
+
+- **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
+  biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
+  se estourar a cota, guarda a sessão SÓ NA MEMÓRIA e ela morre em todo reload — sem
+  erro no servidor, sem logout, sem refresh: o log mostra só a pessoa logando de novo
+  e de novo. **Tudo que grava no localStorage por sala/por conta precisa ter
+  LIMPEZA** — foi o chat de sala (`esc-chat-*`/`esc-lobbychat-*`, um par por sala,
+  nunca apagado) que encheu o celular dele. `src/storage-guard.ts` é o primeiro
+  import do `main.tsx` e limpa isso no boot; a faixa "sessão caiu" diagnostica e dá o
+  botão; o `#admin` mede o aparelho. Trava: `npm run storage`. Quem criar chave nova
+  por sala, registra a limpeza lá.
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

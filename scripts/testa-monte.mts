@@ -9,7 +9,7 @@
 //      de "alguma" ignorava esses bloqueios. Sem PEGAR e sem PASSAR = tela morta.
 //
 // Rodar:  npx tsx scripts/testa-monte.mts
-import { monteBloqueio, montePickable } from '../src/escalacao/store'
+import { monteBloqueio, montePickable, montePush, takeFromMonte } from '../src/escalacao/store'
 import type { EscState, Manager, Card } from '../src/escalacao/types'
 
 let erros = 0
@@ -52,6 +52,40 @@ console.log('1) o motivo de cada bloqueio')
   const cheio = Array.from({ length: 12 }, (_, i) => carta({ id: `a${i}`, pos: 'ATA' })) as Card[]
   const m = tecnico({ squad: cheio as never })
   ok(monteBloqueio(estado(m), m, carta()) === 'vaga', 'sem vaga na posição → some da lista (bloqueio de VAGA)')
+}
+
+console.log('1a) 🔁 VOLTA COMO SAIU (Diego 20/09): a própria carta recuperada no monte não vem pela metade')
+{
+  // a artimanha: pagou 1000, listou, ninguém cobriu, caiu no monte pela metade,
+  // repescou de graça — e saía com salário/renovação/teto pela metade sem vender nada.
+  const eu = tecnico({ id: 1, money: 0, squad: [] })
+  const outro = tecnico({ id: 2, name: 'Rival', teamName: 'Outro FC', money: 5000 })
+  const listado = carta({ id: 'pele', name: 'Pelé', paid: 1000, seller: 1, contratoAte: 12 } as Partial<Card>)
+  const s = estado(eu, { managers: [eu, outro], monteOrder: [1, 2], monteIdx: 0, seasonNo: 10, marketValues: {}, contratosOn: true } as Partial<EscState>)
+  montePush(s, [listado])
+  const noMonte = s.monte[0] as Card & { paid?: number; paidAntes?: number }
+  ok(noMonte.paid === 500, 'no monte a carta vale a METADE (500) — pros outros nada mudou')
+  ok(noMonte.paidAntes === 1000, 'e guarda o valor de antes (1000) pra devolver ao dono')
+  takeFromMonte(s, 'pele')
+  const voltou = eu.squad[0] as Card & { paid?: number; paidAntes?: number; contratoAte?: number }
+  ok(voltou.paid === 1000, 'o DONO recupera e ela volta valendo 1000, como saiu (salário, renovação e teto seguem o 1000)')
+  ok(voltou.contratoAte === 12, 'e com o MESMO contrato de quando saiu — não ganha 5-10 anos novos de graça')
+  ok(voltou.paidAntes === undefined, 'o campo de bastidor não vaza pro elenco')
+  ok(eu.money === 0, 'continua de graça: o dono não paga a si mesmo')
+  ok(s.marketValues?.['Pelé|Santos'] === 1000 || Object.values(s.marketValues ?? {})[0] === 1000, 'o livro de preços volta a dizer 1000 — venda nenhuma aconteceu')
+}
+{
+  // e pra OUTRO clube a regra é a de sempre: paga a metade e o contrato zera
+  const eu = tecnico({ id: 1, money: 0, squad: [] })
+  const outro = tecnico({ id: 2, name: 'Rival', teamName: 'Outro FC', money: 5000 })
+  const listado = carta({ id: 'pele', name: 'Pelé', paid: 1000, seller: 1, contratoAte: 12 } as Partial<Card>)
+  const s = estado(eu, { managers: [eu, outro], monteOrder: [2], monteIdx: 0, seasonNo: 10, marketValues: {}, contratosOn: true } as Partial<EscState>)
+  montePush(s, [listado])
+  takeFromMonte(s, 'pele')
+  const levou = outro.squad[0] as Card & { paid?: number; paidAntes?: number; contratoAte?: number }
+  ok(levou.paid === 500, 'outro clube leva pela METADE (500), como sempre')
+  ok(outro.money === 4500 && eu.money === 500, 'ele paga 500 e o dono recebe 500')
+  ok(levou.contratoAte === undefined && levou.paidAntes === undefined, 'contrato zera e o campo de bastidor não vaza')
 }
 
 console.log('1b) LISTAR não é abandonar (Garrincha do Rei da Bola · Maradona do Raiva Cajuri)')

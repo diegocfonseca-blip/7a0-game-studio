@@ -1104,5 +1104,33 @@
     "year": 1977,
     "src": "/avatars/lendas-v2/allan-simonsen-monchengladbach-1977.webp",
     "transparent": true
+  },
+  {
+    "name": "Paul Scholes",
+    "club": "Man United",
+    "year": 2003,
+    "src": "/avatars/lendas-v2/paul-scholes-manchester-united-2003.webp",
+    "transparent": true
+  },
+  {
+    "name": "Roy Keane",
+    "club": "Man United",
+    "year": 2000,
+    "src": "/avatars/lendas-v2/roy-keane-manchester-united-2000.webp",
+    "transparent": true
+  },
+  {
+    "name": "Zito",
+    "club": "Santos",
+    "year": 1962,
+    "src": "/avatars/lendas-v2/zito-santos-1962.webp",
+    "transparent": true
+  },
+  {
+    "name": "Marquinhos",
+    "club": "PSG",
+    "year": 2023,
+    "src": "/avatars/lendas-v2/marquinhos-psg-2023.webp",
+    "transparent": true
   }
 ]

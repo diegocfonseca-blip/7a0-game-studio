@@ -49,6 +49,178 @@ página aberta. Ninguém do jogo chama isso.
    *"As sobras do pregão"*, que só a tela do Monte tem.
 
 ---
+## 21/09/2026 — 🔑 "ENTRO NA SALA, ATUALIZO E ME DESLIGA" (Neymarzetti, sala JCQO35)
+
+Relato do Diego: *"quando eu entro numa sala e atualizo a página tá me desligando…
+quando atualizo não desliga em qualquer área do site, mas quando entro numa sala e
+atualizo tá desligando"*.
+
+### 🔍 O que os logs do Supabase mostraram
+- A conta dele fez **8 logins em 11 minutos** (03:37→03:48 UTC), sem nenhum
+  `token_refreshed` entre eles e sem `logout`.
+- O servidor **nunca recusou nem revogou** nada (zero 401/403, zero refresh falhado).
+- No reload, o celular **não fez chamada nenhuma de auth**: abriu sem sessão.
+👉 Conclusão: a sessão vivia **só na memória da página**. É o que a biblioteca de
+login faz quando o **armazenamento do navegador está CHEIO**: `supportsLocalStorage()`
+(auth-js) faz um `setItem` de teste ao criar o cliente; estourou a cota → desiste do
+localStorage pela página inteira e guarda a sessão na memória → morre no reload.
+E o jogo enchia o armazenamento com **o chat de cada sala** (`esc-chat-<id>` e
+`esc-lobbychat-<id>`, 60 mensagens cada, um par por sala, NUNCA apagados) — meses
+de salas viram centenas de chaves mortas, somadas ao save da carreira (grande) e ao
+cofre de carreiras por conta.
+
+### ✅ O que foi feito
+- **`src/storage-guard.ts`** — PRIMEIRO import do `main.tsx` (roda antes de o
+  cliente do Supabase nascer): apaga o chat de toda sala que não é a atual e mede
+  o armazenamento. Nunca toca save, arquivo, cofre, login ou preferências.
+- **Faixa "sua sessão caiu"** (`index.tsx`): faz o mesmo teste de escrita; se der
+  CHEIO, diz isso com todas as letras e dá o botão **🧹 Liberar espaço** (limpa e
+  recarrega). "detalhes ▸" mostra KB, nº de chaves e as 5 maiores — pra print.
+- **Painel do Criador** ganhou a seção **🗄️ Armazenamento deste aparelho** — o Diego
+  abre `#admin` no próprio celular e vê o teste, o total e as maiores chaves.
+- Trava: **`npm run storage`**.
+
+### ⏳ Se o Diego mandar o print e NÃO for "cheio"
+Aí a hipótese cai e o próximo suspeito é outro: aba privada/"limpar ao sair" do
+Chrome, ou as 12 abas do site brigando. O print do "detalhes ▸" decide.
+
+## 20/09/2026 (parte 4) — 📊 O TETO DO BOT: ANÁLISE, NADA MEXIDO NO JOGO
+
+O Diego contou que usuários estão **pagando muito acima do mercado** pra nenhum bot
+disputar, depois **listando** a carta: ninguém cobre, ela cai no monte **pela metade**
+e ele repesca de graça. Ordem dele: *"não faz nada, só analisa e me fala o que tu
+acha"*. Depois: *"não acha que deveria subir um pouco mais o piso com base no nível e
+categoria do jogador… e conforme o jogo avança? Igual é no mundo real"* e *"não quero
+prender somente a Série A — se tem time com dinheiro lá embaixo, deixe ofertar sim"*.
+
+### Bancadas (não mexem em nada do jogo)
+- **`scripts/simula-economia.mts`** — 250 temporadas, 3 estratégias (honesto ·
+  lavador · inflador). Achado: o teto do bot **congela em 360** (lenda 90 × econ 4×)
+  por volta da temporada 25 e nunca mais sobe; o lance do USUÁRIO é a única coisa
+  sem teto no jogo; `recordPrice` grava o lance inteiro no livro de preços.
+- **`scripts/simula-teto.mts`** — 40 clubes espalhados nas 5 divisões, 250 temporadas,
+  4 réguas de teto comparadas (hoje · pelo bolso · bolso+nível · bolso+nível+tempo).
+
+### O que a segunda bancada mostrou
+- **Hoje o teto não olha pro bolso de ninguém.** É a média da sala. Clube com
+  **8.396** de caixa dá o mesmo lance de um com **35** — e por isso o dinheiro
+  EMPOÇA (o mais rico termina as 250 temporadas com 8.396 sem ter no que gastar).
+- **Teto pelo bolso DAQUELE clube** resolve o pedido do Diego: time rico da Várzea
+  volta a ofertar de verdade (chegou a 390 quando o melhor da liga era 435) e o
+  dinheiro deixa de empoçar (mais rico termina com 718 em vez de 8.396).
+- **Só isso NÃO faz o preço subir com o tempo** — os prêmios são fixos por divisão,
+  então a economia estabiliza. Pra ter "igual mundo real", a RECEITA tem que subir
+  junto. Testado: +1,2%/temporada nos dois, parando em 2,5×. Maior lance da liga vai
+  de 360 (congelado) pra **612 na temporada 100**; a lenda sai de ~99 pra ~207 em 250
+  temporadas (dobrou, não explodiu); o rico da Várzea alcança **68%** do bolso da elite.
+- **Contra a artimanha**: hoje basta passar de ~355 *pra sempre* (número decorável).
+  Com teto pelo bolso + tempo, o alvo sobe junto com o jogo e nunca vira número fixo.
+
+### 📈 E A IDEIA DELE: o teto sair do que o MERCADO PAGOU naquele nível
+Pergunta dele: *"sobre o nível do jogador e valor e o que o mercado pagou naquele
+nível… pra entender qual piso máximo pode chegar com base no que saiu"*. Ou seja: em
+vez da tabelinha chutada (16 · 26 · 42 · 65 · 90 por estrela), o teto sai do HISTÓRICO
+de preços de cartas daquele nível. Testado na bancada (modelo `mercado`):
+- **Funciona e não explode**: o índice se auto-corrige, sobe quando a liga enriquece e
+  desce quando empobrece. Em 250 temporadas ficou estável (~223 de teto máximo).
+- **Mas dá pra ENVENENAR.** Com o inflador reciclando dinheiro (lista → monte pela
+  metade → repesca), a referência do nível 90-94 foi de 72 pra **477 (6,7×)** quando o
+  índice usa MÉDIA. Com MEDIANA cai pra 137 (1,9×). Com **mediana + só o que BOT pagou
+  entrando no índice**, cai pra 85 (**1,2×** — resíduo de mercado, não distorção).
+- 👉 Conclusão pra quando ele aprovar: se o teto vier do histórico, tem que ser
+  **mediana** e **sem contar o lance de quem joga**. O usuário não é mercado.
+
+### 🚨 PERGUNTA DELE: *"não pode correr risco do bot do nada pagar dois mil?"*
+Medido: o MAIOR lance que um bot deu em qualquer das 250 temporadas, com o inflador
+solto na liga. E o risco **não estava no índice** — estava na perna do BOLSO (bot que
+juntou 2.400 dá 840 num lance só).
+
+| régua | pico sem inflador | pico com inflador | veredito |
+|---|---|---|---|
+| hoje | 360 | 360 | ✅ seguro (mas congelado) |
+| bolso+nível | 546 | 959 | ⚠️ sobe |
+| bolso+nível+tempo | 704 | 941 | ⚠️ sobe |
+| mercado (índice) | 350 | 854 | 🚨 dispara |
+| **recomendado** | **450** | **450** | ✅ **seguro** |
+
+### ✅ RECOMENDAÇÃO FECHADA (esperando o OK dele)
+`recomendado` = **categoria × nível da carta × bolso DAQUELE clube**, com **TETO DURO**
+por cima (`catPriceCap × 5` → 👑450 ⭐325 💎210 🎯130 🪵80) que nenhum caminho fura.
+- Nunca passa de 450, com ou sem trapaceiro na liga — não existe "bot pagando 2 mil".
+- Time rico da Várzea volta a ofertar (43% do bolso da elite, contra os 100% FALSOS de
+  hoje — hoje é 100% só porque o teto ignora o dinheiro de todo mundo).
+- O dinheiro para de empoçar: mais rico termina com 975 em vez de 8.396.
+- 🚫 **Índice de mercado DESCARTADO**: se alimenta do próprio resultado, e foi o único
+  modelo que disparou (854) — é exatamente o tipo de comportamento emergente que o
+  Diego não quer.
+
+### 🧠 A IDEIA DELE (20/09) — "o teto persegue o que o usuário pagou"
+Palavras dele: *"se um usuário pagar no nível 90 mil, o teto máximo que o bot pode
+chegar agora é mil também… porém sendo inteligente"* — e o medo, que é o certo:
+*"pode ser que no próximo ele pague 1500, aí o bot aumenta pra 1500 e daqui a pouco
+o jogo tá em 10k hahaha"*.
+
+Bancada (modelo `persegue`): teto anda no máximo **25% por temporada** na direção do
+preço que SE SUSTENTOU (mediana — um lance maluco sozinho não move, dois já é preço),
+e desce do mesmo jeito.
+
+| régua | pico sem trapaceiro | pico com trapaceiro |
+|---|---|---|
+| persegue (só com freio) | 511 | **955** ⚠️ |
+| **persegue + teto duro** | **450** | **450** ✅ |
+
+👉 **O freio sozinho NÃO impede o 10k** — só faz demorar, porque o trapaceiro
+realimenta o índice toda temporada. Quem realmente fecha a porta é o **teto duro**.
+Ou seja: o teto duro é a resposta pro medo QUE ELE MESMO levantou, não um capricho meu.
+
+### 💰 A SAÍDA PRO "MAS AÍ TRAVA NOS 450 DE NOVO" — teto pelo DINHEIRO DA LIGA
+Reclamação justa dele: parede fixa é o mesmo problema de hoje, só com número maior.
+E ele sugeriu usar a MÉDIA dos preços. Duas respostas:
+- ⚠️ **Mal-entendido meu**: o modelo nunca usou o MAIOR preço, usa o DO MEIO (mediana).
+  E a **média é a pior** das três — medido: com média, um lance de 1000 leva a
+  referência de 72 pra **477**; com o do meio, 137.
+- ✅ **A saída de verdade**: o teto não sair de PREÇO nenhum, e sim do **dinheiro que
+  existe na liga** (caixa MEDIANO dos clubes × 2,5 × a proporção da categoria). Moeda
+  no jogo só nasce de prêmio, patrocínio e estádio — **pagar caro não cria moeda**, só
+  troca de bolso. Então não existe bola de neve, e **não precisa de parede**.
+
+| régua | pico normal | pico com trapaceiro | cresce com o jogo? | precisa de parede? |
+|---|---|---|---|---|
+| hoje | 360 | 360 | 🚫 congela | — |
+| índice de preço | 350 | 527 | sim | sim |
+| persegue + parede | 450 | 450 | até a parede | sim |
+| **dinheiro da liga** | **433** | **574** | **acompanha a liga** | **não** |
+
+⚠️ **ERRO DE BANCADA CORRIGIDO**: os picos "com trapaceiro" que eu tinha reportado
+antes (955 / 854 / 696) contavam o teto DO PRÓPRIO trapaceiro, cujo caixa a bancada
+abastece de propósito. A pergunta é se um **BOT** paga absurdo — a medição agora
+exclui o clube dele. Os números certos são os da tabela acima.
+
+### 🛑 ASSUNTO ENCERRADO (20/09): o teto do bot FICA COMO ESTÁ
+Depois de 6 rodadas de bancada ele respondeu *"N entendi ndi nadaaa.. e ainda não sei
+o que fazer"*. Erro meu: despejei simulação em cima dele em vez de entregar decisão.
+**Não reabrir o teto do bot sem ele pedir** — nem "índice de mercado", nem "teto
+duro", nem "teto perseguindo o preço", nem "teto pelo dinheiro da liga". Tudo isso
+está medido e guardado em `scripts/simula-teto.mts` caso um dia ele queira.
+O que ficou na mesa pra ele decidir é UMA coisa só, com sim ou não:
+**a carta que volta pro próprio dono no monte volta COMO SAIU, não pela metade** —
+mata o lucro da artimanha sem encostar no bot nem em teto nenhum.
+
+### ✅ FEITO (20/09, aprovado): a carta que o dono recupera no monte VOLTA COMO SAIU
+Palavras dele: *"gostei disso de voltar pro dono sem custo pelo mesmo valor de mil, se
+ele botou por mil"*. `halveListed` guarda `paidAntes`; `takeFromMonte` devolve ao PRÓPRIO
+dono `paid = paidAntes` + o contrato de quando saiu, e regrava o livro com o valor
+verdadeiro. De graça, como sempre. Pros outros clubes, metade e contrato zerado.
+Tela do Monte mostra o valor de antes na sua carta e o texto de ajuda diz "volta como
+saiu". Novidade PT/EN na home. Trava: `npm run monte` (seção 1a).
+
+### ⏳ PENDENTE
+1. **Teto do bot crescer sem extrapolar** — ele pediu de novo (20/09, depois do
+   "não entendi nada"): *"precisamos bolar alguma ideia pro piso dos bots de todos os
+   clubes aumentar e não ficar preso no 450… algo inteligente que funcione mas também
+   não extrapole"*. As réguas medidas estão em `scripts/simula-teto.mts`. Levar UMA
+   proposta, em uma frase, com sim/não — nunca mais tabela atrás de tabela.
+2. Livro de preços gravar só até o teto de mercado (`recordPrice`) — não decidido.
 ## 20/09/2026 (parte 52) — 🏺 COPA DO MUNDO COM CABEÇA DE CHAVE (4 potes de 6)
 
 *"A Copa do Mundo deveria sempre ter os países mais fortes sendo cabeça de chave,

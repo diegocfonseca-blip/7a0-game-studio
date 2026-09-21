@@ -1613,7 +1613,7 @@ function applyScorerValues(state: EscState, values?: Record<string, number>) {
 // manda cartas pro monte JÁ pela metade e registra esse valor no livro (é o preço
 // que o jogador vale dali em diante — se ninguém pega, o "bot fica" com ele por
 // esse valor, e é com ele que a carta volta um dia ao mercado).
-function montePush(state: EscState, cards: Card[]) {
+export function montePush(state: EscState, cards: Card[]) {
   const halved = halveListed(cards)
   for (const c of halved) { const p = (c as { paid?: number }).paid ?? 0; if (p > 0) recordPrice(state, c, p) }
   state.monte.push(...halved)
@@ -3870,8 +3870,10 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
 // jogador LISTADO (carreira online) que encalhou no leilão vai pro monte valendo
 // METADE do valor (arredonda pra baixo; 1 → 0). Carta nova do baralho não tem
 // valor, então não muda. É o que faz o Kaká (piso 30) cair pra 15 no monte.
+// 🔁 E GUARDA O VALOR DE ANTES em `paidAntes` (20/09): a metade é o preço pros OUTROS;
+// o PRÓPRIO dono, se recuperar, leva a carta de volta como saiu (ver takeFromMonte).
 function halveListed(cards: Card[]): Card[] {
-  return cards.map(c => { const p = (c as { paid?: number }).paid; return p && p > 0 ? { ...c, paid: Math.floor(p / 2) } : c })
+  return cards.map(c => { const p = (c as { paid?: number }).paid; return p && p > 0 ? { ...c, paid: Math.floor(p / 2), paidAntes: p } : c })
 }
 function buildMonteOrder(managers: Manager[], rng: () => number, careerOnline: boolean, soloYouId?: number): number[] {
   // bots fiadores e times de fundo do mercado NÃO entram no monte (com elenco
@@ -3989,7 +3991,7 @@ function refreshMonteDeadline(state: EscState) {
       : null
 }
 
-function takeFromMonte(state: EscState, cardId: string) {
+export function takeFromMonte(state: EscState, cardId: string) {
   const idx = state.monte.findIndex(c => c.id === cardId)
   if (idx < 0) return
   const card = state.monte[idx]
@@ -3997,7 +3999,7 @@ function takeFromMonte(state: EscState, cardId: string) {
   const m = state.managers.find(x => x.id === mgrId)!
   state.monte.splice(idx, 1)
   // preserva o valor (jogador listado já veio pela metade); carta nova = 0
-  const paid = (card as { paid?: number }).paid ?? 0
+  let paid = (card as { paid?: number }).paid ?? 0
   // carreira: jogador COM piso é COMPRA SEM LEILÃO — paga o valor (deduz da caixa).
   // Sobra sem piso (0) é de graça, e a SUA própria carta listada também (não paga a
   // si mesmo). O vendedor (outro) recebe como sempre.
@@ -4008,7 +4010,20 @@ function takeFromMonte(state: EscState, cardId: string) {
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
-  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, tetoOficial: undefined, contratoAte: undefined })
+  // 🔁 VOLTA COMO SAIU (Diego 20/09): *"gostei disso de voltar pro dono sem custo pelo
+  // mesmo valor de mil, se ele botou por mil"*. A carta que o PRÓPRIO dono recupera no
+  // monte volta com o valor que tinha ANTES da metade e com o contrato de quando saiu
+  // (não ganha 5-10 anos novos de graça). Motivo: a artimanha do mercado — pagar
+  // caro pra bot nenhum disputar, listar, ninguém cobre, cai no monte pela metade,
+  // repescar de graça — vivia justamente desse "volta pela metade e com contrato
+  // novo": salário, renovação e teto de venda caíam pela metade sem vender nada.
+  // Continua de graça (ele não paga a si mesmo) e o livro volta a dizer o valor
+  // verdadeiro, porque venda nenhuma aconteceu. Pros OUTROS clubes, metade, como sempre.
+  const paidAntes = (card as { paidAntes?: number }).paidAntes
+  const voltaComoSaiu = isOwn && paidAntes != null && paidAntes > 0
+  if (voltaComoSaiu) { paid = paidAntes; recordPrice(state, card, paid) }
+  const comoSaiu = voltaComoSaiu ? curaContratoVoltando({ contratoAte: (card as { contratoAte?: number }).contratoAte }, state.seasonNo ?? 1) : { contratoAte: undefined }
+  m.squad.push({ ...card, paid, buyPrice: paid, via: 'monte', semContrato: undefined, tetoOficial: undefined, paidAntes: undefined, contratoAte: comoSaiu.contratoAte })
   voltaCriaSeSobrou(state, m, card.pos) // 🌱 chegou reforço de verdade: o guri volta pra base NA HORA
   mirrorWallets(state) // 💰 compra no monte sai da caixa NA HORA
 }
@@ -4366,7 +4381,7 @@ function sweepMonteToBackstops(st: EscState) {
     // conta: bot paga = vendedor recebe. (Carta nova/sem vendedor segue grátis.)
     if (listed && paid > 0) bot.money = (bot.money ?? 0) - paid
     agenciaTransacao(st, card) // 🕴️ agenciado indo pra bot também é negócio → comissão
-    bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, tetoOficial: undefined, contratoAte: undefined })
+    bot.squad.push({ ...card, paid, via: 'monte', semContrato: undefined, tetoOficial: undefined, paidAntes: undefined, contratoAte: undefined })
     if (paid > 0) recordPrice(st, card, paid)
     // resumo dos bots (visibilidade na cerimônia)
     const msg = listed
