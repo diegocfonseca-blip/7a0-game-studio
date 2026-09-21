@@ -651,10 +651,22 @@ export function GameFooter() {
   // O onboarding privado já ocupa a tela inteira e tem navegação própria.
   // O rodapé geral embaixo duplicava a saída e quebrava a composição no celular.
   if (privatePreview && state.careerIntent && state.screen === 'setup') return null
-  // No lobby, a navegação já está acima. Mesmo apoio compacto da home,
-  // sem duplicar contatos, assinatura e saída no rodapé.
+  // No lobby, a navegação já está acima — então aqui fica só o apoio compacto da
+  // home, sem repetir assinatura nem a saída de emergência.
+  // 📬 MAS O CONTATO VOLTA (Diego 21/09): *"esse mesmo texto sutil falando do
+  // Instagram e etc também deve aparecer em cima do apoia nas salas online"*.
+  // Ele tinha sido tirado daqui pra não duplicar — só que a lista de salas é uma
+  // das telas mais vistas do jogo, e quem acha um bug JOGANDO ONLINE ficava sem
+  // saber onde falar. Mesmo tom apagado do rodapé da home (`ll-contato`): é
+  // recado, não banner.
   if (state.screen === 'lobby') return (
     <footer className="game-contact-footer ll-support-home-tail">
+      <p className="text-center text-[11px] font-bold leading-snug px-4 pt-4 pb-1" style={{ color: 'rgba(255,255,255,.42)' }}>
+        {tr('Achou um bug ou tem uma ideia? Fala comigo:', 'Found a bug or got an idea? Talk to me:')}{' '}
+        <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noopener noreferrer" className="underline whitespace-nowrap" style={{ color: 'rgba(255,255,255,.66)' }}><InstaIcon /> @leilaolegendscom</a>
+        <span style={{ color: 'rgba(255,255,255,.25)' }}> · </span>
+        <a href="mailto:contato@leilaolegends.com" className="underline whitespace-nowrap" style={{ color: 'rgba(255,255,255,.66)' }}>✉️ contato@leilaolegends.com</a>
+      </p>
       <ApoieButton trigger={open => <SupportFooter onOpen={open} />} />
     </footer>
   )

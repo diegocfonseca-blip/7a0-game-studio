@@ -1,3 +1,15 @@
+## 21/09/2026 — 📬 O contato sutil voltou pras salas online
+
+Diego: *"esse mesmo texto sutil falando do Instagram e etc também deve aparecer em
+cima do apoia nas salas online também"*.
+
+O `GameFooter` tem um ramo próprio pro lobby que mostrava SÓ o bloco de apoio — os
+contatos tinham sido tirados de lá pra "não duplicar". Só que a lista de salas é uma
+das telas mais vistas do jogo, e quem achava bug JOGANDO ONLINE ficava sem saber
+onde falar. Agora a linha aparece logo acima do Apoie, no mesmo tom apagado do
+rodapé da home (é recado, não banner) e com a cor ajustada pro fundo preto
+(`.ll-support-home-tail` é `#0c0c0c`).
+
 ## 21/09/2026 — ⭐ CHAMPIONS LEGENDS construída (no ar com selo EM BREVE)
 
 Ele viu o mockup e mandou: *"pode fazer"*, com quatro ordens juntas — e as quatro
