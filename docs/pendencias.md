@@ -1,4 +1,4 @@
-## 21/09/2026 — 🛡️ Linhazinha na Sala de Troféus (3 opções mandadas, ESPERANDO ele)
+## 21/09/2026 — 🛡️ Linhazinha na Sala de Troféus ✅ FEITA (opção C)
 
 Pedido dele: *"na área do online, um dos troféus, coloque uma linhazinha assim
 também: quer ter escudo e mascote pulando na tela? clique aqui… ou algo assim: tá
@@ -21,11 +21,23 @@ miolo — citar as DUAS coisas que a pessoa vê.
 o contrário do que ele quer dizer. Vale pra qualquer texto novo: quando o assunto é
 a PESSOA que joga, escrever "gente"/"usuário", nunca "jogador".
 
+🔁 **3ª rodada**: *"mas tem que falar MASCOTE PULANDO na tela, algo assim"*. Ele tem
+razão — "pulando" é o que a pessoa está VENDO acontecer, e é o que liga a frase ao
+bicho que acabou de atravessar a tela. As três versões passaram a usar a palavra dele.
+
 **Os 3 acabamentos** (`node scripts/mockup-trofeus-convite.mjs`):
-- **A** 🛡️ *O escudo dos times e o mascote que pula na tela são de gente de verdade.* → Quer o seu aqui?
+- **A** 🛡️ *Esse escudo no time e esse mascote pulando na tela são de gente de verdade.* → Quer o seu aqui?
 - **B** 🛡️ *Escudo no time, mascote pulando na tela — tudo de gente de verdade, não de bot.* → Quer o seu?
-- **C** 🛡️ *Todo escudo e todo mascote daí tem dono de verdade.* → Quer ser um deles?
-🚫 **Nada codado** — é UI nova, espera o OK dele (regra 2).
+- **C** ✅ 🛡️ *Cada escudo e cada mascote pulando aí na tela tem dono de verdade.* → Quer ser um deles?
+
+✅ **ESCOLHA DELE: a C** (*"Letra C"*), e está no ar. Como ficou, em `ligahub.tsx`
+(`SalaTrofeusRapida`): uma linha só, `text-[10px]` — o MESMO tamanho da regra de
+pontuação —, separada dela por um tracinho tracejado leve, com **pulando aí na tela**
+e **dono de verdade** em negrito e o convite em roxo, sublinhado. O clique abre
+`ApoieButton startScreen="batismo"`, ou seja cai DIRETO no batismo (que é o que dá
+escudo e mascote), sem passar pela tela de escolha. Nasceu BR/EN.
+↩️ **Reverter**: apagar o `<p>` novo e o import do `ApoieButton` — a linha é solta,
+não mexe em nada do ranking nem do banco.
 
 ## 21/09/2026 — 📬 O contato sutil voltou pras salas online
 

@@ -29,6 +29,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { APOIO_PERKS, ApoioSheen } from './apoio'
 import { perkFromSelo } from './pyramidseason'
+import { ApoieButton } from './screens' // 💛 o clique da linha "tem dono de verdade" abre o batismo
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
@@ -647,6 +648,23 @@ function SalaTrofeusRapida({ ranking, rows }: { ranking: PlacarSalaRapida[]; row
         </div>
       )}
       <p className="text-[10px] font-bold text-black/55 leading-snug mt-2.5">{tr('🏆 Título +5 · 🎟️ Top 8 +1 · 🔻 Rebaixamento −1. Nas Copas, só o campeão pontua. Bots não entram.', '🏆 Title +5 · 🎟️ Top 8 +1 · 🔻 Relegation −1. In Cups, only the champion scores. Bots are excluded.')}</p>
+      {/* 🛡️ "isso aí é gente, não é bot" — pedido do Diego (21/09), opção C do mockup
+          (`scripts/mockup-trofeus-convite.mjs`). Ele viu os escudos na lista e os
+          mascotes atravessando a tela e quis que ficasse claro que cada um tem DONO
+          de verdade — *"que é pra pessoa não achar que é um bot"*. Régua que ele deu
+          junto: *"tudo pequeno ali pra não ficar muita informação"* — então é UMA
+          linha, do mesmo tamanho miúdo da regra de pontuação acima, separada por um
+          tracinho leve pra ler como recado e não como banner. O clique abre direto o
+          BATISMO, que é o que dá escudo e mascote. ⚠️ "jogador" aqui seria a CARTA
+          (Pelé, Romário) — por isso a frase fala de DONO, que é a pessoa. */}
+      <p className="text-[10px] font-bold text-black/55 leading-snug mt-1.5 pt-1.5" style={{ borderTop: '1.5px dashed rgba(12,12,12,.14)' }}>
+        🛡️ {tr('Cada escudo e cada mascote ', 'Every crest and every mascot ')}
+        <b className="text-black/80">{tr('pulando aí na tela', 'bouncing on your screen')}</b>
+        {tr(' tem ', ' belongs to a ')}<b className="text-black/80">{tr('dono de verdade', 'real person')}</b>.{' '}
+        <ApoieButton startScreen="batismo" trigger={abrir => (
+          <button onClick={abrir} className="font-black underline whitespace-nowrap" style={{ color: '#7C3AED' }}>{tr('Quer ser um deles?', 'Want to be one of them?')}</button>
+        )} />
+      </p>
       {rows.length > 0 && (
         <details className="mt-2.5 border-2 border-black rounded-xl bg-white overflow-hidden">
           <summary className="cursor-pointer px-3 py-2 font-black text-[11.5px]" style={OSWALD}>{tr(`📜 Histórico da sala · ${rows.length} temporada${rows.length > 1 ? 's' : ''}`, `📜 Room history · ${rows.length} season${rows.length > 1 ? 's' : ''}`)}</summary>
