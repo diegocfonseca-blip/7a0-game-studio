@@ -1,3 +1,36 @@
+## 21/09/2026 — ⭐ CHAMPIONS LEGENDS no formato REAL (mockup mandado, esperando ele)
+
+Ele perguntou *"como seria a competição Champions League, igual fizemos da Libertadores
+no modo online"*. Ofereci a cópia da Liberta com clubes europeus e ele cortou:
+*"quero formato real de hj como seria"*. Depois: *"manda.. principalmente da parte q os
+8 primeiros tem q ficar aguardando tb o mata mata da repescagem sei lá"*.
+
+### O formato real (Champions 2024+), traduzido pro jogo
+- **Sem grupo.** 36 clubes numa TABELA ÚNICA: os 8 primeiros da liga + **28 europeus**.
+- Cada clube joga **8 adversários diferentes** (4 casa / 4 fora), 2 de cada pote.
+- Corte: **1º-8º** direto pras oitavas · **9º-24º** repescão ida e volta (8 sobem) ·
+  **25º-36º** fora. Das oitavas em diante é igual à Liberta (ida e volta, final única).
+
+### ⚠️ O QUE ELE PEGOU — e é o ponto que decide
+Quem termina no **top 8 fica uma fase inteira parado**, esperando o repescão dos outros.
+Na Liberta isso não existe (quem passa joga as oitavas direto). Bate na regra de ouro
+dele: *"nada pode atrasar o ritmo do jogo"*.
+👉 Saída desenhada no mockup: repescão **simulado corrido (~20s)**, botão
+**⏩ PULAR PRO SORTEIO** desde o 1º segundo, e a tela vende a espera como PRÊMIO
+("você já está dentro") em vez de castigo.
+
+### Mockup
+`node scripts/mockup-champions.mjs /tmp/champions.png` — duas telas (a tabela de 36 com
+a janela + linhas de corte coloridas; e a tela da espera) + as 4 notas de decisão.
+Mora no repo de propósito: mockup fora do repo se perde com o scratchpad.
+
+### ⏳ ESPERANDO A PALAVRA DELE
+1. Formato real (36 numa tabela, com repescão) **ou** cópia da Liberta com clubes europeus?
+2. Se for o real: aprovar a solução da espera (corrido + pular).
+3. A lista dos **28 nomes europeus** de paródia (o mockup tem um rascunho: Baião de
+   Munique · Ajax de Limpeza 🧽 · Livrapul · Pariz São Germano · Juve Tudo Nosso…).
+🚫 **Nada codado** — só o gerador do mockup.
+
 ## 21/09/2026 — 🎭 A faixa roxa do "SOLTOU O BICHO" saiu da tela
 
 Diego: *"essas frases roxas subindo não precisa aparecer quando solta o mascote,
