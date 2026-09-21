@@ -232,7 +232,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   const online = { seasonKey: `mundo:${roomId}:${ficha.seed}:copamundo`, aoCampeao, clock }
   if(!visible)return null
   return (
-    <CMModal wide cinematic={cinematic}>
+    <CMModal wide cinematic={cinematic} onlineBroadcast>
       <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO} potes={ficha.potes}
         myForm="4-3-3" online={online} onClose={aoFechar} />
     </CMModal>

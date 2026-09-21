@@ -5649,6 +5649,9 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   const previewAccount = useOnlinePreview()
+  // 🎬 VISUAL DE TRANSMISSÃO APROVADO (21/09): agora é público no online
+  // normal de futebol. Carreira online e basquete continuam com suas peles próprias.
+  const cinemaPreview = state.onlineMode === 'online' && !state.careerOnline && state.sport !== 'basquete'
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
   const leagueStartedAt = useRoundPresentationStart(state.round)
@@ -5972,7 +5975,7 @@ export function EscSeason() {
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
-    <Shell wide bar={
+    <Shell wide className={cinemaPreview ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
@@ -6134,6 +6137,20 @@ export function EscSeason() {
             </Box>
           )
         }
+        const copaRhythmControls = copaLive ? (
+          <>
+            {manual && !state.dinastiaPaused && (
+              <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
+            )}
+            {(!online || streamHost) && (
+              <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
+                lock={manualLocked ? <QuickManualLock /> : undefined}
+                onNext={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
+                onSkip={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
+                nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (cupNow ? LS('🏆 Iniciar a NBA Cup', '🏆 Start the NBA Cup') : libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (cupNow ? LS('🏀 Próximo jogo da NBA Cup', '🏀 Next NBA Cup game') : libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
+            )}
+          </>
+        ) : null
         return (
           <>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
@@ -6178,31 +6195,7 @@ export function EscSeason() {
                 </div>
               </Box>
             )}
-            {/* 🎮 O RITMO DA COPA MORA COLADO NAS ABAS (Diego 15/09, vendo a live de novo):
-                *"cadê o botão de manual e auto? não tô vendo. Aí depois foi pras quartas —
-                era pra continuar colado ali próximo das abas de jogos, tabela e etc"*.
-                📜 É a 2ª volta do mesmo assunto, e NÃO é um desmanche da 1ª: em 14/09 ele
-                reclamou que na Copa o manual/auto caía LÁ EMBAIXO, depois do chaveamento
-                inteiro, e mandou subir. Subiu — só que foi parar ANTES do cartaz da fase,
-                separado das abas pelo chaveamento todo. Na LIGA a peça fica logo ACIMA das
-                abas, e é esse lugar que ele reconhece. Agora é o mesmo lugar nas duas.
-                ⚠️ Não mover pro topo nem pro fim de novo sem falar com ele — já foi aos
-                dois extremos. */}
-            {copaLive && (
-              <>
-                {manual && !state.dinastiaPaused && (
-                  <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
-                )}
-                {(!online || streamHost) && (
-                  <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
-                    lock={manualLocked ? <QuickManualLock /> : undefined}
-                    onNext={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
-                    onSkip={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
-                    nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (cupNow ? LS('🏆 Iniciar a NBA Cup', '🏆 Start the NBA Cup') : libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (cupNow ? LS('🏀 Próximo jogo da NBA Cup', '🏀 Next NBA Cup game') : libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
-                )}
-              </>
-            )}
-            {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+            {!cinemaPreview && copaRhythmControls}
             {myTie ? (
               myTie.legs.length > 0 ? (() => {
                 // SEMPRE anima a última perna jogada (ida OU volta) — antes, quando
@@ -6242,6 +6235,10 @@ export function EscSeason() {
                 <p className="text-center font-black text-sm" style={OSWALD}>{libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…')}</p>
               </Box>
             )}
+            {/* 🎮 No online, a leitura aprovada é sempre: cartaz → placar →
+                ritmo → conteúdo. Os mesmos comandos continuam conduzindo a sala. */}
+            {cinemaPreview && copaRhythmControls}
+            {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
             {/* 🎯 tática (pedido de jogador, 12/08) — DEPOIS do placar ao vivo agora
                 (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
                 principal é a estrela, a tática é apoio). */}
@@ -6353,7 +6350,7 @@ export function EscSeason() {
       )}
 
       {fixture && opp && (
-        <Box bg={isClassico ? GOLD : '#fff'} className="p-4 space-y-3">
+        <Box bg={isClassico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaPreview ? ' ll31-next-match' : ''}`}>
           {/* ⚔️ A LINHA DO PRÓXIMO JOGO + OS TRÊS BOTÕES DE TÁTICA, SEMPRE À MOSTRA.
               De manhã (18/09) eles viraram uma PÍLULA que abria no toque, a pedido
               dele (*"tem que diminuir esse modal aí de equilíbrio, ataque, defesa nos
@@ -6388,9 +6385,10 @@ export function EscSeason() {
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
-                className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
+                className={`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaPreview ? ' ll31-tactic' : ''}`}
                 style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
-                {tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}
+                <span>{tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}</span>
+                {cinemaPreview && <small>{t === 'retranca' ? LS('Defesa + · Ataque −', 'Defence + · Attack −') : t === 'ataque' ? LS('Ataque + · Defesa −', 'Attack + · Defence −') : LS('Sem alteração', 'No change')}</small>}
               </button>
             ))}
           </div>
@@ -6442,7 +6440,7 @@ export function EscSeason() {
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
         if (shownNews.length === 0) return null
-        return <GiroDaRodada news={shownNews} isCopa={copaLive} />
+        return <GiroDaRodada news={shownNews} isCopa={copaLive} cinema={cinemaPreview} />
       })()}
 
       </div>
@@ -6467,7 +6465,7 @@ export function EscSeason() {
         </div></section>}
         {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
         {privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>{LS('LIGA ENCERRADA · VER CLASSIFICAÇÃO', 'LEAGUE OVER · SEE STANDINGS')}</summary><TableBox highlight={you.id} title={LS('LIGA LEGENDS · CLASSIFICAÇÃO FINAL', 'LIGA LEGENDS · FINAL STANDINGS')} /></details> :
-        <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
+      <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" cinema={cinemaPreview} />
         }
       </div>
       <div hidden={privateVisual && visualTab !== 'estatisticas'} className="space-y-5">
@@ -6509,7 +6507,7 @@ export function EscSeason() {
           meio da tela. No desktop continua atravessando as duas colunas, igual. */}
       <div className="ll-rabicho">
       {online && state.roomId && !state.careerOnline && (
-        <LigaHub roomId={state.roomId} souDono={state.isHost}
+        <LigaHub roomId={state.roomId} souDono={state.isHost} cinema={cinemaPreview}
           humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
           abasJogo={privateVisual && !copaLive ? { valor: visualTab, escolher: setVisualTab } : undefined} />
       )}
@@ -6759,7 +6757,7 @@ function traduzManchete(h: string): string {
   if ((r = t.match(/^🏆 (.+) avançou na (Copa|Libertadores) — adeus, (.+)!$/))) return `${pre}🏆 ${r[1]} advanced in the ${r[2] === 'Copa' ? 'Cup' : 'Libertadores'} — bye, ${r[3]}!`
   return h
 }
-function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
+function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[]; isCopa?: boolean; cinema?: boolean }) {
   const list = news.slice(0, 5).map(traduzManchete)
   const key = list.join('|')
   const [idx, setIdx] = useState(0)
@@ -6772,7 +6770,7 @@ function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
   }, [key, list.length])
   if (list.length === 0) return null
   return (
-    <Box bg="#FFF6DC" className="p-3">
+    <Box bg="#FFF6DC" className={`p-3${cinema ? ' ll31-news' : ''}`}>
       <style>{'@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}'}</style>
       <p className="font-black text-xs uppercase tracking-wide mb-2" style={OSWALD}>{getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')}</p>
       <p key={idx} className="text-xs font-bold" style={{ minHeight: '2.4em', animation: 'giroFade .35s ease' }}>{list[idx]}</p>
@@ -6785,7 +6783,7 @@ function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
   )
 }
 
-function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE' : 'TABELA' }: { highlight: number; holdResults?: boolean; title?: string }) {
+function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE' : 'TABELA', cinema = false }: { highlight: number; holdResults?: boolean; title?: string; cinema?: boolean }) {
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: saldo de CESTAS (SC) no lugar de SG
@@ -6835,7 +6833,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
         : isRival ? '#FFE0D6' : fundoZona
     const rowInk = youPerk ? TIER_INK[youPerk.tier] : rivPerk ? TIER_INK[rivPerk.tier] : undefined
     return (
-      <tr key={t.id} className="border-t border-black/10 font-semibold"
+      <tr key={t.id} className={`border-t border-black/10 font-semibold${isYou ? ' ll31-my-team' : ''}`}
         style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
         <td className="pr-1">
           <span className="flex items-center gap-1">
@@ -6893,7 +6891,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
     </div>
   )
   return (
-    <Box className="p-3 overflow-x-auto">
+    <Box className={`p-3 overflow-x-auto${cinema ? ' ll31-table' : ''}`}>
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">
@@ -7260,6 +7258,7 @@ export function EscLiberta() {
   const you = state.managers[state.youIdx]
   const lb = state.liberta
   const online = state.onlineMode === 'online'
+  const cinemaOnline = online && !state.careerOnline && state.sport !== 'basquete'
   const canAdvance = !online || state.isHost
   const streamHost = online && state.isHost && (state.streamMode || !!state.manualRoom)
   const [manualPref, toggleSim] = useSimMode()
@@ -7347,7 +7346,7 @@ export function EscLiberta() {
   }
 
   return (
-    <Shell bar={
+    <Shell className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between gap-2">
         <span className="font-black text-sm" style={{ ...OSWALD, color: NOITE }}>
           🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? LB('GRUPOS ENCERRADOS', 'GROUPS OVER') : `${LB('RODADA', 'ROUND')} ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
@@ -7385,6 +7384,19 @@ export function EscLiberta() {
             {acabou ? LB('🏁 Fim da fase de grupos!', '🏁 Group stage over!') : meuTime ? LB('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LB('📺 Você não se classificou — acompanhe a Libertadores por aqui.', '📺 You did not qualify — follow the Libertadores here.')}
           </p>
         </Box>
+      )}
+
+      {/* 🎮 O ritmo da fase fica junto do placar, antes de giro e tabelas. */}
+      {cinemaOnline && manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+      {cinemaOnline && streamHost && !acabou && (
+        <SimControls manual={manual} onToggle={toggleManual} canNext={lb.rodada === 0 || revealed}
+          lock={manualLocked ? <QuickManualLock /> : undefined}
+          onNext={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
+          onSkip={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
+          nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores') : LB('▶️ Próxima rodada', '▶️ Next round')} />
+      )}
+      {cinemaOnline && !state.isHost && !acabou && (
+        <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
 
       {/* 📣 giro da Libertadores (o mesmo lugar de sempre das manchetes) */}
@@ -7426,15 +7438,15 @@ export function EscLiberta() {
       <p className="text-[10px] font-bold text-black/45 text-center" style={privateVisual ? {color:CREAM} : undefined}>{enL ? <>🟢 the <b>top 2</b> of each group reach the round of 16 — 16 clubs.</> : <>🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</>}</p>
       {privateVisual && <details className="ll26-bracket-history"><summary>{LB('ESTATÍSTICAS DA LIBERTADORES', 'LIBERTADORES STATS')}</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">{LB('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p>}</details>}
 
-      {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-      {(!online || streamHost) && !acabou && (
+      {!cinemaOnline && manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+      {!cinemaOnline && (!online || streamHost) && !acabou && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={lb.rodada === 0 || revealed}
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
           onSkip={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
           nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores') : LB('▶️ Próxima rodada', '▶️ Next round')} />
       )}
-      {online && !state.isHost && !acabou && (
+      {!cinemaOnline && online && !state.isHost && !acabou && (
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
       {privateVisual && online && state.roomId && !state.careerOnline && <LigaHub roomId={state.roomId} souDono={state.isHost} humanos={state.managers.filter(m=>m.isHuman).map(m=>m.teamName)} />}

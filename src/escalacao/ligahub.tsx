@@ -218,7 +218,7 @@ const ROTULO_ABA_PT: Record<Botao, string> = { rank: 'Rank', estante: 'Estante',
 const ROTULO_ABA_EN: Record<Botao, string> = { rank: 'Rank', estante: 'Shelf', temporadas: 'Seasons', ajustes: 'Settings', jogos: 'Matches', estatisticas: 'Stats', elenco: 'Squad' }
 const ROTULO_ABA: Record<Botao, string> = new Proxy(ROTULO_ABA_PT, { get: (_t, k: string) => (getLang() === 'en' ? ROTULO_ABA_EN : ROTULO_ABA_PT)[k as Botao] })
 
-export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo }: {
+export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo, cinema = false }: {
   roomId: string
   souDono: boolean
   humanos: string[]                 // 👥 times de GENTE nesta sala — só eles pontuam
@@ -232,6 +232,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
    *  (📚 Estante), com as três abas de sempre dentro do painel.
    *  Sem isto, a barra continua exatamente como sempre foi. */
   abasJogo?: { valor: string; escolher: (aba: 'jogos' | 'estatisticas' | 'elenco') => void }
+  cinema?: boolean                  // 🎬 prévia fechada: só muda a pele da barra
   gravar?: {                        // 🖊️ só no FIM do jogo: o host grava a temporada
     seasonNo: number; matchSeed?: number
     champName: string; scorerName?: string; scorerGoals?: number; scorerTeamName?: string
@@ -446,7 +447,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo 
 
       {/* 🔽 A BARRA — mesma cara da barra da carreira (foto que o Diego mandou):
           fundo creme translúcido, ícone duotone e rótulo em Oswald maiúsculo. */}
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
+      <div className={cinema ? 'll31-bottom-nav' : undefined} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
         {abas.map(t => {
           // ⚽📊👥 abas da PARTIDA: elas trocam o conteúdo da PÁGINA (não abrem
           // painel nenhum), então acendem quando são a aba da vez — e tocar numa
