@@ -1,3 +1,26 @@
+## 21/09/2026 — 🛡️ Linhazinha na Sala de Troféus (3 opções mandadas, ESPERANDO ele)
+
+Pedido dele: *"na área do online, um dos troféus, coloque uma linhazinha assim
+também: quer ter escudo e mascote pulando na tela? clique aqui… ou algo assim: tá
+vendo todos esses times com escudo e mascote? todos eles são usuários reais… é pra
+pessoa não achar que é um bot… mas tudo pequeno ali pra não ficar muita informação.
+Me dá ideias aí"*.
+
+**O problema que ele viu**: quem chega novo olha os escudos e mascotes no ranking da
+sala e não sabe que tem GENTE DE VERDADE atrás deles — acha que é bot.
+
+**O lugar**: `ligahub.tsx`, logo abaixo da linha de pontuação ("🏆 Título +5 · 🎟️
+Top 8 +1 · 🔻 Rebaixamento −1…"), no MESMO tamanho miúdo. O clique abre a tela de
+apoio, que é onde mora o batismo (o que dá escudo e mascote).
+
+**As 3 opções** (`node scripts/mockup-trofeus-convite.mjs`):
+- **A** 🛡️ *Esses escudos e mascotes são de gente de verdade, não de bot.* → Quer o seu aqui?
+- **B** 🐊 *Todo mascote que pula na tela tem dono.* → Quer ver o seu?
+- **C** 🛡️ *Cada escudo aí em cima é de um jogador de verdade.* → Tenha o seu também →
+
+Recomendei a **A** (ataca direto o "não é bot" e cabe numa linha).
+🚫 **Nada codado** — é UI nova, espera o OK dele (regra 2).
+
 ## 21/09/2026 — 📬 O contato sutil voltou pras salas online
 
 Diego: *"esse mesmo texto sutil falando do Instagram e etc também deve aparecer em
