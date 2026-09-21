@@ -20,8 +20,14 @@ dele: *"nada pode atrasar o ritmo do jogo"*.
 ("você já está dentro") em vez de castigo.
 
 ### Mockup
-`node scripts/mockup-champions.mjs /tmp/champions.png` — duas telas (a tabela de 36 com
-a janela + linhas de corte coloridas; e a tela da espera) + as 4 notas de decisão.
+`node scripts/mockup-champions.mjs /tmp/champions.png` — duas telas (a tabela de 36
+INTEIRA; e a tela da espera) + as 4 notas de decisão.
+⚠️ **A 1ª versão saiu com JANELA** (só o topo + a vizinhança dele) e ele cortou na hora:
+*"pq n cabe a tabela toda? queria ela toda poow"*. E ele tinha razão — a tabela da liga
+já mostra 20 e ninguém reclama de rolar. **Régua: tabela é INTEIRA.** O que segura a
+leitura não é esconder linha, são as **faixas de corte** grudadas no topo enquanto rola
+(verde 1-8 · amarelo 9-24 · cinza 25-36), o **🔨** marcando quem veio da liga do usuário
+e a borda preta no clube dele.
 Mora no repo de propósito: mockup fora do repo se perde com o scratchpad.
 
 ### ⏳ ESPERANDO A PALAVRA DELE

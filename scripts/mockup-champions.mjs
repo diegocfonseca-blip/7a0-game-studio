@@ -11,7 +11,7 @@
 // 25º-36º caem fora. Ou seja: quem termina no TOP 8 fica parado uma fase inteira
 // esperando saber quem sobe. Isso bate de frente com a regra de ouro dele
 // (*"nada pode atrasar o ritmo do jogo"*), então o mockup mostra as DUAS telas:
-//   ① a tabela de 36 (a janela em volta da SUA posição, com as linhas de corte)
+//   ① a tabela de 36 INTEIRA, com as linhas de corte coloridas
 //   ② a tela da espera — e as três saídas possíveis pra ela
 //
 // A Oswald vem de `scripts/fonts/` (fora do bundle do jogo — só roda aqui).
@@ -33,46 +33,47 @@ const CREME = '#F4ECD6', INK = '#0C0C0C', GOLD = '#FFC400', VERDE = '#1B7A3D', V
 const ESTRELA = '#1B3FA0' // ⭐ a cor da Champions na família (🟢 Copa · 🔵 Supercopa · 🟣 Copa dos 8 · 🌑 Liberta)
 
 // ── a tabela: 8 do usuário/liga + 28 europeus de paródia ────────────────────
-// (os nomes são rascunho — o Diego aprova a zoeira antes de virar código)
+// 36 = os 8 da SUA liga (🔨) + 28 europeus de paródia. Os nomes são rascunho —
+// o Diego aprova a zoeira antes de virar código.
 const TABELA = [
-  ['Baião de Munique', 21, '⭐'], ['Real Madrix', 19, '⭐'], ['Manchester Unaited', 18, '⭐'],
-  ['Livrapul', 17, '⭐'], ['Pariz São Germano', 16, '⭐'], ['Interlagos de Milão', 15, '⭐'],
-  ['Arsenau', 14, '⭐'], ['Borussia Dortmundo', 14, '⭐'],
-  ['Ajax de Limpeza 🧽', 13, '🟡'], ['Atlético da Madri', 13, '🟡'], ['Juve Tudo Nosso', 12, '🟡'],
-  ['NEYMARZETTI 👑', 11, '🟡🫵'], ['Xelsi', 11, '🟡'], ['Benfeita', 10, '🟡'],
-  ['Napolitano', 10, '🟡'], ['Porto Seguro', 9, '🟡'],
-  ['Milão de Queijo', 9, '🟡'], ['Bayer Leve o Cuzco', 8, '🟡'],
-  ['Sportingo', 8, '🟡'], ['Roma Tomate', 7, '🟡'], ['Feyenordeste', 7, '🟡'],
-  ['Cluba Bruges', 6, '🟡'], ['Galata Saraiva', 6, '🟡'], ['Céltico', 5, '🟡'],
-  ['Xaktar', 4, '⚪'], ['Olimpiacos', 4, '⚪'], ['Estrela Vermelhinha', 3, '⚪'],
-  ['Slávia da Praga', 2, '⚪'], ['Jovem Menino de Berna', 1, '⚪'], ['Esparta', 0, '⚪'],
+  ['Baião de Munique', 21], ['Real Madrix', 19], ['Manchester Unaited', 18],
+  ['Livrapul', 17], ['Pariz São Germano', 16], ['Interlagos de Milão', 15],
+  ['Arsenau', 14], ['Borussia Dortmundo', 14],
+  ['Ajax de Limpeza 🧽', 13], ['Atlético da Madri', 13], ['Juve Tudo Nosso', 12],
+  ['NEYMARZETTI', 11, 'liga', 'eu'], ['Xelsi', 11], ['Benfeita', 10],
+  ['Napolitano', 10], ['Porto Seguro', 9], ['Milão de Queijo', 9],
+  ['Bayer Leve o Cuzco', 8], ['Cajuri Raiva', 8, 'liga'], ['Sportingo', 7],
+  ['Roma Tomate', 7], ['Rei da Bola FC', 7, 'liga'], ['Feyenordeste', 6],
+  ['Cluba Bruges', 6], ['Stocco FC', 5, 'liga'], ['Galata Saraiva', 5],
+  ['Céltico', 5], ['Futpoint FC', 4, 'liga'], ['Xaktar', 4],
+  ['Olimpiacos', 4], ['Pantera Negra FC', 3, 'liga'], ['Estrela Vermelhinha', 3],
+  ['Slávia da Praga', 2], ['Al Takhadao FC', 2, 'liga'], ['Jovem Menino de Berna', 1],
+  ['Marreco FC', 0, 'liga'],
 ]
-const EU = 11 // a posição do usuário (12º) — de propósito FORA do top 8, que é onde a tensão mora
 
 function linha(i) {
-  const [nome, pts, tag] = TABELA[i]
+  const [nome, pts, origem, eu] = TABELA[i]
   const pos = i + 1
-  const eu = tag.includes('🫵')
   const zona = pos <= 8 ? VERDE : pos <= 24 ? GOLD : '#9A9384'
   const fundo = eu ? '#FFF6D6' : pos <= 8 ? '#EAF6EE' : pos <= 24 ? '#FFFBEA' : '#F2EFE6'
   return `<div class="row" style="background:${fundo};${eu ? `outline:3px solid ${INK};outline-offset:-3px` : ''}">
     <span class="pos" style="background:${zona};color:#fff">${pos}</span>
-    <span class="nome" style="${eu ? 'font-weight:700' : ''}">${nome.replace(' 🫵', '')}</span>
+    <span class="nome" style="${eu ? 'font-weight:700' : ''}">${nome}${origem === 'liga' ? '<b class="daliga">🔨</b>' : ''}</span>
     <span class="pts">${pts}</span>
   </div>`
 }
 
-// a janela: o topo (pra ver o corte do 8º) + a vizinhança de quem joga
-const janela = [
-  '<div class="faixa" style="background:' + VERDE + '">🟢 1º ao 8º · VÃO DIRETO PRAS OITAVAS</div>',
-  ...[0, 1, 2, 3, 4, 5, 6, 7].map(linha),
-  '<div class="faixa" style="background:' + GOLD + ';color:' + INK + '">🟡 9º ao 24º · JOGAM O REPESCÃO (ida e volta)</div>',
-  ...[8, 9, 10, 11, 12, 13].map(linha),
-  '<div class="corte">⋯ mais 10 clubes ⋯</div>',
-  ...[23].map(linha),
-  '<div class="faixa" style="background:#9A9384">⚪ 25º ao 36º · ESTÃO FORA</div>',
-  ...[24, 25].map(linha),
-  '<div class="corte">⋯</div>',
+// 🔨 A TABELA INTEIRA, os 36 (Diego 21/09: *"pq n cabe a tabela toda? queria ela
+// toda poow"*). E ele está certo: a tabela da liga já mostra 20 e ninguém reclama
+// de rolar. O que não pode é paredão SEM leitura — por isso as três faixas de
+// corte ficam FIXAS no meio da lista, dizendo o que cada zona significa.
+const tudo = [
+  `<div class="faixa" style="background:${VERDE}">🟢 1º ao 8º · VÃO DIRETO PRAS OITAVAS</div>`,
+  ...Array.from({ length: 8 }, (_, i) => linha(i)),
+  `<div class="faixa" style="background:${GOLD};color:${INK}">🟡 9º ao 24º · JOGAM O REPESCÃO (ida e volta)</div>`,
+  ...Array.from({ length: 16 }, (_, i) => linha(i + 8)),
+  `<div class="faixa" style="background:#9A9384">⚪ 25º ao 36º · ESTÃO FORA</div>`,
+  ...Array.from({ length: 12 }, (_, i) => linha(i + 24)),
 ].join('')
 
 const telaTabela = `
@@ -82,8 +83,8 @@ const telaTabela = `
     <div class="topR">RODADA 8 DE 8 · última</div>
   </div>
   <div class="sub">36 clubes, uma tabela só. Cada um joga <b>8 adversários diferentes</b>.</div>
-  ${janela}
-  <div class="vertudo">📋 ver a tabela inteira (36)</div>
+  ${tudo}
+  <div class="rodape">🔨 = veio da SUA liga (os 8 primeiros) · os outros 28 são do continente</div>
 </div>`
 
 // ── ② a tela da espera (a parte que o Diego cobrou) ─────────────────────────
@@ -120,9 +121,9 @@ const notas = [
   nota('🤔 A PERGUNTA HONESTA', `Vale a pena? O formato real é mais interessante (dá pra estar em 10º e brigar pra pular
     o repescão), mas ele <b>alonga</b> a competição: 8 rodadas + repescão + oitavas + quartas + semi + final.
     A Liberta tem 6 rodadas e já emenda nas oitavas.`, INK),
-  nota('🎨 A TABELA DE 36 NO CELULAR', `Não cabe inteira, e paredão de tabela você já barrou antes. Então ela abre numa
-    <b>janela</b>: o topo (pra ver o corte do 8º), a sua vizinhança, e as linhas de corte coloridas.
-    Quem quiser o resto, toca em "ver a tabela inteira".`, ESTRELA),
+  nota('🎨 A TABELA INTEIRA, COMO VOCÊ PEDIU', `Os <b>36 na tela</b>, rolando — igual à tabela da liga, que já mostra 20.
+    O que segura a leitura são as <b>três faixas de corte</b> no meio da lista (elas ficam grudadas no topo enquanto você
+    rola) e o <b>🔨</b> marcando quem veio da sua liga. Seu clube fica com a borda preta, pra achar de primeira.`, ESTRELA),
 ]
 
 const css = `${FONTS}
@@ -138,13 +139,13 @@ h1 span{display:block;font-size:11px;font-weight:500;text-transform:none;opacity
 .topL{font-size:13px;font-weight:700;letter-spacing:.4px}
 .topR{font-size:9.5px;font-weight:600;opacity:.85;text-transform:uppercase}
 .sub{font-size:10.5px;font-weight:500;padding:8px 11px;color:#4a4638;line-height:1.45;border-bottom:2px solid rgba(0,0,0,.1)}
-.faixa{font-size:9.5px;font-weight:700;color:#fff;padding:5px 11px;text-transform:uppercase;letter-spacing:.3px}
-.row{display:flex;align-items:center;gap:8px;padding:5px 11px;border-bottom:1px solid rgba(0,0,0,.07)}
+.faixa{font-size:9px;font-weight:700;color:#fff;padding:4px 10px;text-transform:uppercase;letter-spacing:.3px}
+.row{display:flex;align-items:center;gap:7px;padding:3px 10px;border-bottom:1px solid rgba(0,0,0,.06)}
 .pos{flex:0 0 20px;text-align:center;font-size:10px;font-weight:700;border-radius:5px;padding:1px 0}
-.nome{flex:1;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pts{font-size:12px;font-weight:700;flex:0 0 22px;text-align:right}
+.nome{flex:1;font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pts{font-size:11.5px;font-weight:700;flex:0 0 22px;text-align:right}
 .corte{text-align:center;font-size:9.5px;font-weight:600;color:#8c866f;padding:3px 0;background:#EDE7D6}
-.vertudo{text-align:center;font-size:10.5px;font-weight:700;padding:9px;background:#fff;border-top:3px solid ${INK};text-decoration:underline}
+.rodape{text-align:center;font-size:9px;font-weight:600;padding:7px 9px;background:#fff;border-top:3px solid ${INK};color:#5a5546;line-height:1.4}\n.daliga{font-size:9px;margin-left:4px;opacity:.75}
 .selo{background:${VERDE};color:#fff;font-size:11.5px;font-weight:600;padding:8px 11px;text-align:center}
 .espera{padding:12px 11px;background:#fff;border-bottom:2px solid rgba(0,0,0,.1)}
 .esperaT{font-size:11.5px;font-weight:500;line-height:1.5;color:#3d3a30}
@@ -161,7 +162,7 @@ h1 span{display:block;font-size:11px;font-weight:500;text-transform:none;opacity
 `
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body><div class="wrap">
-<div class="col"><h1>① A tabela de 36<span>sem grupo — uma tabela só, 8 jogos cada</span></h1>${telaTabela}</div>
+<div class="col"><h1>① A tabela de 36 INTEIRA<span>sem grupo, sem janela — os 36 na tela, rolando</span></h1>${telaTabela}</div>
 <div class="col"><h1>② A espera do top 8<span>o ponto que você levantou</span></h1>${telaEspera}</div>
 <div class="col larga"><h1>O que pensar antes<span>formato real × ritmo do jogo</span></h1>${notas.join('')}</div>
 </div></body></html>`
