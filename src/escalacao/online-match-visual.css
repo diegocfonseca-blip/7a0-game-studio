@@ -156,3 +156,165 @@
 @media(min-width:768px){.ll25-career-hero{min-height:160px}.ll30-big .ll25-duel{grid-template-columns:1fr 140px 1fr}}
 /* a frase do gol tem 2 linhas agora: a barra fica POR CIMA da cena dourada, senão a 2ª linha some */
 .ll30-big .ll25-narration{position:relative;z-index:6}
+
+/* ─── 🎬 ll31: SALA COMO TRANSMISSÃO ───
+   Laboratório visual da conta principal do Diego. A classe nasce em
+   `useOnlineCinemaPreview`, presa ao e-mail exato; regras e estado da partida
+   continuam nos componentes originais. Remover este bloco desfaz toda a pele. */
+.ll31-cinema.ll25-shell{
+  background-color:#07130d!important;
+  background-image:
+    radial-gradient(circle at 50% 9%,rgba(255,196,0,.17),transparent 27%),
+    linear-gradient(180deg,rgba(2,9,6,.08) 0,rgba(2,9,6,.48) 42%,rgba(2,9,6,.82) 100%),
+    url('./img/online-estadio-v25.webp');
+  background-size:auto 100%,cover,cover;
+  background-position:center top;
+  background-attachment:fixed;
+}
+.ll31-cinema>div.sticky{
+  background:linear-gradient(90deg,rgba(5,15,10,.97),rgba(17,31,22,.97),rgba(5,15,10,.97))!important;
+  color:#f4ecd6!important;
+  border-bottom-color:#ffc400!important;
+  box-shadow:0 4px 18px #0008;
+  backdrop-filter:blur(10px);
+}
+.ll31-cinema>div.sticky span{color:inherit}
+.ll31-cinema>.ll-desk{padding-top:14px}
+
+/* O placar vira a peça principal: escudos maiores, leitura limpa e profundidade
+   de estádio. O verde continua sendo jogo ao vivo; o ouro, acontecimento. */
+.ll31-cinema .ll26-score{
+  border-width:4px;
+  border-radius:20px;
+  box-shadow:0 9px 24px #0008,5px 6px 0 #0c0c0c;
+  background:
+    radial-gradient(ellipse at 50% 4%,rgba(255,196,0,.28),transparent 48%),
+    linear-gradient(120deg,rgba(4,23,15,.78),rgba(3,13,10,.92)),
+    url('./img/online-estadio-v25.webp') center 42%/cover;
+}
+.ll31-cinema .ll25-narration{
+  min-height:52px;
+  height:auto;
+  padding:10px 13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  white-space:normal;
+  font-size:16px;
+  line-height:1.25;
+  letter-spacing:.025em;
+  position:relative;
+  z-index:6;
+}
+.ll31-cinema .ll25-duel{grid-template-columns:minmax(0,1fr) 104px minmax(0,1fr);padding:20px 9px 16px;gap:9px}
+.ll31-cinema .ll25-crest-slot{height:104px;margin-bottom:8px}
+.ll31-cinema .ll25-crest-slot :is(img,svg){height:98px!important;width:auto!important;max-width:100%}
+.ll31-cinema .ll25-team strong{font-size:18px;line-height:1.15;min-height:42px}
+.ll31-cinema .ll25-team small{font-size:11px;letter-spacing:.06em}
+.ll31-cinema .ll25-numbers{padding:10px 2px 13px;border-radius:14px;box-shadow:4px 5px 0 #0c0c0c}
+.ll31-cinema .ll25-numbers small{font-size:15px}.ll31-cinema .ll25-numbers strong{font-size:46px;line-height:1.25}.ll31-cinema .ll25-numbers span{font-size:23px}
+.ll31-cinema .ll25-scorers{min-height:72px;max-height:130px;padding:12px 14px;font-size:13px;line-height:1.35;background:linear-gradient(90deg,#07110dcc,#10261acc,#07110dcc)}
+.ll31-cinema .ll26-goal-scene{inset:52px 0 0;background:radial-gradient(circle at 50% 50%,#274e2ae8 0,#0b1b12f2 65%);gap:16px}
+.ll31-cinema .ll26-goal-scene>strong{font-size:clamp(50px,12vw,82px);text-shadow:5px 5px 0 #0c0c0c,0 0 22px #ffc40066}
+.ll31-cinema .ll26-goal-mascot,.ll31-cinema .ll26-goal-mascot :is(img,svg){height:190px!important}
+.ll31-cinema .ll26-goal-rays{background:repeating-conic-gradient(from 0deg,#ffc40028 0deg 11deg,transparent 11deg 27deg)}
+
+/* Ritmo agrupado como controle de transmissão, sem confundir com as abas. O
+   selecionado permanece VERDE, decisão visual já aprovada no jogo. */
+.ll31-cinema .ll25-rhythm{
+  position:relative;
+  grid-template-columns:1fr 1fr 1.35fr;
+  gap:7px;
+  margin:0 0 16px;
+  padding:31px 10px 10px;
+  border:3px solid #0c0c0c;
+  border-radius:15px;
+  background:linear-gradient(145deg,#fff9e8,#eadfbe);
+  box-shadow:4px 5px 0 #0c0c0c,0 8px 18px #0004;
+}
+.ll31-cinema .ll25-rhythm::before{content:'RITMO DA PARTIDA';position:absolute;top:8px;left:11px;font:900 11px Oswald,sans-serif;letter-spacing:.09em;color:#0c0c0c99}
+.ll31-cinema .ll25-rhythm :is(label,select){height:38px}
+.ll31-cinema .ll25-rhythm .ll25-button{min-height:38px;font-size:12px;border-width:2.5px;box-shadow:2px 2px 0 #0c0c0c}
+.ll31-cinema .ll25-rhythm .ll25-button[aria-pressed=true]{background:#1b7a3d;color:#fff;box-shadow:inset 0 0 0 1px #ffffff35,2px 2px 0 #0c0c0c}
+
+/* Decisão da próxima rodada: confronto mais legível e consequência de cada
+   tática sempre visível, sem abrir modal nem criar toque extra. */
+.ll31-cinema .ll31-next-match{
+  background:linear-gradient(145deg,#fff9e8,#efe4c7)!important;
+  border-width:3px!important;
+  border-radius:17px!important;
+  box-shadow:4px 5px 0 #0c0c0c,0 10px 24px #0005!important;
+  position:relative;
+  overflow:hidden;
+}
+.ll31-cinema .ll31-next-match::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 92% 0,#ffc4002b,transparent 30%)}
+.ll31-cinema .ll31-next-match .ll-linha-tatica{position:relative;z-index:1}
+.ll31-cinema .ll31-next-match .ll-linha-tatica>p:nth-child(2){font-size:18px!important;margin-top:2px}
+.ll31-cinema .ll31-tactic{position:relative;z-index:1;min-height:54px;padding:7px 4px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.05;transition:transform .15s ease,box-shadow .15s ease}
+.ll31-cinema .ll31-tactic span{font:900 12px Oswald,sans-serif;text-transform:uppercase}
+.ll31-cinema .ll31-tactic small{display:block;font:800 9px/1.15 Arial,sans-serif;opacity:.62;white-space:nowrap}
+.ll31-cinema .ll31-tactic[style*="255, 196, 0"],.ll31-cinema .ll31-tactic[style*="#FFC400"]{transform:translateY(-2px)}
+
+/* Giro = manchete; tabela = informação. Mesma família creme, hierarquias
+   diferentes, e o time do Diego ganha uma marca lateral que não depende da cor. */
+.ll31-cinema .ll31-news{
+  background:linear-gradient(145deg,#fff9e8,#f0e5c8)!important;
+  border-width:3px!important;
+  border-radius:17px!important;
+  box-shadow:4px 5px 0 #0c0c0c,0 9px 22px #0004!important;
+  padding:14px 15px!important;
+  overflow:hidden;
+  position:relative;
+}
+.ll31-cinema .ll31-news::before{content:'';position:absolute;left:0;top:0;bottom:0;width:7px;background:#ffc400;border-right:2px solid #0c0c0c}
+.ll31-cinema .ll31-news>p:first-of-type{font-size:14px!important;letter-spacing:.07em;margin-left:4px}
+.ll31-cinema .ll31-news>p:nth-of-type(2){font-size:14px!important;line-height:1.4;min-height:2.8em!important;margin-left:4px}
+.ll31-cinema .ll31-table{
+  background:linear-gradient(145deg,#fff9e8,#ece1c4)!important;
+  border-width:3px!important;
+  border-radius:17px!important;
+  box-shadow:4px 5px 0 #0c0c0c,0 10px 25px #0005!important;
+  padding:14px!important;
+}
+.ll31-cinema .ll31-table>div:first-child>p{font-size:17px!important;letter-spacing:.025em}
+.ll31-cinema .ll31-table table{border-collapse:separate;border-spacing:0 2px;font-variant-numeric:tabular-nums}
+.ll31-cinema .ll31-table th{padding-top:4px;padding-bottom:5px;font:900 11px Oswald,sans-serif;background:#f4ecd6}
+.ll31-cinema .ll31-table td{padding-top:4px;padding-bottom:4px}
+.ll31-cinema .ll31-table tr{border-top:0!important}
+.ll31-cinema .ll31-table .ll31-my-team{outline:2px solid #0c0c0c;outline-offset:-1px;box-shadow:inset 6px 0 #ffc400}
+
+/* Rodada inteira abaixo da classificação: visual de central de resultados. */
+.ll31-cinema .ll26-round-list{background:linear-gradient(145deg,#fff9e8,#ece1c4);border-radius:17px;box-shadow:4px 5px 0 #0c0c0c,0 10px 24px #0005}
+.ll31-cinema .ll26-round-list>h3{font-size:18px;letter-spacing:.025em}
+.ll31-cinema .ll26-round-list>p{font-size:12px;line-height:1.4;margin-bottom:8px}
+.ll31-cinema .ll26-fixture{box-shadow:2px 3px 0 #0c0c0c,0 4px 10px #0002}
+
+/* A barra é portal (fora do Shell), portanto recebe a própria classe gated. */
+.ll31-bottom-nav{
+  background:rgba(248,241,220,.985)!important;
+  border-top:3px solid #0c0c0c!important;
+  box-shadow:0 -8px 24px #0005!important;
+  gap:5px!important;
+  padding:7px 8px calc(8px + env(safe-area-inset-bottom))!important;
+}
+.ll31-bottom-nav button{min-height:49px!important;border:2px solid transparent!important;border-radius:11px!important;padding:4px 2px 2px!important;transition:transform .15s ease,background .15s ease}
+.ll31-bottom-nav button[aria-pressed=true]{background:#ffc400!important;border-color:#0c0c0c!important;box-shadow:2px 2px 0 #0c0c0c;transform:translateY(-2px);color:#0c0c0c!important}
+.ll31-bottom-nav button[aria-pressed=true] svg *{stroke:#0c0c0c!important}
+.ll31-bottom-nav button[aria-pressed=true] span{color:#0c0c0c!important}
+
+@media(max-width:1099.98px){
+  /* Ordem editorial no celular: partida → decisão → giro → tabela →
+     todos os jogos. Só esta prévia sobrescreve a fila antiga. */
+  .ll31-cinema .ll-desk>.ll-lado>.ll-col-side:first-child{order:1;margin-top:0}
+  .ll31-cinema .ll-desk>.ll-lado>.ll-depois-da-tabela{order:2}
+  .ll31-cinema .ll-desk>.ll-col-main{order:3}
+  .ll31-cinema .ll-desk>.ll27-room-summary{order:4}
+  .ll31-cinema .ll-desk>.ll-rabicho{order:5}
+  .ll31-cinema>.ll-desk{padding-left:12px;padding-right:12px;gap:18px}
+}
+@media(min-width:768px){
+  .ll31-cinema .ll25-duel{grid-template-columns:1fr 148px 1fr;padding:26px 24px 20px}
+  .ll31-cinema .ll25-crest-slot{height:124px}.ll31-cinema .ll25-crest-slot :is(img,svg){height:118px!important}
+  .ll31-cinema .ll25-numbers strong{font-size:56px}
+}
+@media(prefers-reduced-motion:reduce){.ll31-cinema .ll31-tactic,.ll31-bottom-nav button{transition:none}}

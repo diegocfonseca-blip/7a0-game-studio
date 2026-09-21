@@ -32,7 +32,7 @@ import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estant
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
-import { useOnlinePreview } from './online-preview'
+import { useOnlineCinemaPreview, useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
@@ -5648,6 +5648,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   const previewAccount = useOnlinePreview()
+  const cinemaPreview = useOnlineCinemaPreview()
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
   const leagueStartedAt = useRoundPresentationStart(state.round)
@@ -5971,7 +5972,7 @@ export function EscSeason() {
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
-    <Shell wide bar={
+    <Shell wide className={cinemaPreview ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
           {state.careerDivision && <span className="mr-1.5 px-1.5 py-0.5 rounded bg-purple-700 text-white text-[11px]">🪜 {DIVISION_LABEL[state.careerDivision].toUpperCase()}</span>}
@@ -6352,7 +6353,7 @@ export function EscSeason() {
       )}
 
       {fixture && opp && (
-        <Box bg={isClassico ? GOLD : '#fff'} className="p-4 space-y-3">
+        <Box bg={isClassico ? GOLD : '#fff'} className={`p-4 space-y-3${cinemaPreview ? ' ll31-next-match' : ''}`}>
           {/* ⚔️ A LINHA DO PRÓXIMO JOGO + OS TRÊS BOTÕES DE TÁTICA, SEMPRE À MOSTRA.
               De manhã (18/09) eles viraram uma PÍLULA que abria no toque, a pedido
               dele (*"tem que diminuir esse modal aí de equilíbrio, ataque, defesa nos
@@ -6387,9 +6388,10 @@ export function EscSeason() {
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(TACTIC_LABEL) as Tactic[]).map(t => (
               <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: you.id, tactic: t })}
-                className="border-[3px] border-black rounded-xl py-2 text-xs font-black"
+                className={`border-[3px] border-black rounded-xl py-2 text-xs font-black${cinemaPreview ? ' ll31-tactic' : ''}`}
                 style={{ backgroundColor: myTactic === t ? GOLD : '#fff', boxShadow: myTactic === t ? `3px 3px 0 0 ${INK}` : 'none' }}>
-                {tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}
+                <span>{tacticLabel(t, state.sport === 'basquete', getLang() === 'en' ? 'en' : 'pt')}</span>
+                {cinemaPreview && <small>{t === 'retranca' ? LS('Defesa + · Ataque −', 'Defence + · Attack −') : t === 'ataque' ? LS('Ataque + · Defesa −', 'Attack + · Defence −') : LS('Sem alteração', 'No change')}</small>}
               </button>
             ))}
           </div>
@@ -6441,7 +6443,7 @@ export function EscSeason() {
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
         if (shownNews.length === 0) return null
-        return <GiroDaRodada news={shownNews} isCopa={copaLive} />
+        return <GiroDaRodada news={shownNews} isCopa={copaLive} cinema={cinemaPreview} />
       })()}
 
       </div>
@@ -6466,7 +6468,7 @@ export function EscSeason() {
         </div></section>}
         {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
         {privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>{LS('LIGA ENCERRADA · VER CLASSIFICAÇÃO', 'LEAGUE OVER · SEE STANDINGS')}</summary><TableBox highlight={you.id} title={LS('LIGA LEGENDS · CLASSIFICAÇÃO FINAL', 'LIGA LEGENDS · FINAL STANDINGS')} /></details> :
-        <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" />
+      <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" cinema={cinemaPreview} />
         }
       </div>
       <div hidden={privateVisual && visualTab !== 'estatisticas'} className="space-y-5">
@@ -6508,7 +6510,7 @@ export function EscSeason() {
           meio da tela. No desktop continua atravessando as duas colunas, igual. */}
       <div className="ll-rabicho">
       {online && state.roomId && !state.careerOnline && (
-        <LigaHub roomId={state.roomId} souDono={state.isHost}
+        <LigaHub roomId={state.roomId} souDono={state.isHost} cinema={cinemaPreview}
           humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
           abasJogo={privateVisual && !copaLive ? { valor: visualTab, escolher: setVisualTab } : undefined} />
       )}
@@ -6758,7 +6760,7 @@ function traduzManchete(h: string): string {
   if ((r = t.match(/^🏆 (.+) avançou na (Copa|Libertadores) — adeus, (.+)!$/))) return `${pre}🏆 ${r[1]} advanced in the ${r[2] === 'Copa' ? 'Cup' : 'Libertadores'} — bye, ${r[3]}!`
   return h
 }
-function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
+function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[]; isCopa?: boolean; cinema?: boolean }) {
   const list = news.slice(0, 5).map(traduzManchete)
   const key = list.join('|')
   const [idx, setIdx] = useState(0)
@@ -6771,7 +6773,7 @@ function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
   }, [key, list.length])
   if (list.length === 0) return null
   return (
-    <Box bg="#FFF6DC" className="p-3">
+    <Box bg="#FFF6DC" className={`p-3${cinema ? ' ll31-news' : ''}`}>
       <style>{'@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}'}</style>
       <p className="font-black text-xs uppercase tracking-wide mb-2" style={OSWALD}>{getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')}</p>
       <p key={idx} className="text-xs font-bold" style={{ minHeight: '2.4em', animation: 'giroFade .35s ease' }}>{list[idx]}</p>
@@ -6784,7 +6786,7 @@ function GiroDaRodada({ news, isCopa }: { news: string[]; isCopa?: boolean }) {
   )
 }
 
-function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE' : 'TABELA' }: { highlight: number; holdResults?: boolean; title?: string }) {
+function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE' : 'TABELA', cinema = false }: { highlight: number; holdResults?: boolean; title?: string; cinema?: boolean }) {
   const { state } = useEsc()
   const [blLang] = useLang()
   const bb = state.sport === 'basquete' // 🏀 basquete: saldo de CESTAS (SC) no lugar de SG
@@ -6834,7 +6836,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
         : isRival ? '#FFE0D6' : fundoZona
     const rowInk = youPerk ? TIER_INK[youPerk.tier] : rivPerk ? TIER_INK[rivPerk.tier] : undefined
     return (
-      <tr key={t.id} className="border-t border-black/10 font-semibold"
+      <tr key={t.id} className={`border-t border-black/10 font-semibold${isYou ? ' ll31-my-team' : ''}`}
         style={{ background: rowBg, color: rowInk, fontWeight: isMgr ? 800 : 500 }}>
         <td className="pr-1">
           <span className="flex items-center gap-1">
@@ -6892,7 +6894,7 @@ function TableBox({ highlight, holdResults, title = getLang() === 'en' ? 'TABLE'
     </div>
   )
   return (
-    <Box className="p-3 overflow-x-auto">
+    <Box className={`p-3 overflow-x-auto${cinema ? ' ll31-table' : ''}`}>
       <div className="flex items-center justify-between mb-2">
         <p className="font-black text-sm" style={OSWALD}>{title}</p>
         <div className="flex items-center gap-2 text-[9px] font-bold text-black/60">

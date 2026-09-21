@@ -43,3 +43,44 @@ function subscribe(listener: () => void) {
 export function useOnlinePreview() {
   return useSyncExternalStore(subscribe, () => enabled, () => false)
 }
+
+// 🎬 PRÉVIA VISUAL DA TRANSMISSÃO (21/09): laboratório fechado SOMENTE na conta
+// principal do Diego. É uma camada de CSS/apresentação — não muda regra, placar,
+// resultado nem o estado compartilhado da sala. A segunda conta de testes segue
+// vendo o visual online já aprovado, mas não recebe esta rodada nova antes da hora.
+const CINEMA_EMAIL = 'diego.c.fonseca@gmail.com'
+let cinemaEnabled = false
+let cinemaStarted = false
+let cinemaRevision = 0
+const cinemaListeners = new Set<() => void>()
+function publishCinema(value: boolean) {
+  if (cinemaEnabled === value) return
+  cinemaEnabled = value
+  cinemaListeners.forEach(listener => listener())
+}
+async function verifyCinema() {
+  const version = ++cinemaRevision
+  try {
+    const { data, error } = await supabase.auth.getUser()
+    const email = (data.user?.email ?? '').trim().toLowerCase()
+    if (version === cinemaRevision) publishCinema(!error && email === CINEMA_EMAIL)
+  } catch { if (version === cinemaRevision) publishCinema(false) }
+}
+function startCinema() {
+  if (cinemaStarted) return
+  cinemaStarted = true
+  supabase.auth.onAuthStateChange(() => {
+    ++cinemaRevision
+    publishCinema(false)
+    queueMicrotask(() => { void verifyCinema() })
+  })
+  void verifyCinema()
+}
+function subscribeCinema(listener: () => void) {
+  cinemaListeners.add(listener)
+  startCinema()
+  return () => { cinemaListeners.delete(listener) }
+}
+export function useOnlineCinemaPreview() {
+  return useSyncExternalStore(subscribeCinema, () => cinemaEnabled, () => false)
+}
