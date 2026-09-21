@@ -1,3 +1,13 @@
+## 21/09/2026 — ❤️🖤 Pantera Negra FC é FLAMENGO de coração ✅ FEITO
+
+Diego, depois do batismo pronto: *"ah, time de coração do Pantera Negra FC é
+Flamengo hein"*. O batismo do ericrabelo29 tinha entrado em 20/09 **sem** time de
+coração (a linha do banco estava com `time_coracao` nulo e o post saiu sem o selo).
+Agora: `update esc_socios set time_coracao = 'Flamengo'` feito e conferido, o
+comentário do clube em `data.ts` registra o coração, e o post foi gerado de novo com
+`--coracao Flamengo` (regra: ❤️ o time de coração VAI no post sempre que a gente
+souber).
+
 ## 21/09/2026 — 🔵⚫⚪ Batismo Grêmio FBPA (danieldias11) ✅ FEITO
 
 Pedido: *"novo time de batismo danieldias11@gmail.com / Grêmio FBPA / time de coração
