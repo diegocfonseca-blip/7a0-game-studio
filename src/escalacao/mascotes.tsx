@@ -60,6 +60,7 @@ import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
 import marrecoMascoteImg from './img/marreco-mascote.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
 import panteraMascoteImg from './img/pantera-mascote.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
+import gremioMascoteImg from './img/gremio-mascote.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
 import manfreMascoteImg from './img/manfre-mascote.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 
 const INK = '#0C0C0C'
@@ -317,6 +318,13 @@ export const MASCOTES: Record<string, ReactNode> = {
   //    post — eram identidade do clube. Arte que vem do dono: perguntar o que
   //    entra, não decidir por ele.
   // 📏 400×440, 40,6 KB. mascote_key = "pantera_negra".
+  // 🔵⚫⚪ O GAÚCHO (mascote do Grêmio FBPA — danieldias11, 21/09): o gaúcho de
+  // chapéu com pena, bigode, manto rasgado com o nome do clube e o pé na bola
+  // com o mapa do RS. Arte do próprio dono.
+  // 📏 252×440, 41,7 KB. mascote_key = "gremio_gaucho".
+  gremio_gaucho: (
+    <img src={gremioMascoteImg} height={176} width={Math.round(176 * 252 / 440)} alt="O Gaúcho — Grêmio FBPA" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   pantera_negra: (
     <img src={panteraMascoteImg} height={176} width={Math.round(176 * 400 / 440)} alt="A Pantera — Pantera Negra FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1013,6 +1021,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   // 🦆👑 o Rei do Cais carimba o gol do Marreco FC (lucasigorbortoliniii, 19/09).
   // CARIMBO_GOL é busca EXATA: entram as 4 formas do nome e o nome VELHO.
   // 🐆👑 a Pantera carimba o gol do Pantera Negra FC (ericrabelo29, 20/09).
+  // 🔵⚫⚪ o Gaúcho carimba o gol do Grêmio FBPA (danieldias11, 21/09).
+  'Grêmio FBPA': 'gremio_gaucho',
+  'Gremio FBPA': 'gremio_gaucho',
+  'Grêmio FBPA FC': 'gremio_gaucho',
+  'Grêmio FBPA EC': 'gremio_gaucho',
   'Pantera Negra FC': 'pantera_negra',
   'Pantera Negra': 'pantera_negra',
   'Pantera Negra EC': 'pantera_negra',
@@ -1091,6 +1104,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   marreco_rei: 'O Rei do Cais', // 🦆👑 Marreco FC (lucasigorbortoliniii, 19/09)
   pantera_negra: 'A Pantera',  // 🐆👑 Pantera Negra FC (ericrabelo29, 20/09)
+  gremio_gaucho: 'O Gaúcho',   // 🔵⚫⚪ Grêmio FBPA (danieldias11, 21/09)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
   manfre_gralha: 'A Gralha',   // 🐦‍⬛ Manfré FC (danielmanfre5, 30/08)
 }

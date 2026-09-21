@@ -78,6 +78,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Leão da Estradinha', tipo: 'batismo', fundador: 28, manto: ['#A32A28', '#FFFFFF'] },
   { clube: 'Marreco FC', tipo: 'batismo', fundador: 29, manto: ['#04512A', '#E4CDA6'] }, // 🦆👑 verde e creme, medidos na prancha do dono (19/09)
   { clube: 'Pantera Negra FC', tipo: 'batismo', fundador: 74, manto: ['#191615', '#CB9D3E'] }, // 🐆👑 preto e dourado, medidos na prancha do dono (20/09) — o MESMO par do `manto.ts` (o `npm run batismos` reprova se discordarem)
+  { clube: 'Grêmio FBPA', tipo: 'batismo', fundador: 75, manto: ['#141C24', '#0B6397'] }, // 🔵⚫⚪ preto e azul, medidos na camisa do dono (21/09) — o MESMO par do `manto.ts`
   { clube: 'Al Takhadao FC', tipo: 'batismo', fundador: 53, manto: ['#00461C', '#EE5400'] },
   { clube: 'Jurubeba FC', tipo: 'batismo', fundador: 54, manto: ['#F6BB06', '#053F42'] },
   { clube: 'Stocco FC', tipo: 'batismo', fundador: 56, manto: ['#050306', '#6A04D7'] },
