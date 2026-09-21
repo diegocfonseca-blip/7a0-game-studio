@@ -14,6 +14,7 @@ import {
   zonaChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO,
 } from '../src/escalacao/champions'
 import { BATISMOS, chaveClube } from '../src/escalacao/batismos'
+import { readFileSync } from 'node:fs'
 
 let erros = 0
 const ok = (c: boolean, m: string) => { console.log(`  ${c ? '✅' : '❌'} ${m}`); if (!c) erros++ }
@@ -152,6 +153,30 @@ console.log('\n4) a competição inteira chega num campeão')
   }
   ok(vivos.length === 1, `sobrou UM campeão (clube ${vivos[0]})`)
   ok(fases.join('→') === '16→8→4→2', `as fases correram na ordem: ${fases.join(' → ')} → campeão`)
+}
+
+// ─── 5) O CLUBE CONVIDADO PRECISA SER ACHÁVEL PELO MOTOR ───────────────────
+// 🐛 Este bloco existe por causa de um bug REAL que foi pro ar em 20/08 com a
+// Libertadores (print do wfreitasp): os 24 clubes do continente vivem FORA de
+// `state.league`, e o motor da partida procurava o time só na liga. Resultado:
+// nome '?' e a tela de erro na primeira partida.
+//
+// A Champions tem exatamente a mesma forma (28 convidados fora da `league`), e
+// eu repeti o erro ao escrever o motor — peguei conferindo pra responder o Diego
+// sobre jogador suficiente. Então a trava passa a ser de CÓDIGO: todo lugar do
+// `store.tsx` que resolve um time pela Liberta TEM que resolver pela Champions
+// também. Se alguém criar a 4ª competição e esquecer, isto reprova.
+console.log('\n5) o motor acha o clube convidado (o bug de 20/08 não volta)')
+{
+  const store = readFileSync(new URL('../src/escalacao/store.tsx', import.meta.url), 'utf8')
+  const linhas = store.split('\n')
+  const usaLiberta = linhas.filter(l => l.includes('liberta?.times.find'))
+  ok(usaLiberta.length > 0, `achei ${usaLiberta.length} lugar(es) que resolvem time pela Liberta`)
+  const semChampions = usaLiberta.filter(l => !l.includes('champions?.times.find'))
+  ok(semChampions.length === 0,
+    semChampions.length
+      ? `❗ ${semChampions.length} lugar(es) acham o clube da Liberta mas NÃO o da Champions — é o bug de 20/08 voltando`
+      : 'todo lugar que acha clube da Liberta também acha o da Champions')
 }
 
 console.log(erros ? `\n❌ ${erros} problema(s)` : '\n✅ tudo certo — a Champions fecha, da mesa ao campeão')

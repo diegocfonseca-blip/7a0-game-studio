@@ -3168,15 +3168,18 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   // grupos apareciam. Agora é UMA função só, usada nos 6 lugares — e o `?? '?'`
   // garante que, mesmo com um id estranho, o pior caso é um nome feio na tela,
   // NUNCA mais a tela de erro.
+  // ⭐ 21/09: a Champions tem os MESMOS 28 convidados fora da `league` — se ela
+  // não entrasse nesta busca, repetiria EXATAMENTE o bug de 20/08 (nome '?' e
+  // tela de erro na 1ª partida). Um lugar só, as três competições.
   const nomeDoTime = (id: number): string =>
-    (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id))?.name ?? '?'
+    (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id) ?? state.champions?.times.find(t => t.id === id))?.name ?? '?'
   const homeTactic = tacticOf(homeId)
   const awayTactic = tacticOf(awayId)
   const form = (id: number, opp: Tactic, own: Tactic): TeamForm => {
     // 🌎 os 24 clubes da Libertadores não estão em `league` (a tabela da liga
     // continua com 20) — então procura neles também. Fora da Liberta, `liberta`
     // é null e nada muda.
-    const team = state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id)
+    const team = state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id) ?? state.champions?.times.find(t => t.id === id)
     // 🛟 REDE DE SEGURANÇA (irmã do bug do nome, 20/08): id que não está em lugar
     // nenhum não pode derrubar a tela. Joga como time mediano e o jogo segue.
     if (!team) return { atk: 70 + state.cpuAtkAdj + (rng() * 6 - 3), def: 70 + state.cpuDefAdj + (rng() * 6 - 3), inspired: null }

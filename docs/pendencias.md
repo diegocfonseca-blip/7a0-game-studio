@@ -46,6 +46,23 @@ EM BREVE (a opção aparece e não deixa escolher). Mockup antes/depois:
 jogos, sem repetir, 4×4 de mando, potes), os cortes/repescão, e uma **competição
 INTEIRA jogada** até sobrar um campeão (16→8→4→2).
 
+### 🐛 BUG PEGO NA HORA (21/09) — o clube convidado sumia do motor
+Ele perguntou *"mas tem jogador suficiente pra não ter bot com 36 times?"* e, indo
+conferir pra responder, achei que eu tinha repetido **o bug que foi pro ar em 20/08
+com a Liberta** (print do wfreitasp): `simMatch` resolve nome e força procurando em
+`state.league` e `state.liberta.times` — e eu **não tinha posto** `state.champions`.
+Os 28 convidados apareceriam com nome `'?'` e jogariam como time mediano 70/70 em
+vez da força deles. Consertado nos 2 lugares.
+🔒 **E virou trava de CÓDIGO**: o `npm run champions` agora lê o `store.tsx` e
+reprova se existir lugar que acha clube da Liberta e não acha o da Champions. Quem
+criar a 4ª competição e esquecer, o teste pega.
+
+### ✅ E a resposta pro "tem jogador suficiente?"
+**Tem — porque os 28 convidados NÃO usam carta nenhuma.** Eles não têm elenco: jogam
+por `baseAtk`/`baseDef`, exatamente como os 24 clubes do continente da Liberta.
+Quem tem elenco de verdade são só os **8 que vieram da liga**. Ou seja, **zero
+perna-de-pau entra por causa da Champions** — a regra nº 1 dele está de pé.
+
 ### ⏳ Falta (esperando ele)
 1. **Liberar pra todos** (`CHAMPIONS_GERAL = true`) + a linha em `novidades.ts` —
    🚫 não entra novidade enquanto está EM BREVE, senão anuncia o que ninguém joga.
