@@ -555,6 +555,17 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   embaixo, porque esses são de AGORA. Quem guarda o acumulado é o `condicaoCarry`
   (`g` gás · `j` jogos · `gl` gols · `as` assistências).
 
+- **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
+  biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
+  se estourar a cota, guarda a sessão SÓ NA MEMÓRIA e ela morre em todo reload — sem
+  erro no servidor, sem logout, sem refresh: o log mostra só a pessoa logando de novo
+  e de novo. **Tudo que grava no localStorage por sala/por conta precisa ter
+  LIMPEZA** — foi o chat de sala (`esc-chat-*`/`esc-lobbychat-*`, um par por sala,
+  nunca apagado) que encheu o celular dele. `src/storage-guard.ts` é o primeiro
+  import do `main.tsx` e limpa isso no boot; a faixa "sessão caiu" diagnostica e dá o
+  botão; o `#admin` mede o aparelho. Trava: `npm run storage`. Quem criar chave nova
+  por sala, registra a limpeza lá.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

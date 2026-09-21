@@ -1,3 +1,38 @@
+## 21/09/2026 — 🔑 "ENTRO NA SALA, ATUALIZO E ME DESLIGA" (Neymarzetti, sala JCQO35)
+
+Relato do Diego: *"quando eu entro numa sala e atualizo a página tá me desligando…
+quando atualizo não desliga em qualquer área do site, mas quando entro numa sala e
+atualizo tá desligando"*.
+
+### 🔍 O que os logs do Supabase mostraram
+- A conta dele fez **8 logins em 11 minutos** (03:37→03:48 UTC), sem nenhum
+  `token_refreshed` entre eles e sem `logout`.
+- O servidor **nunca recusou nem revogou** nada (zero 401/403, zero refresh falhado).
+- No reload, o celular **não fez chamada nenhuma de auth**: abriu sem sessão.
+👉 Conclusão: a sessão vivia **só na memória da página**. É o que a biblioteca de
+login faz quando o **armazenamento do navegador está CHEIO**: `supportsLocalStorage()`
+(auth-js) faz um `setItem` de teste ao criar o cliente; estourou a cota → desiste do
+localStorage pela página inteira e guarda a sessão na memória → morre no reload.
+E o jogo enchia o armazenamento com **o chat de cada sala** (`esc-chat-<id>` e
+`esc-lobbychat-<id>`, 60 mensagens cada, um par por sala, NUNCA apagados) — meses
+de salas viram centenas de chaves mortas, somadas ao save da carreira (grande) e ao
+cofre de carreiras por conta.
+
+### ✅ O que foi feito
+- **`src/storage-guard.ts`** — PRIMEIRO import do `main.tsx` (roda antes de o
+  cliente do Supabase nascer): apaga o chat de toda sala que não é a atual e mede
+  o armazenamento. Nunca toca save, arquivo, cofre, login ou preferências.
+- **Faixa "sua sessão caiu"** (`index.tsx`): faz o mesmo teste de escrita; se der
+  CHEIO, diz isso com todas as letras e dá o botão **🧹 Liberar espaço** (limpa e
+  recarrega). "detalhes ▸" mostra KB, nº de chaves e as 5 maiores — pra print.
+- **Painel do Criador** ganhou a seção **🗄️ Armazenamento deste aparelho** — o Diego
+  abre `#admin` no próprio celular e vê o teste, o total e as maiores chaves.
+- Trava: **`npm run storage`**.
+
+### ⏳ Se o Diego mandar o print e NÃO for "cheio"
+Aí a hipótese cai e o próximo suspeito é outro: aba privada/"limpar ao sair" do
+Chrome, ou as 12 abas do site brigando. O print do "detalhes ▸" decide.
+
 ## 20/09/2026 (parte 4) — 📊 O TETO DO BOT: ANÁLISE, NADA MEXIDO NO JOGO
 
 O Diego contou que usuários estão **pagando muito acima do mercado** pra nenhum bot
