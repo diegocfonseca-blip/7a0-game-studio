@@ -555,6 +555,16 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   embaixo, porque esses são de AGORA. Quem guarda o acumulado é o `condicaoCarry`
   (`g` gás · `j` jogos · `gl` gols · `as` assistências).
 
+- **🎭 O MESMO TEATRO NÃO APARECE DUAS VEZES NA TELA (21/09, 3ª vez que ele cobra).**
+  Palavras dele, sobre a faixa roxa "FULANO SOLTOU O BICHO!": *"essas frases roxas
+  subindo não precisa aparecer quando solta o mascote, porque já tem o mascote
+  passando na tela. Pra não poluir muito né"*. Antes disso foi a fichinha de 52px na
+  fila de reações (que já saiu, em 25/08) e a faixa dos cansados (18/09). **Régua:
+  quando uma animação GRANDE já conta o que aconteceu, nada de legenda, faixa ou
+  balão dizendo a mesma coisa por escrito.** Quem for criar teatro novo, escolhe UM
+  lugar. (A fila de reações continua sendo o caminho de quem NÃO consegue desenhar a
+  arte — versão velha/clube desconhecido cai no 🎭 e aí a fila é o único lugar.)
+
 - **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
   biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
   se estourar a cota, guarda a sessão SÓ NA MEMÓRIA e ela morre em todo reload — sem

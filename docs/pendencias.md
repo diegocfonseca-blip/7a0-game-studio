@@ -1,3 +1,13 @@
+## 21/09/2026 — 🎭 A faixa roxa do "SOLTOU O BICHO" saiu da tela
+
+Diego: *"essas frases roxas subindo não precisa aparecer quando solta o mascote,
+porque já tem o mascote passando na tela. Pra não poluir muito né"*. Tinha as duas
+coisas ao mesmo tempo: o bicho atravessando E uma faixa roxa escrita embaixo (uma por
+emote, empilhadas). Saiu a faixa, o `@keyframes escMascFaixa` e o `idx` do map —
+o bicho cruzando continua igual. A fila de reações já escondia a mascote quando
+consegue desenhá-la, então não sobrou duplicata em lugar nenhum.
+Regra gravada no CLAUDE.md: animação grande não ganha legenda escrita repetindo.
+
 ## 21/09/2026 — 🔑 "ENTRO NA SALA, ATUALIZO E ME DESLIGA" (Neymarzetti, sala JCQO35)
 
 Relato do Diego: *"quando eu entro numa sala e atualizo a página tá me desligando…

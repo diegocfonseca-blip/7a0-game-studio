@@ -3220,14 +3220,11 @@ function MascoteAtravessa() {
         @keyframes escMascPlana{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-24px) rotate(3deg)}}
         @keyframes escMascOndula{0%,100%{transform:translateY(0) rotate(-9deg) scaleX(1.03)}50%{transform:translateY(-12px) rotate(9deg) scaleX(.97)}}
         @keyframes escMascConf{0%{top:-8%;opacity:1}100%{top:106%;opacity:0}}
-        @keyframes escMascFaixa{0%{transform:translateY(16px) scale(.85);opacity:0}14%{transform:translateY(0) scale(1);opacity:1}84%{opacity:1}100%{opacity:0}}
       `}</style>
-      {soltos.map((e, idx) => {
+      {soltos.map(e => {
         const key = e.kind.slice(5)
         const jeito = FESTA_JEITO[key] ?? 'quica'
         const voa = jeito === 'voa'
-        const m = (e.fromId != null ? state.managers.find(x => x.id === e.fromId) : undefined) ?? state.managers[e.from]
-        const quem = m ? (m.teamName || m.name) : ''
         // semente estável no id: re-render não faz o bicho pular de altura
         const h = moneySeed(e.id)
         const chao = MASC_ALTURAS[h % MASC_ALTURAS.length]
@@ -3243,11 +3240,6 @@ function MascoteAtravessa() {
               <div style={{ animation: `${voa ? 'escMascPlana 1.4s' : jeito === 'rasteja' ? 'escMascOndula .8s' : 'escMascQuica .55s'} ease-in-out infinite` }}>{MASCOTES[key]}</div>
               {/* sombra no chão só pra quem PISA no chão — bicho voando não tem */}
               {!voa && <div style={{ width: 96, height: 13, borderRadius: 999, background: 'rgba(0,0,0,.28)', margin: '2px auto 0' }} />}
-            </div>
-            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 20 + idx * 46, textAlign: 'center', animation: 'escMascFaixa 2.2s ease-out forwards' }}>
-              <span style={{ display: 'inline-block', background: PURPLE, color: '#fff', border: `3px solid ${INK}`, borderRadius: 999, padding: '6px 16px', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>
-                🐊 {quem} {tr('soltou o bicho!', 'let the mascot loose!')}
-              </span>
             </div>
           </Fragment>
         )
