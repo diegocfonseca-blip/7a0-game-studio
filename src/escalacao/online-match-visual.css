@@ -158,9 +158,9 @@
 .ll30-big .ll25-narration{position:relative;z-index:6}
 
 /* ─── 🎬 ll31: SALA COMO TRANSMISSÃO ───
-   Laboratório visual da conta principal do Diego. A classe nasce em
-   `useOnlineCinemaPreview`, presa ao e-mail exato; regras e estado da partida
-   continuam nos componentes originais. Remover este bloco desfaz toda a pele. */
+   Visual aprovado em 21/09 e liberado no online normal de futebol. A classe
+   continua isolada do carreira online e do basquete; regras e estado da partida
+   permanecem nos componentes originais. Remover este bloco desfaz toda a pele. */
 .ll31-cinema.ll25-shell{
   background-color:#07130d!important;
   background-image:

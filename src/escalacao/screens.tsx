@@ -32,7 +32,7 @@ import { LigaHub } from './ligahub' // 🏆 a liga num lugar só: Rank · Estant
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
-import { useOnlineCinemaPreview, useOnlinePreview } from './online-preview'
+import { useOnlinePreview } from './online-preview'
 import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
@@ -5648,7 +5648,9 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
 export function EscSeason() {
   const { state, dispatch } = useEsc()
   const previewAccount = useOnlinePreview()
-  const cinemaPreview = useOnlineCinemaPreview()
+  // 🎬 VISUAL DE TRANSMISSÃO APROVADO (21/09): agora é público no online
+  // normal de futebol. Carreira online e basquete continuam com suas peles próprias.
+  const cinemaPreview = state.onlineMode === 'online' && !state.careerOnline && state.sport !== 'basquete'
   const privateVisual = (previewAccount || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [visualTab, setVisualTab] = useState<OnlineMatchTab>('jogos')
   const leagueStartedAt = useRoundPresentationStart(state.round)

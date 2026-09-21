@@ -85,18 +85,17 @@ console.log('4) 👑 COROA LOCAL: o próprio dono reassume sem abrir envelopes')
   ok(/hostId && hostId !== uid/.test(store), 'host só perde a coroa quando o banco comprova outro dono')
 }
 
-console.log('5) 🎬 PRÉVIA CINEMATOGRÁFICA: somente a conta principal do Diego')
+console.log('5) 🎬 VISUAL CINEMATOGRÁFICO: público somente no online normal de futebol')
 {
   const raiz = join(dirname(fileURLToPath(import.meta.url)), '..')
   const preview = readFileSync(join(raiz, 'src/escalacao/online-preview.ts'), 'utf8')
   const screens = readFileSync(join(raiz, 'src/escalacao/screens.tsx'), 'utf8')
   const hub = readFileSync(join(raiz, 'src/escalacao/ligahub.tsx'), 'utf8')
-  const cinema = preview.match(/const CINEMA_EMAIL[\s\S]*?export function useOnlineCinemaPreview\(\)[\s\S]*?\n\}/)?.[0] ?? ''
 
-  ok(/const CINEMA_EMAIL = 'diego\.c\.fonseca@gmail\.com'/.test(cinema), 'o e-mail liberado é exatamente diego.c.fonseca@gmail.com')
-  ok(/email === CINEMA_EMAIL/.test(cinema) && !/\.includes\(/.test(cinema), 'a trava usa igualdade exata, sem lista de outras contas')
-  ok(/className=\{cinemaPreview \? 'll31-cinema' : ''\}/.test(screens), 'a nova pele só entra quando a trava privada confirma a conta')
-  ok(/className=\{cinema \? 'll31-bottom-nav' : undefined\}/.test(hub), 'a barra inferior também respeita a mesma trava privada')
+  ok(!/CINEMA_EMAIL|useOnlineCinemaPreview/.test(preview + screens), 'a trava por e-mail foi removida: qualquer conta pode receber o visual')
+  ok(/state\.onlineMode === 'online' && !state\.careerOnline && state\.sport !== 'basquete'/.test(screens), 'a liberação fica no online normal de futebol, sem invadir carreira online ou basquete')
+  ok(/className=\{cinemaPreview \? 'll31-cinema' : ''\}/.test(screens), 'a pele cinematográfica respeita o recorte do modo')
+  ok(/className=\{cinema \? 'll31-bottom-nav' : undefined\}/.test(hub), 'a barra inferior respeita o mesmo recorte público')
 }
 
 console.log(falhas ? `\n❌ ${falhas} trava(s) quebrada(s)` : '\n✅ tudo certo')
