@@ -4015,12 +4015,17 @@ motivo: não existem no estado do jogo). O `deck` velho só é lido se ainda for
 📊 **O tamanho do estrago, medido no banco** (últimos 7 dias): **773 de 844 salas** com a
 escolha destruída (`deck` virou objeto) — 92%. As 71 intactas são salas que nunca
 abriram o pregão, ou seja, nunca chegaram no primeiro save.
-⚠️ **Sala criada ANTES deste conserto não tem como recuperar a escolha** — a informação
-foi sobrescrita. Sala nova nasce certa.
+🛟 **RECUPERAÇÃO DAS SALAS ANTIGAS (21/09):** embora o `deck` textual tenha sido
+sobrescrito, o estado da partida guarda a escolha real separadamente em `deckLeague`.
+Agora o primeiro save do host reconstrói `deckSala` por esse valor — inclusive após F5 —
+e o botão **Chamar mais gente** leva a escolha junto ao voltar pra espera. Vale para
+Minhas Ligas e Rápido, Europa e Mundo. Só uma sala tão velha/quebrada que não tenha
+nem `deckSala` nem `deckLeague` continua no padrão Brasil, porque aí não existe dado
+honesto do qual recuperar a escolha.
 
 🧪 **Trava nova: `npm run sala`** (`scripts/testa-sala-online.mjs`) — as duas contas do
 jogo copiadas (a de "restaura o pregão velho?" e a do baralho da sala), incluindo sala
-velha intacta, sala velha já estragada e dez saves seguidos.
+velha intacta, recuperação Europa/Mundo em Minhas Ligas/Rápido, F5 e dez saves seguidos.
 ⚠️ **O que a trava NÃO cobre:** a sala de verdade. Este ambiente **não alcança o
 Supabase**, então o que está travado é a REGRA, não a fiação.
 ↩️ Reverter: `git revert` do commit — são três pontos pequenos (lobby, screens, store).
