@@ -1,3 +1,52 @@
+## 21/09/2026 — 🔵⚫⚪ Batismo Grêmio FBPA (danieldias11) ✅ FEITO
+
+Pedido: *"novo time de batismo danieldias11@gmail.com / Grêmio FBPA / time de coração
+Grêmio também / segue artes, no lugar de um time da Série A. Me fale os que tem ainda
+pra eu trocar"*. Mandei a lista dos bots da Série A e ele escolheu: *"troque pelo SC
+Ferrari e botei o SC Ferrari na Série B no lugar de um bot"*.
+
+**Quem é**: o gaúcho de chapéu, manto rasgado e chimarrão. Preto + azul com filete
+branco. Fundador **nº75** · sócio **nº56** · tier ouro · coração **Grêmio**.
+
+**Arte** (dentro do teto de 75 KB): escudo 270×360 · **29,7 KB** · mascote 252×440 ·
+**41,7 KB** — **71,4 KB** no total. A prancha veio em chroma VERDE, e o recorte
+precisou de `scripts/tira-chroma-gremio.py`: neste clube **nenhum verde é do desenho**
+(é azul/preto/branco), então todo pixel esverdeado virou vão, com despill de 2 px na
+franja nova. ⚠️ Quem copiar esse script pra outro clube **confere a paleta antes** —
+em clube que tem verde de verdade, isso come o desenho.
+
+**As três pernas, as três fechadas**:
+- **Código** — `LOGOS_PRONTAS` · `MASCOTES` + `MASCOTE_NOME` + `CARIMBO_GOL` ·
+  `data.ts` · `apoio.tsx` (ouro + `FUNDADOR_75`) · `manto.ts`
+  (`#141C24`/`#0B6397`, com `MANTO_TRI.gremio_gaucho = '#EDECEB'` pro filete) ·
+  `batismos.ts` (linha + campo `manto` com as MESMAS 2 cores) · `salao-camisas.ts` +
+  `public/mantos-salao/` · e a linha em `scripts/checa-batismos.mjs`.
+- **Banco** — `user_colors` (ouro, manual) · `esc_socios` (nº56, `valido_ate`
+  2099-12-31, manto, mascote, `escudo_time`, coração) · `esc_fundadores` (n=75) ·
+  `esc_nomes_batismo` (nome puro; o gatilho criou FC e EC). Todas conferidas por
+  query depois de gravar.
+- **Deploy** — na `main`.
+
+**A troca de assento** (`data.ts`): Grêmio FBPA entra na **Série A** no lugar do
+**SC Ferrari**, e o SC Ferrari **desce pra Série B** no assento do 🤖 Comercial das
+Gerais (que some da pirâmide mas continua existindo em `CLASSIC_CLUBS`). ⚠️ **Nenhum
+`OLD_NAME` novo**: o Ferrari não foi renomeado, só mudou de divisão — e ele já tem
+corrente própria (Painitto FC). Mapear faria os dois desenharem o mesmo escudo.
+🚫 E, pela regra de 05/09, **o post não diz de quem era o assento** (sem `--antigo`):
+o Ferrari continua no jogo.
+
+🔢 **AS DIGITAIS DO `npm run ascegas` MUDARAM — e está certo.** Novas oficiais:
+`81961c21` · `40c43c96` · `f4e7a655`. Antes de trocar eu **provei** que o leilão em si
+não mudou: `scripts/prova-as-cegas.mjs` inclui `m.teamName` no resumo, então trocar o
+nome de um clube da Série A muda a digital mesmo sem nada de mecânica mudar. Rodando
+o mesmo resumo **sem o nome do time**, os dois lados (antes e depois) deram idênticos:
+`2256464b` · `aca7a932` · `83793089`. O porquê ficou escrito dentro do próprio script,
+pra próxima sessão não entrar em pânico.
+
+↩️ **Reverter**: `git revert` dos dois commits do batismo devolve tudo (o Ferrari volta
+pra Série A e o Comercial das Gerais pra Série B). O banco é à parte — sairia com
+`delete` nas 4 linhas do e-mail dele.
+
 ## 21/09/2026 — 🛡️ Linhazinha na Sala de Troféus ✅ FEITA (opção C)
 
 Pedido dele: *"na área do online, um dos troféus, coloque uma linhazinha assim

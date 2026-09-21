@@ -59,6 +59,14 @@ const r = await p.evaluate(async () => {
     // 🖐️ A IMPRESSÃO DIGITAL: tudo que o pregão decidiu, na ordem, em texto.
     // Caixa, e o elenco de cada um com nome/clube/ano/posição/preço pago.
     const linhas = s.managers.map(m => [
+      // ⚠️ O NOME DO TIME ENTRA NA DIGITAL — e isso faz a digital mudar quando um
+      // BATISMO toma o assento de outro clube na Série A, sem que o jogo tenha
+      // mudado nada. Aconteceu em 21/09 (Grêmio FBPA no assento do SC Ferrari).
+      // NÃO é motivo pra pânico, mas também não se aceita de olho fechado: o
+      // jeito de provar é rodar esta mesma prova com o nome FORA da conta, no
+      // código de antes e no de agora — se as duas baterem, o pregão fechou
+      // igualzinho e só a plaquinha mudou. Em 21/09 bateu (2256464b · aca7a932
+      // · 83793089 nos dois lados).
       m.teamName, m.money,
       m.squad.map(c => `${c.name}|${c.club}|${c.year}|${c.pos}|${c.buyPrice ?? 0}|${c.via ?? ''}`).join(','),
     ].join('§'))
