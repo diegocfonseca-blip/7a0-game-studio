@@ -148,6 +148,16 @@ export async function batizarEstadio(nome: string): Promise<{ ok: boolean; erro?
 }
 
 // hook pra telas que precisam re-renderizar quando o sócio carrega
+/** 🧪 SÓ PRA BANCADA (`npm run mascote-botao`): finge um sócio com mascote na
+ *  página que já está aberta, pra a máquina poder FOTOGRAFAR e CONFERIR o botão
+ *  "SOLTA A SUA MASCOTE". Sem isto não dá: o botão só existe pra quem tem clube
+ *  batizado, e a bancada não faz login. Nada do jogo muda por causa disto —
+ *  ninguém chama esta função em tela nenhuma. */
+export function bancadaSocio(mascoteKey: string | null) {
+  meu = mascoteKey ? { socioN: 1, ativo: true, origem: 'bancada', manto: null, estadioNome: null, mascoteKey, escudoTime: null } : null
+  listeners.forEach(fn => fn())
+}
+
 export function useMeuSocio(): MeuSocio | null {
   const [, bump] = useState(0)
   useEffect(() => {
