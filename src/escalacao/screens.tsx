@@ -2957,7 +2957,7 @@ function pendingSpend(state: EscState, you: Manager): number {
 // novo" fazia (status 'waiting' no banco + REMATCH/VOLTA_ESPERA), com uma confirmação que
 // explica o que acontece. Sala de carreira online NÃO (lá o pregão entre temporadas é
 // parte do save — voltar pra espera criaria uma carreira nova).
-async function chamarMaisGente(roomId: string | undefined | null, dispatch: ReturnType<typeof useEsc>['dispatch'], V: (pt: string, en: string) => string, noPregao = false) {
+async function chamarMaisGente(roomId: string | undefined | null, dispatch: ReturnType<typeof useEsc>['dispatch'], V: (pt: string, en: string) => string, noPregao = false, deckSala?: EscState['deckLeague']) {
   const msg = noPregao
     ? V('Chamar mais gente agora?\n\nEste pregão é desfeito (nenhuma rodada foi jogada) e TODO MUNDO volta pra sala de espera. Lá você convida, o amigo entra com código + senha, e você abre o pregão de novo — com todo mundo. Troféus e ranking ficam.', 'Invite more people now?\n\nThis auction is discarded (no round was played) and EVERYONE goes back to the waiting room. There you invite, your friend joins with code + password, and you open the auction again — with everybody. Trophies and ranking stay.')
     : V('Chamar mais gente?\n\nTodo mundo volta pra sala de espera. Lá você convida, o amigo entra com código + senha, e "Abrir o Pregão" começa a próxima temporada com todo mundo. Troféus e ranking ficam.', 'Invite more people?\n\nEveryone goes back to the waiting room. There you invite, your friend joins with code + password, and "Open the auction" starts the next season with everybody. Trophies and ranking stay.')
@@ -2977,7 +2977,11 @@ async function chamarMaisGente(roomId: string | undefined | null, dispatch: Retu
     try {
       const { data } = await supabase.from('game_rooms').select('game_state').eq('id', roomId).maybeSingle()
       const gs = (data?.game_state ?? {}) as Record<string, unknown>
-      await supabase.from('game_rooms').update({ status: 'waiting', game_state: { ...gs, screen: 'lobby' }, updated_at: new Date().toISOString() }).eq('id', roomId)
+      // 🛟 Se esta liga nasceu antes do campo `deckSala`, usa a escolha que a
+      // partida ainda carrega em `deckLeague`. Assim, ao voltar pra espera para
+      // chamar gente, Europa/Mundo não viram Brasil na próxima largada.
+      const deckValido = deckSala && ['br', 'eu', 'both', 'todos'].includes(deckSala)
+      await supabase.from('game_rooms').update({ status: 'waiting', game_state: { ...gs, ...(deckValido ? { deckSala } : {}), screen: 'lobby' }, updated_at: new Date().toISOString() }).eq('id', roomId)
     } catch { /* segue: o reducer leva pra espera mesmo assim */ }
   }
   dispatch({ type: 'VOLTA_ESPERA' })
@@ -2995,7 +2999,7 @@ function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) 
   return (
     <>
       {podeChamar && (
-        <button onClick={() => void chamarMaisGente(state.roomId, dispatch, V, true)}
+        <button onClick={() => void chamarMaisGente(state.roomId, dispatch, V, true, state.deckLeague)}
           className="w-full max-w-xl mx-auto block rounded-lg border-2 border-black py-1 mb-1.5 font-black text-[11px] active:translate-y-0.5"
           style={{ ...OSWALD, background: '#EFE3FF', color: '#4C1D95' }}>
           {V('📣 Chamar mais gente · volta pra sala de espera (desfaz este pregão)', '📣 Invite more people · back to the waiting room (discards this auction)')}
@@ -9406,7 +9410,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
               e "Abrir o Pregão" começa a próxima temporada com todo mundo. Troféus, estante
               e ranking ficam (moram em game_champions). Só o host vê. */}
           {state.ligaMode && <>
-            <button onClick={() => void chamarMaisGente(state.roomId, dispatch, V)}
+            <button onClick={() => void chamarMaisGente(state.roomId, dispatch, V, false, state.deckLeague)}
               className="w-full rounded-xl border-[3px] border-black py-2.5 font-black text-sm active:translate-y-0.5"
               style={{ ...OSWALD, background: '#EFE3FF', color: '#4C1D95', boxShadow: `3px 3px 0 ${INK}` }}>
               {V('📣 Chamar mais gente (sala de espera)', '📣 Invite more people (waiting room)')}
