@@ -506,10 +506,10 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
 // REMONTAVA a árvore inteira (CupScreen voltava pra rodada 1, convocação sumia,
 // e o prêmio re-disparava em loop). Movido pra fora: identidade estável, fim do
 // reinício. NADA visual mudou.
-export const CMModal = ({ children, wide = false, cinematic = false }: { children: React.ReactNode; wide?: boolean; cinematic?: boolean }) => createPortal(
+export const CMModal = ({ children, wide = false, cinematic = false, onlineBroadcast = false }: { children: React.ReactNode; wide?: boolean; cinematic?: boolean; /** aplica a mesma pele aprovada da liga, somente na Copa online */ onlineBroadcast?: boolean }) => createPortal(
   <div style={{ position: 'fixed', inset: 0, zIndex: 99996, background: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, overflowY: 'auto' }}>
     <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
-    <div className={cinematic ? 'll26-world-modal' : undefined} style={{ ...box('#F4ECD6'), color: INK, width: '100%', maxWidth: cinematic ? 1000 : wide ? 430 : 400, maxHeight: '95vh', overflowY: 'auto', padding: 14, margin: 'auto', borderRadius: 18 }}>
+    <div className={`${cinematic ? 'll26-world-modal' : ''}${onlineBroadcast ? ' ll31-cinema ll31-world-online' : ''}`.trim() || undefined} style={{ ...box('#F4ECD6'), color: INK, width: '100%', maxWidth: cinematic ? 1000 : wide ? 430 : 400, maxHeight: '95vh', overflowY: 'auto', padding: 14, margin: 'auto', borderRadius: 18 }}>
       {children}
     </div>
   </div>, document.body)
@@ -1134,6 +1134,32 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
 
   const nextLabel = !liveDone ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : step < GR ? `${tr('▶️ Rodada', '▶️ Round')} ${step + 1} ${tr('de', 'of')} ${GR}` : step === GR ? tr('🎲 Sortear o mata-mata', '🎲 Draw the knockouts') : step === SORTEIO ? tr('▶️ Jogar as oitavas', '▶️ Play the round of 16') : step === OITAVAS ? tr('▶️ Jogar as quartas', '▶️ Play the quarter-finals') : step === QUARTAS ? tr('▶️ Jogar as semifinais', '▶️ Play the semi-finals') : step === SEMI ? tr('🏆 A GRANDE FINAL', '🏆 THE GRAND FINAL') : tr('🎉 Cerimônia', '🎉 Ceremony')
 
+  // 🎮 NO ONLINE, O CONTROLE FICA COLADO NO JOGO — nunca depois das tabelas.
+  // A Copa do Mundo é um modal próprio, por isso não herdava a ordem da Liga e
+  // MANUAL/AUTO terminava no rodapé. O relógio sincronizado continua o mesmo.
+  const onlineWorldControls = privateOnline && !done ? (
+    <section className="ll27-world-controls ll31-tournament-controls" aria-label="Ritmo da Copa">
+      {!synced ? <p>{tr('Conectando ao ritmo da sala…', 'Connecting to the room\'s pace…')}</p> : <>
+        {synced.error && <p role="status">{synced.error}</p>}
+        {!synced.row ? <p>{tr('Conectando ao ritmo da sala…', 'Connecting to the room\'s pace…')}</p> : synced.isHost ? <>
+          <div className="ll27-world-rhythm">
+            <button className={manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('manual')}>MANUAL</button>
+            <button className={!manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('auto')}>AUTO</button>
+            <select aria-label={tr('Velocidade da Copa', 'Cup speed')} value={synced.row.speed} disabled={synced.busy || synced.row.running} onChange={e=>void synced.command('speed',Number(e.target.value))}>
+              <option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={4}>4×</option>
+            </select>
+          </div>
+          <p>{tr('A velocidade pode mudar entre os jogos. Todos acompanham o ritmo do host.', 'Speed can change between games. Everyone follows the host\'s pace.')}</p>
+          <div className="ll27-world-rhythm ll31-tournament-actions">
+            <button className="primary" disabled={synced.busy || !liveDone} onClick={next}>{nextLabel}</button>
+            <button disabled={synced.busy} onClick={skip}>{tr('PULAR', 'SKIP')}</button>
+          </div>
+        </> : <p>{tr('Ritmo da sala', 'Room pace')}: {manual ? 'manual' : tr('automático', 'auto')} · {synced.row.speed}× · {tr('controlado pelo host', 'controlled by the host')}</p>}
+      </>}
+      <button className="ll31-back-room" onClick={onClose}>{tr('VOLTAR À SALA', 'BACK TO THE ROOM')}</button>
+    </section>
+  ) : null
+
   // cartão AO VIVO (o mesmo LiveScoreCard da liga/copa — relógio, GOOOL, bump)
   const live = (h: number, a: number, ev: ScoreGoal[]) => (
     <div style={{ marginBottom: 8 }}>
@@ -1233,6 +1259,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
       </div>}
 
       {privateVisual && <div className="ll26-world-stage-controls" aria-label="Etapas da Copa"><span aria-current={step <= GR ? 'step' : undefined}>{tr('GRUPOS', 'GROUPS')}</span><span aria-current={step > GR && step <= OITAVAS ? 'step' : undefined}>{tr('OITAVAS', 'ROUND OF 16')}</span><span aria-current={step === QUARTAS ? 'step' : undefined}>{tr('QUARTAS', 'QUARTERS')}</span><span aria-current={step === SEMI ? 'step' : undefined}>{tr('SEMIFINAIS', 'SEMI-FINALS')}</span><span aria-current={step > SEMI ? 'step' : undefined}>FINAL</span></div>}
+      {step === SORTEIO && onlineWorldControls}
       {/* GRUPOS: SEU jogo ao vivo em cima (relógio da liga); tabela e os outros
           resultados só entram DEPOIS do apito — zero spoiler. */}
       {step >= 1 && step <= GR && (() => {
@@ -1242,6 +1269,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
         if (m) return live(m.h, m.a, m.ev ?? [])
         return <div style={{ border: '3px solid #000', borderRadius: 14, boxShadow: '4px 4px 0 0 #000', background: '#111', padding: '8px 11px', marginBottom: 8, textAlign: 'center', fontWeight: 800, fontSize: 11, color: GOLD, ...OSWALD }}>🛌 {nm(myIdx)} {tr('folga nesta rodada — os outros jogos rolam abaixo.', 'rests this round — the other games run below.')}</div>
       })()}
+      {step <= GR && onlineWorldControls}
       {step <= SORTEIO && (
         <>
           {/* 🔎 O SEU GRUPO VEM PRIMEIRO (Diego 01/09: *"eu era Argentina, porém a
@@ -1322,6 +1350,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
                 <PensShootout compactOnline={privateVisual} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} colorOf={paisColor} />
               </div>
             )}
+            {onlineWorldControls}
             <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>{tr('⚔️ MATA-MATA', '⚔️ KNOCKOUTS')} <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.5)', textTransform: 'none' }}>{tr('(sorteio livre — jogo único)', '(open draw — one-off ties)')}</span><span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               {fase(world.r16, OITAVAS, tr('OITAVAS DE FINAL', 'ROUND OF 16'))}
@@ -1431,36 +1460,17 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
 
       {done ? (
         <button onClick={onClose} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, background: GREEN, color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{online ? tr('▶️ VOLTAR PRA SALA', '▶️ BACK TO THE ROOM') : tr('▶️ VOLTAR PRA CARREIRA', '▶️ BACK TO THE CAREER')}</button>
-      ) : synced ? (
-        <section className="ll27-world-controls" aria-label="Ritmo da Copa">
-          {synced.error && <p role="status">{synced.error}</p>}
-          {!synced.row ? <p>{tr('Conectando ao ritmo da sala…', 'Connecting to the room\'s pace…')}</p> : synced.isHost ? <>
-            <div className="ll27-world-rhythm">
-              <button className={manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('manual')}>MANUAL</button>
-              <button className={!manual ? 'selected' : ''} disabled={synced.busy} onClick={()=>void synced.command('auto')}>AUTO</button>
-              <select aria-label={tr('Velocidade da Copa', 'Cup speed')} value={synced.row.speed} disabled={synced.busy || synced.row.running} onChange={e=>void synced.command('speed',Number(e.target.value))}>
-                <option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={4}>4×</option>
-              </select>
-            </div>
-            <p>{tr('A velocidade pode mudar entre os jogos. Todos acompanham o ritmo do host.', 'Speed can change between games. Everyone follows the host\'s pace.')}</p>
-            <div className="ll27-world-rhythm">
-              <button className="primary" disabled={synced.busy || !liveDone} onClick={next}>{nextLabel}</button>
-              <button disabled={synced.busy} onClick={skip}>{tr('PULAR', 'SKIP')}</button>
-            </div>
-          </> : <p>{tr('Ritmo da sala', 'Room pace')}: {manual ? 'manual' : tr('automático', 'auto')} · {synced.row.speed}× · {tr('controlado pelo host', 'controlled by the host')}</p>}
-          <button onClick={onClose}>{tr('VOLTAR À SALA', 'BACK TO THE ROOM')}</button>
-        </section>
-      ) : hasManual ? (
+      ) : !privateOnline && hasManual ? (
         <>
           {manual && <SpeedControls speed={speed} onSet={setSpeed} />}
           <SimControls manual={manual} onToggle={toggleManual} canNext={liveDone} onNext={next} onSkip={skip} nextLabel={nextLabel} />
         </>
-      ) : (
+      ) : !privateOnline ? (
         <>
           <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px' }}>{liveDone ? tr('⚡ A Copa anda sozinha — próxima fase já vem…', '⚡ The Cup runs on its own — next stage coming…') : tr('🟢 bola rolando…', '🟢 ball rolling…')}</p>
           <QuickManualLock />
         </>
-      )}
+      ) : null}
     </>
   )
 }

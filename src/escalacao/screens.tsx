@@ -6136,6 +6136,20 @@ export function EscSeason() {
             </Box>
           )
         }
+        const copaRhythmControls = copaLive ? (
+          <>
+            {manual && !state.dinastiaPaused && (
+              <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
+            )}
+            {(!online || streamHost) && (
+              <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
+                lock={manualLocked ? <QuickManualLock /> : undefined}
+                onNext={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
+                onSkip={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
+                nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (cupNow ? LS('🏆 Iniciar a NBA Cup', '🏆 Start the NBA Cup') : libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (cupNow ? LS('🏀 Próximo jogo da NBA Cup', '🏀 Next NBA Cup game') : libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
+            )}
+          </>
+        ) : null
         return (
           <>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
@@ -6180,31 +6194,7 @@ export function EscSeason() {
                 </div>
               </Box>
             )}
-            {/* 🎮 O RITMO DA COPA MORA COLADO NAS ABAS (Diego 15/09, vendo a live de novo):
-                *"cadê o botão de manual e auto? não tô vendo. Aí depois foi pras quartas —
-                era pra continuar colado ali próximo das abas de jogos, tabela e etc"*.
-                📜 É a 2ª volta do mesmo assunto, e NÃO é um desmanche da 1ª: em 14/09 ele
-                reclamou que na Copa o manual/auto caía LÁ EMBAIXO, depois do chaveamento
-                inteiro, e mandou subir. Subiu — só que foi parar ANTES do cartaz da fase,
-                separado das abas pelo chaveamento todo. Na LIGA a peça fica logo ACIMA das
-                abas, e é esse lugar que ele reconhece. Agora é o mesmo lugar nas duas.
-                ⚠️ Não mover pro topo nem pro fim de novo sem falar com ele — já foi aos
-                dois extremos. */}
-            {copaLive && (
-              <>
-                {manual && !state.dinastiaPaused && (
-                  <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />
-                )}
-                {(!online || streamHost) && (
-                  <SimControls manual={manual} onToggle={toggleManual} canNext={copaAdvReady}
-                    lock={manualLocked ? <QuickManualLock /> : undefined}
-                    onNext={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
-                    onSkip={() => dispatch({ type: cupNow ? 'PLAY_NBA_CUP_ROUND' : 'PLAY_COPA_LEG' })}
-                    nextLabel={!copaAdvReady ? (bbS ? LS('⏳ Deixa o jogo acabar…', '⏳ Let the game finish…') : LS('⏳ Deixa o jogo/pênaltis acabar…', '⏳ Let the match/penalties finish…')) : firstLegPending ? (cupNow ? LS('🏆 Iniciar a NBA Cup', '🏆 Start the NBA Cup') : libS ? LS('🌎 Iniciar as oitavas', '🌎 Start the round of 16') : bbS ? LS('🏆 Iniciar os Playoffs', '🏆 Start the Playoffs') : LS('🏆 Iniciar a Copa dos 8', '🏆 Start the Cup of 8')) : copaJustAdvanced ? (bbS ? LS('▶️ Próxima fase', '▶️ Next round') : LS('▶️ Começar a próxima fase', '▶️ Start the next round')) : (cupNow ? LS('🏀 Próximo jogo da NBA Cup', '🏀 Next NBA Cup game') : libS ? LS('🌎 Próximo jogo da Libertadores', '🌎 Next Libertadores match') : bbS ? LS('🏀 Próximo jogo dos Playoffs', '🏀 Next playoff game') : LS('⚽ Próximo jogo da Copa', '⚽ Next Cup match'))} />
-                )}
-              </>
-            )}
-            {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
+            {!cinemaPreview && copaRhythmControls}
             {myTie ? (
               myTie.legs.length > 0 ? (() => {
                 // SEMPRE anima a última perna jogada (ida OU volta) — antes, quando
@@ -6244,6 +6234,10 @@ export function EscSeason() {
                 <p className="text-center font-black text-sm" style={OSWALD}>{libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…')}</p>
               </Box>
             )}
+            {/* 🎮 No online, a leitura aprovada é sempre: cartaz → placar →
+                ritmo → conteúdo. Os mesmos comandos continuam conduzindo a sala. */}
+            {cinemaPreview && copaRhythmControls}
+            {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
             {/* 🎯 tática (pedido de jogador, 12/08) — DEPOIS do placar ao vivo agora
                 (Diego 14/08: antes vinha antes do placar, "tava errado" — o jogo
                 principal é a estrela, a tática é apoio). */}
@@ -7263,6 +7257,7 @@ export function EscLiberta() {
   const you = state.managers[state.youIdx]
   const lb = state.liberta
   const online = state.onlineMode === 'online'
+  const cinemaOnline = online && !state.careerOnline && state.sport !== 'basquete'
   const canAdvance = !online || state.isHost
   const streamHost = online && state.isHost && (state.streamMode || !!state.manualRoom)
   const [manualPref, toggleSim] = useSimMode()
@@ -7350,7 +7345,7 @@ export function EscLiberta() {
   }
 
   return (
-    <Shell bar={
+    <Shell className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between gap-2">
         <span className="font-black text-sm" style={{ ...OSWALD, color: NOITE }}>
           🌎 LIBERTADORES · {acabou && (!privateVisual || revealed) ? LB('GRUPOS ENCERRADOS', 'GROUPS OVER') : `${LB('RODADA', 'ROUND')} ${privateVisual ? Math.max(1,lb.rodada) : Math.min(lb.rodada + 1, LIBERTA_RODADAS)}/${LIBERTA_RODADAS}`}
@@ -7388,6 +7383,19 @@ export function EscLiberta() {
             {acabou ? LB('🏁 Fim da fase de grupos!', '🏁 Group stage over!') : meuTime ? LB('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LB('📺 Você não se classificou — acompanhe a Libertadores por aqui.', '📺 You did not qualify — follow the Libertadores here.')}
           </p>
         </Box>
+      )}
+
+      {/* 🎮 O ritmo da fase fica junto do placar, antes de giro e tabelas. */}
+      {cinemaOnline && manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+      {cinemaOnline && streamHost && !acabou && (
+        <SimControls manual={manual} onToggle={toggleManual} canNext={lb.rodada === 0 || revealed}
+          lock={manualLocked ? <QuickManualLock /> : undefined}
+          onNext={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
+          onSkip={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
+          nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores') : LB('▶️ Próxima rodada', '▶️ Next round')} />
+      )}
+      {cinemaOnline && !state.isHost && !acabou && (
+        <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
 
       {/* 📣 giro da Libertadores (o mesmo lugar de sempre das manchetes) */}
@@ -7429,15 +7437,15 @@ export function EscLiberta() {
       <p className="text-[10px] font-bold text-black/45 text-center" style={privateVisual ? {color:CREAM} : undefined}>{enL ? <>🟢 the <b>top 2</b> of each group reach the round of 16 — 16 clubs.</> : <>🟢 os <b>2 primeiros</b> de cada grupo vão pras oitavas — 16 clubes.</>}</p>
       {privateVisual && <details className="ll26-bracket-history"><summary>{LB('ESTATÍSTICAS DA LIBERTADORES', 'LIBERTADORES STATS')}</summary>{revealed || lb.rodada === 0 ? <TopAssistsBox highlight={you.id} competition="liberta" showEmpty /> : <p className="text-xs mt-3">{LB('As estatísticas atualizam após o apito final.', 'Stats update after the final whistle.')}</p>}</details>}
 
-      {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-      {(!online || streamHost) && !acabou && (
+      {!cinemaOnline && manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+      {!cinemaOnline && (!online || streamHost) && !acabou && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={lb.rodada === 0 || revealed}
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
           onSkip={() => dispatch({ type: 'PLAY_LIBERTA_RODADA' })}
           nextLabel={!(lb.rodada === 0 || revealed) ? LB('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : lb.rodada === 0 ? LB('🌎 Começar a Libertadores', '🌎 Start the Libertadores') : LB('▶️ Próxima rodada', '▶️ Next round')} />
       )}
-      {online && !state.isHost && !acabou && (
+      {!cinemaOnline && online && !state.isHost && !acabou && (
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? {color:CREAM} : undefined}>{LB('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
       {privateVisual && online && state.roomId && !state.careerOnline && <LigaHub roomId={state.roomId} souDono={state.isHost} humanos={state.managers.filter(m=>m.isHuman).map(m=>m.teamName)} />}
