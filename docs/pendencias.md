@@ -1,3 +1,39 @@
+## 21/09/2026 — 🔬 ACHADO: lenda vai pro leilão e NINGUÉM dá lance (é o PISO)
+
+Diego, olhando a carreira antes de jogar: *"tô vendo ir pro leilão Paul Scholes,
+lenda, nenhum lance. Cafu do Milan indo pro leilão, nenhum lance. E aí do nada
+aparece um jogador craque no leilão, aí vai um monte de lance. Tô achando
+estranho"*. Ele está certo, e **não é acaso**.
+
+**A causa, medida (não deduzida)**: da 2ª temporada em diante o baralho vem do
+elenco dos bots, e cada carta volta com um PISO (`paid`, tirado do livro
+`marketValues`). No `cpuEnvelope` (`store.tsx`) a regra é
+`if (wallet < floor || cap + 3 < floor) continue` — ou seja, **se o piso passa do
+que o bot acha que a carta vale, ele não dá lance NENHUM**, nem um lance baixo.
+Carta nova do catálogo tem piso ZERO, então leva lance de todo mundo. É por isso
+que o craque "que aparece do nada" é disputado e a lenda sai de graça.
+
+**A medição** (`node scripts/bancada-piso-lenda.mjs` — joga o pregão de verdade,
+3 salas de 8, acaso travado, mudando SÓ o piso). % de cartas sem nenhum lance:
+
+| piso | 👑 lenda | ⭐ craque | 💎 bom | 🪵 perna |
+|-----:|---------:|---------:|-------:|---------:|
+| 0    | 2%       | 49%      | 84%    | 94%      |
+| 20   | 43%      | 80%      | 91%    | 99%      |
+| 30   | 61%      | 88%      | 96%    | 100%     |
+| 50   | 73%      | 93%      | 100%   | 100%     |
+| 80   | 100%     | 100%     | 100%   | 100%     |
+
+⚠️ E 30 é justamente o piso de tabela de uma lenda (`CONTRATO_TABELA`, fame ≥ 5),
+então **o regime normal da carreira já é o de 61% das lendas sem lance** — não é
+cauda, é o dia a dia.
+
+**Proposta levada ao Diego (esperando sim/não)**: quando o bot TEM o dinheiro e
+precisa da posição, ele aceita **cobrir o piso** da carta em vez de recusar —
+sem inventar valor maior que o piso. Fica bounded porque o próprio piso já tem
+teto (`catPriceCap` × economia da sala: lenda 90, craque 65, bom 26, perna 16).
+🚫 **Nada foi mexido no jogo ainda** — só a bancada entrou no repo.
+
 ## 21/09/2026 — ❤️🖤 Pantera Negra FC é FLAMENGO de coração ✅ FEITO
 
 Diego, depois do batismo pronto: *"ah, time de coração do Pantera Negra FC é
