@@ -14,25 +14,37 @@ Carta nova do catálogo tem piso ZERO, então leva lance de todo mundo. É por i
 que o craque "que aparece do nada" é disputado e a lenda sai de graça.
 
 **A medição** (`node scripts/bancada-piso-lenda.mjs` — joga o pregão de verdade,
-3 salas de 8, acaso travado, mudando SÓ o piso). % de cartas sem nenhum lance:
+3 salas de 8, acaso travado, mudando SÓ o piso). % de LENDAS sem nenhum lance:
 
-| piso | 👑 lenda | ⭐ craque | 💎 bom | 🪵 perna |
-|-----:|---------:|---------:|-------:|---------:|
-| 0    | 2%       | 49%      | 84%    | 94%      |
-| 20   | 43%      | 80%      | 91%    | 99%      |
-| 30   | 61%      | 88%      | 96%    | 100%     |
-| 50   | 73%      | 93%      | 100%   | 100%     |
-| 80   | 100%     | 100%     | 100%   | 100%     |
+| piso | bot pobre (jogo rápido) | bot com 230 🪙 (Série A) |
+|-----:|------------------------:|-------------------------:|
+| 0    | 2%                      | 5%                       |
+| 30   | 61%                     | 7%                       |
+| 40   | 61%                     | 32%                      |
+| 60   | 73%                     | 43%                      |
+| 80   | 100%                    | 100%                     |
 
-⚠️ E 30 é justamente o piso de tabela de uma lenda (`CONTRATO_TABELA`, fame ≥ 5),
-então **o regime normal da carreira já é o de 61% das lendas sem lance** — não é
-cauda, é o dia a dia.
+⚠️ **CORREÇÃO IMPORTANTE (a 1ª rodada desta bancada mentiu).** A primeira medição
+rodou só com o bolso do JOGO RÁPIDO, que é pobre, e deu "61% das lendas sem lance
+com piso 30". Isso era **falta de dinheiro** (`wallet < floor`), não o teto do
+bot — com o caixa de carreira (Série A = 230) o mesmo piso 30 dá só 7%. Quem
+copiar número desta bancada: **sempre com o bolso da divisão**, senão exagera.
 
-**Proposta levada ao Diego (esperando sim/não)**: quando o bot TEM o dinheiro e
-precisa da posição, ele aceita **cobrir o piso** da carta em vez de recusar —
-sem inventar valor maior que o piso. Fica bounded porque o próprio piso já tem
-teto (`catPriceCap` × economia da sala: lenda 90, craque 65, bom 26, perna 16).
-🚫 **Nada foi mexido no jogo ainda** — só a bancada entrou no repo.
+**O que É verdade, e é o problema real**: o teto do bot por carta vem de uma
+curva FIXA no nível dela (`fairPrice` em `store.tsx`) — pra lenda dá **33 a 64,
+e nunca cresce**. O preço da carta, esse cresce: `recordPrice` grava o que foi
+pago (inclusive pelo usuário) e o bônus de artilheiro soma por cima. Então, numa
+carreira adiantada, o piso passa dos 64 e **a partir daí o bot fica mudo pra
+sempre** naquela carta — que é exatamente o que o Diego está vendo com Paul
+Scholes e Cafu. Acima de piso 80 é 100% de silêncio nos DOIS bolsos.
+
+**E o que ele já respondeu**: propus que a carta fosse cedendo de preço quando não
+vende, e ele cortou na hora — *"mas isso já acontece, quando ninguém pega ele vai
+pro monte valendo metade, não?"*. Está certo (`montePush` → `halveListed` →
+`recordPrice`); essa metade do plano foi descartada. O que falta é só o outro
+lado: **o teto do bot acompanhar o mercado daquela carreira em vez de ser número
+fixo.** Esperando o sim/não dele.
+🚫 **Nada foi mexido no jogo** — só a bancada entrou no repo.
 
 ## 21/09/2026 — ❤️🖤 Pantera Negra FC é FLAMENGO de coração ✅ FEITO
 

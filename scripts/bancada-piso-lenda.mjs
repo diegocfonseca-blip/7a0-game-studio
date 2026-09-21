@@ -40,9 +40,15 @@ const r = await p.evaluate(async () => {
 
   // joga um pregão inteiro colocando PISO em toda carta de uma categoria.
   // devolve, por categoria de fama, quantas cartas receberam lance.
-  const joga = (piso, semanteN, rivais = 7) => {
+  const joga = (piso, semanteN, caixa = 0, rivais = 7) => {
     Math.random = semente(semanteN)
     let s = st.reducer(st.INITIAL, { type: 'START', teamName: 'Bancada', formation: '4-3-3', rivals: rivais, league: 'br' })
+    // 💰 BOLSO DE CARREIRA: o jogo rápido nasce com bots pobres, e bot pobre recusa
+    // por FALTA DE DINHEIRO (`wallet < floor`), não por achar caro — se a bancada
+    // rodasse só assim, ela exageraria o efeito do piso. Com `caixa` a gente põe o
+    // bolso das divisões da carreira (DIV_BASE_CASH: A 230 · B 190 · C 150 · D 100
+    // · V 60) e mede o regime de verdade.
+    if (caixa > 0) for (const m of s.managers) if (!m.isHuman) m.money = caixa
     // 🏷️ carimba o piso: MESMA regra do mercado da carreira (`paid` na carta do
     // baralho). Piso 0 = carta nova do catálogo, que é como o jogo rápido nasce.
     const alvo = new Map() // cardId → fama
@@ -82,17 +88,22 @@ const r = await p.evaluate(async () => {
   }
 
   // mesma sala, mesmo acaso — só o PISO muda. 3 sementes pra não ler sorte.
+  // Dois bolsos: o do jogo rápido (bot pobre) e o da Série A da carreira (230).
   const PISOS = [0, 10, 20, 30, 40, 50, 60, 80]
-  const linhas = []
-  for (const piso of PISOS) {
-    const soma = {}
-    for (const sem of [20260921, 777001, 424242]) {
-      const c = joga(piso, sem)
-      for (const k in c) { soma[k] = soma[k] ?? { vistas: 0, semLance: 0 }; soma[k].vistas += c[k].vistas; soma[k].semLance += c[k].semLance }
+  const saida = []
+  for (const caixa of [0, 230]) {
+    const linhas = []
+    for (const piso of PISOS) {
+      const soma = {}
+      for (const sem of [20260921, 777001, 424242]) {
+        const c = joga(piso, sem, caixa)
+        for (const k in c) { soma[k] = soma[k] ?? { vistas: 0, semLance: 0 }; soma[k].vistas += c[k].vistas; soma[k].semLance += c[k].semLance }
+      }
+      linhas.push({ piso, soma })
     }
-    linhas.push({ piso, soma })
+    saida.push({ caixa, linhas })
   }
-  return linhas
+  return saida
 })
 
 await b.close()
@@ -103,16 +114,19 @@ console.log('   Mesmo pregão, mesmo acaso, 3 salas de 8. A ÚNICA coisa que mud
 console.log('   PISO que a carta carrega (é o que a carreira põe da 2ª temporada em')
 console.log('   diante). Número = % das cartas que ficaram SEM NENHUM LANCE.\n')
 const CATS = [['lenda', '👑 lenda'], ['craque', '⭐ craque'], ['bom', '💎 bom'], ['perna', '🪵 perna-de-pau']]
-console.log('   piso │ ' + CATS.map(([, r]) => r.padEnd(14)).join('│ '))
-console.log('   ─────┼─' + CATS.map(() => '─'.repeat(14)).join('┼─'))
-for (const { piso, soma } of linhas_ou(r)) {
-  const cels = CATS.map(([k]) => {
-    const d = soma[k]
-    if (!d || !d.vistas) return '—'.padEnd(14)
-    return `${String(Math.round(100 * d.semLance / d.vistas)).padStart(3)}%  (${d.semLance}/${d.vistas})`.padEnd(14)
-  })
-  console.log(`   ${String(piso).padStart(4)} │ ${cels.join('│ ')}`)
+for (const { caixa, linhas } of r) {
+  console.log(`   ── bolso do bot: ${caixa === 0 ? 'o do jogo rápido (pobre)' : `${caixa} 🪙 (Série A da carreira)`} ──`)
+  console.log('   piso │ ' + CATS.map(([, n]) => n.padEnd(14)).join('│ '))
+  console.log('   ─────┼─' + CATS.map(() => '─'.repeat(14)).join('┼─'))
+  for (const { piso, soma } of linhas) {
+    const cels = CATS.map(([k]) => {
+      const d = soma[k]
+      if (!d || !d.vistas) return '—'.padEnd(14)
+      return `${String(Math.round(100 * d.semLance / d.vistas)).padStart(3)}%  (${d.semLance}/${d.vistas})`.padEnd(14)
+    })
+    console.log(`   ${String(piso).padStart(4)} │ ${cels.join('│ ')}`)
+  }
+  console.log('')
 }
-function linhas_ou(x) { return x }
 console.log('\n   👉 Onde a coluna vira 100%, o piso passou do que o bot aceita pagar —')
 console.log('      e aí ele NÃO dá lance nenhum (regra `cap + 3 < floor` no cpuEnvelope).\n')
