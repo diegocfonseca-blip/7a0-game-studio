@@ -565,6 +565,30 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   lugar. (A fila de reações continua sendo o caminho de quem NÃO consegue desenhar a
   arte — versão velha/clube desconhecido cai no 🎭 e aí a fila é o único lugar.)
 
+- **⭐ CHAMPIONS LEGENDS: o formato é o REAL de hoje, e os convidados são GENTE
+  (21/09).** Ele recusou a cópia da Liberta com nomes europeus: *"quero formato real
+  de hj"* e *"N terá nomes europeus pois usarmos usuários de batismos mms por ordem
+  de série a e dps série b C d e várzea"*. Então: **36 numa tabela só** (8 da liga +
+  28 clubes de batismo, varrendo A → B → C → D → Várzea com DONO na frente), 8
+  adversários diferentes cada, e os cortes 1-8 / 9-24 / 25-36 com repescão no meio.
+  Mora em `src/escalacao/champions.ts`; trava: `npm run champions`.
+  🔒 **NÃO LIBERADA** — ordem dele: *"N libere ainda ela pra todos não, coloque um
+  selo de em breve"*. `CHAMPIONS_GERAL = false` em `sport.ts`; a opção aparece
+  travada com a tarja EM BREVE. **Não liberar sem ele mandar.**
+  📋 **E a tabela aparece INTEIRA** — ver a régua de tabela logo abaixo.
+- **📋 TABELA É INTEIRA, NUNCA EM JANELA (21/09).** No 1º mockup da Champions eu
+  escondi o meio da tabela de 36 numa janela (topo + a vizinhança dele), com medo do
+  paredão. Ele cortou: *"pq n cabe a tabela toda? queria ela toda poow"*. E estava
+  certo — a tabela da liga já mostra 20 e ninguém reclama de rolar. **Quem segura a
+  leitura não é esconder linha**, são as faixas de corte coloridas grudadas no topo,
+  a marca de quem veio da liga do usuário e a borda no clube dele.
+- **🧩 DE 4 OPÇÕES EM DIANTE, O `Seg` VIRA GRADE (21/09).** Palavras dele sobre a
+  tela de criar sala: *"organize melhor no modo de criar sala pois estão apertadas
+  demais"*. O `Seg` (lobby.tsx) punha tudo numa linha com `nowrap` e espremia o
+  texto. Agora quebra em 2 colunas a partir de 4, e no ímpar a última ocupa a linha
+  toda; até 3 continua na linha. Ele também ganhou `travados`, pra opção que aparece
+  mas não deixa escolher (é o que sustenta selo de "em breve").
+
 - **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
   biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
   se estourar a cota, guarda a sessão SÓ NA MEMÓRIA e ela morre em todo reload — sem

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
-import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
+import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
 import { useSport, useSportUnlocked, SPORT_BRAND } from './sport'
 import { hadLogin } from './apoio'
@@ -32,6 +32,7 @@ function Router() {
     case 'reserveList': return <ReserveListScreen />
     case 'season':    return state.careerOnline ? <PyramidSeasonScreen /> : <EscSeason />
     case 'liberta':   return <EscLiberta />
+    case 'champions': return <EscChampions />
     case 'end':       return <EscEnd />
     case 'album':     return <EscAlbum />
     case 'ranking':   return <EscRanking />

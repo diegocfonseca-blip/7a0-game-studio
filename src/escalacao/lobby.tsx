@@ -18,7 +18,7 @@ import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useCriarSala2, usePreviewComum, useMundoLiberado } from './sport'
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useCriarSala2, usePreviewComum, useMundoLiberado } from './sport'
 // 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
 // NÃO passa pelo motor do leilão: a sala fica em `waiting` e ela é uma tela por
@@ -538,16 +538,35 @@ function SegField({ label, children }: { label: string; children: React.ReactNod
 // A cor se inverte quando o botão está escolhido: numa opção branca a tarja é
 // dourada com letra preta; na dourada ela vira preta com letra dourada. Sem isso
 // o amarelo sumiria dentro do amarelo justamente quando a pessoa escolhe.
-function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim, selos }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean; selos?: Partial<Record<string, string>> }) {
+// 🧩 COM 4 OPÇÕES OU MAIS, QUEBRA EM DUAS COLUNAS (Diego 21/09: *"organize melhor
+// no modo de criar sala pois estão apertadas demais"*). Ele tinha razão: tudo
+// numa linha só com `nowrap` espremia o texto até ninguém ler — e o "Depois da
+// liga" já tinha 4 opções ANTES de a Champions entrar. Até 3, fica na linha
+// (nada muda no que já estava bom); de 4 em diante vira grade de 2.
+//
+// 🔒 `travados` = a opção APARECE mas não dá pra escolher. É o que sustenta o selo
+// "EM BREVE" da Champions (ordem dele: *"N libere ainda ela pra todos não, coloque
+// um selo de em breve"*) — o recado de que vem aí sem deixar ninguém entrar.
+function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim, selos, travados }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean; selos?: Partial<Record<string, string>>; travados?: string[] }) {
+  const grade = options.length >= 4
   return (
-    <div className="flex border-[2.5px] border-black rounded-xl overflow-hidden" style={dim ? { opacity: 0.45 } : undefined}>
+    <div className={grade ? 'grid grid-cols-2 border-[2.5px] border-black rounded-xl overflow-hidden' : 'flex border-[2.5px] border-black rounded-xl overflow-hidden'}
+      style={dim ? { opacity: 0.45 } : undefined}>
       {options.map(([v, label], i) => {
         const selo = selos?.[String(v)]
         const escolhido = value === v
+        const travado = travados?.includes(String(v)) ?? false
+        // na grade a borda é de cima (linha nova) e da esquerda (2ª coluna)
+        // 🧩 número ÍMPAR de opções: a última ocupa a linha inteira, senão sobra
+        // meia célula vazia no canto (fica com cara de coisa faltando).
+        const ultimaSozinha = grade && options.length % 2 === 1 && i === options.length - 1
+        const borda = grade
+          ? `${i % 2 === 1 ? 'border-l-[2.5px]' : ''} ${i >= 2 ? 'border-t-[2.5px]' : ''} border-black`
+          : (i > 0 ? 'border-l-[2.5px] border-black' : '')
         return (
-          <button key={String(v)} onClick={() => onSet(v)}
-            className={`flex-1 font-black ${i > 0 ? 'border-l-[2.5px] border-black' : ''}`}
-            style={{ padding: small ? '8px 2px' : '9px 2px', fontSize: small ? 11 : 12.5, background: escolhido ? GOLD : '#fff', color: '#000', whiteSpace: 'nowrap', ...OSWALD }}>
+          <button key={String(v)} onClick={() => { if (!travado) onSet(v) }} disabled={travado}
+            className={`${grade ? (ultimaSozinha ? 'col-span-2' : '') : 'flex-1'} font-black ${borda}`}
+            style={{ padding: small ? '8px 2px' : '9px 2px', fontSize: small ? 11 : 12.5, background: escolhido ? GOLD : '#fff', color: '#000', whiteSpace: grade ? 'normal' : 'nowrap', lineHeight: 1.25, opacity: travado ? 0.5 : 1, cursor: travado ? 'not-allowed' : 'pointer', ...OSWALD }}>
             {selo && (
               <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                 letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
@@ -690,7 +709,7 @@ export function EscLobby() {
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_mundo'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
+  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'liga_mundo'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -712,6 +731,7 @@ export function EscLobby() {
   const LIGA_SO_LENDA_ENTRA = false
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
+  const championsOn = useChampionsLiberada() // ⭐ Champions: EM BREVE pra geral; só a conta do Diego joga
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
   // 🏆 SELETOR "Aberta × Liga Fechada" — DESENHO RECUSADO, NÃO RELIGAR.
   // ⚠️ Recado pras próximas sessões (e pra mim mesmo, que errei nisso em 22/08):
@@ -3187,19 +3207,32 @@ export function EscLobby() {
                       Copa dos 8, sem Libertadores) + a marca `mundoNaLiga` — assim
                       o motor do leilão não muda em NADA, e a Copa entra por cima na
                       tela de fim de temporada. */}
+                  {/* ⭐ A CHAMPIONS ENTRA AQUI, junto das outras ligas (ordem dele:
+                      *"já pode colocar lá juntos das ligas"*) — mas com a tarja
+                      **EM BREVE** e SEM deixar escolher, porque ele pediu pra não
+                      liberar ainda. Quem está em `CHAMPIONS_TESTERS` (a conta dele)
+                      escolhe normal; pro resto é só o aviso de que vem aí.
+                      🧩 Com 5 opções o `Seg` vira grade de 2 colunas sozinho — era
+                      isso que estava espremido. */}
                   <Seg options={(libertaOn
-                    ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
-                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'liga_mundo' | 'liga', string][]}
-                    value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)} selos={{ liga_mundo: seloNovo() }} />
+                    ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['liga_champions', tr('⭐ Liga + Champions', '⭐ League + Champions')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
+                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_champions', tr('⭐ Liga + Champions', '⭐ League + Champions')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'liga_champions' | 'liga_mundo' | 'liga', string][]}
+                    value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
+                    travados={championsOn ? [] : ['liga_champions']}
+                    selos={{ liga_mundo: seloNovo(), liga_champions: championsOn ? seloNovoDe('2026-09-21') : tr('em breve', 'soon') }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
+                      : rapidoCopaMode === 'liga_champions'
+                      ? <>⭐ League over, the <b>top 8</b> join <b>28 clubs owned by real people</b> in ONE table of 36 — each plays 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 League over, the <b>top 8</b> enter the Libertadores with <b>24 clubs from the continent</b> (32 in total): 8 groups of 4, 2 go through, and the knockouts run to a single final. <b>No Cup of 8</b> in this room.</>
                       : rapidoCopaMode === 'liga_copa'
                         ? <>🏆 League over, the top 8 play the Cup of 8 — home and away up to a single final.</>
                         : <>📊 Just the table, start to finish. The champion is whoever gets the most points.</>) : rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 6 grupos de 4, passam 16 (os 2 primeiros + os 4 melhores 3ºs) e mata-mata em jogo único, das oitavas à final. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
+                      : rapidoCopaMode === 'liga_champions'
+                      ? <>⭐ Acabou a liga, os <b>8 primeiros</b> se juntam a <b>28 clubes de gente de verdade</b> numa tabela ÚNICA de 36 — cada um joga 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_copa'

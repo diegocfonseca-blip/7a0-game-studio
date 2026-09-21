@@ -429,6 +429,35 @@ export interface QuickCopaState {
 // 🌎 LIBERTADORES — a fase de GRUPOS. O mata-mata depois dela reusa o
 // `QuickCopaState` (mesmo motor de ida-e-volta com pênalti da Copa dos 8),
 // entrando pela fase 'oitavas'.
+// ⭐ CHAMPIONS LEGENDS — a fase de TABELA ÚNICA (o formato real de 2024+).
+// Diferente da Liberta em duas coisas que mudam tudo: **não tem grupo** (são 36
+// numa tabela só, cada um com 8 adversários diferentes) e existe um **repescão**
+// entre a tabela e as oitavas (9º-24º jogam ida e volta por 8 vagas). Quem cuida
+// de quem entra, dos potes e do calendário é o `champions.ts`; as oitavas em
+// diante reusam o `QuickCopaState`, igual à Liberta.
+export interface ChampionsTeam {
+  id: number          // humanos/bots da liga mantêm o id deles; os 28 convidados usam 1800+
+  name: string
+  pote: 1 | 2 | 3 | 4 // por FORÇA (pote 1 = os 9 mais fortes), como na Champions de verdade
+  isManager: boolean  // veio da liga (tem elenco) ou é convidado (só atk/def)
+  divisao?: string    // 🖋️ a série de onde o convidado veio (A/B/C/D/V) — só pra tela
+  baseAtk: number; baseDef: number
+  pts: number; w: number; d: number; l: number; gf: number; ga: number
+}
+export interface ChampionsState {
+  /** 'tabela' = as 8 rodadas · 'repescao' = 9º-24º por 8 vagas · 'mata' = saiu pro quickCopa */
+  fase: 'tabela' | 'repescao' | 'mata'
+  times: ChampionsTeam[]            // os 36
+  rodada: number                    // 0..8 da fase de tabela
+  fixtures: [number, number][][]    // 8 rodadas × 18 jogos
+  lastResults: MatchResult[]        // resultados da última rodada
+  /** 🥊 os 8 confrontos do repescão (ida e volta) — só existe na fase 'repescao' */
+  repescao?: QuickCopaTie[]
+  repescaoLeg?: 0 | 1
+  scorers?: ScorerRow[]             // artilharia DA CHAMPIONS (passa pro quickCopa no mata-mata)
+  assists?: AssistRow[]             // 🅰️ garçons DA CHAMPIONS (andam junto com a artilharia)
+}
+
 export interface LibertaTeam {
   id: number          // humanos/bots da liga mantêm o id deles; os 24 do continente usam 900+
   name: string
@@ -473,6 +502,7 @@ export type Screen =
   | 'reserveList'
   | 'season'
   | 'liberta' // 🌎 fase de grupos da Libertadores (o mata-mata dela roda na 'season')
+  | 'champions' // ⭐ a TABELA ÚNICA de 36 da Champions (o repescão e o mata-mata rodam na 'season')
   | 'end'
   | 'album'
   | 'ranking'
@@ -662,7 +692,7 @@ export interface EscState {
   // pra uma LIBERTADORES DE 32 — eles + os 24 clubes do continente
   // (`LIBERTA_CLUBS`), em 8 grupos de 4. Copa dos 8 e Libertadores nunca rodam
   // juntas: é uma OU a outra, e o seletor da tela reflete isso.
-  copaMode?: 'liga' | 'liga_copa' | 'liga_liberta'
+  copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions'
   ligaFechada?: boolean // 🏆 LIGA FECHADA: sala online só com os humanos, SEM bots na tabela. A liga tem o tamanho da galera (returno duplo); ímpar folga. Copa só destrava com 8+.
   // 📣 (13/09) o dono voltou pra sala de espera NO MEIO DO PREGÃO (antes da 1ª rodada)
   // pra chamar mais gente: a temporada que estava nascendo não aconteceu, então a
@@ -681,6 +711,7 @@ export interface EscState {
   bafoTrocasFeitas?: string[] // 🃏 idempotência do COFRE da carreira: chaves das trocas de Bafo já aplicadas neste save (o servidor já trocou o dono; isto evita tirar/pôr a carta duas vezes no aparelho).
   quickCopa?: QuickCopaState | null
   liberta?: LibertaState | null // 🌎 fase de grupos da Libertadores (o mata-mata dela usa o quickCopa)
+  champions?: ChampionsState | null // ⭐ tabela única de 36 da Champions (repescão + mata-mata usam o quickCopa)
   // 🏀 NBA CUP — a copa do MEIO da temporada do BidLegends (jogo único, 8 times).
   // ⚠️ SLOT PRÓPRIO DE PROPÓSITO. O `quickCopa` acima é o slot ÚNICO do mata-mata de
   // FIM de temporada (Copa dos 8 · Libertadores · playoffs da NBA) e só é semeado se

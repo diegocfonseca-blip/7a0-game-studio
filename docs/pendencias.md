@@ -1,3 +1,57 @@
+## 21/09/2026 — ⭐ CHAMPIONS LEGENDS construída (no ar com selo EM BREVE)
+
+Ele viu o mockup e mandou: *"pode fazer"*, com quatro ordens juntas — e as quatro
+foram cumpridas:
+1. *"N terá nomes europeus pois usarmos usuários de batismos mms por ordem de série
+   a e dps série b C d e várzea q tiver bots na ordem de preferência"* ✅
+2. *"já pode colocar lá juntos das ligas"* ✅
+3. *"organize melhor no modo de criar sala pois estão apertadas demais"* ✅
+4. *"N libere ainda ela pra todos não, coloque um selo de em breve"* ✅
+
+### O formato (real, 2024+)
+**Sem grupo.** 36 numa tabela só = os **8 primeiros da liga** + **28 convidados**;
+cada clube joga **8 adversários diferentes**; **1º-8º** oitavas direto · **9º-24º**
+repescão ida e volta (8 sobem) · **25º-36º** fora. Das oitavas em diante é o motor
+da Copa dos 8 (ida e volta, final única), igual à Liberta.
+
+### Onde mora
+- **`src/escalacao/champions.ts`** (novo) — quem entra, potes, calendário e cortes.
+  Fora do `store.tsx` porque é conta pura e dá pra travar sozinha.
+  · `championsConvidados()` varre a pirâmide **A → B → C → D → Várzea** pondo clube
+    **com DONO na frente** do genérico. Medido: **28 de 28 têm dono**.
+  · `calendarioChampions()` — 8 rodadas × 18 jogos. Cada clube pega 8 adversários de
+    **potes diferentes do seu**, nunca repetindo, **4 em casa e 4 fora**.
+    ⚠️ O mando deu trabalho: alternar por rodada punha um pote inteiro em casa, e o
+    guloso simples deixava 9 com 3 e 9 com 5. O que fecha é um **acerto por
+    CORRENTE** (A manda em B, B em C, e o C é que está devendo — vira os três).
+- **`store.tsx`** — `seedChampions` · `playChampionsRodada` · `playChampionsRepescao`
+  (ida e volta com pênalti no agregado) · ações `START_CHAMPIONS`,
+  `PLAY_CHAMPIONS_RODADA`, `PLAY_CHAMPIONS_REPESCAO`. Zera junto com a Liberta na
+  virada de temporada (é POR TEMPORADA).
+- **`screens.tsx`** — `EscChampions` (tabela INTEIRA dos 36 + tela da espera) e o
+  bannerzão de abertura com as regras, do lado do da Liberta.
+- **`sport.ts`** — `CHAMPIONS_GERAL = false` + `CHAMPIONS_TESTERS`. **Pra liberar
+  geral é só virar pra `true`** — nada mais precisa mudar.
+
+### 🧩 E a tela de criar sala saiu do aperto
+O `Seg` punha tudo numa linha só com `nowrap`; com 4 opções já espremia (e a
+Champions seria a 5ª). Agora, **de 4 opções em diante vira grade de 2 colunas**, e
+no número ímpar a última ocupa a linha toda. **Até 3 continua na linha** — nada do
+que já estava bom mudou. Ganhou também `travados`, que é o que sustenta o selo
+EM BREVE (a opção aparece e não deixa escolher). Mockup antes/depois:
+`node scripts/mockup-criar-sala.mjs`.
+
+### Trava
+**`npm run champions`** — 4 blocos: os convidados (ordem e dono), o calendário (8
+jogos, sem repetir, 4×4 de mando, potes), os cortes/repescão, e uma **competição
+INTEIRA jogada** até sobrar um campeão (16→8→4→2).
+
+### ⏳ Falta (esperando ele)
+1. **Liberar pra todos** (`CHAMPIONS_GERAL = true`) + a linha em `novidades.ts` —
+   🚫 não entra novidade enquanto está EM BREVE, senão anuncia o que ninguém joga.
+2. Ele ainda não disse se o **tamanho** da competição incomoda (8 rodadas +
+   repescão + oitavas + quartas + semi + final é mais longo que a Liberta).
+
 ## 21/09/2026 — ⭐ CHAMPIONS LEGENDS no formato REAL (mockup mandado, esperando ele)
 
 Ele perguntou *"como seria a competição Champions League, igual fizemos da Libertadores
