@@ -3208,10 +3208,12 @@ export function EscLobby() {
                       o motor do leilão não muda em NADA, e a Copa entra por cima na
                       tela de fim de temporada. */}
                   {/* ⭐ A CHAMPIONS ENTRA AQUI, junto das outras ligas (ordem dele:
-                      *"já pode colocar lá juntos das ligas"*) — mas com a tarja
-                      **EM BREVE** e SEM deixar escolher, porque ele pediu pra não
-                      liberar ainda. Quem está em `CHAMPIONS_TESTERS` (a conta dele)
-                      escolhe normal; pro resto é só o aviso de que vem aí.
+                      *"já pode colocar lá juntos das ligas"*) — com a tarja **EM BREVE**,
+                      **meio apagada** e **sem deixar marcar**. Palavras dele (21/09):
+                      *"é selo de em breve mas ninguém pode jogar ele ainda"*. Ou seja:
+                      a vitrine aparece pra todo mundo (é o recado de que vem aí) e o
+                      botão não acende. Só `CHAMPIONS_TESTERS` (a conta dele) abre, pra
+                      ele poder testar antes de soltar.
                       🧩 Com 5 opções o `Seg` vira grade de 2 colunas sozinho — era
                       isso que estava espremido. */}
                   <Seg options={(libertaOn
@@ -3219,7 +3221,7 @@ export function EscLobby() {
                     : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_champions', tr('⭐ Liga + Champions', '⭐ League + Champions')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'liga_champions' | 'liga_mundo' | 'liga', string][]}
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
                     travados={championsOn ? [] : ['liga_champions']}
-                    selos={{ liga_mundo: seloNovo(), liga_champions: championsOn ? seloNovoDe('2026-09-21') : tr('em breve', 'soon') }} />
+                    selos={{ liga_mundo: seloNovo(), liga_champions: tr('em breve', 'soon') }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>

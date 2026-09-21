@@ -37,7 +37,7 @@ const antes = `<div class="seg linha">
   ${botao('📊 Só liga', { borda: 'bl' })}
 </div>`
 
-// ── DEPOIS: 5 opções em grade de 2 (com a Champions e o selo EM BREVE) ──────
+// ── DEPOIS: 5 opções em grade de 2 (com a Champions apagada e o selo EM BREVE) ─
 const depois = `<div class="seg grade">
   ${botao('🏆 Liga + Copa', { escolhido: true, grade: true })}
   ${botao('🌎 Liga + Liberta', { grade: true, borda: 'bl' })}
@@ -88,7 +88,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</st
   <h1>Depois<span>5 opções, grade de 2 colunas</span></h1>
   ${fone('Arrumado', 'De 4 opções em diante vira grade, e no número ímpar a última ocupa a linha toda. Até 3 continua na linha — nada do que já estava bom muda.', depois,
     '🏆 Acabou a liga, os 8 primeiros disputam a Copa dos 8 — ida e volta até a final única.')}
-  <div class="nota">⭐ A <b>Champions</b> entra junto das ligas, com a tarja <b>EM BREVE</b> e <b>sem deixar escolher</b> — só a sua conta joga, como você pediu. Pra abrir pra todo mundo é uma linha só de código.</div>
+  <div class="nota">⭐ A <b>Champions</b> entra junto das ligas, com a tarja <b>EM BREVE</b>, <b>meio apagada</b> e <b>sem deixar marcar</b> — só a sua conta joga, como você pediu. Pra abrir pra todo mundo é uma linha só de código.</div>
 </div>
 </div></body></html>`
 
