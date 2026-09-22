@@ -1,3 +1,14 @@
+## 22/09/2026 — ❌ Erick, Carlos Bianchi e Artur removidos ✅ FEITO
+
+Palavras dele: *"Erick pode remover, e Carlos Bianchi também. Não quero mais eles não.
+Artur do Bragantino também remova"*. Saíram do baralho no mesmo dia em que entraram:
+- ❌ `Erick · Vitória 2026` (era `L33_BR_ATA`)
+- ❌ `Artur · Bragantino 2021` (era `L33_BR_ATA`)
+- ❌ `Carlos Bianchi · Reims 1977` (era `L32_WORLD_ATA`) — a etiqueta de país dele
+  saiu junto do `paises.ts`.
+**Não recriar sem ele pedir.** A home não anunciou nada: a regra de "entrou e saiu no
+mesmo dia" (logo abaixo) engoliu as três. O lote de cartas novas foi de 46 → **43**.
+
 ## 22/09/2026 — 🍷 SÓ EXISTE UM PINGA: o zagueiro do Inter de 1984 ✅ FECHADO
 
 Decisão final dele, depois de eu criar cartas demais: *"remova o Pinga do

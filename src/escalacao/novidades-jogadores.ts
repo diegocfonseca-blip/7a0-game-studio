@@ -76,13 +76,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Erick",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
     "nome": "João Pica",
     "baralho": "EU",
     "nivel": "foi profissional",
@@ -225,13 +218,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Artur",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Allan (Palmeiras)",
     "baralho": "BR",
     "nivel": "promessa",
@@ -318,13 +304,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Claudio Caniggia",
-    "baralho": "MUNDO",
-    "nivel": "craque",
-    "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Carlos Bianchi",
     "baralho": "MUNDO",
     "nivel": "craque",
     "data": "2026-09-22"

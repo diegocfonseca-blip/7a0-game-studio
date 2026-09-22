@@ -463,7 +463,8 @@ export const PAIS: Record<string, string> = {
   'Iván Córdoba': 'Colômbia',
   'Ariel Ortega': 'Argentina', 'Gallardo': 'Argentina',
   'Martín Palermo': 'Argentina', 'Claudio Caniggia': 'Argentina',
-  'Carlos Bianchi': 'Argentina',
+  // (o 'Carlos Bianchi' esteve aqui em 22/09 e saiu junto com a carta dele —
+  //  o Diego mandou tirar: *"Carlos Bianchi também, não quero mais eles não"*.)
   'Michael Essien': 'Gana', 'Thomas Partey': 'Gana', 'Asamoah Gyan': 'Gana',
   'Lakhdar Belloumi': 'Argélia', 'Frédéric Kanouté': 'Mali',
   'Emmanuel Adebayor': 'Togo',

@@ -1569,7 +1569,6 @@ const L33_BR_MEI: C[] = [
   { name: "Magrão (Palmeiras)", club: "Palmeiras", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Volante alto e de passada larga, a melhor fase foi no Palmeiras, onde virou convocado da Seleção em 2004. Venceu um câncer no meio da carreira e ainda foi campeão da Sul-Americana com o Internacional." },
 ]
 const L33_BR_ATA: C[] = [
-  { name: "Artur", club: "Bragantino", year: 2021, fame: 3, lo: 76, hi: 85, bio: "Ponta-direita veloz do Bragantino que encarava o lateral de frente — do Bragantino saiu pro Zenit e depois pro Palmeiras." },
   // 🃏 Os dois abaixo entraram em 22/09 a pedido do Diego, e são o retrato da régua
   //    dele (*"famoso sendo ruim ou bom tanto faz"*): a carta vale pela HISTÓRIA.
   { name: "Sandro Hiroshi", club: "São Paulo", year: 2000, fame: 2, lo: 62, hi: 82, folk: true, bio: "Atacante que chegou ao São Paulo como vice-artilheiro do Paulistão de 99 e fez dupla com o França — e que entrou pra história pelo escândalo do 'gato': descobriram que ele era um ano mais velho do que a certidão dizia." },
@@ -1592,7 +1591,6 @@ const L33_BR_ATA: C[] = [
   //    Santos 1991. Se ele preferir Porto, é só trocar clube/ano nesta linha.
   { name: "Paulinho McLaren", club: "Santos", year: 1991, fame: 3, lo: 76, hi: 86, folk: true, bio: "Artilheiro do Brasileirão de 1991 com 15 gols pelo Santos. Ganhou o apelido comemorando um gol como piloto de Fórmula 1, em homenagem ao Ayrton Senna — uma semana antes de Senna vencer em Interlagos pela McLaren." },
   { name: "Neto Berola", club: "Vitória", year: 2010, fame: 2, lo: 68, hi: 82, bio: "Atacante de arrancada que foi vice-artilheiro do Baiano de 2009 e um dos destaques do Vitória na campanha do vice da Copa do Brasil de 2010. Depois foi campeão da Libertadores com o Atlético-MG." },
-  { name: "Erick", club: "Vitória", year: 2026, fame: 3, lo: 74, hi: 84, bio: "Ponta-direita que virou a contratação mais cara da história do Vitória: foi o destaque do Leão na permanência de 2025 e o clube comprou metade dos direitos dele." },
   { name: "Allan (Palmeiras)", club: "Palmeiras", year: 2026, fame: 3, lo: 70, hi: 83, promessa: true, bio: "Atacante saído da base do Palmeiras — arrancada e finalização de dentro da área, apostado pelo clube pra virar titular." },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA] }
@@ -2648,7 +2646,6 @@ const L32_WORLD_MEI: C[] = [
 const L32_WORLD_ATA: C[] = [
   { name: 'Martín Palermo', club: 'Boca Juniors', year: 2000, fame: 4, lo: 81, hi: 89, folk: true, bio: 'O Louco. Maior artilheiro da história do Boca e campeão do mundo em 2000 — e também o homem que perdeu três pênaltis num único jogo da Copa América.' },
   { name: 'Claudio Caniggia', club: 'Atalanta', year: 1990, fame: 4, lo: 82, hi: 89, folk: true, bio: 'O Filho do Vento. Argentino de velocidade assustadora e cabelo ao vento, fez os gols que tiraram o Brasil e a Itália da Copa de 1990.' },
-  { name: 'Carlos Bianchi', club: 'Reims', year: 1977, fame: 4, lo: 81, hi: 88, bio: 'Antes de ser o treinador lendário do Boca, foi um centroavante argentino implacável na França: quatro vezes artilheiro do campeonato francês.' },
   { name: 'Frédéric Kanouté', club: 'Sevilla', year: 2007, fame: 4, lo: 81, hi: 88, bio: 'Melhor jogador africano de 2007 defendendo o Mali. Atacante alto e técnico, foi o dono do ataque do Sevilla das duas Copas da UEFA seguidas.' },
   { name: 'Emmanuel Adebayor', club: 'Arsenal', year: 2008, fame: 4, lo: 80, hi: 88, bio: 'Togolês de 1,90m com toque de meia, fez 30 gols numa temporada pelo Arsenal e foi eleito o melhor da África em 2008.' },
   { name: 'Asamoah Gyan', club: 'Sunderland', year: 2011, fame: 3, lo: 78, hi: 86, folk: true, bio: 'Maior artilheiro da história de Gana em Copas. Herói de 2010 e, no mesmo torneio, o homem do pênalti perdido nos acréscimos contra o Uruguai.' },
