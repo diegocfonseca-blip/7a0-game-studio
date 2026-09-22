@@ -55,7 +55,8 @@
     "tocaia": "node scripts/video-tocaia-reels.mjs",
     "enigma": "node scripts/mockup-enigma.mjs",
     "enigma-trava": "node scripts/testa-enigma.mjs",
-    "acha": "node scripts/acha-carta.mjs"
+    "acha": "node scripts/acha-carta.mjs",
+    "campeoes": "node scripts/campeoes-do-mundo.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

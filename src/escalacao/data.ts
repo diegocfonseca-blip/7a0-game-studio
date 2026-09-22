@@ -999,7 +999,13 @@ const ATA: C[] = [
   { name: "Reinaldo", club: "Atlético-MG", year: 1977, fame: 5, lo: 88, hi: 94 },
   { name: "Robinho", club: "Santos", year: 2002, fame: 4, lo: 85, hi: 92 },
   { name: "Adriano", club: "Flamengo", year: 2009, fame: 4, lo: 90, hi: 95 },
-  { name: "Edmundo", club: "Vasco", year: 1997, fame: 4, lo: 80, hi: 91, folk: true },
+  // 👑 VIROU LENDA por ordem do Diego (22/09): *"add Edmundo como lenda também, do
+  //    Vasco da época dele"*. A carta JÁ era o Vasco de 1997 — a época certa, a do
+  //    Brasileirão com 29 gols e o prêmio de melhor do campeonato. Então só a
+  //    categoria mudou (craque → lenda) e o nível subiu.
+  //    🃏 O `folk` FICA: a faixa larga (84-93) é a alma da carta do Animal — dia de
+  //    decidir sozinho e dia de ser expulso. Fechar essa faixa seria tirar o que ele é.
+  { name: "Edmundo", club: "Vasco", year: 1997, fame: 5, lo: 84, hi: 93, folk: true },
   { name: "Evair", club: "Palmeiras", year: 1993, fame: 4, lo: 87, hi: 93 },
   { name: "Amoroso", club: "Guarani", year: 1994, fame: 4, lo: 78, hi: 84 },
   { name: "Müller", club: "São Paulo", year: 1991, fame: 4, lo: 79, hi: 84 },
@@ -1492,6 +1498,18 @@ const L33_BR_MEI: C[] = [
 ]
 const L33_BR_ATA: C[] = [
   { name: "Artur", club: "Bragantino", year: 2021, fame: 3, lo: 76, hi: 85, bio: "Ponta-direita veloz do Bragantino que encarava o lateral de frente — do Bragantino saiu pro Zenit e depois pro Palmeiras." },
+  // 🃏 Os dois abaixo entraram em 22/09 a pedido do Diego, e são o retrato da régua
+  //    dele (*"famoso sendo ruim ou bom tanto faz"*): a carta vale pela HISTÓRIA.
+  { name: "Sandro Hiroshi", club: "São Paulo", year: 2000, fame: 2, lo: 62, hi: 82, folk: true, bio: "Atacante que chegou ao São Paulo como vice-artilheiro do Paulistão de 99 e fez dupla com o França — e que entrou pra história pelo escândalo do 'gato': descobriram que ele era um ano mais velho do que a certidão dizia." },
+  // 🖤 LACRAIA — pesquisado a pedido dele (*"Lacraia do Santa Cruz, pesquise também"*).
+  //    Teófilo Batista de Carvalho, estudante de engenharia, foi um dos 11 meninos que
+  //    fundaram o Santa Cruz em 3 de fevereiro de 1914, desenhou o escudo do clube e
+  //    foi o PRIMEIRO JOGADOR NEGRO do futebol de Pernambuco e do Norte-Nordeste. O
+  //    preto do escudo do Santa está lá por causa dele.
+  //    ⚠️ O ano é 1914, o da fundação — é a carta mais antiga do baralho. O nível é
+  //    modesto de propósito: ele é gigante pela história, e não existe estatística de
+  //    jogo de 1914 pra inventar craque. Nada aqui foi chutado; fontes no commit.
+  { name: "Lacraia", club: "Santa Cruz", year: 1914, fame: 2, lo: 62, hi: 82, folk: true, bio: "Teófilo Batista de Carvalho, o Lacraia: um dos 11 fundadores do Santa Cruz em 1914, desenhou o escudo do clube e foi o primeiro jogador negro do futebol pernambucano. O preto do escudo do Santa é por causa dele." },
   { name: "Allan (Palmeiras)", club: "Palmeiras", year: 2026, fame: 3, lo: 70, hi: 83, promessa: true, bio: "Atacante saído da base do Palmeiras — arrancada e finalização de dentro da área, apostado pelo clube pra virar titular." },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA] }

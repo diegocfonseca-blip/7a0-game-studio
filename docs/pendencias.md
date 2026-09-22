@@ -1,3 +1,43 @@
+## 22/09/2026 — 👑 Edmundo LENDA · Sandro Hiroshi · Lacraia · e o mapa dos CAMPEÕES
+
+**Feito:**
+- 👑 **Edmundo virou LENDA** (*"add Edmundo como lenda também, do Vasco da época
+  dele"*). A carta já ERA o Vasco de 1997 — a época certa, a dos 29 gols e do prêmio
+  de melhor do Brasileirão —, então só a categoria mudou (⭐→👑) e o nível foi de
+  80-91 pra **84-93**. 🃏 O `folk` FICOU e a faixa segue larga de propósito: "dia de
+  decidir sozinho, dia de ser expulso" é a alma da carta do Animal.
+- 🆕 **Sandro Hiroshi** (São Paulo 2000, 🎯, 🃏) — chegou ao SPFC como vice-artilheiro
+  do Paulistão de 99 e fez dupla com o França; entrou pra história pelo escândalo do
+  "gato" (era um ano mais velho que a certidão). Nível modesto porque a passagem dele
+  foi de 6 gols em 39 jogos: a fama é a história, não a artilharia.
+- 🖤 **Lacraia** (Santa Cruz **1914**, 🎯, 🃏) — *"pesquise também"*, e valeu a pesquisa:
+  **Teófilo Batista de Carvalho**, estudante de engenharia, foi um dos 11 meninos que
+  fundaram o Santa Cruz em 3/2/1914, **desenhou o escudo** e foi o **primeiro jogador
+  negro do futebol de Pernambuco e do Norte-Nordeste**. O preto do escudo do Santa
+  está lá por causa dele. É a **carta mais antiga do baralho**. Fontes:
+  santacruzpe.com.br/historia e pt.wikipedia.org/wiki/Lacraia_(futebolista).
+  ⚠️ Nada foi chutado — e o nível é modesto porque não existe estatística de 1914 pra
+  inventar craque. Ele é gigante pela história.
+
+🏆 **NASCEU O `npm run campeoes`** (`scripts/campeoes-do-mundo.mjs`), pra responder
+*"me fale campeões do mundo desde 1994 que ainda não estão no jogo"*. Ele guarda as 8
+delegações campeãs (94 BRA · 98 FRA · 02 BRA · 06 ITA · 10 ESP · 14 ALE · 18 FRA · 22
+ARG) e cruza com os três baralhos usando a régua do `npm run acha`.
+**Resultado: 160 campeões já estão no jogo, 27 faltam** — e a Espanha de 2010 está
+**inteira** (23/23). Os 27 (todos conferidos um a um):
+- **1994 🇧🇷 (1)**: Ronaldão
+- **1998 🇫🇷 (4)**: Laurent Blanc · Boghossian · Guivarc'h · Dugarry
+- **2002 🇧🇷 (1)**: Ricardinho
+- **2006 🇮🇹 (5)**: Peruzzi · Oddo · Perrotta · Barone · Iaquinta
+- **2014 🇩🇪 (8)**: Weidenfeller · Mertesacker · Höwedes · Mustafi · Durm · Khedira ·
+  Kramer · Podolski
+- **2018 🇫🇷 (5)**: Areola · Adil Rami · Matuidi · Tolisso · Fekir
+- **2022 🇦🇷 (3)**: Rulli · Nahuel Molina · Exequiel Palacios
+⚠️ **As delegações são escritas à mão no script e podem ter furo** (um reserva
+esquecido). Nome que o Diego citar e não aparecer lá = lista incompleta, não "não foi
+campeão". Quem for completar, edita a lista no próprio arquivo.
+⏳ **Esperando ele dizer quais desses 27 quer** — nenhum foi criado ainda.
+
 ## 22/09/2026 — 🃏 Lote L33 + Koeman e Félix viraram LENDA ✅ FEITO (parte pendente abaixo)
 
 Dois áudios do Diego com uma lista comprida de jogadores. **Feito:**
