@@ -1,4 +1,27 @@
-## 22/09/2026 — 🍷 O Pinga certo era OUTRO (o do Vasco) ✅ FEITO
+## 22/09/2026 — 🍷 SÓ EXISTE UM PINGA: o zagueiro do Inter de 1984 ✅ FECHADO
+
+Decisão final dele, depois de eu criar cartas demais: *"remova o Pinga do
+Corinthians"* e *"deixe apenas o Pinga zagueiro do Internacional de **1984**. Só terá
+ele de Pinga no jogo"*.
+- ❌ **Saiu** `Pinga · Corinthians 1995` (o mesmo zagueiro num 2º auge).
+- ❌ **Saiu** `Pinga (Vasco) · Vasco 1955` (o atacante José Lázaro Robles — outra
+  pessoa). **Não recriar nenhum dos dois sem ele pedir.**
+- 📅 **Ficou** `Pinga · Internacional · 1984` — o ano mudou de 1992 pra 1984 por ordem
+  dele. 84 é a **prata olímpica**, ANTES da lesão que arrebentou o joelho em 87; a bio
+  foi ajustada, porque em 84 a volta por cima ainda não tinha acontecido.
+- 🔑 Mudar o ano muda a CHAVE da carta (`nome|clube|ano`), que amarra histórico de
+  gol/assistência e livro de preços. Aceitável aqui porque a carta de 1992 tinha um
+  dia de ar. Quem for mudar ano de carta VELHA: pensar duas vezes.
+- 🧹 `'Pinga'` saiu do `MESMO_JOGADOR` — com uma carta só, a chave não serve mais.
+
+🫧 **E NASCEU UMA REGRA NOVA DO GERADOR DE NOVIDADES** (`scripts/novidades-jogadores.mjs`):
+**carta que ENTRA e SAI no mesmo dia não vira novidade.** Sem isso, a home ia anunciar
+*"Pinga entrou · Pinga saiu · Pinga saiu · Pinga (Vasco) entrou · Pinga (Vasco) saiu"*
+— cinco linhas sobre cartas que jogador nenhum chegou a ver. É irmã da regra dele de
+16/08 (*"bug nunca vira novidade"*): a home conta o que mudou PRO JOGADOR. O par
+inteiro some, não só metade. Na prática limpou 6 linhas.
+
+## 22/09/2026 — 🍷 (histórico) o Pinga certo era OUTRO (o do Vasco) — REVERTIDO acima
 
 Diego: *"o Pinga que falei foi o meio-campo do Vasco, segundo maior artilheiro atrás
 do Roberto Dinamite"*. Ou seja: **não era o zagueiro** que eu tinha entendido.

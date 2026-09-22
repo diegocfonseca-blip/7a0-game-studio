@@ -6,13 +6,6 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
-    "nome": "Pinga (Vasco)",
-    "baralho": "BR",
-    "nivel": "craque",
-    "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Viáfara",
     "baralho": "BR",
     "nivel": "bom jogador",
@@ -30,13 +23,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "John Lennon",
     "baralho": "BR",
     "nivel": "foi profissional",
-    "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Pinga",
-    "baralho": "BR",
-    "nivel": "bom jogador",
     "data": "2026-09-22"
   },
   {
@@ -397,35 +383,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "João Ricardo",
     "baralho": "BR",
     "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Wesley",
-    "baralho": "BR",
-    "de": "bom jogador",
-    "para": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Varela",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Vanderlan",
-    "baralho": "BR",
-    "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Agustín Giay",
-    "baralho": "BR",
-    "nivel": "promessa",
     "data": "2026-09-20"
   }
 ]

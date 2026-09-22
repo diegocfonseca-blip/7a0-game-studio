@@ -747,7 +747,19 @@ const LAT: C[] = [
 const ZAG: C[] = [
   { name: "Junior Alonso", club: "Atlético-MG", year: 2021, fame: 3, lo: 76, hi: 84 },
   { name: "Cláudio Caçapa", club: "Lyon", year: 2004, fame: 3, lo: 74, hi: 84, bio: "Zagueiro brasileiro sólido e de liderança — capitão e ídolo do Lyon na dinastia multicampeã do futebol francês nos anos 2000." },
-  { name: "Pinga", club: "Internacional", year: 1992, fame: 2, lo: 72, hi: 84, bio: "Zagueiro colorado — titular da defesa do Brasil na final olímpica de 1984 e herói do Internacional campeão da Copa do Brasil de 1992, após voltar de uma grave lesão no joelho." },
+  // 🍷 O ÚNICO PINGA DO JOGO — decisão do Diego (22/09): *"deixe apenas o Pinga
+  //    zagueiro do Internacional de 1984. Só terá ele de Pinga no jogo"*.
+  //    Chegaram a existir mais dois em 22/09 e os dois SAÍRAM por ordem dele: o
+  //    mesmo zagueiro no Corinthians de 95, e o atacante do Vasco dos anos 50 (José
+  //    Lázaro Robles), que é outra pessoa. Não recriar nenhum dos dois sem ele pedir.
+  //    📅 O ANO MUDOU de 1992 pra 1984 a pedido dele — 84 é a prata olímpica, ANTES
+  //    da lesão que arrebentou o joelho dele em 87. A bio foi ajustada pra isso: em
+  //    84 a volta por cima ainda não tinha acontecido.
+  //    ⚠️ Mudar o ano muda a CHAVE da carta (`nome|clube|ano`), que é o que amarra
+  //    histórico de gols/assistências e livro de preços. Save antigo que tivesse a
+  //    carta de 1992 passa a contar como carta diferente — aceitável porque ela tinha
+  //    UM DIA de vida no ar.
+  { name: "Pinga", club: "Internacional", year: 1984, fame: 2, lo: 72, hi: 84, bio: "Zagueiro colorado, titular da defesa do Brasil que ficou com a prata olímpica em 1984. Anos depois voltou de uma lesão que arrebentou todos os ligamentos do joelho e foi campeão da Copa do Brasil pelo Inter." },
   { name: "Domingos", club: "Santos", year: 2007, fame: 1, lo: 55, hi: 78 },
   { name: "Domingos da Guia", club: "Flamengo", year: 1944, fame: 5, lo: 93, hi: 98 },
   { name: "Aldair", club: "Flamengo", year: 1987, fame: 3, lo: 78, hi: 84, promessa: true },
@@ -1523,16 +1535,6 @@ const L33_BR_GOL: C[] = [
 ]
 const L33_BR_ZAG: C[] = [
   { name: "Márcio Santos", club: "Botafogo", year: 1995, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Seleção campeã da Copa de 1994 que viveu a melhor fase no Brasil com a camisa do Botafogo campeão brasileiro de 1995." },
-  // 🔁 2ª CARTA DO PINGA (pedido dele em 22/09: *"Pinga precisa por outro, o que ele
-  //    já tem no jogo"*). É a MESMA PESSOA em dois auges, igual Roberto Firmino
-  //    (Figueirense/Liverpool) — por isso o nome é o MESMO e 'Pinga' entrou em
-  //    MESMO_JOGADOR no paises.ts. A chave da carta é nome|clube|ano, então as duas
-  //    convivem sem embolar o histórico.
-  // ⚠️ E ele é ZAGUEIRO, não meia: Jorge Luís da Silva Brum, prata olímpica em 84,
-  //    voltou de uma lesão que arrebentou todos os ligamentos do joelho em 87 e foi
-  //    peça da Copa do Brasil do Inter em 92 (a carta que já existia) e da do
-  //    Corinthians em 95 (esta).
-  { name: "Pinga", club: "Corinthians", year: 1995, fame: 2, lo: 72, hi: 84, bio: "Gaúcho que voltou de uma lesão que arrebentou todos os ligamentos do joelho e foi campeão da Copa do Brasil duas vezes: com o Internacional em 92 e com o Corinthians em 95." },
   { name: "Marllon", club: "Remo", year: 2026, fame: 3, lo: 74, hi: 84, bio: "Zagueiro e capitão do Remo na Série A de 2026 — jogou todos os minutos do returno. Antes viveu quatro temporadas de referência no Cuiabá e foi bicampeão paulista com o Corinthians." },
 ]
 const L33_BR_LAT: C[] = [
@@ -1580,23 +1582,6 @@ const L33_BR_ATA: C[] = [
   //    modesto de propósito: ele é gigante pela história, e não existe estatística de
   //    jogo de 1914 pra inventar craque. Nada aqui foi chutado; fontes no commit.
   { name: "Lacraia", club: "Santa Cruz", year: 1914, fame: 2, lo: 62, hi: 82, folk: true, bio: "Teófilo Batista de Carvalho, o Lacraia: um dos 11 fundadores do Santa Cruz em 1914, desenhou o escudo do clube e foi o primeiro jogador negro do futebol pernambucano. O preto do escudo do Santa é por causa dele." },
-  // 🍷 PINGA DO VASCO — o que o Diego queria de verdade (22/09): *"o Pinga que falei
-  //    foi o do Vasco, maior artilheiro atrás do Roberto Dinamite"*.
-  //    ⚠️ SÃO TRÊS PINGAS AGORA, e DOIS SÃO PESSOAS DIFERENTES:
-  //      · Pinga (Internacional 1992) e Pinga (Corinthians 1995) = o ZAGUEIRO
-  //        Jorge Luís da Silva Brum, a mesma pessoa em dois auges;
-  //      · Pinga (Vasco) = José Lázaro Robles, ESTE aqui, outra pessoa.
-  //    Por isso este leva o clube no nome. Mexer num não é mexer no outro.
-  //    📚 Quem ele foi: canhota letal, chegou ao Vasco em 1953 depois de virar o
-  //    MAIOR ARTILHEIRO DA HISTÓRIA DA PORTUGUESA. Fez 250 gols pelo Vasco, foi
-  //    eleito o jogador do ano do clube CINCO vezes e artilheiro do time em 55 (34
-  //    gols), 58, 59 e 60 (33 em duas dessas). O auge da carta é 1955, o ano dos 34.
-  //    ⚠️ E DUAS RESSALVAS DE FATO, pra não repassar coisa errada adiante:
-  //      · as fontes o descrevem como ATACANTE/ponta canhoto, não meia — por isso a
-  //        carta é ATA. Se o dono quiser como meia, é trocar de array;
-  //      · nos 250 gols ele é o 4º da história do Vasco (Roberto Dinamite, Romário e
-  //        Ademir vêm na frente), não o 2º. O tamanho dele não muda por isso.
-  { name: "Pinga (Vasco)", club: "Vasco", year: 1955, fame: 4, lo: 82, hi: 90, bio: "Canhota letal dos anos 50: virou o maior artilheiro da história da Portuguesa, chegou ao Vasco em 1953 e fez 250 gols pelo clube. Foi eleito o jogador do ano do Vasco cinco vezes." },
   // 🏎️ PAULINHO McLAREN — pesquisado a fundo. O Diego pediu "do Porto de Portugal",
   //    mas lá foram 16 jogos e 1 gol (1992-93). O AUGE dele é o SANTOS DE 1991: 23
   //    gols no ano, 15 no Brasileirão, ARTILHEIRO do Campeonato Brasileiro. E o

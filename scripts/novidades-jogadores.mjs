@@ -103,10 +103,29 @@ if (existsSync(SAIDA)) {
   const m = readFileSync(SAIDA, 'utf8').match(/export const MUDANCAS_JOGADORES: MudancaJogador\[\] = (\[[\s\S]*?\n\])/)
   if (m) { try { antigas = JSON.parse(m[1].replace(/(\w+):/g, '"$1":').replace(/'/g, '"').replace(/,(\s*[\]}])/g, '$1')) } catch { antigas = [] } }
 }
-const todas = [...mudancas.map(m => ({ ...m, data: hoje })), ...antigas]
+let todas = [...mudancas.map(m => ({ ...m, data: hoje })), ...antigas]
   // guarda no máximo 120 dias e 60 linhas — o resto é história velha
   .filter(m => Date.parse(m.data) >= Date.now() - 120 * 86400000)
   .slice(0, 60)
+
+// ─── 🫧 ENTROU E SAIU NO MESMO DIA = NÃO ACONTECEU ──────────────────────────
+// Achado em 22/09: eu criei duas cartas do Pinga de manhã, o Diego mandou tirar
+// à tarde (*"deixe apenas o Pinga zagueiro do Internacional de 1984"*), e a home
+// ia anunciar "Pinga entrou · Pinga saiu · Pinga saiu · Pinga (Vasco) entrou ·
+// Pinga (Vasco) saiu" — cinco linhas sobre uma carta que jogador nenhum chegou a
+// ver. É irmão da regra do Diego de 16/08 (*"bug nunca vira novidade"*): a home
+// conta o que MUDOU PRO JOGADOR, e carta que nasceu e morreu no mesmo dia não
+// mudou nada pra ninguém.
+// Some o par inteiro (o entrou E o saiu), não só um dos dois.
+const naoAconteceu = new Set()
+for (const m of todas) {
+  if (m.tipo !== 'entrou') continue
+  if (todas.some(o => o.tipo === 'saiu' && o.nome === m.nome && o.baralho === m.baralho && o.data === m.data)) {
+    naoAconteceu.add(`${m.nome}|${m.baralho}|${m.data}`)
+  }
+}
+const sumiram = todas.filter(m => (m.tipo === 'entrou' || m.tipo === 'saiu') && naoAconteceu.has(`${m.nome}|${m.baralho}|${m.data}`)).length
+if (sumiram) todas = todas.filter(m => !((m.tipo === 'entrou' || m.tipo === 'saiu') && naoAconteceu.has(`${m.nome}|${m.baralho}|${m.data}`)))
 
 writeFileSync(SAIDA, `// ⚠️ ARQUIVO GERADO — não edite na mão.
 // Sai do \`npm run novidades\`, que compara o baralho de hoje com a foto em
@@ -123,3 +142,4 @@ console.log(antes
   : `📸 Primeira foto do baralho tirada (${Object.keys(agora).length} cartas). Da próxima vez que alguém mexer, a mudança sai sozinha.`)
 console.log(`   ${SAIDA.replace(raiz + '/', '')} · ${todas.length} linha(s) na home`)
 if (caladas.length) console.log(`   🤫 ${caladas.length} calada(s) de propósito (conserto de bug não vira novidade): ${caladas.map(m => `${m.nome} (${m.tipo})`).join(', ')}`)
+if (sumiram) console.log(`   🫧 ${sumiram} linha(s) sumiram: carta que entrou E saiu no MESMO dia não virou novidade (ninguém chegou a ver)`)
