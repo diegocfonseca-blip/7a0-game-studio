@@ -42,6 +42,14 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   //    dele no banco tem que sair com ESTE par (foi o furo do Manfré, 19 dias com
   //    a cor errada na tela do dono).
   'ericrabelo29@gmail.com': ['#191615', '#CB9D3E'],
+  // 🔵⚫⚪ Grêmio FBPA — PRETO e AZUL, MEDIDOS na camisa que o dono mandou (21/09):
+  // preto 49,5% do manto, azul 25,2%, branco 9,6%. O BRANCO é a 3ª cor
+  // (`MANTO_TRI`), porque o clube é TRICOLOR de verdade e a camisa é listrada
+  // azul/preto com filete branco — mesmo caso do Vidraceiro.
+  // ⚠️ O preto sobe de #06090B pra #141C24 pelo motivo de sempre (ver Futpoint):
+  //    preto de arte escura, na listra fininha, lê como buraco. O tom frio
+  //    (R<G<B) é o medido; só a luz subiu.
+  'danieldias11@gmail.com': ['#141C24', '#0B6397'],
   // 📍 Futpoint FC — PRETO e DOURADO. O manto dele vivia só na lista pública
   // (`batismos.ts`), e por isso o `npm run batismos` cobrava "manto medido" desde
   // sempre: aqui a chave é o E-MAIL, e é esta lista que decora a tela do PRÓPRIO
@@ -228,6 +236,7 @@ const MANTO_TRI: Record<string, string> = {
   galo: '#C5A373', // 🐓🌙 Nightfull FC (guilhermevictor539) — 3ª cor DOURADA: a gola, os punhos e os filetes da camisa (medida na arte NOVA dele, 16/09). ⚠️ chave `galo` mesmo — é a que está no banco; não confundir com `brigadegalo_galo`, que é outro clube
   brigadegalo_galo: '#A38758', // 🐓 Briga de Galo FC (pedrovianacarneiroq) — 3ª cor DOURADA: a coroa, o "FC" e o BDG da camisa (medida na arte dele, 08/09)
   finalboss_touro: '#FFFFFF', // 🐂 Final Boss FC (gustavo99828) — 3ª cor BRANCA: a camisa é branca com faixa vermelha e preta (medidas na arte dele, 05/09)
+  gremio_gaucho: '#EDECEB', // 🔵⚫⚪ Grêmio FBPA (danieldias11) — 3ª cor BRANCA: o filete entre as listras azul e preta (medida na camisa dele, 21/09)
   lluch_menino: '#FFFFFF', // 🏠 Esqueceram do Lluch FC — 3ª cor BRANCA: o manto é TRICOLOR listrado à moda São Paulo (vermelho/preto/branco), como o Diego corrigiu em 28/08
 }
 export function meuMantoC3(): string | null {

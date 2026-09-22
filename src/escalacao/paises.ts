@@ -455,6 +455,26 @@ export const PAIS: Record<string, string> = {
   'Dumfries': 'Holanda', 'Frimpong': 'Holanda', 'Pedro Porro': 'Espanha',
   'Aït-Nouri': 'Argélia', 'Vanderson': 'Brasil', 'Álvaro Carreras': 'Espanha',
   'Milos Kerkez': 'Hungria', // (Yan Couto já estava etiquetado mais acima)
+  // ─── L32 · os 14 famosos que faltavam no baralho MUNDO (escolha do Diego, 21/09) ──
+  // ⚠️ Carta do MUNDO sem etiqueta aqui fica FORA de toda Copa (o `paisDe` devolve
+  // '??' e o '??' nunca vira seleção). Então nacionalidade é passo obrigatório de
+  // carta nova — é o que o `npm run paises` cobra.
+  'Bono': 'Marrocos', 'Serge Aurier': 'Costa do Marfim',
+  'Iván Córdoba': 'Colômbia',
+  'Ariel Ortega': 'Argentina', 'Gallardo': 'Argentina',
+  'Martín Palermo': 'Argentina', 'Claudio Caniggia': 'Argentina',
+  // (o 'Carlos Bianchi' esteve aqui em 22/09 e saiu junto com a carta dele —
+  //  o Diego mandou tirar: *"Carlos Bianchi também, não quero mais eles não"*.)
+  'Michael Essien': 'Gana', 'Thomas Partey': 'Gana', 'Asamoah Gyan': 'Gana',
+  'Lakhdar Belloumi': 'Argélia', 'Frédéric Kanouté': 'Mali',
+  'Emmanuel Adebayor': 'Togo',
+  // ─── L33 · lote de 22/09 ─────────────────────────────────────────────────────
+  'Ronald Koeman Jr': 'Holanda', // 🇳🇱 igual ao pai (que já estava etiquetado)
+  'João Pica': 'Portugal', 'Yaya Banana': 'Camarões',
+  // ─── L34 · campeões do mundo escolhidos pelo Diego (22/09) ───────────────────
+  'Sami Khedira': 'Alemanha', 'Per Mertesacker': 'Alemanha', 'Lukas Podolski': 'Alemanha',
+  'Blaise Matuidi': 'França', 'Corentin Tolisso': 'França', 'Nabil Fekir': 'França',
+  'Exequiel Palacios': 'Argentina',
 }
 
 export type Baralho = 'BR' | 'EU' | 'WORLD'
@@ -542,6 +562,14 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   'Agustín Giay|Palmeiras|2025': 'Argentina',
   'Varela|Flamengo|2025': 'Uruguai',
   'Bastos|Botafogo|2024': 'Angola',
+  // ─── 🇺🇾🇨🇴🇦🇷 estrangeiros da leva 33 (22/09) que jogam/jogaram no BRASIL.
+  //     Sem esta etiqueta eles virariam BRASIL na Copa, porque o padrão do baralho
+  //     BR é Brasil — e baralho não é nacionalidade (regra dele de 28/08).
+  'Puma Rodríguez|Vasco|2024': 'Uruguai',
+  'Carrascal|Flamengo|2025': 'Colômbia',
+  'Lucho Acosta|Fluminense|2025': 'Argentina',
+  'Álvaro Montoro|Botafogo|2025': 'Argentina',
+  'Viáfara|Vitória|2010': 'Colômbia',
 }
 
 /**
@@ -575,6 +603,9 @@ export const MESMO_JOGADOR = new Set<string>([
   // Figueirense 2010 (promessa) e Liverpool 2019 — o mesmo cara em dois auges.
   'Roberto Firmino',
   'Andreas Pereira', // Flamengo 2022 e Palmeiras 2026 — o mesmo cara em dois clubes
+  // (Em 22/09 o 'Pinga' esteve aqui por algumas horas, quando existiam três cartas
+  //  com esse apelido. O Diego mandou deixar SÓ o zagueiro do Internacional de 1984,
+  //  então sobrou uma carta só e a chave não é mais necessária.)
   // ⚠️ 'Alex' é a EXCEÇÃO desta lista: são duas PESSOAS diferentes (o meia do
   // Cruzeiro e o zagueiro do Chelsea). Está aqui só pra calar o aviso do
   // `npm run paises`, e os dois estão escritos carta a carta em PAIS_POR_CARTA.

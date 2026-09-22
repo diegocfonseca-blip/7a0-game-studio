@@ -11594,7 +11594,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // Agora o que é da sala é lido UMA vez (logo abaixo) e vai junto em todo save.
       // Repare na ordem: a identidade entra primeiro e o `mode` da carreira, que é
       // calculado, tem a palavra final.
-      const payload = { ...sanitize(st), ...salaFixaRef.current, __game: 'escalacao', __hostTab: tabIdRef.current, __hostClaimAt: hostClaimAtRef.current, formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
+      // 🛟 SALA ANTIGA: antes de `deckSala` existir, a escolha Europa/Mundo era
+      // apagada quando `deck` virava o objeto de cartas. O estado da PARTIDA,
+      // porém, já guarda a escolha separada em `deckLeague` — inclusive no save
+      // restaurado após F5. Regravar essa escolha aqui recupera a sala antiga no
+      // primeiro save do host e impede que a próxima temporada caia em Brasil.
+      // Não toca no pregão atual: é só a identidade da sala para a PRÓXIMA largada.
+      const deckSala = st.sport !== 'basquete' && ['br', 'eu', 'both', 'todos'].includes(st.deckLeague)
+        ? st.deckLeague : undefined
+      const payload = { ...sanitize(st), ...salaFixaRef.current, ...(deckSala ? { deckSala } : {}), __game: 'escalacao', __hostTab: tabIdRef.current, __hostClaimAt: hostClaimAtRef.current, formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a

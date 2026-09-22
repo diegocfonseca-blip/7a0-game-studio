@@ -68,6 +68,7 @@ import bigaoEscudoImg from './img/bigao-escudo.webp'
 import futpointEscudoImg from './img/futpoint-escudo.webp'
 import marrecoEscudoImg from './img/marreco-escudo.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
 import panteraEscudoImg from './img/pantera-escudo.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
+import gremioEscudoImg from './img/gremio-escudo.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
 import ferrariEscudoImg from './img/ferrari-escudo.webp' // 🏎️ Ferrari SC (adriano): arte própria do dono
 import manfreEscudoImg from './img/manfre-escudo.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 import { newestTeamName } from './data' // 🔁 nome ATUAL a partir de um nome VELHO (batismo)
@@ -570,6 +571,17 @@ const bigaoEscudoRender = (size: number) => (
 //    verde com CINCO peças (escudo, mascote, camisa, plaquinha e balão de fala):
 //    as peças são escolhidas por POSIÇÃO no eixo X, não por tamanho, senão a
 //    plaquinha entrava no lugar da camisa.
+// 🔵⚫⚪ GRÊMIO FBPA (danieldias11, batismo de 21/09) — Série A.
+// 📏 270×360, 29,7 KB — largura pela PROPORÇÃO REAL do arquivo.
+// ✂️ `scripts/recorta-prancha-gremio.py` + `scripts/tira-chroma-gremio.py`:
+//    o manto do gaúcho é RASGADO (bordas em tiras) e o chroma verde ficava
+//    preso nos rasgos, na pena do chapéu e nos vãos da luva. Aqui dá pra caçar
+//    verde por COR porque o clube é azul/preto/branco — não tem verde nenhum no
+//    desenho. (Em clube que TEM verde isso comeria a arte; ver Pesadelo Verde.)
+const gremioEscudoRender = (size: number) => (
+  <img src={gremioEscudoImg} height={size} width={Math.round(size * 270 / 360)} alt="Grêmio FBPA" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const panteraEscudoRender = (size: number) => (
   <img src={panteraEscudoImg} height={size} width={Math.round(size * 292 / 360)} alt="Pantera Negra FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1182,6 +1194,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🐆👑 Pantera Negra FC (ericrabelo29) — BATISMO. As 4 formas do nome (regra
   // de 20/08) + o nome VELHO: save antigo abre como Miúdo EC e o `OLD_NAME` do
   // data.ts vira o clube pra Pantera Negra ao carregar.
+  // 🔵⚫⚪ Grêmio FBPA (danieldias11) — BATISMO. As 4 formas do nome (regra 20/08).
+  'Grêmio FBPA': gremioEscudoRender,
+  'Gremio FBPA': gremioEscudoRender,
+  'Grêmio FBPA FC': gremioEscudoRender,
+  'Grêmio FBPA EC': gremioEscudoRender,
   'Pantera Negra FC': panteraEscudoRender,
   'Pantera Negra': panteraEscudoRender,
   'Pantera Negra EC': panteraEscudoRender,

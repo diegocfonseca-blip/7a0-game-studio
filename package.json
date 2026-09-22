@@ -54,7 +54,10 @@
     "relogio": "node scripts/testa-relogio.mjs",
     "tocaia": "node scripts/video-tocaia-reels.mjs",
     "enigma": "node scripts/mockup-enigma.mjs",
-    "enigma-trava": "node scripts/testa-enigma.mjs"
+    "enigma-trava": "node scripts/testa-enigma.mjs",
+    "acha": "node scripts/acha-carta.mjs",
+    "campeoes": "node scripts/campeoes-do-mundo.mjs",
+    "cartas-novas": "node scripts/mockup-cartas-novas.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

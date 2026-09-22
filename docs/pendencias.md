@@ -33,6 +33,353 @@ ninguém lê. Não precisa migração — e o valor que a carta já tinha no LIV
 ✅ Travas rodadas: `npm run artilharia` · `melhor` · `fim` · `roteiro` · `monte` ·
 `agencia` — todas verdes, e o `npm run build` fechou.
 
+## 22/09/2026 — ❌ Erick, Carlos Bianchi e Artur removidos ✅ FEITO
+
+Palavras dele: *"Erick pode remover, e Carlos Bianchi também. Não quero mais eles não.
+Artur do Bragantino também remova"*. Saíram do baralho no mesmo dia em que entraram:
+- ❌ `Erick · Vitória 2026` (era `L33_BR_ATA`)
+- ❌ `Artur · Bragantino 2021` (era `L33_BR_ATA`)
+- ❌ `Carlos Bianchi · Reims 1977` (era `L32_WORLD_ATA`) — a etiqueta de país dele
+  saiu junto do `paises.ts`.
+**Não recriar sem ele pedir.** A home não anunciou nada: a regra de "entrou e saiu no
+mesmo dia" (logo abaixo) engoliu as três. O lote de cartas novas foi de 46 → **43**.
+
+## 22/09/2026 — 🍷 SÓ EXISTE UM PINGA: o zagueiro do Inter de 1984 ✅ FECHADO
+
+Decisão final dele, depois de eu criar cartas demais: *"remova o Pinga do
+Corinthians"* e *"deixe apenas o Pinga zagueiro do Internacional de **1984**. Só terá
+ele de Pinga no jogo"*.
+- ❌ **Saiu** `Pinga · Corinthians 1995` (o mesmo zagueiro num 2º auge).
+- ❌ **Saiu** `Pinga (Vasco) · Vasco 1955` (o atacante José Lázaro Robles — outra
+  pessoa). **Não recriar nenhum dos dois sem ele pedir.**
+- 📅 **Ficou** `Pinga · Internacional · 1984` — o ano mudou de 1992 pra 1984 por ordem
+  dele. 84 é a **prata olímpica**, ANTES da lesão que arrebentou o joelho em 87; a bio
+  foi ajustada, porque em 84 a volta por cima ainda não tinha acontecido.
+- 🔑 Mudar o ano muda a CHAVE da carta (`nome|clube|ano`), que amarra histórico de
+  gol/assistência e livro de preços. Aceitável aqui porque a carta de 1992 tinha um
+  dia de ar. Quem for mudar ano de carta VELHA: pensar duas vezes.
+- 🧹 `'Pinga'` saiu do `MESMO_JOGADOR` — com uma carta só, a chave não serve mais.
+
+🫧 **E NASCEU UMA REGRA NOVA DO GERADOR DE NOVIDADES** (`scripts/novidades-jogadores.mjs`):
+**carta que ENTRA e SAI no mesmo dia não vira novidade.** Sem isso, a home ia anunciar
+*"Pinga entrou · Pinga saiu · Pinga saiu · Pinga (Vasco) entrou · Pinga (Vasco) saiu"*
+— cinco linhas sobre cartas que jogador nenhum chegou a ver. É irmã da regra dele de
+16/08 (*"bug nunca vira novidade"*): a home conta o que mudou PRO JOGADOR. O par
+inteiro some, não só metade. Na prática limpou 6 linhas.
+
+## 22/09/2026 — 🍷 (histórico) o Pinga certo era OUTRO (o do Vasco) — REVERTIDO acima
+
+Diego: *"o Pinga que falei foi o meio-campo do Vasco, segundo maior artilheiro atrás
+do Roberto Dinamite"*. Ou seja: **não era o zagueiro** que eu tinha entendido.
+
+⚠️ **AGORA SÃO TRÊS CARTAS "PINGA" E DUAS PESSOAS DIFERENTES** — quem mexer numa não
+está mexendo na outra:
+- **Pinga** · Internacional 1992 · ZAG · e **Pinga** · Corinthians 1995 · ZAG →
+  **a mesma pessoa**, Jorge Luís da Silva Brum, campeão da Copa do Brasil com os dois.
+  (`'Pinga'` está em `MESMO_JOGADOR`.)
+- **Pinga (Vasco)** · Vasco 1955 · ATA → **outra pessoa**, José Lázaro Robles. Leva o
+  clube no nome de propósito, pra NÃO cair na chave do MESMO_JOGADOR.
+
+📚 **Quem é o do Vasco**: canhota letal dos anos 50. Virou o **maior artilheiro da
+história da Portuguesa**, chegou ao Vasco em 1953 e fez **250 gols** pelo clube. Foi
+eleito **jogador do ano do Vasco cinco vezes** e artilheiro do time em 55 (34 gols),
+58, 59 e 60. O auge da carta é **1955**.
+
+⚠️ **Duas correções de fato que eu devo ao Diego, e que ficam aqui pra não se
+perderem:**
+1. As fontes o descrevem como **atacante/ponta canhoto**, não meia — por isso a carta
+   nasceu em ATA. Se ele quiser como meia, é trocar de array, uma linha.
+2. Com 250 gols ele é o **4º** artilheiro da história do Vasco (Roberto Dinamite 708,
+   depois Romário e Ademir), não o 2º. Não muda o tamanho dele; muda o que a gente
+   escreve em post.
+
+❓ **Esperando ele decidir**: a carta **Pinga (Corinthians 1995)**, do zagueiro, nasceu
+do meu mal-entendido. Ela é real e legítima (ele foi campeão da Copa do Brasil de 95
+ali), então eu **não removi por conta própria** — tirar carta mexe em save de gente.
+Se ele quiser fora, é um `git revert` daquela linha.
+
+## 22/09/2026 — 🔍 Os 12 pesquisados a fundo + 9 campeões (lotes L33 e L34) ✅ FEITO
+
+Diego: *"não sei quem são, então pesquise MAS A FUNDO até descobrir"*. Pesquisei um
+por um (fontes no commit) e as 12 cartas saíram. Nenhuma foi chutada.
+
+| carta | quem é, de verdade |
+|---|---|
+| **Douglas Franklin** · Bahia 1976 · 🎯 | Ídolo do HEPTA baiano (73-79): 184 gols em 456 jogos, **2º maior artilheiro da história do Bahia** e líder de assistências. Formado no Santos, companheiro de Pelé no Brasileiro de 68. Morreu em 9/8/2026. |
+| **Viáfara** · Vitória 2010 · 🎯🃏 | Julián Viáfara, goleiro **colombiano**, tricampeão baiano (08-09-10) e peça do vice da Copa do Brasil de 2010 — **batia pênalti**, o que fez a torcida amar ele. |
+| **Paulinho McLaren** · Santos **1991** · 🎯🃏 | ⚠️ O Diego pediu "do Porto", mas lá foram **16 jogos e 1 gol**. O auge é o Santos de 91: 23 gols no ano, 15 no Brasileirão, **artilheiro do Campeonato Brasileiro**. E o apelido nasceu ali — comemorou um gol (contra o Vitória!) imitando piloto de F-1 em homenagem ao Senna, uma semana antes do Senna vencer em Interlagos pela McLaren. Regra do baralho é "toda carta é o AUGE", então ficou Santos. Trocar é uma linha. |
+| **Esquerdinha** · Vitória 1997 · 🎯 | José Marcelo Januário de Araújo. **Eleito pela torcida o melhor lateral-esquerdo da história do Vitória** (2017), tricampeão baiano, bicampeão do Nordeste — saiu do Leão pro Porto e foi campeão do penta português. Morreu em 2018, aos 46, de infarto numa pelada. |
+| **John Lennon** · Cruzeiro 2017 · 🪵🃏 | John Lennon Silva Santos, goiano, lateral-direito. Cruzeiro em 2017 = **7 jogos e rescisão**; depois rodou Botafogo, CSA, Vila Nova, Juventude, Ypiranga. Exatamente a categoria que ele pediu. Escrito **John**, é como ele assina. |
+| **Erick** · Vitória 2026 · 🎯 | Erick de Arruda Serafim, ponta-direita. Destaque da permanência de 2025 e a **contratação mais cara da história do Vitória** (R$ 7 mi por 50%). |
+| **Yaya Banana** · Olympiacos 2018 · 🎯🃏 | Zagueiro camaronês de Maroua: ES Tunis, Sochaux, Platanias e **Olympiacos** (o maior clube dele, e o auge da carta). |
+| **João Pica** · Académico de Viseu 2019 · 🪵🃏 | Zagueiro português de Moura, 1,85m, 337 jogos na carreira. Quatro temporadas e meia no Viseu, parou aos 35 e foi pra formação do clube. |
+| **Neto Berola** · Vitória 2010 · 🎯 | Vice-artilheiro do Baiano de 2009 e destaque do vice da Copa do Brasil de 2010. (O auge absoluto dele foi o Atlético-MG — 13 gols em 2011, Libertadores em 2013 —, mas o Diego pediu a carta do Vitória.) |
+| **Magrão (Palmeiras)** · Palmeiras 2004 · 🎯 | Márcio Rodrigues, volante alto. Melhor fase no Palmeiras (2000-05, 229 jogos), **convocado pra Seleção em 2004 e 2005**; depois Sul-Americana de 2008 com o Inter. Venceu um câncer no meio da carreira. ⚠️ **NÃO é o Magrão goleiro do Sport**, que FICOU no jogo — ordem dele: *"não remova o goleiro, são cartas diferentes"*. Leva o clube no nome pra ninguém confundir. |
+| **Marllon** · Remo 2026 · 🎯 | ⚠️ O nome é **Marllon**, com dois L — então não bateu com o Marlon Freitas e não precisou de sufixo. Zagueiro e **capitão do Remo na Série A de 2026**, jogou todos os 1.620 minutos das 18 primeiras rodadas. Antes: Cuiabá (4 temporadas), bicampeão paulista no Corinthians. |
+| **Pinga** · Corinthians 1995 · 🎯 | ⚠️ Ele **É ZAGUEIRO**, não meia — Jorge Luís da Silva Brum, prata olímpica em 84. A carta que já existia (Inter 1992) está certa; esta é a **2ª carta do mesmo cara**, a da Copa do Brasil de 95 com o Corinthians. Mesmo nome nas duas + `'Pinga'` em `MESMO_JOGADOR`, igual ao Roberto Firmino (Figueirense/Liverpool). |
+
+🏆 **E 9 CAMPEÕES DO MUNDO** (`L34_*`), escolha dele na lista do `npm run campeoes`:
+Ronaldão (São Paulo 1993 — **foi campeão em 94 sem jogar um minuto**, entrou no lugar
+do Ricardo Gomes cortado na véspera) · Ricardinho (Corinthians 2000) · Khedira (Real
+Madrid 2014) · Matuidi (PSG 2015) · Tolisso (Bayern 2020) · Fekir (Lyon 2018) ·
+Exequiel Palacios (Leverkusen 2024) · Podolski (Colônia 2006, ⭐) · Mertesacker
+(Arsenal 2015).
+📊 **Os campeões foram de 160 → 169 no jogo; faltam 18.** E agora o **Brasil de 2002
+está INTEIRO** (23/23), junto com a Espanha de 2010. Ainda faltam: 🇮🇹 06 (Peruzzi,
+Oddo, Perrotta, Barone, Iaquinta) · 🇩🇪 14 (Weidenfeller, Höwedes, Mustafi, Durm,
+Kramer) · 🇫🇷 18 (Areola, Adil Rami) · 🇦🇷 22 (Rulli, Nahuel Molina) · 🇫🇷 98 (Laurent
+Blanc, Boghossian, Guivarc'h, Dugarry).
+
+↩️ **Reverter**: `git revert` do commit tira as 21 cartas e nada mais.
+
+## 22/09/2026 — 👑 Edmundo LENDA · Sandro Hiroshi · Lacraia · e o mapa dos CAMPEÕES
+
+**Feito:**
+- 👑 **Edmundo virou LENDA** (*"add Edmundo como lenda também, do Vasco da época
+  dele"*). A carta já ERA o Vasco de 1997 — a época certa, a dos 29 gols e do prêmio
+  de melhor do Brasileirão —, então só a categoria mudou (⭐→👑) e o nível foi de
+  80-91 pra **84-93**. 🃏 O `folk` FICOU e a faixa segue larga de propósito: "dia de
+  decidir sozinho, dia de ser expulso" é a alma da carta do Animal.
+- 🆕 **Sandro Hiroshi** (São Paulo 2000, 🎯, 🃏) — chegou ao SPFC como vice-artilheiro
+  do Paulistão de 99 e fez dupla com o França; entrou pra história pelo escândalo do
+  "gato" (era um ano mais velho que a certidão). Nível modesto porque a passagem dele
+  foi de 6 gols em 39 jogos: a fama é a história, não a artilharia.
+- 🖤 **Lacraia** (Santa Cruz **1914**, 🎯, 🃏) — *"pesquise também"*, e valeu a pesquisa:
+  **Teófilo Batista de Carvalho**, estudante de engenharia, foi um dos 11 meninos que
+  fundaram o Santa Cruz em 3/2/1914, **desenhou o escudo** e foi o **primeiro jogador
+  negro do futebol de Pernambuco e do Norte-Nordeste**. O preto do escudo do Santa
+  está lá por causa dele. É a **carta mais antiga do baralho**. Fontes:
+  santacruzpe.com.br/historia e pt.wikipedia.org/wiki/Lacraia_(futebolista).
+  ⚠️ Nada foi chutado — e o nível é modesto porque não existe estatística de 1914 pra
+  inventar craque. Ele é gigante pela história.
+
+🏆 **NASCEU O `npm run campeoes`** (`scripts/campeoes-do-mundo.mjs`), pra responder
+*"me fale campeões do mundo desde 1994 que ainda não estão no jogo"*. Ele guarda as 8
+delegações campeãs (94 BRA · 98 FRA · 02 BRA · 06 ITA · 10 ESP · 14 ALE · 18 FRA · 22
+ARG) e cruza com os três baralhos usando a régua do `npm run acha`.
+**Resultado: 160 campeões já estão no jogo, 27 faltam** — e a Espanha de 2010 está
+**inteira** (23/23). Os 27 (todos conferidos um a um):
+- **1994 🇧🇷 (1)**: Ronaldão
+- **1998 🇫🇷 (4)**: Laurent Blanc · Boghossian · Guivarc'h · Dugarry
+- **2002 🇧🇷 (1)**: Ricardinho
+- **2006 🇮🇹 (5)**: Peruzzi · Oddo · Perrotta · Barone · Iaquinta
+- **2014 🇩🇪 (8)**: Weidenfeller · Mertesacker · Höwedes · Mustafi · Durm · Khedira ·
+  Kramer · Podolski
+- **2018 🇫🇷 (5)**: Areola · Adil Rami · Matuidi · Tolisso · Fekir
+- **2022 🇦🇷 (3)**: Rulli · Nahuel Molina · Exequiel Palacios
+⚠️ **As delegações são escritas à mão no script e podem ter furo** (um reserva
+esquecido). Nome que o Diego citar e não aparecer lá = lista incompleta, não "não foi
+campeão". Quem for completar, edita a lista no próprio arquivo.
+⏳ **Esperando ele dizer quais desses 27 quer** — nenhum foi criado ainda.
+
+## 22/09/2026 — 🃏 Lote L33 + Koeman e Félix viraram LENDA ✅ FEITO (parte pendente abaixo)
+
+Dois áudios do Diego com uma lista comprida de jogadores. **Feito:**
+- 👑 **Ronald Koeman virou LENDA** (*"além desse Koeman zagueiro, quero que vire
+  lenda"*) — fame 4→5, nível 83-89 → **86-92**.
+- 👑 **Goleiro Félix virou LENDA** (*"coloque goleiro Félix como lenda também, já que
+  hoje acho que ele tá craque ainda"*) — fame 4→5, nível 80-84 → **84-89**. ⚠️ O nível
+  subiu POUCO de propósito: a lenda dele é histórica (goleiro do tri de 70), e inflar
+  o nível mudaria resultado de jogo — ele pediu a categoria, não a força.
+- 🆕 **10 cartas novas** (`L33_BR_*` e uma no `L31_EU_GOL`): Ronald Koeman Jr (Oostende
+  2019, 🪵 foi profissional, 🃏 — a fama é o sobrenome) · Claudinho (Bragantino 2021,
+  ⭐) · Carrascal (Flamengo 2025, ⭐) · Lucho Acosta (Fluminense 2025, 🎯) · Maicon
+  (Grêmio) (Grêmio 2017, 🎯) · Álvaro Montoro (Botafogo 2025, 💎) · Artur (Bragantino
+  2021, 🎯) · Allan (Palmeiras) (Palmeiras 2026, 💎) · Márcio Santos (Botafogo 1995,
+  🎯) · Puma Rodríguez (Vasco 2024, 🎯).
+- ⚠️ **NOME REPETIDO**: "Maicon (Grêmio)" e "Allan (Palmeiras)" levam o clube no nome
+  porque já existiam Maicon (lateral) e Allan Delon. Nome igual emboladaria o
+  histórico por carta (chave `nome|clube|ano`). Mesmo caminho do "Vitor Roque
+  (Barcelona)".
+
+**JÁ ESTAVAM (respondendo o que ele perguntou):** Magno Alves (Ceará 2010) · Edu
+Dracena (Santos 2011) · Chicão (Corinthians 2009) · Gatito Fernández (Botafogo 2017 —
+ele falou "Garoto Fernandez") · Vitor Roque (Athletico-PR 2023, já como 💎) · Marlon
+Freitas (Botafogo 2024).
+
+🔎 **NASCEU O `npm run acha`** (`scripts/acha-carta.mjs`), por causa de DOIS erros meus
+no mesmo dia montando lista de carta nova:
+1. comparei **nome inteiro** e disse que 82 nomes faltavam — 5 já estavam, porque no
+   baralho eles vivem só pelo APELIDO (Figueroa, Asprilla, Tevez, Guerrero, Rincón);
+2. refiz por sobrenome mas **li a saída com `tail`** — e mandei pro Diego o
+   **Chicharito** (Man United 2011) e o **Rafael Márquez** (lá é "Rafa Márquez",
+   Barcelona 2006) como faltando, quando os dois estavam.
+A ferramenta compara PALAVRA INTEIRA, separa achado forte (apelido igual) de fraco (só
+o primeiro nome) e **nunca corta linha**. Quem for montar lista de carta nova: rode
+ela primeiro, e não leia com `tail`.
+
+⏳ **PENDENTE — 12 nomes esperando o Diego, pela regra dele de 18/08** (*"qd vc N souber
+qm é a pessoa é como é me fala pow"*). Não inventei nenhum:
+- **Não sei quem é / não tenho referência**: Douglas Franklin (meio do Bahia) ·
+  goleiro Viáfara (Vitória) · Paulinho McLaren (Porto) · João Pica (zagueiro
+  português) · Esquerdinha (lateral-esquerdo do Vitória, não sei a época) · Jhon
+  Lennon (lateral-direito, 🪵 — falta clube e ano) · Erick (Vitória — falta posição e
+  época) · Yaya Banana (zagueiro camaronês — sei quem é, não sei o clube do auge).
+- **Existe carta com esse apelido, mas é OUTRA pessoa — preciso que ele confirme**:
+  **Pinga** (o do baralho é ZAGUEIRO do Internacional 1992; ele falou de um MEIA) ·
+  **Magrão** (o do baralho é o GOLEIRO do Sport 2008; ele falou de um meia do
+  Internacional e do Palmeiras) · **Marlon do Remo 2026** (o do baralho é o Marlon
+  Freitas do Botafogo) · **Neto Berola** (não está no jogo; sei quem é, não sei o ano
+  dele no Vitória).
+
+↩️ **Reverter**: `git revert` do commit devolve tudo, inclusive o Koeman e o Félix
+pra craque.
+
+## 22/09/2026 — 🌍 14 famosos novos no baralho MUNDO (lote L32) ✅ FEITO
+
+Diego: *"acho que tem poucas cartas no baralho mundo… precisa de bem mais. Só que
+tem que ser famoso, sendo ruim ou bom tanto faz, e qualquer posição. Me manda aí os
+faltantes que não poderiam faltar"*. Eu cruzei 153 nomes com os três baralhos, mandei
+a lista, e ele escolheu 14 na mão: *"add esse com categoria, nível, ano e clube auge"*.
+
+**Quem entrou** (`L32_WORLD_*` em `data.ts`): 🧤 Bono (Sevilla 23) · ↔️ Serge Aurier
+(PSG 16) · 🛡️ Iván Córdoba (Inter 10) · 🎩 Ariel Ortega e Gallardo (River 97),
+Michael Essien (Chelsea 07), Thomas Partey (Atlético 20), Lakhdar Belloumi (GCR
+Mascara 82) · ⚡ Martín Palermo (Boca 00), Claudio Caniggia (Atalanta 90), Carlos
+Bianchi (Reims 77), Frédéric Kanouté (Sevilla 07), Emmanuel Adebayor (Arsenal 08),
+Asamoah Gyan (Sunderland 11).
+O baralho Mundo foi de **178 → 192 cartas** e de 16 → **25 craques** (as 5 lendas
+seguem as mesmas). Gana ganhou 3 cartas, Togo estreia com 1, Mali vai a 2.
+
+⚠️ **A LIÇÃO QUE VALE PRA TODA CARTA NOVA: conferir pelo SOBRENOME, não só pelo nome
+inteiro.** Minha primeira checagem (nome inteiro, normalizado) disse que 82 nomes
+faltavam. A segunda, por sobrenome, pegou **5 que JÁ EXISTEM** com a carta brasileira
+deles e que eu quase mandei de novo: **Elías Figueroa** (Internacional 76),
+**Asprilla** (Palmeiras), **Tevez** (Corinthians), **Guerrero** (Corinthians) e
+**Freddy Rincón** (Corinthians). No baralho eles estão só pelo sobrenome, então
+comparar nome inteiro nunca acha.
+
+📏 **Nível calibrado pelas cartas que já existiam**, pra não inflar: craque ≈ 81-87 /
+88-92 (referências Godín 84-90, Riquelme 84-90, Yaya 85-91, Mahrez 83-89) · bom ≈
+74-79 / 84-87 (Édouard Mendy 78-86, Lauren e Nagatomo 74-84). 🃏 `folk` só em quem é
+lembrado pela HISTÓRIA além do futebol: Ortega, Palermo (os 3 pênaltis perdidos),
+Caniggia, Belloumi (a zebra de 82) e Gyan (o pênalti nos acréscimos de 2010).
+
+**Passos do roteiro cumpridos**: `npm run paises` verde (as 14 nacionalidades
+etiquetadas — carta do Mundo sem etiqueta fica FORA de toda Copa) · `npm run
+novidades` rodado, com `data.ts` + `catalogo-snapshot.json` + o gerado commitados
+juntos · `npm run build`, `carta`, `rank`, `copa`, `piramide` e `telas` verdes.
+↩️ **Reverter**: `git revert` do commit — as cartas somem do baralho e nada mais é
+tocado (save que já tiver um deles guarda a cópia da carta, como toda carta do jogo).
+
+**Sobrou pra depois**: tenho **45 nomes de segunda onda** já conferidos e fora de
+todos os baralhos (Wataru Endo, Doan, Kamada, Hasebe, Zaha, Kolo Touré, Naybet,
+Timoumi, Tshabalala, Seydou e Naby Keïta, Al-Dawsari, Al-Qahtani, Akram Afif, Younis
+Mahmoud, Omar Abdulrahman, Azmoun, Hao Haidong, Zheng Zhi, Sun Jihai, Fan Zhiyi,
+Schwarzer, Kasey Keller, Leon Bailey, David Suazo, Bryan Ruiz, Bacca, Adolfo
+Valencia, Willington Ortiz, Rubén Sosa, Justo Villar, Haedo Valdez, Antonio Valencia,
+Erwin Sánchez, Nelsen, Finidi George, Obafemi Martins, Mikel, Muntari, Pavel Pardo,
+Luis García, Inamoto, Enyeama, Radebe, Grobbelaar, Ndlovu, Schiaffino, Obdulio
+Varela, Alberto Spencer, Ghiggia, Negrete, Aboutrika, Chicharito, Rafael Márquez,
+Mahdavikia, Kudus, Kewell). **Esperando ele dizer quais quer.**
+
+## 21/09/2026 — 🔬 ACHADO: lenda vai pro leilão e NINGUÉM dá lance (é o PISO)
+
+Diego, olhando a carreira antes de jogar: *"tô vendo ir pro leilão Paul Scholes,
+lenda, nenhum lance. Cafu do Milan indo pro leilão, nenhum lance. E aí do nada
+aparece um jogador craque no leilão, aí vai um monte de lance. Tô achando
+estranho"*. Ele está certo, e **não é acaso**.
+
+**A causa, medida (não deduzida)**: da 2ª temporada em diante o baralho vem do
+elenco dos bots, e cada carta volta com um PISO (`paid`, tirado do livro
+`marketValues`). No `cpuEnvelope` (`store.tsx`) a regra é
+`if (wallet < floor || cap + 3 < floor) continue` — ou seja, **se o piso passa do
+que o bot acha que a carta vale, ele não dá lance NENHUM**, nem um lance baixo.
+Carta nova do catálogo tem piso ZERO, então leva lance de todo mundo. É por isso
+que o craque "que aparece do nada" é disputado e a lenda sai de graça.
+
+**A medição** (`node scripts/bancada-piso-lenda.mjs` — joga o pregão de verdade,
+3 salas de 8, acaso travado, mudando SÓ o piso). % de LENDAS sem nenhum lance:
+
+| piso | bot pobre (jogo rápido) | bot com 230 🪙 (Série A) |
+|-----:|------------------------:|-------------------------:|
+| 0    | 2%                      | 5%                       |
+| 30   | 61%                     | 7%                       |
+| 40   | 61%                     | 32%                      |
+| 60   | 73%                     | 43%                      |
+| 80   | 100%                    | 100%                     |
+
+⚠️ **CORREÇÃO IMPORTANTE (a 1ª rodada desta bancada mentiu).** A primeira medição
+rodou só com o bolso do JOGO RÁPIDO, que é pobre, e deu "61% das lendas sem lance
+com piso 30". Isso era **falta de dinheiro** (`wallet < floor`), não o teto do
+bot — com o caixa de carreira (Série A = 230) o mesmo piso 30 dá só 7%. Quem
+copiar número desta bancada: **sempre com o bolso da divisão**, senão exagera.
+
+**O que É verdade, e é o problema real**: o teto do bot por carta vem de uma
+curva FIXA no nível dela (`fairPrice` em `store.tsx`) — pra lenda dá **33 a 64,
+e nunca cresce**. O preço da carta, esse cresce: `recordPrice` grava o que foi
+pago (inclusive pelo usuário) e o bônus de artilheiro soma por cima. Então, numa
+carreira adiantada, o piso passa dos 64 e **a partir daí o bot fica mudo pra
+sempre** naquela carta — que é exatamente o que o Diego está vendo com Paul
+Scholes e Cafu. Acima de piso 80 é 100% de silêncio nos DOIS bolsos.
+
+**E o que ele já respondeu**: propus que a carta fosse cedendo de preço quando não
+vende, e ele cortou na hora — *"mas isso já acontece, quando ninguém pega ele vai
+pro monte valendo metade, não?"*. Está certo (`montePush` → `halveListed` →
+`recordPrice`); essa metade do plano foi descartada. O que falta é só o outro
+lado: **o teto do bot acompanhar o mercado daquela carreira em vez de ser número
+fixo.** Esperando o sim/não dele.
+🚫 **Nada foi mexido no jogo** — só a bancada entrou no repo.
+
+## 21/09/2026 — ❤️🖤 Pantera Negra FC é FLAMENGO de coração ✅ FEITO
+
+Diego, depois do batismo pronto: *"ah, time de coração do Pantera Negra FC é
+Flamengo hein"*. O batismo do ericrabelo29 tinha entrado em 20/09 **sem** time de
+coração (a linha do banco estava com `time_coracao` nulo e o post saiu sem o selo).
+Agora: `update esc_socios set time_coracao = 'Flamengo'` feito e conferido, o
+comentário do clube em `data.ts` registra o coração, e o post foi gerado de novo com
+`--coracao Flamengo` (regra: ❤️ o time de coração VAI no post sempre que a gente
+souber).
+
+## 21/09/2026 — 🔵⚫⚪ Batismo Grêmio FBPA (danieldias11) ✅ FEITO
+
+Pedido: *"novo time de batismo danieldias11@gmail.com / Grêmio FBPA / time de coração
+Grêmio também / segue artes, no lugar de um time da Série A. Me fale os que tem ainda
+pra eu trocar"*. Mandei a lista dos bots da Série A e ele escolheu: *"troque pelo SC
+Ferrari e botei o SC Ferrari na Série B no lugar de um bot"*.
+
+**Quem é**: o gaúcho de chapéu, manto rasgado e chimarrão. Preto + azul com filete
+branco. Fundador **nº75** · sócio **nº56** · tier ouro · coração **Grêmio**.
+
+**Arte** (dentro do teto de 75 KB): escudo 270×360 · **29,7 KB** · mascote 252×440 ·
+**41,7 KB** — **71,4 KB** no total. A prancha veio em chroma VERDE, e o recorte
+precisou de `scripts/tira-chroma-gremio.py`: neste clube **nenhum verde é do desenho**
+(é azul/preto/branco), então todo pixel esverdeado virou vão, com despill de 2 px na
+franja nova. ⚠️ Quem copiar esse script pra outro clube **confere a paleta antes** —
+em clube que tem verde de verdade, isso come o desenho.
+
+**As três pernas, as três fechadas**:
+- **Código** — `LOGOS_PRONTAS` · `MASCOTES` + `MASCOTE_NOME` + `CARIMBO_GOL` ·
+  `data.ts` · `apoio.tsx` (ouro + `FUNDADOR_75`) · `manto.ts`
+  (`#141C24`/`#0B6397`, com `MANTO_TRI.gremio_gaucho = '#EDECEB'` pro filete) ·
+  `batismos.ts` (linha + campo `manto` com as MESMAS 2 cores) · `salao-camisas.ts` +
+  `public/mantos-salao/` · e a linha em `scripts/checa-batismos.mjs`.
+- **Banco** — `user_colors` (ouro, manual) · `esc_socios` (nº56, `valido_ate`
+  2099-12-31, manto, mascote, `escudo_time`, coração) · `esc_fundadores` (n=75) ·
+  `esc_nomes_batismo` (nome puro; o gatilho criou FC e EC). Todas conferidas por
+  query depois de gravar.
+- **Deploy** — na `main`.
+
+**A troca de assento** (`data.ts`): Grêmio FBPA entra na **Série A** no lugar do
+**SC Ferrari**, e o SC Ferrari **desce pra Série B** no assento do 🤖 Comercial das
+Gerais (que some da pirâmide mas continua existindo em `CLASSIC_CLUBS`). ⚠️ **Nenhum
+`OLD_NAME` novo**: o Ferrari não foi renomeado, só mudou de divisão — e ele já tem
+corrente própria (Painitto FC). Mapear faria os dois desenharem o mesmo escudo.
+🚫 E, pela regra de 05/09, **o post não diz de quem era o assento** (sem `--antigo`):
+o Ferrari continua no jogo.
+
+🔢 **AS DIGITAIS DO `npm run ascegas` MUDARAM — e está certo.** Novas oficiais:
+`81961c21` · `40c43c96` · `f4e7a655`. Antes de trocar eu **provei** que o leilão em si
+não mudou: `scripts/prova-as-cegas.mjs` inclui `m.teamName` no resumo, então trocar o
+nome de um clube da Série A muda a digital mesmo sem nada de mecânica mudar. Rodando
+o mesmo resumo **sem o nome do time**, os dois lados (antes e depois) deram idênticos:
+`2256464b` · `aca7a932` · `83793089`. O porquê ficou escrito dentro do próprio script,
+pra próxima sessão não entrar em pânico.
+
+↩️ **Reverter**: `git revert` dos dois commits do batismo devolve tudo (o Ferrari volta
+pra Série A e o Comercial das Gerais pra Série B). O banco é à parte — sairia com
+`delete` nas 4 linhas do e-mail dele.
+
 ## 21/09/2026 — 🛡️ Linhazinha na Sala de Troféus ✅ FEITA (opção C)
 
 Pedido dele: *"na área do online, um dos troféus, coloque uma linhazinha assim
@@ -4050,12 +4397,17 @@ motivo: não existem no estado do jogo). O `deck` velho só é lido se ainda for
 📊 **O tamanho do estrago, medido no banco** (últimos 7 dias): **773 de 844 salas** com a
 escolha destruída (`deck` virou objeto) — 92%. As 71 intactas são salas que nunca
 abriram o pregão, ou seja, nunca chegaram no primeiro save.
-⚠️ **Sala criada ANTES deste conserto não tem como recuperar a escolha** — a informação
-foi sobrescrita. Sala nova nasce certa.
+🛟 **RECUPERAÇÃO DAS SALAS ANTIGAS (21/09):** embora o `deck` textual tenha sido
+sobrescrito, o estado da partida guarda a escolha real separadamente em `deckLeague`.
+Agora o primeiro save do host reconstrói `deckSala` por esse valor — inclusive após F5 —
+e o botão **Chamar mais gente** leva a escolha junto ao voltar pra espera. Vale para
+Minhas Ligas e Rápido, Europa e Mundo. Só uma sala tão velha/quebrada que não tenha
+nem `deckSala` nem `deckLeague` continua no padrão Brasil, porque aí não existe dado
+honesto do qual recuperar a escolha.
 
 🧪 **Trava nova: `npm run sala`** (`scripts/testa-sala-online.mjs`) — as duas contas do
 jogo copiadas (a de "restaura o pregão velho?" e a do baralho da sala), incluindo sala
-velha intacta, sala velha já estragada e dez saves seguidos.
+velha intacta, recuperação Europa/Mundo em Minhas Ligas/Rápido, F5 e dez saves seguidos.
 ⚠️ **O que a trava NÃO cobre:** a sala de verdade. Este ambiente **não alcança o
 Supabase**, então o que está travado é a REGRA, não a fiação.
 ↩️ Reverter: `git revert` do commit — são três pontos pequenos (lobby, screens, store).
