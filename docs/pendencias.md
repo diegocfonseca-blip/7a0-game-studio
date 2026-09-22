@@ -1,3 +1,34 @@
+## 22/09/2026 — 🍷 O Pinga certo era OUTRO (o do Vasco) ✅ FEITO
+
+Diego: *"o Pinga que falei foi o meio-campo do Vasco, segundo maior artilheiro atrás
+do Roberto Dinamite"*. Ou seja: **não era o zagueiro** que eu tinha entendido.
+
+⚠️ **AGORA SÃO TRÊS CARTAS "PINGA" E DUAS PESSOAS DIFERENTES** — quem mexer numa não
+está mexendo na outra:
+- **Pinga** · Internacional 1992 · ZAG · e **Pinga** · Corinthians 1995 · ZAG →
+  **a mesma pessoa**, Jorge Luís da Silva Brum, campeão da Copa do Brasil com os dois.
+  (`'Pinga'` está em `MESMO_JOGADOR`.)
+- **Pinga (Vasco)** · Vasco 1955 · ATA → **outra pessoa**, José Lázaro Robles. Leva o
+  clube no nome de propósito, pra NÃO cair na chave do MESMO_JOGADOR.
+
+📚 **Quem é o do Vasco**: canhota letal dos anos 50. Virou o **maior artilheiro da
+história da Portuguesa**, chegou ao Vasco em 1953 e fez **250 gols** pelo clube. Foi
+eleito **jogador do ano do Vasco cinco vezes** e artilheiro do time em 55 (34 gols),
+58, 59 e 60. O auge da carta é **1955**.
+
+⚠️ **Duas correções de fato que eu devo ao Diego, e que ficam aqui pra não se
+perderem:**
+1. As fontes o descrevem como **atacante/ponta canhoto**, não meia — por isso a carta
+   nasceu em ATA. Se ele quiser como meia, é trocar de array, uma linha.
+2. Com 250 gols ele é o **4º** artilheiro da história do Vasco (Roberto Dinamite 708,
+   depois Romário e Ademir), não o 2º. Não muda o tamanho dele; muda o que a gente
+   escreve em post.
+
+❓ **Esperando ele decidir**: a carta **Pinga (Corinthians 1995)**, do zagueiro, nasceu
+do meu mal-entendido. Ela é real e legítima (ele foi campeão da Copa do Brasil de 95
+ali), então eu **não removi por conta própria** — tirar carta mexe em save de gente.
+Se ele quiser fora, é um `git revert` daquela linha.
+
 ## 22/09/2026 — 🔍 Os 12 pesquisados a fundo + 9 campeões (lotes L33 e L34) ✅ FEITO
 
 Diego: *"não sei quem são, então pesquise MAS A FUNDO até descobrir"*. Pesquisei um

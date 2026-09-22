@@ -602,8 +602,11 @@ export const MESMO_JOGADOR = new Set<string>([
   // Figueirense 2010 (promessa) e Liverpool 2019 — o mesmo cara em dois auges.
   'Roberto Firmino',
   'Andreas Pereira', // Flamengo 2022 e Palmeiras 2026 — o mesmo cara em dois clubes
-  // Internacional 1992 e Corinthians 1995 — o MESMO zagueiro, campeão da Copa do
-  // Brasil com os dois (2ª carta pedida pelo Diego em 22/09).
+  // Internacional 1992 e Corinthians 1995 — o MESMO zagueiro (Jorge Luís da Silva
+  // Brum), campeão da Copa do Brasil com os dois.
+  // ⚠️ E existe um TERCEIRO Pinga no baralho que é OUTRA PESSOA: o atacante do
+  // Vasco dos anos 50 (José Lázaro Robles). Ele está como 'Pinga (Vasco)', com o
+  // clube no nome justamente pra não cair nesta chave — não juntar os três aqui.
   'Pinga',
   // ⚠️ 'Alex' é a EXCEÇÃO desta lista: são duas PESSOAS diferentes (o meia do
   // Cruzeiro e o zagueiro do Chelsea). Está aqui só pra calar o aviso do

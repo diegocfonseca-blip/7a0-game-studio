@@ -1580,6 +1580,23 @@ const L33_BR_ATA: C[] = [
   //    modesto de propósito: ele é gigante pela história, e não existe estatística de
   //    jogo de 1914 pra inventar craque. Nada aqui foi chutado; fontes no commit.
   { name: "Lacraia", club: "Santa Cruz", year: 1914, fame: 2, lo: 62, hi: 82, folk: true, bio: "Teófilo Batista de Carvalho, o Lacraia: um dos 11 fundadores do Santa Cruz em 1914, desenhou o escudo do clube e foi o primeiro jogador negro do futebol pernambucano. O preto do escudo do Santa é por causa dele." },
+  // 🍷 PINGA DO VASCO — o que o Diego queria de verdade (22/09): *"o Pinga que falei
+  //    foi o do Vasco, maior artilheiro atrás do Roberto Dinamite"*.
+  //    ⚠️ SÃO TRÊS PINGAS AGORA, e DOIS SÃO PESSOAS DIFERENTES:
+  //      · Pinga (Internacional 1992) e Pinga (Corinthians 1995) = o ZAGUEIRO
+  //        Jorge Luís da Silva Brum, a mesma pessoa em dois auges;
+  //      · Pinga (Vasco) = José Lázaro Robles, ESTE aqui, outra pessoa.
+  //    Por isso este leva o clube no nome. Mexer num não é mexer no outro.
+  //    📚 Quem ele foi: canhota letal, chegou ao Vasco em 1953 depois de virar o
+  //    MAIOR ARTILHEIRO DA HISTÓRIA DA PORTUGUESA. Fez 250 gols pelo Vasco, foi
+  //    eleito o jogador do ano do clube CINCO vezes e artilheiro do time em 55 (34
+  //    gols), 58, 59 e 60 (33 em duas dessas). O auge da carta é 1955, o ano dos 34.
+  //    ⚠️ E DUAS RESSALVAS DE FATO, pra não repassar coisa errada adiante:
+  //      · as fontes o descrevem como ATACANTE/ponta canhoto, não meia — por isso a
+  //        carta é ATA. Se o dono quiser como meia, é trocar de array;
+  //      · nos 250 gols ele é o 4º da história do Vasco (Roberto Dinamite, Romário e
+  //        Ademir vêm na frente), não o 2º. O tamanho dele não muda por isso.
+  { name: "Pinga (Vasco)", club: "Vasco", year: 1955, fame: 4, lo: 82, hi: 90, bio: "Canhota letal dos anos 50: virou o maior artilheiro da história da Portuguesa, chegou ao Vasco em 1953 e fez 250 gols pelo clube. Foi eleito o jogador do ano do Vasco cinco vezes." },
   // 🏎️ PAULINHO McLAREN — pesquisado a fundo. O Diego pediu "do Porto de Portugal",
   //    mas lá foram 16 jogos e 1 gol (1992-93). O AUGE dele é o SANTOS DE 1991: 23
   //    gols no ano, 15 no Brasileirão, ARTILHEIRO do Campeonato Brasileiro. E o
