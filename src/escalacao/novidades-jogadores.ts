@@ -5,6 +5,92 @@
 export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU' | 'MUNDO'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
+    "tipo": "nivel",
+    "nome": "Félix",
+    "baralho": "BR",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Puma Rodríguez",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Márcio Santos",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Claudinho",
+    "baralho": "BR",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Carrascal",
+    "baralho": "BR",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Lucho Acosta",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Maicon (Grêmio)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Álvaro Montoro",
+    "baralho": "BR",
+    "nivel": "promessa",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Artur",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Allan (Palmeiras)",
+    "baralho": "BR",
+    "nivel": "promessa",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Ronald Koeman Jr",
+    "baralho": "EU",
+    "nivel": "foi profissional",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Ronald Koeman",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-22"
+  },
+  {
     "tipo": "entrou",
     "nome": "Bono",
     "baralho": "MUNDO",
@@ -340,90 +426,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Marquinhos",
     "baralho": "EU",
     "nivel": "lenda",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Éder Militão",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Bastoni",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Cristian Romero",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jules Koundé",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Willian Pacho",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dean Huijsen",
-    "baralho": "EU",
-    "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ilya Zabarnyi",
-    "baralho": "EU",
-    "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Calafiori",
-    "baralho": "EU",
-    "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Leny Yoro",
-    "baralho": "EU",
-    "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Lucas Beraldo",
-    "baralho": "EU",
-    "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Niklas Süle",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Konaté",
-    "baralho": "EU",
-    "nivel": "bom jogador",
     "data": "2026-09-20"
   }
 ]

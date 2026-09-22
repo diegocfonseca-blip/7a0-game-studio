@@ -631,7 +631,12 @@ const GOL: C[] = [
   { name: "Velloso", club: "Palmeiras", year: 1994, fame: 2, lo: 61, hi: 78 },
   { name: "Sérgio", club: "Palmeiras", year: 1993, fame: 2, lo: 68, hi: 84, bio: "Goleiro que quebrou o jejum de 16 anos do Palmeiras no Paulista de 1993 e virou ídolo da geração Parmalat — bi paulista e campeão brasileiro." },
   { name: "Emerson Leão", club: "Palmeiras", year: 1974, fame: 5, lo: 87, hi: 93 },
-  { name: "Félix", club: "Fluminense", year: 1970, fame: 4, lo: 80, hi: 84 },
+  // 👑 VIROU LENDA por ordem do Diego (22/09): *"coloque goleiro Félix como lenda
+  //    também, já que hoje acho que ele tá craque ainda"*. É o goleiro do
+  //    tricampeonato de 1970. O NÍVEL subiu pouco (84-89, não 90+): a categoria é
+  //    de lenda pela história, mas ele nunca foi o goleiro mais forte do baralho —
+  //    inflar o nível dele mudaria o resultado de jogo, e isso ele não pediu.
+  { name: "Félix", club: "Fluminense", year: 1970, fame: 5, lo: 84, hi: 89 },
   { name: "Júlio César", club: "Flamengo", year: 2003, fame: 4, lo: 78, hi: 84 },
   { name: "Cássio", club: "Corinthians", year: 2012, fame: 4, lo: 88, hi: 94 },
   { name: "Weverton", club: "Palmeiras", year: 2019, fame: 4, lo: 78, hi: 84 },
@@ -1461,7 +1466,35 @@ const L31_BR_LAT: C[] = [
 const L31_BR_ATA: C[] = [
   { name: "Tuta", club: "Fluminense", year: 2006, fame: 3, lo: 72, hi: 85, bio: "Centroavante raçudo que rodou o Brasil inteiro — Athletico, Flamengo, Palmeiras, Grêmio e Coritiba — e encontrou a melhor fase no Fluminense dos anos 2000." },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA] }
+// ─── L33 · lote pedido pelo Diego em 22/09 (parte BRASIL) ────────────────────
+// Ele mandou dois áudios com uma lista comprida. Aqui estão SÓ os que eu tinha
+// certeza de quem é, em que posição jogava e qual foi o auge — os outros ficaram
+// de fora esperando ele confirmar, pela regra dele de 18/08 (*"qd vc N souber qm é
+// a pessoa é como é me fala pow"*). O que ficou pendente está em docs/pendencias.md.
+//
+// ⚠️ NOME REPETIDO: o baralho já tinha "Allan" (Allan Delon, Vitória) e "Maicon"
+// (lateral, Cruzeiro e Inter). Carta nova com nome igual precisa de nome PRÓPRIO
+// distinto — senão `chaveEscudo`/`ident` e o histórico por carta embolam os dois —
+// e ainda tem que entrar em MESMO_JOGADOR no paises.ts. É o mesmo caminho que o
+// "Vitor Roque (Barcelona)" já usava.
+const L33_BR_ZAG: C[] = [
+  { name: "Márcio Santos", club: "Botafogo", year: 1995, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Seleção campeã da Copa de 1994 que viveu a melhor fase no Brasil com a camisa do Botafogo campeão brasileiro de 1995." },
+]
+const L33_BR_LAT: C[] = [
+  { name: "Puma Rodríguez", club: "Vasco", year: 2024, fame: 2, lo: 70, hi: 82, bio: "Lateral-direito uruguaio do Vasco, ex-Peñarol — chegada firme e cruzamento de primeira." },
+]
+const L33_BR_MEI: C[] = [
+  { name: "Claudinho", club: "Bragantino", year: 2021, fame: 4, lo: 80, hi: 88, bio: "Melhor jogador do Brasileirão de 2020 com a camisa do Bragantino: meia de chegada, gol de fora e passe pra dentro — vendido ao Zenit no auge." },
+  { name: "Carrascal", club: "Flamengo", year: 2025, fame: 4, lo: 79, hi: 87, bio: "Meia colombiano de drible curto e chute forte, ídolo no River Plate antes de chegar ao Flamengo." },
+  { name: "Lucho Acosta", club: "Fluminense", year: 2025, fame: 3, lo: 77, hi: 86, bio: "Argentino de estatura baixa e passe de último toque, eleito o melhor da liga americana em 2023 antes de vestir a camisa do Fluminense." },
+  { name: "Maicon (Grêmio)", club: "Grêmio", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Volante e capitão do Grêmio campeão da Libertadores de 2017 — liderança, pegada e chute de fora da área." },
+  { name: "Álvaro Montoro", club: "Botafogo", year: 2025, fame: 3, lo: 70, hi: 83, promessa: true, bio: "Meia argentino formado no Vélez, comprado ainda adolescente pelo Botafogo — canhota de passe e drible em espaço curto." },
+]
+const L33_BR_ATA: C[] = [
+  { name: "Artur", club: "Bragantino", year: 2021, fame: 3, lo: 76, hi: 85, bio: "Ponta-direita veloz do Bragantino que encarava o lateral de frente — do Bragantino saiu pro Zenit e depois pro Palmeiras." },
+  { name: "Allan (Palmeiras)", club: "Palmeiras", year: 2026, fame: 3, lo: 70, hi: 83, promessa: true, bio: "Atacante saído da base do Palmeiras — arrancada e finalização de dentro da área, apostado pelo clube pra virar titular." },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -1658,7 +1691,10 @@ const ZAG_EU: C[] = [
   { name: "José María Giménez", club: "Atlético de Madrid", year: 2019, fame: 3, lo: 78, hi: 85, bio: "Zagueiro uruguaio de marcação feroz e jogo aéreo — parceria histórica com Godín na muralha do Atlético de Simeone." },
   { name: "Lisandro Martínez", club: "Man United", year: 2023, fame: 3, lo: 78, hi: 85, bio: "‘Carnicero’ — zagueiro-canhoto argentino baixinho e brabo, campeão do mundo em 2022 e muralha raçuda do Manchester United." },
   { name: "Nicolás Otamendi", club: "Man City", year: 2018, fame: 3, lo: 78, hi: 85, bio: "‘General’ argentino de marcação truculenta — bicampeão inglês pelo City e pilar eterno da seleção campeã do mundo em 2022." },
-  { name: "Ronald Koeman", club: "Barcelona", year: 1992, fame: 4, lo: 83, hi: 89, bio: "Zagueiro-artilheiro holandês de canhota canhão — fez o gol do primeiro título europeu do Barça de Cruyff em Wembley, 1992." },
+  // 👑 VIROU LENDA por ordem do Diego (22/09): *"além desse Koeman zagueiro, quero
+  //    que vire lenda"*. Ele cabe: 253 gols de zagueiro, campeão europeu de seleção
+  //    em 88 e o gol do título de Wembley em 92. Nível subiu pra faixa de lenda.
+  { name: "Ronald Koeman", club: "Barcelona", year: 1992, fame: 5, lo: 86, hi: 92, bio: "Zagueiro-artilheiro holandês de canhota canhão — fez o gol do primeiro título europeu do Barça de Cruyff em Wembley, 1992." },
   { name: "David Alaba", club: "Real Madrid", year: 2022, fame: 3, lo: 78, hi: 85, bio: "Austríaco versátil e canhoto — campeão da Champions pelo Bayern e pelo Real Madrid, zagueiro de saída de bola e bola parada." },
   { name: "William Saliba", club: "Arsenal", year: 2024, fame: 4, lo: 80, hi: 87, bio: "Zagueiro francês elegante e veloz — a muralha do Arsenal da nova era, leitura de jogo e saída de bola de sobra." },
   { name: "Jérôme Boateng", club: "Bayern", year: 2020, fame: 4, lo: 83, hi: 90, bio: "Zagueiro alemão forte e de lançamento preciso — campeão do mundo em 2014 e pilar do Bayern da tríplice coroa de 2020." },
@@ -2168,6 +2204,11 @@ const L31_EU_GOL: C[] = [
   { name: "Mamardashvili", club: "Liverpool", year: 2026, fame: 3, lo: 76, hi: 88, promessa: true, bio: "Goleiro georgiano de quase dois metros que brilhou no Valencia e foi comprado pelo Liverpool — envergadura e defesas impossíveis." },
   { name: "Matz Sels", club: "Nottingham Forest", year: 2025, fame: 3, lo: 78, hi: 86, bio: "Goleiro belga do Nottingham Forest — luva de ouro na Premier League numa temporada surpreendente do clube." },
   { name: "Vicario", club: "Tottenham", year: 2024, fame: 3, lo: 78, hi: 86, bio: "Goleiro italiano do Tottenham — ótimo com os pés e nas defesas de curta distância." },
+  // 🧤 L33 (22/09) · pedido do Diego: *"quero que add o filho dele também, o goleiro
+  //    Koeman Jr"*. É o caso puro da régua dele de *"famoso sendo ruim ou bom tanto
+  //    faz"*: a fama é o sobrenome, não a carreira — daí 🪵 foi profissional e `folk`.
+  //    O NOME leva o "Jr" pra nunca embolar com o pai no histórico por carta.
+  { name: "Ronald Koeman Jr", club: "Oostende", year: 2019, fame: 1, lo: 48, hi: 74, folk: true, bio: "Filho do Ronald Koeman, seguiu no futebol como goleiro e rodou clubes da Bélgica e da Holanda — carreira discreta com o sobrenome mais pesado do vestiário." },
 ]
 const L31_EU_ZAG: C[] = [
   { name: "Marquinhos", club: "PSG", year: 2023, fame: 5, lo: 87, hi: 93, bio: "Zagueiro-capitão do PSG e da Seleção. Mais de uma década no topo, com saída de bola, antecipação e liderança." },

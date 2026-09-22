@@ -1,3 +1,56 @@
+## 22/09/2026 — 🃏 Lote L33 + Koeman e Félix viraram LENDA ✅ FEITO (parte pendente abaixo)
+
+Dois áudios do Diego com uma lista comprida de jogadores. **Feito:**
+- 👑 **Ronald Koeman virou LENDA** (*"além desse Koeman zagueiro, quero que vire
+  lenda"*) — fame 4→5, nível 83-89 → **86-92**.
+- 👑 **Goleiro Félix virou LENDA** (*"coloque goleiro Félix como lenda também, já que
+  hoje acho que ele tá craque ainda"*) — fame 4→5, nível 80-84 → **84-89**. ⚠️ O nível
+  subiu POUCO de propósito: a lenda dele é histórica (goleiro do tri de 70), e inflar
+  o nível mudaria resultado de jogo — ele pediu a categoria, não a força.
+- 🆕 **10 cartas novas** (`L33_BR_*` e uma no `L31_EU_GOL`): Ronald Koeman Jr (Oostende
+  2019, 🪵 foi profissional, 🃏 — a fama é o sobrenome) · Claudinho (Bragantino 2021,
+  ⭐) · Carrascal (Flamengo 2025, ⭐) · Lucho Acosta (Fluminense 2025, 🎯) · Maicon
+  (Grêmio) (Grêmio 2017, 🎯) · Álvaro Montoro (Botafogo 2025, 💎) · Artur (Bragantino
+  2021, 🎯) · Allan (Palmeiras) (Palmeiras 2026, 💎) · Márcio Santos (Botafogo 1995,
+  🎯) · Puma Rodríguez (Vasco 2024, 🎯).
+- ⚠️ **NOME REPETIDO**: "Maicon (Grêmio)" e "Allan (Palmeiras)" levam o clube no nome
+  porque já existiam Maicon (lateral) e Allan Delon. Nome igual emboladaria o
+  histórico por carta (chave `nome|clube|ano`). Mesmo caminho do "Vitor Roque
+  (Barcelona)".
+
+**JÁ ESTAVAM (respondendo o que ele perguntou):** Magno Alves (Ceará 2010) · Edu
+Dracena (Santos 2011) · Chicão (Corinthians 2009) · Gatito Fernández (Botafogo 2017 —
+ele falou "Garoto Fernandez") · Vitor Roque (Athletico-PR 2023, já como 💎) · Marlon
+Freitas (Botafogo 2024).
+
+🔎 **NASCEU O `npm run acha`** (`scripts/acha-carta.mjs`), por causa de DOIS erros meus
+no mesmo dia montando lista de carta nova:
+1. comparei **nome inteiro** e disse que 82 nomes faltavam — 5 já estavam, porque no
+   baralho eles vivem só pelo APELIDO (Figueroa, Asprilla, Tevez, Guerrero, Rincón);
+2. refiz por sobrenome mas **li a saída com `tail`** — e mandei pro Diego o
+   **Chicharito** (Man United 2011) e o **Rafael Márquez** (lá é "Rafa Márquez",
+   Barcelona 2006) como faltando, quando os dois estavam.
+A ferramenta compara PALAVRA INTEIRA, separa achado forte (apelido igual) de fraco (só
+o primeiro nome) e **nunca corta linha**. Quem for montar lista de carta nova: rode
+ela primeiro, e não leia com `tail`.
+
+⏳ **PENDENTE — 12 nomes esperando o Diego, pela regra dele de 18/08** (*"qd vc N souber
+qm é a pessoa é como é me fala pow"*). Não inventei nenhum:
+- **Não sei quem é / não tenho referência**: Douglas Franklin (meio do Bahia) ·
+  goleiro Viáfara (Vitória) · Paulinho McLaren (Porto) · João Pica (zagueiro
+  português) · Esquerdinha (lateral-esquerdo do Vitória, não sei a época) · Jhon
+  Lennon (lateral-direito, 🪵 — falta clube e ano) · Erick (Vitória — falta posição e
+  época) · Yaya Banana (zagueiro camaronês — sei quem é, não sei o clube do auge).
+- **Existe carta com esse apelido, mas é OUTRA pessoa — preciso que ele confirme**:
+  **Pinga** (o do baralho é ZAGUEIRO do Internacional 1992; ele falou de um MEIA) ·
+  **Magrão** (o do baralho é o GOLEIRO do Sport 2008; ele falou de um meia do
+  Internacional e do Palmeiras) · **Marlon do Remo 2026** (o do baralho é o Marlon
+  Freitas do Botafogo) · **Neto Berola** (não está no jogo; sei quem é, não sei o ano
+  dele no Vitória).
+
+↩️ **Reverter**: `git revert` do commit devolve tudo, inclusive o Koeman e o Félix
+pra craque.
+
 ## 22/09/2026 — 🌍 14 famosos novos no baralho MUNDO (lote L32) ✅ FEITO
 
 Diego: *"acho que tem poucas cartas no baralho mundo… precisa de bem mais. Só que

@@ -467,6 +467,8 @@ export const PAIS: Record<string, string> = {
   'Michael Essien': 'Gana', 'Thomas Partey': 'Gana', 'Asamoah Gyan': 'Gana',
   'Lakhdar Belloumi': 'Argélia', 'Frédéric Kanouté': 'Mali',
   'Emmanuel Adebayor': 'Togo',
+  // ─── L33 · lote de 22/09 ─────────────────────────────────────────────────────
+  'Ronald Koeman Jr': 'Holanda', // 🇳🇱 igual ao pai (que já estava etiquetado)
 }
 
 export type Baralho = 'BR' | 'EU' | 'WORLD'
@@ -554,6 +556,13 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   'Agustín Giay|Palmeiras|2025': 'Argentina',
   'Varela|Flamengo|2025': 'Uruguai',
   'Bastos|Botafogo|2024': 'Angola',
+  // ─── 🇺🇾🇨🇴🇦🇷 estrangeiros da leva 33 (22/09) que jogam/jogaram no BRASIL.
+  //     Sem esta etiqueta eles virariam BRASIL na Copa, porque o padrão do baralho
+  //     BR é Brasil — e baralho não é nacionalidade (regra dele de 28/08).
+  'Puma Rodríguez|Vasco|2024': 'Uruguai',
+  'Carrascal|Flamengo|2025': 'Colômbia',
+  'Lucho Acosta|Fluminense|2025': 'Argentina',
+  'Álvaro Montoro|Botafogo|2025': 'Argentina',
 }
 
 /**
