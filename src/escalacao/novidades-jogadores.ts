@@ -5,6 +5,153 @@
 export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel' | 'virou-folk' | 'saiu-folk'; nome: string; baralho: 'BR' | 'EU' | 'MUNDO'; nivel?: string; de?: string; para?: string }
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
+    "tipo": "entrou",
+    "nome": "Viáfara",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Esquerdinha",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "John Lennon",
+    "baralho": "BR",
+    "nivel": "foi profissional",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Pinga",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Marllon",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Ronaldão",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Douglas Franklin",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Magrão (Palmeiras)",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Ricardinho",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Paulinho McLaren",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Neto Berola",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Erick",
+    "baralho": "BR",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "João Pica",
+    "baralho": "EU",
+    "nivel": "foi profissional",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Per Mertesacker",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Sami Khedira",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Blaise Matuidi",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Corentin Tolisso",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Nabil Fekir",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Exequiel Palacios",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Lukas Podolski",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Yaya Banana",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
     "tipo": "nivel",
     "nome": "Edmundo",
     "baralho": "BR",
@@ -279,154 +426,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Vitor Reis",
     "baralho": "BR",
     "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Murilo",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Bastos",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Bruno Fuchs",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Tuta",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "David Raya",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Diogo Costa",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Gregor Kobel",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Lucas Chevalier",
-    "baralho": "EU",
-    "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Mamardashvili",
-    "baralho": "EU",
-    "nivel": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Matz Sels",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Vicario",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Yan Couto",
-    "baralho": "EU",
-    "de": "bom jogador",
-    "para": "promessa",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Nuno Mendes",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Grimaldo",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dimarco",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Wesley",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dumfries",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Frimpong",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Pedro Porro",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Aït-Nouri",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Vanderson",
-    "baralho": "EU",
-    "nivel": "bom jogador",
     "data": "2026-09-20"
   }
 ]

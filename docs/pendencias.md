@@ -1,3 +1,37 @@
+## 22/09/2026 — 🔍 Os 12 pesquisados a fundo + 9 campeões (lotes L33 e L34) ✅ FEITO
+
+Diego: *"não sei quem são, então pesquise MAS A FUNDO até descobrir"*. Pesquisei um
+por um (fontes no commit) e as 12 cartas saíram. Nenhuma foi chutada.
+
+| carta | quem é, de verdade |
+|---|---|
+| **Douglas Franklin** · Bahia 1976 · 🎯 | Ídolo do HEPTA baiano (73-79): 184 gols em 456 jogos, **2º maior artilheiro da história do Bahia** e líder de assistências. Formado no Santos, companheiro de Pelé no Brasileiro de 68. Morreu em 9/8/2026. |
+| **Viáfara** · Vitória 2010 · 🎯🃏 | Julián Viáfara, goleiro **colombiano**, tricampeão baiano (08-09-10) e peça do vice da Copa do Brasil de 2010 — **batia pênalti**, o que fez a torcida amar ele. |
+| **Paulinho McLaren** · Santos **1991** · 🎯🃏 | ⚠️ O Diego pediu "do Porto", mas lá foram **16 jogos e 1 gol**. O auge é o Santos de 91: 23 gols no ano, 15 no Brasileirão, **artilheiro do Campeonato Brasileiro**. E o apelido nasceu ali — comemorou um gol (contra o Vitória!) imitando piloto de F-1 em homenagem ao Senna, uma semana antes do Senna vencer em Interlagos pela McLaren. Regra do baralho é "toda carta é o AUGE", então ficou Santos. Trocar é uma linha. |
+| **Esquerdinha** · Vitória 1997 · 🎯 | José Marcelo Januário de Araújo. **Eleito pela torcida o melhor lateral-esquerdo da história do Vitória** (2017), tricampeão baiano, bicampeão do Nordeste — saiu do Leão pro Porto e foi campeão do penta português. Morreu em 2018, aos 46, de infarto numa pelada. |
+| **John Lennon** · Cruzeiro 2017 · 🪵🃏 | John Lennon Silva Santos, goiano, lateral-direito. Cruzeiro em 2017 = **7 jogos e rescisão**; depois rodou Botafogo, CSA, Vila Nova, Juventude, Ypiranga. Exatamente a categoria que ele pediu. Escrito **John**, é como ele assina. |
+| **Erick** · Vitória 2026 · 🎯 | Erick de Arruda Serafim, ponta-direita. Destaque da permanência de 2025 e a **contratação mais cara da história do Vitória** (R$ 7 mi por 50%). |
+| **Yaya Banana** · Olympiacos 2018 · 🎯🃏 | Zagueiro camaronês de Maroua: ES Tunis, Sochaux, Platanias e **Olympiacos** (o maior clube dele, e o auge da carta). |
+| **João Pica** · Académico de Viseu 2019 · 🪵🃏 | Zagueiro português de Moura, 1,85m, 337 jogos na carreira. Quatro temporadas e meia no Viseu, parou aos 35 e foi pra formação do clube. |
+| **Neto Berola** · Vitória 2010 · 🎯 | Vice-artilheiro do Baiano de 2009 e destaque do vice da Copa do Brasil de 2010. (O auge absoluto dele foi o Atlético-MG — 13 gols em 2011, Libertadores em 2013 —, mas o Diego pediu a carta do Vitória.) |
+| **Magrão (Palmeiras)** · Palmeiras 2004 · 🎯 | Márcio Rodrigues, volante alto. Melhor fase no Palmeiras (2000-05, 229 jogos), **convocado pra Seleção em 2004 e 2005**; depois Sul-Americana de 2008 com o Inter. Venceu um câncer no meio da carreira. ⚠️ **NÃO é o Magrão goleiro do Sport**, que FICOU no jogo — ordem dele: *"não remova o goleiro, são cartas diferentes"*. Leva o clube no nome pra ninguém confundir. |
+| **Marllon** · Remo 2026 · 🎯 | ⚠️ O nome é **Marllon**, com dois L — então não bateu com o Marlon Freitas e não precisou de sufixo. Zagueiro e **capitão do Remo na Série A de 2026**, jogou todos os 1.620 minutos das 18 primeiras rodadas. Antes: Cuiabá (4 temporadas), bicampeão paulista no Corinthians. |
+| **Pinga** · Corinthians 1995 · 🎯 | ⚠️ Ele **É ZAGUEIRO**, não meia — Jorge Luís da Silva Brum, prata olímpica em 84. A carta que já existia (Inter 1992) está certa; esta é a **2ª carta do mesmo cara**, a da Copa do Brasil de 95 com o Corinthians. Mesmo nome nas duas + `'Pinga'` em `MESMO_JOGADOR`, igual ao Roberto Firmino (Figueirense/Liverpool). |
+
+🏆 **E 9 CAMPEÕES DO MUNDO** (`L34_*`), escolha dele na lista do `npm run campeoes`:
+Ronaldão (São Paulo 1993 — **foi campeão em 94 sem jogar um minuto**, entrou no lugar
+do Ricardo Gomes cortado na véspera) · Ricardinho (Corinthians 2000) · Khedira (Real
+Madrid 2014) · Matuidi (PSG 2015) · Tolisso (Bayern 2020) · Fekir (Lyon 2018) ·
+Exequiel Palacios (Leverkusen 2024) · Podolski (Colônia 2006, ⭐) · Mertesacker
+(Arsenal 2015).
+📊 **Os campeões foram de 160 → 169 no jogo; faltam 18.** E agora o **Brasil de 2002
+está INTEIRO** (23/23), junto com a Espanha de 2010. Ainda faltam: 🇮🇹 06 (Peruzzi,
+Oddo, Perrotta, Barone, Iaquinta) · 🇩🇪 14 (Weidenfeller, Höwedes, Mustafi, Durm,
+Kramer) · 🇫🇷 18 (Areola, Adil Rami) · 🇦🇷 22 (Rulli, Nahuel Molina) · 🇫🇷 98 (Laurent
+Blanc, Boghossian, Guivarc'h, Dugarry).
+
+↩️ **Reverter**: `git revert` do commit tira as 21 cartas e nada mais.
+
 ## 22/09/2026 — 👑 Edmundo LENDA · Sandro Hiroshi · Lacraia · e o mapa dos CAMPEÕES
 
 **Feito:**

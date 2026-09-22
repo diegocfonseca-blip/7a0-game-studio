@@ -1483,11 +1483,67 @@ const L31_BR_ATA: C[] = [
 // distinto — senão `chaveEscudo`/`ident` e o histórico por carta embolam os dois —
 // e ainda tem que entrar em MESMO_JOGADOR no paises.ts. É o mesmo caminho que o
 // "Vitor Roque (Barcelona)" já usava.
+// ─── L34 · CAMPEÕES DO MUNDO que faltavam (escolha do Diego, 22/09) ──────────
+// Ele mandou: *"add também Ronaldão, Khedira, Matuidi, Tolisso, Fekir, Exequiel
+// Palacios, Podolski, Mertesacker, Ricardinho"* — 9 dos 27 que o `npm run campeoes`
+// apontou como campeões do mundo fora do baralho.
+// 📏 Nível calibrado pelos vizinhos, como sempre. O CLUBE é o auge de cada um, não a
+// seleção — e onde o auge era discutível eu anotei o critério na própria linha, pra
+// outra sessão poder trocar sem adivinhar o que eu pensei.
+const L34_BR_ZAG: C[] = [
+  // 🏆 Entrou na Copa de 94 no lugar do Ricardo Gomes, cortado por lesão na véspera,
+  //    e foi campeão do mundo SEM JOGAR UM MINUTO. Auge = São Paulo 1993 (bi da
+  //    Libertadores e bi do Mundial); em 94 ele já estava no Japão.
+  { name: "Ronaldão", club: "São Paulo", year: 1993, fame: 3, lo: 78, hi: 86, bio: "Zagueiro de liderança do São Paulo bicampeão da Libertadores e do mundo em 92 e 93. Foi convocado às pressas pra Copa de 94 no lugar do Ricardo Gomes e virou campeão do mundo sem entrar em campo." },
+]
+const L34_BR_MEI: C[] = [
+  { name: "Ricardinho", club: "Corinthians", year: 2000, fame: 3, lo: 78, hi: 87, bio: "Meia canhoto de passe curto e chute de fora, campeão do Mundial de Clubes de 2000 com o Corinthians e campeão do mundo com a Seleção em 2002." },
+]
+const L34_EU_ZAG: C[] = [
+  // 🇩🇪 Auge escolhido: Arsenal 2015 (Copa da Inglaterra, e a final de 2017 em que
+  //    ele voltou do banco depois de um ano parado e foi o melhor em campo). A fase
+  //    de Werder Bremen também serviria — troca de clube/ano aqui se preferirem.
+  { name: "Per Mertesacker", club: "Arsenal", year: 2015, fame: 3, lo: 78, hi: 86, bio: "Zagueiro alemão de quase dois metros, campeão do mundo em 2014 e capitão do Arsenal — jogou uma final de Copa da Inglaterra depois de um ano parado e foi o melhor em campo." },
+]
+const L34_EU_MEI: C[] = [
+  { name: "Sami Khedira", club: "Real Madrid", year: 2014, fame: 3, lo: 79, hi: 87, bio: "Volante alemão de chegada na área, campeão do mundo em 2014 e da Champions com o Real Madrid no mesmo ano." },
+  { name: "Blaise Matuidi", club: "PSG", year: 2015, fame: 3, lo: 78, hi: 86, bio: "Volante francês que corria os 90 minutos inteiros, dono do meio do PSG dos títulos franceses e campeão do mundo em 2018." },
+  { name: "Corentin Tolisso", club: "Bayern", year: 2020, fame: 3, lo: 77, hi: 85, bio: "Meia francês que saiu do Lyon pro Bayern e ganhou Champions e Copa do Mundo — carreira atravessada por lesões duras no melhor momento." },
+  { name: "Nabil Fekir", club: "Lyon", year: 2018, fame: 3, lo: 78, hi: 86, bio: "Canhoto de drible curto e chute colocado, capitão e camisa 10 do Lyon, campeão do mundo em 2018 — depois virou ídolo no Betis." },
+  { name: "Exequiel Palacios", club: "Bayer Leverkusen", year: 2024, fame: 3, lo: 77, hi: 85, bio: "Volante argentino campeão do mundo em 2022 e peça do Leverkusen que ganhou o Alemão invicto — passe de primeira e pegada no meio." },
+]
+const L34_EU_ATA: C[] = [
+  // 🇩🇪 Auge escolhido: Colônia 2006 — era jogador do Colônia quando foi eleito o
+  //    melhor jovem da Copa de 2006 em casa, e é lá que ele é ídolo. A fase de
+  //    Arsenal é mais conhecida fora da Alemanha, mas rendeu menos.
+  { name: "Lukas Podolski", club: "Colônia", year: 2006, fame: 4, lo: 81, hi: 88, bio: "Canhota canhão do futebol alemão: melhor jovem da Copa de 2006 jogando em casa, ídolo do Colônia e campeão do mundo em 2014." },
+]
+const L33_BR_GOL: C[] = [
+  { name: "Viáfara", club: "Vitória", year: 2010, fame: 3, lo: 70, hi: 84, folk: true, bio: "Goleiro colombiano tricampeão baiano com o Vitória e peça do vice da Copa do Brasil de 2010 — e batia pênalti, o que é raríssimo pra goleiro e fez a torcida amar ele." },
+]
 const L33_BR_ZAG: C[] = [
   { name: "Márcio Santos", club: "Botafogo", year: 1995, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Seleção campeã da Copa de 1994 que viveu a melhor fase no Brasil com a camisa do Botafogo campeão brasileiro de 1995." },
+  // 🔁 2ª CARTA DO PINGA (pedido dele em 22/09: *"Pinga precisa por outro, o que ele
+  //    já tem no jogo"*). É a MESMA PESSOA em dois auges, igual Roberto Firmino
+  //    (Figueirense/Liverpool) — por isso o nome é o MESMO e 'Pinga' entrou em
+  //    MESMO_JOGADOR no paises.ts. A chave da carta é nome|clube|ano, então as duas
+  //    convivem sem embolar o histórico.
+  // ⚠️ E ele é ZAGUEIRO, não meia: Jorge Luís da Silva Brum, prata olímpica em 84,
+  //    voltou de uma lesão que arrebentou todos os ligamentos do joelho em 87 e foi
+  //    peça da Copa do Brasil do Inter em 92 (a carta que já existia) e da do
+  //    Corinthians em 95 (esta).
+  { name: "Pinga", club: "Corinthians", year: 1995, fame: 2, lo: 72, hi: 84, bio: "Gaúcho que voltou de uma lesão que arrebentou todos os ligamentos do joelho e foi campeão da Copa do Brasil duas vezes: com o Internacional em 92 e com o Corinthians em 95." },
+  { name: "Marllon", club: "Remo", year: 2026, fame: 3, lo: 74, hi: 84, bio: "Zagueiro e capitão do Remo na Série A de 2026 — jogou todos os minutos do returno. Antes viveu quatro temporadas de referência no Cuiabá e foi bicampeão paulista com o Corinthians." },
 ]
 const L33_BR_LAT: C[] = [
   { name: "Puma Rodríguez", club: "Vasco", year: 2024, fame: 2, lo: 70, hi: 82, bio: "Lateral-direito uruguaio do Vasco, ex-Peñarol — chegada firme e cruzamento de primeira." },
+  { name: "Esquerdinha", club: "Vitória", year: 1997, fame: 3, lo: 76, hi: 85, bio: "Eleito pela torcida o melhor lateral-esquerdo da história do Vitória: tricampeão baiano e bicampeão do Nordeste, saiu do Leão direto pro Porto, onde foi campeão do penta português." },
+  // 🪵 JOHN LENNON — o Diego pediu na categoria "foi profissional" e é exatamente
+  //    isso: rodou o Brasil (Botafogo, CSA, Vila Nova, Juventude, Ypiranga) e a
+  //    passagem pelo clube grande, o Cruzeiro em 2017, deu 7 jogos e acabou em
+  //    rescisão. A fama é o nome — que é a régua dele: *"famoso sendo ruim ou bom
+  //    tanto faz"*. Escrito John (é assim que ele assina), não Jhon.
+  { name: "John Lennon", club: "Cruzeiro", year: 2017, fame: 1, lo: 50, hi: 75, folk: true, bio: "Lateral-direito goiano com o nome mais famoso do futebol brasileiro. Chegou ao Cruzeiro em 2017, fez sete jogos e teve o contrato rescindido — depois rodou o país inteiro." },
 ]
 const L33_BR_MEI: C[] = [
   { name: "Claudinho", club: "Bragantino", year: 2021, fame: 4, lo: 80, hi: 88, bio: "Melhor jogador do Brasileirão de 2020 com a camisa do Bragantino: meia de chegada, gol de fora e passe pra dentro — vendido ao Zenit no auge." },
@@ -1495,6 +1551,20 @@ const L33_BR_MEI: C[] = [
   { name: "Lucho Acosta", club: "Fluminense", year: 2025, fame: 3, lo: 77, hi: 86, bio: "Argentino de estatura baixa e passe de último toque, eleito o melhor da liga americana em 2023 antes de vestir a camisa do Fluminense." },
   { name: "Maicon (Grêmio)", club: "Grêmio", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Volante e capitão do Grêmio campeão da Libertadores de 2017 — liderança, pegada e chute de fora da área." },
   { name: "Álvaro Montoro", club: "Botafogo", year: 2025, fame: 3, lo: 70, hi: 83, promessa: true, bio: "Meia argentino formado no Vélez, comprado ainda adolescente pelo Botafogo — canhota de passe e drible em espaço curto." },
+  // 🐋 DOUGLAS FRANKLIN — pesquisado a fundo a pedido dele. Ídolo gigantesco do
+  //    Bahia: 1972-1980, 456 jogos, 184 gols (2º maior artilheiro da história do
+  //    clube), líder de assistências e protagonista do HEPTA baiano (1973-1979).
+  //    Antes disso foi formado no Santos e companheiro de Pelé no Brasileiro de 68.
+  //    Morreu em 9 de agosto de 2026. O Diego pediu como MEIO-CAMPO — e bate: as
+  //    fontes o descrevem como meia e centroavante.
+  { name: "Douglas Franklin", club: "Bahia", year: 1976, fame: 3, lo: 78, hi: 87, bio: "Ídolo máximo do Bahia do heptacampeonato baiano: 184 gols em 456 jogos, segundo maior artilheiro da história do clube e líder de assistências. Foi formado no Santos e companheiro de Pelé." },
+  // 🚭 MAGRÃO DO PALMEIRAS — Márcio Rodrigues, volante alto de passada larga, melhor
+  //    fase no Palmeiras (2000-2005, 229 jogos), convocado pra Seleção em 2004 e 2005.
+  //    Depois foi campeão da Sul-Americana de 2008 com o Internacional.
+  //    ⚠️ NÃO É o Magrão goleiro do Sport, que continua no jogo — são DUAS PESSOAS
+  //    com o mesmo apelido, e o Diego avisou: *"não remova o goleiro, são cartas
+  //    diferentes"*. Por isso esta leva o clube no nome, pra ninguém confundir na tela.
+  { name: "Magrão (Palmeiras)", club: "Palmeiras", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Volante alto e de passada larga, a melhor fase foi no Palmeiras, onde virou convocado da Seleção em 2004. Venceu um câncer no meio da carreira e ainda foi campeão da Sul-Americana com o Internacional." },
 ]
 const L33_BR_ATA: C[] = [
   { name: "Artur", club: "Bragantino", year: 2021, fame: 3, lo: 76, hi: 85, bio: "Ponta-direita veloz do Bragantino que encarava o lateral de frente — do Bragantino saiu pro Zenit e depois pro Palmeiras." },
@@ -1510,9 +1580,20 @@ const L33_BR_ATA: C[] = [
   //    modesto de propósito: ele é gigante pela história, e não existe estatística de
   //    jogo de 1914 pra inventar craque. Nada aqui foi chutado; fontes no commit.
   { name: "Lacraia", club: "Santa Cruz", year: 1914, fame: 2, lo: 62, hi: 82, folk: true, bio: "Teófilo Batista de Carvalho, o Lacraia: um dos 11 fundadores do Santa Cruz em 1914, desenhou o escudo do clube e foi o primeiro jogador negro do futebol pernambucano. O preto do escudo do Santa é por causa dele." },
+  // 🏎️ PAULINHO McLAREN — pesquisado a fundo. O Diego pediu "do Porto de Portugal",
+  //    mas lá foram 16 jogos e 1 gol (1992-93). O AUGE dele é o SANTOS DE 1991: 23
+  //    gols no ano, 15 no Brasileirão, ARTILHEIRO do Campeonato Brasileiro. E o
+  //    apelido nasceu ali: comemorou um gol (justamente contra o Vitória) imitando
+  //    um piloto de F-1 em homenagem ao Ayrton Senna, uma semana antes do Senna
+  //    ganhar em Interlagos pela McLaren — e o apelido pegou pra vida.
+  //    ⚠️ Como a regra do baralho é *"toda carta é o AUGE do cara"*, a carta ficou
+  //    Santos 1991. Se ele preferir Porto, é só trocar clube/ano nesta linha.
+  { name: "Paulinho McLaren", club: "Santos", year: 1991, fame: 3, lo: 76, hi: 86, folk: true, bio: "Artilheiro do Brasileirão de 1991 com 15 gols pelo Santos. Ganhou o apelido comemorando um gol como piloto de Fórmula 1, em homenagem ao Ayrton Senna — uma semana antes de Senna vencer em Interlagos pela McLaren." },
+  { name: "Neto Berola", club: "Vitória", year: 2010, fame: 2, lo: 68, hi: 82, bio: "Atacante de arrancada que foi vice-artilheiro do Baiano de 2009 e um dos destaques do Vitória na campanha do vice da Copa do Brasil de 2010. Depois foi campeão da Libertadores com o Atlético-MG." },
+  { name: "Erick", club: "Vitória", year: 2026, fame: 3, lo: 74, hi: 84, bio: "Ponta-direita que virou a contratação mais cara da história do Vitória: foi o destaque do Leão na permanência de 2025 e o clube comprou metade dos direitos dele." },
   { name: "Allan (Palmeiras)", club: "Palmeiras", year: 2026, fame: 3, lo: 70, hi: 83, promessa: true, bio: "Atacante saído da base do Palmeiras — arrancada e finalização de dentro da área, apostado pelo clube pra virar titular." },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA] }
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -2228,6 +2309,15 @@ const L31_EU_GOL: C[] = [
   //    O NOME leva o "Jr" pra nunca embolar com o pai no histórico por carta.
   { name: "Ronald Koeman Jr", club: "Oostende", year: 2019, fame: 1, lo: 48, hi: 74, folk: true, bio: "Filho do Ronald Koeman, seguiu no futebol como goleiro e rodou clubes da Bélgica e da Holanda — carreira discreta com o sobrenome mais pesado do vestiário." },
 ]
+// 🇵🇹 L33 (22/09) · pesquisado a fundo a pedido do Diego. João Miguel Passos Manuel
+//    Pica, de Moura, no Alentejo: zagueiro de 1,85m, 337 jogos e 16 gols na carreira
+//    entre Ribeirão, Varzim, Moreirense, Tondela e Académico de Viseu — onde ficou
+//    quatro temporadas e meia (96 jogos) e pendurou as botas aos 35, indo trabalhar
+//    na formação do clube. 🪵 foi profissional, e 🃏 porque no Brasil o nome dele é
+//    inesquecível — que é justamente a régua do Diego (*"famoso sendo ruim ou bom"*).
+const L33_EU_ZAG: C[] = [
+  { name: "João Pica", club: "Académico de Viseu", year: 2019, fame: 1, lo: 52, hi: 76, folk: true, bio: "Zagueiro português de Moura, quatro temporadas e meia no Académico de Viseu. Fechou a carreira aos 35 anos e foi trabalhar na formação do próprio clube." },
+]
 const L31_EU_ZAG: C[] = [
   { name: "Marquinhos", club: "PSG", year: 2023, fame: 5, lo: 87, hi: 93, bio: "Zagueiro-capitão do PSG e da Seleção. Mais de uma década no topo, com saída de bola, antecipação e liderança." },
   { name: "Éder Militão", club: "Real Madrid", year: 2022, fame: 4, lo: 85, hi: 91, bio: "Zagueiro brasileiro do Real Madrid — velocidade e força de sobra, campeão de tudo pelo clube antes de as lesões cobrarem o preço." },
@@ -2263,7 +2353,7 @@ const L31_EU_LAT: C[] = [
 const L31_EU_MEI: C[] = [
   { name: "Fábio Rochemback", club: "Sporting", year: 2005, fame: 3, lo: 74, hi: 86, bio: "Volante revelado no Internacional que teve a melhor fase no Sporting — chute de fora da área como marca registrada e final de Copa da UEFA." },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA] }
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -2540,6 +2630,11 @@ const L32_WORLD_LAT: C[] = [
 ]
 const L32_WORLD_ZAG: C[] = [
   { name: 'Iván Córdoba', club: 'Inter', year: 2010, fame: 4, lo: 81, hi: 88, bio: 'Zagueiro colombiano baixinho e de marcação impecável, capitão da Inter da tríplice coroa de 2010 e autor do gol do título da Colômbia na Copa América de 2001.' },
+  // 🇨🇲 L33 (22/09) · o Diego sabia quem era e queria o clube do auge. Pesquisado:
+  //    Yaya Banana, de Maroua, zagueiro. Carreira em ES Tunis (2009-12), Sochaux na
+  //    França, Platanias na Grécia e OLYMPIACOS (2017-19) — o maior clube por onde
+  //    passou, e é esse o auge da carta. Depois Jordânia, Índia e França amadora.
+  { name: 'Yaya Banana', club: 'Olympiacos', year: 2018, fame: 2, lo: 62, hi: 80, folk: true, bio: 'Zagueiro camaronês de Maroua que rodou Tunísia, França e Grécia até chegar ao Olympiacos — e ficou famoso no Brasil pelo nome antes do futebol.' },
 ]
 const L32_WORLD_MEI: C[] = [
   { name: 'Ariel Ortega', club: 'River Plate', year: 1997, fame: 4, lo: 82, hi: 89, folk: true, bio: 'El Burrito. Argentino de drible curto e desequilíbrio puro, ídolo máximo do River — e tão explosivo fora de campo quanto dentro.' },

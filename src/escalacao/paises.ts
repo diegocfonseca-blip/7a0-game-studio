@@ -469,6 +469,11 @@ export const PAIS: Record<string, string> = {
   'Emmanuel Adebayor': 'Togo',
   // ─── L33 · lote de 22/09 ─────────────────────────────────────────────────────
   'Ronald Koeman Jr': 'Holanda', // 🇳🇱 igual ao pai (que já estava etiquetado)
+  'João Pica': 'Portugal', 'Yaya Banana': 'Camarões',
+  // ─── L34 · campeões do mundo escolhidos pelo Diego (22/09) ───────────────────
+  'Sami Khedira': 'Alemanha', 'Per Mertesacker': 'Alemanha', 'Lukas Podolski': 'Alemanha',
+  'Blaise Matuidi': 'França', 'Corentin Tolisso': 'França', 'Nabil Fekir': 'França',
+  'Exequiel Palacios': 'Argentina',
 }
 
 export type Baralho = 'BR' | 'EU' | 'WORLD'
@@ -563,6 +568,7 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   'Carrascal|Flamengo|2025': 'Colômbia',
   'Lucho Acosta|Fluminense|2025': 'Argentina',
   'Álvaro Montoro|Botafogo|2025': 'Argentina',
+  'Viáfara|Vitória|2010': 'Colômbia',
 }
 
 /**
@@ -596,6 +602,9 @@ export const MESMO_JOGADOR = new Set<string>([
   // Figueirense 2010 (promessa) e Liverpool 2019 — o mesmo cara em dois auges.
   'Roberto Firmino',
   'Andreas Pereira', // Flamengo 2022 e Palmeiras 2026 — o mesmo cara em dois clubes
+  // Internacional 1992 e Corinthians 1995 — o MESMO zagueiro, campeão da Copa do
+  // Brasil com os dois (2ª carta pedida pelo Diego em 22/09).
+  'Pinga',
   // ⚠️ 'Alex' é a EXCEÇÃO desta lista: são duas PESSOAS diferentes (o meia do
   // Cruzeiro e o zagueiro do Chelsea). Está aqui só pra calar o aviso do
   // `npm run paises`, e os dois estão escritos carta a carta em PAIS_POR_CARTA.
