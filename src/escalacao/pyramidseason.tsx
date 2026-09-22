@@ -951,22 +951,23 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   const assistsSorted = [...assists.values()].sort((a, b) => b.assists - a.assists)
   return { tables, scorers: sorted.slice(0, 20), scorersAll: sorted, matches, goalsByCard, assistsByCard, assistsAll: assistsSorted, divTop }
 }
-// prêmio do artilheiro: CAIXA do time por divisão (A 30 · B 20 · C 15 · D 10) +
-// PISO do jogador sobe SEMPRE +10 (fixo, qualquer divisão e Copa). O piso é fixo
-// baixo de propósito por causa do salário (salário = piso ÷ 10): se subisse muito,
-// a folha do artilheiro explodia. Vale offline/online, rival/bot/humano.
+// prêmio do artilheiro: CAIXA do time por divisão (A 30 · B 20 · C 15 · D 10).
+// 🚫 O PISO DO JOGADOR NÃO SOBE MAIS (Diego 22/09): *"não quero mais que o jogador
+// bola de ouro aumente o piso do valor dele. Nem artilheiro também não"*. Até aqui,
+// artilheiro de liga e de Copa somavam +10 fixo no livro de preços E no `paid` de
+// toda carta com aquele nome — o que encarecia renovação, salário (= piso ÷ 10) e
+// teto de venda temporada após temporada. Agora o prêmio é só DINHEIRO NO CAIXA.
+// Quem mexer aqui: o prêmio do time segue vivo; o que morreu foi o `values`.
 const DIV_SCORER_BONUS: Record<Div, number> = { A: 30, B: 20, C: 15, D: 10, V: 6 } // caixa do TIME
-const SCORER_PISO_BONUS = 10 // 🔒 piso do artilheiro: +10 fixo (qualquer divisão / Copa)
-export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number> } {
-  const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}, values: Record<string, number> = {}
+export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { rewards: Record<number, number>; clubRewards: Record<string, number> } {
+  const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}
   for (const d of DIVS) {
     const s = divTop[d]; if (!s) continue
     const b = DIV_SCORER_BONUS[d]
-    values[s.name] = (values[s.name] ?? 0) + SCORER_PISO_BONUS // piso do jogador: +10 fixo
     if (s.human) rewards[s.teamId] = (rewards[s.teamId] ?? 0) + b // caixa do humano (por divisão)
     else { const key = s.teamId >= 0 ? `m${s.teamId}` : s.teamName; clubRewards[key] = (clubRewards[key] ?? 0) + b } // caixa do bot/rival
   }
-  return { rewards, clubRewards, values }
+  return { rewards, clubRewards }
 }
 
 // ─── 🥇 MELHOR DO MUNDO — o prêmio que junta GOL + ASSISTÊNCIA (19/09) ──────
@@ -1194,10 +1195,10 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
 }
 
 // prêmios da Copa: campeão leva moedas (igual Série A) + o artilheiro rende ao
-// time e sobe o piso do jogador. Mesmo formato do seasonRewards/scorerRewards
-// pra fundir nos args da virada de temporada.
-export function copaRewards(copa: CopaResult): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {
-  const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}, values: Record<string, number> = {}
+// time. Mesmo formato do seasonRewards/scorerRewards pra fundir nos args da
+// virada de temporada. 🚫 Sem piso desde 22/09 — ver o comentário em scorerRewards.
+export function copaRewards(copa: CopaResult): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
+  const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}
   const ch = copa.champion
   const championKey: string | null = ch ? teamKey(ch) : null
   // 🏆 PAGA POR FASE: acha até onde cada time foi (a rodada mais funda em que ele
@@ -1227,11 +1228,10 @@ export function copaRewards(copa: CopaResult): { rewards: Record<number, number>
   }
   const ts = copa.topScorer
   if (ts) {
-    values[ts.name] = (values[ts.name] ?? 0) + SCORER_PISO_BONUS // piso do artilheiro da Copa: +10 fixo (igual à liga)
     if (ts.human) rewards[ts.teamId] = (rewards[ts.teamId] ?? 0) + COPA_SCORER_BONUS // caixa do time (Copa) — inalterado
     else { const k = ts.teamId >= 0 ? `m${ts.teamId}` : ts.teamName; clubRewards[k] = (clubRewards[k] ?? 0) + COPA_SCORER_BONUS }
   }
-  return { rewards, clubRewards, values, championKey }
+  return { rewards, clubRewards, championKey }
 }
 
 // ── VISÃO das 4 divisões (mesmo visual das outras tabelas do jogo) ──
@@ -6129,11 +6129,11 @@ function PrizesBox() {
         {getLang() === 'en' ? <>
         <li><b>Top-4</b>: in the lower divisions it means <b>promotion</b> (going up); in A it means "staying in the top 4". The A champion takes both: <b>65 + 30 = 95</b>; the Várzea champion takes <b>15 + 10 = 25</b>.</li>
         <li><b>Relegation</b>: you lose coins when you go down (same amount as promotion) — applies from A to C. <b>Dropping from Série D to Várzea costs nothing</b> (Várzea is already the bottom of the pyramid).</li>
-        <li><b>⚽ Top scorer</b> of each division (and of the Cup): the amount goes to the <b>club's till</b>; and the player's <b>floor (value)</b> rises by a <b>flat +10</b> for the next auction.</li>
+        <li><b>⚽ Top scorer</b> of each division (and of the Cup): the amount goes to the <b>club's till</b>. The player's value doesn't change.</li>
         </> : <>
         <li><b>Top-4</b>: nas séries de baixo é <b>acesso</b> (sobe de divisão); na A é "manter entre os 4". Campeão da A leva os dois: <b>65 + 30 = 95</b>; campeão da Várzea leva <b>15 + 10 = 25</b>.</li>
         <li><b>Queda</b>: perde moedas ao cair (mesmo valor do acesso) — vale de A até C. <b>Caindo da Série D pra Várzea não desconta nada</b> (a Várzea já é o fundo da pirâmide).</li>
-        <li><b>⚽ Artilheiro</b> de cada divisão (e da Copa): o valor vai pro <b>caixa do clube</b>; e o <b>piso (valor)</b> do jogador sobe <b>+10 fixo</b> pro próximo leilão.</li>
+        <li><b>⚽ Artilheiro</b> de cada divisão (e da Copa): o valor vai pro <b>caixa do clube</b>. O valor do jogador não muda.</li>
         </>}
       </ul>
     </div>
@@ -9287,7 +9287,7 @@ export function PyramidSeasonScreen() {
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
           // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
           // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
-          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), scorerValues: mrg(sb.values, cr.values), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
+          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
@@ -9991,8 +9991,8 @@ export function PyramidSeasonScreen() {
                 {/* durante a Copa (fim de temporada), a artilharia da COPA entra no
                     lugar da artilharia das divisões; o "todos os tempos" fica embaixo. */}
                 {done && copa && copaScorersShown.length > 0
-                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? tr('Gols do mata-mata da Copa — top 20.', 'Goals in the Cup knockout — top 20.') : tr(`Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`, `Goals up to ${copaRound === 0 ? 'now' : copa.rounds[copaRound - 1].name} — updates every round.`)} foot={tr(`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube e sobe +10 no piso do jogador.`, `🏅 The Cup top scorer earns the club +${copaBrOk ? 10 : 16} and raises the player\'s floor by +10.`)} />
-                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube e vira piso do jogador: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money and becomes the player\'s floor: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
+                  ? <ArtilhariaBox scorers={copaScorersShown} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={`${tr('🏆 ARTILHARIA', '🏆 TOP SCORERS')} · ${copaBrOk ? 'COPA DO BRASIL' : 'COPA LEGENDS'}`} sub={copaFinished ? tr('Gols do mata-mata da Copa — top 20.', 'Goals in the Cup knockout — top 20.') : tr(`Gols até ${copaRound === 0 ? 'agora' : copa.rounds[copaRound - 1].name} — atualiza a cada fase.`, `Goals up to ${copaRound === 0 ? 'now' : copa.rounds[copaRound - 1].name} — updates every round.`)} foot={tr(`🏅 O artilheiro da Copa rende +${copaBrOk ? 10 : 16} ao clube.`, `🏅 The Cup top scorer earns the club +${copaBrOk ? 10 : 16}.`)} />
+                  : <ArtilhariaByDiv scorers={scorersAll} colors={colors} safTeam={safTeamName} safCol={safTeamName ? myCol : undefined} title={tr('⚽ ARTILHARIA · TEMPORADA', '⚽ TOP SCORERS · SEASON')} sub={tr('Gols da temporada atual — top 5 de cada série.', 'Goals this season — top 5 of each division.')} foot={tr('🏅 O artilheiro de cada série rende ao clube: Várzea +6 · D +10 · C +15 · B +20 · A +30.', '🏅 Each division\'s top scorer earns the club money: Várzea +6 · D +10 · C +15 · B +20 · A +30.')} />}
                 <ArtilhariaBox scorers={allTimeScorers} colors={colors} safTeam={safTeamName} title={tr('🏆 ARTILHARIA · TODOS OS TEMPOS', '🏆 TOP SCORERS · ALL TIME')} sub={tr('Gols de liga e de copa somados de todas as temporadas — top 20. Cada CARTA conta a sua (o clube vai embaixo do nome).', 'League and cup goals added up across every season — top 20. Each CARD keeps its own tally (the club shows under the name).')} foot={allTimeScorers.length === 0 ? tr('Começa a contar a partir de agora.', 'Counting starts now.') : undefined} />
               </>
             )}

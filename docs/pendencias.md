@@ -1,3 +1,38 @@
+## 22/09/2026 — 🚫📈 Prêmio não encarece mais o jogador (Bola de Ouro e artilheiro)
+
+Ordem dele: *"não quero mais que o jogador bola de ouro aumente o piso do valor dele.
+Nem artilheiro tb não"*.
+
+**O que existia** (dois bônus de piso, os dois de +10):
+- 🥇 **Bola de Ouro** — `careerBolaOuroPiso` somava +10 por título e o `valorOficial`
+  somava isso por cima do maior entre livro/pago/tabela.
+- ⚽ **Artilheiro** — liga (`scorerRewards`), Copa Legends (`copaRewards`) e Copa do
+  Brasil (`CB_SCORER_FLOOR_BONUS`) mandavam +10 fixo pro `applyScorerValues`, que
+  subia o livro de preços **e** o `paid` de TODA carta com aquele nome, em qualquer
+  elenco (humano, bot e rival).
+
+**Por que incomodava**: piso é a base de três contas ao mesmo tempo — salário
+(= piso ÷ 10), preço de renovação e teto de venda. O craque premiado ia encarecendo
+temporada após temporada e a folha dele explodia justamente no time que o revelou.
+
+**O que ficou**: o prêmio continua, só que **em dinheiro no caixa** — artilheiro por
+divisão (A 30 · B 20 · C 15 · D 10 · Várzea 6), artilheiro de Copa, e as 20 🪙 da Bola
+de Ouro. Nada mudou no caixa.
+
+**No código**: saíram `BOLA_OURO_PISO`, `pisoBolaOuro`, `SCORER_PISO_BONUS`,
+`CB_SCORER_FLOOR_BONUS`, o `applyScorerValues` inteiro e o campo `scorerValues` das
+duas actions da virada. O `valorOficial` voltou a ser só o `Math.max` de sempre.
+Os textos de tela que prometiam o piso (regras da temporada, rodapé da artilharia da
+liga e da Copa) foram corrigidos em PT e EN, e a novidade de 19/09 na home foi
+reescrita pra não prometer mais o que o jogo não faz.
+🗃️ `careerBolaOuroPiso` continua nos saves antigos como **resíduo**: ninguém escreve,
+ninguém lê. Não precisa migração — e o valor que a carta já tinha no LIVRO de preços
+(de artilharias passadas) continua lá, porque aquilo já virou preço de mercado.
+
+↩️ **Reverter**: o commit é único e isolado. Voltar ele devolve os dois bônus.
+✅ Travas rodadas: `npm run artilharia` · `melhor` · `fim` · `roteiro` · `monte` ·
+`agencia` — todas verdes, e o `npm run build` fechou.
+
 ## 21/09/2026 — 🛡️ Linhazinha na Sala de Troféus ✅ FEITA (opção C)
 
 Pedido dele: *"na área do online, um dos troféus, coloque uma linhazinha assim
