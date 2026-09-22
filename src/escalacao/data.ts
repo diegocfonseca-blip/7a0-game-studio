@@ -2455,7 +2455,49 @@ const L29_WORLD_ATA: C[] = [
   { name: 'Jared Borgetti', club: 'Santos Laguna', year: 2003, fame: 3, lo: 77, hi: 86, bio: 'Mexicano de cabeceio raro, artilheiro histórico da seleção do México e autor de um gol antológico contra a Itália na Copa de 2002.' },
   { name: 'Wu Lei', club: 'Shanghai SIPG', year: 2018, fame: 3, lo: 74, hi: 84, bio: 'O maior nome do futebol chinês moderno: 27 gols na temporada do título do Shanghai, recorde para um jogador chinês.' },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA] }
+// ─── L32 · FAMOSOS QUE FALTAVAM NO MUNDO (21/09) ─────────────────────────────
+// Ordem do Diego, depois de eu listar quem não estava em baralho NENHUM: *"acho
+// que tem poucas cartas no baralho mundo… precisa de bem mais. Só que tem que ser
+// famoso, sendo ruim ou bom tanto faz, e qualquer posição"*. Ele escolheu estes 14
+// na mão e mandou: *"add esse com categoria, nível, ano e clube auge"*.
+//
+// ⚠️ TODOS FORAM CRUZADOS COM OS TRÊS BARALHOS antes de entrar (por nome E por
+// sobrenome). A checagem por sobrenome pegou 5 armadilhas que a de nome inteiro
+// deixou passar — Elías Figueroa, Asprilla, Tevez, Guerrero e Freddy Rincón JÁ
+// existem, com a carta brasileira deles (Inter 76, Palmeiras, Corinthians…), e
+// por isso ficaram FORA. Quem for adicionar mais: confira pelo sobrenome também.
+//
+// 📏 NÍVEL CALIBRADO pelas cartas que já existem, pra não inflar o baralho:
+//    lenda ≈ 86-92/92-96 · craque ≈ 81-87/88-92 · bom ≈ 74-79/84-87.
+//    Referências usadas: Godín f4 84-90 · Riquelme f4 84-90 · Yaya f4 85-91 ·
+//    Mahrez f4 83-89 · Édouard Mendy f3 78-86 · Lauren/Nagatomo f3 74-84.
+// 🃏 `folk` entra em quem é lembrado pela HISTÓRIA e não só pelo futebol (é a
+//    régua que Okocha, Madjer e o Usain Bolt já usam).
+const L32_WORLD_GOL: C[] = [
+  { name: 'Bono', club: 'Sevilla', year: 2023, fame: 3, lo: 78, hi: 86, bio: 'Goleiro marroquino do título da Liga Europa pelo Sevilla e da campanha histórica do Marrocos na Copa de 2022, quando pegou pênaltis e levou o time até a semifinal.' },
+]
+const L32_WORLD_LAT: C[] = [
+  { name: 'Serge Aurier', club: 'PSG', year: 2016, fame: 3, lo: 75, hi: 84, bio: 'Lateral-direito marfinense de fôlego e cruzamento, titular do PSG dos títulos franceses e capitão da Costa do Marfim.' },
+]
+const L32_WORLD_ZAG: C[] = [
+  { name: 'Iván Córdoba', club: 'Inter', year: 2010, fame: 4, lo: 81, hi: 88, bio: 'Zagueiro colombiano baixinho e de marcação impecável, capitão da Inter da tríplice coroa de 2010 e autor do gol do título da Colômbia na Copa América de 2001.' },
+]
+const L32_WORLD_MEI: C[] = [
+  { name: 'Ariel Ortega', club: 'River Plate', year: 1997, fame: 4, lo: 82, hi: 89, folk: true, bio: 'El Burrito. Argentino de drible curto e desequilíbrio puro, ídolo máximo do River — e tão explosivo fora de campo quanto dentro.' },
+  { name: 'Gallardo', club: 'River Plate', year: 1997, fame: 4, lo: 82, hi: 89, bio: 'Meia argentino de passe milimétrico, a Muñeca do River dos anos 90 — depois virou o treinador mais vitorioso da história do clube.' },
+  { name: 'Michael Essien', club: 'Chelsea', year: 2007, fame: 4, lo: 82, hi: 89, bio: 'O Bisão. Volante ganês que corria por dois no Chelsea de Mourinho, marcava como zagueiro e soltava a bomba de fora da área.' },
+  { name: 'Thomas Partey', club: 'Atlético de Madrid', year: 2020, fame: 3, lo: 78, hi: 86, bio: 'Volante ganês de porte físico e chegada ao ataque, peça do Atlético de Madrid de Simeone antes de virar titular do Arsenal.' },
+  { name: 'Lakhdar Belloumi', club: 'GCR Mascara', year: 1982, fame: 3, lo: 78, hi: 86, folk: true, bio: 'Melhor jogador africano de 1981 e autor do gol que completou a maior zebra da história das Copas: Argélia 2 × 1 Alemanha Ocidental, em 1982.' },
+]
+const L32_WORLD_ATA: C[] = [
+  { name: 'Martín Palermo', club: 'Boca Juniors', year: 2000, fame: 4, lo: 81, hi: 89, folk: true, bio: 'O Louco. Maior artilheiro da história do Boca e campeão do mundo em 2000 — e também o homem que perdeu três pênaltis num único jogo da Copa América.' },
+  { name: 'Claudio Caniggia', club: 'Atalanta', year: 1990, fame: 4, lo: 82, hi: 89, folk: true, bio: 'O Filho do Vento. Argentino de velocidade assustadora e cabelo ao vento, fez os gols que tiraram o Brasil e a Itália da Copa de 1990.' },
+  { name: 'Carlos Bianchi', club: 'Reims', year: 1977, fame: 4, lo: 81, hi: 88, bio: 'Antes de ser o treinador lendário do Boca, foi um centroavante argentino implacável na França: quatro vezes artilheiro do campeonato francês.' },
+  { name: 'Frédéric Kanouté', club: 'Sevilla', year: 2007, fame: 4, lo: 81, hi: 88, bio: 'Melhor jogador africano de 2007 defendendo o Mali. Atacante alto e técnico, foi o dono do ataque do Sevilla das duas Copas da UEFA seguidas.' },
+  { name: 'Emmanuel Adebayor', club: 'Arsenal', year: 2008, fame: 4, lo: 80, hi: 88, bio: 'Togolês de 1,90m com toque de meia, fez 30 gols numa temporada pelo Arsenal e foi eleito o melhor da África em 2008.' },
+  { name: 'Asamoah Gyan', club: 'Sunderland', year: 2011, fame: 3, lo: 78, hi: 86, folk: true, bio: 'Maior artilheiro da história de Gana em Copas. Herói de 2010 e, no mesmo torneio, o homem do pênalti perdido nos acréscimos contra o Uruguai.' },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).

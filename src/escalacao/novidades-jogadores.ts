@@ -6,6 +6,104 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
+    "nome": "Bono",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Serge Aurier",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Iván Córdoba",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Ariel Ortega",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Gallardo",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Michael Essien",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Thomas Partey",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Lakhdar Belloumi",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Martín Palermo",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Claudio Caniggia",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Carlos Bianchi",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Frédéric Kanouté",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Emmanuel Adebayor",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Asamoah Gyan",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Rafael",
     "baralho": "BR",
     "nivel": "bom jogador",
@@ -327,108 +425,5 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Schlotterbeck",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Van de Ven",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Sven Botman",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Murillo",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Fábio Rochemback",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Marlon Freitas",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Paul Scholes",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Roy Keane",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dirceu Krüger",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-19"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Zito",
-    "baralho": "BR",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-16"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "GarrinSha",
-    "baralho": "BR",
-    "de": "bom jogador",
-    "para": "foi profissional",
-    "data": "2026-09-15"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Léo Maringá",
-    "baralho": "BR",
-    "de": "bom jogador",
-    "para": "foi profissional",
-    "data": "2026-09-15"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Léo Maringá",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-14"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Yan Diomandé",
-    "baralho": "EU",
-    "nivel": "promessa",
-    "data": "2026-09-12"
   }
 ]

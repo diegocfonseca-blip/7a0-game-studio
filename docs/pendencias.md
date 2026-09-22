@@ -1,3 +1,51 @@
+## 22/09/2026 — 🌍 14 famosos novos no baralho MUNDO (lote L32) ✅ FEITO
+
+Diego: *"acho que tem poucas cartas no baralho mundo… precisa de bem mais. Só que
+tem que ser famoso, sendo ruim ou bom tanto faz, e qualquer posição. Me manda aí os
+faltantes que não poderiam faltar"*. Eu cruzei 153 nomes com os três baralhos, mandei
+a lista, e ele escolheu 14 na mão: *"add esse com categoria, nível, ano e clube auge"*.
+
+**Quem entrou** (`L32_WORLD_*` em `data.ts`): 🧤 Bono (Sevilla 23) · ↔️ Serge Aurier
+(PSG 16) · 🛡️ Iván Córdoba (Inter 10) · 🎩 Ariel Ortega e Gallardo (River 97),
+Michael Essien (Chelsea 07), Thomas Partey (Atlético 20), Lakhdar Belloumi (GCR
+Mascara 82) · ⚡ Martín Palermo (Boca 00), Claudio Caniggia (Atalanta 90), Carlos
+Bianchi (Reims 77), Frédéric Kanouté (Sevilla 07), Emmanuel Adebayor (Arsenal 08),
+Asamoah Gyan (Sunderland 11).
+O baralho Mundo foi de **178 → 192 cartas** e de 16 → **25 craques** (as 5 lendas
+seguem as mesmas). Gana ganhou 3 cartas, Togo estreia com 1, Mali vai a 2.
+
+⚠️ **A LIÇÃO QUE VALE PRA TODA CARTA NOVA: conferir pelo SOBRENOME, não só pelo nome
+inteiro.** Minha primeira checagem (nome inteiro, normalizado) disse que 82 nomes
+faltavam. A segunda, por sobrenome, pegou **5 que JÁ EXISTEM** com a carta brasileira
+deles e que eu quase mandei de novo: **Elías Figueroa** (Internacional 76),
+**Asprilla** (Palmeiras), **Tevez** (Corinthians), **Guerrero** (Corinthians) e
+**Freddy Rincón** (Corinthians). No baralho eles estão só pelo sobrenome, então
+comparar nome inteiro nunca acha.
+
+📏 **Nível calibrado pelas cartas que já existiam**, pra não inflar: craque ≈ 81-87 /
+88-92 (referências Godín 84-90, Riquelme 84-90, Yaya 85-91, Mahrez 83-89) · bom ≈
+74-79 / 84-87 (Édouard Mendy 78-86, Lauren e Nagatomo 74-84). 🃏 `folk` só em quem é
+lembrado pela HISTÓRIA além do futebol: Ortega, Palermo (os 3 pênaltis perdidos),
+Caniggia, Belloumi (a zebra de 82) e Gyan (o pênalti nos acréscimos de 2010).
+
+**Passos do roteiro cumpridos**: `npm run paises` verde (as 14 nacionalidades
+etiquetadas — carta do Mundo sem etiqueta fica FORA de toda Copa) · `npm run
+novidades` rodado, com `data.ts` + `catalogo-snapshot.json` + o gerado commitados
+juntos · `npm run build`, `carta`, `rank`, `copa`, `piramide` e `telas` verdes.
+↩️ **Reverter**: `git revert` do commit — as cartas somem do baralho e nada mais é
+tocado (save que já tiver um deles guarda a cópia da carta, como toda carta do jogo).
+
+**Sobrou pra depois**: tenho **45 nomes de segunda onda** já conferidos e fora de
+todos os baralhos (Wataru Endo, Doan, Kamada, Hasebe, Zaha, Kolo Touré, Naybet,
+Timoumi, Tshabalala, Seydou e Naby Keïta, Al-Dawsari, Al-Qahtani, Akram Afif, Younis
+Mahmoud, Omar Abdulrahman, Azmoun, Hao Haidong, Zheng Zhi, Sun Jihai, Fan Zhiyi,
+Schwarzer, Kasey Keller, Leon Bailey, David Suazo, Bryan Ruiz, Bacca, Adolfo
+Valencia, Willington Ortiz, Rubén Sosa, Justo Villar, Haedo Valdez, Antonio Valencia,
+Erwin Sánchez, Nelsen, Finidi George, Obafemi Martins, Mikel, Muntari, Pavel Pardo,
+Luis García, Inamoto, Enyeama, Radebe, Grobbelaar, Ndlovu, Schiaffino, Obdulio
+Varela, Alberto Spencer, Ghiggia, Negrete, Aboutrika, Chicharito, Rafael Márquez,
+Mahdavikia, Kudus, Kewell). **Esperando ele dizer quais quer.**
+
 ## 21/09/2026 — 🔬 ACHADO: lenda vai pro leilão e NINGUÉM dá lance (é o PISO)
 
 Diego, olhando a carreira antes de jogar: *"tô vendo ir pro leilão Paul Scholes,

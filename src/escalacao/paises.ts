@@ -455,6 +455,18 @@ export const PAIS: Record<string, string> = {
   'Dumfries': 'Holanda', 'Frimpong': 'Holanda', 'Pedro Porro': 'Espanha',
   'Aït-Nouri': 'Argélia', 'Vanderson': 'Brasil', 'Álvaro Carreras': 'Espanha',
   'Milos Kerkez': 'Hungria', // (Yan Couto já estava etiquetado mais acima)
+  // ─── L32 · os 14 famosos que faltavam no baralho MUNDO (escolha do Diego, 21/09) ──
+  // ⚠️ Carta do MUNDO sem etiqueta aqui fica FORA de toda Copa (o `paisDe` devolve
+  // '??' e o '??' nunca vira seleção). Então nacionalidade é passo obrigatório de
+  // carta nova — é o que o `npm run paises` cobra.
+  'Bono': 'Marrocos', 'Serge Aurier': 'Costa do Marfim',
+  'Iván Córdoba': 'Colômbia',
+  'Ariel Ortega': 'Argentina', 'Gallardo': 'Argentina',
+  'Martín Palermo': 'Argentina', 'Claudio Caniggia': 'Argentina',
+  'Carlos Bianchi': 'Argentina',
+  'Michael Essien': 'Gana', 'Thomas Partey': 'Gana', 'Asamoah Gyan': 'Gana',
+  'Lakhdar Belloumi': 'Argélia', 'Frédéric Kanouté': 'Mali',
+  'Emmanuel Adebayor': 'Togo',
 }
 
 export type Baralho = 'BR' | 'EU' | 'WORLD'
