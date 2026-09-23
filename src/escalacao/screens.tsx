@@ -3215,7 +3215,13 @@ const MASC_ALTURAS = ['14%', '30%', '46%'] // onde cada bicho cruza (quem voa so
 // ⚠️ É trava LOCAL, de TELA: quem soltou continua soltando e todo mundo que já
 // lacrou vê. Ninguém perde o emote — ele só não interrompe quem está no meio da
 // decisão. Os emojis/cantadas que já existiam continuam exatamente como eram.
-function MascoteAtravessa() {
+// ⏱️ QUANTO TEMPO O BICHO LEVA PRA ATRAVESSAR.
+// O padrão (2,2s) é o do ENVELOPE CEGO e NÃO se mexe — ordem do Diego (23/09):
+// *"eu só tinha pedido pro modo Tocaia você deixar o mascote passar mais devagar
+// do que está, e pedi pra NÃO mexer em nada no modo envelope"*.
+// Quem quiser uma travessia mais calma passa `segundos` (é o que o Monte da
+// Tocaia faz, com 3,8s).
+function MascoteAtravessa({ segundos = 2.2 }: { segundos?: number }) {
   const { state, emotes } = useEsc()
   // 🐊🐛 O 2º MOTIVO DE O BOTÃO NÃO FAZER NADA (conserto 23/09). Esta linha era
   // `if (state.onlineMode !== 'online') return null` — herdada da chuva de dinheiro,
@@ -3260,7 +3266,7 @@ function MascoteAtravessa() {
               const w = 5 + (c % 3) * 2
               return <span key={i} style={{ position: 'absolute', left: `${3 + (c % 92)}%`, top: '-8%', width: w, height: w + 4, background: cor, transform: `rotate(${c % 360}deg)`, animation: `escMascConf ${1.4 + ((c >> 3) % 80) / 100}s linear ${((c >> 7) % 55) / 100}s forwards` }} />
             })}
-            <div style={{ position: 'absolute', bottom: voa ? '46%' : chao, left: '-34%', animation: 'escMascCruza 2.2s linear forwards' }}>
+            <div style={{ position: 'absolute', bottom: voa ? '46%' : chao, left: '-34%', animation: `escMascCruza ${segundos}s linear forwards` }}>
               <div style={{ animation: `${voa ? 'escMascPlana 1.4s' : jeito === 'rasteja' ? 'escMascOndula .8s' : 'escMascQuica .55s'} ease-in-out infinite` }}>{MASCOTES[key]}</div>
               {/* sombra no chão só pra quem PISA no chão — bicho voando não tem */}
               {!voa && <div style={{ width: 96, height: 13, borderRadius: 999, background: 'rgba(0,0,0,.28)', margin: '2px auto 0' }} />}
@@ -5378,7 +5384,11 @@ export function EscMonte() {
         uma travessia "do Monte" e outra "do envelope". */}
     <FloatingEmotes />
     <MoneyRain />
-    <MascoteAtravessa />
+    {/* 🐢 NO MONTE DA TOCAIA O BICHO ATRAVESSA MAIS DEVAGAR (Diego 23/09):
+        *"só tinha pedido pro modo Tocaia deixar o mascote passar mais devagar"*.
+        3,8s contra os 2,2s do envelope cego — que fica EXATAMENTE como estava,
+        porque ele pediu pra não mexer nele. */}
+    <MascoteAtravessa segundos={3.8} />
   </>
   )
 }
