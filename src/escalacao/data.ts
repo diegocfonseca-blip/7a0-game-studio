@@ -1671,7 +1671,7 @@ const LAT_EU: C[] = [
   { name: "Philipp Lahm", club: "Bayern", year: 2013, fame: 5, lo: 88, hi: 93 }, // 👑 promovido a LENDA (pedido do Diego 04/08): capitão da tríplice do Bayern 2013 e campeão do mundo em 2014
   { name: "Dani Alves", club: "Barcelona", year: 2011, fame: 5, lo: 85, hi: 91 },
   { name: "Javier Zanetti", club: "Inter", year: 2000, fame: 5, lo: 84, hi: 90 },
-  { name: "Maicon", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
+  { name: "Maicon", club: "Inter", year: 2010, fame: 5, lo: 84, hi: 90 },
   { name: "Marcelo Vieira", club: "Real Madrid", year: 2017, fame: 5, lo: 85, hi: 91 },
   { name: "Ashley Cole", club: "Chelsea", year: 2008, fame: 5, lo: 83, hi: 89 },
   { name: "Jordi Alba", club: "Barcelona", year: 2015, fame: 4, lo: 83, hi: 89 },
