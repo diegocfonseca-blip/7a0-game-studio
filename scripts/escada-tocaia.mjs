@@ -20,10 +20,15 @@ export function holEscada(start) {
   return out
 }
 
-/** quanto tempo cada degrau fica na tela: rápido no enfeite, lento onde dói */
+/** quanto tempo cada degrau fica na tela: rápido no enfeite, lento onde dói
+ *  🕐 23/09: o preço 1 ganhou 1 segundo (é o único degrau sem segunda chance) e o
+ *  topo pagou a conta (500ms → 300ms, onde ninguém aperta nunca). Espelho fiel do
+ *  `holPassoMs` do `store.tsx` — se lá mudar, muda aqui, senão o `npm run
+ *  holandes` reprova (foi o que aconteceu no dia em que eu esqueci). */
 export const holPassoMs = (preco, start = 100) => {
+  if (preco <= 1) return 3000
   const f = preco / Math.max(1, start)
-  return f > 0.55 ? 500 : f > 0.22 ? 1400 : 2000
+  return f > 0.55 ? 300 : f > 0.22 ? 1400 : 2000
 }
 
 /** quanto dura a descida inteira, em segundos (o degrau do ZERO não espera nada) */
