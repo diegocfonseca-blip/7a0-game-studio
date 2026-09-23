@@ -1,3 +1,45 @@
+## 23/09/2026 — 🐊 Tocaia: o toque no preço 1 que "não pega" ⏳ ESPERANDO OK VISUAL
+
+Relato do Diego: *"às vezes quando o cara deixa pra dar o lance no 1, na contagem, às
+vezes não pega. Sabe por quê? E o que sugere fazer?"*
+
+**O PORQUÊ (conferido no código, não chutado)**: o **1 é o último degrau de todos** —
+a escada é …3 · 2 · 1 · 0, e o 0 não é preço, é o `fechaHolandes`. Em qualquer outro
+número, quem perde o tempo só vê o preço cair e aperta de novo; **no 1 não existe
+próximo**. Soma-se a isso que **no online quem conta o tempo é SÓ o host**
+(`euTico = !online || isHost`): a tela do convidado ainda mostra "1" enquanto o aviso
+de fechamento viaja, ele aperta olhando pro 1, e quando o toque chega o host já
+fechou — `holandesPegar` cai no `if (!hol) return` e **morre calado**.
+
+**O QUE FOI FEITO** (ele escolheu a opção simples: *"mas se demorasse um segundo a
+mais não teria problema também"* → *"Sim"*):
+- ⏱️ **O preço 1 passou de 2s pra 3s** (`HOL_MS_ULTIMO`), e **saiu de graça**: os 5
+  degraus do topo (100→60) foram de 500ms pra **300ms** (`HOL_MS_ALTO`). Lá ninguém
+  aperta nunca — 5 × 200ms = exatamente o segundo que foi pro 1. A descida continua
+  em **49,1s** (a trava reprova acima de 50s).
+- ⏳ **A tela passou a dizer o porquê**: quando o degrau vira e o seu toque não pegou,
+  aparece 3s um aviso amarelo "TARDE · não deu tempo — tenta neste preço", no lugar
+  do botão, e o botão volta sozinho. 🚫 **Não** pus aviso pro caso de "outro levou" —
+  a linha já troca pra "Arrematado · nome do time", e repetir seria o teatro duplicado
+  que ele reprovou em 21/09.
+- 🎬 O espelho do vídeo (`scripts/escada-tocaia.mjs`) foi junto — a trava pegou ele
+  desatualizado. **Mudou o tempo no `store.tsx`? Muda lá também.**
+
+⚠️ **Eu avisei na hora, e fica registrado**: 1 segundo **ajuda mas não mata 100%** — a
+diferença entre a tela do convidado e o relógio do host continua existindo, só anda 1
+segundo pra frente. **Se voltar a escapar, o próximo passo já combinado é CARIMBAR o
+degrau no toque**: o aperto leva o número que estava na tela e o host aceita quem
+apertou enquanto ainda dava tempo. 💡 O caminho já está meio pronto — o
+`HOLANDES_PEGAR` **já carrega `preco`** na ação, e o motor hoje simplesmente ignora.
+Não fazer sem ele pedir.
+
+🔢 **Digitais do `npm run ascegas` de hoje**: `7d251395` · `67909d18` · `34c587c1`.
+Mudaram por causa das **cartas de hoje**, não da Tocaia — provei rodando a prova com e
+sem a mudança da Tocaia, e deu idêntico nos dois.
+
+⏳ **PENDENTE**: está no branch, **NÃO foi pra main**, porque o aviso amarelo é visual
+novo e a regra dele é ver antes. Mockup mandado (`mockups/tocaia-tarde.png`).
+
 ## 22/09/2026 — ❌ Erick, Carlos Bianchi e Artur removidos ✅ FEITO
 
 Palavras dele: *"Erick pode remover, e Carlos Bianchi também. Não quero mais eles não.

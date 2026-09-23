@@ -3484,6 +3484,17 @@ function Holandes() {
   // jogador APARECERIA e SUMIRIA do campinho — o estado quebrado que ele não
   // quer ver nunca. No solo isso nem pisca (o motor responde no mesmo toque).
   const [enviando, setEnviando] = useState<string | null>(null)
+  // 🗣️ E QUANDO NÃO PEGA, A TELA DIZ O PORQUÊ (23/09, junto com o segundo a mais
+  // no último degrau). Antes o toque que chegava tarde no host morria CALADO: o
+  // "✋ ENVIANDO" ficava 4s no ar e sumia sem explicar nada, e a pessoa ficava
+  // achando que o botão falhou. Agora sai um recado curto por 3s, na vaga do
+  // botão, com o motivo de verdade — é a regra dele de que toda trava explica.
+  const [recusa, setRecusa] = useState<{ id: string; txt: string } | null>(null)
+  useEffect(() => {
+    if (!recusa) return
+    const t = setTimeout(() => setRecusa(null), 3000)
+    return () => clearTimeout(t)
+  }, [recusa])
   useEffect(() => {
     if (!enviando) return
     // o host respondeu (a carta ganhou dono, qualquer que seja) → some o aviso
@@ -3491,6 +3502,21 @@ function Holandes() {
     const t = setTimeout(() => setEnviando(null), 4000) // rede muda: não trava a tela pra sempre
     return () => clearTimeout(t)
   }, [enviando, hol?.levados])
+  // ⏳ "NÃO DEU TEMPO" — o recado que faltava.
+  // Quando o degrau vira e a carta que você tentou NÃO é sua e NÃO tem dono, quer
+  // dizer que o seu toque chegou depois de o preço mudar. Antes isso era mudo: o
+  // "✋ ENVIANDO" sumia sozinho e a pessoa achava que o botão tinha falhado.
+  // 🚫 Não trato aqui o caso de OUTRO ter levado: a própria linha já troca pra
+  //    "Arrematado · nome do time", e dizer a mesma coisa duas vezes é o teatro
+  //    repetido que ele reprova (regra de 21/09).
+  const passoAtual = hol?.passo
+  useEffect(() => {
+    if (!enviando || !hol) return
+    if (hol.levados.some(l => l.cardId === enviando)) return // alguém levou: a linha já conta
+    setEnviando(null)
+    setRecusa({ id: enviando, txt: L('não deu tempo — tenta neste preço', 'too late — try at this price') })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passoAtual])
 
   // 🔊 tique-taque do preço caindo + martelo quando uma carta sai
   useEffect(() => { if (hol) playTick() }, [hol?.passo]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -3610,6 +3636,14 @@ function Holandes() {
                     {dono.mgr === you.id ? L('🫵 VOCÊ', '🫵 YOU') : (t?.teamName ?? '—')}
                   </p>
                   <p className="text-[11px] font-bold text-black/55">{dono.preco} 🪙</p>
+                </div>
+              ) : recusa?.id === c.id ? (
+                // ⏳ O TOQUE CHEGOU TARDE. Fica 3s no lugar do botão, explicando —
+                // e o botão volta sozinho, pra pessoa tentar no preço novo.
+                <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center shrink-0 max-w-[124px]"
+                  style={{ background: '#FFE9B0', boxShadow: `3px 3px 0 0 ${INK}` }}>
+                  <p className="text-[11px] font-black leading-none" style={OSWALD}>⏳ {L('TARDE', 'TOO LATE')}</p>
+                  <p className="text-[9px] font-bold leading-tight mt-0.5 text-black/70">{recusa.txt}</p>
                 </div>
               ) : enviando === c.id ? (
                 // 📱 ESPERANDO O HOST (só pisca no online). O jogador NÃO entra no

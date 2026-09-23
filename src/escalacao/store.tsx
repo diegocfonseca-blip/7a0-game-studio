@@ -4675,9 +4675,26 @@ export const HOL_ABERTURA = (s: EscState) => (s.sport === 'basquete' ? 50 : 100)
 // 🕰️ A marcha do MEIO passou a começar no 55 (e não no 40) junto com a escada
 // mais fina: de nada adianta pôr mais números na faixa dos 50 se eles passarem
 // voando. Em troca, o topo (100→60), onde NUNCA acontece nada, acelerou.
-export const HOL_MS_ALTO = 500
+// 🕐 O ÚLTIMO DEGRAU GANHOU 1 SEGUNDO (23/09) — e ele é DE GRAÇA.
+// Relato do Diego: *"às vezes quando chega no número 1 o cara aperta e não pega"*.
+// O motivo é estrutural: o **1 é o último degrau de todos**. Em qualquer outro
+// preço, quem perde o tempo só vê o preço cair e aperta de novo — no 1 não existe
+// próximo, o pregão FECHA. Some com isso a margem de erro, e o pedaço de segundo
+// que a mensagem leva pra chegar no host (no online quem conta o tempo é só ele)
+// vira carta perdida.
+// 💸 E não custou tempo de pregão nenhum: os 5 degraus do TOPO (100→60) passaram
+// de 500ms pra 300ms. Lá ninguém aperta nunca — é enfeite, ninguém paga 80 num
+// lateral. 5 × 200ms = exatamente 1 segundo, que foi parar no 1. A descida
+// continua nos mesmos 49,1s (o `npm run holandes` mede e reprova se passar de 50).
+// ⚠️ Ele sabe, e eu disse na hora, que 1 segundo AJUDA mas não mata 100%: a
+// diferença entre a tela do convidado e o relógio do host continua existindo, só
+// anda 1 segundo pra frente. Se voltar a escapar, o próximo passo combinado é
+// CARIMBAR o degrau no toque (o aperto leva o número que estava na tela, e o host
+// aceita quem apertou enquanto ainda dava tempo). Não fazer isso sem ele pedir.
+export const HOL_MS_ALTO = 300
 export const HOL_MS_MEIO = 1400
 export const HOL_MS_BAIXO = 2000
+export const HOL_MS_ULTIMO = 3000 // o preço 1 — o único degrau sem segunda chance
 // ⏱️ O RELÓGIO DO HOLANDÊS É UM SÓ, EM TODA SALA (ordem dele, 20/09): *"tem que
 // ser com base na regra que fizemos pro modo rápido"*. Eu tinha feito o tempo do
 // host (`auctionSecs`, da sala de stream) ESTICAR ou ENCOLHER a descida — ele
@@ -4686,6 +4703,9 @@ export const HOL_MS_BAIXO = 2000
 // seletor de tempo nem aparece quando o host escolhe holandês (ver `lobby.tsx`),
 // e aqui o `auctionSecs` simplesmente não existe. Uma regra, um relógio.
 export const holPassoMs = (preco: number, start: number) => {
+  // 🕐 o 1 é o fim da linha (a escada é …3 · 2 · 1 · 0, e o 0 fecha o pregão):
+  //    quem chegar atrasado aqui não tem próximo preço, então este degrau respira.
+  if (preco <= 1) return HOL_MS_ULTIMO
   const f = preco / Math.max(1, start)
   return f > 0.55 ? HOL_MS_ALTO : f > 0.22 ? HOL_MS_MEIO : HOL_MS_BAIXO
 }
