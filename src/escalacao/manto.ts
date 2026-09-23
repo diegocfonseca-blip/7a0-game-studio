@@ -67,6 +67,12 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'contateste577660006@gmail.com': ['#12100F', '#D19B36'], // 🙏 Só Deus Sabe FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 74% do manto, e dos dourados das listras/gola, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as nuvens da barra e os filetes das mangas
   'iago.cortellini@gmail.com': ['#100E0D', '#EAAD3D'], // 🐟📉 Bagres de Wall Street FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 84% do manto, e dos dourados do nome/gola/punhos, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as listras do ombro e o "DE WALL STREET"
   'davisantana1312@gmail.com': ['#0F0F0F', '#E6DED4'], // 🐛 Bicho da Seda — preto e branco-creme, MEDIDOS na camisa que o dono mandou em 09/09 (listras verticais; mediana dos pretos, 54% do manto, e dos claros, 30%). Os FIOS de seda são a 3ª cor (MANTO_TRI)
+  // 🦅🔴⚫ Fabulous EC — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou
+  // (23/09): preto 84,3% do manto, vermelho 12,3%.
+  // ⚠️ O preto sobe de #0D0809 pra #161011 pelo motivo de sempre (ver Futpoint):
+  //    preto de arte escura, na listra fininha, lê como buraco. O tom quente
+  //    (R>G) é o medido; só a luz subiu.
+  'koeppfabio@gmail.com': ['#161011', '#CE0E17'],
   'denilson.stifler10@gmail.com': ['#063215', '#F8EACF'], // 🟢 Xurupitas FC — verde-escuro e creme, MEDIDOS na camisa que o dono mandou em 09/09 (mediana dos verdes escuros, 78% do manto, e do creme da gola/nome/listras). A GOSMA verde-clara é a 3ª cor (MANTO_TRI)
   'glaucomiranda@outlook.com': ['#032F13', '#F8EEDC'], // 🍀 Seven City — verde-mata e creme, MEDIDOS na camisa que o dono mandou em 12/09 (mediana dos verdes, 54% do manto, e dos cremes da faixa central e das mangas, 23%). O DOURADO da gola, do 7 e das listras é a 3ª cor (MANTO_TRI). Antes era dourado + azul-marinho, só no banco. ❤️ Corinthians (o Diego confirmou em 19/09)
   'brunolopesmiranda15@gmail.com': ['#EBE0CD', '#090908'], // 🐮 Leite de Verdade FC — creme-leite e preto malhado, MEDIDOS na camisa que o dono mandou em 10/09 (creme 39% do manto, preto 36%). O creme vem PRIMEIRO porque é a base da camisa e a cara do clube (leite); as manchas de vaca são por cima. O DOURADO da coroa é a 3ª cor (MANTO_TRI) ❤️ Grêmio (o Diego confirmou em 19/09)

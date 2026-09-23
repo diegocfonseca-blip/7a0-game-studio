@@ -56,6 +56,7 @@ import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (di
 import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
 import bagresWallStEscudoImg from './img/bagreswallst-escudo.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09 (substitui o SVG desenhado a mao de 10/08)
+import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
 import sevenCityEscudoImg from './img/sevencity-escudo.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 12/09 (era SVG à mão)
 import leiteDeVerdadeEscudoImg from './img/leitedeverdade-escudo.webp' // 🐮 Leite de Verdade FC (brunolopesmiranda15): arte do dono, 10/09
@@ -812,6 +813,17 @@ const bagresWallStEscudoRender = (size: number) => (
 const bichoDaSedaEscudoRender = (size: number) => (
   <img src={bichoDaSedaEscudoImg} height={size} width={Math.round(size * 325 / 360)} alt="Bicho da Seda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🦅🔴⚫ FABULOUS EC (koeppfabio, batismo de 23/09) — Série A.
+// 📏 267×360, 27,9 KB — largura pela PROPORÇÃO REAL do arquivo.
+// ✂️ `scripts/recorta-prancha-fabulous.py`: o chroma verde saiu por COR porque o
+//    clube é VERMELHO, PRETO e PRATA — não tem verde nenhum no desenho. (Em clube
+//    que TEM verde isso comeria a arte; ver Pesadelo Verde.)
+// 🔍 Conferido sobre o creme do jogo, nunca sobre branco: as letras brancas do
+//    "FABULOUS" são o ponto frágil (lição do Theuzudo, 21/08) e ficaram inteiras.
+const fabulousEscudoRender = (size: number) => (
+  <img src={fabulousEscudoImg} height={size} width={Math.round(size * 267 / 360)} alt="Fabulous EC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🟢 Xurupitas FC — 248x360 no arquivo, entao a largura sai da PROPORCAO REAL
 // (nunca width={size} chutado). Arte NOVA do dono (denilson.stifler10/Denis,
 // 09/09): a gosma verde de sorriso maroto, bracos cruzados, escudo verde-escuro
@@ -1326,6 +1338,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // mandou arte própria (escudo + mascote + camisa) e ela SUBSTITUIU o porco em SVG
   // desenhado à mão de 10/08. As 4 formas do nome; a corrente de nomes velhos
   // (Tokyo City Esperion ← FC Galáticos) segue no OLD_NAME do data.ts.
+  // 🦅🔴⚫ Fabulous EC (koeppfabio) — BATISMO. As 4 formas do nome (regra 20/08).
+  'Fabulous EC': fabulousEscudoRender,
+  'Fabulous': fabulousEscudoRender,
+  'Fabulous FC': fabulousEscudoRender,
+  'Fabulous SC': fabulousEscudoRender,
   'Xurupitas FC': xurupitasEscudoRender,
   'Xurupitas': xurupitasEscudoRender,
   'Xurupitas EC': xurupitasEscudoRender,

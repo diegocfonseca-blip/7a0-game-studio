@@ -60,6 +60,7 @@ import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
 import marrecoMascoteImg from './img/marreco-mascote.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
 import panteraMascoteImg from './img/pantera-mascote.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
+import fabulousMascoteImg from './img/fabulous-mascote.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import gremioMascoteImg from './img/gremio-mascote.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
 import manfreMascoteImg from './img/manfre-mascote.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
 
@@ -318,6 +319,13 @@ export const MASCOTES: Record<string, ReactNode> = {
   //    post — eram identidade do clube. Arte que vem do dono: perguntar o que
   //    entra, não decidir por ele.
   // 📏 400×440, 40,6 KB. mascote_key = "pantera_negra".
+  // 🦅🔴⚫ A FABULOSA (mascote do Fabulous EC — koeppfabio, 23/09): a águia
+  // vermelha e preta de asas abertas, a garra fincada na bola e os cacos de pedra
+  // saltando do impacto. Arte do próprio dono.
+  // 📏 311×440, 42,0 KB. mascote_key = "fabulous_aguia".
+  fabulous_aguia: (
+    <img src={fabulousMascoteImg} height={176} width={Math.round(176 * 311 / 440)} alt="A Fabulosa — Fabulous EC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🔵⚫⚪ O GAÚCHO (mascote do Grêmio FBPA — danieldias11, 21/09): o gaúcho de
   // chapéu com pena, bigode, manto rasgado com o nome do clube e o pé na bola
   // com o mapa do RS. Arte do próprio dono.
@@ -1022,6 +1030,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   // CARIMBO_GOL é busca EXATA: entram as 4 formas do nome e o nome VELHO.
   // 🐆👑 a Pantera carimba o gol do Pantera Negra FC (ericrabelo29, 20/09).
   // 🔵⚫⚪ o Gaúcho carimba o gol do Grêmio FBPA (danieldias11, 21/09).
+  // 🦅🔴⚫ a Fabulosa carimba o gol do Fabulous EC (koeppfabio, 23/09).
+  'Fabulous EC': 'fabulous_aguia',
+  'Fabulous': 'fabulous_aguia',
+  'Fabulous FC': 'fabulous_aguia',
+  'Fabulous SC': 'fabulous_aguia',
   'Grêmio FBPA': 'gremio_gaucho',
   'Gremio FBPA': 'gremio_gaucho',
   'Grêmio FBPA FC': 'gremio_gaucho',
@@ -1104,6 +1117,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   marreco_rei: 'O Rei do Cais', // 🦆👑 Marreco FC (lucasigorbortoliniii, 19/09)
   pantera_negra: 'A Pantera',  // 🐆👑 Pantera Negra FC (ericrabelo29, 20/09)
+  fabulous_aguia: 'A Fabulosa', // 🦅🔴⚫ Fabulous EC (koeppfabio, 23/09)
   gremio_gaucho: 'O Gaúcho',   // 🔵⚫⚪ Grêmio FBPA (danieldias11, 21/09)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)
   manfre_gralha: 'A Gralha',   // 🐦‍⬛ Manfré FC (danielmanfre5, 30/08)

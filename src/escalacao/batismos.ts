@@ -69,6 +69,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Vasco da Grana', tipo: 'batismo', fundador: null, selo: '🖋️ batismo' },
   { clube: 'Neymarzetti', tipo: 'batismo', fundador: 1, manto: ['#080908', '#F0EFEF'] },
   { clube: 'Bicho da Seda', tipo: 'batismo', fundador: 11, manto: ['#0F0F0F', '#E6DED4'] },
+  { clube: 'Fabulous EC', tipo: 'batismo', fundador: 76, manto: ['#161011', '#CE0E17'] }, // 🦅🔴⚫ preto e vermelho, medidos na camisa do dono (23/09) — o MESMO par do `manto.ts`
   { clube: 'Xurupitas FC', tipo: 'batismo', fundador: 13, manto: ['#063215', '#F8EACF'] },
   { clube: 'Nightfull FC', tipo: 'batismo', fundador: 18, manto: ['#0A0A0A', '#D6D2CF'] },
   { clube: 'Murriz FC', tipo: 'batismo', fundador: 21, manto: ['#C81D1C', '#150A0A'] },

@@ -65,6 +65,7 @@ for (const d of ['A', 'B', 'C', 'D']) {
 // (só o e-mail identifica; o nome do clube é o ATUAL)
 const BATISMOS = [
   ['danieldias11@gmail.com', 'Grêmio FBPA'], // 🔵⚫⚪ Série A (21/09)
+  ['koeppfabio@gmail.com', 'Fabulous EC'], // 🦅🔴⚫ Série A (23/09) — assento que era do Xurupitas FC, que desceu pra C
   ['ericrabelo29@gmail.com', 'Pantera Negra FC'], // 🐆👑 Série C, no assento do Miúdo EC (20/09)
   ['fontourajoao04@gmail.com', 'Al Takhadao FC'], ['luizguilhermeps@hotmail.com', 'Jurubeba FC'],
   ['stoccoassessoria@gmail.com', 'Stocco FC'], ['gustavo99828@gmail.com', 'Final Boss FC'],

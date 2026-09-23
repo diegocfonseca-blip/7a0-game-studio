@@ -110,6 +110,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'eltonfrossard45@gmail.com': 'ouro', // 👑 Lenda — tudo do ouro + FUNDADOR nº51 + SÓCIO nº13 + batismo (La Bestia Negra, Série D, ex-River Prato; raposa azul, ❤️ Cruzeiro). ⚠️ ESTA LINHA FALTAVA desde 09/08 e o `npm run batismos` cobrava: no BANCO (`user_colors`, que é a fonte oficial) ele já era ouro, então ele nunca deixou de ver o dourado — mas a RESERVA do código estava vazia. Fechado em 18/09, junto da arte nova
   'lucasigorbortoliniii@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Marreco FC, ex-Inter Estadual)
   'ericrabelo29@gmail.com': 'ouro', // 👑 Lenda — batismo Pantera Negra FC (Série C, ex-Miúdo EC) + fundador nº74 (20/09). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'koeppfabio@gmail.com': 'ouro', // 👑 Lenda — batismo Fabulous EC (Série A) + fundador nº76 (23/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'danieldias11@gmail.com': 'ouro', // 👑 Lenda — batismo Grêmio FBPA (Série A) + fundador nº75 (21/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'fontourajoao04@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº53 + batismo (Al Takhadao FC, Série A; coração Internacional, 01/09)
   'luizguilhermeps@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº54 + SÓCIO nº32 + batismo (Jurubeba FC, Série B, ex-Ferroviário do Sul; mascote a meia 🧦, 02/09)
@@ -206,6 +207,7 @@ const FUNDADOR_N: Record<string, number> = {
   'jorgericardo777@gmail.com': 28,
   'lucasigorbortoliniii@hotmail.com': 29,
   'ericrabelo29@gmail.com': 74, // 🐆👑 Pantera Negra FC (20/09)
+  'koeppfabio@gmail.com': 76, // 🦅🔴⚫ Fabulous EC (23/09)
   'danieldias11@gmail.com': 75, // 🔵⚫⚪ Grêmio FBPA (21/09)
   'matheus223lms@icloud.com': 30,
   'ricardopessoafreire@gmail.com': 31,
