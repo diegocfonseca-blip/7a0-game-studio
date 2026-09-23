@@ -25,7 +25,28 @@ mentira na cara da pessoa.
 ✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
 deu idêntico nos dois.
 
-## 23/09/2026 — 🧊 O convidado que "trava e não consegue voltar" ⏳ ESPERANDO OK
+## 23/09/2026 — 🛑 O "vigia do prazo" na Tocaia: ELE DISSE NÃO. Não propor de novo.
+
+Resposta dele, seca, depois de eu explicar a proposta: *"não, não quero isso. Não mexa
+em nada então"*. **É NÃO. Nada foi alterado, e não se mexe nisso sem ele pedir.**
+
+Fica aqui só o ACHADO, porque é verdadeiro e outra sessão pode topar com ele:
+- No envelope às cegas existe `useVigiaPrazo` pra fase `envelope`/`resq_envelope`:
+  se o host congela, **qualquer cliente** força o lacre quando o prazo estoura.
+- **A Tocaia não tem isso.** O preço só cai pelo `setTimeout` do aparelho do host
+  (`euTico = !online || isHost`), e o `hol` **não guarda prazo nenhum** no estado —
+  ninguém mais sabe quando o degrau deveria virar. Host congelado = sala parada no
+  mesmo preço, sem contagem e sem quem destrave.
+- A proposta recusada era: escrever o prazo do degrau no estado e registrar o mesmo
+  vigia pra fase `holandes`, com o empurrão carimbado pelo número do degrau (pra dois
+  aparelhos não pularem dois preços).
+
+⚠️ **Antes dessa conversa ele já tinha recusado outra ideia minha no mesmo assunto** —
+recriar o cadastro do convidado pra ele voltar. Ou seja: **duas propostas recusadas
+sobre "o convidado que trava/não volta". Parem de trazer variação disso.** Se o
+assunto voltar, quem levanta é ele.
+
+## 23/09/2026 — 🧊 O convidado que "trava e não consegue voltar" ⏳ RECUSADO (ver acima)
 
 Mesma noite, mesma sala: *"o time chamado Brazucas também travou e ele acabou não
 conseguindo voltar"*.
