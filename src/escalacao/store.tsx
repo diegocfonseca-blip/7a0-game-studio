@@ -4926,20 +4926,27 @@ function holandesTick(state: EscState) {
 // envelope cego já faz. Se a tela dele entregasse na hora e o host dissesse
 // "não foi você", o jogador APARECERIA e SUMIRIA do campinho, que é o estado
 // quebrado que ele não quer ver nunca.
-function holandesPegar(state: EscState, mgrId: number, cardId: string) {
+// 💰 `precoDaTela` (23/09): quanto a pessoa VIU quando apertou. Normalmente é o
+// preço de agora; quando o toque atrasa no caminho, é MAIOR — e é esse que vale,
+// porque foi esse que ela aceitou pagar. Sem este parâmetro, o toque atrasado
+// pagaria o preço de agora (mais barato do que ela topou, e injusto com quem
+// apertou depois olhando o preço certo). O robô não passa por aqui com preço de
+// tela nenhum: ele é local, não tem viagem, e segue no preço do degrau.
+function holandesPegar(state: EscState, mgrId: number, cardId: string, precoDaTela?: number) {
   const hol = state.hol
   if (!hol) return
   const card = state.currentCards.find(c => c.id === cardId)
   const m = state.managers.find(x => x.id === mgrId)
   if (!card || !m) return
+  const preco = Math.max(hol.preco, precoDaTela ?? hol.preco)
   if (hol.levados.some(l => l.cardId === cardId)) return // 🔒 já tem dono: chegou tarde
-  if (!holPodeLevar(state, m, card, hol.preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))) return
+  if (!holPodeLevar(state, m, card, preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))) return
   // 🏃 GENTE LEVA NA HORA. (O robô não: ele entra na fila `pedidos` e só é
   // servido no fim do degrau — senão apertaria no milissegundo e ganharia
   // sempre. Regra dele, mantida: gente nunca perde pra robô.)
   if (m.isHuman) {
-    hol.levados.push({ cardId, mgr: mgrId, preco: hol.preco })
-    hol.ultimo = { nome: card.name, time: m.teamName, preco: hol.preco, roleta: false, perdedores: [] }
+    hol.levados.push({ cardId, mgr: mgrId, preco })
+    hol.ultimo = { nome: card.name, time: m.teamName, preco, roleta: false, perdedores: [] }
     // tira da fila dos robôs qualquer pedido nesta carta: ela já tem dono
     hol.pedidos = hol.pedidos.filter(p => p.cardId !== cardId)
     return
@@ -6648,18 +6655,35 @@ export function reducer(state: EscState, action: Action): EscState {
       if (s.phase !== 'holandes' || !s.hol) return s
       const card = s.currentCards.find(c => c.id === action.cardId)
       if (!card) return s
-      // 🔒 O PREÇO TEM QUE SER O DA TELA DELE. Sem isto, um toque que saiu do
-      // aparelho quando marcava 40 e chegou no host depois do preço cair pra 36
-      // levaria por 36 — e, pior, o contrário também: chegar atrasado e pagar
-      // MAIS do que ele viu. Se o preço já mudou, o toque não vale e a tela
-      // avisa (o preço segue caindo e ele aperta de novo). Com ~2s por degrau,
-      // isso praticamente não acontece — mas a trava fica, porque rede é rede.
-      if (action.preco !== s.hol.preco) return s
+      // 🔒💰 O PREÇO É O DA TELA DELE — E AGORA O TOQUE ATRASADO VALE.
+      //
+      // 🐛 O BUG (sala do Fridão FC, 23/09). Diego: *"tem gente que apertou no
+      // jogador pra dar lance quando tava 11 e outro pegou pagando 8"*. A versão
+      // velha desta trava era `action.preco !== s.hol.preco → return`: se o preço
+      // tinha mudado no caminho, o toque ia PRO LIXO, calado. O cara apertou
+      // vendo 11, a mensagem dele demorou um tiquinho, chegou com o host já em
+      // 10 — e ele ficou sem nada enquanto a carta seguia caindo até outro levar.
+      // Ele apertou PRIMEIRO e perdeu.
+      // 📮 E isso inutilizava a ESTRADA RESERVA: o toque que vai pelo banco
+      // (`room_acoes`) leva até 3s pra ser lido, então o preço SEMPRE tinha
+      // mudado — ou seja, o caminho que existe justamente pra salvar o toque
+      // quando o rádio falha era jogado fora na chegada, 100% das vezes.
+      //
+      // ✅ A REGRA AGORA: o toque vale, e ele paga O QUE VIU NA TELA. Nunca mais
+      // caro — que era exatamente o que a trava velha queria proteger e continua
+      // protegido. Só o caso impossível some: preço da tela MENOR que o de agora
+      // significa tela do futuro (o preço só cai), aí sim é recusa.
+      // ⚖️ O que NÃO muda: quem chega primeiro no host leva (decisão dele em
+      // 20/09, *"tem que ser por tempo"*), e carta que já tem dono está trancada.
+      // Esta mudança não inverte disputa nenhuma — ela só para de JOGAR FORA
+      // toque que não disputava com ninguém.
+      if (action.preco < s.hol.preco) return s // tela do futuro: impossível, recusa
+      const precoPago = action.preco // o que estava na tela de quem apertou
       // 🤝 DUPLA: no setor da vez só quem MANDA na categoria pega pelo time.
       // Mesma trava do envelope, e pela mesma razão: esconder o botão na tela do
       // parceiro não basta — é a família de bug de assento que já mordeu.
       if (!duplaPodeAgir(s.duplas, action.mgrId, card.pos, action.by)) return s
-      holandesPegar(s, action.mgrId, action.cardId)
+      holandesPegar(s, action.mgrId, action.cardId, precoPago)
       return s
     }
     case 'ADVANCE_REVEAL': {
