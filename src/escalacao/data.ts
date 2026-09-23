@@ -2005,7 +2005,7 @@ const ATA_EU: C[] = [
   { name: "Erling Haaland", club: "Man City", year: 2023, fame: 5, lo: 89, hi: 94 },
   { name: "Gabriel Batistuta", club: "Fiorentina", year: 1998, fame: 5, lo: 86, hi: 92 },
   { name: "Adriano Imperador", club: "Inter", year: 2005, fame: 5, lo: 86, hi: 92 },
-  { name: "Dennis Bergkamp", club: "Arsenal", year: 1998, fame: 4, lo: 86, hi: 92 },
+  { name: "Dennis Bergkamp", club: "Arsenal", year: 1998, fame: 5, lo: 86, hi: 92 },
   { name: "Raúl", club: "Real Madrid", year: 2001, fame: 5, lo: 86, hi: 92 },
   { name: "Ruud van Nistelrooy", club: "Man United", year: 2003, fame: 4, lo: 86, hi: 92 },
   { name: "Didier Drogba", club: "Chelsea", year: 2010, fame: 5, lo: 86, hi: 92 },
