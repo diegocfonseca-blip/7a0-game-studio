@@ -5154,6 +5154,7 @@ export function EscMonte() {
   // Não repropor os campinhos aqui sem ele pedir.
 
   return (
+  <>
     <Shell bar={<AuctionBar />}>
       {state.sport !== 'basquete' && <NarradorDica fase="monte" texto={tr('🃏 Sobrou jogador sem dono! Na sua vez, pega DE GRAÇA (ou paga o piso, se tiver 💰). É a hora de fechar o time sem gastar. Também pode passar a vez!', '🃏 Players left without an owner! On your turn, grab one FOR FREE (or pay the floor, if it has 💰). Time to complete the team without spending. You can also pass!')} />}
       <h2 className="font-black text-3xl pt-1" style={OSWALD}>{tr('🪣 MONTE FINAL', '🪣 FINAL PILE')}</h2>
@@ -5315,20 +5316,31 @@ export function EscMonte() {
           segue sem botão — do jeito que ele quer.
           Regra de sempre: só aparece pra quem tem clube batizado. */}
       {state.holandes && <div className="flex justify-center"><MascoteJab /></div>}
-      <FloatingEmotes />
-      {/* 🐊🐛 O BICHO PRECISA DESTA LINHA PRA EXISTIR AQUI (conserto 23/09).
-          Relato do Diego: *"o solta o mascote não tá funcionando quando aperta ele…
-          era pra mascote passar pela tela igual funciona no modo padrão às cegas"*.
-          E não estava mesmo: quem desenha o bicho GRANDE é o `MascoteAtravessa`, e
-          ele só estava montado no `EscAuction` (pregão). Esta tela montava só a fila
-          de reações — que, desde 25/08, ESCONDE de propósito a mascote que ela sabe
-          desenhar, pra não repetir o teatro duas vezes. Resultado: apertava o botão,
-          a fila escondia e não existia ninguém pra desenhar. Apertar não fazia nada.
-          ⚠️ Lição pra quem for pôr o botão numa tela nova: o botão e o DESENHO são
-          duas peças — leva as duas juntas, senão o botão nasce mudo (é a mesma
-          armadilha do "botão mudo" que já pegou o monte e a rodada 0). */}
-      <MascoteAtravessa />
     </Shell>
+    {/* 🐊🐛 O BICHO PRECISA DESTAS LINHAS PRA EXISTIR AQUI (conserto 23/09).
+        Relato do Diego: *"o solta o mascote não tá funcionando quando aperta ele…
+        era pra mascote passar pela tela igual funciona no modo padrão às cegas"*.
+        E não estava mesmo: quem desenha o bicho GRANDE é o `MascoteAtravessa`, e
+        ele só estava montado no `EscAuction` (pregão). Esta tela montava só a fila
+        de reações — que, desde 25/08, ESCONDE de propósito a mascote que ela sabe
+        desenhar, pra não repetir o teatro duas vezes. Resultado: apertava o botão,
+        a fila escondia e não existia ninguém pra desenhar. Apertar não fazia nada.
+        ⚠️ Lição pra quem for pôr o botão numa tela nova: o botão e o DESENHO são
+        duas peças — leva as duas juntas, senão o botão nasce mudo (é a mesma
+        armadilha do "botão mudo" que já pegou o monte e a rodada 0).
+
+        📐 E ELES FICAM FORA DO `Shell`, na MESMA forma do `EscAuction`
+        (`<>{sub}<FloatingEmotes /><MoneyRain /><MascoteAtravessa /></>`), porque
+        o Diego cobrou que a travessia aqui fosse *"igualzinha a do modo envelope
+        às cegas"*. Dentro do Shell o desenho ficava pendurado na coluna da tela
+        (`max-w-xl`), junto de tudo que re-renderiza a cada segundo no Monte (o
+        relógio da vez); fora dele a camada é irmã da tela, exatamente como no
+        pregão. A animação em si é a MESMA função e a MESMA duração — não existe
+        uma travessia "do Monte" e outra "do envelope". */}
+    <FloatingEmotes />
+    <MoneyRain />
+    <MascoteAtravessa />
+  </>
   )
 }
 
