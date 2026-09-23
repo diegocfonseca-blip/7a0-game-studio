@@ -11,8 +11,13 @@ import { VADICO_LOGO } from './vadico'
 import { ERO_LOGO } from './ero'
 import { MAXJOIAS_LOGO } from './maxjoias'
 import { REIDASTINTAS_LOGO } from './reidastintas'
+import { UOMO_LOGO } from './uomo'
 
-const sponsorLogos = { vadico: VADICO_LOGO, ero: ERO_LOGO, maxjoias: MAXJOIAS_LOGO, reidastintas: REIDASTINTAS_LOGO }
+// ⚠️ ESTE MAPA TEM QUE TER TODA MARCA COM LOGO. O `brand.logo` é um tipo fechado,
+// então marca nova sem entrada aqui NÃO compila — foi o que aconteceu ao adicionar a
+// Uomo Concetto em 23/09, e é de propósito: melhor quebrar o build do que desenhar
+// um card de patrocínio sem logo na cara do jogador.
+const sponsorLogos = { vadico: VADICO_LOGO, ero: ERO_LOGO, maxjoias: MAXJOIAS_LOGO, reidastintas: REIDASTINTAS_LOGO, uomo: UOMO_LOGO }
 function ContractLogo({ brandId }: { brandId: string }) {
   const brand = sponsorBrandOf(brandId)
   return brand?.logo ? <img className="ll35-contract-logo" src={sponsorLogos[brand.logo]} alt={`Logo ${brand.name}`}/> : null

@@ -120,7 +120,7 @@ export function sponsorBetMeta(t: SponsorBetTier): { label: string; emoji: strin
 export const SPONSOR_BET_PAY: Record<string, [number, number, number]> = {
   V: [4, 6, 8], D: [8, 12, 16], C: [14, 22, 30], B: [24, 40, 56], A: [42, 74, 106],
 }
-export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' }
+export interface SponsorBrand { id: string; name: string; emoji: string; color: string; tier: SponsorBetTier; logo?: 'vadico' | 'ero' | 'maxjoias' | 'reidastintas' | 'uomo' }
 // 3 marcas por nível — a marca é só IDENTIDADE (todas do mesmo nível pagam igual).
 export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'padaria',     name: 'Padaria do Zé',        emoji: '🥖', color: '#B5651D', tier: 1 },
@@ -132,6 +132,10 @@ export const SPONSOR_BRANDS: SponsorBrand[] = [
   { id: 'vadico',      name: 'Vadico Veículos',       emoji: '🚗', color: '#0E3E86', tier: 3, logo: 'vadico' },
   { id: 'ero',         name: 'ERO Odontologia',       emoji: '🦷', color: '#2E6C9E', tier: 3, logo: 'ero' }, // amigo do Diego (05/08)
   { id: 'diamante',    name: 'Diamante Joias',        emoji: '💎', color: '#7C3AED', tier: 3 },
+  // 🅾️ 5ª marca REAL do Master (Diego, 23/09): *"no patrocinador Master, coloque a
+  //    Uomo Concetto no lugar também como Master, sendo agora 5 marcas. Sendo a
+  //    Vadico a mais cara ainda mesmo"*. Fica no nível 3 junto das outras grandes.
+  { id: 'uomo',        name: 'Uomo Concetto',        emoji: '🅾️', color: '#0C0C0C', tier: 3, logo: 'uomo' },
 ]
 export function sponsorBrandsOfTier(tier: SponsorBetTier): SponsorBrand[] { return SPONSOR_BRANDS.filter(b => b.tier === tier) }
 export function sponsorBrandOf(id?: string): SponsorBrand | undefined { return SPONSOR_BRANDS.find(b => b.id === id) }
@@ -175,6 +179,11 @@ export const MASTER_PRAZOS: { brandId: string; anos: number }[] = [
   { brandId: 'maxjoias', anos: 1 },
   { brandId: 'reidastintas', anos: 2 },
   { brandId: 'ero', anos: 3 },
+  // 🅾️ 4 TEMPORADAS, e o número foi escolhido a dedo: a régua do Master é só
+  //    divisão × prazo, então quem tem o prazo maior paga mais. Com 4, a Uomo
+  //    entra ENTRE a ERO e a Vadico e a **Vadico continua sendo a mais cara**,
+  //    que foi a condição que ele pôs. A escada virou 1 · 2 · 3 · 4 · 5.
+  { brandId: 'uomo', anos: 4 },
   { brandId: 'vadico', anos: 5 },
 ]
 export interface MasterContrato { brandId: string; anos: number; div: string; desde: number; porTemporada: number }

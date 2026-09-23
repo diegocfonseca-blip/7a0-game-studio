@@ -57,7 +57,8 @@
     "enigma-trava": "node scripts/testa-enigma.mjs",
     "acha": "node scripts/acha-carta.mjs",
     "campeoes": "node scripts/campeoes-do-mundo.mjs",
-    "cartas-novas": "node scripts/mockup-cartas-novas.mjs"
+    "cartas-novas": "node scripts/mockup-cartas-novas.mjs",
+    "master": "npx tsx scripts/testa-master.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
