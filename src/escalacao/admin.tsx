@@ -629,20 +629,18 @@ function TVCotaAdmin() {
   const [recusando, setRecusando] = useState<number | null>(null) // id com o menu de motivos aberto
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
-  // 📥 A FILA VEM INTEIRA, o decidido vem cortado.
+  // 📥 A MESA CARREGA SÓ O QUE ESTÁ ESPERANDO — decidiu, sumiu (ordem dele, 23/09).
   // ⚠️ Antes era UMA busca só, `order(id desc).limit(40)` pra tudo — e o `pend`
   // saía de dentro desses 40. Em 23/09 a tabela tinha EXATAMENTE 40 linhas: mais
   // um vídeo decidido e o pendente mais antigo CAÍA da lista e nunca mais podia
-  // ser decidido. Agora o pendente não tem teto (a fila espera, é regra dele) e o
-  // teto de 20 fica só no histórico, que é só pra conferir.
+  // ser decidido. Agora não tem teto nenhum: a fila espera, é regra dele.
   const carregar = async () => {
-    const [p, f] = await Promise.all([
-      supabase.from('tv_envios').select('id, email, clube, temporada, link, status, motivo, criado_em').eq('status', 'pendente').order('id', { ascending: false }),
-      supabase.from('tv_envios').select('id, email, clube, temporada, link, status, motivo, criado_em').neq('status', 'pendente').order('id', { ascending: false }).limit(20),
-    ])
-    if (p.error || f.error) { setErro((p.error ?? f.error)?.message ?? 'não consegui ler a fila'); return }
+    const { data, error } = await supabase.from('tv_envios')
+      .select('id, email, clube, temporada, link, status, motivo, criado_em')
+      .eq('status', 'pendente').order('id', { ascending: false })
+    if (error) { setErro(error.message); return }
     setErro(null)
-    setLista([...(p.data ?? []), ...(f.data ?? [])])
+    setLista(data ?? [])
   }
   useEffect(() => { carregar() }, [])
   // ✅❌ DECIDIR — com rede de segurança, que era o que faltava.
@@ -672,7 +670,6 @@ function TVCotaAdmin() {
     }
   }
   const pend = lista.filter(e => e.status === 'pendente')
-  const feitos = lista.filter(e => e.status !== 'pendente').slice(0, 10)
   const ROTULO: Record<string, string> = { aprovado: '✅ aprovado', creditado: '💰 creditado', recusado: '❌ recusado' }
   const linha = (e: Envio, pendente: boolean) => (
     <div key={e.id} style={{ border: '1px solid rgba(242,232,207,.25)', borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
@@ -713,12 +710,13 @@ function TVCotaAdmin() {
           ⚠️ {erro} — tenta de novo; nada foi mudado.
         </p>
       )}
+      {/* 🧹 SÓ PENDENTE NA MESA (Diego, 23/09): *"não quero lista lotada. Ou fica
+          só pendente e aprovo ou reprovo. Quando aprovo some, e quando reprovo
+          some também"*. Então a lista dos "últimos decididos" SAIU — decidiu,
+          sumiu. O histórico continua guardado no banco (`tv_envios`), é só a mesa
+          que não carrega mais o que já foi resolvido. Não repor sem ele pedir. */}
       {pend.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(242,232,207,.5)', margin: '0 0 8px' }}>nenhum vídeo esperando — tudo em dia 😴</p>}
       {pend.map(e => linha(e, true))}
-      {feitos.length > 0 && <>
-        <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(242,232,207,.45)', margin: '10px 0 6px' }}>últimos decididos</p>
-        {feitos.map(e => linha(e, false))}
-      </>}
     </div>
   )
 }
