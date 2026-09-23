@@ -3217,7 +3217,14 @@ const MASC_ALTURAS = ['14%', '30%', '46%'] // onde cada bicho cruza (quem voa so
 // decisão. Os emojis/cantadas que já existiam continuam exatamente como eram.
 function MascoteAtravessa() {
   const { state, emotes } = useEsc()
-  if (state.onlineMode !== 'online') return null
+  // 🐊🐛 O 2º MOTIVO DE O BOTÃO NÃO FAZER NADA (conserto 23/09). Esta linha era
+  // `if (state.onlineMode !== 'online') return null` — herdada da chuva de dinheiro,
+  // que é reação DOS OUTROS e só faz sentido em sala. Só que o botão do Monte na
+  // Tocaia aparece também em PARTIDA RÁPIDA (ele só olha `state.holandes`), e ali
+  // o bicho era recusado por esta linha: a pessoa apertava e não acontecia nada.
+  // A mascote é a SUA — soltar a sua própria no seu próprio jogo não depende de ter
+  // gente na sala. Quem cria emote de mascote é só o botão, então no solo nunca vai
+  // aparecer bicho de outra pessoa.
   const eu = state.managers[state.youIdx]
   if (eu) {
     const noEnvelope = (state.phase === 'envelope' || state.phase === 'resq_envelope') && !state.submitted.includes(eu.id)

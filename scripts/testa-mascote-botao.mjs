@@ -145,6 +145,25 @@ if (COMPLETO) {
     ok(await achaBotao() === 0, '⚠️ o botão apareceu pra quem NÃO tem clube batizado')
     await p.evaluate(async () => { (await import('/src/escalacao/manto.ts')).bancadaSocio('pantera_negra') })
     await p.waitForTimeout(500)
+
+    // ── 🐊 E O BICHO TEM QUE ATRAVESSAR DE VERDADE (conserto 23/09) ──────────
+    // O Diego reclamou DUAS vezes do mesmo buraco: *"a pessoa aperta mas o mascote
+    // não passa pela tela"*. Conferir só que o BOTÃO existe não provava nada — ele
+    // existia e era mudo. Então agora a trava APERTA o botão e mede: o bicho tem
+    // que aparecer na tela E ter andado pra direita alguns quadros depois.
+    await p.locator('button', { hasText: 'SOLTA A SUA MASCOTE' }).first().click({ force: true }).catch(() => {})
+    await p.waitForTimeout(250)
+    const bicho = () => p.evaluate(() => {
+      const el = [...document.querySelectorAll('div')].find(d => getComputedStyle(d).animationName === 'escMascCruza')
+      return el ? Math.round(el.getBoundingClientRect().x) : null
+    })
+    const x1 = await bicho()
+    ok(x1 !== null, '🔇 apertei "solta a sua mascote" no Monte e NENHUM bicho apareceu na tela')
+    if (x1 !== null) {
+      await p.waitForTimeout(900)
+      const x2 = await bicho()
+      ok(x2 !== null && x2 > x1 + 30, `o bicho apareceu mas não ANDOU (x ${x1} → ${x2}) — a travessia parou de acontecer`)
+    }
   }
 } else {
   console.log('   ⏭️  o Monte só é jogado com `--completo` (leva ~8 min: é o pregão inteiro)')
