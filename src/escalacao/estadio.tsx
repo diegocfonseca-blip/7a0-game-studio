@@ -15,6 +15,7 @@ import VADICO_ALFA from './img/patro-vadico-alfa.webp'
 import ERO_ALFA from './img/patro-ero-alfa.webp'
 import { ERO_LOGO } from './ero'
 import { MAXJOIAS_LOGO } from './maxjoias'
+import { UOMO_LOGO } from './uomo'
 import { REIDASTINTAS_LOGO } from './reidastintas'
 import { myApoioPerk, loggedEmail, APOIO_PERKS } from './apoio'
 import type { ApoioPerk } from './apoio'
@@ -75,7 +76,7 @@ const META_EN: Record<SponsorBetTier, { curto: string; linha: string }> = {
 /** o logo pra ESTAMPAR NA CAMISA: sempre com fundo transparente. */
 export const sponsorLogoEstampa = (s: SponsorBrand): string | undefined =>
   s.logo === 'vadico' ? VADICO_ALFA : s.logo === 'ero' ? ERO_ALFA : sponsorLogoSrc(s)
-export const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : undefined
+export const sponsorLogoSrc = (s: SponsorBrand) => s.logo === 'ero' ? ERO_LOGO : s.logo === 'vadico' ? VADICO_LOGO : s.logo === 'maxjoias' ? MAXJOIAS_LOGO : s.logo === 'reidastintas' ? REIDASTINTAS_LOGO : s.logo === 'uomo' ? UOMO_LOGO : undefined
 // a marca fiel mora num nível só — o selinho no PASSO 1 avisa em qual, senão
 // quem escolhesse outra meta nunca descobriria que perdeu a garantia.
 const tierDaMarca = (brandId?: string): SponsorBetTier | undefined => sponsorBrandOf(brandId)?.tier
@@ -286,7 +287,16 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
   const primeira = !contrato
   const grade = (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-      {MASTER_PRAZOS.map(p => <MasterPapel key={p.brandId} brandId={p.brandId} anos={p.anos} div={div} sel={sel === p.brandId} onPick={() => setSel(p.brandId)} />)}
+      {/* 🧩 NÚMERO ÍMPAR: o ÚLTIMO papel ocupa a linha toda, em vez de ficar sozinho
+          na metade esquerda com um buraco do lado. É a mesma régua que o Diego pediu
+          pro `Seg` da tela de criar sala em 21/09 (*"organize melhor… estão
+          apertadas demais"*). Com 4 marcas dava 2×2 certinho; com a Uomo Concetto
+          virando a 5ª, em 23/09, sobrava uma. */}
+      {MASTER_PRAZOS.map((p, i) => (
+        <div key={p.brandId} style={i === MASTER_PRAZOS.length - 1 && MASTER_PRAZOS.length % 2 === 1 ? { gridColumn: '1 / -1' } : undefined}>
+          <MasterPapel brandId={p.brandId} anos={p.anos} div={div} sel={sel === p.brandId} onPick={() => setSel(p.brandId)} />
+        </div>
+      ))}
     </div>
   )
   const explica = escolhido
@@ -344,7 +354,11 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
 // 📊 a régua do Master pra aba Clube › Patrocínio: TOTAL do contrato por marca × divisão
 export function MasterRegua({ div }: { div?: string }) {
   const rows: [string, string][] = [['V', '🌱 Várzea'], ['D', 'Série D'], ['C', 'Série C'], ['B', 'Série B'], ['A', 'Série A']]
-  const grid: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1.15fr 1fr 1fr 1fr 1fr', gap: 3 }
+  // 📏 UMA COLUNA POR MARCA, contada da lista — não escrita na mão.
+  //    Era '1.15fr 1fr 1fr 1fr 1fr' (rótulo + 4 marcas). Quando a Uomo Concetto
+  //    entrou como 5ª, em 23/09, a tabela ficaria com uma coluna a menos e os
+  //    números escorregariam pra célula errada. Agora sai do tamanho da lista.
+  const grid: React.CSSProperties = { display: 'grid', gridTemplateColumns: `1.15fr ${'1fr '.repeat(MASTER_PRAZOS.length).trim()}`, gap: 3 }
   return (
     <div style={{ ...box('#fff'), overflow: 'hidden', marginTop: 10 }}>
       <div style={{ background: '#FBF6E9', padding: '10px 12px', borderBottom: `2.5px solid ${INK}` }}>
