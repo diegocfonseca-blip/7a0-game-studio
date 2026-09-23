@@ -129,10 +129,13 @@ ok(await achaBotao() === 0, '⚠️ o botão apareceu no PREGÃO da Tocaia — e
 if (COMPLETO) {
   const NO_MONTE = 'text=As sobras do pregão'
   let chegou = false
-  for (let i = 0; i < 700; i++) {
+  // ⏳ o pregão da Tocaia é longo (5 setores de descida + repescagem). Em 23/09 a
+  // volta de 700 × 0,9s não chegou no Monte e a trava morreu sem conferir nada —
+  // que é o pior tipo de trava. Agora a espera é maior e o passo mais curto.
+  for (let i = 0; i < 2200; i++) {
     if (await p.locator(NO_MONTE).count()) { chegou = true; break }
-    await clica('Entendi', 120)
-    await p.waitForTimeout(900)
+    await clica('Entendi', 90)
+    await p.waitForTimeout(420)
   }
   ok(chegou, 'o pregão não chegou no Monte de sobras — a trava não conferiu o que importa')
   if (chegou) {
