@@ -3491,12 +3491,43 @@ function Holandes() {
   // jogador APARECERIA e SUMIRIA do campinho — o estado quebrado que ele não
   // quer ver nunca. No solo isso nem pisca (o motor responde no mesmo toque).
   const [enviando, setEnviando] = useState<string | null>(null)
+  // 🗣️ E QUANDO NÃO PEGA, A TELA DIZ O PORQUÊ (23/09, junto com o segundo a mais
+  // no último degrau). Antes o toque que chegava tarde no host morria CALADO: o
+  // "✋ ENVIANDO" ficava 4s no ar e sumia sem explicar nada, e a pessoa ficava
+  // achando que o botão falhou. Agora sai um recado curto por 3s, na vaga do
+  // botão, com o motivo de verdade — é a regra dele de que toda trava explica.
+  const [recusa, setRecusa] = useState<{ id: string; txt: string } | null>(null)
+  // espelho do `hol` pra ler DENTRO do setTimeout: o valor capturado no efeito é
+  // o de 4,5s atrás, e nesse tempo o host pode ter respondido.
+  const holRef = useRef(hol)
+  holRef.current = hol
+  useEffect(() => {
+    if (!recusa) return
+    const t = setTimeout(() => setRecusa(null), 3000)
+    return () => clearTimeout(t)
+  }, [recusa])
   useEffect(() => {
     if (!enviando) return
     // o host respondeu (a carta ganhou dono, qualquer que seja) → some o aviso
     if (hol?.levados.some(l => l.cardId === enviando)) { setEnviando(null); return }
-    const t = setTimeout(() => setEnviando(null), 4000) // rede muda: não trava a tela pra sempre
+    // ⏳ "SE PERDEU" — o recado que faltava, e ele espera o TEMPO TODO de propósito.
+    // Desde 23/09 o toque atrasado NÃO é mais jogado fora: ele vale, pelo preço que
+    // estava na tela. E ainda existe a estrada reserva pelo banco, que o host lê de
+    // 3 em 3s. Ou seja, um toque pode demorar vários segundos e AINDA assim pegar
+    // o jogador — então avisar "não deu" cedo seria mentira na cara da pessoa.
+    // Por isso o aviso só sai no fim da espera, e só se a carta continuar SEM DONO
+    // (se outro levou, a linha já vira "Arrematado · nome do time", e repetir seria
+    // o teatro duplicado que ele reprovou em 21/09).
+    const alvo = enviando
+    const t = setTimeout(() => {
+      setEnviando(null)
+      // lê o estado de AGORA (o `hol` fechado neste efeito é o de 4,5s atrás)
+      if (!holRef.current?.levados.some(l => l.cardId === alvo)) {
+        setRecusa({ id: alvo, txt: L('seu toque se perdeu — tenta de novo', 'your tap was lost — try again') })
+      }
+    }, 4500)
     return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enviando, hol?.levados])
 
   // 🔊 tique-taque do preço caindo + martelo quando uma carta sai
@@ -3617,6 +3648,14 @@ function Holandes() {
                     {dono.mgr === you.id ? L('🫵 VOCÊ', '🫵 YOU') : (t?.teamName ?? '—')}
                   </p>
                   <p className="text-[11px] font-bold text-black/55">{dono.preco} 🪙</p>
+                </div>
+              ) : recusa?.id === c.id ? (
+                // ⏳ O TOQUE CHEGOU TARDE. Fica 3s no lugar do botão, explicando —
+                // e o botão volta sozinho, pra pessoa tentar no preço novo.
+                <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center shrink-0 max-w-[124px]"
+                  style={{ background: '#FFE9B0', boxShadow: `3px 3px 0 0 ${INK}` }}>
+                  <p className="text-[11px] font-black leading-none" style={OSWALD}>⏳ {L('SE PERDEU', 'LOST')}</p>
+                  <p className="text-[9px] font-bold leading-tight mt-0.5 text-black/70">{recusa.txt}</p>
                 </div>
               ) : enviando === c.id ? (
                 // 📱 ESPERANDO O HOST (só pisca no online). O jogador NÃO entra no

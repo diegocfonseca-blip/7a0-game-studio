@@ -1,3 +1,99 @@
+## 23/09/2026 — 🐊💰 "Apertei no 11 e outro pegou por 8" ✅ CONSERTADO (sala do Fridão)
+
+Diego, com a sala 3QAPF7 (Tocaia, host `fridao fc`) rolando: *"tem gente que apertou
+no jogador pra dar lance quando tava 11 e outro pegou pagando 8"*.
+
+**A CAUSA, achada no reducer**: havia a linha `if (action.preco !== s.hol.preco)
+return s`. Ou seja: **se o preço mudou enquanto o toque viajava, o toque ia pro LIXO,
+calado**. O cara apertou vendo 11, a mensagem demorou um tiquinho, chegou com o host
+já em 10 — e ele ficou sem nada enquanto a carta caía até outro levar por 8. Ele
+apertou PRIMEIRO e perdeu.
+📮 **E isso inutilizava a ESTRADA RESERVA**: o toque que vai pelo banco (`room_acoes`)
+é lido de 3 em 3s, então o preço SEMPRE tinha mudado — o caminho que existe justamente
+pra salvar o toque quando o rádio falha era descartado na chegada, **100% das vezes**.
+
+**O CONSERTO**: o toque atrasado agora VALE, e paga **o que estava na tela dele**.
+Nunca mais caro — que era exatamente o que a trava velha queria proteger, e segue
+protegido. Só o caso impossível é recusado (preço da tela MENOR que o de agora = tela
+do futuro; o preço só cai). `holandesPegar` ganhou o parâmetro `precoDaTela`.
+⚖️ **O que NÃO mudou**: quem chega primeiro no host leva (decisão dele de 20/09,
+*"tem que ser por tempo"*) e carta com dono continua trancada. A mudança não inverte
+disputa nenhuma — ela só para de **jogar fora** toque que não disputava com ninguém.
+🗣️ E o aviso amarelo virou **"SE PERDEU"** (era "TARDE") e agora espera 4,5s antes de
+aparecer: com o toque atrasado valendo e a estrada reserva de 3s, avisar cedo seria
+mentira na cara da pessoa.
+✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
+deu idêntico nos dois.
+
+## 23/09/2026 — 🧊 O convidado que "trava e não consegue voltar" ⏳ ESPERANDO OK
+
+Mesma noite, mesma sala: *"o time chamado Brazucas também travou e ele acabou não
+conseguindo voltar"*.
+
+**A PROVA, no banco (sala `efca06da…`, código 3QAPF7)**: a `room_players` dessa sala
+tem os assentos **0, 2, 3, 4, 5, 6, 7, 8, 11, 13, 14, 15, 16, 18, 19** — ou seja,
+**faltam os assentos 1, 9, 10, 12 e 17**. São CINCO pessoas cujo assento existe no
+jogo mas **não tem mais linha na tabela**.
+
+**POR QUE ELES NÃO VOLTAM** (`lobby.tsx`): quem perde a linha fica sem caminho de
+volta, e **em silêncio**:
+- na hora de reancorar a sala: `if ((!mySlot && !amHostHere)) return` — a sala nem
+  aparece mais pra ele;
+- no `resume()`: `if (!myPl) return` — não faz nada, não explica nada.
+⚠️ **O HOST tem conserto e o CONVIDADO não.** Quando o host perde a linha, o código
+recria a vaga **no assento dele**, achado pelo NOME nos managers do save (linhas
+~292-298). Pro convidado esse caminho simplesmente não existe.
+
+**PROPOSTA levada a ele (ainda NÃO feita)**: dar ao convidado o MESMO conserto que o
+host já tem — se ele não tem linha mas o save tem um assento humano com o nome dele,
+recria a linha naquele assento e deixa voltar. 🔒 Com uma trava a mais que o host não
+precisa: **só se aquele assento não estiver ocupado por outro `user_id`** — é terreno
+de índice de assento, a família de bug que já mordeu ("virei bot", "dei lance por
+outro"), então não entra sem rede.
+⏳ Por isso **perguntei antes de fazer**: regra 1 do CLAUDE.md (*na dúvida, perguntar*).
+
+## 23/09/2026 — 🐊 Tocaia: o toque no preço 1 que "não pega" ✅ APROVADO E NO AR
+
+Relato do Diego: *"às vezes quando o cara deixa pra dar o lance no 1, na contagem, às
+vezes não pega. Sabe por quê? E o que sugere fazer?"*
+
+**O PORQUÊ (conferido no código, não chutado)**: o **1 é o último degrau de todos** —
+a escada é …3 · 2 · 1 · 0, e o 0 não é preço, é o `fechaHolandes`. Em qualquer outro
+número, quem perde o tempo só vê o preço cair e aperta de novo; **no 1 não existe
+próximo**. Soma-se a isso que **no online quem conta o tempo é SÓ o host**
+(`euTico = !online || isHost`): a tela do convidado ainda mostra "1" enquanto o aviso
+de fechamento viaja, ele aperta olhando pro 1, e quando o toque chega o host já
+fechou — `holandesPegar` cai no `if (!hol) return` e **morre calado**.
+
+**O QUE FOI FEITO** (ele escolheu a opção simples: *"mas se demorasse um segundo a
+mais não teria problema também"* → *"Sim"*):
+- ⏱️ **O preço 1 passou de 2s pra 3s** (`HOL_MS_ULTIMO`), e **saiu de graça**: os 5
+  degraus do topo (100→60) foram de 500ms pra **300ms** (`HOL_MS_ALTO`). Lá ninguém
+  aperta nunca — 5 × 200ms = exatamente o segundo que foi pro 1. A descida continua
+  em **49,1s** (a trava reprova acima de 50s).
+- ⏳ **A tela passou a dizer o porquê**: quando o degrau vira e o seu toque não pegou,
+  aparece 3s um aviso amarelo "TARDE · não deu tempo — tenta neste preço", no lugar
+  do botão, e o botão volta sozinho. 🚫 **Não** pus aviso pro caso de "outro levou" —
+  a linha já troca pra "Arrematado · nome do time", e repetir seria o teatro duplicado
+  que ele reprovou em 21/09.
+- 🎬 O espelho do vídeo (`scripts/escada-tocaia.mjs`) foi junto — a trava pegou ele
+  desatualizado. **Mudou o tempo no `store.tsx`? Muda lá também.**
+
+⚠️ **Eu avisei na hora, e fica registrado**: 1 segundo **ajuda mas não mata 100%** — a
+diferença entre a tela do convidado e o relógio do host continua existindo, só anda 1
+segundo pra frente. **Se voltar a escapar, o próximo passo já combinado é CARIMBAR o
+degrau no toque**: o aperto leva o número que estava na tela e o host aceita quem
+apertou enquanto ainda dava tempo. 💡 O caminho já está meio pronto — o
+`HOLANDES_PEGAR` **já carrega `preco`** na ação, e o motor hoje simplesmente ignora.
+Não fazer sem ele pedir.
+
+🔢 **Digitais do `npm run ascegas` de hoje**: `7d251395` · `67909d18` · `34c587c1`.
+Mudaram por causa das **cartas de hoje**, não da Tocaia — provei rodando a prova com e
+sem a mudança da Tocaia, e deu idêntico nos dois.
+
+✅ **APROVADO** (*"sim pode fazer"*, depois de ver o mockup `mockups/tocaia-tarde.png`)
+e publicado na main.
+
 ## 23/09/2026 — 🐊🔇 "Solta a mascote" do Monte não fazia nada ✅ CONSERTADO
 
 Relato dele, com print da sala: *"o solta o mascote não tá funcionando quando aperta
