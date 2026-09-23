@@ -5343,6 +5343,18 @@ export function EscMonte() {
           Regra de sempre: só aparece pra quem tem clube batizado. */}
       {state.holandes && <div className="flex justify-center"><MascoteJab /></div>}
       <FloatingEmotes />
+      {/* 🐊🐛 O BICHO PRECISA DESTA LINHA PRA EXISTIR AQUI (conserto 23/09).
+          Relato do Diego: *"o solta o mascote não tá funcionando quando aperta ele…
+          era pra mascote passar pela tela igual funciona no modo padrão às cegas"*.
+          E não estava mesmo: quem desenha o bicho GRANDE é o `MascoteAtravessa`, e
+          ele só estava montado no `EscAuction` (pregão). Esta tela montava só a fila
+          de reações — que, desde 25/08, ESCONDE de propósito a mascote que ela sabe
+          desenhar, pra não repetir o teatro duas vezes. Resultado: apertava o botão,
+          a fila escondia e não existia ninguém pra desenhar. Apertar não fazia nada.
+          ⚠️ Lição pra quem for pôr o botão numa tela nova: o botão e o DESENHO são
+          duas peças — leva as duas juntas, senão o botão nasce mudo (é a mesma
+          armadilha do "botão mudo" que já pegou o monte e a rodada 0). */}
+      <MascoteAtravessa />
     </Shell>
   )
 }

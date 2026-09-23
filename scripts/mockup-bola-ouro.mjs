@@ -1,3 +1,8 @@
+// ⛔ DESATUALIZADO DESDE 22/09 — NÃO POSTAR SEM ARRUMAR.
+// O Diego tirou o bônus de PISO: *"não quero mais que o jogador bola de ouro
+// aumente o piso do valor dele. Nem artilheiro também não"*. Hoje a Bola de Ouro
+// paga SÓ as 20 🪙 pro clube; o valor da carta não muda. Tudo que este arquivo
+// desenha sobre "+10 de piso" está errado.
 // 🥇 MOCKUP — O PRÊMIO DA BOLA DE OURO (20 🪙 pro clube + 10 de piso no jogador)
 //
 // Pedido do Diego (19/09): *"preciso de um mockup agora do bola de ouro que fizemos e

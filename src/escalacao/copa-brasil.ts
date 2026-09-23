@@ -284,7 +284,6 @@ export function computeCopaBrasil(tables: Record<Div, SimTeam[]>, seed: number, 
 // vice · campeão — 8 degraus). ───
 export const CB_PAY = { peneira: 2, r64: 4, r32: 5, oitavas: 6, quartas: 10, semi: 16, vice: 25, camp: 50 }
 export const CB_SCORER_BONUS = 10 // caixa do time pelo artilheiro da Copa do Brasil
-export const CB_SCORER_FLOOR_BONUS = 10 // piso do artilheiro sobe fixo
 
 export function copaBrasilRewards(r: CopaBrasilResult): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
   const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}
@@ -437,13 +436,14 @@ export function copaBrasilAsCopaResult(r: CopaBrasilResult, supercopa?: CBTie | 
   return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, scorersAll: [...(r.scorersAll ?? []), ...(supercopa?.scorers ?? [])], topScorer: r.topScorer, assists: r.assists, assistsAll: [...(r.assistsAll ?? []), ...(supercopa?.assists ?? [])], topAssist: r.topAssist, goalsByCard: r.goalsByCard, assistsByCard: r.assistsByCard }
 }
 
-export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult, supercopa?: CBTie | null): { rewards: Record<number, number>; clubRewards: Record<string, number>; values: Record<string, number>; championKey: string | null } {
+// 🚫 Sem piso desde 22/09 (ordem do Diego: artilheiro e Bola de Ouro não sobem
+// mais o valor do jogador) — o artilheiro da Copa do Brasil continua rendendo
+// DINHEIRO ao clube, em `copaBrasilRewards`.
+export function copaBrasilRewardsAsCopaRewards(r: CopaBrasilResult, supercopa?: CBTie | null): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
   const base = copaBrasilRewards(r)
-  const values: Record<string, number> = {}
-  if (r.topScorer) values[r.topScorer.name] = (values[r.topScorer.name] ?? 0) + CB_SCORER_FLOOR_BONUS
-  if (!supercopa) return { ...base, values }
+  if (!supercopa) return base
   const sc = supercopaRewards(supercopa)
   const mrgN = (a: Record<number, number>, b: Record<number, number>) => { const o = { ...a }; for (const k in b) o[+k] = (o[+k] ?? 0) + b[+k]; return o }
   const mrgS = (a: Record<string, number>, b: Record<string, number>) => { const o = { ...a }; for (const k in b) o[k] = (o[k] ?? 0) + b[k]; return o }
-  return { rewards: mrgN(base.rewards, sc.rewards), clubRewards: mrgS(base.clubRewards, sc.clubRewards), values, championKey: base.championKey }
+  return { rewards: mrgN(base.rewards, sc.rewards), clubRewards: mrgS(base.clubRewards, sc.clubRewards), championKey: base.championKey }
 }

@@ -472,12 +472,22 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   começa no 🏆 Master e segue pro fornecedor, camisas e bico. **Não propor de volta**
   (nem como "aposta opcional") sem ele pedir. O que sobrou no save (`careerSponsorBet`)
   é só resíduo: ninguém escreve, ninguém lê, ninguém paga.
-- **🥇 A BOLA DE OURO PAGA (19/09): 20 🪙 pro clube + 10 de piso no jogador.** Palavras
-  dele: *"todo bola de ouro q o time tiver o clube ganhará 20 moedas extras e o jogador
-  passa a valorizar mais 10 de piso"*. Acumula por título, o piso vale mesmo se o
-  premiado for de bot (a carta encarece pra todos) e as moedas só pra clube de gente.
-  Números em `BOLA_OURO_MOEDAS`/`BOLA_OURO_PISO` (`store.tsx`); o piso mora em
-  `careerBolaOuroPiso` e entra no `valorOficial`.
+- **🥇 A BOLA DE OURO PAGA (19/09): 20 🪙 pro clube — e SÓ isso.** Palavras dele:
+  *"todo bola de ouro q o time tiver o clube ganhará 20 moedas extras"*. Acumula por
+  título e as moedas só existem pra clube de gente (bot não tem caixa). O número mora
+  em `BOLA_OURO_MOEDAS` (`store.tsx`).
+- **🚫📈 PRÊMIO NÃO ENCARECE JOGADOR (22/09, regra permanente).** Palavras dele: *"não
+  quero mais que o jogador bola de ouro aumente o piso do valor dele. Nem artilheiro
+  tb não"*. Saíram os DOIS bônus de piso que existiam: o da Bola de Ouro (+10 por
+  título, `careerBolaOuroPiso`) e o do ARTILHEIRO de liga, de Copa Legends e de Copa
+  do Brasil (+10 fixo, que ia pro livro de preços E pro `paid` de toda carta com
+  aquele nome). Motivo prático: piso é a base do salário (salário = piso ÷ 10), da
+  renovação e do teto de venda — o craque premiado ia ficando impagável temporada
+  após temporada. **O prêmio continua existindo, mas é DINHEIRO NO CAIXA do clube**
+  (artilheiro por divisão A 30 · B 20 · C 15 · D 10 · V 6; Copa; e as 20 🪙 da Bola de
+  Ouro). O `valorOficial` voltou a ser só o maior entre livro, pago e tabela.
+  ⚠️ Quem mexer aqui: `careerBolaOuroPiso` continua nos saves antigos como RESÍDUO —
+  ninguém escreve e ninguém lê. Não religar sem ele pedir.
 - **👟 FORNECEDOR DE MATERIAL: 20 marcas, a FORMA não muda (20/09).** Ele mandou as
   20 paródias e montou a escada em 5 andares (1ª Elite e Luxo → 5ª Várzea e
   Improviso). Regras que ele fechou, e que não se mexem sem ele pedir:

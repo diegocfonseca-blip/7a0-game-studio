@@ -1,4 +1,4 @@
-## 23/09/2026 — 🐊 Tocaia: o toque no preço 1 que "não pega" ⏳ ESPERANDO OK VISUAL
+## 23/09/2026 — 🐊 Tocaia: o toque no preço 1 que "não pega" ✅ APROVADO E NO AR
 
 Relato do Diego: *"às vezes quando o cara deixa pra dar o lance no 1, na contagem, às
 vezes não pega. Sabe por quê? E o que sugere fazer?"*
@@ -37,8 +37,68 @@ Não fazer sem ele pedir.
 Mudaram por causa das **cartas de hoje**, não da Tocaia — provei rodando a prova com e
 sem a mudança da Tocaia, e deu idêntico nos dois.
 
-⏳ **PENDENTE**: está no branch, **NÃO foi pra main**, porque o aviso amarelo é visual
-novo e a regra dele é ver antes. Mockup mandado (`mockups/tocaia-tarde.png`).
+✅ **APROVADO** (*"sim pode fazer"*, depois de ver o mockup `mockups/tocaia-tarde.png`)
+e publicado na main.
+
+## 23/09/2026 — 🐊🔇 "Solta a mascote" do Monte não fazia nada ✅ CONSERTADO
+
+Relato dele, com print da sala: *"o solta o mascote não tá funcionando quando aperta
+ele… era pra mascote passar pela tela igual funciona no modo padrão às cegas"*.
+
+**O que era**: o botão entrou no Monte de sobras em 21/09 (ordem dele), mas quem
+desenha o bicho GRANDE é o `MascoteAtravessa` — e ele só estava montado no
+`EscAuction` (o pregão). A tela do Monte montava só a fila de reações, que desde
+25/08 **esconde de propósito** a mascote que ela sabe desenhar, pra não contar o
+mesmo teatro duas vezes. Somando as duas coisas: a fila escondia e não existia
+ninguém pra desenhar. **Apertar o botão não fazia absolutamente nada** — no pregão
+do envelope cego funcionava normal, porque lá o desenho está montado.
+
+**O conserto**: `<MascoteAtravessa />` montado no `EscMonte`, do lado da fila. Uma
+linha. Nada mais muda: mesma arte, mesma travessia de 2,2s, mesmo confete.
+
+**A trava nova** (`npm run mascote-botao`): agora ela lê o código e reprova se
+QUALQUER tela render o botão sem ter o desenho junto — a mensagem sai com o nome do
+componente. Testei tirando a linha de propósito: a trava acusa.
+
+💡 É a mesma família do "botão mudo" que já pegou o monte e a rodada 0: **o botão e o
+desenho são duas peças, e quem leva uma leva a outra**.
+
+↩️ **Reverter**: tirar a linha do `MascoteAtravessa` volta ao estado anterior.
+
+## 22/09/2026 — 🚫📈 Prêmio não encarece mais o jogador (Bola de Ouro e artilheiro)
+
+Ordem dele: *"não quero mais que o jogador bola de ouro aumente o piso do valor dele.
+Nem artilheiro tb não"*.
+
+**O que existia** (dois bônus de piso, os dois de +10):
+- 🥇 **Bola de Ouro** — `careerBolaOuroPiso` somava +10 por título e o `valorOficial`
+  somava isso por cima do maior entre livro/pago/tabela.
+- ⚽ **Artilheiro** — liga (`scorerRewards`), Copa Legends (`copaRewards`) e Copa do
+  Brasil (`CB_SCORER_FLOOR_BONUS`) mandavam +10 fixo pro `applyScorerValues`, que
+  subia o livro de preços **e** o `paid` de TODA carta com aquele nome, em qualquer
+  elenco (humano, bot e rival).
+
+**Por que incomodava**: piso é a base de três contas ao mesmo tempo — salário
+(= piso ÷ 10), preço de renovação e teto de venda. O craque premiado ia encarecendo
+temporada após temporada e a folha dele explodia justamente no time que o revelou.
+
+**O que ficou**: o prêmio continua, só que **em dinheiro no caixa** — artilheiro por
+divisão (A 30 · B 20 · C 15 · D 10 · Várzea 6), artilheiro de Copa, e as 20 🪙 da Bola
+de Ouro. Nada mudou no caixa.
+
+**No código**: saíram `BOLA_OURO_PISO`, `pisoBolaOuro`, `SCORER_PISO_BONUS`,
+`CB_SCORER_FLOOR_BONUS`, o `applyScorerValues` inteiro e o campo `scorerValues` das
+duas actions da virada. O `valorOficial` voltou a ser só o `Math.max` de sempre.
+Os textos de tela que prometiam o piso (regras da temporada, rodapé da artilharia da
+liga e da Copa) foram corrigidos em PT e EN, e a novidade de 19/09 na home foi
+reescrita pra não prometer mais o que o jogo não faz.
+🗃️ `careerBolaOuroPiso` continua nos saves antigos como **resíduo**: ninguém escreve,
+ninguém lê. Não precisa migração — e o valor que a carta já tinha no LIVRO de preços
+(de artilharias passadas) continua lá, porque aquilo já virou preço de mercado.
+
+↩️ **Reverter**: o commit é único e isolado. Voltar ele devolve os dois bônus.
+✅ Travas rodadas: `npm run artilharia` · `melhor` · `fim` · `roteiro` · `monte` ·
+`agencia` — todas verdes, e o `npm run build` fechou.
 
 ## 22/09/2026 — ❌ Erick, Carlos Bianchi e Artur removidos ✅ FEITO
 

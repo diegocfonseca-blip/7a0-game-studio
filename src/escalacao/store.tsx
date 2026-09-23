@@ -1440,18 +1440,15 @@ function voltaCriaSeSobrou(s: EscState, m: Manager, pos: Sector): void {
   }
 }
 export function valorOficial(state: EscState, c: Card): number {
-  // 🥇 +10 de piso POR BOLA DE OURO (Diego 19/09). Soma DEPOIS do max, senão um
-  // craque de tabela alta (fame 5 = 30) não sentiria o prêmio. Vale em tudo que lê
-  // o valor oficial: renovação, teto de venda, SAF e a ficha do jogador.
+  // 🚫 SEM BÔNUS DE PISO (Diego 22/09): nem Bola de Ouro nem artilheiro encarecem
+  // mais a carta. O valor oficial é só o maior entre o livro de preços, o que
+  // pagaram por ele e a tabela da categoria — que é o que manda na renovação, no
+  // teto de venda, na SAF e na ficha. (O campo `careerBolaOuroPiso` continua nos
+  // saves antigos como resíduo: ninguém escreve e ninguém lê mais.)
   return Math.max(state.marketValues?.[ident(c)] ?? 0, (c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c))
-    + (state.careerBolaOuroPiso?.[ident(c)] ?? 0)
 }
-/** 🥇 quanto de piso esta carta ganhou em Bolas de Ouro (0 = nunca levou) */
-export const pisoBolaOuro = (state: EscState, c: { name: string; club: string }): number =>
-  state.careerBolaOuroPiso?.[ident(c)] ?? 0
-/** 🥇 os dois números do prêmio, num lugar só (mexeu aqui, mudou no jogo e nos textos) */
+/** 🥇 o prêmio da Bola de Ouro, num lugar só (mexeu aqui, mudou no jogo e nos textos) */
 export const BOLA_OURO_MOEDAS = 20
-export const BOLA_OURO_PISO = 10
 export type RenewAnos = 1 | 2 | 3 | 5 | 10
 // 📝💰 RENOVAÇÃO POR VALOR (decisão do Diego 14/08, várias rodadas de ajuste fino):
 // regra de ouro — um prazo mais LONGO nunca pode custar igual ou menos que um mais
@@ -1571,45 +1568,6 @@ function escadaEconFactor(s: EscState): number {
   }
   const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 100
   return Math.min(4, Math.max(1, 0.5 + avg / 150))
-}
-function applyScorerValues(state: EscState, values?: Record<string, number>) {
-  if (!values) return
-  const mv = { ...(state.marketValues ?? {}) }
-  // 🪜 escada: bônus de artilheiro NÃO infla o piso além do teto da categoria ×
-  // economia da sala (antes somava toda temporada sem limite — um 🎯 artilheiro
-  // eterno chegava a piso 100 e era vendido a preço de estrela). O teto cresce
-  // junto com o mercado; nunca REDUZ um valor já gravado.
-  const econ = state.careerOnline ? escadaEconFactor(state) : 0
-  // 🐛 (07/08, mesmo relato do Neymar Santos×Barcelona): o bônus de artilheiro
-  // era achado e somado por NOME — duas cartas do mesmo nome (clubes diferentes)
-  // inflavam JUNTAS. Agora cada CARTA (ident = nome+clube) recebe seu próprio
-  // teto/bônus, só pela que realmente fez os gols daquela temporada.
-  const capOf = (c: Card): number | null => state.careerOnline ? Math.round(catPriceCap(c) * econ) : null
-  for (const name in values) {
-    const b = values[name]
-    if (!b) continue
-    let matched = false
-    for (const m of state.managers) for (const c of m.squad) {
-      if (c.name !== name || c.fake) continue
-      matched = true
-      const cap = capOf(c)
-      const nv = cap == null ? (mv[ident(c)] ?? 0) + b : Math.min((mv[ident(c)] ?? 0) + b, Math.max(cap, mv[ident(c)] ?? 0))
-      mv[ident(c)] = nv
-      ;(c as { paid?: number }).paid = nv
-    }
-    for (const t in (state.cpuSquads ?? {})) for (const c of state.cpuSquads![t]) {
-      if (c.name !== name || c.fake) continue
-      matched = true
-      const cap = capOf(c)
-      mv[ident(c)] = cap == null ? (mv[ident(c)] ?? 0) + b : Math.min((mv[ident(c)] ?? 0) + b, Math.max(cap, mv[ident(c)] ?? 0))
-    }
-    if (!matched) {
-      // não achou a carta (raríssimo): teto médio genérico, só pra não inflar sem freio
-      const cap = state.careerOnline ? Math.round(42 * econ) : null
-      mv[name] = cap == null ? (mv[name] ?? 0) + b : Math.min((mv[name] ?? 0) + b, Math.max(cap, mv[name] ?? 0))
-    }
-  }
-  state.marketValues = mv
 }
 // manda cartas pro monte JÁ pela metade e registra esse valor no livro (é o preço
 // que o jogador vale dali em diante — se ninguém pega, o "bot fica" com ele por
@@ -4381,8 +4339,8 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
-  | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; scorerValues?: Record<string, number>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
+  | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: RenewAnos } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — prazo e preço vêm de renewOptions/renewCost (escada por valor; 10+ moedas = só 5/10 anos). Prazo real sai com tempero (±1, exceto 1-2 anos) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); Várzea NÃO RENOVA (vai pro leilão com teto de venda); quem não renovar nas outras divisões também
@@ -8487,24 +8445,22 @@ export function reducer(state: EscState, action: Action): EscState {
       if (action.melhor && !ehFake(action.melhor)) {
         s.careerMelhorMundo = { ...(s.careerMelhorMundo ?? {}), [String(s.seasonNo)]: action.melhor }
         // 🥇💰 O PRÊMIO (Diego 19/09): *"todo bola de ouro q o time tiver o clube ganhará
-        // 20 moedas extras e o jogador passa a valorizar mais 10 de piso"*.
-        //  · O PISO é da CARTA e vale pro mundo inteiro (bot também): quem ganhou Bola de
-        //    Ouro fica mais caro pra todo mundo, é o que "valorizar" quer dizer.
+        // 20 moedas extras"*.
         //  · As MOEDAS são do CLUBE do premiado, e só existem pra clube de gente (bot não
         //    tem caixa). `teamId >= 0` é o id do manager — a mesma régua do `teamKey`.
         //  · Tudo aqui dentro do portão idempotente do RECORD_SEASON_STATS (`statsSeason`),
         //    então nenhuma temporada paga duas vezes, nem recarregando a tela.
+        // 🚫 O PISO SAIU (Diego 22/09): *"não quero mais que o jogador bola de ouro aumente
+        //    o piso do valor dele. Nem artilheiro também não"*. Antes o prêmio também
+        //    encarecia a CARTA pra sempre (+10 por título), o que subia renovação, salário
+        //    (= piso ÷ 10) e teto de venda. Agora o prêmio é só o dinheiro do clube.
         const mel = action.melhor
-        if (mel.club) {
-          const k = ident({ name: mel.name, club: mel.club })
-          s.careerBolaOuroPiso = { ...(s.careerBolaOuroPiso ?? {}), [k]: (s.careerBolaOuroPiso?.[k] ?? 0) + BOLA_OURO_PISO }
-        }
         const dono = s.managers.find(m => m.id === mel.teamId && m.isHuman)
         if (dono) {
           const caixa = s.careerCoins?.[dono.id] ?? 0
           s.careerCoins = { ...(s.careerCoins ?? {}), [dono.id]: caixa + BOLA_OURO_MOEDAS }
           logFin(s, 'reward', `🥇 Bola de Ouro: ${mel.name} é o melhor do mundo`, BOLA_OURO_MOEDAS, undefined, dono.id)
-          ;(s.marketLog = s.marketLog ?? []).push(`🥇 ${mel.name} levou a BOLA DE OURO da T${s.seasonNo} (${mel.goals} gols + ${mel.assists} assistências)! O ${dono.teamName} fatura ${BOLA_OURO_MOEDAS} 🪙 e ele valoriza +${BOLA_OURO_PISO} de piso.`)
+          ;(s.marketLog = s.marketLog ?? []).push(`🥇 ${mel.name} levou a BOLA DE OURO da T${s.seasonNo} (${mel.goals} gols + ${mel.assists} assistências)! O ${dono.teamName} fatura ${BOLA_OURO_MOEDAS} 🪙.`)
         }
       }
       s.statsSeason = s.seasonNo
@@ -8623,7 +8579,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // parelho pra todos. A divisão só importa na hora de jogar a temporada.
       if (!s.careerOnline) return s
       // 🧯 anti-toque-dublado (10/08): sem isso, um 2º disparo dobrava títulos/
-      // Copa/valores (applyHonors/careerCopaHonors/applyScorerValues não têm trava
+      // Copa (applyHonors/careerCopaHonors não têm trava
       // própria). A UI atual nem usa mais este caminho, mas fica blindado.
       if (s.screen === 'auction') return s
       guardaCansaco(s, action.golsCard, action.assCard) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST) — e ⚽🅰️ gols/assistências somam
@@ -8637,7 +8593,6 @@ export function reducer(state: EscState, action: Action): EscState {
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
       creditaCopa(s, action.copaChampion, 'copa') // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador) — com recibo por temporada
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
-      applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso no livro (o novo leilão já sai com o valor atualizado)
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes do seasonNo++/placements
       s.seasonNo++
       s.careerPlacements = action.placements
@@ -8714,7 +8669,6 @@ export function reducer(state: EscState, action: Action): EscState {
       creditaCopa(s, action.copaChampion, 'copa') // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador) — com recibo por temporada
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
-      applyScorerValues(s, action.scorerValues) // artilheiros: sobem piso (livro + paid) antes da venda/leilão de reservas
       // 🌱 cria que não é mais necessário SOME do jogo ("volta pra base"): se a
       // posição fecha a formação sem ele (chegou reforço de verdade), ele sai de
       // graça, com carinho no resumo. Nunca sai se a saída quebrar o XI.
