@@ -1,3 +1,28 @@
+## 23/09/2026 — 🐊🔇 "Solta a mascote" do Monte não fazia nada ✅ CONSERTADO
+
+Relato dele, com print da sala: *"o solta o mascote não tá funcionando quando aperta
+ele… era pra mascote passar pela tela igual funciona no modo padrão às cegas"*.
+
+**O que era**: o botão entrou no Monte de sobras em 21/09 (ordem dele), mas quem
+desenha o bicho GRANDE é o `MascoteAtravessa` — e ele só estava montado no
+`EscAuction` (o pregão). A tela do Monte montava só a fila de reações, que desde
+25/08 **esconde de propósito** a mascote que ela sabe desenhar, pra não contar o
+mesmo teatro duas vezes. Somando as duas coisas: a fila escondia e não existia
+ninguém pra desenhar. **Apertar o botão não fazia absolutamente nada** — no pregão
+do envelope cego funcionava normal, porque lá o desenho está montado.
+
+**O conserto**: `<MascoteAtravessa />` montado no `EscMonte`, do lado da fila. Uma
+linha. Nada mais muda: mesma arte, mesma travessia de 2,2s, mesmo confete.
+
+**A trava nova** (`npm run mascote-botao`): agora ela lê o código e reprova se
+QUALQUER tela render o botão sem ter o desenho junto — a mensagem sai com o nome do
+componente. Testei tirando a linha de propósito: a trava acusa.
+
+💡 É a mesma família do "botão mudo" que já pegou o monte e a rodada 0: **o botão e o
+desenho são duas peças, e quem leva uma leva a outra**.
+
+↩️ **Reverter**: tirar a linha do `MascoteAtravessa` volta ao estado anterior.
+
 ## 22/09/2026 — 🚫📈 Prêmio não encarece mais o jogador (Bola de Ouro e artilheiro)
 
 Ordem dele: *"não quero mais que o jogador bola de ouro aumente o piso do valor dele.

@@ -52,6 +52,36 @@ const iTocaia = src.indexOf('O CAMPINHO, embaixo da lista')
 ok(iTocaia > 0, 'não achei o campinho da Tocaia — a trava não conferiu nada')
 ok(!/MascoteJab/.test(src.slice(iTocaia, iTocaia + 1500)), '⚠️ o botão da mascote voltou pro PREGÃO da Tocaia — ele pediu só no Monte')
 
+// ── 1b) 🐛 BOTÃO MUDO: quem tem o BOTÃO tem que ter o DESENHO (conserto 23/09) ──
+// O que aconteceu: o botão entrou no Monte em 21/09 e ninguém levou junto o
+// `MascoteAtravessa`, que é quem desenha o bicho GRANDE. A fila de reações, desde
+// 25/08, ESCONDE de propósito a mascote que ela sabe desenhar (pra não repetir o
+// teatro) — então apertar o botão não fazia absolutamente nada. Relato do Diego:
+// *"o solta o mascote não tá funcionando quando aperta ele"*.
+// Régua desta trava: em CADA componente que rende o botão, o `MascoteAtravessa`
+// tem que estar montado — no próprio componente ou no que o embrulha.
+const compsComBotao = []
+for (const m of src.matchAll(/<MascoteJab \/>/g)) {
+  const ini = src.lastIndexOf('\nfunction ', m.index) >= 0 ? src.lastIndexOf('\nfunction ', m.index) : 0
+  const iniExp = src.lastIndexOf('\nexport function ', m.index)
+  const corte = Math.max(ini, iniExp)
+  const nome = (src.slice(corte, corte + 120).match(/function (\w+)/) ?? [])[1] ?? '?'
+  // o componente vai até a próxima declaração de função no topo do arquivo
+  const fim = (() => {
+    const a1 = src.indexOf('\nfunction ', m.index), a2 = src.indexOf('\nexport function ', m.index)
+    const cands = [a1, a2].filter(x => x > 0)
+    return cands.length ? Math.min(...cands) : src.length
+  })()
+  compsComBotao.push({ nome, corpo: src.slice(corte, fim) })
+}
+for (const c of compsComBotao) {
+  const desenha = /<MascoteAtravessa \/>/.test(c.corpo)
+  // o botão do envelope mora no `Envelope`, e quem monta o desenho é o `EscAuction`
+  // que o embrulha — esse é o único caso em que o desenho pode estar fora.
+  const embrulhado = c.nome === 'Envelope' && /sub = <Envelope \/>[\s\S]{0,400}<MascoteAtravessa \/>/.test(src)
+  ok(desenha || embrulhado, `🔇 BOTÃO MUDO: \`${c.nome}\` rende o "solta a mascote" mas ninguém desenha o bicho ali — falta <MascoteAtravessa /> (a fila de reações esconde a mascote de propósito, então apertar não faz nada)`)
+}
+
 // ── 2) o comportamento, no jogo de verdade ────────────────────────────────
 const vite = spawn('npx', ['vite', '--port', PORTA], { env: { ...process.env, DEPLOY_BASE: '/' }, stdio: 'ignore', detached: true })
 const espera = async () => { for (let i = 0; i < 40; i++) { try { const r = await fetch(`http://localhost:${PORTA}/`); if (r.ok) return true } catch { /* subindo */ } await new Promise(r => setTimeout(r, 500)) } return false }
