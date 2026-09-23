@@ -628,20 +628,48 @@ function TVCotaAdmin() {
   const [lista, setLista] = useState<Envio[]>([])
   const [recusando, setRecusando] = useState<number | null>(null) // id com o menu de motivos aberto
   const [busy, setBusy] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+  // 📥 A FILA VEM INTEIRA, o decidido vem cortado.
+  // ⚠️ Antes era UMA busca só, `order(id desc).limit(40)` pra tudo — e o `pend`
+  // saía de dentro desses 40. Em 23/09 a tabela tinha EXATAMENTE 40 linhas: mais
+  // um vídeo decidido e o pendente mais antigo CAÍA da lista e nunca mais podia
+  // ser decidido. Agora o pendente não tem teto (a fila espera, é regra dele) e o
+  // teto de 20 fica só no histórico, que é só pra conferir.
   const carregar = async () => {
-    const { data } = await supabase.from('tv_envios')
-      .select('id, email, clube, temporada, link, status, motivo, criado_em')
-      .order('id', { ascending: false }).limit(40)
-    setLista(data ?? [])
+    const [p, f] = await Promise.all([
+      supabase.from('tv_envios').select('id, email, clube, temporada, link, status, motivo, criado_em').eq('status', 'pendente').order('id', { ascending: false }),
+      supabase.from('tv_envios').select('id, email, clube, temporada, link, status, motivo, criado_em').neq('status', 'pendente').order('id', { ascending: false }).limit(20),
+    ])
+    if (p.error || f.error) { setErro((p.error ?? f.error)?.message ?? 'não consegui ler a fila'); return }
+    setErro(null)
+    setLista([...(p.data ?? []), ...(f.data ?? [])])
   }
   useEffect(() => { carregar() }, [])
+  // ✅❌ DECIDIR — com rede de segurança, que era o que faltava.
+  // 🐛 Diego (23/09): *"não consigo remover vários que rejeitei o link aqui"*. E o
+  // motivo estava aqui: o `busy` subia pra true ANTES do await e só voltava pra
+  // false na última linha. Se o update falhasse ou a rede piscasse, a função
+  // morria no meio e o `busy` ficava true PRA SEMPRE — e como TODO botão da mesa
+  // é `disabled={busy}`, a mesa inteira congelava até recarregar a página. Batia
+  // com o banco: as recusas existem, mas a mais nova era de 28/08, enquanto os
+  // pendentes eram de 11 a 22/09.
+  // Agora: `finally` sempre destrava, e erro vira RECADO na tela em vez de nada.
   const decidir = async (id: number, status: 'aprovado' | 'recusado', motivo?: string) => {
     if (busy) return
     setBusy(true)
-    await supabase.from('tv_envios').update({ status, motivo: motivo ?? null, decidido_em: new Date().toISOString() }).eq('id', id).eq('status', 'pendente')
-    setRecusando(null)
-    await carregar()
-    setBusy(false)
+    try {
+      const { error } = await supabase.from('tv_envios')
+        .update({ status, motivo: motivo ?? null, decidido_em: new Date().toISOString() })
+        .eq('id', id).eq('status', 'pendente')
+      if (error) { setErro(`não deu pra decidir: ${error.message}`); return }
+      setErro(null)
+      setRecusando(null)
+      await carregar()
+    } catch (e) {
+      setErro(`não deu pra decidir: ${e instanceof Error ? e.message : 'rede'}`)
+    } finally {
+      setBusy(false) // 🔓 SEMPRE — é isto que impede a mesa de travar de novo
+    }
   }
   const pend = lista.filter(e => e.status === 'pendente')
   const feitos = lista.filter(e => e.status !== 'pendente').slice(0, 10)
@@ -678,6 +706,13 @@ function TVCotaAdmin() {
     <div style={{ border: '2px solid ' + GOLD, borderRadius: 16, padding: 14, marginTop: 16 }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: GOLD, textTransform: 'uppercase', margin: '0 0 4px' }}>📺 Cota extra de TV · mesa de aprovação</p>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Regras: vídeo 15s+ · Instagram/TikTok/YouTube marcando @leilaolegendscom · foto não vale · 1 por temporada. Aprova quando der — a fila espera.</p>
+      {/* 🗣️ O RECADO DO ERRO. Sem ele, um aprovar/recusar que falhava não fazia
+          nada e não dizia nada — a regra dele é que toda trava explique o porquê. */}
+      {erro && (
+        <p style={{ fontSize: 11.5, fontWeight: 800, color: '#ff8a75', background: 'rgba(255,138,117,.12)', border: '1px solid rgba(255,138,117,.5)', borderRadius: 10, padding: '7px 9px', margin: '0 0 10px' }}>
+          ⚠️ {erro} — tenta de novo; nada foi mudado.
+        </p>
+      )}
       {pend.length === 0 && <p style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(242,232,207,.5)', margin: '0 0 8px' }}>nenhum vídeo esperando — tudo em dia 😴</p>}
       {pend.map(e => linha(e, true))}
       {feitos.length > 0 && <>
