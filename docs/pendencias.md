@@ -67,7 +67,7 @@ mentira na cara da pessoa.
 ✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
 deu idêntico nos dois.
 
-## 24/09/2026 — 🦈 Batismo JULIA BARRANQUILA (dondeestasleomessi10) · ⏳ NO BRANCH, sobe de manhã
+## 24/09/2026 — 🦈 Batismo JULIA BARRANQUILA (dondeestasleomessi10) · ✅ PUBLICADO
 
 Série A, no assento do **Leão da Estradinha**, que desceu pra Série B (decisão do Diego:
 *"troque pelo Leão da Estradinha e coloque o Leão na Série B"*) na vaga do bot Esporte do
@@ -79,7 +79,7 @@ dourado) — a 1ª (óculos preto) foi trocada por ele.
   trava. Mascote LARGO: o lado maior (largura) fica em 176.
 - ✅ **Banco** (`docs/sql/batismo-julia-barranquila.sql`, rodado e conferido): sócio 58,
   fundador 77, 3 nomes reservados, ouro em user_colors (esse já vale sem deploy).
-- ⏳ **Deploy na main**: segurado por ser noite (regra do horário de pico, 24/09).
+- ✅ **Deploy na main**: publicado à noite por ordem dele (*"agora"*) — exceção à regra do horário de pico.
 - ⏳ **Post**: `mockups/julia-barranquila-post.png` pronto, falta o NOME do dono no rodapé.
 
 ## 24/09/2026 — 🧳 Tocaia travando: a sala levava a CARREIRA do dono na mala ✅ CONSERTADO
