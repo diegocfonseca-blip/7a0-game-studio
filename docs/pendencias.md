@@ -75,6 +75,12 @@ alguma forma que não aumentasse o tamanho do modal demais"*. A proposta:
 ⚠️ **Pra implementar vai precisar de uma coisa que a tela hoje NÃO recebe: o ELENCO
 dos dois times** (`CompactPenalties` só ganha nome e escudo). Na Copa do Mundo são os
 convocados; no online, o XI de cada técnico.
+- ❌ **COMO ERROU** (pedido dele: *"pra fora.. trave... travessão.. isolou"*): o erro
+  deixa de ser sempre "defendeu". 5 jeitos com peso de futebol de verdade — 🧤
+  DEFENDEU 45% · 💨 PRA FORA 20% · 🚀 ISOLOU 15% · 🔔 NA TRAVE 12% · 🔔 NO TRAVESSÃO
+  8%. Só o palco conta; a bolinha continua o ✗ vermelho. ⚠️ Na hora de implementar,
+  o jeito do erro tem que sair da MESMA semente da disputa (senão cada aparelho da
+  sala vê um lance diferente) e sem gastar rng do placar.
 
 ## 23/09/2026 — 🅾️ Uomo Concetto como 5ª marca do Master ⏳ NO BRANCH, ESPERANDO OK
 

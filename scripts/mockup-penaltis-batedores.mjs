@@ -61,7 +61,19 @@ const linha = (t, kicks, vez) => {
 }
 
 // ── o PALCO: quem está batendo agora, contra quem, e o que aconteceu ──
-const palco = (estado, batedor, goleiro, time) => {
+// ❌ COMO ERROU (Diego, 24/09: *"pra fora… trave… travessão… isolou… sei lá"*). O
+//    erro deixa de ser sempre "DEFENDEU!": cada cobrança perdida sorteia o jeito,
+//    preso na semente da disputa (todo aparelho da sala vê o MESMO). O peso segue o
+//    futebol de verdade — o goleiro pega a maioria; bola na madeira é rara, e por
+//    isso mesmo é a que mais grita quando acontece.
+const ERROS = [
+  { k: 'defendeu',   txt: '🧤 DEFENDEU!',     peso: 45 },
+  { k: 'fora',       txt: '💨 PRA FORA!',     peso: 20 },
+  { k: 'isolou',     txt: '🚀 ISOLOU!',       peso: 15 },
+  { k: 'trave',      txt: '🔔 NA TRAVE!',     peso: 12 },
+  { k: 'travessao',  txt: '🔔 NO TRAVESSÃO!', peso: 8 },
+]
+const palco = (estado, batedor, goleiro, time, erro = 'defendeu') => {
   if (estado === 'batendo') return `
   <div class="palco">
     <div class="duelo">
@@ -75,7 +87,7 @@ const palco = (estado, batedor, goleiro, time) => {
   <div class="palco ${gol ? 'p-gol' : 'p-erro'}">
     <div class="duelo">
       <div class="lado"><span class="tag">⚽ BATEU</span><b>${batedor}</b><small>${time}</small></div>
-      <div class="veredito">${gol ? 'GOL!' : 'DEFENDEU!'}</div>
+      <div class="veredito">${gol ? '⚽ GOL!' : ERROS.find(e => e.k === erro).txt}</div>
       <div class="lado dir"><span class="tag">🧤 GOLEIRO</span><b>${goleiro}</b></div>
     </div>
   </div>`
@@ -147,13 +159,22 @@ h1 em{font-style:normal;color:#C2452F}
 .duelo{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .lado{display:flex;flex-direction:column;line-height:1.05;min-width:0}
 .lado.dir{text-align:right;align-items:flex-end}
-.lado b{font-size:14px;font-weight:700;white-space:nowrap}
-.lado small{font-size:9.5px;font-weight:600;opacity:.55}
+.lado b{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.lado small{font-size:9.5px;font-weight:600;opacity:.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .tag{font-size:8.5px;font-weight:700;letter-spacing:1px;color:#FFC400}
 .bolinha-corre{font-size:15px;color:#FFC400;letter-spacing:6px}
-.veredito{font-size:20px;font-weight:700;padding:1px 9px;border-radius:8px;border:2.5px solid #F4ECD6}
+.veredito{font-size:17px;font-weight:700;padding:1px 8px;white-space:nowrap;flex:none;border-radius:8px;border:2.5px solid #F4ECD6}
 .p-gol .veredito{background:#1B7A3D}
 .p-erro .veredito{background:#C2452F}
+.erros{margin-top:26px}
+.erros h2{font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+.erros p.sub{font-size:13px;font-weight:600;opacity:.75;margin-bottom:10px;max-width:1000px}
+.tira{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.mini{border:3px solid #0C0C0C;border-radius:12px;overflow:hidden;box-shadow:3px 3px 0 #0C0C0C}
+.mini .palco{margin-top:0;border-top:0}
+.mini .lado b{font-size:12.5px}
+.mini .veredito{font-size:11.5px;padding:2px 5px}
+.peso{font-size:11px;font-weight:700;text-align:center;padding:4px 0 5px;background:#F6EEDB;border-top:2px solid #0C0C0C}
 .leg{font-size:13px;font-weight:600;line-height:1.3;margin-top:10px;opacity:.85}
 .nota{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .box{background:#fff;border:3px solid #0C0C0C;border-radius:14px;box-shadow:4px 4px 0 #0C0C0C;padding:12px 14px;font-size:14px;font-weight:600;line-height:1.35}
@@ -166,6 +187,11 @@ h1 em{font-style:normal;color:#C2452F}
   <div class="col"><h2>Novo · ①</h2>${m1}</div>
   <div class="col"><h2>Novo · ②</h2>${m2}</div>
   <div class="col"><h2>Novo · ③</h2>${m3}</div>
+</div>
+<div class="erros">
+  <h2>❌ Quando erra, o palco conta COMO errou</h2>
+  <p class="sub">Não é mais sempre "defendeu". Cada pênalti perdido sai de um jeito — e a bolinha continua só o ✗ vermelho com as iniciais: <b>quem conta o lance é o palco</b>, um lugar só. A chance de cada um segue o futebol de verdade:</p>
+  <div class="tira">${ERROS.map(e => `<div class="mini">${palco('erro', 'Marcelinho', 'Marcos', 'WFP Bahia 88', e.k)}<div class="peso">${e.peso}% dos erros</div></div>`).join('')}</div>
 </div>
 <div class="nota">
   <div class="box"><h3>🎯 Quem bate, e em que ordem</h3>Os 5 primeiros são os <b>melhores do time em campo</b>, do ataque pra trás (atacante, meia, lateral, zagueiro). Se for pra morte súbita, segue a fila; o <b>goleiro bate por último</b>, igual no futebol. A ordem sai sempre igual em todos os aparelhos da sala. E <b>dois do mesmo time nunca ficam com a mesma sigla</b>: Romário é RO, Ronaldinho vira RN.</div>
