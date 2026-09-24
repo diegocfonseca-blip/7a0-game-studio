@@ -28,7 +28,10 @@ import { PyramidOverlay } from './pyramid'
 // 🌍 COPA DO MUNDO DEPOIS DA LIGA (01/09) — LAZY de propósito: este pedaço
 // puxa o torneio inteiro junto, e só quem termina uma sala 'liga + Copa do
 // Mundo' precisa dele. Ninguém mais baixa um byte a mais.
-const CopaDaLigaLazy = lazy(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate })))
+// 🔄 o `pedaco()` recarrega a página UMA VEZ quando o arquivo do pedaço sumiu
+// (publicamos no meio da partida) — ver recarga.ts. Sem ele, a tela cai.
+import { pedaco } from './recarga'
+const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate }))))
 import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
@@ -91,7 +94,7 @@ const INK = '#0C0C0C'
 // 🏛️ SALÃO DOS BATISMOS — carregado SÓ quando abre (import preguiçoso). Além de
 // não pesar pra quem nunca entra, é o que quebra o ciclo de import: o Salão
 // precisa do Shell/Box daqui, e daqui a gente precisa dele.
-const SalaoLazy = lazy(() => import('./salao'))
+const SalaoLazy = lazy(pedaco(() => import('./salao')))
 
 const GOLD = '#FFC400'
 // 🎨 COR SÓLIDA de cada lado do placar da Copa dos 8 (estilo Brasfoot). VOCÊ = cor

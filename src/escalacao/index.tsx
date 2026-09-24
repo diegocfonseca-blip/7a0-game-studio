@@ -17,6 +17,7 @@ import { PyramidSeasonScreen, ReserveListScreen } from './pyramidseason'
 import { TelaSenhaNova } from './senha-nova'
 import { anotaTrava } from './caixa-preta'
 import { registraQueda } from './quedas' // 🚑 registro das quedas de tela (13/09)
+import { recarregaUmaVez } from './recarga' // 🔄 pedaço que sumiu: recarrega 1x
 
 function Router() {
   const { state } = useEsc()
@@ -148,6 +149,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
   static getDerivedStateFromError(err: Error) { return { err } }
   componentDidCatch(err: Error, info: { componentStack?: string | null }) {
     try { console.error('Leilão Legends crash:', err) } catch { /* ignora */ }
+    // 🔄 PEDAÇO QUE SUMIU (publicamos no meio da partida): em vez da tela de
+    // erro, a página se recarrega UMA VEZ e a pessoa volta pro lugar. Isso é a
+    // rede de segurança — o caminho normal é o `pedaco()` lá no lazy; aqui pega
+    // o que escapar. Se já recarregou nesta aba, segue pro erro (ordem do Diego:
+    // *"no máximo uma vez"*). Nem registra a queda: não é bug, é publicação.
+    if (recarregaUmaVez(err)) return
     // 🚑 (13/09) guarda a pilha de COMPONENTES (tem nome de verdade, ao contrário da
     // pilha do React minificado) e registra a queda em `esc_quedas` — ver quedas.ts.
     const componentes = info?.componentStack ?? null

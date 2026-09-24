@@ -1,3 +1,45 @@
+## 24/09/2026 — 🔄 Publicar no meio da partida derrubava a tela ✅ CONSERTADO
+
+Relato dele: *"tá com erros nas salas online da Tocaia, travando… minha sala do
+Neymarzetti tava com 10 pessoas e travou, bugou dos usuários, não entendi nada"*.
+E, importante, ele CORRIGIU a minha primeira teoria: *"hoje já teve gente jogando
+até com 20 na mesma sala; esse erro começou tem pouco tempo, seja com 10 ou menos,
+e deu com outra pessoa sendo host e agora comigo"*. Ou seja: não era a Tocaia, não
+era o relógio do dono, não era lotação.
+
+**A PROVA veio do banco**, não de achismo: a tabela `esc_quedas` (o registro de
+quedas de tela) tem **50 quedas nos últimos 10 dias e as 50 são a MESMA coisa** —
+`Failed to fetch dynamically imported module …/assets/salao-XXXX.js` (e as
+variações de Safari e do CSS).
+
+**O que acontecia**: o jogo carrega dois pedaços SÓ NA HORA (a Loja do Clube e a
+Copa da liga). O nome do arquivo carrega um código que muda a cada publicação, e a
+publicação APAGA os antigos. Quem está com o jogo ABERTO ficou com o nome velho:
+na hora de abrir a Loja, o arquivo não existe mais e a tela cai no "😵 Ops".
+E quem mais sofre é justamente quem a gente protege: o `VersionWatcher` só
+atualiza sozinho quem está na TELA INICIAL, pra não interromper partida — então
+quem está DENTRO DA SALA nunca atualiza, e é ele que quebra. Em 23/09 foram TRÊS
+publicações à noite (17h38, 19h19, 01h26), em cima das salas dele.
+
+**O conserto** (`src/escalacao/recarga.ts`): pedaço que falha ao carregar
+recarrega a página e a pessoa volta pro lugar — piscada de 1-2s em vez de tela
+quebrada. Em dois lugares: o `pedaco()` que embrulha os dois `lazy()` (caminho
+normal) e o `ErrorBoundary` (rede de segurança pro que escapar).
+
+⚠️ **UMA VEZ SÓ — ordem dele**: *"ok mas no máximo uma vez hein"*. A marca fica no
+`sessionStorage` da aba; se falhar de novo, aparece a tela de erro (se
+recarregasse sempre viraria pisca-pisca e ninguém veria o que houve). E bug DE
+VERDADE nunca recarrega — senão a gente esconderia problema real.
+
+**Trava**: `npm run recarga` — prova as duas coisas (recarrega na 1ª, nunca na 2ª;
+e não confunde bug de verdade com pedaço que sumiu).
+
+📌 **E o combinado de processo**: não publicar à noite quando ele estiver com sala
+cheia. Enquanto o jogo tiver pedaço carregado na hora, publicação no meio da
+partida sempre vai incomodar alguém — agora incomoda uma piscada, não uma queda.
+
+↩️ **Reverter**: tirar o `pedaco()` dos dois `lazy()` e a linha do ErrorBoundary.
+
 ## 23/09/2026 — 🐊💰 "Apertei no 11 e outro pegou por 8" ✅ CONSERTADO (sala do Fridão)
 
 Diego, com a sala 3QAPF7 (Tocaia, host `fridao fc`) rolando: *"tem gente que apertou
