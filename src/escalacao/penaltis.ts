@@ -71,7 +71,17 @@ export function sequenciaPenaltis(pens: [number, number], rng?: () => number): C
   if (max > 5) {
     const seq: Cobranca[] = []
     for (let r = 0; r < max - 1; r++) seq.push({ side: 0, ok: true }, { side: 1, ok: true })
-    seq.push({ side: vencedor, ok: true }, { side: (1 - vencedor) as 0 | 1, ok: false })
+    // 🐛 A ORDEM NÃO MUDA NA RODADA DECISIVA (24/09). Diego: *"às vezes começa a
+    //    bater sem tá alinhado, como se tivesse faltando o primeiro pênalti de um
+    //    time"*. Era esta linha: ela punha o VENCEDOR primeiro. Quando quem vencia
+    //    era o B (a linha de baixo), na última rodada o B batia ANTES do A — a
+    //    bolinha de baixo pipocava com a de cima ainda vazia, e a disputa inteira
+    //    parecia desencontrada bem no lance que decide.
+    //    Agora é como no futebol de verdade: a ordem da disputa é uma só, do começo
+    //    ao fim — A e depois B, sempre. Quem vence é quem converte; a ordem não.
+    //    ⚠️ Não muda placar nem vencedor de NADA: só a ordem em que as bolinhas da
+    //    última rodada aparecem. Trava: `npm run penaltis`.
+    seq.push({ side: 0, ok: vencedor === 0 }, { side: 1, ok: vencedor === 1 })
     return seq
   }
   // até 5 cobranças: tenta algumas distribuições "naturais" (gols espalhados) e
