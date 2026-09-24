@@ -10397,7 +10397,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const [emotes, setEmotes] = useState<EmoteEvent[]>([])
   const addEmote = useCallback((e: EmoteEvent) => {
     setEmotes(prev => prev.some(x => x.id === e.id) ? prev : [...prev.slice(-24), e])
-    setTimeout(() => setEmotes(prev => prev.filter(x => x.id !== e.id)), 2600)
+    // ⏳ a mascote fica na lista MAIS TEMPO (23/09): a travessia dela pode durar
+    // mais que os 2,6s das reações (no Monte da Tocaia ela atravessa devagar, a
+    // pedido do Diego). Se a lista apagasse antes, o bicho sumiria no meio da
+    // tela. Nada muda pro resto: emoji e cantada continuam com 2,6s, e no
+    // envelope a travessia (2,2s) acaba muito antes dos 4,4s mesmo.
+    const vida = e.kind.startsWith('masc:') ? 4400 : 2600
+    setTimeout(() => setEmotes(prev => prev.filter(x => x.id !== e.id)), vida)
   }, [])
   const emote = useCallback((kind: string, cardId?: string, text?: string) => {
     const st0 = stateRef.current
