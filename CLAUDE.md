@@ -599,6 +599,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   toda; até 3 continua na linha. Ele também ganhou `travados`, pra opção que aparece
   mas não deixa escolher (é o que sustenta selo de "em breve").
 
+- **🌙 NÃO PUBLICAR NA MAIN NO HORÁRIO DE PICO (24/09, regra dele: *"siga você fazendo
+  isso também"*).** Toda publicação troca o nome dos arquivos do jogo e apaga os velhos:
+  quem está com o jogo aberto cai na hora que abre uma parte que carrega sob demanda.
+  Na noite de 24/09 foram 3+ publicações bem na hora das salas (junto com a sala pesada
+  do Tocaia). Então: **à noite (~19h–1h de Brasília), só sobe o que for URGENTE** —
+  conserto de sala travando, coisa quebrada ao vivo. O resto espera a manhã/tarde, e a
+  gente avisa o Diego que ficou guardado pra subir depois. (A outra sessão ficou de
+  fazer o jogo se RECARREGAR sozinho nesse erro, no máximo 1 vez, em vez de quebrar.)
 - **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
   biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
   se estourar a cota, guarda a sessão SÓ NA MEMÓRIA e ela morre em todo reload — sem
