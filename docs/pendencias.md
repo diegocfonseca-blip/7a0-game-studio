@@ -36,6 +36,18 @@ história mudar na frente dele — está fechado.
 
 ↩️ **Reverter**: trocar `world` de volta por `worldVivo` na tela da temporada.
 
+## 24/09/2026 — ⚽🏴‍☠️ Batismo VASCO SAF (brunnodeluca90) = o antigo Vasco da Grana ✅ PUBLICADO
+
+O Vasco da Grana era batismo SEM dono (pedido do Diego em 03/08); ele achava que era deste
+usuário. Ordem dele: *"ele entra no lugar do Vasco da Grana"*. Então é RENOMEAÇÃO: mesmo
+assento da Série D, `OLD_NAME['Vasco SAF'] = 'Vasco da Grana'`, e o "Vasco da Grana" saiu
+do Salão (`batismos.ts`). Escudo/mascote também respondem pelo nome velho. Coração **Vasco**.
+- Arte: escudo 266×360 29,0 KB + mascote (O Pirata) 277×440 40,0 KB = 69 KB. Recorte só do
+  chroma forte — as NOTAS de dinheiro do mascote são esverdeadas e ficaram inteiras.
+- Manto preto `#161414` (subido de #080707) + branco `#ECE6E1`, medidos na camisa.
+- Banco rodado (`docs/sql/batismo-vasco-saf.sql`): sócio 59, fundador 78, 3 nomes, ouro.
+- ⏳ Post `mockups/vasco-saf-post.png` — falta o nome do dono no rodapé (e o do Julia também).
+
 ## 24/09/2026 — 🔄 Publicar no meio da partida derrubava a tela ✅ CONSERTADO
 
 Relato dele: *"tá com erros nas salas online da Tocaia, travando… minha sala do
