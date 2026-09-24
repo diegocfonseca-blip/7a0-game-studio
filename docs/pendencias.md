@@ -119,7 +119,7 @@ convocados; no online, o XI de cada técnico.
   o jeito do erro tem que sair da MESMA semente da disputa (senão cada aparelho da
   sala vê um lance diferente) e sem gastar rng do placar.
 
-## 23/09/2026 — 🅾️ Uomo Concetto como 5ª marca do Master ⏳ NO BRANCH, ESPERANDO OK
+## 23/09/2026 — 🅾️ Uomo Concetto como 5ª marca do Master ✅ PUBLICADA (24/09, ok dele: *"pode publicar a Uomo também"*)
 
 Está no branch `claude/denis-save-file-x1osct`, commit "Uomo Concetto vira a 5a marca
 do Master", **NÃO na main** — é tela nova e ele vê antes. Contrato de **4 temporadas**
