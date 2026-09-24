@@ -29,7 +29,7 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
-import { sequenciaPenaltis, disputaPenaltis } from './penaltis'
+import { sequenciaPenaltis, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -6162,7 +6162,7 @@ export function pensRevealDelay(pens: [number, number]): number {
   const b = sequenciaPenaltis(pens, mulberry(0xC0FFEE)).length
   return 0.7 + Math.max(a, b, 10) * 0.85 + 0.6
 }
-export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean }) {
+export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[] }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
@@ -6190,22 +6190,45 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
     { l: 48, t: -4, r: -10, c: '#7C3AED' }, { l: 62, t: 6, r: 25, c: colA }, { l: 76, t: -1, r: -32, c: colB },
     { l: 90, t: 7, r: 15, c: GOLD }, { l: 14, t: 16, r: 55, c: '#7C3AED' }, { l: 82, t: 14, r: -20, c: GREEN },
   ]
+  // 🙈 O RELÓGIO DA DISPUTA (24/09). Antes esta tela era só CSS: TODAS as bolinhas
+  // nasciam de uma vez, invisíveis (opacity 0), e iam aparecendo com atraso. Só que
+  // bolinha invisível OCUPA LUGAR — a linha já nascia com o tamanho da disputa
+  // inteira, centralizada, e a posição do nome entregava quantas cobranças iam ter.
+  // Somado ao "MORTE SÚBITA" aceso desde o começo, era spoiler em dobro (Diego:
+  // *"mostrar já até aonde vai as bolinhas, já dando spoiler onde vai parar"*).
+  // Agora a bolinha só EXISTE depois que a cobrança acontece. É o mesmo jeito que a
+  // versão nova (`CompactPenalties`) já trabalha.
+  const [decorrido, setDecorrido] = useState(0)
+  useEffect(() => {
+    const t0 = Date.now()
+    setDecorrido(0)
+    const id = setInterval(() => { const t = (Date.now() - t0) / 1000; setDecorrido(t); if (t >= totalDelay) clearInterval(id) }, 80)
+    return () => clearInterval(id)
+  }, [pens[0], pens[1], aName, bName, totalDelay])
+  // ⚠️ a MORTE SÚBITA acende quando a 5ª rodada fecha empatada — e não antes. A 10ª
+  // cobrança sai em `lead + 9*step`; meio passo depois, o jogo "descobre" que empatou.
+  const naMorteSubita = suddenDeath && decorrido >= lead + 9.5 * step
   const row = (name: string, r: { ok: boolean; at: number }[]) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 3.5, justifyContent: 'center' }}>
-      <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, maxWidth: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
+    // 📏 nome com LARGURA FIXA e bolinhas encostadas nele: assim a coluna 1 do time
+    // de cima fica exatamente em cima da coluna 1 do de baixo, qualquer que seja o
+    // tamanho dos nomes — e o alinhamento não depende de quantas bolinhas já saíram.
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3.5 }}>
+      <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, width: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
       {Array.from({ length: nSlots }, (_, i) => {
         const k = r[i]
         // 🎯 cobrança NÃO batida (a disputa já tinha decidido): NÃO desenha bolinha
         // nenhuma — antes ficava um círculo tracejado/transparente que parecia bug e
         // dava a entender que faltou cobrar. Mostra só as cobranças que aconteceram.
         if (!k) return null
-        return <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: k.ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: `pensPop .45s cubic-bezier(.2,1.5,.5,1) ${(lead + k.at * step).toFixed(2)}s forwards`, flexShrink: 0 }}>{k.ok ? '' : '✕'}</span>
+        // 🙈 e a que AINDA VAI acontecer também não existe — nem invisível
+        if (decorrido < lead + k.at * step) return null
+        return <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: k.ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: 'pensPop .45s cubic-bezier(.2,1.5,.5,1) 0s forwards', flexShrink: 0 }}>{k.ok ? '' : '✕'}</span>
       })}
     </div>
   )
   if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && privatePenalty)) {
     const exact=exactPenaltyRows(pens,rows)
-    return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final}/>
+    return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)}/>
   }
   return (
     <div style={{ margin: '4px 0 0', position: 'relative', animation: `pensShake .4s ease ${totalDelay.toFixed(2)}s` }}>
@@ -6218,15 +6241,21 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
       </div>
       <p style={{
         fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', margin: '0 0 3px', letterSpacing: 0.5,
-        color: suddenDeath ? '#fff' : '#B23B2E',
-        ...(suddenDeath ? { background: FIN_RED, borderRadius: 6, padding: '3px 0', border: `2px solid ${INK}` } : {}),
-      }}>{suddenDeath ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT')}</p>
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: 3, padding: suddenDeath ? '6px 4px' : 0,
-        ...(suddenDeath ? { border: `2px solid ${FIN_RED}`, borderRadius: 8, background: 'repeating-linear-gradient(135deg,rgba(194,69,47,.06),rgba(194,69,47,.06) 10px,transparent 10px,transparent 20px)' } : {}),
-      }}>
-        {row(aName, rows[0])}
-        {row(bName, rows[1])}
+        color: naMorteSubita ? '#fff' : '#B23B2E',
+        ...(naMorteSubita ? { background: FIN_RED, borderRadius: 6, padding: '3px 0', border: `2px solid ${INK}` } : {}),
+      }}>{naMorteSubita ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT')}</p>
+      {/* 📏 as duas linhas ficam ALINHADAS ENTRE SI (à esquerda, coluna com coluna) e o
+          bloco inteiro fica centralizado no card. Antes cada linha se centralizava
+          sozinha — com um time uma bolinha à frente do outro (o normal: o A bate
+          primeiro), as duas ficavam meio círculo desencontradas. */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{
+          display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3, padding: naMorteSubita ? '6px 4px' : 0,
+          ...(naMorteSubita ? { border: `2px solid ${FIN_RED}`, borderRadius: 8, background: 'repeating-linear-gradient(135deg,rgba(194,69,47,.06),rgba(194,69,47,.06) 10px,transparent 10px,transparent 20px)' } : {}),
+        }}>
+          {row(aName, rows[0])}
+          {row(bName, rows[1])}
+        </div>
       </div>
       {/* 📺 telão do resultado final — mesmo instante de antes (totalDelay), só que agora chamativo */}
       <div style={{
@@ -6309,7 +6338,7 @@ function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed,
             <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, color: 'rgba(0,0,0,.45)', margin: '0 0 1px', textTransform: 'uppercase' }}>{copaName(tie.a)} × {copaName(tie.b)}</p>
             <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>{tr('ida', '1st leg')} {tie.legs[0][0]}×{tie.legs[0][1]} · {tr('volta', '2nd leg')} {tie.legs[1][0]}×{tie.legs[1][1]} · <b>{tr('agregado', 'aggregate')} {tie.aggA}×{tie.aggB}</b></p>
           </>}
-          {tie.pens && <PensShootout compactCareer final={final} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} pens={tie.pens} aName={tie.a.name} bName={tie.b.name} />}
+          {tie.pens && <PensShootout compactCareer final={final} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} pens={tie.pens} aName={tie.a.name} bName={tie.b.name} aSquad={tie.a.xi} bSquad={tie.b.xi} />}
           <p style={{ margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}>
             <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} {final ? tr('é campeão', 'is champion') : tr('avança', 'advances')}</span>
           </p>
@@ -6335,7 +6364,7 @@ function CopaMatchList(props: { ties: CopaTie[]; pos: number; colors: Record<num
 }
 function CopaMatchListInner({ ties, pos, colors, safName, title }: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
   const privateMatches = useOnlinePreview() || CAREER_VISUAL_RELEASED   // 🔓 19/09: liberado geral
-  if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>}/>} />
+  if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} aSquad={tie.a.xi} bSquad={tie.b.xi}/>} />
   const nameCol = (t: SimTeam) => t.you ? (colors[t.teamId]?.solid ?? INK) : (safName && t.name === safName) ? (colors[t.teamId]?.solid ?? INK) : (t.human || t.rival) ? (colors[t.teamId]?.solid ?? INK) : INK
   const markOf = (t: SimTeam) => t.you ? '👤 ' : (safName && t.name === safName) ? '💼 ' : t.rival ? '⚔️ ' : t.dorm ? '🏛️ ' : t.human ? '🔥 ' : ''
   return (

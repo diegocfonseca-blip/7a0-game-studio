@@ -87,3 +87,26 @@ for (const chave of vistos.keys()) {
   }
 }
 console.log('PASS a espera da fase cobre a animação em todos os placares')
+
+// ── 4. A ORDEM DA DISPUTA É UMA SÓ: o A bate primeiro em TODA rodada ───────
+// 🐛 24/09, Diego: *"às vezes começa a bater sem tá alinhado, como se tivesse
+// faltando o primeiro pênalti de um time"*. Na morte súbita que o B vencia, a
+// última rodada punha o VENCEDOR na frente — o B batia antes do A, e a bolinha
+// de baixo aparecia com a de cima ainda vazia. No futebol a ordem não muda no
+// meio da disputa, e aqui também não pode. Confere TODO placar que o jogo gera,
+// com várias sementes, e aponta a rodada que desalinhou.
+let rodadasConferidas = 0
+for (const chave of vistos.keys()) {
+  const [a, b] = chave.split('x').map(Number)
+  for (let s = 0; s < 30; s++) {
+    const seq = sequenciaPenaltis([a, b], mk(s + 7))
+    for (let i = 0; i < seq.length; i++) {
+      // posição par = 1ª cobrança da rodada (tem que ser do A); ímpar = do B
+      const esperado = i % 2 === 0 ? 0 : 1
+      assert.equal(seq[i].side, esperado,
+        `ordem trocada em ${a}×${b}: na rodada ${Math.floor(i / 2) + 1} quem bateu ${i % 2 === 0 ? 'primeiro' : 'segundo'} foi o ${seq[i].side === 0 ? 'A' : 'B'}`)
+    }
+    rodadasConferidas += Math.ceil(seq.length / 2)
+  }
+}
+console.log('PASS a ordem nunca muda: o A bate primeiro em toda rodada (%d rodadas conferidas, morte súbita inclusa)', rodadasConferidas)

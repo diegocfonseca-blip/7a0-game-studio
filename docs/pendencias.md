@@ -67,6 +67,108 @@ mentira na cara da pessoa.
 ✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
 deu idêntico nos dois.
 
+## 24/09/2026 — 🧳 Tocaia travando: a sala levava a CARREIRA do dono na mala ✅ CONSERTADO
+
+Diego, sala "SALÃO DO BOSS" (TVBA0Q, dono FINAL BOSS): *"deu erro, travou a sala, os
+valores e etc… já saiu todo mundo, mas ache o erro na Tocaia"*. A TVBA0Q já tinha sido
+apagada (dono saiu por último), mas a MESMA turma abriu a P7KF2U (dono Neymarzetti —
+pelo estado, é o mesmo aparelho/pessoa do Final Boss FC) e ela travou igual: preço
+parado em 38 no resgate desde 22:58.
+**🔎 A causa, medida no banco**: o estado da sala pesava **881 KB** (sala normal: 60–170
+KB). **745 KB eram da CARREIRA do dono** que ficaram no estado quando ele saiu dela e
+abriu a sala: `cpuSquads` 279 KB, `careerScorersAll` 259 KB, `careerAssistsAll` 208 KB.
+O jogo rápido não usa nada disso, mas ia inteiro em TODA gravação do dono — e a Tocaia
+grava a cada degrau (0,3–3 s). Banco e rádio engasgam, o preço para na tela de todo
+mundo, e o convidado ainda guarda os 881 KB no celular (é o que enche o armazenamento e
+desloga — a mesma turma do Neymarzetti de 21/09). **15 salas** acima de 300 KB desde
+22/09, várias acima de 800.
+**✅ Conserto**: o `sanitize` (o que VIAJA: banco + rádio) tira esses 4 campos quando a
+sala não é carreira (`SEM_BAGAGEM_DE_CARREIRA` em `store.tsx`). O aparelho do dono não
+perde nada; carreira online segue levando tudo. O livro-caixa FICA (o jogo rápido anota
+compra nele). Trava: `npm run bagagem` (provado que pega: sem o conserto, 5 falhas).
+⏳ **Não feito, fica anotado**: por que o jogo rápido HERDA esses campos da carreira em
+memória (a raiz). Com o conserto isso deixou de viajar, que é o que travava; limpar a
+herança mexe em como a carreira volta depois, então só com calma e teste.
+
+## 24/09/2026 — 🎯 Pênaltis: spoiler e desalinhamento ✅ CONSERTADOS · arte nova ✅ PUBLICADA
+
+Diego, com print de uma morte súbita 4×4 no online: *"o pênalti tá dando spoiler…
+às vezes começa a bater sem tá alinhado, como se tivesse faltando o primeiro pênalti
+de um time. E outro erro é mostrar já até aonde vai as bolinhas, já dando spoiler
+onde vai parar"*.
+
+**🐛 DESALINHAMENTO — a causa, provada rodando o motor**: em `sequenciaPenaltis`
+(`penaltis.ts`), a rodada DECISIVA da morte súbita punha o **vencedor primeiro**.
+Quando quem vencia era o B (linha de baixo), o B batia ANTES do A bem no lance que
+decide — a bolinha de baixo pipocava com a de cima vazia. Medido: `5×6 → … A✓ B✓ B✓
+A✗` (rodada 6 com o B na frente). Conserto: a ordem é uma só, A e depois B, sempre;
+quem vence é quem converte. **Não muda placar nem vencedor de nada.**
+🧪 A trava `npm run penaltis` ganhou a verificação 4 (*"a ordem nunca muda"*), que
+confere TODA rodada de TODO placar que o jogo gera (~14 mil rodadas). **Provado que
+ela pega o erro**: rodando sem o conserto, ela acusa *"ordem trocada em 8×9: na
+rodada 9 quem bateu primeiro foi o B"*.
+
+**🙈 SPOILER — eram DOIS vazamentos, nas DUAS telas** (a nova `CompactPenalties` do
+online e a antiga `PensShootout`, que ainda roda na Copa do Mundo e no mata-mata do
+jogo rápido):
+1. **bolinha pro futuro**: toda cobrança que AINDA IA acontecer já ganhava lugar na
+   tela. Na nova, uma bolinha vazia por cobrança — dava pra contar quantas faltavam
+   (o print dele tinha 14 por linha). Na antiga, as bolinhas nasciam INVISÍVEIS mas
+   ocupando espaço, e a linha centralizada entregava o tamanho pela posição do nome.
+2. **"MORTE SÚBITA" aceso desde a 1ª cobrança**, porque o título vinha do TAMANHO da
+   disputa (`nSlots > 5`) — anunciava o empate nos 5 antes dele acontecer.
+Conserto: bolinha só EXISTE depois da cobrança (mais a da vez, piscando, na nova) e o
+título só vira MORTE SÚBITA quando a 5ª rodada fecha empatada. A antiga ganhou um
+relógio (antes era só CSS) e as duas linhas ficaram ALINHADAS ENTRE SI — nome com
+largura fixa, coluna 1 de cima exatamente sobre a coluna 1 de baixo.
+✅ Conferido no navegador de verdade, nas duas telas, em 4 momentos da disputa
+(começo, fim do tempo normal, início da morte súbita, final).
+
+**🎨 ARTE NOVA COM OS BATEDORES — ✅ APROVADA E PUBLICADA (24/09)**. Ok dele: *"ok pode
+publicar, só tem que fazer de um jeito que caiba os nomes dos jogadores"*. Como coube:
+nome longo ENCOLHE (14 → 10,5 px pelo tamanho) e quebra em até 2 linhas, nunca corta
+no meio; o lance (GOL!/COMO ERROU) fica no meio sem quebrar. Mora em `CompactPenalties`
+(`online-match-visual.tsx`) + `ordemBatedores`/`siglasDoTime`/`jeitoDoErro` em
+`penaltis.ts`. Os times entram por `aSquad`/`bSquad` do `PensShootout`: Copa do Mundo
+(convocados), Copa do online (elenco de cada técnico) e Copa da carreira (o XI, só
+nas telas da prévia por enquanto). Sem elenco → volta a linha de sempre.
+🐛 **E junto saiu um desalinhamento que ainda existia na tela NOVA**: cada linha de
+bolinhas encostava sozinha na direita, então com o de cima uma cobrança à frente a
+1ª de baixo ficava deslocada. Agora as duas linhas têm a mesma largura.
+⚠️ Diferença do mockup ③: no FIM volta a linha do classificado ("São Luiz FC ·
+CLASSIFICADO") no lugar do palco — na Copa do online ela é o único lugar que diz quem
+passou. O último lance fica ~1 s no palco antes disso.
+Histórico do mockup:
+(`node scripts/mockup-penaltis-batedores.mjs` → `mockups/penaltis-batedores.png`).
+Pedido: *"tô achando sem graça demais… poderia aparecer os jogadores que batem, de
+alguma forma que não aumentasse o tamanho do modal demais"*. A proposta:
+- um **PALCO** embaixo (faixa preta): quem bate · contra qual goleiro · e o lance
+  ("GOL!"/"DEFENDEU!" por meio segundo). Ele entra NO LUGAR da linha "Uma cobrança de
+  cada vez…", então o cartão cresce **14px** (medido: 180 → 194).
+- cada bolinha ganha as **INICIAIS** de quem bateu (Adriano Imperador → AI, Zico →
+  ZI). **Dois do mesmo time nunca ficam com a mesma sigla** (Romário RO, Ronaldinho RN).
+- **ordem dos batedores**: os 5 melhores em campo, do ataque pra trás; morte súbita
+  segue a fila; goleiro por último. Mesma ordem em todos os aparelhos.
+- respeita as regras dele: nada do futuro (o próximo batedor não aparece), um teatro
+  só (quem grita é o palco), sem confete nem faixa colorida.
+⚠️ **Pra implementar vai precisar de uma coisa que a tela hoje NÃO recebe: o ELENCO
+dos dois times** (`CompactPenalties` só ganha nome e escudo). Na Copa do Mundo são os
+convocados; no online, o XI de cada técnico.
+- ❌ **COMO ERROU** (pedido dele: *"pra fora.. trave... travessão.. isolou"*): o erro
+  deixa de ser sempre "defendeu". 5 jeitos com peso de futebol de verdade — 🧤
+  DEFENDEU 45% · 💨 PRA FORA 20% · 🚀 ISOLOU 15% · 🔔 NA TRAVE 12% · 🔔 NO TRAVESSÃO
+  8%. Só o palco conta; a bolinha continua o ✗ vermelho. ⚠️ Na hora de implementar,
+  o jeito do erro tem que sair da MESMA semente da disputa (senão cada aparelho da
+  sala vê um lance diferente) e sem gastar rng do placar.
+
+## 23/09/2026 — 🅾️ Uomo Concetto como 5ª marca do Master ✅ PUBLICADA (24/09, ok dele: *"pode publicar a Uomo também"*)
+
+Está no branch `claude/denis-save-file-x1osct`, commit "Uomo Concetto vira a 5a marca
+do Master", **NÃO na main** — é tela nova e ele vê antes. Contrato de **4 temporadas**
+(a escada virou 1·2·3·4·5) e a **Vadico continua a mais cara em toda divisão** (a
+condição dele). Detalhes, números e o conserto da trava `npm run master` (que estava
+vermelha havia 8 dias) estão no commit.
+
 ## 23/09/2026 — 🛑 O "vigia do prazo" na Tocaia: ELE DISSE NÃO. Não propor de novo.
 
 Resposta dele, seca, depois de eu explicar a proposta: *"não, não quero isso. Não mexa
