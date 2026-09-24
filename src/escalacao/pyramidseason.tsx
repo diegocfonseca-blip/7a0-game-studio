@@ -34,6 +34,7 @@ import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberad
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
+import { congelaNoApito, type Congelado } from './congela-temporada' // 🧊 o passado não muda depois do apito
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
 import type { ElencoPlayerRow } from './jornal'
@@ -7359,7 +7360,17 @@ export function PyramidSeasonScreen() {
   // 🏛️ `state.youIdx` entra nas dependências (07/09): ao passar o comando pro 2º
   // clube, o `you` do mundo continuava no clube antigo até outra coisa mexer —
   // "minha colocação", "minha divisão" e o desfecho descreviam o clube errado.
-  const world = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+  const worldVivo = useMemo(() => buildPyramid(state.managers, state.managers[state.youIdx]?.id ?? 0, state.seed, state.deckLeague, state.careerPlacements, state.cpuSquads), [state.seed, state.managers.length, state.deckLeague, state.careerPlacements, state.seasonNo, state.cpuSquads, state.youIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🧊 DEPOIS DO APITO, O PASSADO NÃO MUDA MAIS (conserto 24/09 — caso do Futpoint FC).
+  // A tela REFAZ as 38 rodadas a partir do elenco de AGORA, e a janela de empréstimo
+  // fica nesta mesma tela: trazer um jogador da SAF mexia em `cpuSquads`, a conta era
+  // refeita com outro time e a temporada saía OUTRA — outro campeão, outra copa. O
+  // usuário viu isso duas vezes seguidas ("ganhei as 2 copas" → "perdi as copas e
+  // ganhei a liga"), e pior: como o prêmio só é gravado ao AVANÇAR, dava pra mexer no
+  // elenco até cair um título bom. Agora o mundo daquela temporada é fotografado no
+  // apito e a foto vale até a virada. Ver `congela-temporada.ts`.
+  const fotoDoMundo = useRef<Congelado<typeof worldVivo> | null>(null)
+  const world = congelaNoApito(fotoDoMundo, done, state.seasonNo ?? 1, worldVivo)
   // ⚠️ os quatro abaixo entram como DEPENDÊNCIA de useMemo (a simulação): quando o
   // save não tem o campo, tem que cair num vazio ESTÁVEL (SEM_*), nunca num `{}`
   // inline — ver o comentário dos SEM_* lá em cima (Copa presa no 1', 13/09).

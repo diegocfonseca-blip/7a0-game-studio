@@ -1,3 +1,41 @@
+## 24/09/2026 — 🧊 Depois do apito, o passado não muda mais ✅ CONSERTADO
+
+Relato do Futpoint FC, trazido pelo Diego: *"eu não ganhei nada nessa temporada,
+mas quando fui pegar o jogador que tinha emprestado, o jogo bugou e deu que eu
+tinha sido campeão"*. Ele trouxe o Roberto Carlos de volta da SAF, foi no jornal
+e estava campeão das DUAS copas; voltou na janela de empréstimo, mexeu de novo, e
+perdeu as copas e ganhou a LIGA.
+
+**A causa**: o resultado da temporada NÃO é guardado — a tela refaz as 38 rodadas
+na hora, a partir do elenco que está no clube NAQUELE momento
+(`buildPyramid(state.managers…)`). A janela de empréstimo fica na MESMA tela, e
+trazer alguém da SAF mexe em `cpuSquads` — que é dependência do `useMemo`. Conta
+refeita com outro time = temporada inteira diferente.
+💡 O `useMemo` já tentava se proteger (a lista de dependências tem
+`state.managers.length`, não `state.managers`), mas o `cpuSquads` vazava a
+mudança por baixo.
+
+⚠️ **E dava pra abusar**: o prêmio só é gravado quando a pessoa AVANÇA a
+temporada, então bastava mexer no elenco até cair um título bom e só então
+avançar. Ninguém achou de propósito — o Futpoint tropeçou — mas estava aberto.
+
+**O conserto** (`src/escalacao/congela-temporada.ts`): no apito final o mundo
+daquela temporada é FOTOGRAFADO, e a tela passa a ler a foto. O que acontecer
+depois (empréstimo, SAF, venda, compra) não reescreve o que já foi jogado. A foto
+é presa ao NÚMERO DA TEMPORADA: na virada ela se desfaz sozinha.
+
+**Trava**: `npm run congela` — refaz a história do Futpoint passo a passo e exige
+que o campeão NÃO mude depois do apito (e que a foto da T6 não vaze pra T7).
+
+🕳️ **O QUE AINDA FALTA, e é honesto anotar**: a foto vive na MEMÓRIA da tela. Se
+a pessoa RECARREGAR a página com a temporada encerrada e o elenco já mexido, a
+conta é refeita e pode dar outro campeão. Pra fechar de vez, a foto precisa ir
+pro SAVE (tabela + copa + artilharia), que é mudança maior e mexe no tamanho do
+save. Enquanto isso, o caminho que o Futpoint andou — mexer no elenco e ver a
+história mudar na frente dele — está fechado.
+
+↩️ **Reverter**: trocar `world` de volta por `worldVivo` na tela da temporada.
+
 ## 24/09/2026 — 🔄 Publicar no meio da partida derrubava a tela ✅ CONSERTADO
 
 Relato dele: *"tá com erros nas salas online da Tocaia, travando… minha sala do
