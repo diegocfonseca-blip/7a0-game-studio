@@ -11912,15 +11912,38 @@ export function EscProvider({ children }: { children: ReactNode }) {
 // exportado só pra trava (`npm run holandes`) poder conferir o que sai daqui —
 // é o pacote que o host manda pra sala, e o que vaza nele vaza pra todo mundo.
 export const sanitizeParaSala = (state: EscState): EscState => sanitize(state)
-function sanitize(state: EscState): EscState {
+export function sanitize(state: EscState): EscState {
   // 🔻 HOLANDÊS: o `hol` inteiro é público (o pregão acontece na cara de todo
   // mundo) MENOS os `tetos` — eles dizem exatamente por quanto cada robô vai
   // apertar em cada carta. Convidado com isso na mão saberia a hora exata de
   // cortar o bot em toda carta do pregão. Mesma regra do `pendingEnvelopes`:
   // o que é segredo não sai do host.
   const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
-  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.hol ? { hol } : {}) }
+  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.hol ? { hol } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
 }
+// 🧳 A SALA NÃO LEVA A CARREIRA DE NINGUÉM NA MALA (24/09, sala do Final Boss FC).
+// Diego: *"deu erro, travou a sala, os valores e etc"* — Tocaia, jogo rápido online.
+// Achado medindo o banco: a sala dele pesava **881 KB**, contra 60–170 KB de uma
+// sala normal. 745 KB eram da CARREIRA do dono, que ficou no estado quando ele saiu
+// da carreira e abriu a sala: o elenco guardado dos 80 bots (`cpuSquads`, 279 KB), a
+// artilharia e os garçons de todos os tempos (259 + 208 KB). Nada
+// disso é usado no jogo rápido (só a carreira escreve e lê esses campos — ver o
+// `if (!s.careerOnline) return s` do fim de temporada) — mas ia INTEIRO em toda
+// gravação do dono, e a Tocaia grava a cada degrau do preço (0,3 a 3 s). O banco e o
+// rádio engasgavam, o preço parava na tela de todo mundo, e o convidado ainda
+// guardava 881 KB no celular dele (que é o que enche o armazenamento e desloga).
+// Eram **15 salas** acima de 300 KB desde 22/09, várias com mais de 800.
+// ✅ Sai só do que VIAJA (banco + rádio). O aparelho do dono não perde nada — a
+// carreira dele continua intacta em memória e no save dela. Carreira ONLINE não passa
+// por aqui (lá esses campos são o jogo). Trava: `npm run bagagem`.
+export const SEM_BAGAGEM_DE_CARREIRA: Partial<EscState> = {
+  cpuSquads: undefined,
+  careerScorersAll: undefined,
+  careerAssistsAll: undefined,
+  careerMelhorMundo: undefined,
+}
+// ⚠️ O livro-caixa (`careerLedger`/`careerLedgers`) FICA: o jogo rápido também anota
+// compra nele (na sala do Final Boss estava lá o "🛒 Manga" da própria partida).
 
 // 📦 o estado que o host manda pros convidados chega a ~80 KB e ESTOURAVA o limite
 // de tamanho de mensagem do Supabase Realtime → a mensagem era DESCARTADA e o
