@@ -67,6 +67,10 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   'contateste577660006@gmail.com': ['#12100F', '#D19B36'], // 🙏 Só Deus Sabe FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 74% do manto, e dos dourados das listras/gola, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as nuvens da barra e os filetes das mangas
   'iago.cortellini@gmail.com': ['#100E0D', '#EAAD3D'], // 🐟📉 Bagres de Wall Street FC — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 84% do manto, e dos dourados do nome/gola/punhos, 09/09). O BRANCO é a 3ª cor (MANTO_TRI): as listras do ombro e o "DE WALL STREET"
   'davisantana1312@gmail.com': ['#0F0F0F', '#E6DED4'], // 🐛 Bicho da Seda — preto e branco-creme, MEDIDOS na camisa que o dono mandou em 09/09 (listras verticais; mediana dos pretos, 54% do manto, e dos claros, 30%). Os FIOS de seda são a 3ª cor (MANTO_TRI)
+  // 🦈🔴⚪ Julia Barranquila — VERMELHO e BRANCO, MEDIDOS na camisa que o dono
+  // mandou (24/09): vermelho 31,7% do manto, branco 30,9%. O azul-marinho é só
+  // gola e contorno (14%), então fica de fora — 3ª cor só pra tricolor de verdade.
+  'dondeestasleomessi10@gmail.com': ['#E60205', '#F7F5F3'],
   // 🦅🔴⚫ Fabulous EC — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou
   // (23/09): preto 84,3% do manto, vermelho 12,3%.
   // ⚠️ O preto sobe de #0D0809 pra #161011 pelo motivo de sempre (ver Futpoint):

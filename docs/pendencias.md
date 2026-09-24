@@ -67,6 +67,21 @@ mentira na cara da pessoa.
 ✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
 deu idêntico nos dois.
 
+## 24/09/2026 — 🦈 Batismo JULIA BARRANQUILA (dondeestasleomessi10) · ⏳ NO BRANCH, sobe de manhã
+
+Série A, no assento do **Leão da Estradinha**, que desceu pra Série B (decisão do Diego:
+*"troque pelo Leão da Estradinha e coloque o Leão na Série B"*) na vaga do bot Esporte do
+Cerrado. Coração **Corinthians**. Mascote: a 2ª arte que ele mandou (o tubarão de óculos
+dourado) — a 1ª (óculos preto) foi trocada por ele.
+- ✅ **Código**: escudo 251×360 26,4 KB + mascote 440×366 43,7 KB = 70,1 KB (teto 75); manto
+  vermelho `#E60205` + branco `#F7F5F3` medidos na camisa (o marinho é só gola, fica fora);
+  4 formas do nome; apoio ouro + FUNDADOR_N 77; batismos.ts; Loja (`julia-camisa-v1.webp`);
+  trava. Mascote LARGO: o lado maior (largura) fica em 176.
+- ✅ **Banco** (`docs/sql/batismo-julia-barranquila.sql`, rodado e conferido): sócio 58,
+  fundador 77, 3 nomes reservados, ouro em user_colors (esse já vale sem deploy).
+- ⏳ **Deploy na main**: segurado por ser noite (regra do horário de pico, 24/09).
+- ⏳ **Post**: `mockups/julia-barranquila-post.png` pronto, falta o NOME do dono no rodapé.
+
 ## 24/09/2026 — 🧳 Tocaia travando: a sala levava a CARREIRA do dono na mala ✅ CONSERTADO
 
 Diego, sala "SALÃO DO BOSS" (TVBA0Q, dono FINAL BOSS): *"deu erro, travou a sala, os

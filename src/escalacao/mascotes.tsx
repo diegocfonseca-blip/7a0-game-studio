@@ -60,6 +60,7 @@ import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
 import marrecoMascoteImg from './img/marreco-mascote.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
 import panteraMascoteImg from './img/pantera-mascote.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
+import juliaMascoteImg from './img/julia-mascote.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousMascoteImg from './img/fabulous-mascote.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import gremioMascoteImg from './img/gremio-mascote.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
 import manfreMascoteImg from './img/manfre-mascote.webp' // 🐦‍⬛ Manfré FC (danielmanfre5): arte própria do dono, 30/08
@@ -319,6 +320,15 @@ export const MASCOTES: Record<string, ReactNode> = {
   //    post — eram identidade do clube. Arte que vem do dono: perguntar o que
   //    entra, não decidir por ele.
   // 📏 400×440, 40,6 KB. mascote_key = "pantera_negra".
+  // 🦈🔴⚪ O TUBARÃO (mascote do Julia Barranquila — dondeestasleomessi10, 24/09):
+  // tubarão de óculos espelhado dourado, camisa listrada do clube, tênis azul e a
+  // bola suja do lado. Arte do próprio dono (a 2ª que ele mandou, a que vale).
+  // 📏 440×366, 43,7 KB — é LARGO, então o lado maior (a largura) fica em 176 e a
+  // altura sai da proporção real. O tufo de grama embaixo dos tênis foi apagado.
+  // mascote_key = "julia_tubarao".
+  julia_tubarao: (
+    <img src={juliaMascoteImg} width={176} height={Math.round(176 * 366 / 440)} alt="O Tubarão — Julia Barranquila" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🦅🔴⚫ A FABULOSA (mascote do Fabulous EC — koeppfabio, 23/09): a águia
   // vermelha e preta de asas abertas, a garra fincada na bola e os cacos de pedra
   // saltando do impacto. Arte do próprio dono.
@@ -1031,6 +1041,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   // 🐆👑 a Pantera carimba o gol do Pantera Negra FC (ericrabelo29, 20/09).
   // 🔵⚫⚪ o Gaúcho carimba o gol do Grêmio FBPA (danieldias11, 21/09).
   // 🦅🔴⚫ a Fabulosa carimba o gol do Fabulous EC (koeppfabio, 23/09).
+  // 🦈🔴⚪ o Tubarão carimba o gol do Julia Barranquila (dondeestasleomessi10, 24/09).
+  'Julia Barranquila': 'julia_tubarao',
+  'Julia Barranquila FC': 'julia_tubarao',
+  'Julia Barranquila EC': 'julia_tubarao',
+  'Julia Barranquila SC': 'julia_tubarao',
   'Fabulous EC': 'fabulous_aguia',
   'Fabulous': 'fabulous_aguia',
   'Fabulous FC': 'fabulous_aguia',
@@ -1117,6 +1132,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   marreco_rei: 'O Rei do Cais', // 🦆👑 Marreco FC (lucasigorbortoliniii, 19/09)
   pantera_negra: 'A Pantera',  // 🐆👑 Pantera Negra FC (ericrabelo29, 20/09)
+  julia_tubarao: 'O Tubarão', // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10, 24/09)
   fabulous_aguia: 'A Fabulosa', // 🦅🔴⚫ Fabulous EC (koeppfabio, 23/09)
   gremio_gaucho: 'O Gaúcho',   // 🔵⚫⚪ Grêmio FBPA (danieldias11, 21/09)
   futpoint_bola: 'O Pontinho', // 📍 Futpoint FC (gfpicolo13, 19/08)

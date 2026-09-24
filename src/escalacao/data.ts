@@ -3024,7 +3024,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Galo', team: 'Briga de Galo FC' }, // 🐓 clube BATIZADO por apoiador (pedrovianacarneiroq — Briga de Galo FC; preto e branco listrado com dourado, mascote o Galo de punhos fechados; Lenda + fundador nº62 + sócio nº40, 08/09). Assento que era do Vasco da Grana, que DESCEU pra Série D por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Vasco da Grana não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Magrão EC).
     { name: 'Fabuloso', team: 'Fabulous EC' }, // 🦅🔴⚫ clube BATIZADO por apoiador (koeppfabio — Fabulous EC; a águia vermelha e preta com a garra na bola, Cristo Redentor no escudo; coração Flamengo; Lenda + fundador nº76 + sócio nº57, 23/09). Assento que era do Xurupitas FC, que DESCEU pra Série C por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Xurupitas não foi renomeado, só mudou de divisão — e ele tem corrente própria de nomes velhos (Tokyo City Esperion / FC Galáticos) que continua valendo. Mapear faria os dois desenharem o mesmo escudo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Zé do Mercado', team: 'Al Takhadao FC' }, // 🦜🛒 clube BATIZADO por apoiador (fontourajoao04 — Al Takhadao FC; papagaio de avental, carrinho de mercado, verde+laranja; coração Internacional; Lenda + fundador nº53, 01/09). Assento que era do Marreco FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Isto aqui é memória do repo — no POST o Diego pediu pra NÃO falar "entrou no lugar do Marreco", só "entrou na Série A".
-    { name: 'Tião Bagre', team: 'Leão da Estradinha' }, // ⚽🦁 clube BATIZADO por apoiador (jorgericardo777 — Leão da Estradinha, ex-Império Samambaia, ex-Cuiabagre; homenagem ao Rio Branco-PR, o Leão da Estradinha de 1913, time do coração dele; rebatismo 23/08)
+    { name: 'Tubarão', team: 'Julia Barranquila' }, // 🦈🔴⚪ clube BATIZADO por apoiador (dondeestasleomessi10 — Julia Barranquila; escudo com o tubarão nas ondas e o coqueiro, mascote O Tubarão de óculos dourado; coração CORINTHIANS; Lenda + fundador nº77 + sócio nº58, 24/09). Assento que era do Leão da Estradinha, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Leão não foi renomeado, só mudou de divisão. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
     { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
@@ -3038,7 +3038,14 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Seu Ferreira', team: 'Crias do Bigão' }, // ⚽ clube BATIZADO por apoiador (giovannecastro784 — Crias do Bigão, ex-Ferroviária do Vale, 17/08)
     { name: 'Waguinho Pipa', team: 'Fatality FC' }, // ⬆️ SUBIU da Série C em 14/09, na troca 1:1 que levou o Inter de Bailão (ex-Alfacehh) pra Série C a pedido do Diego.
     { name: 'Serrano', team: 'Nacional da Serra' },
-    { name: 'Cerradão', team: 'Esporte do Cerrado' },
+    // 🦁 LEÃO DA ESTRADINHA (jorgericardo777) DESCEU da Série A pra cá em 24/09, por
+    // decisão do Diego, pra abrir o assento do Julia Barranquila. Ocupa a vaga que era
+    // do bot "Esporte do Cerrado" (escolhido por só existir aqui e em CLASSIC_CLUBS, em
+    // mais lugar nenhum do jogo — o bot continua vivo no jogo rápido).
+    // ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Leão da Estradinha'] = 'Esporte do
+    // Cerrado'`: ele não foi renomeado, só mudou de divisão — a corrente dele (Império
+    // Samambaia ← Cuiabagre) segue valendo.
+    { name: 'Tião Bagre', team: 'Leão da Estradinha' }, // ⚽🦁 clube BATIZADO por apoiador (jorgericardo777 — Leão da Estradinha, ex-Império Samambaia, ex-Cuiabagre; homenagem ao Rio Branco-PR, o Leão da Estradinha de 1913, time do coração dele; rebatismo 23/08). ⬇️ Veio da Série A em 24/09.
     // ⚽ Manfré FC (danielmanfre5) DESCEU da Série A pra cá em 09/09, por decisão
     // do Diego, pra abrir o assento do Bagres de Wall Street FC. Ocupa a vaga que era
     // do bot "União da Baixada" (escolhido por só existir aqui e em CLASSIC_CLUBS,
