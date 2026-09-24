@@ -150,9 +150,23 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  // tinha essa lição gravada: só desenha as cobranças que aconteceram. Aqui é a
  // mesma coisa agora — `rows` só tem as cobranças reais, então slot sem cobrança
  // some, e o "CAMPEÃO" só sai quando a ÚLTIMA delas pipocou.
+ // 🙈 NADA DO FUTURO NA TELA (24/09). Diego: *"o pênalti tá dando spoiler… mostrar
+ // já até aonde vai as bolinhas, já dando spoiler onde vai parar"*. Eram DOIS
+ // vazamentos, e os dois contavam o fim da disputa antes da hora:
+ //  1. cada cobrança que AINDA IA acontecer ganhava uma bolinha vazia. Bastava
+ //     contar as vazias pra saber quantas rodadas faltavam — e, numa morte súbita
+ //     longa, que ia até a 14ª (o print dele tinha 14 bolinhas por linha);
+ //  2. o título dizia "MORTE SÚBITA" desde a 1ª cobrança, porque vinha do TAMANHO
+ //     da disputa (`nSlots > 5`) — ou seja, anunciava o empate nos 5 antes dele.
+ // Agora: só aparece bolinha de cobrança que JÁ foi batida, mais a da vez (a que
+ // pisca). E o título só vira MORTE SÚBITA quando a 6ª cobrança de fato chega.
+ // O `nSlots` continua existindo só pra percorrer a lista — não decide mais nada
+ // que o jogador veja.
+ const rodadaVisivel=Math.max(...visible.map(r=>r.length),next?Math.floor(next.i)+1:0)
+ const naMorteSubita=rodadaVisivel>5
  return <section className="ll28-pens" aria-label="Disputa de pênaltis">
-  <header><b>{nSlots>5?tr('MORTE SÚBITA', 'SUDDEN DEATH'):tr('PÊNALTIS', 'PENALTIES')}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?tr('ENCERRADO', 'OVER'):tr('COBRANÇAS', 'KICKS')}</span></header>
-  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*.85;return <span key={i} className={shown?(k.ok?'made':'missed'):!done&&next?.side===side&&next.i===i?'current':'pending'} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Pendente', 'Pending')}>{shown?(k.ok?'✓':'×'):''}</span>})}</div></div>)}
+  <header><b>{naMorteSubita?tr('MORTE SÚBITA', 'SUDDEN DEATH'):tr('PÊNALTIS', 'PENALTIES')}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?tr('ENCERRADO', 'OVER'):tr('COBRANÇAS', 'KICKS')}</span></header>
+  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*.85;const daVez=!done&&next?.side===side&&next.i===i;if(!shown&&!daVez)return null;return <span key={i} className={shown?(k.ok?'made':'missed'):'current'} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Batendo agora', 'Kicking now')}>{shown?(k.ok?'✓':'×'):''}</span>})}</div></div>)}
   <p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Uma cobrança de cada vez…', 'One kick at a time…')}</p>
  </section>
 }

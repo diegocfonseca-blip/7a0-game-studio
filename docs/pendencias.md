@@ -25,6 +25,65 @@ mentira na cara da pessoa.
 ✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
 deu idêntico nos dois.
 
+## 24/09/2026 — 🎯 Pênaltis: spoiler e desalinhamento ✅ CONSERTADOS · arte nova ⏳ MOCKUP
+
+Diego, com print de uma morte súbita 4×4 no online: *"o pênalti tá dando spoiler…
+às vezes começa a bater sem tá alinhado, como se tivesse faltando o primeiro pênalti
+de um time. E outro erro é mostrar já até aonde vai as bolinhas, já dando spoiler
+onde vai parar"*.
+
+**🐛 DESALINHAMENTO — a causa, provada rodando o motor**: em `sequenciaPenaltis`
+(`penaltis.ts`), a rodada DECISIVA da morte súbita punha o **vencedor primeiro**.
+Quando quem vencia era o B (linha de baixo), o B batia ANTES do A bem no lance que
+decide — a bolinha de baixo pipocava com a de cima vazia. Medido: `5×6 → … A✓ B✓ B✓
+A✗` (rodada 6 com o B na frente). Conserto: a ordem é uma só, A e depois B, sempre;
+quem vence é quem converte. **Não muda placar nem vencedor de nada.**
+🧪 A trava `npm run penaltis` ganhou a verificação 4 (*"a ordem nunca muda"*), que
+confere TODA rodada de TODO placar que o jogo gera (~14 mil rodadas). **Provado que
+ela pega o erro**: rodando sem o conserto, ela acusa *"ordem trocada em 8×9: na
+rodada 9 quem bateu primeiro foi o B"*.
+
+**🙈 SPOILER — eram DOIS vazamentos, nas DUAS telas** (a nova `CompactPenalties` do
+online e a antiga `PensShootout`, que ainda roda na Copa do Mundo e no mata-mata do
+jogo rápido):
+1. **bolinha pro futuro**: toda cobrança que AINDA IA acontecer já ganhava lugar na
+   tela. Na nova, uma bolinha vazia por cobrança — dava pra contar quantas faltavam
+   (o print dele tinha 14 por linha). Na antiga, as bolinhas nasciam INVISÍVEIS mas
+   ocupando espaço, e a linha centralizada entregava o tamanho pela posição do nome.
+2. **"MORTE SÚBITA" aceso desde a 1ª cobrança**, porque o título vinha do TAMANHO da
+   disputa (`nSlots > 5`) — anunciava o empate nos 5 antes dele acontecer.
+Conserto: bolinha só EXISTE depois da cobrança (mais a da vez, piscando, na nova) e o
+título só vira MORTE SÚBITA quando a 5ª rodada fecha empatada. A antiga ganhou um
+relógio (antes era só CSS) e as duas linhas ficaram ALINHADAS ENTRE SI — nome com
+largura fixa, coluna 1 de cima exatamente sobre a coluna 1 de baixo.
+✅ Conferido no navegador de verdade, nas duas telas, em 4 momentos da disputa
+(começo, fim do tempo normal, início da morte súbita, final).
+
+**🎨 ARTE NOVA COM OS BATEDORES — MOCKUP MANDADO, ESPERANDO OK**
+(`node scripts/mockup-penaltis-batedores.mjs` → `mockups/penaltis-batedores.png`).
+Pedido: *"tô achando sem graça demais… poderia aparecer os jogadores que batem, de
+alguma forma que não aumentasse o tamanho do modal demais"*. A proposta:
+- um **PALCO** embaixo (faixa preta): quem bate · contra qual goleiro · e o lance
+  ("GOL!"/"DEFENDEU!" por meio segundo). Ele entra NO LUGAR da linha "Uma cobrança de
+  cada vez…", então o cartão cresce **14px** (medido: 180 → 194).
+- cada bolinha ganha as **INICIAIS** de quem bateu (Adriano Imperador → AI, Zico →
+  ZI). **Dois do mesmo time nunca ficam com a mesma sigla** (Romário RO, Ronaldinho RN).
+- **ordem dos batedores**: os 5 melhores em campo, do ataque pra trás; morte súbita
+  segue a fila; goleiro por último. Mesma ordem em todos os aparelhos.
+- respeita as regras dele: nada do futuro (o próximo batedor não aparece), um teatro
+  só (quem grita é o palco), sem confete nem faixa colorida.
+⚠️ **Pra implementar vai precisar de uma coisa que a tela hoje NÃO recebe: o ELENCO
+dos dois times** (`CompactPenalties` só ganha nome e escudo). Na Copa do Mundo são os
+convocados; no online, o XI de cada técnico.
+
+## 23/09/2026 — 🅾️ Uomo Concetto como 5ª marca do Master ⏳ NO BRANCH, ESPERANDO OK
+
+Está no branch `claude/denis-save-file-x1osct`, commit "Uomo Concetto vira a 5a marca
+do Master", **NÃO na main** — é tela nova e ele vê antes. Contrato de **4 temporadas**
+(a escada virou 1·2·3·4·5) e a **Vadico continua a mais cara em toda divisão** (a
+condição dele). Detalhes, números e o conserto da trava `npm run master` (que estava
+vermelha havia 8 dias) estão no commit.
+
 ## 23/09/2026 — 🛑 O "vigia do prazo" na Tocaia: ELE DISSE NÃO. Não propor de novo.
 
 Resposta dele, seca, depois de eu explicar a proposta: *"não, não quero isso. Não mexa

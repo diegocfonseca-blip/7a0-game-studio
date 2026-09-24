@@ -6190,16 +6190,39 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
     { l: 48, t: -4, r: -10, c: '#7C3AED' }, { l: 62, t: 6, r: 25, c: colA }, { l: 76, t: -1, r: -32, c: colB },
     { l: 90, t: 7, r: 15, c: GOLD }, { l: 14, t: 16, r: 55, c: '#7C3AED' }, { l: 82, t: 14, r: -20, c: GREEN },
   ]
+  // 🙈 O RELÓGIO DA DISPUTA (24/09). Antes esta tela era só CSS: TODAS as bolinhas
+  // nasciam de uma vez, invisíveis (opacity 0), e iam aparecendo com atraso. Só que
+  // bolinha invisível OCUPA LUGAR — a linha já nascia com o tamanho da disputa
+  // inteira, centralizada, e a posição do nome entregava quantas cobranças iam ter.
+  // Somado ao "MORTE SÚBITA" aceso desde o começo, era spoiler em dobro (Diego:
+  // *"mostrar já até aonde vai as bolinhas, já dando spoiler onde vai parar"*).
+  // Agora a bolinha só EXISTE depois que a cobrança acontece. É o mesmo jeito que a
+  // versão nova (`CompactPenalties`) já trabalha.
+  const [decorrido, setDecorrido] = useState(0)
+  useEffect(() => {
+    const t0 = Date.now()
+    setDecorrido(0)
+    const id = setInterval(() => { const t = (Date.now() - t0) / 1000; setDecorrido(t); if (t >= totalDelay) clearInterval(id) }, 80)
+    return () => clearInterval(id)
+  }, [pens[0], pens[1], aName, bName, totalDelay])
+  // ⚠️ a MORTE SÚBITA acende quando a 5ª rodada fecha empatada — e não antes. A 10ª
+  // cobrança sai em `lead + 9*step`; meio passo depois, o jogo "descobre" que empatou.
+  const naMorteSubita = suddenDeath && decorrido >= lead + 9.5 * step
   const row = (name: string, r: { ok: boolean; at: number }[]) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 3.5, justifyContent: 'center' }}>
-      <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, maxWidth: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
+    // 📏 nome com LARGURA FIXA e bolinhas encostadas nele: assim a coluna 1 do time
+    // de cima fica exatamente em cima da coluna 1 do de baixo, qualquer que seja o
+    // tamanho dos nomes — e o alinhamento não depende de quantas bolinhas já saíram.
+    <div style={{ display: 'flex', alignItems: 'center', gap: 3.5 }}>
+      <span style={{ fontSize: 9, fontWeight: 900, ...OSWALD, width: 74, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right', flexShrink: 0 }}>{name}</span>
       {Array.from({ length: nSlots }, (_, i) => {
         const k = r[i]
         // 🎯 cobrança NÃO batida (a disputa já tinha decidido): NÃO desenha bolinha
         // nenhuma — antes ficava um círculo tracejado/transparente que parecia bug e
         // dava a entender que faltou cobrar. Mostra só as cobranças que aconteceram.
         if (!k) return null
-        return <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: k.ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: `pensPop .45s cubic-bezier(.2,1.5,.5,1) ${(lead + k.at * step).toFixed(2)}s forwards`, flexShrink: 0 }}>{k.ok ? '' : '✕'}</span>
+        // 🙈 e a que AINDA VAI acontecer também não existe — nem invisível
+        if (decorrido < lead + k.at * step) return null
+        return <span key={i} style={{ width: 13, height: 13, borderRadius: 999, border: `1.5px solid ${INK}`, background: k.ok ? '#37D067' : '#F87168', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 7.5, fontWeight: 900, lineHeight: 1, opacity: 0, animation: 'pensPop .45s cubic-bezier(.2,1.5,.5,1) 0s forwards', flexShrink: 0 }}>{k.ok ? '' : '✕'}</span>
       })}
     </div>
   )
@@ -6218,15 +6241,21 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
       </div>
       <p style={{
         fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', margin: '0 0 3px', letterSpacing: 0.5,
-        color: suddenDeath ? '#fff' : '#B23B2E',
-        ...(suddenDeath ? { background: FIN_RED, borderRadius: 6, padding: '3px 0', border: `2px solid ${INK}` } : {}),
-      }}>{suddenDeath ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT')}</p>
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: 3, padding: suddenDeath ? '6px 4px' : 0,
-        ...(suddenDeath ? { border: `2px solid ${FIN_RED}`, borderRadius: 8, background: 'repeating-linear-gradient(135deg,rgba(194,69,47,.06),rgba(194,69,47,.06) 10px,transparent 10px,transparent 20px)' } : {}),
-      }}>
-        {row(aName, rows[0])}
-        {row(bName, rows[1])}
+        color: naMorteSubita ? '#fff' : '#B23B2E',
+        ...(naMorteSubita ? { background: FIN_RED, borderRadius: 6, padding: '3px 0', border: `2px solid ${INK}` } : {}),
+      }}>{naMorteSubita ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT')}</p>
+      {/* 📏 as duas linhas ficam ALINHADAS ENTRE SI (à esquerda, coluna com coluna) e o
+          bloco inteiro fica centralizado no card. Antes cada linha se centralizava
+          sozinha — com um time uma bolinha à frente do outro (o normal: o A bate
+          primeiro), as duas ficavam meio círculo desencontradas. */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{
+          display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3, padding: naMorteSubita ? '6px 4px' : 0,
+          ...(naMorteSubita ? { border: `2px solid ${FIN_RED}`, borderRadius: 8, background: 'repeating-linear-gradient(135deg,rgba(194,69,47,.06),rgba(194,69,47,.06) 10px,transparent 10px,transparent 20px)' } : {}),
+        }}>
+          {row(aName, rows[0])}
+          {row(bName, rows[1])}
+        </div>
       </div>
       {/* 📺 telão do resultado final — mesmo instante de antes (totalDelay), só que agora chamativo */}
       <div style={{
