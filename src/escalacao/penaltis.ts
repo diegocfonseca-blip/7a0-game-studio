@@ -121,3 +121,96 @@ function confere(seq: Cobranca[], pens: [number, number]): boolean {
   for (const k of seq) if (k.ok) soma[k.side]++
   return soma[0] === pens[0] && soma[1] === pens[1]
 }
+
+// ─── 🎯 OS BATEDORES (24/09) ─────────────────────────────────────────────────
+// Diego: *"tô achando sem graça demais… poderia aparecer os jogadores que batem,
+// de alguma forma que não aumentasse o tamanho do modal demais"* — e depois, sobre
+// o erro: *"pra fora.. trave… travessão.. isolou"*. Mockup aprovado em 24/09
+// (`scripts/mockup-penaltis-batedores.mjs`).
+// ⚠️ TUDO AQUI É SÓ DESENHO: nada muda placar, vencedor nem a ordem das bolinhas.
+// E nada gasta o `rng` da disputa — o jeito do erro sai de um hash próprio, pra
+// todo aparelho da sala ver o MESMO lance sem mexer em sorteio nenhum.
+
+/** Quem bate, em ordem, e o goleiro do time (que bate por último). */
+export interface Batedores { batem: string[]; goleiro?: string }
+
+/** Carta mínima pra montar a fila: serve pro `Card` (pos) e pro PoolCard da Copa do Mundo (sec). */
+export interface CartaBatedor { name: string; pos?: string; sec?: string; lo?: number; hi?: number; fake?: boolean }
+
+const ORDEM_SETOR: Record<string, number> = { ATA: 0, MEI: 1, LAT: 2, ZAG: 3 }
+
+/**
+ * A fila dos batedores: os 5 MELHORES de linha, do ataque pra trás (atacante,
+ * meia, lateral, zagueiro); se for pra morte súbita, segue o resto na mesma régua;
+ * o goleiro por último, como no futebol. Determinística: mesma entrada, mesma fila
+ * em todo aparelho.
+ */
+export function ordemBatedores(cartas: CartaBatedor[] | undefined): Batedores | undefined {
+  if (!cartas || !cartas.length) return undefined
+  const setor = (c: CartaBatedor) => c.pos ?? c.sec ?? 'MEI'
+  const nivel = (c: CartaBatedor) => ((c.lo ?? 0) + (c.hi ?? 0)) / 2
+  const vistos = new Set<string>()
+  const unicas = cartas.filter(c => c && c.name && !vistos.has(c.name) && (vistos.add(c.name), true))
+  const goleiro = unicas.filter(c => setor(c) === 'GOL').sort((a, b) => nivel(b) - nivel(a) || a.name.localeCompare(b.name))[0]
+  const linha = unicas.filter(c => setor(c) !== 'GOL')
+    .sort((a, b) => nivel(b) - nivel(a) || a.name.localeCompare(b.name))
+  const doAtaquePraTras = (xs: CartaBatedor[]) => [...xs].sort((a, b) => (ORDEM_SETOR[setor(a)] ?? 1) - (ORDEM_SETOR[setor(b)] ?? 1) || nivel(b) - nivel(a) || a.name.localeCompare(b.name))
+  const batem = [...doAtaquePraTras(linha.slice(0, 5)), ...doAtaquePraTras(linha.slice(5))].map(c => c.name)
+  if (!batem.length && !goleiro) return undefined
+  return { batem, goleiro: goleiro?.name }
+}
+
+/** O i-ésimo batedor do time (0 = primeiro). Depois do goleiro, a fila recomeça. */
+export function batedorDaVez(b: Batedores | undefined, i: number): string | undefined {
+  if (!b) return undefined
+  const fila = b.goleiro ? [...b.batem, b.goleiro] : b.batem
+  return fila.length ? fila[i % fila.length] : undefined
+}
+
+/**
+ * Iniciais de cada nome, SEM repetir dentro do time: Romário é RO, Ronaldinho vira
+ * RN. Nome de duas palavras usa as duas iniciais (Adriano Imperador → AI).
+ */
+export function siglasDoTime(nomes: string[]): Record<string, string> {
+  const semAcento = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
+  const base = (n: string) => {
+    const ps = semAcento(n).replace(/[^A-Za-z\s]/g, '').split(/\s+/).filter(Boolean)
+    if (!ps.length) return '?'
+    return (ps.length > 1 ? ps[0][0] + ps[1][0] : ps[0].slice(0, 2)).toUpperCase()
+  }
+  const usadas = new Set<string>()
+  const out: Record<string, string> = {}
+  for (const n of nomes) {
+    if (out[n]) continue
+    let s = base(n)
+    if (usadas.has(s)) {
+      const letras = semAcento(n).toUpperCase().replace(/[^A-Z]/g, '')
+      const troca = [...letras.slice(1)].map(l => letras[0] + l).find(c => !usadas.has(c))
+      if (troca) s = troca
+    }
+    usadas.add(s); out[n] = s
+  }
+  return out
+}
+
+export type JeitoDoErro = 'defendeu' | 'fora' | 'isolou' | 'trave' | 'travessao'
+/** Pesos de futebol de verdade: a maioria é defesa; bola no travessão é a mais rara. */
+export const PESO_ERRO: [JeitoDoErro, number][] = [['defendeu', 45], ['fora', 20], ['isolou', 15], ['trave', 12], ['travessao', 8]]
+
+/** Semente do desenho, a partir do que TODO aparelho da sala já tem igual. */
+export function sementePalco(aName: string, bName: string, pens: [number, number]): number {
+  let h = 2166136261 >>> 0
+  for (const ch of `${aName}|${bName}|${pens[0]}x${pens[1]}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0
+  return h
+}
+
+/** Como a cobrança nº `at` foi perdida. Hash puro: não consome o rng de nada. */
+export function jeitoDoErro(semente: number, at: number): JeitoDoErro {
+  let h = (semente ^ Math.imul(at + 1, 0x9E3779B1)) >>> 0
+  h = Math.imul(h ^ (h >>> 16), 0x85EBCA6B) >>> 0
+  h = Math.imul(h ^ (h >>> 13), 0xC2B2AE35) >>> 0
+  h = (h ^ (h >>> 16)) >>> 0
+  let r = h % 100
+  for (const [k, p] of PESO_ERRO) { if (r < p) return k; r -= p }
+  return 'defendeu'
+}

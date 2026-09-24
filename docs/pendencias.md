@@ -25,7 +25,30 @@ mentira na cara da pessoa.
 ✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
 deu idêntico nos dois.
 
-## 24/09/2026 — 🎯 Pênaltis: spoiler e desalinhamento ✅ CONSERTADOS · arte nova ⏳ MOCKUP
+## 24/09/2026 — 🧳 Tocaia travando: a sala levava a CARREIRA do dono na mala ✅ CONSERTADO
+
+Diego, sala "SALÃO DO BOSS" (TVBA0Q, dono FINAL BOSS): *"deu erro, travou a sala, os
+valores e etc… já saiu todo mundo, mas ache o erro na Tocaia"*. A TVBA0Q já tinha sido
+apagada (dono saiu por último), mas a MESMA turma abriu a P7KF2U (dono Neymarzetti —
+pelo estado, é o mesmo aparelho/pessoa do Final Boss FC) e ela travou igual: preço
+parado em 38 no resgate desde 22:58.
+**🔎 A causa, medida no banco**: o estado da sala pesava **881 KB** (sala normal: 60–170
+KB). **745 KB eram da CARREIRA do dono** que ficaram no estado quando ele saiu dela e
+abriu a sala: `cpuSquads` 279 KB, `careerScorersAll` 259 KB, `careerAssistsAll` 208 KB.
+O jogo rápido não usa nada disso, mas ia inteiro em TODA gravação do dono — e a Tocaia
+grava a cada degrau (0,3–3 s). Banco e rádio engasgam, o preço para na tela de todo
+mundo, e o convidado ainda guarda os 881 KB no celular (é o que enche o armazenamento e
+desloga — a mesma turma do Neymarzetti de 21/09). **15 salas** acima de 300 KB desde
+22/09, várias acima de 800.
+**✅ Conserto**: o `sanitize` (o que VIAJA: banco + rádio) tira esses 4 campos quando a
+sala não é carreira (`SEM_BAGAGEM_DE_CARREIRA` em `store.tsx`). O aparelho do dono não
+perde nada; carreira online segue levando tudo. O livro-caixa FICA (o jogo rápido anota
+compra nele). Trava: `npm run bagagem` (provado que pega: sem o conserto, 5 falhas).
+⏳ **Não feito, fica anotado**: por que o jogo rápido HERDA esses campos da carreira em
+memória (a raiz). Com o conserto isso deixou de viajar, que é o que travava; limpar a
+herança mexe em como a carreira volta depois, então só com calma e teste.
+
+## 24/09/2026 — 🎯 Pênaltis: spoiler e desalinhamento ✅ CONSERTADOS · arte nova ✅ PUBLICADA
 
 Diego, com print de uma morte súbita 4×4 no online: *"o pênalti tá dando spoiler…
 às vezes começa a bater sem tá alinhado, como se tivesse faltando o primeiro pênalti
@@ -59,7 +82,21 @@ largura fixa, coluna 1 de cima exatamente sobre a coluna 1 de baixo.
 ✅ Conferido no navegador de verdade, nas duas telas, em 4 momentos da disputa
 (começo, fim do tempo normal, início da morte súbita, final).
 
-**🎨 ARTE NOVA COM OS BATEDORES — MOCKUP MANDADO, ESPERANDO OK**
+**🎨 ARTE NOVA COM OS BATEDORES — ✅ APROVADA E PUBLICADA (24/09)**. Ok dele: *"ok pode
+publicar, só tem que fazer de um jeito que caiba os nomes dos jogadores"*. Como coube:
+nome longo ENCOLHE (14 → 10,5 px pelo tamanho) e quebra em até 2 linhas, nunca corta
+no meio; o lance (GOL!/COMO ERROU) fica no meio sem quebrar. Mora em `CompactPenalties`
+(`online-match-visual.tsx`) + `ordemBatedores`/`siglasDoTime`/`jeitoDoErro` em
+`penaltis.ts`. Os times entram por `aSquad`/`bSquad` do `PensShootout`: Copa do Mundo
+(convocados), Copa do online (elenco de cada técnico) e Copa da carreira (o XI, só
+nas telas da prévia por enquanto). Sem elenco → volta a linha de sempre.
+🐛 **E junto saiu um desalinhamento que ainda existia na tela NOVA**: cada linha de
+bolinhas encostava sozinha na direita, então com o de cima uma cobrança à frente a
+1ª de baixo ficava deslocada. Agora as duas linhas têm a mesma largura.
+⚠️ Diferença do mockup ③: no FIM volta a linha do classificado ("São Luiz FC ·
+CLASSIFICADO") no lugar do palco — na Copa do online ela é o único lugar que diz quem
+passou. O último lance fica ~1 s no palco antes disso.
+Histórico do mockup:
 (`node scripts/mockup-penaltis-batedores.mjs` → `mockups/penaltis-batedores.png`).
 Pedido: *"tô achando sem graça demais… poderia aparecer os jogadores que batem, de
 alguma forma que não aumentasse o tamanho do modal demais"*. A proposta:
