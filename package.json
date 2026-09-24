@@ -58,8 +58,8 @@
     "acha": "node scripts/acha-carta.mjs",
     "campeoes": "node scripts/campeoes-do-mundo.mjs",
     "cartas-novas": "node scripts/mockup-cartas-novas.mjs",
-    "master": "npx tsx scripts/testa-master.mjs",
-    "bagagem": "npx tsx scripts/checa-bagagem.mts"
+    "bagagem": "npx tsx scripts/checa-bagagem.mts",
+    "master": "npx tsx scripts/testa-master.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
