@@ -1183,7 +1183,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
     const fA = { bg: paisColor(entrants[t.a].pais), ink: _inkFor(paisColor(entrants[t.a].pais)), holo: 0, mark: '' } as CopaFill
     const g = t.g1 ?? [0, 0]
     if (privateVisual) {
-      return <CompetitionMatch showOwners goals={t.ev1} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={owner(t.h)} awayOwner={owner(t.a)} homeCrest={<NationalCrest country={entrants[t.h].pais} size={26} />} awayCrest={<NationalCrest country={entrants[t.a].pais} size={26} />} homeScore={g[0]} awayScore={g[1]} mine={mine} status={tr('ENCERRADO · JOGO ÚNICO', 'FULL TIME · ONE-OFF')} detail={<>{showPens&&t.pen?<PensShootout compactOnline pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>}/>:null}<span style={winDelay>0?{opacity:0,animation:`cmWinPop .2s ease ${winDelay}s forwards`}:undefined}>{showPens&&t.pen?`${tr('Pênaltis', 'Penalties')} ${t.pen[0]} × ${t.pen[1]} · `:''}{t.winner!=null?<b>{nm(t.winner)} {tr('avança', 'advances')}</b>:''}</span></>} />
+      return <CompetitionMatch showOwners goals={t.ev1} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={owner(t.h)} awayOwner={owner(t.a)} homeCrest={<NationalCrest country={entrants[t.h].pais} size={26} />} awayCrest={<NationalCrest country={entrants[t.a].pais} size={26} />} homeScore={g[0]} awayScore={g[1]} mine={mine} status={tr('ENCERRADO · JOGO ÚNICO', 'FULL TIME · ONE-OFF')} detail={<>{showPens&&t.pen?<PensShootout compactOnline pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aSquad={entrants[t.h].xi} bSquad={entrants[t.a].xi} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>}/>:null}<span style={winDelay>0?{opacity:0,animation:`cmWinPop .2s ease ${winDelay}s forwards`}:undefined}>{showPens&&t.pen?`${tr('Pênaltis', 'Penalties')} ${t.pen[0]} × ${t.pen[1]} · `:''}{t.winner!=null?<b>{nm(t.winner)} {tr('avança', 'advances')}</b>:''}</span></>} />
     }
     return (
       <div style={{ position: 'relative', overflow: 'hidden', border: `2px solid ${mine ? GOLD : '#000'}`, borderRadius: 12, boxShadow: `2px 2px 0 0 #000`, margin: '5px 0', fontSize: 11, fontWeight: mine ? 900 : 700 }}>
@@ -1237,7 +1237,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
       {liveDone && t.pen && (
         <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 {t.g1![0]}×{t.g1![1]} {tr('NO TEMPO NORMAL — DECISÃO NOS PÊNALTIS', 'AFTER 90 MINUTES — DECIDED ON PENALTIES')}</p>
-          <PensShootout compactOnline={privateVisual} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>} pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} colorOf={paisColor} />
+          <PensShootout compactOnline={privateVisual} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>} pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aSquad={entrants[t.h].xi} bSquad={entrants[t.a].xi} colorOf={paisColor} />
         </div>
       )}
     </div>
@@ -1347,7 +1347,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
             {step === FINAL && liveDone && world.final.pen && (
               <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 8, marginBottom: 8 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center', color: GOLD }}>{tr('🥅 FINAL DECIDIDA NOS PÊNALTIS', '🥅 FINAL DECIDED ON PENALTIES')}</p>
-                <PensShootout compactOnline={privateVisual} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} colorOf={paisColor} />
+                <PensShootout compactOnline={privateVisual} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} aSquad={entrants[world.final.h].xi} bSquad={entrants[world.final.a].xi} colorOf={paisColor} />
               </div>
             )}
             {onlineWorldControls}
