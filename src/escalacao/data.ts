@@ -2810,6 +2810,7 @@ export function ehPromessa(c: { name: string; club?: string; year?: number; prom
 }
 
 export const OLD_NAME: Record<string, string> = {
+  'Vasco SAF': 'Vasco da Grana', // ⚽🏴‍☠️ batismo do brunnodeluca90 (24/09): o Vasco da Grana (batismo sem dono, pedido do Diego em 03/08) virou Vasco SAF — save antigo chega no nome novo
   'Milhaça FC': 'Real Bets', // ⚽ batismo do igormarquesn99: save antigo com Real Bets vira Milhaça FC ao carregar (24/08)
   'Napolitano': 'Canela EC', 'Ponte Branca': 'Grelha SAF', 'CRBebê': 'Peteca FR',
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
@@ -3185,14 +3186,13 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // mudou de divisão — e o nome velho dele (Fortuna SAF) continua valendo.
     // Escudo, mascote (🦅 a águia) e manto seguem os dele, sem mudança nenhuma.
     { name: 'Duda Fortuna', team: 'Skyy FC' }, // ⚽ clube BATIZADO por apoiador (matheusncruz1 — Skyy FC, ex-Fortuna SAF)
-    // 🏦 Vasco da Grana (batismo a pedido do Diego, 03/08) DESCEU da Série A pra cá
-    // em 08/09, por decisão dele, pra abrir o assento do Briga de Galo FC. Ocupa a
-    // vaga que era do bot "Zênite United" (escolhido por só existir aqui, em mais
-    // lugar nenhum do jogo). ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Vasco da
-    // Grana'] = 'Zênite United'`: ele não foi renomeado, só mudou de divisão — e o
-    // nome velho dele (Magrão EC) continua valendo. Save antigo com o Zênite segue
-    // com o nome e o escudo dele (a divisão de bot num save vem do `placements`).
-    { name: 'PC Magrão', team: 'Vasco da Grana' }, // ⚽ clube BATIZADO (pedido do Diego 03/08 — Vasco da Grana, ex-Magrão EC)
+    // ⚽ VASCO SAF (brunnodeluca90, batismo de 24/09) — é o antigo VASCO DA GRANA.
+    // O Vasco da Grana era um batismo que o próprio Diego pediu em 03/08, SEM dono
+    // (ele achava que era deste usuário). Em 24/09 ele mandou: *"ele entra no lugar do
+    // Vasco da Grana"*. Então é RENOMEAÇÃO de verdade: mesmo assento da Série D, e
+    // `OLD_NAME['Vasco SAF'] = 'Vasco da Grana'` faz save antigo chegar no nome novo.
+    // (O Vasco da Grana tinha descido da A pra cá em 08/09, no lugar do bot Zênite United.)
+    { name: 'Brunno', team: 'Vasco SAF' }, // ⚽🏴‍☠️ clube BATIZADO por apoiador (brunnodeluca90 — Vasco SAF, ex-Vasco da Grana; escudo da caravela com o Rio ao fundo, mascote O Pirata com o saco de dinheiro; coração VASCO; Lenda + fundador nº78 + sócio nº59, 24/09)
     { name: 'Excélsior', team: 'Excelsior SAF' },
     { name: 'Prestígio', team: 'Prestígio FC' },
     { name: 'Geovany Souza', team: 'Tricolor do Arruda FC' }, // ⚽ clube BATIZADO por apoiador (souzact12 — Tricolor do Arruda FC, ex-Legado EC; homenagem ao Santa Cruz, time do coração dele; Lenda + fundador nº43, 16/08)
