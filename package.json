@@ -59,7 +59,8 @@
     "campeoes": "node scripts/campeoes-do-mundo.mjs",
     "cartas-novas": "node scripts/mockup-cartas-novas.mjs",
     "bagagem": "npx tsx scripts/checa-bagagem.mts",
-    "master": "npx tsx scripts/testa-master.mjs"
+    "master": "npx tsx scripts/testa-master.mjs",
+    "recarga": "node scripts/testa-recarga.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
