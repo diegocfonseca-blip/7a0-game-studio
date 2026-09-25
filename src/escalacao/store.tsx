@@ -3602,6 +3602,17 @@ function playChampionsRodada(s: EscState) {
     ch.fase = 'repescao'
     ch.repescaoLeg = 0
     ch.repescao = repescaoChampions(tabela).map(([a, b]) => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null }))
+    // 🥊 o repescão roda no MOTOR DA COPA (25/09, Diego: *"não teve simulação rolando
+    // padrão que começa com 1' e vai rolando… podendo também aparecer pênaltis… normal a
+    // simulação dos mata-matas"*). Os confrontos já nascem aqui como fase 'repescao' do
+    // `quickCopa`; a tela da Champions mostra o banner do fim da tabela e o `START_COPA`
+    // leva pra tela da Copa. O A de cada confronto é o PIOR colocado: no motor da Copa
+    // quem joga a IDA em casa é o A, e na Champions de verdade a volta é na casa do melhor.
+    s.quickCopa = {
+      phase: 'repescao', legIdx: 0, bracket: [],
+      ties: ch.repescao.map(tt => ({ aId: tt.bId, bId: tt.aId, aName: tt.bName, bName: tt.aName, legs: [], winner: null })),
+      scorers: ch.scorers ?? [], assists: ch.assists ?? [],
+    }
     s.news = [tr('⭐ Fim da tabela — 1º ao 8º já estão nas OITAVAS. Agora o REPESCÃO: 16 clubes por 8 vagas.', '⭐ League phase over — 1st to 8th are already in the ROUND OF 16. Now the PLAYOFF: 16 clubs for 8 spots.')]
   }
 }
@@ -7973,6 +7984,16 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'START_COPA': {
       // sai do fim de liga e volta pra tela da temporada — que, com quickCopa
       // já semeado e round=38, passa a tocar a Copa (ver EscSeason).
+      // ⭐ save de ANTES do repescão ir pro motor da Copa (25/09), parado no portão:
+      // monta o repescão agora. Com perna já jogada no jeito antigo, segue o jeito antigo.
+      const chA = s.champions
+      if (!s.quickCopa && chA?.fase === 'repescao' && chA.repescao?.every(tt => tt.legs.length === 0)) {
+        s.quickCopa = {
+          phase: 'repescao', legIdx: 0, bracket: [],
+          ties: chA.repescao.map(tt => ({ aId: tt.bId, bId: tt.aId, aName: tt.bName, bName: tt.aName, legs: [], winner: null })),
+          scorers: chA.scorers ?? [], assists: chA.assists ?? [],
+        }
+      }
       if (s.quickCopa && s.quickCopa.phase !== 'done') s.screen = 'season'
       return s
     }
@@ -8042,6 +8063,23 @@ function reducerBase(state: EscState, action: Action): EscState {
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
+        } else if (qc.phase === 'repescao' && s.champions) {
+          // ⭐ fim do repescão da Champions: os 8 que passaram encaram o top 8 da tabela,
+          // no MESMO cruzamento de antes (1º × o último dos que subiram…). A fase da
+          // Champions vira 'mata' e dali pra frente é o caminho de sempre da Copa.
+          const ch = s.champions
+          const topo = championsTabela(ch).slice(0, CHAMPIONS_DIRETO)
+          const subiram = qc.ties.map(tt => tt.winner!).filter(id => id != null)
+          const nomeDe = (id: number) => ch.times.find(x => x.id === id)?.name ?? '?'
+          qc.ties = topo.map((tt, i) => {
+            const adv = subiram[subiram.length - 1 - i]
+            return { aId: tt.id, bId: adv, aName: tt.name, bName: nomeDe(adv), legs: [], winner: null }
+          })
+          ch.fase = 'mata'
+          if (ch.repescao) for (const r of ch.repescao) r.winner = subiram.find(id => id === r.aId || id === r.bId) ?? null
+          qc.phase = 'oitavas'
+          qc.legIdx = 0
+          s.news = [tr('⭐ Repescão fechado — chegaram as OITAVAS da Champions!', '⭐ Playoff done — the Champions ROUND OF 16 is here!'), ...s.news].slice(0, 12)
         } else {
           // 🌎 casa os vencedores DE DOIS EM DOIS, na ordem da chave. Assim a mesma
           // conta serve pra Copa dos 8 (4→2→1) e pra Libertadores (8→4→2→1) — antes
@@ -8097,8 +8135,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const bbGiro = s.sport === 'basquete'
       const phaseWord = bbGiro
         ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
-        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : 'QUARTAS')
-      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : 'Copa'
+        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
+      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : 'Copa'
       const legWord = bbGiro ? ` · jogo ${qc.legIdx + 1}` : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
