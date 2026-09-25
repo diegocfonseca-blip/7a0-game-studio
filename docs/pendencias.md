@@ -1,3 +1,38 @@
+## 25/09/2026 — ⭐ "SÓ CHAMPIONS" na partida rápida offline ✅ NO AR (só na conta do Diego)
+
+Pedido do Diego: *"continua começando com 20… deveria ser só champions direto… deve
+ter todos padrão de tabela, de placar, botões etc igual aos outros"*. Proposta
+aprovada com um "Sim".
+
+- **Botão novo na montagem da partida rápida: "⭐ Só Champions"** (no lugar do
+  "Liga + Champions"). Continua travado com o selo EM BREVE pra todo mundo menos o
+  Diego (`useChampionsLiberada`; `CHAMPIONS_GERAL = false` NÃO mexido).
+- **Acabou o leilão → vai direto pra tabela de 36**, sem liga. Entram o seu time +
+  os times do leilão (os 20 com elenco) + 16 clubes de batismo na ordem de sempre
+  (`championsConvidados`). Mora em `seedChampionsDireto`/`abreChampionsDiretoSePrecisa`
+  (`store.tsx`), que roda DEPOIS de qualquer ação (`reducer` virou um invólucro do
+  `reducerBase`) — assim pega fim do leilão, "Nova temporada" e "Novo leilão" sem
+  lembrar caminho por caminho. A liga fica montada por baixo com a rodada no fim
+  (é de lá que o motor lê a força), mas ninguém joga ela.
+- **Tela da Champions no padrão da liga**: banner de cinema, placar ao vivo
+  (`LiveScoreCard`), tabela com escudo/P/V/E/D/SG, faixas de corte e a sua linha na
+  cor do seu tier, `SimControls` de sempre.
+- **Mata-mata e fim sem resto de liga**: some o "15º · 0 pts" do topo (vira IDA/VOLTA),
+  some a artilharia da liga, o texto das oitavas explica "8 primeiros + 8 do
+  repescão" (vale também pro Liga + Champions, que tinha o texto da Copa dos 8), a
+  artilharia do mata-mata diz CHAMPIONS, o Rank não grava campeão de liga falso, o
+  `FINISH_SEASON` não coroa liga nesse modo, e a tela do fim é "🏁 Fim da Champions"
+  sem o jornal O MARTELO (que só fala de liga/Copa dos 8).
+- **Fechar o app no meio não perde a Champions**: a tela `champions` entra no save
+  da partida em andamento SÓ nesse modo (`isSoloGameScreen`).
+
+Testado de ponta a ponta com o motor de verdade (leilão → 8 rodadas → repescão →
+oitavas → campeão → "Nova temporada" volta direto pra tabela), prints conferidos.
+**Reverter**: é um commit só — `git revert` dele.
+
+📌 Pendente (não fazer sem ele pedir): liberar a Champions pra todos
+(`CHAMPIONS_GERAL`); Só Champions no ONLINE; jornal O MARTELO com edição da Champions.
+
 ## 25/09/2026 — ⚽🅰️ O gol do jogador estava perdendo a Supercopa (e o total, os clubes de grafia dupla) ✅ NO AR
 
 Relato do Diego, olhando a aba Elenco de uma carreira encerrada: *"os gols no modo
