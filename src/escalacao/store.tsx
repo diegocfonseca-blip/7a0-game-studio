@@ -9543,6 +9543,7 @@ const Ctx = createContext<{
   state: EscState
   dispatch: (a: Action) => void
   emote: (kind: string, cardId?: string, text?: string) => void
+  addEmote: (e: EmoteEvent) => void // 🐊 25/09: a sala de espera solta o bicho pelo canal DELA e só entrega o emote pronto aqui
   emotes: EmoteEvent[]
   chat: ChatMsg[]              // 💬 mensagens da sala (efêmeras)
   chatUnread: number           // 💬 quantas ESTE usuário ainda não viu
@@ -11776,7 +11777,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const showHostBanner = state.onlineMode === 'online' && !state.isHost && hostStale && !iOwnThisRoom
     && state.screen !== 'intro' && state.screen !== 'lobby'
   return (
-    <Ctx.Provider value={{ state, dispatch, emote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
+    <Ctx.Provider value={{ state, dispatch, emote, addEmote, emotes, chat, chatUnread, sendChat, chatOpen, setChatOpen, hostStale, kickPlayer, leaveRoom, becameHost, hostOutroAparelho }}>
       {children}
       {hostOutroAparelho && (
         <div style={{ position: 'fixed', left: 12, right: 12, bottom: 14, zIndex: 93, fontFamily: 'Oswald, sans-serif' }}>
