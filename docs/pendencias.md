@@ -1,3 +1,42 @@
+## 25/09/2026 — 🐊 A página de regras ensinava o pregão ERRADO na Tocaia ✅ NO AR
+
+Relato do Diego: *"após criar sala pelo modo stream sempre aparece uma página
+ensinando o jogo. Porém no Tocaia também aparece, mas fica mostrando regras do
+modo envelope… só altere quando for Tocaia, ensinar a forma certa. Mesma coisa
+serve pro modo partida rápida"*.
+
+**Por que era grave**: a pessoa entrava na Tocaia acreditando que ia escrever
+lance secreto. Na Tocaia ninguém escreve nada — o preço CAI e quem aperta
+primeiro leva. É a mesma família do "botão mudo": a tela dizia uma coisa e o
+motor fazia outra.
+
+**Feito** (`EscStreamIntro`, em `screens.tsx`): a página passou a ter dois textos,
+escolhidos por `state.holandes`. No 🐊 Tocaia:
+- 🪙 *"Um preço só — e ele CAI"* (abre em `HOL_ABERTURA`: 100 no futebol, 50 no
+  basquete), ninguém escreve lance, quem aperta PEGAR primeiro leva.
+- 👇 o desenho do que ela vai ver: o preço grudado no topo com a barra esvaziando
+  e a MESA com **3 atacantes** (Romário · Obina · Dodô, cartas de verdade), cada
+  um com PEGAR pelo mesmo preço. Os três da MESMA posição de propósito — a leva é
+  por setor, e misturar GOL com ATA ensinaria um pregão que não existe. Pedido
+  dele: *"bote outra posição e não só um jogador… coloque uns 3 pra dar a entender
+  o jogo"* (antes era uma linha só, com o Alex Muralha).
+- 🎰 *"Dois no mesmo preço? Roleta"* — e, o que mais assusta quem é novo: **quem
+  não leva não paga nada**.
+- No quadro do AUGE só mudou uma frase: *"o nível abre na revelação"* →
+  *"abre quando o jogador é seu"* (na Tocaia não existe revelação).
+- Botão final: ▶️ COMEÇAR A TOCAIA 🐊.
+
+⚠️ **O ENVELOPE ÀS CEGAS NÃO FOI TOCADO** (ordem dele). Tudo é `tocaia ? … : …` e
+o lado de trás dos dois-pontos é idêntico ao que já estava no ar — conferido com
+foto dos DOIS modos, pelo `node scripts/foto-intro-tocaia.mjs`, que abre o jogo de
+verdade e fotografa a página nas duas escolhas de pregão.
+
+Vale nos dois lugares em que a página aparece (🎥 Modo Stream e ⚡ Partida Rápida),
+porque é a mesma tela.
+
+↩️ **Reverter**: apagar o lado `tocaia` dos ternários — o envelope volta a ser o
+único texto, sem tocar em mais nada.
+
 ## 25/09/2026 — 📱✨ A palavra "WhatsApp" acende na linha das salas abertas ✅ NO AR
 
 Pedido do Diego: *"aquele texto sutil embaixo das salas abertas onde fala do grupo
