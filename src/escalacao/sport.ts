@@ -551,7 +551,9 @@ export function useLibertaLiberada(): boolean {
 // (com a tarja EM BREVE, que é o recado de que está vindo), mas só quem está em
 // `CHAMPIONS_TESTERS` consegue de fato escolher. Pra abrir pra geral é só virar
 // CHAMPIONS_GERAL = true — nada mais precisa mudar.
-const CHAMPIONS_GERAL = false
+// 🟢 LIBERADA PRA TODOS em 25/09. Diego, depois de testar a Só Champions no rápido e no
+// online: *"já tá funcionando o online, pode liberar"*.
+const CHAMPIONS_GERAL = true
 const CHAMPIONS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let championsOk = CHAMPIONS_GERAL
 function applyChampionsUnlock(email?: string | null): void {

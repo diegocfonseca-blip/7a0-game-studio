@@ -582,9 +582,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   28 clubes de batismo, varrendo A → B → C → D → Várzea com DONO na frente), 8
   adversários diferentes cada, e os cortes 1-8 / 9-24 / 25-36 com repescão no meio.
   Mora em `src/escalacao/champions.ts`; trava: `npm run champions`.
-  🔒 **NÃO LIBERADA** — ordem dele: *"N libere ainda ela pra todos não, coloque um
-  selo de em breve"*. `CHAMPIONS_GERAL = false` em `sport.ts`; a opção aparece
-  travada com a tarja EM BREVE. **Não liberar sem ele mandar.**
+  🟢 **LIBERADA PRA TODOS EM 25/09** (*"já tá funcionando o online, pode liberar"*):
+  `CHAMPIONS_GERAL = true` em `sport.ts`. O formato que foi pro ar é a **"⭐ Só
+  Champions"** — sem liga, direto na tabela de 36 (partida rápida, salas online e Minhas
+  Ligas; sala de até 36 pessoas). O repescão roda no motor da Copa (fase 'repescao' do
+  `quickCopa`) e o fim tem o jornal O MARTELO edição Champions.
   📋 **E a tabela aparece INTEIRA** — ver a régua de tabela logo abaixo.
 - **📋 TABELA É INTEIRA, NUNCA EM JANELA (21/09).** No 1º mockup da Champions eu
   escondi o meio da tabela de 36 numa janela (topo + a vizinhança dele), com medo do
