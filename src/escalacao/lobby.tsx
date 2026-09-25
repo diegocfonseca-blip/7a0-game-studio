@@ -4,8 +4,10 @@ import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import { nomeLivre, NOME_MSG } from './manto'
-import { useEsc, listAllCareers, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI } from './store'
+import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
+import { MASCOTES } from './mascotes'
+import { MascoteAtravessa, MascoteMini } from './mascote-atravessa' // 🐊 o bicho atravessa a sala de espera também (25/09)
+import { useEsc, listAllCareers, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, type EmoteEvent } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
 import { AdminButton, useCanCareerOnline } from './admin'
@@ -618,7 +620,7 @@ let semColunaPregao = false
 
 export function EscLobby() {
   const privateOnline = ONLINE_VISUAL_RELEASED
-  const { state: escState, dispatch } = useEsc()
+  const { state: escState, dispatch, addEmote } = useEsc()
   // 👑 retrato do estado do JOGO, lido na hora dentro do `triggerStart` (async):
   // "este aparelho JÁ está tocando esta sala como dono?" — ver o eco da largada.
   const escRef = useRef(escState)
@@ -889,6 +891,26 @@ export function EscLobby() {
     lobbyChanRef.current?.send({ type: 'broadcast', event: 'sfx', payload: { name: myName, key } })
     playSfx(myName, key) // o canal não devolve o próprio broadcast — toca local também
   }
+  // 🐊 SOLTA O MASCOTE NA SALA DE ESPERA (25/09). Diego: *"daria pra pôr o solta o
+  // mascote ali também? Mas com a mesma regra do áudio, sem poder apertar disparado
+  // pra dar chance de outros apertarem também"*. Então:
+  //  · o bicho é o MESMO do leilão (`MascoteAtravessa`), viajando pelo canal DA SALA
+  //    DE ESPERA (`masc`) — a partida ainda não existe, o canal do jogo está fechado;
+  //  · o relógio de 30 s é UM SÓ com os áudios (decisão dele: *"pode ser sim"*):
+  //    soltou um áudio, espera pra soltar o bicho, e vice-versa;
+  //  · bichos PODEM se cruzar — ele dispensou o "um por vez" (*"o bicho não precisa
+  //    ser um por vez não"*); a trava de um por vez continua só nos áudios;
+  //  · quem não tem mascote (clube sem batismo) não vê o botão — régua de sempre.
+  const meuSocio = useMeuSocio()
+  const mascKey = meuSocio?.ativo && meuSocio.mascoteKey && MASCOTES[meuSocio.mascoteKey] ? meuSocio.mascoteKey : null
+  const sendMasc = () => {
+    if (!mascKey || Date.now() - sfxLastRef.current < SFX_COOLDOWN_S * 1000) return
+    sfxLastRef.current = Date.now(); setSfxCoolLeft(SFX_COOLDOWN_S)
+    const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
+    const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: -1, kind: `masc:${mascKey}`, text: `${myName} soltou o bicho! 🔊`, ts: Date.now() }
+    addEmote(e) // o meu aparece na hora (o canal não devolve o próprio broadcast)
+    lobbyChanRef.current?.send({ type: 'broadcast', event: 'masc', payload: e })
+  }
 
   useEffect(() => {
     // 🔑 o link do e-mail traz a marca de recuperação na URL (hash no fluxo
@@ -1050,6 +1072,8 @@ export function EscLobby() {
       .on('broadcast', { event: 'float' }, ({ payload }: { payload: LobbyFloat }) => addLobbyFloat(payload))
       // 📞 buzina: toca o meme pra sala toda (um por vez; regra no playSfx)
       .on('broadcast', { event: 'sfx' }, ({ payload }: { payload: { name: string; key?: string } }) => playSfx(payload?.name ?? 'Alguém', payload?.key ?? 'ligar'))
+      // 🐊 alguém soltou o mascote: entra na lista de emotes e o bicho atravessa a tela
+      .on('broadcast', { event: 'masc' }, ({ payload }: { payload: EmoteEvent }) => { if (payload?.kind?.startsWith('masc:')) addEmote(payload) })
       .subscribe()
     lobbyChanRef.current = ch
     return () => { ch.unsubscribe(); lobbyChanRef.current = null }
@@ -4141,6 +4165,16 @@ export function EscLobby() {
                 </button>
               ))}
             </div>
+            {/* 🐊 SOLTA O MASCOTE: só pra quem tem clube batizado; divide o relógio de
+                30 s com os áudios (regra do Diego, 25/09). O bicho é o mesmo do leilão. */}
+            {mascKey && (
+              <button onClick={sendMasc} disabled={sfxCoolLeft > 0}
+                className="mt-2 w-full border-2 rounded-xl pl-1.5 pr-3 py-1 font-black text-[11px] active:translate-y-0.5 flex items-center justify-center gap-2"
+                style={{ ...OSWALD, borderColor: sfxCoolLeft > 0 ? '#000' : PURPLE, background: sfxCoolLeft > 0 ? '#e4ddc9' : '#fff', color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000', boxShadow: sfxCoolLeft > 0 ? 'none' : `2px 2px 0 0 ${INK}` }}>
+                <span style={{ opacity: sfxCoolLeft > 0 ? .45 : 1 }}><MascoteMini art={MASCOTES[mascKey]} alt={40} /></span>
+                {sfxCoolLeft > 0 ? `🐾 ${sfxCoolLeft}s…` : tr('SOLTA A SUA MASCOTE NA SALA', 'LET YOUR MASCOT LOOSE')}
+              </button>
+            )}
             <button onClick={() => openLobbyChat(true)}
               className="mt-2 w-full border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] bg-white text-black active:translate-y-0.5 flex items-center justify-center gap-1.5" style={OSWALD}>
               {tr('💬 Abrir chat da sala', '💬 Open room chat')} {lobbyChat.length > 0 && <span className="opacity-60">({lobbyChat.length})</span>}
@@ -4151,6 +4185,8 @@ export function EscLobby() {
       {/* 🃏 BAFO: o host mandou começar com gente ainda montando. Mesmo padrão da
           votação do fim de jogo: diz QUEM falta e deixa ele escolher esperar ou
           seguir. Quem fica de fora sai da sala — não vira time sorteado. */}
+      {/* 🐊 o bicho que alguém soltou atravessa a sala de espera (camada fixa, não atrapalha nada) */}
+      {room && <MascoteAtravessa />}
       {bafoAviso && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100001, background: 'rgba(0,0,0,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
           <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}`, maxWidth: 400, width: '100%', padding: 20 }}>

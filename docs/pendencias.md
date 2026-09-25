@@ -122,6 +122,20 @@ partida sempre vai incomodar alguém — agora incomoda uma piscada, não uma qu
 
 ↩️ **Reverter**: tirar o `pedaco()` dos dois `lazy()` e a linha do ErrorBoundary.
 
+## 25/09/2026 — 🐊 Solta o mascote na SALA DE ESPERA ✅ PUBLICADO (ok dele: *"pode"*)
+
+Pedido dele: *"após criar sala, onde seus amigos entram na espera e tem áudios… daria pra pôr o
+solta o mascote ali também? Mas com a mesma regra do áudio, sem poder apertar disparado"*.
+Decisões dele: relógio de 30 s **único** com os áudios (*"pode ser sim"*) e bichos **podem se
+cruzar** (*"o bicho não precisa ser um por vez não"*).
+- `MascoteAtravessa`/`MascoteMini`/`moneySeed` saíram de `screens.tsx` pra
+  `mascote-atravessa.tsx` (o lobby não pode importar a tela do leilão — ela importa o lobby).
+- `store.tsx` expõe `addEmote` no contexto; o lobby manda o emote pelo canal DA SALA (`masc`)
+  e cada aparelho entrega em `addEmote` → o mesmo bicho do leilão atravessa.
+- Botão roxo abaixo dos áudios, só pra quem tem `mascoteKey` (régua de sempre); divide
+  `sfxLastRef`/`sfxCoolLeft` com a buzina. Linha nas novidades (PT/EN) já escrita.
+- build, telas e penaltis verdes. Print aprovado e publicado em 25/09.
+
 ## 25/09/2026 — ⚽ Pênaltis: A BOLA VIAJA até o gol ✅ PUBLICADO
 🔓 **E vale nos DOIS modos** (ordem dele, na sequência: *"online e offline"*): a Copa do jogo
 rápido OFFLINE e a Copa da carreira (Brasil/Legends) também passaram pra tela nova — antes só
