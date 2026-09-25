@@ -13,7 +13,7 @@ import type {
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame, HolandesState,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
-import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
+import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
@@ -1231,7 +1231,7 @@ function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?:
   if (!s.careerOnline || s.onlineMode === 'online') return
   const desdeR = s.condicaoDesde === s.seasonNo ? (s.condicaoDesdeR ?? 0) : 0
   const antes = s.condicaoCarry ?? {}
-  const chave = (c: { name: string; club: string; year: number }) => `${c.name}|${clubCanon(c.club)}|${c.year}`
+  const chave = chaveCarry // 🗝️ a MESMA chave que a tela lê (condicao.ts) — nunca escrever à mão
   const novo: Record<string, { g: number; j: number; gl?: number; as?: number }> = {}
   for (const m of s.managers) {
     if (!m.isHuman) continue

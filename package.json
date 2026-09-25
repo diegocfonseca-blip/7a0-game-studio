@@ -35,6 +35,7 @@
     "som": "node scripts/testa-som.mjs",
     "ritmo": "node scripts/testa-ritmo.mjs",
     "artilharia": "node scripts/testa-artilharia.mjs",
+    "gols": "node scripts/testa-gols-jogador.mjs",
     "monte": "npx tsx scripts/testa-monte.mts",
     "storage": "npx tsx scripts/testa-storage.mts",
     "champions": "npx tsx scripts/testa-champions.mts",

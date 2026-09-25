@@ -1,3 +1,48 @@
+## 25/09/2026 — ⚽🅰️ O gol do jogador estava perdendo a Supercopa (e o total, os clubes de grafia dupla) ✅ NO AR
+
+Relato do Diego, olhando a aba Elenco de uma carreira encerrada: *"os gols no modo
+carreira não tão aparecendo gols da copa e supercopa, eu acredito. Assistência
+também não, no jogador. E quando aperta no jogador, que mostra o modal de infos
+dele, também não tá totalizando certo os gols totais e assistências totais"*.
+
+**Medido antes de mexer** (`npm run gols`, 12 temporadas simuladas com o código de
+verdade): **28 gols e 20 assistências de Supercopa** fora da ficha do jogador, e
+**4 cartas** com a chave do acumulado divergente. Dois furos diferentes:
+
+### 1️⃣ 🏆🔵 A Supercopa contava no Rank e sumia do jogador
+`copaBrasilAsCopaResult` juntava os gols da Supercopa em `scorersAll` (histórico de
+todos os tempos e prêmio do artilheiro) mas **não** nos mapas POR CARTA
+(`goalsByCard`/`assistsByCard`) — e é deles que saem a coluna ⚽/🅰️ do elenco, a
+ficha do jogador, a imagem de compartilhar e o acumulado que atravessa a virada
+(o `guardaCansaco` recebe o MESMO mapa). A Copa do Brasil e a Copa Legends sempre
+estiveram lá; só a Supercopa, que é calculada FORA da Copa e entra na chave como
+uma fase a mais, ficava de fora. Conserto: os dois mapas agora somam a Supercopa.
+
+### 2️⃣ 🗝️ O "NO SEU CLUBE" zerava pra quem joga em clube de grafia dupla
+`guardaCansaco` (store.tsx) **gravava** o acumulado em `nome|clubCanon(clube)|ano`
+e a tela (pyramidseason.tsx) **lia** em `nome|clube|ano` cru. Pras cartas de clube
+com duas grafias — Bayer Leverkusen→Leverkusen, Manchester United→Man United,
+Leicester City→Leicester, Inter de Milão→Inter — a leitura nunca achava a linha, e
+jogos, gols e assistências "NO SEU CLUBE" voltavam a ZERO a cada virada.
+Conserto: a chave virou **uma função só** (`chaveCarry`, em `condicao.ts`), e quem
+grava e quem lê chamam a mesma. **Não precisou migrar save**: o que está gravado já
+está na grafia canônica — os números perdidos VOLTAM sozinhos.
+💡 É a mesma lição do "botão mudo" (19/09): regra escrita em dois lados vira duas
+regras. A trava reprova se alguém voltar a montar a chave na linha.
+
+**Trava**: `npm run gols` — simula 12 temporadas, exige que nenhum gol/assistência
+de Supercopa fique fora do mapa por carta, que a chave normalize a grafia do clube
+e que ninguém a monte à mão. Rodaram junto e passaram: `artilharia`, `condicao`,
+`congela`, `fim`, `agencia`.
+
+🌍 **Fica anotado o que NÃO mudei**: a **Copa do Mundo** é de SELEÇÃO, e o acumulado
+do jogador é "no seu clube" — gol de Copa do Mundo continua fora da ficha do clube
+(ele entra no Rank de todos os tempos e na comissão da Agência). Se o Diego quiser
+somar, é decisão dele.
+
+↩️ **Reverter**: dois pontos isolados — o `somaPorCarta` em `copa-brasil.ts` e o
+`chaveCarry` em `condicao.ts`.
+
 ## 25/09/2026 — 🐊 A página de regras ensinava o pregão ERRADO na Tocaia ✅ NO AR
 
 Relato do Diego: *"após criar sala pelo modo stream sempre aparece uma página
