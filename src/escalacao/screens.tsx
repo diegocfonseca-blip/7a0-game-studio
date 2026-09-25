@@ -10138,35 +10138,37 @@ export function EscEnd() {
         </Box>
       ))}
       {ligaChampionCard}
-      {/* ⭐ BANNERZÃO DA CHAMPIONS — as REGRAS escritas, porque o formato é novo
-          e diferente de tudo que o jogo já tem: tabela ÚNICA de 36 (sem grupo),
-          8 adversários diferentes, e um REPESCÃO entre a tabela e as oitavas. */}
+      {/* ⭐ BANNERZÃO DA CHAMPIONS — desde 25/09 é o MESMO palco cinematográfico da Copa
+          do Mundo (`CompetitionStage`), com o troféu de orelhas na cena (pedido do Diego:
+          *"o mesmo estilo de banner da Copa do Mundo… com o troféu da Champions no lugar,
+          e escrever Champions League"*). As REGRAS continuam escritas embaixo, porque o
+          formato é novo: tabela ÚNICA de 36 (sem grupo), 8 adversários diferentes, e um
+          REPESCÃO entre a tabela e as oitavas. */}
       {champPending && state.champions && (
-        <Box bg={ESTRELA} className="p-3.5">
-          <p className="font-black text-white text-xl text-center leading-none" style={OSWALD}>⭐ {LE('CHAMPIONS LEGENDS', 'CHAMPIONS LEGENDS')}</p>
-          <p className="text-white/75 text-[11.5px] font-bold text-center mt-1.5 leading-snug">
-            {LE('Os 8 primeiros da liga entram numa tabela ÚNICA de 36, com 28 clubes de gente de verdade.',
-                'The league top 8 join ONE single table of 36, with 28 clubs owned by real people.')}
-          </p>
-          <div className="mt-2.5 space-y-1.5">
-            {[
-              ['📋', LE('Cada clube joga 8 adversários diferentes — não tem grupo.', 'Each club plays 8 different opponents — no groups.')],
-              ['🟢', LE('1º ao 8º: vão DIRETO pras oitavas.', '1st to 8th: STRAIGHT to the round of 16.')],
-              ['🟡', LE('9º ao 24º: repescão de ida e volta, 8 sobem.', '9th to 24th: two-legged playoff, 8 go through.')],
-              ['⚪', LE('25º ao 36º: estão fora.', '25th to 36th: out.')],
-            ].map(([e, t]) => (
-              <div key={t} className="flex items-start gap-2 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(255,255,255,.12)', border: '2px solid rgba(255,255,255,.28)' }}>
-                <span className="text-sm leading-none mt-0.5">{e}</span>
-                <span className="text-white text-[11.5px] font-bold leading-snug">{t}</span>
-              </div>
-            ))}
+        <CompetitionStage kind="champions" title={LE('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase="Champions League"
+          detail={LE('Os 8 primeiros da liga entram numa tabela única de 36, com 28 clubes de gente de verdade.', 'The league top 8 join one single table of 36, with 28 clubs owned by real people.')}
+          status={canDriveCopa ? (manual || pacedRoom ? LE('Pronta pra começar', 'Ready to start') : `${LE('Começa sozinha em', 'Starts by itself in')} ${champLeft}s`) : LE('Aguardando o dono abrir a Champions', 'Waiting for the host to open the Champions')}>
+          <div className="ll26-cup-entry">
+            {canDriveCopa && (
+              <button onClick={() => dispatch({ type: 'START_CHAMPIONS' })} className="ll27-portao-botao">
+                ⭐ {LE('COMEÇAR A CHAMPIONS', 'START THE CHAMPIONS')}{!manual && !pacedRoom ? ` · ${champLeft}s` : ''}
+              </button>
+            )}
+            <div className="mt-2.5 space-y-1.5">
+              {[
+                ['📋', LE('Cada clube joga 8 adversários diferentes — não tem grupo.', 'Each club plays 8 different opponents — no groups.')],
+                ['🟢', LE('1º ao 8º: vão DIRETO pras oitavas.', '1st to 8th: STRAIGHT to the round of 16.')],
+                ['🟡', LE('9º ao 24º: repescão de ida e volta, 8 sobem.', '9th to 24th: two-legged playoff, 8 go through.')],
+                ['⚪', LE('25º ao 36º: estão fora.', '25th to 36th: out.')],
+              ].map(([e, t]) => (
+                <div key={t} className="flex items-start gap-2 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(0,0,0,.05)', border: '2px solid rgba(0,0,0,.14)' }}>
+                  <span className="text-sm leading-none mt-0.5">{e}</span>
+                  <span className="text-[11.5px] font-bold leading-snug" style={{ color: INK }}>{t}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          {canDriveCopa && (
-            <Btn onClick={() => dispatch({ type: 'START_CHAMPIONS' })} bg={GOLD} className="w-full mt-3">
-              {LE('INICIAR A CHAMPIONS', 'START THE CHAMPIONS')}{!manual && !pacedRoom ? ` · ${champLeft}s` : ''}
-            </Btn>
-          )}
-        </Box>
+        </CompetitionStage>
       )}
       {/* 🌎 BANNERZÃO DA LIBERTADORES (Diego 20/08) — o equivalente ao quadro da
           Copa dos 8, mas na cara azul-noite e com AS REGRAS escritas, porque é um
