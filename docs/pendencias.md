@@ -1,3 +1,19 @@
+## 25/09/2026 — 🚨 Sala da Champions voltou pro limite de 20 pessoas ✅ NO AR
+
+Sala **9LSKXI** (27 pessoas, host Fridão) travou no "ENVIANDO… confirmando com o host".
+Banco: o host chegou a receber 21 envelopes e parou de gravar às 16h14. Causa: o host
+**reenvia o estado INTEIRO pra cada pessoa a cada ação** (`channelRef.send('state')` no
+efeito de `[state]`, store.tsx). Com 27 pessoas cada lance vira 26 entregas; no fim do
+envelope, quando todo mundo lacra junto, passa do limite de mensagens/segundo do
+Realtime e as mensagens se perdem. O pacote em si é pequeno (33 KB comprimido com 36).
+Conserto de emergência: `MAX_PLAYERS_CHAMPIONS = 20` (e salas em espera com 36 no banco
+baixadas pra 20). A tabela de 36 continua cheia com clubes de batismo.
+📌 **Pra voltar a 36**: enxugar o reenvio do host — juntar as ações que chegam no mesmo
+instante e mandar UM estado a cada ~300-500 ms (ou mandar só o "lacrou" em vez do estado
+inteiro durante o envelope). Mexe em TODA sala online → fazer com calma, de dia, testado.
+⚠️ E vale conferir o plano do Supabase: o limite de mensagens é por PROJETO, então sala
+pesada pode atrapalhar as outras salas ao mesmo tempo.
+
 ## 25/09/2026 — 🟢 CHAMPIONS LIBERADA PRA TODOS ✅ NO AR
 
 Diego: *"já tá funcionando o online, pode liberar"*. `CHAMPIONS_GERAL = true` (`sport.ts`).
