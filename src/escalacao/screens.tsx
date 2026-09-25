@@ -7778,8 +7778,16 @@ export function EscChampions() {
   return (
     <Shell wide className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
-        <span className="font-black text-sm" style={OSWALD}>
-          ⭐ CHAMPIONS · {vistaTabela ? `${T('RODADA', 'ROUND')} ${Math.max(1, Math.min(ch.rodada, CHAMPIONS_RODADAS))}/${CHAMPIONS_RODADAS}` : `${T('REPESCÃO', 'PLAYOFF')} · ${pernaNaTela === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}`}
+        <span className="flex flex-col leading-tight min-w-0">
+          <span className="font-black text-sm" style={OSWALD}>
+            ⭐ CHAMPIONS · {vistaTabela ? `${T('RODADA', 'ROUND')} ${Math.max(1, Math.min(ch.rodada, CHAMPIONS_RODADAS))}/${CHAMPIONS_RODADAS}` : `${T('REPESCÃO', 'PLAYOFF')} · ${pernaNaTela === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}`}
+          </span>
+          {/* 📏 Diego 25/09: *"tá claro pras pessoas que serão 8 rodadas apenas? … do lado já
+              escrever 8 jogos, 8 adversários diferentes, formato oficial"*. Quem vem da liga
+              está acostumado com /38 — a linha miúda diz de cara que aqui é outro formato. */}
+          <span className="font-bold text-[9.5px] uppercase tracking-[.6px] opacity-60 truncate" style={OSWALD}>
+            {vistaTabela ? T('8 jogos · 8 adversários diferentes · formato oficial', '8 games · 8 different opponents · official format') : T('ida e volta · 8 vagas nas oitavas', 'two legs · 8 round-of-16 spots')}
+          </span>
         </span>
         {minhaPos > 0 && <span className="font-black text-sm" style={OSWALD}>{ordinal(minhaPos, getLang() === 'en' ? 'en' : 'pt')} · {tabela[minhaPos - 1]?.pts ?? 0} pts</span>}
       </div>
