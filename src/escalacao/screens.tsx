@@ -46,7 +46,7 @@ import { publicOnlineVisual } from './online-release'
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, type OnlineMatchTab } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -2402,6 +2402,7 @@ export function EscSetup() {
   // 🌎 a Libertadores também aparece no rápido OFFLINE — é onde dá pra testar
   // sozinho, sem juntar 8 pessoas. Mesma trava de conta do online.
   const libertaOn = useLibertaLiberada()
+  const championsOn = useChampionsLiberada() // ⭐ Champions: tarja EM BREVE pra geral; só CHAMPIONS_TESTERS marca (mesma trava do online)
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2624,18 +2625,26 @@ export function EscSetup() {
         {!career && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
-            <div className={`grid gap-2 ${libertaOn ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              {((libertaOn
-                ? [['liga_copa', t('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', t('🌎 Liga + Liberta', '🌎 League + Copa Lib')], ['liga', t('📊 Só Liga', '📊 League only')]]
-                : [['liga_copa', t('🏆 Liga + Copa', '🏆 League + Cup')], ['liga', t('📊 Só Liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'liga', string][]).map(([m, label]) => (
-                <button key={m} onClick={() => setCopaMode(m)}
-                  className={`border-[3px] border-black rounded-xl py-2.5 font-black ${libertaOn ? 'text-[12px] px-1' : 'text-sm'}`}
-                  style={{ backgroundColor: copaMode === m ? GOLD : '#fff', boxShadow: copaMode === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
-                  {label}
-                </button>
-              ))}
+            {/* ⭐ 25/09 — as MESMAS opções do online (Diego: *"tem que ter todos também… liga
+                a Champions já no partida offline, vai ser o primeiro teste com bot"*).
+                Champions com a mesma trava de conta do online: aparece pra todo mundo com a
+                tarja EM BREVE e só quem está em CHAMPIONS_TESTERS consegue marcar. A Liberta
+                segue a trava dela. O motor das duas roda sem sala: é o mesmo código do online
+                e o "iniciar" já aceita `!online` (`canDriveCopa`). 4 opções → grade 2×2. */}
+            <div className="grid grid-cols-2 gap-2">
+              {(([['liga_copa', t('🏆 Liga + Copa', '🏆 League + Cup')], ...(libertaOn ? [['liga_liberta', t('🌎 Liga + Liberta', '🌎 League + Copa Lib')]] : []), ['liga_champions', t('⭐ Liga + Champions', '⭐ League + Champions')], ['liga', t('📊 Só Liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'liga_champions' | 'liga', string][]).map(([m, label]) => {
+                const travado = m === 'liga_champions' && !championsOn
+                return (
+                  <button key={m} onClick={() => { if (!travado) setCopaMode(m) }} disabled={travado} aria-disabled={travado}
+                    className="border-[3px] border-black rounded-xl py-2.5 px-1 font-black text-[12px] relative"
+                    style={{ backgroundColor: copaMode === m ? GOLD : '#fff', boxShadow: copaMode === m ? `3px 3px 0 0 ${INK}` : 'none', opacity: travado ? .45 : 1, ...OSWALD }}>
+                    {label}
+                    {travado && <span className="absolute -top-2 right-1 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full border-2 border-black" style={{ background: PURPLE, color: '#fff' }}>{t('em breve', 'soon')}</span>}
+                  </button>
+                )
+              })}
             </div>
-            <p className="text-[11px] font-semibold text-black/55 mt-1">{copaMode === 'liga_liberta' ? t('🌎 Quando a liga acaba, os 8 primeiros entram na Libertadores com 24 clubes do continente: 8 grupos de 4, passam 2, mata-mata até a final única. Nesta partida NÃO tem Copa dos 8.', '🌎 When the league ends, the top 8 join the continental cup with 24 clubs: 8 groups of 4, top 2 advance, knockouts to a single final. This match has NO Cup of 8.') : copaMode === 'liga_copa' ? t('🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes do fim de jogo.', '🏆 When the league ends, the top 8 play the Cup (two legs, single final) before the game is over.') : t('📊 Termina a liga e já mostra o resultado — jogo mais curto.', '📊 League ends and the result comes straight away — a shorter game.')}</p>
+            <p className="text-[11px] font-semibold text-black/55 mt-1">{copaMode === 'liga_champions' ? t('⭐ Acabou a liga, os 8 primeiros se juntam a 28 clubes de gente de verdade numa tabela ÚNICA de 36 — cada um joga 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora.', '⭐ League over, the top 8 join 28 clubs owned by real people in ONE table of 36 — each plays 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.') : copaMode === 'liga_liberta' ? t('🌎 Quando a liga acaba, os 8 primeiros entram na Libertadores com 24 clubes do continente: 8 grupos de 4, passam 2, mata-mata até a final única. Nesta partida NÃO tem Copa dos 8.', '🌎 When the league ends, the top 8 join the continental cup with 24 clubs: 8 groups of 4, top 2 advance, knockouts to a single final. This match has NO Cup of 8.') : copaMode === 'liga_copa' ? t('🏆 Quando a liga acaba, os 8 primeiros disputam a Copa (ida e volta, final única) antes do fim de jogo.', '🏆 When the league ends, the top 8 play the Cup (two legs, single final) before the game is over.') : t('📊 Termina a liga e já mostra o resultado — jogo mais curto.', '📊 League ends and the result comes straight away — a shorter game.')}</p>
           </div>
         )}
         {/* 🔻 COMO É O PREGÃO — só no jogo rápido, e o padrão é SEMPRE o leilão
@@ -7723,13 +7732,23 @@ export function EscChampions() {
         </Box>
       )}
 
-      {canAdvance && !manual && ch.fase === 'tabela' && ch.rodada < CHAMPIONS_RODADAS && (
-        <Btn onClick={() => dispatch({ type: 'PLAY_CHAMPIONS_RODADA' })} bg={GOLD} className="w-full">
-          ▶️ {T('PRÓXIMA RODADA', 'NEXT ROUND')}
-        </Btn>
+      {/* 🎮 O RITMO, igual à Liberta (conserto 25/09 — 1º teste do Diego com bot). O botão
+          "próxima rodada" só aparecia no AUTOMÁTICO e sumia no MANUAL — e no manual o
+          relógio também não dispara. Resultado: quem joga no Modo Manual (o Diego) via a
+          tabela de 36 zerada pra sempre: *"a Champions não deu certo"*. Agora é o mesmo
+          `SimControls` da Liberta: no manual, o botão puxa a rodada (e a perna do
+          repescão); no automático, o relógio puxa e o botão adianta. Anti-spoiler
+          mantido: só deixa avançar depois que a rodada terminou de animar. */}
+      {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+      {canAdvance && ch.fase !== 'mata' && (
+        <SimControls manual={manual} onToggle={toggleSim} canNext={ch.rodada === 0 || revealed}
+          lock={!online && !hasManual ? <QuickManualLock /> : undefined}
+          onNext={() => dispatch({ type: ch.fase === 'repescao' ? 'PLAY_CHAMPIONS_REPESCAO' : 'PLAY_CHAMPIONS_RODADA' })}
+          onSkip={() => dispatch({ type: ch.fase === 'repescao' ? 'PLAY_CHAMPIONS_REPESCAO' : 'PLAY_CHAMPIONS_RODADA' })}
+          nextLabel={!(ch.rodada === 0 || revealed) ? T('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : ch.rodada === 0 ? T('⭐ Começar a Champions', '⭐ Start the Champions') : ch.fase === 'repescao' ? T('▶️ Próxima perna do repescão', '▶️ Next playoff leg') : T('▶️ Próxima rodada', '▶️ Next round')} />
       )}
-      {!online && hasManual && (
-        <p className="text-center"><button onClick={toggleSim} className="text-[10.5px] font-black underline text-black/45">{manual ? T('deixar o jogo rodar sozinho', 'let it run by itself') : T('quero jogar na mão', 'I want to play it myself')}</button></p>
+      {online && !state.isHost && ch.fase !== 'mata' && (
+        <p className="text-center text-[11px] font-bold text-black/50">{T('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
     </Shell>
   )
