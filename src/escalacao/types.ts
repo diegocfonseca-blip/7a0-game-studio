@@ -415,7 +415,9 @@ export interface QuickCopaTie {
 }
 // 🌎 'oitavas' existe SÓ pra Libertadores, que começa o mata-mata com 16 clubes
 // (a Copa dos 8 continua começando nas quartas — nada muda pra ela).
-export type CopaFase = 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
+// ⭐ 'repescao' existe SÓ pra Champions (25/09): o repescão (9º–24º, ida e volta) roda no
+// MESMO motor do mata-mata — relógio, pênaltis e cobrança manual iguais aos da Copa.
+export type CopaFase = 'repescao' | 'oitavas' | 'quartas' | 'semis' | 'final' | 'done'
 export interface QuickCopaState {
   phase: CopaFase
   ties: QuickCopaTie[]  // confrontos da fase ATUAL

@@ -38,8 +38,8 @@ const COND = { fontFamily: 'Oswald, sans-serif' } as const
 export type CopaStatus = 'campeao' | 'vice' | 'caiu' | 'fora'
 export interface CopaRunSala { status: CopaStatus; fase?: string; vs?: string; pens?: boolean }
 
-const NOME_FASE: Record<string, string> = { oitavas: 'nas oitavas', quartas: 'nas quartas', semis: 'na semifinal', final: 'na final' }
-const NOME_FASE_EN: Record<string, string> = { oitavas: 'in the round of 16', quartas: 'in the quarters', semis: 'in the semi-final', final: 'in the final' }
+const NOME_FASE: Record<string, string> = { repescao: 'no repescão', oitavas: 'nas oitavas', quartas: 'nas quartas', semis: 'na semifinal', final: 'na final' }
+const NOME_FASE_EN: Record<string, string> = { repescao: 'in the playoff', oitavas: 'in the round of 16', quartas: 'in the quarters', semis: 'in the semi-final', final: 'in the final' }
 
 // Lê o chaveamento e diz, pra cada id, até onde foi. `bracket` guarda as fases já
 // fechadas; `ties` é a fase em andamento (no fim, já entrou no bracket).

@@ -1,3 +1,18 @@
+## 25/09/2026 — 🥊 Repescão da Champions no MOTOR DA COPA (relógio, pênaltis, cobrança) ✅ NO AR
+
+Print do Diego no repescão: placar parado, sem o relógio de 1' em diante. *"não teve
+simulação rolando padrão… podendo também aparecer pênaltis… normal a simulação dos
+mata-matas"*. Agora o repescão é a fase **'repescao' do `quickCopa`** (`CopaFase` ganhou
+o valor): nasce no fim da 8ª rodada (`playChampionsRodada`), a tela da Champions mostra o
+banner do fim da tabela (6s) e o `START_COPA` leva pra tela da Copa, onde roda IGUAL ao
+mata-mata (relógio, gols, pênaltis, cartaz de fase). No fim, `PLAY_COPA_LEG` monta as
+oitavas com o top 8 × os 8 que passaram (mesmo cruzamento de antes) e vira
+`champions.fase = 'mata'`. O A de cada confronto é o PIOR colocado (a ida é na casa do A;
+a volta, na do melhor, como na Champions de verdade). Na tela da Copa, quem está no top 8
+lê "✅ você já está nas oitavas, aguardando"; quem ficou fora lê "❌ não se classificou".
+Save antigo parado no portão ganha o repescão novo no `START_COPA`; com perna já jogada no
+jeito antigo, segue o jeito antigo (`playChampionsRepescao` ficou só pra isso).
+
 ## 25/09/2026 — ⏱️ Champions: fase de tabela agora ~11s por rodada ✅ NO AR
 
 Diego: *"aumente mais 2s por jogo no modo Champions na primeira fase de pontos corridos"*.
