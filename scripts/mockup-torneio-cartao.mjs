@@ -43,19 +43,32 @@ const sala = (nome, gente, cod, modo) => `
     <span class="emjogo">EM JOGO</span>
   </div>`
 
+// 🪜 A ESCADA DE PREÇO (Diego, 25/09): *"só a parte de quem já é lenda e batismo
+// não pagar que não sei"*. Ele tem razão — grátis enche a sala de quem não paga
+// nada. Então ninguém paga DUAS VEZES pela mesma coisa, mas todo mundo paga
+// alguma: quem não tem nada compra o Craque; quem já é Craque compra o upgrade
+// pra Lenda pela metade; e quem já tem tudo paga só a DISPUTA (9,90) — o que ele
+// leva, se vencer, é um batismo PRA PRESENTEAR.
+const ESCADA = {
+  nada:    { preco: 'R$ 19,90', selo: null,                 pe: 'a inscrição já te dá o <b>⭐ Craque</b> na hora (cor, selo e modo manual). Perdeu? O Craque é seu do mesmo jeito.' },
+  craque:  { preco: 'R$ 19,90', selo: '⭐ você é Craque',    pe: 'com esta inscrição você <b>sobe pra 👑 Lenda</b> — que sozinha custa R$ 39,90. Metade do preço pelo upgrade.' },
+  lenda:   { preco: 'R$ 9,90',  selo: '👑 você é Lenda',     pe: 'você já tem tudo, então paga <b>só a disputa</b>. Se vencer, leva um <b>batismo pra presentear</b> quem você quiser.' },
+}
+
 // o cartão do torneio — preto e dourado, destacado das salas creme
-const torneio = ({ vagas, cheio = false }) => `
+const torneio = ({ vagas, cheio = false, quem = 'nada' }) => `
   <div class="torn ${cheio ? 'cheio' : ''}">
     <div class="tfaixa">🏆 TORNEIO DO SÁBADO · 21H</div>
     <p class="tpremio">O campeão vira <b>clube batizado</b></p>
     <p class="tsub">escudo desenhado, mascote própria e manto — o pacote inteiro</p>
     <div class="tlinha">
       <span class="tvagas ${cheio ? 'zero' : ''}">👥 ${cheio ? 'LOTADO' : `${vagas}/20 vagas`}</span>
-      <span class="tbtn ${cheio ? 'off' : ''}">${cheio ? 'AVISA QUANDO ABRIR' : 'GARANTIR VAGA · R$ 19,90'}</span>
+      <span class="tbtn ${cheio ? 'off' : ''}">${cheio ? 'AVISA QUANDO ABRIR' : `GARANTIR VAGA · ${ESCADA[quem].preco}`}</span>
     </div>
+    ${!cheio && ESCADA[quem].selo ? `<p class="tvoce">${ESCADA[quem].selo}</p>` : ''}
     <p class="tpe">${cheio
       ? 'o próximo abre domingo às 20h — toque pra entrar na fila'
-      : 'a inscrição já te dá o <b>⭐ Craque</b> na hora (cor, selo e modo manual). Perdeu? O Craque é seu do mesmo jeito.'}</p>
+      : ESCADA[quem].pe}</p>
   </div>`
 
 // e o estado SEM torneio marcado — o espaço não pode ficar vazio nem virar anúncio
@@ -109,6 +122,7 @@ h1{${OSW};font-size:21px;text-transform:uppercase;letter-spacing:.4px;margin-bot
 .tvagas.zero{color:#FF8A7A;background:rgba(255,120,100,.12);border-color:rgba(255,120,100,.4)}
 .tbtn{flex:1;text-align:center;${OSW};font-size:12.5px;background:${GOLD};color:${INK};border:2.5px solid ${INK};border-radius:11px;padding:7px 6px;box-shadow:2px 2px 0 ${INK}}
 .tbtn.off{background:transparent;color:rgba(255,255,255,.55);border-color:rgba(255,255,255,.3);box-shadow:none}
+.tvoce{display:inline-block;margin-top:7px;${OSW};font-size:9.5px;letter-spacing:.6px;color:rgba(255,255,255,.75);border:1.5px solid rgba(255,255,255,.28);border-radius:999px;padding:2px 8px}
 .tpe{font-size:9.5px;font-weight:700;color:rgba(255,255,255,.45);margin-top:8px;line-height:1.4}
 .tpe b{color:rgba(255,255,255,.75)}
 .cap{font-size:12px;font-weight:500;color:#3d3a30;line-height:1.5;margin-top:10px}
@@ -129,6 +143,17 @@ h1{${OSW};font-size:21px;text-transform:uppercase;letter-spacing:.4px;margin-bot
     'Lotar é <b>bom</b>: quem ficou de fora vira fila pro próximo. O botão troca pra "avisa quando abrir" — e aí você já tem o público do sábado seguinte.')}
   ${tela('③ sem torneio marcado', semTorneio() + sala('RESENHA', 4, 'CBZK4B', '✉️ ÀS CEGAS') + sala('Sala do haxixe Fc', 4, 'FVBRT3', '✉️ ÀS CEGAS'),
     'O espaço <b>nunca fica vazio nem vira anúncio</b>: some o preço, fica só a data do próximo. É informação, não propaganda.')}
+</div>
+
+<h1 style="margin-top:26px">🪜 O mesmo cartão, pra cada um</h1>
+<p class="sub">Ninguém paga duas vezes pela mesma coisa — mas <b>todo mundo paga alguma</b>. O preço muda conforme quem está olhando, e o jogo já sabe disso sozinho (o tier vem da conta).</p>
+<div class="linha">
+  ${tela('① nunca apoiou', torneio({ vagas: 14, quem: 'nada' }),
+    'Compra o <b>Craque</b> e a disputa junto. É o caso que mais aparece — e o que mais te rende.')}
+  ${tela('② já é Craque', torneio({ vagas: 14, quem: 'craque' }),
+    'Não paga de novo pelo que já tem: <b>sobe pra Lenda</b> por metade do preço. Upgrade, não repetição.')}
+  ${tela('③ já é Lenda ou tem batismo', torneio({ vagas: 14, quem: 'lenda' }),
+    'Paga <b>só a disputa</b>, e bem menos. O prêmio dele vira um <b>batismo pra presentear</b> — que é como um clube novo nasce dentro da roda dele.')}
 </div>
 
 <div class="nota">
