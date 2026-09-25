@@ -2850,9 +2850,17 @@ export function EscStreamIntro() {
           <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. The players of the batch go on the table with <b>a single price for everyone</b>, opening at <b>{abertura} 🪙</b> and <b>falling</b> on everyone's screen. <b>Nobody writes a bid</b>: whoever taps <b>TAKE</b> first gets the player for the price on screen.</> : <>Cada técnico começa com <b>100 moedas</b>. Os jogadores da leva vão pra mesa com <b>um preço só, igual pra todo mundo</b>, que abre em <b>{abertura} 🪙</b> e vai <b>CAINDO</b> na tela de todos. <b>Ninguém escreve lance</b>: quem apertar <b>PEGAR</b> primeiro leva o jogador pelo preço que está na tela.</>}</p>
         </Box>
 
-        {/* 👇 mock do que ela vai ver: o preço caindo em cima e o botão PEGAR na
-            linha do jogador. É o MESMO desenho da tela de verdade (preço grudado
-            no topo, barra que esvazia, botão verde) — quem viu aqui reconhece lá. */}
+        {/* 👇 mock do que ela vai ver: o preço caindo em cima e a MESA com vários
+            jogadores, cada um com seu botão PEGAR pelo mesmo preço. É o MESMO
+            desenho da tela de verdade (preço grudado no topo, barra que esvazia,
+            botão verde na linha) — quem viu aqui reconhece lá.
+            🧑‍🤝‍🧑 TRÊS JOGADORES, NÃO UM (pedido dele, 25/09: *"bote outra posição e
+            não só um jogador… coloque uns 3 pra dar a entender o jogo"*). Com uma
+            linha só parecia leilão de carta avulsa; a graça da Tocaia é a MESA
+            cheia com um preço só, e é isso que o desenho tem que contar.
+            ⚠️ E os três são da MESMA posição de propósito: a leva é por setor (a
+            tela de verdade mostra ATACANTES, depois a próxima posição). Misturar
+            GOL com ATA aqui seria ensinar um pregão que não existe. */}
         <Box bg="#fff" className="p-3.5" shadow={6}>
           <p className="font-black text-base mb-2" style={OSWALD}>{tr('👇 É ASSIM que você leva o craque', '👇 THIS is how you take the star')}</p>
           <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center" style={{ background: '#E8963A', boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -2861,21 +2869,25 @@ export function EscStreamIntro() {
             <div className="h-2 border-2 border-black rounded-full mt-1 overflow-hidden" style={{ background: 'rgba(255,255,255,.55)' }}>
               <div style={{ width: '24%', height: '100%', background: INK }} />
             </div>
+            <p className="text-[10px] font-bold text-black/60 mt-1">{tr('3 na mesa · setor: ATACANTES', '3 on the table · sector: FORWARDS')}</p>
           </div>
-          <div className="border-[3px] border-black rounded-xl p-2.5 flex items-center justify-between gap-2 mt-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>GOL</span>
-                <span className="font-black text-sm truncate" style={OSWALD}>Alex Muralha</span>
+          {([['Romário', 'Vasco · 2000'], ['Obina', 'Flamengo · 2005'], ['Dodô', 'São Paulo · 1997']] as [string, string][]).map(([nome, clube], i) => (
+            <div key={nome} className="border-[3px] border-black rounded-xl p-2.5 flex items-center justify-between gap-2 mt-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>ATA</span>
+                  <span className="font-black text-sm truncate" style={OSWALD}>{nome}</span>
+                </div>
+                <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>{clube} {i === 0 && <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span>}</p>
               </div>
-              <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
+              <span className="border-[3px] border-black rounded-xl px-3 py-2 font-black shrink-0 text-center"
+                style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD, fontSize: 15 }}>
+                {tr('PEGAR', 'TAKE')}<br /><span style={{ fontSize: 11 }}>24 🪙</span>
+              </span>
             </div>
-            <span className="border-[3px] border-black rounded-xl px-3 py-2 font-black shrink-0 text-center"
-              style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD, fontSize: 15 }}>
-              {tr('PEGAR', 'TAKE')}<br /><span style={{ fontSize: 11 }}>24 🪙</span>
-            </span>
-          </div>
-          <p className="text-xs font-bold text-black/70 mt-2 leading-snug">{getLang() === 'en' ? <>👆 <b>Waiting makes it cheaper</b> — but your friend can pounce first. That's the ambush: <b>hold on as long as you dare</b> without losing the star. Tap and it's <b>yours on the spot</b>, for the number you were looking at.</> : <>👆 <b>Esperar faz o preço cair</b> — mas o amigo pode dar o bote antes de você. Essa é a tocaia: <b>segurar até onde der coragem</b> sem perder o craque. Apertou, o jogador é <b>seu na hora</b>, pelo número que estava na tela.</>}</p>
+          ))}
+          <p className="text-xs font-bold text-black/70 mt-2 leading-snug">{getLang() === 'en' ? <>👆 The three cost <b>the same 24</b> right now, and you can take <b>more than one</b>. <b>Waiting makes it cheaper</b> — but your friend can pounce first. That's the ambush: <b>hold on as long as you dare</b> without losing the star. Tap and the player is <b>yours on the spot</b>, for the number you were looking at.</> : <>👆 Os três valem <b>os mesmos 24</b> agora, e dá pra levar <b>mais de um</b>. <b>Esperar faz o preço cair</b> — mas o amigo pode dar o bote antes de você. Essa é a tocaia: <b>segurar até onde der coragem</b> sem perder o craque. Apertou, o jogador é <b>seu na hora</b>, pelo número que estava na tela.</>}</p>
+          <p className="text-[11px] font-bold text-black/50 mt-1.5 leading-snug">{tr('Quando a mesa esvazia (ou o preço chega no fim), entra a próxima posição — e o preço volta lá em cima.', 'When the table empties (or the price hits the end), the next sector comes in — and the price starts high again.')}</p>
         </Box>
 
         {/* 🎰 O QUE ASSUSTA QUEM É NOVO: apertar e não levar. Tem que estar escrito
