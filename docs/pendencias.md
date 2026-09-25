@@ -1,3 +1,11 @@
+## 25/09/2026 — ⏱️ Champions +2s por jogo (tabela, repescão e mata-mata) ✅ NO AR (só na conta do Diego)
+
+Diego achou a Só Champions rápida demais (~3,5 min contra ~6 min da Liga + Copa dos 8)
+e pediu *"mais 2 segundos por jogo da champions, seja liga e copa, pra ver como
+ficaria"*. `CHAMPIONS_EXTRA_MS = 2000` (`screens.tsx`): rodada da tabela/repescão
+~6,7s → ~8,7s; jogo do mata-mata ~17s → ~19s (vale nos dois modos com Champions).
+Só Champions agora dura **~4 min** no automático. Reverter = zerar a constante.
+
 ## 25/09/2026 — 🚪 Champions: banners entre as fases + faixa de situação de cada um (aguardando OK)
 
 Pedido do Diego: *"tem que ter banner separando a repescagem… e deixando claro quem tá
