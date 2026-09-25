@@ -82,6 +82,23 @@ porque é a mesma tela.
 ↩️ **Reverter**: apagar o lado `tocaia` dos ternários — o envelope volta a ser o
 único texto, sem tocar em mais nada.
 
+## 25/09/2026 — ⭐ Banner cinematográfico da Champions (fim da liga) ✅ PUBLICADO
+
+Pedido do Diego: *"o mesmo estilo de banner da Copa do Mundo… com o troféu da Champions no
+lugar, e escrever Champions League"*. Mockup mandado; ok dele: *"faça aí"*.
+- `CompetitionStage kind="champions"` (novo `kind`) + `.ll25-champions-art` com
+  `img/online-champions-v25.webp` (1280×852, 40 KB): a MESMA sala da Copa do Mundo, o
+  troféu dourado tirado por inpaint, o troféu de orelhas (recortado da foto que ele mandou,
+  emblema desfocado) no pedestal, cena puxada pro azul `#1B3FA0` + estrelas. Receita em
+  `scratchpad` (não versionada) — refazer é: recorte por luminância + inpaint + blend.
+- O bannerzão azul liso do fim da liga saiu; regras e o botão "⭐ COMEÇAR A CHAMPIONS" ficam
+  na área creme embaixo do palco, igual ao portão da Copa do Mundo. Vale online e offline.
+- Texto do banner: **"Champions League"**, como ele pediu (no resto do jogo segue "Champions
+  Legends"). ⚠️ Foto real do troféu + nome "Champions League" são marcas da UEFA — avisado a
+  ele; decisão dele. Um troféu em DESENHO foi gerado no OpenArt (conta dele, histórico
+  9vTX9jlxc1AcjGUageCR) mas a rede daqui não baixa do cdn.openart.ai — se ele mandar a
+  imagem, é só trocar o webp.
+
 ## 25/09/2026 — ⭐ Champions offline: tabela zerada no Modo Manual ✅ CONSERTADO
 
 1º teste do Diego com bot: *"a Champions não deu certo"* (print da tabela de 36 toda zerada).

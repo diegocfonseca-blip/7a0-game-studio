@@ -44,6 +44,8 @@
 .ll25-liberta-art{background-image:linear-gradient(0deg,rgba(0,0,0,.86),rgba(0,0,0,.12)),url('./img/online-liberta-v25.webp')!important}
 .ll25-copa8-art{background-image:linear-gradient(0deg,rgba(0,0,0,.86),rgba(0,0,0,.12)),url('./img/online-copa8-v25.webp')!important}
 .ll25-world-art{background-image:linear-gradient(0deg,rgba(0,0,0,.65),transparent),url('./img/online-mundial-v25.webp')!important;background-position:75% center!important}
+/* ⭐ Champions (25/09): a MESMA sala da Copa do Mundo, com o troféu de orelhas no pedestal e a cena puxada pro azul */
+.ll25-champions-art{background-image:linear-gradient(0deg,rgba(0,0,0,.65),transparent),url('./img/online-champions-v25.webp')!important;background-position:75% center!important}
 .ll25-career{background:#F4ECD6!important}
 .ll25-career :where(button,select){font-family:Oswald,'Arial Narrow',sans-serif}
 .ll25-career-hero{min-height:176px;display:flex;flex-direction:column;justify-content:flex-end;background-size:cover!important;background-position:center!important;text-shadow:0 2px 4px #000}
