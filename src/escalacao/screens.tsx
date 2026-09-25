@@ -10611,24 +10611,30 @@ export function EscEnd() {
           `CareerEndPanel` — carreira tem o jornal dela (`jornal.tsx`). Sem esta
           trava, um save antigo abriria os DOIS jornais na mesma tela. Carreira
           nova nem passa por aqui (`careerOnline` vai pro PyramidSeasonScreen). */}
-      {/* ⭐ Só Champions: o jornal fala de liga, Copa dos 8 e lanterna — nada disso existe aqui */}
-      {!soChampions && !state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
+      {/* ⭐ Só Champions: o jornal tem EDIÇÃO CHAMPIONS (`montaEdicaoChampions`) — pedido do Diego 25/09 */}
+      {!state.careerDivision && !copaPending && !libPending && !mundoPendente && (!state.liberta || copaDone) && (
         <JornalDaSalaBloco state={state} vagasCopa={copaN(table.length)} zonaDebaixo={zoneBot(table.length)} mundo={campeaoDoMundo} />
       )}
       {online && state.roomId && !state.careerOnline && !copaPending && !libPending && mundoChecado && !mundoPendente && (() => {
         const copaSc = [...(state.quickCopa?.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
+        // ⭐ SÓ CHAMPIONS (25/09): não houve liga — a tabela que vale é a de 36 e o título da
+        // temporada é o da Champions. Sem isto a sala gravava um "campeão da liga" de mentira
+        // (o 1º de uma liga que nunca rolou, com 0 pontos) no histórico e no Salão da liga.
+        const chTab = soChampions && state.champions ? championsTabela(state.champions) : null
+        const chCamp = soChampions ? state.quickCopa?.champion ?? null : null
+        const posDe = (id: number) => chTab ? chTab.findIndex(t => t.id === id) : table.findIndex(t => t.id === id)
         const resultados: ResultadoHumanoEntrada[] = state.managers.filter(m => m.isHuman).map(m => {
-          const pos = table.findIndex(t => t.id === m.id)
+          const pos = posDe(m.id)
           const cupTitles: TituloSalaRapida[] = []
-          if (copaDone && state.quickCopa?.champion?.id === m.id) cupTitles.push(libEnd ? 'libertadores' : 'copa')
+          if (!chTab && copaDone && state.quickCopa?.champion?.id === m.id) cupTitles.push(libEnd ? 'libertadores' : 'copa')
           if (campeaoDoMundo?.nome === m.teamName) cupTitles.push('mundial')
           return {
             managerId: m.id,
             teamName: m.teamName,
             position: pos >= 0 ? pos + 1 : 0,
-            qualified: pos >= 0 && pos < copaN(table.length),
-            relegated: pos >= 0 && pos + 1 >= zoneBot(table.length),
-            leagueChampion: champ.id === m.id,
+            qualified: chTab ? pos >= 0 && pos < CHAMPIONS_REPESCAO : pos >= 0 && pos < copaN(table.length),
+            relegated: chTab ? false : pos >= 0 && pos + 1 >= zoneBot(table.length),
+            leagueChampion: chTab ? chCamp?.id === m.id : champ.id === m.id,
             cupTitles,
           }
         })
@@ -10636,12 +10642,12 @@ export function EscEnd() {
           <LigaHub roomId={state.roomId} souDono={state.isHost}
             humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
             gravar={{
-              seasonNo: state.seasonNo, matchSeed: state.seed, champName: champ.name,
-              scorerName: myScorer?.name, scorerGoals: myScorer?.goals,
-              scorerTeamName: state.managers.find(m => m.id === myScorer?.teamId)?.teamName,
-              micoName: table.length > 1 ? table[table.length - 1]?.name : undefined,
-              copaChampName: campeaoDoMundo ? `${campeaoDoMundo.nome} (${campeaoDoMundo.pais})` : copaDone ? (state.quickCopa?.champion?.name ?? undefined) : undefined,
-              copaScorerName: copaDone ? copaSc?.name : undefined, copaScorerGoals: copaDone ? copaSc?.goals : undefined,
+              seasonNo: state.seasonNo, matchSeed: state.seed, champName: chTab ? (chCamp?.name ?? champ.name) : champ.name,
+              scorerName: chTab ? copaSc?.name : myScorer?.name, scorerGoals: chTab ? copaSc?.goals : myScorer?.goals,
+              scorerTeamName: chTab ? copaSc?.teamName : state.managers.find(m => m.id === myScorer?.teamId)?.teamName,
+              micoName: chTab ? (chTab.length > 1 ? chTab[chTab.length - 1]?.name : undefined) : table.length > 1 ? table[table.length - 1]?.name : undefined,
+              copaChampName: chTab ? undefined : campeaoDoMundo ? `${campeaoDoMundo.nome} (${campeaoDoMundo.pais})` : copaDone ? (state.quickCopa?.champion?.name ?? undefined) : undefined,
+              copaScorerName: !chTab && copaDone ? copaSc?.name : undefined, copaScorerGoals: !chTab && copaDone ? copaSc?.goals : undefined,
               humanResults: resultados,
             }} />
         )

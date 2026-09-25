@@ -3545,10 +3545,13 @@ function seedChampionsDireto(league: LeagueTeam[], rng: () => number): Champions
  *  caminhos que montam a liga — fim do leilão, jogar de novo, nova temporada — sem
  *  precisar lembrar de cada um. A liga continua montada por baixo (é de lá que o motor
  *  lê a força dos times com técnico), só que com a rodada no fim: ninguém joga ela.
- *  ⚠️ Só no rápido OFFLINE, no futebol, fora da carreira. */
+ *  ⚠️ Rápido offline e sala online (no online, só o host), no futebol, fora da carreira. */
 function abreChampionsDiretoSePrecisa(s: EscState) {
   if (s.copaMode !== 'champions' || s.screen !== 'season') return
-  if (s.onlineMode === 'online' || s.careerOnline || s.careerDivision || s.sport === 'basquete') return
+  // 🌐 ONLINE (25/09, *"agora faça no modo online"*): só o HOST semeia — ele é quem conduz
+  // a sala e o resultado chega pronto pros outros. Convidado nunca monta Champions própria
+  // (regra de ouro do online: host-autoritativo).
+  if ((s.onlineMode === 'online' && !s.isHost) || s.careerOnline || s.careerDivision || s.sport === 'basquete') return
   if (s.round !== 0 || !s.league.length) return
   // 🧹 com a rodada em 0, qualquer Champions/Copa que estiver no estado é RESTO da
   // partida anterior (a de verdade já nasce com a rodada no fim). Foi o que o Diego
@@ -3557,7 +3560,9 @@ function abreChampionsDiretoSePrecisa(s: EscState) {
   s.champions = null; s.quickCopa = null; s.liberta = null
   s.champions = seedChampionsDireto(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0))
   s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
-  s.news = [tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — o seu, os rivais do leilão e os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — yours, your auction rivals and the named clubs.')]
+  s.news = [s.onlineMode === 'online'
+    ? tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — os times da sala e, completando, os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — the room\'s teams and, to complete it, the named clubs.')
+    : tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — o seu, os rivais do leilão e os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — yours, your auction rivals and the named clubs.')]
   s.screen = 'champions'
 }
 

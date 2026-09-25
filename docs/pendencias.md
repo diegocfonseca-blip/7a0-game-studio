@@ -1,3 +1,26 @@
+## 25/09/2026 — ⭐ Só Champions no ONLINE (salas rápidas + Minhas Ligas) + jornal da Champions ✅ NO AR (só na conta do Diego)
+
+Diego: *"ok agora faça no modo online! Vamos fazer!! Além disso quando acaba tem jornal,
+né? Porque no partida rápida não teve"*.
+- **Jornal O MARTELO · edição Champions** (`montaEdicaoChampions` em `jornal-sala.tsx`):
+  manchete "X É O CAMPEÃO DA CHAMPIONS", destaque principal = campeão da Champions,
+  posição = a da tabela de 36, nota de cada um pela campanha (tabela → repescão →
+  mata-mata; lanterna da tabela; "a uma posição do repescão"). Mesmo desenho do jornal
+  de sempre — só troca "liga" por "Champions/tabela". Vale offline e online.
+- **Online**: no seletor "depois da liga" da criação de sala, **"⭐ Liga + Champions" virou
+  "⭐ Só Champions"** (igual ao rápido offline). O mesmo seletor serve sala rápida e
+  Minhas Ligas. Continua travado com EM BREVE fora de `CHAMPIONS_TESTERS`. O motor
+  (`abreChampionsDiretoSePrecisa`) agora roda no online **só no host**.
+- **Sala de até 36 técnicos** quando é Só Champions (`MAX_PLAYERS_CHAMPIONS`, sem duplas —
+  dupla segue em 20 times). Testado no motor: 36 pessoas → 36 na tabela, 0 fake, todo
+  mundo com 11; 5 pessoas → 5 + 31 de batismo/liga. Lista de salas mostra "⭐ só champions".
+- **Histórico/Salão da liga**: na Só Champions a temporada grava o CAMPEÃO DA CHAMPIONS no
+  lugar do campeão da liga (antes gravaria o 1º de uma liga que nunca rolou, com 0 pts),
+  posição da tabela de 36, artilheiro da Champions e lanterna da tabela.
+📌 A conferir com a sala de verdade: peso da sala com 36 (lembrar do Tocaia, 24/09) e se
+o Salão da liga deve chamar esse título de "Champions" em vez de "Liga" (hoje entra como
+o título da temporada). Salas "Liga + Champions" que já existiam seguem funcionando.
+
 ## 25/09/2026 — 🥊 Repescão da Champions no MOTOR DA COPA (relógio, pênaltis, cobrança) ✅ NO AR
 
 Print do Diego no repescão: placar parado, sem o relógio de 1' em diante. *"não teve
