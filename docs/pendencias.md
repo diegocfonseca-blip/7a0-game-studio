@@ -30,6 +30,11 @@ Testado de ponta a ponta com o motor de verdade (leilão → 8 rodadas → repes
 oitavas → campeão → "Nova temporada" volta direto pra tabela), prints conferidos.
 **Reverter**: é um commit só — `git revert` dele.
 
+⚖️ **Nível dos convidados: DECIDIDO, fica como está (25/09).** Medido: rival do
+leilão = 100%, bot de enchimento ≈ 82%, os 16 batismos convidados ≈ 72% (levam o
+mesmo desconto dos bots em cima de uma força menor). Propus subir pra 82% e ele
+disse: *"Não. Deixa como tá"*. **Não repropor.**
+
 📌 Pendente (não fazer sem ele pedir): liberar a Champions pra todos
 (`CHAMPIONS_GERAL`); Só Champions no ONLINE; jornal O MARTELO com edição da Champions.
 
