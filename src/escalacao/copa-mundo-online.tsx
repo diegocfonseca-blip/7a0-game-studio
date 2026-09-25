@@ -37,7 +37,7 @@ import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { CompetitionStage } from './online-match-visual'
 import { NationalCrest } from './national-crest'
 import { useCopaClockPreview } from './copa-clock-preview'
-import { simulaCopaMundo } from './copa-mundo'
+import { simulaCopaMundo, koTemGente } from './copa-mundo'
 import { PASSO_COPA } from './copa-passos'
 import { agoraSala } from './relogio' // ⏱️ o relógio da sala é o do DONO (ver relogio.ts)
 import { pensRevealDelay } from './pyramidseason'
@@ -117,7 +117,7 @@ export function montaFicha(
 export function entrantesDaFicha(ficha: CopaFicha, meuUid?: string): Entrant[] {
   return ficha.times.map(t => {
     const xi = t.xiKeys?.length ? xiPorChaves(t.pais, t.xiKeys) : xiDaMaquina(t.pais).xi
-    return { club: t.nome, you: !!t.uid && t.uid === meuUid, pais: t.pais, xi, str: xiStrength(xi) }
+    return { club: t.nome, you: !!t.uid && t.uid === meuUid, pais: t.pais, xi, str: xiStrength(xi), humano: !!t.uid }
   })
 }
 
@@ -222,8 +222,8 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   const extraForStep=(step:number)=>{
     if(!clockWorld)return 0
     const ties=step===PASSO_COPA.OITAVAS?clockWorld.r16:step===PASSO_COPA.QUARTAS?clockWorld.qf:step===PASSO_COPA.SEMI?clockWorld.sf:[]
-    if(step===PASSO_COPA.FINAL&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen)*1000)
-    return Math.round(Math.max(0,...ties.map(t=>t.pen?pensRevealDelay(t.pen)*1000:0)))
+    if(step===PASSO_COPA.FINAL&&clockWorld.final.pen)return Math.round(pensRevealDelay(clockWorld.final.pen,koTemGente(entrants,clockWorld.final))*1000)
+    return Math.round(Math.max(0,...ties.map(t=>t.pen?pensRevealDelay(t.pen,koTemGente(entrants,t))*1000:0)))
   }
   const clock=useCopaClockPreview(cinematic,roomId,ficha.edicao,ficha.seed,souDono,extraForStep)
   // 🔑 a IDENTIDADE desta Copa no ranking: sala + semente. A semente muda a cada
