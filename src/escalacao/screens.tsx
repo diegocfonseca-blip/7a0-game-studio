@@ -6324,7 +6324,10 @@ export function EscSeason() {
               )
             ) : (
               <Box bg="#fff" className="p-4" shadow={6}>
-                <p className="text-center font-black text-sm" style={OSWALD}>{libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…')}</p>
+                <p className="text-center font-black text-sm" style={OSWALD}>{chS ? ([...qc.bracket.flatMap(b => b.ties), ...qc.ties].some(tt => tt.aId === you.id || tt.bId === you.id)
+                  ? LS('❌ Você caiu — acompanhe a Champions chegando ao fim…', '❌ You are out — follow the Champions to the end…')
+                  : LS('❌ Você não se classificou pro mata-mata — agora é só assistir a Champions chegando ao fim…', '❌ You did not reach the knockouts — now just watch the Champions to the end…'))
+                : libS ? LS('Você já caiu — acompanhe a Libertadores chegando ao fim…', 'You are out — follow the Libertadores to the end…') : LS('Acompanhe a Copa dos 8 chegando ao fim…', 'Follow the Cup of 8 to the end…')}</p>
               </Box>
             )}
             {/* 🎮 No online, a leitura aprovada é sempre: cartaz → placar →
@@ -7580,6 +7583,10 @@ const PROMESSA_TIER = { label: '💎 PROMESSA', grad: 'linear-gradient(150deg,#C
 // parado. Isso bate na regra de ouro dele (*"nada pode atrasar o ritmo do jogo"*),
 // então o repescão roda CORRIDO e tem PULAR desde o primeiro segundo — e a tela
 // vende a espera como prêmio ("você já está dentro"), não como castigo.
+// 🚪 tempo de leitura dos dois banners que separam as fases (só no automático; no manual
+// quem manda é o botão). Curto de propósito: *"nada pode atrasar o ritmo do jogo"*.
+const PORTAO_REPESCAO_MS = 10_000
+const PORTAO_OITAVAS_MS = 6_000
 const CHAMPIONS_FAIXAS: { ate: number; bg: string; ink: string; pt: string; en: string }[] = [
   { ate: CHAMPIONS_DIRETO, bg: GREEN, ink: '#fff', pt: '1º ao 8º · VÃO DIRETO PRAS OITAVAS', en: '1st to 8th · STRAIGHT TO THE ROUND OF 16' },
   { ate: CHAMPIONS_REPESCAO, bg: GOLD, ink: INK, pt: '9º ao 24º · JOGAM O REPESCÃO (ida e volta)', en: '9th to 24th · PLAY THE PLAYOFF (two legs)' },
@@ -7622,11 +7629,22 @@ export function EscChampions() {
   // 🙈 ANTI-SPOILER (regra do Diego): a tabela só se mexe DEPOIS que a rodada
   // terminou de animar — a mesma trava da liga e da Liberta.
   const [revealed, setRevealed] = useState(false)
+  const [revealedAt, setRevealedAt] = useState(0)
+  const temJogo = (ch?.lastResults.length ?? 0) > 0
   useEffect(() => {
     setRevealed(false)
-    const t = setTimeout(() => setRevealed(true), roundMs * 0.85 + 250)
+    // sem jogo na tela (reabriu o save no portão) = já está "revelado"
+    const t = setTimeout(() => { setRevealed(true); setRevealedAt(Date.now()) }, temJogo ? roundMs * 0.85 + 250 : 0)
     return () => clearTimeout(t)
-  }, [ch?.rodada, ch?.repescaoLeg, roundMs])
+  }, [ch?.rodada, ch?.repescaoLeg, ch?.fase, roundMs, temJogo])
+  // ⏱️ relógio dos dois PORTÕES (fim da tabela → repescão · fim do repescão → oitavas)
+  const [agora, setAgora] = useState(Date.now())
+  const noPortao = !!ch && ((ch.fase === 'repescao' && !!ch.repescao?.every(tt => tt.legs.length === 0)) || ch.fase === 'mata')
+  useEffect(() => {
+    if (!noPortao || !revealed) return
+    const iv = setInterval(() => setAgora(Date.now()), 500)
+    return () => clearInterval(iv)
+  }, [noPortao, revealed])
   useEffect(() => { startCrowd(); return () => stopCrowd() }, [])
   useApitoDeLargada('champions', (ch?.rodada ?? 0) > 0 ? `${ch?.fase ?? ''}-${ch?.rodada ?? 0}-${ch?.repescaoLeg ?? 0}` : null, true)
 
@@ -7637,16 +7655,29 @@ export function EscChampions() {
       const t = setTimeout(() => dispatch({ type: 'PLAY_CHAMPIONS_RODADA' }), ch.rodada === 0 ? Math.round(2200 / speedFactor) : roundMs)
       return () => clearTimeout(t)
     }
+    // 🚪 nos portões o relógio só começa DEPOIS do apito (revealed) — o banner precisa
+    // de tempo de leitura; fora deles, o ritmo é o mesmo da rodada da liga.
     if (ch.fase === 'repescao') {
-      const t = setTimeout(() => dispatch({ type: 'PLAY_CHAMPIONS_REPESCAO' }), roundMs)
+      if (noPortao && !revealed) return
+      const t = setTimeout(() => dispatch({ type: 'PLAY_CHAMPIONS_REPESCAO' }), noPortao ? PORTAO_REPESCAO_MS : roundMs)
       return () => clearTimeout(t)
     }
-  }, [ch?.rodada, ch?.fase, ch?.repescaoLeg, canAdvance, manual, roundMs, speedFactor, dispatch])
+    if (ch.fase === 'mata' && revealed && state.quickCopa) {
+      const t = setTimeout(() => dispatch({ type: 'START_COPA' }), PORTAO_OITAVAS_MS)
+      return () => clearTimeout(t)
+    }
+  }, [ch?.rodada, ch?.fase, ch?.repescaoLeg, canAdvance, manual, roundMs, speedFactor, dispatch, noPortao, revealed, state.quickCopa])
 
   if (!ch) return null
   const nomeDe = (id: number) => ch.times.find(t => t.id === id)?.name ?? '?'
   // anti-spoiler: enquanto anima, a tabela mostra como estava ANTES desta rodada
-  const timesShown = !revealed && ch.lastResults.length > 0 && ch.fase === 'tabela'
+  // 🎬 a 8ª rodada é jogada e o motor já vira pro repescão na mesma hora — mas a TELA
+  // segue mostrando a tabela até o apito (senão o fim da tabela vinha de spoiler)
+  const portaoRepescao = ch.fase === 'repescao' && !!ch.repescao?.every(tt => tt.legs.length === 0)
+  const vistaTabela = ch.fase === 'tabela' || portaoRepescao
+  const rodada8Rolando = portaoRepescao && !revealed && ch.lastResults.length > 0
+  const portaoOitavas = ch.fase === 'mata' && revealed
+  const timesShown = !revealed && ch.lastResults.length > 0 && vistaTabela
     ? leagueBeforeResults(ch.times, ch.lastResults)
     : ch.times
   const tabela = [...timesShown].sort((a, b) =>
@@ -7659,9 +7690,33 @@ export function EscChampions() {
     : undefined
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
 
-  // ⏳ A ESPERA: estou no top 8 e o repescão está rolando sem mim
-  const esperando = ch.fase === 'repescao' && minhaPos > 0 && minhaPos <= CHAMPIONS_DIRETO
+  // 🧭 A SITUAÇÃO DE CADA UM, lá em cima (Diego 25/09: *"qm tá classificado dizer que
+  // já passou e tá aguardando a repescagem… qm tá na repescagem avisa que tá… e qm
+  // não se classificou avisa também lá em cima, igual na Copa dos 8… e ele só assiste"*).
+  // Só aparece DEPOIS do apito da 8ª rodada — antes disso ela entregaria o resultado.
+  const meuTie = ch.repescao?.find(tt => tt.aId === you.id || tt.bId === you.id)
+  const advNome = meuTie ? (meuTie.aId === you.id ? meuTie.bName : meuTie.aName) : ''
+  const situacao: { bg: string; ink: string; titulo: string; texto: string } | null = (() => {
+    if (vistaTabela && !portaoRepescao) return null
+    if (rodada8Rolando || minhaPos === 0) return null
+    const fechou = ch.fase === 'mata' && revealed
+    if (minhaPos <= CHAMPIONS_DIRETO) return { bg: GREEN, ink: '#fff',
+      titulo: T('✅ VOCÊ JÁ ESTÁ NAS OITAVAS', '✅ YOU ARE ALREADY IN THE ROUND OF 16'),
+      texto: fechou ? T(`Terminou a tabela em ${minhaPos}º. O repescão fechou — agora vêm as oitavas.`, `You finished the table ${minhaPos}th. The playoff is over — the round of 16 is next.`)
+        : T(`Terminou a tabela em ${minhaPos}º e passou direto. Não joga o repescão: está aguardando saber quem te pega.`, `You finished the table ${minhaPos}th and went straight through. You skip the playoff: waiting to find out who you get.`) }
+    if (minhaPos <= CHAMPIONS_REPESCAO) {
+      if (fechou && meuTie?.winner != null) return meuTie.winner === you.id
+        ? { bg: GREEN, ink: '#fff', titulo: T('✅ PASSOU NO REPESCÃO!', '✅ THROUGH THE PLAYOFF!'), texto: T(`Eliminou o ${advNome}. Você está nas oitavas.`, `You knocked out ${advNome}. You are in the round of 16.`) }
+        : { bg: '#9A9384', ink: '#fff', titulo: T('❌ CAIU NO REPESCÃO', '❌ OUT IN THE PLAYOFF'), texto: T(`O ${advNome} levou a vaga. Daqui pra frente é só assistir — a Champions continua na tela.`, `${advNome} took the spot. From here on you just watch — the Champions goes on.`) }
+      return { bg: GOLD, ink: INK, titulo: T('⚔️ VOCÊ ESTÁ NO REPESCÃO', '⚔️ YOU ARE IN THE PLAYOFF'),
+        texto: T(`Terminou a tabela em ${minhaPos}º. Ida e volta contra o ${advNome} — quem vencer no agregado vai pras oitavas.`, `You finished the table ${minhaPos}th. Two legs against ${advNome} — the aggregate winner reaches the round of 16.`) }
+    }
+    return { bg: '#9A9384', ink: '#fff', titulo: T('❌ VOCÊ NÃO SE CLASSIFICOU', '❌ YOU DID NOT QUALIFY'),
+      texto: T(`Terminou a tabela em ${minhaPos}º — só até o 24º segue. Agora é só assistir: a Champions continua na tela.`, `You finished the table ${minhaPos}th — only the top 24 go on. Now you just watch: the Champions goes on.`) }
+  })()
+  const naoJogoORepescao = ch.fase === 'repescao' && !portaoRepescao && !meuTie
   const pular = () => { if (state.champions?.fase === 'repescao') dispatch({ type: 'PLAY_CHAMPIONS_REPESCAO' }) }
+  const seg = (ms: number) => Math.max(0, Math.ceil((revealedAt + ms - agora) / 1000))
 
   // 🎨 A TABELA NO DESENHO DA LIGA (25/09). Mesmas colunas da `TableBox` (# · Time · P ·
   // V · E · D · SG), escudo na frente do nome e a SUA linha no degradê do seu tier —
@@ -7696,11 +7751,15 @@ export function EscChampions() {
       </tr>
     )
   }
-  const fase = ch.fase === 'tabela'
+  // qual perna do repescão ACABOU de ser jogada (a que está na tela)
+  const pernaNaTela = ch.fase === 'mata' ? 1 : 0
+  const fase = rodada8Rolando || ch.fase === 'tabela'
     ? `${T('Fase de tabela', 'League phase')} · ${T('rodada', 'round')} ${Math.max(1, Math.min(ch.rodada, CHAMPIONS_RODADAS))}/${CHAMPIONS_RODADAS}`
-    : `${T('Repescão', 'Playoff')} · ${ch.repescaoLeg === 0 ? T('ida', '1st leg') : T('volta', '2nd leg')}`
+    : portaoRepescao ? T('Fim da tabela · vem o repescão', 'Table over · the playoff is next')
+    : portaoOitavas ? T('Fim do repescão · vêm as oitavas', 'Playoff over · round of 16 next')
+    : `${T('Repescão', 'Playoff')} · ${pernaNaTela === 0 ? T('ida', '1st leg') : T('volta', '2nd leg')}`
   const canNext = (ch.rodada === 0 && ch.fase === 'tabela') || revealed
-  const avancar = () => dispatch({ type: ch.fase === 'repescao' ? 'PLAY_CHAMPIONS_REPESCAO' : 'PLAY_CHAMPIONS_RODADA' })
+  const avancar = () => dispatch({ type: ch.fase === 'mata' ? 'START_COPA' : ch.fase === 'repescao' ? 'PLAY_CHAMPIONS_REPESCAO' : 'PLAY_CHAMPIONS_RODADA' })
   const outros = ch.lastResults.filter(r => r.homeId !== you.id && r.awayId !== you.id)
   const golsDe = (r: typeof ch.lastResults[number]) => (r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({ name: g.text, min: g.min, home: g.teamId === r.homeId }))
 
@@ -7708,18 +7767,36 @@ export function EscChampions() {
     <Shell wide className={cinemaOnline ? 'll31-cinema' : ''} bar={
       <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
         <span className="font-black text-sm" style={OSWALD}>
-          ⭐ CHAMPIONS · {ch.fase === 'repescao' ? `${T('REPESCÃO', 'PLAYOFF')} · ${ch.repescaoLeg === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}` : `${T('RODADA', 'ROUND')} ${privateVisual ? Math.max(1, Math.min(ch.rodada, CHAMPIONS_RODADAS)) : Math.min(ch.rodada + 1, CHAMPIONS_RODADAS)}/${CHAMPIONS_RODADAS}`}
+          ⭐ CHAMPIONS · {vistaTabela ? `${T('RODADA', 'ROUND')} ${Math.max(1, Math.min(ch.rodada, CHAMPIONS_RODADAS))}/${CHAMPIONS_RODADAS}` : `${T('REPESCÃO', 'PLAYOFF')} · ${pernaNaTela === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}`}
         </span>
         {minhaPos > 0 && <span className="font-black text-sm" style={OSWALD}>{ordinal(minhaPos, getLang() === 'en' ? 'en' : 'pt')} · {tabela[minhaPos - 1]?.pts ?? 0} pts</span>}
       </div>
     }>
       {/* ⭐ o MESMO palco cinematográfico da Copa do Mundo e da Liberta */}
       <CompetitionStage kind="champions" title="CHAMPIONS LEAGUE" phase={ch.rodada === 0 && ch.fase === 'tabela' ? T('A tabela de 36', 'The table of 36') : fase}
-        detail={ch.fase === 'tabela' ? T('36 clubes, uma tabela só. Cada um joga 8 adversários diferentes. 1º ao 8º: oitavas · 9º ao 24º: repescão · 25º ao 36º: fora.', '36 clubs, one single table. Each plays 8 different opponents. 1st-8th: round of 16 · 9th-24th: playoff · 25th-36th: out.') : T('16 clubes brigam por 8 vagas nas oitavas, em ida e volta.', '16 clubs fight for 8 round-of-16 spots, over two legs.')}
-        status={minhaPos > 0 ? `${T('Você', 'You')}: ${minhaPos}º · ${tabela[minhaPos - 1]?.pts ?? 0} pts` : undefined} />
+        // 🚪 nos PORTÕES o próprio banner é o que separa as fases (um teatro só na tela):
+        // ele explica quem segue pra onde e conta o tempo pra próxima fase
+        detail={portaoRepescao && revealed ? T('1º ao 8º já estão nas OITAVAS. 9º ao 24º jogam o REPESCÃO: ida e volta, 8 vagas. 25º ao 36º estão fora.', '1st to 8th are already in the ROUND OF 16. 9th to 24th play the PLAYOFF: two legs, 8 spots. 25th to 36th are out.')
+          : portaoOitavas ? T('Os 8 que passaram no repescão encaram o top 8 da tabela nas OITAVAS.', 'The 8 playoff winners face the top 8 of the table in the ROUND OF 16.')
+          : vistaTabela ? T('36 clubes, uma tabela só. Cada um joga 8 adversários diferentes. 1º ao 8º: oitavas · 9º ao 24º: repescão · 25º ao 36º: fora.', '36 clubs, one single table. Each plays 8 different opponents. 1st-8th: round of 16 · 9th-24th: playoff · 25th-36th: out.')
+          : T('16 clubes brigam por 8 vagas nas oitavas, em ida e volta.', '16 clubs fight for 8 round-of-16 spots, over two legs.')}
+        status={portaoRepescao && revealed && !manual ? T(`⚽ O repescão começa em ${seg(PORTAO_REPESCAO_MS)}s`, `⚽ The playoff starts in ${seg(PORTAO_REPESCAO_MS)}s`)
+          : portaoOitavas && !manual ? T(`⚽ As oitavas começam em ${seg(PORTAO_OITAVAS_MS)}s`, `⚽ The round of 16 starts in ${seg(PORTAO_OITAVAS_MS)}s`)
+          : minhaPos > 0 ? `${T('Você', 'You')}: ${minhaPos}º · ${tabela[minhaPos - 1]?.pts ?? 0} pts` : undefined} />
+
+      {/* 🧭 A SITUAÇÃO — sempre no alto, logo abaixo do banner, em qualquer aba */}
+      {situacao && (
+        <Box bg={situacao.bg} className="p-3" shadow={4}>
+          <p className="font-black text-[14px] text-center leading-tight" style={{ ...OSWALD, color: situacao.ink }}>{situacao.titulo}</p>
+          <p className="text-[11.5px] font-bold text-center leading-snug mt-1" style={{ color: situacao.ink, opacity: .92 }}>{situacao.texto}</p>
+          {canAdvance && naoJogoORepescao && (
+            <Btn onClick={pular} bg="#fff" className="w-full mt-2.5">⏩ {T('PULAR O REPESCÃO', 'SKIP THE PLAYOFF')}</Btn>
+          )}
+        </Box>
+      )}
 
       {/* 📺 O SEU jogo da rodada — o MESMO placar da liga (encolhe e gruda no topo ao rolar) */}
-      {meuJogo ? (() => {
+      {meuJogo && !(portaoRepescao && revealed) && !portaoOitavas ? (() => {
         const homeIsYou = meuJogo.homeId === you.id
         const oppId = homeIsYou ? meuJogo.awayId : meuJogo.homeId
         const oppIsHuman = humanoId(oppId)
@@ -7730,11 +7807,12 @@ export function EscChampions() {
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={passo} roundMs={roundMs} classico={oppIsHuman}
           enhancedOnline={privateVisual} />
-      })() : (
+      })() : (portaoRepescao && revealed) || portaoOitavas ? null : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>
             {ch.rodada === 0 && ch.fase === 'tabela' ? T('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')
-              : ch.fase === 'repescao' ? T('📺 Você não joga o repescão — acompanhe os confrontos.', '📺 You do not play the playoff — follow the ties.')
+              : portaoRepescao ? T('🏁 Aguardando o pontapé inicial do repescão…', '🏁 Waiting for the playoff kick-off…')
+              : ch.fase !== 'tabela' ? T('📺 Você não joga o repescão — acompanhe os confrontos.', '📺 You do not play the playoff — follow the ties.')
               : T('📺 Você não jogou nesta rodada.', '📺 You did not play this round.')}
           </p>
         </Box>
@@ -7742,13 +7820,13 @@ export function EscChampions() {
 
       {/* 🎮 O RITMO — os MESMOS botões da liga, no mesmo lugar (logo abaixo do placar) */}
       {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
-      {(!online || streamHost) && ch.fase !== 'mata' && (
+      {(!online || streamHost) && (ch.fase !== 'mata' || !!state.quickCopa) && (
         <SimControls manual={manual} onToggle={toggleManual} canNext={canNext}
           lock={manualLocked ? <QuickManualLock /> : undefined}
           onNext={avancar} onSkip={avancar}
-          nextLabel={!canNext ? T('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : ch.rodada === 0 && ch.fase === 'tabela' ? T('▶️ Começar a Champions', '▶️ Start the Champions') : ch.fase === 'repescao' ? T('▶️ Próxima perna do repescão', '▶️ Next playoff leg') : T('▶️ Próxima rodada', '▶️ Next round')} />
+          nextLabel={!canNext ? T('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : ch.rodada === 0 && ch.fase === 'tabela' ? T('▶️ Começar a Champions', '▶️ Start the Champions') : ch.fase === 'mata' ? T('▶️ Ir pras oitavas', '▶️ Go to the round of 16') : portaoRepescao ? T('▶️ Começar o repescão', '▶️ Start the playoff') : ch.fase === 'repescao' ? T('▶️ Jogar a volta do repescão', '▶️ Play the playoff 2nd leg') : T('▶️ Próxima rodada', '▶️ Next round')} />
       )}
-      {online && !state.isHost && ch.fase !== 'mata' && (
+      {online && !state.isHost && (
         <p className="text-center text-[11px] font-bold text-black/50" style={privateVisual ? { color: CREAM } : undefined}>{T('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
 
@@ -7756,7 +7834,7 @@ export function EscChampions() {
       {privateVisual && <OnlineMatchTabs value={visualTab} onChange={setVisualTab} />}
 
       {/* 🎞️ faixa dos outros jogos (a mesma da liga) */}
-      {privateVisual && visualTab === 'jogos' && outros.length > 0 && ch.fase === 'tabela' && (
+      {privateVisual && visualTab === 'jogos' && outros.length > 0 && !(portaoRepescao && revealed) && !portaoOitavas && (
         <section className="ll27-room-summary" aria-label="Resumo dos outros jogos"><h3>{T('OUTROS JOGOS · RODADA', 'OTHER MATCHES · ROUND')} {ch.rodada}</h3><div className="ll27-ticker" tabIndex={0}>{outros.map(r => {
           const home = nomeDe(r.homeId), away = nomeDe(r.awayId)
           return <RoundMatchPresentation key={`${r.homeId}-${r.awayId}`} startedAt={startedAt} roundKey={passo} roundMs={roundMs} finished={revealed} home={home} away={away} homeCrest={<Escudo nome={home} size={20} />} awayCrest={<Escudo nome={away} size={20} />} score={[r.hg, r.ag]} goals={golsDe(r)} />
@@ -7764,26 +7842,6 @@ export function EscChampions() {
       )}
 
       <div hidden={privateVisual && visualTab !== 'jogos'} className="space-y-5">
-        {/* ⏳ a espera do top 8 — vendida como prêmio, com saída imediata */}
-        {esperando && (
-          <>
-            <Box bg={GREEN} className="p-2.5">
-              <p className="font-black text-white text-[12.5px] text-center leading-snug" style={OSWALD}>
-                {T(`🟢 VOCÊ TERMINOU EM ${minhaPos}º — JÁ ESTÁ NAS OITAVAS`, `🟢 YOU FINISHED ${minhaPos}TH — YOU ARE ALREADY IN THE ROUND OF 16`)}
-              </p>
-            </Box>
-            <Box bg="#fff" className="p-3">
-              <p className="text-[11.5px] font-bold leading-relaxed text-black/70">
-                {T('Agora rola o repescão: 16 clubes brigam por 8 vagas. Você não joga essa fase — está esperando saber quem te pega.',
-                   'Now the playoff runs: 16 clubs fight for 8 spots. You do not play this round — you are waiting to find out who you get.')}
-              </p>
-              {canAdvance && (
-                <Btn onClick={pular} bg="#fff" className="w-full mt-2.5">⏩ {T('PULAR PRO SORTEIO DAS OITAVAS', 'SKIP TO THE ROUND OF 16 DRAW')}</Btn>
-              )}
-            </Box>
-          </>
-        )}
-
         {/* ⚔️ PRÓXIMO JOGO + os três botões de tática — o MESMO card da liga */}
         {proximo && (() => {
           const oppId = proximo[0] === you.id ? proximo[1] : proximo[0]
@@ -7812,24 +7870,29 @@ export function EscChampions() {
         })()}
 
         {/* 🥊 os 8 confrontos do repescão — no mesmo cartão de confronto da Copa */}
-        {ch.fase === 'repescao' && !!ch.repescao && (
+        {!vistaTabela || (portaoRepescao && revealed) ? !!ch.repescao && (
           <div className={privateVisual ? 'll26-phase-matches' : undefined}>
             <p className="text-xs font-black uppercase text-black/50 mt-1 mb-1" style={privateVisual ? { color: CREAM } : undefined}>{T('Todos os jogos do repescão', 'All playoff ties')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
               {ch.repescao.map((tie, i) => {
-                const ga = tie.legs.reduce((n, l) => n + l[0], 0), gb = tie.legs.reduce((n, l) => n + l[1], 0)
+                // 🙈 a perna que ainda está animando não entra no placar até o apito
+                const legs = !revealed && !portaoRepescao ? tie.legs.slice(0, -1) : tie.legs
+                const ga = legs.reduce((n, l) => n + l[0], 0), gb = legs.reduce((n, l) => n + l[1], 0)
+                const acabou = legs.length === 2
+                const passou = acabou ? (tie.winner === tie.aId ? tie.aName : tie.bName) : ''
                 return <CompetitionMatch key={i} home={tie.aName} away={tie.bName} homeCrest={<Escudo nome={tie.aName} size={26} />} awayCrest={<Escudo nome={tie.bName} size={26} />}
-                  homeScore={tie.legs.length ? ga : 0} awayScore={tie.legs.length ? gb : 0}
-                  status={tie.legs.length === 0 ? T('AGUARDANDO', 'WAITING') : tie.legs.length === 1 ? T('IDA', '1ST LEG') : T('AGREGADO', 'AGGREGATE')} />
+                  homeScore={legs.length ? ga : '–'} awayScore={legs.length ? gb : '–'} mine={tie.aId === you.id || tie.bId === you.id}
+                  status={legs.length === 0 ? T('AGUARDANDO', 'WAITING') : legs.length === 1 ? T('IDA', '1ST LEG') : T('AGREGADO', 'AGGREGATE')}
+                  detail={acabou ? `${tie.pens ? `${T('Pênaltis', 'Penalties')} ${tie.pens[0]} × ${tie.pens[1]} · ` : ''}${passou} ${T('vai pras oitavas', 'reaches the round of 16')}` : undefined} />
               })}
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* 📋 A TABELA INTEIRA — os 36, no desenho da tabela da liga, com as faixas de corte */}
-        {ch.fase === 'tabela' && (
+        {(vistaTabela || ch.fase === 'repescao' || portaoOitavas) && (
           <Box className="p-3 overflow-x-auto">
-            <p className="font-black text-sm mb-2" style={OSWALD}>⭐ {T('TABELA DA CHAMPIONS', 'CHAMPIONS TABLE')}</p>
+            <p className="font-black text-sm mb-2" style={OSWALD}>⭐ {vistaTabela && !(portaoRepescao && revealed) ? T('TABELA DA CHAMPIONS', 'CHAMPIONS TABLE') : T('TABELA DA CHAMPIONS · FINAL', 'CHAMPIONS TABLE · FINAL')}</p>
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-left text-black/70 font-black">
@@ -7856,8 +7919,8 @@ export function EscChampions() {
         )}
 
         {/* 🥅 TODOS OS JOGOS DA RODADA — a MESMA lista da liga (cinema) ou a grade simples */}
-        {ch.fase === 'tabela' && ch.lastResults.length > 0 && (privateVisual
-          ? <section className="ll26-round-list"><h3>{T('TODOS OS JOGOS · RODADA', 'ALL MATCHES · ROUND')} {ch.rodada}</h3><p>{revealed ? T('Rodada encerrada. Confira os resultados e a classificação.', 'Round over. Check the results and the standings.') : T('Acompanhe a rodada. A classificação atualiza após o apito.', 'Follow the round. Standings update after the final whistle.')}</p><div>
+        {ch.lastResults.length > 0 && !(portaoRepescao && revealed) && !portaoOitavas && (privateVisual
+          ? <section className="ll26-round-list"><h3>{vistaTabela ? `${T('TODOS OS JOGOS · RODADA', 'ALL MATCHES · ROUND')} ${ch.rodada}` : `${T('REPESCÃO', 'PLAYOFF')} · ${pernaNaTela === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}`}</h3><p>{revealed ? T('Rodada encerrada. Confira os resultados e a classificação.', 'Round over. Check the results and the standings.') : T('Acompanhe a rodada. A classificação atualiza após o apito.', 'Follow the round. Standings update after the final whistle.')}</p><div>
               {ch.lastResults.map(r => <RoundMatchPresentation key={`${r.homeId}-${r.awayId}`} startedAt={startedAt} home={nomeDe(r.homeId)} away={nomeDe(r.awayId)} homeCrest={<Escudo nome={nomeDe(r.homeId)} size={26} />} awayCrest={<Escudo nome={nomeDe(r.awayId)} size={26} />} homeOwner={donoDe(r.homeId)} awayOwner={donoDe(r.awayId)} mine={r.homeId === you.id || r.awayId === you.id} score={[r.hg, r.ag]} goals={golsDe(r)} finished={revealed} roundKey={passo} roundMs={roundMs} />)}
             </div></section>
           : revealed && outros.length > 0 && (

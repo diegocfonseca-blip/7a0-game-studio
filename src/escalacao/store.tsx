@@ -3647,8 +3647,11 @@ function playChampionsRepescao(s: EscState) {
   })
   s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: ch.scorers ?? [], assists: ch.assists ?? [] }
   s.news = [tr('⭐ Repescão fechado — chegaram as OITAVAS da Champions!', '⭐ Playoff done — the Champions ROUND OF 16 is here!')]
-  // ▶️ daqui pra frente é o MESMO motor da Copa dos 8, que vive na tela da temporada
-  s.screen = 'season'
+  // ▶️ daqui pra frente é o MESMO motor da Copa dos 8, que vive na tela da temporada.
+  // 🎬 Mas NÃO pula pra lá na hora (25/09): a tela da Champions segura, deixa a VOLTA
+  // do repescão rolar (antes ela nunca aparecia) e mostra o banner "FIM DO REPESCÃO"
+  // com a situação de cada um. Quem leva pras oitavas é o `START_COPA` (botão ou
+  // relógio do banner) — o mesmo caminho da Copa dos 8.
 }
 
 function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
