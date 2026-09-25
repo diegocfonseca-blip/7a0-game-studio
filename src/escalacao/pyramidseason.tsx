@@ -6151,7 +6151,19 @@ const copaName = (t: SimTeam) => t.you ? `${t.name} ${tr('(você)', '(you)')}` :
 // das cobranças é sorteada de forma determinística a partir do próprio placar.
 // tempo (s) até a disputa de pênaltis terminar de animar — usado pra SEGURAR a
 // revelação do vencedor (riscado/zebra) até a última cobrança pipocar na tela.
-export function pensRevealDelay(pens: [number, number]): number {
+// 🎭 COM GENTE NA DISPUTA, O PÊNALTI DEMORA (25/09). Diego: *"tô achando que a emoção
+// não tá tendo, tá muito rápido… quando for bot contra bot tudo bem ser rápido, mas
+// tendo humano usuário aí não acho legal"*. Então o passo entre uma cobrança e a outra
+// depende de QUEM está na disputa: bot × bot segue no ritmo de sempre (0,85 s); se um
+// dos dois é time de gente, 1,6 s — dá tempo de ver quem vai bater, segurar a respiração
+// e só então o lance. ⚠️ Toda tela que SEGURA a fase seguinte passa pela mesma conta
+// (`pensRevealDelay(pens, lento)`), senão a fase vira em cima da última cobrança.
+export const PENS_PASSO = 0.85
+export const PENS_PASSO_LENTO = 1.6
+export const pensPasso = (lento?: boolean) => (lento ? PENS_PASSO_LENTO : PENS_PASSO)
+// 🧍 quem conta como GENTE numa disputa de Copa da carreira: você ou outro humano
+export const copaTemGente = (tie: { a: { you?: boolean; human?: boolean }; b: { you?: boolean; human?: boolean } }) => !!(tie.a.you || tie.a.human || tie.b.you || tie.b.human)
+export function pensRevealDelay(pens: [number, number], lento = false): number {
   // 🎯 11/09: conta as cobranças DE VERDADE (a mesma sequência que a tela
   // desenha), em vez de estimar — a estimativa antiga podia liberar o vencedor
   // antes da última bolinha pipocar, e na morte súbita comprida chutava 12.
@@ -6160,9 +6172,9 @@ export function pensRevealDelay(pens: [number, number]): number {
   // curta, a fase virava em cima da última cobrança.
   const a = sequenciaPenaltis(pens).length
   const b = sequenciaPenaltis(pens, mulberry(0xC0FFEE)).length
-  return 0.7 + Math.max(a, b, 10) * 0.85 + 0.6
+  return 0.7 + Math.max(a, b, 10) * pensPasso(lento) + 0.6
 }
-export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[] }) {
+export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
@@ -6177,7 +6189,7 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
   const seq = sequenciaPenaltis(pens, rng)
   const nSlots = Math.max(5, pens[0], pens[1])
   const suddenDeath = nSlots > 5 // morte súbita de qualquer tamanho (6×5, 7×6…)
-  const step = 0.85, lead = 0.7
+  const step = pensPasso(lento), lead = 0.7
   // resultado de cada time na ORDEM das cobranças dele + índice global (delay)
   const rows: { ok: boolean; at: number }[][] = [[], []]
   seq.forEach((k, gi) => rows[k.side].push({ ok: k.ok, at: gi }))
@@ -6228,7 +6240,7 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
   )
   if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && privatePenalty)) {
     const exact=exactPenaltyRows(pens,rows)
-    return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)}/>
+    return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
   }
   return (
     <div style={{ margin: '4px 0 0', position: 'relative', animation: `pensShake .4s ease ${totalDelay.toFixed(2)}s` }}>
@@ -6248,7 +6260,10 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
           bloco inteiro fica centralizado no card. Antes cada linha se centralizava
           sozinha — com um time uma bolinha à frente do outro (o normal: o A bate
           primeiro), as duas ficavam meio círculo desencontradas. */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
+      {/* 📏 (25/09) e o bloco fica ANCORADO NA ESQUERDA, não centralizado: centralizado ele
+          se reposicionava a cada bolinha nova e a 1ª andava. Diego: *"a disputa tem que
+          começar certo, com os pontinhos na esquerda"*. */}
+      <div style={{ display: 'flex', justifyContent: 'flex-start', paddingLeft: 4 }}>
         <div style={{
           display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3, padding: naMorteSubita ? '6px 4px' : 0,
           ...(naMorteSubita ? { border: `2px solid ${FIN_RED}`, borderRadius: 8, background: 'repeating-linear-gradient(135deg,rgba(194,69,47,.06),rgba(194,69,47,.06) 10px,transparent 10px,transparent 20px)' } : {}),
@@ -6315,7 +6330,7 @@ function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed,
   useApitoDeLargada('copa-carreira', phase * 10 + legIdx, true)
   const aWin = tie.win === 'a'
   const winName = aWin ? copaName(tie.a) : copaName(tie.b)
-  const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens) : 0
+  const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens, copaTemGente(tie)) : 0
   return (
     <div style={{ marginBottom: 12 }}>
       {/* 🛡️ NOME CRU no card (conserto do São Luiz FC, 21/08). Aqui ia
@@ -6338,7 +6353,7 @@ function MyCopaMatchInner({ tie, pos, phase, colors, safName, myColor, simSpeed,
             <p style={{ fontSize: 9, fontWeight: 900, ...OSWALD, color: 'rgba(0,0,0,.45)', margin: '0 0 1px', textTransform: 'uppercase' }}>{copaName(tie.a)} × {copaName(tie.b)}</p>
             <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>{tr('ida', '1st leg')} {tie.legs[0][0]}×{tie.legs[0][1]} · {tr('volta', '2nd leg')} {tie.legs[1][0]}×{tie.legs[1][1]} · <b>{tr('agregado', 'aggregate')} {tie.aggA}×{tie.aggB}</b></p>
           </>}
-          {tie.pens && <PensShootout compactCareer final={final} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} pens={tie.pens} aName={tie.a.name} bName={tie.b.name} aSquad={tie.a.xi} bSquad={tie.b.xi} />}
+          {tie.pens && <PensShootout compactCareer final={final} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} pens={tie.pens} aName={tie.a.name} bName={tie.b.name} aSquad={tie.a.xi} bSquad={tie.b.xi} lento={copaTemGente(tie)} />}
           <p style={{ margin: '3px 0 0', ...(pensDelay > 0 ? { opacity: 0, animation: `pensPop .35s ease ${pensDelay.toFixed(2)}s forwards` } : {}) }}>
             <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, color: GREEN }}>✅ {winName} {final ? tr('é campeão', 'is champion') : tr('avança', 'advances')}</span>
           </p>
@@ -6364,7 +6379,7 @@ function CopaMatchList(props: { ties: CopaTie[]; pos: number; colors: Record<num
 }
 function CopaMatchListInner({ ties, pos, colors, safName, title }: { ties: CopaTie[]; pos: number; colors: Record<number, FCol>; safName?: string; title: string }) {
   const privateMatches = useOnlinePreview() || CAREER_VISUAL_RELEASED   // 🔓 19/09: liberado geral
-  if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} aSquad={tie.a.xi} bSquad={tie.b.xi}/>} />
+  if (privateMatches) return <CareerCupGames ties={ties} pos={pos} title={title} renderPens={tie => <PensShootout compactCareer pens={tie.pens!} aName={tie.a.name} bName={tie.b.name} aCrest={<Escudo nome={tie.a.name} size={20}/>} bCrest={<Escudo nome={tie.b.name} size={20}/>} aSquad={tie.a.xi} bSquad={tie.b.xi} lento={copaTemGente(tie)}/>} />
   const nameCol = (t: SimTeam) => t.you ? (colors[t.teamId]?.solid ?? INK) : (safName && t.name === safName) ? (colors[t.teamId]?.solid ?? INK) : (t.human || t.rival) ? (colors[t.teamId]?.solid ?? INK) : INK
   const markOf = (t: SimTeam) => t.you ? '👤 ' : (safName && t.name === safName) ? '💼 ' : t.rival ? '⚔️ ' : t.dorm ? '🏛️ ' : t.human ? '🔥 ' : ''
   return (
@@ -6382,7 +6397,7 @@ function CopaMatchListInner({ ties, pos, colors, safName, title }: { ties: CopaT
           const showB = done ? tie.aggB : g.filter(x => !x.home && x.min <= legMin).length
           const aWin = tie.win === 'a'
           // pênaltis: só risca o perdedor DEPOIS que a disputa termina de pipocar
-          const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens) : 0
+          const pensDelay = done && tie.pens ? pensRevealDelay(tie.pens, copaTemGente(tie)) : 0
           const dimStyle = (win: boolean): React.CSSProperties => {
             if (!done || win) return {}
             if (pensDelay > 0) return { animation: `copaLoserFade .4s ease ${pensDelay.toFixed(2)}s forwards` }
@@ -7861,7 +7876,7 @@ export function PyramidSeasonScreen() {
   const otherCopaTies = copaFase ? copaFase.ties.filter(t => t !== myCopaTie) : []
   // ⏱️ quanto o relógio da fase espera pelos SEUS pênaltis (número, pra entrar como
   // dependência estável do efeito do relógio logo abaixo)
-  const copaPenMs = myCopaTie?.pens ? Math.ceil(pensRevealDelay(myCopaTie.pens) * 1000) : 0
+  const copaPenMs = myCopaTie?.pens ? Math.ceil(pensRevealDelay(myCopaTie.pens, copaTemGente(myCopaTie)) * 1000) : 0
   // ⏱️ TEMPO DE CADA JOGO DA COPA (15/09, Diego: *"aumente p 1s a simulação dos jogos
   // das Copas nos jogos rolando no modo auto"*): no AUTO cada perna dura COPA_LEG_MS+1s;
   // no manual continua COPA_LEG_MS, porque lá quem manda no ritmo é o 🐢/⏩ do técnico —

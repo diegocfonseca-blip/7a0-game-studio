@@ -75,18 +75,49 @@ console.log('   distribuição:', [...vistos.entries()].sort((x, y) => y[1] - x[
 // ── 3. a espera da fase nunca pode ser mais curta que a animação ───────────
 // (foi o "sessão de pênaltis que mal começa e não deixa terminar": a fase
 // virava em cima da última cobrança)
-const LEAD = 0.7, STEP = 0.85, RABO = 0.25
-for (const chave of vistos.keys()) {
-  const [a, b] = chave.split('x').map(Number)
-  const espera = 0.7 + Math.max(
-    sequenciaPenaltis([a, b]).length,
-    sequenciaPenaltis([a, b], mk(0xC0FFEE)).length, 10) * 0.85 + 0.6
-  for (let s = 0; s < 30; s++) {
-    const anim = LEAD + sequenciaPenaltis([a, b], mk(s + 7)).length * STEP + RABO
-    assert.ok(espera >= anim, `espera curta em ${a}×${b}: ${espera.toFixed(2)}s < ${anim.toFixed(2)}s`)
+// 🎭 25/09: são DOIS ritmos — bot × bot (0,85 s) e disputa com gente (1,6 s). A espera
+// tem que cobrir a animação nos dois (espelho de `pensPasso` em pyramidseason.tsx).
+const LEAD = 0.7, RABO = 0.25
+for (const STEP of [0.85, 1.6]) {
+  for (const chave of vistos.keys()) {
+    const [a, b] = chave.split('x').map(Number)
+    const espera = 0.7 + Math.max(
+      sequenciaPenaltis([a, b]).length,
+      sequenciaPenaltis([a, b], mk(0xC0FFEE)).length, 10) * STEP + 0.6
+    for (let s = 0; s < 30; s++) {
+      const anim = LEAD + sequenciaPenaltis([a, b], mk(s + 7)).length * STEP + RABO
+      assert.ok(espera >= anim, `espera curta em ${a}×${b} (passo ${STEP}): ${espera.toFixed(2)}s < ${anim.toFixed(2)}s`)
+    }
   }
 }
-console.log('PASS a espera da fase cobre a animação em todos os placares')
+console.log('PASS a espera da fase cobre a animação em todos os placares, nos dois ritmos (bot 0,85 s · gente 1,6 s)')
+
+// ── 3b. TELA E RELÓGIO NA MESMA CONTA (25/09) ────────────────────────────
+// Se uma tela desenha a disputa LENTA (tem gente) e o relógio que segura a fase
+// usa a conta RÁPIDA, a fase vira no meio da disputa — o "não deixa terminar" de
+// 11/09 de volta. Então: toda chamada de `pensRevealDelay` diz se tem gente, e todo
+// `<PensShootout` também.
+{
+  const { readFileSync, readdirSync } = await import('node:fs')
+  const dir = new URL('../src/escalacao/', import.meta.url)
+  const furos = []
+  for (const f of readdirSync(dir).filter(n => /\.tsx?$/.test(n))) {
+    const src = readFileSync(new URL(f, dir), 'utf8')
+    for (const m of src.matchAll(/pensRevealDelay\(([^()]*(?:\([^()]*\))?[^()]*)\)/g)) {
+      if (/^pens: \[number, number\]/.test(m[1])) continue // a própria definição
+      if (!m[1].includes(',')) furos.push(`${f}: pensRevealDelay(${m[1]}) sem dizer se tem gente`)
+    }
+    // o `<PensShootout` tem `<Escudo …/>` dentro, então não dá pra cortar no 1º `/>`:
+    // olha o trecho até a PRÓXIMA disputa (ou 1500 caracteres) e exige o `lento=` ali.
+    for (const m of src.matchAll(/<PensShootout\b/g)) {
+      const resto = src.slice(m.index + 13, m.index + 1500)
+      const trecho = resto.split('<PensShootout')[0]
+      if (!/\blento=/.test(trecho)) furos.push(`${f}:${src.slice(0, m.index).split('\n').length} <PensShootout sem lento=`)
+    }
+  }
+  assert.deepEqual(furos, [], 'disputa sem dizer se tem gente:\n  ' + furos.join('\n  '))
+  console.log('PASS toda tela e todo relógio da disputa dizem se tem gente (mesma conta nos dois lados)')
+}
 
 // ── 4. A ORDEM DA DISPUTA É UMA SÓ: o A bate primeiro em TODA rodada ───────
 // 🐛 24/09, Diego: *"às vezes começa a bater sem tá alinhado, como se tivesse

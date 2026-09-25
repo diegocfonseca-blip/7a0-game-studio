@@ -40,6 +40,26 @@ partida sempre vai incomodar alguém — agora incomoda uma piscada, não uma qu
 
 ↩️ **Reverter**: tirar o `pedaco()` dos dois `lazy()` e a linha do ErrorBoundary.
 
+## 25/09/2026 — 🎭 Pênaltis com gente ficam mais lentos + bolinhas começam na esquerda · ⏳ NO BRANCH, sobe de manhã
+
+Diego: *"tô achando que a emoção não tá tendo, tá muito rápido… bot contra bot tudo bem ser
+rápido, mas tendo humano usuário aí não acho legal. Além da disputa ter que começar certo, com
+os pontinhos na esquerda"*.
+- ⏱️ **Ritmo por quem está na disputa**: bot × bot segue 0,85 s por cobrança; com time de GENTE
+  (você ou outro humano) 1,6 s (`pensPasso`/`PENS_PASSO_LENTO` em pyramidseason.tsx). O palco
+  fica mais tempo em "quem bate" e o lance aparece com calma.
+- 🔗 **Tela e relógio na mesma conta**: `pensRevealDelay(pens, lento)` em TODO lugar que segura
+  a fase — Copa do Mundo (carreira e online, `koTemGente`; o online marca `humano` pela ficha),
+  Copa do jogo rápido (`copaTemGenteQ`; os 13 s fixos viraram a disputa mais longa da fase, com
+  piso de 13 s) e Copa da carreira (`copaTemGente`). Achado no caminho: o texto do campeão da
+  final da Copa do Mundo esperava o ritmo rápido — corrigido junto.
+- 📏 **Bolinhas ancoradas na esquerda**: a coluna começa num ponto fixo (40%) nas duas linhas;
+  antes ela encostava na direita e crescia pra esquerda (a 1ª andava). A tela antiga deixou de
+  centralizar pelo mesmo motivo. Morte súbita comprida quebra linha.
+- 🧪 Trava `npm run penaltis`: confere a espera nos DOIS ritmos e exige `lento` em toda tela e
+  todo relógio (provado: sem um `lento=`, ela acusa a linha).
+- Conferido no navegador (disputa 5×6 com gente, 6 momentos).
+
 ## 23/09/2026 — 🐊💰 "Apertei no 11 e outro pegou por 8" ✅ CONSERTADO (sala do Fridão)
 
 Diego, com a sala 3QAPF7 (Tocaia, host `fridao fc`) rolando: *"tem gente que apertou
