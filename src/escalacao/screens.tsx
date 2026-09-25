@@ -7,7 +7,7 @@ import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, Suppor
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, useEsc, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, MONTE_SECONDS, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
 import type { CareerSlot } from './store'
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
@@ -2794,9 +2794,24 @@ export function CardAccountNote() {
 // está assistindo como funciona (moedas = lance, maior lance leva, o auge com
 // o exemplo do Kaká) e mostra quem está jogando. O STREAMER (host) toca
 // "Começar o leilão" quando quiser. Convidados só esperam o host.
+//
+// 🐊 25/09 — A MESMA PÁGINA ENSINAVA O PREGÃO ERRADO. Relato do Diego: *"após
+// criar sala pelo modo stream sempre aparece uma página ensinando o jogo. Porém
+// no Tocaia também aparece, mas fica mostrando regras do modo envelope… só
+// altere quando for Tocaia, ensinar a forma certa. Mesma coisa serve pro modo
+// partida rápida"*. Ele está certo e é grave: a pessoa entrava na Tocaia
+// acreditando que ia escrever lance secreto — e na Tocaia ninguém escreve nada,
+// o preço CAI e quem aperta primeiro leva. Ensinar regra que não existe é a
+// mesma família do "botão mudo": a tela dizia uma coisa e o motor fazia outra.
+// ⚠️ O ENVELOPE ÀS CEGAS NÃO FOI TOCADO (ordem dele) — tudo aqui é `tocaia ? … : …`,
+// e o lado de trás do `:` é exatamente o que já estava no ar.
+// ✅ O que vale nos DOIS e por isso continua igual: o quadro do AUGE (os dois
+// Kakás), a lista de quem está no pregão e o botão de começar.
 export function EscStreamIntro() {
   const { state, dispatch } = useEsc()
   const online = state.onlineMode === 'online'
+  const tocaia = !!state.holandes // 🐊 o pregão é o do preço caindo (chave do save: `holandes`)
+  const abertura = HOL_ABERTURA(state) // 100 no futebol · 50 no basquete
   const isCareer = !!state.careerOnline // 🏆 banner "vira o clube mais bem-sucedido" — na carreira solo E online
   const isHost = !online || state.isHost
   const you = state.managers[state.youIdx]
@@ -2820,43 +2835,94 @@ export function EscStreamIntro() {
         </div>
       )}
       <div className="text-center pt-4">
-        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: GOLD, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{state.streamMode ? tr('🎥 Modo Stream', '🎥 Stream Mode') : tr('🔨 Como funciona', '🔨 How it works')}</span>
-        <h2 className="font-black text-3xl mt-3 leading-none" style={OSWALD}>{getLang() === 'en' ? <>WELCOME<br />TO THE AUCTION! 🔨</> : <>BEM-VINDO<br />AO PREGÃO! 🔨</>}</h2>
-        <p className="text-sm font-semibold text-black/60 mt-2">{tr('Antes de começar, entenda o leilão às cegas — pra quem tá chegando agora.', 'Before you start, understand the blind auction — for those just arriving.')}</p>
+        <span className="inline-block border-2 border-black rounded-full px-3 py-1 text-[11px] font-black uppercase" style={{ backgroundColor: tocaia ? '#C2452F' : GOLD, color: tocaia ? '#fff' : INK, boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>{state.streamMode ? tr('🎥 Modo Stream', '🎥 Stream Mode') : tocaia ? `${MODO_EMOJI} ${tr('Como funciona', 'How it works')}` : tr('🔨 Como funciona', '🔨 How it works')}</span>
+        <h2 className="font-black text-3xl mt-3 leading-none" style={OSWALD}>{tocaia
+          ? (getLang() === 'en' ? <>WELCOME<br />TO THE AMBUSH! 🐊</> : <>BEM-VINDO<br />À TOCAIA! 🐊</>)
+          : (getLang() === 'en' ? <>WELCOME<br />TO THE AUCTION! 🔨</> : <>BEM-VINDO<br />AO PREGÃO! 🔨</>)}</h2>
+        <p className="text-sm font-semibold text-black/60 mt-2">{tocaia
+          ? tr('Aqui ninguém escreve lance: o preço CAI na frente de todo mundo. Entenda antes de começar.', 'Nobody writes a bid here: the price DROPS in front of everyone. Understand it before you start.')
+          : tr('Antes de começar, entenda o leilão às cegas — pra quem tá chegando agora.', 'Before you start, understand the blind auction — for those just arriving.')}</p>
       </div>
 
-      <Box bg={GOLD} className="p-4" shadow={6}>
-        <p className="font-black text-lg" style={OSWALD}>{tr('🪙 Moedas = seu lance', '🪙 Coins = your bid')}</p>
-        <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. You place a <b>secret bid</b> (nobody sees) on each player. At the reveal: <b>the HIGHEST bid takes the star</b> and pays what it offered. Tie? Blind re-bid! ⚔️</> : <>Cada técnico começa com <b>100 moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</>}</p>
-      </Box>
+      {tocaia ? (<>
+        <Box bg={GOLD} className="p-4" shadow={6}>
+          <p className="font-black text-lg" style={OSWALD}>{tr('🪙 Um preço só — e ele CAI', '🪙 One price — and it DROPS')}</p>
+          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. The players of the batch go on the table with <b>a single price for everyone</b>, opening at <b>{abertura} 🪙</b> and <b>falling</b> on everyone's screen. <b>Nobody writes a bid</b>: whoever taps <b>TAKE</b> first gets the player for the price on screen.</> : <>Cada técnico começa com <b>100 moedas</b>. Os jogadores da leva vão pra mesa com <b>um preço só, igual pra todo mundo</b>, que abre em <b>{abertura} 🪙</b> e vai <b>CAINDO</b> na tela de todos. <b>Ninguém escreve lance</b>: quem apertar <b>PEGAR</b> primeiro leva o jogador pelo preço que está na tela.</>}</p>
+        </Box>
 
-      {/* 👇 mock da linha do jogador: mostra ONDE se põe as moedas (com 7, não 1!)
-          e aponta o clube/ano — muita gente aposta só 1 por não entender. */}
-      <Box bg="#fff" className="p-3.5" shadow={6}>
-        <p className="font-black text-base mb-2" style={OSWALD}>{tr('👇 É AQUI que você bota as moedas', '👇 THIS is where you put the coins')}</p>
-        <div className="border-[3px] border-black rounded-xl p-3 flex items-center justify-between gap-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>GOL</span>
-              <span className="font-black text-sm truncate" style={OSWALD}>Alex Muralha</span>
-            </div>
-            <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
-          </div>
-          <div className="flex flex-col items-center flex-shrink-0">
-            <span className="text-[9px] font-black uppercase tracking-wide mb-0.5" style={{ color: '#B8860B' }}>{tr('seu lance', 'your bid')}</span>
-            <div className="flex items-center gap-1.5">
-              <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black bg-white">−</span>
-              <span className="w-12 h-8 flex items-center justify-center font-black border-[3px] rounded-lg bg-white text-lg" style={{ ...OSWALD, borderColor: GREEN, boxShadow: `0 0 0 3px rgba(46,158,91,.25)` }}>7</span>
-              <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black" style={{ background: GOLD }}>+</span>
+        {/* 👇 mock do que ela vai ver: o preço caindo em cima e o botão PEGAR na
+            linha do jogador. É o MESMO desenho da tela de verdade (preço grudado
+            no topo, barra que esvazia, botão verde) — quem viu aqui reconhece lá. */}
+        <Box bg="#fff" className="p-3.5" shadow={6}>
+          <p className="font-black text-base mb-2" style={OSWALD}>{tr('👇 É ASSIM que você leva o craque', '👇 THIS is how you take the star')}</p>
+          <div className="border-[3px] border-black rounded-xl px-3 py-2 text-center" style={{ background: '#E8963A', boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <p className="text-[9px] font-black uppercase tracking-widest text-black/55" style={OSWALD}>{tr('Preço agora · vale pra todos', 'Price now · same for all')}</p>
+            <p className="font-black leading-none" style={{ ...OSWALD, fontSize: 40, color: INK }}>24 <span style={{ fontSize: 18 }}>🪙</span></p>
+            <div className="h-2 border-2 border-black rounded-full mt-1 overflow-hidden" style={{ background: 'rgba(255,255,255,.55)' }}>
+              <div style={{ width: '24%', height: '100%', background: INK }} />
             </div>
           </div>
-        </div>
-        <p className="text-xs font-bold text-black/70 mt-2 leading-snug">{getLang() === 'en' ? <>👆 Tap the box and <b>type how many coins</b> you want to bid — <b>the more coins, the better your chance of getting the star!</b> Bid <b>7, 15, 30…</b> not just <b>1</b> 😉</> : <>👆 Toque na caixinha e <b>digite quantas moedas</b> quer dar — <b>quanto mais moedas, mais chance de levar o craque!</b> Bota <b>7, 15, 30…</b> não só <b>1</b> 😉</>}</p>
-      </Box>
+          <div className="border-[3px] border-black rounded-xl p-2.5 flex items-center justify-between gap-2 mt-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>GOL</span>
+                <span className="font-black text-sm truncate" style={OSWALD}>Alex Muralha</span>
+              </div>
+              <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
+            </div>
+            <span className="border-[3px] border-black rounded-xl px-3 py-2 font-black shrink-0 text-center"
+              style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD, fontSize: 15 }}>
+              {tr('PEGAR', 'TAKE')}<br /><span style={{ fontSize: 11 }}>24 🪙</span>
+            </span>
+          </div>
+          <p className="text-xs font-bold text-black/70 mt-2 leading-snug">{getLang() === 'en' ? <>👆 <b>Waiting makes it cheaper</b> — but your friend can pounce first. That's the ambush: <b>hold on as long as you dare</b> without losing the star. Tap and it's <b>yours on the spot</b>, for the number you were looking at.</> : <>👆 <b>Esperar faz o preço cair</b> — mas o amigo pode dar o bote antes de você. Essa é a tocaia: <b>segurar até onde der coragem</b> sem perder o craque. Apertou, o jogador é <b>seu na hora</b>, pelo número que estava na tela.</>}</p>
+        </Box>
+
+        {/* 🎰 O QUE ASSUSTA QUEM É NOVO: apertar e não levar. Tem que estar escrito
+            ANTES de acontecer — inclusive que pedido perdido não custa moeda. */}
+        <Box bg="#FFE3DC" className="p-4" shadow={6}>
+          <p className="font-black text-lg" style={OSWALD}>{tr('🎰 Dois no mesmo preço? Roleta.', '🎰 Two at the same price? The wheel.')}</p>
+          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>If two managers tap at the <b>same price</b>, a wheel decides. Whoever misses out <b>pays nothing</b> — the coins stay in your pocket and the auction goes on. Don't want to depend on luck? <b>Tap earlier</b>: whoever pays more shares with nobody.</> : <>Se dois apertarem no <b>mesmo preço</b>, a 🎰 roleta decide. Quem não levar <b>não paga nada</b> — a moeda fica no bolso e o pregão segue. Não quer depender de sorte? <b>Aperta mais cedo</b>: quem paga mais caro não divide com ninguém.</>}</p>
+        </Box>
+      </>) : (<>
+        <Box bg={GOLD} className="p-4" shadow={6}>
+          <p className="font-black text-lg" style={OSWALD}>{tr('🪙 Moedas = seu lance', '🪙 Coins = your bid')}</p>
+          <p className="text-sm font-bold text-black/75 mt-1 leading-snug">{getLang() === 'en' ? <>Each manager starts with <b>100 coins</b>. You place a <b>secret bid</b> (nobody sees) on each player. At the reveal: <b>the HIGHEST bid takes the star</b> and pays what it offered. Tie? Blind re-bid! ⚔️</> : <>Cada técnico começa com <b>100 moedas</b>. Você dá um <b>lance secreto</b> (ninguém vê) em cada jogador. Na revelação: <b>quem deu o MAIOR lance leva o craque</b> e paga o que ofertou. Empate? Re-lance às cegas! ⚔️</>}</p>
+        </Box>
+
+        {/* 👇 mock da linha do jogador: mostra ONDE se põe as moedas (com 7, não 1!)
+            e aponta o clube/ano — muita gente aposta só 1 por não entender. */}
+        <Box bg="#fff" className="p-3.5" shadow={6}>
+          <p className="font-black text-base mb-2" style={OSWALD}>{tr('👇 É AQUI que você bota as moedas', '👇 THIS is where you put the coins')}</p>
+          <div className="border-[3px] border-black rounded-xl p-3 flex items-center justify-between gap-2" style={{ boxShadow: `3px 3px 0 0 ${INK}` }}>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-black rounded-lg text-white" style={{ ...OSWALD, background: INK, fontSize: 11, padding: '2px 7px' }}>GOL</span>
+                <span className="font-black text-sm truncate" style={OSWALD}>Alex Muralha</span>
+              </div>
+              <p className="text-xs font-bold mt-0.5" style={{ color: '#B25AD0' }}>⬅️ Flamengo · 2017 <span className="text-black/45">{tr('(clube e ano)', '(club and year)')}</span></p>
+            </div>
+            <div className="flex flex-col items-center flex-shrink-0">
+              <span className="text-[9px] font-black uppercase tracking-wide mb-0.5" style={{ color: '#B8860B' }}>{tr('seu lance', 'your bid')}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black bg-white">−</span>
+                <span className="w-12 h-8 flex items-center justify-center font-black border-[3px] rounded-lg bg-white text-lg" style={{ ...OSWALD, borderColor: GREEN, boxShadow: `0 0 0 3px rgba(46,158,91,.25)` }}>7</span>
+                <span className="border-2 border-black rounded-lg w-8 h-8 flex items-center justify-center font-black" style={{ background: GOLD }}>+</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs font-bold text-black/70 mt-2 leading-snug">{getLang() === 'en' ? <>👆 Tap the box and <b>type how many coins</b> you want to bid — <b>the more coins, the better your chance of getting the star!</b> Bid <b>7, 15, 30…</b> not just <b>1</b> 😉</> : <>👆 Toque na caixinha e <b>digite quantas moedas</b> quer dar — <b>quanto mais moedas, mais chance de levar o craque!</b> Bota <b>7, 15, 30…</b> não só <b>1</b> 😉</>}</p>
+        </Box>
+      </>)}
 
       <Box bg="#EDE7FF" className="p-4" shadow={6}>
         <p className="font-black text-lg" style={OSWALD}>{tr('🎭 O nível é o AUGE do craque', '🎭 The level is the star\'s PEAK')}</p>
-        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">{getLang() === 'en' ? <>The same player is worth <b>different</b> amounts depending on <b>club and year</b>. You bet on the name — the level only opens at the reveal!</> : <>O mesmo jogador vale <b>diferente</b> conforme o <b>clube e o ano</b>. Você aposta no nome — o nível só abre na revelação!</>}</p>
+        {/* 🐊 na Tocaia não existe "revelação": a carta é sua no toque, e é aí que
+            o nível abre. Dizer "na revelação" aqui seria ensinar passo que o
+            pregão do preço caindo não tem. */}
+        <p className="text-xs font-bold text-black/65 mt-1 mb-3 leading-snug">{tocaia
+          ? (getLang() === 'en' ? <>The same player is worth <b>different</b> amounts depending on <b>club and year</b>. You tap on the name — <b>the level only opens when the player is yours</b>. Read the club and the year before you pounce!</> : <>O mesmo jogador vale <b>diferente</b> conforme o <b>clube e o ano</b>. Você aperta no nome — <b>o nível só abre quando o jogador é seu</b>. Repara no clube e no ano antes do bote!</>)
+          : (getLang() === 'en' ? <>The same player is worth <b>different</b> amounts depending on <b>club and year</b>. You bet on the name — the level only opens at the reveal!</> : <>O mesmo jogador vale <b>diferente</b> conforme o <b>clube e o ano</b>. Você aposta no nome — o nível só abre na revelação!</>)}</p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <CollectibleCard name="Kaká" club="Milan" year={2007} pos="MEI" fame={5} promessa={false} />
@@ -2889,9 +2955,9 @@ export function EscStreamIntro() {
       )}
 
       {isHost ? (
-        <Btn onClick={() => dispatch({ type: 'START_STREAM_AUCTION' })} bg={GREEN} className="w-full text-lg"><span className="text-white">{tr('▶️ COMEÇAR O LEILÃO 🔨', '▶️ START THE AUCTION 🔨')}</span></Btn>
+        <Btn onClick={() => dispatch({ type: 'START_STREAM_AUCTION' })} bg={GREEN} className="w-full text-lg"><span className="text-white">{tocaia ? tr('▶️ COMEÇAR A TOCAIA 🐊', '▶️ START THE AMBUSH 🐊') : tr('▶️ COMEÇAR O LEILÃO 🔨', '▶️ START THE AUCTION 🔨')}</span></Btn>
       ) : (
-        <div className="w-full border-[3px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>{tr('⏳ O host vai começar o leilão…', '⏳ The host will start the auction…')}</div>
+        <div className="w-full border-[3px] border-black rounded-xl py-3 text-center font-black" style={{ background: '#fff', ...OSWALD }}>{tocaia ? tr('⏳ O host vai começar a tocaia…', '⏳ The host will start the ambush…') : tr('⏳ O host vai começar o leilão…', '⏳ The host will start the auction…')}</div>
       )}
       {/* ← voltar: só no offline (rápido/carreira), volta pro setup certo pra
           reconfigurar. No online, sair é pelo próprio fluxo da sala. */}
