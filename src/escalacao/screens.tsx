@@ -5567,7 +5567,9 @@ const QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000
 // ⭐ CHAMPIONS: +2s em cada jogo da FASE DE TABELA (e do repescão, que roda na mesma tela).
 // Diego 25/09 pediu primeiro "liga e copa" e, vendo, corrigiu: *"copa não aumente, digo só
 // na liga mesmo"*. O mata-mata da Champions segue no tempo da Copa dos 8.
-const CHAMPIONS_EXTRA_MS = 2000
+// 🔁 +2s de novo no mesmo dia (*"aumente mais 2s por jogo no modo Champions na primeira
+// fase de pontos corridos"*): +4s no total → a rodada da tabela fica em ~11s.
+const CHAMPIONS_EXTRA_MS = 4000
 // tempo de LEITURA da telinha "Chegou a Copa" antes da 1ª partida (modo automático)
 const COPA_INTRO_SECONDS = 10
 

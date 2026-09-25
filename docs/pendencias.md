@@ -1,3 +1,9 @@
+## 25/09/2026 — ⏱️ Champions: fase de tabela agora ~11s por rodada ✅ NO AR
+
+Diego: *"aumente mais 2s por jogo no modo Champions na primeira fase de pontos corridos"*.
+`CHAMPIONS_EXTRA_MS` 2000 → **4000** (rodada da liga 7s + 4s = **11s**). Repescão e
+mata-mata seguem no tempo de Copa (~17s). Só Champions ≈ **4 min 40 s** no automático.
+
 ## 25/09/2026 — 📏 Champions: "8 jogos · 8 adversários diferentes · formato oficial" no topo ✅ NO AR
 
 Linha miúda embaixo do "⭐ CHAMPIONS · RODADA x/8" (no repescão: "ida e volta · 8 vagas
