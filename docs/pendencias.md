@@ -1,3 +1,18 @@
+## 25/09/2026 — 🎨 Tela da Champions = MESMAS peças da tela da liga (aguardando OK pra publicar)
+
+Diego: *"visual segue padrões do q já tem nos modo hj seja placar botões cores
+tabelas… outros jogos e tudo mais.. Tudo igual"*. O `EscChampions` foi remontado
+com as peças do `EscSeason`, na mesma ordem: barra do topo (⭐ CHAMPIONS · RODADA
+x/8 · posição · pts), placar que encolhe (`PlacarOnlineQueEncolhe`), manual/auto,
+abas JOGOS+TABELA / ESTATÍSTICAS / ELENCO, faixa dos outros jogos, PRÓXIMO JOGO com
+Retranca/Equilíbrio/Ataque (a tática vale no motor da Champions — `tacticOf` lê
+`state.tactics`), tabela de 36, TODOS OS JOGOS da rodada, artilharia e garçons DA
+CHAMPIONS na aba de estatísticas (`TopScorersBox fonte` / `TopAssistsBox
+competition="champions"`), campinho na aba elenco, e o fundo de estádio
+(`ll25-shell` passa a valer na tela `champions`). O repescão usa o cartão de
+confronto da Copa (`CompetitionMatch`). Só o que é DA Champions ficou dela: o
+banner, as faixas de corte da tabela e a espera do top 8.
+
 ## 25/09/2026 — 🩹 Só Champions caía na liga de 20 depois de outra partida ✅ NO AR
 
 Print do Diego no 1º teste de verdade: "RODADA 1/38 · 13º · 0 pts", sem tabela. Causa:
