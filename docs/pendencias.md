@@ -1,3 +1,26 @@
+## 25/09/2026 — 🚪 Champions: banners entre as fases + faixa de situação de cada um (aguardando OK)
+
+Pedido do Diego: *"tem que ter banner separando a repescagem… e deixando claro quem tá
+ou não nessa parte… qm tá classificado dizer que já passou e tá aguardando… qm tá na
+repescagem avisa… qm não se classificou avisa lá em cima igual na Copa dos 8… e ele
+só assiste"*.
+- **Banner que separa as fases** = o próprio palco da Champions (um teatro só): "FIM
+  DA TABELA · VEM O REPESCÃO" (explica 1-8 / 9-24 / 25-36 e conta 10s) e "FIM DO
+  REPESCÃO · VÊM AS OITAVAS" (conta 6s). No manual, quem manda é o botão ("Começar o
+  repescão" / "Ir pras oitavas"). `PORTAO_REPESCAO_MS` / `PORTAO_OITAVAS_MS`.
+- **Faixa de situação** logo abaixo do banner, em qualquer aba: ✅ JÁ ESTÁ NAS
+  OITAVAS (aguardando) · ⚔️ ESTÁ NO REPESCÃO (contra quem) · ❌ NÃO SE CLASSIFICOU (só
+  assiste) · ✅ PASSOU / ❌ CAIU NO REPESCÃO. Só aparece depois do apito da 8ª rodada.
+  Quem não joga o repescão tem PULAR. No mata-mata, quem não entrou lê "❌ Você não se
+  classificou pro mata-mata — agora é só assistir".
+- **Conserto de spoiler/sumiço**: a 8ª rodada agora anima como TABELA (antes a tela
+  virava pro repescão no meio do jogo), e a VOLTA do repescão agora aparece rolando
+  (antes o motor pulava direto pras oitavas — `playChampionsRepescao` não troca mais
+  de tela; quem leva é o `START_COPA`). Placar dos confrontos só entra após o apito.
+- Duração medida (automático, velocidade normal): **Só Champions ≈ 3,5 min** (8
+  rodadas ~55s · repescão ~15s · oitavas→final ~2 min + banners) contra **Liga +
+  Libertadores ≈ 7,5 min**.
+
 ## 25/09/2026 — 🎨 Tela da Champions = MESMAS peças da tela da liga (aguardando OK pra publicar)
 
 Diego: *"visual segue padrões do q já tem nos modo hj seja placar botões cores
