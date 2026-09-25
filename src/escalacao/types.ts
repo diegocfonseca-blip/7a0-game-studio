@@ -695,6 +695,11 @@ export interface EscState {
   // (`LIBERTA_CLUBS`), em 8 grupos de 4. Copa dos 8 e Libertadores nunca rodam
   // juntas: é uma OU a outra, e o seletor da tela reflete isso.
   copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' // 'champions' = SÓ Champions (25/09): sem liga, direto na tabela de 36 — rápido offline e salas online
+  // 📮 SALA DE CHAMPIONS (25/09, sala 9LSKXI travou com 27): o host tem a "caixa de entrada"
+  // própria (`escalacao-in:<sala>`), e o convidado manda o lance SÓ pra ele em vez de espalhar
+  // pra sala inteira. Quem liga é o host no START_ONLINE — host de versão velha não liga, e aí
+  // o convidado continua no caminho de sempre (nunca manda lance pra uma caixa que ninguém lê).
+  hostInbox?: boolean
   ligaFechada?: boolean // 🏆 LIGA FECHADA: sala online só com os humanos, SEM bots na tabela. A liga tem o tamanho da galera (returno duplo); ímpar folga. Copa só destrava com 8+.
   // 📣 (13/09) o dono voltou pra sala de espera NO MEIO DO PREGÃO (antes da 1ª rodada)
   // pra chamar mais gente: a temporada que estava nascendo não aconteceu, então a
