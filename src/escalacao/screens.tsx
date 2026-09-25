@@ -6235,7 +6235,8 @@ export function EscSeason() {
                     ? tie.legs.map((l, gi) => `${LS('jogo', 'game')} ${gi + 1} ${l[0]}×${l[1]}`).join(' · ')
                     : nLegs === 1 ? `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]}` : `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]} · ${LS('volta', '2nd leg')} ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
                 )}
-                {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>{tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} lento={copaTemGenteQ(tie)} />}</>}
+                {/* 🔓 25/09 (Diego: *"online e offline"*): a Copa do jogo rápido OFFLINE também usa a tela nova dos pênaltis (palco + bola viajando); o resto do cartão segue como era. */}
+                {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>{tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />}</>}
               </div>
             </Box>
           )
