@@ -4109,6 +4109,13 @@ function monteWorstPick(state: EscState, m: Manager, monte: Card[], rng: () => n
 // técnico humano em sala online — contra a CPU o Monte não tem relógio e segue sem.
 const MONTE_MS = 15_000
 export const MONTE_SECONDS = MONTE_MS / 1000
+// ⭐ Diego 25/09: *"o monte da sobra do leilão gratuita do modo Champions será sempre
+// com 10s e não 15s"*. Sala com Champions (Liga + Champions ou Só Champions) = 10s;
+// o resto segue nos 15s. A tela lê a MESMA função (regra contra botão mudo).
+const MONTE_MS_CHAMPIONS = 10_000
+export function monteMsDe(s: Pick<EscState, 'copaMode'>): number {
+  return s.copaMode === 'liga_champions' || s.copaMode === 'champions' ? MONTE_MS_CHAMPIONS : MONTE_MS
+}
 
 // define/limpa o prazo da vez atual do Monte (só vale no online, pra técnico humano)
 function refreshMonteDeadline(state: EscState) {
@@ -4116,7 +4123,7 @@ function refreshMonteDeadline(state: EscState) {
   const m = state.managers.find(x => x.id === cur)
   state.monteDeadline =
     state.onlineMode === 'online' && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
-      ? Date.now() + MONTE_MS
+      ? Date.now() + monteMsDe(state)
       : null
 }
 

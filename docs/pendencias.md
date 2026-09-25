@@ -1,3 +1,11 @@
+## 25/09/2026 — ⏱️ Monte das sobras = 10s nas salas com Champions ✅ NO AR
+
+Diego: *"o monte da sobra do leilão gratuita do modo Champions será sempre com 10s e
+não 15s"*. `monteMsDe()` (`store.tsx`): Liga + Champions ou Só Champions = **10s**;
+todo o resto continua **15s**. O relógio e o texto "⏱️ Xs por vez" da tela leem a
+mesma função. Como sempre, o relógio do Monte só existe no ONLINE (contra a CPU não
+tem prazo). **Reverter**: `git revert` do commit.
+
 ## 25/09/2026 — ⭐ "SÓ CHAMPIONS" na partida rápida offline ✅ NO AR (só na conta do Diego)
 
 Pedido do Diego: *"continua começando com 20… deveria ser só champions direto… deve
