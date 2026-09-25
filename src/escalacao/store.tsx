@@ -3522,6 +3522,40 @@ function seedChampions(league: LeagueTeam[], rng: () => number): ChampionsState 
   return { fase: 'tabela', times, rodada: 0, fixtures, lastResults: [] }
 }
 
+// ⭐ SÓ CHAMPIONS (25/09) — sem liga antes. Diego: *"deveria ser só Champions direto…
+// continua começando com 20"*. Quem entra: o SEU time + os rivais do leilão (os times
+// com técnico, que têm elenco de verdade) e o resto dos 36 sai dos clubes de batismo,
+// na MESMA ordem de preferência da Champions de sempre (`championsConvidados`: série A
+// pra baixo, gente na frente). Os bots de enchimento da liga ficam de fora: a vaga
+// deles é palco pra quem batizou clube.
+function seedChampionsDireto(league: LeagueTeam[], rng: () => number): ChampionsState {
+  const comTecnico = league.filter(t => t.isManager).slice(0, CHAMPIONS_CLUBES)
+  const convidados = championsConvidados(comTecnico.map(t => t.name), CHAMPIONS_CLUBES - comTecnico.length)
+  const times: ChampionsTeam[] = []
+  const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
+  comTecnico.forEach(t => times.push({ id: t.id, name: t.name, pote: 1, isManager: true, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero }))
+  convidados.forEach((c, i) => times.push({ id: CHAMPIONS_ID0 + i, name: c.name, pote: 1, isManager: false, divisao: c.divisao, baseAtk: c.atk, baseDef: c.def, ...zero }))
+  const potes = potesChampions(times.map(t => t.baseAtk + t.baseDef))
+  times.forEach((t, i) => { t.pote = potes[i] })
+  const fixtures = calendarioChampions(times.map(t => t.id), potes, rng)
+  return { fase: 'tabela', times, rodada: 0, fixtures, lastResults: [] }
+}
+/** o modo é "Só Champions" e a temporada ACABOU de ser montada: pula a liga e abre a
+ *  tabela de 36. Roda depois de QUALQUER ação (ver `reducer`), então pega todos os
+ *  caminhos que montam a liga — fim do leilão, jogar de novo, nova temporada — sem
+ *  precisar lembrar de cada um. A liga continua montada por baixo (é de lá que o motor
+ *  lê a força dos times com técnico), só que com a rodada no fim: ninguém joga ela.
+ *  ⚠️ Só no rápido OFFLINE, no futebol, fora da carreira. */
+function abreChampionsDiretoSePrecisa(s: EscState) {
+  if (s.copaMode !== 'champions' || s.screen !== 'season') return
+  if (s.onlineMode === 'online' || s.careerOnline || s.careerDivision || s.sport === 'basquete') return
+  if (s.champions || s.quickCopa || s.round !== 0 || !s.league.length) return
+  s.champions = seedChampionsDireto(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0))
+  s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
+  s.news = [tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — o seu, os rivais do leilão e os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — yours, your auction rivals and the named clubs.')]
+  s.screen = 'champions'
+}
+
 /** a tabela de 36, do 1º ao 36º — MESMO desempate do resto do jogo */
 export function championsTabela(ch: ChampionsState): ChampionsTeam[] {
   return [...ch.times].sort((a, b) =>
@@ -4315,7 +4349,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions'; intro?: boolean; holandes?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -4338,7 +4372,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -5445,6 +5479,12 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
 }
 
 export function reducer(state: EscState, action: Action): EscState {
+  const s = reducerBase(state, action)
+  // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
+  if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
+  return s
+}
+function reducerBase(state: EscState, action: Action): EscState {
   // 🌐 espelha o modo da sala pro teto do elenco (ver `extraDoDono`): o +1 por
   // posição é só do offline. Fica aqui porque o reducer roda em toda ação —
   // então o ponteiro nunca fica velho, nem depois de um F5.
@@ -7906,6 +7946,9 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🏁 chamado pela tela quando a ANIMAÇÃO da última rodada acaba: coroa o campeão
       // e vai pro fim (ou semeia a Copa). Idempotente (champion/screen já setados).
       if (s.careerOnline || s.round < (s.fixtures.length || TOTAL_ROUNDS) || s.screen === 'end') return s
+      // ⭐ Só Champions: a liga nunca é jogada (a rodada fica no fim só de fachada) —
+      // não existe campeão de liga pra coroar. Quem fecha é o mata-mata da Champions.
+      if (s.copaMode === 'champions') return s
       finishSeason(s)
       return s
     }
@@ -7977,7 +8020,7 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
+          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'DA CHAMPIONS' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
@@ -9631,7 +9674,10 @@ function marcaMexido(save: EscState) {
 
 const SOLO_RESUME_KEY = 'esc-solo-inprogress-v1'
 const SOLO_GAME_SCREENS = ['auction', 'monte', 'cerimonia', 'season', 'end'] as const
-function isSoloGameScreen(screen: string): boolean {
+function isSoloGameScreen(screen: string, s?: Pick<EscState, 'copaMode'>): boolean {
+  // ⭐ Só Champions (25/09): a partida INTEIRA mora na tela da tabela de 36 — sem
+  // guardá-la, fechar o app no meio voltava pra cerimônia e a Champions recomeçava.
+  if (screen === 'champions' && s?.copaMode === 'champions') return true
   return (SOLO_GAME_SCREENS as readonly string[]).includes(screen)
 }
 // 🏛️ MULTICLUBES: qual assento está NO COMANDO num save de carreira. Sem 2º clube
@@ -9719,7 +9765,7 @@ function loadSoloInProgress(): EscState | null {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
     if (!raw) return null
     const s = JSON.parse(raw) as EscState
-    if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen) && Array.isArray(s.managers) && s.managers.length > 0) {
+    if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen, s) && Array.isArray(s.managers) && s.managers.length > 0) {
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
       normalizeMultiSeats(s) // 🏛️ multiclube: 1 humano ativo + dormindo certo (reancora youIdx; no-op sem 2º clube)
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
@@ -10343,7 +10389,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // salva a partida solo em andamento (e limpa quando volta pra home)
   useEffect(() => {
     try {
-      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
+      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
