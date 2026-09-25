@@ -43,6 +43,15 @@ leilão = 100%, bot de enchimento ≈ 82%, os 16 batismos convidados ≈ 72% (le
 mesmo desconto dos bots em cima de uma força menor). Propus subir pra 82% e ele
 disse: *"Não. Deixa como tá"*. **Não repropor.**
 
+🧑‍🤝‍🧑 **IDEIA DELE (25/09), pra QUANDO liberar a Champions no online:** sala do modo
+Champions com **até 36 pessoas** (*"somente nesse modo… qd eu liberar no online"*).
+Hoje a sala online tem teto de 20 times (`MAX_PLAYERS` em `lobby.tsx`; duplas = 40
+pessoas mas 20 times). Pra fazer: (1) criar a Só Champions no ONLINE (hoje o online só
+tem Liga + Champions); (2) teto 36 só nesse modo; (3) conferir se o baralho fecha 36
+elencos e se a sala aguenta 36 envelopes (lembrar da sala pesada do Tocaia, 24/09);
+(4) vaga que sobrar continua virando clube de batismo. **Não começar antes de ele
+mandar liberar.**
+
 📌 Pendente (não fazer sem ele pedir): liberar a Champions pra todos
 (`CHAMPIONS_GERAL`); Só Champions no ONLINE; jornal O MARTELO com edição da Champions.
 
