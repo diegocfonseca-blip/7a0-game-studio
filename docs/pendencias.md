@@ -37,6 +37,17 @@ porque é a mesma tela.
 ↩️ **Reverter**: apagar o lado `tocaia` dos ternários — o envelope volta a ser o
 único texto, sem tocar em mais nada.
 
+## 25/09/2026 — ⭐ Champions offline: tabela zerada no Modo Manual ✅ CONSERTADO
+
+1º teste do Diego com bot: *"a Champions não deu certo"* (print da tabela de 36 toda zerada).
+Causa: em `EscChampions` o botão "próxima rodada" só aparecia no AUTOMÁTICO (`!manual`) e no
+MANUAL o relógio não dispara — quem joga no Modo Manual (ele) ficava sem nada que puxasse a
+rodada. Conserto: o mesmo `SimControls` da Liberta (manual → botão puxa rodada/perna do
+repescão; automático → relógio puxa e o botão adianta), com anti-spoiler (`canNext` só depois
+de animar) e o aviso "o host puxa" pro convidado online. Regra de ouro contra botão mudo.
+💭 Ele também sugeriu *"começar a liga com 32 de cara"* em vez de 20 — perguntado a ele se
+é isso mesmo (a Champions decidida em 21/09 é 8 da liga + 28 batismos); NÃO mexer sem resposta.
+
 ## 25/09/2026 — ⚡ Partida rápida OFFLINE: as mesmas copas do online ✅ PUBLICADO
 
 Diego: *"esses modos já têm pra partida rápida também? Tem que ter todos. Liga a Champions já

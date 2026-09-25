@@ -7732,13 +7732,23 @@ export function EscChampions() {
         </Box>
       )}
 
-      {canAdvance && !manual && ch.fase === 'tabela' && ch.rodada < CHAMPIONS_RODADAS && (
-        <Btn onClick={() => dispatch({ type: 'PLAY_CHAMPIONS_RODADA' })} bg={GOLD} className="w-full">
-          ▶️ {T('PRÓXIMA RODADA', 'NEXT ROUND')}
-        </Btn>
+      {/* 🎮 O RITMO, igual à Liberta (conserto 25/09 — 1º teste do Diego com bot). O botão
+          "próxima rodada" só aparecia no AUTOMÁTICO e sumia no MANUAL — e no manual o
+          relógio também não dispara. Resultado: quem joga no Modo Manual (o Diego) via a
+          tabela de 36 zerada pra sempre: *"a Champions não deu certo"*. Agora é o mesmo
+          `SimControls` da Liberta: no manual, o botão puxa a rodada (e a perna do
+          repescão); no automático, o relógio puxa e o botão adianta. Anti-spoiler
+          mantido: só deixa avançar depois que a rodada terminou de animar. */}
+      {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
+      {canAdvance && ch.fase !== 'mata' && (
+        <SimControls manual={manual} onToggle={toggleSim} canNext={ch.rodada === 0 || revealed}
+          lock={!online && !hasManual ? <QuickManualLock /> : undefined}
+          onNext={() => dispatch({ type: ch.fase === 'repescao' ? 'PLAY_CHAMPIONS_REPESCAO' : 'PLAY_CHAMPIONS_RODADA' })}
+          onSkip={() => dispatch({ type: ch.fase === 'repescao' ? 'PLAY_CHAMPIONS_REPESCAO' : 'PLAY_CHAMPIONS_RODADA' })}
+          nextLabel={!(ch.rodada === 0 || revealed) ? T('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : ch.rodada === 0 ? T('⭐ Começar a Champions', '⭐ Start the Champions') : ch.fase === 'repescao' ? T('▶️ Próxima perna do repescão', '▶️ Next playoff leg') : T('▶️ Próxima rodada', '▶️ Next round')} />
       )}
-      {!online && hasManual && (
-        <p className="text-center"><button onClick={toggleSim} className="text-[10.5px] font-black underline text-black/45">{manual ? T('deixar o jogo rodar sozinho', 'let it run by itself') : T('quero jogar na mão', 'I want to play it myself')}</button></p>
+      {online && !state.isHost && ch.fase !== 'mata' && (
+        <p className="text-center text-[11px] font-bold text-black/50">{T('⏳ O host puxa as rodadas — você acompanha ao vivo.', '⏳ The host runs the rounds — you follow live.')}</p>
       )}
     </Shell>
   )
