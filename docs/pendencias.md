@@ -1,3 +1,10 @@
+## 25/09/2026 — 🟢 CHAMPIONS LIBERADA PRA TODOS ✅ NO AR
+
+Diego: *"já tá funcionando o online, pode liberar"*. `CHAMPIONS_GERAL = true` (`sport.ts`).
+A "⭐ Só Champions" aparece destravada na partida rápida, nas salas online e no Minhas
+Ligas (selo "novo" por uns dias no online no lugar do "em breve"). Novidade na home (PT/EN).
+CLAUDE.md atualizado (a regra "não liberar" virou histórico).
+
 ## 25/09/2026 — ⭐ Só Champions no ONLINE (salas rápidas + Minhas Ligas) + jornal da Champions ✅ NO AR (só na conta do Diego)
 
 Diego: *"ok agora faça no modo online! Vamos fazer!! Além disso quando acaba tem jornal,

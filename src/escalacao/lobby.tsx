@@ -3250,7 +3250,7 @@ export function EscLobby() {
                     : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]}
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
                     travados={championsOn ? [] : ['champions']}
-                    selos={{ liga_mundo: seloNovo(), champions: tr('em breve', 'soon') }} />
+                    selos={{ liga_mundo: seloNovo(), champions: championsOn ? seloNovoDe('2026-09-25') : tr('em breve', 'soon') }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
