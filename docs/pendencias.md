@@ -1,3 +1,20 @@
+## 25/09/2026 — 📮 Sala de Champions de volta a 36, com conserto SÓ na Champions ✅ NO AR
+
+Diego: *"não quero mexer nos outros modos… estamos falando da Champions, só a alternativa"*.
+Só quando `copaMode === 'champions'` (flag `hostInbox`, ligada pelo host no START_ONLINE):
+1. **Caixa de entrada do dono**: o convidado manda o recado por `httpSend` pro canal
+   `escalacao-in:<sala>`, que SÓ o host escuta — uma entrega por lance em vez de uma por
+   pessoa. Qualquer falha (404/401/rede) cai no rádio de sempre; o lance do envelope ainda
+   tem a estrada do banco (`room_acoes`). Host de versão velha não liga a flag → convidado
+   segue no caminho antigo.
+2. **O dono junta os envios de estado**: no máximo 1 a cada 400 ms (`CHAMPIONS_ENVIO_MS`),
+   sempre o mais novo.
+Conta (limite medido ≈ 500 msg/s — sala de 20 fazia ~250/s e ia bem; a de 27 fazia ~470/s e
+travou): sala de 36 com o conserto ≈ 100/s. `MAX_PLAYERS_CHAMPIONS = 36` de novo.
+⚠️ **Não deu pra testar ao vivo daqui** (o ambiente não alcança o servidor). O endereço do
+envio foi conferido no código da biblioteca. Se uma sala de Champions travar de novo:
+baixar `MAX_PLAYERS_CHAMPIONS` pra 20 e desligar a flag (`s.hostInbox = false`).
+
 ## 25/09/2026 — 🚨 Sala da Champions voltou pro limite de 20 pessoas ✅ NO AR
 
 Sala **9LSKXI** (27 pessoas, host Fridão) travou no "ENVIANDO… confirmando com o host".

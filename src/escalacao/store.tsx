@@ -6452,6 +6452,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      s.hostInbox = s.copaMode === 'champions' // 📮 só a sala de Champions usa a caixa de entrada do host
       // 🧹 FAXINA ANTI-CARREIRA (bug achado pelo Diego 19/08, testando na conta dele).
       // O reducer clona o estado ANTERIOR. Quem saía de uma carreira (ou da Dinastia)
       // e entrava numa SALA ONLINE levava o `careerDivision` junto — e a sala online
@@ -9733,6 +9734,8 @@ function marcaMexido(save: EscState) {
   } catch { /* silencioso — nunca atrapalha o jogo */ }
 }
 
+// ⭐ sala de Champions: o dono manda o estado no máximo a cada 400 ms (ver o efeito do host)
+const CHAMPIONS_ENVIO_MS = 400
 const SOLO_RESUME_KEY = 'esc-solo-inprogress-v1'
 const SOLO_GAME_SCREENS = ['auction', 'monte', 'cerimonia', 'season', 'end'] as const
 function isSoloGameScreen(screen: string, s?: Pick<EscState, 'copaMode'>): boolean {
@@ -10459,6 +10462,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
   const stateRef = useRef(state)
+  // 📮 canal (não assinado) da caixa de entrada do host — só sala de Champions (ver `hostInbox`)
+  const inboxRef = useRef<{ sala: string; ch: ReturnType<typeof supabase.channel> } | null>(null)
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
@@ -10746,7 +10751,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
       leaveOnlineRoom(stateRef.current.roomId, !!stateRef.current.careerOnline)
     }
     if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM' && action.type !== 'GO_RANKING') {
-      channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
+      // 📮 SALA DE CHAMPIONS: o recado vai SÓ pro dono (caixa de entrada dele), não pra sala
+      // inteira. Com 27 pessoas, cada lance espalhado virava 26 entregas e o servidor
+      // começava a perder mensagem no fim do envelope. Se a entrega falhar, cai no rádio de
+      // sempre — e o lance do envelope ainda tem a estrada do banco (logo abaixo).
+      const rid = stateRef.current.roomId
+      if (stateRef.current.hostInbox && rid) {
+        if (!inboxRef.current || inboxRef.current.sala !== rid) inboxRef.current = { sala: rid, ch: supabase.channel(`escalacao-in:${rid}`) }
+        inboxRef.current.ch.httpSend('action', action).catch(() => { channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action }) })
+      } else channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
       // 📮 CAMINHO RESERVA DO LANCE (23/08, salas 1DWIA5 e 5B11LC): o convidado
       // via o host lacrar ("✅ lacrou" na tela dele) mas o LANCE DELE nunca
       // chegava — o rádio (canal realtime) engolia o recado numa direção só, e o
@@ -10966,13 +10979,39 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // estado inteiro. Isto derruba MUITO o tráfego do Realtime/Egress do Supabase (a
   // conta estourou por causa deste reenvio a cada 3s sem parar).
   const lastStateSendRef = useRef(0)
+  // ⭐ SALA DE CHAMPIONS: o dono JUNTA as mudanças e manda o estado no máximo a cada
+  // `CHAMPIONS_ENVIO_MS` (sempre o mais novo). No fim do envelope todo mundo lacra no mesmo
+  // segundo — mandar um estado inteiro por lacre, pra 26 pessoas, é o que estourava o limite
+  // do servidor (sala 9LSKXI, 25/09). Nas outras salas NADA muda: continua um envio por jogada.
+  const juntaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     if (prevRef.current === state) return
     prevRef.current = state
+    if (state.copaMode === 'champions') {
+      if (juntaTimerRef.current) return // já tem um envio marcado — ele leva o estado mais novo
+      juntaTimerRef.current = setTimeout(() => {
+        juntaTimerRef.current = null
+        const atual = stateRef.current
+        if (atual.onlineMode !== 'online' || !atual.isHost) return
+        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(atual) })
+        lastStateSendRef.current = Date.now()
+      }, CHAMPIONS_ENVIO_MS)
+      return
+    }
     channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(state) })
     lastStateSendRef.current = Date.now()
   }, [state])
+  useEffect(() => () => { if (juntaTimerRef.current) clearTimeout(juntaTimerRef.current) }, [])
+  // 📮 a CAIXA DE ENTRADA do dono (só sala de Champions): os convidados mandam o recado
+  // direto pra cá, e só o dono escuta — uma entrega por lance em vez de uma por pessoa.
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || !state.hostInbox) return
+    const inbox = supabase.channel(`escalacao-in:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } })
+    inbox.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
+    inbox.subscribe()
+    return () => { try { supabase.removeChannel(inbox) } catch { inbox.unsubscribe() } }
+  }, [state.onlineMode, state.isHost, state.roomId, state.hostInbox, reconexao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 📵 A TELA NÃO APAGA DURANTE A PARTIDA ONLINE (Diego 28/08: *"se a pessoa deu
   // uma saidinha, não importa — o jogo tem que continuar rolando do mesmo jeito"*).

@@ -48,8 +48,12 @@ const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
 // O dono reenvia a partida INTEIRA pra cada pessoa a cada lance; com 27 isso passa do
 // limite de mensagens por segundo do Realtime e as mensagens se perdem. Com 20 sempre
 // funcionou. A tabela de 36 continua cheia: o que faltar entra de clube de batismo.
-// Só volta a subir depois que o reenvio do dono for enxugado (ver pendências).
-const MAX_PLAYERS_CHAMPIONS = 20
+// 🔁 E VOLTOU PRA 36 no mesmo dia, com o conserto SÓ na sala de Champions (pedido do Diego:
+// *"não quero mexer nos outros modos… estamos falando da Champions, só a alternativa"*):
+// o lance do convidado vai direto pra caixa de entrada do dono (`hostInbox`) e o dono
+// junta os envios de estado (`CHAMPIONS_ENVIO_MS`). Conta: numa sala de 36 isso fica bem
+// abaixo do tráfego de uma sala de 20 de hoje. Se travar de novo, é só voltar este número.
+const MAX_PLAYERS_CHAMPIONS = 36
 // 🏆 quantas LIGAS cada pessoa pode CRIAR. Era 2; virou 5 em 29/08 a pedido do
 // Diego (*"acho q pode aumentar p 5 ligas q cada um pode criar de lenda… e jogar
 // pode jogar qts quiser"*). O teto existe porque liga fica de pé pra sempre —
@@ -3260,7 +3264,7 @@ export function EscLobby() {
                     {getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
                       : rapidoCopaMode === 'champions'
-                      ? <>⭐ <b>No league</b>: after the auction it goes straight to ONE table of 36 — <b>everyone in the room</b> (up to <b>20 people</b>) and, to fill it, clubs owned by real people. 8 games against 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.</>
+                      ? <>⭐ <b>No league</b>: after the auction it goes straight to ONE table of 36 — <b>everyone in the room</b> (up to <b>36 people</b>) and, to fill it, clubs owned by real people. 8 games against 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 League over, the <b>top 8</b> enter the Libertadores with <b>24 clubs from the continent</b> (32 in total): 8 groups of 4, 2 go through, and the knockouts run to a single final. <b>No Cup of 8</b> in this room.</>
                       : rapidoCopaMode === 'liga_copa'
@@ -3268,7 +3272,7 @@ export function EscLobby() {
                         : <>📊 Just the table, start to finish. The champion is whoever gets the most points.</>) : rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 6 grupos de 4, passam 16 (os 2 primeiros + os 4 melhores 3ºs) e mata-mata em jogo único, das oitavas à final. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'champions'
-                      ? <>⭐ <b>Sem liga</b>: acabou o leilão, vai direto pra tabela ÚNICA de 36 — <b>todo mundo da sala</b> (até <b>20 pessoas</b>) e, completando, clubes de gente de verdade. 8 jogos contra 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora.</>
+                      ? <>⭐ <b>Sem liga</b>: acabou o leilão, vai direto pra tabela ÚNICA de 36 — <b>todo mundo da sala</b> (até <b>36 pessoas</b>) e, completando, clubes de gente de verdade. 8 jogos contra 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_copa'
