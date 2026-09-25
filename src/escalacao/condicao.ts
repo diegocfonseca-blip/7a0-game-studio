@@ -49,6 +49,28 @@
 // caminho ("contrate no mercado"); se a lesão vier, entra o MESMO banner dos
 // 3 Crias da Base que os eventos já usam.
 import { CONDICAO_ON } from './career-feature-release'
+import { clubCanon } from './data'
+
+/**
+ * 🗝️ A CHAVE DO QUE O JOGADOR CARREGA ENTRE TEMPORADAS (`condicaoCarry`):
+ * gás, jogos, gols e assistências NO SEU CLUBE.
+ *
+ * Mora AQUI, num lugar só, por causa do furo de 25/09: o `guardaCansaco`
+ * (store.tsx) GRAVAVA com `clubCanon(clube)` e a tela (pyramidseason.tsx) LIA
+ * com o clube cru. Pras cartas de clube com duas grafias (Bayer Leverkusen →
+ * Leverkusen, Manchester United → Man United, Leicester City → Leicester, Inter
+ * de Milão → Inter) a leitura nunca achava a linha, e o "NO SEU CLUBE" do
+ * jogador voltava a ZERO a cada virada de temporada.
+ *
+ * ⚠️ Quem precisar dessa chave USA ESTA FUNÇÃO — não escreve a string na mão.
+ * É a mesma lição do "botão mudo": regra escrita em dois lados vira duas regras.
+ * A trava `npm run gols` reprova se alguém montar a chave à mão de novo.
+ *
+ * 🃏 E é por CARTA (nome|clube|ano), nunca por nome — o baralho tem 62 nomes
+ * repetidos em 125 cartas, e o `cardId` o leilão troca todo ano.
+ */
+export const chaveCarry = (c: { name: string; club: string; year: number }): string =>
+  `${c.name}|${clubCanon(c.club)}|${c.year}`
 
 // ⚖️ A ESCADA DE 13/09 — o cansaço ATRAVESSA TEMPORADAS (escolha do Diego).
 // Ele pediu *"1 a 50, depois 55, 60, 65 e 70 em diante"*. Eu avisei que a temporada

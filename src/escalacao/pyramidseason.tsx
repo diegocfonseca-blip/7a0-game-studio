@@ -25,7 +25,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
-import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste } from './condicao'
+import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, chaveCarry } from './condicao'
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
@@ -7456,7 +7456,17 @@ export function PyramidSeasonScreen() {
     // ⚽🅰️ o que ele já tinha feito NO CLUBE antes desta temporada
     const gl: Record<string, number> = {}, as: Record<string, number> = {}
     for (const c of me.squad as WonCard[]) {
-      const k = carry[`${c.name}|${c.club}|${c.year}`]
+      // 🗝️ 25/09 — A CHAVE TEM QUE SER A MESMA DOS DOIS LADOS. O `guardaCansaco`
+      // (store.tsx) SEMPRE gravou `nome|clubCanon(clube)|ano`, e aqui a tela lia
+      // `nome|clube|ano` cru. Pra quem joga por um clube de grafia dupla (Bayer
+      // Leverkusen→Leverkusen, Manchester United→Man United, Leicester City→
+      // Leicester, Inter de Milão→Inter) a leitura NUNCA achava a linha: jogos,
+      // gols e assistências "NO SEU CLUBE" voltavam a ZERO a cada virada. É o
+      // *"não tá totalizando certo os gols totais e assistências totais"* dele.
+      // Não precisa migrar save: o que está gravado já está na grafia canônica.
+      // 🗝️ A chave agora mora em UM lugar só (`chaveCarry`, em condicao.ts) —
+      // quem escreve e quem lê chamam a MESMA função.
+      const k = carry[chaveCarry(c)]
       // 🧾 carry sem `gl` (de antes de 19/09, quando o gol passou a contar): os jogos
       // de trás não entram — jogos, gols e assistências contam a partir da MESMA
       // temporada (Diego: *"300 partidas com 10 gols apenas, tá estranho"*). A mesma

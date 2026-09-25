@@ -433,7 +433,24 @@ export function copaBrasilAsCopaResult(r: CopaBrasilResult, supercopa?: CBTie | 
   if (r.round64) rounds.push({ name: r.round64.name, ties: r.round64.ties, slot: r.round64.slot })
   rounds.push(...r.rounds)
   if (supercopa) rounds.push({ name: 'Supercopa', ties: [supercopa], slot: 38 + ROUND_NAMES.length + 1 })
-  return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, scorersAll: [...(r.scorersAll ?? []), ...(supercopa?.scorers ?? [])], topScorer: r.topScorer, assists: r.assists, assistsAll: [...(r.assistsAll ?? []), ...(supercopa?.assists ?? [])], topAssist: r.topAssist, goalsByCard: r.goalsByCard, assistsByCard: r.assistsByCard }
+  // ⚽🅰️ 25/09 — A SUPERCOPA ENTRAVA NO HISTÓRICO E SUMIA DA FICHA DO JOGADOR.
+  // Relato do Diego: *"os gols no modo carreira não tão aparecendo gols da copa e
+  // supercopa… assistência também não"*. Os gols dela chegavam em `scorersAll`
+  // (Rank de todos os tempos e prêmio do artilheiro) mas NÃO nestes dois mapas
+  // POR CARTA — e é deles que saem a coluna ⚽/🅰️ do elenco, a ficha do jogador,
+  // a imagem de compartilhar e o acumulado que atravessa a virada
+  // (`guardaCansaco` recebe o MESMO mapa). Ou seja: o gol contava no Rank e não
+  // contava no jogador. Medido em `npm run gols`: 28 gols e 20 assistências
+  // perdidos em 12 temporadas.
+  const somaPorCarta = (base: Record<string, number> | undefined, extra: { cardId?: string }[] | undefined, quanto: (x: never) => number) => {
+    if (!extra?.length) return base
+    const m: Record<string, number> = { ...(base ?? {}) }
+    for (const x of extra) if (x.cardId) m[x.cardId] = (m[x.cardId] ?? 0) + quanto(x as never)
+    return m
+  }
+  return { rounds, champion: r.champion, championDiv: r.championDiv, vice: r.vice, viceDiv: r.viceDiv, scorers: r.scorers, scorersAll: [...(r.scorersAll ?? []), ...(supercopa?.scorers ?? [])], topScorer: r.topScorer, assists: r.assists, assistsAll: [...(r.assistsAll ?? []), ...(supercopa?.assists ?? [])], topAssist: r.topAssist,
+    goalsByCard: somaPorCarta(r.goalsByCard, supercopa?.scorers, (s: SeasonScorer) => s.goals),
+    assistsByCard: somaPorCarta(r.assistsByCard, supercopa?.assists, (a: SeasonAssist) => a.assists) }
 }
 
 // 🚫 Sem piso desde 22/09 (ordem do Diego: artilheiro e Bola de Ouro não sobem
