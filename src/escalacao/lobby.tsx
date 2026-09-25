@@ -3462,17 +3462,36 @@ export function EscLobby() {
             isso é inútil pra quem JÁ pagou: quem tem direito vê "você já tem vaga"
             e o link vai pro @ do Instagram, que é por onde o Diego passa o convite
             (não existe link de convite do grupo no código — é ele quem adiciona). */}
+        {/* ✨ 25/09 — A PALAVRA "WHATSAPP" ACENDE. Pedido do Diego: *"coloque algum
+            tipo de brilho na parte escrita WhatsApp, pra quem tá procurando galera
+            pra jogar junto… pra pessoa ler que entra no grupo do WhatsApp se
+            quiser"*. Duas coisas mudaram: (1) a frase agora ESCREVE "WhatsApp" —
+            antes dizia só "um grupo de quem joga online", e quem batia o olho nem
+            sabia que era grupo de zap; (2) só essa palavra acende, num respiro
+            lento de 2,4s. O resto da linha continua no cinza de rodapé, porque a
+            ordem de 29/08 (*"de forma mais sutil"*) continua valendo.
+            💾 Brilho em CSS = 0 KB (mesma regra do escudo animado: animação é CSS,
+            nunca arquivo). Reverter = tirar a classe `zap-brilha`. */}
         {(() => {
           const jaTem = myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata'
+          const Zap = <span className="zap-brilha">WhatsApp</span>
           return (
           <div className="pt-1">
+            <style>{'@keyframes zapRespira{0%,100%{text-shadow:0 0 4px rgba(37,211,102,.5),0 0 11px rgba(37,211,102,.22)}50%{text-shadow:0 0 9px rgba(37,211,102,.95),0 0 22px rgba(37,211,102,.5)}}.zap-brilha{color:#25D366;font-weight:900;animation:zapRespira 2.4s ease-in-out infinite}@keyframes zapPonto{0%,100%{opacity:.55;box-shadow:0 0 4px rgba(37,211,102,.5)}50%{opacity:1;box-shadow:0 0 9px rgba(37,211,102,.95)}}.zap-ponto{display:inline-block;width:7px;height:7px;border-radius:99px;background:#25D366;margin-right:5px;vertical-align:1px;animation:zapPonto 2.4s ease-in-out infinite}@media (prefers-reduced-motion:reduce){.zap-brilha{animation:none;text-shadow:0 0 7px rgba(37,211,102,.7)}.zap-ponto{animation:none;box-shadow:0 0 7px rgba(37,211,102,.7)}}'}</style>
             <p className="text-white/35 text-[11px] font-bold leading-snug text-center">
+              {/* 🟢 a bolinha viva (opção ③, escolha dele): respira no MESMO tempo
+                  da palavra, senão as duas luzes brigam na mesma linha. */}
+              <span className="zap-ponto" />
               {jaTem ? (<>
-                {tr('📱 Tem um grupo de quem joga online — e você já tem vaga nele.', '📱 There is a group of online players — and you already have a spot in it.')}{' '}
+                {getLang() === 'en'
+                  ? <>📱 There is a {Zap} group of online players — and you already have a spot in it.</>
+                  : <>📱 Tem um grupo no {Zap} de quem joga online — e você já tem vaga nele.</>}{' '}
                 <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noreferrer"
                   className="underline text-white/60 font-black active:opacity-60">{tr('Pedir o convite', 'Ask for the invite')}</a>
               </>) : (<>
-                {tr('📱 Sem galera pra chamar? Tem um grupo de quem joga online — é do ⭐ Craque pra cima.', '📱 Nobody to call? There is a group of online players — from ⭐ Star up.')}{' '}
+                {getLang() === 'en'
+                  ? <>📱 Nobody to call? There is a {Zap} group of online players — from ⭐ Star up.</>
+                  : <>📱 Sem galera pra chamar? Tem um grupo no {Zap} de quem joga online — é do ⭐ Craque pra cima.</>}{' '}
                 <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=craque` }}
                   className="underline text-white/60 font-black active:opacity-60">{tr('Saiba mais', 'Learn more')}</button>
               </>)}

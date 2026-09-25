@@ -1,3 +1,85 @@
+## 25/09/2026 — 📱✨ A palavra "WhatsApp" acende na linha das salas abertas ✅ NO AR
+
+Pedido do Diego: *"aquele texto sutil embaixo das salas abertas onde fala do grupo
+do WhatsApp. Coloque algum tipo de brilho na parte escrita WhatsApp, pra quem tá
+procurando galera pra jogar junto… pra pessoa ler que entra no grupo do WhatsApp
+se quiser"*.
+
+**Achado no caminho**: a linha NÃO escrevia "WhatsApp". Dizia só *"Tem um grupo de
+quem joga online"* — quem batia o olho achava que era coisa de dentro do jogo.
+Então o trabalho virou dois: **escrever a palavra** e **acender ela**.
+
+**Feito** (`src/escalacao/lobby.tsx`, bloco embaixo do 🔄 Atualizar lista):
+a frase agora é *"Tem um grupo no **WhatsApp** de quem joga online"* (PT e EN, nos
+dois finais — quem já tem vaga e quem não tem), e só a palavra ganha o verde
+`#25D366` com um respiro de 2,4s (`@keyframes zapRespira`) — **e a bolinha verde
+viva antes da frase** (opção ③, escolha dele), respirando no MESMO tempo da
+palavra pra as duas luzes não brigarem. O resto da linha
+continua no cinza de rodapé, porque a ordem de 29/08 (*"de forma mais sutil"*)
+continua valendo. Brilho em CSS = **0 KB**, e `prefers-reduced-motion` desliga a
+animação e deixa o brilho parado.
+
+**Mockup**: `node scripts/mockup-brilho-whatsapp.mjs` — mostra o de hoje + as 3
+formas de brilho (① respira · ② luz passando · ③ respira + bolinha viva).
+
+✅ **OK dele: "3"** — a opção ③ (respira + bolinha viva). Foi pra main no mesmo
+dia. Reverter é apagar as classes `zap-brilha` e `zap-ponto`; nada mais na tela
+depende delas.
+
+📢 **De propósito NÃO virou novidade na home**: o grupo já existia e a linha já
+estava lá — isto é só deixar a palavra visível. Novidade é feature nova pra quem
+joga, não realce de coisa que já estava no ar.
+
+## 24/09/2026 — 🧊 Depois do apito, o passado não muda mais ✅ CONSERTADO
+
+Relato do Futpoint FC, trazido pelo Diego: *"eu não ganhei nada nessa temporada,
+mas quando fui pegar o jogador que tinha emprestado, o jogo bugou e deu que eu
+tinha sido campeão"*. Ele trouxe o Roberto Carlos de volta da SAF, foi no jornal
+e estava campeão das DUAS copas; voltou na janela de empréstimo, mexeu de novo, e
+perdeu as copas e ganhou a LIGA.
+
+**A causa**: o resultado da temporada NÃO é guardado — a tela refaz as 38 rodadas
+na hora, a partir do elenco que está no clube NAQUELE momento
+(`buildPyramid(state.managers…)`). A janela de empréstimo fica na MESMA tela, e
+trazer alguém da SAF mexe em `cpuSquads` — que é dependência do `useMemo`. Conta
+refeita com outro time = temporada inteira diferente.
+💡 O `useMemo` já tentava se proteger (a lista de dependências tem
+`state.managers.length`, não `state.managers`), mas o `cpuSquads` vazava a
+mudança por baixo.
+
+⚠️ **E dava pra abusar**: o prêmio só é gravado quando a pessoa AVANÇA a
+temporada, então bastava mexer no elenco até cair um título bom e só então
+avançar. Ninguém achou de propósito — o Futpoint tropeçou — mas estava aberto.
+
+**O conserto** (`src/escalacao/congela-temporada.ts`): no apito final o mundo
+daquela temporada é FOTOGRAFADO, e a tela passa a ler a foto. O que acontecer
+depois (empréstimo, SAF, venda, compra) não reescreve o que já foi jogado. A foto
+é presa ao NÚMERO DA TEMPORADA: na virada ela se desfaz sozinha.
+
+**Trava**: `npm run congela` — refaz a história do Futpoint passo a passo e exige
+que o campeão NÃO mude depois do apito (e que a foto da T6 não vaze pra T7).
+
+🕳️ **O QUE AINDA FALTA, e é honesto anotar**: a foto vive na MEMÓRIA da tela. Se
+a pessoa RECARREGAR a página com a temporada encerrada e o elenco já mexido, a
+conta é refeita e pode dar outro campeão. Pra fechar de vez, a foto precisa ir
+pro SAVE (tabela + copa + artilharia), que é mudança maior e mexe no tamanho do
+save. Enquanto isso, o caminho que o Futpoint andou — mexer no elenco e ver a
+história mudar na frente dele — está fechado.
+
+↩️ **Reverter**: trocar `world` de volta por `worldVivo` na tela da temporada.
+
+## 24/09/2026 — ⚽🏴‍☠️ Batismo VASCO SAF (brunnodeluca90) = o antigo Vasco da Grana ✅ PUBLICADO
+
+O Vasco da Grana era batismo SEM dono (pedido do Diego em 03/08); ele achava que era deste
+usuário. Ordem dele: *"ele entra no lugar do Vasco da Grana"*. Então é RENOMEAÇÃO: mesmo
+assento da Série D, `OLD_NAME['Vasco SAF'] = 'Vasco da Grana'`, e o "Vasco da Grana" saiu
+do Salão (`batismos.ts`). Escudo/mascote também respondem pelo nome velho. Coração **Vasco**.
+- Arte: escudo 266×360 29,0 KB + mascote (O Pirata) 277×440 40,0 KB = 69 KB. Recorte só do
+  chroma forte — as NOTAS de dinheiro do mascote são esverdeadas e ficaram inteiras.
+- Manto preto `#161414` (subido de #080707) + branco `#ECE6E1`, medidos na camisa.
+- Banco rodado (`docs/sql/batismo-vasco-saf.sql`): sócio 59, fundador 78, 3 nomes, ouro.
+- ⏳ Post `mockups/vasco-saf-post.png` — falta o nome do dono no rodapé (e o do Julia também).
+
 ## 24/09/2026 — 🔄 Publicar no meio da partida derrubava a tela ✅ CONSERTADO
 
 Relato dele: *"tá com erros nas salas online da Tocaia, travando… minha sala do
