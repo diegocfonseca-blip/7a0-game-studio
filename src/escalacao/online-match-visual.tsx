@@ -1,5 +1,5 @@
 import type { ReactNode, CSSProperties } from 'react'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
 import { tr } from './lang' // 🌐 BR/EN
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
@@ -179,18 +179,55 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  const quem=(side:number,i:number)=>batedorDaVez(times[side],i)
  const sigla=(side:number,i:number)=>{const n=quem(side,i);return n?siglas[side][n]:undefined}
  const saiu=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed>=.7+k.at*passo).sort((a,b)=>b.at-a.at)[0]
- const lance=saiu&&elapsed<.7+saiu.at*passo+passo*.6?saiu:undefined
+ // ⚽ A BOLA VIAJA (25/09, mockup aprovado: *"pode fazer, já pode funcionar já"*).
+ // Antes a bolinha só PISCAVA no meio do palco e o veredito caía do nada. Agora ela
+ // nasce no pé de quem bate, atravessa a pista e SÓ quando chega no gol sai o final:
+ // gol (a rede balança) · defendeu (a luva fecha) · pra fora (passa do lado e some) ·
+ // trave/travessão (bate e volta) · isolou (sobe e sai por cima).
+ // 🙈 SEM SPOILER, e o motivo é de construção: a viagem é a MESMA pra todo resultado
+ // (mesma saída, mesma velocidade, mesmo caminho) e o `ok` só é lido quando a cobrança
+ // já "chegou" (`shown`) — o mesmo instante em que a bolinha nasce na linha de cima.
+ // ⏱️ Tudo cabe DENTRO do passo que já existe (nenhum segundo a mais): o veredito fica
+ // 35% do passo, a viagem dura 55% dele e sobra um tiquinho com a bola parada no pé.
+ // Bot × bot (0,85 s) corre rápido; com gente (1,6 s) dá pra acompanhar.
+ // 🎞️ A viagem é animação de CSS com o atraso CONGELADO por cobrança (`useMemo` por
+ // `at`): o relógio de 80 ms desta tela só liga/desliga a bola, nunca a reposiciona —
+ // senão ela andaria aos trancos. Quem abre a tela no meio do voo pega o atraso certo.
+ const T=(at:number)=>.7+at*passo
+ // a ÚLTIMA cobrança fica no palco até a linha do classificado entrar (senão sobrava
+ // 1 s de "uma cobrança de cada vez…" entre o lance que decidiu e o veredito da disputa)
+ const lance=saiu&&(elapsed<T(saiu.at)+passo*.35||!next)?saiu:undefined
  const noPalco=lance??next
+ const parteEm=next?Math.max(0,T(next.at)-passo*.55):0
+ const voando=!lance&&!!next&&elapsed>=parteEm
+ const elapsedRef=useRef(0);elapsedRef.current=elapsed
+ const voo=useMemo(()=>{
+  if(!next)return null
+  const d=Math.max(0,T(next.at)-passo*.55)
+  return {duracao:T(next.at)-d,atraso:-Math.max(0,elapsedRef.current-d)}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[next?.at,passo])
  const TXT_ERRO:Record<JeitoDoErro,string>={defendeu:tr('🧤 DEFENDEU!','🧤 SAVED!'),fora:tr('💨 PRA FORA!','💨 WIDE!'),isolou:tr('🚀 ISOLOU!','🚀 SKIED IT!'),trave:tr('🔔 NA TRAVE!','🔔 HIT THE POST!'),travessao:tr('🔔 NO TRAVESSÃO!','🔔 OFF THE BAR!')}
  const tamNome=(n:string)=>n.length<=10?14:n.length<=14?12.5:n.length<=18?11.5:10.5
  const palco=()=>{
   if(!noPalco)return null
   const bate=quem(noPalco.side,noPalco.i),gk=times[1-noPalco.side]?.goleiro
   if(!bate&&!gk)return null
-  const veredito=lance?(lance.ok?tr('⚽ GOL!','⚽ GOAL!'):TXT_ERRO[jeitoDoErro(semente,lance.at)]):null
+  const erro=lance&&!lance.ok?jeitoDoErro(semente,lance.at):null
+  const veredito=lance?(lance.ok?tr('⚽ GOL!','⚽ GOAL!'):TXT_ERRO[erro!]):null
+  // o final no gol: a classe diz COMO acabou; a bola que sobra faz o movimento
+  const fim=lance?(lance.ok?'gol':erro==='defendeu'?'luva':erro==='fora'?'fora':erro==='isolou'?'ceu':'trave'):null
   return <div className={`ll28-palco${lance?(lance.ok?' p-gol':' p-erro'):''}`} aria-live="polite">
    <div className="ll28-palco-lado"><small>{lance?tr('⚽ BATEU','⚽ TOOK IT'):tr('⚽ BATE','⚽ UP NEXT')}</small>{bate&&<b style={{fontSize:tamNome(bate)}}>{bate}</b>}</div>
-   {veredito?<div className="ll28-veredito">{veredito}</div>:<div className="ll28-palco-bola">●</div>}
+   <div className="ll28-pista">
+    <span className="ll28-trilho"/>
+    <span className={`ll28-meta${fim==='gol'?' balanca':''}`}>{fim==='luva'?'🧤':'🥅'}</span>
+    {lance&&fim!=='luva'&&<span key={`fim-${lance.at}`} className={`ll28-bola fim-${fim}`}>⚽</span>}
+    {!lance&&next&&(voando&&voo
+      ?<span key={`voa-${next.at}`} className="ll28-bola voa" style={{animationDuration:`${voo.duracao.toFixed(2)}s`,animationDelay:`${voo.atraso.toFixed(2)}s`}}>⚽</span>
+      :<span className="ll28-bola no-pe">⚽</span>)}
+    {veredito&&<div className="ll28-veredito">{veredito}</div>}
+   </div>
    <div className="ll28-palco-lado dir"><small>{tr('🧤 GOLEIRO','🧤 KEEPER')}</small>{gk&&<b style={{fontSize:tamNome(gk)}}>{gk}</b>}</div>
   </div>
  }

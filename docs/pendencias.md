@@ -90,6 +90,22 @@ partida sempre vai incomodar alguém — agora incomoda uma piscada, não uma qu
 
 ↩️ **Reverter**: tirar o `pedaco()` dos dois `lazy()` e a linha do ErrorBoundary.
 
+## 25/09/2026 — ⚽ Pênaltis: A BOLA VIAJA até o gol ✅ PUBLICADO
+
+Mockup (`scripts/mockup-penaltis-bola.mjs`, tira + GIF) aprovado: *"pode fazer, já pode
+funcionar já"*. Em `CompactPenalties`: a bola nasce no pé de quem bate, atravessa a pista
+(animação CSS com atraso congelado por cobrança — o relógio de 80 ms só liga/desliga, nunca
+reposiciona) e só na chegada sai o final: gol (rede balança) · defendeu (luva no lugar do gol)
+· fora (passa e some) · trave/travessão (bate e volta) · isolou (sobe e some).
+- 🙈 Sem spoiler por construção: a viagem é idêntica pra todo resultado e o `ok` só é lido
+  quando a cobrança chegou (`shown`), o mesmo instante da bolinha na linha.
+- ⏱️ Nenhum segundo a mais: veredito 35% do passo, viagem 55%, bola parada no pé no resto.
+- 🩹 De quebra: a ÚLTIMA cobrança fica no palco até a linha do classificado (antes sobrava
+  ~1 s de "uma cobrança de cada vez…").
+- Conferido no navegador nos dois ritmos, com os 5 finais.
+💡 Ideias que ficaram na gaveta (ele escolheu a bola): aviso "PRA CLASSIFICAR / PRA FICAR VIVO"
+na cobrança decisiva; o AVATAR do batedor (162 lendas já têm) no palco, sem inventar rosto.
+
 ## 25/09/2026 — 🎭 Pênaltis com gente ficam mais lentos + bolinhas começam na esquerda · ⏳ NO BRANCH, sobe de manhã
 
 Diego: *"tô achando que a emoção não tá tendo, tá muito rápido… bot contra bot tudo bem ser
