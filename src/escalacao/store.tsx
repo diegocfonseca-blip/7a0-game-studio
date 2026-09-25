@@ -3549,7 +3549,12 @@ function seedChampionsDireto(league: LeagueTeam[], rng: () => number): Champions
 function abreChampionsDiretoSePrecisa(s: EscState) {
   if (s.copaMode !== 'champions' || s.screen !== 'season') return
   if (s.onlineMode === 'online' || s.careerOnline || s.careerDivision || s.sport === 'basquete') return
-  if (s.champions || s.quickCopa || s.round !== 0 || !s.league.length) return
+  if (s.round !== 0 || !s.league.length) return
+  // 🧹 com a rodada em 0, qualquer Champions/Copa que estiver no estado é RESTO da
+  // partida anterior (a de verdade já nasce com a rodada no fim). Foi o que o Diego
+  // pegou no 1º teste (25/09): o `START` não limpava a Champions velha, esta função
+  // achava que já tinha semeado e a partida caía na liga de 20.
+  s.champions = null; s.quickCopa = null; s.liberta = null
   s.champions = seedChampionsDireto(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0))
   s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
   s.news = [tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — o seu, os rivais do leilão e os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — yours, your auction rivals and the named clubs.')]
@@ -5909,6 +5914,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}
       s.seasonNo = 1
+      // 🏆🌎⭐ as copas da partida ANTERIOR não atravessam pra partida nova (a Só
+      // Champions caía na liga por causa disto — 25/09). Mesma faxina do REPLAY.
+      s.quickCopa = null; s.liberta = null; s.champions = null
       // 🌱 mesma faxina do online: partida rápida NÃO herda a Cria da Base nem os
       // eventos de jogador de uma carreira anterior — senão a historinha do Sub-20
       // aparece na Cerimônia de um rápido (relato do Diego, 11/09).
@@ -9778,6 +9786,7 @@ function loadSoloInProgress(): EscState | null {
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
       // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
       // carreira voltava pelo aqui e o baralho continuava com o nível velho.
+      abreChampionsDiretoSePrecisa(s) // ⭐ cura quem ficou preso na liga da Só Champions (1º teste do Diego, 25/09)
       return devolvePreparadorUmaVez(devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(s))))
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }

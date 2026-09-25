@@ -1,3 +1,15 @@
+## 25/09/2026 — 🩹 Só Champions caía na liga de 20 depois de outra partida ✅ NO AR
+
+Print do Diego no 1º teste de verdade: "RODADA 1/38 · 13º · 0 pts", sem tabela. Causa:
+o `START` da partida rápida **não limpava** a Champions/Copa/Liberta da partida
+ANTERIOR — a `abreChampionsDiretoSePrecisa` via a Champions velha, achava que já
+tinha semeado e deixava a liga rodar. No meu teste não aparecia porque eu sempre
+partia do estado zerado. Conserto: (1) o `START` zera `quickCopa`/`liberta`/`champions`
+(mesma faxina do REPLAY); (2) com a rodada em 0, a função trata qualquer copa no
+estado como resto e limpa; (3) ao abrir o save da partida em andamento, ela roda de
+novo — quem ficou preso na liga **se cura sozinho** ao reabrir. Testado: partida
+velha → partida nova vai pra tabela de 36; save preso → reabre na Champions.
+
 ## 25/09/2026 — ⏱️ Monte das sobras = 10s nas salas com Champions ✅ NO AR
 
 Diego: *"o monte da sobra do leilão gratuita do modo Champions será sempre com 10s e
