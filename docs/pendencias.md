@@ -1,4 +1,4 @@
-## 25/09/2026 — 📱✨ A palavra "WhatsApp" acende na linha das salas abertas ⏳ ESPERANDO OK VISUAL
+## 25/09/2026 — 📱✨ A palavra "WhatsApp" acende na linha das salas abertas ✅ NO AR
 
 Pedido do Diego: *"aquele texto sutil embaixo das salas abertas onde fala do grupo
 do WhatsApp. Coloque algum tipo de brilho na parte escrita WhatsApp, pra quem tá
@@ -12,7 +12,9 @@ Então o trabalho virou dois: **escrever a palavra** e **acender ela**.
 **Feito** (`src/escalacao/lobby.tsx`, bloco embaixo do 🔄 Atualizar lista):
 a frase agora é *"Tem um grupo no **WhatsApp** de quem joga online"* (PT e EN, nos
 dois finais — quem já tem vaga e quem não tem), e só a palavra ganha o verde
-`#25D366` com um respiro de 2,4s (`@keyframes zapRespira`). O resto da linha
+`#25D366` com um respiro de 2,4s (`@keyframes zapRespira`) — **e a bolinha verde
+viva antes da frase** (opção ③, escolha dele), respirando no MESMO tempo da
+palavra pra as duas luzes não brigarem. O resto da linha
 continua no cinza de rodapé, porque a ordem de 29/08 (*"de forma mais sutil"*)
 continua valendo. Brilho em CSS = **0 KB**, e `prefers-reduced-motion` desliga a
 animação e deixa o brilho parado.
@@ -20,9 +22,13 @@ animação e deixa o brilho parado.
 **Mockup**: `node scripts/mockup-brilho-whatsapp.mjs` — mostra o de hoje + as 3
 formas de brilho (① respira · ② luz passando · ③ respira + bolinha viva).
 
-⏳ **Não foi pra main**: mudança visual espera o OK dele (regra 2). Está só no
-branch. Trocar de ① pra ② ou ③ é uma linha de CSS; reverter é apagar a classe
-`zap-brilha`.
+✅ **OK dele: "3"** — a opção ③ (respira + bolinha viva). Foi pra main no mesmo
+dia. Reverter é apagar as classes `zap-brilha` e `zap-ponto`; nada mais na tela
+depende delas.
+
+📢 **De propósito NÃO virou novidade na home**: o grupo já existia e a linha já
+estava lá — isto é só deixar a palavra visível. Novidade é feature nova pra quem
+joga, não realce de coisa que já estava no ar.
 
 ## 24/09/2026 — 🧊 Depois do apito, o passado não muda mais ✅ CONSERTADO
 

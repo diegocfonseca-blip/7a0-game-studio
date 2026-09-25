@@ -3453,8 +3453,11 @@ export function EscLobby() {
           const Zap = <span className="zap-brilha">WhatsApp</span>
           return (
           <div className="pt-1">
-            <style>{'@keyframes zapRespira{0%,100%{text-shadow:0 0 4px rgba(37,211,102,.5),0 0 11px rgba(37,211,102,.22)}50%{text-shadow:0 0 9px rgba(37,211,102,.95),0 0 22px rgba(37,211,102,.5)}}.zap-brilha{color:#25D366;font-weight:900;animation:zapRespira 2.4s ease-in-out infinite}@media (prefers-reduced-motion:reduce){.zap-brilha{animation:none;text-shadow:0 0 7px rgba(37,211,102,.7)}}'}</style>
+            <style>{'@keyframes zapRespira{0%,100%{text-shadow:0 0 4px rgba(37,211,102,.5),0 0 11px rgba(37,211,102,.22)}50%{text-shadow:0 0 9px rgba(37,211,102,.95),0 0 22px rgba(37,211,102,.5)}}.zap-brilha{color:#25D366;font-weight:900;animation:zapRespira 2.4s ease-in-out infinite}@keyframes zapPonto{0%,100%{opacity:.55;box-shadow:0 0 4px rgba(37,211,102,.5)}50%{opacity:1;box-shadow:0 0 9px rgba(37,211,102,.95)}}.zap-ponto{display:inline-block;width:7px;height:7px;border-radius:99px;background:#25D366;margin-right:5px;vertical-align:1px;animation:zapPonto 2.4s ease-in-out infinite}@media (prefers-reduced-motion:reduce){.zap-brilha{animation:none;text-shadow:0 0 7px rgba(37,211,102,.7)}.zap-ponto{animation:none;box-shadow:0 0 7px rgba(37,211,102,.7)}}'}</style>
             <p className="text-white/35 text-[11px] font-bold leading-snug text-center">
+              {/* 🟢 a bolinha viva (opção ③, escolha dele): respira no MESMO tempo
+                  da palavra, senão as duas luzes brigam na mesma linha. */}
+              <span className="zap-ponto" />
               {jaTem ? (<>
                 {getLang() === 'en'
                   ? <>📱 There is a {Zap} group of online players — and you already have a spot in it.</>
