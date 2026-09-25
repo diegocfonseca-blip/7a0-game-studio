@@ -1,3 +1,11 @@
+## 25/09/2026 — 📏 Champions: "8 jogos · 8 adversários diferentes · formato oficial" no topo ✅ NO AR
+
+Linha miúda embaixo do "⭐ CHAMPIONS · RODADA x/8" (no repescão: "ida e volta · 8 vagas
+nas oitavas"). Aprovado pelo Diego (*"perfeito, publique"*).
+📌 **PRÓXIMO PASSO COMBINADO**: ele vai testar a Só Champions na partida rápida e, se der
+certo, levar **tudo pro ONLINE — salas rápidas e Minhas Ligas**. Junto entra a ideia da
+sala de até 36 pessoas (ver abaixo). Não começar sem ele mandar.
+
 ## 25/09/2026 — ⏱️ Rodada da liga cravada em 7s + repescão da Champions no tempo de Copa ✅ NO AR
 
 Diego: *"repescão pode manter igual mata-mata também. E liga normal que tava 6,7s aumente
