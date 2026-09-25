@@ -37,6 +37,20 @@ porque é a mesma tela.
 ↩️ **Reverter**: apagar o lado `tocaia` dos ternários — o envelope volta a ser o
 único texto, sem tocar em mais nada.
 
+## 25/09/2026 — ⚡ Partida rápida OFFLINE: as mesmas copas do online ✅ PUBLICADO
+
+Diego: *"esses modos já têm pra partida rápida também? Tem que ter todos. Liga a Champions já
+no partida offline, vai ser o primeiro teste que vou fazer com bot"*.
+- "Depois da liga" no rápido offline virou grade 2×2: **Liga + Copa · Liga + Liberta ·
+  Liga + Champions · Só Liga** (antes não tinha Champions).
+- Champions com a MESMA trava do online (`useChampionsLiberada`): aparece pra todo mundo com
+  a tarja EM BREVE e só `CHAMPIONS_TESTERS` (a conta dele) marca. **Continua NÃO liberada
+  geral** — a regra de 21/09 segue de pé; o que mudou é que agora ele consegue testar sozinho
+  contra bot. O motor já rodava sem sala (`canDriveCopa = !online || isHost`).
+- ⚠️ **Liga + Mundo NÃO entrou no offline**: no online a Copa do Mundo é um modo de SALA
+  (`CopaDaSala`, ficha + relógio no banco). Pra rodar sozinho precisa de um caminho novo
+  (a carreira tem o `CupScreen` com save — dá pra reaproveitar). Fica pra ele decidir.
+
 ## 25/09/2026 — 📱✨ A palavra "WhatsApp" acende na linha das salas abertas ✅ NO AR
 
 Pedido do Diego: *"aquele texto sutil embaixo das salas abertas onde fala do grupo
