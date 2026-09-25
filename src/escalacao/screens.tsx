@@ -5561,6 +5561,11 @@ const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + ROUND_EXTRA_MS // ~5,7s por 
 // 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
 const QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000
+// ⭐ CHAMPIONS: +2s em CADA jogo, na tabela/repescão E no mata-mata (Diego 25/09: *"aumente
+// o tempo mais 2 segundos por jogo da champions, seja liga e copa, pra ver como ficaria"*).
+// Ela tem só 8 rodadas e estava passando rápido demais (~3,5 min contra ~6 da Liga + Copa).
+// Um número só pros dois lados — mexeu aqui, mexe em tudo que é Champions.
+const CHAMPIONS_EXTRA_MS = 2000
 // tempo de LEITURA da telinha "Chegou a Copa" antes da 1ª partida (modo automático)
 const COPA_INTRO_SECONDS = 10
 
@@ -6001,7 +6006,7 @@ export function EscSeason() {
   // jogos rolando no modo auto"*) — mesma regra da partida da liga. No manual quem manda
   // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
   // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
-  const copaLegMs = manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS
+  const copaLegMs = (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) + (chS ? CHAMPIONS_EXTRA_MS : 0)
   // 🎭 (25/09) disputa com GENTE é mais lenta (`pensPasso`), então a espera sai da
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
@@ -7622,7 +7627,7 @@ export function EscChampions() {
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
-  const roundMs = Math.round(ROUND_MS / speedFactor)
+  const roundMs = Math.round((ROUND_MS + CHAMPIONS_EXTRA_MS) / speedFactor)
   const passo = (ch?.fase === 'repescao' ? 100 : 0) + (ch?.rodada ?? 0) * 2 + (ch?.repescaoLeg ?? 0)
   const startedAt = useRoundPresentationStart(passo)
 
