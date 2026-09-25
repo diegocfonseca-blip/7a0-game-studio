@@ -6019,7 +6019,11 @@ export function EscSeason() {
   // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
   // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
   const copaLegMs = manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS
-  const copaAnimMs = Math.round(copaLegMs / speedFactor) + (phaseFullyPlayed && anyPens ? 13000 : 0)
+  // 🎭 (25/09) disputa com GENTE é mais lenta (`pensPasso`), então a espera sai da
+  // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
+  const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
+  const copaPensMs = Math.max(13000, ...(qc?.ties ?? []).filter(t => t.pens && !t.ot).map(t => Math.ceil(pensRevealDelay(t.pens!, copaTemGenteQ(t)) * 1000) + 300))
+  const copaAnimMs = Math.round(copaLegMs / speedFactor) + (phaseFullyPlayed && anyPens ? copaPensMs : 0)
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending || cupNow) return // a Cup tem o motor dela
     const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round(3200 / speedFactor) : copaAnimMs)
@@ -6155,7 +6159,7 @@ export function EscSeason() {
           const settled = clockDone && tie.winner != null // só risca/mostra pênaltis depois que o relógio fecha
           const aWin = tie.winner === tie.aId
           // 🚫 anti-spoiler: com PÊNALTIS, o riscado do perdedor espera a última cobrança animar
-          const pd = settled && tie.pens && !tie.ot ? pensRevealDelay(tie.pens) : 0
+          const pd = settled && tie.pens && !tie.ot ? pensRevealDelay(tie.pens, copaTemGenteQ(tie)) : 0
           const loserStyle = (isLoser: boolean) => !settled || !isLoser ? {} : pd > 0 ? { animation: `qcLoserFade .4s ease ${pd.toFixed(2)}s forwards` } : { opacity: .6, textDecoration: 'line-through' as const }
           // ⏱️ 🏀 a lista dos playoffs marcava minuto de futebol (45' · 90+2') num
           // jogo de basquete. Agora usa o MESMO relógio de quartos do card grande
@@ -6182,7 +6186,7 @@ export function EscSeason() {
               status={`${bbSerie ? `${LS('JOGO', 'GAME')} ${Math.max(1, nLegs)}` : cupNow ? LS('JOGO ÚNICO', 'ONE-OFF') : qc.phase==='final'?'FINAL':reverse?LS('VOLTA', '2ND LEG'):LS('IDA', '1ST LEG')} · ${live ? `${minLabel} ${LS('AO VIVO', 'LIVE')}` : nLegs ? LS('ENCERRADO', 'FULL TIME') : LS('A DISPUTAR', 'TO BE PLAYED')}`}
               detail={<>{reverse && (bbSerie
                 ? <p><b>{LS('Série', 'Series')}: {tie.aName} {serieA} × {serieB} {tie.bName}</b> <span style={{ opacity: .7 }}>({LS('melhor de 3', 'best of 3')})</span></p>
-                : <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>)}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} />)}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
+                : <p>{LS('Ida', '1st leg')}: {tie.aName} {prevA} × {prevB} {tie.bName}<br /><b>{LS('Agregado', 'Aggregate')}: {tie.aName} {showA} × {showB} {tie.bName}</b></p>)}{settled && <>{tie.pens && (tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />)}{!tie.pens&&<p style={pd ? {opacity:0,animation:`cmWinPop .3s ease ${pd}s forwards`} : undefined}><b>{aWin ? tie.aName : tie.bName} {qc.phase==='final'?LS('é campeão', 'is champion'):LS('avançou', 'advanced')}</b></p>}</>}</>} />
           }
           return (
             <Box key={`${tie.aId}-${tie.bId}`} className={privateVisual ? 'll26-cup-match' : undefined} bg={privateVisual ? CREAM : 'transparent'} style={{ position: 'relative', overflow: 'hidden', borderColor: justScored ? GOLD : mine ? '#B23B2E' : live ? '#8B5CF6' : undefined }} shadow={4}>
@@ -6231,7 +6235,8 @@ export function EscSeason() {
                     ? tie.legs.map((l, gi) => `${LS('jogo', 'game')} ${gi + 1} ${l[0]}×${l[1]}`).join(' · ')
                     : nLegs === 1 ? `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]}` : `${LS('ida', '1st leg')} ${tie.legs[0][0]}×${tie.legs[0][1]} · ${LS('volta', '2nd leg')} ${tie.legs[1][0]}×${tie.legs[1][1]}`}</span></p>
                 )}
-                {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>{tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout pens={tie.pens} aName={tie.aName} bName={tie.bName} />}</>}
+                {/* 🔓 25/09 (Diego: *"online e offline"*): a Copa do jogo rápido OFFLINE também usa a tela nova dos pênaltis (palco + bola viajando); o resto do cartão segue como era. */}
+                {settled && tie.pens && <><style>{'@keyframes qcLoserFade{to{opacity:.6;text-decoration:line-through}}'}</style>{tie.ot ? <ProrrogacaoLinha pts={tie.pens} /> : <PensShootout compactOnline final={qc.phase==='final'} aCrest={<Escudo nome={tie.aName} size={20}/>} bCrest={<Escudo nome={tie.bName} size={20}/>} pens={tie.pens} aName={tie.aName} bName={tie.bName} aSquad={state.managers.find(m => m.id === tie.aId)?.squad} bSquad={state.managers.find(m => m.id === tie.bId)?.squad} lento={copaTemGenteQ(tie)} />}</>}
               </div>
             </Box>
           )

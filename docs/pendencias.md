@@ -68,6 +68,18 @@ história mudar na frente dele — está fechado.
 
 ↩️ **Reverter**: trocar `world` de volta por `worldVivo` na tela da temporada.
 
+## 24/09/2026 — ⚽🏴‍☠️ Batismo VASCO SAF (brunnodeluca90) = o antigo Vasco da Grana ✅ PUBLICADO
+
+O Vasco da Grana era batismo SEM dono (pedido do Diego em 03/08); ele achava que era deste
+usuário. Ordem dele: *"ele entra no lugar do Vasco da Grana"*. Então é RENOMEAÇÃO: mesmo
+assento da Série D, `OLD_NAME['Vasco SAF'] = 'Vasco da Grana'`, e o "Vasco da Grana" saiu
+do Salão (`batismos.ts`). Escudo/mascote também respondem pelo nome velho. Coração **Vasco**.
+- Arte: escudo 266×360 29,0 KB + mascote (O Pirata) 277×440 40,0 KB = 69 KB. Recorte só do
+  chroma forte — as NOTAS de dinheiro do mascote são esverdeadas e ficaram inteiras.
+- Manto preto `#161414` (subido de #080707) + branco `#ECE6E1`, medidos na camisa.
+- Banco rodado (`docs/sql/batismo-vasco-saf.sql`): sócio 59, fundador 78, 3 nomes, ouro.
+- ⏳ Post `mockups/vasco-saf-post.png` — falta o nome do dono no rodapé (e o do Julia também).
+
 ## 24/09/2026 — 🔄 Publicar no meio da partida derrubava a tela ✅ CONSERTADO
 
 Relato dele: *"tá com erros nas salas online da Tocaia, travando… minha sala do
@@ -109,6 +121,47 @@ cheia. Enquanto o jogo tiver pedaço carregado na hora, publicação no meio da
 partida sempre vai incomodar alguém — agora incomoda uma piscada, não uma queda.
 
 ↩️ **Reverter**: tirar o `pedaco()` dos dois `lazy()` e a linha do ErrorBoundary.
+
+## 25/09/2026 — ⚽ Pênaltis: A BOLA VIAJA até o gol ✅ PUBLICADO
+🔓 **E vale nos DOIS modos** (ordem dele, na sequência: *"online e offline"*): a Copa do jogo
+rápido OFFLINE e a Copa da carreira (Brasil/Legends) também passaram pra tela nova — antes só
+as contas de teste viam. Chaves: `compactCareer && CAREER_VISUAL_RELEASED` no `PensShootout`
+e `compactOnline` no ramo antigo do jogo rápido (`screens.tsx`). Só a disputa muda; o resto
+do cartão segue como era.
+
+Mockup (`scripts/mockup-penaltis-bola.mjs`, tira + GIF) aprovado: *"pode fazer, já pode
+funcionar já"*. Em `CompactPenalties`: a bola nasce no pé de quem bate, atravessa a pista
+(animação CSS com atraso congelado por cobrança — o relógio de 80 ms só liga/desliga, nunca
+reposiciona) e só na chegada sai o final: gol (rede balança) · defendeu (luva no lugar do gol)
+· fora (passa e some) · trave/travessão (bate e volta) · isolou (sobe e some).
+- 🙈 Sem spoiler por construção: a viagem é idêntica pra todo resultado e o `ok` só é lido
+  quando a cobrança chegou (`shown`), o mesmo instante da bolinha na linha.
+- ⏱️ Nenhum segundo a mais: veredito 35% do passo, viagem 55%, bola parada no pé no resto.
+- 🩹 De quebra: a ÚLTIMA cobrança fica no palco até a linha do classificado (antes sobrava
+  ~1 s de "uma cobrança de cada vez…").
+- Conferido no navegador nos dois ritmos, com os 5 finais.
+💡 Ideias que ficaram na gaveta (ele escolheu a bola): aviso "PRA CLASSIFICAR / PRA FICAR VIVO"
+na cobrança decisiva; o AVATAR do batedor (162 lendas já têm) no palco, sem inventar rosto.
+
+## 25/09/2026 — 🎭 Pênaltis com gente ficam mais lentos + bolinhas começam na esquerda · ⏳ NO BRANCH, sobe de manhã
+
+Diego: *"tô achando que a emoção não tá tendo, tá muito rápido… bot contra bot tudo bem ser
+rápido, mas tendo humano usuário aí não acho legal. Além da disputa ter que começar certo, com
+os pontinhos na esquerda"*.
+- ⏱️ **Ritmo por quem está na disputa**: bot × bot segue 0,85 s por cobrança; com time de GENTE
+  (você ou outro humano) 1,6 s (`pensPasso`/`PENS_PASSO_LENTO` em pyramidseason.tsx). O palco
+  fica mais tempo em "quem bate" e o lance aparece com calma.
+- 🔗 **Tela e relógio na mesma conta**: `pensRevealDelay(pens, lento)` em TODO lugar que segura
+  a fase — Copa do Mundo (carreira e online, `koTemGente`; o online marca `humano` pela ficha),
+  Copa do jogo rápido (`copaTemGenteQ`; os 13 s fixos viraram a disputa mais longa da fase, com
+  piso de 13 s) e Copa da carreira (`copaTemGente`). Achado no caminho: o texto do campeão da
+  final da Copa do Mundo esperava o ritmo rápido — corrigido junto.
+- 📏 **Bolinhas ancoradas na esquerda**: a coluna começa num ponto fixo (40%) nas duas linhas;
+  antes ela encostava na direita e crescia pra esquerda (a 1ª andava). A tela antiga deixou de
+  centralizar pelo mesmo motivo. Morte súbita comprida quebra linha.
+- 🧪 Trava `npm run penaltis`: confere a espera nos DOIS ritmos e exige `lento` em toda tela e
+  todo relógio (provado: sem um `lento=`, ela acusa a linha).
+- Conferido no navegador (disputa 5×6 com gente, 6 momentos).
 
 ## 23/09/2026 — 🐊💰 "Apertei no 11 e outro pegou por 8" ✅ CONSERTADO (sala do Fridão)
 

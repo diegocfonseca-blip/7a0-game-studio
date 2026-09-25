@@ -1,5 +1,5 @@
 import type { ReactNode, CSSProperties } from 'react'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
 import { tr } from './lang' // 🌐 BR/EN
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
@@ -133,16 +133,16 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
 
 export function goalPlayer(text:string){return text.match(/⚽\s+(.+?)\s+marca para/)?.[1] ?? text.replace(/^⚽\s*/, '').replace(/\.$/,'')}
 
-export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCrest,official,final=false,aTeam,bTeam}:{rows:{ok:boolean;at:number}[][];totalDelay:number;nSlots:number;aName:string;bName:string;aCrest?:ReactNode;bCrest?:ReactNode;official:[number,number];final?:boolean;aTeam?:Batedores;bTeam?:Batedores}){
+export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCrest,official,final=false,aTeam,bTeam,passo=.85}:{rows:{ok:boolean;at:number}[][];totalDelay:number;nSlots:number;aName:string;bName:string;aCrest?:ReactNode;bCrest?:ReactNode;official:[number,number];final?:boolean;aTeam?:Batedores;bTeam?:Batedores;passo?:number}){
  const [elapsed,setElapsed]=useState(0)
  const signature=JSON.stringify(rows)
  useEffect(()=>{const start=Date.now();setElapsed(0);const id=setInterval(()=>{const t=(Date.now()-start)/1000;setElapsed(t);if(t>=totalDelay)clearInterval(id)},80);return()=>clearInterval(id)},[signature,aName,bName,totalDelay])
  const done=elapsed>=totalDelay
  const valid=rows.every((r,i)=>r.filter(k=>k.ok).length===official[i])
  if(!valid)return <section className="ll28-pens" aria-label="Resultado dos pênaltis"><header><b>{tr('PÊNALTIS', 'PENALTIES')}</b><strong>{done?`${official[0]} × ${official[1]}`:'– × –'}</strong></header><p>{aName} × {bName}</p><p className="ll28-pen-winner">{done?`${official[0]>official[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Decisão em andamento…', 'Shoot-out in progress…')}</p></section>
- const visible=rows.map(r=>r.filter(k=>elapsed>=.7+k.at*.85))
+ const visible=rows.map(r=>r.filter(k=>elapsed>=.7+k.at*passo))
  const scores=visible.map(r=>r.filter(k=>k.ok).length)
- const next=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed<.7+k.at*.85).sort((a,b)=>a.at-b.at)[0]
+ const next=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed<.7+k.at*passo).sort((a,b)=>a.at-b.at)[0]
  // 🎯 COBRANÇA QUE NÃO PRECISOU ACONTECER NÃO GANHA BOLINHA (Diego 09/09, final
  // da Copa do Mundo da sala do Futpoint: *"os pênaltis não terminou todos e já deu
  // campeão"*). A disputa PARA quando está decidida — regra real, e é o que o motor
@@ -178,32 +178,70 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  const siglas=times.map(t=>t?siglasDoTime(t.goleiro?[...t.batem,t.goleiro]:t.batem):{} as Record<string,string>)
  const quem=(side:number,i:number)=>batedorDaVez(times[side],i)
  const sigla=(side:number,i:number)=>{const n=quem(side,i);return n?siglas[side][n]:undefined}
- const saiu=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed>=.7+k.at*.85).sort((a,b)=>b.at-a.at)[0]
- const lance=saiu&&elapsed<.7+saiu.at*.85+.5?saiu:undefined
+ const saiu=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed>=.7+k.at*passo).sort((a,b)=>b.at-a.at)[0]
+ // ⚽ A BOLA VIAJA (25/09, mockup aprovado: *"pode fazer, já pode funcionar já"*).
+ // Antes a bolinha só PISCAVA no meio do palco e o veredito caía do nada. Agora ela
+ // nasce no pé de quem bate, atravessa a pista e SÓ quando chega no gol sai o final:
+ // gol (a rede balança) · defendeu (a luva fecha) · pra fora (passa do lado e some) ·
+ // trave/travessão (bate e volta) · isolou (sobe e sai por cima).
+ // 🙈 SEM SPOILER, e o motivo é de construção: a viagem é a MESMA pra todo resultado
+ // (mesma saída, mesma velocidade, mesmo caminho) e o `ok` só é lido quando a cobrança
+ // já "chegou" (`shown`) — o mesmo instante em que a bolinha nasce na linha de cima.
+ // ⏱️ Tudo cabe DENTRO do passo que já existe (nenhum segundo a mais): o veredito fica
+ // 35% do passo, a viagem dura 55% dele e sobra um tiquinho com a bola parada no pé.
+ // Bot × bot (0,85 s) corre rápido; com gente (1,6 s) dá pra acompanhar.
+ // 🎞️ A viagem é animação de CSS com o atraso CONGELADO por cobrança (`useMemo` por
+ // `at`): o relógio de 80 ms desta tela só liga/desliga a bola, nunca a reposiciona —
+ // senão ela andaria aos trancos. Quem abre a tela no meio do voo pega o atraso certo.
+ const T=(at:number)=>.7+at*passo
+ // a ÚLTIMA cobrança fica no palco até a linha do classificado entrar (senão sobrava
+ // 1 s de "uma cobrança de cada vez…" entre o lance que decidiu e o veredito da disputa)
+ const lance=saiu&&(elapsed<T(saiu.at)+passo*.35||!next)?saiu:undefined
  const noPalco=lance??next
+ const parteEm=next?Math.max(0,T(next.at)-passo*.55):0
+ const voando=!lance&&!!next&&elapsed>=parteEm
+ const elapsedRef=useRef(0);elapsedRef.current=elapsed
+ const voo=useMemo(()=>{
+  if(!next)return null
+  const d=Math.max(0,T(next.at)-passo*.55)
+  return {duracao:T(next.at)-d,atraso:-Math.max(0,elapsedRef.current-d)}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[next?.at,passo])
  const TXT_ERRO:Record<JeitoDoErro,string>={defendeu:tr('🧤 DEFENDEU!','🧤 SAVED!'),fora:tr('💨 PRA FORA!','💨 WIDE!'),isolou:tr('🚀 ISOLOU!','🚀 SKIED IT!'),trave:tr('🔔 NA TRAVE!','🔔 HIT THE POST!'),travessao:tr('🔔 NO TRAVESSÃO!','🔔 OFF THE BAR!')}
  const tamNome=(n:string)=>n.length<=10?14:n.length<=14?12.5:n.length<=18?11.5:10.5
  const palco=()=>{
   if(!noPalco)return null
   const bate=quem(noPalco.side,noPalco.i),gk=times[1-noPalco.side]?.goleiro
   if(!bate&&!gk)return null
-  const veredito=lance?(lance.ok?tr('⚽ GOL!','⚽ GOAL!'):TXT_ERRO[jeitoDoErro(semente,lance.at)]):null
+  const erro=lance&&!lance.ok?jeitoDoErro(semente,lance.at):null
+  const veredito=lance?(lance.ok?tr('⚽ GOL!','⚽ GOAL!'):TXT_ERRO[erro!]):null
+  // o final no gol: a classe diz COMO acabou; a bola que sobra faz o movimento
+  const fim=lance?(lance.ok?'gol':erro==='defendeu'?'luva':erro==='fora'?'fora':erro==='isolou'?'ceu':'trave'):null
   return <div className={`ll28-palco${lance?(lance.ok?' p-gol':' p-erro'):''}`} aria-live="polite">
    <div className="ll28-palco-lado"><small>{lance?tr('⚽ BATEU','⚽ TOOK IT'):tr('⚽ BATE','⚽ UP NEXT')}</small>{bate&&<b style={{fontSize:tamNome(bate)}}>{bate}</b>}</div>
-   {veredito?<div className="ll28-veredito">{veredito}</div>:<div className="ll28-palco-bola">●</div>}
+   <div className="ll28-pista">
+    <span className="ll28-trilho"/>
+    <span className={`ll28-meta${fim==='gol'?' balanca':''}`}>{fim==='luva'?'🧤':'🥅'}</span>
+    {lance&&fim!=='luva'&&<span key={`fim-${lance.at}`} className={`ll28-bola fim-${fim}`}>⚽</span>}
+    {!lance&&next&&(voando&&voo
+      ?<span key={`voa-${next.at}`} className="ll28-bola voa" style={{animationDuration:`${voo.duracao.toFixed(2)}s`,animationDelay:`${voo.atraso.toFixed(2)}s`}}>⚽</span>
+      :<span className="ll28-bola no-pe">⚽</span>)}
+    {veredito&&<div className="ll28-veredito">{veredito}</div>}
+   </div>
    <div className="ll28-palco-lado dir"><small>{tr('🧤 GOLEIRO','🧤 KEEPER')}</small>{gk&&<b style={{fontSize:tamNome(gk)}}>{gk}</b>}</div>
   </div>
  }
  const palcoAgora=temPalco&&!done?palco():null
- // 📏 AS DUAS LINHAS NA MESMA COLUNA (24/09). Cada linha se encostava sozinha na
- // direita: quando o time de cima estava uma bolinha à frente (o normal — ele bate
- // primeiro), a 1ª bolinha de baixo ficava deslocada e parecia que tinha faltado
- // cobrança. Agora as duas têm a MESMA largura (a da linha mais comprida até aqui) e
- // começam do mesmo ponto: cobrança 1 sobre cobrança 1.
- const colunas=Math.max(1,...rows.map((r,side)=>r.filter((k,i)=>elapsed>=.7+k.at*.85||(!done&&next?.side===side&&next.i===i)).length))
+ // 📏 AS BOLINHAS COMEÇAM SEMPRE DO MESMO LUGAR, NA ESQUERDA (25/09). Diego: *"a disputa
+ // tem que começar certo, com os pontinhos na esquerda"*. Antes o bloco das bolinhas
+ // ficava encostado na DIREITA e crescia pra esquerda — a 1ª bolinha ia andando a cada
+ // cobrança, e com um time uma à frente as duas linhas desencontravam. Agora a coluna
+ // das bolinhas começa num ponto FIXO logo depois do nome (40% da largura), nas duas
+ // linhas: cobrança 1 sempre em cima da cobrança 1, e nada se mexe quando nasce a próxima.
+ // Morte súbita comprida quebra linha em vez de estourar o cartão.
  return <section className="ll28-pens" aria-label="Disputa de pênaltis">
   <header><b>{naMorteSubita?tr('MORTE SÚBITA', 'SUDDEN DEATH'):tr('PÊNALTIS', 'PENALTIES')}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?tr('ENCERRADO', 'OVER'):tr('COBRANÇAS', 'KICKS')}</span></header>
-  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks" style={{width:colunas*23-4}}>{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*.85;const daVez=!done&&next?.side===side&&next.i===i;if(!shown&&!daVez)return null;const sg=sigla(side,i);return <span key={i} className={`${shown?(k.ok?'made':'missed'):'current'}${sg?' sigla':''}`} title={quem(side,i)} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Batendo agora', 'Kicking now')}>{sg??(shown?(k.ok?'✓':'×'):'')}</span>})}</div></div>)}
+  {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*passo;const daVez=!done&&next?.side===side&&next.i===i;if(!shown&&!daVez)return null;const sg=sigla(side,i);return <span key={i} className={`${shown?(k.ok?'made':'missed'):'current'}${sg?' sigla':''}`} title={quem(side,i)} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Batendo agora', 'Kicking now')}>{sg??(shown?(k.ok?'✓':'×'):'')}</span>})}</div></div>)}
   {palcoAgora??<p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Uma cobrança de cada vez…', 'One kick at a time…')}</p>}
  </section>
 }

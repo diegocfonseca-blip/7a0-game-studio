@@ -56,6 +56,7 @@ import falaD10EscudoImg from './img/falad10-escudo.webp' // 🎙️ Fala D10 (di
 import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus Sabe FC (contateste577660006): arte própria do dono, 09/09
 import bagresWallStEscudoImg from './img/bagreswallst-escudo.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09 (substitui o SVG desenhado a mao de 10/08)
+import vascoSafEscudoImg from './img/vasco-saf-escudo.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
@@ -814,6 +815,15 @@ const bagresWallStEscudoRender = (size: number) => (
 const bichoDaSedaEscudoRender = (size: number) => (
   <img src={bichoDaSedaEscudoImg} height={size} width={Math.round(size * 325 / 360)} alt="Bicho da Seda" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// ⚽🏴‍☠️ VASCO SAF (brunnodeluca90, batismo de 24/09) — Série D, o antigo Vasco da Grana.
+// 📏 266×360, 29,0 KB — largura pela PROPORÇÃO REAL do arquivo.
+// ✂️ `scripts/recorta-prancha-chroma.py` (só o verde CHROMA forte: as notas de
+//    dinheiro do mascote são esverdeadas e ficaram inteiras).
+// 🔍 Conferido sobre o creme e o roxo: o "VASCO" branco e as velas ficaram inteiros.
+const vascoSafEscudoRender = (size: number) => (
+  <img src={vascoSafEscudoImg} height={size} width={Math.round(size * 266 / 360)} alt="Vasco SAF" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🦈🔴⚪ JULIA BARRANQUILA (dondeestasleomessi10, batismo de 24/09) — Série A.
 // 📏 251×360, 26,4 KB — largura pela PROPORÇÃO REAL do arquivo.
 // ✂️ `scripts/recorta-prancha-chroma.py`: o chroma verde saiu por COR porque o
@@ -1349,6 +1359,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // mandou arte própria (escudo + mascote + camisa) e ela SUBSTITUIU o porco em SVG
   // desenhado à mão de 10/08. As 4 formas do nome; a corrente de nomes velhos
   // (Tokyo City Esperion ← FC Galáticos) segue no OLD_NAME do data.ts.
+  // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90) — BATISMO. As 4 formas do nome (regra 20/08) + o
+  // nome VELHO (Vasco da Grana), que é RENOMEAÇÃO de verdade: o clube virou este.
+  'Vasco SAF': vascoSafEscudoRender,
+  'Vasco SAF FC': vascoSafEscudoRender,
+  'Vasco SAF EC': vascoSafEscudoRender,
+  'Vasco SAF SC': vascoSafEscudoRender,
+  'Vasco da Grana': vascoSafEscudoRender,
   // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10) — BATISMO. As 4 formas do nome (regra 20/08).
   'Julia Barranquila': juliaEscudoRender,
   'Julia Barranquila FC': juliaEscudoRender,

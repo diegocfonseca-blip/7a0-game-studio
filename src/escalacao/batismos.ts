@@ -65,10 +65,9 @@ export const BATISMOS: Batismo[] = [
   // O VERDE vem primeiro de propósito: o fundo do jogo é creme, e listra branca em
   // creme some (a mesma lição do Papão United Madrid).
   { clube: 'White Thigs do GuGu', tipo: 'batismo', fundador: null, selo: '🥇 1º da história', manto: ['#0A3020', '#D9D3C8'] },
-  // 🏦 Batismo a pedido do próprio Diego (03/08, ex-Magrão EC) — sem dono/e-mail.
-  { clube: 'Vasco da Grana', tipo: 'batismo', fundador: null, selo: '🖋️ batismo' },
   { clube: 'Neymarzetti', tipo: 'batismo', fundador: 1, manto: ['#080908', '#F0EFEF'] },
   { clube: 'Bicho da Seda', tipo: 'batismo', fundador: 11, manto: ['#0F0F0F', '#E6DED4'] },
+  { clube: 'Vasco SAF', tipo: 'batismo', fundador: 78, manto: ['#161414', '#ECE6E1'] }, // ⚽🏴‍☠️ Série D (24/09) — o antigo Vasco da Grana (batismo sem dono do Diego, 03/08) virou do brunnodeluca90. Preto e branco medidos na camisa — o MESMO par do `manto.ts`
   { clube: 'Julia Barranquila', tipo: 'batismo', fundador: 77, manto: ['#E60205', '#F7F5F3'] }, // 🦈🔴⚪ vermelho e branco, medidos na camisa do dono (24/09) — o MESMO par do `manto.ts`
   { clube: 'Fabulous EC', tipo: 'batismo', fundador: 76, manto: ['#161011', '#CE0E17'] }, // 🦅🔴⚫ preto e vermelho, medidos na camisa do dono (23/09) — o MESMO par do `manto.ts`
   { clube: 'Xurupitas FC', tipo: 'batismo', fundador: 13, manto: ['#063215', '#F8EACF'] },

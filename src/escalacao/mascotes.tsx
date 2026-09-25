@@ -60,6 +60,7 @@ import bigaoMascoteImg from './img/bigao-mascote.webp' // 🧢 Crias do Bigão (
 import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC (gfpicolo13): arte própria do dono
 import marrecoMascoteImg from './img/marreco-mascote.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
 import panteraMascoteImg from './img/pantera-mascote.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
+import vascoSafMascoteImg from './img/vasco-saf-mascote.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
 import juliaMascoteImg from './img/julia-mascote.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousMascoteImg from './img/fabulous-mascote.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import gremioMascoteImg from './img/gremio-mascote.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
@@ -320,6 +321,13 @@ export const MASCOTES: Record<string, ReactNode> = {
   //    post — eram identidade do clube. Arte que vem do dono: perguntar o que
   //    entra, não decidir por ele.
   // 📏 400×440, 40,6 KB. mascote_key = "pantera_negra".
+  // ⚽🏴‍☠️ O PIRATA (mascote do Vasco SAF — brunnodeluca90, 24/09): o pirata de
+  // chapéu com a cruz, óculos dourados e barba, apontando pra quem olha, com o saco
+  // de dinheiro na mão e o pé em cima da bola e das pilhas de moedas e notas.
+  // 📏 277×440, 40,0 KB. mascote_key = "vasco_pirata".
+  vasco_pirata: (
+    <img src={vascoSafMascoteImg} height={176} width={Math.round(176 * 277 / 440)} alt="O Pirata — Vasco SAF" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🦈🔴⚪ O TUBARÃO (mascote do Julia Barranquila — dondeestasleomessi10, 24/09):
   // tubarão de óculos espelhado dourado, camisa listrada do clube, tênis azul e a
   // bola suja do lado. Arte do próprio dono (a 2ª que ele mandou, a que vale).
@@ -1042,6 +1050,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   // 🔵⚫⚪ o Gaúcho carimba o gol do Grêmio FBPA (danieldias11, 21/09).
   // 🦅🔴⚫ a Fabulosa carimba o gol do Fabulous EC (koeppfabio, 23/09).
   // 🦈🔴⚪ o Tubarão carimba o gol do Julia Barranquila (dondeestasleomessi10, 24/09).
+  // ⚽🏴‍☠️ o Pirata carimba o gol do Vasco SAF (brunnodeluca90, 24/09) — e do nome velho.
+  'Vasco SAF': 'vasco_pirata',
+  'Vasco SAF FC': 'vasco_pirata',
+  'Vasco SAF EC': 'vasco_pirata',
+  'Vasco SAF SC': 'vasco_pirata',
+  'Vasco da Grana': 'vasco_pirata',
   'Julia Barranquila': 'julia_tubarao',
   'Julia Barranquila FC': 'julia_tubarao',
   'Julia Barranquila EC': 'julia_tubarao',
@@ -1132,6 +1146,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   bigao: 'O Bigão',            // 🧢 Crias do Bigão (giovannecastro784, 17/08)
   marreco_rei: 'O Rei do Cais', // 🦆👑 Marreco FC (lucasigorbortoliniii, 19/09)
   pantera_negra: 'A Pantera',  // 🐆👑 Pantera Negra FC (ericrabelo29, 20/09)
+  vasco_pirata: 'O Pirata', // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90, 24/09)
   julia_tubarao: 'O Tubarão', // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10, 24/09)
   fabulous_aguia: 'A Fabulosa', // 🦅🔴⚫ Fabulous EC (koeppfabio, 23/09)
   gremio_gaucho: 'O Gaúcho',   // 🔵⚫⚪ Grêmio FBPA (danieldias11, 21/09)
