@@ -1,4 +1,10 @@
-## 25/09/2026 — ⏱️ Champions +2s por jogo (tabela, repescão e mata-mata) ✅ NO AR (só na conta do Diego)
+## 25/09/2026 — ⏱️ Champions +2s por jogo SÓ na fase de tabela (e repescão) ✅ NO AR (só na conta do Diego)
+
+🔁 Corrigido na mesma tarde: *"copa não aumente, digo só na liga mesmo"*. O mata-mata
+da Champions voltou pro tempo da Copa dos 8 (~17s no auto). Tabela e repescão seguem
+com ~8,7s por rodada. Só Champions ≈ **3 min 50 s** no automático.
+
+### (versão anterior, desfeita) Champions +2s por jogo (tabela, repescão e mata-mata)
 
 Diego achou a Só Champions rápida demais (~3,5 min contra ~6 min da Liga + Copa dos 8)
 e pediu *"mais 2 segundos por jogo da champions, seja liga e copa, pra ver como
