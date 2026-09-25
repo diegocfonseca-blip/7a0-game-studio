@@ -91,6 +91,11 @@ partida sempre vai incomodar alguém — agora incomoda uma piscada, não uma qu
 ↩️ **Reverter**: tirar o `pedaco()` dos dois `lazy()` e a linha do ErrorBoundary.
 
 ## 25/09/2026 — ⚽ Pênaltis: A BOLA VIAJA até o gol ✅ PUBLICADO
+🔓 **E vale nos DOIS modos** (ordem dele, na sequência: *"online e offline"*): a Copa do jogo
+rápido OFFLINE e a Copa da carreira (Brasil/Legends) também passaram pra tela nova — antes só
+as contas de teste viam. Chaves: `compactCareer && CAREER_VISUAL_RELEASED` no `PensShootout`
+e `compactOnline` no ramo antigo do jogo rápido (`screens.tsx`). Só a disputa muda; o resto
+do cartão segue como era.
 
 Mockup (`scripts/mockup-penaltis-bola.mjs`, tira + GIF) aprovado: *"pode fazer, já pode
 funcionar já"*. Em `CompactPenalties`: a bola nasce no pé de quem bate, atravessa a pista

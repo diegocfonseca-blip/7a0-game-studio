@@ -6239,7 +6239,10 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
       })}
     </div>
   )
-  if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && privatePenalty)) {
+  // 🔓 25/09 (Diego: *"online e offline"*): a tela nova dos pênaltis — palco dos
+  // batedores + a bola viajando — vale na Copa da CARREIRA também, pra todo mundo
+  // (antes só pras contas de teste). Mesma chave que liberou o visual da carreira.
+  if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && (privatePenalty || CAREER_VISUAL_RELEASED))) {
     const exact=exactPenaltyRows(pens,rows)
     return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
   }
