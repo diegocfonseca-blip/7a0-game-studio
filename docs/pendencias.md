@@ -30,6 +30,17 @@ depende delas.
 estava lá — isto é só deixar a palavra visível. Novidade é feature nova pra quem
 joga, não realce de coisa que já estava no ar.
 
+## 25/09/2026 — ❤️ Salão: "dois Vasco" na lista de torcidas ✅ CONSERTADO (banco)
+
+Print do Diego: "Vasco da Gama 3,7%" e "Vasco 1,9%" na mesma lista (*"tem dois Vasco, cuidado
+com isso"*). Culpa minha no dia anterior: gravei o coração do Vasco SAF como "Vasco" enquanto o
+Skyy FC estava como "Vasco da Gama" — e o cadastro (seletor de `coracao.ts`) escreve "Vasco".
+Mesma coisa esperando pra acontecer com "Atlético Mineiro" × "Atlético-MG".
+Conserto: migração `salao_torcidas_unifica_apelidos` — a função `esc_salao_torcidas` junta os
+apelidos no nome do SELETOR antes de agrupar; linhas velhas corrigidas. Cópia em
+`docs/sql/salao-torcidas-unifica-apelidos.sql`. **Regra pro roteiro de batismo:** o
+`time_coracao` em `esc_socios` usa o MESMO nome do seletor (`CORACAO_CLUBES`).
+
 ## 24/09/2026 — 🧊 Depois do apito, o passado não muda mais ✅ CONSERTADO
 
 Relato do Futpoint FC, trazido pelo Diego: *"eu não ganhei nada nessa temporada,
