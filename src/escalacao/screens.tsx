@@ -5557,7 +5557,10 @@ export const SEASON_TOTAL_MS = 180_000
 // simulação da partida pras copas todas e ligas"*. Ou seja: a rodada do rápido/online
 // saiu de ~5,7s pra ~6,7s, e o gol (3,1s) passa a ocupar 46% dela.
 export const ROUND_EXTRA_MS = 2000
-const ROUND_MS = Math.round(SEASON_TOTAL_MS / 38) + ROUND_EXTRA_MS // ~5,7s por rodada
+// ⏱️ 25/09: a rodada da liga (futebol, rápido e online) vai CRAVADA em 7s. Diego: *"liga
+// normal que tava 6,7s aumente pra 7s"*. A conta de antes dava 6.737 ms (180s ÷ 38 + 2s);
+// o basquete continua na conta dele (`baseRoundMs`), porque ele não pediu lá.
+const ROUND_MS = 7000
 // 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
 const QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000
@@ -7626,7 +7629,12 @@ export function EscChampions() {
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
-  const roundMs = Math.round((ROUND_MS + CHAMPIONS_EXTRA_MS) / speedFactor)
+  // ⏱️ fase de TABELA = rodada da liga + 2s · REPESCÃO = jogo de COPA (Diego 25/09:
+  // *"repescão pode manter igual mata-mata também"*). A 8ª rodada anima com a fase já
+  // virada pro repescão (portão) e a VOLTA anima com a fase já em 'mata' — por isso a
+  // régua é o JOGO que está na tela, não o nome da fase.
+  const jogoDeCopa = !!ch && ((ch.fase === 'repescao' && !ch.repescao?.every(tt => tt.legs.length === 0)) || ch.fase === 'mata')
+  const roundMs = Math.round((jogoDeCopa ? (manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS) : ROUND_MS + CHAMPIONS_EXTRA_MS) / speedFactor)
   const passo = (ch?.fase === 'repescao' ? 100 : 0) + (ch?.rodada ?? 0) * 2 + (ch?.repescaoLeg ?? 0)
   const startedAt = useRoundPresentationStart(passo)
 
