@@ -132,7 +132,10 @@ Hoje a sala online tem teto de 20 times (`MAX_PLAYERS` em `lobby.tsx`; duplas = 
 pessoas mas 20 times). Pra fazer: (1) criar a Só Champions no ONLINE (hoje o online só
 tem Liga + Champions); (2) teto 36 só nesse modo; (3) conferir se o baralho fecha 36
 elencos e se a sala aguenta 36 envelopes (lembrar da sala pesada do Tocaia, 24/09);
-(4) vaga que sobrar continua virando clube de batismo. **Não começar antes de ele
+(4) vaga que sobrar continua virando clube de batismo. **Baralho medido em 25/09** (START_ONLINE com 36
+nomes): 401 cartas, **zero fake** em Brasil, Europa, Brasil+Europa e Todos, cada um
+sozinho, nas duas formações que a sala oferece (4-3-3 e 4-4-2). Só faltaria zagueiro
+brasileiro com formação de 3 zagueiros (5-3-2/5-4-1) — que a sala NÃO oferece. **Não começar antes de ele
 mandar liberar.**
 
 📌 Pendente (não fazer sem ele pedir): liberar a Champions pra todos
