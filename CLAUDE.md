@@ -612,6 +612,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   botão; o `#admin` mede o aparelho. Trava: `npm run storage`. Quem criar chave nova
   por sala, registra a limpeza lá.
 
+- **🛑 ME FALE ANTES DE FAZER (25/09, regra permanente).** Palavras dele: *"me fale antes de
+  fazer algo.. só travou uma vez"*. A sala de 27 da Champions travou UMA vez, e eu, sem
+  perguntar, mudei o limite pra 20, depois mexi no envio do online e voltei pra 36 — com a
+  sala dele ainda jogando. Regra: **problema ao vivo = primeiro EXPLICAR a causa e PROPOR, e
+  só mexer depois do OK dele** (a não ser que ele já tenha mandado fazer). E publicar com
+  sala rolando derruba quem está com o jogo aberto — mais um motivo pra perguntar antes.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
