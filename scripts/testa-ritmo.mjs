@@ -36,14 +36,16 @@ const MUNDO_ON = num(mundo, /\(online \? (\d+) : \d+\)/)
 const MUNDO_OFF = num(mundo, /\(online \? \d+ : (\d+)\)/)
 const sql = readFileSync('docs/sql/online-copa-clock-mais-1s.sql', 'utf8')
 const SQL_MS = num(sql, /duration_ms:=round\((\d+)\/r\.speed\)/)
-const online = Math.round(180000 / 38) + EXTRA
+// 🔁 25/09: a rodada do rápido/online foi CRAVADA em 7s (Diego: *"liga normal que tava
+// 6,7s aumente pra 7s"*). O extra de 2s continua valendo pro basquete, que segue na conta.
+const online = num(tela, /const ROUND_MS = (\d+)/)
 
 console.log('\n1) ⏱️ a rodada dura o que a gente acha que dura')
 {
   ok(EXTRA === 2000, `o extra da rodada vale ${EXTRA}ms (1s de 18/09 + 1s de 19/09)`)
   ok(CARR === 11000, `carreira no manual: ${CARR / 1000}s (9s → 10s em 18/09 → 11s em 19/09)`)
   ok(CARR + AUTO === 12000, `carreira no auto: ${(CARR + AUTO) / 1000}s (o +1s do auto, de 13/09, continua por cima)`)
-  ok(online >= 6500 && online <= 7000, `rápido/online: ${(online / 1000).toFixed(1)}s`)
+  ok(online === 7000, `rápido/online: ${(online / 1000).toFixed(1)}s (6,7s → 7s em 25/09)`)
 }
 
 console.log('\n1b) 🏆 E AS COPAS GANHARAM O MESMO SEGUNDO (Diego 19/09)')
@@ -82,7 +84,7 @@ console.log('\n2) 🥅 o gol CABE na rodada nas velocidades que têm som')
 
 console.log('\n3) 📐 o número mora num lugar só por modo')
 {
-  ok(/ROUND_MS = Math\.round\(SEASON_TOTAL_MS \/ 38\) \+ ROUND_EXTRA_MS/.test(tela), 'rápido/online: soma o extra na RODADA, não no orçamento da temporada')
+  ok(/const ROUND_MS = 7000\b/.test(tela), 'rápido/online: a rodada é um número cravado (7s), não mexe no orçamento da temporada')
   ok(/SEASON_TOTAL_MS \/ \(state\.fixtures\.length \|\| 82\)\) \+ ROUND_EXTRA_MS/.test(tela), 'basquete ganha o mesmo segundo ("modo online qualquer também")')
   ok((tela.match(/const ROUND_MS =/g) || []).length === 1, 'rápido/online: um ROUND_MS só')
   ok((carr.match(/const ROUND_MS =/g) || []).length === 1, 'carreira: um ROUND_MS só')

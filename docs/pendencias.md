@@ -1,3 +1,14 @@
+## 25/09/2026 — ⏱️ Rodada da liga cravada em 7s + repescão da Champions no tempo de Copa ✅ NO AR
+
+Diego: *"repescão pode manter igual mata-mata também. E liga normal que tava 6,7s aumente
+pra 7s"*.
+- `ROUND_MS = 7000` (`screens.tsx`) — rodada da liga no rápido/online (e a fase de grupos
+  da Liberta, que usa o mesmo número). Basquete segue na conta antiga. Trava
+  `npm run ritmo` atualizada pro número novo.
+- Champions: fase de tabela = liga + 2s (**9s**); **repescão e mata-mata = jogo de Copa
+  (~17s no auto)**. A régua em `EscChampions` é o JOGO na tela (`jogoDeCopa`), porque a 8ª
+  rodada anima com a fase já no repescão e a volta anima com a fase já em 'mata'.
+
 ## 25/09/2026 — ⏱️ Champions +2s por jogo SÓ na fase de tabela (e repescão) ✅ NO AR (só na conta do Diego)
 
 🔁 Corrigido na mesma tarde: *"copa não aumente, digo só na liga mesmo"*. O mata-mata
