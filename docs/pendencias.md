@@ -1,3 +1,9 @@
+## 26/09/2026 — 👑 Ballack (Bayern 2002) VOLTA a lenda · Dunga (Internacional 1984) vira LENDA ✅ NO AR
+
+Diego: *"pode manter Ballack de lenda e coloque Dunga também"*. Os dois só têm UMA carta cada
+(regra da lenda = carta do melhor clube; aqui não tem escolha). `fame: 5`, home avisada pelo
+`npm run novidades`, `npm run paises` verde.
+
 ## 26/09/2026 — 👟 Reserva batia pênalti (a lista saía do elenco inteiro) ✅ NO AR
 
 Print do Diego, tela de pênalti aos 90+2': *"Zico e Garrincha estavam no banco de
