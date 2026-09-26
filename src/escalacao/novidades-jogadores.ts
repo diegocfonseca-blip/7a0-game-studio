@@ -6,6 +6,110 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
+    "nome": "Lúcio",
+    "baralho": "BR",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Seedorf",
+    "baralho": "BR",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Marta",
+    "baralho": "BR",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Lúcio",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Fernando Hierro",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Clarence Seedorf",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Michael Ballack",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Juan Román Riquelme",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Ángel Di María",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Fernando Redondo",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Bastian Schweinsteiger",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Thomas Müller",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Miroslav Klose",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
     "nome": "Maicon",
     "baralho": "EU",
     "de": "craque",
@@ -337,47 +441,5 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "baralho": "MUNDO",
     "nivel": "craque",
     "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Asamoah Gyan",
-    "baralho": "MUNDO",
-    "nivel": "bom jogador",
-    "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Rafael",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Bento",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Agustín Rossi",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Lucas Perri",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "João Ricardo",
-    "baralho": "BR",
-    "nivel": "bom jogador",
-    "data": "2026-09-20"
   }
 ]
