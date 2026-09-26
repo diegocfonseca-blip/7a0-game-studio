@@ -558,7 +558,7 @@ export const BIOS: Record<string, string> = {
   "David Silva": "El Mago. O canhoto baixinho que fazia o meio do City girar — passe e classe raras.",
   "Bernardo Silva": "O português dos pés inquietos. Drible curto, pulmão e inteligência no City de Guardiola.",
   "Pavel Nedvěd": "A Fúria de Praga. Volante-corredor de chute de fora — Bola de Ouro de 2003 na Juventus.",
-  "Juan Román Riquelme": "O último camisa 10 clássico. Tempo próprio e passe de gênio — ídolo argentino no Villarreal.",
+  "Juan Román Riquelme": "O último camisa 10 clássico. Tempo próprio e passe de gênio — o maior ídolo do Boca, dono da Libertadores de 2007.",
   "Esteban Cambiasso": "O Cuchu. Volante-cérebro da treble da Inter — recuperação e passe sempre no lugar certo.",
   "Fabinho": "O volante-'faxineiro' do Liverpool. Desarme e cobertura que blindaram o meio de Klopp.",
   "Gilberto Silva": "O Invisível dos Invencíveis. Volante campeão do mundo em 2002 — equilíbrio puro no Arsenal.",
@@ -1869,7 +1869,6 @@ const MEI_EU: C[] = [
   { name: "David Silva", club: "Man City", year: 2013, fame: 4, lo: 85, hi: 91 },
   { name: "Bernardo Silva", club: "Man City", year: 2022, fame: 4, lo: 84, hi: 90 },
   { name: "Pavel Nedvěd", club: "Juventus", year: 2003, fame: 5, lo: 85, hi: 91 },
-  { name: "Juan Román Riquelme", club: "Villarreal", year: 2005, fame: 5, lo: 84, hi: 90 },
   { name: "Cesc Fàbregas", club: "Arsenal", year: 2010, fame: 4, lo: 84, hi: 90 },
   { name: "Thiago Alcântara", club: "Bayern", year: 2018, fame: 4, lo: 84, hi: 90 },
   { name: "Philippe Coutinho", club: "Liverpool", year: 2017, fame: 4, lo: 85, hi: 91 },
@@ -2408,6 +2407,7 @@ const ZAG_WORLD: C[] = [
   { name: "Kim Young-gwon", club: "Guangzhou", year: 2018, fame: 3, lo: 68, hi: 82, bio: "O zagueiro do gol que ELIMINOU a Alemanha em 2018 — o Brasil inteiro gritou junto. Gratidão eterna. 🙏" },
 ]
 const MEI_WORLD: C[] = [
+  { name: "Juan Román Riquelme", club: "Boca Juniors", year: 2007, fame: 5, lo: 84, hi: 90 }, // 👑 LENDA no Boca de 2007 (Diego 26/09: tirou a carta do Villarreal e pôs esta — a do melhor clube). Mesma faixa de nível da carta antiga.
   { name: "Carlos Valderrama", club: "Deportivo Cali", year: 1988, fame: 5, lo: 87, hi: 93, bio: "'El Pibe' — a cabeleira loira e o passe mais genial da história colombiana. Enxergava lançamentos que ninguém via; pura arte no meio-campo." },
   { name: "Ricardo Bochini", club: "Independiente", year: 1984, fame: 4, lo: 84, hi: 90, bio: "O ídolo máximo do Maradona — 'El Bocha' passou a vida inteira no Independiente ditando o ritmo com toques curtos e a famosa 'pausa'." },
   { name: "Teófilo Cubillas", club: "Alianza Lima", year: 1978, fame: 4, lo: 84, hi: 90, bio: "O maior craque da história do Peru — meia goleador das Copas de 70 e 78, chute violento e faltas indefensáveis." },
