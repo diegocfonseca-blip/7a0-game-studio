@@ -1,4 +1,4 @@
-## 26/09/2026 — 🧱 LOTE 35: 83 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
+## 26/09/2026 — 🧱 LOTE 35: 83 cartas novas (pro Leilão de Setores) ✅ NO AR (19h, com o OK dele: "pode publicar já")
 
 Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e
 categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
