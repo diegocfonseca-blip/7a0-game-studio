@@ -1,3 +1,14 @@
+## 26/09/2026 — 🕵️ JOGADOR ENIGMA LIGADO ✅ NO AR
+
+Diego viu as fotos (`npm run enigma`) e deu *"ok"* pra dica da ÉPOCA e o nome "Enigma".
+`ENIGMA_LIGADO = true`, mas ele só vale nos **rápidos online de futebol no pregão às cegas**
+(`sorteiaEspeciais`: online · não carreira · não basquete · não Tocaia). Carreira, partida contra
+bots, Tocaia e basquete ficam sem até ele pedir. `npm run enigma-trava` verde e `npm run ascegas`
+com as MESMAS digitais de antes (90a1c57e · 3faeb4a1 · a54c75f5): o pregão não muda.
+Junto: 3 linhas novas em `novidades.ts` (Enigma, jornal novo, Copa do Mundo antes do jornal) e a
+linha da mascote corrigida de 30s pra 5s.
+↩️ Desligar = `ENIGMA_LIGADO = false`.
+
 ## 26/09/2026 — 👑 Ballack (Bayern 2002) VOLTA a lenda · Dunga (Internacional 1984) vira LENDA ✅ NO AR
 
 Diego: *"pode manter Ballack de lenda e coloque Dunga também"*. Os dois só têm UMA carta cada

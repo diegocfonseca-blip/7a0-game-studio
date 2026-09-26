@@ -1787,14 +1787,19 @@ function pickMudo(deck: Record<Sector, Card[]>, seed: number, exceto?: string): 
 export function sorteiaEspeciaisParaTeste(s: EscState, rng: () => number) { sorteiaEspeciais(s, rng) }
 function sorteiaEspeciais(s: EscState, rng: () => number) {
   s.surpriseId = pickSurprise(s.deck, rng)
-  s.mudoId = ENIGMA_LIGADO ? pickMudo(s.deck, s.seed, s.surpriseId) : undefined
+  // 🕵️ LIGADO EM 26/09 (Diego: *"ok"* pra dica da época e o nome Enigma) — só nos
+  // RÁPIDOS ONLINE de futebol no pregão às cegas, que foi onde ele pediu. Carreira,
+  // partida contra bots, Tocaia e basquete seguem sem Enigma até ele pedir.
+  const ondeVale = s.onlineMode === 'online' && !s.careerOnline && s.sport !== 'basquete' && !s.holandes
+  s.mudoId = ENIGMA_LIGADO && (ondeVale || enigmaBancada) ? pickMudo(s.deck, s.seed, s.surpriseId) : undefined
 }
 
-// 🔒 EM CONSTRUÇÃO: nasce DESLIGADO. Só liga quando o Diego aprovar o visual
-// (regra dele: mockup primeiro). Desligado, `mudoId` fica `undefined` e o jogo
-// roda exatamente como hoje.
-export let ENIGMA_LIGADO = false
+// 🟢 LIGADO em 26/09 com o OK do Diego (nasceu desligado em 20/09 esperando o
+// visual). Voltar pra `false` desliga tudo: `mudoId` fica `undefined` e toda tela
+// cai no caminho de sempre. ONDE ele vale mora em `sorteiaEspeciais`.
+export let ENIGMA_LIGADO = true
 let enigmaNaPrimeira = false
+let enigmaBancada = false // 🧪 a bancada liga o Enigma em qualquer modo (a trava roda fora do online)
 /** 🧪 SÓ PRA BANCADA (`npm run enigma` e `npm run enigma-trava`): liga o modo na
  *  página que já está aberta. Antes eu fazia isso EDITANDO o `store.tsx` e
  *  desfazendo depois — se o processo morresse no meio, a bandeira ficava ligada
@@ -1802,6 +1807,7 @@ let enigmaNaPrimeira = false
 export function bancadaEnigma(ligado: boolean, naPrimeiraLeva = false) {
   ENIGMA_LIGADO = ligado
   enigmaNaPrimeira = naPrimeiraLeva
+  enigmaBancada = ligado
 }
 
 // 🏷️ O NOME NUM LUGAR SÓ (lição da Tocaia, que mudou de nome cinco vezes num dia):
