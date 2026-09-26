@@ -1,11 +1,14 @@
-## 26/09/2026 — ⏱️ Rodada ONLINE vai pra 8 s (offline fica em 7 s) ✅ NO AR
+## 26/09/2026 — ⏱️ Rodada ONLINE vai pra 9 s (offline fica em 7 s) ✅ NO AR
 
-Diego: *"aumente pra 8s por rodada no online. Tá 7 né, então aumente pra 8"*.
-`ROUND_MS_ONLINE = 8000` em `screens.tsx`, usado na rodada da LIGA (sala rápida e
+Diego, em duas mensagens na mesma noite: *"aumente pra 8s por rodada no online. Tá 7 né,
+então aumente pra 8"* e logo depois *"aumente pra 9s pq tá mt rápido na verdade, não tá
+dando nem pra ver direito as coisas novas"* (o golzinho com lances).
+`ROUND_MS_ONLINE = 9000` em `screens.tsx`, usado na rodada da LIGA (sala rápida e
 Minhas Ligas) e na fase de grupos da Liberta (que roda no ritmo da liga). O rápido
 OFFLINE segue em 7 s (`ROUND_MS`), a tabela da Champions (ROUND_MS + 4 s = 11 s) e os
-jogos de Copa (16–17 s) não mudam. 38 rodadas online ≈ 5 min. As chances do golzinho
-continuam 1 por lado nos dois ritmos (`npm run chances`).
+jogos de Copa (16–17 s) não mudam. 38 rodadas online ≈ 5,7 min. As chances do golzinho
+continuam 1 por lado (`npm run chances`). ↩️ Voltar = trocar o número.
+
 ## 26/09/2026 — 👑 MISTURA DA LENDA nos rápidos ✅ NO AR
 
 Diego: *"1 em cada 5 lendas… craque isso aí"* (e o foi profissional ↔ bom jogador fica 1 em 4, como
