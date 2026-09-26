@@ -2368,6 +2368,8 @@ const L35_EU_GOL: C[] = [
   { name: "Fraser Forster", club: "Celtic", year: 2014, fame: 3, lo: 74, hi: 83, bio: "Goleirão do Celtic que parou o Barcelona de Messi na Champions de 2012." },
   { name: "Allan McGregor", club: "Rangers", year: 2010, fame: 3, lo: 74, hi: 83, bio: "Goleiro escocês do Rangers, tricampeão escocês entre 2009 e 2011." },
   { name: "Diego López", club: "Espanyol", year: 2018, fame: 3, lo: 74, hi: 83, bio: "Goleiro espanhol alto e seguro, que passou por Real Madrid e Milan antes do Espanyol." },
+  { name: "Rinat Dasayev", club: "Spartak Moscou", year: 1988, fame: 4, lo: 82, hi: 88, bio: "Goleirão da URSS vice-campeã da Euro 88 e ídolo do Spartak Moscou." },
+  { name: "Rüştü Reçber", club: "Fenerbahçe", year: 2002, fame: 4, lo: 80, hi: 87, bio: "O goleiro das faixas pretas no rosto — pilar da Turquia 3ª colocada na Copa de 2002." },
 ]
 const L35_EU_LAT: C[] = [
   { name: "Jorginho", club: "Leverkusen", year: 1990, fame: 3, lo: 78, hi: 86, bio: "Lateral-direito do tetra, na fase alemã: três temporadas no Bayer Leverkusen antes do Bayern." },
@@ -2394,6 +2396,7 @@ const L35_EU_ZAG: C[] = [
   { name: "Mozer", club: "Marseille", year: 1991, fame: 4, lo: 80, hi: 88, bio: "Depois do Flamengo, virou ídolo no Marseille tricampeão francês e finalista da Copa dos Campeões de 1991." },
   { name: "Roberto Ayala", club: "Valencia", year: 2002, fame: 4, lo: 81, hi: 88, bio: "\"El Ratón\" — zagueiro argentino do Valencia campeão espanhol de 2002 e 2004." },
   { name: "Carlos Marchena", club: "Valencia", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Valencia campeão da Liga e da Copa da UEFA em 2004, depois campeão do mundo com a Espanha." },
+  { name: "Samuel Kuffour", club: "Bayern", year: 2001, fame: 3, lo: 77, hi: 85, bio: "Zagueiro ganês do Bayern campeão da Champions de 2001." },
 ]
 const L35_EU_MEI: C[] = [
   { name: "Gabi", club: "Atlético de Madrid", year: 2014, fame: 3, lo: 77, hi: 85, bio: "Capitão e cérebro do Atlético de Madrid campeão espanhol de 2014." },
@@ -2412,6 +2415,13 @@ const L35_EU_MEI: C[] = [
   { name: "James Maddison", club: "Leicester", year: 2022, fame: 3, lo: 76, hi: 85, bio: "Meia criativo do Leicester, bom de falta e de passe decisivo." },
   { name: "Julian Draxler", club: "Schalke", year: 2013, fame: 3, lo: 76, hi: 85, promessa: true, bio: "Revelação do Schalke que virou campeão do mundo com a Alemanha em 2014." },
   { name: "Kai Havertz", club: "Leverkusen", year: 2020, fame: 3, lo: 77, hi: 86, promessa: true, bio: "Joia do Leverkusen que saiu pro Chelsea e fez o gol do título da Champions de 2021." },
+  { name: "Dejan Savićević", club: "Milan", year: 1994, fame: 4, lo: 83, hi: 89, bio: "O \"Gênio\" do Milan — o chute de cobertura na final da Champions de 1994, nos 4 a 0 sobre o Barcelona." },
+  { name: "Tomáš Rosický", club: "Dortmund", year: 2002, fame: 3, lo: 78, hi: 86, promessa: true, bio: "\"O Pequeno Mozart\" — meia tcheco do Dortmund campeão alemão de 2002, antes do Arsenal." },
+  { name: "Sergej Milinković-Savić", club: "Lazio", year: 2018, fame: 4, lo: 81, hi: 88, bio: "Meia sérvio alto e técnico, cérebro da Lazio por quase uma década." },
+  { name: "Miralem Pjanić", club: "Juventus", year: 2018, fame: 4, lo: 81, hi: 88, bio: "Meia bósnio do passe e da bola parada, peça da Juventus multicampeã italiana." },
+  { name: "Rodrigo Bentancur", club: "Juventus", year: 2019, fame: 3, lo: 76, hi: 85, bio: "Volante uruguaio da Juventus campeã italiana, depois do Tottenham." },
+  { name: "Dejan Stanković", club: "Inter", year: 2010, fame: 4, lo: 81, hi: 88, bio: "Meia sérvio de chute forte, peça da Inter tríplice campeã de 2010." },
+  { name: "Sulley Muntari", club: "Inter", year: 2010, fame: 3, lo: 75, hi: 84, bio: "Volante ganês da Inter tríplice campeã de 2010." },
 ]
 const L35_EU_ATA: C[] = [
   { name: "Alexandre Lacazette", club: "Lyon", year: 2017, fame: 3, lo: 78, hi: 86, bio: "Artilheiro do Lyon por anos antes de ir pro Arsenal — faro de gol de centroavante." },
@@ -2425,6 +2435,18 @@ const L35_EU_ATA: C[] = [
   { name: "Patrik Schick", club: "Leverkusen", year: 2021, fame: 3, lo: 75, hi: 84, bio: "Centroavante tcheco do golaço do meio de campo na Euro 2020, artilheiro do Leverkusen." },
   { name: "Asprilla", club: "Parma", year: 1995, fame: 4, lo: 81, hi: 88, bio: "O auge do \"Tino\": campeão da Copa da UEFA de 1995 e autor da falta que acabou com a invencibilidade do Milan." },
   { name: "Enrico Chiesa", club: "Parma", year: 1998, fame: 3, lo: 77, hi: 85, bio: "Atacante do Parma campeão da Copa da UEFA de 1999 — o pai do Federico Chiesa." },
+  { name: "Predrag Mijatović", club: "Real Madrid", year: 1998, fame: 4, lo: 82, hi: 89, bio: "Atacante montenegrino que fez o gol da 7ª Champions do Real Madrid, contra a Juventus, em 1998." },
+  { name: "Jorge Valdano", club: "Real Madrid", year: 1986, fame: 4, lo: 81, hi: 88, bio: "Atacante argentino do Real Madrid, campeão do mundo em 1986 com gol na final contra a Alemanha." },
+  { name: "Zbigniew Boniek", club: "Juventus", year: 1983, fame: 4, lo: 83, hi: 89, bio: "O \"Bello di notte\" — ponta polonês da Juventus dos títulos europeus dos anos 80 e 3º na Copa de 82." },
+  { name: "Paulo Futre", club: "Porto", year: 1987, fame: 4, lo: 82, hi: 89, bio: "Ponta driblador do Porto campeão da Copa dos Campeões de 1987 — depois virou ídolo no Atlético de Madrid." },
+  { name: "Oleg Blokhin", club: "Dínamo Kyiv", year: 1975, fame: 5, lo: 85, hi: 91, bio: "Maior artilheiro da história da URSS — Bola de Ouro de 1975 com o Dínamo de Kiev campeão da Recopa." },
+  { name: "Igor Belanov", club: "Dínamo Kyiv", year: 1986, fame: 4, lo: 83, hi: 89, bio: "Atacante do Dínamo de Kiev campeão da Recopa de 1986 e Bola de Ouro no mesmo ano." },
+  { name: "Jan Koller", club: "Dortmund", year: 2002, fame: 3, lo: 77, hi: 85, bio: "Centroavante gigante tcheco, parceiro do Rosický no Dortmund campeão alemão de 2002." },
+  { name: "Harry Kewell", club: "Liverpool", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Ponta australiano canhoto, campeão da Champions de 2005 com o Liverpool." },
+  { name: "Darwin Núñez", club: "Benfica", year: 2022, fame: 3, lo: 77, hi: 86, promessa: true, bio: "Centroavante uruguaio veloz que explodiu no Benfica antes de ir pro Liverpool." },
+  { name: "Dušan Vlahović", club: "Fiorentina", year: 2021, fame: 3, lo: 78, hi: 86, promessa: true, bio: "Centroavante sérvio artilheiro da Fiorentina antes de ir pra Juventus." },
+  { name: "Mehdi Taremi", club: "Porto", year: 2022, fame: 3, lo: 78, hi: 86, bio: "Artilheiro iraniano do Porto — fez gol de bicicleta contra o Chelsea na Champions." },
+  { name: "Raúl Jiménez", club: "Wolves", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Centroavante mexicano ídolo do Wolves na Premier League." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA] }
 
@@ -2738,6 +2760,7 @@ const L35_WORLD_ZAG: C[] = [
 const L35_WORLD_MEI: C[] = [
   { name: "Fernando Gago", club: "Boca Juniors", year: 2006, fame: 3, lo: 76, hi: 85, promessa: true, bio: "\"Pintita\" — volante elegante do Boca que saiu direto pro Real Madrid." },
   { name: "Sebastián Battaglia", club: "Boca Juniors", year: 2007, fame: 3, lo: 75, hi: 84, bio: "O jogador com mais títulos da história do Boca — volante de marcação e símbolo do clube." },
+  { name: "Mohamed Aboutrika", club: "Al Ahly", year: 2006, fame: 4, lo: 80, hi: 87, bio: "O maior ídolo da história do Egito — meia do Al Ahly pentacampeão da Liga dos Campeões da África." },
 ]
 const L35_WORLD_ATA: C[] = [
   { name: "Tevez", club: "Boca Juniors", year: 2003, fame: 4, lo: 82, hi: 88, bio: "\"El Apache\" em casa: campeão da Libertadores e do Mundial de 2003 com o Boca antes de vir pro Corinthians." },
