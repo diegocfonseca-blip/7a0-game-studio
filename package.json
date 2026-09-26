@@ -22,6 +22,7 @@
     "piramide": "node scripts/checa-piramide.mjs",
     "tracos": "node scripts/checa-tracos.mjs",
     "penaltis": "node scripts/checa-penaltis.mjs",
+    "cobrador": "node scripts/testa-cobrador.mjs",
     "crise": "node scripts/testa-crise.mjs",
     "salao": "node scripts/checa-salao.mjs",
     "elenco27": "tsx scripts/testa-elenco-27.mjs",

@@ -1,3 +1,30 @@
+## 26/09/2026 — 👟 Reserva batia pênalti (a lista saía do elenco inteiro) ✅ NO AR
+
+Print do Diego, tela de pênalti aos 90+2': *"Zico e Garrincha estavam no banco de
+reserva e mesmo assim apareceram pra bater pênalti. Tá errado"*.
+
+**A causa, de uma linha**: `takers` saía de `mgr.squad` — o elenco INTEIRO (22
+cartas) ordenado por nível. Como a lista mostra os 8 melhores, os craques do banco
+apareciam sempre na frente de quem estava jogando. É o comportamento fora das
+regras que ele não aceita: **jogador em campo sem ter sido escalado**.
+
+**O conserto** (`cobradoresDoJogo`, em `pyramidseason.tsx`): a lista é de quem está
+EM CAMPO aos 90+2', nesta ordem de régua —
+1. quem foi escalado, **contando a troca do INTERVALO** (`careerHalftime.xi2` é
+   quem termina o jogo; sem troca, o XI da rodada);
+2. sem o **suspenso/lesionado**;
+3. sem o **goleiro** (ele está no outro gol);
+4. sem carta de mentira.
+🛟 E **nunca volta vazia**: sem escalação cai no elenco, como era antes — pênalti
+sem ninguém pra bater seria pior que a lista errada. O escolhido também cai no
+primeiro da lista se sumir dela (senão o BATER ficaria mudo).
+
+**Trava**: `npm run cobrador` — monta elenco de 22, escala 11 e exige: ninguém do
+banco, sem goleiro, ordem por nível, quem entrou no intervalo aparece, quem saiu
+some, suspenso fora, e lista nunca vazia. `penaltis` e `telas` verdes junto.
+
+↩️ **Reverter**: a função está isolada; voltar ao elenco inteiro é uma linha.
+
 ## 25/09/2026 — ⚽🅰️ O gol do jogador estava perdendo a Supercopa (e o total, os clubes de grafia dupla) ✅ NO AR
 
 Relato do Diego, olhando a aba Elenco de uma carreira encerrada: *"os gols no modo

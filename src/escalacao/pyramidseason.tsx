@@ -3481,13 +3481,52 @@ function penPick<T>(a: T[]): T { return a[Math.floor(Math.random() * a.length)] 
 const PEN_ZP: [number, number][] = [[20, 26], [50, 22], [80, 26], [22, 64], [50, 66], [78, 64]]
 const PEN_OUT: [number, number][] = [[-4, -9], [50, -17], [104, -9], [-8, 58], [50, -17], [108, 58]]
 
-export function PenaltyBanner({ mgr, homeName, awayName, homeG, awayG, youIsHome, mascote, onDone }: { mgr: Manager; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; mascote: ReactNode | null; onDone: (scored: boolean, takerId: string) => void }) {
+/**
+ * 👟 QUEM PODE IR PRA BOLA no pênalti de 90+2' — só quem está EM CAMPO.
+ *
+ * 🐛 25/09, relato do Diego com print: *"Zico e Garrincha estavam no banco de
+ * reserva e mesmo assim apareceram pra bater pênalti. Tá errado"*. E estava: a
+ * lista saía do elenco INTEIRO (22 cartas) ordenado por nível — os melhores
+ * apareciam mesmo sentados no banco. É justamente o comportamento fora das
+ * regras que ele não aceita: jogador em campo sem ter sido escalado.
+ *
+ * A régua, nesta ordem: quem foi escalado (contando a troca do INTERVALO, que é
+ * quem termina o jogo) · sem o suspenso/lesionado · sem o goleiro (ele está no
+ * outro gol) · sem carta de mentira. Ordena pelo nível, o melhor na frente.
+ *
+ * 🛟 E NUNCA VOLTA VAZIA: sem escalação, cai no elenco — pênalti sem ninguém pra
+ * bater seria pior que a lista errada.
+ */
+export function cobradoresDoJogo(squad: WonCard[], emCampoIds?: string[], suspensoId?: string): WonCard[] {
+  const vivos = squad.filter(c => !c.fake && c.id !== suspensoId)
+  const onze = emCampoIds?.length ? vivos.filter(c => emCampoIds.includes(c.id)) : []
+  const base = onze.length ? onze : vivos
+  const semGoleiro = base.filter(c => c.pos !== 'GOL')
+  return (semGoleiro.length ? semGoleiro : base).sort((a, b) => mid(b) - mid(a))
+}
+
+export function PenaltyBanner({ mgr, emCampoIds, suspensoId, homeName, awayName, homeG, awayG, youIsHome, mascote, onDone }:{ mgr: Manager; /** 🧍 os 11 que estão EM CAMPO neste jogo (com a troca do intervalo, se houve) */ emCampoIds?: string[]; suspensoId?: string; homeName: string; awayName: string; homeG: number; awayG: number; youIsHome: boolean; mascote: ReactNode | null; onDone: (scored: boolean, takerId: string) => void }) {
   const privatePenaltyArt = usePenaltyArtPreview()
   const penaltyArtRef = useRef<PenaltyArtHandle>(null)
   const perk = myApoioPerk() ?? APOIO_PERKS.bege
-  const takers = useMemo(() => mgr.squad.filter(c => !c.fake).sort((a, b) => mid(b) - mid(a)), [mgr.squad])
+  // 👟 QUEM PODE IR PRA BOLA: só quem está EM CAMPO aos 90+2'.
+  // 🐛 25/09, relato do Diego com print: *"Zico e Garrincha estavam no banco de
+  // reserva e mesmo assim apareceram pra bater pênalti. Tá errado"*. E estava: a
+  // lista saía de `mgr.squad` INTEIRO (22 cartas) ordenado por nível — ou seja,
+  // os melhores do elenco apareciam mesmo sentados no banco. Isso é justamente o
+  // "comportamento fora das regras" que ele não aceita: jogador entrando em campo
+  // sem ter sido escalado.
+  // ⚖️ A lista respeita, nesta ordem: quem foi escalado (contando a troca do
+  // INTERVALO, que é quem termina o jogo) · sem o suspenso/lesionado · sem o
+  // goleiro (ele está no outro gol) · sem carta de mentira.
+  // 🛟 E NUNCA FICA VAZIA: se por qualquer motivo a escalação não chegar, cai no
+  // elenco, como era antes — lista vazia seria um pênalti sem ninguém pra bater.
+  const takers = useMemo(() => cobradoresDoJogo(mgr.squad as WonCard[], emCampoIds, suspensoId), [mgr.squad, emCampoIds, suspensoId])
   const [mode, setMode] = useState<'voce' | 'sozinho'>('voce')
-  const [takerId, setTakerId] = useState<string>(takers[0]?.id ?? '')
+  const [takerIdRaw, setTakerId] = useState<string>(takers[0]?.id ?? '')
+  // 🔒 se o escolhido não está mais na lista (troca de jogo/escalação), cai no
+  // primeiro — senão a tela ficaria sem ninguém marcado e o BATER sairia mudo.
+  const takerId = takers.some(c => c.id === takerIdRaw) ? takerIdRaw : (takers[0]?.id ?? '')
   const [aim, setAim] = useState<number | null>(null)
   const [phase, setPhase] = useState<'choose' | 'power' | 'anim' | 'rev'>('choose')
   const [kind, setKind] = useState<'gol' | 'def' | 'fora' | null>(null)
@@ -9141,7 +9180,11 @@ export function PyramidSeasonScreen() {
             empata ou vira. Enquanto aberto, a rodada não anda. Depois de BATER, não volta. */}
         {penaltyOpen && penMode && mgrMe && myMatch && me && (() => {
           const iAmHome = myMatch.h === me.team
-          return <PenaltyBanner mgr={mgrMe}
+          // 🧍 quem está EM CAMPO aos 90+2': se o técnico mexeu no intervalo, é o
+          // time do 2º tempo (`xi2`) que termina o jogo; senão, o XI escalado.
+          const xi2 = state.careerHalftime?.[youId]?.[penIdx]?.xi2
+          const emCampoIds = xi2?.length === 11 ? xi2 : myXI.map(c => c.id)
+          return <PenaltyBanner mgr={mgrMe} emCampoIds={emCampoIds} suspensoId={suspenso?.cardId}
             homeName={myMatch.h} awayName={myMatch.a} homeG={myMatch.hg} awayG={myMatch.ag} youIsHome={iAmHome}
             mascote={penMascArt}
             onDone={(scored, takerId) => { dispatch({ type: 'SET_PENALTY', mgrId: youId, round: penIdx, scored, taker: takerId }); setPenaltyOpen(false) }} />
