@@ -24,6 +24,39 @@ banco, sem goleiro, ordem por nível, quem entrou no intervalo aparece, quem sai
 some, suspenso fora, e lista nunca vazia. `penaltis` e `telas` verdes junto.
 
 ↩️ **Reverter**: a função está isolada; voltar ao elenco inteiro é uma linha.
+
+## 26/09/2026 — 📰 Jornal: capa dos TÍTULOS GRANDES + artilheiros de cada competição ✅ NO AR
+
+Mockup aprovado pelo Diego (*"sim"*). Na capa (`CareerNewspaperStories`): toda temporada a foto
+grande é o campeão da **Série A**, com Copa do Brasil (ou Copa Legends) e Supercopa embaixo; no
+ano de Copa do Mundo a foto grande é a **seleção campeã** (foto NEUTRA de silhuetas + bandeira,
+não existe arte própria — se ele quiser, gerar uma) e Série A/Copa/Supercopa descem. O quadrinho
+do artilheiro da série do jogador saiu da capa.
+Página da Bola de Ouro: ela continua o destaque e as duas listas (gols × assistências) ficam; o
+jornal só CRESCE com a caixa "⚽ Os artilheiros do ano" — Série A, Copa, Supercopa e Copa do
+Mundo (quando tem). Competição nova = uma linha em `artilheirosDoAno` (pyramidseason.tsx).
+
+## 26/09/2026 — 🌍 Copa do Mundo ANTES do jornal + gols dela contam em tudo ✅ NO AR
+
+Diego: *"tem que contar todos os gols dele ali no jogo… contando também a Copa do Mundo… e
+também deve contar pra Bola de Ouro"* e depois *"a copa do mundo deveria ser jogada antes então
+de chegar o passo 1 do jornal"*.
+- **Ordem do roteiro**: nos anos de Copa com o SEU clube nela (TOP 24, temporada 100, 110…), o
+  roteiro fica 🌍 Mundo → 📰 Jornal → 💰 Caixa → 🔨 Próxima, e o CONTINUAR da Copa fica travado
+  (cinza, com o porquê) até ela ser jogada. Ano sem Copa: igual sempre. Só solo.
+- **Números**: a Copa grava o que cada CARTA fez (`copaMundoStats`, ação `COPA_MUNDO_STATS`,
+  `estatisticasDaCopa` em copa-mundo.tsx). Entram na ficha (temporada e "no seu clube"), na
+  Bola de Ouro, no top 5 do jornal e na artilharia/garçons de todos os tempos. Bola de Ouro,
+  histórico da temporada e comissão da Agência ESPERAM a Copa acabar (`mundoPendente`).
+- **Jogos**: os jogos de copa (Copa do Brasil/Legends + Supercopa, com o XI congelado da 38) e
+  da Copa do Mundo agora somam no 🏃 jogos da tela e no acumulado da virada (`jogosCard`). Só
+  contam com a Copa encerrada na tela (sem spoiler). Os eventos de jogador no meio da temporada
+  continuam lendo só a liga.
+- Copa do Brasil/Supercopa na ficha já tinham sido consertadas em 25/09 (temporada fechada
+  antes disso ficou sem).
+- Trava nova: `npm run copamundo`. `npm run fim` e `npm run artilharia` atualizadas.
+- ⚠️ Fica de fora: carreira ONLINE (a Copa do Mundo online é outra tela e o roteiro lá é votação).
+
 ## 26/09/2026 — ✏️ "Marcelo Vieira" (Real Madrid 2017) vira só "Marcelo" ✅ NO AR
 
 Pedido do Diego. Continua lenda, no baralho Europa. Junto: rosto mantido (alias em
@@ -513,6 +546,31 @@ depende delas.
 estava lá — isto é só deixar a palavra visível. Novidade é feature nova pra quem
 joga, não realce de coisa que já estava no ar.
 
+## 25/09/2026 — ⚡ Partida rápida OFFLINE: as mesmas copas do online ✅ PUBLICADO
+
+Diego: *"esses modos já têm pra partida rápida também? Tem que ter todos. Liga a Champions já
+no partida offline, vai ser o primeiro teste que vou fazer com bot"*.
+- "Depois da liga" no rápido offline virou grade 2×2: **Liga + Copa · Liga + Liberta ·
+  Liga + Champions · Só Liga** (antes não tinha Champions).
+- Champions com a MESMA trava do online (`useChampionsLiberada`): aparece pra todo mundo com
+  a tarja EM BREVE e só `CHAMPIONS_TESTERS` (a conta dele) marca. **Continua NÃO liberada
+  geral** — a regra de 21/09 segue de pé; o que mudou é que agora ele consegue testar sozinho
+  contra bot. O motor já rodava sem sala (`canDriveCopa = !online || isHost`).
+- ⚠️ **Liga + Mundo NÃO entrou no offline**: no online a Copa do Mundo é um modo de SALA
+  (`CopaDaSala`, ficha + relógio no banco). Pra rodar sozinho precisa de um caminho novo
+  (a carreira tem o `CupScreen` com save — dá pra reaproveitar). Fica pra ele decidir.
+
+## 25/09/2026 — ❤️ Salão: "dois Vasco" na lista de torcidas ✅ CONSERTADO (banco)
+
+Print do Diego: "Vasco da Gama 3,7%" e "Vasco 1,9%" na mesma lista (*"tem dois Vasco, cuidado
+com isso"*). Culpa minha no dia anterior: gravei o coração do Vasco SAF como "Vasco" enquanto o
+Skyy FC estava como "Vasco da Gama" — e o cadastro (seletor de `coracao.ts`) escreve "Vasco".
+Mesma coisa esperando pra acontecer com "Atlético Mineiro" × "Atlético-MG".
+Conserto: migração `salao_torcidas_unifica_apelidos` — a função `esc_salao_torcidas` junta os
+apelidos no nome do SELETOR antes de agrupar; linhas velhas corrigidas. Cópia em
+`docs/sql/salao-torcidas-unifica-apelidos.sql`. **Regra pro roteiro de batismo:** o
+`time_coracao` em `esc_socios` usa o MESMO nome do seletor (`CORACAO_CLUBES`).
+
 ## 24/09/2026 — 🧊 Depois do apito, o passado não muda mais ✅ CONSERTADO
 
 Relato do Futpoint FC, trazido pelo Diego: *"eu não ganhei nada nessa temporada,
@@ -687,7 +745,19 @@ mentira na cara da pessoa.
 ✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
 deu idêntico nos dois.
 
-## 24/09/2026 — 🦈 Batismo JULIA BARRANQUILA (dondeestasleomessi10) · ⏳ NO BRANCH, sobe de manhã
+## 24/09/2026 — ⚽🏴‍☠️ Batismo VASCO SAF (brunnodeluca90) = o antigo Vasco da Grana ✅ PUBLICADO
+
+O Vasco da Grana era batismo SEM dono (pedido do Diego em 03/08); ele achava que era deste
+usuário. Ordem dele: *"ele entra no lugar do Vasco da Grana"*. Então é RENOMEAÇÃO: mesmo
+assento da Série D, `OLD_NAME['Vasco SAF'] = 'Vasco da Grana'`, e o "Vasco da Grana" saiu
+do Salão (`batismos.ts`). Escudo/mascote também respondem pelo nome velho. Coração **Vasco**.
+- Arte: escudo 266×360 29,0 KB + mascote (O Pirata) 277×440 40,0 KB = 69 KB. Recorte só do
+  chroma forte — as NOTAS de dinheiro do mascote são esverdeadas e ficaram inteiras.
+- Manto preto `#161414` (subido de #080707) + branco `#ECE6E1`, medidos na camisa.
+- Banco rodado (`docs/sql/batismo-vasco-saf.sql`): sócio 59, fundador 78, 3 nomes, ouro.
+- ⏳ Post `mockups/vasco-saf-post.png` — falta o nome do dono no rodapé (e o do Julia também).
+
+## 24/09/2026 — 🦈 Batismo JULIA BARRANQUILA (dondeestasleomessi10) · ✅ PUBLICADO
 
 Série A, no assento do **Leão da Estradinha**, que desceu pra Série B (decisão do Diego:
 *"troque pelo Leão da Estradinha e coloque o Leão na Série B"*) na vaga do bot Esporte do
@@ -699,7 +769,7 @@ dourado) — a 1ª (óculos preto) foi trocada por ele.
   trava. Mascote LARGO: o lado maior (largura) fica em 176.
 - ✅ **Banco** (`docs/sql/batismo-julia-barranquila.sql`, rodado e conferido): sócio 58,
   fundador 77, 3 nomes reservados, ouro em user_colors (esse já vale sem deploy).
-- ⏳ **Deploy na main**: segurado por ser noite (regra do horário de pico, 24/09).
+- ✅ **Deploy na main**: publicado à noite por ordem dele (*"agora"*) — exceção à regra do horário de pico.
 - ⏳ **Post**: `mockups/julia-barranquila-post.png` pronto, falta o NOME do dono no rodapé.
 
 ## 24/09/2026 — 🧳 Tocaia travando: a sala levava a CARREIRA do dono na mala ✅ CONSERTADO
