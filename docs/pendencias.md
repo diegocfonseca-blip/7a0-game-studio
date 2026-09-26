@@ -1,3 +1,11 @@
+## 26/09/2026 — 👑 MISTURA DA LENDA nos rápidos ✅ NO AR
+
+Diego: *"1 em cada 5 lendas… craque isso aí"* (e o foi profissional ↔ bom jogador fica 1 em 4, como
+já estava). `MISTURA_LENDA = 0.2` em `store.tsx` (`buildDeck`, só `mergeSP` = rápido; carreira/escada
+e Várzea não mudam). Só troca se tiver craque livre no setor. Medido em 150 levas de sala de 20
+(4-3-3), com a bancada `montaBaralhoParaTeste`: lenda 13,7% → 12,1% · craque 35,1% → 36,7% ·
+bom e foi profissional iguais. ↩️ Voltar = `MISTURA_LENDA = 0`.
+
 ## 26/09/2026 — 🧱 LOTE 35: 83 cartas novas (pro Leilão de Setores) ✅ NO AR (19h, com o OK dele: "pode publicar já")
 
 Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e
