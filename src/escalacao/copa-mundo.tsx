@@ -40,6 +40,7 @@ const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
 const OSWALD = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
 const box = (bg: string) => ({ border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, background: bg }) as const
 
+export const bandeiraDe = (pais: string) => FLAG[pais] ?? '🌍' // 📰 o jornal da carreira usa (26/09)
 function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
 
 const FLAG: Record<string, string> = {

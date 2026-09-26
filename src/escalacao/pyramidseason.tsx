@@ -43,7 +43,7 @@ import { CareerStadiumView } from './career-stadium-view'
 import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
-import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada } from './copa-mundo'
+import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada } from './sport'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
@@ -8274,6 +8274,24 @@ export function PyramidSeasonScreen() {
       garcons: junta([...assistsAll, ...(copa?.assistsAll ?? []), ...cmListas.asl], x => x.assists),
     }
   }, [scorersAll, assistsAll, copa, cmListas])
+  // ⚽ O ARTILHEIRO DE CADA COMPETIÇÃO GRANDE pra página da Bola de Ouro (Diego
+  // 26/09: *"artilheiro da série A, copa, supercopa, copa do mundo se tiver e
+  // qualquer liga nova"*). Competição nova = uma linha nova aqui.
+  const artilheirosDoAno = useMemo(() => {
+    type L = { comp: string; cor: string; name: string; club?: string; year?: number; time: string; gols: number; you: boolean }
+    const out: L[] = []
+    const topo = (l?: SeasonScorer[]) => [...(l ?? [])].filter(x => x.goals > 0).sort((a, b) => b.goals - a.goals)[0]
+    const de = (comp: string, cor: string, x?: SeasonScorer) => { if (x && x.goals > 0) out.push({ comp, cor, name: x.name, club: x.club, year: x.year, time: x.teamName, gols: x.goals, you: !!x.you }) }
+    de(tr('🏆 Série A', '🏆 Serie A'), '#1B7A3D', divTop.A)
+    de(copaBrOk ? tr('🇧🇷 Copa do Brasil', '🇧🇷 Brazilian Cup') : tr('🏆 Copa Legends', '🏆 Legends Cup'), copaBrOk ? '#0a6b3c' : '#b98600', copa?.topScorer)
+    de(tr('👑 Supercopa', '👑 Super Cup'), '#0D4FCC', topo(supercopaTie?.scorers))
+    if (cmLinhas) {
+      const m = [...cmLinhas].filter(l => l.gols > 0).sort((a, b) => b.gols - a.gols)[0]
+      const meus = new Set(((state.managers[state.youIdx]?.squad ?? []) as WonCard[]).map(c => `${c.name}|${c.club}|${c.year}`))
+      if (m) out.push({ comp: tr('🌍 Copa do Mundo', '🌍 World Cup'), cor: '#2563EB', name: m.name, club: m.club, year: m.year, time: `${bandeiraDe(m.pais)} ${m.pais}`, gols: m.gols, you: meus.has(`${m.name}|${m.club}|${m.year}`) })
+    }
+    return out
+  }, [divTop, copa, copaBrOk, supercopaTie, cmLinhas, state.managers, state.youIdx])
   const allTimeAssists = useMemo(() => Object.values((state.careerAssistsAll ?? {}) as Record<string, SeasonAssist>).sort((a, b) => b.assists - a.assists).slice(0, 20), [state.careerAssistsAll])
   // ao FIM da temporada, soma os artilheiros dela no acumulado (uma vez por
   // temporada; o reducer é idempotente por statsSeason). Cada cliente pode
@@ -9090,6 +9108,7 @@ export function PyramidSeasonScreen() {
             melhor={melhorDoAno}
             artilheiros={top5Jornal.artilheiros}
             garcons={top5Jornal.garcons}
+            artilheirosDoAno={artilheirosDoAno}
             /* 🌍 Copa do Mundo Legends: mural é save PRÓPRIO (fora do estado), começa
                na temporada 100 e repete de 10 em 10 — só aparece se ELA terminou nesta
                temporada exata (pedido do Diego 05/08). */

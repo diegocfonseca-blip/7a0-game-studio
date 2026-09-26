@@ -1,3 +1,14 @@
+## 26/09/2026 — 📰 Jornal: capa dos TÍTULOS GRANDES + artilheiros de cada competição ⏳ NO BRANCH
+
+Mockup aprovado pelo Diego (*"sim"*). Na capa (`CareerNewspaperStories`): toda temporada a foto
+grande é o campeão da **Série A**, com Copa do Brasil (ou Copa Legends) e Supercopa embaixo; no
+ano de Copa do Mundo a foto grande é a **seleção campeã** (foto NEUTRA de silhuetas + bandeira,
+não existe arte própria — se ele quiser, gerar uma) e Série A/Copa/Supercopa descem. O quadrinho
+do artilheiro da série do jogador saiu da capa.
+Página da Bola de Ouro: ela continua o destaque e as duas listas (gols × assistências) ficam; o
+jornal só CRESCE com a caixa "⚽ Os artilheiros do ano" — Série A, Copa, Supercopa e Copa do
+Mundo (quando tem). Competição nova = uma linha em `artilheirosDoAno` (pyramidseason.tsx).
+
 ## 26/09/2026 — 🌍 Copa do Mundo ANTES do jornal + gols dela contam em tudo ⏳ NO BRANCH, esperando OK
 
 Diego: *"tem que contar todos os gols dele ali no jogo… contando também a Copa do Mundo… e

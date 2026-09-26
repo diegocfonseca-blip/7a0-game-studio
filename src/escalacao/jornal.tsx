@@ -455,7 +455,7 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, privateVisual = false }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, privateVisual = false }: {
   privateVisual?: boolean
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
@@ -477,6 +477,10 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   melhor?: { name: string; club?: string; year?: number; teamName: string; div: Div; goals: number; assists: number; total: number; you: boolean } | null
   artilheiros?: { name: string; club?: string; year?: number; teamName: string; n: number; you: boolean }[]
   garcons?: { name: string; club?: string; year?: number; teamName: string; n: number; you: boolean }[]
+  // ⚽ OS ARTILHEIROS DE CADA COMPETIÇÃO GRANDE, na página da Bola de Ouro (Diego
+  // 26/09: *"artilheiro da série A, copa, supercopa, copa do mundo se tiver e
+  // qualquer liga nova"*). Lista aberta: competição nova só entra na lista.
+  artilheirosDoAno?: { comp: string; cor: string; name: string; club?: string; year?: number; time: string; gols: number; you: boolean }[]
 }) {
   // abre EXPANDIDO por padrão (a manchete é a estrela do fim de temporada);
   // o "Fechar" recolhe pro botãozinho se a pessoa quiser limpar a tela.
@@ -873,6 +877,24 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
               </div>
             ))}
           </div>
+          {/* ⚽ OS ARTILHEIROS DE CADA COMPETIÇÃO (26/09) — embaixo da Bola de Ouro, que
+              continua sendo o destaque da página. O jornal cresce, nada sai. */}
+          {(artilheirosDoAno ?? []).length > 0 && (
+            <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>
+              <div style={{ background: INK, color: GOLD, fontSize: 8.5, fontWeight: 900, letterSpacing: 1.2, padding: '3px 7px' }}>{tr('⚽ OS ARTILHEIROS DO ANO', '⚽ THE SEASON’S TOP SCORERS')}</div>
+              {artilheirosDoAno!.map((a, i) => (
+                <div key={a.comp} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 7px 5px 0', borderTop: i > 0 ? '1px solid rgba(0,0,0,.1)' : 'none', background: a.you ? '#fdf6dd' : undefined }}>
+                  <div style={{ width: 5, alignSelf: 'stretch', flex: 'none', background: a.cor }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: a.cor }}>{a.comp}</span>
+                    <span style={{ display: 'block', fontSize: 11, fontWeight: 900, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.you ? '👤 ' : ''}{a.name}</span>
+                    <span style={{ display: 'block', fontSize: 8, fontWeight: 700, color: '#615039', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.club ? `${a.club} · ${a.year} — ` : ''}{a.time}</span>
+                  </span>
+                  <span style={{ ...COND, fontWeight: 900, fontSize: 15, color: INK }}>{a.gols}<span style={{ fontSize: 8, fontWeight: 800, color: '#615039' }}> {tr('gols', 'goals')}</span></span>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       ) : pk === 'memoria' && mem ? (
         <>
@@ -961,7 +983,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         </div>
       )}
 
-      {privateVisual && <CareerNewspaperStories champion={tables[me.div]?.[0]?.name} division={J_DIV_NAME[me.div]} cup={copa?.champion?.name} scorer={divTop[me.div]}/>}
+      {privateVisual && <CareerNewspaperStories serieA={tables.A?.[0]?.name} cup={copa?.champion?.name} cupBrasil={brasil} superCup={superChamp} mundial={mundial} />}
       <div className={privateVisual ? 'll34-career-numbers' : undefined} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
         {/* "foto" */}
         <div style={{ border: `2.5px solid ${INK}`, background: 'radial-gradient(circle at 50% 35%, #2ea457, #123f22)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 108, overflow: 'hidden' }}>
