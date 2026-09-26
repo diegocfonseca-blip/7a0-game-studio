@@ -61,6 +61,7 @@ import futpointMascoteImg from './img/futpoint-mascote.webp' // 📍 Futpoint FC
 import marrecoMascoteImg from './img/marreco-mascote.webp' // 🦆 Marreco FC (lucasigorbortoliniii): arte própria do dono
 import panteraMascoteImg from './img/pantera-mascote.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
 import vascoSafMascoteImg from './img/vasco-saf-mascote.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
+import cruzeiroBerretinhoMascoteImg from './img/cruzeiro-berretinho-mascote.webp' // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749): arte própria do dono
 import juliaMascoteImg from './img/julia-mascote.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousMascoteImg from './img/fabulous-mascote.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import gremioMascoteImg from './img/gremio-mascote.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
@@ -327,6 +328,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 277×440, 40,0 KB. mascote_key = "vasco_pirata".
   vasco_pirata: (
     <img src={vascoSafMascoteImg} height={176} width={Math.round(176 * 277 / 440)} alt="O Pirata — Vasco SAF" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // ⭐🐺 O LOBO REI (mascote do Cruzeiro de Berretinho — weslleygomes749, 25/09): o lobo
+  // azul de coroa, sentado no trono com a camisa 10, entre duas taças.
+  // 📏 392×440, 42,8 KB. mascote_key = "cruzeiro_lobo_rei".
+  cruzeiro_lobo_rei: (
+    <img src={cruzeiroBerretinhoMascoteImg} height={176} width={Math.round(176 * 392 / 440)} alt="O Lobo Rei — Cruzeiro de Berretinho" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦈🔴⚪ O TUBARÃO (mascote do Julia Barranquila — dondeestasleomessi10, 24/09):
   // tubarão de óculos espelhado dourado, camisa listrada do clube, tênis azul e a
@@ -1056,6 +1063,16 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Vasco SAF EC': 'vasco_pirata',
   'Vasco SAF SC': 'vasco_pirata',
   'Vasco da Grana': 'vasco_pirata',
+  // ⭐🐺 o Lobo Rei carimba o gol do Cruzeiro de Berretinho (weslleygomes749, 25/09) — com "de" e com "do".
+  'Cruzeiro de Berretinho': 'cruzeiro_lobo_rei',
+  'Cruzeiro de Berretinho FC': 'cruzeiro_lobo_rei',
+  'Cruzeiro de Berretinho EC': 'cruzeiro_lobo_rei',
+  'Cruzeiro de Berretinho SC': 'cruzeiro_lobo_rei',
+  'Cruzeiro do Berretinho': 'cruzeiro_lobo_rei',
+  'Cruzeiro do Berretinho FC': 'cruzeiro_lobo_rei',
+  'Cruzeiro do Berretinho EC': 'cruzeiro_lobo_rei',
+  'Cruzeiro do Berretinho SC': 'cruzeiro_lobo_rei',
+  'Metrópole FC': 'cruzeiro_lobo_rei',
   'Julia Barranquila': 'julia_tubarao',
   'Julia Barranquila FC': 'julia_tubarao',
   'Julia Barranquila EC': 'julia_tubarao',
@@ -1147,6 +1164,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   marreco_rei: 'O Rei do Cais', // 🦆👑 Marreco FC (lucasigorbortoliniii, 19/09)
   pantera_negra: 'A Pantera',  // 🐆👑 Pantera Negra FC (ericrabelo29, 20/09)
   vasco_pirata: 'O Pirata', // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90, 24/09)
+  cruzeiro_lobo_rei: 'O Lobo Rei', // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749, 25/09)
   julia_tubarao: 'O Tubarão', // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10, 24/09)
   fabulous_aguia: 'A Fabulosa', // 🦅🔴⚫ Fabulous EC (koeppfabio, 23/09)
   gremio_gaucho: 'O Gaúcho',   // 🔵⚫⚪ Grêmio FBPA (danieldias11, 21/09)

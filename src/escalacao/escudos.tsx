@@ -57,6 +57,7 @@ import soDeusSabeEscudoImg from './img/sodeussabe-escudo.webp' // 🙏 Só Deus 
 import bagresWallStEscudoImg from './img/bagreswallst-escudo.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09 (substitui o SVG desenhado a mao de 10/08)
 import vascoSafEscudoImg from './img/vasco-saf-escudo.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
+import cruzeiroBerretinhoEscudoImg from './img/cruzeiro-berretinho-escudo.webp' // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
@@ -824,6 +825,15 @@ const vascoSafEscudoRender = (size: number) => (
   <img src={vascoSafEscudoImg} height={size} width={Math.round(size * 266 / 360)} alt="Vasco SAF" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// ⭐🐺 CRUZEIRO DE BERRETINHO (weslleygomes749, batismo de 25/09) — Série D, no assento do
+// bot Metrópole FC. Escudo com a coroa, os dois lobos e o Cruzeiro do Sul.
+// 📏 347×360, 29,1 KB — largura pela PROPORÇÃO REAL do arquivo.
+// ✂️ `scripts/recorta-prancha-chroma.py` + limpeza do verde que sobrou nas caudas dos
+//    lobos (o branco tinha virado verde-água) — conferido sobre o creme e o roxo.
+const cruzeiroBerretinhoEscudoRender = (size: number) => (
+  <img src={cruzeiroBerretinhoEscudoImg} height={size} width={Math.round(size * 347 / 360)} alt="Cruzeiro de Berretinho" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🦈🔴⚪ JULIA BARRANQUILA (dondeestasleomessi10, batismo de 24/09) — Série A.
 // 📏 251×360, 26,4 KB — largura pela PROPORÇÃO REAL do arquivo.
 // ✂️ `scripts/recorta-prancha-chroma.py`: o chroma verde saiu por COR porque o
@@ -1366,6 +1376,18 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Vasco SAF EC': vascoSafEscudoRender,
   'Vasco SAF SC': vascoSafEscudoRender,
   'Vasco da Grana': vascoSafEscudoRender,
+  // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749) — BATISMO. As 4 formas do nome (regra
+  // 20/08) + as 4 com "DO", que é como ELE escrevia o nome no jogo antes do batismo.
+  // + o nome VELHO do assento (Metrópole FC), como manda a regra: save antigo mostra o escudo novo.
+  'Cruzeiro de Berretinho': cruzeiroBerretinhoEscudoRender,
+  'Cruzeiro de Berretinho FC': cruzeiroBerretinhoEscudoRender,
+  'Cruzeiro de Berretinho EC': cruzeiroBerretinhoEscudoRender,
+  'Cruzeiro de Berretinho SC': cruzeiroBerretinhoEscudoRender,
+  'Cruzeiro do Berretinho': cruzeiroBerretinhoEscudoRender,
+  'Cruzeiro do Berretinho FC': cruzeiroBerretinhoEscudoRender,
+  'Cruzeiro do Berretinho EC': cruzeiroBerretinhoEscudoRender,
+  'Cruzeiro do Berretinho SC': cruzeiroBerretinhoEscudoRender,
+  'Metrópole FC': cruzeiroBerretinhoEscudoRender,
   // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10) — BATISMO. As 4 formas do nome (regra 20/08).
   'Julia Barranquila': juliaEscudoRender,
   'Julia Barranquila FC': juliaEscudoRender,

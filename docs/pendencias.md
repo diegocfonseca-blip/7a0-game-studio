@@ -1,3 +1,19 @@
+## 25/09/2026 — ⭐🐺 Batismo CRUZEIRO DE BERRETINHO (weslleygomes749) — banco ✅ · código 🕗 SOBE DE MANHÃ
+
+Série D, no assento do bot **Metrópole FC** (`OLD_NAME` leva save antigo pro nome novo).
+E-mail achado pelo nome que ele usava ("Cruzeiro do Berretinho", sala 9LSKXI) e confirmado
+pelo Diego. Conta existe desde 04/09. Coração: **Cruzeiro**. Mascote **O Lobo Rei**
+(`cruzeiro_lobo_rei`). Manto medido na camisa: **#0130AD / #F2F9FF**. Arte: escudo 347×360
+29,1 KB · mascote 392×440 42,8 KB (limpei o verde-água das caudas dos lobos, a grama sob a
+chuteira e a sombra da camisa). Escudo/carimbo valem pras 4 formas com "de", as 4 com "do"
+(como ele escrevia) e o nome velho.
+- **Banco — FEITO 25/09 à noite** (`docs/sql/batismo-cruzeiro-berretinho.sql`): sócio nº60 ·
+  fundador nº79 · 6 nomes reservados (de/do + FC/EC) · `user_colors` ouro + manual.
+- **Código — no ramo, esperando a manhã** (regra do horário de pico): escudos, mascotes,
+  apoio (ouro + FUNDADOR_N 79), manto, batismos, salão (camisa `-v1`), data.ts, checa-batismos.
+  build + batismos + piramide + mimos + salao verdes.
+- 📌 Falta o NOME DO DONO pro "BATIZADO POR" do post (mockup pronto com "—").
+
 ## 25/09/2026 — 📮 Sala de Champions de volta a 36, com conserto SÓ na Champions ✅ NO AR
 
 Diego: *"não quero mexer nos outros modos… estamos falando da Champions, só a alternativa"*.
