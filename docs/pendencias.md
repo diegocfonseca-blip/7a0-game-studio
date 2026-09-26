@@ -1,3 +1,14 @@
+## 26/09/2026 — ✏️ "Marcelo Vieira" (Real Madrid 2017) vira só "Marcelo" ✅ NO AR
+
+Pedido do Diego. Continua lenda, no baralho Europa. Junto: rosto mantido (alias em
+`legend-avatars.ts`), `MESMO_JOGADOR` ganhou 'Marcelo' (é o mesmo lateral do Fluminense 2006,
+carta promessa do baralho Brasil), país Brasil, e a foto do catálogo renomeada pra home não
+anunciar "entrou/saiu". Save antigo com "Marcelo Vieira" fica como está (bio e rosto antigos
+seguem valendo pro nome velho).
+💡 Ele perguntou por que quase não vê o Marcelo e vê Júnior e Carlos Alberto toda hora:
+Marcelo é do baralho EUROPA; os dois são do baralho BRASIL, onde lateral tem só 7 lendas e o
+leilão de 20 usa as 7 — por isso aparecem SEMPRE (ver o achado do baralho acima).
+
 ## 26/09/2026 — 👑 Dembélé (PSG 2024) vira LENDA · 🃏 Higuita e Chilavert viram FOLCLÓRICOS ✅ NO AR
 
 Pedidos do Diego. Bio do Dembélé agora diz campeão do mundo (França 2018) e Bola de Ouro.
