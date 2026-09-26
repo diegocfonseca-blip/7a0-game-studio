@@ -30,16 +30,21 @@ const ok = (cond, msg) => { console.log(`  ${cond ? '✅' : '❌'} ${msg}`); if 
 console.log('\n1) 🎬 o roteiro existe e sabe onde está')
 ok(/const roteiroOn = copaFinished && state\.onlineMode !== 'online'/.test(py), 'o roteiro só liga no FIM de temporada e só no solo')
 ok(/const \[fimPasso, setFimPasso\] = useState\(1\)/.test(py), 'começa no passo 1')
-ok(/useEffect\(\(\) => \{ setFimPasso\(1\) \}, \[state\.seasonNo\]\)/.test(py), 'temporada nova volta pro passo 1')
+ok(/useEffect\(\(\) => \{ setFimPasso\(fimOrdem\[0\]\) \}, \[state\.seasonNo, mundoAntes\]\)/.test(py), 'temporada nova volta pro 1º passo')
+// 🌍 26/09: ano de Copa do Mundo com você nela, a Copa ABRE o roteiro (antes do jornal)
+ok(/const fimOrdem = mundoAntes \? \[3, 1, 2, 4\] : \[1, 2, 3, 4\]/.test(py), 'ano de Copa: Copa → jornal → caixa → decisão; ano sem Copa: igual sempre')
+ok(/if \(mundoPendente\) return \/\/ 🌍 ano de Copa do Mundo: grava/.test(py), 'a Bola de Ouro (e o histórico) esperam a Copa do Mundo acabar')
+ok(/travado=\{mundoPendente\}/.test(py) && /jogue a Copa do Mundo pra seguir/.test(py), 'a trava da Copa diz o porquê e o caminho')
 ok(/function RoteiroFim/.test(py) && /FIM_PASSOS/.test(py), 'a barrinha dos 4 passos existe')
 ok(/disabled=\{!feito\}/.test(py), 'só dá pra voltar em passo JÁ FEITO (não dá pra pular pra frente)')
 
 console.log('\n2) 🚪 nenhum passo prende o jogador')
 {
   // cada passo de 1 a 3 precisa de pelo menos um BotaoPasso que leve adiante
-  for (const [de, para] of [[1, 2], [2, 3], [3, 4]]) {
-    const re = new RegExp(`fimPasso === ${de}[\\s\\S]{0,2600}?irPasso\\(${para}\\)`)
-    ok(re.test(py), `passo ${de} tem botão que leva pro ${para}`)
+  // (desde 26/09 o passo seguinte vem de `proxPasso`, que segue a ordem do ano)
+  for (const [de, para] of [[1, 'proxPasso\\(1\\)|2'], [2, 'proxPasso\\(2\\)'], [3, 'proxPasso\\(3\\)']]) {
+    const re = new RegExp(`fimPasso === ${de}[\\s\\S]{0,2600}?irPasso\\((${para})\\)`)
+    ok(re.test(py), `passo ${de} tem botão que leva adiante`)
   }
   ok(/fimPasso === 4[\s\S]{0,900}?noVermelho/.test(py), 'o passo 4 é a decisão (leilão / mesmo time)')
   ok(/openLeilao/.test(py) && /openMesmo/.test(py), 'e os dois botões da decisão continuam existindo')
@@ -51,7 +56,7 @@ console.log('\n3) 🕳️ o passo 2 tem saída ATÉ sem lançamento no caixa')
   const i = py.indexOf('TRAVA DE SEGURANÇA DO ROTEIRO')
   ok(i > 0, 'a trava do caixa vazio está escrita no código')
   const corpo = py.slice(i, i + 1800)
-  ok(/fimPasso === 2/.test(corpo) && /irPasso\(3\)/.test(corpo), 'e ela mostra um aviso COM botão de continuar')
+  ok(/fimPasso === 2/.test(corpo) && /irPasso\(proxPasso\(2\)\)/.test(corpo), 'e ela mostra um aviso COM botão de continuar')
   ok(/Sem movimento no caixa/.test(corpo) && /No money moved/.test(corpo), 'com texto em PT e EN')
 }
 

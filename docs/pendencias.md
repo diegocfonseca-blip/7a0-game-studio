@@ -139,6 +139,65 @@ zerado" e "gol de xará em outro time não vaza".
 ⏳ **NÃO publiquei**: ele estava com sala de Champions rolando, e publicar derruba
 quem está com o jogo aberto (regra de 25/09 — *"me fale antes de fazer"*). Está no
 branch, buildado e testado, esperando o OK.
+## 26/09/2026 — 🧱 LOTE 35: 83 cartas novas (pro Leilão de Setores) ✅ NO AR (19h, com o OK dele: "pode publicar já")
+
+Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e
+categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
+- **Baralho = o do PAÍS DO CLUBE**: clube europeu → Europa; Boca, River e Cruz Azul → Mundo. ⚠️ Eu
+  tinha posto Parma e Espanyol no Mundo porque as cartas ANTIGAS deles (Mboma, Coly, N'Kono) estão
+  lá — ele cortou: *"Parma é da Itália"*. Não seguir a maioria das cartas velhas do clube.
+- Conferido carta por carta: o mesmo jogador não fica duas vezes no mesmo baralho (por isso
+  Thuram, Zola e Stoichkov do Parma saíram — os três já estão no Europa; entraram Benarrivo,
+  Enrico Chiesa e Tomas Brolin).
+- Categoria = a do jogador NAQUELE clube e ano (ele corrigiu: lenda em outra carta não impede).
+  3 lendas (Maradona Boca 81, Passarella River 78, Neeskens Ajax 72) · 14 craques (Shilton desceu
+  de lenda: *"não vejo fama"*) · 9 promessas · 59 bons jogadores.
+- País carta a carta em `paises.ts` + nomes em `MESMO_JOGADOR`; `npm run paises` verde. Home: as
+  lendas de hoje ficam na frente das entradas (gerador guarda 60 linhas; juntei na mão) + 1 linha
+  em `novidades.ts`. Posts de stories (2 partes) com `mockup-cartas-novas.mjs --setores`.
+- **Enxugado pra 68 (26/09)**: ele pediu a lista dos mais desconhecidos e mandou tirar 17
+  (Begović, Boruc, Goram, Javi Navarro, Pellegrino, Humberto Coelho, Albrighton, Mista, Lee Dixon,
+  Olaf Thon, Bernd Schneider, Chalana, Albelda, Kießling, Waddle, Brolin, Benarrivo). Alguns
+  clubes perderam o pacote de setor por isso — fica anotado, não é problema pra agora.
+- **+24 famosos (Luis Díaz, Liverpool 2023, entrou depois) que não estavam em NENHUM baralho (26/09, aprovados por ele)**: Mijatović,
+  Savićević, Valdano, Boniek, Futre, Blokhin (lenda, Bola de Ouro 75), Belanov, Dasayev, Rüştü,
+  Rosický, Koller, Kewell, Darwin Núñez, Vlahović, Milinković-Savić, Pjanić, Bentancur, Taremi,
+  Raúl Jiménez, Aboutrika (Mundo), Stanković, Muntari, Kuffour. Dínamo Kyiv, Spartak e Fenerbahçe
+  no baralho Europa (clube europeu). Mijatović e Savićević com país Montenegro.
+- **−10 (26/09, pedido dele)**: saíram Boniek, Futre, Belanov, Kewell, Blokhin, Raúl Jiménez,
+  Valdano, Kirsten, Maddison e Diego López. Ficaram 82. (Com o Blokhin fora, a leva tem 3 lendas.)
+- **+ José Altafini** (Milan 1963, craque) — era ESSE o "João Afatini"; o Albertini (que eu tinha entendido) saiu.
+
+## 26/09/2026 — 🧱 LEILÃO DE SETORES (ideia do Diego) — EM CONVERSA, nada construído
+
+Modo novo: o lote é o SETOR de um clube ("Goleiros do Palmeiras"); depois do leilão, convocação
+igual à da Copa do Mundo, na formação da sala. Decidido até aqui (mockups no chat):
+- sem dica de nível (nomes iguais, ordem alfabética, sem dourado/coroa);
+- cerimônia do martelo no padrão de hoje, com ESCUDO do clube — escudo PARÓDIA (oficial é marca
+  registrada); ele ainda não escolheu entre estilo A (clássico) e B (mascote);
+- monte em PACOTES (os que ninguém comprou); não convocados vão direto pros bots;
+- ele quer UM CLUBE SÓ POR PARTIDA e variação entre partidas (memória de onde o clube saiu).
+⚠️ Esbarra no baralho: com clube único por partida cabem ~10 pessoas (medido: pacotes "com escolha"
+= GOL≥2 · LAT≥3 · ZAG≥3 · MEI≥4 · ATA≥4). Lote 1 proposto (84 cartas conferidas, nenhuma repetindo
+jogador no mesmo baralho) leva pra ~12. Pra 20 precisa de ~110 clubes diferentes — muito mais carta.
+Esperando ele aprovar o Lote 1.
+
+## 26/09/2026 — 🕵️ JOGADOR ENIGMA LIGADO ✅ NO AR
+
+Diego viu as fotos (`npm run enigma`) e deu *"ok"* pra dica da ÉPOCA e o nome "Enigma".
+`ENIGMA_LIGADO = true`, mas ele só vale nos **rápidos online de futebol no pregão às cegas**
+(`sorteiaEspeciais`: online · não carreira · não basquete · não Tocaia). Carreira, partida contra
+bots, Tocaia e basquete ficam sem até ele pedir. `npm run enigma-trava` verde e `npm run ascegas`
+com as MESMAS digitais de antes (90a1c57e · 3faeb4a1 · a54c75f5): o pregão não muda.
+Junto: 3 linhas novas em `novidades.ts` (Enigma, jornal novo, Copa do Mundo antes do jornal) e a
+linha da mascote corrigida de 30s pra 5s.
+↩️ Desligar = `ENIGMA_LIGADO = false`.
+
+## 26/09/2026 — 👑 Ballack (Bayern 2002) VOLTA a lenda · Dunga (Internacional 1984) vira LENDA ✅ NO AR
+
+Diego: *"pode manter Ballack de lenda e coloque Dunga também"*. Os dois só têm UMA carta cada
+(regra da lenda = carta do melhor clube; aqui não tem escolha). `fame: 5`, home avisada pelo
+`npm run novidades`, `npm run paises` verde.
 
 ## 26/09/2026 — 👟 Reserva batia pênalti (a lista saía do elenco inteiro) ✅ NO AR
 
@@ -166,6 +225,39 @@ banco, sem goleiro, ordem por nível, quem entrou no intervalo aparece, quem sai
 some, suspenso fora, e lista nunca vazia. `penaltis` e `telas` verdes junto.
 
 ↩️ **Reverter**: a função está isolada; voltar ao elenco inteiro é uma linha.
+
+## 26/09/2026 — 📰 Jornal: capa dos TÍTULOS GRANDES + artilheiros de cada competição ✅ NO AR
+
+Mockup aprovado pelo Diego (*"sim"*). Na capa (`CareerNewspaperStories`): toda temporada a foto
+grande é o campeão da **Série A**, com Copa do Brasil (ou Copa Legends) e Supercopa embaixo; no
+ano de Copa do Mundo a foto grande é a **seleção campeã** (foto NEUTRA de silhuetas + bandeira,
+não existe arte própria — se ele quiser, gerar uma) e Série A/Copa/Supercopa descem. O quadrinho
+do artilheiro da série do jogador saiu da capa.
+Página da Bola de Ouro: ela continua o destaque e as duas listas (gols × assistências) ficam; o
+jornal só CRESCE com a caixa "⚽ Os artilheiros do ano" — Série A, Copa, Supercopa e Copa do
+Mundo (quando tem). Competição nova = uma linha em `artilheirosDoAno` (pyramidseason.tsx).
+
+## 26/09/2026 — 🌍 Copa do Mundo ANTES do jornal + gols dela contam em tudo ✅ NO AR
+
+Diego: *"tem que contar todos os gols dele ali no jogo… contando também a Copa do Mundo… e
+também deve contar pra Bola de Ouro"* e depois *"a copa do mundo deveria ser jogada antes então
+de chegar o passo 1 do jornal"*.
+- **Ordem do roteiro**: nos anos de Copa com o SEU clube nela (TOP 24, temporada 100, 110…), o
+  roteiro fica 🌍 Mundo → 📰 Jornal → 💰 Caixa → 🔨 Próxima, e o CONTINUAR da Copa fica travado
+  (cinza, com o porquê) até ela ser jogada. Ano sem Copa: igual sempre. Só solo.
+- **Números**: a Copa grava o que cada CARTA fez (`copaMundoStats`, ação `COPA_MUNDO_STATS`,
+  `estatisticasDaCopa` em copa-mundo.tsx). Entram na ficha (temporada e "no seu clube"), na
+  Bola de Ouro, no top 5 do jornal e na artilharia/garçons de todos os tempos. Bola de Ouro,
+  histórico da temporada e comissão da Agência ESPERAM a Copa acabar (`mundoPendente`).
+- **Jogos**: os jogos de copa (Copa do Brasil/Legends + Supercopa, com o XI congelado da 38) e
+  da Copa do Mundo agora somam no 🏃 jogos da tela e no acumulado da virada (`jogosCard`). Só
+  contam com a Copa encerrada na tela (sem spoiler). Os eventos de jogador no meio da temporada
+  continuam lendo só a liga.
+- Copa do Brasil/Supercopa na ficha já tinham sido consertadas em 25/09 (temporada fechada
+  antes disso ficou sem).
+- Trava nova: `npm run copamundo`. `npm run fim` e `npm run artilharia` atualizadas.
+- ⚠️ Fica de fora: carreira ONLINE (a Copa do Mundo online é outra tela e o roteiro lá é votação).
+
 ## 26/09/2026 — ✏️ "Marcelo Vieira" (Real Madrid 2017) vira só "Marcelo" ✅ NO AR
 
 Pedido do Diego. Continua lenda, no baralho Europa. Junto: rosto mantido (alias em
@@ -655,6 +747,31 @@ depende delas.
 estava lá — isto é só deixar a palavra visível. Novidade é feature nova pra quem
 joga, não realce de coisa que já estava no ar.
 
+## 25/09/2026 — ⚡ Partida rápida OFFLINE: as mesmas copas do online ✅ PUBLICADO
+
+Diego: *"esses modos já têm pra partida rápida também? Tem que ter todos. Liga a Champions já
+no partida offline, vai ser o primeiro teste que vou fazer com bot"*.
+- "Depois da liga" no rápido offline virou grade 2×2: **Liga + Copa · Liga + Liberta ·
+  Liga + Champions · Só Liga** (antes não tinha Champions).
+- Champions com a MESMA trava do online (`useChampionsLiberada`): aparece pra todo mundo com
+  a tarja EM BREVE e só `CHAMPIONS_TESTERS` (a conta dele) marca. **Continua NÃO liberada
+  geral** — a regra de 21/09 segue de pé; o que mudou é que agora ele consegue testar sozinho
+  contra bot. O motor já rodava sem sala (`canDriveCopa = !online || isHost`).
+- ⚠️ **Liga + Mundo NÃO entrou no offline**: no online a Copa do Mundo é um modo de SALA
+  (`CopaDaSala`, ficha + relógio no banco). Pra rodar sozinho precisa de um caminho novo
+  (a carreira tem o `CupScreen` com save — dá pra reaproveitar). Fica pra ele decidir.
+
+## 25/09/2026 — ❤️ Salão: "dois Vasco" na lista de torcidas ✅ CONSERTADO (banco)
+
+Print do Diego: "Vasco da Gama 3,7%" e "Vasco 1,9%" na mesma lista (*"tem dois Vasco, cuidado
+com isso"*). Culpa minha no dia anterior: gravei o coração do Vasco SAF como "Vasco" enquanto o
+Skyy FC estava como "Vasco da Gama" — e o cadastro (seletor de `coracao.ts`) escreve "Vasco".
+Mesma coisa esperando pra acontecer com "Atlético Mineiro" × "Atlético-MG".
+Conserto: migração `salao_torcidas_unifica_apelidos` — a função `esc_salao_torcidas` junta os
+apelidos no nome do SELETOR antes de agrupar; linhas velhas corrigidas. Cópia em
+`docs/sql/salao-torcidas-unifica-apelidos.sql`. **Regra pro roteiro de batismo:** o
+`time_coracao` em `esc_socios` usa o MESMO nome do seletor (`CORACAO_CLUBES`).
+
 ## 24/09/2026 — 🧊 Depois do apito, o passado não muda mais ✅ CONSERTADO
 
 Relato do Futpoint FC, trazido pelo Diego: *"eu não ganhei nada nessa temporada,
@@ -829,7 +946,19 @@ mentira na cara da pessoa.
 ✅ Provado que o leilão às cegas não foi tocado: rodei a prova com e sem a mudança, e
 deu idêntico nos dois.
 
-## 24/09/2026 — 🦈 Batismo JULIA BARRANQUILA (dondeestasleomessi10) · ⏳ NO BRANCH, sobe de manhã
+## 24/09/2026 — ⚽🏴‍☠️ Batismo VASCO SAF (brunnodeluca90) = o antigo Vasco da Grana ✅ PUBLICADO
+
+O Vasco da Grana era batismo SEM dono (pedido do Diego em 03/08); ele achava que era deste
+usuário. Ordem dele: *"ele entra no lugar do Vasco da Grana"*. Então é RENOMEAÇÃO: mesmo
+assento da Série D, `OLD_NAME['Vasco SAF'] = 'Vasco da Grana'`, e o "Vasco da Grana" saiu
+do Salão (`batismos.ts`). Escudo/mascote também respondem pelo nome velho. Coração **Vasco**.
+- Arte: escudo 266×360 29,0 KB + mascote (O Pirata) 277×440 40,0 KB = 69 KB. Recorte só do
+  chroma forte — as NOTAS de dinheiro do mascote são esverdeadas e ficaram inteiras.
+- Manto preto `#161414` (subido de #080707) + branco `#ECE6E1`, medidos na camisa.
+- Banco rodado (`docs/sql/batismo-vasco-saf.sql`): sócio 59, fundador 78, 3 nomes, ouro.
+- ⏳ Post `mockups/vasco-saf-post.png` — falta o nome do dono no rodapé (e o do Julia também).
+
+## 24/09/2026 — 🦈 Batismo JULIA BARRANQUILA (dondeestasleomessi10) · ✅ PUBLICADO
 
 Série A, no assento do **Leão da Estradinha**, que desceu pra Série B (decisão do Diego:
 *"troque pelo Leão da Estradinha e coloque o Leão na Série B"*) na vaga do bot Esporte do
@@ -841,7 +970,7 @@ dourado) — a 1ª (óculos preto) foi trocada por ele.
   trava. Mascote LARGO: o lado maior (largura) fica em 176.
 - ✅ **Banco** (`docs/sql/batismo-julia-barranquila.sql`, rodado e conferido): sócio 58,
   fundador 77, 3 nomes reservados, ouro em user_colors (esse já vale sem deploy).
-- ⏳ **Deploy na main**: segurado por ser noite (regra do horário de pico, 24/09).
+- ✅ **Deploy na main**: publicado à noite por ordem dele (*"agora"*) — exceção à regra do horário de pico.
 - ⏳ **Post**: `mockups/julia-barranquila-post.png` pronto, falta o NOME do dono no rodapé.
 
 ## 24/09/2026 — 🧳 Tocaia travando: a sala levava a CARREIRA do dono na mala ✅ CONSERTADO

@@ -601,6 +601,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   toda; até 3 continua na linha. Ele também ganhou `travados`, pra opção que aparece
   mas não deixa escolher (é o que sustenta selo de "em breve").
 
+- **🌙 NÃO PUBLICAR NA MAIN NO HORÁRIO DE PICO (24/09, regra dele: *"siga você fazendo
+  isso também"*).** Toda publicação troca o nome dos arquivos do jogo e apaga os velhos:
+  quem está com o jogo aberto cai na hora que abre uma parte que carrega sob demanda.
+  Na noite de 24/09 foram 3+ publicações bem na hora das salas (junto com a sala pesada
+  do Tocaia). Então: **à noite (~19h–1h de Brasília), só sobe o que for URGENTE** —
+  conserto de sala travando, coisa quebrada ao vivo. O resto espera a manhã/tarde, e a
+  gente avisa o Diego que ficou guardado pra subir depois. (A outra sessão ficou de
+  fazer o jogo se RECARREGAR sozinho nesse erro, no máximo 1 vez, em vez de quebrar.)
 - **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
   biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
   se estourar a cota, guarda a sessão SÓ NA MEMÓRIA e ela morre em todo reload — sem
@@ -619,7 +627,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   só mexer depois do OK dele** (a não ser que ele já tenha mandado fazer). E publicar com
   sala rolando derruba quem está com o jogo aberto — mais um motivo pra perguntar antes.
 
-- **👑 LENDA É UMA CARTA SÓ — a do MELHOR CLUBE da carreira (26/09).** Quando ele manda
+- **🃏 O MESMO JOGADOR SÓ EM BARALHO DIFERENTE (26/09, ele cobrou irritado: *"vc sabe MT bem q
+  só pode o msm jogador em baralho diferente e N no msm baralho"*).** Nesta Lazio + Milan (os dois
+  no baralho Europa) NÃO pode; Neymar Brasil + Neymar Europa pode. Antes de propor carta nova,
+  conferir o baralho do clube e se a pessoa já está nele (script de conferência usado em 26/09:
+  nome/sobrenome no mesmo baralho = conflito).
+
+- **👑 LENDA É UMA CARTA SÓ — a do MELHOR CLUBE da carreira (26/09) — MAS SÓ QUANDO ELE MANDA PROMOVER.** ⚠️ Não vale pra carta NOVA: carta nova tem a categoria do jogador NAQUELE clube e NAQUELE ano, mesmo que ele já seja lenda em outra carta (o Messi é lenda no Barça e no Inter Miami; Maradona é lenda no Napoli E no Boca de 81). Eu errei isso no Lote 35 e ele corrigiu: *"você que tem que dizer se era lenda ou não no ano e time que jogou"*. Quando ele manda
   "fulano vira lenda" e o jogador tem mais de uma carta, sobe SÓ a do melhor clube (Seedorf =
   Milan, não Botafogo; Lúcio = Inter 2010, não Internacional 2000). Palavras dele: *"óbvio que
   é só uma e no melhor clube da carreira deles"*. Na dúvida sobre qual é o melhor, perguntar.
