@@ -1,4 +1,4 @@
-## 26/09/2026 — 🧱 LOTE 35: 85 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
+## 26/09/2026 — 🧱 LOTE 35: 68 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
 
 Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e
 categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
@@ -14,6 +14,10 @@ categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
 - País carta a carta em `paises.ts` + nomes em `MESMO_JOGADOR`; `npm run paises` verde. Home: as
   lendas de hoje ficam na frente das entradas (gerador guarda 60 linhas; juntei na mão) + 1 linha
   em `novidades.ts`. Posts de stories (2 partes) com `mockup-cartas-novas.mjs --setores`.
+- **Enxugado pra 68 (26/09)**: ele pediu a lista dos mais desconhecidos e mandou tirar 17
+  (Begović, Boruc, Goram, Javi Navarro, Pellegrino, Humberto Coelho, Albrighton, Mista, Lee Dixon,
+  Olaf Thon, Bernd Schneider, Chalana, Albelda, Kießling, Waddle, Brolin, Benarrivo). Alguns
+  clubes perderam o pacote de setor por isso — fica anotado, não é problema pra agora.
 
 ## 26/09/2026 — 🧱 LEILÃO DE SETORES (ideia do Diego) — EM CONVERSA, nada construído
 

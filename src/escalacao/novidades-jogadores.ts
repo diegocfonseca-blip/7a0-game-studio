@@ -166,6 +166,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
+    "nome": "Daniel Passarella",
+    "baralho": "MUNDO",
+    "nivel": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Shay Given",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -187,28 +194,7 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Asmir Begović",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Artur Boruc",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Fraser Forster",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Andy Goram",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-26"
@@ -257,13 +243,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Lee Dixon",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
     "nome": "John Arne Riise",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -279,13 +258,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Juanfran",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Antonio Benarrivo",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-26"
@@ -362,13 +334,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Javi Navarro",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Federico Fazio",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -397,13 +362,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Mauricio Pellegrino",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Carlos Marchena",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -412,6 +370,69 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Gabi",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Arda Turan",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rubén Baraja",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jesús Navas",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Enzo Fernández",
+    "baralho": "EU",
+    "nivel": "promessa",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Maniche",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "João Moutinho",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Costinha",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jari Litmanen",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Ronald de Boer",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-26"
