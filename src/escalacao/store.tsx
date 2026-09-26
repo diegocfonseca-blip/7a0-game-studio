@@ -8197,7 +8197,11 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (tie.winner !== null) {
           const w = tie.winner === tie.aId ? tie.aName : tie.bName
           const l = tie.winner === tie.aId ? tie.bName : tie.aName
-          copaHeads.push(tie.pens ? (tie.ot ? `🕐 ${w} passou na PRORROGAÇÃO e eliminou ${l}!` : `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!`) : `🏆 ${w} avançou ${bbGiro ? 'nos Playoffs' : copaWord === 'Copa' ? 'na Copa' : 'na Libertadores'} — adeus, ${l}!`)
+          copaHeads.push(tie.pens ? (tie.ot ? `🕐 ${w} passou na PRORROGAÇÃO e eliminou ${l}!` : `🎯 ${w} passou nos PÊNALTIS e eliminou ${l}!`) : // 🏆 26/09: o giro dizia "avançou na LIBERTADORES" numa sala de CHAMPIONS. O
+// `copaWord` acima já sabe qual competição é (Copa · Liberta · Champions), mas
+// esta linha só tinha DOIS caminhos — Copa, ou "senão é Liberta" — então a
+// Champions caía no nome errado. Agora lê o mesmo `copaWord` de todo o resto.
+`🏆 ${w} avançou ${bbGiro ? 'nos Playoffs' : `na ${copaWord === 'Liberta' ? 'Libertadores' : copaWord}`} — adeus, ${l}!`)
         }
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)

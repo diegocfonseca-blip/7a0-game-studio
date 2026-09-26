@@ -6549,7 +6549,16 @@ export function EscSeason() {
         // manchetes que revelam PLACAR / quem passou / campeão entregam o resultado
         // antes do apito. Some SÓ essas linhas de Copa; o resto do giro segue. Quando
         // o relógio fecha (copaMin >= 93), o giro aparece completo.
-        const isCopaReveal = (n: string) => /^⚽ Copa /.test(n) || /passou nos PÊNALTIS/.test(n) || /avançou na Copa/.test(n) || /CAMPEÃO DA COPA/.test(n)
+        // ⚠️ 26/09 — O FILTRO SÓ CONHECIA A PALAVRA "COPA". As manchetes da
+        // Champions ("⚽ Champions QUARTAS…", "avançou na Champions") e da
+        // Libertadores não casavam com nenhum destes testes, então passavam
+        // direto e podiam entregar quem tinha passado ANTES do apito. A rede
+        // principal continua sendo o `giroNews` segurado; isto aqui é a segunda,
+        // e agora ela cobre as quatro competições.
+        const isCopaReveal = (n: string) =>
+          /^(⚽|🏀) (Copa|Champions|Liberta|Playoffs|NBA Cup) /.test(n)
+          || /passou nos PÊNALTIS/.test(n) || /passou na PRORROGAÇÃO/.test(n)
+          || /avançou n(a|os) /.test(n) || /CAMPEÃO D[AO] /.test(n)
         // giroNews é o giro SEGURADO (só atualiza no apito) — o filtro de linhas de
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
@@ -6869,7 +6878,9 @@ function traduzManchete(h: string): string {
     return `${pre}⚽ ${r[1] === 'Copa' ? 'Cup' : 'Liberta'} ${fase}${perna}: ${r[4]}`
   }
   if ((r = t.match(/^🎯 (.+) passou nos PÊNALTIS e eliminou (.+)!$/))) return `${pre}🎯 ${r[1]} went through on PENALTIES and knocked out ${r[2]}!`
-  if ((r = t.match(/^🏆 (.+) avançou na (Copa|Libertadores) — adeus, (.+)!$/))) return `${pre}🏆 ${r[1]} advanced in the ${r[2] === 'Copa' ? 'Cup' : 'Libertadores'} — bye, ${r[3]}!`
+  // ⭐ a Champions entrou aqui em 26/09, junto com o conserto do giro (antes ela
+  //    era anunciada como "Libertadores" e o inglês nem casava a frase).
+  if ((r = t.match(/^🏆 (.+) avançou na (Copa|Libertadores|Champions) — adeus, (.+)!$/))) return `${pre}🏆 ${r[1]} advanced in the ${r[2] === 'Copa' ? 'Cup' : r[2]} — bye, ${r[3]}!`
   return h
 }
 function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[]; isCopa?: boolean; cinema?: boolean }) {

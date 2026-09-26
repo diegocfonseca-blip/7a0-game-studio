@@ -1,3 +1,32 @@
+## 26/09/2026 — ⭐ Champions: nota do campeão sem pé nem cabeça, giro chamando de Libertadores, e o anti-spoiler cego ⏳ ESPERANDO OK PRA PUBLICAR
+
+Dois prints do Diego, numa sala de Só Champions. Consertos:
+
+**1️⃣ A nota do campeão não casava com a posição** (`jornal-sala.tsx`). O Futpoint foi
+campeão sendo **5º** e o jornal escreveu *"terminou a tabela em 5º e **não soltou
+mais**"*. Palavras dele: *"ficou estranho"*. E está: "não soltou mais" é frase de
+quem LIDEROU. Agora são três notas, cada uma dizendo a verdade do caminho:
+· **1º** → "terminou a tabela de 36 em 1º e confirmou na chave"
+· **2º–8º** → "fez Nº na tabela, foi direto pras oitavas e não parou mais"
+· **9º+** → a do REPESCÃO, que já existia.
+
+**2️⃣ O giro dizia "avançou na LIBERTADORES" numa sala de CHAMPIONS** (`store.tsx`).
+O `copaWord` já sabia qual competição era (Copa · Liberta · Champions), mas a linha
+do "avançou" só tinha DOIS caminhos — Copa, ou *senão é Liberta* — então a Champions
+caía no nome errado. Agora lê o mesmo `copaWord` do resto. O inglês (`screens.tsx`)
+ganhou a Champions no padrão da frase, que também não casava.
+
+**3️⃣ 🚫 E O ANTI-SPOILER ESTAVA CEGO PRA CHAMPIONS E LIBERTA** (achado no caminho,
+não foi relatado). O filtro que segura as manchetes enquanto a perna ANIMA só
+conhecia a palavra "Copa" — "⚽ Champions QUARTAS…" e "avançou na Champions" passavam
+direto e podiam entregar quem passou antes do apito. A rede principal (o `giroNews`
+segurado) continua valendo; esta é a segunda, e agora cobre as quatro competições
+(Copa · Champions · Liberta · Playoffs).
+
+Verdes: `build`, `champions`, `campinho`, `telas`, `jornal`.
+⏳ **Não publiquei** — sala dele rolando (regra de 25/09). Vai junto com o conserto do
+campinho, que está no mesmo branch.
+
 ## 26/09/2026 — ⚽🅰️ Campinho pelado na Champions (gols/assistências não apareciam) ⏳ ESPERANDO OK PRA PUBLICAR
 
 Print do Diego, sala de Champions ao vivo: *"nos jogos rápidos / minhas ligas
