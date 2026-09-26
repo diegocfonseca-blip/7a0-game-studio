@@ -1,4 +1,4 @@
-## 26/09/2026 — 🧱 LOTE 35: 92 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
+## 26/09/2026 — 🧱 LOTE 35: 82 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
 
 Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e
 categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
@@ -23,6 +23,8 @@ categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
   Rosický, Koller, Kewell, Darwin Núñez, Vlahović, Milinković-Savić, Pjanić, Bentancur, Taremi,
   Raúl Jiménez, Aboutrika (Mundo), Stanković, Muntari, Kuffour. Dínamo Kyiv, Spartak e Fenerbahçe
   no baralho Europa (clube europeu). Mijatović e Savićević com país Montenegro.
+- **−10 (26/09, pedido dele)**: saíram Boniek, Futre, Belanov, Kewell, Blokhin, Raúl Jiménez,
+  Valdano, Kirsten, Maddison e Diego López. Ficaram 82. (Com o Blokhin fora, a leva tem 3 lendas.)
 
 ## 26/09/2026 — 🧱 LEILÃO DE SETORES (ideia do Diego) — EM CONVERSA, nada construído
 
