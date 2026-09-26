@@ -10,14 +10,14 @@ export function JornalOnlineVisual({ ed, onCompartilhar, compartilhando }: { ed:
   return <article className="jornal-v22" aria-label="O Martelo — edição da sala">
     <header className="jv-masthead">
       <h1>O MARTELO</h1>
-      <p>{tr('EDIÇÃO DA SALA · LIGA', 'ROOM EDITION · LEAGUE')}{ed.campeaoCopa ? ` + ${ed.copaNome.toUpperCase()}` : ''}</p>
+      <p>{ed.soChampions ? tr('EDIÇÃO DA SALA · CHAMPIONS', 'ROOM EDITION · CHAMPIONS') : tr('EDIÇÃO DA SALA · LIGA', 'ROOM EDITION · LEAGUE')}{ed.campeaoCopa ? ` + ${ed.copaNome.toUpperCase()}` : ''}</p>
       <div><span>{tr('O DIÁRIO DO LEILÃO LEGENDS', 'THE LEILÃO LEGENDS DAILY')}</span><span>{ed.nTecnicos} {tr('TÉCNICOS · FIM DE JOGO', 'MANAGERS · FULL TIME')}</span></div>
     </header>
     <h2 className="jv-headline">{ed.manchete}</h2>
     <div className={`jv-stories${!ed.campeaoCopa && !ed.artilheiro ? ' jv-single-story' : ''}`}>
       {ed.campeaoLiga && <figure className="jv-main-story">
         <div className="jv-photo"><FotoJornal qual="liga" clube={ed.campeaoLiga.nome} alt="Ilustração de uma equipe comemorando um título" /><span className="jv-crest"><Escudo nome={ed.campeaoLiga.nome} size={56} /></span></div>
-        <figcaption><small>{tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION')}</small><h3>{ed.campeaoLiga.nome}</h3><p>{ed.campeaoLiga.quem && tr(`O time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `)}{ed.campeaoLiga.pts} {tr('pontos', 'points')}</p></figcaption>
+        <figcaption><small>{ed.soChampions ? tr('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION')}</small><h3>{ed.campeaoLiga.nome}</h3><p>{ed.campeaoLiga.quem && tr(`O time do ${ed.campeaoLiga.quem} · `, `${ed.campeaoLiga.quem}'s team · `)}{ed.campeaoLiga.pts} {tr('pontos', 'points')}</p></figcaption>
       </figure>}
       <div className="jv-side-stories">
         {ed.campeaoCopa && <figure>
@@ -37,7 +37,7 @@ export function JornalOnlineVisual({ ed, onCompartilhar, compartilhando }: { ed:
       <h2>{tr('AS NOTAS DA REDAÇÃO', 'NOTES FROM THE NEWSROOM')}</h2>
       <div className="jv-notes">{ed.linhas.map(l => <article className="jv-note" key={l.id} data-highlight={l.destaque || undefined}>
         <div className="jv-note-crest"><Escudo nome={l.time} size={42} /></div>
-        <div><h3>{l.time} <span>· {ordinal(l.pos)} {tr('NA LIGA', 'IN THE LEAGUE')}</span>{l.voce && <small className="jv-you">{tr('VOCÊ', 'YOU')}</small>}</h3>
+        <div><h3>{l.time} <span>· {ordinal(l.pos)} {ed.soChampions ? tr('NA TABELA', 'IN THE TABLE') : tr('NA LIGA', 'IN THE LEAGUE')}</span>{l.voce && <small className="jv-you">{tr('VOCÊ', 'YOU')}</small>}</h3>
           <p className="jv-byline">{l.quem && `${l.quem} · `}{l.pts} {tr('pontos', 'points')}</p><p>{l.nota}</p></div>
       </article>)}</div>
     </section>
@@ -76,7 +76,7 @@ export async function buildOnlineSalaBlob(ed: EdicaoSala): Promise<Blob | null> 
   const head = wrap(ed.manchete, `700 62px ${osw}`, CW)
   const caption = wrap(ed.campeaoLiga?.nome || '', `700 48px ${osw}`, 612)
   const deck = wrap(ed.linhaFina, `italic 25px ${ser}`, CW)
-  const tituloNota = (l: EdicaoSala['linhas'][number]) => `${l.time} · ${ordinal(l.pos)} ${tr('NA LIGA', 'IN THE LEAGUE')}`
+  const tituloNota = (l: EdicaoSala['linhas'][number]) => `${l.time} · ${ordinal(l.pos)} ${ed.soChampions ? tr('NA TABELA', 'IN THE TABLE') : tr('NA LIGA', 'IN THE LEAGUE')}`
   const noteHeights = ed.linhas.map(l => 76 + wrap(tituloNota(l), `700 25px ${osw}`, nw).length * 30 + wrap(l.nota, `23px ${ser}`, nw).length * 31)
   const storiesH = Math.max(655, 444 + caption.length * 54)
   let notesH = 0
@@ -92,13 +92,13 @@ export async function buildOnlineSalaBlob(ed: EdicaoSala): Promise<Blob | null> 
     if (img) { const scale = Math.max(w / img.width, h / img.height), sw = w / scale, sh = h / scale; x.drawImage(img, (img.width-sw)/2, (img.height-sh)/2, sw, sh, px, py, w, h) }
   }
   x.textAlign = 'center'; text('O MARTELO', W/2, 114, `700 94px ${ser}`, CW)
-  text(`${tr('EDIÇÃO DA SALA · LIGA', 'ROOM EDITION · LEAGUE')}${ed.campeaoCopa ? ' + '+ed.copaNome.toUpperCase() : ''}`, W/2, 158, `700 24px ${osw}`, CW)
+  text(`${ed.soChampions ? tr('EDIÇÃO DA SALA · CHAMPIONS', 'ROOM EDITION · CHAMPIONS') : tr('EDIÇÃO DA SALA · LIGA', 'ROOM EDITION · LEAGUE')}${ed.campeaoCopa ? ' + '+ed.copaNome.toUpperCase() : ''}`, W/2, 158, `700 24px ${osw}`, CW)
   text(`${ed.nTecnicos} ${tr('TÉCNICOS · FIM DE JOGO', 'MANAGERS · FULL TIME')}`, W/2, 190, `700 18px ${osw}`); line(208); line(214)
   x.textAlign = 'left'; let y = 286
   for (const h of head) { text(h, M, y, `700 62px ${osw}`); y += 70 }
   const top = y - 42, sideX = M + 644, sideW = CW - 644
   photo(liga, M, top, 612, 402)
-  let cy = top + 436; text(tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), M, cy, `700 22px ${osw}`)
+  let cy = top + 436; text(ed.soChampions ? tr('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : tr('CAMPEÃO DA LIGA', 'LEAGUE CHAMPION'), M, cy, `700 22px ${osw}`)
   for (const c of caption) { cy += 54; text(c, M, cy, `700 48px ${osw}`) }
   text(`${ed.campeaoLiga?.quem || ''} · ${ed.campeaoLiga?.pts || 0} ${tr('pontos', 'points')}`, M, cy+36, `italic 23px ${ser}`, 612)
   let sy = top

@@ -15,6 +15,7 @@ for (const [alias, name, club, year] of [
   ['Gérson Canhotinha de Ouro', 'Gérson', 'Botafogo', 1968],
   ['Cerezo', 'Toninho Cerezo', 'Atlético-MG', 1980],
   ["Samuel Eto'o", 'Samuel Eto’o', 'Barcelona', 2006],
+  ['Marcelo', 'Marcelo Vieira', 'Real Madrid', 2017], // 26/09: a carta virou só "Marcelo" (pedido do Diego); o rosto continua o mesmo
 ] as const) {
   const art = byIdentity.get(legendAvatarKey(name, club, year))
   if (art) byIdentity.set(legendAvatarKey(alias, club, year), art)

@@ -44,6 +44,16 @@ const GAME_TAG_NBA = 'bidlegends'
 /** etiqueta das salas do esporte em que a pessoa está agora */
 function tagAtual(): string { return getSport() === 'basquete' ? GAME_TAG_NBA : GAME_TAG }
 const MAX_PLAYERS = 20 // a tabela sempre tem 20 times; os que faltam viram bots
+// ⭐ Só Champions: VOLTOU PRA 20 (25/09, sala 9LSKXI travou com 27 pessoas no "ENVIANDO…").
+// O dono reenvia a partida INTEIRA pra cada pessoa a cada lance; com 27 isso passa do
+// limite de mensagens por segundo do Realtime e as mensagens se perdem. Com 20 sempre
+// funcionou. A tabela de 36 continua cheia: o que faltar entra de clube de batismo.
+// 🔁 E VOLTOU PRA 36 no mesmo dia, com o conserto SÓ na sala de Champions (pedido do Diego:
+// *"não quero mexer nos outros modos… estamos falando da Champions, só a alternativa"*):
+// o lance do convidado vai direto pra caixa de entrada do dono (`hostInbox`) e o dono
+// junta os envios de estado (`CHAMPIONS_ENVIO_MS`). Conta: numa sala de 36 isso fica bem
+// abaixo do tráfego de uma sala de 20 de hoje. Se travar de novo, é só voltar este número.
+const MAX_PLAYERS_CHAMPIONS = 36
 // 🏆 quantas LIGAS cada pessoa pode CRIAR. Era 2; virou 5 em 29/08 a pedido do
 // Diego (*"acho q pode aumentar p 5 ligas q cada um pode criar de lenda… e jogar
 // pode jogar qts quiser"*). O teto existe porque liga fica de pé pra sempre —
@@ -711,7 +721,7 @@ export function EscLobby() {
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'liga_mundo'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
+  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'liga_mundo'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -901,11 +911,21 @@ export function EscLobby() {
   //  · bichos PODEM se cruzar — ele dispensou o "um por vez" (*"o bicho não precisa
   //    ser um por vez não"*); a trava de um por vez continua só nos áudios;
   //  · quem não tem mascote (clube sem batismo) não vê o botão — régua de sempre.
+  //  🔁 26/09: o relógio do BICHO virou PRÓPRIO e caiu pra 5 s (Diego: *"coloque pra 5s o tempo
+  //  do mascote na sala de espera que tava 30s"*). Os áudios seguem com os 30 s deles.
+  const MASC_COOLDOWN_S = 5
+  const mascLastRef = useRef(0)
+  const [mascCoolLeft, setMascCoolLeft] = useState(0)
+  useEffect(() => {
+    if (mascCoolLeft <= 0) return
+    const t = setTimeout(() => setMascCoolLeft(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [mascCoolLeft])
   const meuSocio = useMeuSocio()
   const mascKey = meuSocio?.ativo && meuSocio.mascoteKey && MASCOTES[meuSocio.mascoteKey] ? meuSocio.mascoteKey : null
   const sendMasc = () => {
-    if (!mascKey || Date.now() - sfxLastRef.current < SFX_COOLDOWN_S * 1000) return
-    sfxLastRef.current = Date.now(); setSfxCoolLeft(SFX_COOLDOWN_S)
+    if (!mascKey || Date.now() - mascLastRef.current < MASC_COOLDOWN_S * 1000) return
+    mascLastRef.current = Date.now(); setMascCoolLeft(MASC_COOLDOWN_S)
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
     const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: -1, kind: `masc:${mascKey}`, text: `${myName} soltou o bicho! 🔊`, ts: Date.now() }
     addEmote(e) // o meu aparece na hora (o canal não devolve o próprio broadcast)
@@ -1718,6 +1738,10 @@ export function EscLobby() {
       }
       ligaAt = quando.toISOString()
     }
+    // ⭐ SÓ CHAMPIONS (25/09, ideia do Diego): a tabela tem 36 lugares, então a sala abre
+    // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
+    // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
+    const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
     const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
@@ -1733,7 +1757,7 @@ export function EscLobby() {
       }
     }
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : MAX_PLAYERS, game_state: gs })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
       .select().single()
     if (re || !rd) {
       // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
@@ -3241,24 +3265,24 @@ export function EscLobby() {
                       🧩 Com 5 opções o `Seg` vira grade de 2 colunas sozinho — era
                       isso que estava espremido. */}
                   <Seg options={(libertaOn
-                    ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['liga_champions', tr('⭐ Liga + Champions', '⭐ League + Champions')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
-                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_champions', tr('⭐ Liga + Champions', '⭐ League + Champions')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'liga_champions' | 'liga_mundo' | 'liga', string][]}
+                    ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
+                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]}
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
-                    travados={championsOn ? [] : ['liga_champions']}
-                    selos={{ liga_mundo: seloNovo(), liga_champions: tr('em breve', 'soon') }} />
+                    travados={championsOn ? [] : ['champions']}
+                    selos={{ liga_mundo: seloNovo(), champions: championsOn ? seloNovoDe('2026-09-25') : tr('em breve', 'soon') }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
-                      : rapidoCopaMode === 'liga_champions'
-                      ? <>⭐ League over, the <b>top 8</b> join <b>28 clubs owned by real people</b> in ONE table of 36 — each plays 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.</>
+                      : rapidoCopaMode === 'champions'
+                      ? <>⭐ <b>No league</b>: after the auction it goes straight to ONE table of 36 — <b>everyone in the room</b> (up to <b>36 people</b>) and, to fill it, clubs owned by real people. 8 games against 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 League over, the <b>top 8</b> enter the Libertadores with <b>24 clubs from the continent</b> (32 in total): 8 groups of 4, 2 go through, and the knockouts run to a single final. <b>No Cup of 8</b> in this room.</>
                       : rapidoCopaMode === 'liga_copa'
                         ? <>🏆 League over, the top 8 play the Cup of 8 — home and away up to a single final.</>
                         : <>📊 Just the table, start to finish. The champion is whoever gets the most points.</>) : rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 Acabou a liga, os <b>20 times viram seleções</b> e rola a <b>Copa do Mundo</b>: 6 grupos de 4, passam 16 (os 2 primeiros + os 4 melhores 3ºs) e mata-mata em jogo único, das oitavas à final. Quem terminou a liga <b>em 1º escolhe a seleção primeiro</b>, e assim por diante — os bots ficam com as sobras. <b>Não tem Copa dos 8</b> nesta sala.</>
-                      : rapidoCopaMode === 'liga_champions'
-                      ? <>⭐ Acabou a liga, os <b>8 primeiros</b> se juntam a <b>28 clubes de gente de verdade</b> numa tabela ÚNICA de 36 — cada um joga 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora.</>
+                      : rapidoCopaMode === 'champions'
+                      ? <>⭐ <b>Sem liga</b>: acabou o leilão, vai direto pra tabela ÚNICA de 36 — <b>todo mundo da sala</b> (até <b>36 pessoas</b>) e, completando, clubes de gente de verdade. 8 jogos contra 8 adversários diferentes. Do 1º ao 8º vão direto pras oitavas, do 9º ao 24º jogam um repescão de ida e volta, e do 25º pra baixo estão fora.</>
                       : rapidoCopaMode === 'liga_liberta'
                       ? <>🌎 Acabou a liga, os <b>8 primeiros</b> entram na Libertadores com <b>24 clubes do continente</b> (32 no total): 8 grupos de 4, passam 2, e o mata-mata vai até a final única. <b>Não tem Copa dos 8</b> nesta sala.</>
                       : rapidoCopaMode === 'liga_copa'
@@ -3370,7 +3394,7 @@ export function EscLobby() {
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto (igual nos dois idiomas)
-            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
+            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado
@@ -4168,11 +4192,11 @@ export function EscLobby() {
             {/* 🐊 SOLTA O MASCOTE: só pra quem tem clube batizado; divide o relógio de
                 30 s com os áudios (regra do Diego, 25/09). O bicho é o mesmo do leilão. */}
             {mascKey && (
-              <button onClick={sendMasc} disabled={sfxCoolLeft > 0}
+              <button onClick={sendMasc} disabled={mascCoolLeft > 0}
                 className="mt-2 w-full border-2 rounded-xl pl-1.5 pr-3 py-1 font-black text-[11px] active:translate-y-0.5 flex items-center justify-center gap-2"
-                style={{ ...OSWALD, borderColor: sfxCoolLeft > 0 ? '#000' : PURPLE, background: sfxCoolLeft > 0 ? '#e4ddc9' : '#fff', color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000', boxShadow: sfxCoolLeft > 0 ? 'none' : `2px 2px 0 0 ${INK}` }}>
-                <span style={{ opacity: sfxCoolLeft > 0 ? .45 : 1 }}><MascoteMini art={MASCOTES[mascKey]} alt={40} /></span>
-                {sfxCoolLeft > 0 ? `🐾 ${sfxCoolLeft}s…` : tr('SOLTA A SUA MASCOTE NA SALA', 'LET YOUR MASCOT LOOSE')}
+                style={{ ...OSWALD, borderColor: mascCoolLeft > 0 ? '#000' : PURPLE, background: mascCoolLeft > 0 ? '#e4ddc9' : '#fff', color: mascCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000', boxShadow: mascCoolLeft > 0 ? 'none' : `2px 2px 0 0 ${INK}` }}>
+                <span style={{ opacity: mascCoolLeft > 0 ? .45 : 1 }}><MascoteMini art={MASCOTES[mascKey]} alt={40} /></span>
+                {mascCoolLeft > 0 ? `🐾 ${mascCoolLeft}s…` : tr('SOLTA A SUA MASCOTE NA SALA', 'LET YOUR MASCOT LOOSE')}
               </button>
             )}
             <button onClick={() => openLobbyChat(true)}

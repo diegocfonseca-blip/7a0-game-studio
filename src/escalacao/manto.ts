@@ -71,6 +71,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // preto 72% (dois tons), branco 25%. O preto sobe de #080707 pra #161414 pelo motivo
   // de sempre: preto de arte escura, na listra fininha, lê como buraco.
   'brunnodeluca90@gmail.com': ['#161414', '#ECE6E1'],
+  // ⭐🐺 Cruzeiro de Berretinho — AZUL e BRANCO, MEDIDOS na camisa que o dono mandou (25/09):
+  // azul 92% (mediana #0130AD), branco das listras e das estrelas 2,4% (#F2F9FF).
+  'weslleygomes749@gmail.com': ['#0130AD', '#F2F9FF'],
   // 🦈🔴⚪ Julia Barranquila — VERMELHO e BRANCO, MEDIDOS na camisa que o dono
   // mandou (24/09): vermelho 31,7% do manto, branco 30,9%. O azul-marinho é só
   // gola e contorno (14%), então fica de fora — 3ª cor só pra tricolor de verdade.

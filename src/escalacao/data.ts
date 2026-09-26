@@ -513,7 +513,7 @@ export const BIOS: Record<string, string> = {
   "Ángel Di María": "El Fideo. Ponta argentino decisivo em finais — assistências e gols em noites de gala.",
   "Paul Pogba": "Talento e estilo franceses. Passe longo, chute e presença — campeão do mundo em 2018.",
   "Rodri": "O volante que ganhou a Bola de Ouro. Cérebro tranquilo e recuperador infinito do City de Guardiola.",
-  "Ousmane Dembélé": "Drible dos dois pés e velocidade elétrica — o ponta imprevisível que explodiu no PSG.",
+  "Ousmane Dembélé": "Campeão do mundo com a França em 2018 e Bola de Ouro — drible dos dois pés e velocidade elétrica, o ponta que explodiu no PSG.",
   "Paulo Dybala": "La Joya. Canhota de finalização refinada e a comemoração do gladiador — Juve e Roma.",
   "Mauro Icardi": "Matador de área. Frieza e faro que fizeram dele artilheiro e capitão da Inter.",
   "Emerson Ferreira": "Puskás, o volante. Força e passe que sustentaram o meio da Roma e do Real Madrid.",
@@ -558,7 +558,7 @@ export const BIOS: Record<string, string> = {
   "David Silva": "El Mago. O canhoto baixinho que fazia o meio do City girar — passe e classe raras.",
   "Bernardo Silva": "O português dos pés inquietos. Drible curto, pulmão e inteligência no City de Guardiola.",
   "Pavel Nedvěd": "A Fúria de Praga. Volante-corredor de chute de fora — Bola de Ouro de 2003 na Juventus.",
-  "Juan Román Riquelme": "O último camisa 10 clássico. Tempo próprio e passe de gênio — ídolo argentino no Villarreal.",
+  "Juan Román Riquelme": "O último camisa 10 clássico. Tempo próprio e passe de gênio — o maior ídolo do Boca, dono da Libertadores de 2007.",
   "Esteban Cambiasso": "O Cuchu. Volante-cérebro da treble da Inter — recuperação e passe sempre no lugar certo.",
   "Fabinho": "O volante-'faxineiro' do Liverpool. Desarme e cobertura que blindaram o meio de Klopp.",
   "Gilberto Silva": "O Invisível dos Invencíveis. Volante campeão do mundo em 2002 — equilíbrio puro no Arsenal.",
@@ -1071,7 +1071,7 @@ const ATA: C[] = [
   { name: "Vitor Roque", club: "Athletico-PR", year: 2023, fame: 3, lo: 74, hi: 84, promessa: true },
   { name: "Yuri Alberto", club: "Corinthians", year: 2023, fame: 2, lo: 70, hi: 82 },
   { name: "Alecsandro", club: "Atlético-MG", year: 2013, fame: 3, lo: 73, hi: 84, folk: true },
-  { name: "Marta", club: "Santos", year: 2009, fame: 4, lo: 84, hi: 89 },
+  { name: "Marta", club: "Santos", year: 2009, fame: 5, lo: 84, hi: 89 },
   { name: "Hernane Brocador", club: "Flamengo", year: 2013, fame: 2, lo: 62, hi: 81, folk: true },
   { name: "Jorge Henrique", club: "Corinthians", year: 2011, fame: 2, lo: 66, hi: 82, folk: true },
   { name: "Ribamar", club: "Botafogo", year: 2016, fame: 1, lo: 50, hi: 76, folk: true },
@@ -1671,8 +1671,8 @@ const LAT_EU: C[] = [
   { name: "Philipp Lahm", club: "Bayern", year: 2013, fame: 5, lo: 88, hi: 93 }, // 👑 promovido a LENDA (pedido do Diego 04/08): capitão da tríplice do Bayern 2013 e campeão do mundo em 2014
   { name: "Dani Alves", club: "Barcelona", year: 2011, fame: 5, lo: 85, hi: 91 },
   { name: "Javier Zanetti", club: "Inter", year: 2000, fame: 5, lo: 84, hi: 90 },
-  { name: "Maicon", club: "Inter", year: 2010, fame: 5, lo: 84, hi: 90 },
-  { name: "Marcelo Vieira", club: "Real Madrid", year: 2017, fame: 5, lo: 85, hi: 91 },
+  { name: "Maicon", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
+  { name: "Marcelo", club: "Real Madrid", year: 2017, fame: 5, lo: 85, hi: 91 },
   { name: "Ashley Cole", club: "Chelsea", year: 2008, fame: 5, lo: 83, hi: 89 },
   { name: "Jordi Alba", club: "Barcelona", year: 2015, fame: 4, lo: 83, hi: 89 },
   { name: "Bixente Lizarazu", club: "Bayern", year: 2001, fame: 4, lo: 80, hi: 86 },
@@ -1756,7 +1756,7 @@ const ZAG_EU: C[] = [
   { name: "Rio Ferdinand", club: "Man United", year: 2008, fame: 5, lo: 84, hi: 90 },
   { name: "John Terry", club: "Chelsea", year: 2007, fame: 5, lo: 84, hi: 90 },
   { name: "Gerard Piqué", club: "Barcelona", year: 2011, fame: 4, lo: 84, hi: 90 },
-  { name: "Lúcio", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
+  { name: "Lúcio", club: "Inter", year: 2010, fame: 5, lo: 84, hi: 90 },
   { name: "Lilian Thuram", club: "Juventus", year: 2002, fame: 5, lo: 84, hi: 90 },
   { name: "Jaap Stam", club: "Man United", year: 1999, fame: 4, lo: 84, hi: 90 },
   { name: "Marcel Desailly", club: "Chelsea", year: 2000, fame: 4, lo: 81, hi: 88 },
@@ -1776,7 +1776,7 @@ const ZAG_EU: C[] = [
   { name: "Daniel Passarella", club: "Fiorentina", year: 1985, fame: 5, lo: 84, hi: 90 },
   { name: "Matthijs de Ligt", club: "Ajax", year: 2019, fame: 4, lo: 80, hi: 89, promessa: true },
   { name: "Marco Materazzi", club: "Inter", year: 2006, fame: 1, lo: 72, hi: 83, folk: true },
-  { name: "Fernando Hierro", club: "Real Madrid", year: 1998, fame: 4, lo: 84, hi: 90 },
+  { name: "Fernando Hierro", club: "Real Madrid", year: 1998, fame: 5, lo: 84, hi: 90 },
   { name: "Phil Jones", club: "Man United", year: 2014, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Titus Bramble", club: "Newcastle", year: 2005, fame: 1, lo: 58, hi: 78, folk: true },
   { name: "Ricardo Carvalho", club: "Chelsea", year: 2005, fame: 4, lo: 82, hi: 89, bio: "Zagueiro cerebral do Chelsea de Mourinho — leitura de jogo cirúrgica, parceria clássica com Terry." },
@@ -1848,7 +1848,7 @@ const MEI_EU: C[] = [
   { name: "N'Golo Kanté", club: "Chelsea", year: 2017, fame: 4, lo: 85, hi: 91 },
   { name: "Juninho Pernambucano", club: "Lyon", year: 2006, fame: 4, lo: 84, hi: 90 },
   { name: "Deco", club: "Barcelona", year: 2006, fame: 4, lo: 85, hi: 91 },
-  { name: "Clarence Seedorf", club: "Milan", year: 2003, fame: 4, lo: 84, hi: 90 },
+  { name: "Clarence Seedorf", club: "Milan", year: 2003, fame: 5, lo: 84, hi: 90 },
   { name: "Michael Ballack", club: "Bayern", year: 2002, fame: 4, lo: 84, hi: 90 },
   { name: "Wesley Sneijder", club: "Inter", year: 2010, fame: 4, lo: 84, hi: 90 },
   { name: "Roy Keane", club: "Man United", year: 2000, fame: 5, lo: 84, hi: 90 },
@@ -1869,7 +1869,6 @@ const MEI_EU: C[] = [
   { name: "David Silva", club: "Man City", year: 2013, fame: 4, lo: 85, hi: 91 },
   { name: "Bernardo Silva", club: "Man City", year: 2022, fame: 4, lo: 84, hi: 90 },
   { name: "Pavel Nedvěd", club: "Juventus", year: 2003, fame: 5, lo: 85, hi: 91 },
-  { name: "Juan Román Riquelme", club: "Villarreal", year: 2005, fame: 4, lo: 84, hi: 90 },
   { name: "Cesc Fàbregas", club: "Arsenal", year: 2010, fame: 4, lo: 84, hi: 90 },
   { name: "Thiago Alcântara", club: "Bayern", year: 2018, fame: 4, lo: 84, hi: 90 },
   { name: "Philippe Coutinho", club: "Liverpool", year: 2017, fame: 4, lo: 85, hi: 91 },
@@ -1891,8 +1890,8 @@ const MEI_EU: C[] = [
   { name: "Gheorghe Hagi", club: "Galatasaray", year: 2000, fame: 4, lo: 86, hi: 92 },
   { name: "Rui Costa", club: "Milan", year: 2001, fame: 4, lo: 85, hi: 91 },
   { name: "Yaya Touré", club: "Man City", year: 2014, fame: 4, lo: 85, hi: 91 },
-  { name: "Sergio Busquets", club: "Barcelona", year: 2015, fame: 4, lo: 85, hi: 91 },
-  { name: "Ángel Di María", club: "Real Madrid", year: 2014, fame: 4, lo: 85, hi: 91 },
+  { name: "Sergio Busquets", club: "Barcelona", year: 2015, fame: 5, lo: 85, hi: 91 },
+  { name: "Ángel Di María", club: "Real Madrid", year: 2014, fame: 5, lo: 85, hi: 91 },
   { name: "Juan Sebastián Verón", club: "Lazio", year: 2000, fame: 4, lo: 84, hi: 90 },
   { name: "Paul Pogba", club: "Juventus", year: 2016, fame: 4, lo: 85, hi: 91 },
   { name: "Abedi Pelé", club: "Marseille", year: 1993, fame: 4, lo: 84, hi: 90 },
@@ -1905,11 +1904,11 @@ const MEI_EU: C[] = [
   { name: "Jay-Jay Okocha", club: "PSG", year: 2002, fame: 3, lo: 78, hi: 86, folk: true },
   { name: "Gianni Rivera", club: "Milan", year: 1969, fame: 5, lo: 88, hi: 93 },
   { name: "Kenny Dalglish", club: "Liverpool", year: 1983, fame: 5, lo: 88, hi: 93 },
-  { name: "Éric Cantona", club: "Man United", year: 1996, fame: 4, lo: 86, hi: 92 },
+  { name: "Éric Cantona", club: "Man United", year: 1996, fame: 5, lo: 86, hi: 92 },
   { name: "Gianfranco Zola", club: "Chelsea", year: 1998, fame: 4, lo: 85, hi: 91 },
   { name: "Robert Pires", club: "Arsenal", year: 2004, fame: 4, lo: 85, hi: 91 },
-  { name: "Michael Laudrup", club: "Barcelona", year: 1992, fame: 4, lo: 85, hi: 91 },
-  { name: "Fernando Redondo", club: "Real Madrid", year: 1999, fame: 4, lo: 84, hi: 90 },
+  { name: "Michael Laudrup", club: "Barcelona", year: 1992, fame: 5, lo: 85, hi: 91 },
+  { name: "Fernando Redondo", club: "Real Madrid", year: 1999, fame: 5, lo: 84, hi: 90 },
   { name: "Youri Djorkaeff", club: "Inter", year: 1998, fame: 4, lo: 84, hi: 90 },
   { name: "Enzo Francescoli", club: "Marseille", year: 1990, fame: 4, lo: 84, hi: 90 },
   { name: "Pep Guardiola", club: "Barcelona", year: 1994, fame: 4, lo: 83, hi: 89 },
@@ -1935,7 +1934,7 @@ const MEI_EU: C[] = [
   { name: "Declan Rice", club: "Arsenal", year: 2024, fame: 4, lo: 83, hi: 89, bio: "Volante-motor da Inglaterra — desarme, fôlego e saída de bola que fizeram dele a espinha do meio do Arsenal e do West Ham." },
   { name: "Youri Tielemans", club: "Leicester", year: 2021, fame: 3, lo: 79, hi: 86, bio: "Meia belga de passe elegante — eternizado pelo golaço que deu a FA Cup ao Leicester em Wembley." },
   { name: "Phil Foden", club: "Man City", year: 2024, fame: 4, lo: 85, hi: 91, bio: "Joia de Stockport lapidada por Guardiola — canhota mágica e faro de gol que renderam o prêmio de melhor da Premier League em 2024." },
-  { name: "Bastian Schweinsteiger", club: "Bayern", year: 2013, fame: 4, lo: 85, hi: 91, bio: "O 'Fussballgott' — volante-cérebro do Bayern da tríplice coroa e campeão do mundo com a Alemanha em 2014." },
+  { name: "Bastian Schweinsteiger", club: "Bayern", year: 2013, fame: 5, lo: 85, hi: 91, bio: "O 'Fussballgott' — volante-cérebro do Bayern da tríplice coroa e campeão do mundo com a Alemanha em 2014." },
   { name: "Hidetoshi Nakata", club: "Roma", year: 2001, fame: 3, lo: 79, hi: 86, bio: "O maior nome do futebol japonês — meia elegante campeão italiano pela Roma, pioneiro que abriu as portas da Europa para a Ásia." },
   { name: "Keisuke Honda", club: "Milan", year: 2014, fame: 3, lo: 76, hi: 84, bio: "Meia japonês de personalidade e chute venenoso de fora — brilhou no CSKA e vestiu a 10 do Milan, decisivo em Copas pelo Japão." },
   { name: "Lee Kang-in", club: "PSG", year: 2024, fame: 3, lo: 77, hi: 84, bio: "Meia sul-coreano de drible curto e passe refinado — revelado no Valencia e peça de talento no Paris Saint-Germain." },
@@ -1970,7 +1969,7 @@ const ATA_EU: C[] = [
   { name: "Rafael Leão", club: "Milan", year: 2022, fame: 4, lo: 83, hi: 91, bio: "Ponta português explosivo do Milan — velocidade, drible e potência. MVP da Serie A no Scudetto de 2022." },
   { name: "Ricardo Quaresma", club: "Porto", year: 2007, fame: 3, lo: 74, hi: 84, folk: true },
   { name: "Nani", club: "Man United", year: 2011, fame: 3, lo: 78, hi: 85 },
-  { name: "Thomas Müller", club: "Bayern", year: 2014, fame: 4, lo: 83, hi: 90 },
+  { name: "Thomas Müller", club: "Bayern", year: 2014, fame: 5, lo: 83, hi: 90 },
   { name: "Reus", club: "Dortmund", year: 2013, fame: 4, lo: 82, hi: 89 },
   { name: "Matheus Cunha", club: "Wolves", year: 2024, fame: 3, lo: 78, hi: 86 },
   { name: "Salomon Kalou", club: "Chelsea", year: 2010, fame: 3, lo: 76, hi: 84 },
@@ -2053,7 +2052,7 @@ const ATA_EU: C[] = [
   { name: "Roberto Firmino", club: "Liverpool", year: 2019, fame: 4, lo: 84, hi: 90 },
   { name: "Christian Vieri", club: "Inter", year: 2003, fame: 4, lo: 85, hi: 91 },
   { name: "Mário Jardel", club: "Porto", year: 2000, fame: 4, lo: 85, hi: 91 },
-  { name: "Miroslav Klose", club: "Bayern", year: 2007, fame: 4, lo: 82, hi: 88 },
+  { name: "Miroslav Klose", club: "Bayern", year: 2007, fame: 5, lo: 82, hi: 88 },
   { name: "Giovane Élber", club: "Bayern", year: 2001, fame: 4, lo: 80, hi: 87 },
   { name: "Márcio Amoroso", club: "Dortmund", year: 2002, fame: 4, lo: 80, hi: 86 },
   { name: "Sonny Anderson", club: "Lyon", year: 2000, fame: 3, lo: 78, hi: 85 },
@@ -2067,7 +2066,7 @@ const ATA_EU: C[] = [
   { name: "Mario Kempes", club: "Valencia", year: 1978, fame: 5, lo: 87, hi: 93 },
   { name: "Hristo Stoichkov", club: "Barcelona", year: 1994, fame: 5, lo: 87, hi: 93 },
   { name: "Vinícius Júnior", club: "Real Madrid", year: 2024, fame: 5, lo: 88, hi: 93 },
-  { name: "Ousmane Dembélé", club: "PSG", year: 2024, fame: 4, lo: 85, hi: 91 },
+  { name: "Ousmane Dembélé", club: "PSG", year: 2024, fame: 5, lo: 85, hi: 91 },
   { name: "Paulo Dybala", club: "Juventus", year: 2018, fame: 4, lo: 85, hi: 91 },
   { name: "Mauro Icardi", club: "Inter", year: 2018, fame: 4, lo: 83, hi: 89 },
   { name: "Antoine Griezmann", club: "Atlético de Madrid", year: 2018, fame: 4, lo: 86, hi: 92 },
@@ -2365,8 +2364,8 @@ export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GO
 const GOL_WORLD: C[] = [
   { name: "Robert Kidiaba", club: "TP Mazembe", year: 2010, fame: 2, lo: 66, hi: 80, folk: true, bio: "Goleiro congolês do TP Mazembe — eternizado no Mundial de 2010, quando eliminou o Inter no 'Mazembe Day' e comemorou com a dança sentado no chão, batendo o bumbum na grama. Ídolo folclórico." },
   { name: "Jorge Campos", club: "Pumas", year: 1994, fame: 4, lo: 83, hi: 90, bio: "Goleiro mexicano das camisas fluorescentes desenhadas por ele mesmo — baixinho, elástico e tão ofensivo que às vezes jogava de atacante e fazia gol." },
-  { name: "René Higuita", club: "Atlético Nacional", year: 1990, fame: 5, lo: 85, hi: 92, bio: "O goleiro-líbero colombiano do escorpião em Wembley — saía driblando na área como um camisa 10. Ousadia e loucura em pessoa." },
-  { name: "José Luis Chilavert", club: "Vélez Sarsfield", year: 1998, fame: 4, lo: 83, hi: 90, bio: "O goleiro paraguaio que batia falta e pênalti e FAZIA gol — mais de 60 na carreira. Personalidade explosiva e mira de artilheiro." },
+  { name: "René Higuita", club: "Atlético Nacional", year: 1990, fame: 5, lo: 85, hi: 92, folk: true, bio: "O goleiro-líbero colombiano do escorpião em Wembley — saía driblando na área como um camisa 10. Ousadia e loucura em pessoa." },
+  { name: "José Luis Chilavert", club: "Vélez Sarsfield", year: 1998, fame: 5, lo: 83, hi: 90, folk: true, bio: "O goleiro paraguaio que batia falta e pênalti e FAZIA gol — mais de 60 na carreira. Personalidade explosiva e mira de artilheiro." },
   { name: "Amadeo Carrizo", club: "River Plate", year: 1962, fame: 4, lo: 82, hi: 89, bio: "Pioneiro argentino: inventou o goleiro que sai da área e joga com os pés, décadas antes de virar moda. Lenda máxima do River." },
   { name: "Hugo Gatti", club: "Boca Juniors", year: 1980, fame: 3, lo: 78, hi: 86, bio: "'El Loco' — recordista de jogos no futebol argentino, provocador e adiantadíssimo. Um showman embaixo das traves." },
   { name: "Óscar Pérez", club: "Cruz Azul", year: 2000, fame: 3, lo: 76, hi: 85, bio: "'Conejo' — baixinho e eterno, foi convocado pra várias Copas do México ao longo de quase 20 anos de estrada." },
@@ -2408,6 +2407,7 @@ const ZAG_WORLD: C[] = [
   { name: "Kim Young-gwon", club: "Guangzhou", year: 2018, fame: 3, lo: 68, hi: 82, bio: "O zagueiro do gol que ELIMINOU a Alemanha em 2018 — o Brasil inteiro gritou junto. Gratidão eterna. 🙏" },
 ]
 const MEI_WORLD: C[] = [
+  { name: "Juan Román Riquelme", club: "Boca Juniors", year: 2007, fame: 5, lo: 84, hi: 90 }, // 👑 LENDA no Boca de 2007 (Diego 26/09: tirou a carta do Villarreal e pôs esta — a do melhor clube). Mesma faixa de nível da carta antiga.
   { name: "Carlos Valderrama", club: "Deportivo Cali", year: 1988, fame: 5, lo: 87, hi: 93, bio: "'El Pibe' — a cabeleira loira e o passe mais genial da história colombiana. Enxergava lançamentos que ninguém via; pura arte no meio-campo." },
   { name: "Ricardo Bochini", club: "Independiente", year: 1984, fame: 4, lo: 84, hi: 90, bio: "O ídolo máximo do Maradona — 'El Bocha' passou a vida inteira no Independiente ditando o ritmo com toques curtos e a famosa 'pausa'." },
   { name: "Teófilo Cubillas", club: "Alianza Lima", year: 1978, fame: 4, lo: 84, hi: 90, bio: "O maior craque da história do Peru — meia goleador das Copas de 70 e 78, chute violento e faltas indefensáveis." },
@@ -2811,6 +2811,7 @@ export function ehPromessa(c: { name: string; club?: string; year?: number; prom
 
 export const OLD_NAME: Record<string, string> = {
   'Vasco SAF': 'Vasco da Grana', // ⚽🏴‍☠️ batismo do brunnodeluca90 (24/09): o Vasco da Grana (batismo sem dono, pedido do Diego em 03/08) virou Vasco SAF — save antigo chega no nome novo
+  'Cruzeiro de Berretinho': 'Metrópole FC', // ⭐🐺 batismo do weslleygomes749 (25/09): assumiu o assento da Série D que era do bot Metrópole FC — save antigo com Metrópole FC vira Cruzeiro de Berretinho ao carregar
   'Milhaça FC': 'Real Bets', // ⚽ batismo do igormarquesn99: save antigo com Real Bets vira Milhaça FC ao carregar (24/08)
   'Napolitano': 'Canela EC', 'Ponte Branca': 'Grelha SAF', 'CRBebê': 'Peteca FR',
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
@@ -3164,7 +3165,9 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   ],
   // 🅳 SÉRIE D — a base profissional, logo acima da Várzea. (era a "Série A")
   D: [
-    { name: 'Barão', team: 'Metrópole FC' },
+    // ⭐🐺 CRUZEIRO DE BERRETINHO (weslleygomes749, batismo de 25/09) no assento do bot
+    // Metrópole FC (o 1º bot sem dono da lista). `OLD_NAME` leva save antigo pro nome novo.
+    { name: 'Berretinho', team: 'Cruzeiro de Berretinho' }, // ⭐🐺 clube BATIZADO por apoiador (weslleygomes749 — Cruzeiro de Berretinho, ex-Metrópole FC; escudo com a coroa, os dois lobos e o Cruzeiro do Sul, mascote O Lobo Rei no trono; coração CRUZEIRO; Lenda + fundador nº79 + sócio nº60, 25/09)
     { name: 'Soberano', team: 'Soberano Nacional' },
     { name: 'Sistematizado', team: 'Sistematizados FC' }, // 🎮 clube BATIZADO por apoiador (gaancaxd — Sistematizados FC, ex-Coliseu United, Série D; mascote O Sistematizado, preto + roxo; Lenda + fundador nº61, 07/09)
     { name: 'Cometa', team: 'Galáxia EC' },

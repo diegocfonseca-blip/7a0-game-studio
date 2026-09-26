@@ -1611,6 +1611,8 @@ const ESCADA_RARITY: Record<EscadaDiv, { legend: number; star: number; promessa:
   B: { legend: 0, star: 0.60, promessa: 0.40, low: 0 }, // promessa + craque
   A: { legend: 0.30, star: 0.70, promessa: 0, low: 0 }, // elite: craque + lenda
 }
+// 🎲 chance de uma vaga de "foi profissional" virar "bom jogador" no baralho do rápido (26/09, teste)
+const MISTURA_FOI_PRO = 0.25
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
@@ -1684,6 +1686,11 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     let star = Math.min(availOf(pos, c => mergeSP ? (c.fame === 4 || !!c.promessa) : (c.fame === 4 && !c.promessa)), stoch(cnt * RARITY.star)) // craque (+ promessa junto no rápido)
     let promessa = Math.min(availOf(pos, c => !!c.promessa), stoch(cnt * RARITY.promessa))
     let low = Math.min(availOf(pos, c => c.fame === 1), stoch(cnt * RARITY.low))                  // foi profissional
+    // 🎲 MISTURA LEVE (Diego 26/09, pra TESTAR: *"pode fazer isso com o foi profissional pra
+    // testarmos, porque o lenda todo mundo já quer"*): no rápido (online e offline), 1 em cada
+    // 4 vagas de FOI PROFISSIONAL vira BOM JOGADOR, por sorteio vaga a vaga. Menos repetição
+    // no fundo do baralho sem mexer nas lendas. Carreira (escada) e Várzea não mudam.
+    if (mergeSP) { let fica = 0; for (let k = 0; k < low; k++) if (rng() >= MISTURA_FOI_PRO) fica++; low = fica }
     // se a soma passar do tamanho do setor, corta primeiro dos mais comuns
     // (foi profissional → promessa → craque → lenda), pra a raridade se manter.
     let over = legend + star + promessa + low - cnt
@@ -3522,6 +3529,50 @@ function seedChampions(league: LeagueTeam[], rng: () => number): ChampionsState 
   return { fase: 'tabela', times, rodada: 0, fixtures, lastResults: [] }
 }
 
+// ⭐ SÓ CHAMPIONS (25/09) — sem liga antes. Diego: *"deveria ser só Champions direto…
+// continua começando com 20"*. Quem entra: o SEU time + os rivais do leilão (os times
+// com técnico, que têm elenco de verdade) e o resto dos 36 sai dos clubes de batismo,
+// na MESMA ordem de preferência da Champions de sempre (`championsConvidados`: série A
+// pra baixo, gente na frente). Os bots de enchimento da liga ficam de fora: a vaga
+// deles é palco pra quem batizou clube.
+function seedChampionsDireto(league: LeagueTeam[], rng: () => number): ChampionsState {
+  const comTecnico = league.filter(t => t.isManager).slice(0, CHAMPIONS_CLUBES)
+  const convidados = championsConvidados(comTecnico.map(t => t.name), CHAMPIONS_CLUBES - comTecnico.length)
+  const times: ChampionsTeam[] = []
+  const zero = { pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }
+  comTecnico.forEach(t => times.push({ id: t.id, name: t.name, pote: 1, isManager: true, baseAtk: t.baseAtk, baseDef: t.baseDef, ...zero }))
+  convidados.forEach((c, i) => times.push({ id: CHAMPIONS_ID0 + i, name: c.name, pote: 1, isManager: false, divisao: c.divisao, baseAtk: c.atk, baseDef: c.def, ...zero }))
+  const potes = potesChampions(times.map(t => t.baseAtk + t.baseDef))
+  times.forEach((t, i) => { t.pote = potes[i] })
+  const fixtures = calendarioChampions(times.map(t => t.id), potes, rng)
+  return { fase: 'tabela', times, rodada: 0, fixtures, lastResults: [] }
+}
+/** o modo é "Só Champions" e a temporada ACABOU de ser montada: pula a liga e abre a
+ *  tabela de 36. Roda depois de QUALQUER ação (ver `reducer`), então pega todos os
+ *  caminhos que montam a liga — fim do leilão, jogar de novo, nova temporada — sem
+ *  precisar lembrar de cada um. A liga continua montada por baixo (é de lá que o motor
+ *  lê a força dos times com técnico), só que com a rodada no fim: ninguém joga ela.
+ *  ⚠️ Rápido offline e sala online (no online, só o host), no futebol, fora da carreira. */
+function abreChampionsDiretoSePrecisa(s: EscState) {
+  if (s.copaMode !== 'champions' || s.screen !== 'season') return
+  // 🌐 ONLINE (25/09, *"agora faça no modo online"*): só o HOST semeia — ele é quem conduz
+  // a sala e o resultado chega pronto pros outros. Convidado nunca monta Champions própria
+  // (regra de ouro do online: host-autoritativo).
+  if ((s.onlineMode === 'online' && !s.isHost) || s.careerOnline || s.careerDivision || s.sport === 'basquete') return
+  if (s.round !== 0 || !s.league.length) return
+  // 🧹 com a rodada em 0, qualquer Champions/Copa que estiver no estado é RESTO da
+  // partida anterior (a de verdade já nasce com a rodada no fim). Foi o que o Diego
+  // pegou no 1º teste (25/09): o `START` não limpava a Champions velha, esta função
+  // achava que já tinha semeado e a partida caía na liga de 20.
+  s.champions = null; s.quickCopa = null; s.liberta = null
+  s.champions = seedChampionsDireto(s.league, mulberry((s.seed ^ 0x0CAB1E5) >>> 0))
+  s.round = s.fixtures.length // a liga fica "encerrada" sem ser jogada — é o que o mata-mata espera
+  s.news = [s.onlineMode === 'online'
+    ? tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — os times da sala e, completando, os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — the room\'s teams and, to complete it, the named clubs.')
+    : tr('⭐ Direto pra CHAMPIONS! 36 clubes numa tabela só — o seu, os rivais do leilão e os clubes de batismo.', '⭐ Straight into the CHAMPIONS! 36 clubs in one table — yours, your auction rivals and the named clubs.')]
+  s.screen = 'champions'
+}
+
 /** a tabela de 36, do 1º ao 36º — MESMO desempate do resto do jogo */
 export function championsTabela(ch: ChampionsState): ChampionsTeam[] {
   return [...ch.times].sort((a, b) =>
@@ -3563,6 +3614,17 @@ function playChampionsRodada(s: EscState) {
     ch.fase = 'repescao'
     ch.repescaoLeg = 0
     ch.repescao = repescaoChampions(tabela).map(([a, b]) => ({ aId: a.id, bId: b.id, aName: a.name, bName: b.name, legs: [], winner: null }))
+    // 🥊 o repescão roda no MOTOR DA COPA (25/09, Diego: *"não teve simulação rolando
+    // padrão que começa com 1' e vai rolando… podendo também aparecer pênaltis… normal a
+    // simulação dos mata-matas"*). Os confrontos já nascem aqui como fase 'repescao' do
+    // `quickCopa`; a tela da Champions mostra o banner do fim da tabela e o `START_COPA`
+    // leva pra tela da Copa. O A de cada confronto é o PIOR colocado: no motor da Copa
+    // quem joga a IDA em casa é o A, e na Champions de verdade a volta é na casa do melhor.
+    s.quickCopa = {
+      phase: 'repescao', legIdx: 0, bracket: [],
+      ties: ch.repescao.map(tt => ({ aId: tt.bId, bId: tt.aId, aName: tt.bName, bName: tt.aName, legs: [], winner: null })),
+      scorers: ch.scorers ?? [], assists: ch.assists ?? [],
+    }
     s.news = [tr('⭐ Fim da tabela — 1º ao 8º já estão nas OITAVAS. Agora o REPESCÃO: 16 clubes por 8 vagas.', '⭐ League phase over — 1st to 8th are already in the ROUND OF 16. Now the PLAYOFF: 16 clubs for 8 spots.')]
   }
 }
@@ -3608,8 +3670,11 @@ function playChampionsRepescao(s: EscState) {
   })
   s.quickCopa = { phase: 'oitavas', ties, legIdx: 0, bracket: [], scorers: ch.scorers ?? [], assists: ch.assists ?? [] }
   s.news = [tr('⭐ Repescão fechado — chegaram as OITAVAS da Champions!', '⭐ Playoff done — the Champions ROUND OF 16 is here!')]
-  // ▶️ daqui pra frente é o MESMO motor da Copa dos 8, que vive na tela da temporada
-  s.screen = 'season'
+  // ▶️ daqui pra frente é o MESMO motor da Copa dos 8, que vive na tela da temporada.
+  // 🎬 Mas NÃO pula pra lá na hora (25/09): a tela da Champions segura, deixa a VOLTA
+  // do repescão rolar (antes ela nunca aparecia) e mostra o banner "FIM DO REPESCÃO"
+  // com a situação de cada um. Quem leva pras oitavas é o `START_COPA` (botão ou
+  // relógio do banner) — o mesmo caminho da Copa dos 8.
 }
 
 function seedQuickCopa(league: LeagueTeam[], nba = false): QuickCopaState {
@@ -4075,6 +4140,13 @@ function monteWorstPick(state: EscState, m: Manager, monte: Card[], rng: () => n
 // técnico humano em sala online — contra a CPU o Monte não tem relógio e segue sem.
 const MONTE_MS = 15_000
 export const MONTE_SECONDS = MONTE_MS / 1000
+// ⭐ Diego 25/09: *"o monte da sobra do leilão gratuita do modo Champions será sempre
+// com 10s e não 15s"*. Sala com Champions (Liga + Champions ou Só Champions) = 10s;
+// o resto segue nos 15s. A tela lê a MESMA função (regra contra botão mudo).
+const MONTE_MS_CHAMPIONS = 10_000
+export function monteMsDe(s: Pick<EscState, 'copaMode'>): number {
+  return s.copaMode === 'liga_champions' || s.copaMode === 'champions' ? MONTE_MS_CHAMPIONS : MONTE_MS
+}
 
 // define/limpa o prazo da vez atual do Monte (só vale no online, pra técnico humano)
 function refreshMonteDeadline(state: EscState) {
@@ -4082,7 +4154,7 @@ function refreshMonteDeadline(state: EscState) {
   const m = state.managers.find(x => x.id === cur)
   state.monteDeadline =
     state.onlineMode === 'online' && state.screen === 'monte' && !!m && m.isHuman && state.monte.some(c => openSlots(m, c.pos) > 0)
-      ? Date.now() + MONTE_MS
+      ? Date.now() + monteMsDe(state)
       : null
 }
 
@@ -4315,7 +4387,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions'; intro?: boolean; holandes?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -4338,7 +4410,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -5445,6 +5517,12 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
 }
 
 export function reducer(state: EscState, action: Action): EscState {
+  const s = reducerBase(state, action)
+  // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
+  if (s !== state && s.copaMode === 'champions') abreChampionsDiretoSePrecisa(s)
+  return s
+}
+function reducerBase(state: EscState, action: Action): EscState {
   // 🌐 espelha o modo da sala pro teto do elenco (ver `extraDoDono`): o +1 por
   // posição é só do offline. Fica aqui porque o reducer roda em toda ação —
   // então o ponteiro nunca fica velho, nem depois de um F5.
@@ -5862,6 +5940,9 @@ export function reducer(state: EscState, action: Action): EscState {
       s.scorers = []; s.assists = []; s.lastResults = []
       s.tactics = {}
       s.seasonNo = 1
+      // 🏆🌎⭐ as copas da partida ANTERIOR não atravessam pra partida nova (a Só
+      // Champions caía na liga por causa disto — 25/09). Mesma faxina do REPLAY.
+      s.quickCopa = null; s.liberta = null; s.champions = null
       // 🌱 mesma faxina do online: partida rápida NÃO herda a Cria da Base nem os
       // eventos de jogador de uma carreira anterior — senão a historinha do Sub-20
       // aparece na Cerimônia de um rápido (relato do Diego, 11/09).
@@ -6378,6 +6459,7 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
+      s.hostInbox = s.copaMode === 'champions' // 📮 só a sala de Champions usa a caixa de entrada do host
       // 🧹 FAXINA ANTI-CARREIRA (bug achado pelo Diego 19/08, testando na conta dele).
       // O reducer clona o estado ANTERIOR. Quem saía de uma carreira (ou da Dinastia)
       // e entrava numa SALA ONLINE levava o `careerDivision` junto — e a sala online
@@ -7906,12 +7988,25 @@ export function reducer(state: EscState, action: Action): EscState {
       // 🏁 chamado pela tela quando a ANIMAÇÃO da última rodada acaba: coroa o campeão
       // e vai pro fim (ou semeia a Copa). Idempotente (champion/screen já setados).
       if (s.careerOnline || s.round < (s.fixtures.length || TOTAL_ROUNDS) || s.screen === 'end') return s
+      // ⭐ Só Champions: a liga nunca é jogada (a rodada fica no fim só de fachada) —
+      // não existe campeão de liga pra coroar. Quem fecha é o mata-mata da Champions.
+      if (s.copaMode === 'champions') return s
       finishSeason(s)
       return s
     }
     case 'START_COPA': {
       // sai do fim de liga e volta pra tela da temporada — que, com quickCopa
       // já semeado e round=38, passa a tocar a Copa (ver EscSeason).
+      // ⭐ save de ANTES do repescão ir pro motor da Copa (25/09), parado no portão:
+      // monta o repescão agora. Com perna já jogada no jeito antigo, segue o jeito antigo.
+      const chA = s.champions
+      if (!s.quickCopa && chA?.fase === 'repescao' && chA.repescao?.every(tt => tt.legs.length === 0)) {
+        s.quickCopa = {
+          phase: 'repescao', legIdx: 0, bracket: [],
+          ties: chA.repescao.map(tt => ({ aId: tt.bId, bId: tt.aId, aName: tt.bName, bName: tt.aName, legs: [], winner: null })),
+          scorers: chA.scorers ?? [], assists: chA.assists ?? [],
+        }
+      }
       if (s.quickCopa && s.quickCopa.phase !== 'done') s.screen = 'season'
       return s
     }
@@ -7977,10 +8072,27 @@ export function reducer(state: EscState, action: Action): EscState {
           const champName = champId === champ.aId ? champ.aName : champ.bName
           const you = s.managers.find(m => m.id === champId && m.isHuman)
           qc.champion = { id: champId, name: champName, you: !!you }
-          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
+          s.news = [`👑 ${champName} ${s.sport === 'basquete' ? 'É CAMPEÃO DAS FINALS — LEVOU O ANEL 💍!' : `É CAMPEÃO ${s.copaMode === 'liga_liberta' ? 'DA LIBERTADORES' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'DA CHAMPIONS' : 'DA COPA DOS 8'}!`}`, ...s.news].slice(0, 12)
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
+        } else if (qc.phase === 'repescao' && s.champions) {
+          // ⭐ fim do repescão da Champions: os 8 que passaram encaram o top 8 da tabela,
+          // no MESMO cruzamento de antes (1º × o último dos que subiram…). A fase da
+          // Champions vira 'mata' e dali pra frente é o caminho de sempre da Copa.
+          const ch = s.champions
+          const topo = championsTabela(ch).slice(0, CHAMPIONS_DIRETO)
+          const subiram = qc.ties.map(tt => tt.winner!).filter(id => id != null)
+          const nomeDe = (id: number) => ch.times.find(x => x.id === id)?.name ?? '?'
+          qc.ties = topo.map((tt, i) => {
+            const adv = subiram[subiram.length - 1 - i]
+            return { aId: tt.id, bId: adv, aName: tt.name, bName: nomeDe(adv), legs: [], winner: null }
+          })
+          ch.fase = 'mata'
+          if (ch.repescao) for (const r of ch.repescao) r.winner = subiram.find(id => id === r.aId || id === r.bId) ?? null
+          qc.phase = 'oitavas'
+          qc.legIdx = 0
+          s.news = [tr('⭐ Repescão fechado — chegaram as OITAVAS da Champions!', '⭐ Playoff done — the Champions ROUND OF 16 is here!'), ...s.news].slice(0, 12)
         } else {
           // 🌎 casa os vencedores DE DOIS EM DOIS, na ordem da chave. Assim a mesma
           // conta serve pra Copa dos 8 (4→2→1) e pra Libertadores (8→4→2→1) — antes
@@ -8036,8 +8148,8 @@ export function reducer(state: EscState, action: Action): EscState {
       const bbGiro = s.sport === 'basquete'
       const phaseWord = bbGiro
         ? (isFinal ? 'FINALS' : qc.phase === 'semis' ? 'FINAIS DE CONF.' : qc.phase === 'oitavas' ? '1ª RODADA' : 'SEMIS DE CONF.')
-        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : 'QUARTAS')
-      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : 'Copa'
+        : (isFinal ? 'FINAL' : qc.phase === 'semis' ? 'SEMI' : qc.phase === 'oitavas' ? 'OITAVAS' : qc.phase === 'repescao' ? 'REPESCÃO' : 'QUARTAS')
+      const copaWord = bbGiro ? 'Playoffs' : s.copaMode === 'liga_liberta' ? 'Liberta' : (s.copaMode === 'liga_champions' || s.copaMode === 'champions') ? 'Champions' : 'Copa'
       const legWord = bbGiro ? ` · jogo ${qc.legIdx + 1}` : isFinal ? '' : qc.legIdx === 0 ? ' · ida' : ' · volta'
       const copaHeads: string[] = []
       for (const tie of qc.ties) {
@@ -9629,9 +9741,14 @@ function marcaMexido(save: EscState) {
   } catch { /* silencioso — nunca atrapalha o jogo */ }
 }
 
+// ⭐ sala de Champions: o dono manda o estado no máximo a cada 400 ms (ver o efeito do host)
+const CHAMPIONS_ENVIO_MS = 400
 const SOLO_RESUME_KEY = 'esc-solo-inprogress-v1'
 const SOLO_GAME_SCREENS = ['auction', 'monte', 'cerimonia', 'season', 'end'] as const
-function isSoloGameScreen(screen: string): boolean {
+function isSoloGameScreen(screen: string, s?: Pick<EscState, 'copaMode'>): boolean {
+  // ⭐ Só Champions (25/09): a partida INTEIRA mora na tela da tabela de 36 — sem
+  // guardá-la, fechar o app no meio voltava pra cerimônia e a Champions recomeçava.
+  if (screen === 'champions' && s?.copaMode === 'champions') return true
   return (SOLO_GAME_SCREENS as readonly string[]).includes(screen)
 }
 // 🏛️ MULTICLUBES: qual assento está NO COMANDO num save de carreira. Sem 2º clube
@@ -9719,12 +9836,13 @@ function loadSoloInProgress(): EscState | null {
     const raw = localStorage.getItem(SOLO_RESUME_KEY)
     if (!raw) return null
     const s = JSON.parse(raw) as EscState
-    if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen) && Array.isArray(s.managers) && s.managers.length > 0) {
+    if (s && s.onlineMode === 'cpu' && isSoloGameScreen(s.screen, s) && Array.isArray(s.managers) && s.managers.length > 0) {
       if (saveMexido(s)) marcaMexido(s) // 🔒 lacre não bateu = editado na mão → marca no painel (não trava)
       normalizeMultiSeats(s) // 🏛️ multiclube: 1 humano ativo + dormindo certo (reancora youIdx; no-op sem 2º clube)
       // 👑 este é o save da PARTIDA EM ANDAMENTO — inclusive o pregão aberto.
       // Era o furo que sobrou do conserto de 21/08: quem estava no meio de uma
       // carreira voltava pelo aqui e o baralho continuava com o nível velho.
+      abreChampionsDiretoSePrecisa(s) // ⭐ cura quem ficou preso na liga da Só Champions (1º teste do Diego, 25/09)
       return devolvePreparadorUmaVez(devolveMedicoUmaVez(zeraBicoUmaVez(sincronizaNiveis(s))))
     }
   } catch { /* estado inválido/versão antiga — começa do zero */ }
@@ -10343,7 +10461,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // salva a partida solo em andamento (e limpa quando volta pra home)
   useEffect(() => {
     try {
-      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
+      if (state.onlineMode === 'cpu' && isSoloGameScreen(state.screen, state)) localStorage.setItem(SOLO_RESUME_KEY, comLacre(state))
       else if (state.screen === 'intro') localStorage.removeItem(SOLO_RESUME_KEY)
     } catch { /* quota cheia etc. — não trava o jogo */ }
   }, [state])
@@ -10351,6 +10469,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const isHostRef = useRef(state.isHost)
   const onlineRef = useRef(state.onlineMode)
   const stateRef = useRef(state)
+  // 📮 canal (não assinado) da caixa de entrada do host — só sala de Champions (ver `hostInbox`)
+  const inboxRef = useRef<{ sala: string; ch: ReturnType<typeof supabase.channel> } | null>(null)
   useEffect(() => { isHostRef.current = state.isHost }, [state.isHost])
   useEffect(() => { onlineRef.current = state.onlineMode }, [state.onlineMode])
   useEffect(() => { stateRef.current = state }, [state])
@@ -10638,7 +10758,15 @@ export function EscProvider({ children }: { children: ReactNode }) {
       leaveOnlineRoom(stateRef.current.roomId, !!stateRef.current.careerOnline)
     }
     if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM' && action.type !== 'GO_RANKING') {
-      channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
+      // 📮 SALA DE CHAMPIONS: o recado vai SÓ pro dono (caixa de entrada dele), não pra sala
+      // inteira. Com 27 pessoas, cada lance espalhado virava 26 entregas e o servidor
+      // começava a perder mensagem no fim do envelope. Se a entrega falhar, cai no rádio de
+      // sempre — e o lance do envelope ainda tem a estrada do banco (logo abaixo).
+      const rid = stateRef.current.roomId
+      if (stateRef.current.hostInbox && rid) {
+        if (!inboxRef.current || inboxRef.current.sala !== rid) inboxRef.current = { sala: rid, ch: supabase.channel(`escalacao-in:${rid}`) }
+        inboxRef.current.ch.httpSend('action', action).catch(() => { channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action }) })
+      } else channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
       // 📮 CAMINHO RESERVA DO LANCE (23/08, salas 1DWIA5 e 5B11LC): o convidado
       // via o host lacrar ("✅ lacrou" na tela dele) mas o LANCE DELE nunca
       // chegava — o rádio (canal realtime) engolia o recado numa direção só, e o
@@ -10858,13 +10986,39 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // estado inteiro. Isto derruba MUITO o tráfego do Realtime/Egress do Supabase (a
   // conta estourou por causa deste reenvio a cada 3s sem parar).
   const lastStateSendRef = useRef(0)
+  // ⭐ SALA DE CHAMPIONS: o dono JUNTA as mudanças e manda o estado no máximo a cada
+  // `CHAMPIONS_ENVIO_MS` (sempre o mais novo). No fim do envelope todo mundo lacra no mesmo
+  // segundo — mandar um estado inteiro por lacre, pra 26 pessoas, é o que estourava o limite
+  // do servidor (sala 9LSKXI, 25/09). Nas outras salas NADA muda: continua um envio por jogada.
+  const juntaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     if (prevRef.current === state) return
     prevRef.current = state
+    if (state.copaMode === 'champions') {
+      if (juntaTimerRef.current) return // já tem um envio marcado — ele leva o estado mais novo
+      juntaTimerRef.current = setTimeout(() => {
+        juntaTimerRef.current = null
+        const atual = stateRef.current
+        if (atual.onlineMode !== 'online' || !atual.isHost) return
+        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(atual) })
+        lastStateSendRef.current = Date.now()
+      }, CHAMPIONS_ENVIO_MS)
+      return
+    }
     channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(state) })
     lastStateSendRef.current = Date.now()
   }, [state])
+  useEffect(() => () => { if (juntaTimerRef.current) clearTimeout(juntaTimerRef.current) }, [])
+  // 📮 a CAIXA DE ENTRADA do dono (só sala de Champions): os convidados mandam o recado
+  // direto pra cá, e só o dono escuta — uma entrega por lance em vez de uma por pessoa.
+  useEffect(() => {
+    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || !state.hostInbox) return
+    const inbox = supabase.channel(`escalacao-in:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } })
+    inbox.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
+    inbox.subscribe()
+    return () => { try { supabase.removeChannel(inbox) } catch { inbox.unsubscribe() } }
+  }, [state.onlineMode, state.isHost, state.roomId, state.hostInbox, reconexao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 📵 A TELA NÃO APAGA DURANTE A PARTIDA ONLINE (Diego 28/08: *"se a pessoa deu
   // uma saidinha, não importa — o jogo tem que continuar rolando do mesmo jeito"*).

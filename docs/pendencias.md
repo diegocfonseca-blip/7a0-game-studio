@@ -24,6 +24,336 @@ banco, sem goleiro, ordem por nível, quem entrou no intervalo aparece, quem sai
 some, suspenso fora, e lista nunca vazia. `penaltis` e `telas` verdes junto.
 
 ↩️ **Reverter**: a função está isolada; voltar ao elenco inteiro é uma linha.
+## 26/09/2026 — ✏️ "Marcelo Vieira" (Real Madrid 2017) vira só "Marcelo" ✅ NO AR
+
+Pedido do Diego. Continua lenda, no baralho Europa. Junto: rosto mantido (alias em
+`legend-avatars.ts`), `MESMO_JOGADOR` ganhou 'Marcelo' (é o mesmo lateral do Fluminense 2006,
+carta promessa do baralho Brasil), país Brasil, e a foto do catálogo renomeada pra home não
+anunciar "entrou/saiu". Save antigo com "Marcelo Vieira" fica como está (bio e rosto antigos
+seguem valendo pro nome velho).
+💡 Ele perguntou por que quase não vê o Marcelo e vê Júnior e Carlos Alberto toda hora:
+Marcelo é do baralho EUROPA; os dois são do baralho BRASIL, onde lateral tem só 7 lendas e o
+leilão de 20 usa as 7 — por isso aparecem SEMPRE (ver o achado do baralho acima).
+
+## 26/09/2026 — 👑 Dembélé (PSG 2024) vira LENDA · 🃏 Higuita e Chilavert viram FOLCLÓRICOS ✅ NO AR
+
+Pedidos do Diego. Bio do Dembélé agora diz campeão do mundo (França 2018) e Bola de Ouro.
+Higuita e Chilavert ganharam `folk: true` (selo 🃏 FOLCLÓRICO, continuam lenda). Vozinha já era
+folclórico. `sincronizaNiveis` leva `folk` e `bio` pros saves sozinho.
+
+## 26/09/2026 — ↩️ Maicon (Inter 2010) VOLTA a craque ✅ NO AR
+
+Diego: *"Maicon não bote lenda também não"*. Ele tinha virado lenda numa sessão de 23/09.
+Voltou a `fame: 4`; pra home não anunciar "caiu de categoria", a foto do catálogo ganhou o
+f:4 dele e a linha antiga "Maicon virou lenda" saiu do arquivo gerado (conferido depois com
+`npm run novidades`: 0 mudança).
+
+## 26/09/2026 — ↩️ Ballack e Júlio César VOLTAM a craque ✅ NO AR
+
+Diego: *"não coloque mais Ballack e Júlio César como lendas"*. Os dois voltaram a `fame: 4`.
+O aviso da home foi regerado a partir da foto de ANTES das promoções de hoje, então eles
+simplesmente somem da lista (nada de "caiu de categoria"): ficam 13 promoções + a troca do
+Riquelme.
+
+## 26/09/2026 — 👑 Laudrup (Barcelona 1992) e Chilavert (Vélez 1998) viram LENDA ✅ NO AR
+
+Pedido do Diego. Papin (Marseille 1991), que ele pediu junto, já era lenda.
+
+## 26/09/2026 — 👑 Busquets (Barcelona 2015) vira LENDA ✅ NO AR
+
+Pedido do Diego. Carta única dele no jogo (Barcelona, o clube da carreira).
+
+## 26/09/2026 — 👑 Cantona (Man United 1996) vira LENDA ✅ NO AR
+
+Pedido do Diego. Raúl (Real Madrid 2001) e Hugo Sánchez (Real Madrid 1990), que ele perguntou
+junto, **já eram lenda** e já estão no jogo (a 1ª busca minha errou por causa dos acentos).
+Riquelme do Boca fica no baralho Mundo (decisão dele: *"não deixa de ser da parte mundo"*).
+
+## 26/09/2026 — 👑 Riquelme troca de carta: sai Villarreal 2005, entra BOCA JUNIORS 2007 (lenda) ✅ NO AR
+
+Pedido do Diego. A carta nova mora no baralho **Resto do Mundo** (é onde estão os clubes
+argentinos), então ela aparece no "Mundo" e no "Todos juntos" — **não mais no Europa**. Mesma
+faixa de nível (84-90). Bio atualizada (ídolo do Boca, Libertadores 2007). `npm run novidades`
+(1 entrou · 1 saiu) e `npm run paises` verdes. Save antigo com a carta do Villarreal fica com
+ela (carta é cópia congelada no save).
+
+## 26/09/2026 — 👑 Júlio César (Inter 2010) vira LENDA ✅ NO AR
+
+Pedido do Diego (goleiro). Só a carta da Inter 2010 (melhor clube), a do Flamengo 2003 fica
+craque. O Maicon da Inter 2010, que ele pediu junto, **já era lenda** (desde a promoção antiga).
+
+## 26/09/2026 — 👑 13 cartas viram LENDA ✅ NO AR
+
+Pedido do Diego: Marta, Seedorf, Riquelme, Di María, Hierro, Thomas Müller, Klose, Lúcio,
+Schweinsteiger, Fernando Redondo e Ballack. Mesmo jeito do Maicon/Bergkamp: só `fame` 4 → 5,
+faixa de nível (lo/hi) igual. **11 cartas.** 🔁 Primeiro subi as DUAS cartas de quem tem duas e ele
+corrigiu: *"óbvio que é só uma, e no melhor clube da carreira deles"* → ficou lenda só o
+**Seedorf do Milan 2003** e o **Lúcio da Inter 2010**; Botafogo 2013 e Internacional 2000 voltaram
+a craque (o aviso da home foi regerado do zero, sem anunciar "caiu de categoria").
+📏 **Regra pra próxima vez: promoção a lenda é UMA carta, a do melhor clube da carreira.**
+`npm run novidades` escreveu as 13 na home; `sincronizaNiveis` atualiza todo save sozinho.
+
+## 26/09/2026 — 🎲 Baralho: 1 em cada 4 "foi profissional" vira "bom jogador" (TESTE) · 🕗 PRONTO NO RAMO
+
+Diego acha que o baralho repete demais. Ele quis testar uma mistura LEVE só no fundo do
+baralho (*"pode fazer isso com o foi profissional pra testarmos, porque o lenda todo mundo já
+quer"*). `MISTURA_FOI_PRO = 0.25` em `buildDeck` (store.tsx), só no rápido (online e
+offline); carreira (escada) e Várzea intactas. Medido em 60 leilões de 20 pessoas:
+foi profissional **29% → ~20%**, bom jogador **~17% → ~25%**; lenda (16%) e craque (38%)
+iguais; zero fake.
+📌 Achado pra resolver a repetição de verdade (explicado pro Diego, sem decisão ainda):
+(1) no baralho Brasil, lateral e zagueiro têm tão poucas lendas (7 e 6) que o leilão de 20
+usa TODAS, toda vez; (2) a memória do rodízio (`RECENT_DECK`, últimas 3 levas) vive só na
+página aberta do DONO da sala — recarregou ou trocou de dono, ela zera.
+
+## 26/09/2026 — 🐊 Mascote da sala de espera: 5 s (relógio próprio) · 🕗 PRONTO NO RAMO
+
+Diego: *"coloque pra 5s o tempo do mascote na sala de espera que tava 30s"*. O bicho ganhou
+relógio PRÓPRIO de 5 s (`MASC_COOLDOWN_S`, lobby.tsx); os áudios continuam com os 30 s deles
+(antes os dois dividiam o mesmo relógio).
+
+## 25/09/2026 — ⭐🐺 Batismo CRUZEIRO DE BERRETINHO (weslleygomes749) — banco ✅ · código 🕗 SOBE DE MANHÃ
+
+Série D, no assento do bot **Metrópole FC** (`OLD_NAME` leva save antigo pro nome novo).
+E-mail achado pelo nome que ele usava ("Cruzeiro do Berretinho", sala 9LSKXI) e confirmado
+pelo Diego. Conta existe desde 04/09. Coração: **Cruzeiro**. Mascote **O Lobo Rei**
+(`cruzeiro_lobo_rei`). Manto medido na camisa: **#0130AD / #F2F9FF**. Arte: escudo 347×360
+29,1 KB · mascote 392×440 42,8 KB (limpei o verde-água das caudas dos lobos, a grama sob a
+chuteira e a sombra da camisa). Escudo/carimbo valem pras 4 formas com "de", as 4 com "do"
+(como ele escrevia) e o nome velho.
+- **Banco — FEITO 25/09 à noite** (`docs/sql/batismo-cruzeiro-berretinho.sql`): sócio nº60 ·
+  fundador nº79 · 6 nomes reservados (de/do + FC/EC) · `user_colors` ouro + manual.
+- **Código — no ramo, esperando a manhã** (regra do horário de pico): escudos, mascotes,
+  apoio (ouro + FUNDADOR_N 79), manto, batismos, salão (camisa `-v1`), data.ts, checa-batismos.
+  build + batismos + piramide + mimos + salao verdes.
+- Post: "Batizado por **Berretinho**" e **sem dizer a Série** (pedido do Diego: *"não coloque Série D não"*) — `mockup-batismo.mjs` ganhou a opção `--sem-serie`.
+
+## 25/09/2026 — 📮 Sala de Champions de volta a 36, com conserto SÓ na Champions ✅ NO AR
+
+Diego: *"não quero mexer nos outros modos… estamos falando da Champions, só a alternativa"*.
+Só quando `copaMode === 'champions'` (flag `hostInbox`, ligada pelo host no START_ONLINE):
+1. **Caixa de entrada do dono**: o convidado manda o recado por `httpSend` pro canal
+   `escalacao-in:<sala>`, que SÓ o host escuta — uma entrega por lance em vez de uma por
+   pessoa. Qualquer falha (404/401/rede) cai no rádio de sempre; o lance do envelope ainda
+   tem a estrada do banco (`room_acoes`). Host de versão velha não liga a flag → convidado
+   segue no caminho antigo.
+2. **O dono junta os envios de estado**: no máximo 1 a cada 400 ms (`CHAMPIONS_ENVIO_MS`),
+   sempre o mais novo.
+Conta (limite medido ≈ 500 msg/s — sala de 20 fazia ~250/s e ia bem; a de 27 fazia ~470/s e
+travou): sala de 36 com o conserto ≈ 100/s. `MAX_PLAYERS_CHAMPIONS = 36` de novo.
+⚠️ **Não deu pra testar ao vivo daqui** (o ambiente não alcança o servidor). O endereço do
+envio foi conferido no código da biblioteca. Se uma sala de Champions travar de novo:
+baixar `MAX_PLAYERS_CHAMPIONS` pra 20 e desligar a flag (`s.hostInbox = false`).
+
+## 25/09/2026 — 🚨 Sala da Champions voltou pro limite de 20 pessoas ✅ NO AR
+
+Sala **9LSKXI** (27 pessoas, host Fridão) travou no "ENVIANDO… confirmando com o host".
+Banco: o host chegou a receber 21 envelopes e parou de gravar às 16h14. Causa: o host
+**reenvia o estado INTEIRO pra cada pessoa a cada ação** (`channelRef.send('state')` no
+efeito de `[state]`, store.tsx). Com 27 pessoas cada lance vira 26 entregas; no fim do
+envelope, quando todo mundo lacra junto, passa do limite de mensagens/segundo do
+Realtime e as mensagens se perdem. O pacote em si é pequeno (33 KB comprimido com 36).
+Conserto de emergência: `MAX_PLAYERS_CHAMPIONS = 20` (e salas em espera com 36 no banco
+baixadas pra 20). A tabela de 36 continua cheia com clubes de batismo.
+📌 **Pra voltar a 36**: enxugar o reenvio do host — juntar as ações que chegam no mesmo
+instante e mandar UM estado a cada ~300-500 ms (ou mandar só o "lacrou" em vez do estado
+inteiro durante o envelope). Mexe em TODA sala online → fazer com calma, de dia, testado.
+⚠️ E vale conferir o plano do Supabase: o limite de mensagens é por PROJETO, então sala
+pesada pode atrapalhar as outras salas ao mesmo tempo.
+
+## 25/09/2026 — 🟢 CHAMPIONS LIBERADA PRA TODOS ✅ NO AR
+
+Diego: *"já tá funcionando o online, pode liberar"*. `CHAMPIONS_GERAL = true` (`sport.ts`).
+A "⭐ Só Champions" aparece destravada na partida rápida, nas salas online e no Minhas
+Ligas (selo "novo" por uns dias no online no lugar do "em breve"). Novidade na home (PT/EN).
+CLAUDE.md atualizado (a regra "não liberar" virou histórico).
+
+## 25/09/2026 — ⭐ Só Champions no ONLINE (salas rápidas + Minhas Ligas) + jornal da Champions ✅ NO AR (só na conta do Diego)
+
+Diego: *"ok agora faça no modo online! Vamos fazer!! Além disso quando acaba tem jornal,
+né? Porque no partida rápida não teve"*.
+- **Jornal O MARTELO · edição Champions** (`montaEdicaoChampions` em `jornal-sala.tsx`):
+  manchete "X É O CAMPEÃO DA CHAMPIONS", destaque principal = campeão da Champions,
+  posição = a da tabela de 36, nota de cada um pela campanha (tabela → repescão →
+  mata-mata; lanterna da tabela; "a uma posição do repescão"). Mesmo desenho do jornal
+  de sempre — só troca "liga" por "Champions/tabela". Vale offline e online.
+- **Online**: no seletor "depois da liga" da criação de sala, **"⭐ Liga + Champions" virou
+  "⭐ Só Champions"** (igual ao rápido offline). O mesmo seletor serve sala rápida e
+  Minhas Ligas. Continua travado com EM BREVE fora de `CHAMPIONS_TESTERS`. O motor
+  (`abreChampionsDiretoSePrecisa`) agora roda no online **só no host**.
+- **Sala de até 36 técnicos** quando é Só Champions (`MAX_PLAYERS_CHAMPIONS`, sem duplas —
+  dupla segue em 20 times). Testado no motor: 36 pessoas → 36 na tabela, 0 fake, todo
+  mundo com 11; 5 pessoas → 5 + 31 de batismo/liga. Lista de salas mostra "⭐ só champions".
+- **Histórico/Salão da liga**: na Só Champions a temporada grava o CAMPEÃO DA CHAMPIONS no
+  lugar do campeão da liga (antes gravaria o 1º de uma liga que nunca rolou, com 0 pts),
+  posição da tabela de 36, artilheiro da Champions e lanterna da tabela.
+📌 A conferir com a sala de verdade: peso da sala com 36 (lembrar do Tocaia, 24/09) e se
+o Salão da liga deve chamar esse título de "Champions" em vez de "Liga" (hoje entra como
+o título da temporada). Salas "Liga + Champions" que já existiam seguem funcionando.
+
+## 25/09/2026 — 🥊 Repescão da Champions no MOTOR DA COPA (relógio, pênaltis, cobrança) ✅ NO AR
+
+Print do Diego no repescão: placar parado, sem o relógio de 1' em diante. *"não teve
+simulação rolando padrão… podendo também aparecer pênaltis… normal a simulação dos
+mata-matas"*. Agora o repescão é a fase **'repescao' do `quickCopa`** (`CopaFase` ganhou
+o valor): nasce no fim da 8ª rodada (`playChampionsRodada`), a tela da Champions mostra o
+banner do fim da tabela (6s) e o `START_COPA` leva pra tela da Copa, onde roda IGUAL ao
+mata-mata (relógio, gols, pênaltis, cartaz de fase). No fim, `PLAY_COPA_LEG` monta as
+oitavas com o top 8 × os 8 que passaram (mesmo cruzamento de antes) e vira
+`champions.fase = 'mata'`. O A de cada confronto é o PIOR colocado (a ida é na casa do A;
+a volta, na do melhor, como na Champions de verdade). Na tela da Copa, quem está no top 8
+lê "✅ você já está nas oitavas, aguardando"; quem ficou fora lê "❌ não se classificou".
+Save antigo parado no portão ganha o repescão novo no `START_COPA`; com perna já jogada no
+jeito antigo, segue o jeito antigo (`playChampionsRepescao` ficou só pra isso).
+
+## 25/09/2026 — ⏱️ Champions: fase de tabela agora ~11s por rodada ✅ NO AR
+
+Diego: *"aumente mais 2s por jogo no modo Champions na primeira fase de pontos corridos"*.
+`CHAMPIONS_EXTRA_MS` 2000 → **4000** (rodada da liga 7s + 4s = **11s**). Repescão e
+mata-mata seguem no tempo de Copa (~17s). Só Champions ≈ **4 min 40 s** no automático.
+
+## 25/09/2026 — 📏 Champions: "8 jogos · 8 adversários diferentes · formato oficial" no topo ✅ NO AR
+
+Linha miúda embaixo do "⭐ CHAMPIONS · RODADA x/8" (no repescão: "ida e volta · 8 vagas
+nas oitavas"). Aprovado pelo Diego (*"perfeito, publique"*).
+📌 **PRÓXIMO PASSO COMBINADO**: ele vai testar a Só Champions na partida rápida e, se der
+certo, levar **tudo pro ONLINE — salas rápidas e Minhas Ligas**. Junto entra a ideia da
+sala de até 36 pessoas (ver abaixo). Não começar sem ele mandar.
+
+## 25/09/2026 — ⏱️ Rodada da liga cravada em 7s + repescão da Champions no tempo de Copa ✅ NO AR
+
+Diego: *"repescão pode manter igual mata-mata também. E liga normal que tava 6,7s aumente
+pra 7s"*.
+- `ROUND_MS = 7000` (`screens.tsx`) — rodada da liga no rápido/online (e a fase de grupos
+  da Liberta, que usa o mesmo número). Basquete segue na conta antiga. Trava
+  `npm run ritmo` atualizada pro número novo.
+- Champions: fase de tabela = liga + 2s (**9s**); **repescão e mata-mata = jogo de Copa
+  (~17s no auto)**. A régua em `EscChampions` é o JOGO na tela (`jogoDeCopa`), porque a 8ª
+  rodada anima com a fase já no repescão e a volta anima com a fase já em 'mata'.
+
+## 25/09/2026 — ⏱️ Champions +2s por jogo SÓ na fase de tabela (e repescão) ✅ NO AR (só na conta do Diego)
+
+🔁 Corrigido na mesma tarde: *"copa não aumente, digo só na liga mesmo"*. O mata-mata
+da Champions voltou pro tempo da Copa dos 8 (~17s no auto). Tabela e repescão seguem
+com ~8,7s por rodada. Só Champions ≈ **3 min 50 s** no automático.
+
+### (versão anterior, desfeita) Champions +2s por jogo (tabela, repescão e mata-mata)
+
+Diego achou a Só Champions rápida demais (~3,5 min contra ~6 min da Liga + Copa dos 8)
+e pediu *"mais 2 segundos por jogo da champions, seja liga e copa, pra ver como
+ficaria"*. `CHAMPIONS_EXTRA_MS = 2000` (`screens.tsx`): rodada da tabela/repescão
+~6,7s → ~8,7s; jogo do mata-mata ~17s → ~19s (vale nos dois modos com Champions).
+Só Champions agora dura **~4 min** no automático. Reverter = zerar a constante.
+
+## 25/09/2026 — 🚪 Champions: banners entre as fases + faixa de situação de cada um (aguardando OK)
+
+Pedido do Diego: *"tem que ter banner separando a repescagem… e deixando claro quem tá
+ou não nessa parte… qm tá classificado dizer que já passou e tá aguardando… qm tá na
+repescagem avisa… qm não se classificou avisa lá em cima igual na Copa dos 8… e ele
+só assiste"*.
+- **Banner que separa as fases** = o próprio palco da Champions (um teatro só): "FIM
+  DA TABELA · VEM O REPESCÃO" (explica 1-8 / 9-24 / 25-36 e conta 10s) e "FIM DO
+  REPESCÃO · VÊM AS OITAVAS" (conta 6s). No manual, quem manda é o botão ("Começar o
+  repescão" / "Ir pras oitavas"). `PORTAO_REPESCAO_MS` / `PORTAO_OITAVAS_MS`.
+- **Faixa de situação** logo abaixo do banner, em qualquer aba: ✅ JÁ ESTÁ NAS
+  OITAVAS (aguardando) · ⚔️ ESTÁ NO REPESCÃO (contra quem) · ❌ NÃO SE CLASSIFICOU (só
+  assiste) · ✅ PASSOU / ❌ CAIU NO REPESCÃO. Só aparece depois do apito da 8ª rodada.
+  Quem não joga o repescão tem PULAR. No mata-mata, quem não entrou lê "❌ Você não se
+  classificou pro mata-mata — agora é só assistir".
+- **Conserto de spoiler/sumiço**: a 8ª rodada agora anima como TABELA (antes a tela
+  virava pro repescão no meio do jogo), e a VOLTA do repescão agora aparece rolando
+  (antes o motor pulava direto pras oitavas — `playChampionsRepescao` não troca mais
+  de tela; quem leva é o `START_COPA`). Placar dos confrontos só entra após o apito.
+- Duração medida (automático, velocidade normal): **Só Champions ≈ 3,5 min** (8
+  rodadas ~55s · repescão ~15s · oitavas→final ~2 min + banners) contra **Liga +
+  Libertadores ≈ 7,5 min**.
+
+## 25/09/2026 — 🎨 Tela da Champions = MESMAS peças da tela da liga (aguardando OK pra publicar)
+
+Diego: *"visual segue padrões do q já tem nos modo hj seja placar botões cores
+tabelas… outros jogos e tudo mais.. Tudo igual"*. O `EscChampions` foi remontado
+com as peças do `EscSeason`, na mesma ordem: barra do topo (⭐ CHAMPIONS · RODADA
+x/8 · posição · pts), placar que encolhe (`PlacarOnlineQueEncolhe`), manual/auto,
+abas JOGOS+TABELA / ESTATÍSTICAS / ELENCO, faixa dos outros jogos, PRÓXIMO JOGO com
+Retranca/Equilíbrio/Ataque (a tática vale no motor da Champions — `tacticOf` lê
+`state.tactics`), tabela de 36, TODOS OS JOGOS da rodada, artilharia e garçons DA
+CHAMPIONS na aba de estatísticas (`TopScorersBox fonte` / `TopAssistsBox
+competition="champions"`), campinho na aba elenco, e o fundo de estádio
+(`ll25-shell` passa a valer na tela `champions`). O repescão usa o cartão de
+confronto da Copa (`CompetitionMatch`). Só o que é DA Champions ficou dela: o
+banner, as faixas de corte da tabela e a espera do top 8.
+
+## 25/09/2026 — 🩹 Só Champions caía na liga de 20 depois de outra partida ✅ NO AR
+
+Print do Diego no 1º teste de verdade: "RODADA 1/38 · 13º · 0 pts", sem tabela. Causa:
+o `START` da partida rápida **não limpava** a Champions/Copa/Liberta da partida
+ANTERIOR — a `abreChampionsDiretoSePrecisa` via a Champions velha, achava que já
+tinha semeado e deixava a liga rodar. No meu teste não aparecia porque eu sempre
+partia do estado zerado. Conserto: (1) o `START` zera `quickCopa`/`liberta`/`champions`
+(mesma faxina do REPLAY); (2) com a rodada em 0, a função trata qualquer copa no
+estado como resto e limpa; (3) ao abrir o save da partida em andamento, ela roda de
+novo — quem ficou preso na liga **se cura sozinho** ao reabrir. Testado: partida
+velha → partida nova vai pra tabela de 36; save preso → reabre na Champions.
+
+## 25/09/2026 — ⏱️ Monte das sobras = 10s nas salas com Champions ✅ NO AR
+
+Diego: *"o monte da sobra do leilão gratuita do modo Champions será sempre com 10s e
+não 15s"*. `monteMsDe()` (`store.tsx`): Liga + Champions ou Só Champions = **10s**;
+todo o resto continua **15s**. O relógio e o texto "⏱️ Xs por vez" da tela leem a
+mesma função. Como sempre, o relógio do Monte só existe no ONLINE (contra a CPU não
+tem prazo). **Reverter**: `git revert` do commit.
+
+## 25/09/2026 — ⭐ "SÓ CHAMPIONS" na partida rápida offline ✅ NO AR (só na conta do Diego)
+
+Pedido do Diego: *"continua começando com 20… deveria ser só champions direto… deve
+ter todos padrão de tabela, de placar, botões etc igual aos outros"*. Proposta
+aprovada com um "Sim".
+
+- **Botão novo na montagem da partida rápida: "⭐ Só Champions"** (no lugar do
+  "Liga + Champions"). Continua travado com o selo EM BREVE pra todo mundo menos o
+  Diego (`useChampionsLiberada`; `CHAMPIONS_GERAL = false` NÃO mexido).
+- **Acabou o leilão → vai direto pra tabela de 36**, sem liga. Entram o seu time +
+  os times do leilão (os 20 com elenco) + 16 clubes de batismo na ordem de sempre
+  (`championsConvidados`). Mora em `seedChampionsDireto`/`abreChampionsDiretoSePrecisa`
+  (`store.tsx`), que roda DEPOIS de qualquer ação (`reducer` virou um invólucro do
+  `reducerBase`) — assim pega fim do leilão, "Nova temporada" e "Novo leilão" sem
+  lembrar caminho por caminho. A liga fica montada por baixo com a rodada no fim
+  (é de lá que o motor lê a força), mas ninguém joga ela.
+- **Tela da Champions no padrão da liga**: banner de cinema, placar ao vivo
+  (`LiveScoreCard`), tabela com escudo/P/V/E/D/SG, faixas de corte e a sua linha na
+  cor do seu tier, `SimControls` de sempre.
+- **Mata-mata e fim sem resto de liga**: some o "15º · 0 pts" do topo (vira IDA/VOLTA),
+  some a artilharia da liga, o texto das oitavas explica "8 primeiros + 8 do
+  repescão" (vale também pro Liga + Champions, que tinha o texto da Copa dos 8), a
+  artilharia do mata-mata diz CHAMPIONS, o Rank não grava campeão de liga falso, o
+  `FINISH_SEASON` não coroa liga nesse modo, e a tela do fim é "🏁 Fim da Champions"
+  sem o jornal O MARTELO (que só fala de liga/Copa dos 8).
+- **Fechar o app no meio não perde a Champions**: a tela `champions` entra no save
+  da partida em andamento SÓ nesse modo (`isSoloGameScreen`).
+
+Testado de ponta a ponta com o motor de verdade (leilão → 8 rodadas → repescão →
+oitavas → campeão → "Nova temporada" volta direto pra tabela), prints conferidos.
+**Reverter**: é um commit só — `git revert` dele.
+
+⚖️ **Nível dos convidados: DECIDIDO, fica como está (25/09).** Medido: rival do
+leilão = 100%, bot de enchimento ≈ 82%, os 16 batismos convidados ≈ 72% (levam o
+mesmo desconto dos bots em cima de uma força menor). Propus subir pra 82% e ele
+disse: *"Não. Deixa como tá"*. **Não repropor.**
+
+🧑‍🤝‍🧑 **IDEIA DELE (25/09), pra QUANDO liberar a Champions no online:** sala do modo
+Champions com **até 36 pessoas** (*"somente nesse modo… qd eu liberar no online"*).
+Hoje a sala online tem teto de 20 times (`MAX_PLAYERS` em `lobby.tsx`; duplas = 40
+pessoas mas 20 times). Pra fazer: (1) criar a Só Champions no ONLINE (hoje o online só
+tem Liga + Champions); (2) teto 36 só nesse modo; (3) conferir se o baralho fecha 36
+elencos e se a sala aguenta 36 envelopes (lembrar da sala pesada do Tocaia, 24/09);
+(4) vaga que sobrar continua virando clube de batismo. **Baralho medido em 25/09** (START_ONLINE com 36
+nomes): 401 cartas, **zero fake** em Brasil, Europa, Brasil+Europa e Todos, cada um
+sozinho, nas duas formações que a sala oferece (4-3-3 e 4-4-2). Só faltaria zagueiro
+brasileiro com formação de 3 zagueiros (5-3-2/5-4-1) — que a sala NÃO oferece. **Não começar antes de ele
+mandar liberar.**
+
+📌 Pendente (não fazer sem ele pedir): liberar a Champions pra todos
+(`CHAMPIONS_GERAL`); Só Champions no ONLINE; jornal O MARTELO com edição da Champions.
 
 ## 25/09/2026 — ⚽🅰️ O gol do jogador estava perdendo a Supercopa (e o total, os clubes de grafia dupla) ✅ NO AR
 
@@ -108,6 +438,23 @@ porque é a mesma tela.
 
 ↩️ **Reverter**: apagar o lado `tocaia` dos ternários — o envelope volta a ser o
 único texto, sem tocar em mais nada.
+
+## 25/09/2026 — ⭐ Banner cinematográfico da Champions (fim da liga) ✅ PUBLICADO
+
+Pedido do Diego: *"o mesmo estilo de banner da Copa do Mundo… com o troféu da Champions no
+lugar, e escrever Champions League"*. Mockup mandado; ok dele: *"faça aí"*.
+- `CompetitionStage kind="champions"` (novo `kind`) + `.ll25-champions-art` com
+  `img/online-champions-v25.webp` (1280×852, 40 KB): a MESMA sala da Copa do Mundo, o
+  troféu dourado tirado por inpaint, o troféu de orelhas (recortado da foto que ele mandou,
+  emblema desfocado) no pedestal, cena puxada pro azul `#1B3FA0` + estrelas. Receita em
+  `scratchpad` (não versionada) — refazer é: recorte por luminância + inpaint + blend.
+- O bannerzão azul liso do fim da liga saiu; regras e o botão "⭐ COMEÇAR A CHAMPIONS" ficam
+  na área creme embaixo do palco, igual ao portão da Copa do Mundo. Vale online e offline.
+- Texto do banner: **"Champions League"**, como ele pediu (no resto do jogo segue "Champions
+  Legends"). ⚠️ Foto real do troféu + nome "Champions League" são marcas da UEFA — avisado a
+  ele; decisão dele. Um troféu em DESENHO foi gerado no OpenArt (conta dele, histórico
+  9vTX9jlxc1AcjGUageCR) mas a rede daqui não baixa do cdn.openart.ai — se ele mandar a
+  imagem, é só trocar o webp.
 
 ## 25/09/2026 — ⭐ Champions offline: tabela zerada no Modo Manual ✅ CONSERTADO
 
