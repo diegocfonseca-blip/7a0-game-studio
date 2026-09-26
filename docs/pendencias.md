@@ -1,3 +1,46 @@
+## 26/09/2026 — 🏟️ O Giro vira LETREIRO DE ESTÁDIO + 🎤 manchetes sobre a GALERA da sala ⏳ ESPERANDO OK PRA PUBLICAR
+
+Pedido do Diego: *"uma mudança visual melhor no giro da copa, com alguma animação…
+qual sua melhor ideia?"* → mockup do letreiro de LED aprovado (*"Aprovo"*), com um
+pedido junto: *"nos modos rápido online e minhas ligas você poderia pôr mais textos
+em relação aos usuários que estão jogando"*.
+
+### 🏟️ O letreiro (`GiroDaRodada`, screens.tsx)
+A caixinha bege que trocava de frase a cada 3s virou a faixa de LED que corre em
+volta do gramado: fundo preto com matriz de pontinhos, letra Oswald âmbar com
+brilho, manchetes CORRENDO da direita pra esquerda com ◆ entre elas.
+· A cor da luz conta a história: 🎯 pênalti/prorrogação = vermelho · 👑 campeão =
+  dourado · resto = âmbar. Sem confete, sem faixa (regra de 19/09).
+· 0 KB (radial-gradient + keyframes). Anti-spoiler intacto (recebe a MESMA lista
+  segurada até o apito). Com "reduzir movimento" ligado, mostra uma frase parada
+  por vez, com o fade de antes.
+· Mockup: `node scripts/mockup-giro-letreiro.mjs` · foto/vídeo do componente REAL
+  montado sozinho via vite: `node scripts/foto-giro-letreiro.mjs`.
+
+### 🎤 As manchetes da galera (`src/escalacao/giro-galera.ts`, módulo puro)
+Só no ONLINE (sala rápida e Minhas Ligas). Sai do que ACONTECEU — nada inventado:
+· 🥊 **Clássico da sala** (humano × humano) com placar, vencedor e um fecho de
+  zoeira sorteado (*"leva a rodada no papo"*, *"vai ficar de castigo no grupo"*,
+  *"já pediu revanche no privado"*…) + o retrospecto entre os dois quando existe.
+· 🤝 empate entre humanos · 😴 0×0 entre humanos.
+· 🤡 humano tomou 3+ de BOT · 🧨 humano goleou bot por 4+ · 🤖 perdeu apertado pra bot.
+· 🎩 o melhor técnico da sala MUDOU (só com tabela e posição de antes) ·
+  🐌 o pior da sala perdeu de novo (3+ humanos).
+Onde entra: rodada da liga (`narrateRound`, na frente das neutras, corte sobe pra 5),
+rodada da **tabela da Champions** (que até hoje não gerava manchete NENHUMA — o
+giro ficava mudo 8 rodadas), rodada de grupo da Liberta e cada perna do mata-mata.
+· 🎲 a frase é presa na semente: mesma rodada, mesma frase no host e nos convidados.
+· 🌐 PT guardado, EN por `traduzGalera` (mora no mesmo arquivo do texto).
+· 🙈 toda manchete abre com um emoji fixo (`GALERA_ABERTURAS`) e o anti-spoiler da
+  copa segura essas também (o "clássico da sala 2 × 1" entrega placar igual).
+
+**Travas**: `npm run galera` (18 conferências: vencedor certo, bot×bot nunca, semente,
+teto, não inventa sem tabela, toda frase tem inglês e abertura) · `telas` ·
+`champions` verdes.
+
+⏳ **Não publiquei**: vai junto com o campinho da Champions e os 3 consertos do giro/
+jornal, todos no branch, esperando o "pode subir" (sala dele pode estar rolando).
+
 ## 26/09/2026 — ⭐ Champions: nota do campeão sem pé nem cabeça, giro chamando de Libertadores, e o anti-spoiler cego ⏳ ESPERANDO OK PRA PUBLICAR
 
 Dois prints do Diego, numa sala de Só Champions. Consertos:

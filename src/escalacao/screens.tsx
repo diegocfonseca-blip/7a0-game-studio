@@ -45,6 +45,7 @@ import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, type OnlineMatchTab } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
@@ -6559,6 +6560,7 @@ export function EscSeason() {
           /^(⚽|🏀) (Copa|Champions|Liberta|Playoffs|NBA Cup) /.test(n)
           || /passou nos PÊNALTIS/.test(n) || /passou na PRORROGAÇÃO/.test(n)
           || /avançou n(a|os) /.test(n) || /CAMPEÃO D[AO] /.test(n)
+          || ehMancheteGalera(n) // 🎤 "clássico da sala: A 2 × 1 B" entrega o placar igual
         // giroNews é o giro SEGURADO (só atualiza no apito) — o filtro de linhas de
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
@@ -6860,6 +6862,10 @@ function traduzManchete(h: string): string {
   if (getLang() !== 'en') return h
   const m = h.match(/^(R\d+ · )?(.*)$/s)
   const pre = m?.[1] ?? '', t = m?.[2] ?? h
+  // 🎤 as manchetes da galera (26/09) traduzem no módulo delas — o texto e a
+  // tradução moram lado a lado, pra ninguém esquecer o inglês de uma frase nova.
+  const galera = traduzGalera(t)
+  if (galera) return `${pre}${galera}`
   let r: RegExpMatchArray | null
   if ((r = t.match(/^👑 (.+) assumiu a liderança do campeonato!$/))) return `${pre}👑 ${r[1]} took the league lead!`
   if ((r = t.match(/^🎯 (.+) \((.+)\) tá pegando fogo: (\d+) (gols|pontos) na temporada!$/))) return `${pre}🎯 ${r[1]} (${r[2]}) is on fire: ${r[3]} ${r[4] === 'gols' ? 'goals' : 'points'} this season!`
@@ -6883,8 +6889,24 @@ function traduzManchete(h: string): string {
   if ((r = t.match(/^🏆 (.+) avançou na (Copa|Libertadores|Champions) — adeus, (.+)!$/))) return `${pre}🏆 ${r[1]} advanced in the ${r[2] === 'Copa' ? 'Cup' : r[2]} — bye, ${r[3]}!`
   return h
 }
-function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[]; isCopa?: boolean; cinema?: boolean }) {
-  const list = news.slice(0, 5).map(traduzManchete)
+// ─── 🏟️ GIRO = LETREIRO DE LED DO ESTÁDIO (aprovado pelo Diego, 26/09) ────────
+// Era uma caixinha bege trocando de frase a cada 3s. Pedido dele: *"uma mudança
+// visual melhor no giro da copa, com alguma animação"*. Virou a faixa de LED que
+// corre em volta do gramado: fundo preto com matriz de pontinhos, letra Oswald
+// âmbar com brilho, e as manchetes CORRENDO da direita pra esquerda, uma atrás da
+// outra, com um ◆ entre elas.
+//   · a COR da luz conta a história: 🎯 pênalti/prorrogação = vermelho ·
+//     👑 campeão = dourado · o resto = âmbar. Sem confete, sem faixa colorida
+//     (regra dele de 19/09) — só a cor do LED.
+//   · 💾 0 KB: matriz = radial-gradient, corrida = keyframes. Nada de arquivo.
+//   · 🙈 anti-spoiler intacto: recebe a MESMA lista já segurada até o apito.
+//   · ♿ com "reduzir movimento" ligado no aparelho, a faixa não corre: mostra
+//     uma manchete parada por vez, com o fade de antes.
+//   · o `key` da corrida é a lista inteira → manchete nova reinicia a corrida do
+//     começo, então a mais recente é sempre a primeira a entrar.
+const corDoLed = (h: string) => /CAMPE[ÃA]O|👑|WINS|CHAMPION/.test(h) ? '#FFE066' : /🎯|🕐|PÊNALTIS|PENALTIES|PRORROGAÇÃO|OVERTIME/.test(h) ? '#FF5A3C' : '#FFB000'
+export function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[]; isCopa?: boolean; cinema?: boolean }) {
+  const list = news.slice(0, 6).map(traduzManchete)
   const key = list.join('|')
   const [idx, setIdx] = useState(0)
   const keyRef = useRef(key)
@@ -6895,17 +6917,37 @@ function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[]; isCopa
     return () => clearInterval(iv)
   }, [key, list.length])
   if (list.length === 0) return null
+  // velocidade constante: ~0,16s por letra, com piso de 18s pra lista curta não passar voando
+  const chars = list.reduce((n, h) => n + h.length + 4, 0)
+  const dur = Math.max(18, Math.round(chars * 0.16))
+  const rotulo = getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')
   return (
-    <Box bg="#FFF6DC" className={`p-3${cinema ? ' ll31-news' : ''}`}>
-      <style>{'@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}'}</style>
-      <p className="font-black text-xs uppercase tracking-wide mb-2" style={OSWALD}>{getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')}</p>
-      <p key={idx} className="text-xs font-bold" style={{ minHeight: '2.4em', animation: 'giroFade .35s ease' }}>{list[idx]}</p>
-      {list.length > 1 && (
-        <div className="flex justify-center gap-1 mt-2">
-          {list.map((_, i) => <span key={i} className="rounded-full" style={{ width: 5, height: 5, background: i === idx ? '#8a8069' : '#e2d8b8', display: 'inline-block' }} />)}
+    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden' }}>
+      <style>{`@keyframes giroCorre{to{transform:translateX(-50%)}}@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
+.giro-led{position:relative;height:46px;background:#0a0a0a;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.2px);background-size:4px 4px;box-shadow:inset 0 0 18px rgba(0,0,0,.9)}
+.giro-led:before,.giro-led:after{content:'';position:absolute;top:0;bottom:0;width:26px;z-index:2;pointer-events:none}
+.giro-led:before{left:0;background:linear-gradient(90deg,#0a0a0a,transparent)}.giro-led:after{right:0;background:linear-gradient(270deg,#0a0a0a,transparent)}
+.giro-corre{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;padding-left:100%;animation:giroCorre linear infinite}
+.giro-m{font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:.6px;text-transform:uppercase}
+.giro-sep{color:rgba(255,176,0,.45);margin:0 18px;font-size:11px}
+.giro-parado{display:none}
+@media (prefers-reduced-motion:reduce){.giro-corre{display:none}.giro-parado{display:flex;align-items:center;height:100%;padding:0 12px;animation:giroFade .35s ease}}`}</style>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px 5px', background: CREAM, borderBottom: `3px solid ${INK}` }}>
+        <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{rotulo}</span>
+        {list.length > 1 && <span>{list.map((_, i) => <i key={i} style={{ display: 'inline-block', width: 5, height: 5, borderRadius: 99, background: i === idx ? INK : '#d9cfae', marginLeft: 4 }} />)}</span>}
+      </div>
+      <div className="giro-led">
+        <div key={key} className="giro-corre" style={{ animationDuration: `${dur}s` }}>
+          {[...list, ...list].map((h, i) => (
+            <Fragment key={i}>
+              <span className="giro-m" style={{ color: corDoLed(h), textShadow: `0 0 6px ${corDoLed(h)}88` }}>{h}</span>
+              <span className="giro-sep">◆</span>
+            </Fragment>
+          ))}
         </div>
-      )}
-    </Box>
+        <div key={`p${idx}`} className="giro-parado"><span className="giro-m" style={{ color: corDoLed(list[idx]), textShadow: `0 0 6px ${corDoLed(list[idx])}88`, whiteSpace: 'normal', fontSize: 13, lineHeight: 1.15 }}>{list[idx]}</span></div>
+      </div>
+    </div>
   )
 }
 

@@ -13,6 +13,7 @@ import type {
   EventoAtivo, EventoManchete, DuplaSeat, DuplaCat, Fame, HolandesState,
 } from './types'
 import { SECTORS, FORMATIONS, DUPLA_CATS, duplaPodeAgir, duplaToggleCat } from './types'
+import { narraGalera } from './giro-galera' // 🎤 manchetes sobre as pessoas da sala (26/09)
 import { divisaoDaCarreira, DIV_COM_GAS, gasDoElenco, jogosDoElenco, chaveCarry } from './condicao' // 😓 gás: divisão de VERDADE + o cansaço que atravessa a virada (13/09)
 import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
@@ -3477,6 +3478,17 @@ function playLibertaRodada(s: EscState) {
   }
   lb.lastResults = res
   lb.rodada++
+  // 🎤 giro da galera na fase de grupos (26/09) — sem posição (a tabela é por
+  // grupo), só o que rende: clássico da sala e gente tomando de bot.
+  if (s.onlineMode === 'online') {
+    const galera = narraGalera({
+      jogos: res, seed: (s.seed ^ (0x11BE47A + 0x6A1E + lb.rodada * 131)) >>> 0,
+      nomeDe: id => lb.times.find(t => t.id === id)?.name ?? '?',
+      ehHumano: id => !!s.managers.find(m => m.id === id && m.isHuman),
+      h2h: (a, b) => rivalryOf(s.rivalries, a, b),
+    }).map(h => `R${lb.rodada} · ${h}`)
+    if (galera.length) s.news = [...galera, ...s.news].slice(0, 12)
+  }
   // acabou a fase de grupos → semeia as OITAVAS com os 2 primeiros de cada grupo
   if (lb.rodada >= 6) {
     lb.fase = 'mata'
@@ -3587,6 +3599,8 @@ function playChampionsRodada(s: EscState) {
   const res: MatchResult[] = []
   if (!ch.scorers) ch.scorers = [] // saves antigos sem o campo
   if (!ch.assists) ch.assists = []
+  // 🎤 foto da tabela ANTES da rodada — pro giro saber se o melhor da sala mudou
+  const posAntesCh = new Map(championsTabela(ch).map((t, i) => [t.id, i + 1]))
   for (const [h, a] of ch.fixtures[ch.rodada]) {
     // 🥇🅰️ artilharia e garçons DA CHAMPIONS: ranking próprio, que segue pro
     // repescão e pro mata-mata. A da liga fica intacta.
@@ -3601,6 +3615,21 @@ function playChampionsRodada(s: EscState) {
   }
   ch.lastResults = res
   ch.rodada++
+  // 🎤 GIRO DA GALERA NA TABELA DA CHAMPIONS (26/09). Até aqui a fase de tabela
+  // não gerava manchete NENHUMA — o giro ficava mudo por 8 rodadas. Agora, no
+  // online, cada rodada conta o que a galera fez (clássico da sala, quem tomou
+  // de bot, quem virou o melhor da turma). Vai com o prefixo R{n} como a liga.
+  if (s.onlineMode === 'online') {
+    const tabelaAgora = new Map(championsTabela(ch).map((t, i) => [t.id, i + 1]))
+    const galera = narraGalera({
+      jogos: res, seed: (s.seed ^ (0xC4A1E6A + ch.rodada * 131)) >>> 0,
+      nomeDe: id => ch.times.find(t => t.id === id)?.name ?? '?',
+      ehHumano: id => !!s.managers.find(m => m.id === id && m.isHuman),
+      posDe: id => tabelaAgora.get(id), posAntes: id => posAntesCh.get(id),
+      h2h: (a, b) => rivalryOf(s.rivalries, a, b),
+    }).map(h => `R${ch.rodada} · ${h}`)
+    if (galera.length) s.news = [...galera, ...s.news].slice(0, 12)
+  }
   // acabou a tabela → monta o REPESCÃO (9º ao 24º, ida e volta por 8 vagas)
   if (ch.rodada >= CHAMPIONS_RODADAS) {
     const tabela = championsTabela(ch)
@@ -4054,9 +4083,20 @@ function narrateRound(s: EscState, results: MatchResult[], prevRank: Map<number,
     if (secos >= Math.ceil(results.length / 2)) heads.push(`💤 Rodada de goleiro feliz: ${secos} jogos terminaram sem gol nenhum.`)
   }
 
+  // 🎤 A GALERA NA FRENTE (Diego 26/09: *"mais textos em relação aos usuários que
+  // estão jogando"*). Só no ONLINE (sala rápida e Minhas Ligas) — no solo o único
+  // humano é você, e "clássico da sala" não existe. Entram antes das neutras
+  // porque são as que a sala quer ler; o corte sobe pra 5 pra não engolir as outras.
+  const galera = s.onlineMode === 'online' ? narraGalera({
+    jogos: results, seed: (s.seed ^ (0xA1E6A + roundNum * 131)) >>> 0,
+    nomeDe: nameOf, ehHumano: id => !!s.managers.find(m => m.id === id && m.isHuman),
+    posDe: id => { const i = nowSorted.findIndex(t => t.id === id); return i < 0 ? undefined : i + 1 },
+    posAntes: id => prevRank.get(id),
+    h2h: (a, b) => rivalryOf(s.rivalries, a, b),
+  }) : []
   // 📢 e passam a caber QUATRO por rodada, não três: com o dobro de tipos, três
   // cortava justamente a manchete diferente (elas entram na ordem em que nascem).
-  return heads.slice(0, 4).map(h => `R${roundNum} · ${h}`)
+  return [...galera, ...heads].slice(0, galera.length ? 5 : 4).map(h => `R${roundNum} · ${h}`)
 }
 
 // ─── monte final: ordem serpente por buracos ─────────────────────────
@@ -8203,6 +8243,22 @@ function reducerBase(state: EscState, action: Action): EscState {
 // Champions caía no nome errado. Agora lê o mesmo `copaWord` de todo o resto.
 `🏆 ${w} avançou ${bbGiro ? 'nos Playoffs' : `na ${copaWord === 'Liberta' ? 'Libertadores' : copaWord}`} — adeus, ${l}!`)
         }
+      }
+      // 🎤 a galera também no mata-mata (26/09): a perna que acabou de rolar, com o
+      // mandante certo (na volta o B joga em casa). Sem posição — é chave, não tabela.
+      if (s.onlineMode === 'online' && !bbGiro) {
+        const jogos = qc.ties.flatMap(tie => {
+          const leg = tie.legs[tie.legs.length - 1]
+          if (!leg) return []
+          const swap = qc.legIdx % 2 === 1
+          return [swap ? { homeId: tie.bId, awayId: tie.aId, hg: leg[1], ag: leg[0] } : { homeId: tie.aId, awayId: tie.bId, hg: leg[0], ag: leg[1] }]
+        })
+        const nomeDe = (id: number) => { for (const t of qc.ties) { if (t.aId === id) return t.aName; if (t.bId === id) return t.bName } return '?' }
+        copaHeads.unshift(...narraGalera({
+          jogos, seed: (s.seed ^ (0xC0BA + qc.bracket.length * 977 + qc.legIdx * 131)) >>> 0,
+          nomeDe, ehHumano: id => !!s.managers.find(m => m.id === id && m.isHuman),
+          h2h: (a, b) => rivalryOf(s.rivalries, a, b),
+        }))
       }
       s.news = [...copaHeads, ...s.news].slice(0, 12)
       return s
