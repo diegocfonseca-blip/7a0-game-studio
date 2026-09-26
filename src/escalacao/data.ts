@@ -1618,7 +1618,7 @@ const GOL_EU: C[] = [
   { name: "Fabien Barthez", club: "Man United", year: 2000, fame: 3, lo: 78, hi: 86 },
   { name: "Víctor Valdés", club: "Barcelona", year: 2011, fame: 3, lo: 78, hi: 86 },
   { name: "Pepe Reina", club: "Liverpool", year: 2009, fame: 3, lo: 77, hi: 85 },
-  { name: "Júlio César", club: "Inter", year: 2010, fame: 4, lo: 85, hi: 91 },
+  { name: "Júlio César", club: "Inter", year: 2010, fame: 5, lo: 85, hi: 91 },
   { name: "Alisson", club: "Liverpool", year: 2019, fame: 4, lo: 86, hi: 92 },
   { name: "Ederson", club: "Man City", year: 2019, fame: 4, lo: 85, hi: 91 },
   { name: "David Seaman", club: "Arsenal", year: 1998, fame: 4, lo: 80, hi: 87 },
