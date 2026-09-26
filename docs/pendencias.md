@@ -1,3 +1,9 @@
+## 26/09/2026 — 👑 Dembélé (PSG 2024) vira LENDA · 🃏 Higuita e Chilavert viram FOLCLÓRICOS ✅ NO AR
+
+Pedidos do Diego. Bio do Dembélé agora diz campeão do mundo (França 2018) e Bola de Ouro.
+Higuita e Chilavert ganharam `folk: true` (selo 🃏 FOLCLÓRICO, continuam lenda). Vozinha já era
+folclórico. `sincronizaNiveis` leva `folk` e `bio` pros saves sozinho.
+
 ## 26/09/2026 — ↩️ Maicon (Inter 2010) VOLTA a craque ✅ NO AR
 
 Diego: *"Maicon não bote lenda também não"*. Ele tinha virado lenda numa sessão de 23/09.
