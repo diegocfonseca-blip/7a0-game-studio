@@ -1,3 +1,15 @@
+## 26/09/2026 — 🧱 LOTE 35: 85 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
+
+Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e
+categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`): o baralho é o do CLUBE (Boca, River,
+Parma, Espanyol e Cruz Azul são do Mundo; o resto, Europa). Conferido carta por carta que o mesmo
+jogador NÃO está no mesmo baralho. Nenhuma lenda nova: quem é lenda em outro clube (Maradona,
+Passarella, Thuram, Stoichkov) entra como craque/bom jogador — lenda é uma carta só. 7 promessas
+(Enzo, Draxler, Havertz, Gago, van de Beek, Semedo, Demichelis). País carta a carta em
+`paises.ts` + 16 nomes em `MESMO_JOGADOR`. `npm run paises` verde. Home: as lendas de hoje ficaram
+na frente das 85 entradas (o gerador guarda 60 linhas; juntei na mão pra não sumirem) + 1 linha
+em `novidades.ts`. Mockup das cartas mandado pra ele.
+
 ## 26/09/2026 — 🧱 LEILÃO DE SETORES (ideia do Diego) — EM CONVERSA, nada construído
 
 Modo novo: o lote é o SETOR de um clube ("Goleiros do Palmeiras"); depois do leilão, convocação

@@ -2352,7 +2352,92 @@ const L31_EU_LAT: C[] = [
 const L31_EU_MEI: C[] = [
   { name: "Fábio Rochemback", club: "Sporting", year: 2005, fame: 3, lo: 74, hi: 86, bio: "Volante revelado no Internacional que teve a melhor fase no Sporting — chute de fora da área como marca registrada e final de Copa da UEFA." },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA] }
+// 🧱 LOTE 35 (26/09) — pro LEILÃO DE SETORES (ideia do Diego): o lote do modo é o
+// SETOR de um clube ("Zaga do River"), e ele quer UM clube por partida. Quem limita
+// a sala é quantos clubes DIFERENTES fecham um setor — então esta leva completa o
+// setor de clubes conhecidos que estavam a 1-3 cartas disso. Regras conferidas carta
+// a carta: o MESMO jogador só entra em baralho DIFERENTE (o Maradona do Boca é do
+// baralho Mundo; o do Napoli, do Europa), e lenda é uma carta só — quem já é lenda
+// em outro clube (Maradona, Passarella, Thuram, Stoichkov) entra aqui como craque ou
+// bom jogador. Clube/ano: o auge do cara NAQUELE clube.
+const L35_EU_GOL: C[] = [
+  { name: "Shay Given", club: "Aston Villa", year: 2012, fame: 3, lo: 74, hi: 84, bio: "Goleiro irlandês de reflexo absurdo, ídolo no Newcastle e depois no Aston Villa." },
+  { name: "Peter Shilton", club: "Nottingham Forest", year: 1979, fame: 4, lo: 82, hi: 88, bio: "Goleiro recordista de jogos pela Inglaterra — bicampeão europeu com o Nottingham Forest em 1979 e 1980." },
+  { name: "Tim Flowers", club: "Blackburn", year: 1995, fame: 3, lo: 75, hi: 84, bio: "Goleiro do Blackburn campeão inglês de 1995, com Shearer no ataque." },
+  { name: "Asmir Begović", club: "Stoke City", year: 2012, fame: 3, lo: 74, hi: 83, bio: "Goleiro bósnio do Stoke — fez gol de tiro de meta contra o Southampton em 2013." },
+  { name: "Artur Boruc", club: "Celtic", year: 2007, fame: 3, lo: 74, hi: 83, bio: "\"The Holy Goalie\" — goleiro polonês idolatrado pela torcida do Celtic." },
+  { name: "Fraser Forster", club: "Celtic", year: 2014, fame: 3, lo: 74, hi: 83, bio: "Goleirão do Celtic que parou o Barcelona de Messi na Champions de 2012." },
+  { name: "Andy Goram", club: "Rangers", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Goleiro lendário do Rangers dos anos 90, eleito o melhor da história do clube." },
+  { name: "Allan McGregor", club: "Rangers", year: 2010, fame: 3, lo: 74, hi: 83, bio: "Goleiro escocês do Rangers, tricampeão escocês entre 2009 e 2011." },
+]
+const L35_EU_LAT: C[] = [
+  { name: "Jorginho", club: "Leverkusen", year: 1990, fame: 3, lo: 78, hi: 86, bio: "Lateral-direito do tetra, na fase alemã: três temporadas no Bayer Leverkusen antes do Bayern." },
+  { name: "Adriano Correia", club: "Sevilla", year: 2008, fame: 3, lo: 75, hi: 84, bio: "Lateral brasileiro do Sevilla campeão da Copa da UEFA — depois seguiu pro Barcelona." },
+  { name: "Nélson Semedo", club: "Benfica", year: 2017, fame: 3, lo: 75, hi: 84, promessa: true, bio: "Lateral-direito veloz do Benfica campeão português, que saiu de lá direto pro Barcelona." },
+  { name: "Bacary Sagna", club: "Arsenal", year: 2011, fame: 3, lo: 77, hi: 85, bio: "Lateral-direito francês incansável, titular do Arsenal por sete temporadas." },
+  { name: "Lee Dixon", club: "Arsenal", year: 1998, fame: 3, lo: 76, hi: 85, bio: "Lateral da defesa lendária do Arsenal campeão inglês em 1998 com o Wenger." },
+  { name: "John Arne Riise", club: "Liverpool", year: 2005, fame: 3, lo: 77, hi: 85, bio: "Lateral norueguês de canhota absurda, campeão da Champions de 2005 no milagre de Istambul." },
+  { name: "Filipe Luís", club: "Atlético de Madrid", year: 2014, fame: 4, lo: 81, hi: 88, bio: "Lateral do Atlético do Simeone campeão espanhol de 2014 e finalista da Champions." },
+  { name: "Juanfran", club: "Atlético de Madrid", year: 2014, fame: 3, lo: 77, hi: 85, bio: "Lateral-direito do Atlético campeão espanhol de 2014 — incansável no esquema do Simeone." },
+]
+const L35_EU_ZAG: C[] = [
+  { name: "Edmilson", club: "Lyon", year: 2002, fame: 3, lo: 77, hi: 85, bio: "Zagueiro-volante do Lyon tricampeão francês — de lá foi pro Barcelona e ainda levantou o penta com a Seleção em 2002." },
+  { name: "Giuseppe Favalli", club: "Lazio", year: 2000, fame: 2, lo: 70, hi: 82, bio: "Defensor canhoto e fiel da Lazio campeã italiana de 2000 — pau pra toda obra, jogava de zagueiro ou lateral." },
+  { name: "Miranda", club: "Atlético de Madrid", year: 2014, fame: 4, lo: 81, hi: 88, bio: "Paredão do Atlético de Madrid do Simeone — campeão espanhol de 2014 e finalista da Champions, com Godín ao lado." },
+  { name: "Fabricio Coloccini", club: "Newcastle", year: 2012, fame: 3, lo: 74, hi: 84, bio: "Zagueiro argentino da cabeleira inconfundível, capitão do Newcastle por anos." },
+  { name: "Danny Blind", club: "Ajax", year: 1995, fame: 3, lo: 77, hi: 85, bio: "Capitão do Ajax campeão da Champions de 1995 — o pai do Daley Blind." },
+  { name: "Jorge Costa", club: "Porto", year: 2004, fame: 3, lo: 77, hi: 85, bio: "\"O Bicho\" — capitão do Porto do Mourinho campeão da Champions de 2004." },
+  { name: "Bruno Alves", club: "Porto", year: 2009, fame: 3, lo: 75, hi: 84, bio: "Zagueiro duro e bom de cabeça, tetracampeão português com o Porto e campeão da Euro 2016." },
+  { name: "Aloísio", club: "Porto", year: 1995, fame: 3, lo: 75, hi: 84, bio: "Zagueiro brasileiro que virou ídolo no Porto dos anos 90, capitão de uma sequência de títulos portugueses." },
+  { name: "Ricardo Gomes", club: "Benfica", year: 1990, fame: 3, lo: 78, hi: 86, bio: "Capitão da Seleção na Copa de 90 e líder da zaga do Benfica finalista da Copa dos Campeões de 1990." },
+  { name: "Humberto Coelho", club: "Benfica", year: 1975, fame: 4, lo: 80, hi: 88, bio: "Lenda do Benfica dos anos 70 — um dos maiores zagueiros da história de Portugal." },
+  { name: "Diego Carlos", club: "Sevilla", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Zagueiro brasileiro campeão da Liga Europa com o Sevilla em 2020, antes de ir pra Premier League." },
+  { name: "Javi Navarro", club: "Sevilla", year: 2006, fame: 2, lo: 71, hi: 82, bio: "Zagueiro-capitão do Sevilla bicampeão da Copa da UEFA em 2006 e 2007." },
+  { name: "Federico Fazio", club: "Sevilla", year: 2012, fame: 2, lo: 70, hi: 82, bio: "Zagueiro argentino de quase dois metros, campeão da Liga Europa com o Sevilla." },
+  { name: "Basile Boli", club: "Marseille", year: 1993, fame: 3, lo: 77, hi: 85, bio: "Fez de cabeça o gol do título do Marseille na final da Champions de 1993 contra o Milan." },
+  { name: "Mozer", club: "Marseille", year: 1991, fame: 4, lo: 80, hi: 88, bio: "Depois do Flamengo, virou ídolo no Marseille tricampeão francês e finalista da Copa dos Campeões de 1991." },
+  { name: "Roberto Ayala", club: "Valencia", year: 2002, fame: 4, lo: 81, hi: 88, bio: "\"El Ratón\" — zagueiro argentino do Valencia campeão espanhol de 2002 e 2004." },
+  { name: "Mauricio Pellegrino", club: "Valencia", year: 2001, fame: 3, lo: 75, hi: 84, bio: "Zagueiro argentino do Valencia que chegou a duas finais seguidas de Champions, em 2000 e 2001." },
+  { name: "Carlos Marchena", club: "Valencia", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Valencia campeão da Liga e da Copa da UEFA em 2004, depois campeão do mundo com a Espanha." },
+]
+const L35_EU_MEI: C[] = [
+  { name: "Gabi", club: "Atlético de Madrid", year: 2014, fame: 3, lo: 77, hi: 85, bio: "Capitão e cérebro do Atlético de Madrid campeão espanhol de 2014." },
+  { name: "Arda Turan", club: "Atlético de Madrid", year: 2014, fame: 3, lo: 78, hi: 86, bio: "Meia turco de drible e passe, peça criativa do Atlético campeão espanhol de 2014." },
+  { name: "Rubén Baraja", club: "Valencia", year: 2004, fame: 3, lo: 78, hi: 86, bio: "\"El Pipo\" — volante do Valencia bicampeão espanhol, chegava na área e fazia gol." },
+  { name: "David Albelda", club: "Valencia", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Capitão e volante-símbolo do Valencia campeão espanhol de 2002 e 2004." },
+  { name: "Jesús Navas", club: "Sevilla", year: 2010, fame: 3, lo: 78, hi: 86, bio: "Ponta veloz e cria do Sevilla, campeão do mundo com a Espanha em 2010." },
+  { name: "Enzo Fernández", club: "Benfica", year: 2022, fame: 3, lo: 78, hi: 86, promessa: true, bio: "Volante que o Benfica comprou do River e virou campeão do mundo e melhor jovem da Copa de 2022." },
+  { name: "Fernando Chalana", club: "Benfica", year: 1984, fame: 3, lo: 78, hi: 86, bio: "\"O Pequeno Genial\" — driblador do Benfica e um dos destaques de Portugal na Euro 84." },
+  { name: "Maniche", club: "Porto", year: 2004, fame: 3, lo: 78, hi: 86, bio: "Meia de chute forte do Porto do Mourinho campeão da Champions de 2004." },
+  { name: "João Moutinho", club: "Porto", year: 2011, fame: 3, lo: 78, hi: 86, bio: "Meia do Porto invicto campeão português e da Liga Europa de 2011, e campeão da Euro 2016." },
+  { name: "Costinha", club: "Porto", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Volante do Porto campeão da Champions de 2004 — o gol contra o Manchester United que o Mourinho comemorou correndo pela lateral." },
+  { name: "Jari Litmanen", club: "Ajax", year: 1995, fame: 4, lo: 82, hi: 89, bio: "O maior jogador da história da Finlândia — o camisa 10 do Ajax campeão da Champions de 1995." },
+  { name: "Ronald de Boer", club: "Ajax", year: 1995, fame: 3, lo: 78, hi: 86, bio: "Gêmeo do Frank, meia do Ajax campeão da Champions de 1995." },
+  { name: "Johan Neeskens", club: "Ajax", year: 1972, fame: 4, lo: 83, hi: 89, bio: "Motor do Ajax tricampeão europeu nos anos 70 e da Holanda do \"futebol total\" vice em 1974." },
+  { name: "Donny van de Beek", club: "Ajax", year: 2019, fame: 3, lo: 74, hi: 84, promessa: true, bio: "Meia de chegada do Ajax semifinalista da Champions de 2019." },
+  { name: "Yohan Cabaye", club: "Newcastle", year: 2012, fame: 3, lo: 75, hi: 84, bio: "Meia francês de passe e chute de fora, destaque do Newcastle quinto colocado em 2012." },
+  { name: "Marc Albrighton", club: "Leicester", year: 2016, fame: 2, lo: 71, hi: 82, bio: "Ponta dos cruzamentos no milagre do Leicester campeão inglês de 2016." },
+  { name: "James Maddison", club: "Leicester", year: 2022, fame: 3, lo: 76, hi: 85, bio: "Meia criativo do Leicester, bom de falta e de passe decisivo." },
+  { name: "Julian Draxler", club: "Schalke", year: 2013, fame: 3, lo: 76, hi: 85, promessa: true, bio: "Revelação do Schalke que virou campeão do mundo com a Alemanha em 2014." },
+  { name: "Olaf Thon", club: "Schalke", year: 1997, fame: 3, lo: 77, hi: 85, bio: "Campeão do mundo de 1990 e capitão do Schalke campeão da Copa da UEFA de 1997." },
+  { name: "Bernd Schneider", club: "Leverkusen", year: 2002, fame: 3, lo: 77, hi: 85, bio: "\"O brasileiro branco\" — meia técnico do Leverkusen vice da Champions e vice do mundo em 2002." },
+  { name: "Kai Havertz", club: "Leverkusen", year: 2020, fame: 3, lo: 77, hi: 86, promessa: true, bio: "Joia do Leverkusen que saiu pro Chelsea e fez o gol do título da Champions de 2021." },
+]
+const L35_EU_ATA: C[] = [
+  { name: "Alexandre Lacazette", club: "Lyon", year: 2017, fame: 3, lo: 78, hi: 86, bio: "Artilheiro do Lyon por anos antes de ir pro Arsenal — faro de gol de centroavante." },
+  { name: "Memphis Depay", club: "Lyon", year: 2020, fame: 3, lo: 77, hi: 85, bio: "Atacante holandês driblador, capitão e artilheiro do Lyon." },
+  { name: "Luís Fabiano", club: "Sevilla", year: 2007, fame: 4, lo: 81, hi: 88, bio: "\"O Fabuloso\" na Espanha: artilheiro do Sevilla bicampeão da Copa da UEFA." },
+  { name: "Carlos Bacca", club: "Sevilla", year: 2015, fame: 3, lo: 76, hi: 85, bio: "Centroavante colombiano, dois gols na final da Liga Europa de 2015 pelo Sevilla." },
+  { name: "Mamadou Niang", club: "Marseille", year: 2010, fame: 3, lo: 74, hi: 84, bio: "Capitão e artilheiro do Marseille campeão francês de 2010." },
+  { name: "Chris Waddle", club: "Marseille", year: 1991, fame: 3, lo: 77, hi: 85, bio: "Ponta inglês de drible torto que virou ídolo no Marseille tricampeão francês." },
+  { name: "Claudio López", club: "Valencia", year: 2000, fame: 3, lo: 78, hi: 86, bio: "\"El Piojo\" — atacante veloz do Valencia finalista da Champions em 2000." },
+  { name: "Mista", club: "Valencia", year: 2004, fame: 2, lo: 72, hi: 83, bio: "Centroavante do Valencia campeão espanhol e da Copa da UEFA em 2004." },
+  { name: "Roberto Soldado", club: "Valencia", year: 2012, fame: 3, lo: 75, hi: 84, bio: "Centroavante goleador do Valencia de 2010 a 2013." },
+  { name: "Ulf Kirsten", club: "Leverkusen", year: 1997, fame: 3, lo: 78, hi: 86, bio: "Maior artilheiro da história do Leverkusen, três vezes goleador da Bundesliga." },
+  { name: "Patrik Schick", club: "Leverkusen", year: 2021, fame: 3, lo: 75, hi: 84, bio: "Centroavante tcheco do golaço do meio de campo na Euro 2020, artilheiro do Leverkusen." },
+  { name: "Stefan Kießling", club: "Leverkusen", year: 2013, fame: 3, lo: 74, hi: 84, bio: "Artilheiro da Bundesliga de 2013 e símbolo do Leverkusen por mais de uma década." },
+]
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -2650,7 +2735,36 @@ const L32_WORLD_ATA: C[] = [
   { name: 'Emmanuel Adebayor', club: 'Arsenal', year: 2008, fame: 4, lo: 80, hi: 88, bio: 'Togolês de 1,90m com toque de meia, fez 30 gols numa temporada pelo Arsenal e foi eleito o melhor da África em 2008.' },
   { name: 'Asamoah Gyan', club: 'Sunderland', year: 2011, fame: 3, lo: 78, hi: 86, folk: true, bio: 'Maior artilheiro da história de Gana em Copas. Herói de 2010 e, no mesmo torneio, o homem do pênalti perdido nos acréscimos contra o Uruguai.' },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA] }
+// 🧱 LOTE 35 (26/09) — parte MUNDO (Boca, River, Parma, Espanyol, Cruz Azul). Ver o comentário do LOTE 35 acima do CATALOG_EU.
+const L35_WORLD_GOL: C[] = [
+  { name: "Diego López", club: "Espanyol", year: 2018, fame: 3, lo: 74, hi: 83, bio: "Goleiro espanhol alto e seguro, que passou por Real Madrid e Milan antes do Espanyol." },
+  { name: "Jesús Corona", club: "Cruz Azul", year: 2014, fame: 3, lo: 74, hi: 83, bio: "\"Chuy\" — goleiro-símbolo do Cruz Azul e da seleção mexicana." },
+]
+const L35_WORLD_LAT: C[] = [
+  { name: "Lilian Thuram", club: "Parma", year: 1999, fame: 4, lo: 82, hi: 88, bio: "Antes da Juventus, a fase do Parma: campeão do mundo com a França em 1998 e da Copa da UEFA com o Parma em 1999." },
+]
+const L35_WORLD_ZAG: C[] = [
+  { name: "Walter Samuel", club: "Boca Juniors", year: 2000, fame: 3, lo: 77, hi: 85, bio: "\"The Wall\" começou no Boca: campeão da Libertadores e do Mundial de 2000 antes de ir pra Roma." },
+  { name: "Rolando Schiavi", club: "Boca Juniors", year: 2004, fame: 2, lo: 71, hi: 82, bio: "Zagueirão raçudo e artilheiro de bola parada do Boca campeão da Libertadores de 2003." },
+  { name: "Daniel Passarella", club: "River Plate", year: 1978, fame: 4, lo: 83, hi: 89, bio: "\"El Kaiser\" — capitão do River e da Argentina campeã do mundo em 1978, zagueiro que fazia gol como centroavante." },
+  { name: "Oscar Ruggeri", club: "River Plate", year: 1986, fame: 4, lo: 81, hi: 88, bio: "\"El Cabezón\" — zagueiro campeão do mundo em 86 e da Libertadores com o River no mesmo ano." },
+  { name: "Martín Demichelis", club: "River Plate", year: 2003, fame: 3, lo: 75, hi: 84, promessa: true, bio: "Zagueiro revelado pelo River que depois virou peça do Bayern e do Manchester City." },
+]
+const L35_WORLD_MEI: C[] = [
+  { name: "Fernando Gago", club: "Boca Juniors", year: 2006, fame: 3, lo: 76, hi: 85, promessa: true, bio: "\"Pintita\" — volante elegante do Boca que saiu direto pro Real Madrid." },
+  { name: "Sebastián Battaglia", club: "Boca Juniors", year: 2007, fame: 3, lo: 75, hi: 84, bio: "O jogador com mais títulos da história do Boca — volante de marcação e símbolo do clube." },
+]
+const L35_WORLD_ATA: C[] = [
+  { name: "Tevez", club: "Boca Juniors", year: 2003, fame: 4, lo: 82, hi: 88, bio: "\"El Apache\" em casa: campeão da Libertadores e do Mundial de 2003 com o Boca antes de vir pro Corinthians." },
+  { name: "Guillermo Barros Schelotto", club: "Boca Juniors", year: 2000, fame: 3, lo: 77, hi: 85, bio: "Ponta ídolo do Boca, parceiro de Palermo nas Libertadores de 2000, 2001 e 2003." },
+  { name: "Diego Maradona", club: "Boca Juniors", year: 1981, fame: 4, lo: 86, hi: 91, bio: "O Maradona do Boca antes da Europa: campeão argentino de 1981 com o clube do coração, antes de ir pro Barcelona." },
+  { name: "Hernán Crespo", club: "River Plate", year: 1996, fame: 3, lo: 77, hi: 86, bio: "\"Valdanito\" — campeão da Libertadores de 1996 com o River, fez os dois gols da final." },
+  { name: "Marcelo Salas", club: "River Plate", year: 1997, fame: 3, lo: 78, hi: 86, bio: "\"El Matador\" — ídolo chileno no River campeão argentino antes de ir pra Lazio." },
+  { name: "Gianfranco Zola", club: "Parma", year: 1995, fame: 4, lo: 81, hi: 88, bio: "Antes do Chelsea, o Parma: gols de falta e Copa da UEFA de 1995 ao lado de Asprilla." },
+  { name: "Hristo Stoichkov", club: "Parma", year: 1996, fame: 3, lo: 78, hi: 86, bio: "Passagem curta do búlgaro pelo Parma entre as duas fases de Barcelona." },
+  { name: "Asprilla", club: "Parma", year: 1995, fame: 4, lo: 81, hi: 88, bio: "O auge do \"Tino\": campeão da Copa da UEFA de 1995 e autor da falta que acabou com a invencibilidade do Milan." },
+]
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L35_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
