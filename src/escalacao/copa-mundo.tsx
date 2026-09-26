@@ -221,6 +221,13 @@ function ensureSave(seed: number): CopaSave {
   return fresh
 }
 export const isCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo >= s.anchor && (seasonNo - s.anchor) % 10 === 0
+// 🌍 é ano de Copa do Mundo nesta carreira? E ela já foi jogada? (26/09: nos anos
+// de Copa, o roteiro do fim de temporada abre NELA, antes do jornal — ordem do
+// Diego, pra Bola de Ouro já sair com os gols da Copa.) Lê a MESMA agenda do portão.
+export function copaMundoDaTemporada(seed: number, seasonNo: number): { ano: boolean; jogada: boolean } {
+  const s = ensureSave(seed)
+  return { ano: isCopaSeason(s, seasonNo), jogada: s.played.includes(seasonNo) }
+}
 export const nextCopaSeason = (s: CopaSave, seasonNo: number) => seasonNo <= s.anchor ? s.anchor : s.anchor + Math.ceil((seasonNo - s.anchor) / 10) * 10
 
 // ── simulação (seedada; resultados só aparecem quando a rodada é jogada) ──
@@ -431,7 +438,7 @@ export function xiDaMaquina(pais: string): { xi: PoolCard[]; form: Formation } {
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, agenciaOn, onGoRank, onMural }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void }) {
   // 🔗 "(aba Rank)" virou link de verdade (Diego 14/08): antes era só texto
   // solto, a pessoa tinha que sair da tela e procurar a aba na mão.
   const rankLink = onGoRank
@@ -498,7 +505,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
         <span style={{ position: 'relative' }}>{tr('🌍 DISPUTAR A COPA DO MUNDO', '🌍 PLAY THE WORLD CUP')}</span>
         <span style={{ position: 'relative', display: 'block', fontSize: 9.5, fontWeight: 800, textTransform: 'none', fontFamily: 'system-ui', marginTop: 2 }}>{tr('chegou a hora — ela só volta na temporada', 'the time has come — it only returns in season')} {seasonNo + 10}!</span>
       </button>
-      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onMural={onMural} agenciaOn={agenciaOn} onClose={() => { setOpen(false); setSaveVer(v => v + 1) }} />}
+      {open && <CopaMundo seasonNo={seasonNo} seed={seed} top16={top16} myPos={myPos} paises16={paises16} save={save} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={() => { setOpen(false); setSaveVer(v => v + 1) }} />}
     </>
   )
 }
@@ -516,7 +523,7 @@ export const CMModal = ({ children, wide = false, cinematic = false, onlineBroad
     </div>
   </div>, document.body)
 
-function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onArtilheiro, onMural, agenciaOn, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onArtilheiro?: (nome: string, gols: number) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, onClose }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; paises16: string[]; save: CopaSave; onArtilheiro?: (nome: string, gols: number) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   // (o gerador do torneio mora DENTRO do CupScreen agora — ver comentário lá:
   // um gerador compartilhado com estado fazia o resultado mudar sozinho)
   // 🔒 ANTI-HACK DO F5 (14/08): se ESTA temporada já tem torneio carimbado
@@ -582,7 +589,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
   )
   if (phase === 'cup' && entrants) return (
     <CMModal wide cinematic={CAREER_VISUAL_RELEASED}>
-      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} potes={!!carimbo?.potes} myForm={myForm} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
+      <CupScreen entrants={entrants} seasonNo={seasonNo} seed={seed} save={save} potes={!!carimbo?.potes} myForm={myForm} onPrize={onPrize} onCard={onCard} onArtilheiro={onArtilheiro} onStats={onStats} onMural={onMural} agenciaOn={agenciaOn} onClose={onClose} />
     </CMModal>
   )
   return null
@@ -921,7 +928,37 @@ export function artilhariaDaCopa(world: ReturnType<typeof simulaCopaMundo>): { n
   return Object.entries(tally).map(([k, v]) => ({ name: k.split('|')[0], ...v })).sort((x, y) => y.goals - x.goals || x.name.localeCompare(y.name))
 }
 
-export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCard, onArtilheiro, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; myForm: Formation; onArtilheiro?: (nome: string, gols: number) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
+// ⚽🅰️🏃 O QUE CADA CARTA FEZ NA COPA DO MUNDO (Diego 26/09): *"tem que contar
+// todos os gols dele ali no jogo… também conta todas as ligas, Copas do Mundo"* —
+// e a Bola de Ouro soma tudo. A chave é a CARTA (nome|clube|ano), igual ao resto
+// do jogo: a seleção convoca do catálogo, então a carta que joga pela Argentina é
+// a MESMA que joga no seu clube. Só LÊ o torneio já simulado (não toca no rng).
+// Pênalti de desempate não é gol (fica de fora, como em toda copa do jogo).
+export type CMStatCarta = { name: string; club: string; year: number; pais: string; gols: number; ass: number; jogos: number }
+export function estatisticasDaCopa(world: ReturnType<typeof simulaCopaMundo>, entrants: Entrant[]): CMStatCarta[] {
+  const m = new Map<string, CMStatCarta>()
+  const linha = (c: PoolCard, pais: string) => {
+    const k = `${c.name}|${c.club}|${c.year}`
+    return m.get(k) ?? (m.set(k, { name: c.name, club: c.club, year: c.year, pais, gols: 0, ass: 0, jogos: 0 }), m.get(k)!)
+  }
+  const jogo = (h: number, a: number, evs: ScoreGoal[] | undefined) => {
+    for (const t of [h, a]) for (const c of entrants[t]?.xi ?? []) linha(c, entrants[t].pais).jogos++
+    for (const e of evs ?? []) {
+      const t = e.home ? h : a
+      const xi = entrants[t]?.xi ?? []
+      const autor = xi.find(c => c.name === e.name)
+      if (autor) linha(autor, entrants[t].pais).gols++
+      const garcom = e.assist ? xi.find(c => c.name === e.assist) : undefined
+      if (garcom) linha(garcom, entrants[t].pais).ass++
+    }
+  }
+  for (const g of world.groups) for (const rd of g.matches) for (const x of rd) jogo(x.h, x.a, x.ev)
+  for (const t of [...world.r16, ...world.qf, ...world.sf]) jogo(t.h, t.a, t.ev1)
+  jogo(world.final.h, world.final.a, world.final.ev)
+  return [...m.values()]
+}
+
+export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCard, onArtilheiro, onStats, onMural, agenciaOn, online, onClose }: { entrants: Entrant[]; seasonNo: number; seed: number; save: CopaSave; /** 🏺 sorteio com cabeça de chave — só pra Copa que NASCEU depois de 20/09 */ potes?: boolean; myForm: Formation; onArtilheiro?: (nome: string, gols: number) => void; /** ⚽🅰️ o que cada carta fez na Copa (só carreira) */ onStats?: (linhas: CMStatCarta[]) => void;  online?: { clock?: CopaClockController; seasonKey: string; aoCampeao?: (nome: string, pais: string) => void }; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; agenciaOn?: boolean; onClose: () => void }) {
   const previewAccount = useOnlinePreview()
   const privateVisual = previewAccount || (online ? ONLINE_VISUAL_RELEASED : CAREER_VISUAL_RELEASED)
   const privateOnline = privateVisual && !!online
@@ -1109,6 +1146,10 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
     // trava de "já joguei" que guarda o prêmio, então não paga duas vezes.
     const artilheiro = artilhariaDaCopa(world)[0]
     if (artilheiro && artilheiro.goals > 0) onArtilheiro?.(artilheiro.name, artilheiro.goals)
+    // ⚽🅰️ os números de cada carta vão pra carreira ANTES do "já joguei" (mesma
+    // ordem do prêmio): fechou o app no meio, a próxima abertura manda de novo e o
+    // reducer grava 1x por temporada.
+    onStats?.(estatisticasDaCopa(world, entrants))
     const novaEntrada = { season: seasonNo, selecao: entrants[c].pais, campeao: entrants[c].club, voce: isYou(c) }
     // (emAndamento: limpa o carimbo anti-F5 — o torneio desta temporada acabou de verdade)
     saveCopaSave(seed, { ...cur, played: [...cur.played, seasonNo], mural: [...cur.mural, novaEntrada], emAndamento: null })

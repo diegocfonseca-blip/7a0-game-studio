@@ -1227,7 +1227,7 @@ function frozenXIids(byRound: Record<number, string[]>, r: number, squad: WonCar
 // ⚽🅰️ `golsCard`/`assCard` = o que cada carta fez NA TEMPORADA que acabou (o
 // `goalsByCard`/`assistsByCard` do pregão). Vêm de fora porque quem os calcula é a
 // tela, não o reducer. Somados ao que já vinha, viram o "NO SEU CLUBE" da ficha.
-function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?: Record<string, number>) {
+function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?: Record<string, number>, jogosCard?: Record<string, number>) {
   if (!s.careerOnline || s.onlineMode === 'online') return
   const desdeR = s.condicaoDesde === s.seasonNo ? (s.condicaoDesdeR ?? 0) : 0
   const antes = s.condicaoCarry ?? {}
@@ -1264,7 +1264,9 @@ function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?:
     // da temporada do zero todo ano, então o que sobrou de trás TEM que ser somado
     // aqui, uma vez só, na virada.
     for (const c of squad) if (!c.fake) novo[chave(c)] = {
-      g: Math.round(gas[c.id] ?? 100), j: jogos[c.id] ?? 0,
+      // 🏃 + os jogos de Copa e de Copa do Mundo (26/09) — a liga vem das escalações,
+      // as copas vêm da tela (quem sabe quantas fases o time jogou é ela)
+      g: Math.round(gas[c.id] ?? 100), j: (jogos[c.id] ?? 0) + (jogosCard?.[c.id] ?? 0),
       gl: (inicioGl[c.id] ?? 0) + (golsCard?.[c.id] ?? 0),
       as: (inicioAs[c.id] ?? 0) + (assCard?.[c.id] ?? 0),
     }
@@ -4411,8 +4413,8 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
-  | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
+  | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: RenewAnos } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — prazo e preço vêm de renewOptions/renewCost (escada por valor; 10+ moedas = só 5/10 anos). Prazo real sai com tempero (±1, exceto 1-2 anos) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); Várzea NÃO RENOVA (vai pro leilão com teto de venda); quem não renovar nas outras divisões também
@@ -4446,6 +4448,7 @@ type Action =
   | { type: 'RECOVER_LOCAL_HOST' } // 👑 o banco confirma que EU continuo dono: recupera só a coroa local, sem tocar em envelopes/lances
   | { type: 'STEP_DOWN_HOST' } // 🪑 host antigo ABAIXA A BOLA: a posse (game_rooms.host_id) já é de outro no banco → deixo de ser autoritativo e volto a só RECEBER. Garante "um dono só" (nunca dois hosts brigando).
   | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
+  | { type: 'COPA_MUNDO_STATS'; season: number; linhas: { name: string; club: string; year: number; pais: string; gols: number; ass: number; jogos: number }[] } // ⚽🅰️🏃 26/09: o que cada carta fez na Copa do Mundo (ficha + Bola de Ouro)
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
@@ -5783,6 +5786,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.copaMundoMural = [...existing, ...novos]
       return s
     }
+    case 'COPA_MUNDO_STATS': {
+      // ⚽🅰️🏃 grava UMA vez por temporada: a Copa re-disparando no reload não dobra.
+      if (!s.careerOnline || s.copaMundoStats?.season === action.season) return s
+      s.copaMundoStats = { season: action.season, linhas: action.linhas.filter(l => l.gols > 0 || l.ass > 0 || l.jogos > 0) }
+      return s
+    }
     case 'COPA_MUNDO_PRIZE': {
       // 🌍 +100 por clube SEU classificado (Diego 04/08: dormindo recebe igual —
       // independência total). logFin roteia o extrato do dormindo pro stash.
@@ -6244,6 +6253,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Foi exatamente o caso do "Real Manha" que apareceu acima de gente com
       // 44 títulos da Série A.
       s.copaMundoMural = undefined
+      s.copaMundoStats = undefined
       s.varzea = false // modo várzea do rápido não pode pintar o campo da carreira
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined // 🌱 crias/janela zerados
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined // 🎭 eventos de jogador: carreira nova nasce sem causo pendente nem histórico
@@ -6356,6 +6366,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
       s.copaMundoMural = undefined // 🌍 idem: título de Copa do Mundo não atravessa pra carreira nova
+      s.copaMundoStats = undefined
       s.criaNames = []; s.criaNews = undefined; s.contratoRelease = undefined
       s.eventoTemporada = undefined; s.eventoManchetes = undefined; s.eventoHist = undefined
       s.careerSeen = {}; s.criaDeEvento = undefined; s.careerBico = undefined
@@ -8718,7 +8729,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Copa (applyHonors/careerCopaHonors não têm trava
       // própria). A UI atual nem usa mais este caminho, mas fica blindado.
       if (s.screen === 'auction') return s
-      guardaCansaco(s, action.golsCard, action.assCard) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST) — e ⚽🅰️ gols/assistências somam
+      guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST) — e ⚽🅰️ gols/assistências somam
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
@@ -8761,7 +8772,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // não pegava porque o seasonNo já tinha subido). Se já estamos na tela de
       // reservas, o 2º toque não faz nada.
       if (s.screen === 'reserveList') return s
-      guardaCansaco(s, action.golsCard, action.assCard) // 😓 o cansaço atravessa a virada: anota como cada um terminou — e ⚽🅰️ soma gols/assistências da temporada
+      guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada: anota como cada um terminou — e ⚽🅰️ soma gols/assistências da temporada
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
@@ -9460,6 +9471,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
+      s.copaMundoStats = undefined
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined

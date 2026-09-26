@@ -1,3 +1,24 @@
+## 26/09/2026 — 🌍 Copa do Mundo ANTES do jornal + gols dela contam em tudo ⏳ NO BRANCH, esperando OK
+
+Diego: *"tem que contar todos os gols dele ali no jogo… contando também a Copa do Mundo… e
+também deve contar pra Bola de Ouro"* e depois *"a copa do mundo deveria ser jogada antes então
+de chegar o passo 1 do jornal"*.
+- **Ordem do roteiro**: nos anos de Copa com o SEU clube nela (TOP 24, temporada 100, 110…), o
+  roteiro fica 🌍 Mundo → 📰 Jornal → 💰 Caixa → 🔨 Próxima, e o CONTINUAR da Copa fica travado
+  (cinza, com o porquê) até ela ser jogada. Ano sem Copa: igual sempre. Só solo.
+- **Números**: a Copa grava o que cada CARTA fez (`copaMundoStats`, ação `COPA_MUNDO_STATS`,
+  `estatisticasDaCopa` em copa-mundo.tsx). Entram na ficha (temporada e "no seu clube"), na
+  Bola de Ouro, no top 5 do jornal e na artilharia/garçons de todos os tempos. Bola de Ouro,
+  histórico da temporada e comissão da Agência ESPERAM a Copa acabar (`mundoPendente`).
+- **Jogos**: os jogos de copa (Copa do Brasil/Legends + Supercopa, com o XI congelado da 38) e
+  da Copa do Mundo agora somam no 🏃 jogos da tela e no acumulado da virada (`jogosCard`). Só
+  contam com a Copa encerrada na tela (sem spoiler). Os eventos de jogador no meio da temporada
+  continuam lendo só a liga.
+- Copa do Brasil/Supercopa na ficha já tinham sido consertadas em 25/09 (temporada fechada
+  antes disso ficou sem).
+- Trava nova: `npm run copamundo`. `npm run fim` e `npm run artilharia` atualizadas.
+- ⚠️ Fica de fora: carreira ONLINE (a Copa do Mundo online é outra tela e o roteiro lá é votação).
+
 ## 26/09/2026 — ✏️ "Marcelo Vieira" (Real Madrid 2017) vira só "Marcelo" ✅ NO AR
 
 Pedido do Diego. Continua lenda, no baralho Europa. Junto: rosto mantido (alias em

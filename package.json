@@ -36,6 +36,7 @@
     "ritmo": "node scripts/testa-ritmo.mjs",
     "artilharia": "node scripts/testa-artilharia.mjs",
     "gols": "node scripts/testa-gols-jogador.mjs",
+    "copamundo": "node scripts/testa-copa-mundo-stats.mjs",
     "monte": "npx tsx scripts/testa-monte.mts",
     "storage": "npx tsx scripts/testa-storage.mts",
     "champions": "npx tsx scripts/testa-champions.mts",

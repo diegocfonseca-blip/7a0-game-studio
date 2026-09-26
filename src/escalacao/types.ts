@@ -930,6 +930,10 @@ export interface EscState {
   // antes, o título de Copa do Mundo do ranking global só existia no aparelho de
   // origem e sumia se a pessoa trocasse de celular. Mescla com o local, nunca some.
   copaMundoMural?: { season: number; selecao: string; campeao: string; voce: boolean }[]
+  // ⚽🅰️🏃 O QUE CADA CARTA FEZ NA COPA DO MUNDO desta temporada (26/09). Chave = a
+  // CARTA (nome|clube|ano). Entra na ficha (temporada e "no seu clube"), na Bola de
+  // Ouro e na artilharia de todos os tempos. Uma temporada só: a próxima sobrescreve.
+  copaMundoStats?: { season: number; linhas: { name: string; club: string; year: number; pais: string; gols: number; ass: number; jogos: number }[] }
   copaRound?: number // 🌐 ONLINE (Diego 11/08): fase da Copa Legends ao vivo AGORA (0=oitavas), sincronizada pelo host — sem isto, cada convidado avançava a fase sozinho no próprio relógio e via um placar diferente do host num F5/reconexão.
   stadiums?: Record<number, { inv: Record<string, number>; ext: string[] }> // 🏟️ estádio da carreira por técnico (mgrId): moedas investidas por setor + melhorias prontas. Rende no fim de cada temporada.
   careerCopaHonors?: Record<string, number> // 🏆 títulos da Copa (teamKey → nº de Copas) — MESMO contador serve pra Copa Legends E Copa do Brasil (Diego 16/08: "não são coisas novas, só alterou o nome e o formato" — quem já tinha títulos de Copa Legends não perde nada, o histórico é o mesmo, só troca a etiqueta exibida)
