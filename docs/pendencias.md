@@ -1,3 +1,10 @@
+## 26/09/2026 — ↩️ Ballack e Júlio César VOLTAM a craque ✅ NO AR
+
+Diego: *"não coloque mais Ballack e Júlio César como lendas"*. Os dois voltaram a `fame: 4`.
+O aviso da home foi regerado a partir da foto de ANTES das promoções de hoje, então eles
+simplesmente somem da lista (nada de "caiu de categoria"): ficam 13 promoções + a troca do
+Riquelme.
+
 ## 26/09/2026 — 👑 Laudrup (Barcelona 1992) e Chilavert (Vélez 1998) viram LENDA ✅ NO AR
 
 Pedido do Diego. Papin (Marseille 1991), que ele pediu junto, já era lenda.
