@@ -1,3 +1,8 @@
+## 26/09/2026 — 👑 Júlio César (Inter 2010) vira LENDA ✅ NO AR
+
+Pedido do Diego (goleiro). Só a carta da Inter 2010 (melhor clube), a do Flamengo 2003 fica
+craque. O Maicon da Inter 2010, que ele pediu junto, **já era lenda** (desde a promoção antiga).
+
 ## 26/09/2026 — 👑 13 cartas viram LENDA ✅ NO AR
 
 Pedido do Diego: Marta, Seedorf, Riquelme, Di María, Hierro, Thomas Müller, Klose, Lúcio,
