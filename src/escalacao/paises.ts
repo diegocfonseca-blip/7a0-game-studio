@@ -80,7 +80,7 @@ export const PAIS: Record<string, string> = {
   'Danilo': 'Brasil', 'Abel Ferreira': 'Portugal', 'Paolo Maldini': 'Itália',
   'Roberto Carlos': 'Brasil', 'Cafu': 'Brasil', 'Philipp Lahm': 'Alemanha',
   'Dani Alves': 'Brasil', 'Javier Zanetti': 'Argentina', 'Maicon': 'Brasil',
-  'Marcelo Vieira': 'Brasil', 'Ashley Cole': 'Inglaterra', 'Jordi Alba': 'Espanha',
+  'Marcelo Vieira': 'Brasil', 'Marcelo': 'Brasil', 'Ashley Cole': 'Inglaterra', 'Jordi Alba': 'Espanha',
   'Bixente Lizarazu': 'França', 'Patrice Evra': 'França', 'Gary Neville': 'Inglaterra',
   'João Cancelo': 'Portugal', 'Trent Alexander-Arnold': 'Inglaterra',
   'Maxwell': 'Brasil', 'Sylvinho': 'Brasil', 'Alphonso Davies': 'Canadá',
@@ -603,6 +603,7 @@ export const MESMO_JOGADOR = new Set<string>([
   // Figueirense 2010 (promessa) e Liverpool 2019 — o mesmo cara em dois auges.
   'Roberto Firmino',
   'Andreas Pereira', // Flamengo 2022 e Palmeiras 2026 — o mesmo cara em dois clubes
+  'Marcelo', // Fluminense 2006 (promessa) e Real Madrid 2017 — o mesmo lateral (a carta do Real era 'Marcelo Vieira' até 26/09)
   // (Em 22/09 o 'Pinga' esteve aqui por algumas horas, quando existiam três cartas
   //  com esse apelido. O Diego mandou deixar SÓ o zagueiro do Internacional de 1984,
   //  então sobrou uma carta só e a chave não é mais necessária.)
