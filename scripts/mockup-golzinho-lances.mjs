@@ -105,10 +105,11 @@ h1{${OSW};font-size:20px;text-transform:uppercase;letter-spacing:.4px;margin-bot
 .scorers{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:10px 12px;border-top:1px solid #59624d;font-size:12px}.scorers p{margin:0 0 3px}.scorers b{font-weight:800}
 /* ── ⚽🥅 O GOLZINHO COM LANCES (a faixa preta do palco dos pênaltis) ── */
 .palco{position:relative;background:${INK};display:flex;align-items:center;gap:6px;padding:8px 12px;min-height:50px;overflow:hidden}
+.pista{overflow:visible}
 .meta{font-size:26px;line-height:1;display:inline-block;z-index:1}
 .meta.esq{transform:scaleX(-1)}
-.palco.casa.gol .meta.dir{animation:rede .45s ease .58s}
-.palco.fora.gol .meta.esq{animation:rede-esq .45s ease .58s}
+.palco.casa.gol .meta.dir{animation:rede .45s ease .9s}
+.palco.fora.gol .meta.esq{animation:rede-esq .45s ease .9s}
 @keyframes rede{30%{transform:rotate(-10deg) scale(1.22)}60%{transform:rotate(8deg) scale(1.12)}}
 @keyframes rede-esq{30%{transform:scaleX(-1) rotate(-10deg) scale(1.22)}60%{transform:scaleX(-1) rotate(8deg) scale(1.12)}}
 .luva{position:absolute;top:50%;font-size:20px;line-height:1;transform:translateY(-50%) scale(0);z-index:2}
@@ -132,8 +133,13 @@ h1{${OSW};font-size:20px;text-transform:uppercase;letter-spacing:.4px;margin-bot
 /* os finais: começam quando a bola chega (0,6s) */
 .palco.casa.gol .bola{animation-name:voa-dir,entra-dir;animation-duration:.6s,.3s;animation-delay:0s,.6s}
 .palco.fora.gol .bola{animation-name:voa-esq,entra-esq;animation-duration:.6s,.3s;animation-delay:0s,.6s}
-@keyframes entra-dir{to{left:calc(100% + 6px);transform:translate(-50%,-50%) scale(.75);opacity:.85}}
-@keyframes entra-esq{to{left:-6px;transform:translate(-50%,-50%) scale(.75);opacity:.85}}
+/* a bola ENTRA e fica dentro da rede: termina em cima do 🥅 (que fica fora da pista,
+   por isso o left passa do 100%) e balança junto com ele */
+@keyframes entra-dir{60%{left:calc(100% + 22px);transform:translate(-50%,-50%) scale(.72)}100%{left:calc(100% + 20px);transform:translate(-50%,-50%) scale(.72)}}
+@keyframes entra-esq{60%{left:-22px;transform:translate(-50%,-50%) scale(.72)}100%{left:-20px;transform:translate(-50%,-50%) scale(.72)}}
+.palco.casa.gol .bola{animation-name:voa-dir,entra-dir,balanca-bola;animation-duration:.6s,.3s,.45s;animation-delay:0s,.6s,.9s}
+.palco.fora.gol .bola{animation-name:voa-esq,entra-esq,balanca-bola;animation-duration:.6s,.3s,.45s;animation-delay:0s,.6s,.9s}
+@keyframes balanca-bola{30%{margin-top:-3px;margin-left:3px}60%{margin-top:2px;margin-left:-2px}}
 .palco.casa.trave .bola{animation-name:voa-dir,trave-dir;animation-duration:.6s,.55s;animation-delay:0s,.6s}
 .palco.fora.trave .bola{animation-name:voa-esq,trave-esq;animation-duration:.6s,.55s;animation-delay:0s,.6s}
 @keyframes trave-dir{0%{left:calc(100% - 6px)}30%{left:calc(100% - 6px);transform:translate(-50%,-56%) scale(1.15)}100%{left:calc(100% - 44px);transform:translate(-50%,-40%) rotate(-200deg)}}
@@ -142,23 +148,27 @@ h1{${OSW};font-size:20px;text-transform:uppercase;letter-spacing:.4px;margin-bot
 .palco.fora.fora .bola{animation-name:voa-esq,fora-esq;animation-duration:.6s,.5s;animation-delay:0s,.6s}
 @keyframes fora-dir{to{left:calc(100% + 40px);transform:translate(-50%,-90%);opacity:0}}
 @keyframes fora-esq{to{left:-40px;transform:translate(-50%,-90%);opacity:0}}
-.palco.casa.isolou .bola{animation-name:voa-dir,isolou-dir;animation-duration:.6s,.55s;animation-delay:0s,.6s}
-.palco.fora.isolou .bola{animation-name:voa-esq,isolou-esq;animation-duration:.6s,.55s;animation-delay:0s,.6s}
-@keyframes isolou-dir{to{left:calc(100% + 4px);transform:translate(-50%,-260%);opacity:0}}
-@keyframes isolou-esq{to{left:-4px;transform:translate(-50%,-260%);opacity:0}}
+/* rasteira no começo, sobe no meio do caminho e passa POR CIMA do gol (fora, mas por cima) */
+.palco.casa.isolou .bola{animation-name:isolou-dir;animation-duration:1.1s;animation-timing-function:cubic-bezier(.4,.1,.6,1);animation-delay:0s}
+.palco.fora.isolou .bola{animation-name:isolou-esq;animation-duration:1.1s;animation-timing-function:cubic-bezier(.4,.1,.6,1);animation-delay:0s}
+.palco.isolou .sombra{animation:sombra-isolou 1.1s linear forwards}
+@keyframes isolou-dir{0%{left:50%;transform:translate(-50%,-50%) rotate(0)}40%{left:calc(50% + 34px);transform:translate(-50%,-50%) rotate(260deg)}100%{left:calc(100% + 34px);transform:translate(-50%,-330%) rotate(900deg);opacity:.15}}
+@keyframes isolou-esq{0%{left:50%;transform:translate(-50%,-50%) rotate(0)}40%{left:calc(50% - 34px);transform:translate(-50%,-50%) rotate(-260deg)}100%{left:-34px;transform:translate(-50%,-330%) rotate(-900deg);opacity:.15}}
+@keyframes sombra-isolou{0%{transform:translateX(-50%) scale(1)}40%{transform:translateX(-50%) scale(1)}100%{transform:translateX(-50%) scale(.3);opacity:0}}
 .palco.casa.defendeu .bola{animation-name:voa-dir,volta-dir;animation-duration:.6s,.55s;animation-delay:0s,.6s}
 .palco.fora.defendeu .bola{animation-name:voa-esq,volta-esq;animation-duration:.6s,.55s;animation-delay:0s,.6s}
 @keyframes volta-dir{0%{left:calc(100% - 6px)}100%{left:calc(100% - 56px);transform:translate(-50%,-50%) rotate(-360deg) scale(.9)}}
 @keyframes volta-esq{0%{left:6px}100%{left:56px;transform:translate(-50%,-50%) rotate(360deg) scale(.9)}}
 /* o veredito pula na faixa quando a bola chega — igual ao palco dos pênaltis */
 .veredito{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6);opacity:0;${OSW};font-size:13px;letter-spacing:.4px;padding:3px 9px;border-radius:8px;border:2px solid ${CREME};color:#fff;z-index:4;white-space:nowrap;animation:veredito .25s cubic-bezier(.2,1.5,.5,1) .62s forwards}
+.veredito.isolou{animation-delay:1.05s}.veredito.gol{animation-delay:.9s}
 .veredito.gol{background:#1B7A3D}.veredito.defendeu,.veredito.trave{background:#C2452F}.veredito.fora,.veredito.isolou{background:#5b5b5b}
 @keyframes veredito{to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 `
 
 const pagina = (corpo, extra = '') => `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}${extra}</style></head><body><div class="wrap">${corpo}</div></body></html>`
 // 📸 na foto tudo fica congelado no FINAL do lance (bola já chegou, veredito na tela)
-const PARADO = '.palco .bola,.palco .sombra,.palco .luva,.palco .meta{animation-play-state:paused!important;animation-delay:-3s!important}.veredito{animation:none;transform:translate(-50%,-50%);opacity:1}.numbers i.pula{animation:none;color:#1B7A3D}'
+const PARADO = '.palco .bola,.palco .sombra,.palco .luva,.palco .meta{animation-play-state:paused!important;animation-delay:-3s!important}.palco.gol .bola{animation-name:entra-dir!important}.palco.fora.gol .bola{animation-name:entra-esq!important}.veredito{animation:none;transform:translate(-50%,-50%);opacity:1}.numbers i.pula{animation:none;color:#1B7A3D}'
 
 const L = Object.fromEntries(LANCES.map(l => [l.fim + l.lado + l.min, l]))
 const htmlPng = pagina(`
@@ -233,7 +243,7 @@ const ctx = await b.newContext({ viewport: { width: 940, height: 600 }, deviceSc
 const v = await ctx.newPage()
 await v.goto(`file://${path.resolve(vidHtml)}`, { waitUntil: 'networkidle' })
 await v.evaluate(() => document.fonts.ready)
-await v.waitForTimeout(15500)
+await v.waitForTimeout(16500)
 await ctx.close()
 await b.close()
 const webm = readdirSync(outDir).find(f => f.endsWith('.webm'))
