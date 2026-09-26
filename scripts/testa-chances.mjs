@@ -45,7 +45,8 @@ ok(foraDaJanela === 0, 'toda chance entre 4′ e 88′')
 
 // 3️⃣ quantidade por ritmo
 ok(chancesPorLado(400) === 0, `rodada instantânea (400 ms): ${chancesPorLado(400)} por lado`)
-ok(chancesPorLado(7000) === 1, `online / Minhas Ligas (7 s): ${chancesPorLado(7000)} por lado`)
+ok(chancesPorLado(8000) === 1, `online / Minhas Ligas (8 s): ${chancesPorLado(8000)} por lado`)
+ok(chancesPorLado(7000) === 1, `rápido offline (7 s): ${chancesPorLado(7000)} por lado`)
 ok(chancesPorLado(11000) === 2, `carreira (11 s): ${chancesPorLado(11000)} por lado`)
 ok(chancesPorLado(30000) >= 2, `rodada lenta (30 s): ${chancesPorLado(30000)} por lado`)
 // 🏎️ no online (7 s) o jogo anima em 5,7 s: cada lance ocupa ~31' do relógio. Num

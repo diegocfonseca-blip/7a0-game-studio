@@ -5565,6 +5565,12 @@ export const ROUND_EXTRA_MS = 2000
 // normal que tava 6,7s aumente pra 7s"*. A conta de antes dava 6.737 ms (180s ÷ 38 + 2s);
 // o basquete continua na conta dele (`baseRoundMs`), porque ele não pediu lá.
 const ROUND_MS = 7000
+// ⏱️ 26/09: e a rodada ONLINE (sala rápida e Minhas Ligas) vai pra 8s. Diego: *"aumente
+// pra 8s por rodada no online. Tá 7 né, então aumente pra 8"*. Só o online — o rápido
+// offline fica nos 7s (e tem o Modo Manual pra quem quiser mais devagar). Vale pra
+// rodada da LIGA e pra fase de grupos da Liberta (que roda no ritmo da liga); a
+// tabela da Champions e os jogos de Copa têm tempo próprio e ficam como estão.
+const ROUND_MS_ONLINE = 8000
 // 🏆 Copa dos 8 (rápido): cada JOGO roda +6s mais devagar que a Copa da carreira,
 // pra dar pra acompanhar o placar subindo (Diego achou muito rápido). Só o rápido.
 const QUICK_COPA_LEG_MS = COPA_LEG_MS + 6000
@@ -5806,7 +5812,7 @@ export function EscSeason() {
   // 🏀 basquete tem 82 rodadas (não 38): acelera cada rodada pra a temporada
   // caber no MESMO tempo total (~3 min), senão levaria mais que o dobro. Futebol
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
-  const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : ROUND_MS // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
+  const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
   const roundMs = Math.round(baseRoundMs / speedFactor)
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
@@ -7441,7 +7447,7 @@ export function EscLiberta() {
     if (!goingManual && (state.simSpeed ?? 1) !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 })
   }
   const speedFactor = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
-  const roundMs = Math.round(ROUND_MS / speedFactor)
+  const roundMs = Math.round((online ? ROUND_MS_ONLINE : ROUND_MS) / speedFactor) // 🌎 grupos da Liberta: o ritmo da liga (8s online · 7s offline)
   // 🙈 ANTI-SPOILER (regra do Diego): a classificação do grupo só atualiza DEPOIS
   // que o jogo terminou de animar na tela — igual a tabela da liga faz.
   const [revealed, setRevealed] = useState(false)

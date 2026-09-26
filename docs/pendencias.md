@@ -1,3 +1,12 @@
+## 26/09/2026 — ⏱️ Rodada ONLINE vai pra 8 s (offline fica em 7 s) ✅ NO AR
+
+Diego: *"aumente pra 8s por rodada no online. Tá 7 né, então aumente pra 8"*.
+`ROUND_MS_ONLINE = 8000` em `screens.tsx`, usado na rodada da LIGA (sala rápida e
+Minhas Ligas) e na fase de grupos da Liberta (que roda no ritmo da liga). O rápido
+OFFLINE segue em 7 s (`ROUND_MS`), a tabela da Champions (ROUND_MS + 4 s = 11 s) e os
+jogos de Copa (16–17 s) não mudam. 38 rodadas online ≈ 5 min. As chances do golzinho
+continuam 1 por lado nos dois ritmos (`npm run chances`).
+
 ## 26/09/2026 — ⚽🥅 O GOLZINHO COM LANCES no placar ao vivo ⏳ ESPERANDO OK PRA PUBLICAR
 
 Pedido do Diego, em três rodadas de mockup: primeiro *"uma animação institucional no
