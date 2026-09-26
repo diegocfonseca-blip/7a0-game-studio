@@ -911,11 +911,21 @@ export function EscLobby() {
   //  · bichos PODEM se cruzar — ele dispensou o "um por vez" (*"o bicho não precisa
   //    ser um por vez não"*); a trava de um por vez continua só nos áudios;
   //  · quem não tem mascote (clube sem batismo) não vê o botão — régua de sempre.
+  //  🔁 26/09: o relógio do BICHO virou PRÓPRIO e caiu pra 5 s (Diego: *"coloque pra 5s o tempo
+  //  do mascote na sala de espera que tava 30s"*). Os áudios seguem com os 30 s deles.
+  const MASC_COOLDOWN_S = 5
+  const mascLastRef = useRef(0)
+  const [mascCoolLeft, setMascCoolLeft] = useState(0)
+  useEffect(() => {
+    if (mascCoolLeft <= 0) return
+    const t = setTimeout(() => setMascCoolLeft(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [mascCoolLeft])
   const meuSocio = useMeuSocio()
   const mascKey = meuSocio?.ativo && meuSocio.mascoteKey && MASCOTES[meuSocio.mascoteKey] ? meuSocio.mascoteKey : null
   const sendMasc = () => {
-    if (!mascKey || Date.now() - sfxLastRef.current < SFX_COOLDOWN_S * 1000) return
-    sfxLastRef.current = Date.now(); setSfxCoolLeft(SFX_COOLDOWN_S)
+    if (!mascKey || Date.now() - mascLastRef.current < MASC_COOLDOWN_S * 1000) return
+    mascLastRef.current = Date.now(); setMascCoolLeft(MASC_COOLDOWN_S)
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
     const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: -1, kind: `masc:${mascKey}`, text: `${myName} soltou o bicho! 🔊`, ts: Date.now() }
     addEmote(e) // o meu aparece na hora (o canal não devolve o próprio broadcast)
@@ -4182,11 +4192,11 @@ export function EscLobby() {
             {/* 🐊 SOLTA O MASCOTE: só pra quem tem clube batizado; divide o relógio de
                 30 s com os áudios (regra do Diego, 25/09). O bicho é o mesmo do leilão. */}
             {mascKey && (
-              <button onClick={sendMasc} disabled={sfxCoolLeft > 0}
+              <button onClick={sendMasc} disabled={mascCoolLeft > 0}
                 className="mt-2 w-full border-2 rounded-xl pl-1.5 pr-3 py-1 font-black text-[11px] active:translate-y-0.5 flex items-center justify-center gap-2"
-                style={{ ...OSWALD, borderColor: sfxCoolLeft > 0 ? '#000' : PURPLE, background: sfxCoolLeft > 0 ? '#e4ddc9' : '#fff', color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000', boxShadow: sfxCoolLeft > 0 ? 'none' : `2px 2px 0 0 ${INK}` }}>
-                <span style={{ opacity: sfxCoolLeft > 0 ? .45 : 1 }}><MascoteMini art={MASCOTES[mascKey]} alt={40} /></span>
-                {sfxCoolLeft > 0 ? `🐾 ${sfxCoolLeft}s…` : tr('SOLTA A SUA MASCOTE NA SALA', 'LET YOUR MASCOT LOOSE')}
+                style={{ ...OSWALD, borderColor: mascCoolLeft > 0 ? '#000' : PURPLE, background: mascCoolLeft > 0 ? '#e4ddc9' : '#fff', color: mascCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000', boxShadow: mascCoolLeft > 0 ? 'none' : `2px 2px 0 0 ${INK}` }}>
+                <span style={{ opacity: mascCoolLeft > 0 ? .45 : 1 }}><MascoteMini art={MASCOTES[mascKey]} alt={40} /></span>
+                {mascCoolLeft > 0 ? `🐾 ${mascCoolLeft}s…` : tr('SOLTA A SUA MASCOTE NA SALA', 'LET YOUR MASCOT LOOSE')}
               </button>
             )}
             <button onClick={() => openLobbyChat(true)}

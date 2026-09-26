@@ -1,3 +1,9 @@
+## 26/09/2026 — 🐊 Mascote da sala de espera: 5 s (relógio próprio) · 🕗 PRONTO NO RAMO
+
+Diego: *"coloque pra 5s o tempo do mascote na sala de espera que tava 30s"*. O bicho ganhou
+relógio PRÓPRIO de 5 s (`MASC_COOLDOWN_S`, lobby.tsx); os áudios continuam com os 30 s deles
+(antes os dois dividiam o mesmo relógio).
+
 ## 25/09/2026 — ⭐🐺 Batismo CRUZEIRO DE BERRETINHO (weslleygomes749) — banco ✅ · código 🕗 SOBE DE MANHÃ
 
 Série D, no assento do bot **Metrópole FC** (`OLD_NAME` leva save antigo pro nome novo).
