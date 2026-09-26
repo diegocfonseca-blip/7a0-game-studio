@@ -2363,7 +2363,7 @@ const L31_EU_MEI: C[] = [
 // não no ano e time que jogou"*.
 const L35_EU_GOL: C[] = [
   { name: "Shay Given", club: "Aston Villa", year: 2012, fame: 3, lo: 74, hi: 84, bio: "Goleiro irlandês de reflexo absurdo, ídolo no Newcastle e depois no Aston Villa." },
-  { name: "Peter Shilton", club: "Nottingham Forest", year: 1979, fame: 5, lo: 85, hi: 91, bio: "Goleiro recordista de jogos pela Inglaterra — bicampeão europeu com o Nottingham Forest em 1979 e 1980." },
+  { name: "Peter Shilton", club: "Nottingham Forest", year: 1979, fame: 4, lo: 82, hi: 88, bio: "Goleiro recordista de jogos pela Inglaterra — bicampeão europeu com o Nottingham Forest em 1979 e 1980." },
   { name: "Tim Flowers", club: "Blackburn", year: 1995, fame: 3, lo: 75, hi: 84, bio: "Goleiro do Blackburn campeão inglês de 1995, com Shearer no ataque." },
   { name: "Asmir Begović", club: "Stoke City", year: 2012, fame: 3, lo: 74, hi: 83, bio: "Goleiro bósnio do Stoke — fez gol de tiro de meta contra o Southampton em 2013." },
   { name: "Artur Boruc", club: "Celtic", year: 2007, fame: 3, lo: 74, hi: 83, bio: "\"The Holy Goalie\" — goleiro polonês idolatrado pela torcida do Celtic." },

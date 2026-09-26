@@ -5,8 +5,8 @@ categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`): o baralho é o do 
 Parma, Espanyol e Cruz Azul são do Mundo; o resto, Europa). Conferido carta por carta que o mesmo
 jogador NÃO está no mesmo baralho. Categoria = a do jogador NAQUELE clube e ano (corrigido por
 ele: eu tinha barrado lenda de quem já era lenda em outra carta, e o Messi é lenda em dois
-baralhos). Ficou: 5 lendas (Maradona Boca 81, Passarella River 78, Thuram Parma 99, Neeskens Ajax
-72, Shilton Forest 79) · 15 craques · 9 promessas · 56 bons jogadores. País carta a carta em
+baralhos). Ficou: 4 lendas (Maradona Boca 81, Passarella River 78, Thuram Parma 99, Neeskens Ajax
+72) · 16 craques (Shilton desceu pra craque a pedido dele: *"não vejo fama"*) · 9 promessas · 56 bons jogadores. País carta a carta em
 `paises.ts` + 16 nomes em `MESMO_JOGADOR`. `npm run paises` verde. Home: as lendas de hoje ficaram
 na frente das 85 entradas (o gerador guarda 60 linhas; juntei na mão pra não sumirem) + 1 linha
 em `novidades.ts`. Mockup das cartas mandado pra ele.
