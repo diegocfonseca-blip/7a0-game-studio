@@ -1,3 +1,46 @@
+## 26/09/2026 — ⚽🥅 O GOLZINHO COM LANCES no placar ao vivo ⏳ ESPERANDO OK PRA PUBLICAR
+
+Pedido do Diego, em três rodadas de mockup: primeiro *"uma animação institucional no
+placar dos jogos de 90 min"* → depois *"um golzinho, igual na disputa de pênalti, de um
+lado e do outro"* → depois *"vários estilos: por cima, na trave, pra fora, isolou… a
+narração no momento certo, a bola entrando só quando é gol, o placar só muda aí. Não
+mudaria a dinâmica dos gols, mas teria coisas acontecendo enquanto não sai gol"*.
+Aprovado (*"adorei"*) com dois ajustes: a bola PARA DENTRO da rede e balança junto; o
+isolou sai rasteiro, sobe e passa por cima do gol. 🚫 A 3D de CSS ele não gostou.
+
+### O que entrou
+- **`src/escalacao/chances.ts`** (módulo puro): decide QUANDO acontece uma chance
+  perdida, de quem e como termina (🧤 defendeu · 🥅 trave · 💨 fora · 🚀 isolou), e o
+  texto dela em PT/EN (6 frases por final, falando do CLUBE — nunca inventa jogador).
+  Semente = rodada + os dois clubes → a sala inteira vê a mesma chance no mesmo minuto.
+  Quantas cabem é o `roundMs` que diz: online (11 s) = **1 por lado**; carreira (30 s)
+  = 3; rodada instantânea = nenhuma. Chance nunca cai a menos de 3' de um gol nem no
+  intervalo (43'–47'); sempre entre 4' e 88'.
+- **`OnlineScorePresentation`** (`online-match-visual.tsx` + CSS `ll32-`): a faixa do
+  palco dos pênaltis embaixo do placar — 🥅 de cada lado, pista com a cor de cada time,
+  bola no meio. A casa ataca a DIREITA. No gol a bola entra na rede de quem tomou e
+  balança junto; nas chances, o final (luva, poste, lado, por cima). O veredito pula na
+  faixa igual aos pênaltis. Só nos placares `cinematic` (online/rápido e carreira
+  grande); basquete fora.
+- **`LiveScoreCard`** (`pyramidseason.tsx`): detecta a chance cujo minuto acabou de
+  passar (janela de 4', pra quem abre a tela no 70' não ver a do 12' atrasada), mostra
+  por `CHANCE_MS` (1,9 s) e troca a NARRAÇÃO pelo texto dela — que ganha do apito
+  inicial/intervalo enquanto está na tela. Gol continua exatamente como era (mesmo
+  timer, mesmo selo); só ganhou a bola entrando.
+- 🎭 **A MASCOTE NÃO MUDOU** (pergunta dele: *"não vai interferir nos mascotes?"*): a
+  cena do gol (carimbo + GOOOL + raios) está intocada; a bola entra na rede embaixo
+  dela. Conferido com o Al Takhadao FC marcando: papagaio na tela + bola na rede.
+
+**Travas**: `npm run chances` (determinismo, longe dos gols, contagem por ritmo, sem
+cobrança de pênalti, PT+EN, cita o clube) · `telas` · `penaltis` · `build` verdes.
+**Foto/vídeo do componente REAL**: `node scripts/foto-golzinho.mjs` (monta o
+`LiveScoreCard` sozinho via vite, congela o relógio nos minutos das chances).
+Mockups no repo: `mockup-golzinho.mjs` · `mockup-golzinho-3d.mjs` (recusado) ·
+`mockup-golzinho-lances.mjs` (o aprovado).
+
+↩️ **Reverter**: `palcoOn={!basket}` → `false` tira a faixa; o resto do placar é o
+de antes. As chances vivem só na tela (nada no save, nada na simulação).
+
 ## 26/09/2026 — 🏟️ O Giro vira LETREIRO DE ESTÁDIO + 🎤 manchetes sobre a GALERA da sala ⏳ ESPERANDO OK PRA PUBLICAR
 
 Pedido do Diego: *"uma mudança visual melhor no giro da copa, com alguma animação…
