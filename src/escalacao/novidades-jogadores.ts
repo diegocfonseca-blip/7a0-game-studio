@@ -159,13 +159,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Peter Shilton",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Johan Neeskens",
     "baralho": "EU",
     "nivel": "lenda",
@@ -176,6 +169,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Shay Given",
     "baralho": "EU",
     "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Peter Shilton",
+    "baralho": "EU",
+    "nivel": "craque",
     "data": "2026-09-26"
   },
   {
@@ -216,6 +216,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Allan McGregor",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Diego López",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-26"
@@ -272,6 +279,13 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Juanfran",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Antonio Benarrivo",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-26"
@@ -419,13 +433,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Rubén Baraja",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "David Albelda",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-26"

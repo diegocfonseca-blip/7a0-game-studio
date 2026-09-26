@@ -497,6 +497,9 @@ export type Baralho = 'BR' | 'EU' | 'WORLD'
 //    O `npm run paises` acusa quem ficar de fora.
 export const PAIS_POR_CARTA: Record<string, string> = {
   // ─── 🧱 LOTE 35 (26/09, Leilão de Setores): país de cada carta nova, carta a carta
+  "Antonio Benarrivo|Parma|1995": "Itália",
+  "Enrico Chiesa|Parma|1998": "Itália",
+  "Tomas Brolin|Parma|1993": "Suécia",
   "Edmilson|Lyon|2002": "Brasil",
   "Giuseppe Favalli|Lazio|2000": "Itália",
   "Fabricio Coloccini|Newcastle|2012": "Argentina",
@@ -748,9 +751,6 @@ export const MESMO_JOGADOR = new Set<string>([
   'Marcelo Salas',
   'Walter Samuel',
   'Daniel Passarella',
-  'Lilian Thuram',
-  'Gianfranco Zola',
-  'Hristo Stoichkov',
 ])
 
 /** Todo nome que aparece em mais de uma carta do jogo, com as cartas. */

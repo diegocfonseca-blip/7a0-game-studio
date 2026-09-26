@@ -2370,6 +2370,7 @@ const L35_EU_GOL: C[] = [
   { name: "Fraser Forster", club: "Celtic", year: 2014, fame: 3, lo: 74, hi: 83, bio: "Goleirão do Celtic que parou o Barcelona de Messi na Champions de 2012." },
   { name: "Andy Goram", club: "Rangers", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Goleiro lendário do Rangers dos anos 90, eleito o melhor da história do clube." },
   { name: "Allan McGregor", club: "Rangers", year: 2010, fame: 3, lo: 74, hi: 83, bio: "Goleiro escocês do Rangers, tricampeão escocês entre 2009 e 2011." },
+  { name: "Diego López", club: "Espanyol", year: 2018, fame: 3, lo: 74, hi: 83, bio: "Goleiro espanhol alto e seguro, que passou por Real Madrid e Milan antes do Espanyol." },
 ]
 const L35_EU_LAT: C[] = [
   { name: "Jorginho", club: "Leverkusen", year: 1990, fame: 3, lo: 78, hi: 86, bio: "Lateral-direito do tetra, na fase alemã: três temporadas no Bayer Leverkusen antes do Bayern." },
@@ -2380,6 +2381,7 @@ const L35_EU_LAT: C[] = [
   { name: "John Arne Riise", club: "Liverpool", year: 2005, fame: 3, lo: 77, hi: 85, bio: "Lateral norueguês de canhota absurda, campeão da Champions de 2005 no milagre de Istambul." },
   { name: "Filipe Luís", club: "Atlético de Madrid", year: 2014, fame: 4, lo: 81, hi: 88, bio: "Lateral do Atlético do Simeone campeão espanhol de 2014 e finalista da Champions." },
   { name: "Juanfran", club: "Atlético de Madrid", year: 2014, fame: 3, lo: 77, hi: 85, bio: "Lateral-direito do Atlético campeão espanhol de 2014 — incansável no esquema do Simeone." },
+  { name: "Antonio Benarrivo", club: "Parma", year: 1995, fame: 3, lo: 76, hi: 85, bio: "Lateral do Parma campeão da Copa da UEFA de 1995 e vice do mundo com a Itália em 1994." },
 ]
 const L35_EU_ZAG: C[] = [
   { name: "Edmilson", club: "Lyon", year: 2002, fame: 3, lo: 77, hi: 85, bio: "Zagueiro-volante do Lyon tricampeão francês — de lá foi pro Barcelona e ainda levantou o penta com a Seleção em 2002." },
@@ -2437,6 +2439,9 @@ const L35_EU_ATA: C[] = [
   { name: "Ulf Kirsten", club: "Leverkusen", year: 1997, fame: 4, lo: 81, hi: 88, bio: "Maior artilheiro da história do Leverkusen, três vezes goleador da Bundesliga." },
   { name: "Patrik Schick", club: "Leverkusen", year: 2021, fame: 3, lo: 75, hi: 84, bio: "Centroavante tcheco do golaço do meio de campo na Euro 2020, artilheiro do Leverkusen." },
   { name: "Stefan Kießling", club: "Leverkusen", year: 2013, fame: 3, lo: 74, hi: 84, bio: "Artilheiro da Bundesliga de 2013 e símbolo do Leverkusen por mais de uma década." },
+  { name: "Asprilla", club: "Parma", year: 1995, fame: 4, lo: 81, hi: 88, bio: "O auge do \"Tino\": campeão da Copa da UEFA de 1995 e autor da falta que acabou com a invencibilidade do Milan." },
+  { name: "Enrico Chiesa", club: "Parma", year: 1998, fame: 3, lo: 77, hi: 85, bio: "Atacante do Parma campeão da Copa da UEFA de 1999 — o pai do Federico Chiesa." },
+  { name: "Tomas Brolin", club: "Parma", year: 1993, fame: 3, lo: 77, hi: 85, bio: "Atacante sueco do Parma campeão da Recopa de 1993 e 3º colocado na Copa de 94 com a Suécia." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA] }
 
@@ -2736,13 +2741,9 @@ const L32_WORLD_ATA: C[] = [
   { name: 'Emmanuel Adebayor', club: 'Arsenal', year: 2008, fame: 4, lo: 80, hi: 88, bio: 'Togolês de 1,90m com toque de meia, fez 30 gols numa temporada pelo Arsenal e foi eleito o melhor da África em 2008.' },
   { name: 'Asamoah Gyan', club: 'Sunderland', year: 2011, fame: 3, lo: 78, hi: 86, folk: true, bio: 'Maior artilheiro da história de Gana em Copas. Herói de 2010 e, no mesmo torneio, o homem do pênalti perdido nos acréscimos contra o Uruguai.' },
 ]
-// 🧱 LOTE 35 (26/09) — parte MUNDO (Boca, River, Parma, Espanyol, Cruz Azul). Ver o comentário do LOTE 35 acima do CATALOG_EU.
+// 🧱 LOTE 35 (26/09) — parte MUNDO (Boca, River e Cruz Azul: clubes de FORA do Brasil e da Europa). Ver o comentário do LOTE 35 acima do CATALOG_EU.
 const L35_WORLD_GOL: C[] = [
-  { name: "Diego López", club: "Espanyol", year: 2018, fame: 3, lo: 74, hi: 83, bio: "Goleiro espanhol alto e seguro, que passou por Real Madrid e Milan antes do Espanyol." },
   { name: "Jesús Corona", club: "Cruz Azul", year: 2014, fame: 3, lo: 74, hi: 83, bio: "\"Chuy\" — goleiro-símbolo do Cruz Azul e da seleção mexicana." },
-]
-const L35_WORLD_LAT: C[] = [
-  { name: "Lilian Thuram", club: "Parma", year: 1999, fame: 5, lo: 84, hi: 90, bio: "Antes da Juventus, a fase do Parma: campeão do mundo com a França em 1998 e da Copa da UEFA com o Parma em 1999." },
 ]
 const L35_WORLD_ZAG: C[] = [
   { name: "Walter Samuel", club: "Boca Juniors", year: 2000, fame: 3, lo: 77, hi: 85, promessa: true, bio: "\"The Wall\" começou no Boca: campeão da Libertadores e do Mundial de 2000 antes de ir pra Roma." },
@@ -2761,11 +2762,8 @@ const L35_WORLD_ATA: C[] = [
   { name: "Diego Maradona", club: "Boca Juniors", year: 1981, fame: 5, lo: 88, hi: 93, bio: "O Maradona do Boca antes da Europa: campeão argentino de 1981 com o clube do coração, antes de ir pro Barcelona." },
   { name: "Hernán Crespo", club: "River Plate", year: 1996, fame: 3, lo: 77, hi: 86, promessa: true, bio: "\"Valdanito\" — campeão da Libertadores de 1996 com o River, fez os dois gols da final." },
   { name: "Marcelo Salas", club: "River Plate", year: 1997, fame: 4, lo: 81, hi: 88, bio: "\"El Matador\" — ídolo chileno no River campeão argentino antes de ir pra Lazio." },
-  { name: "Gianfranco Zola", club: "Parma", year: 1995, fame: 4, lo: 81, hi: 88, bio: "Antes do Chelsea, o Parma: gols de falta e Copa da UEFA de 1995 ao lado de Asprilla." },
-  { name: "Hristo Stoichkov", club: "Parma", year: 1996, fame: 4, lo: 82, hi: 88, bio: "Passagem curta do búlgaro pelo Parma entre as duas fases de Barcelona." },
-  { name: "Asprilla", club: "Parma", year: 1995, fame: 4, lo: 81, hi: 88, bio: "O auge do \"Tino\": campeão da Copa da UEFA de 1995 e autor da falta que acabou com a invencibilidade do Milan." },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L35_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA] }
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
