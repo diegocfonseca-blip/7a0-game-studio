@@ -1,3 +1,7 @@
+## 26/09/2026 — 👑 Busquets (Barcelona 2015) vira LENDA ✅ NO AR
+
+Pedido do Diego. Carta única dele no jogo (Barcelona, o clube da carreira).
+
 ## 26/09/2026 — 👑 Cantona (Man United 1996) vira LENDA ✅ NO AR
 
 Pedido do Diego. Raúl (Real Madrid 2001) e Hugo Sánchez (Real Madrid 1990), que ele perguntou

@@ -1890,7 +1890,7 @@ const MEI_EU: C[] = [
   { name: "Gheorghe Hagi", club: "Galatasaray", year: 2000, fame: 4, lo: 86, hi: 92 },
   { name: "Rui Costa", club: "Milan", year: 2001, fame: 4, lo: 85, hi: 91 },
   { name: "Yaya Touré", club: "Man City", year: 2014, fame: 4, lo: 85, hi: 91 },
-  { name: "Sergio Busquets", club: "Barcelona", year: 2015, fame: 4, lo: 85, hi: 91 },
+  { name: "Sergio Busquets", club: "Barcelona", year: 2015, fame: 5, lo: 85, hi: 91 },
   { name: "Ángel Di María", club: "Real Madrid", year: 2014, fame: 5, lo: 85, hi: 91 },
   { name: "Juan Sebastián Verón", club: "Lazio", year: 2000, fame: 4, lo: 84, hi: 90 },
   { name: "Paul Pogba", club: "Juventus", year: 2016, fame: 4, lo: 85, hi: 91 },
