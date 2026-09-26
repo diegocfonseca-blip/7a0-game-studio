@@ -159,16 +159,23 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Shay Given",
+    "nome": "Peter Shilton",
     "baralho": "EU",
-    "nivel": "bom jogador",
+    "nivel": "lenda",
     "data": "2026-09-26"
   },
   {
     "tipo": "entrou",
-    "nome": "Peter Shilton",
+    "nome": "Johan Neeskens",
     "baralho": "EU",
-    "nivel": "craque",
+    "nivel": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Shay Given",
+    "baralho": "EU",
+    "nivel": "bom jogador",
     "data": "2026-09-26"
   },
   {
@@ -428,13 +435,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Jesús Navas",
     "baralho": "EU",
     "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Enzo Fernández",
-    "baralho": "EU",
-    "nivel": "promessa",
     "data": "2026-09-26"
   }
 ]
