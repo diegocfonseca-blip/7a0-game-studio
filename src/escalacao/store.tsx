@@ -3850,6 +3850,39 @@ function applyResult(league: LeagueTeam[], r: MatchResult) {
   else { h.pts++; a.pts++; h.d++; a.d++ }
 }
 
+// ⚽🅰️ O QUE O JOGADOR FEZ NA COMPETIÇÃO QUE ESTÁ ROLANDO (jogo rápido e online).
+//
+// 🐛 26/09, print do Diego numa sala de Champions: *"nos jogos rápidos/minhas ligas
+// online não tá aparecendo gols e assistência dos jogadores no campinho no modo
+// Champions"*. E não aparecia mesmo: o campinho lia SÓ `state.scorers`, que é a
+// artilharia da LIGA — e na "⭐ Só Champions" não existe liga, então a lista está
+// vazia e todo boneco ficava pelado. Os gols da Champions moram em
+// `champions.scorers`, os da Liberta em `liberta.scorers`, e os do mata-mata em
+// `quickCopa.scorers`.
+//
+// ⚠️ A CONTA NÃO É "SOMAR TUDO": na Champions e na Liberta o `quickCopa` NASCE com
+// a lista da fase de tabela/grupos dentro dela (é cumulativa — grupos + mata-mata).
+// Somar as duas contaria cada gol DUAS VEZES. Já na liga + Copa dos 8 as listas são
+// separadas e aí sim somam. Por isso: liga SEMPRE, mais UMA das outras.
+//
+// 🅰️ E a assistência anda junto, pela regra de 19/09 — as duas funções são gêmeas.
+const listaDaCopa = <T,>(quick: T[] | undefined, ch: T[] | undefined, lb: T[] | undefined): T[] =>
+  (quick?.length ? quick : (ch ?? lb ?? []))
+export function golsNoJogo(s: EscState, nome: string, teamId: number): number {
+  const extra = listaDaCopa(s.quickCopa?.scorers, s.champions?.scorers, s.liberta?.scorers)
+  let n = 0
+  for (const x of s.scorers) if (x.name === nome && x.teamId === teamId) n += x.goals
+  for (const x of extra) if (x.name === nome && x.teamId === teamId) n += x.goals
+  return n
+}
+export function assistsNoJogo(s: EscState, nome: string, teamId: number): number {
+  const extra = listaDaCopa(s.quickCopa?.assists, s.champions?.assists, s.liberta?.assists)
+  let n = 0
+  for (const x of (s.assists ?? [])) if (x.name === nome && x.teamId === teamId) n += x.assists
+  for (const x of extra) if (x.name === nome && x.teamId === teamId) n += x.assists
+  return n
+}
+
 export function sortedTable(league: LeagueTeam[]): LeagueTeam[] {
   // 🇧🇷 Ordem de desempate do Brasileirão: pontos → VITÓRIAS → saldo de gols →
   // gols pró → nome (estável). O 1º critério depois dos pontos é vitórias (faltava —

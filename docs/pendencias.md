@@ -1,3 +1,30 @@
+## 26/09/2026 — ⚽🅰️ Campinho pelado na Champions (gols/assistências não apareciam) ⏳ ESPERANDO OK PRA PUBLICAR
+
+Print do Diego, sala de Champions ao vivo: *"nos jogos rápidos / minhas ligas
+online não tá aparecendo gols e assistência dos jogadores no campinho no modo
+Champions"*.
+
+**A causa**: o campinho (`Campinho`, em `screens.tsx`) lia SÓ `state.scorers` — a
+artilharia da LIGA. Na **"⭐ Só Champions" não existe liga**, então a lista está
+vazia e todo boneco aparece pelado. Os gols da Champions moram em
+`champions.scorers`, os da Liberta em `liberta.scorers` e os do mata-mata em
+`quickCopa.scorers`.
+
+**O conserto** (`golsNoJogo` / `assistsNoJogo`, em `store.tsx`): a conta saiu da
+tela e virou função do store, que sabe olhar TODAS as listas.
+⚠️ **E não é "somar tudo"**: na Champions e na Liberta o `quickCopa` NASCE com a
+lista da fase de tabela/grupos dentro dela (é cumulativa), então somar as duas
+contaria cada gol DUAS VEZES. Já na liga + Copa dos 8 as listas são separadas e aí
+sim somam. A régua é: **liga sempre, mais UMA das outras**.
+
+**Trava**: `npm run campinho` — mede os 5 casos (só Champions · Champions no
+mata-mata · Liberta · liga+Copa · liga sozinha), mais "quem não marcou fica
+zerado" e "gol de xará em outro time não vaza".
+
+⏳ **NÃO publiquei**: ele estava com sala de Champions rolando, e publicar derruba
+quem está com o jogo aberto (regra de 25/09 — *"me fale antes de fazer"*). Está no
+branch, buildado e testado, esperando o OK.
+
 ## 26/09/2026 — 👟 Reserva batia pênalti (a lista saía do elenco inteiro) ✅ NO AR
 
 Print do Diego, tela de pênalti aos 90+2': *"Zico e Garrincha estavam no banco de
