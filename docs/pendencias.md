@@ -1,3 +1,11 @@
+## 26/09/2026 — 👑 Riquelme troca de carta: sai Villarreal 2005, entra BOCA JUNIORS 2007 (lenda) ✅ NO AR
+
+Pedido do Diego. A carta nova mora no baralho **Resto do Mundo** (é onde estão os clubes
+argentinos), então ela aparece no "Mundo" e no "Todos juntos" — **não mais no Europa**. Mesma
+faixa de nível (84-90). Bio atualizada (ídolo do Boca, Libertadores 2007). `npm run novidades`
+(1 entrou · 1 saiu) e `npm run paises` verdes. Save antigo com a carta do Villarreal fica com
+ela (carta é cópia congelada no save).
+
 ## 26/09/2026 — 👑 Júlio César (Inter 2010) vira LENDA ✅ NO AR
 
 Pedido do Diego (goleiro). Só a carta da Inter 2010 (melhor clube), a do Flamengo 2003 fica
