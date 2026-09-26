@@ -1,3 +1,10 @@
+## 26/09/2026 — ↩️ Maicon (Inter 2010) VOLTA a craque ✅ NO AR
+
+Diego: *"Maicon não bote lenda também não"*. Ele tinha virado lenda numa sessão de 23/09.
+Voltou a `fame: 4`; pra home não anunciar "caiu de categoria", a foto do catálogo ganhou o
+f:4 dele e a linha antiga "Maicon virou lenda" saiu do arquivo gerado (conferido depois com
+`npm run novidades`: 0 mudança).
+
 ## 26/09/2026 — ↩️ Ballack e Júlio César VOLTAM a craque ✅ NO AR
 
 Diego: *"não coloque mais Ballack e Júlio César como lendas"*. Os dois voltaram a `fame: 4`.
