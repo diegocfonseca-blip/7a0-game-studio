@@ -6,59 +6,6 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
-    "nome": "Michael Laudrup",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "José Luis Chilavert",
-    "baralho": "MUNDO",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Sergio Busquets",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Éric Cantona",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Juan Román Riquelme",
-    "baralho": "MUNDO",
-    "nivel": "lenda",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "saiu",
-    "nome": "Juan Román Riquelme",
-    "baralho": "EU",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Júlio César",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "nivel",
     "nome": "Marta",
     "baralho": "BR",
     "de": "craque",
@@ -91,15 +38,7 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "nivel",
-    "nome": "Michael Ballack",
-    "baralho": "EU",
-    "de": "craque",
-    "para": "lenda",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "nivel",
-    "nome": "Juan Román Riquelme",
+    "nome": "Sergio Busquets",
     "baralho": "EU",
     "de": "craque",
     "para": "lenda",
@@ -108,6 +47,22 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
     "nome": "Ángel Di María",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Éric Cantona",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "Michael Laudrup",
     "baralho": "EU",
     "de": "craque",
     "para": "lenda",
@@ -143,6 +98,27 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "baralho": "EU",
     "de": "craque",
     "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "José Luis Chilavert",
+    "baralho": "MUNDO",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Juan Román Riquelme",
+    "baralho": "MUNDO",
+    "nivel": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "saiu",
+    "nome": "Juan Román Riquelme",
+    "baralho": "EU",
     "data": "2026-09-26"
   },
   {
@@ -442,6 +418,27 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Thomas Partey",
     "baralho": "MUNDO",
     "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Lakhdar Belloumi",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Martín Palermo",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-22"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Claudio Caniggia",
+    "baralho": "MUNDO",
+    "nivel": "craque",
     "data": "2026-09-22"
   }
 ]
