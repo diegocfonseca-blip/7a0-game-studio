@@ -2420,7 +2420,6 @@ const L35_EU_MEI: C[] = [
   { name: "Rodrigo Bentancur", club: "Juventus", year: 2019, fame: 3, lo: 76, hi: 85, bio: "Volante uruguaio da Juventus campeã italiana, depois do Tottenham." },
   { name: "Dejan Stanković", club: "Inter", year: 2010, fame: 4, lo: 81, hi: 88, bio: "Meia sérvio de chute forte, peça da Inter tríplice campeã de 2010." },
   { name: "Sulley Muntari", club: "Inter", year: 2010, fame: 3, lo: 75, hi: 84, bio: "Volante ganês da Inter tríplice campeã de 2010." },
-  { name: "Demetrio Albertini", club: "Milan", year: 1994, fame: 4, lo: 81, hi: 88, bio: "O maestro do meio do Milan de Capello — campeão da Champions de 1994 e vice do mundo com a Itália no mesmo ano." },
 ]
 const L35_EU_ATA: C[] = [
   { name: "Alexandre Lacazette", club: "Lyon", year: 2017, fame: 3, lo: 78, hi: 86, bio: "Artilheiro do Lyon por anos antes de ir pro Arsenal — faro de gol de centroavante." },
