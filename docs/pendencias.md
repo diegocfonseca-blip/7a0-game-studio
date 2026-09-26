@@ -1,3 +1,17 @@
+## 26/09/2026 — 🧱 LEILÃO DE SETORES (ideia do Diego) — EM CONVERSA, nada construído
+
+Modo novo: o lote é o SETOR de um clube ("Goleiros do Palmeiras"); depois do leilão, convocação
+igual à da Copa do Mundo, na formação da sala. Decidido até aqui (mockups no chat):
+- sem dica de nível (nomes iguais, ordem alfabética, sem dourado/coroa);
+- cerimônia do martelo no padrão de hoje, com ESCUDO do clube — escudo PARÓDIA (oficial é marca
+  registrada); ele ainda não escolheu entre estilo A (clássico) e B (mascote);
+- monte em PACOTES (os que ninguém comprou); não convocados vão direto pros bots;
+- ele quer UM CLUBE SÓ POR PARTIDA e variação entre partidas (memória de onde o clube saiu).
+⚠️ Esbarra no baralho: com clube único por partida cabem ~10 pessoas (medido: pacotes "com escolha"
+= GOL≥2 · LAT≥3 · ZAG≥3 · MEI≥4 · ATA≥4). Lote 1 proposto (84 cartas conferidas, nenhuma repetindo
+jogador no mesmo baralho) leva pra ~12. Pra 20 precisa de ~110 clubes diferentes — muito mais carta.
+Esperando ele aprovar o Lote 1.
+
 ## 26/09/2026 — 🕵️ JOGADOR ENIGMA LIGADO ✅ NO AR
 
 Diego viu as fotos (`npm run enigma`) e deu *"ok"* pra dica da ÉPOCA e o nome "Enigma".

@@ -627,6 +627,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   só mexer depois do OK dele** (a não ser que ele já tenha mandado fazer). E publicar com
   sala rolando derruba quem está com o jogo aberto — mais um motivo pra perguntar antes.
 
+- **🃏 O MESMO JOGADOR SÓ EM BARALHO DIFERENTE (26/09, ele cobrou irritado: *"vc sabe MT bem q
+  só pode o msm jogador em baralho diferente e N no msm baralho"*).** Nesta Lazio + Milan (os dois
+  no baralho Europa) NÃO pode; Neymar Brasil + Neymar Europa pode. Antes de propor carta nova,
+  conferir o baralho do clube e se a pessoa já está nele (script de conferência usado em 26/09:
+  nome/sobrenome no mesmo baralho = conflito).
+
 - **👑 LENDA É UMA CARTA SÓ — a do MELHOR CLUBE da carreira (26/09).** Quando ele manda
   "fulano vira lenda" e o jogador tem mais de uma carta, sobe SÓ a do melhor clube (Seedorf =
   Milan, não Botafogo; Lúcio = Inter 2010, não Internacional 2000). Palavras dele: *"óbvio que
