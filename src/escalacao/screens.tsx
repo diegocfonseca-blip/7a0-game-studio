@@ -6118,7 +6118,8 @@ export function EscSeason() {
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         // 🌎 na Libertadores metade da chave é de clube do continente, que NÃO está
         // na liga — sem este fallback o card do jogo mostrava "?" no lugar do nome.
-        const nameOf = (id: number) => (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id))?.name ?? '?'
+        // ⭐ 26/09 (sala do Futpoint): faltava a Champions aqui — o convidado aparecia como "?" no mata-mata
+        const nameOf = (id: number) => (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id) ?? state.champions?.times.find(t => t.id === id))?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         // 🔥 marca os AMIGOS (humanos da sala, no online) — pra saber quem é rival de
         // verdade e quem é CPU. "(você)" pra você; 🔥 pros outros humanos.
@@ -6399,7 +6400,7 @@ export function EscSeason() {
         // cor emprestada. CPU segue o azul neutro.
         const youColor = myApoioPerk()?.solid ?? APOIO_PERKS.bege.solid
         const oppColor = oppIsHuman ? (perkFromSelo(state.managers.find(m => m.id === oppId)?.teamName ?? '')?.solid ?? APOIO_PERKS.bege.solid) : '#3A7CA5'
-        const nameOf = (id: number) => state.league.find(t => t.id === id)?.name ?? '?'
+        const nameOf = (id: number) => (state.league.find(t => t.id === id) ?? state.liberta?.times.find(t => t.id === id) ?? state.champions?.times.find(t => t.id === id))?.name ?? '?'
         const scorer = (text: string) => { const mm = text.match(/⚽\s+(.+?)\s+marca para/) || text.match(/🏀\s+(.+?)\s+anota para/); return mm ? mm[1] : text.replace(/^[⚽🏀]\s*/, '').replace(/\.$/, '') }
         const goals = myLast.highlights.filter(lanceEhGol).map(hl => ({ name: scorer(hl.text), min: hl.min, home: hl.teamId === myLast.homeId }))
         // 🪶 A FAIXINHA DO PLACAR TAMBÉM AQUI (Diego 16/09): *"no modo online, quando

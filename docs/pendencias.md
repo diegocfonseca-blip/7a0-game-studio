@@ -1,3 +1,16 @@
+## 26/09/2026 — ⭐ Champions: convidado com NOME no mata-mata e gol com JOGADOR DE VERDADE ✅ NO AR
+
+Print do Diego (sala do Futpoint, 19h43): no mata-mata da Só Champions o rival aparecia como
+"?" (nome e escudo) e os gols dele saíam "Gol de Neymarzetti" — o nome do CLUBE no lugar do autor.
+- **"?"**: o `nameOf` da tela da Copa (e o do último jogo) procurava na liga e na Liberta, mas
+  não nos 28 convidados da Champions. Agora procura (`screens.tsx`).
+- **Gol sem autor**: convidado só tinha força (atk/def), zero jogador. Diego: *"não quero jogador
+  fake"*. Agora `elencoConvidado` (store.tsx) dá a cada convidado 11 cartas DE VERDADE do baralho
+  da sala, tiradas das sobras (nunca carta de time da sala, nunca repetida entre convidados), na
+  faixa de nível da força dele. Só pra dizer quem fez o gol e o passe: a força continua atk/def e
+  o autor sai de dado PRÓPRIO — medido: a tabela inteira das 8 rodadas sai IDÊNTICA antes/depois.
+  Numa Só Champions simulada: 122 gols de convidado, todos com autor (Dybala, Gattuso, Camavinga…).
+
 ## 26/09/2026 — ⏱️ Rodada ONLINE vai pra 9 s (offline fica em 7 s) ✅ NO AR
 
 Diego, em duas mensagens na mesma noite: *"aumente pra 8s por rodada no online. Tá 7 né,

@@ -3119,6 +3119,46 @@ const CPU_TACTICS: Tactic[] = ['retranca', 'equilibrio', 'ataque']
 // sorteio dos GOLS continua idêntico — nenhum placar muda, nem numa temporada
 // que já está rolando. ~75% dos gols saem de passe; o resto é jogada individual.
 const A_HASH = (t: string, h: number) => { for (let i = 0; i < t.length; i++) h = (Math.imul(h ^ t.charCodeAt(i), 0x01000193) >>> 0); return h >>> 0 }
+// ⭐🧍 O ELENCO DOS CONVIDADOS DA CHAMPIONS (26/09, sala do Futpoint). O convidado só
+// tinha FORÇA (atk/def), sem jogador nenhum — então quando ele marcava, a tela dizia
+// "Gol de Neymarzetti" (o nome do CLUBE no lugar do autor). Diego: *"não quero jogador
+// fake"*. Agora cada convidado ganha 11 cartas DE VERDADE do baralho da sala, tiradas
+// das SOBRAS (nunca de carta que algum time da sala já tem, e nunca a mesma em dois
+// convidados), na faixa de nível da força dele. Só carta do catálogo — perna-de-pau nem existe lá.
+// ⚠️ Só serve pra dizer QUEM fez o gol e o passe. A força do convidado continua a de
+// sempre (atk/def), e nada aqui puxa número do `rng` do jogo — o placar não muda.
+const ELENCO_CONV_FORMA: [Sector, number][] = [['GOL', 1], ['LAT', 2], ['ZAG', 2], ['MEI', 3], ['ATA', 3]]
+let elencosConvCache: { chave: string; porId: Map<number, WonCard[]> } | null = null
+function elencoConvidado(state: EscState, teamId: number): WonCard[] {
+  const ch = state.champions
+  if (!ch || teamId < CHAMPIONS_ID0) return []
+  const convidados = ch.times.filter(t => !t.isManager && t.id >= CHAMPIONS_ID0).sort((a, b) => a.id - b.id)
+  const dono = new Set<string>()
+  for (const m of state.managers) for (const c of m.squad) dono.add(`${c.name}|${c.club}|${c.year}`)
+  const chave = `${state.seed}|${convidados.map(t => t.name).join(',')}|${dono.size}`
+  if (elencosConvCache?.chave !== chave) {
+    const porId = new Map<number, WonCard[]>()
+    const usado = new Set(dono)
+    const dado = mulberry(hashDeterminista(`convidados|${state.seed}`))
+    for (const t of convidados) {
+      const alvo = (t.baseAtk + t.baseDef) / 2 + 10 // força 50–78 → nível de carta 60–88
+      const elenco: WonCard[] = []
+      for (const [pos, n] of ELENCO_CONV_FORMA) {
+        const cands = (ACTIVE_CATALOG[pos] ?? []).filter(c => !usado.has(`${c.name}|${c.club}|${c.year}`))
+        // os mais próximos do nível do clube, com um sorteio próprio pra variar entre salas
+        const ord = cands.map(c => ({ c, d: Math.abs((c.lo + c.hi) / 2 - alvo) + dado() * 6 })).sort((a, b) => a.d - b.d)
+        for (const { c } of ord.slice(0, n)) {
+          usado.add(`${c.name}|${c.club}|${c.year}`)
+          elenco.push({ ...c, id: `conv-${t.id}-${elenco.length}`, pos, paid: 0 } as WonCard)
+        }
+      }
+      porId.set(t.id, elenco)
+    }
+    elencosConvCache = { chave, porId }
+  }
+  return elencosConvCache.porId.get(teamId) ?? []
+}
+
 export function garcomDoGol(base: number, teamId: number, squad: WonCard[], scorerName: string, min: number, forcado: boolean): string | null {
   const dado = mulberry(A_HASH(`${teamId}|${scorerName}|${min}`, (base ^ 0xA551) >>> 0))
   if (!forcado && dado() < 0.25) return null // jogada individual / pênalti / rebote
@@ -3264,6 +3304,8 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   // atribui os gols a um jogador real e credita na artilharia da temporada
   const creditGoals = (id: number, goals: number, prefix: string) => {
     const m = state.managers.find(x => x.id === id)
+    // ⭐ convidado da Champions: elenco de cartas de verdade (ver `elencoConvidado`)
+    const conv = !m ? elencoConvidado(state, id) : []
     const golsDoJogo: { nome: string; min: number }[] = [] // 🅰️ pra sortear o garçom no fim
     // "DIA" do jogador (por PARTIDA): sorte de 0,4× a 2,6× no peso do gol — o Obina
     // iluminado pode roubar a cena do craque HOJE; na média o nível manda.
@@ -3296,6 +3338,16 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           if (!scorerName) { scorerName = pool[0].name; golFake = pool[0].fake }
         }
       }
+      // ⭐ convidado: o autor sai do elenco dele com um dado PRÓPRIO (o `rng` do jogo
+      // não é tocado — mesmo placar e mesmo resto da rodada de antes deste conserto)
+      if (!scorerName && conv.length) {
+        const dadoConv = mulberry(hashDeterminista(`golconv|${state.seed}|${state.round}|${id}|${g}|${min}`))
+        const pool = conv.map(c => ({ name: c.name, w: (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.4 : 0) * (0.12 + Math.pow(Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42), 2) * 1.8) }))
+        const tot = pool.reduce((a, p) => a + p.w, 0)
+        let r = dadoConv() * tot
+        for (const p of pool) { r -= p.w; if (r <= 0) { scorerName = p.name; break } }
+        if (!scorerName) scorerName = pool.find(p => p.w > 0)?.name ?? null
+      }
       if (scorerName) {
         // credita no ranking (liga = state.scorers; Copa = qc.scorers, passado à parte)
         // 🃏🚫 …MENOS se quem fez é tapa-buraco: o gol dele vale no placar e sai na
@@ -3317,16 +3369,17 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
     }
     // 🅰️ QUEM DEU O PASSE — depois que os gols já saíram, com dado próprio.
     // Trava igual à da carreira: time com 3+ gols nunca fica sem nenhum garçom.
-    if (m && golsDoJogo.length) {
+    const elencoPasse: WonCard[] = m ? m.squad : conv
+    if (elencoPasse.length && golsDoJogo.length) {
       const base = (state.seed + 5000 + state.round * 37) >>> 0
-      const escolhidos = golsDoJogo.map(g => garcomDoGol(base, id, m.squad, g.nome, g.min, false))
-      if (golsDoJogo.length >= 3 && !escolhidos.some(Boolean)) escolhidos[0] = garcomDoGol(base, id, m.squad, golsDoJogo[0].nome, golsDoJogo[0].min, true)
+      const escolhidos = golsDoJogo.map(g => garcomDoGol(base, id, elencoPasse, g.nome, g.min, false))
+      if (golsDoJogo.length >= 3 && !escolhidos.some(Boolean)) escolhidos[0] = garcomDoGol(base, id, elencoPasse, golsDoJogo[0].nome, golsDoJogo[0].min, true)
       const lista = assistsList ?? (state.assists = state.assists ?? [])
       escolhidos.forEach((nome, i) => {
         if (!nome) return
         // 🃏🚫 o passe do tapa-buraco vale no jogo e sai na narração, mas não entra
         // na lista de garçons — o que vale pro gol vale pra assistência (19/09).
-        const carta = m.squad.find(c => c.name === nome)
+        const carta = elencoPasse.find(c => c.name === nome)
         if (!carta || !ehFake(carta)) {
           const row = lista.find(a => a.name === nome && a.teamId === id)
           if (row) row.assists++
