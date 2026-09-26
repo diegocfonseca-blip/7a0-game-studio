@@ -2439,6 +2439,7 @@ const L35_EU_ATA: C[] = [
   { name: "Dušan Vlahović", club: "Fiorentina", year: 2021, fame: 3, lo: 78, hi: 86, promessa: true, bio: "Centroavante sérvio artilheiro da Fiorentina antes de ir pra Juventus." },
   { name: "Mehdi Taremi", club: "Porto", year: 2022, fame: 3, lo: 78, hi: 86, bio: "Artilheiro iraniano do Porto — fez gol de bicicleta contra o Chelsea na Champions." },
   { name: "Luis Díaz", club: "Liverpool", year: 2023, fame: 4, lo: 81, hi: 88, bio: "Ponta colombiano driblador do Liverpool — artilheiro da Copa América de 2021 ao lado do Messi e campeão inglês em 2025." },
+  { name: "José Altafini", club: "Milan", year: 1963, fame: 4, lo: 83, hi: 89, bio: "O \"Mazzola\" campeão do mundo com o Brasil em 1958 que virou ídolo na Itália — fez os dois gols do Milan na final da Copa dos Campeões de 1963." },
 ]
 export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA] }
 

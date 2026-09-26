@@ -1,4 +1,4 @@
-## 26/09/2026 — 🧱 LOTE 35: 83 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
+## 26/09/2026 — 🧱 LOTE 35: 84 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
 
 Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e
 categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
@@ -26,6 +26,7 @@ categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
 - **−10 (26/09, pedido dele)**: saíram Boniek, Futre, Belanov, Kewell, Blokhin, Raúl Jiménez,
   Valdano, Kirsten, Maddison e Diego López. Ficaram 82. (Com o Blokhin fora, a leva tem 3 lendas.)
 - **+ Demetrio Albertini** (Milan 1994, craque) — ele escreveu "João Afatini do Milan".
+- **+ José Altafini** (Milan 1963, craque) — era ESSE o "João Afatini"; o Albertini ficou esperando ele dizer se fica.
 
 ## 26/09/2026 — 🧱 LEILÃO DE SETORES (ideia do Diego) — EM CONVERSA, nada construído
 
