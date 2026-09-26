@@ -1,3 +1,9 @@
+## 26/09/2026 — 👑 Cantona (Man United 1996) vira LENDA ✅ NO AR
+
+Pedido do Diego. Raúl (Real Madrid 2001) e Hugo Sánchez (Real Madrid 1990), que ele perguntou
+junto, **já eram lenda** e já estão no jogo (a 1ª busca minha errou por causa dos acentos).
+Riquelme do Boca fica no baralho Mundo (decisão dele: *"não deixa de ser da parte mundo"*).
+
 ## 26/09/2026 — 👑 Riquelme troca de carta: sai Villarreal 2005, entra BOCA JUNIORS 2007 (lenda) ✅ NO AR
 
 Pedido do Diego. A carta nova mora no baralho **Resto do Mundo** (é onde estão os clubes

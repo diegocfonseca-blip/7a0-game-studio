@@ -1904,7 +1904,7 @@ const MEI_EU: C[] = [
   { name: "Jay-Jay Okocha", club: "PSG", year: 2002, fame: 3, lo: 78, hi: 86, folk: true },
   { name: "Gianni Rivera", club: "Milan", year: 1969, fame: 5, lo: 88, hi: 93 },
   { name: "Kenny Dalglish", club: "Liverpool", year: 1983, fame: 5, lo: 88, hi: 93 },
-  { name: "Éric Cantona", club: "Man United", year: 1996, fame: 4, lo: 86, hi: 92 },
+  { name: "Éric Cantona", club: "Man United", year: 1996, fame: 5, lo: 86, hi: 92 },
   { name: "Gianfranco Zola", club: "Chelsea", year: 1998, fame: 4, lo: 85, hi: 91 },
   { name: "Robert Pires", club: "Arsenal", year: 2004, fame: 4, lo: 85, hi: 91 },
   { name: "Michael Laudrup", club: "Barcelona", year: 1992, fame: 4, lo: 85, hi: 91 },
