@@ -627,6 +627,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   só mexer depois do OK dele** (a não ser que ele já tenha mandado fazer). E publicar com
   sala rolando derruba quem está com o jogo aberto — mais um motivo pra perguntar antes.
 
+- **👑 LENDA É UMA CARTA SÓ — a do MELHOR CLUBE da carreira (26/09).** Quando ele manda
+  "fulano vira lenda" e o jogador tem mais de uma carta, sobe SÓ a do melhor clube (Seedorf =
+  Milan, não Botafogo; Lúcio = Inter 2010, não Internacional 2000). Palavras dele: *"óbvio que
+  é só uma e no melhor clube da carreira deles"*. Na dúvida sobre qual é o melhor, perguntar.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

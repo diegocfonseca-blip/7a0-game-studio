@@ -2,8 +2,11 @@
 
 Pedido do Diego: Marta, Seedorf, Riquelme, Di María, Hierro, Thomas Müller, Klose, Lúcio,
 Schweinsteiger, Fernando Redondo e Ballack. Mesmo jeito do Maicon/Bergkamp: só `fame` 4 → 5,
-faixa de nível (lo/hi) igual. Quem tem duas cartas subiu nas duas: **Seedorf** (Botafogo 2013
-e Milan 2003) e **Lúcio** (Internacional 2000 e Inter 2010) — 13 cartas no total.
+faixa de nível (lo/hi) igual. **11 cartas.** 🔁 Primeiro subi as DUAS cartas de quem tem duas e ele
+corrigiu: *"óbvio que é só uma, e no melhor clube da carreira deles"* → ficou lenda só o
+**Seedorf do Milan 2003** e o **Lúcio da Inter 2010**; Botafogo 2013 e Internacional 2000 voltaram
+a craque (o aviso da home foi regerado do zero, sem anunciar "caiu de categoria").
+📏 **Regra pra próxima vez: promoção a lenda é UMA carta, a do melhor clube da carreira.**
 `npm run novidades` escreveu as 13 na home; `sincronizaNiveis` atualiza todo save sozinho.
 
 ## 26/09/2026 — 🎲 Baralho: 1 em cada 4 "foi profissional" vira "bom jogador" (TESTE) · 🕗 PRONTO NO RAMO
