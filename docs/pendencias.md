@@ -6,8 +6,16 @@ Minhas Ligas) e na fase de grupos da Liberta (que roda no ritmo da liga). O ráp
 OFFLINE segue em 7 s (`ROUND_MS`), a tabela da Champions (ROUND_MS + 4 s = 11 s) e os
 jogos de Copa (16–17 s) não mudam. 38 rodadas online ≈ 5 min. As chances do golzinho
 continuam 1 por lado nos dois ritmos (`npm run chances`).
+## 26/09/2026 — 👑 MISTURA DA LENDA nos rápidos ✅ NO AR
 
-## 26/09/2026 — ⚽🥅 O GOLZINHO COM LANCES no placar ao vivo ⏳ ESPERANDO OK PRA PUBLICAR
+Diego: *"1 em cada 5 lendas… craque isso aí"* (e o foi profissional ↔ bom jogador fica 1 em 4, como
+já estava). `MISTURA_LENDA = 0.2` em `store.tsx` (`buildDeck`, só `mergeSP` = rápido; carreira/escada
+e Várzea não mudam). Só troca se tiver craque livre no setor. Medido em 150 levas de sala de 20
+(4-3-3), com a bancada `montaBaralhoParaTeste`: lenda 13,7% → 12,1% · craque 35,1% → 36,7% ·
+bom e foi profissional iguais. ↩️ Voltar = `MISTURA_LENDA = 0`.
+
+
+## 26/09/2026 — ⚽🥅 O GOLZINHO COM LANCES no placar ao vivo ✅ NO AR (online e offline)
 
 Pedido do Diego, em três rodadas de mockup: primeiro *"uma animação institucional no
 placar dos jogos de 90 min"* → depois *"um golzinho, igual na disputa de pênalti, de um

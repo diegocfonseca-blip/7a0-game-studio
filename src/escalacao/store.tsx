@@ -1616,6 +1616,8 @@ const ESCADA_RARITY: Record<EscadaDiv, { legend: number; star: number; promessa:
 }
 // 🎲 chance de uma vaga de "foi profissional" virar "bom jogador" no baralho do rápido (26/09, teste)
 const MISTURA_FOI_PRO = 0.25
+// 👑 chance de uma vaga de LENDA virar CRAQUE no baralho do rápido (Diego 26/09: *"1 em cada 5 lendas… craque isso aí"*)
+const MISTURA_LENDA = 0.2
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
@@ -1694,6 +1696,15 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     // 4 vagas de FOI PROFISSIONAL vira BOM JOGADOR, por sorteio vaga a vaga. Menos repetição
     // no fundo do baralho sem mexer nas lendas. Carreira (escada) e Várzea não mudam.
     if (mergeSP) { let fica = 0; for (let k = 0; k < low; k++) if (rng() >= MISTURA_FOI_PRO) fica++; low = fica }
+    // 👑 e em cima: 1 em cada 5 vagas de LENDA vira CRAQUE (Diego 26/09 — as mesmas lendas
+    // saíam toda partida; o lateral BR tem só 7 lendas e o leilão de 20 usava as 7). Só vira
+    // craque se ainda houver craque livre no setor; senão a vaga continua lenda.
+    if (mergeSP) {
+      const livresCraque = availOf(pos, c => c.fame === 4 || !!c.promessa) - star
+      let vira = 0
+      for (let k = 0; k < legend; k++) if (rng() < MISTURA_LENDA && vira < livresCraque) vira++
+      legend -= vira; star += vira
+    }
     // se a soma passar do tamanho do setor, corta primeiro dos mais comuns
     // (foi profissional → promessa → craque → lenda), pra a raridade se manter.
     let over = legend + star + promessa + low - cnt
@@ -1785,6 +1796,8 @@ function pickMudo(deck: Record<Sector, Card[]>, seed: number, exceto?: string): 
 }
 /** sorteia os DOIS especiais do pregão de uma vez — assim nunca ficam fora de sincronia */
 // 🧪 exportado SÓ pra bancada (`npm run enigma-trava`): nada do jogo muda por causa disto
+// 🧪 bancada da mistura do baralho (26/09): mede quantas lendas/craques saem por leva. Não muda o jogo.
+export function montaBaralhoParaTeste(humanos: string[], formation: FormationKey, seed: number) { const rng = mulberry(seed); const { managers } = makeManagers(humanos, formation, 0, 20, rng); return buildDeck(managers, rng, 1.5) }
 export function sorteiaEspeciaisParaTeste(s: EscState, rng: () => number) { sorteiaEspeciais(s, rng) }
 function sorteiaEspeciais(s: EscState, rng: () => number) {
   s.surpriseId = pickSurprise(s.deck, rng)
