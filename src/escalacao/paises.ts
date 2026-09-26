@@ -497,6 +497,7 @@ export type Baralho = 'BR' | 'EU' | 'WORLD'
 //    O `npm run paises` acusa quem ficar de fora.
 export const PAIS_POR_CARTA: Record<string, string> = {
   // ─── 🧱 LOTE 35 (26/09, Leilão de Setores): país de cada carta nova, carta a carta
+  "Luis Díaz|Liverpool|2023": "Colômbia",
   "Predrag Mijatović|Real Madrid|1998": "Montenegro",
   "Dejan Savićević|Milan|1994": "Montenegro",
   "Jorge Valdano|Real Madrid|1986": "Argentina",

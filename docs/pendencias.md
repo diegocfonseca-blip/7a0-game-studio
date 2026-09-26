@@ -1,4 +1,4 @@
-## 26/09/2026 — 🧱 LOTE 35: 91 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
+## 26/09/2026 — 🧱 LOTE 35: 92 cartas novas (pro Leilão de Setores) ⏳ NO BRANCH, esperando OK
 
 Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e
 categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
@@ -18,7 +18,7 @@ categoria certa"*. Em `data.ts` (`L35_EU_*` e `L35_WORLD_*`).
   (Begović, Boruc, Goram, Javi Navarro, Pellegrino, Humberto Coelho, Albrighton, Mista, Lee Dixon,
   Olaf Thon, Bernd Schneider, Chalana, Albelda, Kießling, Waddle, Brolin, Benarrivo). Alguns
   clubes perderam o pacote de setor por isso — fica anotado, não é problema pra agora.
-- **+23 famosos que não estavam em NENHUM baralho (26/09, aprovados por ele)**: Mijatović,
+- **+24 famosos (Luis Díaz, Liverpool 2023, entrou depois) que não estavam em NENHUM baralho (26/09, aprovados por ele)**: Mijatović,
   Savićević, Valdano, Boniek, Futre, Blokhin (lenda, Bola de Ouro 75), Belanov, Dasayev, Rüştü,
   Rosický, Koller, Kewell, Darwin Núñez, Vlahović, Milinković-Savić, Pjanić, Bentancur, Taremi,
   Raúl Jiménez, Aboutrika (Mundo), Stanković, Muntari, Kuffour. Dínamo Kyiv, Spartak e Fenerbahçe
