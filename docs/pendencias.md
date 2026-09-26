@@ -1,3 +1,26 @@
+## 26/09/2026 — 🎬 GOL EM DUAS ETAPAS no placar ao vivo ⏳ NO BRANCH, ESPERANDO OK DO DIEGO
+
+Pedido dele (depois de ver o golzinho no online de 9 s): *"quando for gol, teria que
+sair a bolinha e SOMENTE quando entrar no gol que entraria o mascote com grito de gol
+e etc. Quem não tem mascote, só o grito. Só vai ser difícil quando tiver sequência
+muito rápida de gols"*.
+
+O que mudou (`LiveScoreCard`, `pyramidseason.tsx`): no minuto do gol o placar só
+SOLTA A BOLA (`voo`). Ela entra na rede em `GOL_ENTRA_MS` (0,9 s, mesmo tempo do CSS
+`ll32-entra` em `chances.ts`) e SÓ AÍ o gol vira "mostrado" — placar sobe, selo GOOOL,
+carimbo da mascote, goleador na lista e urro da torcida saem desse mesmo instante, sem
+mexer em nenhum deles (a mascote continua igual, só espera a bola). Apito final e
+texto de resultado esperam a última bola entrar (`fechado`). Enquanto uma bola de gol
+está no ar, chance perdida nenhuma começa.
+- 🔁 Sequência rápida: FILA. O 2º gol espera o 1º entrar (0,9 s) e solta a própria
+  bola; nunca dois no ar. Em 9 s de rodada, dois gols grudados nos acréscimos ainda
+  cabem antes da rodada virar (≈ 8,8 s).
+- Só no visual novo (`cinematic`); visual antigo, basquete e jogo já encerrado
+  ficam como sempre. ↩️ Voltar = `teatro = false`.
+- Fotos/vídeo: `node scripts/foto-golzinho.mjs` (agora com `--rodada 9000` e
+  `--so-video`; a foto `33-gol-bola-no-ar` mostra 0×0 com a bola voando e a
+  `33-gol-mascote` o 1×0 com o papagaio — a prova da sequência).
+
 ## 26/09/2026 — ⏱️ Rodada ONLINE vai pra 9 s (offline fica em 7 s) ✅ NO AR
 
 Diego, em duas mensagens na mesma noite: *"aumente pra 8s por rodada no online. Tá 7 né,

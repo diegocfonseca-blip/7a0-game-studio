@@ -34,6 +34,11 @@ export type Chance = { min: number; home: boolean; fim: FimDaChance }
 
 // ⏱️ quanto a chance fica na tela (voo 0,6 s + final ~0,55 s + um respiro)
 export const CHANCE_MS = 1900
+// 🥅 quando a bola do GOL está DENTRO da rede (voo 0,6 s + entrada 0,3 s) — é o
+// instante em que o placar sobe, o GOOOL grita e a mascote carimba (Diego, 26/09:
+// *"somente quando entrar no gol"*). ⚠️ Tem que bater com o CSS `ll32-entra`
+// (`online-match-visual.css`: delay .6s + .3s).
+export const GOL_ENTRA_MS = 900
 
 const FINS: FimDaChance[] = ['defendeu', 'trave', 'fora', 'isolou']
 

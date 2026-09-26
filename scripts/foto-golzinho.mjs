@@ -7,7 +7,11 @@
 // interferir nos mascotes de aparecer, né?"*).
 //
 // Sai: PNGs nos momentos das chances e do gol + um MP4 do jogo rolando.
-// uso: node scripts/foto-golzinho.mjs [--porta 5248] [--saida /tmp/golzinho-real]
+// 🎬 26/09 (gol em duas etapas): `--rodada 9000` grava o vídeo no ritmo REAL do online
+// e `--so-video` pula as fotos. E as fotos do gol agora são DUAS: a bola no ar com o
+// placar ainda parado (33-gol-bola-no-ar) e a bola dentro, com mascote e placar novo
+// (33-gol-mascote) — é a prova de que o placar só sobe quando a bola entra.
+// uso: node scripts/foto-golzinho.mjs [--porta 5248] [--saida /tmp/golzinho-real] [--rodada 30000] [--so-video]
 import { chromium } from 'playwright-core'
 import { spawn, execSync } from 'node:child_process'
 import { mkdirSync, readdirSync, renameSync } from 'node:fs'
@@ -15,6 +19,7 @@ import path from 'node:path'
 
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i > 0 && process.argv[i + 1] ? process.argv[i + 1] : d }
 const PORTA = arg('porta', '5248'), SAIDA = arg('saida', '/tmp/golzinho-real')
+const RODADA = Number(arg('rodada', '30000')), SO_VIDEO = process.argv.includes('--so-video')
 mkdirSync(SAIDA, { recursive: true })
 
 const vite = spawn('npx', ['vite', '--port', PORTA], { env: { ...process.env, DEPLOY_BASE: '/' }, stdio: 'ignore', detached: true })
@@ -51,7 +56,7 @@ await sonda.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' }
 const chances = await sonda.evaluate(`(async () => { ${MONTA(null, 30000)} })()`)
 await sonda.close()
 console.log('   chances desta rodada:', JSON.stringify(chances))
-const momentos = [...chances.map(c => ({ nome: `${c.min}-${c.fim}`, min: c.min })), { nome: '33-gol-mascote', min: 33 }]
+const momentos = SO_VIDEO ? [] : [...chances.map(c => ({ nome: `${c.min}-${c.fim}`, min: c.min, espera: 1250 })), { nome: '33-gol-bola-no-ar', min: 33, espera: 350 }, { nome: '33-gol-mascote', min: 33, espera: 1250 }]
 for (const m of momentos) {
   const p = await ctx.newPage()
   await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
@@ -72,7 +77,7 @@ for (const m of momentos) {
     r.render(React.createElement(P.LiveScoreCard, { ...base, displayMinute: ${m.min - 2} }))
     await new Promise(x => setTimeout(x, 300))
     r.render(React.createElement(P.LiveScoreCard, { ...base, displayMinute: ${m.min} }))
-    await new Promise(x => setTimeout(x, 1250))
+    await new Promise(x => setTimeout(x, ${m.espera}))
   })()`)
   await p.screenshot({ path: path.join(SAIDA, `${m.nome}.png`), fullPage: true })
   await p.close()
@@ -86,15 +91,15 @@ const vctx = await b.newContext({ viewport: { width: 760, height: 700 }, deviceS
 await vctx.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt') } catch {} })
 const v = await vctx.newPage()
 await v.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
-await v.evaluate(`(async () => { ${MONTA(null, 30000)} })()`)
+await v.evaluate(`(async () => { ${MONTA(null, RODADA)} })()`)
 await v.addStyleTag({ content: 'body{zoom:1.7}' })
-await v.waitForTimeout(27000)
+await v.waitForTimeout(Math.round(RODADA * 0.82) + 2500)
 await vctx.close()
 await b.close()
 try { process.kill(-vite.pid) } catch { /* já foi */ }
 const webm = readdirSync(SAIDA).find(f => f.endsWith('.webm'))
 if (webm) {
-  try { execSync(`ffmpeg -y -loglevel error -i "${path.join(SAIDA, webm)}" -ss 0.5 -t 26 -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${path.join(SAIDA, 'golzinho-real.mp4')}"`); renameSync(path.join(SAIDA, webm), path.join(SAIDA, 'golzinho-real.webm')) }
+  try { execSync(`ffmpeg -y -loglevel error -i "${path.join(SAIDA, webm)}" -ss 0.5 -t ${Math.round(RODADA * 0.82 / 1000) + 2} -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${path.join(SAIDA, 'golzinho-real.mp4')}"`); renameSync(path.join(SAIDA, webm), path.join(SAIDA, 'golzinho-real.webm')) }
   catch (e) { console.log('⚠️ ffmpeg falhou:', e.message) }
 }
 console.log('✅ fotos em', SAIDA)
