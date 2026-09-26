@@ -1611,6 +1611,8 @@ const ESCADA_RARITY: Record<EscadaDiv, { legend: number; star: number; promessa:
   B: { legend: 0, star: 0.60, promessa: 0.40, low: 0 }, // promessa + craque
   A: { legend: 0.30, star: 0.70, promessa: 0, low: 0 }, // elite: craque + lenda
 }
+// 🎲 chance de uma vaga de "foi profissional" virar "bom jogador" no baralho do rápido (26/09, teste)
+const MISTURA_FOI_PRO = 0.25
 function buildDeck(managers: Manager[], rng: () => number, margin: number, used: Set<string> = new Set(), extra = 0, values?: Record<string, number>, noFake = false, varzea = false, escada: EscadaDiv | null = null): Record<Sector, Card[]> {
   const deck = {} as Record<Sector, Card[]>
   const bt = nextBuildTok()
@@ -1684,6 +1686,11 @@ function buildDeck(managers: Manager[], rng: () => number, margin: number, used:
     let star = Math.min(availOf(pos, c => mergeSP ? (c.fame === 4 || !!c.promessa) : (c.fame === 4 && !c.promessa)), stoch(cnt * RARITY.star)) // craque (+ promessa junto no rápido)
     let promessa = Math.min(availOf(pos, c => !!c.promessa), stoch(cnt * RARITY.promessa))
     let low = Math.min(availOf(pos, c => c.fame === 1), stoch(cnt * RARITY.low))                  // foi profissional
+    // 🎲 MISTURA LEVE (Diego 26/09, pra TESTAR: *"pode fazer isso com o foi profissional pra
+    // testarmos, porque o lenda todo mundo já quer"*): no rápido (online e offline), 1 em cada
+    // 4 vagas de FOI PROFISSIONAL vira BOM JOGADOR, por sorteio vaga a vaga. Menos repetição
+    // no fundo do baralho sem mexer nas lendas. Carreira (escada) e Várzea não mudam.
+    if (mergeSP) { let fica = 0; for (let k = 0; k < low; k++) if (rng() >= MISTURA_FOI_PRO) fica++; low = fica }
     // se a soma passar do tamanho do setor, corta primeiro dos mais comuns
     // (foi profissional → promessa → craque → lenda), pra a raridade se manter.
     let over = legend + star + promessa + low - cnt
