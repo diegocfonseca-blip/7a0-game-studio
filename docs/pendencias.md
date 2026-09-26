@@ -12,7 +12,7 @@ chuteira e a sombra da camisa). Escudo/carimbo valem pras 4 formas com "de", as 
 - **Código — no ramo, esperando a manhã** (regra do horário de pico): escudos, mascotes,
   apoio (ouro + FUNDADOR_N 79), manto, batismos, salão (camisa `-v1`), data.ts, checa-batismos.
   build + batismos + piramide + mimos + salao verdes.
-- 📌 Falta o NOME DO DONO pro "BATIZADO POR" do post (mockup pronto com "—").
+- Post: "Batizado por **Berretinho**" e **sem dizer a Série** (pedido do Diego: *"não coloque Série D não"*) — `mockup-batismo.mjs` ganhou a opção `--sem-serie`.
 
 ## 25/09/2026 — 📮 Sala de Champions de volta a 36, com conserto SÓ na Champions ✅ NO AR
 

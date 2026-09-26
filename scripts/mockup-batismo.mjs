@@ -75,6 +75,9 @@ const o = {
   // (16/09): *"alargamos o escudo e mudamos o manto. O mascote é o mesmo, não se
   // mudou nada dele"*. Sem isto o post anunciava mascote nova e MENTIA.
   mascoteIgual: process.argv.includes('--mascote-igual'),
+  // 🙊 --sem-serie (Diego 25/09, Cruzeiro de Berretinho: *"não coloque Série D não"*): o post não diz
+  // a divisão — diz só que o clube chegou no jogo.
+  semSerie: process.argv.includes('--sem-serie'),
   saida: arg('saida', 'mockup-batismo.png'),
   escala: Number(arg('escala', '1')), // 🔍 2 = o dobro de pixels (pro Instagram)
 }
@@ -239,7 +242,7 @@ h1 .r{color:#C2452F}
     : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} já joga a <b>Série ${o.serie}</b> — e agora entra em campo <b>de cara nova</b>: escudo novo, manto ${cores}${o.mascoteIgual ? `, com ${art ? 'a' : 'o'} <b>${mascCurto} de sempre</b> no gol.` : ` e ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}`)
   : o.socio
   ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} agora tem <b>escudo, mascote e manto no jogo</b> — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote. Clube próprio de sócio: <b>não tira o lugar de ninguém</b> na pirâmide.`
-  : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} chega na <b>Série ${o.serie}</b>${o.antigo ? ` no lugar do ${o.antigo}` : ''} — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}</p>
+  : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} chega ${o.semSerie ? 'no <b>Leilão Legends</b>' : `na <b>Série ${o.serie}</b>`}${o.antigo ? ` no lugar do ${o.antigo}` : ''} — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}</p>
 
 <div class="card hero">
   <div class="esc"><img src="${img(o.escudo)}"></div>
