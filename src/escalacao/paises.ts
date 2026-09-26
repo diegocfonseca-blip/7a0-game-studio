@@ -510,7 +510,7 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   "Jorge Costa|Porto|2004": "Portugal",
   "Bruno Alves|Porto|2009": "Portugal",
   "Aloísio|Porto|1995": "Brasil",
-  "Humberto Coelho|Benfica|1975": "Portugal",
+  "Humberto Coelho|Benfica|1973": "Portugal",
   "Diego Carlos|Sevilla|2020": "Brasil",
   "Javi Navarro|Sevilla|2006": "Espanha",
   "Federico Fazio|Sevilla|2012": "Argentina",

@@ -2393,7 +2393,7 @@ const L35_EU_ZAG: C[] = [
   { name: "Bruno Alves", club: "Porto", year: 2009, fame: 3, lo: 75, hi: 84, bio: "Zagueiro duro e bom de cabeça, tetracampeão português com o Porto e campeão da Euro 2016." },
   { name: "Aloísio", club: "Porto", year: 1995, fame: 3, lo: 75, hi: 84, bio: "Zagueiro brasileiro que virou ídolo no Porto dos anos 90, capitão de uma sequência de títulos portugueses." },
   { name: "Ricardo Gomes", club: "Benfica", year: 1990, fame: 3, lo: 78, hi: 86, bio: "Capitão da Seleção na Copa de 90 e líder da zaga do Benfica finalista da Copa dos Campeões de 1990." },
-  { name: "Humberto Coelho", club: "Benfica", year: 1975, fame: 4, lo: 80, hi: 88, bio: "Lenda do Benfica dos anos 70 — um dos maiores zagueiros da história de Portugal." },
+  { name: "Humberto Coelho", club: "Benfica", year: 1973, fame: 4, lo: 80, hi: 88, bio: "Lenda do Benfica dos anos 70 — um dos maiores zagueiros da história de Portugal." },
   { name: "Diego Carlos", club: "Sevilla", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Zagueiro brasileiro campeão da Liga Europa com o Sevilla em 2020, antes de ir pra Premier League." },
   { name: "Javi Navarro", club: "Sevilla", year: 2006, fame: 2, lo: 71, hi: 82, bio: "Zagueiro-capitão do Sevilla bicampeão da Copa da UEFA em 2006 e 2007." },
   { name: "Federico Fazio", club: "Sevilla", year: 2012, fame: 2, lo: 70, hi: 82, bio: "Zagueiro argentino de quase dois metros, campeão da Liga Europa com o Sevilla." },

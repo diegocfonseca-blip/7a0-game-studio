@@ -355,13 +355,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   },
   {
     "tipo": "entrou",
-    "nome": "Humberto Coelho",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
     "nome": "Diego Carlos",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -419,20 +412,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Gabi",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Arda Turan",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Rubén Baraja",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-26"
