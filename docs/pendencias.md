@@ -1,3 +1,7 @@
+## 26/09/2026 — 👑 Laudrup (Barcelona 1992) e Chilavert (Vélez 1998) viram LENDA ✅ NO AR
+
+Pedido do Diego. Papin (Marseille 1991), que ele pediu junto, já era lenda.
+
 ## 26/09/2026 — 👑 Busquets (Barcelona 2015) vira LENDA ✅ NO AR
 
 Pedido do Diego. Carta única dele no jogo (Barcelona, o clube da carreira).

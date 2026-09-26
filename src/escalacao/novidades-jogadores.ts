@@ -6,6 +6,22 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "nivel",
+    "nome": "Michael Laudrup",
+    "baralho": "EU",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
+    "nome": "José Luis Chilavert",
+    "baralho": "MUNDO",
+    "de": "craque",
+    "para": "lenda",
+    "data": "2026-09-26"
+  },
+  {
+    "tipo": "nivel",
     "nome": "Sergio Busquets",
     "baralho": "EU",
     "de": "craque",
@@ -426,20 +442,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Thomas Partey",
     "baralho": "MUNDO",
     "nivel": "bom jogador",
-    "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Lakhdar Belloumi",
-    "baralho": "MUNDO",
-    "nivel": "bom jogador",
-    "data": "2026-09-22"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Martín Palermo",
-    "baralho": "MUNDO",
-    "nivel": "craque",
     "data": "2026-09-22"
   }
 ]
