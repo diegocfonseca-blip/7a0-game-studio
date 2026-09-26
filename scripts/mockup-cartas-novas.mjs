@@ -32,6 +32,8 @@ const SAIDA = arg('saida', 'mockups/cartas-novas-stories.png')
 const ESCALA = Number(arg('escala', '2'))
 const TITULO = arg('titulo', 'CHEGARAM NO LEILÃO')
 const SUB = arg('sub', '47 jogadores novos no baralho')
+// 📑 lote grande não cabe num story só (26/09: 85 cartas) — `--setores GOL,LAT,ZAG` parte em dois
+const SO_SETORES = arg('setores', '').split(',').map(s => s.trim()).filter(Boolean)
 
 const src = fs.readFileSync('src/escalacao/data.ts', 'utf8')
 
@@ -51,12 +53,14 @@ while ((m = re.exec(src))) {
 // porque ali era o lugar certo dele no arquivo. Sem esta linha ele sumiria do post.
 const AVULSOS = [{ setor: 'GOL', nome: 'Ronald Koeman Jr', clube: 'Oostende', ano: '2019' }]
 for (const a of AVULSOS) {
+  if (!LOTES.includes('L31')) continue // o avulso é da leva 31: só entra no post dela
   if (!src.includes(`name: "${a.nome}"`) && !src.includes(`name: '${a.nome}'`)) continue
   if (!porSetor[a.setor].some(c => c.nome === a.nome)) porSetor[a.setor].push({ nome: a.nome, clube: a.clube, ano: a.ano })
 }
 
 // 🏷️ no POST o nome sai limpo: "Maicon (Grêmio)" vira "Maicon", porque o clube já
 //    aparece do lado. O parêntese existe no código só pra separar de um xará.
+if (SO_SETORES.length) for (const p of SETORES) if (!SO_SETORES.includes(p)) porSetor[p] = []
 const limpo = n => n.replace(/\s*\([^)]*\)\s*$/, '').trim()
 const total = SETORES.reduce((s, p) => s + porSetor[p].length, 0)
 
