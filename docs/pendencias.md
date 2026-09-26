@@ -1,3 +1,11 @@
+## 26/09/2026 — 👑 13 cartas viram LENDA ✅ NO AR
+
+Pedido do Diego: Marta, Seedorf, Riquelme, Di María, Hierro, Thomas Müller, Klose, Lúcio,
+Schweinsteiger, Fernando Redondo e Ballack. Mesmo jeito do Maicon/Bergkamp: só `fame` 4 → 5,
+faixa de nível (lo/hi) igual. Quem tem duas cartas subiu nas duas: **Seedorf** (Botafogo 2013
+e Milan 2003) e **Lúcio** (Internacional 2000 e Inter 2010) — 13 cartas no total.
+`npm run novidades` escreveu as 13 na home; `sincronizaNiveis` atualiza todo save sozinho.
+
 ## 26/09/2026 — 🎲 Baralho: 1 em cada 4 "foi profissional" vira "bom jogador" (TESTE) · 🕗 PRONTO NO RAMO
 
 Diego acha que o baralho repete demais. Ele quis testar uma mistura LEVE só no fundo do
