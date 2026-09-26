@@ -207,9 +207,25 @@ function notaChampions(pos: number, n: number, run: CopaRunSala | undefined, see
   const en = getLang() === 'en'
   const o = ordinal(pos)
   const p = run?.pens ? (en ? ' on penalties' : ' nos pênaltis') : ''
-  if (run?.status === 'campeao') return pos <= 8
-    ? { nota: en ? `🏆 CHAMPIONS LEAGUE WINNER. Finished the table ${o} and never let go. The big-eared trophy is theirs.` : `🏆 CAMPEÃO DA CHAMPIONS. Terminou a tabela em ${pos}º e não soltou mais. A orelhuda é dele.`, destaque: 'ouro' }
-    : { nota: en ? `🏆 CHAMPIONS LEAGUE WINNER — through the PLAYOFF. ${o} in the table, went the long way and lifted it anyway.` : `🏆 CAMPEÃO DA CHAMPIONS — vindo do REPESCÃO. Foi ${pos}º na tabela, pegou o caminho mais longo e levantou mesmo assim.`, destaque: 'ouro' }
+  // 🏆 A NOTA DO CAMPEÃO TEM QUE CASAR COM A POSIÇÃO (26/09). O Futpoint foi
+  // campeão sendo 5º e o jornal escreveu *"terminou a tabela em 5º e não soltou
+  // mais"* — o Diego pegou: *"ficou estranho ele falar que ficou em 5º e não
+  // soltou mais"*. E está estranho mesmo: "não soltou mais" é frase de quem
+  // LIDEROU, não de quem foi 5º. Agora são três notas, cada uma dizendo a
+  // verdade do caminho: 1º na tabela · entre os 8 (direto pras oitavas) · pelo
+  // repescão.
+  if (run?.status === 'campeao') {
+    if (pos === 1) return { nota: en
+      ? `🏆 CHAMPIONS LEAGUE WINNER. Topped the table of 36 and confirmed it in the bracket. The big-eared trophy is theirs.`
+      : `🏆 CAMPEÃO DA CHAMPIONS. Terminou a tabela de 36 em 1º e confirmou na chave. A orelhuda é dele.`, destaque: 'ouro' }
+    return pos <= 8
+      ? { nota: en
+        ? `🏆 CHAMPIONS LEAGUE WINNER. ${o} in the table, straight into the round of 16 — and did not stop until the end. The big-eared trophy is theirs.`
+        : `🏆 CAMPEÃO DA CHAMPIONS. Fez ${pos}º na tabela, foi direto pras oitavas e não parou mais. A orelhuda é dele.`, destaque: 'ouro' }
+      : { nota: en
+        ? `🏆 CHAMPIONS LEAGUE WINNER — through the PLAYOFF. ${o} in the table, went the long way and lifted it anyway.`
+        : `🏆 CAMPEÃO DA CHAMPIONS — vindo do REPESCÃO. Foi ${pos}º na tabela, pegou o caminho mais longo e levantou mesmo assim.`, destaque: 'ouro' }
+  }
   if (run?.status === 'vice') return { nota: en ? `🥈 Reached the final and lost to ${run.vs}${p}. So close to the big-eared trophy.` : `🥈 Chegou na final e perdeu pro ${run.vs}${p}. Bateu na trave da orelhuda.`, destaque: 'roxo' }
   if (run?.status === 'caiu' && run.fase) {
     const caiuRep = pos > 8 && pos <= 24 && /repesc|playoff/.test(run.fase)

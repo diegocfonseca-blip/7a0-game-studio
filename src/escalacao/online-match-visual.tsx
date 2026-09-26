@@ -16,6 +16,14 @@ export function OnlineScorePresentation(p: {
   // até 2 linhas). `result` = quem ganhou no apito final: o escudo dele brilha e o do
   // outro apaga. Fora da prévia os dois ficam de fora e nada muda.
   big?: boolean; result?: 'h' | 'a' | null;
+  // ⚽🥅 O GOLZINHO (26/09, mockup aprovado: *"adorei"*). A faixa preta do palco dos
+  // pênaltis embaixo do placar: 🥅 de cada lado, pista com a cor de cada time, a bola
+  // parada no meio. `palco` = o lance que está NA TELA agora: de qual lado veio
+  // (`side` = quem atacou; a casa ataca o gol da direita) e como terminou —
+  // 🧤 defendeu · 🥅 trave · 💨 fora · 🚀 isolou · ⚽ gol (entra e a rede balança).
+  // `palcoOn` liga a faixa (sem ela, o placar é byte a byte o de antes).
+  // 🎭 A mascote do carimbo NÃO muda: ela continua na cena do gol, como sempre.
+  palcoOn?: boolean; palco?: { side: 'h' | 'a'; fim: 'defendeu' | 'trave' | 'fora' | 'isolou' | 'gol'; key: number; veredito: string } | null;
 }) {
   const team = (home: boolean) => {
     const name = home ? p.homeName : p.awayName
@@ -37,6 +45,19 @@ export function OnlineScorePresentation(p: {
       <div className="ll25-numbers"><small>{p.clock}</small><strong>{p.homeScore} <span>×</span> {p.awayScore}</strong></div>
       {team(false)}
     </div>
+    {p.palcoOn && (
+      // ⚽🥅 a faixa do golzinho: `key` reinicia a animação a cada lance novo. Lado
+      // `h` = a casa atacou → a bola vai pra DIREITA (rede do visitante); `a` → esquerda.
+      <div key={p.palco?.key ?? 'quieto'} className={`ll32-palco${p.palco ? ` ll32-${p.palco.side === 'h' ? 'dir' : 'esq'} ll32-${p.palco.fim}` : ''}`} aria-hidden="true">
+        <span className="ll32-meta ll32-m-esq">🥅</span><span className="ll32-luva ll32-l-esq">🧤</span>
+        <div className="ll32-pista">
+          <i className="ll32-metade ll32-mt-esq" style={{ borderColor: p.homeColor }} /><i className="ll32-metade ll32-mt-dir" style={{ borderColor: p.awayColor }} />
+          <span className="ll32-sombra" /><span className="ll32-bola">⚽</span>
+        </div>
+        <span className="ll32-luva ll32-l-dir">🧤</span><span className="ll32-meta ll32-m-dir">🥅</span>
+        {p.palco && <b className={`ll32-veredito ll32-v-${p.palco.fim}`}>{p.palco.veredito}</b>}
+      </div>
+    )}
     {p.enhanced && p.goalSide && <div key={p.eventKey} className={`ll26-goal-scene ll26-goal-${p.goalSide}`} aria-hidden="true">
       <div className="ll26-goal-rays" />
       <div className="ll26-goal-mascot">{p.mascot}</div>

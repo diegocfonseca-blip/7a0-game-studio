@@ -6,6 +6,148 @@ e Várzea não mudam). Só troca se tiver craque livre no setor. Medido em 150 l
 (4-3-3), com a bancada `montaBaralhoParaTeste`: lenda 13,7% → 12,1% · craque 35,1% → 36,7% ·
 bom e foi profissional iguais. ↩️ Voltar = `MISTURA_LENDA = 0`.
 
+
+## 26/09/2026 — ⚽🥅 O GOLZINHO COM LANCES no placar ao vivo ⏳ ESPERANDO OK PRA PUBLICAR
+
+Pedido do Diego, em três rodadas de mockup: primeiro *"uma animação institucional no
+placar dos jogos de 90 min"* → depois *"um golzinho, igual na disputa de pênalti, de um
+lado e do outro"* → depois *"vários estilos: por cima, na trave, pra fora, isolou… a
+narração no momento certo, a bola entrando só quando é gol, o placar só muda aí. Não
+mudaria a dinâmica dos gols, mas teria coisas acontecendo enquanto não sai gol"*.
+Aprovado (*"adorei"*) com dois ajustes: a bola PARA DENTRO da rede e balança junto; o
+isolou sai rasteiro, sobe e passa por cima do gol. 🚫 A 3D de CSS ele não gostou.
+
+### O que entrou
+- **`src/escalacao/chances.ts`** (módulo puro): decide QUANDO acontece uma chance
+  perdida, de quem e como termina (🧤 defendeu · 🥅 trave · 💨 fora · 🚀 isolou), e o
+  texto dela em PT/EN (6 frases por final, falando do CLUBE — nunca inventa jogador).
+  Semente = rodada + os dois clubes → a sala inteira vê a mesma chance no mesmo minuto.
+  Quantas cabem é o `roundMs` que diz: online/Minhas Ligas (7 s) = **1 por lado**;
+  carreira (11 s) = 2; rodada lenta (30 s+) = até 4; rodada instantânea = nenhuma. Chance nunca cai a menos de 3' de um gol nem no
+  intervalo (43'–47'); sempre entre 4' e 88'.
+- **`OnlineScorePresentation`** (`online-match-visual.tsx` + CSS `ll32-`): a faixa do
+  palco dos pênaltis embaixo do placar — 🥅 de cada lado, pista com a cor de cada time,
+  bola no meio. A casa ataca a DIREITA. No gol a bola entra na rede de quem tomou e
+  balança junto; nas chances, o final (luva, poste, lado, por cima). O veredito pula na
+  faixa igual aos pênaltis. Só nos placares `cinematic` (online/rápido e carreira
+  grande); basquete fora.
+- **`LiveScoreCard`** (`pyramidseason.tsx`): detecta a chance cujo minuto acabou de
+  passar (janela de 4', pra quem abre a tela no 70' não ver a do 12' atrasada), mostra
+  por `CHANCE_MS` (1,9 s) e troca a NARRAÇÃO pelo texto dela — que ganha do apito
+  inicial/intervalo enquanto está na tela. Gol continua exatamente como era (mesmo
+  timer, mesmo selo); só ganhou a bola entrando.
+- 🎭 **A MASCOTE NÃO MUDOU** (pergunta dele: *"não vai interferir nos mascotes?"*): a
+  cena do gol (carimbo + GOOOL + raios) está intocada; a bola entra na rede embaixo
+  dela. Conferido com o Al Takhadao FC marcando: papagaio na tela + bola na rede.
+
+**Travas**: `npm run chances` (determinismo, longe dos gols, contagem por ritmo, sem
+cobrança de pênalti, PT+EN, cita o clube) · `telas` · `penaltis` · `build` verdes.
+**Foto/vídeo do componente REAL**: `node scripts/foto-golzinho.mjs` (monta o
+`LiveScoreCard` sozinho via vite, congela o relógio nos minutos das chances).
+Mockups no repo: `mockup-golzinho.mjs` · `mockup-golzinho-3d.mjs` (recusado) ·
+`mockup-golzinho-lances.mjs` (o aprovado).
+
+↩️ **Reverter**: `palcoOn={!basket}` → `false` tira a faixa; o resto do placar é o
+de antes. As chances vivem só na tela (nada no save, nada na simulação).
+
+## 26/09/2026 — 🏟️ O Giro vira LETREIRO DE ESTÁDIO + 🎤 manchetes sobre a GALERA da sala ⏳ ESPERANDO OK PRA PUBLICAR
+
+Pedido do Diego: *"uma mudança visual melhor no giro da copa, com alguma animação…
+qual sua melhor ideia?"* → mockup do letreiro de LED aprovado (*"Aprovo"*), com um
+pedido junto: *"nos modos rápido online e minhas ligas você poderia pôr mais textos
+em relação aos usuários que estão jogando"*.
+
+### 🏟️ O letreiro (`GiroDaRodada`, screens.tsx)
+A caixinha bege que trocava de frase a cada 3s virou a faixa de LED que corre em
+volta do gramado: fundo preto com matriz de pontinhos, letra Oswald âmbar com
+brilho, manchetes CORRENDO da direita pra esquerda com ◆ entre elas.
+· A cor da luz conta a história: 🎯 pênalti/prorrogação = vermelho · 👑 campeão =
+  dourado · resto = âmbar. Sem confete, sem faixa (regra de 19/09).
+· 0 KB (radial-gradient + keyframes). Anti-spoiler intacto (recebe a MESMA lista
+  segurada até o apito). Com "reduzir movimento" ligado, mostra uma frase parada
+  por vez, com o fade de antes.
+· Mockup: `node scripts/mockup-giro-letreiro.mjs` · foto/vídeo do componente REAL
+  montado sozinho via vite: `node scripts/foto-giro-letreiro.mjs`.
+
+### 🎤 As manchetes da galera (`src/escalacao/giro-galera.ts`, módulo puro)
+Só no ONLINE (sala rápida e Minhas Ligas). Sai do que ACONTECEU — nada inventado:
+· 🥊 **Clássico da sala** (humano × humano) com placar, vencedor e um fecho de
+  zoeira sorteado (*"leva a rodada no papo"*, *"vai ficar de castigo no grupo"*,
+  *"já pediu revanche no privado"*…) + o retrospecto entre os dois quando existe.
+· 🤝 empate entre humanos · 😴 0×0 entre humanos.
+· 🤡 humano tomou 3+ de BOT · 🧨 humano goleou bot por 4+ · 🤖 perdeu apertado pra bot.
+· 🎩 o melhor técnico da sala MUDOU (só com tabela e posição de antes) ·
+  🐌 o pior da sala perdeu de novo (3+ humanos).
+Onde entra: rodada da liga (`narrateRound`, na frente das neutras, corte sobe pra 5),
+rodada da **tabela da Champions** (que até hoje não gerava manchete NENHUMA — o
+giro ficava mudo 8 rodadas), rodada de grupo da Liberta e cada perna do mata-mata.
+· 🎲 a frase é presa na semente: mesma rodada, mesma frase no host e nos convidados.
+· 🌐 PT guardado, EN por `traduzGalera` (mora no mesmo arquivo do texto).
+· 🙈 toda manchete abre com um emoji fixo (`GALERA_ABERTURAS`) e o anti-spoiler da
+  copa segura essas também (o "clássico da sala 2 × 1" entrega placar igual).
+
+**Travas**: `npm run galera` (18 conferências: vencedor certo, bot×bot nunca, semente,
+teto, não inventa sem tabela, toda frase tem inglês e abertura) · `telas` ·
+`champions` verdes.
+
+⏳ **Não publiquei**: vai junto com o campinho da Champions e os 3 consertos do giro/
+jornal, todos no branch, esperando o "pode subir" (sala dele pode estar rolando).
+
+## 26/09/2026 — ⭐ Champions: nota do campeão sem pé nem cabeça, giro chamando de Libertadores, e o anti-spoiler cego ⏳ ESPERANDO OK PRA PUBLICAR
+
+Dois prints do Diego, numa sala de Só Champions. Consertos:
+
+**1️⃣ A nota do campeão não casava com a posição** (`jornal-sala.tsx`). O Futpoint foi
+campeão sendo **5º** e o jornal escreveu *"terminou a tabela em 5º e **não soltou
+mais**"*. Palavras dele: *"ficou estranho"*. E está: "não soltou mais" é frase de
+quem LIDEROU. Agora são três notas, cada uma dizendo a verdade do caminho:
+· **1º** → "terminou a tabela de 36 em 1º e confirmou na chave"
+· **2º–8º** → "fez Nº na tabela, foi direto pras oitavas e não parou mais"
+· **9º+** → a do REPESCÃO, que já existia.
+
+**2️⃣ O giro dizia "avançou na LIBERTADORES" numa sala de CHAMPIONS** (`store.tsx`).
+O `copaWord` já sabia qual competição era (Copa · Liberta · Champions), mas a linha
+do "avançou" só tinha DOIS caminhos — Copa, ou *senão é Liberta* — então a Champions
+caía no nome errado. Agora lê o mesmo `copaWord` do resto. O inglês (`screens.tsx`)
+ganhou a Champions no padrão da frase, que também não casava.
+
+**3️⃣ 🚫 E O ANTI-SPOILER ESTAVA CEGO PRA CHAMPIONS E LIBERTA** (achado no caminho,
+não foi relatado). O filtro que segura as manchetes enquanto a perna ANIMA só
+conhecia a palavra "Copa" — "⚽ Champions QUARTAS…" e "avançou na Champions" passavam
+direto e podiam entregar quem passou antes do apito. A rede principal (o `giroNews`
+segurado) continua valendo; esta é a segunda, e agora cobre as quatro competições
+(Copa · Champions · Liberta · Playoffs).
+
+Verdes: `build`, `champions`, `campinho`, `telas`, `jornal`.
+⏳ **Não publiquei** — sala dele rolando (regra de 25/09). Vai junto com o conserto do
+campinho, que está no mesmo branch.
+
+## 26/09/2026 — ⚽🅰️ Campinho pelado na Champions (gols/assistências não apareciam) ⏳ ESPERANDO OK PRA PUBLICAR
+
+Print do Diego, sala de Champions ao vivo: *"nos jogos rápidos / minhas ligas
+online não tá aparecendo gols e assistência dos jogadores no campinho no modo
+Champions"*.
+
+**A causa**: o campinho (`Campinho`, em `screens.tsx`) lia SÓ `state.scorers` — a
+artilharia da LIGA. Na **"⭐ Só Champions" não existe liga**, então a lista está
+vazia e todo boneco aparece pelado. Os gols da Champions moram em
+`champions.scorers`, os da Liberta em `liberta.scorers` e os do mata-mata em
+`quickCopa.scorers`.
+
+**O conserto** (`golsNoJogo` / `assistsNoJogo`, em `store.tsx`): a conta saiu da
+tela e virou função do store, que sabe olhar TODAS as listas.
+⚠️ **E não é "somar tudo"**: na Champions e na Liberta o `quickCopa` NASCE com a
+lista da fase de tabela/grupos dentro dela (é cumulativa), então somar as duas
+contaria cada gol DUAS VEZES. Já na liga + Copa dos 8 as listas são separadas e aí
+sim somam. A régua é: **liga sempre, mais UMA das outras**.
+
+**Trava**: `npm run campinho` — mede os 5 casos (só Champions · Champions no
+mata-mata · Liberta · liga+Copa · liga sozinha), mais "quem não marcou fica
+zerado" e "gol de xará em outro time não vaza".
+
+⏳ **NÃO publiquei**: ele estava com sala de Champions rolando, e publicar derruba
+quem está com o jogo aberto (regra de 25/09 — *"me fale antes de fazer"*). Está no
+branch, buildado e testado, esperando o OK.
 ## 26/09/2026 — 🧱 LOTE 35: 83 cartas novas (pro Leilão de Setores) ✅ NO AR (19h, com o OK dele: "pode publicar já")
 
 Diego: *"pode fazer todos eles, botando ano certo, clube certo, baralho certo, nível certo e

@@ -68,7 +68,8 @@ import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
-import { lanceDoGol } from './lances' // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { lanceDoGol } from './lances'
+import { chancesDoJogo, sementeDasChances, narraChance, vereditoDaChance, CHANCE_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -3037,6 +3038,31 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   }, [evH, evA, roundKey, finished])
   // 🧹 desmontou a tela: não deixa timer pendurado
   useEffect(() => () => { if (goalTimer.current) clearTimeout(goalTimer.current) }, [])
+  // ── ⚽🥅 O GOLZINHO COM LANCES (26/09, mockup aprovado: *"adorei"*) ──
+  // As CHANCES PERDIDAS do jogo (🧤 defendeu · 🥅 trave · 💨 fora · 🚀 isolou) são
+  // teatro semeado — mesma cena em todo aparelho da sala — e nunca viram gol. Quem
+  // decide quantas cabem é o `roundMs` (11 s no online = 1 por lado; carreira, mais).
+  // Os gols continuam sendo os da simulação: a bola entra na rede no MESMO instante
+  // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
+  const chances = useMemo(() => (basket || !cinematic) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, roundMs])
+  const [lance, setLance] = useState<{ side: 'h' | 'a'; fim: FimDaChance; key: number; txt: string } | null>(null)
+  const lanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
+  useEffect(() => {
+    if (lancesVistos.current.key !== roundKey) { lancesVistos.current = { key: roundKey, mins: [] }; if (lanceTimer.current) clearTimeout(lanceTimer.current); setLance(null) }
+    if (finished || done || goal) return
+    // a chance cujo minuto ACABOU de passar (janela curta: quem abre a tela no 70'
+    // não vê a chance do 12' rodando atrasada)
+    const c = chances.find(x => x.min <= min && min - x.min <= 4 && !lancesVistos.current.mins.includes(x.min))
+    if (!c) return
+    lancesVistos.current.mins.push(c.min)
+    const clube = nomeLimpo(c.home ? homeName : awayName)
+    setLance({ side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en') })
+    if (lanceTimer.current) clearTimeout(lanceTimer.current)
+    lanceTimer.current = setTimeout(() => { setLance(null); lanceTimer.current = null }, CHANCE_MS)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [min, roundKey, finished, done, goal, chances])
+  useEffect(() => () => { if (lanceTimer.current) clearTimeout(lanceTimer.current) }, [])
   void iAmHome
 
   const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => {
@@ -3133,8 +3159,15 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     homeOwner={homeOwner} awayOwner={awayOwner}
     youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={shown}
     goalSide={golSide} mascot={carimboArt} eventKey={goalSeed}
+    // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
+    // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
+    palcoOn={!basket}
+    palco={golSide ? { side: golSide, fim: 'gol', key: goalSeed * 10 + 7, veredito: vereditoDaChance('gol', emIngles) }
+      : lance ? { side: lance.side, fim: lance.fim, key: lance.key, veredito: vereditoDaChance(lance.fim, emIngles) } : null}
     stamp={`${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}′` : ''}${lanceUltimo ? ` — ${lanceUltimo}` : ''}`}
-    narration={fimTxt ?? ritualTxt ?? (done ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name} — ${lanceUltimo}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING')))} />
+    // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
+    //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
+    narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (done ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name} — ${lanceUltimo}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
