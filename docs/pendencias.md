@@ -1,3 +1,16 @@
+## 26/09/2026 — 🎲 Baralho: 1 em cada 4 "foi profissional" vira "bom jogador" (TESTE) · 🕗 PRONTO NO RAMO
+
+Diego acha que o baralho repete demais. Ele quis testar uma mistura LEVE só no fundo do
+baralho (*"pode fazer isso com o foi profissional pra testarmos, porque o lenda todo mundo já
+quer"*). `MISTURA_FOI_PRO = 0.25` em `buildDeck` (store.tsx), só no rápido (online e
+offline); carreira (escada) e Várzea intactas. Medido em 60 leilões de 20 pessoas:
+foi profissional **29% → ~20%**, bom jogador **~17% → ~25%**; lenda (16%) e craque (38%)
+iguais; zero fake.
+📌 Achado pra resolver a repetição de verdade (explicado pro Diego, sem decisão ainda):
+(1) no baralho Brasil, lateral e zagueiro têm tão poucas lendas (7 e 6) que o leilão de 20
+usa TODAS, toda vez; (2) a memória do rodízio (`RECENT_DECK`, últimas 3 levas) vive só na
+página aberta do DONO da sala — recarregou ou trocou de dono, ela zera.
+
 ## 26/09/2026 — 🐊 Mascote da sala de espera: 5 s (relógio próprio) · 🕗 PRONTO NO RAMO
 
 Diego: *"coloque pra 5s o tempo do mascote na sala de espera que tava 30s"*. O bicho ganhou
