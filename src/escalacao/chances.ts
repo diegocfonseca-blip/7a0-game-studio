@@ -43,12 +43,16 @@ function hash(txt: string, n: number) { let h = 2166136261 ^ n; for (let i = 0; 
 /**
  * quantas chances cabem POR LADO numa rodada de `roundMs`:
  * o relógio anda 93' em `max(400, roundMs·0,82)` ms, e cada chance ocupa CHANCE_MS.
- * Deixa folga de 2× pra ficar coisa acontecendo, não coisa em cima de coisa —
- * no online (11 s → 93' em ~9 s) isso dá UMA por lado; na carreira, mais.
+ * ⚠️ O ONLINE É RÁPIDO DE VERDADE: a rodada da sala/Minhas Ligas dura 7 s (o jogo
+ * anima em ~5,7 s). Pra caber UMA chance por lado ali, a conta é "quantas
+ * CHANCE_MS cabem no jogo, metade pra cada lado" — o espaçamento mínimo (`gap`)
+ * é quem garante que duas nunca ficam na tela juntas, e sobra menos que isso
+ * quando os gols ocupam o calendário. Carreira (11 s) = 2 por lado; rodada lenta
+ * (30 s+) = até 4; rodada instantânea = nenhuma.
  */
 export function chancesPorLado(roundMs: number): number {
   const dur = Math.max(400, roundMs * 0.82)
-  const cabem = Math.floor(dur / (CHANCE_MS * 2))
+  const cabem = Math.floor(dur / CHANCE_MS)
   return Math.max(0, Math.min(4, Math.floor(cabem / 2)))
 }
 

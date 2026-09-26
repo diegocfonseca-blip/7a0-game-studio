@@ -45,8 +45,22 @@ ok(foraDaJanela === 0, 'toda chance entre 4′ e 88′')
 
 // 3️⃣ quantidade por ritmo
 ok(chancesPorLado(400) === 0, `rodada instantânea (400 ms): ${chancesPorLado(400)} por lado`)
-ok(chancesPorLado(11000) === 1, `online (11 s): ${chancesPorLado(11000)} por lado`)
-ok(chancesPorLado(30000) >= 2, `carreira (30 s): ${chancesPorLado(30000)} por lado`)
+ok(chancesPorLado(7000) === 1, `online / Minhas Ligas (7 s): ${chancesPorLado(7000)} por lado`)
+ok(chancesPorLado(11000) === 2, `carreira (11 s): ${chancesPorLado(11000)} por lado`)
+ok(chancesPorLado(30000) >= 2, `rodada lenta (30 s): ${chancesPorLado(30000)} por lado`)
+// 🏎️ no online (7 s) o jogo anima em 5,7 s: cada lance ocupa ~31' do relógio. Num
+// jogo de 1 gol cabe chance; num de 4 gols os PRÓPRIOS gols já lotam a tela — e aí
+// a chance some em vez de atropelar (regra: nunca duas coisas ao mesmo tempo).
+const msMinR = (7000 * 0.82) / 93
+const umGol = [{ min: 40, home: true }]
+const rapida1 = chancesDoJogo(seed, umGol, 7000)
+ok(rapida1.length >= 1, `online de 7 s, jogo de 1 gol: ${rapida1.length} chance(s) — tem coisa acontecendo`)
+const rapida4 = chancesDoJogo(seed, gols, 7000)
+ok(rapida4.length <= 2, `online de 7 s, jogo de 4 gols: ${rapida4.length} chance(s) — os gols já ocupam a tela`)
+for (const [lista, gs] of [[rapida1, umGol], [rapida4, gols]]) {
+  const ev = [...lista.map(c => c.min), ...gs.map(g => g.min)].sort((x, y) => x - y)
+  ok(!ev.some((m, i) => i > 0 && lista.some(c => c.min === m) && (m - ev[i - 1]) * msMinR < CHANCE_MS), 'no online a chance nunca colide com o lance anterior na tela')
+}
 ok(chancesPorLado(120000) <= 4, `rodada bem lenta (120 s): ${chancesPorLado(120000)} por lado (teto 4)`)
 // e as chances não se atropelam na tela: distância em ms ≥ CHANCE_MS
 const lenta = chancesDoJogo(seed, gols, 30000).map(c => c.min).sort((x, y) => x - y)

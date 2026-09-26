@@ -13,8 +13,8 @@ isolou sai rasteiro, sobe e passa por cima do gol. 🚫 A 3D de CSS ele não gos
   perdida, de quem e como termina (🧤 defendeu · 🥅 trave · 💨 fora · 🚀 isolou), e o
   texto dela em PT/EN (6 frases por final, falando do CLUBE — nunca inventa jogador).
   Semente = rodada + os dois clubes → a sala inteira vê a mesma chance no mesmo minuto.
-  Quantas cabem é o `roundMs` que diz: online (11 s) = **1 por lado**; carreira (30 s)
-  = 3; rodada instantânea = nenhuma. Chance nunca cai a menos de 3' de um gol nem no
+  Quantas cabem é o `roundMs` que diz: online/Minhas Ligas (7 s) = **1 por lado**;
+  carreira (11 s) = 2; rodada lenta (30 s+) = até 4; rodada instantânea = nenhuma. Chance nunca cai a menos de 3' de um gol nem no
   intervalo (43'–47'); sempre entre 4' e 88'.
 - **`OnlineScorePresentation`** (`online-match-visual.tsx` + CSS `ll32-`): a faixa do
   palco dos pênaltis embaixo do placar — 🥅 de cada lado, pista com a cor de cada time,
