@@ -68,6 +68,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Neymarzetti', tipo: 'batismo', fundador: 1, manto: ['#080908', '#F0EFEF'] },
   { clube: 'Bicho da Seda', tipo: 'batismo', fundador: 11, manto: ['#0F0F0F', '#E6DED4'] },
   { clube: 'Vasco SAF', tipo: 'batismo', fundador: 78, manto: ['#161414', '#ECE6E1'] }, // ⚽🏴‍☠️ Série D (24/09) — o antigo Vasco da Grana (batismo sem dono do Diego, 03/08) virou do brunnodeluca90. Preto e branco medidos na camisa — o MESMO par do `manto.ts`
+  { clube: 'Cruzeiro de Berretinho', tipo: 'batismo', fundador: 79, manto: ['#0130AD', '#F2F9FF'] }, // ⭐🐺 Série D (25/09) — weslleygomes749, no assento do bot Metrópole FC. Azul e branco medidos na camisa — as MESMAS 2 cores do `MANTO_CONTAS`.
   { clube: 'Julia Barranquila', tipo: 'batismo', fundador: 77, manto: ['#E60205', '#F7F5F3'] }, // 🦈🔴⚪ vermelho e branco, medidos na camisa do dono (24/09) — o MESMO par do `manto.ts`
   { clube: 'Fabulous EC', tipo: 'batismo', fundador: 76, manto: ['#161011', '#CE0E17'] }, // 🦅🔴⚫ preto e vermelho, medidos na camisa do dono (23/09) — o MESMO par do `manto.ts`
   { clube: 'Xurupitas FC', tipo: 'batismo', fundador: 13, manto: ['#063215', '#F8EACF'] },

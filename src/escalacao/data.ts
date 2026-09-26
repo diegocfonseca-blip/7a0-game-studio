@@ -2811,6 +2811,7 @@ export function ehPromessa(c: { name: string; club?: string; year?: number; prom
 
 export const OLD_NAME: Record<string, string> = {
   'Vasco SAF': 'Vasco da Grana', // ⚽🏴‍☠️ batismo do brunnodeluca90 (24/09): o Vasco da Grana (batismo sem dono, pedido do Diego em 03/08) virou Vasco SAF — save antigo chega no nome novo
+  'Cruzeiro de Berretinho': 'Metrópole FC', // ⭐🐺 batismo do weslleygomes749 (25/09): assumiu o assento da Série D que era do bot Metrópole FC — save antigo com Metrópole FC vira Cruzeiro de Berretinho ao carregar
   'Milhaça FC': 'Real Bets', // ⚽ batismo do igormarquesn99: save antigo com Real Bets vira Milhaça FC ao carregar (24/08)
   'Napolitano': 'Canela EC', 'Ponte Branca': 'Grelha SAF', 'CRBebê': 'Peteca FR',
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
@@ -3164,7 +3165,9 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   ],
   // 🅳 SÉRIE D — a base profissional, logo acima da Várzea. (era a "Série A")
   D: [
-    { name: 'Barão', team: 'Metrópole FC' },
+    // ⭐🐺 CRUZEIRO DE BERRETINHO (weslleygomes749, batismo de 25/09) no assento do bot
+    // Metrópole FC (o 1º bot sem dono da lista). `OLD_NAME` leva save antigo pro nome novo.
+    { name: 'Berretinho', team: 'Cruzeiro de Berretinho' }, // ⭐🐺 clube BATIZADO por apoiador (weslleygomes749 — Cruzeiro de Berretinho, ex-Metrópole FC; escudo com a coroa, os dois lobos e o Cruzeiro do Sul, mascote O Lobo Rei no trono; coração CRUZEIRO; Lenda + fundador nº79 + sócio nº60, 25/09)
     { name: 'Soberano', team: 'Soberano Nacional' },
     { name: 'Sistematizado', team: 'Sistematizados FC' }, // 🎮 clube BATIZADO por apoiador (gaancaxd — Sistematizados FC, ex-Coliseu United, Série D; mascote O Sistematizado, preto + roxo; Lenda + fundador nº61, 07/09)
     { name: 'Cometa', team: 'Galáxia EC' },
