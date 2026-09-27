@@ -47,7 +47,7 @@ import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionSt
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useClubesLiberado, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -2464,7 +2464,9 @@ export function EscSetup() {
   // 🧱 LEILÃO DE CLUBES (27/09, em construção): cada lote é um SETOR de um clube
   // ("Goleiros do Palmeiras") e depois vem a convocação. Só aparece pra conta de
   // teste (`CLUBES_TESTERS`); pra todo o resto o jogo segue idêntico.
-  const clubesOn = useClubesLiberado()
+  // 🟢 27/09: no RÁPIDO OFFLINE está liberado pra todos (Diego: "no partida rápida já pode
+  // liberar"). No online a opção aparece travada até ele mandar abrir (`useClubesLiberado`).
+  const clubesOn = true
   const [clubes, setClubes] = useState(false)
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
@@ -2663,10 +2665,17 @@ export function EscSetup() {
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Tipo de leilão', 'Auction type')}</p>
             <div className="grid grid-cols-2 gap-2">
-              {([[false, t('🃏 Jogadores', '🃏 Players')], [true, t('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]).map(([m, label]) => (
+              {([[false, t('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, t('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]).map(([m, label]) => (
                 <button key={String(m)} onClick={() => setClubes(m)}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
                   style={{ backgroundColor: clubes === m ? GOLD : '#fff', boxShadow: clubes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  {m === true && seloNovoClubes() && (
+                    <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+                      letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
+                      border: `1.5px solid ${INK}`, background: clubes ? INK : GOLD, color: clubes ? GOLD : INK }}>
+                      {seloNovoClubes()}
+                    </span>
+                  )}
                   {label}
                 </button>
               ))}
@@ -3506,6 +3515,12 @@ function CardReact({ cardId }: { cardId: string }) {
   )
 }
 
+// 🏷️ tarja "NOVO" do Leilão de Clubes (nasceu 27/09) — some sozinha em 45 dias
+export const CLUBES_NASCEU = '2026-09-27'
+export const seloNovoClubes = (): string | undefined =>
+  (Date.now() < new Date(`${CLUBES_NASCEU}T00:00:00`).getTime() + 45 * 24 * 3600_000
+    ? (getLang() === 'en' ? 'new' : 'novo')
+    : undefined)
 // 🏷️ a tarja "NOVO" do pregão holandês nas telas de montar. Some sozinha 45
 // dias depois de o modo nascer — a data mora junto do NOME, em `store.tsx`.
 const seloNovoHolandes = (): string | undefined =>

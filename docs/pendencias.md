@@ -1,4 +1,11 @@
-## 27/09/2026 — 🧱 LEILÃO DE CLUBES · Etapas 1 e 2 (offline + online, envelope) — NO BRANCH, só a conta do Diego vê
+## 27/09/2026 — 🧱 LEILÃO DE CLUBES · Etapas 1 e 2 — ✅ OFFLINE NO AR PRA TODOS · online TRAVADO
+
+Diego (27/09, 14h40): *"no partida rápida já pode liberar"* e, no online, *"deixa à mostra escrito, bota
+novo, mas sem poder apertar ainda"*. Então: Partida Rápida offline mostra "🃏 Jogador (padrão) / 🧱 Clubes
+[NOVO]" pra todo mundo. Na sala online ⚡ Rápido as duas opções aparecem, Jogador vem marcado, e Clubes
+fica com NOVO mas **apagado e sem apertar** — menos pra `CLUBES_TESTERS` (conta do Diego, pra testar).
+👉 **Pra liberar o online**: `CLUBES_GERAL = true` em `sport.ts` (só isso; o motor já está pronto).
+
 
 Pedido: *"o usuário ao criar escolheria agora o padrão leilão de jogador ou por leilão de clubes… comece a
 fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é `CLUBES_GERAL = true`):

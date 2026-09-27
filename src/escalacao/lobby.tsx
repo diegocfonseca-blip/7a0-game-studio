@@ -3196,13 +3196,18 @@ export function EscLobby() {
                   ⚡ Rápido online e 🏆 Minhas Ligas. Fora deles nem aparece —
                   🃏 Bafo e 🌍 Copa do Mundo **não têm leilão nenhum**, e a
                   Carreira online fica no pregão de sempre por decisão. */}
-              {roomMode === 'rapido' && clubesOn && (
+              {/* 🧱 27/09: a opção APARECE pra todo mundo, com NOVO, mas só dá pra apertar
+                  quando o Diego liberar o online (`CLUBES_GERAL`). O padrão é sempre Jogador. */}
+              {roomMode === 'rapido' && (
                 <SegField label={tr('Tipo de leilão', 'Auction type')}>
-                  <Seg options={[[false, tr('🃏 Jogadores', '🃏 Players')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => setRapidoClubes(v)} />
+                  <Seg options={[[false, tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => { if (!v || clubesOn) setRapidoClubes(v) }}
+                    selos={{ true: seloNovoDe('2026-09-27') }} travados={clubesOn ? [] : ['true']} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {rapidoClubes
                       ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (80s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos, com envelope cego.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (80s). Leftovers go to the bots. Uses all 3 decks, sealed bid.')
-                      : tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')}
+                      : clubesOn
+                        ? tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')
+                        : tr('🃏 O leilão de sempre: um jogador por lote. 🧱 Clubes chega em breve no online — já dá pra jogar na Partida Rápida contra a CPU.', '🃏 The usual auction: one player per lot. 🧱 Clubs is coming soon online — you can already play it in Quick Match vs CPU.')}
                   </p>
                 </SegField>
               )}
