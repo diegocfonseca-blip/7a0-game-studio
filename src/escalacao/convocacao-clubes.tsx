@@ -11,12 +11,12 @@ import { useEsc } from './store'
 import { Shell, Box, nomePacote } from './screens'
 import { Escudo } from './escudos'
 import { useT, getLang } from './lang'
-import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e do jornal)
+import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo' // 🧍 a MESMA peça do campinho da carreira (boneco solto na grama)
 import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
 import { FORMATIONS, SECTORS, type Card, type Sector, type WonCard } from './types'
 
-const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', RED = '#C2452F'
+const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
 const SEC_PT: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goleiros'], LAT: ['lateral', 'laterais'], ZAG: ['zagueiro', 'zagueiros'], MEI: ['meia', 'meias'], ATA: ['atacante', 'atacantes'] }
 const SEC_EN: Record<Sector, [string, string]> = { GOL: ['goalkeeper', 'goalkeepers'], LAT: ['full-back', 'full-backs'], ZAG: ['centre-back', 'centre-backs'], MEI: ['midfielder', 'midfielders'], ATA: ['forward', 'forwards'] }
@@ -169,26 +169,19 @@ export function EscConvocacaoClubes() {
           <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {me.formation}</span>
           </div>
-          <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {(['ATA', 'MEI', 'DEF', 'GOL'] as const).map(row => {
               const secs: Sector[] = row === 'DEF' ? ['LAT', 'ZAG'] : [row]
               let slots: { s: Sector; c: Card | null }[] = []
               for (const s of secs) { const p = doSetor(s); for (let i = 0; i < form[s]; i++) slots.push({ s, c: p[i] ?? null }) }
               if (row === 'DEF' && form.LAT === 2) { const lat = slots.filter(x => x.s === 'LAT'), zag = slots.filter(x => x.s === 'ZAG'); slots = [lat[0], ...zag, lat[1]] }
               return (
-                <div key={row} style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  {slots.map((sl, i) => (
-                    <div key={i} style={{ border: `2px solid ${INK}`, borderRadius: 8, textAlign: 'center', padding: '3px 6px', minWidth: 58, background: sl.c ? '#fff' : 'rgba(255,255,255,0.25)' }}>
-                      {/* 🧑 a lenda que tem rosto no jogo aparece com o rosto (pedido do Diego 27/09) */}
-                      {sl.c && rostosOn && avatarLote1(sl.c.name, sl.c.club, sl.c.year) && (
-                        <div style={{ display: 'flex', justifyContent: 'center', margin: '-2px 0 1px' }}>
-                          <AvatarLote1 name={sl.c.name} club={sl.c.club} year={sl.c.year} style={{ width: 62, maxWidth: '100%' }} />
-                        </div>
-                      )}
-                      <p style={{ fontSize: 8.5, fontWeight: 900, color: sl.c ? RED : '#fff', margin: 0 }}>{sl.s}</p>
-                      <p style={{ fontSize: 10, fontWeight: 700, margin: 0, color: sl.c ? INK : 'rgba(255,255,255,0.95)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 70 }}>{sl.c ? sl.c.name : t('Vazio', 'Empty')}</p>
-                    </div>
-                  ))}
+                <div key={row} style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
+                  {/* 🧍 igual ao campinho da carreira (Diego 27/09: "da mesma forma que do carreira, sem
+                      fundo"): boneco solto na grama; a lenda que tem rosto no jogo aparece com o rosto */}
+                  {slots.map((sl, i) => sl.c
+                    ? <JogadorNoCampo key={i} nome={sl.c.name} clube={sl.c.club} ano={sl.c.year} tag={sl.s} alt={52} fonteNome={10} rosto={rostosOn} />
+                    : <VagaNoCampo key={i} tag={sl.s} alt={52} />)}
                 </div>
               )
             })}

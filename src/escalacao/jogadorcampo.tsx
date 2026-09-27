@@ -51,8 +51,10 @@ const anelDe = (st: EstadoJogador): string =>
 
 export function JogadorNoCampo({
   nome, clube, ano, tag, gols = 0, assist = 0, alt, fonteNome,
-  mantoCss, estado = 'idle', onClick, extra, avatarIdentity,
+  mantoCss, estado = 'idle', onClick, extra, avatarIdentity, rosto,
 }: {
+  /** 🧑 liga o rosto da lenda sem depender da prévia da conta (a convocação do Leilão de Clubes passa `useLegendPresentation()`) */
+  rosto?: boolean
   nome: string
   clube?: string
   ano?: number
@@ -73,7 +75,8 @@ export function JogadorNoCampo({
   extra?: ReactNode
 }) {
   const foto = fotoDoJogador(nome)
-  const avatarPreview = useOnlinePreview() && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(tag) && !!avatarLote1(nome, avatarIdentity?.club ?? clube, avatarIdentity?.year ?? ano)
+  const preview = useOnlinePreview()
+  const avatarPreview = (rosto ?? preview) && ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].includes(tag) && !!avatarLote1(nome, avatarIdentity?.club ?? clube, avatarIdentity?.year ?? ano)
   const d = Math.round(alt * 0.66)
   return (
     <div
