@@ -607,7 +607,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Na noite de 24/09 foram 3+ publicações bem na hora das salas (junto com a sala pesada
   do Tocaia). Então: **à noite (~19h–1h de Brasília), só sobe o que for URGENTE** —
   conserto de sala travando, coisa quebrada ao vivo. O resto espera a manhã/tarde, e a
-  gente avisa o Diego que ficou guardado pra subir depois. (A outra sessão ficou de
+  gente avisa o Diego que ficou guardado pra subir depois.
+  🔁 **MAS QUANDO ELE MANDA PUBLICAR, PUBLICA NA HORA (27/09).** Palavras dele, depois que eu segurei
+  uma entrega às 20h53 que ele já tinha liberado: *"nada de manhã… quando eu falar pra publicar, pode
+  publicar"*. A régua do pico vale pro que EU decido subir sozinho; ordem dele de publicar vale sempre. (A outra sessão ficou de
   fazer o jogo se RECARREGAR sozinho nesse erro, no máximo 1 vez, em vez de quebrar.)
 - **🧹 ARMAZENAMENTO CHEIO DESLOGA NO RELOAD (21/09, sala do Neymarzetti).** A
   biblioteca de login (auth-js) testa a escrita no localStorage ao criar o cliente;
