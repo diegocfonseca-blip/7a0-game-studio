@@ -1803,8 +1803,11 @@ function sorteiaEspeciais(s: EscState, rng: () => number) {
   s.surpriseId = pickSurprise(s.deck, rng)
   // 🕵️ LIGADO EM 26/09 (Diego: *"ok"* pra dica da época e o nome Enigma) — só nos
   // RÁPIDOS ONLINE de futebol no pregão às cegas, que foi onde ele pediu. Carreira,
-  // partida contra bots, Tocaia e basquete seguem sem Enigma até ele pedir.
-  const ondeVale = s.onlineMode === 'online' && !s.careerOnline && s.sport !== 'basquete' && !s.holandes
+  // partida contra bots e basquete seguem sem Enigma até ele pedir.
+  // 🐊 27/09: a TOCAIA online entrou também (Diego: *"quero sim"*). Lá a carta vem
+  // escondida na mesa com o mesmo preço caindo pra todas, e o nome aparece quando
+  // alguém fisga. Continua sem mexer na fila do `rng` (o sorteio é por conta).
+  const ondeVale = s.onlineMode === 'online' && !s.careerOnline && s.sport !== 'basquete'
   s.mudoId = ENIGMA_LIGADO && (ondeVale || enigmaBancada) ? pickMudo(s.deck, s.seed, s.surpriseId) : undefined
 }
 
@@ -3129,16 +3132,21 @@ const A_HASH = (t: string, h: number) => { for (let i = 0; i < t.length; i++) h 
 // sempre (atk/def), e nada aqui puxa número do `rng` do jogo — o placar não muda.
 const ELENCO_CONV_FORMA: [Sector, number][] = [['GOL', 1], ['LAT', 2], ['ZAG', 2], ['MEI', 3], ['ATA', 3]]
 let elencosConvCache: { chave: string; porId: Map<number, WonCard[]> } | null = null
-function elencoConvidado(state: EscState, teamId: number): WonCard[] {
-  const ch = state.champions
-  if (!ch || teamId < CHAMPIONS_ID0) return []
-  const convidados = ch.times.filter(t => !t.isManager && t.id >= CHAMPIONS_ID0).sort((a, b) => a.id - b.id)
+// 🌎 27/09 (sala do El Mineiro, final da Liberta): os clubes do CONTINENTE da Libertadores
+// tinham o mesmo furo — "Gol de Boca Xuniors". Mesma receita, mesma régua: entram aqui
+// os convidados das duas copas (Liberta 900+ · Champions 1800+), sem repetir carta.
+export function elencoConvidado(state: EscState, teamId: number): WonCard[] {
+  const ch = state.champions, lb = state.liberta
+  if (teamId < LIBERTA_ID0 || (!ch && !lb)) return []
+  const convidados = [...(lb?.times ?? []), ...(ch?.times ?? [])].filter(t => !t.isManager && t.id >= LIBERTA_ID0).sort((a, b) => a.id - b.id)
+  if (!convidados.some(t => t.id === teamId)) return []
   const dono = new Set<string>()
   for (const m of state.managers) for (const c of m.squad) dono.add(`${c.name}|${c.club}|${c.year}`)
   const chave = `${state.seed}|${convidados.map(t => t.name).join(',')}|${dono.size}`
   if (elencosConvCache?.chave !== chave) {
     const porId = new Map<number, WonCard[]>()
     const usado = new Set(dono)
+    // 🎲 mesmo sorteio de antes: sala só de Champions monta exatamente os mesmos elencos
     const dado = mulberry(hashDeterminista(`convidados|${state.seed}`))
     for (const t of convidados) {
       const alvo = (t.baseAtk + t.baseDef) / 2 + 10 // força 50–78 → nível de carta 60–88
@@ -3482,7 +3490,7 @@ function finishSeason(s: EscState) {
 // 🎱 SORTEIO POR POTES: os 8 da liga são o POTE 1 — **cabeça de chave, um por
 // grupo**, como ele pediu. Assim dois classificados da mesma sala NUNCA caem no
 // mesmo grupo; só se cruzam no mata-mata.
-const LIBERTA_ID0 = 900 // ids dos clubes do continente (não colidem com a liga)
+const LIBERTA_ID0 = 900 // ⚠️ também lido por `elencoConvidado` (lá em cima). ids dos clubes do continente (não colidem com a liga)
 
 // 📏 FORÇA DOS 24 = **PADRÃO DA LIGA** (decisão do Diego, 20/08: *"quero q deixe
 // padrão liga… deixe o mais forte c 77 tb desses 24"*).

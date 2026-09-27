@@ -6,6 +6,62 @@ cinza), bloco "Conquistas desta temporada" dentro do jornal que já existe (sem 
 "Missões de hoje" (3 por dia, +5 🪙 cada, sequência de 7 dias = +20 🪙) com aviso rápido no tempo
 morto. Conquista paga SELO, não dinheiro. Nada construído ainda.
 
+
+## 27/09/2026 — 🕵️🐊 ENIGMA NA TOCAIA online ✅ NO AR (Diego: "aprovado pode publicar")
+
+Diego: *"quero sim"* (Enigma também na Tocaia). `sorteiaEspeciais` tirou o `!s.holandes`:
+agora vale nos rápidos online de futebol nos DOIS pregões. Na mesa da Tocaia a carta vem
+com 🕵️ e a dica da época, com o mesmo preço caindo; quando alguém fisga, o nome abre na
+hora (o `Holandes` só esconde enquanto a carta não tem dono). Sem tocar na fila do `rng`.
+Fotos: `node scripts/mockup-enigma.mjs --tocaia` (mockups/enigma-tocaia-*.png).
+
+## 27/09/2026 — 🌎 Clubes do continente da Liberta marcam com jogador de verdade ✅ NO AR
+
+Print do Diego na final da Liberta (El Mineiro × Boca Xuniors): *"por que os times restantes
+da Libertadores não tão com jogadores reais? olha o gol do Boca Xuniors"* — saía "Gol de
+Boca Xuniors". Era o mesmo furo que a outra sessão fechou na Champions em 26/09: o clube
+convidado só tinha força, sem elenco. `elencoConvidado` (`store.tsx`) agora serve os
+convidados da Liberta (900+) e da Champions (1800+): 11 cartas de verdade das SOBRAS do
+baralho da sala, na faixa de nível do clube, sem repetir carta entre convidados. Placar não
+muda (dado próprio, `rng` do jogo intocado). Sala só de Champions monta os mesmos elencos
+de antes. Testado: Boca Xuniors com 11 cartas, River com outras 11, zero repetidas.
+
+## 26/09/2026 — 📰 Jornal da sala: linha fina da "taça dividida" reescrita ✅ NO AR
+
+Diego achou estranho *"dois campeões e uma sala inteira sem saber de quem foi a noite"*.
+Agora (PT/EN, `jornal-sala.tsx`): *"Taça dividida na noite. A liga ficou com o X, e a
+Libertadores foi pro Y. Cada um com a sua festa."* (na carreira/offline: "na temporada").
+
+## 26/09/2026 — 📣 Giro sem o "R1 · / R2 ·" e letreiro um tiquinho mais rápido ✅ NO AR (Diego: "pode fazer agora")
+
+Diego: *"a parte do giro da copa que começa com R1 R2 não precisa aparecer, fica muita
+coisa. Aumenta também só um pouco mais a velocidade, quase nada"*. `GiroDaRodada`
+(`screens.tsx`) tira o prefixo só na TELA (a manchete guardada continua com a rodada,
+o anti-spoiler lê ela). Velocidade: 0,16 s → 0,145 s por letra, piso 18 s → 16 s.
+Pedido às 23h → segurado pela regra do horário de pico; sobe na manhã/tarde.
+
+## 26/09/2026 — 🎬 GOL EM DUAS ETAPAS no placar ao vivo ✅ NO AR (27/09, "Ok publique")
+
+Pedido dele (depois de ver o golzinho no online de 9 s): *"quando for gol, teria que
+sair a bolinha e SOMENTE quando entrar no gol que entraria o mascote com grito de gol
+e etc. Quem não tem mascote, só o grito. Só vai ser difícil quando tiver sequência
+muito rápida de gols"*.
+
+O que mudou (`LiveScoreCard`, `pyramidseason.tsx`): no minuto do gol o placar só
+SOLTA A BOLA (`voo`). Ela entra na rede em `GOL_ENTRA_MS` (0,9 s, mesmo tempo do CSS
+`ll32-entra` em `chances.ts`) e SÓ AÍ o gol vira "mostrado" — placar sobe, selo GOOOL,
+carimbo da mascote, goleador na lista e urro da torcida saem desse mesmo instante, sem
+mexer em nenhum deles (a mascote continua igual, só espera a bola). Apito final e
+texto de resultado esperam a última bola entrar (`fechado`). Enquanto uma bola de gol
+está no ar, chance perdida nenhuma começa.
+- 🔁 Sequência rápida: FILA. O 2º gol espera o 1º entrar (0,9 s) e solta a própria
+  bola; nunca dois no ar. Em 9 s de rodada, dois gols grudados nos acréscimos ainda
+  cabem antes da rodada virar (≈ 8,8 s).
+- Só no visual novo (`cinematic`); visual antigo, basquete e jogo já encerrado
+  ficam como sempre. ↩️ Voltar = `teatro = false`.
+- Fotos/vídeo: `node scripts/foto-golzinho.mjs` (agora com `--rodada 9000` e
+  `--so-video`; a foto `33-gol-bola-no-ar` mostra 0×0 com a bola voando e a
+  `33-gol-mascote` o 1×0 com o papagaio — a prova da sequência).
 ## 26/09/2026 — ⭐ Champions: convidado com NOME no mata-mata e gol com JOGADOR DE VERDADE ✅ NO AR
 
 Print do Diego (sala do Futpoint, 19h43): no mata-mata da Só Champions o rival aparecia como

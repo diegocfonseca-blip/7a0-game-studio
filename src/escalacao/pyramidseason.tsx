@@ -69,7 +69,7 @@ import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
-import { chancesDoJogo, sementeDasChances, narraChance, vereditoDaChance, CHANCE_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { chancesDoJogo, sementeDasChances, narraChance, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -2912,8 +2912,14 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // 🚫 ANTI-SPOILER: quando entra uma rodada nova (roundKey muda) o relógio ainda
   // está no 93' da rodada anterior por 1 frame — o que mostraria TODOS os gols (o
   // placar FINAL) do jogo novo antes do apito. Zera JÁ na renderização, sem flash.
+  // 🎬 gol em duas etapas (ver `teatro`, mais abaixo): quantos gols já ENTRARAM na
+  //    rede e a bola que está no ar agora. Nascem aqui porque a rodada nova zera os
+  //    dois na mesma linha que zera o relógio.
+  const [confirmados, setConfirmados] = useState(0)
+  const [voo, setVoo] = useState<{ side: 'h' | 'a'; key: number; dentro: boolean } | null>(null)
+  const vooTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rkRef = useRef(roundKey)
-  if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0) }
+  if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0); setConfirmados(0); setVoo(null) }
   useEffect(() => {
     // o relógio só zera/anima quando MUDA A RODADA (roundKey). Trocar a tática na
     // mesma rodada não reinicia o jogo que está na tela — ele não re-simula.
@@ -2944,7 +2950,42 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // 🛟 no FIM mostra TODOS os gols — o placar do card TEM que bater com o da
   // tabela (antes, gol nos acréscimos além do relógio sumia da tela e o
   // resultado exibido divergia da pontuação: vitória virava empate etc.).
-  const shown = done ? goals : goals.filter(g => g.min <= min)
+  const vencidos = done ? goals : goals.filter(g => g.min <= min)
+  // ── 🎬 GOL EM DUAS ETAPAS (26/09). Diego: *"quando for gol, teria que sair a
+  //    bolinha e SOMENTE quando entrar no gol que entraria o mascote com grito de gol
+  //    e etc. Quem não tem mascote, só o grito"*. Antes, no minuto do gol, tudo
+  //    disparava junto (placar, GOOOL, carimbo, urro) e a bola do golzinho ainda
+  //    estava no ar — o placar entregava o gol 0,9 s antes da bola.
+  //    Agora, no visual novo: o minuto do gol só SOLTA A BOLA (`voo`); ela entra na
+  //    rede em GOL_ENTRA_MS (mesmo tempo do CSS `ll32-entra`) e SÓ ENTÃO o gol vira
+  //    "mostrado" (`shown`) — e é daí que saem placar, selo GOOOL, carimbo da mascote,
+  //    goleador na lista e o urro da torcida, sem mexer em nenhum deles.
+  //    🔁 Sequência rápida de gols (ele mesmo previu): fila. O 2º gol espera o 1º
+  //    ENTRAR (0,9 s) e aí solta a própria bola — nunca dois no ar. No 9 s do online
+  //    dois gols grudados nos acréscimos ainda cabem antes da rodada virar.
+  //    Visual antigo/basquete/jogo já encerrado: tudo como sempre (sem teatro).
+  const teatro = cinematic && !finished && !basket
+  const fila = teatro ? [...vencidos].sort((a, b) => a.min - b.min) : vencidos
+  const shown = teatro ? fila.slice(0, confirmados) : vencidos
+  // ⏱️ o placar só está FECHADO quando o último gol já entrou na rede
+  const fechado = done && (!teatro || confirmados >= fila.length)
+  const proximoGol = teatro && fila.length > confirmados ? fila[confirmados] : null
+  useEffect(() => {
+    if (!proximoGol) return
+    if (voo && !voo.dentro) return // bola no ar: o próximo espera ela entrar
+    if (vooTimer.current) clearTimeout(vooTimer.current)
+    setVoo({ side: proximoGol.home ? 'h' : 'a', key: proximoGol.min * 10 + (proximoGol.home ? 7 : 8), dentro: false })
+    vooTimer.current = setTimeout(() => {
+      // 🥅 ENTROU: o gol passa a existir na tela (placar, selo, carimbo, urro)
+      setConfirmados(c => c + 1)
+      setVoo(v => (v ? { ...v, dentro: true } : v))
+      // a rede balança e o "GOOOL" do palco ficam até completar a cena
+      vooTimer.current = setTimeout(() => { vooTimer.current = null; setVoo(null) }, CHANCE_MS - GOL_ENTRA_MS)
+    }, GOL_ENTRA_MS)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proximoGol?.min, proximoGol?.home, voo?.dentro, roundKey])
+  // 🧹 rodada nova ou tela fechada: nenhuma bola fica no ar
+  useEffect(() => () => { if (vooTimer.current) { clearTimeout(vooTimer.current); vooTimer.current = null } }, [roundKey])
   // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total.
   const hg = basket ? Math.round(basket.h * (done ? 1 : min / 93)) : shown.filter(g => g.home).length
   const ag = basket ? Math.round(basket.a * (done ? 1 : min / 93)) : shown.filter(g => !g.home).length
@@ -2961,7 +3002,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // escala com o relógio, fica sincronizado em qualquer velocidade.
   const ritual: 'start' | 'half' | 'end' | null =
     finished ? null
-      : done ? 'end'
+      : fechado ? 'end' // 🥅 o apito final espera a última bola entrar na rede
         : min <= 18 ? 'start'
           : (min >= 45 && min <= 63) ? 'half'
             : null
@@ -3050,7 +3091,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
   useEffect(() => {
     if (lancesVistos.current.key !== roundKey) { lancesVistos.current = { key: roundKey, mins: [] }; if (lanceTimer.current) clearTimeout(lanceTimer.current); setLance(null) }
-    if (finished || done || goal) return
+    if (finished || done || goal || voo) return // 🥅 bola de GOL no ar/na rede: a chance espera
     // a chance cujo minuto ACABOU de passar (janela curta: quem abre a tela no 70'
     // não vê a chance do 12' rodando atrasada)
     const c = chances.find(x => x.min <= min && min - x.min <= 4 && !lancesVistos.current.mins.includes(x.min))
@@ -3061,7 +3102,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (lanceTimer.current) clearTimeout(lanceTimer.current)
     lanceTimer.current = setTimeout(() => { setLance(null); lanceTimer.current = null }, CHANCE_MS)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [min, roundKey, finished, done, goal, chances])
+  }, [min, roundKey, finished, done, goal, voo, chances])
   useEffect(() => () => { if (lanceTimer.current) clearTimeout(lanceTimer.current) }, [])
   void iAmHome
 
@@ -3145,7 +3186,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const lanceUltimo = grande && last ? lanceDoGol(last, roundKey) : ''
   // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
   const meusGols = youIsHome ? hg : ag, delesGols = youIsHome ? ag : hg
-  const resultado: 'h' | 'a' | null = done && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null
+  const resultado: 'h' | 'a' | null = fechado && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null
   const FIM_RES = meusGols > delesGols
     ? (emIngles ? ['📢 Final whistle — VICTORY! Three points in the bag 🎉', '📢 It\'s over — WE WON! The crowd goes home singing 🎉', '📢 Full time — VICTORY, and it was deserved 🎉', '📢 The referee ends it: WIN! Job done 🎉'] : ['📢 Apito final — VITÓRIA! Três pontos no bolso 🎉', '📢 Acabou — GANHAMOS! A torcida vai embora cantando 🎉', '📢 Fim de jogo — VITÓRIA, e merecida 🎉', '📢 O juiz encerrou: VITÓRIA! Missão cumprida 🎉'])
     : meusGols < delesGols
@@ -3162,12 +3203,14 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
     palcoOn={!basket}
-    palco={golSide ? { side: golSide, fim: 'gol', key: goalSeed * 10 + 7, veredito: vereditoDaChance('gol', emIngles) }
+    // 🎬 a bola do GOL sai no minuto do gol (`voo`) e o resto da festa só depois que
+    //    ela entra — o `voo` fica até a rede parar de balançar (ver GOL_ENTRA_MS)
+    palco={voo ? { side: voo.side, fim: 'gol', key: voo.key, veredito: vereditoDaChance('gol', emIngles) }
       : lance ? { side: lance.side, fim: lance.fim, key: lance.key, veredito: vereditoDaChance(lance.fim, emIngles) } : null}
     stamp={`${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}′` : ''}${lanceUltimo ? ` — ${lanceUltimo}` : ''}`}
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
-    narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (done ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name} — ${lanceUltimo}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
+    narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name} — ${lanceUltimo}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
