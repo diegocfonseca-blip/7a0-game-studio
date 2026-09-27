@@ -65,7 +65,8 @@ const cartas = subiram
   .map(n => { const [nome, club, year] = n.split('|'); return todas.find(c => c.nome === nome && c.fame === 5 && (!club || c.club === club) && (!year || c.year === +year)) })
   .map(c => c && ({ ...c, nova: NOVAS.includes(c.nome) }))
   .filter(Boolean)
-  .sort((a, b) => ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].indexOf(a.pos) - ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].indexOf(b.pos) || a.year - b.year)
+  // `--na-ordem`: mantém a ordem da lista `--nomes` (pra post, quem manda é o peso do nome)
+  .sort((a, b) => process.argv.includes('--na-ordem') ? 0 : ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].indexOf(a.pos) - ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].indexOf(b.pos) || a.year - b.year)
 const totalLendas = todas.filter(c => c.fame === 5).length
 
 // ── a carta, pixel a pixel igual à do jogo (tier 👑 LENDA) ──
