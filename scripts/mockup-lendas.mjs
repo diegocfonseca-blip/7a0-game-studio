@@ -58,6 +58,9 @@ const todas = [...data.matchAll(re)].map(m => {
 // marca quem é CARTA NOVA no jogo (não subiu de craque, chegou agora).
 const NOVAS = (arg('--novas', '') || '').split(',').map(x => x.trim()).filter(Boolean)
 const TITULO = arg('--titulo', null)
+// 📱 27/09 (Diego): `--stories` = post de STORIES (9:16), sem a caixa de explicação
+// técnica e sem o selo de mockup: *"sem essas infos de npm, de explicar %"*.
+const STORIES = process.argv.includes('--stories')
 const cartas = subiram
   .map(n => { const [nome, club, year] = n.split('|'); return todas.find(c => c.nome === nome && c.fame === 5 && (!club || c.club === club) && (!year || c.year === +year)) })
   .map(c => c && ({ ...c, nova: NOVAS.includes(c.nome) }))
@@ -111,9 +114,42 @@ body{margin:0;background:#F4ECD6;color:#0C0C0C;font-family:system-ui,-apple-syst
     <span style="float:right;font-weight:700;font-size:12px;opacity:.45">leilaolegends.com</span></p>
 </body></html>`
 
+const COLS = 4
+const htmlStories = (lote, pag, total) => `<!doctype html><html><head><meta charset="utf-8">
+<style>${FONTES}
+body{margin:0;background:#F4ECD6;color:#0C0C0C;font-family:system-ui,-apple-system,sans-serif;width:1080px;height:1920px;box-sizing:border-box;padding:70px 46px 50px;display:flex;flex-direction:column}</style>
+</head><body>
+  <div style="text-align:center">
+    <div style="display:inline-block;background:#FFC400;border:4px solid #0C0C0C;border-radius:999px;box-shadow:4px 4px 0 #0C0C0C;padding:8px 22px;
+                font-family:Oswald,sans-serif;font-weight:700;font-size:26px;letter-spacing:2px;text-transform:uppercase">👑 Chegaram no leilão</div>
+    <h1 style="font-family:Oswald,sans-serif;font-weight:700;font-size:96px;line-height:.95;margin:22px 0 10px;text-transform:uppercase">${cartas.length} novas <span style="color:#C2452F">lendas</span></h1>
+    <p style="font-size:28px;font-weight:700;margin:0 0 34px;line-height:1.3">${cartas.filter(c => c.nova).length ? `${cartas.length - cartas.filter(c => c.nova).length} craques viraram lenda · ${cartas.filter(c => c.nova).length} cartas novas` : 'Os craques que viraram lenda'}</p>
+  </div>
+  <div style="width:659px;zoom:1.5;display:grid;grid-template-columns:repeat(${COLS},1fr);gap:14px 12px;align-content:start">${lote.map(carta).join('')}</div>
+  <div style="text-align:center;margin-top:auto">
+    ${total > 1 ? `<p style="font-family:Oswald,sans-serif;font-weight:700;font-size:24px;margin:0 0 10px;opacity:.55">${pag} / ${total}${pag < total ? ' · continua ➜' : ''}</p>` : ''}
+    <p style="font-family:Oswald,sans-serif;font-weight:700;font-size:40px;margin:0">⚽ Leilão <span style="color:#C2452F">Legends</span></p>
+    <p style="font-family:Oswald,sans-serif;font-weight:700;font-size:26px;margin:4px 0 0;opacity:.6">leilaolegends.com</p>
+  </div>
+</body></html>`
+
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+if (STORIES) {
+  // 📱 até 16 cartas por tela (4×4); passou disso, vira mais de um story, dividido igual
+  const telas = Math.ceil(cartas.length / 16), por = Math.ceil(cartas.length / telas)
+  for (let i = 0; i < telas; i++) {
+    const out = telas > 1 ? SAIDA.replace(/\.png$/, `-${i + 1}.png`) : SAIDA
+    const f = `/tmp/mockup-lendas-${process.pid}-${i}.html`
+    writeFileSync(f, htmlStories(cartas.slice(i * por, (i + 1) * por), i + 1, telas))
+    const pg = await b.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 })
+    await pg.goto('file://' + f); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(500)
+    await pg.screenshot({ path: out }); await pg.close()
+    console.log(`${out} · ${por} cartas`)
+  }
+  await b.close(); process.exit(0)
+}
 const tmp = `/tmp/mockup-lendas-${process.pid}.html`
 writeFileSync(tmp, html)
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const p = await b.newPage({ viewport: { width: 1100, height: 900 }, deviceScaleFactor: 2 })
 await p.goto('file://' + tmp)
 await p.evaluate(() => document.fonts.ready)
