@@ -53,8 +53,14 @@ const todas = [...data.matchAll(re)].map(m => {
   const bl = blocoDe(m.index)
   return { nome: st(m[1]), club: st(m[2]), year: +m[3], fame: +m[4], pos: posDe(bl) }
 })
+// 🎯 27/09: `--nomes` aceita "Nome|Clube|Ano" — o Maradona tem DUAS cartas de lenda
+// (Napoli e Boca) e o mockup pegava a primeira que achava. E `--novas "Nome,Nome"`
+// marca quem é CARTA NOVA no jogo (não subiu de craque, chegou agora).
+const NOVAS = (arg('--novas', '') || '').split(',').map(x => x.trim()).filter(Boolean)
+const TITULO = arg('--titulo', null)
 const cartas = subiram
-  .map(n => todas.find(c => c.nome === n && c.fame === 5))
+  .map(n => { const [nome, club, year] = n.split('|'); return todas.find(c => c.nome === nome && c.fame === 5 && (!club || c.club === club) && (!year || c.year === +year)) })
+  .map(c => c && ({ ...c, nova: NOVAS.includes(c.nome) }))
   .filter(Boolean)
   .sort((a, b) => ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].indexOf(a.pos) - ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'].indexOf(b.pos) || a.year - b.year)
 const totalLendas = todas.filter(c => c.fame === 5).length
@@ -67,7 +73,7 @@ const carta = c => `
     <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.85) 48%,transparent 62%);background-size:250% 250%;background-position:60% 60%"></div>
     <div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:4px">
       <span style="font-family:Oswald,sans-serif;font-weight:700;background:#0C0C0C;color:#fff;border:2px solid rgba(255,255,255,.25);border-radius:8px;font-size:11px;padding:2px 7px">${c.pos}</span>
-      <span style="font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.5px;color:#7a4d00;font-size:9px">👑 LENDA</span>
+      <span style="font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.5px;color:#7a4d00;font-size:9px;text-align:right">👑 LENDA${c.nova ? '<br><span style="display:inline-block;margin-top:3px;background:#1B7A3D;color:#fff;border:2px solid #0C0C0C;border-radius:6px;padding:1px 5px;font-size:9px">✨ CARTA NOVA</span>' : ''}</span>
     </div>
     <div style="position:relative;align-self:center;width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;
                 background:rgba(255,255,255,.42);color:#7a4d00;border:3px solid rgba(0,0,0,.28);font-family:Oswald,sans-serif;font-weight:700;font-size:27px;
@@ -86,10 +92,10 @@ body{margin:0;background:#F4ECD6;color:#0C0C0C;font-family:system-ui,-apple-syst
   <div style="display:inline-block;background:#FFC400;border:3px solid #0C0C0C;border-radius:999px;box-shadow:3px 3px 0 #0C0C0C;padding:6px 16px;
               font-family:Oswald,sans-serif;font-weight:700;font-size:14px;letter-spacing:1.2px;text-transform:uppercase">👑 Mockup · as novas lendas</div>
   <h1 style="font-family:Oswald,sans-serif;font-weight:700;font-size:58px;line-height:.98;margin:14px 0 6px;text-transform:uppercase">
-    ${cartas.length} craques viraram <span style="color:#C2452F">lenda</span></h1>
+    ${TITULO ?? `${cartas.length} craques viraram <span style="color:#C2452F">lenda</span>`}</h1>
   <p style="font-size:16px;font-weight:600;max-width:760px;margin:0 0 22px;line-height:1.4">
-    A carta é a mesma do jogo — só troca o tier: sai o prateado do <b>⭐ CRAQUE</b> e entra o
-    <b>dourado brilhante do 👑 LENDA</b>, com as 5 estrelas. O jogo passa a ter <b>${totalLendas} lendas</b>.
+    ${NOVAS.length ? `${cartas.length - cartas.filter(c => c.nova).length} craques subiram pro <b>dourado brilhante do 👑 LENDA</b> e ${cartas.filter(c => c.nova).length} chegaram como <b>✨ carta nova</b> já lendária. O jogo passa a ter <b>${totalLendas} lendas</b>.` : `A carta é a mesma do jogo — só troca o tier: sai o prateado do <b>⭐ CRAQUE</b> e entra o
+    <b>dourado brilhante do 👑 LENDA</b>, com as 5 estrelas. O jogo passa a ter <b>${totalLendas} lendas</b>.`}
   </p>
   <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:16px">${cartas.map(carta).join('')}</div>
   <div style="margin-top:24px;background:#fff;border:4px solid #0C0C0C;border-radius:18px;box-shadow:4px 4px 0 #0C0C0C;padding:16px 18px">
