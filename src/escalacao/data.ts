@@ -1846,7 +1846,11 @@ const MEI_EU: C[] = [
   { name: "Patrick Vieira", club: "Arsenal", year: 2001, fame: 5, lo: 85, hi: 91 },
   { name: "Xabi Alonso", club: "Real Madrid", year: 2012, fame: 4, lo: 84, hi: 90 },
   { name: "N'Golo Kanté", club: "Chelsea", year: 2017, fame: 4, lo: 85, hi: 91 },
-  { name: "Juninho Pernambucano", club: "Lyon", year: 2006, fame: 4, lo: 84, hi: 90 },
+  // 👑 VIROU LENDA por ordem do Diego (27/09): *"add Juninho Pernambucano lenda do Lyon,
+  //    ano certo também"*. A carta JÁ era o Lyon de 2006 — o ano certo: 5º dos 7 títulos
+  //    franceses seguidos e o auge das faltas. Só a categoria mudou (craque → lenda) e o
+  //    nível subiu. A carta do Vasco 1997 (baralho Brasil) continua craque: lenda é uma carta só.
+  { name: "Juninho Pernambucano", club: "Lyon", year: 2006, fame: 5, lo: 85, hi: 91 },
   { name: "Deco", club: "Barcelona", year: 2006, fame: 4, lo: 85, hi: 91 },
   { name: "Clarence Seedorf", club: "Milan", year: 2003, fame: 5, lo: 84, hi: 90 },
   { name: "Michael Ballack", club: "Bayern", year: 2002, fame: 5, lo: 84, hi: 90 },

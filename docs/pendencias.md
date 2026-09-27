@@ -1,3 +1,10 @@
+## 27/09/2026 — 👑 Juninho Pernambucano (Lyon 2006) vira LENDA ⏳ NO BRANCH
+
+Diego: *"add Juninho Pernambucano lenda do Lyon, ano certo também"*. A carta já era Lyon
+2006 (auge: 5º dos 7 títulos seguidos, faltas) → só `fame` 4 → 5 e nível 84-90 → 85-91.
+Vasco 1997 (baralho BR) segue craque (lenda = uma carta só). `npm run novidades` e
+`npm run paises` rodados. Falta a FOTO dele (entra na lista das lendas sem rosto).
+
 ## 27/09/2026 — 🕵️🐊 ENIGMA NA TOCAIA online ✅ NO AR (Diego: "aprovado pode publicar")
 
 Diego: *"quero sim"* (Enigma também na Tocaia). `sorteiaEspeciais` tirou o `!s.holandes`:
