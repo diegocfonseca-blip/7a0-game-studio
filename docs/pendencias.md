@@ -1,3 +1,11 @@
+## 27/09/2026 — 🏅 CONQUISTAS + 📅 MISSÃO DIÁRIA (carreira) — MOCKUP mandado, esperando OK
+
+Ideia pedida por ele (*"sistema de conquistas e missão diária pro modo carreira"*). Mockup mostrado:
+estante de medalhas no clube ABAIXO do estádio (Campo · Leilão · Zoeira, 24 medalhas, trancadas em
+cinza), bloco "Conquistas desta temporada" dentro do jornal que já existe (sem tela nova), e cartão
+"Missões de hoje" (3 por dia, +5 🪙 cada, sequência de 7 dias = +20 🪙) com aviso rápido no tempo
+morto. Conquista paga SELO, não dinheiro. Nada construído ainda.
+
 ## 26/09/2026 — ⭐ Champions: convidado com NOME no mata-mata e gol com JOGADOR DE VERDADE ✅ NO AR
 
 Print do Diego (sala do Futpoint, 19h43): no mata-mata da Só Champions o rival aparecia como
