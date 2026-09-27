@@ -1,3 +1,11 @@
+## 26/09/2026 — 📣 Giro sem o "R1 · / R2 ·" e letreiro um tiquinho mais rápido ⏳ NO BRANCH (subir de manhã)
+
+Diego: *"a parte do giro da copa que começa com R1 R2 não precisa aparecer, fica muita
+coisa. Aumenta também só um pouco mais a velocidade, quase nada"*. `GiroDaRodada`
+(`screens.tsx`) tira o prefixo só na TELA (a manchete guardada continua com a rodada,
+o anti-spoiler lê ela). Velocidade: 0,16 s → 0,145 s por letra, piso 18 s → 16 s.
+Pedido às 23h → segurado pela regra do horário de pico; sobe na manhã/tarde.
+
 ## 26/09/2026 — 🎬 GOL EM DUAS ETAPAS no placar ao vivo ✅ NO AR (27/09, "Ok publique")
 
 Pedido dele (depois de ver o golzinho no online de 9 s): *"quando for gol, teria que
