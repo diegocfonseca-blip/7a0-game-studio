@@ -1,3 +1,9 @@
+## 26/09/2026 — 📰 Jornal da sala: linha fina da "taça dividida" reescrita ⏳ NO BRANCH
+
+Diego achou estranho *"dois campeões e uma sala inteira sem saber de quem foi a noite"*.
+Agora (PT/EN, `jornal-sala.tsx`): *"Taça dividida na noite. A liga ficou com o X, e a
+Libertadores foi pro Y. Cada um com a sua festa."* (na carreira/offline: "na temporada").
+
 ## 26/09/2026 — 📣 Giro sem o "R1 · / R2 ·" e letreiro um tiquinho mais rápido ✅ NO AR (Diego: "pode fazer agora")
 
 Diego: *"a parte do giro da copa que começa com R1 R2 não precisa aparecer, fica muita

@@ -386,6 +386,8 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   const lanterna = tN && n > 1 ? { nome: tN.name, quem: mgr(tN.id)?.name ?? '', pts: tN.pts } : null
 
   // manchete: muda quando os dois títulos têm donos diferentes
+  // ✏️ 26/09 (Diego: *"texto muito estranho… uma sala inteira sem saber de quem foi a
+  //    noite"*): a linha fina agora diz direto que a taça foi dividida.
   let manchete: string, linhaFina: string
   if (campeaoCopa && campeaoLiga && !mesmoDono) {
     manchete = en
@@ -393,11 +395,11 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
       : `${offline ? 'TEMPORADA' : 'NOITE'} DE DOIS DONOS: O ${campeaoLiga.nome.toUpperCase()} LEVA A LIGA, O ${campeaoCopa.nome.toUpperCase()} LEVA A COPA!`
     linhaFina = en
       ? (offline
-        ? `Two champions and a whole season without knowing whose party it was. The league went to ${campeaoLiga.nome}, and the ${copaNome} slipped away to ${campeaoCopa.nome}.`
-        : `Two champions and a whole room without knowing whose night it was. The league went to ${campeaoLiga.nome}, and the ${copaNome} slipped away to ${campeaoCopa.nome}.`)
+        ? `The trophies were split this season. The league went to ${campeaoLiga.nome}, and the ${copaNome} went to ${campeaoCopa.nome}. Each one gets their own party.`
+        : `The trophies were split tonight. The league went to ${campeaoLiga.nome}, and the ${copaNome} went to ${campeaoCopa.nome}. Each one gets their own party.`)
       : offline
-        ? `Dois campeões e uma temporada inteira sem saber de quem foi a festa. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
-        : `Dois campeões e uma sala inteira sem saber de quem foi a noite. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} escapou pro ${campeaoCopa.nome}.`
+        ? `Taça dividida na temporada. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} foi pro ${campeaoCopa.nome}. Cada um com a sua festa.`
+        : `Taça dividida na noite. A liga ficou com o ${campeaoLiga.nome}, e a ${copaNome} foi pro ${campeaoCopa.nome}. Cada um com a sua festa.`
   } else if (campeaoCopa && campeaoLiga && mesmoDono) {
     manchete = en ? `${campeaoLiga.nome.toUpperCase()} DOES THE DOUBLE AND LEAVES NOTHING FOR ANYONE!` : `${campeaoLiga.nome.toUpperCase()} FAZ OS DOIS E NÃO DEIXA NADA PRA NINGUÉM!`
     linhaFina = en
