@@ -3,8 +3,9 @@
 Pedido: *"o usuário ao criar escolheria agora o padrão leilão de jogador ou por leilão de clubes… comece a
 fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é `CLUBES_GERAL = true`):
 - Criar partida rápida: **Tipo de leilão 🃏 Jogadores / 🧱 Clubes**. Clubes força os 3 baralhos juntos.
-- Cada lote é um SETOR de um clube ("🧤 Goleiros do Palmeiras"): escudo + nomes em ordem alfabética,
-  **sem nível** (pacote nasce com fame neutro — senão a revelação pintava de dourado com 👑 LENDA).
+- Cada lote é um SETOR de um clube ("🧤 Goleiros do Palmeiras"): escudo + **só a QUANTIDADE de
+  jogadores** (Diego 27/09: *"não quero que mostre os jogadores nas listas do leilão"* — nomes só na
+  convocação), **sem nível** (pacote nasce com fame neutro — senão a revelação pintava de dourado com 👑 LENDA).
   Cada técnico leva 1 pacote por setor. Clube não repete entre setores; memória das últimas 3 partidas
   (`RECENT_CLUBES`) pra variar. Com 10 técnicos pode repetir 1 clube (último recurso).
 - Pregão/martelo/monte: os de sempre. Embaixo, no lugar do campinho, a lista "🧱 Seus pacotes".
@@ -14,6 +15,8 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   completado com sobra DE VERDADE (nunca fake).
 - Teste de ponta a ponta (rivais 5/7/9, 4-3-3/4-4-2): todo mundo com 11, sem carta repetida.
 
+**Esperando ele responder:** convocação com relógio de 80s (igual à Copa), seguindo na hora se todos
+fecharem, e o PIOR do pacote pra vaga vazia de quem estourar. Hoje ela não tem relógio.
 **Falta:** Diego ver e aprovar · Etapa 2 online (sala + lobby) · Etapa 3 Tocaia · escudos paródia (ele
 ainda escolhe A clássico ou B mascote) · aviso de tamanho de sala.
 

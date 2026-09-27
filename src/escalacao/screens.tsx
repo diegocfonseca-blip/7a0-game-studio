@@ -1147,19 +1147,15 @@ function PacoteFace({ c, big = false, claro = false }: { c: Card; big?: boolean;
           <p className={`font-bold ${big ? 'text-sm' : 'text-[10.5px]'}`} style={{ color: claro ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.55)' }}>{cartas.length} {cartas.length === 1 ? L('jogador no pacote', 'player in the pack') : L('jogadores no pacote', 'players in the pack')} · {L('você escolhe depois', 'you pick later')}</p>
         </div>
       </div>
-      <div className="flex flex-wrap gap-1 mt-1.5">
-        {cartas.map(x => (
-          <span key={x.id} className="border-2 border-black rounded-full px-1.5 py-px text-[10px] font-extrabold bg-white leading-tight" style={{ color: INK }}>{x.name}</span>
-        ))}
-      </div>
     </div>
   )
 }
 function CardFace({ c, big = false, surprise = false, mudo = false, highlight = false, claro = false }: { c: Card; big?: boolean; surprise?: boolean; /** 🕵️ ENIGMA: esconde nome, clube E ano — sobra a posição e a dica */ mudo?: boolean; highlight?: boolean; claro?: boolean }) {
   // 🧢 carta de TÉCNICO no pregão (id 'tec:...'): às cegas — só TEC + nome +
   // clube atual. Categoria/nível/formações se revelam quando ele for SEU.
-  // 🧱 LEILÃO DE CLUBES: o lote é um PACOTE — "Goleiros do Palmeiras" e quem está dentro,
-  // em ordem alfabética e SEM destaque de nível (regra do Diego: "a pessoa tem que saber").
+  // 🧱 LEILÃO DE CLUBES: o lote é um PACOTE — "Goleiros do Palmeiras" + QUANTOS jogadores tem.
+  // Os NOMES não aparecem no pregão (Diego 27/09: "não quero que mostre os jogadores nas
+  // listas do leilão, apenas quantidade que o time tem") — eles só aparecem na convocação.
   if (c.pacote) return <PacoteFace c={c} big={big} claro={claro} />
   if (c.id.startsWith('tec:')) {
     return (
