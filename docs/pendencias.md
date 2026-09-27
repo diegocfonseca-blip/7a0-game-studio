@@ -41,6 +41,8 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   completado com sobra DE VERDADE (nunca fake).
 - Teste de ponta a ponta (rivais 5/7/9, 4-3-3/4-4-2): todo mundo com 11, sem carta repetida.
 
+- 🧑 Convocação mostra o ROSTO da lenda que tem arte no jogo (mesma peça do campinho/jornal) e o relógio
+  subiu pra **90s**, no TOPO e grudado: *"Não escolheu a tempo? O sistema escolhe o PIOR do pacote pra você."*
 - ⏱️ **Convocação com relógio de 80s** (OK dele: "sim"): segue na hora quando todos fecham; quem estoura
   fica com o que marcou e a vaga vazia leva o PIOR do pacote. Quem já fechou vê "esperando X técnicos".
 - 🌐 **ONLINE (Etapa 2) feito** (só pra `CLUBES_TESTERS`): "Tipo de leilão 🃏/🧱" na criação da sala

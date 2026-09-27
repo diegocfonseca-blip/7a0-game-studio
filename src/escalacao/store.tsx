@@ -4913,8 +4913,8 @@ function fechaConvocacao(st: EscState, escolhas: Record<number, string[]>) {
   enterCerimonia(st)
 }
 
-/** 🧱 80s pra convocar (Diego 27/09: "a convocação deve demorar 80s também", igual à Copa) */
-export const CONVOCACAO_MS = 80_000
+/** 🧱 90s pra convocar (Diego 27/09: começou em 80s, igual à Copa; depois pediu 90s) */
+export const CONVOCACAO_MS = 90_000
 /** folga do host antes de fechar por tempo: dá tempo do "o que eu já marquei" dos convidados chegar */
 const CONVOCACAO_FOLGA_MS = 4_000
 /** todo humano que tem pacote já fechou? então segue na hora, sem esperar o relógio */

@@ -11,6 +11,8 @@ import { useEsc } from './store'
 import { Shell, Box, nomePacote } from './screens'
 import { Escudo } from './escudos'
 import { useT, getLang } from './lang'
+import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e do jornal)
+import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
 import { FORMATIONS, SECTORS, type Card, type Sector, type WonCard } from './types'
 
@@ -43,8 +45,9 @@ export function EscConvocacaoClubes() {
   const faltando = SECTORS.filter(s => doSetor(s).length < precisa(s)).map(s => `${precisa(s) - doSetor(s).length} ${secNome(s, precisa(s) - doSetor(s).length)}`)
   const pronto = faltando.length === 0
 
-  // ⏱️ 80s (igual à Copa). Acabou o tempo: manda o que já estiver marcado — a vaga
+  // ⏱️ 90s (pedido do Diego 27/09). Acabou o tempo: manda o que já estiver marcado — a vaga
   // vazia a máquina completa com o PIOR do pacote (castigo que o Diego escolheu).
+  const rostosOn = useLegendPresentation()
   const [agora, setAgora] = useState(agoraSala())
   useEffect(() => { const iv = setInterval(() => setAgora(agoraSala()), 250); return () => clearInterval(iv) }, [])
   const prazo = state.convocacaoDeadline ?? null
@@ -108,6 +111,17 @@ export function EscConvocacaoClubes() {
           </div>
         </div>
 
+        {/* ⏱️ O RELÓGIO NO TOPO, GRUDADO (Diego 27/09: "de forma mais clara e prática"):
+            fica à vista enquanto a pessoa rola a lista, e diz o castigo numa frase só. */}
+        {seg !== null && (
+          <div style={{ position: 'sticky', top: 6, zIndex: 5, border: `3px solid ${INK}`, borderRadius: 12, background: seg <= 15 ? '#E8503A' : GOLD, color: seg <= 15 ? '#fff' : INK, boxShadow: `3px 3px 0 0 ${INK}`, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <b style={{ ...OSWALD, fontWeight: 900, fontSize: 28, lineHeight: 1, minWidth: 58, textAlign: 'center' }}>{seg}s</b>
+            <p style={{ fontSize: 11.5, fontWeight: 800, margin: 0, lineHeight: 1.3 }}>
+              {t('Não escolheu a tempo? O sistema escolhe o PIOR do pacote pra você.', "Didn't pick in time? The system picks the WORST of the pack for you.")}
+            </p>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 4 }}>
           {SECTORS.map(s => {
             const ok = doSetor(s).length >= precisa(s)
@@ -165,6 +179,12 @@ export function EscConvocacaoClubes() {
                 <div key={row} style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
                   {slots.map((sl, i) => (
                     <div key={i} style={{ border: `2px solid ${INK}`, borderRadius: 8, textAlign: 'center', padding: '3px 6px', minWidth: 58, background: sl.c ? '#fff' : 'rgba(255,255,255,0.25)' }}>
+                      {/* 🧑 a lenda que tem rosto no jogo aparece com o rosto (pedido do Diego 27/09) */}
+                      {sl.c && rostosOn && avatarLote1(sl.c.name, sl.c.club, sl.c.year) && (
+                        <div style={{ display: 'flex', justifyContent: 'center', margin: '-2px 0 1px' }}>
+                          <AvatarLote1 name={sl.c.name} club={sl.c.club} year={sl.c.year} style={{ width: 62, maxWidth: '100%' }} />
+                        </div>
+                      )}
                       <p style={{ fontSize: 8.5, fontWeight: 900, color: sl.c ? RED : '#fff', margin: 0 }}>{sl.s}</p>
                       <p style={{ fontSize: 10, fontWeight: 700, margin: 0, color: sl.c ? INK : 'rgba(255,255,255,0.95)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 70 }}>{sl.c ? sl.c.name : t('Vazio', 'Empty')}</p>
                     </div>
@@ -175,16 +195,6 @@ export function EscConvocacaoClubes() {
           </div>
         </div>
 
-        {seg !== null && (
-          <div style={{ border: `3px solid ${INK}`, borderRadius: 12, background: seg <= 15 ? '#FFE3DC' : '#FFF4CF', boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 10px' }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textAlign: 'center', color: seg <= 15 ? '#B23B2E' : INK }}>
-              ⏱️ {seg}s {t('pra fechar a convocação', 'to close the call-up')}
-            </p>
-            <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '3px 0 0', textAlign: 'center', lineHeight: 1.4 }}>
-              {t('Se o tempo acabar, cada vaga que você deixou vazia a máquina preenche com o PIOR do pacote. O que você já marcou fica.', 'If time runs out, every spot you left empty gets the WORST player of the pack. What you already picked stays.')}
-            </p>
-          </div>
-        )}
         {pronto ? (
           <button onClick={() => dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(sel) })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', color: INK }}>

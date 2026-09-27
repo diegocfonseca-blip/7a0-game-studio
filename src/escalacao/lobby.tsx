@@ -3133,7 +3133,7 @@ export function EscLobby() {
                   selos={{ true: seloNovoDe('2026-09-27') }} travados={clubesOn ? [] : ['true']} />
                 <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                   {rapidoClubes
-                    ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (80s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Vale com envelope cego ou Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (80s). Leftovers go to the bots. Uses all 3 decks, with sealed bid or Ambush.')
+                    ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (90s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Vale com envelope cego ou Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (90s). Leftovers go to the bots. Uses all 3 decks, with sealed bid or Ambush.')
                     : clubesOn
                       ? tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')
                       : tr('🃏 O leilão de sempre: um jogador por lote. 🧱 Clubes chega em breve no online — já dá pra jogar na Partida Rápida contra a CPU.', '🃏 The usual auction: one player per lot. 🧱 Clubs is coming soon online — you can already play it in Quick Match vs CPU.')}
