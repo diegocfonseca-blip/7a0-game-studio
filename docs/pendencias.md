@@ -41,6 +41,9 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   completado com sobra DE VERDADE (nunca fake).
 - Teste de ponta a ponta (rivais 5/7/9, 4-3-3/4-4-2): todo mundo com 11, sem carta repetida.
 
+- ⏳ **GUARDADO PRA SUBIR DE MANHÃ (27/09, 20h53)**: campinho da convocação igual ao da carreira + rosto +
+  relógio 90s no topo. Diego disse "pode publicar", mas já era horário de pico (regra 24/09) — está no
+  branch `claude/denis-save-file-x1osct`, pronto pra main.
 - 🧑 Convocação mostra o ROSTO da lenda que tem arte no jogo (mesma peça do campinho/jornal) e o relógio
   subiu pra **90s**, no TOPO e grudado: *"Não escolheu a tempo? O sistema escolhe o PIOR do pacote pra você."*
 - ⏱️ **Convocação com relógio de 80s** (OK dele: "sim"): segue na hora quando todos fecham; quem estoura
