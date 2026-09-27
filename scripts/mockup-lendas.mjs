@@ -82,7 +82,7 @@ const carta = c => `
                 background:rgba(255,255,255,.42);color:#7a4d00;border:3px solid rgba(0,0,0,.28);font-family:Oswald,sans-serif;font-weight:700;font-size:27px;
                 box-shadow:inset 0 0 14px rgba(255,255,255,.7)">${c.nome.trim()[0].toUpperCase()}</div>
     <div style="position:relative">
-      <p style="font-family:Oswald,sans-serif;font-weight:700;color:#0C0C0C;font-size:15px;line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</p>
+      <p style="font-family:Oswald,sans-serif;font-weight:700;color:#0C0C0C;font-size:${c.nome.length > 20 ? 11.5 : c.nome.length > 16 ? 13 : 15}px;line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.nome}</p>
       <p style="font-weight:800;color:#0C0C0C;opacity:.62;font-size:10px;margin:1px 0 0">${c.club} · ${c.year}</p>
       <p style="font-size:11px;letter-spacing:1px;margin:3px 0 0">⭐⭐⭐⭐⭐</p>
     </div>
@@ -125,7 +125,7 @@ body{margin:0;background:#F4ECD6;color:#0C0C0C;font-family:system-ui,-apple-syst
     <h1 style="font-family:Oswald,sans-serif;font-weight:700;font-size:96px;line-height:.95;margin:22px 0 10px;text-transform:uppercase">${cartas.length} novas <span style="color:#C2452F">lendas</span></h1>
     <p style="font-size:28px;font-weight:700;margin:0 0 34px;line-height:1.3">${cartas.filter(c => c.nova).length ? `${cartas.length - cartas.filter(c => c.nova).length} craques viraram lenda · ${cartas.filter(c => c.nova).length} cartas novas` : 'Os craques que viraram lenda'}</p>
   </div>
-  <div style="width:659px;zoom:1.5;display:grid;grid-template-columns:repeat(${COLS},1fr);gap:14px 12px;align-content:start">${lote.map(carta).join('')}</div>
+  <div style="width:659px;zoom:1.5;display:flex;flex-wrap:wrap;justify-content:center;gap:14px 12px">${lote.map(c => `<div style="width:calc((100% - 36px) / ${COLS})">${carta(c)}</div>`).join('')}</div>
   <div style="text-align:center;margin-top:auto">
     ${total > 1 ? `<p style="font-family:Oswald,sans-serif;font-weight:700;font-size:24px;margin:0 0 10px;opacity:.55">${pag} / ${total}${pag < total ? ' · continua ➜' : ''}</p>` : ''}
     <p style="font-family:Oswald,sans-serif;font-weight:700;font-size:40px;margin:0">⚽ Leilão <span style="color:#C2452F">Legends</span></p>
