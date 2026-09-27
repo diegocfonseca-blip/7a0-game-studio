@@ -1144,7 +1144,7 @@ function PacoteFace({ c, big = false, claro = false }: { c: Card; big?: boolean;
         <span className="flex-none"><Escudo nome={c.pacote?.clube ?? c.club} size={big ? 46 : 30} /></span>
         <div className="min-w-0">
           <p className={`font-black leading-tight ${big ? 'text-2xl' : 'text-[15px]'}`} style={{ ...OSWALD, color: claro ? '#fff' : INK, textTransform: 'uppercase' }}>{nomePacote(c)}</p>
-          <p className={`font-bold ${big ? 'text-sm' : 'text-[10.5px]'}`} style={{ color: claro ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.55)' }}>{cartas.length} {cartas.length === 1 ? L('jogador no pacote', 'player in the pack') : L('jogadores no pacote', 'players in the pack')} · {L('você escolhe depois', 'you pick later')}</p>
+          <p className={`font-bold ${big ? 'text-sm' : 'text-[10.5px]'}`} style={{ color: claro ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.55)' }}>{cartas.length} {cartas.length === 1 ? L('jogador no pacote', 'player in the pack') : L('jogadores no pacote', 'players in the pack')}</p>
         </div>
       </div>
     </div>
