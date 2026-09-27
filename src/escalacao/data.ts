@@ -2010,7 +2010,10 @@ const ATA_EU: C[] = [
   { name: "Adriano Imperador", club: "Inter", year: 2005, fame: 5, lo: 86, hi: 92 },
   { name: "Dennis Bergkamp", club: "Arsenal", year: 1998, fame: 5, lo: 86, hi: 92 },
   { name: "Raúl", club: "Real Madrid", year: 2001, fame: 5, lo: 86, hi: 92 },
-  { name: "Ruud van Nistelrooy", club: "Man United", year: 2003, fame: 4, lo: 86, hi: 92 },
+  // 👑 VIROU LENDA por ordem do Diego (27/09): *"coloque Van Nistelrooy como lenda também"*.
+  //    Carta única dele, e já no auge: Man United 2002-03, artilheiro da Premier e 44 gols
+  //    na temporada. Só a categoria mudou (craque → lenda); a faixa de nível já era de lenda.
+  { name: "Ruud van Nistelrooy", club: "Man United", year: 2003, fame: 5, lo: 86, hi: 92 },
   { name: "Didier Drogba", club: "Chelsea", year: 2010, fame: 5, lo: 86, hi: 92 },
   { name: "Wayne Rooney", club: "Man United", year: 2010, fame: 5, lo: 86, hi: 92 },
   { name: "Alessandro Del Piero", club: "Juventus", year: 1998, fame: 5, lo: 86, hi: 92 },
