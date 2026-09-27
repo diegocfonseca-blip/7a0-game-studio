@@ -3614,7 +3614,9 @@ function Holandes() {
           const pode = holPodeAgora(state, you.id, c.id)
           const t = dono ? state.managers.find(m => m.id === dono.mgr) : null
           const ehSurpresa = state.surpriseId === c.id
-          const ehEnigma = state.mudoId === c.id
+          // 🕵️ na Tocaia o Enigma fica escondido só ENQUANTO está na mesa: fisgou, abriu
+          // (é o "martelo" deste pregão — a linha de cima já diz o nome de quem saiu)
+          const ehEnigma = state.mudoId === c.id && !dono
           return (
             <div key={c.id} className="border-[3px] border-black rounded-xl p-2.5 flex items-center gap-2"
               style={{

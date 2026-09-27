@@ -1,3 +1,11 @@
+## 27/09/2026 — 🕵️🐊 ENIGMA NA TOCAIA online ⏳ NO BRANCH, ESPERANDO OK VISUAL
+
+Diego: *"quero sim"* (Enigma também na Tocaia). `sorteiaEspeciais` tirou o `!s.holandes`:
+agora vale nos rápidos online de futebol nos DOIS pregões. Na mesa da Tocaia a carta vem
+com 🕵️ e a dica da época, com o mesmo preço caindo; quando alguém fisga, o nome abre na
+hora (o `Holandes` só esconde enquanto a carta não tem dono). Sem tocar na fila do `rng`.
+Fotos: `node scripts/mockup-enigma.mjs --tocaia` (mockups/enigma-tocaia-*.png).
+
 ## 27/09/2026 — 🌎 Clubes do continente da Liberta marcam com jogador de verdade ⏳ NO BRANCH
 
 Print do Diego na final da Liberta (El Mineiro × Boca Xuniors): *"por que os times restantes

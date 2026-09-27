@@ -1803,8 +1803,11 @@ function sorteiaEspeciais(s: EscState, rng: () => number) {
   s.surpriseId = pickSurprise(s.deck, rng)
   // 🕵️ LIGADO EM 26/09 (Diego: *"ok"* pra dica da época e o nome Enigma) — só nos
   // RÁPIDOS ONLINE de futebol no pregão às cegas, que foi onde ele pediu. Carreira,
-  // partida contra bots, Tocaia e basquete seguem sem Enigma até ele pedir.
-  const ondeVale = s.onlineMode === 'online' && !s.careerOnline && s.sport !== 'basquete' && !s.holandes
+  // partida contra bots e basquete seguem sem Enigma até ele pedir.
+  // 🐊 27/09: a TOCAIA online entrou também (Diego: *"quero sim"*). Lá a carta vem
+  // escondida na mesa com o mesmo preço caindo pra todas, e o nome aparece quando
+  // alguém fisga. Continua sem mexer na fila do `rng` (o sorteio é por conta).
+  const ondeVale = s.onlineMode === 'online' && !s.careerOnline && s.sport !== 'basquete'
   s.mudoId = ENIGMA_LIGADO && (ondeVale || enigmaBancada) ? pickMudo(s.deck, s.seed, s.surpriseId) : undefined
 }
 

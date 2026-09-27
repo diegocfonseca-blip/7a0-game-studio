@@ -6,7 +6,9 @@
 // Pedido dele lá atrás, quando a ideia nasceu: *"mande mockup da lista e como
 // ele seria listado"*. E a regra da casa: mockup primeiro, publicar depois.
 //
-// uso: node scripts/mockup-enigma.mjs [--porta 5253]
+// 🐊 27/09: `--tocaia` fotografa a mesa da TOCAIA (preço caindo) com o Enigma no meio,
+// e depois que alguém fisga ele (o nome abre).
+// uso: node scripts/mockup-enigma.mjs [--porta 5253] [--tocaia]
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
@@ -14,6 +16,7 @@ import { mkdirSync } from 'node:fs'
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i > 0 && process.argv[i + 1] ? process.argv[i + 1] : d }
 const PORTA = arg('porta', '5253')
 const SAIDA = 'mockups'
+const TOCAIA = process.argv.includes('--tocaia')
 mkdirSync(SAIDA, { recursive: true })
 
 const vite = spawn('npx', ['vite', '--port', PORTA], { env: { ...process.env, DEPLOY_BASE: '/' }, stdio: 'ignore', detached: true })
@@ -51,6 +54,22 @@ await clica('PARTIDA RÁPIDA', 1400)
 // 2) nome do time → avança até o pregão abrir
 await p.locator('input').first().fill('Neymarzetti').catch(() => {})
 await p.waitForTimeout(300)
+if (TOCAIA) {
+  await clica('Tocaia', 500)
+  for (let i = 0; i < 10; i++) {
+    if (await p.locator('text=Um preço só pra todos. Ele CAI').count()) break
+    if (!(await clica('AVANÇAR', 1500)) && !(await clica('COMEÇAR', 1500)) && !(await clica('Entendi', 700)) && !(await clica('PULAR', 700))) break
+  }
+  await p.waitForTimeout(2500)
+  await tira('enigma-tocaia-1-mesa', 'a mesa da Tocaia: o Enigma escondido no meio, mesmo preço caindo')
+  // espera o preço cair e fisga o Enigma (a 1ª carta, pela bancada)
+  await p.waitForTimeout(6000)
+  await p.locator('button', { hasText: 'PEGAR' }).first().click({ force: true }).catch(() => {})
+  await p.waitForTimeout(2200)
+  await tira('enigma-tocaia-2-fisgou', 'fisgou: o nome abre na hora')
+  await b.close(); try { process.kill(-vite.pid) } catch { /* já foi */ }
+  console.log(`\n✅ fotos em ${SAIDA}/\n`); process.exit(0)
+}
 for (let i = 0; i < 6; i++) {
   if (await p.locator('text=ESCREVA SEU LANCE').count()) break
   if (!(await clica('AVANÇAR', 1500)) && !(await clica('COMEÇAR', 1500)) && !(await clica('Entendi', 700)) && !(await clica('PULAR', 700))) break
