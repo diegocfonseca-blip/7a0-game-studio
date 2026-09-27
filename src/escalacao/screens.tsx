@@ -2530,7 +2530,7 @@ export function EscSetup() {
         president: privatePreview ? { name: stripEmoji(presidentName).trim() || 'Presidente', outfit: presidentOutfit } : undefined,
       })
     }
-    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, holandes: clubes ? false : holandes, clubes: clubesOn && clubes, intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, holandes, clubes: clubesOn && clubes, intro: true })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -2682,7 +2682,7 @@ export function EscSetup() {
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">
               {clubes
-                ? t('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Você leva o pacote inteiro e, no fim, CONVOCA quem joga pela sua formação. Quem sobrar vai pros bots. Usa os 3 baralhos juntos.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). You take the whole pack and, at the end, CALL UP who plays in your formation. Leftovers go to the bots. Uses all 3 decks together.')
+                ? t('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Você leva o pacote inteiro e, no fim, CONVOCA quem joga pela sua formação. Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Dá pra jogar com envelope cego ou com Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). You take the whole pack and, at the end, CALL UP who plays in your formation. Leftovers go to the bots. Uses all 3 decks together. Works with sealed bid or Ambush.')
                 : t('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')}
             </p>
           </div>
@@ -2747,7 +2747,7 @@ export function EscSetup() {
             de hoje. É um modo à parte: escolher holandês não muda nada do resto
             (mesmo baralho, mesma quantidade de jogadores, mesmas vagas, mesmas
             sobras) — só troca o jeito de dar lance. */}
-        {!career && !(clubesOn && clubes) && (
+        {!career && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Como é o leilão', 'Auction format')}</p>
             <div className="grid grid-cols-2 gap-2">

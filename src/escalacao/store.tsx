@@ -6255,7 +6255,6 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.holandes = !!action.holandes
       // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.
       s.leilaoClubes = !!action.clubes && !action.career && !action.dinastia
-      if (s.leilaoClubes) s.holandes = false
       s.leilaoClubesConvocado = false
       s.careerRivalCount = action.rivals
       s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams, action.teamName) : []
@@ -6810,7 +6809,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // sala inteira (vem no `game_state`, então quem entra depois pega a mesma).
       // Padrão é SEMPRE o leilão cego de hoje — sala antiga nem tem o campo.
       // 🚫 Fora da CARREIRA online: lá o pregão é o de sempre, sem novidade.
-      s.holandes = !action.career && !!action.holandes && !s.leilaoClubes // 🧱 clubes: por enquanto só envelope (Tocaia é a etapa 3)
+      s.holandes = !action.career && !!action.holandes // 🧱 Clubes e Tocaia são escolhas SEPARADAS (Diego 27/09: "uma coisa não tem nada a ver com a outra")
       s.varzea = onlineVarzea
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = false // online rápido/liga: não é a carreira salva do basquete
