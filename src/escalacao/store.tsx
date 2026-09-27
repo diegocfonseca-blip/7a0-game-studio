@@ -1090,6 +1090,8 @@ export function slotsOf(m: Manager, pos: Sector): number {
   // 🏀 basquete: o alvo é POR TÉCNICO (nbaSlots) — quinteto 1 → rotação 2 →
   // elenco 3, crescendo a cada temporada só p/ você; bots sem nbaSlots = quinteto.
   if (ACTIVE_SPORT === 'basquete') return m.nbaSlots ?? NBA_BASE_SLOTS
+  // 🧱 leilão de clubes: no pregão cada técnico leva UM pacote por setor (a convocação vem depois)
+  if (m.modoClubes) return 1
   // elenco fundo (leilão de reservas): mira 22 = 2× a formação por posição.
   // ⛔ AQUI NÃO ENTRA O +1 POR POSIÇÃO (correção do Diego, 16/09): *"o leilão de
   // reserva são 11 jogadores sempre… poder comprar mais cinco não tem nada a ver
@@ -1614,6 +1616,77 @@ const ESCADA_RARITY: Record<EscadaDiv, { legend: number; star: number; promessa:
   B: { legend: 0, star: 0.60, promessa: 0.40, low: 0 }, // promessa + craque
   A: { legend: 0.30, star: 0.70, promessa: 0, low: 0 }, // elite: craque + lenda
 }
+// ─── 🧱 O BARALHO DO LEILÃO DE CLUBES (27/09) ───────────────────────────────
+// Cada lote é o SETOR de um clube: "Goleiros do Palmeiras" leva TODOS os goleiros
+// do Palmeiras do baralho da sala, e quem ganha convoca depois quem vai jogar.
+// Regras que o Diego fechou:
+//  · UM clube só aparece UMA vez na partida (nada de Flamengo no gol e no ataque);
+//  · o pacote tem que ter mais gente do que a formação pede no setor, pra ter
+//    escolha na convocação (goleiro ≥ 2, lateral/zagueiro ≥ 3, meia/atacante ≥ 4
+//    no 4-3-3). Se faltar clube, aceita o mínimo exato antes de desistir;
+//  · de uma partida pra outra o clube muda de setor ou dá lugar a outro (memória
+//    das últimas 3 partidas);
+//  · os nomes vão em ORDEM ALFABÉTICA, sem destaque de nível (a pessoa tem que saber).
+let RECENT_CLUBES: Map<string, Sector>[] = []
+function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
+  const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
+  const bt = nextBuildTok()
+  const n = Math.max(1, managers.length)
+  const alvo = n + Math.ceil(n * 0.5) // folga: sobra pacote pra ter disputa e monte
+  const need = {} as Record<Sector, number>
+  for (const pos of SECTORS) need[pos] = Math.max(1, ...managers.map(m => baseSlots(m.formation, pos)))
+  // clube → cartas, por setor
+  type Cat = (typeof ACTIVE_CATALOG)[Sector][number]
+  const porClube = {} as Record<Sector, Map<string, Cat[]>>
+  for (const pos of SECTORS) {
+    const mp = new Map<string, Cat[]>()
+    for (const c of ACTIVE_CATALOG[pos]) { if (used.has(ident(c))) continue; const k = clubCanon(c.club); (mp.get(k) ?? mp.set(k, []).get(k)!).push(c) }
+    porClube[pos] = mp
+  }
+  const recente = new Map<string, Sector>()
+  for (const mp of RECENT_CLUBES) for (const [k, v] of mp) recente.set(k, v)
+  const jaNaPartida = new Set<string>()
+  const escolhidos = {} as Record<Sector, string[]>
+  // setor mais apertado escolhe primeiro (senão os grandes clubes somem pro ataque)
+  const ordem = [...SECTORS].sort((a, b) => [...porClube[a].values()].filter(l => l.length > need[a]).length - [...porClube[b].values()].filter(l => l.length > need[b]).length)
+  for (const pos of ordem) {
+    const pega = (minimo: number) => shuffle([...porClube[pos].entries()].filter(([k, l]) => l.length >= minimo && !jaNaPartida.has(k)), rng)
+      // quem esteve NESTE setor nas últimas partidas vai pro fim; quem esteve em outro, pro meio
+      .sort((a, b) => (recente.get(a[0]) === pos ? 2 : recente.has(a[0]) ? 1 : 0) - (recente.get(b[0]) === pos ? 2 : recente.has(b[0]) ? 1 : 0))
+    let lista = pega(need[pos] + 1).slice(0, alvo)
+    if (lista.length < n) lista = [...lista, ...pega(need[pos]).filter(([k]) => !lista.some(([k2]) => k2 === k))].slice(0, Math.max(n, lista.length))
+    // 🛟 último recurso: ainda falta pacote pra todo mundo ter um? Aí aceita um clube que
+    // já saiu em OUTRO setor (melhor repetir clube do que alguém ficar sem time)
+    if (lista.length < n) {
+      const extra = shuffle([...porClube[pos].entries()].filter(([k, l]) => l.length >= need[pos] && !lista.some(([k2]) => k2 === k)), rng)
+      lista = [...lista, ...extra].slice(0, n)
+    }
+    escolhidos[pos] = lista.map(([k]) => k)
+    for (const [k] of lista) jaNaPartida.add(k)
+  }
+  for (const pos of SECTORS) {
+    for (const clube of escolhidos[pos]) {
+      const cartas = [...porClube[pos].get(clube)!].sort((a, b) => a.name.localeCompare(b.name, 'pt'))
+      for (const c of cartas) used.add(ident(c))
+      // o "valor" do pacote pro motor (lance dos bots, monte) = a média dos que
+      // entrariam no time — ninguém vê isso na tela
+      const top = [...cartas].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi)).slice(0, need[pos])
+      const lo = Math.round(top.reduce((a, c) => a + c.lo, 0) / top.length)
+      const hi = Math.round(top.reduce((a, c) => a + c.hi, 0) / top.length)
+      // 🙈 SEM NÍVEL NA TELA (regra do Diego): o pacote nasce com fame NEUTRO (3) —
+      // senão a revelação pintava de dourado com selo 👑 LENDA o pacote cheio de
+      // craque. O valor de verdade vai no lo/hi, que é o que o bot usa pra dar lance.
+      const fame = 3 as Fame
+      deck[pos].push({ id: `pac-${pos}-${deck[pos].length}-${bt}`, name: clube, club: clube, year: 0, pos, fame, lo, hi, pacote: { clube, cartas: cartas.map((c, i) => ({ ...c, id: `pc-${pos}-${deck[pos].length}-${i}-${bt}`, pos } as Card)) } })
+    }
+    deck[pos] = shuffle(deck[pos], rng)
+  }
+  const mem = new Map<string, Sector>()
+  for (const pos of SECTORS) for (const k of escolhidos[pos]) mem.set(k, pos)
+  RECENT_CLUBES.push(mem); if (RECENT_CLUBES.length > 3) RECENT_CLUBES.shift()
+  return deck
+}
+
 // 🎲 chance de uma vaga de "foi profissional" virar "bom jogador" no baralho do rápido (26/09, teste)
 const MISTURA_FOI_PRO = 0.25
 // 👑 chance de uma vaga de LENDA virar CRAQUE no baralho do rápido (Diego 26/09: *"1 em cada 5 lendas… craque isso aí"*)
@@ -1800,6 +1873,8 @@ function pickMudo(deck: Record<Sector, Card[]>, seed: number, exceto?: string): 
 export function montaBaralhoParaTeste(humanos: string[], formation: FormationKey, seed: number) { const rng = mulberry(seed); const { managers } = makeManagers(humanos, formation, 0, 20, rng); return buildDeck(managers, rng, 1.5) }
 export function sorteiaEspeciaisParaTeste(s: EscState, rng: () => number) { sorteiaEspeciais(s, rng) }
 function sorteiaEspeciais(s: EscState, rng: () => number) {
+  // 🧱 leilão de clubes: o lote é um pacote de clube — Surpresa e Enigma não se aplicam
+  if (s.leilaoClubes) { s.surpriseId = undefined; s.mudoId = undefined; return }
   s.surpriseId = pickSurprise(s.deck, rng)
   // 🕵️ LIGADO EM 26/09 (Diego: *"ok"* pra dica da época e o nome Enigma) — só nos
   // RÁPIDOS ONLINE de futebol no pregão às cegas, que foi onde ele pediu. Carreira,
@@ -1920,6 +1995,8 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
     // alcançam ⭐ da mesma época, por mais rico que o bot seja.
     let cap = Math.max(2, Math.round(fairPrice(t.v) * (0.85 + m.aggression * 0.5 + rng() * 0.3) * (catCapEcon > 0 ? catCapEcon : 1)))
     if (catCapEcon > 0) cap = Math.min(cap, Math.max(2, Math.round(catPriceCap(t.c) * catCapEcon * (0.8 + rng() * 0.25))))
+    // 🧱 pacote vale pelos jogadores que o bot vai escalar dele, não por um só
+    if (t.c.pacote) cap = cap * Math.max(1, baseSlots(m.formation, pos))
     amt = Math.min(amt, cap)
     // PISO (valor fixo): compara com o BOLSO INTEIRO, não com a fatia do setor —
     // craque com piso justo é pechincha e o bot estica pra cobrir. Se o jogador
@@ -4542,7 +4619,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -4623,6 +4700,7 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
+  | { type: 'CONVOCAR_CLUBES'; mgrId: number; cartas: string[] } // 🧱 leilão de clubes: os 11 escolhidos dentro dos pacotes
   // 🚫🤝 SET_SPONSOR_BET saiu em 19/09 junto com o patrocinador pontual (ordem do
   // Diego). O campo `careerSponsorBet` segue no save, sem ninguém escrever nem ler.
   | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
@@ -4747,7 +4825,91 @@ function sweepMonteToBackstops(st: EscState) {
     takeInto(buyer, card)
   }
 }
+// ─── 🧱 A CONVOCAÇÃO DO LEILÃO DE CLUBES ────────────────────────────────────
+// Acabou o pregão (e o monte): cada técnico tem UM pacote por setor. Agora escolhe,
+// na formação dele, quem joga — igual à convocação da Copa do Mundo. Os bots
+// convocam sozinhos (os melhores). O pacote vira cartas de verdade no elenco e o
+// preço pago é dividido entre os convocados. Quem sobrou dentro do pacote vai pros
+// times de fundo (regra do Diego: "não convocados vão direto pros bots").
+/** quem ENTRARIA do pacote se o jogo escolhesse (os melhores) — serve o bot e o "completar" */
+export function melhoresDoPacote(cartas: Card[], n: number): Card[] {
+  return [...cartas].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi) || a.name.localeCompare(b.name)).slice(0, n)
+}
+function aplicaConvocacao(m: Manager, escolhidos: string[] | null, sobras: Card[]) {
+  const lotes = (m.squad as WonCard[]).filter(c => c.pacote)
+  const resto = (m.squad as WonCard[]).filter(c => !c.pacote)
+  const novos: WonCard[] = []
+  for (const pos of SECTORS) {
+    const vagas = baseSlots(m.formation, pos)
+    const lote = lotes.find(c => c.pos === pos)
+    const pool = lote?.pacote?.cartas ?? []
+    let quem = escolhidos ? pool.filter(c => escolhidos.includes(c.id)).slice(0, vagas) : []
+    if (quem.length < vagas) quem = [...quem, ...melhoresDoPacote(pool.filter(c => !quem.includes(c)), vagas - quem.length)]
+    const cada = lote ? Math.round((lote.paid ?? 0) / Math.max(1, quem.length)) : 0
+    for (const c of quem) novos.push({ ...c, pos, paid: cada, buyPrice: cada, via: lote?.via ?? 'leilao' } as WonCard)
+    for (const c of pool) if (!quem.includes(c)) sobras.push({ ...c, pos })
+  }
+  m.squad = [...resto, ...novos]
+  m.modoClubes = false
+}
+/** faltou pacote num setor? completa com SOBRA DE VERDADE (dos pacotes, e se não der, do
+ *  baralho que ninguém usou) — nunca perna-de-pau */
+function completaComSobras(st: EscState, m: Manager, sobras: Card[]) {
+  for (const pos of SECTORS) {
+    const falta = baseSlots(m.formation, pos) - (m.squad as WonCard[]).filter(c => c.pos === pos).length
+    for (let k = 0; k < falta; k++) {
+      let i = sobras.reduce((best, c, idx) => c.pos === pos && (best < 0 || (c.lo + c.hi) > (sobras[best].lo + sobras[best].hi)) ? idx : best, -1)
+      if (i < 0) {
+        const emUso = new Set(st.managers.flatMap(x => x.squad.map(c => ident(c))))
+        const livre = ACTIVE_CATALOG[pos].filter(c => !emUso.has(ident(c)) && !sobras.some(o => ident(o) === ident(c))).sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))[0]
+        if (!livre) break
+        sobras.push({ ...livre, id: `pc-sobra-${pos}-${m.id}-${k}-${nextBuildTok()}`, pos } as Card)
+        i = sobras.length - 1
+      }
+      const [c] = sobras.splice(i, 1)
+      m.squad.push({ ...c, paid: 0, buyPrice: 0, via: 'monte' } as WonCard)
+    }
+  }
+}
+/** as sobras dos pacotes reforçam os times de fundo: trocam o pior da posição se forem melhores */
+function sobrasProsBots(st: EscState, sobras: Card[]) {
+  const fundo = st.managers.filter(m => !m.isHuman && !m.modoClubes && !auctioningManagers([m]).length)
+  if (!fundo.length) return
+  const ordem = [...sobras].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi))
+  let k = 0
+  for (const c of ordem) {
+    for (let t = 0; t < fundo.length; t++) {
+      const bot = fundo[(k + t) % fundo.length]
+      const daPos = (bot.squad as WonCard[]).filter(x => x.pos === c.pos)
+      if (!daPos.length) continue
+      const pior = daPos.reduce((a, b) => (a.lo + a.hi) <= (b.lo + b.hi) ? a : b)
+      if ((c.lo + c.hi) > (pior.lo + pior.hi)) {
+        bot.squad = (bot.squad as WonCard[]).map(x => x === pior ? ({ ...c, paid: pior.paid ?? 0, buyPrice: pior.buyPrice ?? 0, via: 'bot' } as WonCard) : x)
+        k = (k + t + 1) % fundo.length
+        break
+      }
+    }
+  }
+}
+/** fecha a convocação de todo mundo que falta (bots sempre; humano só se `forcar`) e segue pra cerimônia */
+function fechaConvocacao(st: EscState, escolhas: Record<number, string[]>) {
+  const sobras: Card[] = []
+  // o que ninguém quis nem no monte também vira sobra (em cartas, não em pacote)
+  for (const lote of st.monte) for (const c of lote.pacote?.cartas ?? []) sobras.push({ ...c })
+  st.monte = []
+  for (const m of st.managers) if (m.modoClubes) aplicaConvocacao(m, escolhas[m.id] ?? null, sobras)
+  for (const m of st.managers) if (auctioningManagers([m]).length) completaComSobras(st, m, sobras)
+  sobrasProsBots(st, sobras)
+  st.leilaoClubesConvocado = true
+  enterCerimonia(st)
+}
+
 function enterCerimonia(st: EscState) {
+  // 🧱 leilão de clubes: antes da cerimônia vem a convocação (o humano escolhe os 11)
+  if (st.leilaoClubes && !st.leilaoClubesConvocado) {
+    if (st.managers.some(m => m.isHuman && m.modoClubes)) { st.screen = 'convocacao'; st.phaseDeadline = null; return }
+    fechaConvocacao(st, {}); return
+  }
   sweepMonteToBackstops(st)
   st.screen = 'cerimonia'
   // 🎥 modo stream: SEM cronômetro — o host dá o comando pra começar (controla o
@@ -5594,7 +5756,10 @@ function redraftSeason(s: EscState): EscState {
     humanosAntes.forEach((antigo, i) => { const d = s.duplas![antigo.id]; if (d) novo[i] = d })
     s.duplas = novo
   }
-  s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+  // 🧱 leilão de clubes: a próxima leva continua sendo de clubes (com clubes novos)
+  s.leilaoClubesConvocado = false
+  if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
+  s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, used) : buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
   sorteiaEspeciais(s, rng)
   dealBotSquads(s.managers, botPlans, rng, used)
   for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -6052,6 +6217,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // baralho escolhido (só solo): Brasileirão ou Liga Europa. Manager (que
       // também dispara START) sempre usa BR — não manda league.
       s.deckLeague = action.dinastia ? 'br' : (action.league ?? 'br')
+      // 🧱 leilão de clubes só fecha com os TRÊS baralhos juntos (um clube por partida)
+      if (action.clubes && !action.career && !action.dinastia) s.deckLeague = 'todos'
       setActiveCatalog(s.deckLeague)
       // carreira: começa na Série D. Partida rápida: sem divisão.
       s.careerDivision = action.career ? 'D' : null
@@ -6062,6 +6229,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🔻 modo do pregão: holandês (preço caindo) ou o cego de sempre. Escolha
       // por partida — o padrão é SEMPRE o leilão de hoje.
       s.holandes = !!action.holandes
+      // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.
+      s.leilaoClubes = !!action.clubes && !action.career && !action.dinastia
+      if (s.leilaoClubes) s.holandes = false
+      s.leilaoClubesConvocado = false
       s.careerRivalCount = action.rivals
       s.careerRivals = action.career ? initCareerRivals(action.rivals, action.rivalTeams, action.teamName) : []
       s.cpuAtkAdj = 0; s.cpuDefAdj = 0 // recalculado na cerimônia (quando os elencos existem)
@@ -6079,7 +6250,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.dinastiaBudget = action.dinastia ? (action.budget ?? 50) : undefined
       if (action.dinastia) { const b = action.budget ?? 50; for (const m of s.managers) m.money = b }
       const soloUsed = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
+      if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, soloUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -6123,6 +6295,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // conteúdo: baralho NBA, franquias como rivais e 1 vaga por posição (=5, o
     // quinteto). O futebol não passa por aqui.
     case 'START_NBA': {
+      s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
@@ -6177,6 +6350,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // rotação 10 → elenco 15), os desbloqueios por temporada e salvar/continuar
     // são o próximo passo. O futebol não passa por aqui.
     case 'START_NBA_CAREER': {
+      s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
       s.seed = Math.floor(Math.random() * 1e9)
       const rng = mulberry(s.seed)
       s.onlineMode = 'cpu'; s.isHost = true; s.humanCount = 1
@@ -6332,6 +6506,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'START_CAREER_SOLO': {
+      s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
       // CARREIRA OFFLINE na pirâmide: mesmas regras do online (4 divisões, leilão
       // de reservas/transferências, economia, votação-solo), mas sozinho contra a
       // CPU. Os rivais escolhidos entram na Série D como CPUs que DÃO LANCE.
@@ -6588,6 +6763,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return restored
     }
     case 'START_ONLINE': {
+      s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
@@ -7499,6 +7675,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.monteIdx >= s.monteOrder.length || s.managers.every(mm => totalHoles(mm) === 0)) {
         enterCerimonia(s)
       }
+      return s
+    }
+    case 'CONVOCAR_CLUBES': {
+      if (s.screen !== 'convocacao' || !s.leilaoClubes) return s
+      fechaConvocacao(s, { [action.mgrId]: action.cartas })
       return s
     }
     case 'MONTE_TIMEOUT': {
@@ -9613,6 +9794,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'RESTORE_CAREER': {
+      s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
       // retoma uma carreira salva, na divisão/temporada/rivais guardados.
       // keep (padrão): vai direto pro campeonato com o elenco salvo (pula o
       // leilão). redraft ("trocar tudo"): abre um novo leilão nesta divisão.
@@ -9929,7 +10111,7 @@ function marcaMexido(save: EscState) {
 // ⭐ sala de Champions: o dono manda o estado no máximo a cada 400 ms (ver o efeito do host)
 const CHAMPIONS_ENVIO_MS = 400
 const SOLO_RESUME_KEY = 'esc-solo-inprogress-v1'
-const SOLO_GAME_SCREENS = ['auction', 'monte', 'cerimonia', 'season', 'end'] as const
+const SOLO_GAME_SCREENS = ['auction', 'monte', 'convocacao', 'cerimonia', 'season', 'end'] as const
 function isSoloGameScreen(screen: string, s?: Pick<EscState, 'copaMode'>): boolean {
   // ⭐ Só Champions (25/09): a partida INTEIRA mora na tela da tabela de 36 — sem
   // guardá-la, fechar o app no meio voltava pra cerimônia e a Champions recomeçava.

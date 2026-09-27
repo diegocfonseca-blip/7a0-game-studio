@@ -6,6 +6,7 @@ import { EscProvider, useEsc } from './store'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
+import { EscConvocacaoClubes } from './convocacao-clubes' // 🧱 leilão de clubes (em teste)
 import { useSport, useSportUnlocked, SPORT_BRAND } from './sport'
 import { hadLogin } from './apoio'
 import { testaEscrita, medeStorage, guardaStorage, type ProbeStorage } from '../storage-guard' // 🧹 sessão que cai por armazenamento cheio (21/09)
@@ -30,6 +31,7 @@ function Router() {
     case 'auction':   return <EscAuction />
     case 'monte':     return <EscMonte />
     case 'cerimonia': return <EscCerimonia />
+    case 'convocacao': return <EscConvocacaoClubes />
     case 'reserveList': return <ReserveListScreen />
     case 'season':    return state.careerOnline ? <PyramidSeasonScreen /> : <EscSeason />
     case 'liberta':   return <EscLiberta />

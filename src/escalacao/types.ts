@@ -107,6 +107,9 @@ export interface Card {
    *  ela volta com este valor (e o contrato de quando saiu) — não pela metade, não com
    *  contrato novo de graça. Pra qualquer outro clube, vale a metade, como sempre. */
   paidAntes?: number
+  /** 🧱 LEILÃO DE CLUBES: esta "carta" é um PACOTE — o setor de um clube (todos os
+   *  goleiros do Palmeiras…). Quem ganha convoca os que vão jogar depois do pregão. */
+  pacote?: { clube: string; cartas: Card[] }
   cria?: boolean // 🌱 Cria da Base: tapa-buraco sem contrato, ruim de doer, invendável — some quando chega reforço // 📝 CONTRATOS (carreira): esta carta chegou ao leilão porque o CONTRATO ENCERROU (não foi venda planejada) — a grana do vendedor tem TETO no valor oficial do jogador (o que passar "fica com a família/empresário")
 }
 
@@ -245,6 +248,8 @@ export interface Manager {
   // (XI + banco = 2× a formação por posição). Fora do leilão de reservas fica
   // undefined, então o leilão normal (T1/solo/dinastia/rápido) segue mirando 11.
   deepSquad?: boolean
+  /** 🧱 no leilão de clubes, durante o pregão o técnico precisa de 1 PACOTE por setor */
+  modoClubes?: boolean
   // 🏀 carreira do basquete: alvo de vagas POR POSIÇÃO deste técnico (1 quinteto →
   // 2 rotação → 3 elenco cheio). Cresce a cada temporada só p/ você (+ rivais);
   // bots ficam sem = quinteto. undefined fora do basquete.
@@ -501,6 +506,7 @@ export type Screen =
   | 'auction'
   | 'monte'
   | 'cerimonia'
+  | 'convocacao' // 🧱 leilão de clubes: escolher os 11 dentro dos pacotes ganhos
   | 'reserveList'
   | 'season'
   | 'liberta' // 🌎 fase de grupos da Libertadores (o mata-mata dela roda na 'season')
@@ -597,6 +603,10 @@ export interface EscState {
   sectorUnsoldAccum: Card[] // não vendidos acumulados nas levas do setor até a repescagem
   /** 🔻 modo LEILÃO HOLANDÊS ligado nesta partida (o pregão cego de hoje é o padrão) */
   holandes?: boolean
+  /** 🧱 LEILÃO DE CLUBES: o lote é o setor de um clube (27/09, em teste) */
+  leilaoClubes?: boolean
+  /** 🧱 a convocação já foi feita nesta partida (o pacote já virou cartas) */
+  leilaoClubesConvocado?: boolean
   /** 🔻 estado vivo do holandês (só existe enquanto `phase === 'holandes'`) */
   hol?: HolandesState
   /**

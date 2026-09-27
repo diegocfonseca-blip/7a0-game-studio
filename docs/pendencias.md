@@ -1,3 +1,22 @@
+## 27/09/2026 — 🧱 LEILÃO DE CLUBES · Etapa 1 (offline vs bots, envelope) — NO BRANCH, só a conta do Diego vê
+
+Pedido: *"o usuário ao criar escolheria agora o padrão leilão de jogador ou por leilão de clubes… comece a
+fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é `CLUBES_GERAL = true`):
+- Criar partida rápida: **Tipo de leilão 🃏 Jogadores / 🧱 Clubes**. Clubes força os 3 baralhos juntos.
+- Cada lote é um SETOR de um clube ("🧤 Goleiros do Palmeiras"): escudo + nomes em ordem alfabética,
+  **sem nível** (pacote nasce com fame neutro — senão a revelação pintava de dourado com 👑 LENDA).
+  Cada técnico leva 1 pacote por setor. Clube não repete entre setores; memória das últimas 3 partidas
+  (`RECENT_CLUBES`) pra variar. Com 10 técnicos pode repetir 1 clube (último recurso).
+- Pregão/martelo/monte: os de sempre. Embaixo, no lugar do campinho, a lista "🧱 Seus pacotes".
+- **Convocação** (`convocacao-clubes.tsx`, tela `'convocacao'`): formação travada, abas por setor,
+  lista alfabética, campinho; o preço do pacote é dividido entre os convocados. Bots convocam sozinhos.
+  Quem sobra (e pacote que ninguém quis no monte) vai reforçar os times de fundo. Setor sem pacote é
+  completado com sobra DE VERDADE (nunca fake).
+- Teste de ponta a ponta (rivais 5/7/9, 4-3-3/4-4-2): todo mundo com 11, sem carta repetida.
+
+**Falta:** Diego ver e aprovar · Etapa 2 online (sala + lobby) · Etapa 3 Tocaia · escudos paródia (ele
+ainda escolhe A clássico ou B mascote) · aviso de tamanho de sala.
+
 ## 27/09/2026 — 🏅 CONQUISTAS + 📅 MISSÃO DIÁRIA (carreira) — MOCKUP mandado, esperando OK
 
 Ideia pedida por ele (*"sistema de conquistas e missão diária pro modo carreira"*). Mockup mostrado:

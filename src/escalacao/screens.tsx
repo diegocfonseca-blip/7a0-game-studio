@@ -47,7 +47,7 @@ import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionSt
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useClubesLiberado, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -763,7 +763,7 @@ export function Shell({ children, bar, hideExit = false, className = '', wide = 
   const [manage, setManage] = useState(false)
   // "sair do jogo" discreto: só durante uma partida (não na home/álbum). Ao
   // sair, o dispatch libera a vaga na sala online (não vira fantasma).
-  const inGame = ['setup', 'auction', 'monte', 'cerimonia', 'season', 'liberta', 'end'].includes(state.screen)
+  const inGame = ['setup', 'auction', 'monte', 'convocacao', 'cerimonia', 'season', 'liberta', 'end'].includes(state.screen)
   const leave = () => {
     if (window.confirm(tr('Sair do jogo? Você vai perder esta partida.', 'Leave the game? You will lose this match.'))) dispatch({ type: 'GO_LOBBY' })
   }
@@ -1078,6 +1078,10 @@ function YourPitch({ small = false }: { small?: boolean }) {
   const shown = pendingIds.size ? { ...base, squad: base.squad.filter(c => !pendingIds.has(c.id)) } : base
   // 🏀 basquete: a QUADRA no lugar do campinho (mesma lógica anti-spoiler acima).
   if (state.sport === 'basquete') return <NbaCourt m={shown} />
+  // 🧱 leilão de clubes: no pregão você junta PACOTES (um por setor), não jogadores —
+  // o campinho de 11 ficaria com um clube inteiro espremido numa bolinha. Mostra a
+  // lista dos 5 setores; o campinho de verdade aparece na convocação.
+  if (you.modoClubes) return <PacotesDoTime m={shown} />
   // 🎽 manto do coração: só decora o PRÓPRIO time de quem está vendo
   const manto = meuManto()
   const mantoAng = meuMantoAngle()
@@ -1097,12 +1101,66 @@ function YourPitch({ small = false }: { small?: boolean }) {
   return <Campinho m={shown} small={small} manto={manto} mantoDir={mantoAng} mantoC3={mantoC3} mantoC3Buf={mantoC3Buf} />
 }
 
+function PacotesDoTime({ m }: { m: Manager }) {
+  return (
+    <Box className="p-0 overflow-hidden" shadow={3}>
+      <p className="text-[11px] font-black uppercase text-center py-1.5" style={{ ...OSWALD, background: INK, color: '#fff', letterSpacing: .5 }}>{L('🧱 Seus pacotes', '🧱 Your packs')} · {m.formation}</p>
+      {SECTORS.map(pos => {
+        const c = m.squad.find(x => x.pos === pos && x.pacote)
+        return (
+          <div key={pos} className="flex items-center gap-2 px-3 py-2" style={{ borderTop: '2px solid rgba(0,0,0,.08)' }}>
+            <span className="text-[10px] font-black rounded-md px-1.5 py-0.5 flex-none" style={{ background: INK, color: '#fff' }}>{pos}</span>
+            {c ? <>
+              <span className="flex-none"><Escudo nome={c.pacote?.clube ?? c.club} size={24} /></span>
+              <span className="font-black text-[13px] uppercase truncate" style={OSWALD}>{nomePacote(c)}</span>
+            </> : <span className="text-[12px] font-bold text-black/40">{L('ainda sem pacote', 'no pack yet')}</span>}
+          </div>
+        )
+      })}
+    </Box>
+  )
+}
+
 // `claro` = a carta está sobre fundo ESCURO (hoje só o vermelho do desempate):
 // nome e clube em branco. Sem a prop, tudo fica EXATAMENTE como sempre foi — é
 // por isso que ela é opcional, pra não encostar nos outros 4 lugares que usam.
+const SETOR_PACOTE: Record<Sector, { ic: string; pt: string; en: string }> = {
+  GOL: { ic: '🧤', pt: 'Goleiros do', en: 'Goalkeepers of' },
+  LAT: { ic: '↔️', pt: 'Laterais do', en: 'Full-backs of' },
+  ZAG: { ic: '🛡️', pt: 'Zaga do', en: 'Centre-backs of' },
+  MEI: { ic: '🎯', pt: 'Meio do', en: 'Midfield of' },
+  ATA: { ic: '⚡', pt: 'Ataque do', en: 'Attack of' },
+}
+/** "Goleiros do Palmeiras" — o nome do pacote no idioma da pessoa (o clube nunca traduz) */
+export function nomePacote(c: Card): string {
+  const t = SETOR_PACOTE[c.pos]
+  return `${t.ic} ${getLang() === 'en' ? t.en : t.pt} ${c.pacote?.clube ?? c.club}`
+}
+function PacoteFace({ c, big = false, claro = false }: { c: Card; big?: boolean; claro?: boolean }) {
+  const cartas = c.pacote?.cartas ?? []
+  return (
+    <div className="text-left min-w-0">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="flex-none"><Escudo nome={c.pacote?.clube ?? c.club} size={big ? 46 : 30} /></span>
+        <div className="min-w-0">
+          <p className={`font-black leading-tight ${big ? 'text-2xl' : 'text-[15px]'}`} style={{ ...OSWALD, color: claro ? '#fff' : INK, textTransform: 'uppercase' }}>{nomePacote(c)}</p>
+          <p className={`font-bold ${big ? 'text-sm' : 'text-[10.5px]'}`} style={{ color: claro ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.55)' }}>{cartas.length} {cartas.length === 1 ? L('jogador no pacote', 'player in the pack') : L('jogadores no pacote', 'players in the pack')} · {L('você escolhe depois', 'you pick later')}</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1 mt-1.5">
+        {cartas.map(x => (
+          <span key={x.id} className="border-2 border-black rounded-full px-1.5 py-px text-[10px] font-extrabold bg-white leading-tight" style={{ color: INK }}>{x.name}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
 function CardFace({ c, big = false, surprise = false, mudo = false, highlight = false, claro = false }: { c: Card; big?: boolean; surprise?: boolean; /** 🕵️ ENIGMA: esconde nome, clube E ano — sobra a posição e a dica */ mudo?: boolean; highlight?: boolean; claro?: boolean }) {
   // 🧢 carta de TÉCNICO no pregão (id 'tec:...'): às cegas — só TEC + nome +
   // clube atual. Categoria/nível/formações se revelam quando ele for SEU.
+  // 🧱 LEILÃO DE CLUBES: o lote é um PACOTE — "Goleiros do Palmeiras" e quem está dentro,
+  // em ordem alfabética e SEM destaque de nível (regra do Diego: "a pessoa tem que saber").
+  if (c.pacote) return <PacoteFace c={c} big={big} claro={claro} />
   if (c.id.startsWith('tec:')) {
     return (
       <div className="min-w-0">
@@ -2407,6 +2465,11 @@ export function EscSetup() {
   // sozinho, sem juntar 8 pessoas. Mesma trava de conta do online.
   const libertaOn = useLibertaLiberada()
   const championsOn = useChampionsLiberada() // ⭐ Champions: tarja EM BREVE pra geral; só CHAMPIONS_TESTERS marca (mesma trava do online)
+  // 🧱 LEILÃO DE CLUBES (27/09, em construção): cada lote é um SETOR de um clube
+  // ("Goleiros do Palmeiras") e depois vem a convocação. Só aparece pra conta de
+  // teste (`CLUBES_TESTERS`); pra todo o resto o jogo segue idêntico.
+  const clubesOn = useClubesLiberado()
+  const [clubes, setClubes] = useState(false)
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2469,7 +2532,7 @@ export function EscSetup() {
         president: privatePreview ? { name: stripEmoji(presidentName).trim() || 'Presidente', outfit: presidentOutfit } : undefined,
       })
     }
-    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, holandes, intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, holandes: clubes ? false : holandes, clubes: clubesOn && clubes, intro: true })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -2600,10 +2663,34 @@ export function EscSetup() {
         </Box>
       )}
       <Box className="p-4 space-y-4">
+        {!career && clubesOn && (
+          <div>
+            <p className="text-xs font-black uppercase mb-1">{t('Tipo de leilão', 'Auction type')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {([[false, t('🃏 Jogadores', '🃏 Players')], [true, t('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]).map(([m, label]) => (
+                <button key={String(m)} onClick={() => setClubes(m)}
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  style={{ backgroundColor: clubes === m ? GOLD : '#fff', boxShadow: clubes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] font-semibold text-black/55 mt-1">
+              {clubes
+                ? t('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Você leva o pacote inteiro e, no fim, CONVOCA quem joga pela sua formação. Quem sobrar vai pros bots. Usa os 3 baralhos juntos.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). You take the whole pack and, at the end, CALL UP who plays in your formation. Leftovers go to the bots. Uses all 3 decks together.')
+                : t('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')}
+            </p>
+          </div>
+        )}
         {career ? (
           <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
             <p className="font-black text-sm" style={OSWALD}>{escadaLiberada() ? tr('🌎 Baralho: Brasileirão + Europa + MUNDO juntos', '🌎 Deck: Brasileirão + Europe + WORLD together') : tr('🌎 Baralho fixo: Brasileirão + Europa juntos', '🌎 Fixed deck: Brasileirão + Europe together')}</p>
             <p className="text-[11px] font-bold text-black/65 mt-1">{getLang() === 'en' ? (escadaLiberada() ? <>In Career the deck is <b>Brasileirão + Europe + World together</b> (~850 names) — it takes all of them to properly fill the <b>100 teams across 5 tiers</b> (from Várzea to Série A). Each tier's market only trades its own categories.</> : <>In Career the deck is always the <b>Brasileirão peaks + the Europe peaks together</b> (~700 names) — it takes both to properly fill the <b>80 teams across 4 tiers</b>. There is no BR-only or Europe-only deck here.</>) : escadaLiberada() ? <>Na Carreira o baralho é <b>Brasileirão + Europa + Mundo juntos</b> (~850 nomes) — precisa de todos pra preencher bem os <b>100 times das 5 divisões</b> (da Várzea à Série A). O mercado de cada divisão só negocia as categorias dela.</> : <>Na Carreira o baralho é sempre os <b>auges do Brasileirão + os auges da Europa juntos</b> (~700 nomes) — precisa dos dois pra preencher bem os <b>80 times das 4 divisões</b>. Não tem baralho só BR nem só Europa por aqui.</>}</p>
+          </div>
+        ) : clubesOn && clubes ? (
+          <div className="border-[3px] border-black rounded-xl p-3" style={{ background: '#EAF3FF' }}>
+            <p className="font-black text-sm" style={OSWALD}>{t('🌎 Baralho: Brasil + Europa + Mundo juntos', '🌎 Deck: Brazil + Europe + World together')}</p>
+            <p className="text-[11px] font-bold text-black/65 mt-1">{t('No leilão de clubes precisa dos 3 baralhos: é o que dá clube suficiente pra cada setor ter pacotes diferentes.', 'The club auction needs all 3 decks: that is what gives each sector enough different clubs.')}</p>
           </div>
         ) : (
         <div>
@@ -2655,7 +2742,7 @@ export function EscSetup() {
             de hoje. É um modo à parte: escolher holandês não muda nada do resto
             (mesmo baralho, mesma quantidade de jogadores, mesmas vagas, mesmas
             sobras) — só troca o jeito de dar lance. */}
-        {!career && (
+        {!career && !(clubesOn && clubes) && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Como é o leilão', 'Auction format')}</p>
             <div className="grid grid-cols-2 gap-2">
