@@ -112,6 +112,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'ericrabelo29@gmail.com': 'ouro', // 👑 Lenda — batismo Pantera Negra FC (Série C, ex-Miúdo EC) + fundador nº74 (20/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'brunnodeluca90@gmail.com': 'ouro', // 👑 Lenda — batismo Vasco SAF (Série D, ex-Vasco da Grana) + fundador nº78 + sócio nº59 (24/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'weslleygomes749@gmail.com': 'ouro', // 👑 Lenda — batismo Cruzeiro de Berretinho (Série D, no assento do bot Metrópole FC) + fundador nº79 + sócio nº60 (25/09). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'bastosmbc@gmail.com': 'ouro', // 👑 Lenda — batismo El Mineiro (Série C, no assento do bot Brodeiragem) + fundador nº80 + sócio nº61 (27/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'dondeestasleomessi10@gmail.com': 'ouro', // 👑 Lenda — batismo Julia Barranquila (Série A) + fundador nº77 (24/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'koeppfabio@gmail.com': 'ouro', // 👑 Lenda — batismo Fabulous EC (Série A) + fundador nº76 (23/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'danieldias11@gmail.com': 'ouro', // 👑 Lenda — batismo Grêmio FBPA (Série A) + fundador nº75 (21/09). Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -212,6 +213,7 @@ const FUNDADOR_N: Record<string, number> = {
   'ericrabelo29@gmail.com': 74, // 🐆👑 Pantera Negra FC (20/09)
   'brunnodeluca90@gmail.com': 78, // ⚽ Vasco SAF (24/09)
   'weslleygomes749@gmail.com': 79, // ⭐🐺 Cruzeiro de Berretinho (25/09)
+  'bastosmbc@gmail.com': 80, // 🐓 El Mineiro (27/09)
   'dondeestasleomessi10@gmail.com': 77, // 🦈🔴⚪ Julia Barranquila (24/09)
   'koeppfabio@gmail.com': 76, // 🦅🔴⚫ Fabulous EC (23/09)
   'danieldias11@gmail.com': 75, // 🔵⚫⚪ Grêmio FBPA (21/09)

@@ -62,6 +62,7 @@ import marrecoMascoteImg from './img/marreco-mascote.webp' // 🦆 Marreco FC (l
 import panteraMascoteImg from './img/pantera-mascote.webp' // 🐆👑 Pantera Negra FC (ericrabelo29): arte própria do dono
 import vascoSafMascoteImg from './img/vasco-saf-mascote.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
 import cruzeiroBerretinhoMascoteImg from './img/cruzeiro-berretinho-mascote.webp' // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749): arte própria do dono
+import elMineiroMascoteImg from './img/el-mineiro-mascote.webp' // 🐓 El Mineiro (bastosmbc): arte própria do dono
 import juliaMascoteImg from './img/julia-mascote.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousMascoteImg from './img/fabulous-mascote.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import gremioMascoteImg from './img/gremio-mascote.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
@@ -334,6 +335,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 392×440, 42,8 KB. mascote_key = "cruzeiro_lobo_rei".
   cruzeiro_lobo_rei: (
     <img src={cruzeiroBerretinhoMascoteImg} height={176} width={Math.round(176 * 392 / 440)} alt="O Lobo Rei — Cruzeiro de Berretinho" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐓 O GALO DOIDO (mascote do El Mineiro — bastosmbc, 27/09): o galo de crista vermelha
+  // com a camisa listrada em preto e branco, fazendo chifrinho com as duas mãos.
+  // 📏 237×440, 44 KB. mascote_key = "el_mineiro_galo_doido".
+  el_mineiro_galo_doido: (
+    <img src={elMineiroMascoteImg} height={176} width={Math.round(176 * 237 / 440)} alt="O Galo Doido — El Mineiro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦈🔴⚪ O TUBARÃO (mascote do Julia Barranquila — dondeestasleomessi10, 24/09):
   // tubarão de óculos espelhado dourado, camisa listrada do clube, tênis azul e a
@@ -1073,6 +1080,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Cruzeiro do Berretinho EC': 'cruzeiro_lobo_rei',
   'Cruzeiro do Berretinho SC': 'cruzeiro_lobo_rei',
   'Metrópole FC': 'cruzeiro_lobo_rei',
+  // 🐓 o Galo Doido carimba o gol do El Mineiro (bastosmbc, 27/09).
+  'El Mineiro': 'el_mineiro_galo_doido',
+  'El Mineiro FC': 'el_mineiro_galo_doido',
+  'El Mineiro EC': 'el_mineiro_galo_doido',
+  'El Mineiro SC': 'el_mineiro_galo_doido',
+  'Brodeiragem': 'el_mineiro_galo_doido',
   'Julia Barranquila': 'julia_tubarao',
   'Julia Barranquila FC': 'julia_tubarao',
   'Julia Barranquila EC': 'julia_tubarao',
@@ -1165,6 +1178,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   pantera_negra: 'A Pantera',  // 🐆👑 Pantera Negra FC (ericrabelo29, 20/09)
   vasco_pirata: 'O Pirata', // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90, 24/09)
   cruzeiro_lobo_rei: 'O Lobo Rei', // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749, 25/09)
+  el_mineiro_galo_doido: 'O Galo Doido', // 🐓 El Mineiro (bastosmbc, 27/09)
   julia_tubarao: 'O Tubarão', // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10, 24/09)
   fabulous_aguia: 'A Fabulosa', // 🦅🔴⚫ Fabulous EC (koeppfabio, 23/09)
   gremio_gaucho: 'O Gaúcho',   // 🔵⚫⚪ Grêmio FBPA (danieldias11, 21/09)

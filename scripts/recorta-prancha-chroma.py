@@ -26,6 +26,7 @@
 #
 # uso: python3 scripts/recorta-prancha-chroma.py <prancha.png> <pasta> <prefixo> [nomes...]
 #      (nomes padrão: escudo mascote camisa — na ordem da esquerda pra direita)
+import os
 import sys
 import numpy as np
 import cv2
@@ -39,7 +40,10 @@ H, W, _ = im.shape
 r, g, b = im[:, :, 0], im[:, :, 1], im[:, :, 2]
 
 # 1️⃣ + 2️⃣ o fundo é TODO o verde chroma, preso ou não
-chroma = (g > 150) & (g - r > 80) & (g - b > 60)
+# 🟦🟩 CHROMA_GB: o quanto o verde passa do azul. 60 serve o verde chroma puro; o fundo
+#    VERDE-ÁGUA (#01F7BB, El Mineiro 27/09) tem só ~55–65 de folga e precisa de 30.
+GB = int(os.environ.get('CHROMA_GB', '60'))
+chroma = (g > 150) & (g - r > 80) & (g - b > GB)
 pct = 100 * chroma.mean()
 print(f'fundo chroma: {pct:.1f}% do quadro')
 assert pct >= 20, f'só {pct:.1f}% de chroma — esta prancha não parece ter fundo verde'

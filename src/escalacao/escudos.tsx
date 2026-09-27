@@ -58,6 +58,7 @@ import bagresWallStEscudoImg from './img/bagreswallst-escudo.webp' // 🐟📉 B
 import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09 (substitui o SVG desenhado a mao de 10/08)
 import vascoSafEscudoImg from './img/vasco-saf-escudo.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
 import cruzeiroBerretinhoEscudoImg from './img/cruzeiro-berretinho-escudo.webp' // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749): arte própria do dono
+import elMineiroEscudoImg from './img/el-mineiro-escudo.webp' // 🐓 El Mineiro (bastosmbc): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
@@ -833,6 +834,14 @@ const vascoSafEscudoRender = (size: number) => (
 const cruzeiroBerretinhoEscudoRender = (size: number) => (
   <img src={cruzeiroBerretinhoEscudoImg} height={size} width={Math.round(size * 347 / 360)} alt="Cruzeiro de Berretinho" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
+// 🐓 EL MINEIRO (bastosmbc, batismo de 27/09) — Série C, no assento do bot Brodeiragem.
+// Escudo alvinegro com o galo de crista vermelha e a estrela, "EL MINEIRO · GALO DOIDO".
+// 📏 249×360, 24 KB — largura pela PROPORÇÃO REAL do arquivo.
+// ✂️ `scripts/recorta-prancha-chroma.py` com CHROMA_GB=30 (fundo verde-água) — conferido
+//    sobre o creme e o vermelho.
+const elMineiroEscudoRender = (size: number) => (
+  <img src={elMineiroEscudoImg} height={size} width={Math.round(size * 249 / 360)} alt="El Mineiro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 
 // 🦈🔴⚪ JULIA BARRANQUILA (dondeestasleomessi10, batismo de 24/09) — Série A.
 // 📏 251×360, 26,4 KB — largura pela PROPORÇÃO REAL do arquivo.
@@ -1388,6 +1397,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Cruzeiro do Berretinho EC': cruzeiroBerretinhoEscudoRender,
   'Cruzeiro do Berretinho SC': cruzeiroBerretinhoEscudoRender,
   'Metrópole FC': cruzeiroBerretinhoEscudoRender,
+  // 🐓 El Mineiro (bastosmbc) — BATISMO. As 4 formas do nome (regra 20/08) + o nome VELHO
+  // do assento (Brodeiragem): save antigo mostra o escudo novo.
+  'El Mineiro': elMineiroEscudoRender,
+  'El Mineiro FC': elMineiroEscudoRender,
+  'El Mineiro EC': elMineiroEscudoRender,
+  'El Mineiro SC': elMineiroEscudoRender,
+  'Brodeiragem': elMineiroEscudoRender,
   // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10) — BATISMO. As 4 formas do nome (regra 20/08).
   'Julia Barranquila': juliaEscudoRender,
   'Julia Barranquila FC': juliaEscudoRender,

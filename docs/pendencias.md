@@ -1,3 +1,11 @@
+## 27/09/2026 — 🐓 BATISMO EL MINEIRO (bastosmbc) — Série C, no assento do bot Brodeiragem
+
+Escudo alvinegro com o galo e a estrela, mascote O Galo Doido (`el_mineiro_galo_doido`), manto preto
+#100C0C + branco #E1D9D5 medido na camisa, coração Atlético Mineiro. Sócio nº61 · fundador nº80.
+Conta dele conferida antes (criada 17/08, era prata). Recorte com `recorta-prancha-chroma.py`
+(ganhou `CHROMA_GB=30` pro fundo verde-água) + tirada a sombra verde do chão debaixo do galo.
+SQL em `docs/sql/batismo-el-mineiro.sql`.
+
 ## 27/09/2026 — 👑 Van Nistelrooy (Man United 2003) vira LENDA ✅ NO AR
 
 Diego: *"coloque Van Nistelrooy como lenda também"*. Carta única, já no auge; `fame` 4 → 5,

@@ -2935,6 +2935,7 @@ export const OLD_NAME: Record<string, string> = {
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
   'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
+  'El Mineiro': 'Brodeiragem', // 🐓 batismo do bastosmbc (27/09): assumiu o assento da Série C que era do Brodeiragem — save antigo com Brodeiragem vira El Mineiro ao abrir. (O Brodeiragem continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Pantera Negra FC': 'Miúdo EC', // 🐆👑 batismo do ericrabelo29 (20/09): assumiu o assento da Série C que era do Miúdo EC — save antigo com Miúdo EC vira Pantera Negra FC ao abrir. (O Miúdo do Gol continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
   'Império Samambaia': 'Cuiabagre', // ⚽ batismo do jorgericardo777: save antigo com Cuiabagre (ou Bagres do Rio) vira Império Samambaia ao carregar
@@ -3262,7 +3263,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // ⚠️ SEM OLD_NAME aqui: o Xurupitas não virou outro clube, só trocou de divisão —
     // o OLD_NAME dele continua sendo a corrente Tokyo City Esperion / FC Galáticos.
     { name: 'Neguinho do Apito', team: 'Xurupitas FC' }, // ⚽ clube BATIZADO por apoiador (denilson.stifler10 — Xurupitas FC, ex-Tokyo City Esperion, ex-FC Galáticos; porco/Palmeiras). Veio da Série A em 23/09.
-    { name: 'Zé Chapéu', team: 'Brodeiragem' },
+    // 🐓 EL MINEIRO (bastosmbc, batismo de 27/09) no assento do bot Brodeiragem (o 1º bot
+    // sem dono da Série C). `OLD_NAME` leva save antigo pro nome novo. O Brodeiragem continua
+    // existindo em CPU_MANAGERS (o elenco do jogo rápido, outra lista).
+    { name: 'Galo Doido', team: 'El Mineiro' }, // 🐓 clube BATIZADO por apoiador (bastosmbc — El Mineiro, ex-Brodeiragem, Série C; escudo alvinegro com o galo de crista vermelha e a estrela, mascote O Galo Doido; preto #100C0C + branco #E1D9D5 MEDIDOS na camisa do dono; coração ATLÉTICO MINEIRO; Lenda + fundador nº80 + sócio nº61, 27/09)
     { name: 'Siuuu', team: 'Internacional de Madrid' }, // 👑 clube BATIZADO por apoiador (matheusstefanello372 — Internacional de Madrid, ex-Adão Esporte, Série C; escudo com a coroa e o monograma SCI, vermelho #A90605 + branco #FCF6F1 MEDIDOS na arte do dono; mascote o SIUUU coroado; Lenda + fundador nº69 + sócio nº50, 14/09)
     { name: 'Zorra Total FC', team: 'Zorra FC' },
     { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
