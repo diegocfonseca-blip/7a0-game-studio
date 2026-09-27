@@ -1,4 +1,4 @@
-## 26/09/2026 — 🎬 GOL EM DUAS ETAPAS no placar ao vivo ⏳ NO BRANCH, ESPERANDO OK DO DIEGO
+## 26/09/2026 — 🎬 GOL EM DUAS ETAPAS no placar ao vivo ✅ NO AR (27/09, "Ok publique")
 
 Pedido dele (depois de ver o golzinho no online de 9 s): *"quando for gol, teria que
 sair a bolinha e SOMENTE quando entrar no gol que entraria o mascote com grito de gol
