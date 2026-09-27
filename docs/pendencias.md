@@ -1,4 +1,4 @@
-## 27/09/2026 — 🧱 LEILÃO DE CLUBES · Etapa 1 (offline vs bots, envelope) — NO BRANCH, só a conta do Diego vê
+## 27/09/2026 — 🧱 LEILÃO DE CLUBES · Etapas 1 e 2 (offline + online, envelope) — NO BRANCH, só a conta do Diego vê
 
 Pedido: *"o usuário ao criar escolheria agora o padrão leilão de jogador ou por leilão de clubes… comece a
 fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é `CLUBES_GERAL = true`):
@@ -15,9 +15,14 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   completado com sobra DE VERDADE (nunca fake).
 - Teste de ponta a ponta (rivais 5/7/9, 4-3-3/4-4-2): todo mundo com 11, sem carta repetida.
 
-**Esperando ele responder:** convocação com relógio de 80s (igual à Copa), seguindo na hora se todos
-fecharem, e o PIOR do pacote pra vaga vazia de quem estourar. Hoje ela não tem relógio.
-**Falta:** Diego ver e aprovar · Etapa 2 online (sala + lobby) · Etapa 3 Tocaia · escudos paródia (ele
+- ⏱️ **Convocação com relógio de 80s** (OK dele: "sim"): segue na hora quando todos fecham; quem estoura
+  fica com o que marcou e a vaga vazia leva o PIOR do pacote. Quem já fechou vê "esperando X técnicos".
+- 🌐 **ONLINE (Etapa 2) feito** (só pra `CLUBES_TESTERS`): "Tipo de leilão 🃏/🧱" na criação da sala
+  ⚡ Rápido (grava `clubes` no `game_state`); força os 3 baralhos e envelope cego. A convocação vai
+  pelas duas estradas (rádio + `room_acoes`), o host fecha no tempo (+4s de folga pro "o que eu já
+  marquei" dos convidados chegar) e as escolhas não viajam no pacote do estado. Testado no motor com
+  3 e 10 pessoas (todos com 11, sem repetido, sem fake); **ainda não testado com 2 aparelhos de verdade.**
+**Falta:** Diego ver e aprovar · teste online com 2 aparelhos · Etapa 3 Tocaia · escudos paródia (ele
 ainda escolhe A clássico ou B mascote) · aviso de tamanho de sala.
 
 ## 27/09/2026 — 🏅 CONQUISTAS + 📅 MISSÃO DIÁRIA (carreira) — MOCKUP mandado, esperando OK

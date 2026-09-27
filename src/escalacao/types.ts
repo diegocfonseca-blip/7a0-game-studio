@@ -607,6 +607,12 @@ export interface EscState {
   leilaoClubes?: boolean
   /** 🧱 a convocação já foi feita nesta partida (o pacote já virou cartas) */
   leilaoClubesConvocado?: boolean
+  /** 🧱 relógio da convocação (80s, igual à Copa) — ms */
+  convocacaoDeadline?: number | null
+  /** 🧱 quem já fechou a convocação (ids de técnico) */
+  convocacaoFeitos?: number[]
+  /** 🧱 o que cada um escolheu (só o host guarda; não viaja pros convidados) */
+  convocacaoEscolhas?: Record<number, string[]>
   /** 🔻 estado vivo do holandês (só existe enquanto `phase === 'holandes'`) */
   hol?: HolandesState
   /**

@@ -4642,7 +4642,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; holandes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; holandes?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -4700,7 +4700,8 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
-  | { type: 'CONVOCAR_CLUBES'; mgrId: number; cartas: string[] } // 🧱 leilão de clubes: os 11 escolhidos dentro dos pacotes
+  | { type: 'CONVOCAR_CLUBES'; mgrId: number; cartas: string[] }
+  | { type: 'CONVOCACAO_TIMEOUT' } // 🧱 acabaram os 80s da convocação // 🧱 leilão de clubes: os 11 escolhidos dentro dos pacotes
   // 🚫🤝 SET_SPONSOR_BET saiu em 19/09 junto com o patrocinador pontual (ordem do
   // Diego). O campo `careerSponsorBet` segue no save, sem ninguém escrever nem ler.
   | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
@@ -4835,7 +4836,11 @@ function sweepMonteToBackstops(st: EscState) {
 export function melhoresDoPacote(cartas: Card[], n: number): Card[] {
   return [...cartas].sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi) || a.name.localeCompare(b.name)).slice(0, n)
 }
-function aplicaConvocacao(m: Manager, escolhidos: string[] | null, sobras: Card[]) {
+/** quem entraria se a máquina escolhesse com CASTIGO (estourou o relógio): os piores */
+function pioresDoPacote(cartas: Card[], n: number): Card[] {
+  return [...cartas].sort((a, b) => (a.lo + a.hi) - (b.lo + b.hi) || a.name.localeCompare(b.name)).slice(0, n)
+}
+function aplicaConvocacao(m: Manager, escolhidos: string[] | null, sobras: Card[], castigo = false) {
   const lotes = (m.squad as WonCard[]).filter(c => c.pacote)
   const resto = (m.squad as WonCard[]).filter(c => !c.pacote)
   const novos: WonCard[] = []
@@ -4844,7 +4849,10 @@ function aplicaConvocacao(m: Manager, escolhidos: string[] | null, sobras: Card[
     const lote = lotes.find(c => c.pos === pos)
     const pool = lote?.pacote?.cartas ?? []
     let quem = escolhidos ? pool.filter(c => escolhidos.includes(c.id)).slice(0, vagas) : []
-    if (quem.length < vagas) quem = [...quem, ...melhoresDoPacote(pool.filter(c => !quem.includes(c)), vagas - quem.length)]
+    // vaga vazia: o bot leva os melhores; o HUMANO que estourou os 80s leva os PIORES
+    // do pacote naquela vaga (mesmo castigo da convocação da Copa do Mundo). O que ele
+    // já tinha marcado fica.
+    if (quem.length < vagas) quem = [...quem, ...(castigo ? pioresDoPacote : melhoresDoPacote)(pool.filter(c => !quem.includes(c)), vagas - quem.length)]
     const cada = lote ? Math.round((lote.paid ?? 0) / Math.max(1, quem.length)) : 0
     for (const c of quem) novos.push({ ...c, pos, paid: cada, buyPrice: cada, via: lote?.via ?? 'leilao' } as WonCard)
     for (const c of pool) if (!quem.includes(c)) sobras.push({ ...c, pos })
@@ -4897,17 +4905,33 @@ function fechaConvocacao(st: EscState, escolhas: Record<number, string[]>) {
   // o que ninguém quis nem no monte também vira sobra (em cartas, não em pacote)
   for (const lote of st.monte) for (const c of lote.pacote?.cartas ?? []) sobras.push({ ...c })
   st.monte = []
-  for (const m of st.managers) if (m.modoClubes) aplicaConvocacao(m, escolhas[m.id] ?? null, sobras)
+  for (const m of st.managers) if (m.modoClubes) aplicaConvocacao(m, m.isHuman ? (escolhas[m.id] ?? []) : null, sobras, m.isHuman)
   for (const m of st.managers) if (auctioningManagers([m]).length) completaComSobras(st, m, sobras)
   sobrasProsBots(st, sobras)
   st.leilaoClubesConvocado = true
+  st.convocacaoDeadline = null; st.convocacaoFeitos = []; st.convocacaoEscolhas = {}
   enterCerimonia(st)
+}
+
+/** 🧱 80s pra convocar (Diego 27/09: "a convocação deve demorar 80s também", igual à Copa) */
+export const CONVOCACAO_MS = 80_000
+/** folga do host antes de fechar por tempo: dá tempo do "o que eu já marquei" dos convidados chegar */
+const CONVOCACAO_FOLGA_MS = 4_000
+/** todo humano que tem pacote já fechou? então segue na hora, sem esperar o relógio */
+function convocacaoCompleta(st: EscState): boolean {
+  const feitos = st.convocacaoFeitos ?? []
+  return st.managers.filter(m => m.isHuman && m.modoClubes).every(m => feitos.includes(m.id))
 }
 
 function enterCerimonia(st: EscState) {
   // 🧱 leilão de clubes: antes da cerimônia vem a convocação (o humano escolhe os 11)
   if (st.leilaoClubes && !st.leilaoClubesConvocado) {
-    if (st.managers.some(m => m.isHuman && m.modoClubes)) { st.screen = 'convocacao'; st.phaseDeadline = null; return }
+    if (st.managers.some(m => m.isHuman && m.modoClubes)) {
+      st.screen = 'convocacao'; st.phaseDeadline = null
+      st.convocacaoDeadline = Date.now() + CONVOCACAO_MS
+      st.convocacaoFeitos = []; st.convocacaoEscolhas = {}
+      return
+    }
     fechaConvocacao(st, {}); return
   }
   sweepMonteToBackstops(st)
@@ -6763,13 +6787,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       return restored
     }
     case 'START_ONLINE': {
-      s.leilaoClubes = false; s.leilaoClubesConvocado = false // 🧱 leilão de clubes é só do rápido offline (por enquanto)
+      // 🧱 LEILÃO DE CLUBES na sala: escolha do host, só no rápido de futebol (nem carreira, nem liga)
+      s.leilaoClubes = !!action.clubes && !action.career && !action.liga && action.sport !== 'basquete'
+      s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
       // real de sempre — só muda o catálogo de craques.
-      s.deckLeague = action.deck ?? 'br'
+      s.deckLeague = s.leilaoClubes ? 'todos' : (action.deck ?? 'br') // 🧱 clubes precisa dos 3 baralhos
       // 🥅 VÁRZEA ("Sem craques"): SÓ no rápido online + baralho BR (carreira e
       // Europa/Todos não têm essa categoria). Filtra o baralho pro leilão E os bots
       // saírem sem craque/lenda de uma vez. Restaura o baralho cheio logo após montar.
@@ -6779,12 +6805,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Sala de futebol não passa por nenhuma linha nova: `action.sport` vem
       // indefinido e tudo cai no caminho de sempre.
       const onlineNba = action.sport === 'basquete'
-      const onlineVarzea = !onlineNba && !action.career && (action.deck ?? 'br') === 'br' && !!action.varzea
+      const onlineVarzea = !onlineNba && !action.career && !s.leilaoClubes && (action.deck ?? 'br') === 'br' && !!action.varzea
       // 🔻 PREGÃO HOLANDÊS: escolha do HOST na hora de montar a sala, e vale pra
       // sala inteira (vem no `game_state`, então quem entra depois pega a mesma).
       // Padrão é SEMPRE o leilão cego de hoje — sala antiga nem tem o campo.
       // 🚫 Fora da CARREIRA online: lá o pregão é o de sempre, sem novidade.
-      s.holandes = !action.career && !!action.holandes
+      s.holandes = !action.career && !!action.holandes && !s.leilaoClubes // 🧱 clubes: por enquanto só envelope (Tocaia é a etapa 3)
       s.varzea = onlineVarzea
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = false // online rápido/liga: não é a carreira salva do basquete
@@ -6896,7 +6922,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // laterais, etc. — dá opção/disputa sem inflar. O baralho é montado
       // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
-      s.deck = buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, onlineVarzea)
+      if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, onlineVarzea)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, onlineVarzea)
       if (onlineVarzea) setActiveCatalog(s.deckLeague) // baralho várzea já foi montado → restaura o cheio pro resto
@@ -7679,7 +7706,17 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'CONVOCAR_CLUBES': {
       if (s.screen !== 'convocacao' || !s.leilaoClubes) return s
-      fechaConvocacao(s, { [action.mgrId]: action.cartas })
+      if ((s.convocacaoFeitos ?? []).includes(action.mgrId)) return s // chegou pelas duas estradas: vale a 1ª
+      s.convocacaoEscolhas = { ...(s.convocacaoEscolhas ?? {}), [action.mgrId]: action.cartas }
+      s.convocacaoFeitos = [...(s.convocacaoFeitos ?? []), action.mgrId]
+      if (convocacaoCompleta(s)) fechaConvocacao(s, s.convocacaoEscolhas)
+      return s
+    }
+    case 'CONVOCACAO_TIMEOUT': {
+      // acabaram os 80s (+ a folga): fecha com o que cada um marcou; vaga vazia de humano = o pior
+      if (s.screen !== 'convocacao' || !s.leilaoClubes) return s
+      if (!s.convocacaoDeadline || Date.now() < s.convocacaoDeadline + CONVOCACAO_FOLGA_MS) return s
+      fechaConvocacao(s, s.convocacaoEscolhas ?? {})
       return s
     }
     case 'MONTE_TIMEOUT': {
@@ -11079,7 +11116,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // Ele saiu da sala."* Antes, quem apertava SAIR na tela do "e agora?" sumia da
     // sala mas continuava como HUMANO no estado — e o "novo leilão" o trazia de
     // volta como fantasma, travando o setor à espera de um envelope que nunca vem.
-    const inGame = ['auction', 'monte', 'cerimonia', 'season', 'liberta', 'end'].includes(st.screen)
+    const inGame = ['auction', 'monte', 'convocacao', 'cerimonia', 'season', 'liberta', 'end'].includes(st.screen)
     if (onlineRef.current === 'online' && !isHostRef.current && rid && inGame) {
       // 🤝 DUPLA: se eu jogava de dois, o time NÃO vira CPU — seria injusto com
       // quem ficou. Em vez do KICK_PLAYER, aviso que ele assume TODAS as
@@ -11167,6 +11204,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // reducer reconfere o prazo, então chegar pelas duas estradas não sela
       // nada duas vezes. Relógio próprio (6s) pra um lance recente não engolir
       // a vez do fechamento.
+      // 🧱 a convocação do leilão de clubes é recado único e trava a sala se sumir: vai pelas duas estradas
+      if ((action.type === 'CONVOCAR_CLUBES' || action.type === 'CONVOCACAO_TIMEOUT') && stateRef.current.roomId) {
+        supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+      }
       if ((action.type === 'FORCE_SEAL' || action.type === 'FORCE_TIEBREAK') && stateRef.current.roomId) {
         const agora = Date.now()
         if (agora - selaReservaTsRef.current > 6_000) {
@@ -11589,7 +11630,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         try {
           const st = stateRef.current
           if (!st.roomId || !st.isHost) return
-          if (st.screen !== 'auction' && st.phase !== 'envelope' && st.phase !== 'resq_envelope' && st.phase !== 'holandes') return
+          if (st.screen !== 'auction' && st.screen !== 'convocacao' && st.phase !== 'envelope' && st.phase !== 'resq_envelope' && st.phase !== 'holandes') return
           const { data } = await supabase.from('room_acoes').select('id, payload')
             .eq('room_id', st.roomId).gt('id', acoesVistasRef.current)
             .order('id', { ascending: true }).limit(25)
@@ -11604,7 +11645,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
             // jogador da mão de quem apertou. O reducer confere o preço da tela
             // e recusa carta que já tem dono, então repetido não faz mal.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR')) rawDispatch(a)
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
@@ -11731,6 +11772,14 @@ export function EscProvider({ children }: { children: ReactNode }) {
     state.cerimoniaDeadline,
     () => dispatch({ type: 'FINISH_CEREMONY' }),
     () => { if (stateRef.current.onlineMode === 'online') logTravaSalva('cerimonia', 2, stateRef.current.roomId, stateRef.current.isHost) },
+  )
+
+  // 🧱 Vigia da convocação do leilão de clubes: 80s + folga e fecha sozinho (solo e online;
+  // o convidado roteia pro host e o reducer reconfere o prazo).
+  useVigiaPrazo(
+    state.screen === 'convocacao',
+    state.convocacaoDeadline ? state.convocacaoDeadline + 4_500 : null,
+    () => dispatch({ type: 'CONVOCACAO_TIMEOUT' }),
   )
 
   // Vigia do leilão: mesmo princípio — qualquer cliente conectado pode forçar
@@ -12441,7 +12490,7 @@ export function sanitize(state: EscState): EscState {
   // cortar o bot em toda carta do pregão. Mesma regra do `pendingEnvelopes`:
   // o que é segredo não sai do host.
   const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
-  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.hol ? { hol } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
+  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
 }
 // 🧳 A SALA NÃO LEVA A CARREIRA DE NINGUÉM NA MALA (24/09, sala do Final Boss FC).
 // Diego: *"deu erro, travou a sala, os valores e etc"* — Tocaia, jogo rápido online.

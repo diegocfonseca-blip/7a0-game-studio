@@ -6,11 +6,12 @@
 //  · quem não for convocado vai pros bots (o motor faz isso no CONVOCAR_CLUBES).
 // Setor sem pacote (ninguém ganhou nem no monte) o motor completa com sobra DE
 // VERDADE — nunca jogador de mentira.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEsc } from './store'
 import { Shell, Box, nomePacote } from './screens'
 import { Escudo } from './escudos'
 import { useT, getLang } from './lang'
+import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
 import { FORMATIONS, SECTORS, type Card, type Sector, type WonCard } from './types'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D', RED = '#C2452F'
@@ -42,7 +43,39 @@ export function EscConvocacaoClubes() {
   const faltando = SECTORS.filter(s => doSetor(s).length < precisa(s)).map(s => `${precisa(s) - doSetor(s).length} ${secNome(s, precisa(s) - doSetor(s).length)}`)
   const pronto = faltando.length === 0
 
+  // ⏱️ 80s (igual à Copa). Acabou o tempo: manda o que já estiver marcado — a vaga
+  // vazia a máquina completa com o PIOR do pacote (castigo que o Diego escolheu).
+  const [agora, setAgora] = useState(agoraSala())
+  useEffect(() => { const iv = setInterval(() => setAgora(agoraSala()), 250); return () => clearInterval(iv) }, [])
+  const prazo = state.convocacaoDeadline ?? null
+  const seg = prazo ? Math.max(0, Math.ceil((prazo - agora) / 1000)) : null
+  const fechei = !!me && (state.convocacaoFeitos ?? []).includes(me.id)
+  const selRef = useRef(sel); selRef.current = sel
+  const mandou = useRef(false)
+  useEffect(() => {
+    if (!me || seg === null || seg > 0 || fechei || mandou.current) return
+    mandou.current = true
+    dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current) })
+  }, [seg, fechei]) // eslint-disable-line react-hooks/exhaustive-deps
+  const humanos = state.managers.filter(m => m.isHuman && m.modoClubes)
+  const faltamFechar = humanos.filter(m => !(state.convocacaoFeitos ?? []).includes(m.id))
+
   if (!me) return null
+  if (fechei || !me.modoClubes) {
+    return (
+      <Shell>
+        <Box className="p-5 text-center space-y-2">
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 20, textTransform: 'uppercase', margin: 0 }}>{t('✅ Convocação fechada', '✅ Call-up closed')}</p>
+          <p style={{ fontSize: 12, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: 0 }}>
+            {faltamFechar.length
+              ? t(`Esperando ${faltamFechar.length === 1 ? 'mais 1 técnico' : `mais ${faltamFechar.length} técnicos`}: ${faltamFechar.map(m => m.teamName).join(', ')}`, `Waiting for ${faltamFechar.length} more: ${faltamFechar.map(m => m.teamName).join(', ')}`)
+              : t('Todo mundo fechou — já vai começar.', 'Everyone is done — starting now.')}
+          </p>
+          {seg !== null && faltamFechar.length > 0 && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 26, margin: 0 }}>⏱️ {seg}s</p>}
+        </Box>
+      </Shell>
+    )
+  }
   const toggle = (c: Card, s: Sector) => {
     setSel(prev => {
       const nx = { ...prev }
@@ -142,6 +175,16 @@ export function EscConvocacaoClubes() {
           </div>
         </div>
 
+        {seg !== null && (
+          <div style={{ border: `3px solid ${INK}`, borderRadius: 12, background: seg <= 15 ? '#FFE3DC' : '#FFF4CF', boxShadow: `3px 3px 0 0 ${INK}`, padding: '8px 10px' }}>
+            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, textAlign: 'center', color: seg <= 15 ? '#B23B2E' : INK }}>
+              ⏱️ {seg}s {t('pra fechar a convocação', 'to close the call-up')}
+            </p>
+            <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.65)', margin: '3px 0 0', textAlign: 'center', lineHeight: 1.4 }}>
+              {t('Se o tempo acabar, cada vaga que você deixou vazia a máquina preenche com o PIOR do pacote. O que você já marcou fica.', 'If time runs out, every spot you left empty gets the WORST player of the pack. What you already picked stays.')}
+            </p>
+          </div>
+        )}
         {pronto ? (
           <button onClick={() => dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(sel) })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', color: INK }}>
