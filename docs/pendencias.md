@@ -48,8 +48,15 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   pelas duas estradas (rádio + `room_acoes`), o host fecha no tempo (+4s de folga pro "o que eu já
   marquei" dos convidados chegar) e as escolhas não viajam no pacote do estado. Testado no motor com
   3 e 10 pessoas (todos com 11, sem repetido, sem fake); **ainda não testado com 2 aparelhos de verdade.**
-**Falta:** Diego ver e aprovar · teste online com 2 aparelhos · Etapa 3 Tocaia · escudos paródia (ele
-ainda escolhe A clássico ou B mascote) · aviso de tamanho de sala.
+- 🐊 **Clubes + Tocaia**: tipo (Jogador/Clubes) e jeito do lance (Envelope/Tocaia) são escolhas
+  SEPARADAS (Diego: *"uma coisa não tem nada a ver com a outra"*). Testado CPU (5 e 9) e online (4 e 10).
+- 🔝 "Tipo de leilão" vem ANTES do baralho (offline e sala online); Clubes trava o baralho em Todos.
+- 📣 **AVISAR O DIEGO** quando der pra liberar Brasil sozinho ou Europa sozinha no Clubes (ele pediu).
+  Medido em 27/09 (clubes com jogador suficiente no setor, 4-3-3): BR — GOL 23 · LAT 15 · ZAG 12 ·
+  MEI 13 · ATA 19; EU — GOL 37 · LAT 21 · ZAG 24 · MEI 25 (19 no 4-4-2) · ATA 23. Clube não repete
+  entre setores, então precisa de ~5×(pessoas+metade) clubes distintos. Toda leva de cartas nova:
+  remedir e, se BR ou EU fechar uma sala de 10, avisar.
+**Falta:** teste online com 2 aparelhos · escudos paródia (ele ainda escolhe A clássico ou B mascote) · aviso de tamanho de sala.
 
 ## 27/09/2026 — 🏅 CONQUISTAS + 📅 MISSÃO DIÁRIA (carreira) — MOCKUP mandado, esperando OK
 

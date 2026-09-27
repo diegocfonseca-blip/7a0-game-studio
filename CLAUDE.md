@@ -638,6 +638,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Milan, não Botafogo; Lúcio = Inter 2010, não Internacional 2000). Palavras dele: *"óbvio que
   é só uma e no melhor clube da carreira deles"*. Na dúvida sobre qual é o melhor, perguntar.
 
+- **🧱 LEILÃO DE CLUBES (27/09): TIPO e JEITO DO LANCE são escolhas SEPARADAS.** *"Uma coisa não tem
+  nada a ver com a outra"*: 🃏 Jogador (padrão) / 🧱 Clubes combina com ✉️ Envelope ou 🐊 Tocaia. O tipo
+  vem ANTES do baralho, e Clubes trava o baralho em Todos (BR/EU sozinhos não têm clube suficiente).
+  Ele pediu pra ser AVISADO quando BR ou EU sozinhos fecharem — números em `docs/pendencias.md`.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e

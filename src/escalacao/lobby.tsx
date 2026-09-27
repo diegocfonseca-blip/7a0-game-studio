@@ -3124,10 +3124,31 @@ export function EscLobby() {
             {roomMode !== 'liga' && (
               <Field label={tr('Nome da sala', 'Room name')} value={roomName} onChange={e => setRoomName(stripEmoji(e.target.value))} placeholder={`${tr('Sala do', 'Room of')} ${nameOf()}`} maxLength={24} />
             )}
+            {/* 🧱 27/09: a opção APARECE pra todo mundo, com NOVO, mas só dá pra apertar
+                quando o Diego liberar o online (`CLUBES_GERAL`). O padrão é sempre Jogador.
+                Mora ANTES do baralho (Diego 27/09): é o tipo que decide se o baralho pode ser escolhido. */}
+            {roomMode === 'rapido' && (
+              <SegField label={tr('Tipo de leilão', 'Auction type')}>
+                <Seg options={[[false, tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => { if (!v || clubesOn) setRapidoClubes(v) }}
+                  selos={{ true: seloNovoDe('2026-09-27') }} travados={clubesOn ? [] : ['true']} />
+                <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                  {rapidoClubes
+                    ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (80s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Vale com envelope cego ou Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (80s). Leftovers go to the bots. Uses all 3 decks, with sealed bid or Ambush.')
+                    : clubesOn
+                      ? tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')
+                      : tr('🃏 O leilão de sempre: um jogador por lote. 🧱 Clubes chega em breve no online — já dá pra jogar na Partida Rápida contra a CPU.', '🃏 The usual auction: one player per lot. 🧱 Clubs is coming soon online — you can already play it in Quick Match vs CPU.')}
+                </p>
+              </SegField>
+            )}
             {isCareer ? (
               <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho fixo: Brasil + Europa', '🌎 Fixed deck: Brazil + Europe')}</p>
                 <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('A Carreira usa os dois juntos (~700 nomes) pra preencher os 80 times das 4 divisões.', 'Career uses both together (~700 names) to fill the 80 teams of the 4 divisions.')}</p>
+              </div>
+            ) : (roomMode === 'rapido' && clubesOn && rapidoClubes) ? (
+              <div className="border-[2.5px] border-black rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <p className="text-white font-black text-[12.5px]" style={OSWALD}>{tr('🌎 Baralho: Todos (BR+EU+Mundo)', '🌎 Deck: All (BR+EU+World)')}</p>
+                <p className="text-white/55 text-[10.5px] font-bold mt-0.5 leading-snug">{tr('No leilão de clubes precisa dos 3 baralhos: é o que dá clube suficiente pra cada setor ter pacotes diferentes.', 'The club auction needs all 3 decks: that is what gives each sector enough different clubs.')}</p>
               </div>
             ) : (
               <SegField label={tr('Baralho de craques', 'Deck of stars')}>
@@ -3196,21 +3217,6 @@ export function EscLobby() {
                   ⚡ Rápido online e 🏆 Minhas Ligas. Fora deles nem aparece —
                   🃏 Bafo e 🌍 Copa do Mundo **não têm leilão nenhum**, e a
                   Carreira online fica no pregão de sempre por decisão. */}
-              {/* 🧱 27/09: a opção APARECE pra todo mundo, com NOVO, mas só dá pra apertar
-                  quando o Diego liberar o online (`CLUBES_GERAL`). O padrão é sempre Jogador. */}
-              {roomMode === 'rapido' && (
-                <SegField label={tr('Tipo de leilão', 'Auction type')}>
-                  <Seg options={[[false, tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => { if (!v || clubesOn) setRapidoClubes(v) }}
-                    selos={{ true: seloNovoDe('2026-09-27') }} travados={clubesOn ? [] : ['true']} />
-                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {rapidoClubes
-                      ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (80s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos. Vale com envelope cego ou Tocaia.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (80s). Leftovers go to the bots. Uses all 3 decks, with sealed bid or Ambush.')
-                      : clubesOn
-                        ? tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')
-                        : tr('🃏 O leilão de sempre: um jogador por lote. 🧱 Clubes chega em breve no online — já dá pra jogar na Partida Rápida contra a CPU.', '🃏 The usual auction: one player per lot. 🧱 Clubs is coming soon online — you can already play it in Quick Match vs CPU.')}
-                  </p>
-                </SegField>
-              )}
               {(roomMode === 'rapido' || roomMode === 'liga') && (
                 <SegField label={tr('Como é o leilão', 'Auction format')}>
                   <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} selos={{ true: seloNovoDe(MODO_NOME_NASCEU) }} />
