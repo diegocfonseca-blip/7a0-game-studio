@@ -1,4 +1,4 @@
-## 26/09/2026 — 📰 Jornal da sala: linha fina da "taça dividida" reescrita ⏳ NO BRANCH
+## 26/09/2026 — 📰 Jornal da sala: linha fina da "taça dividida" reescrita ✅ NO AR
 
 Diego achou estranho *"dois campeões e uma sala inteira sem saber de quem foi a noite"*.
 Agora (PT/EN, `jornal-sala.tsx`): *"Taça dividida na noite. A liga ficou com o X, e a
