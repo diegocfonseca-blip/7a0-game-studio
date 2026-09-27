@@ -1,4 +1,4 @@
-## 26/09/2026 — 📣 Giro sem o "R1 · / R2 ·" e letreiro um tiquinho mais rápido ⏳ NO BRANCH (subir de manhã)
+## 26/09/2026 — 📣 Giro sem o "R1 · / R2 ·" e letreiro um tiquinho mais rápido ✅ NO AR (Diego: "pode fazer agora")
 
 Diego: *"a parte do giro da copa que começa com R1 R2 não precisa aparecer, fica muita
 coisa. Aumenta também só um pouco mais a velocidade, quase nada"*. `GiroDaRodada`
