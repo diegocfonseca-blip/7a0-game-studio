@@ -1,9 +1,9 @@
-## 27/09/2026 — 👑 Van Nistelrooy (Man United 2003) vira LENDA ⏳ NO BRANCH
+## 27/09/2026 — 👑 Van Nistelrooy (Man United 2003) vira LENDA ✅ NO AR
 
 Diego: *"coloque Van Nistelrooy como lenda também"*. Carta única, já no auge; `fame` 4 → 5,
 nível 86-92 mantido. Falta a FOTO.
 
-## 27/09/2026 — 👑 Juninho Pernambucano (Lyon 2006) vira LENDA ⏳ NO BRANCH
+## 27/09/2026 — 👑 Juninho Pernambucano (Lyon 2006) vira LENDA ✅ NO AR
 
 Diego: *"add Juninho Pernambucano lenda do Lyon, ano certo também"*. A carta já era Lyon
 2006 (auge: 5º dos 7 títulos seguidos, faltas) → só `fame` 4 → 5 e nível 84-90 → 85-91.
