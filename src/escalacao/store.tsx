@@ -3129,16 +3129,21 @@ const A_HASH = (t: string, h: number) => { for (let i = 0; i < t.length; i++) h 
 // sempre (atk/def), e nada aqui puxa número do `rng` do jogo — o placar não muda.
 const ELENCO_CONV_FORMA: [Sector, number][] = [['GOL', 1], ['LAT', 2], ['ZAG', 2], ['MEI', 3], ['ATA', 3]]
 let elencosConvCache: { chave: string; porId: Map<number, WonCard[]> } | null = null
-function elencoConvidado(state: EscState, teamId: number): WonCard[] {
-  const ch = state.champions
-  if (!ch || teamId < CHAMPIONS_ID0) return []
-  const convidados = ch.times.filter(t => !t.isManager && t.id >= CHAMPIONS_ID0).sort((a, b) => a.id - b.id)
+// 🌎 27/09 (sala do El Mineiro, final da Liberta): os clubes do CONTINENTE da Libertadores
+// tinham o mesmo furo — "Gol de Boca Xuniors". Mesma receita, mesma régua: entram aqui
+// os convidados das duas copas (Liberta 900+ · Champions 1800+), sem repetir carta.
+export function elencoConvidado(state: EscState, teamId: number): WonCard[] {
+  const ch = state.champions, lb = state.liberta
+  if (teamId < LIBERTA_ID0 || (!ch && !lb)) return []
+  const convidados = [...(lb?.times ?? []), ...(ch?.times ?? [])].filter(t => !t.isManager && t.id >= LIBERTA_ID0).sort((a, b) => a.id - b.id)
+  if (!convidados.some(t => t.id === teamId)) return []
   const dono = new Set<string>()
   for (const m of state.managers) for (const c of m.squad) dono.add(`${c.name}|${c.club}|${c.year}`)
   const chave = `${state.seed}|${convidados.map(t => t.name).join(',')}|${dono.size}`
   if (elencosConvCache?.chave !== chave) {
     const porId = new Map<number, WonCard[]>()
     const usado = new Set(dono)
+    // 🎲 mesmo sorteio de antes: sala só de Champions monta exatamente os mesmos elencos
     const dado = mulberry(hashDeterminista(`convidados|${state.seed}`))
     for (const t of convidados) {
       const alvo = (t.baseAtk + t.baseDef) / 2 + 10 // força 50–78 → nível de carta 60–88
@@ -3482,7 +3487,7 @@ function finishSeason(s: EscState) {
 // 🎱 SORTEIO POR POTES: os 8 da liga são o POTE 1 — **cabeça de chave, um por
 // grupo**, como ele pediu. Assim dois classificados da mesma sala NUNCA caem no
 // mesmo grupo; só se cruzam no mata-mata.
-const LIBERTA_ID0 = 900 // ids dos clubes do continente (não colidem com a liga)
+const LIBERTA_ID0 = 900 // ⚠️ também lido por `elencoConvidado` (lá em cima). ids dos clubes do continente (não colidem com a liga)
 
 // 📏 FORÇA DOS 24 = **PADRÃO DA LIGA** (decisão do Diego, 20/08: *"quero q deixe
 // padrão liga… deixe o mais forte c 77 tb desses 24"*).

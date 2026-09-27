@@ -1,3 +1,14 @@
+## 27/09/2026 — 🌎 Clubes do continente da Liberta marcam com jogador de verdade ⏳ NO BRANCH
+
+Print do Diego na final da Liberta (El Mineiro × Boca Xuniors): *"por que os times restantes
+da Libertadores não tão com jogadores reais? olha o gol do Boca Xuniors"* — saía "Gol de
+Boca Xuniors". Era o mesmo furo que a outra sessão fechou na Champions em 26/09: o clube
+convidado só tinha força, sem elenco. `elencoConvidado` (`store.tsx`) agora serve os
+convidados da Liberta (900+) e da Champions (1800+): 11 cartas de verdade das SOBRAS do
+baralho da sala, na faixa de nível do clube, sem repetir carta entre convidados. Placar não
+muda (dado próprio, `rng` do jogo intocado). Sala só de Champions monta os mesmos elencos
+de antes. Testado: Boca Xuniors com 11 cartas, River com outras 11, zero repetidas.
+
 ## 26/09/2026 — 📰 Jornal da sala: linha fina da "taça dividida" reescrita ✅ NO AR
 
 Diego achou estranho *"dois campeões e uma sala inteira sem saber de quem foi a noite"*.
