@@ -1132,5 +1132,187 @@
     "year": 2023,
     "src": "/avatars/lendas-v2/marquinhos-psg-2023.webp",
     "transparent": true
+  },
+  {
+    "name": "Félix",
+    "club": "Fluminense",
+    "year": 1970,
+    "src": "/avatars/lendas-v2/felix-fluminense-1970.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dunga",
+    "club": "Internacional",
+    "year": 1984,
+    "src": "/avatars/lendas-v2/dunga-internacional-1984.webp",
+    "transparent": true
+  },
+  {
+    "name": "Edmundo",
+    "club": "Vasco",
+    "year": 1997,
+    "src": "/avatars/lendas-v2/edmundo-vasco-1997.webp",
+    "transparent": true
+  },
+  {
+    "name": "Marta",
+    "club": "Santos",
+    "year": 2009,
+    "src": "/avatars/lendas-v2/marta-santos-2009.webp",
+    "transparent": true
+  },
+  {
+    "name": "Lúcio",
+    "club": "Inter",
+    "year": 2010,
+    "src": "/avatars/lendas-v2/lucio-inter-2010.webp",
+    "transparent": true
+  },
+  {
+    "name": "Fernando Hierro",
+    "club": "Real Madrid",
+    "year": 1998,
+    "src": "/avatars/lendas-v2/fernando-hierro-real-madrid-1998.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ronald Koeman",
+    "club": "Barcelona",
+    "year": 1992,
+    "src": "/avatars/lendas-v2/ronald-koeman-barcelona-1992.webp",
+    "transparent": true
+  },
+  {
+    "name": "Juninho Pernambucano",
+    "club": "Lyon",
+    "year": 2006,
+    "src": "/avatars/lendas-v2/juninho-pernambucano-lyon-2006.webp",
+    "transparent": true
+  },
+  {
+    "name": "Clarence Seedorf",
+    "club": "Milan",
+    "year": 2003,
+    "src": "/avatars/lendas-v2/clarence-seedorf-milan-2003.webp",
+    "transparent": true
+  },
+  {
+    "name": "Michael Ballack",
+    "club": "Bayern",
+    "year": 2002,
+    "src": "/avatars/lendas-v2/michael-ballack-bayern-2002.webp",
+    "transparent": true
+  },
+  {
+    "name": "Sergio Busquets",
+    "club": "Barcelona",
+    "year": 2015,
+    "src": "/avatars/lendas-v2/sergio-busquets-barcelona-2015.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ángel Di María",
+    "club": "Real Madrid",
+    "year": 2014,
+    "src": "/avatars/lendas-v2/angel-di-maria-real-madrid-2014.webp",
+    "transparent": true
+  },
+  {
+    "name": "Éric Cantona",
+    "club": "Man United",
+    "year": 1996,
+    "src": "/avatars/lendas-v2/eric-cantona-manchester-united-1996.webp",
+    "transparent": true
+  },
+  {
+    "name": "Michael Laudrup",
+    "club": "Barcelona",
+    "year": 1992,
+    "src": "/avatars/lendas-v2/michael-laudrup-barcelona-1992.webp",
+    "transparent": true
+  },
+  {
+    "name": "Fernando Redondo",
+    "club": "Real Madrid",
+    "year": 1999,
+    "src": "/avatars/lendas-v2/fernando-redondo-real-madrid-1999.webp",
+    "transparent": true
+  },
+  {
+    "name": "Bastian Schweinsteiger",
+    "club": "Bayern",
+    "year": 2013,
+    "src": "/avatars/lendas-v2/bastian-schweinsteiger-bayern-2013.webp",
+    "transparent": true
+  },
+  {
+    "name": "Johan Neeskens",
+    "club": "Ajax",
+    "year": 1972,
+    "src": "/avatars/lendas-v2/johan-neeskens-ajax-1972.webp",
+    "transparent": true
+  },
+  {
+    "name": "Thomas Müller",
+    "club": "Bayern",
+    "year": 2014,
+    "src": "/avatars/lendas-v2/thomas-muller-bayern-2014.webp",
+    "transparent": true
+  },
+  {
+    "name": "Dennis Bergkamp",
+    "club": "Arsenal",
+    "year": 1998,
+    "src": "/avatars/lendas-v2/dennis-bergkamp-arsenal-1998.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ruud van Nistelrooy",
+    "club": "Man United",
+    "year": 2003,
+    "src": "/avatars/lendas-v2/ruud-van-nistelrooy-manchester-united-2003.webp",
+    "transparent": true
+  },
+  {
+    "name": "Miroslav Klose",
+    "club": "Bayern",
+    "year": 2007,
+    "src": "/avatars/lendas-v2/miroslav-klose-bayern-2007.webp",
+    "transparent": true
+  },
+  {
+    "name": "Ousmane Dembélé",
+    "club": "PSG",
+    "year": 2024,
+    "src": "/avatars/lendas-v2/ousmane-dembele-psg-2024.webp",
+    "transparent": true
+  },
+  {
+    "name": "José Luis Chilavert",
+    "club": "Vélez Sarsfield",
+    "year": 1998,
+    "src": "/avatars/lendas-v2/jose-luis-chilavert-velez-sarsfield-1998.webp",
+    "transparent": true
+  },
+  {
+    "name": "Daniel Passarella",
+    "club": "River Plate",
+    "year": 1978,
+    "src": "/avatars/lendas-v2/daniel-passarella-river-plate-1978.webp",
+    "transparent": true
+  },
+  {
+    "name": "Juan Román Riquelme",
+    "club": "Boca Juniors",
+    "year": 2007,
+    "src": "/avatars/lendas-v2/juan-roman-riquelme-boca-juniors-2007.webp",
+    "transparent": true
+  },
+  {
+    "name": "Diego Maradona",
+    "club": "Boca Juniors",
+    "year": 1981,
+    "src": "/avatars/lendas-v2/diego-maradona-boca-juniors-1981.webp",
+    "transparent": true
   }
 ]
