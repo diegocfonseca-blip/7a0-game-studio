@@ -9,6 +9,48 @@ Diego: *"add Juninho Pernambucano lenda do Lyon, ano certo também"*. A carta j�
 2006 (auge: 5º dos 7 títulos seguidos, faltas) → só `fame` 4 → 5 e nível 84-90 → 85-91.
 Vasco 1997 (baralho BR) segue craque (lenda = uma carta só). `npm run novidades` e
 `npm run paises` rodados. Falta a FOTO dele (entra na lista das lendas sem rosto).
+## 27/09/2026 — 🧱 LEILÃO DE CLUBES · Etapas 1 e 2 — ✅ OFFLINE NO AR PRA TODOS · online TRAVADO
+
+Diego (27/09, 14h40): *"no partida rápida já pode liberar"* e, no online, *"deixa à mostra escrito, bota
+novo, mas sem poder apertar ainda"*. Então: Partida Rápida offline mostra "🃏 Jogador (padrão) / 🧱 Clubes
+[NOVO]" pra todo mundo. Na sala online ⚡ Rápido as duas opções aparecem, Jogador vem marcado, e Clubes
+fica com NOVO mas **apagado e sem apertar** — menos pra `CLUBES_TESTERS` (conta do Diego, pra testar).
+👉 **Pra liberar o online**: `CLUBES_GERAL = true` em `sport.ts` (só isso; o motor já está pronto).
+
+
+Pedido: *"o usuário ao criar escolheria agora o padrão leilão de jogador ou por leilão de clubes… comece a
+fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é `CLUBES_GERAL = true`):
+- Criar partida rápida: **Tipo de leilão 🃏 Jogadores / 🧱 Clubes**. Clubes força os 3 baralhos juntos.
+- Cada lote é um SETOR de um clube ("🧤 Goleiros do Palmeiras"): escudo + **só a QUANTIDADE de
+  jogadores** (Diego 27/09: *"não quero que mostre os jogadores nas listas do leilão"* — nomes só na
+  convocação), **sem nível** (pacote nasce com fame neutro — senão a revelação pintava de dourado com 👑 LENDA).
+  Cada técnico leva 1 pacote por setor. Clube não repete entre setores; memória das últimas 3 partidas
+  (`RECENT_CLUBES`) pra variar. Com 10 técnicos pode repetir 1 clube (último recurso).
+- Pregão/martelo/monte: os de sempre. Embaixo, no lugar do campinho, a lista "🧱 Seus pacotes".
+- **Convocação** (`convocacao-clubes.tsx`, tela `'convocacao'`): formação travada, abas por setor,
+  lista alfabética, campinho; o preço do pacote é dividido entre os convocados. Bots convocam sozinhos.
+  Quem sobra (e pacote que ninguém quis no monte) vai reforçar os times de fundo. Setor sem pacote é
+  completado com sobra DE VERDADE (nunca fake).
+- Teste de ponta a ponta (rivais 5/7/9, 4-3-3/4-4-2): todo mundo com 11, sem carta repetida.
+
+- ⏱️ **Convocação com relógio de 80s** (OK dele: "sim"): segue na hora quando todos fecham; quem estoura
+  fica com o que marcou e a vaga vazia leva o PIOR do pacote. Quem já fechou vê "esperando X técnicos".
+- 🌐 **ONLINE (Etapa 2) feito** (só pra `CLUBES_TESTERS`): "Tipo de leilão 🃏/🧱" na criação da sala
+  ⚡ Rápido (grava `clubes` no `game_state`); força os 3 baralhos e envelope cego. A convocação vai
+  pelas duas estradas (rádio + `room_acoes`), o host fecha no tempo (+4s de folga pro "o que eu já
+  marquei" dos convidados chegar) e as escolhas não viajam no pacote do estado. Testado no motor com
+  3 e 10 pessoas (todos com 11, sem repetido, sem fake); **ainda não testado com 2 aparelhos de verdade.**
+**Falta:** Diego ver e aprovar · teste online com 2 aparelhos · Etapa 3 Tocaia · escudos paródia (ele
+ainda escolhe A clássico ou B mascote) · aviso de tamanho de sala.
+
+## 27/09/2026 — 🏅 CONQUISTAS + 📅 MISSÃO DIÁRIA (carreira) — MOCKUP mandado, esperando OK
+
+Ideia pedida por ele (*"sistema de conquistas e missão diária pro modo carreira"*). Mockup mostrado:
+estante de medalhas no clube ABAIXO do estádio (Campo · Leilão · Zoeira, 24 medalhas, trancadas em
+cinza), bloco "Conquistas desta temporada" dentro do jornal que já existe (sem tela nova), e cartão
+"Missões de hoje" (3 por dia, +5 🪙 cada, sequência de 7 dias = +20 🪙) com aviso rápido no tempo
+morto. Conquista paga SELO, não dinheiro. Nada construído ainda.
+
 
 ## 27/09/2026 — 🕵️🐊 ENIGMA NA TOCAIA online ✅ NO AR (Diego: "aprovado pode publicar")
 

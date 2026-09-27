@@ -20,7 +20,7 @@ import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useCriarSala2, usePreviewComum, useMundoLiberado } from './sport'
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado } from './sport'
 // 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
 // NÃO passa pelo motor do leilão: a sala fica em `waiting` e ela é uma tela por
@@ -77,7 +77,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean; clubes?: boolean }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -710,6 +710,10 @@ export function EscLobby() {
   // leilão cego de hoje. Vale no Rápido online e no 🏆 Minhas Ligas; a Carreira
   // online fica de fora (lá o pregão é o de sempre, sem novidade).
   const [rapidoHolandes, setRapidoHolandes] = useState(false)
+  // 🧱 LEILÃO DE CLUBES (27/09, em teste): o lote é um setor de clube e no fim vem a
+  // convocação. Só aparece pra CLUBES_TESTERS e só no ⚡ Rápido online.
+  const clubesOn = useClubesLiberado()
+  const [rapidoClubes, setRapidoClubes] = useState(false)
   // 🃏 BAFO: o host decide se a partida vale carta (padrão) ou se é amistoso.
   // Ausente/antigo = VALENDO — é a identidade do modo; só o "não" é gravado.
   const [bafoValendo, setBafoValendo] = useState(true)
@@ -1426,6 +1430,7 @@ export function EscLobby() {
       // baralho e ao esporte — quem entra depois joga o mesmo pregão, não o que
       // o aparelho dele preferia. Sala antiga não tem o campo → leilão cego.
       holandes: !!gs?.holandes,
+      clubes: !!gs?.clubes, // 🧱 leilão de clubes: escolha do host, gravada na sala
       career: gs?.mode === 'carreira',
       // 🏀 o ESPORTE da sala (14/09). Vem gravado no game_state de quem criou — é a
       // sala que manda, não o aparelho de quem entra. Sala de futebol não tem o
@@ -1742,7 +1747,7 @@ export function EscLobby() {
     // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...(roomMode === 'rapido' && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : (roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -3191,7 +3196,22 @@ export function EscLobby() {
                   ⚡ Rápido online e 🏆 Minhas Ligas. Fora deles nem aparece —
                   🃏 Bafo e 🌍 Copa do Mundo **não têm leilão nenhum**, e a
                   Carreira online fica no pregão de sempre por decisão. */}
-              {(roomMode === 'rapido' || roomMode === 'liga') && (
+              {/* 🧱 27/09: a opção APARECE pra todo mundo, com NOVO, mas só dá pra apertar
+                  quando o Diego liberar o online (`CLUBES_GERAL`). O padrão é sempre Jogador. */}
+              {roomMode === 'rapido' && (
+                <SegField label={tr('Tipo de leilão', 'Auction type')}>
+                  <Seg options={[[false, tr('🃏 Jogador (padrão)', '🃏 Player (standard)')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]} value={rapidoClubes} onSet={v => { if (!v || clubesOn) setRapidoClubes(v) }}
+                    selos={{ true: seloNovoDe('2026-09-27') }} travados={clubesOn ? [] : ['true']} />
+                  <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
+                    {rapidoClubes
+                      ? tr('🧱 Cada lote é um SETOR de um clube (ex.: Goleiros do Palmeiras). Cada um leva um pacote por setor e, no fim, CONVOCA quem joga (80s). Quem sobrar vai pros bots. Usa os 3 baralhos juntos, com envelope cego.', '🧱 Each lot is a club SECTOR (e.g. Palmeiras goalkeepers). Everyone takes one pack per sector and, at the end, CALLS UP who plays (80s). Leftovers go to the bots. Uses all 3 decks, sealed bid.')
+                      : clubesOn
+                        ? tr('🃏 O leilão de sempre: um jogador por lote.', '🃏 The usual auction: one player per lot.')
+                        : tr('🃏 O leilão de sempre: um jogador por lote. 🧱 Clubes chega em breve no online — já dá pra jogar na Partida Rápida contra a CPU.', '🃏 The usual auction: one player per lot. 🧱 Clubs is coming soon online — you can already play it in Quick Match vs CPU.')}
+                  </p>
+                </SegField>
+              )}
+              {(roomMode === 'rapido' || roomMode === 'liga') && !(roomMode === 'rapido' && clubesOn && rapidoClubes) && (
                 <SegField label={tr('Como é o leilão', 'Auction format')}>
                   <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} selos={{ true: seloNovoDe(MODO_NOME_NASCEU) }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
