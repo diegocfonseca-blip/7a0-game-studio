@@ -1567,6 +1567,7 @@ const L33_BR_MEI: C[] = [
   { name: "Magrão (Palmeiras)", club: "Palmeiras", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Volante alto e de passada larga, a melhor fase foi no Palmeiras, onde virou convocado da Seleção em 2004. Venceu um câncer no meio da carreira e ainda foi campeão da Sul-Americana com o Internacional." },
 ]
 const L33_BR_ATA: C[] = [
+  { name: "Evandro Roncatto", club: "Guarani", year: 2004, fame: 1, lo: 60, hi: 80, folk: true, bio: "Cria do Guarani e craque do mundial sub-17 de 2003 (só o Fàbregas ficou na frente dele) — a promessa bugrina que rodou o mundo." }, // 28/09: estava no baralho Europa por engano — Guarani é brasileiro
   // 🃏 Os dois abaixo entraram em 22/09 a pedido do Diego, e são o retrato da régua
   //    dele (*"famoso sendo ruim ou bom tanto faz"*): a carta vale pela HISTÓRIA.
   { name: "Sandro Hiroshi", club: "São Paulo", year: 2000, fame: 2, lo: 62, hi: 82, folk: true, bio: "Atacante que chegou ao São Paulo como vice-artilheiro do Paulistão de 99 e fez dupla com o França — e que entrou pra história pelo escândalo do 'gato': descobriram que ele era um ano mais velho do que a certidão dizia." },
@@ -2118,7 +2119,6 @@ const ATA_EU: C[] = [
   { name: "Svetoslav Todorov", club: "Portsmouth", year: 2003, fame: 2, lo: 72, hi: 83, bio: "Centroavante búlgaro artilheiro do Portsmouth — carregou o clube à Premier League com uma temporada de gols na Championship." },
   { name: "Oliver Bierhoff", club: "Milan", year: 1999, fame: 3, lo: 78, hi: 85, bio: "Centroavante alemão letal de cabeça — autor do primeiro gol de ouro da história, na conquista da Euro 96, e artilheiro no Udinese e no Milan." },
   { name: "Giovani dos Santos", club: "Villarreal", year: 2014, fame: 3, lo: 78, hi: 85, bio: "Meia-atacante mexicano de drible e categoria — joia do Barça que engrenou no Villarreal e no Tottenham, craque histórico da seleção do México." },
-  { name: "Evandro Roncatto", club: "Guarani", year: 2004, fame: 1, lo: 60, hi: 80, folk: true, bio: "Cria do Guarani e craque do mundial sub-17 de 2003 (só o Fàbregas ficou na frente dele) — a promessa bugrina que rodou o mundo." },
   { name: "Khvicha Kvaratskhelia", club: "Napoli", year: 2023, fame: 4, lo: 84, hi: 90, bio: "'Kvaradona' — ponta georgiano de drible eletrizante que encantou a Itália e levou o Napoli ao scudetto de 2023." },
   { name: "Henrik Larsson", club: "Celtic", year: 2001, fame: 4, lo: 84, hi: 90, bio: "O 'Rei Leão' sueco — artilheiro lendário do Celtic e peça decisiva do Barça campeão da Champions de 2006." },
   { name: "Edin Džeko", club: "Roma", year: 2017, fame: 4, lo: 83, hi: 89, bio: "'Diamante' bósnio — centroavante alto e matador, artilheiro no Wolfsburg, campeão inglês pelo City e goleador histórico da Roma." },
