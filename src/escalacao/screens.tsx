@@ -7029,10 +7029,10 @@ export function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[];
     return () => clearInterval(iv)
   }, [key, list.length])
   if (list.length === 0) return null
-  // velocidade constante: ~0,145s por letra, com piso de 16s pra lista curta não passar
+  // velocidade constante: ~0,13s por letra, com piso de 14s pra lista curta não passar
   // voando. (26/09, Diego: *"aumenta só um pouco mais a velocidade, quase nada"* — era 0,16/18s)
   const chars = list.reduce((n, h) => n + h.length + 4, 0)
-  const dur = Math.max(16, Math.round(chars * 0.145))
+  const dur = Math.max(14, Math.round(chars * 0.13)) // 28/09: *"só um pouquinho mais rápido"* (era 0,145/16s)
   const rotulo = getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')
   return (
     <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden' }}>

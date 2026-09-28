@@ -1,3 +1,8 @@
+## 28/09/2026 — 📣 Giro um pouquinho mais rápido de novo ⏳ NO BRANCH
+
+Diego: *"giro da rodada deixe só um pouquinho mais rápido"*. `GiroDaRodada`: 0,145 → 0,13 s por
+letra, piso 16 → 14 s (~10% mais rápido). ↩️ Voltar = os números antigos.
+
 ## 28/09/2026 — 🔁 Cruyff: carta sai do Barcelona 1974 e vai pro AJAX 1972 ✅ NO AR (camisa aprovada)
 
 Diego: *"qual ele é mais lenda?"* → Ajax (tri da Champions 71-73). Ajax e Barça são do mesmo
