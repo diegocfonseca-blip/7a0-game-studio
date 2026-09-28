@@ -1987,7 +1987,11 @@ const ATA_EU: C[] = [
   { name: "Lionel Messi", club: "Barcelona", year: 2012, fame: 5, lo: 92, hi: 96 },
   { name: "Cristiano Ronaldo", club: "Real Madrid", year: 2014, fame: 5, lo: 91, hi: 95 },
   { name: "Ronaldo Fenômeno", club: "Inter", year: 1998, fame: 5, lo: 91, hi: 96 },
-  { name: "Johan Cruyff", club: "Barcelona", year: 1974, fame: 5, lo: 90, hi: 95 },
+  // 🔁 28/09 (Diego): a carta do Cruyff saiu do Barcelona 1974 e foi pro AJAX 1972 — *"qual ele é
+  //    mais lenda?"*: no Ajax, tri da Champions (71-72-73) e as Bolas de Ouro. Ajax e Barça são do
+  //    MESMO baralho (Europa), então é uma carta só. Mesma faixa de nível. Quem tinha a do Barça
+  //    no save passa pra do Ajax sozinho (`sincronizaNiveis`: nome com carta única muda de endereço).
+  { name: "Johan Cruyff", club: "Ajax", year: 1972, fame: 5, lo: 90, hi: 95 },
   { name: "Alfredo Di Stéfano", club: "Real Madrid", year: 1957, fame: 5, lo: 90, hi: 95 },
   { name: "Marco van Basten", club: "Milan", year: 1989, fame: 5, lo: 90, hi: 95 },
   { name: "Romário", club: "Barcelona", year: 1994, fame: 5, lo: 89, hi: 94 },

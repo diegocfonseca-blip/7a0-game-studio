@@ -18,6 +18,19 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "data": "2026-09-28"
   },
   {
+    "tipo": "entrou",
+    "nome": "Ayrton Lucas",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-09-28"
+  },
+  {
+    "tipo": "saiu",
+    "nome": "Ayrton Lucas",
+    "baralho": "BR",
+    "data": "2026-09-28"
+  },
+  {
     "tipo": "nivel",
     "nome": "Ruud van Nistelrooy",
     "baralho": "EU",
@@ -406,27 +419,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Gabi",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Arda Turan",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Rubén Baraja",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-26"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Jesús Navas",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-26"

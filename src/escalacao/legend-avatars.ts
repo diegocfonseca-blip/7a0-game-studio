@@ -35,6 +35,7 @@ for (const [velho, novo] of [
   [['Zizinho', 'Flamengo', 1950], ['Zizinho', 'Flamengo', 1943]],                       // 50 donos · mesmo clube
   [['Marcos', 'Palmeiras', 1999], ['Marcos', 'Palmeiras', 2002]],                       // 39 donos · mesmo clube
   [['Zlatan Ibrahimović', 'Milan', 2013], ['Zlatan Ibrahimović', 'Milan', 2012]],       // 35 donos · mesmo clube
+  [['Johan Cruyff', 'Barcelona', 1974], ['Johan Cruyff', 'Ajax', 1972]],               // troca de 28/09 (o Diego escolheu o Ajax)
 ] as const) {
   const art = byIdentity.get(legendAvatarKey(novo[0], novo[1], novo[2]))
   if (art) byIdentity.set(legendAvatarKey(velho[0], velho[1], velho[2]), art)
