@@ -51,6 +51,8 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   pelas duas estradas (rádio + `room_acoes`), o host fecha no tempo (+4s de folga pro "o que eu já
   marquei" dos convidados chegar) e as escolhas não viajam no pacote do estado. Testado no motor com
   3 e 10 pessoas (todos com 11, sem repetido, sem fake); **ainda não testado com 2 aparelhos de verdade.**
+- 🎬 **Vídeo de lançamento** (reels 9:16, ~38s): `node scripts/video-clubes-reels.mjs`. Diz "online: em breve" —
+  quando liberar o online, trocar essa linha e gravar de novo.
 - 🐊 **Clubes + Tocaia**: tipo (Jogador/Clubes) e jeito do lance (Envelope/Tocaia) são escolhas
   SEPARADAS (Diego: *"uma coisa não tem nada a ver com a outra"*). Testado CPU (5 e 9) e online (4 e 10).
 - 🔝 "Tipo de leilão" vem ANTES do baralho (offline e sala online); Clubes trava o baralho em Todos.
