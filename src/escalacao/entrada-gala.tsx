@@ -112,7 +112,8 @@ const CSS = `
 .gala-feixe{position:absolute;left:50%;top:-40px;width:min(90vw,380px);height:72vh;transform:translateX(-50%);background:linear-gradient(180deg,rgba(255,240,190,.55),rgba(255,240,190,0));clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);opacity:0;animation:galaFeixe ${GALA_MS}ms ease forwards}
 @keyframes galaFeixe{0%,6%{opacity:0}14%{opacity:1}85%{opacity:1}100%{opacity:0}}
 .gala-telao{position:absolute;left:50%;top:18vh;width:min(92vw,400px);text-align:center;opacity:0;transform:translateX(-50%) scale(.3);animation:galaTelao ${GALA_MS}ms cubic-bezier(.2,1.3,.4,1) forwards}
-@keyframes galaTelao{0%,12%{opacity:0;transform:translateX(-50%) scale(.3)}22%{opacity:1;transform:translateX(-50%) scale(1.08)}28%{transform:translateX(-50%) scale(1)}86%{opacity:1}100%{opacity:0}}
+/* 🩹 28/09: o 86%/100% sem transform fazia o escudo ENCOLHER de volta pro 0,3 até o fim */
+@keyframes galaTelao{0%,12%{opacity:0;transform:translateX(-50%) scale(.3)}22%{opacity:1;transform:translateX(-50%) scale(1.08)}28%{transform:translateX(-50%) scale(1)}86%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(1)}}
 .gala-telao .esc{display:inline-flex;filter:drop-shadow(0 0 22px rgba(255,196,0,.8)) drop-shadow(4px 5px 0 #000)}
 .gala-chega{font:700 15px Oswald,sans-serif;letter-spacing:3px;color:${GOLD};margin:8px 0 0}
 .gala-nome{font:700 clamp(30px,9vw,42px)/1 Oswald,sans-serif;color:#fff;text-transform:uppercase;margin:6px 0 0;text-shadow:3px 3px 0 #000}
