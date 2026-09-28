@@ -1225,6 +1225,11 @@ const carimboKey = (time: string): string | undefined => {
   return ehMeuClube(time) ? (meuMascoteBatismo() ?? undefined) : undefined
 }
 
+/** 🔑 a chave da mascote de um clube, pelo MESMO caminho do carimbo de gol: lista fixa
+ *  (com os nomes velhos/variações) → o que o servidor disse sobre os assentos da sala
+ *  (dono jogando com outro nome) → o meu próprio batismo. Usada pela Entrada de Gala. */
+export const mascoteKeyDoTime = (time: string): string | undefined => carimboKey(time)
+
 // arte do carimbo de um clube (ou null se ele não é batizado / não tem mascote)
 export const carimboDoTime = (time: string): ReactNode | null => {
   const k = carimboKey(time)

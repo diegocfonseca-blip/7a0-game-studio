@@ -4261,7 +4261,7 @@ export function EscLobby() {
       {/* 🐊 o bicho que alguém soltou atravessa a sala de espera (camada fixa, não atrapalha nada) */}
       {room && <MascoteAtravessa />}
       <GalaEstilo />
-      {galaAgora && <EntradaGalaShow key={galaAgora.uid} chave={galaAgora.uid} clube={galaAgora.clube} />}
+      {galaAgora && <EntradaGalaShow key={galaAgora.uid} chave={galaAgora.uid} clube={galaAgora.clube} nome={galaAgora.nome} />}
       {bafoAviso && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100001, background: 'rgba(0,0,0,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
           <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}`, maxWidth: 400, width: '100%', padding: 20 }}>

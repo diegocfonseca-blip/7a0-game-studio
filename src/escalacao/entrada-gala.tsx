@@ -28,8 +28,8 @@
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import type React from 'react'
 import { createPortal } from 'react-dom'
-import { batismoDe } from './batismos'
-import { mascoteInteiraDoTime } from './mascotes'
+import { batismoDe, BATISMOS } from './batismos'
+import { mascoteInteiraDoTime, mascoteKeyDoTime, CARIMBO_GOL } from './mascotes'
 import { Escudo, nomeLimpo } from './escudos'
 import { newestTeamName } from './data'
 import { MascoteMini } from './mascote-atravessa'
@@ -40,11 +40,20 @@ const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeig
 export const GALA_MS = 5600
 
 /** o nome ATUAL do clube, se quem está na sala é dono de BATISMO; senão `null` */
+// 🩹 28/09 (Diego: *"o Jurubeba e o Berretinho não tiveram gala, o Fala D10 sim"*): antes só
+// valia o nome EXATO da lista de batismos. Mas o dono pode estar com o nome NOVO do clube
+// (Jurubeba → "Meia na Canela de Desportos"), com variação ("Cruzeiro DO Berretinho") ou com
+// outro nome qualquer — e aí a sala sabe pela CONTA dele qual é a mascote. Agora a gala segue
+// o MESMO caminho do carimbo de gol: achou a mascote de um batismo → é aquele batismo.
+const BATISMO_DA_MASCOTE = new Map<string, string>()
+for (const b of BATISMOS) if (b.tipo === 'batismo') { const k = CARIMBO_GOL[b.clube]; if (k && !BATISMO_DA_MASCOTE.has(k)) BATISMO_DA_MASCOTE.set(k, b.clube) }
 export function clubeDeGala(managerName: string): string | null {
   const limpo = newestTeamName(nomeLimpo(managerName || ''))
   if (!limpo) return null
   const b = batismoDe(limpo)
-  return b && b.tipo === 'batismo' ? b.clube : null
+  if (b) return b.tipo === 'batismo' ? b.clube : null
+  const k = mascoteKeyDoTime(limpo) ?? mascoteKeyDoTime(nomeLimpo(managerName || ''))
+  return k ? BATISMO_DA_MASCOTE.get(k) ?? null : null
 }
 
 // o grito da torcida usa o nome curto (sem FC/EC/SC no fim)
@@ -55,14 +64,14 @@ const nomeCurto = (clube: string) => clube.replace(/\s+(FC|EC|SC|AS)$/i, '').tri
 const vistos = new Map<string, Set<string>>()
 
 export function useEntradaGala(roomId: string | null | undefined, players: { user_id: string; manager_name: string }[], myUid: string | null | undefined) {
-  const [fila, setFila] = useState<{ uid: string; clube: string }[]>([])
+  const [fila, setFila] = useState<{ uid: string; clube: string; nome: string }[]>([])
   const carregou = useRef<string | null>(null)
   useEffect(() => {
     if (!roomId || !players.length) return
     let visto = vistos.get(roomId)
     const primeira = carregou.current !== roomId
     if (!visto) { visto = new Set(); vistos.set(roomId, visto) }
-    const novos: { uid: string; clube: string }[] = []
+    const novos: { uid: string; clube: string; nome: string }[] = []
     for (const p of players) {
       if (visto.has(p.user_id)) continue
       visto.add(p.user_id)
@@ -70,7 +79,7 @@ export function useEntradaGala(roomId: string | null | undefined, players: { use
       if (!clube) continue
       // quem já estava na sala quando eu abri não ganha entrada — só eu mesmo
       if (primeira && p.user_id !== myUid) continue
-      novos.push({ uid: p.user_id, clube })
+      novos.push({ uid: p.user_id, clube, nome: nomeLimpo(p.manager_name) || clube })
     }
     carregou.current = roomId
     if (novos.length) setFila(f => [...f, ...novos])
@@ -110,7 +119,8 @@ const CSS = `
 `
 export function GalaEstilo() { return <style>{CSS}</style> }
 
-export function EntradaGalaShow({ clube, chave }: { clube: string; chave: string }) {
+export function EntradaGalaShow({ clube, chave, nome }: { clube: string; chave: string; /** o nome com que o dono está jogando (pode ser o nome novo do clube) */ nome?: string }) {
+  const mostra = nome || clube
   const art = mascoteInteiraDoTime(clube)
   return createPortal(
     <div key={chave} className="gala-show" aria-hidden>
@@ -119,9 +129,9 @@ export function EntradaGalaShow({ clube, chave }: { clube: string; chave: string
       <div className="gala-telao">
         <span className="esc"><Escudo nome={clube} size={170} /></span>
         <p className="gala-chega">{tr('👑 CHEGOU NA SALA', '👑 JUST ARRIVED')}</p>
-        <p className="gala-nome">{clube}</p>
+        <p className="gala-nome">{mostra}</p>
       </div>
-      <p className="gala-grito">🔊 {tr('Ô Ô Ô', 'OH OH OH')}, {nomeCurto(clube).toUpperCase()}! 🔊</p>
+      <p className="gala-grito">🔊 {tr('Ô Ô Ô', 'OH OH OH')}, {nomeCurto(mostra).toUpperCase()}! 🔊</p>
       {art && <div className="gala-masc"><MascoteMini art={art} alt={210} /></div>}
     </div>,
     document.body,

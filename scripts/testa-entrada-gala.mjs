@@ -66,6 +66,20 @@ await p.locator('button[aria-label="Al Takhadao FC"]').click()
 await p.waitForTimeout(700)
 await p.screenshot({ path: `${SAIDA}/3-toque.png` })
 ok(/entrar assim também/i.test(await p.evaluate(() => document.body.innerText)), 'tocar no escudo mostra o convite pro Batismo')
+// 6. 🩹 28/09: TODO nome que a mascote de um batismo reconhece (nome novo, variação "de/do",
+//    com FC/EC, caixa alta) também ganha a gala — o Jurubeba ("Meia na Canela de Desportos")
+//    e o Cruzeiro do Berretinho ficavam de fora.
+const alias = await p.evaluate(async () => {
+  const G = await import('/src/escalacao/entrada-gala.tsx'), M = await import('/src/escalacao/mascotes.tsx'), B = await import('/src/escalacao/batismos.ts')
+  const donoDaMascote = new Map(); for (const b of B.BATISMOS) if (b.tipo === 'batismo' && M.CARIMBO_GOL[b.clube]) donoDaMascote.set(M.CARIMBO_GOL[b.clube], b.clube)
+  const semBatismo = B.BATISMOS.filter(b => b.tipo === 'batismo' && !G.clubeDeGala(b.clube)).map(b => b.clube)
+  const falhas = []; let total = 0
+  for (const [nome, k] of Object.entries(M.CARIMBO_GOL)) { if (!donoDaMascote.has(k)) continue; total++; if (!G.clubeDeGala(nome + ' 👑')) falhas.push(nome) }
+  return { total, falhas, semBatismo, jurubeba: G.clubeDeGala('Meia na Canela de Desportos 👑🖊️'), berretinho: G.clubeDeGala('Cruzeiro do Berretinho') }
+})
+ok(alias.semBatismo.length === 0, `todos os batismos ganham gala pelo nome oficial${alias.semBatismo.length ? ' — faltam: ' + alias.semBatismo.join(', ') : ''}`)
+ok(alias.falhas.length === 0, `${alias.total} nomes/variações de batismo ganham gala${alias.falhas.length ? ' — falham: ' + alias.falhas.join(', ') : ''}`)
+ok(alias.jurubeba === 'Jurubeba FC' && alias.berretinho === 'Cruzeiro de Berretinho', `Meia na Canela → ${alias.jurubeba} · Cruzeiro do Berretinho → ${alias.berretinho}`)
 await b.close()
 if (erros.length) { console.log('\n❌ REPROVADO'); fim(1) }
 console.log('\n✅ entrada de gala ok · fotos em', SAIDA); fim(0)
