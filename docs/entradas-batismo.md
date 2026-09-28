@@ -5,6 +5,8 @@ Pedido do Diego: *"indique uma entrada por escrito pra cada time de batismo"*. B
 cabem nos mesmos ~5–8 s, no tempo morto da sala de espera. Nada disso está no jogo — é a lista pra ele
 escolher. ⚠️ = eu não conheço a cara da mascote ainda; a ideia sai do nome e precisa conferir a arte
 antes de desenhar (regra: não inventar como é uma pessoa real).
+🔍 28/09: conferi as artes de todos (`node scripts/confere-gala-todos.mjs`) e troquei as ideias dos
+que eu não conhecia pela cara real da mascote.
 
 | # | Clube | Mascote | Entrada |
 |---|---|---|---|
@@ -57,12 +59,12 @@ antes de desenhar (regra: não inventar como é uma pessoa real).
 | 47 | Fridão FC | O Fridão | 🧊 a tela congela e ele quebra o gelo pra entrar |
 | 48 | Crias do Bigão | O Bigão | 🏘️ entra com a rapaziada da base atrás, todos em fila |
 | 49 | White Thigs do GuGu | O Bigode | 🪞 alisa o bigode num espelho gigante, que se quebra revelando o escudo |
-| 50 | Deportivo Montreal | Maitê | 🍁 chuva de folhas de bordo e ela entra patinando no gelo ⚠️ |
+| 50 | Deportivo Montreal | Maitê (bebê de óculos escuros e laço) | 🍼 entra num carrinho de bebê empurrado sozinho, tira os óculos e dá tchau |
 | 51 | São Marcos Antônio FC | Marcos | 🎤 entra com holofote de palco e plaquinha com o nome ⚠️ |
 | 52 | Theuzudo FC | Theuzinho | 🎈 chega de balão, descendo devagar ⚠️ |
 | 53 | São Luiz FC | Luizão | 🚪 porta de vestiário arrebenta e ele entra correndo ⚠️ |
-| 54 | Sistematizados FC | O Sistematizado | 💻 tela de computador liga, código verde corre e ele "carrega" na tela ⚠️ |
-| 55 | Xurupitas FC | O Xurupita | 🥤 entra de canudinho gigante, sugando o escudo pro telão ⚠️ |
-| 56 | Tôka10 | (sem nome cadastrado) | ⚠️ preciso ver a mascote |
-| 57 | Sapekeiros FC | (sem nome cadastrado) | ⚠️ preciso ver a mascote |
-| 58 | SC Ferrari | (sem nome cadastrado) | 🏎️ carro vermelho entra em alta velocidade, derrapa e para no centro ⚠️ |
+| 54 | Sistematizados FC | O Sistematizado (streamer de fone) | 🎮 a tela vira live: "AO VIVO" pisca, chat subindo e ele entra acenando pra câmera |
+| 55 | Xurupitas FC | O Xurupita (gosma verde) | 🟢 uma poça verde escorre do teto, pinga no chão e vira ele |
+| 56 | Tôka10 | (menino de touca e camisa 10) | 🧢 a touca cai do céu, quica no chão e ele sai de baixo dela fazendo embaixadinha |
+| 57 | Sapekeiros FC | (vespa de coroa) | 🐝 zumbido, um enxame cruza a tela e ela sai do meio com a coroa |
+| 58 | SC Ferrari | (gorila piloto, de kart-bola) | 🏁 largada de F1: luzes apagam e ele entra no kart-bola, derrapa e para no centro |
