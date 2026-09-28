@@ -1,4 +1,4 @@
-## 28/09/2026 — 🔁 Cruyff: carta sai do Barcelona 1974 e vai pro AJAX 1972 ⏳ NO BRANCH (esperando OK da camisa)
+## 28/09/2026 — 🔁 Cruyff: carta sai do Barcelona 1974 e vai pro AJAX 1972 ✅ NO AR (camisa aprovada)
 
 Diego: *"qual ele é mais lenda?"* → Ajax (tri da Champions 71-73). Ajax e Barça são do mesmo
 baralho, então é UMA carta: `data.ts` troca o endereço (mesma faixa 90-95). Saves antigos mudam
