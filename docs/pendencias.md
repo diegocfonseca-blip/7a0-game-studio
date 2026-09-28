@@ -1,3 +1,11 @@
+## 28/09/2026 — 🃏 LOTE 36: 23 famosos que não estavam no jogo (baralho Europa) — esperando OK pra publicar
+
+Aprovado por ele (*"aprovo os 16 e os bônus"*). 16 fecham setor de clube no Leilão de Clubes + 7 bônus.
+Conferidos por nome E sobrenome nos 3 baralhos (Robbie Keane ≠ Roy Keane; Christian Fuchs ≠ Bruno Fuchs).
+Europa sozinho, clubes com pacote: LAT 21→26 · ZAG 24→26 · MEI 26→29 · ATA 24→30.
+Baralho Brasil: os famosos que fechariam os clubes quase-prontos (Petkovic, Alex, Rivaldo, Durval, Careca) já
+estão no baralho BR por outro clube — regra do mesmo jogador só em baralho diferente.
+
 ## 28/09/2026 — 🔁 Cruyff: carta sai do Barcelona 1974 e vai pro AJAX 1972 ✅ NO AR (camisa aprovada)
 
 Diego: *"qual ele é mais lenda?"* → Ajax (tri da Champions 71-73). Ajax e Barça são do mesmo
