@@ -9,7 +9,7 @@
 // os rostos são os `.webp` do jogo (`public/avatars/`), o relógio é o de 90s e o
 // castigo é o do motor (o PIOR do pacote na vaga vazia). O pregão NÃO mostra os
 // nomes — só o clube e quantos tem —, igual à tela.
-// 🔒 O ONLINE AINDA ESTÁ TRAVADO pra geral, então o vídeo diz "online: em breve".
+// 🟢 28/09: o online foi liberado (rápidas e Minhas Ligas) — o fim do vídeo lista os 3 lugares.
 //
 // 🎞️ Roteiro (~38 s):
 //   0,0– 4,6   🧱 chegou o LEILÃO DE CLUBES
@@ -221,13 +221,15 @@ ${cena(32.0, 40, `
       <div style="font-size:70px">🐊</div><div style="${OSW};font-size:42px;text-transform:uppercase">tocaia</div></div>
   </div>
   <div style="display:flex;flex-direction:column;gap:14px;align-items:center;margin-top:40px">
-    <div style="width:820px;background:#fff;border:5px solid ${INK};border-radius:20px;box-shadow:7px 7px 0 ${INK};padding:18px 26px;
-      ${OSW};font-size:44px;text-align:center;animation:entra .45s cubic-bezier(.2,1.5,.4,1) 33.4s both">⚡ partida rápida · <span style="color:${GREEN}">já liberado</span></div>
-    <div style="width:820px;background:#EDE4FF;border:5px solid ${INK};border-radius:20px;box-shadow:7px 7px 0 ${INK};padding:18px 26px;
-      ${OSW};font-size:44px;text-align:center;color:${ROXO};animation:entra .45s cubic-bezier(.2,1.5,.4,1) 33.7s both">🌐 sala online · em breve</div>
+    <div style="width:820px;background:#fff;border:5px solid ${INK};border-radius:20px;box-shadow:7px 7px 0 ${INK};padding:16px 26px;
+      ${OSW};font-size:42px;text-align:center;animation:entra .45s cubic-bezier(.2,1.5,.4,1) 33.3s both">⚡ partida rápida</div>
+    <div style="width:820px;background:#fff;border:5px solid ${INK};border-radius:20px;box-shadow:7px 7px 0 ${INK};padding:16px 26px;
+      ${OSW};font-size:42px;text-align:center;animation:entra .45s cubic-bezier(.2,1.5,.4,1) 33.55s both">🌐 sala online com os amigos</div>
+    <div style="width:820px;background:#EDE4FF;border:5px solid ${INK};border-radius:20px;box-shadow:7px 7px 0 ${INK};padding:16px 26px;
+      ${OSW};font-size:42px;text-align:center;color:${ROXO};animation:entra .45s cubic-bezier(.2,1.5,.4,1) 33.8s both">🏆 minhas ligas</div>
   </div>
-  <div style="margin-top:40px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 34.3s both">${pill('marque 🧱 clubes ao criar', GREEN, '#fff', 36)}</div>
-  <p style="${OSW};font-size:64px;margin-top:54px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 34.8s infinite">
+  <div style="margin-top:34px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 34.3s both">${pill('marque 🧱 clubes ao criar', GREEN, '#fff', 36)}</div>
+  <p style="${OSW};font-size:64px;margin-top:44px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 34.8s infinite">
     ⚽ Leilão <span style="color:${RED}">Legends</span></p>
   <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.55);margin-top:12px">leilaolegends.com</p>`)}
 </body>`

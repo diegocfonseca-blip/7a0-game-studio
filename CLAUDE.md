@@ -645,6 +645,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   nada a ver com a outra"*: 🃏 Jogador (padrão) / 🧱 Clubes combina com ✉️ Envelope ou 🐊 Tocaia. O tipo
   vem ANTES do baralho, e Clubes trava o baralho em Todos (BR/EU sozinhos não têm clube suficiente).
   Ele pediu pra ser AVISADO quando BR ou EU sozinhos fecharem — números em `docs/pendencias.md`.
+  🟢 Liberado pra todos em 28/09: Partida Rápida, salas online rápidas e Minhas Ligas (nunca carreira).
 
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.

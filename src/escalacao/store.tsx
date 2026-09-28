@@ -6786,8 +6786,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       return restored
     }
     case 'START_ONLINE': {
-      // 🧱 LEILÃO DE CLUBES na sala: escolha do host, só no rápido de futebol (nem carreira, nem liga)
-      s.leilaoClubes = !!action.clubes && !action.career && !action.liga && action.sport !== 'basquete'
+      // 🧱 LEILÃO DE CLUBES na sala: escolha do host — rápido e Minhas Ligas (28/09), nunca carreira nem basquete
+      s.leilaoClubes = !!action.clubes && !action.career && action.sport !== 'basquete'
       s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'

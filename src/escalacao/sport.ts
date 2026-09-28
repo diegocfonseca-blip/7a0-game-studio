@@ -575,7 +575,7 @@ export function useChampionsLiberada(): boolean {
 // depois do pregão, cada um convoca os seus 11 dentro dos pacotes que ganhou. Vale
 // junto com o tipo de pregão (envelope às cegas / Tocaia). Nasce escondido: aparece
 // só pra quem está em CLUBES_TESTERS; pra abrir pra todos é virar CLUBES_GERAL.
-const CLUBES_GERAL = false
+const CLUBES_GERAL = true // 🟢 28/09: liberado no online (rápidas e Minhas Ligas) — ordem do Diego
 const CLUBES_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let clubesOk = CLUBES_GERAL
 function applyClubesUnlock(email?: string | null): void {
