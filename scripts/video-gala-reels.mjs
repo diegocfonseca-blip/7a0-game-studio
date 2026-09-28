@@ -10,15 +10,16 @@
 // 🚫 Sem nº de sócio/fundador (ordem do Diego, 28/09).
 // 📧 Vale pela CONTA do dono (e-mail do batismo), nunca pelo nome digitado.
 //
-// 🎞️ Roteiro (~41 s):
+// 🎞️ Roteiro (~47 s) — os 4 clubes foram escolhidos pelo Diego (28/09):
 //   0,0– 4,6   👑 chegou a ENTRADA DE GALA
 //   4,6– 9,6   onde: sala online, enquanto ela enche → o Neymarzetti chegou
 //   9,6–15,6   🎬 a gala do Neymarzetti (tela inteira, a sala toda vê)
-//  15,6–21,6   🎬 Al Takhadao FC — chegou mais de um? um de cada vez
-//  21,6–27,6   🎬 Meia na Canela (ex-Jurubeba) — trocou o nome, a gala vai junto
-//  27,6–32,6   e fica DOURADO na lista, com a mascote pulando
-//  32,6–37,0   pra quem: só batismo, pela conta · não atrasa nada
-//  37,0–41,5   toca no escudo → "quero entrar assim também" + marca
+//  15,6–21,6   🎬 Raiva Cajuri FC — chegou mais de um? um de cada vez
+//  21,6–27,6   🎬 Leite de Verdade FC — cada clube com a sua mascote
+//  27,6–33,6   🎬 Meia na Canela (ex-Jurubeba) — trocou o nome, a gala vai junto
+//  33,6–38,6   e fica DOURADO na lista, com a mascote pulando
+//  38,6–43,0   pra quem: só batismo, pela conta · não atrasa nada
+//  43,0–47,5   toca no escudo → "quero entrar assim também" + marca
 //
 //   node scripts/video-gala-reels.mjs [--saida gala-reels.mp4]
 import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'node:fs'
@@ -39,10 +40,9 @@ const GALA_S = 5.6
 
 const CLUBES = {
   ney: { nome: 'Neymarzetti', curto: 'NEYMARZETTI', esc: art('neymarzetti-escudo'), mas: art('neymarzetti-mascote'), tec: 'Diego' },
-  al: { nome: 'Al Takhadao FC', curto: 'AL TAKHADAO', esc: art('al-takahdao-escudo'), mas: art('al-takahdao-mascote') },
+  raiva: { nome: 'Raiva Cajuri FC', curto: 'RAIVA CAJURI', esc: art('raivacajuri-escudo'), mas: art('raivacajuri-mascote') },
+  leite: { nome: 'Leite de Verdade FC', curto: 'LEITE DE VERDADE', esc: art('leitedeverdade-escudo'), mas: art('leitedeverdade-mascote') },
   meia: { nome: 'Meia na Canela de Desportos', curto: 'MEIA NA CANELA', esc: art('jurubeba-escudo'), mas: art('jurubeba-mascote') },
-  fab: { nome: 'Fabulous EC', curto: 'FABULOUS', esc: art('fabulous-escudo'), mas: art('fabulous-mascote') },
-  cru: { nome: 'Cruzeiro de Berretinho', curto: 'BERRETINHO', esc: art('cruzeiro-berretinho-escudo'), mas: art('cruzeiro-berretinho-mascote') },
 }
 
 const pill = (txt, bg, cor, fs = 32) => `
@@ -53,7 +53,7 @@ const cena = (ini, fim, html, fundo = '') => `
 
 // 🎬 o show da sala, em tamanho de reels (mesmos passos do `entrada-gala.tsx`)
 const gala = (c, t0, legenda) => `
-  <div style="position:absolute;inset:0;background:${CREME}">${sala([['A', 'Cajuri Raiva'], ['T', 'Tocaia do Zé'], ['B', 'Bolacha FC']], [], 0)}</div>
+  <div style="position:absolute;inset:0;background:${CREME}">${sala([['P', 'Pastel United'], ['T', 'Tocaia do Zé'], ['B', 'Bolacha FC']], [], 0)}</div>
   <div class="g-show" style="animation-delay:${t0}s">
     <div class="g-escuro"></div><div class="g-feixe" style="animation-delay:${t0}s"></div>
     <div class="g-telao" style="animation-delay:${t0}s">
@@ -136,7 +136,7 @@ ${cena(0, 4.6, `
 ${cena(4.6, 9.6, `
   <div style="animation:sobe .4s 4.75s both">${pill('📍 onde acontece', INK, GOLD, 34)}</div>
   <p style="${OSW};font-size:82px;text-transform:uppercase;text-align:center;line-height:1;margin:24px 0 34px;animation:sobe .45s 4.95s both">na sala <span style="color:${GREEN}">online</span>,<br>enquanto ela enche</p>
-  <div style="animation:sobe .5s 5.3s both">${sala([['A', 'Cajuri Raiva'], ['T', 'Tocaia do Zé'], ['B', 'Bolacha FC']], [], 0)}</div>
+  <div style="animation:sobe .5s 5.3s both">${sala([['P', 'Pastel United'], ['T', 'Tocaia do Zé'], ['B', 'Bolacha FC']], [], 0)}</div>
   <div style="margin-top:34px;display:flex;align-items:center;gap:20px;background:${INK};color:#fff;border:5px solid ${GOLD};border-radius:24px;padding:20px 30px;
     animation:pop .5s cubic-bezier(.2,1.6,.4,1) 7.6s both">
     <span style="font-size:60px">🚪</span><b style="${OSW};font-size:44px;text-transform:uppercase">o <span style="color:${GOLD}">Neymarzetti</span> tá chegando…</b>
@@ -145,46 +145,49 @@ ${cena(4.6, 9.6, `
 <!-- ③ Neymarzetti -->
 ${cena(9.6, 15.6, gala(CLUBES.ney, 9.7, pill('a sala inteira vê 👀', GOLD, INK, 34)), 'padding:0')}
 
-<!-- ④ Al Takhadao -->
-${cena(15.6, 21.6, gala(CLUBES.al, 15.7, pill('chegou mais de um? um de cada vez', GOLD, INK, 32)), 'padding:0')}
+<!-- ④ Raiva Cajuri -->
+${cena(15.6, 21.6, gala(CLUBES.raiva, 15.7, pill('chegou mais de um? um de cada vez', GOLD, INK, 32)), 'padding:0')}
+
+<!-- ④b Leite de Verdade -->
+${cena(21.6, 27.6, gala(CLUBES.leite, 21.7, pill('cada clube com a sua mascote', GOLD, INK, 32)), 'padding:0')}
 
 <!-- ⑤ Meia na Canela (ex-Jurubeba) -->
-${cena(21.6, 27.6, gala(CLUBES.meia, 21.7, pill('trocou o nome do clube? a gala vai junto', GOLD, INK, 30)), 'padding:0')}
+${cena(27.6, 33.6, gala(CLUBES.meia, 27.7, pill('trocou o nome do clube? a gala vai junto', GOLD, INK, 30)), 'padding:0')}
 
 <!-- ⑥ dourado na lista -->
-${cena(27.6, 32.6, `
-  <div style="animation:sobe .4s 27.75s both">${pill('✨ e fica assim na lista', INK, GOLD, 34)}</div>
-  <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin:24px 0 34px;animation:sobe .45s 27.95s both">linha <span style="color:#E8A200">dourada</span><br>e a mascote pulando</p>
-  <div style="animation:sobe .5s 28.2s both">${sala([['A', 'Cajuri Raiva'], ['T', 'Tocaia do Zé']], [CLUBES.ney, CLUBES.al, CLUBES.meia, CLUBES.cru], 28.4)}</div>`)}
+${cena(33.6, 38.6, `
+  <div style="animation:sobe .4s 33.75s both">${pill('✨ e fica assim na lista', INK, GOLD, 34)}</div>
+  <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin:24px 0 34px;animation:sobe .45s 33.95s both">linha <span style="color:#E8A200">dourada</span><br>e a mascote pulando</p>
+  <div style="animation:sobe .5s 34.2s both">${sala([['P', 'Pastel United'], ['T', 'Tocaia do Zé']], [CLUBES.ney, CLUBES.raiva, CLUBES.leite, CLUBES.meia], 34.4)}</div>`)}
 
 <!-- ⑦ pra quem -->
-${cena(32.6, 37.0, `
-  <p style="font-size:130px;line-height:1;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 32.75s both">🔑</p>
-  <p style="${OSW};font-size:92px;text-transform:uppercase;text-align:center;line-height:1;margin:18px 0 34px;animation:sobe .45s 33.0s both">
+${cena(38.6, 43, `
+  <p style="font-size:130px;line-height:1;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 38.75s both">🔑</p>
+  <p style="${OSW};font-size:92px;text-transform:uppercase;text-align:center;line-height:1;margin:18px 0 34px;animation:sobe .45s 39s both">
     só pra quem<br>tem <span style="color:${GREEN}">batismo</span></p>
   ${[['📧', 'vale pela <b>sua conta</b>', 'escrever o nome de um batismo não adianta'],
      ['👑', 'escudo, mascote e manto <b>seus</b>', 'em toda sala que você entrar'],
      ['⏱️', '<b>não atrasa</b> o jogo', 'acontece enquanto a sala enche']].map(([ic, t, s], i) => `
     <div style="display:flex;align-items:center;gap:24px;width:940px;padding:20px 26px;margin-bottom:16px;text-align:left;background:#fff;
-      border:5px solid ${INK};border-radius:22px;box-shadow:7px 7px 0 ${INK};animation:entra .45s cubic-bezier(.2,1.5,.4,1) ${(33.4 + i * .35).toFixed(2)}s both">
+      border:5px solid ${INK};border-radius:22px;box-shadow:7px 7px 0 ${INK};animation:entra .45s cubic-bezier(.2,1.5,.4,1) ${(39.4 + i * .35).toFixed(2)}s both">
       <span style="font-size:64px">${ic}</span>
       <span><b style="${OSW};font-weight:500;font-size:44px;display:block;line-height:1.1;text-transform:uppercase">${t}</b>
         <span style="font-size:30px;font-weight:700;color:rgba(12,12,12,.55)">${s}</span></span>
     </div>`).join('')}`)}
 
 <!-- ⑧ toque + marca -->
-${cena(37.0, 45, `
-  <p style="${OSW};font-size:78px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:30px;animation:sobe .45s 37.15s both">quer entrar<br><span style="color:#E8A200">assim também?</span></p>
-  <div style="width:820px;animation:sobe .45s 37.4s both">${linhaGala(CLUBES.ney)}</div>
-  <p style="font-size:34px;font-weight:700;color:rgba(12,12,12,.6);margin:6px 0 18px;animation:sobe .4s 37.7s both">👆 toca no escudo dourado</p>
+${cena(43, 51, `
+  <p style="${OSW};font-size:78px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:30px;animation:sobe .45s 43.15s both">quer entrar<br><span style="color:#E8A200">assim também?</span></p>
+  <div style="width:820px;animation:sobe .45s 43.4s both">${linhaGala(CLUBES.ney)}</div>
+  <p style="font-size:34px;font-weight:700;color:rgba(12,12,12,.6);margin:6px 0 18px;animation:sobe .4s 43.7s both">👆 toca no escudo dourado</p>
   <div style="width:820px;background:${INK};color:#fff;border:5px solid ${GOLD};border-radius:24px;padding:24px 28px;text-align:left;
-    animation:pop .5s cubic-bezier(.2,1.6,.4,1) 38.2s both">
+    animation:pop .5s cubic-bezier(.2,1.6,.4,1) 44.2s both">
     <p style="font-size:32px;font-weight:700;line-height:1.4">O <b style="color:${GOLD}">Neymarzetti</b> tem escudo, mascote e manto próprios — e entra assim em toda sala.</p>
     <div style="margin-top:16px;background:${GOLD};color:${INK};border:4px solid #000;border-radius:16px;box-shadow:4px 4px 0 #000;padding:16px;text-align:center;
-      ${OSW};font-size:40px;text-transform:uppercase;animation:toque .5s ease-in-out 39.3s 2">👑 quero entrar assim também</div>
+      ${OSW};font-size:40px;text-transform:uppercase;animation:toque .5s ease-in-out 45.3s 2">👑 quero entrar assim também</div>
   </div>
-  <div style="margin-top:36px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 39.8s both">${pill('faça o batismo do seu clube', GREEN, '#fff', 36)}</div>
-  <p style="${OSW};font-size:64px;margin-top:40px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 40.2s infinite">
+  <div style="margin-top:36px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 45.8s both">${pill('faça o batismo do seu clube', GREEN, '#fff', 36)}</div>
+  <p style="${OSW};font-size:64px;margin-top:40px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 46.2s infinite">
     ⚽ Leilão <span style="color:${RED}">Legends</span></p>
   <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.55);margin-top:12px">leilaolegends.com</p>`)}
 </body>`
@@ -201,7 +204,7 @@ const ctx = await b.newContext({ viewport: { width: 1080, height: 1920 }, record
 const vp = await ctx.newPage()
 await vp.goto('file://' + vtmp)
 await vp.evaluate(() => document.fonts.ready)
-await vp.waitForTimeout(42300)
+await vp.waitForTimeout(48300)
 await ctx.close()
 await b.close()
 
