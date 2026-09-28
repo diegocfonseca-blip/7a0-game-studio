@@ -649,6 +649,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Ele pediu pra ser AVISADO quando BR ou EU sozinhos fecharem — números em `docs/pendencias.md`.
   🟢 Liberado pra todos em 28/09: Partida Rápida, salas online rápidas e Minhas Ligas (nunca carreira).
 
+- **📧 O QUE VALE SEMPRE É O E-MAIL DO BATISMO (28/09, regra permanente).** Palavras dele:
+  *"Oq vale sempre é o email de batismo"*. Tudo que é mimo de batismo (entrada de gala, escudo,
+  mascote, manto, tier, sócio) segue a CONTA do dono, nunca o nome digitado do time. Nome de time
+  só serve de apoio pra desenhar pros outros; quem decide QUEM é dono é o e-mail
+  (`esc_socios`/`esc_mimos_sala`). A gala já é assim desde 28/09 (`npm run gala`).
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
