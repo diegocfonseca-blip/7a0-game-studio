@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
 import { MascoteAtravessa, MascoteMini } from './mascote-atravessa' // 🐊 o bicho atravessa a sala de espera também (25/09)
+import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMascoteMini, clubeDeGala } from './entrada-gala' // 👑 entrada de gala do batismo (28/09)
 import { useEsc, listAllCareers, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, type EmoteEvent } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
@@ -1114,6 +1115,10 @@ export function EscLobby() {
     if (!room || lobbyChat.length === 0) return // não sobrescreve o salvo com o vazio inicial
     try { localStorage.setItem(`esc-lobbychat-${room.id}`, JSON.stringify(lobbyChat.slice(-60))) } catch { /* ignora */ }
   }, [lobbyChat, room])
+
+  // 👑 ENTRADA DE GALA (28/09): dono de batismo que CHEGA na sala de espera ganha
+  // holofote, telão e mascote na tela de todo mundo (só futebol, só sala de espera).
+  const galaAgora = useEntradaGala(phase === 'waiting' && getSport() !== 'basquete' ? room?.id : null, players, user?.id)
 
   async function fetchPlayers(roomId: string) {
     const { data } = await supabase.from('room_players').select('*').eq('room_id', roomId).order('player_index')
@@ -4015,17 +4020,21 @@ export function EscLobby() {
             // sem selo, o nome continua preto igual sempre foi — não muda a cara
             // de ninguém que não tem tier.
             const pk = perkFromName(p.manager_name)
+            // 👑 dono de batismo: linha DOURADA, escudo no lugar da bolinha e a mascote
+            // pulando na ponta (fora do modo duplas, que tem a linha própria dele)
+            const gala = !duplasOn && getSport() !== 'basquete' ? clubeDeGala(p.manager_name) : null
             return (
-            <div key={p.user_id} className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
-              <div className="flex items-center gap-3">
-                {(() => { const pkAv = pk ?? APOIO_PERKS.bege; return (
+            <div key={p.user_id} className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
+              <div className="flex items-center gap-3" style={gala ? { position: 'relative', zIndex: 1 } : undefined}>
+                {gala ? <GalaEscudoBotao clube={gala} souEu={souEu} /> : (() => { const pkAv = pk ?? APOIO_PERKS.bege; return (
                   <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
                     style={{ background: pkAv.grad, position: 'relative', overflow: 'hidden', color: '#0C0C0C' }}>
                     <span style={{ position: 'relative', zIndex: 2 }}>{stripEmoji(p.manager_name).trim()[0]?.toUpperCase()}</span>
                     {pkAv.holo > 0 && <ApoioSheen holo={pkAv.holo} dur={2.6} />}
                   </div>
                 ) })()}
-                <span className="font-black text-black text-sm flex-1" style={pk ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>
+                <span className="font-black text-black text-sm flex-1" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>
+                {gala && <GalaMascoteMini clube={gala} />}
                 {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}
                 {/* 🃏 BAFO: o estado de cada um, na lista — o host bate o olho e sabe
                     quem é demora e quem é problema. Três estados só, sem meio-termo. */}
@@ -4251,6 +4260,8 @@ export function EscLobby() {
           seguir. Quem fica de fora sai da sala — não vira time sorteado. */}
       {/* 🐊 o bicho que alguém soltou atravessa a sala de espera (camada fixa, não atrapalha nada) */}
       {room && <MascoteAtravessa />}
+      <GalaEstilo />
+      {galaAgora && <EntradaGalaShow key={galaAgora.uid} chave={galaAgora.uid} clube={galaAgora.clube} />}
       {bafoAviso && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100001, background: 'rgba(0,0,0,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
           <div style={{ background: '#F4ECD6', border: `3px solid ${INK}`, borderRadius: 18, boxShadow: `6px 6px 0 0 ${INK}`, maxWidth: 400, width: '100%', padding: 20 }}>

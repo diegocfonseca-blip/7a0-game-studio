@@ -1,3 +1,18 @@
+## 28/09/2026 — 👑 ENTRADA DE GALA do batismo na sala online ✅ NO AR
+
+Ideia pra dar "água na boca" em quem não tem batismo. Mockup aprovado (`scripts/mockup-entrada-gala.mjs`)
+com uma ordem: *"sem pôr por enquanto número de sócio"* → nada de nº de sócio/fundador na tela.
+`src/escalacao/entrada-gala.tsx` + 3 pontos no `lobby.tsx` (sala de espera, só futebol):
+- dono de batismo que CHEGA depois de mim → ~5,6 s de show na minha tela (holofote, escudo no
+  telão "CHEGOU NA SALA", grito "Ô Ô Ô, NOME!", mascote atravessando); fila se chegam juntos; quem
+  já estava quando eu abri não ganha (só eu mesmo, se sou batismo). Memória só da página.
+- linha dourada na lista (escudo no lugar da bolinha + mascote pulando); fora do modo duplas.
+- tocar no escudo de outro batismo → "entra assim em toda sala" + botão que abre o Batismo.
+Sem som (martelo/torcida seguem as regras de som dele). Batismo = `batismoDe(nome)` com
+`tipo: 'batismo'` (sócio não entra). Trava: `npm run gala`. ↩️ Desligar = tirar o
+`useEntradaGala`/`gala` do lobby (3 linhas).
+💡 Próximos passos possíveis (não combinados): som da torcida, dono renomeado seguir pelo e-mail.
+
 ## 28/09/2026 — 📣 Giro um pouquinho mais rápido de novo ✅ NO AR
 
 Diego: *"giro da rodada deixe só um pouquinho mais rápido"*. `GiroDaRodada`: 0,145 → 0,13 s por
