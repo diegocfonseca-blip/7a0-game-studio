@@ -1,3 +1,13 @@
+## 28/09/2026 — 🔁 Cruyff: carta sai do Barcelona 1974 e vai pro AJAX 1972 ⏳ NO BRANCH (esperando OK da camisa)
+
+Diego: *"qual ele é mais lenda?"* → Ajax (tri da Champions 71-73). Ajax e Barça são do mesmo
+baralho, então é UMA carta: `data.ts` troca o endereço (mesma faixa 90-95). Saves antigos mudam
+sozinhos (`sincronizaNiveis`, nome com carta única). Avatar: a camisa do Barça foi REPINTADA pra
+do Ajax (branca com a faixa vermelha larga) → `johan-cruyff-ajax-1972.webp` (24 KB); a carta velha
+no álbum aponta pro rosto novo (`legend-avatars.ts`). `check-legend-avatars` atualizado pra 188.
+⚠️ `npm run novidades` apagou 2 linhas que não tinham nada a ver (Maniche, João Moutinho) —
+devolvi o arquivo gerado como estava; a troca do Cruyff não vira novidade (mesmo jogador).
+
 ## 27/09/2026 — 🐓 BATISMO EL MINEIRO (bastosmbc) — Série C, no assento do bot Brodeiragem
 
 Escudo alvinegro com o galo e a estrela, mascote O Galo Doido (`el_mineiro_galo_doido`), manto preto
