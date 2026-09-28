@@ -7,6 +7,11 @@ apagar o arquivo dele em `public/escudos-clubes/` + a linha em `escudos-oficiais
   github luukhopman/football-logos; Brasil/América do Sul dos npm `football-badges` (MIT) e
   `react-brasileirao-logos` (ISC). Recorta, reduz pra 160 px e salva webp. 82 escudos, ~9 KB cada,
   fora do bundle. `SeloClube` usa o oficial quando existe e cai no selo estilo B quando não.
+- 🔎 28/09 (Diego: *"pesquise os que faltam na internet e bote"*): +23 de 3 acervos do GitHub (FCLOGO/fclogo.top,
+  hugomiura/escudos-times-brasil-svg, sportlogos/football.db.logos) → **106 escudos**. Os GIF/PNG antigos vinham
+  com fundo branco: o script apaga o fundo ligado à borda. FALTAM 7 (sem fonte que a rede alcance): Bangu,
+  Blackburn, América de Cali (estão em assets.football-logos.cc, bloqueado) e Guarani, São Caetano, TP Mazembe,
+  MetroStars (em lugar nenhum daqui) → imagem do Diego, ou liberar o host.
 - ➕ 28/09: Orlando City entrou (npm `mls-team-logos`, ISC) → 83. E o script já sabe buscar mais 24 no
   catálogo do npm `football-logos` (Sport, Santa Cruz, Náutico, Ponte Preta, Bangu, Blackburn, Stoke, Vélez,
   Atlético Nacional, América de Cali, Alianza Lima, U. de Chile, América do México, Cruz Azul, Pumas, Tigres,

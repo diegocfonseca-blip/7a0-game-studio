@@ -46,6 +46,16 @@ const MLS = npmPack('mls-team-logos@1.6.0', 'mls-team-logos') // 🇺🇸 Orland
 // 🌍 catálogo do npm `football-logos` (MIT): só a LISTA (país/slug/hash); a imagem mora em
 // assets.football-logos.cc — que a rede desta máquina NÃO alcança hoje (28/09). O script já
 // tenta: no dia em que o host for liberado, é só rodar de novo e os que faltam entram.
+// 🔎 28/09 (Diego: "pesquise os que faltam na internet e bote"): mais 3 acervos do GitHub
+//   · FCLOGO/fclogo.top (PNG em alta, várias versões por clube) — River, Vélez, Al Ahly, Al-Hilal,
+//     Al-Nassr, Yokohama Marinos, Pohang, Suwon
+//   · hugomiura/escudos-times-brasil-svg (SVG das Séries A/B) — Sport, Náutico, Santa Cruz, Ponte Preta
+//   · sportlogos/football.db.logos (PNG/GIF menores) — os mexicanos, Stoke, Atlético Nacional,
+//     Alianza Lima, U. de Chile
+const clonaSem = (repo, pasta, cheio = false) => { const d = path.join(FONTES, pasta); if (!existsSync(d)) execSync(`git clone -q --depth 1 ${cheio ? '' : '--filter=blob:none --no-checkout'} https://github.com/${repo} "${d}"`, { stdio: 'inherit' }); return d }
+const FCL = clonaSem('FCLOGO/fclogo.top', 'fclogo'), SPL = clonaSem('sportlogos/football.db.logos', 'sportlogos'), HUGO = clonaSem('hugomiura/escudos-times-brasil-svg', 'hugo', true)
+const doGit = (repo, arq) => { const dst = path.join(FONTES, 'git-' + arq.replace(/[^a-zA-Z0-9.]+/g, '_')); if (!existsSync(dst)) writeFileSync(dst, execSync(`git -C "${repo}" show "HEAD:${arq}"`, { maxBuffer: 64 << 20 })); return dst }
+const hugoSvg = id => { for (const f of ['serie-a.svg', 'serie-b.svg']) { const t = readFileSync(path.join(HUGO, f), 'utf8'); const m = t.match(new RegExp(`<symbol viewBox="([^"]+)" id="${id}">([\\s\\S]*?)</symbol>`)); if (m) return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${m[1]}">${m[2]}</svg>` } return null }
 const FLC = npmPack('football-logos@0.4.0', 'football-logos')
 const flIdx = new Map()
 for (const f of readdirSync(path.join(FLC, 'catalog/v1/countries'))) { const c = JSON.parse(readFileSync(path.join(FLC, 'catalog/v1/countries', f), 'utf8')).country; for (const [slug, cl] of Object.entries(c.clubs ?? {})) flIdx.set(`${c.slug}/${slug}`, cl.hash) }
@@ -72,6 +82,7 @@ const fbSvgs = new Map()
 for (const pais of readdirSync(path.join(FB, 'badges'))) { const d = path.join(FB, 'badges', pais); if (statSync(d).isDirectory()) for (const f of readdirSync(d)) if (f.endsWith('.svg')) fbSvgs.set(f.slice(0, -4), path.join(d, f)) }
 const mlsSvg = code => { const m = req(path.join(MLS, 'dist/logos', `${code}.js`)); const C = m.default ?? Object.values(m).find(v => typeof v === 'function'); return renderToStaticMarkup(React.createElement(C, { size: 400, width: 400, height: 400 })) }
 const U = c => ({ svg: () => mlsSvg(c) }), W = c => ({ fl: c })
+const C = a => ({ git: [FCL, 'src/data/logos/' + a] }), S = a => ({ git: [SPL, a] }), H = id => ({ svg: () => hugoSvg(id) })
 const E = n => ({ png: n }), F = n => ({ svgFile: fbSvgs.get(n) ?? '', n }), R = c => ({ svg: () => rbSvg(c) })
 const MAPA = {
   // 🇧🇷
@@ -83,14 +94,18 @@ const MAPA = {
   'Bragantino': F('rb-bragantino'),
   // 🌎
   'Boca Juniors': F('boca-juniors'), 'Orlando City': U('orl'), 'Barcelona SC': F('barcelona-sc'), 'LDU Quito': F('liga-de-quito'), 'Sporting Cristal': F('sporting-cristal'),
+  // 🔎 acervos do GitHub
+  'Sport': H('sport'), 'Náutico': H('nautico'), 'Santa Cruz': H('santa-cruz'), 'Ponte Preta': H('ponte-preta'),
+  'River Plate': C('AFA/clubs/002_River Plate/png/Club-Atletico-River-Plate-v2022.png'), 'Vélez Sarsfield': C('AFA/clubs/030_Vélez/png/Club-Atletico-Velez-Sarsfield-v0000.png'),
+  'Al Ahly': C('EFA/clubs/001_Al Ahly SC/png/Al-Ahly-SC-v2023.png'), 'Al-Hilal': C('SAFF/clubs/06-Al Hilal/png/al-hilal-saudi-v2022.png'),
+  'Al-Nassr': C('SAFF/clubs/11-Al-Nassr/png/Al-Nassr-v2020.png'), 'Yokohama F. Marinos': C('JFA/clubs/002_Yokohama Marinos/png/yokohama-marinos-v1999.png'),
+  'Pohang Steelers': C('KFA/clubs/002_Pohang Steelers/png/fc-pohang-steelers-v2003.png'), 'Suwon': C('KFA/clubs/018-Suwon Samsung/png/suwon-samsung-bluewings-v0000.png'),
+  'América do México': S('north-america/mx-mexico/america.gif'), 'Chivas': S('north-america/mx-mexico/chivas.gif'), 'Cruz Azul': S('north-america/mx-mexico/cruzazul.gif'),
+  'Necaxa': S('north-america/mx-mexico/necaxa.gif'), 'Pumas': S('north-america/mx-mexico/pumas.gif'), 'Tigres': S('north-america/mx-mexico/tigres.gif'),
+  'Toluca': S('north-america/mx-mexico/toluca.gif'), 'Stoke City': S('europe/en-england/stoke.png'), 'Atlético Nacional': S('south-america/co-colombia/atleticonacional.png'),
+  'Alianza Lima': S('south-america/pe-peru/alianzalima.gif'), 'U. de Chile': S('south-america/cl-chile/udechile.gif'),
   // 🌍 football-logos.cc (baixa quando o host estiver liberado)
-  'Sport': W('brazil/sport-recife'), 'Santa Cruz': W('brazil/santa-cruz'), 'Náutico': W('brazil/nautico'), 'Ponte Preta': W('brazil/ponte-preta'),
-  'Bangu': W('brazil/bangu'), 'Blackburn': W('england/blackburn-rovers'), 'Stoke City': W('england/stoke-city'),
-  'Vélez Sarsfield': W('argentina/velez-sarsfield'), 'Atlético Nacional': W('colombia/atletico-nacional'), 'América de Cali': W('colombia/america-de-cali'),
-  'Alianza Lima': W('peru/alianza-lima'), 'U. de Chile': W('chile/universidad-de-chile'), 'América do México': W('mexico/club-america'),
-  'Cruz Azul': W('mexico/cruz-azul'), 'Pumas': W('mexico/unam-pumas'), 'Tigres': W('mexico/tigres-uanl'), 'Toluca': W('mexico/toluca'),
-  'Necaxa': W('mexico/necaxa'), 'Al-Hilal': W('saudi-arabia/al-hilal'), 'Al-Nassr': W('saudi-arabia/al-nassr'), 'Al Ahly': W('egypt/al-ahly'),
-  'Pohang Steelers': W('south-korea/pohang-steelers'), 'Suwon': W('south-korea/suwon-bluewings'), 'Yokohama F. Marinos': W('japan/yokohama-f-marinos'),
+  'Bangu': W('brazil/bangu'), 'Blackburn': W('england/blackburn-rovers'), 'América de Cali': W('colombia/america-de-cali'),
   // 🇪🇺
   'Real Madrid': E('Real Madrid'), 'Barcelona': E('FC Barcelona'), 'Atlético de Madrid': E('Atlético de Madrid'), 'Sevilla': E('Sevilla FC'),
   'Valencia': E('Valencia CF'), 'Villarreal': E('Villarreal CF'), 'Real Betis': E('Real Betis Balompié'), 'Real Sociedad': E('Real Sociedad'),
@@ -117,7 +132,9 @@ const TMP = path.join(FONTES, 'png'); mkdirSync(TMP, { recursive: true })
 const indice = {}, falta = []
 for (const [chave, src] of Object.entries(MAPA)) {
   const png = path.join(TMP, slug(chave) + '.png')
-  if (src.fl) {
+  if (src.git) {
+    writeFileSync(png, readFileSync(doGit(src.git[0], src.git[1])))
+  } else if (src.fl) {
     const baixado = flBaixa(src.fl)
     if (!baixado) { falta.push(chave); continue }
     writeFileSync(png, readFileSync(baixado))
@@ -134,8 +151,16 @@ for (const [chave, src] of Object.entries(MAPA)) {
   const out = path.join(SAIDA, slug(chave) + '.webp')
   const dims = execSync(`python3 - "${png}" "${out}"`, { input: `
 import sys
-from PIL import Image
+from PIL import Image, ImageDraw
 im = Image.open(sys.argv[1]).convert('RGBA')
+# 🧽 arquivo SEM transparência (os GIF/PNG antigos vêm com fundo branco): apaga o fundo
+# ligado à BORDA (flood fill a partir dos cantos) — o branco de dentro do escudo fica
+if min(im.split()[3].getdata()) == 255:
+    im = im.convert('RGB')
+    for xy in [(0, 0), (im.width - 1, 0), (0, im.height - 1), (im.width - 1, im.height - 1)]:
+        if sum(im.getpixel(xy)) > 690: ImageDraw.floodfill(im, xy, (255, 0, 255), thresh=40)
+    im = im.convert('RGBA')
+    im.putdata([(0, 0, 0, 0) if p[:3] == (255, 0, 255) else p for p in im.getdata()])
 a = im.split()[3].point(lambda v: 255 if v >= 40 else 0)
 bb = a.getbbox() or (0, 0, im.width, im.height)
 im = im.crop(bb)

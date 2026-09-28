@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 83 escudos · 773 KB somados.
+// 106 escudos · 965 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -137,6 +137,121 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "Sporting Cristal": {
     "src": "escudos-clubes/sporting-cristal.webp",
     "w": 95,
+    "h": 160
+  },
+  "Sport": {
+    "src": "escudos-clubes/sport.webp",
+    "w": 143,
+    "h": 160
+  },
+  "Náutico": {
+    "src": "escudos-clubes/nautico.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Santa Cruz": {
+    "src": "escudos-clubes/santa-cruz.webp",
+    "w": 160,
+    "h": 148
+  },
+  "Ponte Preta": {
+    "src": "escudos-clubes/ponte-preta.webp",
+    "w": 139,
+    "h": 160
+  },
+  "River Plate": {
+    "src": "escudos-clubes/river-plate.webp",
+    "w": 129,
+    "h": 160
+  },
+  "Vélez Sarsfield": {
+    "src": "escudos-clubes/velez-sarsfield.webp",
+    "w": 125,
+    "h": 160
+  },
+  "Al Ahly": {
+    "src": "escudos-clubes/al-ahly.webp",
+    "w": 124,
+    "h": 160
+  },
+  "Al-Hilal": {
+    "src": "escudos-clubes/al-hilal.webp",
+    "w": 124,
+    "h": 160
+  },
+  "Al-Nassr": {
+    "src": "escudos-clubes/al-nassr.webp",
+    "w": 118,
+    "h": 160
+  },
+  "Yokohama F. Marinos": {
+    "src": "escudos-clubes/yokohama-f-marinos.webp",
+    "w": 160,
+    "h": 114
+  },
+  "Pohang Steelers": {
+    "src": "escudos-clubes/pohang-steelers.webp",
+    "w": 150,
+    "h": 160
+  },
+  "Suwon": {
+    "src": "escudos-clubes/suwon.webp",
+    "w": 123,
+    "h": 160
+  },
+  "América do México": {
+    "src": "escudos-clubes/america-do-mexico.webp",
+    "w": 160,
+    "h": 160
+  },
+  "Chivas": {
+    "src": "escudos-clubes/chivas.webp",
+    "w": 134,
+    "h": 160
+  },
+  "Cruz Azul": {
+    "src": "escudos-clubes/cruz-azul.webp",
+    "w": 158,
+    "h": 160
+  },
+  "Necaxa": {
+    "src": "escudos-clubes/necaxa.webp",
+    "w": 128,
+    "h": 160
+  },
+  "Pumas": {
+    "src": "escudos-clubes/pumas.webp",
+    "w": 160,
+    "h": 151
+  },
+  "Tigres": {
+    "src": "escudos-clubes/tigres.webp",
+    "w": 94,
+    "h": 160
+  },
+  "Toluca": {
+    "src": "escudos-clubes/toluca.webp",
+    "w": 127,
+    "h": 160
+  },
+  "Stoke City": {
+    "src": "escudos-clubes/stoke-city.webp",
+    "w": 146,
+    "h": 160
+  },
+  "Atlético Nacional": {
+    "src": "escudos-clubes/atletico-nacional.webp",
+    "w": 109,
+    "h": 160
+  },
+  "Alianza Lima": {
+    "src": "escudos-clubes/alianza-lima.webp",
+    "w": 118,
+    "h": 160
+  },
+  "U. de Chile": {
+    "src": "escudos-clubes/u-de-chile.webp",
+    "w": 122,
     "h": 160
   },
   "Real Madrid": {
