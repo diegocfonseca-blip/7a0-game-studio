@@ -7,7 +7,14 @@ apagar o arquivo dele em `public/escudos-clubes/` + a linha em `escudos-oficiais
   github luukhopman/football-logos; Brasil/América do Sul dos npm `football-badges` (MIT) e
   `react-brasileirao-logos` (ISC). Recorta, reduz pra 160 px e salva webp. 82 escudos, ~9 KB cada,
   fora do bundle. `SeloClube` usa o oficial quando existe e cai no selo estilo B quando não.
-- ⏳ SEM escudo oficial ainda (31), ficam no selo: Sport Recife, Santa Cruz, Náutico, Guarani, Ponte Preta, Bangu, São Caetano, Blackburn Rovers, Stoke City, River Plate, Vélez Sarsfield, Atlético Nacional, América de Cali, Alianza Lima, Universidad de Chile, América do México, Chivas Guadalajara, Cruz Azul, Pumas UNAM, Tigres UANL, Toluca, Necaxa, Orlando City, MetroStars, Al-Hilal, Al-Nassr, Al Ahly, TP Mazembe, Pohang Steelers, Suwon Bluewings, Yokohama F. Marinos.
+- ➕ 28/09: Orlando City entrou (npm `mls-team-logos`, ISC) → 83. E o script já sabe buscar mais 24 no
+  catálogo do npm `football-logos` (Sport, Santa Cruz, Náutico, Ponte Preta, Bangu, Blackburn, Stoke, Vélez,
+  Atlético Nacional, América de Cali, Alianza Lima, U. de Chile, América do México, Cruz Azul, Pumas, Tigres,
+  Toluca, Necaxa, Al-Hilal, Al-Nassr, Al Ahly, Pohang, Suwon, Yokohama) — a imagem mora em
+  `assets.football-logos.cc`, que a REDE desta sessão bloqueia. 👉 Liberar esse host na configuração de rede
+  do ambiente e rodar `node scripts/escudos-oficiais.mjs` de novo: entram sozinhos.
+  Fora do catálogo (precisa imagem do Diego): Guarani, São Caetano, River Plate, Chivas, TP Mazembe, MetroStars.
+- ⏳ (lista antiga) SEM escudo oficial ainda (31), ficam no selo: Sport Recife, Santa Cruz, Náutico, Guarani, Ponte Preta, Bangu, São Caetano, Blackburn Rovers, Stoke City, River Plate, Vélez Sarsfield, Atlético Nacional, América de Cali, Alianza Lima, Universidad de Chile, América do México, Chivas Guadalajara, Cruz Azul, Pumas UNAM, Tigres UANL, Toluca, Necaxa, Orlando City, MetroStars, Al-Hilal, Al-Nassr, Al Ahly, TP Mazembe, Pohang Steelers, Suwon Bluewings, Yokohama F. Marinos.
   Pra esses: o Diego manda a imagem, ou a gente acha outra fonte que a rede alcance.
 - É o escudo ATUAL do clube (ex.: Juventus com o "J" novo, Marseille com o "M" de 2024), não o da época da carta.
 

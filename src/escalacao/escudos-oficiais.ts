@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 82 escudos · 764 KB somados.
+// 83 escudos · 773 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -117,6 +117,11 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
   "Boca Juniors": {
     "src": "escudos-clubes/boca-juniors.webp",
     "w": 135,
+    "h": 160
+  },
+  "Orlando City": {
+    "src": "escudos-clubes/orlando-city.webp",
+    "w": 141,
     "h": 160
   },
   "Barcelona SC": {

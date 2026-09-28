@@ -10,6 +10,7 @@
 //   · Europa  → github.com/luukhopman/football-logos (PNG, temporada atual + histórico)
 //   · Brasil e América do Sul → npm `football-badges` (SVG, MIT) e
 //     npm `react-brasileirao-logos` (SVG em React, ISC)
+//   · EUA → npm `mls-team-logos` (SVG em React, ISC)
 // Clube sem escudo em nenhuma das três fica no selo estilo B (nada quebra).
 //
 // Saída: `public/escudos-clubes/<slug>.webp` (160 px no lado maior, recortado no
@@ -41,6 +42,16 @@ const npmPack = (nome, pasta) => {
 }
 const FB = npmPack('football-badges@0.1.3', 'football-badges')
 const RB = npmPack('react-brasileirao-logos@1.0.4', 'react-brasileirao')
+const MLS = npmPack('mls-team-logos@1.6.0', 'mls-team-logos') // 🇺🇸 Orlando City (ISC)
+// 🌍 catálogo do npm `football-logos` (MIT): só a LISTA (país/slug/hash); a imagem mora em
+// assets.football-logos.cc — que a rede desta máquina NÃO alcança hoje (28/09). O script já
+// tenta: no dia em que o host for liberado, é só rodar de novo e os que faltam entram.
+const FLC = npmPack('football-logos@0.4.0', 'football-logos')
+const flIdx = new Map()
+for (const f of readdirSync(path.join(FLC, 'catalog/v1/countries'))) { const c = JSON.parse(readFileSync(path.join(FLC, 'catalog/v1/countries', f), 'utf8')).country; for (const [slug, cl] of Object.entries(c.clubs ?? {})) flIdx.set(`${c.slug}/${slug}`, cl.hash) }
+const flBaixa = (chave) => { const h = flIdx.get(chave); if (!h) return null; const [pais, slug] = chave.split('/'); const dst = path.join(FONTES, 'fl-' + slug + '.png'); if (existsSync(dst)) return dst
+  try { execSync(`curl -sSf -m 20 -o "${dst}" "https://assets.football-logos.cc/logos/${pais}/512x512/${slug}.${h}.png"`, { stdio: 'ignore' }); return dst } catch { return null } }
+if (!existsSync(path.join(MLS, 'node_modules'))) execSync(`ln -s "${path.resolve('node_modules')}" "${path.join(MLS, 'node_modules')}"`)
 // o pacote pede `react` de dentro da pasta dele: aponta pro React do próprio jogo
 if (!existsSync(path.join(RB, 'node_modules'))) execSync(`ln -s "${path.resolve('node_modules')}" "${path.join(RB, 'node_modules')}"`)
 
@@ -59,6 +70,8 @@ const rbSvg = code => { const m = req(path.join(RB, 'dist/Icons', `${code}.js`))
 // football-badges guarda por país: badges/<país>/<nome>.svg
 const fbSvgs = new Map()
 for (const pais of readdirSync(path.join(FB, 'badges'))) { const d = path.join(FB, 'badges', pais); if (statSync(d).isDirectory()) for (const f of readdirSync(d)) if (f.endsWith('.svg')) fbSvgs.set(f.slice(0, -4), path.join(d, f)) }
+const mlsSvg = code => { const m = req(path.join(MLS, 'dist/logos', `${code}.js`)); const C = m.default ?? Object.values(m).find(v => typeof v === 'function'); return renderToStaticMarkup(React.createElement(C, { size: 400, width: 400, height: 400 })) }
+const U = c => ({ svg: () => mlsSvg(c) }), W = c => ({ fl: c })
 const E = n => ({ png: n }), F = n => ({ svgFile: fbSvgs.get(n) ?? '', n }), R = c => ({ svg: () => rbSvg(c) })
 const MAPA = {
   // 🇧🇷
@@ -69,7 +82,15 @@ const MAPA = {
   'Athletico-PR': F('athletico-paranaense'), 'Coritiba': F('coritiba'), 'Goiás': R('goi'), 'Chapecoense': F('chapecoense'),
   'Bragantino': F('rb-bragantino'),
   // 🌎
-  'Boca Juniors': F('boca-juniors'), 'Barcelona SC': F('barcelona-sc'), 'LDU Quito': F('liga-de-quito'), 'Sporting Cristal': F('sporting-cristal'),
+  'Boca Juniors': F('boca-juniors'), 'Orlando City': U('orl'), 'Barcelona SC': F('barcelona-sc'), 'LDU Quito': F('liga-de-quito'), 'Sporting Cristal': F('sporting-cristal'),
+  // 🌍 football-logos.cc (baixa quando o host estiver liberado)
+  'Sport': W('brazil/sport-recife'), 'Santa Cruz': W('brazil/santa-cruz'), 'Náutico': W('brazil/nautico'), 'Ponte Preta': W('brazil/ponte-preta'),
+  'Bangu': W('brazil/bangu'), 'Blackburn': W('england/blackburn-rovers'), 'Stoke City': W('england/stoke-city'),
+  'Vélez Sarsfield': W('argentina/velez-sarsfield'), 'Atlético Nacional': W('colombia/atletico-nacional'), 'América de Cali': W('colombia/america-de-cali'),
+  'Alianza Lima': W('peru/alianza-lima'), 'U. de Chile': W('chile/universidad-de-chile'), 'América do México': W('mexico/club-america'),
+  'Cruz Azul': W('mexico/cruz-azul'), 'Pumas': W('mexico/unam-pumas'), 'Tigres': W('mexico/tigres-uanl'), 'Toluca': W('mexico/toluca'),
+  'Necaxa': W('mexico/necaxa'), 'Al-Hilal': W('saudi-arabia/al-hilal'), 'Al-Nassr': W('saudi-arabia/al-nassr'), 'Al Ahly': W('egypt/al-ahly'),
+  'Pohang Steelers': W('south-korea/pohang-steelers'), 'Suwon': W('south-korea/suwon-bluewings'), 'Yokohama F. Marinos': W('japan/yokohama-f-marinos'),
   // 🇪🇺
   'Real Madrid': E('Real Madrid'), 'Barcelona': E('FC Barcelona'), 'Atlético de Madrid': E('Atlético de Madrid'), 'Sevilla': E('Sevilla FC'),
   'Valencia': E('Valencia CF'), 'Villarreal': E('Villarreal CF'), 'Real Betis': E('Real Betis Balompié'), 'Real Sociedad': E('Real Sociedad'),
@@ -96,7 +117,11 @@ const TMP = path.join(FONTES, 'png'); mkdirSync(TMP, { recursive: true })
 const indice = {}, falta = []
 for (const [chave, src] of Object.entries(MAPA)) {
   const png = path.join(TMP, slug(chave) + '.png')
-  if (src.png) {
+  if (src.fl) {
+    const baixado = flBaixa(src.fl)
+    if (!baixado) { falta.push(chave); continue }
+    writeFileSync(png, readFileSync(baixado))
+  } else if (src.png) {
     const achado = pngs.get(src.png)
     if (!achado) { falta.push(chave); continue }
     writeFileSync(png, readFileSync(achado.p))
