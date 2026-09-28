@@ -2450,7 +2450,45 @@ const L35_EU_ATA: C[] = [
   { name: "Luis Díaz", club: "Liverpool", year: 2023, fame: 4, lo: 81, hi: 88, bio: "Ponta colombiano driblador do Liverpool — artilheiro da Copa América de 2021 ao lado do Messi e campeão inglês em 2025." },
   { name: "José Altafini", club: "Milan", year: 1963, fame: 4, lo: 83, hi: 89, bio: "O \"Mazzola\" campeão do mundo com o Brasil em 1958 que virou ídolo na Itália — fez os dois gols do Milan na final da Copa dos Campeões de 1963." },
 ]
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA] }
+
+// ─── 🧱 LOTE 36 (28/09): 23 famosos que não estavam em baralho nenhum ─────────
+// Pedido do Diego: *"jogadores MT famosos que não estão em baralho nenhum"*, escolhidos
+// pra fechar setor de clube no Leilão de Clubes (16) + 7 bônus. Todos no baralho EUROPA
+// (o país do clube manda). Conferidos pelo nome E pelo sobrenome nos 3 baralhos.
+// ⚠️ Robbie Keane (Tottenham) NÃO é o Roy Keane (Man United, que já estava no jogo).
+const L36_EU_LAT: C[] = [
+  { name: "Vincent Candela", club: "Roma", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Lateral francês campeão do mundo em 98 e do Scudetto da Roma de 2001." },
+  { name: "Robin Gosens", club: "Atalanta", year: 2020, fame: 3, lo: 75, hi: 84, bio: "Ala alemão que chegava na área como centroavante na Atalanta de Gasperini." },
+  { name: "Amedeo Carboni", club: "Valencia", year: 2001, fame: 3, lo: 74, hi: 83, bio: "Lateral-esquerdo italiano do Valencia de duas finais seguidas de Champions." },
+  { name: "Djibril Sidibé", club: "Monaco", year: 2017, fame: 3, lo: 74, hi: 83, bio: "Lateral-direito do Monaco campeão francês de 2017, o time do Mbappé." },
+  { name: "Christian Fuchs", club: "Leicester", year: 2016, fame: 3, lo: 73, hi: 82, bio: "Lateral austríaco do Leicester campeão inglês de 2016, o maior milagre da Premier." },
+  { name: "Alex Sandro", club: "Juventus", year: 2018, fame: 3, lo: 77, hi: 85, bio: "Lateral-esquerdo brasileiro da Juventus que empilhava Scudetto atrás de Scudetto." },
+]
+const L36_EU_ZAG: C[] = [
+  { name: "Jürgen Kohler", club: "Dortmund", year: 1997, fame: 4, lo: 82, hi: 88, bio: "Zagueiro campeão do mundo em 90 e da Champions de 97 com o Dortmund." },
+  { name: "Kostas Manolas", club: "Roma", year: 2018, fame: 3, lo: 75, hi: 84, bio: "Zagueiro grego do gol de cabeça que eliminou o Barcelona na Champions de 2018." },
+]
+const L36_EU_MEI: C[] = [
+  { name: "Marek Hamšík", club: "Napoli", year: 2017, fame: 4, lo: 82, hi: 88, bio: "O capitão do moicano: maior assistente e símbolo do Napoli por 12 temporadas." },
+  { name: "Santi Cazorla", club: "Villarreal", year: 2008, fame: 4, lo: 81, hi: 88, bio: "Meia ambidestro do Villarreal vice-campeão espanhol, antes de brilhar no Arsenal." },
+  { name: "Mahamadou Diarra", club: "Lyon", year: 2006, fame: 3, lo: 76, hi: 85, bio: "Volante malinês do Lyon que ganhava o Francês todo ano, depois foi pro Real Madrid." },
+]
+const L36_EU_ATA: C[] = [
+  { name: "Ciro Immobile", club: "Lazio", year: 2020, fame: 4, lo: 83, hi: 89, bio: "Chuteira de Ouro de 2020 com 36 gols pela Lazio — maior artilheiro da história do clube." },
+  { name: "Klaas-Jan Huntelaar", club: "Schalke", year: 2012, fame: 4, lo: 81, hi: 88, bio: "O Caçador holandês, artilheiro da Bundesliga de 2012 com o Schalke." },
+  { name: "Alexander Isak", club: "Newcastle", year: 2025, fame: 4, lo: 83, hi: 89, bio: "Centroavante sueco que deu ao Newcastle a Copa da Liga de 2025, o primeiro título em décadas." },
+  { name: "Robbie Keane", club: "Tottenham", year: 2008, fame: 3, lo: 77, hi: 85, bio: "Atacante irlandês da cambalhota, artilheiro do Tottenham campeão da Copa da Liga de 2008." },
+  { name: "Aleksandar Mitrović", club: "Fulham", year: 2022, fame: 3, lo: 76, hi: 85, bio: "Centroavante sérvio que fez 43 gols numa Championship e levou o Fulham de volta." },
+  { name: "Victor Boniface", club: "Leverkusen", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Atacante nigeriano do Leverkusen invicto e campeão alemão de 2024." },
+  { name: "Jamie Vardy", club: "Leicester", year: 2016, fame: 4, lo: 82, hi: 88, bio: "Da fábrica à Premier: gol em 11 jogos seguidos no Leicester campeão de 2016." },
+  { name: "Lorenzo Insigne", club: "Napoli", year: 2017, fame: 4, lo: 82, hi: 88, bio: "O 'Magnífico' de Nápoles: o chute colocado de fora da área era marca registrada." },
+  { name: "Dries Mertens", club: "Napoli", year: 2017, fame: 4, lo: 81, hi: 88, bio: "O belga virou centroavante no Napoli e passou o Maradona como maior artilheiro do clube." },
+  { name: "Jadon Sancho", club: "Dortmund", year: 2020, fame: 4, lo: 81, hi: 88, bio: "Ponta inglês do Dortmund que empilhava gols e assistências antes dos 20 anos." },
+  { name: "Douglas Costa", club: "Bayern", year: 2016, fame: 4, lo: 81, hi: 88, bio: "Ponta brasileiro canhoto e veloz do Bayern de Guardiola." },
+  { name: "Giuseppe Signori", club: "Lazio", year: 1993, fame: 4, lo: 82, hi: 88, bio: "Canhoto artilheiro da Série A pela Lazio em 1993, 1994 e 1996." },
+]
+
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
