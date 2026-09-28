@@ -73,16 +73,19 @@ await p.screenshot({ path: `${SAIDA}/3-toque.png` })
 ok(/entrar assim também/i.test(await p.evaluate(() => document.body.innerText)), 'tocar no escudo mostra o convite pro Batismo')
 // 6. 📧 28/09 (ordem do Diego: "é pelo e-mail de batismo e N pelo nome do time"): cada linha
 //    REAL de `esc_socios` (o que o servidor devolve pela conta) tem que achar o clube de batismo;
-//    assinatura (Futpoint, Marinheiros) nunca ganha.
+//    sócio por assinatura com clube (Futpoint, Marinheiros) também ganha desde 28/09 ("Libera");
+//    conta de sócio SEM clube próprio nunca ganha.
 const SOCIOS = JSON.parse(readFileSync(new URL('./gala-socios.json', import.meta.url), 'utf8'))
 const conta = await p.evaluate(async socios => {
   const G = await import('/src/escalacao/entrada-gala.tsx')
   return socios.map(s => ({ ...s, clube: G.clubeDaConta({ escudo: s.escudo_time, mascote: s.mascote_key }) }))
 }, SOCIOS)
 const faltam = conta.filter(s => s.origem === 'batismo' && !s.clube).map(s => s.escudo_time)
-const indevidos = conta.filter(s => s.origem !== 'batismo' && s.clube).map(s => s.escudo_time)
+const socios = conta.filter(s => s.origem !== 'batismo' && s.escudo_time)
+const indevidos = conta.filter(s => !s.escudo_time && !s.mascote_key && s.clube).map(s => s.clube)
 ok(!faltam.length, `${conta.filter(s => s.origem === 'batismo').length} donos de batismo ganham gala pela conta${faltam.length ? ' — faltam: ' + faltam.join(', ') : ''}`)
-ok(!indevidos.length, `assinatura não ganha gala${indevidos.length ? ' — indevidos: ' + indevidos.join(', ') : ''}`)
+ok(socios.every(s => s.clube), `sócio com clube próprio ganha gala (${socios.map(s => s.escudo_time + ' → ' + s.clube).join(' · ')})`)
+ok(!indevidos.length, `sócio sem clube não ganha gala${indevidos.length ? ' — indevidos: ' + indevidos.join(', ') : ''}`)
 const acha = n => conta.find(s => s.escudo_time === n)?.clube
 ok(acha('Meia na Canela de Desportos') === 'Jurubeba FC' && acha('Cruzeiro de Berretinho') === 'Cruzeiro de Berretinho', `Jurubeba (nome novo) → ${acha('Meia na Canela de Desportos')} · Berretinho → ${acha('Cruzeiro de Berretinho')}`)
 await b.close()

@@ -48,12 +48,14 @@ export const GALA_MS = 5600
 // assento → conta → `esc_socios` e devolve só assento → mascote/escudo do batismo (o e-mail
 // nunca sai do servidor). Aqui só traduzimos isso pro clube de batismo daquela conta.
 const BATISMO_DA_MASCOTE = new Map<string, string>()
-for (const b of BATISMOS) if (b.tipo === 'batismo') { const k = CARIMBO_GOL[b.clube]; if (k && !BATISMO_DA_MASCOTE.has(k)) BATISMO_DA_MASCOTE.set(k, b.clube) }
-/** o clube de BATISMO de uma CONTA (pelo que o servidor devolveu da `esc_socios`); `null` = não é dono de batismo */
+for (const b of BATISMOS) { const k = CARIMBO_GOL[b.clube]; if (k && !BATISMO_DA_MASCOTE.has(k)) BATISMO_DA_MASCOTE.set(k, b.clube) }
+/** o clube de BATISMO (ou de sócio com clube próprio) de uma CONTA (pelo que o servidor devolveu da `esc_socios`); `null` = não é dono de batismo */
 export function clubeDaConta(mimo: { mascote?: string | null; escudo?: string | null } | null | undefined): string | null {
   if (!mimo) return null
   const pelo = mimo.escudo ? batismoDe(newestTeamName(mimo.escudo)) : null
-  if (pelo) return pelo.tipo === 'batismo' ? pelo.clube : null
+  // 🟢 28/09 (Diego: "Libera"): sócio por ASSINATURA com clube próprio (Futpoint FC,
+  // Marinheiros AS) também entra de gala — continua valendo só pela conta, nunca pelo nome
+  if (pelo) return pelo.clube
   return mimo.mascote ? BATISMO_DA_MASCOTE.get(mimo.mascote) ?? null : null
 }
 /** @deprecated a gala não olha mais o NOME do time (regra do Diego, 28/09) — use `clubeDaConta` */

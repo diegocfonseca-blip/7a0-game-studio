@@ -6849,3 +6849,5 @@ Ordem do Diego: *"é pelo e-mail de batismo a entrada de gala e N pelo nome do t
 - 🔒 Trava: `npm run gala` confere as 61 linhas reais de `esc_socios`
   (`scripts/gala-socios.json`, sem e-mail). Batismo novo → acrescentar a linha lá.
 - ⚠️ Dono sem linha em `esc_socios` NÃO ganha gala — mais um motivo pro passo fixo do banco.
+- ✅ 28/09 (Diego: "Libera"): sócio por assinatura COM clube próprio (Futpoint FC, Marinheiros AS)
+  também ganha a gala — sempre pela conta. Sócio sem clube (linha sem escudo/mascote) continua sem.
