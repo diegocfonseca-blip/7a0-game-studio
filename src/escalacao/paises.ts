@@ -532,6 +532,7 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   "Roberto Ayala|Valencia|2002": "Argentina",
   "Carlos Marchena|Valencia|2004": "Espanha",
   "Adriano Correia|Sevilla|2008": "Brasil",
+  "Ayrton Lucas|Spartak Moscou|2021": "Brasil", // 28/09
   "Nélson Semedo|Benfica|2017": "Portugal",
   "Bacary Sagna|Arsenal|2011": "França",
   "John Arne Riise|Liverpool|2005": "Noruega",

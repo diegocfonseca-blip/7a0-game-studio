@@ -2376,6 +2376,7 @@ const L35_EU_GOL: C[] = [
   { name: "Rüştü Reçber", club: "Fenerbahçe", year: 2002, fame: 4, lo: 80, hi: 87, bio: "O goleiro das faixas pretas no rosto — pilar da Turquia 3ª colocada na Copa de 2002." },
 ]
 const L35_EU_LAT: C[] = [
+  { name: "Ayrton Lucas", club: "Spartak Moscou", year: 2021, fame: 2, lo: 64, hi: 80, bio: "Lateral-esquerdo brasileiro de arrancada forte, titular do Spartak Moscou antes de voltar pro Flamengo." }, // 28/09: saiu do Flamengo 2023, a pedido do Diego (bom jogador)
   { name: "Jorginho", club: "Leverkusen", year: 1990, fame: 3, lo: 78, hi: 86, bio: "Lateral-direito do tetra, na fase alemã: três temporadas no Bayer Leverkusen antes do Bayern." },
   { name: "Adriano Correia", club: "Sevilla", year: 2008, fame: 3, lo: 75, hi: 84, bio: "Lateral brasileiro do Sevilla campeão da Copa da UEFA — depois seguiu pro Barcelona." },
   { name: "Nélson Semedo", club: "Benfica", year: 2017, fame: 3, lo: 75, hi: 84, promessa: true, bio: "Lateral-direito veloz do Benfica campeão português, que saiu de lá direto pro Barcelona." },
