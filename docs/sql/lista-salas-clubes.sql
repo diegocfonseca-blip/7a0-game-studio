@@ -42,16 +42,19 @@ begin
   new.ls_chat   := new.game_state->>'chatOff';
   new.ls_duplas := new.game_state->>'duplasMode';
   new.ls_holandes := new.game_state->>'holandes';   -- 🐊 20/09
-  new.ls_clubes   := new.game_state->>'clubes';     -- 🧱 28/09
+  new.ls_clubes   := coalesce(new.game_state->>'clubes', new.game_state->>'leilaoClubes'); -- 🧱 28/09 (o 2º nome pega dono com versão velha, que apagava o 'clubes' no save)
   return new;
 end $function$;
 
 update public.game_rooms
-   set ls_clubes = game_state->>'clubes'
- where created_at > now() - interval '6 hours'
-   and ls_clubes is distinct from (game_state->>'clubes');
+   set ls_clubes = coalesce(game_state->>'clubes', game_state->>'leilaoClubes')
+ where created_at > now() - interval '12 hours'
+   and ls_clubes is distinct from coalesce(game_state->>'clubes', game_state->>'leilaoClubes');
 
 notify pgrst, 'reload schema';
 
 select count(*) as salas, count(*) filter (where ls_clubes = 'true') as clubes
   from public.game_rooms where created_at > now() - interval '6 hours';
+
+-- ✅ RODADO EM 28/09/2026 (~22h40). Na 1ª versão só lia 'clubes'; 4 salas de dono com versão velha
+--    ficaram sem selo, aí entrou o `leilaoClubes` de reserva. Resultado: 17 salas de Clubes nas últimas 12h.

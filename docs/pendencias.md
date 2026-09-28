@@ -58,8 +58,8 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   Vélez Sarsfield, "Guadalajara" → Chivas. No modo Clubes o mesmo clube escrito de dois jeitos virava 2 pacotes,
   e "América" parecia o América-RJ. `CLUB_GRAFIA` guarda o nome velho pros saves antigos.
   ❓ Achado junto: **Evandro Roncatto (Guarani 2004) está no baralho EUROPA** — Guarani é clube brasileiro. Perguntado ao Diego.
-- 🏷️ **Selo 🧱 CLUBES na lista de salas** (28/09): código no ar; o BANCO precisa de `docs/sql/lista-salas-clubes.sql`
-  (coluna `ls_clubes` no gatilho das colunas magras). Até rodar, a lista segue normal, só sem o selo.
+- 🏷️ **Selo 🧱 CLUBES na lista de salas** (28/09): ✅ código no ar + banco rodado (`docs/sql/lista-salas-clubes.sql`).
+  Quem abriu o jogo ANTES do banco ganhar a coluna precisa recarregar (a lista desiste da coluna na sessão).
 - 🎬 **Vídeo de lançamento** (reels 9:16, ~39s): `node scripts/video-clubes-reels.mjs`.
 - 🟢 **ONLINE LIBERADO (28/09, ordem dele)**: `CLUBES_GERAL = true` — salas ⚡ rápidas e 🏆 Minhas Ligas.
 - 🐊 **Clubes + Tocaia**: tipo (Jogador/Clubes) e jeito do lance (Envelope/Tocaia) são escolhas
