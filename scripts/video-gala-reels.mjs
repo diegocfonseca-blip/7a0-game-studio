@@ -14,8 +14,8 @@
 //   0,0– 4,6   👑 chegou a ENTRADA DE GALA
 //   4,6– 9,6   onde: sala online, enquanto ela enche → o Neymarzetti chegou
 //   9,6–15,6   🎬 a gala do Neymarzetti (tela inteira, a sala toda vê)
-//  15,6–21,6   🎬 Raiva Cajuri FC — chegou mais de um? um de cada vez
-//  21,6–27,6   🎬 Leite de Verdade FC — cada clube com a sua mascote
+//  15,6–21,6   🎬 Murriz FC — chegou mais de um? um de cada vez
+//  21,6–27,6   🎬 Internacional de Madrid — cada clube com a sua mascote
 //  27,6–33,6   🎬 Meia na Canela (ex-Jurubeba) — trocou o nome, a gala vai junto
 //  33,6–38,6   e fica DOURADO na lista, com a mascote pulando
 //  38,6–43,0   pra quem: só batismo, pela conta · não atrasa nada
@@ -40,8 +40,8 @@ const GALA_S = 5.6
 
 const CLUBES = {
   ney: { nome: 'Neymarzetti', curto: 'NEYMARZETTI', esc: art('neymarzetti-escudo'), mas: art('neymarzetti-mascote'), tec: 'Diego' },
-  raiva: { nome: 'Raiva Cajuri FC', curto: 'RAIVA CAJURI', esc: art('raivacajuri-escudo'), mas: art('raivacajuri-mascote') },
-  leite: { nome: 'Leite de Verdade FC', curto: 'LEITE DE VERDADE', esc: art('leitedeverdade-escudo'), mas: art('leitedeverdade-mascote') },
+  murriz: { nome: 'Murriz FC', curto: 'MURRIZ', esc: art('murriz-escudo'), mas: art('murriz-mascote') },
+  inter: { nome: 'Internacional de Madrid', curto: 'INTERNACIONAL', esc: art('internacional-madrid-escudo'), mas: art('internacional-madrid-mascote') },
   meia: { nome: 'Meia na Canela de Desportos', curto: 'MEIA NA CANELA', esc: art('jurubeba-escudo'), mas: art('jurubeba-mascote') },
 }
 
@@ -145,11 +145,11 @@ ${cena(4.6, 9.6, `
 <!-- ③ Neymarzetti -->
 ${cena(9.6, 15.6, gala(CLUBES.ney, 9.7, pill('a sala inteira vê 👀', GOLD, INK, 34)), 'padding:0')}
 
-<!-- ④ Raiva Cajuri -->
-${cena(15.6, 21.6, gala(CLUBES.raiva, 15.7, pill('chegou mais de um? um de cada vez', GOLD, INK, 32)), 'padding:0')}
+<!-- ④ Murriz -->
+${cena(15.6, 21.6, gala(CLUBES.murriz, 15.7, pill('chegou mais de um? um de cada vez', GOLD, INK, 32)), 'padding:0')}
 
-<!-- ④b Leite de Verdade -->
-${cena(21.6, 27.6, gala(CLUBES.leite, 21.7, pill('cada clube com a sua mascote', GOLD, INK, 32)), 'padding:0')}
+<!-- ④b Internacional de Madrid -->
+${cena(21.6, 27.6, gala(CLUBES.inter, 21.7, pill('cada clube com a sua mascote', GOLD, INK, 32)), 'padding:0')}
 
 <!-- ⑤ Meia na Canela (ex-Jurubeba) -->
 ${cena(27.6, 33.6, gala(CLUBES.meia, 27.7, pill('trocou o nome do clube? a gala vai junto', GOLD, INK, 30)), 'padding:0')}
@@ -158,7 +158,7 @@ ${cena(27.6, 33.6, gala(CLUBES.meia, 27.7, pill('trocou o nome do clube? a gala 
 ${cena(33.6, 38.6, `
   <div style="animation:sobe .4s 33.75s both">${pill('✨ e fica assim na lista', INK, GOLD, 34)}</div>
   <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin:24px 0 34px;animation:sobe .45s 33.95s both">linha <span style="color:#E8A200">dourada</span><br>e a mascote pulando</p>
-  <div style="animation:sobe .5s 34.2s both">${sala([['P', 'Pastel United'], ['T', 'Tocaia do Zé']], [CLUBES.ney, CLUBES.raiva, CLUBES.leite, CLUBES.meia], 34.4)}</div>`)}
+  <div style="animation:sobe .5s 34.2s both">${sala([['P', 'Pastel United'], ['T', 'Tocaia do Zé']], [CLUBES.ney, CLUBES.murriz, CLUBES.inter, CLUBES.meia], 34.4)}</div>`)}
 
 <!-- ⑦ pra quem -->
 ${cena(38.6, 43, `
