@@ -12,6 +12,9 @@ Sem som (martelo/torcida seguem as regras de som dele). Batismo = `batismoDe(nom
 `tipo: 'batismo'` (sócio não entra). Trava: `npm run gala`. ↩️ Desligar = tirar o
 `useEntradaGala`/`gala` do lobby (3 linhas).
 💡 Próximos passos possíveis (não combinados): som da torcida, dono renomeado seguir pelo e-mail.
+💭 Ideia do Diego pra DEPOIS (28/09): *"entradas individuais, cada um com a sua… tipo Neymarzetti, que a
+mascote é jogador"* — entrada própria por batismo, no jeito da mascote (igual o `FESTA_JEITO`/`CARIMBO_ANIM`
+do gol). Ainda não combinado o quê nem quando.
 
 ## 28/09/2026 — 📣 Giro um pouquinho mais rápido de novo ✅ NO AR
 
