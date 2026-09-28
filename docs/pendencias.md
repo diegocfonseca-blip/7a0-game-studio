@@ -1,4 +1,4 @@
-## 28/09/2026 — 📣 Giro um pouquinho mais rápido de novo ⏳ NO BRANCH
+## 28/09/2026 — 📣 Giro um pouquinho mais rápido de novo ✅ NO AR
 
 Diego: *"giro da rodada deixe só um pouquinho mais rápido"*. `GiroDaRodada`: 0,145 → 0,13 s por
 letra, piso 16 → 14 s (~10% mais rápido). ↩️ Voltar = os números antigos.
