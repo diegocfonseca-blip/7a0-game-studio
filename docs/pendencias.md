@@ -51,6 +51,8 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   pelas duas estradas (rádio + `room_acoes`), o host fecha no tempo (+4s de folga pro "o que eu já
   marquei" dos convidados chegar) e as escolhas não viajam no pacote do estado. Testado no motor com
   3 e 10 pessoas (todos com 11, sem repetido, sem fake); **ainda não testado com 2 aparelhos de verdade.**
+- 🏷️ **Selo 🧱 CLUBES na lista de salas** (28/09): código no ar; o BANCO precisa de `docs/sql/lista-salas-clubes.sql`
+  (coluna `ls_clubes` no gatilho das colunas magras). Até rodar, a lista segue normal, só sem o selo.
 - 🎬 **Vídeo de lançamento** (reels 9:16, ~39s): `node scripts/video-clubes-reels.mjs`.
 - 🟢 **ONLINE LIBERADO (28/09, ordem dele)**: `CLUBES_GERAL = true` — salas ⚡ rápidas e 🏆 Minhas Ligas.
 - 🐊 **Clubes + Tocaia**: tipo (Jogador/Clubes) e jeito do lance (Envelope/Tocaia) são escolhas

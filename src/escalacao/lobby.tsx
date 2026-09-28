@@ -627,6 +627,7 @@ function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: str
 // ver `fetchOpenRooms`. Fora do componente de propósito: é estado do BANCO, não
 // da tela, e não pode se perder a cada render.
 let semColunaPregao = false
+let semColunaClubes = false // 🧱 idem, pro selo do Leilão de Clubes (ls_clubes)
 
 export function EscLobby() {
   const privateOnline = ONLINE_VISUAL_RELEASED
@@ -1825,16 +1826,23 @@ export function EscLobby() {
       .order('created_at', { ascending: false })
       .limit(50)
     let rooms: unknown[] | null = null
-    if (!semColunaPregao) {
+    // 🧱 28/09: + `ls_clubes` (selo 🧱 CLUBES), num degrau PRÓPRIO da rede: se só ela
+    // faltar no banco, cai pra consulta com a Tocaia — o selo 🐊 não some junto.
+    if (!semColunaClubes) {
+      const r0 = await busca(`${COLS}, gholandes:ls_holandes, gclubes:ls_clubes`)
+      if (r0.error) semColunaClubes = true
+      else rooms = r0.data as unknown[]
+    }
+    if (rooms === null && !semColunaPregao) {
       const r1 = await busca(`${COLS}, gholandes:ls_holandes`)
       if (r1.error) semColunaPregao = true   // banco ainda sem a coluna: não tenta de novo nesta sessão
       else rooms = r1.data as unknown[]
     }
     if (rooms === null) rooms = ((await busca(COLS)).data ?? []) as unknown[]
-    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null }
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true' } as GS,
+      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: r.gclubes === 'true' || undefined } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -3461,6 +3469,11 @@ export function EscLobby() {
                         bate o olho na lista tem que saber antes de entrar. */}
                     {mundoRoom && (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GOLD, color: '#000', ...OSWALD }} title={tr('Copa do Mundo: cada um pega uma seleção e convoca 11 — sem leilão', 'World Cup: everyone picks a nation and calls up 11 — no auction')}>{tr('🌐 COPA', '🌐 CUP')}</span>
+                    )}
+                    {/* 🧱 LEILÃO DE CLUBES (28/09, Diego: "tem selo pra quem joga escolher a sala?").
+                        Só a sala de Clubes ganha selo; Jogador é o padrão e fica como sempre. */}
+                    {temPregao && r.game_state?.clubes && (
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: INK, color: GOLD, ...OSWALD }} title={tr('Leilão de Clubes: cada lote é um setor de um clube, e no fim cada um convoca quem joga', 'Club Auction: each lot is a club sector, and at the end everyone calls up who plays')}>{tr('🧱 CLUBES', '🧱 CLUBS')}</span>
                     )}
                     {temPregao && pregaoLido && (holandesRoom ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Tocaia: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Ambush: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()}`}</span>
