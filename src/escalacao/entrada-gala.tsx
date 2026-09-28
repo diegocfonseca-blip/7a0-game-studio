@@ -29,7 +29,7 @@ import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import type React from 'react'
 import { createPortal } from 'react-dom'
 import { batismoDe } from './batismos'
-import { carimboDoTime } from './mascotes'
+import { mascoteInteiraDoTime } from './mascotes'
 import { Escudo, nomeLimpo } from './escudos'
 import { newestTeamName } from './data'
 import { MascoteMini } from './mascote-atravessa'
@@ -111,7 +111,7 @@ const CSS = `
 export function GalaEstilo() { return <style>{CSS}</style> }
 
 export function EntradaGalaShow({ clube, chave }: { clube: string; chave: string }) {
-  const art = carimboDoTime(clube)
+  const art = mascoteInteiraDoTime(clube)
   return createPortal(
     <div key={chave} className="gala-show" aria-hidden>
       <GalaEstilo />
@@ -168,7 +168,7 @@ export function GalaEscudoBotao({ clube, souEu }: { clube: string; souEu: boolea
 
 /** a mascote pequena pulando na ponta da linha (some se o clube não tem mascote) */
 export function GalaMascoteMini({ clube }: { clube: string }) {
-  const art = carimboDoTime(clube)
+  const art = mascoteInteiraDoTime(clube)
   if (!art) return null
   return <span className="gala-pula" style={{ margin: '-6px 0 -8px' }}><MascoteMini art={art} alt={42} /></span>
 }

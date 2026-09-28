@@ -1235,6 +1235,16 @@ export const carimboDoTime = (time: string): ReactNode | null => {
   return MASCOTES[k] ?? null
 }
 
+// 👑 a mascote INTEIRA de um clube (sem o recorte de busto do carimbo de gol) —
+// é a que a Entrada de Gala e a linha dourada da sala usam (28/09: no busto o
+// Neymarzetti saía cortado, só a cabeça). `null` = clube sem batismo/mascote.
+export const mascoteInteiraDoTime = (time: string): ReactNode | null => {
+  const k = carimboKey(time)
+  if (!k) return null
+  if (k === 'sete_seven') return SETE_SEVEN
+  return MASCOTES[k] ?? null
+}
+
 // ─── 🎬 CADA MASCOTE COMEMORA DO SEU JEITO (Diego, 17/08) ───────────────────
 // Palavras dele: *"na comemoração do gol cada mascote tem que ter suas
 // individualidades. Se é águia tem que ser algo relacionado a águia. Cada um é

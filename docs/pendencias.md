@@ -12,6 +12,8 @@ Sem som (martelo/torcida seguem as regras de som dele). Batismo = `batismoDe(nom
 `tipo: 'batismo'` (sócio não entra). Trava: `npm run gala`. ↩️ Desligar = tirar o
 `useEntradaGala`/`gala` do lobby (3 linhas).
 💡 Próximos passos possíveis (não combinados): som da torcida, dono renomeado seguir pelo e-mail.
+🩹 28/09 (print do Diego): a mascote saía CORTADA na linha dourada e no show — eu usava a arte do
+carimbo de gol, que é um BUSTO recortado. Agora é `mascoteInteiraDoTime` (mascotes.tsx), a arte inteira.
 💭 Ideia do Diego pra DEPOIS (28/09): *"entradas individuais, cada um com a sua… tipo Neymarzetti, que a
 mascote é jogador"* — entrada própria por batismo, no jeito da mascote (igual o `FESTA_JEITO`/`CARIMBO_ANIM`
 do gol). Ainda não combinado o quê nem quando.
