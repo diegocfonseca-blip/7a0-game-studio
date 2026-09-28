@@ -6837,3 +6837,15 @@ sobe pra 27, sobra mais gente própria e **cai o motivo de pegar emprestado**:
 **NADA foi codado.** Esperando ele escolher. Se ele pedir o caminho A, o passo seguinte
 é MEDIR o efeito no tamanho da mesa do leilão e na folha salarial ANTES de mexer.
 
+
+## 👑📧 Entrada de Gala pela CONTA do dono (28/09)
+Ordem do Diego: *"é pelo e-mail de batismo a entrada de gala e N pelo nome do time"*.
+- ✅ A sala pergunta ao servidor (`esc_mimos_sala`) de quem é cada assento e acha o clube
+  pelo `esc_socios` da conta (escudo_time → mascote_key). Nome digitado não vale mais:
+  quem escreve "Neymarzetti" sem ser o dono não ganha gala; o dono que renomeou
+  (Jurubeba → Meia na Canela) ganha.
+- ✅ Eros FC estava como `socio` em `batismos.ts` por engano (no banco e no `apoio.tsx` é
+  batismo nº 40) — corrigido.
+- 🔒 Trava: `npm run gala` confere as 61 linhas reais de `esc_socios`
+  (`scripts/gala-socios.json`, sem e-mail). Batismo novo → acrescentar a linha lá.
+- ⚠️ Dono sem linha em `esc_socios` NÃO ganha gala — mais um motivo pro passo fixo do banco.

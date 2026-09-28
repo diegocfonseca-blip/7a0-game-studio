@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
 import { MascoteAtravessa, MascoteMini } from './mascote-atravessa' // 🐊 o bicho atravessa a sala de espera também (25/09)
-import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMascoteMini, clubeDeGala } from './entrada-gala' // 👑 entrada de gala do batismo (28/09)
+import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMascoteMini, clubeDaConta } from './entrada-gala' // 👑 entrada de gala do batismo (28/09)
 import { useEsc, listAllCareers, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, type EmoteEvent } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
@@ -1118,7 +1118,31 @@ export function EscLobby() {
 
   // 👑 ENTRADA DE GALA (28/09): dono de batismo que CHEGA na sala de espera ganha
   // holofote, telão e mascote na tela de todo mundo (só futebol, só sala de espera).
-  const galaAgora = useEntradaGala(phase === 'waiting' && getSport() !== 'basquete' ? room?.id : null, players, user?.id)
+  // 📧 E É PELA CONTA (e-mail do batismo), NUNCA PELO NOME DO TIME (Diego, 28/09). O servidor
+  // (`esc_mimos_sala`) diz o mimo de cada assento; aqui vira conta → clube de batismo.
+  const galaOn = phase === 'waiting' && getSport() !== 'basquete' && !!room?.id
+  const assentosGala = players.map(p => `${p.player_index}:${p.user_id}`).join('|')
+  const [galaDaConta, setGalaDaConta] = useState<{ chave: string; mapa: Map<string, string> } | null>(null)
+  useEffect(() => {
+    if (!galaOn || !room?.id || !players.length) return
+    let vivo = true
+    const chave = `${room.id}|${assentosGala}`
+    const contaDoAssento = new Map(players.map(p => [p.player_index, p.user_id]))
+    supabase.rpc('esc_mimos_sala', { p_room: room.id }).then(({ data }) => {
+      if (!vivo) return
+      const mapa = new Map<string, string>()
+      for (const r of (Array.isArray(data) ? data : []) as { player_index: number; mascote_key: string | null; escudo_time: string | null }[]) {
+        const uid = contaDoAssento.get(r.player_index)
+        const clube = uid ? clubeDaConta({ mascote: r.mascote_key, escudo: r.escudo_time }) : null
+        if (uid && clube) mapa.set(uid, clube)
+      }
+      setGalaDaConta({ chave, mapa })
+    }, () => { if (vivo) setGalaDaConta({ chave, mapa: new Map() }) }) // sem rede: ninguém ganha gala, nada quebra
+    return () => { vivo = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [galaOn, room?.id, assentosGala])
+  const galaPronta = galaDaConta && room?.id && galaDaConta.chave === `${room.id}|${assentosGala}` ? galaDaConta.mapa : null
+  const galaAgora = useEntradaGala(galaOn ? room?.id : null, players, user?.id, galaPronta)
 
   async function fetchPlayers(roomId: string) {
     const { data } = await supabase.from('room_players').select('*').eq('room_id', roomId).order('player_index')
@@ -4022,7 +4046,7 @@ export function EscLobby() {
             const pk = perkFromName(p.manager_name)
             // 👑 dono de batismo: linha DOURADA, escudo no lugar da bolinha e a mascote
             // pulando na ponta (fora do modo duplas, que tem a linha própria dele)
-            const gala = !duplasOn && getSport() !== 'basquete' ? clubeDeGala(p.manager_name) : null
+            const gala = !duplasOn && getSport() !== 'basquete' ? (galaDaConta?.mapa.get(p.user_id) ?? null) : null // 📧 pela CONTA, nunca pelo nome
             return (
             <div key={p.user_id} className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
               <div className="flex items-center gap-3" style={gala ? { position: 'relative', zIndex: 1 } : undefined}>

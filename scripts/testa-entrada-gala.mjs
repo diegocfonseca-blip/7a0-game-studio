@@ -9,7 +9,7 @@
 // uso: node scripts/testa-entrada-gala.mjs [--porta 5281]
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i > 0 && process.argv[i + 1] ? process.argv[i + 1] : d }
 const PORTA = arg('porta', '5281'), SAIDA = arg('saida', '/tmp/entrada-gala')
 mkdirSync(SAIDA, { recursive: true })
@@ -32,18 +32,22 @@ await p.evaluate(async () => {
       { user_id: 'a', manager_name: 'Fabulous EC 👑' }, { user_id: 'b', manager_name: 'Neymarzetti FC' }, { user_id: 'eu', manager_name: 'Meu Time Qualquer' },
     ])
     window.__set = setPlayers
-    const atual = G.useEntradaGala('SALA1', players, 'eu')
+    // 📧 a gala vem da CONTA (e-mail do batismo), nunca do nome digitado: o mapa imita o
+    // que o servidor (`esc_mimos_sala`) devolve pra cada assento
+    const contas = { a: 'Fabulous EC', b: 'Neymarzetti', c: 'Neymarzetti', c2: 'Al Takhadao FC', e: 'Fabulous EC' }
+    const mapa = React.useMemo(() => new Map(players.filter(pl => contas[pl.user_id]).map(pl => [pl.user_id, contas[pl.user_id]])), [players])
+    const atual = G.useEntradaGala('SALA1', players, 'eu', mapa)
     React.useEffect(() => { if (atual) window.__log.push(atual.clube) }, [atual])
     const e = React.createElement
     return e('div', { style: { padding: 16 } },
       e(G.GalaEstilo),
       e('h2', { style: { fontFamily: 'Oswald' } }, 'TÉCNICOS NA SALA'),
-      ...players.map(pl => { const gala = G.clubeDeGala(pl.manager_name); return e('div', { key: pl.user_id, className: gala ? 'gala-linha' : '', style: { margin: '6px 0', padding: gala ? undefined : '8px', border: gala ? undefined : '2px solid #000', borderRadius: 12 } },
+      ...players.map(pl => { const gala = mapa.get(pl.user_id) ?? null; return e('div', { key: pl.user_id, className: gala ? 'gala-linha' : '', style: { margin: '6px 0', padding: gala ? undefined : '8px', border: gala ? undefined : '2px solid #000', borderRadius: 12 } },
         e('div', { style: { display: 'flex', alignItems: 'center', gap: 12, position: 'relative', zIndex: 1 } },
           gala ? e(G.GalaEscudoBotao, { clube: gala, souEu: pl.user_id === 'eu' }) : e('b', null, pl.manager_name[0]),
           e('b', { style: { flex: 1, fontFamily: 'Oswald' } }, pl.manager_name),
           gala ? e(G.GalaMascoteMini, { clube: gala }) : null)) }),
-      atual ? e(G.EntradaGalaShow, { key: atual.uid, chave: atual.uid, clube: atual.clube }) : null)
+      atual ? e(G.EntradaGalaShow, { key: atual.uid, chave: atual.uid, clube: atual.clube, nome: atual.nome }) : null)
   }
   createRoot(document.body.appendChild(document.createElement('div'))).render(React.createElement(Harness))
   await new Promise(r => setTimeout(r, 400))
@@ -51,7 +55,7 @@ await p.evaluate(async () => {
 const erros = []; const ok = (c, m) => { console.log(`   ${c ? '✅' : '❌'} ${m}`); if (!c) erros.push(m) }
 await p.waitForTimeout(600)
 ok((await p.evaluate(() => window.__log.length)) === 0, 'quem já estava na sala (Fabulous) não ganha entrada quando eu abro')
-await p.evaluate(() => window.__set(ps => [...ps, { user_id: 'c', manager_name: 'Neymarzetti 👑🖊️' }, { user_id: 'c2', manager_name: 'Al Takhadao FC 👑' }, { user_id: 'd', manager_name: 'Cajuri Raiva' }, { user_id: 'e', manager_name: 'Fabulous EC' }]))
+await p.evaluate(() => window.__set(ps => [...ps, { user_id: 'c', manager_name: 'Neymarzetti 👑🖊️' }, { user_id: 'c2', manager_name: 'Al Takhadao FC 👑' }, { user_id: 'd', manager_name: 'Cajuri Raiva' }, { user_id: 'f', manager_name: 'Neymarzetti 👑' }, { user_id: 'e', manager_name: 'Fabulous EC' }]))
 await p.waitForTimeout(1700)
 await p.screenshot({ path: `${SAIDA}/1-show.png` })
 const txt = await p.evaluate(() => document.body.innerText)
@@ -62,24 +66,25 @@ await p.screenshot({ path: `${SAIDA}/2-lista.png` })
 const log = await p.evaluate(() => window.__log)
 ok(JSON.stringify(log) === JSON.stringify(['Neymarzetti', 'Al Takhadao FC', 'Fabulous EC']), `fila: um de cada vez, na ordem (${log.join(' → ')})`)
 ok(!log.includes('Cajuri Raiva'), 'clube sem batismo nunca ganha entrada')
+ok(log.length === 3, 'quem só DIGITOU o nome de um batismo (sem ser a conta do dono) não ganha gala')
 await p.locator('button[aria-label="Al Takhadao FC"]').click()
 await p.waitForTimeout(700)
 await p.screenshot({ path: `${SAIDA}/3-toque.png` })
 ok(/entrar assim também/i.test(await p.evaluate(() => document.body.innerText)), 'tocar no escudo mostra o convite pro Batismo')
-// 6. 🩹 28/09: TODO nome que a mascote de um batismo reconhece (nome novo, variação "de/do",
-//    com FC/EC, caixa alta) também ganha a gala — o Jurubeba ("Meia na Canela de Desportos")
-//    e o Cruzeiro do Berretinho ficavam de fora.
-const alias = await p.evaluate(async () => {
-  const G = await import('/src/escalacao/entrada-gala.tsx'), M = await import('/src/escalacao/mascotes.tsx'), B = await import('/src/escalacao/batismos.ts')
-  const donoDaMascote = new Map(); for (const b of B.BATISMOS) if (b.tipo === 'batismo' && M.CARIMBO_GOL[b.clube]) donoDaMascote.set(M.CARIMBO_GOL[b.clube], b.clube)
-  const semBatismo = B.BATISMOS.filter(b => b.tipo === 'batismo' && !G.clubeDeGala(b.clube)).map(b => b.clube)
-  const falhas = []; let total = 0
-  for (const [nome, k] of Object.entries(M.CARIMBO_GOL)) { if (!donoDaMascote.has(k)) continue; total++; if (!G.clubeDeGala(nome + ' 👑')) falhas.push(nome) }
-  return { total, falhas, semBatismo, jurubeba: G.clubeDeGala('Meia na Canela de Desportos 👑🖊️'), berretinho: G.clubeDeGala('Cruzeiro do Berretinho') }
-})
-ok(alias.semBatismo.length === 0, `todos os batismos ganham gala pelo nome oficial${alias.semBatismo.length ? ' — faltam: ' + alias.semBatismo.join(', ') : ''}`)
-ok(alias.falhas.length === 0, `${alias.total} nomes/variações de batismo ganham gala${alias.falhas.length ? ' — falham: ' + alias.falhas.join(', ') : ''}`)
-ok(alias.jurubeba === 'Jurubeba FC' && alias.berretinho === 'Cruzeiro de Berretinho', `Meia na Canela → ${alias.jurubeba} · Cruzeiro do Berretinho → ${alias.berretinho}`)
+// 6. 📧 28/09 (ordem do Diego: "é pelo e-mail de batismo e N pelo nome do time"): cada linha
+//    REAL de `esc_socios` (o que o servidor devolve pela conta) tem que achar o clube de batismo;
+//    assinatura (Futpoint, Marinheiros) nunca ganha.
+const SOCIOS = JSON.parse(readFileSync(new URL('./gala-socios.json', import.meta.url), 'utf8'))
+const conta = await p.evaluate(async socios => {
+  const G = await import('/src/escalacao/entrada-gala.tsx')
+  return socios.map(s => ({ ...s, clube: G.clubeDaConta({ escudo: s.escudo_time, mascote: s.mascote_key }) }))
+}, SOCIOS)
+const faltam = conta.filter(s => s.origem === 'batismo' && !s.clube).map(s => s.escudo_time)
+const indevidos = conta.filter(s => s.origem !== 'batismo' && s.clube).map(s => s.escudo_time)
+ok(!faltam.length, `${conta.filter(s => s.origem === 'batismo').length} donos de batismo ganham gala pela conta${faltam.length ? ' — faltam: ' + faltam.join(', ') : ''}`)
+ok(!indevidos.length, `assinatura não ganha gala${indevidos.length ? ' — indevidos: ' + indevidos.join(', ') : ''}`)
+const acha = n => conta.find(s => s.escudo_time === n)?.clube
+ok(acha('Meia na Canela de Desportos') === 'Jurubeba FC' && acha('Cruzeiro de Berretinho') === 'Cruzeiro de Berretinho', `Jurubeba (nome novo) → ${acha('Meia na Canela de Desportos')} · Berretinho → ${acha('Cruzeiro de Berretinho')}`)
 await b.close()
 if (erros.length) { console.log('\n❌ REPROVADO'); fim(1) }
 console.log('\n✅ entrada de gala ok · fotos em', SAIDA); fim(0)

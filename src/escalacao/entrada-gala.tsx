@@ -29,7 +29,7 @@ import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import type React from 'react'
 import { createPortal } from 'react-dom'
 import { batismoDe, BATISMOS } from './batismos'
-import { mascoteInteiraDoTime, mascoteKeyDoTime, CARIMBO_GOL } from './mascotes'
+import { mascoteInteiraDoTime, CARIMBO_GOL } from './mascotes'
 import { Escudo, nomeLimpo } from './escudos'
 import { newestTeamName } from './data'
 import { MascoteMini } from './mascote-atravessa'
@@ -40,20 +40,27 @@ const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeig
 export const GALA_MS = 5600
 
 /** o nome ATUAL do clube, se quem está na sala é dono de BATISMO; senão `null` */
-// 🩹 28/09 (Diego: *"o Jurubeba e o Berretinho não tiveram gala, o Fala D10 sim"*): antes só
-// valia o nome EXATO da lista de batismos. Mas o dono pode estar com o nome NOVO do clube
-// (Jurubeba → "Meia na Canela de Desportos"), com variação ("Cruzeiro DO Berretinho") ou com
-// outro nome qualquer — e aí a sala sabe pela CONTA dele qual é a mascote. Agora a gala segue
-// o MESMO caminho do carimbo de gol: achou a mascote de um batismo → é aquele batismo.
+// 📧 28/09 — A GALA SEGUE O E-MAIL DO BATISMO, NUNCA O NOME DO TIME. Palavras do Diego:
+// *"lembrando que é pelo e-mail de batismo a entrada de gala e não pelo nome do time"*.
+// (Antes eu olhava o nome digitado: o dono do Jurubeba, jogando como "Meia na Canela de
+// Desportos", ficava sem gala — e quem DIGITASSE "Fabulous EC" ganharia a gala dos outros.)
+// Quem diz de quem é cada assento é o SERVIDOR: a RPC `esc_mimos_sala` junta
+// assento → conta → `esc_socios` e devolve só assento → mascote/escudo do batismo (o e-mail
+// nunca sai do servidor). Aqui só traduzimos isso pro clube de batismo daquela conta.
 const BATISMO_DA_MASCOTE = new Map<string, string>()
 for (const b of BATISMOS) if (b.tipo === 'batismo') { const k = CARIMBO_GOL[b.clube]; if (k && !BATISMO_DA_MASCOTE.has(k)) BATISMO_DA_MASCOTE.set(k, b.clube) }
+/** o clube de BATISMO de uma CONTA (pelo que o servidor devolveu da `esc_socios`); `null` = não é dono de batismo */
+export function clubeDaConta(mimo: { mascote?: string | null; escudo?: string | null } | null | undefined): string | null {
+  if (!mimo) return null
+  const pelo = mimo.escudo ? batismoDe(newestTeamName(mimo.escudo)) : null
+  if (pelo) return pelo.tipo === 'batismo' ? pelo.clube : null
+  return mimo.mascote ? BATISMO_DA_MASCOTE.get(mimo.mascote) ?? null : null
+}
+/** @deprecated a gala não olha mais o NOME do time (regra do Diego, 28/09) — use `clubeDaConta` */
 export function clubeDeGala(managerName: string): string | null {
   const limpo = newestTeamName(nomeLimpo(managerName || ''))
-  if (!limpo) return null
-  const b = batismoDe(limpo)
-  if (b) return b.tipo === 'batismo' ? b.clube : null
-  const k = mascoteKeyDoTime(limpo) ?? mascoteKeyDoTime(nomeLimpo(managerName || ''))
-  return k ? BATISMO_DA_MASCOTE.get(k) ?? null : null
+  const b = limpo ? batismoDe(limpo) : null
+  return b && b.tipo === 'batismo' ? b.clube : null
 }
 
 // o grito da torcida usa o nome curto (sem FC/EC/SC no fim)
@@ -63,11 +70,15 @@ const nomeCurto = (clube: string) => clube.replace(/\s+(FC|EC|SC|AS)$/i, '').tri
 // memória da PÁGINA (não do aparelho): sala → quem eu já vi entrar
 const vistos = new Map<string, Set<string>>()
 
-export function useEntradaGala(roomId: string | null | undefined, players: { user_id: string; manager_name: string }[], myUid: string | null | undefined) {
+export function useEntradaGala(roomId: string | null | undefined, players: { user_id: string; manager_name: string }[], myUid: string | null | undefined,
+  /** conta de cada assento → clube de batismo (vem do servidor); `null` = ainda carregando */
+  galaDaConta: Map<string, string> | null) {
   const [fila, setFila] = useState<{ uid: string; clube: string; nome: string }[]>([])
   const carregou = useRef<string | null>(null)
   useEffect(() => {
-    if (!roomId || !players.length) return
+    // ⏳ só decide depois que o servidor respondeu de quem é cada assento — senão o dono
+    // era marcado "já visto" sem gala e perdia a entrada
+    if (!roomId || !players.length || !galaDaConta) return
     let visto = vistos.get(roomId)
     const primeira = carregou.current !== roomId
     if (!visto) { visto = new Set(); vistos.set(roomId, visto) }
@@ -75,7 +86,7 @@ export function useEntradaGala(roomId: string | null | undefined, players: { use
     for (const p of players) {
       if (visto.has(p.user_id)) continue
       visto.add(p.user_id)
-      const clube = clubeDeGala(p.manager_name)
+      const clube = galaDaConta.get(p.user_id)
       if (!clube) continue
       // quem já estava na sala quando eu abri não ganha entrada — só eu mesmo
       if (primeira && p.user_id !== myUid) continue
@@ -83,7 +94,7 @@ export function useEntradaGala(roomId: string | null | undefined, players: { use
     }
     carregou.current = roomId
     if (novos.length) setFila(f => [...f, ...novos])
-  }, [roomId, players, myUid])
+  }, [roomId, players, myUid, galaDaConta])
   const atual = fila[0] ?? null
   useEffect(() => {
     if (!atual) return

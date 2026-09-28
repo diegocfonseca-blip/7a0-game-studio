@@ -106,7 +106,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Deportivo Montreal', tipo: 'batismo', fundador: 37, manto: ['#0C0C0C', '#FFFFFF'] },
   { clube: 'Marolados FC', tipo: 'batismo', fundador: 38, manto: ['#024623', '#F5EBD7'] },
   { clube: 'Papão United Madrid', tipo: 'batismo', fundador: 39, manto: ['#001A6C', '#D4D6DD'] },
-  { clube: 'Eros FC', tipo: 'socio', fundador: null, manto: ['#C2452F', '#7C7C7C'] },
+  { clube: 'Eros FC', tipo: 'batismo', fundador: 40, manto: ['#C2452F', '#7C7C7C'] }, // 🐶 era 'socio' por engano — no banco e no apoio.tsx é batismo nº 40 (achado 28/09 na entrada de gala)
   { clube: 'Sapekeiros FC', tipo: 'batismo', fundador: 41, manto: ['#0C0C0C', '#C9A227'] },
   { clube: 'Rei da Bola FC', tipo: 'batismo', fundador: 70, manto: ['#D4121F', '#121010'] },
   { clube: 'Raiva Cajuri FC', tipo: 'batismo', fundador: 71, manto: ['#0F0505', '#C40B0E'] },
