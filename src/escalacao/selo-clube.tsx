@@ -7,6 +7,7 @@ import { useId } from 'react'
 import { SELOS } from './selos-clubes'
 import { clubCanon } from './data'
 import { Escudo } from './escudos'
+import { ESCUDOS_OFICIAIS } from './escudos-oficiais' // 🛡️ escudo OFICIAL (Diego, 28/09: "faz oficial mesmo")
 
 const INK = '#0C0C0C'
 // texto claro ou escuro, conforme a cor do anel
@@ -22,6 +23,19 @@ export function seloDoClube(clube: string) {
 
 export function SeloClube({ clube, size = 40 }: { clube: string; size?: number }) {
   const uid = useId().replace(/:/g, '')
+  // 🛡️ 28/09: o clube tem escudo OFICIAL? ele ganha do selo. O arquivo mora em
+  // `public/escudos-clubes/` (fora do bundle). Cabe numa caixa `size`×`size` pela
+  // proporção REAL do arquivo, pra não deformar nem sobrar moldura.
+  const of = ESCUDOS_OFICIAIS[clubCanon(clube)] ?? ESCUDOS_OFICIAIS[clube]
+  if (of) {
+    const k = size / Math.max(of.w, of.h)
+    return (
+      <span style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+        <img src={`${import.meta.env.BASE_URL}${of.src}`} alt={seloDoClube(clube)?.nome ?? clube} width={Math.round(of.w * k)} height={Math.round(of.h * k)}
+          loading="lazy" decoding="async" draggable={false} style={{ display: 'block', objectFit: 'contain', filter: 'drop-shadow(1px 1px 0 rgba(0,0,0,.35))' }} />
+      </span>
+    )
+  }
   const s = seloDoClube(clube)
   if (!s) return <Escudo nome={clube} size={size} />
   const tinta = claro(s.c1) ? INK : '#FFFFFF'

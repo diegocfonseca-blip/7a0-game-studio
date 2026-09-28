@@ -1,3 +1,16 @@
+## 28/09/2026 — 🛡️ ESCUDOS OFICIAIS no Leilão de Clubes ✅ NO AR
+
+Diego: *"faz oficial mesmo"* e *"pega da internet… webp, que fica menor"*. Avisei do risco de marca
+registrada (escudo é marca do clube; o jogo tem apoio pago) — decisão dele. Se algum clube reclamar:
+apagar o arquivo dele em `public/escudos-clubes/` + a linha em `escudos-oficiais.ts` → volta pro selo B.
+- `node scripts/escudos-oficiais.mjs` baixa (a rede daqui só alcança GitHub e npm): Europa do
+  github luukhopman/football-logos; Brasil/América do Sul dos npm `football-badges` (MIT) e
+  `react-brasileirao-logos` (ISC). Recorta, reduz pra 160 px e salva webp. 82 escudos, ~9 KB cada,
+  fora do bundle. `SeloClube` usa o oficial quando existe e cai no selo estilo B quando não.
+- ⏳ SEM escudo oficial ainda (31), ficam no selo: Sport Recife, Santa Cruz, Náutico, Guarani, Ponte Preta, Bangu, São Caetano, Blackburn Rovers, Stoke City, River Plate, Vélez Sarsfield, Atlético Nacional, América de Cali, Alianza Lima, Universidad de Chile, América do México, Chivas Guadalajara, Cruz Azul, Pumas UNAM, Tigres UANL, Toluca, Necaxa, Orlando City, MetroStars, Al-Hilal, Al-Nassr, Al Ahly, TP Mazembe, Pohang Steelers, Suwon Bluewings, Yokohama F. Marinos.
+  Pra esses: o Diego manda a imagem, ou a gente acha outra fonte que a rede alcance.
+- É o escudo ATUAL do clube (ex.: Juventus com o "J" novo, Marseille com o "M" de 2024), não o da época da carta.
+
 ## 28/09/2026 — 👑 ENTRADA DE GALA do batismo na sala online ✅ NO AR
 
 Ideia pra dar "água na boca" em quem não tem batismo. Mockup aprovado (`scripts/mockup-entrada-gala.mjs`)
