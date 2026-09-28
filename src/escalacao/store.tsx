@@ -12256,7 +12256,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // precisa sobreviver a todo save porque o estado do jogo não tem esse campo —
         // o que ele tem é `deck`, o baralho de CARTAS, que é outra coisa com o mesmo
         // nome. Foi isso que apagava o "todos" e devolvia o Brasil (bug do Bruno).
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'deckSala', 'rivals', 'rivalTeams']) {
+        // 🧱 `clubes` entra na lista (28/09): é a escolha "Leilão de Clubes" da sala, e o
+        // estado do jogo guarda isso com OUTRO nome (`leilaoClubes`) — sem a guarda, o 1º
+        // save apagava a escolha: o selo 🧱 da lista sumia e a próxima rodada de uma Minha
+        // Liga de Clubes voltava como leilão de Jogador.
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes']) {
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda

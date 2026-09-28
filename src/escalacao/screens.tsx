@@ -9792,6 +9792,10 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // zera o que não vier na ação, então cada escolha da sala tem que ser
         // reenviada aqui, uma a uma.
         holandes: state.holandes,
+        // 🧱 E O LEILÃO DE CLUBES (28/09, mesma regra dele: *"se continuarem jogando na
+        // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
+        // Clubes voltava como leilão de Jogador no "novo leilão".
+        clubes: state.leilaoClubes,
         // 🏀 E O ESPORTE TAMBÉM. Ninguém tinha reclamado porque o basquete só
         // abre pra conta dele — mas o buraco era o mesmo e pior: uma sala de
         // BidLegends virava futebol no "novo leilão".
