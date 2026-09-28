@@ -70,7 +70,12 @@ fazer já"*. Feito (trava `CLUBES_TESTERS` em `sport.ts`; pra abrir pra todos é
   MEI 13 · ATA 19; EU — GOL 37 · LAT 21 · ZAG 24 · MEI 25 (19 no 4-4-2) · ATA 23. Clube não repete
   entre setores, então precisa de ~5×(pessoas+metade) clubes distintos. Toda leva de cartas nova:
   remedir e, se BR ou EU fechar uma sala de 10, avisar.
-**Falta:** teste online com 2 aparelhos · escudos paródia (ele ainda escolhe A clássico ou B mascote) · aviso de tamanho de sala.
+- 🛡️ **Selos dos clubes — ESTILO B com NOME VERDADEIRO** (28/09, escolha dele): `selos-clubes.ts` (115 clubes:
+  nome inteiro, 2 cores, bicho/símbolo da torcida — ⚽ neutra onde não há símbolo conhecido —, ano de fundação) +
+  `selo-clube.tsx` (SVG). Aparece no pacote do pregão, no martelo, em "Seus pacotes" e na convocação. Seleção
+  (Cabo Verde) saiu do modo Clubes. "Atlético-PR" (cartas 2002/2004) = Athletico-PR no agrupamento.
+  ⏭️ Etapa 2: o bicho DESENHADO de verdade (arquivo leve) começando pelos 36 clubes grandes; e o vídeo usar o selo.
+**Falta:** teste online com 2 aparelhos · aviso de tamanho de sala.
 
 ## 27/09/2026 — 🏅 CONQUISTAS + 📅 MISSÃO DIÁRIA (carreira) — MOCKUP mandado, esperando OK
 

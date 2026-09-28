@@ -2898,6 +2898,8 @@ export const CLUB_GRAFIA: Record<string, string> = {
   // América-RJ. Cuidado com abreviações"*). As cartas agora têm o nome INTEIRO; estas três linhas
   // só fazem save antigo (que guardou o nome curto) continuar batendo com o mesmo clube.
   'América': 'América do México', 'Vélez': 'Vélez Sarsfield', 'Guadalajara': 'Chivas',
+  // o Athletico se chamava Atlético-PR até 2018: as cartas de 2002/2004 guardam o nome DA ÉPOCA, mas é o mesmo clube
+  'Atlético-PR': 'Athletico-PR',
 }
 export const clubCanon = (club: string): string => CLUB_GRAFIA[club] ?? club
 

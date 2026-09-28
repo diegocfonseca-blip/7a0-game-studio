@@ -1,4 +1,5 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
+import { SeloClube } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09)
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { revealOffers, revealIdentityVisible } from './reveal-presentation'
@@ -1111,7 +1112,7 @@ function PacotesDoTime({ m }: { m: Manager }) {
           <div key={pos} className="flex items-center gap-2 px-3 py-2" style={{ borderTop: '2px solid rgba(0,0,0,.08)' }}>
             <span className="text-[10px] font-black rounded-md px-1.5 py-0.5 flex-none" style={{ background: INK, color: '#fff' }}>{pos}</span>
             {c ? <>
-              <span className="flex-none"><Escudo nome={c.pacote?.clube ?? c.club} size={24} /></span>
+              <span className="flex-none"><SeloClube clube={c.pacote?.clube ?? c.club} size={30} /></span>
               <span className="font-black text-[13px] uppercase truncate" style={OSWALD}>{nomePacote(c)}</span>
             </> : <span className="text-[12px] font-bold text-black/40">{L('ainda sem pacote', 'no pack yet')}</span>}
           </div>
@@ -1141,7 +1142,7 @@ function PacoteFace({ c, big = false, claro = false }: { c: Card; big?: boolean;
   return (
     <div className="text-left min-w-0">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="flex-none"><Escudo nome={c.pacote?.clube ?? c.club} size={big ? 46 : 30} /></span>
+        <span className="flex-none"><SeloClube clube={c.pacote?.clube ?? c.club} size={big ? 64 : 44} /></span>
         <div className="min-w-0">
           <p className={`font-black leading-tight ${big ? 'text-2xl' : 'text-[15px]'}`} style={{ ...OSWALD, color: claro ? '#fff' : INK, textTransform: 'uppercase' }}>{nomePacote(c)}</p>
           <p className={`font-bold ${big ? 'text-sm' : 'text-[10.5px]'}`} style={{ color: claro ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.55)' }}>{cartas.length} {cartas.length === 1 ? L('jogador no pacote', 'player in the pack') : L('jogadores no pacote', 'players in the pack')}</p>

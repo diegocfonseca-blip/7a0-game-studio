@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
+import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
 import { onlinePreviewEnabled } from './online-preview'
 import { disputaPenaltis } from './penaltis'
@@ -1640,7 +1641,8 @@ function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<strin
   const porClube = {} as Record<Sector, Map<string, Cat[]>>
   for (const pos of SECTORS) {
     const mp = new Map<string, Cat[]>()
-    for (const c of ACTIVE_CATALOG[pos]) { if (used.has(ident(c))) continue; const k = clubCanon(c.club); (mp.get(k) ?? mp.set(k, []).get(k)!).push(c) }
+    // 🚩 seleção (Cabo Verde…) não é clube: fica fora do Leilão de Clubes
+    for (const c of ACTIVE_CATALOG[pos]) { if (used.has(ident(c)) || NAO_E_CLUBE.has(c.club)) continue; const k = clubCanon(c.club); (mp.get(k) ?? mp.set(k, []).get(k)!).push(c) }
     porClube[pos] = mp
   }
   const recente = new Map<string, Sector>()
