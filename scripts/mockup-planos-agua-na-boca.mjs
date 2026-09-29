@@ -71,7 +71,7 @@ const cartaNota = (grad, nome, nota, ink = INK, holo = true) => `
   <span style="${OSW};background:${INK};color:#fff;border-radius:4px;font-size:7px;padding:1px 4px;position:relative">ATA</span>
   <div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.5);border:2px solid rgba(0,0,0,.28);margin:5px auto;display:flex;align-items:center;justify-content:center;${OSW};font-size:12px;position:relative">${nome[0]}</div>
   <p style="margin:0;${OSW};font-size:9.5px;line-height:1.1;position:relative">${nome}</p>
-  <p style="margin:2px 0 0;position:relative;display:flex;align-items:center;gap:3px"><span style="${OSW};font-size:13px;background:#fff;border:2px solid ${INK};border-radius:6px;padding:0 4px">${nota}</span><span style="font-size:7px;font-weight:800;opacity:.7">NOTA</span></p>
+  <p style="margin:2px 0 0;position:relative;display:flex;align-items:center;gap:3px"><span style="${OSW};font-size:13px;background:#fff;border:2px solid ${INK};border-radius:6px;padding:0 4px">${nota}</span><span style="font-size:7px;font-weight:800;opacity:.7">NÍVEL</span></p>
 </div>`
 const controles = `<div style="display:flex;gap:3px;justify-content:center;flex-wrap:wrap">${['¼×', '½×', '<b style="background:#0C0C0C;color:#fff;border-radius:5px;padding:0 5px">2×</b>', '4×', '⏭ PULAR'].map(v => `<span style="${OSW};font-size:9px;border:2px solid ${INK};border-radius:6px;padding:2px 5px;background:#fff">${v}</span>`).join('')}</div>`
 
@@ -112,31 +112,31 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
 
   <!-- CRAQUE -->
   ${card(`
-    ${cab(G_PRATA, '⭐', 'Craque', 'R$ 19,90', 'pagamento único', 'Manda no ritmo do jogo, enxerga a nota do elenco e brilha em prata na sala.')}
+    ${cab(G_PRATA, '⭐', 'Craque', 'R$ 19,90', 'pagamento único', 'Manda no ritmo do jogo, vê o nível dos jogadores até Craque e brilha em prata na sala.')}
     <div style="padding:10px 13px 13px">
       ${vitrine('o que muda na sua tela', `
         ${linha({ grad: G_PRATA, nome: 'Seu Time', selo: '⭐', holo: true })}
         <div style="display:flex;gap:7px;margin-top:3px">
           ${mini('🎮 Modo Manual: pausa, acelera 2×/4×, pula rodada', controles)}
-          ${mini('🔎 a NOTA aparece — até Craque', cartaNota(G_PRATA, 'Zé Craque', 82))}
+          ${mini('🔎 vê o NÍVEL do jogador: até Craque', cartaNota(G_PRATA, 'Zé Craque', 82))}
         </div>`)}
-      ${ok('<b>Olheiro</b> sonda quem você quiser (até ⭐) — o cara vai pro pregão')}
+      ${ok('<b>🕵️ Olheiro:</b> chance de achar jogador <b>fora do leilão</b>, de nível até Craque')}
       ${ok('<b>4 carreiras</b> salvas ao mesmo tempo · grupo VIP no zap com o Diego')}
       ${cta('Escolher Craque · R$ 19,90', G_PRATA)}
     </div>`)}
 
   <!-- LENDA -->
   ${card(`
-    ${cab(G_OURO, '👑', 'Lenda', 'R$ 39,90', 'pagamento único · ou +R$ 20 se já é Craque', 'Tudo do Craque, sem teto: vê e sonda até LENDA, brilha em ouro e cria a sua liga.')}
+    ${cab(G_OURO, '👑', 'Lenda', 'R$ 39,90', 'pagamento único · ou +R$ 20 se já é Craque', 'Tudo do Craque, sem teto: vê o nível até Lenda, acha jogador fora do leilão até Lenda, brilha em ouro e cria a sua liga.')}
     <div style="padding:10px 13px 13px">
       ${vitrine('o que muda na sua tela', `
         ${linha({ grad: G_OURO, nome: 'Seu Time', selo: '👑', holo: true })}
         <div style="display:flex;gap:7px;margin-top:3px">
-          ${mini('🔎 a NOTA aparece — até 👑 LENDA', cartaNota(G_OURO, 'Pelé', 96))}
+          ${mini('🔎 vê o NÍVEL do jogador: até 👑 Lenda', cartaNota(G_OURO, 'Pelé', 96))}
           ${mini('🏆 Minhas Ligas: até 5, com a sua turma', `<div style="${OSW};font-size:22px;line-height:1">🏆</div><div style="${OSW};font-size:9px;background:${INK};color:${GOLD};border-radius:6px;padding:2px 6px;display:inline-block;margin-top:3px">LIGA DOS CRIA</div>`)}
           ${mini('🎨 ouro — ou a cor que você escolher', `<div style="display:flex;gap:3px;justify-content:center">${['#FFC400', '#8B5CF6', '#2E9E5B', '#E8503A'].map(c => `<span style="width:16px;height:16px;border-radius:50%;background:${c};border:2px solid ${INK}"></span>`).join('')}</div>`)}
         </div>`)}
-      ${ok('<b>Olheiro de TUDO</b> — sonda até Lenda; ele vai pro pregão e a disputa continua')}
+      ${ok('<b>🕵️ Olheiro:</b> chance de achar jogador <b>fora do leilão</b>, de nível até Lenda')}
       ${ok('<b>6 carreiras</b> salvas · 🎮 Modo Manual · grupo VIP no zap')}
       ${cta('Escolher Lenda · R$ 39,90', G_OURO)}
     </div>`)}
@@ -158,7 +158,7 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
           ${mini('📋 tabela, jornal e ⭐ Champions com o seu escudo', `<div style="text-align:left;background:#fff;border:2px solid ${INK};border-radius:7px;padding:3px 4px">${[['1º', ESC_AL, 'Al Takhadao', true], ['2º', null, 'Bolacha FC', false]].map(([p, e, n, me]) => `<div style="display:flex;align-items:center;gap:3px;${OSW};font-size:8px;padding:2px 0;${me ? `background:${G_OURO};border-radius:4px;padding:2px 3px` : ''}">${p} ${e ? `<img src="${e}" style="height:12px">` : '<span style="width:12px;height:12px;border-radius:50%;background:#ddd;display:inline-block"></span>'} ${n}</div>`).join('')}</div>`)}
         </div>`)}
       ${ok('<b>Tudo do Lenda incluído</b> + <b>sócio pra sempre</b> (sem mensalidade): 30 🪙 a cada 30 dias, estádio com o seu nome')}
-      ${ok('<b>Selo de Fundador</b> nº <b>81</b> e seu nome no mural — <b style="color:${RED}">só 100 vagas na história</b>, já foram 80')}
+      ${ok('<b>Selo de Fundador</b> nº <b>81</b> e seu nome no mural do jogo')}
       ${ok('<b>8 carreiras</b> salvas · seu clube disputa a pirâmide de TODO mundo que joga')}
       <div style="background:#FFF6DE;border:2.5px dashed ${INK};border-radius:11px;padding:8px 10px;margin-top:10px;font-weight:800;font-size:10.5px;line-height:1.4">🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego desenha escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.</div>
       ${cta('Quero batizar meu clube →', INK, GOLD)}
@@ -169,7 +169,6 @@ const html = `<!doctype html><meta charset="utf-8"><style>${FONTES}
     <h3>✨ E vem mais por aí — só pra quem apoia</h3>
     <div class="it"><span style="font-size:22px">🚁</span><div><b>Entrada de gala do SEU jeito</b><span>cada clube batizado com a entrada própria: helicóptero, moto, fumaça…</span></div><span class="lock">batismo</span></div>
     <div class="it"><span style="font-size:22px">🛡️</span><div><b>Seu escudo na tela de TODO mundo</b><span>trocou o nome do clube? escudo e mascote seguem você pra qualquer sala</span></div><span class="lock">batismo</span></div>
-    <div class="it"><span style="font-size:22px">🎽</span><div><b>Camisas novas na Loja do Clube</b><span>mantos exclusivos pra quem tem cor no nome</span></div><span class="lock">craque +</span></div>
     <p style="margin:9px 0 0;font-size:10px;color:rgba(255,255,255,.55);text-align:center">quem já apoiou recebe tudo isso sem pagar de novo 💛</p>
   </div>
 
