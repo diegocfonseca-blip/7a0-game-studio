@@ -6897,3 +6897,15 @@ aparece SÓ como carta nova (Diego: *"coloque como se fosse nova"*) — tirei o 
 está atualizada, então o `npm run novidades` não traz de volta. Stories: `node scripts/mockup-novos-stories.mjs`
 (carta CEGA por padrão — Diego: *"sem categorias eu disse"*).
 ✅ 29/09 — 🔁 Fabrício Bruno: Flamengo 2023 → CRUZEIRO 2025 (mesma força, baralho BR). Flamengo fica com 14 zagueiros; Cruzeiro vai a 4 (pacote de zaga com folga). Troca no mesmo baralho não vira novidade na home.
+
+## 29/09/2026 — ⏭ TELA DA TRAVA DO MODO MANUAL redesenhada ✅ NO AR
+Registros de 30 dias: 1.422 pessoas bateram na trava (⏭/velocidade da carreira), só 49 copiaram o Pix do Craque
+(últimos 7 dias: 458 × 9). Diego: *"muita gente tá apertando mas tá saindo e desistindo"*. A tela virou o mockup
+aprovado (`scripts/mockup-trava-manual.mjs`): "Quer acelerar? Isso é do Craque." · controles desenhados · a mesma
+carta "hoje ??" × "com o Craque 82" (é NÍVEL, nunca "nota"/"overall") · faixa "e vem junto" (nome prata nas salas
+online · Olheiro acha jogador fora do leilão até Craque · 4 carreiras · grupo VIP no WhatsApp com o Diego) · preço ·
+Pix · 3 passos (o 2 é o botão do Instagram) · botões 👑 Ver o Lenda / 🖋 Ver o Batismo (abrem os planos já no card).
+`SupportManualPreview`/`SupportCraqueBenefits`/`SupportPlanCard` continuam em `support-plans.tsx` (a tela de planos usa).
+⏭️ A TELA DE PLANOS ("água na boca", `scripts/mockup-planos-agua-na-boca.mjs`) ainda é só mockup — ele ajustou o texto
+(nível, olheiro direto, sem contagem de vagas, sem "camisas por vir") mas NÃO mandou construir. Medir em 2 semanas:
+Pix do Craque copiado ÷ pessoas que bateram na trava (hoje 3,4%).

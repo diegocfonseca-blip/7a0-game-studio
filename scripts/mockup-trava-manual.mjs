@@ -88,7 +88,7 @@ h1{${OSW};font-size:30px;line-height:.95;text-transform:uppercase;margin:0 0 6px
   <div class="vit" style="padding:9px 12px 10px">
     <p class="rot">⭐ e vem junto</p>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
-      ${['⭐ nome prata brilhando na sala', '🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '💾 4 carreiras salvas', '📲 grupo VIP com o Diego'].map(t => `<span style="font-weight:800;font-size:10.5px;border:2px solid ${INK};border-radius:999px;padding:4px 9px;background:${CREME}">${t}</span>`).join('')}
+      ${['⭐ nome prata brilhando nas salas online', '🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '💾 4 carreiras salvas', '📲 grupo VIP no WhatsApp com o Diego'].map(t => `<span style="font-weight:800;font-size:10.5px;border:2px solid ${INK};border-radius:999px;padding:4px 9px;background:${CREME}">${t}</span>`).join('')}
     </div>
   </div>
 

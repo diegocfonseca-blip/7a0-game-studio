@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { revealOffers, revealIdentityVisible } from './reveal-presentation'
 import './online-visual.css'
-import { SupportPlans, SupportFooter, SupportStory, SupportManualPreview, SupportCraqueBenefits, SupportPlanCard } from './support-plans'
+import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
@@ -450,26 +450,98 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
       )}
 
       {screen === 'manual' && <ApoieModal onClose={close}>
-        <div className="ll-support-offer">
-          <p className="ll-support-eyebrow">{tr('MODO MANUAL · PLANO CRAQUE', 'MANUAL MODE · STAR PLAN')}</p>
-          <h1>{tr('ACELERE. PULE. JOGUE NO SEU RITMO.', 'SPEED UP. SKIP. PLAY AT YOUR PACE.')}</h1>
-          <p>{tr('Controle o tempo da carreira com o Craque. Um pagamento, sem mensalidade.', 'Control the pace of Career with Star. One payment, no monthly fee.')}</p>
-          <SupportManualPreview />
-          <SupportPlanCard title={tr('⭐ CRAQUE', '⭐ STAR')} price="R$ 19,90" cadence={tr('uma vez só', 'one-off payment')} tone="prata">
-            <h3>{tr('Não é só velocidade. Tudo isso vem junto:', 'More than speed. All this is included:')}</h3>
-            <SupportCraqueBenefits />
-            <p className="ll-support-small">{tr('No online normal, o ritmo continua igual para todos. O olheiro Craque não revela nem sonda Lendas.', 'In regular online play the pace stays the same for everyone. The Star scout does not reveal or scout Legends.')}</p>
-          </SupportPlanCard>
-          <h3>{tr('COMO LIBERAR', 'HOW TO UNLOCK')}</h3>
-          <p className="ll-support-small">{tr('1 · Copie o Pix e pague R$ 19,90 no aplicativo do banco.', '1 · Copy the Pix code and pay R$ 19.90 in your banking app.')}</p>
+        {/* ⏭ A TRAVA DO MODO MANUAL — redesenhada em 29/09 (mockup aprovado pelo Diego).
+            É por aqui que quase todo mundo chega (1.422 pessoas em 30 dias bateram no ⏭ da
+            carreira, e só 49 copiaram o Pix). Regra dele: curta — a prévia dos controles, o
+            NÍVEL aparecendo, o preço e um botão. Nada de "nota"/"overall": é NÍVEL. */}
+        <div style={{ color: INK }}>
+          <p className="font-black leading-[.95] uppercase" style={{ ...OSWALD, fontSize: 30 }}>
+            {tr('Quer acelerar?', 'Want to speed up?')}<br /><span style={{ color: GREEN }}>{tr('Isso é do Craque.', 'That’s a Star thing.')}</span>
+          </p>
+          <p className="text-[12.5px] font-bold leading-snug mt-1.5" style={{ color: 'rgba(12,12,12,.7)' }}>
+            {L(<>Pause, acelere, pule a rodada — <b>a carreira no seu ritmo</b>. E ainda vê o nível dos seus jogadores.</>,
+               <>Pause, speed up, skip the round — <b>Career at your pace</b>. And you see your players’ level too.</>)}
+          </p>
+
+          {/* 🎮 os controles */}
+          <div className="bg-white rounded-2xl mt-3 px-3 py-2.5" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+            <p className="font-black uppercase text-[10px] tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('🎮 os controles que ficam seus', '🎮 the controls you unlock')}</p>
+            <div className="flex flex-wrap gap-1.5 items-center">
+              {['¼×', '½×', tr('Normal', 'Normal'), '2×', '4×'].map((v, i) => (
+                <span key={v} className="font-black text-[12px] rounded-lg px-2 py-1" style={{ ...OSWALD, border: `2.5px solid ${INK}`, background: i === 3 ? INK : '#fff', color: i === 3 ? '#fff' : INK, boxShadow: i === 3 ? 'none' : `2px 2px 0 ${INK}` }}>{v}</span>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {[tr('⏸ PAUSAR', '⏸ PAUSE'), tr('⏭ PULAR RODADA', '⏭ SKIP ROUND'), tr('▶ PRÓXIMA', '▶ NEXT')].map(v => (
+                <span key={v} className="font-black text-[12px] rounded-lg px-2 py-1 bg-white" style={{ ...OSWALD, border: `2.5px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}` }}>{v}</span>
+              ))}
+            </div>
+            <p className="text-[10.5px] font-bold mt-2" style={{ color: 'rgba(12,12,12,.6)' }}>{tr('👆 no 2× a rodada inteira passa em segundos. No ⏭ ela pula.', '👆 at 2× the whole round goes by in seconds. With ⏭ it skips.')}</p>
+          </div>
+
+          {/* 🔎 o nível aparece: a mesma carta, hoje × com o Craque */}
+          <div className="bg-white rounded-2xl mt-3 px-3 py-2.5" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+            <p className="font-black uppercase text-[10px] tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('🔎 o nível do jogador aparece — até Craque', '🔎 the player’s level shows — up to Star')}</p>
+            <div className="flex items-center justify-center gap-2.5">
+              {([['hoje', 'today', false], ['com o Craque', 'with Star', true]] as const).map(([pt, en, on]) => (
+                <div key={pt} className="text-center">
+                  <div className="relative overflow-hidden rounded-[10px] px-1.5 py-1.5 text-left" style={{ width: 86, background: on ? APOIO_PERKS.prata.grad : APOIO_PERKS.bege.grad, border: `2.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, opacity: on ? 1 : .85 }}>
+                    {on && <ApoioSheen holo={.6} />}
+                    <span className="relative font-black rounded text-[8px] px-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>MEI</span>
+                    <div className="relative rounded-full mx-auto my-1.5 flex items-center justify-center font-black text-[14px]" style={{ width: 30, height: 30, background: 'rgba(255,255,255,.5)', border: '2px solid rgba(0,0,0,.28)', ...OSWALD }}>Z</div>
+                    <p className="relative font-black text-[10.5px] leading-tight" style={OSWALD}>Zé Craque</p>
+                    <p className="relative flex items-center gap-1 mt-0.5">
+                      <span className="font-black text-[15px] bg-white rounded-md px-1" style={{ ...OSWALD, border: `2px solid ${INK}`, color: on ? INK : 'rgba(0,0,0,.35)' }}>{on ? '82' : '??'}</span>
+                      <span className="text-[7.5px] font-black leading-none opacity-70">{tr('NÍVEL', 'LEVEL')}</span>
+                    </p>
+                  </div>
+                  <p className="text-[9px] font-black mt-1" style={{ color: on ? GREEN : 'rgba(12,12,12,.5)' }}>{tr(pt, en)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ⭐ e vem junto */}
+          <div className="bg-white rounded-2xl mt-3 px-3 py-2.5" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+            <p className="font-black uppercase text-[10px] tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('⭐ e vem junto', '⭐ also included')}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[tr('⭐ nome prata brilhando nas salas online', '⭐ shining silver name in online rooms'), tr('🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '🕵️ Scout: find players outside the auction (up to Star)'), tr('💾 4 carreiras salvas', '💾 4 saved careers'), tr('📲 grupo VIP no WhatsApp com o Diego', '📲 VIP WhatsApp group with Diego')].map(t => (
+                <span key={t} className="font-extrabold text-[10.5px] rounded-full px-2.5 py-1" style={{ border: `2px solid ${INK}`, background: '#F4ECD6' }}>{t}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* 💰 preço + o botão */}
+          <div className="relative overflow-hidden rounded-2xl mt-3.5 px-3 py-2.5 flex items-center gap-2" style={{ background: APOIO_PERKS.prata.grad, border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+            <ApoioSheen holo={.6} />
+            <span className="relative font-black uppercase text-[20px]" style={OSWALD}>⭐ {tr('Craque', 'Star')}</span>
+            <span className="relative ml-auto text-right">
+              <b className="block font-black text-[24px] leading-none" style={OSWALD}>R$ 19,90</b>
+              <small className="block font-extrabold text-[9px] uppercase tracking-wider opacity-80">{tr('paga uma vez · é seu pra sempre', 'pay once · yours forever')}</small>
+            </span>
+          </div>
           <div className="mt-3"><PixBox label="copiar Pix (R$ 19,90)" ctx="craque (manual + cor)" amount={19.9} /></div>
-          <button onClick={() => { logApoio('⭐ QUER O CRAQUE / MANUAL (R$ 19,90)'); igMsg(tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP). E-mail da conta: ____ — comprovante em anexo!', 'Hey! I supported Leilão Legends 💛 I want ⭐ STAR (Manual Mode + club colour + VIP). Account email: ____ — receipt attached!')) }} className="ll-support-button" style={{ background: '#d52665', color: '#fff' }}>
-            {tr('2 · ENVIAR COMPROVANTE', '2 · SEND RECEIPT')}
-          </button>
-          <p className="ll-support-small">{tr('@leilaolegendscom · Informe o e-mail da conta. Liberação em até 24h após a conferência.', '@leilaolegendscom · Include your account email. Unlocked within 24h after verification.')}</p>
-          <p className="ll-support-note">{tr('Quer mais benefícios? Lenda: R$ 39,90. Seu clube no jogo: Batismo a partir de R$ 59,90.', 'Want more benefits? Legend: R$ 39.90. Your club in the game: Club naming from R$ 59.90.')}</p>
-          <button className="ll-support-button" onClick={() => setScreen('choice')}>{tr('CONHECER TODOS OS PLANOS →', 'EXPLORE ALL PLANS →')}</button>
-          <SupportStory />
+          <div className="flex gap-1.5 mt-2.5">
+            <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>1</b>{tr('paga o Pix no app do banco', 'pay the Pix in your bank app')}</div>
+            <button onClick={() => { logApoio('⭐ QUER O CRAQUE / MANUAL (R$ 19,90)'); igMsg(tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP). E-mail da conta: ____ — comprovante em anexo!', 'Hey! I supported Leilão Legends 💛 I want ⭐ STAR (Manual Mode + club colour + VIP). Account email: ____ — receipt attached!')) }}
+              className="flex-1 rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight active:translate-y-0.5" style={{ border: `2px solid ${INK}`, background: '#E1306C', color: '#fff', boxShadow: `2px 2px 0 ${INK}` }}>
+              <b className="block text-[13px]" style={OSWALD}>2</b>{tr('manda o comprovante no @leilaolegendscom', 'send the receipt to @leilaolegendscom')}
+            </button>
+            <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>3</b>{tr('libera em até 24h · nome prata ⭐ na sala', 'unlocked within 24h · silver name ⭐ in the room')}</div>
+          </div>
+          <p className="text-center text-[10px] font-bold mt-3 leading-relaxed" style={{ color: 'rgba(12,12,12,.5)' }}>{tr('Não muda a força de ninguém — só o ritmo e o que você enxerga. No online o tempo é igual pra todos.', 'It doesn’t change anyone’s strength — only the pace and what you see. Online, the clock is the same for everyone.')}</p>
+
+          {/* 👑🖋 quer mais que isso? */}
+          <p className="text-center font-black uppercase text-[11px] tracking-widest mt-3 mb-1.5" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('quer mais que isso?', 'want more than that?')}</p>
+          <div className="flex gap-2">
+            <button onClick={() => { logApoio('👀 manual → lenda'); setAmp('ouro'); setScreen('choice') }} className="flex-1 rounded-xl px-1.5 py-2.5 text-center font-black uppercase text-[13px] active:translate-y-0.5" style={{ ...OSWALD, background: APOIO_PERKS.ouro.grad, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
+              {tr('👑 Ver o Lenda', '👑 See Legend')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('R$ 39,90 · vê até Lenda', 'R$ 39.90 · see up to Legend')}</span>
+            </button>
+            <button onClick={() => { logApoio('👀 manual → batismo'); setAmp('batismo'); setScreen('choice') }} className="flex-1 rounded-xl px-1.5 py-2.5 text-center font-black uppercase text-[13px] active:translate-y-0.5" style={{ ...OSWALD, background: INK, color: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
+              {tr('🖋 Ver o Batismo', '🖋 See Club naming')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('seu clube no jogo', 'your club in the game')}</span>
+            </button>
+          </div>
+          <div className="ll-support-offer mt-2"><SupportStory /></div>
         </div>
       </ApoieModal>}
 
