@@ -1314,5 +1314,19 @@
     "year": 1981,
     "src": "/avatars/lendas-v2/diego-maradona-boca-juniors-1981.webp",
     "transparent": true
+  },
+  {
+    "name": "Pelé",
+    "club": "New York Cosmos",
+    "year": 1977,
+    "src": "/avatars/lendas-v2/pele-new-york-cosmos-1977.webp",
+    "transparent": true
+  },
+  {
+    "name": "Zico",
+    "club": "Kashima Antlers",
+    "year": 1993,
+    "src": "/avatars/lendas-v2/zico-kashima-antlers-1993.webp",
+    "transparent": true
   }
 ]
