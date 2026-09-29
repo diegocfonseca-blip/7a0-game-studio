@@ -6892,3 +6892,7 @@ Ele disse "só isso": o MEIO do Cosmos (Neeskens, Marcos Senna, Arango) e os zag
 Alberto) NÃO entraram. ⚠️ A bio do Romerito no Cosmos diz "o Cosmos de Pelé" — ele chegou em 1980, o Pelé
 parou em 1977 (ofereci corrigir; sem resposta). Escudo oficial do Cosmos: só no football-logos (host bloqueado).
 ⏭️ Pedido dele: MOCKUP de stories com TODOS os novos (Lotes 37, 38, 39).
+✅ 29/09 — 🔁 Michael saiu do Flamengo 2020 (BR) e foi pro AL-HILAL 2022 (Mundo, Lote 39), mesma força. Na home
+aparece SÓ como carta nova (Diego: *"coloque como se fosse nova"*) — tirei o "saiu" do gerado; a foto do baralho já
+está atualizada, então o `npm run novidades` não traz de volta. Stories: `node scripts/mockup-novos-stories.mjs`
+(carta CEGA por padrão — Diego: *"sem categorias eu disse"*).

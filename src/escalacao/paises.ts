@@ -293,6 +293,7 @@ export const PAIS: Record<string, string> = {
   'Ricardo Goulart': 'Brasil', 'Zico': 'Brasil', 'Leonardo': 'Brasil', 'Bismarck': 'Brasil',
   // 🗽 Lote 39 (29/09) — ataque do Cosmos
   'Pelé': 'Brasil', 'Giorgio Chinaglia': 'Itália', 'Dennis Tueart': 'Inglaterra',
+  'Michael': 'Brasil', // 🔁 saiu do Flamengo e foi pro Al-Hilal (baralho Mundo)
   'Henrik Larsson': 'Suécia', 'Edin Džeko': 'Bósnia', 'Marc Overmars': 'Holanda',
   'Kingsley Coman': 'França', 'Olivier Giroud': 'França',
   'Bradley Barcola': 'França', 'Nacho Prestianni': 'Argentina',

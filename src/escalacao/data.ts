@@ -1076,7 +1076,7 @@ const ATA: C[] = [
   { name: "Chay", club: "Botafogo", year: 2021, fame: 1, lo: 48, hi: 71, folk: true },
   { name: "Lincoln", club: "Flamengo", year: 2019, fame: 1, lo: 40, hi: 72, folk: true },
   { name: "Negueba", club: "Flamengo", year: 2012, fame: 1, lo: 50, hi: 76, folk: true },
-  { name: "Michael", club: "Flamengo", year: 2020, fame: 2, lo: 70, hi: 84 },
+  // 🔁 29/09: o Michael saiu daqui e foi pro AL-HILAL (baralho Mundo, Lote 39) — pedido do Diego
   { name: "Estêvão", club: "Palmeiras", year: 2024, fame: 4, lo: 78, hi: 87, promessa: true },
   { name: "Tevez", club: "Corinthians", year: 2005, fame: 4, lo: 87, hi: 93 },
   { name: "Depay", club: "Corinthians", year: 2024, fame: 4, lo: 74, hi: 82 },
@@ -2935,6 +2935,8 @@ const L39_WORLD_ATA: C[] = [
   { name: "Giorgio Chinaglia", club: "New York Cosmos", year: 1978, fame: 4, lo: 81, hi: 88, bio: "O italiano da Lazio virou o maior artilheiro da história da liga americana com a camisa do Cosmos." },
   { name: "Raúl", club: "New York Cosmos", year: 2015, fame: 3, lo: 75, hi: 84, bio: "O ídolo do Real Madrid fechou a carreira no Cosmos — e se despediu campeão da liga americana em 2015." },
   { name: "Dennis Tueart", club: "New York Cosmos", year: 1978, fame: 3, lo: 76, hi: 84, bio: "Ídolo do Manchester City e da seleção inglesa, foi campeão com o Cosmos em 1978." },
+  // 🔁 29/09 (Diego: "passe o Michael do Flamengo pro Al-Hilal e coloque como se fosse nova") — mesma força da carta do Flamengo
+  { name: "Michael", club: "Al-Hilal", year: 2022, fame: 2, lo: 70, hi: 84, bio: "Trocou o Flamengo pelo Al-Hilal e foi campeão saudita logo na chegada, com a mesma velocidade e o drible que ninguém entendia." },
 ]
 
 export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA] }
