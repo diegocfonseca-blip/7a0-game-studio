@@ -6885,3 +6885,10 @@ Al-Ahli/Inter Miami/LA Galaxy (ATA) · Toronto/Vissel Kobe/Guangzhou (ATA) · LA
 Clubes com pacote agora: GOL 41 · LAT 40 · ZAG 39 · MEI 47 · ATA 59.
 📏 Simulação (20 partidas): sala de 8 → o mais repetido sai 13 de 20; sala de 10 → LATERAL vira o gargalo
 (PSV, Monaco, Leicester em 20 de 20). ⏭️ Próximo lote, se ele quiser: LATERAIS famosos (e goleiros).
+✅ 29/09 LOTE 39 NO AR — 🗽 Ataque do NEW YORK COSMOS (Diego: *"Pelé no Cosmos… complete… Pelé será lenda"*):
+Pelé 1977 (Lenda) · Chinaglia 1978 (Craque) · Raúl 2015 · Dennis Tueart 1978 → pacote "Ataque do Cosmos".
++ Romerito no FLUMINENSE 1984 (Craque, baralho BR; a carta do Cosmos 1982 continua no Mundo).
+Ele disse "só isso": o MEIO do Cosmos (Neeskens, Marcos Senna, Arango) e os zagueiros (Beckenbauer, Carlos
+Alberto) NÃO entraram. ⚠️ A bio do Romerito no Cosmos diz "o Cosmos de Pelé" — ele chegou em 1980, o Pelé
+parou em 1977 (ofereci corrigir; sem resposta). Escudo oficial do Cosmos: só no football-logos (host bloqueado).
+⏭️ Pedido dele: MOCKUP de stories com TODOS os novos (Lotes 37, 38, 39).

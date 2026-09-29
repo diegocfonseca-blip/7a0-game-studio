@@ -291,6 +291,8 @@ export const PAIS: Record<string, string> = {
   'Ivan Toney': 'Inglaterra', 'Allan Saint-Maximin': 'França', 'Josef Martínez': 'Venezuela',
   'Sebastian Giovinco': 'Itália', 'Jozy Altidore': 'Estados Unidos', 'Yoshinori Muto': 'Japão',
   'Ricardo Goulart': 'Brasil', 'Zico': 'Brasil', 'Leonardo': 'Brasil', 'Bismarck': 'Brasil',
+  // 🗽 Lote 39 (29/09) — ataque do Cosmos
+  'Pelé': 'Brasil', 'Giorgio Chinaglia': 'Itália', 'Dennis Tueart': 'Inglaterra',
   'Henrik Larsson': 'Suécia', 'Edin Džeko': 'Bósnia', 'Marc Overmars': 'Holanda',
   'Kingsley Coman': 'França', 'Olivier Giroud': 'França',
   'Bradley Barcola': 'França', 'Nacho Prestianni': 'Argentina',
@@ -706,6 +708,7 @@ export function paisDe(name: string, baralho: Baralho, club?: string, year?: num
 // que ninguém conferiu ainda — pode ser outra pessoa, como foi o Pedro.
 // ⚠️ Só entra aqui depois de OLHAR as duas cartas. Na dúvida, deixa de fora.
 export const MESMO_JOGADOR = new Set<string>([
+  'Julio César Romero', 'Pelé', 'Raúl', // 🗽 Lote 39: Romerito (Flu × Cosmos), Pelé (Santos × Cosmos), Raúl (Real × Cosmos)
   // 🌍 Lote 38 (29/09): a carta do clube do Mundo é a MESMA pessoa da carta de outro baralho
   'Leonardo', 'Zico', 'Bismarck', 'Elkeson', 'Andrés Iniesta', 'Steven Gerrard', 'David Beckham',
   'Anderson Talisca', 'Zlatan Ibrahimović', 'Karim Benzema', 'Luis Suárez', 'David Villa', 'Bojan Krkić',

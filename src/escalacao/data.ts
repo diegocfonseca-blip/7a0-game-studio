@@ -1607,7 +1607,12 @@ const L37_BR_ATA: C[] = [
   { name: "Charles", club: "Bahia", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Centroavante do Bahia campeão brasileiro de 1988, o time que calou o Beira-Rio na final." },
 ]
 
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA] }
+// ─── 🟢 LOTE 39 (29/09): Romerito no Fluminense (a carta do Cosmos continua no Mundo) ──
+const L39_BR_MEI: C[] = [
+  { name: "Julio César Romero", club: "Fluminense", year: 1984, fame: 4, lo: 83, hi: 89, bio: "'Romerito', o paraguaio camisa 10 do Fluminense campeão brasileiro de 1984 — eleito o melhor jogador da América em 1985." },
+]
+
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI, ...L39_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -2923,7 +2928,16 @@ const L38_WORLD_ATA: C[] = [
   { name: "Alan Carvalho", club: "Guangzhou", year: 2019, fame: 3, lo: 74, hi: 83, bio: "Atacante brasileiro naturalizado chinês, um dos estrangeiros mais marcantes do Guangzhou." },
 ]
 
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA] }
+// ─── 🗽 LOTE 39 (29/09): ATAQUE DO NEW YORK COSMOS — Diego: *"Pelé no Cosmos… quero que
+// complete… Pelé será lenda também"*. 4 atacantes = o pacote "Ataque do Cosmos".
+const L39_WORLD_ATA: C[] = [
+  { name: "Pelé", club: "New York Cosmos", year: 1977, fame: 5, lo: 86, hi: 92, bio: "O Rei parou os Estados Unidos: melhor jogador da liga em 1976 e campeão com o Cosmos no jogo de despedida, em 1977." },
+  { name: "Giorgio Chinaglia", club: "New York Cosmos", year: 1978, fame: 4, lo: 81, hi: 88, bio: "O italiano da Lazio virou o maior artilheiro da história da liga americana com a camisa do Cosmos." },
+  { name: "Raúl", club: "New York Cosmos", year: 2015, fame: 3, lo: 75, hi: 84, bio: "O ídolo do Real Madrid fechou a carreira no Cosmos — e se despediu campeão da liga americana em 2015." },
+  { name: "Dennis Tueart", club: "New York Cosmos", year: 1978, fame: 3, lo: 76, hi: 84, bio: "Ídolo do Manchester City e da seleção inglesa, foi campeão com o Cosmos em 1978." },
+]
+
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).

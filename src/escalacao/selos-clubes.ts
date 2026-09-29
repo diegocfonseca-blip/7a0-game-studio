@@ -143,6 +143,7 @@ export const SELOS: Record<string, Selo> = {
   'Vissel Kobe': { nome: 'Vissel Kobe', c1: '#A50034', c2: '#FFFFFF', ic: '⚓', ano: 1966 },
   'Kashima Antlers': { nome: 'Kashima Antlers', c1: '#B71C1C', c2: '#0C0C0C', ic: '🦌', ano: 1947 },
   'Guangzhou': { nome: 'Guangzhou', c1: '#D7141A', c2: '#FFD700', ic: '🐯', ano: 1954 },
+  'New York Cosmos': { nome: 'New York Cosmos', c1: '#0B6E4F', c2: '#FFFFFF', ic: '⭐', ano: 1970 }, // 🗽 Lote 39 — escudo oficial só em assets.football-logos.cc (rede bloqueada)
   'Al Ahly': { nome: 'Al Ahly', c1: '#C8102E', c2: '#FFFFFF', ic: '🦅', ano: 1907 },
   'TP Mazembe': { nome: 'TP Mazembe', c1: '#111111', c2: '#FFFFFF', ic: '🐦‍⬛', ano: 1939 },
   'Pohang Steelers': { nome: 'Pohang Steelers', c1: '#E4002B', c2: '#111111', ic: '⚽', ano: 1973 },

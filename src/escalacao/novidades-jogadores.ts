@@ -6,6 +6,41 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
+    "nome": "Julio César Romero",
+    "baralho": "BR",
+    "nivel": "craque",
+    "data": "2026-09-29"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Pelé",
+    "baralho": "MUNDO",
+    "nivel": "lenda",
+    "data": "2026-09-29"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Giorgio Chinaglia",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-09-29"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Raúl",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-29"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Dennis Tueart",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-09-29"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Yassine Bounou",
     "baralho": "MUNDO",
     "nivel": "craque",
@@ -385,41 +420,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
     "nome": "Neven Subotić",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-29"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ezequiel Garay",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-29"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Javi Navarro",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-29"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Florent Malouda",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-09-29"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Granit Xhaka",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-09-29"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dani Parejo",
     "baralho": "EU",
     "nivel": "bom jogador",
     "data": "2026-09-29"
