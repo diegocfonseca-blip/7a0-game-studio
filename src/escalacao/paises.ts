@@ -616,7 +616,7 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   'Dátolo|Atlético-MG|2014': 'Argentina',
   'Maxi Lopez|Vasco|2017': 'Argentina',
   'Germán Herrera|Corinthians|2008': 'Argentina',  // o "Chaco"
-  'Frickson Erazo|Flamengo|2014': 'Equador',
+  'Frickson Erazo|Grêmio|2016': 'Equador', // 🔁 29/09: carta foi do Flamengo 2014 pro Grêmio 2016
   // (havia um 2º 'Erazo' Flamengo 2014 aqui — era a MESMA pessoa, carta
   //  duplicada no baralho. O Diego mandou tirar do `data.ts` em 28/08.)
   'Gonzalo Plata|Flamengo|2024': 'Equador',

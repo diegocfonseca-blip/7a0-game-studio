@@ -1281,7 +1281,8 @@ const NOVOS_BR_ZAG: C[] = [
   // nível 1). É a mesma pessoa do 'Frickson Erazo' em `L24_BR_ZAG` — dava pra
   // ele cair duas vezes no mesmo pregão. O Diego mandou tirar e deixar só uma;
   // ficou a de nome completo, que é a melhor (nível 2, bio da seleção).
-  { name: 'Rafael Vaz', club: 'Flamengo', year: 2016, fame: 1, lo: 56, hi: 77, bio: 'Zagueiro de boa saída e gol de bola parada pelo Flamengo.' },
+  // 🔁 29/09 (Diego): Rafael Vaz sai do Flamengo 2016 → VASCO 2015, o auge dele (bicampeão carioca 2015/16). Mesma força.
+  { name: 'Rafael Vaz', club: 'Vasco', year: 2015, fame: 1, lo: 56, hi: 77, bio: 'Zagueiro canhoto de boa saída e gol de bola parada — peça do Vasco campeão carioca de 2015.' },
   { name: 'Lucão', club: 'São Paulo', year: 2016, fame: 1, lo: 55, hi: 76, bio: 'Zagueiro da base do São Paulo, firme na marcação.' },
   { name: 'Bressan', club: 'Grêmio', year: 2014, fame: 1, lo: 54, hi: 75, folk: true, bio: 'Zagueiro folclórico do Grêmio — a torcida prendia a respiração a cada recuo.' },
 ]
@@ -1356,7 +1357,8 @@ const L24_BR_LAT: C[] = [
   { name: 'Miguel Trauco', club: 'Flamengo', year: 2019, fame: 2, lo: 66, hi: 81, bio: 'Lateral-esquerdo peruano de bom pé — anos de Flamengo e titular da seleção que voltou às Copas.' },
 ]
 const L24_BR_ZAG: C[] = [
-  { name: 'Frickson Erazo', club: 'Flamengo', year: 2014, fame: 2, lo: 66, hi: 80, bio: 'Zagueiro equatoriano que rodou o Brasil — Flamengo, Grêmio e a seleção nas eliminatórias.' },
+  // 🔁 29/09 (Diego): Erazo sai do Flamengo 2014 → GRÊMIO 2016 (campeão da Copa do Brasil). Mesma força.
+  { name: 'Frickson Erazo', club: 'Grêmio', year: 2016, fame: 2, lo: 66, hi: 80, bio: 'Zagueiro equatoriano da seleção, campeão da Copa do Brasil de 2016 com o Grêmio.' },
 ]
 const L24_BR_MEI: C[] = [
   { name: 'Christian Cueva', club: 'São Paulo', year: 2018, fame: 2, lo: 68, hi: 82, bio: 'Meia driblador peruano que passou por São Paulo e Santos — talento e polêmica na mesma medida.' },

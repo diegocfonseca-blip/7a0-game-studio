@@ -6920,3 +6920,4 @@ qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque com 5s apenas pra 
 21/09 ("só no Monte da Tocaia"): `MascoteJab` aparece no Monte de todo tipo de sala (o `MascoteAtravessa` já era
 montado lá sem condição, então não nasce botão mudo) e ganhou `MASC_JAB_COOLDOWN_S = 5` com contagem no botão,
 igual ao lobby. O pregão do envelope cego continua com a mascote na barra "😈 CUTUCA". Só pra clube batizado.
+✅ 29/09 — 🔁 Rafael Vaz: Flamengo 2016 → VASCO 2015 (auge, bi carioca) · Erazo: Flamengo 2014 → GRÊMIO 2016 (Copa do Brasil). Mesma força, baralho BR; troca no mesmo baralho não vira novidade.
