@@ -6851,3 +6851,18 @@ Ordem do Diego: *"é pelo e-mail de batismo a entrada de gala e N pelo nome do t
 - ⚠️ Dono sem linha em `esc_socios` NÃO ganha gala — mais um motivo pro passo fixo do banco.
 - ✅ 28/09 (Diego: "Libera"): sócio por assinatura COM clube próprio (Futpoint FC, Marinheiros AS)
   também ganha a gala — sempre pela conta. Sócio sem clube (linha sem escudo/mascote) continua sem.
+
+## 29/09/2026 — 🧱 Leilão de Clubes repetindo (Fiorentina ataque, Flamengo lateral) — ANÁLISE, esperando OK
+Diego: *"toda hora aparece ataque da Fiorentina… lateral do Flamengo… precisa diversificar"*.
+Causa: o pacote só sai de clube com jogador SOBRANDO no setor (4-3-3: GOL 2 · LAT 3 · ZAG 3 · MEI 4 · ATA 4)
+e o clube não repete entre setores. Nos 3 baralhos: GOL 37 · LAT 32 · ZAG 35 · MEI 39 · ATA 41 clubes.
+Os grandes somem pra defesa primeiro (setor mais apertado escolhe antes) e o ataque fica com o que sobra.
+E a memória de "não repetir" (`RECENT_CLUBES`) guarda só 3 partidas e zera ao recarregar.
+Proposta (conferida nome+sobrenome no MESMO baralho): 30 cartas que fecham 1 setor cada —
+LAT: Spinazzola (Roma) · Gayà (Valencia) · Lee Dixon (Arsenal) · Seamus Coleman (Everton) · Benarrivo (Parma) ·
+Mancini (Atlético-MG) · Kurzawa (Monaco) · Chilwell (Leicester) — ZAG: Smalling (Roma) · Subotić (Dortmund) ·
+Garay (Valencia) · Javi Navarro (Sevilla) — MEI: Malouda (Lyon) · Xhaka (Leverkusen) · Parejo (Valencia) ·
+Riquelme (Villarreal) · Lincoln (Schalke) · Gaitán (Benfica) — ATA: Defoe (Tottenham) · Tadić (Ajax) ·
+Paco Alcácer (Valencia) · Chris Waddle (Marseille) · Ulf Kirsten (Leverkusen) · Brolin (Parma) · Louis Saha (Fulham) ·
+Oribe Peralta (América do México) · Charles (Bahia) — GOL: Marcelo Grohe (Grêmio) · Peruzzi (Lazio) · Weidenfeller (Dortmund).
++ ideia no código: guardar no aparelho as últimas ~8 partidas (não 3, e sem zerar no reload).
