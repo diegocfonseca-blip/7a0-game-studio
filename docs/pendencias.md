@@ -6906,6 +6906,10 @@ carta "hoje ??" × "com o Craque 82" (é NÍVEL, nunca "nota"/"overall") · faix
 online · Olheiro acha jogador fora do leilão até Craque · 4 carreiras · grupo VIP no WhatsApp com o Diego) · preço ·
 Pix · 3 passos (o 2 é o botão do Instagram) · botões 👑 Ver o Lenda / 🖋 Ver o Batismo (abrem os planos já no card).
 `SupportManualPreview`/`SupportCraqueBenefits`/`SupportPlanCard` continuam em `support-plans.tsx` (a tela de planos usa).
-⏭️ A TELA DE PLANOS ("água na boca", `scripts/mockup-planos-agua-na-boca.mjs`) ainda é só mockup — ele ajustou o texto
-(nível, olheiro direto, sem contagem de vagas, sem "camisas por vir") mas NÃO mandou construir. Medir em 2 semanas:
+✅ A TELA DE PLANOS ("água na boca", `scripts/mockup-planos-agua-na-boca.mjs`) TAMBÉM FOI PRO AR (Diego: *"após isso
+publique"*): `SupportPlans` em `support-plans.tsx` virou vitrines — a sala com Neymarzetti/Al Takhadao em ouro, Bolacha em
+prata e "Seu Time" na cor do usuário (a linha "bora mudar isso?" só aparece pra quem é bege); Craque/Lenda com a linha
+prata/ouro, controles e carta com NÍVEL; Batismo com escudo + mascote (componentes reais) + camisa da Loja
+(`public/mantos-salao/al-takahdao-camisa.webp`) e as 3 miniaturas (gala, carimbo, tabela); teaser "vem por aí" só com os 2
+que ele deixou. Sócio (add-on mensal) e história do Luca continuam. Medir em 2 semanas:
 Pix do Craque copiado ÷ pessoas que bateram na trava (hoje 3,4%).

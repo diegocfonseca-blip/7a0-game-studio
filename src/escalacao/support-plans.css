@@ -3,3 +3,31 @@
 .ll-support-home-tail{background:#0c0c0c;padding:1px 15px 20px;width:100%}
 .ll-support-home-tail .ll-support-footer{padding:12px 14px;margin-top:10px;max-width:560px}.ll-support-home-tail .ll-support-footer h3{font-size:17px;margin-bottom:6px}.ll-support-home-tail .ll-support-footer p{font-size:12px;line-height:1.45;margin:6px 0 9px}.ll-support-home-tail .ll-support-footer>button{padding:8px!important;font-size:13px!important;min-height:44px}.ll-support-story strong.ll-support-luca-legend{font:inherit;font-weight:800;color:#ffcf3e;text-shadow:0 0 8px #dca92255}
 .ll-support-addon{font:12px/1.5 Arial,sans-serif;color:#565143;margin:12px 0 0!important;padding-top:11px;border-top:1px solid #e4dfd3}.ll-support-addon+.ll-support-button{margin-top:10px}
+
+/* 🍯 vitrines da tela de planos (29/09) */
+.ll-vit-hero{background:#0c0c0c;color:#fff;border:3.5px solid #0c0c0c;border-radius:17px;box-shadow:4px 4px 0 #0c0c0c;padding:14px 13px 12px;margin-bottom:6px}
+.ll-vit-hero h1{font:700 28px/.95 Oswald,sans-serif;text-transform:uppercase;margin:0 0 6px;color:#fff}.ll-vit-hero h1 b{color:#ffc400}
+.ll-vit-hero>p{margin:0;font:700 11.5px/1.4 Arial,sans-serif;color:rgba(255,255,255,.8)}.ll-vit-hero>p b{color:#fff}
+.ll-vit-hero-pe{margin:8px 0 0!important;font-size:10.5px!important;text-align:center;color:rgba(255,255,255,.65)!important}.ll-vit-hero-pe b{color:#ffc400!important}
+.ll-vit-sala{background:#f4ecd6;border:2.5px solid #0c0c0c;border-radius:13px;padding:9px 10px 3px;margin-top:11px;color:#0c0c0c}
+.ll-vit{background:#f4ecd6;border:2.5px solid #0c0c0c;border-radius:13px;padding:9px 10px 4px;margin:10px 0 4px}
+.ll-vit-rot{margin:0 0 7px;font:700 10px/1.2 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:rgba(12,12,12,.55)}
+.ll-vit-linha{position:relative;overflow:hidden;border:3px solid #0c0c0c;border-radius:12px;box-shadow:3px 3px 0 #0c0c0c;display:flex;align-items:center;gap:8px;margin-bottom:7px;color:#0c0c0c}
+.ll-vit-ini{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid #0c0c0c;display:flex;align-items:center;justify-content:center;font:700 13px Oswald,sans-serif;position:relative;flex:none}
+.ll-vit-nome{font:700 14px/1.2 Oswald,sans-serif;text-transform:uppercase;flex:1;position:relative;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ll-vit-grid{display:flex;gap:7px;margin:3px 0 6px}
+.ll-vit-mini{flex:1;min-width:0;background:#fff;border:2.5px solid #0c0c0c;border-radius:10px;box-shadow:2px 2px 0 #0c0c0c;padding:7px 7px 8px;text-align:center}
+.ll-vit-mini>p{margin:5px 0 0;font:800 9px/1.25 Arial,sans-serif}
+.ll-vit-carta{position:relative;overflow:hidden;width:76px;margin:0 auto;border:2.5px solid #0c0c0c;border-radius:9px;box-shadow:2px 3px 0 #0c0c0c;padding:5px;color:#0c0c0c;text-align:left}
+.ll-vit-pos{font:700 7px Oswald,sans-serif;background:#0c0c0c;color:#fff;border-radius:4px;padding:1px 4px;position:relative}
+.ll-vit-bola{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.5);border:2px solid rgba(0,0,0,.28);margin:5px auto;display:flex;align-items:center;justify-content:center;font:700 12px Oswald,sans-serif;position:relative}
+.ll-vit-ok{display:flex;gap:7px;align-items:flex-start;margin-top:6px;font:700 11.5px/1.35 Arial,sans-serif}.ll-vit-ok>span:first-child{flex:none;color:#1b7a3d;font-weight:900;font-size:12px}
+.ll-vit-artes{display:flex;gap:8px;align-items:flex-end;justify-content:center;background:#fff;border:2.5px solid #0c0c0c;border-radius:10px;padding:8px 6px 6px;margin-bottom:6px}
+.ll-vit-artes>div{text-align:center}.ll-vit-artes p{margin:3px 0 0;font:700 9px Oswald,sans-serif;text-transform:uppercase}
+.ll-vit-como{background:#fff6de;border:2.5px dashed #0c0c0c;border-radius:11px;padding:8px 10px;margin-top:10px;font:800 10.5px/1.4 Arial,sans-serif}
+.ll-vit-breve{background:linear-gradient(160deg,#241d0c,#141414 60%,#1d1708);border:3.5px solid #0c0c0c;border-radius:17px;box-shadow:4px 4px 0 #0c0c0c;padding:12px 13px;color:rgba(255,255,255,.9);margin:14px 0 6px}
+.ll-vit-breve h3{font:700 16px Oswald,sans-serif;text-transform:uppercase;color:#ffc400;margin:0 0 8px}
+.ll-vit-breve .it{display:flex;gap:9px;align-items:center;background:rgba(255,255,255,.07);border:2px solid rgba(255,196,0,.35);border-radius:11px;padding:8px 10px;margin-top:7px}
+.ll-vit-breve .it>div{flex:1;min-width:0}.ll-vit-breve .it b{font:700 12.5px Oswald,sans-serif;text-transform:uppercase;display:block;color:#fff}.ll-vit-breve .it span:not(.lock){font:700 10.5px/1.3 Arial,sans-serif;color:rgba(255,255,255,.7)}
+.ll-vit-breve .lock{font:700 8.5px Oswald,sans-serif;letter-spacing:.06em;text-transform:uppercase;border:2px solid #ffc400;color:#ffc400;border-radius:999px;padding:2px 7px;white-space:nowrap}
+.ll-vit-breve>p{margin:9px 0 0;font:700 10px Arial,sans-serif;color:rgba(255,255,255,.55);text-align:center}
