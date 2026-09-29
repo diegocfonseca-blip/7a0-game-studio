@@ -6878,3 +6878,10 @@ Simulação (20 partidas seguidas, 8 técnicos): clubes diferentes no ataque 27 
 Santa Cruz saíam em 20 de 20. Memória "não repetir": 3 partidas só na memória → 8 partidas no aparelho
 (`esc-clubes-recentes-v1`, chave ÚNICA, não é por sala), com nota por recência e setor.
 ⚠️ Sala de 10+: pede ~75 clubes de ~90 que servem — aí só MAIS CLUBE resolve (lista do Mundo mandada ao Diego).
+✅ 29/09 LOTE 38 NO AR — 🌍 40 cartas de clubes do MUNDO (Diego: *"time do Japão, da Arábia… só famoso"*; categorias
+aprovadas: Neymar no Al-Hilal = Bom Jogador, Zico no Kashima = Lenda). Pacotes novos: Al-Nassr/Al-Hilal/Al-Ittihad/
+Al-Ahli/Inter Miami/LA Galaxy (ATA) · Toronto/Vissel Kobe/Guangzhou (ATA) · LA Galaxy/Kashima (MEI) · Al-Hilal (GOL).
+8 escudos oficiais novos (`escudos-oficiais.mjs`: MLS + FCLOGO) + selos. Irlanda: nenhum famoso em clube irlandês.
+Clubes com pacote agora: GOL 41 · LAT 40 · ZAG 39 · MEI 47 · ATA 59.
+📏 Simulação (20 partidas): sala de 8 → o mais repetido sai 13 de 20; sala de 10 → LATERAL vira o gargalo
+(PSV, Monaco, Leicester em 20 de 20). ⏭️ Próximo lote, se ele quiser: LATERAIS famosos (e goleiros).

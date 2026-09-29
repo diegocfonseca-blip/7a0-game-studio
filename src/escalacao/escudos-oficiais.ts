@@ -2,7 +2,7 @@
 // 🛡️ Escudo OFICIAL de cada clube do Leilão de Clubes (decisão do Diego, 28/09).
 // A imagem mora em `public/` (fora do bundle, só baixa pra quem vê o clube).
 // Clube fora desta lista usa o selo estilo B (`selo-clube.tsx`).
-// 106 escudos · 965 KB somados.
+// 114 escudos · 1033 KB somados.
 export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: number }> = {
   "Flamengo": {
     "src": "escudos-clubes/flamengo.webp",
@@ -113,6 +113,46 @@ export const ESCUDOS_OFICIAIS: Record<string, { src: string; w: number; h: numbe
     "src": "escudos-clubes/bragantino.webp",
     "w": 160,
     "h": 129
+  },
+  "Inter Miami": {
+    "src": "escudos-clubes/inter-miami.webp",
+    "w": 160,
+    "h": 160
+  },
+  "LA Galaxy": {
+    "src": "escudos-clubes/la-galaxy.webp",
+    "w": 126,
+    "h": 160
+  },
+  "Toronto": {
+    "src": "escudos-clubes/toronto.webp",
+    "w": 160,
+    "h": 150
+  },
+  "Al-Ittihad": {
+    "src": "escudos-clubes/al-ittihad.webp",
+    "w": 138,
+    "h": 160
+  },
+  "Al-Ahli": {
+    "src": "escudos-clubes/al-ahli.webp",
+    "w": 141,
+    "h": 160
+  },
+  "Vissel Kobe": {
+    "src": "escudos-clubes/vissel-kobe.webp",
+    "w": 125,
+    "h": 160
+  },
+  "Kashima Antlers": {
+    "src": "escudos-clubes/kashima-antlers.webp",
+    "w": 149,
+    "h": 160
+  },
+  "Guangzhou": {
+    "src": "escudos-clubes/guangzhou.webp",
+    "w": 118,
+    "h": 160
   },
   "Boca Juniors": {
     "src": "escudos-clubes/boca-juniors.webp",

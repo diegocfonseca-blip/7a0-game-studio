@@ -2869,7 +2869,61 @@ const L37_WORLD_ATA: C[] = [
   { name: "Oribe Peralta", club: "América do México", year: 2014, fame: 3, lo: 76, hi: 84, bio: "Centroavante do ouro olímpico do México em 2012 e ídolo do América." },
 ]
 
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA] }
+// ─── 🌍 LOTE 38 (29/09): clubes do MUNDO pro Leilão de Clubes — só FAMOSO ─────
+// Diego: *"time do Japão, time da Arábia… mais times pelo mundo… se não for jogador
+// conhecido, nem me manda"*. Cada grupo fecha um pacote (4 atacantes / 4 meias / 2
+// goleiros). Categoria = a do jogador NAQUELE clube e ano, aprovada por ele ("Ok pode
+// fazer dessa forma"): Neymar no Al-Hilal é BOM JOGADOR (7 jogos e lesão); Zico no
+// Kashima é LENDA (o "deus" do clube, tem estátua). Quem já tem carta na Europa/Brasil
+// entra aqui porque é OUTRO baralho.
+const L38_WORLD_GOL: C[] = [
+  { name: "Yassine Bounou", club: "Al-Hilal", year: 2024, fame: 4, lo: 81, hi: 88, bio: "O Bono, herói do Marrocos semifinalista da Copa de 2022, virou o paredão do Al-Hilal campeão saudita." },
+]
+const L38_WORLD_MEI: C[] = [
+  { name: "David Beckham", club: "LA Galaxy", year: 2011, fame: 4, lo: 82, hi: 88, bio: "O Beckham que levou o futebol pra Hollywood — bicampeão da MLS com o Galaxy." },
+  { name: "Steven Gerrard", club: "LA Galaxy", year: 2015, fame: 3, lo: 77, hi: 85, bio: "O capitão do Liverpool foi fechar a carreira no sol de Los Angeles." },
+  { name: "Jonathan dos Santos", club: "LA Galaxy", year: 2019, fame: 3, lo: 75, hi: 83, bio: "Volante mexicano da seleção, cria do Barcelona, que virou peça fixa do Galaxy." },
+  { name: "Andrés Iniesta", club: "Vissel Kobe", year: 2019, fame: 4, lo: 83, hi: 89, bio: "O gênio do Barça ensinou futebol no Japão e deu ao Vissel Kobe a Copa do Imperador de 2019." },
+  { name: "Zico", club: "Kashima Antlers", year: 1993, fame: 5, lo: 86, hi: 92, bio: "O 'deus' do Kashima: ajudou a fundar o futebol profissional japonês e ganhou até estátua na porta do estádio." },
+  { name: "Leonardo", club: "Kashima Antlers", year: 1995, fame: 4, lo: 82, hi: 88, bio: "Campeão do mundo em 94, foi reinar no Japão e ganhou a J-League com o Kashima antes da Europa." },
+  { name: "Bismarck", club: "Kashima Antlers", year: 1997, fame: 3, lo: 77, hi: 85, bio: "O meia do Vasco que virou ídolo no Japão, campeão da J-League com o Kashima." },
+  { name: "Mitsuo Ogasawara", club: "Kashima Antlers", year: 2009, fame: 4, lo: 80, hi: 87, bio: "Maestro japonês e capitão do Kashima tricampeão da J-League de 2007 a 2009." },
+]
+const L38_WORLD_ATA: C[] = [
+  { name: "Sadio Mané", club: "Al-Nassr", year: 2024, fame: 4, lo: 81, hi: 88, bio: "O senegalês do Liverpool campeão da Champions virou parceiro de ataque do Cristiano no Al-Nassr." },
+  { name: "Anderson Talisca", club: "Al-Nassr", year: 2023, fame: 3, lo: 77, hi: 85, bio: "O canhotinha baiano da bomba de fora da área, artilheiro do Al-Nassr ao lado do Cristiano." },
+  { name: "Neymar", club: "Al-Hilal", year: 2024, fame: 3, lo: 76, hi: 85, bio: "A transferência que parou o mundo — mas a lesão no joelho deixou o Neymar só 7 jogos em campo pelo Al-Hilal." },
+  { name: "Aleksandar Mitrović", club: "Al-Hilal", year: 2024, fame: 4, lo: 80, hi: 87, bio: "O sérvio foi artilheiro do Al-Hilal campeão saudita invicto em 2024." },
+  { name: "Malcom", club: "Al-Hilal", year: 2024, fame: 3, lo: 77, hi: 85, bio: "Ponta brasileiro canhoto, ex-Barcelona e Zenit, que virou goleador no Al-Hilal." },
+  { name: "Karim Benzema", club: "Al-Ittihad", year: 2025, fame: 4, lo: 81, hi: 88, bio: "O Bola de Ouro de 2022 levou o Al-Ittihad ao título saudita de 2025, fazendo gol atrás de gol." },
+  { name: "Moussa Diaby", club: "Al-Ittihad", year: 2025, fame: 3, lo: 76, hi: 84, bio: "Ponta francês veloz, ex-Leverkusen e Aston Villa, campeão saudita com o Al-Ittihad." },
+  { name: "Steven Bergwijn", club: "Al-Ittihad", year: 2025, fame: 3, lo: 75, hi: 84, bio: "Atacante holandês ex-Ajax e Tottenham, campeão saudita com o Al-Ittihad." },
+  { name: "Romarinho", club: "Al-Ittihad", year: 2023, fame: 3, lo: 75, hi: 84, bio: "O Romarinho do gol no Boca, em 2012, virou ídolo no Al-Ittihad campeão saudita de 2023." },
+  { name: "Roberto Firmino", club: "Al-Ahli", year: 2024, fame: 3, lo: 77, hi: 85, bio: "O Bobby do Liverpool foi capitão do Al-Ahli campeão da Champions da Ásia de 2025." },
+  { name: "Riyad Mahrez", club: "Al-Ahli", year: 2025, fame: 4, lo: 80, hi: 87, bio: "O argelino canhoto do Leicester e do City levou o Al-Ahli ao título da Champions da Ásia." },
+  { name: "Ivan Toney", club: "Al-Ahli", year: 2025, fame: 3, lo: 77, hi: 85, bio: "Centroavante inglês do pênalti sem olhar pro goleiro, campeão asiático com o Al-Ahli." },
+  { name: "Allan Saint-Maximin", club: "Al-Ahli", year: 2023, fame: 3, lo: 75, hi: 84, bio: "O ponta da faixa na cabeça e do drible maluco do Newcastle, agora no Al-Ahli." },
+  { name: "Luis Suárez", club: "Inter Miami", year: 2024, fame: 4, lo: 81, hi: 88, bio: "O Pistoleiro reencontrou o Messi e bateu o recorde de gols de uma temporada do Inter Miami." },
+  { name: "Gonzalo Higuaín", club: "Inter Miami", year: 2021, fame: 3, lo: 76, hi: 84, bio: "O Pipita fechou a carreira no Inter Miami, antes da chegada do Messi." },
+  { name: "Josef Martínez", club: "Inter Miami", year: 2023, fame: 3, lo: 75, hi: 83, bio: "O venezuelano que já tinha sido o melhor da MLS pelo Atlanta, agora no Inter Miami." },
+  { name: "Zlatan Ibrahimović", club: "LA Galaxy", year: 2019, fame: 4, lo: 82, hi: 88, bio: "Chegou dizendo que era 'o leão entre humanos' — e fez 53 gols em duas temporadas pelo Galaxy." },
+  { name: "Robbie Keane", club: "LA Galaxy", year: 2014, fame: 4, lo: 80, hi: 87, bio: "Melhor jogador da MLS em 2014 e tricampeão com o Galaxy — a cambalhota virou marca em Los Angeles." },
+  { name: "Chicharito", club: "LA Galaxy", year: 2021, fame: 3, lo: 76, hi: 84, bio: "O mexicano matador de área, ex-Man United e Real Madrid, virou o camisa 14 do Galaxy." },
+  { name: "Sebastian Giovinco", club: "Toronto", year: 2015, fame: 4, lo: 81, hi: 88, bio: "A 'Formiga Atômica' italiana foi o melhor da MLS em 2015 e campeão com o Toronto em 2017." },
+  { name: "Jermain Defoe", club: "Toronto", year: 2014, fame: 3, lo: 76, hi: 84, bio: "O baixinho matador do Tottenham atravessou o oceano pra fazer gol no Canadá." },
+  { name: "Lorenzo Insigne", club: "Toronto", year: 2023, fame: 3, lo: 76, hi: 84, bio: "O 'Magnífico' de Nápoles trocou a Itália pelo Toronto com o maior salário da MLS." },
+  { name: "Jozy Altidore", club: "Toronto", year: 2017, fame: 3, lo: 74, hi: 83, bio: "Centroavante da seleção dos EUA, campeão da MLS de 2017 com o Toronto." },
+  { name: "David Villa", club: "Vissel Kobe", year: 2019, fame: 3, lo: 76, hi: 84, bio: "O maior artilheiro da história da Espanha fechou a carreira no Japão, ao lado do Iniesta." },
+  { name: "Lukas Podolski", club: "Vissel Kobe", year: 2018, fame: 3, lo: 76, hi: 84, bio: "O canhotaço campeão do mundo com a Alemanha em 2014 virou capitão do Vissel Kobe." },
+  { name: "Bojan Krkić", club: "Vissel Kobe", year: 2021, fame: 3, lo: 73, hi: 82, bio: "O menino-prodígio do Barcelona de Guardiola foi jogar com o Iniesta de novo, agora no Japão." },
+  { name: "Yoshinori Muto", club: "Vissel Kobe", year: 2023, fame: 3, lo: 74, hi: 83, bio: "Atacante japonês ex-Newcastle, campeão da J-League com o Vissel Kobe em 2023." },
+  { name: "Elkeson", club: "Guangzhou", year: 2014, fame: 4, lo: 79, hi: 86, bio: "O ex-Botafogo foi artilheiro da China e campeão da Champions da Ásia com o Guangzhou." },
+  { name: "Ricardo Goulart", club: "Guangzhou", year: 2015, fame: 4, lo: 79, hi: 86, bio: "O ex-Cruzeiro foi o melhor jogador da liga chinesa e campeão da Ásia em 2015." },
+  { name: "Robinho", club: "Guangzhou", year: 2015, fame: 3, lo: 75, hi: 84, bio: "Pedaladas na China: Robinho foi campeão chinês com o Guangzhou de Felipão." },
+  { name: "Alan Carvalho", club: "Guangzhou", year: 2019, fame: 3, lo: 74, hi: 83, bio: "Atacante brasileiro naturalizado chinês, um dos estrangeiros mais marcantes do Guangzhou." },
+]
+
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).

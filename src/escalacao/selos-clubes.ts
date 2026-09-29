@@ -134,6 +134,15 @@ export const SELOS: Record<string, Selo> = {
   // 🌍 Ásia e África
   'Al-Hilal': { nome: 'Al-Hilal', c1: '#1B5EAB', c2: '#FFFFFF', ic: '🌙', ano: 1957 },
   'Al-Nassr': { nome: 'Al-Nassr', c1: '#FFDD00', c2: '#1B3A8C', ic: '⚽', ano: 1955 },
+  // 🌍 Lote 38 (29/09): clubes do Mundo que viraram pacote (o escudo oficial ganha deste selo)
+  'Al-Ittihad': { nome: 'Al-Ittihad', c1: '#FFD700', c2: '#0C0C0C', ic: '🐅', ano: 1927 },
+  'Al-Ahli': { nome: 'Al-Ahli', c1: '#0B7A3E', c2: '#FFFFFF', ic: '🌴', ano: 1937 },
+  'Inter Miami': { nome: 'Inter Miami', c1: '#F7B5CD', c2: '#231F20', ic: '🦩', ano: 2018 },
+  'LA Galaxy': { nome: 'LA Galaxy', c1: '#00245D', c2: '#FFD200', ic: '⭐', ano: 1994 },
+  'Toronto': { nome: 'Toronto FC', c1: '#B81137', c2: '#FFFFFF', ic: '⚽', ano: 2006 },
+  'Vissel Kobe': { nome: 'Vissel Kobe', c1: '#A50034', c2: '#FFFFFF', ic: '⚓', ano: 1966 },
+  'Kashima Antlers': { nome: 'Kashima Antlers', c1: '#B71C1C', c2: '#0C0C0C', ic: '🦌', ano: 1947 },
+  'Guangzhou': { nome: 'Guangzhou', c1: '#D7141A', c2: '#FFD700', ic: '🐯', ano: 1954 },
   'Al Ahly': { nome: 'Al Ahly', c1: '#C8102E', c2: '#FFFFFF', ic: '🦅', ano: 1907 },
   'TP Mazembe': { nome: 'TP Mazembe', c1: '#111111', c2: '#FFFFFF', ic: '🐦‍⬛', ano: 1939 },
   'Pohang Steelers': { nome: 'Pohang Steelers', c1: '#E4002B', c2: '#111111', ic: '⚽', ano: 1973 },

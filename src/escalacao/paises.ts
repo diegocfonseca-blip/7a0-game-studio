@@ -285,6 +285,12 @@ export const PAIS: Record<string, string> = {
   'Dušan Tadić': 'Sérvia', 'Paco Alcácer': 'Espanha', 'Chris Waddle': 'Inglaterra',
   'Ulf Kirsten': 'Alemanha', 'Tomas Brolin': 'Suécia', 'Louis Saha': 'França',
   'Oribe Peralta': 'México',
+  // 🌍 Lote 38 (29/09) — clubes do Mundo
+  'Yassine Bounou': 'Marrocos', 'Jonathan dos Santos': 'México', 'Mitsuo Ogasawara': 'Japão',
+  'Moussa Diaby': 'França', 'Steven Bergwijn': 'Holanda', 'Romarinho': 'Brasil',
+  'Ivan Toney': 'Inglaterra', 'Allan Saint-Maximin': 'França', 'Josef Martínez': 'Venezuela',
+  'Sebastian Giovinco': 'Itália', 'Jozy Altidore': 'Estados Unidos', 'Yoshinori Muto': 'Japão',
+  'Ricardo Goulart': 'Brasil', 'Zico': 'Brasil', 'Leonardo': 'Brasil', 'Bismarck': 'Brasil',
   'Henrik Larsson': 'Suécia', 'Edin Džeko': 'Bósnia', 'Marc Overmars': 'Holanda',
   'Kingsley Coman': 'França', 'Olivier Giroud': 'França',
   'Bradley Barcola': 'França', 'Nacho Prestianni': 'Argentina',
@@ -515,6 +521,10 @@ export type Baralho = 'BR' | 'EU' | 'WORLD'
 // ⚠️ Ao adicionar uma carta com nome que JÁ EXISTE no jogo, ponha as duas aqui.
 //    O `npm run paises` acusa quem ficar de fora.
 export const PAIS_POR_CARTA: Record<string, string> = {
+  // 🌍 Lote 38: Elkeson e Alan se naturalizaram e JOGARAM pela China (regra dos naturalizados,
+  // 28/08: vale a seleção que DEFENDEU — a carta do Elkeson no Botafogo já era China)
+  "Elkeson|Guangzhou|2014": "China",
+  "Alan Carvalho|Guangzhou|2019": "China",
   // 🧱 Lote 37 (29/09): dois Lincoln DIFERENTES — o meia do Schalke (2006) e o atacante do Flamengo (2019)
   "Lincoln|Schalke|2006": "Brasil",
   "Lincoln|Flamengo|2019": "Brasil",
@@ -696,6 +706,11 @@ export function paisDe(name: string, baralho: Baralho, club?: string, year?: num
 // que ninguém conferiu ainda — pode ser outra pessoa, como foi o Pedro.
 // ⚠️ Só entra aqui depois de OLHAR as duas cartas. Na dúvida, deixa de fora.
 export const MESMO_JOGADOR = new Set<string>([
+  // 🌍 Lote 38 (29/09): a carta do clube do Mundo é a MESMA pessoa da carta de outro baralho
+  'Leonardo', 'Zico', 'Bismarck', 'Elkeson', 'Andrés Iniesta', 'Steven Gerrard', 'David Beckham',
+  'Anderson Talisca', 'Zlatan Ibrahimović', 'Karim Benzema', 'Luis Suárez', 'David Villa', 'Bojan Krkić',
+  'Gonzalo Higuaín', 'Sadio Mané', 'Malcom', 'Chicharito', 'Riyad Mahrez', 'Lukas Podolski', 'Robbie Keane',
+  'Aleksandar Mitrović', 'Lorenzo Insigne', 'Jermain Defoe',
   'Mancini', // 🧱 Lote 37: Atlético-MG 2002 e Roma 2006 — o mesmo lateral
   'Juan Román Riquelme', // 🧱 Lote 37: Villarreal 2006 e Boca Juniors 2007 — o mesmo camisa 10
   // Figueirense 2010 (promessa) e Liverpool 2019 — o mesmo cara em dois auges.

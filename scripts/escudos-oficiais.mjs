@@ -93,6 +93,11 @@ const MAPA = {
   'Athletico-PR': F('athletico-paranaense'), 'Coritiba': F('coritiba'), 'Goiás': R('goi'), 'Chapecoense': F('chapecoense'),
   'Bragantino': F('rb-bragantino'),
   // 🌎
+  // 🌍 Lote 38 (29/09): clubes do Mundo que viraram pacote no Leilão de Clubes
+  'Inter Miami': U('mia'), 'LA Galaxy': U('lag'), 'Toronto': U('tor'),
+  'Al-Ittihad': C('SAFF/clubs/08-Al-Ittihad/png/Ittihad-Saudi-Arabian-Club-v2015.png'), 'Al-Ahli': C('SAFF/clubs/01-Al-Ahli/png/Al-Ahli-v2025.png'),
+  'Vissel Kobe': C('JFA/clubs/001_Vissel Kobe/png/vissel-kobe-v2005.png'), 'Kashima Antlers': C('JFA/clubs/010_Kashima Antlers/png/kashima-antlers-v1992.png'),
+  'Guangzhou': C('CFA/clubs/001-100/Guangzhou FC/png/guangzhoufc-v2015.png'),
   'Boca Juniors': F('boca-juniors'), 'Orlando City': U('orl'), 'Barcelona SC': F('barcelona-sc'), 'LDU Quito': F('liga-de-quito'), 'Sporting Cristal': F('sporting-cristal'),
   // 🔎 acervos do GitHub
   'Sport': H('sport'), 'Náutico': H('nautico'), 'Santa Cruz': H('santa-cruz'), 'Ponte Preta': H('ponte-preta'),
