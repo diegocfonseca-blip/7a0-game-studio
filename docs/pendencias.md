@@ -6913,3 +6913,10 @@ prata/ouro, controles e carta com NÍVEL; Batismo com escudo + mascote (componen
 (`public/mantos-salao/al-takahdao-camisa.webp`) e as 3 miniaturas (gala, carimbo, tabela); teaser "vem por aí" só com os 2
 que ele deixou. Sócio (add-on mensal) e história do Luca continuam. Medir em 2 semanas:
 Pix do Craque copiado ÷ pessoas que bateram na trava (hoje 3,4%).
+
+## 29/09/2026 — 🐊 Solta a mascote no MONTE: qualquer sala + 5s de espera ✅ NO AR
+Diego (print do Monte de um Leilão de Clubes por envelope, com o bicho empilhado): *"nessa área aqui seja pra
+qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque com 5s apenas pra poder enviar"*. REVOGA a regra de
+21/09 ("só no Monte da Tocaia"): `MascoteJab` aparece no Monte de todo tipo de sala (o `MascoteAtravessa` já era
+montado lá sem condição, então não nasce botão mudo) e ganhou `MASC_JAB_COOLDOWN_S = 5` com contagem no botão,
+igual ao lobby. O pregão do envelope cego continua com a mascote na barra "😈 CUTUCA". Só pra clube batizado.

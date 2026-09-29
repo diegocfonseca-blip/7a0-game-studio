@@ -3546,17 +3546,32 @@ function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscSta
 // 🐊 SOLTA A SUA MASCOTE — só pra quem tem clube batizado (a mascote vem do
 // cadastro do sócio, `mascoteKey`). Quem não tem, não vê botão nenhum: nada de
 // placeholder pra quem não comprou (régua do Diego).
+// ⏱️ 29/09 (Diego, print do Monte com o bicho empilhado): *"coloque com 5s apenas
+// pra poder enviar"* — a MESMA espera da sala de espera (`MASC_COOLDOWN_S` no lobby).
+const MASC_JAB_COOLDOWN_S = 5
 function MascoteJab() {
   const { emote } = useEsc()
   const soc = useMeuSocio()
   const key = soc?.ativo && soc.mascoteKey && MASCOTES[soc.mascoteKey] ? soc.mascoteKey : null
+  const [coolLeft, setCoolLeft] = useState(0)
+  const lastRef = useRef(0)
+  useEffect(() => {
+    if (coolLeft <= 0) return
+    const t = setTimeout(() => setCoolLeft(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [coolLeft])
   if (!key) return null
+  const solta = () => {
+    if (Date.now() - lastRef.current < MASC_JAB_COOLDOWN_S * 1000) return
+    lastRef.current = Date.now(); setCoolLeft(MASC_JAB_COOLDOWN_S)
+    emote(`masc:${key}`, undefined, 'soltou o bicho! 🔊')
+  }
   return (
-    <button onClick={() => emote(`masc:${key}`, undefined, 'soltou o bicho! 🔊')}
-      className="mt-1.5 mx-auto flex items-center gap-2 border-2 rounded-full pl-1.5 pr-3 py-0.5 bg-white active:translate-y-0.5"
+    <button onClick={solta} disabled={coolLeft > 0}
+      className="mt-1.5 mx-auto flex items-center gap-2 border-2 rounded-full pl-1.5 pr-3 py-0.5 bg-white active:translate-y-0.5 disabled:opacity-60"
       style={{ borderColor: PURPLE, boxShadow: `2px 2px 0 0 ${INK}` }}>
       <MascoteMini art={MASCOTES[key]} alt={44} />
-      <span className="text-xs font-black text-black" style={OSWALD}>SOLTA A SUA MASCOTE</span>
+      <span className="text-xs font-black text-black" style={OSWALD}>{coolLeft > 0 ? `🐾 ${coolLeft}s…` : 'SOLTA A SUA MASCOTE'}</span>
     </button>
   )
 }
@@ -5511,16 +5526,14 @@ export function EscMonte() {
         )
       })()}
       <YourPitch />
-      {/* 🐊 SOLTA A SUA MASCOTE — SÓ AQUI, e SÓ EM SALA DE TOCAIA (Diego 21/09):
-          *"eu disse apenas no monte de sobras, onde fica embaixo do campinho. E
-          só no modo Tocaia. Porque no modo envelope já tá ótimo onde está ele"*.
-          ⚠️ Eu tinha entendido errado e espalhado o botão em DUAS telas (o pregão
-          da Tocaia também) — ele corrigiu na hora: *"como assim em cada um??"*.
-          É UM lugar só. No envelope cego a mascote continua onde sempre esteve,
-          na barra "😈 CUTUCA QUEM TÁ PENSANDO" do pregão, e o Monte dessas salas
-          segue sem botão — do jeito que ele quer.
-          Regra de sempre: só aparece pra quem tem clube batizado. */}
-      {state.holandes && <div className="flex justify-center"><MascoteJab /></div>}
+      {/* 🐊 SOLTA A SUA MASCOTE — no Monte, embaixo do campinho, pra QUALQUER sala.
+          🔁 29/09 (Diego, print do Monte de um Leilão de Clubes por envelope): *"nessa
+          área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope"*. Isso
+          REVOGA a regra de 21/09 ("só no modo Tocaia"): o botão agora aparece no Monte
+          de todo tipo de sala. Continua sendo UM lugar só no Monte (no pregão do
+          envelope cego a mascote segue na barra "😈 CUTUCA QUEM TÁ PENSANDO").
+          Regra de sempre: só aparece pra quem tem clube batizado. E com 5s de espera. */}
+      <div className="flex justify-center"><MascoteJab /></div>
     </Shell>
     {/* 🐊🐛 O BICHO PRECISA DESTAS LINHAS PRA EXISTIR AQUI (conserto 23/09).
         Relato do Diego: *"o solta o mascote não tá funcionando quando aperta ele…
