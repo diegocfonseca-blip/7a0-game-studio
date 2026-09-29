@@ -275,6 +275,16 @@ export const PAIS: Record<string, string> = {
   'Aleksandar Mitrović': 'Sérvia', 'Victor Boniface': 'Nigéria', 'Jamie Vardy': 'Inglaterra',
   'Lorenzo Insigne': 'Itália', 'Dries Mertens': 'Bélgica', 'Jadon Sancho': 'Inglaterra',
   'Douglas Costa': 'Brasil', 'Giuseppe Signori': 'Itália',
+  // 🧱 Lote 37 (29/09) — fecham setor no Leilão de Clubes
+  'Angelo Peruzzi': 'Itália', 'Roman Weidenfeller': 'Alemanha', 'Leonardo Spinazzola': 'Itália',
+  'José Gayà': 'Espanha', 'Lee Dixon': 'Inglaterra', 'Seamus Coleman': 'Irlanda',
+  'Antonio Benarrivo': 'Itália', 'Layvin Kurzawa': 'França', 'Ben Chilwell': 'Inglaterra',
+  'Chris Smalling': 'Inglaterra', 'Neven Subotić': 'Sérvia', 'Ezequiel Garay': 'Argentina',
+  'Javi Navarro': 'Espanha', 'Florent Malouda': 'França', 'Granit Xhaka': 'Suíça',
+  'Dani Parejo': 'Espanha', 'Nicolás Gaitán': 'Argentina', 'Jermain Defoe': 'Inglaterra',
+  'Dušan Tadić': 'Sérvia', 'Paco Alcácer': 'Espanha', 'Chris Waddle': 'Inglaterra',
+  'Ulf Kirsten': 'Alemanha', 'Tomas Brolin': 'Suécia', 'Louis Saha': 'França',
+  'Oribe Peralta': 'México',
   'Henrik Larsson': 'Suécia', 'Edin Džeko': 'Bósnia', 'Marc Overmars': 'Holanda',
   'Kingsley Coman': 'França', 'Olivier Giroud': 'França',
   'Bradley Barcola': 'França', 'Nacho Prestianni': 'Argentina',
@@ -505,6 +515,9 @@ export type Baralho = 'BR' | 'EU' | 'WORLD'
 // ⚠️ Ao adicionar uma carta com nome que JÁ EXISTE no jogo, ponha as duas aqui.
 //    O `npm run paises` acusa quem ficar de fora.
 export const PAIS_POR_CARTA: Record<string, string> = {
+  // 🧱 Lote 37 (29/09): dois Lincoln DIFERENTES — o meia do Schalke (2006) e o atacante do Flamengo (2019)
+  "Lincoln|Schalke|2006": "Brasil",
+  "Lincoln|Flamengo|2019": "Brasil",
   // ─── 🧱 LOTE 35 (26/09, Leilão de Setores): país de cada carta nova, carta a carta
   "José Altafini|Milan|1963": "Brasil",
   "Luis Díaz|Liverpool|2023": "Colômbia",
@@ -683,6 +696,8 @@ export function paisDe(name: string, baralho: Baralho, club?: string, year?: num
 // que ninguém conferiu ainda — pode ser outra pessoa, como foi o Pedro.
 // ⚠️ Só entra aqui depois de OLHAR as duas cartas. Na dúvida, deixa de fora.
 export const MESMO_JOGADOR = new Set<string>([
+  'Mancini', // 🧱 Lote 37: Atlético-MG 2002 e Roma 2006 — o mesmo lateral
+  'Juan Román Riquelme', // 🧱 Lote 37: Villarreal 2006 e Boca Juniors 2007 — o mesmo camisa 10
   // Figueirense 2010 (promessa) e Liverpool 2019 — o mesmo cara em dois auges.
   'Roberto Firmino',
   'Andreas Pereira', // Flamengo 2022 e Palmeiras 2026 — o mesmo cara em dois clubes

@@ -1592,7 +1592,22 @@ const L33_BR_ATA: C[] = [
   { name: "Neto Berola", club: "Vitória", year: 2010, fame: 2, lo: 68, hi: 82, bio: "Atacante de arrancada que foi vice-artilheiro do Baiano de 2009 e um dos destaques do Vitória na campanha do vice da Copa do Brasil de 2010. Depois foi campeão da Libertadores com o Atlético-MG." },
   { name: "Allan (Palmeiras)", club: "Palmeiras", year: 2026, fame: 3, lo: 70, hi: 83, promessa: true, bio: "Atacante saído da base do Palmeiras — arrancada e finalização de dentro da área, apostado pelo clube pra virar titular." },
 ]
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA] }
+// ─── 🧱 LOTE 37 (29/09): cartas que fecham setor no Leilão de Clubes — parte BRASIL ─
+// Diego: *"toda hora aparece ataque da Fiorentina… lateral do Flamengo"*. Cada carta
+// aqui leva um clube que estava a 1 jogador de virar pacote (ver docs/pendencias.md 29/09).
+// Palhinha foi pedido dele. Conferidos por nome E sobrenome no MESMO baralho.
+const L37_BR_GOL: C[] = [
+  { name: "Marcelo Grohe", club: "Grêmio", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Grêmio tricampeão da Libertadores em 2017 — dono da defesa milagrosa contra o Barcelona de Guayaquil." },
+]
+const L37_BR_LAT: C[] = [
+  { name: "Mancini", club: "Atlético-MG", year: 2002, fame: 3, lo: 75, hi: 84, bio: "Lateral-direito do Galo que foi pra Roma e virou o rei da pedalada na Itália." },
+]
+const L37_BR_ATA: C[] = [
+  { name: "Palhinha", club: "Cruzeiro", year: 1976, fame: 4, lo: 82, hi: 88, bio: "Artilheiro da Libertadores de 1976 — o faro de gol do Cruzeiro campeão da América." },
+  { name: "Charles", club: "Bahia", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Centroavante do Bahia campeão brasileiro de 1988, o time que calou o Beira-Rio na final." },
+]
+
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -2488,7 +2503,47 @@ const L36_EU_ATA: C[] = [
   { name: "Giuseppe Signori", club: "Lazio", year: 1993, fame: 4, lo: 82, hi: 88, bio: "Canhoto artilheiro da Série A pela Lazio em 1993, 1994 e 1996." },
 ]
 
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA] }
+// ─── 🧱 LOTE 37 (29/09): cartas que fecham setor no Leilão de Clubes — parte EUROPA ─
+// Cada uma leva um clube que estava a 1 jogador de virar pacote. Riquelme (Boca, no
+// Mundo) e Lincoln (Flamengo, no Brasil) já tinham carta em OUTRO baralho — pode.
+const L37_EU_GOL: C[] = [
+  { name: "Angelo Peruzzi", club: "Lazio", year: 2005, fame: 3, lo: 77, hi: 85, bio: "Goleiro baixinho e elástico, campeão do mundo em 2006, que fechou a carreira como paredão da Lazio." },
+  { name: "Roman Weidenfeller", club: "Dortmund", year: 2012, fame: 3, lo: 75, hi: 84, bio: "O goleiro do Dortmund de Klopp: bicampeão alemão e finalista da Champions de 2013." },
+]
+const L37_EU_LAT: C[] = [
+  { name: "Leonardo Spinazzola", club: "Roma", year: 2021, fame: 3, lo: 76, hi: 85, bio: "Ala canhoto que voava pela esquerda na Itália campeã da Eurocopa de 2021." },
+  { name: "José Gayà", club: "Valencia", year: 2019, fame: 3, lo: 75, hi: 84, bio: "Lateral-esquerdo e capitão do Valencia campeão da Copa do Rei de 2019." },
+  { name: "Lee Dixon", club: "Arsenal", year: 1998, fame: 3, lo: 75, hi: 84, bio: "Lateral-direito da muralha do Arsenal campeão inglês de 1998 com o Wenger." },
+  { name: "Seamus Coleman", club: "Everton", year: 2014, fame: 3, lo: 74, hi: 83, bio: "O irlandês que chegou por 60 mil libras e virou capitão e símbolo do Everton." },
+  { name: "Antonio Benarrivo", club: "Parma", year: 1999, fame: 3, lo: 74, hi: 83, bio: "Lateral do Parma milionário que ganhou Copa da UEFA e Recopa nos anos 90." },
+  { name: "Layvin Kurzawa", club: "Monaco", year: 2014, fame: 3, lo: 72, hi: 81, bio: "Lateral-esquerdo francês revelado no Monaco antes de ir pro PSG." },
+  { name: "Ben Chilwell", club: "Leicester", year: 2019, fame: 3, lo: 74, hi: 83, bio: "Lateral inglês cria da base do Leicester, depois campeão da Champions pelo Chelsea." },
+]
+const L37_EU_ZAG: C[] = [
+  { name: "Chris Smalling", club: "Roma", year: 2021, fame: 3, lo: 75, hi: 84, bio: "Zagueiro inglês que renasceu na Roma e virou xerife da defesa de Mourinho." },
+  { name: "Neven Subotić", club: "Dortmund", year: 2011, fame: 3, lo: 76, hi: 84, bio: "Zagueiro sérvio da dupla com o Hummels no Dortmund campeão alemão de 2011." },
+  { name: "Ezequiel Garay", club: "Valencia", year: 2017, fame: 3, lo: 76, hi: 84, bio: "Zagueiro argentino vice-campeão do mundo em 2014, líder da defesa do Valencia." },
+  { name: "Javi Navarro", club: "Sevilla", year: 2006, fame: 3, lo: 73, hi: 82, bio: "Zagueiro duro e capitão do Sevilla bicampeão da Copa da UEFA em 2006 e 2007." },
+]
+const L37_EU_MEI: C[] = [
+  { name: "Florent Malouda", club: "Lyon", year: 2006, fame: 3, lo: 77, hi: 85, bio: "Meia francês do Lyon que ganhava o Francês todo ano antes de brilhar no Chelsea." },
+  { name: "Granit Xhaka", club: "Leverkusen", year: 2024, fame: 4, lo: 81, hi: 87, bio: "O cérebro suíço do Leverkusen invicto e campeão alemão de 2024." },
+  { name: "Dani Parejo", club: "Valencia", year: 2019, fame: 3, lo: 77, hi: 85, bio: "Meia de passe fino, capitão do Valencia campeão da Copa do Rei de 2019." },
+  { name: "Juan Román Riquelme", club: "Villarreal", year: 2006, fame: 4, lo: 83, hi: 89, bio: "O camisa 10 que levou o pequeno Villarreal à semifinal da Champions de 2006." },
+  { name: "Lincoln", club: "Schalke", year: 2006, fame: 3, lo: 76, hi: 84, bio: "Meia brasileiro que foi o maestro do Schalke vice-campeão alemão." },
+  { name: "Nicolás Gaitán", club: "Benfica", year: 2015, fame: 3, lo: 76, hi: 84, bio: "Meia-ponta argentino driblador do Benfica tricampeão português." },
+]
+const L37_EU_ATA: C[] = [
+  { name: "Jermain Defoe", club: "Tottenham", year: 2009, fame: 3, lo: 77, hi: 85, bio: "Baixinho matador do Tottenham que fez 5 gols num jogo só contra o Wigan." },
+  { name: "Dušan Tadić", club: "Ajax", year: 2021, fame: 3, lo: 78, hi: 86, bio: "Capitão sérvio do Ajax que chegou à semifinal da Champions de 2019." },
+  { name: "Paco Alcácer", club: "Valencia", year: 2015, fame: 3, lo: 75, hi: 84, bio: "Centroavante cria do Valencia, depois reserva do trio MSN no Barcelona." },
+  { name: "Chris Waddle", club: "Marseille", year: 1991, fame: 3, lo: 77, hi: 85, bio: "Ponta inglês do mullet e do drible, ídolo do Marseille tricampeão francês." },
+  { name: "Ulf Kirsten", club: "Leverkusen", year: 1997, fame: 4, lo: 80, hi: 87, bio: "Três vezes artilheiro da Bundesliga — o maior goleador da história do Leverkusen." },
+  { name: "Tomas Brolin", club: "Parma", year: 1994, fame: 3, lo: 76, hi: 85, bio: "Atacante sueco do Parma que foi 3º na Copa de 1994 com a Suécia." },
+  { name: "Louis Saha", club: "Fulham", year: 2004, fame: 3, lo: 76, hi: 84, bio: "Atacante francês que explodiu no Fulham e foi comprado pelo Manchester United." },
+]
+
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -2809,7 +2864,12 @@ const L35_WORLD_ATA: C[] = [
   { name: "Hernán Crespo", club: "River Plate", year: 1996, fame: 3, lo: 77, hi: 86, promessa: true, bio: "\"Valdanito\" — campeão da Libertadores de 1996 com o River, fez os dois gols da final." },
   { name: "Marcelo Salas", club: "River Plate", year: 1997, fame: 4, lo: 81, hi: 88, bio: "\"El Matador\" — ídolo chileno no River campeão argentino antes de ir pra Lazio." },
 ]
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA] }
+// ─── 🧱 LOTE 37 (29/09): parte MUNDO — fecha o ataque do América do México ─
+const L37_WORLD_ATA: C[] = [
+  { name: "Oribe Peralta", club: "América do México", year: 2014, fame: 3, lo: 76, hi: 84, bio: "Centroavante do ouro olímpico do México em 2012 e ídolo do América." },
+]
+
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).

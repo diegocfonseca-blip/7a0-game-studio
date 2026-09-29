@@ -6852,7 +6852,7 @@ Ordem do Diego: *"é pelo e-mail de batismo a entrada de gala e N pelo nome do t
 - ✅ 28/09 (Diego: "Libera"): sócio por assinatura COM clube próprio (Futpoint FC, Marinheiros AS)
   também ganha a gala — sempre pela conta. Sócio sem clube (linha sem escudo/mascote) continua sem.
 
-## 29/09/2026 — 🧱 Leilão de Clubes repetindo (Fiorentina ataque, Flamengo lateral) — ANÁLISE, esperando OK
+## 29/09/2026 — 🧱 Leilão de Clubes repetindo (Fiorentina ataque, Flamengo lateral) — ✅ LOTE 37 NO AR
 Diego: *"toda hora aparece ataque da Fiorentina… lateral do Flamengo… precisa diversificar"*.
 Causa: o pacote só sai de clube com jogador SOBRANDO no setor (4-3-3: GOL 2 · LAT 3 · ZAG 3 · MEI 4 · ATA 4)
 e o clube não repete entre setores. Nos 3 baralhos: GOL 37 · LAT 32 · ZAG 35 · MEI 39 · ATA 41 clubes.
@@ -6866,3 +6866,8 @@ Riquelme (Villarreal) · Lincoln (Schalke) · Gaitán (Benfica) — ATA: Defoe (
 Paco Alcácer (Valencia) · Chris Waddle (Marseille) · Ulf Kirsten (Leverkusen) · Brolin (Parma) · Louis Saha (Fulham) ·
 Oribe Peralta (América do México) · Charles (Bahia) — GOL: Marcelo Grohe (Grêmio) · Peruzzi (Lazio) · Weidenfeller (Dortmund).
 + ideia no código: guardar no aparelho as últimas ~8 partidas (não 3, e sem zerar no reload).
+✅ Diego aprovou (*"coloque… junto desses"*) + pediu Raul (já existia: Raul Plassmann Cruzeiro 1976) e Palhinha
+(Cruzeiro 1976, ATA, entrou). = LOTE 37, 31 cartas (BR 4 · EU 26 · Mundo 1). Clubes com pacote (4-3-3, 3 baralhos):
+GOL 37→40 · LAT 32→40 · ZAG 35→39 · MEI 39→45 · ATA 41→50. Mancini e Riquelme em MESMO_JOGADOR; os dois
+Lincoln (Schalke 2006 × Flamengo 2019) são pessoas DIFERENTES, cada um em PAIS_POR_CARTA.
+⏳ Falta resposta dele: a memória de "não repetir clube" guardar ~8 partidas no aparelho (hoje 3, zera no reload).
