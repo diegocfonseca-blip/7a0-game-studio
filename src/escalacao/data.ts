@@ -261,7 +261,7 @@ export const BIOS: Record<string, string> = {
   "Fábio Luciano": "Capitão à moda antiga, xerife respeitado no grito por Corinthians e Flamengo.",
   "Gil": "Uma parede física. No auge do Corinthians de Tite, quase impossível de vencer no mano a mano.",
   "Léo Ortiz": "Zagueiro construtor de elite. Quebra linhas com passes verticais — do Bragantino ao Flamengo.",
-  "Fabrício Bruno": "Zagueiro firme e de bom jogo aéreo, pilar do Flamengo e convocado pra Seleção.",
+  "Fabrício Bruno": "Zagueiro firme e de bom jogo aéreo, campeão da Libertadores pelo Flamengo e xerife do Cruzeiro.",
   "Léo Pereira": "Zagueiro canhoto de boa saída de bola e marcação, titular do Flamengo.",
   "Nino": "Zagueiro-capitão do Fluminense campeão da Libertadores de 2023. Liderança e gols decisivos.",
   "Vitão": "Zagueiro alto e veloz, líder da defesa do Internacional.",
@@ -794,7 +794,8 @@ const ZAG: C[] = [
   { name: "Fábio Luciano", club: "Corinthians", year: 2000, fame: 2, lo: 64, hi: 82 },
   { name: "Gil", club: "Corinthians", year: 2015, fame: 3, lo: 76, hi: 84 },
   { name: "Léo Ortiz", club: "Red Bull Bragantino", year: 2021, fame: 2, lo: 70, hi: 84 },
-  { name: "Fabrício Bruno", club: "Flamengo", year: 2023, fame: 2, lo: 70, hi: 84 },
+  // 🔁 29/09 (Diego: "coloque o Fabrício Bruno do Flamengo pra outro time"): saiu do Flamengo 2023 → Cruzeiro 2025, mesma força
+  { name: "Fabrício Bruno", club: "Cruzeiro", year: 2025, fame: 2, lo: 70, hi: 84, bio: "Zagueiro firme e de bom jogo aéreo, campeão da Libertadores pelo Flamengo — virou xerife da defesa do Cruzeiro em 2025." },
   { name: "Léo Pereira", club: "Flamengo", year: 2021, fame: 2, lo: 68, hi: 83 },
   { name: "Nino", club: "Fluminense", year: 2023, fame: 3, lo: 74, hi: 84 },
   { name: "Vitão", club: "Internacional", year: 2022, fame: 2, lo: 68, hi: 83 },

@@ -6896,3 +6896,4 @@ parou em 1977 (ofereci corrigir; sem resposta). Escudo oficial do Cosmos: só no
 aparece SÓ como carta nova (Diego: *"coloque como se fosse nova"*) — tirei o "saiu" do gerado; a foto do baralho já
 está atualizada, então o `npm run novidades` não traz de volta. Stories: `node scripts/mockup-novos-stories.mjs`
 (carta CEGA por padrão — Diego: *"sem categorias eu disse"*).
+✅ 29/09 — 🔁 Fabrício Bruno: Flamengo 2023 → CRUZEIRO 2025 (mesma força, baralho BR). Flamengo fica com 14 zagueiros; Cruzeiro vai a 4 (pacote de zaga com folga). Troca no mesmo baralho não vira novidade na home.
