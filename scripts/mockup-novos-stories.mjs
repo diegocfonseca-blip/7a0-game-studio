@@ -83,6 +83,63 @@ body{margin:0;background:#F4ECD6;color:#0C0C0C;font-family:system-ui,-apple-syst
   </div>
 </body></html>`
 
+// 📋 29/09 (Diego: *"sem mostrar as cartas com cores… não entendi por que estão douradas"*):
+// o padrão agora é LISTA — nada de carta, nada de cor de nível. Caixa branca por CLUBE, com
+// o escudo oficial (quando tem), e em cada linha só POSIÇÃO · NOME · ANO. `--cartas` volta
+// o formato de cartas.
+const LISTA = !process.argv.includes('--cartas')
+const escMap = JSON.parse(readFileSync('src/escalacao/escudos-oficiais.ts', 'utf8').match(/= (\{[\s\S]*\})\s*$/)[1])
+const esc = clube => { const e = escMap[clube]; return e ? `data:image/webp;base64,${readFileSync('public/' + e.src).toString('base64')}` : null }
+const grupos = []
+for (const c of cartas) { let g = grupos.find(x => x.club === c.club); if (!g) grupos.push(g = { club: c.club, cs: [] }); g.cs.push(c) }
+const bloco = g => `
+  <div style="background:#fff;border:4px solid #0C0C0C;border-radius:22px;box-shadow:5px 5px 0 #0C0C0C;padding:16px 20px;margin-bottom:18px;break-inside:avoid">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+      ${esc(g.club) ? `<img src="${esc(g.club)}" style="height:54px;width:auto">` : `<span style="width:54px;height:54px;border-radius:50%;background:#F4ECD6;border:3px solid #0C0C0C;display:flex;align-items:center;justify-content:center;font-size:28px">⚽</span>`}
+      <b style="font-family:Oswald,sans-serif;font-weight:700;font-size:36px;text-transform:uppercase;line-height:1">${g.club}</b>
+    </div>
+    ${g.cs.map(c => `<div style="display:flex;align-items:center;gap:12px;padding:6px 0;border-top:2px solid rgba(0,0,0,.07)">
+      <span style="font-family:Oswald,sans-serif;font-weight:700;background:#0C0C0C;color:#fff;border-radius:8px;font-size:20px;padding:2px 10px;min-width:44px;text-align:center">${c.pos}</span>
+      <b style="font-family:Oswald,sans-serif;font-weight:600;font-size:32px;flex:1">${c.nome}</b>
+      <span style="font-size:24px;font-weight:800;opacity:.5">${c.year}</span>
+    </div>`).join('')}
+  </div>`
+const htmlLista = (gs, pag, total) => `<!doctype html><html><head><meta charset="utf-8">
+<style>${FONTES}
+body{margin:0;background:#F4ECD6;color:#0C0C0C;font-family:system-ui,-apple-system,sans-serif;width:1080px;height:1920px;box-sizing:border-box;padding:64px 50px 46px;display:flex;flex-direction:column}</style>
+</head><body>
+  <div style="text-align:center">
+    <div style="display:inline-block;background:#FFC400;border:4px solid #0C0C0C;border-radius:999px;box-shadow:4px 4px 0 #0C0C0C;padding:8px 22px;
+                font-family:Oswald,sans-serif;font-weight:700;font-size:26px;letter-spacing:2px;text-transform:uppercase">🔨 Chegaram no leilão</div>
+    <h1 style="font-family:Oswald,sans-serif;font-weight:700;font-size:88px;line-height:.95;margin:20px 0 30px;text-transform:uppercase">${cartas.length} jogadores <span style="color:#C2452F">novos</span></h1>
+  </div>
+  <div style="columns:2;column-gap:22px">${gs.map(bloco).join('')}</div>
+  <div style="text-align:center;margin-top:auto">
+    ${total > 1 ? `<p style="font-family:Oswald,sans-serif;font-weight:700;font-size:24px;margin:0 0 10px;opacity:.55">${pag} / ${total}${pag < total ? ' · continua ➜' : ''}</p>` : ''}
+    <p style="font-family:Oswald,sans-serif;font-weight:700;font-size:40px;margin:0">⚽ Leilão <span style="color:#C2452F">Legends</span></p>
+    <p style="font-family:Oswald,sans-serif;font-weight:700;font-size:26px;margin:4px 0 0;opacity:.6">leilaolegends.com</p>
+  </div>
+</body></html>`
+if (LISTA) {
+  // divide em telas pelo "tamanho" de cada clube (cabeçalho + 1 por jogador), ~22 por tela
+  const custo = g => 2.2 + g.cs.length, TETO = Number(arg('--teto', '27'))
+  const telasG = []; let atual = [], soma = 0
+  for (const g of grupos) { if (soma + custo(g) > TETO && atual.length) { telasG.push(atual); atual = []; soma = 0 } atual.push(g); soma += custo(g) }
+  if (atual.length) telasG.push(atual)
+  const bl = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+  for (let i = 0; i < telasG.length; i++) {
+    const out = telasG.length > 1 ? SAIDA.replace(/\.png$/, `-${i + 1}.png`) : SAIDA
+    const f = `/tmp/mockup-novos-lista-${process.pid}-${i}.html`
+    writeFileSync(f, htmlLista(telasG[i], i + 1, telasG.length))
+    const pg = await bl.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 })
+    await pg.goto('file://' + f); await pg.evaluate(() => document.fonts.ready); await pg.waitForTimeout(500)
+    const estoura = await pg.evaluate(() => document.body.scrollHeight > 1920)
+    await pg.screenshot({ path: out }); await pg.close()
+    console.log(`${out} · ${telasG[i].reduce((a, g) => a + g.cs.length, 0)} jogadores${estoura ? ' · ⚠️ ESTOUROU a tela' : ''}`)
+  }
+  await bl.close(); process.exit(0)
+}
+
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
 const telas = Math.ceil(cartas.length / 16), por = Math.ceil(cartas.length / telas)
 for (let i = 0; i < telas; i++) {
