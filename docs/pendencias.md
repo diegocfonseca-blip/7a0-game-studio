@@ -6871,3 +6871,10 @@ Oribe Peralta (América do México) · Charles (Bahia) — GOL: Marcelo Grohe (G
 GOL 37→40 · LAT 32→40 · ZAG 35→39 · MEI 39→45 · ATA 41→50. Mancini e Riquelme em MESMO_JOGADOR; os dois
 Lincoln (Schalke 2006 × Flamengo 2019) são pessoas DIFERENTES, cada um em PAIS_POR_CARTA.
 ⏳ Falta resposta dele: a memória de "não repetir clube" guardar ~8 partidas no aparelho (hoje 3, zera no reload).
+✅ 29/09 (Diego: *"varie mais… quando for escolhido o leilão de clubes"*): o sorteio do Leilão de Clubes
+(`buildDeckClubes`) virou RODADAS — um clube por setor de cada vez, o setor mais apertado escolhe primeiro
+em cada rodada. Antes cada setor pegava tudo de uma vez e o ATAQUE ficava sempre com a mesma sobra.
+Simulação (20 partidas seguidas, 8 técnicos): clubes diferentes no ataque 27 → 50; Fiorentina/Fulham/Goiás/
+Santa Cruz saíam em 20 de 20. Memória "não repetir": 3 partidas só na memória → 8 partidas no aparelho
+(`esc-clubes-recentes-v1`, chave ÚNICA, não é por sala), com nota por recência e setor.
+⚠️ Sala de 10+: pede ~75 clubes de ~90 que servem — aí só MAIS CLUBE resolve (lista do Mundo mandada ao Diego).

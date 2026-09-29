@@ -1625,11 +1625,25 @@ const ESCADA_RARITY: Record<EscadaDiv, { legend: number; star: number; promessa:
 //  · o pacote tem que ter mais gente do que a formação pede no setor, pra ter
 //    escolha na convocação (goleiro ≥ 2, lateral/zagueiro ≥ 3, meia/atacante ≥ 4
 //    no 4-3-3). Se faltar clube, aceita o mínimo exato antes de desistir;
-//  · de uma partida pra outra o clube muda de setor ou dá lugar a outro (memória
-//    das últimas 3 partidas);
+//  · de uma partida pra outra o clube muda de setor ou dá lugar a outro. 🔁 29/09 (Diego:
+//    *"toda hora aparece ataque da Fiorentina… lateral do Flamengo… varia mais"*): a memória
+//    passou de 3 partidas SÓ NA MEMÓRIA (zerava no F5) pra 8 partidas GUARDADAS NO APARELHO,
+//    e virou NOTA: cada vez que o clube saiu pesa (mais no MESMO setor e mais se foi recente).
+//    Quem nunca saiu vem primeiro; quem saiu ontem no mesmo setor vai pro fim da fila;
 //  · os nomes vão em ORDEM ALFABÉTICA, sem destaque de nível (a pessoa tem que saber).
-let RECENT_CLUBES: Map<string, Sector>[] = []
-function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
+const CLUBES_MEM_KEY = 'esc-clubes-recentes-v1'
+const CLUBES_MEM_MAX = 8
+let RECENT_CLUBES: Map<string, Sector>[] = (() => {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(CLUBES_MEM_KEY) : null
+    const arr = raw ? JSON.parse(raw) as [string, Sector][][] : []
+    return Array.isArray(arr) ? arr.slice(-CLUBES_MEM_MAX).map(l => new Map(l)) : []
+  } catch { return [] }
+})()
+function guardaClubesRecentes() {
+  try { localStorage.setItem(CLUBES_MEM_KEY, JSON.stringify(RECENT_CLUBES.map(m => [...m]))) } catch { /* sem espaço/privado: fica só na memória */ }
+}
+export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
   const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
   const bt = nextBuildTok()
   const n = Math.max(1, managers.length)
@@ -1645,26 +1659,39 @@ function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<strin
     for (const c of ACTIVE_CATALOG[pos]) { if (used.has(ident(c)) || NAO_E_CLUBE.has(c.club)) continue; const k = clubCanon(c.club); (mp.get(k) ?? mp.set(k, []).get(k)!).push(c) }
     porClube[pos] = mp
   }
-  const recente = new Map<string, Sector>()
-  for (const mp of RECENT_CLUBES) for (const [k, v] of mp) recente.set(k, v)
+  // 🔁 nota de "já saiu": mesmo setor pesa 3, outro setor 1; a partida mais recente pesa
+  // mais (a de 8 partidas atrás quase nada). Menor nota = sai primeiro.
+  const nota = (clube: string, pos: Sector) => {
+    let t = 0
+    RECENT_CLUBES.forEach((mp, i) => { const v = mp.get(clube); if (v) t += (v === pos ? 3 : 1) * (i + 1) / RECENT_CLUBES.length })
+    return t
+  }
   const jaNaPartida = new Set<string>()
-  const escolhidos = {} as Record<Sector, string[]>
-  // setor mais apertado escolhe primeiro (senão os grandes clubes somem pro ataque)
-  const ordem = [...SECTORS].sort((a, b) => [...porClube[a].values()].filter(l => l.length > need[a]).length - [...porClube[b].values()].filter(l => l.length > need[b]).length)
-  for (const pos of ordem) {
-    const pega = (minimo: number) => shuffle([...porClube[pos].entries()].filter(([k, l]) => l.length >= minimo && !jaNaPartida.has(k)), rng)
-      // quem esteve NESTE setor nas últimas partidas vai pro fim; quem esteve em outro, pro meio
-      .sort((a, b) => (recente.get(a[0]) === pos ? 2 : recente.has(a[0]) ? 1 : 0) - (recente.get(b[0]) === pos ? 2 : recente.has(b[0]) ? 1 : 0))
-    let lista = pega(need[pos] + 1).slice(0, alvo)
-    if (lista.length < n) lista = [...lista, ...pega(need[pos]).filter(([k]) => !lista.some(([k2]) => k2 === k))].slice(0, Math.max(n, lista.length))
-    // 🛟 último recurso: ainda falta pacote pra todo mundo ter um? Aí aceita um clube que
-    // já saiu em OUTRO setor (melhor repetir clube do que alguém ficar sem time)
-    if (lista.length < n) {
-      const extra = shuffle([...porClube[pos].entries()].filter(([k, l]) => l.length >= need[pos] && !lista.some(([k2]) => k2 === k)), rng)
-      lista = [...lista, ...extra].slice(0, n)
+  const escolhidos = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, string[]>
+  // 🎲 29/09: escolha em RODADAS, um clube por setor de cada vez (tipo "par ou ímpar" pra
+  // montar time). Antes cada setor pegava TODOS os seus de uma vez, do mais apertado pro
+  // mais folgado — a defesa levava os grandes e o ATAQUE ficava sempre com a mesma sobra:
+  // na simulação de 20 partidas, Ataque da Fiorentina/Fulham/Goiás/Santa Cruz saía nas 20.
+  const cand = (pos: Sector, minimo: number) => [...porClube[pos].entries()].filter(([k, l]) => l.length >= minimo && !jaNaPartida.has(k))
+  const pegaUm = (pos: Sector, minimo: number): string | undefined =>
+    // quem saiu pouco (e há mais tempo) vem na frente; empate fica na ordem do sorteio
+    shuffle(cand(pos, minimo), rng).sort((a, b) => nota(a[0], pos) - nota(b[0], pos))[0]?.[0]
+  for (let r = 0; r < alvo; r++) {
+    // na rodada, o setor mais apertado escolhe primeiro (senão ele fica sem clube)
+    const ordemR = [...SECTORS].sort((a, b) => cand(a, need[a] + 1).length - cand(b, need[b] + 1).length)
+    for (const pos of ordemR) {
+      if (escolhidos[pos].length > r) continue
+      // folgado (tem gente sobrando pra escolher) primeiro; o mínimo exato só pra ninguém ficar sem pacote
+      const k = pegaUm(pos, need[pos] + 1) ?? (escolhidos[pos].length < n ? pegaUm(pos, need[pos]) : undefined)
+      if (k) { escolhidos[pos].push(k); jaNaPartida.add(k) }
     }
-    escolhidos[pos] = lista.map(([k]) => k)
-    for (const [k] of lista) jaNaPartida.add(k)
+  }
+  // 🛟 último recurso: ainda falta pacote pra todo mundo ter um? Aí aceita um clube que
+  // já saiu em OUTRO setor (melhor repetir clube do que alguém ficar sem time)
+  for (const pos of SECTORS) {
+    if (escolhidos[pos].length >= n) continue
+    const extra = shuffle([...porClube[pos].entries()].filter(([k, l]) => l.length >= need[pos] && !escolhidos[pos].includes(k)), rng)
+    for (const [k] of extra) { if (escolhidos[pos].length >= n) break; escolhidos[pos].push(k) }
   }
   for (const pos of SECTORS) {
     for (const clube of escolhidos[pos]) {
@@ -1685,7 +1712,8 @@ function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<strin
   }
   const mem = new Map<string, Sector>()
   for (const pos of SECTORS) for (const k of escolhidos[pos]) mem.set(k, pos)
-  RECENT_CLUBES.push(mem); if (RECENT_CLUBES.length > 3) RECENT_CLUBES.shift()
+  RECENT_CLUBES.push(mem); while (RECENT_CLUBES.length > CLUBES_MEM_MAX) RECENT_CLUBES.shift()
+  guardaClubesRecentes()
   return deck
 }
 
