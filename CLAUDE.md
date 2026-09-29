@@ -655,6 +655,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   só serve de apoio pra desenhar pros outros; quem decide QUEM é dono é o e-mail
   (`esc_socios`/`esc_mimos_sala`). A gala já é assim desde 28/09 (`npm run gala`).
 
+- **📲 STORIES DE CARTAS NOVAS = `scripts/mockup-cartas-novas.mjs`, SEMPRE (29/09).** Lista em caixas
+  brancas por POSIÇÃO, só NOME + CLUBE + ANO — nada de carta desenhada, cor de tier, estrela nem
+  categoria. Eu inventei um gerador com cartas (coloridas e depois todas douradas) e ele cortou:
+  *"sem mostrar as cartas com cores… não entendi por que estão douradas, que loucura é essa"*, e mandou
+  o print do formato de 22/09. Lote grande: `--setores GOL,LAT,ZAG,MEI` + `--setores ATA`.
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
