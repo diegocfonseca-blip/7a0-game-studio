@@ -661,6 +661,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   *"sem mostrar as cartas com cores… não entendi por que estão douradas, que loucura é essa"*, e mandou
   o print do formato de 22/09. Lote grande: `--setores GOL,LAT,ZAG,MEI` + `--setores ATA`.
 
+- **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
+  21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
+  com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e
+  tem a mesma espera do lobby. O pregão do envelope cego NÃO mudou (mascote na barra "😈 CUTUCA").
+
 ## 🗣️ Como falar com o Diego
 - PT-BR, direto, sem tecniquês; explicar o "porquê" em linguagem de jogo.
 - Ele manda áudio transcrito com erros — interpretar com boa vontade e
