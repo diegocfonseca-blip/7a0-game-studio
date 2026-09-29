@@ -83,7 +83,13 @@ h1{${OSW};font-size:30px;line-height:.95;text-transform:uppercase;margin:0 0 6px
       <span style="${OSW};font-size:22px">→</span>
       <div style="text-align:center">${carta('Zé Craque', 82)}<p style="margin:5px 0 0;font-weight:800;font-size:9px;color:${GREEN}">com o Craque</p></div>
     </div>
-    <p style="margin:9px 0 0;font-size:10.5px;font-weight:700;color:rgba(12,12,12,.6)">🕵️ E o <b>Olheiro</b>: chance de achar jogador <b>fora do leilão</b>, de nível até Craque.</p>
+  </div>
+
+  <div class="vit" style="padding:9px 12px 10px">
+    <p class="rot">⭐ e vem junto</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${['⭐ nome prata brilhando na sala', '🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '💾 4 carreiras salvas', '📲 grupo VIP com o Diego'].map(t => `<span style="font-weight:800;font-size:10.5px;border:2px solid ${INK};border-radius:999px;padding:4px 9px;background:${CREME}">${t}</span>`).join('')}
+    </div>
   </div>
 
   <div class="preco"><span class="n">⭐ Craque</span><span class="p"><b>R$ 19,90</b><small>paga uma vez · é seu pra sempre</small></span></div>
@@ -94,7 +100,11 @@ h1{${OSW};font-size:30px;line-height:.95;text-transform:uppercase;margin:0 0 6px
     <div><b>3</b>libera em até 24h · nome prata ⭐ na sala</div>
   </div>
   <p class="nota">Não muda a força de ninguém — só o ritmo e o que você enxerga. No online o tempo é igual pra todos.</p>
-  <p class="link">👑 Quero ver o Lenda e o Batismo →</p>
+  <p style="margin:12px 0 6px;text-align:center;${OSW};font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(12,12,12,.55)">quer mais que isso?</p>
+  <div style="display:flex;gap:8px">
+    <span style="flex:1;background:linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70);border:3px solid ${INK};border-radius:12px;box-shadow:3px 3px 0 ${INK};${OSW};font-size:13px;text-align:center;text-transform:uppercase;padding:10px 6px">👑 Ver o Lenda<br><span style="font-size:9px;font-weight:800;opacity:.75">R$ 39,90 · vê até Lenda</span></span>
+    <span style="flex:1;background:${INK};color:${GOLD};border:3px solid ${INK};border-radius:12px;box-shadow:3px 3px 0 ${INK};${OSW};font-size:13px;text-align:center;text-transform:uppercase;padding:10px 6px">🖋 Ver o Batismo<br><span style="font-size:9px;font-weight:800;opacity:.75">seu clube no jogo</span></span>
+  </div>
 </div></div></body>`
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
