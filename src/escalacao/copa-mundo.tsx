@@ -17,6 +17,8 @@ import { CAREER_VISUAL_RELEASED } from './career-feature-release'
 import { CompetitionStage, CompetitionMatch } from './online-match-visual'
 import { NationalCrest } from './national-crest'
 import { createPortal } from 'react-dom'
+import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo' // 🧍 a peça do campinho da carreira
+import { useLegendPresentation } from './presentation-release'
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import { paisDe, rankingSelecoes, type Baralho } from './paises'
 // placar AO VIVO oficial (relógio 0→90', GOOOL, bump) + pênaltis com suspense —
@@ -632,6 +634,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }:
   aoEstourar?: (parcial: PoolCard[], f: Formation) => void
 }) {
   const pool = useMemo(() => countryPool(pais), [pais])
+  const rostosOn = useLegendPresentation() // 🧑 rosto das lendas no campinho (30/09)
   const fits433 = formationFits(pool, '4-3-3'), fits442 = formationFits(pool, '4-4-2')
   const [form, setForm] = useState<Formation>(fits433 ? '4-3-3' : '4-4-2')
   const [tab, setTab] = useState<Sec>('GOL')
@@ -765,20 +768,21 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }:
         <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{flagOf(pais)} {tr('sua seleção', 'your team')} · {total}/11 · {form}</span>
         </div>
-        <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 7 }}>
+        <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {(['ATA', 'MEI', 'DEF', 'GOL'] as (Sec | 'DEF')[]).map(row => {
             const secs: Sec[] = row === 'DEF' ? ['LAT', 'ZAG'] : [row]
             let slots: { sec: Sec; c: PoolCard | null }[] = []
             for (const s of secs) { const picked = bySec(s); for (let i = 0; i < need[s]; i++) slots.push({ sec: s, c: picked[i] ?? null }) }
             if (row === 'DEF') { const lat = slots.filter(x => x.sec === 'LAT'), zag = slots.filter(x => x.sec === 'ZAG'); slots = [lat[0], ...zag, lat[1]] }
             return (
-              <div key={String(row)} style={{ display: 'flex', justifyContent: 'center', gap: 7 }}>
-                {slots.map((sl, i) => (
-                  <div key={i} style={{ border: `2px solid ${INK}`, borderRadius: 8, textAlign: 'center', padding: '3px 7px', minWidth: 62, background: sl.c ? '#fff' : 'rgba(255,255,255,0.25)' }}>
-                    <p style={{ fontSize: 8.5, fontWeight: 900, color: sl.c ? RED : '#fff', margin: 0 }}>{sl.sec}</p>
-                    <p style={{ fontSize: 10, fontWeight: 700, margin: 0, color: sl.c ? INK : 'rgba(255,255,255,0.95)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 74 }}>{sl.c ? sl.c.name : tr('Vazio', 'Empty')}</p>
-                  </div>
-                ))}
+              <div key={String(row)} style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
+                {/* 🧍 30/09 (Diego, na live: "nessa tela do campinho onde seleciona jogadores da
+                    Copa do Mundo tem que aparecer avatar também das lendas"): a MESMA peça do
+                    campinho da carreira e da convocação do Leilão de Clubes — boneco solto na
+                    grama, e a lenda que tem rosto no jogo aparece com o rosto. */}
+                {slots.map((sl, i) => sl.c
+                  ? <JogadorNoCampo key={i} nome={sl.c.name} clube={sl.c.club} ano={sl.c.year} tag={sl.sec} alt={52} fonteNome={10} rosto={rostosOn} />
+                  : <VagaNoCampo key={i} tag={sl.sec} alt={52} />)}
               </div>
             )
           })}
