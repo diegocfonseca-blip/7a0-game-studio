@@ -1,3 +1,11 @@
+## 30/09/2026 — 🌐 Copa do Mundo online: 45s por seleção + "gerenciar" na tela dos países ✅
+
+Diego, vendo a live do canalmeianacanela: *"tempo de escolha de seleção… passe pra 45s por seleção. E coloque
+também botão de gerenciar no final da tela dos países, pro host poder remover o usuário que tá demorando"*.
+- `SEG_BANDEIRA` 75 → **45s** (`copa-mundo-online.tsx`). Convocação (90s) e banner (15s) iguais.
+- ⚙️ "gerenciar técnicos" no fim do `PortaoDaCopa`, só pro dono: remover = o mesmo `kickPlayer` do rodapé
+  (o time vira CPU, sai da fila e a vez passa pro próximo). Era preciso porque a tela da Copa cobre o rodapé.
+
 ## 30/09/2026 — 🎟️ Cupom do Canal Meia na Canela renomeado ✅ (só banco)
 
 `esc_cupons`: CANALMEIACANELA → **CANALMEIANACANELA** (influenciador "Canal Meia na Canela"), 10% no batismo.

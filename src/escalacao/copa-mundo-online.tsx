@@ -399,7 +399,10 @@ interface LinhaSala { user_id: string; player_index: number; manager_name: strin
 //   · 19/09: +10s nos dois (Diego: *"quero que aumente mais 10s pra cada um
 //     escolher seu país… e a convocação também aumente mais dez segundos"*).
 //     Bandeira 65 → 75s · convocação 80 → 90s. O banner continua 15s.
-const SEG_BANDEIRA = 75, SEG_BANNER = 15, SEG_CONVOCA = 90
+//   · 30/09: bandeira 75 → 45s (Diego, vendo a live do canalmeianacanela: *"tempo de
+//     escolha de seleção do modo Copa do Mundo passe pra 45s por seleção"*). A
+//     convocação e o banner não mudaram.
+const SEG_BANDEIRA = 45, SEG_BANNER = 15, SEG_CONVOCA = 90
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */
@@ -588,14 +591,14 @@ function BannerDaCopa({ seg }: { seg: number }) {
 // fila e botão do dono → grade das seleções → banner → convocação → torneio.
 // Só desenho: quem manda na fase, no relógio e no banco continua sendo o
 // `CopaDaLigaGate` (e só o dono escreve).
-export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila, picks, pegas, seg, meuUid, minha, souAVez, daVezNome, temFicha, aberta, aoComecar, aoConfirmarPais, aoConvocar, aoVoltarCopa }: {
+export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila, picks, pegas, seg, meuUid, minha, souAVez, daVezNome, temFicha, aberta, aoComecar, aoConfirmarPais, aoConvocar, aoVoltarCopa, aoRemover }: {
   nLiga: number
   fase: FaseCopa | null
   lido: boolean
   souDono: boolean
   comecando: boolean
   erro: string
-  fila: { uid: string; nome: string; vez: number }[]
+  fila: { uid: string; nome: string; vez: number; id?: number }[]
   picks: Map<string, CopaPick>
   pegas: Map<string, string>
   seg: number
@@ -609,8 +612,12 @@ export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila
   aoConfirmarPais: (pais: string) => void
   aoConvocar: () => void
   aoVoltarCopa: () => void
+  /** ⚙️ só o DONO: remove da partida quem está demorando (vira CPU e a vez pula) */
+  aoRemover?: (id: number, nome: string) => void
 }) {
   const en = getLang() === 'en'
+  const [gerenciar, setGerenciar] = useState(false)
+  const removiveis = fila.filter(f => f.uid !== meuUid && f.id !== undefined)
   const status = fase === 'bandeira' ? (souAVez ? tr('É a sua vez de escolher a seleção', 'Your turn to pick a national team') : `${daVezNome} ${tr('está escolhendo a seleção', 'is picking a national team')} · ${seg}s`)
     : fase === 'banner' ? `${tr('A convocação abre em', 'Call-up opens in')} ${seg}s`
     : fase === 'convocacao' ? (temTime(minha) ? tr('Seu time está convocado · esperando a turma', 'Your team is called up · waiting for the crew') : `${tr('Convoque os seus 11', 'Call up your 11')} · ${seg}s`)
@@ -686,12 +693,48 @@ export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila
 
         {!!erro && <p style={{ fontSize: 11, fontWeight: 800, color: '#B23B2E', margin: '8px 2px 0', lineHeight: 1.4 }}>{erro}</p>}
         {temFicha && !aberta && <div style={{ marginTop: 8 }}>{botaoGrande(tr('🌐 VOLTAR PRA COPA', '🌐 BACK TO THE CUP'), aoVoltarCopa)}</div>}
+
+        {/* ⚙️ GERENCIAR NO FIM DA TELA DOS PAÍSES (Diego 30/09: "coloque também botão de
+            gerenciar no final da tela dos países, pro host poder remover o usuário que tá
+            demorando"). A tela da Copa cobre o rodapé da temporada, onde o "gerenciar
+            técnicos" de sempre mora — então ele volta aqui, com a MESMA remoção: o time
+            vira CPU, sai da fila e a vez passa pro próximo na hora. */}
+        {souDono && aoRemover && fase !== 'torneio' && removiveis.length > 0 && (
+          <div style={{ marginTop: 14, textAlign: 'center' }}>
+            <button onClick={() => setGerenciar(v => !v)}
+              style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 900, textDecoration: 'underline', color: 'rgba(0,0,0,.6)', cursor: 'pointer' }}>
+              {gerenciar ? tr('fechar', 'close') : tr('⚙️ gerenciar técnicos', '⚙️ manage managers')}
+            </button>
+            {gerenciar && (
+              <div style={{ maxWidth: 320, margin: '6px auto 0', border: '2px solid rgba(0,0,0,.15)', borderRadius: 12, padding: 8, background: '#fff', textAlign: 'left' }}>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.4)', margin: '0 4px 6px' }}>
+                  {tr('Remover da partida — o time vira CPU e a vez passa pro próximo', 'Remove from the match — the team becomes CPU and the turn moves on')}
+                </p>
+                {removiveis.map(f => {
+                  const p = picks.get(f.uid)
+                  const daVez = fase === 'bandeira' && !p && fila.find(x => !picks.get(x.uid))?.uid === f.uid
+                  return (
+                    <div key={f.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 4px' }}>
+                      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, fontWeight: 800, color: 'rgba(0,0,0,.75)' }}>
+                        {f.nome}{daVez ? tr(' · ⏳ escolhendo', ' · ⏳ picking') : p ? ` · ${p.pais}` : ''}
+                      </span>
+                      <button onClick={() => aoRemover(f.id!, f.nome)}
+                        style={{ flex: 'none', border: '1px solid rgba(0,0,0,.2)', borderRadius: 8, padding: '4px 8px', fontSize: 11, fontWeight: 900, background: '#F4ECD6', color: '#B23A2A', cursor: 'pointer' }}>
+                        {tr('remover', 'remove')}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </CompetitionStage>
   )
 }
 
-export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSeed, aoStatus, seasonNo = 1 }: {
+export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSeed, aoStatus, seasonNo = 1, aoRemover }: {
   roomId: string
   souDono: boolean
   meuUid?: string
@@ -710,6 +753,8 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   /** 📰 avisa o fim de temporada se a noite JÁ acabou e quem levou a Copa —
       é o que segura o jornal e a votação até a Copa terminar (Diego 01/09). */
   aoStatus?: (s: { pendente: boolean; campeao: { nome: string; pais: string } | null }) => void
+  /** ⚙️ o dono remove quem está demorando (o id é o do técnico na tabela) */
+  aoRemover?: (id: number, nome: string) => void
 }) {
   const [linhas, setLinhas] = useState<LinhaSala[]>([])
   const privateVisual = ONLINE_VISUAL_RELEASED
@@ -925,7 +970,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
         fila={fila} picks={picks} pegas={pegas} seg={seg} meuUid={meuUid} minha={minha} souAVez={souAVez} daVezNome={daVezNome}
         temFicha={!!ficha} aberta={aberta}
         aoComecar={() => { void comecar() }} aoConfirmarPais={p => { void gravaPais(p) }}
-        aoConvocar={() => { convocando.current = true; setAgora(Date.now()) }} aoVoltarCopa={() => setAberta(true)} />
+        aoConvocar={() => { convocando.current = true; setAgora(Date.now()) }} aoVoltarCopa={() => setAberta(true)} aoRemover={aoRemover} />
 
       {/* a tela de convocação (a MESMA da carreira) — ela ABRE SOZINHA quando o
           banner acaba: o banner acabou de avisar que são 90s, então mandar a

@@ -10250,7 +10250,7 @@ function BafoCascata() {
 }
 
 export function EscEnd() {
-  const { state, dispatch } = useEsc()
+  const { state, dispatch, kickPlayer } = useEsc()
   const previewEnd = useOnlinePreview()
   const privateEnd = (previewEnd || publicOnlineVisual(state)) && state.sport !== 'basquete'
   const [manualPref] = useSimMode()
@@ -10831,6 +10831,9 @@ export function EscEnd() {
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            aoRemover={(id, nome) => {
+              if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
+            }}
             classificacao={table.map(t => {
               const m = state.managers.find(mm => mm.id === t.id)
               return { id: t.id, nome: t.name, humano: !!m?.isHuman }
