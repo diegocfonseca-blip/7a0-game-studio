@@ -1,3 +1,9 @@
+## 30/09/2026 — 🎟️ Cupom do Canal Meia na Canela renomeado ✅ (só banco)
+
+`esc_cupons`: CANALMEIACANELA → **CANALMEIANACANELA** (influenciador "Canal Meia na Canela"), 10% no batismo.
+Tinha 0 usos, então a troca não mexeu em nenhum registro de uso. O código antigo deixou de valer.
+Conferido: `esc_cupom_validar('canalmeianacanela','batismo')` devolve o cupom (maiúscula/minúscula tanto faz).
+
 ## 28/09/2026 — 🛡️ ESCUDOS OFICIAIS no Leilão de Clubes ✅ NO AR
 
 Diego: *"faz oficial mesmo"* e *"pega da internet… webp, que fica menor"*. Avisei do risco de marca
