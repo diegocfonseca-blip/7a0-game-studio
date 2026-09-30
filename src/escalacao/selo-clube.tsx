@@ -7,7 +7,8 @@ import { useId } from 'react'
 import { SELOS } from './selos-clubes'
 import { clubCanon } from './data'
 import { Escudo } from './escudos'
-import { ESCUDOS_OFICIAIS } from './escudos-oficiais' // 🛡️ escudo OFICIAL (Diego, 28/09: "faz oficial mesmo")
+import { escudoOficialDoClube } from './escudos-clube-resolver'
+export { escudoOficialDoClube } from './escudos-clube-resolver'
 
 const INK = '#0C0C0C'
 // texto claro ou escuro, conforme a cor do anel
@@ -21,24 +22,9 @@ export function seloDoClube(clube: string) {
   return SELOS[clubCanon(clube)] ?? SELOS[clube]
 }
 
-export function escudoOficialDoClube(clube: string) {
-  // Instituições da carreira usam o nome completo na tela; o catálogo online
-  // guarda alguns escudos sob a grafia curta da carta.
-  const chaveEscudo = ({
-    'Bayern de Munique': 'Bayern', 'Manchester City': 'Man City',
-    'Manchester United': 'Man United', 'Inter de Milão': 'Inter',
-    'Borussia Dortmund': 'Dortmund', 'Bayer Leverkusen': 'Leverkusen',
-    'LDU': 'LDU Quito', 'Barcelona-EQU': 'Barcelona SC',
-    'Universidad de Chile': 'U. de Chile', 'Nacional-URU': 'Nacional-URU',
-  } as Record<string, string>)[clube] ?? clubCanon(clube)
-  // 🛡️ 28/09: o clube tem escudo OFICIAL? ele ganha do selo. O arquivo mora em
-  // `public/escudos-clubes/` (fora do bundle). Cabe numa caixa `size`×`size` pela
-  // proporção REAL do arquivo, pra não deformar nem sobrar moldura.
-  return ESCUDOS_OFICIAIS[chaveEscudo] ?? ESCUDOS_OFICIAIS[clube]
-}
-
 export function SeloClube({ clube, size = 40 }: { clube: string; size?: number }) {
   const uid = useId().replace(/:/g, '')
+  // Arquivo oficial em public/: proporção original preservada no tamanho pedido.
   const of = escudoOficialDoClube(clube)
   if (of) {
     const k = size / Math.max(of.w, of.h)
