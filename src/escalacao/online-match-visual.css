@@ -44,8 +44,23 @@
 .ll25-liberta-art{background-image:linear-gradient(0deg,rgba(0,0,0,.86),rgba(0,0,0,.12)),url('./img/online-liberta-v25.webp')!important}
 .ll25-copa8-art{background-image:linear-gradient(0deg,rgba(0,0,0,.86),rgba(0,0,0,.12)),url('./img/online-copa8-v25.webp')!important}
 .ll25-world-art{background-image:linear-gradient(0deg,rgba(0,0,0,.65),transparent),url('./img/online-mundial-v25.webp')!important;background-position:75% center!important}
+.ll25-club-world-art{background-image:linear-gradient(90deg,rgba(8,2,24,.87),rgba(8,2,24,.43) 55%,rgba(8,2,24,.05)),url('./img/carreira-mundial-clubes-v1.webp')!important;background-position:67% center!important}
 /* ⭐ Champions (25/09): a MESMA sala da Copa do Mundo, com o troféu de orelhas no pedestal e a cena puxada pro azul */
 .ll25-champions-art{background-image:linear-gradient(0deg,rgba(0,0,0,.65),transparent),url('./img/online-champions-v25.webp')!important;background-position:75% center!important}
+.ll37-intl-heroes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:14px}
+.ll37-intl-heroes .ll26-competition{min-height:205px;margin-bottom:0}
+.ll37-intl-heroes .ll26-competition-copy{padding:38px 13px 12px}
+.ll37-intl-heroes .ll26-competition-copy h2{font-size:clamp(24px,4vw,34px)}
+.ll37-intl-heroes .ll26-competition-copy p{line-height:1.3}
+.ll37-intl-heroes .ll25-liberta-art{background-image:linear-gradient(90deg,rgba(1,15,10,.91),rgba(1,15,10,.16)),url('./img/online-liberta-v25.webp')!important}
+.ll37-intl-heroes .ll25-champions-art{background-image:linear-gradient(90deg,rgba(3,12,37,.92),rgba(3,12,37,.13)),url('./img/online-champions-v25.webp')!important}
+.ll37-intl-heroes .ll25-club-world-art{grid-column:1/-1;min-height:250px}
+.ll37-intl-identity{display:flex;align-items:center;gap:6px;background:rgba(5,4,12,.82);padding:7px 12px;font:700 11px Oswald,sans-serif;letter-spacing:.02em}
+.ll37-intl-identity :is(img,svg){flex:none;max-width:36px;max-height:38px;object-fit:contain}
+.ll37-intl-identity b{color:#ffc400;overflow-wrap:anywhere}
+.ll37-intl-identity small{font:600 9px Arial,sans-serif;opacity:.78}
+.ll37-intl-identity>i{display:block;align-self:stretch;width:2px;min-height:28px;background:#ffffff80;margin:0 3px}
+@media(max-width:560px){.ll37-intl-heroes{grid-template-columns:1fr}.ll37-intl-heroes .ll25-club-world-art{grid-column:auto}}
 .ll25-career{background:#F4ECD6!important}
 .ll25-career :where(button,select){font-family:Oswald,'Arial Narrow',sans-serif}
 .ll25-career-hero{min-height:176px;display:flex;flex-direction:column;justify-content:flex-end;background-size:cover!important;background-position:center!important;text-shadow:0 2px 4px #000}

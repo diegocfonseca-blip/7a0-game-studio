@@ -20,6 +20,9 @@ import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
+import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
+import { summarizeInternationalCampaign } from './career-international-summary'
+import { validInternationalXI, INTERNATIONAL_CLUBS } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
@@ -872,7 +875,7 @@ import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
-import { agenciaLiberada, escadaLiberada } from './sport'
+import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
@@ -4696,6 +4699,9 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[]; uids?: string[] } // uids = 🤝 quem está online pelo crachá (numa dupla, os dois dividem o mesmo assento)
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'START_INTERNATIONAL_CAMPAIGN'; campaign: InternationalCampaign }
+  | { type: 'ADVANCE_INTERNATIONAL_CAMPAIGN' }
+  | { type: 'FINISH_INTERNATIONAL_CAMPAIGN'; entry: InternationalHistoryEntry }
   | { type: 'FREEZE_COPA_XI'; season: number; xi: Record<number, string[]> } // 🔒 congela a escalação que gerou a Copa daquela temporada — a Copa não muda mais depois de sorteada
   | { type: 'SET_COPA_ROUND'; round: number }
   | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
@@ -5788,6 +5794,7 @@ function afterReveal(state: EscState) {
 // online, o resultado já computado vai por SYNC_STATE pros convidados, então
 // não precisa de seed determinístico aqui.
 function redraftSeason(s: EscState): EscState {
+  if (s.careerOnline) s.careerInternational = null // histórico permanece; campanha nova só nasce após a Copa nacional
   const humanosAntes = s.managers.filter(m => m.isHuman)
   const humanNames = humanosAntes.map(m => m.name)
   const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
@@ -6028,6 +6035,43 @@ function reducerBase(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    case 'START_INTERNATIONAL_CAMPAIGN': {
+      if (!internacionalCarreiraLiberada() || !s.careerOnline || s.onlineMode === 'online' || s.seasonNo < 40) return s
+      if (s.copaDoneSeason !== s.seasonNo || s.careerInternational?.season === s.seasonNo) return s
+      const c = action.campaign
+      if (c.season !== s.seasonNo || c.seed !== s.seed || c.teams.length !== 72 || c.steps.length !== 14 || c.reveal !== 0) return s
+      const me = s.managers[s.youIdx]
+      if (!me || c.userTeam !== me.teamName) return s
+      if (c.representedClub) {
+        const ids = new Set((me.squad as WonCard[]).filter(card => !card.fake).map(card => card.id))
+        const myTeam = c.teams.find(team => team.id === c.representedClub)
+        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && club.block >= (c.priority ?? 10)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => ids.has(card.id))) return s
+      } else if (c.registeredXI.length || c.teams.some(team => team.you)) return s
+      s.careerInternational = c
+      return s
+    }
+    case 'ADVANCE_INTERNATIONAL_CAMPAIGN': {
+      const c = s.careerInternational
+      if (!internacionalCarreiraLiberada() || !c || c.season !== s.seasonNo || c.reveal >= c.steps.length) return s
+      c.reveal++
+      return s
+    }
+    case 'FINISH_INTERNATIONAL_CAMPAIGN': {
+      const c = s.careerInternational
+      if (!internacionalCarreiraLiberada() || !c || c.season !== s.seasonNo || c.reveal < c.steps.length) return s
+      const expected = summarizeInternationalCampaign(c)
+      if (JSON.stringify(action.entry) !== JSON.stringify(expected)) return s
+      if ((s.careerInternationalHistory ?? []).some(entry => entry.season === c.season)) return s
+      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), expected]
+      if (expected.prizeCoins > 0) {
+        const id = s.managers[s.youIdx]?.id
+        if (id != null) {
+          s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + expected.prizeCoins }
+          logFin(s, 'reward', `🌐 ${expected.competition === 'libertadores' ? 'Libertadores' : 'Champions League'}${expected.mundial ? ' + Mundial de Clubes' : ''}`, expected.prizeCoins, undefined, id)
+        }
+      }
+      return s
+    }
     // 🔒 A COPA NÃO MUDA DEPOIS DE SORTEADA (Diego 17/08: "o que aparecer no
     // final, se ele ganhou o título, ele ganha — não importa se substituiu ou
     // não"). A Copa/Supercopa nascem de uma vez a partir da FORÇA dos times, e a
@@ -6617,6 +6661,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
+      s.careerInternational = null; s.careerInternationalHistory = []
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 🤝🏆🛍️ patrocínio por aposta, Master e Loja começam zerados
@@ -6743,6 +6788,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
+      s.careerInternational = null; s.careerInternationalHistory = []
       s.empresarioCards = []; s.empresarioClaimKeys = []
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
@@ -9140,6 +9186,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'REAUCTION_ONLINE': {
+      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
@@ -9186,6 +9233,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
+      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       // 🧯 ANTI-TOQUE-DUBLADO (bug 10/08): tocar 2× rápido no "Abrir leilão"/"Mesmo
       // time" rodava este case DE NOVO — creditava prêmio/bilheteria/patrocínio 2×,
       // cobrava a folha 2× e pulava a temporada de 2 em 2 (o guard de applySeasonMoney
@@ -9893,6 +9941,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
       s.copaMundoStats = undefined
+      s.careerInternational = null; s.careerInternationalHistory = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
@@ -11729,7 +11778,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
     if (sig === soloSigRef.current) return
     soloSigRef.current = sig
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }

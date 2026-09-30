@@ -441,7 +441,7 @@ export function xiDaMaquina(pais: string): { xi: PoolCard[]; form: Formation } {
 }
 
 // ── componente principal: o portão + o torneio inteiro num modal ──
-export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void }) {
+export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, onArtilheiro, onStats, agenciaOn, onGoRank, onMural, internationalCareer = false }: { seasonNo: number; seed: number; top16: { name: string; you: boolean }[]; myPos: number; onArtilheiro?: (nome: string, gols: number) => void; onStats?: (linhas: CMStatCarta[]) => void; onPrize?: (coins: number) => void; onCard?: (card: { name: string; club: string; year: number; pos: string; fame: number; folk?: boolean; promessa?: boolean }, key: string) => void; agenciaOn?: boolean; onGoRank?: () => void; onMural?: (entries: { season: number; selecao: string; campeao: string; voce: boolean }[]) => void; internationalCareer?: boolean }) {
   // 🔗 "(aba Rank)" virou link de verdade (Diego 14/08): antes era só texto
   // solto, a pessoa tinha que sair da tela e procurar a aba na mão.
   const rankLink = onGoRank
@@ -474,6 +474,12 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
 
   if (seasonNo < COPA_ANCHOR) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
+      {internationalCareer && <div style={{ background: seasonNo >= 40 ? '#E3F2DC' : '#F4ECD6', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 10px', marginBottom: 9 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0 }}>{seasonNo >= 40 ? '✓' : '🔒'} TEMPORADA 40 · 🌎 FUTEBOL INTERNACIONAL DE CLUBES</p>
+        <p style={{ fontSize: 10, fontWeight: 800, margin: '4px 0' }}>CONMEBOL Libertadores · UEFA Champions League · Mundial de Clubes</p>
+        <div style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#fff', overflow: 'hidden', position: 'relative' }}><div style={{ width: `${Math.min(100, seasonNo / 40 * 100)}%`, height: '100%', background: '#1B7A3D' }} /></div>
+        <small>{seasonNo >= 40 ? 'Disponível nesta carreira. A campanha nacional define sua prioridade de escolha.' : `Faltam ${40 - seasonNo} temporadas para desbloquear.`}</small>
+      </div>}
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>{tr('🔒 Copa do Mundo Legends', '🔒 Legends World Cup')}</p>
       <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>A tournament of national teams, for <b>veterans</b>: unlocks in <b>season 100</b> — and only clubs in the <b>TOP 24 of the club ranking</b> {rankLink} get in. Keep playing and climbing the board.</> : <>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 24 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</>}</p>
       <div style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>

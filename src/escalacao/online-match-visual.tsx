@@ -87,7 +87,7 @@ export function OnlineMatchTabs({ value, onChange }: { value: OnlineMatchTab; on
 }
 
 export function CompetitionStage({ kind, title, phase, detail, status, children }: {
-  kind: 'copa8' | 'liberta' | 'world' | 'league' | 'champions'; title: string; phase: string;
+  kind: 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'; title: string; phase: string;
   detail: string; status?: string; children?: ReactNode
 }) {
   return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`}>
