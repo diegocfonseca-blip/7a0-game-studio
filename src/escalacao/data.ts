@@ -2614,7 +2614,7 @@ const L40_EU_ZAG: C[] = [
 const L40_EU_MEI: C[] = [
   { name: "Mark van Bommel", club: "PSV", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Volante do PSV tetracampeão holandês antes de Barcelona e Bayern." },
   { name: "Phillip Cocu", club: "PSV", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Voltou do Barcelona pra ser capitão do PSV tricampeão holandês." },
-  { name: "Willem van Hanegem", club: "Feyenoord", year: 1970, fame: 5, lo: 88, hi: 93, bio: "O Torto, maestro do Feyenoord campeão europeu e mundial de 1970." },
+  { name: "Willem van Hanegem", club: "Feyenoord", year: 1970, fame: 4, lo: 84, hi: 90, bio: "O Torto, maestro do Feyenoord campeão europeu e mundial de 1970." },
   { name: "Wim Jansen", club: "Feyenoord", year: 1970, fame: 4, lo: 84, hi: 90, bio: "Volante do Feyenoord campeão da Europa em 1970 e vice-mundial com a Holanda em 74." },
   { name: "Renato Augusto", club: "Leverkusen", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Meia brasileiro do Leverkusen vice-campeão alemão de 2011, depois Corinthians e seleção." },
   { name: "Robson Ponte", club: "Leverkusen", year: 2004, fame: 2, lo: 66, hi: 82, bio: "Meia brasileiro do Leverkusen nos anos 2000, depois ídolo no Urawa Reds." },
@@ -3061,7 +3061,7 @@ const L39_WORLD_ATA: C[] = [
 // 2 ZAG · 3 MEI · 3 ATA. Nenhum nome repete jogador que já existe neste baralho (conferido em 01/10).
 const L40_WORLD_GOL: C[] = [
   { name: "Oscar Ustari", club: "Independiente", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Goleiro revelado no Independiente, campeão mundial sub-20 e ouro olímpico em 2008 pela Argentina." },
-  { name: "Ladislao Mazurkiewicz", club: "Peñarol", year: 1966, fame: 5, lo: 88, hi: 93, bio: "O maior goleiro uruguaio da história, bicampeão da Libertadores e do Mundial com o Peñarol." },
+  { name: "Ladislao Mazurkiewicz", club: "Peñarol", year: 1966, fame: 4, lo: 84, hi: 90, bio: "O maior goleiro uruguaio da história, bicampeão da Libertadores e do Mundial com o Peñarol." },
   { name: "Jorge Seré", club: "Nacional-URU", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Nacional campeão da Libertadores e do Mundial de 1988." },
   { name: "Mariano Andújar", club: "Estudiantes", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Estudiantes campeão da Libertadores de 2009." },
   { name: "Agustín Cejas", club: "Racing", year: 1967, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Racing campeão da Libertadores e do Mundial de 1967." },
@@ -3132,7 +3132,7 @@ const L40_WORLD_ZAG: C[] = [
   { name: "Diego Godín", club: "Nacional-URU", year: 2006, fame: 3, lo: 76, hi: 85, bio: "O zagueiro do Atlético de Madrid começou no Nacional antes de ir pra Europa." },
   { name: "Leandro Desábato", club: "Estudiantes", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Capitão duro do Estudiantes campeão da Libertadores de 2009." },
   { name: "Agustín Alayes", club: "Estudiantes", year: 2009, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Estudiantes campeão da Libertadores de 2009." },
-  { name: "Roberto Perfumo", club: "Racing", year: 1967, fame: 5, lo: 88, hi: 93, bio: "O \"Mariscal\", zagueiro do Racing campeão do mundo em 1967 e ídolo do futebol argentino." },
+  { name: "Roberto Perfumo", club: "Racing", year: 1967, fame: 4, lo: 84, hi: 90, bio: "O \"Mariscal\", zagueiro do Racing campeão do mundo em 1967 e ídolo do futebol argentino." },
   { name: "Alfio Basile", club: "Racing", year: 1967, fame: 3, lo: 76, hi: 85, bio: "Antes de técnico da Argentina, foi zagueiro do Racing campeão da Libertadores e do Mundial de 1967." },
   { name: "Mauricio Pellegrino", club: "Vélez Sarsfield", year: 1994, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Vélez campeão do mundo em 1994, depois Barcelona e Valencia." },
   { name: "Julio César Cáceres", club: "Olimpia", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Zagueiro revelado no Olimpia, depois River, Boca e Atlético-MG." },
@@ -3168,7 +3168,7 @@ const L40_WORLD_ZAG: C[] = [
 const L40_WORLD_MEI: C[] = [
   { name: "Esteban Cambiasso", club: "Independiente", year: 1998, fame: 3, lo: 76, hi: 85, bio: "Volante que se firmou no Independiente antes de virar peça da Inter e do Real Madrid." },
   { name: "Federico Insúa", club: "Independiente", year: 2003, fame: 3, lo: 76, hi: 85, bio: "O meia \"Pocho\", camisa 10 do Independiente nos anos 2000." },
-  { name: "Pedro Rocha", club: "Peñarol", year: 1965, fame: 5, lo: 88, hi: 93, bio: "O \"Verdugo\", maestro do Peñarol bicampeão mundial nos anos 60." },
+  { name: "Pedro Rocha", club: "Peñarol", year: 1965, fame: 4, lo: 84, hi: 90, bio: "O \"Verdugo\", maestro do Peñarol bicampeão mundial nos anos 60." },
   { name: "Pablo Bengoechea", club: "Peñarol", year: 1997, fame: 4, lo: 84, hi: 90, bio: "O \"Profesor\", meia de faltas perfeitas e pentacampeão uruguaio pelo Peñarol." },
   { name: "Álvaro Recoba", club: "Nacional-URU", year: 2010, fame: 4, lo: 84, hi: 90, bio: "O \"Chino\" voltou da Inter pra ser campeão uruguaio pelo Nacional." },
   { name: "Nicolás Lodeiro", club: "Nacional-URU", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Meia do Nacional campeão uruguaio antes de rodar por Ajax, Botafogo e Boca." },
@@ -3235,7 +3235,7 @@ const L40_WORLD_ATA: C[] = [
   { name: "Sergio Agüero", club: "Independiente", year: 2006, fame: 4, lo: 84, hi: 90, bio: "O Kun estreou no Independiente aos 15 anos e saiu pro Atlético de Madrid como a maior joia do país." },
   { name: "Jorge Burruchaga", club: "Independiente", year: 1984, fame: 4, lo: 84, hi: 90, bio: "Craque do Independiente campeão mundial de 1984; dois anos depois fez o gol do título da Copa de 86." },
   { name: "Daniel Bertoni", club: "Independiente", year: 1973, fame: 4, lo: 84, hi: 90, bio: "Ponta do Independiente tricampeão da Libertadores nos anos 70 e campeão do mundo em 78." },
-  { name: "Fernando Morena", club: "Peñarol", year: 1975, fame: 5, lo: 88, hi: 93, bio: "Maior artilheiro da história do Peñarol e do Campeonato Uruguaio." },
+  { name: "Fernando Morena", club: "Peñarol", year: 1975, fame: 4, lo: 84, hi: 90, bio: "Maior artilheiro da história do Peñarol e do Campeonato Uruguaio." },
   { name: "Alberto Spencer", club: "Peñarol", year: 1961, fame: 5, lo: 88, hi: 93, bio: "O equatoriano é o maior artilheiro da história da Libertadores, com 54 gols, quase todos pelo Peñarol." },
   { name: "Diego Forlán", club: "Peñarol", year: 2015, fame: 3, lo: 76, hi: 85, bio: "O melhor jogador da Copa de 2010 encerrou a carreira uruguaia no clube do coração." },
   { name: "Sebastián Abreu", club: "Nacional-URU", year: 2010, fame: 3, lo: 76, hi: 85, bio: "O Loco voltou do Botafogo pra ser campeão uruguaio pelo Nacional." },
@@ -3266,7 +3266,7 @@ const L40_WORLD_ATA: C[] = [
   { name: "Gabriel Batistuta", club: "Newell's Old Boys", year: 1988, fame: 4, lo: 84, hi: 90, bio: "Batigol foi revelado no Newell's antes de River, Boca e Fiorentina." },
   { name: "Abel Balbo", club: "Newell's Old Boys", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Atacante do Newell's campeão argentino de 1988, depois Udinese e Roma." },
   { name: "Jorge Valdano", club: "Newell's Old Boys", year: 1973, fame: 4, lo: 84, hi: 90, bio: "Campeão do mundo em 1986 pela Argentina, começou a carreira no Newell's." },
-  { name: "Mario Kempes", club: "Rosario Central", year: 1973, fame: 5, lo: 88, hi: 93, bio: "O Matador explodiu no Rosario Central antes de ser o craque da Copa de 78." },
+  { name: "Mario Kempes", club: "Rosario Central", year: 1973, fame: 4, lo: 84, hi: 90, bio: "O Matador explodiu no Rosario Central antes de ser o craque da Copa de 78." },
   { name: "Marco Ruben", club: "Rosario Central", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Rosario Central campeão da Copa Argentina de 2018." },
   { name: "Aldo Pedro Poy", club: "Rosario Central", year: 1971, fame: 3, lo: 76, hi: 85, bio: "Autor da \"palomita\" mais famosa do futebol argentino, contra o Newell's em 1971." },
   { name: "Nicolás González", club: "Argentinos Juniors", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Atacante revelado no Argentinos antes de Stuttgart, Fiorentina e Juventus." },
@@ -3291,7 +3291,7 @@ const L40_WORLD_ATA: C[] = [
   { name: "Alfredo Di Stéfano", club: "Millonarios", year: 1949, fame: 5, lo: 88, hi: 93, bio: "Antes do Real Madrid, a Saeta Rubia encantou a Colômbia no Millonarios do Ballet Azul." },
   { name: "Arnoldo Iguarán", club: "Millonarios", year: 1985, fame: 3, lo: 76, hi: 85, bio: "O Guajiro, maior artilheiro da seleção colombiana por décadas, ídolo do Millonarios." },
   { name: "Radamel Falcao", club: "Millonarios", year: 2024, fame: 3, lo: 76, hi: 85, bio: "O Tigre voltou à Colômbia pra realizar o sonho de jogar no Millonarios." },
-  { name: "Lolo Fernández", club: "Universitario", year: 1939, fame: 5, lo: 88, hi: 93, bio: "O Cañonero, maior ídolo da história do Universitario e do futebol peruano." },
+  { name: "Lolo Fernández", club: "Universitario", year: 1939, fame: 4, lo: 84, hi: 90, bio: "O Cañonero, maior ídolo da história do Universitario e do futebol peruano." },
   { name: "Raúl Ruidíaz", club: "Universitario", year: 2013, fame: 3, lo: 76, hi: 85, bio: "A Pulga, artilheiro do Universitario campeão peruano de 2013, depois Seattle Sounders." },
   { name: "Juan Carlos Oblitas", club: "Universitario", year: 1972, fame: 3, lo: 76, hi: 85, bio: "O Ciego, ponta do Universitario e da seleção peruana nas Copas de 78 e 82." },
 ]
