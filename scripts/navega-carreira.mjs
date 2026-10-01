@@ -28,12 +28,15 @@ const arg = (n, d = '') => { const i = process.argv.indexOf(`--${n}`); return i 
 const FASE = arg('fase', 'abas')
 const PASTA = arg('pasta', '/tmp/carreira-telas')
 const URL = arg('url', 'http://localhost:5199/')
-const CEL = { width: 430, height: 900 }
+// 🖥️ 01/10: `--desk` fotografa em tamanho de MONITOR (1440×900) — foi assim que o
+// levantamento do desktop da carreira foi feito. Sem a flag, celular como sempre.
+const DESK = process.argv.includes('--desk')
+const CEL = DESK ? { width: 1440, height: 900 } : { width: 430, height: 900 }
 mkdirSync(PASTA, { recursive: true })
 
 const abre = async () => {
   const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
-  const p = await b.newPage({ viewport: CEL, deviceScaleFactor: 2, locale: 'pt-BR' })
+  const p = await b.newPage({ viewport: CEL, deviceScaleFactor: DESK ? 1 : 2, locale: 'pt-BR' })
   p.on('pageerror', e => console.log('⚠️ erro na página:', e.message.slice(0, 140)))
   return { b, p }
 }
