@@ -1,4 +1,4 @@
-## 01/10/2026 — 🖥️ Carreira no MONITOR em duas colunas ⏳ NO BRANCH, esperando OK visual
+## 01/10/2026 — 🖥️ Carreira no MONITOR em duas colunas ✅ NO AR (OK do Diego nas fotos antes/depois)
 
 Diego: *"analise o desktop do modo carreira… todas as telas, abas, menus, botões. Está muito
 desalinhado… organize tudo. Não mexa no dispositivo móvel."* Medido em 1440px com
@@ -13,8 +13,9 @@ TODA aba e a tabela/elenco/rank só depois de uma tela de rolagem; a largura mud
   igual (caixa da conta no mesmo y, mesma rolagem). Campinho do Elenco: 560→490px de largura e
   860→740 de altura pra sobrar lista ao lado.
 - 🔌 Desligar = trocar `1100px` por `99999px` no CSS (ou reverter o commit).
-- Falta: OK do Diego nas fotos antes/depois → publicar na main. Mockup/antes-depois: `--desk` no
-  `navega-carreira.mjs` e fotos no scratchpad desta sessão.
+- Diego viu as fotos antes/depois das 5 abas e disse "Ok" → publicado. Pra refotografar: `--desk` no
+  `navega-carreira.mjs`.
+
 ## 01/10/2026 — 🌎 CARREIRA INTERNACIONAL: fluxo passo a passo ✅ FEITO (só a conta do Diego; mockups aprovados)
 
 Diego mandou o Codex parar e manter esta sessão. `career-international-view.tsx` foi REESCRITA por cima do motor do
