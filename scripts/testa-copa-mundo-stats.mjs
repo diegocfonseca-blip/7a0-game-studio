@@ -20,6 +20,7 @@ const espera = async () => { for (let i = 0; i < 40; i++) { try { const r = awai
 if (!await espera()) { console.error('❌ o servidor não subiu'); try { process.kill(-vite.pid) } catch { /* já foi */ } process.exit(1) }
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
 const p = await b.newPage()
+await p.route('**/*.supabase.co/**', route => route.abort()) // teste local sem tocar o projeto real
 p.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message))
 await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
 const r = await p.evaluate(async () => {

@@ -5930,6 +5930,14 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
 // `esc_pyramid_rank`, ver comentário no banco) — ninguém vê o futuro de ninguém,
 // só o que cada um já tinha feito até ali. Só conta quem jogou com Agência 2.0.
 interface GlobalRankRow { user_id: string; season_no: number; team_name: string; honors_a: number; honors_b: number; honors_c: number; honors_d: number; honors_v: number; copa_titles: number; supercopa_titles?: number; world_titles: number; mundial_titles?: number; libertadores_titles?: number; champions_titles?: number; money: number }
+type GlobalRankRpc = 'esc_pyramid_rank' | 'esc_pyramid_career_rank' | 'esc_pyramid_my_rank'
+export async function globalRankRpc(name: GlobalRankRpc, args: Record<string, number | string>, experimental: boolean) {
+  if (!experimental) return supabase.rpc(name, args)
+  const next = await supabase.rpc(`${name}_v2`, args)
+  if (!next.error || !['PGRST202', '42883'].includes(next.error.code ?? '')) return next
+  // Migração ainda não aplicada: o ranking antigo permanece legível.
+  return supabase.rpc(name, args)
+}
 // ordem oficial do ranking (a MESMA do servidor e a MESMA do rank local):
 // Mundo · Série A · Copa · Supercopa · B · C · D · Várzea · dinheiro.
 // Existe aqui porque a SUA linha é trocada pela carreira de agora (veja abaixo) —
@@ -5974,7 +5982,7 @@ export function pontosDaLinha(r: GlobalRankRow): number {
 }
 // empate de pontos: o dinheiro desempata, como já era antes.
 function cmpRank(a: GlobalRankRow, b: GlobalRankRow): number {
-  return pontosDaLinha(b) - pontosDaLinha(a) || b.money - a.money
+  return pontosDaLinha(b) - pontosDaLinha(a) || b.money - a.money || (a.user_id < b.user_id ? -1 : a.user_id > b.user_id ? 1 : 0)
 }
 
 // 🌍👋 CONVITE DO RANKING GLOBAL PRA CARREIRA ANTIGA (28/08, ideia do Diego:
@@ -6030,7 +6038,7 @@ function GlobalRankConvite() {
 //    posição que ela merece hoje — e logo embaixo, fininha, a sua melhor, com a
 //    posição dela. A fininha SOME quando a de agora vira a melhor.
 // A linha fininha não ocupa posição e ninguém mais a enxerga.
-function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [] }: { myTeamName: string; seasonNo: number; careerId?: number; intlHistory?: InternationalHistoryEntry[] }) {
+function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [], experimental = false }: { myTeamName: string; seasonNo: number; careerId?: number; intlHistory?: InternationalHistoryEntry[]; experimental?: boolean }) {
   const [rows, setRows] = useState<GlobalRankRow[] | null>(null)
   // a carreira que você está jogando AGORA (posição + títulos dela)
   const [atual, setAtual] = useState<(GlobalRankRow & { pos: number; total: number }) | null>(null)
@@ -6054,8 +6062,8 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [] }: { m
         const uid = auth?.user?.id ?? null
         if (alive) setMeUid(uid)
         const [cur, prev] = await Promise.all([
-          supabase.rpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 50 }),
-          seasonNo > 1 ? supabase.rpc('esc_pyramid_rank', { p_season: seasonNo - 1, p_limit: 50 }) : Promise.resolve({ data: [], error: null }),
+          globalRankRpc('esc_pyramid_rank', { p_season: seasonNo, p_limit: 50 }, experimental),
+          seasonNo > 1 ? globalRankRpc('esc_pyramid_rank', { p_season: seasonNo - 1, p_limit: 50 }, experimental) : Promise.resolve({ data: [], error: null }),
         ])
         if (cur.error) throw cur.error
         const curRows = (cur.data ?? []) as GlobalRankRow[]
@@ -6068,12 +6076,19 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [] }: { m
         // 🪄 a carreira de AGORA: onde ela ficaria na tabela dos outros. Busca à
         // parte porque é informação SÓ SUA — não entra no ranking de ninguém.
         if (uid && careerId != null) {
-          const { data: cr } = await supabase.rpc('esc_pyramid_career_rank', { p_season: seasonNo, p_user_id: uid, p_career_id: careerId })
+          const { data: cr } = await globalRankRpc('esc_pyramid_career_rank', { p_season: seasonNo, p_user_id: uid, p_career_id: careerId }, experimental)
           const row = (cr ?? [])[0] as (GlobalRankRow & { pos: number; total: number }) | undefined
-          if (alive && row) setAtual({ ...row, user_id: uid, ...internationalTitleCounts(intlHistory, seasonNo) })
+          if (alive && row) {
+            const local = internationalTitleCounts(intlHistory, seasonNo)
+            setAtual({ ...row, user_id: uid,
+              mundial_titles: Math.max(row.mundial_titles ?? 0, local.mundial_titles),
+              libertadores_titles: Math.max(row.libertadores_titles ?? 0, local.libertadores_titles),
+              champions_titles: Math.max(row.champions_titles ?? 0, local.champions_titles),
+            })
+          }
         }
         if (uid && !curRows.some(r => r.user_id === uid)) {
-          const { data: mr } = await supabase.rpc('esc_pyramid_my_rank', { p_season: seasonNo, p_user_id: uid })
+          const { data: mr } = await globalRankRpc('esc_pyramid_my_rank', { p_season: seasonNo, p_user_id: uid }, experimental)
           const row = (mr ?? [])[0] as { pos: number; total: number } | undefined
           if (alive && row) setMyRank({ pos: row.pos, total: row.total })
         }
@@ -6082,7 +6097,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [] }: { m
       }
     })()
     return () => { alive = false }
-  }, [seasonNo, careerId, intlHistory.length])
+  }, [seasonNo, careerId, intlHistory.length, experimental])
   const loading = rows === null
   // 🔁 A TROCA: na SUA linha entra a carreira de agora, no lugar da sua melhor.
   // Depois a lista é reordenada pelo mesmo critério do servidor, pra a posição
@@ -10384,7 +10399,7 @@ export function PyramidSeasonScreen() {
               <BolaDeOuroBox donos={state.careerMelhorMundo} />
             ) : rankSub === 'global' ? (
               agenciaOk
-                ? <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} intlHistory={intlEnabled ? intlHistory : []} />
+                ? <GlobalRankTab myTeamName={meMgr?.teamName ?? ''} seasonNo={state.seasonNo} careerId={state.seed} intlHistory={intlHistory} experimental={intlEnabled} />
                 : <GlobalRankConvite />
             ) : (
               <>

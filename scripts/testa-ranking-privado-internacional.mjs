@@ -4,9 +4,9 @@ import { createServer } from 'vite'
 const vite = await createServer({ server: { middlewareMode: true, hmr: false }, appType: 'custom' })
 try {
   const { supabase } = await vite.ssrLoadModule('/src/lib/supabase.ts')
-  let resolveInitial
+  const verificationQueue = []
   const authListeners = []
-  supabase.auth.getUser = () => new Promise(resolve => { resolveInitial = resolve })
+  supabase.auth.getUser = () => new Promise(resolve => { verificationQueue.push(resolve) })
   supabase.auth.onAuthStateChange = fn => {
     authListeners.push(fn)
     return { data: { subscription: { unsubscribe() {} } } }
@@ -16,7 +16,8 @@ try {
   const { internationalTitleCounts } = await vite.ssrLoadModule('/src/escalacao/career-international-rank-snapshot.ts')
   const { isInternationalCareerTester } = await vite.ssrLoadModule('/src/escalacao/career-international.ts')
   const { internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } = await vite.ssrLoadModule('/src/escalacao/sport.ts')
-  const { pontosDeTitulos } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+  const { pontosDeTitulos, globalRankRpc } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
+  const initialVerifications = verificationQueue.splice(0)
 
   const diego = { id: 'fixture-diego', email: 'diego.c.fonseca@gmail.com' }
   const other = { id: 'fixture-other', email: 'outra.conta@example.com' }
@@ -27,18 +28,54 @@ try {
   onAuth('INITIAL_SESSION', null)
   assert.equal(internacionalCarreiraLiberada(), false)
   onAuth('SIGNED_IN', { user: diego })
+  assert.equal(internacionalCarreiraAuthResolvida(), false)
+  for (const resolve of initialVerifications) resolve({ data: { user: diego }, error: null }) // respostas iniciais atrasadas
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(internacionalCarreiraLiberada(), false, 'a sessão sozinha não libera')
+  verificationQueue.shift()({ data: { user: diego }, error: null })
+  await new Promise(resolve => setTimeout(resolve, 0))
   assert.equal(internacionalCarreiraLiberada(), true)
   onAuth('SIGNED_OUT', null)
-  resolveInitial({ data: { user: diego }, error: null })
+  assert.equal(internacionalCarreiraLiberada(), false)
+  onAuth('SIGNED_IN', { user: diego })
+  verificationQueue.shift()({ data: { user: other }, error: null })
   await new Promise(resolve => setTimeout(resolve, 0))
-  assert.equal(internacionalCarreiraLiberada(), false, 'getUser atrasado não reabre após logout')
+  assert.equal(internacionalCarreiraLiberada(), false, 'sessão com e-mail do Diego não prevalece sobre getUser')
   onAuth('SIGNED_IN', { user: other })
   assert.equal(internacionalCarreiraLiberada(), false)
   onAuth('SIGNED_IN', { user: diego })
+  verificationQueue.shift()({ data: { user: other }, error: null }) // verificação antiga da outra conta
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(internacionalCarreiraLiberada(), false)
+  verificationQueue.shift()({ data: { user: diego }, error: null })
+  await new Promise(resolve => setTimeout(resolve, 0))
   assert.equal(internacionalCarreiraLiberada(), true)
   onAuth('SIGNED_IN', { user: other })
   assert.equal(internacionalCarreiraLiberada(), false, 'troca de conta fecha o teste')
+  verificationQueue.shift()({ data: { user: other }, error: null })
+  await new Promise(resolve => setTimeout(resolve, 0))
   assert.equal(internacionalCarreiraAuthResolvida(), true)
+
+  const calls = []
+  supabase.rpc = async name => {
+    calls.push(name)
+    return name.endsWith('_v2')
+      ? { data: null, error: { code: 'PGRST202' } }
+      : { data: [{ user_id: 'fixture' }], error: null }
+  }
+  await globalRankRpc('esc_pyramid_rank', { p_season: 87, p_limit: 50 }, false)
+  assert.deepEqual(calls, ['esc_pyramid_rank'], 'outra conta usa só o ranking legado')
+  calls.length = 0
+  await globalRankRpc('esc_pyramid_rank', { p_season: 87, p_limit: 50 }, true)
+  assert.deepEqual(calls, ['esc_pyramid_rank_v2', 'esc_pyramid_rank'], 'migração ausente preserva o ranking legado')
+  calls.length = 0
+  supabase.rpc = async name => { calls.push(name); return { data: [{ user_id: 'fixture' }], error: null } }
+  await globalRankRpc('esc_pyramid_rank', { p_season: 87, p_limit: 50 }, true)
+  assert.deepEqual(calls, ['esc_pyramid_rank_v2'], 'Diego usa o ranking novo quando disponível')
+  calls.length = 0
+  supabase.rpc = async name => { calls.push(name); return { data: [], error: name.endsWith('_v2') ? { code: '42501' } : null } }
+  await globalRankRpc('esc_pyramid_rank', { p_season: 87, p_limit: 50 }, true)
+  assert.deepEqual(calls, ['esc_pyramid_rank_v2'], 'erro de autorização não aciona fallback')
 
   const season = (s, lib, champ, mundial) => ({ season: s, libertadores: lib, champions: champ, mundial })
   const history = [season(39, 1, 0, 0), season(87, 1, 0, 1), season(87, 1, 0, 1), season(88, 0, 1, 0), season(100, 0, 0, 1)]
