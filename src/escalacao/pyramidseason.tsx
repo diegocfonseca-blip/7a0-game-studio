@@ -65,7 +65,7 @@ import type { ApoioPerk } from './apoio'
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio } from './manto'
 import { JogadorNoCampo, BEGE_MANTO, type EstadoJogador } from './jogadorcampo'
-import { MASCOTES, FestaoMascote, carimboDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
+import { MASCOTES, FestaoMascote, carimboDoTime, mascoteInteiraDoTime, carimboAnimDoTime, CARIMBO_KEYFRAMES } from './mascotes'
 import careerRoomPrivate from './img/career-setup-room-private.webp'
 import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
@@ -3153,6 +3153,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   //    nome com selo de tier ou "(você)" colado, a mascote não some de novo.
   const carimboTime = (!basket && golSide) ? newestTeamName(nomeLimpo(golSide === 'h' ? homeName : awayName)) : ''
   const carimboArt = carimboTime ? carimboDoTime(carimboTime) : null
+  // 🖼️ 01/10 (print do Diego na foto do Twitter: o Mascarado saía só das pernas no
+  // placar): a janelinha do escudo no placar leva a mascote INTEIRA, não o busto. O
+  // busto é um recorte de 176px que a caixa de 76px do placar não sabe encolher
+  // (o CSS só redimensiona <img> direto, e o busto vem embrulhado numa div).
+  const carimboSlot = carimboTime ? mascoteInteiraDoTime(carimboTime) : null
   // 🎬 cada mascote entra do SEU jeito (águia mergulha, palhaço quica, cobra
   // rasteja…). Quem não tem entrada própria cai no carimbo de sempre.
   const carimboAnim = carimboTime ? carimboAnimDoTime(carimboTime) : 'coCarimba'
@@ -3203,7 +3208,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}
     youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={shown}
-    goalSide={golSide} mascot={carimboArt} eventKey={goalSeed}
+    goalSide={golSide} mascot={carimboSlot} eventKey={goalSeed}
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
     palcoOn={!basket}
