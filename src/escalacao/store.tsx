@@ -20,9 +20,12 @@ import type { PreparadorKey } from './preparadores'
 import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador, fimDoContrato, CONTRATO_MAX } from './preparadores' // 🏋️ preparador físico (15/09)
 import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
+import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
+import { summarizeInternationalCampaign } from './career-international-summary'
+import { isRealInternationalCard, validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
-import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
+import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
@@ -872,7 +875,7 @@ import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
-import { agenciaLiberada, escadaLiberada } from './sport'
+import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
@@ -4696,6 +4699,9 @@ type Action =
   | { type: 'SYNC_STATE'; newState: EscState }
   | { type: 'SET_PRESENCE'; indices: number[]; uids?: string[] } // uids = 🤝 quem está online pelo crachá (numa dupla, os dois dividem o mesmo assento)
   | { type: 'MARK_COPA_DONE' }
+  | { type: 'START_INTERNATIONAL_CAMPAIGN'; campaign: InternationalCampaign }
+  | { type: 'ADVANCE_INTERNATIONAL_CAMPAIGN' }
+  | { type: 'FINISH_INTERNATIONAL_CAMPAIGN'; entry: InternationalHistoryEntry }
   | { type: 'FREEZE_COPA_XI'; season: number; xi: Record<number, string[]> } // 🔒 congela a escalação que gerou a Copa daquela temporada — a Copa não muda mais depois de sorteada
   | { type: 'SET_COPA_ROUND'; round: number }
   | { type: 'CLOSE_SEASON_BOOKS'; rewards?: Record<number, number>; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // 💰 fecha as contas da temporada (prêmios + bilheteria + patrocínio + empresário − folha) assim que liga+copas acabam
@@ -5495,19 +5501,28 @@ function sealAndResolveTec(state: EscState) {
   const card = state.currentCards[0]
   const rng = mulberry((((state.seed ^ 0x7EC5EA) + state.seasonNo * 3571) | 0) >>> 0)
   const t = tecnicoPorNome(lote.nome)
-  const base = t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso
-  const minL = Math.max(1, lote.piso)
+  // 🧢💰 TETO (01/10, bug do Renato): o piso do pregão e o lance do bot nunca passam
+  // de 4× o piso da categoria — antes cada venda virava piso da próxima e o bot dava
+  // o dobro em cima, sem fim (Parreira a 12.426). E o BOT SÓ DÁ LANCE DO QUE TEM NO
+  // BOLSO, igual no leilão de jogador (um clube com 1 moeda "pagou" 12 mil).
+  const teto = tetoTecnico(lote.nome)
+  const base = Math.min(teto, t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso)
+  const minL = Math.max(1, Math.min(lote.piso, teto))
   const donoM = lote.clube ? state.managers.find(m => m.teamName === lote.clube) : undefined
   const bids: Bid[] = []
   for (const [mgrIdStr, env] of Object.entries(state.pendingEnvelopes)) {
     const hb = env.find(x => x.cardId === card.id)
     if (hb && hb.amount >= minL) bids.push({ mgr: Number(mgrIdStr), amount: hb.amount })
   }
+  const lanceBot = (m: Manager, quer: number): void => {
+    const amount = Math.min(teto, Math.max(minL, quer), Math.floor(m.money))
+    if (amount >= minL) bids.push({ mgr: m.id, amount })
+  }
   for (const m of auctioningManagers(state.managers)) {
     if (m.isHuman || (donoM && m.id === donoM.id)) continue
-    if (rng() < 0.35) bids.push({ mgr: m.id, amount: Math.max(minL, Math.round(base * (0.85 + rng() * 1.2))) })
+    if (rng() < 0.35) lanceBot(m, Math.round(base * (0.85 + rng() * 1.2)))
   }
-  if (donoM && rng() < 0.6) bids.push({ mgr: donoM.id, amount: Math.max(minL, Math.round(base * (1 + rng() * 1.1))) })
+  if (donoM && rng() < 0.6) { if (donoM.isHuman) bids.push({ mgr: donoM.id, amount: Math.max(minL, Math.round(base * (1 + rng() * 1.1))) }); else lanceBot(donoM, Math.round(base * (1 + rng() * 1.1))) }
   const ehHumano = (id: number) => !!state.managers.find(m => m.id === id)?.isHuman
   const sorted = bids.sort((a, b) => b.amount - a.amount || (ehHumano(a.mgr) ? -1 : 1)) // empate: você leva
   const top = sorted[0]
@@ -5788,6 +5803,7 @@ function afterReveal(state: EscState) {
 // online, o resultado já computado vai por SYNC_STATE pros convidados, então
 // não precisa de seed determinístico aqui.
 function redraftSeason(s: EscState): EscState {
+  if (s.careerOnline) s.careerInternational = null // histórico permanece; campanha nova só nasce após a Copa nacional
   const humanosAntes = s.managers.filter(m => m.isHuman)
   const humanNames = humanosAntes.map(m => m.name)
   const formation = s.managers.find(m => m.isHuman)?.formation ?? '4-3-3'
@@ -6028,6 +6044,47 @@ function reducerBase(state: EscState, action: Action): EscState {
     // pirâmide: a Copa da temporada atual terminou de animar → marca, pra o save
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
+    case 'START_INTERNATIONAL_CAMPAIGN': {
+      if (!internacionalCarreiraLiberada() || !s.careerOnline || s.onlineMode === 'online' || s.seasonNo < 40) return s
+      if (s.copaDoneSeason !== s.seasonNo || s.careerInternational?.season === s.seasonNo) return s
+      const c = action.campaign
+      if (c.season !== s.seasonNo || c.seed !== s.seed || c.teams.length !== 72 || c.steps.length !== 14 || c.reveal !== 0) return s
+      const me = s.managers[s.youIdx]
+      if (!me || c.userTeam !== me.teamName) return s
+      if (c.representedClub) {
+        const ids = new Set((me.squad as WonCard[]).filter(isRealInternationalCard).map(card => card.id))
+        const myTeam = c.teams.find(team => team.id === c.representedClub)
+        // 🧢 01/10 (Diego: *"eu não levo meu elenco… é todo jogador do Flamengo no baralho"*): a convocação é
+        // SÓ entre as cartas do clube escolhido no baralho, igual à seleção na Copa do Mundo. Carta do elenco
+        // do usuário NÃO entra (`ids` fica só pra referência de quem lê este trecho).
+        void ids
+        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && club.block >= (c.priority ?? 10)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return s
+      } else if (c.registeredXI.length || c.teams.some(team => team.you)) return s
+      s.careerInternational = c
+      return s
+    }
+    case 'ADVANCE_INTERNATIONAL_CAMPAIGN': {
+      const c = s.careerInternational
+      if (!internacionalCarreiraLiberada() || !c || c.season !== s.seasonNo || c.reveal >= c.steps.length) return s
+      c.reveal++
+      return s
+    }
+    case 'FINISH_INTERNATIONAL_CAMPAIGN': {
+      const c = s.careerInternational
+      if (!internacionalCarreiraLiberada() || !c || c.season !== s.seasonNo || c.reveal < c.steps.length) return s
+      const expected = summarizeInternationalCampaign(c)
+      if (JSON.stringify(action.entry) !== JSON.stringify(expected)) return s
+      if ((s.careerInternationalHistory ?? []).some(entry => entry.season === c.season)) return s
+      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), expected]
+      if (expected.prizeCoins > 0) {
+        const id = s.managers[s.youIdx]?.id
+        if (id != null) {
+          s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + expected.prizeCoins }
+          logFin(s, 'reward', `🌐 ${expected.competition === 'libertadores' ? 'Libertadores' : 'Champions League'}${expected.mundial ? ' + Mundial de Clubes' : ''}`, expected.prizeCoins, undefined, id)
+        }
+      }
+      return s
+    }
     // 🔒 A COPA NÃO MUDA DEPOIS DE SORTEADA (Diego 17/08: "o que aparecer no
     // final, se ele ganhou o título, ele ganha — não importa se substituiu ou
     // não"). A Copa/Supercopa nascem de uma vez a partir da FORÇA dos times, e a
@@ -6617,6 +6674,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
+      s.careerInternational = null; s.careerInternationalHistory = []
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 🤝🏆🛍️ patrocínio por aposta, Master e Loja começam zerados
@@ -6743,6 +6801,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
+      s.careerInternational = null; s.careerInternationalHistory = []
       s.empresarioCards = []; s.empresarioClaimKeys = []
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
@@ -8743,7 +8802,10 @@ function reducerBase(state: EscState, action: Action): EscState {
             const nomeN = livres.shift()!
             const tN = tecnicoPorNome(nomeN)
             if (!tN) continue
-            const preco = Math.round(Math.max(pago[nomeN] ?? 0, PISO_TECNICO[tN.div]) * (1 + rngV() * 0.3) * (1 + 0.04 * (s.seasonNo - 1)))
+            // 🧢💰 01/10: a inflação para em 2× (antes, na temporada 116, era 5,6× em cima
+            // de um preço que já tinha sido inflado — Unai Emery a 84.991) e o preço
+            // respeita o teto da categoria.
+            const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, PISO_TECNICO[tN.div]) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)))
             map[m.teamName] = nomeN
             desde[m.teamName] = { t: s.seasonNo, r: 0 }
             pago[nomeN] = preco // o mercado aprende com a compra do bot também
@@ -9140,6 +9202,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     case 'REAUCTION_ONLINE': {
+      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       // carreira online (novo leilão): aplica a nova colocação e REFAZ o leilão
       // — mesmos técnicos (ids/times preservados), elencos zerados, orçamento
@@ -9162,6 +9225,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes do seasonNo++/placements
       s.seasonNo++
+      s.careerInternational = null // campanha da temporada encerrada; o histórico permanece
       s.careerPlacements = action.placements
       escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
       s.round = 0; s.champion = null
@@ -9186,6 +9250,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // títulos) e abre a tela de VENDA — "Listar pra leilão" (45s). A compra vem
       // depois (RESERVE_AUCTION_ONLINE), quando o host começa o leilão.
       if (!s.careerOnline) return s
+      if ((!internacionalCarreiraAuthResolvida() || internacionalCarreiraLiberada()) && s.onlineMode !== 'online' && s.seasonNo >= 40 && s.copaDoneSeason === s.seasonNo && !(s.careerInternationalHistory ?? []).some(entry => entry.season === s.seasonNo)) return s
       // 🧯 ANTI-TOQUE-DUBLADO (bug 10/08): tocar 2× rápido no "Abrir leilão"/"Mesmo
       // time" rodava este case DE NOVO — creditava prêmio/bilheteria/patrocínio 2×,
       // cobrava a folha 2× e pulava a temporada de 2 em 2 (o guard de applySeasonMoney
@@ -9250,6 +9315,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         for (const pos of SECTORS) voltaCriaSeSobrou(s, m, pos)
       }
       s.seasonNo++
+      s.careerInternational = null // libera o save da campanha encerrada; preserva careerInternationalHistory
       s.round = 0; s.champion = null
       s.careerTactics = {}; s.careerHalftime = {}; s.careerPenalty = {}
       s.reserveListed = {}
@@ -9782,7 +9848,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           if (!tecnicoPorNome(nome)) continue
           const clube = Object.entries(s.careerTecnicos ?? {}).find(([, n]) => n === nome)?.[0] ?? null
           if (clube === s.managers[s.youIdx]?.teamName) continue // já é seu
-          s.tecLote = { nome, clube, piso: Math.max(1, s.careerTecnicoPago?.[nome] ?? 0) }
+          s.tecLote = { nome, clube, piso: Math.max(1, precoTecnicoSano(nome, s.careerTecnicoPago?.[nome])) } // 🧢💰 piso nunca acima do teto da categoria
           break // teto de 1 por temporada — só existe um
         }
         s.aliciarTecnicos = []
@@ -9893,6 +9959,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
       s.copaMundoStats = undefined
+      s.careerInternational = null; s.careerInternationalHistory = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
@@ -10535,6 +10602,17 @@ function sincronizaNiveis(save: EscState): EscState {
       delete mv[velha]
     }
     save.marketValues = mv
+  }
+  // 🧢💰 CURA DO PREÇO DO TÉCNICO (01/10, save do Renato): valor acima do teto da
+  // categoria (4× o piso) desce pro teto. Pega o salário (pago ÷ 10), a multa de
+  // demissão e o piso do próximo pregão de uma vez, em todo save que abre.
+  if (save.careerTecnicoPago) {
+    let pago: Record<string, number> | null = null
+    for (const [nome, v] of Object.entries(save.careerTecnicoPago)) {
+      const sano = precoTecnicoSano(nome, v)
+      if (sano !== v) { pago ??= { ...save.careerTecnicoPago }; pago[nome] = sano; mexeu++ }
+    }
+    if (pago) save.careerTecnicoPago = pago
   }
   return mexeu > 0 ? { ...save } : save
 }
@@ -11729,7 +11807,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // não salva quando está numa tela LATERAL (álbum/ranking): senão o
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
-    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
+    const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
     if (sig === soloSigRef.current) return
     soloSigRef.current = sig
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }

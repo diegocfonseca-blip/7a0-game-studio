@@ -30,7 +30,7 @@ const fimCanvas = src.indexOf('const cGap', iCanvas)
 const canvas = iCanvas > 0 && fimCanvas > iCanvas ? src.slice(iCanvas, fimCanvas) : ''
 // o trecho da TELA: do cabeçalho "Os donos da temporada" em diante
 const iTela = src.indexOf('Os donos da temporada</div>')
-const tela = iTela > 0 ? src.slice(iTela, iTela + 6000) : ''
+const tela = iTela > 0 ? src.slice(iTela, iTela + 10500) : ''
 
 console.log('\n1) 📄 os dois caminhos do jornal existem')
 {
@@ -45,6 +45,7 @@ console.log('\n2) 🏆 toda competição está nos DOIS')
     ['a Copa (Brasil/Legends)', 'copa?.champion', 'copa?.champion'],
     ['a 👑 SUPERCOPA', 'superChamp', 'superChamp'],
     ['a 🌍 Copa do Mundo', 'mundial', 'mundial'],
+    ['Libertadores, Champions e Mundial de Clubes', 'clubInternational.libertadoresChampion', 'clubInternational.libertadoresChampion'],
   ]
   for (const [nome, noCanvas, naTela] of COMPETICOES) {
     ok(canvas.includes(noCanvas), `${nome}: está na IMAGEM compartilhada`)
@@ -64,11 +65,11 @@ console.log('\n3) 🧾 a linha de baixo não mente')
 
 console.log('\n4) 📏 a imagem tem altura pra lista inteira')
 {
-  const m = src.match(/const W = 1080, MAXH = (\d+)/)
+  const m = src.match(/const W = 1080, MAXH = clubInternational \? (\d+) : (\d+)/)
   const maxh = m ? Number(m[1]) : 0
   // 5 divisões + Copa + Supercopa + Mundial = 8 notas = 4 filas de 106px.
   // O corte é silencioso (`min(MAXH, conteúdo)`), então a margem tem que sobrar.
-  ok(maxh >= 2520, `MAXH = ${maxh} — cabe a fila extra que a Supercopa pode empurrar`)
+  ok(maxh >= 3000, `MAXH = ${maxh} — cabe as três taças internacionais`)
 }
 
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)

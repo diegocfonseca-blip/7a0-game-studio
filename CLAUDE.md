@@ -422,6 +422,24 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   "Pra todos" = todos os USUÁRIOS, nunca "todas as divisões". Carreira antiga sem
   Agência fica fora, como em toda regra nova da carreira.
 
+- **🌎 CARREIRA INTERNACIONAL É PASSO A PASSO, NO PADRÃO DO JOGO (01/10, 1º teste dele).** Escolhe a
+  competição (só os 2 banners) → escolhe o clube (só os blocos DAQUELA competição) → convoca na MESMA tela
+  da Copa do Mundo → joga só a sua competição com o placar padrão das Copas (tempo rolando, cara da
+  Libertadores/Champions) → só no fim aparece o 🌐 Mundial, jogo único contra o campeão da outra. Quem não
+  se classificou pula ou assiste. Palavras dele: *"se tô na Liberta não vejo da Champions e vice-versa… tudo
+  padrão do jogo"*. Detalhe completo em `docs/pendencias.md` (01/10). Mockup antes de codar. **FEITO em 01/10**
+  (mockups aprovados; o Codex parou e esta linha de trabalho ficou com a sessão do Claude).
+  🏅 **Pontos do ranking global (01/10)**: Copa do Mundo 200 › **Mundial 60** › **Libertadores/Champions 50** › Copa
+  do Brasil 30 › Série A 20… (`PTS_TITULO` + RPC `esc_pyramid_rank_rows_v2` — os dois andam juntos).
+  💰 **Prêmio por etapa**: Libertadores/Champions um pouco ACIMA da Copa do Brasil (6·8·10·14·20·30·60); Mundial um
+  pouco acima da Supercopa (vice +10 · campeão +25). Mora em `summarizeInternationalCampaign`.
+- **🧢💰 TÉCNICO VALE O QUE FOI NEGOCIADO, COM TETO (01/10, bug do Renato).** Palavras dele: *"o
+  técnico fica com o valor do piso dele do que foi negociado no leilão, igual já acontece com o
+  jogador… e baixar os exorbitantes pra um piso realista"*. Teto = **4× o piso da categoria**
+  (`tetoTecnico`, `tecnicos.ts`: A 100 · B 72 · C 48 · D 24 · V 8). O bot nunca dá lance acima do
+  teto nem do que tem no bolso; a inflação entre temporadas para em 2×; e todo save que abre passa
+  pela cura (`precoTecnicoSano` em `sincronizaNiveis`). Antes disso, na carreira do Renato
+  (temporada 116) o Unai Emery valia 84.991 e um bot com 1 moeda "pagou" 12.426 pelo Parreira.
 - **🏋️ Renovar preparador físico custa METADE do preço de contratar (19/09).**
   Palavras dele: *"como se o valor desse é mil mas fosse 500 p cálculos de
   renovação… serve p outros preparadores tb"*. Mora em `precoRenovacaoPreparador`

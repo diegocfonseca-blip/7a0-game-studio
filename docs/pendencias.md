@@ -15,6 +15,86 @@ TODA aba e a tabela/elenco/rank só depois de uma tela de rolagem; a largura mud
 - 🔌 Desligar = trocar `1100px` por `99999px` no CSS (ou reverter o commit).
 - Falta: OK do Diego nas fotos antes/depois → publicar na main. Mockup/antes-depois: `--desk` no
   `navega-carreira.mjs` e fotos no scratchpad desta sessão.
+## 01/10/2026 — 🌎 CARREIRA INTERNACIONAL: fluxo passo a passo ✅ FEITO (só a conta do Diego; mockups aprovados)
+
+Diego mandou o Codex parar e manter esta sessão. `career-international-view.tsx` foi REESCRITA por cima do motor do
+Lucas (motor, reducer e save intocados): 1 competição (2 banners) → 2 clube (só os blocos daquela competição) →
+3 convocação (cópia da `ConvocacaoScreen` da Copa, `JogadorNoCampo` sem fundo) → 4 cada noite da MINHA competição no
+`LiveScoreCard` da liga (noite sem a minha competição anda sozinha; ida/volta em dois cards; agregado/pênaltis
+embaixo; classificação PARCIAL só do que já foi revelado — `tableFor` exportada) → 5 Mundial só no fim → sem vaga:
+PULAR (roda tudo e encerra sozinho) ou ASSISTIR (as duas em lista, noite a noite). Ritmo segue o `useSimMode` (auto
+avança sozinho; manual tem botão).
+- 🏅 **Ranking global**: Mundial **60** · Libertadores/Champions **50** (antes 50/40/40). Mudou em `PTS_TITULO`,
+  `internationalCareerRanking` e na RPC `esc_pyramid_rank_rows_v2` (migração
+  `20261001210000_ranking_internacional_mundial_60_continental_50.sql`). Copa do Mundo continua 200, acima de tudo.
+- 💰 **Premiação por etapa** (`summarizeInternationalCampaign`): fase inicial 6 · repescagem 8 · oitavas 10 · quartas 14 ·
+  semi 20 · vice 30 · campeão 60 (um pouco acima da Copa do Brasil: 6/10/16/25/50); Mundial vice +10 · campeão +25 (um
+  pouco acima da Supercopa 8/20). Palavras dele: *"um pouco mais do que a Copa do Brasil… por etapas… Mundial um pouco
+  mais que a Supercopa"*. Testes `testa-temporada-internacional.mjs`/`testa-fixtures-carreira-internacional.mjs` atualizados.
+- 🧢 **2ª rodada do teste (01/10, 18:50)**: *"eu escolhi o Flamengo… não tá aparecendo os jogadores do baralho do
+  Flamengo pra eu convocar"*. Agora a convocação é entre as **lendas do clube escolhido no baralho** (igual à seleção
+  na Copa do Mundo): `internationalClubCards` em `career-international.ts` (id `intl:nome|clube|ano`), e o reducer
+  aceita carta do elenco OU do clube (`isInternationalClubCard`). Medido: **30 dos 72 clubes fecham um 11 sozinhos**
+  (Flamengo 77 cartas, Real Madrid 52…; Libertad/Emelec/Olimpia 0). Clube que não fecha completa com o SEU elenco,
+  marcado "seu elenco", com aviso do porquê. E o "ranking internacional de clubes" saiu da tela (*"não serve pra nada"*).
+- 🔁 **3ª rodada (01/10, 19:05)**: *"eu NÃO levo meu elenco… é todo jogador do Flamengo no baralho, todo jogador do
+  Real Madrid, do River Plate"*. Então: convocação SÓ entre as cartas do clube (todas, não só lendas); elenco do
+  usuário nunca entra (reducer exige `isInternationalClubCard` em todas as 11); clube sem carta pra fechar 4-3-3/4-4-2
+  aparece **trancado** no passo 2 (🔒 + quantos tem no baralho). ⚠️ **Só 30 dos 72 fecham**: blocos 5–9 estão quase
+  vazios (Libertad, Emelec, Olimpia, Millonarios, Nacional-URU, Estudiantes, Racing, Cerro, Newell's, Rosario, Argentinos,
+  U. de Chile = 0 cartas; Galatasaray 2, Rangers 3, Celtic 4…). Quem termina do 5º pro 8º pode não ter clube pra
+  convocar — a tela avisa e oferece Pular/Assistir. **Precisa de carta nova desses clubes** (lotes) pra fechar.
+- Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
+
+### (pedido original, pra memória)
+
+Diego testou o teste fechado (prints às 16:41) e mandou REFAZER o fluxo, passo a passo, no padrão do jogo.
+Palavras dele: *"primeiro deveria aparecer só o banner da competição que quero jogar, como passo a passo… se for
+Libertadores mostrar só os blocos dos times da Libertadores… depois convocar igual já temos (Copa do Mundo)… se
+tô na Liberta não vejo da Champions e vice-versa… a simulação deve ser bonita, estilo Libertadores ou Champions,
+padrão das Copas, rolando o tempo, lento… depois que acabar vem o banner do Mundial, jogo único contra quem ganhou
+a outra… quem não se classificou pode pular ou assistir"*. Traduzindo em passos (um toque por passo, como o roteiro):
+1. **Escolher a competição**: só os DOIS banners (🌎 Libertadores · 🌎 Champions). Nada de tabela de 72 clubes nem
+   lista das duas competições juntas. O banner do Mundial NÃO aparece aqui.
+2. **Escolher o clube**: só os blocos DA competição escolhida (Libertadores → só Conmebol; Champions → só UEFA),
+   respeitando a prioridade (blocos liberados).
+3. **Convocar os 11**: a MESMA tela de convocação que já existe (Copa do Mundo/Clubes: campinho `JogadorNoCampo`
+   com rosto das lendas, abas por posição, relógio) — não a janela nova de busca/checkbox. 🐛 No teste, ele escolheu
+   **Flamengo** e a janela abriu dizendo *"representando Real Madrid"* e com jogadores que não eram os dele
+   (*"apareceu jogador do Botafogo"*). Conferir o vínculo clube escolhido → inscrição → elenco.
+4. **A campanha**: só a competição dele na tela (quem está na Liberta não vê a Champions, e vice-versa). Partidas com
+   o placar padrão do jogo (o mesmo das Copas: tempo rolando, ritmo lento, lance do gol), com a cara da competição
+   (Libertadores ou Champions). Nada de "14 etapas" em texto.
+5. **Mundial**: só DEPOIS de acabar a continental aparece o banner do 🌐 Mundial — **jogo único** contra o campeão
+   da outra competição (empate = pênaltis, padrão da Copa do Mundo).
+6. **Quem não se classificou**: pode PULAR ou ASSISTIR a simulação (com ou sem Modo Manual).
+⚠️ UI nova = mockup primeiro e OK do Diego antes de codar. O dono deste código é a série de commits do Lucas
+(`74743d2…06c6ab6`, teste fechado só na conta do Diego). Esta sessão só registrou o pedido.
+
+## 01/10/2026 — 🧪 Save de TESTE do Diego pra carreira internacional (editado no banco, só nuvem)
+
+Diego quis testar Libertadores/Champions/Mundial (teste fechado da conta dele) e disse *"só quero testar, depois eu
+excluo essa carreira"*. A carreira mais nova dele (seed 562010372, T43 rodada 1) estava na Série C e, pelo motor
+(mesma `buildPyramid`+`simulatePyramid` da tela), terminaria entre 14º e 20º da A em qualquer troca de clubes —
+sem vaga (top 8). Então, SÓ NESSE SAVE, via `esc_pyramid_saves` (slot 0, `at` renovado pra nuvem ganhar do celular):
+`careerPlacements.m0 = 'A'` (Leão da Estradinha desceu pra C, 20 por série mantidos) e o elenco dele virou 19 lendas
+reais do baralho (ids das cartas preservados → `careerLineup` continua válido; `isRealInternationalCard` = 19/19).
+Simulado: campeão da A com 76 pts, 14 à frente. ⚠️ Não é regra nem ferramenta: carreira pra apagar depois do teste.
+Scripts da simulação ficaram só no scratchpad.
+
+## 01/10/2026 — 🧢💰 Preço do técnico com TETO (bug do Renato, antonelli.renato@gmail.com) ✅
+
+Prints do Renato (carreira na **temporada 116**): Parreira vendido por 12.426 pra um bot com 1 moeda, Mourinho por
+13.542. No save dele Unai Emery valia 84.991. Dois furos, agora fechados:
+- O mercado "aprendia" cada venda como piso da próxima, e a contratação de bot entre temporadas multiplicava pela
+  inflação de 4%/temporada (5,6× na 116) em cima do preço já inflado. Agora a inflação para em 2×.
+- No pregão de técnico o bot dava lance de até 2× o piso **sem olhar o bolso** (no de jogador ele é limitado).
+Regra do Diego: *"o técnico fica com o valor do que foi negociado no leilão, igual jogador… e baixar os exorbitantes
+pra um piso realista"*. → `tetoTecnico` em `tecnicos.ts` = **4× o piso da categoria** (A 100 · B 72 · C 48 · D 24 ·
+V 8). Piso do lote, lance do bot (e só do que ele tem) e preço entre temporadas respeitam o teto. **Cura ao abrir o
+save** (`sincronizaNiveis`): qualquer `careerTecnicoPago` acima do teto desce pro teto — vale carreira ativa,
+arquivo, nuvem e partida em andamento; salário (pago ÷ 10) e multa de demissão caem junto. Humano pode pagar mais
+que o teto se quiser (o valor negociado fica), mas o bot nunca força isso. Reverter = 1 commit.
 
 ## 01/10/2026 — 🖼️ Mascote inteira na janelinha do placar ✅
 

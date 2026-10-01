@@ -8,6 +8,8 @@ import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
 import type { SimTeam, CopaResult, SeasonScorer, Div } from './pyramidseason'
 import { Escudo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
+import { SeloClube, escudoOficialDoClube } from './selo-clube'
+import type { InternationalHistoryEntry } from './career-international-season'
 import { meuEstadioNome } from './manto' // 🏟️ nome batizado pelo sócio
 import { CareerNewspaperStories } from './jornal-career-visual'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09): a imagem compartilhada também
@@ -455,7 +457,7 @@ export function seasonHeadline(div: Div, pos: number, team: string): Headline {
 export type AgNews = { ic: string; titulo: string; sub: string }
 
 // ─── a capa ──────────────────────────────────────────────────────────────
-export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, privateVisual = false }: {
+export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, eventos, memoria, mundial, clubInternational, brasil, copaRun, superRun, superChamp, melhor, artilheiros, garcons, artilheirosDoAno, privateVisual = false }: {
   privateVisual?: boolean
   me: { div: Div; pos: number; team: string }
   tables: Record<Div, SimTeam[]>
@@ -466,6 +468,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
   eventos?: AgNews[] // 🎭 manchetes dos EVENTOS DE JOGADOR — página "Aconteceu na temporada"
   memoria?: AgNews[] // 📼 manchetes de HISTÓRIA (Diego 24/08): "3º título seguido", "acabou o jejum" — vêm da careerCronica, página "O jornal lembra"
   mundial?: { campeao: string; selecao: string; voce: boolean } | null // 🌍 Copa do Mundo Legends — só quando ela ACONTECE (a cada 10 temporadas) e termina nesta
+  clubInternational?: InternationalHistoryEntry | null // 🌎🏆 campeões continentais e Mundial de Clubes desta temporada
   brasil?: boolean // 🏆🇧🇷 true = a Copa que rolou foi a do Brasil (não a Legends) — só troca o nome exibido, mesmo dado
   copaRun?: CopaRun // 🏆 como VOCÊ foi na Copa (fase que caiu / vice / campeão)
   superRun?: SuperRun // 👑 só existe se VOCÊ jogou a final da Supercopa
@@ -552,7 +555,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     // donos — uma linha nova pode empurrar uma fila de notas (106px) pra baixo, e o
     // último título do ano não pode ser o que fica de fora. Jornal que já cabia não
     // muda em nada (a altura final é `min(MAXH, conteúdo)`).
-    const W = 1080, MAXH = 2520
+    const W = 1080, MAXH = clubInternational ? 3000 : 2520
     const cv = document.createElement('canvas'); cv.width = W; cv.height = MAXH
     const x = cv.getContext('2d'); if (!x) return null
     try { await document.fonts.load('900 60px Oswald'); await document.fonts.load('700 60px Oswald') } catch { /* segue */ }
@@ -710,7 +713,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     y += 18
     // 🧾 `art` sai com o prefixo "Artilheiro:"; `sub` é linha CRUA (Supercopa e
     // Mundial não têm artilheiro — têm o adversário e a seleção campeã).
-    const donos: { col: string; label: string; champ: string; isYou: boolean; art?: string; sub?: string }[] = []
+    const donos: { col: string; label: string; champ: string; isYou: boolean; art?: string; sub?: string; institution?: string }[] = []
     for (const d of J_DIVS) {
       const c = tables[d]?.[0]; const a = divTop[d]
       if (c) donos.push({ col: J_DIV_COLOR[d], label: J_DIV_NAME[d].toUpperCase(), champ: c.name, isYou: !!c.you, art: a ? `${a.name} (${a.teamName}), ${a.goals} ${tr('gols', 'goals')}` : undefined })
@@ -722,6 +725,17 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
     // quem compartilhava o fim de temporada perdia justamente o último título do ano.
     // Mesma ordem da tela: divisões → Copa → Supercopa → Mundo.
     if (superChamp) donos.push({ col: '#0D4FCC', label: tr('SUPERCOPA LEGENDS', 'LEGENDS SUPER CUP'), champ: superChamp.name, isYou: !!superChamp.you, sub: tr(`Jogo único contra o ${superChamp.vs}.`, `One-off match against ${superChamp.vs}.`) })
+    if (clubInternational) {
+      for (const [label, institution, col] of [
+        ['CONMEBOL LIBERTADORES', clubInternational.libertadoresChampion, '#A45D12'],
+        ['UEFA CHAMPIONS LEAGUE', clubInternational.championsChampion, '#174AA0'],
+        ['MUNDIAL DE CLUBES', clubInternational.mundialChampion, '#713E9F'],
+      ] as const) {
+        const isYou = institution === clubInternational.representedClub
+        donos.push({ col, label, champ: isYou ? clubInternational.userTeam : institution, isYou,
+          institution, sub: isYou ? `${tr('Representando', 'Representing')} ${institution}` : undefined })
+      }
+    }
     // 🌍 e o Mundial deixa de sair rotulado como "Artilheiro: <seleção>" — ali é a
     // seleção campeã, não artilheiro nenhum (na tela já era texto solto).
     if (mundial) donos.push({ col: '#2563EB', label: tr('COPA DO MUNDO LEGENDS', 'LEGENDS WORLD CUP'), champ: mundial.selecao, isYou: !!mundial.voce, sub: mundial.campeao })
@@ -733,7 +747,8 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       x.strokeStyle = '#9f8b6b'; x.lineWidth = 1
       x.beginPath(); x.moveTo(px, py); x.lineTo(px + cW, py); x.stroke()
       const ey = py + 16
-      const e = await escudoImg(dn.champ, 88)
+      const official = dn.institution && !dn.isYou ? escudoOficialDoClube(dn.institution) : null
+      const e = official ? await loadImg(`${import.meta.env.BASE_URL}${official.src}`) : await escudoImg(dn.champ, 88)
       if (e && e.naturalWidth) {
         const eh = 44, ew = Math.min(44, eh * e.naturalWidth / e.naturalHeight)
         x.drawImage(e, px + (44 - ew) / 2, ey, ew, eh)
@@ -1037,6 +1052,15 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         </div>
       )}
 
+      {clubInternational?.representedClub && <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>
+        <div style={{ background: '#174AA0', color: '#fff', fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>🌐 Sua campanha internacional</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px' }}>
+          <Escudo nome={clubInternational.userTeam} size={39} />
+          <div style={{ flex: 1, minWidth: 0 }}><strong style={{ fontSize: 12 }}>{clubInternational.userTeam}</strong><div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9.5 }}>Representando <SeloClube clube={clubInternational.representedClub} size={16} /> {clubInternational.representedClub}</div></div>
+          <strong style={{ fontSize: 10, textAlign: 'right' }}>{clubInternational.bestCampaign}<br />{clubInternational.games} jogos · {clubInternational.wins} vitórias</strong>
+        </div>
+      </div>}
+
       {/* os donos da temporada: campeão + artilheiro de CADA série (+ Copa) */}
       <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>
         <div style={{ background: INK, color: GOLD, fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>🏆 Os donos da temporada</div>
@@ -1084,6 +1108,22 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
             </div>
           </div>
         )}
+        {clubInternational && ([
+          { title: '🌎 CONMEBOL Libertadores', club: clubInternational.libertadoresChampion, color: '#A45D12' },
+          { title: '🌍 UEFA Champions League', club: clubInternational.championsChampion, color: '#174AA0' },
+          { title: '🌐 Mundial de Clubes', club: clubInternational.mundialChampion, color: '#713E9F' },
+        ] as const).map(item => {
+          const isYou = item.club === clubInternational.representedClub
+          return <div key={item.title} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px 7px 0', borderTop: '1.5px solid rgba(0,0,0,.12)', background: isYou ? '#fdf6dd' : undefined }}>
+            <div style={{ width: 5, alignSelf: 'stretch', flex: 'none', background: item.color }} />
+            <div style={{ flex: 'none', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{isYou ? <Escudo nome={clubInternational.userTeam} size={27} /> : <SeloClube clube={item.club} size={27} />}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, textTransform: 'uppercase', color: item.color }}>{item.title}</div>
+              <div style={{ fontSize: 12, fontWeight: 900, lineHeight: 1.1 }}>{isYou ? clubInternational.userTeam : item.club} <span style={{ fontSize: 8, fontWeight: 900, color: isYou ? '#b98600' : '#8a8266' }}>campeão{isYou ? ' ⭐ você' : ''}</span></div>
+              {isYou && <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9.5, fontWeight: 700, color: '#3a3527', marginTop: 2 }}>Representando <SeloClube clube={item.club} size={15} /> {item.club}</div>}
+            </div>
+          </div>
+        })}
         {/* 🌍 Copa do Mundo Legends: só aparece na temporada em que ela ACONTECE E termina
             (a cada 10 temporadas) — não é da liga/Copa Legends, é seleção nacional. */}
         {mundial && (

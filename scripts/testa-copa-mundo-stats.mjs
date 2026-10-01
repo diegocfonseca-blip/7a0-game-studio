@@ -20,6 +20,7 @@ const espera = async () => { for (let i = 0; i < 40; i++) { try { const r = awai
 if (!await espera()) { console.error('❌ o servidor não subiu'); try { process.kill(-vite.pid) } catch { /* já foi */ } process.exit(1) }
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
 const p = await b.newPage()
+await p.route('**/*.supabase.co/**', route => route.abort()) // teste local sem tocar o projeto real
 p.on('pageerror', e => console.log('ERRO NA PÁGINA:', e.message))
 await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
 const r = await p.evaluate(async () => {
@@ -59,7 +60,7 @@ const st = readFileSync('src/escalacao/store.tsx', 'utf8')
 const cm = readFileSync('src/escalacao/copa-mundo.tsx', 'utf8')
 ok(/onStats\?\.\(estatisticasDaCopa\(world, entrants\)\)[\s\S]{0,400}saveCopaSave\(seed, \{ \.\.\.cur, played:/.test(cm), 'a Copa entrega os números ANTES de se marcar como jogada')
 ok(/case 'COPA_MUNDO_STATS'[\s\S]{0,200}copaMundoStats\?\.season === action\.season\) return s/.test(st), 'o save grava uma vez só por temporada')
-ok(/melhorDoMundo\(\[\.\.\.scorersAll, \.\.\.\(copa\?\.scorersAll \?\? \[\]\), \.\.\.cmListas\.sc\]/.test(py), '🥇 a Bola de Ouro soma liga + copas + Copa do Mundo')
+ok(/melhorDoMundo\(\[\.\.\.scorersAll, \.\.\.\(copa\?\.scorersAll \?\? \[\]\), \.\.\.cmListas\.sc, \.\.\.intlListas\.sc\]/.test(py), '🥇 a Bola de Ouro soma liga + copas + Copa do Mundo + clubes internacionais')
 ok(/somaCartas\(somaCartas\(goalsByCard, copa\?\.goalsByCard\), cmPorCarta\.gl\)/.test(py) && /somaCartas\(somaCartas\(assistsByCard, copa\?\.assistsByCard\), cmPorCarta\.as\)/.test(py), '⚽🅰️ a ficha (temporada) soma a Copa do Mundo')
 ok(/jogosCard: jogosExtra/.test(py) && /j: \(jogos\[c\.id\] \?\? 0\) \+ \(jogosCard\?\.\[c\.id\] \?\? 0\)/.test(st), '🏃 os jogos de copa e de Copa do Mundo vão pro "no seu clube" na virada')
 ok(/if \(!copaFinished \|\| !copa \|\| !me\) return o/.test(py), '🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)')
