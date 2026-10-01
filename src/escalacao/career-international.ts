@@ -98,6 +98,7 @@ export const INTERNATIONAL_CLUB_ALIASES: Readonly<Record<string, readonly string
   'Manchester City': ['Man City'],
   'Manchester United': ['Man United'],
   'Borussia Dortmund': ['Dortmund'],
+  'Bayer Leverkusen': ['Leverkusen'], // 01/10: o baralho escreve "Leverkusen" em quase todas as cartas do clube
   'LDU': ['LDU Quito'],
   'Barcelona-EQU': ['Barcelona SC'],
 }
