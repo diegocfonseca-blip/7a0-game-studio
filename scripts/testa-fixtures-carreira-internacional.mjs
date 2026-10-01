@@ -14,7 +14,7 @@ try {
   }
 
   const { CATALOG_BOTH } = await vite.ssrLoadModule('/src/escalacao/data.ts')
-  const { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, internationalChoice, internationalQualifiers } = await vite.ssrLoadModule('/src/escalacao/career-international.ts')
+  const { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, internationalChoice, internationalQualifiers, isRealInternationalCard, validInternationalXI } = await vite.ssrLoadModule('/src/escalacao/career-international.ts')
   const { makeInternationalCampaign } = await vite.ssrLoadModule('/src/escalacao/career-international-season.ts')
   const { summarizeInternationalCampaign } = await vite.ssrLoadModule('/src/escalacao/career-international-summary.ts')
   const { internationalCareerRanking } = await vite.ssrLoadModule('/src/escalacao/career-international-ranking.ts')
@@ -67,6 +67,12 @@ try {
 
   const needs = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
   const xi = Object.entries(needs).flatMap(([pos, count]) => CATALOG_BOTH[pos].slice(0, count).map((card, i) => ({ ...card, pos, id: `user-${pos}-${i}` })))
+  assert.equal(validInternationalXI(xi), true)
+  for (const impostor of [{ ...xi[0], fake: true }, { ...xi[0], cria: true }, { ...xi[0], club: 'Várzea' }, { ...xi[0], club: 'Sub-20' }]) {
+    assert.equal(isRealInternationalCard(impostor), false)
+    assert.equal(validInternationalXI([impostor, ...xi.slice(1)]), false)
+    assert.throws(() => makeInternationalCampaign({ season: 87, seed: 731, representedClub: 'Flamengo', userTeam: 'Meu FC', userId: 0, priority: 1, userXI: [impostor, ...xi.slice(1)] }))
+  }
   const knownCards = new Set(Object.entries(CATALOG_BOTH).flatMap(([pos, cards]) => cards.map(card => `${pos}|${internationalCardKey(card)}`)))
   const base = { season: 87, seed: 731, userTeam: 'Neymarzetty FC', userId: 0, priority: 1, userXI: xi }
   for (const representedClub of ['Flamengo', 'Real Madrid', null]) {

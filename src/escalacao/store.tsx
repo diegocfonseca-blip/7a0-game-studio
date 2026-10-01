@@ -22,7 +22,7 @@ import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
-import { validInternationalXI, INTERNATIONAL_CLUBS } from './career-international'
+import { isRealInternationalCard, validInternationalXI, INTERNATIONAL_CLUBS } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
@@ -6043,7 +6043,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const me = s.managers[s.youIdx]
       if (!me || c.userTeam !== me.teamName) return s
       if (c.representedClub) {
-        const ids = new Set((me.squad as WonCard[]).filter(card => !card.fake).map(card => card.id))
+        const ids = new Set((me.squad as WonCard[]).filter(isRealInternationalCard).map(card => card.id))
         const myTeam = c.teams.find(team => team.id === c.representedClub)
         if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && club.block >= (c.priority ?? 10)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => ids.has(card.id))) return s
       } else if (c.registeredXI.length || c.teams.some(team => team.you)) return s

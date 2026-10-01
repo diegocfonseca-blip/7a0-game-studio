@@ -1,3 +1,5 @@
+import { CATALOG_BOTH } from './data'
+
 /** Regras esportivas da carreira internacional. Sem estado, UI ou sorteio. */
 export const INTERNATIONAL_UNLOCK_SEASON = 40
 export const INTERNATIONAL_CAREER_TESTERS: readonly string[] = ['diego.c.fonseca@gmail.com']
@@ -73,9 +75,15 @@ export function internationalChoice<T>(enabledForAccount: boolean, season: numbe
 
 export type InternationalCard = { name: string; club: string; year: number; pos: 'GOL' | 'LAT' | 'ZAG' | 'MEI' | 'ATA'; lo: number; hi: number }
 export const internationalCardKey = (card: Pick<InternationalCard, 'name' | 'club' | 'year'>) => `${card.name}|${card.club}|${card.year}`
+const REAL_INTERNATIONAL_CARDS = new Set(Object.entries(CATALOG_BOTH).flatMap(([pos, cards]) =>
+  cards.map(card => `${pos}|${internationalCardKey(card)}`)))
+/** Incógnitos, fillers da Várzea e crias da Base não são cartas reais do baralho. */
+export function isRealInternationalCard(card: Pick<InternationalCard, 'name' | 'club' | 'year' | 'pos'> & { fake?: boolean; cria?: boolean }): boolean {
+  return !card.fake && !card.cria && REAL_INTERNATIONAL_CARDS.has(`${card.pos}|${internationalCardKey(card)}`)
+}
 /** XI de clubes, respeitando as famílias de posição já usadas pelo jogo. */
-export function validInternationalXI(cards: readonly Pick<InternationalCard, 'name' | 'club' | 'year' | 'pos'>[]): boolean {
-  if (cards.length !== 11 || new Set(cards.map(internationalCardKey)).size !== 11) return false
+export function validInternationalXI(cards: readonly (Pick<InternationalCard, 'name' | 'club' | 'year' | 'pos'> & { fake?: boolean; cria?: boolean })[]): boolean {
+  if (cards.length !== 11 || cards.some(card => !isRealInternationalCard(card)) || new Set(cards.map(internationalCardKey)).size !== 11) return false
   const count = (pos: InternationalCard['pos']) => cards.filter(card => card.pos === pos).length
   return count('GOL') === 1 && count('LAT') + count('ZAG') >= 3 && count('MEI') >= 2 && count('ATA') >= 1
 }
