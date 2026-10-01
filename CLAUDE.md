@@ -422,6 +422,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   "Pra todos" = todos os USUÁRIOS, nunca "todas as divisões". Carreira antiga sem
   Agência fica fora, como em toda regra nova da carreira.
 
+- **🧢💰 TÉCNICO VALE O QUE FOI NEGOCIADO, COM TETO (01/10, bug do Renato).** Palavras dele: *"o
+  técnico fica com o valor do piso dele do que foi negociado no leilão, igual já acontece com o
+  jogador… e baixar os exorbitantes pra um piso realista"*. Teto = **4× o piso da categoria**
+  (`tetoTecnico`, `tecnicos.ts`: A 100 · B 72 · C 48 · D 24 · V 8). O bot nunca dá lance acima do
+  teto nem do que tem no bolso; a inflação entre temporadas para em 2×; e todo save que abre passa
+  pela cura (`precoTecnicoSano` em `sincronizaNiveis`). Antes disso, na carreira do Renato
+  (temporada 116) o Unai Emery valia 84.991 e um bot com 1 moeda "pagou" 12.426 pelo Parreira.
 - **🏋️ Renovar preparador físico custa METADE do preço de contratar (19/09).**
   Palavras dele: *"como se o valor desse é mil mas fosse 500 p cálculos de
   renovação… serve p outros preparadores tb"*. Mora em `precoRenovacaoPreparador`
