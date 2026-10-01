@@ -15,6 +15,8 @@
 | Banco descartável | `bash scripts/testa-sql-ranking-internacional.sh` passou em PostgreSQL 17 local com cópia das três RPCs antigas reais: funções legadas intactas, escrita privada, bloqueio de outra conta/anônimo, 360 pontos, Top 50/posição 61, recorte temporal e idempotência. Nenhuma consulta de escrita no Supabase real. |
 | Jogo | Fixtures G8/G9 e duas competições simultâneas, Mundial, save T87→T88, UI de inscrição desktop/mobile e jornal têm evidências anteriores em `docs/testes-carreira-internacional-local.md`. Após exigir autorização do servidor, fixtures, gate simulado, build e regressão da Copa do Mundo em Chromium passaram (40 Copas, rede Supabase bloqueada). Não equivalem a navegação autenticada em produção. |
 
+Rechecagem em 01/10: `main` remoto continua em `2be136d6`; o projeto Supabase ligado ao app segue sem branch de ensaio e sem as três colunas/RPCs novas. O teste SQL descartável passou novamente. O teste de Auth simulado agora também confirma que uma resposta positiva da RPC, recebida depois do logout, não reabre a expansão. Nenhum dado de produção foi alterado.
+
 ## Bloqueios para publicar
 
 1. **Banco de ensaio com esquema completo:** aplicar ali a proposta SQL, conferir migrações, privilégios reais, RLS, snapshots antigos com três zeros, duas carreiras da mesma conta e T100. O teste Docker cobriu os objetos relevantes, inclusive as RPCs antigas reais, mas não é um clone integral do Supabase. Não havia branch de ensaio; Diego não confirmou a organização/custo para criá-la e pediu apenas código restrito à sua conta. Não criar branch cobrada por suposição.

@@ -78,6 +78,18 @@ try {
   assert.equal(internacionalCarreiraLiberada(), true, 'liberação exige Auth e servidor')
   onAuth('SIGNED_OUT', null)
   assert.equal(internacionalCarreiraLiberada(), false)
+  let resolveLateGate
+  supabase.rpc = name => name === 'esc_private_international_rank_allowed'
+    ? new Promise(resolve => { resolveLateGate = resolve })
+    : Promise.resolve({ data: null, error: { code: 'PGRST202' } })
+  onAuth('SIGNED_IN', { user: diego })
+  verificationQueue.shift()({ data: { user: diego }, error: null })
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(internacionalCarreiraLiberada(), false, 'espera a resposta do servidor')
+  onAuth('SIGNED_OUT', null)
+  resolveLateGate({ data: true, error: null })
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(internacionalCarreiraLiberada(), false, 'resposta positiva tardia não reabre após logout')
 
   const calls = []
   supabase.rpc = async name => {
