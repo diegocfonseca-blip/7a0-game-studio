@@ -51,8 +51,11 @@ avança sozinho; manual tem botão).
   `PAIS_POR_CARTA`, 33 nomes repetidos em `MESMO_JOGADOR` (+ linha por carta das antigas), apelido
   `'Bayer Leverkusen': ['Leverkusen']` na lista internacional, `npm run paises` ✅, `npm run novidades` rodado
   (snapshot + 60 linhas na home). Stories: `mockup-cartas-novas.mjs --lotes L40` em 4 imagens (GOL+LAT · ZAG · MEI · ATA).
-  Categoria: lendas só as inquestionáveis (Di Stéfano, Kempes, Perfumo, Spencer, Morena, Rocha, Mazurkiewicz, van
-  Hanegem, Lolo Fernández); o resto craque/bom/foi profissional conforme a fama — quem manda na categoria é o Diego.
+  Categoria — decisão do Diego (01/10, régua: *"do nível de Riquelme, Alex do Cruzeiro"*): **lenda só Pedro Rocha,
+  Kempes (Rosario 73), Di Stéfano e Spencer**; Morena, Mazurkiewicz, Perfumo, van Hanegem e Lolo Fernández são craque.
+  ⚠️ Lição: ao ajustar a foto do baralho (`catalogo-snapshot.json`, formato `DECK|nome|clube|ano` → `f`), LER antes de
+  abrir pra escrever — um `open(sp,'w')` dentro da chamada zerou o arquivo e isso foi publicado por alguns minutos
+  (restaurado em seguida; o jogo não lê esse arquivo, só o gerador de novidades).
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
 
 ### (pedido original, pra memória)
