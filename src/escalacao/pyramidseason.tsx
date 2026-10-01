@@ -6,6 +6,7 @@
 // resultado. A Série D tem os humanos com os times montados no pregão; A/B/C são
 // preenchidas pelo resto do baralho, distribuído por força (A a mais forte).
 
+import './career-desktop.css'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useCareerPresentation as useOnlinePreview, useLegendPresentation } from './presentation-release'
@@ -110,7 +111,7 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 // temporada segue rodando no AUTO normalmente — nada trava o jogo.
 function ManualLockButton() {
   return (
-    <div style={{ marginBottom: 10 }}>
+    <div className="ll-cx-controle" style={{ marginBottom: 10 }}>
       <ApoieButton startScreen="manual" trigger={open => (
         <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
           <span>{tr('Acelerar e pular', 'Speed up and skip')}</span>
@@ -3364,7 +3365,7 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
   const iAmHome = m.h === youName
   return (
     <>
-      <div ref={caixa}>
+      <div ref={caixa} className="ll-cx-placar">
         <MyMatchCard m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
           roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} />
       </div>
@@ -4663,7 +4664,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           celular empilhado — e no celular esta caixa não muda NADA, é a tela de
           sempre. Quem sai da coluna de 576px é a caixa verde do clube (SquadTab). */}
       <div style={{ display: larga ? 'flex' : 'block', gap: 14, alignItems: 'flex-start' }}>
-      <div style={larga ? { width: 560, flex: 'none' } : undefined}>
+      <div className="ll-cx-campo" style={larga ? { width: 560, flex: 'none' } : undefined}>
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
         {/* 🌱 campinho mais vertical (09/08, pedido do Diego: "parece achatado")
             — só o CAMPO cresce (listras + respiro entre as linhas); o balão
@@ -4722,7 +4723,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           // e ataque sempre no mesmo lugar; o miolo se espalha na faixa do meio) —
           // o campo nunca muda de tamanho ao trocar de formação.
           return (
-            <div style={{ padding: '16px 5px 18px', minHeight: larga ? 860 : 620, display: 'flex', flexDirection: 'column', background: fundo }}>
+            <div className="ll-cx-grama" style={{ padding: '16px 5px 18px', minHeight: larga ? 860 : 620, display: 'flex', flexDirection: 'column', background: fundo }}>
               {linha('ATA', rows[0].cards)}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly' }}>
                 {meioRows.map((r, i) => linha(`MEIO${i}`, r))}
@@ -4737,7 +4738,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       </div>
       {/* 📋 a lista: no monitor ela ocupa o resto da largura, ao lado do campo —
           e leva junto comissão/base/folha, senão sobrava um vão verde do lado. */}
-      <div style={larga ? { flex: 1, minWidth: 0 } : undefined}>
+      <div className="ll-cx-lista" style={larga ? { flex: 1, minWidth: 0 } : undefined}>
         {elencoNovo ? (painel !== 'nenhum' ? painelAberto : tabela) : listasDeSempre}
         {elencoNovo && <div style={{ marginTop: 10 }}>{folhaBox}</div>}
       </div>
@@ -5489,7 +5490,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
   // o RESUMO na linha do gás (com os contadores de volta) e os NOMES na caixa.
   const atalhoGas = !!resumoGas && (resumoGas.esg > 0 || resumoGas.lim > 0) && !elencoNovoOk
   return (
-    <div style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12, ...(elenco && largaElenco ? { width: 'min(1180px, calc(100vw - 48px))', marginLeft: 'calc(50% - min(590px, 50vw - 24px))' } : {}) }}>
+    <div className={elenco && largaElenco ? 'll-cx-elenco-largo' : undefined} style={{ ...box(elenco ? col.solid : col.light), ...(shine ? { background: perk.grad, position: 'relative', overflow: 'hidden' } : {}), padding: 12, marginBottom: 12, ...(elenco && largaElenco ? { width: 'min(1180px, calc(100vw - 48px))', marginLeft: 'calc(50% - min(590px, 50vw - 24px))' } : {}) }}>
       {shine && <ApoioSheen holo={perk.holo} />}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <p style={{ fontWeight: 900, fontSize: 14, ...OSWALD, margin: 0, color: elenco ? '#fff' : col.solid, textShadow: elenco ? '1px 1px 0 rgba(0,0,0,.35)' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>👥 {mgr.teamName}{elenco && perk?.selo ? ` ${perk.selo}` : elenco ? apoioSelo() : ''}</p>
@@ -6981,7 +6982,7 @@ function AvisoContaCarreira() {
   return (
     <>
       {horaDoConvite ? (
-        <div style={{ ...box('linear-gradient(150deg,#F3EBFF,#E7D9FF)'), padding: 13, marginBottom: 12 }}>
+        <div className="ll-cx-conta" style={{ ...box('linear-gradient(150deg,#F3EBFF,#E7D9FF)'), padding: 13, marginBottom: 12 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0 }}>{tr('💾 Guarde sua carreira', '💾 Save your career')}</p>
           <div style={{ background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '9px 11px', margin: '8px 0', fontSize: 12.5, fontWeight: 700, lineHeight: 1.5 }}>
             <b>{you?.teamName ?? tr('Seu time', 'Your team')}</b> · {tr('temporada', 'season')} {temporada}<br />
@@ -7004,7 +7005,7 @@ function AvisoContaCarreira() {
         // que sumia no meio dos quadros. Agora tem cara de convite: a carta
         // dourada, o que a pessoa GANHA (não só o que ela perde) e um botão de
         // verdade. Continua UMA peça só, sem virar quadrão.
-        <div style={{ ...box('linear-gradient(150deg,#FFF6DE,#FFE7A8)'), overflow: 'hidden', marginBottom: 12 }}>
+        <div className="ll-cx-conta" style={{ ...box('linear-gradient(150deg,#FFF6DE,#FFE7A8)'), overflow: 'hidden', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px 0' }}>
             <span style={{ fontSize: 30, lineHeight: 1, flexShrink: 0 }}>🎴</span>
             <div style={{ minWidth: 0 }}>
@@ -9013,10 +9014,17 @@ export function PyramidSeasonScreen() {
           </div>
         )
       })()}
-      <div className="max-w-xl mx-auto" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      {/* 🖥️ `ll-cx` = gancho do DESKTOP da carreira (01/10, `career-desktop.css`): no monitor a
+          coluna vira duas (placar/controles à esquerda, aba à direita). Abaixo de 1100px a
+          classe não tem regra nenhuma — o celular fica byte a byte o que era. */}
+      <div className="max-w-xl mx-auto ll-cx" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <AvisoContaCarreira />
         <SocioBaraoBanner />
+        {/* 🖥️ `ll-cx-lado` / `ll-cx-aba` (01/10): só CAIXAS pro desktop — no celular são
+            divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
+            o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
+        <div className="ll-cx-lado">
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
             saber qual é qual só de olhar), verde escuro na Copa Legends (quem
@@ -9522,7 +9530,7 @@ export function PyramidSeasonScreen() {
             tem que ter o botão de iniciar", pra craque/lenda E pra quem não é. */}
         {state.isHost && !seasonOver && !copaPlaying && (state.onlineMode !== 'online' || hasManual) && (
           round === 0 ? (
-            <button onClick={() => { if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
+            <button className="ll-cx-controle" onClick={() => { if (decisoesOk && !maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }} disabled={!decisoesOk}
               style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 12, padding: '12px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', background: decisoesOk ? GREEN : '#cfc6ae', color: decisoesOk ? '#fff' : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: decisoesOk ? 'pointer' : 'default', marginBottom: 10 }}>
               {decisoesOk ? tr('▶️ Começar a temporada', '▶️ Start the season') : criseTrava ? tr('🚪 Decida quem fica no lugar dele aí em cima', '🚪 Decide who replaces him up there first') : !masterOk ? tr('🏆 Assine um contrato Master aí em cima', '🏆 Sign a Master contract up there first') : tr('🤝 Escolha o patrocínio aí em cima', '🤝 Pick the sponsor up there first')}
             </button>
@@ -9531,7 +9539,7 @@ export function PyramidSeasonScreen() {
           // fundo envolvendo"): velocidade + próxima rodada/pular/modo auto agora
           // vivem DENTRO de um cartão só, separado visualmente da navegação de abas
           // logo abaixo (antes ficavam soltos, coladas uma coisa na outra).
-          <div className={privateCareer ? 'll25-control-shell' : undefined} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
+          <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
@@ -9562,7 +9570,7 @@ export function PyramidSeasonScreen() {
             sozinha (só aparece o botão de ativar o manual). */}
         {copaPlaying && state.isHost && (state.onlineMode !== 'online' || hasManual) && (
           manualAllowed ? (
-          <div className={privateCareer ? 'll25-control-shell' : undefined} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
+          <div className={privateCareer ? 'll25-control-shell ll-cx-controle' : 'll-cx-controle'} style={{ ...box('#fff'), padding: 10, marginBottom: 10 }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={copaReady}
@@ -9579,7 +9587,8 @@ export function PyramidSeasonScreen() {
             <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? tr('A próxima fase anda quando o host avançar.', 'The next round goes when the host advances.') : tr('O host pode pausar (Manual) a qualquer hora.', 'The host can pause (Manual) at any time.')}</p>
           </div>
         )}
-
+        </div>
+        <div className="ll-cx-aba">
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
             <CardCollectPrompt motivo={tr(`🏆 Campeão da ${DIV_NAME[me.div]}`, `🏆 ${DIV_NAME[me.div]} champion`)} you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
@@ -10319,8 +10328,8 @@ export function PyramidSeasonScreen() {
                     Então ganhou rótulo próprio e virou PÍLULA arredondada, sem sombra
                     dura: forma diferente separa mais que cor. O azul continua sendo a
                     cor da tática (decisão de 13/08), só que agora dentro da pílula. */}
-                <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1.1, color: '#5a5647', textTransform: 'uppercase', margin: '0 0 5px' }}>{tr('⚔️ Tática do próximo jogo', '⚔️ Tactics for the next match')}</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
+                <p className="ll-cx-tatica" style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1.1, color: '#5a5647', textTransform: 'uppercase', margin: '0 0 5px' }}>{tr('⚔️ Tática do próximo jogo', '⚔️ Tactics for the next match')}</p>
+                <div className="ll-cx-tatica" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
                   {([['retranca', tr('🧱 Retranca', '🧱 Park the bus')], ['equilibrio', tr('⚖️ Equilíbrio', '⚖️ Balanced')], ['ataque', tr('🔥 Ataque', '🔥 Attack')]] as [Tac, string][]).map(([t, label]) => (
                     <button key={t} onClick={() => dispatch({ type: 'SET_TACTIC', mgrId: youId, tactic: t })}
                       style={{ border: `2px solid ${myTactic === t ? '#2F6BAE' : 'rgba(12,12,12,.28)'}`, borderRadius: 999, padding: '6px 0', fontWeight: 800, fontSize: 10.5, ...OSWALD, background: myTactic === t ? '#2F6BAE' : 'rgba(255,255,255,.75)', color: myTactic === t ? '#fff' : '#5a5647', cursor: 'pointer' }}>
@@ -10328,7 +10337,7 @@ export function PyramidSeasonScreen() {
                     </button>
                   ))}
                 </div>
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>{getLang() === 'en' ? <><b>Tactics and substitutions</b> apply from the <b>next match</b> on — the match in progress doesn\'t change. Attack scores and concedes more · park the bus holds more · balanced in between.</> : <><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</>}</p>
+                <p className="ll-cx-tatica" style={{ fontSize: 9.5, fontWeight: 700, color: '#5a5647', textAlign: 'center', marginBottom: 10 }}>{getLang() === 'en' ? <><b>Tactics and substitutions</b> apply from the <b>next match</b> on — the match in progress doesn\'t change. Attack scores and concedes more · park the bus holds more · balanced in between.</> : <><b>Tática e substituições</b> valem do <b>próximo jogo</b> em diante — o jogo que está rolando não muda. Ataque faz e toma mais · retranca segura mais · equilíbrio no meio.</>}</p>
               </>
             )}
             {/* ⚠️ ESCALAÇÃO FANTASMA (bug 14/08, print do leodiniz85 — "Roberto
@@ -10480,12 +10489,14 @@ export function PyramidSeasonScreen() {
             <PrizesBox />
           </>
         )}
+        </div>
 
         {state.onlineMode === 'online' ? (
           <button onClick={() => dispatch({ type: 'GO_LOBBY_ONLINE' })} className="text-black/40 text-xs font-semibold underline" style={{ display: 'block', margin: '8px auto 0', background: 'none', border: 'none', cursor: 'pointer', ...OSWALD }}>sair do jogo</button>
         ) : (
           <button
             onClick={() => { try { localStorage.setItem('esc-solo-career', JSON.stringify(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ } savePyramidCloud(state, true); dispatch({ type: 'GO_LOBBY' }) }}
+            className="ll-cx-sair"
             style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {tr('🚪 Sair e salvar carreira', '🚪 Exit and save career')}
             <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>

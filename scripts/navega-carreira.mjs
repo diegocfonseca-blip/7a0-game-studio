@@ -48,7 +48,9 @@ const texto = p => p.evaluate(() => document.body.innerText)
 const clica = async (p, re, ms = 6000) => {
   const alvo = (await botoes(p)).find(s => re.test(s.split(':').slice(1).join(':')))
   if (!alvo) return false
-  await p.locator('button,[role=button],a').nth(Number(alvo.split(':')[0])).click({ timeout: ms }).catch(() => {})
+  // `force`: a faixa fixa "Manutenção rápida no servidor" (sem Supabase na bancada) cobre o topo e
+  // interceptava o clique de verdade — o botão existe e está visível, só está por baixo da faixa.
+  await p.locator('button,[role=button],a').nth(Number(alvo.split(':')[0])).click({ timeout: ms, force: true }).catch(() => {})
   return true
 }
 // a home do estúdio vem antes do jogo; depois dela, o botão de retomar a carreira
@@ -107,7 +109,8 @@ async function faseAbas(p) {
   await carrega(p)
   await clica(p, /^fechar$|^✕$/); await p.waitForTimeout(700)
   for (const aba of ['Jogos', 'Tabelas', 'Elenco', 'Rank', 'Clube']) {
-    await p.getByRole('button', { name: new RegExp(`^${aba}$`) }).first().click({ timeout: 6000 }).catch(() => {})
+    // clique por JS (a faixa de manutenção cobre a barra do topo no desktop e engolia o clique)
+    await p.evaluate(n => { const b = [...document.querySelectorAll('.ll-career-navigation button')].find(x => (x.getAttribute('aria-label') || x.textContent || '').trim() === n); b?.click() }, aba)
     await p.waitForTimeout(1600)
     // ⚠️ voltar ao topo ANTES de fotografar: trocar de aba não rebobina a rolagem,
     // e sem isto o "topo" sai do meio da tela anterior (erro pego em 16/09).
@@ -151,7 +154,7 @@ async function faseModais(p) {
     ['Jogos', /Sair e salvar/i, 'sair'],
   ]
   for (const [aba, rot, nome] of ALVOS) {
-    await p.getByRole('button', { name: new RegExp(`^${aba}$`) }).first().click({ timeout: 6000 }).catch(() => {})
+    await p.evaluate(n => { const b = [...document.querySelectorAll('.ll-career-navigation button')].find(x => (x.getAttribute('aria-label') || x.textContent || '').trim() === n); b?.click() }, aba)
     await p.waitForTimeout(1300)
     if (!await clica(p, rot)) { console.log(`✗ ${nome}: não achei o botão`); continue }
     await p.waitForTimeout(1600)
@@ -211,9 +214,24 @@ async function faseCrise(p) {
   if (falhas) { console.log(`💥 ${falhas} falha(s)`); process.exitCode = 1 } else console.log('🎉 a trava da crise está de pé')
 }
 
+// ── FASE 0: destrava um save (ex.: pênalti pendente) e regrava ──────────────
+// `--fase destrava --clica "Bate sozinho" --espera 45` — carrega o save, aperta o
+// botão pedido, espera e GRAVA de novo. Serve pra tirar um modal que prende a tela
+// (em 01/10 o save nasceu com um pênalti no 90+2 e todas as fotos saíam iguais).
+async function faseDestrava(p) {
+  await carrega(p)
+  const re = new RegExp(arg('clica', 'Bate sozinho'), 'i')
+  console.log(await clica(p, re) ? `✓ apertei ${re}` : `✗ não achei ${re}`)
+  await p.waitForTimeout(Number(arg('espera', '45')) * 1000)
+  for (let k = 0; k < 6; k++) { if (await clica(p, /^fechar$|^✕$|CONTINUAR|VER O JOGO|FECHAR/)) await p.waitForTimeout(1200); else break }
+  await guarda(p)
+  console.log('💾 save regravado ·', (await texto(p)).match(/Rodada \d+ ?\/ ?38/i)?.[0] ?? '?')
+}
+
 const { b, p } = await abre()
 try {
   if (FASE === 'nova') await faseNova(p)
+  else if (FASE === 'destrava') await faseDestrava(p)
   else if (FASE === 'modais') await faseModais(p)
   else if (FASE === 'crise') await faseCrise(p)
   else await faseAbas(p)

@@ -1,3 +1,21 @@
+## 01/10/2026 — 🖥️ Carreira no MONITOR em duas colunas ⏳ NO BRANCH, esperando OK visual
+
+Diego: *"analise o desktop do modo carreira… todas as telas, abas, menus, botões. Está muito
+desalinhado… organize tudo. Não mexa no dispositivo móvel."* Medido em 1440px com
+`node scripts/navega-carreira.mjs --desk --fase abas`: tudo numa coluna só, o placar vinha primeiro em
+TODA aba e a tabela/elenco/rank só depois de uma tela de rolagem; a largura mudava de aba pra aba
+(1040 nos Jogos/Tabelas, 760 no Elenco/Rank/Clube).
+- `src/escalacao/career-desktop.css` (novo, TUDO dentro de `@media (min-width:1100px)`): grade de
+  **360px + o resto, 1320 no total, igual em toda aba**. Esquerda = cabeçalho da competição, placar
+  ao vivo, controle da partida, caixa da conta e Sair. Direita = o conteúdo da aba, começando no topo.
+- `pyramidseason.tsx` só ganhou duas divs sem estilo (`ll-cx-lado` e `ll-cx-aba`) e classes-gancho
+  (`ll-cx-conta/sair/placar/campo/grama/lista`). Abaixo de 1100px nada tem regra: celular medido
+  igual (caixa da conta no mesmo y, mesma rolagem). Campinho do Elenco: 560→490px de largura e
+  860→740 de altura pra sobrar lista ao lado.
+- 🔌 Desligar = trocar `1100px` por `99999px` no CSS (ou reverter o commit).
+- Falta: OK do Diego nas fotos antes/depois → publicar na main. Mockup/antes-depois: `--desk` no
+  `navega-carreira.mjs` e fotos no scratchpad desta sessão.
+
 ## 01/10/2026 — 🖼️ Mascote inteira na janelinha do placar ✅
 
 Print do Diego (foto pro Twitter): no gol do Neymarzetti o placar mostrava só as PERNAS do Mascarado. A janela do

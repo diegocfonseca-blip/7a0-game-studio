@@ -1,0 +1,83 @@
+/* ═══ 🖥️ A CARREIRA NO MONITOR — duas colunas (Diego 01/10) ═══════════════════
+   Pedido: *"analise o desktop do modo carreira… todas as telas, abas, menus,
+   botões. Está muito desalinhado… organize tudo. Não mexa no dispositivo móvel."*
+
+   O QUE ESTAVA ERRADO (medido em 1440px com `navega-carreira.mjs --desk`):
+   · tudo numa coluna só: em TODA aba o placar do jogo vinha primeiro, enorme, e a
+     tabela/elenco/rank/clube só aparecia depois de rolar uma tela inteira;
+   · a largura mudava de aba pra aba (Jogos/Tabelas 1040px · Elenco/Rank/Clube 760px);
+   · Rank e Clube: 3–4 telas de rolagem com sobra dos dois lados.
+
+   O DESENHO: a mesma ideia da sala online que ele aprovou em 25/09 (`.ll-desk`):
+   · coluna da ESQUERDA (380px): o que é "de agora" — cabeçalho da competição,
+     placar ao vivo, controle da partida; e no pé a caixa da conta e o Sair;
+   · coluna da DIREITA (o resto, até 1320px no total): o conteúdo da ABA, começando
+     no topo — tabela, outros jogos, elenco, rank, clube.
+   · largura IGUAL em todas as abas.
+
+   COMO: o pyramidseason.tsx pendura duas divs sem estilo, `.ll-cx-lado` (o que é
+   de agora) e `.ll-cx-aba` (o conteúdo da aba), mais as classes `ll-cx-conta` e
+   `ll-cx-sair`. Aqui cada uma ganha a sua CÉLULA da grade: a aba ocupa a coluna da
+   direita inteira (span de 4 linhas, com a última em `1fr` — é ela que engole a
+   sobra de altura, então o Sair fica colado embaixo do controle, não lá no fim).
+
+   🔒 TUDO AQUI MORA EM @media (min-width:1100px). Abaixo disso não existe regra
+   nenhuma: o celular (e o tablet em pé) ficam byte a byte o que eram — as divs
+   novas são blocos sem padding/borda, que não mudam nada no fluxo.
+   🔌 Desligar tudo = trocar 1100px por 99999px. */
+@media (min-width: 1100px) {
+  /* 1) a coluna vira grade de duas colunas, com a mesma largura em toda aba */
+  /* (`.mx-auto` entra só pra ganhar das regras de 1040px/760px dos outros CSS) */
+  .ll29-career > .max-w-xl.mx-auto.ll-cx,
+  .ll25-career.ll25-tab-elenco > .max-w-xl.mx-auto.ll-cx,
+  .ll25-career.ll25-tab-ranking > .max-w-xl.mx-auto.ll-cx,
+  .ll25-career.ll25-tab-estadio > .max-w-xl.mx-auto.ll-cx {
+    max-width: 1320px !important;
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr;
+    gap: 0 24px;
+    align-items: start;
+    padding-top: 14px !important;
+  }
+  .ll29-career div.ll-career-navigation { max-width: 1320px; }
+
+  /* 2) cada pedaço na sua célula */
+  .ll29-career > .ll-cx > * { grid-column: 1; min-width: 0; }
+  .ll29-career > .ll-cx > .ll-cx-lado { grid-row: 1; }
+  .ll29-career > .ll-cx > .ll-cx-conta { grid-row: 2; margin-top: 2px; }
+  .ll29-career > .ll-cx > .ll-cx-sair { grid-row: 3; margin-top: 4px !important; }
+  .ll29-career > .ll-cx > .ll-cx-aba { grid-column: 2; grid-row: 1 / span 4; }
+  /* o fundo creme que começava a 420px (feito pra UMA coluna, com a foto do
+     cabeçalho em cima) passa a cobrir a grade inteira desde o topo — senão a
+     tática e o texto solto do Elenco nasciam em cima da foto escura */
+  .ll25-career.ll25-tab-elenco > .max-w-xl.mx-auto.ll-cx,
+  .ll25-career.ll25-tab-ranking > .max-w-xl.mx-auto.ll-cx,
+  .ll25-career.ll25-tab-estadio > .max-w-xl.mx-auto.ll-cx {
+    background: rgba(244, 236, 214, .97) !important;
+    border-radius: 0 0 18px 18px;
+  }
+
+  /* 3) a coluna da esquerda é mais estreita: o cabeçalho e o placar encolhem
+     (mesmos componentes, só o tamanho) */
+  .ll29-career .ll-cx-lado .ll26-competition { min-height: 0; margin-bottom: 10px; }
+  .ll29-career .ll-cx-lado .ll26-competition-copy { max-width: 100%; }
+  .ll29-career .ll-cx-lado .ll26-competition-copy h2 { font-size: 24px; }
+  .ll29-career .ll-cx-lado .ll29-summary { flex-wrap: wrap; padding: 8px 12px; font-size: 11px; }
+  .ll29-career .ll-cx-lado .ll25-career-hero { min-height: 120px; }
+  .ll29-career .ll-cx-lado .ll-cx-placar .ll25-duel { grid-template-columns: 1fr 96px 1fr !important; padding: 14px 10px !important; }
+  .ll29-career .ll-cx-lado .ll-cx-placar .ll25-numbers strong { font-size: 30px !important; }
+  .ll29-career .ll-cx-lado .ll-cx-placar .ll25-team strong { font-size: 14px !important; }
+  .ll29-career .ll-cx-lado .ll-cx-placar .ll25-narration { font-size: 13px; }
+
+  /* 4) o painel do Elenco saía da coluna (1180px fixo, feito pra uma coluna só):
+     dentro da grade ele ocupa a coluna da direita, sem estourar. E o campinho
+     (560px × 860px, medido pra 1180) encolhe pra sobrar lista ao lado dele —
+     os bonecos são os mesmos, só a grama é menor */
+  .ll29-career .ll-cx-aba .ll-cx-elenco-largo { width: auto !important; margin-left: 0 !important; margin-right: 0 !important; }
+  .ll29-career .ll-cx-aba .ll-cx-campo { width: 490px !important; }
+  .ll29-career .ll-cx-aba .ll-cx-grama { min-height: 740px !important; }
+
+  /* 5) a barra de abas (relativa desde 1024px) alinha com a grade */
+  .ll29-career .ll-career-navigation button { padding: 6px 0; }
+}
