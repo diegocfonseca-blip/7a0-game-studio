@@ -69,6 +69,17 @@ export const FAIXA_POR_DIV: Record<DivTecnico, { lo: number; hi: number }> = {
 // clube dono + rivais brigam por cima.
 export const PISO_TECNICO: Record<DivTecnico, number> = { A: 25, B: 18, C: 12, D: 6, V: 2 }
 export const tecnicoPorNome = (nome: string): Tecnico | undefined => TECNICOS.find(t => t.nome === nome)
+// 🧢💰 TETO DO TÉCNICO (01/10, bug do Renato — carreira na temporada 116). O mercado
+// "aprendia" cada venda como piso da próxima, o bot entre temporadas ainda multiplicava
+// pela inflação (4% × 115 temporadas = 5,6×) e no pregão o bot dava lance SEM OLHAR O
+// BOLSO: Unai Emery chegou a 84.991, Parreira saiu por 12.426 pra um clube com 1 moeda.
+// Regra do Diego: técnico vale o que foi NEGOCIADO (igual jogador), mas nunca mais que
+// 4× o piso da categoria dele (Série A: 100 · B: 72 · C: 48 · D: 24 · Várzea: 8).
+// Técnico fora da lista mede pela régua da A. `precoTecnicoSano` é a cura que todo
+// save passa ao abrir (`sincronizaNiveis`).
+export const TETO_TECNICO_X = 4
+export const tetoTecnico = (nome: string): number => TETO_TECNICO_X * PISO_TECNICO[tecnicoPorNome(nome)?.div ?? 'A']
+export const precoTecnicoSano = (nome: string, v: number | undefined): number => Math.max(0, Math.min(tetoTecnico(nome), Math.round(Number(v) || 0)))
 export const poolDaDiv = (div: DivTecnico): Tecnico[] => TECNICOS.filter(t => t.div === div)
 // a ficha completa pra montar a CARTA do técnico (formato de carta de jogador)
 export function fichaDoTecnico(t: Tecnico): { fame: number; promessa: boolean; lo: number; hi: number; formacoes: string[] } {

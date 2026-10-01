@@ -1,3 +1,17 @@
+## 01/10/2026 — 🧢💰 Preço do técnico com TETO (bug do Renato, antonelli.renato@gmail.com) ✅
+
+Prints do Renato (carreira na **temporada 116**): Parreira vendido por 12.426 pra um bot com 1 moeda, Mourinho por
+13.542. No save dele Unai Emery valia 84.991. Dois furos, agora fechados:
+- O mercado "aprendia" cada venda como piso da próxima, e a contratação de bot entre temporadas multiplicava pela
+  inflação de 4%/temporada (5,6× na 116) em cima do preço já inflado. Agora a inflação para em 2×.
+- No pregão de técnico o bot dava lance de até 2× o piso **sem olhar o bolso** (no de jogador ele é limitado).
+Regra do Diego: *"o técnico fica com o valor do que foi negociado no leilão, igual jogador… e baixar os exorbitantes
+pra um piso realista"*. → `tetoTecnico` em `tecnicos.ts` = **4× o piso da categoria** (A 100 · B 72 · C 48 · D 24 ·
+V 8). Piso do lote, lance do bot (e só do que ele tem) e preço entre temporadas respeitam o teto. **Cura ao abrir o
+save** (`sincronizaNiveis`): qualquer `careerTecnicoPago` acima do teto desce pro teto — vale carreira ativa,
+arquivo, nuvem e partida em andamento; salário (pago ÷ 10) e multa de demissão caem junto. Humano pode pagar mais
+que o teto se quiser (o valor negociado fica), mas o bot nunca força isso. Reverter = 1 commit.
+
 ## 01/10/2026 — 🖼️ Mascote inteira na janelinha do placar ✅
 
 Print do Diego (foto pro Twitter): no gol do Neymarzetti o placar mostrava só as PERNAS do Mascarado. A janela do
