@@ -22,7 +22,7 @@ import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
-import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico } from './tecnicos'
+import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
@@ -5495,19 +5495,28 @@ function sealAndResolveTec(state: EscState) {
   const card = state.currentCards[0]
   const rng = mulberry((((state.seed ^ 0x7EC5EA) + state.seasonNo * 3571) | 0) >>> 0)
   const t = tecnicoPorNome(lote.nome)
-  const base = t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso
-  const minL = Math.max(1, lote.piso)
+  // 🧢💰 TETO (01/10, bug do Renato): o piso do pregão e o lance do bot nunca passam
+  // de 4× o piso da categoria — antes cada venda virava piso da próxima e o bot dava
+  // o dobro em cima, sem fim (Parreira a 12.426). E o BOT SÓ DÁ LANCE DO QUE TEM NO
+  // BOLSO, igual no leilão de jogador (um clube com 1 moeda "pagou" 12 mil).
+  const teto = tetoTecnico(lote.nome)
+  const base = Math.min(teto, t ? Math.max(PISO_TECNICO[t.div], lote.piso) : lote.piso)
+  const minL = Math.max(1, Math.min(lote.piso, teto))
   const donoM = lote.clube ? state.managers.find(m => m.teamName === lote.clube) : undefined
   const bids: Bid[] = []
   for (const [mgrIdStr, env] of Object.entries(state.pendingEnvelopes)) {
     const hb = env.find(x => x.cardId === card.id)
     if (hb && hb.amount >= minL) bids.push({ mgr: Number(mgrIdStr), amount: hb.amount })
   }
+  const lanceBot = (m: Manager, quer: number): void => {
+    const amount = Math.min(teto, Math.max(minL, quer), Math.floor(m.money))
+    if (amount >= minL) bids.push({ mgr: m.id, amount })
+  }
   for (const m of auctioningManagers(state.managers)) {
     if (m.isHuman || (donoM && m.id === donoM.id)) continue
-    if (rng() < 0.35) bids.push({ mgr: m.id, amount: Math.max(minL, Math.round(base * (0.85 + rng() * 1.2))) })
+    if (rng() < 0.35) lanceBot(m, Math.round(base * (0.85 + rng() * 1.2)))
   }
-  if (donoM && rng() < 0.6) bids.push({ mgr: donoM.id, amount: Math.max(minL, Math.round(base * (1 + rng() * 1.1))) })
+  if (donoM && rng() < 0.6) { if (donoM.isHuman) bids.push({ mgr: donoM.id, amount: Math.max(minL, Math.round(base * (1 + rng() * 1.1))) }); else lanceBot(donoM, Math.round(base * (1 + rng() * 1.1))) }
   const ehHumano = (id: number) => !!state.managers.find(m => m.id === id)?.isHuman
   const sorted = bids.sort((a, b) => b.amount - a.amount || (ehHumano(a.mgr) ? -1 : 1)) // empate: você leva
   const top = sorted[0]
@@ -8743,7 +8752,10 @@ function reducerBase(state: EscState, action: Action): EscState {
             const nomeN = livres.shift()!
             const tN = tecnicoPorNome(nomeN)
             if (!tN) continue
-            const preco = Math.round(Math.max(pago[nomeN] ?? 0, PISO_TECNICO[tN.div]) * (1 + rngV() * 0.3) * (1 + 0.04 * (s.seasonNo - 1)))
+            // 🧢💰 01/10: a inflação para em 2× (antes, na temporada 116, era 5,6× em cima
+            // de um preço que já tinha sido inflado — Unai Emery a 84.991) e o preço
+            // respeita o teto da categoria.
+            const preco = precoTecnicoSano(nomeN, Math.max(pago[nomeN] ?? 0, PISO_TECNICO[tN.div]) * (1 + rngV() * 0.3) * Math.min(2, 1 + 0.04 * (s.seasonNo - 1)))
             map[m.teamName] = nomeN
             desde[m.teamName] = { t: s.seasonNo, r: 0 }
             pago[nomeN] = preco // o mercado aprende com a compra do bot também
@@ -9782,7 +9794,7 @@ function reducerBase(state: EscState, action: Action): EscState {
           if (!tecnicoPorNome(nome)) continue
           const clube = Object.entries(s.careerTecnicos ?? {}).find(([, n]) => n === nome)?.[0] ?? null
           if (clube === s.managers[s.youIdx]?.teamName) continue // já é seu
-          s.tecLote = { nome, clube, piso: Math.max(1, s.careerTecnicoPago?.[nome] ?? 0) }
+          s.tecLote = { nome, clube, piso: Math.max(1, precoTecnicoSano(nome, s.careerTecnicoPago?.[nome])) } // 🧢💰 piso nunca acima do teto da categoria
           break // teto de 1 por temporada — só existe um
         }
         s.aliciarTecnicos = []
@@ -10535,6 +10547,17 @@ function sincronizaNiveis(save: EscState): EscState {
       delete mv[velha]
     }
     save.marketValues = mv
+  }
+  // 🧢💰 CURA DO PREÇO DO TÉCNICO (01/10, save do Renato): valor acima do teto da
+  // categoria (4× o piso) desce pro teto. Pega o salário (pago ÷ 10), a multa de
+  // demissão e o piso do próximo pregão de uma vez, em todo save que abre.
+  if (save.careerTecnicoPago) {
+    let pago: Record<string, number> | null = null
+    for (const [nome, v] of Object.entries(save.careerTecnicoPago)) {
+      const sano = precoTecnicoSano(nome, v)
+      if (sano !== v) { pago ??= { ...save.careerTecnicoPago }; pago[nome] = sano; mexeu++ }
+    }
+    if (pago) save.careerTecnicoPago = pago
   }
   return mexeu > 0 ? { ...save } : save
 }
