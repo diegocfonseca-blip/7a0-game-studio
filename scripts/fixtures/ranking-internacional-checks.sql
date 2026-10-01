@@ -1,3 +1,16 @@
+do $check$
+begin
+  if (select count(*) from public.rank_legacy_fingerprint) <> 3 or exists (
+    select 1 from public.rank_legacy_fingerprint f
+    join pg_proc p on p.proname = f.proname
+    join pg_namespace n on n.oid = p.pronamespace and n.nspname = 'public'
+    where md5(pg_get_functiondef(p.oid)) <> f.hash
+  ) then
+    raise exception 'a proposta alterou uma RPC antiga';
+  end if;
+end;
+$check$;
+
 set role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', false);
 
@@ -92,6 +105,32 @@ begin
   if score <> 360 then raise exception 'pesos 200/50/40/40/30 incorretos: %', score; end if;
   if exists (select 1 from public.esc_pyramid_rank_rows_v2(88) where career_id=101) then
     raise exception 'snapshot futuro vazou para a T88';
+  end if;
+end;
+$check$;
+
+-- Fora do Top 50: a posição da pessoa deve ser calculada no conjunto todo.
+reset role;
+insert into public.esc_pyramid_rank_snap
+  (user_id,career_id,season_no,team_name,world_titles)
+select ('00000000-0000-0000-0000-' || lpad(g::text,12,'0'))::uuid,
+  1,101,'Fixture ' || g,3
+from generate_series(100,159) g;
+set role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', false);
+do $check$
+declare r record;
+begin
+  if (select count(*) from public.esc_pyramid_rank_v2(101,50)) <> 50 then
+    raise exception 'Top 50 incorreto';
+  end if;
+  if exists (select 1 from public.esc_pyramid_rank_v2(101,50)
+             where user_id=auth.uid()) then
+    raise exception 'usuário fora do Top 50 apareceu no Top 50';
+  end if;
+  select * into r from public.esc_pyramid_my_rank_v2(101,auth.uid());
+  if r.pos <> 61 or r.total <> 62 then
+    raise exception 'posição fora do Top 50 incorreta: %, %', r.pos, r.total;
   end if;
 end;
 $check$;

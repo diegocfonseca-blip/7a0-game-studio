@@ -12,5 +12,6 @@ for attempt in {1..30}; do
   sleep 1
 done
 docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres < "$repo_root/scripts/fixtures/ranking-internacional-schema.sql"
+docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres < "$repo_root/scripts/fixtures/ranking-global-legacy-real.sql"
 docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres < "$repo_root/docs/sql/carreira-internacional-rank-colunas-proposta.sql"
 docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres < "$repo_root/scripts/fixtures/ranking-internacional-checks.sql"
