@@ -4,7 +4,7 @@ Estado: **não aplicar em produção nesta preparação**. A proposta completa d
 
 ## Fonte de verdade no cliente
 
-- `PTS_TITULO` e `pontosDeTitulos` em `src/escalacao/pyramidseason.tsx`: Copa do Mundo 200, Mundial de Clubes 50, Libertadores 40, Champions 40, Copa do Brasil 30. Os pesos anteriores de ligas e Supercopa continuam.
+- `PTS_TITULO` e `pontosDeTitulos` em `src/escalacao/pyramidseason.tsx`: Copa do Mundo 200, Mundial de Clubes 60, Libertadores 50, Champions 50, Copa do Brasil 30. Os pesos anteriores de ligas e Supercopa continuam.
 - Títulos internacionais são derivados de `careerInternationalHistory` por carreira. `internationalTitleCounts` conta no máximo um resultado encerrado por temporada, ignora T1–39 e temporadas futuras. O snapshot da temporada N só conta até N−1; a tela local pode mostrar a campanha encerrada da própria N. Enquanto a proposta SQL não for aplicada, o ranking compartilhado usa as RPCs antigas.
 - `src/escalacao/career-international-ranking.ts` calcula o ranking das 72 instituições dentro do save. Não consulta nem escreve no ranking global de usuários.
 

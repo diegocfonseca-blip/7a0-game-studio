@@ -79,7 +79,8 @@ function groupRounds(ids: string[]): [string, string][][] {
 }
 
 const emptyRow = (team: string): InternationalTableRow => ({ team, played: 0, points: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 })
-function tableFor(ids: readonly string[], matches: readonly InternationalMatch[]): InternationalTableRow[] {
+/** Tabela a partir de uma lista de jogos. Exportada (01/10) pra tela montar a classificação PARCIAL só com as noites já reveladas — sem spoiler. */
+export function tableFor(ids: readonly string[], matches: readonly InternationalMatch[]): InternationalTableRow[] {
   const rows = new Map(ids.map(id => [id, emptyRow(id)]))
   for (const m of matches) {
     const h = rows.get(m.home), a = rows.get(m.away)
