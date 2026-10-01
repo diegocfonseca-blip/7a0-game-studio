@@ -1,6 +1,10 @@
 # Prontidão para teste privado — Libertadores, Champions e Mundial
 
-**Situação em 01/10/2026: preparado localmente; não publicado.** Escopo inicial: somente `diego.c.fonseca@gmail.com`, sem moedas ou benefícios adicionais.
+**Situação em 01/10/2026: migração aplicada no Supabase real; código do site ainda não publicado.** Escopo inicial: somente `diego.c.fonseca@gmail.com`, sem moedas ou benefícios adicionais. A seção de bloqueios abaixo documenta o diagnóstico anterior à aplicação e não deve ser interpretada como status atual.
+
+### Aplicação e verificação do banco em 01/10
+
+A migração `carreira_internacional_privada` foi aplicada com sucesso ao projeto `faabglpjutwursgmrpny` pela ferramenta de migrações. A versão local exata está em `supabase/migrations/20261001173507_carreira_internacional_privada.sql`. Uma consulta independente após a aplicação confirmou três colunas novas, seis funções novas, `EXECUTE` negado a `anon` no gate e no ranking v2, `EXECUTE` permitido a `authenticated` no gate, e **zero snapshots com títulos internacionais não nulos**. Nenhum título, moeda ou benefício foi concedido. O código do cliente só deve seguir para `main` depois de conferir novamente o estado da branch remota e o build; a navegação autenticada final ainda precisa ser verificada sem afirmar resultado não observado.
 
 ## Evidências reunidas
 
@@ -16,6 +20,14 @@
 | Jogo | Fixtures G8/G9 e duas competições simultâneas, Mundial, save T87→T88, UI de inscrição desktop/mobile e jornal têm evidências anteriores em `docs/testes-carreira-internacional-local.md`. Após exigir autorização do servidor, fixtures, gate simulado, build e regressão da Copa do Mundo em Chromium passaram (40 Copas, rede Supabase bloqueada). Não equivalem a navegação autenticada em produção. |
 
 Rechecagem em 01/10: `main` remoto continua em `2be136d6`; o projeto Supabase ligado ao app segue sem branch de ensaio e sem as três colunas/RPCs novas. O teste SQL descartável passou novamente. O teste de Auth simulado agora também confirma que uma resposta positiva da RPC, recebida depois do logout, não reabre a expansão. Nenhum dado de produção foi alterado.
+
+### Ensaio adicional nesta sessão local (sem ambiente pago)
+
+A branch preparada foi transferida para uma cópia isolada em `work/carreira-internacional-rollout-20261001`, SHA `06c6ab68040977b2bc932eb75e1e38383455f8e4`. O `main` remoto segue `2be136d6` e a comparação GitHub confirmou 16 commits à frente, zero atrás. `npm run build`, fixtures G8/G9, temporada internacional e gate simulado passaram nesta cópia.
+
+Diego esclareceu que mantém também o repositório `diegocfonseca-blip/copa-mania`. Sua pasta `supabase/sql` tem três arquivos, não as 131 migrações do projeto efetivo; o `supabase/config.toml` desse repositório aponta para outro ID. Portanto ele não reconstrói o esquema completo de `faabglpjutwursgmrpny`.
+
+Sem criar branch cobrada, a proposta SQL foi executada **dentro de transações com `ROLLBACK` no esquema real**, com `lock_timeout` de 1,5 s. Assertivas sob `SET ROLE authenticated` e IDs de duas contas existentes (sem expor seus IDs) passaram: a identidade de Diego recebeu autorização, ranking v2 e permissão de atualizar um contador; outra identidade não recebeu autorização/ranking v2 e teve a escrita negada. `anon` também não recebeu ranking v2. Depois do `ROLLBACK`, consulta independente confirmou **zero colunas e zero funções novas**; nenhum título ou conta foi alterado. Isto valida SQL/RLS/trigger no esquema real com identidades impersonadas, mas **não substitui duas sessões JWT reais no navegador**. Uma migração versionada equivalente foi preparada em `supabase/migrations/20261001173507_carreira_internacional_privada.sql`, ainda não aplicada.
 
 ## Diagnóstico do bloqueio de publicação
 
