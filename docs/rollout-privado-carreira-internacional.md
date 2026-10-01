@@ -6,8 +6,8 @@
 
 | Item | Estado |
 | --- | --- |
-| Repositório remoto `main` | SHA `64ec0a566e14d25f57544b4e643d43edc24a9da1`, lido via GitHub. É ancestral direto do trabalho local; não havia correção remota nova a integrar nesta leitura. |
-| Trabalho local | Branch `codex/international-private-rollout-prep`; série internacional local iniciada em `74743d2e`, endurecimento anterior em `f584d2fb`. Nenhum push, PR ou deploy. |
+| Repositório remoto `main` | SHA `2be136d6641c860bb6c5c63ce15d086632f29b93`, lido via GitHub e integrado por merge local `a2c043eb`. A correção nova da mascote no placar foi preservada. |
+| Trabalho local | Branch `codex/international-private-rollout-prep`; série internacional iniciada em `74743d2e`, endurecimento em `f584d2fb`, preparo desta rodada em `884aa25a`. Nenhum push, PR ou deploy. |
 | Projeto Supabase correto | `faabglpjutwursgmrpny`, URL usada pelo app. `supabase/config.toml` aponta outro ID; não usar esse arquivo para escolher o destino de DDL. Uma conta com o e-mail de Diego existe; nenhuma conta foi criada ou alterada. |
 | Esquema e RPCs | Leitura apenas: PK dos snapshots `(user_id,career_id,season_no)`, RLS própria para escrita, leitura pública; colunas internacionais ausentes. RPCs antigas ordenam títulos em fila, não pela soma de pontos do cliente. |
 | Gate privado | O cliente espera `getUser()` verificar o mesmo ID da sessão; logout/troca invalida respostas antigas. Outras identidades e sessão anônima não recebem painel, ações nem RPCs v2. Teste com identidades simuladas passou; não equivale a dois logins reais. |
