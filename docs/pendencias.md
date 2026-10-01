@@ -1,4 +1,22 @@
-## 01/10/2026 — 🌎 CARREIRA INTERNACIONAL: o fluxo que o Diego quer (1º teste dele, T43) ⏳ A FAZER
+## 01/10/2026 — 🌎 CARREIRA INTERNACIONAL: fluxo passo a passo ✅ FEITO (só a conta do Diego; mockups aprovados)
+
+Diego mandou o Codex parar e manter esta sessão. `career-international-view.tsx` foi REESCRITA por cima do motor do
+Lucas (motor, reducer e save intocados): 1 competição (2 banners) → 2 clube (só os blocos daquela competição) →
+3 convocação (cópia da `ConvocacaoScreen` da Copa, `JogadorNoCampo` sem fundo) → 4 cada noite da MINHA competição no
+`LiveScoreCard` da liga (noite sem a minha competição anda sozinha; ida/volta em dois cards; agregado/pênaltis
+embaixo; classificação PARCIAL só do que já foi revelado — `tableFor` exportada) → 5 Mundial só no fim → sem vaga:
+PULAR (roda tudo e encerra sozinho) ou ASSISTIR (as duas em lista, noite a noite). Ritmo segue o `useSimMode` (auto
+avança sozinho; manual tem botão).
+- 🏅 **Ranking global**: Mundial **60** · Libertadores/Champions **50** (antes 50/40/40). Mudou em `PTS_TITULO`,
+  `internationalCareerRanking` e na RPC `esc_pyramid_rank_rows_v2` (migração
+  `20261001210000_ranking_internacional_mundial_60_continental_50.sql`). Copa do Mundo continua 200, acima de tudo.
+- 💰 **Premiação por etapa** (`summarizeInternationalCampaign`): fase inicial 6 · repescagem 8 · oitavas 10 · quartas 14 ·
+  semi 20 · vice 30 · campeão 60 (um pouco acima da Copa do Brasil: 6/10/16/25/50); Mundial vice +10 · campeão +25 (um
+  pouco acima da Supercopa 8/20). Palavras dele: *"um pouco mais do que a Copa do Brasil… por etapas… Mundial um pouco
+  mais que a Supercopa"*. Testes `testa-temporada-internacional.mjs`/`testa-fixtures-carreira-internacional.mjs` atualizados.
+- Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
+
+### (pedido original, pra memória)
 
 Diego testou o teste fechado (prints às 16:41) e mandou REFAZER o fluxo, passo a passo, no padrão do jogo.
 Palavras dele: *"primeiro deveria aparecer só o banner da competição que quero jogar, como passo a passo… se for

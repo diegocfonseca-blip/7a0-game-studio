@@ -17,7 +17,14 @@ export function summarizeInternationalCampaign(campaign: InternationalCampaign):
   const last = phases.filter(p => p?.matches.some(m => m.home === club || m.away === club)).at(-1)
   const finalist = last?.title === 'Final'
   const bestCampaign = !club ? 'Sem classificação' : champ === club ? 'Campeão continental' : finalist ? 'Vice-campeão continental' : last?.title ?? 'Fase inicial'
-  const prizeCoins = !club ? 0 : (champ === club ? 50 : finalist ? 40 : last?.title === 'Semifinal' ? 32 : last?.title === 'Quartas' ? 24 : last?.title === 'Oitavas' ? 16 : 10) + (campaign.mundialChampion === club ? 50 : 0)
+  // 💰 PREMIAÇÃO POR ETAPA (Diego 01/10): *"Libertadores e Champions um pouco mais do que a Copa
+  // do Brasil, por etapas; o Mundial um pouco mais do que a Supercopa"*. Régua da Copa do Brasil
+  // (`CB_PAY`): oitavas 6 · quartas 10 · semi 16 · vice 25 · campeão 50; Supercopa: vice 8 · campeão 20.
+  // Aqui: fase inicial 6 · repescagem 8 · oitavas 10 · quartas 14 · semi 20 · vice 30 · campeão 60;
+  // Mundial: vice +10 · campeão +25. O campeão continental que perde o Mundial leva 60 + 10.
+  const etapa = champ === club ? 60 : finalist ? 30 : last?.title === 'Semifinal' ? 20 : last?.title === 'Quartas' ? 14 : last?.title === 'Oitavas' ? 10 : last?.title === 'Repescagem' ? 8 : 6
+  const mundialPrize = campaign.mundialChampion === club ? 25 : champ === club ? 10 : 0
+  const prizeCoins = !club ? 0 : etapa + mundialPrize
   const stats = campaign.statistics.filter(s => s.you)
   const records = new Map(campaign.teams.map(team => [team.id, { club: team.id, games: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 }]))
   for (const match of campaign.steps.flatMap(step => [...(step.libertadores?.matches ?? []), ...(step.champions?.matches ?? []), ...(step.mundial?.matches ?? [])])) {

@@ -48,7 +48,7 @@ try {
   assert.equal(rank.length, 72)
   assert.equal(rank.find(row => row.club === campaign.mundialChampion).mundial, 1)
   assert.equal(rank.reduce((n, row) => n + row.games, 0), matches.length * 2)
-  assert.equal(rank.reduce((n, row) => n + row.points, 0), 130)
+  assert.equal(rank.reduce((n, row) => n + row.points, 0), 160) // 🏅 01/10: Mundial 60 + Libertadores 50 + Champions 50
   const oldHistory = [{ ...summary, teamRecords: undefined, botPlayerStats: undefined }]
   assert.equal(internationalCareerRanking(oldHistory).find(row => row.club === campaign.libertadoresChampion).libertadores, 1)
   assert.equal(isInternationalCareerTester('diego.c.fonseca@gmail.com'), true)
@@ -63,7 +63,7 @@ try {
   const nine = internationalQualifiers(league, league[9], team => String(team.id))
   assert.equal(nine.length, 9)
   assert.equal(nine[1].team.id, 10)
-  assert.equal([10, 16, 24, 32, 40, 50, 100].includes(summary.prizeCoins), true)
+  assert.equal([6, 8, 10, 14, 20, 30, 70, 85].includes(summary.prizeCoins), true)
   const botOnly = makeInternationalCampaign({ season: 87, seed: 54321, representedClub: null, userTeam: 'Meu FC', userId: 0, priority: null, userXI: [] })
   assert.equal(botOnly.teams.filter(t => t.you).length, 0)
   assert.equal(botOnly.mundialChampion.length > 0, true)
@@ -77,10 +77,10 @@ try {
   assert.equal(european.teams.find(team => team.you)?.competition, 'champions')
   assert.equal(summarizeInternationalCampaign(european).competition, 'champions')
   assert.equal(european.steps.at(-1).mundial.competition, 'mundial')
-  for (const [title, points] of Object.entries({ world: 200, mundial: 50, libertadores: 40, champions: 40, copa: 30 })) {
+  for (const [title, points] of Object.entries({ world: 200, mundial: 60, libertadores: 50, champions: 50, copa: 30 })) {
     assert.equal(pontosDeTitulos({ [title]: 1 }), points, `pontuação local: ${title}`)
   }
-  assert.equal(pontosDeTitulos({ world: 1, mundial: 1, libertadores: 1, champions: 1, copa: 1 }), 360)
+  assert.equal(pontosDeTitulos({ world: 1, mundial: 1, libertadores: 1, champions: 1, copa: 1 }), 390)
   console.log('Temporada internacional: 72 elencos, 2 competições, Mundial, estatísticas e pontos locais OK')
 } finally {
   await vite.close()

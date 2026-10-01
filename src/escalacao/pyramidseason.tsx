@@ -5969,7 +5969,10 @@ export async function globalRankRpc(name: GlobalRankRpc, args: Record<string, nu
 // mural de clubes usa `pontosDeTitulos` também). Os dois têm que andar JUNTOS —
 // já teve bug nessa família em 10/08, quando a colocação exibida não era a que
 // qualificava. Mexeu aqui, confere lá.
-export const PTS_TITULO = { mundo: 200, mundial: 50, libertadores: 40, champions: 40, copa: 30, A: 20, supercopa: 15, B: 10, C: 5, D: 3, V: 1 } as const
+// 🏅 01/10 (Diego, no 1º teste da carreira internacional): *"Copa do Mundo vale mais pontos,
+// agora vem o Mundial 60 pontos, depois Libertadores/Champions 50, depois o padrão (Copa do
+// Brasil, Série A…)"*. Antes: Mundial 50 · Libertadores/Champions 40.
+export const PTS_TITULO = { mundo: 200, mundial: 60, libertadores: 50, champions: 50, copa: 30, A: 20, supercopa: 15, B: 10, C: 5, D: 3, V: 1 } as const
 export function pontosDeTitulos(t: {
   world?: number; mundial?: number; libertadores?: number; champions?: number; copa?: number; supercopa?: number; A?: number; B?: number; C?: number; D?: number; V?: number
 }): number {

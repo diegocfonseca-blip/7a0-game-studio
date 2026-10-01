@@ -10,9 +10,10 @@ export function internationalCareerRanking(history: readonly InternationalHistor
   }]))
   for (const season of history) {
     const lib = rows.get(season.libertadoresChampion), champ = rows.get(season.championsChampion), world = rows.get(season.mundialChampion)
-    if (lib) { lib.libertadores++; lib.points += 40 }
-    if (champ) { champ.champions++; champ.points += 40 }
-    if (world) { world.mundial++; world.points += 50 }
+    // 🏅 pontos por título (Diego 01/10): Mundial 60 · Libertadores/Champions 50 — a mesma régua do ranking global (`PTS_TITULO`)
+    if (lib) { lib.libertadores++; lib.points += 50 }
+    if (champ) { champ.champions++; champ.points += 50 }
+    if (world) { world.mundial++; world.points += 60 }
     for (const record of season.teamRecords ?? []) {
       const row = rows.get(record.club)
       if (!row) continue

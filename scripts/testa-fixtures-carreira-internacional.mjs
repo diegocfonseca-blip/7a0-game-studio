@@ -127,8 +127,8 @@ try {
   const firstPoints = pontosDeTitulos({ mundial: summary.mundial, libertadores: summary.libertadores, champions: summary.champions })
   const titleFixture = { ...summary, libertadoresChampion: 'Flamengo', mundialChampion: 'Flamengo', libertadores: 1, mundial: 1 }
   const titleRank = internationalCareerRanking([titleFixture])
-  assert.equal(titleRank.find(row => row.club === 'Flamengo').points, 90)
-  assert.equal(pontosDeTitulos({ libertadores: titleFixture.libertadores, mundial: titleFixture.mundial }), 90)
+  assert.equal(titleRank.find(row => row.club === 'Flamengo').points, 110)
+  assert.equal(pontosDeTitulos({ libertadores: titleFixture.libertadores, mundial: titleFixture.mundial }), 110)
   assert.deepEqual(internationalCareerRanking(JSON.parse(JSON.stringify([titleFixture]))), titleRank)
   state = JSON.parse(JSON.stringify(state))
   state = reducer(state, { type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry: summary })
