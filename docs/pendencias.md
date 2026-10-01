@@ -45,6 +45,14 @@ avança sozinho; manual tem botão).
   vazios (Libertad, Emelec, Olimpia, Millonarios, Nacional-URU, Estudiantes, Racing, Cerro, Newell's, Rosario, Argentinos,
   U. de Chile = 0 cartas; Galatasaray 2, Rangers 3, Celtic 4…). Quem termina do 5º pro 8º pode não ter clube pra
   convocar — a tela avisa e oferece Pular/Assistir. **Precisa de carta nova desses clubes** (lotes) pra fechar.
+- 🃏 **Lote 40 (01/10, aprovado pelo Diego: *"pode fazer esses e coloque Renato Augusto também no Leverkusen e o
+  Ponte"*)**: **322 cartas** (226 no baralho Mundo, 96 no Europa) pra os 42 clubes fecharem um 11 só com gente do
+  próprio clube — agora **72/72 fecham**. Tudo em `L40_WORLD_*`/`L40_EU_*` (`data.ts`), país por carta em
+  `PAIS_POR_CARTA`, 33 nomes repetidos em `MESMO_JOGADOR` (+ linha por carta das antigas), apelido
+  `'Bayer Leverkusen': ['Leverkusen']` na lista internacional, `npm run paises` ✅, `npm run novidades` rodado
+  (snapshot + 60 linhas na home). Stories: `mockup-cartas-novas.mjs --lotes L40` em 4 imagens (GOL+LAT · ZAG · MEI · ATA).
+  Categoria: lendas só as inquestionáveis (Di Stéfano, Kempes, Perfumo, Spencer, Morena, Rocha, Mazurkiewicz, van
+  Hanegem, Lolo Fernández); o resto craque/bom/foi profissional conforme a fama — quem manda na categoria é o Diego.
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
 
 ### (pedido original, pra memória)
