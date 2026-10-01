@@ -20,6 +20,13 @@ avança sozinho; manual tem botão).
   aceita carta do elenco OU do clube (`isInternationalClubCard`). Medido: **30 dos 72 clubes fecham um 11 sozinhos**
   (Flamengo 77 cartas, Real Madrid 52…; Libertad/Emelec/Olimpia 0). Clube que não fecha completa com o SEU elenco,
   marcado "seu elenco", com aviso do porquê. E o "ranking internacional de clubes" saiu da tela (*"não serve pra nada"*).
+- 🔁 **3ª rodada (01/10, 19:05)**: *"eu NÃO levo meu elenco… é todo jogador do Flamengo no baralho, todo jogador do
+  Real Madrid, do River Plate"*. Então: convocação SÓ entre as cartas do clube (todas, não só lendas); elenco do
+  usuário nunca entra (reducer exige `isInternationalClubCard` em todas as 11); clube sem carta pra fechar 4-3-3/4-4-2
+  aparece **trancado** no passo 2 (🔒 + quantos tem no baralho). ⚠️ **Só 30 dos 72 fecham**: blocos 5–9 estão quase
+  vazios (Libertad, Emelec, Olimpia, Millonarios, Nacional-URU, Estudiantes, Racing, Cerro, Newell's, Rosario, Argentinos,
+  U. de Chile = 0 cartas; Galatasaray 2, Rangers 3, Celtic 4…). Quem termina do 5º pro 8º pode não ter clube pra
+  convocar — a tela avisa e oferece Pular/Assistir. **Precisa de carta nova desses clubes** (lotes) pra fechar.
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
 
 ### (pedido original, pra memória)

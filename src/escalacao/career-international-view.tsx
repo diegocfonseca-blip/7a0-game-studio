@@ -19,7 +19,7 @@
 // mostrar nada) — por isso "não vejo a outra".
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { Card, WonCard } from './types'
-import { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, internationalClubCards, isRealInternationalCard, validInternationalXI, type InternationalClub, type InternationalCompetition } from './career-international'
+import { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, internationalClubCards, validInternationalXI, type InternationalClub, type InternationalCompetition } from './career-international'
 import { makeInternationalCampaign, tableFor, type InternationalCampaign, type InternationalHistoryEntry, type InternationalMatch, type InternationalPhase, type InternationalTableRow, type InternationalTie } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
 import { CompetitionMatch, CompetitionStage } from './online-match-visual'
@@ -116,22 +116,19 @@ function Tabela({ rows, me, cortes, titulo, campaign }: { rows: InternationalTab
 }
 
 // 🧢 PASSO 3 — a convocação, IGUAL à da Copa do Mundo (`ConvocacaoScreen`): escolheu o
-// Flamengo, convoca entre as LENDAS DO FLAMENGO no baralho (Diego 01/10: *"não tá
-// aparecendo os jogadores do baralho do Flamengo pra eu convocar"*). Só quando o clube
-// não tem carta pra fechar um 4-3-3/4-4-2 (30 dos 72 fecham sozinhos) é que o SEU
-// elenco entra como complemento, marcado "seu elenco", com o aviso do porquê.
-type PoolCard = Card & { origem: 'clube' | 'elenco' }
-function InscricaoClube({ userTeam, clube, comp, elenco, onBack, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; elenco: WonCard[]; onBack: () => void; onConfirm: (xi: Card[]) => void }) {
+// Flamengo, convoca entre TODOS os jogadores do Flamengo que existem no baralho
+// (Diego 01/10: *"eu não levo meu elenco… é todo jogador do Flamengo no baralho, todo
+// jogador do Real Madrid, do River Plate"*). O elenco do usuário NÃO entra. Clube sem
+// carta pra fechar um 4-3-3/4-4-2 nem chega aqui: fica trancado no passo 2.
+type PoolCard = Card
+const fechaForm = (cards: { pos: string; name: string; club: string; year: number }[], form: Shape) => sections.every(pos => new Set(cards.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos])
+/** o clube tem jogadores no baralho pra fechar um time? (30 dos 72, medido em 01/10) */
+export const clubeFechaTime = (clube: string) => { const cs = internationalClubCards(clube); return fechaForm(cs, '4-3-3') || fechaForm(cs, '4-4-2') }
+function InscricaoClube({ userTeam, clube, comp, onBack, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; onBack: () => void; onConfirm: (xi: Card[]) => void }) {
   const faces = useLegendPresentation()
-  const fecha = (cards: { pos: string; name: string; club: string; year: number }[], form: Shape) => sections.every(pos => new Set(cards.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos])
-  const doClube = useMemo<PoolCard[]>(() => internationalClubCards(clube).map(c => ({ ...(c as unknown as Card), origem: 'clube' as const })), [clube])
-  const precisaElenco = !fecha(doClube, '4-3-3') && !fecha(doClube, '4-4-2')
-  const real = useMemo<PoolCard[]>(() => {
-    if (!precisaElenco) return doClube
-    const chaves = new Set(doClube.map(internationalCardKey))
-    return [...doClube, ...elenco.filter(c => !chaves.has(internationalCardKey(c))).map(c => ({ ...c, origem: 'elenco' as const }))]
-  }, [doClube, elenco, precisaElenco])
-  const shapeAvailable = (form: Shape) => fecha(real, form)
+  const doClube = useMemo<PoolCard[]>(() => internationalClubCards(clube).map(c => c as unknown as Card), [clube])
+  const real = doClube
+  const shapeAvailable = (form: Shape) => fechaForm(real, form)
   const [shape, setShape] = useState<Shape>(shapeAvailable('4-3-3') ? '4-3-3' : '4-4-2')
   const [tab, setTab] = useState<Section>('GOL')
   const [q, setQ] = useState('')
@@ -158,7 +155,7 @@ function InscricaoClube({ userTeam, clube, comp, elenco, onBack, onConfirm }: { 
       <SeloClube clube={clube} size={34} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0 }}>{tr('Convocação', 'Call-up')} · {clube}</p>
-        <p style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', margin: '2px 0 0' }}>{doClube.length} {tr('lendas do', 'legends of')} {clube} {tr('no baralho — só nome, clube e ano. Convoque 11.', 'in the deck — just name, club and year. Call up 11.')}</p>
+        <p style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', margin: '2px 0 0' }}>{doClube.length} {tr('jogadores do', 'players of')} {clube} {tr('no baralho — só nome, clube e ano. Convoque 11.', 'in the deck — just name, club and year. Call up 11.')}</p>
       </div>
       <div style={{ background: GOLD, border: `2px solid ${INK}`, borderRadius: 10, padding: '4px 9px', textAlign: 'center', color: INK }}>
         <b style={{ display: 'block', fontSize: 15, lineHeight: 1, ...OSWALD }}>{selected.length}/11</b>
@@ -173,8 +170,7 @@ function InscricaoClube({ userTeam, clube, comp, elenco, onBack, onConfirm }: { 
       {sections.map(s => { const done = bySec(s).length >= need[s]; return <button key={s} type="button" onClick={() => setTab(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 10.5, ...OSWALD, cursor: 'pointer', background: done ? GREEN : tab === s ? GOLD : '#fff', color: done ? '#fff' : INK, boxShadow: tab === s ? `2px 2px 0 0 ${INK}` : 'none' }}>
         {s}<span style={{ display: 'block', fontSize: 7.5, fontWeight: 800, opacity: .8, fontFamily: 'Inter, system-ui, sans-serif' }}>{bySec(s).length}/{need[s]}{done ? ' ✓' : ''}</span></button> })}
     </div>
-    {precisaElenco && <div role="status" style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>🧳 {clube} {tr(`só tem ${doClube.length} lenda${doClube.length === 1 ? '' : 's'} no baralho — não fecha um time. Complete com o seu elenco (marcados "seu elenco").`, `only has ${doClube.length} legend${doClube.length === 1 ? '' : 's'} in the deck — not enough for a team. Complete with your squad (tagged "your squad").`)}</div>}
-    {aviso && <div role="status" style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>✋ {aviso}</div>}
+    {aviso &&<div role="status" style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>✋ {aviso}</div>}
     <input value={q} onChange={e => setQ(e.target.value)} placeholder={`${tr('🔎 buscar nos', '🔎 search the')} ${real.filter(c => c.pos === tab).length} ${tr(...SEC_LABEL[tab])}…`}
       style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
@@ -184,7 +180,6 @@ function InscricaoClube({ userTeam, clube, comp, elenco, onBack, onConfirm }: { 
           <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : full ? '🔒' : ''}</span>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
           {on && <span style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>{tr('toque pra tirar', 'tap to remove')}</span>}
-          {c.origem === 'elenco' && <span style={{ background: '#7C3AED', color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>{tr('seu elenco', 'your squad')}</span>}
           <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.club} · {c.year}</span>
         </button> })}
         {list.length === 0 && <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>{tr('ninguém com esse nome aqui… 🔎', 'nobody with that name here… 🔎')}</p>}
@@ -202,7 +197,7 @@ function InscricaoClube({ userTeam, clube, comp, elenco, onBack, onConfirm }: { 
       {registered ? `✓ ${tr('Confirmar os 11 e começar a', 'Confirm the 11 and start the')} ${nomeComp(comp)}` : `${tr('Faltam', 'Missing')} ${11 - selected.length} ${tr('pra fechar os 11', 'to complete the 11')}`}
     </button>
     <button type="button" onClick={onBack} style={{ ...btn('#fff'), marginTop: 8, fontSize: 12, padding: 8 }}>‹ {tr('Trocar de clube', 'Change club')}</button>
-    <p style={hint}>{tr('A convocação fica congelada durante a campanha. ', 'The call-up is frozen for the whole campaign. ')}{userTeam} {tr('veste a camisa do', 'wears the shirt of')} {clube}{tr('; escudo e mascote continuam os seus.', '; crest and mascot stay yours.')}</p>
+    <p style={hint}>{tr('Igual à Copa do Mundo: os jogadores do', 'Like the World Cup: the players of')} {clube} {tr('jogam pelo clube deles. A convocação fica congelada durante a campanha. ', 'play for their club. The call-up is frozen for the whole campaign. ')}{userTeam} {tr('mantém escudo e mascote.', 'keeps its crest and mascot.')}</p>
   </>
 }
 
@@ -227,8 +222,8 @@ export function CareerInternationalView(p: Props) {
   const [club, setClub] = useState<string | null>(null)
   const [modo, setModo] = useState<'pular' | 'assistir' | null>(null)
   const [celebrate, setCelebrate] = useState(false)
-  const real = useMemo(() => p.squad.filter(isRealInternationalCard), [p.squad])
-  const podeInscrever = (['4-3-3', '4-4-2'] as Shape[]).some(form => sections.every(pos => new Set(real.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos]))
+  // 🧢 tem vaga E algum clube liberado pro seu bloco tem jogadores no baralho pra fechar um time
+  const podeInscrever = p.choices.some(c => clubeFechaTime(c.name))
   const current = p.campaign?.season === p.season ? p.campaign : null
   const finished = p.history.some(entry => entry.season === p.season)
   const rep = current?.representedClub ?? null
@@ -330,10 +325,10 @@ export function CareerInternationalView(p: Props) {
         {/* ── SEM VAGA (ou sem 11 cartas reais): pula ou assiste ── */}
         <div style={card}>
           <span style={kicker}>{tr('Temporada', 'Season')} {p.season} · {tr('Futebol internacional de clubes', 'International club football')}</span>
-          <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 2px', textAlign: 'center', lineHeight: 1.05 }}>{p.choices.length ? tr('Elenco sem 11 cartas reais', 'Squad without 11 real cards') : tr('Sem vaga este ano', 'No spot this year')}</h2>
+          <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 2px', textAlign: 'center', lineHeight: 1.05 }}>{p.choices.length ? tr('Sem clube pra convocar', 'No club to call up') : tr('Sem vaga este ano', 'No spot this year')}</h2>
           <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '6px 0 0' }}>
             {p.choices.length
-              ? tr('Pra se inscrever precisa de 1 goleiro, 2 laterais, 2 zagueiros e meias/atacantes de verdade pra fechar um 4-3-3 ou 4-4-2. Reforce o elenco e volte na próxima.', 'To enrol you need 1 keeper, 2 full-backs, 2 centre-backs and enough real midfielders/forwards for a 4-3-3 or 4-4-2. Strengthen the squad and come back next season.')
+              ? tr(`Você tem vaga (prioridade ${p.priority}), mas nenhum clube dos blocos ${p.priority}–9 tem jogadores suficientes no baralho pra fechar um time. Suba na tabela pra abrir blocos melhores.`, `You have a spot (priority ${p.priority}), but no club in blocks ${p.priority}–9 has enough players in the deck to field a team. Finish higher to unlock better blocks.`)
               : tr('A vaga é dos 8 primeiros da Série A ou do campeão da Copa. Ano que vem tem mais.', 'Spots go to the top 8 of Série A or the Cup winner. There is always next season.')}
           </p>
           <button type="button" style={{ ...btn('#fff'), marginTop: 12 }} onClick={() => { setModo('pular'); begin(null, []) }}>⏭️ {tr('Pular', 'Skip')}</button>
@@ -365,23 +360,26 @@ export function CareerInternationalView(p: Props) {
         {/* ── PASSO 2: o clube (só os blocos DESTA competição) ── */}
         <Faixa comp={comp} titulo={`${nomeComp(comp)} · ${tr('escolha seu clube', 'choose your club')}`} sub={`${tr('Passo 2 de 3', 'Step 2 of 3')} · ${tr('só clubes da', 'only clubs from')} ${orgComp(comp)}`} />
         {passos}
-        <div style={{ ...card, padding: '10px 12px', marginTop: 8 }}><p style={{ margin: 0, fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{tr('Sua prioridade é', 'Your priority is')} <b>{p.priority}</b>{p.priority === 1 ? ` (${tr('campeão da A', 'Série A champion')})` : ''}: {tr('blocos', 'blocks')} {p.priority}–9 {tr('liberados', 'available')}. {p.userTeam} {tr('só veste a camisa do clube: escudo, mascote e elenco continuam os seus.', 'only wears the club shirt: crest, mascot and squad stay yours.')}</p></div>
+        <div style={{ ...card, padding: '10px 12px', marginTop: 8 }}><p style={{ margin: 0, fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{tr('Sua prioridade é', 'Your priority is')} <b>{p.priority}</b>{p.priority === 1 ? ` (${tr('campeão da A', 'Série A champion')})` : ''}: {tr('blocos', 'blocks')} {p.priority}–9 {tr('liberados', 'available')}. {tr('Você convoca os jogadores do clube que existem no baralho, igual à seleção na Copa do Mundo.', 'You call up the club\'s players that exist in the deck, like a national team at the World Cup.')}</p></div>
         {INTERNATIONAL_BLOCKS.map((block, index) => {
           const nomes = block[comp].filter(name => p.choices.some(c => c.name === name))
           if (!nomes.length) return null
           return <div key={index} style={{ marginBottom: 4 }}>
             <p style={{ ...OSWALD, fontWeight: 700, fontSize: 13, margin: '10px 0 5px' }}>{tr('Bloco', 'Block')} {index + 1}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-              {nomes.map(name => <button key={name} type="button" onClick={() => setClub(name)} style={{ display: 'flex', alignItems: 'center', gap: 6, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '5px 10px 5px 6px', background: '#fff', ...OSWALD, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}><SeloClube clube={name} size={24} />{name}</button>)}
+              {nomes.map(name => { const n = internationalClubCards(name).length; const ok = clubeFechaTime(name); return <button key={name} type="button" disabled={!ok} onClick={() => ok && setClub(name)} title={ok ? undefined : tr(`${name} tem ${n} jogador${n === 1 ? '' : 'es'} no baralho — não fecha um time`, `${name} has ${n} player${n === 1 ? '' : 's'} in the deck — not enough for a team`)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '5px 10px 5px 6px', background: ok ? '#fff' : '#CBBF9E', ...OSWALD, fontWeight: 700, fontSize: 14, cursor: ok ? 'pointer' : 'not-allowed', opacity: ok ? 1 : .7 }}>
+                <SeloClube clube={name} size={24} />{ok ? name : `🔒 ${name}`}<small style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 800, fontSize: 9, color: '#555', textTransform: 'none' }}>{n} {tr('no baralho', 'in deck')}</small></button> })}
             </div>
           </div>
         })}
+        <p style={hint}>🔒 {tr('Clube trancado = ainda não tem jogadores suficientes no baralho pra fechar um 4-3-3 ou 4-4-2.', 'Locked club = not enough players in the deck yet to field a 4-3-3 or 4-4-2.')}</p>
         <button type="button" onClick={() => setComp(null)} style={{ ...btn('#fff'), marginTop: 12, fontSize: 12, padding: 8 }}>‹ {tr('Trocar de competição', 'Change competition')}</button>
         <p style={hint}>{comp === 'libertadores' ? tr('Nenhum clube da Champions aparece aqui. Quem joga a Libertadores só vê a Conmebol.', 'No Champions club appears here. Libertadores players only see Conmebol.') : tr('Nenhum clube da Libertadores aparece aqui. Quem joga a Champions só vê a UEFA.', 'No Libertadores club appears here. Champions players only see UEFA.')}</p>
       </> : <>
         {/* ── PASSO 3: a convocação ── */}
         {passos}
-        <InscricaoClube userTeam={p.userTeam} clube={club} comp={comp} elenco={real} onBack={() => setClub(null)} onConfirm={xi => begin(club, xi)} />
+        <InscricaoClube userTeam={p.userTeam} clube={club} comp={comp} onBack={() => setClub(null)} onConfirm={xi => begin(club, xi)} />
       </>}
       {rodape}
     </section>

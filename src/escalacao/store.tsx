@@ -6054,8 +6054,11 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (c.representedClub) {
         const ids = new Set((me.squad as WonCard[]).filter(isRealInternationalCard).map(card => card.id))
         const myTeam = c.teams.find(team => team.id === c.representedClub)
-        // 🧢 01/10: a carta convocada pode ser do SEU elenco OU uma das lendas do clube escolhido no baralho (Diego: "jogadores do baralho do Flamengo")
-        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && club.block >= (c.priority ?? 10)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => ids.has(card.id) || isInternationalClubCard(c.representedClub!, card))) return s
+        // 🧢 01/10 (Diego: *"eu não levo meu elenco… é todo jogador do Flamengo no baralho"*): a convocação é
+        // SÓ entre as cartas do clube escolhido no baralho, igual à seleção na Copa do Mundo. Carta do elenco
+        // do usuário NÃO entra (`ids` fica só pra referência de quem lê este trecho).
+        void ids
+        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && club.block >= (c.priority ?? 10)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return s
       } else if (c.registeredXI.length || c.teams.some(team => team.you)) return s
       s.careerInternational = c
       return s
