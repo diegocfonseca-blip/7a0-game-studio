@@ -14,6 +14,12 @@ avança sozinho; manual tem botão).
   semi 20 · vice 30 · campeão 60 (um pouco acima da Copa do Brasil: 6/10/16/25/50); Mundial vice +10 · campeão +25 (um
   pouco acima da Supercopa 8/20). Palavras dele: *"um pouco mais do que a Copa do Brasil… por etapas… Mundial um pouco
   mais que a Supercopa"*. Testes `testa-temporada-internacional.mjs`/`testa-fixtures-carreira-internacional.mjs` atualizados.
+- 🧢 **2ª rodada do teste (01/10, 18:50)**: *"eu escolhi o Flamengo… não tá aparecendo os jogadores do baralho do
+  Flamengo pra eu convocar"*. Agora a convocação é entre as **lendas do clube escolhido no baralho** (igual à seleção
+  na Copa do Mundo): `internationalClubCards` em `career-international.ts` (id `intl:nome|clube|ano`), e o reducer
+  aceita carta do elenco OU do clube (`isInternationalClubCard`). Medido: **30 dos 72 clubes fecham um 11 sozinhos**
+  (Flamengo 77 cartas, Real Madrid 52…; Libertad/Emelec/Olimpia 0). Clube que não fecha completa com o SEU elenco,
+  marcado "seu elenco", com aviso do porquê. E o "ranking internacional de clubes" saiu da tela (*"não serve pra nada"*).
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
 
 ### (pedido original, pra memória)
