@@ -7,6 +7,7 @@ try {
   const { makeInternationalCampaign } = await vite.ssrLoadModule('/src/escalacao/career-international-season.ts')
   const { summarizeInternationalCampaign } = await vite.ssrLoadModule('/src/escalacao/career-international-summary.ts')
   const { internationalCareerRanking } = await vite.ssrLoadModule('/src/escalacao/career-international-ranking.ts')
+  const { pontosDeTitulos } = await vite.ssrLoadModule('/src/escalacao/pyramidseason.tsx')
   const { internationalChoice, internationalQualifiers, isInternationalCareerTester } = await vite.ssrLoadModule('/src/escalacao/career-international.ts')
   const needs = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
   const xi = Object.entries(needs).flatMap(([pos, count]) => CATALOG_BOTH[pos].slice(0, count).map((card, i) => ({ ...card, pos, id: `minha-${pos}-${i}` })))
@@ -47,6 +48,7 @@ try {
   assert.equal(rank.length, 72)
   assert.equal(rank.find(row => row.club === campaign.mundialChampion).mundial, 1)
   assert.equal(rank.reduce((n, row) => n + row.games, 0), matches.length * 2)
+  assert.equal(rank.reduce((n, row) => n + row.points, 0), 130)
   const oldHistory = [{ ...summary, teamRecords: undefined, botPlayerStats: undefined }]
   assert.equal(internationalCareerRanking(oldHistory).find(row => row.club === campaign.libertadoresChampion).libertadores, 1)
   assert.equal(isInternationalCareerTester('diego.c.fonseca@gmail.com'), true)
@@ -70,7 +72,16 @@ try {
   const century = makeInternationalCampaign({ ...input, season: 100 })
   assert.equal(century.steps.at(-1).mundial.competition, 'mundial')
   assert.equal(century.steps.slice(0, -1).every(step => !step.mundial), true)
-  console.log('Temporada internacional: 72 elencos, 2 competições, Mundial e estatísticas OK')
+  const european = makeInternationalCampaign({ ...input, representedClub: 'Real Madrid' })
+  assert.equal(european.teams.find(team => team.you)?.name, 'Meu FC')
+  assert.equal(european.teams.find(team => team.you)?.competition, 'champions')
+  assert.equal(summarizeInternationalCampaign(european).competition, 'champions')
+  assert.equal(european.steps.at(-1).mundial.competition, 'mundial')
+  for (const [title, points] of Object.entries({ world: 200, mundial: 50, libertadores: 40, champions: 40, copa: 30 })) {
+    assert.equal(pontosDeTitulos({ [title]: 1 }), points, `pontuação local: ${title}`)
+  }
+  assert.equal(pontosDeTitulos({ world: 1, mundial: 1, libertadores: 1, champions: 1, copa: 1 }), 360)
+  console.log('Temporada internacional: 72 elencos, 2 competições, Mundial, estatísticas e pontos locais OK')
 } finally {
   await vite.close()
 }
