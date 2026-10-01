@@ -102,6 +102,24 @@ export const INTERNATIONAL_CLUB_ALIASES: Readonly<Record<string, readonly string
   'Barcelona-EQU': ['Barcelona SC'],
 }
 
+// 🧢 AS LENDAS DO CLUBE (01/10, Diego no 1º teste: *"eu escolhi o Flamengo… não tá
+// aparecendo os jogadores do baralho do Flamengo pra eu convocar"*). Igual à Copa do
+// Mundo com a seleção: escolheu o Flamengo, convoca entre as cartas REAIS do Flamengo
+// no baralho. O id é `intl:` + a identidade da carta (nome|clube|ano), estável entre
+// aparelhos. Clube com pouca carta no baralho (Libertad, Emelec…) completa com o
+// elenco do usuário — isso é decisão da TELA; aqui só mora a lista do clube.
+export type InternationalPoolCard = InternationalCard & { id: string; fame: number; bio?: string }
+export function internationalClubCards(club: string): InternationalPoolCard[] {
+  const names = [club, ...(INTERNATIONAL_CLUB_ALIASES[club] ?? [])]
+  return Object.entries(CATALOG_BOTH).flatMap(([pos, cards]) => cards
+    .filter(c => names.includes(c.club))
+    .map(c => ({ ...c, pos: pos as InternationalCard['pos'], id: `intl:${internationalCardKey(c)}` })))
+}
+/** a carta é uma das lendas do clube (o id `intl:` bate com uma carta real dele) */
+export function isInternationalClubCard(club: string, card: { id: string; name: string; club: string; year: number }): boolean {
+  return card.id === `intl:${internationalCardKey(card)}` && internationalClubCards(club).some(c => c.id === card.id)
+}
+
 /**
  * Distribuição após a escolha do usuário. Prioriza cartas históricas da
  * instituição e completa lacunas com cartas reais do mesmo baralho. Cada carta

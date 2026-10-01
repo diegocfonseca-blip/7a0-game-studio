@@ -19,7 +19,7 @@
 // mostrar nada) — por isso "não vejo a outra".
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { Card, WonCard } from './types'
-import { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, isRealInternationalCard, validInternationalXI, type InternationalClub, type InternationalCompetition } from './career-international'
+import { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, internationalClubCards, isRealInternationalCard, validInternationalXI, type InternationalClub, type InternationalCompetition } from './career-international'
 import { makeInternationalCampaign, tableFor, type InternationalCampaign, type InternationalHistoryEntry, type InternationalMatch, type InternationalPhase, type InternationalTableRow, type InternationalTie } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
 import { CompetitionMatch, CompetitionStage } from './online-match-visual'
@@ -29,7 +29,6 @@ import { mascoteKeyDoTime, FestaoMascote } from './mascotes'
 import { tr } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
-import { internationalCareerRanking } from './career-international-ranking'
 import { LiveScoreCard, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode } from './screens'
 import libertaImg from './img/online-liberta-v25.webp'
@@ -116,28 +115,40 @@ function Tabela({ rows, me, cortes, titulo, campaign }: { rows: InternationalTab
   </div>
 }
 
-// 🧢 PASSO 3 — a convocação, IGUAL à da Copa do Mundo (`ConvocacaoScreen`), só que o
-// pool é o SEU elenco (cartas reais do baralho) e o escudo é o do clube escolhido.
-function InscricaoClube({ userTeam, clube, comp, real, onBack, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; real: WonCard[]; onBack: () => void; onConfirm: (xi: WonCard[]) => void }) {
+// 🧢 PASSO 3 — a convocação, IGUAL à da Copa do Mundo (`ConvocacaoScreen`): escolheu o
+// Flamengo, convoca entre as LENDAS DO FLAMENGO no baralho (Diego 01/10: *"não tá
+// aparecendo os jogadores do baralho do Flamengo pra eu convocar"*). Só quando o clube
+// não tem carta pra fechar um 4-3-3/4-4-2 (30 dos 72 fecham sozinhos) é que o SEU
+// elenco entra como complemento, marcado "seu elenco", com o aviso do porquê.
+type PoolCard = Card & { origem: 'clube' | 'elenco' }
+function InscricaoClube({ userTeam, clube, comp, elenco, onBack, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; elenco: WonCard[]; onBack: () => void; onConfirm: (xi: Card[]) => void }) {
   const faces = useLegendPresentation()
-  const shapeAvailable = (form: Shape) => sections.every(pos => new Set(real.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos])
+  const fecha = (cards: { pos: string; name: string; club: string; year: number }[], form: Shape) => sections.every(pos => new Set(cards.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos])
+  const doClube = useMemo<PoolCard[]>(() => internationalClubCards(clube).map(c => ({ ...(c as unknown as Card), origem: 'clube' as const })), [clube])
+  const precisaElenco = !fecha(doClube, '4-3-3') && !fecha(doClube, '4-4-2')
+  const real = useMemo<PoolCard[]>(() => {
+    if (!precisaElenco) return doClube
+    const chaves = new Set(doClube.map(internationalCardKey))
+    return [...doClube, ...elenco.filter(c => !chaves.has(internationalCardKey(c))).map(c => ({ ...c, origem: 'elenco' as const }))]
+  }, [doClube, elenco, precisaElenco])
+  const shapeAvailable = (form: Shape) => fecha(real, form)
   const [shape, setShape] = useState<Shape>(shapeAvailable('4-3-3') ? '4-3-3' : '4-4-2')
   const [tab, setTab] = useState<Section>('GOL')
   const [q, setQ] = useState('')
   const [xi, setXi] = useState<string[]>([])
   const [aviso, setAviso] = useState<string | null>(null)
   const need = needs[shape]
-  const selected = xi.map(id => real.find(c => c.id === id)).filter((c): c is WonCard => !!c)
+  const selected = xi.map(id => real.find(c => c.id === id)).filter((c): c is PoolCard => !!c)
   const bySec = (s: Section) => selected.filter(c => c.pos === s)
   const registered = validInternationalXI(selected) && sections.every(s => bySec(s).length === need[s])
-  const toggle = (c: WonCard) => {
+  const toggle = (c: PoolCard) => {
     if (xi.includes(c.id)) { setXi(ids => ids.filter(id => id !== c.id)); setAviso(null); return }
     if (selected.some(o => internationalCardKey(o) === internationalCardKey(c))) { setAviso(tr(`${c.name} (${c.club} ${c.year}) já está convocado.`, `${c.name} (${c.club} ${c.year}) is already called up.`)); return }
     if (bySec(c.pos as Section).length >= need[c.pos as Section]) { setAviso(tr(`${c.pos} já está completo no ${shape} — tire um pra convocar ${c.name}.`, `${c.pos} is already full in the ${shape} — remove one to call up ${c.name}.`)); return }
     setXi(ids => [...ids, c.id]); setAviso(null)
   }
   const list = real.filter(c => c.pos === tab && c.name.toLowerCase().includes(q.toLowerCase()))
-  const linha = (slots: { sec: Section; c: WonCard | null }[]) => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
+  const linha = (slots: { sec: Section; c: PoolCard | null }[]) => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 4 }}>
     {slots.map((sl, i) => sl.c ? <JogadorNoCampo key={i} nome={sl.c.name} clube={sl.c.club} ano={sl.c.year} tag={sl.sec} alt={52} fonteNome={10} rosto={faces} /> : <VagaNoCampo key={i} tag={sl.sec} alt={52} />)}
   </div>
   const slotsDe = (s: Section) => { const picked = bySec(s); return Array.from({ length: need[s] }, (_, i) => ({ sec: s, c: picked[i] ?? null })) }
@@ -147,7 +158,7 @@ function InscricaoClube({ userTeam, clube, comp, real, onBack, onConfirm }: { us
       <SeloClube clube={clube} size={34} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0 }}>{tr('Convocação', 'Call-up')} · {clube}</p>
-        <p style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', margin: '2px 0 0' }}>{real.length} {tr('jogadores no seu elenco — só carta real do baralho conta. Convoque 11.', 'players in your squad — only real deck cards count. Call up 11.')}</p>
+        <p style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', margin: '2px 0 0' }}>{doClube.length} {tr('lendas do', 'legends of')} {clube} {tr('no baralho — só nome, clube e ano. Convoque 11.', 'in the deck — just name, club and year. Call up 11.')}</p>
       </div>
       <div style={{ background: GOLD, border: `2px solid ${INK}`, borderRadius: 10, padding: '4px 9px', textAlign: 'center', color: INK }}>
         <b style={{ display: 'block', fontSize: 15, lineHeight: 1, ...OSWALD }}>{selected.length}/11</b>
@@ -162,6 +173,7 @@ function InscricaoClube({ userTeam, clube, comp, real, onBack, onConfirm }: { us
       {sections.map(s => { const done = bySec(s).length >= need[s]; return <button key={s} type="button" onClick={() => setTab(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 10.5, ...OSWALD, cursor: 'pointer', background: done ? GREEN : tab === s ? GOLD : '#fff', color: done ? '#fff' : INK, boxShadow: tab === s ? `2px 2px 0 0 ${INK}` : 'none' }}>
         {s}<span style={{ display: 'block', fontSize: 7.5, fontWeight: 800, opacity: .8, fontFamily: 'Inter, system-ui, sans-serif' }}>{bySec(s).length}/{need[s]}{done ? ' ✓' : ''}</span></button> })}
     </div>
+    {precisaElenco && <div role="status" style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>🧳 {clube} {tr(`só tem ${doClube.length} lenda${doClube.length === 1 ? '' : 's'} no baralho — não fecha um time. Complete com o seu elenco (marcados "seu elenco").`, `only has ${doClube.length} legend${doClube.length === 1 ? '' : 's'} in the deck — not enough for a team. Complete with your squad (tagged "your squad").`)}</div>}
     {aviso && <div role="status" style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', marginBottom: 8, background: '#FDE9C8', fontWeight: 800, fontSize: 10.5, lineHeight: 1.4 }}>✋ {aviso}</div>}
     <input value={q} onChange={e => setQ(e.target.value)} placeholder={`${tr('🔎 buscar nos', '🔎 search the')} ${real.filter(c => c.pos === tab).length} ${tr(...SEC_LABEL[tab])}…`}
       style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 11, padding: '7px 11px', fontWeight: 800, fontSize: 12, background: '#fff', marginBottom: 8, boxSizing: 'border-box' }} />
@@ -172,6 +184,7 @@ function InscricaoClube({ userTeam, clube, comp, real, onBack, onConfirm }: { us
           <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : full ? '🔒' : ''}</span>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 12.5, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
           {on && <span style={{ background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>{tr('toque pra tirar', 'tap to remove')}</span>}
+          {c.origem === 'elenco' && <span style={{ background: '#7C3AED', color: '#fff', border: `2px solid ${INK}`, borderRadius: 999, fontSize: 7, fontWeight: 900, padding: '1px 5px', flexShrink: 0 }}>{tr('seu elenco', 'your squad')}</span>}
           <span style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.club} · {c.year}</span>
         </button> })}
         {list.length === 0 && <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', padding: 14 }}>{tr('ninguém com esse nome aqui… 🔎', 'nobody with that name here… 🔎')}</p>}
@@ -189,7 +202,7 @@ function InscricaoClube({ userTeam, clube, comp, real, onBack, onConfirm }: { us
       {registered ? `✓ ${tr('Confirmar os 11 e começar a', 'Confirm the 11 and start the')} ${nomeComp(comp)}` : `${tr('Faltam', 'Missing')} ${11 - selected.length} ${tr('pra fechar os 11', 'to complete the 11')}`}
     </button>
     <button type="button" onClick={onBack} style={{ ...btn('#fff'), marginTop: 8, fontSize: 12, padding: 8 }}>‹ {tr('Trocar de clube', 'Change club')}</button>
-    <p style={hint}>{tr('A inscrição fica congelada durante a campanha. ', 'The squad is frozen for the whole campaign. ')}{userTeam} {tr('mantém escudo, mascote e elenco.', 'keeps its crest, mascot and squad.')}</p>
+    <p style={hint}>{tr('A convocação fica congelada durante a campanha. ', 'The call-up is frozen for the whole campaign. ')}{userTeam} {tr('veste a camisa do', 'wears the shirt of')} {clube}{tr('; escudo e mascote continuam os seus.', '; crest and mascot stay yours.')}</p>
   </>
 }
 
@@ -220,8 +233,8 @@ export function CareerInternationalView(p: Props) {
   const finished = p.history.some(entry => entry.season === p.season)
   const rep = current?.representedClub ?? null
   const myComp: InternationalCompetition | null = rep ? (INTERNATIONAL_CLUBS.find(c => c.name === rep)?.competition ?? null) : null
-  const begin = (representedClub: string | null, xi: WonCard[]) => {
-    p.onStart(makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi as Card[] : [] }))
+  const begin = (representedClub: string | null, xi: Card[]) => {
+    p.onStart(makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [] }))
   }
   // ── a noite atual ──────────────────────────────────────────────────────────
   const reveal = current?.reveal ?? 0
@@ -289,7 +302,7 @@ export function CareerInternationalView(p: Props) {
   // ── ESTANTE / RANKING (fica embaixo de tudo, dobrado) ──────────────────────
   const rodape = <>
     {p.history.filter(e => e.representedClub).length > 0 && <details style={{ marginTop: 15 }}><summary><b>{tr('ESTANTE · CLUBES REPRESENTADOS', 'SHELF · CLUBS REPRESENTED')}</b></summary>{INTERNATIONAL_CLUBS.filter(c => p.history.some(e => e.representedClub === c.name)).map(c => { const rows = p.history.filter(e => e.representedClub === c.name); const total = (key: 'games' | 'wins' | 'draws' | 'losses' | 'goalsFor' | 'goalsAgainst' | 'libertadores' | 'champions' | 'mundial' | 'runnerUp') => rows.reduce((n, e) => n + e[key], 0); const leaders = clubLeaders(rows); return <p key={c.name} style={{ fontSize: 12 }}><SeloClube clube={c.name} size={20} /> <b>{c.name}</b> · {rows.length} {tr('participações', 'entries')} ({rows.map(e => e.season).join(', ')}) · {total('games')} J · {total('wins')} V · {total('draws')} E · {total('losses')} D · {total('goalsFor')} GP · {total('goalsAgainst')} GC · {total('libertadores')} Libertadores · {total('champions')} Champions · {total('mundial')} {tr('Mundiais', 'Club World Cups')} · {total('runnerUp')} {tr('vices', 'runner-ups')} · {tr('artilheiro', 'top scorer')}: {leaders.scorer?.name ?? '—'} ({leaders.scorer?.goals ?? 0}) · {tr('garçom', 'top assists')}: {leaders.assistant?.name ?? '—'} ({leaders.assistant?.assists ?? 0})</p> })}</details>}
-    {p.history.length > 0 && <details style={{ marginTop: 15 }}><summary><b>🌐 {tr('RANKING INTERNACIONAL DE CLUBES', 'INTERNATIONAL CLUB RANKING')}</b></summary><p style={{ fontSize: 11 }}>{tr('Títulos: Mundial 60 · Libertadores 50 · Champions 50. Vitórias, saldo e nome desempatam.', 'Titles: Club World Cup 60 · Libertadores 50 · Champions 50. Wins, goal difference and name break ties.')}</p><ol style={{ paddingLeft: 24, fontSize: 12 }}>{internationalCareerRanking(p.history).map(row => <li key={row.club} style={{ marginBottom: 4 }}><SeloClube clube={row.club} size={19} /> <b>{row.club}</b> · {row.points} pts · {row.mundial} Mundial · {row.libertadores} Libertadores · {row.champions} Champions · {row.games} J · {row.wins} V · {row.draws} E · {row.losses} D · {row.goalsFor}–{row.goalsAgainst}</li>)}</ol></details>}
+    {/* 🚫 01/10 (Diego): o "ranking internacional de clubes" saiu da tela — *"não serve pra nada"*. O que conta pro usuário é o ranking GLOBAL (aba Rank). */}
   </>
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -368,7 +381,7 @@ export function CareerInternationalView(p: Props) {
       </> : <>
         {/* ── PASSO 3: a convocação ── */}
         {passos}
-        <InscricaoClube userTeam={p.userTeam} clube={club} comp={comp} real={real} onBack={() => setClub(null)} onConfirm={xi => begin(club, xi)} />
+        <InscricaoClube userTeam={p.userTeam} clube={club} comp={comp} elenco={real} onBack={() => setClub(null)} onConfirm={xi => begin(club, xi)} />
       </>}
       {rodape}
     </section>
