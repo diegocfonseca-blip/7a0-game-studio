@@ -3168,7 +3168,7 @@ const L40_WORLD_ZAG: C[] = [
 const L40_WORLD_MEI: C[] = [
   { name: "Esteban Cambiasso", club: "Independiente", year: 1998, fame: 3, lo: 76, hi: 85, bio: "Volante que se firmou no Independiente antes de virar peça da Inter e do Real Madrid." },
   { name: "Federico Insúa", club: "Independiente", year: 2003, fame: 3, lo: 76, hi: 85, bio: "O meia \"Pocho\", camisa 10 do Independiente nos anos 2000." },
-  { name: "Pedro Rocha", club: "Peñarol", year: 1965, fame: 4, lo: 84, hi: 90, bio: "O \"Verdugo\", maestro do Peñarol bicampeão mundial nos anos 60." },
+  { name: "Pedro Rocha", club: "Peñarol", year: 1965, fame: 5, lo: 88, hi: 93, bio: "O \"Verdugo\", maestro do Peñarol bicampeão mundial nos anos 60." },
   { name: "Pablo Bengoechea", club: "Peñarol", year: 1997, fame: 4, lo: 84, hi: 90, bio: "O \"Profesor\", meia de faltas perfeitas e pentacampeão uruguaio pelo Peñarol." },
   { name: "Álvaro Recoba", club: "Nacional-URU", year: 2010, fame: 4, lo: 84, hi: 90, bio: "O \"Chino\" voltou da Inter pra ser campeão uruguaio pelo Nacional." },
   { name: "Nicolás Lodeiro", club: "Nacional-URU", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Meia do Nacional campeão uruguaio antes de rodar por Ajax, Botafogo e Boca." },
@@ -3266,7 +3266,7 @@ const L40_WORLD_ATA: C[] = [
   { name: "Gabriel Batistuta", club: "Newell's Old Boys", year: 1988, fame: 4, lo: 84, hi: 90, bio: "Batigol foi revelado no Newell's antes de River, Boca e Fiorentina." },
   { name: "Abel Balbo", club: "Newell's Old Boys", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Atacante do Newell's campeão argentino de 1988, depois Udinese e Roma." },
   { name: "Jorge Valdano", club: "Newell's Old Boys", year: 1973, fame: 4, lo: 84, hi: 90, bio: "Campeão do mundo em 1986 pela Argentina, começou a carreira no Newell's." },
-  { name: "Mario Kempes", club: "Rosario Central", year: 1973, fame: 4, lo: 84, hi: 90, bio: "O Matador explodiu no Rosario Central antes de ser o craque da Copa de 78." },
+  { name: "Mario Kempes", club: "Rosario Central", year: 1973, fame: 5, lo: 88, hi: 93, bio: "O Matador explodiu no Rosario Central antes de ser o craque da Copa de 78." },
   { name: "Marco Ruben", club: "Rosario Central", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Rosario Central campeão da Copa Argentina de 2018." },
   { name: "Aldo Pedro Poy", club: "Rosario Central", year: 1971, fame: 3, lo: 76, hi: 85, bio: "Autor da \"palomita\" mais famosa do futebol argentino, contra o Newell's em 1971." },
   { name: "Nicolás González", club: "Argentinos Juniors", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Atacante revelado no Argentinos antes de Stuttgart, Fiorentina e Juventus." },
