@@ -56,6 +56,12 @@ avança sozinho; manual tem botão).
   ⚠️ Lição: ao ajustar a foto do baralho (`catalogo-snapshot.json`, formato `DECK|nome|clube|ano` → `f`), LER antes de
   abrir pra escrever — um `open(sp,'w')` dentro da chamada zerou o arquivo e isso foi publicado por alguns minutos
   (restaurado em seguida; o jogo não lê esse arquivo, só o gerador de novidades).
+- 🛡️ **Escudos + Leilão de Clubes dos 42 clubes novos (01/10, pedido do Diego: *"os times que não tem escudos, busque
+  na internet… seja carreira ou online"*)**: conferido com script — **72/72 têm arquivo oficial** em
+  `public/escudos-clubes/` (`escudos-oficiais.ts` + `escudos-internacionais.ts`, resolvidos por `escudoOficialDoClube`,
+  que o `SeloClube` já usa na carreira e no online) e **72/72 fecham um 11**. Grafia das 13 cartas do Chile unificada em
+  `U. de Chile` (`CLUB_GRAFIA` + apelido internacional + `paises.ts` + foto do baralho). Leilão de Clubes não tem lista
+  fixa: `buildDeckClubes` pega qualquer clube do baralho com carta sobrando no setor, então os novos já entram sozinhos.
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
 
 ### (pedido original, pra memória)

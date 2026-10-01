@@ -101,6 +101,7 @@ export const INTERNATIONAL_CLUB_ALIASES: Readonly<Record<string, readonly string
   'Bayer Leverkusen': ['Leverkusen'], // 01/10: o baralho escreve "Leverkusen" em quase todas as cartas do clube
   'LDU': ['LDU Quito'],
   'Barcelona-EQU': ['Barcelona SC'],
+  'Universidad de Chile': ['U. de Chile'], // 01/10: baralho unificado na grafia curta (Lote 40)
 }
 
 // 🧢 AS LENDAS DO CLUBE (01/10, Diego no 1º teste: *"eu escolhi o Flamengo… não tá
