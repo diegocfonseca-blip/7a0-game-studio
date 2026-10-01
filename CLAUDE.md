@@ -422,6 +422,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   "Pra todos" = todos os USUÁRIOS, nunca "todas as divisões". Carreira antiga sem
   Agência fica fora, como em toda regra nova da carreira.
 
+- **🌎 CARREIRA INTERNACIONAL É PASSO A PASSO, NO PADRÃO DO JOGO (01/10, 1º teste dele).** Escolhe a
+  competição (só os 2 banners) → escolhe o clube (só os blocos DAQUELA competição) → convoca na MESMA tela
+  da Copa do Mundo → joga só a sua competição com o placar padrão das Copas (tempo rolando, cara da
+  Libertadores/Champions) → só no fim aparece o 🌐 Mundial, jogo único contra o campeão da outra. Quem não
+  se classificou pula ou assiste. Palavras dele: *"se tô na Liberta não vejo da Champions e vice-versa… tudo
+  padrão do jogo"*. Detalhe completo em `docs/pendencias.md` (01/10). Mockup antes de codar.
 - **🧢💰 TÉCNICO VALE O QUE FOI NEGOCIADO, COM TETO (01/10, bug do Renato).** Palavras dele: *"o
   técnico fica com o valor do piso dele do que foi negociado no leilão, igual já acontece com o
   jogador… e baixar os exorbitantes pra um piso realista"*. Teto = **4× o piso da categoria**

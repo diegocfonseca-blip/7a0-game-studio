@@ -1,3 +1,28 @@
+## 01/10/2026 — 🌎 CARREIRA INTERNACIONAL: o fluxo que o Diego quer (1º teste dele, T43) ⏳ A FAZER
+
+Diego testou o teste fechado (prints às 16:41) e mandou REFAZER o fluxo, passo a passo, no padrão do jogo.
+Palavras dele: *"primeiro deveria aparecer só o banner da competição que quero jogar, como passo a passo… se for
+Libertadores mostrar só os blocos dos times da Libertadores… depois convocar igual já temos (Copa do Mundo)… se
+tô na Liberta não vejo da Champions e vice-versa… a simulação deve ser bonita, estilo Libertadores ou Champions,
+padrão das Copas, rolando o tempo, lento… depois que acabar vem o banner do Mundial, jogo único contra quem ganhou
+a outra… quem não se classificou pode pular ou assistir"*. Traduzindo em passos (um toque por passo, como o roteiro):
+1. **Escolher a competição**: só os DOIS banners (🌎 Libertadores · 🌎 Champions). Nada de tabela de 72 clubes nem
+   lista das duas competições juntas. O banner do Mundial NÃO aparece aqui.
+2. **Escolher o clube**: só os blocos DA competição escolhida (Libertadores → só Conmebol; Champions → só UEFA),
+   respeitando a prioridade (blocos liberados).
+3. **Convocar os 11**: a MESMA tela de convocação que já existe (Copa do Mundo/Clubes: campinho `JogadorNoCampo`
+   com rosto das lendas, abas por posição, relógio) — não a janela nova de busca/checkbox. 🐛 No teste, ele escolheu
+   **Flamengo** e a janela abriu dizendo *"representando Real Madrid"* e com jogadores que não eram os dele
+   (*"apareceu jogador do Botafogo"*). Conferir o vínculo clube escolhido → inscrição → elenco.
+4. **A campanha**: só a competição dele na tela (quem está na Liberta não vê a Champions, e vice-versa). Partidas com
+   o placar padrão do jogo (o mesmo das Copas: tempo rolando, ritmo lento, lance do gol), com a cara da competição
+   (Libertadores ou Champions). Nada de "14 etapas" em texto.
+5. **Mundial**: só DEPOIS de acabar a continental aparece o banner do 🌐 Mundial — **jogo único** contra o campeão
+   da outra competição (empate = pênaltis, padrão da Copa do Mundo).
+6. **Quem não se classificou**: pode PULAR ou ASSISTIR a simulação (com ou sem Modo Manual).
+⚠️ UI nova = mockup primeiro e OK do Diego antes de codar. O dono deste código é a série de commits do Lucas
+(`74743d2…06c6ab6`, teste fechado só na conta do Diego). Esta sessão só registrou o pedido.
+
 ## 01/10/2026 — 🧪 Save de TESTE do Diego pra carreira internacional (editado no banco, só nuvem)
 
 Diego quis testar Libertadores/Champions/Mundial (teste fechado da conta dele) e disse *"só quero testar, depois eu
