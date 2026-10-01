@@ -11,6 +11,11 @@ try {
     authListeners.push(fn)
     return { data: { subscription: { unsubscribe() {} } } }
   }
+  let serverAllowsDiego = true
+  let serverGateMissing = false
+  supabase.rpc = async name => name === 'esc_private_international_rank_allowed'
+    ? { data: serverAllowsDiego, error: serverGateMissing ? { code: 'PGRST202' } : null }
+    : { data: null, error: { code: 'PGRST202' } }
   const onAuth = (event, session) => { for (const fn of authListeners) fn(event, session) }
 
   const { internationalTitleCounts } = await vite.ssrLoadModule('/src/escalacao/career-international-rank-snapshot.ts')
@@ -55,6 +60,24 @@ try {
   verificationQueue.shift()({ data: { user: other }, error: null })
   await new Promise(resolve => setTimeout(resolve, 0))
   assert.equal(internacionalCarreiraAuthResolvida(), true)
+  serverAllowsDiego = false
+  onAuth('SIGNED_IN', { user: diego })
+  verificationQueue.shift()({ data: { user: diego }, error: null })
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(internacionalCarreiraLiberada(), false, 'servidor negou mesmo com e-mail correto')
+  serverAllowsDiego = true
+  serverGateMissing = true
+  onAuth('SIGNED_IN', { user: diego })
+  verificationQueue.shift()({ data: { user: diego }, error: null })
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(internacionalCarreiraLiberada(), false, 'RPC ausente não abre a carreira')
+  serverGateMissing = false
+  onAuth('SIGNED_IN', { user: diego })
+  verificationQueue.shift()({ data: { user: diego }, error: null })
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(internacionalCarreiraLiberada(), true, 'liberação exige Auth e servidor')
+  onAuth('SIGNED_OUT', null)
+  assert.equal(internacionalCarreiraLiberada(), false)
 
   const calls = []
   supabase.rpc = async name => {

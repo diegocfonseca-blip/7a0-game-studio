@@ -7712,6 +7712,7 @@ export function PyramidSeasonScreen() {
   // silenciosa: sem login ou sem net, o jogo segue normal — é só o rank que não
   // atualiza pro resto da galera.
   const rankSnapSeasonRef = useRef(-1)
+  const rankIntlSnapSeasonRef = useRef(-1)
   useEffect(() => {
     if (!state.agenciaOn || state.onlineMode === 'online' || !state.careerOnline) return
     // 🏛️ MULTICLUBES (Diego 14/08 — bug real, achado numa conta com 232 títulos de
@@ -7722,7 +7723,7 @@ export function PyramidSeasonScreen() {
     // o técnico tinha regredido de repente. O 2º clube NUNCA deve contar aqui
     // (regra do Diego): só grava quando o clube ativo é o PRINCIPAL.
     if (state.multiClubeAtivo) return
-    if (rankSnapSeasonRef.current === state.seasonNo) return
+    if (rankSnapSeasonRef.current === state.seasonNo && (!intlEnabled || rankIntlSnapSeasonRef.current === state.seasonNo)) return
     rankSnapSeasonRef.current = state.seasonNo
     const clearPendingRank = () => { if (rankSnapSeasonRef.current === state.seasonNo) rankSnapSeasonRef.current = -1 }
     ;(async () => {
@@ -7790,12 +7791,14 @@ export function PyramidSeasonScreen() {
         // enquanto as três colunas novas aguardam migração e revisão das RPCs.
         // UPDATE não cria linha se o primeiro UPSERT falhou. Repetir sobrescreve,
         // sem somar os mesmos títulos uma segunda vez.
-        if (isInternationalCareerTester(data.user.email)) {
-          await supabase.from('esc_pyramid_rank_snap')
+        if (intlEnabled && isInternationalCareerTester(data.user.email)) {
+          const { data: updated, error: intlError } = await supabase.from('esc_pyramid_rank_snap')
             .update(internationalTitleCounts(state.careerInternationalHistory, state.seasonNo - 1))
             .eq('user_id', data.user.id)
             .eq('career_id', state.seed ?? 0)
             .eq('season_no', state.seasonNo)
+            .select('user_id')
+          if (!intlError && updated?.length === 1) rankIntlSnapSeasonRef.current = state.seasonNo
         }
       } catch { clearPendingRank() /* tenta novamente sem travar o jogo */ }
     })()

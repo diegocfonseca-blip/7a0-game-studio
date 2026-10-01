@@ -26,6 +26,6 @@ Estado: **não aplicar em produção nesta preparação**. A proposta completa d
 
 ## Limites observados
 
-- A liberação de interface e ações está ligada a `getUser()` verificado para `diego.c.fonseca@gmail.com`; esta preparação não validou isolamento em duas contas reais. O jogo é executado no navegador, portanto o gate de interface não substitui a trava do banco para pontos compartilhados.
+- A liberação de interface e ações exige `getUser()` verificado para `diego.c.fonseca@gmail.com` **e** resposta positiva da RPC privada no servidor. Se a proposta SQL ainda não existe, a função fica fechada inclusive para Diego. Esta preparação não validou isolamento em duas contas reais. O jogo é executado no navegador, portanto o gate de interface não substitui a trava do banco para pontos compartilhados.
 - Saves anteriores à expansão não contêm placares ou estatísticas de bots de temporadas já encerradas; o histórico antigo deve permanecer intacto, sem inventar partidas.
 - O save local e o backup da carreira na nuvem já existem. A campanha é gravada no estado após cada etapa; a integração futura do ranking não deve criar outro save paralelo.

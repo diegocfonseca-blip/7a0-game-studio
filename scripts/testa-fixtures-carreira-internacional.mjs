@@ -12,6 +12,9 @@ try {
     queueMicrotask(() => fn('SIGNED_IN', { user }))
     return { data: { subscription: { unsubscribe() {} } } }
   }
+  supabase.rpc = async name => name === 'esc_private_international_rank_allowed'
+    ? { data: true, error: null }
+    : { data: null, error: { code: 'PGRST202' } }
 
   const { CATALOG_BOTH } = await vite.ssrLoadModule('/src/escalacao/data.ts')
   const { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, internationalChoice, internationalQualifiers, isRealInternationalCard, validInternationalXI } = await vite.ssrLoadModule('/src/escalacao/career-international.ts')

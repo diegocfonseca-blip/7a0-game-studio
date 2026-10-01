@@ -343,13 +343,25 @@ function applyInternacionalCarreira(email?: string | null): void {
   internacionalCarreiraOk = next
   listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
 }
+function authorizeInternacionalCarreira(user: { email?: string | null } | null | undefined, version: number): void {
+  if (version !== internacionalCarreiraAuthVersion) return
+  if (!isInternationalCareerTester(user?.email)) { applyInternacionalCarreira(null); return }
+  pendingInternacionalCarreira()
+  // O e-mail verificado por getUser é condição necessária. O servidor decide
+  // a autorização final pelo auth.uid() do token; RPC ausente falha fechada.
+  void supabase.rpc('esc_private_international_rank_allowed').then(({ data, error }) => {
+    if (version === internacionalCarreiraAuthVersion) applyInternacionalCarreira(!error && data === true ? user?.email : null)
+  }, () => {
+    if (version === internacionalCarreiraAuthVersion) applyInternacionalCarreira(null)
+  })
+}
 function verifyInternacionalCarreira(sessionUser?: { id: string } | null): void {
   const version = ++internacionalCarreiraAuthVersion
   if (!sessionUser) { applyInternacionalCarreira(null); return }
   pendingInternacionalCarreira()
   void supabase.auth.getUser().then(({ data, error }) => {
     if (version !== internacionalCarreiraAuthVersion) return
-    applyInternacionalCarreira(!error && data?.user?.id === sessionUser.id ? data.user.email : null)
+    authorizeInternacionalCarreira(!error && data?.user?.id === sessionUser.id ? data.user : null, version)
   }, () => {
     if (version === internacionalCarreiraAuthVersion) applyInternacionalCarreira(null)
   })
@@ -854,7 +866,7 @@ export function useElencoNovo(): boolean {
   return elenco27Ok
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(data?.user?.email); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyChampionsUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email); applyClubesUnlock(data?.user?.email) }, () => { if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(null) })
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); if (internacionalCarreiraAuthVersion === 0) authorizeInternacionalCarreira(data?.user, 0); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyChampionsUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email); applyClubesUnlock(data?.user?.email) }, () => { if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(null) })
 supabase.auth.onAuthStateChange((_event, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); verifyInternacionalCarreira(s?.user); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyChampionsUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email); applyElenco27(s?.user?.email); applyClubesUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
