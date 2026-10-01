@@ -1,3 +1,10 @@
+## 01/10/2026 — 🖼️ Mascote inteira na janelinha do placar ✅
+
+Print do Diego (foto pro Twitter): no gol do Neymarzetti o placar mostrava só as PERNAS do Mascarado. A janela do
+escudo recebia o BUSTO do carimbo (recorte de 176px dentro de uma div) e a caixa de 76px do placar só encolhe
+`<img>` direto. Agora o placar usa `mascoteInteiraDoTime` (a mesma da Entrada de Gala); o carimbo grande que
+atravessa a tela continua o busto, como sempre.
+
 ## 30/09/2026 — 🌐 Copa do Mundo online: 45s por seleção + "gerenciar" na tela dos países ✅
 
 Diego, vendo a live do canalmeianacanela: *"tempo de escolha de seleção… passe pra 45s por seleção. E coloque
