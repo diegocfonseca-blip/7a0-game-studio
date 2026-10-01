@@ -17,7 +17,7 @@ try {
     : { data: null, error: { code: 'PGRST202' } }
 
   const { CATALOG_BOTH } = await vite.ssrLoadModule('/src/escalacao/data.ts')
-  const { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, internationalChoice, internationalQualifiers, isRealInternationalCard, validInternationalXI } = await vite.ssrLoadModule('/src/escalacao/career-international.ts')
+  const { internationalClubCards, INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, internationalCardKey, internationalChoice, internationalQualifiers, isRealInternationalCard, validInternationalXI } = await vite.ssrLoadModule('/src/escalacao/career-international.ts')
   const { makeInternationalCampaign } = await vite.ssrLoadModule('/src/escalacao/career-international-season.ts')
   const { summarizeInternationalCampaign } = await vite.ssrLoadModule('/src/escalacao/career-international-summary.ts')
   const { internationalCareerRanking } = await vite.ssrLoadModule('/src/escalacao/career-international-ranking.ts')
@@ -115,7 +115,13 @@ try {
   state1.seasonNo = 87
   state1.round = 38
   state1.copaDoneSeason = 87
-  const campaign = makeInternationalCampaign({ ...base, seed: state1.seed, representedClub: 'Flamengo' })
+  // 🧢 01/10: a convocação é SÓ entre as cartas do clube no baralho (Diego: "eu não levo meu elenco")
+  const xiFla = Object.entries(needs).flatMap(([pos, count]) => internationalClubCards('Flamengo').filter(c => c.pos === pos).slice(0, count))
+  assert.equal(validInternationalXI(xiFla), true)
+  const campaign = makeInternationalCampaign({ ...base, seed: state1.seed, representedClub: 'Flamengo', userXI: xiFla })
+  // carta do elenco do usuário (fora do baralho do clube) NÃO passa no reducer
+  const campanhaElenco = makeInternationalCampaign({ ...base, seed: state1.seed, representedClub: 'Flamengo' })
+  assert.equal(reducer(state1, { type: 'START_INTERNATIONAL_CAMPAIGN', campaign: campanhaElenco }).careerInternational ?? null, null)
   let state = reducer(state1, { type: 'START_INTERNATIONAL_CAMPAIGN', campaign })
   assert.equal(state.careerInternational?.representedClub, 'Flamengo')
   for (let i = 0; i < 14; i++) state = reducer(state, { type: 'ADVANCE_INTERNATIONAL_CAMPAIGN' })
