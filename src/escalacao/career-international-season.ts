@@ -51,6 +51,10 @@ export type InternationalHistoryEntry = {
   topScorer?: { name: string; club: string; year: number; goals: number }
   topAssist?: { name: string; club: string; year: number; assists: number }
   playerStats: { key: string; name: string; club: string; year: number; games: number; goals: number; assists: number }[]
+  /** Histórico de todos os 72 clubes e cartas, inclusive bots. Opcional para saves anteriores. */
+  teamRecords?: { club: string; games: number; wins: number; draws: number; losses: number; goalsFor: number; goalsAgainst: number }[]
+  /** chave da carta, clube representado, jogos, gols, assistências; forma curta para caber no save local. */
+  botPlayerStats?: [string, string, number, number, number][]
   libertadoresChampion: string; championsChampion: string; mundialChampion: string
 }
 

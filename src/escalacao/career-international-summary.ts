@@ -19,6 +19,16 @@ export function summarizeInternationalCampaign(campaign: InternationalCampaign):
   const bestCampaign = !club ? 'Sem classificação' : champ === club ? 'Campeão continental' : finalist ? 'Vice-campeão continental' : last?.title ?? 'Fase inicial'
   const prizeCoins = !club ? 0 : (champ === club ? 50 : finalist ? 40 : last?.title === 'Semifinal' ? 32 : last?.title === 'Quartas' ? 24 : last?.title === 'Oitavas' ? 16 : 10) + (campaign.mundialChampion === club ? 50 : 0)
   const stats = campaign.statistics.filter(s => s.you)
+  const records = new Map(campaign.teams.map(team => [team.id, { club: team.id, games: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 }]))
+  for (const match of campaign.steps.flatMap(step => [...(step.libertadores?.matches ?? []), ...(step.champions?.matches ?? []), ...(step.mundial?.matches ?? [])])) {
+    const home = records.get(match.home)!, away = records.get(match.away)!
+    home.games++; away.games++
+    home.goalsFor += match.hg; home.goalsAgainst += match.ag
+    away.goalsFor += match.ag; away.goalsAgainst += match.hg
+    if (match.hg > match.ag) { home.wins++; away.losses++ }
+    else if (match.hg < match.ag) { away.wins++; home.losses++ }
+    else { home.draws++; away.draws++ }
+  }
   const scorer = [...stats].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
   const assist = [...stats].sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name))[0]
   return {
@@ -31,6 +41,8 @@ export function summarizeInternationalCampaign(campaign: InternationalCampaign):
     topScorer: scorer?.goals ? { name: scorer.name, club: scorer.club, year: scorer.year, goals: scorer.goals } : undefined,
     topAssist: assist?.assists ? { name: assist.name, club: assist.club, year: assist.year, assists: assist.assists } : undefined,
     playerStats: stats.map(({ key, name, club, year, games, goals, assists }) => ({ key, name, club, year, games, goals, assists })),
+    teamRecords: [...records.values()],
+    botPlayerStats: campaign.statistics.filter(stat => !stat.you).map(stat => [stat.key, stat.team, stat.games, stat.goals, stat.assists]),
     libertadoresChampion: campaign.libertadoresChampion, championsChampion: campaign.championsChampion, mundialChampion: campaign.mundialChampion,
   }
 }
