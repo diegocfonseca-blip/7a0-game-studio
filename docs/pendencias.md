@@ -1,3 +1,14 @@
+## 01/10/2026 — 🧪 Save de TESTE do Diego pra carreira internacional (editado no banco, só nuvem)
+
+Diego quis testar Libertadores/Champions/Mundial (teste fechado da conta dele) e disse *"só quero testar, depois eu
+excluo essa carreira"*. A carreira mais nova dele (seed 562010372, T43 rodada 1) estava na Série C e, pelo motor
+(mesma `buildPyramid`+`simulatePyramid` da tela), terminaria entre 14º e 20º da A em qualquer troca de clubes —
+sem vaga (top 8). Então, SÓ NESSE SAVE, via `esc_pyramid_saves` (slot 0, `at` renovado pra nuvem ganhar do celular):
+`careerPlacements.m0 = 'A'` (Leão da Estradinha desceu pra C, 20 por série mantidos) e o elenco dele virou 19 lendas
+reais do baralho (ids das cartas preservados → `careerLineup` continua válido; `isRealInternationalCard` = 19/19).
+Simulado: campeão da A com 76 pts, 14 à frente. ⚠️ Não é regra nem ferramenta: carreira pra apagar depois do teste.
+Scripts da simulação ficaram só no scratchpad.
+
 ## 01/10/2026 — 🧢💰 Preço do técnico com TETO (bug do Renato, antonelli.renato@gmail.com) ✅
 
 Prints do Renato (carreira na **temporada 116**): Parreira vendido por 12.426 pra um bot com 1 moeda, Mourinho por
