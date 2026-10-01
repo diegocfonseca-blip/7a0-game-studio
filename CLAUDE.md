@@ -304,6 +304,12 @@ Agora:
    ⚠️ **Ligar um baralho NOVO no gerador exige semear a foto primeiro**, senão
    a home anuncia todas as cartas velhas dele como "entrou hoje" (foi o que
    quase aconteceu com as 174 do Mundo em 12/09).
+   ⚠️ **O gerador é POR RODADA: roda UMA vez por mudança e commita** (01/10). Ele
+   escreve só a diferença entre a foto e o baralho de agora — rodar de novo "pra
+   conferir" acha zero mudanças e **zera o arquivo gerado** (foram 422 linhas do
+   Lote 40, recuperadas com `git checkout`). E a foto (`catalogo-snapshot.json`,
+   formato `DECK|nome|clube|ano` → `{f: fame…}`) é a memória: nunca abrir pra
+   escrever antes de ler.
 5. **Regra permanente (21/08): MEXEU NO JOGADOR, TODO SAVE ATUALIZA.** Palavras
    do Diego: *"sempre que atualizarmos qualquer coisa de jogador deve atualizar,
    seja em carreira antiga, atual, ou em times dos bots — o nível, a categoria,
