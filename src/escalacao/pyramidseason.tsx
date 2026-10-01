@@ -5831,6 +5831,9 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
         <tbody>
           {top.map((r, i) => {
             const you = r.t.teamId === youId && r.t.teamId >= 0
+            const intlMundial = r.intl.reduce((n, entry) => n + entry.mundial, 0)
+            const intlLibertadores = r.intl.reduce((n, entry) => n + entry.libertadores, 0)
+            const intlChampions = r.intl.reduce((n, entry) => n + entry.champions, 0)
             // 🌍 a linha do último classificado ganha o corte da vaga da Copa do
             // Mundo — quem está em cima dela está dentro, quem está embaixo não.
             const ultimaVaga = i === VAGAS_MUNDO - 1
@@ -5853,9 +5856,12 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
                 </td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                   {/* 🌱 o V entra na conta (07/09): clube que só tem título de Várzea aparecia "—", como se nunca tivesse ganhado nada */}
-                  {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.supercopa + r.wc) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
+                  {(r.h.A + r.h.B + r.h.C + r.h.D + (r.h.V ?? 0) + r.copas + r.supercopa + r.wc + intlMundial + intlLibertadores + intlChampions) === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                     {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › Supercopa › B › C › D), pra bater com o que decide quem fica na frente */}
                     {r.wc > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{tr('🌍Mundo', '🌍World')}{r.wc > 1 ? r.wc : ''}</span>}
+                    {intlMundial > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌐Mundial{intlMundial > 1 ? intlMundial : ''}</span>}
+                    {intlLibertadores > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#1B7A3D', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Libertadores{intlLibertadores > 1 ? intlLibertadores : ''}</span>}
+                    {intlChampions > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Champions{intlChampions > 1 ? intlChampions : ''}</span>}
                     {(r.h.A ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.h.A}</span>}
                     {r.copas > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: brasil ? '#fff' : INK, background: brasil ? '#0EA658' : GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>{brasil ? '🏆🇧🇷' : tr('🏆Copa', '🏆Cup')}{r.copas > 1 ? r.copas : ''}</span>}
                     {r.supercopa > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆🔵{r.supercopa > 1 ? r.supercopa : ''}</span>}
@@ -6093,7 +6099,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [] }: { m
   return (
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{tr('🌍 RANKING GLOBAL DE USUÁRIOS', '🌍 GLOBAL USER RANKING')}</p>
-      {intlHistory.some(e => e.mundial || e.libertadores || e.champions) && <p style={{ fontSize: 10, fontWeight: 800, background: '#E7D9FF', padding: 8, borderRadius: 8 }}>Prévia da sua carreira: Mundial +50 · Libertadores +40 · Champions +40 pontos por título. Sua posição aqui inclui esses títulos; o ranking compartilhado será atualizado quando a expansão sair do teste fechado.</p>}
+      {intlHistory.some(e => e.mundial || e.libertadores || e.champions) && <p style={{ fontSize: 10, fontWeight: 800, background: '#E7D9FF', padding: 8, borderRadius: 8 }}>Prévia local da sua carreira: Mundial +50 · Libertadores +40 · Champions +40 pontos por título. A posição compartilhada ainda vem do servidor e pode diferir desta prévia.</p>}
       <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{getLang() === 'en' ? <>Every title is worth points and the ranking ADDS UP: 🌍 World Cup <b>{PTS_TITULO.mundo}</b> · 🏆 Copa do Brasil <b>{PTS_TITULO.copa}</b> · 🏆 Série A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercup <b>{PTS_TITULO.supercopa}</b> · 🏆 B <b>{PTS_TITULO.B}</b> · 🏆 C <b>{PTS_TITULO.C}</b> · 🏆 D <b>{PTS_TITULO.D}</b> · 🌱 Várzea <b>{PTS_TITULO.V}</b>. Tied on points, 💰 breaks the tie. The SAME math as your save's ranking. Real people only, top 50, and only those playing with Agency 2.0.</> : <>Cada título vale ponto e o ranking SOMA: 🌍 Copa do Mundo <b>{PTS_TITULO.mundo}</b> · 🏆 Copa do Brasil <b>{PTS_TITULO.copa}</b> · 🏆 Série A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · 🏆 B <b>{PTS_TITULO.B}</b> · 🏆 C <b>{PTS_TITULO.C}</b> · 🏆 D <b>{PTS_TITULO.D}</b> · 🌱 Várzea <b>{PTS_TITULO.V}</b>. Empatou nos pontos, o 💰 desempata. A MESMA conta do ranking do seu save. Só gente de verdade, top 50, e só quem joga com a Agência 2.0.</>}</p>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: 'linear-gradient(160deg,#F3EBFF,#E7D9FF)', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
         <span style={{ fontSize: 19, lineHeight: 1.2 }}>📍</span>
@@ -6118,7 +6124,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [] }: { m
           <tbody>
             {lista.map((r, i) => {
               const you = r.user_id === meUid
-              const totalTit = r.honors_a + r.honors_b + r.honors_c + r.honors_d + r.honors_v + r.copa_titles + (r.supercopa_titles ?? 0) + r.world_titles
+              const totalTit = r.honors_a + r.honors_b + r.honors_c + r.honors_d + r.honors_v + r.copa_titles + (r.supercopa_titles ?? 0) + r.world_titles + (r.mundial_titles ?? 0) + (r.libertadores_titles ?? 0) + (r.champions_titles ?? 0)
               const pos = i + 1
               // ⚠️ a seta compara com a temporada PASSADA, e lá cada um estava
               // com a MELHOR carreira dele. Aqui a MINHA linha é a carreira de
@@ -6153,6 +6159,9 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [] }: { m
                     {totalTit === 0 ? <span style={{ opacity: 0.3 }}>—</span> : <>
                       {/* ordem dos selos = ordem de peso no desempate (Mundo › A › Copa › B › C › D) */}
                       {r.world_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍{tr('Mundo', 'World')}{r.world_titles > 1 ? r.world_titles : ''}</span>}
+                      {(r.mundial_titles ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: GOLD, background: INK, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌐Mundial{r.mundial_titles}</span>}
+                      {(r.libertadores_titles ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#1B7A3D', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌎Libertadores{r.libertadores_titles}</span>}
+                      {(r.champions_titles ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🌍Champions{r.champions_titles}</span>}
                       {r.honors_a > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: DIV_TAG.A.bg, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{DIV_TAG.A.l}{r.honors_a}</span>}
                       {r.copa_titles > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: INK, background: GOLD, borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆{tr('Copa', 'Cup')}{r.copa_titles > 1 ? r.copa_titles : ''}</span>}
                       {(r.supercopa_titles ?? 0) > 0 && <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 900, color: '#fff', background: '#0D4FCC', borderRadius: 4, padding: '0 4px', marginLeft: 2 }}>🏆🔵{(r.supercopa_titles ?? 0) > 1 ? r.supercopa_titles : ''}</span>}

@@ -35,3 +35,18 @@ No primeiro teste de virada, a campanha completa permanecia no save T88 embora a
 - O usuário fictício T87 estava fora do G8; este fluxo verifica disponibilidade da temporada e campanha de bots, não a inscrição de clube classificado. A regra de G8 e Copa do Brasil tem teste de função em `scripts/testa-temporada-internacional.mjs`.
 - Os fluxos Flamengo/Real Madrid verificam a interface isoladamente com prioridade 1 fornecida pelo teste. Eles não provam uma classificação real no campeonato nem autenticação real. Os pontos testados são da função local; o ranking compartilhado do banco não foi atualizado.
 - Os cenários G8/G9 são fixtures de função com clubes fictícios da Série A. A vitória Flamengo+Mundial usada no teste de 90 pontos é um registro sintético para exercitar a conta; não é resultado obtido no navegador nem concede título a conta alguma.
+
+## Interface provisória de inscrição e ranking — teste privado
+
+Diego autorizou integrar o visual antes de poder avaliar o mockup no Android. Esta versão é **provisória** e permanece apenas em commit local. A inscrição usa o mesmo `CMModal`, formações 4-3-3/4-4-2, seleção por posição e `JogadorNoCampo` da convocação da Copa do Mundo; o escudo/nome do clube criado continuam no cabeçalho e no campo. Diferente da convocação de seleções, ela consulta somente o elenco real já adquirido pelo usuário e não completa vagas com jogadores gerados. A escolha da instituição antecede a inscrição e determina o continente.
+
+| Verificação local | Resultado |
+| --- | --- |
+| Chromium desktop 1280×800, 4-3-3 | Modal abriu, 11 cartas inscritas, confirmação iniciou a campanha; sem erro JavaScript ou rolagem horizontal. |
+| Chromium mobile 390×844, 4-4-2 | Mesmos passos passaram; botões e confirmação permaneceram alcançáveis; sem erro JavaScript ou rolagem horizontal. |
+| Elenco qualificado sem 11 cartas reais | A tela informou o motivo e permitiu acompanhar Libertadores, Champions e Mundial pelos bots sem travar a temporada. |
+| Cartas falsas, crias da Base e fillers | Validação do catálogo real recusou cada tipo; a UI oferece apenas cartas reais do elenco. |
+| Ranking Local e prévia Global, mobile e desktop | Fixture com Libertadores + Mundial exibiu dois selos e 90 pontos. O ranking Global deixou explícito que a posição compartilhada ainda vem do servidor. Nenhuma RPC real foi feita. |
+| Regressões | `node scripts/testa-fixtures-carreira-internacional.mjs`, `node scripts/testa-temporada-internacional.mjs`, `PW_CHROME=/usr/bin/chromium npm run copamundo` e `npm run build` passaram após os ajustes. |
+
+Capturas de fixture: [mockup inicial](mockups/inscricao-internacional-proposta.png), [modal no desktop](mockups/inscricao-internacional-desktop-teste.png), [inscrição 4-4-2 no mobile](mockups/inscricao-internacional-mobile-teste.png) e [ranking Local no mobile](mockups/ranking-internacional-local-mobile-teste.png). As imagens contêm clubes/cartas de um teste sintético e não representam uma conta autenticada.
