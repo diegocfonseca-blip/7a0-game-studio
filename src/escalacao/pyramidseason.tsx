@@ -44,9 +44,10 @@ import { UnlockBanner } from './unlockbanner'
 import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
-import { internationalQualifiers, internationalChoice } from './career-international'
+import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
 import { CareerInternationalView } from './career-international-view'
 import type { InternationalHistoryEntry } from './career-international-season'
+import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida } from './sport'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
@@ -5788,11 +5789,14 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   // lugar onde a ordem aparece — global, mural da Copa e este "Ranking Geral" do
   // save. Os três TÊM que usar a mesma conta, senão a pessoa vê uma colocação
   // numa tela e outra na outra (foi assim o bug de 10/08).
-  const ptsLinha = (x: typeof rows[number]) => pontosDeTitulos({
-    world: x.wc, copa: x.copas, supercopa: x.supercopa,
-    mundial: x.intl.reduce((n, e) => n + e.mundial, 0), libertadores: x.intl.reduce((n, e) => n + e.libertadores, 0), champions: x.intl.reduce((n, e) => n + e.champions, 0),
-    A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
-  })
+  const ptsLinha = (x: typeof rows[number]) => {
+    const intl = internationalTitleCounts(x.intl, seasonNo ?? Infinity)
+    return pontosDeTitulos({
+      world: x.wc, copa: x.copas, supercopa: x.supercopa,
+      mundial: intl.mundial_titles, libertadores: intl.libertadores_titles, champions: intl.champions_titles,
+      A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
+    })
+  }
   rows.sort((a, b) => ptsLinha(b) - ptsLinha(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
 // 🐛 (Giovani Picolo, 18/08): o aviso diz que a Copa do Mundo leva os
   // 24 primeiros do ranking, mas esta lista mostrava só 20 — quem estava em
@@ -5806,7 +5810,8 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   const myCopas = copaHonors[`m${youId}`] ?? 0
   const mySupercopa = supercopaHonors?.[`m${youId}`] ?? 0
   const myWorld = cmMural.filter(m => m.voce).length
-  const myIntl = { lib: intlHistory.reduce((n, e) => n + e.libertadores, 0), champ: intlHistory.reduce((n, e) => n + e.champions, 0), mundial: intlHistory.reduce((n, e) => n + e.mundial, 0) }
+  const myIntlCounts = internationalTitleCounts(intlHistory, seasonNo ?? Infinity)
+  const myIntl = { lib: myIntlCounts.libertadores_titles, champ: myIntlCounts.champions_titles, mundial: myIntlCounts.mundial_titles }
   // ⚠️ o total TEM que somar a VÁRZEA também (faltava — o título de Várzea
   // aparecia na fileira de troféus embaixo mas NÃO entrava no "Total: X 🏆",
   // então quem começou a carreira na Várzea via um troféu a menos na conta).
@@ -5831,9 +5836,10 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
         <tbody>
           {top.map((r, i) => {
             const you = r.t.teamId === youId && r.t.teamId >= 0
-            const intlMundial = r.intl.reduce((n, entry) => n + entry.mundial, 0)
-            const intlLibertadores = r.intl.reduce((n, entry) => n + entry.libertadores, 0)
-            const intlChampions = r.intl.reduce((n, entry) => n + entry.champions, 0)
+            const intlTitles = internationalTitleCounts(r.intl, seasonNo ?? Infinity)
+            const intlMundial = intlTitles.mundial_titles
+            const intlLibertadores = intlTitles.libertadores_titles
+            const intlChampions = intlTitles.champions_titles
             // 🌍 a linha do último classificado ganha o corte da vaga da Copa do
             // Mundo — quem está em cima dela está dentro, quem está embaixo não.
             const ultimaVaga = i === VAGAS_MUNDO - 1
@@ -6064,11 +6070,7 @@ function GlobalRankTab({ myTeamName, seasonNo, careerId, intlHistory = [] }: { m
         if (uid && careerId != null) {
           const { data: cr } = await supabase.rpc('esc_pyramid_career_rank', { p_season: seasonNo, p_user_id: uid, p_career_id: careerId })
           const row = (cr ?? [])[0] as (GlobalRankRow & { pos: number; total: number }) | undefined
-          if (alive && row) setAtual({ ...row, user_id: uid,
-            mundial_titles: intlHistory.reduce((n, e) => n + e.mundial, 0),
-            libertadores_titles: intlHistory.reduce((n, e) => n + e.libertadores, 0),
-            champions_titles: intlHistory.reduce((n, e) => n + e.champions, 0),
-          })
+          if (alive && row) setAtual({ ...row, user_id: uid, ...internationalTitleCounts(intlHistory, seasonNo) })
         }
         if (uid && !curRows.some(r => r.user_id === uid)) {
           const { data: mr } = await supabase.rpc('esc_pyramid_my_rank', { p_season: seasonNo, p_user_id: uid })
@@ -7682,6 +7684,7 @@ export function PyramidSeasonScreen() {
   const fecharFestaC = () => { setFestaOnC(false); try { sessionStorage.setItem(festaKeyC, '1') } catch { /* segue */ } }
   const hasMatches = round >= 1 && matches.D.length > 0
   const youId = state.managers[state.youIdx]?.id ?? 0
+  const intlEnabled = useInternacionalCarreiraLiberada()
   // 🌍 RANKING GLOBAL (14/08): grava um retrato dos SEUS troféus a cada temporada
   // nova, pra montar o rank travado na temporada de quem olha (anti-spoiler — ver
   // `esc_pyramid_rank` no banco). Só carreira com Agência 2.0, offline, e só 1×
@@ -7701,12 +7704,13 @@ export function PyramidSeasonScreen() {
     if (state.multiClubeAtivo) return
     if (rankSnapSeasonRef.current === state.seasonNo) return
     rankSnapSeasonRef.current = state.seasonNo
+    const clearPendingRank = () => { if (rankSnapSeasonRef.current === state.seasonNo) rankSnapSeasonRef.current = -1 }
     ;(async () => {
       try {
         const { data } = await supabase.auth.getUser()
-        if (!data?.user) return
+        if (!data?.user) { clearPendingRank(); return }
         const you = state.managers.find(m => m.id === youId)
-        if (!you) return
+        if (!you) { clearPendingRank(); return }
         const h = (state.careerHonors as Record<string, Honors> | undefined)?.[`m${youId}`] ?? EMPTY_HONORS
         const copas = state.careerCopaHonors?.[`m${youId}`] ?? 0
         const supercopas = state.careerSupercopaHonors?.[`m${youId}`] ?? 0
@@ -7756,15 +7760,27 @@ export function PyramidSeasonScreen() {
         // na mesma linha e uma apagava a outra — e o ranking te reconhecia pelo
         // NOME do time, então trocar de nome bagunçava tudo. Agora o nome é só a
         // plaquinha: os títulos ficam presos na carreira.
-        await supabase.from('esc_pyramid_rank_snap').upsert({
+        const { error: baseRankError } = await supabase.from('esc_pyramid_rank_snap').upsert({
           user_id: data.user.id, career_id: state.seed ?? 0, season_no: state.seasonNo, team_name: you.teamName,
           honors_a: hA, honors_b: hB, honors_c: hC, honors_d: hD, honors_v: hV,
           copa_titles: copasOk, supercopa_titles: supersOk, world_titles: worldOk, money,
         })
-      } catch { /* melhor esforço — nunca trava o jogo por causa do rank */ }
+        if (baseRankError) { clearPendingRank(); return }
+        // Compatível com o banco atual: o retrato antigo continua funcionando
+        // enquanto as três colunas novas aguardam migração e revisão das RPCs.
+        // UPDATE não cria linha se o primeiro UPSERT falhou. Repetir sobrescreve,
+        // sem somar os mesmos títulos uma segunda vez.
+        if (isInternationalCareerTester(data.user.email)) {
+          await supabase.from('esc_pyramid_rank_snap')
+            .update(internationalTitleCounts(state.careerInternationalHistory, state.seasonNo - 1))
+            .eq('user_id', data.user.id)
+            .eq('career_id', state.seed ?? 0)
+            .eq('season_no', state.seasonNo)
+        }
+      } catch { clearPendingRank() /* tenta novamente sem travar o jogo */ }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.agenciaOn, state.onlineMode, state.careerOnline, state.seasonNo, youId, state.multiClubeAtivo])
+  }, [state.agenciaOn, state.onlineMode, state.careerOnline, state.seasonNo, youId, state.multiClubeAtivo, intlEnabled])
   // 🎽 destrava PERMANENTE da troca de formação na 1ª vez que o elenco chega a 22
   // reais (fica destravado mesmo se depois cair de 22). Só marca o selo — a trava
   // por-posição segue valendo em cada troca.
@@ -7887,10 +7903,9 @@ export function PyramidSeasonScreen() {
     if (cbUnlocked && copaBR) return copaBrasilAsCopaResult(copaBR, supercopaTie)
     return computeCopa(tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa)
   }, [done, cbUnlocked, copaBR, supercopaTie, tables, state.seed, state.seasonNo, capElite, realGoals, lineupsCopa])
-  const intlEnabled = useInternacionalCarreiraLiberada()
   const intlAuthReady = useInternacionalCarreiraAuthResolvida()
   const intlHistory = intlEnabled ? (state.careerInternationalHistory ?? []) : []
-  const intlCampaign = state.careerInternational?.season === state.seasonNo ? state.careerInternational : null
+  const intlCampaign = intlEnabled && state.careerInternational?.season === state.seasonNo ? state.careerInternational : null
   const intlRequired = intlEnabled && !!state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= 40 && done
   const intlPendente = state.careerOnline && state.onlineMode !== 'online' && state.seasonNo >= 40 && done && ((!intlAuthReady) || (intlRequired && !intlHistory.some(entry => entry.season === state.seasonNo)))
   const intlQualifiers = useMemo(() => internationalQualifiers(tables.A, copaBrOk ? copaBR?.champion : null, teamKey), [tables.A, copaBrOk, copaBR?.champion])
@@ -8381,11 +8396,14 @@ export function PyramidSeasonScreen() {
     // detalhe: é este sort que escolhe o TOP 24 que entra na Copa do
     // Mundo. Se a ordem daqui discordar da do Rank, a pessoa vê uma
     // colocação e se classifica por outra (bug de 10/08).
-    const ptsDe = (x: typeof rws[number]) => pontosDeTitulos({
-      world: x.wc, copa: x.copas, supercopa: x.supercopa,
-      mundial: x.intl.reduce((n, e) => n + e.mundial, 0), libertadores: x.intl.reduce((n, e) => n + e.libertadores, 0), champions: x.intl.reduce((n, e) => n + e.champions, 0),
-      A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
-    })
+    const ptsDe = (x: typeof rws[number]) => {
+      const intl = internationalTitleCounts(x.intl, state.seasonNo)
+      return pontosDeTitulos({
+        world: x.wc, copa: x.copas, supercopa: x.supercopa,
+        mundial: intl.mundial_titles, libertadores: intl.libertadores_titles, champions: intl.champions_titles,
+        A: x.h.A, B: x.h.B, C: x.h.C, D: x.h.D, V: x.h.V ?? 0,
+      })
+    }
     rws.sort((a, b) => ptsDe(b) - ptsDe(a) || b.money - a.money || a.t.name.localeCompare(b.t.name))
     // 🏛️ SÓ O CLUBE PRINCIPAL VAI PRA COPA DO MUNDO (regra NOVA do Diego,
     // 11/09 — substitui a de 04/08, em que os DOIS clubes contavam).
