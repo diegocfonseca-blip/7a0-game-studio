@@ -59,6 +59,7 @@ import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho d
 import vascoSafEscudoImg from './img/vasco-saf-escudo.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
 import cruzeiroBerretinhoEscudoImg from './img/cruzeiro-berretinho-escudo.webp' // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749): arte própria do dono
 import elMineiroEscudoImg from './img/el-mineiro-escudo.webp' // 🐓 El Mineiro (bastosmbc): arte própria do dono
+import guimaraesEscudoImg from './img/guimaraes-escudo.webp' // 🔴⚪ Guimarães SCI (jadriovani): arte própria do dono
 import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
@@ -844,6 +845,13 @@ const elMineiroEscudoRender = (size: number) => (
   <img src={elMineiroEscudoImg} height={size} width={Math.round(size * 249 / 360)} alt="El Mineiro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🔴⚪ GUIMARÃES SCI (jadriovani, batismo de 02/10) — Série A.
+// 📏 229×360, 27,4 KB — largura pela PROPORÇÃO REAL do arquivo (o Saci espiando por cima
+// do brasão faz parte do escudo). Fundo verde tirado por componente; conferido sobre o creme.
+const guimaraesEscudoRender = (size: number) => (
+  <img src={guimaraesEscudoImg} height={size} width={Math.round(size * 229 / 360)} alt="Guimarães SCI" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 👒⚪ REAL MADRUGA (luck.45, batismo de 02/10) — Série A.
 // 📏 258×360, 28,9 KB — largura pela PROPORÇÃO REAL do arquivo.
 // ✂️ fundo verde (chroma) tirado por componente + despill; conferido sobre o creme e
@@ -1414,6 +1422,10 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'El Mineiro EC': elMineiroEscudoRender,
   'El Mineiro SC': elMineiroEscudoRender,
   'Brodeiragem': elMineiroEscudoRender,
+  // 🔴⚪ Guimarães SCI (jadriovani) — BATISMO. Só o nome INTEIRO (nunca "Guimarães" sozinho — regra do Arruda, 20/08).
+  'Guimarães SCI': guimaraesEscudoRender,
+  'Guimarães SCI FC': guimaraesEscudoRender,
+  'Guimarães SCI EC': guimaraesEscudoRender,
   // 👒⚪ Real Madruga (luck.45) — BATISMO. As 4 formas do nome (regra 20/08).
   'Real Madruga': madrugaEscudoRender,
   'Real Madruga FC': madrugaEscudoRender,

@@ -17,6 +17,13 @@ TODA aba e a tabela/elenco/rank só depois de uma tela de rolagem; a largura mud
   `navega-carreira.mjs`.
 
 
+## 🔴⚪ Batismo Guimarães SCI (02/10)
+- Dono `jadriovani@gmail.com` (conta desde 23/09). **Série A** no assento do **Tôka10**, que desceu pra **Série B** (no
+  lugar do bot Botafogo da Colônia, que segue vivo em CLASSIC_CLUBS). Lenda + fundador nº82 + sócio nº63.
+- Arte do dono (fundo verde): escudo com o Saci espiando 229×360/27 KB · mascote "O Saci" 320×440/41 KB · camisa da Loja.
+  Manto medido: vermelho #C50208 (84%) + branco #FEFBFC (gola/punhos). Só o nome INTEIRO tem escudo (nunca "Guimarães" sozinho).
+- Falta: nome do dono pro rodapé do post e time de coração (pelo escudo, provável Internacional — confirmar, não chutar).
+
 ## 👒⚪ Batismo Real Madruga (02/10)
 - Dono `luck.45@live.com` (conta existe desde 25/09). **Série A**, no assento do **Bicho da Seda**, que desceu pra
   **Série B** (no lugar do bot Operário das Docas, que segue vivo em CLASSIC_CLUBS). Lenda + fundador nº81 + sócio nº62.

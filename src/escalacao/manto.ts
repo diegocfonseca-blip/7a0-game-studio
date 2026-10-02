@@ -86,6 +86,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // dos frisos (2%) fica de fora. O preto sobe pra #161412 pelo motivo de sempre (listra
   // fininha de preto puro lê como buraco); o tom quente medido foi mantido.
   'luck.45@live.com': ['#F3F1F0', '#161412'],
+  // 🔴⚪ Guimarães SCI — VERMELHO e BRANCO, MEDIDOS na camisa que o dono mandou (02/10):
+  // vermelho 84% (mediana #C50208), branco da gola e dos punhos 4% (#FEFBFC).
+  'jadriovani@gmail.com': ['#C50208', '#FEFBFC'],
   // 🦅🔴⚫ Fabulous EC — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou
   // (23/09): preto 84,3% do manto, vermelho 12,3%.
   // ⚠️ O preto sobe de #0D0809 pra #161011 pelo motivo de sempre (ver Futpoint):
