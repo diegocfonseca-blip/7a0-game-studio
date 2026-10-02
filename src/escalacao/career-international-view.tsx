@@ -26,7 +26,7 @@ import type { Card, WonCard } from './types'
 import { INTERNATIONAL_BLOCKS, INTERNATIONAL_CLUBS, championsLiberada, internationalCardKey, internationalClubCards, validInternationalXI, type InternationalClub, type InternationalCompetition } from './career-international'
 import { makeInternationalCampaign, tableFor, type InternationalCampaign, type InternationalHistoryEntry, type InternationalMatch, type InternationalPhase, type InternationalTableRow, type InternationalTie } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
-import { CompetitionMatch, CompetitionStage } from './online-match-visual'
+import { CompetitionStage, RoundMatchPresentation, useRoundPresentationStart } from './online-match-visual'
 import { Escudo } from './escudos'
 import { SeloClube } from './selo-clube'
 import { mascoteKeyDoTime, FestaoMascote } from './mascotes'
@@ -78,6 +78,9 @@ const tituloFase = (t: string) => t.startsWith('Grupos') ? tr(t.replace('Grupos'
 const MODO_KEY = 'esc-intl-modo-v1'
 type ModoSemVaga = 'pular' | InternationalCompetition
 const leModo = (season: number): ModoSemVaga | null => { try { const v = JSON.parse(localStorage.getItem(MODO_KEY) ?? 'null'); return v && v.season === season ? v.modo : null } catch { return null } }
+const ESCOLHA_KEY = 'esc-intl-clube-v1'
+const leEscolha = (season: number): { comp: InternationalCompetition; club: string } | null => { try { const v = JSON.parse(localStorage.getItem(ESCOLHA_KEY) ?? 'null'); return v && v.season === season ? v : null } catch { return null } }
+const gravaEscolha = (season: number, comp: InternationalCompetition, club: string) => { try { localStorage.setItem(ESCOLHA_KEY, JSON.stringify({ season, comp, club })) } catch { /* sem espaço */ } }
 const gravaModo = (season: number, modo: ModoSemVaga) => { try { localStorage.setItem(MODO_KEY, JSON.stringify({ season, modo })) } catch { /* sem espaço */ } }
 
 function clubLeaders(rows: InternationalHistoryEntry[]) {
@@ -106,60 +109,97 @@ const crestOf = (campaign: InternationalCampaign, id: string, size: number) => {
   return t?.you ? <Escudo nome={campaign.userTeam} size={size} /> : <SeloClube clube={t?.institution ?? id} size={size} />
 }
 
-// 📋 lista compacta de jogos de uma fase (sem o(s) meu(s), que já têm o placar grande)
-function ListaDaNoite({ phase, campaign, excluir, titulo }: { phase: InternationalPhase; campaign: InternationalCampaign; excluir?: string | null; titulo?: string }) {
+// 🎬 OS JOGOS DOS OUTROS RODAM AO VIVO (Diego 02/10: *"as simulações estão dando resultado
+// pronto… quero simulação real, com o tempo passando, como sempre foi, e pênaltis também"*).
+// Cada jogo da noite anda no MESMO relógio do placar grande (mesmo `startedAt`, mesmo
+// tempo de perna): o gol só aparece no minuto em que saiu. No mata-mata a noite tem IDA e
+// VOLTA — uma perna de cada vez, igual à Copa — e, no apito da última, o cartão diz o
+// agregado e os pênaltis de quem empatou.
+type JogoDaNoite = { match: InternationalMatch; tie?: InternationalTie; ultimaPerna: boolean }
+function jogosDaPerna(phase: InternationalPhase, perna: number): JogoDaNoite[] {
+  if (!phase.ties?.length) return phase.matches.map(match => ({ match, ultimaPerna: true }))
+  return phase.ties.map(tie => { const i = Math.min(perna, tie.matches.length - 1); return { match: tie.matches[i], tie, ultimaPerna: i === tie.matches.length - 1 } })
+}
+const desfechoTie = (campaign: InternationalCampaign, tie: InternationalTie) => {
+  const nome = (id: string) => campaign.teams.find(t => t.id === id)?.name ?? id
+  const [a, b] = tie.matches.length === 2 ? [tie.matches[0].hg + tie.matches[1].ag, tie.matches[0].ag + tie.matches[1].hg] : [tie.matches[0].hg, tie.matches[0].ag]
+  const agg = tie.matches.length === 2 ? `${tr('agregado', 'aggregate')} ${a}×${b} · ` : ''
+  const pen = tie.penalties ? `🥅 ${tr('pênaltis', 'penalties')} ${tie.penalties[0]}×${tie.penalties[1]} · ` : ''
+  return `${agg}${pen}${nome(tie.winner)} ${tr('passa', 'goes through')}`
+}
+function minutoDe(startedAt: number, legMs: number) { return Math.min(93, Math.round((Date.now() - startedAt) / Math.max(400, legMs * .82) * 93)) }
+function useMinuto(startedAt: number, legMs: number, chave: number) {
+  const [m, setM] = useState(() => minutoDe(startedAt, legMs))
+  useEffect(() => { const tick = () => setM(minutoDe(startedAt, legMs)); tick(); const t = setInterval(tick, 250); return () => clearInterval(t) }, [startedAt, legMs, chave])
+  return m
+}
+
+// 📋 mata-mata (≤ 8 jogos): um cartão de jogo por confronto, rolando
+function ListaDaNoite({ jogos, campaign, titulo, startedAt, legMs, roundKey, finished }: { jogos: JogoDaNoite[]; campaign: InternationalCampaign; titulo?: string; startedAt: number; legMs: number; roundKey: number; finished: boolean }) {
   const teams = new Map(campaign.teams.map(t => [t.id, t]))
-  const lista = phase.matches.filter(m => !excluir || (m.home !== excluir && m.away !== excluir))
-  if (!lista.length) return null
+  if (!jogos.length) return null
   return <div style={{ marginBottom: 12 }}>
-    {titulo && <p style={{ ...OSWALD, fontWeight: 700, fontSize: 12, margin: '0 0 6px 2px' }}>{titulo}</p>}
-    <div className="ll29-match-grid">{lista.map((match, i) => {
+    {titulo && <p style={{ ...OSWALD, fontWeight: 700, fontSize: 12, margin: '0 0 6px 2px', color: INK }}>{titulo}</p>}
+    <div className="ll29-match-grid">{jogos.map(({ match, tie, ultimaPerna }, i) => {
       const home = teams.get(match.home)!, away = teams.get(match.away)!
-      return <CompetitionMatch key={`${match.home}-${match.away}-${i}`} home={home.name} away={away.name}
+      return <RoundMatchPresentation key={`${roundKey}-${match.home}-${match.away}-${i}`} home={home.name} away={away.name}
         homeCrest={crestOf(campaign, match.home, 28)} awayCrest={crestOf(campaign, match.away, 28)}
-        homeScore={match.hg} awayScore={match.ag} mine={home.you || away.you} status={tr('ENCERRADO', 'FULL TIME')}
-        goals={match.goals.map(g => ({ name: g.name, min: g.min, home: g.home }))} />
+        mine={home.you || away.you} score={[match.hg, match.ag]} finished={finished} roundKey={roundKey} roundMs={legMs} startedAt={startedAt}
+        goals={match.goals.map(g => ({ name: g.name, min: g.min, home: g.home }))}
+        detail={finished && tie && ultimaPerna ? desfechoTie(campaign, tie) : undefined} />
     })}</div>
   </div>
 }
 
 // 🥅 a MESMA pílula compacta da Liberta do online ("Peñarol 1×1 Olimpia") pras noites de
-// grupos/tabela, que têm 17–18 jogos — cartão grande pra cada um viraria um paredão.
-function PilulasDaNoite({ phase, campaign, excluir, titulo }: { phase: InternationalPhase; campaign: InternationalCampaign; excluir?: string | null; titulo: string }) {
+// grupos/tabela, que têm 17–18 jogos — cartão grande pra cada um viraria um paredão. O placar
+// sobe com o relógio, igual aos cartões.
+function PilulasDaNoite({ jogos, campaign, titulo, startedAt, legMs, roundKey, finished }: { jogos: JogoDaNoite[]; campaign: InternationalCampaign; titulo: string; startedAt: number; legMs: number; roundKey: number; finished: boolean }) {
   const nome = (id: string) => campaign.teams.find(t => t.id === id)?.name ?? id
-  const lista = phase.matches.filter(m => !excluir || (m.home !== excluir && m.away !== excluir))
-  if (!lista.length) return null
+  const minuto = useMinuto(startedAt, legMs, roundKey)
+  if (!jogos.length) return null
+  const placar = (m: InternationalMatch) => finished ? [m.hg, m.ag] : [m.goals.filter(g => g.home && g.min <= minuto).length, m.goals.filter(g => !g.home && g.min <= minuto).length]
   return <div style={{ ...card, padding: '9px 10px' }}>
-    <p style={{ ...OSWALD, fontWeight: 700, fontSize: 11, margin: '0 0 6px', color: INK }}>{titulo}</p>
+    <p style={{ ...OSWALD, fontWeight: 700, fontSize: 11, margin: '0 0 6px', color: INK, display: 'flex', justifyContent: 'space-between' }}><span>{titulo}</span><span style={{ color: finished ? GREEN : '#C2452F' }}>{finished ? tr('ENCERRADO', 'FULL TIME') : `${Math.min(90, minuto)}′ · ${tr('AO VIVO', 'LIVE')}`}</span></p>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))', gap: 5 }}>
-      {lista.map((m, i) => <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, borderRadius: 9, padding: '4px 6px', background: CREME, border: '2px solid rgba(0,0,0,.18)', color: INK }}>
+      {jogos.map(({ match: m }, i) => { const [h, a] = placar(m); return <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, borderRadius: 9, padding: '4px 6px', background: CREME, border: '2px solid rgba(0,0,0,.18)', color: INK }}>
         <span style={{ flex: 1, minWidth: 0, textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nome(m.home)}</span>
-        {crestOf(campaign, m.home, 16)}<b style={{ ...OSWALD, fontSize: 12, flex: 'none', fontVariantNumeric: 'tabular-nums' }}>{m.hg}×{m.ag}</b>{crestOf(campaign, m.away, 16)}
+        {crestOf(campaign, m.home, 16)}<b style={{ ...OSWALD, fontSize: 12, flex: 'none', fontVariantNumeric: 'tabular-nums' }}>{h}×{a}</b>{crestOf(campaign, m.away, 16)}
         <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nome(m.away)}</span>
-      </div>)}
+      </div> })}
     </div>
   </div>
 }
 
-// 🏆 A OUTRA FINAL, na mesma noite (cartão com a arte da outra competição + o placar fechado)
-function OutraFinal({ phase, campaign }: { phase: InternationalPhase; campaign: InternationalCampaign }) {
+// 🏆 CARTÃO DE FINAL — a OUTRA final da noite, e também a final que você só ASSISTE (Diego
+// 02/10: a final da Libertadores sem ele ficou sem destaque). Arte da competição atrás, os dois
+// escudos e o placar. Com `startedAt` ele roda ao vivo (o placar sobe no minuto do gol) e só
+// conta quem é campeão no apito; sem `startedAt` já chega encerrado.
+function FinalCard({ phase, campaign, titulo, startedAt, legMs = 1, finished = true, roundKey = 0 }: { phase: InternationalPhase; campaign: InternationalCampaign; titulo: string; startedAt?: number; legMs?: number; finished?: boolean; roundKey?: number }) {
   const tie = phase.ties?.[0]; const m = phase.matches[0]
+  const minuto = useMinuto(startedAt ?? 0, legMs, roundKey)
   if (!tie || !m) return null
   const nome = (id: string) => campaign.teams.find(t => t.id === id)?.name ?? id
-  const comp = phase.competition as InternationalCompetition
+  const comp = phase.competition
+  const fim = finished || startedAt === undefined
+  const hg = fim ? m.hg : m.goals.filter(g => g.home && g.min <= minuto).length
+  const ag = fim ? m.ag : m.goals.filter(g => !g.home && g.min <= minuto).length
+  const gols = m.goals.filter(g => fim || g.min <= minuto)
   // 🪙 escudo escuro (Juventus, Newcastle…) sumia no fundo escuro: vai num disco creme
   const disco: CSSProperties = { display: 'inline-grid', placeItems: 'center', width: 52, height: 52, borderRadius: '50%', background: CREME, border: `2px solid ${INK}` }
+  const lado = (id: string, home: boolean) => <div style={{ textAlign: 'center', color: CREME }}><span style={disco}>{crestOf(campaign, id, 40)}</span><b style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 14, marginTop: 3 }}>{nome(id)}</b>
+    {gols.filter(g => g.home === home).map((g, i) => <span key={i} style={{ display: 'block', fontSize: 10, fontWeight: 700, opacity: .85 }}>⚽ {g.name} {g.min}′</span>)}</div>
   return <div style={{ position: 'relative', border: `3px solid ${INK}`, borderRadius: 16, overflow: 'hidden', boxShadow: `4px 4px 0 ${INK}`, marginBottom: 12, backgroundImage: `linear-gradient(90deg,rgba(0,0,0,.87),rgba(0,0,0,.6)),url(${artComp(comp)})`, backgroundSize: 'cover', backgroundPosition: 'center 30%', padding: '10px 12px' }}>
-    <span style={{ color: GOLD, ...OSWALD, fontWeight: 700, fontSize: 11, letterSpacing: 1.5 }}>{emojiComp(comp)} {tr('A outra final', 'The other final')} · {nomeComp(comp)} · {tr('mesma noite', 'same night')}</span>
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 8, marginTop: 6 }}>
-      <div style={{ textAlign: 'center', color: CREME }}><span style={disco}>{crestOf(campaign, m.home, 40)}</span><b style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 14, marginTop: 3 }}>{nome(m.home)}</b></div>
-      <div style={{ background: CREME, color: INK, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '5px 10px', textAlign: 'center', ...OSWALD, fontWeight: 700, fontSize: 24, lineHeight: 1 }}>
-        <small style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: 1, fontFamily: 'Inter, system-ui, sans-serif' }}>{tr('ENCERRADO', 'FULL TIME')}</small>{m.hg} × {m.ag}
-        {tie.penalties && <small style={{ display: 'block', fontSize: 9, fontWeight: 900, fontFamily: 'Inter, system-ui, sans-serif' }}>🥅 {tie.penalties[0]}×{tie.penalties[1]}</small>}
+    <span style={{ color: GOLD, ...OSWALD, fontWeight: 700, fontSize: 11, letterSpacing: 1.5 }}>{emojiComp(comp)} {titulo}</span>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'start', gap: 8, marginTop: 6 }}>
+      {lado(m.home, true)}
+      <div style={{ background: CREME, color: INK, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '5px 10px', textAlign: 'center', ...OSWALD, fontWeight: 700, fontSize: 24, lineHeight: 1, marginTop: 6 }}>
+        <small style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: 1, fontFamily: 'Inter, system-ui, sans-serif', color: fim ? INK : '#C2452F' }}>{fim ? tr('ENCERRADO', 'FULL TIME') : `${Math.min(90, minuto)}′ · ${tr('AO VIVO', 'LIVE')}`}</small>{hg} × {ag}
+        {fim && tie.penalties && <small style={{ display: 'block', fontSize: 9, fontWeight: 900, fontFamily: 'Inter, system-ui, sans-serif' }}>🥅 {tie.penalties[0]}×{tie.penalties[1]}</small>}
       </div>
-      <div style={{ textAlign: 'center', color: CREME }}><span style={disco}>{crestOf(campaign, m.away, 40)}</span><b style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 14, marginTop: 3 }}>{nome(m.away)}</b></div>
+      {lado(m.away, false)}
     </div>
-    <p style={{ color: 'rgba(244,236,214,.8)', fontSize: 10, fontWeight: 700, margin: '6px 0 0', textAlign: 'center' }}>🏆 {nome(tie.winner)} {tr('é campeão da', 'wins the')} {nomeComp(comp)} {tr('e vai pro 🌐 Mundial — jogo único, na próxima noite.', 'and goes to the 🌐 Club World Cup — single match, next night.')}</p>
+    {fim && <p style={{ color: 'rgba(244,236,214,.85)', fontSize: 10.5, fontWeight: 800, margin: '8px 0 0', textAlign: 'center' }}>🏆 {nome(tie.winner)} {tr('é campeão', 'is champion')}{comp === 'mundial' ? tr(' do mundo!', ' of the world!') : ` ${tr('da', 'of the')} ${nomeComp(comp)} ${tr('e vai pro 🌐 Mundial — jogo único, na próxima noite.', 'and goes to the 🌐 Club World Cup — single match, next night.')}`}</p>}
   </div>
 }
 
@@ -187,7 +227,7 @@ type PoolCard = Card
 const fechaForm = (cards: { pos: string; name: string; club: string; year: number }[], form: Shape) => sections.every(pos => new Set(cards.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos])
 /** o clube tem jogadores no baralho pra fechar um time? (72 dos 72 desde o Lote 40) */
 export const clubeFechaTime = (clube: string) => { const cs = internationalClubCards(clube); return fechaForm(cs, '4-3-3') || fechaForm(cs, '4-4-2') }
-function InscricaoClube({ userTeam, clube, comp, onBack, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; onBack: () => void; onConfirm: (xi: Card[]) => void }) {
+function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; onConfirm: (xi: Card[]) => void }) {
   const faces = useLegendPresentation()
   const doClube = useMemo<PoolCard[]>(() => internationalClubCards(clube).map(c => c as unknown as Card), [clube])
   const real = doClube
@@ -259,7 +299,7 @@ function InscricaoClube({ userTeam, clube, comp, onBack, onConfirm }: { userTeam
     <button type="button" disabled={!registered} onClick={() => registered && onConfirm(selected)} style={registered ? btn(GREEN, '#fff') : btnOff}>
       {registered ? `✓ ${tr('Confirmar os 11 e começar a', 'Confirm the 11 and start the')} ${nomeComp(comp)}` : `${tr('Faltam', 'Missing')} ${11 - selected.length} ${tr('pra fechar os 11', 'to complete the 11')}`}
     </button>
-    <button type="button" onClick={onBack} style={{ ...btn('#fff'), marginTop: 8, fontSize: 12, padding: 8 }}>‹ {tr('Trocar de clube', 'Change club')}</button>
+    {/* 🔒 02/10 (Diego): *"depois de escolher o clube não quero opção de trocar clube. Escolheu, já era"*. */}
     <p style={hint}>{tr('Igual à Copa do Mundo: os jogadores do', 'Like the World Cup: the players of')} {clube} {tr('jogam pelo clube deles. A convocação fica congelada durante a campanha. ', 'play for their club. The call-up is frozen for the whole campaign. ')}{userTeam} {tr('mantém escudo e mascote.', 'keeps its crest and mascot.')}</p>
   </>
 }
@@ -290,8 +330,11 @@ export function CareerInternationalView(p: Props) {
   const manual = manualPref && manualAllowed
   const speed = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   const toggleManual = () => { const goingManual = !manual; toggleSim(); if (!goingManual && speed !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 }) }
-  const [comp, setComp] = useState<InternationalCompetition | null>(null)
-  const [club, setClub] = useState<string | null>(null)
+  // 🔒 o clube escolhido fica GRAVADO por temporada: recarregar a tela não reabre a escolha
+  const escolhaSalva = leEscolha(p.season)
+  const [comp, setComp] = useState<InternationalCompetition | null>(escolhaSalva?.comp ?? null)
+  const [club, setClubRaw] = useState<string | null>(escolhaSalva?.club ?? null)
+  const setClub = (c: string) => { if (comp) gravaEscolha(p.season, comp, c); setClubRaw(c) }
   const [modo, setModo] = useState<ModoSemVaga | null>(() => leModo(p.season))
   const [celebrate, setCelebrate] = useState(false)
   const champsOk = championsLiberada(p.history)
@@ -319,16 +362,25 @@ export function CareerInternationalView(p: Props) {
   // 📊 grupos da Liberta: MEU GRUPO / TODOS OS GRUPOS — o mesmo seletor da Liberta do online
   const [grupoView, setGrupoView] = useState<'meu' | 'todos'>('meu')
   useEffect(() => { setJogo(0); setFimJogo(false) }, [reveal])
-  // 🎬 o jogo do placar grande: o meu — ou a final do Mundial pra quem só assiste
-  const jogoGrande: InternationalMatch | undefined = meusJogos[jogo] ?? (compDaFase === 'mundial' && !meusJogos.length ? faseFoco?.matches[0] : undefined)
-  const ultimoJogo = jogo >= meusJogos.length - 1
-  const pronto = jogoGrande ? fimJogo : true // noite sem placar grande: a lista já vem pronta
+  // 🎬 o jogo do placar grande: o meu — ou, quem não está nele, a FINAL (da competição em foco
+  // ou do Mundial). Diego 02/10: a final da Libertadores que ele não jogou ficou sem destaque.
+  const ehFinal = compDaFase === 'mundial' || faseFoco?.title === 'Final'
+  const jogoGrande: InternationalMatch | undefined = meusJogos[jogo]
+  // 🏆 a final que eu só ASSISTO vai no cartão de destaque (o placar grande é sempre "você × rival")
+  const finalNeutra: InternationalPhase | undefined = !meusJogos.length && ehFinal ? faseFoco : undefined
+  // 🦵 quantas PERNAS a noite tem (ida e volta no mata-mata; uma nos grupos e nas finais)
+  const pernas = Math.max(1, meusJogos.length, ...(faseFoco?.ties?.map(t => t.matches.length) ?? [1]))
+  const ultimoJogo = jogo >= pernas - 1
+  const pronto = fimJogo && ultimoJogo // a NOITE inteira acabou (tabela e a outra final só depois disso)
+  // ⏱️ o relógio da perna: o MESMO do placar grande, pra todo jogo da noite andar junto
+  const legMs = Math.round(COPA_LEG_MS / 0.82 / speed)
+  const startedAt = useRoundPresentationStart(reveal * 10 + jogo)
   const avancar = () => {
     if (!current) return
     if (rep && (faseFoco?.title === 'Final' && (current.libertadoresChampion === rep || current.championsChampion === rep) || faseFoco?.competition === 'mundial' && current.mundialChampion === rep) && mascoteKeyDoTime(p.userTeam)) setCelebrate(true)
     p.onAdvance()
   }
-  const proximo = () => { if (jogoGrande && meusJogos.length && !ultimoJogo) { setJogo(j => j + 1); setFimJogo(false) } else avancar() }
+  const proximo = () => { if (!ultimoJogo) { setJogo(j => j + 1); setFimJogo(false) } else avancar() }
   // 🤫 noite em que a competição EM FOCO não joga: passa sozinha (é assim que "não vejo a outra")
   const noiteVazia = !!current && !!step && !!foco && !faseFoco
   useEffect(() => { if (noiteVazia) p.onAdvance() }, [noiteVazia, reveal]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -341,16 +393,16 @@ export function CareerInternationalView(p: Props) {
   }, [pulando, current?.reveal]) // eslint-disable-line react-hooks/exhaustive-deps
   // ⏩ ritmo AUTO: depois do apito o jogo de volta / a próxima noite vêm sozinhos
   useEffect(() => {
-    if (manual || !current || !jogoGrande || !fimJogo) return
-    const t = setTimeout(proximo, meusJogos.length && !ultimoJogo ? 1400 : 2600)
+    if (manual || !current || !fimJogo) return
+    const t = setTimeout(proximo, ultimoJogo ? 2600 : 1400)
     return () => clearTimeout(t)
-  }, [manual, fimJogo, ultimoJogo, !!jogoGrande]) // eslint-disable-line react-hooks/exhaustive-deps
-  const soLista = !!current && !!faseFoco && !jogoGrande
+  }, [manual, fimJogo, ultimoJogo]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 🎬 perna SEM placar grande (não estou nela): o apito vem do relógio, igual aos cartões
   useEffect(() => {
-    if (manual || !soLista || noiteVazia) return
-    const t = setTimeout(avancar, Math.round(3600 / speed))
+    if (!current || !faseFoco || jogoGrande || noiteVazia || fimJogo) return
+    const t = setTimeout(() => setFimJogo(true), Math.max(0, startedAt + legMs * .82 + 250 - Date.now()))
     return () => clearTimeout(t)
-  }, [manual, soLista, reveal, speed]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [reveal, jogo, !!jogoGrande, noiteVazia, legMs, startedAt, fimJogo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── classificação (anti-spoiler: a noite de hoje só entra depois do apito) ──
   const tabelas = useMemo(() => {
@@ -483,7 +535,7 @@ export function CareerInternationalView(p: Props) {
       </> : <>
         {/* ── PASSO 3: a convocação ── */}
         {passos}
-        <InscricaoClube userTeam={p.userTeam} clube={club} comp={comp} onBack={() => setClub(null)} onConfirm={xi => begin(club, xi)} />
+        <InscricaoClube userTeam={p.userTeam} clube={club} comp={comp} onConfirm={xi => begin(club, xi)} />
       </>}
       {rodape}
     </section>
@@ -498,8 +550,8 @@ export function CareerInternationalView(p: Props) {
   // 🏆 noite das finais: a outra final aparece num cartão (depois do apito da minha)
   const outraFinal = step && foco && faseFoco?.title === 'Final' ? step[outra(foco)] : undefined
   const finalDaOutraTambem = outraFinal?.title === 'Final' ? outraFinal : undefined
-  const rotuloProximo = !pronto ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the match finish…')
-    : jogoGrande && meusJogos.length > 1 && !ultimoJogo ? tr('▶️ Jogo de volta', '▶️ 2nd leg')
+  const rotuloProximo = !fimJogo ? tr('⏳ Deixa o jogo acabar…', '⏳ Let the match finish…')
+    : !ultimoJogo ? tr('▶️ Jogo de volta', '▶️ 2nd leg')
     : compDaFase === 'mundial' ? tr('🏆 Ver o campeão', '🏆 See the champion')
     : faseFoco?.title === 'Final' ? tr('▶️ Ir pro Mundial', '▶️ On to the Club World Cup')
     : tr('▶️ Próxima rodada', '▶️ Next round')
@@ -536,16 +588,17 @@ export function CareerInternationalView(p: Props) {
       {progresso && <div style={{ display: 'flex', gap: 4, justifyContent: 'center', margin: '0 0 10px', flexWrap: 'wrap' }}>{Array.from({ length: progresso.total }, (_, i) => <i key={i} style={{ width: 18, height: 6, borderRadius: 3, background: i < progresso.feitas ? GREEN : i === progresso.feitas ? GOLD : '#0003', outline: i === progresso.feitas ? `2px solid ${INK}` : 'none' }} />)}</div>}
       {/* 📺 o placar grande */}
       {jogoGrande && <JogoGrande match={jogoGrande} campaign={current} comp={compBanner} roundKey={reveal * 10 + jogo} speed={speed} onFim={() => setFimJogo(true)} />}
-      {!jogoGrande && rep && <div style={{ ...card, textAlign: 'center' }}><p style={{ margin: 0, fontWeight: 800, fontSize: 12 }}>{tr('Você já está fora desta fase. Os jogos da noite:', 'You are out of this stage. Tonight\'s matches:')}</p></div>}
+      {finalNeutra && <FinalCard phase={finalNeutra} campaign={current} titulo={compDaFase === 'mundial' ? tr('A final do Mundial de Clubes', 'The Club World Cup final') : `${tr('A final da', 'The final of the')} ${nomeComp(compDaFase!)}`} startedAt={startedAt} legMs={legMs} finished={fimJogo} roundKey={reveal * 10 + jogo} />}
+      {!meusJogos.length && rep && !ehFinal && <div style={{ ...card, textAlign: 'center' }}><p style={{ margin: 0, fontWeight: 800, fontSize: 12, color: INK }}>{tr('Você já está fora desta fase. Os jogos da noite:', 'You are out of this stage. Tonight\'s matches:')}</p></div>}
       {fimDaTie && minhaTie && <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '6px 10px', marginTop: -4, marginBottom: 10, textAlign: 'center' }}>
         {minhaTie.matches.length === 2 && <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '0 0 3px' }}>{tr('ida', '1st leg')} {minhaTie.matches[0].hg}×{minhaTie.matches[0].ag} · {tr('volta', '2nd leg')} {minhaTie.matches[1].hg}×{minhaTie.matches[1].ag} · <b>{tr('agregado', 'aggregate')} {minhaTie.matches[0].hg + minhaTie.matches[1].ag}×{minhaTie.matches[0].ag + minhaTie.matches[1].hg}</b> ({nomeDe(minhaTie.home)} × {nomeDe(minhaTie.away)})</p>}
         {minhaTie.penalties && <p style={{ margin: '2px 0', fontWeight: 900, ...OSWALD, fontSize: 13 }}>🥅 {tr('Pênaltis', 'Penalties')} {minhaTie.penalties[0]} × {minhaTie.penalties[1]}</p>}
         <p style={{ margin: '3px 0 0', fontWeight: 900, fontSize: 11, ...OSWALD, color: minhaTie.winner === rep ? GREEN : '#C2452F' }}>{minhaTie.winner === rep ? `✅ ${p.userTeam} ${compDaFase === 'mundial' || faseFoco.title === 'Final' ? tr('é campeão!', 'is champion!') : tr('avança', 'advances')}` : `❌ ${nomeDe(minhaTie.winner)} ${compDaFase === 'mundial' || faseFoco.title === 'Final' ? tr('é campeão', 'is champion') : tr('avança', 'advances')}`}</p>
       </div>}
       {/* 🎮 o controle, logo abaixo do placar — igual à Copa */}
-      {controle(rotuloProximo, pronto)}
+      {controle(rotuloProximo, fimJogo)}
       {/* 🏆 noite das finais: a outra final, depois do apito da minha */}
-      {pronto && finalDaOutraTambem && <OutraFinal phase={finalDaOutraTambem} campaign={current} />}
+      {pronto && finalDaOutraTambem && <FinalCard phase={finalDaOutraTambem} campaign={current} titulo={`${tr('A outra final', 'The other final')} · ${nomeComp(finalDaOutraTambem.competition)} · ${tr('mesma noite', 'same night')}`} />}
       {/* 📊 a tabela SEMPRE à vista (grupos / tabela de 36); no mata-mata, as chaves da noite */}
       {tabelas && tabelas.length > 1 && rep && <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
         {(['meu', 'todos'] as const).map(v => <button key={v} type="button" onClick={() => setGrupoView(v)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 4px', fontWeight: 900, fontSize: 11.5, ...OSWALD, background: grupoView === v ? GOLD : '#fff', color: INK, boxShadow: grupoView === v ? `2px 2px 0 ${INK}` : 'none', cursor: 'pointer' }}>{v === 'meu' ? tr('Meu grupo', 'My group') : tr('Todos os grupos', 'All groups')}</button>)}
@@ -553,8 +606,11 @@ export function CareerInternationalView(p: Props) {
       {tabelas?.filter((_, i) => i === 0 || !rep || grupoView === 'todos').map(t => <Tabela key={t.titulo} rows={t.rows} me={rep} cortes={t.cortes} titulo={t.titulo} campaign={current} legenda={t.legenda} apagaDepoisDe={t.apaga} />)}
       {/* 🥅 os outros jogos da noite — só depois do apito, senão o placar grande é entregue aqui embaixo.
           Noite de grupos/tabela (17–18 jogos) vai em pílulas compactas; mata-mata (≤ 8) em cartão. */}
-      {pronto && (tabelas ? PilulasDaNoite : ListaDaNoite)({ phase: faseFoco, campaign: current, excluir: jogoGrande && rep ? rep : (jogoGrande ? `${jogoGrande.home}` : null), titulo: jogoGrande ? tr('🥅 Os outros jogos da noite', '🥅 The other matches tonight') : tr('🥅 Os jogos da noite', '🥅 Tonight\'s matches') })}
-      {!pronto && !tabelas && <p style={hint}>{tr('Os outros jogos aparecem depois do apito.', 'The other matches show up after the whistle.')}</p>}
+      {(() => {
+        const jogos = finalNeutra ? [] : jogosDaPerna(faseFoco, jogo).filter(j => !jogoGrande || (j.match.home !== jogoGrande.home && j.match.away !== jogoGrande.home))
+        const props = { jogos, campaign: current, startedAt, legMs, roundKey: reveal * 10 + jogo, finished: fimJogo, titulo: jogoGrande ? tr('🥅 Os outros jogos da noite', '🥅 The other matches tonight') : tr('🥅 Os jogos da noite', '🥅 Tonight\'s matches') }
+        return tabelas ? <PilulasDaNoite {...props} /> : <ListaDaNoite {...props} />
+      })()}
     </>}
     {rodape}
   </section>

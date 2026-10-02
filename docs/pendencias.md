@@ -86,6 +86,13 @@ avança sozinho; manual tem botão).
   `esc-intl-modo-v1` por temporada). 🔓 **Champions só abre depois de ganhar a Libertadores** (`championsLiberada(history)`;
   banner trancado "🔒 Ganhe a Libertadores pra liberar"). Formato dos grupos mantido: 6 de 6, passam 2 + 4 melhores 3ºs.
   Conferido com `scripts/fotografa-carreira-internacional.mjs` (fotos reais em 7 cenários) — gate continua só na conta dele.
+- 🔁 **3ª rodada (02/10, 23h50)** — *"a final da Libertadores que eu não participei faltou um destaque… as simulações
+  estão dando resultado pronto, quero simulação real com o tempo passando… e pênaltis… depois de escolher o clube não quero
+  botão de trocar clube, escolheu já era"*. FEITO: todo jogo da noite roda no MESMO relógio do placar grande (cartões no
+  mata-mata, pílulas nos grupos), ida e volta uma perna de cada vez, e no apito da última o cartão diz agregado + pênaltis +
+  quem passa. A final que você só ASSISTE (Liberta/Champions/Mundial) vai no cartão `FinalCard` com a arte da competição,
+  rolando ao vivo — o placar grande (`LiveScoreCard`) é sempre "você × rival" e narra "vitória", por isso não serve pra
+  jogo neutro. Saiu o "Trocar de clube"; a escolha fica gravada por temporada (`esc-intl-clube-v1`).
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
   E a narração do placar na FINAL ainda fala "três pontos no bolso" (frase de liga) — `LiveScoreCard` não sabe que é copa.
 
