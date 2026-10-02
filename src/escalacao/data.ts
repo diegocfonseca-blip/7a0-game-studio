@@ -2663,7 +2663,72 @@ const L40_EU_ATA: C[] = [
   { name: "Andriy Vorobey", club: "Shakhtar Donetsk", year: 2002, fame: 2, lo: 66, hi: 82, bio: "Atacante do Shakhtar campeão ucraniano de 2002." },
 ]
 
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA] }
+// ─── 🌍 LOTE 41 (02/10): as 8 seleções novas da Copa do Mundo de 32 ─────────────
+// Pedido do Diego: *"vamos fazer 32 países… os jogadores têm que ser famosos, conhecidos
+// mundialmente, pode ser ruim ou bom"*. Escócia, Sérvia, Turquia, Irlanda, Suécia, Argélia,
+// Gana e Costa do Marfim passam a fechar um 4-3-3 com reserva. Todos em clube europeu →
+// baralho Europa. Nenhum jogador repetido no mesmo baralho (conferido).
+
+const L41_EU_GOL: C[] = [
+  { name: "Andy Goram", club: "Rangers", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Goleirão do Rangers nos anos dos nove títulos seguidos." },
+  { name: "Vladimir Stojković", club: "Partizan", year: 2017, fame: 2, lo: 64, hi: 80, bio: "Goleiro da Sérvia em duas Copas, ídolo do Partizan." },
+  { name: "Volkan Demirel", club: "Fenerbahçe", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Fenerbahçe e da Turquia semifinalista da Euro 2008." },
+  { name: "Thomas Ravelli", club: "IFK Göteborg", year: 1994, fame: 3, lo: 76, hi: 85, bio: "O goleiro da Suécia terceira colocada na Copa de 94." },
+  { name: "Richard Kingson", club: "Wigan", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Goleiro de Gana que quase levou a seleção à semi da Copa de 2010." },
+  { name: "Boubacar Barry", club: "Lokeren", year: 2015, fame: 2, lo: 64, hi: 80, bio: "O 'Copa': defendeu e bateu o pênalti do título africano de 2015." },
+]
+
+const L41_EU_LAT: C[] = [
+  { name: "Kieran Tierney", club: "Celtic", year: 2018, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo cria do Celtic, multicampeão escocês." },
+  { name: "Aleksandar Kolarov", club: "Roma", year: 2018, fame: 3, lo: 76, hi: 85, bio: "Lateral da Sérvia com a canhota mais pesada da Itália." },
+  { name: "Denis Irwin", club: "Man United", year: 1999, fame: 4, lo: 83, hi: 90, bio: "Lateral do Man United da Tríplice Coroa de 99." },
+  { name: "Roland Nilsson", club: "Sheffield Wednesday", year: 1991, fame: 3, lo: 76, hi: 85, bio: "Lateral da Suécia nas Copas de 90 e 94." },
+  { name: "Mikael Lustig", club: "Celtic", year: 2016, fame: 2, lo: 64, hi: 80, bio: "Lateral sueco, oito títulos escoceses pelo Celtic." },
+  { name: "Faouzi Ghoulam", club: "Napoli", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo da Argélia, titular do Napoli de Sarri." },
+  { name: "John Paintsil", club: "Fulham", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Lateral-direito de Gana na Copa de 2010." },
+  { name: "Hans Sarpei", club: "Leverkusen", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Lateral de Gana, virou lenda das redes sociais na Alemanha." },
+  { name: "Emmanuel Eboué", club: "Arsenal", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Lateral da Costa do Marfim, figura do Arsenal de Wenger." },
+]
+
+const L41_EU_ZAG: C[] = [
+  { name: "Alan Hansen", club: "Liverpool", year: 1984, fame: 4, lo: 83, hi: 90, bio: "Zagueiro elegante do Liverpool campeão europeu de 84." },
+  { name: "Alpay Özalan", club: "Aston Villa", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Turquia terceira colocada na Copa de 2002." },
+  { name: "Merih Demiral", club: "Juventus", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Zagueiro turco campeão italiano pela Juventus." },
+  { name: "Richard Dunne", club: "Man City", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Irlanda, capitão do Man City antes da era dos títulos." },
+  { name: "Victor Lindelöf", club: "Man United", year: 2019, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Suécia nas quartas da Copa de 2018." },
+  { name: "Patrik Andersson", club: "Bayern", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Zagueiro sueco do Bayern campeão europeu de 2001." },
+  { name: "Madjid Bougherra", club: "Rangers", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Zagueiro e capitão da Argélia na Copa de 2010." },
+  { name: "Aïssa Mandi", club: "Real Betis", year: 2019, fame: 2, lo: 64, hi: 80, bio: "Zagueiro da Argélia campeã africana de 2019." },
+  { name: "John Mensah", club: "Lyon", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Zagueiro de Gana, o 'Rock of Gibraltar' das Copas de 2006 e 2010." },
+  { name: "Kolo Touré", club: "Arsenal", year: 2004, fame: 4, lo: 83, hi: 90, bio: "Zagueiro dos Invencíveis do Arsenal de 2004." },
+  { name: "Eric Bailly", club: "Man United", year: 2017, fame: 2, lo: 64, hi: 80, bio: "Zagueiro marfinense do Man United campeão da Liga Europa." },
+]
+
+const L41_EU_MEI: C[] = [
+  { name: "Graeme Souness", club: "Liverpool", year: 1984, fame: 4, lo: 83, hi: 90, bio: "O capitão de ferro do Liverpool campeão europeu." },
+  { name: "Scott McTominay", club: "Napoli", year: 2025, fame: 4, lo: 83, hi: 90, bio: "Meia escocês, craque do Napoli campeão italiano de 2025." },
+  { name: "Dragan Stojković", club: "Estrela Vermelha", year: 1990, fame: 4, lo: 83, hi: 90, bio: "Piksi, o maestro da Iugoslávia na Copa de 90." },
+  { name: "Liam Brady", club: "Juventus", year: 1981, fame: 4, lo: 83, hi: 90, bio: "Meia irlandês de canhota mágica, campeão pela Juventus." },
+  { name: "Damien Duff", club: "Chelsea", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Ponta da Irlanda campeão inglês com o Chelsea de Mourinho." },
+  { name: "Dejan Kulusevski", club: "Tottenham", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Meia-ponta da Suécia, titular do Tottenham." },
+  { name: "Emil Forsberg", club: "RB Leipzig", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Meia sueco, rei das assistências na Bundesliga." },
+  { name: "Sofiane Feghouli", club: "Valencia", year: 2013, fame: 3, lo: 76, hi: 85, bio: "Meia da Argélia que chegou às oitavas da Copa de 2014." },
+  { name: "Ismaël Bennacer", club: "Milan", year: 2022, fame: 3, lo: 76, hi: 85, bio: "Volante da Argélia campeão italiano com o Milan." },
+  { name: "Yacine Brahimi", club: "Porto", year: 2015, fame: 3, lo: 76, hi: 85, bio: "Meia driblador da Argélia, destaque do Porto." },
+  { name: "Franck Kessié", club: "Milan", year: 2021, fame: 3, lo: 76, hi: 85, bio: "Meia da Costa do Marfim, motor do Milan campeão." },
+  { name: "Didier Zokora", club: "Tottenham", year: 2008, fame: 2, lo: 64, hi: 80, bio: "Volante da Costa do Marfim nas Copas de 2006 e 2010." },
+]
+
+const L41_EU_ATA: C[] = [
+  { name: "Nihat Kahveci", club: "Real Sociedad", year: 2003, fame: 3, lo: 76, hi: 85, bio: "Atacante turco vice-campeão espanhol com a Real Sociedad." },
+  { name: "Kenan Yıldız", club: "Juventus", year: 2025, fame: 3, lo: 76, hi: 85, bio: "A joia turca que veste a 10 da Juventus." },
+  { name: "Niall Quinn", club: "Sunderland", year: 1999, fame: 3, lo: 76, hi: 85, bio: "Centroavante da Irlanda nas Copas de 90 e 2002." },
+  { name: "Tony Yeboah", club: "Leeds", year: 1995, fame: 4, lo: 83, hi: 90, bio: "Atacante de Gana, dono de golaços históricos pelo Leeds." },
+  { name: "André Ayew", club: "Marseille", year: 2011, fame: 3, lo: 76, hi: 85, bio: "Atacante de Gana, filho de Abedi Pelé, ídolo do Marseille." },
+  { name: "Mohammed Kudus", club: "West Ham", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Atacante driblador de Gana, destaque do West Ham." },
+]
+
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────

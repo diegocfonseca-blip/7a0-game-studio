@@ -389,6 +389,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   de 24, estilo 86/90/94). Tabela: verde nos 2 primeiros, amarelo no 3º enquanto
   está entre os 4 melhores, e um quadro só dos terceiros. Desempate: pontos →
   vitórias → saldo → gols.
+  🔁 **02/10: A COPA VIROU DE 32** (*"vamos fazer 32"*): 8 grupos de 4, passam os 2
+  primeiros = 16, sem quadro de 3ºs; carreira classifica o TOP 32 do ranking de clubes.
+  O formato sai do NÚMERO de seleções (`formatoCopa`), então Copa de 24 já começada
+  termina com 24. País novo na Copa precisa de **11+ cartas** e fechar uma formação; as
+  cartas que ele pediu pra completar são de jogador **famoso no mundo todo** (bom ou ruim).
 - **Odeia spoiler**: tabela, giro, artilharia — NADA revela resultado antes da
   animação/apito na tela.
 - **Nada pode atrasar o ritmo do jogo**: zoeira/interação nova entra nos tempos

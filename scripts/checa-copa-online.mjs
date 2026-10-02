@@ -3,7 +3,7 @@
 //
 // A Copa online se apoia numa promessa só, e ela é tudo: **todo mundo na sala vê
 // a MESMA Copa**. Ninguém manda resultado pra ninguém — o dono publica a ficha
-// (semente + as 24 seleções com as 11 chaves de cada um) e cada aparelho
+// (semente + as 32 seleções (24 até 01/10) com as 11 chaves de cada um) e cada aparelho
 // recalcula o torneio inteiro sozinho, porque `simulaCopaMundo` é função pura e
 // semeada.
 //
@@ -46,11 +46,11 @@ const exige = [
   ['quantos "você" no aparelho do Diego: 1', 'o dono do aparelho tem que ser UMA seleção, nem zero nem duas'],
   ['e no de quem não escolheu: 0', 'quem não escolheu seleção não pode "virar" ninguém'],
   ['alguma seleção com time incompleto? nenhuma', 'seleção com menos de 11 quebra o gol'],
-  ['times na ficha: 24', 'a Copa é de 24 seleções — o resto é máquina'],
+  ['times na ficha: 32', 'a Copa é de 32 seleções — o resto é máquina'],
   // 🌍 liga + Copa do Mundo: a tabela da liga vira a Copa
-  ['liga+mundo · seleções na ficha: 24', 'a Copa da liga também fecha em 24'],
+  ['liga+mundo · seleções na ficha: 32', 'a Copa da liga também fecha em 32'],
   ['liga+mundo · times da liga na Copa: 20', 'os 20 times da liga TÊM que entrar na Copa'],
-  ['liga+mundo · seleções da máquina: 4', 'as 4 vagas que sobram são da máquina'],
+  ['liga+mundo · seleções da máquina: 12', 'as 12 vagas que sobram são da máquina'],
   ['liga+mundo · gente com seleção própria: 3', 'cada pessoa da sala tem que ter a seleção dela na ficha'],
   ['liga+mundo · país repetido? nao', 'duas seleções com o mesmo país embaralha a Copa'],
   ['liga+mundo · o 1º da liga levou o país que escolheu? SIM', 'quem ganhou a liga escolhe primeiro — é a regra do Diego'],

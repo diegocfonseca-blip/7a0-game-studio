@@ -1,3 +1,17 @@
+## 02/10/2026 — 🌍 COPA DO MUNDO DE 32 SELEÇÕES ✅ NO AR (pedido do Diego: *"vamos fazer 32"*)
+- **Formato sai do TAMANHO da Copa** (`formatoCopa(n)` em `copa-mundo.tsx`): 32 → 8 grupos de 4, passam os 2
+  primeiros = 16 (sem quadro de 3ºs). 24 → o formato velho (6 grupos + 4 melhores 3ºs). Assim sala online
+  que já guardou 24 times e carreira que **começou** a Copa de 24 antes da mudança terminam com 24
+  (`emAndamento.n`; sem o campo = 24). Os passos (`copa-passos.ts`/`esc_copa_preview_clock`) NÃO mudaram:
+  continuam 3 rodadas de grupo + mata-mata.
+- Carreira: `VAGAS_MUNDO = 32` e o `cmVaga` pega o TOP 32 do ranking de clubes.
+- **Lote 41 (baralho Europa, 44 cartas famosas)** pra fechar 11+ em cada país novo: Escócia 17 · Suécia 17 ·
+  Turquia 16 · Sérvia 14 · Gana 14 · Irlanda 13 · Costa do Marfim 13 · Argélia 12 (contando as cartas que já
+  existiam). Bandeira e cor de cada uma em `FLAG`/`PAIS_COLORS` e no jornal da sala.
+- Próximos da fila (se um dia for 36/48): Polônia 6 · Ucrânia 6 · Nigéria 6 · China 5.
+- Reverter: `COPA_TEAMS = 24` em `copa-mundo.tsx` + `VAGAS_MUNDO`/`slice(0, 32)` de volta pra 24 no
+  `pyramidseason.tsx` (as cartas podem ficar).
+
 ## 01/10/2026 — 🖥️ Carreira no MONITOR em duas colunas ✅ NO AR (OK do Diego nas fotos antes/depois)
 
 Diego: *"analise o desktop do modo carreira… todas as telas, abas, menus, botões. Está muito

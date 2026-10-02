@@ -5823,7 +5823,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
   // 21º-24º se classificava e NÃO SE VIA. Mesma família do bug de 10/08: o que
   // aparece na tela tem que ser o que qualifica. Agora mostra 24, e a linha do
   // 24º ganha o corte visível da vaga.
-  const VAGAS_MUNDO = 24
+  const VAGAS_MUNDO = 32
   const top = rows.slice(0, VAGAS_MUNDO)
   // 🏆 SEUS troféus (chave do humano = m<id>) — base do Hall de Troféus embaixo.
   const myH = honors[`m${youId}`] ?? EMPTY_HONORS
@@ -5974,7 +5974,7 @@ export async function globalRankRpc(name: GlobalRankRpc, args: Record<string, nu
 //   • a COPA DO MUNDO segue valendo muito (200) por ser o endgame — só existe
 //     da T100 em diante e só uma vez a cada 10 temporadas.
 //
-// ⚠️ ESTA MESMA CONTA decide o TOP 24 que se classifica pra Copa do Mundo (o
+// ⚠️ ESTA MESMA CONTA decide o TOP 32 que se classifica pra Copa do Mundo (o
 // mural de clubes usa `pontosDeTitulos` também). Os dois têm que andar JUNTOS —
 // já teve bug nessa família em 10/08, quando a colocação exibida não era a que
 // qualificava. Mexeu aqui, confere lá.
@@ -8404,7 +8404,7 @@ export function PyramidSeasonScreen() {
     return livres.length ? livres : daPos
   }, [criseAtual, state.managers, profDeck])
 
-  // 🌍 QUEM VAI PRA COPA DO MUNDO (o TOP 24 do ranking de clubes). Morava dentro do
+  // 🌍 QUEM VAI PRA COPA DO MUNDO (o TOP 32 do ranking de clubes). Morava dentro do
   // portão da Copa; subiu pra cá em 26/09 porque o ROTEIRO também precisa saber se
   // você está nela — nos anos de Copa ela abre o fim de temporada, antes do jornal.
   const cmVaga = useMemo(() => {
@@ -8428,7 +8428,7 @@ export function PyramidSeasonScreen() {
       return { t, h: pick(hn) ?? EMPTY_HONORS, copas: pick(ch) ?? 0, supercopa: pick(chSC) ?? 0, money, wc, intl: t.teamId === youId ? intlHistory : [] }
     })
     // 🏅 MESMA CONTA DE PONTOS do Rank (Diego 17/08) — e isto aqui não é
-    // detalhe: é este sort que escolhe o TOP 24 que entra na Copa do
+    // detalhe: é este sort que escolhe o TOP 32 que entra na Copa do
     // Mundo. Se a ordem daqui discordar da do Rank, a pessoa vê uma
     // colocação e se classifica por outra (bug de 10/08).
     const ptsDe = (x: typeof rws[number]) => {
@@ -8453,8 +8453,8 @@ export function PyramidSeasonScreen() {
     // nunca discordarem sobre qual é o clube principal.
     const principalId = state.multiClubeAtivo && state.multiClube ? state.multiClube.id : youId
     const meu = (id: number) => id >= 0 && id === principalId
-    const top16 = rws.slice(0, 24).map(r => ({ name: r.t.name, you: meu(r.t.teamId) })) // 🌍 Copa de 24 seleções (era 16, depois 20 — 17/08)
-    const meusNoTop = rws.slice(0, 24).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
+    const top16 = rws.slice(0, 32).map(r => ({ name: r.t.name, you: meu(r.t.teamId) })) // 🌍 Copa de 32 seleções (era 16, 20, 24 — 32 desde 02/10)
+    const meusNoTop = rws.slice(0, 32).filter(r => meu(r.t.teamId)).map(r => r.t.teamId)
     return { top16, meusNoTop, principalId }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tables, state.careerHonors, state.careerCopaHonors, state.careerSupercopaHonors, state.clubCash, state.careerCoins, state.seed, state.multiClubeAtivo, state.multiClube, youId, state.copaMundoMural, state.careerInternationalHistory])
@@ -8462,7 +8462,7 @@ export function PyramidSeasonScreen() {
   // mundo deveria ser jogada antes então de chegar o passo 1 do jornal"*). Motivo:
   // a Bola de Ouro sai no jornal e soma gol + assistência de TODAS as competições —
   // com a Copa depois, os gols dela nunca entrariam. Então, só quando o SEU clube
-  // está nela (é ano de Copa e você está no TOP 24), o roteiro abre na Copa, e a
+  // está nela (é ano de Copa e você está no TOP 32), o roteiro abre na Copa, e a
   // Bola de Ouro, o histórico da temporada e a comissão da Agência ESPERAM ela
   // acabar. Ano sem Copa (9 em cada 10) segue exatamente como era.
   const cmAgenda = useMemo(() => (state.seed != null ? copaMundoDaTemporada(state.seed, state.seasonNo ?? 1) : { ano: false, jogada: false }),
@@ -9789,9 +9789,9 @@ export function PyramidSeasonScreen() {
           // JOGO SOLO (host sozinho): sem votação, começa direto como antes.
           const noVermelho = (state.careerCoins?.[youId] ?? 0) < 0
           // 🌍 COPA DO MUNDO LEGENDS: trava/contagem/botão dourado no fim da
-          // temporada (SOLO e ONLINE). Vaga e ordem = TOP 24 do ranking de clubes
+          // temporada (SOLO e ONLINE). Vaga e ordem = TOP 32 do ranking de clubes
           // (mural). No ONLINE cada técnico disputa a SUA Copa no próprio aparelho
-          // (os demais clubes do top 24 entram como CPU) — nada é sincronizado,
+          // (os demais clubes do top 32 entram como CPU) — nada é sincronizado,
           // então zero risco pro estado da sala; a Copa em sala (votação) é fase futura.
           const copaGate = (() => {
             const { top16, meusNoTop, principalId } = cmVaga
