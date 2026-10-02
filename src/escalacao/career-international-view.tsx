@@ -40,6 +40,7 @@ import { useHasManual } from './apoio'
 import libertaImg from './img/online-liberta-v25.webp'
 import championsImg from './img/online-champions-v25.webp'
 import mundialImg from './img/carreira-mundial-clubes-v1.webp'
+import { CARTA_CLUBE } from './convite-cartas'
 
 type Props = {
   season: number; seed: number; userTeam: string; userId: number; squad: WonCard[]
@@ -295,10 +296,11 @@ function CartaConvite({ convite, userTeam, season, onAceitar }: { convite: Convi
     <div style={{ background: '#FBF5E4', border: `3px solid ${INK}`, borderRadius: 6, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 13px 10px', color: INK }}>
       <div style={{ ...OSWALD, fontWeight: 700, fontSize: 22, textAlign: 'center', letterSpacing: 1, borderBottom: `3px double ${INK}`, paddingBottom: 3 }}>O MARTELO</div>
       <div style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: 1.4, textAlign: 'center', color: '#6c604a', margin: '4px 0 8px', textTransform: 'uppercase' }}>{tr('Edição extra', 'Special edition')} · {tr('Temporada', 'Season')} {season} · {emojiComp(convite.comp)} {nomeComp(convite.comp)}</div>
-      <h3 style={{ ...OSWALD, fontWeight: 700, fontSize: 20, lineHeight: 1.05, margin: '0 0 8px' }}>{convite.renova ? tr(`Campeão, o ${convite.club} quer renovar com o presidente do ${userTeam}`, `Champions ${convite.club} want to renew with the ${userTeam} chairman`) : tr(`O ${convite.club} quer o presidente do ${userTeam} no banco`, `${convite.club} wants the ${userTeam} chairman on the bench`)}</h3>
+      <h3 style={{ ...OSWALD, fontWeight: 700, fontSize: 20, lineHeight: 1.05, margin: '0 0 8px' }}>{convite.renova ? tr(`Campeão, o ${convite.club} quer renovar com você`, `Champions ${convite.club} want to renew with you`) : tr(`O ${convite.club} quer você como técnico`, `${convite.club} wants you as their coach`)}</h3>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '6px 0 8px' }}><SeloClube clube={convite.club} size={60} /><span style={{ ...OSWALD, fontWeight: 700, fontSize: 22, color: '#999' }}>×</span><Escudo nome={userTeam} size={60} /></div>
       {convite.renova ? <p style={{ fontFamily: 'Georgia, serif', fontSize: 12.5, lineHeight: 1.45, margin: '0 0 6px' }}>{getLang() === 'en' ? <>After lifting the {nomeComp(convite.comp)} together last season, the board wants <b>the same coach for the title defense</b>. {userTeam} stays home — and the trophy cabinet keeps growing.</> : <>Depois de levantar a {nomeComp(convite.comp)} juntos na temporada passada, a diretoria quer <b>o mesmo técnico pra defender o título</b>. O {userTeam} fica em casa — e a galeria só cresce.</>}</p> :
-      <p style={{ fontFamily: 'Georgia, serif', fontSize: 12.5, lineHeight: 1.45, margin: '0 0 6px' }}>{getLang() === 'en' ? <>After finishing among Brazil's best, the {userTeam} owner was called to <b>lead {convite.club} in the {nomeComp(convite.comp)}</b> this season. {userTeam} stays home — and the trophy, if it comes, goes into its cabinet.</> : <>Depois de terminar entre os melhores do Brasil, o dono do {userTeam} foi chamado pra <b>comandar o {convite.club} na {nomeComp(convite.comp)}</b> desta temporada. O {userTeam} fica em casa — e a taça, se vier, entra na galeria dele.</>}</p>}
+      <>{CARTA_CLUBE[convite.club] && <p style={{ fontFamily: 'Georgia, serif', fontSize: 12.5, lineHeight: 1.45, margin: '0 0 6px' }}>{getLang() === 'en' ? CARTA_CLUBE[convite.club][1] : CARTA_CLUBE[convite.club][0]}</p>}
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: 12.5, lineHeight: 1.45, margin: '0 0 6px' }}>{getLang() === 'en' ? <>The invitation: <b>be {convite.club}’s coach in the {nomeComp(convite.comp)}</b> this season. {userTeam} is still yours and stays home — and the trophy, if it comes, goes into your cabinet.</> : <>O convite: <b>ser o técnico do {convite.club} na {nomeComp(convite.comp)}</b> desta temporada. O {userTeam} continua seu e fica em casa — e a taça, se vier, entra na sua galeria.</>}</p></>}
       <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 11.5, textAlign: 'right', color: '#444' }}>— {tr('Diretoria do', 'The board of')} {convite.club}</div>
     </div>
     <button type="button" style={{ ...btn(convite.renova ? GOLD : GREEN, convite.renova ? INK : '#fff'), marginTop: 10 }} onClick={onAceitar}>{convite.renova ? `🔁 ${tr('Renovar e convocar', 'Renew and call up')}` : `✍️ ${tr('Aceitar o convite e convocar', 'Accept the invitation and call up')}`}</button>
@@ -322,7 +324,7 @@ const RECADOS: [string, string][] = [
   ['Chegou o técnico do {voce}? Aqui no {clube} a gente não perde nem pelada de treino. Bem-vindo.', 'So the {voce} coach is here? At {clube} we don\u2019t even lose training scrimmages. Welcome.'],
   ['Professor, só uma coisa: no {clube} quem senta no banco tem que gostar de taça.', 'Boss, one thing: at {clube} whoever sits on the bench has to like trophies.'],
   ['Pode escalar sem medo. O resto a gente resolve dentro de campo.', 'Pick the team without fear. We\u2019ll sort out the rest on the pitch.'],
-  ['Disseram que você é presidente lá no {voce}. Aqui é técnico — e técnico daqui tem que ganhar.', 'They say you\u2019re chairman at {voce}. Here you\u2019re the coach — and coaches here have to win.'],
+  ['Disseram que você manda lá no {voce}. Aqui você é técnico — e técnico daqui tem que ganhar.', 'They say you run things at {voce}. Here you\u2019re the coach — and coaches here have to win.'],
   ['Bem-vindo ao {clube}! A torcida já está cantando seu nome. Por enquanto.', 'Welcome to {clube}! The fans are already singing your name. For now.'],
   ['Trouxe a prancheta? Ótimo. Agora esquece ela e bota a gente pra jogar.', 'Brought the clipboard? Great. Now forget it and let us play.'],
   ['Primeiro dia e já tem convocação? Gostei. Só não esquece de mim, hein.', 'First day and already picking the squad? I like it. Just don\u2019t forget me, eh.'],
@@ -757,8 +759,8 @@ export function CarreiraPresidente({ history }: { history: readonly Internationa
   return <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden', marginTop: 12 }}>
     <div style={{ background: INK, color: '#fff', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
       <Escudo nome={voce} size={40} />
-      <div style={{ minWidth: 0 }}><b style={{ ...OSWALD, fontSize: 16, display: 'block', lineHeight: 1 }}>🧢 {tr('A carreira do presidente', 'The chairman\'s career')}</b>
-        <small style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.7)' }}>{tr(`os clubes que o presidente do ${voce} comandou como técnico convidado`, `the clubs the ${voce} chairman led as guest coach`)}</small></div>
+      <div style={{ minWidth: 0 }}><b style={{ ...OSWALD, fontSize: 16, display: 'block', lineHeight: 1 }}>🧢 {tr('Sua carreira de técnico', 'Your coaching career')}</b>
+        <small style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.7)' }}>{tr(`os clubes que você comandou como técnico convidado, sem largar o ${voce}`, `the clubs you led as guest coach, without leaving ${voce}`)}</small></div>
     </div>
     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '10px 12px', borderBottom: '2px dashed rgba(0,0,0,.12)' }}>
       {[...porClube].map(([club, c]) => <span key={club} style={{ display: 'flex', alignItems: 'center', gap: 5, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 9px 2px 3px', fontSize: 10.5, fontWeight: 900, background: CREME, color: INK }}>

@@ -1,3 +1,12 @@
+## 02/10/2026 — ✉️ Convite com CARTA DE CADA CLUBE + "técnico" no lugar de "presidente" ✅ NO AR
+- Pedido do Diego (print do Fabao Fabulous EC): *"esses textos não podem ser mais pessoal? falar da Vila… de Porto
+  Alegre… trazer a família"* e *"não fale presidente, até agora não sei o que sou sendo convidado"*.
+- `src/escalacao/convite-cartas.ts`: 72 cartas (PT/EN), uma por clube — estádio, cidade, torcida e um agrado pra
+  família. Só fato público, nenhuma pessoa real. Clube novo na lista internacional precisa ganhar carta aqui.
+- Manchete virou "O <clube> quer você como técnico"; a carta termina dizendo o convite com todas as letras ("ser o
+  técnico do X na Libertadores… o seu clube continua seu"). Jornal e linha do tempo trocaram "presidente" por
+  "dono"/"técnico" ("Sua carreira de técnico").
+
 ## 02/10/2026 — 🌎 CARREIRA INTERNACIONAL LIBERADA PRA TODOS ✅ NO AR (*"pode publicar… liberar pra todos"*)
 - Jogo: `INTERNATIONAL_CAREER_GERAL = true` (`career-international.ts`) → toda conta logada, da T40 em diante.
 - Banco: `esc_private_international_rank_allowed()` agora = qualquer conta logada (migração

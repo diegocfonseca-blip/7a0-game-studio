@@ -1061,9 +1061,9 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         if (!hit) return null
         const [club, taca] = hit
         const frases = [
-          tr(`O ${club}, que o presidente do ${ci.userTeam} dispensou, levantou ${taca}. Alguém aí se arrependeu?`, `${club}, the club the ${ci.userTeam} chairman turned down, lifted ${taca}. Any regrets?`),
+          tr(`O ${club}, que o dono do ${ci.userTeam} dispensou, levantou ${taca}. Alguém aí se arrependeu?`, `${club}, the club the ${ci.userTeam} owner turned down, lifted ${taca}. Any regrets?`),
           tr(`Recusou o ${club}… e o ${club} foi campeão d${taca.startsWith('o ') ? 'o' : 'a'} ${taca.slice(2)} sem ele. A diretoria manda lembranças.`, `Turned down ${club}… and ${club} won ${taca} without him. The board sends its regards.`),
-          tr(`Convite na gaveta, taça na sala do vizinho: o ${club} foi campeão depois do "não" do presidente do ${ci.userTeam}.`, `Invitation in the drawer, trophy next door: ${club} won it all after the ${ci.userTeam} chairman said no.`),
+          tr(`Convite na gaveta, taça na sala do vizinho: o ${club} foi campeão depois do "não" do dono do ${ci.userTeam}.`, `Invitation in the drawer, trophy next door: ${club} won it all after the ${ci.userTeam} owner said no.`),
         ]
         return <div style={{ border: `2.5px solid ${INK}`, background: '#FDE9C8', marginTop: 10 }}>
           <div style={{ background: '#C2452F', color: '#fff', fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>✉️ {tr('O convite que você recusou', 'The invitation you turned down')}</div>
@@ -1077,9 +1077,9 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
       {clubInternational?.representedClub && (() => {
         const ci = clubInternational, clube = ci.representedClub!, voce = ci.userTeam
         const onde = ci.competition === 'champions' ? tr('da Europa', 'of Europe') : tr('da América', 'of the Americas')
-        const manchete = ci.mundial ? tr(`Presidente do ${voce} leva o ${clube} ao título mundial`, `${voce} chairman takes ${clube} to the world title`)
-          : (ci.libertadores || ci.champions) ? tr(`Presidente do ${voce} leva o ${clube} ao título ${onde}`, `${voce} chairman takes ${clube} to the title ${onde}`)
-          : tr(`Presidente do ${voce} comanda o ${clube}: ${ci.bestCampaign.toLowerCase()}`, `${voce} chairman leads ${clube}: ${ci.bestCampaign.toLowerCase()}`)
+        const manchete = ci.mundial ? tr(`Dono do ${voce}, de técnico, leva o ${clube} ao título mundial`, `${voce} owner, as coach, takes ${clube} to the world title`)
+          : (ci.libertadores || ci.champions) ? tr(`Dono do ${voce}, de técnico, leva o ${clube} ao título ${onde}`, `${voce} owner, as coach, takes ${clube} to the title ${onde}`)
+          : tr(`Dono do ${voce} vira técnico do ${clube}: ${ci.bestCampaign.toLowerCase()}`, `${voce} owner coaches ${clube}: ${ci.bestCampaign.toLowerCase()}`)
         return <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>
           <div style={{ background: '#174AA0', color: '#fff', fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>🌐 {tr('O técnico convidado', 'The guest coach')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px' }}>
