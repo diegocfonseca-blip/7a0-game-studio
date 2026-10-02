@@ -2903,7 +2903,7 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway }:
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
@@ -2911,7 +2911,10 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void
   /** 🎭 de quem é a MASCOTE do gol, quando o nome na tela não é o clube do dono (carreira internacional:
    *  aparece "Flamengo", mas quem comemora é a mascote do Neymarzetti, o técnico convidado) */
-  mascotHome?: string; mascotAway?: string }) {
+  mascotHome?: string; mascotAway?: string
+  /** 📢 frases próprias do apito final (vitória · derrota · empate), pra jogo que NÃO é de liga —
+   *  na final de copa não se fala em "três pontos" (Diego 02/10). Sem isto, valem as da liga. */
+  apitoFrases?: { win: string[]; lose: string[]; draw: string[] } }) {
   const privatePreview = useOnlinePreview()
   // 🔓 19/09: a apresentação da CARREIRA saiu da prévia e foi pra todo mundo, por ordem
   // do Diego (*"pode publicar p todos"*). Uma chave só, `CAREER_VISUAL_RELEASED` — pôr
@@ -3208,7 +3211,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
   const meusGols = youIsHome ? hg : ag, delesGols = youIsHome ? ag : hg
   const resultado: 'h' | 'a' | null = fechado && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null
-  const FIM_RES = meusGols > delesGols
+  const FIM_RES = apitoFrases ? (meusGols > delesGols ? apitoFrases.win : meusGols < delesGols ? apitoFrases.lose : apitoFrases.draw) : meusGols > delesGols
     ? (emIngles ? ['📢 Final whistle — VICTORY! Three points in the bag 🎉', '📢 It\'s over — WE WON! The crowd goes home singing 🎉', '📢 Full time — VICTORY, and it was deserved 🎉', '📢 The referee ends it: WIN! Job done 🎉'] : ['📢 Apito final — VITÓRIA! Três pontos no bolso 🎉', '📢 Acabou — GANHAMOS! A torcida vai embora cantando 🎉', '📢 Fim de jogo — VITÓRIA, e merecida 🎉', '📢 O juiz encerrou: VITÓRIA! Missão cumprida 🎉'])
     : meusGols < delesGols
       ? (emIngles ? [`📢 Final whistle — defeat, ${meusGols} to ${delesGols}. On to the next one 😤`, '📢 It\'s over — lost this one. The crowd went home quiet 😤', '📢 Full time — not our night. Heads up 😤', '📢 The referee ends it: defeat. Next round we go again 😤'] : [`📢 Apito final — derrota por ${meusGols} a ${delesGols}. Bola pra frente 😤`, '📢 Acabou — perdemos essa. A torcida saiu calada 😤', '📢 Fim de jogo — não foi a nossa noite. Cabeça erguida 😤', '📢 O juiz encerrou: derrota. Na próxima a gente volta 😤'])

@@ -126,7 +126,7 @@ avança sozinho; manual tem botão).
   na Europa). Lê só o histórico gravado. Saiu o `<details>` antigo de texto corrido. A legenda dos pontos do ranking agora
   lê o `PTS_TITULO` (mostrava Mundial +50/Liberta +40, os números antigos).
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
-  E a narração do placar na FINAL ainda fala "três pontos no bolso" (frase de liga) — `LiveScoreCard` não sabe que é copa.
+  ✅ A narração do apito no mata-mata/final agora é de copa (`apitoFrases` no `LiveScoreCard`, `frasesDoApito` na tela internacional): ida, volta e final com taça/pênaltis. Grupos seguem com as da liga.
 
 ### (pedido original, pra memória)
 
