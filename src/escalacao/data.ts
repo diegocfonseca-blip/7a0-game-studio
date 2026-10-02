@@ -3535,6 +3535,7 @@ export const OLD_NAME: Record<string, string> = {
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
   'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
+  'Gaviões SCCP': 'Zorra FC', // 🦅 batismo do kauealves584 (02/10): assumiu o assento da Série C que era do Zorra FC — save antigo com Zorra FC vira Gaviões SCCP ao abrir. (O Zorra FC continua existindo em CLASSIC_CLUBS; só o assento da pirâmide mudou de nome.)
   'El Mineiro': 'Brodeiragem', // 🐓 batismo do bastosmbc (27/09): assumiu o assento da Série C que era do Brodeiragem — save antigo com Brodeiragem vira El Mineiro ao abrir. (O Brodeiragem continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Pantera Negra FC': 'Miúdo EC', // 🐆👑 batismo do ericrabelo29 (20/09): assumiu o assento da Série C que era do Miúdo EC — save antigo com Miúdo EC vira Pantera Negra FC ao abrir. (O Miúdo do Gol continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
@@ -3876,7 +3877,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // existindo em CPU_MANAGERS (o elenco do jogo rápido, outra lista).
     { name: 'Galo Doido', team: 'El Mineiro' }, // 🐓 clube BATIZADO por apoiador (bastosmbc — El Mineiro, ex-Brodeiragem, Série C; escudo alvinegro com o galo de crista vermelha e a estrela, mascote O Galo Doido; preto #100C0C + branco #E1D9D5 MEDIDOS na camisa do dono; coração ATLÉTICO MINEIRO; Lenda + fundador nº80 + sócio nº61, 27/09)
     { name: 'Siuuu', team: 'Internacional de Madrid' }, // 👑 clube BATIZADO por apoiador (matheusstefanello372 — Internacional de Madrid, ex-Adão Esporte, Série C; escudo com a coroa e o monograma SCI, vermelho #A90605 + branco #FCF6F1 MEDIDOS na arte do dono; mascote o SIUUU coroado; Lenda + fundador nº69 + sócio nº50, 14/09)
-    { name: 'Zorra Total FC', team: 'Zorra FC' },
+    // 🦅 GAVIÕES SCCP (kauealves584, batismo de 02/10) no assento do bot Zorra FC (bot sem dono
+    // da Série C). `OLD_NAME` leva save antigo pro nome novo. O Zorra FC continua existindo em
+    // CLASSIC_CLUBS (partida rápida); só o assento da pirâmide mudou de nome.
+    { name: 'Gavião', team: 'Gaviões SCCP' }, // 🦅⚫⚪ clube BATIZADO por apoiador (kauealves584 — Gaviões SCCP, ex-Zorra FC, Série C; escudo listrado com o gavião de asas abertas, mascote O Gavião; preto #161314 + branco #F9F8F8 MEDIDOS na camisa do dono; Lenda + fundador nº83, 02/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
     { name: 'Gugu Canela', team: 'Napolitano' },
     { name: 'Boss', team: 'Final Boss FC' }, // 🐂 clube BATIZADO por apoiador (gustavo99828 — Final Boss FC, ex-Ponte Branca, Série C; mascote o touro O Boss, vermelho + preto sobre branco; Lenda + fundador nº57, 05/09)

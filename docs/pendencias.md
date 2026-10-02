@@ -1,3 +1,11 @@
+## 🦅⚫⚪ Batismo Gaviões SCCP (02/10)
+- Dono `kauealves584@gmail.com` (conta desde 15/09). **Série C**, no assento do bot **Zorra FC** (que segue vivo em
+  CLASSIC_CLUBS; `OLD_NAME` leva save antigo pro nome novo). Lenda + fundador nº83 + sócio nº64 — banco gravado
+  (user_colors ouro/manual, esc_fundadores, esc_socios, esc_nomes_batismo com FC/EC pelo gatilho).
+- Arte do dono (fundo verde): escudo 200×360/29 KB · mascote "O Gavião" 224×440/36 KB · camisa da Loja.
+  Manto medido: preto #161314 (77%) + branco #F9F8F8 (gola/punhos). Só o nome INTEIRO tem escudo (nunca "Gaviões" sozinho).
+- Falta: time de coração (o "SCCP" sugere Corinthians — confirmar com o Diego, não chutar) e nome do dono pro post.
+
 ## 02/10/2026 — ✉️ Convite com CARTA DE CADA CLUBE + "técnico" no lugar de "presidente" ✅ NO AR
 - Pedido do Diego (print do Fabao Fabulous EC): *"esses textos não podem ser mais pessoal? falar da Vila… de Porto
   Alegre… trazer a família"* e *"não fale presidente, até agora não sei o que sou sendo convidado"*.
