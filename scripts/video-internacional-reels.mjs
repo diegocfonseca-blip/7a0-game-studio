@@ -17,7 +17,11 @@
 //  17,0–22,6   o jogo rolando no placar (gol saindo)
 //  22,6–28,0   🌐 Mundial: campeão × campeão, jogo único
 //  28,0–32,4   o que vale: pontos no ranking e moedas
-//  32,4–38,2   como chegar (G8 da Série A ou Copa do Brasil) + marca
+//  32,4–38,4   🏆 Copa do Mundo agora com 32 seleções (os 8 países novos)
+//  38,4–44,2   como chegar (G8 da Série A ou Copa do Brasil) + marca
+//
+// 🔁 02/10 (2º pedido): *"no vídeo novo… falando das novidades champions libertadores e
+// mundial além de mais países add na copa do mundo"* → entrou a cena da Copa de 32.
 //
 //   node scripts/video-internacional-reels.mjs [--saida internacional-reels.mp4]
 import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'node:fs'
@@ -78,7 +82,7 @@ body{width:1080px;height:1920px;background:${CREME};font-family:system-ui;overfl
 
 <!-- ① chegaram -->
 ${cena(0, 4.8, `
-  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) .1s both">${pill('novo na carreira', RED, '#fff', 36)}</div>
+  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) .1s both">${pill('novidades na carreira', RED, '#fff', 36)}</div>
   <p style="${OSW};font-size:150px;text-transform:uppercase;text-align:center;line-height:.95;margin:30px 0 6px;animation:sobe .5s .4s both">3 novas</p>
   <p style="${OSW};font-size:150px;text-transform:uppercase;text-align:center;line-height:.95;
     background:${G_OURO};-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(6px 6px 0 ${INK});animation:sobe .5s .7s both">competições</p>
@@ -87,6 +91,9 @@ ${cena(0, 4.8, `
     <div style="width:820px;background:#fff;border:6px solid ${INK};border-radius:24px;box-shadow:8px 8px 0 ${INK};padding:18px 28px;display:flex;align-items:center;gap:22px;
       animation:entra .45s cubic-bezier(.2,1.5,.4,1) ${(1.3 + i * .35).toFixed(2)}s both">
       <span style="font-size:70px;line-height:1">${e}</span><b style="${OSW};font-size:58px;text-transform:uppercase;color:${c}">${n}</b></div>`).join('')}
+    <div style="width:820px;background:${G_OURO};border:6px solid ${INK};border-radius:24px;box-shadow:8px 8px 0 ${INK};padding:18px 28px;display:flex;align-items:center;gap:22px;
+      animation:entra .45s cubic-bezier(.2,1.5,.4,1) 2.45s both">
+      <span style="font-size:70px;line-height:1">🏆</span><b style="${OSW};font-size:52px;text-transform:uppercase;color:${INK}">+ Copa de 32 seleções</b></div>
   </div>`)}
 
 <!-- ② Libertadores -->
@@ -158,18 +165,35 @@ ${cena(28.0, 32.4, `
     <b style="${OSW};font-size:56px;color:#fff;background:${c};border:4px solid ${INK};border-radius:16px;padding:2px 18px">${p}</b></div>`).join('')}
   <p style="font-size:38px;font-weight:800;text-align:center;margin-top:24px;line-height:1.35;animation:sobe .45s 29.8s both">no <b>ranking global</b> · e 🪙 moedas pro caixa<br>a cada fase que você passa</p>`)}
 
-<!-- ⑦ como chegar + marca -->
-${cena(32.4, 40, `
-  <p style="${OSW};font-size:84px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:34px;animation:sobe .45s 32.55s both">como<br><span style="color:${GREEN}">chegar lá</span></p>
+<!-- ⑦ Copa do Mundo de 32 -->
+${cena(32.4, 38.4, `
+  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 32.5s both">${pill('🏆 copa do mundo', GOLD, INK, 36)}</div>
+  <p style="${OSW};font-size:170px;text-transform:uppercase;text-align:center;line-height:.9;margin:26px 0 0;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 32.8s both, brilha 2.4s ease-in-out 33.6s infinite">32</p>
+  <p style="${OSW};font-size:76px;text-transform:uppercase;text-align:center;line-height:1;color:${GREEN};animation:sobe .45s 33.0s both">seleções</p>
+  <p style="${OSW};font-size:44px;text-transform:uppercase;margin:30px 0 18px;color:rgba(12,12,12,.7);animation:sobe .45s 33.3s both">chegaram 8 países</p>
+  <div style="display:grid;grid-template-columns:repeat(2,460px);gap:14px">
+    ${[['🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Escócia'], ['🇸🇪', 'Suécia'], ['🇹🇷', 'Turquia'], ['🇷🇸', 'Sérvia'], ['🇬🇭', 'Gana'], ['🇮🇪', 'Irlanda'], ['🇨🇮', 'Costa do Marfim'], ['🇩🇿', 'Argélia']].map(([f, n], i) => `
+    <div style="display:flex;align-items:center;gap:16px;background:#fff;border:5px solid ${INK};border-radius:20px;box-shadow:6px 6px 0 ${INK};padding:12px 20px;
+      animation:entra .4s cubic-bezier(.2,1.5,.4,1) ${(33.6 + i * .18).toFixed(2)}s both">
+      <span style="font-size:56px;line-height:1">${f}</span><b style="${OSW};font-size:${n.length > 10 ? 36 : 44}px;text-transform:uppercase">${n}</b></div>`).join('')}
+  </div>
+  <div style="margin-top:30px;width:940px;background:#FFF6D6;border:6px solid ${INK};border-radius:26px;box-shadow:8px 8px 0 ${INK};padding:20px 28px;
+    animation:entra .5s cubic-bezier(.2,1.5,.4,1) 35.4s both">
+    <p style="font-size:36px;font-weight:800;line-height:1.4;text-align:center">⚽ <b>44 cartas novas</b> de craques<br>🟢 <b>8 grupos de 4</b> · passam os 2 primeiros</p>
+  </div>`)}
+
+<!-- ⑧ como chegar + marca -->
+${cena(38.4, 46, `
+  <p style="${OSW};font-size:84px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:34px;animation:sobe .45s 38.5s both">como chegar<br><span style="color:${GREEN}">na Libertadores</span></p>
   <div style="display:flex;flex-direction:column;gap:16px;align-items:center">
     <div style="width:880px;background:#fff;border:6px solid ${INK};border-radius:24px;box-shadow:8px 8px 0 ${INK};padding:20px 28px;${OSW};font-size:46px;text-transform:uppercase;
-      animation:entra .45s cubic-bezier(.2,1.5,.4,1) 32.9s both">🏆 termine no <span style="color:${GREEN}">G8</span> da Série A</div>
-    <b style="${OSW};font-size:42px;color:rgba(12,12,12,.5);animation:pop .4s 33.3s both">ou</b>
+      animation:entra .45s cubic-bezier(.2,1.5,.4,1) 38.9s both">🏆 termine no <span style="color:${GREEN}">G8</span> da Série A</div>
+    <b style="${OSW};font-size:42px;color:rgba(12,12,12,.5);animation:pop .4s 39.3s both">ou</b>
     <div style="width:880px;background:#fff;border:6px solid ${INK};border-radius:24px;box-shadow:8px 8px 0 ${INK};padding:20px 28px;${OSW};font-size:46px;text-transform:uppercase;
-      animation:entra .45s cubic-bezier(.2,1.5,.4,1) 33.5s both">🇧🇷 ganhe a <span style="color:${GREEN}">Copa do Brasil</span></div>
+      animation:entra .45s cubic-bezier(.2,1.5,.4,1) 39.5s both">🇧🇷 ganhe a <span style="color:${GREEN}">Copa do Brasil</span></div>
   </div>
-  <div style="margin-top:40px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 34.2s both">${pill('no modo carreira', GREEN, '#fff', 38)}</div>
-  <p style="${OSW};font-size:64px;margin-top:44px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 34.8s infinite">
+  <div style="margin-top:40px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 40.2s both">${pill('no modo carreira', GREEN, '#fff', 38)}</div>
+  <p style="${OSW};font-size:64px;margin-top:44px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 40.8s infinite">
     ⚽ Leilão <span style="color:${RED}">Legends</span></p>
   <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.55);margin-top:12px">leilaolegends.com</p>`)}
 </body>`
@@ -186,7 +210,7 @@ const ctx = await b.newContext({ viewport: { width: 1080, height: 1920 }, record
 const vp = await ctx.newPage()
 await vp.goto('file://' + vtmp)
 await vp.evaluate(() => document.fonts.ready)
-await vp.waitForTimeout(38300)
+await vp.waitForTimeout(44300)
 await ctx.close()
 await b.close()
 
