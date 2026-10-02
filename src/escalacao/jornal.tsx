@@ -998,7 +998,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         </div>
       )}
 
-      {privateVisual && <CareerNewspaperStories serieA={tables.A?.[0]?.name} cup={copa?.champion?.name} cupBrasil={brasil} superCup={superChamp} mundial={mundial} />}
+      {privateVisual && <CareerNewspaperStories serieA={tables.A?.[0]?.name} cup={copa?.champion?.name} cupBrasil={brasil} superCup={superChamp} mundial={mundial} internacional={clubInternational ? { liberta: clubInternational.libertadoresChampion, champions: clubInternational.championsChampion, mundial: clubInternational.mundialChampion, representado: clubInternational.representedClub, voce: clubInternational.userTeam } : null} />}
       <div className={privateVisual ? 'll34-career-numbers' : undefined} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
         {/* "foto" */}
         <div style={{ border: `2.5px solid ${INK}`, background: 'radial-gradient(circle at 50% 35%, #2ea457, #123f22)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 108, overflow: 'hidden' }}>

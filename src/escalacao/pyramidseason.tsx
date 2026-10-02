@@ -46,7 +46,7 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do cl
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
-import { CareerInternationalView } from './career-international-view'
+import { CareerInternationalView, topoInternacional } from './career-international-view'
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
@@ -8465,6 +8465,9 @@ export function PyramidSeasonScreen() {
     && (cmVaga.top16.some(r => r.you) || state.copaMundoStats?.season === state.seasonNo)
   const mundoPendente = mundoAntes && !cmAgenda.jogada && state.copaMundoStats?.season !== state.seasonNo
   const fimOrdem = intlPendente || mundoAntes ? [3, 1, 2, 4] : [1, 2, 3, 4]
+  // 🌎 a campanha internacional está NA TELA agora (passo 3 aberto, ainda sem fechar) — é
+  // quando o cabeçalho de cima troca a Série A pela competição e a fase
+  const intlNoAr = roteiroOn && fimPasso === 3 && intlRequired && intlPendente && copaFinished && state.copaDoneSeason === state.seasonNo
   const proxPasso = (n: number) => fimOrdem[fimOrdem.indexOf(n) + 1] ?? 4
   // temporada nova recomeça o roteiro do 1º passo (senão a próxima virada já abria
   // na decisão) — e o 1º passo é a Copa do Mundo quando ela vem antes do jornal
@@ -9148,6 +9151,15 @@ export function PyramidSeasonScreen() {
           const label = supercopaFase ? '🏆🔵 Supercopa Legends' : copaBrOk ? '🏆🇧🇷 Copa do Brasil Legends' : '🏆 Copa Legends'
           const sub = supercopaFase ? tr('Campeão da Liga × Campeão da Copa do Brasil', 'League champion × Copa do Brasil champion') : copaBrOk ? tr('100 clubes · mata-mata puro, sem grupos', '100 clubs · pure knockout, no groups') : tr('Os 4 melhores de cada série (A·B·C·D) no mata-mata', 'The top 4 of each division (A·B·C·D) in a knockout')
           const artClass = !privateCareer ? '' : !copaPlaying ? ' ll25-career-league' : supercopaFase ? ' ll25-career-super' : copaBrOk ? ' ll25-career-copa-br' : ' ll25-career-copa'
+          // 🌎 CAMPANHA INTERNACIONAL NA TELA (Diego 02/10: *"nada a ver ficar aparecendo a Série
+          // A"*): o cabeçalho fixo vira o da Libertadores/Champions/Mundial, com a fase — igual
+          // ao da Copa do Brasil quando ela está rolando.
+          if (privateCareer && intlNoAr && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) {
+            const t = topoInternacional(intlCampaign, state.seasonNo)
+            return <CareerCompetitionStage kind={t.kind} title={t.titulo} phase={t.fase} detail={t.detalhe} status={t.status}>
+              <div className="ll29-summary"><span>{torcidaFace(torcidaPct)} {tr('Torcida', 'Fans')} <b>{torcidaPct}%</b><br/><small>{torcidaHist.map(h=>motivoTorcida(h.motivo)).join(' · ')}</small></span><progress max={100} value={torcidaPct}/><span>{me ? `${ordinal(me.pos)} · ${DIV_NAME[me.div]}` : ''}</span><CoinsBadge coins={state.careerCoins?.[youId] ?? 0}/></div>
+            </CareerCompetitionStage>
+          }
           if (privateCareer && (tab === 'jogos' || tab === 'tabelas' || tab === 'ranking')) return <CareerCompetitionStage
             kind={!copaPlaying ? 'league' : supercopaFase ? 'super' : copaBrOk ? 'brasil' : 'copa'}
             title={`${tr('TEMPORADA', 'SEASON')} ${state.seasonNo} · ${copaPlaying ? label : 'LIGA LEGENDS'}`}
@@ -9335,7 +9347,7 @@ export function PyramidSeasonScreen() {
           squad={(state.managers[state.youIdx]?.squad ?? []) as WonCard[]} choices={intlChoices} priority={intlPriority} campaign={intlCampaign} history={intlHistory}
           onStart={campaign => dispatch({ type: 'START_INTERNATIONAL_CAMPAIGN', campaign })}
           onAdvance={() => dispatch({ type: 'ADVANCE_INTERNATIONAL_CAMPAIGN' })}
-          onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} />}
+          onFinish={entry => dispatch({ type: 'FINISH_INTERNATIONAL_CAMPAIGN', entry })} topoGrande={privateCareer && intlNoAr} />}
         {/* 📰 PASSO 1: a NOTÍCIA. Primeiro o jornal, que é o que a cabeça quer saber. */}
         {copaFinished && me && (!roteiroOn || fimPasso === 1) && (
           <SeasonJornal privateVisual={privateCareer} me={me} tables={tables} copa={copa} divTop={divTop} seasonNo={state.seasonNo} brasil={copaBrOk}

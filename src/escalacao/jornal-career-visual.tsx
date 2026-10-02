@@ -1,4 +1,5 @@
 import { Escudo } from './escudos'
+import { SeloClube } from './selo-clube'
 import { FotoJornal } from './jornal-manto' // 🎽 a foto sai com o manto do campeão, quando ele é batismo
 import './jornal-online-visual.css'
 
@@ -11,20 +12,36 @@ import { bandeiraDe as bandeira } from './copa-mundo'
  *  do ano, não da série de quem joga. Toda temporada a foto grande é o campeão da
  *  SÉRIE A, e embaixo vêm Copa do Brasil e Supercopa. Ano de Copa do Mundo, a foto
  *  grande é a seleção campeã do mundo e o resto desce pros quadros menores. */
-export function CareerNewspaperStories({ serieA, cup, cupBrasil, superCup, mundial }: {
+export function CareerNewspaperStories({ serieA, cup, cupBrasil, superCup, mundial, internacional }: {
   serieA?: string; cup?: string; cupBrasil?: boolean; superCup?: { name: string; vs: string } | null
   mundial?: { selecao: string; campeao: string } | null
+  /** 🌎🌍🌐 campeões da Libertadores, da Champions e do Mundial de Clubes (Diego 02/10:
+   *  *"no jornal também tem que ter destaque dos campeões da Libertadores, Champions e Mundial"*).
+   *  `voce` = o clube que o usuário representou (aparece com o nome e o escudo DELE). */
+  internacional?: { liberta: string; champions: string; mundial: string; representado: string | null; voce: string } | null
 }) {
-  const lado = (tag: string, titulo: string, qual: 'liga' | 'copa', clube: string, legenda: string) => (
+  const lado = (tag: string, titulo: string, qual: 'liga' | 'copa', clube: string, legenda: string, crest?: React.ReactNode) => (
     <figure key={tag}><h3><small style={{ display: 'block', font: '700 10px Oswald,sans-serif', letterSpacing: 1, color: '#6c604a' }}>{tag}</small>{titulo}</h3>
-      <div className="jv-photo"><FotoJornal qual={qual} clube={clube} alt="" /><span className="jv-crest"><Escudo nome={clube} size={40}/></span></div>
+      <div className="jv-photo"><FotoJornal qual={qual} clube={clube} alt="" /><span className="jv-crest">{crest ?? <Escudo nome={clube} size={40}/>}</span></div>
       <figcaption>{legenda}</figcaption></figure>
   )
+  // 🌎 clube de verdade (Flamengo, Real Madrid…) usa o escudo oficial; o que o usuário
+  // representou aparece como o clube DELE, com o escudo dele
+  const intl = (tag: string, titulo: string, inst: string) => {
+    const voce = !!internacional && inst === internacional.representado
+    const nome = voce ? internacional!.voce : inst
+    return lado(tag, titulo, 'copa', nome, voce ? `${nome} · ${tr('representando', 'representing')} ${inst}` : nome, voce ? <Escudo nome={nome} size={40}/> : <SeloClube clube={inst} size={40}/>)
+  }
   const copaTag = cupBrasil ? tr('🇧🇷 COPA DO BRASIL', '🇧🇷 BRAZILIAN CUP') : tr('🏆 COPA LEGENDS', '🏆 LEGENDS CUP')
   const lados = [
     ...(mundial && serieA ? [lado(tr('🏆 SÉRIE A', '🏆 SERIE A'), tr('Campeão', 'Champion'), 'liga', serieA, serieA)] : []),
     ...(cup ? [lado(copaTag, tr('O dono da Copa', 'Cup winner'), 'copa', cup, cup)] : []),
     ...(superCup ? [lado(tr('👑 SUPERCOPA', '👑 SUPER CUP'), tr('Rei da Supercopa', 'Super Cup king'), 'copa', superCup.name, `${superCup.name} · ${tr('contra o', 'against')} ${superCup.vs}`)] : []),
+    ...(internacional ? [
+      intl(tr('🌐 MUNDIAL DE CLUBES', '🌐 CLUB WORLD CUP'), tr('Campeão do mundo', 'World champion'), internacional.mundial),
+      intl(tr('🌎 LIBERTADORES', '🌎 LIBERTADORES'), tr('Rei da América', 'King of the Americas'), internacional.liberta),
+      intl(tr('🌍 CHAMPIONS LEAGUE', '🌍 CHAMPIONS LEAGUE'), tr('Rei da Europa', 'King of Europe'), internacional.champions),
+    ] : []),
   ]
   return <section className="jv-stories ll34-career-stories" aria-label="Destaques da temporada">
     {mundial ? <figure className="jv-main-story">

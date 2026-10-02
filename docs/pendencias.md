@@ -100,6 +100,13 @@ avança sozinho; manual tem botão).
   quem passa. A final que você só ASSISTE (Liberta/Champions/Mundial) vai no cartão `FinalCard` com a arte da competição,
   rolando ao vivo — o placar grande (`LiveScoreCard`) é sempre "você × rival" e narra "vitória", por isso não serve pra
   jogo neutro. Saiu o "Trocar de clube"; a escolha fica gravada por temporada (`esc-intl-clube-v1`).
+- 🔁 **4ª rodada (02/10, 01h25)** — *"o header das ligas novas não tá aparecendo a fase… nada a ver ficar aparecendo a
+  Série A… a parte da Libertadores/Champions pequena… no jornal tem que ter destaque dos campeões… gols e assistências das 3
+  competições contam pros totais e pra Bola de Ouro"*. FEITO: com a campanha na tela (`intlNoAr`), o cabeçalho fixo da
+  carreira vira o da competição em foco (`topoInternacional` → `CareerCompetitionStage` kind liberta/champions/mundial, arte
+  grande, fase e formato) e a faixa pequena some de dentro da tela. Jornal: a capa ganhou Mundial (Campeão do mundo),
+  Libertadores (Rei da América) e Champions (Rei da Europa) com foto. Gols/assistências: JÁ contavam (`intlListas` entra no
+  `RECORD_SEASON_STATS` e no `melhorDoMundo`), e a campanha já roda ANTES do jornal (`fimOrdem` [3,1,2,4]) — conferido.
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
   E a narração do placar na FINAL ainda fala "três pontos no bolso" (frase de liga) — `LiveScoreCard` não sabe que é copa.
 

@@ -46,6 +46,8 @@ type Props = {
   choices: InternationalClub[]; priority: number | null
   campaign: InternationalCampaign | null; history: InternationalHistoryEntry[]
   onStart: (campaign: InternationalCampaign) => void; onAdvance: () => void; onFinish: (entry: InternationalHistoryEntry) => void
+  /** o cabeçalho de cima da carreira já mostra a competição e a fase (não repetir a faixa) */
+  topoGrande?: boolean
 }
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREME = '#F4ECD6'
@@ -82,6 +84,31 @@ const ESCOLHA_KEY = 'esc-intl-clube-v1'
 const leEscolha = (season: number): { comp: InternationalCompetition; club: string } | null => { try { const v = JSON.parse(localStorage.getItem(ESCOLHA_KEY) ?? 'null'); return v && v.season === season ? v : null } catch { return null } }
 const gravaEscolha = (season: number, comp: InternationalCompetition, club: string) => { try { localStorage.setItem(ESCOLHA_KEY, JSON.stringify({ season, comp, club })) } catch { /* sem espaço */ } }
 const gravaModo = (season: number, modo: ModoSemVaga) => { try { localStorage.setItem(MODO_KEY, JSON.stringify({ season, modo })) } catch { /* sem espaço */ } }
+
+// 🏷️ O CABEÇALHO DE CIMA DA CARREIRA (Diego 02/10: *"o header das ligas novas não tá
+// aparecendo a fase… nada a ver ficar aparecendo a Série A"*). Enquanto a campanha
+// internacional está na tela, o cabeçalho fixo vira o da competição em foco — mesma peça
+// (`CareerCompetitionStage`) e mesmo lugar do da Copa do Brasil, com a arte grande.
+export function topoInternacional(campaign: InternationalCampaign | null, season: number): { kind: 'liberta' | 'champions' | 'mundial'; titulo: string; fase: string; detalhe: string; status: string } {
+  const geral = { kind: 'mundial' as const, titulo: tr('Futebol internacional de clubes', 'International club football'), fase: tr('Libertadores · Champions · Mundial', 'Libertadores · Champions · Club World Cup'), detalhe: '', status: tr('Escolha a sua competição', 'Pick your competition') }
+  if (!campaign || campaign.season !== season) return geral
+  const rep = campaign.representedClub
+  const modo = leModo(season)
+  const foco: InternationalCompetition | null = rep ? (INTERNATIONAL_CLUBS.find(c => c.name === rep)?.competition ?? null) : modo && modo !== 'pular' ? modo : null
+  if (!foco) return geral
+  const kindDe = (c: Comp) => c === 'libertadores' ? 'liberta' as const : c
+  const step = campaign.steps[campaign.reveal]
+  if (!step) return { kind: kindDe(foco), titulo: `${orgComp(foco)} ${nomeComp(foco)}`, fase: tr('Campanha encerrada', 'Campaign over'), detalhe: '', status: tr('Confira os campeões', 'Check the champions') }
+  const fase = step.mundial ?? step[foco]
+  if (!fase) return { kind: kindDe(foco), titulo: `${orgComp(foco)} ${nomeComp(foco)}`, fase: '…', detalhe: '', status: '' }
+  const c = fase.competition
+  const formato = fase.ties?.length ? (fase.ties[0].matches.length === 2 ? tr('ida e volta', 'two legs') : tr('jogo único', 'single match')) : ''
+  const detalhe = c === 'mundial' ? tr('Campeão da Libertadores × campeão da Champions · jogo único', 'Libertadores champion × Champions champion · single match')
+    : fase.title.startsWith('Grupos') ? tr('6 grupos de 6 · passam os 2 primeiros e os 4 melhores 3ºs', '6 groups of 6 · top 2 and the best four 3rds go through')
+    : fase.title.startsWith('Tabela') ? tr('36 clubes numa tabela só · 1º–8º direto · 9º–24º repescão', '36 clubs in one table · 1st–8th straight through · 9th–24th play-off')
+    : `${fase.ties?.length ?? 0} ${tr('confrontos', 'ties')} · ${formato}`
+  return { kind: kindDe(c), titulo: `${tr('Temporada', 'Season')} ${season} · ${orgComp(c)} ${nomeComp(c)}`, fase: c === 'mundial' ? tr('Final', 'Final') : tituloFase(fase.title), detalhe, status: rep ? `${campaign.userTeam} · ${tr('representando', 'representing')} ${rep}` : `📺 ${tr('você acompanha', 'you are following')}` }
+}
 
 function clubLeaders(rows: InternationalHistoryEntry[]) {
   const merged = new Map<string, { name: string; goals: number; assists: number }>()
@@ -579,13 +606,15 @@ export function CareerInternationalView(p: Props) {
       </div>
       <button type="button" style={btn()} onClick={() => p.onFinish(summarizeInternationalCampaign(current))}>{tr('Encerrar e ver o jornal', 'Finish and read the paper')} ›</button>
     </> : noiteVazia || !faseFoco || !step ? <p style={{ textAlign: 'center', fontWeight: 800, padding: 12 }}>⏳</p> : <>
-      {/* ── A NOITE DA COMPETIÇÃO EM FOCO ── */}
-      <Faixa comp={compBanner} titulo={compDaFase === 'mundial' ? tr('Mundial de Clubes · final', 'Club World Cup · final') : `${nomeComp(compBanner)} · ${tituloFase(faseFoco.title)}`}
+      {/* ── A NOITE DA COMPETIÇÃO EM FOCO ── (a competição e a fase moram no cabeçalho de
+          cima, grande, no padrão da Copa; aqui fica a faixa só fora do cabeçalho novo) */}
+      {!p.topoGrande && <Faixa comp={compBanner} titulo={compDaFase === 'mundial' ? tr('Mundial de Clubes · final', 'Club World Cup · final') : `${nomeComp(compBanner)} · ${tituloFase(faseFoco.title)}`}
         sub={compDaFase === 'mundial' ? `${tr('jogo único', 'single match')} · ${nomeDe(current.libertadoresChampion)} × ${nomeDe(current.championsChampion)}`
           : faseFoco.title === 'Final' ? `${tr('jogo único', 'single match')} · ${tr('noite das finais', 'night of the finals')}`
           : rep ? `${p.userTeam} · ${tr('representando', 'representing')} ${rep}${minhaTie && minhaTie.matches.length === 2 ? ` · ${jogo === 0 ? tr('jogo de ida', '1st leg') : tr('jogo de volta', '2nd leg')}` : ''}`
-          : `📺 ${tr('você acompanha', 'you are following')} · ${orgComp(compBanner)}`} />
+          : `📺 ${tr('você acompanha', 'you are following')} · ${orgComp(compBanner)}`} />}
       {progresso && <div style={{ display: 'flex', gap: 4, justifyContent: 'center', margin: '0 0 10px', flexWrap: 'wrap' }}>{Array.from({ length: progresso.total }, (_, i) => <i key={i} style={{ width: 18, height: 6, borderRadius: 3, background: i < progresso.feitas ? GREEN : i === progresso.feitas ? GOLD : '#0003', outline: i === progresso.feitas ? `2px solid ${INK}` : 'none' }} />)}</div>}
+      {p.topoGrande && minhaTie && minhaTie.matches.length === 2 && <p style={{ ...OSWALD, fontWeight: 700, fontSize: 12, textAlign: 'center', margin: '-4px 0 8px', color: INK }}>{jogo === 0 ? tr('⚽ Jogo de ida', '⚽ 1st leg') : tr('⚽ Jogo de volta', '⚽ 2nd leg')}</p>}
       {/* 📺 o placar grande */}
       {jogoGrande && <JogoGrande match={jogoGrande} campaign={current} comp={compBanner} roundKey={reveal * 10 + jogo} speed={speed} onFim={() => setFimJogo(true)} />}
       {finalNeutra && <FinalCard phase={finalNeutra} campaign={current} titulo={compDaFase === 'mundial' ? tr('A final do Mundial de Clubes', 'The Club World Cup final') : `${tr('A final da', 'The final of the')} ${nomeComp(compDaFase!)}`} startedAt={startedAt} legMs={legMs} finished={fimJogo} roundKey={reveal * 10 + jogo} />}

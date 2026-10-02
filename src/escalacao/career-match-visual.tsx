@@ -5,7 +5,7 @@ import { careerTieView } from './career-match-model'
 import { Escudo } from './escudos'
 import './career-match-visual.css'
 
-export function CareerCompetitionStage(p: { kind: 'league'|'copa'|'brasil'|'super'; title: string; phase: string; detail: string; status: string; children?: ReactNode }) {
+export function CareerCompetitionStage(p: { kind: 'league'|'copa'|'brasil'|'super'|'liberta'|'champions'|'mundial'; title: string; phase: string; detail: string; status: string; children?: ReactNode }) {
   return <div className={`ll29-stage ll29-stage-${p.kind}`}><CompetitionStage kind="league" title={p.title} phase={p.phase} detail={p.detail} status={p.status}>{p.children}</CompetitionStage></div>
 }
 
