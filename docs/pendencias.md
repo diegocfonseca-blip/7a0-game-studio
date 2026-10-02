@@ -107,6 +107,14 @@ avança sozinho; manual tem botão).
   grande, fase e formato) e a faixa pequena some de dentro da tela. Jornal: a capa ganhou Mundial (Campeão do mundo),
   Libertadores (Rei da América) e Champions (Rei da Europa) com foto. Gols/assistências: JÁ contavam (`intlListas` entra no
   `RECORD_SEASON_STATS` e no `melhorDoMundo`), e a campanha já roda ANTES do jornal (`fimOrdem` [3,1,2,4]) — conferido.
+- ✉️ **O CONVITE (02/10, mockup aprovado: *"adorei… perfeito"*)** — narrativa: o presidente do seu clube é chamado
+  pra ser o TÉCNICO CONVIDADO de um clube grande por uma campanha. No lugar de escolher competição + clube num cardápio,
+  chegam **2 convites sorteados do bloco da sua posição** (`convitesDaTemporada`, preso na semente + temporada; campeão
+  da A = bloco 1, campeão da Copa do Brasil = bloco 2, 2º–8º depois); depois de ganhar a Libertadores, **2 da Liberta +
+  2 da Champions**. Carta estilo O MARTELO (`CartaConvite`), aceitou = travado. Na campanha o clube aparece com nome e
+  escudo DELE (`comNomeDoClube`), o placar diz "TÉCNICO: <seu clube>" no lugar de "VOCÊ" e a mascote do gol continua a
+  SUA (`LiveScoreCard` ganhou `mascotHome/mascotAway`). Jornal: manchete "Presidente do X leva o Flamengo ao título da
+  América" + capa com o escudo do clube e "técnico: X". Ranking, moedas e histórico continuam no seu clube (save igual).
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
   E a narração do placar na FINAL ainda fala "três pontos no bolso" (frase de liga) — `LiveScoreCard` não sabe que é copa.
 

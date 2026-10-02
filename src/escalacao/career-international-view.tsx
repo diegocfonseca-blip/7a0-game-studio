@@ -30,7 +30,7 @@ import { CompetitionStage, RoundMatchPresentation, useRoundPresentationStart } f
 import { Escudo } from './escudos'
 import { SeloClube } from './selo-clube'
 import { mascoteKeyDoTime, FestaoMascote } from './mascotes'
-import { tr } from './lang'
+import { tr, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
 import { LiveScoreCard, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
@@ -107,7 +107,30 @@ export function topoInternacional(campaign: InternationalCampaign | null, season
     : fase.title.startsWith('Grupos') ? tr('6 grupos de 6 · passam os 2 primeiros e os 4 melhores 3ºs', '6 groups of 6 · top 2 and the best four 3rds go through')
     : fase.title.startsWith('Tabela') ? tr('36 clubes numa tabela só · 1º–8º direto · 9º–24º repescão', '36 clubs in one table · 1st–8th straight through · 9th–24th play-off')
     : `${fase.ties?.length ?? 0} ${tr('confrontos', 'ties')} · ${formato}`
-  return { kind: kindDe(c), titulo: `${tr('Temporada', 'Season')} ${season} · ${orgComp(c)} ${nomeComp(c)}`, fase: c === 'mundial' ? tr('Final', 'Final') : tituloFase(fase.title), detalhe, status: rep ? `${campaign.userTeam} · ${tr('representando', 'representing')} ${rep}` : `📺 ${tr('você acompanha', 'you are following')}` }
+  return { kind: kindDe(c), titulo: `${tr('Temporada', 'Season')} ${season} · ${orgComp(c)} ${nomeComp(c)}`, fase: c === 'mundial' ? tr('Final', 'Final') : tituloFase(fase.title), detalhe, status: rep ? `${rep} · ${tr('técnico convidado', 'guest coach')}: ${campaign.userTeam}` : `📺 ${tr('você acompanha', 'you are following')}` }
+}
+
+// ✉️ OS CONVITES (Diego 02/10, mockup aprovado: *"adorei… perfeito"*). Você não escolhe o
+// clube num cardápio: o clube grande é que CHAMA o presidente pra ser o técnico convidado
+// dele numa campanha. Chegam 2 convites sorteados do BLOCO DA SUA POSIÇÃO (campeão da A =
+// bloco 1, campeão da Copa do Brasil = bloco 2, depois 2º–8º da A); depois de ganhar a
+// Libertadores uma vez, chegam 2 da Libertadores + 2 da Champions. O sorteio é preso na
+// semente + temporada: recarregar a tela não muda os convites.
+export type Convite = { club: string; comp: InternationalCompetition }
+export function convitesDaTemporada(seed: number, season: number, priority: number | null, choices: readonly InternationalClub[], champsOk: boolean): Convite[] {
+  if (priority == null || !choices.length) return []
+  const liberados = (comp: InternationalCompetition) => {
+    // o bloco da sua posição; se nele ninguém fecha time, desce pro próximo bloco liberado
+    for (let b = priority; b <= INTERNATIONAL_BLOCKS.length; b++) {
+      const nomes = INTERNATIONAL_BLOCKS[b - 1][comp].filter(n => choices.some(c => c.name === n) && clubeFechaTime(n))
+      if (nomes.length) return nomes
+    }
+    return [] as string[]
+  }
+  let x = (seed ^ Math.imul(season, 0x9E3779B1) ^ Math.imul(priority, 0x85EBCA6B)) >>> 0 || 1
+  const rnd = () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296 }
+  const sorteia = (comp: InternationalCompetition) => [...liberados(comp)].map(n => ({ n, r: rnd() })).sort((a, b) => a.r - b.r).slice(0, 2).map(({ n }) => ({ club: n, comp }))
+  return [...sorteia('libertadores'), ...(champsOk ? sorteia('champions') : [])]
 }
 
 function clubLeaders(rows: InternationalHistoryEntry[]) {
@@ -131,10 +154,15 @@ function Faixa({ comp, titulo, sub }: { comp: Comp; titulo: string; sub?: string
   </div>
 }
 
+// 🧢 O CONVITE (02/10): na campanha o clube aparece como ele é — Flamengo, com o escudo do
+// Flamengo. Você é o TÉCNICO convidado: seu escudo vira o selo "técnico" e a sua mascote
+// continua comemorando o gol. (No save o nome do time segue sendo o seu, pra ranking/prêmio.)
 const crestOf = (campaign: InternationalCampaign, id: string, size: number) => {
   const t = campaign.teams.find(x => x.id === id)
-  return t?.you ? <Escudo nome={campaign.userTeam} size={size} /> : <SeloClube clube={t?.institution ?? id} size={size} />
+  return <SeloClube clube={t?.institution ?? id} size={size} />
 }
+/** a campanha com o nome de TELA de cada clube (o seu aparece com o nome da instituição) */
+const comNomeDoClube = (c: InternationalCampaign): InternationalCampaign => ({ ...c, teams: c.teams.map(t => t.you ? { ...t, name: t.institution } : t) })
 
 // 🎬 OS JOGOS DOS OUTROS RODAM AO VIVO (Diego 02/10: *"as simulações estão dando resultado
 // pronto… quero simulação real, com o tempo passando, como sempre foi, e pênaltis também"*).
@@ -238,10 +266,25 @@ function Tabela({ rows, me, cortes, titulo, campaign, legenda, apagaDepoisDe }: 
     {rows.map((r, i) => {
       const t = teams.get(r.team); const cor = cortes(i)
       return <div key={r.team} style={{ display: 'grid', gridTemplateColumns: '22px 26px 1fr 24px 30px 30px', gap: 6, alignItems: 'center', padding: '5px 10px', borderBottom: '2px solid #00000010', fontWeight: 700, color: INK, borderLeft: cor ? `5px solid ${cor}` : '5px solid transparent', background: r.team === me ? '#FFF3C4' : '#fff', outline: r.team === me ? `2px solid ${GOLD}` : 'none', outlineOffset: -2, opacity: apagaDepoisDe !== undefined && i >= apagaDepoisDe ? .5 : 1 }}>
-        <span>{i + 1}º</span>{t?.you ? <Escudo nome={campaign.userTeam} size={22} /> : <SeloClube clube={r.team} size={22} />}<span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t?.name ?? r.team}{t?.you && <small style={{ color: '#777' }}> · {tr('VOCÊ', 'YOU')}</small>}</span><span style={{ color: '#777' }}>{r.played}</span><span>{r.points}</span><span style={{ color: '#777' }}>{r.gf - r.ga > 0 ? `+${r.gf - r.ga}` : r.gf - r.ga}</span>
+        <span>{i + 1}º</span><SeloClube clube={r.team} size={22} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t?.name ?? r.team}{t?.you && <small style={{ color: '#777' }}> · {tr('técnico', 'coach')}: {campaign.userTeam}</small>}</span><span style={{ color: '#777' }}>{r.played}</span><span>{r.points}</span><span style={{ color: '#777' }}>{r.gf - r.ga > 0 ? `+${r.gf - r.ga}` : r.gf - r.ga}</span>
       </div>
     })}
     {legenda && <div style={{ display: 'flex', gap: 10, padding: '6px 10px', fontSize: 9, fontWeight: 800, color: 'rgba(0,0,0,.6)', background: CREME, flexWrap: 'wrap' }}>{legenda.map(l => <span key={l.txt}><i style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: l.cor, verticalAlign: -1, marginRight: 3 }} />{l.txt}</span>)}</div>}
+  </div>
+}
+
+// ✉️ a CARTA do convite — O MARTELO, edição extra (mockup aprovado 02/10)
+function CartaConvite({ convite, userTeam, season, onAceitar }: { convite: Convite; userTeam: string; season: number; onAceitar: () => void }) {
+  return <div style={{ marginBottom: 14 }}>
+    <div style={{ background: '#FBF5E4', border: `3px solid ${INK}`, borderRadius: 6, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 13px 10px', color: INK }}>
+      <div style={{ ...OSWALD, fontWeight: 700, fontSize: 22, textAlign: 'center', letterSpacing: 1, borderBottom: `3px double ${INK}`, paddingBottom: 3 }}>O MARTELO</div>
+      <div style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: 1.4, textAlign: 'center', color: '#6c604a', margin: '4px 0 8px', textTransform: 'uppercase' }}>{tr('Edição extra', 'Special edition')} · {tr('Temporada', 'Season')} {season} · {emojiComp(convite.comp)} {nomeComp(convite.comp)}</div>
+      <h3 style={{ ...OSWALD, fontWeight: 700, fontSize: 20, lineHeight: 1.05, margin: '0 0 8px' }}>{tr(`O ${convite.club} quer o presidente do ${userTeam} no banco`, `${convite.club} wants the ${userTeam} chairman on the bench`)}</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '6px 0 8px' }}><SeloClube clube={convite.club} size={60} /><span style={{ ...OSWALD, fontWeight: 700, fontSize: 22, color: '#999' }}>×</span><Escudo nome={userTeam} size={60} /></div>
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: 12.5, lineHeight: 1.45, margin: '0 0 6px' }}>{getLang() === 'en' ? <>After finishing among Brazil's best, the {userTeam} owner was called to <b>lead {convite.club} in the {nomeComp(convite.comp)}</b> this season. {userTeam} stays home — and the trophy, if it comes, goes into its cabinet.</> : <>Depois de terminar entre os melhores do Brasil, o dono do {userTeam} foi chamado pra <b>comandar o {convite.club} na {nomeComp(convite.comp)}</b> desta temporada. O {userTeam} fica em casa — e a taça, se vier, entra na galeria dele.</>}</p>
+      <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 11.5, textAlign: 'right', color: '#444' }}>— {tr('Diretoria do', 'The board of')} {convite.club}</div>
+    </div>
+    <button type="button" style={{ ...btn(GREEN, '#fff'), marginTop: 10 }} onClick={onAceitar}>✍️ {tr('Aceitar o convite e convocar', 'Accept the invitation and call up')}</button>
   </div>
 }
 
@@ -340,9 +383,12 @@ function JogoGrande({ match, campaign, comp, roundKey, speed, onFim }: { match: 
   const [fim, setFim] = useState(false)
   useEffect(() => { setFim(false) }, [roundKey])
   useApitoDeLargada('intl-carreira', roundKey, true)
-  return <LiveScoreCard enhancedCareer homeName={home.name} awayName={away.name}
+  const tecnico = `${tr('TÉCNICO', 'COACH')}: ${campaign.userTeam.toUpperCase()}`
+  return <LiveScoreCard enhancedCareer homeName={home.institution} awayName={away.institution}
     homeColor={copaSideColor(home.institution)} awayColor={copaSideColor(away.institution)}
-    homeEmblem={home.you ? undefined : <SeloClube clube={home.institution} size={58} />} awayEmblem={away.you ? undefined : <SeloClube clube={away.institution} size={58} />}
+    homeEmblem={<SeloClube clube={home.institution} size={58} />} awayEmblem={<SeloClube clube={away.institution} size={58} />}
+    homeOwner={home.you ? tecnico : undefined} awayOwner={away.you ? tecnico : undefined}
+    mascotHome={home.you ? campaign.userTeam : undefined} mascotAway={away.you ? campaign.userTeam : undefined}
     youIsHome={home.you} goals={goals} roundKey={roundKey} roundMs={Math.round(COPA_LEG_MS / 0.82 / speed)} footTint={tintComp(comp)}
     onMinuteChange={m => { if (m >= 93 && !fim) { setFim(true); onFim() } }} />
 }
@@ -361,13 +407,14 @@ export function CareerInternationalView(p: Props) {
   const escolhaSalva = leEscolha(p.season)
   const [comp, setComp] = useState<InternationalCompetition | null>(escolhaSalva?.comp ?? null)
   const [club, setClubRaw] = useState<string | null>(escolhaSalva?.club ?? null)
-  const setClub = (c: string) => { if (comp) gravaEscolha(p.season, comp, c); setClubRaw(c) }
+  const aceita = (cv: Convite) => { gravaEscolha(p.season, cv.comp, cv.club); setComp(cv.comp); setClubRaw(cv.club) }
   const [modo, setModo] = useState<ModoSemVaga | null>(() => leModo(p.season))
   const [celebrate, setCelebrate] = useState(false)
   const champsOk = championsLiberada(p.history)
   // 🧢 tem vaga E algum clube liberado (e aberto: Champions só depois da Liberta) fecha um time
   const podeInscrever = p.choices.some(c => clubeFechaTime(c.name) && (c.competition === 'libertadores' || champsOk))
-  const current = p.campaign?.season === p.season ? p.campaign : null
+  const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk), [p.seed, p.season, p.priority, p.choices, champsOk])
+  const current = useMemo(() => p.campaign?.season === p.season ? comNomeDoClube(p.campaign) : null, [p.campaign, p.season])
   const finished = p.history.some(entry => entry.season === p.season)
   const rep = current?.representedClub ?? null
   const myComp: InternationalCompetition | null = rep ? (INTERNATIONAL_CLUBS.find(c => c.name === rep)?.competition ?? null) : null
@@ -416,7 +463,7 @@ export function CareerInternationalView(p: Props) {
   useEffect(() => {
     if (!pulando || !current) return
     if (current.reveal < current.steps.length) p.onAdvance()
-    else p.onFinish(summarizeInternationalCampaign(current))
+    else p.onFinish(summarizeInternationalCampaign(p.campaign!))
   }, [pulando, current?.reveal]) // eslint-disable-line react-hooks/exhaustive-deps
   // ⏩ ritmo AUTO: depois do apito o jogo de volta / a próxima noite vêm sozinhos
   useEffect(() => {
@@ -488,9 +535,9 @@ export function CareerInternationalView(p: Props) {
 
   // 2) AINDA NÃO COMEÇOU: passo 1 (competição) → 2 (clube) → 3 (convocação) · ou sem vaga
   if (!current) {
-    const temVaga = p.choices.length > 0 && podeInscrever
+    const temVaga = p.choices.length > 0 && podeInscrever && convites.length > 0
     const passos = <div style={{ display: 'flex', gap: 5, justifyContent: 'center', margin: '8px 0 2px', flexWrap: 'wrap' }}>
-      {([tr('competição', 'competition'), tr('clube', 'club'), tr('convocação', 'call-up')]).map((n, k) => { const i = club ? 2 : comp ? 1 : 0; return <span key={n} style={{ border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px', fontSize: 9, fontWeight: 900, background: k < i ? GREEN : k === i ? GOLD : '#fff', color: k < i ? '#fff' : INK }}>{k < i ? '✓ ' : `${k + 1}· `}{n}</span> })}
+      {([tr('convite', 'invitation'), tr('convocação', 'call-up')]).map((n, k) => { const i = club ? 1 : 0; return <span key={n} style={{ border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px', fontSize: 9, fontWeight: 900, background: k < i ? GREEN : k === i ? GOLD : '#fff', color: k < i ? '#fff' : INK }}>{k < i ? '✓ ' : `${k + 1}· `}{n}</span> })}
     </div>
     return <section style={frame} aria-label="Futebol internacional de clubes">
       {!temVaga ? <>
@@ -520,45 +567,15 @@ export function CareerInternationalView(p: Props) {
           <p style={hint}>{tr('Você segue UMA, na mesma tela de quem joga (tabela + jogos da noite, mesmo controle auto/manual). No fim, o Mundial aparece pros dois lados.', 'You follow ONE, on the same screen as the players (table + matches of the night, same auto/manual controls). At the end, the Club World Cup shows up for both sides.')}</p>
         </div>
         <p style={hint}>⏭️ {tr('Pulou? A temporada fecha os campeões por trás e segue pro jornal. Nada trava.', 'Skipped? The season settles the champions behind the scenes and moves on to the paper. Nothing gets stuck.')}</p>
-      </> : !comp ? <>
-        {/* ── PASSO 1: a competição (Champions trancada até ganhar a Libertadores) ── */}
+      </> : !club || !comp ? <>
+        {/* ── ✉️ OS CONVITES (no lugar de escolher competição e clube num cardápio) ── */}
         <div style={card}>
           <span style={kicker}>{tr('Temporada', 'Season')} {p.season} · {tr('Futebol internacional de clubes', 'International club football')}</span>
-          {passos}
-          <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 2px', textAlign: 'center', lineHeight: 1.05, color: INK }}>🏆 {tr('Você tem vaga!', 'You have a spot!')}</h2>
-          <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '6px 0 0', color: INK }}>{p.priority === 1 ? tr('Campeão da Série A', 'Série A champion') : tr(`Prioridade ${p.priority} na Série A`, `Priority ${p.priority} in Série A`)}: {champsOk ? <>{tr('escolha', 'pick')} <b>{tr('UMA', 'ONE')}</b> {tr('competição pra esta temporada.', 'competition for this season.')}</> : tr('a Libertadores te espera.', 'the Libertadores awaits.')} {p.userTeam} {tr('leva escudo e mascote.', 'brings its crest and mascot.')}</p>
+          <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 2px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {convites.length} {tr('convites chegaram', 'invitations arrived')}</h2>
+          <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '6px 0 0', color: INK }}>{p.priority === 1 ? tr('Campeão da Série A', 'Série A champion') : tr(`Bloco ${p.priority}`, `Block ${p.priority}`)}: {tr('clubes grandes querem você como técnico convidado. Aceite UM — depois de aceitar, não troca.', 'big clubs want you as guest coach. Accept ONE — once accepted, no switching.')}</p>
         </div>
-        <div className="ll37-intl-heroes">
-          <CompetitionStage kind="liberta" title="CONMEBOL" phase="LIBERTADORES" detail={tr('A campanha sul-americana rumo à final.', 'The South American road to the final.')}>
-            <div style={{ padding: '0 12px 12px' }}><button type="button" style={{ ...btn(), fontSize: 12, padding: 8 }} onClick={() => setComp('libertadores')}>{tr('Jogar a Libertadores', 'Play the Libertadores')} ›</button></div>
-          </CompetitionStage>
-          <CompetitionStage kind="champions" title="UEFA" phase="CHAMPIONS LEAGUE" detail={champsOk ? tr('A campanha europeia rumo à final.', 'The European road to the final.') : tr('Abre depois que você levantar a Libertadores.', 'Opens after you lift the Libertadores.')}>
-            <div style={{ padding: '0 12px 12px' }}>{champsOk
-              ? <button type="button" style={{ ...btn('#fff'), fontSize: 12, padding: 8 }} onClick={() => setComp('champions')}>{tr('Jogar a Champions', 'Play the Champions')} ›</button>
-              : <button type="button" disabled style={{ ...btnOff, fontSize: 12, padding: 8 }}>🔒 {tr('Ganhe a Libertadores pra liberar', 'Win the Libertadores to unlock')}</button>}</div>
-          </CompetitionStage>
-        </div>
-        <p style={hint}>🌐 {tr('O Mundial de Clubes vem só no fim: o campeão da sua competição pega o campeão da outra, em jogo único.', 'The Club World Cup comes only at the end: your champion faces the other champion in a single match.')}{!champsOk && <> 🔓 {tr('Ganhou a Libertadores uma vez? A Champions fica aberta pra sempre nesta carreira.', 'Won the Libertadores once? The Champions stays open for good in this career.')}</>}</p>
-      </> : !club ? <>
-        {/* ── PASSO 2: o clube (só os blocos DESTA competição) ── */}
-        <Faixa comp={comp} titulo={`${nomeComp(comp)} · ${tr('escolha seu clube', 'choose your club')}`} sub={`${tr('Passo 2 de 3', 'Step 2 of 3')} · ${tr('só clubes da', 'only clubs from')} ${orgComp(comp)}`} />
-        {passos}
-        <div style={{ ...card, padding: '10px 12px', marginTop: 8 }}><p style={{ margin: 0, fontSize: 12, fontWeight: 600, lineHeight: 1.4 }}>{tr('Sua prioridade é', 'Your priority is')} <b>{p.priority}</b>{p.priority === 1 ? ` (${tr('campeão da A', 'Série A champion')})` : ''}: {tr('blocos', 'blocks')} {p.priority}–9 {tr('liberados', 'available')}. {tr('Você convoca os jogadores do clube que existem no baralho, igual à seleção na Copa do Mundo.', 'You call up the club\'s players that exist in the deck, like a national team at the World Cup.')}</p></div>
-        {INTERNATIONAL_BLOCKS.map((block, index) => {
-          const nomes = block[comp].filter(name => p.choices.some(c => c.name === name))
-          if (!nomes.length) return null
-          return <div key={index} style={{ marginBottom: 4 }}>
-            <p style={{ ...OSWALD, fontWeight: 700, fontSize: 13, margin: '10px 0 5px' }}>{tr('Bloco', 'Block')} {index + 1}</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-              {nomes.map(name => { const n = internationalClubCards(name).length; const ok = clubeFechaTime(name); return <button key={name} type="button" disabled={!ok} onClick={() => ok && setClub(name)} title={ok ? undefined : tr(`${name} tem ${n} jogador${n === 1 ? '' : 'es'} no baralho — não fecha um time`, `${name} has ${n} player${n === 1 ? '' : 's'} in the deck — not enough for a team`)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, border: `2.5px solid ${INK}`, borderRadius: 12, padding: '5px 10px 5px 6px', background: ok ? '#fff' : '#CBBF9E', ...OSWALD, fontWeight: 700, fontSize: 14, cursor: ok ? 'pointer' : 'not-allowed', opacity: ok ? 1 : .7 }}>
-                <SeloClube clube={name} size={24} />{ok ? name : `🔒 ${name}`}<small style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 800, fontSize: 9, color: '#555', textTransform: 'none' }}>{n} {tr('no baralho', 'in deck')}</small></button> })}
-            </div>
-          </div>
-        })}
-        <p style={hint}>🔒 {tr('Clube trancado = ainda não tem jogadores suficientes no baralho pra fechar um 4-3-3 ou 4-4-2.', 'Locked club = not enough players in the deck yet to field a 4-3-3 or 4-4-2.')}</p>
-        <button type="button" onClick={() => setComp(null)} style={{ ...btn('#fff'), marginTop: 12, fontSize: 12, padding: 8 }}>‹ {tr('Trocar de competição', 'Change competition')}</button>
-        <p style={hint}>{comp === 'libertadores' ? tr('Nenhum clube da Champions aparece aqui. Quem joga a Libertadores só vê a Conmebol.', 'No Champions club appears here. Libertadores players only see Conmebol.') : tr('Nenhum clube da Libertadores aparece aqui. Quem joga a Champions só vê a UEFA.', 'No Libertadores club appears here. Champions players only see UEFA.')}</p>
+        {convites.map(cv => <CartaConvite key={cv.club} convite={cv} userTeam={p.userTeam} season={p.season} onAceitar={() => aceita(cv)} />)}
+        <p style={hint}>🌐 {tr('O Mundial de Clubes vem só no fim: o campeão da sua competição pega o campeão da outra, em jogo único.', 'The Club World Cup comes only at the end: your champion faces the other champion in a single match.')}{!champsOk && <> 🔒 {tr('A Europa (Champions) só manda convite depois que você levantar a Libertadores — e aí fica aberta pra sempre nesta carreira.', 'Europe (Champions) only sends invitations after you lift the Libertadores — then it stays open for good in this career.')}</>}</p>
       </> : <>
         {/* ── PASSO 3: a convocação ── */}
         {passos}
@@ -599,19 +616,19 @@ export function CareerInternationalView(p: Props) {
     {celebrate && mascoteKeyDoTime(p.userTeam) && <FestaoMascote nome={p.userTeam} mascote={mascoteKeyDoTime(p.userTeam)!} onDone={() => setCelebrate(false)} />}
     {acabou ? <>
       {/* ── FIM: campeões + encerrar ── */}
-      <Faixa comp={foco ?? 'libertadores'} titulo={tr('Campanha encerrada', 'Campaign over')} sub={rep ? `${p.userTeam} · ${rep}` : tr('você acompanhou a', 'you followed the') + ' ' + nomeComp(foco!)} />
+      <Faixa comp={foco ?? 'libertadores'} titulo={tr('Campanha encerrada', 'Campaign over')} sub={rep ? `${rep} · ${tr('técnico', 'coach')}: ${p.userTeam}` : tr('você acompanhou a', 'you followed the') + ' ' + nomeComp(foco!)} />
       <div style={{ ...card, textAlign: 'center' }}>
         <p style={{ margin: 0, fontWeight: 800 }}>🏆 Libertadores: <b>{nomeDe(current.libertadoresChampion)}</b> · Champions: <b>{nomeDe(current.championsChampion)}</b><br />🌐 {tr('Mundial', 'Club World Cup')}: <b>{nomeDe(current.mundialChampion)}</b></p>
         {rep && <p style={{ margin: '8px 0 0', fontSize: 12 }}>{summarizeInternationalCampaign(current).bestCampaign}{summarizeInternationalCampaign(current).prizeCoins > 0 && <> · 🪙 +{summarizeInternationalCampaign(current).prizeCoins}</>}</p>}
       </div>
-      <button type="button" style={btn()} onClick={() => p.onFinish(summarizeInternationalCampaign(current))}>{tr('Encerrar e ver o jornal', 'Finish and read the paper')} ›</button>
+      <button type="button" style={btn()} onClick={() => p.onFinish(summarizeInternationalCampaign(p.campaign!))}>{tr('Encerrar e ver o jornal', 'Finish and read the paper')} ›</button>
     </> : noiteVazia || !faseFoco || !step ? <p style={{ textAlign: 'center', fontWeight: 800, padding: 12 }}>⏳</p> : <>
       {/* ── A NOITE DA COMPETIÇÃO EM FOCO ── (a competição e a fase moram no cabeçalho de
           cima, grande, no padrão da Copa; aqui fica a faixa só fora do cabeçalho novo) */}
       {!p.topoGrande && <Faixa comp={compBanner} titulo={compDaFase === 'mundial' ? tr('Mundial de Clubes · final', 'Club World Cup · final') : `${nomeComp(compBanner)} · ${tituloFase(faseFoco.title)}`}
         sub={compDaFase === 'mundial' ? `${tr('jogo único', 'single match')} · ${nomeDe(current.libertadoresChampion)} × ${nomeDe(current.championsChampion)}`
           : faseFoco.title === 'Final' ? `${tr('jogo único', 'single match')} · ${tr('noite das finais', 'night of the finals')}`
-          : rep ? `${p.userTeam} · ${tr('representando', 'representing')} ${rep}${minhaTie && minhaTie.matches.length === 2 ? ` · ${jogo === 0 ? tr('jogo de ida', '1st leg') : tr('jogo de volta', '2nd leg')}` : ''}`
+          : rep ? `${rep} · ${tr('técnico', 'coach')}: ${p.userTeam}${minhaTie && minhaTie.matches.length === 2 ? ` · ${jogo === 0 ? tr('jogo de ida', '1st leg') : tr('jogo de volta', '2nd leg')}` : ''}`
           : `📺 ${tr('você acompanha', 'you are following')} · ${orgComp(compBanner)}`} />}
       {progresso && <div style={{ display: 'flex', gap: 4, justifyContent: 'center', margin: '0 0 10px', flexWrap: 'wrap' }}>{Array.from({ length: progresso.total }, (_, i) => <i key={i} style={{ width: 18, height: 6, borderRadius: 3, background: i < progresso.feitas ? GREEN : i === progresso.feitas ? GOLD : '#0003', outline: i === progresso.feitas ? `2px solid ${INK}` : 'none' }} />)}</div>}
       {p.topoGrande && minhaTie && minhaTie.matches.length === 2 && <p style={{ ...OSWALD, fontWeight: 700, fontSize: 12, textAlign: 'center', margin: '-4px 0 8px', color: INK }}>{jogo === 0 ? tr('⚽ Jogo de ida', '⚽ 1st leg') : tr('⚽ Jogo de volta', '⚽ 2nd leg')}</p>}

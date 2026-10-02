@@ -28,9 +28,10 @@ export function CareerNewspaperStories({ serieA, cup, cupBrasil, superCup, mundi
   // 🌎 clube de verdade (Flamengo, Real Madrid…) usa o escudo oficial; o que o usuário
   // representou aparece como o clube DELE, com o escudo dele
   const intl = (tag: string, titulo: string, inst: string) => {
+    // 🧢 O CONVITE (02/10): o campeão aparece como o clube que é (Flamengo, escudo do
+    // Flamengo); se foi você no banco, a legenda diz "técnico: <seu clube>"
     const voce = !!internacional && inst === internacional.representado
-    const nome = voce ? internacional!.voce : inst
-    return lado(tag, titulo, 'copa', nome, voce ? `${nome} · ${tr('representando', 'representing')} ${inst}` : nome, voce ? <Escudo nome={nome} size={40}/> : <SeloClube clube={inst} size={40}/>)
+    return lado(tag, titulo, 'copa', inst, voce ? `${inst} · ${tr('técnico', 'coach')}: ${internacional!.voce}` : inst, <SeloClube clube={inst} size={40}/>)
   }
   const copaTag = cupBrasil ? tr('🇧🇷 COPA DO BRASIL', '🇧🇷 BRAZILIAN CUP') : tr('🏆 COPA LEGENDS', '🏆 LEGENDS CUP')
   const lados = [

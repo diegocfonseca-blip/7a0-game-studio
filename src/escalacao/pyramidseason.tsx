@@ -2895,12 +2895,15 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange }:
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
-  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void }) {
+  footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void
+  /** 🎭 de quem é a MASCOTE do gol, quando o nome na tela não é o clube do dono (carreira internacional:
+   *  aparece "Flamengo", mas quem comemora é a mascote do Neymarzetti, o técnico convidado) */
+  mascotHome?: string; mascotAway?: string }) {
   const privatePreview = useOnlinePreview()
   // 🔓 19/09: a apresentação da CARREIRA saiu da prévia e foi pra todo mundo, por ordem
   // do Diego (*"pode publicar p todos"*). Uma chave só, `CAREER_VISUAL_RELEASED` — pôr
@@ -3152,7 +3155,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // sobe o tempo todo e nada muda por lá.
   // 🧼 `nomeLimpo` antes de procurar o carimbo: se algum dia uma tela passar o
   //    nome com selo de tier ou "(você)" colado, a mascote não some de novo.
-  const carimboTime = (!basket && golSide) ? newestTeamName(nomeLimpo(golSide === 'h' ? homeName : awayName)) : ''
+  const carimboTime = (!basket && golSide) ? newestTeamName(nomeLimpo(golSide === 'h' ? (mascotHome ?? homeName) : (mascotAway ?? awayName))) : ''
   const carimboArt = carimboTime ? carimboDoTime(carimboTime) : null
   // 🖼️ 01/10 (print do Diego na foto do Twitter: o Mascarado saía só das pernas no
   // placar): a janelinha do escudo no placar leva a mascote INTEIRA, não o busto. O
