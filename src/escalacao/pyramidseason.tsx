@@ -2399,6 +2399,12 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
   // temporada FECHADA: setinhas animadas de acesso (▲ verde) e queda (▼ vermelha)
   // pra TODOS os times, e um banner quando é VOCÊ que sobe/cai/é campeão.
   const youPos = final && mine ? teams.findIndex(t => t.you) + 1 : 0
+  // 🌎 G8 DA SÉRIE A (Diego 02/10): *"não precisam saber de blocos e posição… apenas das
+  // classificações: na Série A deixa marcado até a 8ª posição, tipo G8"*. Quem fecha no G8
+  // (ou ganha a Copa do Brasil) recebe convite pra Libertadores/Champions. Só aparece pra quem
+  // tem a carreira internacional liberada.
+  const intlOn = useInternacionalCarreiraLiberada()
+  const g8 = intlOn && div === 'A'
   const banner = !final || !mine || youPos === 0 ? null
     : div === 'A' && youPos === 1 ? { bg: GOLD, fg: INK, txt: tr('🏆 CAMPEÃO DA SÉRIE A! O topo é seu.', '🏆 SÉRIE A CHAMPION! The top is yours.') }
     : youPos <= 4 && UP_OF[div] ? { bg: '#1B7A3D', fg: '#fff', txt: tr(`🚀 ACESSO! Você sobe pra Série ${UP_OF[div]}!`, `🚀 PROMOTED! You go up to Série ${UP_OF[div]}!`) }
@@ -2431,6 +2437,7 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
                 <td style={{ paddingRight: 4, whiteSpace: 'nowrap' }}>
                   {i + 1}
                   {i + 1 <= 4 && <span style={{ fontSize: 7, fontWeight: 900, borderRadius: 4, padding: '1px 3px', marginLeft: 2, background: GOLD, border: '1px solid rgba(0,0,0,.4)', color: INK }}>G4</span>}
+                  {g8 && i + 1 > 4 && i + 1 <= 8 && <span title={tr('G8: convite pra Libertadores/Champions', 'Top 8: invitation to Libertadores/Champions')} style={{ fontSize: 7, fontWeight: 900, borderRadius: 4, padding: '1px 3px', marginLeft: 2, background: '#BFE6CB', border: '1px solid rgba(0,0,0,.4)', color: INK }}>G8</span>}
                   {i + 1 >= 17 && <span style={{ fontSize: 7, fontWeight: 900, borderRadius: 4, padding: '1px 3px', marginLeft: 2, background: '#F9D8D3', border: '1px solid rgba(0,0,0,.4)', color: INK }}>Z4</span>}
                   {final && i < 4 && UP_OF[div] && <span style={{ display: 'inline-block', color: '#1B7A3D', fontWeight: 900, marginLeft: 2, animation: 'divUp 1.4s ease-in-out infinite' }}>▲</span>}
                   {final && i === 0 && div === 'A' && <span style={{ marginLeft: 2 }}>🏆</span>}
@@ -2451,6 +2458,7 @@ function DivTable({ div, teams, colors, mine, final, safTeam, safCol }: { div: D
           })}
         </tbody>
       </table>
+      {g8 && <p style={{ fontSize: 9.5, fontWeight: 800, color: 'rgba(0,0,0,.6)', margin: '6px 0 0' }}>🌎 {tr('G4 e G8: quem fecha entre os 8 primeiros (ou ganha a Copa do Brasil) recebe convite pra Libertadores/Champions.', 'Top 4 and top 8: whoever finishes in the top 8 (or wins the Copa do Brasil) gets an invitation to the Libertadores/Champions.')}</p>}
     </div>
   )
 }

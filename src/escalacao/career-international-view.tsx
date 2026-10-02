@@ -116,8 +116,20 @@ export function topoInternacional(campaign: InternationalCampaign | null, season
 // bloco 1, campeão da Copa do Brasil = bloco 2, depois 2º–8º da A); depois de ganhar a
 // Libertadores uma vez, chegam 2 da Libertadores + 2 da Champions. O sorteio é preso na
 // semente + temporada: recarregar a tela não muda os convites.
-export type Convite = { club: string; comp: InternationalCompetition }
-export function convitesDaTemporada(seed: number, season: number, priority: number | null, choices: readonly InternationalClub[], champsOk: boolean): Convite[] {
+export type Convite = { club: string; comp: InternationalCompetition; renova?: boolean }
+// 🔁 A RENOVAÇÃO (Diego 02/10): *"ganhando a Libertadores com o Flamengo na T40, na 41 vai aparecer
+// pra eu renovar com o time que ganhou… mais 1 da Libertadores do mesmo bloco pra formar sempre dois…
+// serve também quando ganhar a Champions"*. Quem foi CAMPEÃO continental na temporada passada recebe o
+// convite de renovar com aquele clube (mesmo que ele seja de um bloco melhor que a sua posição de
+// agora) + 1 clube da mesma competição do bloco da posição + os 2 da outra (se aberta). Sempre dois
+// por competição. Vale de novo enquanto ele seguir ganhando.
+export function clubeDaRenovacao(history: readonly InternationalHistoryEntry[], season: number): Convite | null {
+  const ant = history.find(e => e.season === season - 1)
+  if (!ant?.representedClub || !(ant.libertadores || ant.champions)) return null
+  const comp = INTERNATIONAL_CLUBS.find(c => c.name === ant.representedClub)?.competition
+  return comp ? { club: ant.representedClub, comp, renova: true } : null
+}
+export function convitesDaTemporada(seed: number, season: number, priority: number | null, choices: readonly InternationalClub[], champsOk: boolean, renovacao: Convite | null = null): Convite[] {
   if (priority == null || !choices.length) return []
   const liberados = (comp: InternationalCompetition) => {
     // o bloco da sua posição; se nele ninguém fecha time, desce pro próximo bloco liberado
@@ -129,7 +141,11 @@ export function convitesDaTemporada(seed: number, season: number, priority: numb
   }
   let x = (seed ^ Math.imul(season, 0x9E3779B1) ^ Math.imul(priority, 0x85EBCA6B)) >>> 0 || 1
   const rnd = () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296 }
-  const sorteia = (comp: InternationalCompetition) => [...liberados(comp)].map(n => ({ n, r: rnd() })).sort((a, b) => a.r - b.r).slice(0, 2).map(({ n }) => ({ club: n, comp }))
+  const sorteia = (comp: InternationalCompetition) => {
+    const renova = renovacao?.comp === comp && clubeFechaTime(renovacao.club) ? [renovacao] : []
+    const novos = [...liberados(comp)].filter(n => n !== renovacao?.club).map(n => ({ n, r: rnd() })).sort((a, b) => a.r - b.r).slice(0, 2 - renova.length).map(({ n }) => ({ club: n, comp }))
+    return [...renova, ...novos]
+  }
   return [...sorteia('libertadores'), ...(champsOk ? sorteia('champions') : [])]
 }
 
@@ -279,12 +295,13 @@ function CartaConvite({ convite, userTeam, season, onAceitar }: { convite: Convi
     <div style={{ background: '#FBF5E4', border: `3px solid ${INK}`, borderRadius: 6, boxShadow: `4px 4px 0 ${INK}`, padding: '12px 13px 10px', color: INK }}>
       <div style={{ ...OSWALD, fontWeight: 700, fontSize: 22, textAlign: 'center', letterSpacing: 1, borderBottom: `3px double ${INK}`, paddingBottom: 3 }}>O MARTELO</div>
       <div style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: 1.4, textAlign: 'center', color: '#6c604a', margin: '4px 0 8px', textTransform: 'uppercase' }}>{tr('Edição extra', 'Special edition')} · {tr('Temporada', 'Season')} {season} · {emojiComp(convite.comp)} {nomeComp(convite.comp)}</div>
-      <h3 style={{ ...OSWALD, fontWeight: 700, fontSize: 20, lineHeight: 1.05, margin: '0 0 8px' }}>{tr(`O ${convite.club} quer o presidente do ${userTeam} no banco`, `${convite.club} wants the ${userTeam} chairman on the bench`)}</h3>
+      <h3 style={{ ...OSWALD, fontWeight: 700, fontSize: 20, lineHeight: 1.05, margin: '0 0 8px' }}>{convite.renova ? tr(`Campeão, o ${convite.club} quer renovar com o presidente do ${userTeam}`, `Champions ${convite.club} want to renew with the ${userTeam} chairman`) : tr(`O ${convite.club} quer o presidente do ${userTeam} no banco`, `${convite.club} wants the ${userTeam} chairman on the bench`)}</h3>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, margin: '6px 0 8px' }}><SeloClube clube={convite.club} size={60} /><span style={{ ...OSWALD, fontWeight: 700, fontSize: 22, color: '#999' }}>×</span><Escudo nome={userTeam} size={60} /></div>
-      <p style={{ fontFamily: 'Georgia, serif', fontSize: 12.5, lineHeight: 1.45, margin: '0 0 6px' }}>{getLang() === 'en' ? <>After finishing among Brazil's best, the {userTeam} owner was called to <b>lead {convite.club} in the {nomeComp(convite.comp)}</b> this season. {userTeam} stays home — and the trophy, if it comes, goes into its cabinet.</> : <>Depois de terminar entre os melhores do Brasil, o dono do {userTeam} foi chamado pra <b>comandar o {convite.club} na {nomeComp(convite.comp)}</b> desta temporada. O {userTeam} fica em casa — e a taça, se vier, entra na galeria dele.</>}</p>
+      {convite.renova ? <p style={{ fontFamily: 'Georgia, serif', fontSize: 12.5, lineHeight: 1.45, margin: '0 0 6px' }}>{getLang() === 'en' ? <>After lifting the {nomeComp(convite.comp)} together last season, the board wants <b>the same coach for the title defense</b>. {userTeam} stays home — and the trophy cabinet keeps growing.</> : <>Depois de levantar a {nomeComp(convite.comp)} juntos na temporada passada, a diretoria quer <b>o mesmo técnico pra defender o título</b>. O {userTeam} fica em casa — e a galeria só cresce.</>}</p> :
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: 12.5, lineHeight: 1.45, margin: '0 0 6px' }}>{getLang() === 'en' ? <>After finishing among Brazil's best, the {userTeam} owner was called to <b>lead {convite.club} in the {nomeComp(convite.comp)}</b> this season. {userTeam} stays home — and the trophy, if it comes, goes into its cabinet.</> : <>Depois de terminar entre os melhores do Brasil, o dono do {userTeam} foi chamado pra <b>comandar o {convite.club} na {nomeComp(convite.comp)}</b> desta temporada. O {userTeam} fica em casa — e a taça, se vier, entra na galeria dele.</>}</p>}
       <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 11.5, textAlign: 'right', color: '#444' }}>— {tr('Diretoria do', 'The board of')} {convite.club}</div>
     </div>
-    <button type="button" style={{ ...btn(GREEN, '#fff'), marginTop: 10 }} onClick={onAceitar}>✍️ {tr('Aceitar o convite e convocar', 'Accept the invitation and call up')}</button>
+    <button type="button" style={{ ...btn(convite.renova ? GOLD : GREEN, convite.renova ? INK : '#fff'), marginTop: 10 }} onClick={onAceitar}>{convite.renova ? `🔁 ${tr('Renovar e convocar', 'Renew and call up')}` : `✍️ ${tr('Aceitar o convite e convocar', 'Accept the invitation and call up')}`}</button>
   </div>
 }
 
@@ -413,7 +430,7 @@ export function CareerInternationalView(p: Props) {
   const champsOk = championsLiberada(p.history)
   // 🧢 tem vaga E algum clube liberado (e aberto: Champions só depois da Liberta) fecha um time
   const podeInscrever = p.choices.some(c => clubeFechaTime(c.name) && (c.competition === 'libertadores' || champsOk))
-  const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk), [p.seed, p.season, p.priority, p.choices, champsOk])
+  const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk, clubeDaRenovacao(p.history, p.season)), [p.seed, p.season, p.priority, p.choices, champsOk, p.history])
   const current = useMemo(() => p.campaign?.season === p.season ? comNomeDoClube(p.campaign) : null, [p.campaign, p.season])
   const finished = p.history.some(entry => entry.season === p.season)
   const rep = current?.representedClub ?? null
@@ -548,9 +565,9 @@ export function CareerInternationalView(p: Props) {
           <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '6px 0 0', color: INK }}>
             {p.choices.length
               ? champsOk
-                ? tr(`Você tem vaga (prioridade ${p.priority}), mas nenhum clube dos blocos ${p.priority}–9 tem jogadores suficientes no baralho pra fechar um time. Suba na tabela pra abrir blocos melhores.`, `You have a spot (priority ${p.priority}), but no club in blocks ${p.priority}–9 has enough players in the deck to field a team. Finish higher to unlock better blocks.`)
-                : tr(`Você tem vaga (prioridade ${p.priority}), mas nenhum clube da Libertadores dos blocos ${p.priority}–9 fecha um time — e a Champions só abre depois de ganhar a Libertadores.`, `You have a spot (priority ${p.priority}), but no Libertadores club in blocks ${p.priority}–9 can field a team — and the Champions only opens after you win the Libertadores.`)
-              : tr('A vaga é dos 8 primeiros da Série A ou do campeão da Copa. Ano que vem tem mais.', 'Spots go to the top 8 of Série A or the Cup winner. There is always next season.')}
+                ? tr('Você terminou no G8, mas nenhum clube que te chamaria tem jogadores suficientes no baralho pra fechar um time. Termine mais alto pra receber convites de clubes maiores.', 'You finished in the top 8, but no club that would call you has enough players in the deck to field a team. Finish higher to get invitations from bigger clubs.')
+                : tr('Você terminou no G8, mas nenhum clube da Libertadores que te chamaria fecha um time — e a Europa só manda convite depois que você ganhar a Libertadores.', 'You finished in the top 8, but no Libertadores club that would call you can field a team — and Europe only sends invitations after you win the Libertadores.')
+              : tr('Os convites vão pro G8 da Série A e pro campeão da Copa do Brasil. Ano que vem tem mais.', 'Invitations go to the Série A top 8 and the Copa do Brasil winner. There is always next season.')}
           </p>
           <button type="button" style={{ ...btn('#fff'), marginTop: 12 }} onClick={() => escolheModo('pular')}>⏭️ {tr('Pular as competições', 'Skip the competitions')}</button>
         </div>
@@ -572,7 +589,7 @@ export function CareerInternationalView(p: Props) {
         <div style={card}>
           <span style={kicker}>{tr('Temporada', 'Season')} {p.season} · {tr('Futebol internacional de clubes', 'International club football')}</span>
           <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 2px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {convites.length} {tr('convites chegaram', 'invitations arrived')}</h2>
-          <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '6px 0 0', color: INK }}>{p.priority === 1 ? tr('Campeão da Série A', 'Série A champion') : tr(`Bloco ${p.priority}`, `Block ${p.priority}`)}: {tr('clubes grandes querem você como técnico convidado. Aceite UM — depois de aceitar, não troca.', 'big clubs want you as guest coach. Accept ONE — once accepted, no switching.')}</p>
+          <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '6px 0 0', color: INK }}>{tr('Pela sua campanha na Série A, clubes grandes querem você como técnico convidado. Aceite UM — depois de aceitar, não troca.', 'After your Série A campaign, big clubs want you as guest coach. Accept ONE — once accepted, no switching.')}</p>
         </div>
         {convites.map(cv => <CartaConvite key={cv.club} convite={cv} userTeam={p.userTeam} season={p.season} onAceitar={() => aceita(cv)} />)}
         <p style={hint}>🌐 {tr('O Mundial de Clubes vem só no fim: o campeão da sua competição pega o campeão da outra, em jogo único.', 'The Club World Cup comes only at the end: your champion faces the other champion in a single match.')}{!champsOk && <> 🔒 {tr('A Europa (Champions) só manda convite depois que você levantar a Libertadores — e aí fica aberta pra sempre nesta carreira.', 'Europe (Champions) only sends invitations after you lift the Libertadores — then it stays open for good in this career.')}</>}</p>

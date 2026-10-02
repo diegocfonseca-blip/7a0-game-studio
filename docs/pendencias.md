@@ -115,6 +115,13 @@ avança sozinho; manual tem botão).
   escudo DELE (`comNomeDoClube`), o placar diz "TÉCNICO: <seu clube>" no lugar de "VOCÊ" e a mascote do gol continua a
   SUA (`LiveScoreCard` ganhou `mascotHome/mascotAway`). Jornal: manchete "Presidente do X leva o Flamengo ao título da
   América" + capa com o escudo do clube e "técnico: X". Ranking, moedas e histórico continuam no seu clube (save igual).
+- 🔁 **Renovação + G8 (02/10)** — quem foi campeão da Libertadores/Champions na temporada passada recebe o convite de
+  RENOVAR com o mesmo clube (`clubeDaRenovacao`, carta dourada "Campeão, o X quer renovar…") + 1 da mesma competição do
+  bloco da posição + os 2 da outra (se aberta) — sempre 2 por competição. O reducer aceita a renovação mesmo de bloco
+  melhor (mesma régua da tela). Tela sem "bloco"/"prioridade": a tabela da Série A marca **G8** (5º–8º; 1º–4º já têm G4)
+  com a legenda do convite, só pra quem tem a carreira internacional.
+- 📋 **A FAZER — Sala de Troféus: a linha do tempo do presidente** (Diego 02/10: *"histórico dos times que o presidente já
+  jogou e seus feitos… linha do tempo"*). Mockup antes de codar.
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
   E a narração do placar na FINAL ainda fala "três pontos no bolso" (frase de liga) — `LiveScoreCard` não sabe que é copa.
 

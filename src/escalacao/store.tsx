@@ -6058,7 +6058,10 @@ function reducerBase(state: EscState, action: Action): EscState {
         // SÓ entre as cartas do clube escolhido no baralho, igual à seleção na Copa do Mundo. Carta do elenco
         // do usuário NÃO entra (`ids` fica só pra referência de quem lê este trecho).
         void ids
-        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && club.block >= (c.priority ?? 10)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return s
+        // 🔁 RENOVAÇÃO (02/10): o campeão continental da temporada passada pode renovar com o MESMO clube,
+        // mesmo que ele seja de um bloco melhor que a posição de agora — a mesma régua do convite na tela.
+        const renova = (s.careerInternationalHistory ?? []).some(e => e.season === c.season - 1 && e.representedClub === c.representedClub && (e.libertadores || e.champions))
+        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && (club.block >= (c.priority ?? 10) || renova)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return s
       } else if (c.registeredXI.length || c.teams.some(team => team.you)) return s
       s.careerInternational = c
       return s
