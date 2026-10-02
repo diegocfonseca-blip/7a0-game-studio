@@ -120,8 +120,11 @@ avança sozinho; manual tem botão).
   bloco da posição + os 2 da outra (se aberta) — sempre 2 por competição. O reducer aceita a renovação mesmo de bloco
   melhor (mesma régua da tela). Tela sem "bloco"/"prioridade": a tabela da Série A marca **G8** (5º–8º; 1º–4º já têm G4)
   com a legenda do convite, só pra quem tem a carreira internacional.
-- 📋 **A FAZER — Sala de Troféus: a linha do tempo do presidente** (Diego 02/10: *"histórico dos times que o presidente já
-  jogou e seus feitos… linha do tempo"*). Mockup antes de codar.
+- ✅ **Sala de Troféus: a carreira do presidente** (02/10, mockup aprovado: *"ok tudo aprovado"*). `CarreiraPresidente`
+  embaixo da estante do Hall de Troféus (aba Rank): clubes comandados (temporadas e títulos), números (campanhas, jogos,
+  títulos, artilheiro) e a linha do tempo (dourado = título; selos Renovação, Campeão do mundo, Champions liberada, Estreia
+  na Europa). Lê só o histórico gravado. Saiu o `<details>` antigo de texto corrido. A legenda dos pontos do ranking agora
+  lê o `PTS_TITULO` (mostrava Mundial +50/Liberta +40, os números antigos).
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
   E a narração do placar na FINAL ainda fala "três pontos no bolso" (frase de liga) — `LiveScoreCard` não sabe que é copa.
 

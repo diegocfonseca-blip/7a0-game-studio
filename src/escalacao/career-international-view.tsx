@@ -678,3 +678,62 @@ export function CareerInternationalView(p: Props) {
     {rodape}
   </section>
 }
+
+// 🧢 A CARREIRA DO PRESIDENTE (Diego 02/10, mockup aprovado: *"ok tudo aprovado"*). Mora no Hall
+// de Troféus, embaixo da estante: os clubes que o presidente comandou como TÉCNICO CONVIDADO,
+// os números dele e a linha do tempo temporada a temporada (dourado = ano de título). Lê só o
+// histórico já gravado (`careerInternationalHistory`) — nada novo no save.
+export function CarreiraPresidente({ history }: { history: readonly InternationalHistoryEntry[] }) {
+  const camp = [...history].filter(e => e.representedClub).sort((a, b) => a.season - b.season)
+  if (!camp.length) return null
+  const voce = camp[camp.length - 1].userTeam
+  const porClube = new Map<string, { n: number; titulos: number }>()
+  for (const e of camp) { const c = porClube.get(e.representedClub!) ?? { n: 0, titulos: 0 }; c.n++; c.titulos += e.libertadores + e.champions + e.mundial; porClube.set(e.representedClub!, c) }
+  const jogos = camp.reduce((n, e) => n + e.games, 0)
+  const titulos = camp.reduce((n, e) => n + e.libertadores + e.champions + e.mundial, 0)
+  const art = new Map<string, { name: string; g: number }>()
+  for (const e of camp) for (const pl of e.playerStats ?? []) { const a = art.get(pl.key) ?? { name: pl.name, g: 0 }; a.g += pl.goals; art.set(pl.key, a) }
+  const artilheiro = [...art.values()].sort((a, b) => b.g - a.g)[0]
+  const primeiraLiberta = camp.find(e => e.libertadores)?.season
+  const primeiraEuropa = camp.find(e => e.competition === 'champions')?.season
+  const eventos = [...camp].reverse()
+  const chip = (txt: string, bg: string, color = INK) => <span key={txt} style={{ display: 'inline-block', ...OSWALD, fontWeight: 700, fontSize: 10, border: `2px solid ${INK}`, borderRadius: 7, padding: '1px 6px', margin: '4px 4px 0 0', background: bg, color }}>{txt}</span>
+  return <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, overflow: 'hidden', marginTop: 12 }}>
+    <div style={{ background: INK, color: '#fff', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <Escudo nome={voce} size={40} />
+      <div style={{ minWidth: 0 }}><b style={{ ...OSWALD, fontSize: 16, display: 'block', lineHeight: 1 }}>🧢 {tr('A carreira do presidente', 'The chairman\'s career')}</b>
+        <small style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.7)' }}>{tr(`os clubes que o presidente do ${voce} comandou como técnico convidado`, `the clubs the ${voce} chairman led as guest coach`)}</small></div>
+    </div>
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '10px 12px', borderBottom: '2px dashed rgba(0,0,0,.12)' }}>
+      {[...porClube].map(([club, c]) => <span key={club} style={{ display: 'flex', alignItems: 'center', gap: 5, border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 9px 2px 3px', fontSize: 10.5, fontWeight: 900, background: CREME, color: INK }}>
+        <SeloClube clube={club} size={20} />{club} · {c.n} {tr('temp.', 'season' + (c.n > 1 ? 's' : ''))}{c.titulos ? ` · ${'🏆'.repeat(Math.min(c.titulos, 5))}` : ''}</span>)}
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, padding: '10px 12px', borderBottom: '2px dashed rgba(0,0,0,.12)', textAlign: 'center' }}>
+      {([[String(camp.length), tr('CAMPANHAS', 'CAMPAIGNS')], [String(jogos), tr('JOGOS', 'GAMES')], [String(titulos), tr('TÍTULOS', 'TITLES')], [artilheiro?.g ? artilheiro.name : '—', tr('ARTILHEIRO', 'TOP SCORER')]] as [string, string][]).map(([v, k]) => <div key={k} style={{ border: `2px solid ${INK}`, borderRadius: 10, padding: '5px 2px', background: '#FBF5E4', color: INK, minWidth: 0 }}>
+        <b style={{ display: 'block', ...OSWALD, fontSize: v.length > 6 ? 13 : 18, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v}</b><small style={{ fontSize: 8, fontWeight: 900, letterSpacing: .5 }}>{k}</small></div>)}
+    </div>
+    <div style={{ padding: '12px 12px 4px' }}>
+      {eventos.map((e, i) => {
+        const titulo = e.libertadores || e.champions || e.mundial
+        const ant = camp.find(x => x.season === e.season - 1)
+        const renovou = !!ant && ant.representedClub === e.representedClub && !!(ant.libertadores || ant.champions)
+        const comp = e.competition ?? 'libertadores'
+        const fase = e.libertadores || e.champions ? (titulo && (ant?.representedClub === e.representedClub && (ant.libertadores || ant.champions)) ? tr('BICAMPEÃO', 'BACK-TO-BACK') : tr('CAMPEÃO', 'CHAMPION')) + ' 🏆' : e.bestCampaign
+        return <div key={e.season} style={{ display: 'grid', gridTemplateColumns: '44px 1fr', gap: 10, position: 'relative', paddingBottom: 14 }}>
+          {i < eventos.length - 1 && <span style={{ position: 'absolute', left: 21, top: 40, bottom: 0, width: 3, background: INK }} />}
+          <span style={{ width: 44, height: 44, borderRadius: '50%', border: `3px solid ${INK}`, background: titulo ? GOLD : CREME, boxShadow: titulo ? `0 0 0 3px ${GOLD}55` : 'none', display: 'grid', placeItems: 'center', position: 'relative' }}><SeloClube clube={e.representedClub!} size={30} /></span>
+          <div style={{ minWidth: 0, color: INK }}>
+            <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.2, color: '#6c604a', textTransform: 'uppercase' }}>{tr('Temporada', 'Season')} {e.season} · {emojiComp(comp)} {nomeComp(comp)}{renovou ? ` · ${tr('renovou', 'renewed')}` : ''}</span>
+            <h4 style={{ ...OSWALD, fontWeight: 700, fontSize: 15, margin: '1px 0 2px', lineHeight: 1.05 }}>{e.representedClub} · {fase}{e.mundial ? ` + ${tr('Mundial', 'Club World Cup')} 🌐` : ''}</h4>
+            <p style={{ fontSize: 10.5, fontWeight: 700, color: '#444', margin: 0 }}>{e.games} {tr('jogos', 'games')} · {e.wins} {tr('vitórias', 'wins')}{e.topScorer ? ` · ${e.topScorer.name} ${e.topScorer.goals} ${tr('gols', 'goals')}` : ''}</p>
+            {renovou && chip(`🔁 ${tr('Renovação', 'Renewal')}`, GOLD)}
+            {!!e.mundial && chip(`🌐 ${tr('Campeão do mundo', 'World champion')}`, '#7C3AED', '#fff')}
+            {e.season === primeiraLiberta && chip(`🔓 ${tr('Champions liberada', 'Champions unlocked')}`, '#BFE6CB')}
+            {e.season === primeiraEuropa && chip(tr('Estreia na Europa', 'European debut'), '#e3e8f5')}
+            {e.season === camp[0].season && !titulo && <p style={{ fontSize: 10, fontWeight: 700, color: '#666', margin: '3px 0 0' }}>{tr('a primeira vez como técnico convidado', 'the first time as guest coach')}</p>}
+          </div>
+        </div>
+      })}
+    </div>
+  </div>
+}

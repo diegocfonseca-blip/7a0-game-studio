@@ -46,7 +46,7 @@ import { Escudo, escudoDe, nomeLimpo } from './escudos' // 🛡️ brasão do cl
 import { AvatarLote1, avatarLote1 } from './avatar-lote1' // 🧑 rosto da lenda (mesma peça do campinho e da carta)
 import { CopaMundoGate, loadCopaSave, mergedMundialMural, copaMundoDaTemporada, bandeiraDe } from './copa-mundo'
 import { internationalQualifiers, internationalChoice, isInternationalCareerTester } from './career-international'
-import { CareerInternationalView, topoInternacional } from './career-international-view'
+import { CareerInternationalView, topoInternacional, CarreiraPresidente } from './career-international-view'
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
@@ -5847,7 +5847,7 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
     <div style={{ ...box('#fff'), padding: 12, marginBottom: 12, overflowX: 'auto' }}>
       <p style={{ fontWeight: 900, fontSize: 13, ...OSWALD, margin: '0 0 2px' }}>{tr('🏆 RANKING GERAL', '🏆 OVERALL RANKING')}</p>
       <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', margin: '0 0 8px' }}>{getLang() === 'en' ? <>Every title is worth points and the rank ADDS them up: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Cup <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Tied? 💰 breaks it. The <b>top {VAGAS_MUNDO}</b> qualify for the 🌍 World Cup.</> : <>Cada título vale ponto e o rank SOMA: 🌍 <b>{PTS_TITULO.mundo}</b> · 🏆 Copa <b>{PTS_TITULO.copa}</b> · 🏆 A <b>{PTS_TITULO.A}</b> · 🏆🔵 Supercopa <b>{PTS_TITULO.supercopa}</b> · B <b>{PTS_TITULO.B}</b> · C <b>{PTS_TITULO.C}</b> · D <b>{PTS_TITULO.D}</b> · 🌱 <b>{PTS_TITULO.V}</b>. Empatou, o 💰 desempata. Os <b>{VAGAS_MUNDO} primeiros</b> pegam vaga na 🌍 Copa do Mundo.</>}</p>
-      {intlHistory.length > 0 && <p style={{ fontSize: 10, fontWeight: 800, color: '#1B7A3D', margin: '0 0 8px' }}>🌍 Copa do Mundo +200 · 🌐 Mundial de Clubes +50 · 🌎 Libertadores +40 · 🌍 Champions +40 · 🇧🇷 Copa do Brasil +30</p>}
+      {intlHistory.length > 0 && <p style={{ fontSize: 10, fontWeight: 800, color: '#1B7A3D', margin: '0 0 8px' }}>🌍 Copa do Mundo +{PTS_TITULO.mundo} · 🌐 Mundial de Clubes +{PTS_TITULO.mundial} · 🌎 Libertadores +{PTS_TITULO.libertadores} · 🌍 Champions +{PTS_TITULO.champions} · 🇧🇷 Copa do Brasil +{PTS_TITULO.copa}</p>}
       <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
         <thead><tr style={{ textAlign: 'left' }}><th style={{ ...th, paddingRight: 4 }}>#</th><th style={th}>{tr('Time', 'Team')}</th><th style={{ ...th, textAlign: 'center' }}>{tr('Títulos', 'Titles')}</th><th style={{ ...th, textAlign: 'right' }}>PTS</th><th style={{ ...th, textAlign: 'right' }}>💰</th></tr></thead>
         <tbody>
@@ -5924,15 +5924,9 @@ function RankingTab({ tables, honors, copaHonors, supercopaHonors, coins, clubCa
         {myH.A > 0 && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>{'⭐'.repeat(Math.min(myH.A, 5))}{myH.A > 5 ? ` ×${myH.A}` : ''} Série A</span>}
         {myDiv && <span style={{ fontWeight: 900, fontSize: 11, ...OSWALD, background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 8, padding: '3px 8px' }}>{tr('Hoje na', 'Now in')} {DIV_NAME[myDiv]}</span>}
       </div>
-      {intlHistory.length > 0 && <details style={{ marginTop: 12, borderTop: `2px dashed ${INK}`, paddingTop: 8 }}>
-        <summary style={{ fontWeight: 900, cursor: 'pointer' }}>🌐 CAMPANHAS INTERNACIONAIS · HISTÓRICO</summary>
-        {intlHistory.map(entry => <p key={entry.season} style={{ fontSize: 11, margin: '7px 0' }}>
-          {entry.representedClub && <Escudo nome={entry.representedClub} size={20} />} <b>T{entry.season} · {entry.representedClub ?? 'Sem vaga internacional'}</b>
-          {entry.representedClub && <> · {entry.competition === 'libertadores' ? 'Libertadores' : 'Champions'} · {entry.bestCampaign} · {entry.games} J, {entry.wins} V, {entry.draws} E, {entry.losses} D · {entry.goalsFor}–{entry.goalsAgainst} gols</>}
-          <br />🏆 Libertadores: {entry.libertadoresChampion} · Champions: {entry.championsChampion} · Mundial: {entry.mundialChampion}
-        </p>)}
-      </details>}
     </div>
+    {/* 🧢 A carreira do presidente (02/10, mockup aprovado) — embaixo da estante, nunca antes */}
+    <CarreiraPresidente history={intlHistory} />
     </>
   )
 }
