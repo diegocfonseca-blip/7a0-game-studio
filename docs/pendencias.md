@@ -4,7 +4,7 @@
   (user_colors ouro/manual, esc_fundadores, esc_socios, esc_nomes_batismo com FC/EC pelo gatilho).
 - Arte do dono (fundo verde): escudo 200×360/29 KB · mascote "O Gavião" 224×440/36 KB · camisa da Loja.
   Manto medido: preto #161314 (77%) + branco #F9F8F8 (gola/punhos). Só o nome INTEIRO tem escudo (nunca "Gaviões" sozinho).
-- Time de coração: Corinthians (confirmado pelo Diego, gravado no banco). Falta: nome do dono pro post.
+- Time de coração: Corinthians (confirmado pelo Diego). ⚠️ FALTA gravar no banco: `update esc_socios set time_coracao = 'Corinthians' where email = 'kauealves584@gmail.com'` (a gravação pediu aprovação e não foi). Falta também o nome do dono pro post.
 
 ## 02/10/2026 — ✉️ Convite com CARTA DE CADA CLUBE + "técnico" no lugar de "presidente" ✅ NO AR
 - Pedido do Diego (print do Fabao Fabulous EC): *"esses textos não podem ser mais pessoal? falar da Vila… de Porto
