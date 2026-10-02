@@ -1,5 +1,11 @@
 ## 01/10/2026 — 🖥️ Carreira no MONITOR em duas colunas ✅ NO AR (OK do Diego nas fotos antes/depois)
 
+🐛 **02/10 — jornal espremido no fim da temporada (print do amigo do Diego, depois da Libertadores).**
+O jornal O MARTELO, o roteiro e as decisões da rodada 0 ficam ANTES do placar no HTML, então
+caíram na coluna da esquerda (360px) e as palavras quebravam no meio. Conserto: a classe
+`ll-cx-fim` (sem jogo ao vivo = `done && !copaPlaying` ou `round === 0`) desliga a grade e volta a
+UMA coluna de 900px. Medido com um save na rodada 37 jogado até o fim (`--fase destrava`).
+
 Diego: *"analise o desktop do modo carreira… todas as telas, abas, menus, botões. Está muito
 desalinhado… organize tudo. Não mexa no dispositivo móvel."* Medido em 1440px com
 `node scripts/navega-carreira.mjs --desk --fase abas`: tudo numa coluna só, o placar vinha primeiro em
