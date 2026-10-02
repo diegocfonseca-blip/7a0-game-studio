@@ -62,7 +62,21 @@ avança sozinho; manual tem botão).
   que o `SeloClube` já usa na carreira e no online) e **72/72 fecham um 11**. Grafia das 13 cartas do Chile unificada em
   `U. de Chile` (`CLUB_GRAFIA` + apelido internacional + `paises.ts` + foto do baralho). Leilão de Clubes não tem lista
   fixa: `buildDeckClubes` pega qualquer clube do baralho com carta sobrando no setor, então os novos já entram sozinhos.
+- 🔁 **2ª rodada de teste do Diego (02/10)** — *"tá estranho… cadê o botão de manual padrão?… a tabela aparece de cara…
+  na final deveria aparecer as duas finais ao mesmo tempo… se eu quiser assistir, eu assisto qual?"*. A tela que subiu em
+  01/10 tinha fugido do mockup aprovado (tabela dobrada num `<details>`, botão "Próximo" solto, sem controle). Mockup v2
+  aprovado (*"Ok, pode fazer tudo"*) e FEITO: a campanha usa as MESMAS peças da Copa da carreira — faixa → placar grande →
+  **🎮 Controle da partida** (`SpeedControls` + `SimControls`: Próxima rodada / Pular / Modo auto; `QuickManualLock` pra
+  quem não tem Modo Manual; régua `!careerEra || useHasManual()`) → **tabela sempre à vista** (grupos com MEU GRUPO /
+  TODOS, tabela de 36 com faixas de corte; mata-mata em cartões) → outros jogos (pílulas compactas nas noites de 17–18
+  jogos). **As duas finais caem na mesma noite** (motor: mata-mata da Liberta andou pra noites 10–13; a Liberta descansa
+  na noite do repescão) — a minha no placar grande, a outra no cartão `OutraFinal`. **Sem vaga**: Pular, ou Assistir
+  escolhendo UMA (Libertadores/Champions) na mesma tela de quem joga; o Mundial vem pros dois (escolha guardada em
+  `esc-intl-modo-v1` por temporada). 🔓 **Champions só abre depois de ganhar a Libertadores** (`championsLiberada(history)`;
+  banner trancado "🔒 Ganhe a Libertadores pra liberar"). Formato dos grupos mantido: 6 de 6, passam 2 + 4 melhores 3ºs.
+  Conferido com `scripts/fotografa-carreira-internacional.mjs` (fotos reais em 7 cenários) — gate continua só na conta dele.
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
+  E a narração do placar na FINAL ainda fala "três pontos no bolso" (frase de liga) — `LiveScoreCard` não sabe que é copa.
 
 ### (pedido original, pra memória)
 

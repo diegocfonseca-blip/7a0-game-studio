@@ -435,6 +435,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   se classificou pula ou assiste. Palavras dele: *"se tô na Liberta não vejo da Champions e vice-versa… tudo
   padrão do jogo"*. Detalhe completo em `docs/pendencias.md` (01/10). Mockup antes de codar. **FEITO em 01/10**
   (mockups aprovados; o Codex parou e esta linha de trabalho ficou com a sessão do Claude).
+  🔁 **02/10, 2º teste dele: "TEM QUE SER COM BASE NO QUE JÁ EXISTE".** A 1ª tela fugiu do mockup aprovado (tabela
+  dobrada, botão "Próximo" solto, sem o controle) e ele cortou: *"cadê o botão de manual que é padrão?… toda hora
+  apertando próximo, não é assim"*. Regra: tela de competição nova = as MESMAS peças da Copa da carreira/Liberta do
+  online, na mesma ordem (placar grande → 🎮 Controle da partida → tabela à vista → outros jogos). **Nunca inventar botão
+  de avançar próprio.** Mais duas decisões dele: **as duas finais na mesma noite** (a minha grande, a outra em cartão) e
+  **sem vaga = Pular ou Assistir UMA** (ele escolhe qual). 🔓 **Champions só abre depois de ganhar a Libertadores**
+  (*"só liberar a Champions após ganhar a Libertadores"*) — escada América → Europa, aberta pra sempre na carreira.
   🏅 **Pontos do ranking global (01/10)**: Copa do Mundo 200 › **Mundial 60** › **Libertadores/Champions 50** › Copa
   do Brasil 30 › Série A 20… (`PTS_TITULO` + RPC `esc_pyramid_rank_rows_v2` — os dois andam juntos).
   💰 **Prêmio por etapa**: Libertadores/Champions um pouco ACIMA da Copa do Brasil (6·8·10·14·20·30·60); Mundial um

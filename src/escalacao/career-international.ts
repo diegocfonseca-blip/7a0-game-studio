@@ -66,6 +66,12 @@ export function internationalQualifiers<T>(serieA: readonly T[], cupChampion: T 
   })
 }
 
+// 🔓 A CHAMPIONS ABRE DEPOIS DA LIBERTADORES (Diego 02/10: *"só liberar a Champions após
+// ganhar a Libertadores"*). Escada: primeiro conquista a América, depois a Europa abre — e
+// fica aberta pra sempre naquela carreira. Quem nunca ganhou joga a Liberta todo ano que
+// tiver vaga. O banner da Champions continua na tela, trancado, dizendo o caminho.
+export const championsLiberada = (history: readonly { libertadores: number }[]): boolean => history.some(e => e.libertadores > 0)
+
 /** Quem não se classificou não recebe instituição, mesmo depois da T40. */
 export function internationalChoice<T>(enabledForAccount: boolean, season: number, qualifiers: readonly InternationalQualifier<T>[], teamKey: string, key: (team: T) => string): InternationalClub[] {
   if (!enabledForAccount || season < INTERNATIONAL_UNLOCK_SEASON) return []
