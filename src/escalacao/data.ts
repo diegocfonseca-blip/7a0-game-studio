@@ -3510,7 +3510,8 @@ export const OLD_NAME: Record<string, string> = {
   'La Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira La Bestia Negra ao carregar
   'Scorporila FC': 'Realeza FC', // ⚽ batismo do lucassrribeiroo2023: save antigo com Realeza FC vira Scorporila FC ao carregar
   'Deportivo Montreal': 'Titan Capital', // ⚽ batismo do nevesgabriel95: save antigo com Titan Capital vira Deportivo Montreal ao carregar
-  'Marolados FC': 'Real Madruga', // ⚽ batismo do paisagensetrilha: save antigo com Real Madruga vira Marolados FC ao carregar
+  // 🔁 02/10: 'Marolados FC' ← 'Real Madruga' SAIU. "Real Madruga" virou batismo de OUTRO dono
+  // (luck.45, Série A); se o mapa ficasse, o clube novo viraria Marolados ao carregar.
   'Remoçada': 'Olimpo FC', // ⚽ batismo do luiz.maia.luiz: save antigo com Olimpo FC vira Remoçada ao carregar
   'Seven City': 'Seven FC', // ⚽ 15/08: o nome certo é Seven CITY (o "Seven FC" ficou no ar por ~1h); quem pegou o nome errado vira Seven City ao carregar
   'Seven FC': 'Apogeu FC', // ⚽ batismo do glaucomiranda: elo da corrente Apogeu FC → Seven FC → Seven City
@@ -3684,7 +3685,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
     { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
-    { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
+    { name: 'Madruguinha', team: 'Real Madruga' }, // 👒⚪ clube BATIZADO por apoiador (luck.45 — Real Madruga; o boleiro de chapéu de pescador e bigodão, encostado no barril; branco + preto; Lenda + fundador nº81 + sócio nº62, 02/10). Assento que era do Bicho da Seda, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Bicho não foi renomeado, só mudou de divisão (a corrente dele Red Bull Diet → Bicho da Seda segue valendo). ⚠️ 'Real Madruga' JÁ FOI nome velho do Marolados FC — esse elo foi cortado em 02/10 (ver OLD_NAME). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Gaúcho', team: 'Grêmio FBPA' }, // 🔵⚫⚪ clube BATIZADO por apoiador (danieldias11 — Grêmio FBPA; o gaúcho de chapéu e manto rasgado, preto + azul com filete branco; coração Grêmio; Lenda + fundador nº75 + sócio nº56, 21/09). Assento que era do SC Ferrari, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Ferrari não foi renomeado, só mudou de divisão — e ele tem corrente própria de nome velho (Painitto FC) que continua valendo. Mapear faria os dois desenharem o mesmo escudo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Majestade', team: 'Rei da Bola FC' }, // 👑🦁 clube BATIZADO por apoiador (caiobegnamii — Rei da Bola FC; leão branco coroado, manto branco com faixa vermelha e preta; Lenda + fundador nº70 + sócio nº51, 16/09). Assento que era do Sapekeiros FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Sapekeiros não foi renomeado, só mudou de divisão — e ele já tem corrente própria de nome velho (Pardemeias) que continua valendo.
     { name: 'Bagrão de Terno', team: 'Bagres de Wall Street FC' }, // 🐟📉 clube BATIZADO por apoiador (iago.cortellini — Bagres de Wall Street FC; coração São Paulo; bagre de terno, coroa e charuto na bolsa de valores, preto + dourado; Lenda + fundador nº66 + sócio nº44, 09/09). Assento que era do Manfré FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Manfré não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Livre-pool). ⚠️ NÃO é o mesmo clube que o 'Bagres 1993' (caiohcris) — são dois donos diferentes.
@@ -3741,7 +3742,11 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // Pantanal'`: ele não foi renomeado, só mudou de divisão — e já tem corrente
     // própria de nomes velhos (Astronáutico → Sinhô Futebol), que segue intacta.
     { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
-    { name: 'Doca', team: 'Operário das Docas' },
+    // 🐛 BICHO DA SEDA (davisantana1312) DESCEU da Série A pra cá em 02/10, por decisão
+    // do Diego, pra abrir o assento do Real Madruga. Ocupa a vaga que era do bot
+    // "Operário das Docas" (escolhido por só existir aqui e em CLASSIC_CLUBS). SEM OLD_NAME:
+    // ele não foi renomeado, só mudou de divisão. Escudo, mascote e manto seguem os dele.
+    { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
     { name: 'Colono', team: 'Botafogo da Colônia' },
     { name: 'Caicó', team: 'Fluminense de Caicó' },
     // 🧔 Murriz FC (msb102010) DESCEU da Série A pra cá em 05/09, por decisão do

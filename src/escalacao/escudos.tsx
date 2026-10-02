@@ -59,6 +59,7 @@ import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho d
 import vascoSafEscudoImg from './img/vasco-saf-escudo.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
 import cruzeiroBerretinhoEscudoImg from './img/cruzeiro-berretinho-escudo.webp' // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749): arte própria do dono
 import elMineiroEscudoImg from './img/el-mineiro-escudo.webp' // 🐓 El Mineiro (bastosmbc): arte própria do dono
+import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
@@ -843,6 +844,14 @@ const elMineiroEscudoRender = (size: number) => (
   <img src={elMineiroEscudoImg} height={size} width={Math.round(size * 249 / 360)} alt="El Mineiro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 👒⚪ REAL MADRUGA (luck.45, batismo de 02/10) — Série A.
+// 📏 258×360, 28,9 KB — largura pela PROPORÇÃO REAL do arquivo.
+// ✂️ fundo verde (chroma) tirado por componente + despill; conferido sobre o creme e
+//    sobre o roxo — as letras brancas do "MADRUGA" ficaram inteiras.
+const madrugaEscudoRender = (size: number) => (
+  <img src={madrugaEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Real Madruga" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🦈🔴⚪ JULIA BARRANQUILA (dondeestasleomessi10, batismo de 24/09) — Série A.
 // 📏 251×360, 26,4 KB — largura pela PROPORÇÃO REAL do arquivo.
 // ✂️ `scripts/recorta-prancha-chroma.py`: o chroma verde saiu por COR porque o
@@ -1295,7 +1304,8 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🛡️🌱 Marolados FC (paisagensetrilha) — ARTE NOVA em 16/09, mandada pelo dono.
   // O brasão de coqueiros e onda, com o "MAROLADOS FC" em letra de pincel, a
   // faixa rasta e a bola. As 4 formas do nome ficam presas ao mesmo escudo;
-  // o nome velho (Real Madruga) resolve sozinho via newestTeamName.
+  // ⚠️ 02/10: o nome velho "Real Madruga" deixou de apontar pro Marolados — virou
+  // batismo de OUTRO dono (luck.45). O Marolados segue pelo nome atual e pelo e-mail.
   // 🧹 O escudo ANTIGO era SVG à mão aqui dentro, com versão MINI pra tabela (era
   // pré-regra de peso); saiu de vez e virou webp fora do bundle.
   'Marolados': maroladosEscudoRender,
@@ -1404,6 +1414,11 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'El Mineiro EC': elMineiroEscudoRender,
   'El Mineiro SC': elMineiroEscudoRender,
   'Brodeiragem': elMineiroEscudoRender,
+  // 👒⚪ Real Madruga (luck.45) — BATISMO. As 4 formas do nome (regra 20/08).
+  'Real Madruga': madrugaEscudoRender,
+  'Real Madruga FC': madrugaEscudoRender,
+  'Real Madruga EC': madrugaEscudoRender,
+  'Real Madruga SC': madrugaEscudoRender,
   // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10) — BATISMO. As 4 formas do nome (regra 20/08).
   'Julia Barranquila': juliaEscudoRender,
   'Julia Barranquila FC': juliaEscudoRender,

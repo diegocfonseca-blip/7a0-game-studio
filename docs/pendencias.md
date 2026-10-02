@@ -16,6 +16,17 @@ TODA aba e a tabela/elenco/rank só depois de uma tela de rolagem; a largura mud
 - Diego viu as fotos antes/depois das 5 abas e disse "Ok" → publicado. Pra refotografar: `--desk` no
   `navega-carreira.mjs`.
 
+
+## 👒⚪ Batismo Real Madruga (02/10)
+- Dono `luck.45@live.com` (conta existe desde 25/09). **Série A**, no assento do **Bicho da Seda**, que desceu pra
+  **Série B** (no lugar do bot Operário das Docas, que segue vivo em CLASSIC_CLUBS). Lenda + fundador nº81 + sócio nº62.
+- Arte do dono (prancha com fundo verde): escudo 258×360/28,9 KB · mascote "O Madruga" 440×416/43,5 KB · camisa da Loja
+  `madruga-camisa-v1.webp`. Manto medido: branco #F3F1F0 (66%) + preto #161412 (28%); dourado (2%) fora.
+- ⚠️ "Real Madruga" ERA o nome velho do **Marolados FC** (paisagensetrilha). Cortado o `OLD_NAME` e o carimbo antigo —
+  o Marolados segue pelo nome atual e pelo e-mail. Save muito antigo ainda chamado "Real Madruga" passa a mostrar o clube novo.
+- Banco: user_colors ouro · esc_fundadores 81 · esc_socios 62 · esc_nomes_batismo "Real Madruga" — **conferir se gravou**.
+- Falta: nome do dono pro rodapé do post e time de coração (`--coracao`).
+
 ## 01/10/2026 — 🌎 CARREIRA INTERNACIONAL: fluxo passo a passo ✅ FEITO (só a conta do Diego; mockups aprovados)
 
 Diego mandou o Codex parar e manter esta sessão. `career-international-view.tsx` foi REESCRITA por cima do motor do
