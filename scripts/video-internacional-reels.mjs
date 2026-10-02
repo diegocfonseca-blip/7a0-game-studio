@@ -63,7 +63,7 @@ const disco = (f, tam, t) => `<span style="width:${tam}px;height:${tam}px;border
   display:inline-flex;align-items:center;justify-content:center;animation:pop .4s cubic-bezier(.2,1.6,.4,1) ${t}s both">
   <img src="${esc(f)}" style="width:${Math.round(tam * .72)}px;height:${Math.round(tam * .72)}px;object-fit:contain"></span>`
 
-// ⚽ o placar: Flamengo × Boca, gols saindo no relógio
+// ⚽ o placar: final Flamengo × River Plate (escolha do Diego 02/10), gols saindo no relógio
 const GOLS = [{ t: 18.9, h: 1, a: 0, txt: '⚽ GOLAÇO! de fora da área, no ângulo' }, { t: 20.4, h: 1, a: 1, txt: '⚽ empatou! cabeçada no segundo pau' }, { t: 21.6, h: 2, a: 1, txt: '⚽ VIRADA! contra-ataque fulminante' }]
 
 const video = `<!doctype html><meta charset="utf-8"><style>${FONTES}
@@ -124,7 +124,7 @@ ${cena(11.0, 17.0, `
 
 <!-- ④ o jogo rolando -->
 ${cena(17.0, 22.6, `
-  <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:30px;animation:sobe .45s 17.15s both">cada jogo<br><span style="color:${GREEN}">ao vivo</span></p>
+  <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:30px;animation:sobe .45s 17.15s both">a final<br><span style="color:${GREEN}">ao vivo</span></p>
   <div style="width:980px;background:linear-gradient(135deg,rgba(10,28,22,.97),rgba(7,19,15,.92));border:4px solid #847657;border-radius:32px;box-shadow:0 8px 0 ${INK};overflow:hidden;
     animation:pop .5s cubic-bezier(.2,1.6,.4,1) 17.4s both">
     <div style="position:relative;height:96px;background:${GOLD}">
@@ -138,7 +138,7 @@ ${cena(17.0, 22.6, `
         ${[{ t: 17.4, h: 0, a: 0 }, ...GOLS].map((g, i, arr) => `<b style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;${OSW};font-size:100px;opacity:0;
           animation:apar .01s linear ${g.t}s both${i < arr.length - 1 ? `, some .01s linear ${arr[i + 1].t}s both` : ''}${i > 0 ? `, treme .4s ${g.t}s both` : ''}">${g.h} × ${g.a}</b>`).join('')}
       </div>
-      <div style="text-align:center"><img src="${esc('boca-juniors')}" style="width:170px;height:170px;object-fit:contain"><b style="display:block;${OSW};font-size:46px;text-transform:uppercase;margin-top:10px">Boca Juniors</b></div>
+      <div style="text-align:center"><img src="${esc('river-plate')}" style="width:170px;height:170px;object-fit:contain"><b style="display:block;${OSW};font-size:46px;text-transform:uppercase;margin-top:10px">River Plate</b></div>
     </div>
   </div>
   <p style="font-size:38px;font-weight:800;color:rgba(12,12,12,.62);margin-top:34px;text-align:center;line-height:1.35;animation:sobe .45s 18.2s both">
