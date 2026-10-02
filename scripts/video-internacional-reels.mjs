@@ -101,7 +101,7 @@ ${cena(4.8, 11.0, `
   ${banner(ART_LIB, 'CONMEBOL', 'Libertadores', '36 clubes · 6 grupos de 6', 4.95, '90deg,rgba(1,15,10,.92),rgba(1,15,10,.2)')}
   <p style="${OSW};font-size:76px;text-transform:uppercase;text-align:center;line-height:1;margin:44px 0 30px;animation:sobe .45s 5.6s both">os gigantes<br><span style="color:${GREEN}">da América</span></p>
   <div style="display:grid;grid-template-columns:repeat(4,170px);gap:26px">
-    ${['flamengo', 'boca-juniors', 'river-plate', 'palmeiras', 'penarol', 'sao-paulo', 'independiente', 'nacional-uru'].map((f, i) => disco(f, 170, 6.1 + i * .16)).join('')}
+    ${['boca-juniors', 'river-plate', 'penarol', 'independiente', 'nacional-uru', 'olimpia', 'colo-colo', 'atletico-nacional'].map((f, i) => disco(f, 170, 6.1 + i * .16)).join('')}
   </div>
   <div style="margin-top:40px;width:940px;background:#FFF6D6;border:6px solid ${INK};border-radius:26px;box-shadow:8px 8px 0 ${INK};padding:22px 30px;
     animation:entra .5s cubic-bezier(.2,1.5,.4,1) 7.9s both">
