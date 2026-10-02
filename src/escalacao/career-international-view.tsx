@@ -314,6 +314,35 @@ type PoolCard = Card
 const fechaForm = (cards: { pos: string; name: string; club: string; year: number }[], form: Shape) => sections.every(pos => new Set(cards.filter(c => c.pos === pos).map(internationalCardKey)).size >= needs[form][pos])
 /** o clube tem jogadores no baralho pra fechar um time? (72 dos 72 desde o Lote 40) */
 export const clubeFechaTime = (clube: string) => { const cs = internationalClubCards(clube); return fechaForm(cs, '4-3-3') || fechaForm(cs, '4-4-2') }
+// 💬 O RECADO DA LENDA (Diego 02/10: "faz o 3"). Ao aceitar o convite, o maior nome do clube no
+// baralho manda boas-vindas curtas. Entra no tempo morto da convocação, sem passo novo.
+// ⚠️ Frases GENÉRICAS de vestiário: não imitam o jeito de nenhum jogador real (regra "não inventar
+// como uma pessoa real é") — o nome só assina o recado. PT e EN na mesma posição.
+const RECADOS: [string, string][] = [
+  ['Chegou o técnico do {voce}? Aqui no {clube} a gente não perde nem pelada de treino. Bem-vindo.', 'So the {voce} coach is here? At {clube} we don\u2019t even lose training scrimmages. Welcome.'],
+  ['Professor, só uma coisa: no {clube} quem senta no banco tem que gostar de taça.', 'Boss, one thing: at {clube} whoever sits on the bench has to like trophies.'],
+  ['Pode escalar sem medo. O resto a gente resolve dentro de campo.', 'Pick the team without fear. We\u2019ll sort out the rest on the pitch.'],
+  ['Disseram que você é presidente lá no {voce}. Aqui é técnico — e técnico daqui tem que ganhar.', 'They say you\u2019re chairman at {voce}. Here you\u2019re the coach — and coaches here have to win.'],
+  ['Bem-vindo ao {clube}! A torcida já está cantando seu nome. Por enquanto.', 'Welcome to {clube}! The fans are already singing your name. For now.'],
+  ['Trouxe a prancheta? Ótimo. Agora esquece ela e bota a gente pra jogar.', 'Brought the clipboard? Great. Now forget it and let us play.'],
+  ['Primeiro dia e já tem convocação? Gostei. Só não esquece de mim, hein.', 'First day and already picking the squad? I like it. Just don\u2019t forget me, eh.'],
+  ['Aqui no {clube} a camisa pesa. Mas com você no banco, a gente aguenta.', 'At {clube} the shirt is heavy. But with you on the bench, we can carry it.'],
+]
+function RecadoDaLenda({ clube, userTeam, pool }: { clube: string; userTeam: string; pool: Card[] }) {
+  const lenda = [...pool].sort((a, b) => (b.fame ?? 0) - (a.fame ?? 0) || (b.hi ?? 0) - (a.hi ?? 0))[0]
+  if (!lenda) return null
+  let h = 0; for (const ch of clube + userTeam) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  const [pt, en] = RECADOS[h % RECADOS.length]
+  const txt = (getLang() === 'en' ? en : pt).replaceAll('{clube}', clube).replaceAll('{voce}', userTeam)
+  return <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', marginBottom: 10 }}>
+    <span style={{ flex: 'none', width: 40, height: 40, borderRadius: '50%', border: `2.5px solid ${INK}`, background: CREME, display: 'grid', placeItems: 'center' }}><SeloClube clube={clube} size={28} /></span>
+    <div style={{ position: 'relative', flex: 1, background: '#fff', border: `2.5px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 11px', color: INK }}>
+      <span style={{ display: 'block', ...OSWALD, fontWeight: 700, fontSize: 11, letterSpacing: .5, color: '#6c604a' }}>💬 {tr('Recado de', 'Message from')} {lenda.name}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.4 }}>“{txt}”</span>
+    </div>
+  </div>
+}
+
 function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; onConfirm: (xi: Card[]) => void }) {
   const faces = useLegendPresentation()
   const doClube = useMemo<PoolCard[]>(() => internationalClubCards(clube).map(c => c as unknown as Card), [clube])
@@ -341,6 +370,7 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
   const slotsDe = (s: Section) => { const picked = bySec(s); return Array.from({ length: need[s] }, (_, i) => ({ sec: s, c: picked[i] ?? null })) }
   const lat = slotsDe('LAT'), zag = slotsDe('ZAG')
   return <>
+    <RecadoDaLenda clube={clube} userTeam={userTeam} pool={doClube} />
     <div style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 13, padding: '9px 11px', display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, color: '#fff' }}>
       <SeloClube clube={clube} size={34} />
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -354,7 +384,7 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
     </div>
     <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
       {(['4-3-3', '4-4-2'] as Shape[]).map(f => { const ok = shapeAvailable(f); return <button key={f} type="button" disabled={!ok} onClick={() => { setShape(f); setXi([]); setAviso(null) }}
-        style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', background: !ok ? '#CBBF9E' : shape === f ? GOLD : '#fff', boxShadow: shape === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .7 }}>{ok ? f : `🔒 ${f}`}</button> })}
+        style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '6px 4px', fontWeight: 900, fontSize: 12, ...OSWALD, cursor: ok ? 'pointer' : 'not-allowed', color: INK, background: !ok ? '#CBBF9E' : shape === f ? GOLD : '#fff', boxShadow: shape === f ? `2px 2px 0 0 ${INK}` : 'none', opacity: ok ? 1 : .7 }}>{ok ? f : `🔒 ${f}`}</button> })}
     </div>
     <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
       {sections.map(s => { const done = bySec(s).length >= need[s]; return <button key={s} type="button" onClick={() => setTab(s)} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 10.5, ...OSWALD, cursor: 'pointer', background: done ? GREEN : tab === s ? GOLD : '#fff', color: done ? '#fff' : INK, boxShadow: tab === s ? `2px 2px 0 0 ${INK}` : 'none' }}>
@@ -461,7 +491,10 @@ export function CareerInternationalView(p: Props) {
   // 👀 a competição EM FOCO: a minha, ou a que escolhi acompanhar (sem vaga)
   const foco: InternationalCompetition | null = myComp ?? (modo && modo !== 'pular' ? modo : null)
   const begin = (representedClub: string | null, xi: Card[]) => {
-    p.onStart(makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [] }))
+    const c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [] })
+    // ✉️ guarda os convites que ficaram na mesa — o jornal cobra se um deles levantar a taça
+    const recusados = representedClub ? convites.filter(cv => cv.club !== representedClub).map(cv => cv.club) : []
+    p.onStart(recusados.length ? { ...c, recusados } : c)
   }
   const escolheModo = (m: ModoSemVaga) => { gravaModo(p.season, m); setModo(m); if (!current) begin(null, []) }
   // ── a noite atual ──────────────────────────────────────────────────────────

@@ -51,5 +51,6 @@ export function summarizeInternationalCampaign(campaign: InternationalCampaign):
     teamRecords: [...records.values()],
     botPlayerStats: campaign.statistics.filter(stat => !stat.you).map(stat => [stat.key, stat.team, stat.games, stat.goals, stat.assists]),
     libertadoresChampion: campaign.libertadoresChampion, championsChampion: campaign.championsChampion, mundialChampion: campaign.mundialChampion,
+    ...(campaign.recusados?.length ? { recusados: campaign.recusados } : {}),
   }
 }

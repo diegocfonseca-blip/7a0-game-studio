@@ -1052,6 +1052,27 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         </div>
       )}
 
+      {/* ✉️ O CONVITE QUE VOCÊ RECUSOU (Diego 02/10: "faz o 1"): se um clube que te chamou e
+          você dispensou levantou a taça, o jornal provoca. Só zoeira — não muda nada no jogo. */}
+      {clubInternational?.representedClub && (() => {
+        const ci = clubInternational
+        const campeoes: [string, string][] = [[ci.mundialChampion, tr('o Mundial', 'the Club World Cup')], [ci.libertadoresChampion, tr('a Libertadores', 'the Libertadores')], [ci.championsChampion, tr('a Champions', 'the Champions League')]]
+        const hit = campeoes.find(([club]) => club && club !== ci.representedClub && (ci.recusados ?? []).includes(club))
+        if (!hit) return null
+        const [club, taca] = hit
+        const frases = [
+          tr(`O ${club}, que o presidente do ${ci.userTeam} dispensou, levantou ${taca}. Alguém aí se arrependeu?`, `${club}, the club the ${ci.userTeam} chairman turned down, lifted ${taca}. Any regrets?`),
+          tr(`Recusou o ${club}… e o ${club} foi campeão d${taca.startsWith('o ') ? 'o' : 'a'} ${taca.slice(2)} sem ele. A diretoria manda lembranças.`, `Turned down ${club}… and ${club} won ${taca} without him. The board sends its regards.`),
+          tr(`Convite na gaveta, taça na sala do vizinho: o ${club} foi campeão depois do "não" do presidente do ${ci.userTeam}.`, `Invitation in the drawer, trophy next door: ${club} won it all after the ${ci.userTeam} chairman said no.`),
+        ]
+        return <div style={{ border: `2.5px solid ${INK}`, background: '#FDE9C8', marginTop: 10 }}>
+          <div style={{ background: '#C2452F', color: '#fff', fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>✉️ {tr('O convite que você recusou', 'The invitation you turned down')}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px' }}>
+            <SeloClube clube={club} size={40} />
+            <strong style={{ flex: 1, fontSize: 12.5, fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.35 }}>{frases[(seasonNo ?? 0) % frases.length]}</strong>
+          </div>
+        </div>
+      })()}
       {/* 🧢 O CONVITE (02/10, mockup aprovado): a manchete do técnico convidado */}
       {clubInternational?.representedClub && (() => {
         const ci = clubInternational, clube = ci.representedClub!, voce = ci.userTeam

@@ -125,6 +125,10 @@ avança sozinho; manual tem botão).
   títulos, artilheiro) e a linha do tempo (dourado = título; selos Renovação, Campeão do mundo, Champions liberada, Estreia
   na Europa). Lê só o histórico gravado. Saiu o `<details>` antigo de texto corrido. A legenda dos pontos do ranking agora
   lê o `PTS_TITULO` (mostrava Mundial +50/Liberta +40, os números antigos).
+- ✉️ **O convite que você recusou + 💬 recado da lenda (02/10, "faz o 1 e 3")**. A campanha guarda `recusados` (os
+  convites que ficaram na mesa) e o histórico leva junto; se um deles for campeão (Liberta/Champions/Mundial), o jornal
+  abre a faixa "O convite que você recusou" com provocação. Na convocação, o maior nome do clube no baralho assina um
+  recado de boas-vindas (`RECADOS`, 8 frases PT/EN genéricas de vestiário — não imitam o jeito de ninguém).
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
   ✅ A narração do apito no mata-mata/final agora é de copa (`apitoFrases` no `LiveScoreCard`, `frasesDoApito` na tela internacional): ida, volta e final com taça/pênaltis. Grupos seguem com as da liga.
 

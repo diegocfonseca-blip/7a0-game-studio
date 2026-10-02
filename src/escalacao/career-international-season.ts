@@ -37,6 +37,8 @@ export type InternationalCampaign = {
   mundialChampion: string
   statistics: InternationalStat[]
   reveal: number
+  /** ✉️ os clubes cujo convite o presidente RECUSOU (02/10) — o jornal provoca se um deles for campeão */
+  recusados?: string[]
 }
 export type InternationalHistoryEntry = {
   season: number
@@ -56,6 +58,8 @@ export type InternationalHistoryEntry = {
   /** chave da carta, clube representado, jogos, gols, assistências; forma curta para caber no save local. */
   botPlayerStats?: [string, string, number, number, number][]
   libertadoresChampion: string; championsChampion: string; mundialChampion: string
+  /** ✉️ convites recusados naquela temporada (opcional: saves antigos não têm) */
+  recusados?: string[]
 }
 
 const xiCardKey = (card: Card) => internationalCardKey(card)
