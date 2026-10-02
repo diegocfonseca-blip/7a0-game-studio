@@ -129,6 +129,9 @@ avança sozinho; manual tem botão).
   convites que ficaram na mesa) e o histórico leva junto; se um deles for campeão (Liberta/Champions/Mundial), o jornal
   abre a faixa "O convite que você recusou" com provocação. Na convocação, o maior nome do clube no baralho assina um
   recado de boas-vindas (`RECADOS`, 8 frases PT/EN genéricas de vestiário — não imitam o jeito de ninguém).
+- 🎬 **Vídeo de lançamento das 3 competições (02/10)** — `scripts/video-internacional-reels.mjs` (reels 9:16, ~38 s, molde
+  do vídeo do Leilão de Clubes). Só as competições, SEM falar de convite (ordem dele). ⚠️ No ar, a carreira internacional
+  ainda é só da conta do Diego: o vídeo é pra quando ele liberar pra todos.
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
   ✅ A narração do apito no mata-mata/final agora é de copa (`apitoFrases` no `LiveScoreCard`, `frasesDoApito` na tela internacional): ida, volta e final com taça/pênaltis. Grupos seguem com as da liga.
 
