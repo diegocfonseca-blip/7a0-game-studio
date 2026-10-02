@@ -52,7 +52,7 @@ try {
   const oldHistory = [{ ...summary, teamRecords: undefined, botPlayerStats: undefined }]
   assert.equal(internationalCareerRanking(oldHistory).find(row => row.club === campaign.libertadoresChampion).libertadores, 1)
   assert.equal(isInternationalCareerTester('diego.c.fonseca@gmail.com'), true)
-  assert.equal(isInternationalCareerTester('outra@conta.com'), false)
+  assert.equal(isInternationalCareerTester('outra@conta.com'), true) // 🟢 liberada pra toda conta logada em 02/10
   const league = Array.from({ length: 20 }, (_, i) => ({ id: i + 1 }))
   const qualifiers = internationalQualifiers(league, league[5], team => String(team.id))
   assert.equal(qualifiers.length, 8)

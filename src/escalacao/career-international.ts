@@ -3,8 +3,11 @@ import { CATALOG_BOTH } from './data'
 /** Regras esportivas da carreira internacional. Sem estado, UI ou sorteio. */
 export const INTERNATIONAL_UNLOCK_SEASON = 40
 export const INTERNATIONAL_CAREER_TESTERS: readonly string[] = ['diego.c.fonseca@gmail.com']
+// 🟢 02/10 (Diego: "pode publicar… liberar pra todos"): toda conta logada. Voltar a
+// `false` fecha de novo só na conta dele (e o banco: `esc_private_international_rank_allowed`).
+export const INTERNATIONAL_CAREER_GERAL = true
 export const isInternationalCareerTester = (email?: string | null): boolean =>
-  !!email && INTERNATIONAL_CAREER_TESTERS.includes(email.trim().toLowerCase())
+  !!email && (INTERNATIONAL_CAREER_GERAL || INTERNATIONAL_CAREER_TESTERS.includes(email.trim().toLowerCase()))
 
 export type InternationalCompetition = 'libertadores' | 'champions'
 export type InternationalClub = {

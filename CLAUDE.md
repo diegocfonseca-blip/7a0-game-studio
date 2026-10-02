@@ -450,6 +450,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   ✉️ **E A ESCOLHA VIROU CONVITE (02/10)**: o clube grande CHAMA o presidente pra ser técnico convidado; 2 convites
   sorteados do bloco da sua posição (2+2 com a Champions aberta). Na tela aparece o clube (Flamengo, escudo do Flamengo)
   com "técnico: <seu clube>"; a mascote do gol é a SUA. Ele aprovou os dois: *"adorei"* e *"perfeito"*.
+  🟢 **LIBERADA PRA TODOS EM 02/10** (*"pode publicar"* → *"liberar pra todos"*): `INTERNATIONAL_CAREER_GERAL = true`
+  e a função do banco aberta pra toda conta logada.
   🏅 **Pontos do ranking global (01/10)**: Copa do Mundo 200 › **Mundial 60** › **Libertadores/Champions 50** › Copa
   do Brasil 30 › Série A 20… (`PTS_TITULO` + RPC `esc_pyramid_rank_rows_v2` — os dois andam juntos).
   💰 **Prêmio por etapa**: Libertadores/Champions um pouco ACIMA da Copa do Brasil (6·8·10·14·20·30·60); Mundial um

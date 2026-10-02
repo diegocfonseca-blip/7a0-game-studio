@@ -1,3 +1,15 @@
+## 02/10/2026 — 🌎 CARREIRA INTERNACIONAL LIBERADA PRA TODOS ✅ NO AR (*"pode publicar… liberar pra todos"*)
+- Jogo: `INTERNATIONAL_CAREER_GERAL = true` (`career-international.ts`) → toda conta logada, da T40 em diante.
+- Banco: `esc_private_international_rank_allowed()` agora = qualquer conta logada (migração
+  `20261002120000_carreira_internacional_para_todos.sql`, já aplicada). O gatilho continua só deixando
+  gravar a PRÓPRIA linha e sem número negativo.
+- Novidade PT/EN na home. Vídeo de lançamento: `scripts/video-internacional-reels.mjs` (agora com a Copa de 32).
+- ⚠️ `scripts/testa-ranking-privado-internacional.mjs` já reprovava ANTES da liberação (espera 90 pontos e o banco
+  dá 110 desde os pesos 60/50 de 01/10) e várias asserções dele são do teste fechado por e-mail — precisa ser
+  reescrito pro mundo liberado.
+- Reverter: `INTERNATIONAL_CAREER_GERAL = false` + voltar a função do banco pro teste por e-mail (corpo na
+  migração 20261001173507).
+
 ## 02/10/2026 — 🌍 COPA DO MUNDO DE 32 SELEÇÕES ✅ NO AR (pedido do Diego: *"vamos fazer 32"*)
 - **Formato sai do TAMANHO da Copa** (`formatoCopa(n)` em `copa-mundo.tsx`): 32 → 8 grupos de 4, passam os 2
   primeiros = 16 (sem quadro de 3ºs). 24 → o formato velho (6 grupos + 4 melhores 3ºs). Assim sala online
