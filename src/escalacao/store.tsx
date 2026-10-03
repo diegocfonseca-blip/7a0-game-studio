@@ -6078,7 +6078,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       const expected = summarizeInternationalCampaign(c)
       if (JSON.stringify(action.entry) !== JSON.stringify(expected)) return s
       if ((s.careerInternationalHistory ?? []).some(entry => entry.season === c.season)) return s
-      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), expected]
+      // 🗜️ a lista dos jogadores da máquina vira SOMA no placar acumulado (mesmos números, sem repetir por temporada)
+      s.careerIntlBotTotals = somaBotsIntl(s.careerIntlBotTotals, expected.botPlayerStats)
+      const { botPlayerStats: _somado, ...entrada } = expected
+      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), entrada]
       if (expected.prizeCoins > 0) {
         const id = s.managers[s.youIdx]?.id
         if (id != null) {
@@ -6677,7 +6680,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
-      s.careerInternational = null; s.careerInternationalHistory = []
+      s.careerInternational = null; s.careerInternationalHistory = []; s.careerIntlBotTotals = {}
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 🤝🏆🛍️ patrocínio por aposta, Master e Loja começam zerados
@@ -6804,7 +6807,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
-      s.careerInternational = null; s.careerInternationalHistory = []
+      s.careerInternational = null; s.careerInternationalHistory = []; s.careerIntlBotTotals = {}
       s.empresarioCards = []; s.empresarioClaimKeys = []
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
@@ -9962,7 +9965,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
       s.copaMundoStats = undefined
-      s.careerInternational = null; s.careerInternationalHistory = []
+      s.careerInternational = null; s.careerInternationalHistory = []; s.careerIntlBotTotals = {}
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
@@ -10531,7 +10534,35 @@ const FICHA_NBA = (() => {
   for (const n of repetidos) porNome.delete(n)
   return { exato, porNome }
 })()
+// 🗜️ PLACAR ACUMULADO DA MÁQUINA NAS COPAS INTERNACIONAIS (03/10, save do marcomak03 que não
+// gravou duas temporadas). Cada temporada guardava a lista INTEIRA de gols/assistências dos ~780
+// jogadores dos clubes da máquina (~45 KB por ano; na T100, ~3 MB só disso), e o celular tem uns
+// 5 MB pro jogo todo. Agora a lista é SOMADA num placar só (`careerIntlBotTotals`): nenhum número
+// se perde, o tamanho para de crescer. O que é do usuário (playerStats, campeões, artilheiros,
+// teamRecords do ranking) fica na temporada como sempre. Idempotente: só soma entrada que ainda
+// tem a lista, e tira a lista na mesma hora — nunca conta duas vezes.
+function somaBotsIntl(totais: Record<string, [number, number, number]> | undefined, linhas: [string, string, number, number, number][] | undefined) {
+  const t = { ...(totais ?? {}) }
+  for (const [key, , games, goals, assists] of linhas ?? []) {
+    const cur = t[key] ?? [0, 0, 0]
+    t[key] = [cur[0] + games, cur[1] + goals, cur[2] + assists]
+  }
+  return t
+}
+export function compactaHistoricoIntl(save: EscState): EscState {
+  const hist = save.careerInternationalHistory
+  if (!Array.isArray(hist) || !hist.some(e => Array.isArray(e?.botPlayerStats))) return save
+  let totais = save.careerIntlBotTotals
+  const novo = hist.map(e => {
+    if (!Array.isArray(e?.botPlayerStats)) return e
+    totais = somaBotsIntl(totais, e.botPlayerStats)
+    const { botPlayerStats: _fora, ...resto } = e
+    return resto
+  })
+  return { ...save, careerInternationalHistory: novo, careerIntlBotTotals: totais }
+}
 function sincronizaNiveis(save: EscState): EscState {
+  save = compactaHistoricoIntl(save)
   let mexeu = 0
   const vistos = new Set<object>()
   // 🏷️ CARTA QUE TROCOU DE ENDEREÇO (Diego 18/09: *"Zidane tá aparecendo Real

@@ -1,3 +1,17 @@
+## 03/10/2026 — 🗜️ Save da carreira internacional enxuto ✅ NO AR (caso marcomak03: "joguei 2 temporadas, salvei e voltou atrás")
+- Suspeita (NÃO confirmada no banco — a leitura do save dele ficou esperando aprovação): o celular tem ~5 MB pro jogo e a
+  carreira internacional guardava, POR TEMPORADA, a lista inteira de gols/assistências dos ~780 jogadores da máquina
+  (`botPlayerStats`, ~45 KB/ano, que nenhuma tela lia). Cota estourada = `setItem` falha calado e fica o save velho.
+- Feito (OK do Diego: *"faz"*, com a condição *"não quero perder as coisas que acontecem na carreira internacional"*):
+  a lista vira um placar ACUMULADO `careerIntlBotTotals` (chave da carta → [jogos, gols, assistências]). Nenhum número
+  se perde; o resto da temporada (campeões, artilheiros, jogadores do usuário, teamRecords do ranking) fica igual.
+  Saves antigos migram ao abrir (`compactaHistoricoIntl` em `sincronizaNiveis`, idempotente). 6 temporadas: 291 → 82 KB.
+  Trava: `npm run save-intl`.
+- ⏭️ FALTA: (1) conferir no banco o save do marcomak03 (temporada da nuvem × do celular) e recuperar as 2 temporadas se
+  a nuvem estiver mais nova; (2) avisar na tela quando o save não couber (hoje falha calado — `catch { /* cota cheia */ }`).
+- ⚠️ `npm run artilharia` já reprovava 2 linhas ANTES desta mudança ("a virada manda LIGA + COPA + COPA DO MUNDO pro
+  histórico" e o mesmo de assistências): conferência por texto desatualizada pela carreira internacional. Reescrever.
+
 ## 03/10/2026 — 🧱 Leilão de Clubes depois dos Lotes 40/41: conta feita, Europa sozinho NÃO liberado (Diego: *"ainda não"*)
 - Clubes que fecham setor (3 baralhos, pior caso MEI 4 / ATA 3): antes do Lote 40 → agora: GOL 81→114 · LAT 46→81 ·
   ZAG 42→75 · MEI 47→49 · ATA 64→97 · clubes diferentes 110→136. Entram sozinhos (`buildDeckClubes` não tem lista fixa).
