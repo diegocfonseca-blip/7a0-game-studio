@@ -726,7 +726,8 @@ export function useBarraCarreira(): boolean {
 // com o MESMO botão de jogar a rodada (nada de passo novo). Mockup v4 aprovado
 // pelo Diego em 03/10 (cel + desktop). 🔒 Por enquanto só na conta dele (*"publique
 // tudo agora só pro meu usuário"*). Pra abrir pra todos é `CENTRAL_GERAL = true`.
-const CENTRAL_GERAL = false
+// 🟢 LIBERADA PRA TODOS em 03/10 (Diego: *"pode publicar pra todos já!!"*). Voltar a `false` fecha só na conta dele.
+const CENTRAL_GERAL = true
 const CENTRAL_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let centralOk = CENTRAL_GERAL
 function applyCentralUnlock(email?: string | null): void {

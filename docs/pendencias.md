@@ -1,4 +1,4 @@
-## 03/10/2026 — 📺 CENTRAL LEGENDS, a home do modo carreira ✅ NO AR SÓ PRA CONTA DO DIEGO
+## 03/10/2026 — 📺 CENTRAL LEGENDS, a home do modo carreira ✅ NO AR PRA TODOS (liberada em 03/10: *"pode publicar pra todos já!!"*)
 - Pedido: *"queria alguma central no modo carreira… giro da rodada, notícias, transferências… precisa ter alguma
   central"*. Mockup v4 aprovado (cel + desk) depois de 3 rodadas (a 1ª *"muito feia"* → artes cinematográficas; a 3ª
   com notícia demais/giro de menos; a 4ª com o Martelo preenchendo o desktop).
@@ -11,7 +11,7 @@
 - Como foi feito sem simular nada novo: `confrontoDaRodada()` reproduz o calendário do `simDivTo` (mesma semente) pra
   achar o adversário; a forma (bolinhas) vem de até 4 `simulaAte(r)` extras, só com a aba aberta e nunca além de
   `revealed`. O lado (placar/controle) NÃO é desenhado na aba Central.
-- 🔒 `CENTRAL_GERAL = false` em `sport.ts` (só `diego.c.fonseca@gmail.com`; bancada do vite liga com
+- 🟢 `CENTRAL_GERAL = true` em `sport.ts` desde 03/10 (`false` volta a ser só `diego.c.fonseca@gmail.com`; bancada do vite liga com
   `localStorage esc-central-dev=1`, chave que some do build). Só carreira SOLO.
 - 💸 2º ajuste (03/10): o MERCADO mostra TODOS os negócios do pregão da temporada, de todo clube (*"não só os
   meus"*): o reducer anota cada arremate em `careerMercado` (`anotaMercado`, só carreira solo, 80 lotes, só exibição;
