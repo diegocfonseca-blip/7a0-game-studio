@@ -1,3 +1,11 @@
+## 03/10/2026 — 🧱 Leilão de Clubes depois dos Lotes 40/41: conta feita, Europa sozinho NÃO liberado (Diego: *"ainda não"*)
+- Clubes que fecham setor (3 baralhos, pior caso MEI 4 / ATA 3): antes do Lote 40 → agora: GOL 81→114 · LAT 46→81 ·
+  ZAG 42→75 · MEI 47→49 · ATA 64→97 · clubes diferentes 110→136. Entram sozinhos (`buildDeckClubes` não tem lista fixa).
+- Baralho sozinho (técnicos que cabem, com a sobra mínima): **Europa 11** (fecha sala cheia, mas no aperto — com
+  folga de pacote só 5) · Brasil 5 · Mundo 6 (falta meia). Ofereci liberar o Europa sozinho: ele disse **"ainda não"**.
+  Não repropor sem ele puxar o assunto. Brasil sozinho continua sem fechar.
+- Gargalo é o MEIO (clube precisa de 4 meias): caminho, se ele quiser, é meia famoso em clube que já tem 2–3.
+
 ## 🦅⚫⚪ Batismo Gaviões SCCP (02/10)
 - Dono `kauealves584@gmail.com` (conta desde 15/09). **Série C**, no assento do bot **Zorra FC** (que segue vivo em
   CLASSIC_CLUBS; `OLD_NAME` leva save antigo pro nome novo). Lenda + fundador nº83 + sócio nº64 — banco gravado
