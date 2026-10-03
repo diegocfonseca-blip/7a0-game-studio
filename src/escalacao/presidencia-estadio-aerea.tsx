@@ -11,6 +11,7 @@ import {cadeirasExatasParaArte} from './presidencia-estadio-cadeiras'
 import {visitanteExatoParaArte} from './presidencia-estadio-visitante'
 import {camaroteExatoParaArte} from './presidencia-estadio-camarote'
 import {estadioVisualValido} from './presidencia-estadio-validacao'
+import {podeOperarTeto} from './presidencia-estadio-integrado'
 /** Ampliação da câmera real disponível; não reaproveita SVG rejeitado. */
 export function PresidenciaEstadioAerea({stadium,onRoof}:{stadium?:StadiumSave;onRoof?:(closed:boolean)=>void}){
  const t=useT(),dialog=useRef<HTMLDialogElement>(null),trigger=useRef<HTMLSpanElement>(null),view=vistaInicialEstadio(stadium)
@@ -19,7 +20,8 @@ export function PresidenciaEstadioAerea({stadium,onRoof}:{stadium?:StadiumSave;o
   <dialog ref={dialog} className="gp-dialog" style={{width:'min(960px,calc(100vw - 24px))'}} aria-label={t('Visão aérea do estádio','Stadium aerial view')} onClose={()=>trigger.current?.querySelector('button')?.focus()}>
    <h2 tabIndex={-1} style={{fontFamily:'Oswald,sans-serif'}}>{t('SEU ESTÁDIO E A REGIÃO','YOUR STADIUM AND ITS AREA')}</h2>
    <PresidenciaEstadioImagem stadium={stadium} camera="aerial"/>
-   {estadioVisualValido(stadium)&&stadium.ext.includes('retratil')&&<div style={{margin:'12px 0'}}>
+   {estadioVisualValido(stadium)&&stadium.ext.includes('retratil')&&!podeOperarTeto(stadium)&&<p>{t('Conclua Gramado, Geral, Cadeiras, Visitante e Camarote para usar o teto. Loja e outros negócios não são necessários.','Complete Pitch, Terraces, Seats, Away end and Boxes to use the roof. Stores and other businesses are not required.')}</p>}
+   {estadioVisualValido(stadium)&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}>
     <p role="status">{stadium.roofClosed?t('Teto fechado','Roof closed'):t('Teto aberto','Roof open')}</p>
    {!estadioCompletoNaAerea(stadium)&&<p data-roof-art-pending="true">{t('Teto retrátil comprado. Você pode abri-lo ou fechá-lo, mas esta prévia parcial ainda não mostra o teto.','Retractable roof purchased. You can open or close it, but this partial preview does not show the roof yet.')}</p>}
     {onRoof&&<Btn onClick={()=>onRoof(stadium.roofClosed!==true)}>{stadium.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn>}

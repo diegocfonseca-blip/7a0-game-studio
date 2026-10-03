@@ -52,6 +52,6 @@ export function SalaMontagem({state,mgrId,president,identity}:{state:CarreiraCom
    <summary>{t('CONQUISTAS DA ESTANTE','TROPHY CABINET HONORS')}</summary>
    {trophies.length?<ul>{trophies.map(item=><li key={item.id}><span>{item.label}</span><strong>{item.count} {item.count===1?t('título','title'):t('títulos','titles')}</strong></li>)}</ul>:<p>{t('Sua estante está pronta para os próximos títulos.','Your cabinet is ready for future titles.')}</p>}
   </details>}
-  <p className="gp-rule">{t('Montagem em integração: aparecem somente os móveis comprados. Vista externa, poses e artes dos troféus ainda não finalizadas.','Assembly in progress: only purchased furniture is shown. Exterior view, poses and trophy artwork are not finalized yet.')}</p>
+  <p className="gp-rule">{t('Sua sala mostra os móveis comprados. Mesa e cadeira juntas permitem a pose sentada; a janela acompanha as obras do seu estádio.','Your office shows purchased furniture. A desk and chair together enable the seated pose; the window follows your stadium construction.')}</p>
  </section>
 }

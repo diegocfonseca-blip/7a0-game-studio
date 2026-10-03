@@ -1,4 +1,13 @@
-## Presidência — lote 1 privado reconciliado (03/10)
+## Presidência — lote 2 privado (03/10)
+
+Base publicada 97faf8bd. Agora habilitados estádio/vista aérea, móveis,
+garagem e teto estrutural para Diego; nenhuma concessão de obras ou saldo.
+Build e oito suítes passaram. Detalhes e limitações visuais ainda pendentes:
+`docs/presidencia-lote2-entrega.md`. Arte parcial não é estádio final pronto.
+Publicar incrementos aprovados/testados é autorizado, somente para a conta
+diego.c.fonseca@gmail.com. Confirmar deploy após push, não só build.
+
+## Presidência — lote 1 privado reconciliado (03/10, histórico)
 
 Integração sobre main `3336f1ea`, em `work/presidencia-lote1-main-20261003`.
 Criação, perfil e sala preparados somente para Diego; economia, garagem,

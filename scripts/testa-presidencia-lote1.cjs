@@ -21,7 +21,7 @@ const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright
    const unauthorized=reducer(state,{type:'PRESIDENCY_SAVE_BASE',mgrId:7,value:{version:5,name:'Diego',outfit:'terno'}})===state;
    return {economy:flags.PRESIDENCY_ECONOMY_RELEASED,roof:flags.PRESIDENCY_ROOF_RELEASED,name:saved.careerPresidentBase?.name,blocked,unauthorized,unchanged:JSON.stringify(state)===before,coins:saved.careerCoins};
   });
-  assert.deepEqual(result,{economy:false,roof:false,name:'Diego',blocked:true,unauthorized:true,unchanged:true,coins:{7:100,8:999}});
-  console.log('PASS lote 1: profile allowed with mocked private gate; economy/roof rejected by actual reducer; unauthorized save blocked; wallets unchanged. Offline test, not production authentication.');
+  assert.deepEqual(result,{economy:true,roof:true,name:'Diego',blocked:true,unauthorized:true,unchanged:true,coins:{7:100,8:999}});
+  console.log('PASS private profile: malformed trade/display/roof rejected by actual reducer; unauthorized save blocked; wallets unchanged. Offline test, not production authentication.');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

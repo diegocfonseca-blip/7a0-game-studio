@@ -1,5 +1,9 @@
 # Presidência — lote 1 integrado à main
 
+Atualização: o lote 2 habilita economia e estádio privados. Consultar
+`presidencia-lote2-entrega.md`; as flags desligadas descritas abaixo são o
+registro histórico do primeiro lote, não o estado atual.
+
 Base: `3336f1eae9644b6a3e0622aa9ad5218ce7ef1736`.
 Pasta de integração: `work/presidencia-lote1-main-20261003`.
 Fonte e acervo completo preservados em `work/presidencia-integracao-20260921`.

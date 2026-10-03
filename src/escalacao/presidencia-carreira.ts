@@ -4,6 +4,7 @@ import type {PresidenteRoupaTier} from './presidente-roupas'
 import {carteiraPresidenciaValida,confirmarPresidencia,type PresidenciaBem,type PresidenciaOrcamento,type PresidenciaCarteira} from './presidencia-economia'
 import {duplaDaGaragem,duplaGaragemValida,type DuplaGaragem} from './presidencia-garagem'
 import {aparenciaValida,copiarAparencia,type PresidenteAparencia} from './presidente-aparencia'
+import {compraPresidenciaDisponivel} from './presidencia-artes-disponiveis'
 
 export type BensPresidencia={revision:number;owned:PresidenciaBem[];display?:DuplaGaragem}
 export type PresidenteBaseSave={version:5;name:string;outfit:RoupaModular;appearance?:PresidenteAparencia;sinceSeason?:number}
@@ -40,6 +41,7 @@ export function carteiraDaCarreira(s:CarreiraPresidencia,mgrId:number):Presidenc
  return carteiraPresidenciaValida(wallet)?{...wallet,owned:wallet.owned.map(b=>({...b}))}:null
 }
 export function negociarNaCarreira<T extends CarreiraPresidencia>(state:T,mgrId:number,quote:PresidenciaOrcamento,confirmed:boolean){
+ if(quote?.pedido?.kind==='buy'&&!compraPresidenciaDisponivel(quote.pedido.id))return {ok:false as const,error:'unknown-item' as const}
  const wallet=carteiraDaCarreira(state,mgrId)
  if(!wallet)return {ok:false as const,error:'invalid-state' as const}
  const result=confirmarPresidencia(wallet,quote,confirmed)

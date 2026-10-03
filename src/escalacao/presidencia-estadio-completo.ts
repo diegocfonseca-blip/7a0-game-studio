@@ -2,6 +2,11 @@ import {STADIUM_SECTORS,STADIUM_EXTRAS,type StadiumSave} from './estadiodata'
 import {estadioVisualValido} from './presidencia-estadio-validacao'
 const ART_SECTORS=['grama','geral','cadeiras','visitante','camarote']
 const ART_EXTRAS=['refl','telao','loja','estac','praca','chopp','estacao','cober','hotel','retratil']
+/** Estrutura é independente de hotel, loja e demais negócios do entorno. */
+export function estruturaEstadioCompleta(st?:StadiumSave):boolean{
+ if(!estadioVisualValido(st))return false
+ return STADIUM_SECTORS.every(s=>(s.k==='grama'&&st.ext.includes('grama'))||(Number.isFinite(st.inv[s.k])&&st.inv[s.k]>=s.cost))
+}
 /** New catalog items must gain their own art before this full-scene asset can claim them. */
 export function catalogoCobertoNaAerea(sectors:readonly {k:string}[]=STADIUM_SECTORS,extras:readonly {k:string}[]=STADIUM_EXTRAS){
  return ART_SECTORS.every(k=>sectors.some(s=>s.k===k))&&sectors.every(s=>ART_SECTORS.includes(s.k))&&

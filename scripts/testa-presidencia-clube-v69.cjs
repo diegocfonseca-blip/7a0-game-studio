@@ -13,7 +13,7 @@ process.env.TEMP=process.env.TMP=require('node:path').resolve('test-results');
  await page.getByRole('button',{name:'SALVAR E ENTRAR NA SALA'}).click();await page.getByRole('button',{name:'EDITAR VISUAL'}).waitFor();
  const result=await page.evaluate(()=>{const{careerPresidentBase,...rest}=window.fixture;return{name:careerPresidentBase.name,preserved:JSON.stringify(rest)===window.original}});
  assert.deepEqual(result,{name:'Diego',preserved:true});
- assert.equal(await page.getByRole('button',{name:'GARAGEM',exact:true}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'GARAGEM',exact:true}).count(),1);
  const beforeRoom=await page.evaluate(()=>JSON.stringify(window.fixture));
  await page.getByRole('button',{name:'VER MONTAGEM DA SALA',exact:true}).click();
  await page.waitForFunction(()=>[...document.querySelectorAll('.pr-scene img')].every(img=>img.complete&&img.naturalWidth>0));
