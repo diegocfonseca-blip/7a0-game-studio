@@ -1,3 +1,14 @@
+## 03/10/2026 — 🧾 Ficha do jogador funcionando SEMPRE ✅ NO AR (Diego: *"deve funcionar a estatística do jogador sempre"*)
+- Auditoria: gols/assistências da TEMPORADA já somavam liga + Copa do Brasil/Legends + Supercopa + Copa do Mundo +
+  Libertadores/Champions/Mundial, e a Bola de Ouro/artilheiros usam a mesma soma. O total "no seu clube" já era
+  gravado em toda virada (`guardaCansaco`).
+- Consertado: (1) a ficha de duas colunas (jogos · gols · assistências, temporada × no seu clube) e a coluna JOGOS só
+  apareciam com o GÁS ligado (Série C+ com Agência) — agora `EstatUI`/`estatJogos` em toda carreira solo, qualquer
+  divisão; (2) jogo de Copa ia todo pros 11 da 1ª fase e só no fim — agora cada fase vai pra escalação DAQUELA fase
+  (`r.slot`), e durante a Copa conta fase já jogada. Trava: `npm run artilharia` (também atualizada pras copas
+  internacionais, que reprovavam por texto velho).
+- Fora de escopo por ordem dele: carreira online em sala (*"esquece salas, rápido online agora"*).
+
 ## Presidência — lote 2 privado (03/10)
 
 Base publicada 97faf8bd. Agora habilitados estádio/vista aérea, móveis,

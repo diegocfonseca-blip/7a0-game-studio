@@ -3934,7 +3934,15 @@ type CondicaoUI = {
   prep?: Preparador | null               // 🏋️ o preparador contratado (null = nenhum → só troca na mão)
   onDepto?: () => void                   // leva pro Departamento Técnico (onde se contrata)
 }
-function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, antesFolha, dicaTrocaNoTopo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean }) {
+// 🧾 OS NÚMEROS DA FICHA (03/10, Diego: *"deve funcionar a estatística do jogador sempre"*). Antes
+// eles vinham pendurados no gás (`CondicaoUI`), que só existe da Série C pra cima com Agência — na
+// Várzea, na Série D e em carreira antiga a ficha perdia os jogos e o total "no seu clube", mesmo
+// com o total sendo guardado na virada (`guardaCansaco`). Agora andam soltos, em toda carreira solo.
+type EstatUI = {
+  jogos: Record<string, number>          // jogos dele NO SEU CLUBE (temporadas anteriores + esta, liga + copas)
+  antes?: { j: Record<string, number>; gl: Record<string, number>; as: Record<string, number> } // o que ele tinha antes desta temporada
+}
+function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, seasonNo, contratosOn, olheiros, condicao, estat, antesFolha, dicaTrocaNoTopo }: { mgr: Manager; col: FCol; xiIds: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; selId: string | null; onTap?: (id: string) => void; seasonNo?: number; contratosOn?: boolean; olheiros?: boolean; condicao?: CondicaoUI; estat?: EstatUI; antesFolha?: React.ReactNode; dicaTrocaNoTopo?: boolean }) {
   // 🧹 ENXUGADA (Diego 14/09: *"tá com muita informação desnecessária"*): o texto
   // longo do preparador só abre no "?" — quem já sabe a regra nunca mais lê.
   const [ajudaPrep, setAjudaPrep] = useState(false)
@@ -4126,7 +4134,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
           <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 900, fontSize: 9.5, ...OSWALD, whiteSpace: 'nowrap' }}>
             {goalsOf(c) > 0 && <span style={{ color: GREEN }}>⚽ {goalsOf(c)}</span>}
             {assistsOf(c) > 0 && <span style={{ color: '#2F6BAE' }}>🅰️ {assistsOf(c)}</span>}
-            {condicao && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'system-ui' }}>{condicao.jogos[c.id] ?? 0} {tr('j', 'g')}</span>}
+            {(estat ?? condicao) && !c.fake && <span style={{ fontWeight: 800, fontSize: 8.5, color: 'rgba(0,0,0,0.45)', fontFamily: 'system-ui' }}>{(estat ?? condicao)!.jogos[c.id] ?? 0} {tr('j', 'g')}</span>}
           </span>
         )}
         {(() => { const k = ctInfo(c); return k ? <span style={{ fontWeight: 800, fontSize: 8.5, color: k.color, whiteSpace: 'nowrap' }}>{k.txt}</span> : null })()}
@@ -4159,7 +4167,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     // único lugar da tabela onde a cor do clube aparece, e some se tirar.
     { k: 'pos', w: larga ? 26 : 20, head: 'POS', cell: c => <span style={{ ...OSWALD, fontWeight: 900, fontSize: larga ? 9 : 8, background: col.solid, color: '#fff', borderRadius: 3, padding: '1px 4px' }}>{c.pos}</span> },
     ...(mostraOverall ? [{ k: 'ovr', w: larga ? 46 : 34, head: 'OVERALL', cell: (c: WonCard) => overallChip(c) }] : []),
-    ...(condicao ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell(condicao.jogos[c.id] ?? 0, 'rgba(12,12,12,.7)') }] : []),
+    ...((estat ?? condicao) ? [{ k: 'jog', w: larga ? 26 : 18, head: larga ? tr('JOGOS', 'GAMES') : '🏃', cell: (c: WonCard) => numCell((estat ?? condicao)!.jogos[c.id] ?? 0, 'rgba(12,12,12,.7)') }] : []),
     { k: 'gol', w: wNum, head: larga ? tr('GOLS', 'GOALS') : '⚽', cell: c => numCell(goalsOf(c), goalsOf(c) > 0 ? GREEN : 'rgba(12,12,12,.25)') },
     { k: 'ass', w: wNum, head: larga ? 'ASS' : '🅰️', cell: c => numCell(assistsOf(c), assistsOf(c) > 0 ? '#2F6BAE' : 'rgba(12,12,12,.25)') },
     ...(condicao ? [{ k: 'gas', w: larga ? 58 : 26, head: larga ? tr('GÁS', 'ENERGY') : '😓', cell: (c: WonCard) => gasChip(c, !larga) }] : []),
@@ -4254,9 +4262,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
     // perguntou isso direto (18/09) e é o que o rótulo tem que dizer.
     // O "nesta temporada" sai por subtração: `condicao.jogos` já vem somado, e o
     // `antes` é o que ele tinha antes desta temporada.
-    const totais = condicao && !sel.fake && (() => {
-      const a = condicao.antes
-      const jTot = condicao.jogos[sel.id] ?? 0
+    const fonte = estat ?? condicao
+    const totais = fonte && !sel.fake && (() => {
+      const a = fonte.antes
+      const jTot = fonte.jogos[sel.id] ?? 0
       const glTemp = goalsOf(sel), asTemp = assistsOf(sel)
       return {
         jTemp: Math.max(0, jTot - (a?.j[sel.id] ?? 0)), jTot,
@@ -5462,7 +5471,7 @@ export function BaseBox({ mgr, criaNames, seed, onSubir }: { mgr: Manager; criaN
   )
 }
 
-export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, criaBase }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
+export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, list, selId = null, seasonNo, perkOverride, onSetFormation, contratosOn, olheiros, subMode, onSetSubMode, criaDeEvento, condicao, estat, criaBase }: { mgr: Manager; col: FCol; coins: number; xiIds?: Set<string>; xi?: WonCard[]; goals?: Record<string, number>; assists?: Record<string, number>; onSwap?: (id: string) => void; list?: { listed: Set<string>; canList: (c: WonCard) => boolean; onList: (id: string) => void }; selId?: string | null; seasonNo?: number; perkOverride?: ApoioPerk; onSetFormation?: (f: FormationKey, view?: string) => void; contratosOn?: boolean; olheiros?: boolean; subMode?: 'dinamico' | 'intervalo'; onSetSubMode?: (m: 'dinamico' | 'intervalo') => void; criaDeEvento?: boolean; condicao?: CondicaoUI; estat?: EstatUI; criaBase?: { onSubir: (pos: Sector, nome: string, historia: number) => void } }) {
   const { state: escSt } = useEsc() // só leitura (técnico do time p/ destravar formações)
   const quinze15 = useFormacoes15() && escSt.onlineMode !== 'online' // 🎽 online segue com as 5
   const need = FORMATIONS[mgr.formation]
@@ -5744,7 +5753,7 @@ export function SquadTab({ mgr, col, coins, xiIds, xi, goals, assists, onSwap, l
                 : <>Série C é futebol profissional: a partir desta rodada, cada jogo como titular gasta gás e cada rodada no banco devolve um tanto — e isso <b>atravessa as temporadas</b>, não zera na virada. Até uns <b>54 jogos</b> ele aguenta inteiro; lá pelo <b>55º</b> fica <b>cansado</b> (😓, −1 no jogo), pelo <b>60º</b> está <b>no limite</b> (🥵, −2 e o dobro de risco de lesão), do <b>65º</b> em diante <b>esgotado</b> (🚑, −3 e o triplo). De 🥵 em diante ele também pode <b>se machucar de desgaste</b> (5% por jogo; 10% quando 🚑) e ficar 1-3 rodadas fora. Lesão volta <b>aos poucos</b> (60% → 80% → 100%). Olha a <b>barrinha embaixo de cada jogador</b> e usa o banco: o preparador sugere o rodízio, mas quem decide é <b>você</b>. Os bots não cansam — rodizie bem e você também não sente nada.</>}
             </UnlockBanner>
           )}
-          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao}
+          <ElencoField mgr={mgr} col={col} xiIds={xiIds!} xi={xi} goals={goals} assists={assists} selId={selId} onTap={onSwap} seasonNo={seasonNo} contratosOn={contratosOn} olheiros={olheiros} condicao={condicao} estat={estat}
             dicaTrocaNoTopo={!!(elenco && onSetSubMode)}
             antesFolha={criaBase ? <BaseBox mgr={mgr} criaNames={escSt.criaNames ?? []} seed={escSt.seed ?? 1} onSubir={criaBase.onSubir} /> : undefined} />
         </>
@@ -8067,13 +8076,19 @@ export function PyramidSeasonScreen() {
   const copaJogos = useMemo(() => {
     const o: Record<string, number> = {}
     const me = state.managers[state.youIdx]
-    if (!copaFinished || !copa || !me) return o
-    let n = 0
-    for (const r of copa.rounds) for (const t of r.ties) if (t.a.teamId === me.id || t.b.teamId === me.id) n += t.legs?.length || 1
-    if (!n) return o
-    for (const c of lineupAt(lineupsCopa, me.id, 38, me.squad, me.formation)) if (!c.fake) o[c.id] = n
+    if (!copa || !me || (!copaFinished && !copaPlaying)) return o
+    // 🧾 03/10: cada FASE vai pra quem jogou AQUELA fase (o slot dela: 38 = 1ª fase, 39 = a seguinte…).
+    // Antes todos os jogos da Copa iam pros 11 da 1ª fase, só no fim: quem entrou nas quartas não
+    // ganhava o jogo e quem foi pro banco ganhava. Durante a Copa conta só fase JÁ jogada (anti-spoiler).
+    copa.rounds.forEach((r, ri) => {
+      if (!copaFinished && ri >= copaRound) return
+      let n = 0
+      for (const t of r.ties) if (t.a.teamId === me.id || t.b.teamId === me.id) n += t.legs?.length || 1
+      if (!n) return
+      for (const c of lineupAt(lineupsCopa, me.id, r.slot ?? 38 + ri, me.squad, me.formation)) if (!c.fake) o[c.id] = (o[c.id] ?? 0) + n
+    })
     return o
-  }, [copaFinished, copa, lineupsCopa, state.managers, state.youIdx])
+  }, [copaFinished, copaPlaying, copaRound, copa, lineupsCopa, state.managers, state.youIdx])
   // o que vai de JOGOS além da liga: Copa + Copa do Mundo. Vai pra tela e, na
   // virada, pro acumulado "no seu clube" (o reducer soma uma vez só).
   const jogosExtra = useMemo(() => somaCartas(somaCartas(copaJogos, cmPorCarta.j), intlPorCarta.jogos), [copaJogos, cmPorCarta, intlPorCarta])
@@ -8268,6 +8283,9 @@ export function PyramidSeasonScreen() {
   // 🏃 o número que a TELA mostra: liga + copas (o `condJogos` puro continua sendo o
   // que os eventos de jogador leem no meio da temporada — lá não entra copa nenhuma).
   const condJogosTela = useMemo(() => (condJogos ? somaCartas(condJogos, jogosExtra) : null), [condJogos, jogosExtra])
+  // 🧾 os NÚMEROS DA FICHA em toda carreira solo, com ou sem gás (03/10 — ver `EstatUI`). É a MESMA
+  // conta que o `guardaCansaco` grava na virada: jogos da liga pela escalação + os de copa da tela.
+  const estatJogos = useMemo(() => (state.careerOnline && state.onlineMode !== 'online' && mgrMe ? somaCartas(jogosDoElenco(careerLineup[youId], round, mgrMe.squad, condDesdeR, condInicio?.j), jogosExtra) : null), [state.careerOnline, state.onlineMode, mgrMe, careerLineup, youId, round, condDesdeR, condInicio, jogosExtra])
 
   // ─── 🎭 EVENTOS DE JOGADOR (só carreira SOLO — online segue 100% igual) ───
   const soloCareer = state.onlineMode !== 'online'
@@ -10544,6 +10562,7 @@ export function PyramidSeasonScreen() {
               </div>
             )}
             <SquadTab mgr={state.managers[state.youIdx]} col={myCol} coins={state.careerCoins?.[youId] ?? 0} xiIds={myXIids} xi={myXI as WonCard[]} goals={golsTemporada} assists={assTemporada} onSwap={canSub ? onTapPlayer : undefined} selId={selId} seasonNo={state.seasonNo} contratosOn={!!state.contratosOn} onSetFormation={(f, v) => dispatch({ type: 'CHANGE_FORMATION', formation: f, mgrId: youId, slot: slotEscala, view: v })} olheiros={state.onlineMode !== 'online'} subMode={state.onlineMode !== 'online' ? (state.careerSubMode ?? 'dinamico') : undefined} onSetSubMode={state.onlineMode !== 'online' ? m => dispatch({ type: 'SET_SUBMODE', mode: m }) : undefined} criaDeEvento={state.criaDeEvento}
+              estat={estatJogos ? { jogos: estatJogos, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined } : undefined}
               condicao={condGas && condJogosTela ? { gas: condGas, jogos: condJogosTela, antes: condInicio ? { j: condInicio.j, gl: condInicio.gl, as: condInicio.as } : undefined, volta: id => modVolta(evAtual, state.seasonNo ?? 1, round, id), onRodizio: canSub && meuPreparador ? onRodizio : undefined, suspensoId: suspenso?.cardId, auto: condAuto && prepAutoOn, onAuto: prepAutoOn ? (on => dispatch({ type: 'SET_CONDICAO_AUTO', on })) : undefined, prep: meuPreparador, onDepto: () => setTab('elenco') } : undefined}
               criaBase={{ onSubir: (pos, nome, historia) => dispatch({ type: 'SUBIR_CRIA', mgrId: youId, pos, nome, historia }) }} />
             {/* 📣 BANNER só pra carreira ANTIGA (Diego 10/08): a condição é
