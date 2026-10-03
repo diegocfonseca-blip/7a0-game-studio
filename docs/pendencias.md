@@ -1,3 +1,21 @@
+## 03/10/2026 — 📺 CENTRAL LEGENDS, a home do modo carreira ✅ NO AR SÓ PRA CONTA DO DIEGO
+- Pedido: *"queria alguma central no modo carreira… giro da rodada, notícias, transferências… precisa ter alguma
+  central"*. Mockup v4 aprovado (cel + desk) depois de 3 rodadas (a 1ª *"muito feia"* → artes cinematográficas; a 3ª
+  com notícia demais/giro de menos; a 4ª com o Martelo preenchendo o desktop).
+- O que é: aba nova, a PRIMEIRA da barra, e a carreira ABRE nela. Camarote (`online-estadio-v25`) com o próximo jogo e
+  o MESMO botão de jogar (`avancarRodada`, uma função só pro controle e pro camarote) · 📣 Giro da rodada revelada ·
+  📰 O MARTELO do meio da temporada (`central-noticias.ts`, redação pura, PT/EN, trava `npm run central`) · 💸 Mercado
+  (compras do extrato + carta mais cara da divisão) · 📊 Tabela (toque abre Tabelas) · 🗓️ Agenda (Copa, Libertadores,
+  Copa do Mundo; toque abre Jogos). Desktop em 2 colunas + 3 embaixo (`central.css`).
+- Como foi feito sem simular nada novo: `confrontoDaRodada()` reproduz o calendário do `simDivTo` (mesma semente) pra
+  achar o adversário; a forma (bolinhas) vem de até 4 `simulaAte(r)` extras, só com a aba aberta e nunca além de
+  `revealed`. O lado (placar/controle) NÃO é desenhado na aba Central.
+- 🔒 `CENTRAL_GERAL = false` em `sport.ts` (só `diego.c.fonseca@gmail.com`; bancada do vite liga com
+  `localStorage esc-central-dev=1`, chave que some do build). Só carreira SOLO.
+- ⏭️ Decidir com ele: abrir na Central ficou como padrão; se preferir abrir em Jogos é 1 linha (`useEffect` do
+  `centralOn`). Ideias que ficaram de fora de propósito: "ler a edição completa" (não existe jornal de meio de
+  temporada ainda) e o 🔊 "ouvir" do giro.
+
 ## 😈🔴⚫ Batismo Vieira FC (03/10)
 - Dono `felipe.vrod10@gmail.com` (já era ⭐ Craque pago — subiu pra 👑 Lenda). **Série D**, no assento do bot
   **Prestígio FC** (só existia na pirâmide; `OLD_NAME` + escudo/carimbo no nome velho levam save antigo pro clube novo).

@@ -56,7 +56,11 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida } from './sport'
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira } from './sport'
+import { CentralCarreira } from './central' // 📺 a home do modo carreira (03/10, só a conta do Diego)
+import type { CentralAgenda, CentralJogo } from './central'
+import { redacaoDaCentral } from './central-noticias'
+import type { Contratacao } from './central-noticias'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
 import { BICO_MARCAS, bicoValor, bicoElegivel, type BicoDiv } from './bico'
 import { fornAtivo } from './loja'
@@ -212,6 +216,16 @@ function roundRobin(n: number): [number, number][][] {
     rounds.push(round); rot.unshift(rot.pop()!)
   }
   return [...rounds, ...rounds.map(r => r.map(([h, a]) => [a, h] as [number, number]))]
+}
+// 📺 QUEM JOGA CONTRA QUEM na rodada `rodada` (1..38) de uma divisão, SEM simular nada:
+// é o mesmo esqueleto + o mesmo rodízio de vagas do `simDivTo` (mesma semente, mesmo
+// `shuffle`), então o par que sai daqui é exatamente o que a simulação vai jogar. A
+// Central usa pra mostrar o PRÓXIMO adversário antes de a rodada existir — e por não
+// simular, não tem como entregar resultado (anti-spoiler de graça).
+export function confrontoDaRodada(teams: SimTeam[], divSeed: number, rodada: number): [SimTeam, SimTeam][] {
+  const fix = roundRobin(20)
+  const slot = shuffle(Array.from({ length: 20 }, (_, i) => i), mulberry((divSeed ^ 0x1B873593) >>> 0))
+  return (fix[rodada - 1] ?? []).map(([hi, ai]) => [teams[slot[hi]], teams[slot[ai]]] as [SimTeam, SimTeam]).filter(([h, a]) => h && a)
 }
 
 export interface SimTeam { name: string; you: boolean; human: boolean; rival?: boolean; dorm?: boolean; backstop?: boolean; teamId: number; squad: PoolCard[]; xi: PoolCard[]; formation?: FormationKey; pts: number; w: number; d: number; l: number; gf: number; ga: number }
@@ -7193,13 +7207,14 @@ function SocioBaraoBanner() {
 // com o conteúdo e sumiam (quem estava no fim do Elenco tinha que rolar tudo
 // de volta pra ver os Jogos).
 // 🔒 Por enquanto só na conta do Diego (`useBarraCarreira`), pra ele ver antes.
-type AbaCarr = 'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'
+type AbaCarr = 'central' | 'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'
 // ícones desenhados (duotone) — mesmo traço da barra da home, 0 KB de imagem
 function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
   const fill = cor === '#7C3AED' ? 'rgba(124,58,237,.22)' : 'rgba(12,12,12,.10)'
   const p = { fill: 'none', stroke: cor, strokeWidth: 2, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
   return (
     <svg width={24} height={24} viewBox="0 0 24 24" style={{ display: 'block', margin: '0 auto' }}>
+      {nome === 'central' && <><rect x={3} y={6} width={18} height={12.5} rx={2.4} {...p} fill={fill} /><path d="M8.5 3.5L12 6l3.5-2.5M9 21h6M7 11.5l3.5 2-3.5 2z" {...p} /></>}
       {nome === 'jogos' && <><rect x={3.5} y={5} width={17} height={15.5} rx={2.4} {...p} fill={fill} /><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" {...p} /><circle cx={12} cy={15} r={2.4} {...p} /></>}
       {nome === 'tabelas' && <><rect x={3.5} y={4} width={17} height={16} rx={2.4} {...p} fill={fill} /><path d="M3.5 9h17M3.5 14.5h17M9 4v16" {...p} /></>}
       {nome === 'elenco' && <><path d="M12 3.5l7 2.6v5.3c0 4.3-3 7.6-7 9.1-4-1.5-7-4.8-7-9.1V6.1z" {...p} fill={fill} /><path d="M9.2 12.3l1.9 1.9 3.7-3.9" {...p} /></>}
@@ -7209,15 +7224,17 @@ function IconeCarr({ nome, cor }: { nome: AbaCarr; cor: string }) {
   )
 }
 const ABAS_CARR: [AbaCarr, string][] = [['jogos', 'Jogos'], ['tabelas', 'Tabelas'], ['elenco', 'Elenco'], ['ranking', 'Rank'], ['estadio', 'Clube']]
-const ABAS_CARR_EN: Record<AbaCarr, string> = { jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', ranking: 'Rank', estadio: 'Club' }
-function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean }) {
+const ABAS_CARR_EN: Record<AbaCarr, string> = { central: 'Central', jogos: 'Matches', tabelas: 'Tables', elenco: 'Squad', ranking: 'Rank', estadio: 'Club' }
+function BarraCarreira({ tab, setTab, cor, ponto, pontoClube, combined=false, central=false }: { tab: AbaCarr; setTab: (t: AbaCarr) => void; cor: string; ponto: boolean; pontoClube?: boolean; combined?: boolean; central?: boolean }) {
+  // 📺 a Central entra na FRENTE da barra, só pra quem tem (03/10)
+  const abas: [AbaCarr, string][] = central ? [['central', 'Central'], ...ABAS_CARR] : ABAS_CARR
   return (
     <>
       {/* 🔊 o botão de som mora no canto de baixo — sobe pra não brigar com a barra
           (mesmo remendo já usado na barra da home) */}
       <style>{'button[aria-label="Desligar som"],button[aria-label="Ligar som"]{bottom:78px !important}'}</style>
 <div className="ll-career-navigation" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 99989, background: 'rgba(250,247,238,.97)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderTop: '1.5px solid rgba(12,12,12,.13)', boxShadow: '0 -2px 12px rgba(0,0,0,.05)', display: 'flex', gap: 2, padding: '6px 6px calc(8px + env(safe-area-inset-bottom))' }}>
-        {ABAS_CARR.filter(([t]) => !combined || t !== 'tabelas').map(([t, originalLabel]) => {
+        {abas.filter(([t]) => !combined || t !== 'tabelas').map(([t, originalLabel]) => {
           const label = combined && t === 'jogos' ? tr('Jogos + Tabela', 'Matches + Table') : tr(originalLabel, ABAS_CARR_EN[t])
           const on = tab === t || (combined && t === 'jogos' && tab === 'tabelas')
           return (
@@ -7565,7 +7582,7 @@ export function PyramidSeasonScreen() {
     return () => clearTimeout(t)
   }, [seasonOver, speedFactor, baseRoundMs])
   const done = seasonOver && endShown
-  const [tab, setTab] = useState<'jogos' | 'tabelas' | 'elenco' | 'ranking' | 'estadio'>('jogos')
+  const [tab, setTab] = useState<AbaCarr>('jogos')
   const [rankSub, setRankSub] = useState<'clubes' | 'arti' | 'garcons' | 'ouro' | 'global'>('arti')
   const [clubeSub, setClubeSub] = useState<'estadio' | 'loja' | 'financas' | 'escritorio' | 'patrocinio' | 'presidencia' | 'agencia'>('estadio') // 🏟️/💰/💼/🤝/🕴️ sub-abas da aba Clube
   const [tvFoco, setTvFoco] = useState(false) // 📺 veio do banner "quero televisionar" → rola até o card da TV e dá o brilho
@@ -8969,6 +8986,13 @@ export function PyramidSeasonScreen() {
   // 📌 sub-abas do Clube/Elenco grudando no topo (só a conta do Diego)
   const subGrudadas = useSubAbasGrudadas()
   const barraCarr = useBarraCarreira()
+  // 📺 CENTRAL LEGENDS (03/10): a home da carreira. Só carreira SOLO (no online o ritmo é
+  // da sala) e só pra quem tem a chave (`useCentralCarreira` — hoje a conta do Diego).
+  const centralOn = useCentralCarreira() && state.onlineMode !== 'online' && !!state.careerOnline && privateCareer
+  const tabTocada = useRef(false) // a pessoa já escolheu uma aba nesta visita?
+  // a carreira ABRE na Central (é a home). Só na chegada: depois, quem manda é o toque.
+  useEffect(() => { if (centralOn && !tabTocada.current) setTab('central') }, [centralOn])
+  const escolheAba = (t: AbaCarr) => { tabTocada.current = true; setTab(t) }
   // 🔴 tem recibo esperando no Clube? (patrocínio pago na virada · fechamento do
   // caixa no fim da temporada). Some assim que a pessoa abre a aba Clube, e
   // volta a valer na temporada seguinte.
@@ -9121,6 +9145,106 @@ export function PyramidSeasonScreen() {
               }
               return <RivalryTicker items={flavors} />
   }
+  // ▶️ AVANÇAR A RODADA — UMA função só, pra todo botão que anda a carreira (controle da
+  // partida e o camarote da Central). Regra de ouro contra botão mudo (19/09): tela e
+  // motor não podem ter regras próprias pra mesma coisa — então quem quiser um botão de
+  // "próxima rodada" chama ISTO, nunca repete a lista de travas.
+  const avancarRodada = () => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }
+  // 📺 CENTRAL — a forma recente (últimas 5 rodadas REVELADAS) de cada clube da sua
+  // divisão. Só calcula com a Central aberta: são até 4 simulações a mais (a da rodada
+  // atual já existe em `live`). Nunca passa de `revealed`: durante a animação, a rodada
+  // que está rolando fica de fora (anti-spoiler).
+  const revCentral = Math.min(revealed, round)
+  const centralFormas = useMemo(() => {
+    const out: Record<string, string> = {}
+    if (tab !== 'central' || !myDiv || revCentral < 1) return out
+    for (let r = Math.max(1, revCentral - 4); r <= revCentral; r++) {
+      const sim = r === round && revealed >= round ? live : simulaAte(r)
+      for (const m of sim.matches[myDiv] ?? []) {
+        const hr = m.hg > m.ag ? 'V' : m.hg === m.ag ? 'E' : 'D'
+        out[m.h] = (out[m.h] ?? '') + hr
+        out[m.a] = (out[m.a] ?? '') + (hr === 'V' ? 'D' : hr === 'D' ? 'V' : 'E')
+      }
+    }
+    return out
+  }, [tab, myDiv, revCentral, round, revealed, live, simulaAte])
+  // 📺 a Central inteira sai do que a tela JÁ sabe (tabela revelada, giro, extrato, agenda)
+  const renderCentral = () => {
+    if (!myDiv) return null
+    const DIV_EN: Record<Div, string> = { A: 'Serie A', B: 'Serie B', C: 'Serie C', D: 'Serie D', V: 'Várzea' }
+    const sn = state.seasonNo ?? 1
+    const minha = tables[myDiv] ?? []
+    const euNome = minha.find(t => t.you)?.name ?? state.managers[state.youIdx]?.teamName ?? ''
+    const minhaPos = minha.findIndex(t => t.you) + 1
+    const meusPts = minha.find(t => t.you)?.pts ?? 0
+    const vai = (t: AbaCarr) => () => escolheAba(t)
+    // 🏟️ o próximo confronto (ou o que está rolando): só o par, nunca o placar
+    const rolando = round > 0 && (revealed < round || !roundReady)
+    const rNext = round === 0 ? 1 : rolando ? round : round + 1
+    const proximo = (() => {
+      if (seasonOver || rNext > 38) return null
+      const divSeed = (seasonSeed ^ (myDiv.charCodeAt(0) * 2654435761)) >>> 0
+      const par = confrontoDaRodada(world[myDiv] ?? [], divSeed, rNext).find(([h, a]) => h.teamId === youId || a.teamId === youId)
+      return par ? { rodada: rNext, casa: par[0].name, fora: par[1].name, rolando } : null
+    })()
+    // 📣 giro: o seu jogo primeiro, depois o do líder, depois o mais movimentado
+    const giro = (() => {
+      if (revCentral < 1) return null
+      const ms = shown.matches[myDiv] ?? []
+      const meu = ms.filter(m => m.hId === youId || m.aId === youId)
+      const lider = minha[0]?.name
+      const resto = ms.filter(m => !meu.includes(m)).sort((a, b) => (Number(b.h === lider || b.a === lider) - Number(a.h === lider || a.a === lider)) || ((b.hg + b.ag) - (a.hg + a.ag)))
+      const jogos: CentralJogo[] = [...meu, ...resto].slice(0, 3).map(m => ({ h: m.h, a: m.a, hg: m.hg, ag: m.ag, hId: m.hId, aId: m.aId }))
+      return { rodada: revCentral, jogos, total: ms.length }
+    })()
+    // 💸 mercado: suas compras do extrato (esta temporada) + a carta mais cara da divisão
+    const compras = (state.careerLedger ?? []).filter(e => e.season === sn && e.kind === 'buy' && e.player && e.amount < 0).map(e => ({ name: e.player!, pos: e.pos ?? '', paid: -e.amount })).sort((a, b) => b.paid - a.paid)
+    const idsDiv = new Set(minha.map(t => t.teamId))
+    let maisCaro: Contratacao | null = null
+    for (const m of state.managers) {
+      if (!idsDiv.has(m.id)) continue
+      for (const c of m.squad as WonCard[]) { if (c.fake || c.cria || !(c.paid > 0)) continue; if (!maisCaro || c.paid > maisCaro.paid) maisCaro = { name: c.name, teamName: m.teamName, paid: c.paid, you: m.id === youId } }
+    }
+    const intlAberta = intlEnabled && sn >= 40
+    const g8Faltam = Math.max(0, (tables.A?.[7]?.pts ?? 0) - meusPts)
+    const outra: Div = myDiv === 'A' ? 'B' : 'A'
+    const jornal = redacaoDaCentral({
+      round: revCentral, divName: DIV_NAME[myDiv], divNameEn: DIV_EN[myDiv],
+      tabela: minha.map(t => ({ name: t.name, pts: t.pts, w: t.w, d: t.d, l: t.l, gf: t.gf, ga: t.ga, you: t.you, human: t.human })),
+      formas: centralFormas,
+      artilheiros: scorersAll.filter(x => x.div === myDiv).slice(0, 3).map(x => ({ name: x.name, teamName: x.teamName, goals: x.goals, you: x.you })),
+      garcons: assistsAll.filter(x => x.div === myDiv).slice(0, 3).map(x => ({ name: x.name, teamName: x.teamName, assists: x.assists, you: x.you })),
+      maisCaro, compras: compras.map(c => ({ name: c.name, paid: c.paid })),
+      intl: intlAberta ? { aberta: true, serieA: myDiv === 'A', g8: minhaPos > 0 && minhaPos <= 8, faltam: g8Faltam } : null,
+      outraDiv: tables[outra]?.length ? { divName: DIV_NAME[outra], divNameEn: DIV_EN[outra], lider: tables[outra][0].name, pts: tables[outra][0].pts } : null,
+    })
+    // 🗓️ agenda: a Copa nacional, a Libertadores (quando a carreira já tem) e a Copa do Mundo
+    const agenda: CentralAgenda[] = []
+    agenda.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
+      sub: !seasonOver ? ['depois da rodada 38', 'after round 38'] : copaPlaying ? ['rolando agora', 'live now'] : copaFinished ? ['encerrada', 'over'] : ['começa em seguida', 'up next'] })
+    if (intlEnabled) agenda.push({ arte: 'liberta', titulo: ['Libertadores', 'Libertadores'],
+      sub: sn < 40 ? [`abre na temporada 40 (faltam ${40 - sn})`, `opens in season 40 (${40 - sn} to go)`] : myDiv !== 'A' ? ['vaga: G8 da Série A ou campeão da Copa', 'spot: Serie A top 8 or Cup winner'] : minhaPos > 0 && minhaPos <= 8 ? ['você está no G8 ✓', 'you are in the top 8 ✓'] : [`G8: faltam ${g8Faltam} ponto${g8Faltam === 1 ? '' : 's'}`, `top 8: ${g8Faltam} point${g8Faltam === 1 ? '' : 's'} short`] })
+    const proxMundo = sn <= 100 ? 100 : 100 + Math.ceil((sn - 100) / 10) * 10
+    agenda.push({ arte: 'mundo', titulo: ['Copa do Mundo', 'World Cup'],
+      sub: sn < 100 ? [`desbloqueia na temporada 100`, `unlocks in season 100`] : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + 10 : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + 10 : proxMundo}`] })
+    // ▶️ o botão do camarote: o MESMO avanço do controle da partida, com as mesmas travas
+    const botao = (() => {
+      if (done) return { label: tr('🏁 Fim de temporada — ver', '🏁 Season over — see'), sub: tr('o roteiro está na aba Jogos', 'the wrap-up is in Matches'), onClick: vai('jogos') }
+      if (copaPlaying) return { label: tr('🏆 Copa rolando — assistir', '🏆 Cup live — watch'), onClick: vai('jogos') }
+      if (seasonOver) return { label: tr('🏁 Liga encerrada — ver', '🏁 League over — see'), onClick: vai('jogos') }
+      if (round === 0) return decisoesOk
+        ? { label: tr('▶ Começar a temporada', '▶ Start the season'), sub: tr('o botão de sempre, no mesmo lugar', 'the usual button, same place'), onClick: () => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } }
+        : { label: tr('🤝 Falta decidir em Jogos', '🤝 Decisions pending in Matches'), sub: tr('patrocínio / Master antes da 1ª rodada', 'sponsor / Master before round 1'), onClick: vai('jogos') }
+      if (!manualAllowed) return { label: tr('📺 Ver a rodada ao vivo', '📺 Watch the round live'), sub: tr('no automático a rodada anda sozinha', 'in auto mode the round runs by itself'), onClick: vai('jogos') }
+      if (rolando) return { label: tr(`⏳ Rodada ${round} rolando — assistir`, `⏳ Round ${round} live — watch`), onClick: vai('jogos') }
+      if (criseTrava) return { label: tr('🚪 Decida quem fica no lugar dele', '🚪 Decide who replaces him'), sub: tr('na aba Jogos', 'in Matches'), onClick: vai('jogos') }
+      if (halfMode && !halftimeDone) return { label: tr('⏸️ Resolva o intervalo', '⏸️ Sort out half-time'), onClick: avancarRodada }
+      if (penMode && !penaltyDone) return { label: tr('⚽ Bata o pênalti', '⚽ Take the penalty'), onClick: avancarRodada }
+      return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: avancarRodada }
+    })()
+    return <CentralCarreira seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={proximo} formas={centralFormas} giro={giro}
+      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ compras: compras.slice(0, 3), maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} />
+  }
   return (
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
       {barraOn && cabFora && (
@@ -9128,7 +9252,7 @@ export function PyramidSeasonScreen() {
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}
           texto={done ? tr('Encerrada', 'Over') : round === 0 ? tr('Começando…', 'Starting…') : `${tr('Rodada', 'Round')} ${round}/38`} />
       )}
-      {barraOn && <BarraCarreira tab={tab} setTab={setTab} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} />}
+      {barraOn && <BarraCarreira tab={tab} setTab={escolheAba} cor={myCol.solid} ponto={round > 0 && !done} pontoClube={reciboNoClube} central={centralOn} />}
       {desfechoOn && desfecho && (
         <TelaDesfecho tipo={desfecho.tipo} time={desfecho.time} de={desfecho.de} para={desfecho.para} pos={desfecho.pos}
           temporada={state.seasonNo ?? 1} levou={levou} torcidaDe={torcidaBanked} torcidaPara={torcidaPct}
@@ -9172,6 +9296,9 @@ export function PyramidSeasonScreen() {
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
         <div className="ll-cx-lado">
+        {/* 📺 na Central o lado (cabeçalho, placar, controle) NÃO é desenhado: o botão de jogar
+            mora no camarote, e tudo o mais já está na própria Central. */}
+        {tab !== 'central' && <>
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
             saber qual é qual só de olhar), verde escuro na Copa Legends (quem
@@ -9705,8 +9832,8 @@ export function PyramidSeasonScreen() {
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,.45)', margin: '0 0 7px 2px' }}>{tr('🎮 Controle da partida', '🎮 Match controls')}</p>
             {manual && <SpeedControls speed={state.simSpeed ?? 1} onSet={v => dispatch({ type: 'SET_SIM_SPEED', speed: v })} />}
             <SimControls manual={manual} onToggle={toggleManualCareer} canNext={roundReady && !criseTrava && !(halfMode && !halftimeDone) && !(penMode && !penaltyDone)}
-              onNext={() => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
-              onSkip={() => { if (criseTrava) return; if (halfMode && !halftimeDone) { setHalftimeOpen(true); return } if (penMode && !penaltyDone) { setPenaltyOpen(true); return } if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) }}
+              onNext={avancarRodada}
+              onSkip={avancarRodada}
               nextLabel={criseTrava ? tr('🚪 Decida quem fica no lugar dele', '🚪 Decide who replaces him') : halfMode && !halftimeDone ? tr('⏸️ Resolva o intervalo primeiro', '⏸️ Sort out half-time first') : penMode && !penaltyDone ? tr('⚽ Bata o pênalti primeiro', '⚽ Take the penalty first') : !roundReady ? tr('⏳ Deixa a rodada acabar…', '⏳ Let the round finish…') : tr('▶️ Próxima rodada', '▶️ Next round')} />
           </div>
           ) : <ManualLockButton />
@@ -9749,6 +9876,7 @@ export function PyramidSeasonScreen() {
             <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? tr('A próxima fase anda quando o host avançar.', 'The next round goes when the host advances.') : tr('O host pode pausar (Manual) a qualquer hora.', 'The host can pause (Manual) at any time.')}</p>
           </div>
         )}
+        </>}
         </div>
         <div className="ll-cx-aba">
         {copaFinished && me?.champ && state.careerOnline && (
@@ -10091,7 +10219,7 @@ export function PyramidSeasonScreen() {
           ))}
         </div>
 
-        {tab === 'estadio' ? (
+        {tab === 'central' && centralOn ? renderCentral() : tab === 'estadio' ? (
           <>
             {/* sub-abas do Clube: 🏟️ Estádio | 💰 Finanças | 💼 Agência.
                 Agora tudo (Estádio · Finanças · Agência) vale online também,

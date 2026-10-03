@@ -69,7 +69,8 @@
     "master": "npx tsx scripts/testa-master.mjs",
     "recarga": "node scripts/testa-recarga.mjs",
     "congela": "node scripts/testa-congela.mjs",
-    "save-intl": "node scripts/testa-save-intl.mjs"
+    "save-intl": "node scripts/testa-save-intl.mjs",
+    "central": "node scripts/testa-central.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

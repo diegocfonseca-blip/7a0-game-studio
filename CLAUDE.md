@@ -702,6 +702,14 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   *"sem mostrar as cartas com cores… não entendi por que estão douradas, que loucura é essa"*, e mandou
   o print do formato de 22/09. Lote grande: `--setores GOL,LAT,ZAG,MEI` + `--setores ATA`.
 
+- **📺 CENTRAL LEGENDS = a home da carreira (03/10, só a conta dele por enquanto).** Pedido: *"falta uma área na
+  home central, com giro da rodada, notícias, transferências"*. Virou aba, a primeira da barra, e a carreira abre
+  nela. Regras que ele deu no caminho: **visual com as artes cinematográficas que o jogo já tem** (a 1ª versão em
+  branco/creme ele chamou de *"péssimo"*); **giro em tamanho normal e jornal um pouco maior**, sem exagero de notícia
+  (7 no desktop, 5 no celular); **toque na tabela abre a aba Tabelas** (cada caixa leva pra aba certa). O botão de
+  jogar é o MESMO do controle (`avancarRodada`) — nada de passo novo. Código: `central.tsx` + `central.css` +
+  `central-noticias.ts` (redação pura, trava `npm run central`). Abrir pra todos = `CENTRAL_GERAL = true`.
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e
