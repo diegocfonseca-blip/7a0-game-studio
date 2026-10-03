@@ -293,6 +293,17 @@ export const SOCIO_BOAS_VINDAS = 30  // 🪙 UMA VEZ SÓ na vida da conta, quand
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
+// 💸 anota um negócio do pregão no MERCADO DA TEMPORADA (Central Legends, 03/10). Vale pra
+// qualquer clube — o Diego quer ver *"todos os jogadores que foram comprados no leilão, não
+// só os meus"*. Só carreira SOLO, só carta de verdade, só a temporada atual (virou o ano,
+// a lista nasce de novo). Nunca mexe em dinheiro nem elenco: é memória de exibição.
+function anotaMercado(s: EscState, m: { id: number; teamName: string }, card: { name: string; pos: string; fake?: boolean }, paid: number, via: 'leilao' | 'monte' | 'desempate') {
+  if (!s.careerOnline || s.onlineMode === 'online' || card.fake || !(paid > 0)) return
+  const season = s.seasonNo ?? 1
+  const cur = s.careerMercado && s.careerMercado.season === season ? s.careerMercado : { season, lotes: [] }
+  cur.lotes = [...cur.lotes, { name: card.name, pos: card.pos, team: m.teamName, teamId: m.id, paid, via }].slice(-80)
+  s.careerMercado = cur
+}
 function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: number, extra?: Partial<LedgerEntry>, mgrId?: number, force?: boolean) {
   // por padrão não registra linha de valor 0 (evita lixo no extrato de venda/monte
   // etc.). `force` = registra mesmo em 0 — usado no RESUMO DE FIM DE TEMPORADA, pra
@@ -2169,6 +2180,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
   m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
+  anotaMercado(state, m, tb.card, max, 'desempate') // 💸 mercado da temporada (Central)
   voltaCriaSeSobrou(state, m, tb.card.pos) // 🌱 reforço chegou pelo desempate: o guri volta pra base
   recordPrice(state, tb.card, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
@@ -4450,6 +4462,7 @@ export function takeFromMonte(state: EscState, cardId: string) {
   if (state.careerOnline && paid > 0 && !isOwn) {
     m.money = m.money - paid // deduz o valor cheio (pode negativar) — bate com o lançamento do extrato
     if (m.isHuman) logFin(state, 'buy', `🛒 ${card.name}`, -paid, { player: card.name, pos: card.pos }, m.id) // 🧾 compra no monte
+    anotaMercado(state, m, card, paid, 'monte') // 💸 mercado da temporada (Central)
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
@@ -5678,6 +5691,7 @@ function sealAndResolve(state: EscState) {
     agenciaTransacao(state, q.card) // 🕴️ agenciado negociado → comissão de agente
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
     if (w?.isHuman) logFin(state, 'buy', `🛒 ${q.card.name}`, -q.paid, { player: q.card.name, pos: q.card.pos }, w.id) // 🧾 compra no leilão
+    if (w) anotaMercado(state, w, q.card, q.paid, 'leilao') // 💸 mercado da temporada (Central): todo clube
     if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`⚽ ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
     // bot arrematou famoso e tá com o banco cheio? tira um FAKE (incógnito) pra dar
     // lugar ao famoso — não deixa o elenco do bot inchar de carta de brincadeira.

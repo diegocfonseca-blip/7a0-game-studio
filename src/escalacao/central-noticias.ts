@@ -35,6 +35,8 @@ export type EntradaJornal = {
   maisCaro: Contratacao | null
   /** suas compras desta temporada (do extrato) */
   compras: { name: string; paid: number }[]
+  /** 💰 o maior lance do pregão desta temporada, de qualquer clube */
+  maiorLance?: Contratacao | null
   /** 🌎 Libertadores: aberta nesta carreira? você está na Série A? no G8? quantos pontos faltam pro 8º */
   intl: { aberta: boolean; serieA: boolean; g8: boolean; faltam: number } | null
   /** uma OUTRA divisão pra variar o noticiário */
@@ -98,8 +100,13 @@ export function redacaoDaCentral(e: EntradaJornal): Jornal {
     const isolado = !g2 || g1.assists - g2.assists >= 2
     noticias.push({ emoji: '🅰️', pt: `${g1.you ? 'Seu ' : ''}${g1.name} já tem ${g1.assists} assistência${g1.assists > 1 ? 's' : ''}${isolado ? ' — líder isolado dos garçons' : ` e divide o topo dos garçons com ${g2!.name}`}.`, en: `${g1.you ? 'Your ' : ''}${g1.name} already has ${g1.assists} assist${g1.assists > 1 ? 's' : ''}${isolado ? ' — clear leader among playmakers' : ` and shares the playmaker lead with ${g2!.name}`}.`, tag: ['garçons', 'assists'] })
   }
+  // ── 💰 o maior lance do pregão (todo clube) ───────────────────────────────
+  if (e.maiorLance && e.maiorLance.paid > 0) {
+    const m = e.maiorLance, pos = posDe(m.teamName)
+    noticias.push({ emoji: '💰', pt: `Maior lance da temporada: ${m.you ? 'você levou' : `${m.teamName} levou`} ${m.name} por 🪙 ${m.paid}${pos > 0 && !m.you ? ` — e está em ${ord(pos)}` : ''}.`, en: `Biggest bid of the season: ${m.you ? 'you took' : `${m.teamName} took`} ${m.name} for 🪙 ${m.paid}${pos > 0 && !m.you ? ` — and sit ${ordEn(pos)}` : ''}.`, tag: ['mercado', 'market'] })
+  }
   // ── 💸 mercado ────────────────────────────────────────────────────────────
-  if (e.maisCaro && e.maisCaro.paid > 0) {
+  if (e.maisCaro && e.maisCaro.paid > 0 && !(e.maiorLance && e.maiorLance.name === e.maisCaro.name)) {
     const m = e.maisCaro, pos = posDe(m.teamName)
     const ruim = pos > 0 && pos > Math.ceil(t.length / 2)
     noticias.push({ emoji: '💸', pt: `${m.name} é o jogador mais caro da ${e.divName} (🪙 ${m.paid}, ${m.you ? 'do seu clube' : m.teamName})${ruim ? ` — e o clube está só em ${ord(pos)}. Vai ter que render.` : '.'}`, en: `${m.name} is ${e.divNameEn}'s priciest player (🪙 ${m.paid}, ${m.you ? 'your club' : m.teamName})${ruim ? ` — and the club sits only ${ordEn(pos)}. Time to deliver.` : '.'}`, tag: ['mercado', 'market'] })

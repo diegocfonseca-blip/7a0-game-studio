@@ -15,6 +15,7 @@
 //   📊 a TABELA resumida e a 🗓️ AGENDA das copas. Tocar leva pra aba certa.
 // Tudo que aparece aqui JÁ apareceu em outra aba — a Central não sabe de nada
 // que a tela não saiba. 🔒 Só a conta do Diego vê (`useCentralCarreira`).
+import { useState } from 'react'
 import { Escudo } from './escudos'
 import { getLang, useT } from './lang'
 import type { Jornal, Contratacao } from './central-noticias'
@@ -47,7 +48,8 @@ export type CentralProps = {
   /** a tabela da sua divisão (nome · pontos · você), já ordenada */
   tabela: { name: string; pts: number; you: boolean }[]
   jornal: Jornal
-  mercado: { compras: { name: string; pos: string; paid: number }[]; maisCaro: Contratacao | null }
+  /** 💸 todos os negócios do pregão desta temporada (de todo clube), do maior pro menor */
+  mercado: { negocios: { name: string; pos: string; paid: number; team: string; you: boolean }[]; maisCaro: Contratacao | null }
   agenda: CentralAgenda[]
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
   botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
@@ -78,6 +80,7 @@ function Cabecalho({ titulo, sub, link, onClick }: { titulo: string; sub?: strin
 
 export function CentralCarreira(p: CentralProps) {
   const t = useT()
+  const [mercadoTodo, setMercadoTodo] = useState(false) // 💸 mostra os 5 maiores; o resto abre no toque
   const posDe = (nome: string) => { const i = p.tabela.findIndex(x => x.name === nome); return i >= 0 ? i + 1 : null }
   const ptsDe = (nome: string) => p.tabela.find(x => x.name === nome)?.pts ?? 0
   const lider = p.tabela[0]?.name
@@ -163,7 +166,7 @@ export function CentralCarreira(p: CentralProps) {
 
           {/* 📣 O GIRO: só a rodada já revelada */}
           {p.giro && p.giro.jogos.length > 0 && (
-            <div className="ll-central-card ll-c-giro" style={{ background: 'linear-gradient(135deg,rgba(10,28,22,.98),rgba(7,19,15,.96))', borderColor: '#847657', color: CREME }}>
+            <div className="ll-central-card ll-c-giro" style={{ background: 'linear-gradient(135deg,rgba(10,28,22,.98),rgba(7,19,15,.96))', borderColor: CREME, color: CREME }}>
               <button type="button" className="ll-central-link" onClick={() => p.onTab('jogos')} style={{ width: '100%', background: GOLD, color: INK, padding: '6px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <b style={{ ...OSW, fontSize: 13, letterSpacing: '.08em' }}>📣 {t('Giro da rodada', 'Around the round')} {p.giro.rodada}</b>
                 <small style={{ fontSize: 9.5, fontWeight: 900 }}>{t('ver jogos', 'see matches')} ›</small>
@@ -232,21 +235,22 @@ export function CentralCarreira(p: CentralProps) {
           <div className="ll-central-card ll-c-mercado" style={{ background: `#1a120a url(${leilaoArt}) 85% center / cover`, color: CREME, borderColor: '#847657' }}>
             <div style={{ background: 'linear-gradient(90deg,#0C0C0Cf2 45%,#0C0C0C8c)' }}>
               <Cabecalho titulo={t('💸 Mercado', '💸 Market')} sub={t('o que rolou nos leilões', 'auction business')} link={t('extrato', 'ledger')} onClick={() => p.onTab('estadio')} />
-              {p.mercado.compras.slice(0, 3).map((c, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
-                  <Escudo nome={p.euNome} size={26} />
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800 }}><b style={{ ...OSW, fontSize: 15 }}>{c.name}</b> <small style={{ opacity: .6, fontSize: 10 }}>{c.pos}</small><br /><span style={{ fontSize: 11, opacity: .85 }}>→ {p.euNome}</span> <Chip>{t('você', 'you')}</Chip></span>
-                  <b style={{ ...OSW, fontSize: 18, color: GOLD }}>🪙 {c.paid}</b>
-                </div>
-              ))}
-              {p.mercado.maisCaro && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
-                  <Escudo nome={p.mercado.maisCaro.teamName} size={26} />
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800 }}><b style={{ ...OSW, fontSize: 15 }}>{p.mercado.maisCaro.name}</b><br /><span style={{ fontSize: 11, opacity: .85 }}>{p.mercado.maisCaro.teamName}</span> <Chip bg={RED} cor="#fff">{t('mais caro da divisão', 'priciest in the division')}</Chip></span>
-                  <b style={{ ...OSW, fontSize: 18, color: GOLD }}>🪙 {p.mercado.maisCaro.paid}</b>
-                </div>
-              )}
-              {!p.mercado.compras.length && !p.mercado.maisCaro && <p style={{ padding: '10px 13px', fontSize: 11, fontWeight: 700, opacity: .75, margin: 0 }}>{t('Sem negócios registrados nesta temporada.', 'No deals on record this season.')}</p>}
+              {(mercadoTodo ? p.mercado.negocios : p.mercado.negocios.slice(0, 5)).map((c, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
+                <Escudo nome={c.team} size={26} />
+                <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800 }}><b style={{ ...OSW, fontSize: 15 }}>{c.name}</b> <small style={{ opacity: .6, fontSize: 10 }}>{c.pos}</small><br /><span style={{ fontSize: 11, opacity: .85 }}>→ {c.team}</span> {c.you ? <Chip>{t('você', 'you')}</Chip> : i === 0 && !mercadoTodo ? <Chip bg={RED} cor="#fff">{t('maior lance', 'biggest bid')}</Chip> : null}</span>
+                <b style={{ ...OSW, fontSize: 18, color: GOLD }}>🪙 {c.paid}</b>
+              </div>
+            ))}
+            {p.mercado.negocios.length > 5 && <button type="button" className="ll-central-link" onClick={() => setMercadoTodo(v => !v)} style={{ width: '100%', padding: '7px 13px', fontSize: 10, fontWeight: 900, color: GOLD, textAlign: 'center' }}>{mercadoTodo ? t('mostrar só os 5 maiores', 'show only the top 5') : t(`ver os ${p.mercado.negocios.length} negócios do pregão`, `see all ${p.mercado.negocios.length} deals`)} ›</button>}
+            {!p.mercado.negocios.length && p.mercado.maisCaro && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
+                <Escudo nome={p.mercado.maisCaro.teamName} size={26} />
+                <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800 }}><b style={{ ...OSW, fontSize: 15 }}>{p.mercado.maisCaro.name}</b><br /><span style={{ fontSize: 11, opacity: .85 }}>{p.mercado.maisCaro.teamName}</span> <Chip bg={RED} cor="#fff">{t('mais caro da divisão', 'priciest in the division')}</Chip></span>
+                <b style={{ ...OSW, fontSize: 18, color: GOLD }}>🪙 {p.mercado.maisCaro.paid}</b>
+              </div>
+            )}
+            {!p.mercado.negocios.length && !p.mercado.maisCaro && <p style={{ padding: '10px 13px', fontSize: 11, fontWeight: 700, opacity: .75, margin: 0 }}>{t('Sem negócios registrados nesta temporada.', 'No deals on record this season.')}</p>}
             </div>
           </div>
         </div>

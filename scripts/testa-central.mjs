@@ -43,6 +43,12 @@ try {
   const r1 = redacaoDaCentral({ ...base, round: 1, formas: {}, tabela: [linha('Fabulous EC', 3), linha('Neymarzetti', 3, true), linha('Real Madruga', 1)] })
   assert.match(r1.manchete.pt, /Briga no topo/)
   assert.ok(!r1.noticias.some(n => /seguida/.test(n.pt)), 'sem forma, sem "seguida"')
+  // 💰 o maior lance do pregão (de qualquer clube) vira notícia, e não repete o "mais caro"
+  const lance = redacaoDaCentral({ ...base, maiorLance: { name: 'Ronaldo', teamName: 'Bicho da Seda', paid: 260, you: false } })
+  assert.ok(lance.noticias.some(n => /Maior lance da temporada: Bicho da Seda levou Ronaldo por 🪙 260 — e está em 10º/.test(n.pt)))
+  assert.equal(lance.noticias.filter(n => /Ronaldo/.test(n.pt)).length, 1, 'mesma carta não vira duas notícias')
+  const meuLance = redacaoDaCentral({ ...base, maiorLance: { name: 'Rivaldo', teamName: 'Neymarzetti', paid: 142, you: true } })
+  assert.ok(meuLance.noticias.some(n => /Maior lance da temporada: você levou Rivaldo por 🪙 142\./.test(n.pt)))
   // 🏠 G8 em jogo quando está fora
   const fora = redacaoDaCentral({ ...base, intl: { aberta: true, serieA: true, g8: false, faltam: 4 } })
   assert.ok(fora.noticias.some(n => /G8 em jogo: faltam 4 pontos/.test(n.pt)))

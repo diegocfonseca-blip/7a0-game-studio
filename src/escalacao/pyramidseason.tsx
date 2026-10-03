@@ -9199,6 +9199,11 @@ export function PyramidSeasonScreen() {
     })()
     // 💸 mercado: suas compras do extrato (esta temporada) + a carta mais cara da divisão
     const compras = (state.careerLedger ?? []).filter(e => e.season === sn && e.kind === 'buy' && e.player && e.amount < 0).map(e => ({ name: e.player!, pos: e.pos ?? '', paid: -e.amount })).sort((a, b) => b.paid - a.paid)
+    // 💸 TODOS os negócios do pregão desta temporada (de todo clube — `careerMercado`, 03/10).
+    // Carreira que começou antes da memória existir cai nas SUAS compras do extrato.
+    const lotes = state.careerMercado?.season === sn ? state.careerMercado.lotes : []
+    const negocios = (lotes.length ? lotes.map(l => ({ name: l.name, pos: l.pos, paid: l.paid, team: l.team, you: l.teamId === youId })) : compras.map(c => ({ ...c, team: euNome, you: true }))).sort((a, b) => b.paid - a.paid)
+    const maiorLance: Contratacao | null = negocios[0] ? { name: negocios[0].name, teamName: negocios[0].team, paid: negocios[0].paid, you: negocios[0].you } : null
     const idsDiv = new Set(minha.map(t => t.teamId))
     let maisCaro: Contratacao | null = null
     for (const m of state.managers) {
@@ -9214,7 +9219,7 @@ export function PyramidSeasonScreen() {
       formas: centralFormas,
       artilheiros: scorersAll.filter(x => x.div === myDiv).slice(0, 3).map(x => ({ name: x.name, teamName: x.teamName, goals: x.goals, you: x.you })),
       garcons: assistsAll.filter(x => x.div === myDiv).slice(0, 3).map(x => ({ name: x.name, teamName: x.teamName, assists: x.assists, you: x.you })),
-      maisCaro, compras: compras.map(c => ({ name: c.name, paid: c.paid })),
+      maisCaro, maiorLance, compras: compras.map(c => ({ name: c.name, paid: c.paid })),
       intl: intlAberta ? { aberta: true, serieA: myDiv === 'A', g8: minhaPos > 0 && minhaPos <= 8, faltam: g8Faltam } : null,
       outraDiv: tables[outra]?.length ? { divName: DIV_NAME[outra], divNameEn: DIV_EN[outra], lider: tables[outra][0].name, pts: tables[outra][0].pts } : null,
     })
@@ -9243,7 +9248,7 @@ export function PyramidSeasonScreen() {
       return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: avancarRodada }
     })()
     return <CentralCarreira seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={proximo} formas={centralFormas} giro={giro}
-      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ compras: compras.slice(0, 3), maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} />
+      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} />
   }
   return (
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
