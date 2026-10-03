@@ -194,7 +194,7 @@ export function redacaoDaCentral(e: EntradaJornal): Jornal {
   // ── 🗞️ outra divisão, pra variar ──────────────────────────────────────────
   if (e.outraDiv) {
     const o = e.outraDiv
-    noticias.push({ emoji: '🗞️', pt: `${o.divName}: ${o.lider} lidera com ${o.pts} pontos.`, en: `${o.divNameEn}: ${o.lider} lead on ${o.pts} points.`, tag: [o.divName.toLowerCase(), o.divNameEn.toLowerCase()] })
+    noticias.push({ emoji: '🗞️', pt: `${o.divName}: ${o.lider} lidera com ${o.pts} pontos.`, en: `${o.divNameEn}: ${o.lider} lead on ${o.pts} points.`, tag: [o.divName.toLowerCase(), o.divNameEn.toLowerCase()] }, 9)
   }
   return { manchete, noticias: fila.map((x, i) => ({ ...x, i })).sort((a, b) => a.pri - b.pri || a.i - b.i).slice(0, 7).map(x => x.n) }
 }
