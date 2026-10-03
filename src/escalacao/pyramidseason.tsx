@@ -9222,6 +9222,14 @@ export function PyramidSeasonScreen() {
       maisCaro, maiorLance, compras: compras.map(c => ({ name: c.name, paid: c.paid })),
       intl: intlAberta ? { aberta: true, serieA: myDiv === 'A', g8: minhaPos > 0 && minhaPos <= 8, faltam: g8Faltam } : null,
       outraDiv: tables[outra]?.length ? { divName: DIV_NAME[outra], divNameEn: DIV_EN[outra], lider: tables[outra][0].name, pts: tables[outra][0].pts } : null,
+      totalRodadas: 38, temRebaixamento: myDiv !== 'V',
+      lesao: suspenso ? { nome: suspenso.nome, jogosFora: Math.max(1, (suspenso.volta ?? 0) - round), motivo: suspenso.tipo === 'lesao' ? ['lesão', 'injury'] : suspenso.tipo === 'expulsao' ? ['suspenso', 'suspended'] : ['noitada', 'night out'] } : null,
+      criaTitular: (myXI as WonCard[]).find(c => c.cria)?.name ?? null,
+      copaChegando: [
+        ...(!seasonOver && 38 - round <= 5 ? [{ nome: (copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']) as [string, string], rodadasFaltam: 38 - round }] : []),
+        ...(intlEnabled && sn === 39 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
+        ...(sn >= 99 && cmAgenda.ano && !cmAgenda.jogada ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], esteAno: true }] : sn + 1 >= 100 && (sn + 1 - 100) % 10 === 0 ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], proximaTemporada: true }] : []),
+      ],
     })
     // 🗓️ agenda: a Copa nacional, a Libertadores (quando a carreira já tem) e a Copa do Mundo
     const agenda: CentralAgenda[] = []

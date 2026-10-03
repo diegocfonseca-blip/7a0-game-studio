@@ -117,11 +117,11 @@ export function CentralCarreira(p: CentralProps) {
     </div>
   )
   const en = getLang() === 'en'
-  const tabelaCurta = (() => {
-    const top = p.tabela.slice(0, 5)
-    if (minhaPos != null && minhaPos > 5) return [...top.slice(0, 4), p.tabela[minhaPos - 1]]
-    return top
-  })()
+  // 📊 celular: 5 linhas (4 de cima + você). 🖥️ desktop: 10 (9 de cima + você) — Diego 03/10:
+  // *"dá pra aumentar verticalmente a tabela"*. As linhas extras só existem no monitor.
+  const corta = (n: number) => (minhaPos != null && minhaPos > n) ? [...p.tabela.slice(0, n - 1), p.tabela[minhaPos - 1]] : p.tabela.slice(0, n)
+  const tabelaCurta = corta(10)
+  const noCelular = new Set(corta(5).map(x => x.name))
 
   return (
     <div className="ll-central">
@@ -188,7 +188,7 @@ export function CentralCarreira(p: CentralProps) {
               <Cabecalho titulo={t('📊 Tabela', '📊 Table')} sub={p.divName.toLowerCase()} link={t('abrir', 'open')} onClick={() => p.onTab('tabelas')} />
               <button type="button" className="ll-central-link" onClick={() => p.onTab('tabelas')} style={{ width: '100%' }}>
                 {tabelaCurta.map(x => { const pos = posDe(x.name) ?? 0; return (
-                  <div key={x.name} className="ll-central-row" style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, outline: x.you ? `2px solid ${GOLD}` : undefined, outlineOffset: -2 }}>
+                  <div key={x.name} className={`ll-central-row${noCelular.has(x.name) ? '' : ' ll-central-not-desk'}`} style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, outline: x.you ? `2px solid ${GOLD}` : undefined, outlineOffset: -2 }}>
                     <span style={{ width: 17, color: '#777' }}>{pos}º</span><Escudo nome={x.name} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}</span><b>{x.pts}</b>
                   </div>
                 ) })}

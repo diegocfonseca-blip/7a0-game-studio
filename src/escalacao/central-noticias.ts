@@ -41,6 +41,15 @@ export type EntradaJornal = {
   intl: { aberta: boolean; serieA: boolean; g8: boolean; faltam: number } | null
   /** uma OUTRA divisão pra variar o noticiário */
   outraDiv: { divName: string; divNameEn: string; lider: string; pts: number } | null
+  /** rodadas da liga (38) e se a divisão rebaixa (a Várzea não tem pra onde cair) */
+  totalRodadas?: number
+  temRebaixamento?: boolean
+  /** 🩹 titular SEU fora de combate (lesão/expulsão/noitada) e em quantos jogos volta */
+  lesao?: { nome: string; jogosFora: number; motivo: [string, string] } | null
+  /** 🌱 cria da base escalado de titular no próximo jogo */
+  criaTitular?: string | null
+  /** 🏆 copas chegando: faltam N rodadas · é na próxima temporada · é nesta temporada */
+  copaChegando?: { nome: [string, string]; rodadasFaltam?: number; proximaTemporada?: boolean; esteAno?: boolean }[]
 }
 export type Noticia = { emoji: string; pt: string; en: string; tag: [string, string] }
 export type Jornal = { manchete: { pt: string; en: string; sub: [string, string] } | null; noticias: Noticia[] }
@@ -87,6 +96,27 @@ export function redacaoDaCentral(e: EntradaJornal): Jornal {
       : [`Você está em ${ord(euIdx + 1)} com ${eu.pts} pontos.`, `You are ${ordEn(euIdx + 1)} on ${eu.pts} points.`]
   }
 
+  // ── 🏆🚨 MATEMÁTICA DA TABELA: título e Z4 (Diego 03/10: *"faz Z4 e títulos"*) ─────
+  // conta só com pontos possíveis (3 por rodada que falta) — nada de chute.
+  const rest = Math.max(0, (e.totalRodadas ?? 38) - e.round)
+  if (eu && t.length >= 10) {
+    const z4 = t.length - 4 // índice da 1ª vaga do Z4
+    if (euIdx === 0 && vice) {
+      const precisa = vice.pts + rest * 3 + 1 - eu.pts
+      if (precisa <= 0) noticias.push({ emoji: '🏆', pt: `TÍTULO MATEMÁTICO: ninguém mais alcança você na ${e.divName}. Pode comemorar.`, en: `CHAMPIONS, MATHEMATICALLY: nobody can catch you in ${e.divNameEn}. Celebrate.`, tag: ['título', 'title'] })
+      else if (rest <= 10 && precisa <= rest * 3) noticias.push({ emoji: '🏆', pt: `Título à vista: faltam ${precisa} ponto${precisa === 1 ? '' : 's'} pra garantir a ${e.divName}, com ${rest} rodada${rest === 1 ? '' : 's'} pela frente.`, en: `Title in sight: ${precisa} point${precisa === 1 ? '' : 's'} to clinch ${e.divNameEn}, with ${rest} round${rest === 1 ? '' : 's'} to go.`, tag: ['título', 'title'] })
+    } else if (e.temRebaixamento !== false && e.round >= 5) {
+      const seguro = t[z4 - 1] // o último fora do Z4
+      const primeiroZ4 = t[z4]
+      if (euIdx >= z4) {
+        const salva = seguro.pts + rest * 3 + 1 - eu.pts
+        if (eu.pts + rest * 3 < seguro.pts) noticias.push({ emoji: '🪂', pt: `Rebaixamento confirmado: a conta não fecha mais na ${e.divName}. Agora é planejar a volta.`, en: `Relegation confirmed: the maths no longer works in ${e.divNameEn}. Time to plan the comeback.`, tag: ['z4', 'drop zone'] })
+        else noticias.push({ emoji: '🚨', pt: `Você está no Z4, a ${seguro.pts - eu.pts} ponto${seguro.pts - eu.pts === 1 ? '' : 's'} do ${ord(z4)} — ${rest} rodada${rest === 1 ? '' : 's'} pra escapar${salva > 0 && salva <= rest * 3 ? ` (precisa de ${salva} pra se garantir)` : ''}.`, en: `You are in the drop zone, ${seguro.pts - eu.pts} point${seguro.pts - eu.pts === 1 ? '' : 's'} behind ${ordEn(z4)} — ${rest} round${rest === 1 ? '' : 's'} to escape${salva > 0 && salva <= rest * 3 ? ` (${salva} needed to be safe)` : ''}.`, tag: ['z4', 'drop zone'] })
+      } else if (primeiroZ4 && eu.pts - primeiroZ4.pts <= 3) {
+        noticias.push({ emoji: '⚠️', pt: `Z4 na cola: só ${eu.pts - primeiroZ4.pts} ponto${eu.pts - primeiroZ4.pts === 1 ? '' : 's'} separam você da zona de rebaixamento.`, en: `Drop zone breathing down your neck: just ${eu.pts - primeiroZ4.pts} point${eu.pts - primeiroZ4.pts === 1 ? '' : 's'} clear of relegation.`, tag: ['z4', 'drop zone'] })
+      }
+    }
+  }
   // ── ⚽ artilharia ─────────────────────────────────────────────────────────
   const a1 = e.artilheiros[0], a2 = e.artilheiros[1]
   if (a1 && a1.goals > 0) {
@@ -143,6 +173,19 @@ export function redacaoDaCentral(e: EntradaJornal): Jornal {
       const total = e.compras.reduce((n, c) => n + c.paid, 0), top = [...e.compras].sort((a, b) => b.paid - a.paid)[0]
       noticias.push({ emoji: '🏠', pt: `Você investiu 🪙 ${total} em ${e.compras.length} contrataç${e.compras.length > 1 ? 'ões' : 'ão'} nesta temporada; a maior foi ${top.name} (🪙 ${top.paid}).`, en: `You invested 🪙 ${total} in ${e.compras.length} signing${e.compras.length > 1 ? 's' : ''} this season; the biggest was ${top.name} (🪙 ${top.paid}).`, tag: ['seu clube', 'your club'] })
     }
+  }
+  // ── 🩹 lesão/suspensão no SEU elenco ──────────────────────────────────────
+  if (e.lesao) {
+    const l = e.lesao
+    noticias.push({ emoji: '🩹', pt: `${l.nome} está fora (${l.motivo[0]}): volta em ${l.jogosFora} jogo${l.jogosFora === 1 ? '' : 's'}.`, en: `${l.nome} is out (${l.motivo[1]}): back in ${l.jogosFora} game${l.jogosFora === 1 ? '' : 's'}.`, tag: ['seu clube', 'your club'] })
+  }
+  // ── 🌱 cria da base de titular ────────────────────────────────────────────
+  if (e.criaTitular) noticias.push({ emoji: '🌱', pt: `Cria da base ${e.criaTitular} vai de titular no próximo jogo — a torcida quer ver.`, en: `Academy kid ${e.criaTitular} starts the next match — the fans want a look.`, tag: ['seu clube', 'your club'] })
+  // ── 🏆 copa chegando ──────────────────────────────────────────────────────
+  for (const c of e.copaChegando ?? []) {
+    if (c.rodadasFaltam != null) noticias.push({ emoji: '🏆', pt: `${c.nome[0]} chegando: ${c.rodadasFaltam === 0 ? 'o mata-mata começa logo depois desta rodada' : `faltam ${c.rodadasFaltam} rodada${c.rodadasFaltam === 1 ? '' : 's'} pro mata-mata`}.`, en: `${c.nome[1]} is coming: ${c.rodadasFaltam === 0 ? 'the knockout starts right after this round' : `${c.rodadasFaltam} round${c.rodadasFaltam === 1 ? '' : 's'} until the knockout`}.`, tag: ['copa', 'cup'] })
+    else if (c.esteAno) noticias.push({ emoji: '🌍', pt: `${c.nome[0]} é nesta temporada — rola depois da liga.`, en: `${c.nome[1]} is this season — it runs after the league.`, tag: ['copa', 'cup'] })
+    else if (c.proximaTemporada) noticias.push({ emoji: '🗓️', pt: `${c.nome[0]} começa na próxima temporada. Prepara o elenco.`, en: `${c.nome[1]} starts next season. Get the squad ready.`, tag: ['copa', 'cup'] })
   }
   // ── 🗞️ outra divisão, pra variar ──────────────────────────────────────────
   if (e.outraDiv) {

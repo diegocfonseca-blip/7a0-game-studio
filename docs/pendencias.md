@@ -18,9 +18,12 @@
   virou o ano, lista nova). A Central mostra os 5 maiores e "ver os N negócios" abre o resto. Carreira que já estava
   no meio da temporada só enche no próximo pregão (até lá cai nas compras do extrato). O Martelo ganhou "💰 Maior
   lance da temporada". Borda do giro saiu do dourado (misturava com o camarote) e virou creme.
-- 📰 Variedade de notícias: hoje 10 regras por situação. Propostas pra ele (esperando OK): zebra, goleada da rodada,
-  maior subida/queda, Z4 e título/rebaixamento matemático, seu elenco (gás/lesão/cria), Copa chegando, artilheiro do
-  seu time.
+- 📰 3º ajuste (03/10, *"faz Z4 e títulos, jogador lesionado, cria da base jogando, qualquer copa nova chegando"*):
+  entraram 🏆 título à vista/matemático (só pontos possíveis, 3 por rodada que falta), 🚨 Z4 na cola / no Z4 /
+  🪂 rebaixado (a Várzea não rebaixa: `temRebaixamento`), 🩹 titular fora (lesão/suspensão/noitada, em quantos jogos
+  volta), 🌱 cria da base de titular, 🏆 copa chegando (≤5 rodadas), 🗓️ Libertadores/Copa do Mundo na próxima
+  temporada ou nesta. Ficaram de fora (ele não pediu): zebra, goleada, maior subida/queda, artilheiro do seu time.
+  E a tabela do desktop passou a 10 linhas (celular segue com 5).
 - ⏭️ Decidir com ele: abrir na Central ficou como padrão; se preferir abrir em Jogos é 1 linha (`useEffect` do
   `centralOn`). Ideias que ficaram de fora de propósito: "ler a edição completa" (não existe jornal de meio de
   temporada ainda) e o 🔊 "ouvir" do giro.

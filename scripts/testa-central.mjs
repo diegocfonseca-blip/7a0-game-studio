@@ -49,6 +49,23 @@ try {
   assert.equal(lance.noticias.filter(n => /Ronaldo/.test(n.pt)).length, 1, 'mesma carta não vira duas notícias')
   const meuLance = redacaoDaCentral({ ...base, maiorLance: { name: 'Rivaldo', teamName: 'Neymarzetti', paid: 142, you: true } })
   assert.ok(meuLance.noticias.some(n => /Maior lance da temporada: você levou Rivaldo por 🪙 142\./.test(n.pt)))
+  // 🏆🚨 matemática da tabela (03/10): título à vista, Z4 na cola, rebaixado
+  const titulo = redacaoDaCentral({ ...base, round: 35, tabela: [linha('Neymarzetti', 80, true), linha('Fabulous EC', 72), ...base.tabela.slice(2)], intl: null })
+  assert.ok(titulo.noticias.some(n => /Título à vista: faltam 2 pontos pra garantir a Série A, com 3 rodadas/.test(n.pt)), titulo.noticias.map(n => n.pt).join(' | '))
+  const campeao = redacaoDaCentral({ ...base, round: 35, tabela: [linha('Neymarzetti', 90, true), linha('Fabulous EC', 72), ...base.tabela.slice(2)], intl: null })
+  assert.ok(campeao.noticias.some(n => /TÍTULO MATEMÁTICO/.test(n.pt)))
+  const z4 = redacaoDaCentral({ ...base, tabela: [...base.tabela.slice(0, 6).map(x => ({ ...x, you: false })), linha('Marcão', 35), linha('Vidraceiro FC', 34), linha('Tôka10', 30), linha('Neymarzetti', 28, true)], formas: {}, intl: null })
+  assert.ok(z4.noticias.some(n => /Você está no Z4, a 10 pontos do 6º — 16 rodadas pra escapar/.test(n.pt)), z4.noticias.map(n => n.pt).join(' | '))
+  const caiu = redacaoDaCentral({ ...base, round: 36, tabela: [...base.tabela.slice(0, 6).map(x => ({ ...x, you: false })), linha('Marcão', 35), linha('Vidraceiro FC', 34), linha('Tôka10', 30), linha('Neymarzetti', 20, true)], formas: {}, intl: null })
+  assert.ok(caiu.noticias.some(n => /Rebaixamento confirmado/.test(n.pt)))
+  const varzea = redacaoDaCentral({ ...base, temRebaixamento: false, tabela: [...base.tabela.slice(0, 6).map(x => ({ ...x, you: false })), linha('Marcão', 35), linha('Vidraceiro FC', 34), linha('Tôka10', 30), linha('Neymarzetti', 28, true)], formas: {}, intl: null })
+  assert.ok(!varzea.noticias.some(n => /Z4/.test(n.pt)), 'Várzea não rebaixa')
+  // 🩹🌱🏆 seu elenco e copa chegando
+  const casa = redacaoDaCentral({ ...base, round: 35, lesao: { nome: 'Cafu', jogosFora: 2, motivo: ['lesão', 'injury'] }, criaTitular: 'Zé da Base', copaChegando: [{ nome: ['Copa do Brasil', 'Copa do Brasil'], rodadasFaltam: 3 }, { nome: ['Copa do Mundo', 'World Cup'], proximaTemporada: true }] })
+  const txt = casa.noticias.map(n => n.pt).join(' | ')
+  assert.match(txt, /Cafu está fora \(lesão\): volta em 2 jogos/)
+  assert.match(txt, /Cria da base Zé da Base vai de titular/)
+  assert.match(txt, /Copa do Brasil chegando: faltam 3 rodadas/)
   // 🏠 G8 em jogo quando está fora
   const fora = redacaoDaCentral({ ...base, intl: { aberta: true, serieA: true, g8: false, faltam: 4 } })
   assert.ok(fora.noticias.some(n => /G8 em jogo: faltam 4 pontos/.test(n.pt)))
