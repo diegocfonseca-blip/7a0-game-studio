@@ -4,8 +4,8 @@
   Fundador nº84. Coração: **Corinthians**.
 - Arte do dono (fundo verde, mascote e camisa grudados pelo tridente — separados na mão): escudo 196×360/23 KB ·
   mascote "O Diabo" 258×440/45 KB · camisa da Loja. Manto medido: preto #171212 (91%, mediana #110D0D) + vermelho #DE1B19.
-- Banco: conferir conta + gravar user_colors ouro · esc_fundadores 84 · esc_socios (próximo nº, Corinthians) ·
-  esc_nomes_batismo "Vieira" (o gatilho cria FC/EC). Falta o nome do dono pro post.
+- Banco GRAVADO (03/10): conta existe desde 26/07 · user_colors ouro/manual · esc_fundadores 84 · esc_socios nº65
+  (Corinthians, vieira_diabo, escudo_time Vieira FC) · esc_nomes_batismo Vieira/FC/EC. Falta só o nome do dono pro post.
 
 ## 03/10/2026 — 🧾 Ficha do jogador funcionando SEMPRE ✅ NO AR (Diego: *"deve funcionar a estatística do jogador sempre"*)
 - Auditoria: gols/assistências da TEMPORADA já somavam liga + Copa do Brasil/Legends + Supercopa + Copa do Mundo +
