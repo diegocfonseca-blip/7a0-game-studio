@@ -55,6 +55,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "El Mineiro": "el-mineiro-camisa-v1.webp", // 🐓 27/09 — com -v1 de propósito (cache do navegador)
   "Guimarães SCI": "guimaraes-camisa-v1.webp", // 🔴⚪ Guimarães SCI (jadriovani, 02/10)
   "Gaviões SCCP": "gavioes-camisa-v1.webp", // 🦅⚫⚪ Gaviões SCCP (kauealves584, 02/10)
+  "Vieira FC": "vieira-camisa-v1.webp", // 😈🔴⚫ Vieira FC (felipe.vrod10, 03/10)
   "Real Madruga": "madruga-camisa-v1.webp", // 👒⚪ Real Madruga (luck.45, 02/10)
   "Julia Barranquila": "julia-camisa-v1.webp", // 🦈🔴⚪ com -v1 de propósito: endereço fixo é cache de navegador
   "Fabulous EC": "fabulous-camisa-v1.webp", // 🦅🔴⚫ com -v1 de propósito: endereço fixo é cache de navegador

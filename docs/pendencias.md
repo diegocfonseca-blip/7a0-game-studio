@@ -1,3 +1,12 @@
+## 😈🔴⚫ Batismo Vieira FC (03/10)
+- Dono `felipe.vrod10@gmail.com` (já era ⭐ Craque pago — subiu pra 👑 Lenda). **Série D**, no assento do bot
+  **Prestígio FC** (só existia na pirâmide; `OLD_NAME` + escudo/carimbo no nome velho levam save antigo pro clube novo).
+  Fundador nº84. Coração: **Corinthians**.
+- Arte do dono (fundo verde, mascote e camisa grudados pelo tridente — separados na mão): escudo 196×360/23 KB ·
+  mascote "O Diabo" 258×440/45 KB · camisa da Loja. Manto medido: preto #171212 (91%, mediana #110D0D) + vermelho #DE1B19.
+- Banco: conferir conta + gravar user_colors ouro · esc_fundadores 84 · esc_socios (próximo nº, Corinthians) ·
+  esc_nomes_batismo "Vieira" (o gatilho cria FC/EC). Falta o nome do dono pro post.
+
 ## 03/10/2026 — 🧾 Ficha do jogador funcionando SEMPRE ✅ NO AR (Diego: *"deve funcionar a estatística do jogador sempre"*)
 - Auditoria: gols/assistências da TEMPORADA já somavam liga + Copa do Brasil/Legends + Supercopa + Copa do Mundo +
   Libertadores/Champions/Mundial, e a Bola de Ouro/artilheiros usam a mesma soma. O total "no seu clube" já era

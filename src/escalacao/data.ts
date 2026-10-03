@@ -3535,6 +3535,7 @@ export const OLD_NAME: Record<string, string> = {
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
   'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
+  'Vieira FC': 'Prestígio FC', // 😈 batismo do felipe.vrod10 (03/10): assumiu o assento da Série D que era do bot Prestígio FC — save antigo com Prestígio FC vira Vieira FC ao abrir.
   'Gaviões SCCP': 'Zorra FC', // 🦅 batismo do kauealves584 (02/10): assumiu o assento da Série C que era do Zorra FC — save antigo com Zorra FC vira Gaviões SCCP ao abrir. (O Zorra FC continua existindo em CLASSIC_CLUBS; só o assento da pirâmide mudou de nome.)
   'El Mineiro': 'Brodeiragem', // 🐓 batismo do bastosmbc (27/09): assumiu o assento da Série C que era do Brodeiragem — save antigo com Brodeiragem vira El Mineiro ao abrir. (O Brodeiragem continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Pantera Negra FC': 'Miúdo EC', // 🐆👑 batismo do ericrabelo29 (20/09): assumiu o assento da Série C que era do Miúdo EC — save antigo com Miúdo EC vira Pantera Negra FC ao abrir. (O Miúdo do Gol continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
@@ -3931,7 +3932,9 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // (O Vasco da Grana tinha descido da A pra cá em 08/09, no lugar do bot Zênite United.)
     { name: 'Brunno', team: 'Vasco SAF' }, // ⚽🏴‍☠️ clube BATIZADO por apoiador (brunnodeluca90 — Vasco SAF, ex-Vasco da Grana; escudo da caravela com o Rio ao fundo, mascote O Pirata com o saco de dinheiro; coração VASCO; Lenda + fundador nº78 + sócio nº59, 24/09)
     { name: 'Excélsior', team: 'Excelsior SAF' },
-    { name: 'Prestígio', team: 'Prestígio FC' },
+    // 😈 VIEIRA FC (felipe.vrod10, batismo de 03/10) no assento do bot Prestígio FC (bot sem dono da
+    // Série D, que só existia aqui). `OLD_NAME` leva save antigo pro nome novo.
+    { name: 'Diabo', team: 'Vieira FC' }, // 😈🔴⚫ clube BATIZADO por apoiador (felipe.vrod10 — Vieira FC, ex-Prestígio FC, Série D; escudo preto e vermelho com o diabo e o tridente, mascote O Diabo; preto #171212 + vermelho #DE1B19 MEDIDOS na camisa do dono; Lenda + fundador nº84, 03/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Geovany Souza', team: 'Tricolor do Arruda FC' }, // ⚽ clube BATIZADO por apoiador (souzact12 — Tricolor do Arruda FC, ex-Legado EC; homenagem ao Santa Cruz, time do coração dele; Lenda + fundador nº43, 16/08)
     { name: 'Apogeu', team: 'Seven City' }, // ⚽ clube BATIZADO por apoiador (glaucomiranda — Seven City, ex-Apogeu FC; homenagem ao Seven Gamer @sevengamersp, Lenda + fundador nº42, 15/08)
   ],

@@ -61,6 +61,7 @@ import cruzeiroBerretinhoEscudoImg from './img/cruzeiro-berretinho-escudo.webp' 
 import elMineiroEscudoImg from './img/el-mineiro-escudo.webp' // 🐓 El Mineiro (bastosmbc): arte própria do dono
 import guimaraesEscudoImg from './img/guimaraes-escudo.webp' // 🔴⚪ Guimarães SCI (jadriovani): arte própria do dono
 import gavioesEscudoImg from './img/gavioes-escudo.webp' // 🦅⚫⚪ Gaviões SCCP (kauealves584): arte própria do dono
+import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC (felipe.vrod10): arte própria do dono
 import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
@@ -853,6 +854,13 @@ const guimaraesEscudoRender = (size: number) => (
   <img src={guimaraesEscudoImg} height={size} width={Math.round(size * 229 / 360)} alt="Guimarães SCI" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 😈🔴⚫ VIEIRA FC (felipe.vrod10, batismo de 03/10) — Série D, no assento do bot Prestígio FC.
+// 📏 196×360, 23 KB — largura pela PROPORÇÃO REAL do arquivo. Fundo verde tirado por componente;
+// conferido sobre fundo colorido.
+const vieiraEscudoRender = (size: number) => (
+  <img src={vieiraEscudoImg} height={size} width={Math.round(size * 196 / 360)} alt="Vieira FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🦅⚫⚪ GAVIÕES SCCP (kauealves584, batismo de 02/10) — Série C, no assento do bot Zorra FC.
 // 📏 200×360, 29 KB — largura pela PROPORÇÃO REAL do arquivo (o gavião de asas abertas por
 // cima do brasão listrado). Fundo verde tirado por componente; conferido sobre fundo colorido.
@@ -1430,6 +1438,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'El Mineiro EC': elMineiroEscudoRender,
   'El Mineiro SC': elMineiroEscudoRender,
   'Brodeiragem': elMineiroEscudoRender,
+  // 😈🔴⚫ Vieira FC (felipe.vrod10) — BATISMO. As 4 formas do nome (regra 20/08) + o nome VELHO do
+  // assento (Prestígio FC só existia na pirâmide, então save antigo passa a desenhar o clube novo).
+  'Vieira FC': vieiraEscudoRender,
+  'Vieira': vieiraEscudoRender,
+  'Vieira EC': vieiraEscudoRender,
+  'Vieira SC': vieiraEscudoRender,
+  'Prestígio FC': vieiraEscudoRender,
   // 🦅⚫⚪ Gaviões SCCP (kauealves584) — BATISMO. As 4 formas do nome (regra 20/08). Só o nome INTEIRO
   // (nunca "Gaviões" sozinho — regra do Arruda, 20/08). O "Zorra FC" NÃO entra: o bot continua vivo
   // nas partidas rápidas (CLASSIC_CLUBS) e não pode aparecer com o escudo de um dono de verdade.

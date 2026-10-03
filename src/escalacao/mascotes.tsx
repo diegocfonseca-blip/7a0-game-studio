@@ -65,6 +65,7 @@ import cruzeiroBerretinhoMascoteImg from './img/cruzeiro-berretinho-mascote.webp
 import elMineiroMascoteImg from './img/el-mineiro-mascote.webp' // 🐓 El Mineiro (bastosmbc): arte própria do dono
 import guimaraesMascoteImg from './img/guimaraes-mascote.webp' // 🔴 Guimarães SCI (jadriovani): arte própria do dono
 import gavioesMascoteImg from './img/gavioes-mascote.webp' // 🦅 Gaviões SCCP (kauealves584): arte própria do dono
+import vieiraMascoteImg from './img/vieira-mascote.webp' // 😈 Vieira FC (felipe.vrod10): arte própria do dono
 import madrugaMascoteImg from './img/madruga-mascote.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaMascoteImg from './img/julia-mascote.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousMascoteImg from './img/fabulous-mascote.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
@@ -344,6 +345,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 237×440, 44 KB. mascote_key = "el_mineiro_galo_doido".
   el_mineiro_galo_doido: (
     <img src={elMineiroMascoteImg} height={176} width={Math.round(176 * 237 / 440)} alt="O Galo Doido — El Mineiro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 😈 O DIABO (mascote do Vieira FC — felipe.vrod10, 03/10): o diabo vermelho de chifres e
+  // tridente, agachado com a garra em cima da bola. Arte do próprio dono.
+  // 📏 258×440, 45 KB — é ALTO, então a altura fica em 176. mascote_key = "vieira_diabo".
+  vieira_diabo: (
+    <img src={vieiraMascoteImg} height={176} width={Math.round(176 * 258 / 440)} alt="O Diabo — Vieira FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦅 O GAVIÃO (mascote do Gaviões SCCP — kauealves584, 02/10): o gavião preto e branco de
   // asas abertas, gritando, com a bandeira listrada "GAVIÕES SCCP" nas garras. Arte do dono.
@@ -1108,6 +1115,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'El Mineiro EC': 'el_mineiro_galo_doido',
   'El Mineiro SC': 'el_mineiro_galo_doido',
   'Brodeiragem': 'el_mineiro_galo_doido',
+  // 😈 o Diabo carimba o gol do Vieira FC (felipe.vrod10, 03/10).
+  'Vieira FC': 'vieira_diabo',
+  'Vieira': 'vieira_diabo',
+  'Vieira EC': 'vieira_diabo',
+  'Vieira SC': 'vieira_diabo',
+  'Prestígio FC': 'vieira_diabo',
   // 🦅 o Gavião carimba o gol do Gaviões SCCP (kauealves584, 02/10).
   'Gaviões SCCP': 'gavioes_gaviao',
   'Gaviões SCCP FC': 'gavioes_gaviao',
@@ -1217,6 +1230,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   el_mineiro_galo_doido: 'O Galo Doido', // 🐓 El Mineiro (bastosmbc, 27/09)
   guimaraes_saci: 'O Saci', // 🔴 Guimarães SCI (jadriovani, 02/10)
   gavioes_gaviao: 'O Gavião', // 🦅 Gaviões SCCP (kauealves584, 02/10)
+  vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
   madruga_boleiro: 'O Madruga', // 👒 Real Madruga (luck.45, 02/10)
   julia_tubarao: 'O Tubarão', // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10, 24/09)
   fabulous_aguia: 'A Fabulosa', // 🦅🔴⚫ Fabulous EC (koeppfabio, 23/09)
