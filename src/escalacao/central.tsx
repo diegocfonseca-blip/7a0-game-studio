@@ -106,7 +106,7 @@ export function CentralCarreira(p: CentralProps) {
     }
     if (j.h === lider || j.a === lider) return <Chip>{t('líder', 'leader')}</Chip>
     if (j.hg + j.ag >= 5) return <Chip bg="#fff">{t('jogaço', 'thriller')}</Chip>
-    return <Chip bg="#fff">{t('rodada', 'round')} {p.giro?.rodada}</Chip>
+    return <span />
   }
   const lado = (nome: string) => (
     <div style={{ textAlign: 'center', minWidth: 0 }}>
@@ -117,10 +117,9 @@ export function CentralCarreira(p: CentralProps) {
     </div>
   )
   const en = getLang() === 'en'
-  // 📊 celular: 5 linhas (4 de cima + você). 🖥️ desktop: 10 (9 de cima + você) — Diego 03/10:
-  // *"dá pra aumentar verticalmente a tabela"*. As linhas extras só existem no monitor.
+  // 📊 celular: 5 linhas (4 de cima + você). 🖥️ desktop: a tabela INTEIRA — as linhas extras só existem no monitor.
   const corta = (n: number) => (minhaPos != null && minhaPos > n) ? [...p.tabela.slice(0, n - 1), p.tabela[minhaPos - 1]] : p.tabela.slice(0, n)
-  const tabelaCurta = corta(10)
+  const tabelaCurta = p.tabela // 🖥️ desktop: inteira (Diego 03/10: *"ficaria melhor a tabela completa"*)
   const noCelular = new Set(corta(5).map(x => x.name))
 
   return (
@@ -134,8 +133,8 @@ export function CentralCarreira(p: CentralProps) {
       </div>
 
       {/* 📱 celular: camarote → giro → Martelo → mercado → tabela+agenda (ordem por CSS `order`).
-          🖥️ desktop (03/10, ajuste dele): esquerda camarote → giro → tabela+agenda; direita Martelo → mercado,
-          com a divisão do meio reta de cima a baixo. */}
+          🖥️ desktop (03/10, 3º ajuste dele): esquerda camarote → agenda → [tabela inteira | giro inteiro];
+          direita Martelo → mercado, com a divisão do meio reta de cima a baixo. */}
       <div className="ll-central-grid">
         <div className="ll-central-esq">
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
@@ -164,45 +163,43 @@ export function CentralCarreira(p: CentralProps) {
             </div>
           </div>
 
-          {/* 📣 O GIRO: só a rodada já revelada */}
+          {/* 📣 O GIRO: só a rodada já revelada. Celular: 3 jogos (o seu, o do líder, o jogaço);
+              desktop: a rodada inteira, ao lado da tabela, no padrão das caixas creme (Diego 03/10). */}
           {p.giro && p.giro.jogos.length > 0 && (
-            <div className="ll-central-card ll-c-giro" style={{ background: 'linear-gradient(135deg,rgba(10,28,22,.98),rgba(7,19,15,.96))', borderColor: CREME, color: CREME }}>
-              <button type="button" className="ll-central-link" onClick={() => p.onTab('jogos')} style={{ width: '100%', background: GOLD, color: INK, padding: '6px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <b style={{ ...OSW, fontSize: 13, letterSpacing: '.08em' }}>📣 {t('Giro da rodada', 'Around the round')} {p.giro.rodada}</b>
-                <small style={{ fontSize: 9.5, fontWeight: 900 }}>{t('ver jogos', 'see matches')} ›</small>
-              </button>
+            <div className="ll-central-card ll-c-giro" style={{ background: CREME }}>
+              <Cabecalho titulo={`📣 ${t('Giro da rodada', 'Around the round')} ${p.giro.rodada}`} link={t('ver jogos', 'see matches')} onClick={() => p.onTab('jogos')} />
               {p.giro.jogos.map((j, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto', alignItems: 'center', gap: 6, padding: '6px 12px', borderBottom: '2px solid #ffffff14', fontSize: 11.5, fontWeight: 800 }}>
+                <div key={i} className={`ll-central-row ll-central-giro-row${i >= 3 ? ' ll-central-not-desk' : ''}`} style={{ gridTemplateColumns: '1fr auto 1fr auto', gap: 6, padding: '6px 10px', fontSize: 11.5, fontWeight: 800 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}><Escudo nome={j.h} size={18} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.h}</span></span>
-                  <b style={{ ...OSW, fontSize: 15, background: CREME, color: INK, borderRadius: 7, padding: '0 8px', letterSpacing: '.06em' }}>{j.hg}<span style={{ color: '#999', fontSize: 11 }}> × </span>{j.ag}</b>
+                  <b style={{ ...OSW, fontSize: 15, background: INK, color: CREME, borderRadius: 7, padding: '0 8px', letterSpacing: '.06em' }}>{j.hg}<span style={{ color: '#999', fontSize: 11 }}> × </span>{j.ag}</b>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.a}</span><Escudo nome={j.a} size={18} /></span>
                   {giroTag(j)}
                 </div>
               ))}
-              {p.giro.total > p.giro.jogos.length && <button type="button" className="ll-central-link" onClick={() => p.onTab('jogos')} style={{ width: '100%', padding: '5px 12px', fontSize: 9.5, fontWeight: 800, opacity: .7, textAlign: 'center', color: CREME }}>+ {p.giro.total - p.giro.jogos.length} {t('jogos da rodada', 'more matches')} ›</button>}
+              {p.giro.jogos.length > 3 && <button type="button" className="ll-central-link ll-central-so-cel" onClick={() => p.onTab('jogos')} style={{ width: '100%', padding: '6px 12px', fontSize: 9.5, fontWeight: 800, color: '#666', textAlign: 'center' }}>+ {p.giro.jogos.length - 3} {t('jogos da rodada', 'more matches')} ›</button>}
             </div>
           )}
-          <div className="ll-central-base2 ll-c-base">
-            {/* 📊 TABELA resumida → abre Tabelas */}
-            <div className="ll-central-card" style={{ background: CREME }}>
-              <Cabecalho titulo={t('📊 Tabela', '📊 Table')} sub={p.divName.toLowerCase()} link={t('abrir', 'open')} onClick={() => p.onTab('tabelas')} />
-              <button type="button" className="ll-central-link" onClick={() => p.onTab('tabelas')} style={{ width: '100%' }}>
-                {tabelaCurta.map(x => { const pos = posDe(x.name) ?? 0; return (
-                  <div key={x.name} className={`ll-central-row${noCelular.has(x.name) ? '' : ' ll-central-not-desk'}`} style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, outline: x.you ? `2px solid ${GOLD}` : undefined, outlineOffset: -2 }}>
-                    <span style={{ width: 17, color: '#777' }}>{pos}º</span><Escudo nome={x.name} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}</span><b>{x.pts}</b>
-                  </div>
-                ) })}
-              </button>
-            </div>
-            {/* 🗓️ AGENDA das copas → abre Jogos */}
-            <div className="ll-central-card" style={{ background: CREME }}>
-              <Cabecalho titulo={t('🗓️ Agenda', '🗓️ Calendar')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
-              {p.agenda.map((a, i) => (
-                <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 8 }}>
-                  <span style={{ width: 44, height: 34, flex: 'none', border: `2px solid ${INK}`, borderRadius: 7, background: `url(${ARTES[a.arte]}) center / cover` }} />
-                  <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0 }}><b style={{ ...OSW, fontSize: 12, display: 'block' }}>{en ? a.titulo[1] : a.titulo[0]}</b><small style={{ color: '#555', fontWeight: 700 }}>{en ? a.sub[1] : a.sub[0]}</small></span>
+          {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
+          <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
+            <Cabecalho titulo={t('📊 Tabela', '📊 Table')} sub={p.divName.toLowerCase()} link={t('abrir', 'open')} onClick={() => p.onTab('tabelas')} />
+            <button type="button" className="ll-central-link" onClick={() => p.onTab('tabelas')} style={{ width: '100%' }}>
+              {tabelaCurta.map(x => { const pos = posDe(x.name) ?? 0; return (
+                <div key={x.name} className={`ll-central-row${noCelular.has(x.name) ? '' : ' ll-central-not-desk'}`} style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, outline: x.you ? `2px solid ${GOLD}` : undefined, outlineOffset: -2 }}>
+                  <span style={{ width: 17, color: '#777' }}>{pos}º</span><Escudo nome={x.name} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}</span><b>{x.pts}</b>
                 </div>
-              ))}
+              ) })}
+            </button>
+          </div>
+          {/* 🗓️ AGENDA das copas → abre Jogos. No desktop sobe pra baixo do camarote, em linha */}
+          <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
+            <Cabecalho titulo={t('🗓️ Agenda', '🗓️ Calendar')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
+            <div className="ll-central-agenda-lista">
+            {p.agenda.map((a, i) => (
+              <div key={i} className="ll-central-row" style={{ padding: '7px 9px', gap: 8 }}>
+                <span style={{ width: 44, height: 34, flex: 'none', border: `2px solid ${INK}`, borderRadius: 7, background: `url(${ARTES[a.arte]}) center / cover` }} />
+                <span style={{ fontSize: 11, lineHeight: 1.2, minWidth: 0 }}><b style={{ ...OSW, fontSize: 12, display: 'block' }}>{en ? a.titulo[1] : a.titulo[0]}</b><small style={{ color: '#555', fontWeight: 700 }}>{en ? a.sub[1] : a.sub[0]}</small></span>
+              </div>
+            ))}
             </div>
           </div>
         </div>

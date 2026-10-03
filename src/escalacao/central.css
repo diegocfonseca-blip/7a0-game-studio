@@ -1,28 +1,35 @@
 /* ═══ 📺 CENTRAL LEGENDS — a home do modo carreira (03/10, mockup v4 aprovado) ═══
-   Celular: uma coluna, na ordem camarote → giro → O MARTELO → mercado → tabela+agenda.
-   Monitor (≥1100px, o mesmo corte do `career-desktop.css`): duas colunas em cima
-   (camarote + giro à esquerda, O MARTELO à direita) e três embaixo (mercado · tabela ·
-   agenda). Só grade e larguras moram aqui — a cara de cada caixa é inline, no .tsx. */
+   Celular: uma coluna, na ordem camarote → giro (3 jogos) → O MARTELO → mercado → tabela (5) + agenda.
+   Monitor (≥1100px, o mesmo corte do `career-desktop.css`): esquerda camarote → agenda em linha →
+   [tabela INTEIRA | giro da rodada INTEIRO]; direita O MARTELO → mercado. Divisão do meio reta.
+   Só grade e larguras moram aqui — a cara de cada caixa é inline, no .tsx. */
 .ll-central { background: #0C0C0C; border-radius: 18px; padding: 12px 12px 4px; margin: 0 -2px 10px; color: #F4ECD6; }
 .ll-central-topo { display: flex; justify-content: space-between; align-items: flex-end; margin: 2px 2px 12px; gap: 10px; }
-.ll-central-grid { display: flex; flex-direction: column; gap: 0; }
-/* no celular as duas "colunas" não existem: os cards entram na ordem do `order` */
+/* no celular as duas "colunas" não existem: os cards entram na ordem do `order`, e tabela+agenda dividem a linha */
+.ll-central-grid { display: flex; flex-wrap: wrap; gap: 0 12px; }
 .ll-central-esq, .ll-central-dir { display: contents; }
-.ll-c-hero { order: 1; } .ll-c-giro { order: 2; } .ll-c-martelo { order: 3; } .ll-c-mercado { order: 4; } .ll-c-base { order: 5; }
-.ll-central-base2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-.ll-central-card { border: 3px solid #0C0C0C; border-radius: 18px; box-shadow: 4px 4px 0 #000; margin-bottom: 14px; overflow: hidden; background: #fff; color: #0C0C0C; }
+.ll-central-card { flex: 0 0 100%; min-width: 0; border: 3px solid #0C0C0C; border-radius: 18px; box-shadow: 4px 4px 0 #000; margin-bottom: 14px; overflow: hidden; background: #fff; color: #0C0C0C; }
+.ll-c-hero { order: 1; } .ll-c-giro { order: 2; } .ll-c-martelo { order: 3; } .ll-c-mercado { order: 4; } .ll-c-tabela { order: 5; } .ll-c-agenda { order: 6; }
+.ll-c-tabela, .ll-c-agenda { flex: 0 0 calc(50% - 6px); }
 .ll-central-card button.ll-central-link { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
 .ll-central-row { display: flex; align-items: center; gap: 9px; padding: 9px 13px; border-bottom: 2px solid rgba(0,0,0,.1); font-size: 12.5px; font-weight: 700; }
 .ll-central-row:last-child { border-bottom: 0; }
 .ll-central-martelo .ll-central-row { font-family: Georgia, serif; font-weight: 400; font-size: 12px; padding: 8px 13px; gap: 10px; }
+.ll-central-giro-row { display: grid; }
 .ll-central-not-desk { display: none; }
 @media (min-width: 1100px) {
   .ll-central { padding: 16px 18px 6px; border-radius: 22px; }
   .ll-central-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; align-items: start; }
-  .ll-central-esq, .ll-central-dir { display: block; min-width: 0; }
-  .ll-central-base2 { gap: 16px; margin-bottom: 16px; }
+  .ll-central-esq { display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "hero hero" "agenda agenda" "tabela giro"; gap: 0 16px; align-items: start; min-width: 0; }
+  .ll-central-dir { display: block; min-width: 0; }
+  .ll-c-hero { grid-area: hero; } .ll-c-agenda { grid-area: agenda; } .ll-c-tabela { grid-area: tabela; } .ll-c-giro { grid-area: giro; }
   .ll-central-card { margin-bottom: 16px; }
+  .ll-c-agenda .ll-central-agenda-lista { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .ll-c-agenda .ll-central-agenda-lista .ll-central-row { border-bottom: 0; border-right: 2px solid rgba(0,0,0,.1); }
+  .ll-c-agenda .ll-central-agenda-lista .ll-central-row:last-child { border-right: 0; }
   .ll-central-not-desk { display: flex; }
+  .ll-central-giro-row.ll-central-not-desk { display: grid; }
+  .ll-central-so-cel { display: none !important; }
   /* a aba Central ocupa as DUAS colunas da grade do desktop; o lado (placar/controle)
      não é desenhado nela — o botão de jogar mora no camarote */
   .ll29-career.ll25-tab-central > .max-w-xl.mx-auto.ll-cx { display: block; max-width: 1320px !important; }

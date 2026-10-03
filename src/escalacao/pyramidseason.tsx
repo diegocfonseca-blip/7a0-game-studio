@@ -9194,7 +9194,7 @@ export function PyramidSeasonScreen() {
       const meu = ms.filter(m => m.hId === youId || m.aId === youId)
       const lider = minha[0]?.name
       const resto = ms.filter(m => !meu.includes(m)).sort((a, b) => (Number(b.h === lider || b.a === lider) - Number(a.h === lider || a.a === lider)) || ((b.hg + b.ag) - (a.hg + a.ag)))
-      const jogos: CentralJogo[] = [...meu, ...resto].slice(0, 3).map(m => ({ h: m.h, a: m.a, hg: m.hg, ag: m.ag, hId: m.hId, aId: m.aId }))
+      const jogos: CentralJogo[] = [...meu, ...resto].map(m => ({ h: m.h, a: m.a, hg: m.hg, ag: m.ag, hId: m.hId, aId: m.aId }))
       return { rodada: revCentral, jogos, total: ms.length }
     })()
     // 💸 mercado: suas compras do extrato (esta temporada) + a carta mais cara da divisão

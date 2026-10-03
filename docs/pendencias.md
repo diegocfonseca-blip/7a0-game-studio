@@ -18,6 +18,11 @@
   virou o ano, lista nova). A Central mostra os 5 maiores e "ver os N negócios" abre o resto. Carreira que já estava
   no meio da temporada só enche no próximo pregão (até lá cai nas compras do extrato). O Martelo ganhou "💰 Maior
   lance da temporada". Borda do giro saiu do dourado (misturava com o camarote) e virou creme.
+- 🖥️ 4º ajuste (03/10, print dele): no desktop a TABELA vai INTEIRA (20 linhas) à esquerda embaixo, com o GIRO DA
+  RODADA INTEIRO ao lado, no padrão creme das caixas; a AGENDA (pequena) subiu pro lugar do giro, em linha, abaixo
+  do camarote. Celular não mudou (giro com 3 jogos, tabela com 5). Grade por `grid-template-areas` em `central.css`;
+  as linhas extras só existem no monitor (`ll-central-not-desk`). Lição: `display` inline na linha vence a classe
+  que esconde — virou classe (`ll-central-giro-row`).
 - 📰 3º ajuste (03/10, *"faz Z4 e títulos, jogador lesionado, cria da base jogando, qualquer copa nova chegando"*):
   entraram 🏆 título à vista/matemático (só pontos possíveis, 3 por rodada que falta), 🚨 Z4 na cola / no Z4 /
   🪂 rebaixado (a Várzea não rebaixa: `temRebaixamento`), 🩹 titular fora (lesão/suspensão/noitada, em quantos jogos
