@@ -6,8 +6,9 @@
 .ll-central { background: #0C0C0C; border-radius: 18px; padding: 12px 12px 4px; margin: 0 -2px 10px; color: #F4ECD6; }
 .ll-central-topo { display: flex; justify-content: space-between; align-items: flex-end; margin: 2px 2px 12px; gap: 10px; }
 .ll-central-grid { display: flex; flex-direction: column; gap: 0; }
-.ll-central-esq, .ll-central-dir { min-width: 0; }
-.ll-central-base { display: grid; grid-template-columns: 1fr; gap: 0; }
+/* no celular as duas "colunas" não existem: os cards entram na ordem do `order` */
+.ll-central-esq, .ll-central-dir { display: contents; }
+.ll-c-hero { order: 1; } .ll-c-giro { order: 2; } .ll-c-martelo { order: 3; } .ll-c-mercado { order: 4; } .ll-c-base { order: 5; }
 .ll-central-base2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
 .ll-central-card { border: 3px solid #0C0C0C; border-radius: 18px; box-shadow: 4px 4px 0 #000; margin-bottom: 14px; overflow: hidden; background: #fff; color: #0C0C0C; }
 .ll-central-card button.ll-central-link { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
@@ -17,10 +18,10 @@
 .ll-central-not-desk { display: none; }
 @media (min-width: 1100px) {
   .ll-central { padding: 16px 18px 6px; border-radius: 22px; }
-  .ll-central-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-  .ll-central-base { grid-template-columns: 1.2fr .9fr .9fr; gap: 16px; }
-  .ll-central-base2 { display: contents; }
-  .ll-central-base .ll-central-card, .ll-central-base2 .ll-central-card { margin-bottom: 16px; }
+  .ll-central-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; align-items: start; }
+  .ll-central-esq, .ll-central-dir { display: block; min-width: 0; }
+  .ll-central-base2 { gap: 16px; margin-bottom: 16px; }
+  .ll-central-card { margin-bottom: 16px; }
   .ll-central-not-desk { display: flex; }
   /* a aba Central ocupa as DUAS colunas da grade do desktop; o lado (placar/controle)
      não é desenhado nela — o botão de jogar mora no camarote */

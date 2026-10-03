@@ -6,7 +6,8 @@
   o MESMO botão de jogar (`avancarRodada`, uma função só pro controle e pro camarote) · 📣 Giro da rodada revelada ·
   📰 O MARTELO do meio da temporada (`central-noticias.ts`, redação pura, PT/EN, trava `npm run central`) · 💸 Mercado
   (compras do extrato + carta mais cara da divisão) · 📊 Tabela (toque abre Tabelas) · 🗓️ Agenda (Copa, Libertadores,
-  Copa do Mundo; toque abre Jogos). Desktop em 2 colunas + 3 embaixo (`central.css`).
+  Copa do Mundo; toque abre Jogos). Desktop em 2 colunas, divisão reta no meio (ajuste dele 03/10): esquerda camarote →
+  giro → tabela+agenda; direita Martelo → mercado (`central.css`, ordem do celular por `order`).
 - Como foi feito sem simular nada novo: `confrontoDaRodada()` reproduz o calendário do `simDivTo` (mesma semente) pra
   achar o adversário; a forma (bolinhas) vem de até 4 `simulaAte(r)` extras, só com a aba aberta e nunca além de
   `revealed`. O lado (placar/controle) NÃO é desenhado na aba Central.
