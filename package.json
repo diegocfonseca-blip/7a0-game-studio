@@ -68,7 +68,8 @@
     "bagagem": "npx tsx scripts/checa-bagagem.mts",
     "master": "npx tsx scripts/testa-master.mjs",
     "recarga": "node scripts/testa-recarga.mjs",
-    "congela": "node scripts/testa-congela.mjs"
+    "congela": "node scripts/testa-congela.mjs",
+    "save-intl": "node scripts/testa-save-intl.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -641,6 +641,11 @@ export interface EscState {
   careerInternational?: import('./career-international-season').InternationalCampaign | null
   /** 🌎 Histórico por temporada, independente do clube representado; ausente nos saves antigos. */
   careerInternationalHistory?: import('./career-international-season').InternationalHistoryEntry[]
+  /** 🌎 placar ACUMULADO dos jogadores da máquina nas 3 competições internacionais: chave da carta
+   *  (nome|clube|ano) → [jogos, gols, assistências], somando todas as temporadas. Substitui a lista
+   *  `botPlayerStats` que cada temporada guardava inteira (~45 KB por temporada — 03/10, save do
+   *  marcomak03). Os números são os mesmos; só param de se repetir a cada ano. */
+  careerIntlBotTotals?: Record<string, [number, number, number]>
   careerTorcida?: Record<string, number> // 🎪 TORCIDÔMETRO (Diego 11/08): 0-100 por time HUMANO (chave = m<id>), começa em 50. Atualiza no fim de cada temporada pela colocação final (ver torcidaDeltas em pyramidseason.tsx) + bônus/punição de subida/queda de verdade. Só dá BÔNUS de moedas quando alto — nunca desconta o fixo do estádio.
   careerTorcidaHist?: Record<string, { delta: number; motivo: string }[]> // 🎪 histórico SUTIL do torcidômetro (chave = m<id>): últimos eventos que mudaram a torcida (ex.: "+5 · 3º lugar", "−5 · caiu de divisão"), guarda só os últimos 6, mostra só os últimos 3 no cabeçalho
   careerDebtBarrier?: Record<number, number> // 🚨 CRISE FINANCEIRA (Diego 12/08): pior barreira de -500 negativos já CRUZADA por técnico (mgrId → valor, ex. -500/-1000/-1500...). Só carreira SOLO. 1ª observação vira baseline SEM disparar banner (quem já tava fundo no vermelho quando o recurso saiu não é punido retroativo — só a PRÓXIMA barreira, daqui pra frente, dispara).

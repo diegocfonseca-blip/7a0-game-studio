@@ -18,13 +18,35 @@ O acervo original permanece em `work/presidencia-integracao-20260921`.
 Publicação autorizada por Diego para sua conta; não confundir preparação
 com deploy confirmado. Não alterar as competições cuidadas no Cloud.
 
+## 03/10/2026 — 🗜️ Save da carreira internacional enxuto ✅ NO AR (caso marcomak03: "joguei 2 temporadas, salvei e voltou atrás")
+- Suspeita (NÃO confirmada no banco — a leitura do save dele ficou esperando aprovação): o celular tem ~5 MB pro jogo e a
+  carreira internacional guardava, POR TEMPORADA, a lista inteira de gols/assistências dos ~780 jogadores da máquina
+  (`botPlayerStats`, ~45 KB/ano, que nenhuma tela lia). Cota estourada = `setItem` falha calado e fica o save velho.
+- Feito (OK do Diego: *"faz"*, com a condição *"não quero perder as coisas que acontecem na carreira internacional"*):
+  a lista vira um placar ACUMULADO `careerIntlBotTotals` (chave da carta → [jogos, gols, assistências]). Nenhum número
+  se perde; o resto da temporada (campeões, artilheiros, jogadores do usuário, teamRecords do ranking) fica igual.
+  Saves antigos migram ao abrir (`compactaHistoricoIntl` em `sincronizaNiveis`, idempotente). 6 temporadas: 291 → 82 KB.
+  Trava: `npm run save-intl`.
+- ⏭️ FALTA: (1) conferir no banco o save do marcomak03 (temporada da nuvem × do celular) e recuperar as 2 temporadas se
+  a nuvem estiver mais nova; (2) avisar na tela quando o save não couber (hoje falha calado — `catch { /* cota cheia */ }`).
+- ⚠️ `npm run artilharia` já reprovava 2 linhas ANTES desta mudança ("a virada manda LIGA + COPA + COPA DO MUNDO pro
+  histórico" e o mesmo de assistências): conferência por texto desatualizada pela carreira internacional. Reescrever.
+
+## 03/10/2026 — 🧱 Leilão de Clubes depois dos Lotes 40/41: conta feita, Europa sozinho NÃO liberado (Diego: *"ainda não"*)
+- Clubes que fecham setor (3 baralhos, pior caso MEI 4 / ATA 3): antes do Lote 40 → agora: GOL 81→114 · LAT 46→81 ·
+  ZAG 42→75 · MEI 47→49 · ATA 64→97 · clubes diferentes 110→136. Entram sozinhos (`buildDeckClubes` não tem lista fixa).
+- Baralho sozinho (técnicos que cabem, com a sobra mínima): **Europa 11** (fecha sala cheia, mas no aperto — com
+  folga de pacote só 5) · Brasil 5 · Mundo 6 (falta meia). Ofereci liberar o Europa sozinho: ele disse **"ainda não"**.
+  Não repropor sem ele puxar o assunto. Brasil sozinho continua sem fechar.
+- Gargalo é o MEIO (clube precisa de 4 meias): caminho, se ele quiser, é meia famoso em clube que já tem 2–3.
+
 ## 🦅⚫⚪ Batismo Gaviões SCCP (02/10)
 - Dono `kauealves584@gmail.com` (conta desde 15/09). **Série C**, no assento do bot **Zorra FC** (que segue vivo em
   CLASSIC_CLUBS; `OLD_NAME` leva save antigo pro nome novo). Lenda + fundador nº83 + sócio nº64 — banco gravado
   (user_colors ouro/manual, esc_fundadores, esc_socios, esc_nomes_batismo com FC/EC pelo gatilho).
 - Arte do dono (fundo verde): escudo 200×360/29 KB · mascote "O Gavião" 224×440/36 KB · camisa da Loja.
   Manto medido: preto #161314 (77%) + branco #F9F8F8 (gola/punhos). Só o nome INTEIRO tem escudo (nunca "Gaviões" sozinho).
-- Falta: time de coração (o "SCCP" sugere Corinthians — confirmar com o Diego, não chutar) e nome do dono pro post.
+- Time de coração: Corinthians (confirmado pelo Diego). gravado em esc_socios (03/10). Falta só o nome do dono pro post.
 
 ## 02/10/2026 — ✉️ Convite com CARTA DE CADA CLUBE + "técnico" no lugar de "presidente" ✅ NO AR
 - Pedido do Diego (print do Fabao Fabulous EC): *"esses textos não podem ser mais pessoal? falar da Vila… de Porto
@@ -94,8 +116,8 @@ TODA aba e a tabela/elenco/rank só depois de uma tela de rolagem; a largura mud
   `madruga-camisa-v1.webp`. Manto medido: branco #F3F1F0 (66%) + preto #161412 (28%); dourado (2%) fora.
 - ⚠️ "Real Madruga" ERA o nome velho do **Marolados FC** (paisagensetrilha). Cortado o `OLD_NAME` e o carimbo antigo —
   o Marolados segue pelo nome atual e pelo e-mail. Save muito antigo ainda chamado "Real Madruga" passa a mostrar o clube novo.
-- Banco: user_colors ouro · esc_fundadores 81 · esc_socios 62 · esc_nomes_batismo "Real Madruga" — **conferir se gravou**.
-- Falta: nome do dono pro rodapé do post e time de coração (`--coracao`).
+- Banco: user_colors ouro · esc_fundadores 81 · esc_socios 62 · esc_nomes_batismo "Real Madruga".
+- ❤️ Time de coração: **CRB** (Diego, 03/10) — gravado em esc_socios e no post. Falta só o nome do dono pro rodapé.
 
 ## 01/10/2026 — 🌎 CARREIRA INTERNACIONAL: fluxo passo a passo ✅ FEITO (só a conta do Diego; mockups aprovados)
 
