@@ -13,6 +13,14 @@
   `revealed`. O lado (placar/controle) NÃO é desenhado na aba Central.
 - 🔒 `CENTRAL_GERAL = false` em `sport.ts` (só `diego.c.fonseca@gmail.com`; bancada do vite liga com
   `localStorage esc-central-dev=1`, chave que some do build). Só carreira SOLO.
+- 💸 2º ajuste (03/10): o MERCADO mostra TODOS os negócios do pregão da temporada, de todo clube (*"não só os
+  meus"*): o reducer anota cada arremate em `careerMercado` (`anotaMercado`, só carreira solo, 80 lotes, só exibição;
+  virou o ano, lista nova). A Central mostra os 5 maiores e "ver os N negócios" abre o resto. Carreira que já estava
+  no meio da temporada só enche no próximo pregão (até lá cai nas compras do extrato). O Martelo ganhou "💰 Maior
+  lance da temporada". Borda do giro saiu do dourado (misturava com o camarote) e virou creme.
+- 📰 Variedade de notícias: hoje 10 regras por situação. Propostas pra ele (esperando OK): zebra, goleada da rodada,
+  maior subida/queda, Z4 e título/rebaixamento matemático, seu elenco (gás/lesão/cria), Copa chegando, artilheiro do
+  seu time.
 - ⏭️ Decidir com ele: abrir na Central ficou como padrão; se preferir abrir em Jogos é 1 linha (`useEffect` do
   `centralOn`). Ideias que ficaram de fora de propósito: "ler a edição completa" (não existe jornal de meio de
   temporada ainda) e o 🔊 "ouvir" do giro.
