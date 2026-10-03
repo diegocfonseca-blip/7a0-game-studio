@@ -14,6 +14,12 @@ import { usePenaltyPresentation as usePenaltyArtPreview } from './presentation-r
 import { PenaltyArt } from './penalty-art'
 import type { PenaltyArtHandle } from './penalty-art'
 import { PRESIDENT_ROOM_RELEASED, CAREER_VISUAL_RELEASED, publicCareerVisual } from './career-feature-release'
+import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED,presidentWritesEnabled} from './presidente-acesso'
+import {podeAlterarPresidencia,negociarNaCarreira,exibirDuplaNaCarreira} from './presidencia-carreira'
+import {PresidenciaClube} from './presidencia-clube'
+import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
+import {PRESIDENCY_STADIUM_RELEASED} from './presidencia-lotes'
+import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
@@ -2264,7 +2270,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
     '📺 Cota de TV': '📺 TV money', '🌍 Prêmio da Copa do Mundo Legends': '🌍 Legends World Cup prize',
     '🎟️ Boas-vindas de sócio (uma vez só)': '🎟️ Member welcome bonus (one time)', '🎟️ Moedas de sócio do mês': '🎟️ Member coins of the month',
   }
-  const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? l) : l)
+  const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? traduzirLancamentoPresidencia(l)) : l)
   const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <>
@@ -7485,6 +7491,8 @@ function PresidenciaPrivate({ president, st, team, season, games, trophies, onNa
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const privatePreview = useOnlinePreview()
+  const presidentAccount = usePresidentPreview()
+  const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && presidentAccount && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
   // A prévia V25 muda somente a apresentação. A simulação, o save, as Copas e
   // a autoridade do host continuam passando pelos mesmos caminhos abaixo.
   // 🔓 19/09: liberado pra TODO MUNDO (*"pode publicar p todos"*). `publicCareerVisual`
@@ -10074,7 +10082,7 @@ export function PyramidSeasonScreen() {
                 topo (Ideia 1). Com o portão desligado, sai exatamente como era. */}
             <SubAbasGrudadas ligado={grudaOk} topo={topoSub}>
             <div style={{ display: 'flex', gap: 6, marginBottom: subGrudadas ? 0 : 10 }}>
-              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(privateCareer && PRESIDENT_ROOM_RELEASED ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
+              {(([['estadio', agenciaOk ? '🏗️' : '🏟️', agenciaOk ? tr('Estrutura', 'Facilities') : tr('Estádio', 'Stadium')], ...(lojaLib ? [['loja', '🛍️', tr('Loja', 'Store')]] : []), ['financas', '💰', tr('Finanças', 'Finances')], ['patrocinio', '🤝', tr('Patrocínio', 'Sponsors')], ...(presidentAvailable || (privateCareer && PRESIDENT_ROOM_RELEASED) ? [['presidencia', '🏛️', tr('Presidência', 'Presidency')]] : []), ...(agenciaOk ? [['agencia', '🕴️', tr('Sua Agência', 'Your Agency')]] : []), ['escritorio', '💼', tr('Agência', 'Agency')]]) as [typeof clubeSub, string, string][])
                 // 🕴️ SAIU DO ELENCO, VEIO PRO CLUBE (Diego 19/09): *"tem que tirar do
                 // elenco e pôr lá no clube também"*. Agência não é escalação — o lugar
                 // dela é junto de estádio, finanças e patrocínio. O 💼 escritório velho
@@ -10084,7 +10092,19 @@ export function PyramidSeasonScreen() {
               ))}
             </div>
             </SubAbasGrudadas>
-            {clubeSub === 'presidencia' && privateCareer && PRESIDENT_ROOM_RELEASED ? (
+            {clubeSub === 'presidencia' && presidentAvailable ? (
+              <PresidenciaClube key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
+                if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
+                dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true
+              }} onDisplay={display=>{
+                if(!presidentWritesEnabled()||!exibirDuplaNaCarreira(state,youId,display).ok)return false
+                dispatch({type:'PRESIDENCY_DISPLAY',mgrId:youId,display});return true
+              }} onSave={value=>{
+                if(!presidentWritesEnabled())return false
+                dispatch({type:'PRESIDENCY_SAVE_BASE',mgrId:youId,value})
+                return true
+              }}/>
+            ) : clubeSub === 'presidencia' && privateCareer && PRESIDENT_ROOM_RELEASED ? (
               <PresidenciaPrivate
                 onNavigate={setClubeSub}
                 president={state.careerPresident}
@@ -10249,7 +10269,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<PresidenciaEstadioCamera stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               filial={myFilial}

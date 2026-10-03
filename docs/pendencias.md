@@ -1,3 +1,14 @@
+## Presidência — lote 1 privado reconciliado (03/10)
+
+Integração sobre main `3336f1ea`, em `work/presidencia-lote1-main-20261003`.
+Criação, perfil e sala preparados somente para Diego; economia, garagem,
+teto e substituição da aba do estádio desligados. Build e testes locais
+passaram, com identidades simuladas e sem gravação em contas reais.
+Plano, testes e limitações: `docs/presidencia-lote1-entrega.md`.
+O acervo original permanece em `work/presidencia-integracao-20260921`.
+Publicação autorizada por Diego para sua conta; não confundir preparação
+com deploy confirmado. Não alterar as competições cuidadas no Cloud.
+
 ## 🦅⚫⚪ Batismo Gaviões SCCP (02/10)
 - Dono `kauealves584@gmail.com` (conta desde 15/09). **Série C**, no assento do bot **Zorra FC** (que segue vivo em
   CLASSIC_CLUBS; `OLD_NAME` leva save antigo pro nome novo). Lenda + fundador nº83 + sócio nº64 — banco gravado

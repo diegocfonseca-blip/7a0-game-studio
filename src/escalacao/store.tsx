@@ -1,6 +1,17 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
+import {presidentWritesEnabled} from './presidente-acesso'
+import {PRESIDENCY_ECONOMY_RELEASED,PRESIDENCY_ROOF_RELEASED} from './presidencia-lotes'
+import {getPresidentOutfitTier} from './presidente-tier-conta'
+import {podeVestirModular} from './presidente-vestuario-acesso'
+import {presidenteCadastrado,sugestaoPresidente} from './presidencia-entrada-model'
+import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,type PresidenteBaseSave} from './presidencia-carreira'
+import {roupaLegada} from './presidente-vestuario-modular'
+import type {PresidenciaOrcamento} from './presidencia-economia'
+import type {DuplaGaragem} from './presidencia-garagem'
+import {alterarTetoPresidencia} from './presidencia-estadio-integrado'
+import {lancamentosPresidencia} from './presidencia-extrato'
 import { onlinePreviewEnabled } from './online-preview'
 import { disputaPenaltis } from './penaltis'
 import { anotaTrava } from './caixa-preta'
@@ -4658,7 +4669,7 @@ type Action =
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
-  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident'] } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
+  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
@@ -4708,6 +4719,10 @@ type Action =
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
+  | { type: 'PRESIDENCY_SAVE_BASE'; mgrId:number; value:PresidenteBaseSave }
+  | { type: 'PRESIDENCY_TRADE'; mgrId:number; quote:PresidenciaOrcamento; confirmed:boolean }
+  | { type: 'PRESIDENCY_DISPLAY'; mgrId:number; display:DuplaGaragem }
+  | { type: 'PRESIDENCY_ROOF'; mgrId:number; closed:boolean }
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
@@ -6139,6 +6154,27 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     // 🏟️ ESTÁDIO da carreira: investe aos poucos num setor (custa do caixa de moedas)
+    case 'PRESIDENCY_SAVE_BASE': {
+      if(!presidentWritesEnabled())return state
+      const result=salvarPresidenteNaCarreira(s,action.mgrId,action.value,getPresidentOutfitTier())
+      return result.ok?result.value:state
+    }
+    case 'PRESIDENCY_TRADE': {
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      const result=negociarNaCarreira(s,action.mgrId,action.quote,action.confirmed)
+      if(!result.ok)return state
+      for(const entry of lancamentosPresidencia(action.quote))logFin(result.value,'presidency',entry.label,entry.amount,undefined,action.mgrId)
+      return result.value
+    }
+    case 'PRESIDENCY_DISPLAY': {
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      const result=exibirDuplaNaCarreira(s,action.mgrId,action.display)
+      return result.ok?result.value:state
+    }
+    case 'PRESIDENCY_ROOF': {
+      if(!PRESIDENCY_ROOF_RELEASED||!presidentWritesEnabled())return state
+      return alterarTetoPresidencia(state,action.mgrId,action.closed)??state
+    }
     case 'STADIUM_INVEST': {
       if (!s.careerOnline) return s
       const sec = STADIUM_SECTORS.find(x => x.k === action.sector); if (!sec) return s
@@ -6147,7 +6183,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       const pay = Math.min(STADIUM_STEP, sec.cost - invested, wallet)
       if (pay <= 0) return s
-      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: { ...st.inv, [action.sector]: invested + pay }, ext: st.ext } }
+      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { ...st, inv: { ...st.inv, [action.sector]: invested + pay }, ext: st.ext } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - pay }
       logFin(s, 'stadium', `🏟️ Obra: ${sec.n}`, -pay, undefined, action.mgrId) // 🧾 investimento no estádio entra no extrato (pra a conta fechar)
       return s
@@ -6160,7 +6196,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       if (st.ext.includes(action.ext) || !extraUnlocked(st, action.ext) || wallet < ext.cost) return s
-      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: st.inv, ext: [...st.ext, action.ext] } }
+      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { ...st, inv: st.inv, ext: [...st.ext, action.ext] } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - ext.cost }
       logFin(s, 'stadium', `🏟️ Melhoria: ${ext.n}`, -ext.cost, undefined, action.mgrId) // 🧾 melhoria do estádio entra no extrato
       return s
@@ -6629,6 +6665,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Só identidade visual. Ausente mantém compatibilidade total com o fluxo
       // público e com saves criados antes do novo criador.
       s.careerPresident = action.president
+      s.careerPresidentBase = presidentWritesEnabled() && s.sport !== 'basquete' && presidenteCadastrado(action.presidentBase) && podeVestirModular(action.presidentBase.outfit,getPresidentOutfitTier())
+        ? {...sugestaoPresidente(action.presidentBase),name:action.presidentBase.name.trim(),sinceSeason:1} : undefined
+      if(s.careerPresidentBase)s.careerPresident={name:s.careerPresidentBase.name,outfit:roupaLegada(s.careerPresidentBase.outfit)}
+      s.careerPresidency = undefined
       s.simV = 4 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
       s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
       // 🕴️ AGÊNCIA 2.0: SÓ carreira NOVA — convoca até 22 do álbum; renda SEMPRE no
@@ -11811,8 +11851,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
     const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
-    if (sig === soloSigRef.current) return
-    soloSigRef.current = sig
+    const presidencySig = sig + assinaturaPresidencia(state)
+    if (presidencySig === soloSigRef.current) return
+    soloSigRef.current = presidencySig
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     savePyramidCloud(state) // logado: espelha na nuvem (throttled) pra seguir a conta
   }, [state])

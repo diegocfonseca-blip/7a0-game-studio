@@ -1,0 +1,47 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QA local presidência</title><div id="root"></div><script type="module">
+import React from 'react';import{createRoot}from'react-dom/client';
+import{PresidenciaClube}from'./src/escalacao/presidencia-clube.tsx';
+import{STADIUM_SECTORS,STADIUM_EXTRAS}from'./src/escalacao/estadiodata.ts';
+import{reducer}from'./src/escalacao/store.tsx';import './src/index.css';
+window.fixture={careerOnline:true,onlineMode:'cpu',sport:'futebol',youIdx:0,managers:[{id:7,isHuman:true,teamName:'Clube de teste'}],careerCoins:{7:123},seasonNo:8};
+if(new URLSearchParams(location.search).has('owned')){
+ window.fixture.careerPresidentBase={version:5,name:'Diego',outfit:'polo'};
+ window.fixture.careerPresidency={7:{revision:5,owned:[{id:'fusca',paid:30},{id:'chevette',paid:50},{id:'cadeira-simples',paid:5}],display:new URLSearchParams(location.search).has('chevettePair')?['chevette','fusca']:['fusca',null]}};
+}
+if(new URLSearchParams(location.search).has('history'))window.fixture.careerCronica={m7:[{t:3,div:'D',campeao:1},{t:4,div:'C'},{t:5,div:'B',copa:1},{t:6,div:'A',campeao:1,copa:1,sup:1}],m99:[{t:1,div:'A',campeao:1}]};
+if(new URLSearchParams(location.search).has('legacyOwned'))window.fixture.careerPresidency={7:{revision:1,owned:[{id:'carro-popular',paid:100},{id:'moto-basica',paid:80}],display:['carro-popular','moto-basica']}};
+if(new URLSearchParams(location.search).has('grass'))window.fixture.stadiums={7:{inv:{grama:Number(new URLSearchParams(location.search).get('grass'))},ext:[]}};
+if(new URLSearchParams(location.search).has('promotions')){window.fixture.seasonNo=4;window.fixture.careerPlacements={m7:'B'};window.fixture.careerCronica={m7:[{t:1,div:'V'},{t:2,div:'D'},{t:3,div:'C'}]};}
+if(new URLSearchParams(location.search).has('valuation')){window.fixture.managers[0].squad=[{paid:100},{paid:20}];window.fixture.stadiums={7:{inv:{grama:30,geral:20},ext:['loja']}};}
+window.original=JSON.stringify(window.fixture);
+if(new URLSearchParams(location.search).has('emptyWallet'))delete window.fixture.careerPresidency;
+if(new URLSearchParams(location.search).has('invalidWallet'))window.fixture.careerPresidency[7].revision=-1;
+if(new URLSearchParams(location.search).has('general'))window.fixture.stadiums={7:{inv:{grama:30,geral:40},ext:[]}};
+if(new URLSearchParams(location.search).has('seats'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:90},ext:[]}};
+if(new URLSearchParams(location.search).has('seatsPartial'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:89.99},ext:[]}};
+if(new URLSearchParams(location.search).has('seatsExtra'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:90},ext:['loja']}};
+if(new URLSearchParams(location.search).has('visitor'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:90,visitante:120},ext:[]}};
+if(new URLSearchParams(location.search).has('visitorPartial'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:90,visitante:119.99},ext:[]}};
+if(new URLSearchParams(location.search).has('visitorExtra'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:90,visitante:120},ext:['loja']}};
+if(new URLSearchParams(location.search).has('boxes'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:150},ext:[]}};
+if(new URLSearchParams(location.search).has('boxesPartial'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:149.99},ext:[]}};
+if(new URLSearchParams(location.search).has('boxesExtra'))window.fixture.stadiums={7:{inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:150},ext:['loja']}};
+if(new URLSearchParams(location.search).has('allWorks'))window.fixture.stadiums={7:{inv:Object.fromEntries(STADIUM_SECTORS.map(s=>[s.k,s.cost])),ext:STADIUM_EXTRAS.map(e=>e.k)}};
+if(new URLSearchParams(location.search).has('decor')){
+ window.fixture.careerPresidency={7:{revision:1,owned:[{id:'m3-gtr',paid:1000},{id:'fat-boy',paid:350},{id:'mesa-simples',paid:10},{id:'quadro',paid:15}],display:['m3-gtr','fat-boy']}};
+}
+if(new URLSearchParams(location.search).has('room'))window.fixture.careerHonors={m7:{A:3,B:1,C:0,D:0,V:0}};
+if(new URLSearchParams(location.search).has('allTrophies')){window.fixture.careerHonors={m7:{A:3,B:1,C:1,D:1,V:1}};window.fixture.careerCopaHonors={m7:2};window.fixture.careerSupercopaHonors={m7:1};}
+if(new URLSearchParams(location.search).has('roof')&&!new URLSearchParams(location.search).has('allWorks'))window.fixture.stadiums={7:{inv:{grama:30},ext:['cober','retratil']}};
+if(new URLSearchParams(location.search).has('allWorks')&&new URLSearchParams(location.search).has('closed'))window.fixture.stadiums[7].roofClosed=true;
+const testMember=new URLSearchParams(location.search).has('member')?{ativo:true,origem:'batismo',socioN:1,escudoTime:'Leite de Verdade FC',mascoteKey:'leiteverdade_vaca',manto:null,estadioNome:null}:null;
+if(new URLSearchParams(location.search).has('seated')){
+ window.fixture.careerPresidentBase={version:5,name:'Diego',outfit:new URLSearchParams(location.search).get('outfit')||'terno',appearance:{version:22,hair:'classic-hair',beard:'classic-beard',accessories:[],skinTone:new URLSearchParams(location.search).get('tone')||'medium'}};
+ window.fixture.careerPresidency={7:{revision:1,owned:[{id:'mesa-madeira',paid:120},{id:'cadeira-couro',paid:90}],display:[null,null]}};
+  if(new URLSearchParams(location.search).has('mixed'))Object.assign(window.fixture.careerPresidentBase.appearance,{hair:'neymar-2011-hair',beard:'messi-2023-beard'});
+  if(new URLSearchParams(location.search).has('ronaldinho'))Object.assign(window.fixture.careerPresidentBase.appearance,{hair:'ronaldinho-2005-hair',beard:'messi-2023-beard'});
+  if(new URLSearchParams(location.search).has('puyol'))Object.assign(window.fixture.careerPresidentBase.appearance,{hair:'puyol-2010-hair',beard:'messi-2023-beard'});
+}
+function App(){const[s,S]=React.useState(window.fixture);const send=action=>{const next=reducer(s,action);window.fixture=next;S(next);return next!==s};return React.createElement(PresidenciaClube,{state:s,mgrId:7,member:testMember,onBack:()=>{},onStadium:()=>window.stadiumClicks=(window.stadiumClicks||0)+1,onRoof:closed=>send({type:'PRESIDENCY_ROOF',mgrId:7,closed}),onSave:value=>send({type:'PRESIDENCY_SAVE_BASE',mgrId:7,value}),onTrade:quote=>send({type:'PRESIDENCY_TRADE',mgrId:7,quote,confirmed:true}),onDisplay:display=>send({type:'PRESIDENCY_DISPLAY',mgrId:7,display})})}
+createRoot(document.getElementById('root')).render(React.createElement(App));
+</script></html>

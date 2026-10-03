@@ -1,0 +1,11 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teste local · Primeiro acesso</title><div id="root"></div><script type="module">
+import React from 'react';import{createRoot}from'react-dom/client';
+import{PresidenciaEntrada}from'./src/escalacao/presidencia-entrada.tsx';
+import{salvarPresidenteNaCarreira}from'./src/escalacao/presidencia-carreira.ts';
+import './src/index.css';
+// Apenas fixture de teste: sem sessão, banco ou moedas de jogador.
+window.fixture={careerOnline:true,onlineMode:'cpu',youIdx:0,managers:[{id:7,isHuman:true}],careerCoins:{7:123},seasonNo:8,round:20,careerHonors:{m7:{A:3}},stadiums:{7:{inv:{grama:20},ext:[]}},careerPresidency:{7:{revision:3,owned:[{id:'fusca',paid:30}]}},careerPresident:{name:'Presidente antigo',outfit:'terno'}};
+window.original=JSON.stringify(window.fixture);window.fail=true;window.calls=0;window.backs=0;
+function App(){const [s,setS]=React.useState(window.fixture);return React.createElement(React.Fragment,null,React.createElement('p',null,'TESTE LOCAL · DADOS SIMULADOS · NÃO PUBLICADO'),React.createElement(PresidenciaEntrada,{saved:s.careerPresidentBase,legacy:s.careerPresident,onBack:()=>window.backs++,onSave:async value=>{window.calls++;await new Promise(r=>setTimeout(r,100));if(window.fail)return false;const r=salvarPresidenteNaCarreira(s,7,value);if(r.ok){window.fixture=r.value;setS(r.value)}return r.ok}},p=>React.createElement('h1',{'data-office':true},'SALA: '+p.name)))}
+const root=createRoot(document.getElementById('root'));root.render(React.createElement(App));window.reopen=()=>root.render(React.createElement(App,{key:'reopened'}));
+</script></html>

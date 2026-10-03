@@ -142,7 +142,7 @@ export interface WonCard extends Card {
 export interface LedgerEntry {
   id: string
   season: number // temporada do lançamento
-  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' | 'socio' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF · obra no estádio · compra da SAF · venda da SAF · saldo inicial · renda do empresário · bico de folga · brinde de sócio
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' | 'socio' | 'presidency' // bens da presidência separados de transferências de jogadores
   label: string
   amount: number // sinal: + entrada, − saída
   player?: string // compra/venda: nome do jogador
@@ -979,6 +979,8 @@ export interface EscState {
     name: string
     outfit: 'casual' | 'polo' | 'social' | 'terno'
   }
+  careerPresidentBase?: import('./presidencia-carreira').PresidenteBaseSave
+  careerPresidency?: Record<number, import('./presidencia-carreira').BensPresidencia>
   careerTitles: number // títulos acumulados na carreira atual (qualquer divisão)
   careerTitlesA: number // títulos da SÉRIE A (viram estrelas ⭐ no escudo)
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira

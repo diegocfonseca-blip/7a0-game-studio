@@ -1,0 +1,18 @@
+.vg-ground{position:absolute;isolation:isolate;pointer-events:none}
+.vg-ground[data-position="0"]{left:5%}
+.vg-ground[data-position="1"]{right:5%}
+.vg-garage{bottom:4%;width:39%}
+.vg-garage.vg-bike{width:24%}
+.vg-room{bottom:3%;width:30%}
+.vg-room.vg-bike{width:17%}
+.vg-room[data-position="0"]{left:3%}
+.vg-room[data-position="1"]{right:3%}
+.vg-ground .vg-ambient,.vg-ground .vg-contact{position:absolute;display:block;pointer-events:none;z-index:0}
+.vg-ambient{left:1%;top:72%;width:99%;height:31%;background:radial-gradient(ellipse,#17110ded 0%,#17110daa 34%,#17110d50 58%,transparent 74%);transform:rotate(-9deg);filter:blur(2px)}
+.vg-bike .vg-ambient{left:0;top:79%;width:97%;height:24%;transform:rotate(12deg)}
+.vg-contact{transform:translate(-50%,-45%);background:radial-gradient(ellipse,#100d0bec 12%,#100d0bb3 42%,transparent 73%);filter:blur(.4px)}
+.gv-scene .vg-ground img.gv-vehicle,.pr-window.pr-vehicles .vg-ground img{position:relative;inset:auto;display:block;width:100%;height:auto;max-height:none;object-fit:contain;z-index:1;filter:brightness(.94) saturate(.92)}
+.pr-window.pr-vehicles .vg-ground img[data-position]{left:auto;right:auto}
+.vg-ground:not([data-art-state="ready"]) .vg-ambient,.vg-ground:not([data-art-state="ready"]) .vg-contact,.vg-ground:not([data-art-state="ready"]) img{visibility:hidden}
+.vg-art-error{position:absolute;inset:20% 0 auto;display:block;padding:5px;border:2px solid #0c0c0c;border-radius:6px;background:#f4ecd6;color:#0c0c0c;font:700 clamp(8px,1.2vw,13px) Oswald,sans-serif;text-align:center}
+.vg-room .vg-art-error{inset:auto 0 0;padding:2px;border-width:1px;font-size:clamp(7px,1vw,11px);line-height:1.2}

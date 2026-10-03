@@ -1596,12 +1596,12 @@ const logoPronta = (n: string) => {
 // ─── 🛡️ o componente ──────────────────────────────────────────────────────
 // `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos
 // e com traço mais grosso (o que lê na tabela é a silhueta + a cor).
-export function Escudo({ nome: nomeCru, size = 30, title }: { nome: string; size?: number; title?: string }) {
+export function Escudo({ nome: nomeCru, size = 30, title, automatic=false }: { nome: string; size?: number; title?: string; automatic?:boolean }) {
   const nome = nomeLimpo(nomeCru) || nomeCru // 🧼 mesmo escudo com ou sem o selo do tier
   // logo artesanal: bate pelo nome EXATO; se não achar, tenta o nome ATUAL do
   // batismo (save antigo que ficou com o nome velho — ex.: "Cuiabagre" →
   // "Império Samambaia"). Assim a logo comprada aparece mesmo em carreira antiga.
-  const pronta = logoPronta(nome) ?? logoPronta(newestTeamName(nome))
+  const pronta = automatic ? null : logoPronta(nome) ?? logoPronta(newestTeamName(nome))
   if (pronta) return <>{pronta(size)}</>
   const d = escudoDe(nome)
   const mini = size < 40

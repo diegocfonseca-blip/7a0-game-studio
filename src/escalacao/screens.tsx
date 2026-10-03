@@ -22,6 +22,13 @@ import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
 import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
+import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
+import {PresidenteFormulario} from './presidente-formulario'
+import {usePresidentOutfitTier,getPresidentOutfitTier} from './presidente-tier-conta'
+import {podeVestirModular} from './presidente-vestuario-acesso'
+import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
+import {CriarClubePresidencia} from './presidencia-criar-clube'
+import {identidadeDaConta} from './presidencia-identidade-conta'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
@@ -2523,7 +2530,14 @@ export function EscSetup() {
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
   const career = state.careerIntent
-  const privatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
+  const legacyPrivatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
+  const presidentAccount = usePresidentPreview()
+  const modularSetup = presidentAccount && PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
+  // Keep the account check alive between the editor and final career step.
+  usePresidentOutfitTier(career && modularSetup)
+  const privatePreview = modularSetup || legacyPrivatePreview
+  const setupMember = useMeuSocio()
+  const [presidentDraft,setPresidentDraft] = useState(()=>sugestaoPresidente(undefined))
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -2572,6 +2586,7 @@ export function EscSetup() {
   }, [])
 
   async function start() {
+    if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { setPrivateStep(2); return }
     const clean = stripEmoji(name).trim()
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
     if (accountName !== null && clean && clean !== accountName) {
@@ -2594,6 +2609,10 @@ export function EscSetup() {
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
+      if(modularSetup&&!podeVestirModular(presidentDraft.outfit,getPresidentOutfitTier())){
+        setNameErr(tr('Não foi possível confirmar o acesso a esta roupa. Confira seu plano ou escolha uma gratuita.','Could not confirm access to this outfit. Check your plan or choose a free outfit.'))
+        setPrivateStep(2);return
+      }
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
       // começar a nova. A nova vira a ativa; a antiga fica em "Minhas Carreiras".
       stashActiveBeforeNew()
@@ -2601,6 +2620,7 @@ export function EscSetup() {
         type: 'START_CAREER_SOLO', teamName: clean, formation, rivals,
         rivalTeams: picks, league: 'both', intro: true,
         president: privatePreview ? { name: stripEmoji(presidentName).trim() || 'Presidente', outfit: presidentOutfit } : undefined,
+        presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
     else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, holandes, clubes: clubesOn && clubes, intro: true })
@@ -2618,6 +2638,8 @@ export function EscSetup() {
       setNameErr(''); setPrivateStep(2)
     }
     const nextFromPresident = () => setPrivateStep(3)
+    if(modularSetup&&privateStep===1)return <Shell hideExit><CriarClubePresidencia name={name} onName={v=>{setName(stripEmoji(v));setNameErr('')}} formation={formation} onFormation={setFormation} identity={identidadeDaConta(name,setupMember,myApoioPerk()?.solid??APOIO_PERKS.bege.solid)} error={nameErr} onContinue={nextFromClub} onBack={()=>dispatch({type:'GO_LOBBY'})} support={<ApoieButton startScreen="batismo" trigger={open=><Btn onClick={open}>{tr('CONHECER O BATISMO','EXPLORE BAPTISM')}</Btn>}/>} /></Shell>
+    if(modularSetup&&privateStep===2)return <Shell hideExit><PresidenteFormulario value={presidentDraft} error={nameErr} onChange={v=>{setPresidentDraft(v);setNameErr('')}} onConfirm={nextFromPresident} onBack={()=>setPrivateStep(1)}/></Shell>
     return (
       <Shell className="ll-career-onboarding" hideExit>
         <main className={`ll-career-setup ll-career-step-${privateStep}`} style={{ '--career-room': `url(${careerSetupRoom})` } as CSSProperties}>

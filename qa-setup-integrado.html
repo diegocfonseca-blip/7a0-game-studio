@@ -1,0 +1,6 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QA local setup integrado</title><div id="root"></div><script type="module">
+import React from 'react';import{createRoot}from'react-dom/client';import './src/index.css';
+import{EscProvider,useEsc}from'./src/escalacao/store.tsx';import{EscSetup}from'./src/escalacao/screens.tsx';
+function App(){const{state,dispatch}=useEsc();React.useEffect(()=>dispatch({type:'GO_SETUP_CAREER'}),[]);window.setupState=state;window.setupDispatch=dispatch;return state.screen==='setup'?React.createElement(EscSetup):React.createElement('p',null,state.screen);}
+createRoot(document.getElementById('root')).render(React.createElement(EscProvider,null,React.createElement(App)));
+</script></html>
