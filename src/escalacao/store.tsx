@@ -7035,7 +7035,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       // seed do leilão: código da sala. No "novo leilão" (rematch) recebe um
       // salt → sorteia jogadores NOVOS. Como só o HOST monta e transmite (o
       // convidado copia via SYNC_STATE), o salt não precisa ser determinístico.
-      s.seed = hashCode(action.roomCode + (action.rematch ? '#' + action.rematch : ''))
+      // 🏆 MINHAS LIGAS (04/10): a temporada entra na semente. Sem isso toda largada da sala de
+      // espera repetia a MESMA ordem de cartas no pregão (mesma semente = mesmo sorteio) e, pior,
+      // a estante de troféus, que guardava a linha por semente, apagava a 1ª temporada da largada
+      // anterior (liga KD1TUL). Continua determinística: o número da temporada vem do banco e é o
+      // mesmo em todo aparelho.
+      s.seed = hashCode(action.roomCode + (action.liga ? '#t' + (action.seasonNo ?? 1) : '') + (action.rematch ? '#' + action.rematch : ''))
       const rng = mulberry(s.seed)
       // a tabela sempre tem 20 times: os que faltam viram bots com elenco
       // pronto (não brigam no leilão — só os humanos disputam as cartas).
