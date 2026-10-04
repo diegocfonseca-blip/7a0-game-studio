@@ -16,7 +16,10 @@ try {
     const soma = c.cartas.reduce((s, x) => s + VALOR_CATEGORIA[m.categoriaDe(x)], 0)
     assert.equal(c.premio, Math.max(1, Math.ceil(soma)), `${c.clube}: prêmio = soma arredondada pra cima`)
   }
-  assert.ok(!COLECOES.some(c => c.clube === 'Inter Miami'), 'Inter Miami (4 cartas) não é coleção')
+  // clube com menos de 11 cartas fica no Diversos; com 11+ vira coleção sozinho (Inter Miami virou no Lote 42)
+  const porClube = new Map(); for (const c of m.BARALHO_TODO) porClube.set(c.club, (porClube.get(c.club) ?? 0) + 1)
+  for (const [clube, n] of porClube) assert.equal(COLECOES.some(c => c.clube === clube), n >= MIN_CARTAS_CLUBE, `${clube} (${n} cartas)`)
+  assert.ok(COLECOES.some(c => c.clube === 'Inter Miami'), 'Inter Miami virou coleção com o Lote 42')
   // fechar = TODAS as cartas
   const pen = COLECOES.find(c => c.clube === 'Peñarol')
   let id = 0
