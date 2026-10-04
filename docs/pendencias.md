@@ -18,6 +18,11 @@
   virou o ano, lista nova). A Central mostra os 5 maiores e "ver os N negócios" abre o resto. Carreira que já estava
   no meio da temporada só enche no próximo pregão (até lá cai nas compras do extrato). O Martelo ganhou "💰 Maior
   lance da temporada". Borda do giro saiu do dourado (misturava com o camarote) e virou creme.
+- 🖥️ 5º ajuste (04/10, *"agora sim, muito melhor e mais organizado e perfeito"*): a AGENDA desceu pra baixo do giro
+  (sem agenda em cima) e as duas colunas ESTICAM juntas — o fim do Mercado cai na mesma linha do fim da tabela
+  (`align-items: stretch` + mercado `flex: 1`, botão "ver os N negócios" no pé). Pra fechar a altura: 8 negócios e
+  até 9 notícias no monitor (celular segue 5 e 5). ⚠️ `flex: 0 0 100%` das caixas do celular vira 100% de ALTURA
+  numa coluna flex — por isso o Mercado sumiu na 1ª foto; no desktop as caixas da direita voltam a `flex: 0 0 auto`.
 - 🖥️ 4º ajuste (03/10, print dele): no desktop a TABELA vai INTEIRA (20 linhas) à esquerda embaixo, com o GIRO DA
   RODADA INTEIRO ao lado, no padrão creme das caixas; a AGENDA (pequena) subiu pro lugar do giro, em linha, abaixo
   do camarote. Celular não mudou (giro com 3 jogos, tabela com 5). Grade por `grid-template-areas` em `central.css`;
