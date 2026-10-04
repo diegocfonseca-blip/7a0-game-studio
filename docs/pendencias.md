@@ -10,10 +10,17 @@
   inteiro só desce quando outro aparelho salvou depois. Trava: `npm run nuvem`.
 - ⚠️ Consequência aceita: quem fecha o jogo sem apertar "Sair e salvar" continua com a carreira no aparelho, mas não
   na nuvem (trocar de celular leva o que foi salvo pelo botão).
-- ⏭️ Mensagens ao vivo (US$ 65): vêm das salas online — o "tô vivo" do dono a cada 4s pra todo mundo + o estado a cada
-  jogada. Dá pra espaçar o "tô vivo", mas ele segura o aviso de dono sumido e a ressincronização (o convidado pede o
-  estado depois de 10s calado, `store.tsx`). Mexer só com cuidado e com OK dele. Conferir a fatura uns dias depois do
-  deploy pra medir quanto o egress caiu.
+- 📡 Mensagens ao vivo (US$ 65, ~36 milhões no mês contra 5 milhões da cota): o "tô vivo" do dono saía a cada 4s pra
+  cada pessoa da sala, mesmo parado (15 recados/min por convidado). Ele servia pra segurar o convidado de pedir o estado
+  depois de 10s calado, acertar o relógio e acender a faixa vermelha — tudo já tem outro caminho. Diego: *"não ligo
+  praquela faixa vermelha mesmo… ok pode fazer"*.
+  ✅ Feito no branch (04/10): (1) sem "tô vivo"; (2) heartbeat de estado do dono só depois de 20s quieto, conferindo a
+  cada 10s (era 12s/6s); (3) convidado pede estado só depois de 60s calado, ou em 8s se o PRÓPRIO lance ficou sem
+  resposta (`acaoPendenteRef`), e consulta a coroa no banco só depois de 45s (era 6s); (4) `hostInbox = true` pra toda
+  sala — o lance do convidado vai só pro dono (era só Champions). Coroa, SAIR, dono que volta: nada mudou. Trava:
+  `npm run canal`. ⚠️ **Não deu pra testar com 2 aparelhos daqui** (o Supabase não responde de dentro da bancada): a
+  primeira sala de verdade depois do deploy é o teste — acompanhar `esc_travas` e o log do Realtime.
+  ⏭️ Conferir a fatura uns dias depois do deploy (egress e mensagens).
 
 ## 03/10/2026 — 📺 CENTRAL LEGENDS, a home do modo carreira ✅ NO AR PRA TODOS (liberada em 03/10: *"pode publicar pra todos já!!"*)
 - Pedido: *"queria alguma central no modo carreira… giro da rodada, notícias, transferências… precisa ter alguma

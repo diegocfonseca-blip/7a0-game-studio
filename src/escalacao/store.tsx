@@ -6973,7 +6973,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
-      s.hostInbox = s.copaMode === 'champions' // 📮 só a sala de Champions usa a caixa de entrada do host
+      // 📮 TODA sala usa a caixa de entrada do host (04/10; antes só a Champions, desde 25/09). O
+      // recado do convidado vai SÓ pro dono em vez de ser entregue pra sala inteira — numa sala de 5,
+      // é 1 entrega em vez de 4 por lance. Mesma estrada da Champions, com os mesmos reservas: se a
+      // entrega falhar cai no rádio de sempre, e o lance ainda tem o caminho do banco (`room_acoes`).
+      // (Em 25/09 o Diego pediu pra ficar SÓ na Champions; em 04/10, por causa da fatura das
+      // mensagens, aprovou pra todas: *"ok pode fazer"*.)
+      s.hostInbox = true
       // 🧹 FAXINA ANTI-CARREIRA (bug achado pelo Diego 19/08, testando na conta dele).
       // O reducer clona o estado ANTERIOR. Quem saía de uma carreira (ou da Dinastia)
       // e entrava numa SALA ONLINE levava o `careerDivision` junto — e a sala online
@@ -11264,6 +11270,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Gesto seu de verdade (criar sala, botão RETOMAR AQUI, reassunção após o
   // sumiço confirmado do host) entra com posse PLENA, sem espera.
   const acaoReservaTsRef = useRef(0)   // 📮 última escrita do lance no caminho reserva
+  const acaoPendenteRef = useRef(0)    // ⏳ convidado: quando mandei o último recado que ainda não teve estado de volta (0 = nenhum)
   const selaReservaTsRef = useRef(0)   // 📮 última escrita do "fecha o envelope" no caminho reserva
   const acoesVistasRef = useRef(0)     // 📮 último id de room_acoes que o host já aplicou
   const claimForcadoRef = useRef(true)
@@ -11408,6 +11415,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (!inboxRef.current || inboxRef.current.sala !== rid) inboxRef.current = { sala: rid, ch: supabase.channel(`escalacao-in:${rid}`) }
         inboxRef.current.ch.httpSend('action', action).catch(() => { channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action }) })
       } else channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
+      // ⏳ marca "mandei um recado e ainda não veio estado": é o que deixa o vigia pedir o
+      // estado em 8s (em vez de 60s) quando a resposta do dono se perde no caminho.
+      if (!acaoPendenteRef.current) acaoPendenteRef.current = Date.now()
       // 📮 CAMINHO RESERVA DO LANCE (23/08, salas 1DWIA5 e 5B11LC): o convidado
       // via o host lacrar ("✅ lacrou" na tela dele) mas o LANCE DELE nunca
       // chegava — o rádio (canal realtime) engolia o recado numa direção só, e o
@@ -11497,6 +11507,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // mostra "154s" onde são 75s — o bug que o Diego pegou em 20/09.
         ajustaRelogioSala((payload as { t?: unknown } | null)?.t)
         lastHostMsgRef.current = Date.now() // notícia fresca do host
+        acaoPendenteRef.current = 0 // chegou estado do dono: o meu recado (se havia) já foi considerado
         donoSumidoNoBancoRef.current = false // deu as caras: a acusação cai na hora
         setDonoForaSeg(0)
         jaRecebiEstadoRef.current = true
@@ -11726,33 +11737,32 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // últimos ~12s). No jogo ativo, cada jogada já reenvia o estado, então o heartbeat
   // nem dispara; parado, ele ressincroniza em ~12-18s (e o convidado ainda tem o vigia
   // de 10s como reforço). Mesma proteção, uma fração do tráfego.
+  // 💸 04/10: de "quieto há 12s, confere a cada 6s" (≈5 reenvios/min parado) pra "quieto há
+  // 20s, confere a cada 10s" (≈2/min). É a rede de segurança contra mensagem perdida — o
+  // convidado não precisa mais pedir nada pra ser curado em até ~30s — e, sem o "tô vivo",
+  // é também o que mantém o "dono vivo" do convidado fresco (por isso o vigia dele usa 60s).
+  const HEARTBEAT_QUIETO_MS = 20_000
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
-      if (Date.now() - lastStateSendRef.current < 12000) return // teve jogada recente → já sincronizado
+      if (Date.now() - lastStateSendRef.current < HEARTBEAT_QUIETO_MS) return // teve jogada recente → já sincronizado
       channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
       lastStateSendRef.current = Date.now()
-    }, 6000)
+    }, 10_000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 
-  // 💗 PING "TÔ VIVO" do host: bem mais leve e frequente que o heartbeat de estado.
-  // Só o dono manda, a cada 4s, mesmo PARADO — é o que impede o convidado de achar
-  // que ele caiu só por ficar quieto (a raiz do bug do Sapekeiro). É uma mensagem de
-  // POUCOS BYTES no canal já aberto (não é o estado inteiro), então não pesa no
-  // Realtime/Egress nem escreve no banco. self:false → só os convidados recebem.
-  useEffect(() => {
-    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
-    const iv = setInterval(() => {
-      if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
-      // ⏱️ o "tô vivo" leva o carimbo de hora do dono junto (uns 20 bytes): é a
-      // mensagem mais frequente da sala, então o relógio de quem chega atrasado
-      // acerta em ~4s mesmo com o jogo parado.
-      channelRef.current?.send({ type: 'broadcast', event: 'host_ping', payload: { t: Date.now() } })
-    }, 4000)
-    return () => clearInterval(iv)
-  }, [state.onlineMode, state.isHost, state.roomId])
+  // 💗 O PING "TÔ VIVO" DO HOST NÃO EXISTE MAIS (04/10, fatura do Supabase: ~36 milhões de
+  // mensagens no mês, cota do plano 5 milhões). Ele saía a cada 4s, pra cada pessoa da sala,
+  // mesmo com o jogo parado — 15 recados por minuto por convidado, quase metade da conta.
+  // Pra que servia: (1) segurar o convidado de pedir o estado inteiro depois de 10s de
+  // silêncio — agora o convidado só pede depois de 60s, ou em 8s se o PRÓPRIO lance ficou sem
+  // resposta (`acaoPendenteRef`); (2) acertar o relógio de quem chegou atrasado — todo estado
+  // já leva o carimbo de hora (`pacoteDeEstado`); (3) acender a faixa vermelha de dono sumido —
+  // desde 22/08 ela só acende com prova do BANCO. Palavras do Diego ao tirar: *"não ligo
+  // praquela faixa vermelha mesmo"*. O convidado continua OUVINDO `host_ping` (logo acima)
+  // só pra conviver com dono em versão antiga na janela do deploy.
 
   // 🪑 REGRA DE OURO — UM DONO SÓ: o dono confere no banco quem é o host_id (a
   // ÚNICA verdade). Se a posse já é de OUTRO (um convidado assumiu num failover
@@ -12148,7 +12158,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
     lastHostMsgRef.current = Date.now() // zera ao (re)entrar nessa vigília
     donoSumidoNoBancoRef.current = false // entrou agora: ninguém é acusado sem prova
     const iv = setInterval(() => {
-      const stale = Date.now() - lastHostMsgRef.current > 10_000 // 10s calados: já pede o estado (barato e inofensivo)
+      // 💸 04/10 (sem o "tô vivo"): o dono parado só fala a cada ~20-30s (heartbeat de estado),
+      // então silêncio normal vai até 60s. A exceção é o MEU lance sem resposta: aí 8s já é
+      // motivo pra pedir o estado — é o único caso em que a espera dói pra quem está jogando.
+      const caladoMs = Date.now() - lastHostMsgRef.current
+      const meuLanceSemResposta = acaoPendenteRef.current > 0 && Date.now() - acaoPendenteRef.current > 8_000
+      const stale = caladoMs > 60_000 || (meuLanceSemResposta && caladoMs > 8_000)
       // 🔴 O BANNER SÓ SOBE COM PROVA (Diego 22/08, sala NOYI87). O print dele
       // mostrava "o dono da sala caiu" às 17:39 — e o banco mostrava o dono
       // GRAVANDO a partida às 17:38:31. Ou seja: o dono estava vivo, e o aviso
@@ -12371,7 +12386,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // é exatamente quem está no problema: o aparelho que não ouve host NENHUM —
     // porque o host é ele mesmo e ele não sabe.
     const iv = setInterval(() => {
-      if (Date.now() - lastHostMsgRef.current < 6_000) return // tem dono vivo falando: nada a fazer
+      // 45s, não 6s (04/10): sem o "tô vivo", o dono parado só fala a cada ~20-30s. Com 6s todo
+      // convidado de toda sala voltaria a consultar o banco a cada 4s entre um estado e outro.
+      if (Date.now() - lastHostMsgRef.current < 45_000) return // tem dono vivo falando: nada a fazer
       if (Date.now() - voltaCoroaRef.current < 3_500) return
       voltaCoroaRef.current = Date.now()
       void conferir()
