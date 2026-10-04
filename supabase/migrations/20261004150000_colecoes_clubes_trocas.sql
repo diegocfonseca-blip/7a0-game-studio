@@ -1,10 +1,10 @@
 -- 📚🤝 COLEÇÕES DE CLUBES + TROCAS DE CARTAS (04/10, regras fechadas com o Diego)
 --
--- Coleção: 11 cartas DIFERENTES do mesmo clube fecham o time. O jogador aperta "Receber",
+-- Coleção: TODAS as cartas de um clube (clube com 11+ no baralho) fecham o time. O jogador aperta "Receber",
 -- escolhe a carreira, e as moedas caem no caixa dela (isso é no aparelho, o save é local).
 -- Aqui no banco fica só o que impede usar a mesma carta duas vezes: `esc_cartas_usadas`.
 -- A carta usada CONTINUA no álbum (a linha de user_cards não muda); ela só deixa de contar
--- pra fechar o clube de novo. Fechar de novo = mais 11 cartas (repetidas valem).
+-- pra fechar o clube de novo. Fechar de novo = o clube inteiro outra vez (repetidas valem).
 --
 -- Troca: proposta com até 3 cartas de cada lado + recado de até 120 letras, vale 48 h.
 -- Aceitar troca o dono das cartas NO SERVIDOR, os dois lados de uma vez (nada fica pela
@@ -67,20 +67,24 @@ language sql stable security definer set search_path to 'public' as $$
       and (p_card = any(t.de_cartas) or p_card = any(t.para_cartas)))
 $$;
 
--- 📚 RECEBER UMA COLEÇÃO: marca as 11 cartas como usadas naquela carreira.
-create or replace function public.esc_colecao_receber(p_cards uuid[], p_seed text, p_nome text)
+-- 📚 RECEBER UMA COLEÇÃO: marca uma cópia de cada carta do clube como usada naquela carreira.
+-- O banco não conhece o baralho; quem diz quantas cartas o clube tem é o jogo (p_total). Aqui se
+-- garante o que importa pra não gastar duas vezes: as cartas são da pessoa, são do mesmo clube, são
+-- todas diferentes, nenhuma já foi usada e nenhuma está presa numa troca aberta.
+create or replace function public.esc_colecao_receber(p_cards uuid[], p_seed text, p_nome text, p_total int)
 returns jsonb language plpgsql security definer set search_path to 'public' as $$
-declare v_uid uuid := auth.uid(); v_n int; v_clube text; v_distintas int; v_c uuid;
+declare v_uid uuid := auth.uid(); v_n int; v_clubes int; v_clube text; v_distintas int; v_c uuid;
 begin
   if v_uid is null then raise exception 'sem conta'; end if;
   if p_seed is null or length(p_seed) = 0 then raise exception 'carreira obrigatoria'; end if;
+  if p_total is null or p_total < 11 or p_total > 300 then raise exception 'clube invalido'; end if;
   v_n := coalesce(array_length(p_cards, 1), 0);
-  if v_n <> 11 or (select count(distinct x) from unnest(p_cards) x) <> 11 then raise exception 'precisa de 11 cartas'; end if;
-  if (select count(*) from public.user_cards where id = any(p_cards) and user_id = v_uid) <> 11 then raise exception 'carta que nao e sua'; end if;
+  if v_n <> p_total or (select count(distinct x) from unnest(p_cards) x) <> v_n then raise exception 'faltam cartas do clube'; end if;
+  if (select count(*) from public.user_cards where id = any(p_cards) and user_id = v_uid) <> v_n then raise exception 'carta que nao e sua'; end if;
   select min(card_club), count(distinct card_club), count(distinct (card_name, card_club, card_year))
-    into v_clube, v_n, v_distintas from public.user_cards where id = any(p_cards);
-  if v_n <> 1 then raise exception 'cartas de clubes diferentes'; end if;
-  if v_distintas <> 11 then raise exception 'precisa de 11 jogadores diferentes'; end if;
+    into v_clube, v_clubes, v_distintas from public.user_cards where id = any(p_cards);
+  if v_clubes <> 1 then raise exception 'cartas de clubes diferentes'; end if;
+  if v_distintas <> v_n then raise exception 'carta repetida na colecao'; end if;
   if exists (select 1 from public.esc_cartas_usadas where card_id = any(p_cards)) then raise exception 'carta ja usada'; end if;
   foreach v_c in array p_cards loop
     if public.esc_carta_presa(v_c) then raise exception 'carta presa numa troca'; end if;
@@ -196,7 +200,7 @@ language sql stable security definer set search_path to 'public' as $$
   limit 15
 $$;
 
-grant execute on function public.esc_colecao_receber(uuid[], text, text) to authenticated;
+grant execute on function public.esc_colecao_receber(uuid[], text, text, int) to authenticated;
 grant execute on function public.esc_troca_propor(uuid, uuid[], uuid[], text, text, text, bigint) to authenticated;
 grant execute on function public.esc_troca_responder(bigint, boolean) to authenticated;
 grant execute on function public.esc_troca_cancelar(bigint) to authenticated;

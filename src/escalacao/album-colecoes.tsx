@@ -1,6 +1,6 @@
 // 📚🤝 ÁLBUM: abas COLEÇÕES e TROCAS (04/10, mockup v2 aprovado com o Diego — "ok vamos fazer").
 //
-// Coleções: 11 cartas diferentes do mesmo clube fecham o time. "Receber" pergunta a carreira, o
+// Coleções: TODAS as cartas de um clube (com 11+ no baralho) fecham o time. "Receber" pergunta a carreira, o
 // servidor marca as 11 como usadas (esc_colecao_receber) e o aparelho põe as moedas no caixa dela
 // (creditaColecao). A carta usada continua no álbum, escurecida, e não conta mais pra aquele clube.
 // Trocas: proposta com até 3 cartas de cada lado + recado de até 120 letras, vale 48 h. Aceitar
@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { useT } from './lang'
-import { COLECOES, progressoDas, ordenaProgresso, escolhe11, colecoesNovas, chaveCarta, CARTAS_POR_COLECAO, type MinhaCarta, type Progresso } from './colecoes'
+import { COLECOES, progressoDas, ordenaProgresso, escolheCopias, colecoesNovas, chaveCarta, type MinhaCarta, type Progresso } from './colecoes'
 import { creditaColecao, carreirasParaReceber, type CarreiraParaReceber } from './store'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', VERDE = '#1B7A3D', ROXO = '#7C3AED', VERM = '#E8503A'
@@ -42,6 +42,17 @@ function MiniCarta({ c, sel, onClick, selo, apagada }: { c: { name: string; club
   )
 }
 
+/** a carta que FALTA na coleção: tracejada, com o nome, pra pessoa saber o que caçar */
+function Falta({ c }: { c: { name: string; club: string; year: number; pos: string } }) {
+  return (
+    <div style={{ border: '2.5px dashed rgba(0,0,0,.4)', borderRadius: 10, padding: '5px 7px', background: 'repeating-linear-gradient(135deg,#EDE4C8 0 6px,#E4D9B9 6px 12px)', color: 'rgba(0,0,0,.55)', minWidth: 0, overflow: 'hidden' }}>
+      <span style={{ ...OSW, fontSize: 9, background: 'rgba(0,0,0,.35)', color: '#fff', borderRadius: 4, padding: '0 4px' }}>{c.pos}</span>
+      <span style={{ ...OSW, display: 'block', fontSize: 12, lineHeight: 1.1, marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>? {c.name}</span>
+      <span style={{ display: 'block', fontSize: 9.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.year}</span>
+    </div>
+  )
+}
+
 // ─── 📚 COLEÇÕES ───────────────────────────────────────────────────────────
 const PENDENTE_KEY = 'esc-colecao-pendente'
 type Pendente = { seed: number; moedas: number; marca: string }
@@ -64,8 +75,8 @@ export function AbaColecoes({ minhas, recarregar }: { minhas: CartaDoAlbum[]; re
   return (
     <div>
       <p style={{ fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '0 2px 10px' }}>
-        {t(`11 cartas diferentes do mesmo clube fecham o time · ${COLECOES.length} clubes · ${prontas} pronta${prontas === 1 ? '' : 's'} pra receber`,
-          `11 different cards from the same club complete the team · ${COLECOES.length} clubs · ${prontas} ready to collect`)}
+        {t(`Junte TODAS as cartas de um clube pra fechar · ${COLECOES.length} clubes · ${prontas} pronta${prontas === 1 ? '' : 's'} pra receber`,
+          `Collect ALL the cards of a club to complete it · ${COLECOES.length} clubs · ${prontas} ready to collect`)}
       </p>
       {aviso && <p role="status" style={{ ...caixa({ background: '#FFF3C4', marginBottom: 10 }), fontSize: 13 }}>{aviso}</p>}
       {lista.map(p => {
@@ -78,9 +89,9 @@ export function AbaColecoes({ minhas, recarregar }: { minhas: CartaDoAlbum[]; re
             <button onClick={() => setAberta(aberto ? null : c.clube)} style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <span style={{ ...OSW, fontSize: 17, lineHeight: 1.05 }}>{c.clube}{novas.has(c.clube) && <span style={{ ...OSW, fontSize: 10, background: VERM, color: '#fff', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, marginLeft: 6, verticalAlign: 'middle' }}>{t('🆕 nasceu agora', '🆕 just born')}</span>}</span>
-                <span style={{ ...OSW, fontSize: 11, padding: '3px 8px', border: `2px solid ${INK}`, borderRadius: 999, whiteSpace: 'nowrap', background: p.pronta ? VERDE : '#fff', color: p.pronta ? '#fff' : INK }}>{p.pronta ? t('✅ 11 de 11', '✅ 11 of 11') : `${p.livres} ${t('de', 'of')} ${CARTAS_POR_COLECAO}`}</span>
+                <span style={{ ...OSW, fontSize: 11, padding: '3px 8px', border: `2px solid ${INK}`, borderRadius: 999, whiteSpace: 'nowrap', background: p.pronta ? VERDE : '#fff', color: p.pronta ? '#fff' : INK }}>{p.pronta ? '✅ ' : ''}{p.livres} {t('de', 'of')} {p.total}</span>
               </div>
-              <div style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#EFE6CC', margin: '7px 0 5px', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${(p.livres / CARTAS_POR_COLECAO) * 100}%`, background: VERDE }} /></div>
+              <div style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#EFE6CC', margin: '7px 0 5px', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${(p.livres / p.total) * 100}%`, background: VERDE }} /></div>
               <p style={{ fontSize: 12, color: 'rgba(0,0,0,.72)' }}>
                 {t('Prêmio', 'Prize')}: <b>{c.premio} 🪙</b>
                 {p.recebidas > 0 && <> · {t(`recebida ${p.recebidas}x`, `collected ${p.recebidas}x`)}</>}
@@ -89,13 +100,14 @@ export function AbaColecoes({ minhas, recarregar }: { minhas: CartaDoAlbum[]; re
             </button>
             {aberto && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 9 }}>
-                {[...porChave.values()].map(copias => {
+                {c.cartas.map(cb => {
+                  const copias = porChave.get(chaveCarta(cb))
+                  if (!copias) return <Falta key={chaveCarta(cb)} c={cb} />
                   const livres = copias.filter(x => !x.usadaEm && !x.presa).length
                   const usada = copias.find(x => x.usadaEm)
-                  return <MiniCarta key={chaveCarta(copias[0])} c={copias[0]} selo={copias.length > 1 ? `x${copias.length}` : undefined}
+                  return <MiniCarta key={chaveCarta(cb)} c={copias[0]} selo={copias.length > 1 ? `x${copias.length}` : undefined}
                     apagada={livres === 0 ? (usada ? <>{t('usada', 'used')}<br />{usada.usadaNome ?? ''}</> : t('em troca', 'in a trade')) : undefined} />
                 })}
-                {porChave.size === 0 && <p style={{ gridColumn: '1 / -1', fontSize: 12, color: 'rgba(0,0,0,.6)' }}>{t('Nenhuma carta deste clube ainda. Seja campeão pra ganhar cartas.', 'No cards from this club yet. Win titles to earn cards.')}</p>}
               </div>
             )}
             {p.pronta && <button style={botao(GOLD, INK, { marginTop: 10 })} onClick={() => { setAviso(''); setReceber(p) }}>{t(`🪙 Receber ${c.premio} moedas`, `🪙 Collect ${c.premio} coins`)}</button>}
@@ -116,11 +128,11 @@ function ModalReceber({ p, minhas, onFechar, onFeito }: { p: Progresso; minhas: 
   const c = p.colecao
   async function confirmar() {
     const alvo = carreiras.find(x => x.seed === escolha)
-    const ids = escolhe11(minhas, c.clube)
+    const ids = escolheCopias(minhas, c)
     if (!alvo || !ids) return
     setBusy(true); setErro('')
     try {
-      const { error } = await supabase.rpc('esc_colecao_receber', { p_cards: ids, p_seed: String(alvo.seed), p_nome: alvo.nome })
+      const { error } = await supabase.rpc('esc_colecao_receber', { p_cards: ids, p_seed: String(alvo.seed), p_nome: alvo.nome, p_total: c.cartas.length })
       if (error) throw error
       const marca = `col:${c.clube}:${[...ids].sort()[0]}`
       if (!creditaColecao(alvo.seed, c.premio, marca)) {
@@ -128,7 +140,7 @@ function ModalReceber({ p, minhas, onFechar, onFeito }: { p: Progresso; minhas: 
         onFeito(t('As cartas foram marcadas, mas o aparelho está sem espaço pra gravar as moedas. Elas ficaram guardadas e entram sozinhas na próxima vez que você abrir o álbum.', 'The cards were marked, but this device is out of space to save the coins. They are kept and will be added the next time you open the album.'))
         return
       }
-      onFeito(t(`✅ +${c.premio} 🪙 no caixa do ${alvo.nome}. As 11 cartas do ${c.clube} ficaram marcadas como usadas lá.`, `✅ +${c.premio} 🪙 in ${alvo.nome}'s cash. The 11 ${c.clube} cards are now marked as used there.`))
+      onFeito(t(`✅ +${c.premio} 🪙 no caixa do ${alvo.nome}. As ${c.cartas.length} cartas do ${c.clube} ficaram marcadas como usadas lá.`, `✅ +${c.premio} 🪙 in ${alvo.nome}'s cash. The ${c.cartas.length} ${c.clube} cards are now marked as used there.`))
     } catch (e) {
       const m = String((e as { message?: string })?.message ?? '')
       setErro(/presa/.test(m) ? t('Uma dessas cartas está numa proposta de troca aberta. Cancele a proposta ou espere ela acabar.', 'One of these cards is in an open trade offer. Cancel the offer or wait for it to end.')
@@ -152,7 +164,7 @@ function ModalReceber({ p, minhas, onFechar, onFeito }: { p: Progresso; minhas: 
               </button>
             ))}
             <button disabled={busy || escolha == null} onClick={confirmar} style={botao(VERDE, '#fff', { opacity: busy ? .6 : 1 })}>{busy ? t('Recebendo…', 'Collecting…') : t(`✅ Mandar ${c.premio} 🪙 pro ${carreiras.find(x => x.seed === escolha)?.nome ?? ''}`, `✅ Send ${c.premio} 🪙 to ${carreiras.find(x => x.seed === escolha)?.nome ?? ''}`)}</button>
-            <p style={{ fontSize: 11.5, color: 'rgba(0,0,0,.62)', marginTop: 8, lineHeight: 1.35 }}>{t(`Depois disso, 11 cartas do ${c.clube} ficam marcadas "usadas" nessa carreira. Elas continuam no álbum, mas não contam mais pra fechar o ${c.clube}. Pra receber de novo, junte mais 11.`, `After that, 11 ${c.clube} cards are marked "used" in that career. They stay in the album but no longer count for ${c.clube}. To collect again, gather 11 more.`)}</p>
+            <p style={{ fontSize: 11.5, color: 'rgba(0,0,0,.62)', marginTop: 8, lineHeight: 1.35 }}>{t(`Depois disso, uma carta de cada jogador do ${c.clube} fica marcada "usada" nessa carreira. Elas continuam no álbum, mas não contam mais pra fechar o ${c.clube}. Pra receber de novo, junte o clube inteiro outra vez.`, `After that, one card of each ${c.clube} player is marked "used" in that career. They stay in the album but no longer count for ${c.clube}. To collect again, gather the whole club once more.`)}</p>
           </>}
           {erro && <p role="alert" style={{ fontSize: 12.5, color: VERM, fontWeight: 700, marginTop: 8 }}>{erro}</p>}
           <button onClick={onFechar} style={botao('#fff', INK, { marginTop: 10, fontSize: 13 })}>{t('Voltar', 'Back')}</button>

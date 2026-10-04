@@ -73,6 +73,7 @@
     "nuvem": "node scripts/testa-nuvem.mjs",
     "canal": "node scripts/testa-canal.mjs",
     "estante": "node scripts/testa-estante.mjs",
+    "colecoes": "node scripts/testa-colecoes.mjs",
     "central": "node scripts/testa-central.mjs"
   },
   "dependencies": {

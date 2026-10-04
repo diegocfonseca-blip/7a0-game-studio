@@ -8830,6 +8830,11 @@ export function EscAlbum() {
   useEffect(() => {
     if (!colecoesOn) return
     let vivo = true
+    // 🧪 bancada do vite (sem servidor): álbum de mentira pra fotografar as abas. Some do build.
+    if (import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-colecoes-demo') === '1' } catch { return false } })()) {
+      void import('./colecoes-demo').then(m => { if (!vivo) return; setEu({ id: 'demo', nome: 'Loopesmiranda FC' }); setCopias(m.copiasDemo()); setCards(m.albumDemo()); setAnon(false) })
+      return () => { vivo = false }
+    }
     ;(async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser()
@@ -8856,14 +8861,20 @@ export function EscAlbum() {
     })()
     return () => { vivo = false }
   }, [colecoesOn, recarga])
-  // por figurinha (nome|clube|ano): quantas cópias e quantas usadas — a legenda embaixo da carta
+  // por figurinha (nome|clube|ano): quantas cópias, quantas usadas e quantas em troca — a legenda
+  // embaixo da carta. Nada some do álbum: a usada e a presa numa troca continuam contando aqui.
   const copiasPorChave = useMemo(() => {
-    const m = new Map<string, { n: number; usadas: number; onde?: string }>()
-    for (const c of copias) { const k = `${c.name}|${c.club}|${c.year}`; const v = m.get(k) ?? { n: 0, usadas: 0 }; v.n++; if (c.usadaEm) { v.usadas++; v.onde = c.usadaNome ?? v.onde } m.set(k, v) }
+    const m = new Map<string, { n: number; usadas: number; presas: number; onde?: string }>()
+    for (const c of copias) {
+      const k = `${c.name}|${c.club}|${c.year}`; const v = m.get(k) ?? { n: 0, usadas: 0, presas: 0 }
+      v.n++; if (c.usadaEm) { v.usadas++; v.onde = c.usadaNome ?? v.onde } else if (c.presa) v.presas++
+      m.set(k, v)
+    }
     return m
   }, [copias])
 
   useEffect(() => {
+    if (import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-colecoes-demo') === '1' } catch { return false } })()) return
     ;(async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser()
@@ -8976,14 +8987,15 @@ export function EscAlbum() {
         <div className="grid grid-cols-2 gap-3">
           {shown.map((c, i) => {
             const info = colecoesOn ? copiasPorChave.get(`${c.name}|${c.club}|${c.year}`) : undefined
+            const partes = info ? [
+              info.n > 1 ? `x${info.n}` : '',
+              info.usadas ? tr(`⚫ ${info.usadas} usada${info.usadas > 1 ? 's' : ''}${info.onde ? ` no ${info.onde}` : ''}`, `⚫ ${info.usadas} used${info.onde ? ` in ${info.onde}` : ''}`) : '',
+              info.presas ? tr(`🔒 ${info.presas} em troca`, `🔒 ${info.presas} in a trade`) : '',
+            ].filter(Boolean) : []
             return (
               <div key={i}>
                 <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
-                {info && (info.n > 1 || info.usadas > 0) && (
-                  <p className="text-[10.5px] font-black text-center mt-1.5 text-black/65" style={OSWALD}>
-                    {info.n > 1 ? `x${info.n}` : ''}{info.n > 1 && info.usadas ? ' · ' : ''}{info.usadas ? tr(`${info.usadas} usada${info.usadas > 1 ? 's' : ''}${info.onde ? ` no ${info.onde}` : ''}`, `${info.usadas} used${info.onde ? ` in ${info.onde}` : ''}`) : ''}
-                  </p>
-                )}
+                {partes.length > 0 && <p className="text-[10.5px] font-black text-center mt-1.5 text-black/65" style={OSWALD}>{partes.join(' · ')}</p>}
               </div>
             )
           })}

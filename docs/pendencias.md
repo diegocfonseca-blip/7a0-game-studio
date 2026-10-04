@@ -9,17 +9,17 @@
 - Trocas: aba no álbum (Recebidas · Enviadas · Nova); busca técnico pelo nome do time + quem já jogou com você primeiro,
   com selo de quem tem carta que falta numa coleção sua; até 3 cartas de cada lado; só carta LIVRE (não usada); recado
   de até 120 letras; vale 48 h; Aceitar · Contra (contraproposta) · Recusar; nada sai do álbum até aceitar.
-- 🚧 EM CONSTRUÇÃO no branch (04/10, só a conta do Diego: `COLECOES_GERAL = false` em sport.ts): `colecoes.ts`
-  (baralho dos 3, coleções, prêmio), `album-colecoes.tsx` (abas — ainda NÃO ligadas no álbum), `creditaColecao` /
-  `aplicaSaidasDeTroca` no store, sorteio com Mundo + repetida atrás da trava, migração
-  `20261004150000_colecoes_clubes_trocas.sql` (NÃO aplicada no banco — pediu aprovação). ⚠️ O Diego CORRIGIU a regra
-  depois: **fechar = TODAS as cartas do clube** (não 11) — `escolhe11`/`progressoDas` e a função do banco
-  (`esc_colecao_receber`, que exige 11) precisam mudar antes de ligar. Perguntas abertas pra ele: troca só de
-  REPETIDA ou também a única? Proposta minha: cópia tem 3 estados (🟢 livre · 🔒 em troca · ⚫ usada), álbum mostra tudo
-  com contador, e na troca o jogo escolhe a cópia livre sozinho.
-- ⚠️ A decidir/fazer: o sorteio da carta (`ALL_POOL`, screens.tsx) só usa BR + Europa — os 24 clubes do Mundo não
-  fecham sem ligar o Mundo no sorteio. Banco: repetida exige mudar a regra de unicidade de `user_cards` + tabelas de
-  uso (carta → carreira) e de propostas de troca, com a troca feita por função no servidor (os dois lados de uma vez).
+- ✅ Regras FINAIS (04/10): fechar = **TODAS as cartas do clube** (clube com 11+); prêmio = **soma cheia arredondada
+  pra cima** (Real Madrid 162 · Flamengo 141 · tudo 3.263); troca vale **carta única E repetida**; baralho **Mundo
+  entra no sorteio**. Tabela: `docs/colecoes-clubes.md`. Trava: `npm run colecoes`.
+- 🚧 EM CONSTRUÇÃO no branch, só a conta do Diego (`COLECOES_GERAL = false`, sport.ts): `colecoes.ts` (regra pura),
+  `album-colecoes.tsx` (abas Coleções e Trocas, já ligadas no álbum), `creditaColecao` / `aplicaSaidasDeTroca` no
+  store, sorteio com Mundo + repetida atrás da trava, legenda no álbum (x2 · ⚫ usada · 🔒 em troca — nada some),
+  bancada `esc-colecoes-demo=1` (álbum de mentira, só no vite). Cópia tem 3 estados: 🟢 livre · 🔒 em troca · ⚫ usada;
+  na troca/coleção o jogo escolhe a cópia livre sozinho.
+- ⛔ FALTA pra ligar de verdade: **aplicar a migração `20261004150000_colecoes_clubes_trocas.sql` no banco** (pediu
+  aprovação do Diego e não foi aplicada); testar com conta de verdade (receber + trocar entre duas contas); badge de
+  proposta recebida na home; e o OK visual dele nas fotos das telas reais.
 
 ## 04/10/2026 — 🃏 CARTAS DO ÁLBUM: o Diego quer dar sentido a elas, NENHUMA ideia aprovada ainda
 - Pedido dele: *"as cartas… o pessoal tá ganhando e tá cagando pra elas"*, *"quero algo maior, mais profundo, que dê
