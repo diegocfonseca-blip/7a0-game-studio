@@ -2041,7 +2041,11 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
           <button className="ll-mode ll-career" onClick={onCareer}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Construa a história do seu clube.', "Build your club's story.")}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
         </div>
-        <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
+        {/* 🏛️ Salão + 📖 Meu Álbum lado a lado (Diego 04/10: *"na home coloque meu álbum ao lado do salão de batismo"*) */}
+        <div className="ll-extras">
+          <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
+          <button className="ll-salao-entry ll-album-entry" onClick={onAlbum}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
+        </div>
       </section>
       <footer className="ll-footer">
         <nav aria-label="Mais opções">
