@@ -37,7 +37,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
-import { useEsc, savePyramidCloud, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
+import { useEsc, savePyramidCloud, ultimaSubidaNuvem, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -58,7 +58,7 @@ import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira } from './sport'
 import { CentralCarreira } from './central' // 📺 a home do modo carreira (03/10, só a conta do Diego)
-import type { CentralAgenda, CentralJogo, CentralArte } from './central'
+import type { CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps } from './central'
 import { redacaoDaCentral } from './central-noticias'
 import type { Contratacao } from './central-noticias'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
@@ -7514,6 +7514,45 @@ function PresidenciaPrivate({ president, st, team, season, games, trophies, onNa
   )
 }
 
+// 💾 SALVAR À VISTA na Central (04/10). Desde 04/10 a nuvem só recebe a carreira quando a pessoa aperta
+// salvar, então a Central mostra em que pé a nuvem está e dá o botão. O que o botão faz é EXATAMENTE
+// o que o "🚪 Sair e salvar carreira" já fazia, menos o sair: grava no aparelho e sobe pra nuvem.
+// A conta "jogou N rodadas desde então" vem de `ultimaSubidaNuvem` (anotada pelo `savePyramidCloud`).
+function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
+  const { state } = useEsc()
+  const stRef = useRef(state); stRef.current = state
+  const [logado, setLogado] = useState<boolean | null>(null)
+  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local'>('quieto')
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!ativo) return
+    let vivo = true
+    supabase.auth.getUser().then(r => { if (vivo) setLogado(!!r.data?.user) }, () => { if (vivo) setLogado(false) })
+    const iv = setInterval(() => setTick(x => x + 1), 30_000) // o "há N min" anda sozinho
+    return () => { vivo = false; clearInterval(iv) }
+  }, [ativo])
+  // 🧪 bancada do vite (sem Supabase): finge logado pra fotografar a faixa; a chave some do build
+  const logadoDev = import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-central-dev-logado') === '1' } catch { return false } })()
+  const onClick = useCallback(async () => {
+    const st = stRef.current
+    try { localStorage.setItem('esc-solo-career', JSON.stringify(st)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
+    setFase('salvando')
+    try { await savePyramidCloud(st, true) } catch { /* o local já guardou */ }
+    const subiu = !!ultimaSubidaNuvem(st.seed) && Date.now() - (ultimaSubidaNuvem(st.seed)?.at ?? 0) < 15_000
+    setFase(subiu ? 'salvo' : 'salvo_local'); setTick(x => x + 1)
+    setTimeout(() => setFase('quieto'), 2400)
+  }, [])
+  if (!ativo) return undefined
+  if (fase !== 'quieto') return { estado: fase, onClick }
+  if (logado === false && !logadoDev) return { estado: 'deslogado', onClick }
+  const sub = ultimaSubidaNuvem(state.seed)
+  if (!sub) return { estado: 'nunca', onClick }
+  const ha = Math.floor((Date.now() - sub.at) / 60_000)
+  const mesmaTemporada = (state.seasonNo ?? 1) === sub.seasonNo
+  const atrasado = !mesmaTemporada || (state.round ?? 0) > sub.round
+  return atrasado ? { estado: 'atrasado', ha, rodadas: mesmaTemporada ? (state.round ?? 0) - sub.round : undefined, onClick } : { estado: 'em_dia', ha, onClick }
+}
+
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const privatePreview = useOnlinePreview()
@@ -8989,6 +9028,7 @@ export function PyramidSeasonScreen() {
   // 📺 CENTRAL LEGENDS (03/10): a home da carreira. Só carreira SOLO (no online o ritmo é
   // da sala) e só pra quem tem a chave (`useCentralCarreira` — hoje a conta do Diego).
   const centralOn = useCentralCarreira() && state.onlineMode !== 'online' && !!state.careerOnline && privateCareer
+  const salvarNuvem = useSalvarNuvem(centralOn)
   const tabTocada = useRef(false) // a pessoa já escolheu uma aba nesta visita?
   // a carreira ABRE na Central (é a home). Só na chegada: depois, quem manda é o toque.
   useEffect(() => { if (centralOn && !tabTocada.current) setTab('central') }, [centralOn])
@@ -9326,7 +9366,7 @@ export function PyramidSeasonScreen() {
       return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: avancarRodada }
     })()
     return <CentralCarreira seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
-      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} />
+      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem} />
   }
   return (
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>

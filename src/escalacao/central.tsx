@@ -63,10 +63,46 @@ export type CentralProps = {
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
   botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
+  /** 💾 SALVAR À VISTA (04/10): desde que a nuvem só recebe no botão, ele mora no topo da Central.
+   *  `estado`: 'em_dia' (nuvem igual ao jogo) · 'atrasado' (jogou desde a última subida) · 'nunca' ·
+   *  'deslogado' (só o aparelho) · 'salvando' · 'salvo' (acabou de subir, 2s). `ha` = minutos desde a
+   *  última subida; `rodadas` = quantas rodadas jogou desde então. */
+  salvar?: FaixaSalvarProps
 }
+export type FaixaSalvarProps = { estado: 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local'; ha?: number; rodadas?: number; onClick: () => void }
 
 const ARTES = { copaBr: copaBrArt, copaLeg: copaLegArt, liberta: libertaArt, mundo: mundoArt }
 const FUNDOS: Record<CentralArte, string> = { estadio: estadioArt, copaBr: copaBrArt, copaLeg: copaLegArt, super: superArt, liberta: libertaArt, champions: championsArt, mundial: mundialArt, mundo: mundoArt }
+// 💾 a faixa do SALVAR, logo abaixo do título da Central (04/10). Palavras do Diego ao aprovar a
+// ideia: *"sim, faz"*. Motivo: desde 04/10 a nuvem só recebe a carreira quando a pessoa aperta
+// salvar — então o botão não pode morar só no pé da página. A faixa diz em que pé está a nuvem
+// (em dia · atrasada · nunca · só no aparelho) e o botão sobe na hora.
+function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
+  const t = useT()
+  const ha = (m?: number) => m == null ? '' : m < 1 ? t('agora há pouco', 'just now') : m < 60 ? t(`há ${m} min`, `${m} min ago`) : t(`há ${Math.round(m / 60)} h`, `${Math.round(m / 60)} h ago`)
+  const AMBAR = '#FFB020', VERDE = '#4ADE80', CINZA = '#9A9A9A'
+  const [texto, cor] = ((): [string, string] => {
+    switch (s.estado) {
+      case 'salvando': return [t('⏳ Salvando na nuvem…', '⏳ Saving to the cloud…'), '#fff']
+      case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
+      case 'salvo_local': return [t('✅ Salvo no aparelho', '✅ Saved on this device'), VERDE]
+      case 'deslogado': return [t('📱 Só no aparelho · entre na conta pra guardar na nuvem', '📱 Device only · sign in to keep it in the cloud'), CINZA]
+      case 'nunca': return [t('☁️ Esta carreira ainda não foi salva na nuvem', '☁️ This career was never saved to the cloud'), AMBAR]
+      case 'atrasado': return [s.rodadas ? t(`☁️ Salvo ${ha(s.ha)} · ${s.rodadas} rodada${s.rodadas === 1 ? '' : 's'} desde então`, `☁️ Saved ${ha(s.ha)} · ${s.rodadas} round${s.rodadas === 1 ? '' : 's'} since`) : t(`☁️ Salvo ${ha(s.ha)} · temporada nova desde então`, `☁️ Saved ${ha(s.ha)} · new season since`), AMBAR]
+      default: return [t(`☁️ Salvo na nuvem ${ha(s.ha)} · tudo em dia`, `☁️ Saved to the cloud ${ha(s.ha)} · up to date`), VERDE]
+    }
+  })()
+  const ocupado = s.estado === 'salvando'
+  return (
+    <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>
+      <span style={{ ...OSW, fontSize: 11, letterSpacing: '.05em', color: cor, lineHeight: 1.25, minWidth: 0 }}>{texto}</span>
+      <button onClick={s.onClick} disabled={ocupado} style={{ ...OSW, flex: '0 0 auto', fontSize: 12, letterSpacing: '.04em', color: '#0C0C0C', background: ocupado ? '#9A9A9A' : G_OURO, border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 12px', boxShadow: '2px 2px 0 #000', cursor: ocupado ? 'default' : 'pointer' }}>
+        {t('💾 Salvar', '💾 Save')}
+      </button>
+    </div>
+  )
+}
+
 const ordinal = (n: number) => getLang() === 'en' ? `${n}${n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'}` : `${n}º`
 
 function Chip({ children, bg = GOLD, cor = INK }: { children: React.ReactNode; bg?: string; cor?: string }) {
@@ -143,6 +179,7 @@ export function CentralCarreira(p: CentralProps) {
         </div>
         <b style={{ ...OSW, fontSize: 20, lineHeight: 1, whiteSpace: 'nowrap', color: '#fff' }}>{t('Rod.', 'Rd.')} {p.round}<span style={{ color: '#888', fontSize: 13 }}> / 38</span></b>
       </div>
+      {p.salvar && <FaixaSalvar s={p.salvar} />}
 
       {/* 📱 celular: camarote → giro → Martelo → mercado → tabela+agenda (ordem por CSS `order`).
           🖥️ desktop (03/10, 4º ajuste dele): esquerda camarote → [tabela inteira | giro inteiro + agenda];
