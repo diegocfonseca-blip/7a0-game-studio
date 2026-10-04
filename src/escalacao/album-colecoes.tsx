@@ -4,7 +4,7 @@
 // "Receber" mora DENTRO da carreira, na Agência: o servidor marca uma cópia de cada carta como usada
 // (esc_colecao_receber) e o reducer põe as moedas no caixa daquela carreira (COLECAO_RECEBIDA).
 // A carta usada continua no álbum, escurecida, e não conta mais pra aquele clube.
-// Trocas: proposta com até 3 cartas de cada lado + recado de até 120 letras, vale 48 h. Aceitar
+// Trocas: proposta com até 10 cartas (Diego, 04/10: dá pra oferecer 10 fracas por uma lenda) de cada lado + recado de até 120 letras, vale 48 h. Aceitar
 // troca o dono no servidor, os dois lados de uma vez (esc_troca_responder).
 // Tudo atrás de `useColecoesLiberadas()` — sem a trava, o álbum é o de sempre.
 import { useEffect, useMemo, useState } from 'react'
@@ -14,6 +14,8 @@ import { useT } from './lang'
 import { COLECOES, progressoDas, ordenaProgresso, escolheCopias, colecoesNovas, chaveCarta, clubeColecao, baralhoDaColecao, type Baralho, type MinhaCarta, type Progresso } from './colecoes'
 import { SeloClube } from './selo-clube'
 
+/** 🤝 até 10 cartas de cada lado (04/10) — mesmo número na função do banco esc_troca_propor */
+const MAX_TROCA = 10
 const INK = '#0C0C0C', GOLD = '#FFC400', VERDE = '#1B7A3D', ROXO = '#7C3AED', VERM = '#E8503A'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700, textTransform: 'uppercase' as const }
 const caixa = (extra: React.CSSProperties = {}): React.CSSProperties => ({ border: `3px solid ${INK}`, borderRadius: 16, background: '#fff', boxShadow: `3px 3px 0 ${INK}`, padding: '10px 12px', ...extra })
@@ -387,7 +389,7 @@ function NovaTroca({ meuNome, minhas, inicial, onEnviada }: { meuNome: string; m
     for (const m of minhas) if (!m.usadaEm && !m.presa) n.set(chaveCarta(m), (n.get(chaveCarta(m)) ?? 0) + 1)
     return minhas.filter(m => !m.usadaEm && !m.presa).map(m => ({ m, copias: n.get(chaveCarta(m)) ?? 1 })).sort((a, b) => b.copias - a.copias || b.m.fame - a.m.fame || a.m.name.localeCompare(b.m.name))
   }, [minhas])
-  const toggle = (lista: string[], set: (l: string[]) => void, id: string) => set(lista.includes(id) ? lista.filter(x => x !== id) : lista.length >= 3 ? lista : [...lista, id])
+  const toggle = (lista: string[], set: (l: string[]) => void, id: string) => set(lista.includes(id) ? lista.filter(x => x !== id) : lista.length >= MAX_TROCA ? lista : [...lista, id])
   async function buscar() {
     if (busca.trim().length < 3) { setAchados([]); return }
     const { data } = await supabase.rpc('esc_troca_buscar', { p_txt: busca.trim() })
@@ -432,14 +434,14 @@ function NovaTroca({ meuNome, minhas, inicial, onEnviada }: { meuNome: string; m
         <span>{t(`🤝 Proposta pro ${alvo.nome}`, `🤝 Offer to ${alvo.nome}`)}</span>
         {!inicial && <button onClick={() => setAlvo(null)} style={{ all: 'unset', cursor: 'pointer', textDecoration: 'underline', fontSize: 11 }}>{t('trocar', 'change')}</button>}
       </div>
-      <p style={{ ...OSW, fontSize: 12, color: 'rgba(0,0,0,.55)', marginBottom: 6 }}>{t(`Você recebe (até 3) · ${quero.length} escolhida${quero.length === 1 ? '' : 's'}`, `You get (up to 3) · ${quero.length} picked`)}</p>
+      <p style={{ ...OSW, fontSize: 12, color: 'rgba(0,0,0,.55)', marginBottom: 6 }}>{t(`Você recebe (até 10) · ${quero.length} escolhida${quero.length === 1 ? '' : 's'}`, `You get (up to 10) · ${quero.length} picked`)}</p>
       {dele === null ? <p style={{ fontSize: 13 }}>{t('Carregando as cartas dele…', 'Loading their cards…')}</p> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 6, maxHeight: 260, overflowY: 'auto', padding: 3 }}>
           {deleOrdenado.map(c => <MiniCarta key={c.id} c={c} sel={quero.includes(c.id)} onClick={() => toggle(quero, setQuero, c.id)} selo={faltaPraMim(c) ? t('falta', 'need') : undefined} />)}
           {deleOrdenado.length === 0 && <p style={{ gridColumn: '1/-1', fontSize: 12.5 }}>{t('Ele não tem carta livre pra trocar.', 'They have no free card to trade.')}</p>}
         </div>
       )}
-      <p style={{ ...OSW, fontSize: 12, color: 'rgba(0,0,0,.55)', margin: '12px 0 6px' }}>{t(`Você dá (até 3) · ${dou.length} escolhida${dou.length === 1 ? '' : 's'}`, `You give (up to 3) · ${dou.length} picked`)}</p>
+      <p style={{ ...OSW, fontSize: 12, color: 'rgba(0,0,0,.55)', margin: '12px 0 6px' }}>{t(`Você dá (até 10) · ${dou.length} escolhida${dou.length === 1 ? '' : 's'}`, `You give (up to 10) · ${dou.length} picked`)}</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 6, maxHeight: 260, overflowY: 'auto', padding: 3 }}>
         {minhasLivres.map(({ m, copias }) => <MiniCarta key={m.id} c={m} sel={dou.includes(m.id)} onClick={() => toggle(dou, setDou, m.id)} selo={copias > 1 ? `x${copias}` : undefined} />)}
       </div>

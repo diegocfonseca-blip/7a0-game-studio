@@ -6,7 +6,7 @@
 -- A carta usada CONTINUA no álbum (a linha de user_cards não muda); ela só deixa de contar
 -- pra fechar o clube de novo. Fechar de novo = o clube inteiro outra vez (repetidas valem).
 --
--- Troca: proposta com até 3 cartas de cada lado + recado de até 120 letras, vale 48 h.
+-- Troca: proposta com até 10 cartas de cada lado + recado de até 120 letras, vale 48 h.
 -- Aceitar troca o dono das cartas NO SERVIDOR, os dois lados de uma vez (nada fica pela
 -- metade). Carta usada ou já presa noutra proposta aberta não entra.
 -- Carta de carreira (season_key 'co:solo<seed>:…') que sai numa troca é anotada em
@@ -110,7 +110,7 @@ declare v_uid uuid := auth.uid(); v_c uuid; v_id bigint; v_o public.esc_trocas%r
 begin
   if v_uid is null then raise exception 'sem conta'; end if;
   if p_para is null or p_para = v_uid then raise exception 'escolha outro tecnico'; end if;
-  if coalesce(array_length(p_dou,1),0) not between 1 and 3 or coalesce(array_length(p_quero,1),0) not between 1 and 3 then raise exception 'de 1 a 3 cartas de cada lado'; end if;
+  if coalesce(array_length(p_dou,1),0) not between 1 and 10 or coalesce(array_length(p_quero,1),0) not between 1 and 10 then raise exception 'de 1 a 10 cartas de cada lado'; end if;
   if (select count(distinct x) from unnest(p_dou) x) <> array_length(p_dou,1) or (select count(distinct x) from unnest(p_quero) x) <> array_length(p_quero,1) then raise exception 'carta repetida na proposta'; end if;
   if (select count(*) from public.user_cards where id = any(p_dou) and user_id = v_uid) <> array_length(p_dou,1) then raise exception 'carta que nao e sua'; end if;
   if (select count(*) from public.user_cards where id = any(p_quero) and user_id = p_para) <> array_length(p_quero,1) then raise exception 'carta que nao e dele'; end if;
