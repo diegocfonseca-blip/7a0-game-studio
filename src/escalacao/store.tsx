@@ -10871,7 +10871,6 @@ export function patchCareerCofre(seed: number, marca: string, tira: { name: stri
 
 // além do save local (esc-solo-career), quem está logado espelha o save inteiro
 // na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
-let lastPyrCloud = 0
 // ── junção segura de carreiras (nunca perde nem volta no tempo) ──────────────
 // extrai as carreiras de um valor cru da nuvem (formato novo multi OU o antigo,
 // que era um EscState cru = carreira única).
@@ -10906,29 +10905,58 @@ function mergeCareers(...lists: CareerSlot[][]): CareerSlot[] {
 // o aparelho tenha limpado os dados, o backup da nuvem fica intacto. Formato:
 // { __multi:1, careers:[{save,at}, ...] }. Rows antigas (EscState cru) são lidas
 // como carreira única (compatível).
+// 💸 CARIMBO DA NUVEM (04/10, conta do Supabase do Diego: ~590 GB de tráfego no mês, quase tudo
+// daqui). Cada save de carreira pesa ~1 MB, e o jogo BAIXAVA o save inteiro a cada minuto de jogo
+// (pra juntar antes de subir) e a cada vez que a home voltava pro foco (pra juntar e subir de novo).
+// Agora o aparelho guarda o `updated_at` da nuvem que ele JÁ juntou no local. Antes de baixar,
+// pergunta só o carimbo (uns bytes): se for o mesmo, a nuvem não tem nada que o aparelho não tenha,
+// e o save inteiro nem desce. Só baixa quando OUTRO aparelho salvou depois.
+const CLOUD_AT_KEY = 'esc-cloud-at:'
+function cloudAtConhecido(uid: string): string | null { try { return localStorage.getItem(CLOUD_AT_KEY + uid) } catch { return null } }
+function marcaCloudAt(uid: string, iso: string | null | undefined) {
+  try { if (iso) localStorage.setItem(CLOUD_AT_KEY + uid, iso); else localStorage.removeItem(CLOUD_AT_KEY + uid) } catch { /* ignora */ }
+}
+/** o carimbo da linha na nuvem: string = tem save · null = não tem linha · undefined = a leitura falhou */
+async function carimboDaNuvem(uid: string): Promise<string | null | undefined> {
+  const { data, error } = await supabase.from('esc_pyramid_saves').select('updated_at').eq('user_id', uid).maybeSingle()
+  if (error) return undefined
+  return (data?.updated_at as string | undefined) ?? null
+}
+// ✋ REGRA DO DIEGO (04/10): *"o save do usuário na carreira só deve salvar após ele apertar em
+// salvar"*. A NUVEM só recebe a carreira em ação explícita (`force`): o botão "Sair e salvar
+// carreira", trocar de carreira, a troca do Bafo. O autosave do jogo grava SÓ no aparelho (é
+// instantâneo e continua igual) — antes ele também subia pra nuvem a cada minuto.
 export async function savePyramidCloud(state: EscState, force = false) {
   try {
-    // throttle: no máx. 1 escrita/60s — o save LOCAL é o guarda-vidas instantâneo;
-    // a nuvem é backup pra trocar de aparelho. A 6s, cada jogador de carreira
-    // BAIXAVA+SUBIA o save inteiro (MBs) toda hora — era o nº 1 de egress/CPU do
-    // Supabase (medido 03/08: upsert de 1s de banco, 651× em horas). Momentos-
-    // chave (sair pro lobby, trocar carreira) seguem com force=true, na hora.
-    if (!force && Date.now() - lastPyrCloud < 60000) return
+    if (!force) return
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
-    ensureCareerOwner(data.user.id) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
-    lastPyrCloud = Date.now()
+    const uid = data.user.id
+    ensureCareerOwner(uid) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
     let payload: unknown = state
+    // o aparelho já tem tudo o que está na nuvem? (mesmo carimbo, ou nuvem vazia)
+    let localCobreNuvem = true
     if (isCareerSave(state)) {
-      // lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada):
-      const { data: cur } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
-      const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
+      const carimbo = await carimboDaNuvem(uid)
+      if (carimbo === undefined) return // sem resposta da nuvem: não arrisca sobrescrever; o local guarda
       // 🔒 carimba a ativa com o lacre antes de subir (as do arquivo já vêm carimbadas).
       const active: CareerSlot = { save: { ...state, _ll: lacreDe(state) } as EscState, at: Date.now() }
-      payload = { __multi: 1, careers: mergeCareers([active], careersFromCloudRaw(cur?.save, cloudAt), readCareerArchive()) }
+      let daNuvem: CareerSlot[] = []
+      if (carimbo && carimbo !== cloudAtConhecido(uid)) {
+        // outro aparelho salvou depois: lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada)
+        localCobreNuvem = false
+        const { data: cur, error } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', uid).maybeSingle()
+        if (error) return
+        const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
+        daNuvem = careersFromCloudRaw(cur?.save, cloudAt)
+      }
+      payload = { __multi: 1, careers: mergeCareers([active], daNuvem, readCareerArchive()) }
     }
     const nowIso = new Date().toISOString()
-    await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: payload, updated_at: nowIso })
+    const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
+    // só marca o carimbo novo quando o LOCAL já tinha tudo: se a gente juntou carreira de outro
+    // aparelho aqui, o local ainda não tem — o carimbo fica velho e a próxima ida à home baixa e junta.
+    if (localCobreNuvem) marcaCloudAt(uid, up?.updated_at as string | undefined)
   } catch { /* best effort — o local sempre garante */ }
 }
 type CloudCareers = { save: EscState; at: number; careers: CareerSlot[]; iso: string | null }
@@ -10961,19 +10989,28 @@ export async function syncCareersWithCloud(): Promise<boolean> {
   try {
     const { data: u } = await supabase.auth.getUser()
     if (!u?.user) return false
-    ensureCareerOwner(u.user.id) // 🔐 rebaseia o aparelho pra ESTA conta ANTES de juntar local↔nuvem
+    const uid = u.user.id
+    ensureCareerOwner(uid) // 🔐 rebaseia o aparelho pra ESTA conta ANTES de juntar local↔nuvem
+    const localCareers = listAllCareers().map(({ slot }) => slot)
+    // 💸 pergunta só o carimbo: nuvem igual à que este aparelho já juntou = nada a baixar
+    const carimbo = await carimboDaNuvem(uid)
+    if (!carimbo) return false // sem save na nuvem (ou sem resposta): fica o do aparelho
+    if (localCareers.length && carimbo === cloudAtConhecido(uid)) return false
     const cloud = await loadPyramidCloud()
     if (!cloud) return false
-    const localCareers = listAllCareers().map(({ slot }) => slot)
     const all = mergeCareers(localCareers, cloud.careers)
     if (!all.length) return false
     const [active, ...rest] = all
+    let gravou = false
     try {
       localStorage.setItem('esc-solo-career', JSON.stringify(active.save))
       localStorage.setItem('esc-solo-career-at', String(active.at ?? Date.now()))
-      writeCareerArchive(rest)
-    } catch { /* ignora */ }
-    savePyramidCloud(active.save, true) // reescreve a nuvem com o conjunto unido
+      localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(rest.slice(0, MAX_CAREER_SLOTS)))
+      gravou = true
+    } catch { /* cota cheia: não marca o carimbo, e a próxima vez tenta juntar de novo */ }
+    // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
+    // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
+    if (gravou) marcaCloudAt(uid, cloud.iso)
     return true
   } catch { return false }
 }
@@ -10986,11 +11023,16 @@ export async function removeCareerFromCloud(seed: number) {
   try {
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
-    const { data: cur } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
-    const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
-    const kept = careersFromCloudRaw(cur?.save, cloudAt).filter(c => (c.save as EscState).seed !== seed)
-    if (!kept.length) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id)
-    else await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: { __multi: 1, careers: kept }, updated_at: new Date().toISOString() })
+    const uid = data.user.id
+    const { data: cur, error } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', uid).maybeSingle()
+    if (error || !cur) return // nada na nuvem (ou sem resposta): não há o que tirar
+    // o local já tinha tudo da nuvem antes de apagar? então continua tendo depois (apagou dos dois)
+    const localCobria = (cur.updated_at as string | undefined) === cloudAtConhecido(uid)
+    const cloudAt = cur.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
+    const kept = careersFromCloudRaw(cur.save, cloudAt).filter(c => (c.save as EscState).seed !== seed)
+    if (!kept.length) { await supabase.from('esc_pyramid_saves').delete().eq('user_id', uid); marcaCloudAt(uid, null); return }
+    const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: { __multi: 1, careers: kept }, updated_at: new Date().toISOString() }).select('updated_at').maybeSingle()
+    if (localCobria) marcaCloudAt(uid, up?.updated_at as string | undefined)
   } catch { /* ignora */ }
 }
 
@@ -11900,7 +11942,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (presidencySig === soloSigRef.current) return
     soloSigRef.current = presidencySig
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
-    savePyramidCloud(state) // logado: espelha na nuvem (throttled) pra seguir a conta
+    // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
   }, [state])
 
   // 🏀 autosave da CARREIRA do basquete — ISOLADO do futebol (chave própria

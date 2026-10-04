@@ -70,6 +70,7 @@
     "recarga": "node scripts/testa-recarga.mjs",
     "congela": "node scripts/testa-congela.mjs",
     "save-intl": "node scripts/testa-save-intl.mjs",
+    "nuvem": "node scripts/testa-nuvem.mjs",
     "central": "node scripts/testa-central.mjs"
   },
   "dependencies": {
