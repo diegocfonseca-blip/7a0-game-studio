@@ -27,6 +27,10 @@
   🎯 Bom 58% · 🪵 Foi profissional 18% — e depois a carta dentro dela; pode repetir. Antes era carta por carta, lenda ~9%.
   Quem já tem as cartas fica com elas (*"não vou prejudicar eles"*): só vale pros pacotes novos. Na carreira continua a
   regra da Agência (não repete carta do mesmo save).
+- 🎒 DIVERSOS (04/10, *"cartas que não têm clube o usuário deve ganhar também… quando o time completar 11, o jogador
+  vai pro clube"*): carta de clube com menos de 11 no baralho aparece no bloco "🎒 Diversos" da lista de coleções
+  (álbum e Agência). A lista vem do baralho, então no dia em que o clube chegar a 11 ele vira coleção e as cartas
+  mudam de lugar sozinhas. O sorteio já dava essas cartas (usa o baralho inteiro).
 - ⛔ FALTA pra ligar de verdade: **aplicar a migração `20261004150000_colecoes_clubes_trocas.sql` no banco** (pediu
   aprovação do Diego e não foi aplicada); testar com conta de verdade (receber + trocar entre duas contas); badge de
   proposta recebida na home; e o OK visual dele nas fotos das telas reais.

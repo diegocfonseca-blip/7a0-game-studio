@@ -109,6 +109,14 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
   const ativas = lista.filter(p => p.pronta || p.recebidas === 0)
   const recebidas = lista.filter(p => !p.pronta && p.recebidas > 0)
   const prontas = lista.filter(p => p.pronta).length
+  // 🎒 DIVERSOS: carta de clube que ainda não é coleção (menos de 11 no baralho). Fica guardada aqui e
+  // muda de lugar sozinha no dia em que o clube chegar a 11 — a lista de coleções vem do baralho.
+  const diversos = useMemo(() => {
+    const clubes = new Set(COLECOES.map(c => c.clube))
+    const m = new Map<string, CartaDoAlbum[]>()
+    for (const c of minhas) { if (clubes.has(c.club)) continue; const k = chaveCarta(c); const l = m.get(k); if (l) l.push(c); else m.set(k, [c]) }
+    return [...m.entries()].sort((a, b) => a[1][0].club.localeCompare(b[1][0].club) || b[1][0].fame - a[1][0].fame)
+  }, [minhas])
   async function receber(p: Progresso) {
     const ids = escolheCopias(minhas, p.colecao)
     if (!ids || !onReceber) return
@@ -162,6 +170,22 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
       </p>
       {aviso && <p role="status" style={{ ...caixa({ background: '#FFF3C4', marginBottom: 10 }), fontSize: 13 }}>{aviso}</p>}
       {ativas.map(p => <Linha key={p.colecao.clube} p={p} />)}
+      {diversos.length > 0 && (
+        <div style={caixa({ marginTop: 16, marginBottom: 10 })}>
+          <button onClick={() => setAberta(aberta === '__diversos' ? null : '__diversos')} style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+              <span style={{ ...OSW, fontSize: 17 }}>{t('🎒 Diversos', '🎒 Miscellaneous')}</span>
+              <span style={{ ...OSW, fontSize: 11, padding: '3px 8px', border: `2px solid ${INK}`, borderRadius: 999 }}>{diversos.length} {t('cartas', 'cards')}</span>
+            </div>
+            <p style={{ fontSize: 12, color: 'rgba(0,0,0,.65)', marginTop: 5 }}>{t('Cartas de clubes que ainda não têm 11 no baralho. Quando o clube chegar a 11, ele vira coleção e essas cartas vão pra lá sozinhas.', 'Cards from clubs that do not have 11 in the deck yet. When the club reaches 11, it becomes a collection and these cards move there on their own.')}{' · '}{aberta === '__diversos' ? t('fechar ▲', 'close ▲') : t('ver cartas ▼', 'see cards ▼')}</p>
+          </button>
+          {aberta === '__diversos' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 9 }}>
+              {diversos.map(([k, copias]) => <MiniCarta key={k} c={copias[0]} selo={copias.length > 1 ? `x${copias.length}` : undefined} />)}
+            </div>
+          )}
+        </div>
+      )}
       {recebidas.length > 0 && <>
         <p style={{ ...OSW, fontSize: 13, color: 'rgba(0,0,0,.55)', margin: '16px 2px 8px' }}>{t(`✔️ Já recebidas (${recebidas.length}) · pra receber de novo, junte o clube inteiro outra vez`, `✔️ Already collected (${recebidas.length}) · to collect again, gather the whole club once more`)}</p>
         {recebidas.map(p => <Linha key={p.colecao.clube} p={p} />)}
