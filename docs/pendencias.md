@@ -1,3 +1,18 @@
+## 04/10/2026 — 🃏 CARTAS DO ÁLBUM: o Diego quer dar sentido a elas, NENHUMA ideia aprovada ainda
+- Pedido dele: *"as cartas… o pessoal tá ganhando e tá cagando pra elas"*, *"quero algo maior, mais profundo, que dê
+  água na boca pra ter as cartas"*. Hoje: cada título (liga/copa, off e on) dá direito a ESCOLHER uma carta, sem
+  repetida; ela vai pro álbum (`user_cards`, ~91 mil cartas, ~5 mil donos, tem gente com 900+) e funciona como
+  carta da Agência (empresário) na carreira. O Bafo nunca tomou carta de ninguém.
+- ❌ JÁ DESCARTADAS por ele (não repropor do mesmo jeito): coleções com prêmio + troca entre amigos (fez mockup,
+  sem aprovação) · time do álbum / desafio de álbum · carta favorita na entrada · carta do dia · carta que sobe de
+  nível · raridade ("só 12 têm") · ranking de colecionador · **direito de cobrir no leilão** (*"não gostei"*) · nome
+  do dono na carta · 1º dono · carta destrava celebração · torneio dos colecionadores · pacote com repetida · prêmio
+  de verdade · carta com validade de lote · Clube Eterno (*"gostei… mas quero outra melhor"*) · Carta Viva (história
+  por carta) · Edições Especiais estilo FUT com pacote (*"ainda não tô gostando"*).
+- ⚠️ Lição: 6 rodadas de ideias seguidas e ele travou (*"não gostei de nada, tá foda"*). Próxima vez: perguntar o que
+  ELE imagina, ou esperar ele trazer — não despejar lista. O dado que pesa: gente com 900+ cartas, então "ter" já
+  não é difícil pra quem joga muito.
+
 ## 04/10/2026 — 🏆 MINHAS LIGAS: a estante apagava a 1ª temporada de cada largada (liga KD1TUL, 11 troféus → 7)
 - Relato do Loopesmiranda FC (via Diego): acabou a liga, voltou pra sala de espera pra entrar um amigo e os troféus
   caíram de 11 pra 7 ou 8. Causa, confirmada no banco: toda largada da sala de espera (`START_ONLINE`) nascia com a
