@@ -15,6 +15,8 @@ export function copiasDemo(): CartaDoAlbum[] {
   clube('Santos').slice(0, 12).forEach(c => poe(c)) // 2ª vez em andamento
   clube('Boca Juniors').slice(0, 9).forEach((c, i) => poe(c, i === 0 ? { presa: true } : {}))
   BARALHO_TODO.filter(c => c.club === 'Inter Miami').forEach(c => poe(c))
+  { const col = new Set(COLECOES.flatMap(c => c.cartas.map(x => `${x.name}|${x.club}|${x.year}`))); BARALHO_TODO.filter(c => !col.has(`${c.name}|${c.club}|${c.year}`)).slice(0, 6).forEach(c => poe(c)) } // cartas avulsas
+  COLECOES.find(c => c.especial)?.cartas.slice(0, 3).forEach(c => poe(c)) // 3 das 4 lendas avulsas
   return out
 }
 export function albumDemo() {
