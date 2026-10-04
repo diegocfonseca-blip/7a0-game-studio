@@ -406,11 +406,11 @@ export function useSalaElencoLiberada(): boolean {
 
 
 // 📚🤝 COLEÇÕES DE CLUBES + TROCAS DE CARTAS (04/10, regras fechadas com o Diego, mockup v2).
-// 11 cartas diferentes do mesmo clube fecham o time → o jogador aperta Receber e escolhe a carreira;
-// as 11 ficam marcadas "usadas" (continuam no álbum). O sorteio da carta passa a incluir o baralho
-// Mundo e a poder repetir. Trocas: proposta com até 3 cartas de cada lado + recado.
-// 🔒 Só a conta do Diego até ele aprovar na tela; `true` abre pra todo mundo.
-const COLECOES_GERAL = false
+// TODAS as cartas do clube fecham o time → Receber na Agência da carreira; as cartas ficam marcadas
+// "usadas" (continuam no álbum). O sorteio da carta passa a incluir o baralho Mundo, lenda a 4% e
+// pode repetir. Trocas: até 10 cartas de cada lado + recado.
+// 🟢 LIBERADO PRA TODOS em 04/10 (*"pode fazer tudo e publicar pra todos"*). `false` volta a fechar.
+const COLECOES_GERAL = true
 const COLECOES_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let colecoesOk = COLECOES_GERAL
 function applyColecoesUnlock(email?: string | null): void {
