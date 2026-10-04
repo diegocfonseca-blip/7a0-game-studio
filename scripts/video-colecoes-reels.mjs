@@ -5,14 +5,14 @@
 //
 // ✅ TUDO QUE APARECE É DO JOGO DE VERDADE: escudos oficiais (`public/escudos-clubes/`), quantas cartas
 // cada clube tem e quanto paga (saem de `COLECOES` — Peñarol 11 · 27 🪙, Real Madrid 52 · 162 🪙…), os
-// valores por categoria, a troca de até 10 de cada lado, a lenda a 4% e as Lendas Avulsas.
+// valores por categoria, a lenda a 4% e as Lendas Avulsas.
 //
 // 🎞️ Roteiro (~40 s):
 //   0,0– 4,6   📚 suas cartas agora VALEM MOEDAS
 //   4,6–10,8   junte TODAS as cartas de um clube (grade com escudos, rodinha enchendo)
 //  10,8–16,4   o prêmio é a soma das cartas (lenda 5 · craque 3 · promessa 2 · bom 1 · profissional 0,5)
 //  16,4–22,0   recebe DENTRO da carreira, na Agência → moedas no caixa · a carta fica no álbum
-//  22,0–29,0   🤝 trocas: até 10 de cada lado (10 cartas por uma lenda) · aceitar / contra / recusar
+//  22,0–29,0   🤝 TROQUE SUAS CARTAS: negocie as repetidas, manda recado · aceitar / contra / recusar
 //  29,0–34,0   🎲 lenda mais rara + pode vir repetida (repetida = moeda de troca)
 //  34,0–40,0   🌟 Lendas Avulsas · onde fica · marca
 //
@@ -67,9 +67,6 @@ const carta = (pos, nome, clube, ano, grad, atraso, extra = '') => `
     <b style="${OSW};display:block;font-size:24px;line-height:1.05;margin-top:6px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nome}</b>
     <span style="font-size:17px;opacity:.75;white-space:nowrap">${clube} · ${ano}</span>${extra}
   </div>`
-
-const DEZ = [['GOL', 'Alex Muralha', 2017, G_BEGE], ['GOL', 'Bruno', 2009, G_VERDE], ['GOL', 'Diego', 2009, G_BEGE], ['LAT', 'Vanderlei Luxemburgo', 1975, G_BEGE],
-  ['LAT', 'Athirson', 1999, G_VERDE], ['LAT', 'Rodinei', 2019, G_VERDE], ['LAT', 'Isla', 2020, G_VERDE], ['LAT', 'China', 2004, G_BEGE], ['LAT', 'Jorge', 2016, G_BEGE], ['GOL', 'Getúlio Vargas', 2005, G_BEGE]]
 
 const video = `<!doctype html><meta charset="utf-8"><style>${FONTES}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -155,30 +152,30 @@ ${cena(16.4, 22.0, `
   </div>
   ${Array.from({ length: 14 }, (_, k) => `<span style="position:absolute;top:0;left:${60 + k * 70}px;font-size:70px;opacity:0;animation:chove 2.2s linear ${(19.6 + (k % 5) * .15).toFixed(2)}s both">🪙</span>`).join('')}`)}
 
-<!-- ⑤ trocas -->
+<!-- ⑤ trocas (Diego, 04/10: o foco é "agora dá pra TROCAR/NEGOCIAR suas cartas", repetidas + recado — sem falar de "10") -->
 ${cena(22.0, 29.0, `
-  <div style="animation:sobe .4s 22.15s both">${pill('🤝 trocas com os amigos', ROXO, '#fff', 34)}</div>
-  <p style="${OSW};font-size:80px;text-transform:uppercase;text-align:center;line-height:1;margin:22px 0 24px;animation:sobe .45s 22.35s both">até <span style="color:${ROXO}">10 cartas</span><br>de cada lado</p>
-  <div style="width:960px;background:#fff;border:5px solid ${INK};border-radius:24px;box-shadow:7px 7px 0 ${INK};padding:18px">
-    <b style="${OSW};font-size:30px;display:block;text-align:left;margin-bottom:10px;animation:sobe .3s 22.7s both">VOCÊ DÁ · 10 cartas</b>
-    <div style="display:grid;grid-template-columns:repeat(4,200px);gap:12px;justify-content:center">
-      ${DEZ.map(([pos, n, a, g], i) => carta(pos, n, 'Flamengo', a, g, 22.8 + i * .12)).join('')}
+  <div style="animation:pop .45s cubic-bezier(.2,1.6,.4,1) 22.1s both">${pill('agora tem troca!', ROXO, '#fff', 36)}</div>
+  <p style="font-size:130px;line-height:1;margin-top:14px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 22.3s both">🤝</p>
+  <p style="${OSW};font-size:118px;text-transform:uppercase;text-align:center;line-height:.95;margin:10px 0 6px;animation:sobe .45s 22.5s both">troque suas</p>
+  <p style="${OSW};font-size:160px;text-transform:uppercase;text-align:center;line-height:.95;color:${ROXO};
+    filter:drop-shadow(6px 6px 0 ${INK});animation:sobe .45s 22.75s both">cartas</p>
+  <p style="font-size:40px;font-weight:700;color:rgba(12,12,12,.62);text-align:center;line-height:1.35;margin:18px 0 26px;animation:sobe .45s 23.1s both">
+    negocie as <b style="color:${ROXO}">repetidas</b> com os amigos<br>e feche suas coleções</p>
+  <div style="width:960px;background:#fff;border:6px solid ${INK};border-radius:26px;box-shadow:8px 8px 0 ${INK};overflow:hidden;animation:sobe .45s 23.6s both">
+    <div style="background:${ROXO};color:#fff;padding:12px 22px;${OSW};font-size:32px;text-transform:uppercase;text-align:left">📨 proposta pro Tchubiruba FC</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;padding:18px">
+      ${carta('MEI', 'Zico', 'Flamengo', 1981, G_OURO, 24.0, `<b style="position:absolute;top:0;right:0;background:${ROXO};color:#fff;${OSW};font-size:20px;padding:0 8px;border-bottom-left-radius:10px">x2</b>`)}
+      <span style="font-size:70px;animation:pop .4s cubic-bezier(.2,1.6,.4,1) 24.3s both">⇄</span>
+      ${carta('MEI', 'Figo', 'Real Madrid', 2001, G_OURO, 24.5)}
     </div>
+    <div style="margin:0 18px 18px;border:4px dashed rgba(0,0,0,.35);border-radius:18px;padding:14px 18px;text-align:left;font-size:32px;font-weight:700;
+      animation:entra .45s cubic-bezier(.2,1.5,.4,1) 25.0s both">💬 "Tenho o Zico repetido, te dou por esse Figo que fecha meu Real 😎"</div>
   </div>
-  <p style="font-size:80px;margin:10px 0;animation:pop .4s cubic-bezier(.2,1.6,.4,1) 24.2s both">⇅</p>
-  <div style="display:flex;align-items:center;gap:26px;width:960px;background:${G_OURO};border:6px solid ${INK};border-radius:24px;box-shadow:8px 8px 0 ${INK};padding:16px 24px;
-    animation:pop .5s cubic-bezier(.2,1.6,.4,1) 24.4s both">
-    <img src="${rosto('raul-real-madrid-2001')}" style="height:150px">
-    <span style="text-align:left;flex:1"><b style="${OSW};font-size:30px">VOCÊ RECEBE · 👑 LENDA</b>
-      <b style="${OSW};display:block;font-size:64px;text-transform:uppercase;line-height:1">Raúl</b>
-      <span style="font-size:28px;font-weight:700">Real Madrid · 2001</span></span>
-  </div>
-  <div style="display:flex;gap:16px;margin-top:26px">
+  <div style="display:flex;gap:16px;margin-top:24px">
     ${[['✅ ACEITAR', GREEN, '#fff'], ['🔁 CONTRA', GOLD, INK], ['✖️ RECUSAR', '#fff', INK]].map(([t, bg, c], i) => `
       <span style="width:300px;background:${bg};color:${c};border:5px solid ${INK};border-radius:18px;box-shadow:6px 6px 0 ${INK};padding:16px;text-align:center;
-        ${OSW};font-size:38px;animation:pop .4s cubic-bezier(.2,1.6,.4,1) ${(25.4 + i * .2).toFixed(2)}s both">${t}</span>`).join('')}
-  </div>
-  <p style="font-size:34px;font-weight:800;text-align:center;margin-top:22px;line-height:1.35;animation:sobe .45s 26.4s both">nada sai do seu álbum até o outro <b style="color:${GREEN}">aceitar</b></p>`)}
+        ${OSW};font-size:38px;animation:pop .4s cubic-bezier(.2,1.6,.4,1) ${(26.0 + i * .2).toFixed(2)}s both">${t}</span>`).join('')}
+  </div>`)}
 
 <!-- ⑥ sorteio novo -->
 ${cena(29.0, 34.0, `
