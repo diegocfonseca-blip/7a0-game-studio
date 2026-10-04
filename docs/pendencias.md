@@ -17,6 +17,11 @@
   store, sorteio com Mundo + repetida atrás da trava, legenda no álbum (x2 · ⚫ usada · 🔒 em troca — nada some),
   bancada `esc-colecoes-demo=1` (álbum de mentira, só no vite). Cópia tem 3 estados: 🟢 livre · 🔒 em troca · ⚫ usada;
   na troca/coleção o jogo escolhe a cópia livre sozinho.
+- 🔁 MUDOU (04/10, Diego: *"ele já vai tá na carreira dele"*): **no Álbum você VÊ e TROCA; na carreira você RECEBE.** O
+  "Receber" saiu do álbum e foi pra dentro da carreira, na Agência (Sua Agência 2.0, e no Escritório clássico dos
+  saves antigos) — `ColecoesDaCarreira`, sem perguntar carreira: o reducer `COLECAO_RECEBIDA` põe as moedas NESTA
+  carreira (uma vez por marca). Ordem: prontas primeiro, depois a mais completa em %; já recebidas (e não prontas de
+  novo) num bloco "✔️ Já recebidas" no fim. Repetida aparece como aviso: "🔁 você tem N repetidas · troque no Álbum".
 - ⛔ FALTA pra ligar de verdade: **aplicar a migração `20261004150000_colecoes_clubes_trocas.sql` no banco** (pediu
   aprovação do Diego e não foi aplicada); testar com conta de verdade (receber + trocar entre duas contas); badge de
   proposta recebida na home; e o OK visual dele nas fotos das telas reais.

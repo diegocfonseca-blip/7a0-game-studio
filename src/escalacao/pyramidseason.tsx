@@ -56,8 +56,9 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
-import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira } from './sport'
-import { CentralCarreira } from './central' // 📺 a home do modo carreira (03/10, só a conta do Diego)
+import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas } from './sport'
+import { CentralCarreira } from './central'
+import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
 import type { CentralAgenda, CentralJogo, CentralArte, FaixaSalvarProps } from './central'
 import { redacaoDaCentral } from './central-noticias'
 import type { Contratacao } from './central-noticias'
@@ -9029,6 +9030,7 @@ export function PyramidSeasonScreen() {
   // da sala) e só pra quem tem a chave (`useCentralCarreira` — hoje a conta do Diego).
   const centralOn = useCentralCarreira() && state.onlineMode !== 'online' && !!state.careerOnline && privateCareer
   const salvarNuvem = useSalvarNuvem(centralOn)
+  const colecoesOn = useColecoesLiberadas() && state.onlineMode !== 'online' && !!state.careerOnline
   const tabTocada = useRef(false) // a pessoa já escolheu uma aba nesta visita?
   // a carreira ABRE na Central (é a home). Só na chegada: depois, quem manda é o toque.
   useEffect(() => { if (centralOn && !tabTocada.current) setTab('central') }, [centralOn])
@@ -10389,6 +10391,8 @@ export function PyramidSeasonScreen() {
               {/* 🕴️ SUA AGÊNCIA — saiu do Elenco e veio pro Clube (Diego 19/09).
                   A escada de desbloqueios vem junto: tudo de agência num lugar só. */}
               <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial} />
+              {/* 📚 COLEÇÕES DE CLUBES (04/10): fechou um clube no álbum → recebe AQUI, nesta carreira. */}
+              {colecoesOn && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
               <AgenciadosTab cards={state.agenciados ?? []}
                 pool={(() => {
                   const seen = new Set<string>(); const out: AgCard[] = []
@@ -10414,7 +10418,10 @@ export function PyramidSeasonScreen() {
             ) : clubeSub === 'escritorio' && !agenciaOk ? (
               // 💼 escritório CLÁSSICO (saves antigos). Na Agência 2.0 a sub-aba não
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
+              <>
+              {colecoesOn && state.onlineMode !== 'online' && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
               <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
+              </>
             ) : clubeSub === 'loja' && lojaLib ? (
               // 🛍️ LOJA DO CLUBE — a camisa montada (escudo + fornecedor + Master), o
               // preço do ano (que é aposta) e o contrato de material. A porta abre com

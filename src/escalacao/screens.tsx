@@ -8935,7 +8935,7 @@ export function EscAlbum() {
           ))}
         </div>
       )}
-      {colecoesOn && !anon && aba === 'colecoes' && <AbaColecoes minhas={copias} recarregar={() => setRecarga(x => x + 1)} />}
+      {colecoesOn && !anon && aba === 'colecoes' && <AbaColecoes minhas={copias} />}
       {colecoesOn && !anon && aba === 'trocas' && eu && <AbaTrocas meuId={eu.id} meuNome={eu.nome} minhas={copias} recarregar={() => setRecarga(x => x + 1)} />}
       {(!colecoesOn || anon || aba === 'cartas') && <>
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">

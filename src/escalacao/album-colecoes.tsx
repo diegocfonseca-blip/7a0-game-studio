@@ -1,8 +1,9 @@
 // 📚🤝 ÁLBUM: abas COLEÇÕES e TROCAS (04/10, mockup v2 aprovado com o Diego — "ok vamos fazer").
 //
-// Coleções: TODAS as cartas de um clube (com 11+ no baralho) fecham o time. "Receber" pergunta a carreira, o
-// servidor marca as 11 como usadas (esc_colecao_receber) e o aparelho põe as moedas no caixa dela
-// (creditaColecao). A carta usada continua no álbum, escurecida, e não conta mais pra aquele clube.
+// Coleções: TODAS as cartas de um clube (com 11+ no baralho) fecham o time. No ÁLBUM só se olha; o
+// "Receber" mora DENTRO da carreira, na Agência: o servidor marca uma cópia de cada carta como usada
+// (esc_colecao_receber) e o reducer põe as moedas no caixa daquela carreira (COLECAO_RECEBIDA).
+// A carta usada continua no álbum, escurecida, e não conta mais pra aquele clube.
 // Trocas: proposta com até 3 cartas de cada lado + recado de até 120 letras, vale 48 h. Aceitar
 // troca o dono no servidor, os dois lados de uma vez (esc_troca_responder).
 // Tudo atrás de `useColecoesLiberadas()` — sem a trava, o álbum é o de sempre.
@@ -11,7 +12,6 @@ import type { ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { useT } from './lang'
 import { COLECOES, progressoDas, ordenaProgresso, escolheCopias, colecoesNovas, chaveCarta, type MinhaCarta, type Progresso } from './colecoes'
-import { creditaColecao, carreirasParaReceber, type CarreiraParaReceber } from './store'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', VERDE = '#1B7A3D', ROXO = '#7C3AED', VERM = '#E8503A'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700, textTransform: 'uppercase' as const }
@@ -54,24 +54,106 @@ function Falta({ c }: { c: { name: string; club: string; year: number; pos: stri
 }
 
 // ─── 📚 COLEÇÕES ───────────────────────────────────────────────────────────
-const PENDENTE_KEY = 'esc-colecao-pendente'
-type Pendente = { seed: number; moedas: number; marca: string }
-function lePendentes(): Pendente[] { try { return JSON.parse(localStorage.getItem(PENDENTE_KEY) || '[]') as Pendente[] } catch { return [] } }
-function gravaPendentes(l: Pendente[]) { try { if (l.length) localStorage.setItem(PENDENTE_KEY, JSON.stringify(l)); else localStorage.removeItem(PENDENTE_KEY) } catch { /* ignora */ } }
+// Dois lugares, a MESMA lista (04/10, Diego: "no álbum você vê e troca, na carreira você recebe"):
+//  · modo 'album'   → só olhar: progresso, o que falta, o que já foi usado. Sem botão de receber.
+//  · modo 'carreira'→ dentro da Agência: o botão "Receber" põe as moedas NESTA carreira, sem perguntar.
+// Ordem: prontas primeiro, depois a mais completa (em %). Clube já recebido e que não está pronto de
+// novo vai pro bloco "✔️ Já recebidas", no fim. Embaixo do clube, se tem repetida: "🔁 N repetidas".
+type ModoLista = 'album' | 'carreira'
 
-export function AbaColecoes({ minhas, recarregar }: { minhas: CartaDoAlbum[]; recarregar: () => void }) {
+/** carrega as CÓPIAS da pessoa: cartas, quais foram usadas e quais estão presas numa troca aberta */
+export function useMinhasCopias(ligado: boolean): { copias: CartaDoAlbum[] | null; recarregar: () => void } {
+  const [copias, setCopias] = useState<CartaDoAlbum[] | null>(null)
+  const [n, setN] = useState(0)
+  useEffect(() => {
+    if (!ligado) return
+    let vivo = true
+    if (import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-colecoes-demo') === '1' } catch { return false } })()) {
+      void import('./colecoes-demo').then(m => { if (vivo) setCopias(m.copiasDemo()) })
+      return () => { vivo = false }
+    }
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { if (vivo) setCopias([]); return }
+        const [{ data: cs }, { data: us }, { data: tr2 }] = await Promise.all([
+          supabase.from('user_cards').select('id, card_name, card_club, card_year, card_pos, card_fame').eq('user_id', user.id),
+          supabase.from('esc_cartas_usadas').select('card_id, carreira_nome').eq('user_id', user.id),
+          supabase.from('esc_trocas').select('de, de_cartas, para_cartas, expira_em').eq('status', 'aberta').or(`de.eq.${user.id},para.eq.${user.id}`),
+        ])
+        if (!vivo) return
+        const usadas = new Map(((us ?? []) as { card_id: string; carreira_nome: string | null }[]).map(u => [u.card_id, u.carreira_nome ?? '']))
+        const presas = new Set<string>()
+        for (const x of (tr2 ?? []) as { de: string; de_cartas: string[]; para_cartas: string[]; expira_em: string }[]) {
+          if (new Date(x.expira_em).getTime() <= Date.now()) continue
+          for (const id of (x.de === user.id ? x.de_cartas : x.para_cartas)) presas.add(id)
+        }
+        setCopias(((cs ?? []) as { id: string; card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number }[]).map(c => ({
+          id: c.id, name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos, fame: c.card_fame,
+          usadaEm: usadas.has(c.id) ? 'sim' : null, usadaNome: usadas.get(c.id) ?? null, presa: presas.has(c.id),
+        })))
+      } catch { if (vivo) setCopias([]) }
+    })()
+    return () => { vivo = false }
+  }, [ligado, n])
+  return { copias, recarregar: () => setN(x => x + 1) }
+}
+
+function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; modo: ModoLista; onReceber?: (p: Progresso, ids: string[]) => Promise<string> }) {
   const t = useT()
   const [aberta, setAberta] = useState<string | null>(null)
-  const [receber, setReceber] = useState<Progresso | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
   const [aviso, setAviso] = useState('')
   const novas = useMemo(() => colecoesNovas(), [])
-  // 🛟 moeda que ficou pra trás (cartas marcadas, mas o aparelho não conseguiu gravar): tenta de novo
-  useEffect(() => {
-    const p = lePendentes(); if (!p.length) return
-    gravaPendentes(p.filter(x => !creditaColecao(x.seed, x.moedas, x.marca)))
-  }, [])
   const lista = useMemo(() => ordenaProgresso(progressoDas(minhas)), [minhas])
+  const ativas = lista.filter(p => p.pronta || p.recebidas === 0)
+  const recebidas = lista.filter(p => !p.pronta && p.recebidas > 0)
   const prontas = lista.filter(p => p.pronta).length
+  async function receber(p: Progresso) {
+    const ids = escolheCopias(minhas, p.colecao)
+    if (!ids || !onReceber) return
+    setBusy(p.colecao.clube); setAviso('')
+    try { setAviso(await onReceber(p, ids)) } finally { setBusy(null) }
+  }
+  const Linha = ({ p }: { p: Progresso }) => {
+    const c = p.colecao, aberto = aberta === c.clube
+    const doClube = minhas.filter(m => m.club === c.clube)
+    const porChave = new Map<string, CartaDoAlbum[]>()
+    for (const m of doClube) { const k = chaveCarta(m); const l = porChave.get(k); if (l) l.push(m); else porChave.set(k, [m]) }
+    const livresCopias = doClube.filter(m => !m.usadaEm && !m.presa).length
+    const repetidas = Math.max(0, livresCopias - p.livres)
+    return (
+      <div style={caixa({ marginBottom: 10, background: p.pronta ? 'linear-gradient(150deg,#FFF6D2,#FFE07A)' : '#fff' })}>
+        <button onClick={() => setAberta(aberto ? null : c.clube)} style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+            <span style={{ ...OSW, fontSize: 17, lineHeight: 1.05 }}>{c.clube}{novas.has(c.clube) && <span style={{ ...OSW, fontSize: 10, background: VERM, color: '#fff', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, marginLeft: 6, verticalAlign: 'middle' }}>{t('🆕 nasceu agora', '🆕 just born')}</span>}</span>
+            <span style={{ ...OSW, fontSize: 11, padding: '3px 8px', border: `2px solid ${INK}`, borderRadius: 999, whiteSpace: 'nowrap', background: p.pronta ? VERDE : '#fff', color: p.pronta ? '#fff' : INK }}>{p.pronta ? '✅ ' : ''}{p.livres} {t('de', 'of')} {p.total}</span>
+          </div>
+          <div style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#EFE6CC', margin: '7px 0 5px', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${(p.livres / p.total) * 100}%`, background: VERDE }} /></div>
+          <p style={{ fontSize: 12, color: 'rgba(0,0,0,.72)' }}>
+            {t('Prêmio', 'Prize')}: <b>{c.premio} 🪙</b>
+            {p.recebidas > 0 && <> · {t(`recebida ${p.recebidas}x`, `collected ${p.recebidas}x`)}</>}
+            {' · '}{aberto ? t('fechar ▲', 'close ▲') : t('ver cartas ▼', 'see cards ▼')}
+          </p>
+          {repetidas > 0 && <p style={{ fontSize: 11.5, color: ROXO, fontWeight: 700, marginTop: 3 }}>{modo === 'carreira' ? t(`🔁 você tem ${repetidas} repetida${repetidas > 1 ? 's' : ''} do ${c.clube} · troque no Álbum`, `🔁 you have ${repetidas} duplicate${repetidas > 1 ? 's' : ''} of ${c.clube} · trade them in the Album`) : t(`🔁 ${repetidas} repetida${repetidas > 1 ? 's' : ''} · dá pra trocar na aba Trocas`, `🔁 ${repetidas} duplicate${repetidas > 1 ? 's' : ''} · trade them in the Trades tab`)}</p>}
+        </button>
+        {aberto && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 9 }}>
+            {c.cartas.map(cb => {
+              const copias = porChave.get(chaveCarta(cb))
+              if (!copias) return <Falta key={chaveCarta(cb)} c={cb} />
+              const livres = copias.filter(x => !x.usadaEm && !x.presa).length
+              const usada = copias.find(x => x.usadaEm)
+              return <MiniCarta key={chaveCarta(cb)} c={copias[0]} selo={copias.length > 1 ? `x${copias.length}` : undefined}
+                apagada={livres === 0 ? (usada ? <>{t('usada', 'used')}<br />{usada.usadaNome ?? ''}</> : t('em troca', 'in a trade')) : undefined} />
+            })}
+          </div>
+        )}
+        {p.pronta && modo === 'carreira' && <button disabled={busy !== null} style={botao(GOLD, INK, { marginTop: 10, opacity: busy ? .6 : 1 })} onClick={() => void receber(p)}>{busy === c.clube ? t('Recebendo…', 'Collecting…') : t(`🪙 Receber ${c.premio} moedas`, `🪙 Collect ${c.premio} coins`)}</button>}
+        {p.pronta && modo === 'album' && <p style={{ ...OSW, fontSize: 12, color: VERDE, marginTop: 8 }}>{t('✅ Pronta! Receba as moedas dentro da carreira, na Agência', '✅ Ready! Collect the coins inside the career, in the Agency')}</p>}
+      </div>
+    )
+  }
   return (
     <div>
       <p style={{ fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '0 2px 10px' }}>
@@ -79,97 +161,42 @@ export function AbaColecoes({ minhas, recarregar }: { minhas: CartaDoAlbum[]; re
           `Collect ALL the cards of a club to complete it · ${COLECOES.length} clubs · ${prontas} ready to collect`)}
       </p>
       {aviso && <p role="status" style={{ ...caixa({ background: '#FFF3C4', marginBottom: 10 }), fontSize: 13 }}>{aviso}</p>}
-      {lista.map(p => {
-        const c = p.colecao, aberto = aberta === c.clube
-        const doClube = minhas.filter(m => m.club === c.clube)
-        const porChave = new Map<string, CartaDoAlbum[]>()
-        for (const m of doClube) { const k = chaveCarta(m); const l = porChave.get(k); if (l) l.push(m); else porChave.set(k, [m]) }
-        return (
-          <div key={c.clube} style={caixa({ marginBottom: 10, background: p.pronta ? 'linear-gradient(150deg,#FFF6D2,#FFE07A)' : '#fff' })}>
-            <button onClick={() => setAberta(aberto ? null : c.clube)} style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                <span style={{ ...OSW, fontSize: 17, lineHeight: 1.05 }}>{c.clube}{novas.has(c.clube) && <span style={{ ...OSW, fontSize: 10, background: VERM, color: '#fff', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, marginLeft: 6, verticalAlign: 'middle' }}>{t('🆕 nasceu agora', '🆕 just born')}</span>}</span>
-                <span style={{ ...OSW, fontSize: 11, padding: '3px 8px', border: `2px solid ${INK}`, borderRadius: 999, whiteSpace: 'nowrap', background: p.pronta ? VERDE : '#fff', color: p.pronta ? '#fff' : INK }}>{p.pronta ? '✅ ' : ''}{p.livres} {t('de', 'of')} {p.total}</span>
-              </div>
-              <div style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#EFE6CC', margin: '7px 0 5px', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${(p.livres / p.total) * 100}%`, background: VERDE }} /></div>
-              <p style={{ fontSize: 12, color: 'rgba(0,0,0,.72)' }}>
-                {t('Prêmio', 'Prize')}: <b>{c.premio} 🪙</b>
-                {p.recebidas > 0 && <> · {t(`recebida ${p.recebidas}x`, `collected ${p.recebidas}x`)}</>}
-                {' · '}{aberto ? t('fechar ▲', 'close ▲') : t('ver cartas ▼', 'see cards ▼')}
-              </p>
-            </button>
-            {aberto && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 9 }}>
-                {c.cartas.map(cb => {
-                  const copias = porChave.get(chaveCarta(cb))
-                  if (!copias) return <Falta key={chaveCarta(cb)} c={cb} />
-                  const livres = copias.filter(x => !x.usadaEm && !x.presa).length
-                  const usada = copias.find(x => x.usadaEm)
-                  return <MiniCarta key={chaveCarta(cb)} c={copias[0]} selo={copias.length > 1 ? `x${copias.length}` : undefined}
-                    apagada={livres === 0 ? (usada ? <>{t('usada', 'used')}<br />{usada.usadaNome ?? ''}</> : t('em troca', 'in a trade')) : undefined} />
-                })}
-              </div>
-            )}
-            {p.pronta && <button style={botao(GOLD, INK, { marginTop: 10 })} onClick={() => { setAviso(''); setReceber(p) }}>{t(`🪙 Receber ${c.premio} moedas`, `🪙 Collect ${c.premio} coins`)}</button>}
-          </div>
-        )
-      })}
-      {receber && <ModalReceber p={receber} minhas={minhas} onFechar={() => setReceber(null)} onFeito={msg => { setReceber(null); setAviso(msg); recarregar() }} />}
+      {ativas.map(p => <Linha key={p.colecao.clube} p={p} />)}
+      {recebidas.length > 0 && <>
+        <p style={{ ...OSW, fontSize: 13, color: 'rgba(0,0,0,.55)', margin: '16px 2px 8px' }}>{t(`✔️ Já recebidas (${recebidas.length}) · pra receber de novo, junte o clube inteiro outra vez`, `✔️ Already collected (${recebidas.length}) · to collect again, gather the whole club once more`)}</p>
+        {recebidas.map(p => <Linha key={p.colecao.clube} p={p} />)}
+      </>}
     </div>
   )
 }
 
-function ModalReceber({ p, minhas, onFechar, onFeito }: { p: Progresso; minhas: CartaDoAlbum[]; onFechar: () => void; onFeito: (msg: string) => void }) {
+/** 📖 aba do ÁLBUM (home): só olhar */
+export function AbaColecoes({ minhas }: { minhas: CartaDoAlbum[] }) {
+  return <ListaColecoes minhas={minhas} modo="album" />
+}
+
+/** 🕴️ dentro da CARREIRA (Agência): receber nesta carreira, sem perguntar qual.
+ *  `onPago` é o dispatch do reducer (COLECAO_RECEBIDA) — o dinheiro entra no estado em memória. */
+export function ColecoesDaCarreira({ seed, nome, onPago }: { seed: number; nome: string; onPago: (moedas: number, marca: string) => void }) {
   const t = useT()
-  const carreiras = useMemo<CarreiraParaReceber[]>(() => carreirasParaReceber(), [])
-  const [escolha, setEscolha] = useState<number | null>(carreiras[0]?.seed ?? null)
-  const [busy, setBusy] = useState(false)
-  const [erro, setErro] = useState('')
-  const c = p.colecao
-  async function confirmar() {
-    const alvo = carreiras.find(x => x.seed === escolha)
-    const ids = escolheCopias(minhas, c)
-    if (!alvo || !ids) return
-    setBusy(true); setErro('')
-    try {
-      const { error } = await supabase.rpc('esc_colecao_receber', { p_cards: ids, p_seed: String(alvo.seed), p_nome: alvo.nome, p_total: c.cartas.length })
-      if (error) throw error
-      const marca = `col:${c.clube}:${[...ids].sort()[0]}`
-      if (!creditaColecao(alvo.seed, c.premio, marca)) {
-        gravaPendentes([...lePendentes(), { seed: alvo.seed, moedas: c.premio, marca }])
-        onFeito(t('As cartas foram marcadas, mas o aparelho está sem espaço pra gravar as moedas. Elas ficaram guardadas e entram sozinhas na próxima vez que você abrir o álbum.', 'The cards were marked, but this device is out of space to save the coins. They are kept and will be added the next time you open the album.'))
-        return
-      }
-      onFeito(t(`✅ +${c.premio} 🪙 no caixa do ${alvo.nome}. As ${c.cartas.length} cartas do ${c.clube} ficaram marcadas como usadas lá.`, `✅ +${c.premio} 🪙 in ${alvo.nome}'s cash. The ${c.cartas.length} ${c.clube} cards are now marked as used there.`))
-    } catch (e) {
-      const m = String((e as { message?: string })?.message ?? '')
-      setErro(/presa/.test(m) ? t('Uma dessas cartas está numa proposta de troca aberta. Cancele a proposta ou espere ela acabar.', 'One of these cards is in an open trade offer. Cancel the offer or wait for it to end.')
-        : /usada/.test(m) ? t('Uma dessas cartas já foi usada. Atualize o álbum e tente de novo.', 'One of these cards was already used. Refresh the album and try again.')
-        : t('Não deu pra receber agora (internet?). Nada foi gasto — tente de novo.', 'Could not collect right now (connection?). Nothing was spent — try again.'))
-    } finally { setBusy(false) }
-  }
+  const { copias, recarregar } = useMinhasCopias(true)
+  if (copias === null) return <p style={{ fontSize: 13, margin: '8px 2px' }}>{t('Carregando as coleções…', 'Loading collections…')}</p>
   return (
-    <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', zIndex: 80, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: 12 }} onClick={onFechar}>
-      <div onClick={e => e.stopPropagation()} style={{ ...caixa({ background: '#F4ECD6', width: '100%', maxWidth: 460, maxHeight: '85vh', overflowY: 'auto', padding: 0 }) }}>
-        <div style={{ ...OSW, background: ROXO, color: '#fff', textAlign: 'center', padding: '8px 10px', fontSize: 14 }}>{t(`🪙 Receber o ${c.clube} · ${c.premio} moedas`, `🪙 Collect ${c.clube} · ${c.premio} coins`)}</div>
-        <div style={{ padding: 12 }}>
-          {carreiras.length === 0 ? (
-            <p style={{ fontSize: 13 }}>{t('Você ainda não tem carreira neste aparelho. Comece uma carreira e volte aqui pra receber — as cartas continuam guardadas.', 'You have no career on this device yet. Start a career and come back to collect — your cards stay saved.')}</p>
-          ) : <>
-            <p style={{ ...OSW, fontSize: 12, color: 'rgba(0,0,0,.55)', marginBottom: 6 }}>{t('Em qual carreira?', 'Which career?')}</p>
-            {carreiras.map(x => (
-              <button key={x.seed} onClick={() => setEscolha(x.seed)} style={{ ...caixa({ display: 'flex', alignItems: 'center', gap: 10, width: '100%', marginBottom: 8, background: escolha === x.seed ? '#FFF3C4' : '#fff', boxShadow: escolha === x.seed ? `3px 3px 0 ${INK}` : 'none', cursor: 'pointer', textAlign: 'left' }) }}>
-                <span style={{ minWidth: 0 }}><b style={{ ...OSW, fontSize: 15, display: 'block' }}>{x.nome}</b><span style={{ fontSize: 11, color: 'rgba(0,0,0,.6)' }}>{t('Temporada', 'Season')} {x.temporada}{x.divisao ? ` · ${x.divisao === 'V' ? t('Várzea', 'Amateur') : t('Série ', 'Serie ') + x.divisao}` : ''} · {t('caixa', 'cash')} {x.caixa} 🪙</span></span>
-                <span style={{ marginLeft: 'auto', width: 20, height: 20, borderRadius: 999, border: `3px solid ${INK}`, background: escolha === x.seed ? VERDE : '#fff', flex: '0 0 auto' }} />
-              </button>
-            ))}
-            <button disabled={busy || escolha == null} onClick={confirmar} style={botao(VERDE, '#fff', { opacity: busy ? .6 : 1 })}>{busy ? t('Recebendo…', 'Collecting…') : t(`✅ Mandar ${c.premio} 🪙 pro ${carreiras.find(x => x.seed === escolha)?.nome ?? ''}`, `✅ Send ${c.premio} 🪙 to ${carreiras.find(x => x.seed === escolha)?.nome ?? ''}`)}</button>
-            <p style={{ fontSize: 11.5, color: 'rgba(0,0,0,.62)', marginTop: 8, lineHeight: 1.35 }}>{t(`Depois disso, uma carta de cada jogador do ${c.clube} fica marcada "usada" nessa carreira. Elas continuam no álbum, mas não contam mais pra fechar o ${c.clube}. Pra receber de novo, junte o clube inteiro outra vez.`, `After that, one card of each ${c.clube} player is marked "used" in that career. They stay in the album but no longer count for ${c.clube}. To collect again, gather the whole club once more.`)}</p>
-          </>}
-          {erro && <p role="alert" style={{ fontSize: 12.5, color: VERM, fontWeight: 700, marginTop: 8 }}>{erro}</p>}
-          <button onClick={onFechar} style={botao('#fff', INK, { marginTop: 10, fontSize: 13 })}>{t('Voltar', 'Back')}</button>
-        </div>
-      </div>
+    <div style={{ margin: '4px 0 14px' }}>
+      <p style={{ ...OSW, fontSize: 18, margin: '0 2px 2px' }}>{t('📚 Coleções de clubes', '📚 Club collections')}</p>
+      <ListaColecoes minhas={copias} modo="carreira" onReceber={async (p, ids) => {
+        const c = p.colecao
+        const { error } = await supabase.rpc('esc_colecao_receber', { p_cards: ids, p_seed: String(seed), p_nome: nome, p_total: c.cartas.length })
+        if (error) {
+          const m = error.message ?? ''
+          return /presa/.test(m) ? t('Uma dessas cartas está numa proposta de troca aberta. Cancele a proposta (Álbum → Trocas) ou espere ela acabar.', 'One of these cards is in an open trade offer. Cancel it (Album → Trades) or wait for it to end.')
+            : /usada/.test(m) ? t('Uma dessas cartas já foi usada. A lista vai atualizar.', 'One of these cards was already used. The list will refresh.')
+            : t('Não deu pra receber agora (internet?). Nada foi gasto — tente de novo.', 'Could not collect right now (connection?). Nothing was spent — try again.')
+        }
+        onPago(c.premio, `col:${c.clube}:${[...ids].sort()[0]}`)
+        recarregar()
+        return t(`✅ +${c.premio} 🪙 no caixa! As ${c.cartas.length} cartas do ${c.clube} ficaram marcadas como usadas nesta carreira.`, `✅ +${c.premio} 🪙 in your cash! The ${c.cartas.length} ${c.clube} cards are now marked as used in this career.`)
+      }} />
     </div>
   )
 }

@@ -4746,6 +4746,7 @@ type Action =
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
+  | { type: 'COLECAO_RECEBIDA'; moedas: number; marca: string } // 📚 coleção de clube recebida DENTRO da carreira (04/10): as moedas caem no caixa dela, uma vez por marca
   | { type: 'TV_EXTRA_VISTO' } // 📺 marca que o aviso único da cota extra (vídeo nas redes) já foi mostrado — nunca repete
   | { type: 'MEDICO_AVISO_VISTO' }
   | { type: 'PREPARADOR_AVISO_VISTO' } // 🏋️💸 fecha o recibo do troco do preparador (19/09) // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
@@ -6300,6 +6301,17 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'TV_EXTRA_VISTO': {
       s.tvExtraVisto = true
+      return s
+    }
+    case 'COLECAO_RECEBIDA': {
+      // 📚 o servidor já marcou as cartas como usadas (esc_colecao_receber); aqui só entra o dinheiro.
+      // Só carreira solo, só valor positivo e uma vez por marca — a mesma recebida não paga duas vezes.
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      if (!Number.isFinite(action.moedas) || action.moedas <= 0 || action.moedas > 2000) return s
+      if ((s.colecoesRecebidas ?? []).includes(action.marca)) return s
+      const youId = s.managers[s.youIdx]?.id ?? s.youIdx
+      s.careerCoins = { ...(s.careerCoins ?? {}), [youId]: Math.round((s.careerCoins?.[youId] ?? 0) + action.moedas) }
+      s.colecoesRecebidas = [...(s.colecoesRecebidas ?? []), action.marca].slice(-300)
       return s
     }
     // 🏥💸 o aviso da devolução só some da tela — as moedas já entraram lá atrás,
@@ -10880,48 +10892,6 @@ export function patchCareerCofre(seed: number, marca: string, tira: { name: stri
   return true
 }
 
-// ─── 📚 COLEÇÃO RECEBIDA · as moedas caem no caixa da carreira escolhida (04/10) ──────────
-// O servidor já marcou as 11 cartas como usadas (esc_colecao_receber). Aqui o aparelho põe as
-// moedas no caixa DAQUELA carreira (ativa ou do arquivo), uma vez só por `marca` (a mesma
-// recebida aplicada de novo não paga duas vezes), e REFAZ o lacre — o lacre é feito das moedas,
-// então sem isso o save seria acusado de "mexido".
-export type CarreiraParaReceber = { seed: number; nome: string; temporada: number; divisao: string; caixa: number; ativa: boolean }
-export function carreirasParaReceber(): CarreiraParaReceber[] {
-  return listAllCareers().map(({ slot, active }) => {
-    const s = slot.save as EscState
-    const youId = s.managers?.[s.youIdx]?.id ?? s.youIdx ?? 0
-    return {
-      seed: s.seed, nome: s.managers?.[s.youIdx]?.teamName ?? 'Meu time', temporada: s.seasonNo ?? 1,
-      divisao: String(s.careerPlacements?.['m' + youId] ?? s.careerDivision ?? ''), caixa: Math.round(s.careerCoins?.[youId] ?? 0), ativa: active,
-    }
-  })
-}
-export function creditaColecao(seed: number, moedas: number, marca: string): boolean {
-  if (!Number.isFinite(moedas) || moedas <= 0) return false
-  const aplica = (save: EscState): EscState | null => {
-    if ((save.colecoesRecebidas ?? []).includes(marca)) return null // já aplicada
-    const youId = save.managers?.[save.youIdx]?.id ?? save.youIdx ?? 0
-    const coins = { ...(save.careerCoins ?? {}) }
-    coins[youId] = Math.round((coins[youId] ?? 0) + moedas)
-    const novo = { ...save, careerCoins: coins, colecoesRecebidas: [...(save.colecoesRecebidas ?? []), marca].slice(-300) }
-    return { ...novo, _ll: lacreDe(novo) } as EscState
-  }
-  const act = readActiveCareer()
-  if (act && act.save.seed === seed) {
-    const novo = aplica(act.save)
-    if (!novo) return true
-    try { localStorage.setItem('esc-solo-career', JSON.stringify(novo)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { return false }
-    return true
-  }
-  const arch = readCareerArchive()
-  const idx = arch.findIndex(s => s.save.seed === seed)
-  if (idx < 0) return false
-  const novo = aplica(arch[idx].save)
-  if (!novo) return true
-  const lista = [...arch]; lista[idx] = { save: novo, at: Date.now() }
-  try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(lista.slice(0, MAX_CAREER_SLOTS))) } catch { return false }
-  return true
-}
 // 🤝 carta de CARREIRA que saiu numa troca: o servidor anotou em esc_cartas_saidas; ao abrir a
 // carreira, o aparelho tira a carta da Agência dela (mesmo cano do Bafo, idempotente pela marca).
 export async function aplicaSaidasDeTroca(seed: number | undefined): Promise<void> {
