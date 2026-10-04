@@ -10030,6 +10030,25 @@ export function PyramidSeasonScreen() {
             <CardCollectPrompt motivo={tr('👑 Campeão da Supercopa', '👑 Super Cup champion')} you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
+        {/* 🌎🌍🌐 Campeão da LIBERTADORES / CHAMPIONS / MUNDIAL da carreira internacional também ganha
+            carta (Diego, 04/10: *"já quero que ligue as cartas nas copas"*). Essas competições nasceram em
+            01/10 e ficaram de fora da regra "todo campeão ganha carta". Uma carta por título, cada uma com
+            seasonKey própria (":liberta", ":champions", ":mundial") pra não colidir com liga/Copa/Supercopa.
+            Lê o histórico gravado no FIM da campanha — antes de terminar, nada aparece (sem spoiler). */}
+        {copaFinished && state.careerOnline && (() => {
+          const fim = intlEnabled ? intlHistory.find(e => e.season === state.seasonNo) : undefined
+          if (!fim) return null
+          const base = `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`
+          const titulos: [string, string][] = []
+          if (fim.libertadores > 0) titulos.push(['liberta', tr('🌎 Campeão da Libertadores', '🌎 Libertadores champion')])
+          if (fim.champions > 0) titulos.push(['champions', tr('🌍 Campeão da Champions League', '🌍 Champions League champion')])
+          if (fim.mundial > 0) titulos.push(['mundial', tr('🌐 Campeão do Mundial de Clubes', '🌐 Club World Cup champion')])
+          return titulos.map(([suf, motivo]) => (
+            <div key={suf} style={{ marginBottom: 12 }}>
+              <CardCollectPrompt motivo={motivo} you={state.managers[state.youIdx]} seasonKey={`${base}:${suf}`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `${base}:${suf}`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            </div>
+          ))
+        })()}
         {copaFinished && (() => {
           // 🏛️ MULTICLUBES: o 2º clube dormindo é `isHuman` (assento meu), mas NÃO conta
           // como técnico na votação — senão o SOLO cairia no fluxo online. Fica de fora aqui.

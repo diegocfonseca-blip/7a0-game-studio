@@ -55,6 +55,9 @@ try {
   const pct = k => 100 * (conta[k] ?? 0) / 20000
   assert.ok(pct('lenda') > 3 && pct('lenda') < 5, `lenda ~4% (deu ${pct('lenda').toFixed(1)}%)`)
   assert.ok(pct('bom') > 55 && pct('bom') < 61, `bom jogador ~58% (deu ${pct('bom').toFixed(1)}%)`)
+  // 🌎 todo campeão ganha carta: Libertadores, Champions e Mundial da carreira também (04/10)
+  const ps = (await import('node:fs')).readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
+  for (const suf of ['liberta', 'champions', 'mundial']) assert.ok(ps.includes(`titulos.push(['${suf}'`), `carta do campeão: ${suf}`)
   const total = COLECOES.reduce((s, c) => s + c.premio, 0)
   console.log(`✅ coleções: ${COLECOES.length} clubes · Real Madrid ${real.premio} · Flamengo ${fla.premio} · tudo ${total} moedas · sorteio: lenda ${pct('lenda').toFixed(1)}%`)
 } finally { await vite.close() }

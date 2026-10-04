@@ -42,6 +42,11 @@
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 🌎 CARTA PRO CAMPEÃO DA LIBERTADORES / CHAMPIONS / MUNDIAL ✅ (04/10, *"já quero que ligue as cartas nas copas"*):
+  a carreira internacional (01/10) nunca tinha ligado o pacote. Agora cada título dá uma carta (seasonKey `:liberta`,
+  `:champions`, `:mundial`), lida do histórico gravado no FIM da campanha. Trava no `npm run colecoes`. Conferido: as
+  outras competições (liga, Copa Legends/Brasil, Supercopa, Copa do Mundo, partida rápida/online liga+copa, Só Champions)
+  já davam carta.
 - 🚀 COLEÇÕES + TROCAS ✅ NO AR PRA TODOS (04/10, *"pode fazer tudo e publicar pra todos"*): banco aplicado (3 tabelas,
   7 funções, troca até 10 de cada lado), `COLECOES_GERAL = true`, novidade na home, vídeo `scripts/video-colecoes-reels.mjs`.
   ⚠️ Lição do banco: desde 04/10 o conector do Supabase pede confirmação pra comando com `drop`/`revoke` e o app do celular
