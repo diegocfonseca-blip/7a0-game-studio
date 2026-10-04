@@ -19,18 +19,19 @@ try {
     assert.equal(c.premio, Math.max(1, Math.ceil(soma)), `${c.clube}: prêmio = soma arredondada pra cima`)
   }
   // clube com menos de 11 cartas fica no Diversos; com 11+ vira coleção sozinho (Inter Miami virou no Lote 42)
-  const porClube = new Map(); for (const c of m.BARALHO_TODO) porClube.set(c.club, (porClube.get(c.club) ?? 0) + 1)
+  const porClube = new Map(); for (const c of m.BARALHO_TODO) { const k = m.clubeColecao(c.club); porClube.set(k, (porClube.get(k) ?? 0) + 1) }
   for (const [clube, n] of porClube) assert.equal(COLECOES.some(c => !c.especial && c.clube === clube), n >= MIN_CARTAS_CLUBE, `${clube} (${n} cartas)`)
   // 🌟 Lendas Avulsas: só lenda de clube que NÃO é coleção, 5 por lenda, todas juntas
   const esp = COLECOES.find(c => c.especial)
   const clubesCol = new Set(COLECOES.filter(c => !c.especial).map(c => c.clube))
-  const esperadas = m.BARALHO_TODO.filter(c => !clubesCol.has(c.club) && m.categoriaDe(c) === 'lenda')
+  const esperadas = m.BARALHO_TODO.filter(c => !clubesCol.has(m.clubeColecao(c.club)) && m.categoriaDe(c) === 'lenda')
   assert.ok(esp && esp.cartas.length === esperadas.length && esp.premio === 5 * esperadas.length, 'Lendas Avulsas = lendas sem coleção, 5 cada')
   assert.ok(esp.cartas.every(c => m.categoriaDe(c) === 'lenda'))
   const doEsp = esp.cartas.map(c => copia(c)); const idsEsp = escolheCopias(doEsp, esp)
   assert.equal(idsEsp?.length, esp.cartas.length, 'fecha as Lendas Avulsas com uma de cada')
   assert.equal(escolheCopias(doEsp.slice(1), esp), null, 'faltando uma lenda, não fecha')
   assert.ok(COLECOES.some(c => c.clube === 'Inter Miami'), 'Inter Miami virou coleção com o Lote 42')
+  assert.ok(COLECOES.find(c => c.clube === 'Leicester')?.cartas.some(c => c.club === 'Leicester City'), 'Leicester City (Mahrez) conta no Leicester')
   // fechar = TODAS as cartas
   const pen = COLECOES.find(c => c.clube === 'Peñarol')
   const quase = pen.cartas.slice(0, pen.cartas.length - 1).map(c => copia(c))

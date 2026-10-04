@@ -82,8 +82,12 @@ begin
   v_n := coalesce(array_length(p_cards, 1), 0);
   if v_n <> p_total or (select count(distinct x) from unnest(p_cards) x) <> v_n then raise exception 'faltam cartas do clube'; end if;
   if (select count(*) from public.user_cards where id = any(p_cards) and user_id = v_uid) <> v_n then raise exception 'carta que nao e sua'; end if;
-  select min(card_club), count(distinct card_club), count(distinct (card_name, card_club, card_year))
-    into v_clube, v_clubes, v_distintas from public.user_cards where id = any(p_cards);
+  -- o mesmo clube com dois nomes no baralho conta como um só (igual CLUBE_MESMO em colecoes.ts)
+  select min(cl), count(distinct cl), count(distinct (card_name, card_club, card_year))
+    into v_clube, v_clubes, v_distintas
+    from (select card_name, card_club, card_year,
+                 case card_club when 'Leicester City' then 'Leicester' else card_club end as cl
+          from public.user_cards where id = any(p_cards)) u;
   if not p_especial and v_clubes <> 1 then raise exception 'cartas de clubes diferentes'; end if;
   if p_especial then
     if exists (select 1 from public.user_cards where id = any(p_cards) and card_fame < 5) then raise exception 'so lenda na colecao especial'; end if;

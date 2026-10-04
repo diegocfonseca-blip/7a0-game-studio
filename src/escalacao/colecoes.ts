@@ -48,6 +48,11 @@ export function sorteiaCarta<T extends { fame: number; promessa?: boolean }>(poo
   return l[Math.floor(aleatorio() * l.length)]
 }
 
+/** 🔗 o mesmo clube escrito de dois jeitos no baralho conta como UM só na coleção (a carta não muda de
+ *  nome, porque nome|clube|ano é a chave dela no álbum). Mesmo mapa na função do banco esc_colecao_receber. */
+export const CLUBE_MESMO: Record<string, string> = { 'Leicester City': 'Leicester' }
+export const clubeColecao = (club: string) => CLUBE_MESMO[club] ?? club
+
 /** mínimo de cartas no baralho pra um clube virar coleção */
 export const MIN_CARTAS_CLUBE = 11
 
@@ -62,7 +67,7 @@ export const NOME_LENDAS_AVULSAS = 'Lendas Avulsas'
 /** as coleções que existem hoje (clube com 11+ cartas), da que mais paga pra que menos paga */
 export function colecoesDoBaralho(baralho: CartaBaralho[] = BARALHO_TODO): Colecao[] {
   const porClube = new Map<string, CartaBaralho[]>()
-  for (const c of baralho) { const l = porClube.get(c.club); if (l) l.push(c); else porClube.set(c.club, [c]) }
+  for (const c of baralho) { const k = clubeColecao(c.club); const l = porClube.get(k); if (l) l.push(c); else porClube.set(k, [c]) }
   const out: Colecao[] = []
   for (const [clube, cartas] of porClube) {
     if (cartas.length < MIN_CARTAS_CLUBE) continue
@@ -72,7 +77,7 @@ export function colecoesDoBaralho(baralho: CartaBaralho[] = BARALHO_TODO): Colec
     out.push({ clube, cartas, premio: Math.max(1, Math.ceil(soma)), contagem })
   }
   const clubesColecao = new Set(out.map(c => c.clube))
-  const avulsas = baralho.filter(c => !clubesColecao.has(c.club) && categoriaDe(c) === 'lenda')
+  const avulsas = baralho.filter(c => !clubesColecao.has(clubeColecao(c.club)) && categoriaDe(c) === 'lenda')
   if (avulsas.length >= 2) {
     out.push({ clube: NOME_LENDAS_AVULSAS, cartas: avulsas, premio: avulsas.length * VALOR_CATEGORIA.lenda, contagem: { lenda: avulsas.length, craque: 0, promessa: 0, bom: 0, prof: 0 }, especial: true })
   }

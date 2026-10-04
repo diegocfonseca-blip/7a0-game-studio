@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { useT } from './lang'
-import { COLECOES, progressoDas, ordenaProgresso, escolheCopias, colecoesNovas, chaveCarta, type MinhaCarta, type Progresso } from './colecoes'
+import { COLECOES, progressoDas, ordenaProgresso, escolheCopias, colecoesNovas, chaveCarta, clubeColecao, type MinhaCarta, type Progresso } from './colecoes'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', VERDE = '#1B7A3D', ROXO = '#7C3AED', VERM = '#E8503A'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700, textTransform: 'uppercase' as const }
@@ -115,7 +115,7 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
     const clubes = new Set(COLECOES.filter(c => !c.especial).map(c => c.clube))
     const naEspecial = new Set(COLECOES.filter(c => c.especial).flatMap(c => c.cartas.map(chaveCarta)))
     const m = new Map<string, CartaDoAlbum[]>()
-    for (const c of minhas) { if (clubes.has(c.club) || naEspecial.has(chaveCarta(c))) continue; const k = chaveCarta(c); const l = m.get(k); if (l) l.push(c); else m.set(k, [c]) }
+    for (const c of minhas) { if (clubes.has(clubeColecao(c.club)) || naEspecial.has(chaveCarta(c))) continue; const k = chaveCarta(c); const l = m.get(k); if (l) l.push(c); else m.set(k, [c]) }
     return [...m.entries()].sort((a, b) => a[1][0].club.localeCompare(b[1][0].club) || b[1][0].fame - a[1][0].fame)
   }, [minhas])
   async function receber(p: Progresso) {

@@ -36,9 +36,15 @@
   Colo-Colo 2026 (*"acho que ele está atualmente"* — palavra do Diego), segue lenda. ⏭️ Dínamo de Moscou, West Ham e
   Stoke City ficaram com as listas propostas esperando ele (vai decidir junto com a troca de clube das lendas
   Valderrama, Simonsen, Banks, Moore e Yashin). Deportivo Cali: só ~4 nomes certos, pedi ajuda a ele.
+- 🦊 LEICESTER ✅ (04/10, *"coloque o Banks no Leicester mesmo e add mais algum grande famoso… que ganhou o título
+  inglês"*): Gordon Banks saiu do Stoke 1972 pro **Leicester 1966** (era goleiro de lá quando ganhou a Copa; segue lenda)
+  e entrou o **Wes Morgan** (capitão do título de 2016, bom jogador). O Mahrez está como "Leicester City" e os outros
+  como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
+  função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
+  Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
 - 🌟 LENDAS AVULSAS (04/10, *"coloque alguma categoria pra eles… 5 moedas pra cada, mas tem que completar todos juntos"*;
   as lendas NÃO trocam de clube): coleção especial com as lendas de clube que ainda não é coleção — hoje Yashin,
-  Gordon Banks, Bobby Moore, Allan Simonsen e Valderrama = 25 🪙, só com as 5 juntas. Monta-se sozinha (lenda sai quando
+  Bobby Moore, Allan Simonsen e Valderrama = 20 🪙 (o Banks saiu pro Leicester), só com as 4 juntas. Monta-se sozinha (lenda sai quando
   o clube dela chegar a 11). Nome PROVISÓRIO "Lendas Avulsas" — ⏭️ o Diego ainda vai escolher o nome. Banco:
   `esc_colecao_receber(..., p_especial)` aceita clubes diferentes, só lenda (migração ainda não aplicada).
 - ⛔ FALTA pra ligar de verdade: **aplicar a migração `20261004150000_colecoes_clubes_trocas.sql` no banco** (pediu
