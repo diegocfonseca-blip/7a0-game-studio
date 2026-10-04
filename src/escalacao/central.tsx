@@ -133,8 +133,8 @@ export function CentralCarreira(p: CentralProps) {
       </div>
 
       {/* 📱 celular: camarote → giro → Martelo → mercado → tabela+agenda (ordem por CSS `order`).
-          🖥️ desktop (03/10, 3º ajuste dele): esquerda camarote → agenda → [tabela inteira | giro inteiro];
-          direita Martelo → mercado, com a divisão do meio reta de cima a baixo. */}
+          🖥️ desktop (03/10, 4º ajuste dele): esquerda camarote → [tabela inteira | giro inteiro + agenda];
+          direita Martelo → mercado, esticado pra fechar na MESMA linha do fim da tabela. */}
       <div className="ll-central-grid">
         <div className="ll-central-esq">
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
@@ -163,6 +163,18 @@ export function CentralCarreira(p: CentralProps) {
             </div>
           </div>
 
+          {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
+          <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
+            <Cabecalho titulo={t('📊 Tabela', '📊 Table')} sub={p.divName.toLowerCase()} link={t('abrir', 'open')} onClick={() => p.onTab('tabelas')} />
+            <button type="button" className="ll-central-link" onClick={() => p.onTab('tabelas')} style={{ width: '100%' }}>
+              {tabelaCurta.map(x => { const pos = posDe(x.name) ?? 0; return (
+                <div key={x.name} className={`ll-central-row${noCelular.has(x.name) ? '' : ' ll-central-not-desk'}`} style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, outline: x.you ? `2px solid ${GOLD}` : undefined, outlineOffset: -2 }}>
+                  <span style={{ width: 17, color: '#777' }}>{pos}º</span><Escudo nome={x.name} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}</span><b>{x.pts}</b>
+                </div>
+              ) })}
+            </button>
+          </div>
+          <div className="ll-central-lado">
           {/* 📣 O GIRO: só a rodada já revelada. Celular: 3 jogos (o seu, o do líder, o jogaço);
               desktop: a rodada inteira, ao lado da tabela, no padrão das caixas creme (Diego 03/10). */}
           {p.giro && p.giro.jogos.length > 0 && (
@@ -179,17 +191,6 @@ export function CentralCarreira(p: CentralProps) {
               {p.giro.jogos.length > 3 && <button type="button" className="ll-central-link ll-central-so-cel" onClick={() => p.onTab('jogos')} style={{ width: '100%', padding: '6px 12px', fontSize: 9.5, fontWeight: 800, color: '#666', textAlign: 'center' }}>+ {p.giro.jogos.length - 3} {t('jogos da rodada', 'more matches')} ›</button>}
             </div>
           )}
-          {/* 📊 TABELA → abre Tabelas. Celular: 5 linhas; desktop: a tabela inteira */}
-          <div className="ll-central-card ll-c-tabela" style={{ background: CREME }}>
-            <Cabecalho titulo={t('📊 Tabela', '📊 Table')} sub={p.divName.toLowerCase()} link={t('abrir', 'open')} onClick={() => p.onTab('tabelas')} />
-            <button type="button" className="ll-central-link" onClick={() => p.onTab('tabelas')} style={{ width: '100%' }}>
-              {tabelaCurta.map(x => { const pos = posDe(x.name) ?? 0; return (
-                <div key={x.name} className={`ll-central-row${noCelular.has(x.name) ? '' : ' ll-central-not-desk'}`} style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : undefined, outline: x.you ? `2px solid ${GOLD}` : undefined, outlineOffset: -2 }}>
-                  <span style={{ width: 17, color: '#777' }}>{pos}º</span><Escudo nome={x.name} size={18} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.name}</span><b>{x.pts}</b>
-                </div>
-              ) })}
-            </button>
-          </div>
           {/* 🗓️ AGENDA das copas → abre Jogos. No desktop sobe pra baixo do camarote, em linha */}
           <div className="ll-central-card ll-c-agenda" style={{ background: CREME }}>
             <Cabecalho titulo={t('🗓️ Agenda', '🗓️ Calendar')} link={t('jogos', 'matches')} onClick={() => p.onTab('jogos')} />
@@ -201,6 +202,7 @@ export function CentralCarreira(p: CentralProps) {
               </div>
             ))}
             </div>
+          </div>
           </div>
         </div>
 
@@ -232,14 +234,14 @@ export function CentralCarreira(p: CentralProps) {
           <div className="ll-central-card ll-c-mercado" style={{ background: `#1a120a url(${leilaoArt}) 85% center / cover`, color: CREME, borderColor: '#847657' }}>
             <div style={{ background: 'linear-gradient(90deg,#0C0C0Cf2 45%,#0C0C0C8c)' }}>
               <Cabecalho titulo={t('💸 Mercado', '💸 Market')} sub={t('o que rolou nos leilões', 'auction business')} link={t('extrato', 'ledger')} onClick={() => p.onTab('estadio')} />
-              {(mercadoTodo ? p.mercado.negocios : p.mercado.negocios.slice(0, 5)).map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
+              {(mercadoTodo ? p.mercado.negocios : p.mercado.negocios.slice(0, 8)).map((c, i) => (
+              <div key={i} className={`ll-central-row ll-central-deal${!mercadoTodo && i >= 5 ? ' ll-central-not-desk' : ''}`} style={{ gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
                 <Escudo nome={c.team} size={26} />
                 <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800 }}><b style={{ ...OSW, fontSize: 15 }}>{c.name}</b> <small style={{ opacity: .6, fontSize: 10 }}>{c.pos}</small><br /><span style={{ fontSize: 11, opacity: .85 }}>→ {c.team}</span> {c.you ? <Chip>{t('você', 'you')}</Chip> : i === 0 && !mercadoTodo ? <Chip bg={RED} cor="#fff">{t('maior lance', 'biggest bid')}</Chip> : null}</span>
                 <b style={{ ...OSW, fontSize: 18, color: GOLD }}>🪙 {c.paid}</b>
               </div>
             ))}
-            {p.mercado.negocios.length > 5 && <button type="button" className="ll-central-link" onClick={() => setMercadoTodo(v => !v)} style={{ width: '100%', padding: '7px 13px', fontSize: 10, fontWeight: 900, color: GOLD, textAlign: 'center' }}>{mercadoTodo ? t('mostrar só os 5 maiores', 'show only the top 5') : t(`ver os ${p.mercado.negocios.length} negócios do pregão`, `see all ${p.mercado.negocios.length} deals`)} ›</button>}
+            {p.mercado.negocios.length > 5 && <button type="button" className="ll-central-link ll-central-deal-mais" onClick={() => setMercadoTodo(v => !v)} style={{ width: '100%', padding: '7px 13px', fontSize: 10, fontWeight: 900, color: GOLD, textAlign: 'center' }}>{mercadoTodo ? t('mostrar só os maiores', 'show only the top deals') : t(`ver os ${p.mercado.negocios.length} negócios do pregão`, `see all ${p.mercado.negocios.length} deals`)} ›</button>}
             {!p.mercado.negocios.length && p.mercado.maisCaro && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 13px', borderBottom: '2px solid #ffffff14' }}>
                 <Escudo nome={p.mercado.maisCaro.teamName} size={26} />

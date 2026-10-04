@@ -68,7 +68,7 @@ const semPerder = (f?: string) => { if (!f) return 0; let n = 0; for (let i = f.
 const semVencer = (f?: string) => { if (!f) return 0; let n = 0; for (let i = f.length - 1; i >= 0 && f[i] !== 'V'; i--) n++; return n }
 
 export function redacaoDaCentral(e: EntradaJornal): Jornal {
-  // 🥇 ORDEM POR IMPORTÂNCIA, não por tipo (03/10): com teto de 7, o que é do SEU clube
+  // 🥇 ORDEM POR IMPORTÂNCIA, não por tipo (03/10): com teto de 9 (5 no celular), o que é do SEU clube
   // (título/Z4, lesão, cria, copa chegando) vem antes do noticiário geral — senão a lesão
   // do seu titular ficava de fora e sobrava "Série B: fulano lidera".
   const fila: { pri: number; n: Noticia }[] = []
@@ -196,5 +196,5 @@ export function redacaoDaCentral(e: EntradaJornal): Jornal {
     const o = e.outraDiv
     noticias.push({ emoji: '🗞️', pt: `${o.divName}: ${o.lider} lidera com ${o.pts} pontos.`, en: `${o.divNameEn}: ${o.lider} lead on ${o.pts} points.`, tag: [o.divName.toLowerCase(), o.divNameEn.toLowerCase()] }, 9)
   }
-  return { manchete, noticias: fila.map((x, i) => ({ ...x, i })).sort((a, b) => a.pri - b.pri || a.i - b.i).slice(0, 7).map(x => x.n) }
+  return { manchete, noticias: fila.map((x, i) => ({ ...x, i })).sort((a, b) => a.pri - b.pri || a.i - b.i).slice(0, 9).map(x => x.n) }
 }

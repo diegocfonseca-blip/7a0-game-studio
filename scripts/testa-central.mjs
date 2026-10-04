@@ -33,7 +33,7 @@ try {
   assert.ok(j.noticias.some(n => /Bicho da Seda perde a 5ª seguida/.test(n.pt)), 'a pior sequência vira a crise')
   assert.ok(j.noticias.some(n => /Ronaldo é o jogador mais caro.*10º/.test(n.pt)), 'carta cara em clube mal colocado leva a provocação')
   assert.ok(j.noticias.some(n => /G8 na mão/.test(n.pt)), 'G8 garantido aparece no seu clube')
-  assert.ok(j.noticias.length <= 7, 'no máximo 7 notícias')
+  assert.ok(j.noticias.length <= 9, 'no máximo 9 notícias')
   assert.ok(j.noticias.every(n => n.pt && n.en && n.emoji && n.tag[0] && n.tag[1]), 'toda notícia tem PT, EN, emoji e etiqueta')
   assert.deepEqual(redacaoDaCentral(base), j, 'determinística')
   // 🙈 pré-temporada: nada a dizer ainda
