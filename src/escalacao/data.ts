@@ -419,7 +419,7 @@ export const BIOS: Record<string, string> = {
   "Denis Law": "The King de Old Trafford. Faro de gol e carisma — trio lendário com Best e Charlton.",
   "Bobby Charlton": "Cavalheiro do United. Sobrevivente de Munique, chute de longe indefensável e campeão de tudo.",
   "Bobby Moore": "O capitão perfeito. Zagueiro-líder da Inglaterra campeã de 66 — leitura de jogo impecável.",
-  "Gordon Banks": "A defesa do século contra Pelé em 70. O goleiro inglês mais respeitado da sua era.",
+  "Gordon Banks": "Campeão do mundo em 1966 quando era goleiro do Leicester. Depois fez a defesa do século contra Pelé em 70.",
   "Lev Yashin": "A Aranha Negra. O único goleiro Bola de Ouro — reflexos e presença que definiram a posição.",
   "Gianluigi Buffon": "Superman. O goleirão eterno da Juventus e da Itália — duas décadas de defesas impossíveis.",
   "Iker Casillas": "San Iker. As mãos de ouro do Real e da Espanha tricampeã — a defesa contra Robben em 2010.",
@@ -1645,7 +1645,7 @@ const GOL_EU: C[] = [
   { name: "Ederson", club: "Man City", year: 2019, fame: 4, lo: 85, hi: 91 },
   { name: "David Seaman", club: "Arsenal", year: 1998, fame: 4, lo: 80, hi: 87 },
   { name: "Jens Lehmann", club: "Arsenal", year: 2006, fame: 3, lo: 78, hi: 85 },
-  { name: "Gordon Banks", club: "Stoke City", year: 1972, fame: 5, lo: 88, hi: 93 },
+  { name: "Gordon Banks", club: "Leicester", year: 1966, fame: 5, lo: 88, hi: 93 },
   { name: "André Onana", club: "Inter", year: 2023, fame: 3, lo: 77, hi: 84 },
   { name: "Jerzy Dudek", club: "Liverpool", year: 2005, fame: 1, lo: 66, hi: 82, folk: true },
   { name: "Heurelho Gomes", club: "Tottenham", year: 2011, fame: 1, lo: 60, hi: 80, folk: true },
@@ -2735,6 +2735,9 @@ const L41_EU_ATA: C[] = [
 const L42_EU_GOL: C[] = [
   { name: "Francesco Toldo", club: "Fiorentina", year: 1999, fame: 4, lo: 83, hi: 90, bio: "Goleirão da Fiorentina e da Itália, herói da semifinal da Euro 2000." },
 ]
+const L42_EU_ZAG: C[] = [
+  { name: "Wes Morgan", club: "Leicester", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Capitão do Leicester campeão inglês de 2015-16, a maior zebra da história da Premier League." },
+]
 const L42_EU_MEI: C[] = [
   { name: "Giancarlo Antognoni", club: "Fiorentina", year: 1982, fame: 5, lo: 85, hi: 92, bio: "O maior ídolo da Fiorentina, campeão do mundo com a Itália em 1982." },
 ]
@@ -2745,7 +2748,7 @@ const L42_EU_ATA: C[] = [
   { name: "Edmundo", club: "Fiorentina", year: 1998, fame: 3, lo: 76, hi: 85, bio: "O Animal passou pela Fiorentina no fim dos anos 90, ao lado de Batistuta." },
 ]
 
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA] }
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
