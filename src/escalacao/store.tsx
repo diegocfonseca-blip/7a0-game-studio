@@ -10968,7 +10968,20 @@ export async function savePyramidCloud(state: EscState, force = false) {
     // só marca o carimbo novo quando o LOCAL já tinha tudo: se a gente juntou carreira de outro
     // aparelho aqui, o local ainda não tem — o carimbo fica velho e a próxima ida à home baixa e junta.
     if (localCobreNuvem) marcaCloudAt(uid, up?.updated_at as string | undefined)
+    // 💾 lembra QUANDO e EM QUE PONTO esta carreira subiu (o "salvo na nuvem há X min" da Central)
+    if (isCareerSave(state)) anotaSubidaNuvem(state)
   } catch { /* best effort — o local sempre garante */ }
+}
+// 💾 última subida da carreira pra nuvem, por carreira (seed): quando foi e em que rodada/temporada.
+// É só memória pra tela ("salvo há 12 min · você jogou 3 rodadas desde então"); não decide nada.
+export type SubidaNuvem = { at: number; seasonNo: number; round: number }
+const NUVEM_SUBIU_KEY = 'esc-nuvem-subiu:'
+function anotaSubidaNuvem(state: EscState) {
+  try { localStorage.setItem(NUVEM_SUBIU_KEY + state.seed, JSON.stringify({ at: Date.now(), seasonNo: state.seasonNo ?? 1, round: state.round ?? 0 } satisfies SubidaNuvem)) } catch { /* ignora */ }
+}
+export function ultimaSubidaNuvem(seed: number | undefined): SubidaNuvem | null {
+  if (seed == null) return null
+  try { const r = localStorage.getItem(NUVEM_SUBIU_KEY + seed); return r ? JSON.parse(r) as SubidaNuvem : null } catch { return null }
 }
 type CloudCareers = { save: EscState; at: number; careers: CareerSlot[]; iso: string | null }
 export async function loadPyramidCloud(): Promise<CloudCareers | null> {
