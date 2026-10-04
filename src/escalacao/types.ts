@@ -743,6 +743,7 @@ export interface EscState {
   bafoOn?: boolean
   bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }> // mgrId → dono do time (conta + carreira que ele trouxe). É por aqui que a cascata sabe de QUEM sai a carta e pra QUAL carreira ela vai.
   bafoValendo?: boolean // 🃏 a partida vale carta de verdade (padrão) ou é amistoso — escolha do host na criação da sala
+  colecoesRecebidas?: string[] // 📚 idempotência das COLEÇÕES recebidas nesta carreira (04/10): a mesma recebida não paga duas vezes
   bafoTrocasFeitas?: string[] // 🃏 idempotência do COFRE da carreira: chaves das trocas de Bafo já aplicadas neste save (o servidor já trocou o dono; isto evita tirar/pôr a carta duas vezes no aparelho).
   quickCopa?: QuickCopaState | null
   liberta?: LibertaState | null // 🌎 fase de grupos da Libertadores (o mata-mata dela usa o quickCopa)

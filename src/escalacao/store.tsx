@@ -10880,6 +10880,60 @@ export function patchCareerCofre(seed: number, marca: string, tira: { name: stri
   return true
 }
 
+// ─── 📚 COLEÇÃO RECEBIDA · as moedas caem no caixa da carreira escolhida (04/10) ──────────
+// O servidor já marcou as 11 cartas como usadas (esc_colecao_receber). Aqui o aparelho põe as
+// moedas no caixa DAQUELA carreira (ativa ou do arquivo), uma vez só por `marca` (a mesma
+// recebida aplicada de novo não paga duas vezes), e REFAZ o lacre — o lacre é feito das moedas,
+// então sem isso o save seria acusado de "mexido".
+export type CarreiraParaReceber = { seed: number; nome: string; temporada: number; divisao: string; caixa: number; ativa: boolean }
+export function carreirasParaReceber(): CarreiraParaReceber[] {
+  return listAllCareers().map(({ slot, active }) => {
+    const s = slot.save as EscState
+    const youId = s.managers?.[s.youIdx]?.id ?? s.youIdx ?? 0
+    return {
+      seed: s.seed, nome: s.managers?.[s.youIdx]?.teamName ?? 'Meu time', temporada: s.seasonNo ?? 1,
+      divisao: String(s.careerPlacements?.['m' + youId] ?? s.careerDivision ?? ''), caixa: Math.round(s.careerCoins?.[youId] ?? 0), ativa: active,
+    }
+  })
+}
+export function creditaColecao(seed: number, moedas: number, marca: string): boolean {
+  if (!Number.isFinite(moedas) || moedas <= 0) return false
+  const aplica = (save: EscState): EscState | null => {
+    if ((save.colecoesRecebidas ?? []).includes(marca)) return null // já aplicada
+    const youId = save.managers?.[save.youIdx]?.id ?? save.youIdx ?? 0
+    const coins = { ...(save.careerCoins ?? {}) }
+    coins[youId] = Math.round((coins[youId] ?? 0) + moedas)
+    const novo = { ...save, careerCoins: coins, colecoesRecebidas: [...(save.colecoesRecebidas ?? []), marca].slice(-300) }
+    return { ...novo, _ll: lacreDe(novo) } as EscState
+  }
+  const act = readActiveCareer()
+  if (act && act.save.seed === seed) {
+    const novo = aplica(act.save)
+    if (!novo) return true
+    try { localStorage.setItem('esc-solo-career', JSON.stringify(novo)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { return false }
+    return true
+  }
+  const arch = readCareerArchive()
+  const idx = arch.findIndex(s => s.save.seed === seed)
+  if (idx < 0) return false
+  const novo = aplica(arch[idx].save)
+  if (!novo) return true
+  const lista = [...arch]; lista[idx] = { save: novo, at: Date.now() }
+  try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(lista.slice(0, MAX_CAREER_SLOTS))) } catch { return false }
+  return true
+}
+// 🤝 carta de CARREIRA que saiu numa troca: o servidor anotou em esc_cartas_saidas; ao abrir a
+// carreira, o aparelho tira a carta da Agência dela (mesmo cano do Bafo, idempotente pela marca).
+export async function aplicaSaidasDeTroca(seed: number | undefined): Promise<void> {
+  if (seed == null) return
+  try {
+    const { data } = await supabase.from('esc_cartas_saidas').select('troca_id, card_name, card_club, card_year').like('season_key_antiga', `co:solo${seed}:%`)
+    for (const r of (data ?? []) as { troca_id: number; card_name: string; card_club: string; card_year: number }[]) {
+      patchCareerCofre(seed, `troca:${r.troca_id}:${r.card_name}|${r.card_club}|${r.card_year}`, { name: r.card_name, club: r.card_club, year: r.card_year }, null)
+    }
+  } catch { /* sem rede: tenta de novo na próxima vez que abrir */ }
+}
+
 // além do save local (esc-solo-career), quem está logado espelha o save inteiro
 // na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
 // ── junção segura de carreiras (nunca perde nem volta no tempo) ──────────────

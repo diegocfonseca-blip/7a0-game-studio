@@ -404,6 +404,30 @@ export function useSalaElencoLiberada(): boolean {
   return salaElencoOk
 }
 
+
+// 📚🤝 COLEÇÕES DE CLUBES + TROCAS DE CARTAS (04/10, regras fechadas com o Diego, mockup v2).
+// 11 cartas diferentes do mesmo clube fecham o time → o jogador aperta Receber e escolhe a carreira;
+// as 11 ficam marcadas "usadas" (continuam no álbum). O sorteio da carta passa a incluir o baralho
+// Mundo e a poder repetir. Trocas: proposta com até 3 cartas de cada lado + recado.
+// 🔒 Só a conta do Diego até ele aprovar na tela; `true` abre pra todo mundo.
+const COLECOES_GERAL = false
+const COLECOES_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let colecoesOk = COLECOES_GERAL
+function applyColecoesUnlock(email?: string | null): void {
+  let dev = false
+  try { dev = import.meta.env.DEV && localStorage.getItem('esc-colecoes-dev') === '1' } catch { /* ignora */ }
+  const u = COLECOES_GERAL || dev || (!!email && COLECOES_TESTERS.has(email.toLowerCase()))
+  if (u === colecoesOk) return
+  colecoesOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function colecoesLiberadas(): boolean { return colecoesOk }
+export function useColecoesLiberadas(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return colecoesOk
+}
+
 // ─── 🏆 LIGA FECHADA — a sala que fica de pé ─────────────────────────────────
 // A liga da turma: horário marcado, sempre a MESMA sala (é o que faz o troféu
 // acumular), só entra quem é 👑 Lenda ou dono de clube batizado, e o dono manda
@@ -891,8 +915,8 @@ export function useElencoNovo(): boolean {
   return elenco27Ok
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); if (internacionalCarreiraAuthVersion === 0) authorizeInternacionalCarreira(data?.user, 0); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyChampionsUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyCentralUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email); applyClubesUnlock(data?.user?.email) }, () => { if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(null) })
-supabase.auth.onAuthStateChange((_event, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); verifyInternacionalCarreira(s?.user); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyChampionsUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyCentralUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email); applyElenco27(s?.user?.email); applyClubesUnlock(s?.user?.email) })
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); if (internacionalCarreiraAuthVersion === 0) authorizeInternacionalCarreira(data?.user, 0); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyChampionsUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyCentralUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email); applyClubesUnlock(data?.user?.email); applyColecoesUnlock(data?.user?.email) }, () => { applyColecoesUnlock(null); if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(null) })
+supabase.auth.onAuthStateChange((_event, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); verifyInternacionalCarreira(s?.user); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyChampionsUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyCentralUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email); applyElenco27(s?.user?.email); applyClubesUnlock(s?.user?.email); applyColecoesUnlock(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

@@ -8,7 +8,8 @@ import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
@@ -55,7 +56,8 @@ import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionSt
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, type Sport } from './sport'
+import { BARALHO_TODO } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -1415,7 +1417,7 @@ function useResumableSolo() {
     teamName: you?.teamName ?? 'Meu time',
     // ao CONTINUAR, puxa a conta primeiro e abre a versão MAIS NOVA daquele save —
     // nunca a cópia velha de uma aba parada.
-    resume: async () => { await syncCareersWithCloud(); dispatch({ type: 'RESUME_CAREER_SOLO', saved: readLocal() ?? saved }) },
+    resume: async () => { await syncCareersWithCloud(); if (colecoesLiberadas()) await aplicaSaidasDeTroca(saved.seed); dispatch({ type: 'RESUME_CAREER_SOLO', saved: readLocal() ?? saved }) }, // 🤝 carta de carreira trocada sai da Agência antes de abrir
     // descartar tira SÓ este save (não mexe nas outras carreiras da conta).
     discard: () => {
       const seed = saved.seed
@@ -8445,6 +8447,8 @@ const ALL_POOL: WonCard[] = (() => {
   }
   return out
 })()
+// 📚 o pacote das COLEÇÕES: os três baralhos, uma entrada por carta (nome+clube+ano)
+const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`, name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame as Card['fame'], folk: c.folk, promessa: c.promessa, lo: 0, hi: 0, paid: 0, via: 'leilao' }))
 
 // 🏆 `motivo` = DE QUAL TÍTULO veio esta carta ("Campeão da Série C", "Campeão da
 // Copa Legends"…). Existe por causa do relato do Futpoint FC (15/09), trazido pelo
@@ -8512,7 +8516,20 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // 🎁 PACOTE SURPRESA: a carta agora é SORTEADA entre TODAS as cartas do jogo
   // (baralho BR + Europa), sempre uma que o campeão ainda NÃO tem (só repetiria
   // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
+  const colecoesOn = useColecoesLiberadas()
   const packPool = useMemo(() => {
+    // 📚 COLEÇÕES (04/10): o sorteio usa os TRÊS baralhos (o Mundo entrou — sem ele Boca, River e
+    // outros 22 clubes nunca fechavam) e PODE REPETIR fora da carreira: a repetida é o que deixa
+    // fechar o mesmo clube de novo e é a moeda das trocas. Na carreira segue a regra da Agência.
+    if (colecoesOn) {
+      const pool = POOL_COLECOES
+      if (saveCards) {
+        const saveSet = new Set(saveCards.map(c => `${c.name}|${c.club}|${c.year}`))
+        const un = pool.filter(c => !saveSet.has(`${c.name}|${c.club}|${c.year}`))
+        return un.length ? un : pool
+      }
+      return pool
+    }
     // MODO CARREIRA: a unicidade do pacote é do SAVE (agência), não do álbum geral.
     // Assim uma carta que você já tem no álbum de rua mas ainda NÃO neste save
     // entra normalmente no save (conta pra agência) — não gera carta substituta e,
@@ -8525,7 +8542,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     }
     const un = ALL_POOL.filter(c => !owned.has(c.name))
     return un.length ? un : ALL_POOL
-  }, [owned, saveCards])
+  }, [owned, saveCards, colecoesOn])
   const [opening, setOpening] = useState(false)
   // 🔒 grava a carta na conta (álbum) — RESILIENTE: se o backend cair, guarda no
   // aparelho e re-tenta ao reabrir. NÃO revela: só garante que a carta É do campeão.
@@ -8802,6 +8819,49 @@ export function EscAlbum() {
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [filter, setFilter] = useState<AlbumFilter>('all')
   const [sort, setSort] = useState<AlbumSort>('tier') // 🗂️ padrão: melhores primeiro
+  // 📚🤝 COLEÇÕES + TROCAS (04/10): com a trava ligada o álbum ganha abas e passa a ler cada CÓPIA
+  // (linha de user_cards com id), quais foram usadas numa coleção e quais estão presas numa troca.
+  const colecoesOn = useColecoesLiberadas()
+  const [aba, setAba] = useState<'cartas' | 'colecoes' | 'trocas'>('cartas')
+  const [copias, setCopias] = useState<CartaDoAlbum[]>([])
+  const [eu, setEu] = useState<{ id: string; nome: string } | null>(null)
+  const [recarga, setRecarga] = useState(0)
+
+  useEffect(() => {
+    if (!colecoesOn) return
+    let vivo = true
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user || !vivo) return
+        const nome = String(user.user_metadata?.display_name ?? '').trim() || tr('Técnico', 'Manager')
+        setEu({ id: user.id, nome })
+        const [{ data: cs }, { data: us }, { data: tr2 }] = await Promise.all([
+          supabase.from('user_cards').select('id, card_name, card_club, card_year, card_pos, card_fame').eq('user_id', user.id),
+          supabase.from('esc_cartas_usadas').select('card_id, carreira_nome').eq('user_id', user.id),
+          supabase.from('esc_trocas').select('de, de_cartas, para_cartas, expira_em').eq('status', 'aberta').or(`de.eq.${user.id},para.eq.${user.id}`),
+        ])
+        if (!vivo) return
+        const usadas = new Map(((us ?? []) as { card_id: string; carreira_nome: string | null }[]).map(u => [u.card_id, u.carreira_nome ?? '']))
+        const presas = new Set<string>()
+        for (const x of (tr2 ?? []) as { de: string; de_cartas: string[]; para_cartas: string[]; expira_em: string }[]) {
+          if (new Date(x.expira_em).getTime() <= Date.now()) continue
+          for (const id of (x.de === user.id ? x.de_cartas : x.para_cartas)) presas.add(id)
+        }
+        setCopias(((cs ?? []) as { id: string; card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number }[]).map(c => ({
+          id: c.id, name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos, fame: c.card_fame,
+          usadaEm: usadas.has(c.id) ? 'sim' : null, usadaNome: usadas.get(c.id) ?? null, presa: presas.has(c.id),
+        })))
+      } catch { /* sem rede: as abas novas ficam vazias, o álbum segue */ }
+    })()
+    return () => { vivo = false }
+  }, [colecoesOn, recarga])
+  // por figurinha (nome|clube|ano): quantas cópias e quantas usadas — a legenda embaixo da carta
+  const copiasPorChave = useMemo(() => {
+    const m = new Map<string, { n: number; usadas: number; onde?: string }>()
+    for (const c of copias) { const k = `${c.name}|${c.club}|${c.year}`; const v = m.get(k) ?? { n: 0, usadas: 0 }; v.n++; if (c.usadaEm) { v.usadas++; v.onde = c.usadaNome ?? v.onde } m.set(k, v) }
+    return m
+  }, [copias])
 
   useEffect(() => {
     ;(async () => {
@@ -8856,6 +8916,17 @@ export function EscAlbum() {
         {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{CATALOG_TOTAL} {tr('craques', 'stars')}{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
       </div>
 
+      {colecoesOn && !anon && (
+        <div className="flex gap-1.5">
+          {([['cartas', tr('🃏 Cartas', '🃏 Cards')], ['colecoes', tr('📚 Coleções', '📚 Collections')], ['trocas', tr('🤝 Trocas', '🤝 Trades')]] as const).map(([id, rot]) => (
+            <button key={id} onClick={() => setAba(id)} className="flex-1 py-2 font-black text-[13px] uppercase border-[3px] border-black rounded-xl"
+              style={{ ...OSWALD, background: aba === id ? GOLD : '#fff', boxShadow: aba === id ? `2px 2px 0 0 ${INK}` : 'none' }}>{rot}</button>
+          ))}
+        </div>
+      )}
+      {colecoesOn && !anon && aba === 'colecoes' && <AbaColecoes minhas={copias} recarregar={() => setRecarga(x => x + 1)} />}
+      {colecoesOn && !anon && aba === 'trocas' && eu && <AbaTrocas meuId={eu.id} meuNome={eu.nome} minhas={copias} recarregar={() => setRecarga(x => x + 1)} />}
+      {(!colecoesOn || anon || aba === 'cartas') && <>
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setFilter(t.id)}
@@ -8903,11 +8974,22 @@ export function EscAlbum() {
       )}
       {!anon && (
         <div className="grid grid-cols-2 gap-3">
-          {shown.map((c, i) => (
-            <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
-          ))}
+          {shown.map((c, i) => {
+            const info = colecoesOn ? copiasPorChave.get(`${c.name}|${c.club}|${c.year}`) : undefined
+            return (
+              <div key={i}>
+                <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
+                {info && (info.n > 1 || info.usadas > 0) && (
+                  <p className="text-[10.5px] font-black text-center mt-1.5 text-black/65" style={OSWALD}>
+                    {info.n > 1 ? `x${info.n}` : ''}{info.n > 1 && info.usadas ? ' · ' : ''}{info.usadas ? tr(`${info.usadas} usada${info.usadas > 1 ? 's' : ''}${info.onde ? ` no ${info.onde}` : ''}`, `${info.usadas} used${info.onde ? ` in ${info.onde}` : ''}`) : ''}
+                  </p>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
+      </>}
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 {tr('Voltar ao início', 'Back to start')}</Btn>
     </Shell>
   )
