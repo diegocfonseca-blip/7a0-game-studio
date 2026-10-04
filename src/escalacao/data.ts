@@ -2728,7 +2728,24 @@ const L41_EU_ATA: C[] = [
   { name: "Mohammed Kudus", club: "West Ham", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Atacante driblador de Gana, destaque do West Ham." },
 ]
 
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA] }
+
+// ─── 📚 LOTE 42 (04/10): Fiorentina vira coleção (11+ cartas) ─────────────
+// Pedido do Diego: completar clubes com famosos que jogaram lá no auge, cada um na categoria
+// daquele clube e daquele ano. Ninguém repetido no mesmo baralho (conferido).
+const L42_EU_GOL: C[] = [
+  { name: "Francesco Toldo", club: "Fiorentina", year: 1999, fame: 4, lo: 83, hi: 90, bio: "Goleirão da Fiorentina e da Itália, herói da semifinal da Euro 2000." },
+]
+const L42_EU_MEI: C[] = [
+  { name: "Giancarlo Antognoni", club: "Fiorentina", year: 1982, fame: 5, lo: 85, hi: 92, bio: "O maior ídolo da Fiorentina, campeão do mundo com a Itália em 1982." },
+]
+const L42_EU_ATA: C[] = [
+  { name: "Kurt Hamrin", club: "Fiorentina", year: 1960, fame: 4, lo: 83, hi: 90, bio: "Ponta sueco, um dos maiores artilheiros da história da Fiorentina." },
+  { name: "Adrian Mutu", club: "Fiorentina", year: 2008, fame: 4, lo: 83, hi: 90, bio: "Atacante romeno, artilheiro e ídolo da Fiorentina nos anos 2000." },
+  { name: "Federico Chiesa", club: "Fiorentina", year: 2019, fame: 3, lo: 76, hi: 85, promessa: true, bio: "Revelado pela Fiorentina antes de brilhar pela Itália." },
+  { name: "Edmundo", club: "Fiorentina", year: 1998, fame: 3, lo: 76, hi: 85, bio: "O Animal passou pela Fiorentina no fim dos anos 90, ao lado de Batistuta." },
+]
+
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -2747,7 +2764,7 @@ const GOL_WORLD: C[] = [
   { name: "Óscar Pérez", club: "Cruz Azul", year: 2000, fame: 3, lo: 76, hi: 85, bio: "'Conejo' — baixinho e eterno, foi convocado pra várias Copas do México ao longo de quase 20 anos de estrada." },
   { name: "Mohammed Al-Deayea", club: "Al-Hilal", year: 2002, fame: 3, lo: 77, hi: 85 },
   { name: "Óscar Córdoba", club: "Boca Juniors", year: 2001, fame: 3, lo: 77, hi: 85, bio: "Muralha colombiana do Boca bi da Libertadores e campeão do Mundo (Intercontinental) contra o Real." },
-  { name: "Vozinha", club: "Cabo Verde", year: 2026, fame: 5, lo: 85, hi: 92, folk: true, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde — a muralha da seleção-surpresa que encantou a África. LENDA por aclamação popular: quem viu, viu." },
+  { name: "Vozinha", club: "Colo-Colo", year: 2026, fame: 5, lo: 85, hi: 92, folk: true, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde, a muralha da seleção-surpresa que encantou a África, agora no Colo-Colo. LENDA por aclamação popular: quem viu, viu." },
   { name: "Essam El-Hadary", club: "Al Ahly", year: 2008, fame: 3, lo: 76, hi: 84, bio: "Lenda egípcia e o jogador mais velho a atuar numa Copa do Mundo, aos 45 anos. Muralha multicampeã africana pelo Al Ahly." },
   { name: "Nery Pumpido", club: "River Plate", year: 1986, fame: 3, lo: 76, hi: 84, bio: "Goleiro campeão do mundo com a Argentina em 1986, titular na campanha do México." },
   { name: "Tony Meola", club: "MetroStars", year: 1996, fame: 2, lo: 66, hi: 80 },
@@ -3361,7 +3378,48 @@ const L40_WORLD_ATA: C[] = [
   { name: "Juan Carlos Oblitas", club: "Universitario", year: 1972, fame: 3, lo: 76, hi: 85, bio: "O Ciego, ponta do Universitario e da seleção peruana nas Copas de 78 e 82." },
 ]
 
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA] }
+
+// ─── 📚 LOTE 42 (04/10): Cosmos, Inter Miami, Kashima e Al-Nassr viram coleção ─────────────
+// Famosos que jogaram lá, na categoria daquele clube e daquele ano. Ninguém repetido no baralho Mundo.
+const L42_WORLD_GOL: C[] = [
+  { name: "Shep Messing", club: "New York Cosmos", year: 1977, fame: 2, lo: 64, hi: 80, bio: "Goleiro americano do Cosmos campeão de 1977." },
+  { name: "Drake Callender", club: "Inter Miami", year: 2023, fame: 2, lo: 64, hi: 80, bio: "Goleiro do Inter Miami campeão da Leagues Cup de 2023." },
+  { name: "Hitoshi Sogahata", club: "Kashima Antlers", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Kashima tricampeão japonês." },
+  { name: "David Ospina", club: "Al-Nassr", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Goleiro colombiano, recordista de jogos pela seleção." },
+]
+const L42_WORLD_LAT: C[] = [
+  { name: "Carlos Alberto Torres", club: "New York Cosmos", year: 1977, fame: 4, lo: 83, hi: 90, bio: "O Capita do tri jogou no Cosmos ao lado de Pelé e Beckenbauer." },
+  { name: "Jordi Alba", club: "Inter Miami", year: 2023, fame: 4, lo: 83, hi: 90, bio: "Lateral campeão de tudo pelo Barça, reencontrou Messi em Miami." },
+  { name: "Jorginho", club: "Kashima Antlers", year: 1996, fame: 4, lo: 83, hi: 90, bio: "Lateral do tetra, foi jogar no Kashima Antlers." },
+]
+const L42_WORLD_ZAG: C[] = [
+  { name: "Franz Beckenbauer", club: "New York Cosmos", year: 1978, fame: 4, lo: 83, hi: 90, bio: "O Kaiser levou sua classe pro Cosmos no fim da carreira." },
+  { name: "Gen Shoji", club: "Kashima Antlers", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Kashima e do Japão na Copa de 2018." },
+  { name: "Aymeric Laporte", club: "Al-Nassr", year: 2024, fame: 4, lo: 83, hi: 90, bio: "Zagueiro campeão da Euro 2024 com a Espanha, no Al-Nassr de Cristiano." },
+]
+const L42_WORLD_MEI: C[] = [
+  { name: "Johan Neeskens", club: "New York Cosmos", year: 1979, fame: 4, lo: 83, hi: 90, bio: "Craque da Laranja Mecânica que jogou no Cosmos." },
+  { name: "Vladislav Bogićević", club: "New York Cosmos", year: 1980, fame: 3, lo: 76, hi: 85, bio: "Meia iugoslavo, o garçom do Cosmos." },
+  { name: "Marcos Senna", club: "New York Cosmos", year: 2013, fame: 3, lo: 76, hi: 85, bio: "Campeão europeu com a Espanha, fechou a carreira no Cosmos." },
+  { name: "Sergio Busquets", club: "Inter Miami", year: 2023, fame: 4, lo: 83, hi: 90, bio: "Volante campeão de tudo pelo Barça, reencontrou Messi em Miami." },
+  { name: "Rodrigo De Paul", club: "Inter Miami", year: 2025, fame: 4, lo: 83, hi: 90, bio: "Campeão do mundo com a Argentina, foi jogar com Messi no Inter Miami." },
+  { name: "Blaise Matuidi", club: "Inter Miami", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Campeão do mundo em 2018, encerrou a carreira no Inter Miami." },
+  { name: "Diego Gómez", club: "Inter Miami", year: 2023, fame: 3, lo: 76, hi: 85, promessa: true, bio: "Meia paraguaio que brilhou no Inter Miami e foi vendido pra Europa." },
+  { name: "Masashi Motoyama", club: "Kashima Antlers", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Meia histórico do Kashima Antlers." },
+  { name: "Koji Nakata", club: "Kashima Antlers", year: 2002, fame: 3, lo: 76, hi: 85, bio: "Volante do Kashima e da seleção japonesa." },
+  { name: "Marcelo Brozović", club: "Al-Nassr", year: 2024, fame: 4, lo: 83, hi: 90, bio: "Volante croata vice do mundo em 2018, jogador do Al-Nassr." },
+  { name: "Otávio", club: "Al-Nassr", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Meia luso-brasileiro do Al-Nassr." },
+  { name: "Seko Fofana", club: "Al-Nassr", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Meia marfinense do Al-Nassr." },
+]
+const L42_WORLD_ATA: C[] = [
+  { name: "Tadeo Allende", club: "Inter Miami", year: 2025, fame: 3, lo: 76, hi: 85, bio: "Atacante argentino do Inter Miami." },
+  { name: "Alcindo", club: "Kashima Antlers", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Atacante brasileiro do Kashima nos primeiros anos da J-League." },
+  { name: "Atsushi Yanagisawa", club: "Kashima Antlers", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Atacante do Kashima e da seleção japonesa." },
+  { name: "Kingsley Coman", club: "Al-Nassr", year: 2025, fame: 4, lo: 83, hi: 90, bio: "Ponta francês que trocou o Bayern pelo Al-Nassr em 2025." },
+  { name: "Jhon Durán", club: "Al-Nassr", year: 2025, fame: 3, lo: 76, hi: 85, bio: "Atacante colombiano que chegou ao Al-Nassr em 2025." },
+]
+
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL, ...L42_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT, ...L42_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG, ...L42_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI, ...L42_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA, ...L42_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
