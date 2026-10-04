@@ -27,7 +27,13 @@
   giro → tabela+agenda; direita Martelo → mercado (`central.css`, ordem do celular por `order`).
 - Como foi feito sem simular nada novo: `confrontoDaRodada()` reproduz o calendário do `simDivTo` (mesma semente) pra
   achar o adversário; a forma (bolinhas) vem de até 4 `simulaAte(r)` extras, só com a aba aberta e nunca além de
-  `revealed`. O lado (placar/controle) NÃO é desenhado na aba Central.
+  `revealed`. O lado (placar/controle) fica ESCONDIDO na aba Central, mas continua montado (ver 7º ajuste).
+- 🏆 6º ajuste (04/10, *"todas copas após a liga devem ir mexendo também na central"*): depois da liga o camarote, o
+  giro e a manchete seguem a fase da vez — Copa do Brasil/Legends, Supercopa, Libertadores/Champions/Mundial (técnico
+  convidado, nome do clube grande) e Copa do Mundo, com a arte de cada uma. Botão na mesma ordem dos controles.
+- ⏱️ 7º ajuste (04/10, bug dele: *"quando volto na aba de jogos tá reiniciando a partida"*): a Central TIRAVA o placar da
+  tela, e o relógio do jogo morre junto (ele mora dentro do `LiveScoreCard`). Agora só esconde (`display: none`): o
+  jogo segue rolando por trás, sem pausa e sem botão novo. Medido na bancada: troca no 6', volta no 22'.
 - 🟢 `CENTRAL_GERAL = true` em `sport.ts` desde 03/10 (`false` volta a ser só `diego.c.fonseca@gmail.com`; bancada do vite liga com
   `localStorage esc-central-dev=1`, chave que some do build). Só carreira SOLO.
 - 💸 2º ajuste (03/10): o MERCADO mostra TODOS os negócios do pregão da temporada, de todo clube (*"não só os

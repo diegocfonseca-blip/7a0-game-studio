@@ -9379,9 +9379,10 @@ export function PyramidSeasonScreen() {
             divs sem estilo nenhum (layout idêntico). No monitor viram as duas colunas:
             o que é "de agora" à esquerda, o conteúdo da aba à direita. */}
         <div className="ll-cx-lado">
-        {/* 📺 na Central o lado (cabeçalho, placar, controle) NÃO é desenhado: o botão de jogar
-            mora no camarote, e tudo o mais já está na própria Central. */}
-        {tab !== 'central' && <>
+        {/* 📺 na Central o lado (cabeçalho, placar, controle) fica ESCONDIDO, mas continua montado
+            (04/10, bug do Diego): se saísse da tela, o relógio do placar ao vivo morria e a partida
+            recomeçava ao voltar pra Jogos. Escondido, o jogo segue rolando por trás, sem pausa. */}
+        <div style={tab === 'central' ? { display: 'none' } : undefined}>
         {/* 🎨 identidade por competição (16/08): verde+amarelo brilhante na Copa
             do Brasil, azul+amarelo na Supercopa (INVERTIDA de propósito — dá pra
             saber qual é qual só de olhar), verde escuro na Copa Legends (quem
@@ -9959,7 +9960,7 @@ export function PyramidSeasonScreen() {
             <p style={{ fontWeight: 700, fontSize: 10, margin: '2px 0 0', color: 'rgba(0,0,0,.55)' }}>{manual ? tr('A próxima fase anda quando o host avançar.', 'The next round goes when the host advances.') : tr('O host pode pausar (Manual) a qualquer hora.', 'The host can pause (Manual) at any time.')}</p>
           </div>
         )}
-        </>}
+        </div>
         </div>
         <div className="ll-cx-aba">
         {copaFinished && me?.champ && state.careerOnline && (
