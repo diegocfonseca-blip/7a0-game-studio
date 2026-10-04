@@ -26,6 +26,9 @@ import copaBrArt from './img/carreira-copa-brasil-v25.webp'
 import copaLegArt from './img/online-copa8-v25.webp'
 import libertaArt from './img/online-liberta-v25.webp'
 import mundoArt from './img/online-mundial-v25.webp'
+import championsArt from './img/online-champions-v25.webp'
+import mundialArt from './img/carreira-mundial-clubes-v1.webp'
+import superArt from './img/carreira-supercopa-v25.webp'
 import './central.css'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', RED = '#E8503A'
@@ -33,6 +36,7 @@ const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 as const, textTr
 const G_OURO = 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)'
 
 export type CentralJogo = { h: string; a: string; hg: number; ag: number; hId: number; aId: number }
+export type CentralArte = 'estadio' | 'copaBr' | 'copaLeg' | 'super' | 'liberta' | 'champions' | 'mundial' | 'mundo'
 export type CentralAgenda = { arte: 'copaBr' | 'copaLeg' | 'liberta' | 'mundo'; titulo: [string, string]; sub: [string, string] }
 export type CentralProps = {
   seasonNo: number
@@ -41,10 +45,15 @@ export type CentralProps = {
   youId: number
   euNome: string
   /** 🏟️ o próximo jogo (ou o que está rolando agora, com `rolando`) */
-  proximo: { rodada: number; casa: string; fora: string; rolando: boolean } | null
+  /** 🏆 depois da liga, o camarote segue a COMPETIÇÃO que está no ar (04/10, Diego: *"todas as copas
+   *  após a liga devem ir mexendo também na central"*): `rotulo` troca o selo, `frase` troca a linha de
+   *  baixo e `arte` troca o fundo pela arte da copa. Sem eles, é a liga de sempre. */
+  proximo: { rodada: number; casa: string; fora: string; rolando: boolean; rotulo?: string; frase?: string; arte?: CentralArte } | null
+  /** camarote sem jogo (convites, fim de temporada…): selo e frase próprios */
+  palco?: { rotulo: string; frase?: string; arte?: CentralArte } | null
   /** forma recente por clube ('VVEVD', a mais recente por último) — só rodadas reveladas */
   formas: Record<string, string>
-  giro: { rodada: number; jogos: CentralJogo[]; total: number } | null
+  giro: { rodada: number; jogos: CentralJogo[]; total: number; titulo?: string } | null
   /** a tabela da sua divisão (nome · pontos · você), já ordenada */
   tabela: { name: string; pts: number; you: boolean }[]
   jornal: Jornal
@@ -57,6 +66,7 @@ export type CentralProps = {
 }
 
 const ARTES = { copaBr: copaBrArt, copaLeg: copaLegArt, liberta: libertaArt, mundo: mundoArt }
+const FUNDOS: Record<CentralArte, string> = { estadio: estadioArt, copaBr: copaBrArt, copaLeg: copaLegArt, super: superArt, liberta: libertaArt, champions: championsArt, mundial: mundialArt, mundo: mundoArt }
 const ordinal = (n: number) => getLang() === 'en' ? `${n}${n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'}` : `${n}º`
 
 function Chip({ children, bg = GOLD, cor = INK }: { children: React.ReactNode; bg?: string; cor?: string }) {
@@ -90,6 +100,8 @@ export function CentralCarreira(p: CentralProps) {
   const minhaPos = posDe(p.euNome)
   // 🔥 a frase do confronto sai só de posição e pontos — nada inventado
   const frase = (() => {
+    if (p.proximo?.frase) return p.proximo.frase
+    if (!p.proximo && p.palco?.frase) return p.palco.frase
     if (!p.proximo || !adv || minhaPos == null || advPos == null) return null
     const d = ptsDe(adv) - ptsDe(p.euNome)
     if (advPos === 1 && minhaPos !== 1) return t(`🔥 Você pega o líder · ${d > 0 ? `vencer te deixa a ${Math.max(0, d - 3)} ponto${d - 3 === 1 ? '' : 's'}` : 'e pode assumir a ponta'}`, `🔥 You face the leader · ${d > 0 ? `a win leaves you ${Math.max(0, d - 3)} point${d - 3 === 1 ? '' : 's'} behind` : 'and could take the top spot'}`)
@@ -138,12 +150,12 @@ export function CentralCarreira(p: CentralProps) {
       <div className="ll-central-grid">
         <div className="ll-central-esq">
           {/* 🏟️ O CAMAROTE: próximo jogo + o botão de sempre */}
-          <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${estadioArt}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
+          <div className="ll-central-card ll-c-hero" style={{ background: `#0a1a12 url(${FUNDOS[p.proximo?.arte ?? p.palco?.arte ?? 'estadio']}) center 40% / cover`, position: 'relative', color: '#fff', borderColor: '#847657', minHeight: 372 }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,#0002 0%,#0001 30%,#0C0C0Cc9 66%,#0C0C0Cf5 100%)' }} />
             <div style={{ position: 'relative', padding: '12px 13px 13px', display: 'flex', flexDirection: 'column', minHeight: 372 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                <Chip>{p.proximo ? (p.proximo.rolando ? t(`⚽ Rodada ${p.proximo.rodada} rolando`, `⚽ Round ${p.proximo.rodada} live`) : t(`⚽ Próximo jogo · rodada ${p.proximo.rodada}`, `⚽ Next match · round ${p.proximo.rodada}`)) : t('🏁 Liga encerrada', '🏁 League over')}</Chip>
-                {p.proximo && <Chip bg="#fff">{souCasa ? t('🏟️ em casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
+                <Chip>{p.proximo ? (p.proximo.rotulo ?? (p.proximo.rolando ? t(`⚽ Rodada ${p.proximo.rodada} rolando`, `⚽ Round ${p.proximo.rodada} live`) : t(`⚽ Próximo jogo · rodada ${p.proximo.rodada}`, `⚽ Next match · round ${p.proximo.rodada}`))) : (p.palco?.rotulo ?? t('🏁 Liga encerrada', '🏁 League over'))}</Chip>
+                {p.proximo && !p.proximo.rotulo && <Chip bg="#fff">{souCasa ? t('🏟️ em casa', '🏟️ home') : t('🚌 fora', '🚌 away')}</Chip>}
               </div>
               {p.proximo ? (
                 <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginTop: 14 }}>
@@ -179,7 +191,7 @@ export function CentralCarreira(p: CentralProps) {
               desktop: a rodada inteira, ao lado da tabela, no padrão das caixas creme (Diego 03/10). */}
           {p.giro && p.giro.jogos.length > 0 && (
             <div className="ll-central-card ll-c-giro" style={{ background: CREME }}>
-              <Cabecalho titulo={`📣 ${t('Giro da rodada', 'Around the round')} ${p.giro.rodada}`} link={t('ver jogos', 'see matches')} onClick={() => p.onTab('jogos')} />
+              <Cabecalho titulo={p.giro.titulo ?? `📣 ${t('Giro da rodada', 'Around the round')} ${p.giro.rodada}`} link={t('ver jogos', 'see matches')} onClick={() => p.onTab('jogos')} />
               {p.giro.jogos.map((j, i) => (
                 <div key={i} className={`ll-central-row ll-central-giro-row${i >= 3 ? ' ll-central-not-desk' : ''}`} style={{ gridTemplateColumns: '1fr auto 1fr auto', gap: 6, padding: '6px 10px', fontSize: 11.5, fontWeight: 800 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}><Escudo nome={j.h} size={18} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.h}</span></span>

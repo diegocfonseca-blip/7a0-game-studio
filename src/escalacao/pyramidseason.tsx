@@ -58,7 +58,7 @@ import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira } from './sport'
 import { CentralCarreira } from './central' // 📺 a home do modo carreira (03/10, só a conta do Diego)
-import type { CentralAgenda, CentralJogo } from './central'
+import type { CentralAgenda, CentralJogo, CentralArte } from './central'
 import { redacaoDaCentral } from './central-noticias'
 import type { Contratacao } from './central-noticias'
 import { LojaTab, PrecoVirada, BicoVirada } from './loja-tela' // 🛍️ Loja do Clube
@@ -9213,6 +9213,73 @@ export function PyramidSeasonScreen() {
     const intlAberta = intlEnabled && sn >= 40
     const g8Faltam = Math.max(0, (tables.A?.[7]?.pts ?? 0) - meusPts)
     const outra: Div = myDiv === 'A' ? 'B' : 'A'
+    // 🏆 DEPOIS DA LIGA, A CENTRAL SEGUE A COMPETIÇÃO NO AR (04/10, Diego: *"começou outras copas
+    // porém não mudou nada na central… todas as copas após a liga devem ir mexendo também"*).
+    // Ordem do fim de temporada: Copa (Copa do Brasil/Legends → Supercopa) → 🌎 internacional → 🌍
+    // Copa do Mundo → roteiro. Cada uma troca o camarote (adversário, selo, arte), o giro (a fase
+    // que acabou) e a manchete do Martelo. Anti-spoiler: só fase JÁ jogada entra no giro.
+    type Palco = { rotulo: string; frase?: string; arte?: CentralArte }
+    let compProximo: { rodada: number; casa: string; fora: string; rolando: boolean; rotulo?: string; frase?: string; arte?: CentralArte } | null = null
+    let compPalco: Palco | null = null
+    let compGiro: { rodada: number; jogos: CentralJogo[]; total: number; titulo?: string } | null = null
+    let compManchete: { pt: string; en: string; sub: [string, string] } | null = null
+    const copaNome: [string, string] = copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']
+    const copaArte: CentralArte = copaBrOk ? 'copaBr' : 'copaLeg'
+    const giroDaFase = (r: CopaRound | undefined, titulo: string) => r ? { rodada: 0, titulo, total: r.ties.length,
+      jogos: [...r.ties].sort((x, y) => Number(y.a.teamId === youId || y.b.teamId === youId) - Number(x.a.teamId === youId || x.b.teamId === youId)).map(t => ({ h: t.a.name, a: t.b.name, hg: t.aggA, ag: t.aggB, hId: t.a.teamId, aId: t.b.teamId })) } : null
+    // onde você caiu na Copa (a última fase em que apareceu e perdeu)
+    const quedaCopa = (ate: number) => { for (let i = Math.min(ate, (copa?.rounds.length ?? 0) - 1); i >= 0; i--) { const t = copa!.rounds[i].ties.find(x => x.a.teamId === youId || x.b.teamId === youId); if (t) { const ganhou = (t.win === 'a') === (t.a.teamId === youId); return ganhou ? null : { fase: copa!.rounds[i].name, por: t.a.teamId === youId ? t.b.name : t.a.name } } } return null }
+    if (copaPlaying && copaFase) {
+      const supercopa = copaFase.name === 'Supercopa'
+      const nome: [string, string] = supercopa ? ['Supercopa', 'Super Cup'] : copaNome
+      const arte: CentralArte = supercopa ? 'super' : copaArte
+      const jogoUnico = copaNLegs === 1
+      if (myCopaTie) {
+        compProximo = { rodada: copaRound + 1, casa: myCopaTie.a.name, fora: myCopaTie.b.name, rolando: !copaReady, arte,
+          rotulo: `🏆 ${tr(nome[0], nome[1])} · ${copaFaseName}${!copaReady ? tr(' · rolando', ' · live') : ''}`,
+          frase: jogoUnico ? tr('🎯 Mata-mata em jogo único — empatou, vai pros pênaltis', '🎯 One-off knockout — a draw goes to penalties') : tr('🎯 Ida e volta — vale o placar somado', '🎯 Two legs — aggregate score counts') }
+        compManchete = { pt: `${nome[0]} · ${copaFaseName}: ${euNome} encara ${myCopaTie.a.teamId === youId ? myCopaTie.b.name : myCopaTie.a.name}`, en: `${nome[1]} · ${copaFaseName}: ${euNome} face ${myCopaTie.a.teamId === youId ? myCopaTie.b.name : myCopaTie.a.name}`, sub: jogoUnico ? ['Jogo único: quem perder, está fora.', 'One-off: lose and you are out.'] : ['Ida e volta: quem somar mais, avança.', 'Two legs: higher aggregate goes through.'] }
+      } else {
+        const q = quedaCopa(copaRound - 1)
+        compPalco = { arte, rotulo: `🏆 ${tr(nome[0], nome[1])} · ${copaFaseName}`, frase: supercopa ? tr('A Supercopa é entre os campeões — hoje você assiste.', 'The Super Cup is between champions — today you watch.') : q ? tr(`Você caiu na fase "${q.fase}" (${q.por}) — a Copa segue sem você.`, `You went out in "${q.fase}" (${q.por}) — the Cup goes on without you.`) : tr('Você não está nesta fase — dá pra assistir os jogos.', 'You are not in this round — you can watch the games.') }
+        compManchete = q && !supercopa ? { pt: `${nome[0]}: ${euNome} caiu na fase "${q.fase}" diante do ${q.por}`, en: `${nome[1]}: ${euNome} went out in "${q.fase}" to ${q.por}`, sub: [`${copaFaseName} rolando sem você.`, `${copaFaseName} is on without you.`] } : null
+      }
+      compGiro = copaRound > 0 ? giroDaFase(copa!.rounds[copaRound - 1], `📣 ${tr(nome[0], nome[1])} · ${copa!.rounds[copaRound - 1].name}`) : null
+    } else if (intlNoAr) {
+      // 🌎 Libertadores / Champions / Mundial
+      const c = intlCampaign
+      const nomeComp = (k?: string) => k === 'champions' ? 'Champions League' : k === 'mundial' ? tr('Mundial de Clubes', 'Club World Cup') : 'Libertadores'
+      const arteComp = (k?: string): CentralArte => k === 'champions' ? 'champions' : k === 'mundial' ? 'mundial' : 'liberta'
+      if (!c || c.reveal >= c.steps.length) {
+        compPalco = { arte: 'liberta', rotulo: tr('🌎 Futebol internacional', '🌎 International football'), frase: c ? tr('A campanha internacional acabou — veja o resultado em Jogos.', 'The international campaign is over — see it in Matches.') : tr('✉️ Os convites dos clubes grandes estão em Jogos.', '✉️ The big clubs’ invitations are in Matches.') }
+      } else {
+        const inst = (id: string) => c.teams.find(t => t.id === id)?.institution ?? id
+        const minhaComp = c.teams.find(t => t.you)?.competition ?? 'libertadores'
+        const faseDe = (st: typeof c.steps[number] | undefined) => st ? (st.mundial ?? (minhaComp === 'champions' ? st.champions : st.libertadores) ?? st.libertadores ?? st.champions) : undefined
+        const agora = faseDe(c.steps[c.reveal])
+        const meuJogo = c.representedClub ? agora?.matches.find(m => m.home === c.representedClub || m.away === c.representedClub) : undefined
+        const nomeAgora = nomeComp(agora?.competition)
+        if (meuJogo) {
+          compProximo = { rodada: c.reveal + 1, casa: inst(meuJogo.home), fora: inst(meuJogo.away), rolando: false, arte: arteComp(agora?.competition),
+            rotulo: `${agora?.competition === 'mundial' ? '🌐' : agora?.competition === 'champions' ? '🌍' : '🌎'} ${nomeAgora} · ${agora?.title ?? c.steps[c.reveal].label}`,
+            frase: tr(`🧢 Você é o técnico convidado do ${inst(c.representedClub!)}`, `🧢 You are ${inst(c.representedClub!)}’s guest coach`) }
+          compManchete = { pt: `${nomeAgora} · ${agora?.title ?? ''}: ${inst(c.representedClub!)} de ${euNome} encara o ${inst(meuJogo.home === c.representedClub ? meuJogo.away : meuJogo.home)}`, en: `${nomeAgora} · ${agora?.title ?? ''}: ${euNome}’s ${inst(c.representedClub!)} face ${inst(meuJogo.home === c.representedClub ? meuJogo.away : meuJogo.home)}`, sub: [`Noite ${c.reveal + 1} de ${c.steps.length} do futebol internacional.`, `Night ${c.reveal + 1} of ${c.steps.length} of international football.`] }
+        } else {
+          compPalco = { arte: arteComp(agora?.competition), rotulo: `🌎 ${nomeAgora} · ${agora?.title ?? c.steps[c.reveal].label}`, frase: c.representedClub ? tr('Seu clube não joga nesta noite.', 'Your club doesn’t play tonight.') : tr('Sem vaga nesta temporada — você está assistindo.', 'No spot this season — you are watching.') }
+        }
+        const antes = c.reveal > 0 ? faseDe(c.steps[c.reveal - 1]) : undefined
+        if (antes?.matches.length) {
+          const ms = [...antes.matches].sort((x, y) => Number(y.home === c.representedClub || y.away === c.representedClub) - Number(x.home === c.representedClub || x.away === c.representedClub))
+          compGiro = { rodada: c.reveal, total: ms.length, titulo: `📣 ${nomeComp(antes.competition)} · ${antes.title}`, jogos: ms.map(m => ({ h: inst(m.home), a: inst(m.away), hg: m.hg, ag: m.ag, hId: m.home === c.representedClub ? youId : -1, aId: m.away === c.representedClub ? youId : -1 })) }
+        }
+      }
+    } else if (mundoPendente) {
+      compPalco = { arte: 'mundo', rotulo: tr('🌍 Copa do Mundo', '🌍 World Cup'), frase: tr('É ano de Copa do Mundo — ela abre o fim de temporada, em Jogos.', 'It’s a World Cup year — it opens the season wrap-up, in Matches.') }
+    } else if (done && copa && copaFinished && copa.rounds.length) {
+      // liga e Copa encerradas: o giro mostra a decisão da Copa
+      const final = copa.rounds[copa.rounds.length - 1]
+      compGiro = giroDaFase(final, `📣 ${final.name === 'Supercopa' ? tr('Supercopa', 'Super Cup') : tr(copaNome[0], copaNome[1])} · ${final.name}`)
+    }
     const jornal = redacaoDaCentral({
       round: revCentral, divName: DIV_NAME[myDiv], divNameEn: DIV_EN[myDiv],
       tabela: minha.map(t => ({ name: t.name, pts: t.pts, w: t.w, d: t.d, l: t.l, gf: t.gf, ga: t.ga, you: t.you, human: t.human })),
@@ -9231,6 +9298,7 @@ export function PyramidSeasonScreen() {
         ...(sn >= 99 && cmAgenda.ano && !cmAgenda.jogada ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], esteAno: true }] : sn + 1 >= 100 && (sn + 1 - 100) % 10 === 0 ? [{ nome: ['Copa do Mundo', 'World Cup'] as [string, string], proximaTemporada: true }] : []),
       ],
     })
+    if (compManchete) jornal.manchete = compManchete
     // 🗓️ agenda: a Copa nacional, a Libertadores (quando a carreira já tem) e a Copa do Mundo
     const agenda: CentralAgenda[] = []
     agenda.push({ arte: copaBrOk ? 'copaBr' : 'copaLeg', titulo: copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup'],
@@ -9242,8 +9310,10 @@ export function PyramidSeasonScreen() {
       sub: sn < 100 ? [`desbloqueia na temporada 100`, `unlocks in season 100`] : cmAgenda.ano && !cmAgenda.jogada ? [cmVaga.top16.some(r => r.you) ? 'é este ano · você está no TOP 32 ✓' : 'é este ano · você está fora do TOP 32', cmVaga.top16.some(r => r.you) ? 'this year · you are in the TOP 32 ✓' : 'this year · you are outside the TOP 32'] : [`próxima edição: temporada ${proxMundo === sn ? sn + 10 : proxMundo}`, `next edition: season ${proxMundo === sn ? sn + 10 : proxMundo}`] })
     // ▶️ o botão do camarote: o MESMO avanço do controle da partida, com as mesmas travas
     const botao = (() => {
+      if (copaPlaying) return { label: myCopaTie ? (copaReady ? tr('▶ Ir pra próxima fase', '▶ Go to the next round') : tr('🏆 Jogo da Copa rolando — assistir', '🏆 Cup match live — watch')) : tr('🏆 Assistir a Copa', '🏆 Watch the Cup'), sub: tr('o controle da Copa está em Jogos', 'the Cup controls are in Matches'), onClick: vai('jogos') }
+      if (intlNoAr) return { label: compProximo ? tr('🌎 Jogar a noite internacional', '🌎 Play the international night') : tr('🌎 Abrir o futebol internacional', '🌎 Open international football'), sub: tr('em Jogos, no passo da competição', 'in Matches, at the competition step'), onClick: vai('jogos') }
+      if (mundoPendente) return { label: tr('🌍 Jogar a Copa do Mundo', '🌍 Play the World Cup'), sub: tr('ela abre o roteiro, em Jogos', 'it opens the wrap-up, in Matches'), onClick: vai('jogos') }
       if (done) return { label: tr('🏁 Fim de temporada — ver', '🏁 Season over — see'), sub: tr('o roteiro está na aba Jogos', 'the wrap-up is in Matches'), onClick: vai('jogos') }
-      if (copaPlaying) return { label: tr('🏆 Copa rolando — assistir', '🏆 Cup live — watch'), onClick: vai('jogos') }
       if (seasonOver) return { label: tr('🏁 Liga encerrada — ver', '🏁 League over — see'), onClick: vai('jogos') }
       if (round === 0) return decisoesOk
         ? { label: tr('▶ Começar a temporada', '▶ Start the season'), sub: tr('o botão de sempre, no mesmo lugar', 'the usual button, same place'), onClick: () => { if (!maybeEvento()) dispatch({ type: 'PLAY_ROUND' }) } }
@@ -9255,7 +9325,7 @@ export function PyramidSeasonScreen() {
       if (penMode && !penaltyDone) return { label: tr('⚽ Bata o pênalti', '⚽ Take the penalty'), onClick: avancarRodada }
       return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: avancarRodada }
     })()
-    return <CentralCarreira seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={proximo} formas={centralFormas} giro={giro}
+    return <CentralCarreira seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
       tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} />
   }
   return (
