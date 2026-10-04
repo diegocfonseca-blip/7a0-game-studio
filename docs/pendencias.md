@@ -31,6 +31,11 @@
   vai pro clube"*): carta de clube com menos de 11 no baralho aparece no bloco "🎒 Diversos" da lista de coleções
   (álbum e Agência). A lista vem do baralho, então no dia em que o clube chegar a 11 ele vira coleção e as cartas
   mudam de lugar sozinhas. O sorteio já dava essas cartas (usa o baralho inteiro).
+- 🃏 LOTE 42 ✅ NO AR (04/10): Fiorentina (+6, Europa), New York Cosmos (+6), Inter Miami (+7), Kashima (+7) e Al-Nassr
+  (+7, Mundo) chegaram a 11+ cartas e viraram coleção (80 clubes, 3.395 moedas). Vozinha saiu de "Cabo Verde" pro
+  Colo-Colo 2026 (*"acho que ele está atualmente"* — palavra do Diego), segue lenda. ⏭️ Dínamo de Moscou, West Ham e
+  Stoke City ficaram com as listas propostas esperando ele (vai decidir junto com a troca de clube das lendas
+  Valderrama, Simonsen, Banks, Moore e Yashin). Deportivo Cali: só ~4 nomes certos, pedi ajuda a ele.
 - ⛔ FALTA pra ligar de verdade: **aplicar a migração `20261004150000_colecoes_clubes_trocas.sql` no banco** (pediu
   aprovação do Diego e não foi aplicada); testar com conta de verdade (receber + trocar entre duas contas); badge de
   proposta recebida na home; e o OK visual dele nas fotos das telas reais.
