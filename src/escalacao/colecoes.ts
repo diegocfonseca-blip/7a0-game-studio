@@ -30,6 +30,24 @@ export type Categoria = 'lenda' | 'craque' | 'promessa' | 'bom' | 'prof'
 export const categoriaDe = (c: { fame: number; promessa?: boolean }): Categoria =>
   c.promessa ? 'promessa' : c.fame >= 5 ? 'lenda' : c.fame === 4 ? 'craque' : c.fame >= 2 ? 'bom' : 'prof'
 export const VALOR_CATEGORIA: Record<Categoria, number> = { lenda: 5, craque: 3, promessa: 2, bom: 1, prof: 0.5 }
+// 🎲 SORTEIO DA CARTA DO TÍTULO (04/10, Diego: *"antes não era raro aparecer lenda, agora tem que ser
+// um pouco mais"*). Antes cada carta tinha a mesma chance → a lenda saía em ~9% dos títulos (194 de
+// 2.107 cartas). Agora sorteia primeiro a CATEGORIA, com a lenda mais rara, e depois a carta dentro
+// dela. Pode vir repetida. Quem já tem as cartas fica com elas — isto só vale pros pacotes novos.
+export const CHANCE_CATEGORIA: Record<Categoria, number> = { lenda: 4, craque: 16, promessa: 4, bom: 58, prof: 18 }
+export function sorteiaCarta<T extends { fame: number; promessa?: boolean }>(pool: T[], aleatorio: () => number = Math.random): T | undefined {
+  if (!pool.length) return undefined
+  const porCat = new Map<Categoria, T[]>()
+  for (const c of pool) { const k = categoriaDe(c); const l = porCat.get(k); if (l) l.push(c); else porCat.set(k, [c]) }
+  const cats = [...porCat.keys()]
+  const total = cats.reduce((s, k) => s + CHANCE_CATEGORIA[k], 0)
+  let r = aleatorio() * total
+  let cat = cats[cats.length - 1]
+  for (const k of cats) { r -= CHANCE_CATEGORIA[k]; if (r < 0) { cat = k; break } }
+  const l = porCat.get(cat)!
+  return l[Math.floor(aleatorio() * l.length)]
+}
+
 /** mínimo de cartas no baralho pra um clube virar coleção */
 export const MIN_CARTAS_CLUBE = 11
 

@@ -57,7 +57,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, type Sport } from './sport'
-import { BARALHO_TODO } from './colecoes'
+import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -8572,7 +8572,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // precisa esperar a cerimônia como o onClaimed espera pros outros da sala.
   useEffect(() => {
     if (status !== 'picking' || savedRef.current || !packPool.length) return
-    const pick = packPool[Math.floor(Math.random() * packPool.length)]
+    const pick = colecoesOn ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)] // 🎲 com Coleções: lenda mais rara (sorteiaCarta)
     if (!pick) return
     savedRef.current = true
     setPendingPick(pick)
@@ -8583,7 +8583,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
 
   const openPack = () => {
     if (opening) return
-    const card = pendingPick ?? packPool[Math.floor(Math.random() * packPool.length)]
+    const card = pendingPick ?? (colecoesOn ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)])
     if (!card) return
     if (!savedRef.current) { savedRef.current = true; void persist(card) } // rede de segurança
     setOpening(true)

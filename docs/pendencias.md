@@ -22,6 +22,11 @@
   saves antigos) — `ColecoesDaCarreira`, sem perguntar carreira: o reducer `COLECAO_RECEBIDA` põe as moedas NESTA
   carreira (uma vez por marca). Ordem: prontas primeiro, depois a mais completa em %; já recebidas (e não prontas de
   novo) num bloco "✔️ Já recebidas" no fim. Repetida aparece como aviso: "🔁 você tem N repetidas · troque no Álbum".
+- 🎲 SORTEIO DA CARTA DO TÍTULO (04/10, *"antes não era raro aparecer lenda, agora tem que ser um pouco mais"*): com a
+  trava ligada, `sorteiaCarta` (colecoes.ts) sorteia primeiro a CATEGORIA — 👑 Lenda 4% · ⭐ Craque 16% · 💎 Promessa 4% ·
+  🎯 Bom 58% · 🪵 Foi profissional 18% — e depois a carta dentro dela; pode repetir. Antes era carta por carta, lenda ~9%.
+  Quem já tem as cartas fica com elas (*"não vou prejudicar eles"*): só vale pros pacotes novos. Na carreira continua a
+  regra da Agência (não repete carta do mesmo save).
 - ⛔ FALTA pra ligar de verdade: **aplicar a migração `20261004150000_colecoes_clubes_trocas.sql` no banco** (pediu
   aprovação do Diego e não foi aplicada); testar com conta de verdade (receber + trocar entre duas contas); badge de
   proposta recebida na home; e o OK visual dele nas fotos das telas reais.

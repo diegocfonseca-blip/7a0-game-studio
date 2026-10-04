@@ -34,6 +34,14 @@ try {
   assert.ok(!p2.pronta && p2.livres === 1 && p2.recebidas === 1, 'depois de receber: sobra só a repetida, recebida 1x')
   const presa = cheio.map((c, i) => i === 0 ? { ...c, presa: true } : c)
   assert.equal(escolheCopias(presa.filter(c => chaveCarta(c) !== chaveCarta(pen.cartas[0]) || c.presa), pen), null, 'carta presa numa troca não fecha')
+  // 🎲 sorteio: lenda mais rara (antes ~9%), soma das chances = 100, pode repetir
+  const { sorteiaCarta, CHANCE_CATEGORIA, BARALHO_TODO, categoriaDe } = m
+  assert.equal(Object.values(CHANCE_CATEGORIA).reduce((a, b) => a + b, 0), 100)
+  let semente = 7; const rng = () => (semente = (semente * 16807) % 2147483647) / 2147483647
+  const conta = {}; for (let i = 0; i < 20000; i++) { const k = categoriaDe(sorteiaCarta(BARALHO_TODO, rng)); conta[k] = (conta[k] ?? 0) + 1 }
+  const pct = k => 100 * (conta[k] ?? 0) / 20000
+  assert.ok(pct('lenda') > 3 && pct('lenda') < 5, `lenda ~4% (deu ${pct('lenda').toFixed(1)}%)`)
+  assert.ok(pct('bom') > 55 && pct('bom') < 61, `bom jogador ~58% (deu ${pct('bom').toFixed(1)}%)`)
   const total = COLECOES.reduce((s, c) => s + c.premio, 0)
-  console.log(`✅ coleções: ${COLECOES.length} clubes · Real Madrid ${real.premio} · Flamengo ${fla.premio} · tudo ${total} moedas`)
+  console.log(`✅ coleções: ${COLECOES.length} clubes · Real Madrid ${real.premio} · Flamengo ${fla.premio} · tudo ${total} moedas · sorteio: lenda ${pct('lenda').toFixed(1)}%`)
 } finally { await vite.close() }
