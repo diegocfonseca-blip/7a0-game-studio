@@ -6,6 +6,237 @@ export interface MudancaJogador { data: string; tipo: 'entrou' | 'saiu' | 'nivel
 export const MUDANCAS_JOGADORES: MudancaJogador[] = [
   {
     "tipo": "entrou",
+    "nome": "Francesco Toldo",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Giancarlo Antognoni",
+    "baralho": "EU",
+    "nivel": "lenda",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Kurt Hamrin",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Adrian Mutu",
+    "baralho": "EU",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Federico Chiesa",
+    "baralho": "EU",
+    "nivel": "promessa",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Edmundo",
+    "baralho": "EU",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Shep Messing",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Drake Callender",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Hitoshi Sogahata",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "David Ospina",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Carlos Alberto Torres",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jordi Alba",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jorginho",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Franz Beckenbauer",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Gen Shoji",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Aymeric Laporte",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Johan Neeskens",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Vladislav Bogićević",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Marcos Senna",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Sergio Busquets",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Rodrigo De Paul",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Blaise Matuidi",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Diego Gómez",
+    "baralho": "MUNDO",
+    "nivel": "promessa",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Masashi Motoyama",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Koji Nakata",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Marcelo Brozović",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Otávio",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Seko Fofana",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Tadeo Allende",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Alcindo",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Atsushi Yanagisawa",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Kingsley Coman",
+    "baralho": "MUNDO",
+    "nivel": "craque",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
+    "nome": "Jhon Durán",
+    "baralho": "MUNDO",
+    "nivel": "bom jogador",
+    "data": "2026-10-04"
+  },
+  {
+    "tipo": "entrou",
     "nome": "Andy Goram",
     "baralho": "EU",
     "nivel": "bom jogador",
@@ -177,139 +408,6 @@ export const MUDANCAS_JOGADORES: MudancaJogador[] = [
     "nome": "Kolo Touré",
     "baralho": "EU",
     "nivel": "craque",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Eric Bailly",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Graeme Souness",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Scott McTominay",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dragan Stojković",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Liam Brady",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Damien Duff",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Dejan Kulusevski",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Emil Forsberg",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Sofiane Feghouli",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Ismaël Bennacer",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Yacine Brahimi",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Franck Kessié",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Didier Zokora",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Nihat Kahveci",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Kenan Yıldız",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Niall Quinn",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Tony Yeboah",
-    "baralho": "EU",
-    "nivel": "craque",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "André Ayew",
-    "baralho": "EU",
-    "nivel": "bom jogador",
-    "data": "2026-10-02"
-  },
-  {
-    "tipo": "entrou",
-    "nome": "Mohammed Kudus",
-    "baralho": "EU",
-    "nivel": "bom jogador",
     "data": "2026-10-02"
   }
 ]

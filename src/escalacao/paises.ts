@@ -331,6 +331,12 @@ export const PAIS: Record<string, string> = {
   'José Luis Chilavert': 'Paraguai', 'Amadeo Carrizo': 'Argentina',
   'Hugo Gatti': 'Argentina', 'Óscar Pérez': 'México',
   'Mohammed Al-Deayea': 'Arábia Saudita', 'Óscar Córdoba': 'Colômbia',
+  // 📚 Lote 42 (04/10): Fiorentina, Cosmos, Inter Miami, Kashima e Al-Nassr viram coleção
+  'Francesco Toldo': 'Itália', 'Giancarlo Antognoni': 'Itália', 'Federico Chiesa': 'Itália', 'Kurt Hamrin': 'Suécia', 'Adrian Mutu': 'Romênia',
+  'Shep Messing': 'EUA', 'Drake Callender': 'EUA', 'Vladislav Bogićević': 'Sérvia', 'Edmundo': 'Brasil', 'Carlos Alberto Torres': 'Brasil',
+  'Rodrigo De Paul': 'Argentina', 'Tadeo Allende': 'Argentina', 'Diego Gómez': 'Paraguai', 'Alcindo': 'Brasil',
+  'Hitoshi Sogahata': 'Japão', 'Gen Shoji': 'Japão', 'Masashi Motoyama': 'Japão', 'Koji Nakata': 'Japão', 'Atsushi Yanagisawa': 'Japão',
+  'Otávio': 'Portugal', 'Seko Fofana': 'Costa do Marfim', 'Jhon Durán': 'Colômbia',
   'Vozinha': 'Cabo Verde', 'Essam El-Hadary': 'Egito', 'Nery Pumpido': 'Argentina',
   'Tony Meola': 'EUA', 'Memo Ochoa': 'México', 'Johnny Herrera': 'Chile',
   'Silvio Marzolini': 'Argentina', 'Ramón Ramírez': 'México',
@@ -987,6 +993,7 @@ export const PAIS_POR_CARTA: Record<string, string> = {
   "Jari Litmanen|Ajax|1995": "Finlândia",
   "Ronald de Boer|Ajax|1995": "Holanda",
   "Johan Neeskens|Ajax|1972": "Holanda",
+  "Johan Neeskens|New York Cosmos|1979": "Holanda", // 📚 Lote 42
   "Donny van de Beek|Ajax|2019": "Holanda",
   "Yohan Cabaye|Newcastle|2012": "França",
   "Julian Draxler|Schalke|2013": "Alemanha",
@@ -1111,6 +1118,8 @@ export function paisDe(name: string, baralho: Baralho, club?: string, year?: num
 // que ninguém conferiu ainda — pode ser outra pessoa, como foi o Pedro.
 // ⚠️ Só entra aqui depois de OLHAR as duas cartas. Na dúvida, deixa de fora.
 export const MESMO_JOGADOR = new Set<string>([
+  // 📚 Lote 42 (04/10): a carta no Cosmos/Inter Miami/Al-Nassr/Fiorentina é a MESMA pessoa da carta de outro baralho
+  'Carlos Alberto Torres', 'Edmundo', 'David Ospina', 'Jordi Alba', 'Franz Beckenbauer', 'Aymeric Laporte', 'Sergio Busquets', 'Marcelo Brozović', 'Marcos Senna', 'Blaise Matuidi', 'Kingsley Coman',
   // 🌎 Lote 40 (01/10): o craque no clube sul-americano/europeu de origem é a MESMA pessoa da carta europeia que já existia
   'Alex Teixeira', 'Alex Telles', 'Alexis Mac Allister', 'Alfredo Di Stéfano', 'Arturo Vidal', 'Claudio Bravo', 'Diego Forlán', 'Diego Godín', 'Diego Simeone', 'Esteban Cambiasso', 'Eugenio Mena', 'Fernando Redondo', 'Gabriel Batistuta', 'Gabriel Mercado', 'Gonzalo Montiel', 'Gustavo Gómez', 'Iván Zamorano', 'Juan Sebastián Verón', 'Lautaro Martínez', 'Marcelo Díaz', 'Mario Kempes', 'Martín Silva', 'Matías Fernández', 'Nicolás Lodeiro', 'Paolo Montero', 'Radamel Falcao', 'Renato Augusto', 'Roque Santa Cruz', 'Sergio Agüero', 'Taison', 'Víctor Aristizábal', 'Álvaro Recoba', 'Ángel Di María',
   'Julio César Romero', 'Pelé', 'Raúl', // 🗽 Lote 39: Romerito (Flu × Cosmos), Pelé (Santos × Cosmos), Raúl (Real × Cosmos)
