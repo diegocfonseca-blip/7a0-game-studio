@@ -45,7 +45,7 @@
 - 🌟 LENDAS AVULSAS (04/10, *"coloque alguma categoria pra eles… 5 moedas pra cada, mas tem que completar todos juntos"*;
   as lendas NÃO trocam de clube): coleção especial com as lendas de clube que ainda não é coleção — hoje Yashin,
   Bobby Moore, Allan Simonsen e Valderrama = 20 🪙 (o Banks saiu pro Leicester), só com as 4 juntas. Monta-se sozinha (lenda sai quando
-  o clube dela chegar a 11). Nome PROVISÓRIO "Lendas Avulsas" — ⏭️ o Diego ainda vai escolher o nome. Banco:
+  o clube dela chegar a 11). Nome FECHADO pelo Diego: **"Lendas Avulsas"** (*"o nome será do restante também"* → o bloco "Diversos" virou **"🎒 Cartas Avulsas"**). Banco:
   `esc_colecao_receber(..., p_especial)` aceita clubes diferentes, só lenda (migração ainda não aplicada).
 - ⛔ FALTA pra ligar de verdade: **aplicar a migração `20261004150000_colecoes_clubes_trocas.sql` no banco** (pediu
   aprovação do Diego e não foi aplicada); testar com conta de verdade (receber + trocar entre duas contas); badge de

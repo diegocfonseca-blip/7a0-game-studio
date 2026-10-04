@@ -176,7 +176,7 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
         <div style={caixa({ marginTop: 16, marginBottom: 10 })}>
           <button onClick={() => setAberta(aberta === '__diversos' ? null : '__diversos')} style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-              <span style={{ ...OSW, fontSize: 17 }}>{t('🎒 Diversos', '🎒 Miscellaneous')}</span>
+              <span style={{ ...OSW, fontSize: 17 }}>{t('🎒 Cartas Avulsas', '🎒 Loose Cards')}</span>
               <span style={{ ...OSW, fontSize: 11, padding: '3px 8px', border: `2px solid ${INK}`, borderRadius: 999 }}>{diversos.length} {t('cartas', 'cards')}</span>
             </div>
             <p style={{ fontSize: 12, color: 'rgba(0,0,0,.65)', marginTop: 5 }}>{t('Cartas de clubes que ainda não têm 11 no baralho. Quando o clube chegar a 11, ele vira coleção e essas cartas vão pra lá sozinhas.', 'Cards from clubs that do not have 11 in the deck yet. When the club reaches 11, it becomes a collection and these cards move there on their own.')}{' · '}{aberta === '__diversos' ? t('fechar ▲', 'close ▲') : t('ver cartas ▼', 'see cards ▼')}</p>

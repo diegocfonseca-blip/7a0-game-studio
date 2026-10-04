@@ -61,7 +61,7 @@ export type Colecao = { clube: string; cartas: CartaBaralho[]; premio: number; c
 // 🌟 LENDAS AVULSAS (04/10, Diego: *"coloque alguma categoria pra eles… será 5 moedas pra cada, mas tem que
 // completar todos eles juntos"*): as LENDAS de clube que ainda não é coleção (menos de 11 cartas) formam uma
 // coleção especial. Cada uma vale 5 (o valor de lenda) e só paga com todas juntas. A lista se monta sozinha:
-// quando o clube da lenda chegar a 11 cartas, ela sai daqui e vai pra coleção do clube. Nome provisório.
+// quando o clube da lenda chegar a 11 cartas, ela sai daqui e vai pra coleção do clube. Nome escolhido pelo Diego (04/10); o bloco do resto virou "Cartas Avulsas".
 export const NOME_LENDAS_AVULSAS = 'Lendas Avulsas'
 
 /** as coleções que existem hoje (clube com 11+ cartas), da que mais paga pra que menos paga */
