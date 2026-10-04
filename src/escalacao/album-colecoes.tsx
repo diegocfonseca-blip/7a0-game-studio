@@ -112,9 +112,10 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
   // 🎒 DIVERSOS: carta de clube que ainda não é coleção (menos de 11 no baralho). Fica guardada aqui e
   // muda de lugar sozinha no dia em que o clube chegar a 11 — a lista de coleções vem do baralho.
   const diversos = useMemo(() => {
-    const clubes = new Set(COLECOES.map(c => c.clube))
+    const clubes = new Set(COLECOES.filter(c => !c.especial).map(c => c.clube))
+    const naEspecial = new Set(COLECOES.filter(c => c.especial).flatMap(c => c.cartas.map(chaveCarta)))
     const m = new Map<string, CartaDoAlbum[]>()
-    for (const c of minhas) { if (clubes.has(c.club)) continue; const k = chaveCarta(c); const l = m.get(k); if (l) l.push(c); else m.set(k, [c]) }
+    for (const c of minhas) { if (clubes.has(c.club) || naEspecial.has(chaveCarta(c))) continue; const k = chaveCarta(c); const l = m.get(k); if (l) l.push(c); else m.set(k, [c]) }
     return [...m.entries()].sort((a, b) => a[1][0].club.localeCompare(b[1][0].club) || b[1][0].fame - a[1][0].fame)
   }, [minhas])
   async function receber(p: Progresso) {
@@ -125,7 +126,8 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
   }
   const Linha = ({ p }: { p: Progresso }) => {
     const c = p.colecao, aberto = aberta === c.clube
-    const doClube = minhas.filter(m => m.club === c.clube)
+    const chavesDela = new Set(c.cartas.map(chaveCarta))
+    const doClube = minhas.filter(m => chavesDela.has(chaveCarta(m)))
     const porChave = new Map<string, CartaDoAlbum[]>()
     for (const m of doClube) { const k = chaveCarta(m); const l = porChave.get(k); if (l) l.push(m); else porChave.set(k, [m]) }
     const livresCopias = doClube.filter(m => !m.usadaEm && !m.presa).length
@@ -134,7 +136,7 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
       <div style={caixa({ marginBottom: 10, background: p.pronta ? 'linear-gradient(150deg,#FFF6D2,#FFE07A)' : '#fff' })}>
         <button onClick={() => setAberta(aberto ? null : c.clube)} style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-            <span style={{ ...OSW, fontSize: 17, lineHeight: 1.05 }}>{c.clube}{novas.has(c.clube) && <span style={{ ...OSW, fontSize: 10, background: VERM, color: '#fff', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, marginLeft: 6, verticalAlign: 'middle' }}>{t('🆕 nasceu agora', '🆕 just born')}</span>}</span>
+            <span style={{ ...OSW, fontSize: 17, lineHeight: 1.05 }}>{c.especial ? '🌟 ' : ''}{c.clube}{novas.has(c.clube) && <span style={{ ...OSW, fontSize: 10, background: VERM, color: '#fff', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, marginLeft: 6, verticalAlign: 'middle' }}>{t('🆕 nasceu agora', '🆕 just born')}</span>}</span>
             <span style={{ ...OSW, fontSize: 11, padding: '3px 8px', border: `2px solid ${INK}`, borderRadius: 999, whiteSpace: 'nowrap', background: p.pronta ? VERDE : '#fff', color: p.pronta ? '#fff' : INK }}>{p.pronta ? '✅ ' : ''}{p.livres} {t('de', 'of')} {p.total}</span>
           </div>
           <div style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#EFE6CC', margin: '7px 0 5px', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${(p.livres / p.total) * 100}%`, background: VERDE }} /></div>
@@ -210,7 +212,7 @@ export function ColecoesDaCarreira({ seed, nome, onPago }: { seed: number; nome:
       <p style={{ ...OSW, fontSize: 18, margin: '0 2px 2px' }}>{t('📚 Coleções de clubes', '📚 Club collections')}</p>
       <ListaColecoes minhas={copias} modo="carreira" onReceber={async (p, ids) => {
         const c = p.colecao
-        const { error } = await supabase.rpc('esc_colecao_receber', { p_cards: ids, p_seed: String(seed), p_nome: nome, p_total: c.cartas.length })
+        const { error } = await supabase.rpc('esc_colecao_receber', { p_cards: ids, p_seed: String(seed), p_nome: nome, p_total: c.cartas.length, p_especial: !!c.especial })
         if (error) {
           const m = error.message ?? ''
           return /presa/.test(m) ? t('Uma dessas cartas está numa proposta de troca aberta. Cancele a proposta (Álbum → Trocas) ou espere ela acabar.', 'One of these cards is in an open trade offer. Cancel it (Album → Trades) or wait for it to end.')

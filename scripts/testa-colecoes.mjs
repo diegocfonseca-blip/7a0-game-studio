@@ -9,7 +9,9 @@ try {
   const m = await vite.ssrLoadModule('/src/escalacao/colecoes.ts')
   const { COLECOES, progressoDas, escolheCopias, chaveCarta, VALOR_CATEGORIA, MIN_CARTAS_CLUBE } = m
   assert.deepEqual(VALOR_CATEGORIA, { lenda: 5, craque: 3, promessa: 2, bom: 1, prof: 0.5 })
-  assert.ok(COLECOES.every(c => c.cartas.length >= MIN_CARTAS_CLUBE), 'só clube com 11+ cartas')
+  assert.ok(COLECOES.every(c => c.especial || c.cartas.length >= MIN_CARTAS_CLUBE), 'só clube com 11+ cartas (fora a especial)')
+  let id = 0
+  const copia = (c, extra = {}) => ({ id: `x${id++}`, name: c.name, club: c.club, year: c.year, ...extra })
   const real = COLECOES.find(c => c.clube === 'Real Madrid'), fla = COLECOES.find(c => c.clube === 'Flamengo')
   assert.ok(real && fla)
   for (const c of COLECOES) {
@@ -18,12 +20,19 @@ try {
   }
   // clube com menos de 11 cartas fica no Diversos; com 11+ vira coleção sozinho (Inter Miami virou no Lote 42)
   const porClube = new Map(); for (const c of m.BARALHO_TODO) porClube.set(c.club, (porClube.get(c.club) ?? 0) + 1)
-  for (const [clube, n] of porClube) assert.equal(COLECOES.some(c => c.clube === clube), n >= MIN_CARTAS_CLUBE, `${clube} (${n} cartas)`)
+  for (const [clube, n] of porClube) assert.equal(COLECOES.some(c => !c.especial && c.clube === clube), n >= MIN_CARTAS_CLUBE, `${clube} (${n} cartas)`)
+  // 🌟 Lendas Avulsas: só lenda de clube que NÃO é coleção, 5 por lenda, todas juntas
+  const esp = COLECOES.find(c => c.especial)
+  const clubesCol = new Set(COLECOES.filter(c => !c.especial).map(c => c.clube))
+  const esperadas = m.BARALHO_TODO.filter(c => !clubesCol.has(c.club) && m.categoriaDe(c) === 'lenda')
+  assert.ok(esp && esp.cartas.length === esperadas.length && esp.premio === 5 * esperadas.length, 'Lendas Avulsas = lendas sem coleção, 5 cada')
+  assert.ok(esp.cartas.every(c => m.categoriaDe(c) === 'lenda'))
+  const doEsp = esp.cartas.map(c => copia(c)); const idsEsp = escolheCopias(doEsp, esp)
+  assert.equal(idsEsp?.length, esp.cartas.length, 'fecha as Lendas Avulsas com uma de cada')
+  assert.equal(escolheCopias(doEsp.slice(1), esp), null, 'faltando uma lenda, não fecha')
   assert.ok(COLECOES.some(c => c.clube === 'Inter Miami'), 'Inter Miami virou coleção com o Lote 42')
   // fechar = TODAS as cartas
   const pen = COLECOES.find(c => c.clube === 'Peñarol')
-  let id = 0
-  const copia = (c, extra = {}) => ({ id: `x${id++}`, name: c.name, club: c.club, year: c.year, ...extra })
   const quase = pen.cartas.slice(0, pen.cartas.length - 1).map(c => copia(c))
   assert.equal(escolheCopias(quase, pen), null, 'faltando uma, não fecha')
   const cheio = [...quase, copia(pen.cartas.at(-1)), copia(pen.cartas[0])] // + a que faltava + 1 repetida

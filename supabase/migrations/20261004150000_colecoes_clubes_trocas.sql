@@ -71,19 +71,24 @@ $$;
 -- O banco não conhece o baralho; quem diz quantas cartas o clube tem é o jogo (p_total). Aqui se
 -- garante o que importa pra não gastar duas vezes: as cartas são da pessoa, são do mesmo clube, são
 -- todas diferentes, nenhuma já foi usada e nenhuma está presa numa troca aberta.
-create or replace function public.esc_colecao_receber(p_cards uuid[], p_seed text, p_nome text, p_total int)
+create or replace function public.esc_colecao_receber(p_cards uuid[], p_seed text, p_nome text, p_total int, p_especial boolean default false)
 returns jsonb language plpgsql security definer set search_path to 'public' as $$
 declare v_uid uuid := auth.uid(); v_n int; v_clubes int; v_clube text; v_distintas int; v_c uuid;
 begin
   if v_uid is null then raise exception 'sem conta'; end if;
   if p_seed is null or length(p_seed) = 0 then raise exception 'carreira obrigatoria'; end if;
-  if p_total is null or p_total < 11 or p_total > 300 then raise exception 'clube invalido'; end if;
+  -- 🌟 a coleção especial (Lendas Avulsas) junta lendas de clubes diferentes e pode ter menos de 11
+  if p_total is null or p_total > 300 or p_total < (case when p_especial then 2 else 11 end) then raise exception 'clube invalido'; end if;
   v_n := coalesce(array_length(p_cards, 1), 0);
   if v_n <> p_total or (select count(distinct x) from unnest(p_cards) x) <> v_n then raise exception 'faltam cartas do clube'; end if;
   if (select count(*) from public.user_cards where id = any(p_cards) and user_id = v_uid) <> v_n then raise exception 'carta que nao e sua'; end if;
   select min(card_club), count(distinct card_club), count(distinct (card_name, card_club, card_year))
     into v_clube, v_clubes, v_distintas from public.user_cards where id = any(p_cards);
-  if v_clubes <> 1 then raise exception 'cartas de clubes diferentes'; end if;
+  if not p_especial and v_clubes <> 1 then raise exception 'cartas de clubes diferentes'; end if;
+  if p_especial then
+    if exists (select 1 from public.user_cards where id = any(p_cards) and card_fame < 5) then raise exception 'so lenda na colecao especial'; end if;
+    v_clube := 'Lendas Avulsas';
+  end if;
   if v_distintas <> v_n then raise exception 'carta repetida na colecao'; end if;
   if exists (select 1 from public.esc_cartas_usadas where card_id = any(p_cards)) then raise exception 'carta ja usada'; end if;
   foreach v_c in array p_cards loop
@@ -200,7 +205,7 @@ language sql stable security definer set search_path to 'public' as $$
   limit 15
 $$;
 
-grant execute on function public.esc_colecao_receber(uuid[], text, text, int) to authenticated;
+grant execute on function public.esc_colecao_receber(uuid[], text, text, int, boolean) to authenticated;
 grant execute on function public.esc_troca_propor(uuid, uuid[], uuid[], text, text, text, bigint) to authenticated;
 grant execute on function public.esc_troca_responder(bigint, boolean) to authenticated;
 grant execute on function public.esc_troca_cancelar(bigint) to authenticated;

@@ -51,7 +51,13 @@ export function sorteiaCarta<T extends { fame: number; promessa?: boolean }>(poo
 /** mínimo de cartas no baralho pra um clube virar coleção */
 export const MIN_CARTAS_CLUBE = 11
 
-export type Colecao = { clube: string; cartas: CartaBaralho[]; premio: number; contagem: Record<Categoria, number> }
+export type Colecao = { clube: string; cartas: CartaBaralho[]; premio: number; contagem: Record<Categoria, number>; especial?: boolean }
+
+// 🌟 LENDAS AVULSAS (04/10, Diego: *"coloque alguma categoria pra eles… será 5 moedas pra cada, mas tem que
+// completar todos eles juntos"*): as LENDAS de clube que ainda não é coleção (menos de 11 cartas) formam uma
+// coleção especial. Cada uma vale 5 (o valor de lenda) e só paga com todas juntas. A lista se monta sozinha:
+// quando o clube da lenda chegar a 11 cartas, ela sai daqui e vai pra coleção do clube. Nome provisório.
+export const NOME_LENDAS_AVULSAS = 'Lendas Avulsas'
 
 /** as coleções que existem hoje (clube com 11+ cartas), da que mais paga pra que menos paga */
 export function colecoesDoBaralho(baralho: CartaBaralho[] = BARALHO_TODO): Colecao[] {
@@ -64,6 +70,11 @@ export function colecoesDoBaralho(baralho: CartaBaralho[] = BARALHO_TODO): Colec
     let soma = 0
     for (const c of cartas) { const k = categoriaDe(c); contagem[k]++; soma += VALOR_CATEGORIA[k] }
     out.push({ clube, cartas, premio: Math.max(1, Math.ceil(soma)), contagem })
+  }
+  const clubesColecao = new Set(out.map(c => c.clube))
+  const avulsas = baralho.filter(c => !clubesColecao.has(c.club) && categoriaDe(c) === 'lenda')
+  if (avulsas.length >= 2) {
+    out.push({ clube: NOME_LENDAS_AVULSAS, cartas: avulsas, premio: avulsas.length * VALOR_CATEGORIA.lenda, contagem: { lenda: avulsas.length, craque: 0, promessa: 0, bom: 0, prof: 0 }, especial: true })
   }
   return out.sort((a, b) => b.premio - a.premio || a.clube.localeCompare(b.clube))
 }
@@ -84,11 +95,12 @@ export type Progresso = {
 }
 
 export function progressoDas(minhas: MinhaCarta[], colecoes: Colecao[] = COLECOES): Progresso[] {
-  const porClube = new Map<string, MinhaCarta[]>()
-  for (const m of minhas) { const l = porClube.get(m.club); if (l) l.push(m); else porClube.set(m.club, [m]) }
+  // casa pela CARTA (nome|clube|ano), não pelo clube: a coleção especial junta cartas de clubes diferentes
+  const porChave = new Map<string, MinhaCarta[]>()
+  for (const m of minhas) { const k = chaveCarta(m); const l = porChave.get(k); if (l) l.push(m); else porChave.set(k, [m]) }
   return colecoes.map(colecao => {
     const doBaralho = new Set(colecao.cartas.map(chaveCarta))
-    const doClube = (porClube.get(colecao.clube) ?? []).filter(m => doBaralho.has(chaveCarta(m)))
+    const doClube = [...doBaralho].flatMap(k => porChave.get(k) ?? [])
     const livres = new Set(doClube.filter(m => !m.usadaEm && !m.presa).map(chaveCarta)).size
     const usadas = doClube.filter(m => !!m.usadaEm).length
     const total = doBaralho.size
@@ -106,7 +118,7 @@ export function ordenaProgresso(lista: Progresso[]): Progresso[] {
 export function escolheCopias(minhas: MinhaCarta[], colecao: Colecao): string[] | null {
   const porChave = new Map<string, MinhaCarta>()
   for (const m of minhas) {
-    if (m.club !== colecao.clube || m.usadaEm || m.presa) continue
+    if (m.usadaEm || m.presa) continue
     const k = chaveCarta(m); if (!porChave.has(k)) porChave.set(k, m)
   }
   const ids: string[] = []
