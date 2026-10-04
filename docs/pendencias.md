@@ -1,3 +1,18 @@
+## 04/10/2026 — 📚 COLEÇÕES DE CLUBES + 🤝 TROCAS: regras que o Diego fechou (mockup v2 enviado, aguardando OK)
+- *"Ok vamos fazer"*. Só COLEÇÃO DE CLUBES (nada de feitos/títulos misturados). 74 clubes com 11+ cartas; fechar = 11
+  cartas do mesmo clube, qualquer época. Prêmio = metade da soma do valor de TODAS as cartas do clube no baralho
+  (Lenda 5 · Craque 3 · Promessa 2 · Bom 1 · Foi profissional 0,5) — tabela em `docs/colecoes-clubes.md`.
+- O jogador APERTA pra receber e escolhe a carreira; as moedas caem no caixa dela. As 11 cartas usadas ficam marcadas
+  "usadas na carreira X": **continuam no álbum da home** (escurecidas com o nome da carreira) mas não contam mais pra
+  fechar aquele clube. Fechar de novo (pra outra carreira) = mais 11 cartas → **o sorteio passa a poder dar REPETIDA**.
+- Coleção NASCE sozinha quando um clube chega a 11 cartas no baralho (selo 🆕), e o prêmio acompanha o baralho.
+- Trocas: aba no álbum (Recebidas · Enviadas · Nova); busca técnico pelo nome do time + quem já jogou com você primeiro,
+  com selo de quem tem carta que falta numa coleção sua; até 3 cartas de cada lado; só carta LIVRE (não usada); recado
+  de até 120 letras; vale 48 h; Aceitar · Contra (contraproposta) · Recusar; nada sai do álbum até aceitar.
+- ⚠️ A decidir/fazer: o sorteio da carta (`ALL_POOL`, screens.tsx) só usa BR + Europa — os 24 clubes do Mundo não
+  fecham sem ligar o Mundo no sorteio. Banco: repetida exige mudar a regra de unicidade de `user_cards` + tabelas de
+  uso (carta → carreira) e de propostas de troca, com a troca feita por função no servidor (os dois lados de uma vez).
+
 ## 04/10/2026 — 🃏 CARTAS DO ÁLBUM: o Diego quer dar sentido a elas, NENHUMA ideia aprovada ainda
 - Pedido dele: *"as cartas… o pessoal tá ganhando e tá cagando pra elas"*, *"quero algo maior, mais profundo, que dê
   água na boca pra ter as cartas"*. Hoje: cada título (liga/copa, off e on) dá direito a ESCOLHER uma carta, sem
