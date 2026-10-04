@@ -42,6 +42,9 @@
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 📖 HOME: cartão "Meu Álbum" ao lado do Salão dos Batismos ✅ NO AR (04/10, pedido dele). O botão ÁLBUM do rodapé
+  continua (ele não respondeu se tira). ⛔ A reorganização da Agência em duas abas (Agenciados / Coleções, mockup
+  `scratchpad/mockup-agencia.png`) ele NÃO aprovou agora (*"só o 1 mesmo"*) — não fazer sem ele pedir.
 - 🌎 CARTA PRO CAMPEÃO DA LIBERTADORES / CHAMPIONS / MUNDIAL ✅ (04/10, *"já quero que ligue as cartas nas copas"*):
   a carreira internacional (01/10) nunca tinha ligado o pacote. Agora cada título dá uma carta (seasonKey `:liberta`,
   `:champions`, `:mundial`), lida do histórico gravado no FIM da campanha. Trava no `npm run colecoes`. Conferido: as
