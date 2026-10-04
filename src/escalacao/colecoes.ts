@@ -13,15 +13,16 @@
 import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 import type { Sector } from './types'
 
-export type CartaBaralho = { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean }
+export type Baralho = 'BR' | 'EU' | 'MUNDO'
+export type CartaBaralho = { name: string; club: string; year: number; pos: Sector; fame: number; folk?: boolean; promessa?: boolean; baralho?: Baralho }
 export const chaveCarta = (c: { name: string; club: string; year: number }) => `${c.name}|${c.club}|${c.year}`
 
 /** 🎴 o baralho inteiro (os três), sem repetir a mesma carta (nome+clube+ano) */
 export const BARALHO_TODO: CartaBaralho[] = (() => {
   const vistos = new Set<string>(); const out: CartaBaralho[] = []
-  for (const cat of [CATALOG, CATALOG_EU, CATALOG_WORLD]) for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as Sector[]) for (const c of cat[pos]) {
+  for (const [cat, baralho] of [[CATALOG, 'BR'], [CATALOG_EU, 'EU'], [CATALOG_WORLD, 'MUNDO']] as const) for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as Sector[]) for (const c of cat[pos]) {
     const k = chaveCarta(c); if (vistos.has(k)) continue; vistos.add(k)
-    out.push({ name: c.name, club: c.club, year: c.year, pos, fame: c.fame, folk: c.folk, promessa: c.promessa })
+    out.push({ name: c.name, club: c.club, year: c.year, pos, fame: c.fame, folk: c.folk, promessa: c.promessa, baralho })
   }
   return out
 })()
@@ -84,6 +85,14 @@ export function colecoesDoBaralho(baralho: CartaBaralho[] = BARALHO_TODO): Colec
   return out.sort((a, b) => b.premio - a.premio || a.clube.localeCompare(b.clube))
 }
 export const COLECOES: Colecao[] = colecoesDoBaralho()
+
+/** de que baralho é o clube (o que tem mais cartas dele) — pro filtro 🇧🇷/🇪🇺/🌎 da grade */
+export function baralhoDaColecao(c: Colecao): Baralho | null {
+  if (c.especial) return null
+  const n: Record<string, number> = {}
+  for (const x of c.cartas) if (x.baralho) n[x.baralho] = (n[x.baralho] ?? 0) + 1
+  return (Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0] as Baralho) ?? null
+}
 
 /** uma carta do álbum da pessoa (uma LINHA de user_cards = uma cópia) */
 export type MinhaCarta = { id: string; name: string; club: string; year: number; usadaEm?: string | null; presa?: boolean }

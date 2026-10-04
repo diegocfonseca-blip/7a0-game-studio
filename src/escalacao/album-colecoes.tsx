@@ -11,7 +11,8 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { useT } from './lang'
-import { COLECOES, progressoDas, ordenaProgresso, escolheCopias, colecoesNovas, chaveCarta, clubeColecao, type MinhaCarta, type Progresso } from './colecoes'
+import { COLECOES, progressoDas, ordenaProgresso, escolheCopias, colecoesNovas, chaveCarta, clubeColecao, baralhoDaColecao, type Baralho, type MinhaCarta, type Progresso } from './colecoes'
+import { SeloClube } from './selo-clube'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', VERDE = '#1B7A3D', ROXO = '#7C3AED', VERM = '#E8503A'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700, textTransform: 'uppercase' as const }
@@ -124,31 +125,53 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
     setBusy(p.colecao.clube); setAviso('')
     try { setAviso(await onReceber(p, ids)) } finally { setBusy(null) }
   }
-  const Linha = ({ p }: { p: Progresso }) => {
-    const c = p.colecao, aberto = aberta === c.clube
-    const chavesDela = new Set(c.cartas.map(chaveCarta))
-    const doClube = minhas.filter(m => chavesDela.has(chaveCarta(m)))
-    const porChave = new Map<string, CartaDoAlbum[]>()
-    for (const m of doClube) { const k = chaveCarta(m); const l = porChave.get(k); if (l) l.push(m); else porChave.set(k, [m]) }
-    const livresCopias = doClube.filter(m => !m.usadaEm && !m.presa).length
-    const repetidas = Math.max(0, livresCopias - p.livres)
+  // 🔲 GRADE (04/10, Diego: "tá muito gigante a lista vertical" → aprovou a grade com os escudos oficiais):
+  // 4 clubes por linha, rodinha verde em volta do escudo enchendo com o progresso. Tocar abre o clube
+  // logo abaixo da linha dele, ocupando a largura toda (cartas, o que falta e o botão de receber).
+  const POR_LINHA = 4
+  const [filtro, setFiltro] = useState<'todas' | 'prontas' | 'comecadas' | Baralho>('todas')
+  const passa = (p: Progresso) => filtro === 'todas' ? true : filtro === 'prontas' ? p.pronta : filtro === 'comecadas' ? p.livres > 0 : baralhoDaColecao(p.colecao) === filtro
+  const repetidasDe = (p: Progresso) => {
+    const chaves = new Set(p.colecao.cartas.map(chaveCarta))
+    return Math.max(0, minhas.filter(m => chaves.has(chaveCarta(m)) && !m.usadaEm && !m.presa).length - p.livres)
+  }
+  const Quadro = ({ p }: { p: Progresso }) => {
+    const c = p.colecao, aberto = aberta === c.clube, pct = p.livres / p.total, rep = repetidasDe(p)
     return (
-      <div style={caixa({ marginBottom: 10, background: p.pronta ? 'linear-gradient(150deg,#FFF6D2,#FFE07A)' : '#fff' })}>
-        <button onClick={() => setAberta(aberto ? null : c.clube)} style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-            <span style={{ ...OSW, fontSize: 17, lineHeight: 1.05 }}>{c.especial ? '🌟 ' : ''}{c.clube}{novas.has(c.clube) && <span style={{ ...OSW, fontSize: 10, background: VERM, color: '#fff', padding: '2px 7px', borderRadius: 999, border: `2px solid ${INK}`, marginLeft: 6, verticalAlign: 'middle' }}>{t('🆕 nasceu agora', '🆕 just born')}</span>}</span>
-            <span style={{ ...OSW, fontSize: 11, padding: '3px 8px', border: `2px solid ${INK}`, borderRadius: 999, whiteSpace: 'nowrap', background: p.pronta ? VERDE : '#fff', color: p.pronta ? '#fff' : INK }}>{p.pronta ? '✅ ' : ''}{p.livres} {t('de', 'of')} {p.total}</span>
-          </div>
-          <div style={{ height: 11, border: `2px solid ${INK}`, borderRadius: 999, background: '#EFE6CC', margin: '7px 0 5px', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: `${(p.livres / p.total) * 100}%`, background: VERDE }} /></div>
-          <p style={{ fontSize: 12, color: 'rgba(0,0,0,.72)' }}>
-            {t('Prêmio', 'Prize')}: <b>{c.premio} 🪙</b>
-            {p.recebidas > 0 && <> · {t(`recebida ${p.recebidas}x`, `collected ${p.recebidas}x`)}</>}
-            {' · '}{aberto ? t('fechar ▲', 'close ▲') : t('ver cartas ▼', 'see cards ▼')}
-          </p>
-          {repetidas > 0 && <p style={{ fontSize: 11.5, color: ROXO, fontWeight: 700, marginTop: 3 }}>{modo === 'carreira' ? t(`🔁 você tem ${repetidas} repetida${repetidas > 1 ? 's' : ''} do ${c.clube} · troque no Álbum`, `🔁 you have ${repetidas} duplicate${repetidas > 1 ? 's' : ''} of ${c.clube} · trade them in the Album`) : t(`🔁 ${repetidas} repetida${repetidas > 1 ? 's' : ''} · dá pra trocar na aba Trocas`, `🔁 ${repetidas} duplicate${repetidas > 1 ? 's' : ''} · trade them in the Trades tab`)}</p>}
-        </button>
-        {aberto && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 9 }}>
+      <button onClick={() => setAberta(aberto ? null : c.clube)} style={{ position: 'relative', minWidth: 0, textAlign: 'center', cursor: 'pointer', border: `3px solid ${INK}`, borderRadius: 14, padding: '7px 3px 6px', boxShadow: aberto ? `0 0 0 3px ${ROXO}` : `3px 3px 0 ${INK}`, background: p.pronta ? 'linear-gradient(160deg,#FFE58A,#FFC400)' : '#fff', opacity: p.livres === 0 && !p.pronta && !aberto ? .55 : 1, color: INK }}>
+        {rep > 0 && <span style={{ position: 'absolute', top: -8, right: -6, background: ROXO, color: '#fff', fontSize: 10, fontWeight: 800, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 5px' }}>🔁{rep}</span>}
+        {novas.has(c.clube) && <span style={{ position: 'absolute', top: -8, left: -6, ...OSW, background: VERM, color: '#fff', fontSize: 9, border: `2px solid ${INK}`, borderRadius: 999, padding: '1px 5px' }}>🆕</span>}
+        <span style={{ width: 56, height: 56, borderRadius: '50%', margin: '0 auto', display: 'grid', placeItems: 'center', background: `conic-gradient(${VERDE} ${pct * 360}deg, #EADFC2 0)` }}>
+          <span style={{ width: 46, height: 46, borderRadius: '50%', background: '#fff', display: 'grid', placeItems: 'center' }}>
+            {c.especial ? <span style={{ fontSize: 26 }}>🌟</span> : <SeloClube clube={c.clube} size={38} />}
+          </span>
+        </span>
+        <span style={{ ...OSW, fontSize: 11, lineHeight: 1.05, marginTop: 4, height: 23, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', wordBreak: 'break-word' }}>{c.clube}</span>
+        <span style={{ ...OSW, display: 'block', fontSize: 11, color: p.pronta ? VERDE : INK }}>{p.pronta ? t('✅ Pronta', '✅ Ready') : `${p.livres}/${p.total}`}</span>
+        <span style={{ display: 'block', fontSize: 10, opacity: .75 }}>🪙 {c.premio}{p.recebidas > 0 ? ` · ${p.recebidas}x` : ''}</span>
+      </button>
+    )
+  }
+  const Aberto = ({ p }: { p: Progresso }) => {
+    const c = p.colecao
+    const chavesDela = new Set(c.cartas.map(chaveCarta))
+    const porChave = new Map<string, CartaDoAlbum[]>()
+    for (const m of minhas) { if (!chavesDela.has(chaveCarta(m))) continue; const k = chaveCarta(m); const l = porChave.get(k); if (l) l.push(m); else porChave.set(k, [m]) }
+    const faltam = c.cartas.filter(cb => !porChave.has(chaveCarta(cb)))
+    const rep = repetidasDe(p)
+    return (
+      <div style={{ gridColumn: '1 / -1', border: `4px solid ${INK}`, borderRadius: 18, boxShadow: `4px 4px 0 ${INK}`, background: '#fff', overflow: 'hidden', margin: '2px 0 4px' }}>
+        <div style={{ background: INK, color: '#fff', padding: '9px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <span style={{ ...OSW, fontSize: 17, lineHeight: 1.05 }}>{c.especial ? '🌟 ' : ''}{c.clube}</span>
+          <span style={{ ...OSW, fontSize: 12, color: GOLD, whiteSpace: 'nowrap' }}>{p.livres}/{p.total} · 🪙 {c.premio}</span>
+        </div>
+        <div style={{ padding: '9px 10px 10px' }}>
+          {faltam.length > 0 && <p style={{ fontSize: 12.5, marginBottom: 4 }}><b style={{ color: VERM }}>{t(`Faltam ${faltam.length}:`, `Missing ${faltam.length}:`)}</b> {faltam.slice(0, 8).map(x => x.name).join(', ')}{faltam.length > 8 ? t(` e mais ${faltam.length - 8}`, ` and ${faltam.length - 8} more`) : ''}</p>}
+          {p.recebidas > 0 && <p style={{ fontSize: 12, color: 'rgba(0,0,0,.65)', marginBottom: 4 }}>{t(`✔️ Recebida ${p.recebidas}x · pra receber de novo, junte o clube inteiro outra vez`, `✔️ Collected ${p.recebidas}x · to collect again, gather the whole club once more`)}</p>}
+          {rep > 0 && <p style={{ fontSize: 12, color: ROXO, fontWeight: 700, marginBottom: 4 }}>{modo === 'carreira' ? t(`🔁 ${rep} repetida${rep > 1 ? 's' : ''} · troque no Álbum`, `🔁 ${rep} duplicate${rep > 1 ? 's' : ''} · trade them in the Album`) : t(`🔁 ${rep} repetida${rep > 1 ? 's' : ''} · dá pra trocar na aba Trocas`, `🔁 ${rep} duplicate${rep > 1 ? 's' : ''} · trade them in the Trades tab`)}</p>}
+          {p.pronta && modo === 'carreira' && <button disabled={busy !== null} style={botao(GOLD, INK, { margin: '6px 0 8px', opacity: busy ? .6 : 1 })} onClick={() => void receber(p)}>{busy === c.clube ? t('Recebendo…', 'Collecting…') : t(`🪙 Receber ${c.premio} moedas`, `🪙 Collect ${c.premio} coins`)}</button>}
+          {p.pronta && modo === 'album' && <p style={{ ...OSW, fontSize: 12, color: VERDE, margin: '4px 0 8px' }}>{t('✅ Pronta! Receba as moedas dentro da carreira, na Agência', '✅ Ready! Collect the coins inside the career, in the Agency')}</p>}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, marginTop: 6 }}>
             {c.cartas.map(cb => {
               const copias = porChave.get(chaveCarta(cb))
               if (!copias) return <Falta key={chaveCarta(cb)} c={cb} />
@@ -158,21 +181,37 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
                 apagada={livres === 0 ? (usada ? <>{t('usada', 'used')}<br />{usada.usadaNome ?? ''}</> : t('em troca', 'in a trade')) : undefined} />
             })}
           </div>
-        )}
-        {p.pronta && modo === 'carreira' && <button disabled={busy !== null} style={botao(GOLD, INK, { marginTop: 10, opacity: busy ? .6 : 1 })} onClick={() => void receber(p)}>{busy === c.clube ? t('Recebendo…', 'Collecting…') : t(`🪙 Receber ${c.premio} moedas`, `🪙 Collect ${c.premio} coins`)}</button>}
-        {p.pronta && modo === 'album' && <p style={{ ...OSW, fontSize: 12, color: VERDE, marginTop: 8 }}>{t('✅ Pronta! Receba as moedas dentro da carreira, na Agência', '✅ Ready! Collect the coins inside the career, in the Agency')}</p>}
+          <button onClick={() => setAberta(null)} style={{ ...OSW, display: 'block', margin: '9px auto 0', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,.6)' }}>{t('fechar ▲', 'close ▲')}</button>
+        </div>
       </div>
     )
   }
+  const Grade = ({ itens }: { itens: Progresso[] }) => {
+    const i = itens.findIndex(p => p.colecao.clube === aberta)
+    const fimLinha = i < 0 ? -1 : Math.min(itens.length - 1, Math.floor(i / POR_LINHA) * POR_LINHA + POR_LINHA - 1)
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${POR_LINHA}, minmax(0, 1fr))`, gap: 8, marginBottom: 10 }}>
+        {itens.flatMap((p, k) => [<Quadro key={p.colecao.clube} p={p} />, ...(k === fimLinha ? [<Aberto key="__aberto" p={itens[i]} />] : [])])}
+      </div>
+    )
+  }
+  const comecadas = lista.filter(p => p.livres > 0 && !p.pronta).length
+  const FILTROS: [typeof filtro, string][] = [['todas', t('Todas', 'All')], ['prontas', t('✅ Prontas', '✅ Ready')], ['comecadas', t('🔥 Começadas', '🔥 Started')], ['BR', t('🇧🇷 Brasil', '🇧🇷 Brazil')], ['EU', t('🇪🇺 Europa', '🇪🇺 Europe')], ['MUNDO', t('🌎 Mundo', '🌎 World')]]
+  const ativasF = ativas.filter(passa), recebidasF = recebidas.filter(passa)
   return (
     <div>
-      <p style={{ fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '0 2px 10px' }}>
-        {t(`Junte TODAS as cartas de um clube pra fechar · ${COLECOES.length} clubes · ${prontas} pronta${prontas === 1 ? '' : 's'} pra receber`,
-          `Collect ALL the cards of a club to complete it · ${COLECOES.length} clubs · ${prontas} ready to collect`)}
-      </p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+        {([[prontas, t('prontas', 'ready')], [comecadas, t('começadas', 'started')], [COLECOES.length, t('clubes', 'clubs')]] as [number, string][]).map(([n, l]) => (
+          <div key={l} style={caixa({ flex: 1, textAlign: 'center', padding: '5px 6px' })}><b style={{ ...OSW, fontSize: 20, display: 'block', lineHeight: 1.1 }}>{n}</b><span style={{ fontSize: 10.5, opacity: .7 }}>{l}</span></div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', margin: '0 0 12px', paddingBottom: 3 }}>
+        {FILTROS.map(([k, l]) => <button key={k} onClick={() => setFiltro(k)} style={{ ...OSW, flex: 'none', fontSize: 12, padding: '4px 10px', border: `2.5px solid ${INK}`, borderRadius: 999, cursor: 'pointer', background: filtro === k ? INK : '#fff', color: filtro === k ? GOLD : INK }}>{l}</button>)}
+      </div>
+      <p style={{ fontSize: 12, color: 'rgba(0,0,0,.65)', margin: '0 2px 10px' }}>{t('Junte TODAS as cartas de um clube pra fechar. Toque no clube pra ver as cartas.', 'Collect ALL the cards of a club to complete it. Tap a club to see its cards.')}</p>
       {aviso && <p role="status" style={{ ...caixa({ background: '#FFF3C4', marginBottom: 10 }), fontSize: 13 }}>{aviso}</p>}
-      {ativas.map(p => <Linha key={p.colecao.clube} p={p} />)}
-      {diversos.length > 0 && (
+      {ativasF.length > 0 ? <Grade itens={ativasF} /> : <p style={{ fontSize: 13, margin: '6px 2px 12px', opacity: .7 }}>{t('Nenhum clube neste filtro.', 'No clubs in this filter.')}</p>}
+      {diversos.length > 0 && filtro === 'todas' && (
         <div style={caixa({ marginTop: 16, marginBottom: 10 })}>
           <button onClick={() => setAberta(aberta === '__diversos' ? null : '__diversos')} style={{ all: 'unset', display: 'block', width: '100%', cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -188,9 +227,9 @@ function ListaColecoes({ minhas, modo, onReceber }: { minhas: CartaDoAlbum[]; mo
           )}
         </div>
       )}
-      {recebidas.length > 0 && <>
-        <p style={{ ...OSW, fontSize: 13, color: 'rgba(0,0,0,.55)', margin: '16px 2px 8px' }}>{t(`✔️ Já recebidas (${recebidas.length}) · pra receber de novo, junte o clube inteiro outra vez`, `✔️ Already collected (${recebidas.length}) · to collect again, gather the whole club once more`)}</p>
-        {recebidas.map(p => <Linha key={p.colecao.clube} p={p} />)}
+      {recebidasF.length > 0 && <>
+        <p style={{ ...OSW, fontSize: 13, color: 'rgba(0,0,0,.55)', margin: '16px 2px 8px' }}>{t(`✔️ Já recebidas (${recebidasF.length}) · pra receber de novo, junte o clube inteiro outra vez`, `✔️ Already collected (${recebidasF.length}) · to collect again, gather the whole club once more`)}</p>
+        <Grade itens={recebidasF} />
       </>}
     </div>
   )

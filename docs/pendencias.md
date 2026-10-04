@@ -42,6 +42,10 @@
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 🔲 GRADE DAS COLEÇÕES (04/10, *"tá muito gigante a lista vertical"* → aprovou a grade e pediu *"com escudos oficiais que
+  já temos"*): 4 clubes por linha, escudo oficial (`SeloClube`, 81 de 82 — o Cosmos cai no selo), rodinha verde do
+  progresso, 🔁 repetidas, filtros Todas/Prontas/Começadas/Brasil/Europa/Mundo. Tocar abre o clube embaixo da linha
+  dele (faltam quais, cartas, botão Receber na Agência). Vale no Álbum e na Agência. Ainda travado (só a conta dele).
 - 🌟 LENDAS AVULSAS (04/10, *"coloque alguma categoria pra eles… 5 moedas pra cada, mas tem que completar todos juntos"*;
   as lendas NÃO trocam de clube): coleção especial com as lendas de clube que ainda não é coleção — hoje Yashin,
   Bobby Moore, Allan Simonsen e Valderrama = 20 🪙 (o Banks saiu pro Leicester), só com as 4 juntas. Monta-se sozinha (lenda sai quando
