@@ -1,3 +1,20 @@
+## 04/10/2026 — ☁️💸 CONTA DO SUPABASE: o save da carreira na nuvem só sobe no "Sair e salvar"
+- O Diego mandou a fatura: ~US$ 125/mês, com **Total egress** (US$ 31) e **Realtime Message Count** (US$ 65) estourados.
+- 📏 Medido no banco: save de carreira ativo tem em média **~950 KB** (p90 1,7 MB), e a tabela recebia ~20 mil
+  downloads do save inteiro por dia (≈ 20 GB/dia ≈ 590 GB/mês — bate com a fatura). Dois culpados: o autosave subia pra
+  nuvem a cada minuto e, pra juntar antes de subir, BAIXAVA o save inteiro; e a home (abrir, voltar o foco, Continuar)
+  baixava tudo e subia de novo.
+- ✅ Feito: regra do Diego (*"o save do usuário na carreira só deve salvar após ele apertar em salvar"*). A NUVEM só recebe
+  no botão "Sair e salvar carreira" (e em trocar de carreira / troca do Bafo). O save do APARELHO continua instantâneo.
+  E o aparelho guarda o carimbo (`updated_at`) da nuvem que já juntou: antes de baixar, pergunta só o carimbo; save
+  inteiro só desce quando outro aparelho salvou depois. Trava: `npm run nuvem`.
+- ⚠️ Consequência aceita: quem fecha o jogo sem apertar "Sair e salvar" continua com a carreira no aparelho, mas não
+  na nuvem (trocar de celular leva o que foi salvo pelo botão).
+- ⏭️ Mensagens ao vivo (US$ 65): vêm das salas online — o "tô vivo" do dono a cada 4s pra todo mundo + o estado a cada
+  jogada. Dá pra espaçar o "tô vivo", mas ele segura o aviso de dono sumido e a ressincronização (o convidado pede o
+  estado depois de 10s calado, `store.tsx`). Mexer só com cuidado e com OK dele. Conferir a fatura uns dias depois do
+  deploy pra medir quanto o egress caiu.
+
 ## 03/10/2026 — 📺 CENTRAL LEGENDS, a home do modo carreira ✅ NO AR PRA TODOS (liberada em 03/10: *"pode publicar pra todos já!!"*)
 - Pedido: *"queria alguma central no modo carreira… giro da rodada, notícias, transferências… precisa ter alguma
   central"*. Mockup v4 aprovado (cel + desk) depois de 3 rodadas (a 1ª *"muito feia"* → artes cinematográficas; a 3ª

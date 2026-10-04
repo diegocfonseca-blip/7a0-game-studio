@@ -710,6 +710,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   jogar é o MESMO do controle (`avancarRodada`) — nada de passo novo. Código: `central.tsx` + `central.css` +
   `central-noticias.ts` (redação pura, trava `npm run central`). `CENTRAL_GERAL = true` desde 03/10; `false` fecha só nele.
 
+- **☁️ O SAVE DA CARREIRA SÓ VAI PRA NUVEM QUANDO ELE APERTA SALVAR (04/10, regra permanente).** Palavras dele:
+  *"o save do usuário na carreira só deve salvar após ele apertar em salvar"*. Motivo: a fatura do Supabase (save de
+  ~1 MB baixado a cada minuto e a cada volta pra home = ~590 GB/mês de tráfego). O aparelho segue salvando sozinho; a
+  nuvem só no "Sair e salvar carreira" (e trocar carreira/Bafo). E nunca baixar o save inteiro sem antes conferir o
+  carimbo (`carimboDaNuvem`). Trava: `npm run nuvem`. **Toda leitura nova de coluna grande (save, game_state) tem que
+  pensar no tráfego** — é isso que a conta cobra.
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e
