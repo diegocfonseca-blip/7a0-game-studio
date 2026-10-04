@@ -82,6 +82,10 @@
   volta), 🌱 cria da base de titular, 🏆 copa chegando (≤5 rodadas), 🗓️ Libertadores/Copa do Mundo na próxima
   temporada ou nesta. Ficaram de fora (ele não pediu): zebra, goleada, maior subida/queda, artilheiro do seu time.
   E a tabela do desktop passou a 10 linhas (celular segue com 5).
+- 💾 8º ajuste (04/10, *"ok pode"*): faixa **💾 Salvar** no topo da Central, logo abaixo do título. Diz em que pé está a
+  nuvem (verde em dia · âmbar atrasado/nunca · cinza sem conta) e o botão faz o mesmo que "Sair e salvar carreira",
+  sem sair. `savePyramidCloud` anota quando e em que rodada cada carreira subiu (`ultimaSubidaNuvem`, chave
+  `esc-nuvem-subiu:<seed>` no aparelho). Bancada: `esc-central-dev-logado=1` finge logado (só no vite).
 - ⏭️ Decidir com ele: abrir na Central ficou como padrão; se preferir abrir em Jogos é 1 linha (`useEffect` do
   `centralOn`). Ideias que ficaram de fora de propósito: "ler a edição completa" (não existe jornal de meio de
   temporada ainda) e o 🔊 "ouvir" do giro.
