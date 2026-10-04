@@ -71,6 +71,7 @@
     "congela": "node scripts/testa-congela.mjs",
     "save-intl": "node scripts/testa-save-intl.mjs",
     "nuvem": "node scripts/testa-nuvem.mjs",
+    "canal": "node scripts/testa-canal.mjs",
     "central": "node scripts/testa-central.mjs"
   },
   "dependencies": {

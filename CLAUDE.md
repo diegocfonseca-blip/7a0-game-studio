@@ -716,6 +716,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   nuvem só no "Sair e salvar carreira" (e trocar carreira/Bafo). E nunca baixar o save inteiro sem antes conferir o
   carimbo (`carimboDaNuvem`). Trava: `npm run nuvem`. **Toda leitura nova de coluna grande (save, game_state) tem que
   pensar no tráfego** — é isso que a conta cobra.
+  📡 **E a sala online não tem mais "tô vivo" (04/10).** O dono só fala quando joga ou a cada ~20-30s parado
+  (heartbeat de estado); o convidado só pede o estado depois de 60s calado (8s se o lance dele ficou sem resposta); o
+  lance do convidado vai só pro dono (`hostInbox` em toda sala). Diego: *"não ligo praquela faixa vermelha mesmo"*.
+  **Nunca criar mensagem periódica nova no canal** sem medir: cota do plano = 5 milhões de mensagens/mês e cada
+  entrega pra cada pessoa conta uma. Trava: `npm run canal`.
 
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
