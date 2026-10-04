@@ -1,3 +1,21 @@
+## 04/10/2026 — 🏆 MINHAS LIGAS: a estante apagava a 1ª temporada de cada largada (liga KD1TUL, 11 troféus → 7)
+- Relato do Loopesmiranda FC (via Diego): acabou a liga, voltou pra sala de espera pra entrar um amigo e os troféus
+  caíram de 11 pra 7 ou 8. Causa, confirmada no banco: toda largada da sala de espera (`START_ONLINE`) nascia com a
+  MESMA semente (`hashCode(código da sala)` — KD1TUL → 2211528947) e a estante (`game_champions`) guardava a linha
+  por `(room_id, match_seed)` desde 16/08. A 1ª temporada de cada largada fazia UPSERT por cima da 1ª da largada
+  anterior: na liga dele as temporadas 1, 4 e 10 viraram uma linha só (a 11). Mesmo estrago em QSJA12 (1, 2, 3 →
+  "4") e em 5U7M8N / CP3VN1.
+- 🧱 O MESMO bug explica *"no leilão de clubes nunca aparecia ataque bom"*: mesma semente = mesmo sorteio de clubes
+  (`buildDeckClubes(…, rng)` com `rng = mulberry(s.seed)`) em toda temporada daquela liga. Não era coincidência.
+- ✅ Feito: (1) em Minhas Ligas a estante grava por TEMPORADA (`matchSeed: undefined` quando `ligaMode`; o número
+  nunca repete numa liga); sala rápida segue por semente; (2) a semente da largada da liga leva o número da temporada
+  (`hashCode(code + '#t' + seasonNo)`), continua igual em todo aparelho. Trava: `npm run estante`.
+- ✅ Recuperadas no banco, a partir de `esc_results` (que guarda por temporada quem foi campeão/artilheiro): 10
+  temporadas em 4 ligas — KD1TUL 1·4·10 · QSJA12 1·2·3 · 5U7M8N 6·20·26 · CP3VN1 6. Sem `human_results` (posição
+  de cada um não existe lá); nome com emoji casado com o que a estante já usava. Temporadas que faltam SEM campeão
+  humano (bot campeão) ficaram de fora: 5U7M8N 1·5·13·14·17·19·23, 9GBYBQ 2, BWVWGK 1 — a coluna `champion_name` é
+  obrigatória e não dá pra inventar o nome do bot.
+
 ## 04/10/2026 — ☁️💸 CONTA DO SUPABASE: o save da carreira na nuvem só sobe no "Sair e salvar"
 - O Diego mandou a fatura: ~US$ 125/mês, com **Total egress** (US$ 31) e **Realtime Message Count** (US$ 65) estourados.
 - 📏 Medido no banco: save de carreira ativo tem em média **~950 KB** (p90 1,7 MB), e a tabela recebia ~20 mil

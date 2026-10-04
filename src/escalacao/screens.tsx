@@ -10925,7 +10925,12 @@ export function EscEnd() {
           <LigaHub roomId={state.roomId} souDono={state.isHost}
             humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
             gravar={{
-              seasonNo: state.seasonNo, matchSeed: state.seed, champName: chTab ? (chCamp?.name ?? champ.name) : champ.name,
+              // 🏆 MINHAS LIGAS: a linha da estante é da TEMPORADA (o número nunca repete numa liga), não
+              // da semente (04/10, liga KD1TUL do Loopesmiranda). Toda largada da sala de espera nascia com
+              // a MESMA semente (código da sala) e a 1ª temporada de cada largada escrevia POR CIMA da 1ª
+              // da largada anterior: as temporadas 1, 4 e 10 dele viraram uma linha só, a 11. Sala rápida
+              // continua pela semente (lá o "novo leilão" zera a temporada pra 1, ver 16/08).
+              seasonNo: state.seasonNo, matchSeed: state.ligaMode ? undefined : state.seed, champName: chTab ? (chCamp?.name ?? champ.name) : champ.name,
               scorerName: chTab ? copaSc?.name : myScorer?.name, scorerGoals: chTab ? copaSc?.goals : myScorer?.goals,
               scorerTeamName: chTab ? copaSc?.teamName : state.managers.find(m => m.id === myScorer?.teamId)?.teamName,
               micoName: chTab ? (chTab.length > 1 ? chTab[chTab.length - 1]?.name : undefined) : table.length > 1 ? table[table.length - 1]?.name : undefined,
