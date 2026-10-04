@@ -242,7 +242,7 @@ export const PAIS: Record<string, string> = {
   'Paulo Wanchope': 'Costa Rica', 'Ali Daei': 'Irã', 'Jared Borgetti': 'México',
   'Wu Lei': 'China',
   // L28 (12/09): Formiga é brasileira; Bolt é jamaicano (carta do Resto do Mundo).
-  'Formiga': 'Brasil', 'Usain Bolt': 'Jamaica',
+  'Formiga': 'Brasil', 'Usain Bolt': 'Jamaica', 'Wes Morgan': 'Jamaica',
   'Mário Jardel': 'Brasil', 'Miroslav Klose': 'Alemanha',
   'Giovane Élber': 'Brasil', 'Márcio Amoroso': 'Brasil', 'Sonny Anderson': 'Brasil',
   'Grafite': 'Brasil', 'Vágner Love': 'Brasil', 'Aílton': 'Brasil',
