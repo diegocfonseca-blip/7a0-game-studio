@@ -9413,7 +9413,10 @@ export function PyramidSeasonScreen() {
       {/* 🖥️ `ll-cx` = gancho do DESKTOP da carreira (01/10, `career-desktop.css`): no monitor a
           coluna vira duas (placar/controles à esquerda, aba à direita). Abaixo de 1100px a
           classe não tem regra nenhuma — o celular fica byte a byte o que era. */}
-      <div className="max-w-xl mx-auto ll-cx" style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
+      {/* 🖥️ `ll-cx-fim` (02/10, print do amigo do Diego): sem jogo ao vivo — fim de temporada
+          (jornal/roteiro) ou rodada 0 (decisões da virada) — o monitor volta a UMA coluna; a
+          grade de duas colunas só faz sentido com placar de um lado e aba do outro. */}
+      <div className={`max-w-xl mx-auto ll-cx${(done && !copaPlaying) || round === 0 ? ' ll-cx-fim' : ''}`} style={{ padding: barraOn ? '16px 14px 84px' : '16px 14px 48px' }}>
         {festaOnC && mascKeyFesta && <FestaoMascote nome={state.managers[state.youIdx]?.teamName ?? 'Seu time'} mascote={mascKeyFesta} onDone={fecharFestaC} />}
         <AvisoContaCarreira />
         <SocioBaraoBanner />

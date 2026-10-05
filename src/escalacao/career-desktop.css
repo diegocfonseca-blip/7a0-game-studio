@@ -60,11 +60,11 @@
 
   /* 3) a coluna da esquerda é mais estreita: o cabeçalho e o placar encolhem
      (mesmos componentes, só o tamanho) */
-  .ll29-career .ll-cx-lado .ll26-competition { min-height: 0; margin-bottom: 10px; }
-  .ll29-career .ll-cx-lado .ll26-competition-copy { max-width: 100%; }
-  .ll29-career .ll-cx-lado .ll26-competition-copy h2 { font-size: 24px; }
-  .ll29-career .ll-cx-lado .ll29-summary { flex-wrap: wrap; padding: 8px 12px; font-size: 11px; }
-  .ll29-career .ll-cx-lado .ll25-career-hero { min-height: 120px; }
+  .ll29-career .ll-cx:not(.ll-cx-fim) .ll-cx-lado .ll26-competition { min-height: 0; margin-bottom: 10px; }
+  .ll29-career .ll-cx:not(.ll-cx-fim) .ll-cx-lado .ll26-competition-copy { max-width: 100%; }
+  .ll29-career .ll-cx:not(.ll-cx-fim) .ll-cx-lado .ll26-competition-copy h2 { font-size: 24px; }
+  .ll29-career .ll-cx:not(.ll-cx-fim) .ll-cx-lado .ll29-summary { flex-wrap: wrap; padding: 8px 12px; font-size: 11px; }
+  .ll29-career .ll-cx:not(.ll-cx-fim) .ll-cx-lado .ll25-career-hero { min-height: 120px; }
   .ll29-career .ll-cx-lado .ll-cx-placar .ll25-duel { grid-template-columns: 1fr 96px 1fr !important; padding: 14px 10px !important; }
   .ll29-career .ll-cx-lado .ll-cx-placar .ll25-numbers strong { font-size: 30px !important; }
   .ll29-career .ll-cx-lado .ll-cx-placar .ll25-team strong { font-size: 14px !important; }
@@ -80,4 +80,18 @@
 
   /* 5) a barra de abas (relativa desde 1024px) alinha com a grade */
   .ll29-career .ll-career-navigation button { padding: 6px 0; }
+
+  /* 6) 🛑 SEM JOGO AO VIVO (fim de temporada: jornal O MARTELO, roteiro, Copa do Mundo;
+     e rodada 0: contratos da virada) a grade NÃO existe — volta a UMA coluna de 900px.
+     Foi o print do amigo do Diego (02/10): depois da Libertadores o jornal da temporada
+     ficou espremido na coluna de 360px, com as palavras quebrando no meio. */
+  .ll29-career > .max-w-xl.mx-auto.ll-cx.ll-cx-fim,
+  .ll25-career.ll25-tab-elenco > .max-w-xl.mx-auto.ll-cx.ll-cx-fim,
+  .ll25-career.ll25-tab-ranking > .max-w-xl.mx-auto.ll-cx.ll-cx-fim,
+  .ll25-career.ll25-tab-estadio > .max-w-xl.mx-auto.ll-cx.ll-cx-fim {
+    display: block;
+    max-width: 900px !important;
+  }
+  .ll29-career > .ll-cx.ll-cx-fim > .ll-cx-conta { margin-top: 0; }
+  .ll29-career > .ll-cx.ll-cx-fim > .ll-cx-sair { margin-top: 16px !important; }
 }
