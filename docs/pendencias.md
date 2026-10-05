@@ -57,6 +57,7 @@ punia de novo os grandes); e a memória morava no celular de quem cria a sala (d
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- ⚽ CARTA NOVA (05/10, pedido do Diego): **Gilberto, Bahia 2020**, atacante, bom jogador (baralho Brasil, `L43_BR_ATA`). Novidades geradas.
 - 🎖️ SALA DE ESPERA: o áudio do 🐊 jacaré virou o **"Dictador"** (05/10, áudio que ele mandou, 23 s, `public/sfx/ditador.mp3`).
   A chave continua `jacare` (versão velha aberta recebe a mesma chave); o `jacare.mp3` também foi trocado pelo áudio novo.
 - 🎶 CANTO DA TORCIDA DO GEOVANY ✅ (05/10, Diego mandou o áudio): na carreira do `souzact12@gmail.com` o AMBIENTE

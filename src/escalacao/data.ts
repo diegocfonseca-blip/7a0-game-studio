@@ -1615,7 +1615,11 @@ const L39_BR_MEI: C[] = [
   { name: "Julio César Romero", club: "Fluminense", year: 1984, fame: 4, lo: 83, hi: 89, bio: "'Romerito', o paraguaio camisa 10 do Fluminense campeão brasileiro de 1984 — eleito o melhor jogador da América em 1985." },
 ]
 
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI, ...L39_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA] }
+// ⚽ 05/10, pedido do Diego: o atacante Gilberto do Bahia (artilheiro do clube em 2019-2020).
+const L43_BR_ATA: C[] = [
+  { name: "Gilberto", club: "Bahia", year: 2020, fame: 2, lo: 64, hi: 80, bio: "Centroavante artilheiro do Bahia — goleador do time no Brasileirão de 2019 e 2020." },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI, ...L39_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA, ...L43_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
