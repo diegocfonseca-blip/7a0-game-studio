@@ -1,3 +1,18 @@
+## 05/10/2026 — 🧱 Leilão de Clubes: mais variedade (Colo-Colo em todo leilão, Flamengo nunca no ataque) ✅ NO AR (código) · ⏳ banco
+
+Diego: *"toda hora aparece goleiro do Colo-Colo… lateral só Flamengo… não aparece ataque do Flamengo… serve
+pra todos os clubes"*. Ele RECUSOU baixar o mínimo do pacote (*"tem que aparecer clubes com no mínimo 2"*).
+Causa medida (`buildDeckClubes`): fila fixa de setores + 1 clube por partida → a defesa levava os grandes, o
+ataque ficava com a sobra e o goleiro com quem SÓ tem goleiro; a memória contava "saiu em outro setor" (o que
+punia de novo os grandes); e a memória morava no celular de quem cria a sala (dono novo = do zero).
+- Clube em até **2 setores** por partida · ordem dos setores **sorteada** · memória conta **só o mesmo setor**
+  (chave nova `clube·setor`, lê a velha também) · mínimo de 2 (folgado) **intacto**.
+- Simulado (30 salas, 3 baralhos): sala de 10, o que mais repetia caiu de 30/30 (Laterais do Monaco) pra ~12;
+  sala de 6, de 11 pra 6. Flamengo sai em todos os setores. Nenhuma sala sem pacote.
+- 🌐 **Memória compartilhada entre salas**: o código já chama `esc_clubes_recentes`/`esc_clubes_grava`, mas o
+  SQL (`docs/sql/clubes-recentes.sql`) **ainda não foi aplicado no banco** (aprovação não veio). Sem ele, cada
+  aparelho usa a própria memória, como antes — nada quebra. Aplicar = liga sozinho.
+
 ## 04/10/2026 — 📚 COLEÇÕES DE CLUBES + 🤝 TROCAS: regras que o Diego fechou (mockup v2 enviado, aguardando OK)
 - *"Ok vamos fazer"*. Só COLEÇÃO DE CLUBES (nada de feitos/títulos misturados). 74 clubes com 11+ cartas; fechar = 11
   cartas do mesmo clube, qualquer época. Prêmio = metade da soma do valor de TODAS as cartas do clube no baralho

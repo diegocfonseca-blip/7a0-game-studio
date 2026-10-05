@@ -1665,9 +1665,28 @@ let RECENT_CLUBES: Map<string, Sector>[] = (() => {
     return Array.isArray(arr) ? arr.slice(-CLUBES_MEM_MAX).map(l => new Map(l)) : []
   } catch { return [] }
 })()
-function guardaClubesRecentes() {
+function guardaClubesRecentes(nova?: Map<string, Sector>) {
   try { localStorage.setItem(CLUBES_MEM_KEY, JSON.stringify(RECENT_CLUBES.map(m => [...m]))) } catch { /* sem espaço/privado: fica só na memória */ }
+  // 🌐 05/10: a partida também vai pro SERVIDOR — a próxima sala, de QUALQUER dono, lê
+  // isso antes de sortear. Sem rede/sem a função: fica só a memória do aparelho (como antes).
+  if (nova) { try { void supabase.rpc('esc_clubes_grava', { p_mem: [...nova] }).then(() => {}, () => {}) } catch { /* offline */ } }
 }
+// 🌐 05/10 (Diego: "toda hora aparece Goleiros do Colo-Colo"): a memória "esse clube já
+// saiu" morava SÓ no celular de quem cria a sala, então cada dono novo começava do zero.
+// Agora o jogo puxa do servidor as últimas partidas de TODO MUNDO — no boot e a cada
+// 2 min (a sala é montada na hora, sem esperar rede: usa o que já chegou).
+export function puxaClubesRecentes() {
+  try {
+    void supabase.rpc('esc_clubes_recentes').then(({ data, error }) => {
+      if (error || !Array.isArray(data)) return
+      const srv = (data as [string, Sector][][]).filter(Array.isArray).map(l => new Map<string, Sector>(l.filter(x => Array.isArray(x) && typeof x[0] === 'string')))
+      if (!srv.length) return
+      RECENT_CLUBES = srv.slice(-CLUBES_MEM_MAX)
+      try { localStorage.setItem(CLUBES_MEM_KEY, JSON.stringify(RECENT_CLUBES.map(m => [...m]))) } catch { /* ok */ }
+    }, () => {})
+  } catch { /* offline */ }
+}
+if (typeof window !== 'undefined') { setTimeout(puxaClubesRecentes, 1500); setInterval(puxaClubesRecentes, 120000) }
 export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
   const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
   const bt = nextBuildTok()
@@ -1684,26 +1703,40 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
     for (const c of ACTIVE_CATALOG[pos]) { if (used.has(ident(c)) || NAO_E_CLUBE.has(c.club)) continue; const k = clubCanon(c.club); (mp.get(k) ?? mp.set(k, []).get(k)!).push(c) }
     porClube[pos] = mp
   }
-  // 🔁 nota de "já saiu": mesmo setor pesa 3, outro setor 1; a partida mais recente pesa
-  // mais (a de 8 partidas atrás quase nada). Menor nota = sai primeiro.
+  // 🔁 nota de "já saiu NESTE setor" nas últimas partidas (a mais recente pesa mais; a de
+  // 8 partidas atrás quase nada). Menor nota = sai primeiro.
   const nota = (clube: string, pos: Sector) => {
     let t = 0
-    RECENT_CLUBES.forEach((mp, i) => { const v = mp.get(clube); if (v) t += (v === pos ? 3 : 1) * (i + 1) / RECENT_CLUBES.length })
+    RECENT_CLUBES.forEach((mp, i) => {
+      // formato novo (05/10): chave "clube·setor" (um clube pode sair em 2 setores);
+      // formato velho: chave "clube" → setor. Os dois valem.
+      const w = (i + 1) / RECENT_CLUBES.length
+      // ⚖️ só conta o MESMO setor: se contasse "saiu em outro setor", clube grande (que sai
+      // em todo lugar) ficava sempre atrás de quem SÓ tem goleiro — era o Colo-Colo de novo
+      if (mp.has(`${clube}·${pos}`) || mp.get(clube) === pos) t += w
+    })
     return t
   }
-  const jaNaPartida = new Set<string>()
+  // 🎲 05/10: um clube pode sair em ATÉ 2 setores na mesma partida (Goleiros E Ataque do
+  // Flamengo). Antes era 1: a defesa escolhia primeiro e levava os grandes, o ataque ficava
+  // com a sobra e o goleiro com quem SÓ tem goleiro (Colo-Colo em toda sala).
+  const CLUBE_MAX_SETORES = 2
+  const setoresDoClube = new Map<string, number>()
+  const jaNaPartida = { has: (k: string) => (setoresDoClube.get(k) ?? 0) >= CLUBE_MAX_SETORES, add: (k: string) => { setoresDoClube.set(k, (setoresDoClube.get(k) ?? 0) + 1) } }
   const escolhidos = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, string[]>
   // 🎲 29/09: escolha em RODADAS, um clube por setor de cada vez (tipo "par ou ímpar" pra
   // montar time). Antes cada setor pegava TODOS os seus de uma vez, do mais apertado pro
   // mais folgado — a defesa levava os grandes e o ATAQUE ficava sempre com a mesma sobra:
   // na simulação de 20 partidas, Ataque da Fiorentina/Fulham/Goiás/Santa Cruz saía nas 20.
-  const cand = (pos: Sector, minimo: number) => [...porClube[pos].entries()].filter(([k, l]) => l.length >= minimo && !jaNaPartida.has(k))
+  const cand = (pos: Sector, minimo: number) => [...porClube[pos].entries()].filter(([k, l]) => l.length >= minimo && !jaNaPartida.has(k) && !escolhidos[pos].includes(k))
   const pegaUm = (pos: Sector, minimo: number): string | undefined =>
     // quem saiu pouco (e há mais tempo) vem na frente; empate fica na ordem do sorteio
     shuffle(cand(pos, minimo), rng).sort((a, b) => nota(a[0], pos) - nota(b[0], pos))[0]?.[0]
   for (let r = 0; r < alvo; r++) {
     // na rodada, o setor mais apertado escolhe primeiro (senão ele fica sem clube)
-    const ordemR = [...SECTORS].sort((a, b) => cand(a, need[a] + 1).length - cand(b, need[b] + 1).length)
+    // a ordem dos setores é SORTEADA a cada rodada (antes era fila fixa: o mais apertado
+    // sempre escolhia primeiro); só quem está a ponto de ficar sem pacote passa na frente
+    const ordemR = shuffle([...SECTORS], rng).sort((a, b) => (cand(a, need[a] + 1).length <= 1 ? 0 : 1) - (cand(b, need[b] + 1).length <= 1 ? 0 : 1))
     for (const pos of ordemR) {
       if (escolhidos[pos].length > r) continue
       // folgado (tem gente sobrando pra escolher) primeiro; o mínimo exato só pra ninguém ficar sem pacote
@@ -1736,9 +1769,9 @@ export function buildDeckClubes(managers: Manager[], rng: () => number, used: Se
     deck[pos] = shuffle(deck[pos], rng)
   }
   const mem = new Map<string, Sector>()
-  for (const pos of SECTORS) for (const k of escolhidos[pos]) mem.set(k, pos)
+  for (const pos of SECTORS) for (const k of escolhidos[pos]) mem.set(`${k}·${pos}`, pos)
   RECENT_CLUBES.push(mem); while (RECENT_CLUBES.length > CLUBES_MEM_MAX) RECENT_CLUBES.shift()
-  guardaClubesRecentes()
+  guardaClubesRecentes(mem)
   return deck
 }
 
