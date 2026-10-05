@@ -101,7 +101,6 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'adriano.ferrari@quepazseguros.com.br': 'ouro', // 👑 Lenda (pago) — tudo do ouro + batismo (SC Ferrari)
   'vt6.wallace@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'gabriel.cozendey92@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
-  'felipe.vrod10@gmail.com': 'prata', // ⭐ Craque (pago) — cor/selo prata + Modo Manual
   'pedrohenriquedasilva315@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'gabriel.arruda.1999@hotmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'feehcamp11@gmail.com': 'ouro', // 👑 Lenda (pago) + FUNDADOR — ouro normal em tudo, MAS verde brilhante SÓ na carreira offline (CAREER_GREEN)
@@ -113,6 +112,10 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'brunnodeluca90@gmail.com': 'ouro', // 👑 Lenda — batismo Vasco SAF (Série D, ex-Vasco da Grana) + fundador nº78 + sócio nº59 (24/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'weslleygomes749@gmail.com': 'ouro', // 👑 Lenda — batismo Cruzeiro de Berretinho (Série D, no assento do bot Metrópole FC) + fundador nº79 + sócio nº60 (25/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'bastosmbc@gmail.com': 'ouro', // 👑 Lenda — batismo El Mineiro (Série C, no assento do bot Brodeiragem) + fundador nº80 + sócio nº61 (27/09). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'felipe.vrod10@gmail.com': 'ouro', // 👑 Lenda — batismo Vieira FC (Série D, no assento do bot Prestígio FC) + fundador nº84 (03/10). Era ⭐ Craque pago (prata), subiu pra Lenda com o batismo. Regra 17/08: todo batismo já nasce sócio + fundador.
+  'kauealves584@gmail.com': 'ouro', // 👑 Lenda — batismo Gaviões SCCP (Série C, no assento do bot Zorra FC) + fundador nº83 (02/10). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'jadriovani@gmail.com': 'ouro', // 👑 Lenda — batismo Guimarães SCI (Série A) + fundador nº82 (02/10). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'luck.45@live.com': 'ouro', // 👑 Lenda — batismo Real Madruga (Série A) + fundador nº81 (02/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'dondeestasleomessi10@gmail.com': 'ouro', // 👑 Lenda — batismo Julia Barranquila (Série A) + fundador nº77 (24/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'koeppfabio@gmail.com': 'ouro', // 👑 Lenda — batismo Fabulous EC (Série A) + fundador nº76 (23/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'danieldias11@gmail.com': 'ouro', // 👑 Lenda — batismo Grêmio FBPA (Série A) + fundador nº75 (21/09). Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -214,6 +217,10 @@ const FUNDADOR_N: Record<string, number> = {
   'brunnodeluca90@gmail.com': 78, // ⚽ Vasco SAF (24/09)
   'weslleygomes749@gmail.com': 79, // ⭐🐺 Cruzeiro de Berretinho (25/09)
   'bastosmbc@gmail.com': 80, // 🐓 El Mineiro (27/09)
+  'felipe.vrod10@gmail.com': 84, // 😈🔴⚫ Vieira FC (03/10)
+  'kauealves584@gmail.com': 83, // 🦅⚫⚪ Gaviões SCCP (02/10)
+  'jadriovani@gmail.com': 82, // 🔴⚪ Guimarães SCI (02/10)
+  'luck.45@live.com': 81, // 👒⚪ Real Madruga (02/10)
   'dondeestasleomessi10@gmail.com': 77, // 🦈🔴⚪ Julia Barranquila (24/09)
   'koeppfabio@gmail.com': 76, // 🦅🔴⚫ Fabulous EC (23/09)
   'danieldias11@gmail.com': 75, // 🔵⚫⚪ Grêmio FBPA (21/09)

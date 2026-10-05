@@ -3,8 +3,11 @@ import { CATALOG_BOTH } from './data'
 /** Regras esportivas da carreira internacional. Sem estado, UI ou sorteio. */
 export const INTERNATIONAL_UNLOCK_SEASON = 40
 export const INTERNATIONAL_CAREER_TESTERS: readonly string[] = ['diego.c.fonseca@gmail.com']
+// 🟢 02/10 (Diego: "pode publicar… liberar pra todos"): toda conta logada. Voltar a
+// `false` fecha de novo só na conta dele (e o banco: `esc_private_international_rank_allowed`).
+export const INTERNATIONAL_CAREER_GERAL = true
 export const isInternationalCareerTester = (email?: string | null): boolean =>
-  !!email && INTERNATIONAL_CAREER_TESTERS.includes(email.trim().toLowerCase())
+  !!email && (INTERNATIONAL_CAREER_GERAL || INTERNATIONAL_CAREER_TESTERS.includes(email.trim().toLowerCase()))
 
 export type InternationalCompetition = 'libertadores' | 'champions'
 export type InternationalClub = {
@@ -66,6 +69,12 @@ export function internationalQualifiers<T>(serieA: readonly T[], cupChampion: T 
   })
 }
 
+// 🔓 A CHAMPIONS ABRE DEPOIS DA LIBERTADORES (Diego 02/10: *"só liberar a Champions após
+// ganhar a Libertadores"*). Escada: primeiro conquista a América, depois a Europa abre — e
+// fica aberta pra sempre naquela carreira. Quem nunca ganhou joga a Liberta todo ano que
+// tiver vaga. O banner da Champions continua na tela, trancado, dizendo o caminho.
+export const championsLiberada = (history: readonly { libertadores: number }[]): boolean => history.some(e => e.libertadores > 0)
+
 /** Quem não se classificou não recebe instituição, mesmo depois da T40. */
 export function internationalChoice<T>(enabledForAccount: boolean, season: number, qualifiers: readonly InternationalQualifier<T>[], teamKey: string, key: (team: T) => string): InternationalClub[] {
   if (!enabledForAccount || season < INTERNATIONAL_UNLOCK_SEASON) return []
@@ -98,8 +107,10 @@ export const INTERNATIONAL_CLUB_ALIASES: Readonly<Record<string, readonly string
   'Manchester City': ['Man City'],
   'Manchester United': ['Man United'],
   'Borussia Dortmund': ['Dortmund'],
+  'Bayer Leverkusen': ['Leverkusen'], // 01/10: o baralho escreve "Leverkusen" em quase todas as cartas do clube
   'LDU': ['LDU Quito'],
   'Barcelona-EQU': ['Barcelona SC'],
+  'Universidad de Chile': ['U. de Chile'], // 01/10: baralho unificado na grafia curta (Lote 40)
 }
 
 // 🧢 AS LENDAS DO CLUBE (01/10, Diego no 1º teste: *"eu escolhi o Flamengo… não tá

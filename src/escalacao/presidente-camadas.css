@@ -1,0 +1,5 @@
+.pc-frame{position:relative;width:100%;aspect-ratio:2/3;isolation:isolate}
+.pc-canvas{position:absolute;inset:0}
+.pc-canvas img,.pc-canvas canvas{position:absolute;display:block;pointer-events:none;user-select:none;object-fit:contain}
+.pc-loading{position:absolute;inset:0;display:grid;place-items:center;font:700 14px Oswald,sans-serif}
+.pc-error{padding:16px;border:3px solid #0c0c0c;border-radius:12px;background:#f4ecd6;color:#0c0c0c}

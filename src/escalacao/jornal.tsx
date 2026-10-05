@@ -998,7 +998,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         </div>
       )}
 
-      {privateVisual && <CareerNewspaperStories serieA={tables.A?.[0]?.name} cup={copa?.champion?.name} cupBrasil={brasil} superCup={superChamp} mundial={mundial} />}
+      {privateVisual && <CareerNewspaperStories serieA={tables.A?.[0]?.name} cup={copa?.champion?.name} cupBrasil={brasil} superCup={superChamp} mundial={mundial} internacional={clubInternational ? { liberta: clubInternational.libertadoresChampion, champions: clubInternational.championsChampion, mundial: clubInternational.mundialChampion, representado: clubInternational.representedClub, voce: clubInternational.userTeam } : null} />}
       <div className={privateVisual ? 'll34-career-numbers' : undefined} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
         {/* "foto" */}
         <div style={{ border: `2.5px solid ${INK}`, background: 'radial-gradient(circle at 50% 35%, #2ea457, #123f22)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 108, overflow: 'hidden' }}>
@@ -1052,14 +1052,42 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         </div>
       )}
 
-      {clubInternational?.representedClub && <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>
-        <div style={{ background: '#174AA0', color: '#fff', fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>🌐 Sua campanha internacional</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px' }}>
-          <Escudo nome={clubInternational.userTeam} size={39} />
-          <div style={{ flex: 1, minWidth: 0 }}><strong style={{ fontSize: 12 }}>{clubInternational.userTeam}</strong><div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9.5 }}>Representando <SeloClube clube={clubInternational.representedClub} size={16} /> {clubInternational.representedClub}</div></div>
-          <strong style={{ fontSize: 10, textAlign: 'right' }}>{clubInternational.bestCampaign}<br />{clubInternational.games} jogos · {clubInternational.wins} vitórias</strong>
+      {/* ✉️ O CONVITE QUE VOCÊ RECUSOU (Diego 02/10: "faz o 1"): se um clube que te chamou e
+          você dispensou levantou a taça, o jornal provoca. Só zoeira — não muda nada no jogo. */}
+      {clubInternational?.representedClub && (() => {
+        const ci = clubInternational
+        const campeoes: [string, string][] = [[ci.mundialChampion, tr('o Mundial', 'the Club World Cup')], [ci.libertadoresChampion, tr('a Libertadores', 'the Libertadores')], [ci.championsChampion, tr('a Champions', 'the Champions League')]]
+        const hit = campeoes.find(([club]) => club && club !== ci.representedClub && (ci.recusados ?? []).includes(club))
+        if (!hit) return null
+        const [club, taca] = hit
+        const frases = [
+          tr(`O ${club}, que o dono do ${ci.userTeam} dispensou, levantou ${taca}. Alguém aí se arrependeu?`, `${club}, the club the ${ci.userTeam} owner turned down, lifted ${taca}. Any regrets?`),
+          tr(`Recusou o ${club}… e o ${club} foi campeão d${taca.startsWith('o ') ? 'o' : 'a'} ${taca.slice(2)} sem ele. A diretoria manda lembranças.`, `Turned down ${club}… and ${club} won ${taca} without him. The board sends its regards.`),
+          tr(`Convite na gaveta, taça na sala do vizinho: o ${club} foi campeão depois do "não" do dono do ${ci.userTeam}.`, `Invitation in the drawer, trophy next door: ${club} won it all after the ${ci.userTeam} owner said no.`),
+        ]
+        return <div style={{ border: `2.5px solid ${INK}`, background: '#FDE9C8', marginTop: 10 }}>
+          <div style={{ background: '#C2452F', color: '#fff', fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>✉️ {tr('O convite que você recusou', 'The invitation you turned down')}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px' }}>
+            <SeloClube clube={club} size={40} />
+            <strong style={{ flex: 1, fontSize: 12.5, fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.35 }}>{frases[(seasonNo ?? 0) % frases.length]}</strong>
+          </div>
         </div>
-      </div>}
+      })()}
+      {/* 🧢 O CONVITE (02/10, mockup aprovado): a manchete do técnico convidado */}
+      {clubInternational?.representedClub && (() => {
+        const ci = clubInternational, clube = ci.representedClub!, voce = ci.userTeam
+        const onde = ci.competition === 'champions' ? tr('da Europa', 'of Europe') : tr('da América', 'of the Americas')
+        const manchete = ci.mundial ? tr(`Dono do ${voce}, de técnico, leva o ${clube} ao título mundial`, `${voce} owner, as coach, takes ${clube} to the world title`)
+          : (ci.libertadores || ci.champions) ? tr(`Dono do ${voce}, de técnico, leva o ${clube} ao título ${onde}`, `${voce} owner, as coach, takes ${clube} to the title ${onde}`)
+          : tr(`Dono do ${voce} vira técnico do ${clube}: ${ci.bestCampaign.toLowerCase()}`, `${voce} owner coaches ${clube}: ${ci.bestCampaign.toLowerCase()}`)
+        return <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>
+          <div style={{ background: '#174AA0', color: '#fff', fontSize: 9.5, fontWeight: 900, letterSpacing: 2, padding: '4px 8px', textTransform: 'uppercase' }}>🌐 {tr('O técnico convidado', 'The guest coach')}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 9px' }}>
+            <span style={{ position: 'relative', flex: 'none', width: 46, height: 44 }}><SeloClube clube={clube} size={40} /><span style={{ position: 'absolute', right: -4, bottom: -2, background: '#fff', border: `2px solid ${INK}`, borderRadius: '50%', padding: 1, display: 'flex' }}><Escudo nome={voce} size={18} /></span></span>
+            <div style={{ flex: 1, minWidth: 0 }}><strong style={{ fontSize: 13, fontFamily: 'Oswald, sans-serif', textTransform: 'uppercase', lineHeight: 1.1, display: 'block' }}>{manchete}</strong><div style={{ fontSize: 9.5, marginTop: 2 }}>{ci.games} {tr('jogos', 'games')} · {ci.wins} {tr('vitórias', 'wins')} · {tr('a taça entra na galeria do', 'the trophy goes to the cabinet of')} {voce}</div></div>
+          </div>
+        </div>
+      })()}
 
       {/* os donos da temporada: campeão + artilheiro de CADA série (+ Copa) */}
       <div style={{ border: `2.5px solid ${INK}`, background: '#fff', marginTop: 10 }}>

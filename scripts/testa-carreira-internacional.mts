@@ -7,7 +7,7 @@ const key = (team: string) => team
 
 assert.equal(isInternationalCareerTester('diego.c.fonseca@gmail.com'), true)
 assert.equal(isInternationalCareerTester(' DIEGO.C.FONSECA@GMAIL.COM '), true)
-assert.equal(isInternationalCareerTester('diego.c.fonseca2@gmail.com'), false)
+assert.equal(isInternationalCareerTester('diego.c.fonseca2@gmail.com'), true) // 🟢 liberada pra toda conta logada em 02/10
 assert.equal(isInternationalCareerTester(null), false)
 
 assert.equal(INTERNATIONAL_BLOCKS.length, 9)

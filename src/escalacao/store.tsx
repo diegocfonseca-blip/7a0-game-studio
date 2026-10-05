@@ -1,6 +1,17 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
+import {presidentWritesEnabled} from './presidente-acesso'
+import {PRESIDENCY_ECONOMY_RELEASED,PRESIDENCY_ROOF_RELEASED} from './presidencia-lotes'
+import {getPresidentOutfitTier} from './presidente-tier-conta'
+import {podeVestirModular} from './presidente-vestuario-acesso'
+import {presidenteCadastrado,sugestaoPresidente} from './presidencia-entrada-model'
+import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,type PresidenteBaseSave} from './presidencia-carreira'
+import {roupaLegada} from './presidente-vestuario-modular'
+import type {PresidenciaOrcamento} from './presidencia-economia'
+import type {DuplaGaragem} from './presidencia-garagem'
+import {alterarTetoPresidencia} from './presidencia-estadio-integrado'
+import {lancamentosPresidencia} from './presidencia-extrato'
 import { onlinePreviewEnabled } from './online-preview'
 import { disputaPenaltis } from './penaltis'
 import { anotaTrava } from './caixa-preta'
@@ -282,6 +293,17 @@ export const SOCIO_BOAS_VINDAS = 30  // 🪙 UMA VEZ SÓ na vida da conta, quand
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
+// 💸 anota um negócio do pregão no MERCADO DA TEMPORADA (Central Legends, 03/10). Vale pra
+// qualquer clube — o Diego quer ver *"todos os jogadores que foram comprados no leilão, não
+// só os meus"*. Só carreira SOLO, só carta de verdade, só a temporada atual (virou o ano,
+// a lista nasce de novo). Nunca mexe em dinheiro nem elenco: é memória de exibição.
+function anotaMercado(s: EscState, m: { id: number; teamName: string }, card: { name: string; pos: string; fake?: boolean }, paid: number, via: 'leilao' | 'monte' | 'desempate') {
+  if (!s.careerOnline || s.onlineMode === 'online' || card.fake || !(paid > 0)) return
+  const season = s.seasonNo ?? 1
+  const cur = s.careerMercado && s.careerMercado.season === season ? s.careerMercado : { season, lotes: [] }
+  cur.lotes = [...cur.lotes, { name: card.name, pos: card.pos, team: m.teamName, teamId: m.id, paid, via }].slice(-80)
+  s.careerMercado = cur
+}
 function logFin(s: EscState, kind: LedgerEntry['kind'], label: string, amount: number, extra?: Partial<LedgerEntry>, mgrId?: number, force?: boolean) {
   // por padrão não registra linha de valor 0 (evita lixo no extrato de venda/monte
   // etc.). `force` = registra mesmo em 0 — usado no RESUMO DE FIM DE TEMPORADA, pra
@@ -2158,6 +2180,7 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   m.money = Math.max(0, m.money - max) // 🛟 mesmo piso do leilão: compra não vira dívida
   m.squad.push({ ...tb.card, paid: max, buyPrice: max, via: tb.via, semContrato: undefined, tetoOficial: undefined, contratoAte: undefined, ...(state.reserveAuction && m.isHuman ? { reforco: true } : {}) } as WonCard)
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
+  anotaMercado(state, m, tb.card, max, 'desempate') // 💸 mercado da temporada (Central)
   voltaCriaSeSobrou(state, m, tb.card.pos) // 🌱 reforço chegou pelo desempate: o guri volta pra base
   recordPrice(state, tb.card, max) // livro de preços
   creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
@@ -4439,6 +4462,7 @@ export function takeFromMonte(state: EscState, cardId: string) {
   if (state.careerOnline && paid > 0 && !isOwn) {
     m.money = m.money - paid // deduz o valor cheio (pode negativar) — bate com o lançamento do extrato
     if (m.isHuman) logFin(state, 'buy', `🛒 ${card.name}`, -paid, { player: card.name, pos: card.pos }, m.id) // 🧾 compra no monte
+    anotaMercado(state, m, card, paid, 'monte') // 💸 mercado da temporada (Central)
   }
   creditSeller(state, card, paid, mgrId) // vendedor recebe o valor mesmo indo pelo monte
   agenciaTransacao(state, card) // 🕴️ agenciado mudou de clube pelo monte → comissão
@@ -4658,7 +4682,7 @@ type Action =
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
   | { type: 'RESUME_NBA_CAREER'; saved: EscState } // 🏀 retoma a carreira do basquete salva (bl-nba-career)
   | { type: 'TOGGLE_NBA_RELEASE'; cardId: string } // 🏀 carreira: marca/desmarca uma reserva pra DISPENSAR (T3+); repõe no leilão
-  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident'] } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
+  | { type: 'START_CAREER_SOLO'; teamName: string; formation: FormationKey; rivals: number; rivalTeams?: string[]; league?: 'br' | 'eu' | 'both' | 'todos'; intro?: boolean; president?: EscState['careerPresident']; presidentBase?:PresidenteBaseSave } // carreira OFFLINE na pirâmide (mesmas regras do online, sozinho vs CPU). Em teste.
   | { type: 'RESUME_CAREER_SOLO'; saved: EscState } // retoma a carreira offline salva no localStorage
   | { type: 'CAREER_ADVANCE'; keep: boolean }
   | { type: 'CHANGE_FORMATION'; formation: FormationKey; mgrId?: number; slot?: number; view?: string } // 🎽 carreira: troca de formação. Só libera com jogadores reais suficientes por posição (nunca entra fake). Aplica da rodada atual em diante — ou da FASE indicada, quando a Copa está rolando (slot). `view` = rótulo visível das 15 formações (formacoes.ts), quando difere da conta do motor.
@@ -4708,6 +4732,10 @@ type Action =
   | { type: 'SET_CHAT'; off: boolean } // 💬 host liga/desliga o chat da sala
   | { type: 'SET_SIM_SPEED'; speed: number } // ⏩ velocidade da simulação (host/solo)
   | { type: 'SET_STREAM_CHAMP_CARD'; slot: 'liga' | 'copa'; card: WonCard } // 🎥 stream: guarda a carta do campeão pra sala inteira ver/abrir
+  | { type: 'PRESIDENCY_SAVE_BASE'; mgrId:number; value:PresidenteBaseSave }
+  | { type: 'PRESIDENCY_TRADE'; mgrId:number; quote:PresidenciaOrcamento; confirmed:boolean }
+  | { type: 'PRESIDENCY_DISPLAY'; mgrId:number; display:DuplaGaragem }
+  | { type: 'PRESIDENCY_ROOF'; mgrId:number; closed:boolean }
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
@@ -4718,6 +4746,7 @@ type Action =
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
+  | { type: 'COLECAO_RECEBIDA'; moedas: number; marca: string } // 📚 coleção de clube recebida DENTRO da carreira (04/10): as moedas caem no caixa dela, uma vez por marca
   | { type: 'TV_EXTRA_VISTO' } // 📺 marca que o aviso único da cota extra (vídeo nas redes) já foi mostrado — nunca repete
   | { type: 'MEDICO_AVISO_VISTO' }
   | { type: 'PREPARADOR_AVISO_VISTO' } // 🏋️💸 fecha o recibo do troco do preparador (19/09) // 🏥💸 fecha o aviso da devolução do Departamento Médico (o dinheiro JÁ está no caixa)
@@ -5663,6 +5692,7 @@ function sealAndResolve(state: EscState) {
     agenciaTransacao(state, q.card) // 🕴️ agenciado negociado → comissão de agente
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
     if (w?.isHuman) logFin(state, 'buy', `🛒 ${q.card.name}`, -q.paid, { player: q.card.name, pos: q.card.pos }, w.id) // 🧾 compra no leilão
+    if (w) anotaMercado(state, w, q.card, q.paid, 'leilao') // 💸 mercado da temporada (Central): todo clube
     if (w?.backstop) (state.marketLog = state.marketLog ?? []).push(`⚽ ${w.teamName} arrematou ${q.card.name} por ${q.paid} 🪙`)
     // bot arrematou famoso e tá com o banco cheio? tira um FAKE (incógnito) pra dar
     // lugar ao famoso — não deixa o elenco do bot inchar de carta de brincadeira.
@@ -6058,7 +6088,10 @@ function reducerBase(state: EscState, action: Action): EscState {
         // SÓ entre as cartas do clube escolhido no baralho, igual à seleção na Copa do Mundo. Carta do elenco
         // do usuário NÃO entra (`ids` fica só pra referência de quem lê este trecho).
         void ids
-        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && club.block >= (c.priority ?? 10)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return s
+        // 🔁 RENOVAÇÃO (02/10): o campeão continental da temporada passada pode renovar com o MESMO clube,
+        // mesmo que ele seja de um bloco melhor que a posição de agora — a mesma régua do convite na tela.
+        const renova = (s.careerInternationalHistory ?? []).some(e => e.season === c.season - 1 && e.representedClub === c.representedClub && (e.libertadores || e.champions))
+        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && (club.block >= (c.priority ?? 10) || renova)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return s
       } else if (c.registeredXI.length || c.teams.some(team => team.you)) return s
       s.careerInternational = c
       return s
@@ -6075,7 +6108,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       const expected = summarizeInternationalCampaign(c)
       if (JSON.stringify(action.entry) !== JSON.stringify(expected)) return s
       if ((s.careerInternationalHistory ?? []).some(entry => entry.season === c.season)) return s
-      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), expected]
+      // 🗜️ a lista dos jogadores da máquina vira SOMA no placar acumulado (mesmos números, sem repetir por temporada)
+      s.careerIntlBotTotals = somaBotsIntl(s.careerIntlBotTotals, expected.botPlayerStats)
+      const { botPlayerStats: _somado, ...entrada } = expected
+      s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), entrada]
       if (expected.prizeCoins > 0) {
         const id = s.managers[s.youIdx]?.id
         if (id != null) {
@@ -6136,6 +6172,27 @@ function reducerBase(state: EscState, action: Action): EscState {
       return s
     }
     // 🏟️ ESTÁDIO da carreira: investe aos poucos num setor (custa do caixa de moedas)
+    case 'PRESIDENCY_SAVE_BASE': {
+      if(!presidentWritesEnabled())return state
+      const result=salvarPresidenteNaCarreira(s,action.mgrId,action.value,getPresidentOutfitTier())
+      return result.ok?result.value:state
+    }
+    case 'PRESIDENCY_TRADE': {
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      const result=negociarNaCarreira(s,action.mgrId,action.quote,action.confirmed)
+      if(!result.ok)return state
+      for(const entry of lancamentosPresidencia(action.quote))logFin(result.value,'presidency',entry.label,entry.amount,undefined,action.mgrId)
+      return result.value
+    }
+    case 'PRESIDENCY_DISPLAY': {
+      if(!PRESIDENCY_ECONOMY_RELEASED||!presidentWritesEnabled())return state
+      const result=exibirDuplaNaCarreira(s,action.mgrId,action.display)
+      return result.ok?result.value:state
+    }
+    case 'PRESIDENCY_ROOF': {
+      if(!PRESIDENCY_ROOF_RELEASED||!presidentWritesEnabled())return state
+      return alterarTetoPresidencia(state,action.mgrId,action.closed)??state
+    }
     case 'STADIUM_INVEST': {
       if (!s.careerOnline) return s
       const sec = STADIUM_SECTORS.find(x => x.k === action.sector); if (!sec) return s
@@ -6144,7 +6201,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       const pay = Math.min(STADIUM_STEP, sec.cost - invested, wallet)
       if (pay <= 0) return s
-      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: { ...st.inv, [action.sector]: invested + pay }, ext: st.ext } }
+      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { ...st, inv: { ...st.inv, [action.sector]: invested + pay }, ext: st.ext } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - pay }
       logFin(s, 'stadium', `🏟️ Obra: ${sec.n}`, -pay, undefined, action.mgrId) // 🧾 investimento no estádio entra no extrato (pra a conta fechar)
       return s
@@ -6157,7 +6214,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       if (st.ext.includes(action.ext) || !extraUnlocked(st, action.ext) || wallet < ext.cost) return s
-      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { inv: st.inv, ext: [...st.ext, action.ext] } }
+      s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { ...st, inv: st.inv, ext: [...st.ext, action.ext] } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - ext.cost }
       logFin(s, 'stadium', `🏟️ Melhoria: ${ext.n}`, -ext.cost, undefined, action.mgrId) // 🧾 melhoria do estádio entra no extrato
       return s
@@ -6244,6 +6301,17 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'TV_EXTRA_VISTO': {
       s.tvExtraVisto = true
+      return s
+    }
+    case 'COLECAO_RECEBIDA': {
+      // 📚 o servidor já marcou as cartas como usadas (esc_colecao_receber); aqui só entra o dinheiro.
+      // Só carreira solo, só valor positivo e uma vez por marca — a mesma recebida não paga duas vezes.
+      if (!s.careerOnline || s.onlineMode === 'online') return s
+      if (!Number.isFinite(action.moedas) || action.moedas <= 0 || action.moedas > 2000) return s
+      if ((s.colecoesRecebidas ?? []).includes(action.marca)) return s
+      const youId = s.managers[s.youIdx]?.id ?? s.youIdx
+      s.careerCoins = { ...(s.careerCoins ?? {}), [youId]: Math.round((s.careerCoins?.[youId] ?? 0) + action.moedas) }
+      s.colecoesRecebidas = [...(s.colecoesRecebidas ?? []), action.marca].slice(-300)
       return s
     }
     // 🏥💸 o aviso da devolução só some da tela — as moedas já entraram lá atrás,
@@ -6626,6 +6694,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Só identidade visual. Ausente mantém compatibilidade total com o fluxo
       // público e com saves criados antes do novo criador.
       s.careerPresident = action.president
+      s.careerPresidentBase = presidentWritesEnabled() && s.sport !== 'basquete' && presidenteCadastrado(action.presidentBase) && podeVestirModular(action.presidentBase.outfit,getPresidentOutfitTier())
+        ? {...sugestaoPresidente(action.presidentBase),name:action.presidentBase.name.trim(),sinceSeason:1} : undefined
+      if(s.careerPresidentBase)s.careerPresident={name:s.careerPresidentBase.name,outfit:roupaLegada(s.careerPresidentBase.outfit)}
+      s.careerPresidency = undefined
       s.simV = 4 // carreira nova já nasce na fórmula nova (gol realista + menos goleada)
       s.contratosOn = true // 📝 contratos de jogador: SÓ carreira NOVA (save antigo segue sem)
       // 🕴️ AGÊNCIA 2.0: SÓ carreira NOVA — convoca até 22 do álbum; renda SEMPRE no
@@ -6674,7 +6746,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerPlacements = pl
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.careerCopaSeasons = []; s.careerSupercopaSeasons = []; s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
-      s.careerInternational = null; s.careerInternationalHistory = []
+      s.careerInternational = null; s.careerInternationalHistory = []; s.careerIntlBotTotals = {}
       s.careerLedger = [] // 🧾 livro-caixa novo: extrato/transferências começam vazios
       s.empresarioCards = []; s.empresarioClaimKeys = [] // 💼 agência do Empresário começa vazia (renda das cartas ganhas nesta carreira)
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined // 🤝🏆🛍️ patrocínio por aposta, Master e Loja começam zerados
@@ -6801,7 +6873,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerHonors = {}; s.careerCopaHonors = {}; s.careerSupercopaHonors = {}
       s.marketValues = {}; s.marketLog = []
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
-      s.careerInternational = null; s.careerInternationalHistory = []
+      s.careerInternational = null; s.careerInternationalHistory = []; s.careerIntlBotTotals = {}
       s.empresarioCards = []; s.empresarioClaimKeys = []
       s.careerSponsorBet = undefined; s.careerSponsorResult = undefined; s.careerMaster = undefined; s.careerLoja = undefined
       s.cpuSquads = undefined; s.copaDoneSeason = undefined; s.varzea = false
@@ -6913,7 +6985,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏆 Copa só destrava com 8+ jogadores. Na Liga Fechada com menos de 8, força
       // 'liga' (sem copa). Fora dela, mantém a escolha da sala (bots completam os 8).
       s.copaMode = (action.ligaFechada && action.playerNames.length < 8) ? 'liga' : (action.copaMode ?? 'liga_copa')
-      s.hostInbox = s.copaMode === 'champions' // 📮 só a sala de Champions usa a caixa de entrada do host
+      // 📮 TODA sala usa a caixa de entrada do host (04/10; antes só a Champions, desde 25/09). O
+      // recado do convidado vai SÓ pro dono em vez de ser entregue pra sala inteira — numa sala de 5,
+      // é 1 entrega em vez de 4 por lance. Mesma estrada da Champions, com os mesmos reservas: se a
+      // entrega falhar cai no rádio de sempre, e o lance ainda tem o caminho do banco (`room_acoes`).
+      // (Em 25/09 o Diego pediu pra ficar SÓ na Champions; em 04/10, por causa da fatura das
+      // mensagens, aprovou pra todas: *"ok pode fazer"*.)
+      s.hostInbox = true
       // 🧹 FAXINA ANTI-CARREIRA (bug achado pelo Diego 19/08, testando na conta dele).
       // O reducer clona o estado ANTERIOR. Quem saía de uma carreira (ou da Dinastia)
       // e entrava numa SALA ONLINE levava o `careerDivision` junto — e a sala online
@@ -6969,7 +7047,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       // seed do leilão: código da sala. No "novo leilão" (rematch) recebe um
       // salt → sorteia jogadores NOVOS. Como só o HOST monta e transmite (o
       // convidado copia via SYNC_STATE), o salt não precisa ser determinístico.
-      s.seed = hashCode(action.roomCode + (action.rematch ? '#' + action.rematch : ''))
+      // 🏆 MINHAS LIGAS (04/10): a temporada entra na semente. Sem isso toda largada da sala de
+      // espera repetia a MESMA ordem de cartas no pregão (mesma semente = mesmo sorteio) e, pior,
+      // a estante de troféus, que guardava a linha por semente, apagava a 1ª temporada da largada
+      // anterior (liga KD1TUL). Continua determinística: o número da temporada vem do banco e é o
+      // mesmo em todo aparelho.
+      s.seed = hashCode(action.roomCode + (action.liga ? '#t' + (action.seasonNo ?? 1) : '') + (action.rematch ? '#' + action.rematch : ''))
       const rng = mulberry(s.seed)
       // a tabela sempre tem 20 times: os que faltam viram bots com elenco
       // pronto (não brigam no leilão — só os humanos disputam as cartas).
@@ -9959,7 +10042,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.multiClube = undefined; s.multiClubePendingCards = undefined
       s.copaMundoMural = undefined
       s.copaMundoStats = undefined
-      s.careerInternational = null; s.careerInternationalHistory = []
+      s.careerInternational = null; s.careerInternationalHistory = []; s.careerIntlBotTotals = {}
       s.careerScorersAll = {}; s.careerAssistsAll = {}; s.careerMelhorMundo = {}; s.statsSeason = 0
       s.marketValues = {}; s.marketLog = []
       s.cpuSquads = undefined; s.copaDoneSeason = undefined
@@ -10528,7 +10611,35 @@ const FICHA_NBA = (() => {
   for (const n of repetidos) porNome.delete(n)
   return { exato, porNome }
 })()
+// 🗜️ PLACAR ACUMULADO DA MÁQUINA NAS COPAS INTERNACIONAIS (03/10, save do marcomak03 que não
+// gravou duas temporadas). Cada temporada guardava a lista INTEIRA de gols/assistências dos ~780
+// jogadores dos clubes da máquina (~45 KB por ano; na T100, ~3 MB só disso), e o celular tem uns
+// 5 MB pro jogo todo. Agora a lista é SOMADA num placar só (`careerIntlBotTotals`): nenhum número
+// se perde, o tamanho para de crescer. O que é do usuário (playerStats, campeões, artilheiros,
+// teamRecords do ranking) fica na temporada como sempre. Idempotente: só soma entrada que ainda
+// tem a lista, e tira a lista na mesma hora — nunca conta duas vezes.
+function somaBotsIntl(totais: Record<string, [number, number, number]> | undefined, linhas: [string, string, number, number, number][] | undefined) {
+  const t = { ...(totais ?? {}) }
+  for (const [key, , games, goals, assists] of linhas ?? []) {
+    const cur = t[key] ?? [0, 0, 0]
+    t[key] = [cur[0] + games, cur[1] + goals, cur[2] + assists]
+  }
+  return t
+}
+export function compactaHistoricoIntl(save: EscState): EscState {
+  const hist = save.careerInternationalHistory
+  if (!Array.isArray(hist) || !hist.some(e => Array.isArray(e?.botPlayerStats))) return save
+  let totais = save.careerIntlBotTotals
+  const novo = hist.map(e => {
+    if (!Array.isArray(e?.botPlayerStats)) return e
+    totais = somaBotsIntl(totais, e.botPlayerStats)
+    const { botPlayerStats: _fora, ...resto } = e
+    return resto
+  })
+  return { ...save, careerInternationalHistory: novo, careerIntlBotTotals: totais }
+}
 function sincronizaNiveis(save: EscState): EscState {
+  save = compactaHistoricoIntl(save)
   let mexeu = 0
   const vistos = new Set<object>()
   // 🏷️ CARTA QUE TROCOU DE ENDEREÇO (Diego 18/09: *"Zidane tá aparecendo Real
@@ -10781,9 +10892,20 @@ export function patchCareerCofre(seed: number, marca: string, tira: { name: stri
   return true
 }
 
+// 🤝 carta de CARREIRA que saiu numa troca: o servidor anotou em esc_cartas_saidas; ao abrir a
+// carreira, o aparelho tira a carta da Agência dela (mesmo cano do Bafo, idempotente pela marca).
+export async function aplicaSaidasDeTroca(seed: number | undefined): Promise<void> {
+  if (seed == null) return
+  try {
+    const { data } = await supabase.from('esc_cartas_saidas').select('troca_id, card_name, card_club, card_year').like('season_key_antiga', `co:solo${seed}:%`)
+    for (const r of (data ?? []) as { troca_id: number; card_name: string; card_club: string; card_year: number }[]) {
+      patchCareerCofre(seed, `troca:${r.troca_id}:${r.card_name}|${r.card_club}|${r.card_year}`, { name: r.card_name, club: r.card_club, year: r.card_year }, null)
+    }
+  } catch { /* sem rede: tenta de novo na próxima vez que abrir */ }
+}
+
 // além do save local (esc-solo-career), quem está logado espelha o save inteiro
 // na tabela esc_pyramid_saves. Ao continuar, pega o MAIS RECENTE (local x nuvem).
-let lastPyrCloud = 0
 // ── junção segura de carreiras (nunca perde nem volta no tempo) ──────────────
 // extrai as carreiras de um valor cru da nuvem (formato novo multi OU o antigo,
 // que era um EscState cru = carreira única).
@@ -10818,30 +10940,72 @@ function mergeCareers(...lists: CareerSlot[][]): CareerSlot[] {
 // o aparelho tenha limpado os dados, o backup da nuvem fica intacto. Formato:
 // { __multi:1, careers:[{save,at}, ...] }. Rows antigas (EscState cru) são lidas
 // como carreira única (compatível).
+// 💸 CARIMBO DA NUVEM (04/10, conta do Supabase do Diego: ~590 GB de tráfego no mês, quase tudo
+// daqui). Cada save de carreira pesa ~1 MB, e o jogo BAIXAVA o save inteiro a cada minuto de jogo
+// (pra juntar antes de subir) e a cada vez que a home voltava pro foco (pra juntar e subir de novo).
+// Agora o aparelho guarda o `updated_at` da nuvem que ele JÁ juntou no local. Antes de baixar,
+// pergunta só o carimbo (uns bytes): se for o mesmo, a nuvem não tem nada que o aparelho não tenha,
+// e o save inteiro nem desce. Só baixa quando OUTRO aparelho salvou depois.
+const CLOUD_AT_KEY = 'esc-cloud-at:'
+function cloudAtConhecido(uid: string): string | null { try { return localStorage.getItem(CLOUD_AT_KEY + uid) } catch { return null } }
+function marcaCloudAt(uid: string, iso: string | null | undefined) {
+  try { if (iso) localStorage.setItem(CLOUD_AT_KEY + uid, iso); else localStorage.removeItem(CLOUD_AT_KEY + uid) } catch { /* ignora */ }
+}
+/** o carimbo da linha na nuvem: string = tem save · null = não tem linha · undefined = a leitura falhou */
+async function carimboDaNuvem(uid: string): Promise<string | null | undefined> {
+  const { data, error } = await supabase.from('esc_pyramid_saves').select('updated_at').eq('user_id', uid).maybeSingle()
+  if (error) return undefined
+  return (data?.updated_at as string | undefined) ?? null
+}
+// ✋ REGRA DO DIEGO (04/10): *"o save do usuário na carreira só deve salvar após ele apertar em
+// salvar"*. A NUVEM só recebe a carreira em ação explícita (`force`): o botão "Sair e salvar
+// carreira", trocar de carreira, a troca do Bafo. O autosave do jogo grava SÓ no aparelho (é
+// instantâneo e continua igual) — antes ele também subia pra nuvem a cada minuto.
 export async function savePyramidCloud(state: EscState, force = false) {
   try {
-    // throttle: no máx. 1 escrita/60s — o save LOCAL é o guarda-vidas instantâneo;
-    // a nuvem é backup pra trocar de aparelho. A 6s, cada jogador de carreira
-    // BAIXAVA+SUBIA o save inteiro (MBs) toda hora — era o nº 1 de egress/CPU do
-    // Supabase (medido 03/08: upsert de 1s de banco, 651× em horas). Momentos-
-    // chave (sair pro lobby, trocar carreira) seguem com force=true, na hora.
-    if (!force && Date.now() - lastPyrCloud < 60000) return
+    if (!force) return
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
-    ensureCareerOwner(data.user.id) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
-    lastPyrCloud = Date.now()
+    const uid = data.user.id
+    ensureCareerOwner(uid) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
     let payload: unknown = state
+    // o aparelho já tem tudo o que está na nuvem? (mesmo carimbo, ou nuvem vazia)
+    let localCobreNuvem = true
     if (isCareerSave(state)) {
-      // lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada):
-      const { data: cur } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
-      const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
+      const carimbo = await carimboDaNuvem(uid)
+      if (carimbo === undefined) return // sem resposta da nuvem: não arrisca sobrescrever; o local guarda
       // 🔒 carimba a ativa com o lacre antes de subir (as do arquivo já vêm carimbadas).
       const active: CareerSlot = { save: { ...state, _ll: lacreDe(state) } as EscState, at: Date.now() }
-      payload = { __multi: 1, careers: mergeCareers([active], careersFromCloudRaw(cur?.save, cloudAt), readCareerArchive()) }
+      let daNuvem: CareerSlot[] = []
+      if (carimbo && carimbo !== cloudAtConhecido(uid)) {
+        // outro aparelho salvou depois: lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada)
+        localCobreNuvem = false
+        const { data: cur, error } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', uid).maybeSingle()
+        if (error) return
+        const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
+        daNuvem = careersFromCloudRaw(cur?.save, cloudAt)
+      }
+      payload = { __multi: 1, careers: mergeCareers([active], daNuvem, readCareerArchive()) }
     }
     const nowIso = new Date().toISOString()
-    await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: payload, updated_at: nowIso })
+    const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
+    // só marca o carimbo novo quando o LOCAL já tinha tudo: se a gente juntou carreira de outro
+    // aparelho aqui, o local ainda não tem — o carimbo fica velho e a próxima ida à home baixa e junta.
+    if (localCobreNuvem) marcaCloudAt(uid, up?.updated_at as string | undefined)
+    // 💾 lembra QUANDO e EM QUE PONTO esta carreira subiu (o "salvo na nuvem há X min" da Central)
+    if (isCareerSave(state)) anotaSubidaNuvem(state)
   } catch { /* best effort — o local sempre garante */ }
+}
+// 💾 última subida da carreira pra nuvem, por carreira (seed): quando foi e em que rodada/temporada.
+// É só memória pra tela ("salvo há 12 min · você jogou 3 rodadas desde então"); não decide nada.
+export type SubidaNuvem = { at: number; seasonNo: number; round: number }
+const NUVEM_SUBIU_KEY = 'esc-nuvem-subiu:'
+function anotaSubidaNuvem(state: EscState) {
+  try { localStorage.setItem(NUVEM_SUBIU_KEY + state.seed, JSON.stringify({ at: Date.now(), seasonNo: state.seasonNo ?? 1, round: state.round ?? 0 } satisfies SubidaNuvem)) } catch { /* ignora */ }
+}
+export function ultimaSubidaNuvem(seed: number | undefined): SubidaNuvem | null {
+  if (seed == null) return null
+  try { const r = localStorage.getItem(NUVEM_SUBIU_KEY + seed); return r ? JSON.parse(r) as SubidaNuvem : null } catch { return null }
 }
 type CloudCareers = { save: EscState; at: number; careers: CareerSlot[]; iso: string | null }
 export async function loadPyramidCloud(): Promise<CloudCareers | null> {
@@ -10873,19 +11037,28 @@ export async function syncCareersWithCloud(): Promise<boolean> {
   try {
     const { data: u } = await supabase.auth.getUser()
     if (!u?.user) return false
-    ensureCareerOwner(u.user.id) // 🔐 rebaseia o aparelho pra ESTA conta ANTES de juntar local↔nuvem
+    const uid = u.user.id
+    ensureCareerOwner(uid) // 🔐 rebaseia o aparelho pra ESTA conta ANTES de juntar local↔nuvem
+    const localCareers = listAllCareers().map(({ slot }) => slot)
+    // 💸 pergunta só o carimbo: nuvem igual à que este aparelho já juntou = nada a baixar
+    const carimbo = await carimboDaNuvem(uid)
+    if (!carimbo) return false // sem save na nuvem (ou sem resposta): fica o do aparelho
+    if (localCareers.length && carimbo === cloudAtConhecido(uid)) return false
     const cloud = await loadPyramidCloud()
     if (!cloud) return false
-    const localCareers = listAllCareers().map(({ slot }) => slot)
     const all = mergeCareers(localCareers, cloud.careers)
     if (!all.length) return false
     const [active, ...rest] = all
+    let gravou = false
     try {
       localStorage.setItem('esc-solo-career', JSON.stringify(active.save))
       localStorage.setItem('esc-solo-career-at', String(active.at ?? Date.now()))
-      writeCareerArchive(rest)
-    } catch { /* ignora */ }
-    savePyramidCloud(active.save, true) // reescreve a nuvem com o conjunto unido
+      localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(rest.slice(0, MAX_CAREER_SLOTS)))
+      gravou = true
+    } catch { /* cota cheia: não marca o carimbo, e a próxima vez tenta juntar de novo */ }
+    // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
+    // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
+    if (gravou) marcaCloudAt(uid, cloud.iso)
     return true
   } catch { return false }
 }
@@ -10898,11 +11071,16 @@ export async function removeCareerFromCloud(seed: number) {
   try {
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
-    const { data: cur } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', data.user.id).maybeSingle()
-    const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
-    const kept = careersFromCloudRaw(cur?.save, cloudAt).filter(c => (c.save as EscState).seed !== seed)
-    if (!kept.length) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id)
-    else await supabase.from('esc_pyramid_saves').upsert({ user_id: data.user.id, save: { __multi: 1, careers: kept }, updated_at: new Date().toISOString() })
+    const uid = data.user.id
+    const { data: cur, error } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', uid).maybeSingle()
+    if (error || !cur) return // nada na nuvem (ou sem resposta): não há o que tirar
+    // o local já tinha tudo da nuvem antes de apagar? então continua tendo depois (apagou dos dois)
+    const localCobria = (cur.updated_at as string | undefined) === cloudAtConhecido(uid)
+    const cloudAt = cur.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
+    const kept = careersFromCloudRaw(cur.save, cloudAt).filter(c => (c.save as EscState).seed !== seed)
+    if (!kept.length) { await supabase.from('esc_pyramid_saves').delete().eq('user_id', uid); marcaCloudAt(uid, null); return }
+    const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: { __multi: 1, careers: kept }, updated_at: new Date().toISOString() }).select('updated_at').maybeSingle()
+    if (localCobria) marcaCloudAt(uid, up?.updated_at as string | undefined)
   } catch { /* ignora */ }
 }
 
@@ -11134,6 +11312,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // Gesto seu de verdade (criar sala, botão RETOMAR AQUI, reassunção após o
   // sumiço confirmado do host) entra com posse PLENA, sem espera.
   const acaoReservaTsRef = useRef(0)   // 📮 última escrita do lance no caminho reserva
+  const acaoPendenteRef = useRef(0)    // ⏳ convidado: quando mandei o último recado que ainda não teve estado de volta (0 = nenhum)
   const selaReservaTsRef = useRef(0)   // 📮 última escrita do "fecha o envelope" no caminho reserva
   const acoesVistasRef = useRef(0)     // 📮 último id de room_acoes que o host já aplicou
   const claimForcadoRef = useRef(true)
@@ -11278,6 +11457,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
         if (!inboxRef.current || inboxRef.current.sala !== rid) inboxRef.current = { sala: rid, ch: supabase.channel(`escalacao-in:${rid}`) }
         inboxRef.current.ch.httpSend('action', action).catch(() => { channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action }) })
       } else channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
+      // ⏳ marca "mandei um recado e ainda não veio estado": é o que deixa o vigia pedir o
+      // estado em 8s (em vez de 60s) quando a resposta do dono se perde no caminho.
+      if (!acaoPendenteRef.current) acaoPendenteRef.current = Date.now()
       // 📮 CAMINHO RESERVA DO LANCE (23/08, salas 1DWIA5 e 5B11LC): o convidado
       // via o host lacrar ("✅ lacrou" na tela dele) mas o LANCE DELE nunca
       // chegava — o rádio (canal realtime) engolia o recado numa direção só, e o
@@ -11367,6 +11549,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // mostra "154s" onde são 75s — o bug que o Diego pegou em 20/09.
         ajustaRelogioSala((payload as { t?: unknown } | null)?.t)
         lastHostMsgRef.current = Date.now() // notícia fresca do host
+        acaoPendenteRef.current = 0 // chegou estado do dono: o meu recado (se havia) já foi considerado
         donoSumidoNoBancoRef.current = false // deu as caras: a acusação cai na hora
         setDonoForaSeg(0)
         jaRecebiEstadoRef.current = true
@@ -11596,33 +11779,32 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // últimos ~12s). No jogo ativo, cada jogada já reenvia o estado, então o heartbeat
   // nem dispara; parado, ele ressincroniza em ~12-18s (e o convidado ainda tem o vigia
   // de 10s como reforço). Mesma proteção, uma fração do tráfego.
+  // 💸 04/10: de "quieto há 12s, confere a cada 6s" (≈5 reenvios/min parado) pra "quieto há
+  // 20s, confere a cada 10s" (≈2/min). É a rede de segurança contra mensagem perdida — o
+  // convidado não precisa mais pedir nada pra ser curado em até ~30s — e, sem o "tô vivo",
+  // é também o que mantém o "dono vivo" do convidado fresco (por isso o vigia dele usa 60s).
+  const HEARTBEAT_QUIETO_MS = 20_000
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     const iv = setInterval(() => {
       if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
-      if (Date.now() - lastStateSendRef.current < 12000) return // teve jogada recente → já sincronizado
+      if (Date.now() - lastStateSendRef.current < HEARTBEAT_QUIETO_MS) return // teve jogada recente → já sincronizado
       channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(stateRef.current) })
       lastStateSendRef.current = Date.now()
-    }, 6000)
+    }, 10_000)
     return () => clearInterval(iv)
   }, [state.onlineMode, state.isHost, state.roomId])
 
-  // 💗 PING "TÔ VIVO" do host: bem mais leve e frequente que o heartbeat de estado.
-  // Só o dono manda, a cada 4s, mesmo PARADO — é o que impede o convidado de achar
-  // que ele caiu só por ficar quieto (a raiz do bug do Sapekeiro). É uma mensagem de
-  // POUCOS BYTES no canal já aberto (não é o estado inteiro), então não pesa no
-  // Realtime/Egress nem escreve no banco. self:false → só os convidados recebem.
-  useEffect(() => {
-    if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
-    const iv = setInterval(() => {
-      if (stateRef.current.screen === 'intro' || stateRef.current.screen === 'lobby') return
-      // ⏱️ o "tô vivo" leva o carimbo de hora do dono junto (uns 20 bytes): é a
-      // mensagem mais frequente da sala, então o relógio de quem chega atrasado
-      // acerta em ~4s mesmo com o jogo parado.
-      channelRef.current?.send({ type: 'broadcast', event: 'host_ping', payload: { t: Date.now() } })
-    }, 4000)
-    return () => clearInterval(iv)
-  }, [state.onlineMode, state.isHost, state.roomId])
+  // 💗 O PING "TÔ VIVO" DO HOST NÃO EXISTE MAIS (04/10, fatura do Supabase: ~36 milhões de
+  // mensagens no mês, cota do plano 5 milhões). Ele saía a cada 4s, pra cada pessoa da sala,
+  // mesmo com o jogo parado — 15 recados por minuto por convidado, quase metade da conta.
+  // Pra que servia: (1) segurar o convidado de pedir o estado inteiro depois de 10s de
+  // silêncio — agora o convidado só pede depois de 60s, ou em 8s se o PRÓPRIO lance ficou sem
+  // resposta (`acaoPendenteRef`); (2) acertar o relógio de quem chegou atrasado — todo estado
+  // já leva o carimbo de hora (`pacoteDeEstado`); (3) acender a faixa vermelha de dono sumido —
+  // desde 22/08 ela só acende com prova do BANCO. Palavras do Diego ao tirar: *"não ligo
+  // praquela faixa vermelha mesmo"*. O convidado continua OUVINDO `host_ping` (logo acima)
+  // só pra conviver com dono em versão antiga na janela do deploy.
 
   // 🪑 REGRA DE OURO — UM DONO SÓ: o dono confere no banco quem é o host_id (a
   // ÚNICA verdade). Se a posse já é de OUTRO (um convidado assumiu num failover
@@ -11808,10 +11990,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // "Continuar carreira" restaurava no álbum em vez do jogo.
     if (state.screen === 'intro' || state.screen === 'lobby' || state.screen === 'setup' || state.screen === 'album' || state.screen === 'ranking') return
     const sig = `${state.screen}|${state.round}|${state.seasonNo}|${state.sectorIdx}|${state.phase}|${state.monteIdx}|${state.managers.reduce((a, m) => a + m.squad.length, 0)}|${state.copaDoneSeason ?? ''}|${JSON.stringify(state.stadiums ?? {})}|intl:${state.careerInternational?.season ?? ''}:${state.careerInternational?.reveal ?? ''}:${state.careerInternationalHistory?.length ?? 0}` + ((onlinePreviewEnabled() || publicCareerVisual(state)) ? `|tv:${JSON.stringify(state.tvBannerSeen ?? [])}:${!!state.tvExtraVisto}` : '')
-    if (sig === soloSigRef.current) return
-    soloSigRef.current = sig
+    const presidencySig = sig + assinaturaPresidencia(state)
+    if (presidencySig === soloSigRef.current) return
+    soloSigRef.current = presidencySig
     try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
-    savePyramidCloud(state) // logado: espelha na nuvem (throttled) pra seguir a conta
+    // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
   }, [state])
 
   // 🏀 autosave da CARREIRA do basquete — ISOLADO do futebol (chave própria
@@ -12017,7 +12200,12 @@ export function EscProvider({ children }: { children: ReactNode }) {
     lastHostMsgRef.current = Date.now() // zera ao (re)entrar nessa vigília
     donoSumidoNoBancoRef.current = false // entrou agora: ninguém é acusado sem prova
     const iv = setInterval(() => {
-      const stale = Date.now() - lastHostMsgRef.current > 10_000 // 10s calados: já pede o estado (barato e inofensivo)
+      // 💸 04/10 (sem o "tô vivo"): o dono parado só fala a cada ~20-30s (heartbeat de estado),
+      // então silêncio normal vai até 60s. A exceção é o MEU lance sem resposta: aí 8s já é
+      // motivo pra pedir o estado — é o único caso em que a espera dói pra quem está jogando.
+      const caladoMs = Date.now() - lastHostMsgRef.current
+      const meuLanceSemResposta = acaoPendenteRef.current > 0 && Date.now() - acaoPendenteRef.current > 8_000
+      const stale = caladoMs > 60_000 || (meuLanceSemResposta && caladoMs > 8_000)
       // 🔴 O BANNER SÓ SOBE COM PROVA (Diego 22/08, sala NOYI87). O print dele
       // mostrava "o dono da sala caiu" às 17:39 — e o banco mostrava o dono
       // GRAVANDO a partida às 17:38:31. Ou seja: o dono estava vivo, e o aviso
@@ -12240,7 +12428,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // é exatamente quem está no problema: o aparelho que não ouve host NENHUM —
     // porque o host é ele mesmo e ele não sabe.
     const iv = setInterval(() => {
-      if (Date.now() - lastHostMsgRef.current < 6_000) return // tem dono vivo falando: nada a fazer
+      // 45s, não 6s (04/10): sem o "tô vivo", o dono parado só fala a cada ~20-30s. Com 6s todo
+      // convidado de toda sala voltaria a consultar o banco a cada 4s entre um estado e outro.
+      if (Date.now() - lastHostMsgRef.current < 45_000) return // tem dono vivo falando: nada a fazer
       if (Date.now() - voltaCoroaRef.current < 3_500) return
       voltaCoroaRef.current = Date.now()
       void conferir()
@@ -12368,7 +12558,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // estado do jogo guarda isso com OUTRO nome (`leilaoClubes`) — sem a guarda, o 1º
         // save apagava a escolha: o selo 🧱 da lista sumia e a próxima rodada de uma Minha
         // Liga de Clubes voltava como leilão de Jogador.
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes']) {
+        // 🔴 `liveUrl` entra na lista (05/10): o link da live do dono, que a LISTA de salas mostra em
+        // destaque. Nasce na criação e o jogo nunca toca — sem a guarda, o 1º save apagaria.
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl']) {
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda

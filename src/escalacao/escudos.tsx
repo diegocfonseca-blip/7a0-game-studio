@@ -59,6 +59,10 @@ import bichoDaSedaEscudoImg from './img/bichodaseda-escudo.webp' // 🐛 Bicho d
 import vascoSafEscudoImg from './img/vasco-saf-escudo.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
 import cruzeiroBerretinhoEscudoImg from './img/cruzeiro-berretinho-escudo.webp' // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749): arte própria do dono
 import elMineiroEscudoImg from './img/el-mineiro-escudo.webp' // 🐓 El Mineiro (bastosmbc): arte própria do dono
+import guimaraesEscudoImg from './img/guimaraes-escudo.webp' // 🔴⚪ Guimarães SCI (jadriovani): arte própria do dono
+import gavioesEscudoImg from './img/gavioes-escudo.webp' // 🦅⚫⚪ Gaviões SCCP (kauealves584): arte própria do dono
+import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC (felipe.vrod10): arte própria do dono
+import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
@@ -843,6 +847,35 @@ const elMineiroEscudoRender = (size: number) => (
   <img src={elMineiroEscudoImg} height={size} width={Math.round(size * 249 / 360)} alt="El Mineiro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🔴⚪ GUIMARÃES SCI (jadriovani, batismo de 02/10) — Série A.
+// 📏 229×360, 27,4 KB — largura pela PROPORÇÃO REAL do arquivo (o Saci espiando por cima
+// do brasão faz parte do escudo). Fundo verde tirado por componente; conferido sobre o creme.
+const guimaraesEscudoRender = (size: number) => (
+  <img src={guimaraesEscudoImg} height={size} width={Math.round(size * 229 / 360)} alt="Guimarães SCI" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
+// 😈🔴⚫ VIEIRA FC (felipe.vrod10, batismo de 03/10) — Série D, no assento do bot Prestígio FC.
+// 📏 196×360, 23 KB — largura pela PROPORÇÃO REAL do arquivo. Fundo verde tirado por componente;
+// conferido sobre fundo colorido.
+const vieiraEscudoRender = (size: number) => (
+  <img src={vieiraEscudoImg} height={size} width={Math.round(size * 196 / 360)} alt="Vieira FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
+// 🦅⚫⚪ GAVIÕES SCCP (kauealves584, batismo de 02/10) — Série C, no assento do bot Zorra FC.
+// 📏 200×360, 29 KB — largura pela PROPORÇÃO REAL do arquivo (o gavião de asas abertas por
+// cima do brasão listrado). Fundo verde tirado por componente; conferido sobre fundo colorido.
+const gavioesEscudoRender = (size: number) => (
+  <img src={gavioesEscudoImg} height={size} width={Math.round(size * 200 / 360)} alt="Gaviões SCCP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
+// 👒⚪ REAL MADRUGA (luck.45, batismo de 02/10) — Série A.
+// 📏 258×360, 28,9 KB — largura pela PROPORÇÃO REAL do arquivo.
+// ✂️ fundo verde (chroma) tirado por componente + despill; conferido sobre o creme e
+//    sobre o roxo — as letras brancas do "MADRUGA" ficaram inteiras.
+const madrugaEscudoRender = (size: number) => (
+  <img src={madrugaEscudoImg} height={size} width={Math.round(size * 258 / 360)} alt="Real Madruga" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🦈🔴⚪ JULIA BARRANQUILA (dondeestasleomessi10, batismo de 24/09) — Série A.
 // 📏 251×360, 26,4 KB — largura pela PROPORÇÃO REAL do arquivo.
 // ✂️ `scripts/recorta-prancha-chroma.py`: o chroma verde saiu por COR porque o
@@ -1295,7 +1328,8 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   // 🛡️🌱 Marolados FC (paisagensetrilha) — ARTE NOVA em 16/09, mandada pelo dono.
   // O brasão de coqueiros e onda, com o "MAROLADOS FC" em letra de pincel, a
   // faixa rasta e a bola. As 4 formas do nome ficam presas ao mesmo escudo;
-  // o nome velho (Real Madruga) resolve sozinho via newestTeamName.
+  // ⚠️ 02/10: o nome velho "Real Madruga" deixou de apontar pro Marolados — virou
+  // batismo de OUTRO dono (luck.45). O Marolados segue pelo nome atual e pelo e-mail.
   // 🧹 O escudo ANTIGO era SVG à mão aqui dentro, com versão MINI pra tabela (era
   // pré-regra de peso); saiu de vez e virou webp fora do bundle.
   'Marolados': maroladosEscudoRender,
@@ -1404,6 +1438,29 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'El Mineiro EC': elMineiroEscudoRender,
   'El Mineiro SC': elMineiroEscudoRender,
   'Brodeiragem': elMineiroEscudoRender,
+  // 😈🔴⚫ Vieira FC (felipe.vrod10) — BATISMO. As 4 formas do nome (regra 20/08) + o nome VELHO do
+  // assento (Prestígio FC só existia na pirâmide, então save antigo passa a desenhar o clube novo).
+  'Vieira FC': vieiraEscudoRender,
+  'Vieira': vieiraEscudoRender,
+  'Vieira EC': vieiraEscudoRender,
+  'Vieira SC': vieiraEscudoRender,
+  'Prestígio FC': vieiraEscudoRender,
+  // 🦅⚫⚪ Gaviões SCCP (kauealves584) — BATISMO. As 4 formas do nome (regra 20/08). Só o nome INTEIRO
+  // (nunca "Gaviões" sozinho — regra do Arruda, 20/08). O "Zorra FC" NÃO entra: o bot continua vivo
+  // nas partidas rápidas (CLASSIC_CLUBS) e não pode aparecer com o escudo de um dono de verdade.
+  'Gaviões SCCP': gavioesEscudoRender,
+  'Gaviões SCCP FC': gavioesEscudoRender,
+  'Gaviões SCCP EC': gavioesEscudoRender,
+  'Gaviões SCCP SC': gavioesEscudoRender,
+  // 🔴⚪ Guimarães SCI (jadriovani) — BATISMO. Só o nome INTEIRO (nunca "Guimarães" sozinho — regra do Arruda, 20/08).
+  'Guimarães SCI': guimaraesEscudoRender,
+  'Guimarães SCI FC': guimaraesEscudoRender,
+  'Guimarães SCI EC': guimaraesEscudoRender,
+  // 👒⚪ Real Madruga (luck.45) — BATISMO. As 4 formas do nome (regra 20/08).
+  'Real Madruga': madrugaEscudoRender,
+  'Real Madruga FC': madrugaEscudoRender,
+  'Real Madruga EC': madrugaEscudoRender,
+  'Real Madruga SC': madrugaEscudoRender,
   // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10) — BATISMO. As 4 formas do nome (regra 20/08).
   'Julia Barranquila': juliaEscudoRender,
   'Julia Barranquila FC': juliaEscudoRender,
@@ -1554,12 +1611,12 @@ const logoPronta = (n: string) => {
 // ─── 🛡️ o componente ──────────────────────────────────────────────────────
 // `size` = altura em px. Abaixo de 40px entra a versão MINI: sem detalhes finos
 // e com traço mais grosso (o que lê na tabela é a silhueta + a cor).
-export function Escudo({ nome: nomeCru, size = 30, title }: { nome: string; size?: number; title?: string }) {
+export function Escudo({ nome: nomeCru, size = 30, title, automatic=false }: { nome: string; size?: number; title?: string; automatic?:boolean }) {
   const nome = nomeLimpo(nomeCru) || nomeCru // 🧼 mesmo escudo com ou sem o selo do tier
   // logo artesanal: bate pelo nome EXATO; se não achar, tenta o nome ATUAL do
   // batismo (save antigo que ficou com o nome velho — ex.: "Cuiabagre" →
   // "Império Samambaia"). Assim a logo comprada aparece mesmo em carreira antiga.
-  const pronta = logoPronta(nome) ?? logoPronta(newestTeamName(nome))
+  const pronta = automatic ? null : logoPronta(nome) ?? logoPronta(newestTeamName(nome))
   if (pronta) return <>{pronta(size)}</>
   const d = escudoDe(nome)
   const mini = size < 40

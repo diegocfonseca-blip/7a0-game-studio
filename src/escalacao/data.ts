@@ -419,7 +419,7 @@ export const BIOS: Record<string, string> = {
   "Denis Law": "The King de Old Trafford. Faro de gol e carisma — trio lendário com Best e Charlton.",
   "Bobby Charlton": "Cavalheiro do United. Sobrevivente de Munique, chute de longe indefensável e campeão de tudo.",
   "Bobby Moore": "O capitão perfeito. Zagueiro-líder da Inglaterra campeã de 66 — leitura de jogo impecável.",
-  "Gordon Banks": "A defesa do século contra Pelé em 70. O goleiro inglês mais respeitado da sua era.",
+  "Gordon Banks": "Campeão do mundo em 1966 quando era goleiro do Leicester. Depois fez a defesa do século contra Pelé em 70.",
   "Lev Yashin": "A Aranha Negra. O único goleiro Bola de Ouro — reflexos e presença que definiram a posição.",
   "Gianluigi Buffon": "Superman. O goleirão eterno da Juventus e da Itália — duas décadas de defesas impossíveis.",
   "Iker Casillas": "San Iker. As mãos de ouro do Real e da Espanha tricampeã — a defesa contra Robben em 2010.",
@@ -1645,7 +1645,7 @@ const GOL_EU: C[] = [
   { name: "Ederson", club: "Man City", year: 2019, fame: 4, lo: 85, hi: 91 },
   { name: "David Seaman", club: "Arsenal", year: 1998, fame: 4, lo: 80, hi: 87 },
   { name: "Jens Lehmann", club: "Arsenal", year: 2006, fame: 3, lo: 78, hi: 85 },
-  { name: "Gordon Banks", club: "Stoke City", year: 1972, fame: 5, lo: 88, hi: 93 },
+  { name: "Gordon Banks", club: "Leicester", year: 1966, fame: 5, lo: 88, hi: 93 },
   { name: "André Onana", club: "Inter", year: 2023, fame: 3, lo: 77, hi: 84 },
   { name: "Jerzy Dudek", club: "Liverpool", year: 2005, fame: 1, lo: 66, hi: 82, folk: true },
   { name: "Heurelho Gomes", club: "Tottenham", year: 2011, fame: 1, lo: 60, hi: 80, folk: true },
@@ -2551,7 +2551,204 @@ const L37_EU_ATA: C[] = [
   { name: "Louis Saha", club: "Fulham", year: 2004, fame: 3, lo: 76, hi: 84, bio: "Atacante francês que explodiu no Fulham e foi comprado pelo Manchester United." },
 ]
 
-export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA] }
+
+// ─── 🌎 LOTE 40 (Europa) — 01/10: os clubes da carreira internacional que não fechavam um 11 ───
+// Diego: "famosos, sendo ruim, muito ruim, bom ou muito bom, mas conhecido do público". Convocação
+// internacional = só os jogadores do clube no baralho, então cada clube precisa fechar 1 GOL · 2 LAT ·
+// 2 ZAG · 3 MEI · 3 ATA. Nenhum nome repete jogador que já existe neste baralho (conferido em 01/10).
+const L40_EU_GOL: C[] = [
+  { name: "Maarten Stekelenburg", club: "Ajax", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Ajax titular da Holanda na final da Copa de 2010." },
+  { name: "Michel Preud'homme", club: "Benfica", year: 1995, fame: 4, lo: 84, hi: 90, bio: "Melhor goleiro da Copa de 94, ídolo do Benfica nos anos 90." },
+  { name: "Alex Meret", club: "Napoli", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Napoli campeão italiano de 2023, o primeiro desde Maradona." },
+  { name: "Ed de Goey", club: "Feyenoord", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Feyenoord campeão holandês de 1993, depois Chelsea." },
+  { name: "Steve Mandanda", club: "Marseille", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Recordista de jogos pelo Olympique de Marseille, campeão francês de 2010." },
+  { name: "René Adler", club: "Leverkusen", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Goleiro revelado no Leverkusen, titular da Alemanha antes de perder a Copa de 2010 por lesão." },
+  { name: "Santiago Cañizares", club: "Valencia", year: 2002, fame: 4, lo: 84, hi: 90, bio: "Goleiro do Valencia bicampeão espanhol e campeão da Copa da UEFA de 2004." },
+  { name: "Grégory Coupet", club: "Lyon", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Lyon heptacampeão francês." },
+  { name: "Nick Pope", club: "Newcastle", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Newcastle de volta à Champions em 2023." },
+  { name: "Cláudio Taffarel", club: "Galatasaray", year: 2000, fame: 4, lo: 84, hi: 90, bio: "O goleiro do penta pegou pênaltis no título da Copa da UEFA do Galatasaray em 2000." },
+  { name: "Jacky Munaron", club: "Anderlecht", year: 1983, fame: 2, lo: 66, hi: 82, bio: "Goleiro do Anderlecht campeão da Copa da UEFA de 1983." },
+  { name: "Andriy Pyatov", club: "Shakhtar Donetsk", year: 2011, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Shakhtar por mais de uma década, titular da Ucrânia." },
+]
+const L40_EU_LAT: C[] = [
+  { name: "José Bosingwa", club: "Porto", year: 2007, fame: 3, lo: 76, hi: 85, bio: "Lateral do Porto tricampeão português antes de Chelsea." },
+  { name: "Alex Telles", club: "Porto", year: 2019, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo do Porto bicampeão português, depois Manchester United." },
+  { name: "Ulrich van Gobbel", club: "Feyenoord", year: 1993, fame: 2, lo: 66, hi: 82, bio: "Lateral do Feyenoord campeão holandês de 1993." },
+  { name: "Bruno Martins Indi", club: "Feyenoord", year: 2012, fame: 2, lo: 66, hi: 82, bio: "Defensor do Feyenoord titular da Holanda na Copa de 2014." },
+  { name: "Jocelyn Angloma", club: "Marseille", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Lateral do Marseille campeão da Champions de 1993." },
+  { name: "Anthony Réveillère", club: "Lyon", year: 2008, fame: 2, lo: 66, hi: 82, bio: "Lateral do Lyon heptacampeão francês." },
+  { name: "João Pereira", club: "Sporting", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Lateral do Sporting titular de Portugal na Euro de 2012." },
+  { name: "Danny McGrain", club: "Celtic", year: 1975, fame: 4, lo: 84, hi: 90, bio: "Um dos maiores laterais da história escocesa, 20 anos de Celtic." },
+  { name: "Steve Staunton", club: "Aston Villa", year: 1995, fame: 2, lo: 66, hi: 82, bio: "Lateral irlandês do Aston Villa campeão da Copa da Liga de 1994 e 1996." },
+  { name: "Kieran Trippier", club: "Newcastle", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Lateral que liderou o Newcastle de volta à Champions." },
+  { name: "Ergün Penbe", club: "Galatasaray", year: 2000, fame: 2, lo: 66, hi: 82, bio: "Lateral do Galatasaray campeão da Copa da UEFA de 2000." },
+  { name: "Ümit Davala", club: "Galatasaray", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Lateral do Galatasaray campeão europeu e da Turquia 3ª colocada na Copa de 2002." },
+  { name: "Arthur Numan", club: "Rangers", year: 1999, fame: 3, lo: 76, hi: 85, bio: "Lateral holandês do Rangers, titular na Euro de 2000." },
+  { name: "Fernando Ricksen", club: "Rangers", year: 2003, fame: 2, lo: 66, hi: 82, bio: "Lateral holandês do Rangers, eleito melhor jogador da Escócia em 2005." },
+  { name: "Olivier Deschacht", club: "Anderlecht", year: 2010, fame: 2, lo: 66, hi: 82, bio: "Recordista de jogos pelo Anderlecht nos anos 2000." },
+  { name: "Darijo Srna", club: "Shakhtar Donetsk", year: 2011, fame: 4, lo: 84, hi: 90, bio: "O capitão croata recordista de jogos pelo Shakhtar." },
+  { name: "Răzvan Raț", club: "Shakhtar Donetsk", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Lateral romeno do Shakhtar campeão da Copa da UEFA de 2009." },
+]
+const L40_EU_ZAG: C[] = [
+  { name: "Stan Valckx", club: "PSV", year: 1988, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do PSV campeão europeu de 1988." },
+  { name: "John de Wolf", club: "Feyenoord", year: 1993, fame: 2, lo: 66, hi: 82, bio: "Zagueiro de cabelo comprido do Feyenoord campeão de 1993." },
+  { name: "Ron Vlaar", club: "Feyenoord", year: 2008, fame: 2, lo: 66, hi: 82, bio: "Capitão do Feyenoord campeão da Copa da Holanda de 2008." },
+  { name: "Jens Nowotny", club: "Leverkusen", year: 2002, fame: 3, lo: 76, hi: 85, bio: "Capitão do Leverkusen vice-campeão de tudo em 2002." },
+  { name: "Jonathan Tah", club: "Leverkusen", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Leverkusen campeão alemão invicto de 2024." },
+  { name: "Kamil Glik", club: "Monaco", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Zagueiro polonês do Monaco campeão francês de 2017." },
+  { name: "Franck Dumas", club: "Monaco", year: 1997, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Monaco campeão francês de 1997." },
+  { name: "Anderson Polga", club: "Sporting", year: 2003, fame: 3, lo: 76, hi: 85, bio: "O zagueiro campeão do mundo em 2002 pelo Brasil foi ídolo do Sporting." },
+  { name: "Billy McNeill", club: "Celtic", year: 1967, fame: 4, lo: 84, hi: 90, bio: "Capitão dos Lisbon Lions, o Celtic campeão europeu de 1967." },
+  { name: "Bobo Baldé", club: "Celtic", year: 2003, fame: 3, lo: 76, hi: 85, bio: "Zagueiro guineense do Celtic vice da Copa da UEFA de 2003." },
+  { name: "Paul McGrath", club: "Aston Villa", year: 1993, fame: 4, lo: 84, hi: 90, bio: "O irlandês foi eleito o melhor jogador da Premier League em 1993 pelo Villa." },
+  { name: "Olof Mellberg", club: "Aston Villa", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Capitão sueco do Aston Villa nos anos 2000." },
+  { name: "Bülent Korkmaz", club: "Galatasaray", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Capitão do Galatasaray campeão da Copa da UEFA de 2000." },
+  { name: "Gheorghe Popescu", club: "Galatasaray", year: 2000, fame: 4, lo: 84, hi: 90, bio: "Romeno ex-Barcelona que converteu o pênalti do título europeu do Galatasaray." },
+  { name: "Richard Gough", club: "Rangers", year: 1992, fame: 4, lo: 84, hi: 90, bio: "Capitão do Rangers nos nove títulos seguidos." },
+  { name: "Terry Butcher", club: "Rangers", year: 1988, fame: 4, lo: 84, hi: 90, bio: "O capitão da Inglaterra foi o xerife do Rangers tricampeão escocês." },
+  { name: "Georges Grün", club: "Anderlecht", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Anderlecht e da Bélgica 4ª colocada na Copa de 86." },
+  { name: "Hugo Broos", club: "Anderlecht", year: 1983, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Anderlecht campeão da Copa da UEFA de 1983, depois técnico campeão africano." },
+  { name: "Dmytro Chygrynskiy", club: "Shakhtar Donetsk", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Shakhtar campeão da Copa da UEFA de 2009, vendido ao Barcelona." },
+  { name: "Yaroslav Rakitskiy", club: "Shakhtar Donetsk", year: 2011, fame: 3, lo: 76, hi: 85, bio: "Zagueiro canhoto do Shakhtar e da seleção ucraniana." },
+]
+const L40_EU_MEI: C[] = [
+  { name: "Mark van Bommel", club: "PSV", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Volante do PSV tetracampeão holandês antes de Barcelona e Bayern." },
+  { name: "Phillip Cocu", club: "PSV", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Voltou do Barcelona pra ser capitão do PSV tricampeão holandês." },
+  { name: "Willem van Hanegem", club: "Feyenoord", year: 1970, fame: 4, lo: 84, hi: 90, bio: "O Torto, maestro do Feyenoord campeão europeu e mundial de 1970." },
+  { name: "Wim Jansen", club: "Feyenoord", year: 1970, fame: 4, lo: 84, hi: 90, bio: "Volante do Feyenoord campeão da Europa em 1970 e vice-mundial com a Holanda em 74." },
+  { name: "Renato Augusto", club: "Leverkusen", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Meia brasileiro do Leverkusen vice-campeão alemão de 2011, depois Corinthians e seleção." },
+  { name: "Robson Ponte", club: "Leverkusen", year: 2004, fame: 2, lo: 66, hi: 82, bio: "Meia brasileiro do Leverkusen nos anos 2000, depois ídolo no Urawa Reds." },
+  { name: "Ludovic Giuly", club: "Monaco", year: 2003, fame: 3, lo: 76, hi: 85, bio: "Capitão do Monaco vice-campeão da Champions de 2004, depois Barcelona." },
+  { name: "Jérôme Rothen", club: "Monaco", year: 2003, fame: 3, lo: 76, hi: 85, bio: "Meia do Monaco vice da Champions de 2004, depois PSG." },
+  { name: "Glenn Hoddle", club: "Monaco", year: 1988, fame: 4, lo: 84, hi: 90, bio: "O elegante meia inglês foi campeão francês pelo Monaco de Wenger em 1988." },
+  { name: "William Carvalho", club: "Sporting", year: 2015, fame: 3, lo: 76, hi: 85, bio: "Volante do Sporting campeão da Euro de 2016 com Portugal." },
+  { name: "Manuel Fernandes", club: "Sporting", year: 2005, fame: 2, lo: 66, hi: 82, bio: "Meia revelado no Sporting, depois Benfica, Valencia e Lokomotiv." },
+  { name: "Paul Lambert", club: "Celtic", year: 1998, fame: 3, lo: 76, hi: 85, bio: "Campeão da Champions pelo Dortmund, voltou pra ser capitão do Celtic." },
+  { name: "Stiliyan Petrov", club: "Celtic", year: 2003, fame: 3, lo: 76, hi: 85, bio: "Meia búlgaro do Celtic, campeão escocês quatro vezes." },
+  { name: "Gareth Barry", club: "Aston Villa", year: 2007, fame: 3, lo: 76, hi: 85, bio: "Capitão do Aston Villa antes de Manchester City e Everton; recordista de jogos na Premier League." },
+  { name: "John McGinn", club: "Aston Villa", year: 2021, fame: 3, lo: 76, hi: 85, bio: "Capitão escocês do Aston Villa de volta à Champions." },
+  { name: "Jack Grealish", club: "Aston Villa", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Cria do Villa, capitão do time antes da venda recorde pro Manchester City." },
+  { name: "Okan Buruk", club: "Galatasaray", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Meia do Galatasaray campeão da Copa da UEFA de 2000, depois Inter." },
+  { name: "Emre Belözoğlu", club: "Galatasaray", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Meia do Galatasaray campeão europeu aos 19 anos, depois Inter e Newcastle." },
+  { name: "Barry Ferguson", club: "Rangers", year: 2003, fame: 3, lo: 76, hi: 85, bio: "Capitão do Rangers e da Escócia nos anos 2000." },
+  { name: "Pär Zetterberg", club: "Anderlecht", year: 1998, fame: 3, lo: 76, hi: 85, bio: "Sueco duas vezes eleito melhor jogador da Bélgica pelo Anderlecht." },
+  { name: "Franky Vercauteren", club: "Anderlecht", year: 1983, fame: 3, lo: 76, hi: 85, bio: "O Pequeno Príncipe, meia do Anderlecht campeão da Copa da UEFA de 1983." },
+  { name: "Jádson", club: "Shakhtar Donetsk", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Fez o gol do título da Copa da UEFA de 2009 do Shakhtar antes de voltar pro Corinthians." },
+  { name: "Taison", club: "Shakhtar Donetsk", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Meia brasileiro, ídolo do Shakhtar por oito temporadas." },
+]
+const L40_EU_ATA: C[] = [
+  { name: "Luc Nilis", club: "PSV", year: 1998, fame: 4, lo: 84, hi: 90, bio: "Belga artilheiro do PSV, parceiro de ataque de Ronaldo e van Nistelrooy." },
+  { name: "Wim Kieft", club: "PSV", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Atacante do PSV campeão europeu e da Holanda campeã da Euro de 88." },
+  { name: "Cody Gakpo", club: "PSV", year: 2022, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do PSV e da Holanda na Copa de 2022 antes do Liverpool." },
+  { name: "Pierre van Hooijdonk", club: "Feyenoord", year: 1999, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Feyenoord campeão holandês de 1999 e da Copa da UEFA de 2002." },
+  { name: "Ove Kindvall", club: "Feyenoord", year: 1970, fame: 4, lo: 84, hi: 90, bio: "Sueco que fez o gol do título europeu do Feyenoord em 1970." },
+  { name: "Graziano Pellè", club: "Feyenoord", year: 2013, fame: 3, lo: 76, hi: 85, bio: "Italiano artilheiro do Feyenoord antes de Southampton e seleção." },
+  { name: "Dado Pršo", club: "Monaco", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Croata que fez 4 gols num jogo da Champions pelo Monaco vice de 2004." },
+  { name: "Wissam Ben Yedder", club: "Monaco", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Monaco e do Campeonato Francês em 2020." },
+  { name: "Delio Onnis", club: "Monaco", year: 1980, fame: 4, lo: 84, hi: 90, bio: "Maior artilheiro da história do Campeonato Francês, ídolo do Monaco." },
+  { name: "Simão Sabrosa", club: "Sporting", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Capitão do Sporting vice da Copa da UEFA de 2005 antes do Atlético de Madrid." },
+  { name: "Jimmy Johnstone", club: "Celtic", year: 1967, fame: 4, lo: 84, hi: 90, bio: "O Jinky, ponta dos Lisbon Lions, eleito o maior jogador da história do Celtic." },
+  { name: "Chris Sutton", club: "Celtic", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Parceiro de Larsson no ataque do Celtic campeão escocês." },
+  { name: "Ollie Watkins", club: "Aston Villa", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Aston Villa e autor do gol da semifinal da Euro de 2024." },
+  { name: "Gabriel Agbonlahor", club: "Aston Villa", year: 2010, fame: 2, lo: 66, hi: 82, bio: "Maior artilheiro do Aston Villa na era Premier League." },
+  { name: "Burak Yılmaz", club: "Galatasaray", year: 2013, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Galatasaray na Champions de 2013." },
+  { name: "Bafétimbi Gomis", club: "Galatasaray", year: 2018, fame: 3, lo: 76, hi: 85, bio: "Francês artilheiro do Campeonato Turco pelo Galatasaray campeão de 2018." },
+  { name: "Ally McCoist", club: "Rangers", year: 1992, fame: 4, lo: 84, hi: 90, bio: "Maior artilheiro da história do Rangers e Chuteira de Ouro europeia em 1992 e 1993." },
+  { name: "Mark Hateley", club: "Rangers", year: 1992, fame: 3, lo: 76, hi: 85, bio: "Atacante inglês eleito melhor jogador da Escócia em 1994 pelo Rangers." },
+  { name: "Alfredo Morelos", club: "Rangers", year: 2019, fame: 3, lo: 76, hi: 85, bio: "O Búfalo colombiano, artilheiro do Rangers campeão escocês de 2021." },
+  { name: "Aruna Dindane", club: "Anderlecht", year: 2004, fame: 3, lo: 76, hi: 85, bio: "Marfinense eleito melhor jogador da Bélgica em 2003 pelo Anderlecht." },
+  { name: "Dieumerci Mbokani", club: "Anderlecht", year: 2012, fame: 2, lo: 66, hi: 82, bio: "Congolês artilheiro do Anderlecht campeão belga de 2012 e 2013." },
+  { name: "Luiz Adriano", club: "Shakhtar Donetsk", year: 2011, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Shakhtar, fez 5 gols num jogo de Champions em 2014." },
+  { name: "Alex Teixeira", club: "Shakhtar Donetsk", year: 2015, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Campeonato Ucraniano pelo Shakhtar antes da China." },
+  { name: "Andriy Vorobey", club: "Shakhtar Donetsk", year: 2002, fame: 2, lo: 66, hi: 82, bio: "Atacante do Shakhtar campeão ucraniano de 2002." },
+]
+
+// ─── 🌍 LOTE 41 (02/10): as 8 seleções novas da Copa do Mundo de 32 ─────────────
+// Pedido do Diego: *"vamos fazer 32 países… os jogadores têm que ser famosos, conhecidos
+// mundialmente, pode ser ruim ou bom"*. Escócia, Sérvia, Turquia, Irlanda, Suécia, Argélia,
+// Gana e Costa do Marfim passam a fechar um 4-3-3 com reserva. Todos em clube europeu →
+// baralho Europa. Nenhum jogador repetido no mesmo baralho (conferido).
+
+const L41_EU_GOL: C[] = [
+  { name: "Andy Goram", club: "Rangers", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Goleirão do Rangers nos anos dos nove títulos seguidos." },
+  { name: "Vladimir Stojković", club: "Partizan", year: 2017, fame: 2, lo: 64, hi: 80, bio: "Goleiro da Sérvia em duas Copas, ídolo do Partizan." },
+  { name: "Volkan Demirel", club: "Fenerbahçe", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Fenerbahçe e da Turquia semifinalista da Euro 2008." },
+  { name: "Thomas Ravelli", club: "IFK Göteborg", year: 1994, fame: 3, lo: 76, hi: 85, bio: "O goleiro da Suécia terceira colocada na Copa de 94." },
+  { name: "Richard Kingson", club: "Wigan", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Goleiro de Gana que quase levou a seleção à semi da Copa de 2010." },
+  { name: "Boubacar Barry", club: "Lokeren", year: 2015, fame: 2, lo: 64, hi: 80, bio: "O 'Copa': defendeu e bateu o pênalti do título africano de 2015." },
+]
+
+const L41_EU_LAT: C[] = [
+  { name: "Kieran Tierney", club: "Celtic", year: 2018, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo cria do Celtic, multicampeão escocês." },
+  { name: "Aleksandar Kolarov", club: "Roma", year: 2018, fame: 3, lo: 76, hi: 85, bio: "Lateral da Sérvia com a canhota mais pesada da Itália." },
+  { name: "Denis Irwin", club: "Man United", year: 1999, fame: 4, lo: 83, hi: 90, bio: "Lateral do Man United da Tríplice Coroa de 99." },
+  { name: "Roland Nilsson", club: "Sheffield Wednesday", year: 1991, fame: 3, lo: 76, hi: 85, bio: "Lateral da Suécia nas Copas de 90 e 94." },
+  { name: "Mikael Lustig", club: "Celtic", year: 2016, fame: 2, lo: 64, hi: 80, bio: "Lateral sueco, oito títulos escoceses pelo Celtic." },
+  { name: "Faouzi Ghoulam", club: "Napoli", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Lateral-esquerdo da Argélia, titular do Napoli de Sarri." },
+  { name: "John Paintsil", club: "Fulham", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Lateral-direito de Gana na Copa de 2010." },
+  { name: "Hans Sarpei", club: "Leverkusen", year: 2010, fame: 2, lo: 64, hi: 80, bio: "Lateral de Gana, virou lenda das redes sociais na Alemanha." },
+  { name: "Emmanuel Eboué", club: "Arsenal", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Lateral da Costa do Marfim, figura do Arsenal de Wenger." },
+]
+
+const L41_EU_ZAG: C[] = [
+  { name: "Alan Hansen", club: "Liverpool", year: 1984, fame: 4, lo: 83, hi: 90, bio: "Zagueiro elegante do Liverpool campeão europeu de 84." },
+  { name: "Alpay Özalan", club: "Aston Villa", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Turquia terceira colocada na Copa de 2002." },
+  { name: "Merih Demiral", club: "Juventus", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Zagueiro turco campeão italiano pela Juventus." },
+  { name: "Richard Dunne", club: "Man City", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Irlanda, capitão do Man City antes da era dos títulos." },
+  { name: "Victor Lindelöf", club: "Man United", year: 2019, fame: 3, lo: 76, hi: 85, bio: "Zagueiro da Suécia nas quartas da Copa de 2018." },
+  { name: "Patrik Andersson", club: "Bayern", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Zagueiro sueco do Bayern campeão europeu de 2001." },
+  { name: "Madjid Bougherra", club: "Rangers", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Zagueiro e capitão da Argélia na Copa de 2010." },
+  { name: "Aïssa Mandi", club: "Real Betis", year: 2019, fame: 2, lo: 64, hi: 80, bio: "Zagueiro da Argélia campeã africana de 2019." },
+  { name: "John Mensah", club: "Lyon", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Zagueiro de Gana, o 'Rock of Gibraltar' das Copas de 2006 e 2010." },
+  { name: "Kolo Touré", club: "Arsenal", year: 2004, fame: 4, lo: 83, hi: 90, bio: "Zagueiro dos Invencíveis do Arsenal de 2004." },
+  { name: "Eric Bailly", club: "Man United", year: 2017, fame: 2, lo: 64, hi: 80, bio: "Zagueiro marfinense do Man United campeão da Liga Europa." },
+]
+
+const L41_EU_MEI: C[] = [
+  { name: "Graeme Souness", club: "Liverpool", year: 1984, fame: 4, lo: 83, hi: 90, bio: "O capitão de ferro do Liverpool campeão europeu." },
+  { name: "Scott McTominay", club: "Napoli", year: 2025, fame: 4, lo: 83, hi: 90, bio: "Meia escocês, craque do Napoli campeão italiano de 2025." },
+  { name: "Dragan Stojković", club: "Estrela Vermelha", year: 1990, fame: 4, lo: 83, hi: 90, bio: "Piksi, o maestro da Iugoslávia na Copa de 90." },
+  { name: "Liam Brady", club: "Juventus", year: 1981, fame: 4, lo: 83, hi: 90, bio: "Meia irlandês de canhota mágica, campeão pela Juventus." },
+  { name: "Damien Duff", club: "Chelsea", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Ponta da Irlanda campeão inglês com o Chelsea de Mourinho." },
+  { name: "Dejan Kulusevski", club: "Tottenham", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Meia-ponta da Suécia, titular do Tottenham." },
+  { name: "Emil Forsberg", club: "RB Leipzig", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Meia sueco, rei das assistências na Bundesliga." },
+  { name: "Sofiane Feghouli", club: "Valencia", year: 2013, fame: 3, lo: 76, hi: 85, bio: "Meia da Argélia que chegou às oitavas da Copa de 2014." },
+  { name: "Ismaël Bennacer", club: "Milan", year: 2022, fame: 3, lo: 76, hi: 85, bio: "Volante da Argélia campeão italiano com o Milan." },
+  { name: "Yacine Brahimi", club: "Porto", year: 2015, fame: 3, lo: 76, hi: 85, bio: "Meia driblador da Argélia, destaque do Porto." },
+  { name: "Franck Kessié", club: "Milan", year: 2021, fame: 3, lo: 76, hi: 85, bio: "Meia da Costa do Marfim, motor do Milan campeão." },
+  { name: "Didier Zokora", club: "Tottenham", year: 2008, fame: 2, lo: 64, hi: 80, bio: "Volante da Costa do Marfim nas Copas de 2006 e 2010." },
+]
+
+const L41_EU_ATA: C[] = [
+  { name: "Nihat Kahveci", club: "Real Sociedad", year: 2003, fame: 3, lo: 76, hi: 85, bio: "Atacante turco vice-campeão espanhol com a Real Sociedad." },
+  { name: "Kenan Yıldız", club: "Juventus", year: 2025, fame: 3, lo: 76, hi: 85, bio: "A joia turca que veste a 10 da Juventus." },
+  { name: "Niall Quinn", club: "Sunderland", year: 1999, fame: 3, lo: 76, hi: 85, bio: "Centroavante da Irlanda nas Copas de 90 e 2002." },
+  { name: "Tony Yeboah", club: "Leeds", year: 1995, fame: 4, lo: 83, hi: 90, bio: "Atacante de Gana, dono de golaços históricos pelo Leeds." },
+  { name: "André Ayew", club: "Marseille", year: 2011, fame: 3, lo: 76, hi: 85, bio: "Atacante de Gana, filho de Abedi Pelé, ídolo do Marseille." },
+  { name: "Mohammed Kudus", club: "West Ham", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Atacante driblador de Gana, destaque do West Ham." },
+]
+
+
+// ─── 📚 LOTE 42 (04/10): Fiorentina vira coleção (11+ cartas) ─────────────
+// Pedido do Diego: completar clubes com famosos que jogaram lá no auge, cada um na categoria
+// daquele clube e daquele ano. Ninguém repetido no mesmo baralho (conferido).
+const L42_EU_GOL: C[] = [
+  { name: "Francesco Toldo", club: "Fiorentina", year: 1999, fame: 4, lo: 83, hi: 90, bio: "Goleirão da Fiorentina e da Itália, herói da semifinal da Euro 2000." },
+]
+const L42_EU_ZAG: C[] = [
+  { name: "Wes Morgan", club: "Leicester", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Capitão do Leicester campeão inglês de 2015-16, a maior zebra da história da Premier League." },
+]
+const L42_EU_MEI: C[] = [
+  { name: "Giancarlo Antognoni", club: "Fiorentina", year: 1982, fame: 5, lo: 85, hi: 92, bio: "O maior ídolo da Fiorentina, campeão do mundo com a Itália em 1982." },
+]
+const L42_EU_ATA: C[] = [
+  { name: "Kurt Hamrin", club: "Fiorentina", year: 1960, fame: 4, lo: 83, hi: 90, bio: "Ponta sueco, um dos maiores artilheiros da história da Fiorentina." },
+  { name: "Adrian Mutu", club: "Fiorentina", year: 2008, fame: 4, lo: 83, hi: 90, bio: "Atacante romeno, artilheiro e ídolo da Fiorentina nos anos 2000." },
+  { name: "Federico Chiesa", club: "Fiorentina", year: 2019, fame: 3, lo: 76, hi: 85, promessa: true, bio: "Revelado pela Fiorentina antes de brilhar pela Itália." },
+  { name: "Edmundo", club: "Fiorentina", year: 1998, fame: 3, lo: 76, hi: 85, bio: "O Animal passou pela Fiorentina no fim dos anos 90, ao lado de Batistuta." },
+]
+
+export const CATALOG_EU: Record<Sector, C[]> = { GOL: [...GOL_EU, ...NOVOS_EU_GOL, ...L24_EU_GOL, ...L31_EU_GOL, ...L35_EU_GOL, ...L37_EU_GOL, ...L40_EU_GOL, ...L41_EU_GOL, ...L42_EU_GOL], LAT: [...LAT_EU, ...L24_EU_LAT, ...L27_EU_LAT, ...L31_EU_LAT, ...L35_EU_LAT, ...L36_EU_LAT, ...L37_EU_LAT, ...L40_EU_LAT, ...L41_EU_LAT], ZAG: [...ZAG_EU, ...L24_EU_ZAG, ...L27_EU_ZAG, ...L29_EU_ZAG, ...L31_EU_ZAG, ...L33_EU_ZAG, ...L34_EU_ZAG, ...L35_EU_ZAG, ...L36_EU_ZAG, ...L37_EU_ZAG, ...L40_EU_ZAG, ...L41_EU_ZAG, ...L42_EU_ZAG], MEI: [...MEI_EU, ...NOVOS_EU_MEI, ...L24_EU_MEI, ...L27_EU_MEI, ...L29_EU_MEI, ...L31_EU_MEI, ...L34_EU_MEI, ...L35_EU_MEI, ...L36_EU_MEI, ...L37_EU_MEI, ...L40_EU_MEI, ...L41_EU_MEI, ...L42_EU_MEI], ATA: [...ATA_EU, ...NOVOS_EU_ATA, ...L24_EU_ATA, ...L27_EU_ATA, ...L29_EU_ATA, ...L30_EU_ATA, ...L34_EU_ATA, ...L35_EU_ATA, ...L36_EU_ATA, ...L37_EU_ATA, ...L40_EU_ATA, ...L41_EU_ATA, ...L42_EU_ATA] }
 
 
 // ─── BARALHO "RESTO DO MUNDO" (dormente — ainda NÃO exposto na UI) ──────────
@@ -2570,7 +2767,7 @@ const GOL_WORLD: C[] = [
   { name: "Óscar Pérez", club: "Cruz Azul", year: 2000, fame: 3, lo: 76, hi: 85, bio: "'Conejo' — baixinho e eterno, foi convocado pra várias Copas do México ao longo de quase 20 anos de estrada." },
   { name: "Mohammed Al-Deayea", club: "Al-Hilal", year: 2002, fame: 3, lo: 77, hi: 85 },
   { name: "Óscar Córdoba", club: "Boca Juniors", year: 2001, fame: 3, lo: 77, hi: 85, bio: "Muralha colombiana do Boca bi da Libertadores e campeão do Mundo (Intercontinental) contra o Real." },
-  { name: "Vozinha", club: "Cabo Verde", year: 2026, fame: 5, lo: 85, hi: 92, folk: true, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde — a muralha da seleção-surpresa que encantou a África. LENDA por aclamação popular: quem viu, viu." },
+  { name: "Vozinha", club: "Colo-Colo", year: 2026, fame: 5, lo: 85, hi: 92, folk: true, bio: "O goleiro-símbolo dos Tubarões Azuis de Cabo Verde, a muralha da seleção-surpresa que encantou a África, agora no Colo-Colo. LENDA por aclamação popular: quem viu, viu." },
   { name: "Essam El-Hadary", club: "Al Ahly", year: 2008, fame: 3, lo: 76, hi: 84, bio: "Lenda egípcia e o jogador mais velho a atuar numa Copa do Mundo, aos 45 anos. Muralha multicampeã africana pelo Al Ahly." },
   { name: "Nery Pumpido", club: "River Plate", year: 1986, fame: 3, lo: 76, hi: 84, bio: "Goleiro campeão do mundo com a Argentina em 1986, titular na campanha do México." },
   { name: "Tony Meola", club: "MetroStars", year: 1996, fame: 2, lo: 66, hi: 80 },
@@ -2942,7 +3139,290 @@ const L39_WORLD_ATA: C[] = [
   { name: "Michael", club: "Al-Hilal", year: 2022, fame: 2, lo: 70, hi: 84, bio: "Trocou o Flamengo pelo Al-Hilal e foi campeão saudita logo na chegada, com a mesma velocidade e o drible que ninguém entendia." },
 ]
 
-export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA] }
+
+// ─── 🌎 LOTE 40 (Mundo) — 01/10: os clubes da carreira internacional que não fechavam um 11 ───
+// Diego: "famosos, sendo ruim, muito ruim, bom ou muito bom, mas conhecido do público". Convocação
+// internacional = só os jogadores do clube no baralho, então cada clube precisa fechar 1 GOL · 2 LAT ·
+// 2 ZAG · 3 MEI · 3 ATA. Nenhum nome repete jogador que já existe neste baralho (conferido em 01/10).
+const L40_WORLD_GOL: C[] = [
+  { name: "Oscar Ustari", club: "Independiente", year: 2005, fame: 3, lo: 76, hi: 85, bio: "Goleiro revelado no Independiente, campeão mundial sub-20 e ouro olímpico em 2008 pela Argentina." },
+  { name: "Ladislao Mazurkiewicz", club: "Peñarol", year: 1966, fame: 4, lo: 84, hi: 90, bio: "O maior goleiro uruguaio da história, bicampeão da Libertadores e do Mundial com o Peñarol." },
+  { name: "Jorge Seré", club: "Nacional-URU", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Nacional campeão da Libertadores e do Mundial de 1988." },
+  { name: "Mariano Andújar", club: "Estudiantes", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Estudiantes campeão da Libertadores de 2009." },
+  { name: "Agustín Cejas", club: "Racing", year: 1967, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Racing campeão da Libertadores e do Mundial de 1967." },
+  { name: "Ever Almeida", club: "Olimpia", year: 1979, fame: 4, lo: 84, hi: 90, bio: "Goleiro do Olimpia campeão da Libertadores e do Mundial de 1979." },
+  { name: "Claudio Bravo", club: "Colo-Colo", year: 2005, fame: 3, lo: 76, hi: 85, bio: "O goleiro campeão da Copa América com o Chile começou no Colo-Colo." },
+  { name: "Sebastián Torrico", club: "San Lorenzo", year: 2014, fame: 3, lo: 76, hi: 85, bio: "Goleiro do San Lorenzo campeão da Libertadores de 2014." },
+  { name: "Norberto Scoponi", club: "Newell's Old Boys", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Newell's campeão argentino de 1988 e vice da Libertadores em 1988 e 1992." },
+  { name: "Jorge Broun", club: "Rosario Central", year: 2023, fame: 2, lo: 66, hi: 82, bio: "O Fatura, goleiro do Rosario Central campeão da Copa da Liga de 2023." },
+  { name: "Enrique Vidallé", club: "Argentinos Juniors", year: 1985, fame: 2, lo: 66, hi: 82, bio: "Goleiro do Argentinos Juniors campeão da Libertadores de 1985." },
+  { name: "Diego Barreto", club: "Cerro Porteño", year: 2008, fame: 2, lo: 66, hi: 82, bio: "Goleiro do Cerro Porteño e da seleção paraguaia na Copa de 2010." },
+  { name: "Julio César Falcioni", club: "América de Cali", year: 1986, fame: 3, lo: 76, hi: 85, bio: "Goleiro argentino do América de Cali tricampeão vice da Libertadores nos anos 80." },
+  { name: "Sergio Vargas", club: "U. de Chile", year: 1994, fame: 3, lo: 76, hi: 85, bio: "Superman, goleiro ídolo da Universidad de Chile bicampeã nos anos 90." },
+  { name: "Martín Silva", club: "Libertad", year: 2020, fame: 3, lo: 76, hi: 85, bio: "O goleiro uruguaio ídolo do Vasco virou campeão paraguaio pelo Libertad." },
+  { name: "Esteban Dreer", club: "Emelec", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Goleiro argentino naturalizado equatoriano, ídolo do Emelec tricampeão." },
+  { name: "Wuilker Faríñez", club: "Millonarios", year: 2018, fame: 2, lo: 66, hi: 82, bio: "Goleiro venezuelano do Millonarios, revelação da Copa América de 2019." },
+  { name: "Óscar Ibáñez", club: "Universitario", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Goleiro argentino naturalizado peruano, tricampeão com o Universitario." },
+]
+const L40_WORLD_LAT: C[] = [
+  { name: "Hernán Díaz", club: "River Plate", year: 1996, fame: 3, lo: 76, hi: 85, bio: "Lateral-direito do River tricampeão argentino e campeão da Libertadores de 1996." },
+  { name: "Gonzalo Montiel", club: "River Plate", year: 2018, fame: 3, lo: 76, hi: 85, bio: "Lateral do River campeão da Libertadores de 2018 em Madri; depois bateu o pênalti do título mundial da Argentina." },
+  { name: "Néstor Clausen", club: "Independiente", year: 1984, fame: 3, lo: 76, hi: 85, bio: "Lateral do Independiente campeão da Libertadores e do Mundial de 1984." },
+  { name: "Carlos Enrique", club: "Independiente", year: 1984, fame: 2, lo: 66, hi: 82, bio: "Lateral-esquerdo do Independiente campeão do mundo em 1984 contra o Liverpool." },
+  { name: "Darío Rodríguez", club: "Peñarol", year: 2005, fame: 2, lo: 66, hi: 82, bio: "Lateral-esquerdo de chute forte, titular do Uruguai na Copa de 2002 e ídolo no Peñarol." },
+  { name: "Gustavo Varela", club: "Peñarol", year: 2000, fame: 2, lo: 66, hi: 82, bio: "Lateral do Peñarol pentacampeão uruguaio na virada do século." },
+  { name: "Darío Pereyra", club: "Nacional-URU", year: 1971, fame: 3, lo: 76, hi: 85, bio: "Lateral do Nacional campeão da Libertadores e do Mundial de 1971." },
+  { name: "Jorge Fucile", club: "Nacional-URU", year: 2007, fame: 2, lo: 66, hi: 82, bio: "Lateral revelado no Nacional, semifinalista da Copa de 2010 com o Uruguai." },
+  { name: "Clemente Rodríguez", club: "Estudiantes", year: 2009, fame: 2, lo: 66, hi: 82, bio: "Lateral-esquerdo do Estudiantes campeão da Libertadores de 2009, ex-Boca e Spartak." },
+  { name: "Marcos Angeleri", club: "Estudiantes", year: 2007, fame: 2, lo: 66, hi: 82, bio: "Lateral do Estudiantes campeão argentino de 2006." },
+  { name: "Iván Pillud", club: "Racing", year: 2015, fame: 2, lo: 66, hi: 82, bio: "Lateral do Racing campeão argentino de 2014." },
+  { name: "Gabriel Mercado", club: "Racing", year: 2012, fame: 2, lo: 66, hi: 82, bio: "Lateral do Racing antes de virar titular da Argentina na Copa de 2018." },
+  { name: "Raúl Cardozo", club: "Vélez Sarsfield", year: 1994, fame: 2, lo: 66, hi: 82, bio: "Lateral do Vélez campeão da Libertadores e do Mundial de 1994." },
+  { name: "Fabián Cubero", club: "Vélez Sarsfield", year: 2010, fame: 3, lo: 76, hi: 85, bio: "Recordista de jogos pelo Vélez, lateral de seis títulos argentinos." },
+  { name: "Francisco Arce", club: "Olimpia", year: 1992, fame: 3, lo: 76, hi: 85, bio: "O lateral de faltas certeiras começou no Olimpia antes de Grêmio e Palmeiras." },
+  { name: "Ramón Hicks", club: "Olimpia", year: 1990, fame: 2, lo: 66, hi: 82, bio: "Lateral do Olimpia bicampeão da Libertadores em 1990." },
+  { name: "Luis Fernando Herrera", club: "Atlético Nacional", year: 1989, fame: 3, lo: 76, hi: 85, bio: "O \"Chonto\", lateral do Atlético Nacional campeão da Libertadores de 1989." },
+  { name: "León Villa", club: "Atlético Nacional", year: 1989, fame: 2, lo: 66, hi: 82, bio: "Lateral do Atlético Nacional campeão da Libertadores de 1989." },
+  { name: "Lizardo Garrido", club: "Colo-Colo", year: 1991, fame: 2, lo: 66, hi: 82, bio: "Lateral do Colo-Colo campeão da Libertadores de 1991." },
+  { name: "Paúl Ambrosi", club: "LDU Quito", year: 2008, fame: 2, lo: 66, hi: 82, bio: "Lateral da LDU campeã da Libertadores de 2008 no Maracanã." },
+  { name: "Pablo Zabaleta", club: "San Lorenzo", year: 2004, fame: 3, lo: 76, hi: 85, bio: "O lateral do Manchester City começou no San Lorenzo." },
+  { name: "Julio Buffarini", club: "San Lorenzo", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Lateral do San Lorenzo campeão da Libertadores de 2014." },
+  { name: "Juan Manuel Llop", club: "Newell's Old Boys", year: 1988, fame: 2, lo: 66, hi: 82, bio: "O Chocho, lateral do Newell's campeão argentino de 1988." },
+  { name: "Cristian Ansaldi", club: "Newell's Old Boys", year: 2005, fame: 2, lo: 66, hi: 82, bio: "Lateral revelado no Newell's, depois Rubin Kazan, Zenit e Torino." },
+  { name: "Paulo Ferrari", club: "Rosario Central", year: 2000, fame: 2, lo: 66, hi: 82, bio: "Lateral do Rosario Central nos anos 2000, depois River e Boca." },
+  { name: "Claudio Úbeda", club: "Rosario Central", year: 1998, fame: 2, lo: 66, hi: 82, bio: "Lateral-esquerdo do Rosario Central, depois Racing e Boca." },
+  { name: "Juan Pablo Sorín", club: "Argentinos Juniors", year: 1994, fame: 3, lo: 76, hi: 85, bio: "O lateral de cabelo comprido começou no Argentinos antes de Juventus, Cruzeiro e Barcelona." },
+  { name: "Kevin Mac Allister", club: "Argentinos Juniors", year: 2019, fame: 2, lo: 66, hi: 82, bio: "Lateral do Argentinos Juniors, irmão do campeão do mundo Alexis." },
+  { name: "Alan Benítez", club: "Cerro Porteño", year: 2017, fame: 1, lo: 62, hi: 80, bio: "Lateral do Cerro Porteño e da seleção paraguaia." },
+  { name: "Juan Daniel Cáceres", club: "Cerro Porteño", year: 2001, fame: 2, lo: 66, hi: 82, bio: "Defensor do Cerro Porteño e titular do Paraguai nas Copas de 2002 e 2006." },
+  { name: "Luis Capurro", club: "Barcelona SC", year: 1990, fame: 3, lo: 76, hi: 85, bio: "Lateral do Barcelona de Guayaquil vice-campeão da Libertadores de 1990." },
+  { name: "Wilmer Cabrera", club: "América de Cali", year: 1990, fame: 2, lo: 66, hi: 82, bio: "Lateral do América de Cali e da Colômbia nas Copas de 90 e 98." },
+  { name: "Jersson González", club: "América de Cali", year: 1997, fame: 2, lo: 66, hi: 82, bio: "Lateral do América de Cali campeão colombiano, depois seleção na Copa de 98." },
+  { name: "Eugenio Mena", club: "U. de Chile", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Lateral da U de Chile campeã da Sul-Americana de 2011." },
+  { name: "Matías Rodríguez", club: "U. de Chile", year: 2012, fame: 2, lo: 66, hi: 82, bio: "Lateral argentino da U de Chile tricampeã e campeã da Sul-Americana." },
+  { name: "Jorge Moreira", club: "Libertad", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Lateral do Libertad antes de River e Portland Timbers." },
+  { name: "Carlos Bonet", club: "Libertad", year: 2007, fame: 2, lo: 66, hi: 82, bio: "Lateral do Libertad e da seleção paraguaia nas Copas de 2006 e 2010." },
+  { name: "Óscar Bagüí", club: "Emelec", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Lateral do Emelec tricampeão equatoriano." },
+  { name: "John Narváez", club: "Emelec", year: 2017, fame: 1, lo: 62, hi: 80, bio: "Lateral do Emelec campeão equatoriano de 2017." },
+  { name: "Felipe Banguero", club: "Millonarios", year: 2017, fame: 1, lo: 62, hi: 80, bio: "Lateral do Millonarios campeão colombiano de 2017." },
+  { name: "Deiver Machado", club: "Millonarios", year: 2016, fame: 2, lo: 66, hi: 82, bio: "Lateral do Millonarios antes de Gent, Toulouse e Lens." },
+  { name: "Juan Vargas", club: "Universitario", year: 2005, fame: 3, lo: 76, hi: 85, bio: "O Loco começou no Universitario antes de Catania e Fiorentina." },
+]
+const L40_WORLD_ZAG: C[] = [
+  { name: "Gabriel Milito", club: "Independiente", year: 2003, fame: 4, lo: 84, hi: 90, bio: "Zagueiro revelado no Independiente antes de brilhar no Zaragoza e no Barcelona." },
+  { name: "Hugo Villaverde", club: "Independiente", year: 1984, fame: 3, lo: 76, hi: 85, bio: "Capitão e xerife do Independiente campeão da Libertadores de 1984." },
+  { name: "Paolo Montero", club: "Peñarol", year: 2005, fame: 4, lo: 84, hi: 90, bio: "O zagueiro mais duro da Juventus voltou pra encerrar a carreira no Peñarol." },
+  { name: "Walter Olivera", club: "Peñarol", year: 1980, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Peñarol campeão da Libertadores e do Mundial de 1982." },
+  { name: "Hugo de León", club: "Nacional-URU", year: 1980, fame: 4, lo: 84, hi: 90, bio: "Capitão histórico do Nacional campeão da Libertadores de 1980 e de 1988." },
+  { name: "Diego Godín", club: "Nacional-URU", year: 2006, fame: 3, lo: 76, hi: 85, bio: "O zagueiro do Atlético de Madrid começou no Nacional antes de ir pra Europa." },
+  { name: "Leandro Desábato", club: "Estudiantes", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Capitão duro do Estudiantes campeão da Libertadores de 2009." },
+  { name: "Agustín Alayes", club: "Estudiantes", year: 2009, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Estudiantes campeão da Libertadores de 2009." },
+  { name: "Roberto Perfumo", club: "Racing", year: 1967, fame: 4, lo: 84, hi: 90, bio: "O \"Mariscal\", zagueiro do Racing campeão do mundo em 1967 e ídolo do futebol argentino." },
+  { name: "Alfio Basile", club: "Racing", year: 1967, fame: 3, lo: 76, hi: 85, bio: "Antes de técnico da Argentina, foi zagueiro do Racing campeão da Libertadores e do Mundial de 1967." },
+  { name: "Mauricio Pellegrino", club: "Vélez Sarsfield", year: 1994, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Vélez campeão do mundo em 1994, depois Barcelona e Valencia." },
+  { name: "Julio César Cáceres", club: "Olimpia", year: 2000, fame: 3, lo: 76, hi: 85, bio: "Zagueiro revelado no Olimpia, depois River, Boca e Atlético-MG." },
+  { name: "Luis Monzón", club: "Olimpia", year: 1990, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Olimpia campeão da Libertadores de 1990." },
+  { name: "Luis Carlos Perea", club: "Atlético Nacional", year: 1989, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Atlético Nacional campeão da Libertadores e da Colômbia na Copa de 90." },
+  { name: "Javier Margas", club: "Colo-Colo", year: 1991, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Colo-Colo campeão da Libertadores de 1991, depois West Ham." },
+  { name: "Miguel Ramírez", club: "Colo-Colo", year: 1991, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Colo-Colo campeão da Libertadores de 1991." },
+  { name: "Norberto Araujo", club: "LDU Quito", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Zagueiro argentino naturalizado equatoriano, capitão da LDU campeã da Libertadores de 2008." },
+  { name: "Diego Calderón", club: "LDU Quito", year: 2008, fame: 2, lo: 66, hi: 82, bio: "Zagueiro da LDU campeã da Libertadores de 2008." },
+  { name: "Santiago Gentiletti", club: "San Lorenzo", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do San Lorenzo campeão da Libertadores de 2014." },
+  { name: "Roberto Sensini", club: "Newell's Old Boys", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Newell's campeão de 1988 antes de Udinese, Parma e Lazio." },
+  { name: "Mauricio Pochettino", club: "Newell's Old Boys", year: 1991, fame: 3, lo: 76, hi: 85, bio: "Antes de técnico de Tottenham e PSG, foi zagueiro do Newell's campeão de 1991." },
+  { name: "Javier Pinola", club: "Rosario Central", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Zagueiro canhoto do Rosario Central antes de ser campeão da Libertadores com o River." },
+  { name: "Horacio Carbonari", club: "Rosario Central", year: 1993, fame: 3, lo: 76, hi: 85, bio: "O \"Bazuca\", zagueiro de chute potente do Rosario Central, depois Derby County." },
+  { name: "Fernando Cáceres", club: "Argentinos Juniors", year: 1991, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Argentinos Juniors, depois Zaragoza, Boca e Valencia." },
+  { name: "Juan José Serrizuela", club: "Argentinos Juniors", year: 1990, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Argentinos Juniors, depois River e seleção argentina na Copa de 90." },
+  { name: "Carlos Gamarra", club: "Cerro Porteño", year: 1991, fame: 4, lo: 84, hi: 90, bio: "O zagueiro mais limpo da América começou no Cerro Porteño antes de Inter, Corinthians e Palmeiras." },
+  { name: "Marcos Cáceres", club: "Cerro Porteño", year: 2015, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Cerro Porteño e da seleção paraguaia nos anos 2010." },
+  { name: "Darío Aimar", club: "Barcelona SC", year: 2018, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Barcelona SC e da seleção equatoriana." },
+  { name: "Christian Cruz", club: "Barcelona SC", year: 2017, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Barcelona SC e da seleção equatoriana." },
+  { name: "Pedro Sarmiento", club: "América de Cali", year: 1985, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do América de Cali pentacampeão colombiano nos anos 80." },
+  { name: "Jorge Bermúdez", club: "América de Cali", year: 1993, fame: 3, lo: 76, hi: 85, bio: "O Patrón começou no América de Cali antes de virar capitão do Boca de Bianchi." },
+  { name: "José Rojas", club: "U. de Chile", year: 2011, fame: 2, lo: 66, hi: 82, bio: "O Pepe, capitão da U de Chile campeã da Sul-Americana de 2011." },
+  { name: "Igor Lichnovsky", club: "U. de Chile", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Zagueiro revelado na U de Chile, depois Porto, Cruz Azul e Tigres." },
+  { name: "Gustavo Gómez", club: "Libertad", year: 2012, fame: 3, lo: 76, hi: 85, bio: "O capitão do Palmeiras bicampeão da Libertadores começou no Libertad." },
+  { name: "Juan Patiño", club: "Libertad", year: 2019, fame: 1, lo: 62, hi: 80, bio: "Zagueiro do Libertad e da seleção paraguaia." },
+  { name: "Gabriel Achilier", club: "Emelec", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Emelec e da seleção equatoriana na Copa de 2014." },
+  { name: "Marlon Mejía", club: "Emelec", year: 2016, fame: 1, lo: 62, hi: 80, bio: "Zagueiro do Emelec campeão equatoriano." },
+  { name: "Andrés Cadavid", club: "Millonarios", year: 2017, fame: 2, lo: 66, hi: 82, bio: "Capitão do Millonarios campeão colombiano de 2017." },
+  { name: "Pedro Franco", club: "Millonarios", year: 2012, fame: 2, lo: 66, hi: 82, bio: "Zagueiro do Millonarios campeão colombiano de 2012, depois Beşiktaş." },
+  { name: "Carlos Galván", club: "Universitario", year: 2000, fame: 2, lo: 66, hi: 82, bio: "Zagueiro argentino, capitão do Universitario tricampeão peruano." },
+]
+const L40_WORLD_MEI: C[] = [
+  { name: "Esteban Cambiasso", club: "Independiente", year: 1998, fame: 3, lo: 76, hi: 85, bio: "Volante que se firmou no Independiente antes de virar peça da Inter e do Real Madrid." },
+  { name: "Federico Insúa", club: "Independiente", year: 2003, fame: 3, lo: 76, hi: 85, bio: "O meia \"Pocho\", camisa 10 do Independiente nos anos 2000." },
+  { name: "Pedro Rocha", club: "Peñarol", year: 1965, fame: 5, lo: 88, hi: 93, bio: "O \"Verdugo\", maestro do Peñarol bicampeão mundial nos anos 60." },
+  { name: "Pablo Bengoechea", club: "Peñarol", year: 1997, fame: 4, lo: 84, hi: 90, bio: "O \"Profesor\", meia de faltas perfeitas e pentacampeão uruguaio pelo Peñarol." },
+  { name: "Álvaro Recoba", club: "Nacional-URU", year: 2010, fame: 4, lo: 84, hi: 90, bio: "O \"Chino\" voltou da Inter pra ser campeão uruguaio pelo Nacional." },
+  { name: "Nicolás Lodeiro", club: "Nacional-URU", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Meia do Nacional campeão uruguaio antes de rodar por Ajax, Botafogo e Boca." },
+  { name: "Luis Cubilla", club: "Nacional-URU", year: 1962, fame: 4, lo: 84, hi: 90, bio: "Ponta do Nacional e do Peñarol, campeão da Libertadores dos dois lados do Uruguai." },
+  { name: "Juan Sebastián Verón", club: "Estudiantes", year: 2009, fame: 4, lo: 84, hi: 90, bio: "A Bruxinha voltou da Europa pra levar o Estudiantes à Libertadores de 2009." },
+  { name: "Carlos Bilardo", club: "Estudiantes", year: 1968, fame: 4, lo: 84, hi: 90, bio: "Antes de técnico campeão do mundo, foi o volante do Estudiantes tricampeão da Libertadores." },
+  { name: "Enzo Pérez", club: "Estudiantes", year: 2009, fame: 3, lo: 76, hi: 85, bio: "Meia do Estudiantes campeão da Libertadores de 2009, depois Benfica e River." },
+  { name: "Rubén Paz", club: "Racing", year: 1988, fame: 4, lo: 84, hi: 90, bio: "O uruguaio foi eleito melhor jogador da América do Sul em 1988 jogando pelo Racing." },
+  { name: "Diego Simeone", club: "Racing", year: 2005, fame: 3, lo: 76, hi: 85, bio: "O Cholo encerrou a carreira de jogador no Racing e virou técnico ali mesmo." },
+  { name: "Maxi Moralez", club: "Racing", year: 2008, fame: 2, lo: 66, hi: 82, bio: "O \"Frasquito\", meia baixinho e habilidoso revelado no Racing." },
+  { name: "Christian Bassedas", club: "Vélez Sarsfield", year: 1994, fame: 3, lo: 76, hi: 85, bio: "Volante do Vélez campeão da Libertadores e do Mundial de 1994." },
+  { name: "Marcelo Gómez", club: "Vélez Sarsfield", year: 1994, fame: 2, lo: 66, hi: 82, bio: "Meia do Vélez campeão do mundo em 1994 contra o Milan." },
+  { name: "Nicolás Domínguez", club: "Vélez Sarsfield", year: 2018, fame: 2, lo: 66, hi: 82, bio: "Volante revelado no Vélez, depois Bologna e Nottingham Forest." },
+  { name: "Adriano Samaniego", club: "Olimpia", year: 1990, fame: 3, lo: 76, hi: 85, bio: "Meia do Olimpia campeão da Libertadores de 1990." },
+  { name: "Jorge Guasch", club: "Olimpia", year: 1990, fame: 3, lo: 76, hi: 85, bio: "Capitão do Olimpia campeão da Libertadores de 1990." },
+  { name: "Richard Ortiz", club: "Olimpia", year: 2015, fame: 2, lo: 66, hi: 82, bio: "Volante do Olimpia e da seleção paraguaia nos anos 2010." },
+  { name: "Alexis García", club: "Atlético Nacional", year: 1989, fame: 3, lo: 76, hi: 85, bio: "Meia do Atlético Nacional campeão da Libertadores de 1989." },
+  { name: "Macnelly Torres", club: "Atlético Nacional", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Camisa 10 do Atlético Nacional campeão da Libertadores de 2016." },
+  { name: "Jaime Pizarro", club: "Colo-Colo", year: 1991, fame: 3, lo: 76, hi: 85, bio: "Capitão do Colo-Colo campeão da Libertadores de 1991." },
+  { name: "Matías Fernández", club: "Colo-Colo", year: 2006, fame: 3, lo: 76, hi: 85, bio: "Melhor jogador da América do Sul em 2006 jogando pelo Colo-Colo." },
+  { name: "Arturo Vidal", club: "Colo-Colo", year: 2006, fame: 3, lo: 76, hi: 85, bio: "O Rei Arturo começou no Colo-Colo antes de Leverkusen, Juventus e Bayern." },
+  { name: "Patricio Urrutia", club: "LDU Quito", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Volante da LDU campeã da Libertadores e vice-mundial contra o Manchester United." },
+  { name: "Damián Manso", club: "LDU Quito", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Meia argentino que comandou a LDU campeã da Libertadores de 2008." },
+  { name: "Leandro Romagnoli", club: "San Lorenzo", year: 2001, fame: 3, lo: 76, hi: 85, bio: "O Pipi, ídolo do San Lorenzo em duas passagens, campeão da Libertadores de 2014." },
+  { name: "Néstor Ortigoza", club: "San Lorenzo", year: 2014, fame: 3, lo: 76, hi: 85, bio: "Volante paraguaio, cobrou o pênalti do título da Libertadores de 2014 do San Lorenzo." },
+  { name: "Ignacio Piatti", club: "San Lorenzo", year: 2014, fame: 3, lo: 76, hi: 85, bio: "Meia do San Lorenzo campeão da Libertadores de 2014, depois ídolo em Montreal." },
+  { name: "Gerardo Martino", club: "Newell's Old Boys", year: 1988, fame: 3, lo: 76, hi: 85, bio: "O Tata, recordista de jogos pelo Newell's antes de treinar Barcelona e Argentina." },
+  { name: "Maxi Rodríguez", club: "Newell's Old Boys", year: 2014, fame: 3, lo: 76, hi: 85, bio: "A Fiera voltou da Europa pra encerrar a carreira no Newell's, clube que o revelou." },
+  { name: "Éver Banega", club: "Newell's Old Boys", year: 2014, fame: 3, lo: 76, hi: 85, bio: "Meia que passou pelo Newell's antes de ser campeão da Europa League pelo Sevilla." },
+  { name: "Omar Palma", club: "Rosario Central", year: 1987, fame: 3, lo: 76, hi: 85, bio: "O Negro Palma, camisa 10 do Rosario Central campeão argentino de 1987." },
+  { name: "Kily González", club: "Rosario Central", year: 2010, fame: 3, lo: 76, hi: 85, bio: "O Kily voltou ao Rosario Central depois de Valencia e Inter." },
+  { name: "Ángel Di María", club: "Rosario Central", year: 2005, fame: 3, lo: 76, hi: 85, bio: "O Fideo começou no Rosario Central antes de Benfica, Real Madrid e PSG." },
+  { name: "Fernando Redondo", club: "Argentinos Juniors", year: 1988, fame: 4, lo: 84, hi: 90, bio: "O volante elegante do Real Madrid foi revelado no Argentinos Juniors." },
+  { name: "Claudio Borghi", club: "Argentinos Juniors", year: 1985, fame: 4, lo: 84, hi: 90, bio: "O Bichi, camisa 10 do Argentinos campeão da Libertadores de 1985 e campeão do mundo em 86." },
+  { name: "Sergio Batista", club: "Argentinos Juniors", year: 1985, fame: 3, lo: 76, hi: 85, bio: "O Checho, volante do Argentinos campeão da Libertadores e da Argentina campeã de 86." },
+  { name: "Alexis Mac Allister", club: "Argentinos Juniors", year: 2018, fame: 3, lo: 76, hi: 85, bio: "O campeão do mundo de 2022 se firmou no Argentinos antes de Brighton e Liverpool." },
+  { name: "Saturnino Arrúa", club: "Cerro Porteño", year: 1970, fame: 3, lo: 76, hi: 85, bio: "Camisa 10 do Cerro Porteño nos anos 70, um dos maiores meias da história do Paraguai." },
+  { name: "Juan Iturbe", club: "Cerro Porteño", year: 2017, fame: 2, lo: 66, hi: 82, bio: "Meia-ponta que passou por Porto, Roma e Bournemouth antes de voltar ao Cerro." },
+  { name: "Virgilio Ferreira", club: "Cerro Porteño", year: 1996, fame: 2, lo: 66, hi: 82, bio: "Meia do Cerro Porteño e da seleção paraguaia nos anos 90." },
+  { name: "Damián Díaz", club: "Barcelona SC", year: 2016, fame: 3, lo: 76, hi: 85, bio: "O Kitu, meia argentino naturalizado, ídolo do Barcelona SC campeão equatoriano." },
+  { name: "Matías Oyola", club: "Barcelona SC", year: 2015, fame: 2, lo: 66, hi: 82, bio: "Volante argentino, capitão do Barcelona SC campeão equatoriano de 2016." },
+  { name: "Michael Arroyo", club: "Barcelona SC", year: 2013, fame: 2, lo: 66, hi: 82, bio: "Meia do Barcelona SC campeão equatoriano de 2012." },
+  { name: "Juan Manuel Battaglia", club: "América de Cali", year: 1983, fame: 3, lo: 76, hi: 85, bio: "Meia paraguaio, craque do América de Cali pentacampeão colombiano." },
+  { name: "Alex Escobar", club: "América de Cali", year: 1986, fame: 3, lo: 76, hi: 85, bio: "O Pibe de Oro colombiano, meia do América de Cali dos anos 80." },
+  { name: "Freddy Rincón", club: "América de Cali", year: 1992, fame: 4, lo: 84, hi: 90, bio: "O Coloso brilhou no América de Cali antes de Palmeiras, Napoli e Corinthians." },
+  { name: "Charles Aránguiz", club: "U. de Chile", year: 2011, fame: 3, lo: 76, hi: 85, bio: "O Príncipe comandou a U de Chile de Sampaoli antes de Inter e Leverkusen." },
+  { name: "Marcelo Díaz", club: "U. de Chile", year: 2011, fame: 3, lo: 76, hi: 85, bio: "Volante da U de Chile campeã da Sul-Americana, bicampeão da Copa América com o Chile." },
+  { name: "Leonardo Rodríguez", club: "U. de Chile", year: 1994, fame: 3, lo: 76, hi: 85, bio: "Meia argentino, ídolo da U de Chile bicampeã chilena em 1994 e 1995." },
+  { name: "Víctor Cáceres", club: "Libertad", year: 2008, fame: 2, lo: 66, hi: 82, bio: "Volante do Libertad, depois Flamengo e seleção paraguaia." },
+  { name: "Sergio Aquino", club: "Libertad", year: 2010, fame: 2, lo: 66, hi: 82, bio: "Meia do Libertad e da seleção paraguaia." },
+  { name: "Pablo Guiñazú", club: "Libertad", year: 2015, fame: 3, lo: 76, hi: 85, bio: "O Cholo, volante argentino ídolo do Internacional, encerrou a carreira no Libertad." },
+  { name: "Alfonso Obregón", club: "Emelec", year: 2002, fame: 2, lo: 66, hi: 82, bio: "Volante do Emelec e da seleção equatoriana na Copa de 2002." },
+  { name: "Fernando Gaibor", club: "Emelec", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Meia do Emelec tricampeão equatoriano, depois Independiente." },
+  { name: "Pedro Quiñónez", club: "Emelec", year: 2014, fame: 2, lo: 66, hi: 82, bio: "Volante do Emelec e da seleção equatoriana." },
+  { name: "Adolfo Pedernera", club: "Millonarios", year: 1949, fame: 4, lo: 84, hi: 90, bio: "O Maestro do River e do Millonarios, cérebro do Ballet Azul colombiano." },
+  { name: "Néstor Rossi", club: "Millonarios", year: 1949, fame: 3, lo: 76, hi: 85, bio: "O Pipo, volante argentino do Millonarios do Ballet Azul." },
+  { name: "Mario Vanemerak", club: "Millonarios", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Meia argentino, ídolo do Millonarios bicampeão colombiano em 1987 e 1988." },
+  { name: "Willington Ortiz", club: "Millonarios", year: 1978, fame: 4, lo: 84, hi: 90, bio: "O Viejo Willy, considerado o maior jogador colombiano antes de Valderrama." },
+  { name: "José Luis Carranza", club: "Universitario", year: 1990, fame: 3, lo: 76, hi: 85, bio: "O Puma, volante símbolo do Universitario por quase 20 anos." },
+  { name: "Germán Leguía", club: "Universitario", year: 1980, fame: 3, lo: 76, hi: 85, bio: "Meia do Universitario e da seleção peruana na Copa de 82." },
+  { name: "Edison Flores", club: "Universitario", year: 2015, fame: 2, lo: 66, hi: 82, bio: "O Orejas, meia do Universitario e da seleção peruana na Copa de 2018." },
+]
+const L40_WORLD_ATA: C[] = [
+  { name: "Sergio Agüero", club: "Independiente", year: 2006, fame: 4, lo: 84, hi: 90, bio: "O Kun estreou no Independiente aos 15 anos e saiu pro Atlético de Madrid como a maior joia do país." },
+  { name: "Jorge Burruchaga", club: "Independiente", year: 1984, fame: 4, lo: 84, hi: 90, bio: "Craque do Independiente campeão mundial de 1984; dois anos depois fez o gol do título da Copa de 86." },
+  { name: "Daniel Bertoni", club: "Independiente", year: 1973, fame: 4, lo: 84, hi: 90, bio: "Ponta do Independiente tricampeão da Libertadores nos anos 70 e campeão do mundo em 78." },
+  { name: "Fernando Morena", club: "Peñarol", year: 1975, fame: 4, lo: 84, hi: 90, bio: "Maior artilheiro da história do Peñarol e do Campeonato Uruguaio." },
+  { name: "Alberto Spencer", club: "Peñarol", year: 1961, fame: 5, lo: 88, hi: 93, bio: "O equatoriano é o maior artilheiro da história da Libertadores, com 54 gols, quase todos pelo Peñarol." },
+  { name: "Diego Forlán", club: "Peñarol", year: 2015, fame: 3, lo: 76, hi: 85, bio: "O melhor jogador da Copa de 2010 encerrou a carreira uruguaia no clube do coração." },
+  { name: "Sebastián Abreu", club: "Nacional-URU", year: 2010, fame: 3, lo: 76, hi: 85, bio: "O Loco voltou do Botafogo pra ser campeão uruguaio pelo Nacional." },
+  { name: "Rubén Sosa", club: "Nacional-URU", year: 1999, fame: 3, lo: 76, hi: 85, bio: "O \"Principito\" encerrou no Nacional a carreira que passou por Lazio e Inter." },
+  { name: "Luis Artime", club: "Nacional-URU", year: 1971, fame: 4, lo: 84, hi: 90, bio: "Centroavante argentino, artilheiro do Nacional campeão da Libertadores e do Mundial de 1971." },
+  { name: "Mariano Pavone", club: "Estudiantes", year: 2006, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Estudiantes campeão argentino de 2006." },
+  { name: "Gastón Fernández", club: "Estudiantes", year: 2009, fame: 3, lo: 76, hi: 85, bio: "A \"Gata\", atacante do Estudiantes campeão da Libertadores de 2009." },
+  { name: "Juan Ramón Verón", club: "Estudiantes", year: 1968, fame: 4, lo: 84, hi: 90, bio: "A Bruxa, pai do Sebastián: ponta do Estudiantes tricampeão da Libertadores e campeão mundial de 1968." },
+  { name: "Diego Milito", club: "Racing", year: 2008, fame: 4, lo: 84, hi: 90, bio: "O Príncipe, ídolo do Racing que voltou da Inter pra encerrar a carreira em casa." },
+  { name: "Lautaro Martínez", club: "Racing", year: 2017, fame: 3, lo: 76, hi: 85, bio: "O Toro explodiu no Racing antes de virar artilheiro da Inter e campeão do mundo." },
+  { name: "Claudio López", club: "Racing", year: 1994, fame: 3, lo: 76, hi: 85, bio: "O Piojo começou no Racing antes de brilhar no Valencia e na Lazio." },
+  { name: "Carlos Bianchi", club: "Vélez Sarsfield", year: 1970, fame: 4, lo: 84, hi: 90, bio: "Antes de ser o técnico mais vencedor da Libertadores, foi artilheiro do Vélez campeão de 1968." },
+  { name: "Omar Asad", club: "Vélez Sarsfield", year: 1994, fame: 3, lo: 76, hi: 85, bio: "O Turco fez o gol do título mundial do Vélez contra o Milan em 1994." },
+  { name: "Mauro Zárate", club: "Vélez Sarsfield", year: 2007, fame: 3, lo: 76, hi: 85, bio: "Atacante revelado no Vélez, depois Lazio, West Ham e Boca." },
+  { name: "Roque Santa Cruz", club: "Olimpia", year: 2016, fame: 3, lo: 76, hi: 85, bio: "O maior nome do Paraguai moderno voltou do Bayern e da Inglaterra pra jogar no Olimpia." },
+  { name: "Raúl Vicente Amarilla", club: "Olimpia", year: 1990, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Olimpia campeão da Libertadores de 1990." },
+  { name: "Gabriel González", club: "Olimpia", year: 1990, fame: 2, lo: 66, hi: 82, bio: "Atacante do Olimpia campeão da Libertadores de 1990." },
+  { name: "Faustino Asprilla", club: "Atlético Nacional", year: 1991, fame: 4, lo: 84, hi: 90, bio: "O Tino explodiu no Atlético Nacional antes de Parma e Newcastle." },
+  { name: "Víctor Aristizábal", club: "Atlético Nacional", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Maior artilheiro da história do Atlético Nacional." },
+  { name: "Juan Pablo Ángel", club: "Atlético Nacional", year: 1996, fame: 3, lo: 76, hi: 85, bio: "Atacante do Atlético Nacional antes de River, Aston Villa e MLS." },
+  { name: "Iván Zamorano", club: "Colo-Colo", year: 2001, fame: 4, lo: 84, hi: 90, bio: "Bam-Bam voltou do Real Madrid e da Inter pra ser campeão chileno pelo Colo-Colo." },
+  { name: "Marcelo Barticciotto", club: "Colo-Colo", year: 1991, fame: 3, lo: 76, hi: 85, bio: "Atacante argentino naturalizado, ídolo do Colo-Colo campeão da Libertadores de 1991." },
+  { name: "Claudio Bieler", club: "LDU Quito", year: 2008, fame: 3, lo: 76, hi: 85, bio: "O Taca, artilheiro argentino da LDU campeã da Libertadores de 2008." },
+  { name: "Joffre Guerrón", club: "LDU Quito", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Ponta da LDU campeã da Libertadores de 2008, depois Getafe e Cruzeiro." },
+  { name: "Hernán Barcos", club: "LDU Quito", year: 2011, fame: 3, lo: 76, hi: 85, bio: "O Pirata, artilheiro argentino da LDU antes de Palmeiras e Grêmio." },
+  { name: "Ezequiel Lavezzi", club: "San Lorenzo", year: 2005, fame: 3, lo: 76, hi: 85, bio: "O Pocho começou no San Lorenzo antes de Napoli e PSG." },
+  { name: "Bernardo Romeo", club: "San Lorenzo", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do San Lorenzo campeão argentino de 2001." },
+  { name: "Gabriel Batistuta", club: "Newell's Old Boys", year: 1988, fame: 4, lo: 84, hi: 90, bio: "Batigol foi revelado no Newell's antes de River, Boca e Fiorentina." },
+  { name: "Abel Balbo", club: "Newell's Old Boys", year: 1988, fame: 3, lo: 76, hi: 85, bio: "Atacante do Newell's campeão argentino de 1988, depois Udinese e Roma." },
+  { name: "Jorge Valdano", club: "Newell's Old Boys", year: 1973, fame: 4, lo: 84, hi: 90, bio: "Campeão do mundo em 1986 pela Argentina, começou a carreira no Newell's." },
+  { name: "Mario Kempes", club: "Rosario Central", year: 1973, fame: 5, lo: 88, hi: 93, bio: "O Matador explodiu no Rosario Central antes de ser o craque da Copa de 78." },
+  { name: "Marco Ruben", club: "Rosario Central", year: 2016, fame: 3, lo: 76, hi: 85, bio: "Artilheiro do Rosario Central campeão da Copa Argentina de 2018." },
+  { name: "Aldo Pedro Poy", club: "Rosario Central", year: 1971, fame: 3, lo: 76, hi: 85, bio: "Autor da \"palomita\" mais famosa do futebol argentino, contra o Newell's em 1971." },
+  { name: "Nicolás González", club: "Argentinos Juniors", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Atacante revelado no Argentinos antes de Stuttgart, Fiorentina e Juventus." },
+  { name: "Pedro Pasculli", club: "Argentinos Juniors", year: 1985, fame: 3, lo: 76, hi: 85, bio: "Atacante do Argentinos campeão da Libertadores de 1985 e da Argentina campeã de 86." },
+  { name: "Carlos Ereros", club: "Argentinos Juniors", year: 1985, fame: 2, lo: 66, hi: 82, bio: "Atacante do Argentinos Juniors campeão da Libertadores de 1985." },
+  { name: "José Cardozo", club: "Cerro Porteño", year: 1993, fame: 4, lo: 84, hi: 90, bio: "Maior artilheiro da história da seleção paraguaia, revelado no Cerro Porteño." },
+  { name: "Jorge Achucarro", club: "Cerro Porteño", year: 2003, fame: 2, lo: 66, hi: 82, bio: "Atacante do Cerro Porteño campeão paraguaio de 2001." },
+  { name: "Sergio Díaz", club: "Cerro Porteño", year: 2015, fame: 2, lo: 66, hi: 82, bio: "Atacante revelado no Cerro Porteño, contratado pelo Real Madrid aos 18 anos." },
+  { name: "Carlos Muñoz", club: "Barcelona SC", year: 1990, fame: 3, lo: 76, hi: 85, bio: "O Diablo, artilheiro do Barcelona SC vice-campeão da Libertadores de 1990." },
+  { name: "Ariel Graziani", club: "Barcelona SC", year: 1998, fame: 3, lo: 76, hi: 85, bio: "Atacante argentino naturalizado equatoriano, artilheiro do Barcelona SC vice da Libertadores de 1998." },
+  { name: "Fidel Martínez", club: "Barcelona SC", year: 2019, fame: 2, lo: 66, hi: 82, bio: "Atacante do Barcelona SC e da seleção equatoriana." },
+  { name: "Ricardo Gareca", club: "América de Cali", year: 1985, fame: 3, lo: 76, hi: 85, bio: "Antes de técnico do Peru, foi artilheiro argentino do América de Cali." },
+  { name: "Diego Rivarola", club: "U. de Chile", year: 2004, fame: 3, lo: 76, hi: 85, bio: "O Gokú, atacante argentino ídolo da Universidad de Chile." },
+  { name: "Gustavo Canales", club: "U. de Chile", year: 2011, fame: 2, lo: 66, hi: 82, bio: "Atacante da U de Chile campeã da Sul-Americana de 2011." },
+  { name: "Mauricio Pinilla", club: "U. de Chile", year: 2018, fame: 2, lo: 66, hi: 82, bio: "O Pinigol encerrou a carreira na Universidad de Chile." },
+  { name: "Jorge Recalde", club: "Libertad", year: 2018, fame: 2, lo: 66, hi: 82, bio: "Atacante do Libertad e da seleção paraguaia." },
+  { name: "Antonio Bareiro", club: "Libertad", year: 2019, fame: 2, lo: 66, hi: 82, bio: "Atacante do Libertad campeão paraguaio." },
+  { name: "Adam Bareiro", club: "Libertad", year: 2018, fame: 2, lo: 66, hi: 82, bio: "Centroavante revelado no Libertad, depois San Lorenzo e River." },
+  { name: "Iván Kaviedes", club: "Emelec", year: 1998, fame: 3, lo: 76, hi: 85, bio: "O Nine, artilheiro do Emelec e autor do gol do Equador na Copa de 2006." },
+  { name: "Carlos Tenorio", club: "Emelec", year: 2002, fame: 2, lo: 66, hi: 82, bio: "O Demoledor, atacante do Emelec e da seleção equatoriana nas Copas de 2002 e 2006." },
+  { name: "Miller Bolaños", club: "Emelec", year: 2014, fame: 3, lo: 76, hi: 85, bio: "Atacante do Emelec tricampeão equatoriano, depois Grêmio." },
+  { name: "Alfredo Di Stéfano", club: "Millonarios", year: 1949, fame: 5, lo: 88, hi: 93, bio: "Antes do Real Madrid, a Saeta Rubia encantou a Colômbia no Millonarios do Ballet Azul." },
+  { name: "Arnoldo Iguarán", club: "Millonarios", year: 1985, fame: 3, lo: 76, hi: 85, bio: "O Guajiro, maior artilheiro da seleção colombiana por décadas, ídolo do Millonarios." },
+  { name: "Radamel Falcao", club: "Millonarios", year: 2024, fame: 3, lo: 76, hi: 85, bio: "O Tigre voltou à Colômbia pra realizar o sonho de jogar no Millonarios." },
+  { name: "Lolo Fernández", club: "Universitario", year: 1939, fame: 4, lo: 84, hi: 90, bio: "O Cañonero, maior ídolo da história do Universitario e do futebol peruano." },
+  { name: "Raúl Ruidíaz", club: "Universitario", year: 2013, fame: 3, lo: 76, hi: 85, bio: "A Pulga, artilheiro do Universitario campeão peruano de 2013, depois Seattle Sounders." },
+  { name: "Juan Carlos Oblitas", club: "Universitario", year: 1972, fame: 3, lo: 76, hi: 85, bio: "O Ciego, ponta do Universitario e da seleção peruana nas Copas de 78 e 82." },
+]
+
+
+// ─── 📚 LOTE 42 (04/10): Cosmos, Inter Miami, Kashima e Al-Nassr viram coleção ─────────────
+// Famosos que jogaram lá, na categoria daquele clube e daquele ano. Ninguém repetido no baralho Mundo.
+const L42_WORLD_GOL: C[] = [
+  { name: "Shep Messing", club: "New York Cosmos", year: 1977, fame: 2, lo: 64, hi: 80, bio: "Goleiro americano do Cosmos campeão de 1977." },
+  { name: "Drake Callender", club: "Inter Miami", year: 2023, fame: 2, lo: 64, hi: 80, bio: "Goleiro do Inter Miami campeão da Leagues Cup de 2023." },
+  { name: "Hitoshi Sogahata", club: "Kashima Antlers", year: 2008, fame: 3, lo: 76, hi: 85, bio: "Goleiro do Kashima tricampeão japonês." },
+  { name: "David Ospina", club: "Al-Nassr", year: 2023, fame: 3, lo: 76, hi: 85, bio: "Goleiro colombiano, recordista de jogos pela seleção." },
+]
+const L42_WORLD_LAT: C[] = [
+  { name: "Carlos Alberto Torres", club: "New York Cosmos", year: 1977, fame: 4, lo: 83, hi: 90, bio: "O Capita do tri jogou no Cosmos ao lado de Pelé e Beckenbauer." },
+  { name: "Jordi Alba", club: "Inter Miami", year: 2023, fame: 4, lo: 83, hi: 90, bio: "Lateral campeão de tudo pelo Barça, reencontrou Messi em Miami." },
+  { name: "Jorginho", club: "Kashima Antlers", year: 1996, fame: 4, lo: 83, hi: 90, bio: "Lateral do tetra, foi jogar no Kashima Antlers." },
+]
+const L42_WORLD_ZAG: C[] = [
+  { name: "Franz Beckenbauer", club: "New York Cosmos", year: 1978, fame: 4, lo: 83, hi: 90, bio: "O Kaiser levou sua classe pro Cosmos no fim da carreira." },
+  { name: "Gen Shoji", club: "Kashima Antlers", year: 2017, fame: 3, lo: 76, hi: 85, bio: "Zagueiro do Kashima e do Japão na Copa de 2018." },
+  { name: "Aymeric Laporte", club: "Al-Nassr", year: 2024, fame: 4, lo: 83, hi: 90, bio: "Zagueiro campeão da Euro 2024 com a Espanha, no Al-Nassr de Cristiano." },
+]
+const L42_WORLD_MEI: C[] = [
+  { name: "Johan Neeskens", club: "New York Cosmos", year: 1979, fame: 4, lo: 83, hi: 90, bio: "Craque da Laranja Mecânica que jogou no Cosmos." },
+  { name: "Vladislav Bogićević", club: "New York Cosmos", year: 1980, fame: 3, lo: 76, hi: 85, bio: "Meia iugoslavo, o garçom do Cosmos." },
+  { name: "Marcos Senna", club: "New York Cosmos", year: 2013, fame: 3, lo: 76, hi: 85, bio: "Campeão europeu com a Espanha, fechou a carreira no Cosmos." },
+  { name: "Sergio Busquets", club: "Inter Miami", year: 2023, fame: 4, lo: 83, hi: 90, bio: "Volante campeão de tudo pelo Barça, reencontrou Messi em Miami." },
+  { name: "Rodrigo De Paul", club: "Inter Miami", year: 2025, fame: 4, lo: 83, hi: 90, bio: "Campeão do mundo com a Argentina, foi jogar com Messi no Inter Miami." },
+  { name: "Blaise Matuidi", club: "Inter Miami", year: 2020, fame: 3, lo: 76, hi: 85, bio: "Campeão do mundo em 2018, encerrou a carreira no Inter Miami." },
+  { name: "Diego Gómez", club: "Inter Miami", year: 2023, fame: 3, lo: 76, hi: 85, promessa: true, bio: "Meia paraguaio que brilhou no Inter Miami e foi vendido pra Europa." },
+  { name: "Masashi Motoyama", club: "Kashima Antlers", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Meia histórico do Kashima Antlers." },
+  { name: "Koji Nakata", club: "Kashima Antlers", year: 2002, fame: 3, lo: 76, hi: 85, bio: "Volante do Kashima e da seleção japonesa." },
+  { name: "Marcelo Brozović", club: "Al-Nassr", year: 2024, fame: 4, lo: 83, hi: 90, bio: "Volante croata vice do mundo em 2018, jogador do Al-Nassr." },
+  { name: "Otávio", club: "Al-Nassr", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Meia luso-brasileiro do Al-Nassr." },
+  { name: "Seko Fofana", club: "Al-Nassr", year: 2024, fame: 3, lo: 76, hi: 85, bio: "Meia marfinense do Al-Nassr." },
+]
+const L42_WORLD_ATA: C[] = [
+  { name: "Tadeo Allende", club: "Inter Miami", year: 2025, fame: 3, lo: 76, hi: 85, bio: "Atacante argentino do Inter Miami." },
+  { name: "Alcindo", club: "Kashima Antlers", year: 1993, fame: 3, lo: 76, hi: 85, bio: "Atacante brasileiro do Kashima nos primeiros anos da J-League." },
+  { name: "Atsushi Yanagisawa", club: "Kashima Antlers", year: 2001, fame: 3, lo: 76, hi: 85, bio: "Atacante do Kashima e da seleção japonesa." },
+  { name: "Kingsley Coman", club: "Al-Nassr", year: 2025, fame: 4, lo: 83, hi: 90, bio: "Ponta francês que trocou o Bayern pelo Al-Nassr em 2025." },
+  { name: "Jhon Durán", club: "Al-Nassr", year: 2025, fame: 3, lo: 76, hi: 85, bio: "Atacante colombiano que chegou ao Al-Nassr em 2025." },
+]
+
+export const CATALOG_WORLD: Record<Sector, C[]> = { GOL: [...GOL_WORLD, ...NOVOS_WORLD_GOL, ...L24_WORLD_GOL, ...L32_WORLD_GOL, ...L35_WORLD_GOL, ...L38_WORLD_GOL, ...L40_WORLD_GOL, ...L42_WORLD_GOL], LAT: [...LAT_WORLD, ...NOVOS_WORLD_LAT, ...L24_WORLD_LAT, ...L32_WORLD_LAT, ...L40_WORLD_LAT, ...L42_WORLD_LAT], ZAG: [...ZAG_WORLD, ...NOVOS_WORLD_ZAG, ...L24_WORLD_ZAG, ...L32_WORLD_ZAG, ...L35_WORLD_ZAG, ...L40_WORLD_ZAG, ...L42_WORLD_ZAG], MEI: [...MEI_WORLD, ...NOVOS_WORLD_MEI, ...L24_WORLD_MEI, ...L32_WORLD_MEI, ...L35_WORLD_MEI, ...L38_WORLD_MEI, ...L40_WORLD_MEI, ...L42_WORLD_MEI], ATA: [...ATA_WORLD, ...NOVOS_WORLD_ATA, ...L24_WORLD_ATA, ...L28_WORLD_ATA, ...L29_WORLD_ATA, ...L32_WORLD_ATA, ...L35_WORLD_ATA, ...L37_WORLD_ATA, ...L38_WORLD_ATA, ...L39_WORLD_ATA, ...L40_WORLD_ATA, ...L42_WORLD_ATA] }
 
 // ─── BARALHO COMBINADO: TRÊS baralhos juntos (BR + Europa + Resto do Mundo) ──
 // A CARREIRA usa sempre este (mais cartas reais = menos perna-de-pau preenchendo).
@@ -3063,6 +3543,7 @@ export type CareerTeam = { name: string; team: string }
 export const CLUB_GRAFIA: Record<string, string> = {
   'Manchester United': 'Man United', 'Manchester City': 'Man City',
   'Inter de Milão': 'Inter', 'Bayer Leverkusen': 'Leverkusen',
+  'Universidad de Chile': 'U. de Chile', // 01/10: Lote 40 unificou as cartas na grafia curta
   'Sporting CP': 'Sporting', 'Borussia Dortmund': 'Dortmund',
   'Suwon Bluewings': 'Suwon', 'Pohang': 'Pohang Steelers',
   'Olympique Marseille': 'Marseille', 'Schalke 04': 'Schalke',
@@ -3115,6 +3596,8 @@ export const OLD_NAME: Record<string, string> = {
   'Semervilha': 'Posto 7 FC', 'Real Bets': 'Feira Nova FR', 'Goiaba FC': 'Onça Parda EC',
   'Leve-cuscuz': 'Foguete FC', 'Torta de Rã': 'Fogaréu EC', 'Astronáutico': 'Sinhô Futebol',
   'Inter Estadual': 'Bigode FC', 'Cuiabagre': 'Bagres do Rio', 'Santos Dumont': 'Tonhão FC',
+  'Vieira FC': 'Prestígio FC', // 😈 batismo do felipe.vrod10 (03/10): assumiu o assento da Série D que era do bot Prestígio FC — save antigo com Prestígio FC vira Vieira FC ao abrir.
+  'Gaviões SCCP': 'Zorra FC', // 🦅 batismo do kauealves584 (02/10): assumiu o assento da Série C que era do Zorra FC — save antigo com Zorra FC vira Gaviões SCCP ao abrir. (O Zorra FC continua existindo em CLASSIC_CLUBS; só o assento da pirâmide mudou de nome.)
   'El Mineiro': 'Brodeiragem', // 🐓 batismo do bastosmbc (27/09): assumiu o assento da Série C que era do Brodeiragem — save antigo com Brodeiragem vira El Mineiro ao abrir. (O Brodeiragem continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Pantera Negra FC': 'Miúdo EC', // 🐆👑 batismo do ericrabelo29 (20/09): assumiu o assento da Série C que era do Miúdo EC — save antigo com Miúdo EC vira Pantera Negra FC ao abrir. (O Miúdo do Gol continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Marreco FC': 'Inter Estadual', // ⚽ batismo do lucasigorbortoliniii: save antigo com Inter Estadual (ou Bigode FC) vira Marreco FC ao carregar
@@ -3155,7 +3638,8 @@ export const OLD_NAME: Record<string, string> = {
   'La Bestia Negra': 'River Prato', // ⚽ batismo do eltonfrossard45: save antigo com River Prato vira La Bestia Negra ao carregar
   'Scorporila FC': 'Realeza FC', // ⚽ batismo do lucassrribeiroo2023: save antigo com Realeza FC vira Scorporila FC ao carregar
   'Deportivo Montreal': 'Titan Capital', // ⚽ batismo do nevesgabriel95: save antigo com Titan Capital vira Deportivo Montreal ao carregar
-  'Marolados FC': 'Real Madruga', // ⚽ batismo do paisagensetrilha: save antigo com Real Madruga vira Marolados FC ao carregar
+  // 🔁 02/10: 'Marolados FC' ← 'Real Madruga' SAIU. "Real Madruga" virou batismo de OUTRO dono
+  // (luck.45, Série A); se o mapa ficasse, o clube novo viraria Marolados ao carregar.
   'Remoçada': 'Olimpo FC', // ⚽ batismo do luiz.maia.luiz: save antigo com Olimpo FC vira Remoçada ao carregar
   'Seven City': 'Seven FC', // ⚽ 15/08: o nome certo é Seven CITY (o "Seven FC" ficou no ar por ~1h); quem pegou o nome errado vira Seven City ao carregar
   'Seven FC': 'Apogeu FC', // ⚽ batismo do glaucomiranda: elo da corrente Apogeu FC → Seven FC → Seven City
@@ -3320,7 +3804,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Marcão', team: 'São Marcos Antônio FC' }, // 😇🐷 clube BATIZADO por apoiador (marcomak03 — São Marcos Antônio FC; o goleiro de auréola e o porquinho, verde-garrafa + creme; coração Palmeiras; era ⭐ Craque, virou Lenda + fundador nº68 + sócio nº49, 13/09). Assento que era do Marolados FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Marolados não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Real Madruga). ⚠️ Isto aqui é memória do repo — no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Seu Bruno da Roça', team: 'Leite de Verdade FC' }, // 🐮 clube BATIZADO por apoiador (brunolopesmiranda15 — Leite de Verdade FC; vaca malhada de chapéu de palha e óculos escuros, creme e preto com dourado; Lenda + fundador nº67 + sócio nº45, 10/09). Assento que era do Barcenite FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Barcenite não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Milanesa FC).
     { name: 'Zé da Vidraça', team: 'Vidraceiro FC' }, // 🪟 clube BATIZADO por apoiador (guiouriques — Vidraceiro FC; Lenda + fundador nº58 + sócio nº36, 05/09). Assento que era do Murriz FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Igual ao caso do Marreco/Al Takhadao: NÃO existe OLD_NAME aqui — o Murriz não foi renomeado, só mudou de divisão, e mapear faria os dois desenharem o mesmo escudo. Escudo, mascote (🪟 O Cristal) e manto azul-vidro + preto com a arte própria do dono.
-    { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)
+    { name: 'Saci', team: 'Guimarães SCI' }, // 🔴⚪ clube BATIZADO por apoiador (jadriovani — Guimarães SCI; o Saci de gorro vermelho e cachimbo; vermelho + branco; Lenda + fundador nº82 + sócio nº63, 02/10). Assento que era do Tôka10, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Tôka10 não foi renomeado, só mudou de divisão (a corrente Biriba United → Tôka10 segue valendo). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'D10', team: 'Fala D10' }, // 🎙️ clube BATIZADO por apoiador (diegohdsf — Fala D10; coração Corinthians; Lenda + fundador nº64 + sócio nº42, 09/09). Assento que era do Skyy FC, que DESCEU pra Série D por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Skyy não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Fortuna SAF).
     { name: 'Galo', team: 'Briga de Galo FC' }, // 🐓 clube BATIZADO por apoiador (pedrovianacarneiroq — Briga de Galo FC; preto e branco listrado com dourado, mascote o Galo de punhos fechados; Lenda + fundador nº62 + sócio nº40, 08/09). Assento que era do Vasco da Grana, que DESCEU pra Série D por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Vasco da Grana não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Magrão EC).
     { name: 'Fabuloso', team: 'Fabulous EC' }, // 🦅🔴⚫ clube BATIZADO por apoiador (koeppfabio — Fabulous EC; a águia vermelha e preta com a garra na bola, Cristo Redentor no escudo; coração Flamengo; Lenda + fundador nº76 + sócio nº57, 23/09). Assento que era do Xurupitas FC, que DESCEU pra Série C por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Xurupitas não foi renomeado, só mudou de divisão — e ele tem corrente própria de nomes velhos (Tokyo City Esperion / FC Galáticos) que continua valendo. Mapear faria os dois desenharem o mesmo escudo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
@@ -3329,7 +3813,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
     { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
-    { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
+    { name: 'Madruguinha', team: 'Real Madruga' }, // 👒⚪ clube BATIZADO por apoiador (luck.45 — Real Madruga; o boleiro de chapéu de pescador e bigodão, encostado no barril; branco + preto; Lenda + fundador nº81 + sócio nº62, 02/10). Assento que era do Bicho da Seda, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Bicho não foi renomeado, só mudou de divisão (a corrente dele Red Bull Diet → Bicho da Seda segue valendo). ⚠️ 'Real Madruga' JÁ FOI nome velho do Marolados FC — esse elo foi cortado em 02/10 (ver OLD_NAME). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Gaúcho', team: 'Grêmio FBPA' }, // 🔵⚫⚪ clube BATIZADO por apoiador (danieldias11 — Grêmio FBPA; o gaúcho de chapéu e manto rasgado, preto + azul com filete branco; coração Grêmio; Lenda + fundador nº75 + sócio nº56, 21/09). Assento que era do SC Ferrari, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Ferrari não foi renomeado, só mudou de divisão — e ele tem corrente própria de nome velho (Painitto FC) que continua valendo. Mapear faria os dois desenharem o mesmo escudo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Majestade', team: 'Rei da Bola FC' }, // 👑🦁 clube BATIZADO por apoiador (caiobegnamii — Rei da Bola FC; leão branco coroado, manto branco com faixa vermelha e preta; Lenda + fundador nº70 + sócio nº51, 16/09). Assento que era do Sapekeiros FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Sapekeiros não foi renomeado, só mudou de divisão — e ele já tem corrente própria de nome velho (Pardemeias) que continua valendo.
     { name: 'Bagrão de Terno', team: 'Bagres de Wall Street FC' }, // 🐟📉 clube BATIZADO por apoiador (iago.cortellini — Bagres de Wall Street FC; coração São Paulo; bagre de terno, coroa e charuto na bolsa de valores, preto + dourado; Lenda + fundador nº66 + sócio nº44, 09/09). Assento que era do Manfré FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Manfré não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Livre-pool). ⚠️ NÃO é o mesmo clube que o 'Bagres 1993' (caiohcris) — são dois donos diferentes.
@@ -3386,8 +3870,15 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // Pantanal'`: ele não foi renomeado, só mudou de divisão — e já tem corrente
     // própria de nomes velhos (Astronáutico → Sinhô Futebol), que segue intacta.
     { name: 'GuGu', team: 'White Thigs do GuGu' }, // ⚽ clube BATIZADO por apoiador (1º da história!). Escudo, mascote e manto seguem os dele, sem mudança nenhuma.
-    { name: 'Doca', team: 'Operário das Docas' },
-    { name: 'Colono', team: 'Botafogo da Colônia' },
+    // 🐛 BICHO DA SEDA (davisantana1312) DESCEU da Série A pra cá em 02/10, por decisão
+    // do Diego, pra abrir o assento do Real Madruga. Ocupa a vaga que era do bot
+    // "Operário das Docas" (escolhido por só existir aqui e em CLASSIC_CLUBS). SEM OLD_NAME:
+    // ele não foi renomeado, só mudou de divisão. Escudo, mascote e manto seguem os dele.
+    { name: 'Nininho', team: 'Bicho da Seda' }, // ⚽ clube BATIZADO por apoiador (davisantana1312/Davi — Bicho da Seda, ex-Red Bull Diet; correção 10/08)
+    // 🧢 TÔKA10 (ofc.toka10) DESCEU da Série A pra cá em 02/10, por decisão do Diego, pra
+    // abrir o assento do Guimarães SCI. Ocupa a vaga que era do bot "Botafogo da Colônia"
+    // (só existia aqui e em CLASSIC_CLUBS). SEM OLD_NAME: não foi renomeado, só mudou de divisão.
+    { name: 'Biriba', team: 'Tôka10' }, // ⚽ clube BATIZADO por apoiador (ofc.toka10 — Tôka10, ex-Biriba United)
     { name: 'Caicó', team: 'Fluminense de Caicó' },
     // 🧔 Murriz FC (msb102010) DESCEU da Série A pra cá em 05/09, por decisão do
     // Diego, pra abrir o assento do Vidraceiro FC. Ocupa a vaga que era do bot
@@ -3448,7 +3939,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // existindo em CPU_MANAGERS (o elenco do jogo rápido, outra lista).
     { name: 'Galo Doido', team: 'El Mineiro' }, // 🐓 clube BATIZADO por apoiador (bastosmbc — El Mineiro, ex-Brodeiragem, Série C; escudo alvinegro com o galo de crista vermelha e a estrela, mascote O Galo Doido; preto #100C0C + branco #E1D9D5 MEDIDOS na camisa do dono; coração ATLÉTICO MINEIRO; Lenda + fundador nº80 + sócio nº61, 27/09)
     { name: 'Siuuu', team: 'Internacional de Madrid' }, // 👑 clube BATIZADO por apoiador (matheusstefanello372 — Internacional de Madrid, ex-Adão Esporte, Série C; escudo com a coroa e o monograma SCI, vermelho #A90605 + branco #FCF6F1 MEDIDOS na arte do dono; mascote o SIUUU coroado; Lenda + fundador nº69 + sócio nº50, 14/09)
-    { name: 'Zorra Total FC', team: 'Zorra FC' },
+    // 🦅 GAVIÕES SCCP (kauealves584, batismo de 02/10) no assento do bot Zorra FC (bot sem dono
+    // da Série C). `OLD_NAME` leva save antigo pro nome novo. O Zorra FC continua existindo em
+    // CLASSIC_CLUBS (partida rápida); só o assento da pirâmide mudou de nome.
+    { name: 'Gavião', team: 'Gaviões SCCP' }, // 🦅⚫⚪ clube BATIZADO por apoiador (kauealves584 — Gaviões SCCP, ex-Zorra FC, Série C; escudo listrado com o gavião de asas abertas, mascote O Gavião; preto #161314 + branco #F9F8F8 MEDIDOS na camisa do dono; Lenda + fundador nº83, 02/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
     { name: 'Gugu Canela', team: 'Napolitano' },
     { name: 'Boss', team: 'Final Boss FC' }, // 🐂 clube BATIZADO por apoiador (gustavo99828 — Final Boss FC, ex-Ponte Branca, Série C; mascote o touro O Boss, vermelho + preto sobre branco; Lenda + fundador nº57, 05/09)
@@ -3499,7 +3993,9 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // (O Vasco da Grana tinha descido da A pra cá em 08/09, no lugar do bot Zênite United.)
     { name: 'Brunno', team: 'Vasco SAF' }, // ⚽🏴‍☠️ clube BATIZADO por apoiador (brunnodeluca90 — Vasco SAF, ex-Vasco da Grana; escudo da caravela com o Rio ao fundo, mascote O Pirata com o saco de dinheiro; coração VASCO; Lenda + fundador nº78 + sócio nº59, 24/09)
     { name: 'Excélsior', team: 'Excelsior SAF' },
-    { name: 'Prestígio', team: 'Prestígio FC' },
+    // 😈 VIEIRA FC (felipe.vrod10, batismo de 03/10) no assento do bot Prestígio FC (bot sem dono da
+    // Série D, que só existia aqui). `OLD_NAME` leva save antigo pro nome novo.
+    { name: 'Diabo', team: 'Vieira FC' }, // 😈🔴⚫ clube BATIZADO por apoiador (felipe.vrod10 — Vieira FC, ex-Prestígio FC, Série D; escudo preto e vermelho com o diabo e o tridente, mascote O Diabo; preto #171212 + vermelho #DE1B19 MEDIDOS na camisa do dono; Lenda + fundador nº84, 03/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Geovany Souza', team: 'Tricolor do Arruda FC' }, // ⚽ clube BATIZADO por apoiador (souzact12 — Tricolor do Arruda FC, ex-Legado EC; homenagem ao Santa Cruz, time do coração dele; Lenda + fundador nº43, 16/08)
     { name: 'Apogeu', team: 'Seven City' }, // ⚽ clube BATIZADO por apoiador (glaucomiranda — Seven City, ex-Apogeu FC; homenagem ao Seven Gamer @sevengamersp, Lenda + fundador nº42, 15/08)
   ],

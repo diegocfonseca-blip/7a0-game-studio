@@ -115,8 +115,8 @@ console.log('\n5) 🏆 LIGA + TODAS AS COPAS entram na conta')
   // é todas copas"*. Até então só a LIGA entrava no histórico de todos os tempos.
   const py = readFileSync('src/escalacao/pyramidseason.tsx', 'utf8')
   const cb = readFileSync('src/escalacao/copa-brasil.ts', 'utf8')
-  ok(/RECORD_SEASON_STATS', scorers: \[\.\.\.scorersAll, \.\.\.\(copa\?\.scorersAll \?\? \[\]\), \.\.\.cmListas\.sc\]/.test(py),
-    'a virada manda LIGA + COPA + COPA DO MUNDO pro histórico')
+  ok(/RECORD_SEASON_STATS', scorers: \[\.\.\.scorersAll, \.\.\.\(copa\?\.scorersAll \?\? \[\]\), \.\.\.cmListas\.sc, \.\.\.intlListas\.sc\]/.test(py),
+    'a virada manda LIGA + COPA + COPA DO MUNDO + LIBERTADORES/CHAMPIONS/MUNDIAL pro histórico')
   ok(/scorersAll: list,/.test(py), 'a Copa Legends devolve a artilharia COMPLETA (não o top 20 da tela)')
   ok(/scorersAll: list,/.test(cb), 'a Copa do Brasil devolve a artilharia COMPLETA')
   ok(/scorersAll: \[\.\.\.\(r\.scorersAll \?\? \[\]\), \.\.\.\(supercopa\?\.scorers \?\? \[\]\)\]/.test(cb),
@@ -138,7 +138,11 @@ console.log('\n6) 🅰️ A ASSISTÊNCIA ANDA JUNTO COM O GOL')
   const stx = readFileSync('src/escalacao/store.tsx', 'utf8')
   const ty = readFileSync('src/escalacao/types.ts', 'utf8')
   ok(/careerAssistsAll\?: Record</.test(ty), 'o save tem o acumulado de garçons (não existia)')
-  ok(/assists: \[\.\.\.assistsAll, \.\.\.\(copa\?\.assistsAll \?\? \[\]\), \.\.\.cmListas\.asl\]/.test(py), 'a virada manda LIGA + COPA + COPA DO MUNDO de assistências também')
+  ok(/assists: \[\.\.\.assistsAll, \.\.\.\(copa\?\.assistsAll \?\? \[\]\), \.\.\.cmListas\.asl, \.\.\.intlListas\.asl\]/.test(py), 'a virada manda LIGA + COPA + COPA DO MUNDO + LIBERTADORES/CHAMPIONS/MUNDIAL de assistências também')
+  // 🧾 03/10: a ficha do jogador tem os números em TODA carreira solo (não só com o gás ligado) e cada
+  // jogo de Copa vai pra escalação DAQUELA fase
+  ok(/estat=\{estatJogos \?/.test(py) && /const fonte = estat \?\? condicao/.test(py), 'a ficha mostra jogos e total "no seu clube" em qualquer divisão')
+  ok(/lineupAt\(lineupsCopa, me\.id, r\.slot \?\? 38 \+ ri/.test(py), 'jogo de Copa vai pra quem jogou aquela fase')
   ok(/assistsAll: listA,/.test(py) && /assistsAll: listA,/.test(cb), 'as duas copas devolvem a lista COMPLETA de garçons')
   ok(/assistsAll: \[\.\.\.\(r\.assistsAll \?\? \[\]\), \.\.\.\(supercopa\?\.assists \?\? \[\]\)\]/.test(cb), 'e a Supercopa entra junto nas assistências')
   ok(/s\.careerAssistsAll = Object\.fromEntries/.test(stx), 'o reducer grava o acumulado de garçons')

@@ -1,0 +1,22 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Estádio — teste local isolado</title><div id="root"></div><script type="module">
+import React from 'react';import{createRoot}from'react-dom/client';import './src/index.css';
+import{StadiumTab}from'./src/escalacao/estadio.tsx';import{PresidenciaEstadioCamera}from'./src/escalacao/presidencia-estadio-camera.tsx';import{reducer,EscProvider}from'./src/escalacao/store.tsx';
+import{STADIUM_SECTORS,STADIUM_EXTRAS}from'./src/escalacao/estadiodata.ts';
+const initial={careerOnline:true,onlineMode:'cpu',sport:'futebol',youIdx:0,managers:[{id:7,isHuman:true}],careerCoins:{7:100},stadiums:{7:{inv:{},ext:[]}}};
+const params=new URLSearchParams(location.search);
+if(params.has('grass'))initial.stadiums[7]={inv:{grama:Number(params.get('grass'))},ext:[]};
+if(params.has('general'))initial.stadiums[7]={inv:{grama:30,geral:40},ext:[]};
+if(params.has('seats'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:90},ext:[]};
+if(params.has('seatsPartial'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:89.99},ext:[]};
+if(params.has('seatsExtra'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:90},ext:['loja']};
+if(params.has('visitor'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:90,visitante:120},ext:[]};
+if(params.has('visitorPartial'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:90,visitante:119.99},ext:[]};
+if(params.has('visitorExtra'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:90,visitante:120},ext:['loja']};
+if(params.has('boxes'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:150},ext:[]};
+if(params.has('boxesPartial'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:149.99},ext:[]};
+if(params.has('boxesExtra'))initial.stadiums[7]={inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:150},ext:['loja']};
+if(params.has('allWorks'))initial.stadiums[7]={inv:Object.fromEntries(STADIUM_SECTORS.map(s=>[s.k,s.cost])),ext:STADIUM_EXTRAS.map(e=>e.k)};
+if(params.has('roof'))initial.stadiums[7]={inv:{grama:30},ext:['cober','retratil']};
+function App(){const[s,S]=React.useState(initial);window.stadiumFixture=s;window.fixture=s;const send=a=>S(reducer(s,a));return React.createElement('main',{style:{maxWidth:900,margin:'auto',padding:12}},React.createElement(StadiumTab,{st:s.stadiums[7],coins:s.careerCoins[7],onInvest:sector=>send({type:'STADIUM_INVEST',mgrId:7,sector}),onBuild:ext=>send({type:'STADIUM_BUILD',mgrId:7,ext}),presidencyView:new URLSearchParams(location.search).has('private')?React.createElement(PresidenciaEstadioCamera,{stadium:s.stadiums[7],onRoof:closed=>send({type:'PRESIDENCY_ROOF',mgrId:7,closed})}):undefined}))}
+createRoot(document.getElementById('root')).render(React.createElement(EscProvider,null,React.createElement(App)));
+</script></html>

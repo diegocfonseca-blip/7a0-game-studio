@@ -27,7 +27,7 @@ try {
   const diego = { id: 'fixture-diego', email: 'diego.c.fonseca@gmail.com' }
   const other = { id: 'fixture-other', email: 'outra.conta@example.com' }
   assert.equal(isInternationalCareerTester(null), false)
-  assert.equal(isInternationalCareerTester(other.email), false)
+  assert.equal(isInternationalCareerTester(other.email), true) // 🟢 liberada pra toda conta logada em 02/10
   assert.equal(isInternationalCareerTester(diego.email), true)
   assert.equal(internacionalCarreiraLiberada(), false)
   onAuth('INITIAL_SESSION', null)

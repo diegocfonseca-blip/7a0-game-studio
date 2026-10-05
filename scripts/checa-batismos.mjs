@@ -68,6 +68,10 @@ const BATISMOS = [
   ['brunnodeluca90@gmail.com', 'Vasco SAF'], // ⚽🏴‍☠️ Série D (24/09) — o antigo Vasco da Grana
   ['weslleygomes749@gmail.com', 'Cruzeiro de Berretinho'], // ⭐🐺 Série D (25/09) — no assento do bot Metrópole FC
   ['bastosmbc@gmail.com', 'El Mineiro'], // 🐓 Série C (27/09) — no assento do bot Brodeiragem
+  ['felipe.vrod10@gmail.com', 'Vieira FC'], // 😈🔴⚫ Série D (03/10) — no assento do bot Prestígio FC
+  ['kauealves584@gmail.com', 'Gaviões SCCP'], // 🦅⚫⚪ Série C (02/10) — no assento do bot Zorra FC
+  ['jadriovani@gmail.com', 'Guimarães SCI'], // 🔴⚪ Série A (02/10) — assento do Tôka10, que desceu pra B
+  ['luck.45@live.com', 'Real Madruga'], // 👒⚪ Série A (02/10) — assento do Bicho da Seda, que desceu pra B
   ['dondeestasleomessi10@gmail.com', 'Julia Barranquila'], // 🦈🔴⚪ Série A (24/09)
   ['koeppfabio@gmail.com', 'Fabulous EC'], // 🦅🔴⚫ Série A (23/09) — assento que era do Xurupitas FC, que desceu pra C
   ['ericrabelo29@gmail.com', 'Pantera Negra FC'], // 🐆👑 Série C, no assento do Miúdo EC (20/09)

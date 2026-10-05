@@ -3,6 +3,9 @@
 .ll29-stage .ll26-competition{margin-bottom:12px;text-shadow:0 2px 4px #000}
 .ll29-stage-copa .ll26-competition{background-image:linear-gradient(90deg,#07130def,#07130d30),url('./img/online-copa8-v25.webp')}
 .ll29-stage-brasil .ll26-competition{background-image:linear-gradient(90deg,#07130def,#07130d30),url('./img/carreira-copa-brasil-v25.webp')}
+.ll29-stage-liberta .ll26-competition{background-image:linear-gradient(90deg,#010f0aef,#010f0a30),url('./img/online-liberta-v25.webp')}
+.ll29-stage-champions .ll26-competition{background-image:linear-gradient(90deg,#030c25ef,#030c2530),url('./img/online-champions-v25.webp');background-position:75% center}
+.ll29-stage-mundial .ll26-competition{background-image:linear-gradient(90deg,#080218ef,#08021830),url('./img/carreira-mundial-clubes-v1.webp')}
 .ll29-stage-super .ll26-competition{background-image:linear-gradient(90deg,#061020ef,#06102030),url('./img/carreira-supercopa-v25.webp')}
 .ll29-stage .ll26-competition-copy{max-width:76%}.ll29-stage .ll26-competition-copy h2{font-size:clamp(27px,5vw,42px)}
 .ll29-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#0c0c0cbf;font-size:12px}.ll29-summary progress{accent-color:#1b7a3d;width:100px;max-width:24vw}

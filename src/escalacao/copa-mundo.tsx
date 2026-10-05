@@ -1,11 +1,12 @@
 // ─── 🌍 COPA DO MUNDO LEGENDS (v1 · carreira SOLO) ───────────────────────────
 // O endgame dos veteranos: desbloqueia na TEMPORADA 100, rola de 10 em 10.
-// Vaga e ordem de escolha = TOP 24 do RANKING DE CLUBES (o mural do Rank).
+// Vaga e ordem de escolha = TOP 32 do RANKING DE CLUBES (o mural do Rank).
 // Dentro da seleção NÃO tem leilão: é CONVOCAÇÃO pura — TODAS as cartas do país
 // aparecem (sem categoria na tela!) e o técnico escolhe SÓ 11.
-// Formato (19/09, o de Copa de 24 — México 86/Itália 90/EUA 94): 6 grupos de 4 em
-// turno único (desempate pontos > vitórias > saldo > gols) → passam os 2 primeiros
-// + os 4 MELHORES TERCEIROS = 16 → sorteio → oitavas, quartas, semi e final em
+// Formato (02/10, Copa de 32): 8 grupos de 4 em turno único (desempate pontos >
+// vitórias > saldo > gols) → passam os 2 primeiros = 16. Copa de 24 (online velho/
+// carreira que começou antes) segue 6 grupos + 4 melhores 3ºs (`formatoCopa`) →
+// sorteio → oitavas, quartas, semi e final em
 // JOGO ÚNICO (Diego: *"Copa do Mundo é único"*). Prêmio: ⭐ eterna + mural.
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
@@ -60,6 +61,9 @@ const FLAG: Record<string, string> = {
   // tem carta suficiente pra virar seleção na Copa (o `rankingSelecoes` corta
   // muito antes), mas bandeira cadastrada custa zero e evita a branca genérica.
   'Austrália': '🇦🇺', 'Irã': '🇮🇷',
+  // 02/10: as 8 que fecharam a Copa de 32 (Lote 41)
+  'Escócia': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Sérvia': '🇷🇸', 'Turquia': '🇹🇷', 'Irlanda': '🇮🇪',
+  'Suécia': '🇸🇪', 'Argélia': '🇩🇿', 'Gana': '🇬🇭', 'Costa do Marfim': '🇨🇮',
 }
 // 🏳️ bandeira SEMPRE com rede: seleção sem bandeira cadastrada mostra a branca,
 // nunca "undefined". Todo lugar que desenha bandeira passa por aqui.
@@ -76,6 +80,8 @@ const PAIS_COLORS: Record<string, string> = {
   // hash (copaSideColor), em vez da cor de verdade do manto.
   'Japão': '#BC002D', 'Camarões': '#007A5E', 'Senegal': '#00853F',
   'Croácia': '#E8112D', 'Dinamarca': '#C60C30', 'Peru': '#D91023', 'Equador': '#FFDD00',
+  'Escócia': '#0B2A5B', 'Sérvia': '#C6363C', 'Turquia': '#E30A17', 'Irlanda': '#169B62',
+  'Suécia': '#FECC02', 'Argélia': '#006233', 'Gana': '#FFFFFF', 'Costa do Marfim': '#F77F00',
 }
 const paisColor = (pais: string): string => PAIS_COLORS[pais] ?? copaSideColor(pais)
 
@@ -176,7 +182,7 @@ export const xiStrength = (xi: PoolCard[]) => xi.reduce((s, c) => s + (c.lo + c.
 // OUTRA seleção (relato de usuário: "quando não dá certo eu atualizo e troco").
 // Com o carimbo, o F5 volta pro MESMO torneio (mesma seleção, mesmo time, mesmo
 // resultado — a simulação é semeada). Limpa quando a final é gravada.
-export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean } | null }
+export type CopaSave = { anchor: number; mural: { season: number; selecao: string; campeao: string; voce: boolean }[]; played: number[]; emAndamento?: { season: number; pais: string; xiKeys: string[]; form: Formation; /** 🏺 esta Copa nasceu com cabeça de chave? Copa velha (sem o campo) termina com o sorteio velho — trocar o chaveamento no meio seria o estrago de 04/08 */ potes?: boolean; /** 🌍 quantas seleções esta Copa tem (32 desde 02/10). Copa velha (sem o campo) termina com 24 — crescer no meio mudaria o chaveamento */ n?: number } | null }
 const skey = (seed: number) => `llcopa:${seed}`
 export function loadCopaSave(seed: number): CopaSave | null {
   try { const r = localStorage.getItem(skey(seed)); return r ? JSON.parse(r) as CopaSave : null } catch { return null }
@@ -315,9 +321,20 @@ function goalEvents(r: () => number, gh: number, ga: number, home: Entrant, away
 // não deveria ter mais grupos? tem muito time no mesmo grupo"*).
 // `GROUP_ROUNDS` mora em `copa-passos.ts` porque o relógio da sala conta por ele.
 // ⚠️ Mudou o formato → mexer aqui, em `copa-passos.ts` E na cópia do banco.
-const NUM_GROUPS = 6, GROUP_SIZE = 4, GROUP_ROUNDS = RODADAS_GRUPO
-export const VAGAS_TERCEIROS = 4 // quantos 3ºs passam (os melhores entre os 6)
-export const COPA_TEAMS = NUM_GROUPS * GROUP_SIZE // 24
+// 🌍 COPA DE 32 (Diego 02/10: *"vamos fazer 32 países"*): 8 grupos de 4, passam os 2
+// primeiros = 16 → oitavas. Os PASSOS não mudam (3 rodadas + mata-mata), então o relógio
+// do banco (`esc_copa_preview_clock`) segue igual.
+// 🛟 O FORMATO SAI DO TAMANHO DA PRÓPRIA COPA: uma Copa que nasceu com 24 (sala online no
+// meio, save de carreira) continua com 6 grupos + os 4 melhores 3ºs até o fim — nunca é
+// recalculada com 8 grupos no meio do caminho.
+const GROUP_SIZE = 4, GROUP_ROUNDS = RODADAS_GRUPO
+export const COPA_TEAMS = 32
+export const formatoCopa = (n: number): { grupos: number; terceiros: number } => n >= 32 ? { grupos: 8, terceiros: 0 } : { grupos: 6, terceiros: 4 }
+/** quantos 3ºs passam, pelo número de grupos da Copa (6 grupos → 4 · 8 grupos → nenhum) */
+export const vagasTerceiros = (nGrupos: number) => nGrupos >= 8 ? 0 : 4
+/** @deprecated use `vagasTerceiros(grupos)` — fica pra quem importava o número da Copa de 24 */
+export const VAGAS_TERCEIROS = 4
+const LETRAS_GRUPO = 'ABCDEFGH'
 
 // turno único (round-robin) pra N times — cada um joga contra todos UMA vez. N ímpar
 // ganha um "bye" por rodada (o -1 é descartado). Determinístico (a ordem vem de fora).
@@ -352,7 +369,7 @@ function groupTable(g: Group, upTo: number) {
 export function melhoresTerceiros(groups: Group[], upTo: number): { lista: { t: number; g: number; pts: number; w: number; sg: number; gp: number }[]; vagas: Set<number> } {
   const lista = groups.map((g, gi) => ({ g: gi, ...groupTable(g, upTo)[2] })).filter(r => r && r.t != null)
     .sort((x, y) => y.pts - x.pts || y.w - x.w || y.sg - x.sg || y.gp - x.gp || x.g - y.g)
-  return { lista, vagas: new Set(lista.slice(0, VAGAS_TERCEIROS).map(r => r.t)) }
+  return { lista, vagas: new Set(lista.slice(0, vagasTerceiros(groups.length)).map(r => r.t)) }
 }
 
 // ⏱️ minuto ao vivo compartilhado (mesmo pace do LiveScoreCard: 82% do roundMs)
@@ -481,7 +498,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
         <small>{seasonNo >= 40 ? 'Disponível nesta carreira. A campanha nacional define sua prioridade de escolha.' : `Faltam ${40 - seasonNo} temporadas para desbloquear.`}</small>
       </div>}
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>{tr('🔒 Copa do Mundo Legends', '🔒 Legends World Cup')}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>A tournament of national teams, for <b>veterans</b>: unlocks in <b>season 100</b> — and only clubs in the <b>TOP 24 of the club ranking</b> {rankLink} get in. Keep playing and climbing the board.</> : <>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 24 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</>}</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>A tournament of national teams, for <b>veterans</b>: unlocks in <b>season 100</b> — and only clubs in the <b>TOP 32 of the club ranking</b> {rankLink} get in. Keep playing and climbing the board.</> : <>Torneio de seleções, coisa de <b>veterano</b>: desbloqueia na <b>temporada 100</b> — e só entra quem estiver no <b>TOP 32 do ranking de clubes</b> {rankLink}. Continue jogando e subindo no mural.</>}</p>
       <div style={{ height: 13, border: `2.5px solid ${INK}`, borderRadius: 999, background: '#fff', marginTop: 7, overflow: 'hidden', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${Math.min(100, seasonNo)}%`, background: `linear-gradient(90deg,#FFE79A,${GOLD})`, borderRight: `2px solid ${INK}` }} />
         <b style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 8.5, fontWeight: 900, color: INK }}>{tr('temporada', 'season')} {seasonNo} {tr('de', 'of')} 100</b>
@@ -502,7 +519,7 @@ export function CopaMundoGate({ seasonNo, seed, top16, myPos, onPrize, onCard, o
   if (!inTop16) return (
     <div style={{ ...box('#CBBF9E'), padding: '10px 12px', marginBottom: 10, boxShadow: `3px 3px 0 0 ${INK}` }}>
       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: 0, color: 'rgba(0,0,0,.75)', textTransform: 'uppercase' }}>{tr('🔒 Copa do Mundo Legends — temporada', '🔒 Legends World Cup — season')} {seasonNo}</p>
-      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>It's a Cup season, but <b>your club is not in the TOP 24 of the club ranking</b> {rankLink}. Win titles and save money to climb the board — the next edition is in <b>{proxima}</b>.</> : <>É temporada de Copa, mas <b>seu clube não está no TOP 24 do ranking de clubes</b> {rankLink}. Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</>}</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.6)', margin: '3px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>It's a Cup season, but <b>your club is not in the TOP 32 of the club ranking</b> {rankLink}. Win titles and save money to climb the board — the next edition is in <b>{proxima}</b>.</> : <>É temporada de Copa, mas <b>seu clube não está no TOP 32 do ranking de clubes</b> {rankLink}. Ganhe títulos e junte dinheiro pra subir no mural — a próxima edição é na <b>{proxima}</b>.</>}</p>
     </div>
   )
 
@@ -563,11 +580,15 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
 
   // bots recebem depois de você: cada um leva a melhor seleção livre da posição
   // dele pra baixo (fallback: melhor livre) — só usuário REAL escolhe.
+  // 🌍 Copa que começou com 24 (antes de 02/10) termina com 24
+  const nCopa = carimbo && restored ? (carimbo.n ?? 24) : COPA_TEAMS
   const entrants = useMemo<Entrant[] | null>(() => {
     if (!myPais || !myXI) return null
     const taken = new Set<string>([myPais])
     const list: Entrant[] = []
-    top16.forEach((c, i) => {
+    const vagas = top16.slice(0, nCopa)
+    if (!vagas.some(c => c.you)) { const eu = top16.find(c => c.you); if (eu) vagas[vagas.length - 1] = eu }
+    vagas.forEach((c, i) => {
       if (c.you) { list.push({ club: c.name, you: true, pais: myPais, xi: myXI, str: xiStrength(myXI) }); return }
       let pais = paises16.slice(i).find(p => !taken.has(p)) ?? paises16.find(p => !taken.has(p))
       if (!pais) pais = paises16[i] ?? paises16[0] ?? 'Brasil' // nunca deixa seleção sem país (XI vazio quebrava o gol)
@@ -578,7 +599,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
       list.push({ club: c.name, you: false, pais, xi, str: xiStrength(xi) })
     })
     return list
-  }, [myPais, myXI, top16, paises16])
+  }, [myPais, myXI, top16, paises16, nCopa])
 
   if (phase === 'select') return (
     <CMModal>
@@ -591,7 +612,7 @@ function CopaMundo({ seasonNo, seed, top16, myPos, paises16, save, onPrize, onCa
         // 🔒 CARIMBA a escolha AGORA (antes do 1º jogo): F5 daqui pra frente
         // volta pro MESMO torneio — acabou o "atualiza e troca de seleção".
         const cur = loadCopaSave(seed) ?? save
-        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f, potes: true } })
+        saveCopaSave(seed, { ...cur, emAndamento: { season: seasonNo, pais: myPais, xiKeys: xi.map(c => `${c.name}|${c.club}|${c.year}`), form: f, potes: true, n: COPA_TEAMS } })
         setMyXI(xi); setMyForm(f); setPhase('cup')
       }} />
     </CMModal>
@@ -852,7 +873,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }:
 //    quem convoca um baralho bom com um país médio é premiado, e não fica refém
 //    do nome da seleção. Vale igual na carreira e no online, que é o que ele
 //    pediu ("seja em qualquer modo").
-function sorteiaComPotes(entrants: Entrant[], rng: () => number): number[][] {
+function sorteiaComPotes(entrants: Entrant[], rng: () => number, NUM_GROUPS: number): number[][] {
   const ordem = entrants.map((e, i) => ({ i, s: e.str })).sort((a, b) => b.s - a.s || a.i - b.i)
   const grupos: number[][] = Array.from({ length: NUM_GROUPS }, () => [])
   for (let pote = 0; pote < GROUP_SIZE; pote++) {
@@ -875,7 +896,8 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     const aBase = (seed ^ Math.imul(seasonNo, 2654435761) ^ 0x5A5511) >>> 0 // 🅰️ dado das assistências (não encosta no rng)
     const idx = entrants.map((_, i) => i)
     for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
-    const porPote = potes ? sorteiaComPotes(entrants, rng) : null
+    const { grupos: NUM_GROUPS, terceiros: VAGAS_3 } = formatoCopa(entrants.length)
+    const porPote = potes ? sorteiaComPotes(entrants, rng, NUM_GROUPS) : null
     const groups: Group[] = Array.from({ length: NUM_GROUPS }, (_, g) => {
       const teams = porPote ? porPote[g] : idx.slice(g * GROUP_SIZE, g * GROUP_SIZE + GROUP_SIZE)
       const matches = roundRobin(teams) // 6 grupos de 4 = turno único (3 rodadas)
@@ -888,7 +910,7 @@ export function simulaCopaMundo(entrants: Entrant[], seed: number, seasonNo: num
     })
     // 🥉 16 classificados: os 2 primeiros de cada grupo + os 4 melhores 3ºs
     const terceiros = melhoresTerceiros(groups, GROUP_ROUNDS)
-    const q16 = [...groups.flatMap(g => groupTable(g, GROUP_ROUNDS).slice(0, 2).map(r => r.t)), ...terceiros.lista.slice(0, VAGAS_TERCEIROS).map(r => r.t)]
+    const q16 = [...groups.flatMap(g => groupTable(g, GROUP_ROUNDS).slice(0, 2).map(r => r.t)), ...terceiros.lista.slice(0, VAGAS_3).map(r => r.t)]
     const grupoDe = (t: number) => groups.findIndex(g => g.teams.includes(t))
     // 🎲 sorteio livre das oitavas, com UMA regra de Copa: quem já se enfrentou no
     // grupo não se reencontra nas oitavas. Tenta algumas vezes (semeado, então todo
@@ -1339,7 +1361,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
             (y.g.teams.includes(myIdx) ? 1 : 0) - (x.g.teams.includes(myIdx) ? 1 : 0)
           ).map(({ g, gi }) => (
             <div key={gi} className={privateVisual ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
-              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 {tr('GRUPO', 'GROUP')} {'ABCDEF'[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 7px', display: 'flex', alignItems: 'center', gap: 6 }}>🏴 {tr('GRUPO', 'GROUP')} {LETRAS_GRUPO[gi]}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
               {/* 🟩 verde = classifica (2 por grupo) · 🟨 amarelo = o 3º SÓ enquanto está
                   entre os 4 melhores 3ºs (Diego 19/09: *"faixa clara do 3º lugar em
                   tempo real… a cor amarela"*) — sai da conta, perde a cor. */}
@@ -1356,16 +1378,16 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
               )}
             </div>
           ))}
-          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo)', 'green = goes through (2 per group)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#FFF1BF', border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GOLD, marginLeft: 4 }} />{tr('amarelo = 3º entre os 4 melhores (passa também)', 'yellow = 3rd among the best 4 (also through)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', border: '2px solid #7C3AED', marginLeft: 4 }} />{tr('roxo = você · desempate: PTS, V, SG, GP', 'purple = you · tie-break: PTS, W, GD, GF')}</p>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', textAlign: 'center', margin: '0 0 8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5 }}><i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#D8F0DE', borderLeft: `3px solid ${GREEN}`, border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GREEN }} />{tr('verde = classifica (2 por grupo)', 'green = goes through (2 per group)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', background: '#FFF1BF', border: '1px solid rgba(0,0,0,.35)', borderLeftWidth: 3, borderLeftColor: GOLD, marginLeft: 4 }} />{vagasTerceiros(world.groups.length) > 0 && tr('amarelo = 3º entre os 4 melhores (passa também)', 'yellow = 3rd among the best 4 (also through)')} <i style={{ width: 11, height: 11, borderRadius: 3, display: 'inline-block', border: '2px solid #7C3AED', marginLeft: 4 }} />{tr('roxo = você · desempate: PTS, V, SG, GP', 'purple = you · tie-break: PTS, W, GD, GF')}</p>
           {/* 🥉 A BRIGA DOS TERCEIROS — a tabela cruzada dos seis 3ºs, pra ficar CLARO que
               o melhor terceiro passa (Diego 19/09: *"será que vai ser claro pras pessoas
               que o melhor terceiro colocado passa?"*). Só entra com rodada apitada. */}
-          {shownRounds > 0 && (
+          {shownRounds > 0 && vagasTerceiros(world.groups.length) > 0 && (
             <div className={privateVisual ? 'll26-world-group' : undefined} style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 10, marginBottom: 8 }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 3px', display: 'flex', alignItems: 'center', gap: 6 }}>🥉 {tr('OS MELHORES TERCEIROS', 'THE BEST THIRD-PLACED')}<span style={{ flex: 1, height: 1, background: 'linear-gradient(90deg,rgba(255,196,0,.5),transparent)' }} /></p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: privateVisual ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.6)', margin: '0 0 7px', lineHeight: 1.4 }}>{tr(`Os seis 3ºs colocados, lado a lado. Os ${VAGAS_TERCEIROS} melhores também vão pras oitavas — em amarelo. Conta só o que já apitou (rodada ${shownRounds} de ${GR}).`, `The six 3rd-placed teams, side by side. The best ${VAGAS_TERCEIROS} also reach the round of 16 — in yellow. Only finished rounds count (round ${shownRounds} of ${GR}).`)}</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: privateVisual ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.6)', margin: '0 0 7px', lineHeight: 1.4 }}>{tr(`Os seis 3ºs colocados, lado a lado. Os ${vagasTerceiros(world.groups.length)} melhores também vão pras oitavas — em amarelo. Conta só o que já apitou (rodada ${shownRounds} de ${GR}).`, `The six 3rd-placed teams, side by side. The best ${vagasTerceiros(world.groups.length)} also reach the round of 16 — in yellow. Only finished rounds count (round ${shownRounds} of ${GR}).`)}</p>
               {cabecalhoTabela()}
-              {terceirosAgora.lista.map((r, i) => linhaTabela(r, i, i < VAGAS_TERCEIROS ? 'amarelo' : null, `${tr('grupo', 'group')} ${'ABCDEF'[r.g]}`))}
+              {terceirosAgora.lista.map((r, i) => linhaTabela(r, i, i < vagasTerceiros(world.groups.length) ? 'amarelo' : null, `${tr('grupo', 'group')} ${LETRAS_GRUPO[r.g]}`))}
             </div>
           )}
         </>

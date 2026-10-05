@@ -6,7 +6,7 @@
 
 import { getLang } from './lang' // 🌐 BR/EN (12/09): só pros RÓTULOS; as chaves (k) e os números não mudam
 
-export interface StadiumSave { inv: Record<string, number>; ext: string[] }
+export interface StadiumSave { inv: Record<string, number>; ext: string[]; roofClosed?:boolean }
 
 export const STADIUM_STEP = 20 // moedas por clique de "investir" num setor
 // 🎟️ BILHETERIA-BASE: todo clube tem um estádio que já vende ingresso — mesmo

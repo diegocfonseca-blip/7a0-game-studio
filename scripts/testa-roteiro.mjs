@@ -32,9 +32,8 @@ ok(/const roteiroOn = copaFinished && state\.onlineMode !== 'online'/.test(py), 
 ok(/const \[fimPasso, setFimPasso\] = useState\(1\)/.test(py), 'começa no passo 1')
 ok(/useEffect\(\(\) => \{ setFimPasso\(fimOrdem\[0\]\) \}, \[state\.seasonNo, mundoAntes(, intlPendente)?\]\)/.test(py), 'temporada nova volta pro 1º passo')
 // 🌍 26/09: ano de Copa do Mundo com você nela, a Copa ABRE o roteiro (antes do jornal)
-// 🌎 01/10: a carreira internacional (Liberta/Champions + Mundial) entra no mesmo passo 3 e também abre o roteiro
 ok(/const fimOrdem = (intlPendente \|\| )?mundoAntes \? \[3, 1, 2, 4\] : \[1, 2, 3, 4\]/.test(py), 'ano de Copa: Copa → jornal → caixa → decisão; ano sem Copa: igual sempre')
-ok(/if \(mundoPendente( \|\| intlPendente)?\) return \/\/ (🌍 ano de Copa do Mundo: grava|grava depois de todas as competições)/.test(py) && /if \(mundoPendente( \|\| intlPendente)?\) return \/\/ (🌍|a Bola de Ouro espera)/.test(py), 'a Bola de Ouro (e o histórico) esperam a Copa do Mundo acabar')
+ok(/if \(mundoPendente( \|\| intlPendente)?\) return \/\/ (🌍 ano de Copa do Mundo: grava|grava depois de todas as competições)/.test(py), 'a Bola de Ouro (e o histórico) esperam a Copa do Mundo acabar')
 ok(/travado=\{mundoPendente( \|\| intlPendente)?\}/.test(py) && /jogue a Copa do Mundo pra seguir/.test(py), 'a trava da Copa diz o porquê e o caminho')
 ok(/function RoteiroFim/.test(py) && /FIM_PASSOS/.test(py), 'a barrinha dos 4 passos existe')
 ok(/disabled=\{!feito\}/.test(py), 'só dá pra voltar em passo JÁ FEITO (não dá pra pular pra frente)')

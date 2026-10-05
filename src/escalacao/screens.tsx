@@ -8,7 +8,8 @@ import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
-import { lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao} from './store'
+import { lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
 import { playCoin, playSeal, playTick, playHammer, playMp3, startCrowd, stopCrowd } from './sound'
@@ -22,6 +23,13 @@ import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
 import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
+import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
+import {PresidenteFormulario} from './presidente-formulario'
+import {usePresidentOutfitTier,getPresidentOutfitTier} from './presidente-tier-conta'
+import {podeVestirModular} from './presidente-vestuario-acesso'
+import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
+import {CriarClubePresidencia} from './presidencia-criar-clube'
+import {identidadeDaConta} from './presidencia-identidade-conta'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { DinastiaButton } from './dinastia'
 import { CareerOnlineButton, LigaFechadaButton } from './careeronline'
@@ -48,7 +56,8 @@ import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionSt
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, type Sport } from './sport'
+import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
@@ -1408,7 +1417,7 @@ function useResumableSolo() {
     teamName: you?.teamName ?? 'Meu time',
     // ao CONTINUAR, puxa a conta primeiro e abre a versão MAIS NOVA daquele save —
     // nunca a cópia velha de uma aba parada.
-    resume: async () => { await syncCareersWithCloud(); dispatch({ type: 'RESUME_CAREER_SOLO', saved: readLocal() ?? saved }) },
+    resume: async () => { await syncCareersWithCloud(); if (colecoesLiberadas()) await aplicaSaidasDeTroca(saved.seed); dispatch({ type: 'RESUME_CAREER_SOLO', saved: readLocal() ?? saved }) }, // 🤝 carta de carreira trocada sai da Agência antes de abrir
     // descartar tira SÓ este save (não mexe nas outras carreiras da conta).
     discard: () => {
       const seed = saved.seed
@@ -2032,7 +2041,11 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
           <button className="ll-mode ll-career" onClick={onCareer}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Construa a história do seu clube.', "Build your club's story.")}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
         </div>
-        <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
+        {/* 🏛️ Salão + 📖 Meu Álbum lado a lado (Diego 04/10: *"na home coloque meu álbum ao lado do salão de batismo"*) */}
+        <div className="ll-extras">
+          <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
+          <button className="ll-salao-entry ll-album-entry" onClick={onAlbum}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
+        </div>
       </section>
       <footer className="ll-footer">
         <nav aria-label="Mais opções">
@@ -2523,7 +2536,14 @@ export function EscSetup() {
   const { state, dispatch } = useEsc()
   const t = useT() // 🌐 BR/EN
   const career = state.careerIntent
-  const privatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
+  const legacyPrivatePreview = useOnlinePreview() && PRESIDENT_EDITOR_RELEASED
+  const presidentAccount = usePresidentPreview()
+  const modularSetup = presidentAccount && PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
+  // Keep the account check alive between the editor and final career step.
+  usePresidentOutfitTier(career && modularSetup)
+  const privatePreview = modularSetup || legacyPrivatePreview
+  const setupMember = useMeuSocio()
+  const [presidentDraft,setPresidentDraft] = useState(()=>sugestaoPresidente(undefined))
   const [name, setName] = useState('')
   const [formation, setFormation] = useState<FormationKey>('4-3-3')
   const [rivals, setRivals] = useState(5)
@@ -2572,6 +2592,7 @@ export function EscSetup() {
   }, [])
 
   async function start() {
+    if (career && modularSetup && !presidenteCadastrado(presidentDraft)) { setPrivateStep(2); return }
     const clean = stripEmoji(name).trim()
     // logado e o nome mudou? sincroniza o cadastro → vale no online e nas stats
     if (accountName !== null && clean && clean !== accountName) {
@@ -2594,6 +2615,10 @@ export function EscSetup() {
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
+      if(modularSetup&&!podeVestirModular(presidentDraft.outfit,getPresidentOutfitTier())){
+        setNameErr(tr('Não foi possível confirmar o acesso a esta roupa. Confira seu plano ou escolha uma gratuita.','Could not confirm access to this outfit. Check your plan or choose a free outfit.'))
+        setPrivateStep(2);return
+      }
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
       // começar a nova. A nova vira a ativa; a antiga fica em "Minhas Carreiras".
       stashActiveBeforeNew()
@@ -2601,6 +2626,7 @@ export function EscSetup() {
         type: 'START_CAREER_SOLO', teamName: clean, formation, rivals,
         rivalTeams: picks, league: 'both', intro: true,
         president: privatePreview ? { name: stripEmoji(presidentName).trim() || 'Presidente', outfit: presidentOutfit } : undefined,
+        presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
     else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, holandes, clubes: clubesOn && clubes, intro: true })
@@ -2618,6 +2644,8 @@ export function EscSetup() {
       setNameErr(''); setPrivateStep(2)
     }
     const nextFromPresident = () => setPrivateStep(3)
+    if(modularSetup&&privateStep===1)return <Shell hideExit><CriarClubePresidencia name={name} onName={v=>{setName(stripEmoji(v));setNameErr('')}} formation={formation} onFormation={setFormation} identity={identidadeDaConta(name,setupMember,myApoioPerk()?.solid??APOIO_PERKS.bege.solid)} error={nameErr} onContinue={nextFromClub} onBack={()=>dispatch({type:'GO_LOBBY'})} support={<ApoieButton startScreen="batismo" trigger={open=><Btn onClick={open}>{tr('CONHECER O BATISMO','EXPLORE BAPTISM')}</Btn>}/>} /></Shell>
+    if(modularSetup&&privateStep===2)return <Shell hideExit><PresidenteFormulario value={presidentDraft} error={nameErr} onChange={v=>{setPresidentDraft(v);setNameErr('')}} onConfirm={nextFromPresident} onBack={()=>setPrivateStep(1)}/></Shell>
     return (
       <Shell className="ll-career-onboarding" hideExit>
         <main className={`ll-career-setup ll-career-step-${privateStep}`} style={{ '--career-room': `url(${careerSetupRoom})` } as CSSProperties}>
@@ -8423,6 +8451,8 @@ const ALL_POOL: WonCard[] = (() => {
   }
   return out
 })()
+// 📚 o pacote das COLEÇÕES: os três baralhos, uma entrada por carta (nome+clube+ano)
+const POOL_COLECOES: WonCard[] = BARALHO_TODO.map((c, i) => ({ id: `wildc-${i}`, name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame as Card['fame'], folk: c.folk, promessa: c.promessa, lo: 0, hi: 0, paid: 0, via: 'leilao' }))
 
 // 🏆 `motivo` = DE QUAL TÍTULO veio esta carta ("Campeão da Série C", "Campeão da
 // Copa Legends"…). Existe por causa do relato do Futpoint FC (15/09), trazido pelo
@@ -8490,7 +8520,20 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // 🎁 PACOTE SURPRESA: a carta agora é SORTEADA entre TODAS as cartas do jogo
   // (baralho BR + Europa), sempre uma que o campeão ainda NÃO tem (só repetiria
   // se já tivesse o catálogo inteiro). Trocamos o "escolher" pela emoção de abrir.
+  const colecoesOn = useColecoesLiberadas()
   const packPool = useMemo(() => {
+    // 📚 COLEÇÕES (04/10): o sorteio usa os TRÊS baralhos (o Mundo entrou — sem ele Boca, River e
+    // outros 22 clubes nunca fechavam) e PODE REPETIR fora da carreira: a repetida é o que deixa
+    // fechar o mesmo clube de novo e é a moeda das trocas. Na carreira segue a regra da Agência.
+    if (colecoesOn) {
+      const pool = POOL_COLECOES
+      if (saveCards) {
+        const saveSet = new Set(saveCards.map(c => `${c.name}|${c.club}|${c.year}`))
+        const un = pool.filter(c => !saveSet.has(`${c.name}|${c.club}|${c.year}`))
+        return un.length ? un : pool
+      }
+      return pool
+    }
     // MODO CARREIRA: a unicidade do pacote é do SAVE (agência), não do álbum geral.
     // Assim uma carta que você já tem no álbum de rua mas ainda NÃO neste save
     // entra normalmente no save (conta pra agência) — não gera carta substituta e,
@@ -8503,7 +8546,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
     }
     const un = ALL_POOL.filter(c => !owned.has(c.name))
     return un.length ? un : ALL_POOL
-  }, [owned, saveCards])
+  }, [owned, saveCards, colecoesOn])
   const [opening, setOpening] = useState(false)
   // 🔒 grava a carta na conta (álbum) — RESILIENTE: se o backend cair, guarda no
   // aparelho e re-tenta ao reabrir. NÃO revela: só garante que a carta É do campeão.
@@ -8533,7 +8576,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
   // precisa esperar a cerimônia como o onClaimed espera pros outros da sala.
   useEffect(() => {
     if (status !== 'picking' || savedRef.current || !packPool.length) return
-    const pick = packPool[Math.floor(Math.random() * packPool.length)]
+    const pick = colecoesOn ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)] // 🎲 com Coleções: lenda mais rara (sorteiaCarta)
     if (!pick) return
     savedRef.current = true
     setPendingPick(pick)
@@ -8544,7 +8587,7 @@ export function CardCollectPrompt({ seasonKey, origin = 'online', onClaimed, onG
 
   const openPack = () => {
     if (opening) return
-    const card = pendingPick ?? packPool[Math.floor(Math.random() * packPool.length)]
+    const card = pendingPick ?? (colecoesOn ? sorteiaCarta(packPool) : packPool[Math.floor(Math.random() * packPool.length)])
     if (!card) return
     if (!savedRef.current) { savedRef.current = true; void persist(card) } // rede de segurança
     setOpening(true)
@@ -8780,8 +8823,62 @@ export function EscAlbum() {
   const [down, setDown] = useState(false) // backend fora do ar — evita travar em "Carregando…"
   const [filter, setFilter] = useState<AlbumFilter>('all')
   const [sort, setSort] = useState<AlbumSort>('tier') // 🗂️ padrão: melhores primeiro
+  // 📚🤝 COLEÇÕES + TROCAS (04/10): com a trava ligada o álbum ganha abas e passa a ler cada CÓPIA
+  // (linha de user_cards com id), quais foram usadas numa coleção e quais estão presas numa troca.
+  const colecoesOn = useColecoesLiberadas()
+  const [aba, setAba] = useState<'cartas' | 'colecoes' | 'trocas'>('cartas')
+  const [copias, setCopias] = useState<CartaDoAlbum[]>([])
+  const [eu, setEu] = useState<{ id: string; nome: string } | null>(null)
+  const [recarga, setRecarga] = useState(0)
 
   useEffect(() => {
+    if (!colecoesOn) return
+    let vivo = true
+    // 🧪 bancada do vite (sem servidor): álbum de mentira pra fotografar as abas. Some do build.
+    if (import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-colecoes-demo') === '1' } catch { return false } })()) {
+      void import('./colecoes-demo').then(m => { if (!vivo) return; setEu({ id: 'demo', nome: 'Loopesmiranda FC' }); setCopias(m.copiasDemo()); setCards(m.albumDemo()); setAnon(false) })
+      return () => { vivo = false }
+    }
+    ;(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user || !vivo) return
+        const nome = String(user.user_metadata?.display_name ?? '').trim() || tr('Técnico', 'Manager')
+        setEu({ id: user.id, nome })
+        const [{ data: cs }, { data: us }, { data: tr2 }] = await Promise.all([
+          supabase.from('user_cards').select('id, card_name, card_club, card_year, card_pos, card_fame').eq('user_id', user.id),
+          supabase.from('esc_cartas_usadas').select('card_id, carreira_nome').eq('user_id', user.id),
+          supabase.from('esc_trocas').select('de, de_cartas, para_cartas, expira_em').eq('status', 'aberta').or(`de.eq.${user.id},para.eq.${user.id}`),
+        ])
+        if (!vivo) return
+        const usadas = new Map(((us ?? []) as { card_id: string; carreira_nome: string | null }[]).map(u => [u.card_id, u.carreira_nome ?? '']))
+        const presas = new Set<string>()
+        for (const x of (tr2 ?? []) as { de: string; de_cartas: string[]; para_cartas: string[]; expira_em: string }[]) {
+          if (new Date(x.expira_em).getTime() <= Date.now()) continue
+          for (const id of (x.de === user.id ? x.de_cartas : x.para_cartas)) presas.add(id)
+        }
+        setCopias(((cs ?? []) as { id: string; card_name: string; card_club: string; card_year: number; card_pos: string; card_fame: number }[]).map(c => ({
+          id: c.id, name: c.card_name, club: c.card_club, year: c.card_year, pos: c.card_pos, fame: c.card_fame,
+          usadaEm: usadas.has(c.id) ? 'sim' : null, usadaNome: usadas.get(c.id) ?? null, presa: presas.has(c.id),
+        })))
+      } catch { /* sem rede: as abas novas ficam vazias, o álbum segue */ }
+    })()
+    return () => { vivo = false }
+  }, [colecoesOn, recarga])
+  // por figurinha (nome|clube|ano): quantas cópias, quantas usadas e quantas em troca — a legenda
+  // embaixo da carta. Nada some do álbum: a usada e a presa numa troca continuam contando aqui.
+  const copiasPorChave = useMemo(() => {
+    const m = new Map<string, { n: number; usadas: number; presas: number; onde?: string }>()
+    for (const c of copias) {
+      const k = `${c.name}|${c.club}|${c.year}`; const v = m.get(k) ?? { n: 0, usadas: 0, presas: 0 }
+      v.n++; if (c.usadaEm) { v.usadas++; v.onde = c.usadaNome ?? v.onde } else if (c.presa) v.presas++
+      m.set(k, v)
+    }
+    return m
+  }, [copias])
+
+  useEffect(() => {
+    if (import.meta.env.DEV && (() => { try { return localStorage.getItem('esc-colecoes-demo') === '1' } catch { return false } })()) return
     ;(async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser()
@@ -8834,6 +8931,17 @@ export function EscAlbum() {
         {!loading && <p className="font-black text-lg mt-2" style={OSWALD}>{shown.length}/{CATALOG_TOTAL} {tr('craques', 'stars')}{filter !== 'all' ? ` (${filter === 'cpu' ? '⚡ Offline' : '👥 Online'})` : ''}</p>}
       </div>
 
+      {colecoesOn && !anon && (
+        <div className="flex gap-1.5">
+          {([['cartas', tr('🃏 Cartas', '🃏 Cards')], ['colecoes', tr('📚 Coleções', '📚 Collections')], ['trocas', tr('🤝 Trocas', '🤝 Trades')]] as const).map(([id, rot]) => (
+            <button key={id} onClick={() => setAba(id)} className="flex-1 py-2 font-black text-[13px] uppercase border-[3px] border-black rounded-xl"
+              style={{ ...OSWALD, background: aba === id ? GOLD : '#fff', boxShadow: aba === id ? `2px 2px 0 0 ${INK}` : 'none' }}>{rot}</button>
+          ))}
+        </div>
+      )}
+      {colecoesOn && !anon && aba === 'colecoes' && <AbaColecoes minhas={copias} />}
+      {colecoesOn && !anon && aba === 'trocas' && eu && <AbaTrocas meuId={eu.id} meuNome={eu.nome} minhas={copias} recarregar={() => setRecarga(x => x + 1)} />}
+      {(!colecoesOn || anon || aba === 'cartas') && <>
       <div className="flex border-[3px] border-black rounded-xl overflow-hidden">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setFilter(t.id)}
@@ -8881,11 +8989,23 @@ export function EscAlbum() {
       )}
       {!anon && (
         <div className="grid grid-cols-2 gap-3">
-          {shown.map((c, i) => (
-            <CollectibleCard key={i} name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
-          ))}
+          {shown.map((c, i) => {
+            const info = colecoesOn ? copiasPorChave.get(`${c.name}|${c.club}|${c.year}`) : undefined
+            const partes = info ? [
+              info.n > 1 ? `x${info.n}` : '',
+              info.usadas ? tr(`⚫ ${info.usadas} usada${info.usadas > 1 ? 's' : ''}${info.onde ? ` no ${info.onde}` : ''}`, `⚫ ${info.usadas} used${info.onde ? ` in ${info.onde}` : ''}`) : '',
+              info.presas ? tr(`🔒 ${info.presas} em troca`, `🔒 ${info.presas} in a trade`) : '',
+            ].filter(Boolean) : []
+            return (
+              <div key={i}>
+                <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={c.folk} promessa={c.promessa} showBio />
+                {partes.length > 0 && <p className="text-[10.5px] font-black text-center mt-1.5 text-black/65" style={OSWALD}>{partes.join(' · ')}</p>}
+              </div>
+            )
+          })}
         </div>
       )}
+      </>}
       <Btn onClick={() => dispatch({ type: 'GO_LOBBY' })} className="w-full text-lg">🏠 {tr('Voltar ao início', 'Back to start')}</Btn>
     </Shell>
   )
@@ -10903,7 +11023,12 @@ export function EscEnd() {
           <LigaHub roomId={state.roomId} souDono={state.isHost}
             humanos={state.managers.filter(m => m.isHuman).map(m => m.teamName)}
             gravar={{
-              seasonNo: state.seasonNo, matchSeed: state.seed, champName: chTab ? (chCamp?.name ?? champ.name) : champ.name,
+              // 🏆 MINHAS LIGAS: a linha da estante é da TEMPORADA (o número nunca repete numa liga), não
+              // da semente (04/10, liga KD1TUL do Loopesmiranda). Toda largada da sala de espera nascia com
+              // a MESMA semente (código da sala) e a 1ª temporada de cada largada escrevia POR CIMA da 1ª
+              // da largada anterior: as temporadas 1, 4 e 10 dele viraram uma linha só, a 11. Sala rápida
+              // continua pela semente (lá o "novo leilão" zera a temporada pra 1, ver 16/08).
+              seasonNo: state.seasonNo, matchSeed: state.ligaMode ? undefined : state.seed, champName: chTab ? (chCamp?.name ?? champ.name) : champ.name,
               scorerName: chTab ? copaSc?.name : myScorer?.name, scorerGoals: chTab ? copaSc?.goals : myScorer?.goals,
               scorerTeamName: chTab ? copaSc?.teamName : state.managers.find(m => m.id === myScorer?.teamId)?.teamName,
               micoName: chTab ? (chTab.length > 1 ? chTab[chTab.length - 1]?.name : undefined) : table.length > 1 ? table[table.length - 1]?.name : undefined,

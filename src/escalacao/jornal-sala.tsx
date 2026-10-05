@@ -304,6 +304,7 @@ const BANDEIRA_JORNAL: Record<string, string> = {
   Holanda: '🇳🇱', Itália: '🇮🇹', Portugal: '🇵🇹', México: '🇲🇽', Uruguai: '🇺🇾', Colômbia: '🇨🇴',
   Bélgica: '🇧🇪', Paraguai: '🇵🇾', Equador: '🇪🇨', Japão: '🇯🇵', Senegal: '🇸🇳', Chile: '🇨🇱',
   Peru: '🇵🇪', Dinamarca: '🇩🇰', Camarões: '🇨🇲', EUA: '🇺🇸', Croácia: '🇭🇷', 'Coreia do Sul': '🇰🇷',
+  Escócia: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', Sérvia: '🇷🇸', Turquia: '🇹🇷', Irlanda: '🇮🇪', Suécia: '🇸🇪', Argélia: '🇩🇿', Gana: '🇬🇭', 'Costa do Marfim': '🇨🇮',
 }
 const flagDoPais = (p: string) => BANDEIRA_JORNAL[p] ?? ''
 

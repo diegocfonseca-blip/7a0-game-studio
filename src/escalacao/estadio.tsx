@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorVisual } from './career-sponsor-visual'
 // ─── 🏟️ ESTÁDIO — aba da carreira (o estádio que CRESCE na tela) ─────────
@@ -586,7 +586,8 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView }: {
+  presidencyView?: ReactNode
   cinematic?: boolean
   st: StadiumSave | undefined
   coins: number
@@ -683,7 +684,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           </span>
           <span style={{ background: ACC, color: '#fff', border: `2px solid ${ACCB}`, borderRadius: 999, padding: '2px 10px', fontSize: 10.5, fontWeight: 900, textTransform: 'uppercase', ...OSW }}>{tr('nível', 'level')} {lvl.n}</span>
         </div>
-        {cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} /></CareerStadiumView> : <StadiumSvg st={st} />}
+        {presidencyView ?? (cinematic ? <CareerStadiumView st={st}><StadiumSvg st={st} /></CareerStadiumView> : <StadiumSvg st={st} />)}
         {edEstadio && meuSocio?.ativo && (
           <div style={{ border: `2.5px solid ${INK}`, borderRadius: 12, background: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '9px 10px', marginTop: 8 }}>
             <p style={{ fontWeight: 900, fontSize: 12, ...OSW }}>{tr('🎫 Batiza teu estádio — mimo de sócio', '🎫 Name your stadium — member perk')}</p>

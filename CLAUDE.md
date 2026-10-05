@@ -304,6 +304,12 @@ Agora:
    ⚠️ **Ligar um baralho NOVO no gerador exige semear a foto primeiro**, senão
    a home anuncia todas as cartas velhas dele como "entrou hoje" (foi o que
    quase aconteceu com as 174 do Mundo em 12/09).
+   ⚠️ **O gerador é POR RODADA: roda UMA vez por mudança e commita** (01/10). Ele
+   escreve só a diferença entre a foto e o baralho de agora — rodar de novo "pra
+   conferir" acha zero mudanças e **zera o arquivo gerado** (foram 422 linhas do
+   Lote 40, recuperadas com `git checkout`). E a foto (`catalogo-snapshot.json`,
+   formato `DECK|nome|clube|ano` → `{f: fame…}`) é a memória: nunca abrir pra
+   escrever antes de ler.
 5. **Regra permanente (21/08): MEXEU NO JOGADOR, TODO SAVE ATUALIZA.** Palavras
    do Diego: *"sempre que atualizarmos qualquer coisa de jogador deve atualizar,
    seja em carreira antiga, atual, ou em times dos bots — o nível, a categoria,
@@ -383,6 +389,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   de 24, estilo 86/90/94). Tabela: verde nos 2 primeiros, amarelo no 3º enquanto
   está entre os 4 melhores, e um quadro só dos terceiros. Desempate: pontos →
   vitórias → saldo → gols.
+  🔁 **02/10: A COPA VIROU DE 32** (*"vamos fazer 32"*): 8 grupos de 4, passam os 2
+  primeiros = 16, sem quadro de 3ºs; carreira classifica o TOP 32 do ranking de clubes.
+  O formato sai do NÚMERO de seleções (`formatoCopa`), então Copa de 24 já começada
+  termina com 24. País novo na Copa precisa de **11+ cartas** e fechar uma formação; as
+  cartas que ele pediu pra completar são de jogador **famoso no mundo todo** (bom ou ruim).
 - **Odeia spoiler**: tabela, giro, artilharia — NADA revela resultado antes da
   animação/apito na tela.
 - **Nada pode atrasar o ritmo do jogo**: zoeira/interação nova entra nos tempos
@@ -429,6 +440,18 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   se classificou pula ou assiste. Palavras dele: *"se tô na Liberta não vejo da Champions e vice-versa… tudo
   padrão do jogo"*. Detalhe completo em `docs/pendencias.md` (01/10). Mockup antes de codar. **FEITO em 01/10**
   (mockups aprovados; o Codex parou e esta linha de trabalho ficou com a sessão do Claude).
+  🔁 **02/10, 2º teste dele: "TEM QUE SER COM BASE NO QUE JÁ EXISTE".** A 1ª tela fugiu do mockup aprovado (tabela
+  dobrada, botão "Próximo" solto, sem o controle) e ele cortou: *"cadê o botão de manual que é padrão?… toda hora
+  apertando próximo, não é assim"*. Regra: tela de competição nova = as MESMAS peças da Copa da carreira/Liberta do
+  online, na mesma ordem (placar grande → 🎮 Controle da partida → tabela à vista → outros jogos). **Nunca inventar botão
+  de avançar próprio.** Mais duas decisões dele: **as duas finais na mesma noite** (a minha grande, a outra em cartão) e
+  **sem vaga = Pular ou Assistir UMA** (ele escolhe qual). 🔓 **Champions só abre depois de ganhar a Libertadores**
+  (*"só liberar a Champions após ganhar a Libertadores"*) — escada América → Europa, aberta pra sempre na carreira.
+  ✉️ **E A ESCOLHA VIROU CONVITE (02/10)**: o clube grande CHAMA o presidente pra ser técnico convidado; 2 convites
+  sorteados do bloco da sua posição (2+2 com a Champions aberta). Na tela aparece o clube (Flamengo, escudo do Flamengo)
+  com "técnico: <seu clube>"; a mascote do gol é a SUA. Ele aprovou os dois: *"adorei"* e *"perfeito"*.
+  🟢 **LIBERADA PRA TODOS EM 02/10** (*"pode publicar"* → *"liberar pra todos"*): `INTERNATIONAL_CAREER_GERAL = true`
+  e a função do banco aberta pra toda conta logada.
   🏅 **Pontos do ranking global (01/10)**: Copa do Mundo 200 › **Mundial 60** › **Libertadores/Champions 50** › Copa
   do Brasil 30 › Série A 20… (`PTS_TITULO` + RPC `esc_pyramid_rank_rows_v2` — os dois andam juntos).
   💰 **Prêmio por etapa**: Libertadores/Champions um pouco ACIMA da Copa do Brasil (6·8·10·14·20·30·60); Mundial um
@@ -678,6 +701,26 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   categoria. Eu inventei um gerador com cartas (coloridas e depois todas douradas) e ele cortou:
   *"sem mostrar as cartas com cores… não entendi por que estão douradas, que loucura é essa"*, e mandou
   o print do formato de 22/09. Lote grande: `--setores GOL,LAT,ZAG,MEI` + `--setores ATA`.
+
+- **📺 CENTRAL LEGENDS = a home da carreira (03/10; liberada pra TODOS no mesmo dia).** Pedido: *"falta uma área na
+  home central, com giro da rodada, notícias, transferências"*. Virou aba, a primeira da barra, e a carreira abre
+  nela. Regras que ele deu no caminho: **visual com as artes cinematográficas que o jogo já tem** (a 1ª versão em
+  branco/creme ele chamou de *"péssimo"*); **giro em tamanho normal e jornal um pouco maior**, sem exagero de notícia
+  (7 no desktop, 5 no celular); **toque na tabela abre a aba Tabelas** (cada caixa leva pra aba certa). O botão de
+  jogar é o MESMO do controle (`avancarRodada`) — nada de passo novo. Código: `central.tsx` + `central.css` +
+  `central-noticias.ts` (redação pura, trava `npm run central`). `CENTRAL_GERAL = true` desde 03/10; `false` fecha só nele.
+
+- **☁️ O SAVE DA CARREIRA SÓ VAI PRA NUVEM QUANDO ELE APERTA SALVAR (04/10, regra permanente).** Palavras dele:
+  *"o save do usuário na carreira só deve salvar após ele apertar em salvar"*. Motivo: a fatura do Supabase (save de
+  ~1 MB baixado a cada minuto e a cada volta pra home = ~590 GB/mês de tráfego). O aparelho segue salvando sozinho; a
+  nuvem só no "Sair e salvar carreira" (e trocar carreira/Bafo). E nunca baixar o save inteiro sem antes conferir o
+  carimbo (`carimboDaNuvem`). Trava: `npm run nuvem`. **Toda leitura nova de coluna grande (save, game_state) tem que
+  pensar no tráfego** — é isso que a conta cobra.
+  📡 **E a sala online não tem mais "tô vivo" (04/10).** O dono só fala quando joga ou a cada ~20-30s parado
+  (heartbeat de estado); o convidado só pede o estado depois de 60s calado (8s se o lance dele ficou sem resposta); o
+  lance do convidado vai só pro dono (`hostInbox` em toda sala). Diego: *"não ligo praquela faixa vermelha mesmo"*.
+  **Nunca criar mensagem periódica nova no canal** sem medir: cota do plano = 5 milhões de mensagens/mês e cada
+  entrega pra cada pessoa conta uma. Trava: `npm run canal`.
 
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque

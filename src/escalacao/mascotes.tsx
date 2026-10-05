@@ -63,6 +63,10 @@ import panteraMascoteImg from './img/pantera-mascote.webp' // 🐆👑 Pantera N
 import vascoSafMascoteImg from './img/vasco-saf-mascote.webp' // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90): arte própria do dono
 import cruzeiroBerretinhoMascoteImg from './img/cruzeiro-berretinho-mascote.webp' // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749): arte própria do dono
 import elMineiroMascoteImg from './img/el-mineiro-mascote.webp' // 🐓 El Mineiro (bastosmbc): arte própria do dono
+import guimaraesMascoteImg from './img/guimaraes-mascote.webp' // 🔴 Guimarães SCI (jadriovani): arte própria do dono
+import gavioesMascoteImg from './img/gavioes-mascote.webp' // 🦅 Gaviões SCCP (kauealves584): arte própria do dono
+import vieiraMascoteImg from './img/vieira-mascote.webp' // 😈 Vieira FC (felipe.vrod10): arte própria do dono
+import madrugaMascoteImg from './img/madruga-mascote.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaMascoteImg from './img/julia-mascote.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousMascoteImg from './img/fabulous-mascote.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import gremioMascoteImg from './img/gremio-mascote.webp' // 🔵⚫⚪ Grêmio FBPA (danieldias11): arte própria do dono
@@ -341,6 +345,32 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 237×440, 44 KB. mascote_key = "el_mineiro_galo_doido".
   el_mineiro_galo_doido: (
     <img src={elMineiroMascoteImg} height={176} width={Math.round(176 * 237 / 440)} alt="O Galo Doido — El Mineiro" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 😈 O DIABO (mascote do Vieira FC — felipe.vrod10, 03/10): o diabo vermelho de chifres e
+  // tridente, agachado com a garra em cima da bola. Arte do próprio dono.
+  // 📏 258×440, 45 KB — é ALTO, então a altura fica em 176. mascote_key = "vieira_diabo".
+  vieira_diabo: (
+    <img src={vieiraMascoteImg} height={176} width={Math.round(176 * 258 / 440)} alt="O Diabo — Vieira FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🦅 O GAVIÃO (mascote do Gaviões SCCP — kauealves584, 02/10): o gavião preto e branco de
+  // asas abertas, gritando, com a bandeira listrada "GAVIÕES SCCP" nas garras. Arte do dono.
+  // 📏 224×440, 36 KB — é ALTO, então a altura fica em 176. mascote_key = "gavioes_gaviao".
+  gavioes_gaviao: (
+    <img src={gavioesMascoteImg} height={176} width={Math.round(176 * 224 / 440)} alt="O Gavião — Gaviões SCCP" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🔴 O SACI (mascote do Guimarães SCI — jadriovani, 02/10): de gorro vermelho e cachimbo,
+  // uniforme vermelho do clube, numa perna só levantando a terra. Arte do próprio dono.
+  // 📏 320×440, 41 KB — é ALTO, então a altura fica em 176. mascote_key = "guimaraes_saci".
+  guimaraes_saci: (
+    <img src={guimaraesMascoteImg} height={176} width={Math.round(176 * 320 / 440)} alt="O Saci — Guimarães SCI" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 👒 O MADRUGA (mascote do Real Madruga — luck.45, 02/10): o boleiro de chapéu de
+  // pescador e bigodão, uniforme branco do clube, encostado no barril, com o jornal
+  // de "VAGAS DE EMPREGO" no chão de pedra. Arte do próprio dono.
+  // 📏 440×416, 43,5 KB — é LARGO, então a largura fica em 176 e a altura sai da
+  // proporção real. mascote_key = "madruga_boleiro".
+  madruga_boleiro: (
+    <img src={madrugaMascoteImg} width={176} height={Math.round(176 * 416 / 440)} alt="O Madruga — Real Madruga" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦈🔴⚪ O TUBARÃO (mascote do Julia Barranquila — dondeestasleomessi10, 24/09):
   // tubarão de óculos espelhado dourado, camisa listrada do clube, tênis azul e a
@@ -862,15 +892,14 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Realeza FC': 'scorporila',
   'Deportivo Montreal': 'maite',
   // 🛡️🌱 Marolados FC (paisagensetrilha). CARIMBO_GOL é busca EXATA: entram as 4
-  // formas do nome reservado + a caixa alta + o nome VELHO (Real Madruga), senão o
-  // carimbo do gol falha em save antigo.
+  // formas do nome reservado + a caixa alta. (O nome velho "Real Madruga" SAIU daqui
+  // em 02/10: virou batismo de outro dono, luck.45.)
   'Marolados': 'marolado',
   'Marolados FC': 'marolado',
   'Marolados EC': 'marolado',
   'Marolados SC': 'marolado',
   'MAROLADOS': 'marolado',
   'MAROLADOS FC': 'marolado',
-  'Real Madruga': 'marolado',
   // 🦁⚡ Remoçada (luiz.maia.luiz) — as 4 formas do nome + o nome VELHO, como manda
   // a regra dos batismos (o Olimpo FC vira Remoçada ao carregar save antigo).
   'Remoçada': 'leao_thor',
@@ -1086,6 +1115,26 @@ export const CARIMBO_GOL: Record<string, string> = {
   'El Mineiro EC': 'el_mineiro_galo_doido',
   'El Mineiro SC': 'el_mineiro_galo_doido',
   'Brodeiragem': 'el_mineiro_galo_doido',
+  // 😈 o Diabo carimba o gol do Vieira FC (felipe.vrod10, 03/10).
+  'Vieira FC': 'vieira_diabo',
+  'Vieira': 'vieira_diabo',
+  'Vieira EC': 'vieira_diabo',
+  'Vieira SC': 'vieira_diabo',
+  'Prestígio FC': 'vieira_diabo',
+  // 🦅 o Gavião carimba o gol do Gaviões SCCP (kauealves584, 02/10).
+  'Gaviões SCCP': 'gavioes_gaviao',
+  'Gaviões SCCP FC': 'gavioes_gaviao',
+  'Gaviões SCCP EC': 'gavioes_gaviao',
+  'Gaviões SCCP SC': 'gavioes_gaviao',
+  // 🔴 o Saci carimba o gol do Guimarães SCI (jadriovani, 02/10).
+  'Guimarães SCI': 'guimaraes_saci',
+  'Guimarães SCI FC': 'guimaraes_saci',
+  'Guimarães SCI EC': 'guimaraes_saci',
+  // 👒 o Madruga carimba o gol do Real Madruga (luck.45, 02/10).
+  'Real Madruga': 'madruga_boleiro',
+  'Real Madruga FC': 'madruga_boleiro',
+  'Real Madruga EC': 'madruga_boleiro',
+  'Real Madruga SC': 'madruga_boleiro',
   'Julia Barranquila': 'julia_tubarao',
   'Julia Barranquila FC': 'julia_tubarao',
   'Julia Barranquila EC': 'julia_tubarao',
@@ -1179,6 +1228,10 @@ export const MASCOTE_NOME: Record<string, string> = {
   vasco_pirata: 'O Pirata', // ⚽🏴‍☠️ Vasco SAF (brunnodeluca90, 24/09)
   cruzeiro_lobo_rei: 'O Lobo Rei', // ⭐🐺 Cruzeiro de Berretinho (weslleygomes749, 25/09)
   el_mineiro_galo_doido: 'O Galo Doido', // 🐓 El Mineiro (bastosmbc, 27/09)
+  guimaraes_saci: 'O Saci', // 🔴 Guimarães SCI (jadriovani, 02/10)
+  gavioes_gaviao: 'O Gavião', // 🦅 Gaviões SCCP (kauealves584, 02/10)
+  vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
+  madruga_boleiro: 'O Madruga', // 👒 Real Madruga (luck.45, 02/10)
   julia_tubarao: 'O Tubarão', // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10, 24/09)
   fabulous_aguia: 'A Fabulosa', // 🦅🔴⚫ Fabulous EC (koeppfabio, 23/09)
   gremio_gaucho: 'O Gaúcho',   // 🔵⚫⚪ Grêmio FBPA (danieldias11, 21/09)

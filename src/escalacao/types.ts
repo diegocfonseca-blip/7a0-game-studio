@@ -142,7 +142,7 @@ export interface WonCard extends Card {
 export interface LedgerEntry {
   id: string
   season: number // temporada do lançamento
-  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' | 'socio' // prêmios · bilheteria · folha · compra · venda · patrocínio · comissão da SAF · obra no estádio · compra da SAF · venda da SAF · saldo inicial · renda do empresário · bico de folga · brinde de sócio
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' | 'socio' | 'presidency' // bens da presidência separados de transferências de jogadores
   label: string
   amount: number // sinal: + entrada, − saída
   player?: string // compra/venda: nome do jogador
@@ -641,6 +641,11 @@ export interface EscState {
   careerInternational?: import('./career-international-season').InternationalCampaign | null
   /** 🌎 Histórico por temporada, independente do clube representado; ausente nos saves antigos. */
   careerInternationalHistory?: import('./career-international-season').InternationalHistoryEntry[]
+  /** 🌎 placar ACUMULADO dos jogadores da máquina nas 3 competições internacionais: chave da carta
+   *  (nome|clube|ano) → [jogos, gols, assistências], somando todas as temporadas. Substitui a lista
+   *  `botPlayerStats` que cada temporada guardava inteira (~45 KB por temporada — 03/10, save do
+   *  marcomak03). Os números são os mesmos; só param de se repetir a cada ano. */
+  careerIntlBotTotals?: Record<string, [number, number, number]>
   careerTorcida?: Record<string, number> // 🎪 TORCIDÔMETRO (Diego 11/08): 0-100 por time HUMANO (chave = m<id>), começa em 50. Atualiza no fim de cada temporada pela colocação final (ver torcidaDeltas em pyramidseason.tsx) + bônus/punição de subida/queda de verdade. Só dá BÔNUS de moedas quando alto — nunca desconta o fixo do estádio.
   careerTorcidaHist?: Record<string, { delta: number; motivo: string }[]> // 🎪 histórico SUTIL do torcidômetro (chave = m<id>): últimos eventos que mudaram a torcida (ex.: "+5 · 3º lugar", "−5 · caiu de divisão"), guarda só os últimos 6, mostra só os últimos 3 no cabeçalho
   careerDebtBarrier?: Record<number, number> // 🚨 CRISE FINANCEIRA (Diego 12/08): pior barreira de -500 negativos já CRUZADA por técnico (mgrId → valor, ex. -500/-1000/-1500...). Só carreira SOLO. 1ª observação vira baseline SEM disparar banner (quem já tava fundo no vermelho quando o recurso saiu não é punido retroativo — só a PRÓXIMA barreira, daqui pra frente, dispara).
@@ -659,6 +664,9 @@ export interface EscState {
   booksSeason?: number // 💰 temporada cujo FECHAMENTO financeiro (prêmios, bilheteria, patrocínio, empresário, folha) já foi lançado no caixa. Trava anti-duplicidade: a contabilidade roda UMA vez, assim que a temporada+copas acabam.
   tvBannerSeen?: string[] // 📺 divisões (D/C/B/A) cujo banner de "a TV descobriu seu clube" já foi mostrado (1x cada, carreira solo). Depois dos 4, não aparece mais.
   tvExtraVisto?: boolean // 📺 aviso ÚNICO da cota extra de TV (vídeo nas redes, Diego 23/08) já mostrado — aparece 1x na virada de temporada, pra conta antiga ou nova, e nunca mais.
+  /** 💸 MERCADO DA TEMPORADA (03/10, pra Central): TODO negócio do pregão desta temporada — de todo clube,
+   *  humano ou bot. Só a temporada atual (a virada começa lista nova), no máximo 80 lotes, só exibição. */
+  careerMercado?: { season: number; lotes: { name: string; pos: string; team: string; teamId: number; paid: number; via: 'leilao' | 'monte' | 'desempate' }[] }
   careerLedger?: LedgerEntry[] // 🧾 carreira SOLO: livro-caixa (extrato + transferências) — só exibição, nunca realimenta o caixa. Cresce ao longo da carreira; limitado às últimas ~250 entradas.
   careerLedgers?: Record<number, LedgerEntry[]> // 🧾 carreira ONLINE: livro-caixa por técnico (mgrId → extrato). Offline usa careerLedger (single).
   // 🤝 PATROCÍNIO POR APOSTA (05/08, substitui o antigo "marca fixa por divisão"):
@@ -735,6 +743,7 @@ export interface EscState {
   bafoOn?: boolean
   bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }> // mgrId → dono do time (conta + carreira que ele trouxe). É por aqui que a cascata sabe de QUEM sai a carta e pra QUAL carreira ela vai.
   bafoValendo?: boolean // 🃏 a partida vale carta de verdade (padrão) ou é amistoso — escolha do host na criação da sala
+  colecoesRecebidas?: string[] // 📚 idempotência das COLEÇÕES recebidas nesta carreira (04/10): a mesma recebida não paga duas vezes
   bafoTrocasFeitas?: string[] // 🃏 idempotência do COFRE da carreira: chaves das trocas de Bafo já aplicadas neste save (o servidor já trocou o dono; isto evita tirar/pôr a carta duas vezes no aparelho).
   quickCopa?: QuickCopaState | null
   liberta?: LibertaState | null // 🌎 fase de grupos da Libertadores (o mata-mata dela usa o quickCopa)
@@ -979,6 +988,8 @@ export interface EscState {
     name: string
     outfit: 'casual' | 'polo' | 'social' | 'terno'
   }
+  careerPresidentBase?: import('./presidencia-carreira').PresidenteBaseSave
+  careerPresidency?: Record<number, import('./presidencia-carreira').BensPresidencia>
   careerTitles: number // títulos acumulados na carreira atual (qualquer divisão)
   careerTitlesA: number // títulos da SÉRIE A (viram estrelas ⭐ no escudo)
   careerRivalCount: number // quantos rivais de leilão (3/5/7/9) na carreira

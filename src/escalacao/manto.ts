@@ -81,6 +81,21 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // mandou (24/09): vermelho 31,7% do manto, branco 30,9%. O azul-marinho é só
   // gola e contorno (14%), então fica de fora — 3ª cor só pra tricolor de verdade.
   'dondeestasleomessi10@gmail.com': ['#E60205', '#F7F5F3'],
+  // 👒⚪ Real Madruga — BRANCO e PRETO, MEDIDOS na camisa que o dono mandou (02/10):
+  // branco 66% (mediana #F3F1F0), preto das listras e da gola 28% (#080706). O dourado
+  // dos frisos (2%) fica de fora. O preto sobe pra #161412 pelo motivo de sempre (listra
+  // fininha de preto puro lê como buraco); o tom quente medido foi mantido.
+  'luck.45@live.com': ['#F3F1F0', '#161412'],
+  // 😈🔴⚫ Vieira FC — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou (03/10): preto 91% (mediana
+  // #110D0D, sobe pra #171212 — listra fina de preto puro lê como buraco) e vermelho das listras/gola 5% (#DE1B19).
+  'felipe.vrod10@gmail.com': ['#171212', '#DE1B19'],
+  // 🦅⚫⚪ Gaviões SCCP — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (02/10): preto 77%
+  // (mediana #100D0E, sobe pra #161314 — listra fina de preto puro lê como buraco) e branco da
+  // gola/punhos 4% (#F9F8F8).
+  'kauealves584@gmail.com': ['#161314', '#F9F8F8'],
+  // 🔴⚪ Guimarães SCI — VERMELHO e BRANCO, MEDIDOS na camisa que o dono mandou (02/10):
+  // vermelho 84% (mediana #C50208), branco da gola e dos punhos 4% (#FEFBFC).
+  'jadriovani@gmail.com': ['#C50208', '#FEFBFC'],
   // 🦅🔴⚫ Fabulous EC — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou
   // (23/09): preto 84,3% do manto, vermelho 12,3%.
   // ⚠️ O preto sobe de #0D0809 pra #161011 pelo motivo de sempre (ver Futpoint):

@@ -61,6 +61,13 @@ for (const a of AVULSOS) {
 // 🏷️ no POST o nome sai limpo: "Maicon (Grêmio)" vira "Maicon", porque o clube já
 //    aparece do lado. O parêntese existe no código só pra separar de um xará.
 if (SO_SETORES.length) for (const p of SETORES) if (!SO_SETORES.includes(p)) porSetor[p] = []
+// 📑 `--parte 1/2` (01/10, Lote 40 com 322 cartas): um setor sozinho ainda estourou o rodapé
+//    (MEI do Mundo = 61). Parte a lista de CADA setor em n fatias iguais e fica só com a i-ésima.
+const PARTE = arg('parte', '')
+if (/^\d+\/\d+$/.test(PARTE)) {
+  const [i, n] = PARTE.split('/').map(Number)
+  for (const p of SETORES) { const l = porSetor[p]; const tam = Math.ceil(l.length / n); porSetor[p] = l.slice((i - 1) * tam, i * tam) }
+}
 const limpo = n => n.replace(/\s*\([^)]*\)\s*$/, '').trim()
 const total = SETORES.reduce((s, p) => s + porSetor[p].length, 0)
 

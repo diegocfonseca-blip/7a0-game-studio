@@ -37,6 +37,8 @@ export type InternationalCampaign = {
   mundialChampion: string
   statistics: InternationalStat[]
   reveal: number
+  /** ✉️ os clubes cujo convite o presidente RECUSOU (02/10) — o jornal provoca se um deles for campeão */
+  recusados?: string[]
 }
 export type InternationalHistoryEntry = {
   season: number
@@ -56,6 +58,8 @@ export type InternationalHistoryEntry = {
   /** chave da carta, clube representado, jogos, gols, assistências; forma curta para caber no save local. */
   botPlayerStats?: [string, string, number, number, number][]
   libertadoresChampion: string; championsChampion: string; mundialChampion: string
+  /** ✉️ convites recusados naquela temporada (opcional: saves antigos não têm) */
+  recusados?: string[]
 }
 
 const xiCardKey = (card: Card) => internationalCardKey(card)
@@ -219,7 +223,12 @@ export function makeInternationalCampaign(input: {
   const steps: InternationalStep[] = Array.from({ length: 14 }, (_, i) => ({ label: i === 13 ? 'Mundial de Clubes' : `Noite internacional ${i + 1}` }))
   for (let i = 0; i < 8; i++) steps[i].champions = champLeague[i]
   ;[0, 1, 3, 5, 7].forEach((step, i) => { steps[step].libertadores = libGroupRounds[i] })
-  ;[lib16, lib8, lib4, lib2].forEach((phase, i) => { steps[8 + i].libertadores = phase })
+  // 🏆 AS DUAS FINAIS NA MESMA NOITE (Diego 02/10: *"quando for pra final deveria aparecer os
+  // dois times da Libertadores e o da Champions ao mesmo tempo"*). A Champions tem uma fase a
+  // mais (repescão, noite 9), então o mata-mata da Liberta começa uma noite depois: oitavas com
+  // oitavas, quartas com quartas, semi com semi e as finais juntas na noite 13. Na noite 9 a
+  // Liberta descansa (a tela pula a noite em que a sua competição não joga).
+  ;[lib16, lib8, lib4, lib2].forEach((phase, i) => { steps[9 + i].libertadores = phase })
   ;[champPlayoff, champ16, champ8, champ4, champ2].forEach((phase, i) => { steps[8 + i].champions = phase })
   steps[13].mundial = mundial
   return {

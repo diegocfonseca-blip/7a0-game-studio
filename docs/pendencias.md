@@ -1,3 +1,294 @@
+## 04/10/2026 — 📚 COLEÇÕES DE CLUBES + 🤝 TROCAS: regras que o Diego fechou (mockup v2 enviado, aguardando OK)
+- *"Ok vamos fazer"*. Só COLEÇÃO DE CLUBES (nada de feitos/títulos misturados). 74 clubes com 11+ cartas; fechar = 11
+  cartas do mesmo clube, qualquer época. Prêmio = metade da soma do valor de TODAS as cartas do clube no baralho
+  (Lenda 5 · Craque 3 · Promessa 2 · Bom 1 · Foi profissional 0,5) — tabela em `docs/colecoes-clubes.md`.
+- O jogador APERTA pra receber e escolhe a carreira; as moedas caem no caixa dela. As 11 cartas usadas ficam marcadas
+  "usadas na carreira X": **continuam no álbum da home** (escurecidas com o nome da carreira) mas não contam mais pra
+  fechar aquele clube. Fechar de novo (pra outra carreira) = mais 11 cartas → **o sorteio passa a poder dar REPETIDA**.
+- Coleção NASCE sozinha quando um clube chega a 11 cartas no baralho (selo 🆕), e o prêmio acompanha o baralho.
+- Trocas: aba no álbum (Recebidas · Enviadas · Nova); busca técnico pelo nome do time + quem já jogou com você primeiro,
+  com selo de quem tem carta que falta numa coleção sua; até 3 cartas de cada lado; só carta LIVRE (não usada); recado
+  de até 120 letras; vale 48 h; Aceitar · Contra (contraproposta) · Recusar; nada sai do álbum até aceitar.
+- ✅ Regras FINAIS (04/10): fechar = **TODAS as cartas do clube** (clube com 11+); prêmio = **soma cheia arredondada
+  pra cima** (Real Madrid 162 · Flamengo 141 · tudo 3.263); troca vale **carta única E repetida**; baralho **Mundo
+  entra no sorteio**. Tabela: `docs/colecoes-clubes.md`. Trava: `npm run colecoes`.
+- 🚧 EM CONSTRUÇÃO no branch, só a conta do Diego (`COLECOES_GERAL = false`, sport.ts): `colecoes.ts` (regra pura),
+  `album-colecoes.tsx` (abas Coleções e Trocas, já ligadas no álbum), `creditaColecao` / `aplicaSaidasDeTroca` no
+  store, sorteio com Mundo + repetida atrás da trava, legenda no álbum (x2 · ⚫ usada · 🔒 em troca — nada some),
+  bancada `esc-colecoes-demo=1` (álbum de mentira, só no vite). Cópia tem 3 estados: 🟢 livre · 🔒 em troca · ⚫ usada;
+  na troca/coleção o jogo escolhe a cópia livre sozinho.
+- 🔁 MUDOU (04/10, Diego: *"ele já vai tá na carreira dele"*): **no Álbum você VÊ e TROCA; na carreira você RECEBE.** O
+  "Receber" saiu do álbum e foi pra dentro da carreira, na Agência (Sua Agência 2.0, e no Escritório clássico dos
+  saves antigos) — `ColecoesDaCarreira`, sem perguntar carreira: o reducer `COLECAO_RECEBIDA` põe as moedas NESTA
+  carreira (uma vez por marca). Ordem: prontas primeiro, depois a mais completa em %; já recebidas (e não prontas de
+  novo) num bloco "✔️ Já recebidas" no fim. Repetida aparece como aviso: "🔁 você tem N repetidas · troque no Álbum".
+- 🎲 SORTEIO DA CARTA DO TÍTULO (04/10, *"antes não era raro aparecer lenda, agora tem que ser um pouco mais"*): com a
+  trava ligada, `sorteiaCarta` (colecoes.ts) sorteia primeiro a CATEGORIA — 👑 Lenda 4% · ⭐ Craque 16% · 💎 Promessa 4% ·
+  🎯 Bom 58% · 🪵 Foi profissional 18% — e depois a carta dentro dela; pode repetir. Antes era carta por carta, lenda ~9%.
+  Quem já tem as cartas fica com elas (*"não vou prejudicar eles"*): só vale pros pacotes novos. Na carreira continua a
+  regra da Agência (não repete carta do mesmo save).
+- 🎒 DIVERSOS (04/10, *"cartas que não têm clube o usuário deve ganhar também… quando o time completar 11, o jogador
+  vai pro clube"*): carta de clube com menos de 11 no baralho aparece no bloco "🎒 Diversos" da lista de coleções
+  (álbum e Agência). A lista vem do baralho, então no dia em que o clube chegar a 11 ele vira coleção e as cartas
+  mudam de lugar sozinhas. O sorteio já dava essas cartas (usa o baralho inteiro).
+- 🃏 LOTE 42 ✅ NO AR (04/10): Fiorentina (+6, Europa), New York Cosmos (+6), Inter Miami (+7), Kashima (+7) e Al-Nassr
+  (+7, Mundo) chegaram a 11+ cartas e viraram coleção (80 clubes, 3.395 moedas). Vozinha saiu de "Cabo Verde" pro
+  Colo-Colo 2026 (*"acho que ele está atualmente"* — palavra do Diego), segue lenda. ⏭️ Dínamo de Moscou, West Ham e
+  Stoke City ficaram com as listas propostas esperando ele (vai decidir junto com a troca de clube das lendas
+  Valderrama, Simonsen, Banks, Moore e Yashin). Deportivo Cali: só ~4 nomes certos, pedi ajuda a ele.
+- 🦊 LEICESTER ✅ (04/10, *"coloque o Banks no Leicester mesmo e add mais algum grande famoso… que ganhou o título
+  inglês"*): Gordon Banks saiu do Stoke 1972 pro **Leicester 1966** (era goleiro de lá quando ganhou a Copa; segue lenda)
+  e entrou o **Wes Morgan** (capitão do título de 2016, bom jogador). O Mahrez está como "Leicester City" e os outros
+  como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
+  função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
+  Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 🔴 SALA AO VIVO NA LISTA (05/10, Diego: *"nessa área da sala, pra quem é streamer, com link… tem que ser streamer que
+  tá rolando ao vivo mesmo, e com link do ao vivo"*; mockup `scratchpad/mockup-live.png` aprovado — *"faz"*): na criação,
+  com o Modo Stream ligado, aparece o campo do link (só https de YouTube/TikTok/Twitch/Kick/Instagram/Facebook —
+  `plataformaDaLive`). Vai em `game_state.liveUrl` (guardado em `salaFixaRef`, senão o 1º save apagava) → coluna magra
+  `ls_live` pelo gatilho (`docs/sql/lista-salas-live.sql`, ✅ aplicada). Na lista: sala com link sobe pro topo, faixa
+  vermelha "AO VIVO AGORA NO X" e botão "▶ Assistir a live". Acabou/sumiu a sala, some junto (é da sala). Novidade PT/EN.
+  ✅ NO AR em 05/10 (*"Sim"*).
+  🔁 Ordem ajustada no mesmo dia: sala ABERTA sempre em cima; entre as que estão jogando, a do streamer primeiro. Não testei com sala real (precisa de login) — conferir na 1ª live de verdade.
+- 📖 HOME: cartão "Meu Álbum" ao lado do Salão dos Batismos ✅ NO AR (04/10, pedido dele). O botão ÁLBUM do rodapé
+  continua (ele não respondeu se tira). ⛔ A reorganização da Agência em duas abas (Agenciados / Coleções, mockup
+  `scratchpad/mockup-agencia.png`) ele NÃO aprovou agora (*"só o 1 mesmo"*) — não fazer sem ele pedir.
+- 🌎 CARTA PRO CAMPEÃO DA LIBERTADORES / CHAMPIONS / MUNDIAL ✅ (04/10, *"já quero que ligue as cartas nas copas"*):
+  a carreira internacional (01/10) nunca tinha ligado o pacote. Agora cada título dá uma carta (seasonKey `:liberta`,
+  `:champions`, `:mundial`), lida do histórico gravado no FIM da campanha. Trava no `npm run colecoes`. Conferido: as
+  outras competições (liga, Copa Legends/Brasil, Supercopa, Copa do Mundo, partida rápida/online liga+copa, Só Champions)
+  já davam carta.
+- 🚀 COLEÇÕES + TROCAS ✅ NO AR PRA TODOS (04/10, *"pode fazer tudo e publicar pra todos"*): banco aplicado (3 tabelas,
+  7 funções, troca até 10 de cada lado), `COLECOES_GERAL = true`, novidade na home, vídeo `scripts/video-colecoes-reels.mjs`.
+  ⚠️ Lição do banco: desde 04/10 o conector do Supabase pede confirmação pra comando com `drop`/`revoke` e o app do celular
+  CANCELA sozinho. Mandando em pedaços SEM `drop policy`/`revoke` passou direto. (Ficou de fora só o `revoke` do
+  `esc_carta_presa` pra anon — inofensivo: só diz se uma carta está numa troca.)
+  ⏭️ Falta: teste de verdade com duas contas (receber + uma troca) e o aviso na home de proposta recebida.
+- 🔲 GRADE DAS COLEÇÕES (04/10, *"tá muito gigante a lista vertical"* → aprovou a grade e pediu *"com escudos oficiais que
+  já temos"*): 4 clubes por linha, escudo oficial (`SeloClube`, 81 de 82 — o Cosmos cai no selo), rodinha verde do
+  progresso, 🔁 repetidas, filtros Todas/Prontas/Começadas/Brasil/Europa/Mundo. Tocar abre o clube embaixo da linha
+  dele (faltam quais, cartas, botão Receber na Agência). Vale no Álbum e na Agência. Ainda travado (só a conta dele).
+- 🌟 LENDAS AVULSAS (04/10, *"coloque alguma categoria pra eles… 5 moedas pra cada, mas tem que completar todos juntos"*;
+  as lendas NÃO trocam de clube): coleção especial com as lendas de clube que ainda não é coleção — hoje Yashin,
+  Bobby Moore, Allan Simonsen e Valderrama = 20 🪙 (o Banks saiu pro Leicester), só com as 4 juntas. Monta-se sozinha (lenda sai quando
+  o clube dela chegar a 11). Nome FECHADO pelo Diego: **"Lendas Avulsas"** (*"o nome será do restante também"* → o bloco "Diversos" virou **"🎒 Cartas Avulsas"**). Banco:
+  `esc_colecao_receber(..., p_especial)` aceita clubes diferentes, só lenda (migração ainda não aplicada).
+- ⛔ FALTA pra ligar de verdade: **aplicar a migração `20261004150000_colecoes_clubes_trocas.sql` no banco** (pediu
+  aprovação do Diego e não foi aplicada); testar com conta de verdade (receber + trocar entre duas contas); badge de
+  proposta recebida na home; e o OK visual dele nas fotos das telas reais.
+
+## 04/10/2026 — 🃏 CARTAS DO ÁLBUM: o Diego quer dar sentido a elas, NENHUMA ideia aprovada ainda
+- Pedido dele: *"as cartas… o pessoal tá ganhando e tá cagando pra elas"*, *"quero algo maior, mais profundo, que dê
+  água na boca pra ter as cartas"*. Hoje: cada título (liga/copa, off e on) dá direito a ESCOLHER uma carta, sem
+  repetida; ela vai pro álbum (`user_cards`, ~91 mil cartas, ~5 mil donos, tem gente com 900+) e funciona como
+  carta da Agência (empresário) na carreira. O Bafo nunca tomou carta de ninguém.
+- ❌ JÁ DESCARTADAS por ele (não repropor do mesmo jeito): coleções com prêmio + troca entre amigos (fez mockup,
+  sem aprovação) · time do álbum / desafio de álbum · carta favorita na entrada · carta do dia · carta que sobe de
+  nível · raridade ("só 12 têm") · ranking de colecionador · **direito de cobrir no leilão** (*"não gostei"*) · nome
+  do dono na carta · 1º dono · carta destrava celebração · torneio dos colecionadores · pacote com repetida · prêmio
+  de verdade · carta com validade de lote · Clube Eterno (*"gostei… mas quero outra melhor"*) · Carta Viva (história
+  por carta) · Edições Especiais estilo FUT com pacote (*"ainda não tô gostando"*).
+- ⚠️ Lição: 6 rodadas de ideias seguidas e ele travou (*"não gostei de nada, tá foda"*). Próxima vez: perguntar o que
+  ELE imagina, ou esperar ele trazer — não despejar lista. O dado que pesa: gente com 900+ cartas, então "ter" já
+  não é difícil pra quem joga muito.
+
+## 04/10/2026 — 🏆 MINHAS LIGAS: a estante apagava a 1ª temporada de cada largada (liga KD1TUL, 11 troféus → 7)
+- Relato do Loopesmiranda FC (via Diego): acabou a liga, voltou pra sala de espera pra entrar um amigo e os troféus
+  caíram de 11 pra 7 ou 8. Causa, confirmada no banco: toda largada da sala de espera (`START_ONLINE`) nascia com a
+  MESMA semente (`hashCode(código da sala)` — KD1TUL → 2211528947) e a estante (`game_champions`) guardava a linha
+  por `(room_id, match_seed)` desde 16/08. A 1ª temporada de cada largada fazia UPSERT por cima da 1ª da largada
+  anterior: na liga dele as temporadas 1, 4 e 10 viraram uma linha só (a 11). Mesmo estrago em QSJA12 (1, 2, 3 →
+  "4") e em 5U7M8N / CP3VN1.
+- 🧱 O MESMO bug explica *"no leilão de clubes nunca aparecia ataque bom"*: mesma semente = mesmo sorteio de clubes
+  (`buildDeckClubes(…, rng)` com `rng = mulberry(s.seed)`) em toda temporada daquela liga. Não era coincidência.
+- ✅ Feito: (1) em Minhas Ligas a estante grava por TEMPORADA (`matchSeed: undefined` quando `ligaMode`; o número
+  nunca repete numa liga); sala rápida segue por semente; (2) a semente da largada da liga leva o número da temporada
+  (`hashCode(code + '#t' + seasonNo)`), continua igual em todo aparelho. Trava: `npm run estante`.
+- ✅ Recuperadas no banco, a partir de `esc_results` (que guarda por temporada quem foi campeão/artilheiro): 10
+  temporadas em 4 ligas — KD1TUL 1·4·10 · QSJA12 1·2·3 · 5U7M8N 6·20·26 · CP3VN1 6. Sem `human_results` (posição
+  de cada um não existe lá); nome com emoji casado com o que a estante já usava. Temporadas que faltam SEM campeão
+  humano (bot campeão) ficaram de fora: 5U7M8N 1·5·13·14·17·19·23, 9GBYBQ 2, BWVWGK 1 — a coluna `champion_name` é
+  obrigatória e não dá pra inventar o nome do bot.
+
+## 04/10/2026 — ☁️💸 CONTA DO SUPABASE: o save da carreira na nuvem só sobe no "Sair e salvar"
+- O Diego mandou a fatura: ~US$ 125/mês, com **Total egress** (US$ 31) e **Realtime Message Count** (US$ 65) estourados.
+- 📏 Medido no banco: save de carreira ativo tem em média **~950 KB** (p90 1,7 MB), e a tabela recebia ~20 mil
+  downloads do save inteiro por dia (≈ 20 GB/dia ≈ 590 GB/mês — bate com a fatura). Dois culpados: o autosave subia pra
+  nuvem a cada minuto e, pra juntar antes de subir, BAIXAVA o save inteiro; e a home (abrir, voltar o foco, Continuar)
+  baixava tudo e subia de novo.
+- ✅ Feito: regra do Diego (*"o save do usuário na carreira só deve salvar após ele apertar em salvar"*). A NUVEM só recebe
+  no botão "Sair e salvar carreira" (e em trocar de carreira / troca do Bafo). O save do APARELHO continua instantâneo.
+  E o aparelho guarda o carimbo (`updated_at`) da nuvem que já juntou: antes de baixar, pergunta só o carimbo; save
+  inteiro só desce quando outro aparelho salvou depois. Trava: `npm run nuvem`.
+- ⚠️ Consequência aceita: quem fecha o jogo sem apertar "Sair e salvar" continua com a carreira no aparelho, mas não
+  na nuvem (trocar de celular leva o que foi salvo pelo botão).
+- 📡 Mensagens ao vivo (US$ 65, ~36 milhões no mês contra 5 milhões da cota): o "tô vivo" do dono saía a cada 4s pra
+  cada pessoa da sala, mesmo parado (15 recados/min por convidado). Ele servia pra segurar o convidado de pedir o estado
+  depois de 10s calado, acertar o relógio e acender a faixa vermelha — tudo já tem outro caminho. Diego: *"não ligo
+  praquela faixa vermelha mesmo… ok pode fazer"*.
+  ✅ Feito no branch (04/10): (1) sem "tô vivo"; (2) heartbeat de estado do dono só depois de 20s quieto, conferindo a
+  cada 10s (era 12s/6s); (3) convidado pede estado só depois de 60s calado, ou em 8s se o PRÓPRIO lance ficou sem
+  resposta (`acaoPendenteRef`), e consulta a coroa no banco só depois de 45s (era 6s); (4) `hostInbox = true` pra toda
+  sala — o lance do convidado vai só pro dono (era só Champions). Coroa, SAIR, dono que volta: nada mudou. Trava:
+  `npm run canal`. ⚠️ **Não deu pra testar com 2 aparelhos daqui** (o Supabase não responde de dentro da bancada): a
+  primeira sala de verdade depois do deploy é o teste — acompanhar `esc_travas` e o log do Realtime.
+  ⏭️ Conferir a fatura uns dias depois do deploy (egress e mensagens).
+
+## 03/10/2026 — 📺 CENTRAL LEGENDS, a home do modo carreira ✅ NO AR PRA TODOS (liberada em 03/10: *"pode publicar pra todos já!!"*)
+- Pedido: *"queria alguma central no modo carreira… giro da rodada, notícias, transferências… precisa ter alguma
+  central"*. Mockup v4 aprovado (cel + desk) depois de 3 rodadas (a 1ª *"muito feia"* → artes cinematográficas; a 3ª
+  com notícia demais/giro de menos; a 4ª com o Martelo preenchendo o desktop).
+- O que é: aba nova, a PRIMEIRA da barra, e a carreira ABRE nela. Camarote (`online-estadio-v25`) com o próximo jogo e
+  o MESMO botão de jogar (`avancarRodada`, uma função só pro controle e pro camarote) · 📣 Giro da rodada revelada ·
+  📰 O MARTELO do meio da temporada (`central-noticias.ts`, redação pura, PT/EN, trava `npm run central`) · 💸 Mercado
+  (compras do extrato + carta mais cara da divisão) · 📊 Tabela (toque abre Tabelas) · 🗓️ Agenda (Copa, Libertadores,
+  Copa do Mundo; toque abre Jogos). Desktop em 2 colunas, divisão reta no meio (ajuste dele 03/10): esquerda camarote →
+  giro → tabela+agenda; direita Martelo → mercado (`central.css`, ordem do celular por `order`).
+- Como foi feito sem simular nada novo: `confrontoDaRodada()` reproduz o calendário do `simDivTo` (mesma semente) pra
+  achar o adversário; a forma (bolinhas) vem de até 4 `simulaAte(r)` extras, só com a aba aberta e nunca além de
+  `revealed`. O lado (placar/controle) fica ESCONDIDO na aba Central, mas continua montado (ver 7º ajuste).
+- 🏆 6º ajuste (04/10, *"todas copas após a liga devem ir mexendo também na central"*): depois da liga o camarote, o
+  giro e a manchete seguem a fase da vez — Copa do Brasil/Legends, Supercopa, Libertadores/Champions/Mundial (técnico
+  convidado, nome do clube grande) e Copa do Mundo, com a arte de cada uma. Botão na mesma ordem dos controles.
+- ⏱️ 7º ajuste (04/10, bug dele: *"quando volto na aba de jogos tá reiniciando a partida"*): a Central TIRAVA o placar da
+  tela, e o relógio do jogo morre junto (ele mora dentro do `LiveScoreCard`). Agora só esconde (`display: none`): o
+  jogo segue rolando por trás, sem pausa e sem botão novo. Medido na bancada: troca no 6', volta no 22'.
+- 🟢 `CENTRAL_GERAL = true` em `sport.ts` desde 03/10 (`false` volta a ser só `diego.c.fonseca@gmail.com`; bancada do vite liga com
+  `localStorage esc-central-dev=1`, chave que some do build). Só carreira SOLO.
+- 💸 2º ajuste (03/10): o MERCADO mostra TODOS os negócios do pregão da temporada, de todo clube (*"não só os
+  meus"*): o reducer anota cada arremate em `careerMercado` (`anotaMercado`, só carreira solo, 80 lotes, só exibição;
+  virou o ano, lista nova). A Central mostra os 5 maiores e "ver os N negócios" abre o resto. Carreira que já estava
+  no meio da temporada só enche no próximo pregão (até lá cai nas compras do extrato). O Martelo ganhou "💰 Maior
+  lance da temporada". Borda do giro saiu do dourado (misturava com o camarote) e virou creme.
+- 🖥️ 5º ajuste (04/10, *"agora sim, muito melhor e mais organizado e perfeito"*): a AGENDA desceu pra baixo do giro
+  (sem agenda em cima) e as duas colunas ESTICAM juntas — o fim do Mercado cai na mesma linha do fim da tabela
+  (`align-items: stretch` + mercado `flex: 1`, botão "ver os N negócios" no pé). Pra fechar a altura: 8 negócios e
+  até 9 notícias no monitor (celular segue 5 e 5). ⚠️ `flex: 0 0 100%` das caixas do celular vira 100% de ALTURA
+  numa coluna flex — por isso o Mercado sumiu na 1ª foto; no desktop as caixas da direita voltam a `flex: 0 0 auto`.
+- 🖥️ 4º ajuste (03/10, print dele): no desktop a TABELA vai INTEIRA (20 linhas) à esquerda embaixo, com o GIRO DA
+  RODADA INTEIRO ao lado, no padrão creme das caixas; a AGENDA (pequena) subiu pro lugar do giro, em linha, abaixo
+  do camarote. Celular não mudou (giro com 3 jogos, tabela com 5). Grade por `grid-template-areas` em `central.css`;
+  as linhas extras só existem no monitor (`ll-central-not-desk`). Lição: `display` inline na linha vence a classe
+  que esconde — virou classe (`ll-central-giro-row`).
+- 📰 3º ajuste (03/10, *"faz Z4 e títulos, jogador lesionado, cria da base jogando, qualquer copa nova chegando"*):
+  entraram 🏆 título à vista/matemático (só pontos possíveis, 3 por rodada que falta), 🚨 Z4 na cola / no Z4 /
+  🪂 rebaixado (a Várzea não rebaixa: `temRebaixamento`), 🩹 titular fora (lesão/suspensão/noitada, em quantos jogos
+  volta), 🌱 cria da base de titular, 🏆 copa chegando (≤5 rodadas), 🗓️ Libertadores/Copa do Mundo na próxima
+  temporada ou nesta. Ficaram de fora (ele não pediu): zebra, goleada, maior subida/queda, artilheiro do seu time.
+  E a tabela do desktop passou a 10 linhas (celular segue com 5).
+- 💾 8º ajuste (04/10, *"ok pode"*): faixa **💾 Salvar** no topo da Central, logo abaixo do título. Diz em que pé está a
+  nuvem (verde em dia · âmbar atrasado/nunca · cinza sem conta) e o botão faz o mesmo que "Sair e salvar carreira",
+  sem sair. `savePyramidCloud` anota quando e em que rodada cada carreira subiu (`ultimaSubidaNuvem`, chave
+  `esc-nuvem-subiu:<seed>` no aparelho). Bancada: `esc-central-dev-logado=1` finge logado (só no vite).
+- ⏭️ Decidir com ele: abrir na Central ficou como padrão; se preferir abrir em Jogos é 1 linha (`useEffect` do
+  `centralOn`). Ideias que ficaram de fora de propósito: "ler a edição completa" (não existe jornal de meio de
+  temporada ainda) e o 🔊 "ouvir" do giro.
+
+## 😈🔴⚫ Batismo Vieira FC (03/10)
+- Dono `felipe.vrod10@gmail.com` (já era ⭐ Craque pago — subiu pra 👑 Lenda). **Série D**, no assento do bot
+  **Prestígio FC** (só existia na pirâmide; `OLD_NAME` + escudo/carimbo no nome velho levam save antigo pro clube novo).
+  Fundador nº84. Coração: **Corinthians**.
+- Arte do dono (fundo verde, mascote e camisa grudados pelo tridente — separados na mão): escudo 196×360/23 KB ·
+  mascote "O Diabo" 258×440/45 KB · camisa da Loja. Manto medido: preto #171212 (91%, mediana #110D0D) + vermelho #DE1B19.
+- Banco GRAVADO (03/10): conta existe desde 26/07 · user_colors ouro/manual · esc_fundadores 84 · esc_socios nº65
+  (Corinthians, vieira_diabo, escudo_time Vieira FC) · esc_nomes_batismo Vieira/FC/EC. Falta só o nome do dono pro post.
+
+## 03/10/2026 — 🧾 Ficha do jogador funcionando SEMPRE ✅ NO AR (Diego: *"deve funcionar a estatística do jogador sempre"*)
+- Auditoria: gols/assistências da TEMPORADA já somavam liga + Copa do Brasil/Legends + Supercopa + Copa do Mundo +
+  Libertadores/Champions/Mundial, e a Bola de Ouro/artilheiros usam a mesma soma. O total "no seu clube" já era
+  gravado em toda virada (`guardaCansaco`).
+- Consertado: (1) a ficha de duas colunas (jogos · gols · assistências, temporada × no seu clube) e a coluna JOGOS só
+  apareciam com o GÁS ligado (Série C+ com Agência) — agora `EstatUI`/`estatJogos` em toda carreira solo, qualquer
+  divisão; (2) jogo de Copa ia todo pros 11 da 1ª fase e só no fim — agora cada fase vai pra escalação DAQUELA fase
+  (`r.slot`), e durante a Copa conta fase já jogada. Trava: `npm run artilharia` (também atualizada pras copas
+  internacionais, que reprovavam por texto velho).
+- Fora de escopo por ordem dele: carreira online em sala (*"esquece salas, rápido online agora"*).
+
+## Presidência — lote 2 privado (03/10)
+
+Base publicada 97faf8bd. Agora habilitados estádio/vista aérea, móveis,
+garagem e teto estrutural para Diego; nenhuma concessão de obras ou saldo.
+Build e oito suítes passaram. Detalhes e limitações visuais ainda pendentes:
+`docs/presidencia-lote2-entrega.md`. Arte parcial não é estádio final pronto.
+Publicar incrementos aprovados/testados é autorizado, somente para a conta
+diego.c.fonseca@gmail.com. Confirmar deploy após push, não só build.
+
+## Presidência — lote 1 privado reconciliado (03/10, histórico)
+
+Integração sobre main `3336f1ea`, em `work/presidencia-lote1-main-20261003`.
+Criação, perfil e sala preparados somente para Diego; economia, garagem,
+teto e substituição da aba do estádio desligados. Build e testes locais
+passaram, com identidades simuladas e sem gravação em contas reais.
+Plano, testes e limitações: `docs/presidencia-lote1-entrega.md`.
+O acervo original permanece em `work/presidencia-integracao-20260921`.
+Publicação autorizada por Diego para sua conta; não confundir preparação
+com deploy confirmado. Não alterar as competições cuidadas no Cloud.
+
+## 03/10/2026 — 🗜️ Save da carreira internacional enxuto ✅ NO AR (caso marcomak03: "joguei 2 temporadas, salvei e voltou atrás")
+- Suspeita (NÃO confirmada no banco — a leitura do save dele ficou esperando aprovação): o celular tem ~5 MB pro jogo e a
+  carreira internacional guardava, POR TEMPORADA, a lista inteira de gols/assistências dos ~780 jogadores da máquina
+  (`botPlayerStats`, ~45 KB/ano, que nenhuma tela lia). Cota estourada = `setItem` falha calado e fica o save velho.
+- Feito (OK do Diego: *"faz"*, com a condição *"não quero perder as coisas que acontecem na carreira internacional"*):
+  a lista vira um placar ACUMULADO `careerIntlBotTotals` (chave da carta → [jogos, gols, assistências]). Nenhum número
+  se perde; o resto da temporada (campeões, artilheiros, jogadores do usuário, teamRecords do ranking) fica igual.
+  Saves antigos migram ao abrir (`compactaHistoricoIntl` em `sincronizaNiveis`, idempotente). 6 temporadas: 291 → 82 KB.
+  Trava: `npm run save-intl`.
+- ⏭️ FALTA: (1) conferir no banco o save do marcomak03 (temporada da nuvem × do celular) e recuperar as 2 temporadas se
+  a nuvem estiver mais nova; (2) avisar na tela quando o save não couber (hoje falha calado — `catch { /* cota cheia */ }`).
+- ⚠️ `npm run artilharia` já reprovava 2 linhas ANTES desta mudança ("a virada manda LIGA + COPA + COPA DO MUNDO pro
+  histórico" e o mesmo de assistências): conferência por texto desatualizada pela carreira internacional. Reescrever.
+
+## 03/10/2026 — 🧱 Leilão de Clubes depois dos Lotes 40/41: conta feita, Europa sozinho NÃO liberado (Diego: *"ainda não"*)
+- Clubes que fecham setor (3 baralhos, pior caso MEI 4 / ATA 3): antes do Lote 40 → agora: GOL 81→114 · LAT 46→81 ·
+  ZAG 42→75 · MEI 47→49 · ATA 64→97 · clubes diferentes 110→136. Entram sozinhos (`buildDeckClubes` não tem lista fixa).
+- Baralho sozinho (técnicos que cabem, com a sobra mínima): **Europa 11** (fecha sala cheia, mas no aperto — com
+  folga de pacote só 5) · Brasil 5 · Mundo 6 (falta meia). Ofereci liberar o Europa sozinho: ele disse **"ainda não"**.
+  Não repropor sem ele puxar o assunto. Brasil sozinho continua sem fechar.
+- Gargalo é o MEIO (clube precisa de 4 meias): caminho, se ele quiser, é meia famoso em clube que já tem 2–3.
+
+## 🦅⚫⚪ Batismo Gaviões SCCP (02/10)
+- Dono `kauealves584@gmail.com` (conta desde 15/09). **Série C**, no assento do bot **Zorra FC** (que segue vivo em
+  CLASSIC_CLUBS; `OLD_NAME` leva save antigo pro nome novo). Lenda + fundador nº83 + sócio nº64 — banco gravado
+  (user_colors ouro/manual, esc_fundadores, esc_socios, esc_nomes_batismo com FC/EC pelo gatilho).
+- Arte do dono (fundo verde): escudo 200×360/29 KB · mascote "O Gavião" 224×440/36 KB · camisa da Loja.
+  Manto medido: preto #161314 (77%) + branco #F9F8F8 (gola/punhos). Só o nome INTEIRO tem escudo (nunca "Gaviões" sozinho).
+- Time de coração: Corinthians (confirmado pelo Diego). gravado em esc_socios (03/10). Falta só o nome do dono pro post.
+
+## 02/10/2026 — ✉️ Convite com CARTA DE CADA CLUBE + "técnico" no lugar de "presidente" ✅ NO AR
+- Pedido do Diego (print do Fabao Fabulous EC): *"esses textos não podem ser mais pessoal? falar da Vila… de Porto
+  Alegre… trazer a família"* e *"não fale presidente, até agora não sei o que sou sendo convidado"*.
+- `src/escalacao/convite-cartas.ts`: 72 cartas (PT/EN), uma por clube — estádio, cidade, torcida e um agrado pra
+  família. Só fato público, nenhuma pessoa real. Clube novo na lista internacional precisa ganhar carta aqui.
+- Manchete virou "O <clube> quer você como técnico"; a carta termina dizendo o convite com todas as letras ("ser o
+  técnico do X na Libertadores… o seu clube continua seu"). Jornal e linha do tempo trocaram "presidente" por
+  "dono"/"técnico" ("Sua carreira de técnico").
+
+## 02/10/2026 — 🌎 CARREIRA INTERNACIONAL LIBERADA PRA TODOS ✅ NO AR (*"pode publicar… liberar pra todos"*)
+- Jogo: `INTERNATIONAL_CAREER_GERAL = true` (`career-international.ts`) → toda conta logada, da T40 em diante.
+- Banco: `esc_private_international_rank_allowed()` agora = qualquer conta logada (migração
+  `20261002120000_carreira_internacional_para_todos.sql`, já aplicada). O gatilho continua só deixando
+  gravar a PRÓPRIA linha e sem número negativo.
+- Novidade PT/EN na home. Vídeo de lançamento: `scripts/video-internacional-reels.mjs` (agora com a Copa de 32).
+- ⚠️ `scripts/testa-ranking-privado-internacional.mjs` já reprovava ANTES da liberação (espera 90 pontos e o banco
+  dá 110 desde os pesos 60/50 de 01/10) e várias asserções dele são do teste fechado por e-mail — precisa ser
+  reescrito pro mundo liberado.
+- Reverter: `INTERNATIONAL_CAREER_GERAL = false` + voltar a função do banco pro teste por e-mail (corpo na
+  migração 20261001173507).
+
+## 02/10/2026 — 🌍 COPA DO MUNDO DE 32 SELEÇÕES ✅ NO AR (pedido do Diego: *"vamos fazer 32"*)
+- **Formato sai do TAMANHO da Copa** (`formatoCopa(n)` em `copa-mundo.tsx`): 32 → 8 grupos de 4, passam os 2
+  primeiros = 16 (sem quadro de 3ºs). 24 → o formato velho (6 grupos + 4 melhores 3ºs). Assim sala online
+  que já guardou 24 times e carreira que **começou** a Copa de 24 antes da mudança terminam com 24
+  (`emAndamento.n`; sem o campo = 24). Os passos (`copa-passos.ts`/`esc_copa_preview_clock`) NÃO mudaram:
+  continuam 3 rodadas de grupo + mata-mata.
+- Carreira: `VAGAS_MUNDO = 32` e o `cmVaga` pega o TOP 32 do ranking de clubes.
+- **Lote 41 (baralho Europa, 44 cartas famosas)** pra fechar 11+ em cada país novo: Escócia 17 · Suécia 17 ·
+  Turquia 16 · Sérvia 14 · Gana 14 · Irlanda 13 · Costa do Marfim 13 · Argélia 12 (contando as cartas que já
+  existiam). Bandeira e cor de cada uma em `FLAG`/`PAIS_COLORS` e no jornal da sala.
+- Próximos da fila (se um dia for 36/48): Polônia 6 · Ucrânia 6 · Nigéria 6 · China 5.
+- Reverter: `COPA_TEAMS = 24` em `copa-mundo.tsx` + `VAGAS_MUNDO`/`slice(0, 32)` de volta pra 24 no
+  `pyramidseason.tsx` (as cartas podem ficar).
+
 ## 01/10/2026 — 🖥️ Carreira no MONITOR em duas colunas ✅ NO AR (OK do Diego nas fotos antes/depois)
 
 🐛 **02/10 — jornal espremido no fim da temporada (print do amigo do Diego, depois da Libertadores).**
@@ -21,6 +312,24 @@ TODA aba e a tabela/elenco/rank só depois de uma tela de rolagem; a largura mud
 - 🔌 Desligar = trocar `1100px` por `99999px` no CSS (ou reverter o commit).
 - Diego viu as fotos antes/depois das 5 abas e disse "Ok" → publicado. Pra refotografar: `--desk` no
   `navega-carreira.mjs`.
+
+
+## 🔴⚪ Batismo Guimarães SCI (02/10)
+- Dono `jadriovani@gmail.com` (conta desde 23/09). **Série A** no assento do **Tôka10**, que desceu pra **Série B** (no
+  lugar do bot Botafogo da Colônia, que segue vivo em CLASSIC_CLUBS). Lenda + fundador nº82 + sócio nº63.
+- Arte do dono (fundo verde): escudo com o Saci espiando 229×360/27 KB · mascote "O Saci" 320×440/41 KB · camisa da Loja.
+  Manto medido: vermelho #C50208 (84%) + branco #FEFBFC (gola/punhos). Só o nome INTEIRO tem escudo (nunca "Guimarães" sozinho).
+- ❤️ Time de coração: Internacional (Diego confirmou 02/10; gravado em esc_socios). Falta só o nome do dono pro rodapé do post.
+
+## 👒⚪ Batismo Real Madruga (02/10)
+- Dono `luck.45@live.com` (conta existe desde 25/09). **Série A**, no assento do **Bicho da Seda**, que desceu pra
+  **Série B** (no lugar do bot Operário das Docas, que segue vivo em CLASSIC_CLUBS). Lenda + fundador nº81 + sócio nº62.
+- Arte do dono (prancha com fundo verde): escudo 258×360/28,9 KB · mascote "O Madruga" 440×416/43,5 KB · camisa da Loja
+  `madruga-camisa-v1.webp`. Manto medido: branco #F3F1F0 (66%) + preto #161412 (28%); dourado (2%) fora.
+- ⚠️ "Real Madruga" ERA o nome velho do **Marolados FC** (paisagensetrilha). Cortado o `OLD_NAME` e o carimbo antigo —
+  o Marolados segue pelo nome atual e pelo e-mail. Save muito antigo ainda chamado "Real Madruga" passa a mostrar o clube novo.
+- Banco: user_colors ouro · esc_fundadores 81 · esc_socios 62 · esc_nomes_batismo "Real Madruga".
+- ❤️ Time de coração: **CRB** (Diego, 03/10) — gravado em esc_socios e no post. Falta só o nome do dono pro rodapé.
 
 ## 01/10/2026 — 🌎 CARREIRA INTERNACIONAL: fluxo passo a passo ✅ FEITO (só a conta do Diego; mockups aprovados)
 
@@ -51,7 +360,77 @@ avança sozinho; manual tem botão).
   vazios (Libertad, Emelec, Olimpia, Millonarios, Nacional-URU, Estudiantes, Racing, Cerro, Newell's, Rosario, Argentinos,
   U. de Chile = 0 cartas; Galatasaray 2, Rangers 3, Celtic 4…). Quem termina do 5º pro 8º pode não ter clube pra
   convocar — a tela avisa e oferece Pular/Assistir. **Precisa de carta nova desses clubes** (lotes) pra fechar.
+- 🃏 **Lote 40 (01/10, aprovado pelo Diego: *"pode fazer esses e coloque Renato Augusto também no Leverkusen e o
+  Ponte"*)**: **322 cartas** (226 no baralho Mundo, 96 no Europa) pra os 42 clubes fecharem um 11 só com gente do
+  próprio clube — agora **72/72 fecham**. Tudo em `L40_WORLD_*`/`L40_EU_*` (`data.ts`), país por carta em
+  `PAIS_POR_CARTA`, 33 nomes repetidos em `MESMO_JOGADOR` (+ linha por carta das antigas), apelido
+  `'Bayer Leverkusen': ['Leverkusen']` na lista internacional, `npm run paises` ✅, `npm run novidades` rodado
+  (snapshot + 60 linhas na home). Stories: `mockup-cartas-novas.mjs --lotes L40` em 4 imagens (GOL+LAT · ZAG · MEI · ATA).
+  Categoria — decisão do Diego (01/10, régua: *"do nível de Riquelme, Alex do Cruzeiro"*): **lenda só Pedro Rocha,
+  Kempes (Rosario 73), Di Stéfano e Spencer**; Morena, Mazurkiewicz, Perfumo, van Hanegem e Lolo Fernández são craque.
+  ⚠️ Lição: ao ajustar a foto do baralho (`catalogo-snapshot.json`, formato `DECK|nome|clube|ano` → `f`), LER antes de
+  abrir pra escrever — um `open(sp,'w')` dentro da chamada zerou o arquivo e isso foi publicado por alguns minutos
+  (restaurado em seguida; o jogo não lê esse arquivo, só o gerador de novidades).
+- 🛡️ **Escudos + Leilão de Clubes dos 42 clubes novos (01/10, pedido do Diego: *"os times que não tem escudos, busque
+  na internet… seja carreira ou online"*)**: conferido com script — **72/72 têm arquivo oficial** em
+  `public/escudos-clubes/` (`escudos-oficiais.ts` + `escudos-internacionais.ts`, resolvidos por `escudoOficialDoClube`,
+  que o `SeloClube` já usa na carreira e no online) e **72/72 fecham um 11**. Grafia das 13 cartas do Chile unificada em
+  `U. de Chile` (`CLUB_GRAFIA` + apelido internacional + `paises.ts` + foto do baralho). Leilão de Clubes não tem lista
+  fixa: `buildDeckClubes` pega qualquer clube do baralho com carta sobrando no setor, então os novos já entram sozinhos.
+- 🔁 **2ª rodada de teste do Diego (02/10)** — *"tá estranho… cadê o botão de manual padrão?… a tabela aparece de cara…
+  na final deveria aparecer as duas finais ao mesmo tempo… se eu quiser assistir, eu assisto qual?"*. A tela que subiu em
+  01/10 tinha fugido do mockup aprovado (tabela dobrada num `<details>`, botão "Próximo" solto, sem controle). Mockup v2
+  aprovado (*"Ok, pode fazer tudo"*) e FEITO: a campanha usa as MESMAS peças da Copa da carreira — faixa → placar grande →
+  **🎮 Controle da partida** (`SpeedControls` + `SimControls`: Próxima rodada / Pular / Modo auto; `QuickManualLock` pra
+  quem não tem Modo Manual; régua `!careerEra || useHasManual()`) → **tabela sempre à vista** (grupos com MEU GRUPO /
+  TODOS, tabela de 36 com faixas de corte; mata-mata em cartões) → outros jogos (pílulas compactas nas noites de 17–18
+  jogos). **As duas finais caem na mesma noite** (motor: mata-mata da Liberta andou pra noites 10–13; a Liberta descansa
+  na noite do repescão) — a minha no placar grande, a outra no cartão `OutraFinal`. **Sem vaga**: Pular, ou Assistir
+  escolhendo UMA (Libertadores/Champions) na mesma tela de quem joga; o Mundial vem pros dois (escolha guardada em
+  `esc-intl-modo-v1` por temporada). 🔓 **Champions só abre depois de ganhar a Libertadores** (`championsLiberada(history)`;
+  banner trancado "🔒 Ganhe a Libertadores pra liberar"). Formato dos grupos mantido: 6 de 6, passam 2 + 4 melhores 3ºs.
+  Conferido com `scripts/fotografa-carreira-internacional.mjs` (fotos reais em 7 cenários) — gate continua só na conta dele.
+- 🔁 **3ª rodada (02/10, 23h50)** — *"a final da Libertadores que eu não participei faltou um destaque… as simulações
+  estão dando resultado pronto, quero simulação real com o tempo passando… e pênaltis… depois de escolher o clube não quero
+  botão de trocar clube, escolheu já era"*. FEITO: todo jogo da noite roda no MESMO relógio do placar grande (cartões no
+  mata-mata, pílulas nos grupos), ida e volta uma perna de cada vez, e no apito da última o cartão diz agregado + pênaltis +
+  quem passa. A final que você só ASSISTE (Liberta/Champions/Mundial) vai no cartão `FinalCard` com a arte da competição,
+  rolando ao vivo — o placar grande (`LiveScoreCard`) é sempre "você × rival" e narra "vitória", por isso não serve pra
+  jogo neutro. Saiu o "Trocar de clube"; a escolha fica gravada por temporada (`esc-intl-clube-v1`).
+- 🔁 **4ª rodada (02/10, 01h25)** — *"o header das ligas novas não tá aparecendo a fase… nada a ver ficar aparecendo a
+  Série A… a parte da Libertadores/Champions pequena… no jornal tem que ter destaque dos campeões… gols e assistências das 3
+  competições contam pros totais e pra Bola de Ouro"*. FEITO: com a campanha na tela (`intlNoAr`), o cabeçalho fixo da
+  carreira vira o da competição em foco (`topoInternacional` → `CareerCompetitionStage` kind liberta/champions/mundial, arte
+  grande, fase e formato) e a faixa pequena some de dentro da tela. Jornal: a capa ganhou Mundial (Campeão do mundo),
+  Libertadores (Rei da América) e Champions (Rei da Europa) com foto. Gols/assistências: JÁ contavam (`intlListas` entra no
+  `RECORD_SEASON_STATS` e no `melhorDoMundo`), e a campanha já roda ANTES do jornal (`fimOrdem` [3,1,2,4]) — conferido.
+- ✉️ **O CONVITE (02/10, mockup aprovado: *"adorei… perfeito"*)** — narrativa: o presidente do seu clube é chamado
+  pra ser o TÉCNICO CONVIDADO de um clube grande por uma campanha. No lugar de escolher competição + clube num cardápio,
+  chegam **2 convites sorteados do bloco da sua posição** (`convitesDaTemporada`, preso na semente + temporada; campeão
+  da A = bloco 1, campeão da Copa do Brasil = bloco 2, 2º–8º depois); depois de ganhar a Libertadores, **2 da Liberta +
+  2 da Champions**. Carta estilo O MARTELO (`CartaConvite`), aceitou = travado. Na campanha o clube aparece com nome e
+  escudo DELE (`comNomeDoClube`), o placar diz "TÉCNICO: <seu clube>" no lugar de "VOCÊ" e a mascote do gol continua a
+  SUA (`LiveScoreCard` ganhou `mascotHome/mascotAway`). Jornal: manchete "Presidente do X leva o Flamengo ao título da
+  América" + capa com o escudo do clube e "técnico: X". Ranking, moedas e histórico continuam no seu clube (save igual).
+- 🔁 **Renovação + G8 (02/10)** — quem foi campeão da Libertadores/Champions na temporada passada recebe o convite de
+  RENOVAR com o mesmo clube (`clubeDaRenovacao`, carta dourada "Campeão, o X quer renovar…") + 1 da mesma competição do
+  bloco da posição + os 2 da outra (se aberta) — sempre 2 por competição. O reducer aceita a renovação mesmo de bloco
+  melhor (mesma régua da tela). Tela sem "bloco"/"prioridade": a tabela da Série A marca **G8** (5º–8º; 1º–4º já têm G4)
+  com a legenda do convite, só pra quem tem a carreira internacional.
+- ✅ **Sala de Troféus: a carreira do presidente** (02/10, mockup aprovado: *"ok tudo aprovado"*). `CarreiraPresidente`
+  embaixo da estante do Hall de Troféus (aba Rank): clubes comandados (temporadas e títulos), números (campanhas, jogos,
+  títulos, artilheiro) e a linha do tempo (dourado = título; selos Renovação, Campeão do mundo, Champions liberada, Estreia
+  na Europa). Lê só o histórico gravado. Saiu o `<details>` antigo de texto corrido. A legenda dos pontos do ranking agora
+  lê o `PTS_TITULO` (mostrava Mundial +50/Liberta +40, os números antigos).
+- ✉️ **O convite que você recusou + 💬 recado da lenda (02/10, "faz o 1 e 3")**. A campanha guarda `recusados` (os
+  convites que ficaram na mesa) e o histórico leva junto; se um deles for campeão (Liberta/Champions/Mundial), o jornal
+  abre a faixa "O convite que você recusou" com provocação. Na convocação, o maior nome do clube no baralho assina um
+  recado de boas-vindas (`RECADOS`, 8 frases PT/EN genéricas de vestiário — não imitam o jeito de ninguém).
+- 🎬 **Vídeo de lançamento das 3 competições (02/10)** — `scripts/video-internacional-reels.mjs` (reels 9:16, ~38 s, molde
+  do vídeo do Leilão de Clubes). Só as competições, SEM falar de convite (ordem dele). ⚠️ No ar, a carreira internacional
+  ainda é só da conta do Diego: o vídeo é pra quando ele liberar pra todos.
 - Ficou pra depois: cara do placar com arte da competição DENTRO do card (hoje só a faixa de cima tem a arte).
+  ✅ A narração do apito no mata-mata/final agora é de copa (`apitoFrases` no `LiveScoreCard`, `frasesDoApito` na tela internacional): ida, volta e final com taça/pênaltis. Grupos seguem com as da liga.
 
 ### (pedido original, pra memória)
 

@@ -46,7 +46,7 @@ try {
 
   const semXi = ficha.times.filter(t => entrantesDaFicha(ficha)[ficha.times.indexOf(t)].xi.length !== 11)
   p('alguma seleção com time incompleto? ' + (semXi.length ? 'SIM — ' + semXi.map(t => t.pais).join(',') : 'nenhuma'))
-  // ── 🌍 LIGA + COPA DO MUNDO: os 20 times da liga viram seleções + 4 da máquina
+  // ── 🌍 LIGA + COPA DO MUNDO: os 20 times da liga viram seleções + 12 da máquina (Copa de 32 desde 02/10)
   const { montaFichaDaLiga } = await import('/src/escalacao/copa-mundo-online.tsx')
   const classificacao = Array.from({ length: 20 }, (_, i) => ({ id: i, nome: i < 3 ? ['Diego','Dérick FC','Arruda'][i] : 'Bot ' + (i - 2), humano: i < 3 }))
   const uidDe = new Map(classificacao.filter(c => c.humano).map(c => [c.id, 'u' + c.id])) // só gente tem linha em room_players
@@ -57,7 +57,7 @@ try {
   const nomesDaLiga = new Set(classificacao.map(c => c.nome))
   const daLiga = fl.times.filter(t => nomesDaLiga.has(t.nome)).length
   p('liga+mundo · times da liga na Copa: ' + daLiga + ' (esperado 20)')
-  p('liga+mundo · seleções da máquina: ' + (fl.times.length - daLiga) + ' (esperado 4)')
+  p('liga+mundo · seleções da máquina: ' + (fl.times.length - daLiga) + ' (esperado 12)')
   p('liga+mundo · gente com seleção própria: ' + fl.times.filter(t => t.uid).length + ' (esperado 3)')
   const paisesRepetidos = fl.times.length !== new Set(fl.times.map(t => t.pais)).size
   p('liga+mundo · país repetido? ' + (paisesRepetidos ? 'SIM' : 'nao'))
@@ -91,7 +91,7 @@ try {
   const paisDoDorminhoco = fb.times[1].pais     // 2º da tabela = gente que nao escolheu
   p('castigo · o BOT levou uma das melhores livres? ' + (ordem.indexOf(paisDoBot) <= 3 ? 'SIM (' + paisDoBot + ')' : 'NAO (' + paisDoBot + ')'))
   p('castigo · quem dormiu levou uma das PIORES? ' + (ordem.indexOf(paisDoDorminhoco) >= 20 ? 'SIM (' + paisDoDorminhoco + ')' : 'NAO (' + paisDoDorminhoco + ')'))
-  p('castigo · ninguem escolheu bandeira: todos ficaram com pais? ' + (semNada.times.length === 24 && new Set(semNada.times.map(t => t.pais)).size === 24 ? 'SIM' : 'NAO'))
+  p('castigo · ninguem escolheu bandeira: todos ficaram com pais? ' + (semNada.times.length === 32 && new Set(semNada.times.map(t => t.pais)).size === 32 ? 'SIM' : 'NAO'))
   // ── 🧩 castigo POR POSIÇÃO: quem marcou 7 fica com os 7 e leva 4 pernas-de-pau
   const { completaXI } = await import('/src/escalacao/copa-mundo.tsx')
   const meus7 = bestXI(countryPool('Brasil'), '4-3-3').slice(0, 7).map(c => `${c.name}|${c.club}|${c.year}`)
