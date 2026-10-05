@@ -899,7 +899,10 @@ export function EscLobby() {
       // 🐊☀️ os dois que o Diego mandou em 25/08. A `dur` é a duração REAL medida no
       // arquivo (ffprobe) — ela é a trava de "um som por vez na sala", então chutar
       // pra menos deixaria dois áudios tocando por cima um do outro.
-      jacare: { file: 'jacare.mp3', dur: 5800, emoji: '🐊', balao: 'soltou o áudio do jacaré 🐊🔊' }, // 26/08: o Diego trocou o arquivo (era 1min06, agora 5,7s)
+      // 🎖️ 05/10: o Diego trocou o áudio do jacaré pelo "Dictador" (23 s). A CHAVE continua `jacare` de
+      // propósito: quem está com a versão velha aberta recebe a mesma chave e toca o `jacare.mp3`, que
+      // agora é o MESMO áudio novo — chave nova cairia no "Posso te ligar" deles (o `?? lib.ligar`).
+      jacare: { file: 'ditador.mp3', dur: 23300, emoji: '🎖️', balao: 'soltou o DICTADOR 🎖️🔊' },
       bomdia: { file: 'bom-dia.mp3', dur: 27700, emoji: '☀️', balao: 'mandou um BOM DIA pra sala ☀️🔊' },
     }
     const s = lib[key] ?? lib.ligar
@@ -4313,7 +4316,7 @@ export function EscLobby() {
             {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
                 (contagem compartilhada) e um som por vez na sala. */}
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {([['ligar', '📞', tr('"Posso te ligar agora?"', '"Can I call you now?"')], ['meme2', '🎙️', tr('AQUELE áudio', 'THAT audio')], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', tr('Áudio novo', 'New audio')], ['jacare', '🐊', tr('Silenciar aqui', 'Silence here')], ['bomdia', '☀️', tr('Bom dia', 'Good morning')]] as [string, string, string][]).map(([k, ic, tx]) => (
+              {([['ligar', '📞', tr('"Posso te ligar agora?"', '"Can I call you now?"')], ['meme2', '🎙️', tr('AQUELE áudio', 'THAT audio')], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', tr('Áudio novo', 'New audio')], ['jacare', '🎖️', 'Dictador'], ['bomdia', '☀️', tr('Bom dia', 'Good morning')]] as [string, string, string][]).map(([k, ic, tx]) => (
                 <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
                   style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>
