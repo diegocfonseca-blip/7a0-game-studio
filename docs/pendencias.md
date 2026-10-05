@@ -48,7 +48,8 @@
   `plataformaDaLive`). Vai em `game_state.liveUrl` (guardado em `salaFixaRef`, senão o 1º save apagava) → coluna magra
   `ls_live` pelo gatilho (`docs/sql/lista-salas-live.sql`, ✅ aplicada). Na lista: sala com link sobe pro topo, faixa
   vermelha "AO VIVO AGORA NO X" e botão "▶ Assistir a live". Acabou/sumiu a sala, some junto (é da sala). Novidade PT/EN.
-  ✅ NO AR em 05/10 (*"Sim"*). Não testei com sala real (precisa de login) — conferir na 1ª live de verdade.
+  ✅ NO AR em 05/10 (*"Sim"*).
+  🔁 Ordem ajustada no mesmo dia: sala ABERTA sempre em cima; entre as que estão jogando, a do streamer primeiro. Não testei com sala real (precisa de login) — conferir na 1ª live de verdade.
 - 📖 HOME: cartão "Meu Álbum" ao lado do Salão dos Batismos ✅ NO AR (04/10, pedido dele). O botão ÁLBUM do rodapé
   continua (ele não respondeu se tira). ⛔ A reorganização da Agência em duas abas (Agenciados / Coleções, mockup
   `scratchpad/mockup-agencia.png`) ele NÃO aprovou agora (*"só o 1 mesmo"*) — não fazer sem ele pedir.

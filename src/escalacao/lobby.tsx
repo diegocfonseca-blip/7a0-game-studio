@@ -1989,7 +1989,9 @@ export function EscLobby() {
         if (ehLigaRow(r)) return ligaRolando(r)
         return r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
       })
-      .sort((a, b) => Number(!!(b.game_state as GS)?.liveUrl) - Number(!!(a.game_state as GS)?.liveUrl) || (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
+      // 🔴 ORDEM (05/10, Diego): sala ABERTA (esperando gente) sempre em cima — quem acabou de abrir
+      // precisa de jogador. Entre as do MESMO estado, a do streamer ao vivo vai primeiro.
+      .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1) || Number(!!(b.game_state as GS)?.liveUrl) - Number(!!(a.game_state as GS)?.liveUrl)))
     setListLoading(false)
   }
 
