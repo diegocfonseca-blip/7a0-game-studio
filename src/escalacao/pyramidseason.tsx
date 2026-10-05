@@ -7578,7 +7578,7 @@ export function PyramidSeasonScreen() {
   // 🔇 POR ENQUANTO SÓ O APITO (Diego 18/09, depois de ouvir as gravações: *"não
   // suba nenhum som ainda… por enquanto só o apito mesmo"*). A torcida de fundo da
   // carreira fica pronta atrás da chave `TORCIDA_NOVA`, em `sound.ts`.
-  useEffect(() => { if (!TORCIDA_NOVA) return; startCrowd(); return () => stopCrowd() }, [])
+  useEffect(() => { if (!TORCIDA_NOVA) return; startCrowd({ carreira: true }); return () => stopCrowd() }, [])
   // 📣 LIGA DA CARREIRA: apita só na LARGADA da temporada (ver `useApitoDeLargada`).
   // A Copa da carreira tem apito próprio, em toda partida — mora no `MyCopaMatch`.
   useApitoDeLargada(`liga-carreira-${state.seasonNo ?? 1}`, state.round > 0 ? state.round : null)

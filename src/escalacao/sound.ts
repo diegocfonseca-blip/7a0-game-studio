@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabase'
 // ─── SOM DO JOGO (sintetizado, sem baixar arquivo) ────────────────────────
 // Motor de áudio via Web Audio API: cliques, moeda, martelada, lacre,
 // tique-taque, chime de LENDA e apito — tudo sintetizado, 0 KB.
@@ -172,6 +173,20 @@ export const TORCIDA_NOVA = true   // 🔁 ligada em 19/09, quando ele escolheu 
 const SFX_AMBIENTE = 'sfx/torcida-estadio-v1.mp3'
 const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 
+// 🎶 CANTO DA TORCIDA PERSONALIZADO, POR CONTA (05/10, Diego: *"troque o áudio do canto da torcida
+// durante os jogos simulados da carreira do Geovany… mas mantenha o áudio do gol"*). Só troca o
+// AMBIENTE, só na CARREIRA e só na tela de quem é dono do e-mail. O gol continua o de todo mundo.
+// O arquivo vai pro mesmo padrão do original (mono 32 kHz 56 kbps, mesmo volume médio −20,6 dB).
+// Nova conta = uma linha aqui + o arquivo em `public/sfx/`.
+const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
+  'souzact12@gmail.com': 'sfx/torcida-geovany-v1.mp3', // Geovany
+}
+let emailDoSom: string | null = null
+try {
+  void supabase.auth.getUser().then(({ data }) => { emailDoSom = data?.user?.email?.toLowerCase() ?? null }, () => {})
+  supabase.auth.onAuthStateChange((_e, sess) => { emailDoSom = sess?.user?.email?.toLowerCase() ?? null })
+} catch { /* sem login: fica o canto de sempre */ }
+
 // cache de arquivo já baixado e decodificado (um download por sessão, no máximo)
 const bufs = new Map<string, AudioBuffer>()
 const baixando = new Map<string, Promise<AudioBuffer | null>>()
@@ -206,9 +221,11 @@ let crowd: { gain: GainNode; stop: () => void } | null = null
 // soma 1 ao abrir e tira 1 ao fechar; o ambiente vive enquanto alguém quiser.
 let crowdWanted = 0
 /** a tela de jogo abriu: quer o ambiente (toca agora se puder; senão, quando o 🔊 ligar) */
-export function startCrowd() { crowdWanted++; acendeCrowd() }
+// `carreira`: a tela é da carreira — aí vale o canto personalizado da conta, se ela tiver um.
+let crowdCarreira = false
+export function startCrowd(opts?: { carreira?: boolean }) { crowdWanted++; if (opts?.carreira) crowdCarreira = true; acendeCrowd() }
 /** a tela de jogo fechou: não quer mais (a torcida só apaga quando NENHUMA tela quer) */
-export function stopCrowd() { crowdWanted = Math.max(0, crowdWanted - 1); if (!crowdWanted) apagaCrowd() }
+export function stopCrowd() { crowdWanted = Math.max(0, crowdWanted - 1); if (!crowdWanted) { crowdCarreira = false; apagaCrowd() } }
 function apagaCrowd() { if (crowd) { crowd.stop(); crowd = null } }
 function acendeCrowd() {
   if (crowd) return
@@ -232,7 +249,8 @@ function acendeCrowd() {
       } catch { /* ignora */ }
     },
   }
-  carrega(SFX_AMBIENTE).then(buf => {
+  const meuCanto = crowdCarreira && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined
+  carrega(meuCanto ?? SFX_AMBIENTE).then(buf => {
     if (!buf || morto || !crowd) return
     try {
       src = c.createBufferSource()

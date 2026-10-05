@@ -103,7 +103,7 @@ console.log('\n2b) 🏟️ toda tela que mostra partida tem o som (nenhuma fica 
   // própria, não é a da liga. Esta trava conta as telas pelo LiveScoreCard.
   for (const [nome, src] of [['CARREIRA', carreira], ['RÁPIDO/ONLINE', rapido], ['COPA DO MUNDO', mundo]]) {
     ok(/LiveScoreCard/.test(src), `${nome}: mostra partida na tela`)
-    ok(/startCrowd\(\)/.test(src) && /stopCrowd\(\)/.test(src), `${nome}: tem ambiente, e ele PARA ao sair da tela`)
+    ok(/startCrowd\((\{[^)]*\})?\)/.test(src) && /stopCrowd\(\)/.test(src), `${nome}: tem ambiente, e ele PARA ao sair da tela`)
     ok(/useApitoDeLargada\(/.test(src), `${nome}: tem apito pela regra`)
   }
 }
@@ -115,7 +115,7 @@ console.log('\n3) 🎧 o som da partida é EXATAMENTE o que ele escolheu — nad
   // ninguém reintroduzir som inventado por engano.
   ok(/export const TORCIDA_NOVA = true/.test(som), 'a chave TORCIDA_NOVA está LIGADA (ele aprovou em 19/09)')
   ok(/crowdRoar\(/.test(carreira), 'o gol toca no placar — o mesmo componente serve carreira e rápido/online')
-  ok(/startCrowd\(\)/.test(carreira), 'a carreira tem o ambiente de fundo')
+  ok(/startCrowd\((\{[^)]*\})?\)/.test(carreira), 'a carreira tem o ambiente de fundo')
   ok(/startCrowd\(\)/.test(rapido), 'o rápido/online tem o ambiente de fundo')
   // 🗑️ o canto sintetizado (palmas + "ôôô") foi APOSENTADO: o ambiente que ele
   // mandou já tem torcida cantando ao longe, e os dois juntos embolavam.
@@ -124,9 +124,11 @@ console.log('\n3) 🎧 o som da partida é EXATAMENTE o que ele escolheu — nad
   // 🗑️ e o ambiente/urro de RUÍDO também saíram: quem faz esse papel agora é o mp3
   {
     const i = som.indexOf('export function startCrowd')
-    const corpo = som.slice(i, som.indexOf('export function stopCrowd'))
+    const corpo = som.slice(i, som.indexOf('// ─── 🥅 O GOL')) // start + stop + acende (o arquivo é escolhido no acende)
     ok(/SFX_AMBIENTE/.test(corpo), 'o ambiente é o ARQUIVO dele, não ruído sintetizado')
     ok(/loop = true/.test(corpo), 'e roda em loop enquanto a partida está na tela')
+    // 🎶 05/10: canto personalizado por conta (Geovany) — só AMBIENTE, só carreira; o gol é o de todos
+    ok(/AMBIENTE_CARREIRA_POR_EMAIL/.test(som) && /crowdCarreira/.test(corpo), 'o canto personalizado por conta só vale na carreira')
     ok(/stopCrowd/.test(rapido) && /stopCrowd/.test(carreira), 'ao sair da tela o ambiente para (nada toca fora do jogo)')
   }
 }
