@@ -12558,7 +12558,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // estado do jogo guarda isso com OUTRO nome (`leilaoClubes`) — sem a guarda, o 1º
         // save apagava a escolha: o selo 🧱 da lista sumia e a próxima rodada de uma Minha
         // Liga de Clubes voltava como leilão de Jogador.
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes']) {
+        // 🔴 `liveUrl` entra na lista (05/10): o link da live do dono, que a LISTA de salas mostra em
+        // destaque. Nasce na criação e o jogo nunca toca — sem a guarda, o 1º save apagaria.
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl']) {
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda

@@ -78,7 +78,7 @@ interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x
 // assim TODOS veem a bolinha brilhando, não só o dono
 const perkFromName = (n: string): ApoioPerk | null =>
   n.includes('👑') ? APOIO_PERKS.ouro : n.includes('⭐') ? APOIO_PERKS.prata : n.includes('💎') ? APOIO_PERKS.roxo : n.includes('⁣') ? APOIO_PERKS.verde : null
-type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean; clubes?: boolean }
+type GS = EscState & { __game?: string; formation?: FormationKey; roomName?: string; locked?: boolean; pwHash?: string; stream?: boolean; manual?: boolean; mode?: 'rapido' | 'carreira' | 'elenco' | 'liga' | 'mundo'; copaMundo?: CopaFicha; mundoNaLiga?: boolean; ligaAt?: string; ligaRegras?: unknown; ligaAdmins?: string[]; bafoSemCarta?: boolean; deck?: DeckChoice; deckSala?: DeckChoice; ligaFechada?: boolean; rivals?: number; rivalTeams?: string[]; holandes?: boolean; clubes?: boolean; liveUrl?: string }
 interface RoomInfo { id: string; code: string; host_id: string; max_players: number; status: string; game_state?: GS; updated_at?: string }
 type OpenRoom = RoomInfo & { count: number }
 
@@ -629,6 +629,24 @@ function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: str
 // da tela, e não pode se perder a cada render.
 let semColunaPregao = false
 let semColunaClubes = false // 🧱 idem, pro selo do Leilão de Clubes (ls_clubes)
+let semColunaLive = false // 🔴 idem, pro link da live (ls_live)
+
+// 🔴 LINK DA LIVE (05/10, Diego: *"nessa área da sala, pra quem é streamer, com link… tem que ser
+// streamer que tá rolando ao vivo mesmo, e com link do ao vivo"*). Só aceita link https de
+// plataforma de live conhecida — é um link que a sala inteira vai abrir, então nada de URL solta.
+const LIVE_HOSTS: [RegExp, string][] = [
+  [/(^|\.)youtube\.com$|(^|\.)youtu\.be$/, 'YouTube'], [/(^|\.)tiktok\.com$/, 'TikTok'],
+  [/(^|\.)twitch\.tv$/, 'Twitch'], [/(^|\.)kick\.com$/, 'Kick'], [/(^|\.)instagram\.com$/, 'Instagram'], [/(^|\.)facebook\.com$|(^|\.)fb\.watch$/, 'Facebook'],
+]
+export function plataformaDaLive(url: string | undefined | null): string | null {
+  if (!url) return null
+  try {
+    const u = new URL(url.trim())
+    if (u.protocol !== 'https:') return null
+    const h = u.hostname.toLowerCase()
+    return LIVE_HOSTS.find(([re]) => re.test(h))?.[1] ?? null
+  } catch { return null }
+}
 
 export function EscLobby() {
   const privateOnline = ONLINE_VISUAL_RELEASED
@@ -774,6 +792,7 @@ export function EscLobby() {
   const [roomPw, setRoomPw] = useState('')
   const [roomStream, setRoomStream] = useState(false)  // modo stream (esconde valores)
   const [streamModal, setStreamModal] = useState(false) // caixa explicando o modo stream
+  const [liveUrl, setLiveUrl] = useState('') // 🔴 link da live (só com o Modo Stream ligado)
   const [roomManual, setRoomManual] = useState(false)  // 🎮 modo manual: host controla o ritmo (auto = padrão)
   const [roomChat, setRoomChat] = useState(true)  // 💬 chat da sala: o host decide na criação (padrão = ligado)
   const [auctionSecs, setAuctionSecs] = useState(45) // ⏱️ tempo do leilão: 45 (padrão), outro nº, ou 0 = host avança no botão
@@ -1777,7 +1796,7 @@ export function EscLobby() {
     // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1857,7 +1876,13 @@ export function EscLobby() {
     let rooms: unknown[] | null = null
     // 🧱 28/09: + `ls_clubes` (selo 🧱 CLUBES), num degrau PRÓPRIO da rede: se só ela
     // faltar no banco, cai pra consulta com a Tocaia — o selo 🐊 não some junto.
-    if (!semColunaClubes) {
+    // 🔴 05/10: + `ls_live` (link da live), no degrau mais alto da rede.
+    if (!semColunaLive) {
+      const rl = await busca(`${COLS}, gholandes:ls_holandes, gclubes:ls_clubes, glive:ls_live`)
+      if (rl.error) semColunaLive = true
+      else rooms = rl.data as unknown[]
+    }
+    if (rooms === null && !semColunaClubes) {
       const r0 = await busca(`${COLS}, gholandes:ls_holandes, gclubes:ls_clubes`)
       if (r0.error) semColunaClubes = true
       else rooms = r0.data as unknown[]
@@ -1868,10 +1893,10 @@ export function EscLobby() {
       else rooms = r1.data as unknown[]
     }
     if (rooms === null) rooms = ((await busca(COLS)).data ?? []) as unknown[]
-    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null }
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: r.gclubes === 'true' || undefined } as GS,
+      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: r.gclubes === 'true' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -1964,7 +1989,7 @@ export function EscLobby() {
         if (ehLigaRow(r)) return ligaRolando(r)
         return r.count >= 1 && (r.status === 'started' ? isFresh(r) : waitingAlive(r))
       })
-      .sort((a, b) => (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
+      .sort((a, b) => Number(!!(b.game_state as GS)?.liveUrl) - Number(!!(a.game_state as GS)?.liveUrl) || (a.status === b.status ? 0 : a.status === 'waiting' ? -1 : 1)))
     setListLoading(false)
   }
 
@@ -3390,6 +3415,19 @@ export function EscLobby() {
             {!isCareer && (
               <div>
                 <ToggleRow icon="🎥" title={tr('Modo Stream', 'Stream mode')} sub={roomStream ? tr('Valores dos lances ocultos', 'Bid values hidden') : tr('Esconde os valores (pra live)', 'Hides the values (for streaming)')} on={roomStream} onClick={() => { if (roomStream) setRoomStream(false); else setStreamModal(true) }} />
+                {/* 🔴 LINK DA LIVE (05/10): a sala de quem está transmitindo aparece em DESTAQUE na lista,
+                    com o botão de assistir. O link mora na sala: acabou a sala, some junto. */}
+                {roomStream && (
+                  <div className="mt-2 rounded-xl border-[2.5px] border-black p-2.5" style={{ background: 'rgba(232,80,58,.16)' }}>
+                    <p className="text-white/85 text-[12px] font-black" style={OSWALD}>{tr('🔴 Vai transmitir ao vivo? Cole o link da live', '🔴 Going live? Paste the live link')}</p>
+                    <input value={liveUrl} onChange={e => setLiveUrl(e.target.value)} inputMode="url" autoCapitalize="off" autoCorrect="off" spellCheck={false}
+                      placeholder={tr('https://youtube.com/live/… · tiktok.com/@…/live · twitch.tv/…', 'https://youtube.com/live/… · tiktok.com/@…/live · twitch.tv/…')}
+                      className="w-full border-[2.5px] border-black rounded-lg px-3 py-2 mt-1.5 text-sm font-bold" style={{ background: '#fff', color: '#000' }} />
+                    <p className="text-[10.5px] font-bold mt-1" style={{ color: liveUrl.trim() && !plataformaDaLive(liveUrl) ? '#FFB4A8' : 'rgba(255,255,255,.6)' }}>
+                      {liveUrl.trim() ? (plataformaDaLive(liveUrl) ? tr(`✅ ${plataformaDaLive(liveUrl)} — sua sala vai aparecer em destaque na lista, com o botão "Assistir live"`, `✅ ${plataformaDaLive(liveUrl)} — your room will be highlighted in the list, with a "Watch live" button`) : tr('Link não reconhecido: cole o endereço completo da live (YouTube, TikTok, Twitch, Kick, Instagram ou Facebook).', 'Link not recognized: paste the full live address (YouTube, TikTok, Twitch, Kick, Instagram or Facebook).')) : tr('Sem link, a sala aparece normal. Acabou a sala, o link some junto.', 'Without a link the room looks normal. When the room ends, the link goes with it.')}
+                    </p>
+                  </div>
+                )}
                 {/* ⏱️ TEMPO DO LEILÃO — sub-opção do streamer (só com o Stream ligado).
                     🔻 E SÓ NO PREGÃO CEGO (ordem dele, 20/09): *"no stream não quero
                     que tenha tempo pra escolher não, quando ele selecionar holandês e
@@ -3481,8 +3519,20 @@ export function EscLobby() {
             const pregaoLido = pregaoDaSala !== undefined
             // 🌍 Copa do Mundo e 🃏 Bafo não têm pregão nenhum: nada de selo de modo
             const temPregao = !mundoRoom && r.game_state?.mode !== 'elenco'
+            // 🔴 SALA AO VIVO (05/10): o dono colou o link da live. Faixa vermelha, botão de assistir
+            // e ela já vem ordenada pro topo. Some sozinha quando a sala sai da lista.
+            const liveUrlSala = (r.game_state as GS)?.liveUrl
+            const plataforma = plataformaDaLive(liveUrlSala)
+            const aoVivo = !!liveUrlSala && !!plataforma
             return (
-              <div key={r.id} className="online-room-row flex items-center gap-2 border-[3px] border-black rounded-xl p-3" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}` }}>
+              <div key={r.id} className="online-room-row border-[3px] border-black rounded-xl overflow-hidden" style={{ background: live ? '#EFE6C8' : '#F4ECD6', boxShadow: `3px 3px 0 ${INK}`, outline: aoVivo ? '3px solid #E8503A' : undefined, outlineOffset: aoVivo ? 2 : undefined }}>
+              {aoVivo && (
+                <div className="flex items-center gap-2 px-3 py-1.5 border-b-[3px] border-black" style={{ background: '#E8503A', color: '#fff' }}>
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-white animate-pulse shrink-0" />
+                  <span className="text-[12px] font-black tracking-wider" style={OSWALD}>{tr(`AO VIVO AGORA NO ${plataforma!.toUpperCase()} · ASSISTA E ENTRE`, `LIVE NOW ON ${plataforma!.toUpperCase()} · WATCH AND JOIN`)}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 p-3">
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-black text-sm flex items-center gap-1.5" style={OSWALD}>
                     {live && <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />}
@@ -3528,6 +3578,12 @@ export function EscLobby() {
                     {full ? tr('Cheia', 'Full') : tr('Entrar', 'Join')}
                   </button>
                 )}
+              </div>
+              {aoVivo && (
+                <a href={liveUrlSala} target="_blank" rel="noopener noreferrer" className="block mx-3 mb-3 text-center border-[3px] border-black rounded-xl py-2.5 font-black text-sm uppercase no-underline" style={{ background: '#E8503A', color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
+                  {tr(`▶ Assistir a live no ${plataforma}`, `▶ Watch the live on ${plataforma}`)}
+                </a>
+              )}
               </div>
             )
           })}

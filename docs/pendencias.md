@@ -42,6 +42,13 @@
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 🔴 SALA AO VIVO NA LISTA (05/10, Diego: *"nessa área da sala, pra quem é streamer, com link… tem que ser streamer que
+  tá rolando ao vivo mesmo, e com link do ao vivo"*; mockup `scratchpad/mockup-live.png` aprovado — *"faz"*): na criação,
+  com o Modo Stream ligado, aparece o campo do link (só https de YouTube/TikTok/Twitch/Kick/Instagram/Facebook —
+  `plataformaDaLive`). Vai em `game_state.liveUrl` (guardado em `salaFixaRef`, senão o 1º save apagava) → coluna magra
+  `ls_live` pelo gatilho (`docs/sql/lista-salas-live.sql`, ✅ aplicada). Na lista: sala com link sobe pro topo, faixa
+  vermelha "AO VIVO AGORA NO X" e botão "▶ Assistir a live". Acabou/sumiu a sala, some junto (é da sala). Novidade PT/EN.
+  ⏭️ Commitado no branch, aguardando o Diego mandar publicar. Não testei com sala real (precisa de login).
 - 📖 HOME: cartão "Meu Álbum" ao lado do Salão dos Batismos ✅ NO AR (04/10, pedido dele). O botão ÁLBUM do rodapé
   continua (ele não respondeu se tira). ⛔ A reorganização da Agência em duas abas (Agenciados / Coleções, mockup
   `scratchpad/mockup-agencia.png`) ele NÃO aprovou agora (*"só o 1 mesmo"*) — não fazer sem ele pedir.
