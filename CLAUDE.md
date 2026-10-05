@@ -722,6 +722,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   **Nunca criar mensagem periódica nova no canal** sem medir: cota do plano = 5 milhões de mensagens/mês e cada
   entrega pra cada pessoa conta uma. Trava: `npm run canal`.
 
+- **💾 FICHAS DE CARREIRA (05/10, regra permanente): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 · 🖋️ Batismo 4.** Antes era
+  2 · 4 · 6 · 8. Palavras dele: *"não mexa nesses usuários que já fizeram saves… a partir de agora o grátis vai ter só um…
+  se ele quiser outro, ele tem que excluir"*. Quem já tem mais que o limite fica com todas (grandfather em
+  `careerSlotLimit`), só não cria nova. **Nunca apagar nem travar save de ninguém por causa do limite.**
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e

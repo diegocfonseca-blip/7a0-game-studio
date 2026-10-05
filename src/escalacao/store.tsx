@@ -10442,13 +10442,14 @@ function loadSoloInProgress(): EscState | null {
 export type CareerSlot = { save: EscState; at: number }
 const CAREER_ARCHIVE_KEY = 'esc-career-archive'
 export const MAX_CAREER_SLOTS = 8 // teto de GUARDA do arquivo (nunca corta nada)
-// 🎟️ FICHAS DE CARREIRA por tier (decisão do Diego 09/08): grátis 2 ·
-// ⭐ Craque 4 · 👑 Lenda 6 · 🖋️ Batismo 8. Grandfather LITERAL ("quem já tem
+// 🎟️ FICHAS DE CARREIRA por tier. 🔁 05/10 (Diego): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 ·
+// 🖋️ Batismo 4 (antes, desde 09/08: 2 · 4 · 6 · 8). *"não mexa nesses usuários que já fizeram
+// saves"* — o grandfather abaixo garante isso. Grandfather LITERAL ("quem já tem
 // mais não mexo"): o limite pessoal nunca fica abaixo do que a pessoa JÁ tem
 // — nada é apagado nem travado; a régua só vale pra criar ALÉM.
 export function careerSlotLimit(count: number): number {
   const tier = myApoioPerk()?.tier
-  const base = souBarao() ? 8 : tier === 'ouro' ? 6 : tier === 'prata' ? 4 : 2
+  const base = souBarao() ? 4 : tier === 'ouro' ? 4 : tier === 'prata' ? 2 : 1
   return Math.max(base, Math.min(count, MAX_CAREER_SLOTS))
 }
 const isCareerSave = (s: unknown): s is EscState => !!s && typeof s === 'object' && !!(s as EscState).careerOnline && Array.isArray((s as EscState).managers) && (s as EscState).managers.length > 0

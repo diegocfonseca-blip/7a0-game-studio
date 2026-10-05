@@ -514,7 +514,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="bg-white rounded-2xl mt-3 px-3 py-2.5" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
             <p className="font-black uppercase text-[10px] tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('⭐ e vem junto', '⭐ also included')}</p>
             <div className="flex flex-wrap gap-1.5">
-              {[tr('⭐ nome prata brilhando nas salas online', '⭐ shining silver name in online rooms'), tr('🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '🕵️ Scout: find players outside the auction (up to Star)'), tr('💾 4 carreiras salvas', '💾 4 saved careers'), tr('📲 grupo VIP no WhatsApp com o Diego', '📲 VIP WhatsApp group with Diego')].map(t => (
+              {[tr('⭐ nome prata brilhando nas salas online', '⭐ shining silver name in online rooms'), tr('🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '🕵️ Scout: find players outside the auction (up to Star)'), tr('💾 2 carreiras salvas', '💾 2 saved careers'), tr('📲 grupo VIP no WhatsApp com o Diego', '📲 VIP WhatsApp group with Diego')].map(t => (
                 <span key={t} className="font-extrabold text-[10.5px] rounded-full px-2.5 py-1" style={{ border: `2px solid ${INK}`, background: '#F4ECD6' }}>{t}</span>
               ))}
             </div>
@@ -1518,7 +1518,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
         })}
         {(() => { const lim = careerSlotLimit(list.length); const cheio = list.length >= lim; return (<>
         <button onClick={onNew} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
-        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, ou ganhe fichas apoiando: ⭐ Craque tem 4 · 👑 Lenda 6 · 🖋️ Batismo 8. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, or earn slots by supporting: ⭐ Star has 4 · 👑 Legend 6 · 🖋️ Named club 8. (Whoever already had more than the limit loses nothing.)')}</p>}
+        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4. (Whoever already had more than the limit loses nothing.)')}</p>}
       </>) })()}
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras. Trocar de save também não — só o 🗑️ apaga.', 'Starting a new one does NOT delete the others. Switching saves doesn\'t either — only 🗑️ deletes.')}</p>
       </div>

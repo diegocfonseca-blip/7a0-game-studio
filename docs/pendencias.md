@@ -42,6 +42,8 @@
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 💾 FICHAS DE CARREIRA ✅ (05/10): grátis 1 · Craque 2 · Lenda 4 · Batismo 4 (era 2·4·6·8). Saves existentes intocados
+  (grandfather). Textos dos planos (Apoie, vitrine, aviso de fichas cheias) atualizados em PT/EN.
 - 🧱 MEMÓRIA COMPARTILHADA DO LEILÃO DE CLUBES ✅ NO BANCO (05/10): `docs/sql/clubes-recentes.sql` aplicado em 2 pedaços
   (tabela `esc_clubes_saidos` + `esc_clubes_recentes` + `esc_clubes_grava`); `select esc_clubes_recentes()` → `[]`.
   ⚠️ Diferença do arquivo: o `esc_clubes_grava` subiu SEM a linha `delete … max(id) - 50` (a limpeza das partidas antigas)
