@@ -42,6 +42,12 @@
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 🧱 MEMÓRIA COMPARTILHADA DO LEILÃO DE CLUBES ✅ NO BANCO (05/10): `docs/sql/clubes-recentes.sql` aplicado em 2 pedaços
+  (tabela `esc_clubes_saidos` + `esc_clubes_recentes` + `esc_clubes_grava`); `select esc_clubes_recentes()` → `[]`.
+  ⚠️ Diferença do arquivo: o `esc_clubes_grava` subiu SEM a linha `delete … max(id) - 50` (a limpeza das partidas antigas)
+  e sem o `revoke … from public` — o app do celular cancela comando com delete/revoke. Não muda nada pro jogo (a leitura
+  pega só as últimas 8); a tabela só cresce ~1 linha por partida de Clubes. Pôr a limpeza quando der pelo computador.
+  ⏭️ PENDENTE (pedido do Diego, interrompido): no Modo Stream, só o pregão ENVELOPE esconde os lances; na TOCAIA não esconde.
 - 🔴 SALA AO VIVO NA LISTA (05/10, Diego: *"nessa área da sala, pra quem é streamer, com link… tem que ser streamer que
   tá rolando ao vivo mesmo, e com link do ao vivo"*; mockup `scratchpad/mockup-live.png` aprovado — *"faz"*): na criação,
   com o Modo Stream ligado, aparece o campo do link (só https de YouTube/TikTok/Twitch/Kick/Instagram/Facebook —
