@@ -125,7 +125,7 @@ console.log('\n3) 🎧 o som da partida é EXATAMENTE o que ele escolheu — nad
   {
     const i = som.indexOf('export function startCrowd')
     const corpo = som.slice(i, som.indexOf('// ─── 🥅 O GOL')) // start + stop + acende (o arquivo é escolhido no acende)
-    ok(/SFX_AMBIENTE/.test(corpo), 'o ambiente é o ARQUIVO dele, não ruído sintetizado')
+    ok(/carrega\(crowdArquivo\)/.test(corpo) && /\?\? SFX_AMBIENTE/.test(som), 'o ambiente é o ARQUIVO dele, não ruído sintetizado')
     ok(/loop = true/.test(corpo), 'e roda em loop enquanto a partida está na tela')
     // 🎶 05/10: canto personalizado por conta (Geovany) — só AMBIENTE, só carreira; o gol é o de todos
     ok(/AMBIENTE_CARREIRA_POR_EMAIL/.test(som) && /crowdCarreira/.test(corpo), 'o canto personalizado por conta só vale na carreira')

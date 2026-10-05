@@ -60,6 +60,8 @@ punia de novo os grandes); e a memória morava no celular de quem cria a sala (d
 - 🎶 CANTO DA TORCIDA DO GEOVANY ✅ (05/10, Diego mandou o áudio): na carreira do `souzact12@gmail.com` o AMBIENTE
   vira `public/sfx/torcida-geovany-v1.mp3` (10 s em loop, mono 32 kHz 56 kbps, mesmo volume médio do original, 72 KB).
   O gol continua o de todos. Mora em `AMBIENTE_CARREIRA_POR_EMAIL` (`sound.ts`) — nova conta = uma linha + o arquivo.
+  🐛 Mesmo dia, ele disse que não tocava: quem abre direto na carreira com o 🔊 ligado acendia a torcida ANTES do
+  login ser lido (entrava a padrão e ficava). Agora a torcida troca sozinha quando a conta chega (`conferePraConta`).
 - 💾 FICHAS DE CARREIRA ✅ (05/10): grátis 1 · Craque 2 · Lenda 4 · Batismo 4 (era 2·4·6·8). Saves existentes intocados
   (grandfather). Textos dos planos (Apoie, vitrine, aviso de fichas cheias) atualizados em PT/EN.
 - 🧱 MEMÓRIA COMPARTILHADA DO LEILÃO DE CLUBES ✅ NO BANCO (05/10): `docs/sql/clubes-recentes.sql` aplicado em 2 pedaços

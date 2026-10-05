@@ -182,10 +182,15 @@ const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
   'souzact12@gmail.com': 'sfx/torcida-geovany-v1.mp3', // Geovany
 }
 let emailDoSom: string | null = null
-try {
-  void supabase.auth.getUser().then(({ data }) => { emailDoSom = data?.user?.email?.toLowerCase() ?? null }, () => {})
-  supabase.auth.onAuthStateChange((_e, sess) => { emailDoSom = sess?.user?.email?.toLowerCase() ?? null })
-} catch { /* sem login: fica o canto de sempre */ }
+let crowdArquivo: string | null = null // qual arquivo a torcida que está tocando usa
+const arquivoAmbiente = () => (crowdCarreira && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined) ?? SFX_AMBIENTE
+// 🐛 05/10 (Geovany: "não tá no meu jogo"): quem abre o jogo direto na carreira com o 🔊 ligado
+// fazia a torcida acender ANTES de o login ser lido — entrava o canto padrão e ficava. Agora, quando
+// a conta chega, se a torcida acesa é a errada, ela troca na hora.
+function conferePraConta(email: string | null | undefined) {
+  emailDoSom = email?.toLowerCase() ?? null
+  if (crowd && crowdArquivo && crowdArquivo !== arquivoAmbiente()) { apagaCrowd(); acendeCrowd() }
+}
 
 // cache de arquivo já baixado e decodificado (um download por sessão, no máximo)
 const bufs = new Map<string, AudioBuffer>()
@@ -223,10 +228,14 @@ let crowdWanted = 0
 /** a tela de jogo abriu: quer o ambiente (toca agora se puder; senão, quando o 🔊 ligar) */
 // `carreira`: a tela é da carreira — aí vale o canto personalizado da conta, se ela tiver um.
 let crowdCarreira = false
-export function startCrowd(opts?: { carreira?: boolean }) { crowdWanted++; if (opts?.carreira) crowdCarreira = true; acendeCrowd() }
+export function startCrowd(opts?: { carreira?: boolean }) {
+  crowdWanted++
+  if (opts?.carreira && !crowdCarreira) { crowdCarreira = true; if (crowd && crowdArquivo !== arquivoAmbiente()) apagaCrowd() }
+  acendeCrowd()
+}
 /** a tela de jogo fechou: não quer mais (a torcida só apaga quando NENHUMA tela quer) */
 export function stopCrowd() { crowdWanted = Math.max(0, crowdWanted - 1); if (!crowdWanted) { crowdCarreira = false; apagaCrowd() } }
-function apagaCrowd() { if (crowd) { crowd.stop(); crowd = null } }
+function apagaCrowd() { if (crowd) { crowd.stop(); crowd = null; crowdArquivo = null } }
 function acendeCrowd() {
   if (crowd) return
   const c = ac(); if (!c || !master) return
@@ -249,8 +258,8 @@ function acendeCrowd() {
       } catch { /* ignora */ }
     },
   }
-  const meuCanto = crowdCarreira && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined
-  carrega(meuCanto ?? SFX_AMBIENTE).then(buf => {
+  crowdArquivo = arquivoAmbiente()
+  carrega(crowdArquivo).then(buf => {
     if (!buf || morto || !crowd) return
     try {
       src = c.createBufferSource()
@@ -334,3 +343,9 @@ export function crowdRoar(forca = 1, ritmoMs = 5700) {
     } catch { /* ignora */ }
   })
 }
+
+// 🎶 lê a conta pro canto personalizado (no FIM do arquivo: as variáveis da torcida já existem)
+try {
+  void supabase.auth.getSession().then(({ data }) => conferePraConta(data?.session?.user?.email), () => {})
+  supabase.auth.onAuthStateChange((_e, sess) => conferePraConta(sess?.user?.email))
+} catch { /* sem login: fica o canto de sempre */ }
