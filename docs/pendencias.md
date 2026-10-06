@@ -1,3 +1,7 @@
+## 06/10/2026 — 📱 Linha do WhatsApp embaixo das salas: agora "grupo VIP junto com o dono do jogo" ✅ NO AR
+Pedido do Diego. Só o texto mudou (PT/EN, as duas versões: quem já tem vaga e quem ainda não tem). "VIP" em negrito;
+o brilho verde da palavra WhatsApp e o link continuam iguais.
+
 ## 06/10/2026 — 💸 CONTA DO SUPABASE (2ª rodada): 3 cortes de tráfego que o Diego aprovou ("Ok pode fazer") ✅ NO AR
 Medido nos logs de 24h (~1,4 mi de chamadas/dia). Os 3 cortes não mudam nada no jogo:
 - **Faixa "voltar pra sala" da home** (`lobby.tsx`): baixava o `game_state` INTEIRO (40–500 KB por sala, até 21 salas)

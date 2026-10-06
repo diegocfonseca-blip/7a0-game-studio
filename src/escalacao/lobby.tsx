@@ -3639,6 +3639,7 @@ export function EscLobby() {
             ordem de 29/08 (*"de forma mais sutil"*) continua valendo.
             💾 Brilho em CSS = 0 KB (mesma regra do escudo animado: animação é CSS,
             nunca arquivo). Reverter = tirar a classe `zap-brilha`. */}
+        {/* 👑 06/10: virou "grupo VIP junto com o dono do jogo" (pedido do Diego). */}
         {(() => {
           const jaTem = myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata'
           const Zap = <span className="zap-brilha">WhatsApp</span>
@@ -3652,14 +3653,14 @@ export function EscLobby() {
               <span className="zap-ponto" />
               {jaTem ? (<>
                 {getLang() === 'en'
-                  ? <>📱 There is a {Zap} group of online players — and you already have a spot in it.</>
-                  : <>📱 Tem um grupo no {Zap} de quem joga online — e você já tem vaga nele.</>}{' '}
+                  ? <>📱 There is a <b>VIP</b> {Zap} group with the game's owner — and you already have a spot in it.</>
+                  : <>📱 Tem um grupo <b>VIP</b> no {Zap} junto com o dono do jogo — e você já tem vaga nele.</>}{' '}
                 <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noreferrer"
                   className="underline text-white/60 font-black active:opacity-60">{tr('Pedir o convite', 'Ask for the invite')}</a>
               </>) : (<>
                 {getLang() === 'en'
-                  ? <>📱 Nobody to call? There is a {Zap} group of online players — from ⭐ Star up.</>
-                  : <>📱 Sem galera pra chamar? Tem um grupo no {Zap} de quem joga online — é do ⭐ Craque pra cima.</>}{' '}
+                  ? <>📱 Nobody to call? Join the <b>VIP</b> {Zap} group with the game's owner — from ⭐ Star up.</>
+                  : <>📱 Sem galera pra chamar? Entra no grupo <b>VIP</b> do {Zap} junto com o dono do jogo — é do ⭐ Craque pra cima.</>}{' '}
                 <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=craque` }}
                   className="underline text-white/60 font-black active:opacity-60">{tr('Saiba mais', 'Learn more')}</button>
               </>)}
