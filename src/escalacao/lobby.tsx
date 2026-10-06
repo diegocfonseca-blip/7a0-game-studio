@@ -247,6 +247,15 @@ export function useResumableRoom() {
       const user = auth?.user
       if (!user || !alive) return
       userRef.current = user
+      // 💸 06/10 (conta do Supabase): a faixa "voltar pra sala" baixava o game_state INTEIRO
+      // (até ~500 KB por sala, até 21 salas) toda vez que a home abria. Agora só puxa os
+      // campos que a conferência usa; o save completo só desce no resume().
+      const LEVE = 'id, code, host_id, status, updated_at, gtag:game_state->>__game, gscreen:game_state->>screen, gm0:game_state->managers->0->>id, gmode:game_state->>mode, gcar:game_state->>careerOnline'
+      type Leve = { id: string; code: string; host_id: string; status: string; updated_at?: string; gtag?: string | null; gscreen?: string | null; gm0?: unknown; gmode?: string | null; gcar?: string | null }
+      const deLeve = (r: Leve | null | undefined): RoomInfo | null => r ? ({
+        id: r.id, code: r.code, host_id: r.host_id, status: r.status, updated_at: r.updated_at,
+        game_state: { __game: r.gtag ?? undefined, screen: r.gscreen ?? undefined, managers: r.gm0 != null ? [{ id: Number(r.gm0) }] : [], mode: r.gmode ?? undefined, careerOnline: r.gcar === 'true', __leve: true },
+      } as unknown as RoomInfo) : null
       const isLive = (rd: RoomInfo | null | undefined): rd is RoomInfo => {
         const gs = rd?.game_state as GS | undefined
         return !!rd && rd.game_state?.__game === tagAtual() && rd.status === 'started'
@@ -257,9 +266,10 @@ export function useResumableRoom() {
       // 1) ponteiro local (rápido, sem consultar o resto do banco)
       const savedId = loadSavedRoom()
       if (savedId) {
-        const { data } = await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()
+        const { data: lv } = await supabase.from('game_rooms').select(LEVE).eq('id', savedId).maybeSingle()
+        const data = deLeve(lv as Leve | null)
         if (data && data.game_state?.__game !== tagAtual()) clearSavedRoom()
-        else if (isLive(data as RoomInfo)) rd = data as RoomInfo
+        else if (isLive(data)) rd = data
       }
       // 2) sem ponteiro local (ex.: limpou o cache) → procura no banco uma sala
       //    'started' onde EU sou host OU membro. Assim o host não perde o "voltar".
@@ -267,10 +277,11 @@ export function useResumableRoom() {
         const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
         const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
         const [hostedRes, memberRes] = await Promise.all([
-          supabase.from('game_rooms').select('*').eq('host_id', user.id).eq('status', 'started').order('updated_at', { ascending: false }).limit(10),
-          memberIds.length ? supabase.from('game_rooms').select('*').in('id', memberIds).eq('status', 'started').order('updated_at', { ascending: false }).limit(10) : Promise.resolve({ data: [] as RoomInfo[] }),
+          supabase.from('game_rooms').select(LEVE).eq('host_id', user.id).eq('status', 'started').order('updated_at', { ascending: false }).limit(10),
+          memberIds.length ? supabase.from('game_rooms').select(LEVE).in('id', memberIds).eq('status', 'started').order('updated_at', { ascending: false }).limit(10) : Promise.resolve({ data: [] as Leve[] }),
         ])
-        rd = [...((hostedRes.data ?? []) as RoomInfo[]), ...((memberRes.data ?? []) as RoomInfo[])]
+        rd = [...((hostedRes.data ?? []) as unknown as Leve[]), ...((memberRes.data ?? []) as unknown as Leve[])]
+          .map(deLeve)
           .filter(isLive)
           .sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))[0] ?? null
       }
@@ -292,7 +303,9 @@ export function useResumableRoom() {
     const rd = roomRef.current, user = userRef.current
     if (!rd || !user) return
     const { data: freshRoom } = await supabase.from('game_rooms').select('game_state').eq('id', rd.id).maybeSingle()
-    const gs = (freshRoom?.game_state ?? rd.game_state) as GS | undefined
+    // a faixa guarda só o resumo leve: sem o save completo do banco, não restaura (nunca um estado de mentira)
+    const gs = freshRoom?.game_state as GS | undefined
+    if (!gs) return
     const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', rd.id).order('player_index')
     const sorted = (allPlayers ?? []) as RoomPlayer[]
     const amHost = rd.host_id === user.id

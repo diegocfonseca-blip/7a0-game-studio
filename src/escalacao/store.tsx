@@ -1675,7 +1675,11 @@ function guardaClubesRecentes(nova?: Map<string, Sector>) {
 // saiu" morava SÓ no celular de quem cria a sala, então cada dono novo começava do zero.
 // Agora o jogo puxa do servidor as últimas partidas de TODO MUNDO — no boot e a cada
 // 2 min (a sala é montada na hora, sem esperar rede: usa o que já chegou).
+let clubesPuxadoEm = 0
 export function puxaClubesRecentes() {
+  const agora = Date.now()
+  if (agora - clubesPuxadoEm < 60_000) return
+  clubesPuxadoEm = agora
   try {
     void supabase.rpc('esc_clubes_recentes').then(({ data, error }) => {
       if (error || !Array.isArray(data)) return
@@ -1686,8 +1690,11 @@ export function puxaClubesRecentes() {
     }, () => {})
   } catch { /* offline */ }
 }
-if (typeof window !== 'undefined') { setTimeout(puxaClubesRecentes, 1500); setInterval(puxaClubesRecentes, 120000) }
+// 💸 06/10 (conta do Supabase): antes puxava a cada 2 min pra TODO jogador, até quem nunca joga
+// Leilão de Clubes. Agora: no boot e logo depois de cada sala de clubes montada (pra próxima).
+if (typeof window !== 'undefined') { setTimeout(puxaClubesRecentes, 1500) }
 export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
+  if (typeof window !== 'undefined') setTimeout(puxaClubesRecentes, 3000) // atualiza a memória pra PRÓXIMA sala
   const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
   const bt = nextBuildTok()
   const n = Math.max(1, managers.length)

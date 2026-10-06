@@ -1,3 +1,16 @@
+## 06/10/2026 — 💸 CONTA DO SUPABASE (2ª rodada): 3 cortes de tráfego que o Diego aprovou ("Ok pode fazer") ✅ NO AR
+Medido nos logs de 24h (~1,4 mi de chamadas/dia). Os 3 cortes não mudam nada no jogo:
+- **Faixa "voltar pra sala" da home** (`lobby.tsx`): baixava o `game_state` INTEIRO (40–500 KB por sala, até 21 salas)
+  toda vez que a home abria. Agora a conferência puxa só os campos (`__game`, `screen`, 1º técnico, `mode`,
+  `careerOnline`) e o save completo só desce quando a pessoa aperta VOLTAR (`resume()`, que se o banco não devolver
+  o save não restaura nada). Estimativa: 80–100 GB/mês a menos.
+- **Memória do Leilão de Clubes** (`store.tsx`): saiu o `setInterval` de 2 min pra TODO jogador. Agora puxa no boot
+  e 3s depois de cada sala de clubes montada (pra próxima), com trava de 1 min. ~10 GB/mês.
+- **Teste de "servidor no ar"** (`index.tsx`, `MaintenanceBanner`): de 20s pra 60s e não roda com a aba escondida.
+  Continua com 2 falhas seguidas pra mostrar a faixa e re-tentando as gravações pendentes. ~3 GB/mês.
+- ⏳ Ainda grandes e NÃO mexidos (precisam de conversa antes): PATCH de game_rooms do dono (save a cada ~3s com
+  sala jogando) e GET de game_rooms/room_players do lobby.
+
 ## 05/10/2026 — 🧱 Leilão de Clubes: mais variedade (Colo-Colo em todo leilão, Flamengo nunca no ataque) ✅ NO AR (código) · ⏳ banco
 
 Diego: *"toda hora aparece goleiro do Colo-Colo… lateral só Flamengo… não aparece ataque do Flamengo… serve
