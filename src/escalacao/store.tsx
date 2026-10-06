@@ -10490,8 +10490,11 @@ export function readCareerArchive(): CareerSlot[] {
   try { const r = localStorage.getItem(CAREER_ARCHIVE_KEY); if (r) { const arr = JSON.parse(r); if (Array.isArray(arr)) return arr.filter((x: CareerSlot) => isCareerSave(x?.save)).map((x: CareerSlot) => ({ ...x, save: sincronizaNiveis(x.save) })) } } catch { /* ignora */ }
   return []
 }
-function writeCareerArchive(slots: CareerSlot[]) {
-  try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(slots.slice(0, MAX_CAREER_SLOTS))) } catch { /* cota cheia — ignora */ }
+// devolve se GRAVOU. 🐛 06/10 (La Bestia do Elton, temporada 378): antes o erro de espaço cheio
+// era engolido calado, a troca de carreira seguia em frente e a carreira que não coube SUMIA.
+// Agora quem chama decide: troca/arquivo que não gravou NÃO segue.
+function writeCareerArchive(slots: CareerSlot[]): boolean {
+  try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(slots.slice(0, MAX_CAREER_SLOTS))); return true } catch { return false }
 }
 // 🔐 DONO do armazenamento LOCAL de carreiras. Na NUVEM cada carreira já é por
 // CONTA (user_id). Mas os saves LOCAIS do aparelho (esc-solo-career + arquivo)
@@ -10810,11 +10813,12 @@ export function readActiveCareer(): CareerSlot | null {
   try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); reportaCaixaEstranha(save, 'load'); return { save: saveAtualizado(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
   return null
 }
-// guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa.
-function archiveActiveCareer() {
-  const act = readActiveCareer(); if (!act) return
+// guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa. Devolve se gravou
+// (sem carreira ativa = nada a guardar = true).
+function archiveActiveCareer(): boolean {
+  const act = readActiveCareer(); if (!act) return true
   const rest = readCareerArchive().filter(s => s.save.seed !== act.save.seed)
-  writeCareerArchive([{ save: act.save, at: act.at }, ...rest])
+  return writeCareerArchive([{ save: act.save, at: act.at }, ...rest])
 }
 // TODAS as carreiras pra listar (ativa primeiro, depois o arquivo), por recência.
 export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
@@ -10842,23 +10846,48 @@ export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
 // não some — ela está no arquivo ("Minhas carreiras") e na nuvem; o que some é
 // só o "esta é a que você está jogando", que passa a ser a nova assim que o
 // primeiro autosave dela roda.
-export function stashActiveBeforeNew() {
-  archiveActiveCareer()
+export function stashActiveBeforeNew(): boolean {
+  // 🛡️ 06/10: se a atual NÃO coube no arquivo, ela NÃO sai da vaga de "jogando" — senão sumia.
+  if (!archiveActiveCareer()) return false
   try {
     localStorage.removeItem('esc-solo-career')
     localStorage.removeItem('esc-solo-career-at')
   } catch { /* aparelho sem storage: o autosave da carreira nova assume em seguida */ }
+  return true
 }
-// troca a carreira ATIVA por uma do arquivo (a atual vai pro arquivo). Devolve o save.
+// troca a carreira ATIVA por uma do arquivo (a atual vai pro arquivo). Devolve o save, ou null
+// se não deu pra trocar SEM PERDER NADA (aí nada muda e a tela avisa).
+// 🐛 06/10 (La Bestia do Elton): a troca antiga guardava a atual no arquivo SEM tirar a escolhida
+// de lá — por um instante as duas existiam em dobro no aparelho. Com carreiras gigantes não
+// cabia, o erro era engolido, a atual não entrava no arquivo e a vaga de "jogando" era
+// sobrescrita pela escolhida: a atual sumia, e a nuvem subia sem ela.
+// Agora é uma TROCA DE LUGAR (Diego: *"ele deveria poder trocar pela carreira que ele quiser"*):
+//   1. arquivo novo = (arquivo − escolhida) + atual → mesmo tamanho de antes, sem dobra;
+//   2. só depois a escolhida vira a "jogando". Se o passo 1 falhar, nada mudou; se o 2 falhar,
+//      desfaz o 1. Em nenhum caminho uma carreira fica sem lugar.
 export function activateCareerSlot(seed: number): EscState | null {
-  archiveActiveCareer()
+  const act = readActiveCareer()
   const slots = readCareerArchive()
   const idx = slots.findIndex(s => s.save.seed === seed)
   if (idx < 0) return null
   const chosen = slots[idx]
-  writeCareerArchive(slots.filter((_, i) => i !== idx))
-  try { localStorage.setItem('esc-solo-career', JSON.stringify(chosen.save)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* ignora */ }
-  savePyramidCloud(chosen.save, true) // a nuvem segue a ativa
+  const semEscolhida = slots.filter((_, i) => i !== idx)
+  const novoArquivo = act && act.save.seed !== seed ? [{ save: act.save, at: act.at }, ...semEscolhida.filter(s => s.save.seed !== act.save.seed)] : semEscolhida
+  try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ } // abre espaço: a atual vai no arquivo novo
+  if (!writeCareerArchive(novoArquivo)) {
+    // não coube: devolve tudo como estava (a atual volta pra vaga dela)
+    try { if (act) localStorage.setItem('esc-solo-career', JSON.stringify(act.save)) } catch { /* a atual ainda está no arquivo antigo, que não mudou */ }
+    return null
+  }
+  try {
+    localStorage.setItem('esc-solo-career', JSON.stringify(chosen.save)); localStorage.setItem('esc-solo-career-at', String(Date.now()))
+  } catch {
+    // a escolhida não coube na vaga: volta o arquivo antigo e a atual pro lugar dela
+    writeCareerArchive(slots)
+    try { if (act) { localStorage.setItem('esc-solo-career', JSON.stringify(act.save)); localStorage.setItem('esc-solo-career-at', String(act.at)) } } catch { /* ignora */ }
+    return null
+  }
+  savePyramidCloud(chosen.save, true) // a nuvem segue a ativa (e junta tudo: ver `savePyramidCloud`)
   return chosen.save
 }
 // apaga uma carreira (do arquivo OU a ativa). Não mexe nas outras. Se apagar a
@@ -10981,6 +11010,20 @@ function mergeCareers(...lists: CareerSlot[][]): CareerSlot[] {
 // pergunta só o carimbo (uns bytes): se for o mesmo, a nuvem não tem nada que o aparelho não tenha,
 // e o save inteiro nem desce. Só baixa quando OUTRO aparelho salvou depois.
 const CLOUD_AT_KEY = 'esc-cloud-at:'
+// 🛡️ 06/10: QUAIS carreiras (seeds) a nuvem tem, pelo que este aparelho sabe. Se o aparelho
+// perder uma (espaço cheio, navegador limpo), a próxima subida percebe que está faltando e JUNTA
+// com a nuvem antes de gravar — a nuvem nunca mais apaga carreira sozinha. Só o 🗑️ tira (e
+// atualiza esta lista em `removeCareerFromCloud`).
+const NUVEM_SEEDS_KEY = 'esc-nuvem-seeds:'
+function seedsDaNuvem(uid: string): number[] {
+  try { const r = localStorage.getItem(NUVEM_SEEDS_KEY + uid); const a = r ? JSON.parse(r) : []; return Array.isArray(a) ? a.filter(x => typeof x === 'number') : [] } catch { return [] }
+}
+function anotaSeedsDaNuvem(uid: string, careers: CareerSlot[] | null) {
+  try {
+    if (!careers || !careers.length) localStorage.removeItem(NUVEM_SEEDS_KEY + uid)
+    else localStorage.setItem(NUVEM_SEEDS_KEY + uid, JSON.stringify(careers.map(c => (c.save as EscState).seed)))
+  } catch { /* ignora */ }
+}
 function cloudAtConhecido(uid: string): string | null { try { return localStorage.getItem(CLOUD_AT_KEY + uid) } catch { return null } }
 function marcaCloudAt(uid: string, iso: string | null | undefined) {
   try { if (iso) localStorage.setItem(CLOUD_AT_KEY + uid, iso); else localStorage.removeItem(CLOUD_AT_KEY + uid) } catch { /* ignora */ }
@@ -11011,7 +11054,10 @@ export async function savePyramidCloud(state: EscState, force = false) {
       // 🔒 carimba a ativa com o lacre antes de subir (as do arquivo já vêm carimbadas).
       const active: CareerSlot = { save: { ...state, _ll: lacreDe(state) } as EscState, at: Date.now() }
       let daNuvem: CareerSlot[] = []
-      if (carimbo && carimbo !== cloudAtConhecido(uid)) {
+      // 🛡️ 06/10: o aparelho perdeu alguma carreira que a nuvem tem? então junta também
+      const temLocal = new Set(mergeCareers([active], readCareerArchive()).map(c => (c.save as EscState).seed))
+      const faltaNoAparelho = seedsDaNuvem(uid).some(sd => !temLocal.has(sd))
+      if (carimbo && (carimbo !== cloudAtConhecido(uid) || faltaNoAparelho)) {
         // outro aparelho salvou depois: lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada)
         localCobreNuvem = false
         const { data: cur, error } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', uid).maybeSingle()
@@ -11020,6 +11066,7 @@ export async function savePyramidCloud(state: EscState, force = false) {
         daNuvem = careersFromCloudRaw(cur?.save, cloudAt)
       }
       payload = { __multi: 1, careers: mergeCareers([active], daNuvem, readCareerArchive()) }
+      anotaSeedsDaNuvem(uid, (payload as { careers: CareerSlot[] }).careers)
     }
     const nowIso = new Date().toISOString()
     const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
@@ -11093,6 +11140,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
     // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
     if (gravou) marcaCloudAt(uid, cloud.iso)
+    anotaSeedsDaNuvem(uid, cloud.careers)
     return true
   } catch { return false }
 }
@@ -11112,7 +11160,8 @@ export async function removeCareerFromCloud(seed: number) {
     const localCobria = (cur.updated_at as string | undefined) === cloudAtConhecido(uid)
     const cloudAt = cur.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
     const kept = careersFromCloudRaw(cur.save, cloudAt).filter(c => (c.save as EscState).seed !== seed)
-    if (!kept.length) { await supabase.from('esc_pyramid_saves').delete().eq('user_id', uid); marcaCloudAt(uid, null); return }
+    if (!kept.length) { await supabase.from('esc_pyramid_saves').delete().eq('user_id', uid); marcaCloudAt(uid, null); anotaSeedsDaNuvem(uid, null); return }
+    anotaSeedsDaNuvem(uid, kept)
     const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: { __multi: 1, careers: kept }, updated_at: new Date().toISOString() }).select('updated_at').maybeSingle()
     if (localCobria) marcaCloudAt(uid, up?.updated_at as string | undefined)
   } catch { /* ignora */ }

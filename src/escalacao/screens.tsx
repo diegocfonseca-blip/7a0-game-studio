@@ -1469,8 +1469,11 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   // confirmação de apagar é DENTRO do jogo (dois toques) — window.confirm é
   // bloqueado no navegador do WhatsApp/Instagram e o 🗑️ "não fazia nada" pra galera.
   const [confirmKey, setConfirmKey] = useState<string | null>(null)
+  // 🛡️ 06/10: se a troca não der pra fazer sem perder nada (aparelho sem espaço), NÃO troca e avisa
+  const [avisoTroca, setAvisoTroca] = useState(false)
   const open = (slot: CareerSlot, active: boolean) => {
-    const save = active ? slot.save : (activateCareerSlot(slot.save.seed) ?? slot.save)
+    const save = active ? slot.save : activateCareerSlot(slot.save.seed)
+    if (!save) { setAvisoTroca(true); setList(listAllCareers()); return }
     dispatch({ type: 'RESUME_CAREER_SOLO', saved: save })
   }
   const del = (slot: CareerSlot) => {
@@ -1485,6 +1488,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
+        {avisoTroca && <p role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
         {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>{t('Nenhuma carreira ainda. Comece uma! 👇', 'No careers yet. Start one! 👇')}</p>}
         {list.map(({ slot, active }, i) => {
           const you = slot.save.managers?.[slot.save.youIdx ?? 0]
@@ -2621,7 +2625,11 @@ export function EscSetup() {
       }
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
       // começar a nova. A nova vira a ativa; a antiga fica em "Minhas Carreiras".
-      stashActiveBeforeNew()
+      // 🛡️ 06/10: a atual não coube no arquivo? então não começa a nova (senão a atual sumia)
+      if (!stashActiveBeforeNew()) {
+        setNameErr(tr('Seu aparelho está sem espaço pra guardar a carreira atual. Nada foi apagado. Apague uma carreira que não usa mais em "Minhas carreiras" e tente de novo.', 'Your device has no room to keep your current career. Nothing was deleted. Delete a career you no longer use in "My careers" and try again.'))
+        return
+      }
       dispatch({
         type: 'START_CAREER_SOLO', teamName: clean, formation, rivals,
         rivalTeams: picks, league: 'both', intro: true,

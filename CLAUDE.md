@@ -727,6 +727,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   se ele quiser outro, ele tem que excluir"*. Quem já tem mais que o limite fica com todas (grandfather em
   `careerSlotLimit`), só não cria nova. **Nunca apagar nem travar save de ninguém por causa do limite.**
 
+- **🔁 TROCAR DE CARREIRA É SEMPRE PERMITIDO E NUNCA PERDE NADA (06/10, regra permanente).** Palavras dele: *"ele pode
+  trocar pela carreira que ele quiser, quantas vezes quiser… se ele excluir, já era"*. Quem mexer em save: gravação que
+  falha NUNCA é engolida calada no meio de uma troca (ou a troca acontece inteira, ou não acontece e avisa), e a nuvem
+  só perde uma carreira pelo 🗑️. Trava: `npm run troca`. (Caso da La Bestia do Elton, T378, que sumiu assim.)
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e

@@ -57,6 +57,18 @@ punia de novo os grandes); e a memória morava no celular de quem cria a sala (d
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 🛡️ TROCA DE CARREIRA NUNCA MAIS PERDE CARREIRA ✅ (06/10). Caso: **Elton (eltonfrossard45@gmail.com)** trocou de
+  carreira com o celular cheio (7 carreiras gigantes, ~4 MB) e a **La Bestia Negra, temporada 378 (seed 492430748)**
+  sumiu do aparelho E da nuvem. Causa: `activateCareerSlot` guardava a atual no arquivo sem tirar a escolhida (dobra),
+  o erro de espaço era engolido, e a subida pra nuvem com carimbo igual NÃO juntava com a nuvem → gravou sem ela.
+  Conserto: troca vira TROCA DE LUGAR (sem dobra; falhou = não troca e avisa); começar carreira nova sem espaço não
+  apaga a atual; a nuvem guarda a lista de seeds (`esc-nuvem-seeds:`) e, se o aparelho perdeu alguma, a subida junta
+  com a nuvem antes de gravar — só o 🗑️ tira carreira da nuvem. Trava: `npm run troca`.
+  🎁 Compensação decidida pelo Diego (não quis o backup do Supabase): na carreira **Cruzeiro Esporte Clube² (seed
+  16378525)** do Elton entrou o elenco da La Bestia (foto da T261, 18 trocas com os bots + Garrincha/Di Stéfano/Romário
+  criados), caixa 42.000, +2 Libertadores (376/377), +1 Copa do Mundo (310), Série A 118, Copa 56, Supercopa 108.
+  Feito direto na nuvem (função `esc_fix_elton_16378525` + `esc_lacre_ll`, que refaz o lacre). As duas funções ficaram
+  no banco (o celular cancela `drop`); são inofensivas, dá pra apagar pelo computador.
 - ⚽ CARTA NOVA (05/10, pedido do Diego): **Gilberto, Bahia 2020**, atacante, bom jogador (baralho Brasil, `L43_BR_ATA`). Novidades geradas.
 - 🎖️ SALA DE ESPERA: o áudio do 🐊 jacaré virou o **"Dictador"** (05/10, áudio que ele mandou, 23 s, `public/sfx/ditador.mp3`).
   A chave continua `jacare` (versão velha aberta recebe a mesma chave); o `jacare.mp3` também foi trocado pelo áudio novo.
