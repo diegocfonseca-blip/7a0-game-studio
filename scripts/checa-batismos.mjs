@@ -60,6 +60,8 @@ for (const d of ['A', 'B', 'C', 'D']) {
   const m = new RegExp(`^ {2}${d}: \\[([\\s\\S]*?)^ {2}\\]`, 'm').exec(bd)
   if (m) for (const t of m[1].matchAll(/team: '([^']+)'/g)) DIV.set(chave(t[1]), d)
 }
+// 🌱 06/10: a VÁRZEA também é vaga (K9 FC foi o 1º batismo lá) — os bots da sua liga na escada
+for (const t of (bloco(data, 'export const VARZEA_TEAMS').split('\n]')[0]).matchAll(/team: '([^']+)'/g)) DIV.set(chave(t[1]), 'V')
 
 // ── quem é quem. Fonte: o que o Diego já decidiu, clube por clube. ──────────
 // (só o e-mail identifica; o nome do clube é o ATUAL)
@@ -68,6 +70,7 @@ const BATISMOS = [
   ['brunnodeluca90@gmail.com', 'Vasco SAF'], // ⚽🏴‍☠️ Série D (24/09) — o antigo Vasco da Grana
   ['weslleygomes749@gmail.com', 'Cruzeiro de Berretinho'], // ⭐🐺 Série D (25/09) — no assento do bot Metrópole FC
   ['bastosmbc@gmail.com', 'El Mineiro'], // 🐓 Série C (27/09) — no assento do bot Brodeiragem
+  ['kelvinoliveiraandradeenunes@gmail.com', 'K9 FC'], // 👑🧊 Várzea (06/10) — no assento do bot Meia-Boca FC
   ['felipe.vrod10@gmail.com', 'Vieira FC'], // 😈🔴⚫ Série D (03/10) — no assento do bot Prestígio FC
   ['kauealves584@gmail.com', 'Gaviões SCCP'], // 🦅⚫⚪ Série C (02/10) — no assento do bot Zorra FC
   ['jadriovani@gmail.com', 'Guimarães SCI'], // 🔴⚪ Série A (02/10) — assento do Tôka10, que desceu pra B

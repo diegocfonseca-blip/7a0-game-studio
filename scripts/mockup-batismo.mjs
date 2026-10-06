@@ -239,10 +239,10 @@ h1 .r{color:#C2452F}
   // Marinheiros AS (16/09) o post saiu dizendo "já joga a Série D" e era mentira.
   ? (o.socio
     ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} entra em campo <b>de cara nova</b>: escudo novo, manto ${cores}${o.mascoteIgual ? `, com ${art ? 'a' : 'o'} <b>${mascCurto} de sempre</b> no gol.` : ` e ${art ? 'a' : 'o'} ${mascCurto} de mascote.`} Clube próprio de sócio: <b>não tira o lugar de ninguém</b> na pirâmide.`
-    : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} já joga a <b>Série ${o.serie}</b> — e agora entra em campo <b>de cara nova</b>: escudo novo, manto ${cores}${o.mascoteIgual ? `, com ${art ? 'a' : 'o'} <b>${mascCurto} de sempre</b> no gol.` : ` e ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}`)
+    : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} já joga ${o.serie === 'V' ? 'na <b>Várzea</b>' : `a <b>Série ${o.serie}</b>`} — e agora entra em campo <b>de cara nova</b>: escudo novo, manto ${cores}${o.mascoteIgual ? `, com ${art ? 'a' : 'o'} <b>${mascCurto} de sempre</b> no gol.` : ` e ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}`)
   : o.socio
   ? `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} agora tem <b>escudo, mascote e manto no jogo</b> — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote. Clube próprio de sócio: <b>não tira o lugar de ninguém</b> na pirâmide.`
-  : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} chega ${o.semSerie ? 'no <b>Leilão Legends</b>' : `na <b>Série ${o.serie}</b>`}${o.antigo ? ` no lugar do ${o.antigo}` : ''} — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}</p>
+  : `O clube ${o.dono ? `do <b>${o.dono}</b>` : ''} chega ${o.semSerie ? 'no <b>Leilão Legends</b>' : (o.serie === 'V' ? 'na <b>Várzea</b>' : `na <b>Série ${o.serie}</b>`)}${o.antigo ? ` no lugar do ${o.antigo}` : ''} — ${cores}, com ${art ? 'a' : 'o'} ${mascCurto} de mascote.`}</p>
 
 <div class="card hero">
   <div class="esc"><img src="${img(o.escudo)}"></div>

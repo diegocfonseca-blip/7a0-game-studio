@@ -62,6 +62,7 @@ import elMineiroEscudoImg from './img/el-mineiro-escudo.webp' // 🐓 El Mineiro
 import guimaraesEscudoImg from './img/guimaraes-escudo.webp' // 🔴⚪ Guimarães SCI (jadriovani): arte própria do dono
 import gavioesEscudoImg from './img/gavioes-escudo.webp' // 🦅⚫⚪ Gaviões SCCP (kauealves584): arte própria do dono
 import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC (felipe.vrod10): arte própria do dono
+import k9EscudoImg from './img/k9-escudo.webp' // 👑🧊 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
 import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
@@ -857,6 +858,13 @@ const guimaraesEscudoRender = (size: number) => (
 // 😈🔴⚫ VIEIRA FC (felipe.vrod10, batismo de 03/10) — Série D, no assento do bot Prestígio FC.
 // 📏 196×360, 23 KB — largura pela PROPORÇÃO REAL do arquivo. Fundo verde tirado por componente;
 // conferido sobre fundo colorido.
+// 👑🧊 K9 FC (kelvinoliveiraandradeenunes, batismo de 06/10) — Várzea, no assento do bot Meia-Boca FC.
+// 📏 226×360, 27 KB — largura pela PROPORÇÃO REAL do arquivo (escudo com coroa, estrela e gelo).
+// Fundo verde tirado por máscara (prancha com jogador, camisa e troféus); conferido sobre fundo colorido.
+const k9EscudoRender = (size: number) => (
+  <img src={k9EscudoImg} height={size} width={Math.round(size * 226 / 360)} alt="K9 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const vieiraEscudoRender = (size: number) => (
   <img src={vieiraEscudoImg} height={size} width={Math.round(size * 196 / 360)} alt="Vieira FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1445,6 +1453,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Vieira EC': vieiraEscudoRender,
   'Vieira SC': vieiraEscudoRender,
   'Prestígio FC': vieiraEscudoRender,
+  // 👑🧊 K9 FC (kelvinoliveiraandradeenunes) — BATISMO. As 4 formas do nome (regra 20/08) + o nome VELHO do
+  // assento (Meia-Boca FC só existia como bot da Várzea, então save antigo passa a desenhar o clube novo).
+  'K9 FC': k9EscudoRender,
+  'K9': k9EscudoRender,
+  'K9 EC': k9EscudoRender,
+  'K9 SC': k9EscudoRender,
+  'Meia-Boca FC': k9EscudoRender,
   // 🦅⚫⚪ Gaviões SCCP (kauealves584) — BATISMO. As 4 formas do nome (regra 20/08). Só o nome INTEIRO
   // (nunca "Gaviões" sozinho — regra do Arruda, 20/08). O "Zorra FC" NÃO entra: o bot continua vivo
   // nas partidas rápidas (CLASSIC_CLUBS) e não pode aparecer com o escudo de um dono de verdade.

@@ -1,3 +1,15 @@
+## 👑🧊 Batismo K9 FC (06/10) ✅ NO AR — 1º batismo da VÁRZEA
+- Dono `kelvinoliveiraandradeenunes@gmail.com` (conta já existia, criada 28/09). **Várzea**, no assento do bot
+  **Meia-Boca FC** (`VARZEA_TEAMS` = os bots da liga de quem começa carreira na escada; `OLD_NAME` leva save antigo pro
+  nome novo). Fundador nº85 · sócio nº66 · Lenda.
+- Arte do dono (prancha com escudo, o próprio jogador, camisa e troféus no fundo verde — recortada por máscara à mão):
+  escudo 226×360/27 KB · mascote "O Rei K9" (o jogador de coroa) 145×440/32 KB · camisa da Loja. Manto medido: branco
+  #E5E8F3 (81%) + azul #0723B4 (listras/gola).
+- Banco feito: user_colors ouro · esc_fundadores 85 · esc_socios 66 (escudo_time K9 FC, mascote k9_rei) ·
+  esc_nomes_batismo "K9" (o gatilho criou K9 FC/EC).
+- `checa-batismos.mjs` agora reconhece vaga na Várzea; `mockup-batismo.mjs` escreve "na Várzea" com `--serie V`.
+- ⏳ Falta saber o time do coração dele (pro post e `esc_socios.time_coracao`). Post: `scripts/posts/k9-post.png`.
+
 ## 06/10/2026 — 🌎 Convocação da Libertadores/Champions "travando" no botão Confirmar os 11 ✅ NO AR
 Print do Diego (Seven City, T251, Palmeiras): o botão "Confirmar os 11 e começar a Libertadores" não fazia nada.
 - Simulei o motor com os 72 clubes × 2 formações × várias temporadas/sementes (3.648 campanhas) e com o 11 EXATO do
