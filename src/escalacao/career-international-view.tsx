@@ -35,7 +35,7 @@ import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo'
 import { useLegendPresentation } from './presentation-release'
 import { LiveScoreCard, COPA_LEG_MS, copaSideColor, useApitoDeLargada, type ScoreGoal } from './pyramidseason'
 import { useSimMode, SimControls, SpeedControls, QuickManualLock } from './screens'
-import { useEsc } from './store'
+import { useEsc, motivoRecusaInternacional } from './store'
 import { useHasManual } from './apoio'
 import libertaImg from './img/online-liberta-v25.webp'
 import championsImg from './img/online-champions-v25.webp'
@@ -78,13 +78,19 @@ const outra = (c: InternationalCompetition): InternationalCompetition => c === '
 const tituloFase = (t: string) => t.startsWith('Grupos') ? tr(t.replace('Grupos', 'Grupos'), t.replace('Grupos · rodada', 'Groups · round')) : t.startsWith('Tabela') ? tr(t, t.replace('Tabela · rodada', 'Table · round')) : t === 'Oitavas' ? tr('Oitavas', 'Round of 16') : t === 'Quartas' ? tr('Quartas', 'Quarter-finals') : t === 'Semifinal' ? tr('Semifinal', 'Semi-final') : t === 'Repescagem' ? tr('Repescagem', 'Play-off') : t
 // 💾 o que a pessoa escolheu quando ficou SEM VAGA (pular / qual acompanhar), por temporada,
 // pra não perguntar de novo se a tela recarregar no meio.
-const MODO_KEY = 'esc-intl-modo-v1'
+// 🔑 06/10 (Diego: "vários usuários travando na convocação da Libertadores"): a chave era SÓ a
+// temporada, e o aparelho guarda uma por vez. Quem tem 2 carreiras na mesma temporada abria a
+// carreira B já na convocação do clube aceito na A — e o motor recusava calado (o clube era de
+// outro bloco), botão mudo pra sempre. Agora a escolha leva a SEMENTE da carreira junto; escolha
+// sem semente (gravada antes do conserto) é ignorada e os convites voltam.
+const MODO_KEY = 'esc-intl-modo-v2'
 type ModoSemVaga = 'pular' | InternationalCompetition
-const leModo = (season: number): ModoSemVaga | null => { try { const v = JSON.parse(localStorage.getItem(MODO_KEY) ?? 'null'); return v && v.season === season ? v.modo : null } catch { return null } }
-const ESCOLHA_KEY = 'esc-intl-clube-v1'
-const leEscolha = (season: number): { comp: InternationalCompetition; club: string } | null => { try { const v = JSON.parse(localStorage.getItem(ESCOLHA_KEY) ?? 'null'); return v && v.season === season ? v : null } catch { return null } }
-const gravaEscolha = (season: number, comp: InternationalCompetition, club: string) => { try { localStorage.setItem(ESCOLHA_KEY, JSON.stringify({ season, comp, club })) } catch { /* sem espaço */ } }
-const gravaModo = (season: number, modo: ModoSemVaga) => { try { localStorage.setItem(MODO_KEY, JSON.stringify({ season, modo })) } catch { /* sem espaço */ } }
+const leModo = (season: number, seed: number): ModoSemVaga | null => { try { const v = JSON.parse(localStorage.getItem(MODO_KEY) ?? 'null'); return v && v.season === season && v.seed === seed ? v.modo : null } catch { return null } }
+const ESCOLHA_KEY = 'esc-intl-clube-v2'
+const leEscolha = (season: number, seed: number): { comp: InternationalCompetition; club: string } | null => { try { const v = JSON.parse(localStorage.getItem(ESCOLHA_KEY) ?? 'null'); return v && v.season === season && v.seed === seed ? v : null } catch { return null } }
+const gravaEscolha = (season: number, seed: number, comp: InternationalCompetition, club: string) => { try { localStorage.setItem(ESCOLHA_KEY, JSON.stringify({ season, seed, comp, club })) } catch { /* sem espaço */ } }
+const apagaEscolha = () => { try { localStorage.removeItem(ESCOLHA_KEY) } catch { /* ok */ } }
+const gravaModo = (season: number, seed: number, modo: ModoSemVaga) => { try { localStorage.setItem(MODO_KEY, JSON.stringify({ season, seed, modo })) } catch { /* sem espaço */ } }
 
 // 🏷️ O CABEÇALHO DE CIMA DA CARREIRA (Diego 02/10: *"o header das ligas novas não tá
 // aparecendo a fase… nada a ver ficar aparecendo a Série A"*). Enquanto a campanha
@@ -94,7 +100,7 @@ export function topoInternacional(campaign: InternationalCampaign | null, season
   const geral = { kind: 'mundial' as const, titulo: tr('Futebol internacional de clubes', 'International club football'), fase: tr('Libertadores · Champions · Mundial', 'Libertadores · Champions · Club World Cup'), detalhe: '', status: tr('Escolha a sua competição', 'Pick your competition') }
   if (!campaign || campaign.season !== season) return geral
   const rep = campaign.representedClub
-  const modo = leModo(season)
+  const modo = leModo(season, campaign.seed)
   const foco: InternationalCompetition | null = rep ? (INTERNATIONAL_CLUBS.find(c => c.name === rep)?.competition ?? null) : modo && modo !== 'pular' ? modo : null
   if (!foco) return geral
   const kindDe = (c: Comp) => c === 'libertadores' ? 'liberta' as const : c
@@ -345,6 +351,16 @@ function RecadoDaLenda({ clube, userTeam, pool }: { clube: string; userTeam: str
   </div>
 }
 
+// 🔇 o aviso quando a campanha não pôde começar — sempre com o porquê e o caminho (06/10)
+function AvisoRecusa({ motivo }: { motivo: string }) {
+  const txt = motivo === 'liberacao'
+    ? tr('A sua conta ainda está sendo conferida pelo servidor. Espere uns segundos e aperte o botão de novo — a convocação continua aí.', 'Your account is still being checked by the server. Wait a few seconds and press the button again — your call-up is still there.')
+    : motivo === 'bloco'
+      ? tr('Aquele convite não vale nesta carreira (era de outra carreira ou de outra posição na tabela). Escolha um destes convites e convoque de novo.', 'That invitation is not valid in this career (it came from another career or another table position). Pick one of these invitations and call up again.')
+      : tr(`A campanha não começou (código: ${motivo}). Escolha um convite e convoque de novo — se repetir, mande um print pra gente.`, `The campaign did not start (code: ${motivo}). Pick an invitation and call up again — if it happens again, send us a screenshot.`)
+  return <p role="status" style={{ border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 10px', margin: '8px 0', background: '#FDE9C8', fontWeight: 800, fontSize: 11, lineHeight: 1.4, textAlign: 'center', color: INK }}>✋ {txt}</p>
+}
+
 function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string; clube: string; comp: InternationalCompetition; onConfirm: (xi: Card[]) => void }) {
   const faces = useLegendPresentation()
   const doClube = useMemo<PoolCard[]>(() => internationalClubCards(clube).map(c => c as unknown as Card), [clube])
@@ -476,16 +492,21 @@ export function CareerInternationalView(p: Props) {
   const speed = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1
   const toggleManual = () => { const goingManual = !manual; toggleSim(); if (!goingManual && speed !== 1) dispatch({ type: 'SET_SIM_SPEED', speed: 1 }) }
   // 🔒 o clube escolhido fica GRAVADO por temporada: recarregar a tela não reabre a escolha
-  const escolhaSalva = leEscolha(p.season)
+  const champsOk = championsLiberada(p.history)
+  const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk, clubeDaRenovacao(p.history, p.season)), [p.seed, p.season, p.priority, p.choices, champsOk, p.history])
+  // 🛡️ a escolha guardada só vale se for um dos convites DESTA carreira (senão o motor recusa)
+  const salvaBruta = leEscolha(p.season, p.seed)
+  const escolhaSalva = salvaBruta && convites.some(cv => cv.club === salvaBruta.club && cv.comp === salvaBruta.comp) ? salvaBruta : null
   const [comp, setComp] = useState<InternationalCompetition | null>(escolhaSalva?.comp ?? null)
   const [club, setClubRaw] = useState<string | null>(escolhaSalva?.club ?? null)
-  const aceita = (cv: Convite) => { gravaEscolha(p.season, cv.comp, cv.club); setComp(cv.comp); setClubRaw(cv.club) }
-  const [modo, setModo] = useState<ModoSemVaga | null>(() => leModo(p.season))
+  const aceita = (cv: Convite) => { gravaEscolha(p.season, p.seed, cv.comp, cv.club); setComp(cv.comp); setClubRaw(cv.club); setRecusado(null) }
+  const [modo, setModo] = useState<ModoSemVaga | null>(() => leModo(p.season, p.seed))
   const [celebrate, setCelebrate] = useState(false)
-  const champsOk = championsLiberada(p.history)
+  // 🔇 CONTRA BOTÃO MUDO: confirmou e a campanha não começou? Avisa e devolve os convites.
+  const [esperando, setEsperando] = useState(0)
+  const [recusado, setRecusado] = useState<string | null>(null)
   // 🧢 tem vaga E algum clube liberado (e aberto: Champions só depois da Liberta) fecha um time
   const podeInscrever = p.choices.some(c => clubeFechaTime(c.name) && (c.competition === 'libertadores' || champsOk))
-  const convites = useMemo(() => convitesDaTemporada(p.seed, p.season, p.priority, p.choices, champsOk, clubeDaRenovacao(p.history, p.season)), [p.seed, p.season, p.priority, p.choices, champsOk, p.history])
   const current = useMemo(() => p.campaign?.season === p.season ? comNomeDoClube(p.campaign) : null, [p.campaign, p.season])
   const finished = p.history.some(entry => entry.season === p.season)
   const rep = current?.representedClub ?? null
@@ -493,12 +514,30 @@ export function CareerInternationalView(p: Props) {
   // 👀 a competição EM FOCO: a minha, ou a que escolhi acompanhar (sem vaga)
   const foco: InternationalCompetition | null = myComp ?? (modo && modo !== 'pular' ? modo : null)
   const begin = (representedClub: string | null, xi: Card[]) => {
-    const c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [] })
+    let c: InternationalCampaign
+    try { c = makeInternationalCampaign({ season: p.season, seed: p.seed, representedClub, userTeam: p.userTeam, userId: p.userId, priority: representedClub ? p.priority : null, userXI: representedClub ? xi : [] }) }
+    catch { apagaEscolha(); setClubRaw(null); setComp(null); setRecusado('campanha'); return }
     // ✉️ guarda os convites que ficaram na mesa — o jornal cobra se um deles levantar a taça
     const recusados = representedClub ? convites.filter(cv => cv.club !== representedClub).map(cv => cv.club) : []
-    p.onStart(recusados.length ? { ...c, recusados } : c)
+    const final = recusados.length ? { ...c, recusados } : c
+    // 🔇 a MESMA régua do reducer, antes de mandar: se ele fosse recusar, a tela diz o porquê
+    const motivo = motivoRecusaInternacional(state, final)
+    if (motivo) {
+      setRecusado(motivo)
+      // conta ainda sendo conferida = só esperar e apertar de novo (a convocação fica); o resto volta pros convites
+      if (motivo !== 'liberacao') { apagaEscolha(); setClubRaw(null); setComp(null) }
+      return
+    }
+    p.onStart(final)
+    setEsperando(Date.now())
   }
-  const escolheModo = (m: ModoSemVaga) => { gravaModo(p.season, m); setModo(m); if (!current) begin(null, []) }
+  useEffect(() => {
+    if (!esperando) return
+    if (current) { setEsperando(0); return }
+    const t = setTimeout(() => { setEsperando(0); apagaEscolha(); setClubRaw(null); setComp(null); setRecusado('sumiu') }, 1500)
+    return () => clearTimeout(t)
+  }, [esperando, current])
+  const escolheModo = (m: ModoSemVaga) => { gravaModo(p.season, p.seed, m); setModo(m); if (!current) begin(null, []) }
   // ── a noite atual ──────────────────────────────────────────────────────────
   const reveal = current?.reveal ?? 0
   const step = current && reveal < current.steps.length ? current.steps[reveal] : null
@@ -647,6 +686,7 @@ export function CareerInternationalView(p: Props) {
         <div style={card}>
           <span style={kicker}>{tr('Temporada', 'Season')} {p.season} · {tr('Futebol internacional de clubes', 'International club football')}</span>
           <h2 style={{ ...OSWALD, fontWeight: 700, fontSize: 22, margin: '4px 0 2px', textAlign: 'center', lineHeight: 1.05, color: INK }}>✉️ {convites.length} {tr('convites chegaram', 'invitations arrived')}</h2>
+          {recusado && recusado !== 'liberacao' && <AvisoRecusa motivo={recusado} />}
           <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.4, textAlign: 'center', margin: '6px 0 0', color: INK }}>{tr('Pela sua campanha na Série A, clubes grandes querem você como técnico convidado. Aceite UM — depois de aceitar, não troca.', 'After your Série A campaign, big clubs want you as guest coach. Accept ONE — once accepted, no switching.')}</p>
         </div>
         {convites.map(cv => <CartaConvite key={cv.club} convite={cv} userTeam={p.userTeam} season={p.season} onAceitar={() => aceita(cv)} />)}
@@ -654,7 +694,8 @@ export function CareerInternationalView(p: Props) {
       </> : <>
         {/* ── PASSO 3: a convocação ── */}
         {passos}
-        <InscricaoClube userTeam={p.userTeam} clube={club} comp={comp} onConfirm={xi => begin(club, xi)} />
+        {recusado === 'liberacao' && <AvisoRecusa motivo={recusado} />}
+        <InscricaoClube userTeam={p.userTeam} clube={club} comp={comp} onConfirm={xi => { setRecusado(null); begin(club, xi) }} />
       </>}
       {rodape}
     </section>

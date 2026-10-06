@@ -33,7 +33,7 @@ import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
-import { isRealInternationalCard, validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
+import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
@@ -5977,6 +5977,34 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
   }
 }
 
+// 🔇 06/10 (Diego: "trava sempre no botão Confirmar os 11 e começar a Libertadores"): a recusa do
+// START_INTERNATIONAL_CAMPAIGN era MUDA — o reducer devolvia o estado igual e o botão não fazia nada.
+// Agora a regra mora aqui e a TELA lê a mesma função antes de mandar: se recusar, ela diz o porquê
+// (regra de ouro contra botão mudo, 19/09). Devolve null quando a campanha pode começar.
+export function motivoRecusaInternacional(s: EscState, c: InternationalCampaign): string | null {
+  if (!internacionalCarreiraLiberada()) return 'liberacao'
+  if (!s.careerOnline || s.onlineMode === 'online' || s.seasonNo < 40) return 'modo'
+  if (s.copaDoneSeason !== s.seasonNo) return 'copa'
+  if (s.careerInternational?.season === s.seasonNo) return 'ja-comecou'
+  if (c.season !== s.seasonNo) return 'temporada'
+  if (c.seed !== s.seed) return 'semente'
+  if (c.teams.length !== 72 || c.steps.length !== 14 || c.reveal !== 0) return 'campanha'
+  const me = s.managers[s.youIdx]
+  if (!me || c.userTeam !== me.teamName) return 'time'
+  if (c.representedClub) {
+    const myTeam = c.teams.find(team => team.id === c.representedClub)
+    // 🧢 01/10 (Diego: *"eu não levo meu elenco… é todo jogador do Flamengo no baralho"*): a convocação é
+    // SÓ entre as cartas do clube escolhido no baralho, igual à seleção na Copa do Mundo.
+    // 🔁 RENOVAÇÃO (02/10): o campeão continental da temporada passada pode renovar com o MESMO clube,
+    // mesmo que ele seja de um bloco melhor que a posição de agora — a mesma régua do convite na tela.
+    const renova = (s.careerInternationalHistory ?? []).some(e => e.season === c.season - 1 && e.representedClub === c.representedClub && (e.libertadores || e.champions))
+    if (!myTeam?.you || myTeam.teamId !== me.id) return 'tecnico'
+    if (!INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && (club.block >= (c.priority ?? 10) || renova))) return 'bloco'
+    if (!validInternationalXI(myTeam.xi)) return 'onze'
+    if (!myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return 'cartas'
+  } else if (c.registeredXI.length || c.teams.some(team => team.you)) return 'sem-vaga'
+  return null
+}
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
@@ -6115,25 +6143,8 @@ function reducerBase(state: EscState, action: Action): EscState {
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
     case 'START_INTERNATIONAL_CAMPAIGN': {
-      if (!internacionalCarreiraLiberada() || !s.careerOnline || s.onlineMode === 'online' || s.seasonNo < 40) return s
-      if (s.copaDoneSeason !== s.seasonNo || s.careerInternational?.season === s.seasonNo) return s
-      const c = action.campaign
-      if (c.season !== s.seasonNo || c.seed !== s.seed || c.teams.length !== 72 || c.steps.length !== 14 || c.reveal !== 0) return s
-      const me = s.managers[s.youIdx]
-      if (!me || c.userTeam !== me.teamName) return s
-      if (c.representedClub) {
-        const ids = new Set((me.squad as WonCard[]).filter(isRealInternationalCard).map(card => card.id))
-        const myTeam = c.teams.find(team => team.id === c.representedClub)
-        // 🧢 01/10 (Diego: *"eu não levo meu elenco… é todo jogador do Flamengo no baralho"*): a convocação é
-        // SÓ entre as cartas do clube escolhido no baralho, igual à seleção na Copa do Mundo. Carta do elenco
-        // do usuário NÃO entra (`ids` fica só pra referência de quem lê este trecho).
-        void ids
-        // 🔁 RENOVAÇÃO (02/10): o campeão continental da temporada passada pode renovar com o MESMO clube,
-        // mesmo que ele seja de um bloco melhor que a posição de agora — a mesma régua do convite na tela.
-        const renova = (s.careerInternationalHistory ?? []).some(e => e.season === c.season - 1 && e.representedClub === c.representedClub && (e.libertadores || e.champions))
-        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && (club.block >= (c.priority ?? 10) || renova)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return s
-      } else if (c.registeredXI.length || c.teams.some(team => team.you)) return s
-      s.careerInternational = c
+      if (motivoRecusaInternacional(s, action.campaign)) return s
+      s.careerInternational = action.campaign
       return s
     }
     case 'ADVANCE_INTERNATIONAL_CAMPAIGN': {

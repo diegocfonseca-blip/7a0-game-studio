@@ -1,3 +1,16 @@
+## 06/10/2026 — 🌎 Convocação da Libertadores/Champions "travando" no botão Confirmar os 11 ✅ NO AR
+Print do Diego (Seven City, T251, Palmeiras): o botão "Confirmar os 11 e começar a Libertadores" não fazia nada.
+- Simulei o motor com os 72 clubes × 2 formações × várias temporadas/sementes (3.648 campanhas) e com o 11 EXATO do
+  print: nenhuma falha. Quem recusava era a conferência do reducer (`START_INTERNATIONAL_CAMPAIGN`), que devolvia o
+  estado igual SEM avisar — botão mudo.
+- Causa achada: o clube aceito ficava gravado no aparelho só pela TEMPORADA (`esc-intl-clube-v1`). Outra carreira
+  na mesma temporada (ou a mesma temporada rejogada com outra colocação) abria direto na convocação de um clube que
+  não era convite DESTA carreira → reducer recusava pelo bloco, pra sempre.
+- Conserto: a escolha agora leva a semente da carreira (`-v2`) e só vale se estiver entre os convites de agora; a regra
+  do reducer virou `motivoRecusaInternacional` (store.tsx) e a TELA lê a mesma função antes de mandar — se recusar, diz o
+  porquê e devolve os convites (motivo `liberacao` = conta sendo conferida: espera e aperta de novo, a convocação fica).
+- ⏳ Se aparecer de novo com "código: X" no aviso, o código diz qual regra recusou — pedir o print.
+
 ## 06/10/2026 — 📱 Linha do WhatsApp embaixo das salas: agora "grupo VIP junto com o dono do jogo" ✅ NO AR
 Pedido do Diego. Só o texto mudou (PT/EN, as duas versões: quem já tem vaga e quem ainda não tem). "VIP" em negrito;
 o brilho verde da palavra WhatsApp e o link continuam iguais.
