@@ -1,3 +1,13 @@
+## 🦅🔴⚫ Batismo Mengão Malvadão (06/10) ✅ NO AR
+- Dono `atilasoaresjr21@gmail.com` (conta de 01/10, era ⭐ Craque — subiu pra 👑 Lenda). **Série A**, no assento do
+  **Nata de SP**, que DESCEU pra **Série B** na vaga do bot **Nacional da Serra** (decisão do Diego). Sem OLD_NAME nos
+  dois: ninguém foi renomeado, só mudou de divisão. Fundador nº86 · sócio nº67 · coração Flamengo (deduzido do clube).
+- Arte do dono (prancha chroma, recorte automático limpo): escudo 266×360/29 KB · mascote "O Urubu Malvadão" (o urubu
+  de coroa pisando no porco — cena inteira) 330×440/41 KB · camisa da Loja. Manto medido: vermelho #CE1313 (35%) +
+  preto #171514 (59%).
+- Banco feito: user_colors ouro · esc_fundadores 86 · esc_socios 67 · esc_nomes_batismo "Mengão Malvadão" (FC/EC pelo
+  gatilho). Post: `scripts/posts/mengao-post.png` (nome do dono no post = "Atila", tirado do e-mail — confirmar).
+
 ## 👑🧊 Batismo K9 FC (06/10) ✅ NO AR — 1º batismo da VÁRZEA
 - Dono `kelvinoliveiraandradeenunes@gmail.com` (conta já existia, criada 28/09). **Várzea**, no assento do bot
   **Meia-Boca FC** (`VARZEA_TEAMS` = os bots da liga de quem começa carreira na escada; `OLD_NAME` leva save antigo pro

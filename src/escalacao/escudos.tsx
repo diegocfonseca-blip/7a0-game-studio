@@ -62,6 +62,7 @@ import elMineiroEscudoImg from './img/el-mineiro-escudo.webp' // 🐓 El Mineiro
 import guimaraesEscudoImg from './img/guimaraes-escudo.webp' // 🔴⚪ Guimarães SCI (jadriovani): arte própria do dono
 import gavioesEscudoImg from './img/gavioes-escudo.webp' // 🦅⚫⚪ Gaviões SCCP (kauealves584): arte própria do dono
 import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC (felipe.vrod10): arte própria do dono
+import mengaoEscudoImg from './img/mengao-escudo.webp' // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21): arte própria do dono
 import k9EscudoImg from './img/k9-escudo.webp' // 👑🧊 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
 import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
@@ -861,6 +862,13 @@ const guimaraesEscudoRender = (size: number) => (
 // 👑🧊 K9 FC (kelvinoliveiraandradeenunes, batismo de 06/10) — Várzea, no assento do bot Meia-Boca FC.
 // 📏 226×360, 27 KB — largura pela PROPORÇÃO REAL do arquivo (escudo com coroa, estrela e gelo).
 // Fundo verde tirado por máscara (prancha com jogador, camisa e troféus); conferido sobre fundo colorido.
+// 🦅🔴⚫ MENGÃO MALVADÃO (atilasoaresjr21, batismo de 06/10) — Série A, no assento do Nata de SP (que desceu pra B).
+// 📏 266×360, 29 KB — largura pela PROPORÇÃO REAL do arquivo. Fundo verde tirado pelo recorte chroma;
+// conferido sobre fundo colorido.
+const mengaoEscudoRender = (size: number) => (
+  <img src={mengaoEscudoImg} height={size} width={Math.round(size * 266 / 360)} alt="Mengão Malvadão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const k9EscudoRender = (size: number) => (
   <img src={k9EscudoImg} height={size} width={Math.round(size * 226 / 360)} alt="K9 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1460,6 +1468,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'K9 EC': k9EscudoRender,
   'K9 SC': k9EscudoRender,
   'Meia-Boca FC': k9EscudoRender,
+  // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21) — BATISMO. As 4 formas do nome (regra 20/08). Só o nome INTEIRO
+  // (nunca "Mengão" sozinho — regra do Arruda, 20/08). Sem nome velho: o Nata de SP continua existindo (foi pra B).
+  'Mengão Malvadão': mengaoEscudoRender,
+  'Mengão Malvadão FC': mengaoEscudoRender,
+  'Mengão Malvadão EC': mengaoEscudoRender,
+  'Mengão Malvadão SC': mengaoEscudoRender,
   // 🦅⚫⚪ Gaviões SCCP (kauealves584) — BATISMO. As 4 formas do nome (regra 20/08). Só o nome INTEIRO
   // (nunca "Gaviões" sozinho — regra do Arruda, 20/08). O "Zorra FC" NÃO entra: o bot continua vivo
   // nas partidas rápidas (CLASSIC_CLUBS) e não pode aparecer com o escudo de um dono de verdade.

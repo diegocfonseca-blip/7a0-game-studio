@@ -66,6 +66,7 @@ import elMineiroMascoteImg from './img/el-mineiro-mascote.webp' // 🐓 El Minei
 import guimaraesMascoteImg from './img/guimaraes-mascote.webp' // 🔴 Guimarães SCI (jadriovani): arte própria do dono
 import gavioesMascoteImg from './img/gavioes-mascote.webp' // 🦅 Gaviões SCCP (kauealves584): arte própria do dono
 import vieiraMascoteImg from './img/vieira-mascote.webp' // 😈 Vieira FC (felipe.vrod10): arte própria do dono
+import mengaoMascoteImg from './img/mengao-mascote.webp' // 🦅 Mengão Malvadão (atilasoaresjr21): arte própria do dono
 import k9MascoteImg from './img/k9-mascote.webp' // 👑 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
 import madrugaMascoteImg from './img/madruga-mascote.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaMascoteImg from './img/julia-mascote.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
@@ -355,6 +356,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // Diego (06/10): a 1ª versão (só o jogador, sem taças/gelo) ficou *"horrível"* — a cena inteira é a mascote.
   // O braço da braçadeira passa por cima do escudo na prancha: recortado fora do círculo do escudo.
   // 📏 328×440, 42 KB — a altura fica em 176. mascote_key = "k9_rei".
+  // 🦅 O URUBU MALVADÃO (mascote do Mengão Malvadão — atilasoaresjr21, 06/10): o urubu de coroa e camisa
+  // rubro-negra, braços cruzados, pisando no porco. A cena inteira é a mascote (régua do K9, 06/10). Arte do dono.
+  // 📏 330×440, 41 KB — a altura fica em 176. mascote_key = "mengao_urubu".
+  mengao_urubu: (
+    <img src={mengaoMascoteImg} height={176} width={Math.round(176 * 330 / 440)} alt="O Urubu Malvadão — Mengão Malvadão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   k9_rei: (
     <img src={k9MascoteImg} height={176} width={Math.round(176 * 328 / 440)} alt="O Rei K9 — K9 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
@@ -1136,6 +1143,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'K9 EC': 'k9_rei',
   'K9 SC': 'k9_rei',
   'Meia-Boca FC': 'k9_rei',
+  // 🦅 o Urubu Malvadão carimba o gol do Mengão Malvadão (atilasoaresjr21, 06/10).
+  'Mengão Malvadão': 'mengao_urubu',
+  'Mengão Malvadão FC': 'mengao_urubu',
+  'Mengão Malvadão EC': 'mengao_urubu',
+  'Mengão Malvadão SC': 'mengao_urubu',
   // 🦅 o Gavião carimba o gol do Gaviões SCCP (kauealves584, 02/10).
   'Gaviões SCCP': 'gavioes_gaviao',
   'Gaviões SCCP FC': 'gavioes_gaviao',
@@ -1246,6 +1258,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   guimaraes_saci: 'O Saci', // 🔴 Guimarães SCI (jadriovani, 02/10)
   gavioes_gaviao: 'O Gavião', // 🦅 Gaviões SCCP (kauealves584, 02/10)
   vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
+  mengao_urubu: 'O Urubu Malvadão', // 🦅 Mengão Malvadão (atilasoaresjr21, 06/10)
   k9_rei: 'O Rei K9', // 👑 K9 FC (kelvinoliveiraandradeenunes, 06/10)
   madruga_boleiro: 'O Madruga', // 👒 Real Madruga (luck.45, 02/10)
   julia_tubarao: 'O Tubarão', // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10, 24/09)

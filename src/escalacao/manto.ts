@@ -92,6 +92,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 👑🧊 K9 FC — BRANCO e AZUL, MEDIDOS na camisa que o dono mandou (06/10): branco 81% (mediana #E5E8F3)
   // e azul das listras/gola 3,5% (#0723B4).
   'kelvinoliveiraandradeenunes@gmail.com': ['#E5E8F3', '#0723B4'],
+  // 🦅🔴⚫ Mengão Malvadão — VERMELHO e PRETO, MEDIDOS na camisa que o dono mandou (06/10): vermelho das
+  // listras 35% (#CE1313) e preto 59% (#171514).
+  'atilasoaresjr21@gmail.com': ['#CE1313', '#171514'],
   // 🦅⚫⚪ Gaviões SCCP — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (02/10): preto 77%
   // (mediana #100D0E, sobe pra #161314 — listra fina de preto puro lê como buraco) e branco da
   // gola/punhos 4% (#F9F8F8).
