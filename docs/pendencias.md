@@ -3,7 +3,7 @@
   **Meia-Boca FC** (`VARZEA_TEAMS` = os bots da liga de quem começa carreira na escada; `OLD_NAME` leva save antigo pro
   nome novo). Fundador nº85 · sócio nº66 · Lenda.
 - Arte do dono (prancha com escudo, o próprio jogador, camisa e troféus no fundo verde — recortada por máscara à mão):
-  escudo 226×360/27 KB · mascote "O Rei K9" (o jogador de coroa) 145×440/32 KB · camisa da Loja. Manto medido: branco
+  escudo 226×360/27 KB · mascote "O Rei K9" (o jogador de coroa ENTRE AS DUAS TAÇAS, no gelo — a 1ª versão só com ele o Diego achou "horrível") 328×440/42 KB · camisa da Loja. Manto medido: branco
   #E5E8F3 (81%) + azul #0723B4 (listras/gola).
 - Banco feito: user_colors ouro · esc_fundadores 85 · esc_socios 66 (escudo_time K9 FC, mascote k9_rei) ·
   esc_nomes_batismo "K9" (o gatilho criou K9 FC/EC).

@@ -351,10 +351,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // tridente, agachado com a garra em cima da bola. Arte do próprio dono.
   // 📏 258×440, 45 KB — é ALTO, então a altura fica em 176. mascote_key = "vieira_diabo".
   // 👑 O REI K9 (mascote do K9 FC — kelvinoliveiraandradeenunes, 06/10): o próprio camisa 9 de coroa,
-  // braços cruzados e braçadeira de capitão, pisando no gelo. Arte do próprio dono.
-  // 📏 145×440, 32 KB — é ALTO, então a altura fica em 176. mascote_key = "k9_rei".
+  // braços cruzados e braçadeira de capitão, entre as duas taças, pisando no gelo. Arte do próprio dono.
+  // Diego (06/10): a 1ª versão (só o jogador, sem taças/gelo) ficou *"horrível"* — a cena inteira é a mascote.
+  // O braço da braçadeira passa por cima do escudo na prancha: recortado fora do círculo do escudo.
+  // 📏 328×440, 42 KB — a altura fica em 176. mascote_key = "k9_rei".
   k9_rei: (
-    <img src={k9MascoteImg} height={176} width={Math.round(176 * 145 / 440)} alt="O Rei K9 — K9 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={k9MascoteImg} height={176} width={Math.round(176 * 328 / 440)} alt="O Rei K9 — K9 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   vieira_diabo: (
     <img src={vieiraMascoteImg} height={176} width={Math.round(176 * 258 / 440)} alt="O Diabo — Vieira FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
