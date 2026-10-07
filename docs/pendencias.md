@@ -1,3 +1,27 @@
+## 07/10/2026 — 🎭 Bots com personalidade no leilão da carreira ✅ NO AR
+
+Diego: *"pode fazer tudo isso que você disse dos bots, mais imprevisíveis e reais"*, depois da conversa em que
+ele perguntou se o piso mudaria. `src/escalacao/perfis-bot.ts` + `cpuEnvelope(…, perfil, obsessao)` no store.
+- 5 perfis: 💸 gastador (estica ×1,5 por craque/lenda) · 🐷 pão-duro (nunca passa do justo, guarda pra repescagem)
+  · 🎯 obcecado (um setor por temporada, ×2,2 de orçamento e ×1,7 de teto nele) · 🃏 imprevisível (18% de chance de
+  endoidecer numa carta média) · ⚖️ equilibrado (o leilão de antes, mesmo sorteio).
+- 🎲 sorteado POR CARREIRA (nome do clube + semente): fixo dentro dela, muda na próxima. Vale pra batismo também —
+  medido: os 5 rivais do leilão de uma carreira real eram TODOS batismo; com "batismo sem perfil" nada mudava.
+- 🚫📈 o exagero (gastador/obcecado/imprevisível acima do justo) NÃO entra no piso: livro e `paid` da carta ficam
+  em `justoDaCarta`; quem VENDEU recebe o valor cheio. Só carreira; partida rápida e salas intocadas.
+- Trava: `npm run perfis`. 🔌 desligar = `PERFIS_BOT_ON = false`.
+- ⏳ Falta (com mockup antes): mostrar o perfil pra quem joga (Central/jornal: "nesta carreira o Bagres é pão-duro").
+  O texto curto de cada perfil já está em `PERFIL_INFO` (PT/EN).
+
+## 07/10/2026 — 📊 Simulação da carreira (2 temporadas reais + 100 do motor) — achados guardados
+- Leilão às cegas: espalhar ~10 por carta perde tudo pros bots (1 jogador em 11, lanterna da Várzea).
+- Salário só cobra da T4 · estádio completo 1.440 (renda 20 → 55-138/temp) · SAF 2.000 (≥40 temporadas pra se
+  pagar) · 2º clube 4.000 · nada tem manutenção. Liberta T40, Copa do Mundo T100.
+- Trava `npm run copamundo` reprova por estar DESATUALIZADA (procura o `copaJogos` antigo; a regra mudou em 03/10).
+- Propostas levadas ao Diego e ainda NÃO decididas: SAF = clube parceiro (base que revela promessa, empréstimo que
+  valoriza, preferência no leilão, se paga em ~10 temp) · 2º clube = investimento (valoriza com títulos, transferência
+  interna, Clássico do Presidente).
+
 ## 🦅🔴⚫ Batismo Mengão Malvadão (06/10) ✅ NO AR
 - Dono `atilasoaresjr21@gmail.com` (conta de 01/10, era ⭐ Craque — subiu pra 👑 Lenda). **Série A**, no assento do
   **Nata de SP**, que DESCEU pra **Série B** na vaga do bot **Nacional da Serra** (decisão do Diego). Sem OLD_NAME nos
