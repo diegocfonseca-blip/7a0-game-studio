@@ -414,6 +414,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
     apoieLinkConsumido = true
     logApoio(`🔗 chegou pelo link direto: apoie=${a}`)
     if (a === 'lenda') { setScreen('choice'); setAmp('ouro') }
+    else if (a === 'nuvem') { setScreen('choice'); setAmp('prata') } // ☁️⭐ 07/10: botão da nuvem → TODOS os planos, acendendo o Craque
     else if (a === 'craque' || a === 'manual') setScreen('manual')
     else setScreen('choice')
   }, [])

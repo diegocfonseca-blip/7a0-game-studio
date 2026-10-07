@@ -69,7 +69,9 @@ export type CentralProps = {
    *  última subida; `rodadas` = quantas rodadas jogou desde então. */
   salvar?: FaixaSalvarProps
 }
-export type FaixaSalvarProps = { estado: 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local'; ha?: number; rodadas?: number; onClick: () => void }
+export type FaixaSalvarProps = { estado: 'em_dia' | 'atrasado' | 'nunca' | 'deslogado' | 'salvando' | 'salvo' | 'salvo_local' | 'so_aparelho' | 'salvo_aparelho'; ha?: number; rodadas?: number; onClick: () => void
+  /** ☁️⭐ 07/10: conta grátis com carreira nova salva só no aparelho — o botão roxo abre os planos */
+  onCraque?: () => void }
 
 const ARTES = { copaBr: copaBrArt, copaLeg: copaLegArt, liberta: libertaArt, mundo: mundoArt }
 const FUNDOS: Record<CentralArte, string> = { estadio: estadioArt, copaBr: copaBrArt, copaLeg: copaLegArt, super: superArt, liberta: libertaArt, champions: championsArt, mundial: mundialArt, mundo: mundoArt }
@@ -86,6 +88,8 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
       case 'salvando': return [t('⏳ Salvando na nuvem…', '⏳ Saving to the cloud…'), '#fff']
       case 'salvo': return [t('✅ Salvo na nuvem agora', '✅ Saved to the cloud just now'), VERDE]
       case 'salvo_local': return [t('✅ Salvo no aparelho', '✅ Saved on this device'), VERDE]
+      case 'so_aparelho': return [t('📱 Esta carreira salva só neste aparelho · ☁️ a nuvem é do ⭐ Craque', '📱 This career saves only on this device · ☁️ the cloud is for ⭐ Star'), AMBAR]
+      case 'salvo_aparelho': return [t('✅ Salvo no aparelho · pra guardar na nuvem e jogar em outro celular: ⭐ Craque', '✅ Saved on this device · to keep it in the cloud and play on another phone: ⭐ Star'), VERDE]
       case 'deslogado': return [t('📱 Só no aparelho · entre na conta pra guardar na nuvem', '📱 Device only · sign in to keep it in the cloud'), CINZA]
       case 'nunca': return [t('☁️ Esta carreira ainda não foi salva na nuvem', '☁️ This career was never saved to the cloud'), AMBAR]
       case 'atrasado': return [s.rodadas ? t(`☁️ Salvo ${ha(s.ha)} · ${s.rodadas} rodada${s.rodadas === 1 ? '' : 's'} desde então`, `☁️ Saved ${ha(s.ha)} · ${s.rodadas} round${s.rodadas === 1 ? '' : 's'} since`) : t(`☁️ Salvo ${ha(s.ha)} · temporada nova desde então`, `☁️ Saved ${ha(s.ha)} · new season since`), AMBAR]
@@ -96,9 +100,12 @@ function FaixaSalvar({ s }: { s: FaixaSalvarProps }) {
   return (
     <div className="ll-central-salvar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 2px 12px', padding: '7px 8px 7px 12px', border: '2px solid rgba(255,196,0,.35)', borderRadius: 12, background: 'rgba(255,255,255,.05)' }}>
       <span style={{ ...OSW, fontSize: 11, letterSpacing: '.05em', color: cor, lineHeight: 1.25, minWidth: 0 }}>{texto}</span>
+      <span style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
+      {s.onCraque && <button onClick={s.onCraque} style={{ ...OSW, fontSize: 11, letterSpacing: '.04em', color: '#fff', background: '#7C3AED', border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 9px', boxShadow: '2px 2px 0 #000', cursor: 'pointer' }}>{t('⭐ Craque', '⭐ Star')}</button>}
       <button onClick={s.onClick} disabled={ocupado} style={{ ...OSW, flex: '0 0 auto', fontSize: 12, letterSpacing: '.04em', color: '#0C0C0C', background: ocupado ? '#9A9A9A' : G_OURO, border: '2px solid #0C0C0C', borderRadius: 10, padding: '7px 12px', boxShadow: '2px 2px 0 #000', cursor: ocupado ? 'default' : 'pointer' }}>
         {t('💾 Salvar', '💾 Save')}
       </button>
+      </span>
     </div>
   )
 }

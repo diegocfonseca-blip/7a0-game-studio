@@ -37,7 +37,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
-import { useEsc, savePyramidCloud, ultimaSubidaNuvem, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
+import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -7523,7 +7523,8 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   const { state } = useEsc()
   const stRef = useRef(state); stRef.current = state
   const [logado, setLogado] = useState<boolean | null>(null)
-  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local'>('quieto')
+  const [fase, setFase] = useState<'quieto' | 'salvando' | 'salvo' | 'salvo_local' | 'salvo_aparelho'>('quieto')
+  const soAparelho = useNuvemSoAparelho(state.seed) // ☁️⭐ conta grátis + carreira nova (07/10)
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!ativo) return
@@ -7538,14 +7539,16 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
     const st = stRef.current
     try { localStorage.setItem('esc-solo-career', JSON.stringify(st)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
     setFase('salvando')
-    try { await savePyramidCloud(st, true) } catch { /* o local já guardou */ }
+    let res: 'nuvem' | 'aparelho' | undefined
+    try { res = await savePyramidCloud(st, true) } catch { /* o local já guardou */ }
     const subiu = !!ultimaSubidaNuvem(st.seed) && Date.now() - (ultimaSubidaNuvem(st.seed)?.at ?? 0) < 15_000
-    setFase(subiu ? 'salvo' : 'salvo_local'); setTick(x => x + 1)
+    setFase(res === 'aparelho' ? 'salvo_aparelho' : subiu ? 'salvo' : 'salvo_local'); setTick(x => x + 1)
     setTimeout(() => setFase('quieto'), 2400)
   }, [])
   if (!ativo) return undefined
-  if (fase !== 'quieto') return { estado: fase, onClick }
+  if (fase !== 'quieto') return { estado: fase, onClick, onCraque: fase === 'salvo_aparelho' ? abreCraqueNuvem : undefined }
   if (logado === false && !logadoDev) return { estado: 'deslogado', onClick }
+  if (soAparelho) return { estado: 'so_aparelho', onClick, onCraque: abreCraqueNuvem }
   const sub = ultimaSubidaNuvem(state.seed)
   if (!sub) return { estado: 'nunca', onClick }
   const ha = Math.floor((Date.now() - sub.at) / 60_000)
@@ -7554,8 +7557,12 @@ function useSalvarNuvem(ativo: boolean): FaixaSalvarProps | undefined {
   return atrasado ? { estado: 'atrasado', ha, rodadas: mesmaTemporada ? (state.round ?? 0) - sub.round : undefined, onClick } : { estado: 'em_dia', ha, onClick }
 }
 
+// ⭐ abre a tela com TODOS os planos, rolada até o Craque (Diego 07/10: "qd apertar em craque ele vê todos planos")
+const abreCraqueNuvem = () => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=nuvem` }
+
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
+  const soAparelhoPe = useNuvemSoAparelho(state.seed) // ☁️⭐ legenda do "Sair e salvar" (07/10)
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
   const presidentAvailable = PRESIDENT_INTEGRATION_RELEASED && presidentAccount && podeAlterarPresidencia(state,state.managers[state.youIdx]?.id ?? -1)
@@ -10955,7 +10962,9 @@ export function PyramidSeasonScreen() {
             className="ll-cx-sair"
             style={{ width: '100%', marginTop: 16, border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 13px', fontWeight: 900, fontSize: 14, background: '#fff', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', ...OSWALD }}>
             {tr('🚪 Sair e salvar carreira', '🚪 Exit and save career')}
-            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
+            <span style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: '#5a5647', marginTop: 2 }}>{soAparelhoPe
+              ? tr('Fica salva neste aparelho. Pra guardar na nuvem e continuar em outro celular, só no ⭐ Craque.', 'It stays saved on this device. To keep it in the cloud and continue on another phone, only with ⭐ Star.')
+              : tr('Fica guardada nos seus saves — é só voltar e continuar de onde parou.', 'It stays in your saves — just come back and pick up where you left off.')}</span>
           </button>
         )}
       </div>

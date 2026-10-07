@@ -1,4 +1,4 @@
-## ☁️⭐ NUVEM SÓ PRO CRAQUE nas carreiras NOVAS (07/10) — decidido; mockup do aviso enviado, ⏳ aguardando OK
+## ☁️⭐ NUVEM SÓ PRO CRAQUE nas carreiras NOVAS (07/10) ✅ NO AR (Diego aprovou o mockup: "Sim")
 - Diego: *"Nuvem só pra quem paga. O grátis e quem joga sem conta continuam salvando no aparelho… Só deixe avisado pra
   essa pessoa no momento do save… Quem já tem save na nuvem continua igual. Ninguém perde nada."*
 - Medido 07/10: 5.191 contas grátis = 972 MB (92% do espaço de saves); 4.175 delas paradas há +7 dias (703 MB).
@@ -6,6 +6,11 @@
 - Plano: RPC no banco diz se a conta paga (Craque/Lenda/batismo/sócio) e quais carreiras dela JÁ estão na nuvem. Grátis:
   só essas continuam subindo; carreira nova fica no aparelho. Falha da RPC = sobe como hoje (nunca prejudica pagante).
   Aviso na faixa 💾 da Central + no "Sair e salvar". Mockup: `scripts/mockup-nuvem-craque.mjs`.
+- FEITO: RPC `esc_nuvem_regra` (docs/sql/nuvem-so-craque.sql, aplicada) · `nuvemRegra`/`nuvemAceita`/`useNuvemSoAparelho` +
+  `savePyramidCloud` devolvendo 'nuvem'|'aparelho' (store.tsx) · faixa com botão roxo ⭐ Craque → `?apoie=nuvem` (todos os
+  planos, Craque aceso). Trava: `npm run nuvem-craque`.
+- ⏳ Opcional que ficou pra depois (mexe em quem já joga, só se o Diego pedir): apagar da nuvem save de conta grátis parado há
+  muito tempo (ex.: 30 dias), avisando antes.
 
 ## 🔥 CALDEIRÃO (07/10) — mockups enviados, ⏳ aguardando OK do Diego (nada no jogo ainda)
 - Ideia tirada do Brasileirinho FC: o empurrão de jogar EM CASA passa a depender da lotação do próximo jogo

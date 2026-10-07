@@ -722,6 +722,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   **Nunca criar mensagem periódica nova no canal** sem medir: cota do plano = 5 milhões de mensagens/mês e cada
   entrega pra cada pessoa conta uma. Trava: `npm run canal`.
 
+- **☁️⭐ NUVEM SÓ PRA QUEM PAGA, NAS CARREIRAS NOVAS (07/10, regra permanente).** Palavras dele: *"Nuvem só pra quem paga.
+  O grátis e quem joga sem conta continuam salvando no aparelho… Quem já tem save na nuvem continua igual. Ninguém perde
+  nada"*. A régua mora no banco (`esc_nuvem_regra`: paga = Craque/Lenda, fundador/batismo ou sócio em dia; e quais seeds
+  JÁ estão na nuvem). Conta grátis só sobe essas; carreira nova fica no aparelho, com aviso e botão ⭐ Craque (abre TODOS os
+  planos). Banco sem resposta = sobe como sempre. **Nunca bloquear o save no APARELHO** (não custa nada e só espanta
+  jogador) e **nunca apagar save de ninguém** sem ele pedir. Trava: `npm run nuvem-craque`.
+
 - **💾 FICHAS DE CARREIRA (05/10, regra permanente): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 · 🖋️ Batismo 4.** Antes era
   2 · 4 · 6 · 8. Palavras dele: *"não mexa nesses usuários que já fizeram saves… a partir de agora o grátis vai ter só um…
   se ele quiser outro, ele tem que excluir"*. Quem já tem mais que o limite fica com todas (grandfather em

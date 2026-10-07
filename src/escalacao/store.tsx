@@ -11056,13 +11056,59 @@ async function carimboDaNuvem(uid: string): Promise<string | null | undefined> {
 // salvar"*. A NUVEM só recebe a carreira em ação explícita (`force`): o botão "Sair e salvar
 // carreira", trocar de carreira, a troca do Bafo. O autosave do jogo grava SÓ no aparelho (é
 // instantâneo e continua igual) — antes ele também subia pra nuvem a cada minuto.
-export async function savePyramidCloud(state: EscState, force = false) {
+// ☁️⭐ NUVEM SÓ PRO CRAQUE nas carreiras NOVAS (07/10). Palavras do Diego: *"Nuvem só pra quem paga. O grátis
+// e quem joga sem conta continuam salvando no aparelho… Quem já tem save na nuvem continua igual. Ninguém perde
+// nada"*. Medido no dia: as contas grátis eram 92% do espaço de saves. A régua mora no banco
+// (`esc_nuvem_regra`, docs/sql/nuvem-so-craque.sql): diz se a conta PAGA e quais carreiras dela JÁ estão na
+// nuvem. Conta grátis só sobe essas; carreira nova fica no aparelho. Sem resposta do banco = sobe como sempre
+// (nunca tira a nuvem de quem paga por erro de rede). Trava: `npm run nuvem-craque`.
+export type NuvemRegra = { pago: boolean; seeds: number[] }
+let regraCache: { uid: string; r: NuvemRegra } | null = null
+const regraOuvintes = new Set<() => void>()
+export async function nuvemRegra(uid: string, fresca = false): Promise<NuvemRegra | null> {
+  if (!fresca && regraCache?.uid === uid) return regraCache.r
+  try {
+    const { data, error } = await supabase.rpc('esc_nuvem_regra')
+    if (error || !data || typeof data !== 'object') return null
+    const d = data as { pago?: boolean; seeds?: unknown[] }
+    const r: NuvemRegra = { pago: !!d.pago, seeds: (d.seeds ?? []).map(Number).filter(Number.isFinite) }
+    regraCache = { uid, r }; regraOuvintes.forEach(f => { try { f() } catch { /* ignora */ } })
+    return r
+  } catch { return null }
+}
+/** pagante pelo código também vale (lista de reserva do apoio.tsx / batismo do manto.ts) */
+const pagoPeloCodigo = () => souBarao() || myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata'
+/** a carreira pode ir pra nuvem? (a MESMA regra serve a tela e o salvar — nada de botão mudo) */
+export function nuvemAceita(r: NuvemRegra | null, seed: number | undefined): boolean {
+  if (!r || r.pago || pagoPeloCodigo()) return true
+  return seed != null && r.seeds.includes(seed)
+}
+/** 📱 pra tela: esta carreira salva SÓ no aparelho? (null = ainda não sabe / deslogado) */
+export function useNuvemSoAparelho(seed: number | undefined): boolean | null {
+  const [, setT] = useState(0)
+  const [uid, setUid] = useState<string | null>(null)
+  useEffect(() => {
+    let vivo = true
+    const f = () => { if (vivo) setT(x => x + 1) }
+    regraOuvintes.add(f)
+    supabase.auth.getUser().then(r => { const id = r.data?.user?.id ?? null; if (!vivo) return; setUid(id); if (id) void nuvemRegra(id) }, () => {})
+    return () => { vivo = false; regraOuvintes.delete(f) }
+  }, [])
+  if (!uid || regraCache?.uid !== uid) return null
+  return !nuvemAceita(regraCache.r, seed)
+}
+/** devolve 'nuvem' (subiu), 'aparelho' (conta grátis + carreira nova: fica só no aparelho) ou undefined */
+export async function savePyramidCloud(state: EscState, force = false): Promise<'nuvem' | 'aparelho' | undefined> {
   try {
     if (!force) return
     const { data } = await supabase.auth.getUser()
     if (!data?.user) return
     const uid = data.user.id
     ensureCareerOwner(uid) // 🔐 este aparelho é DESTA conta — nunca sobe/mistura carreira de outra
+    // ☁️⭐ conta grátis: só as carreiras que JÁ estavam na nuvem continuam subindo (ver `nuvemRegra`)
+    const regra = isCareerSave(state) ? await nuvemRegra(uid, true) : null
+    if (isCareerSave(state) && !nuvemAceita(regra, state.seed)) return 'aparelho'
+    const liberada = (c: CareerSlot) => nuvemAceita(regra, (c.save as EscState).seed)
     let payload: unknown = state
     // o aparelho já tem tudo o que está na nuvem? (mesmo carimbo, ou nuvem vazia)
     let localCobreNuvem = true
@@ -11083,7 +11129,7 @@ export async function savePyramidCloud(state: EscState, force = false) {
         const cloudAt = cur?.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
         daNuvem = careersFromCloudRaw(cur?.save, cloudAt)
       }
-      payload = { __multi: 1, careers: mergeCareers([active], daNuvem, readCareerArchive()) }
+      payload = { __multi: 1, careers: mergeCareers([active], daNuvem, readCareerArchive()).filter(liberada) }
       anotaSeedsDaNuvem(uid, (payload as { careers: CareerSlot[] }).careers)
     }
     const nowIso = new Date().toISOString()
@@ -11093,6 +11139,7 @@ export async function savePyramidCloud(state: EscState, force = false) {
     if (localCobreNuvem) marcaCloudAt(uid, up?.updated_at as string | undefined)
     // 💾 lembra QUANDO e EM QUE PONTO esta carreira subiu (o "salvo na nuvem há X min" da Central)
     if (isCareerSave(state)) anotaSubidaNuvem(state)
+    return 'nuvem'
   } catch { /* best effort — o local sempre garante */ }
 }
 // 💾 última subida da carreira pra nuvem, por carreira (seed): quando foi e em que rodada/temporada.
