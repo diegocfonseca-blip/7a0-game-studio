@@ -105,7 +105,7 @@ export function SupportCraqueBenefits() {
     <li><b>{tr('Olheiro até a categoria Craque', 'Scout up to Star')}</b>{tr('Sonde Foi Profissional, Bom Jogador, Promessa e Craque. O jogador vai ao pregão e você ainda disputa o lance.', 'Scout Former Pro, Good Player, Prospect and Star. The player enters the auction and you still compete for the bid.')}</li>
     <li><b>{tr('Visual prata com brilho', 'Shining silver look')}</b>{tr('Seu nome ganha destaque prateado no estádio, elenco e tabelas.', 'Your name gets a silver highlight in the stadium, squad and tables.')}</li>
     <li><b>{tr('Grupo VIP', 'VIP group')}</b>{tr('Bastidores, novidades e contato com o Diego no WhatsApp.', 'Behind the scenes, news and contact with Diego on WhatsApp.')}</li>
-    <li><b>{tr('4 carreiras salvas', '4 saved careers')}</b>{tr('Mantenha quatro histórias diferentes ao mesmo tempo.', 'Keep four different stories at the same time.')}</li>
+    <li><b>{tr('2 carreiras salvas', '2 saved careers')}</b>{tr('Mantenha duas histórias diferentes ao mesmo tempo.', 'Keep two different stories at the same time.')}</li>
   </ul>
 }
 
@@ -154,7 +154,7 @@ export function SupportPlans(p: Props) {
           </div>
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Craque', ', up to Star level')}</Ok>
-        <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas ao mesmo tempo · grupo VIP no WhatsApp com o Diego', ' saved at once · VIP WhatsApp group with Diego')}</Ok>
+        <Ok><b>{tr('2 carreiras', '2 careers')}</b>{tr(' salvas ao mesmo tempo · grupo VIP no WhatsApp com o Diego', ' saved at once · VIP WhatsApp group with Diego')}</Ok>
         <p className="ll-support-note">{tr('O olheiro do Craque não revela nem sonda Lendas. No online normal, o ritmo é o mesmo para todos.', 'The Star scout does not reveal or scout Legends. In regular online play, the pace is the same for everyone.')}</p>
         <button className="ll-support-button prata" onClick={() => p.onPay('prata')}>{tr('ESCOLHER CRAQUE · R$ 19,90', 'CHOOSE STAR · R$ 19.90')}</button>
         <p className="ll-support-addon">{tr('Quer também escudo, mascote, manto e nome do estádio? Sendo Craque, adicione o Sócio por apenas R$ 4,90/mês. Inclui carteirinha e 30 moedas a cada 30 dias. Cancele quando quiser.', 'Want a crest, mascot, kit and stadium name too? As a Star, add Membership for only R$ 4.90/month. Includes a membership card and 30 coins every 30 days. Cancel anytime.')}</p>
@@ -172,7 +172,7 @@ export function SupportPlans(p: Props) {
           </div>
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
-        <Ok><b>{tr('6 carreiras', '6 careers')}</b>{tr(' salvas · 🎮 Modo Manual · grupo VIP no WhatsApp com o Diego', ' saved · 🎮 Manual Mode · VIP WhatsApp group with Diego')}</Ok>
+        <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas · 🎮 Modo Manual · grupo VIP no WhatsApp com o Diego', ' saved · 🎮 Manual Mode · VIP WhatsApp group with Diego')}</Ok>
         <p className="ll-support-note">{tr('Já tem Craque? Suba para Lenda pagando a diferença: R$ 20,00.', 'Already have Star? Upgrade to Legend for the difference: R$ 20.00.')}</p>
         <button className="ll-support-button gold" onClick={() => p.onPay('ouro')}>{p.tier === 'prata' ? tr('SUBIR PARA LENDA · R$ 20,00', 'UPGRADE TO LEGEND · R$ 20.00') : tr('ESCOLHER LENDA · R$ 39,90', 'CHOOSE LEGEND · R$ 39.90')}</button>
         <p className="ll-support-addon">{tr('Quer também escudo, mascote, manto e nome do estádio? Sendo Lenda, adicione o Sócio por apenas R$ 2,90/mês. Inclui carteirinha e 30 moedas a cada 30 dias. Cancele quando quiser.', 'Want a crest, mascot, kit and stadium name too? As a Legend, add Membership for only R$ 2.90/month. Includes a membership card and 30 coins every 30 days. Cancel anytime.')}</p>
@@ -212,7 +212,7 @@ export function SupportPlans(p: Props) {
         </Vitrine>
         <Ok><b>{tr('Tudo do Lenda incluído', 'Everything in Legend included')}</b>{tr(' + ', ' + ')}<b>{tr('sócio pra sempre', 'membership forever')}</b>{tr(' (sem mensalidade): 30 🪙 a cada 30 dias, estádio com o seu nome', ' (no monthly fee): 30 🪙 every 30 days, a stadium with your name')}</Ok>
         <Ok><b>{tr('Selo de Fundador', 'Founder badge')}</b>{tr(' e seu nome no mural do jogo', ' and your name on the game’s wall')}</Ok>
-        <Ok><b>{tr('8 carreiras', '8 careers')}</b>{tr(' salvas · seu clube disputa a pirâmide de TODO mundo que joga', ' saved · your club plays in EVERYONE’s pyramid')}</Ok>
+        <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas · seu clube disputa a pirâmide de TODO mundo que joga', ' saved · your club plays in EVERYONE’s pyramid')}</Ok>
         <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego desenha escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego designs the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
         <div className="ll-support-prices"><div>{tr('SÉRIES B, C, D E VÁRZEA', 'DIVISIONS B, C, D AND VÁRZEA')}<b>R$ 59,90</b></div><div>{tr('SÉRIE A', 'DIVISION A')}<b>R$ 69,90</b></div></div>
         <p className="ll-support-note">{tr('No Batismo de R$ 69,90, seu clube entra na Série A e também aparece no Jogo Rápido e no modo Online. O clube continua seu: nome, escudo, mascote e manto.', 'With the R$ 69.90 Club Naming, your club joins Division A and also appears in Quick Play and Online mode. The club remains yours: name, crest, mascot and kit.')}</p>

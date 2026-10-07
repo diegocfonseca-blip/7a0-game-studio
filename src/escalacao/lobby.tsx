@@ -247,6 +247,15 @@ export function useResumableRoom() {
       const user = auth?.user
       if (!user || !alive) return
       userRef.current = user
+      // 💸 06/10 (conta do Supabase): a faixa "voltar pra sala" baixava o game_state INTEIRO
+      // (até ~500 KB por sala, até 21 salas) toda vez que a home abria. Agora só puxa os
+      // campos que a conferência usa; o save completo só desce no resume().
+      const LEVE = 'id, code, host_id, status, updated_at, gtag:game_state->>__game, gscreen:game_state->>screen, gm0:game_state->managers->0->>id, gmode:game_state->>mode, gcar:game_state->>careerOnline'
+      type Leve = { id: string; code: string; host_id: string; status: string; updated_at?: string; gtag?: string | null; gscreen?: string | null; gm0?: unknown; gmode?: string | null; gcar?: string | null }
+      const deLeve = (r: Leve | null | undefined): RoomInfo | null => r ? ({
+        id: r.id, code: r.code, host_id: r.host_id, status: r.status, updated_at: r.updated_at,
+        game_state: { __game: r.gtag ?? undefined, screen: r.gscreen ?? undefined, managers: r.gm0 != null ? [{ id: Number(r.gm0) }] : [], mode: r.gmode ?? undefined, careerOnline: r.gcar === 'true', __leve: true },
+      } as unknown as RoomInfo) : null
       const isLive = (rd: RoomInfo | null | undefined): rd is RoomInfo => {
         const gs = rd?.game_state as GS | undefined
         return !!rd && rd.game_state?.__game === tagAtual() && rd.status === 'started'
@@ -257,9 +266,10 @@ export function useResumableRoom() {
       // 1) ponteiro local (rápido, sem consultar o resto do banco)
       const savedId = loadSavedRoom()
       if (savedId) {
-        const { data } = await supabase.from('game_rooms').select('*').eq('id', savedId).maybeSingle()
+        const { data: lv } = await supabase.from('game_rooms').select(LEVE).eq('id', savedId).maybeSingle()
+        const data = deLeve(lv as Leve | null)
         if (data && data.game_state?.__game !== tagAtual()) clearSavedRoom()
-        else if (isLive(data as RoomInfo)) rd = data as RoomInfo
+        else if (isLive(data)) rd = data
       }
       // 2) sem ponteiro local (ex.: limpou o cache) → procura no banco uma sala
       //    'started' onde EU sou host OU membro. Assim o host não perde o "voltar".
@@ -267,10 +277,11 @@ export function useResumableRoom() {
         const { data: mine } = await supabase.from('room_players').select('room_id').eq('user_id', user.id)
         const memberIds = [...new Set(((mine ?? []) as { room_id: string }[]).map(r => r.room_id))]
         const [hostedRes, memberRes] = await Promise.all([
-          supabase.from('game_rooms').select('*').eq('host_id', user.id).eq('status', 'started').order('updated_at', { ascending: false }).limit(10),
-          memberIds.length ? supabase.from('game_rooms').select('*').in('id', memberIds).eq('status', 'started').order('updated_at', { ascending: false }).limit(10) : Promise.resolve({ data: [] as RoomInfo[] }),
+          supabase.from('game_rooms').select(LEVE).eq('host_id', user.id).eq('status', 'started').order('updated_at', { ascending: false }).limit(10),
+          memberIds.length ? supabase.from('game_rooms').select(LEVE).in('id', memberIds).eq('status', 'started').order('updated_at', { ascending: false }).limit(10) : Promise.resolve({ data: [] as Leve[] }),
         ])
-        rd = [...((hostedRes.data ?? []) as RoomInfo[]), ...((memberRes.data ?? []) as RoomInfo[])]
+        rd = [...((hostedRes.data ?? []) as unknown as Leve[]), ...((memberRes.data ?? []) as unknown as Leve[])]
+          .map(deLeve)
           .filter(isLive)
           .sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))[0] ?? null
       }
@@ -292,7 +303,9 @@ export function useResumableRoom() {
     const rd = roomRef.current, user = userRef.current
     if (!rd || !user) return
     const { data: freshRoom } = await supabase.from('game_rooms').select('game_state').eq('id', rd.id).maybeSingle()
-    const gs = (freshRoom?.game_state ?? rd.game_state) as GS | undefined
+    // a faixa guarda só o resumo leve: sem o save completo do banco, não restaura (nunca um estado de mentira)
+    const gs = freshRoom?.game_state as GS | undefined
+    if (!gs) return
     const { data: allPlayers } = await supabase.from('room_players').select('*').eq('room_id', rd.id).order('player_index')
     const sorted = (allPlayers ?? []) as RoomPlayer[]
     const amHost = rd.host_id === user.id
@@ -899,7 +912,10 @@ export function EscLobby() {
       // 🐊☀️ os dois que o Diego mandou em 25/08. A `dur` é a duração REAL medida no
       // arquivo (ffprobe) — ela é a trava de "um som por vez na sala", então chutar
       // pra menos deixaria dois áudios tocando por cima um do outro.
-      jacare: { file: 'jacare.mp3', dur: 5800, emoji: '🐊', balao: 'soltou o áudio do jacaré 🐊🔊' }, // 26/08: o Diego trocou o arquivo (era 1min06, agora 5,7s)
+      // 🎖️ 05/10: o Diego trocou o áudio do jacaré pelo "Dictador" (23 s). A CHAVE continua `jacare` de
+      // propósito: quem está com a versão velha aberta recebe a mesma chave e toca o `jacare.mp3`, que
+      // agora é o MESMO áudio novo — chave nova cairia no "Posso te ligar" deles (o `?? lib.ligar`).
+      jacare: { file: 'ditador.mp3', dur: 23300, emoji: '🎖️', balao: 'soltou o DICTADOR 🎖️🔊' },
       bomdia: { file: 'bom-dia.mp3', dur: 27700, emoji: '☀️', balao: 'mandou um BOM DIA pra sala ☀️🔊' },
     }
     const s = lib[key] ?? lib.ligar
@@ -3623,6 +3639,7 @@ export function EscLobby() {
             ordem de 29/08 (*"de forma mais sutil"*) continua valendo.
             💾 Brilho em CSS = 0 KB (mesma regra do escudo animado: animação é CSS,
             nunca arquivo). Reverter = tirar a classe `zap-brilha`. */}
+        {/* 👑 06/10: virou "grupo VIP junto com o dono do jogo" (pedido do Diego). */}
         {(() => {
           const jaTem = myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata'
           const Zap = <span className="zap-brilha">WhatsApp</span>
@@ -3636,14 +3653,14 @@ export function EscLobby() {
               <span className="zap-ponto" />
               {jaTem ? (<>
                 {getLang() === 'en'
-                  ? <>📱 There is a {Zap} group of online players — and you already have a spot in it.</>
-                  : <>📱 Tem um grupo no {Zap} de quem joga online — e você já tem vaga nele.</>}{' '}
+                  ? <>📱 There is a <b>VIP</b> {Zap} group with the game's owner — and you already have a spot in it.</>
+                  : <>📱 Tem um grupo <b>VIP</b> no {Zap} junto com o dono do jogo — e você já tem vaga nele.</>}{' '}
                 <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noreferrer"
                   className="underline text-white/60 font-black active:opacity-60">{tr('Pedir o convite', 'Ask for the invite')}</a>
               </>) : (<>
                 {getLang() === 'en'
-                  ? <>📱 Nobody to call? There is a {Zap} group of online players — from ⭐ Star up.</>
-                  : <>📱 Sem galera pra chamar? Tem um grupo no {Zap} de quem joga online — é do ⭐ Craque pra cima.</>}{' '}
+                  ? <>📱 Nobody to call? Join the <b>VIP</b> {Zap} group with the game's owner — from ⭐ Star up.</>
+                  : <>📱 Sem galera pra chamar? Entra no grupo <b>VIP</b> do {Zap} junto com o dono do jogo — é do ⭐ Craque pra cima.</>}{' '}
                 <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=craque` }}
                   className="underline text-white/60 font-black active:opacity-60">{tr('Saiba mais', 'Learn more')}</button>
               </>)}
@@ -4313,7 +4330,7 @@ export function EscLobby() {
             {/* 📞🎙️ BUZINA: áudios de meme pra sala TODA. 1 por pessoa a cada 30s
                 (contagem compartilhada) e um som por vez na sala. */}
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {([['ligar', '📞', tr('"Posso te ligar agora?"', '"Can I call you now?"')], ['meme2', '🎙️', tr('AQUELE áudio', 'THAT audio')], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', tr('Áudio novo', 'New audio')], ['jacare', '🐊', tr('Silenciar aqui', 'Silence here')], ['bomdia', '☀️', tr('Bom dia', 'Good morning')]] as [string, string, string][]).map(([k, ic, tx]) => (
+              {([['ligar', '📞', tr('"Posso te ligar agora?"', '"Can I call you now?"')], ['meme2', '🎙️', tr('AQUELE áudio', 'THAT audio')], ['siuu', '🗣️', 'SIIIIUU!'], ['novo5', '🔊', tr('Áudio novo', 'New audio')], ['jacare', '🎖️', 'Dictador'], ['bomdia', '☀️', tr('Bom dia', 'Good morning')]] as [string, string, string][]).map(([k, ic, tx]) => (
                 <button key={k} onClick={() => sendSfx(k)} disabled={sfxCoolLeft > 0}
                   className="border-2 border-black rounded-xl px-2 py-2 font-black text-[11px] active:translate-y-0.5"
                   style={{ ...OSWALD, background: sfxCoolLeft > 0 ? '#e4ddc9' : GOLD, color: sfxCoolLeft > 0 ? 'rgba(0,0,0,.45)' : '#000' }}>

@@ -514,7 +514,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="bg-white rounded-2xl mt-3 px-3 py-2.5" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
             <p className="font-black uppercase text-[10px] tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('⭐ e vem junto', '⭐ also included')}</p>
             <div className="flex flex-wrap gap-1.5">
-              {[tr('⭐ nome prata brilhando nas salas online', '⭐ shining silver name in online rooms'), tr('🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '🕵️ Scout: find players outside the auction (up to Star)'), tr('💾 4 carreiras salvas', '💾 4 saved careers'), tr('📲 grupo VIP no WhatsApp com o Diego', '📲 VIP WhatsApp group with Diego')].map(t => (
+              {[tr('⭐ nome prata brilhando nas salas online', '⭐ shining silver name in online rooms'), tr('🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '🕵️ Scout: find players outside the auction (up to Star)'), tr('💾 2 carreiras salvas', '💾 2 saved careers'), tr('📲 grupo VIP no WhatsApp com o Diego', '📲 VIP WhatsApp group with Diego')].map(t => (
                 <span key={t} className="font-extrabold text-[10.5px] rounded-full px-2.5 py-1" style={{ border: `2px solid ${INK}`, background: '#F4ECD6' }}>{t}</span>
               ))}
             </div>
@@ -1469,8 +1469,11 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
   // confirmação de apagar é DENTRO do jogo (dois toques) — window.confirm é
   // bloqueado no navegador do WhatsApp/Instagram e o 🗑️ "não fazia nada" pra galera.
   const [confirmKey, setConfirmKey] = useState<string | null>(null)
+  // 🛡️ 06/10: se a troca não der pra fazer sem perder nada (aparelho sem espaço), NÃO troca e avisa
+  const [avisoTroca, setAvisoTroca] = useState(false)
   const open = (slot: CareerSlot, active: boolean) => {
-    const save = active ? slot.save : (activateCareerSlot(slot.save.seed) ?? slot.save)
+    const save = active ? slot.save : activateCareerSlot(slot.save.seed)
+    if (!save) { setAvisoTroca(true); setList(listAllCareers()); return }
     dispatch({ type: 'RESUME_CAREER_SOLO', saved: save })
   }
   const del = (slot: CareerSlot) => {
@@ -1485,6 +1488,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
           <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(0,0,0,.5)', border: `2px solid ${INK}`, borderRadius: 999, padding: '2px 8px' }}>{list.length} / {careerSlotLimit(list.length)}</span>
           <button onClick={onClose} aria-label={t('Fechar', 'Close')} style={{ fontSize: 18, fontWeight: 900, border: 'none', background: 'transparent', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
+        {avisoTroca && <p role="alert" style={{ background: '#FFE3DD', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '9px 11px', fontSize: 12.5, fontWeight: 800, margin: '0 0 12px', lineHeight: 1.4 }}>{t('⚠️ Seu aparelho ficou sem espaço pra fazer essa troca. NADA foi apagado: você continua na carreira de antes. Apague uma carreira que não usa mais (🗑️) e tente de novo.', '⚠️ Your device ran out of room for this switch. NOTHING was deleted: you are still in the same career. Delete a career you no longer use (🗑️) and try again.')}</p>}
         {list.length === 0 && <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#5a5647', padding: '10px 0 14px' }}>{t('Nenhuma carreira ainda. Comece uma! 👇', 'No careers yet. Start one! 👇')}</p>}
         {list.map(({ slot, active }, i) => {
           const you = slot.save.managers?.[slot.save.youIdx ?? 0]
@@ -1518,7 +1522,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
         })}
         {(() => { const lim = careerSlotLimit(list.length); const cheio = list.length >= lim; return (<>
         <button onClick={onNew} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
-        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, ou ganhe fichas apoiando: ⭐ Craque tem 4 · 👑 Lenda 6 · 🖋️ Batismo 8. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, or earn slots by supporting: ⭐ Star has 4 · 👑 Legend 6 · 🖋️ Named club 8. (Whoever already had more than the limit loses nothing.)')}</p>}
+        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4. (Whoever already had more than the limit loses nothing.)')}</p>}
       </>) })()}
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras. Trocar de save também não — só o 🗑️ apaga.', 'Starting a new one does NOT delete the others. Switching saves doesn\'t either — only 🗑️ deletes.')}</p>
       </div>
@@ -2621,7 +2625,11 @@ export function EscSetup() {
       }
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de
       // começar a nova. A nova vira a ativa; a antiga fica em "Minhas Carreiras".
-      stashActiveBeforeNew()
+      // 🛡️ 06/10: a atual não coube no arquivo? então não começa a nova (senão a atual sumia)
+      if (!stashActiveBeforeNew()) {
+        setNameErr(tr('Seu aparelho está sem espaço pra guardar a carreira atual. Nada foi apagado. Apague uma carreira que não usa mais em "Minhas carreiras" e tente de novo.', 'Your device has no room to keep your current career. Nothing was deleted. Delete a career you no longer use in "My careers" and try again.'))
+        return
+      }
       dispatch({
         type: 'START_CAREER_SOLO', teamName: clean, formation, rivals,
         rivalTeams: picks, league: 'both', intro: true,

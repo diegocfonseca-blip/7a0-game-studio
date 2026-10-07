@@ -54,6 +54,7 @@ function MaintenanceBanner() {
     let alive = true
     const netErr = (m: string) => /failed to fetch|networkerror|network request failed|load failed|502|503|504|timeout|service unavailable/i.test(m)
     const check = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return // aba escondida não testa (conta do Supabase, 06/10)
       let ok = false
       try {
         const { error } = await supabase.from('user_cards').select('user_id').limit(1) // leitura pública, bem leve
@@ -66,7 +67,7 @@ function MaintenanceBanner() {
       else { failsRef.current += 1; if (failsRef.current >= 2) setDown(true) } // 2 falhas seguidas = fora de verdade
     }
     check()
-    const iv = setInterval(check, 20_000)
+    const iv = setInterval(check, 60_000)
     return () => { alive = false; clearInterval(iv) }
   }, [])
   if (!down) return null

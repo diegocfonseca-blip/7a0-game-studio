@@ -112,6 +112,8 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'brunnodeluca90@gmail.com': 'ouro', // 👑 Lenda — batismo Vasco SAF (Série D, ex-Vasco da Grana) + fundador nº78 + sócio nº59 (24/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'weslleygomes749@gmail.com': 'ouro', // 👑 Lenda — batismo Cruzeiro de Berretinho (Série D, no assento do bot Metrópole FC) + fundador nº79 + sócio nº60 (25/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'bastosmbc@gmail.com': 'ouro', // 👑 Lenda — batismo El Mineiro (Série C, no assento do bot Brodeiragem) + fundador nº80 + sócio nº61 (27/09). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'atilasoaresjr21@gmail.com': 'ouro', // 👑 Lenda — batismo Mengão Malvadão (Série A, no assento do Nata de SP, que desceu pra B) + fundador nº86 (06/10). Era ⭐ Craque, subiu pra Lenda com o batismo. Regra 17/08: todo batismo já nasce sócio + fundador.
+  'kelvinoliveiraandradeenunes@gmail.com': 'ouro', // 👑 Lenda — batismo K9 FC (Várzea, no assento do bot Meia-Boca FC) + fundador nº85 (06/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'felipe.vrod10@gmail.com': 'ouro', // 👑 Lenda — batismo Vieira FC (Série D, no assento do bot Prestígio FC) + fundador nº84 (03/10). Era ⭐ Craque pago (prata), subiu pra Lenda com o batismo. Regra 17/08: todo batismo já nasce sócio + fundador.
   'kauealves584@gmail.com': 'ouro', // 👑 Lenda — batismo Gaviões SCCP (Série C, no assento do bot Zorra FC) + fundador nº83 (02/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'jadriovani@gmail.com': 'ouro', // 👑 Lenda — batismo Guimarães SCI (Série A) + fundador nº82 (02/10). Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -218,6 +220,8 @@ const FUNDADOR_N: Record<string, number> = {
   'weslleygomes749@gmail.com': 79, // ⭐🐺 Cruzeiro de Berretinho (25/09)
   'bastosmbc@gmail.com': 80, // 🐓 El Mineiro (27/09)
   'felipe.vrod10@gmail.com': 84, // 😈🔴⚫ Vieira FC (03/10)
+  'atilasoaresjr21@gmail.com': 86, // 🦅🔴⚫ Mengão Malvadão (06/10)
+  'kelvinoliveiraandradeenunes@gmail.com': 85, // 👑🧊 K9 FC (06/10)
   'kauealves584@gmail.com': 83, // 🦅⚫⚪ Gaviões SCCP (02/10)
   'jadriovani@gmail.com': 82, // 🔴⚪ Guimarães SCI (02/10)
   'luck.45@live.com': 81, // 👒⚪ Real Madruga (02/10)

@@ -1615,7 +1615,11 @@ const L39_BR_MEI: C[] = [
   { name: "Julio César Romero", club: "Fluminense", year: 1984, fame: 4, lo: 83, hi: 89, bio: "'Romerito', o paraguaio camisa 10 do Fluminense campeão brasileiro de 1984 — eleito o melhor jogador da América em 1985." },
 ]
 
-export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI, ...L39_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA] }
+// ⚽ 05/10, pedido do Diego: o atacante Gilberto do Bahia (artilheiro do clube em 2019-2020).
+const L43_BR_ATA: C[] = [
+  { name: "Gilberto", club: "Bahia", year: 2020, fame: 2, lo: 64, hi: 80, bio: "Centroavante artilheiro do Bahia — goleador do time no Brasileirão de 2019 e 2020." },
+]
+export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI, ...L39_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA, ...L43_BR_ATA] }
 
 // ─── BARALHO ALTERNATIVO: AUGES DA LIGA EUROPA ───────────────────────
 // Baralho paralelo, escolhido no início (partida rápida / carreira). Mesmas
@@ -3589,6 +3593,7 @@ export function ehPromessa(c: { name: string; club?: string; year?: number; prom
 }
 
 export const OLD_NAME: Record<string, string> = {
+  'K9 FC': 'Meia-Boca FC', // 👑🧊 batismo do kelvinoliveiraandradeenunes (06/10): assumiu o assento da Várzea que era do bot Meia-Boca FC — save antigo com Meia-Boca FC vira K9 FC ao abrir.
   'Vasco SAF': 'Vasco da Grana', // ⚽🏴‍☠️ batismo do brunnodeluca90 (24/09): o Vasco da Grana (batismo sem dono, pedido do Diego em 03/08) virou Vasco SAF — save antigo chega no nome novo
   'Cruzeiro de Berretinho': 'Metrópole FC', // ⭐🐺 batismo do weslleygomes749 (25/09): assumiu o assento da Série D que era do bot Metrópole FC — save antigo com Metrópole FC vira Cruzeiro de Berretinho ao carregar
   'Milhaça FC': 'Real Bets', // ⚽ batismo do igormarquesn99: save antigo com Real Bets vira Milhaça FC ao carregar (24/08)
@@ -3695,7 +3700,7 @@ export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Sarrafo', team: 'Trave Torta EC' },
   { name: 'Nem', team: 'Barcelona da Vila' },
   { name: 'Pituca', team: 'Juventude do Churrasco' },
-  { name: 'Cabeção', team: 'Meia-Boca FC' },
+  { name: 'Kelvin', team: 'K9 FC' }, // 👑🧊 clube BATIZADO por apoiador (kelvinoliveiraandradeenunes — K9 FC, ex-Meia-Boca FC, Várzea; escudo com coroa e gelo, mascote O Rei K9; branco #E5E8F3 + azul #0723B4 MEDIDOS na camisa do dono; Lenda + fundador nº85, 06/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Xandão', team: 'Perna de Pau City' },
   { name: 'Russo', team: 'Várzea Legends' },
   { name: 'Formiga', team: 'Descampado EC' },
@@ -3810,7 +3815,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     { name: 'Fabuloso', team: 'Fabulous EC' }, // 🦅🔴⚫ clube BATIZADO por apoiador (koeppfabio — Fabulous EC; a águia vermelha e preta com a garra na bola, Cristo Redentor no escudo; coração Flamengo; Lenda + fundador nº76 + sócio nº57, 23/09). Assento que era do Xurupitas FC, que DESCEU pra Série C por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Xurupitas não foi renomeado, só mudou de divisão — e ele tem corrente própria de nomes velhos (Tokyo City Esperion / FC Galáticos) que continua valendo. Mapear faria os dois desenharem o mesmo escudo. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Zé do Mercado', team: 'Al Takhadao FC' }, // 🦜🛒 clube BATIZADO por apoiador (fontourajoao04 — Al Takhadao FC; papagaio de avental, carrinho de mercado, verde+laranja; coração Internacional; Lenda + fundador nº53, 01/09). Assento que era do Marreco FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Isto aqui é memória do repo — no POST o Diego pediu pra NÃO falar "entrou no lugar do Marreco", só "entrou na Série A".
     { name: 'Tubarão', team: 'Julia Barranquila' }, // 🦈🔴⚪ clube BATIZADO por apoiador (dondeestasleomessi10 — Julia Barranquila; escudo com o tubarão nas ondas e o coqueiro, mascote O Tubarão de óculos dourado; coração CORINTHIANS; Lenda + fundador nº77 + sócio nº58, 24/09). Assento que era do Leão da Estradinha, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Leão não foi renomeado, só mudou de divisão. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
-    { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
+    { name: 'Urubu', team: 'Mengão Malvadão' }, // 🦅🔴⚫ clube BATIZADO por apoiador (atilasoaresjr21 — Mengão Malvadão; o urubu de coroa pisando no porco, escudo com 4 Libertadores e 1 Mundial; vermelho #CE1313 + preto #171514 MEDIDOS na camisa; coração Flamengo; era ⭐ Craque, virou Lenda + fundador nº86 + sócio nº67, 06/10). Assento que era do Nata de SP, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Nata de SP não foi renomeado, só mudou de divisão (a corrente Paris São Geraldo → Nata de SP segue valendo). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Tonhão', team: 'Papão United Madrid' }, // ⚽ clube BATIZADO por apoiador (agrostinho88 — Papão United Madrid, ex-Santos Dumont; Lenda + fundador nº39 + sócio nº29, 23/08). Assento que era do Alfacehh, que DESCEU pra Série B por decisão do Diego.
     { name: 'Zé do Caixote', team: 'La Bestia Negra' }, // ⚽ clube BATIZADO por apoiador (eltonfrossard45 — La Bestia Negra, ex-River Prato)
     { name: 'Madruguinha', team: 'Real Madruga' }, // 👒⚪ clube BATIZADO por apoiador (luck.45 — Real Madruga; o boleiro de chapéu de pescador e bigodão, encostado no barril; branco + preto; Lenda + fundador nº81 + sócio nº62, 02/10). Assento que era do Bicho da Seda, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Bicho não foi renomeado, só mudou de divisão (a corrente dele Red Bull Diet → Bicho da Seda segue valendo). ⚠️ 'Real Madruga' JÁ FOI nome velho do Marolados FC — esse elo foi cortado em 02/10 (ver OLD_NAME). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
@@ -3822,7 +3827,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   B: [
     { name: 'Seu Ferreira', team: 'Crias do Bigão' }, // ⚽ clube BATIZADO por apoiador (giovannecastro784 — Crias do Bigão, ex-Ferroviária do Vale, 17/08)
     { name: 'Waguinho Pipa', team: 'Fatality FC' }, // ⬆️ SUBIU da Série C em 14/09, na troca 1:1 que levou o Inter de Bailão (ex-Alfacehh) pra Série C a pedido do Diego.
-    { name: 'Serrano', team: 'Nacional da Serra' },
+    // 🥛 NATA DE SP (pedrinhocamisa8) DESCEU da Série A pra cá em 06/10, por decisão do Diego, pra
+    // abrir o assento do Mengão Malvadão. Ocupa a vaga que era do bot "Nacional da Serra" (só existia
+    // aqui e em CLASSIC_CLUBS). SEM OLD_NAME: não foi renomeado, só mudou de divisão.
+    { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
     // 🦁 LEÃO DA ESTRADINHA (jorgericardo777) DESCEU da Série A pra cá em 24/09, por
     // decisão do Diego, pra abrir o assento do Julia Barranquila. Ocupa a vaga que era
     // do bot "Esporte do Cerrado" (escolhido por só existir aqui e em CLASSIC_CLUBS, em

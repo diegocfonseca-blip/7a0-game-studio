@@ -33,7 +33,7 @@ import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
-import { isRealInternationalCard, validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
+import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
@@ -1675,7 +1675,11 @@ function guardaClubesRecentes(nova?: Map<string, Sector>) {
 // saiu" morava SÓ no celular de quem cria a sala, então cada dono novo começava do zero.
 // Agora o jogo puxa do servidor as últimas partidas de TODO MUNDO — no boot e a cada
 // 2 min (a sala é montada na hora, sem esperar rede: usa o que já chegou).
+let clubesPuxadoEm = 0
 export function puxaClubesRecentes() {
+  const agora = Date.now()
+  if (agora - clubesPuxadoEm < 60_000) return
+  clubesPuxadoEm = agora
   try {
     void supabase.rpc('esc_clubes_recentes').then(({ data, error }) => {
       if (error || !Array.isArray(data)) return
@@ -1686,8 +1690,11 @@ export function puxaClubesRecentes() {
     }, () => {})
   } catch { /* offline */ }
 }
-if (typeof window !== 'undefined') { setTimeout(puxaClubesRecentes, 1500); setInterval(puxaClubesRecentes, 120000) }
+// 💸 06/10 (conta do Supabase): antes puxava a cada 2 min pra TODO jogador, até quem nunca joga
+// Leilão de Clubes. Agora: no boot e logo depois de cada sala de clubes montada (pra próxima).
+if (typeof window !== 'undefined') { setTimeout(puxaClubesRecentes, 1500) }
 export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
+  if (typeof window !== 'undefined') setTimeout(puxaClubesRecentes, 3000) // atualiza a memória pra PRÓXIMA sala
   const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
   const bt = nextBuildTok()
   const n = Math.max(1, managers.length)
@@ -5970,6 +5977,34 @@ export function sorteiaCategoriasFaltantes(s: EscState, rng: () => number) {
   }
 }
 
+// 🔇 06/10 (Diego: "trava sempre no botão Confirmar os 11 e começar a Libertadores"): a recusa do
+// START_INTERNATIONAL_CAMPAIGN era MUDA — o reducer devolvia o estado igual e o botão não fazia nada.
+// Agora a regra mora aqui e a TELA lê a mesma função antes de mandar: se recusar, ela diz o porquê
+// (regra de ouro contra botão mudo, 19/09). Devolve null quando a campanha pode começar.
+export function motivoRecusaInternacional(s: EscState, c: InternationalCampaign): string | null {
+  if (!internacionalCarreiraLiberada()) return 'liberacao'
+  if (!s.careerOnline || s.onlineMode === 'online' || s.seasonNo < 40) return 'modo'
+  if (s.copaDoneSeason !== s.seasonNo) return 'copa'
+  if (s.careerInternational?.season === s.seasonNo) return 'ja-comecou'
+  if (c.season !== s.seasonNo) return 'temporada'
+  if (c.seed !== s.seed) return 'semente'
+  if (c.teams.length !== 72 || c.steps.length !== 14 || c.reveal !== 0) return 'campanha'
+  const me = s.managers[s.youIdx]
+  if (!me || c.userTeam !== me.teamName) return 'time'
+  if (c.representedClub) {
+    const myTeam = c.teams.find(team => team.id === c.representedClub)
+    // 🧢 01/10 (Diego: *"eu não levo meu elenco… é todo jogador do Flamengo no baralho"*): a convocação é
+    // SÓ entre as cartas do clube escolhido no baralho, igual à seleção na Copa do Mundo.
+    // 🔁 RENOVAÇÃO (02/10): o campeão continental da temporada passada pode renovar com o MESMO clube,
+    // mesmo que ele seja de um bloco melhor que a posição de agora — a mesma régua do convite na tela.
+    const renova = (s.careerInternationalHistory ?? []).some(e => e.season === c.season - 1 && e.representedClub === c.representedClub && (e.libertadores || e.champions))
+    if (!myTeam?.you || myTeam.teamId !== me.id) return 'tecnico'
+    if (!INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && (club.block >= (c.priority ?? 10) || renova))) return 'bloco'
+    if (!validInternationalXI(myTeam.xi)) return 'onze'
+    if (!myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return 'cartas'
+  } else if (c.registeredXI.length || c.teams.some(team => team.you)) return 'sem-vaga'
+  return null
+}
 export function reducer(state: EscState, action: Action): EscState {
   const s = reducerBase(state, action)
   // ⭐ Só Champions: se esta ação acabou de montar a temporada, pula a liga (ver a função)
@@ -6108,25 +6143,8 @@ function reducerBase(state: EscState, action: Action): EscState {
     // não re-animar a Copa do zero ao retomar (mostra direto os campeões/decisão).
     case 'MARK_COPA_DONE': { s.copaDoneSeason = s.seasonNo; return s }
     case 'START_INTERNATIONAL_CAMPAIGN': {
-      if (!internacionalCarreiraLiberada() || !s.careerOnline || s.onlineMode === 'online' || s.seasonNo < 40) return s
-      if (s.copaDoneSeason !== s.seasonNo || s.careerInternational?.season === s.seasonNo) return s
-      const c = action.campaign
-      if (c.season !== s.seasonNo || c.seed !== s.seed || c.teams.length !== 72 || c.steps.length !== 14 || c.reveal !== 0) return s
-      const me = s.managers[s.youIdx]
-      if (!me || c.userTeam !== me.teamName) return s
-      if (c.representedClub) {
-        const ids = new Set((me.squad as WonCard[]).filter(isRealInternationalCard).map(card => card.id))
-        const myTeam = c.teams.find(team => team.id === c.representedClub)
-        // 🧢 01/10 (Diego: *"eu não levo meu elenco… é todo jogador do Flamengo no baralho"*): a convocação é
-        // SÓ entre as cartas do clube escolhido no baralho, igual à seleção na Copa do Mundo. Carta do elenco
-        // do usuário NÃO entra (`ids` fica só pra referência de quem lê este trecho).
-        void ids
-        // 🔁 RENOVAÇÃO (02/10): o campeão continental da temporada passada pode renovar com o MESMO clube,
-        // mesmo que ele seja de um bloco melhor que a posição de agora — a mesma régua do convite na tela.
-        const renova = (s.careerInternationalHistory ?? []).some(e => e.season === c.season - 1 && e.representedClub === c.representedClub && (e.libertadores || e.champions))
-        if (!myTeam?.you || myTeam.teamId !== me.id || !INTERNATIONAL_CLUBS.some(club => club.name === c.representedClub && (club.block >= (c.priority ?? 10) || renova)) || !validInternationalXI(myTeam.xi) || !myTeam.xi.every(card => isInternationalClubCard(c.representedClub!, card))) return s
-      } else if (c.registeredXI.length || c.teams.some(team => team.you)) return s
-      s.careerInternational = c
+      if (motivoRecusaInternacional(s, action.campaign)) return s
+      s.careerInternational = action.campaign
       return s
     }
     case 'ADVANCE_INTERNATIONAL_CAMPAIGN': {
@@ -10475,13 +10493,14 @@ function loadSoloInProgress(): EscState | null {
 export type CareerSlot = { save: EscState; at: number }
 const CAREER_ARCHIVE_KEY = 'esc-career-archive'
 export const MAX_CAREER_SLOTS = 8 // teto de GUARDA do arquivo (nunca corta nada)
-// 🎟️ FICHAS DE CARREIRA por tier (decisão do Diego 09/08): grátis 2 ·
-// ⭐ Craque 4 · 👑 Lenda 6 · 🖋️ Batismo 8. Grandfather LITERAL ("quem já tem
+// 🎟️ FICHAS DE CARREIRA por tier. 🔁 05/10 (Diego): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 ·
+// 🖋️ Batismo 4 (antes, desde 09/08: 2 · 4 · 6 · 8). *"não mexa nesses usuários que já fizeram
+// saves"* — o grandfather abaixo garante isso. Grandfather LITERAL ("quem já tem
 // mais não mexo"): o limite pessoal nunca fica abaixo do que a pessoa JÁ tem
 // — nada é apagado nem travado; a régua só vale pra criar ALÉM.
 export function careerSlotLimit(count: number): number {
   const tier = myApoioPerk()?.tier
-  const base = souBarao() ? 8 : tier === 'ouro' ? 6 : tier === 'prata' ? 4 : 2
+  const base = souBarao() ? 4 : tier === 'ouro' ? 4 : tier === 'prata' ? 2 : 1
   return Math.max(base, Math.min(count, MAX_CAREER_SLOTS))
 }
 const isCareerSave = (s: unknown): s is EscState => !!s && typeof s === 'object' && !!(s as EscState).careerOnline && Array.isArray((s as EscState).managers) && (s as EscState).managers.length > 0
@@ -10489,8 +10508,11 @@ export function readCareerArchive(): CareerSlot[] {
   try { const r = localStorage.getItem(CAREER_ARCHIVE_KEY); if (r) { const arr = JSON.parse(r); if (Array.isArray(arr)) return arr.filter((x: CareerSlot) => isCareerSave(x?.save)).map((x: CareerSlot) => ({ ...x, save: sincronizaNiveis(x.save) })) } } catch { /* ignora */ }
   return []
 }
-function writeCareerArchive(slots: CareerSlot[]) {
-  try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(slots.slice(0, MAX_CAREER_SLOTS))) } catch { /* cota cheia — ignora */ }
+// devolve se GRAVOU. 🐛 06/10 (La Bestia do Elton, temporada 378): antes o erro de espaço cheio
+// era engolido calado, a troca de carreira seguia em frente e a carreira que não coube SUMIA.
+// Agora quem chama decide: troca/arquivo que não gravou NÃO segue.
+function writeCareerArchive(slots: CareerSlot[]): boolean {
+  try { localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(slots.slice(0, MAX_CAREER_SLOTS))); return true } catch { return false }
 }
 // 🔐 DONO do armazenamento LOCAL de carreiras. Na NUVEM cada carreira já é por
 // CONTA (user_id). Mas os saves LOCAIS do aparelho (esc-solo-career + arquivo)
@@ -10809,11 +10831,12 @@ export function readActiveCareer(): CareerSlot | null {
   try { const r = localStorage.getItem('esc-solo-career'); if (r) { const save = JSON.parse(r); if (isCareerSave(save)) { if (saveMexido(save)) marcaMexido(save); reportaCaixaEstranha(save, 'load'); return { save: saveAtualizado(save), at: +(localStorage.getItem('esc-solo-career-at') || Date.now()) } } } } catch { /* ignora */ }
   return null
 }
-// guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa.
-function archiveActiveCareer() {
-  const act = readActiveCareer(); if (!act) return
+// guarda a carreira ATIVA no arquivo (dedup por seed). Não apaga a ativa. Devolve se gravou
+// (sem carreira ativa = nada a guardar = true).
+function archiveActiveCareer(): boolean {
+  const act = readActiveCareer(); if (!act) return true
   const rest = readCareerArchive().filter(s => s.save.seed !== act.save.seed)
-  writeCareerArchive([{ save: act.save, at: act.at }, ...rest])
+  return writeCareerArchive([{ save: act.save, at: act.at }, ...rest])
 }
 // TODAS as carreiras pra listar (ativa primeiro, depois o arquivo), por recência.
 export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
@@ -10841,23 +10864,48 @@ export function listAllCareers(): { slot: CareerSlot; active: boolean }[] {
 // não some — ela está no arquivo ("Minhas carreiras") e na nuvem; o que some é
 // só o "esta é a que você está jogando", que passa a ser a nova assim que o
 // primeiro autosave dela roda.
-export function stashActiveBeforeNew() {
-  archiveActiveCareer()
+export function stashActiveBeforeNew(): boolean {
+  // 🛡️ 06/10: se a atual NÃO coube no arquivo, ela NÃO sai da vaga de "jogando" — senão sumia.
+  if (!archiveActiveCareer()) return false
   try {
     localStorage.removeItem('esc-solo-career')
     localStorage.removeItem('esc-solo-career-at')
   } catch { /* aparelho sem storage: o autosave da carreira nova assume em seguida */ }
+  return true
 }
-// troca a carreira ATIVA por uma do arquivo (a atual vai pro arquivo). Devolve o save.
+// troca a carreira ATIVA por uma do arquivo (a atual vai pro arquivo). Devolve o save, ou null
+// se não deu pra trocar SEM PERDER NADA (aí nada muda e a tela avisa).
+// 🐛 06/10 (La Bestia do Elton): a troca antiga guardava a atual no arquivo SEM tirar a escolhida
+// de lá — por um instante as duas existiam em dobro no aparelho. Com carreiras gigantes não
+// cabia, o erro era engolido, a atual não entrava no arquivo e a vaga de "jogando" era
+// sobrescrita pela escolhida: a atual sumia, e a nuvem subia sem ela.
+// Agora é uma TROCA DE LUGAR (Diego: *"ele deveria poder trocar pela carreira que ele quiser"*):
+//   1. arquivo novo = (arquivo − escolhida) + atual → mesmo tamanho de antes, sem dobra;
+//   2. só depois a escolhida vira a "jogando". Se o passo 1 falhar, nada mudou; se o 2 falhar,
+//      desfaz o 1. Em nenhum caminho uma carreira fica sem lugar.
 export function activateCareerSlot(seed: number): EscState | null {
-  archiveActiveCareer()
+  const act = readActiveCareer()
   const slots = readCareerArchive()
   const idx = slots.findIndex(s => s.save.seed === seed)
   if (idx < 0) return null
   const chosen = slots[idx]
-  writeCareerArchive(slots.filter((_, i) => i !== idx))
-  try { localStorage.setItem('esc-solo-career', JSON.stringify(chosen.save)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* ignora */ }
-  savePyramidCloud(chosen.save, true) // a nuvem segue a ativa
+  const semEscolhida = slots.filter((_, i) => i !== idx)
+  const novoArquivo = act && act.save.seed !== seed ? [{ save: act.save, at: act.at }, ...semEscolhida.filter(s => s.save.seed !== act.save.seed)] : semEscolhida
+  try { localStorage.removeItem('esc-solo-career') } catch { /* ignora */ } // abre espaço: a atual vai no arquivo novo
+  if (!writeCareerArchive(novoArquivo)) {
+    // não coube: devolve tudo como estava (a atual volta pra vaga dela)
+    try { if (act) localStorage.setItem('esc-solo-career', JSON.stringify(act.save)) } catch { /* a atual ainda está no arquivo antigo, que não mudou */ }
+    return null
+  }
+  try {
+    localStorage.setItem('esc-solo-career', JSON.stringify(chosen.save)); localStorage.setItem('esc-solo-career-at', String(Date.now()))
+  } catch {
+    // a escolhida não coube na vaga: volta o arquivo antigo e a atual pro lugar dela
+    writeCareerArchive(slots)
+    try { if (act) { localStorage.setItem('esc-solo-career', JSON.stringify(act.save)); localStorage.setItem('esc-solo-career-at', String(act.at)) } } catch { /* ignora */ }
+    return null
+  }
+  savePyramidCloud(chosen.save, true) // a nuvem segue a ativa (e junta tudo: ver `savePyramidCloud`)
   return chosen.save
 }
 // apaga uma carreira (do arquivo OU a ativa). Não mexe nas outras. Se apagar a
@@ -10980,6 +11028,20 @@ function mergeCareers(...lists: CareerSlot[][]): CareerSlot[] {
 // pergunta só o carimbo (uns bytes): se for o mesmo, a nuvem não tem nada que o aparelho não tenha,
 // e o save inteiro nem desce. Só baixa quando OUTRO aparelho salvou depois.
 const CLOUD_AT_KEY = 'esc-cloud-at:'
+// 🛡️ 06/10: QUAIS carreiras (seeds) a nuvem tem, pelo que este aparelho sabe. Se o aparelho
+// perder uma (espaço cheio, navegador limpo), a próxima subida percebe que está faltando e JUNTA
+// com a nuvem antes de gravar — a nuvem nunca mais apaga carreira sozinha. Só o 🗑️ tira (e
+// atualiza esta lista em `removeCareerFromCloud`).
+const NUVEM_SEEDS_KEY = 'esc-nuvem-seeds:'
+function seedsDaNuvem(uid: string): number[] {
+  try { const r = localStorage.getItem(NUVEM_SEEDS_KEY + uid); const a = r ? JSON.parse(r) : []; return Array.isArray(a) ? a.filter(x => typeof x === 'number') : [] } catch { return [] }
+}
+function anotaSeedsDaNuvem(uid: string, careers: CareerSlot[] | null) {
+  try {
+    if (!careers || !careers.length) localStorage.removeItem(NUVEM_SEEDS_KEY + uid)
+    else localStorage.setItem(NUVEM_SEEDS_KEY + uid, JSON.stringify(careers.map(c => (c.save as EscState).seed)))
+  } catch { /* ignora */ }
+}
 function cloudAtConhecido(uid: string): string | null { try { return localStorage.getItem(CLOUD_AT_KEY + uid) } catch { return null } }
 function marcaCloudAt(uid: string, iso: string | null | undefined) {
   try { if (iso) localStorage.setItem(CLOUD_AT_KEY + uid, iso); else localStorage.removeItem(CLOUD_AT_KEY + uid) } catch { /* ignora */ }
@@ -11010,7 +11072,10 @@ export async function savePyramidCloud(state: EscState, force = false) {
       // 🔒 carimba a ativa com o lacre antes de subir (as do arquivo já vêm carimbadas).
       const active: CareerSlot = { save: { ...state, _ll: lacreDe(state) } as EscState, at: Date.now() }
       let daNuvem: CareerSlot[] = []
-      if (carimbo && carimbo !== cloudAtConhecido(uid)) {
+      // 🛡️ 06/10: o aparelho perdeu alguma carreira que a nuvem tem? então junta também
+      const temLocal = new Set(mergeCareers([active], readCareerArchive()).map(c => (c.save as EscState).seed))
+      const faltaNoAparelho = seedsDaNuvem(uid).some(sd => !temLocal.has(sd))
+      if (carimbo && (carimbo !== cloudAtConhecido(uid) || faltaNoAparelho)) {
         // outro aparelho salvou depois: lê o que JÁ tem na nuvem e JUNTA (a nuvem nunca é jogada fora nem rebaixada)
         localCobreNuvem = false
         const { data: cur, error } = await supabase.from('esc_pyramid_saves').select('save, updated_at').eq('user_id', uid).maybeSingle()
@@ -11019,6 +11084,7 @@ export async function savePyramidCloud(state: EscState, force = false) {
         daNuvem = careersFromCloudRaw(cur?.save, cloudAt)
       }
       payload = { __multi: 1, careers: mergeCareers([active], daNuvem, readCareerArchive()) }
+      anotaSeedsDaNuvem(uid, (payload as { careers: CareerSlot[] }).careers)
     }
     const nowIso = new Date().toISOString()
     const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
@@ -11092,6 +11158,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
     // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
     if (gravou) marcaCloudAt(uid, cloud.iso)
+    anotaSeedsDaNuvem(uid, cloud.careers)
     return true
   } catch { return false }
 }
@@ -11111,7 +11178,8 @@ export async function removeCareerFromCloud(seed: number) {
     const localCobria = (cur.updated_at as string | undefined) === cloudAtConhecido(uid)
     const cloudAt = cur.updated_at ? new Date(cur.updated_at as string).getTime() : Date.now()
     const kept = careersFromCloudRaw(cur.save, cloudAt).filter(c => (c.save as EscState).seed !== seed)
-    if (!kept.length) { await supabase.from('esc_pyramid_saves').delete().eq('user_id', uid); marcaCloudAt(uid, null); return }
+    if (!kept.length) { await supabase.from('esc_pyramid_saves').delete().eq('user_id', uid); marcaCloudAt(uid, null); anotaSeedsDaNuvem(uid, null); return }
+    anotaSeedsDaNuvem(uid, kept)
     const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: { __multi: 1, careers: kept }, updated_at: new Date().toISOString() }).select('updated_at').maybeSingle()
     if (localCobria) marcaCloudAt(uid, up?.updated_at as string | undefined)
   } catch { /* ignora */ }

@@ -1,3 +1,55 @@
+## 🦅🔴⚫ Batismo Mengão Malvadão (06/10) ✅ NO AR
+- Dono `atilasoaresjr21@gmail.com` (conta de 01/10, era ⭐ Craque — subiu pra 👑 Lenda). **Série A**, no assento do
+  **Nata de SP**, que DESCEU pra **Série B** na vaga do bot **Nacional da Serra** (decisão do Diego). Sem OLD_NAME nos
+  dois: ninguém foi renomeado, só mudou de divisão. Fundador nº86 · sócio nº67 · coração Flamengo (deduzido do clube).
+- Arte do dono (prancha chroma, recorte automático limpo): escudo 266×360/29 KB · mascote "O Urubu Malvadão" (o urubu
+  de coroa pisando no porco — cena inteira) 330×440/41 KB · camisa da Loja. Manto medido: vermelho #CE1313 (35%) +
+  preto #171514 (59%).
+- Banco feito: user_colors ouro · esc_fundadores 86 · esc_socios 67 · esc_nomes_batismo "Mengão Malvadão" (FC/EC pelo
+  gatilho). Post: `scripts/posts/mengao-post.png` (nome do dono no post = "Atila", tirado do e-mail — confirmar).
+
+## 👑🧊 Batismo K9 FC (06/10) ✅ NO AR — 1º batismo da VÁRZEA
+- Dono `kelvinoliveiraandradeenunes@gmail.com` (conta já existia, criada 28/09). **Várzea**, no assento do bot
+  **Meia-Boca FC** (`VARZEA_TEAMS` = os bots da liga de quem começa carreira na escada; `OLD_NAME` leva save antigo pro
+  nome novo). Fundador nº85 · sócio nº66 · Lenda.
+- Arte do dono (prancha com escudo, o próprio jogador, camisa e troféus no fundo verde — recortada por máscara à mão):
+  escudo 226×360/27 KB · mascote "O Rei K9" (o jogador de coroa ENTRE AS DUAS TAÇAS, no gelo — a 1ª versão só com ele o Diego achou "horrível") 328×440/42 KB · camisa da Loja. Manto medido: branco
+  #E5E8F3 (81%) + azul #0723B4 (listras/gola).
+- Banco feito: user_colors ouro · esc_fundadores 85 · esc_socios 66 (escudo_time K9 FC, mascote k9_rei) ·
+  esc_nomes_batismo "K9" (o gatilho criou K9 FC/EC).
+- `checa-batismos.mjs` agora reconhece vaga na Várzea; `mockup-batismo.mjs` escreve "na Várzea" com `--serie V`.
+- ⏳ Falta saber o time do coração dele (pro post e `esc_socios.time_coracao`). Post: `scripts/posts/k9-post.png`.
+
+## 06/10/2026 — 🌎 Convocação da Libertadores/Champions "travando" no botão Confirmar os 11 ✅ NO AR
+Print do Diego (Seven City, T251, Palmeiras): o botão "Confirmar os 11 e começar a Libertadores" não fazia nada.
+- Simulei o motor com os 72 clubes × 2 formações × várias temporadas/sementes (3.648 campanhas) e com o 11 EXATO do
+  print: nenhuma falha. Quem recusava era a conferência do reducer (`START_INTERNATIONAL_CAMPAIGN`), que devolvia o
+  estado igual SEM avisar — botão mudo.
+- Causa achada: o clube aceito ficava gravado no aparelho só pela TEMPORADA (`esc-intl-clube-v1`). Outra carreira
+  na mesma temporada (ou a mesma temporada rejogada com outra colocação) abria direto na convocação de um clube que
+  não era convite DESTA carreira → reducer recusava pelo bloco, pra sempre.
+- Conserto: a escolha agora leva a semente da carreira (`-v2`) e só vale se estiver entre os convites de agora; a regra
+  do reducer virou `motivoRecusaInternacional` (store.tsx) e a TELA lê a mesma função antes de mandar — se recusar, diz o
+  porquê e devolve os convites (motivo `liberacao` = conta sendo conferida: espera e aperta de novo, a convocação fica).
+- ⏳ Se aparecer de novo com "código: X" no aviso, o código diz qual regra recusou — pedir o print.
+
+## 06/10/2026 — 📱 Linha do WhatsApp embaixo das salas: agora "grupo VIP junto com o dono do jogo" ✅ NO AR
+Pedido do Diego. Só o texto mudou (PT/EN, as duas versões: quem já tem vaga e quem ainda não tem). "VIP" em negrito;
+o brilho verde da palavra WhatsApp e o link continuam iguais.
+
+## 06/10/2026 — 💸 CONTA DO SUPABASE (2ª rodada): 3 cortes de tráfego que o Diego aprovou ("Ok pode fazer") ✅ NO AR
+Medido nos logs de 24h (~1,4 mi de chamadas/dia). Os 3 cortes não mudam nada no jogo:
+- **Faixa "voltar pra sala" da home** (`lobby.tsx`): baixava o `game_state` INTEIRO (40–500 KB por sala, até 21 salas)
+  toda vez que a home abria. Agora a conferência puxa só os campos (`__game`, `screen`, 1º técnico, `mode`,
+  `careerOnline`) e o save completo só desce quando a pessoa aperta VOLTAR (`resume()`, que se o banco não devolver
+  o save não restaura nada). Estimativa: 80–100 GB/mês a menos.
+- **Memória do Leilão de Clubes** (`store.tsx`): saiu o `setInterval` de 2 min pra TODO jogador. Agora puxa no boot
+  e 3s depois de cada sala de clubes montada (pra próxima), com trava de 1 min. ~10 GB/mês.
+- **Teste de "servidor no ar"** (`index.tsx`, `MaintenanceBanner`): de 20s pra 60s e não roda com a aba escondida.
+  Continua com 2 falhas seguidas pra mostrar a faixa e re-tentando as gravações pendentes. ~3 GB/mês.
+- ⏳ Ainda grandes e NÃO mexidos (precisam de conversa antes): PATCH de game_rooms do dono (save a cada ~3s com
+  sala jogando) e GET de game_rooms/room_players do lobby.
+
 ## 05/10/2026 — 🧱 Leilão de Clubes: mais variedade (Colo-Colo em todo leilão, Flamengo nunca no ataque) ✅ NO AR (código) · ⏳ banco
 
 Diego: *"toda hora aparece goleiro do Colo-Colo… lateral só Flamengo… não aparece ataque do Flamengo… serve
@@ -57,6 +109,34 @@ punia de novo os grandes); e a memória morava no celular de quem cria a sala (d
   como "Leicester": a coleção conta os dois como o MESMO clube (`CLUBE_MESMO` em colecoes.ts + a mesma conta na
   função do banco), sem mexer na carta dele. Leicester virou coleção (11 cartas, 19 🪙). Stoke City ficou com 0 cartas.
   Save antigo com o Banks do Stoke mantém a carta velha (identidade da carta não muda em save).
+- 🛡️ TROCA DE CARREIRA NUNCA MAIS PERDE CARREIRA ✅ (06/10). Caso: **Elton (eltonfrossard45@gmail.com)** trocou de
+  carreira com o celular cheio (7 carreiras gigantes, ~4 MB) e a **La Bestia Negra, temporada 378 (seed 492430748)**
+  sumiu do aparelho E da nuvem. Causa: `activateCareerSlot` guardava a atual no arquivo sem tirar a escolhida (dobra),
+  o erro de espaço era engolido, e a subida pra nuvem com carimbo igual NÃO juntava com a nuvem → gravou sem ela.
+  Conserto: troca vira TROCA DE LUGAR (sem dobra; falhou = não troca e avisa); começar carreira nova sem espaço não
+  apaga a atual; a nuvem guarda a lista de seeds (`esc-nuvem-seeds:`) e, se o aparelho perdeu alguma, a subida junta
+  com a nuvem antes de gravar — só o 🗑️ tira carreira da nuvem. Trava: `npm run troca`.
+  🎁 Compensação decidida pelo Diego (não quis o backup do Supabase): na carreira **Cruzeiro Esporte Clube² (seed
+  16378525)** do Elton entrou o elenco da La Bestia (foto da T261, 18 trocas com os bots + Garrincha/Di Stéfano/Romário
+  criados), caixa 42.000, +2 Libertadores (376/377), +1 Copa do Mundo (310), Série A 118, Copa 56, Supercopa 108.
+  Feito direto na nuvem (função `esc_fix_elton_16378525` + `esc_lacre_ll`, que refaz o lacre). As duas funções ficaram
+  no banco (o celular cancela `drop`); são inofensivas, dá pra apagar pelo computador.
+- ⚽ CARTA NOVA (05/10, pedido do Diego): **Gilberto, Bahia 2020**, atacante, bom jogador (baralho Brasil, `L43_BR_ATA`). Novidades geradas.
+- 🎖️ SALA DE ESPERA: o áudio do 🐊 jacaré virou o **"Dictador"** (05/10, áudio que ele mandou, 23 s, `public/sfx/ditador.mp3`).
+  A chave continua `jacare` (versão velha aberta recebe a mesma chave); o `jacare.mp3` também foi trocado pelo áudio novo.
+- 🎶 CANTO DA TORCIDA DO GEOVANY ✅ (05/10, Diego mandou o áudio): na carreira do `souzact12@gmail.com` o AMBIENTE
+  vira `public/sfx/torcida-geovany-v1.mp3` (10 s em loop, mono 32 kHz 56 kbps, mesmo volume médio do original, 72 KB).
+  O gol continua o de todos. Mora em `AMBIENTE_CARREIRA_POR_EMAIL` (`sound.ts`) — nova conta = uma linha + o arquivo.
+  🐛 Mesmo dia, ele disse que não tocava: quem abre direto na carreira com o 🔊 ligado acendia a torcida ANTES do
+  login ser lido (entrava a padrão e ficava). Agora a torcida troca sozinha quando a conta chega (`conferePraConta`).
+- 💾 FICHAS DE CARREIRA ✅ (05/10): grátis 1 · Craque 2 · Lenda 4 · Batismo 4 (era 2·4·6·8). Saves existentes intocados
+  (grandfather). Textos dos planos (Apoie, vitrine, aviso de fichas cheias) atualizados em PT/EN.
+- 🧱 MEMÓRIA COMPARTILHADA DO LEILÃO DE CLUBES ✅ NO BANCO (05/10): `docs/sql/clubes-recentes.sql` aplicado em 2 pedaços
+  (tabela `esc_clubes_saidos` + `esc_clubes_recentes` + `esc_clubes_grava`); `select esc_clubes_recentes()` → `[]`.
+  ⚠️ Diferença do arquivo: o `esc_clubes_grava` subiu SEM a linha `delete … max(id) - 50` (a limpeza das partidas antigas)
+  e sem o `revoke … from public` — o app do celular cancela comando com delete/revoke. Não muda nada pro jogo (a leitura
+  pega só as últimas 8); a tabela só cresce ~1 linha por partida de Clubes. Pôr a limpeza quando der pelo computador.
+  ⏭️ PENDENTE (pedido do Diego, interrompido): no Modo Stream, só o pregão ENVELOPE esconde os lances; na TOCAIA não esconde.
 - 🔴 SALA AO VIVO NA LISTA (05/10, Diego: *"nessa área da sala, pra quem é streamer, com link… tem que ser streamer que
   tá rolando ao vivo mesmo, e com link do ao vivo"*; mockup `scratchpad/mockup-live.png` aprovado — *"faz"*): na criação,
   com o Modo Stream ligado, aparece o campo do link (só https de YouTube/TikTok/Twitch/Kick/Instagram/Facebook —

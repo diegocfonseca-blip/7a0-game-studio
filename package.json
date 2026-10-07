@@ -71,6 +71,7 @@
     "congela": "node scripts/testa-congela.mjs",
     "save-intl": "node scripts/testa-save-intl.mjs",
     "nuvem": "node scripts/testa-nuvem.mjs",
+    "troca": "npx tsx scripts/testa-troca-carreira.mts",
     "canal": "node scripts/testa-canal.mjs",
     "estante": "node scripts/testa-estante.mjs",
     "colecoes": "node scripts/testa-colecoes.mjs",
