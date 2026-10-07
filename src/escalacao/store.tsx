@@ -37,6 +37,7 @@ import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } fr
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
+import { perfilDoClube, setorDaObsessao, fatorOrcamento, fatorTeto, LOUCURA_CHANCE, loucuraFator, perfilPagaAcima, type PerfilBot } from './perfis-bot'
 import type { DivTecnico } from './tecnicos'
 import { formacaoAtual, formacaoPorRotulo } from './formacoes'
 import { souBarao } from './manto'
@@ -2047,7 +2048,10 @@ function fairPrice(v: number): number {
 // sala — bot rico e agressivo não paga preço de ⭐ num 🪵/🎯 da MESMA época (as
 // caudas que o tester flagrou), mas sala rica paga mais em tudo (mercado real).
 // 0 = desligado (fora da escada nada muda — jogo ao vivo intocado).
-function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0): (Bid & { cardId: string })[] {
+// 🎭 `perfil` (07/10, `perfis-bot.ts`): o jeito de comprar do clube bot NA CARREIRA —
+// gastador, pão-duro, obcecado, imprevisível ou equilibrado. 'equilibrado' (o padrão, e
+// o que partida rápida/salas sempre recebem) é o leilão de antes, sem mudar nem o rng.
+export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector): (Bid & { cardId: string })[] {
   const pos = SECTORS[sectorIdx]
   // FAKE NÃO SEGURA VAGA (só CPU): incógnito no elenco conta como vaga aberta —
   // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
@@ -2065,6 +2069,7 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
   let budget = rescue
     ? Math.min(m.money, (rescueHasLegend ? 14 : 4) + Math.floor(rng() * (rescueHasLegend ? 22 : 6)))
     : Math.max(1, Math.floor(m.money * (SECTOR_WEIGHT[pos] / remaining) * shape * (0.85 + rng() * 0.4)))
+  if (perfil !== 'equilibrado') budget = Math.max(1, Math.round(budget * fatorOrcamento(perfil, pos, obsessao, rescue)))
   budget = Math.min(budget, m.money)
 
   const ranked = cards.map(c => ({ c, v: perceived(c, rng) })).sort((a, b) => b.v - a.v)
@@ -2092,7 +2097,12 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
     if (catCapEcon > 0) cap = Math.min(cap, Math.max(2, Math.round(catPriceCap(t.c) * catCapEcon * (0.8 + rng() * 0.25))))
     // 🧱 pacote vale pelos jogadores que o bot vai escalar dele, não por um só
     if (t.c.pacote) cap = cap * Math.max(1, baseSlots(m.formation, pos))
+    // 🎭 perfil mexe no teto (gastador estica por craque, pão-duro nunca passa do justo…)
+    if (perfil !== 'equilibrado') cap = Math.max(2, Math.round(cap * fatorTeto(perfil, t.c.fame, pos, obsessao)))
     amt = Math.min(amt, cap)
+    // 🃏 IMPREVISÍVEL: de vez em quando endoidece numa carta MÉDIA e passa do teto
+    // (o rng só é gasto por ESTE perfil — os outros sorteiam exatamente como antes)
+    if (perfil === 'imprevisivel' && !rescue && t.c.fame <= 3 && rng() < LOUCURA_CHANCE) amt = Math.max(amt, Math.round(cap * loucuraFator(rng())))
     // PISO (valor fixo): compara com o BOLSO INTEIRO, não com a fatia do setor —
     // craque com piso justo é pechincha e o bot estica pra cobrir. Se o jogador
     // não vale o piso (listado caro demais), pula e tenta o próximo do ranking.
@@ -2105,6 +2115,33 @@ function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => nu
     if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt; wallet -= amt }
   }
   return result
+}
+
+// 🎭 o perfil do bot neste leilão: só CARREIRA e só bot (humano e sala rápida = equilibrado)
+function perfilNoLeilao(state: EscState, m: Manager): [PerfilBot, Sector | undefined] {
+  if (!state.careerOnline || m.isHuman) return ['equilibrado', undefined]
+  const p = perfilDoClube(m.teamName, state.seed ?? 0)
+  return [p, p === 'obcecado' ? setorDaObsessao(m.teamName, state.seasonNo ?? 1) as Sector : undefined]
+}
+// 🚫📈 o PREÇO JUSTO da carta pra o livro e pro piso (o exagero do gastador não entra):
+// o mesmo teto que o bot usaria por esse nível, na economia da sala, com 15% de folga
+export function justoDaCarta(state: EscState, c: Card): number {
+  const econ = state.careerOnline ? escadaEconFactor(state) : 1
+  let v = Math.max(2, Math.round(fairPrice((c.lo + c.hi) / 2) * Math.max(1, econ) * 1.15))
+  if (c.pacote) v = v * 3
+  return Math.max(v, CONTRATO_TABELA(c))
+}
+// aplica a trava do piso no arremate de um BOT com perfil que paga acima: a carta fica
+// registrada pelo justo (livro + `paid` no elenco dele). Quem vendeu recebe o valor cheio.
+export function travaPisoDoBot(state: EscState, w: Manager | undefined, card: Card, pago: number): number {
+  if (!w || w.isHuman || !state.careerOnline) return pago
+  const [perfil] = perfilNoLeilao(state, w)
+  if (!perfilPagaAcima(perfil)) return pago
+  const justo = justoDaCarta(state, card)
+  if (pago <= justo) return pago
+  const naMao = w.squad.find(x => x.id === card.id)
+  if (naMao) (naMao as { paid?: number }).paid = justo
+  return justo
 }
 
 type BidMap = Map<string, Bid[]>
@@ -2222,8 +2259,8 @@ function resolveOneTiebreak(state: EscState, tb: TieBreak, rng: () => number) {
   if (m.isHuman) logFin(state, 'buy', `🛒 ${tb.card.name}`, -max, { player: tb.card.name, pos: tb.card.pos }, m.id) // 🧾 compra no desempate
   anotaMercado(state, m, tb.card, max, 'desempate') // 💸 mercado da temporada (Central)
   voltaCriaSeSobrou(state, m, tb.card.pos) // 🌱 reforço chegou pelo desempate: o guri volta pra base
-  recordPrice(state, tb.card, max) // livro de preços
-  creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda
+  recordPrice(state, tb.card, travaPisoDoBot(state, m, tb.card, max)) // livro de preços (🚫📈 exagero de bot fica fora)
+  creditSeller(state, tb.card, max, winner) // o vendedor recebe a grana da venda (cheia)
   agenciaTransacao(state, tb.card) // 🕴️ agenciado negociado → comissão de agente
   tb.winner = winner
   tb.paid = max
@@ -5233,12 +5270,12 @@ function abreHolandes(state: EscState, rescue = false) {
   for (const m of state.managers) {
     if (m.isHuman) continue
     if (m.auctionRival) {
-      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) poe(m.id, b.cardId, b.amount)
+      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) poe(m.id, b.cardId, b.amount)
     } else if (state.careerOnline && (m.backstop || m.marketCpu)) {
       // mesmo cinto do envelope: o bot do mercado nunca estoura num jogador só
       const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
       const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
-      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) poe(m.id, b.cardId, Math.min(b.amount, capPerCard))
+      for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) poe(m.id, b.cardId, Math.min(b.amount, capPerCard))
     }
   }
   state.hol = { preco: HOL_ABERTURA(state), passo: 0, tetos, levados: [], pedidos: [], ultimo: null, resgate: rescue }
@@ -5400,7 +5437,7 @@ function holResgate(state: EscState) {
     if (!m.auctionRival && !(state.careerOnline && (m.backstop || m.marketCpu))) continue
     // só quem AINDA tem buraco nesta posição — quem já encheu não volta pra mesa
     if (openSlots(m, pos) - holVagasUsadas(hol, m.id, pos, state.currentCards) <= 0) continue
-    for (const b of cpuEnvelope(m, mesa, state.sectorIdx, rng, true, econ)) {
+    for (const b of cpuEnvelope(m, mesa, state.sectorIdx, rng, true, econ, ...perfilNoLeilao(state, m))) {
       const t = (hol.tetos[b.cardId] = hol.tetos[b.cardId] ?? {})
       t[m.id] = Math.max(t[m.id] ?? 0, b.amount)
     }
@@ -5674,7 +5711,7 @@ function sealAndResolve(state: EscState) {
   for (const m of state.managers) {
     if (holandesJaDecidiu) break
     if (m.isHuman || !m.auctionRival) continue
-    for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) {
+    for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) {
       pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
     }
   }
@@ -5698,7 +5735,7 @@ function sealAndResolve(state: EscState) {
         // teto ~16 num jogador que quer). Com poucas vagas, pode pagar mais.
         const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
         const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
-        for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ)) {
+        for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) {
           pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard) })
         }
       }
@@ -5727,8 +5764,9 @@ function sealAndResolve(state: EscState) {
     }
   }
   for (const q of queue) if (q.winner !== null && q.paid > 0) {
-    recordPrice(state, q.card, q.paid) // livro de preços
-    creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda
+    // 🚫📈 bot gastador/imprevisível pagou acima do justo: o livro e o piso ficam no justo
+    recordPrice(state, q.card, travaPisoDoBot(state, state.managers.find(m => m.id === q.winner), q.card, q.paid)) // livro de preços
+    creditSeller(state, q.card, q.paid, q.winner) // o vendedor recebe a grana da venda (cheia)
     agenciaTransacao(state, q.card) // 🕴️ agenciado negociado → comissão de agente
     const w = state.managers.find(m => m.id === q.winner) // resumo dos bots (visibilidade)
     if (w?.isHuman) logFin(state, 'buy', `🛒 ${q.card.name}`, -q.paid, { player: q.card.name, pos: q.card.pos }, w.id) // 🧾 compra no leilão

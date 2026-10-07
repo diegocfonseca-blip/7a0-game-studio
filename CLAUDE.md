@@ -739,6 +739,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   falha NUNCA é engolida calada no meio de uma troca (ou a troca acontece inteira, ou não acontece e avisa), e a nuvem
   só perde uma carreira pelo 🗑️. Trava: `npm run troca`. (Caso da La Bestia do Elton, T378, que sumiu assim.)
 
+- **🎭 BOTS COM PERSONALIDADE NO LEILÃO DA CARREIRA (07/10).** *"Mais imprevisíveis e reais"*. Gastador · pão-duro ·
+  obcecado · imprevisível · equilibrado, sorteado POR CARREIRA (`perfis-bot.ts`). Regra que ele aceitou junto: **o
+  exagero do bot NÃO sobe o piso da carta** (livro e `paid` ficam no `justoDaCarta`; o vendedor recebe cheio) — senão o
+  preço do jogo dispara, igual ao caso da Bola de Ouro. Só carreira. Trava: `npm run perfis`.
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e
