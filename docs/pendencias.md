@@ -1,3 +1,11 @@
+## 🔥 CALDEIRÃO (07/10) — mockups enviados, ⏳ aguardando OK do Diego (nada no jogo ainda)
+- Ideia tirada do Brasileirinho FC: o empurrão de jogar EM CASA passa a depender da lotação do próximo jogo
+  (o quadro "🎟️ Lotação do próximo jogo" que já existe na aba Clube: humor da torcida, chuva/cobertura, estação).
+- Decisão do Diego: versão FRACA, "tipo 2,3 pts". Medido no motor (G.v3, 6 mil temporadas): empurrão de casa ×2,1 ≈
+  +2 pts/temporada com estádio lotado (≥80%); sem empurrão ≈ −2 com estádio vazio (<30%); meio-termo = igual a hoje.
+- Só o time do usuário, só em casa, só carreira solo, só rodada ainda não jogada. Bots iguais. Dinheiro NÃO muda
+  (a bilheteria já segue a lotação). Quadro novo na aba Clube ABAIXO do estádio. Stories: `scripts/mockup-caldeirao.mjs`.
+
 ## 🦅🔴⚫ Batismo Mengão Malvadão (06/10) ✅ NO AR
 - Dono `atilasoaresjr21@gmail.com` (conta de 01/10, era ⭐ Craque — subiu pra 👑 Lenda). **Série A**, no assento do
   **Nata de SP**, que DESCEU pra **Série B** na vaga do bot **Nacional da Serra** (decisão do Diego). Sem OLD_NAME nos
