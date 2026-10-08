@@ -98,6 +98,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🐓👑 Le Prince FC — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (08/10): preto 66% (mediana #0F0E0D)
   // e branco das listras 20% (#E6E2DD).
   'henriquejunger07@gmail.com': ['#0F0E0D', '#E6E2DD'],
+  // 😜🔵⚫ Arrogantchi FC — AZUL-CELESTE e PRETO, MEDIDOS na camisa que o dono mandou (08/10): azul 65% (#4EC3FC)
+  // e preto 22% (mediana #040706, sobe pra #141716 — listra fina de preto puro lê como buraco).
+  'heitormonaco98@gmail.com': ['#4EC3FC', '#141716'],
   // 🦅⚫⚪ Gaviões SCCP — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (02/10): preto 77%
   // (mediana #100D0E, sobe pra #161314 — listra fina de preto puro lê como buraco) e branco da
   // gola/punhos 4% (#F9F8F8).

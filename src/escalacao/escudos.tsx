@@ -63,6 +63,7 @@ import guimaraesEscudoImg from './img/guimaraes-escudo.webp' // 🔴⚪ Guimarã
 import gavioesEscudoImg from './img/gavioes-escudo.webp' // 🦅⚫⚪ Gaviões SCCP (kauealves584): arte própria do dono
 import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC (felipe.vrod10): arte própria do dono
 import mengaoEscudoImg from './img/mengao-escudo.webp' // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21): arte própria do dono
+import arrogantchiEscudoImg from './img/arrogantchi-escudo.webp' // 😜🔵⚫ Arrogantchi FC (heitormonaco98): arte própria do dono
 import leprinceEscudoImg from './img/leprince-escudo.webp' // 🐓👑 Le Prince FC (henriquejunger07): arte própria do dono
 import k9EscudoImg from './img/k9-escudo.webp' // 👑🧊 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
 import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
@@ -873,6 +874,13 @@ const mengaoEscudoRender = (size: number) => (
 // 🐓👑 LE PRINCE FC (henriquejunger07, batismo de 08/10) — Várzea, no assento do bot Perna de Pau City.
 // 📏 251×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo (escudo listrado com o galo de coroa e manto).
 // Fundo verde tirado por máscara (a capa encostava no escudo e o dedo na camisa); conferido sobre fundo colorido.
+// 😜🔵⚫ ARROGANTCHI FC (heitormonaco98, batismo de 08/10) — Série A, no assento do Bagres 1993 (que desceu pra B).
+// 📏 266×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo. Fundo verde tirado pelo recorte chroma;
+// conferido sobre fundo colorido.
+const arrogantchiEscudoRender = (size: number) => (
+  <img src={arrogantchiEscudoImg} height={size} width={Math.round(size * 266 / 360)} alt="Arrogantchi FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const leprinceEscudoRender = (size: number) => (
   <img src={leprinceEscudoImg} height={size} width={Math.round(size * 251 / 360)} alt="Le Prince FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1483,6 +1491,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Le Prince EC': leprinceEscudoRender,
   'Le Prince SC': leprinceEscudoRender,
   'Perna de Pau City': leprinceEscudoRender,
+  // 😜🔵⚫ Arrogantchi FC (heitormonaco98) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o
+  // Bagres 1993 continua existindo (foi pra B).
+  'Arrogantchi FC': arrogantchiEscudoRender,
+  'Arrogantchi': arrogantchiEscudoRender,
+  'Arrogantchi EC': arrogantchiEscudoRender,
+  'Arrogantchi SC': arrogantchiEscudoRender,
   // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21) — BATISMO. As 4 formas do nome (regra 20/08). Só o nome INTEIRO
   // (nunca "Mengão" sozinho — regra do Arruda, 20/08). Sem nome velho: o Nata de SP continua existindo (foi pra B).
   'Mengão Malvadão': mengaoEscudoRender,

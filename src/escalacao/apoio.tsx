@@ -112,6 +112,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'brunnodeluca90@gmail.com': 'ouro', // 👑 Lenda — batismo Vasco SAF (Série D, ex-Vasco da Grana) + fundador nº78 + sócio nº59 (24/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'weslleygomes749@gmail.com': 'ouro', // 👑 Lenda — batismo Cruzeiro de Berretinho (Série D, no assento do bot Metrópole FC) + fundador nº79 + sócio nº60 (25/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'bastosmbc@gmail.com': 'ouro', // 👑 Lenda — batismo El Mineiro (Série C, no assento do bot Brodeiragem) + fundador nº80 + sócio nº61 (27/09). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'heitormonaco98@gmail.com': 'ouro', // 👑 Lenda — batismo Arrogantchi FC (Série A, no assento do Bagres 1993, que desceu pra B) + fundador nº88 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'henriquejunger07@gmail.com': 'ouro', // 👑 Lenda — batismo Le Prince FC (Várzea, no assento do bot Perna de Pau City) + fundador nº87 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'atilasoaresjr21@gmail.com': 'ouro', // 👑 Lenda — batismo Mengão Malvadão (Série A, no assento do Nata de SP, que desceu pra B) + fundador nº86 (06/10). Era ⭐ Craque, subiu pra Lenda com o batismo. Regra 17/08: todo batismo já nasce sócio + fundador.
   'kelvinoliveiraandradeenunes@gmail.com': 'ouro', // 👑 Lenda — batismo K9 FC (Várzea, no assento do bot Meia-Boca FC) + fundador nº85 (06/10). Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -221,6 +222,7 @@ const FUNDADOR_N: Record<string, number> = {
   'weslleygomes749@gmail.com': 79, // ⭐🐺 Cruzeiro de Berretinho (25/09)
   'bastosmbc@gmail.com': 80, // 🐓 El Mineiro (27/09)
   'felipe.vrod10@gmail.com': 84, // 😈🔴⚫ Vieira FC (03/10)
+  'heitormonaco98@gmail.com': 88, // 😜🔵⚫ Arrogantchi FC (08/10)
   'henriquejunger07@gmail.com': 87, // 🐓👑 Le Prince FC (08/10)
   'atilasoaresjr21@gmail.com': 86, // 🦅🔴⚫ Mengão Malvadão (06/10)
   'kelvinoliveiraandradeenunes@gmail.com': 85, // 👑🧊 K9 FC (06/10)

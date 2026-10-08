@@ -70,6 +70,7 @@ const BATISMOS = [
   ['brunnodeluca90@gmail.com', 'Vasco SAF'], // ⚽🏴‍☠️ Série D (24/09) — o antigo Vasco da Grana
   ['weslleygomes749@gmail.com', 'Cruzeiro de Berretinho'], // ⭐🐺 Série D (25/09) — no assento do bot Metrópole FC
   ['bastosmbc@gmail.com', 'El Mineiro'], // 🐓 Série C (27/09) — no assento do bot Brodeiragem
+  ['heitormonaco98@gmail.com', 'Arrogantchi FC'], // 😜🔵⚫ Série A (08/10) — assento do Bagres 1993, que desceu pra B
   ['henriquejunger07@gmail.com', 'Le Prince FC'], // 🐓👑 Várzea (08/10) — no assento do bot Perna de Pau City
   ['atilasoaresjr21@gmail.com', 'Mengão Malvadão'], // 🦅🔴⚫ Série A (06/10) — assento do Nata de SP, que desceu pra B
   ['kelvinoliveiraandradeenunes@gmail.com', 'K9 FC'], // 👑🧊 Várzea (06/10) — no assento do bot Meia-Boca FC
