@@ -142,7 +142,7 @@ const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 </style></head><body>
   <div class="pill">⚽ Baralho novo</div>
   <h1>${TITULO.replace(/^(\S+)/, '<em>$1</em>')}</h1>
-  <div class="sub">${SUB.replace('47', String(total))}</div>
+  <div class="sub">${SUB.replace('47 jogadores novos', total === 1 ? '1 jogador novo' : `${total} jogadores novos`).replace('47', String(total))}</div>
   <div class="cols">${SETORES.map(bloco).join('')}</div>
   <footer>
     <div class="marca">Leilão <em>Legends</em></div>
