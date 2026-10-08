@@ -1,3 +1,29 @@
+## 💳 PLANOS V2 (08/10) ⏳ PRÉVIA NO BRANCH, esperando o OK visual do Diego (NADA publicado)
+Gratuito · ⭐ Craque completo **R$ 9,90/mês** · 🖋 Batismo Lenda **R$ 69,90** · 🖋✨ Batismo Plus **R$ 79,99**.
+Ordem dele no meio do trabalho: *"Calma, não bloqueie ninguém ainda. Só faça as escritas e artes lá dos planos"* →
+**nenhuma trava nova no jogo**. O que existe:
+- ✅ **Banco (no ar, só ACRESCENTA)** — `supabase/migrations/20261008230000_planos_v2_direitos.sql`: tabelas
+  `esc_assinaturas` · `esc_pagamentos` (ID único = pagamento repetido não conta 2×) · `esc_compras_batismo` ·
+  `esc_pedidos_craque` (WhatsApp) · `esc_legado_codigo` (as 4 contas que só existiam na lista do código). Função
+  `esc_direitos_de` junta legado + assinatura + batismo; o jogo lê `esc_meus_direitos()`. `esc_nuvem_regra` passou a
+  usar a mesma régua (conferido nas 184 contas pagantes: **ninguém perdeu nada**). Teste: `docs/sql/testa-planos-v2.sql`
+  (20/20 ok, desfeito no fim). Nenhuma linha antiga foi mexida.
+- ✅ **Código (commitado no branch)**: `planos-regras.ts` (preços, limites de sala centralizados com os MESMOS números,
+  regras puras) · `apoio.tsx` (assinante ativo/batismo = ouro; venceu = volta pro tier de sempre) · `store.tsx`
+  (fichas pela régua). Trava: `npm run planos`.
+- ⏳ **Visual (NÃO commitado, esperando OK)**: vitrine nova dos 4 planos (`support-plans.tsx/.css`), tela do mensal
+  com WhatsApp/Direct (`CraqueMensal` em screens.tsx), batismo com escolha Lenda/Plus, trava do Manual a R$ 9,90/mês,
+  dúvidas (FAQ) e textos de trava (liga, 2º clube) sem "vire Lenda", painel do Diego `CraqueMensalAdmin` (pedidos,
+  📲 WhatsApp, confirmar pagamento com ID, cancelar, registrar batismo Lenda/Plus).
+- 🧾 **Como o mensal funciona hoje**: pessoa deixa o WhatsApp (precisa estar logada) ou chama no Direct → Diego manda
+  o link → pagou: Painel do Criador › ⭐ Craque completo › e-mail + ID do pagamento › CONFIRMAR. Cancelar só marca
+  (vale até o fim). Venceu: perde só o que veio da assinatura; saves/ligas/histórico ficam.
+- 🔒 **PROPOSTA, não aplicada** (ele mandou não bloquear): `docs/sql/sala-exige-plano.sql` — trava no servidor pra só
+  dono pagante CRIAR liga/Carreira Online/Bafo (convidado nunca paga; sala rápida segue grátis). Testada em transação
+  desfeita (8/8). Também ficou pra decidir: Craque antigo (prata) e sócio criarem liga (hoje só ouro cria).
+- ⏳ Depende do Diego: link de pagamento recorrente de verdade (Mercado Pago assinatura R$ 9,90) · Pix Automático
+  exige CNPJ com 6+ meses · gala única e canto do Plus são feitos caso a caso (arte/áudio).
+
 ## 😜🔵⚫ Batismo Arrogantchi FC (08/10) ✅ NO AR
 - Dono `heitormonaco98@gmail.com` (conta de julho, era grátis → 👑 Lenda). **Série A**, no assento do **Bagres 1993**, que
   DESCEU pra **Série B** na vaga do bot **Fluminense de Caicó** (decisão do Diego). Sem OLD_NAME. Fundador nº88 · sócio nº69.

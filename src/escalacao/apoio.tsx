@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang' // 🌐 BR/EN (12/09)
+import { lerDireitos, tierEfetivo, temManual, type Direitos } from './planos-regras'
 
 export type ApoioTier = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
 
@@ -283,13 +284,43 @@ let myEmail: string | null = null
 let dbTier: ApoioTier | null = null
 async function fetchDbTier(email: string | null) {
   dbTier = null
+  direitos = null
+  avisaDireitos()
   if (!email) return
+  fetchDireitos(email)
   try {
     const { data } = await supabase.from('user_colors').select('tier').eq('email', email).maybeSingle()
     const t = (data?.tier ?? '') as ApoioTier
     if (t && t in APOIO_PERKS) dbTier = t
   } catch { /* tabela ainda não existe / rede — segue com FOUNDERS */ }
 }
+
+// 💳 PLANOS V2 (08/10): os direitos JUNTADOS pelo banco (`esc_meus_direitos`): o tier de sempre + a
+// assinatura do ⭐ Craque mensal + o batismo (antigo, Lenda ou Plus). As regras moram em
+// planos-regras.ts. Banco fora do ar = `direitos` nulo = vale só o que a pessoa já tinha (nunca tira).
+let direitos: Direitos | null = null
+const ouvintesDireitos = new Set<() => void>()
+function avisaDireitos() { ouvintesDireitos.forEach(f => { try { f() } catch { /* ignora */ } }) }
+async function fetchDireitos(email: string) {
+  try {
+    const { data, error } = await supabase.rpc('esc_meus_direitos')
+    if (myEmail !== email) return // trocou de conta no meio
+    direitos = error ? null : lerDireitos(data)
+  } catch { direitos = null }
+  avisaDireitos()
+}
+/** os direitos da conta logada (null = deslogado, ainda carregando ou banco sem resposta) */
+export function meusDireitos(): Direitos | null { return direitos }
+/** relê do banco (depois de mandar o pedido do mensal, por exemplo) */
+export function recarregaDireitos(): void { if (myEmail) fetchDireitos(myEmail) }
+/** hook: re-renderiza quando os direitos chegam/mudam */
+export function useDireitos(): Direitos | null {
+  const [, bump] = useState(0)
+  useEffect(() => { const f = () => bump(n => n + 1); ouvintesDireitos.add(f); return () => { ouvintesDireitos.delete(f) } }, [])
+  return direitos
+}
+/** o tier de SEMPRE (banco ou lista do código), sem a assinatura — é o que nunca vence */
+export function meuTierLegado(): ApoioTier | null { return myEmail ? (dbTier ?? FOUNDERS[myEmail] ?? null) : null }
 supabase.auth.getUser().then(({ data }) => { if (bancadaFixa) return; myEmail = data?.user?.email?.toLowerCase() ?? null; if (myEmail) markHadLogin(); fetchDbTier(myEmail); fixOldEmojiName(data?.user) }, () => {})
 supabase.auth.onAuthStateChange((_e, s) => { if (bancadaFixa) return; const em = s?.user?.email?.toLowerCase() ?? null; if (em) markHadLogin(); if (em !== myEmail) { myEmail = em; fetchDbTier(em) } fixOldEmojiName(s?.user) })
 
@@ -346,7 +377,8 @@ export function logout() { try { localStorage.removeItem('esc-had-login') } catc
 
 export function myApoioPerk(): ApoioPerk | null {
   if (!myEmail) return null
-  const tier = dbTier ?? FOUNDERS[myEmail]
+  // 💳 o Craque mensal ativo e o batismo valem ouro; vencido, volta pro tier de sempre (planos-regras.ts)
+  const tier = tierEfetivo(dbTier ?? FOUNDERS[myEmail], direitos)
   if (!tier) return null
   // 🟢 pele verde de Lenda SÓ na carreira offline (pra quem está no CAREER_GREEN);
   // em qualquer outro contexto, a cor é a do tier normal (ouro etc.).
@@ -381,8 +413,8 @@ export function useHasManual(): boolean {
   }, [])
   // 🎮 o Modo Manual vem no Craque (prata) e no Lenda (ouro); ou pelo selo `manual`
   // avulso. Promessa (roxo) é só cor.
-  const tier = myApoioPerk()?.tier
-  return manualCol || tier === 'prata' || tier === 'ouro'
+  useDireitos() // re-renderiza quando a assinatura/batismo chega do banco
+  return temManual(myApoioPerk()?.tier, manualCol, direitos)
 }
 
 // ✉️ TRAVA DE E-MAIL (04/08): o Supabase avisou de bounce alto — e-mail digitado

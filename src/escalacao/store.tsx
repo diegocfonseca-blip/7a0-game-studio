@@ -36,6 +36,7 @@ import { summarizeInternationalCampaign } from './career-international-summary'
 import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
+import { fichasDoPlano } from './planos-regras'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
 import { perfilDoClube, setorDaObsessao, fatorOrcamento, fatorTeto, LOUCURA_CHANCE, loucuraFator, perfilPagaAcima, type PerfilBot } from './perfis-bot'
 import type { DivTecnico } from './tecnicos'
@@ -10539,8 +10540,10 @@ export const MAX_CAREER_SLOTS = 8 // teto de GUARDA do arquivo (nunca corta nada
 // mais não mexo"): o limite pessoal nunca fica abaixo do que a pessoa JÁ tem
 // — nada é apagado nem travado; a régua só vale pra criar ALÉM.
 export function careerSlotLimit(count: number): number {
-  const tier = myApoioPerk()?.tier
-  const base = souBarao() ? 4 : tier === 'ouro' ? 4 : tier === 'prata' ? 2 : 1
+  // 💳 planos v2 (08/10): a régua mora em planos-regras.ts; o Craque mensal entra como ouro enquanto
+  // vale (myApoioPerk já devolve o tier efetivo). Venceu = volta pra régua do que ela tinha, e o
+  // grandfather abaixo segura as carreiras que ela já criou.
+  const base = fichasDoPlano(myApoioPerk()?.tier, souBarao())
   return Math.max(base, Math.min(count, MAX_CAREER_SLOTS))
 }
 const isCareerSave = (s: unknown): s is EscState => !!s && typeof s === 'object' && !!(s as EscState).careerOnline && Array.isArray((s as EscState).managers) && (s as EscState).managers.length > 0
