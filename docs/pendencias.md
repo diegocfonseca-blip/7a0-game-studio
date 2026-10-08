@@ -1,3 +1,7 @@
+## 📣 Faixa amarela de aviso no topo (08/10) ✅ NO AR — ⏳ LEMBRAR DE TIRAR
+- Pedido do Diego: avisar a todos que o jogo vai passar por manutenção e volta em minutos. Mora em `AVISO_TOPO`
+  (`src/escalacao/index.tsx`), mesma cara da faixa de servidor-fora. **Pra tirar: `AVISO_TOPO = null` e publicar.**
+
 ## 🐓👑 Batismo Le Prince FC (08/10) ✅ NO AR
 - Dono `henriquejunger07@gmail.com` (CHINESINHO; conta de 25/09, era grátis → 👑 Lenda). **Várzea**, no assento do bot
   **Perna de Pau City** (`VARZEA_TEAMS`; `OLD_NAME` leva save antigo pro nome novo). Fundador nº87 · sócio nº68.

@@ -47,6 +47,22 @@ function Router() {
 // fora do ar (instabilidade Supabase / manutenção), mostra um aviso pra TODOS
 // os jogadores — em vez de cada um achar que o jogo quebrou. Some sozinho
 // assim que o servidor volta (re-checa a cada 30s).
+// 📣 AVISO FIXO NO TOPO (08/10, pedido do Diego: *"faixinha amarela no header em cima p todos q em breve o
+// sistema passará por uma manutenção"*). Mesma cara da faixa de manutenção logo abaixo. Liga/desliga aqui:
+// `AVISO_TOPO = null` tira a faixa (publicar de novo). Some sozinha se a faixa de servidor-fora estiver na tela.
+const AVISO_TOPO: { pt: string; en: string } | null = {
+  pt: '🔧 Em breve o jogo passa por uma manutenção rápida e volta em alguns minutos. Seu progresso fica salvo. 💛',
+  en: '🔧 The game will go through a quick maintenance soon and be back in a few minutes. Your progress is saved. 💛',
+}
+function AvisoTopo({ escondido }: { escondido: boolean }) {
+  if (!AVISO_TOPO || escondido) return null
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99998, background: '#F5B301', color: '#1a1a1a', borderBottom: '3px solid #1a1a1a', padding: '7px 12px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, boxShadow: '0 2px 8px rgba(0,0,0,.25)' }}>
+      {getLang() === 'en' ? AVISO_TOPO.en : AVISO_TOPO.pt}
+    </div>
+  )
+}
+
 function MaintenanceBanner() {
   const [down, setDown] = useState(false)
   const failsRef = useRef(0) // só mostra após FALHAS SEGUIDAS — evita alarme falso por blip de rede no celular
@@ -70,7 +86,7 @@ function MaintenanceBanner() {
     const iv = setInterval(check, 60_000)
     return () => { alive = false; clearInterval(iv) }
   }, [])
-  if (!down) return null
+  if (!down) return <AvisoTopo escondido={false} />
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999, background: '#F5B301', color: '#1a1a1a', borderBottom: '3px solid #1a1a1a', padding: '7px 12px', textAlign: 'center', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, boxShadow: '0 2px 8px rgba(0,0,0,.25)' }}>
       🔧 Manutenção rápida no servidor — seu progresso está salvo. Já já voltamos! 💛
