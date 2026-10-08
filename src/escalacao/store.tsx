@@ -10413,8 +10413,10 @@ function marcaMexido(save: EscState) {
   } catch { /* silencioso — nunca atrapalha o jogo */ }
 }
 
-// ⭐ sala de Champions: o dono manda o estado no máximo a cada 400 ms (ver o efeito do host)
-const CHAMPIONS_ENVIO_MS = 400
+// 📡 todas as salas online: o dono junta mudanças muito próximas e manda apenas
+// o estado mais novo. A Champions já usava esta janela sem prejuízo perceptível;
+// aplicar a mesma proteção aos demais modos corta Broadcast e Egress repetidos.
+const ONLINE_ENVIO_MS = 400
 const SOLO_RESUME_KEY = 'esc-solo-inprogress-v1'
 const SOLO_GAME_SCREENS = ['auction', 'monte', 'convocacao', 'cerimonia', 'season', 'end'] as const
 function isSoloGameScreen(screen: string, s?: Pick<EscState, 'copaMode'>): boolean {
@@ -11870,31 +11872,32 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // estado inteiro. Isto derruba MUITO o tráfego do Realtime/Egress do Supabase (a
   // conta estourou por causa deste reenvio a cada 3s sem parar).
   const lastStateSendRef = useRef(0)
-  // ⭐ SALA DE CHAMPIONS: o dono JUNTA as mudanças e manda o estado no máximo a cada
-  // `CHAMPIONS_ENVIO_MS` (sempre o mais novo). No fim do envelope todo mundo lacra no mesmo
-  // segundo — mandar um estado inteiro por lacre, pra 26 pessoas, é o que estourava o limite
-  // do servidor (sala 9LSKXI, 25/09). Nas outras salas NADA muda: continua um envio por jogada.
+  // 📡 TODAS AS SALAS ONLINE: o dono JUNTA mudanças próximas e manda apenas o estado
+  // mais novo, no máximo uma vez por janela de `ONLINE_ENVIO_MS`. Os recados dos
+  // convidados continuam imediatos na caixa do dono; entrada, F5, reconexão e
+  // `request_state` também continuam imediatos nos pontos específicos acima.
   const juntaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId) return
     if (prevRef.current === state) return
     prevRef.current = state
-    if (state.copaMode === 'champions') {
-      if (juntaTimerRef.current) return // já tem um envio marcado — ele leva o estado mais novo
-      juntaTimerRef.current = setTimeout(() => {
-        juntaTimerRef.current = null
-        const atual = stateRef.current
-        if (atual.onlineMode !== 'online' || !atual.isHost) return
-        channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(atual) })
-        lastStateSendRef.current = Date.now()
-      }, CHAMPIONS_ENVIO_MS)
-      return
-    }
-    channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(state) })
-    lastStateSendRef.current = Date.now()
+    if (juntaTimerRef.current) return // já tem um envio marcado — ele leva o estado mais novo
+    juntaTimerRef.current = setTimeout(() => {
+      juntaTimerRef.current = null
+      const atual = stateRef.current
+      if (atual.onlineMode !== 'online' || !atual.isHost || !atual.roomId) return
+      channelRef.current?.send({ type: 'broadcast', event: 'state', payload: pacoteDeEstado(atual) })
+      lastStateSendRef.current = Date.now()
+    }, ONLINE_ENVIO_MS)
   }, [state])
-  useEffect(() => () => { if (juntaTimerRef.current) clearTimeout(juntaTimerRef.current) }, [])
-  // 📮 a CAIXA DE ENTRADA do dono (só sala de Champions): os convidados mandam o recado
+  // Trocar de sala ou deixar de ser o dono cancela um envio que pertencia ao canal anterior.
+  useEffect(() => () => {
+    if (juntaTimerRef.current) {
+      clearTimeout(juntaTimerRef.current)
+      juntaTimerRef.current = null
+    }
+  }, [state.onlineMode, state.isHost, state.roomId])
+  // 📮 a CAIXA DE ENTRADA do dono (toda sala online): os convidados mandam o recado
   // direto pra cá, e só o dono escuta — uma entrega por lance em vez de uma por pessoa.
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || !state.hostInbox) return

@@ -35,4 +35,15 @@ assert.ok(num(coroa[1]) < num(stale[1]), 'a consulta da coroa tem que vir antes 
 
 // 4. caixa de entrada pra toda sala
 assert.match(src, /s\.hostInbox = true/, 'hostInbox deixou de valer pra toda sala')
-console.log('✅ canal ao vivo: sem "tô vivo", heartbeat ≥ 20s, convidado pede estado só em 60s (8s se o lance dele ficou sem resposta), lance vai só pro dono')
+
+// 5. o estado do dono é agrupado em TODA sala, sempre levando a versão mais nova
+const agrupado = src.match(/const ONLINE_ENVIO_MS = ([\d_]+)/)
+assert.ok(agrupado, 'sumiu a janela global de agrupamento do Broadcast')
+assert.ok(num(agrupado[1]) <= 400, 'a janela do Broadcast ficou perceptível demais')
+const retransmite = src.slice(src.indexOf('// host retransmite estado'), src.indexOf('// 📮 a CAIXA DE ENTRADA', src.indexOf('// host retransmite estado')))
+assert.match(retransmite, /const atual = stateRef\.current/, 'o Broadcast agrupado não leva o estado mais novo')
+assert.match(retransmite, /setTimeout\([\s\S]*ONLINE_ENVIO_MS\)/, 'o estado deixou de ser agrupado')
+assert.doesNotMatch(retransmite, /state\.copaMode === 'champions'/, 'o agrupamento voltou a valer só na Champions')
+assert.equal((retransmite.match(/event: 'state'/g) ?? []).length, 1, 'voltou um envio imediato de estado a cada mudança')
+
+console.log('✅ canal ao vivo: sem "tô vivo", heartbeat ≥ 20s, estado agrupado em toda sala, convidado pede estado só em 60s (8s se o lance dele ficou sem resposta), lance vai só pro dono')

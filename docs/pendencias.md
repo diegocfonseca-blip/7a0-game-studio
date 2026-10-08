@@ -2,6 +2,18 @@
 - Pedido do Diego: avisar a todos que o jogo vai passar por manutenção e volta em minutos. Mora em `AVISO_TOPO`
   (`src/escalacao/index.tsx`), mesma cara da faixa de servidor-fora. **Pra tirar: `AVISO_TOPO = null` e publicar.**
 
+## 08/10/2026 — 📡💸 Broadcast agrupado em todos os modos online ✅ FEITO, AINDA NÃO PUBLICADO
+- O Product Reports (últimos 60 min) mostrou **4.064 Broadcast Events**, contra 281 Postgres Changes e 105 Presence:
+  Broadcast era ~91% dos eventos identificados. O payload mediano de 125 B mostrado ali era de recados pequenos; o estado
+  completo já viaja compactado, mas cada cópia entregue a cada pessoa ainda conta como mensagem e como egress.
+- A janela de 400 ms que já estava aprovada e funcionando na Champions agora vale para **toda sala online da Escalação**.
+  O dono manda somente o estado mais novo dentro da janela, em vez de retransmitir vários estados completos quase iguais.
+- Sem atraso nas ações: lance/voto/lacre continuam indo imediatamente à caixa do dono. Entrada, F5, volta do app,
+  reconexão e pedido explícito de estado continuam com resposta imediata. Só o leque repetido dono → sala foi agrupado.
+- Egress: o estado já usa `netpack` (em vez de JSON bruto); esta mudança reduz também o volume transferido porque elimina
+  cópias completas intermediárias. Trocar agora para protocolo de deltas seria uma alteração bem mais arriscada antes da live.
+- Trava automática em `npm run canal`. Depois de publicar, comparar **Broadcast Events** e **Egress per day** por 24 h.
+
 ## 🐓👑 Batismo Le Prince FC (08/10) ✅ NO AR
 - Dono `henriquejunger07@gmail.com` (CHINESINHO; conta de 25/09, era grátis → 👑 Lenda). **Várzea**, no assento do bot
   **Perna de Pau City** (`VARZEA_TEAMS`; `OLD_NAME` leva save antigo pro nome novo). Fundador nº87 · sócio nº68.
