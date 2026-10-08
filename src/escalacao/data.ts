@@ -1619,7 +1619,8 @@ const L39_BR_MEI: C[] = [
 const L43_BR_ATA: C[] = [
   { name: "Gilberto", club: "Bahia", year: 2020, fame: 2, lo: 64, hi: 80, bio: "Centroavante artilheiro do Bahia — goleador do time no Brasileirão de 2019 e 2020." },
   // 👑 08/10, pedido do Diego ("quero ele de lenda"): Kelvin Oliveira, o K9 — apelido ao lado do nome, clube G3X.
-  { name: "Kelvin Oliveira (K9)", club: "G3X", year: 2025, fame: 5, lo: 87, hi: 94, bio: "O Rei da Kings League: artilheiro e melhor jogador da liga no Brasil, camisa 9 e presidente do G3X — de Ipatinga pro mundo, disse não até ao Neymar pra seguir no seu time." },
+  // 📉 08/10, depois: "coloque o over como o pior das lendas, mas mantenha lenda" → igual ao Nelinho (80–88), a lenda mais fraca.
+  { name: "Kelvin Oliveira (K9)", club: "G3X", year: 2025, fame: 5, lo: 80, hi: 88, bio: "O Rei da Kings League: artilheiro e melhor jogador da liga no Brasil, camisa 9 e presidente do G3X — de Ipatinga pro mundo, disse não até ao Neymar pra seguir no seu time." },
   // 🔵⚫ 08/10, Diego: a 2ª carta do K9, no Grêmio, como BOM jogador no teto da categoria. ⚠️ EXCEÇÃO à regra
   // "mesmo jogador só em baralho diferente" (26/09), aberta por ele só pra este caso. O Grêmio dele foi o de
   // Fut7 (2023) — treinou com os profissionais, o Renato não aproveitou; a bio conta isso como é.
