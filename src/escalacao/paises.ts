@@ -159,6 +159,7 @@ export const PAIS: Record<string, string> = {
   'Esteban Cambiasso': 'Argentina', 'Willian': 'Brasil', 'Oscar': 'Brasil',
   'Ramires': 'Brasil', 'Fernandinho': 'Brasil', 'Fabinho': 'Brasil',
   'Gilberto Silva': 'Brasil', 'Juninho Paulista': 'Brasil', 'Bernard': 'Brasil',
+  'Kelvin Oliveira (K9)': 'Brasil', // 👑 K9, G3X (08/10)
   'Anderson': 'Brasil', "John O'Shea": 'Irlanda', 'Momo Sissoko': 'Mali',
   'Diego Maradona': 'Argentina', 'Bobby Charlton': 'Inglaterra',
   'Frank Rijkaard': 'Holanda', 'Gheorghe Hagi': 'Romênia', 'Rui Costa': 'Portugal',

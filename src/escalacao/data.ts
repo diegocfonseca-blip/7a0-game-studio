@@ -1618,6 +1618,8 @@ const L39_BR_MEI: C[] = [
 // ⚽ 05/10, pedido do Diego: o atacante Gilberto do Bahia (artilheiro do clube em 2019-2020).
 const L43_BR_ATA: C[] = [
   { name: "Gilberto", club: "Bahia", year: 2020, fame: 2, lo: 64, hi: 80, bio: "Centroavante artilheiro do Bahia — goleador do time no Brasileirão de 2019 e 2020." },
+  // 👑 08/10, pedido do Diego ("quero ele de lenda"): Kelvin Oliveira, o K9 — apelido ao lado do nome, clube G3X.
+  { name: "Kelvin Oliveira (K9)", club: "G3X", year: 2025, fame: 5, lo: 87, hi: 94, bio: "O Rei da Kings League: artilheiro e melhor jogador da liga no Brasil, camisa 9 e presidente do G3X — de Ipatinga pro mundo, disse não até ao Neymar pra seguir no seu time." },
 ]
 export const CATALOG: Record<Sector, C[]> = { GOL: [...GOL, ...NOVOS_BR_GOL, ...NOVOS_BR2_GOL, ...L29_BR_GOL, ...L31_BR_GOL, ...L33_BR_GOL, ...L37_BR_GOL], LAT: [...LAT, ...NOVOS_BR_LAT, ...NOVOS_BR2_LAT, ...NOVOS_BR3_LAT, ...L24_BR_LAT, ...L27_BR_LAT, ...L29_BR_LAT, ...L31_BR_LAT, ...L33_BR_LAT, ...L37_BR_LAT], ZAG: [...ZAG, ...NOVOS_BR_ZAG, ...NOVOS_BR2_ZAG, ...NOVOS_BR3_ZAG, ...L24_BR_ZAG, ...L31_BR_ZAG, ...L33_BR_ZAG, ...L34_BR_ZAG], MEI: [...MEI, ...NOVOS_BR_MEI, ...NOVOS_BR2_MEI, ...NOVOS_BR3_MEI, ...L24_BR_MEI, ...L27_BR_MEI, ...L28_BR_MEI, ...L29_BR_MEI, ...L30_BR_MEI, ...L33_BR_MEI, ...L34_BR_MEI, ...L39_BR_MEI], ATA: [...ATA, ...NOVOS_BR_ATA, ...NOVOS_BR2_ATA, ...NOVOS_BR3_ATA, ...L27_BR_ATA, ...L29_BR_ATA, ...L31_BR_ATA, ...L33_BR_ATA, ...L37_BR_ATA, ...L43_BR_ATA] }
 
