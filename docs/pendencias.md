@@ -1,4 +1,4 @@
-## 📣 Faixa amarela de aviso no topo (08/10) ✅ NO AR — ⏳ LEMBRAR DE TIRAR
+## 📣 Faixa amarela de aviso no topo (08/10) ✅ TIRADA no mesmo dia (pedido do Diego)
 - Pedido do Diego: avisar a todos que o jogo vai passar por manutenção e volta em minutos. Mora em `AVISO_TOPO`
   (`src/escalacao/index.tsx`), mesma cara da faixa de servidor-fora. **Pra tirar: `AVISO_TOPO = null` e publicar.**
 
