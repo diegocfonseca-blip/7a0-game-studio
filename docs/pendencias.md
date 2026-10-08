@@ -1,3 +1,9 @@
+## 👑 Cartas do K9 (08/10) ✅ NO AR
+- Kelvin Oliveira (K9): G3X 2025 **lenda** (87–94) e Grêmio 2023 **bom** no teto (80–88). As duas no BR — exceção à regra de
+  26/09 aberta pelo Diego só pra ele (motivo dele, não divulgar). O Grêmio dele foi o de Fut7 (2023); a bio conta isso.
+- `mockup-cartas-novas.mjs` ganhou `--nomes` e mantém apelido entre parênteses (só clube de xará sai). Stories enviados.
+- ⏳ G3X sem escudo no jogo (selo genérico) — se o Diego mandar a arte, cadastrar.
+
 ## ☁️⭐ NUVEM SÓ PRO CRAQUE nas carreiras NOVAS (07/10) ✅ NO AR (Diego aprovou o mockup: "Sim")
 - Diego: *"Nuvem só pra quem paga. O grátis e quem joga sem conta continuam salvando no aparelho… Só deixe avisado pra
   essa pessoa no momento do save… Quem já tem save na nuvem continua igual. Ninguém perde nada."*

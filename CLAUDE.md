@@ -678,6 +678,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   no baralho Europa) NÃO pode; Neymar Brasil + Neymar Europa pode. Antes de propor carta nova,
   conferir o baralho do clube e se a pessoa já está nele (script de conferência usado em 26/09:
   nome/sobrenome no mesmo baralho = conflito).
+  ⚠️ **ÚNICA EXCEÇÃO, aberta por ele em 08/10: Kelvin Oliveira (K9)** tem 2 cartas no baralho BR (G3X 2025 lenda ·
+  Grêmio 2023 bom). Motivo é dele e **não se divulga** (nada de falar disso em post/stories). Não serve de precedente.
 
 - **👑 LENDA É UMA CARTA SÓ — a do MELHOR CLUBE da carreira (26/09) — MAS SÓ QUANDO ELE MANDA PROMOVER.** ⚠️ Não vale pra carta NOVA: carta nova tem a categoria do jogador NAQUELE clube e NAQUELE ano, mesmo que ele já seja lenda em outra carta (o Messi é lenda no Barça e no Inter Miami; Maradona é lenda no Napoli E no Boca de 81). Eu errei isso no Lote 35 e ele corrigiu: *"você que tem que dizer se era lenda ou não no ano e time que jogou"*. Quando ele manda
   "fulano vira lenda" e o jogador tem mais de uma carta, sobe SÓ a do melhor clube (Seedorf =
