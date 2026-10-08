@@ -12,6 +12,8 @@
   26/09 aberta pelo Diego só pra ele (motivo dele, não divulgar). O Grêmio dele foi o de Fut7 (2023); a bio conta isso.
 - `mockup-cartas-novas.mjs` ganhou `--nomes` e mantém apelido entre parênteses (só clube de xará sai). Stories enviados.
 - ⏳ G3X sem escudo no jogo (selo genérico) — se o Diego mandar a arte, cadastrar.
+- 🚫 AVATAR do K9: a tentativa daqui (Canva, 200px, chapada) o Diego achou "horrível" — **ele faz no Codex. Não refazer aqui.**
+  Quando chegar: 600×400 webp transparente em `public/avatars/lendas-v2/` + linha em `legend-avatars.json` (G3X 2025).
 
 ## ☁️⭐ NUVEM SÓ PRO CRAQUE nas carreiras NOVAS (07/10) ✅ NO AR (Diego aprovou o mockup: "Sim")
 - Diego: *"Nuvem só pra quem paga. O grátis e quem joga sem conta continuam salvando no aparelho… Só deixe avisado pra
