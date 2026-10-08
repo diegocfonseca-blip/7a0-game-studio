@@ -31,3 +31,21 @@
 .ll-vit-breve .it>div{flex:1;min-width:0}.ll-vit-breve .it b{font:700 12.5px Oswald,sans-serif;text-transform:uppercase;display:block;color:#fff}.ll-vit-breve .it span:not(.lock){font:700 10.5px/1.3 Arial,sans-serif;color:rgba(255,255,255,.7)}
 .ll-vit-breve .lock{font:700 8.5px Oswald,sans-serif;letter-spacing:.06em;text-transform:uppercase;border:2px solid #ffc400;color:#ffc400;border-radius:999px;padding:2px 7px;white-space:nowrap}
 .ll-vit-breve>p{margin:9px 0 0;font:700 10px Arial,sans-serif;color:rgba(255,255,255,.55);text-align:center}
+.ll-support-plan.gratis>header{background:linear-gradient(120deg,#fbf6e8,#efe3c2)}
+.ll-support-plan.plus>header{background:linear-gradient(120deg,#15251a,#3a2e0a 55%,#ffc400);color:#ffe28a}
+.ll-vit-seu{display:inline-block;margin:12px 0 0!important;font:700 12px Oswald,sans-serif;text-transform:uppercase;letter-spacing:.04em;background:#1b7a3d;color:#fff;border:2.5px solid #0c0c0c;border-radius:999px;padding:4px 12px;box-shadow:2px 2px 0 #0c0c0c}
+.ll-vit-gala{position:relative;height:62px;border-radius:7px;overflow:hidden;background:radial-gradient(ellipse at 50% 20%,#4a3a0a,#000 75%)}
+.ll-vit-gala .heli{position:absolute;left:6px;top:4px;font-size:20px;animation:llHeli 2.4s ease-in-out infinite}
+.ll-vit-gala .esc{position:absolute;left:50%;top:16px;transform:translateX(-50%);filter:drop-shadow(0 0 7px rgba(255,196,0,.95))}
+.ll-vit-gala p{position:absolute;left:0;right:0;bottom:2px;margin:0!important;font:700 7px Oswald,sans-serif;letter-spacing:2px;color:#ffc400}
+.ll-vit-canto{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:62px;border-radius:7px;background:#12281b;padding:8px 6px}
+.ll-vit-canto>span{font-size:18px;margin-right:4px;align-self:center}
+.ll-vit-canto i{display:block;width:5px;border-radius:3px;background:#ffc400;animation:llOnda 1s ease-in-out infinite alternate}
+.ll-vit-canto i:nth-child(odd){animation-delay:.25s}.ll-vit-canto i:nth-child(3n){animation-delay:.5s}
+.ll-vit-antigos{background:#fff;border:3px solid #0c0c0c;border-radius:13px;box-shadow:3px 3px 0 #0c0c0c;padding:12px 14px;margin:6px 0 14px}
+.ll-vit-antigos b{display:block;font:700 15px Oswald,sans-serif;text-transform:uppercase}
+.ll-vit-antigos span{display:block;font:700 12px/1.45 Arial,sans-serif;color:#3d382c;margin-top:4px}
+.ll-vit-antigos .ll-support-button{margin-top:10px}
+@keyframes llHeli{0%,100%{transform:translate(0,0)}50%{transform:translate(70px,6px)}}
+@keyframes llOnda{from{transform:scaleY(.45)}to{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){.ll-vit-gala .heli,.ll-vit-canto i{animation:none}}

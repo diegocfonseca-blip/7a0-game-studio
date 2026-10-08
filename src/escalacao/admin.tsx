@@ -306,6 +306,90 @@ function ApoioAdmin() {
   )
 }
 
+// ⭐ CRAQUE MENSAL · pedidos e pagamentos (planos v2, 08/10). A pessoa deixa o WhatsApp na tela do
+// Craque → aparece aqui → você manda o link pelo WhatsApp → pagou, cola o ID do pagamento e confirma.
+// O MESMO ID duas vezes não soma nada (proteção contra confirmar repetido). O mês novo começa no fim
+// do mês que ainda vale. Cancelar NÃO corta: vale até o fim do que foi pago. Nada é apagado.
+// Batismo novo (Lenda/Plus): registra aqui também, com o ID do Pix — o resto do roteiro segue igual.
+type PedidoCraque = { id: number; email: string; whatsapp: string; status: string; criado_em: string; craque_ate: string | null; craque_cancelada: boolean }
+function CraqueMensalAdmin() {
+  const [lista, setLista] = useState<PedidoCraque[]>([])
+  const [email, setEmail] = useState('')
+  const [pid, setPid] = useState('')
+  const [bEmail, setBEmail] = useState(''); const [bPid, setBPid] = useState(''); const [bPlano, setBPlano] = useState<'lenda' | 'plus'>('lenda')
+  const [msg, setMsg] = useState('')
+  const [busy, setBusy] = useState(false)
+  const carregar = async () => { const { data } = await supabase.rpc('esc_admin_pedidos_craque'); setLista((data ?? []) as PedidoCraque[]) }
+  useEffect(() => { carregar() }, [])
+  const dia = (v: string | null) => v ? new Date(v).toLocaleDateString('pt-BR') : '—'
+  const zapLink = (n: string) => `https://wa.me/${n.length <= 11 ? '55' + n : n}?text=${encodeURIComponent('Fala! Aqui é o Diego do Leilão Legends 💛 Segue o link pra assinar o ⭐ Craque completo (R$ 9,90/mês): ')}`
+  const status = async (id: number, st: string) => { await supabase.rpc('esc_admin_pedido_status', { p_id: id, p_status: st }); carregar() }
+  const confirmar = async () => {
+    const em = email.trim().toLowerCase()
+    if (!em.includes('@') || pid.trim().length < 3) { setMsg('❌ falta o e-mail da conta ou o ID do pagamento'); return }
+    setBusy(true); setMsg('')
+    const { data, error } = await supabase.rpc('esc_admin_craque_pagamento', { p_email: em, p_pagamento_id: pid.trim() })
+    const r = data as { repetido?: boolean; valido_ate?: string } | null
+    setMsg(error ? `❌ ${error.message}` : r?.repetido ? `⚠️ esse pagamento JÁ tinha sido confirmado — nada mudou (vale até ${dia(r.valido_ate ?? null)})` : `✅ ${em} é Craque até ${dia(r?.valido_ate ?? null)}`)
+    if (!error && !r?.repetido) { setEmail(''); setPid('') }
+    setBusy(false); carregar()
+  }
+  const cancelar = async (em: string) => {
+    if (!window.confirm(`Marcar o Craque de ${em} como CANCELADO? Ele continua valendo até o fim do mês pago.`)) return
+    await supabase.rpc('esc_admin_craque_cancelar', { p_email: em }); carregar()
+  }
+  const batismo = async () => {
+    const em = bEmail.trim().toLowerCase()
+    if (!em.includes('@') || bPid.trim().length < 3) { setMsg('❌ falta o e-mail ou o ID do Pix do batismo'); return }
+    setBusy(true); setMsg('')
+    const { data, error } = await supabase.rpc('esc_admin_batismo_compra', { p_email: em, p_plano: bPlano, p_pagamento_id: bPid.trim(), p_valor: bPlano === 'plus' ? 79.99 : 69.9 })
+    const r = data as { repetido?: boolean; plano?: string } | null
+    setMsg(error ? `❌ ${error.message}` : r?.repetido ? '⚠️ esse pagamento já estava registrado — nada mudou' : `✅ ${em} registrado como Batismo ${r?.plano === 'plus' ? 'Plus' : 'Lenda'} (o roteiro do batismo segue como sempre)`)
+    if (!error && !r?.repetido) { setBEmail(''); setBPid('') }
+    setBusy(false)
+  }
+  const inp = { width: '100%', border: '2px solid #FFC400', borderRadius: 10, padding: '9px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13, marginBottom: 8 } as const
+  const td = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' } as const
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>⭐ Craque completo · mensal R$ 9,90</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Pedido chega aqui com o WhatsApp → toca no 📲 e manda o link → pagou: e-mail + ID do pagamento → CONFIRMAR. Mesmo ID duas vezes não conta. Cancelar só marca: vale até o fim do mês pago.</p>
+      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta" style={inp} />
+      <input value={pid} onChange={e => setPid(e.target.value)} placeholder="ID do pagamento (código do Pix / Mercado Pago)" style={inp} />
+      <button onClick={confirmar} disabled={busy} style={{ width: '100%', border: 'none', borderRadius: 12, padding: 10, ...OSWALD, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', background: '#FFC400', color: '#0C0C0C', cursor: 'pointer' }}>{busy ? '…' : '✅ CONFIRMAR PAGAMENTO · +1 MÊS'}</button>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : msg.startsWith('⚠️') ? '#FFC400' : '#ff8a75', margin: '7px 0 0', textAlign: 'center' }}>{msg}</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontWeight: 700, marginTop: 10 }}>
+        <thead><tr>{['Pedido', 'Email', 'WhatsApp', 'Craque até', ''].map(h => <th key={h} style={{ padding: '4px 6px', textAlign: 'left', color: 'rgba(242,232,207,.55)', fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase' }}>{h}</th>)}</tr></thead>
+        <tbody>
+          {lista.map(r => (
+            <tr key={r.id} style={{ opacity: r.status === 'novo' || r.status === 'link_enviado' ? 1 : 0.5 }}>
+              <td style={td}>{dia(r.criado_em)}<br /><span style={{ fontSize: 9.5, color: '#FFC400' }}>{r.status === 'novo' ? '🆕 novo' : r.status === 'link_enviado' ? '📤 link enviado' : r.status === 'pago' ? '✅ pago' : '✕ desistiu'}</span></td>
+              <td style={{ ...td, wordBreak: 'break-all' }}>{r.email}</td>
+              <td style={td}><a href={zapLink(r.whatsapp)} target="_blank" rel="noopener noreferrer" onClick={() => r.status === 'novo' && status(r.id, 'link_enviado')} style={{ color: '#6fdb8f' }}>📲 {r.whatsapp}</a></td>
+              <td style={td}>{r.craque_ate ? `${new Date(r.craque_ate) > new Date() ? '🟢' : '🔴'} ${dia(r.craque_ate)}${r.craque_cancelada ? ' (cancelado)' : ''}` : '—'}</td>
+              <td style={td}>
+                <button onClick={() => { setEmail(r.email); setPid('') }} title="preencher o e-mail pra confirmar" style={{ background: 'none', border: 'none', color: '#FFC400', fontWeight: 900, cursor: 'pointer' }}>💰</button>
+                {r.craque_ate && !r.craque_cancelada && <button onClick={() => cancelar(r.email)} title="marcar cancelado" style={{ background: 'none', border: 'none', color: '#ff8a75', fontWeight: 900, cursor: 'pointer' }}>✋</button>}
+                {(r.status === 'novo' || r.status === 'link_enviado') && <button onClick={() => status(r.id, 'desistiu')} title="desistiu" style={{ background: 'none', border: 'none', color: 'rgba(242,232,207,.5)', fontWeight: 900, cursor: 'pointer' }}>✕</button>}
+              </td>
+            </tr>
+          ))}
+          {lista.length === 0 && <tr><td colSpan={5} style={{ padding: 8, color: 'rgba(242,232,207,.5)' }}>nenhum pedido ainda</td></tr>}
+        </tbody>
+      </table>
+      <details style={{ marginTop: 10 }}>
+        <summary style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#FFC400', cursor: 'pointer', textTransform: 'uppercase' }}>🖋 Registrar batismo novo (Lenda R$ 69,90 / Plus R$ 79,99)</summary>
+        <div style={{ display: 'flex', gap: 6, margin: '8px 0' }}>
+          {(['lenda', 'plus'] as const).map(k => <button key={k} onClick={() => setBPlano(k)} style={{ flex: 1, border: '2px solid #FFC400', borderRadius: 8, padding: 6, ...OSWALD, fontWeight: 900, fontSize: 11.5, background: bPlano === k ? '#FFC400' : 'transparent', color: bPlano === k ? '#0C0C0C' : '#FFC400', cursor: 'pointer' }}>{k === 'plus' ? '🖋✨ PLUS' : '🖋 LENDA'}</button>)}
+        </div>
+        <input value={bEmail} onChange={e => setBEmail(e.target.value)} placeholder="email do dono (a conta tem que existir)" style={inp} />
+        <input value={bPid} onChange={e => setBPid(e.target.value)} placeholder="ID do Pix do batismo" style={inp} />
+        <button onClick={batismo} disabled={busy} style={{ width: '100%', border: '2px solid #FFC400', borderRadius: 10, padding: 8, ...OSWALD, fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', background: 'transparent', color: '#FFC400', cursor: 'pointer' }}>💾 registrar batismo</button>
+      </details>
+    </div>
+  )
+}
+
 // 🎫 SÓCIO LEGENDS · entrega manual (09/08): pagamento caiu no Mercado Pago →
 // digita o e-mail → LIBERAR 30 DIAS. Renovar soma +30 na validade. Encerrar
 // NÃO apaga: só expira — nº de sócio e tempo de casa ficam guardados (regra
@@ -378,7 +462,7 @@ function SocioAdmin() {
               <td style={{ padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)' }}><button onClick={() => encerrar(r.email)} style={{ background: 'none', border: 'none', color: '#ff8a75', fontWeight: 900, cursor: 'pointer' }}>✕</button></td>
             </tr>
           ))}
-          {lista.length === 0 && <tr><td colSpan={5} style={{ padding: 8, color: 'rgba(242,232,207,.5)' }}>nenhum sócio ainda — o link do plano de R$ 9,90 já existe no Mercado Pago</td></tr>}
+          {lista.length === 0 && <tr><td colSpan={5} style={{ padding: 8, color: 'rgba(242,232,207,.5)' }}>nenhum sócio ainda</td></tr>}
         </tbody>
       </table>
     </div>
@@ -938,7 +1022,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

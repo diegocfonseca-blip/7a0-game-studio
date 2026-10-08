@@ -4,7 +4,8 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { revealOffers, revealIdentityVisible } from './reveal-presentation'
 import './online-visual.css'
-import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
+import { SupportPlans, SupportFooter, SupportStory, type SupportPlanKey } from './support-plans'
+import { PRECOS, precoTxt, situacaoCraque, whatsappValido, type Direitos } from './planos-regras'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
@@ -18,7 +19,7 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN, useDireitos, recarregaDireitos } from './apoio'
 import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
@@ -63,7 +64,7 @@ import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
 import { POS_LABELS, basketClockLabel } from './sportcfg'
-import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
+import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG, souBarao } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
 import { MascoteAtravessa, MascoteMini, moneySeed } from './mascote-atravessa' // 🐊 movido pra cá em 25/09: a sala de espera também solta o bicho
 import { historiaSondagem } from './tecnicos' // 📰 historinha do setor TÉCNICO sondado
@@ -175,9 +176,8 @@ const PIX_KEY = 'diego.c.fonseca@gmail.com'
 const PIX_NOME = 'DIEGO FONSECA'   // recebedor (obrigatório no BR Code, ≤25, sem acento)
 const PIX_CIDADE = 'RIO DE JANEIRO' // cidade do recebedor (obrigatório, ≤15, sem acento)
 const APOIO_IG = 'https://ig.me/m/leilaolegendscom'
-// 💳 planos do SÓCIO no Mercado Pago (criados pelo Diego 09/08) — preço por
-// fidelidade: grátis 9,90 · ⭐ Craque 4,90 · 👑 Lenda 2,90 (batismo = incluso)
-const MP_SOCIO = { base: 'https://mpago.la/2G3nmQq', craque: 'https://mpago.la/1jqtK38', lenda: 'https://mpago.la/2CGoqiJ' } as const
+// 💳 os links do SÓCIO no Mercado Pago (09/08: base mpago.la/2G3nmQq · Craque 1jqtK38 · Lenda 2CGoqiJ)
+// SAÍRAM da vitrine nos planos v2 (08/10). Quem já assina continua — a cobrança é do Mercado Pago, não daqui.
 
 // CRC16-CCITT (poly 0x1021, init 0xFFFF) — exigido no fim do código Pix.
 function pixCrc16(str: string): string {
@@ -246,10 +246,8 @@ function PixBox({ label = 'copiar', ctx, amount }: { label?: string; ctx?: strin
 }
 // escada de cores (produto visual): cada tier espelha a categoria das cartas.
 // bege e verde SEM selo (ninguém carrega etiqueta de "menor" — selo começa no 💎).
-// 🖋️ FUNDADOR: 100 vagas, hoje SÓ pelo batismo (quem já era fundador continua).
-// Contador MANUAL — cada batismo que o Diego
-// confirmar no Instagram, baixar este número aqui (não dá pra contar sozinho).
-const FUNDADOR_VAGAS = 64
+// 🖋️ FUNDADOR: hoje SÓ pelo batismo (quem já era fundador continua). O contador de vagas
+// (`FUNDADOR_VAGAS`, era 64) saiu da vitrine nos planos v2 — o Diego não quer contagem de vagas.
 // 🎫 ÁREA DO SÓCIO (mockup aprovado 09/08): votação do mês + mural. Regra
 // anti-spoiler do Diego: as barras de resultado SÓ abrem depois de votar.
 // Backend: esc_votacao_atual / esc_votar / esc_mural (1 voto por sócio no banco).
@@ -362,18 +360,106 @@ function ApoieModal({ onClose, children }: { onClose: () => void; children: Reac
     document.body
   )
 }
+// ⭐ CRAQUE MENSAL (planos v2, 08/10). A cobrança automática ainda não está montada, então o caminho é
+// o do Diego: *"deixará o whatsapp dele… aí mando pra ele pelo WhatsApp o link do pagamento do mensal"*.
+// A pessoa deixa o WhatsApp (fica guardado com a CONTA dela, `esc_pedir_craque`) ou chama no Direct.
+// NADA é liberado aqui: o plano só liga quando o Diego confirma o pagamento no painel
+// (`esc_admin_craque_pagamento`, com o ID do pagamento — repetido não conta duas vezes).
+function CraqueMensal({ direitos, onDirect, onVoltar }: { direitos: Direitos | null; onDirect: (msg: string) => void; onVoltar: () => void }) {
+  const en = getLang() === 'en'
+  const [logado, setLogado] = useState<boolean | null>(null)
+  const [zap, setZap] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+  const [enviado, setEnviado] = useState(false)
+  const [trocando, setTrocando] = useState(false)
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setLogado(!!data?.user), () => setLogado(false)) }, [])
+  const sit = situacaoCraque(direitos)
+  const ate = direitos?.craqueAte ? new Date(direitos.craqueAte).toLocaleDateString(en ? 'en-GB' : 'pt-BR') : ''
+  const esperando = (enviado || !!direitos?.pedido) && !trocando
+  const enviar = async () => {
+    const num = whatsappValido(zap)
+    if (!num) { setErro(tr('Confere o número: DDD + número, só os dígitos (ex.: 21 99999-0000).', 'Check the number: area code + number, digits only (e.g. 21 99999-0000).')); return }
+    setEnviando(true); setErro(null)
+    try {
+      const { error } = await supabase.rpc('esc_pedir_craque', { p_whatsapp: num })
+      if (error) throw error
+      logApoio('⭐ deixou o WhatsApp pro mensal')
+      setEnviado(true); setTrocando(false); recarregaDireitos()
+    } catch { setErro(tr('Não deu pra enviar agora (sem conexão?). Tenta de novo ou chama no Direct aqui embaixo.', 'Couldn’t send it right now (no connection?). Try again or message us on Instagram below.')) }
+    setEnviando(false)
+  }
+  const msgDirect = tr('Opa! Quero assinar o ⭐ CRAQUE COMPLETO (R$ 9,90/mês). Meu e-mail da conta: ____ · meu WhatsApp: ____', 'Hey! I want to subscribe to ⭐ FULL STAR (R$ 9.90/month). My account e-mail: ____ · my WhatsApp: ____')
+  const passo = (n: string, t: React.ReactNode) => <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>{n}</b>{t}</div>
+  return (
+    <div style={{ color: INK }}>
+      <div className="relative overflow-hidden rounded-2xl px-3 py-2.5 flex items-center gap-2" style={{ background: APOIO_PERKS.ouro.grad, border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+        <ApoioSheen holo={.6} />
+        <span className="relative font-black uppercase text-[20px] leading-none" style={OSWALD}>⭐ {tr('Craque completo', 'Full Star')}</span>
+        <span className="relative ml-auto text-right">
+          <b className="block font-black text-[24px] leading-none" style={OSWALD}>{precoTxt(PRECOS.craqueMensal, en)}</b>
+          <small className="block font-extrabold text-[9px] uppercase tracking-wider opacity-80">{tr('por mês', 'per month')}</small>
+        </span>
+      </div>
+
+      {sit === 'ativo' || sit === 'cancelado_no_prazo' ? (
+        <div className="bg-white rounded-2xl mt-3 px-3 py-3 text-center" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black uppercase text-[16px]" style={{ ...OSWALD, color: GREEN }}>{tr('✅ Seu Craque está ativo', '✅ Your Star is active')}</p>
+          <p className="text-[12px] font-bold mt-1">{sit === 'ativo' ? (en ? `Valid until ${ate}. Diego sends the next payment link before that.` : `Vale até ${ate}. O Diego te manda o link do próximo mês antes disso.`) : (en ? `Cancelled — it keeps working until ${ate}.` : `Cancelado — continua valendo até ${ate}.`)}</p>
+        </div>
+      ) : esperando ? (
+        <div className="bg-white rounded-2xl mt-3 px-3 py-3 text-center" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+          <p className="font-black uppercase text-[16px]" style={{ ...OSWALD, color: GREEN }}>{tr('📲 Pedido enviado!', '📲 Request sent!')}</p>
+          <p className="text-[12px] font-bold mt-1 leading-snug">{tr('O Diego vai te mandar o link de pagamento no WhatsApp. Pagou, ele libera o Craque na sua conta (em até 24h).', 'Diego will send you the payment link on WhatsApp. Once you pay, he unlocks Star on your account (within 24h).')}</p>
+          <button onClick={() => { setEnviado(false); setTrocando(true) }} className="text-[10.5px] font-black underline text-black/45 mt-2">{tr('trocar o número', 'change the number')}</button>
+        </div>
+      ) : (
+        <>
+          {sit === 'vencido' && <p className="text-[11.5px] font-bold mt-3 leading-snug text-center" style={{ color: 'rgba(12,12,12,.7)' }}>{tr('Seu Craque venceu. Tudo o que você jogou continua guardado — é só renovar pra voltar o ritmo, o nível e as suas salas.', 'Your Star lapsed. Everything you played is still stored — just renew to get the pace, levels and your rooms back.')}</p>}
+          <p className="font-black uppercase text-[12px] tracking-wider mt-3.5" style={{ ...OSWALD, color: 'rgba(12,12,12,.6)' }}>{tr('📲 como assinar (por enquanto)', '📲 how to subscribe (for now)')}</p>
+          <div className="flex gap-1.5 mt-1.5">
+            {passo('1', tr('deixa seu WhatsApp aqui', 'leave your WhatsApp here'))}
+            {passo('2', tr('o Diego te manda o link de pagamento', 'Diego sends you the payment link'))}
+            {passo('3', tr('pagou, liberou na sua conta', 'paid, unlocked on your account'))}
+          </div>
+          {logado === false ? (
+            <div className="bg-white rounded-2xl mt-3 px-3 py-3 text-center" style={{ border: `3px solid ${INK}` }}>
+              <p className="text-[12px] font-bold leading-snug">{tr('🔑 Entre na sua conta primeiro: o plano fica preso no seu e-mail, pra não se perder.', '🔑 Log in first: the plan is tied to your e-mail so it never gets lost.')}</p>
+            </div>
+          ) : (
+            <>
+              <input value={zap} onChange={e => { setZap(e.target.value.replace(/[^0-9()+\-\s]/g, '')); setErro(null) }} inputMode="tel" maxLength={20} placeholder={tr('seu WhatsApp com DDD', 'your WhatsApp with area code')}
+                className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 mt-3 font-black text-base bg-white" style={OSWALD} />
+              {erro && <p className="text-[10.5px] font-bold mt-1" style={{ color: RED }}>{erro}</p>}
+              <button onClick={enviar} disabled={enviando || !zap.trim()}
+                className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 mt-2 active:translate-y-0.5"
+                style={{ background: zap.trim() ? GREEN : '#cfc8b5', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+                {enviando ? tr('ENVIANDO…', 'SENDING…') : tr('📲 QUERO RECEBER O LINK', '📲 SEND ME THE LINK')}
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      <button onClick={() => onDirect(msgDirect)} className="w-full rounded-xl border-[3px] border-black font-black text-[13px] py-2.5 mt-2.5 active:translate-y-0.5"
+        style={{ background: '#E1306C', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+        {tr('📸 PREFIRO CHAMAR NO DIRECT', '📸 I’D RATHER MESSAGE ON INSTAGRAM')}
+      </button>
+      <p className="text-[10.5px] font-bold text-black/55 mt-3 leading-snug text-center">{tr('Nada é cobrado sozinho. Cancelou? Vale até o fim do mês pago. Se vencer, voltam as regras do gratuito — seus saves, ligas e histórico continuam guardados.', 'Nothing is charged automatically. Cancelled? It lasts until the end of the paid month. If it lapses, the free rules come back — your saves, leagues and history stay stored.')}</p>
+      <p className="text-center mt-3"><button onClick={onVoltar} className="text-[11px] font-black underline text-black/45">{tr('← ver todos os planos', '← see all plans')}</button></p>
+    </div>
+  )
+}
 export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo'; trigger?: (open: () => void) => React.ReactNode }) {
-  const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'pay' | 'batismo' | 'manual' | 'socio'>('off')
+  const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'mensal' | 'batismo' | 'manual' | 'socio'>('off')
+  const direitos = useDireitos() // 💳 planos v2: assinatura do Craque, batismo, pedido do mensal
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
   const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
   const [clube, setClube] = useState('')
-  // ⚽ BATISMO: qual série o clube vai jogar — muda o valor do Pix (Série D
-  // custa mais, são os rivais escolhidos). Cards viram seletor (09/08).
-  const [serieBatismo, setSerieBatismo] = useState<'abc' | 'd'>('abc')
-  // ⚠️ a chave interna 'd' quer dizer "a divisão CARA", e ela é a Série A desde
-  // 30/08 (a troca de letra). O nome da chave ficou pra não mexer no que já
-  // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
-  const precoCheioBatismo = serieBatismo === 'd' ? 69.9 : 59.9
+  // 🖋 BATISMO (planos v2, 08/10): Lenda R$ 69,90 ou Plus R$ 79,99 — os dois já entram na Série A
+  // (antes era a escolha de série, 59,90 × 69,90). Preços em planos-regras.ts.
+  const [planoBatismo, setPlanoBatismo] = useState<'lenda' | 'plus'>('lenda')
+  const precoCheioBatismo = planoBatismo === 'plus' ? PRECOS.batismoPlus : PRECOS.batismoLenda
   // 🎟️ CUPOM DE INFLUENCIADOR (Diego 07/09): "PANTERA" = 10% off SÓ no batismo.
   // O código é conferido no banco (esc_cupom_validar) — nenhum cupom vive no
   // código do jogo, então ninguém descobre fuçando. O desconto entra no valor do
@@ -399,8 +485,7 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
   const precoBatismo = cupom ? Math.round(precoCheioBatismo * (100 - cupom.desconto_pct)) / 100 : precoCheioBatismo
   // 🎯 alvo do LINK DIRETO (?apoie=lenda). Antes isto era a sanfona aberta; agora
   // que tudo fica à vista (23/08), ele só rola até o card e acende um brilho.
-  const [amp, setAmp] = useState<null | 'socio' | 'prata' | 'ouro' | 'batismo'>(null)
-  const [payTier, setPayTier] = useState<'prata' | 'ouro'>('prata')
+  const [amp, setAmp] = useState<null | SupportPlanKey>(null)
   const [meuNome, setMeuNome] = useState('') // nome da conta, pra simular na cor com o nome REAL da pessoa
   useEffect(() => {
     if (screen !== 'choice' || meuNome) return
@@ -433,10 +518,11 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
       )}
 
       {screen === 'choice' && <ApoieModal onClose={close}>
-        <SupportPlans focus={amp} tier={myApoioPerk()?.tier} name={meuNome} memberActive={!!meuSoc?.ativo} memberNumber={meuSoc?.socioN} foundersLeft={FUNDADOR_VAGAS}
-          onPay={tier => { logApoio('👀 escolheu apoio: ' + tier); setPayTier(tier); setScreen(tier === 'prata' ? 'manual' : 'pay') }}
-          onNaming={() => { logApoio('🖋 escolheu batismo'); setScreen('batismo') }}
-          onMember={() => { if (meuSoc?.ativo) { setScreen('socio'); return } const tier = myApoioPerk()?.tier; logApoio('🎫 abriu assinatura sócio'); window.open(tier === 'ouro' ? MP_SOCIO.lenda : tier === 'prata' ? MP_SOCIO.craque : MP_SOCIO.base, '_blank', 'noopener') }}
+        <SupportPlans focus={amp} tier={myApoioPerk()?.tier} name={meuNome} memberActive={!!meuSoc?.ativo}
+          craque={situacaoCraque(direitos)} craqueAte={direitos?.craqueAte} pedidoAberto={!!direitos?.pedido} batismoPlano={direitos?.batismoPlano ?? (souBarao() ? 'antigo' : null)}
+          onCraque={() => { logApoio('⭐ abriu o Craque mensal'); setScreen('mensal') }}
+          onNaming={plano => { logApoio(`🖋 escolheu batismo ${plano}`); setPlanoBatismo(plano); setScreen('batismo') }}
+          onMember={() => setScreen('socio')}
           onDonate={() => setScreen('pix')}
           onInstagram={() => window.open(APOIO_IG, '_blank', 'noopener')} />
       </ApoieModal>}
@@ -491,11 +577,11 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
 
           {/* 🔎 o nível aparece: a mesma carta, hoje × com o Craque */}
           <div className="bg-white rounded-2xl mt-3 px-3 py-2.5" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
-            <p className="font-black uppercase text-[10px] tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('🔎 o nível do jogador aparece — até Craque', '🔎 the player’s level shows — up to Star')}</p>
+            <p className="font-black uppercase text-[10px] tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('🔎 o nível do jogador aparece — até Lenda', '🔎 the player’s level shows — up to Legend')}</p>
             <div className="flex items-center justify-center gap-2.5">
               {([['hoje', 'today', false], ['com o Craque', 'with Star', true]] as const).map(([pt, en, on]) => (
                 <div key={pt} className="text-center">
-                  <div className="relative overflow-hidden rounded-[10px] px-1.5 py-1.5 text-left" style={{ width: 86, background: on ? APOIO_PERKS.prata.grad : APOIO_PERKS.bege.grad, border: `2.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, opacity: on ? 1 : .85 }}>
+                  <div className="relative overflow-hidden rounded-[10px] px-1.5 py-1.5 text-left" style={{ width: 86, background: on ? APOIO_PERKS.ouro.grad : APOIO_PERKS.bege.grad, border: `2.5px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}`, opacity: on ? 1 : .85 }}>
                     {on && <ApoioSheen holo={.6} />}
                     <span className="relative font-black rounded text-[8px] px-1.5" style={{ ...OSWALD, background: INK, color: '#fff' }}>MEI</span>
                     <div className="relative rounded-full mx-auto my-1.5 flex items-center justify-center font-black text-[14px]" style={{ width: 30, height: 30, background: 'rgba(255,255,255,.5)', border: '2px solid rgba(0,0,0,.28)', ...OSWALD }}>Z</div>
@@ -515,65 +601,42 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <div className="bg-white rounded-2xl mt-3 px-3 py-2.5" style={{ border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
             <p className="font-black uppercase text-[10px] tracking-widest mb-2" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('⭐ e vem junto', '⭐ also included')}</p>
             <div className="flex flex-wrap gap-1.5">
-              {[tr('⭐ nome prata brilhando nas salas online', '⭐ shining silver name in online rooms'), tr('🕵️ Olheiro: acha jogador fora do leilão (até Craque)', '🕵️ Scout: find players outside the auction (up to Star)'), tr('💾 2 carreiras salvas', '💾 2 saved careers'), tr('📲 grupo VIP no WhatsApp com o Diego', '📲 VIP WhatsApp group with Diego')].map(t => (
+              {[tr('✨ nome dourado brilhando nas salas', '✨ shining gold name in the rooms'), tr('🕵️ Olheiro: acha jogador fora do leilão (até Lenda)', '🕵️ Scout: find players outside the auction (up to Legend)'), tr('💾 4 carreiras salvas', '💾 4 saved careers'), tr('🏆 cria salas e Minhas Ligas', '🏆 create rooms and My Leagues'), tr('📲 grupo VIP no WhatsApp com o Diego', '📲 VIP WhatsApp group with Diego')].map(t => (
                 <span key={t} className="font-extrabold text-[10.5px] rounded-full px-2.5 py-1" style={{ border: `2px solid ${INK}`, background: '#F4ECD6' }}>{t}</span>
               ))}
             </div>
           </div>
 
-          {/* 💰 preço + o botão */}
-          <div className="relative overflow-hidden rounded-2xl mt-3.5 px-3 py-2.5 flex items-center gap-2" style={{ background: APOIO_PERKS.prata.grad, border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
+          {/* 💰 preço + o botão (planos v2, 08/10: Craque completo mensal) */}
+          <div className="relative overflow-hidden rounded-2xl mt-3.5 px-3 py-2.5 flex items-center gap-2" style={{ background: APOIO_PERKS.ouro.grad, border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}>
             <ApoioSheen holo={.6} />
-            <span className="relative font-black uppercase text-[20px]" style={OSWALD}>⭐ {tr('Craque', 'Star')}</span>
+            <span className="relative font-black uppercase text-[20px] leading-none" style={OSWALD}>⭐ {tr('Craque completo', 'Full Star')}</span>
             <span className="relative ml-auto text-right">
-              <b className="block font-black text-[24px] leading-none" style={OSWALD}>R$ 19,90</b>
-              <small className="block font-extrabold text-[9px] uppercase tracking-wider opacity-80">{tr('paga uma vez · é seu pra sempre', 'pay once · yours forever')}</small>
+              <b className="block font-black text-[24px] leading-none" style={OSWALD}>{precoTxt(PRECOS.craqueMensal, getLang() === 'en')}</b>
+              <small className="block font-extrabold text-[9px] uppercase tracking-wider opacity-80">{tr('por mês · cancela quando quiser', 'per month · cancel anytime')}</small>
             </span>
           </div>
-          <div className="mt-3"><PixBox label="copiar Pix (R$ 19,90)" ctx="craque (manual + cor)" amount={19.9} /></div>
-          <div className="flex gap-1.5 mt-2.5">
-            <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>1</b>{tr('paga o Pix no app do banco', 'pay the Pix in your bank app')}</div>
-            <button onClick={() => { logApoio('⭐ QUER O CRAQUE / MANUAL (R$ 19,90)'); igMsg(tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP). E-mail da conta: ____ — comprovante em anexo!', 'Hey! I supported Leilão Legends 💛 I want ⭐ STAR (Manual Mode + club colour + VIP). Account email: ____ — receipt attached!')) }}
-              className="flex-1 rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight active:translate-y-0.5" style={{ border: `2px solid ${INK}`, background: '#E1306C', color: '#fff', boxShadow: `2px 2px 0 ${INK}` }}>
-              <b className="block text-[13px]" style={OSWALD}>2</b>{tr('manda o comprovante no @leilaolegendscom', 'send the receipt to @leilaolegendscom')}
-            </button>
-            <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>3</b>{tr('libera em até 24h · nome prata ⭐ na sala', 'unlocked within 24h · silver name ⭐ in the room')}</div>
-          </div>
+          <button onClick={() => { logApoio('⭐ trava do manual → mensal'); setScreen('mensal') }}
+            className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 mt-3 active:translate-y-0.5"
+            style={{ background: GOLD, color: INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
+            {tr('⭐ QUERO O CRAQUE', '⭐ I WANT STAR')}
+          </button>
           <p className="text-center text-[10px] font-bold mt-3 leading-relaxed" style={{ color: 'rgba(12,12,12,.5)' }}>{tr('Não muda a força de ninguém — só o ritmo e o que você enxerga. No online o tempo é igual pra todos.', 'It doesn’t change anyone’s strength — only the pace and what you see. Online, the clock is the same for everyone.')}</p>
 
-          {/* 👑🖋 quer mais que isso? */}
-          <p className="text-center font-black uppercase text-[11px] tracking-widest mt-3 mb-1.5" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('quer mais que isso?', 'want more than that?')}</p>
-          <div className="flex gap-2">
-            <button onClick={() => { logApoio('👀 manual → lenda'); setAmp('ouro'); setScreen('choice') }} className="flex-1 rounded-xl px-1.5 py-2.5 text-center font-black uppercase text-[13px] active:translate-y-0.5" style={{ ...OSWALD, background: APOIO_PERKS.ouro.grad, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
-              {tr('👑 Ver o Lenda', '👑 See Legend')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('R$ 39,90 · vê até Lenda', 'R$ 39.90 · see up to Legend')}</span>
-            </button>
-            <button onClick={() => { logApoio('👀 manual → batismo'); setAmp('batismo'); setScreen('choice') }} className="flex-1 rounded-xl px-1.5 py-2.5 text-center font-black uppercase text-[13px] active:translate-y-0.5" style={{ ...OSWALD, background: INK, color: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
-              {tr('🖋 Ver o Batismo', '🖋 See Club naming')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('seu clube no jogo', 'your club in the game')}</span>
-            </button>
-          </div>
+          {/* 🖋 quer mais que isso? */}
+          <p className="text-center font-black uppercase text-[11px] tracking-widest mt-3 mb-1.5" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('prefere pagar uma vez só?', 'rather pay just once?')}</p>
+          <button onClick={() => { logApoio('👀 manual → batismo'); setAmp('batismo'); setScreen('choice') }} className="w-full rounded-xl px-1.5 py-2.5 text-center font-black uppercase text-[13px] active:translate-y-0.5" style={{ ...OSWALD, background: INK, color: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
+            {tr('🖋 Ver o Batismo', '🖋 See Club naming')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('tudo do Craque pra sempre + seu clube no jogo · a partir de R$ 69,90', 'all of Star forever + your club in the game · from R$ 69.90')}</span>
+          </button>
           <div className="ll-support-offer mt-2"><SupportStory /></div>
         </div>
       </ApoieModal>}
 
-      {screen === 'pay' && (() => {
-        const ouro = payTier === 'ouro'
-        const upgrade = ouro && myApoioPerk()?.tier === 'prata'
-        const amount = ouro ? (upgrade ? 20 : 39.9) : 19.9
-        return (
+      {screen === 'mensal' && (
         <ApoieModal onClose={close}>
-          <p className="font-black text-xl text-center" style={OSWALD}>{upgrade ? tr('👑 UPGRADE LENDA · R$ 20,00', '👑 LEGEND UPGRADE · R$ 20.00') : ouro ? tr('👑 LENDA · R$ 39,90', '👑 LEGEND · R$ 39.90') : tr('⭐ CRAQUE · R$ 19,90', '⭐ STAR · R$ 19.90')}</p>
-          <p className="text-[10.5px] font-bold text-black/55 text-center mt-1 leading-snug">{ouro ? tr('ouro (ou qualquer cor) com brilho + selo + 🎮 Manual + 📲 grupo VIP + 🕵️ Olheiro de tudo + 💾 6 fichas', 'gold (or any colour) with shine + badge + 🎮 Manual + 📲 VIP group + 🕵️ Scout for everything + 💾 6 save slots') : tr('cor prata com brilho + 🎮 Modo Manual + 📲 grupo VIP + 🕵️ Olheiro até ⭐ + 💾 4 fichas', 'shining silver + 🎮 Manual Mode + 📲 VIP group + 🕵️ Scout up to ⭐ + 💾 4 save slots')}</p>
-          <div className="mt-3.5"><PixBox label="copiar Pix" ctx={ouro ? 'lenda' : 'craque (manual + cor)'} amount={amount} /></div>
-          <button onClick={() => { logApoio(ouro ? '👑 QUER O LENDA (R$ 39,90)' : '⭐ QUER O CRAQUE (R$ 19,90)'); igMsg(ouro ? tr('Opa! Apoiei o Leilão Legends 💛 Quero o 👑 LENDA (ouro/cor com brilho + Manual + grupo VIP) — comprovante em anexo!', 'Hey! I just supported Leilão Legends 💛 I want the 👑 LEGEND tier (shining gold/colour + Manual + VIP group) — receipt attached!') : tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP) — comprovante em anexo!', 'Hey! I just supported Leilão Legends 💛 I want the ⭐ STAR tier (Manual Mode + club colour + VIP group) — receipt attached!')) }}
-            className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-3 mt-2.5 active:translate-y-0.5"
-            style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-            {tr('📸 MANDAR COMPROVANTE NO @leilaolegendscom', '📸 SEND THE RECEIPT TO @leilaolegendscom')}
-          </button>
-          <p className="text-[10px] font-bold text-black/45 text-center mt-1.5">{tr('a mensagem já vai copiada · liberamos em até 24h no seu e-mail · upgrade depois? paga só a diferença 😉', 'the message is already copied · we unlock it within 24h on your e-mail · upgrade later? you only pay the difference 😉')}</p>
-          <p className="text-center mt-3"><button onClick={() => setScreen('choice')} className="text-[11px] font-black underline text-black/45">{tr('← voltar pros pacotes', '← back to the packages')}</button></p>
+          <CraqueMensal direitos={direitos} onDirect={msg => { logApoio('⭐ mensal → chamou no Direct'); igMsg(msg) }} onVoltar={() => setScreen('choice')} />
         </ApoieModal>
-        )
-      })()}
+      )}
 
       {screen === 'batismo' && (
         <ApoieModal onClose={close}>
@@ -583,20 +646,19 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           <input value={clube} onChange={e => setClube(stripEmoji(e.target.value))} maxLength={26} placeholder={tr('Ex.: Atlético do Jefão', 'e.g. Atlético do Jefão')}
             className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 mt-2 font-black text-base bg-white" style={OSWALD} />
           <p className="text-[10px] font-bold text-black/45 mt-1.5">{tr('✅ nome de resenha, zoeira leve, homenagem · ❌ ofensa, política, marca de empresa', '✅ banter names, light jokes, tributes · ❌ slurs, politics, company brands')}</p>
-          <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>{tr('Escolhe a série e faz o Pix', 'Pick the division and pay via Pix')}</p>
+          <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>{tr('Escolhe o batismo e faz o Pix', 'Pick the naming and pay via Pix')}</p>
           <div className="flex gap-1.5 mt-1.5">
-            <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
-              style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('Série B·C·D e Várzea', 'Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 59,90', 'R$ 59.90')}</span>
-            </button>
-            <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
-              style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('👑 Série A (a elite)', '👑 Série A (the elite)')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 69,90', 'R$ 69.90')}</span>
-            </button>
+            {([['lenda', tr('🖋 Batismo Lenda', '🖋 Legend Naming'), PRECOS.batismoLenda, tr('tudo do Craque pra sempre + seu clube', 'all of Star forever + your club')],
+               ['plus', tr('🖋✨ Batismo Plus', '🖋✨ Plus Naming'), PRECOS.batismoPlus, tr('+ gala única + canto de torcida', '+ unique entrance + crowd chant')]] as const).map(([k, nome, preco, sub]) => (
+              <button key={k} onClick={() => setPlanoBatismo(k)} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
+                style={{ background: planoBatismo === k ? GOLD : '#fff', boxShadow: planoBatismo === k ? `2px 2px 0 0 ${INK}` : 'none' }}>
+                {nome}<br /><span className="text-[12px]" style={OSWALD}>{precoTxt(preco, getLang() === 'en')}</span><br /><span className="font-bold text-black/55">{sub}</span>
+              </button>
+            ))}
           </div>
-          <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
-                                                                                    <><b>Série A</b> costs more because it is the elite: those are the clubs that show up in <b>quick play</b> and the rivals everybody faces. Tap one of the two to choose.</>)}</p>
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '👑 Série A (a elite)' : 'Série B/C/D ou Várzea'}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
+          <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>Os dois entram na <b>Série A</b>, no <b>Jogo Rápido</b> e no <b>Online</b>, e trazem <b>tudo do Craque pra sempre</b>, sem mensalidade.</>,
+                                                                                    <>Both join <b>Division A</b>, <b>Quick Play</b> and <b>Online</b>, and bring <b>everything in Star forever</b>, no monthly fee.</>)}</p>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${planoBatismo === 'plus' ? '🖋✨ Plus' : '🖋 Lenda'}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
           {/* 🎟️ cupom de influenciador — só aqui, no batismo. SUTIL de propósito
               (Diego 08/09: *"deixe de forma mais sutil lá no pagamento e não tão
               óbvio"*): é uma linha cinza embaixo do Pix, "tem cupom?", que só vira
@@ -621,21 +683,21 @@ export function ApoieButton({ big = false, startScreen = 'choice', trigger }: { 
           )}
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>3</span>{tr('Manda comprovante + nome', 'Send the receipt + the name')}</p>
           <button onClick={() => {
-            logApoio(`🏟️ QUER BATISMO: "${clube.trim() || '(sem nome)'}"${cupom ? ` · cupom ${cupom.codigo}` : ''}`)
+            logApoio(`🏟️ QUER BATISMO ${planoBatismo.toUpperCase()}: "${clube.trim() || '(sem nome)'}"${cupom ? ` · cupom ${cupom.codigo}` : ''}`)
             // 🎟️ registra o uso do cupom (pro relatório do influenciador). Não trava
             // nada se falhar: a DM com "cupom X" continua sendo a prova pro Diego.
-            if (cupom) supabase.rpc('esc_cupom_usar', { p_codigo: cupom.codigo, p_clube: clube.trim(), p_serie: serieBatismo === 'd' ? 'A' : 'BCD', p_valor_cheio: precoCheioBatismo, p_valor_pago: precoBatismo }).then(() => {}, () => {})
+            if (cupom) supabase.rpc('esc_cupom_usar', { p_codigo: cupom.codigo, p_clube: clube.trim(), p_serie: planoBatismo === 'plus' ? 'PLUS' : 'LENDA', p_valor_cheio: precoCheioBatismo, p_valor_pago: precoBatismo }).then(() => {}, () => {})
             igMsg(getLang() === 'en'
-              ? `Hey! I just supported Leilão Legends 💛 I want to name my club: "${clube.trim() || '(club name)'}"${cupom ? ` — I used coupon ${cupom.codigo} (${cupom.desconto_pct}% off, paid R$ ${precoBatismo.toFixed(2)})` : ''} — receipt attached!`
-              : `Opa! Acabei de apoiar o Leilão Legends 💛 Quero batizar meu clube: "${clube.trim() || '(nome do clube)'}"${cupom ? ` — usei o cupom ${cupom.codigo} (${cupom.desconto_pct}% off, paguei R$ ${precoBatismo.toFixed(2).replace('.', ',')})` : ''} — comprovante em anexo!`)
+              ? `Hey! I just supported Leilão Legends 💛 I want the ${planoBatismo === 'plus' ? 'PLUS' : 'LEGEND'} naming for my club: "${clube.trim() || '(club name)'}"${cupom ? ` — I used coupon ${cupom.codigo} (${cupom.desconto_pct}% off, paid R$ ${precoBatismo.toFixed(2)})` : ''} — receipt attached!`
+              : `Opa! Acabei de apoiar o Leilão Legends 💛 Quero o Batismo ${planoBatismo === 'plus' ? 'PLUS' : 'LENDA'} do meu clube: "${clube.trim() || '(nome do clube)'}"${cupom ? ` — usei o cupom ${cupom.codigo} (${cupom.desconto_pct}% off, paguei R$ ${precoBatismo.toFixed(2).replace('.', ',')})` : ''} — comprovante em anexo!`)
           }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
             {tr('📸 CHAMAR NO @leilaolegendscom', '📸 MESSAGE @leilaolegendscom')}
           </button>
           <p className="text-[10px] font-bold text-black/45 mt-1.5 text-center">{tr('(a mensagem já vai copiada — é só colar na DM e anexar o comprovante)', '(the message is already copied — just paste it in the DM and attach the receipt)')}</p>
           <p className="text-[11px] font-bold text-black/55 mt-3 leading-snug text-center">{tr('A gente responde em até 24h confirmando o clube — e na próxima atualização ele já tá jogando pra todo mundo. ⚽', 'We reply within 24h confirming the club — and in the next update it is already playing for everyone. ⚽')}</p>
-          <p className="text-[10.5px] font-bold text-black/60 mt-2 leading-snug text-center">{L(<>👑 <b>Bônus:</b> batizar já inclui <b>tudo do Lenda</b> + o <b>🎫 Sócio Legends</b> (manto, escudo, mascote, estádio batizado). Se alguém cobrir a proposta pelo nome, você perde <b>só o nome</b> — o resto continua com você. Aí é cobrir ou chorar. 😄</>,
-                                                                                                <>👑 <b>Bonus:</b> naming a club already includes <b>everything from Legend</b> + <b>🎫 Legends Membership</b> (kit, crest, mascot, named stadium). If someone outbids you for the name, you only lose <b>the name</b> — everything else stays with you. Then it's outbid or cry. 😄</>)}</p>
+          <p className="text-[10.5px] font-bold text-black/60 mt-2 leading-snug text-center">{L(<>👑 <b>Bônus:</b> batizar já inclui <b>tudo do Craque completo, pra sempre</b> + o <b>🎫 Sócio Legends</b> (manto, escudo, mascote, estádio batizado). Se alguém cobrir a proposta pelo nome, você perde <b>só o nome</b> — o resto continua com você. Aí é cobrir ou chorar. 😄</>,
+                                                                                                <>👑 <b>Bonus:</b> naming a club already includes <b>everything in Full Star, forever</b> + <b>🎫 Legends Membership</b> (kit, crest, mascot, named stadium). If someone outbids you for the name, you only lose <b>the name</b> — everything else stays with you. Then it's outbid or cry. 😄</>)}</p>
           <div className="border-[3px] border-black rounded-xl px-3 py-2.5 mt-3 text-center" style={{ background: INK }}>
             <p className="font-black text-[12px] tracking-wide" style={{ color: GOLD, ...OSWALD }}>{tr('🤫 DISCRIÇÃO TOTAL', '🤫 COMPLETE DISCRETION')}</p>
             <p className="text-[10.5px] font-bold mt-1 leading-snug" style={{ color: 'rgba(255,255,255,0.75)' }}>{tr('Nenhum valor aparece pra ninguém, nunca. Quanto cada um apoiou fica só entre você e a gente. No jogo, só existe o nome do clube.', 'No amount is ever shown to anyone, ever. How much each person gave stays between you and us. In the game, only the club name exists.')}</p>
@@ -1779,21 +1841,22 @@ function Duvidas() {
     ['How do I get a crest and a mascot of my own?', <>
       It\'s the <b>🖋️ Club naming</b>. You pick the name, send whatever art you like (or we draw it), and the club gets its <b>crest, mascot, kit and stadium name</b> — made just for it.<br /><br />
       <b>Where:</b> 💛 Support → 🖋️ Batismo.<br />
-      <b>How much:</b> R$ 59.90 (Série B, C, D or Várzea) · R$ 69.90 (👑 Série A).<br />
+      <b>How much:</b> R$ 69.90 (🖋️ Legend Naming) · R$ 79.99 (🖋️✨ Plus Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br />
       <b>How:</b> pay via Pix, send the receipt and the name by DM. We confirm <b>within 24h</b> and it enters the next update.<br /><br />
       The name is <b>reserved in 4 forms</b> (with and without FC/EC, upper or lower case) — nobody else can use it.
     </>],
     ['How do I make my team show up for everyone in the game?', <>
       It\'s the same <b>Club naming</b> — and that\'s the best part of it.<br /><br />
       Your club <b>enters a real division</b> and exists for <b>every Leilão Legends player</b>, not just you. Anyone can land in the same table as it, see your crest, your kit, and your mascot celebrating the goal.<br /><br />
-      <b>Série A costs more</b> (R$ 69.90) because it\'s the elite of the game: they are the clubs that show up in the <b>online quick match</b> and the rivals everyone faces in the career. It\'s the club that appears the most.
+      Both namings put the club in <b>Série A</b>, the elite of the game: those are the clubs that show up in <b>Quick Play</b> and <b>online</b>, and the rivals everyone faces in the career. It\'s the club that appears the most.
     </>],
     ['What are the support plans?', <>
       There are <b>4</b>, and all the details are in the <b>💛 Support</b> button:<br /><br />
-      🎫 <b>Sócio Legends — R$ 9.90 a month.</b> The only monthly one.<br />
-      ⭐ <b>Craque (Star) — R$ 19.90, one time.</b><br />
-      👑 <b>Lenda (Legend) — R$ 39.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
-      🖋️ <b>Batismo (Club naming) — from R$ 59.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br /><br />
+      ⚽ <b>Free — R$ 0.</b> Career, Quick Play, public rooms and your friends\' rooms and leagues.<br />
+      ⭐ <b>Full Star — R$ 9.90 a month.</b> Manual Mode, levels and scout up to Legend, premium look, 4 careers, create rooms and My Leagues, VIP group.<br />
+      🖋️ <b>Legend Naming — R$ 69.90, one time.</b> <b>Everything in Star, forever</b>, plus your club (crest, mascot, kit, stadium) in Série A.<br />
+      🖋️✨ <b>Plus Naming — R$ 79.99, one time.</b> Everything in Legend Naming + a unique grand entrance + a crowd chant in Career.<br /><br />
+      Already bought Star, Legend, Membership or a Naming before? <b>You keep all of it, forever.</b><br /><br />
       No plan gives an advantage on the pitch — <b>the game is the same for everyone</b>. What changes is colour, shine, story and perks.
     </>],
     ['How do I sponsor my company in the game?', <>
@@ -1836,21 +1899,22 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      <b>Quanto:</b> R$ 59,90 (Série B, C, D ou Várzea) · R$ 69,90 (👑 Série A).<br />
+      <b>Quanto:</b> R$ 69,90 (🖋️ Batismo Lenda) · R$ 79,99 (🖋️✨ Batismo Plus, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br />
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
     ['Como faço pro meu time aparecer pra todo mundo no jogo?', <>
       É o mesmo <b>Batismo</b> — e essa é a melhor parte dele.<br /><br />
       Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo jogador do Leilão Legends</b>, não só pra você. Qualquer pessoa pode cair na mesma tabela que ele, ver o seu escudo, o seu manto, e a sua mascote comemorando o gol.<br /><br />
-      A <b>Série A custa mais</b> (R$ 69,90) porque é a elite do jogo: são os clubes que aparecem no <b>jogo rápido online</b> e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.
+      Os dois batismos colocam o clube na <b>Série A</b>, a elite do jogo: são os clubes que aparecem no <b>Jogo Rápido</b> e no <b>online</b>, e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.
     </>],
     ['Quais são os planos de apoio?', <>
       São <b>4</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
-      🎫 <b>Sócio Legends — R$ 9,90 por mês.</b> O único mensal.<br />
-      ⭐ <b>Craque — R$ 19,90, uma vez só.</b><br />
-      👑 <b>Lenda — R$ 39,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
-      🖋️ <b>Batismo — a partir de R$ 59,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br /><br />
+      ⚽ <b>Gratuito — R$ 0.</b> Carreira, Jogo Rápido, salas públicas e as salas e ligas dos amigos.<br />
+      ⭐ <b>Craque completo — R$ 9,90 por mês.</b> Modo Manual, nível e olheiro até Lenda, visual premium, 4 carreiras, cria salas e Minhas Ligas, grupo VIP.<br />
+      🖋️ <b>Batismo Lenda — R$ 69,90, uma vez só.</b> <b>Tudo do Craque, pra sempre</b>, mais o seu clube (escudo, mascote, manto, estádio) na Série A.<br />
+      🖋️✨ <b>Batismo Plus — R$ 79,99, uma vez só.</b> Tudo do Batismo Lenda + entrada de gala única + canto de torcida na Carreira.<br /><br />
+      Já comprou Craque, Lenda, Sócio ou Batismo antes? <b>Continua tudo seu, pra sempre.</b><br /><br />
       Nenhum plano dá vantagem dentro das quatro linhas — <b>o jogo é igual pra todos</b>. O que muda é cor, brilho, história e mimos.
     </>],
     ['Como faço pra patrocinar minha empresa no jogo?', <>

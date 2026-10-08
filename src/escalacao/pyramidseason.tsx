@@ -1305,12 +1305,12 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
   return (
     <div style={{ ...box('#0C0C0C'), padding: 13, color: '#fff', marginTop: 10 }}>
       <p style={{ fontWeight: 900, fontSize: 15, color: GOLD, ...OSWALD, margin: 0 }}>{tr('🏛️ Compre um SEGUNDO CLUBE', '🏛️ Buy a SECOND CLUB')}</p>
-      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>Pick a club that <b>plays Série D today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>Legend 👑</b> tier perk.</> : <>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do tier <b>Lenda 👑</b>.</>}</p>
+      <p style={{ fontFamily: 'system-ui', fontSize: 10.5, color: 'rgba(255,255,255,.82)', margin: '5px 0 0', lineHeight: 1.45 }}>{getLang() === 'en' ? <>Pick a club that <b>plays Série D today</b> — it wears <b>your colour</b>, <b>sleeps</b> and you take command <b>between seasons</b>. Costs <b>4,000 🪙</b> · a <b>⭐ Full Star</b> perk (or Club naming).</> : <>Escolha um clube que <b>hoje joga a Série D</b> — ele veste a <b>sua cor</b>, <b>dorme</b> e você assume o comando <b>entre as temporadas</b>. Custa <b>4.000 🪙</b> · regalia do <b>⭐ Craque completo</b> (ou do Batismo).</>}</p>
       {!isLenda && (
         <>
-          <div style={lock}>{getLang() === 'en' ? <>🔒 <b>Legend 👑</b> perk — become Legend to manage 2 clubs.</> : <>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</>}</div>
+          <div style={lock}>{getLang() === 'en' ? <>🔒 <b>⭐ Full Star</b> perk — subscribe to manage 2 clubs.</> : <>🔒 Regalia do <b>⭐ Craque completo</b> — assine pra comandar 2 clubes.</>}</div>
           <ApoieButton startScreen="choice" trigger={(open) => (
-            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('👑 VIRAR LENDA NO APOIE', '👑 BECOME LEGEND IN SUPPORT')}</button>
+            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>{tr('⭐ VER O CRAQUE · R$ 9,90/MÊS', '⭐ SEE STAR · R$ 9.90/MONTH')}</button>
           )} />
         </>
       )}
