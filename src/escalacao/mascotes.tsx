@@ -67,6 +67,7 @@ import guimaraesMascoteImg from './img/guimaraes-mascote.webp' // 🔴 Guimarãe
 import gavioesMascoteImg from './img/gavioes-mascote.webp' // 🦅 Gaviões SCCP (kauealves584): arte própria do dono
 import vieiraMascoteImg from './img/vieira-mascote.webp' // 😈 Vieira FC (felipe.vrod10): arte própria do dono
 import mengaoMascoteImg from './img/mengao-mascote.webp' // 🦅 Mengão Malvadão (atilasoaresjr21): arte própria do dono
+import leprinceMascoteImg from './img/leprince-mascote.webp' // 🐓 Le Prince FC (henriquejunger07): arte própria do dono
 import k9MascoteImg from './img/k9-mascote.webp' // 👑 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
 import madrugaMascoteImg from './img/madruga-mascote.webp' // 👒 Real Madruga (luck.45): arte própria do dono
 import juliaMascoteImg from './img/julia-mascote.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
@@ -361,6 +362,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 330×440, 41 KB — a altura fica em 176. mascote_key = "mengao_urubu".
   mengao_urubu: (
     <img src={mengaoMascoteImg} height={176} width={Math.round(176 * 330 / 440)} alt="O Urubu Malvadão — Mengão Malvadão" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🐓👑 O GALO REI (mascote do Le Prince FC — henriquejunger07, 08/10): o galo de coroa e manto real,
+  // apontando o dedo, surfando em cima do lobo azul. A cena inteira é a mascote. Arte do próprio dono.
+  // 📏 333×440, ≤45 KB — a altura fica em 176. mascote_key = "leprince_galo_rei".
+  leprince_galo_rei: (
+    <img src={leprinceMascoteImg} height={176} width={Math.round(176 * 333 / 440)} alt="O Galo Rei — Le Prince FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   k9_rei: (
     <img src={k9MascoteImg} height={176} width={Math.round(176 * 328 / 440)} alt="O Rei K9 — K9 FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -1143,6 +1150,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'K9 EC': 'k9_rei',
   'K9 SC': 'k9_rei',
   'Meia-Boca FC': 'k9_rei',
+  // 🐓 o Galo Rei carimba o gol do Le Prince FC (henriquejunger07, 08/10).
+  'Le Prince FC': 'leprince_galo_rei',
+  'Le Prince': 'leprince_galo_rei',
+  'Le Prince EC': 'leprince_galo_rei',
+  'Le Prince SC': 'leprince_galo_rei',
+  'Perna de Pau City': 'leprince_galo_rei',
   // 🦅 o Urubu Malvadão carimba o gol do Mengão Malvadão (atilasoaresjr21, 06/10).
   'Mengão Malvadão': 'mengao_urubu',
   'Mengão Malvadão FC': 'mengao_urubu',
@@ -1259,6 +1272,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   gavioes_gaviao: 'O Gavião', // 🦅 Gaviões SCCP (kauealves584, 02/10)
   vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
   mengao_urubu: 'O Urubu Malvadão', // 🦅 Mengão Malvadão (atilasoaresjr21, 06/10)
+  leprince_galo_rei: 'O Galo Rei', // 🐓👑 Le Prince FC (henriquejunger07, 08/10)
   k9_rei: 'O Rei K9', // 👑 K9 FC (kelvinoliveiraandradeenunes, 06/10)
   madruga_boleiro: 'O Madruga', // 👒 Real Madruga (luck.45, 02/10)
   julia_tubarao: 'O Tubarão', // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10, 24/09)

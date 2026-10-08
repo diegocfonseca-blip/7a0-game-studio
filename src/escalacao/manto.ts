@@ -95,6 +95,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🦅🔴⚫ Mengão Malvadão — VERMELHO e PRETO, MEDIDOS na camisa que o dono mandou (06/10): vermelho das
   // listras 35% (#CE1313) e preto 59% (#171514).
   'atilasoaresjr21@gmail.com': ['#CE1313', '#171514'],
+  // 🐓👑 Le Prince FC — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (08/10): preto 66% (mediana #0F0E0D)
+  // e branco das listras 20% (#E6E2DD).
+  'henriquejunger07@gmail.com': ['#0F0E0D', '#E6E2DD'],
   // 🦅⚫⚪ Gaviões SCCP — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (02/10): preto 77%
   // (mediana #100D0E, sobe pra #161314 — listra fina de preto puro lê como buraco) e branco da
   // gola/punhos 4% (#F9F8F8).

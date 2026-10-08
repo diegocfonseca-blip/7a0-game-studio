@@ -1,3 +1,12 @@
+## 🐓👑 Batismo Le Prince FC (08/10) ✅ NO AR
+- Dono `henriquejunger07@gmail.com` (CHINESINHO; conta de 25/09, era grátis → 👑 Lenda). **Várzea**, no assento do bot
+  **Perna de Pau City** (`VARZEA_TEAMS`; `OLD_NAME` leva save antigo pro nome novo). Fundador nº87 · sócio nº68.
+- Arte do dono (prancha chroma; a capa encostava no escudo e o dedo na manga da camisa — recorte por máscara linha a
+  linha): escudo 251×360/27 KB · mascote "O Galo Rei" (galo de coroa surfando no lobo azul, cena inteira) 333×440/44 KB ·
+  camisa da Loja. Manto medido: preto #0F0E0D (66%) + branco #E6E2DD (20%).
+- Banco feito: user_colors ouro · esc_fundadores 87 · esc_socios 68 · esc_nomes_batismo "Le Prince" (FC/EC pelo gatilho).
+- ⏳ Falta o time do coração (post e `esc_socios.time_coracao`). Nome no post = "Chinesinho" (o nome da conta).
+
 ## 👑 Cartas do K9 (08/10) ✅ NO AR
 - Kelvin Oliveira (K9): G3X 2025 **lenda** (87–94) e Grêmio 2023 **bom** no teto (80–88). As duas no BR — exceção à regra de
   26/09 aberta pelo Diego só pra ele (motivo dele, não divulgar). O Grêmio dele foi o de Fut7 (2023); a bio conta isso.

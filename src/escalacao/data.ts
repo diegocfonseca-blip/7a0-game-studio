@@ -3599,6 +3599,7 @@ export function ehPromessa(c: { name: string; club?: string; year?: number; prom
 }
 
 export const OLD_NAME: Record<string, string> = {
+  'Le Prince FC': 'Perna de Pau City', // 🐓👑 batismo do henriquejunger07 (08/10): assumiu o assento da Várzea que era do bot Perna de Pau City — save antigo com Perna de Pau City vira Le Prince FC ao abrir.
   'K9 FC': 'Meia-Boca FC', // 👑🧊 batismo do kelvinoliveiraandradeenunes (06/10): assumiu o assento da Várzea que era do bot Meia-Boca FC — save antigo com Meia-Boca FC vira K9 FC ao abrir.
   'Vasco SAF': 'Vasco da Grana', // ⚽🏴‍☠️ batismo do brunnodeluca90 (24/09): o Vasco da Grana (batismo sem dono, pedido do Diego em 03/08) virou Vasco SAF — save antigo chega no nome novo
   'Cruzeiro de Berretinho': 'Metrópole FC', // ⭐🐺 batismo do weslleygomes749 (25/09): assumiu o assento da Série D que era do bot Metrópole FC — save antigo com Metrópole FC vira Cruzeiro de Berretinho ao carregar
@@ -3707,7 +3708,7 @@ export const VARZEA_TEAMS: CareerTeam[] = [
   { name: 'Nem', team: 'Barcelona da Vila' },
   { name: 'Pituca', team: 'Juventude do Churrasco' },
   { name: 'Kelvin', team: 'K9 FC' }, // 👑🧊 clube BATIZADO por apoiador (kelvinoliveiraandradeenunes — K9 FC, ex-Meia-Boca FC, Várzea; escudo com coroa e gelo, mascote O Rei K9; branco #E5E8F3 + azul #0723B4 MEDIDOS na camisa do dono; Lenda + fundador nº85, 06/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
-  { name: 'Xandão', team: 'Perna de Pau City' },
+  { name: 'Chinesinho', team: 'Le Prince FC' }, // 🐓👑 clube BATIZADO por apoiador (henriquejunger07 — Le Prince FC, ex-Perna de Pau City, Várzea; escudo listrado com o galo de coroa, mascote O Galo Rei surfando no lobo; preto #0F0E0D + branco #E6E2DD MEDIDOS na camisa do dono; Lenda + fundador nº87 + sócio nº68, 08/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
   { name: 'Russo', team: 'Várzea Legends' },
   { name: 'Formiga', team: 'Descampado EC' },
   { name: 'Gordo', team: 'Espeto Corrido FC' },
