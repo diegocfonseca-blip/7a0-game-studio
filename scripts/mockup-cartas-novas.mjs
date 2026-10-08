@@ -68,7 +68,13 @@ if (/^\d+\/\d+$/.test(PARTE)) {
   const [i, n] = PARTE.split('/').map(Number)
   for (const p of SETORES) { const l = porSetor[p]; const tam = Math.ceil(l.length / n); porSetor[p] = l.slice((i - 1) * tam, i * tam) }
 }
-const limpo = n => n.replace(/\s*\([^)]*\)\s*$/, '').trim()
+// 🎯 `--nomes "A,B"` (08/10): só essas cartas do lote (o K9 entrou no L43 junto com o Gilberto, já anunciado).
+const SO_NOMES = arg('nomes', '').split(',').map(s => s.trim()).filter(Boolean)
+if (SO_NOMES.length) for (const p of SETORES) porSetor[p] = porSetor[p].filter(c => SO_NOMES.includes(c.nome))
+// 👑 08/10: parêntese que é APELIDO fica ("Kelvin Oliveira (K9)"); só sai quando é o CLUBE do xará
+//    ("Maicon (Grêmio)"), porque esse já aparece do lado.
+const CLUBES_DO_BARALHO = new Set([...src.matchAll(/club:\s*["']([^"']+)["']/g)].map(m => m[1]))
+const limpo = n => { const m = /^(.*?)\s*\(([^)]*)\)\s*$/.exec(n); return m && CLUBES_DO_BARALHO.has(m[2]) ? m[1].trim() : n.trim() }
 const total = SETORES.reduce((s, p) => s + porSetor[p].length, 0)
 
 const NOME_SETOR = { GOL: 'GOLEIROS', LAT: 'LATERAIS', ZAG: 'ZAGUEIROS', MEI: 'MEIO-CAMPO', ATA: 'ATAQUE' }
