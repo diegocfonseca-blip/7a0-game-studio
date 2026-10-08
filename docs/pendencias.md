@@ -2,7 +2,7 @@
 - Pedido do Diego: avisar a todos que o jogo vai passar por manutenção e volta em minutos. Mora em `AVISO_TOPO`
   (`src/escalacao/index.tsx`), mesma cara da faixa de servidor-fora. **Pra tirar: `AVISO_TOPO = null` e publicar.**
 
-## 08/10/2026 — 📡💸 Broadcast agrupado em todos os modos online ✅ FEITO, AINDA NÃO PUBLICADO
+## 08/10/2026 — 📡💸 Broadcast agrupado em todos os modos online ✅ NO AR
 - O Product Reports (últimos 60 min) mostrou **4.064 Broadcast Events**, contra 281 Postgres Changes e 105 Presence:
   Broadcast era ~91% dos eventos identificados. O payload mediano de 125 B mostrado ali era de recados pequenos; o estado
   completo já viaja compactado, mas cada cópia entregue a cada pessoa ainda conta como mensagem e como egress.
