@@ -83,7 +83,7 @@ try {
   assert.deepEqual([R.LIMITES_SALA.jogadores, R.LIMITES_SALA.jogadoresChampions, R.LIMITES_SALA.ligasPorPessoa, R.LIMITES_SALA.rapidasAbertas], [20, 36, 5, 2])
 
   // 🖼️ a vitrine: 4 planos, nesta ordem, com os textos do Diego
-  const vit = readFileSync('src/escalacao/support-plans.tsx', 'utf8')
+  const vit = readFileSync('src/escalacao/support-plans-v2.tsx', 'utf8')
   const ordem = ['support-gratis', 'support-craque', 'support-batismo', 'support-plus'].map(id => vit.indexOf(`id="${id}"`))
   assert.ok(ordem.every(i => i > 0) && ordem.every((v, i) => i === 0 || v > ordem[i - 1]), 'ordem: Gratuito, Craque, Batismo Lenda, Batismo Plus')
   assert.ok(vit.includes('Tudo do Craque, para sempre, sem mensalidade + seu clube personalizado.'), 'texto do Batismo Lenda')
@@ -91,9 +91,14 @@ try {
   for (const p of ['R$ 9,90', 'R$ 69,90', 'R$ 79,99', 'R$ 0']) assert.ok(vit.includes(`"${p}"`), `preço à vista: ${p}`)
   for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90', '2,90/MÊS', '4,90/MÊS']) assert.ok(!vit.includes(velho), `oferta velha fora da vitrine: ${velho}`)
   assert.ok(vit.includes('continua com TUDO'), 'aviso pra quem já comprou')
-  const scr = readFileSync('src/escalacao/screens.tsx', 'utf8')
-  for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90', 'mpago.la/2G3nmQq\'']) assert.ok(!scr.includes(velho), `sem oferta velha em screens: ${velho}`)
+  const scr = readFileSync('src/escalacao/apoie-v2.tsx', 'utf8')
+  for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90']) assert.ok(!scr.includes(velho), `sem oferta velha na tela nova: ${velho}`)
   assert.ok(scr.includes("supabase.rpc('esc_pedir_craque'"), 'o mensal guarda o WhatsApp com a conta')
   assert.ok(!scr.includes("rpc('esc_admin_craque_pagamento'"), 'a tela do jogador nunca confirma pagamento (só o painel do Diego)')
-  console.log('✅ planos v2: regras, vitrine e textos conferidos')
+  // 🔒 por enquanto SÓ as contas do Diego veem (ordem de 09/10); o resto do mundo segue no V1 intacto
+  const sp = readFileSync('src/escalacao/sport.ts', 'utf8')
+  assert.ok(/const PLANOS2_GERAL = false/.test(sp), 'planos v2 ainda fechado pros outros (PLANOS2_GERAL = false)')
+  const scr1 = readFileSync('src/escalacao/screens.tsx', 'utf8')
+  assert.ok(scr1.includes('usePlanos2() ? <ApoieButtonV2'), 'o botão escolhe V1/V2 pela conta')
+  console.log('✅ planos v2: regras, vitrine e textos conferidos (só nas contas do Diego)')
 } finally { await vite.close() }

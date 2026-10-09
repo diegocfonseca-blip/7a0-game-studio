@@ -21,7 +21,7 @@ import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado } from './sport'
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado, planos2Liberado } from './sport'
 // 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
 // NÃO passa pelo motor do leilão: a sala fica em `waiting` e ela é uma tela por
@@ -1788,7 +1788,7 @@ export function EscLobby() {
       setLoading(false); return
     }
     if (liga && !canLiga) {
-      setRoomError(tr('🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.', '🏆 Creating a League is a ⭐ Full Star (R$ 9.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.'))
+      setRoomError((planos2Liberado() ? tr('🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.', '🏆 Creating a League is a ⭐ Full Star (R$ 9.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.') : tr('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".', '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".')))
       setLoading(false); return
     }
     // 📅 DIA E HORA TÊM QUE ESTAR PREENCHIDOS (achado em 29/08, antes do 1º teste
@@ -2981,20 +2981,20 @@ export function EscLobby() {
                 <div className="mt-3 rounded-xl border-[3px] border-black p-3.5" style={{ background: 'rgba(255,196,0,.16)', boxShadow: `3px 3px 0 ${INK}` }}>
                   {canLiga && previewComum && (
                     <p className="inline-flex text-[9.5px] font-black uppercase tracking-wider border-2 border-black rounded-full px-2 py-0.5 mb-2" style={{ background: '#FFC400', color: INK, ...OSWALD }}>
-                      {tr('👁️ prévia — é isto que quem não é Craque vê aqui', '👁️ preview — this is what non-Stars see here')}
+                      {planos2Liberado() ? (tr('👁️ prévia — é isto que quem não é Craque vê aqui', '👁️ preview — this is what non-Stars see here')) : (tr('👁️ prévia — é isto que quem NÃO é Lenda vê aqui', '👁️ preview — this is what non-Legends see here'))}
                     </p>
                   )}
-                  <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>{tr('⭐ Criar uma liga é do Craque', '⭐ Creating a league is a Star perk')}</p>
+                  <p className="font-black text-[15px] uppercase leading-none text-white mb-2" style={OSWALD}>{planos2Liberado() ? (tr('⭐ Criar uma liga é do Craque', '⭐ Creating a league is a Star perk')) : (tr('👑 Criar uma liga é do Lenda', '👑 Creating a league is for Legends'))}</p>
                   <p className="text-white/70 text-[11.5px] font-bold leading-snug mb-3">
                     {getLang() === 'en' ? <>The league is the room that <b className="text-white">stays up</b>: always the same one, with a set day and time, and the shelf keeping champion and top scorer <b className="text-white">season after season</b>.</> : <>A liga é a sala que <b className="text-white">fica de pé</b>: sempre a mesma, com dia e hora marcados, e a estante guardando campeão e artilheiro <b className="text-white">temporada após temporada</b>.</>}
                   </p>
                   <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
                     className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
                     style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-                    {tr('⭐ QUERO O CRAQUE · R$ 9,90/MÊS', '⭐ I WANT STAR · R$ 9.90/MONTH')}
+                    {planos2Liberado() ? (tr('⭐ QUERO O CRAQUE · R$ 9,90/MÊS', '⭐ I WANT STAR · R$ 9.90/MONTH')) : (tr('👑 QUERO SER LENDA', '👑 I WANT TO BE LEGEND'))}
                   </button>
                   <p className="text-white/55 text-[11px] font-bold leading-snug mt-2.5">
-                    {getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If someone creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se alguém criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>}
+                    {planos2Liberado() ? (getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If someone creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se alguém criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>) : (getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If a Legend creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se um Lenda criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>)}
                   </p>
                   <p className="text-white/35 text-[10px] font-bold leading-snug mt-2">
                     {getLang() === 'en' ? <>Just want to play now? Use <b className="text-white/60">⚡ Quick</b> up there — it's free and always was.</> : <>Quer só jogar agora? Use o <b className="text-white/60">⚡ Rápido</b> aqui em cima — é de graça e sempre foi.</>}
