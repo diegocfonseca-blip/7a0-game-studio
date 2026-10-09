@@ -123,6 +123,20 @@ const CSS = `
 @keyframes galaGrito{0%,30%{opacity:0;transform:scale(.6)}36%{opacity:1;transform:scale(1.15)}40%{transform:scale(1)}80%{opacity:1}88%{opacity:0}}
 .gala-masc{position:absolute;bottom:6vh;left:-240px;animation:galaMasc ${GALA_MS}ms ease-in-out forwards;filter:drop-shadow(4px 6px 0 rgba(0,0,0,.5))}
 @keyframes galaMasc{0%,24%{left:-240px}34%{left:8vw}40%{left:22vw;transform:rotate(-6deg)}46%{transform:rotate(6deg)}52%{transform:rotate(0)}70%{left:22vw}90%{left:110vw}100%{left:110vw}}
+/* 🖥️ 09/10 (Diego, vendo a live do K9): no computador o escudo e a mascote ficavam miúdos no meio do
+   preto. Tela larga = tudo 1,8× (ele pediu 1,8). O celular não muda nada. (zoom mexe no tamanho de verdade, então o
+   nome e o "CHEGOU" descem junto, sem encavalar no escudo.) */
+@media (min-width:900px) and (min-height:600px){
+.gala-feixe{width:min(72vw,680px);height:84vh}
+.gala-telao{top:13vh;width:min(80vw,680px)}
+.gala-telao .esc{zoom:1.8}
+.gala-chega{font-size:22px;letter-spacing:5px;margin-top:12px}
+.gala-nome{font-size:72px;margin-top:8px}
+.gala-grito{top:69vh;font-size:48px}
+.gala-masc{zoom:1.8;animation-name:galaMascG}
+}
+/* com zoom, o left também é multiplicado: 4,5vw × 1,8 ≈ os 8vw de sempre, 12vw ≈ 22vw, 62vw ≈ 110vw (sai da tela) */
+@keyframes galaMascG{0%,24%{left:-260px}34%{left:4.5vw}40%{left:12vw;transform:rotate(-6deg)}46%{transform:rotate(6deg)}52%{transform:rotate(0)}70%{left:12vw}90%{left:62vw}100%{left:62vw}}
 @media (prefers-reduced-motion:reduce){.gala-masc,.gala-feixe{display:none}.gala-telao{animation:galaIn ${GALA_MS}ms ease forwards;transform:translateX(-50%)}}
 .gala-linha{position:relative;overflow:hidden;background:linear-gradient(120deg,#FFE79A,#FFC400 45%,#E8A200 75%,#FFDD70);border:3px solid ${INK};border-radius:12px;box-shadow:3px 3px 0 ${INK};padding:4px 8px}
 .gala-linha:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.75) 48%,transparent 62%);background-size:250% 100%;animation:galaBrilho 2.6s linear infinite}
