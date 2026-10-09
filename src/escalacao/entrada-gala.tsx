@@ -34,10 +34,20 @@ import { Escudo, nomeLimpo } from './escudos'
 import { newestTeamName } from './data'
 import { MascoteMini } from './mascote-atravessa'
 import { tr } from './lang'
+import { GalaHelicoptero, HELI_MS } from './gala-helicoptero'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
 export const GALA_MS = 5600
+// 🚁 GALAS ÚNICAS (09/10): clube → o show próprio dele e quanto tempo dura. Quem não está aqui
+// entra com a gala padrão. A 1ª é a do Neymarzetti (helicóptero). Quem entrar com o 🖋✨ Batismo
+// Plus ganha a sua aqui — chave = o nome do clube em `BATISMOS` (o mesmo que `clubeDaConta` devolve,
+// que segue o E-MAIL do dono, nunca o nome digitado).
+const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> = {
+  Neymarzetti: { ms: HELI_MS, Show: GalaHelicoptero },
+}
+/** quanto tempo a entrada deste clube ocupa a tela (a fila espera isso antes da próxima) */
+export function duracaoGala(clube: string): number { return GALA_UNICA[clube]?.ms ?? GALA_MS }
 
 /** o nome ATUAL do clube, se quem está na sala é dono de BATISMO; senão `null` */
 // 📧 28/09 — A GALA SEGUE O E-MAIL DO BATISMO, NUNCA O NOME DO TIME. Palavras do Diego:
@@ -100,7 +110,7 @@ export function useEntradaGala(roomId: string | null | undefined, players: { use
   const atual = fila[0] ?? null
   useEffect(() => {
     if (!atual) return
-    const t = setTimeout(() => setFila(f => f.slice(1)), GALA_MS + 250)
+    const t = setTimeout(() => setFila(f => f.slice(1)), duracaoGala(atual.clube) + 250)
     return () => clearTimeout(t)
   }, [atual])
   return atual
@@ -150,6 +160,8 @@ export function GalaEstilo() { return <style>{CSS}</style> }
 export function EntradaGalaShow({ clube, chave, nome }: { clube: string; chave: string; /** o nome com que o dono está jogando (pode ser o nome novo do clube) */ nome?: string }) {
   const mostra = nome || clube
   const art = mascoteInteiraDoTime(clube)
+  const unica = GALA_UNICA[clube]
+  if (unica) return <unica.Show clube={clube} chave={chave} mostra={mostra} grito={nomeCurto(mostra).toUpperCase()} />
   return createPortal(
     <div key={chave} className="gala-show" aria-hidden>
       <GalaEstilo />
