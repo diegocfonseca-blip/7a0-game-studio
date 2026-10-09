@@ -91,6 +91,9 @@ export function MascoteAtravessa({ segundos = 2.2 }: { segundos?: number }) {
         @keyframes escMascPlana{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-24px) rotate(3deg)}}
         @keyframes escMascOndula{0%,100%{transform:translateY(0) rotate(-9deg) scaleX(1.03)}50%{transform:translateY(-12px) rotate(9deg) scaleX(.97)}}
         @keyframes escMascConf{0%{top:-8%;opacity:1}100%{top:106%;opacity:0}}
+        /* 🖥️ 09/10 (Diego): no computador o bicho passava miúdo. Tela larga = 1,8×, igual à entrada
+           de gala. O zoom fica DENTRO de quem anda, então a travessia (left em %) não muda. Celular igual. */
+        @media (min-width:900px) and (min-height:600px){.esc-masc-zoom{zoom:1.8}}
       `}</style>
       {soltos.map(e => {
         const key = e.kind.slice(5)
@@ -108,9 +111,11 @@ export function MascoteAtravessa({ segundos = 2.2 }: { segundos?: number }) {
               return <span key={i} style={{ position: 'absolute', left: `${3 + (c % 92)}%`, top: '-8%', width: w, height: w + 4, background: cor, transform: `rotate(${c % 360}deg)`, animation: `escMascConf ${1.4 + ((c >> 3) % 80) / 100}s linear ${((c >> 7) % 55) / 100}s forwards` }} />
             })}
             <div style={{ position: 'absolute', bottom: voa ? '46%' : chao, left: '-34%', animation: `escMascCruza ${segundos}s linear forwards` }}>
-              <div style={{ animation: `${voa ? 'escMascPlana 1.4s' : jeito === 'rasteja' ? 'escMascOndula .8s' : 'escMascQuica .55s'} ease-in-out infinite` }}>{MASCOTES[key]}</div>
-              {/* sombra no chão só pra quem PISA no chão — bicho voando não tem */}
-              {!voa && <div style={{ width: 96, height: 13, borderRadius: 999, background: 'rgba(0,0,0,.28)', margin: '2px auto 0' }} />}
+              <div className="esc-masc-zoom">
+                <div style={{ animation: `${voa ? 'escMascPlana 1.4s' : jeito === 'rasteja' ? 'escMascOndula .8s' : 'escMascQuica .55s'} ease-in-out infinite` }}>{MASCOTES[key]}</div>
+                {/* sombra no chão só pra quem PISA no chão — bicho voando não tem */}
+                {!voa && <div style={{ width: 96, height: 13, borderRadius: 999, background: 'rgba(0,0,0,.28)', margin: '2px auto 0' }} />}
+              </div>
             </div>
           </Fragment>
         )

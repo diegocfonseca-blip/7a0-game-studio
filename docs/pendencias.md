@@ -30,6 +30,24 @@ Ordem dele no meio do trabalho: *"Calma, não bloqueie ninguém ainda. Só faça
   desfeita (8/8). Também ficou pra decidir: Craque antigo (prata) e sócio criarem liga (hoje só ouro cria).
 - ⏳ Depende do Diego: link de pagamento recorrente de verdade (Mercado Pago assinatura R$ 9,90) · Pix Automático
   exige CNPJ com 6+ meses · gala única e canto do Plus são feitos caso a caso (arte/áudio).
+## 🕵️ Sondar da Série A sem técnico nenhum + camisa da Loja (relato do Elton, 09/10) ✅ no branch, aguardando OK pra publicar
+- Save dele (carreira "Cruzeiro Esporte Clube²", T387, Série A): 70 clubes no mapa de técnicos, **49 com `null`**, e os 22 técnicos
+  da A presos em clubes da C, D e Várzea (Guardiola no Ressaca United, Ferguson no SC Ferrari…). Causa: clube que caía levava o
+  técnico junto e NADA devolvia o técnico pro mercado; clube que subia pra A ganhava `null` (e `null` era "já semeado", pra sempre).
+- Conserto (`ALICIAR_SEED`, store.tsx): clube que não está na minha divisão (nem é rival/convidado do meu leilão, nem gente) solta o
+  técnico; clube da minha divisão com `null` pega um livre se houver. Cura sozinha ao abrir o Sondar. Trava: `npm run tecnicos`.
+- 🎽 Camisa da Loja: `CAMISAS_SALAO` era só pelo NOME do clube; ele joga como "Cruzeiro Esporte Clube²" e via a camisa genérica.
+  Agora `camisaSalaoDe()` (salao-camisas.ts) cai na camisa do batismo pelo E-MAIL (`ehMeuClube` + `meuEscudoBatismo`, mimos.ts),
+  igual escudo e mascote já faziam. Manto no banco dele está certo (#011B8A/#E8E8EB).
+- Reverter: `git revert` dos commits.
+
+## ⏱️ "Aparece FIM e ainda sai gol" (relato de jogador, 09/10) ✅ no branch, aguardando OK pra publicar
+- Causa: o relógio do placar escrevia FIM aos 93' enquanto, no visual novo, a bola do gol dos acréscimos ainda estava NO AR
+  (entra na rede 0,9 s depois de sair, e cada gol espera o anterior). O gol já existia no resultado; só a etiqueta chegava antes.
+- Conserto (`LiveScoreCard`, pyramidseason.tsx): FIM/FT, a bolinha verde e o minuto 93 avisado pra fora (`onMinuteChange`: faixinha,
+  outros jogos, fim da internacional) só saem quando a ÚLTIMA bola entrou (`fechado`); enquanto espera, o relógio fica em 90+3'.
+  Vale pra carreira, online e copas (mesmo componente). Testado em página de bancada com gols aos 91' e 93'.
+- Reverter: `git revert` do commit (uma linha de lógica + duas etiquetas).
 
 ## 😜🔵⚫ Batismo Arrogantchi FC (08/10) ✅ NO AR
 - Dono `heitormonaco98@gmail.com` (conta de julho, era grátis → 👑 Lenda). **Série A**, no assento do **Bagres 1993**, que
