@@ -85,9 +85,22 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
 .on .clarao{animation:clarao ${T}ms ease forwards}
 @keyframes clarao{0%,${pct(3550)}{opacity:0}${pct(3620)}{opacity:.85}${pct(4000)}{opacity:0}100%{opacity:0}}
 /* o Rei K9 (arte do dono) */
-.masc{position:absolute;left:50%;top:446px;height:250px;opacity:0;transform:translateX(-50%);filter:drop-shadow(0 0 16px rgba(140,210,255,.8)) drop-shadow(4px 6px 0 rgba(0,0,0,.5))}
+.masc{position:absolute;left:50%;top:446px;width:186px;height:250px;opacity:0;transform:translateX(-50%);filter:drop-shadow(0 0 16px rgba(140,210,255,.8)) drop-shadow(4px 6px 0 rgba(0,0,0,.5))}
 .on .masc{animation:masc ${T}ms ease forwards}
 @keyframes masc{0%,${pct(3560)}{opacity:0;transform:translateX(-50%) scale(.85)}${pct(3700)}{opacity:1;transform:translateX(-50%) scale(1.08)}${pct(3900)}{transform:translateX(-50%) scale(1)}${pct(8100)}{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1)}}
+/* 🥶 as MÃOS do abraço esfregando os braços de frio (Diego 09/10: "as mãos pra cima e baixo se alisando,
+   sem perder o abraço"). A arte é uma só; aqui dois pedacinhos dela (cada mão) são copiados por cima e
+   deslizam pra cima e pra baixo, cada um num sentido, com a borda esfumada pra não aparecer o recorte. */
+.masc img{display:block;height:250px;width:186px}
+.mao{position:absolute;background-image:url(${MAS});background-size:186px 250px;-webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 55%,transparent 100%);mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 55%,transparent 100%)}
+.mao.e{left:63px;top:66px;width:21px;height:23px;background-position:-63px -66px}
+.mao.d{left:105px;top:66px;width:21px;height:21px;background-position:-105px -66px}
+.on .mao.e{animation:esfrega .34s ease-in-out infinite alternate}
+.on .mao.d{animation:esfrega .34s ease-in-out infinite alternate-reverse}
+@keyframes esfrega{from{transform:translateY(-4px)}to{transform:translateY(4px)}}
+/* e um tremidinho de frio no corpo todo, bem leve */
+.on .masc .treme{animation:tremido .09s linear infinite}
+@keyframes tremido{0%{transform:translateX(0)}25%{transform:translateX(.8px)}75%{transform:translateX(-.8px)}100%{transform:translateX(0)}}
 /* telão com o escudo */
 .telao{position:absolute;left:50%;top:118px;width:380px;text-align:center;opacity:0;transform:translateX(-50%) scale(.3)}
 .on .telao{animation:telao ${T}ms cubic-bezier(.2,1.3,.4,1) forwards}
@@ -115,7 +128,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
     <div class="coroa">${COROA}</div><span class="brilho"></span>
     <p class="grito">🔊 Ô Ô Ô, K9! 🔊</p>
     <div class="impacto"></div>
-    <img class="masc" src="${MAS}">
+    <div class="masc"><div class="treme" style="position:relative"><img src="${MAS}"><span class="mao e"></span><span class="mao d"></span></div></div>
     <div class="bloco"><img src="${MAS}"><svg class="racha" viewBox="0 0 210 280" width="210" height="280"><path d="M105 0 L95 60 L120 100 L88 150 L112 200 L96 280 M95 60 L40 90 M120 100 L180 120 M88 150 L30 190 M112 200 L170 240" stroke="#fff" stroke-width="4" fill="none" stroke-linejoin="round"/><path d="M105 0 L95 60 L120 100 L88 150 L112 200 L96 280" stroke="#0C0C0C" stroke-width="1.5" fill="none"/></svg></div>
     ${CACOS.map(c => `<span class="caco" style="width:${c.w}px;height:${c.w + 6}px;--dx:${c.dx}px;--dy:${c.dy}px;--r:${c.r}deg"></span>`).join('')}
     <div class="clarao"></div>
