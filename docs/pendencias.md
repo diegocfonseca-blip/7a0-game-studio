@@ -1,3 +1,12 @@
+## 💳 Planos v2 NO AR SÓ PRO DIEGO (09/10) + plano de pagamento
+- `PLANOS2_GERAL = false` (sport.ts): diego e diego2 veem a vitrine nova, o mensal (Pix/WhatsApp · 💳 cartão no
+  link de R$ 9,90/mês que já existia no MP, `MP_CRAQUE_CARTAO` = sócio base · Direct), batismo Lenda/Plus, Dúvidas e
+  travas novas. Todo o resto vê o V1 intacto. Liberar = `true` (e depois apagar o V1: `ApoieButtonV1`, `support-plans.tsx`).
+- ⏳ Diego: renomear no painel do Mercado Pago o plano de R$ 9,90 ("Sócio") pra "Craque completo" (o link não muda).
+- ⏳ Automático (cartão): webhook do MP → função do Supabase → `esc_admin_craque_pagamento` sozinho. Precisa do
+  Access Token do MP cadastrado pelo Diego como segredo da função (nunca colar no chat). Sem isso, segue manual.
+- ⏳ Pix Automático: exige CNPJ com 6+ meses (dito antes). Até lá: Pix mensal com WhatsApp + confirmação manual.
+
 ## 🚁 Galas únicas (09/10)
 - ✅ NO AR: gala e "solta a mascote" 1,8× no computador (celular igual) · 🚁 Neymarzetti desce de helicóptero
   (`gala-helicoptero.tsx`, tabela `GALA_UNICA` em `entrada-gala.tsx` — clube de batismo → show + duração).
