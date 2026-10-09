@@ -1,3 +1,11 @@
+## ⏱️ "Aparece FIM e ainda sai gol" (relato de jogador, 09/10) ✅ no branch, aguardando OK pra publicar
+- Causa: o relógio do placar escrevia FIM aos 93' enquanto, no visual novo, a bola do gol dos acréscimos ainda estava NO AR
+  (entra na rede 0,9 s depois de sair, e cada gol espera o anterior). O gol já existia no resultado; só a etiqueta chegava antes.
+- Conserto (`LiveScoreCard`, pyramidseason.tsx): FIM/FT, a bolinha verde e o minuto 93 avisado pra fora (`onMinuteChange`: faixinha,
+  outros jogos, fim da internacional) só saem quando a ÚLTIMA bola entrou (`fechado`); enquanto espera, o relógio fica em 90+3'.
+  Vale pra carreira, online e copas (mesmo componente). Testado em página de bancada com gols aos 91' e 93'.
+- Reverter: `git revert` do commit (uma linha de lógica + duas etiquetas).
+
 ## 😜🔵⚫ Batismo Arrogantchi FC (08/10) ✅ NO AR
 - Dono `heitormonaco98@gmail.com` (conta de julho, era grátis → 👑 Lenda). **Série A**, no assento do **Bagres 1993**, que
   DESCEU pra **Série B** na vaga do bot **Fluminense de Caicó** (decisão do Diego). Sem OLD_NAME. Fundador nº88 · sócio nº69.

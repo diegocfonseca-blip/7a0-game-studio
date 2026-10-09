@@ -2948,7 +2948,6 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const [localMin, setMin] = useState(finished ? 93 : 0)
   const min = displayMinute ?? localMin
   const controlledMinute = displayMinute != null
-  useEffect(() => { onMinuteChange?.(min) }, [min, roundKey, onMinuteChange])
   // 🚫 ANTI-SPOILER: quando entra uma rodada nova (roundKey muda) o relógio ainda
   // está no 93' da rodada anterior por 1 frame — o que mostraria TODOS os gols (o
   // placar FINAL) do jogo novo antes do apito. Zera JÁ na renderização, sem flash.
@@ -3010,6 +3009,15 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // ⏱️ o placar só está FECHADO quando o último gol já entrou na rede
   const fechado = done && (!teatro || confirmados >= fila.length)
   const proximoGol = teatro && fila.length > confirmados ? fila[confirmados] : null
+  // 🐛 "APARECE FIM E AINDA SAI GOL" (relato de jogador, 09/10). O relógio batia 93' e
+  //    escrevia FIM, mas no visual novo a bola do gol dos acréscimos ainda estava NO AR
+  //    (entra na rede 0,9 s depois de sair, e cada gol espera o anterior) — então o
+  //    placar mudava DEPOIS do FIM. O jogo não estava inventando gol: o gol já existia,
+  //    só a etiqueta chegou antes da bola. Agora o relógio para em 90+3' e o FIM (e o
+  //    minuto 93 que avisa quem está fora — faixinha, outros jogos, "fim" da
+  //    internacional) só saem quando a ÚLTIMA bola entrou (`fechado`).
+  const minAvisado = fechado || !teatro ? min : Math.min(min, 92)
+  useEffect(() => { onMinuteChange?.(minAvisado) }, [minAvisado, roundKey, onMinuteChange])
   useEffect(() => {
     if (!proximoGol) return
     if (voo && !voo.dentro) return // bola no ar: o próximo espera ela entrar
@@ -3077,7 +3085,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // pra baixo (Q1 12:00 → Q4 0:00). O `min` (0→93) só dirige a animação — aqui
   // vira o rótulo certo por esporte.
   // (a conta mora em `sportcfg.ts` pra TODA tela do basquete marcar o mesmo quarto)
-  const minLabel = basket ? basketClockLabel(min) : (min >= 93 ? tr('FIM', 'FT') : min > 90 ? `90+${min - 90}'` : `${min}'`)
+  const minLabel = basket ? basketClockLabel(min) : (fechado ? tr('FIM', 'FT') : min > 90 ? `90+${min - 90}'` : `${min}'`)
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
   const homeCol = homeColor, awayCol = awayColor
@@ -3275,7 +3283,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       {/* 🎨 relógio é a pilulazinha flutuando por cima do placar. */}
       <div style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', background: INK, color: '#fff', fontSize: 11, fontWeight: 900, ...OSWALD, padding: '3px 11px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 6, zIndex: 2, whiteSpace: 'nowrap' }}>
-          <span style={{ width: 7, height: 7, borderRadius: 999, background: done ? GREEN : '#ff5b4d', animation: done ? 'none' : 'coPulse 1.4s infinite' }} /> {done ? (basket ? 'FINAL' : tr('FIM', 'FT')) : minLabel}
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: fechado ? GREEN : '#ff5b4d', animation: fechado ? 'none' : 'coPulse 1.4s infinite' }} /> {fechado ? (basket ? 'FINAL' : tr('FIM', 'FT')) : minLabel}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'stretch' }}>
           <Team name={homeName} color={homeCol} you={youIsHome} flash={golSide === 'h'} />
