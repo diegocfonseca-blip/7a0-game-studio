@@ -1,4 +1,4 @@
-## 🕵️ Sondar da Série A sem técnico nenhum + camisa da Loja (relato do Elton, 09/10) ✅ no branch, aguardando OK pra publicar
+## 🕵️ Sondar da Série A sem técnico nenhum + camisa da Loja (relato do Elton, 09/10) ✅ NO AR (09/10)
 - Save dele (carreira "Cruzeiro Esporte Clube²", T387, Série A): 70 clubes no mapa de técnicos, **49 com `null`**, e os 22 técnicos
   da A presos em clubes da C, D e Várzea (Guardiola no Ressaca United, Ferguson no SC Ferrari…). Causa: clube que caía levava o
   técnico junto e NADA devolvia o técnico pro mercado; clube que subia pra A ganhava `null` (e `null` era "já semeado", pra sempre).
@@ -9,7 +9,7 @@
   igual escudo e mascote já faziam. Manto no banco dele está certo (#011B8A/#E8E8EB).
 - Reverter: `git revert` dos commits.
 
-## ⏱️ "Aparece FIM e ainda sai gol" (relato de jogador, 09/10) ✅ no branch, aguardando OK pra publicar
+## ⏱️ "Aparece FIM e ainda sai gol" (relato de jogador, 09/10) ✅ NO AR (09/10)
 - Causa: o relógio do placar escrevia FIM aos 93' enquanto, no visual novo, a bola do gol dos acréscimos ainda estava NO AR
   (entra na rede 0,9 s depois de sair, e cada gol espera o anterior). O gol já existia no resultado; só a etiqueta chegava antes.
 - Conserto (`LiveScoreCard`, pyramidseason.tsx): FIM/FT, a bolinha verde e o minuto 93 avisado pra fora (`onMinuteChange`: faixinha,
