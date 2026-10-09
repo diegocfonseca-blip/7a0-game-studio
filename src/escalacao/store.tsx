@@ -8912,10 +8912,6 @@ function reducerBase(state: EscState, action: Action): EscState {
         const tt = tecnicoPorNome(n)
         if (tt && tt.div !== div) { delete map[nomeClube]; curou = true }
       }
-      const usados = new Set(Object.values(map).filter((x): x is string => !!x))
-      const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
-      const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
-      for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
       // 🕵️ OS CLUBES QUE GANHAM TÉCNICO = OS DA SUA DIVISÃO DE VERDADE (13/09).
       // Palavras do Diego: *"eu subi pra série D e depois pra série C e continuou os
       // mesmos times... o certo deveria sempre ter ali os rivais + trocar pelos times
@@ -8933,10 +8929,38 @@ function reducerBase(state: EscState, action: Action): EscState {
         const dm = s.careerPlacements?.[`m${m.id}`]
         if (dm === div || m.auctionOnly || rivaisTime.has(newestTeamName(m.teamName))) naMinhaDiv.add(m.teamName)
       }
-      const clubes = [...naMinhaDiv].sort()
+      // 🔓 TÉCNICO DE CLUBE QUE SAIU DA MINHA DIVISÃO VOLTA PRO MERCADO (09/10, save do
+      // Elton — Série A, temporada 387). O relato: *"todos os times, quando ele vai
+      // sondar, estão sem técnico… e não aparece ninguém sem clube"*. O que tinha
+      // acontecido: o pool da Série A tem 22 nomes; a cada temporada um clube CAÍA pra B
+      // levando o técnico junto, e nada devolvia o técnico — ele sumia do mercado pra
+      // sempre. Em 387 temporadas os 22 estavam presos em clubes da C, da D e da Várzea,
+      // o clube que subia pra A ganhava `null` e o Sondar virava deserto. Agora: clube que
+      // não está na minha divisão (nem é rival/convidado do meu leilão, nem gente) solta o
+      // técnico; chave `null` de clube que foi embora é limpa junto. Placar já visto não
+      // muda: técnico só pesa em rodada ainda não jogada (`desdeR`).
       const desde = { ...(s.careerTecnicosDesde ?? {}) }
-      let mudou = false
-      for (const c of clubes) if (!(c in map)) { map[c] = livres.shift() ?? null; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true }
+      const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
+      const gente = new Set(s.managers.filter(m => m.isHuman).map(m => m.teamName))
+      let soltou = false
+      for (const nomeClube of Object.keys(map)) {
+        if (gente.has(nomeClube) || naMinhaDiv.has(nomeClube)) continue
+        delete map[nomeClube]; delete desde[nomeClube]; delete ctAll[nomeClube]; soltou = true
+      }
+      const usados = new Set(Object.values(map).filter((x): x is string => !!x))
+      const livres = poolDaDiv(div).map(t => t.nome).filter(n => !usados.has(n))
+      const rng = mulberry((s.seed ^ (div.charCodeAt(0) * 131)) | 0)
+      for (let i = livres.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [livres[i], livres[j]] = [livres[j], livres[i]] }
+      const clubes = [...naMinhaDiv].sort()
+      let mudou = soltou
+      // clube sem técnico (chave nova OU `null` de quando o mercado estava vazio) pega um
+      // livre, se houver; se não houver ninguém livre, fica `null` como antes
+      for (const c of clubes) {
+        if (map[c]) continue
+        const n = livres.shift() ?? null
+        if (!n && c in map) continue
+        map[c] = n; desde[c] = { t: s.seasonNo, r: s.round }; mudou = true
+      }
       if (curou) {
         // o contrato do técnico velho não vale pro novo: reescalona igual aos outros
         const ctCura = { ...(s.careerTecnicoContrato ?? {}) }
@@ -8946,7 +8970,6 @@ function reducerBase(state: EscState, action: Action): EscState {
       }
       // 📝 contrato de 5 anos pra TODO técnico de CPU também (27/08): escalonado
       // pelo nome, pra não vencer tudo junto — quem está vencido é aliciável.
-      const ctAll = { ...(s.careerTecnicoContrato ?? {}) }
       for (const c of clubes) {
         const n = map[c]
         if (!n || ctAll[c] != null) continue

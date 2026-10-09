@@ -20,7 +20,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { tr } from './lang'
-import { CAMISAS_SALAO } from './salao-camisas'
+import { camisaSalaoDe } from './salao-camisas'
 import {
   PRECOS, PRECO_EN, PRECO_PADRAO, CORES_PADRAO,
   fornecedorDe, fornAtivo, fornAnoAtual, fornValor, fornBonusLoja,
@@ -290,7 +290,7 @@ export function LojaTab({
   minhaCor: string
   onIrEstrutura: () => void
 }) {
-  const arteFile = CAMISAS_SALAO[time]
+  const arteFile = camisaSalaoDe(time)
   const arteBatismo = arteFile ? import.meta.env.BASE_URL + 'mantos-salao/' + arteFile : undefined
   const aberta = lojaConstruida(st)
   const forn = loja?.forn
@@ -456,7 +456,7 @@ export function PrecoVirada({
 }) {
   const forn = loja?.forn
   const ativo = fornAtivo(forn, seasonNo)
-  const arteFile = CAMISAS_SALAO[time]
+  const arteFile = camisaSalaoDe(time)
   const arteBatismo = arteFile ? import.meta.env.BASE_URL + 'mantos-salao/' + arteFile : undefined
   const [sel, setSel] = useState<PrecoLoja>(loja?.preco ?? PRECO_PADRAO)
   const { ref, larg } = useLarguraDaCena()

@@ -7,6 +7,20 @@
 // fechou verde, e o Diego continuou vendo a preta — *"aquela camisa antiga do
 // Neymarzetti porém N quero mais"*. Arte nova = NOME NOVO, sempre.
 // Carregadas somente no detalhe do clube; sem manto inventado ou vínculo por e-mail.
+import { ehMeuClube, meuEscudoBatismo } from './mimos'
+
+/** 🎽 a camisa da Loja do Clube: pelo NOME do clube e, se o clube é o MEU (e-mail do
+ *  batismo, `mimos.ts`), pela camisa do batismo mesmo que eu tenha dado outro nome ao
+ *  clube na carreira. Regra do Diego (28/09): *"o que vale sempre é o e-mail de batismo"*.
+ *  Caso de 09/10: o dono do La Bestia Negra joga a carreira como "Cruzeiro Esporte
+ *  Clube²" e a Loja mostrava a camisa genérica em vez da dele. */
+export function camisaSalaoDe(time: string): string | undefined {
+  const direta = CAMISAS_SALAO[time]
+  if (direta) return direta
+  const batismo = ehMeuClube(time) ? meuEscudoBatismo() : null
+  return batismo ? CAMISAS_SALAO[batismo] : undefined
+}
+
 export const CAMISAS_SALAO: Record<string, string> = {
   "Al Takhadao FC": "al-takahdao-camisa.webp",
   "Tricolor do Arruda FC": "arruda-camisa.webp",
