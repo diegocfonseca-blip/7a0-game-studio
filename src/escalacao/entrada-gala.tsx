@@ -35,6 +35,7 @@ import { newestTeamName } from './data'
 import { MascoteMini } from './mascote-atravessa'
 import { tr } from './lang'
 import { GalaHelicoptero, HELI_MS } from './gala-helicoptero'
+import { GalaK9, K9_MS } from './gala-k9'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
@@ -45,6 +46,7 @@ export const GALA_MS = 5600
 // que segue o E-MAIL do dono, nunca o nome digitado).
 const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> = {
   Neymarzetti: { ms: HELI_MS, Show: GalaHelicoptero },
+  'K9 FC': { ms: K9_MS, Show: GalaK9 }, // 🧊👑 O Rei Gelado (09/10)
 }
 /** quanto tempo a entrada deste clube ocupa a tela (a fila espera isso antes da próxima) */
 export function duracaoGala(clube: string): number { return GALA_UNICA[clube]?.ms ?? GALA_MS }
