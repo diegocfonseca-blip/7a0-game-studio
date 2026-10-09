@@ -1,9 +1,9 @@
 ## 🚁 Galas únicas (09/10)
 - ✅ NO AR: gala e "solta a mascote" 1,8× no computador (celular igual) · 🚁 Neymarzetti desce de helicóptero
   (`gala-helicoptero.tsx`, tabela `GALA_UNICA` em `entrada-gala.tsx` — clube de batismo → show + duração).
-- ⏳ MOCKUP esperando OK: 🧊👑 K9 FC "O Rei Gelado" (`scripts/mockup-entrada-k9.mjs`): sala congela (-40°), bloco
-  de gelo despenca e racha, o Rei K9 sai do gelo, coroa desce girando sobre o escudo, grito. Aprovou → vira um
-  `gala-k9.tsx` e entra no `GALA_UNICA`.
+- ✅ NO AR (09/10, "pode publicar"): 🧊👑 K9 FC "O Rei Gelado" (`gala-k9.tsx`; mockup `scripts/mockup-entrada-k9.mjs`):
+  sala congela (-40°), bloco de gelo despenca e racha, o Rei K9 sai esfregando os braços de frio (as mãos são
+  dois recortes da arte deslizando — mexer mais exige a arte com os braços em camada separada), coroa sobre o escudo.
 
 ## 💳 PLANOS V2 (08/10) ⏳ PRÉVIA NO BRANCH, esperando o OK visual do Diego (NADA publicado)
 Gratuito · ⭐ Craque completo **R$ 9,90/mês** · 🖋 Batismo Lenda **R$ 69,90** · 🖋✨ Batismo Plus **R$ 79,99**.
