@@ -1310,7 +1310,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
         <>
           <div style={lock}>{planos2Liberado() ? (getLang() === 'en' ? <>🔒 <b>⭐ Full Star</b> perk — subscribe to manage 2 clubs.</> : <>🔒 Regalia do <b>⭐ Craque completo</b> — assine pra comandar 2 clubes.</>) : (getLang() === 'en' ? <>🔒 <b>Legend 👑</b> perk — become Legend to manage 2 clubs.</> : <>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</>)}</div>
           <ApoieButton startScreen="choice" trigger={(open) => (
-            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>{planos2Liberado() ? (tr('⭐ VER O CRAQUE · R$ 9,90/MÊS', '⭐ SEE STAR · R$ 9.90/MONTH')) : (tr('👑 VIRAR LENDA NO APOIE', '👑 BECOME LEGEND IN SUPPORT'))}</button>
+            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>{planos2Liberado() ? (tr('⭐ VER O CRAQUE · R$ 12,90/MÊS', '⭐ SEE STAR · R$ 12.90/MONTH')) : (tr('👑 VIRAR LENDA NO APOIE', '👑 BECOME LEGEND IN SUPPORT'))}</button>
           )} />
         </>
       )}

@@ -1,8 +1,9 @@
-## 💳 Planos v2 NO AR SÓ PRO DIEGO (09/10) + plano de pagamento
+## 💳 Planos v2 NO AR SÓ PRO DIEGO (09/10) + plano de pagamento — mensal R$ 12,90
 - `PLANOS2_GERAL = false` (sport.ts): diego e diego2 veem a vitrine nova, o mensal (Pix/WhatsApp · 💳 cartão no
-  link de R$ 9,90/mês que já existia no MP, `MP_CRAQUE_CARTAO` = sócio base · Direct), batismo Lenda/Plus, Dúvidas e
+  link de assinatura do MP — escondido até existir o de R$ 12,90 · Direct), batismo Lenda/Plus, Dúvidas e
   travas novas. Todo o resto vê o V1 intacto. Liberar = `true` (e depois apagar o V1: `ApoieButtonV1`, `support-plans.tsx`).
-- ⏳ Diego: renomear no painel do Mercado Pago o plano de R$ 9,90 ("Sócio") pra "Craque completo" (o link não muda).
+- 🔁 09/10: o mensal virou **R$ 12,90** (Diego: *"pensei em 12,90 na verdade"*). O link de R$ 9,90 do MP NÃO serve mais —
+  o botão 💳 do cartão está escondido (`MP_CRAQUE_CARTAO = null`, screens.tsx) até o Diego criar o plano de R$ 12,90 no MP e mandar o link.
 - ⏳ Automático (cartão): webhook do MP → função do Supabase → `esc_admin_craque_pagamento` sozinho. Precisa do
   Access Token do MP cadastrado pelo Diego como segredo da função (nunca colar no chat). Sem isso, segue manual.
 - ⏳ Pix Automático: exige CNPJ com 6+ meses (dito antes). Até lá: Pix mensal com WhatsApp + confirmação manual.

@@ -1,6 +1,6 @@
 // ─── 💳 PLANOS V2 (08/10, Diego) — as REGRAS num lugar só ─────────────────────
 //
-// Gratuito · ⭐ Craque completo R$ 9,90/mês · 🖋 Batismo Lenda R$ 69,90 · 🖋✨ Batismo Plus R$ 79,99.
+// Gratuito · ⭐ Craque completo R$ 12,90/mês (era 9,90 até 09/10) · 🖋 Batismo Lenda R$ 69,90 · 🖋✨ Batismo Plus R$ 79,99.
 // Não existe mais Craque/Lenda avulso nem passe trimestral. Quem comprou o antigo FICA com tudo.
 //
 // Este arquivo é PURO (sem banco, sem React): a tela, o reducer e a trava `npm run planos` leem as
@@ -16,12 +16,12 @@ export type TierCor = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
 
 /** 💰 preços — o único lugar com número de plano no jogo */
 export const PRECOS = {
-  craqueMensal: 9.9,
+  craqueMensal: 12.9,
   batismoLenda: 69.9,
   batismoPlus: 79.99,
 } as const
 
-/** "R$ 9,90" / "R$ 9.90" */
+/** "R$ 12,90" / "R$ 12.90" */
 export function precoTxt(v: number, en = false): string {
   return `R$ ${v.toFixed(2).replace('.', en ? '.' : ',')}`
 }

@@ -51,7 +51,7 @@ function CraqueMensal({ direitos, onDirect, onVoltar }: { direitos: Direitos | n
     } catch { setErro(tr('Não deu pra enviar agora (sem conexão?). Tenta de novo ou chama no Direct aqui embaixo.', 'Couldn’t send it right now (no connection?). Try again or message us on Instagram below.')) }
     setEnviando(false)
   }
-  const msgDirect = tr('Opa! Quero assinar o ⭐ CRAQUE COMPLETO (R$ 9,90/mês). Meu e-mail da conta: ____ · meu WhatsApp: ____', 'Hey! I want to subscribe to ⭐ FULL STAR (R$ 9.90/month). My account e-mail: ____ · my WhatsApp: ____')
+  const msgDirect = tr('Opa! Quero assinar o ⭐ CRAQUE COMPLETO (R$ 12,90/mês). Meu e-mail da conta: ____ · meu WhatsApp: ____', 'Hey! I want to subscribe to ⭐ FULL STAR (R$ 12.90/month). My account e-mail: ____ · my WhatsApp: ____')
   const passo = (n: string, t: React.ReactNode) => <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>{n}</b>{t}</div>
   return (
     <div style={{ color: INK }}>
@@ -103,11 +103,11 @@ function CraqueMensal({ direitos, onDirect, onVoltar }: { direitos: Direitos | n
         </>
       )}
 
-      {sit !== 'ativo' && sit !== 'cancelado_no_prazo' && logado !== false && (
+      {MP_CRAQUE_CARTAO && sit !== 'ativo' && sit !== 'cancelado_no_prazo' && logado !== false && (
         <>
-          {/* 💳 CARTÃO (09/10): o link de assinatura de R$ 9,90 que já existe no Mercado Pago. O MP cobra
+          {/* 💳 CARTÃO (09/10): o link de assinatura do Mercado Pago (aparece quando MP_CRAQUE_CARTAO tiver o link de R$ 12,90). O MP cobra
               todo mês sozinho; a liberação continua MANUAL (o Diego confirma no painel com o ID do pagamento). */}
-          <button onClick={() => { logApoio('⭐ mensal → abriu o cartão (Mercado Pago)'); window.open(MP_CRAQUE_CARTAO, '_blank', 'noopener') }}
+          <button onClick={() => { logApoio('⭐ mensal → abriu o cartão (Mercado Pago)'); window.open(MP_CRAQUE_CARTAO!, '_blank', 'noopener') }}
             className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-2.5 mt-2.5 active:translate-y-0.5"
             style={{ background: '#009EE3', color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
             {tr('💳 ASSINAR NO CARTÃO · MERCADO PAGO', '💳 SUBSCRIBE BY CARD · MERCADO PAGO')}

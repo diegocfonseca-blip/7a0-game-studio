@@ -6,6 +6,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { logout } from './apoio'
+import { PRECOS } from './planos-regras'
 import { guardaStorage, medeStorage, testaEscrita, type ProbeStorage } from '../storage-guard' // 🗄️ armazenamento do aparelho (21/09)
 
 const ADMIN_EMAIL = 'diego.c.fonseca@gmail.com'
@@ -322,13 +323,13 @@ function CraqueMensalAdmin() {
   const carregar = async () => { const { data } = await supabase.rpc('esc_admin_pedidos_craque'); setLista((data ?? []) as PedidoCraque[]) }
   useEffect(() => { carregar() }, [])
   const dia = (v: string | null) => v ? new Date(v).toLocaleDateString('pt-BR') : '—'
-  const zapLink = (n: string) => `https://wa.me/${n.length <= 11 ? '55' + n : n}?text=${encodeURIComponent('Fala! Aqui é o Diego do Leilão Legends 💛 Segue o link pra assinar o ⭐ Craque completo (R$ 9,90/mês): ')}`
+  const zapLink = (n: string) => `https://wa.me/${n.length <= 11 ? '55' + n : n}?text=${encodeURIComponent('Fala! Aqui é o Diego do Leilão Legends 💛 Segue o link pra assinar o ⭐ Craque completo (R$ 12,90/mês): ')}`
   const status = async (id: number, st: string) => { await supabase.rpc('esc_admin_pedido_status', { p_id: id, p_status: st }); carregar() }
   const confirmar = async () => {
     const em = email.trim().toLowerCase()
     if (!em.includes('@') || pid.trim().length < 3) { setMsg('❌ falta o e-mail da conta ou o ID do pagamento'); return }
     setBusy(true); setMsg('')
-    const { data, error } = await supabase.rpc('esc_admin_craque_pagamento', { p_email: em, p_pagamento_id: pid.trim() })
+    const { data, error } = await supabase.rpc('esc_admin_craque_pagamento', { p_email: em, p_pagamento_id: pid.trim(), p_valor: PRECOS.craqueMensal })
     const r = data as { repetido?: boolean; valido_ate?: string } | null
     setMsg(error ? `❌ ${error.message}` : r?.repetido ? `⚠️ esse pagamento JÁ tinha sido confirmado — nada mudou (vale até ${dia(r.valido_ate ?? null)})` : `✅ ${em} é Craque até ${dia(r?.valido_ate ?? null)}`)
     if (!error && !r?.repetido) { setEmail(''); setPid('') }
@@ -352,7 +353,7 @@ function CraqueMensalAdmin() {
   const td = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' } as const
   return (
     <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>⭐ Craque completo · mensal R$ 9,90</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>⭐ Craque completo · mensal R$ 12,90</p>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Pedido chega aqui com o WhatsApp → toca no 📲 e manda o link → pagou: e-mail + ID do pagamento → CONFIRMAR. Mesmo ID duas vezes não conta. Cancelar só marca: vale até o fim do mês pago.</p>
       <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta" style={inp} />
       <input value={pid} onChange={e => setPid(e.target.value)} placeholder="ID do pagamento (código do Pix / Mercado Pago)" style={inp} />
