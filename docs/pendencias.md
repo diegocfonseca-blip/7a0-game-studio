@@ -3,6 +3,8 @@
   cada clube joga contra os 8 do OUTRO lado (formato real da Copa do Nordeste 2018-22, 8 rodadas); 4 de cada lado → quartas
   cruzadas (1º × 4º do outro lado), semi e final. Os 16 primeiros da liga escolhem o clube na ordem da tabela e convocam (90s).
 - 🃏 Clube pequeno (Bangu, Olaria, Treze…) ganha cartas num BARALHO REGIONAL que NUNCA entra no leilão normal (pedido dele).
+  Regra fechada (10/10): carta regional NÃO entra na carreira nem em sala nenhuma de outro modo (nem 🃏 Jogador, nem 🧱 Clubes).
+  Na sala de copa regional ela entra no leilão MISTURADA com o baralho inteiro, do jeito de sempre, sem regra nova.
 - Cartas que faltam (meta 14 por clube): Rio × SP ~50 · Sul × Minas ~85 · Nordeste ~150. Rio × SP é a mais perto.
 - Regras dele na aprovação: escolha pela ordem da tabela da liga (só os 16 primeiros, não 20); o 1º escolhe qualquer clube,
   depois o 2º e assim por diante; **60s por pessoa**, quem não escolher fica com o **pior clube que sobrou**; convocação com o
