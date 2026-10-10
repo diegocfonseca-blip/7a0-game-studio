@@ -6,6 +6,11 @@
   aparece "em breve" (só o Bahia fecha time). Com as cartas, cresce sozinha até 16.
 - ⏳ SQL `docs/sql/regional-clock.sql` (relógio sincronizado da sala) NÃO aplicado — a criação pelo MCP voltou "cancelled".
   Sem ele cada aparelho conta o próprio relógio (mesmo resultado, ritmo não anda junto e sem botão manual pro dono).
+- ❓ DECISÃO PENDENTE ANTES DA LISTA: metade dos nomes famosos dos clubes pequenos JÁ está no baralho BR em clube grande
+  (Zizinho Flamengo, Djalma Santos Palmeiras, Careca SP, Evair Palmeiras, Luís Fabiano SP…). Como a carta regional se mistura
+  com o baralho BR na sala regional, isso bate na regra de 26/09 (mesmo jogador só em baralho diferente). Perguntei ao Diego:
+  abrir exceção só na sala regional (Zizinho Bangu + Zizinho Flamengo, igual os dois Cafu na seleção) ou só usar quem não
+  está no baralho.
 - ⏳ Lista de jogadores dos clubes pequenos pra aprovação · ⏳ jornal O MARTELO ainda não fala da copa regional ·
   ⏳ título da copa regional ainda não vai pro Rank (de propósito, até ele dizer quanto vale).
 
