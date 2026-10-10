@@ -11,6 +11,10 @@
   com o baralho BR na sala regional, isso bate na regra de 26/09 (mesmo jogador só em baralho diferente). Perguntei ao Diego:
   abrir exceção só na sala regional (Zizinho Bangu + Zizinho Flamengo, igual os dois Cafu na seleção) ou só usar quem não
   está no baralho.
+- ✅ DECIDIDO (10/10): só entra jogador FAMOSO (bom ou ruim) que NÃO esteja no baralho BR. Indicação da Rio × SP enviada
+  (conferida contra o `data.ts`; xará de outra pessoa pode): Bangu 1966 fecha (14) · Guarani 1978 fecha (11 + Amoroso que já
+  existe) · Ponte 1977, São Caetano 2000-02, Portuguesa e America-RJ parciais (6–10) · Madureira e Volta Redonda sem nomes
+  famosos suficientes → sugeri trocar. Esperando o OK dele pra virar carta (com categoria e ano).
 - ⏳ Lista de jogadores dos clubes pequenos pra aprovação · ⏳ jornal O MARTELO ainda não fala da copa regional ·
   ⏳ título da copa regional ainda não vai pro Rank (de propósito, até ele dizer quanto vale).
 
