@@ -11,7 +11,7 @@
 // ⚠️ SEGURANÇA: tudo roda LOCAL neste arquivo. Nada entra no reducer/estado do
 // jogo — persistência própria em localStorage (llcopa:<seed>). Reverter = tirar
 // o <CopaMundoGate> do fim de temporada.
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useOnlinePreview } from './online-preview'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { CAREER_VISUAL_RELEASED } from './career-feature-release'
@@ -652,15 +652,22 @@ function SelecaoScreen({ paises16, myPos, myClub, onPick, onClose }: { paises16:
 }
 
 // ── tela 2: CONVOCAÇÃO (mockup aprovado: listão A-Z sem categoria, 11 na veia) ──
-export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }: {
+export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, poolPronto, emblema, rotuloTime }: {
   pais: string; onBack: () => void; onDone: (xi: PoolCard[], f: Formation) => void
+  /** 🏟️ COPA REGIONAL (10/10): o elenco de um CLUBE em vez do de um país. Sem isto, tudo
+      como sempre (a Copa do Mundo continua lendo `countryPool(pais)`). */
+  poolPronto?: Record<Sec, PoolCard[]>
+  /** o escudo no lugar da bandeira (copa regional) */
+  emblema?: ReactNode
+  /** "seu clube" no lugar de "sua seleção" (copa regional) */
+  rotuloTime?: string
   /** ⏱️ só a COPA DA SALA passa isto: os segundos que faltam pra acabar o tempo */
   prazoSeg?: number
   /** ⏱️ o tempo acabou: leva o que a pessoa JÁ tinha marcado (pode ser 0, 3, 7…).
       O resto das posições a máquina completa com os PIORES — castigo do Diego. */
   aoEstourar?: (parcial: PoolCard[], f: Formation) => void
 }) {
-  const pool = useMemo(() => countryPool(pais), [pais])
+  const pool = useMemo(() => poolPronto ?? countryPool(pais), [pais, poolPronto])
   const rostosOn = useLegendPresentation() // 🧑 rosto das lendas no campinho (30/09)
   const fits433 = formationFits(pool, '4-3-3'), fits442 = formationFits(pool, '4-4-2')
   const [form, setForm] = useState<Formation>(fits433 ? '4-3-3' : '4-4-2')
@@ -717,7 +724,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }:
   return (
     <>
       <div style={{ ...box('#0C0C0C'), padding: '9px 11px', display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, borderRadius: 13 }}>
-        <span style={{ fontSize: 28 }}>{flagOf(pais)}</span>
+        {emblema ?? <span style={{ fontSize: 28 }}>{flagOf(pais)}</span>}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, margin: 0, color: '#fff', textTransform: 'uppercase' }}>{tr('Convocação', 'Call-up')} · {pais}</p>
           <p style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,.65)', margin: '2px 0 0' }}>{totalCards} {tr('jogadores na lista — só nome, clube e ano. Convoque 11.', 'players on the list — just name, club and year. Call up 11.')}</p>
@@ -793,7 +800,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar }:
       {/* campinho compacto: convocados por linha (ATA/MEI/DEF/GOL, padrão do pregão) */}
       <div style={{ border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}`, marginBottom: 10 }}>
         <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{flagOf(pais)} {tr('sua seleção', 'your team')} · {total}/11 · {form}</span>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{emblema ? '' : `${flagOf(pais)} `}{rotuloTime ?? tr('sua seleção', 'your team')} · {total}/11 · {form}</span>
         </div>
         <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {(['ATA', 'MEI', 'DEF', 'GOL'] as (Sec | 'DEF')[]).map(row => {

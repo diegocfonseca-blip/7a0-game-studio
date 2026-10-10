@@ -21,7 +21,8 @@ import type { ApoioPerk } from './apoio'
 import type { DeckChoice } from './careeronline'
 import { CATALOG, TIMES_ELITE, CATALOG_EU, CATALOG_WORLD } from './data'
 import { lerRegras, resumoRegra, RegrasDaLiga, type LigaRegras } from './ligahub' // ⚖️🏆 regras + sala de troféus moram no LigaHub agora
-import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado, planos2Liberado } from './sport'
+import { COPAS_REGIONAIS, clubesDaCopa, ehCopaRegional, type CopaRegionalId } from './copa-regional'
+import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampionsLiberada, useRegionalLiberada, useCriarSala2, usePreviewComum, useMundoLiberado, useClubesLiberado, planos2Liberado } from './sport'
 // 🌍 COPA DO MUNDO ONLINE (31/08): o torneio é o MESMO da carreira — este
 // arquivo só resolve várias pessoas escolhendo seleção ao mesmo tempo. A Copa
 // NÃO passa pelo motor do leilão: a sala fica em `waiting` e ela é uma tela por
@@ -758,7 +759,7 @@ export function EscLobby() {
   const [copaEstanteVer, setCopaEstanteVer] = useState(0) // 🏆 relê a estante quando entra troféu novo
 
   const [bafoAviso, setBafoAviso] = useState(false) // 🃏 banner "ainda tem gente montando" (host)
-  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'liga_mundo'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
+  const [rapidoCopaMode, setRapidoCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions' | 'liga_mundo' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'>('liga_copa') // 🏆 o que acontece DEPOIS da liga: só a tabela · Copa dos 8 (padrão) · Libertadores · 🌍 Copa do Mundo
   // 🌐 CARREIRA ONLINE: o host escolhe os rivais CPU do leilão (igual offline).
   // Quantidade + quais times da Série D (vazio = padrões).
   const [careerRivals, setCareerRivals] = useState(5)
@@ -781,6 +782,11 @@ export function EscLobby() {
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const championsOn = useChampionsLiberada() // ⭐ Champions: EM BREVE pra geral; só a conta do Diego joga
+  // 🏟️ COPAS REGIONAIS (10/10): só a conta do Diego vê, até o OK dele. Copa que o baralho
+  // ainda não fecha (menos de 2 clubes por lado) aparece travada com "em breve".
+  const regionalOn = useRegionalLiberada()
+  const regionalId = (m: string): CopaRegionalId | null => { const id = m.startsWith('liga_') ? m.slice(5) : ''; return ehCopaRegional(id) ? id : null }
+  const regionalTravadas = (['riosp', 'sulminas', 'nordeste'] as const).filter(id => clubesDaCopa(id).n < 2).map(id => `liga_${id}` as const)
   const [myLigas, setMyLigas] = useState<OpenRoom[]>([])
   // 🏆 SELETOR "Aberta × Liga Fechada" — DESENHO RECUSADO, NÃO RELIGAR.
   // ⚠️ Recado pras próximas sessões (e pra mim mesmo, que errei nisso em 22/08):
@@ -1458,6 +1464,7 @@ export function EscLobby() {
     jaIniciouRef.current = roomData.id
     dispatch({
       type: 'START_ONLINE',
+      regional: (gs as { regionalNaLiga?: string } | undefined)?.regionalNaLiga, // 🏟️ copa regional: o leilão ganha as cartas regionais
       roomId: roomData.id, roomCode: roomData.code,
       roomName: gs?.roomName,
       isHost: amHost,
@@ -1812,7 +1819,7 @@ export function EscLobby() {
     // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -3371,14 +3378,21 @@ export function EscLobby() {
                       ele poder testar antes de soltar.
                       🧩 Com 5 opções o `Seg` vira grade de 2 colunas sozinho — era
                       isso que estava espremido. */}
-                  <Seg options={(libertaOn
+                  <Seg options={[...((libertaOn
                     ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
-                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]}
+                    : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
+                      // 🏟️ as copas regionais (só a conta do Diego, por enquanto)
+                      ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${COPAS_REGIONAIS[id].emoji} ${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]}
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
-                    travados={championsOn ? [] : ['champions']}
-                    selos={{ liga_mundo: seloNovo(), champions: championsOn ? seloNovoDe('2026-09-25') : tr('em breve', 'soon') }} />
+                    travados={[...(championsOn ? [] : ['champions' as const]), ...regionalTravadas]}
+                    selos={{ liga_mundo: seloNovo(), champions: championsOn ? seloNovoDe('2026-09-25') : tr('em breve', 'soon'), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : tr('teste', 'test')])) : {}) }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
-                    {getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
+                    {regionalId(rapidoCopaMode) ? (() => {
+                      const id = regionalId(rapidoCopaMode)!, c = COPAS_REGIONAIS[id], v = clubesDaCopa(id).todos.length
+                      return getLang() === 'en'
+                        ? <>{c.emoji} League over, the <b>top {v}</b> pick a club from the region in table order (<b>60s each</b> — miss it and you get the <b>worst club left</b>) and call up their 11 in <b>90s</b>. Two sides of {v / 2}: each club plays the {v / 2} of the <b>other side</b>, then crossed knockouts. The rest of the league sits this one out.</>
+                        : <>{c.emoji} Acabou a liga, os <b>{v} primeiros</b> escolhem um clube da região na ordem da tabela (<b>60s cada</b> — quem não escolher fica com o <b>pior que sobrou</b>) e convocam os 11 em <b>90s</b>. Dois lados de {v / 2}: cada clube joga contra os {v / 2} do <b>outro lado</b>, depois mata-mata cruzado. O resto da liga fica de fora.</>
+                    })() : getLang() === 'en' ? (rapidoCopaMode === 'liga_mundo'
                       ? <>🌐 League over, the <b>20 teams become national teams</b> and the <b>World Cup</b> happens: 6 groups of 4, 16 go through (top 2 + the 4 best 3rd-placed) and one-off knockout ties from the round of 16 to the final. Whoever finished the league <b>1st picks their nation first</b>, and so on — the bots get the leftovers. <b>No Cup of 8</b> in this room.</>
                       : rapidoCopaMode === 'champions'
                       ? <>⭐ <b>No league</b>: after the auction it goes straight to ONE table of 36 — <b>everyone in the room</b> (up to <b>36 people</b>) and, to fill it, clubs owned by real people. 8 games against 8 different opponents. 1st-8th go straight to the round of 16, 9th-24th play a two-legged playoff, 25th-36th are out.</>
@@ -3514,7 +3528,8 @@ export function EscLobby() {
             // carreira tem ritmo/copa próprios — auto/manual e liga/copa valem só no rápido
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto (igual nos dois idiomas)
-            const copaLbl = (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
+            const regLbl = (r.game_state as GS & { regionalNaLiga?: string })?.regionalNaLiga
+            const copaLbl = ehCopaRegional(regLbl) ? `${COPAS_REGIONAIS[regLbl].emoji} ${tr('liga+', 'league+')}${(getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome).toLowerCase()}` : (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado

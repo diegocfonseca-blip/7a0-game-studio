@@ -86,10 +86,31 @@ export function catalogTodos(): typeof CATALOG {
   }
   return CATALOG_TODOS_CACHE
 }
-function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'todos' | undefined, varzea = false) {
+function setActiveCatalog(league: 'br' | 'eu' | 'both' | 'todos' | 'world' | 'todos' | undefined, varzea = false, regional?: string) {
   ACTIVE_SPORT = 'futebol'
-  const base = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
+  const base0 = league === 'eu' ? CATALOG_EU : league === 'both' ? CATALOG_BOTH : league === 'world' ? CATALOG_WORLD : league === 'todos' ? catalogTodos() : CATALOG
+  const base = regional ? comCartasRegionais(base0, regional) : base0
   ACTIVE_CATALOG = varzea ? filterVarzea(base) : base
+}
+// 🏟️ BARALHO REGIONAL (10/10, regra do Diego): as cartas dos clubes pequenos só existem
+// na sala de COPA REGIONAL — e lá entram no leilão MISTURADAS com o baralho de sempre.
+// Entram só as da copa DAQUELA sala (Bangu na Rio × SP, Treze no Nordeste). Fora daqui
+// (carreira, rápido, clubes, outras salas) `regional` vem vazio e nada muda.
+const REGIONAL_CACHE = new Map<string, typeof CATALOG>()
+function comCartasRegionais(base: typeof CATALOG, regional: string): typeof CATALOG {
+  if (!ehCopaRegional(regional)) return base
+  const k = `${regional}|${base === CATALOG ? 'br' : base === CATALOG_EU ? 'eu' : base === CATALOG_BOTH ? 'both' : base === CATALOG_WORLD ? 'world' : 'todos'}`
+  const pronto = REGIONAL_CACHE.get(k)
+  if (pronto) return pronto
+  const clubes = new Set(COPAS_REGIONAIS[regional].lados.flatMap(l => l.clubes))
+  const out = {} as typeof CATALOG
+  for (const pos of SECTORS) {
+    const vistas = new Set((base[pos] ?? []).map(c => `${c.name}|${c.club}|${c.year}`))
+    const extras = (CARTAS_REGIONAIS[pos] ?? []).filter(c => clubes.has(c.club) && !vistas.has(`${c.name}|${c.club}|${c.year}`))
+    out[pos] = extras.length ? [...(base[pos] ?? []), ...extras] as typeof CATALOG[typeof pos] : base[pos]
+  }
+  REGIONAL_CACHE.set(k, out)
+  return out
 }
 // liga o motor no basquete: baralho NBA + vagas por posição do modo (rápido/carreira).
 function setActiveSport(sport: 'futebol' | 'basquete', mode: 'quick' | 'career' = 'quick') {
@@ -112,9 +133,9 @@ function baseSlots(formation: FormationKey, pos: Sector): number {
 // pregão da NBA) e com as vagas do futebol. Agora todo esse caminho passa por aqui:
 // o ESTADO manda, e o futebol continua caindo exatamente no `setActiveCatalog` de
 // sempre (byte-idêntico pra quem não é basquete).
-function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean }): void {
+function reancoraEsporte(s: { sport?: 'futebol' | 'basquete'; nbaCareer?: boolean; deckLeague?: 'br' | 'eu' | 'both' | 'todos' | 'world'; varzea?: boolean; regionalSala?: string }): void {
   if (s.sport === 'basquete') setActiveSport('basquete', s.nbaCareer ? 'career' : 'quick')
-  else setActiveCatalog(s.deckLeague, !!s.varzea)
+  else setActiveCatalog(s.deckLeague, !!s.varzea, s.regionalSala)
 }
 
 // 🏀 franquias da NBA usadas como rivais CPU do basquete (o motor lê {team,name}
@@ -894,6 +915,8 @@ function applyStadiumIncome(coins: Record<number, number> | undefined, stads: Es
   return out
 }
 import type { CareerTeam } from './data'
+import { COPAS_REGIONAIS, ehCopaRegional } from './copa-regional' // 🏟️ copas regionais (10/10)
+import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
@@ -4777,7 +4800,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; holandes?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; regional?: string; holandes?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -7046,6 +7069,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ou os dois juntos (escolha do host). O leilão e a temporada são o motor
       // real de sempre — só muda o catálogo de craques.
       s.deckLeague = s.leilaoClubes ? 'todos' : (action.deck ?? 'br') // 🧱 clubes precisa dos 3 baralhos
+      // 🏟️ sala de COPA REGIONAL: o baralho do leilão ganha as cartas regionais daquela copa (nunca carreira nem Leilão de Clubes)
+      s.regionalSala = !action.career && !s.leilaoClubes && action.sport !== 'basquete' && ehCopaRegional(action.regional) ? action.regional : undefined
       // 🥅 VÁRZEA ("Sem craques"): SÓ no rápido online + baralho BR (carreira e
       // Europa/Todos não têm essa categoria). Filtra o baralho pro leilão E os bots
       // saírem sem craque/lenda de uma vez. Restaura o baralho cheio logo após montar.
@@ -7065,7 +7090,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = false // online rápido/liga: não é a carreira salva do basquete
       if (onlineNba) setActiveSport('basquete', 'quick') // baralho NBA + 1 vaga por posição (quinteto)
-      else setActiveCatalog(s.deckLeague, onlineVarzea)
+      else setActiveCatalog(s.deckLeague, onlineVarzea, s.regionalSala)
       s.simSpeed = 1 // ⏩ todo jogo online COMEÇA no ritmo Normal — não herda a velocidade de um jogo anterior (era o "sim ultra rápida" numa sala auto, sem ninguém ter tocado no manual). Manual/stream re-escolhe a marcha dentro do jogo.
       s.locked = action.locked; s.pwHash = action.pwHash // guarda a senha no estado (sobrevive ao autosave)
       s.careerOnline = !!action.career // sala no modo Carreira (4 divisões) vs online rápido
@@ -7187,7 +7212,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, onlineVarzea)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, onlineVarzea)
-      if (onlineVarzea) setActiveCatalog(s.deckLeague) // baralho várzea já foi montado → restaura o cheio pro resto
+      if (onlineVarzea) setActiveCatalog(s.deckLeague, false, s.regionalSala) // baralho várzea já foi montado → restaura o cheio pro resto
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
       s.sectorIdx = 0; s.sectorCursor = 0; s.sectorUnsoldAccum = []; s.roundIdx = 0; s.monte = []; s.news = []; s.round = 0; s.champion = null
       // 🧹 A ARTILHARIA DA TEMPORADA PASSADA NÃO ATRAVESSA (bug que o Diego pegou
@@ -9410,7 +9435,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (s.screen === 'auction') return s
       guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST) — e ⚽🅰️ gols/assistências somam
       s.seasonVotes = {} // temporada nova: zera a votação
-      setActiveCatalog(s.deckLeague) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
+      setActiveCatalog(s.deckLeague, false, s.regionalSala) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
@@ -12775,7 +12800,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // Liga de Clubes voltava como leilão de Jogador.
         // 🔴 `liveUrl` entra na lista (05/10): o link da live do dono, que a LISTA de salas mostra em
         // destaque. Nasce na criação e o jogo nunca toca — sem a guarda, o 1º save apagaria.
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl']) {
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl']) {
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda

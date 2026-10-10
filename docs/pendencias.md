@@ -1,4 +1,14 @@
-## 🏟️ Copas regionais convocadas nas salas online (10/10) ✅ MOCKUP APROVADO ("perfeito, adorei")
+## 🏟️ Copas regionais convocadas nas salas online (10/10) 🧪 CONSTRUÍDA, só na conta do Diego (`REGIONAL_GERAL = false`)
+- Código: motor puro `copa-regional.ts` (trava `npm run regional`) · tela `copa-regional-online.tsx` (portão + escolha 60s +
+  convocação 90s + torneio) · opção no lobby (só tester) · marca da sala `regionalNaLiga` · baralho regional em
+  `cartas-regionais.ts` (vazio até o Diego aprovar a lista) entrando no leilão SÓ na sala regional (`regionalSala`/`setActiveCatalog`).
+- O tamanho sai do baralho: hoje Rio × SP joga com 4 por lado (semi + final), Sul × Minas com 2 (final direta) e o Nordeste
+  aparece "em breve" (só o Bahia fecha time). Com as cartas, cresce sozinha até 16.
+- ⏳ SQL `docs/sql/regional-clock.sql` (relógio sincronizado da sala) NÃO aplicado — a criação pelo MCP voltou "cancelled".
+  Sem ele cada aparelho conta o próprio relógio (mesmo resultado, ritmo não anda junto e sem botão manual pro dono).
+- ⏳ Lista de jogadores dos clubes pequenos pra aprovação · ⏳ jornal O MARTELO ainda não fala da copa regional ·
+  ⏳ título da copa regional ainda não vai pro Rank (de propósito, até ele dizer quanto vale).
+
 - Ideia fechada com o Diego: Liga + Rio × SP · Liga + Sul × Minas-PR · Liga + Nordeste. 16 clubes por copa, dois lados de 8,
   cada clube joga contra os 8 do OUTRO lado (formato real da Copa do Nordeste 2018-22, 8 rodadas); 4 de cada lado → quartas
   cruzadas (1º × 4º do outro lado), semi e final. Os 16 primeiros da liga escolhem o clube na ordem da tabela e convocam (90s).

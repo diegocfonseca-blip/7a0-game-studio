@@ -42,6 +42,7 @@ import { PyramidOverlay } from './pyramid'
 // (publicamos no meio da partida) — ver recarga.ts. Sem ele, a tela cai.
 import { pedaco } from './recarga'
 const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate }))))
+const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
 import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
@@ -57,6 +58,7 @@ import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionSt
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
+import { ehCopaRegional, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
 import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
@@ -10013,7 +10015,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         playerNames, formation: state.managers[state.youIdx]?.formation ?? '4-3-3',
         duplasMode: state.duplasMode, duplas: state.duplasMode ? duplas : undefined, youUid: meuUid ?? state.youUid,
         seatUids: uniq.map(p => p.user_id), // 🪑 quem senta em cada assento — é por ISTO que o convidado se reancora no time certo
-        deck: state.deckLeague, varzea: state.varzea, rematch: Date.now(), copaMode: state.copaMode, // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
+        deck: state.deckLeague, varzea: state.varzea, regional: state.regionalSala, rematch: Date.now(), copaMode: state.copaMode, // 🥅 mantém a escolha da sala (deck E modo várzea — senão o "novo leilão" caía no padrão)
         // 🏆 a sala CONTINUA a contagem: o "novo leilão" é a próxima temporada da
         // mesma resenha, não um recomeço do zero. Sem isto o `seasonNo` voltava
         // pra 1 e a partida nova apagava a anterior no Hall da Fama.
@@ -10593,6 +10595,8 @@ export function EscEnd() {
   // na tela dele, que é o pior jeito possível de quebrar isso.) Aqui é uma
   // batidinha só, na linha da sala, e a Copa em si só é baixada se a marca vier.
   const [mundoNaLiga, setMundoNaLiga] = useState(false)
+  // 🏟️ COPA REGIONAL (10/10): mesma porta da Copa do Mundo — a marca `regionalNaLiga` é da SALA
+  const [regionalNaLiga, setRegionalNaLiga] = useState<CopaRegionalId | null>(null)
   const [mundoChecado, setMundoChecado] = useState(false)
   // 🌍 a noite só acaba DEPOIS da Copa (Diego 01/09: *"a votação é somente quando
   // acabar tudo, a liga e a Copa do Mundo — mesma coisa o jornal"*). Enquanto
@@ -10602,14 +10606,20 @@ export function EscEnd() {
   // piscar o jornal na cara e sumir.
   const [mundoPendente, setMundoPendente] = useState(false)
   // 🚪 a liga recolhe embaixo do portão enquanto a Copa do Mundo não acaba (19/09)
-  const mundoEsperando = online && !!state.roomId && mundoNaLiga && !copaPending && !libPending && mundoPendente
+  const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga) && !copaPending && !libPending && mundoPendente
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
-  useEffect(() => { if (mundoNaLiga) setMundoPendente(true) }, [mundoNaLiga])
+  useEffect(() => { if (mundoNaLiga || regionalNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga])
   useEffect(() => {
     if (!online || !state.roomId) return
     let vivo = true
-    void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga').eq('id', state.roomId).maybeSingle()
-      .then(({ data }) => { if (vivo) { setMundoNaLiga(String((data as { flag?: string } | null)?.flag) === 'true'); setMundoChecado(true) } }, () => {})
+    void supabase.from('game_rooms').select('flag:game_state->>mundoNaLiga, reg:game_state->>regionalNaLiga').eq('id', state.roomId).maybeSingle()
+      .then(({ data }) => {
+        if (!vivo) return
+        const d = data as { flag?: string; reg?: string } | null
+        setMundoNaLiga(String(d?.flag) === 'true')
+        setRegionalNaLiga(ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null)
+        setMundoChecado(true)
+      }, () => {})
     return () => { vivo = false }
   }, [online, state.roomId])
   // 🌎 nesta sala o mata-mata é a LIBERTADORES (não a Copa dos 8) — muda só o
@@ -10987,6 +10997,22 @@ export function EscEnd() {
             matchSeed={state.seed}
             seasonNo={state.seasonNo ?? 1}
             aoStatus={st => { setMundoPendente(st.pendente); setCampeaoDoMundo(st.campeao) }}
+            aoRemover={(id, nome) => {
+              if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
+            }}
+            classificacao={table.map(t => {
+              const m = state.managers.find(mm => mm.id === t.id)
+              return { id: t.id, nome: t.name, humano: !!m?.isHuman }
+            })} />
+        </Suspense></CercaDaCopa>
+      )}
+      {/* 🏟️ COPA REGIONAL (10/10): igual à Copa do Mundo — tela por cima da sala parada, fora do motor */}
+      {online && state.roomId && regionalNaLiga && !copaPending && !libPending && (
+        <CercaDaCopa><Suspense fallback={null}>
+          <CopaRegionalLazy copa={regionalNaLiga} roomId={state.roomId} souDono={!!state.isHost} meuUid={state.youUid}
+            matchSeed={state.seed}
+            seasonNo={state.seasonNo ?? 1}
+            aoStatus={st => { setMundoPendente(st.pendente) }}
             aoRemover={(id, nome) => {
               if (window.confirm(getLang() === 'en' ? `Remove ${nome}? Becomes a CPU team and the pick moves to the next one.` : `Remover ${nome}? O time vira CPU e a vez passa pro próximo.`)) kickPlayer(id)
             }}
