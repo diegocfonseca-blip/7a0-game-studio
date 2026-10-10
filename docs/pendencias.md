@@ -11,6 +11,11 @@
   com o baralho BR na sala regional, isso bate na regra de 26/09 (mesmo jogador só em baralho diferente). Perguntei ao Diego:
   abrir exceção só na sala regional (Zizinho Bangu + Zizinho Flamengo, igual os dois Cafu na seleção) ou só usar quem não
   está no baralho.
+- ✅ CARTAS FEITAS (10/10, 438 no baralho regional): as TRÊS copas fecham 16 clubes (8 por lado). Lista legível em
+  `docs/listas/cartas-regionais.md`. Trocas de clube pra caber no baralho: Volta Redonda → Campo Grande (Taça de Prata 1982);
+  Nordeste com Ferroviário e Campinense no lugar de Moto Club e River-PI (sem escalação confiável achada). ⚠️ conferir:
+  "Índio (Juventude)" 1999 (pode ser o Índio do Inter, que já tem carta). Base de cada clube = escalação publicada de um time
+  marcante; xará de outra pessoa leva o clube no nome; mesma pessoa que já tem carta ficou fora.
 - ✅ DECIDIDO (10/10): só entra jogador FAMOSO (bom ou ruim) que NÃO esteja no baralho BR. Indicação da Rio × SP enviada
   (conferida contra o `data.ts`; xará de outra pessoa pode): Bangu 1966 fecha (14) · Guarani 1978 fecha (11 + Amoroso que já
   existe) · Ponte 1977, São Caetano 2000-02, Portuguesa e America-RJ parciais (6–10) · Madureira e Volta Redonda sem nomes
