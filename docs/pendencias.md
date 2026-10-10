@@ -7,6 +7,7 @@
 - Regras dele na aprovação: escolha pela ordem da tabela da liga (só os 16 primeiros, não 20); o 1º escolhe qualquer clube,
   depois o 2º e assim por diante; **60s por pessoa**, quem não escolher fica com o **pior clube que sobrou**; convocação com o
   MESMO tempo da convocação do Leilão de Clubes (`CONVOCACAO_MS` = 90s).
+  A LIGA continua com 20 (padrão de hoje); os 16 primeiros vão pra copa e os 4 últimos ficam de fora, assistindo (10/10).
 - Mockup: `node scripts/mockup-copas-regionais.mjs`. Ideia extra ainda sem decisão: "⚡ direto no estadual" (sem liga).
 
 ## 💳 Planos v2 NO AR SÓ PRO DIEGO (09/10) + plano de pagamento — mensal R$ 12,90
