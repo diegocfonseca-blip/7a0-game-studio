@@ -1,3 +1,11 @@
+## 🏟️ Copas regionais convocadas nas salas online (10/10) ⏳ MOCKUP enviado, esperando OK
+- Ideia fechada com o Diego: Liga + Rio × SP · Liga + Sul × Minas-PR · Liga + Nordeste. 16 clubes por copa, dois lados de 8,
+  cada clube joga contra os 8 do OUTRO lado (formato real da Copa do Nordeste 2018-22, 8 rodadas); 4 de cada lado → quartas
+  cruzadas (1º × 4º do outro lado), semi e final. Os 16 primeiros da liga escolhem o clube na ordem da tabela e convocam (90s).
+- 🃏 Clube pequeno (Bangu, Olaria, Treze…) ganha cartas num BARALHO REGIONAL que NUNCA entra no leilão normal (pedido dele).
+- Cartas que faltam (meta 14 por clube): Rio × SP ~50 · Sul × Minas ~85 · Nordeste ~150. Rio × SP é a mais perto.
+- Mockup: `node scripts/mockup-copas-regionais.mjs`. Ideia extra ainda sem decisão: "⚡ direto no estadual" (sem liga).
+
 ## 💳 Planos v2 NO AR SÓ PRO DIEGO (09/10) + plano de pagamento — mensal R$ 12,90
 - `PLANOS2_GERAL = false` (sport.ts): diego e diego2 veem a vitrine nova, o mensal (Pix/WhatsApp · 💳 cartão no
   link de assinatura do MP — escondido até existir o de R$ 12,90 · Direct), batismo Lenda/Plus, Dúvidas e
