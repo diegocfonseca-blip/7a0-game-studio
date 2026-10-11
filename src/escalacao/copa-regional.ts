@@ -33,7 +33,7 @@ export const COPAS_REGIONAIS: Record<CopaRegionalId, CopaRegionalCfg> = {
   riosp: {
     id: 'riosp', emoji: '🔥', nome: 'Rio × São Paulo', nomeEn: 'Rio × São Paulo',
     lados: [
-      { nome: 'Lado do Rio', nomeEn: 'Rio side', emoji: '🏖️', clubes: ['Flamengo', 'Vasco', 'Botafogo', 'Fluminense', 'Bangu', 'America-RJ', 'Madureira', 'Campo Grande'] },
+      { nome: 'Lado do Rio', nomeEn: 'Rio side', emoji: '🏖️', clubes: ['Flamengo', 'Vasco', 'Botafogo', 'Fluminense', 'Bangu', 'America-RJ', 'Madureira', 'Volta Redonda'] },
       { nome: 'Lado de São Paulo', nomeEn: 'São Paulo side', emoji: '🏙️', clubes: ['Corinthians', 'São Paulo', 'Palmeiras', 'Santos', 'Portuguesa', 'Guarani', 'Ponte Preta', 'São Caetano'] },
     ],
   },
@@ -47,8 +47,8 @@ export const COPAS_REGIONAIS: Record<CopaRegionalId, CopaRegionalCfg> = {
   nordeste: {
     id: 'nordeste', emoji: '🌵', nome: 'Copa do Nordeste', nomeEn: 'Northeast Cup',
     lados: [
-      { nome: 'Lado PE · CE · RN', nomeEn: 'PE · CE · RN side', emoji: '🌵', clubes: ['Sport', 'Fortaleza', 'Ceará', 'Náutico', 'Santa Cruz', 'América-RN', 'ABC', 'Ferroviário'] },
-      { nome: 'Lado BA · AL · SE · MA · PB', nomeEn: 'BA · AL · SE · MA · PB side', emoji: '🥥', clubes: ['Bahia', 'Vitória', 'CSA', 'CRB', 'Sampaio Corrêa', 'Botafogo-PB', 'Campinense', 'Confiança'] },
+      { nome: 'Lado PE · CE · RN · PB', nomeEn: 'PE · CE · RN · PB side', emoji: '🌵', clubes: ['Sport', 'Fortaleza', 'Ceará', 'Náutico', 'Santa Cruz', 'ABC', 'América-RN', 'Botafogo-PB'] },
+      { nome: 'Lado BA · AL · SE · MA · PI', nomeEn: 'BA · AL · SE · MA · PI side', emoji: '🥥', clubes: ['Bahia', 'Vitória', 'CRB', 'CSA', 'Confiança', 'Sampaio Corrêa', 'Moto Club', 'River-PI'] },
     ],
   },
 }

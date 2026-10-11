@@ -1,6 +1,6 @@
 # 🃏 Cartas das copas regionais
 
-Só existem nas salas de copa regional. Base: escalações de times marcantes de cada clube (títulos, finais, acessos) + ídolos citados em reportagens. Quem já tinha carta no baralho e é a mesma pessoa ficou de fora. ⚠️ = conferir.
+Só existem nas salas de copa regional. Base: escalações de times marcantes de cada clube (títulos, finais, acessos) + ídolos citados em reportagens. Quem já tinha carta no baralho e é a mesma pessoa ficou de fora.
 
 ## 🔥 Rio × São Paulo
 
@@ -21,16 +21,16 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 **Madureira** (16)
 - GOL: Renan 2006 _(foi profissional)_
 - LAT: Marcus Vinícius 2006 _(foi profissional)_ · Paulo Roberto (Madureira) 2006 _(foi profissional)_
-- ZAG: Paulo César 2006 _(foi profissional)_ · Odvan (Madureira) 2006 _(bom)_
+- ZAG: Paulo César (Madureira) 2006 _(foi profissional)_ · Odvan (Madureira) 2006 _(bom)_
 - MEI: Roberto Lopes 2006 _(foi profissional)_ · Djair 2006 _(foi profissional)_ · Maicon (Madureira) 2006 _(foi profissional)_ · Josafá 2006 _(foi profissional)_ · Jair Rosa Pinto 1945 _(craque do clube)_ · Rodrigo Lindoso (Madureira) 2011 _(bom)_
-- ATA: André Lima (Madureira) 2006 _(bom)_ · João Rodrigo 2006 _(foi profissional)_ · Fábio Júnior (Madureira) 2006 _(bom)_ · Lelé 1941 _(bom)_ · Isaías 1941 _(bom)_
+- ATA: André Lima 2006 _(bom)_ · João Rodrigo 2006 _(foi profissional)_ · Fábio Júnior (Madureira) 2006 _(bom)_ · Lelé 1941 _(bom)_ · Isaías 1941 _(bom)_
 
-**Campo Grande** (15)
-- GOL: Ronaldo (Campo Grande) 1982 _(foi profissional)_ · Zé Carlos (Campo Grande) 1982 _(foi profissional)_
-- LAT: Orlando Lelé 1982 _(bom)_ · Ramírez 1982 _(foi profissional)_ · Jacenir 1982 _(foi profissional)_
-- ZAG: Pirulito 1982 _(foi profissional)_ · Mauro (Campo Grande) 1982 _(foi profissional)_ · Neném 1982 _(foi profissional)_
-- MEI: Serginho (Campo Grande) 1982 _(foi profissional)_ · Israel (Campo Grande) 1982 _(foi profissional)_ · Lulinha (Campo Grande) 1982 _(bom)_ · Pingo 1982 _(foi profissional)_
-- ATA: Tuchê 1982 _(foi profissional)_ · Luisinho das Arábias 1982 _(bom)_ · Luís Paulo 1982 _(foi profissional)_
+**Volta Redonda** (16)
+- GOL: Lugão 2005 _(bom)_
+- LAT: Schneider 2005 _(foi profissional)_ · Maciel 2005 _(foi profissional)_
+- ZAG: Aílson 2005 _(foi profissional)_ · Alemão 2005 _(foi profissional)_
+- MEI: Mário César 2005 _(foi profissional)_ · Jonílson 2005 _(bom)_ · Adriano Felício 2005 _(foi profissional)_ · Gláuber 2005 _(foi profissional)_ · Haroldo 2005 _(foi profissional)_ · Élson 2005 _(foi profissional)_ · Bruno Barra 2019 _(bom)_
+- ATA: Humberto 2005 _(foi profissional)_ · Fábio (Volta Redonda) 2005 _(foi profissional)_ · Micão 2005 _(foi profissional)_ · Tiago Amaral 2016 _(bom)_
 
 **Portuguesa** (18)
 - GOL: Muca 1952 _(bom)_ · Cabeção 1955 _(bom)_
@@ -43,7 +43,7 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 - GOL: Neneca 1978 _(craque do clube)_
 - LAT: Mauro Cabeção 1978 _(bom)_ · Miranda (Guarani) 1978 _(bom)_
 - ZAG: Édson (Guarani) 1978 _(bom)_ · Júlio César (Guarani) 1986 _(craque do clube)_
-- MEI: Zé Carlos (Guarani) 1978 _(bom)_ · Renato (Guarani) 1978 _(craque do clube)_ · Zenon 1978 _(craque do clube)_ · Manguinha 1978 _(foi profissional)_ · Tite 1986 _(bom)_
+- MEI: Zé Carlos 1978 _(bom)_ · Renato (Guarani) 1978 _(craque do clube)_ · Zenon 1978 _(craque do clube)_ · Manguinha 1978 _(foi profissional)_ · Tite 1986 _(bom)_
 - ATA: Capitão 1978 _(bom)_ · Bozó 1978 _(bom)_ · João Paulo (Guarani) 1986 _(craque do clube)_
 
 **Ponte Preta** (14)
@@ -67,12 +67,12 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 - MEI: Josimar (Chape) 2016 _(bom)_ · Gil (Chape) 2016 _(bom)_
 - ATA: Ananias 2016 _(bom)_ · Tiaguinho 2016 _(bom)_
 
-**Juventude** (12)
+**Juventude** (15)
 - GOL: Émerson (Juventude) 1999 _(bom)_
-- LAT: Dênis 1999 _(foi profissional)_ · Índio (Juventude) 1999 ⚠️ _(bom)_ · Índio (Juventude) 1999 ⚠️ _(foi profissional)_
+- LAT: Dênis 1999 _(foi profissional)_ · Capone 1999 _(foi profissional)_
 - ZAG: Picolli 1999 _(bom)_ · Marcos Teixeira 1999 _(foi profissional)_
-- MEI: Lauro 1999 _(bom)_ · Roberto 1999 _(foi profissional)_ · Flávio (Juventude) 1999 _(foi profissional)_ · Mabília 1999 _(bom)_
-- ATA: Márcio Mexerica 1999 _(bom)_ · Fernando Rech 1999 _(bom)_
+- MEI: Lauro 1999 _(bom)_ · Roberto 1999 _(foi profissional)_ · Flávio (Juventude) 1999 _(foi profissional)_ · Mabília 1999 _(bom)_ · Wallace 1999 _(foi profissional)_ · Patrício 1999 _(foi profissional)_
+- ATA: Márcio Mexerica 1999 _(bom)_ · Fernando Rech 1999 _(bom)_ · Alcir 1999 _(foi profissional)_ · Mário Tilico 1999 _(bom)_
 
 **Caxias** (11)
 - GOL: Gilmar (Caxias) 2000 _(bom)_
@@ -92,7 +92,7 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 - GOL: Eduardo Martini 2009 _(bom)_
 - LAT: Ferdinando 2009 _(foi profissional)_ · Uendel 2009 _(bom)_
 - ZAG: Turatto 2009 _(foi profissional)_ · Émerson (Avaí) 2009 _(foi profissional)_
-- MEI: Marcus Winícius 2009 _(foi profissional)_ · Léo Gago 2009 _(bom)_ · Marquinhos Santos 2009 _(foi profissional)_ · Caio 2009 _(foi profissional)_ · Marquinhos (Avaí) 2009 _(craque do clube)_
+- MEI: Marcus Winícius 2009 _(foi profissional)_ · Léo Gago 2009 _(bom)_ · Marquinhos Santos 2009 _(foi profissional)_ · Caio (Avaí) 2009 _(foi profissional)_ · Marquinhos (Avaí) 2009 _(craque do clube)_
 - ATA: Evando 2009 _(bom)_ · William (Avaí) 2009 _(bom)_ · Muriqui 2009 _(bom)_
 
 **Criciúma** (11)
@@ -133,7 +133,7 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 **Ipatinga** (11)
 - GOL: Rodrigo Posso 2005 _(foi profissional)_
 - LAT: Luizinho 2005 _(foi profissional)_ · Beto 2005 _(foi profissional)_
-- ZAG: William (Ipatinga) 2005 _(foi profissional)_ · Irineu 2005 _(foi profissional)_
+- ZAG: William (Ipatinga) 2005 _(foi profissional)_ · Irineu (Ipatinga) 2005 _(foi profissional)_
 - MEI: Fahel 2005 _(bom)_ · Leandro Salino 2005 _(bom)_ · Léo Medeiros 2005 _(bom)_ · Paulinho (Ipatinga) 2005 _(foi profissional)_
 - ATA: Walter 2005 _(bom)_ · Kanu 2005 _(foi profissional)_
 
@@ -168,7 +168,7 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 **Náutico** (11)
 - GOL: Lula (Náutico) 1966 _(bom)_
 - LAT: Gena 1966 _(bom)_ · Clóvis 1966 _(foi profissional)_
-- ZAG: Fraga 1966 _(foi profissional)_ · Mauro (Náutico) 1966 _(foi profissional)_
+- ZAG: Fraga 1966 _(foi profissional)_ · Mauro 1966 _(foi profissional)_
 - MEI: Ivan (Náutico) 1966 _(bom)_ · Salomão 1966 _(foi profissional)_
 - ATA: Bita 1966 _(craque do clube)_ · Nado 1966 _(craque do clube)_ · Lala 1966 _(bom)_ · Nino (Náutico) 1966 _(bom)_
 
@@ -179,13 +179,6 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 - MEI: Uillian Correia 2016 _(bom)_ · Leandrinho 2016 _(foi profissional)_ · Lelê 2016 _(foi profissional)_
 - ATA: Arthur (Santa Cruz) 2016 _(foi profissional)_
 
-**América-RN** (11)
-- GOL: Gabriel 1998 _(foi profissional)_
-- LAT: Gilson 1998 _(foi profissional)_ · Rogerinho 1998 _(foi profissional)_
-- ZAG: Paulo Roberto (América-RN) 1998 _(foi profissional)_ · Lima 1998 _(foi profissional)_
-- MEI: Montanha 1998 _(foi profissional)_ · Carioca 1998 _(bom)_ · Moura 1998 _(foi profissional)_
-- ATA: Paulinho Kobayashi 1998 _(bom)_ · Leonardo (América-RN) 1998 _(foi profissional)_ · Wanderley 1998 _(foi profissional)_
-
 **ABC** (11)
 - GOL: Wellington 2010 _(foi profissional)_
 - LAT: Suéliton 2010 _(foi profissional)_ · Renatinho Potiguar 2010 _(foi profissional)_
@@ -193,12 +186,19 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 - MEI: Basílio 2010 _(foi profissional)_ · Ricardo Oliveira (ABC) 2010 _(foi profissional)_ · Pio 2010 _(foi profissional)_ · Jackson 2010 _(foi profissional)_
 - ATA: Cascata 2010 _(bom)_ · Leandrão 2010 _(foi profissional)_
 
-**Ferroviário** (11)
-- GOL: Gleibson 2018 _(foi profissional)_
-- LAT: Sávio (Ferroviário) 2018 _(foi profissional)_ · Gleidson 2018 _(foi profissional)_
-- ZAG: Afonso 2018 _(foi profissional)_ · André Lima (Ferroviário) 2018 _(foi profissional)_
-- MEI: Mazinho (Ferroviário) 2018 _(foi profissional)_ · Leanderson 2018 _(foi profissional)_ · Janeudo 2018 _(foi profissional)_
-- ATA: Luis Soares 2018 _(foi profissional)_ · Valdeci 2018 _(foi profissional)_ · Edson Cariús 2018 _(bom)_
+**América-RN** (11)
+- GOL: Gabriel 1998 _(foi profissional)_
+- LAT: Gilson 1998 _(foi profissional)_ · Rogerinho 1998 _(foi profissional)_
+- ZAG: Paulo Roberto (América-RN) 1998 _(foi profissional)_ · Lima 1998 _(foi profissional)_
+- MEI: Montanha 1998 _(foi profissional)_ · Carioca 1998 _(bom)_ · Moura 1998 _(foi profissional)_
+- ATA: Paulinho Kobayashi 1998 _(bom)_ · Leonardo (América-RN) 1998 _(foi profissional)_ · Wanderley 1998 _(foi profissional)_
+
+**Botafogo-PB** (17)
+- GOL: Edson 2017 _(foi profissional)_
+- LAT: Neilson 2019 _(foi profissional)_ · Israel 2019 _(foi profissional)_ · Roniery 2019 _(foi profissional)_
+- ZAG: Lula (Botafogo-PB) 2019 _(foi profissional)_ · Fred (Botafogo-PB) 2019 _(foi profissional)_ · Fábio Alves 2019 _(foi profissional)_ · William Goiano 2019 _(foi profissional)_
+- MEI: Rogério (Botafogo-PB) 2019 _(foi profissional)_ · Wellington Cesar 2019 _(foi profissional)_ · Juninho (Botafogo-PB) 2019 _(foi profissional)_ · Clayton 2019 _(foi profissional)_ · Marcos Aurélio 2019 _(bom)_ · Carlão 2019 _(foi profissional)_
+- ATA: Felipe Alves 2019 _(foi profissional)_ · Nando (Botafogo-PB) 2019 _(foi profissional)_ · Adalgiso Pitbull 2019 _(foi profissional)_
 
 **Bahia** (4)
 - LAT: Tarantini 1988 _(bom)_ · Paulo Róbson 1988 _(bom)_
@@ -209,6 +209,13 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 - MEI: Preto 1998 _(bom)_ · Donizete Oliveira 1998 _(bom)_
 - ATA: Agnaldo 1998 _(bom)_
 
+**CRB** (11)
+- GOL: Victor Souza 2020 _(foi profissional)_
+- LAT: Igor (CRB) 2020 _(foi profissional)_ · Hugo 2020 _(foi profissional)_
+- ZAG: Lucas Mendes 2020 _(foi profissional)_ · Reginaldo Júnior 2020 _(foi profissional)_
+- MEI: Claudinei 2020 _(foi profissional)_ · Washington 2020 _(foi profissional)_ · Diego Torres 2020 _(foi profissional)_
+- ATA: Magno Cruz 2020 _(foi profissional)_ · Luidy 2020 _(foi profissional)_ · Dudu (CRB) 2020 _(foi profissional)_
+
 **CSA** (13)
 - GOL: Jordi 2019 _(bom)_
 - LAT: Warley (CSA) 2019 _(foi profissional)_ · Rafinha (CSA) 2019 _(foi profissional)_
@@ -216,12 +223,12 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 - MEI: Dawhan 2019 _(foi profissional)_ · Nilton 2019 _(bom)_ · Naldo 2019 _(foi profissional)_ · Jean Cléber 2019 _(foi profissional)_
 - ATA: Bruno Alves (CSA) 2019 _(foi profissional)_ · Euller (CSA) 2019 _(foi profissional)_ · Ricardo Bueno 2019 _(bom)_ · Missinho 1999 _(bom)_
 
-**CRB** (11)
-- GOL: Victor Souza 2020 _(foi profissional)_
-- LAT: Igor (CRB) 2020 _(foi profissional)_ · Hugo 2020 _(foi profissional)_
-- ZAG: Lucas Mendes 2020 _(foi profissional)_ · Reginaldo Júnior 2020 _(foi profissional)_
-- MEI: Claudinei 2020 _(foi profissional)_ · Washington 2020 _(foi profissional)_ · Diego Torres 2020 _(foi profissional)_
-- ATA: Magno Cruz 2020 _(foi profissional)_ · Luidy 2020 _(foi profissional)_ · Dudu (CRB) 2020 _(foi profissional)_
+**Confiança** (11)
+- GOL: Rafael Santos 2021 _(foi profissional)_
+- LAT: Marcelinho 2021 _(foi profissional)_ · João Paulo (Confiança) 2021 _(foi profissional)_
+- ZAG: Nirley 2021 _(foi profissional)_ · Nery Bareiro 2021 _(foi profissional)_
+- MEI: Serginho 2021 _(foi profissional)_ · Madison 2021 _(foi profissional)_ · Rafael Vila 2021 _(foi profissional)_ · Álvaro (Confiança) 2021 _(foi profissional)_
+- ATA: Willians 2021 _(foi profissional)_ · Hernane 2021 _(bom)_
 
 **Sampaio Corrêa** (11)
 - GOL: Andrey 2018 _(foi profissional)_
@@ -230,23 +237,16 @@ Só existem nas salas de copa regional. Base: escalações de times marcantes de
 - MEI: Willian Oliveira 2018 _(foi profissional)_ · Diego Silva 2018 _(foi profissional)_ · Fernando Sobral 2018 _(foi profissional)_
 - ATA: Danielzinho 2018 _(foi profissional)_ · João Paulo (Sampaio) 2018 _(foi profissional)_ · Uilliam Barros 2018 _(foi profissional)_
 
-**Botafogo-PB** (17)
-- GOL: Edson 2017 _(foi profissional)_
-- LAT: Neilson 2019 _(foi profissional)_ · Israel (Botafogo-PB) 2019 _(foi profissional)_ · Roniery 2019 _(foi profissional)_
-- ZAG: Lula (Botafogo-PB) 2019 _(foi profissional)_ · Fred (Botafogo-PB) 2019 _(foi profissional)_ · Fábio Alves 2019 _(foi profissional)_ · William Goiano 2019 _(foi profissional)_
-- MEI: Rogério (Botafogo-PB) 2019 _(foi profissional)_ · Wellington Cesar 2019 _(foi profissional)_ · Juninho (Botafogo-PB) 2019 _(foi profissional)_ · Clayton 2019 _(foi profissional)_ · Marcos Aurélio 2019 _(bom)_ · Carlão 2019 _(foi profissional)_
-- ATA: Felipe Alves 2019 _(foi profissional)_ · Nando (Botafogo-PB) 2019 _(foi profissional)_ · Adalgiso Pitbull 2019 _(foi profissional)_
+**Moto Club** (14)
+- GOL: Cenilson 1977 _(foi profissional)_
+- LAT: Célia Rodrigues 1977 _(foi profissional)_ · Gilberto (Moto Club) 1977 _(foi profissional)_
+- ZAG: Irineu (Moto Club) 1977 _(foi profissional)_ · Vivico (Moto Club) 1977 _(foi profissional)_ · Gaspar 1977 _(foi profissional)_
+- MEI: Tido 1977 _(foi profissional)_ · Beato 1977 _(foi profissional)_ · Toninho 1977 _(foi profissional)_ · Edmilson Leite 1977 _(foi profissional)_ · Zé Carlos Brasília 2000 _(foi profissional)_
+- ATA: Caio (Moto Club) 1977 _(foi profissional)_ · Paulo César (Moto Club) 1977 _(foi profissional)_ · Alberto 1977 _(foi profissional)_
 
-**Campinense** (15)
-- GOL: Gledson 2016 _(foi profissional)_ · Pantera 2013 _(foi profissional)_
-- LAT: Fernando Pires 2016 _(foi profissional)_ · Danilo (Campinense) 2016 _(foi profissional)_
-- ZAG: Tiago Sala 2016 _(foi profissional)_ · Roberto Dias 2013 _(bom)_
-- MEI: Negretti 2016 _(foi profissional)_ · Magno 2016 _(foi profissional)_ · Roger Gaúcho 2016 _(foi profissional)_ · Dedé (Campinense) 2013 _(foi profissional)_
-- ATA: Jussimar 2016 _(foi profissional)_ · Raul 2016 _(foi profissional)_ · Rodrigão (Campinense) 2016 _(foi profissional)_ · Ricardo Maranhão 2013 _(foi profissional)_ · Jefferson Maranhense 2013 _(foi profissional)_
-
-**Confiança** (11)
-- GOL: Rafael Santos 2021 _(foi profissional)_
-- LAT: Marcelinho 2021 _(foi profissional)_ · João Paulo (Confiança) 2021 _(foi profissional)_
-- ZAG: Nirley 2021 _(foi profissional)_ · Nery Bareiro 2021 _(foi profissional)_
-- MEI: Serginho (Confiança) 2021 _(foi profissional)_ · Madison 2021 _(foi profissional)_ · Rafael Vila 2021 _(foi profissional)_ · Álvaro (Confiança) 2021 _(foi profissional)_
-- ATA: Willians 2021 _(foi profissional)_ · Hernane 2021 _(bom)_
+**River-PI** (14)
+- GOL: Joanderson 2024 _(foi profissional)_
+- LAT: Vivico (River-PI) 2024 _(foi profissional)_ · Darlan 2024 _(foi profissional)_
+- ZAG: Lucas Mingoti 2024 _(foi profissional)_ · Leandro Amaro 2024 _(foi profissional)_ · Nalberth 2024 _(foi profissional)_
+- MEI: Izaldo 2024 _(foi profissional)_ · Guilherme Escuro 2024 _(foi profissional)_ · Caíque Valdívia 2024 _(foi profissional)_ · Iago 2024 _(foi profissional)_
+- ATA: Rodrigo Fumaça 2024 _(foi profissional)_ · Felipe Pará 2024 _(foi profissional)_ · Crislan 2024 _(foi profissional)_ · Wesley Bolinha 2024 _(foi profissional)_
