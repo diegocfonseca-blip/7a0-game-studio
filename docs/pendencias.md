@@ -5,6 +5,22 @@
   estourava o tempo da ferramenta). Desfazer: `drop function public.esc_regional_clock(...)` + `drop table public.esc_regional_clock`.
 
 
+
+## 11/10/2026 (noite) — 🏟️ COPA REGIONAL: TABELA ANTES DOS JOGOS, PLACAR GRUDADO E CHAT
+
+Prints dele na Copa do Nordeste ao vivo: *"a tabela tem q ficar em cima dos jogos rolando…
+qd descer a tela… a aba do placar header aparecer em cima… o chat sumiu qd começou o
+campeonato… isso serve p todos estaduais"*.
+- Ordem nas rodadas: placar grande → controle → **as duas tabelas** → clássicos da rodada.
+- 🪶 Tira do placar no topo ao rolar = a MESMA peça da liga online (`FaixaPlacarMini` +
+  `usePlacarFora`), só com os gols até o minuto da tela (`PlacarQueGruda`).
+- 💬 O modal da copa (`CMModal`, z 99996) cobria o botão do chat (z 99990). Agora o
+  `ChatWidget` vai DENTRO do modal do torneio regional.
+- O título "🎮 CONTROLE DA PARTIDA" saiu: o CSS do cinema já escreve "RITMO DA PARTIDA"
+  no mesmo lugar (estava embolado no print).
+- ⚠️ A **Copa do Mundo online** usa o mesmo modal — o chat provavelmente some lá também.
+  Não mexi (ele pediu os estaduais); perguntar se quer igual.
+
 ## 11/10/2026 (noite) — ⏱️ COPA REGIONAL: 45s PRA ESCOLHER + AVISO DE 15s ANTES
 
 Print dele numa Copa do Nordeste ao vivo: *"reduza o tempo p 45s p escolha do time nos

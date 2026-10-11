@@ -23,7 +23,8 @@ import { tr, getLang, ordinal } from './lang'
 import { agoraSala } from './relogio'
 import { CompetitionStage, CompetitionMatch } from './online-match-visual'
 import './online-match-visual.css'
-import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada } from './pyramidseason'
+import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
+import { ChatWidget } from './screens'
 import { startCrowd, stopCrowd } from './sound'
 import { Escudo } from './escudos'
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
@@ -476,10 +477,30 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       )}
       {ficha && aberta && (
         <CMModal wide cinematic onlineBroadcast>
+          {/* 💬 o modal da copa cobre o botão do chat da sala — então ele vem junto, por cima */}
+          <ChatWidget />
           <CopaRegionalTorneio copa={copa} ficha={ficha} roomId={roomId} meuUid={meuUid} souDono={souDono}
             aoCampeao={(nome, clube) => { void gravaCampeao(nome, clube) }} aoFechar={() => setAberta(false)} />
         </CMModal>
       )}
+    </>
+  )
+}
+
+// 🪶 o placar grande que, ao rolar a tela pra ver a tabela, vira a TIRA no topo — a
+// mesma peça da liga online (`FaixaPlacarMini` + `usePlacarFora`). Só gols até o
+// minuto da tela: nada de spoiler.
+function PlacarQueGruda({ min, fim, home, away, goals, youIsHome, children }: {
+  min: number; fim: boolean; home: string; away: string; goals: GolRegional[]; youIsHome: boolean; children: React.ReactNode
+}) {
+  const caixa = useRef<HTMLDivElement | null>(null)
+  const fora = usePlacarFora(caixa)
+  const hg = goals.filter(g => g.home).length
+  return (
+    <>
+      <div ref={caixa} style={{ marginBottom: 8 }}>{children}</div>
+      {fora && <FaixaPlacarMini topo={0} min={min} fim={fim} home={home} away={away} hg={hg} ag={goals.length - hg} youIsHome={youIsHome}
+        onAbrir={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })} />}
     </>
   )
 }
@@ -543,11 +564,11 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const golsAte = (ev: GolRegional[]) => (liveDone ? ev : ev.filter(g => g.min <= liveMin))
 
   const live = (h: number, a: number, ev: GolRegional[]) => (
-    <div style={{ marginBottom: 8 }}>
+    <PlacarQueGruda min={Math.min(93, liveMin)} fim={liveDone} home={entrants[h].pais} away={entrants[a].pais} goals={golsAte(ev)} youIsHome={isYou(h)}>
       <LiveScoreCard enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={GREEN} awayColor="#C2452F"
         homeOwner={dono(h)} awayOwner={dono(a)} homeEmblem={<Escudo nome={entrants[h].pais} size={58} />} awayEmblem={<Escudo nome={entrants[a].pais} size={58} />}
         youIsHome={isYou(h)} goals={ev} roundKey={step} roundMs={roundMs} finished={liveDone} footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} />
-    </div>
+    </PlacarQueGruda>
   )
   const jogoLinha = (h: number, a: number, ev: GolRegional[], key: string, status: string, pen?: [number, number]) => {
     const g = golsAte(ev)
@@ -588,7 +609,6 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     : tr('🎉 Cerimônia', '🎉 Ceremony')
   const controles = relogio?.row && (
     <section className="ll31-tournament-controls" style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 10 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 6px' }}>{tr('🎮 CONTROLE DA PARTIDA', '🎮 MATCH CONTROL')}</p>
       {relogio.isHost ? <>
         <div className="ll27-world-rhythm">
           <button className={relogio.row.manual ? 'selected' : ''} disabled={relogio.busy} onClick={() => void relogio.command('manual')}>MANUAL</button>
@@ -616,6 +636,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         return <>
           {meu && live(meu.h, meu.a, meu.ev)}
           {controles}
+          {tabela(0)}{tabela(1)}
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: GOLD, margin: '4px 0 6px' }}>{tr('⚽ CLÁSSICOS DA RODADA', '⚽ DERBIES OF THE ROUND')} {rodadaAtual}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 6, marginBottom: 10 }}>
             {rod.filter(j => j !== meu).map((j, k) => jogoLinha(j.h, j.a, j.ev, `r${k}`, liveDone ? tr('ENCERRADO', 'FULL TIME') : `${Math.min(90, liveMin)}′ · ${tr('AO VIVO', 'LIVE')}`))}
@@ -623,7 +644,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         </>
       })()}
       {step === 0 && controles}
-      {step <= P.CHAVE && <>{tabela(0)}{tabela(1)}</>}
+      {(step === 0 || step === P.CHAVE) && <>{tabela(0)}{tabela(1)}</>}
       {/* CHAVE: quem pega quem no mata-mata (cruzado) */}
       {step === P.CHAVE && <>
         {controles}
