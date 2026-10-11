@@ -60,6 +60,35 @@ function AvisoTopo({ escondido }: { escondido: boolean }) {
   )
 }
 
+// 📲 COMUNIDADE DO WHATSAPP (Diego 11/10): *"chegou o grupo… quando o cara clicar vai direto no link da
+// comunidade"*. Diferente da faixa de manutenção (que era FIXA e tampava as moedas de quem joga online), esta
+// entra no FLUXO da página: empurra o conteúdo pra baixo em vez de cobrir. E só aparece onde não tem jogo
+// rolando — tela inicial e área das salas —, nunca no leilão/temporada. O ✕ esconde neste aparelho.
+// Tirar pra todos: COMUNIDADE_LINK = null.
+const COMUNIDADE_LINK: string | null = 'https://chat.whatsapp.com/KfSkVvbjjdiHptHfJE5hQN'
+const COMUNIDADE_FECHADA = 'esc-comunidade-zap-fechada'
+function ComunidadeBanner() {
+  const { state } = useEsc()
+  const [fechada, setFechada] = useState(() => { try { return localStorage.getItem(COMUNIDADE_FECHADA) === '1' } catch { return false } })
+  if (!COMUNIDADE_LINK || fechada) return null
+  if (state.screen !== 'intro' && state.screen !== 'lobby') return null
+  const en = getLang() === 'en'
+  return (
+    <div style={{ display: 'flex', alignItems: 'stretch', background: '#1B7A3D', borderBottom: '3px solid #0C0C0C' }}>
+      <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 10px', color: '#fff', textDecoration: 'none', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, textAlign: 'center' }}>
+        <span style={{ fontSize: 18, flex: 'none' }}>📲</span>
+        <span style={{ textAlign: 'left' }}>
+          <b style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 14, textTransform: 'uppercase', letterSpacing: '.02em' }}>{en ? 'Our WhatsApp community is here!' : 'Chegou a comunidade no WhatsApp!'}</b>
+          <span style={{ display: 'block', fontSize: 11, fontWeight: 700, opacity: .9 }}>{en ? 'Join now and meet more Leilão Legends fans' : 'Entre agora e encontre mais fãs do Leilão Legends'}</span>
+        </span>
+        <span style={{ flex: 'none', background: '#FFC400', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 999, padding: '3px 10px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', boxShadow: '2px 2px 0 #0C0C0C', whiteSpace: 'nowrap' }}>{en ? 'Join' : 'Entrar'}</span>
+      </a>
+      <button aria-label={en ? 'close' : 'fechar'} onClick={() => { try { localStorage.setItem(COMUNIDADE_FECHADA, '1') } catch { /* ignora */ } setFechada(true) }}
+        style={{ flex: 'none', background: 'transparent', border: 'none', borderLeft: '2px solid rgba(255,255,255,.25)', color: '#fff', fontWeight: 900, fontSize: 15, padding: '0 12px', cursor: 'pointer' }}>✕</button>
+    </div>
+  )
+}
+
 function MaintenanceBanner() {
   const [down, setDown] = useState(false)
   const failsRef = useRef(0) // só mostra após FALHAS SEGUIDAS — evita alarme falso por blip de rede no celular
@@ -469,6 +498,7 @@ export default function EscalacaoGame() {
             TUDO, o pior caso é uma tela creme com o rodapé (dá pra sair por ali),
             nunca mais um preto assustador. */}
         <div className="tela-cheia" style={{ background: '#F4ECD6' }}>
+          <ComunidadeBanner />
           <Router />
           <GameFooter />{/* rodapé de contato, sutil, no final de todas as telas */}
           <AdminPanel />
