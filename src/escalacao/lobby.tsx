@@ -3378,14 +3378,30 @@ export function EscLobby() {
                       ele poder testar antes de soltar.
                       🧩 Com 5 opções o `Seg` vira grade de 2 colunas sozinho — era
                       isso que estava espremido. */}
-                  <Seg options={[...((libertaOn
+                  {/* 🧩 Duas prateleiras, como no mockup aprovado (10/10): o que se joga COM O
+                      SEU TIME do leilão e o que se joga CONVOCANDO (o time vem do país/clube). */}
+                  {(() => {
+                    type ModoCopa = 'liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga' | 'liga_riosp' | 'liga_sulminas' | 'liga_nordeste'
+                    const todas: [ModoCopa, string][] = [...((libertaOn
                     ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
                     : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
-                      // 🏟️ as copas regionais (só a conta do Diego, por enquanto)
-                      ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${COPAS_REGIONAIS[id].emoji} ${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]}
-                    value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
-                    travados={[...(championsOn ? [] : ['champions' as const]), ...regionalTravadas]}
-                    selos={{ liga_mundo: seloNovo(), champions: championsOn ? seloNovoDe('2026-09-25') : tr('em breve', 'soon'), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : seloNovoDe('2026-10-11')])) : {}) }} />
+                      // 🏟️ as copas regionais (liberadas pra todos em 11/10)
+                      ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${COPAS_REGIONAIS[id].emoji} ${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
+                    const convoca = (v: ModoCopa) => v === 'liga_mundo' || regionalId(v) !== null
+                    const prateleira = (titulo: string, lista: [ModoCopa, string][]) => lista.length === 0 ? null : (
+                      <>
+                        <p className="font-black mt-2 mb-1" style={{ fontSize: 10.5, letterSpacing: 1, color: 'rgba(255,255,255,.55)', ...OSWALD }}>{titulo}</p>
+                        <Seg options={lista}
+                          value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
+                          travados={[...(championsOn ? [] : ['champions' as const]), ...regionalTravadas]}
+                          selos={{ liga_mundo: seloNovo(), champions: championsOn ? seloNovoDe('2026-09-25') : tr('em breve', 'soon'), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : seloNovoDe('2026-10-11')])) : {}) }} />
+                      </>
+                    )
+                    return <>
+                      {prateleira(tr('⚽ COM O SEU TIME', '⚽ WITH YOUR TEAM'), todas.filter(([v]) => !convoca(v)))}
+                      {prateleira(tr('📋 CONVOCANDO', '📋 CALL-UP'), todas.filter(([v]) => convoca(v)))}
+                    </>
+                  })()}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {regionalId(rapidoCopaMode) ? (() => {
                       const id = regionalId(rapidoCopaMode)!, c = COPAS_REGIONAIS[id], v = clubesDaCopa(id).todos.length

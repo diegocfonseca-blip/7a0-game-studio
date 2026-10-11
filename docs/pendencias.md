@@ -38,6 +38,15 @@
 - Mockup: `node scripts/mockup-copas-regionais.mjs`. Ideia extra ainda sem decisão: "⚡ direto no estadual" (sem liga).
 
 
+
+## 11/10/2026 — 🧩 "DEPOIS DA LIGA" EM DUAS PRATELEIRAS (print do Diego)
+
+*"Tá sem a separação do mockup q vc tinha feito"*. Agora o seletor da sala tem as duas
+prateleiras do mockup aprovado: **⚽ COM O SEU TIME** (Liga + Copa · Liga + Liberta · Só
+Champions · Só liga) e **📋 CONVOCANDO** (Liga + Mundo · Rio × SP · Sul × Minas-PR ·
+Nordeste). É o mesmo `Seg` dividido em dois — o valor escolhido continua um só. A tarja
+"TESTE" que ele viu era da versão antiga no celular dele (a nova diz NOVO).
+
 ## 11/10/2026 — 🎬 REELS DAS COPAS REGIONAIS
 
 Pedido dele: *"quero vídeo de mockup tb padrão.. anunciando as ligas estaduais"*.
