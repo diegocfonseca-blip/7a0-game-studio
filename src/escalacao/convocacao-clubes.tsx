@@ -9,12 +9,12 @@
 import { SeloClube } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09)
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEsc } from './store'
-import { Shell, Box, nomePacote } from './screens'
+import { Shell, Box, nomePacote, CaixaDuplaTrava } from './screens'
 import { useT, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo' // 🧍 a MESMA peça do campinho da carreira (boneco solto na grama)
 import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
-import { FORMATIONS, SECTORS, type Card, type Sector, type WonCard } from './types'
+import { FORMATIONS, SECTORS, duplaPodeAgir, type Card, type Sector, type WonCard } from './types'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -33,10 +33,23 @@ export function EscConvocacaoClubes() {
     for (const c of (me?.squad ?? []) as WonCard[]) if (c.pacote) r[c.pos] = c
     return r
   }, [me])
+  // 🤝 DUPLA (12/10): cada um convoca as posições DELE — a mesma divisão 3 e 3 do pregão.
+  // As do parceiro aparecem com 🔒 e o nome dele (ver tudo, mexer só no seu).
+  const dupla = me ? state.duplas?.[me.id] : undefined
+  const emDupla = !!dupla?.partnerUid
+  const meuSetor = (s: Sector) => !me || duplaPodeAgir(state.duplas, me.id, s, state.youUid)
+  const quemNoSetor = (s: Sector) => {
+    if (!dupla) return ''
+    const u = dupla.soloUid ?? dupla.cats?.[s]
+    return ((u === dupla.ownerUid ? dupla.ownerName : dupla.partnerName) ?? '').replace(/\p{Extended_Pictographic}/gu, '').trim()
+  }
+  const meusSetores = SECTORS.filter(meuSetor)
+  const parceiroUid = dupla ? (dupla.ownerUid === state.youUid ? dupla.partnerUid : dupla.ownerUid) : undefined
+  const parceiroSumiu = emDupla && !dupla?.soloUid && !!parceiroUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(parceiroUid)
   const poolDe = (s: Sector): Card[] => [...(lotes[s]?.pacote?.cartas ?? [])].sort((a, b) => a.name.localeCompare(b.name))
   // quantos DÁ pra convocar no setor (pacote menor que as vagas? o motor completa o resto)
-  const precisa = (s: Sector) => Math.min(form[s], poolDe(s).length)
-  const [tab, setTab] = useState<Sector>(() => SECTORS.find(s => lotes[s]) ?? 'GOL')
+  const precisa = (s: Sector) => (meuSetor(s) ? Math.min(form[s], poolDe(s).length) : 0)
+  const [tab, setTab] = useState<Sector>(() => SECTORS.find(s => lotes[s] && meuSetor(s)) ?? SECTORS.find(s => lotes[s]) ?? 'GOL')
   const [sel, setSel] = useState<Record<string, Sector>>({}) // id da carta → setor
   const [aviso, setAviso] = useState<string | null>(null)
   const doSetor = (s: Sector) => poolDe(s).filter(c => sel[c.id])
@@ -52,13 +65,13 @@ export function EscConvocacaoClubes() {
   useEffect(() => { const iv = setInterval(() => setAgora(agoraSala()), 250); return () => clearInterval(iv) }, [])
   const prazo = state.convocacaoDeadline ?? null
   const seg = prazo ? Math.max(0, Math.ceil((prazo - agora) / 1000)) : null
-  const fechei = !!me && (state.convocacaoFeitos ?? []).includes(me.id)
+  const fechei = !!me && ((state.convocacaoFeitos ?? []).includes(me.id) || (emDupla && (state.convocacaoDuplaFeitos ?? []).includes(`${me.id}:${state.youUid}`)))
   const selRef = useRef(sel); selRef.current = sel
   const mandou = useRef(false)
   useEffect(() => {
     if (!me || seg === null || seg > 0 || fechei || mandou.current) return
     mandou.current = true
-    dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current) })
+    dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current), by: state.youUid })
   }, [seg, fechei]) // eslint-disable-line react-hooks/exhaustive-deps
   const humanos = state.managers.filter(m => m.isHuman && m.modoClubes)
   const faltamFechar = humanos.filter(m => !(state.convocacaoFeitos ?? []).includes(m.id))
@@ -74,12 +87,16 @@ export function EscConvocacaoClubes() {
               ? t(`Esperando ${faltamFechar.length === 1 ? 'mais 1 técnico' : `mais ${faltamFechar.length} técnicos`}: ${faltamFechar.map(m => m.teamName).join(', ')}`, `Waiting for ${faltamFechar.length} more: ${faltamFechar.map(m => m.teamName).join(', ')}`)
               : t('Todo mundo fechou — já vai começar.', 'Everyone is done — starting now.')}
           </p>
+          {emDupla && !(state.convocacaoFeitos ?? []).includes(me.id) && (
+            <p style={{ fontSize: 12, fontWeight: 800, color: '#5B3DB8', margin: 0 }}>{t(`🤝 A sua parte está feita. Falta ${quemNoSetor(SECTORS.find(s => !meuSetor(s)) ?? 'GOL') || 'seu parceiro'} fechar as posições dele.`, `🤝 Your part is done. Waiting for ${quemNoSetor(SECTORS.find(s => !meuSetor(s)) ?? 'GOL') || 'your partner'} to finish theirs.`)}</p>
+          )}
           {seg !== null && faltamFechar.length > 0 && <p style={{ ...OSWALD, fontWeight: 900, fontSize: 26, margin: 0 }}>⏱️ {seg}s</p>}
         </Box>
       </Shell>
     )
   }
   const toggle = (c: Card, s: Sector) => {
+    if (!meuSetor(s)) return // 🤝 setor do parceiro: só ele marca (o host também recusa)
     setSel(prev => {
       const nx = { ...prev }
       if (nx[c.id]) { delete nx[c.id]; setAviso(null); return nx }
@@ -124,22 +141,31 @@ export function EscConvocacaoClubes() {
 
         <div style={{ display: 'flex', gap: 4 }}>
           {SECTORS.map(s => {
-            const ok = doSetor(s).length >= precisa(s)
+            const ok = meuSetor(s) && doSetor(s).length >= precisa(s)
             return (
               <button key={s} onClick={() => { setTab(s); setAviso(null) }} style={{ flex: 1, border: `2.5px solid ${INK}`, borderRadius: 10, padding: '4px 2px', fontWeight: 900, fontSize: 11, ...OSWALD, cursor: 'pointer', background: ok ? GREEN : tab === s ? GOLD : '#fff', color: ok ? '#fff' : INK, boxShadow: tab === s ? `2px 2px 0 0 ${INK}` : 'none' }}>
-                {s}<span style={{ display: 'block', fontSize: 8, fontWeight: 800, opacity: 0.85 }}>{doSetor(s).length}/{form[s]}{ok ? ' ✓' : ''}</span>
+                {s}<span style={{ display: 'block', fontSize: 8, fontWeight: 800, opacity: 0.85 }}>{meuSetor(s) ? `${doSetor(s).length}/${form[s]}${ok ? ' ✓' : ''}` : `🔒 ${quemNoSetor(s).split(' ')[0] || '—'}`}</span>
               </button>
             )
           })}
         </div>
 
+        {emDupla && !meuSetor(tab) && (
+          <CaixaDuplaTrava quem={quemNoSetor(tab)} parceiroSumiu={parceiroSumiu}
+            assumir={() => dispatch({ type: 'DUPLA_SOLO', mgrId: me.id, ficouUid: state.youUid ?? '' })}
+            titulo={t(`🔒 Quem convoca os ${secNome(tab, 2)} é ${quemNoSetor(tab) || 'seu parceiro'}`, `🔒 ${quemNoSetor(tab) || 'Your partner'} calls up the ${secNome(tab, 2)}`)}
+            texto={t('Você vê o pacote, mas quem marca aqui é ele. As abas sem 🔒 são as suas.', 'You can see the pack, but your partner picks here. The tabs without 🔒 are yours.')} />
+        )}
+        {emDupla && meuSetor(tab) && meusSetores.length < SECTORS.length && (
+          <p style={{ fontSize: 10.5, fontWeight: 800, color: '#5B3DB8', margin: 0 }}>{t(`🤝 Você convoca: ${meusSetores.join(' · ')}. O resto é com ${quemNoSetor(SECTORS.find(s => !meuSetor(s)) ?? 'GOL') || 'seu parceiro'}.`, `🤝 You call up: ${meusSetores.join(' · ')}. The rest is up to ${quemNoSetor(SECTORS.find(s => !meuSetor(s)) ?? 'GOL') || 'your partner'}.`)}</p>
+        )}
         <Box className="p-0 overflow-hidden" shadow={3}>
           {lote ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderBottom: `3px solid ${INK}`, background: '#FFF4CF' }}>
               <SeloClube clube={lote.pacote?.clube ?? lote.club} size={44} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 14, margin: 0, textTransform: 'uppercase', lineHeight: 1.1 }}>{nomePacote(lote)}</p>
-                <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{t(`Convoque ${precisa(tab)} de ${lista.length}`, `Call up ${precisa(tab)} of ${lista.length}`)}</p>
+                <p style={{ fontSize: 10, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{meuSetor(tab) ? t(`Convoque ${precisa(tab)} de ${lista.length}`, `Call up ${precisa(tab)} of ${lista.length}`) : t(`${lista.length} no pacote · 🔒 ${quemNoSetor(tab)} escolhe`, `${lista.length} in the pack · 🔒 ${quemNoSetor(tab)} picks`)}</p>
               </div>
             </div>
           ) : (
@@ -153,10 +179,11 @@ export function EscConvocacaoClubes() {
           {lista.map(c => {
             const on = !!sel[c.id]
             const cheio = !on && doSetor(tab).length >= form[tab]
+            const travado = !meuSetor(tab)
             return (
-              <button key={c.id} onClick={() => toggle(c, tab)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : cheio ? '#EFE7D2' : '#fff', cursor: 'pointer', opacity: cheio ? 0.62 : 1, textAlign: 'left' }}>
-                <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : cheio ? '🔒' : ''}</span>
+              <button key={c.id} onClick={() => toggle(c, tab)} disabled={travado}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', border: 'none', borderBottom: '2px solid rgba(0,0,0,.07)', background: on ? '#E9F5EC' : cheio ? '#EFE7D2' : '#fff', cursor: travado ? 'default' : 'pointer', opacity: cheio || travado ? 0.62 : 1, textAlign: 'left' }}>
+                <span style={{ width: 22, height: 22, border: `2.5px solid ${INK}`, borderRadius: 7, background: on ? GREEN : '#fff', color: on ? '#fff' : 'rgba(0,0,0,.45)', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>{on ? '✓' : cheio || travado ? '🔒' : ''}</span>
                 <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13.5, textTransform: 'uppercase', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: INK }}>{c.name}</span>
                 <span style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', flexShrink: 0 }}>{c.year}</span>
               </button>
@@ -189,7 +216,7 @@ export function EscConvocacaoClubes() {
         </div>
 
         {pronto ? (
-          <button onClick={() => dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(sel) })}
+          <button onClick={() => dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(sel), by: state.youUid })}
             style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', color: INK }}>
             {t('✅ Fechar convocação', '✅ Close call-up')}
           </button>

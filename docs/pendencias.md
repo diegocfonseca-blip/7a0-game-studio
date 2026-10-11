@@ -8,6 +8,23 @@
 - Agência continua UMA lista pros dois clubes (Diego: "deixe uma mesmo pros dois"). SAF não ganha carta.
 - ⏳ Devolver a carta da Série B desse usuário: falta o e-mail dele.
 
+
+## 12/10/2026 — 🤝 DUPLAS NA TOCAIA E NO LEILÃO DE CLUBES (OK do Diego: "Ok")
+
+Pedido: *"teria como fazer o jogando dupla para esses dois modos também… tocaia e jogador,
+tocaia e clubes, envelope e clubes"*. Achado na análise: a sala JÁ deixava escolher Duplas
+com Tocaia/Clubes, mas **Tocaia + Duplas estava quebrada** (o PEGAR ia sem crachá → o motor
+recusava os DOIS da dupla) e na **convocação dos Clubes** valia só quem mandasse primeiro.
+Regra única, a mesma divisão 3 e 3 do envelope:
+- 🐊 Tocaia: `holPodeAgora(…, uid)` checa `duplaPodeAgir` (tela = motor) e o PEGAR leva `by`.
+  O parceiro vê o preço caindo com a caixa "🔒 Quem pega GOLEIRO é Fulano" + botão assumir.
+- 🧱 Clubes/envelope: já seguia a divisão (o pacote é de um setor). Nada mudou.
+- 🧱 Convocação: cada um marca SÓ os seus setores (aba do parceiro com 🔒 e o nome); o host
+  junta as duas metades (`donosDaConvocacao` + `convocacaoDuplaFeitos`); o time fecha quando
+  os dois mandam ou o relógio acaba (vaga vazia = pior do pacote, como sempre).
+- Peças novas: `useDuplaVez` + `CaixaDuplaTrava` (screens.tsx). Trava: `npm run duplas`.
+- ⏳ Esperando o OK visual dele pra publicar (fotos mandadas no chat).
+
 ## 🏟️ Relógio da Copa regional no banco (11/10) ✅ APLICADO
 - `docs/sql/regional-clock.sql` rodado no Supabase a pedido do Diego: tabela `esc_regional_clock` (RLS + 3 regras:
   ler = dono/jogador da sala · criar/mudar = só o dono) e função `esc_regional_clock` (só logado; só o dono comanda).

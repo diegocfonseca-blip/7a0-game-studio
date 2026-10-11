@@ -611,6 +611,8 @@ export interface EscState {
   convocacaoDeadline?: number | null
   /** 🧱 quem já fechou a convocação (ids de técnico) */
   convocacaoFeitos?: number[]
+  /** 🤝 dupla: quem da dupla já mandou a SUA parte da convocação (`mgrId:crachá`) */
+  convocacaoDuplaFeitos?: string[]
   /** 🧱 o que cada um escolheu (só o host guarda; não viaja pros convidados) */
   convocacaoEscolhas?: Record<number, string[]>
   /** 🔻 estado vivo do holandês (só existe enquanto `phase === 'holandes'`) */

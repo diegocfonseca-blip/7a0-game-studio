@@ -58,6 +58,7 @@
     "pernadepau": "node scripts/mede-perna-de-pau.mjs",
     "proximo": "node scripts/testa-proximo-jogo.mjs",
     "holandes": "node scripts/testa-holandes.mjs",
+    "duplas": "node scripts/testa-duplas-modos.mjs",
     "mockup-holandes": "node scripts/mockup-holandes.mjs",
     "ascegas": "node scripts/prova-as-cegas.mjs",
     "revanche": "node scripts/testa-revanche.mjs",

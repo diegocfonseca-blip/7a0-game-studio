@@ -4873,7 +4873,7 @@ type Action =
   | { type: 'FORCE_TIEBREAK' }
   | { type: 'MONTE_PICK'; mgrId: number; cardId: string; by?: string } // by = 🤝 crachá de quem mandou (só usado em sala de duplas)
   | { type: 'MONTE_TIMEOUT' }
-  | { type: 'CONVOCAR_CLUBES'; mgrId: number; cartas: string[] }
+  | { type: 'CONVOCAR_CLUBES'; mgrId: number; cartas: string[]; by?: string } // by = 🤝 crachá (dupla: cada um convoca as posições dele)
   | { type: 'CONVOCACAO_TIMEOUT' } // 🧱 acabaram os 80s da convocação // 🧱 leilão de clubes: os 11 escolhidos dentro dos pacotes
   // 🚫🤝 SET_SPONSOR_BET saiu em 19/09 junto com o patrocinador pontual (ordem do
   // Diego). O campo `careerSponsorBet` segue no save, sem ninguém escrever nem ler.
@@ -5082,7 +5082,7 @@ function fechaConvocacao(st: EscState, escolhas: Record<number, string[]>) {
   for (const m of st.managers) if (auctioningManagers([m]).length) completaComSobras(st, m, sobras)
   sobrasProsBots(st, sobras)
   st.leilaoClubesConvocado = true
-  st.convocacaoDeadline = null; st.convocacaoFeitos = []; st.convocacaoEscolhas = {}
+  st.convocacaoDeadline = null; st.convocacaoFeitos = []; st.convocacaoEscolhas = {}; st.convocacaoDuplaFeitos = []
   enterCerimonia(st)
 }
 
@@ -5091,6 +5091,16 @@ export const CONVOCACAO_MS = 90_000
 /** folga do host antes de fechar por tempo: dá tempo do "o que eu já marquei" dos convidados chegar */
 const CONVOCACAO_FOLGA_MS = 4_000
 /** todo humano que tem pacote já fechou? então segue na hora, sem esperar o relógio */
+/** 🤝 DUPLA na convocação dos Clubes (12/10): os crachás que mandam em algum SETOR desse
+ *  time (a divisão 3 e 3 do pregão). null = vaga normal, uma pessoa convoca tudo. */
+export function donosDaConvocacao(duplas: EscState['duplas'], mgrId: number): string[] | null {
+  const d = duplas?.[mgrId]
+  if (!d || !d.partnerUid) return null
+  if (d.soloUid) return [d.soloUid]
+  const us = new Set<string>()
+  for (const sec of SECTORS) { const u = d.cats?.[sec]; if (u) us.add(u) }
+  return us.size ? [...us] : null
+}
 function convocacaoCompleta(st: EscState): boolean {
   const feitos = st.convocacaoFeitos ?? []
   return st.managers.filter(m => m.isHuman && m.modoClubes).every(m => feitos.includes(m.id))
@@ -5102,7 +5112,7 @@ function enterCerimonia(st: EscState) {
     if (st.managers.some(m => m.isHuman && m.modoClubes)) {
       st.screen = 'convocacao'; st.phaseDeadline = null
       st.convocacaoDeadline = Date.now() + CONVOCACAO_MS
-      st.convocacaoFeitos = []; st.convocacaoEscolhas = {}
+      st.convocacaoFeitos = []; st.convocacaoEscolhas = {}; st.convocacaoDuplaFeitos = []
       return
     }
     fechaConvocacao(st, {}); return
@@ -5544,12 +5554,14 @@ function holandesPegar(state: EscState, mgrId: number, cardId: string, precoDaTe
 
 // a tela pergunta isto pra acender (ou não) o botão PEGAR de cada carta —
 // fonte ÚNICA, a mesma que o motor usa pra aceitar o toque.
-export function holPodeAgora(state: EscState, mgrId: number, cardId: string): boolean {
+export function holPodeAgora(state: EscState, mgrId: number, cardId: string, uid?: string): boolean {
   const hol = state.hol
   if (!hol) return false
   const card = state.currentCards.find(c => c.id === cardId)
   const m = state.managers.find(x => x.id === mgrId)
   if (!card || !m) return false
+  // 🤝 dupla: só quem manda na categoria acende o PEGAR — a MESMA régua do HOLANDES_PEGAR
+  if (!duplaPodeAgir(state.duplas, mgrId, card.pos, uid)) return false
   if (hol.levados.some(l => l.cardId === cardId)) return false
   if (hol.pedidos.some(p => p.cardId === cardId && p.mgr === mgrId)) return false
   return holPodeLevar(state, m, card, hol.preco, holGasto(hol, mgrId), holVagasUsadas(hol, mgrId, card.pos, state.currentCards))
@@ -7071,7 +7083,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'START_ONLINE': {
       // 🧱 LEILÃO DE CLUBES na sala: escolha do host — rápido e Minhas Ligas (28/09), nunca carreira nem basquete
       s.leilaoClubes = !!action.clubes && !action.career && action.sport !== 'basquete'
-      s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}
+      s.leilaoClubesConvocado = false; s.convocacaoDeadline = null; s.convocacaoFeitos = []; s.convocacaoEscolhas = {}; s.convocacaoDuplaFeitos = []
       s.simV = 4 // fórmula nova (v3: gol realista + menos goleada) só a partir desta temporada
       s.onlineMode = 'online'
       // baralho da sala: Rápido sempre BR; Carreira online pode ser BR, Europa
@@ -8002,7 +8014,25 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'CONVOCAR_CLUBES': {
       if (s.screen !== 'convocacao' || !s.leilaoClubes) return s
       if ((s.convocacaoFeitos ?? []).includes(action.mgrId)) return s // chegou pelas duas estradas: vale a 1ª
-      s.convocacaoEscolhas = { ...(s.convocacaoEscolhas ?? {}), [action.mgrId]: action.cartas }
+      const donos = donosDaConvocacao(s.duplas, action.mgrId)
+      if (donos) {
+        // 🤝 DUPLA: cada um manda SÓ nos setores dele. O host junta as duas metades e o
+        // time só conta como "fechado" quando os dois mandaram (ou o relógio acaba).
+        const by = action.by
+        if (!by || !donos.includes(by)) return s
+        const marca = `${action.mgrId}:${by}`
+        if ((s.convocacaoDuplaFeitos ?? []).includes(marca)) return s
+        const m = s.managers.find(x => x.id === action.mgrId)
+        const setorDa = new Map<string, Sector>()
+        for (const c of (m?.squad ?? []) as WonCard[]) if (c.pacote) for (const x of c.pacote.cartas) setorDa.set(x.id, c.pos)
+        const meu = (id: string) => { const sec = setorDa.get(id); return !!sec && duplaPodeAgir(s.duplas, action.mgrId, sec, by) }
+        const antes = (s.convocacaoEscolhas ?? {})[action.mgrId] ?? []
+        s.convocacaoEscolhas = { ...(s.convocacaoEscolhas ?? {}), [action.mgrId]: [...antes.filter(id => !meu(id)), ...action.cartas.filter(meu)] }
+        s.convocacaoDuplaFeitos = [...(s.convocacaoDuplaFeitos ?? []), marca]
+        if (!donos.every(u => s.convocacaoDuplaFeitos!.includes(`${action.mgrId}:${u}`))) return s
+      } else {
+        s.convocacaoEscolhas = { ...(s.convocacaoEscolhas ?? {}), [action.mgrId]: action.cartas }
+      }
       s.convocacaoFeitos = [...(s.convocacaoFeitos ?? []), action.mgrId]
       if (convocacaoCompleta(s)) fechaConvocacao(s, s.convocacaoEscolhas)
       return s

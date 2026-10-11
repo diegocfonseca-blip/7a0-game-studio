@@ -8,7 +8,7 @@ import { SupportPlans, SupportFooter, SupportStory } from './support-plans'
 import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
-import { FORMATIONS, SECTORS, duplaPodeAgir } from './types'
+import { FORMATIONS, SECTORS, duplaPodeAgir, type DuplaCat } from './types'
 import { lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
@@ -3701,6 +3701,43 @@ export function EscAuction() {
 //
 // 🎨 Tudo é peça de casa: `Shell` + `AuctionBar` + `CardFace` + as cores/sombras
 // duras de sempre. Nenhuma arte nova — é o MESMO leilão, com outro relógio.
+// 🤝 DUPLAS NA TOCAIA E NA CONVOCAÇÃO DOS CLUBES (12/10, OK do Diego): a MESMA divisão 3 e 3
+// do envelope. Quem manda na categoria age; o parceiro vê tudo, sem os controles. A régua é
+// `duplaPodeAgir` — a mesma que o reducer usa pra recusar (regra contra botão mudo).
+function HolandesDupla({ pos, posName }: { pos: Sector; posName: string }) {
+  const v = useDuplaVez(pos)
+  if (v.minhaVez) return null
+  return <div className="mt-2"><CaixaDuplaTrava quem={v.quem} parceiroSumiu={v.parceiroSumiu} assumir={v.assumir}
+    titulo={tr(`🔒 Quem pega ${posName.toUpperCase()} é ${v.quem || 'seu parceiro'}`, `🔒 ${v.quem || 'Your partner'} takes the ${posName.toUpperCase()}`)}
+    texto={tr('⏳ Você vê o preço caindo, mas nesta leva quem aperta PEGAR é ele. Na leva da SUA posição é você que manda.', '⏳ You see the price dropping, but in this round your partner is the one who taps TAKE. In YOUR position\'s round, you call the shots.')} /></div>
+}
+export function useDuplaVez(cat: DuplaCat) {
+  const { state, dispatch } = useEsc()
+  const you = state.managers[state.youIdx]
+  const minhaVez = !you || duplaPodeAgir(state.duplas, you.id, cat, state.youUid)
+  const d = you ? state.duplas?.[you.id] : undefined
+  const donoUid = !minhaVez && d ? (d.soloUid ?? d.cats?.[cat]) : undefined
+  const quem = !minhaVez && d ? stripEmoji((donoUid === d.ownerUid ? d.ownerName : d.partnerName) ?? '').trim() : ''
+  const parceiroSumiu = !!donoUid && Array.isArray(state.presenceUids) && state.presenceUids.length > 0 && !state.presenceUids.includes(donoUid)
+  const assumir = () => { if (you) dispatch({ type: 'DUPLA_SOLO', mgrId: you.id, ficouUid: state.youUid ?? '' }) }
+  return { minhaVez, quem, parceiroSumiu, assumir }
+}
+export function CaixaDuplaTrava({ titulo, texto, quem, parceiroSumiu, assumir }: { titulo: string; texto: string; quem: string; parceiroSumiu: boolean; assumir: () => void }) {
+  return (
+    <Box bg="#EDE4FF" className="p-3">
+      <p className="text-sm font-black text-black" style={OSWALD}>{titulo}</p>
+      <p className="text-[12px] font-bold text-black/65 leading-snug mt-0.5">{texto}</p>
+      {parceiroSumiu && (
+        <button onClick={assumir}
+          className="w-full border-[3px] border-black rounded-xl py-2.5 mt-2 font-black text-[13px] active:translate-y-0.5"
+          style={{ background: GREEN, color: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, ...OSWALD }}>
+          🆘 {tr(`${quem || 'Seu parceiro'} caiu — assumir o time`, `${quem || 'Your partner'} dropped — take over the team`)}
+        </button>
+      )}
+    </Box>
+  )
+}
+
 function Holandes() {
   const { state, dispatch, emote } = useEsc()
   const [blLang] = useLang()
@@ -3793,6 +3830,7 @@ function Holandes() {
 
   return (
     <Shell bar={<AuctionBar vagas={minhasVagas > 0 ? minhasVagas : undefined} />}>
+      <HolandesDupla pos={pos} posName={posName} />
       <div className="pt-1">
         {/* 🏷️ O NOME DO MODO em cima do setor: quem entrou numa sala que outra
             pessoa criou descobre AQUI em que pregão está jogando, sem precisar
@@ -3863,7 +3901,7 @@ function Holandes() {
       <div className="space-y-2 mt-2">
         {state.currentCards.map(c => {
           const dono = holDono(state, c.id)
-          const pode = holPodeAgora(state, you.id, c.id)
+          const pode = holPodeAgora(state, you.id, c.id, state.youUid)
           const t = dono ? state.managers.find(m => m.id === dono.mgr) : null
           const ehSurpresa = state.surpriseId === c.id
           // 🕵️ na Tocaia o Enigma fica escondido só ENQUANTO está na mesa: fisgou, abriu
@@ -3914,7 +3952,7 @@ function Holandes() {
                   <p className="text-[9px] font-bold leading-tight mt-0.5">{preco} 🪙</p>
                 </div>
               ) : (
-                <button onClick={() => { playCoin(); setEnviando(c.id); dispatch({ type: 'HOLANDES_PEGAR', mgrId: you.id, cardId: c.id, preco }) }}
+                <button onClick={() => { playCoin(); setEnviando(c.id); dispatch({ type: 'HOLANDES_PEGAR', mgrId: you.id, cardId: c.id, preco, by: state.youUid }) }}
                   disabled={!pode}
                   className="border-[3px] border-black rounded-xl px-3 py-2 font-black shrink-0 active:translate-y-0.5"
                   style={{
