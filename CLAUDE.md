@@ -746,6 +746,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   exagero do bot NÃO sobe o piso da carta** (livro e `paid` ficam no `justoDaCarta`; o vendedor recebe cheio) — senão o
   preço do jogo dispara, igual ao caso da Bola de Ouro. Só carreira. Trava: `npm run perfis`.
 
+- **🃏🏛️ TODO TÍTULO DÁ CARTINHA, NOS DOIS CLUBES (11/10, regra permanente).** Palavras dele: *"tudo ganha
+  cartinha, seja primeiro clube ou segundo clube… qualquer tipo de campeonato, no jogo inteiro"* (divisão, Copa do
+  Brasil/Legends, Supercopa, Libertadores, Champions, Mundial, Copa do Mundo). Cada clube tem o PRÓPRIO bilhete por
+  temporada e o clube que dorme ganha na hora. **SAF não ganha cartinha** (*"senão começa a confundir"*). A
+  **coleção de cartas é unificada** (conta a conta inteira) e a **Agência é UMA lista pros dois clubes**
+  (*"deixe uma mesmo pros dois"*). Trava: `npm run cartinha`.
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e

@@ -8207,6 +8207,30 @@ export function PyramidSeasonScreen() {
     const champ = superTie.win === 'a' ? superTie.a : superTie.b, vice = superTie.win === 'a' ? superTie.b : superTie.a
     return { name: champ.name, you: !!champ.you, vs: vice.name }
   }, [superTie])
+  // 🏛️🃏 CARTINHA POR CLUBE (Diego 11/10: *"ganhou a Série B e não ganhou cartinha… tudo ganha cartinha,
+  // seja primeiro clube ou segundo clube"*). Antes o "bilhete" do pacote era UM por temporada
+  // (`co:solo{seed}:{N}`): se os dois clubes eram campeões no mesmo ano, o 2º batia no bilhete já usado e
+  // saía sem carta. Agora cada clube tem o seu: o PRINCIPAL segue com o bilhete de sempre (nada muda pra
+  // quem tem um clube só, nem pra temporada já paga) e o 2º clube ganha o sufixo `:mc{id}` — o MESMO
+  // formato dos pacotes guardados antigos. A chave segue o CLUBE, não quem está no comando: trocar o
+  // comando no fim da temporada não gera carta de novo. SAF não entra (decisão dele).
+  const mcPrincipalId = state.multiClubeAtivo && state.multiClube ? state.multiClube.id : youId
+  const bilheteDoClube = (id: number) => `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}${!state.roomId && state.multiClube && id !== mcPrincipalId ? `:mc${id}` : ''}`
+  const meuBilhete = bilheteDoClube(youId)
+  // o clube que DORME também leva a carta NA HORA, no fim da temporada (antes só via pacote guardado, que
+  // só abria se você passasse o comando pra ele — e a Supercopa dele não dava nada)
+  const dormeId = !state.roomId && state.onlineMode !== 'online' && state.multiClube && state.multiClube.id !== youId ? state.multiClube.id : null
+  const dormeTitulos = useMemo(() => {
+    if (dormeId == null || !done) return [] as { suf: string; motivo: string }[]
+    const nome = state.managers.find(m => m.id === dormeId)?.teamName ?? tr('o outro clube', 'your other club')
+    const out: { suf: string; motivo: string }[] = []
+    const div = DIVS.find(d => tables[d][0]?.teamId === dormeId)
+    if (div) out.push({ suf: '', motivo: tr(`🏆 ${nome} (dormindo) foi campeão da ${DIV_NAME[div]}`, `🏆 ${nome} (asleep) won ${DIV_NAME[div]}`) })
+    if (copa?.champion?.teamId === dormeId) out.push({ suf: ':copa', motivo: cbUnlocked ? tr(`🏆 ${nome} (dormindo) foi campeão da Copa do Brasil`, `🏆 ${nome} (asleep) won the Copa do Brasil`) : tr(`🏆 ${nome} (dormindo) foi campeão da Copa Legends`, `🏆 ${nome} (asleep) won the Legends Cup`) })
+    const sc = superTie ? (superTie.win === 'a' ? superTie.a : superTie.b) : null
+    if (sc?.teamId === dormeId) out.push({ suf: ':supercopa', motivo: tr(`👑 ${nome} (dormindo) foi campeão da Supercopa`, `👑 ${nome} (asleep) won the Super Cup`) })
+    return out
+  }, [dormeId, done, tables, copa, superTie, cbUnlocked, state.managers])
   const superRun = useMemo<SuperRun | undefined>(() => {
     if (!superTie || !(superTie.a.you || superTie.b.you)) return undefined
     const youIsA = !!superTie.a.you
@@ -10038,7 +10062,7 @@ export function PyramidSeasonScreen() {
         <div className="ll-cx-aba">
         {copaFinished && me?.champ && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt motivo={tr(`🏆 Campeão da ${DIV_NAME[me.div]}`, `🏆 ${DIV_NAME[me.div]} champion`)} you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            <CardCollectPrompt motivo={tr(`🏆 Campeão da ${DIV_NAME[me.div]}`, `🏆 ${DIV_NAME[me.div]} champion`)} you={state.managers[state.youIdx]} seasonKey={meuBilhete} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: meuBilhete, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
         {/* 🏆 Campeão da COPA LEGENDS (mata-mata dos 16) ganha carta À PARTE do
@@ -10046,7 +10070,7 @@ export function PyramidSeasonScreen() {
             duas. seasonKey própria (sufixo ":copa") pra não colidir com a de cima. */}
         {copaFinished && copa?.champion?.you && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt motivo={tr('🏆 Campeão da Copa Legends', '🏆 Legends Cup champion')} you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:copa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            <CardCollectPrompt motivo={tr('🏆 Campeão da Copa Legends', '🏆 Legends Cup champion')} you={state.managers[state.youIdx]} seasonKey={`${meuBilhete}:copa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `${meuBilhete}:copa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
         {/* 🏆🔵 Campeão da SUPERCOPA ganha carta também (conserto 18/08 — reclamação
@@ -10058,7 +10082,7 @@ export function PyramidSeasonScreen() {
             — quem ganhar as três na mesma temporada pega as três cartas. */}
         {copaFinished && superChamp?.you && state.careerOnline && (
           <div style={{ marginBottom: 12 }}>
-            <CardCollectPrompt motivo={tr('👑 Campeão da Supercopa', '👑 Super Cup champion')} you={state.managers[state.youIdx]} seasonKey={`co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}:supercopa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            <CardCollectPrompt motivo={tr('👑 Campeão da Supercopa', '👑 Super Cup champion')} you={state.managers[state.youIdx]} seasonKey={`${meuBilhete}:supercopa`} origin={state.roomId ? 'online' : 'cpu'} saveCards={state.roomId ? (state.careerEmpresario?.[youId] ?? []) : (state.empresarioCards ?? [])} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key: `${meuBilhete}:supercopa`, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
           </div>
         )}
         {/* 🌎🌍🌐 Campeão da LIBERTADORES / CHAMPIONS / MUNDIAL da carreira internacional também ganha
@@ -10069,7 +10093,7 @@ export function PyramidSeasonScreen() {
         {copaFinished && state.careerOnline && (() => {
           const fim = intlEnabled ? intlHistory.find(e => e.season === state.seasonNo) : undefined
           if (!fim) return null
-          const base = `co:${state.roomCode || `solo${state.seed}`}:${state.seasonNo}`
+          const base = meuBilhete
           const titulos: [string, string][] = []
           if (fim.libertadores > 0) titulos.push(['liberta', tr('🌎 Campeão da Libertadores', '🌎 Libertadores champion')])
           if (fim.champions > 0) titulos.push(['champions', tr('🌍 Campeão da Champions League', '🌍 Champions League champion')])
@@ -10080,6 +10104,16 @@ export function PyramidSeasonScreen() {
             </div>
           ))
         })()}
+        {/* 🏛️🃏 o clube que DORME também ganha a cartinha, na hora (Diego 11/10). A carta entra no mesmo cofre
+            do clube no comando — a Agência é uma só pros dois (decisão dele, 11/10) e a coleção conta a conta inteira. */}
+        {copaFinished && state.careerOnline && dormeId != null && dormeTitulos.map(t => {
+          const key = `${bilheteDoClube(dormeId)}${t.suf}`
+          return (
+            <div key={key} style={{ marginBottom: 12 }}>
+              <CardCollectPrompt motivo={t.motivo} you={state.managers[state.youIdx]} seasonKey={key} origin="cpu" saveCards={state.empresarioCards ?? []} onGuaranteed={c => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos, fame: c.fame, folk: c.folk, promessa: c.promessa } })} />
+            </div>
+          )
+        })}
         {copaFinished && (() => {
           // 🏛️ MULTICLUBES: o 2º clube dormindo é `isHuman` (assento meu), mas NÃO conta
           // como técnico na votação — senão o SOLO cairia no fluxo online. Fica de fora aqui.

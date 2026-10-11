@@ -875,11 +875,17 @@ function registraCronica(s: EscState, champions?: Record<string, 'A' | 'B' | 'C'
   }
   s.careerCronica = cron
 }
+const CARTA_DORMINDO_NA_HORA = true
 // 🏛️ MULTICLUBES · guarda a carta do clube que DORMIA quando ele foi campeão nesta
 // temporada (título de divisão e/ou Copa Legends). Chamado no fim de temporada, ANTES
 // do seasonNo++. Keyed pelo id do clube (já separado do ativo). Ao passar o comando pra
 // ele, o pacote aparece pra você abrir. NÃO faz nada fora do solo com 2º clube.
 function recordDormantCards(s: EscState, champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>, copaChampion?: string | null) {
+  // 🃏 11/10: o clube que dorme passou a ganhar a carta NA HORA, na tela do fim de temporada
+  // (`dormeTitulos` em pyramidseason.tsx), com o bilhete do próprio clube. Guardar pacote aqui de novo
+  // daria a MESMA carta duas vezes. Os pacotes que já estavam guardados em save antigo continuam
+  // aparecendo e abrindo normalmente (`multiClubePendingCards`).
+  if (CARTA_DORMINDO_NA_HORA) return
   if (!s.multiClube) return
   // 🛡️ fantasma: se o "dormindo" é o próprio clube ATIVO (contaminação de carreira
   // anterior), não fabrica pacote nenhum — o título ativo já dá a carta normal.

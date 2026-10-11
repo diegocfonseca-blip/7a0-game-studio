@@ -1,3 +1,13 @@
+## 🏛️🃏 Cartinha dos dois clubes (Multiclubes) (11/10) ✅ NO AR
+- Reclamação: usuário ganhou a Série B com o 2º clube e ficou sem carta. Causa: bilhete do pacote era UM por
+  temporada (`co:solo{seed}:{N}`) → com os dois clubes campeões, o 2º batia no bilhete usado; clube dormindo só
+  recebia via "pacote guardado" (que só abria trocando o comando) e a Supercopa dele não dava nada.
+- Agora: principal = bilhete de sempre; 2º clube = `…:mc{id}` (chave pelo CLUBE, trocar o comando não duplica);
+  clube que dorme ganha a carta NA HORA (divisão, Copa do Brasil/Legends, Supercopa); `recordDormantCards`
+  não guarda mais pacote (`CARTA_DORMINDO_NA_HORA`), os antigos ainda abrem. Trava: `npm run cartinha`.
+- Agência continua UMA lista pros dois clubes (Diego: "deixe uma mesmo pros dois"). SAF não ganha carta.
+- ⏳ Devolver a carta da Série B desse usuário: falta o e-mail dele.
+
 ## 🏟️ Relógio da Copa regional no banco (11/10) ✅ APLICADO
 - `docs/sql/regional-clock.sql` rodado no Supabase a pedido do Diego: tabela `esc_regional_clock` (RLS + 3 regras:
   ler = dono/jogador da sala · criar/mudar = só o dono) e função `esc_regional_clock` (só logado; só o dono comanda).
