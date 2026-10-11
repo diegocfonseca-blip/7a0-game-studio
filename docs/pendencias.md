@@ -37,6 +37,17 @@
   A LIGA continua com 20 (padrão de hoje); os 16 primeiros vão pra copa e os 4 últimos ficam de fora, assistindo (10/10).
 - Mockup: `node scripts/mockup-copas-regionais.mjs`. Ideia extra ainda sem decisão: "⚡ direto no estadual" (sem liga).
 
+
+## 11/10/2026 — 🎬 REELS DAS COPAS REGIONAIS
+
+Pedido dele: *"quero vídeo de mockup tb padrão.. anunciando as ligas estaduais"*.
+`node scripts/video-regionais-reels.mjs` · 1080×1920 · ~37s · molde dos outros reels.
+Cenas: chegaram as 3 copas · a liga de sempre (16 de 20 vão pra copa) · escolha na ordem
+da tabela (60s, não escolheu = pior que sobrou) · convoca 11 em 90s (Garrincha/Didi/Jairzinho
+do Botafogo) · dois lados de 8 → quartas cruzadas → final · +444 cartas de clube pequeno
+(só nas copas regionais) · onde jogar + marca. Os relógios do vídeo correm acelerados e a
+tela avisa. Texto do post mandado no chat.
+
 ## 💳 Planos v2 NO AR SÓ PRO DIEGO (09/10) + plano de pagamento — mensal R$ 12,90
 - `PLANOS2_GERAL = false` (sport.ts): diego e diego2 veem a vitrine nova, o mensal (Pix/WhatsApp · 💳 cartão no
   link de assinatura do MP — escondido até existir o de R$ 12,90 · Direct), batismo Lenda/Plus, Dúvidas e
