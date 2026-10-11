@@ -655,7 +655,8 @@ export function useChampionsLiberada(): boolean {
 // ─── 🏟️ COPAS REGIONAIS CONVOCADAS (10/10) — em construção, só pra conta do Diego ──
 // Liga + 🔥 Rio × SP · 🧉 Sul × Minas-PR · 🌵 Nordeste (`copa-regional.ts`). Nasce escondida
 // (regra dele: mockup e teste antes de soltar); pra abrir pra todos é virar REGIONAL_GERAL.
-const REGIONAL_GERAL = false
+// 🟢 LIBERADA PRA TODOS EM 11/10 (Diego: *"pode publicar, vamos testar pra todos"*). `false` fecha de novo só na conta dele.
+const REGIONAL_GERAL = true
 const REGIONAL_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
 let regionalOk = REGIONAL_GERAL
 function applyRegionalUnlock(email?: string | null): void {

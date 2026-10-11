@@ -3385,7 +3385,7 @@ export function EscLobby() {
                       ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${COPAS_REGIONAIS[id].emoji} ${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]}
                     value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
                     travados={[...(championsOn ? [] : ['champions' as const]), ...regionalTravadas]}
-                    selos={{ liga_mundo: seloNovo(), champions: championsOn ? seloNovoDe('2026-09-25') : tr('em breve', 'soon'), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : tr('teste', 'test')])) : {}) }} />
+                    selos={{ liga_mundo: seloNovo(), champions: championsOn ? seloNovoDe('2026-09-25') : tr('em breve', 'soon'), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : seloNovoDe('2026-10-11')])) : {}) }} />
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
                     {regionalId(rapidoCopaMode) ? (() => {
                       const id = regionalId(rapidoCopaMode)!, c = COPAS_REGIONAIS[id], v = clubesDaCopa(id).todos.length

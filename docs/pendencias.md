@@ -1,4 +1,5 @@
-## 🏟️ Copas regionais convocadas nas salas online (10/10) 🧪 CONSTRUÍDA, só na conta do Diego (`REGIONAL_GERAL = false`)
+## 🏟️ Copas regionais convocadas nas salas online (10/10) 🟢 LIBERADA PRA TODOS EM 11/10 (`REGIONAL_GERAL = true`)
+- Diego: *"pode publicar, vamos testar pra todos"*. Ficou com 16 na Rio × SP (simulação: os 8 grandes ganham ~98% das copas; Bangu ~1 em 170). Se ele achar chato, a saída combinada é cortar pra 12 (8 grandes + Bangu, America, Portuguesa, Guarani).
 - Código: motor puro `copa-regional.ts` (trava `npm run regional`) · tela `copa-regional-online.tsx` (portão + escolha 60s +
   convocação 90s + torneio) · opção no lobby (só tester) · marca da sala `regionalNaLiga` · baralho regional em
   `cartas-regionais.ts` (vazio até o Diego aprovar a lista) entrando no leilão SÓ na sala regional (`regionalSala`/`setActiveCatalog`).
