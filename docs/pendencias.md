@@ -1,3 +1,9 @@
+## 🌍 Copa do Mundo online "muita zebra" (10/10) — investigado, SEM mudança (decisão do Diego: "Não")
+- Refeitas as 22 Copas online da noite com a mesma semente: campeão bateu em todas → não é bug.
+- Causas: (1) quem estoura o tempo da convocação leva os piores do país (regra dele) — Espanha 76, Brasil 58;
+  (2) zebra de jogo único: Itália x Camarões = 17% zebra / 24% empate (peso 0.05 em `playMatch`).
+- Proposta de subir o peso pra 0.08 (zebra 17%→8%, só Copa nova) foi RECUSADA. Não repropor sem ele pedir.
+
 ## 🏟️ Copas regionais convocadas nas salas online (10/10) 🟢 LIBERADA PRA TODOS EM 11/10 (`REGIONAL_GERAL = true`)
 - Diego: *"pode publicar, vamos testar pra todos"*. Ficou com 16 na Rio × SP (simulação: os 8 grandes ganham ~98% das copas; Bangu ~1 em 170). Se ele achar chato, a saída combinada é cortar pra 12 (8 grandes + Bangu, America, Portuguesa, Guarani).
 - Código: motor puro `copa-regional.ts` (trava `npm run regional`) · tela `copa-regional-online.tsx` (portão + escolha 60s +
