@@ -1,6 +1,6 @@
 // ─── 🏟️ COPA REGIONAL NA SALA ONLINE (Diego 10/10) ───────────────────────────
 //
-// Liga + 🔥 Rio × SP · 🧉 Sul × Minas-PR · 🌵 Nordeste. Acabou a liga, os primeiros da
+// Liga + 🏖️🏙️ Rio × SP · 🧉 Sul × Minas-PR · 🌵 Nordeste. Acabou a liga, os primeiros da
 // tabela (16 com a copa cheia) escolhem um CLUBE da região, um de cada vez, na ordem
 // da tabela — 60s cada, e quem não escolher fica com o PIOR clube que sobrou. Depois
 // todo mundo convoca junto em 90s (o mesmo tempo da convocação do Leilão de Clubes).

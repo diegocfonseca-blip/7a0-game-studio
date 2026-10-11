@@ -52,7 +52,7 @@ const SP = [['Corinthians', '#fff', '#111'], ['São Paulo', '#C8102E', '#111'], 
 const copa = (emoji, nome, lados, atraso, cor) => `
   <div style="display:flex;align-items:center;gap:24px;width:900px;background:#fff;border:5px solid ${INK};border-radius:24px;
     box-shadow:8px 8px 0 ${INK};padding:22px 28px;${entra(atraso)}">
-    <span style="font-size:84px;line-height:1">${emoji}</span>
+    <span style="font-size:${emoji.length > 3 ? 50 : 84}px;line-height:1;white-space:nowrap">${emoji}</span>
     <span style="flex:1;text-align:left">
       <b style="${OSW};font-size:56px;display:block;line-height:1.02;text-transform:uppercase;color:${cor}">${nome}</b>
       <span style="font-size:28px;font-weight:700;color:rgba(12,12,12,.58)">${lados}</span>
@@ -173,7 +173,7 @@ ${cena(0, 4.4, `
   <p style="${OSW};font-size:112px;text-transform:uppercase;line-height:1;color:${RED};margin-bottom:40px;
     animation:pop .55s cubic-bezier(.2,1.6,.4,1) .55s both">copas regionais</p>
   <div style="display:flex;flex-direction:column;gap:22px">
-    ${copa('🔥', 'Rio × São Paulo', 'Flamengo, Vasco, Corinthians, Palmeiras…', 1.1, RED)}
+    ${copa('🏖️🏙️', 'Rio × São Paulo', 'Flamengo, Vasco, Corinthians, Palmeiras…', 1.1, RED)}
     ${copa('🧉', 'Sul × Minas-PR', 'Inter, Grêmio, Cruzeiro, Atlético-MG…', 1.5, GREEN)}
     ${copa('🌵', 'Copa do Nordeste', 'Bahia, Sport, Fortaleza, Ceará…', 1.9, ROXO)}
   </div>`)}
@@ -246,7 +246,7 @@ ${cena(31.4, 60, `
     ${fase('🏆 Depois da liga', 32.5)}
   </div>
   <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 33.1s both">
-    ${pill('🔥 Rio × SP', '#fff', INK, 30)}${pill('🧉 Sul × Minas', '#fff', INK, 30)}${pill('🌵 Nordeste', '#fff', INK, 30)}
+    ${pill('🏖️🏙️ Rio × SP', '#fff', INK, 30)}${pill('🧉 Sul × Minas', '#fff', INK, 30)}${pill('🌵 Nordeste', '#fff', INK, 30)}
   </div>
   <p style="${OSW};font-size:60px;margin-top:60px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 33.6s infinite">
     ⚽ Leilão <span style="color:${RED}">Legends</span></p>

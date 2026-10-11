@@ -1,7 +1,7 @@
 // ─── 🏟️ COPAS REGIONAIS CONVOCADAS (Diego 10/10) — o motor ────────────────────
 //
 // O que ele fechou, em ordem (mockup aprovado: *"perfeito, adorei"*):
-//  · três copas: 🔥 Rio × São Paulo · 🧉 Sul × Minas-Paraná · 🌵 Nordeste;
+//  · três copas: 🏖️🏙️ Rio × São Paulo · 🧉 Sul × Minas-Paraná · 🌵 Nordeste;
 //  · 16 clubes por copa, em DOIS LADOS de 8, e cada clube joga contra os 8 do OUTRO
 //    lado (formato real da Copa do Nordeste 2018-22: tabela separada por lado, todo
 //    jogo é um clássico entre os lados);
@@ -31,7 +31,7 @@ export interface CopaRegionalCfg { id: CopaRegionalId; emoji: string; nome: stri
 // fecham time — os grandes vêm primeiro de propósito.
 export const COPAS_REGIONAIS: Record<CopaRegionalId, CopaRegionalCfg> = {
   riosp: {
-    id: 'riosp', emoji: '🔥', nome: 'Rio × São Paulo', nomeEn: 'Rio × São Paulo',
+    id: 'riosp', emoji: '🏖️🏙️', nome: 'Rio × São Paulo', nomeEn: 'Rio × São Paulo',
     lados: [
       { nome: 'Lado do Rio', nomeEn: 'Rio side', emoji: '🏖️', clubes: ['Flamengo', 'Vasco', 'Botafogo', 'Fluminense', 'Bangu', 'America-RJ', 'Madureira', 'Volta Redonda'] },
       { nome: 'Lado de São Paulo', nomeEn: 'São Paulo side', emoji: '🏙️', clubes: ['Corinthians', 'São Paulo', 'Palmeiras', 'Santos', 'Portuguesa', 'Guarani', 'Ponte Preta', 'São Caetano'] },
