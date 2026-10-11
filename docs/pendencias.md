@@ -6,6 +6,21 @@
 
 
 
+
+## 11/10/2026 (noite) — 📰 COPA REGIONAL NO JORNAL, NO HISTÓRICO E NOS TROFÉUS DA SALA
+
+Pergunta dele: *"o jornal qd acaba tb tá dando o campeão da Copa do Nordeste…?"* — NÃO
+dava. Ordem: *"pode fazer e publicar… tudo deve ser igual… troféus, motor, tudo parecido c
+outros modos de liga mais alguma copa"*.
+- `screens.tsx`: o `aoStatus` da copa regional agora entrega o campeão (`setCampeaoDoMundo`),
+  igual à Copa do Mundo → libera o jornal, o `LigaHub` grava `copa_champion_name`.
+- `jornal-sala.tsx`: `mundo.copa` = nome da copa regional. Manchete "O X LEVA A LIGA, O Y
+  (Clube) LEVA A COPA DO NORDESTE!" / "COPA RIO × SÃO PAULO" / "FAZ OS DOIS".
+- `ligahub.tsx`: título novo `'regional'` (5 pts no placar da sala, chip 🏟️ Regional, igual
+  Copa/Liberta/Mundial). Nenhuma função do banco lê `cup_titles` (conferido).
+- Ranking GLOBAL não ganha pontos (a Copa do Mundo online também não dá) — se ele quiser,
+  é outra conversa.
+
 ## 11/10/2026 (noite) — 🏟️ COPA REGIONAL: TABELA ANTES DOS JOGOS, PLACAR GRUDADO E CHAT
 
 Prints dele na Copa do Nordeste ao vivo: *"a tabela tem q ficar em cima dos jogos rolando…

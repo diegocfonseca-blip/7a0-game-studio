@@ -103,7 +103,7 @@ export type LinhaCampeao = {
   human_results?: ResultadoHumano[] | null
 }
 
-export type TituloSalaRapida = 'copa' | 'libertadores' | 'mundial'
+export type TituloSalaRapida = 'copa' | 'libertadores' | 'mundial' | 'regional' // 🏟️ regional = Rio × SP / Sul × Minas / Nordeste (11/10)
 export type ResultadoHumanoEntrada = {
   managerId: number
   teamName: string
@@ -182,7 +182,7 @@ export function rankingSalaRapida(rows: LinhaCampeao[], membros: MembroSala[], h
   const normal = (v: string | null | undefined) => (v ?? '').trim()
   const nova = (key: string, nome: string, time = nome): PlacarSalaRapida => ({
     key, nome, time, pts: 0, liga: 0, classificacao: 0, rebaixamento: 0,
-    copas: { copa: 0, libertadores: 0, mundial: 0 },
+    copas: { copa: 0, libertadores: 0, mundial: 0, regional: 0 },
   })
   for (const m of membros) {
     if (atuais.has(m.user_id)) continue
@@ -225,7 +225,7 @@ export function rankingSalaRapida(rows: LinhaCampeao[], membros: MembroSala[], h
       if (pertence(row.copa_champion_name, p.nome) || pertence(row.copa_champion_name, p.time)) { p.copas.copa++; p.pts += 5 }
     }
   }
-  return [...atuais.values()].sort((a, b) => b.pts - a.pts || b.liga - a.liga || (b.copas.copa + b.copas.libertadores + b.copas.mundial) - (a.copas.copa + a.copas.libertadores + a.copas.mundial) || a.nome.localeCompare(b.nome))
+  return [...atuais.values()].sort((a, b) => b.pts - a.pts || b.liga - a.liga || (b.copas.copa + b.copas.libertadores + b.copas.mundial + b.copas.regional) - (a.copas.copa + a.copas.libertadores + a.copas.mundial + a.copas.regional) || a.nome.localeCompare(b.nome))
 }
 
 // 🙈 zoeira do mico — uma por temporada, sorteio ESTÁVEL pela temporada (todo
@@ -592,7 +592,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
 
 // ─── 🏆 RANK — o que a regra do dono produz ─────────────────────────────────
 function SalaTrofeusRapida({ ranking, rows }: { ranking: PlacarSalaRapida[]; rows: LinhaCampeao[] }) {
-  const totalCopas = (r: PlacarSalaRapida) => r.copas.copa + r.copas.libertadores + r.copas.mundial
+  const totalCopas = (r: PlacarSalaRapida) => r.copas.copa + r.copas.libertadores + r.copas.mundial + r.copas.regional
   const chip = (texto: string, tom: 'ouro' | 'verde' | 'vermelho' | 'roxo' = 'ouro') => {
     const cores = { ouro: ['#FFF1A8', '#7A4D00'], verde: ['#DCFCE7', '#166534'], vermelho: ['#FDE2DE', '#9C2F22'], roxo: ['#EFE3FF', '#5B21B6'] } as const
     return <span key={texto} className="inline-flex items-center rounded-md border border-black/20 px-1.5 py-0.5 text-[9px] font-black" style={{ ...OSWALD, background: cores[tom][0], color: cores[tom][1] }}>{texto}</span>
@@ -608,7 +608,7 @@ function SalaTrofeusRapida({ ranking, rows }: { ranking: PlacarSalaRapida[]; row
       for (const r of row.human_results) {
         const feitos: string[] = []
         if (r.league_champion) feitos.push(tr('Liga', 'League'))
-        for (const c of r.cup_titles ?? []) feitos.push(c === 'mundial' ? tr('Mundial', 'World Cup') : c === 'libertadores' ? 'Libertadores' : tr('Copa', 'Cup'))
+        for (const c of r.cup_titles ?? []) feitos.push(c === 'mundial' ? tr('Mundial', 'World Cup') : c === 'regional' ? tr('Copa regional', 'Regional cup') : c === 'libertadores' ? 'Libertadores' : tr('Copa', 'Cup'))
         if (r.qualified) feitos.push(tr('Top 8', 'Top 8'))
         if (r.relegated) feitos.push(tr('rebaixado', 'relegated'))
         if (feitos.length) itens.push(`${r.display_name || r.team_name}: ${feitos.join(' · ')}`)
@@ -639,6 +639,7 @@ function SalaTrofeusRapida({ ranking, rows }: { ranking: PlacarSalaRapida[]; row
                 {r.copas.copa > 0 && chip(`🏆 Copa ×${r.copas.copa}`, 'roxo')}
                 {r.copas.libertadores > 0 && chip(`🌎 Libertadores ×${r.copas.libertadores}`, 'roxo')}
                 {r.copas.mundial > 0 && chip(`🌍 Mundial ×${r.copas.mundial}`, 'roxo')}
+                {r.copas.regional > 0 && chip(`🏟️ ${tr('Regional', 'Regional')} ×${r.copas.regional}`, 'roxo')}
                 {r.classificacao > 0 && chip(`🎟️ Top 8 ×${r.classificacao}`, 'verde')}
                 {r.rebaixamento > 0 && chip(`🔻 Rebaixamento ×${r.rebaixamento}`, 'vermelho')}
                 {r.liga === 0 && totalCopas(r) === 0 && r.classificacao === 0 && r.rebaixamento === 0 && <span className="text-[9.5px] font-bold text-black/40">{tr('Ainda sem conquista nesta sala', 'No achievement in this room yet')}</span>}

@@ -338,11 +338,16 @@ export interface EdicaoSala {
 // as resenhas cruzando os dois títulos. Foi o que o Diego cobrou: *"o jornal
 // deve contemplar o campeão da liga e as resenhas + a Copa do Mundo, igual você
 // fez nos outros"*.
-export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: number, mundo?: { nome: string; pais: string } | null): EdicaoSala {
+// 🏟️ 11/10: a COPA REGIONAL entra pelo mesmo `mundo`, com `copa` = o nome dela (Copa do
+// Nordeste…). Aí o `pais` é o CLUBE que a pessoa pegou e vai entre parênteses, sem bandeira.
+// Pedido do Diego: *"tudo deve ser igual… troféus, motor, tudo parecido c outros modos"*.
+export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: number, mundo?: { nome: string; pais: string; copa?: string } | null): EdicaoSala {
   if (state.copaMode === 'champions' && state.champions) return montaEdicaoChampions(state)
   const table = sortedTable(state.league)
   const n = table.length
-  const copaNome = mundo ? tr('Copa do Mundo', 'World Cup') : state.copaMode === 'liga_liberta' ? 'Libertadores' : tr('Copa dos 8', 'Cup of 8')
+  // "Rio × São Paulo" vira "Copa Rio × São Paulo" (EN: "Rio × São Paulo Cup"), pra manchete fechar
+  const copaRegional = !mundo?.copa ? '' : getLang() === 'en' ? (/cup/i.test(mundo.copa) ? mundo.copa : `${mundo.copa} Cup`) : (/^copa/i.test(mundo.copa) ? mundo.copa : `Copa ${mundo.copa}`)
+  const copaNome = copaRegional ? copaRegional : mundo ? tr('Copa do Mundo', 'World Cup') : state.copaMode === 'liga_liberta' ? 'Libertadores' : tr('Copa dos 8', 'Cup of 8')
   const en = getLang() === 'en'
   const runs = runsDaCopa(state.quickCopa)
   const mgr = (id: number) => state.managers.find(m => m.id === id)
@@ -379,7 +384,7 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   // com o campeão da liga continua funcionando sem gambiarra.
   const timeDoMundo = mundo ? table.find(t => t.name === mundo.nome) ?? null : null
   const campeaoCopa = mundo
-    ? { nome: `${mundo.nome} ${flagDoPais(mundo.pais)}`.trim(), quem: timeDoMundo ? mgr(timeDoMundo.id)?.name ?? '' : '' }
+    ? { nome: mundo.copa ? `${mundo.nome}${mundo.pais ? ` (${mundo.pais})` : ''}` : `${mundo.nome} ${flagDoPais(mundo.pais)}`.trim(), quem: timeDoMundo ? mgr(timeDoMundo.id)?.name ?? '' : '' }
     : champCopa ? { nome: champCopa.name, quem: mgr(champCopa.id)?.name ?? '' } : null
   const mesmoDono = mundo ? !!(t1 && mundo.nome === t1.name) : !!(champCopa && t1 && champCopa.id === t1.id)
   const art = topScorers(state, 1)[0]
@@ -392,8 +397,8 @@ export function montaEdicao(state: EscState, vagasCopa: number, zonaDebaixo: num
   let manchete: string, linhaFina: string
   if (campeaoCopa && campeaoLiga && !mesmoDono) {
     manchete = en
-      ? `A ${offline ? 'SEASON' : 'NIGHT'} WITH TWO OWNERS: ${campeaoLiga.nome.toUpperCase()} TAKES THE LEAGUE, ${campeaoCopa.nome.toUpperCase()} TAKES THE CUP!`
-      : `${offline ? 'TEMPORADA' : 'NOITE'} DE DOIS DONOS: O ${campeaoLiga.nome.toUpperCase()} LEVA A LIGA, O ${campeaoCopa.nome.toUpperCase()} LEVA A COPA!`
+      ? `A ${offline ? 'SEASON' : 'NIGHT'} WITH TWO OWNERS: ${campeaoLiga.nome.toUpperCase()} TAKES THE LEAGUE, ${campeaoCopa.nome.toUpperCase()} TAKES THE ${copaRegional ? copaRegional.toUpperCase() : 'CUP'}!`
+      : `${offline ? 'TEMPORADA' : 'NOITE'} DE DOIS DONOS: O ${campeaoLiga.nome.toUpperCase()} LEVA A LIGA, O ${campeaoCopa.nome.toUpperCase()} LEVA A ${copaRegional ? copaRegional.toUpperCase() : 'COPA'}!`
     linhaFina = en
       ? (offline
         ? `The trophies were split this season. The league went to ${campeaoLiga.nome}, and the ${copaNome} went to ${campeaoCopa.nome}. Each one gets their own party.`
@@ -691,7 +696,7 @@ export async function buildSalaBlob(ed: EdicaoSala): Promise<Blob | null> {
 }
 
 // ── o bloco pronto pro EscEnd: capa + compartilhar ──────────────────────────
-export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo, mundo }: { state: EscState; vagasCopa: number; zonaDebaixo: number; mundo?: { nome: string; pais: string } | null }) {
+export function JornalDaSalaBloco({ state, vagasCopa, zonaDebaixo, mundo }: { state: EscState; vagasCopa: number; zonaDebaixo: number; mundo?: { nome: string; pais: string; copa?: string } | null }) {
   const [lang] = useLang() // 🌐 o jornal é remontado quando a pessoa troca BR/EN
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const ed = useMemo(() => montaEdicao(state, vagasCopa, zonaDebaixo, mundo), [state, vagasCopa, zonaDebaixo, mundo, lang])
