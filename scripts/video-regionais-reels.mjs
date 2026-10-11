@@ -4,7 +4,7 @@
 // (cenas em HTML + Playwright gravando + ffmpeg).
 //
 // ✅ TUDO QUE APARECE É DO JOGO: as 3 copas e os 16 clubes saem de `copa-regional.ts`,
-// os prazos (60s pra escolher, 90s pra convocar), o corte (16 da liga de 20), o
+// os prazos (45s pra escolher, 90s pra convocar), o corte (16 da liga de 20), o
 // formato (cada clube joga contra os 8 do OUTRO lado, 4 de cada lado pras quartas
 // cruzadas) e as cartas regionais (Zózimo do Bangu, Lugão do Volta Redonda…) são as
 // de `cartas-regionais.ts`. Os rostos são os `.webp` do jogo.
@@ -12,7 +12,7 @@
 // 🎞️ Roteiro (~36 s):
 //   0,0– 4,4   🏟️ chegaram as COPAS REGIONAIS (as três)
 //   4,4– 9,4   joga a liga de sempre · os 16 primeiros vão pra copa
-//   9,4–15,6   escolhe o clube NA ORDEM DA TABELA (60s · não escolheu = o pior que sobrou)
+//   9,4–15,6   escolhe o clube NA ORDEM DA TABELA (45s · não escolheu = o pior que sobrou)
 //  15,6–21,2   convoca 11 do clube em 90s
 //  21,2–26,4   dois lados de 8 · cada um enfrenta o outro lado · quartas → final
 //  26,4–31,4   🃏 jogador de clube pequeno: só nessas salas
@@ -90,8 +90,8 @@ const cartao = (c, atraso) => {
     </span>
   </div>`
 }
-// o relógio de 60 caindo (no vídeo anda ~3× mais rápido, e a tela avisa)
-const RELOGIO = Array.from({ length: 12 }, (_, i) => 60 - i * 3).map((v, i, a) => {
+// o relógio de 45 caindo (no vídeo anda ~3× mais rápido, e a tela avisa)
+const RELOGIO = Array.from({ length: 12 }, (_, i) => 45 - i * 3).map((v, i, a) => {
   const ini = 10.4 + i * 0.22, fim = i === a.length - 1 ? 15.6 : ini + 0.22
   return `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;
     animation:apar .01s linear ${ini.toFixed(2)}s both, some .01s linear ${fim.toFixed(2)}s both">${v}s</span>`
@@ -203,7 +203,7 @@ ${cena(9.4, 15.6, `
   <span style="position:absolute;left:330px;top:745px;font-size:110px;animation:dedo .6s ease-out 12.4s both;opacity:0">🫵</span>
   <div style="margin-top:24px;width:960px;background:#FFE3DD;border:4px solid ${INK};border-radius:18px;padding:14px 20px;
     font-size:28px;font-weight:800;line-height:1.35;animation:pop .45s cubic-bezier(.2,1.6,.4,1) 13.6s both">
-    ⏱️ 60s pra escolher · não escolheu?<br>fica com o <span style="color:${RED}">PIOR clube que sobrou</span> 😬</div>
+    ⏱️ 45s pra escolher · não escolheu?<br>fica com o <span style="color:${RED}">PIOR clube que sobrou</span> 😬</div>
   <p style="font-size:20px;font-weight:700;color:rgba(12,12,12,.45);margin-top:10px">relógio acelerado no vídeo</p>`)}
 
 <!-- ④ convocação -->

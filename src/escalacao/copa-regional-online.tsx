@@ -2,7 +2,7 @@
 //
 // Liga + 🏖️🏙️ Rio × SP · 🧉 Sul × Minas-PR · 🌵 Nordeste. Acabou a liga, os primeiros da
 // tabela (16 com a copa cheia) escolhem um CLUBE da região, um de cada vez, na ordem
-// da tabela — 60s cada, e quem não escolher fica com o PIOR clube que sobrou. Depois
+// da tabela — 45s cada, e quem não escolher fica com o PIOR clube que sobrou. Depois
 // todo mundo convoca junto em 90s (o mesmo tempo da convocação do Leilão de Clubes).
 // Os bots pegam os melhores que sobraram. Os últimos da liga ficam de fora, assistindo.
 //
@@ -41,9 +41,12 @@ const semEmoji = (n: string) => n.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}
 const nomeCopa = (id: CopaRegionalId) => { const c = COPAS_REGIONAIS[id]; return `${c.emoji} ${getLang() === 'en' ? c.nomeEn : c.nome}` }
 const nomeLado = (id: CopaRegionalId, l: 0 | 1) => { const s = COPAS_REGIONAIS[id].lados[l]; return `${s.emoji} ${getLang() === 'en' ? s.nomeEn : s.nome}` }
 
-// ⏱️ OS RELÓGIOS (Diego 10/10): 60s pra escolher o clube, um de cada vez · 15s de
-// banner · 90s de convocação, todo mundo junto (a mesma constante do Leilão de Clubes).
-export const SEG_ESCOLHA = 60
+// ⏱️ OS RELÓGIOS (Diego 10/10, ajustado em 11/10): 15s de AVISO antes da escolha
+// (*"tem q ter um banner avisando antes c 15s"*) · 45s pra escolher o clube, um de cada
+// vez (*"reduza o tempo p 45s"*) · 15s de banner · 90s de convocação, todo mundo junto
+// (a mesma constante do Leilão de Clubes).
+export const SEG_ESCOLHA = 45
+const SEG_AVISO = 15
 const SEG_BANNER = 15
 export const SEG_CONVOCA = Math.round(CONVOCACAO_MS / 1000)
 
@@ -56,7 +59,7 @@ const chaveCarta = (c: { name: string; club: string; year: number }) => `${c.nam
 export interface TimeRegional { pais: string; nome: string; uid?: string; xiKeys?: string[] }
 export interface FichaRegional { seed: number; edicao: number; times: TimeRegional[] }
 export interface LugarNaLiga { id: number; nome: string; humano: boolean }
-type Fase = 'bandeira' | 'banner' | 'convocacao' | 'torneio'
+type Fase = 'aviso' | 'bandeira' | 'banner' | 'convocacao' | 'torneio'
 interface LinhaFase { edicao: number; seed: number; fase: Fase; vez_uid: string | null; ate: string | null; times: TimeRegional[] | null; campeao: string | null }
 interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: Pick | null }
 
@@ -67,7 +70,7 @@ const segundosAte = (ate?: string | null) => (ate ? Math.max(0, Math.ceil((new D
  *  · gente que escolheu → o clube dela (reservado desde o começo, pra bot que terminou
  *    acima não "roubar" — o mesmo bug de 02/09 da Copa do Mundo);
  *  · bot → o MELHOR que sobrou;
- *  · gente que deixou os 60s passarem → o PIOR que sobrou (castigo do Diego).
+ *  · gente que deixou os 45s passarem → o PIOR que sobrou (castigo do Diego).
  * Os times saem na ordem dos LADOS (lado A, depois lado B), que é o que o motor come.
  */
 export function montaFichaRegional(copa: CopaRegionalId, classificacao: LugarNaLiga[], uidDe: Map<number, string>, picks: Map<string, Pick>, seed: number, edicao: number): FichaRegional {
@@ -282,6 +285,14 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     const filaAgora = classificados.filter(c => c.humano).map(c => ({ id: c.id, uid: uid.get(c.id) })).filter((x): x is { id: number; uid: string } => !!x.uid)
     const venceu = f.ate ? agoraSala() >= new Date(f.ate).getTime() : true
     const grava = (o: Record<string, unknown>) => supabase.from('esc_copa_salas').update(o).eq('room_id', roomId).eq('edicao', f.edicao)
+    if (f.fase === 'aviso') {
+      // 📣 acabou o aviso de 15s: abre a escolha pro 1º da fila
+      if (!venceu) return
+      const primeiro = filaAgora.find(x => !pk.has(x.uid))
+      await grava(primeiro ? { fase: 'bandeira', vez_uid: primeiro.uid, ate: new Date(Date.now() + SEG_ESCOLHA * 1000).toISOString() }
+        : { fase: 'banner', vez_uid: null, ate: new Date(Date.now() + SEG_BANNER * 1000).toISOString() })
+      return
+    }
     if (f.fase === 'bandeira') {
       const sem = filaAgora.filter(x => !pk.has(x.uid))
       if (!sem.length) { await grava({ fase: 'banner', vez_uid: null, ate: new Date(Date.now() + SEG_BANNER * 1000).toISOString() }); return }
@@ -316,8 +327,9 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       const primeiro = fila[0]?.uid ?? null
       const { error: e2 } = await supabase.from('esc_copa_salas').insert({
         room_id: roomId, edicao, seed: Math.floor(Math.random() * 1e9), times: null,
-        fase: primeiro ? 'bandeira' : 'convocacao', vez_uid: primeiro,
-        ate: new Date(Date.now() + (primeiro ? SEG_ESCOLHA : SEG_CONVOCA) * 1000).toISOString(),
+        // 📣 com gente na fila, começa pelo AVISO de 15s; a vez do 1º só abre depois dele
+        fase: primeiro ? 'aviso' : 'convocacao', vez_uid: null,
+        ate: new Date(Date.now() + (primeiro ? SEG_AVISO : SEG_CONVOCA) * 1000).toISOString(),
       })
       if (e2) { setErro(tr('Não consegui começar a copa agora. Tenta de novo em instantes.', "Couldn't start the cup right now. Try again in a moment.")); return }
       await ler()
@@ -350,7 +362,8 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   }
 
   const daVezNome = fase?.vez_uid ? nomeDe.get(fase.vez_uid) ?? tr('alguém', 'someone') : ''
-  const status = fase?.fase === 'bandeira' ? (souAVez ? tr('É a sua vez de escolher o clube', 'Your turn to pick a club') : `${daVezNome} ${tr('está escolhendo o clube', 'is picking a club')} · ${seg}s`)
+  const status = fase?.fase === 'aviso' ? `${tr('A escolha dos clubes começa em', 'Club picks start in')} ${seg}s`
+    : fase?.fase === 'bandeira' ? (souAVez ? tr('É a sua vez de escolher o clube', 'Your turn to pick a club') : `${daVezNome} ${tr('está escolhendo o clube', 'is picking a club')} · ${seg}s`)
     : fase?.fase === 'banner' ? `${tr('A convocação abre em', 'Call-up opens in')} ${seg}s`
     : fase?.fase === 'convocacao' ? (temTime(minha) ? tr('Seu time está convocado · esperando a turma', 'Your team is called up · waiting for the crew') : `${tr('Convoque os seus 11', 'Call up your 11')} · ${seg}s`)
     : fase?.fase === 'torneio' ? tr('Competição em andamento', 'Competition in progress')
@@ -406,6 +419,17 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
                   : (en ? <>⏳ <b>{daVezNome}</b> is picking a club ({seg}s). Your turn comes in table order.</> : <>⏳ <b>{daVezNome}</b> está escolhendo o clube ({seg}s). A sua vez vem na ordem da tabela.</>)}</p>
                 <GradeDeClubes copa={copa} pegos={pegos} marcado={minha?.pais ?? null} podeMarcar={false} aoMarcar={() => {}} />
               </>)}
+          {fase?.fase === 'aviso' && (
+            <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '14px 13px', textAlign: 'center' }}>
+              <p style={{ fontSize: 40, margin: 0 }}>{cfg.emoji}</p>
+              <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '2px 0 0', textTransform: 'uppercase' }}>{tr('A escolha dos clubes vai começar!', 'Club picks are about to start!')}</p>
+              <p style={{ fontSize: 11.5, fontWeight: 800, color: 'rgba(0,0,0,.7)', margin: '5px 0 0', lineHeight: 1.4 }}>
+                {en ? <>One at a time, in <b>league table order</b>: each one has <b>{SEG_ESCOLHA} seconds</b> to pick a club.<br />⚠️ Didn't pick in time? The system gives you the <b>worst club left</b>.</>
+                  : <>Um de cada vez, na <b>ordem da tabela da liga</b>: cada um tem <b>{SEG_ESCOLHA} segundos</b> pra escolher o clube.<br />⚠️ Não escolheu no tempo? O sistema te dá o <b>pior clube que sobrou</b>.</>}
+              </p>
+              <Barra seg={seg} total={SEG_AVISO} cor="#fff" />
+            </div>
+          )}
           {fase?.fase === 'banner' && (
             <div style={{ ...box(`linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`), padding: '14px 13px', textAlign: 'center' }}>
               <p style={{ fontSize: 40, margin: 0 }}>{cfg.emoji}</p>

@@ -8,7 +8,7 @@
 //  · os 4 primeiros de cada lado vão pras quartas CRUZADAS (1º de um lado × 4º do
 //    outro, 2º × 3º…), depois semi e final — jogo único, empate vai pros pênaltis;
 //  · a LIGA da sala continua com 20; os 16 primeiros escolhem o clube na ordem da
-//    tabela (60s cada, quem não escolhe fica com o PIOR que sobrou) e convocam em 90s.
+//    tabela (45s cada, quem não escolhe fica com o PIOR que sobrou) e convocam em 90s.
 //
 // 🧩 O TAMANHO SAI DO BARALHO. Enquanto o baralho regional não tiver os jogadores dos
 // clubes pequenos, nem todo clube fecha um time de 11. O motor então joga com o que
@@ -155,7 +155,7 @@ export function clubesDaCopa(id: CopaRegionalId): ClubesDaCopa {
 export const copaJogavel = (id: CopaRegionalId) => clubesDaCopa(id).n >= 2
 /** quantos da liga se classificam (2 × n — 16 com a copa cheia) */
 export const vagasDaCopa = (id: CopaRegionalId) => clubesDaCopa(id).n * 2
-/** o PIOR clube ainda livre — o castigo de quem deixou os 60s passarem */
+/** o PIOR clube ainda livre — o castigo de quem deixou os 45s passarem */
 export function piorClubeLivre(id: CopaRegionalId, pegos: Set<string>): string {
   const todos = [...clubesDaCopa(id).todos].sort((x, y) => forcaDoClube(x) - forcaDoClube(y) || x.localeCompare(y))
   return todos.find(c => !pegos.has(c)) ?? todos[0]

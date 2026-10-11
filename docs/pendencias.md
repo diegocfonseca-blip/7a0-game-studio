@@ -4,6 +4,18 @@
   Teste: sem login barrado · sala inexistente = relógio nulo · não-dono barrado. Foi em pedaços (a versão inteira
   estourava o tempo da ferramenta). Desfazer: `drop function public.esc_regional_clock(...)` + `drop table public.esc_regional_clock`.
 
+
+## 11/10/2026 (noite) — ⏱️ COPA REGIONAL: 45s PRA ESCOLHER + AVISO DE 15s ANTES
+
+Print dele numa Copa do Nordeste ao vivo: *"reduza o tempo p 45s p escolha do time nos
+estaduais… tem q ter um banner avisando antes c 15s que irá abrir a contagem por ordem de
+classificação e o time n escolhe no tempo o sistema dará o pior time"*.
+- `SEG_ESCOLHA` 60 → **45** (`copa-regional-online.tsx`) + textos do lobby, novidade e vídeo.
+- Fase nova **`aviso`** (15s, `SEG_AVISO`) gravada pelo dono ao abrir a copa; só depois dela
+  a vez do 1º abre. Banner dourado igual ao da convocação: ordem da tabela · 45s cada · não
+  escolheu = pior clube que sobrou. Aparelho com versão velha vê só "aguardando" nesses 15s.
+- A Copa do Mundo online NÃO mudou (ele pediu só os estaduais).
+
 ## 🌍 Copa do Mundo online "muita zebra" (10/10) — investigado, SEM mudança (decisão do Diego: "Não")
 - Refeitas as 22 Copas online da noite com a mesma semente: campeão bateu em todas → não é bug.
 - Causas: (1) quem estoura o tempo da convocação leva os piores do país (regra dele) — Espanha 76, Brasil 58;
