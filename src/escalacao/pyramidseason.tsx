@@ -1,3 +1,5 @@
+import {PresidenciaPartida} from './presidencia-partida'
+import type {ContextoPartidaEstadio} from './presidencia-partida-model'
 // ─── CARREIRA ONLINE · TEMPORADA SIMULADA (as 4 divisões) ────────────────
 // Depois do LEILÃO REAL, a temporada roda SIMULADA a partir dos elencos de
 // verdade (mesmo motor da Dinastia, aqui auto-contido). Tudo é DETERMINÍSTICO
@@ -2924,7 +2926,7 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases }:
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
@@ -2935,8 +2937,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   mascotHome?: string; mascotAway?: string
   /** 📢 frases próprias do apito final (vitória · derrota · empate), pra jogo que NÃO é de liga —
    *  na final de copa não se fala em "três pontos" (Diego 02/10). Sem isto, valem as da liga. */
-  apitoFrases?: { win: string[]; lose: string[]; draw: string[] } }) {
+  apitoFrases?: { win: string[]; lose: string[]; draw: string[] }; stadiumMatch?:ContextoPartidaEstadio }) {
   const privatePreview = useOnlinePreview()
+  const presidentFieldAccount = usePresidentPreview()
   // 🔓 19/09: a apresentação da CARREIRA saiu da prévia e foi pra todo mundo, por ordem
   // do Diego (*"pode publicar p todos"*). Uma chave só, `CAREER_VISUAL_RELEASED` — pôr
   // `false` devolve a carreira ao visual antigo inteirinha, sem tocar no online.
@@ -2955,7 +2958,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   //    rede e a bola que está no ar agora. Nascem aqui porque a rodada nova zera os
   //    dois na mesma linha que zera o relógio.
   const [confirmados, setConfirmados] = useState(0)
-  const [voo, setVoo] = useState<{ side: 'h' | 'a'; key: number; dentro: boolean } | null>(null)
+  const [voo, setVoo] = useState<{ side: 'h' | 'a'; key: number; dentro: boolean; startedAt: number } | null>(null)
   const vooTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rkRef = useRef(roundKey)
   if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0); setConfirmados(0); setVoo(null) }
@@ -3022,7 +3025,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (!proximoGol) return
     if (voo && !voo.dentro) return // bola no ar: o próximo espera ela entrar
     if (vooTimer.current) clearTimeout(vooTimer.current)
-    setVoo({ side: proximoGol.home ? 'h' : 'a', key: proximoGol.min * 10 + (proximoGol.home ? 7 : 8), dentro: false })
+    setVoo({ side: proximoGol.home ? 'h' : 'a', key: proximoGol.min * 10 + (proximoGol.home ? 7 : 8), dentro: false, startedAt: performance.now() })
     vooTimer.current = setTimeout(() => {
       // 🥅 ENTROU: o gol passa a existir na tela (placar, selo, carimbo, urro)
       setConfirmados(c => c + 1)
@@ -3246,7 +3249,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       ? (emIngles ? [`📢 Final whistle — defeat, ${meusGols} to ${delesGols}. On to the next one 😤`, '📢 It\'s over — lost this one. The crowd went home quiet 😤', '📢 Full time — not our night. Heads up 😤', '📢 The referee ends it: defeat. Next round we go again 😤'] : [`📢 Apito final — derrota por ${meusGols} a ${delesGols}. Bola pra frente 😤`, '📢 Acabou — perdemos essa. A torcida saiu calada 😤', '📢 Fim de jogo — não foi a nossa noite. Cabeça erguida 😤', '📢 O juiz encerrou: derrota. Na próxima a gente volta 😤'])
       : (emIngles ? ['📢 Final whistle — a draw, one point each 🤝', '📢 It\'s over — all square. Nobody left happy 🤝', '📢 Full time — a draw, and it felt like less 🤝', '📢 The referee ends it: even on the night 🤝'] : ['📢 Apito final — empate, um ponto pra cada 🤝', '📢 Acabou — tudo igual. Ninguém saiu feliz 🤝', '📢 Fim de jogo — empate, com gosto de pouco 🤝', '📢 O juiz encerrou: igualdade na noite 🤝'])
   const fimTxt = grande && ritual === 'end' ? FIM_RES[rk % FIM_RES.length] : null
-  if (cinematic) return <OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
+  if (cinematic) return <><OnlineScorePresentation enhanced={enhancedOnline || (privatePreview && enhancedCareer)}
     big={grande} result={grande ? resultado : null}
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
@@ -3264,6 +3267,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
     narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name} — ${lanceUltimo}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
+    {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:min,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:!!pauseAtHalf&&!resumeHalf&&min>=45,finished:fechado,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
+   </>
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
       <style>{'@keyframes coPulse{0%{box-shadow:0 0 0 0 rgba(255,91,77,.6)}70%{box-shadow:0 0 0 7px rgba(255,91,77,0)}100%{box-shadow:0 0 0 0 rgba(255,91,77,0)}}@keyframes coGoalFlash{0%{opacity:0}14%{opacity:.32}100%{opacity:0}}@keyframes coBump{0%{transform:scale(1)}28%{transform:scale(1.4)}60%{transform:scale(.9)}100%{transform:scale(1)}}@keyframes coFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes coBanner{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}@keyframes goalsScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}@keyframes coCarimba{0%{opacity:0;transform:scale(2.9) rotate(-24deg)}16%{opacity:1;transform:scale(.9) rotate(-8deg)}26%{transform:scale(1.05) rotate(-8deg)}34%{transform:scale(1) rotate(-8deg)}74%{opacity:1;transform:scale(1) rotate(-8deg)}100%{opacity:0;transform:scale(1.35) rotate(-8deg)}}' + CARIMBO_KEYFRAMES}</style>
@@ -3320,11 +3325,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
 }
 
 // wrapper da CARREIRA: resolve cores por técnico e passa pro placar compartilhado.
-function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void }) {
+function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = ROUND_MS, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, stadiumMatch }: { m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute:number)=>void; stadiumMatch?:ContextoPartidaEstadio }) {
   const iAmHome = m.h === youName
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
-  return <LiveScoreCard enhancedCareer onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
+  return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
     youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} />
 }
 
@@ -3392,10 +3397,10 @@ export function usePlacarFora(caixa: React.RefObject<HTMLDivElement | null>, onE
   }, [caixa, onEncolheu])
   return fora
 }
-function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu }: {
+function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs, pauseAtHalf, onReachHalf, resumeHalf, onMinuteChange, topo, escondido, onEncolheu, stadiumMatch }: {
   m: SimMatch; youName: string; finished?: boolean; col: FCol; colors?: Record<number, FCol>; roundKey: number; roundMs?: number
   pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean; onMinuteChange?: (minute: number) => void
-  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void
+  topo: number; escondido?: boolean; onEncolheu: (v: boolean) => void; stadiumMatch?:ContextoPartidaEstadio
 }) {
   const [min, setMin] = useState(finished ? 93 : 0)
   const caixa = useRef<HTMLDivElement | null>(null)
@@ -3413,7 +3418,7 @@ function PlacarQueEncolhe({ m, youName, finished, col, colors, roundKey, roundMs
   return (
     <>
       <div ref={caixa} className="ll-cx-placar">
-        <MyMatchCard m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
+        <MyMatchCard stadiumMatch={stadiumMatch} m={m} youName={youName} finished={finished} col={col} colors={colors} roundKey={roundKey}
           roundMs={roundMs} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} onMinuteChange={reportar} />
       </div>
       {fora && !escondido && (
@@ -8837,6 +8842,14 @@ export function PyramidSeasonScreen() {
   const myDiv = me?.div ?? null
   const ord = orderedDivs(myDiv).filter(d => d !== 'V' || (tables.V?.length ?? 0) > 0) // 🌱 Várzea só aparece quando existe
   const myMatch = myDiv ? matches[myDiv]?.find(x => x.you) : undefined
+  const stadiumMatch:ContextoPartidaEstadio|undefined=presidentAvailable&&myMatch?(()=>{
+    const teams=Object.values(live.tables).flat(),home=teams.find(t=>t.teamId===myMatch.hId),away=teams.find(t=>t.teamId===myMatch.aId)
+    if(!home||!away)return undefined
+    const xi=(t:SimTeam)=>t.human?lineupAt(careerLineup,t.teamId,round,t.squad,t.formation):t.xi
+    const second=(t:SimTeam)=>{const ids=careerHalftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
+    return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeSecondHalf:second(home),awaySecondHalf:second(away)}
+  })():undefined
+
   const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
   // 🔁 INTERVALO (carreira offline com toggle "só no intervalo"): o jogo pausa aos
   // 45' e abre o banner pra trocar o 2º tempo. `halfMode` = a pausa está armada pra
@@ -9708,7 +9721,7 @@ export function PyramidSeasonScreen() {
         {roteiroOn && fimPasso === 1 && (
           <BotaoPasso texto={tr('CONTINUAR ›', 'CONTINUE ›')} sub={tr('o caixa da temporada vem agora', 'the season’s books come next')} onClick={() => irPasso(2)} />
         )}
-        {!done && myMatch && me && <PlacarQueEncolhe onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
+        {!done && myMatch && me && <PlacarQueEncolhe stadiumMatch={stadiumMatch} onMinuteChange={privateCareer ? reportMinute : undefined} m={myMatch} youName={me.team} col={myCol} colors={colors} roundKey={round} roundMs={roundMs} pauseAtHalf={halfMode} onReachHalf={() => setHalftimeOpen(true)} resumeHalf={halftimeDone} topo={topoMini} escondido={sagrado} onEncolheu={marcaEncolhido} />}
         {/* 🚨 FILA DE AVISOS (Diego 14/08): quando bate mais de um aviso "que some
             quando resolve" na mesma hora (evento de jogador + crise financeira +
             contrato de TV, por exemplo), mostra UM POR VEZ com contador — em vez

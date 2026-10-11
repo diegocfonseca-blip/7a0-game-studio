@@ -3,7 +3,7 @@ import {hasExtra,type StadiumSave} from './estadiodata'
 import {estruturaEstadioCompleta} from './presidencia-estadio-completo'
 import {podeAlterarPresidencia,type CarreiraPresidencia} from './presidencia-carreira'
 export type CarreiraComEstadio=CarreiraPresidencia & {stadiums?:Record<number,StadiumSave>;agenciaOn?:boolean}
-export const podeOperarTeto=(st?:StadiumSave)=>!!st&&estruturaEstadioCompleta(st)&&hasExtra(st,'retratil')
+export const podeOperarTeto=(st?:StadiumSave)=>!!st&&estruturaEstadioCompleta(st)&&hasExtra(st,'cober')&&hasExtra(st,'retratil')
 /** One construction state for every camera; reference images grant no works. */
 export function estadioDaPresidencia(state:CarreiraComEstadio,mgrId:number){
  const stadium=state.stadiums?.[mgrId],view=careerStadiumView(stadium,!!state.agenciaOn)

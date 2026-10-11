@@ -18,7 +18,7 @@ export function estadioCompletoNaAerea(st?:StadiumSave):boolean{
  if(!estadioVisualValido(st)||!catalogoCobertoNaAerea())return false
  // A save from a newer version can contain purchases unknown to this build.
  // Do not silently hide them behind a supposedly complete older illustration.
- if(st.ext.some(key=>!ART_EXTRAS.includes(key)&&key!=='grama'&&key!=='medico'))return false
+ if(st.ext.some(key=>!ART_EXTRAS.includes(key)&&key!=='grama'&&key!=='medico'&&key!=='asfalto'))return false
  if(Object.entries(st.inv).some(([key,value])=>!ART_SECTORS.includes(key)&&value!==0))return false
  return STADIUM_SECTORS.every(s=>{
   const paid=st.inv[s.k]

@@ -66,3 +66,6 @@ bench-sim.html
 
 # 🖼️ fotos geradas pelo mockup-holandes (script sim, arquivo nao)
 /mockups/
+
+# Evidências locais de QA da Presidência; não entram no deploy.
+/test-results/

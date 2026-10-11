@@ -26,6 +26,7 @@ import { lojaLiberada } from './sport' // 🛍️ Loja do Clube (liberada geral 
 import { fornPorTemporada, fornLiberado, fornOfertas, fornBonusLoja, fornecedorDe, fornAtivo, fornAnoAtual, fornValor, torcidaDoEstadio, TORCIDA_PISO_DIV, type Fornecedor, type FornContrato } from './loja'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
+import {PAVIMENTACAO_ESTADIO,podeInvestirNoProjeto,extraLiberadoNoProjeto,requisitoExtraNoProjeto,setorPagoNoProjeto} from './presidencia-estadio-projeto'
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -787,7 +788,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           todos). Isto aqui é mudança de LUGAR NA TELA, não de regra — ninguém perde
           progresso nem desbloqueio. */}
       {STADIUM_SECTORS.filter(s => s.k !== 'grama').map(s => {
-        const p = sectorPct(st, s.k), full = p >= 100
+        const p = sectorPct(st, s.k), full = presidencyView ? setorPagoNoProjeto(st,s.k) : p >= 100
+        const locked = !!presidencyView && !podeInvestirNoProjeto(st,s.k)
         // 🐛 CORRIGIDO (relato de jogador, 12/08): Cadeiras (90) e Camarote (150)
         // não são múltiplos de 20 — o ÚLTIMO clique já cobrava só o restante
         // (o reducer sempre fez `Math.min(STADIUM_STEP, custo - investido)`,
@@ -803,17 +805,18 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           <div key={s.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
-                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{sectorNome(s)}</span>
+                <span style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{presidencyView && s.k==='camarote' ? tr('Camarotes e 2º andar','Boxes and upper tier') : sectorNome(s)}</span>
                 <span style={{ fontSize: 11.5, fontWeight: 900, color: '#14512b' }}>{p}%</span>
               </div>
               <div style={{ height: 9, background: '#e6dcc2', border: `1.5px solid ${INK}`, borderRadius: 6, overflow: 'hidden', margin: '5px 0 4px' }}>
                 <div style={{ height: '100%', width: `${p}%`, background: full ? GOLD : ACC, transition: 'width .35s ease' }} />
               </div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)' }}>{tr('custo total', 'total cost')} {s.cost} 💰 · {tr('rende', 'earns')} <b style={{ color: ACC }}>+{s.inc}/{tr('temp', 'season')}</b>{typeof torcidaPct === 'number' && torcidaPct < 100 ? <span style={{ opacity: .75 }}> {tr(`(hoje +${Math.floor(s.inc * torcidaPct / 100)} — estádio ${torcidaPct}% cheio)`, `(today +${Math.floor(s.inc * torcidaPct / 100)} — stadium ${torcidaPct}% full)`)}</span> : null}{s.seats > 0 ? <> · {s.seats.toLocaleString('pt-BR')} {tr('lugares', 'seats')}</> : null}</div>
+              {locked&&<p style={{fontSize:11,margin:'4px 0 0'}}>{tr('Conclua Geral, Cadeiras e Visitante para construir o 2º andar.','Finish Terraces, Seats and Away end before the upper tier.')}</p>}
             </div>
-            <button onClick={() => !full && !poor && onInvest(s.k)} disabled={full || poor}
-              style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor ? '#d9cfb4' : INK, color: full ? INK : poor ? '#7d7358' : '#fff' }}>
-              {full ? tr('✅ pronto', '✅ done') : <>{tr('Investir', 'Invest')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{stepPay} 💰</span></>}
+            <button onClick={() => !full && !poor && !locked && onInvest(s.k)} disabled={full || poor || locked}
+              style={{ flex: 'none', minWidth: 88, border: 'none', borderRadius: 10, padding: '9px 11px', fontWeight: 900, fontSize: 12.5, cursor: full || poor || locked ? 'default' : 'pointer', lineHeight: 1.15, ...OSW, background: full ? GOLD : poor || locked ? '#d9cfb4' : INK, color: full ? INK : poor || locked ? '#7d7358' : '#fff' }}>
+              {full ? tr('✅ pronto', '✅ done') : locked ? tr('🔒 1º andar','🔒 Lower tier') : <>{tr('Investir', 'Invest')}<span style={{ display: 'block', fontSize: 9, opacity: .85 }}>+{stepPay} 💰</span></>}
             </button>
           </div>
         )
@@ -847,21 +850,21 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
           </div>
         )
       })()}
-      {extras.map(e => {
-        const done = hasExtra(st, e.k), unlocked = extraUnlocked(st, e.k), poor = coins < e.cost
+      {(presidencyView ? extras.flatMap(e=>e.k==='loja'?[e,PAVIMENTACAO_ESTADIO]:[e]) : extras).map(e => {
+        const done = hasExtra(st, e.k), unlocked = presidencyView ? extraLiberadoNoProjeto(st,e.k) : extraUnlocked(st,e.k), poor = coins < e.cost
         // 🛍️ com a LOJA DO CLUBE de verdade ligada (teste fechado), a obra da loja
         // deixa de prometer "+6/temp": ela passou a render pela VENDA DE CAMISAS e
         // pelo patrocínio de material. Ordem do Diego (15/09): *"diz ali que rende 6
         // moedas; agora não renderá mais… pode trocar a info por isso"*.
         // Pra quem não é tester nada muda — o texto e o +6 seguem como sempre.
         const lojaNova = e.k === 'loja' && lojaLiberada()
-        const rendeTxt = lojaNova
+        const rendeTxt = e.k==='asfalto' ? tr('pavimenta ruas internas, calçadas e acessos','paves internal streets, sidewalks and access routes') : lojaNova
           ? tr('rende com a venda de camisas e o fornecedor de material', 'earns from shirt sales and the kit supplier')
           : null
         return (
           <div key={e.k} style={{ ...box('#FBF6E9'), borderRadius: 14, padding: '10px 11px', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 11, opacity: done || unlocked ? 1 : .55, borderStyle: done || unlocked ? 'solid' : 'dashed', boxShadow: done || unlocked ? `4px 4px 0 0 ${INK}` : 'none' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{extraNome(e)}</div>
+              <div style={{ fontWeight: 900, fontSize: 14.5, ...OSW }}>{e.k==='asfalto' ? tr('🛣️ Ruas internas e calçadas','🛣️ Internal streets and sidewalks') : extraNome(e)}</div>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', marginTop: 2 }}>
                 {/* 🏥 melhoria SEM renda (perk): mostra o benefício, nunca "+0/temp" */}
                 {/* 💡 A RENDA E A GRAÇA APARECEM JUNTAS (Diego 16/09). ⚠️ ANTES o
@@ -874,7 +877,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                     não dava pra planejar pra que obra juntar dinheiro. */}
                 {done ? <b style={{ color: ACC }}>{rendeTxt ?? tr(`rendendo +${e.inc}/temp`, `earning +${e.inc}/season`)}{extraPerk(e) ? <span style={{ fontWeight: 700, color: 'rgba(0,0,0,.5)' }}> · {extraPerk(e)}</span> : null}</b>
                   : unlocked ? <>{tr('custa', 'costs')} {e.cost} 💰 · <b style={{ color: ACC }}>{rendeTxt ?? tr(`rende +${e.inc}/temp`, `earns +${e.inc}/season`)}</b>{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>
-                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{extraReq(e)}</b> · {tr('custaria', 'would cost')} {e.cost} 💰 · {tr(`renderia +${e.inc}/temp`, `would earn +${e.inc}/season`)}{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
+                  : <>{tr('🔒 destrava com:', '🔒 unlocks with:')} <b style={{ color: '#9a4b00' }}>{presidencyView ? requisitoExtraNoProjeto(e.k,getLang()==='en')??extraReq(e) : extraReq(e)}</b> · {tr('custaria', 'would cost')} {e.cost} 💰 · {rendeTxt??tr(`renderia +${e.inc}/temp`, `would earn +${e.inc}/season`)}{extraPerk(e) ? <> · {extraPerk(e)}</> : null}</>}
               </div>
             </div>
             <button onClick={() => !done && unlocked && !poor && onBuild(e.k)} disabled={done || !unlocked || poor}

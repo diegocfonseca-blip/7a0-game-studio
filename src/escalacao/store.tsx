@@ -6,7 +6,8 @@ import {PRESIDENCY_ECONOMY_RELEASED,PRESIDENCY_ROOF_RELEASED} from './presidenci
 import {getPresidentOutfitTier} from './presidente-tier-conta'
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {presidenteCadastrado,sugestaoPresidente} from './presidencia-entrada-model'
-import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,type PresidenteBaseSave} from './presidencia-carreira'
+import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,podeAlterarPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
+import {PAVIMENTACAO_ESTADIO,podeInvestirNoProjeto,extraLiberadoNoProjeto} from './presidencia-estadio-projeto'
 import {roupaLegada} from './presidente-vestuario-modular'
 import type {PresidenciaOrcamento} from './presidencia-economia'
 import type {DuplaGaragem} from './presidencia-garagem'
@@ -6311,6 +6312,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const sec = STADIUM_SECTORS.find(x => x.k === action.sector); if (!sec) return s
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
       const invested = st.inv[action.sector] ?? 0
+      if (presidentWritesEnabled() && podeAlterarPresidencia(s, action.mgrId) && !podeInvestirNoProjeto(st, action.sector)) return s
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       const pay = Math.min(STADIUM_STEP, sec.cost - invested, wallet)
       if (pay <= 0) return s
@@ -6322,11 +6324,12 @@ function reducerBase(state: EscState, action: Action): EscState {
     // 🏟️ compra uma melhoria DESTRAVADA (árvore de requisitos em estadiodata)
     case 'STADIUM_BUILD': {
       if (!s.careerOnline) return s
-      const ext = STADIUM_EXTRAS.find(x => x.k === action.ext); if (!ext) return s
+      const privateProject = presidentWritesEnabled() && podeAlterarPresidencia(s, action.mgrId)
+      const ext = privateProject && action.ext === 'asfalto' ? PAVIMENTACAO_ESTADIO : STADIUM_EXTRAS.find(x => x.k === action.ext); if (!ext) return s
       if (extraNovaOnly(action.ext) && !s.agenciaOn) return s // 🏥🍔🍻🚇🏨 médico/retrátil + estabelecimentos novos: só carreira nova
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
-      if (st.ext.includes(action.ext) || !extraUnlocked(st, action.ext) || wallet < ext.cost) return s
+      if (st.ext.includes(action.ext) || !(privateProject ? extraLiberadoNoProjeto(st, action.ext) : extraUnlocked(st, action.ext)) || !Number.isFinite(wallet) || wallet < ext.cost) return s
       s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { ...st, inv: st.inv, ext: [...st.ext, action.ext] } }
       s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: wallet - ext.cost }
       logFin(s, 'stadium', `🏟️ Melhoria: ${ext.n}`, -ext.cost, undefined, action.mgrId) // 🧾 melhoria do estádio entra no extrato

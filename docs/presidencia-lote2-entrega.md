@@ -1,5 +1,9 @@
 # Presidência — lote 2 privado
 
+Continuação local em 11/10: `presidencia-lote3-previa.md` registra as novas
+camadas e NPCs preparados, testes offline e bloqueios de build/navegador.
+Não confundir essa prévia com lote publicado.
+
 Base publicada: 97faf8bdd2e056653630b21992c078f8cd99b684.
 Diego autorizou publicar incrementos aprovados/testados apenas para
 diego.c.fonseca@gmail.com, sem reconfirmação. Não liberar globalmente.
