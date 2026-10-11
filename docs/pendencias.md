@@ -23,7 +23,7 @@ Regra única, a mesma divisão 3 e 3 do envelope:
   junta as duas metades (`donosDaConvocacao` + `convocacaoDuplaFeitos`); o time fecha quando
   os dois mandam ou o relógio acaba (vaga vazia = pior do pacote, como sempre).
 - Peças novas: `useDuplaVez` + `CaixaDuplaTrava` (screens.tsx). Trava: `npm run duplas`.
-- ⏳ Esperando o OK visual dele pra publicar (fotos mandadas no chat).
+- 🟢 Publicado em 12/10 depois do "Sim" dele às fotos.
 
 ## 🏟️ Relógio da Copa regional no banco (11/10) ✅ APLICADO
 - `docs/sql/regional-clock.sql` rodado no Supabase a pedido do Diego: tabela `esc_regional_clock` (RLS + 3 regras:
