@@ -48,7 +48,6 @@ import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
-import { AvisoVersaoNova } from './aviso-versao'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na hora do DONO da sala
 import { useLegendPresentation } from './presentation-release'
@@ -2052,9 +2051,8 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
     <><div className="ll-home">
       <div className="ll-art" />
       <div className="ll-shade" />
-      {/* 📢 faixa de "tem versão nova" — fecha uma vez e não volta mais naquele
-          aparelho. Só existe aqui na home; ver `aviso-versao.tsx`. */}
-      <AvisoVersaoNova />
+      {/* 📢 a faixa amarela "As lendas ganharam cara" (`aviso-versao.tsx`) SAIU em 11/10 a pedido do Diego
+          (*"aquele amarelo ali das lendas com cara não precisa mais"*). Pra voltar: `<AvisoVersaoNova />` aqui. */}
       <header className="ll-header">
         <div className="ll-brand"><small>{t('LEILÃO ÀS CEGAS', 'BLIND AUCTION')}</small>LEILÃO LEGENDS</div>
         <div className="ll-lang"><LangToggle /></div>

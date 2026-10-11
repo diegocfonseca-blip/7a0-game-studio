@@ -1,3 +1,8 @@
+## 📲 Faixa da comunidade do WhatsApp (11/10) ✅ NO AR
+- Faixa verde SÓ na home (`ComunidadeBanner` em index.tsx), no fluxo da página (não tampa nada), link
+  `chat.whatsapp.com/KfSkVvbjjdiHptHfJE5hQN`, ✕ esconde no aparelho. Tirar: `COMUNIDADE_LINK = null`.
+- Saiu a faixa amarela "As lendas ganharam cara" (`AvisoVersaoNova`) da home, a pedido dele.
+
 ## 🏛️🃏 Cartinha dos dois clubes (Multiclubes) (11/10) ✅ NO AR
 - Reclamação: usuário ganhou a Série B com o 2º clube e ficou sem carta. Causa: bilhete do pacote era UM por
   temporada (`co:solo{seed}:{N}`) → com os dois clubes campeões, o 2º batia no bilhete usado; clube dormindo só

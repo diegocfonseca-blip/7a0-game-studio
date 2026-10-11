@@ -62,8 +62,8 @@ function AvisoTopo({ escondido }: { escondido: boolean }) {
 
 // 📲 COMUNIDADE DO WHATSAPP (Diego 11/10): *"chegou o grupo… quando o cara clicar vai direto no link da
 // comunidade"*. Diferente da faixa de manutenção (que era FIXA e tampava as moedas de quem joga online), esta
-// entra no FLUXO da página: empurra o conteúdo pra baixo em vez de cobrir. E só aparece onde não tem jogo
-// rolando — tela inicial e área das salas —, nunca no leilão/temporada. O ✕ esconde neste aparelho.
+// entra no FLUXO da página: empurra o conteúdo pra baixo em vez de cobrir. E só aparece na HOME (ordem dele),
+// nunca nas salas, no leilão ou na temporada. O ✕ esconde neste aparelho.
 // Tirar pra todos: COMUNIDADE_LINK = null.
 const COMUNIDADE_LINK: string | null = 'https://chat.whatsapp.com/KfSkVvbjjdiHptHfJE5hQN'
 const COMUNIDADE_FECHADA = 'esc-comunidade-zap-fechada'
@@ -71,15 +71,20 @@ function ComunidadeBanner() {
   const { state } = useEsc()
   const [fechada, setFechada] = useState(() => { try { return localStorage.getItem(COMUNIDADE_FECHADA) === '1' } catch { return false } })
   if (!COMUNIDADE_LINK || fechada) return null
-  if (state.screen !== 'intro' && state.screen !== 'lobby') return null
+  if (state.screen !== 'intro') return null // só na HOME (Diego 11/10: "deixe isso só na home")
   const en = getLang() === 'en'
   return (
-    <div style={{ display: 'flex', alignItems: 'stretch', background: '#1B7A3D', borderBottom: '3px solid #0C0C0C' }}>
+    <div className="ll-comunidade" style={{ display: 'flex', alignItems: 'stretch', background: '#1B7A3D', borderBottom: '3px solid #0C0C0C', height: 'var(--ll-zap-h)', boxSizing: 'border-box', overflow: 'hidden' }}>
+      {/* a home gruda o botão de som no topo: com a faixa na tela ele desce a ALTURA FIXA dela (senão ficava
+          em cima do texto). Altura fixa = 64 no celular · 52 no computador. */}
+      <style>{':root{--ll-zap-h:52px}@media(max-width:650px){:root{--ll-zap-h:64px}}'
+        + '#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(26px + var(--ll-zap-h))!important}'
+        + '@media(max-width:650px){#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(16px + var(--ll-zap-h))!important}}'}</style>
       <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 10px', color: '#fff', textDecoration: 'none', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, textAlign: 'center' }}>
         <span style={{ fontSize: 18, flex: 'none' }}>📲</span>
         <span style={{ textAlign: 'left' }}>
-          <b style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 14, textTransform: 'uppercase', letterSpacing: '.02em' }}>{en ? 'Our WhatsApp community is here!' : 'Chegou a comunidade no WhatsApp!'}</b>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 700, opacity: .9 }}>{en ? 'Join now and meet more Leilão Legends fans' : 'Entre agora e encontre mais fãs do Leilão Legends'}</span>
+          <b style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 14, lineHeight: 1.15, textTransform: 'uppercase', letterSpacing: '.02em' }}>{en ? 'Our WhatsApp community is here!' : 'Chegou a comunidade no WhatsApp!'}</b>
+          <span style={{ display: 'block', fontSize: 11, fontWeight: 700, opacity: .9 }}>{en ? 'Join and meet more fans of the game' : 'Entre e encontre mais fãs do jogo'}</span>
         </span>
         <span style={{ flex: 'none', background: '#FFC400', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 999, padding: '3px 10px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', boxShadow: '2px 2px 0 #0C0C0C', whiteSpace: 'nowrap' }}>{en ? 'Join' : 'Entrar'}</span>
       </a>
