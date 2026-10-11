@@ -1,3 +1,9 @@
+## 🏟️ Relógio da Copa regional no banco (11/10) ✅ APLICADO
+- `docs/sql/regional-clock.sql` rodado no Supabase a pedido do Diego: tabela `esc_regional_clock` (RLS + 3 regras:
+  ler = dono/jogador da sala · criar/mudar = só o dono) e função `esc_regional_clock` (só logado; só o dono comanda).
+  Teste: sem login barrado · sala inexistente = relógio nulo · não-dono barrado. Foi em pedaços (a versão inteira
+  estourava o tempo da ferramenta). Desfazer: `drop function public.esc_regional_clock(...)` + `drop table public.esc_regional_clock`.
+
 ## 🌍 Copa do Mundo online "muita zebra" (10/10) — investigado, SEM mudança (decisão do Diego: "Não")
 - Refeitas as 22 Copas online da noite com a mesma semente: campeão bateu em todas → não é bug.
 - Causas: (1) quem estoura o tempo da convocação leva os piores do país (regra dele) — Espanha 76, Brasil 58;
