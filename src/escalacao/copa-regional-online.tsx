@@ -575,7 +575,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     return <CompetitionMatch key={key} showOwners goals={g} home={entrants[h].pais} away={entrants[a].pais} homeOwner={dono(h)} awayOwner={dono(a)}
       homeCrest={<Escudo nome={entrants[h].pais} size={26} />} awayCrest={<Escudo nome={entrants[a].pais} size={26} />}
       homeScore={g.filter(x => x.home).length} awayScore={g.filter(x => !x.home).length} mine={isYou(h) || isYou(a)} status={status}
-      detail={pen && liveDone ? <PensShootout compactOnline pens={pen} aName={entrants[h].pais} bName={entrants[a].pais} aCrest={<Escudo nome={entrants[h].pais} size={20} />} bCrest={<Escudo nome={entrants[a].pais} size={20} />} aSquad={entrants[h].xi} bSquad={entrants[a].xi} /> : undefined} />
+      detail={pen && liveDone ? <PensShootout compactOnline pens={pen} aName={entrants[h].pais} bName={entrants[a].pais} aCrest={<Escudo nome={entrants[h].pais} size={20} />} bCrest={<Escudo nome={entrants[a].pais} size={20} />} aSquad={entrants[h].xi} bSquad={entrants[a].xi} lento={!!(entrants[h].humano || entrants[a].humano)} /> : undefined} />
   }
   const tabela = (lado: 0 | 1) => {
     const linhas = tabelaDoLado(mundo, lado, rodadasVistas)

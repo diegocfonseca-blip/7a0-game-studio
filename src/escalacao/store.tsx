@@ -14,7 +14,7 @@ import type {DuplaGaragem} from './presidencia-garagem'
 import {alterarTetoPresidencia} from './presidencia-estadio-integrado'
 import {lancamentosPresidencia} from './presidencia-extrato'
 import { onlinePreviewEnabled } from './online-preview'
-import { disputaPenaltis } from './penaltis'
+import { disputaPenaltisComSequencia } from './penaltis'
 import { anotaTrava } from './caixa-preta'
 import { agoraSala, ajustaRelogioSala, souODono } from './relogio' // ⏱️ um relógio só pra sala (o do dono) — ver relogio.ts
 import { publicOnlineVisual } from './online-release'
@@ -4005,7 +4005,8 @@ function playChampionsRepescao(s: EscState) {
     if (tie.winner != null) continue
     const ga = tie.legs.reduce((n, l) => n + l[0], 0), gb = tie.legs.reduce((n, l) => n + l[1], 0)
     if (ga !== gb) { tie.winner = ga > gb ? tie.aId : tie.bId; continue }
-    tie.pens = disputaPenaltis(rng)
+    const dp = disputaPenaltisComSequencia(rng) // 🎬 guarda as cobranças de verdade (12/10)
+    tie.pens = dp.gols; tie.pensSeq = dp.seq
     tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
   }
   ch.fase = 'mata'
@@ -4088,7 +4089,8 @@ function resolveQuickCopaTie(tie: QuickCopaTie, rng: () => number, nba = false) 
     // 🎯 11/09: disputa simulada de verdade (ver `penaltis.ts`) — o sorteio de
     // dois números soltos produzia placar impossível e as bolinhas da tela não
     // fechavam com ele.
-    tie.pens = nba ? prorrogacao(rng) : disputaPenaltis(rng)
+    if (nba) tie.pens = prorrogacao(rng)
+    else { const dp = disputaPenaltisComSequencia(rng); tie.pens = dp.gols; tie.pensSeq = dp.seq } // 🎬 cobranças de verdade (12/10)
     tie.ot = nba || undefined // a tela usa isto pra escrever "prorrogação" em vez de "pênaltis"
     tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
   } else {

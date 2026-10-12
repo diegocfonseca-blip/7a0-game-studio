@@ -141,3 +141,22 @@ for (const chave of vistos.keys()) {
   }
 }
 console.log('PASS a ordem nunca muda: o A bate primeiro em toda rodada (%d rodadas conferidas, morte súbita inclusa)', rodadasConferidas)
+
+// ── 🎬 a DISPUTA DE VERDADE (12/10): a sequência guardada sai do MESMO sorteio ──
+// O placar não pode mudar (mesmo consumo do rng) e a fita tem que fechar com o placar.
+// Save sem a fita (sala antiga) cai na reconstrução de sempre.
+{
+  const { disputaPenaltisComSequencia, sequenciaGuardada } = exports
+  let n = 0
+  for (let s = 1; s <= 20000; s++) {
+    const velho = disputaPenaltis(mk(s)), novo = disputaPenaltisComSequencia(mk(s))
+    assert.deepEqual(novo.gols, velho, `semente ${s}: o placar mudou com a fita`)
+    const fita = sequenciaGuardada(novo.gols, novo.seq)
+    assert.ok(fita, `semente ${s}: fita ${novo.seq} não fecha com ${novo.gols.join('×')}`)
+    fita.forEach((c, i) => assert.equal(c.side, i % 2))
+    n++
+  }
+  assert.equal(sequenciaGuardada([3, 2], undefined), null)
+  assert.equal(sequenciaGuardada([5, 4], '11'), null, 'fita que não bate com o placar é ignorada')
+  console.log('PASS disputa de verdade: %d disputas com a fita fechando com o placar e o mesmo resultado de antes', n)
+}

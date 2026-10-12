@@ -37,27 +37,52 @@ const CONVERSAO = 0.76 // ~3 em cada 4 entram, que é a média do futebol de ver
  * Nunca devolve empate e nunca devolve placar impossível.
  */
 export function disputaPenaltis(rng: () => number): [number, number] {
+  return disputaPenaltisComSequencia(rng).gols
+}
+
+/**
+ * 🎬 A MESMA disputa, devolvendo também AS COBRANÇAS DE VERDADE (12/10). Diego perguntou dos pênaltis do
+ * online (*"muita gente fala que sempre perde… sempre tem algo que acontece óbvio"*) e o que achamos foi a
+ * TELA: ela só recebia o placar e REMONTAVA uma sequência a partir dele — mesmo placar = mesma cena sempre,
+ * e a morte súbita aparecia com todo mundo marcando até a última. Agora quem sorteia guarda cada cobrança
+ * (`seq`: '1' gol / '0' erro, na ordem — A, B, A, B…) e a tela só mostra o que aconteceu.
+ * ⚠️ O rng é consumido EXATAMENTE igual ao de antes: mesmo placar, mesmo vencedor, em toda sala.
+ */
+export function disputaPenaltisComSequencia(rng: () => number): { gols: [number, number]; seq: string } {
   const gols: [number, number] = [0, 0]
   const cobradas: [number, number] = [0, 0]
+  let seq = ''
   // acabou: o que está atrás não alcança mais nem acertando tudo o que falta
   const decidido = () => gols[0] + (5 - cobradas[0]) < gols[1] || gols[1] + (5 - cobradas[1]) < gols[0]
   for (let r = 0; r < 5; r++) {
     for (const s of [0, 1] as const) {
-      if (decidido()) return gols
+      if (decidido()) return { gols, seq }
       cobradas[s]++
-      if (rng() < CONVERSAO) gols[s]++
+      const ok = rng() < CONVERSAO
+      if (ok) gols[s]++
+      seq += ok ? '1' : '0'
     }
   }
-  if (gols[0] !== gols[1]) return gols
+  if (gols[0] !== gols[1]) return { gols, seq }
   // 🎯 MORTE SÚBITA: rodada completa; quem fizer e o outro perder, leva.
   for (let r = 0; r < 30; r++) {
     const a = rng() < CONVERSAO, b = rng() < CONVERSAO
     if (a) gols[0]++
     if (b) gols[1]++
-    if (a !== b) return gols
+    seq += (a ? '1' : '0') + (b ? '1' : '0')
+    if (a !== b) return { gols, seq }
   }
-  gols[rng() < 0.5 ? 0 : 1]++ // rede de segurança: nunca sai daqui empatado
-  return gols
+  gols[rng() < 0.5 ? 0 : 1]++ // rede de segurança: nunca sai daqui empatado (a sequência não fecha → a tela remonta)
+  return { gols, seq }
+}
+
+/** lê a sequência guardada ('1'/'0' na ordem A, B, A, B…); `null` se faltar ou não fechar com o placar */
+export function sequenciaGuardada(pens: [number, number], txt?: string | null): Cobranca[] | null {
+  if (!txt || !/^[01]+$/.test(txt)) return null
+  const seq: Cobranca[] = [...txt].map((c, i) => ({ side: (i % 2) as 0 | 1, ok: c === '1' }))
+  const soma: [number, number] = [0, 0]
+  for (const k of seq) if (k.ok) soma[k.side]++
+  return soma[0] === pens[0] && soma[1] === pens[1] ? seq : null
 }
 
 /**

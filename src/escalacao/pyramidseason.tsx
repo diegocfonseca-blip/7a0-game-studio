@@ -38,7 +38,7 @@ import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctV
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
-import { sequenciaPenaltis, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
+import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
@@ -6388,7 +6388,11 @@ export const PENS_PASSO_LENTO = 1.6
 export const pensPasso = (lento?: boolean) => (lento ? PENS_PASSO_LENTO : PENS_PASSO)
 // 🧍 quem conta como GENTE numa disputa de Copa da carreira: você ou outro humano
 export const copaTemGente = (tie: { a: { you?: boolean; human?: boolean }; b: { you?: boolean; human?: boolean } }) => !!(tie.a.you || tie.a.human || tie.b.you || tie.b.human)
-export function pensRevealDelay(pens: [number, number], lento = false): number {
+export function pensRevealDelay(pens: [number, number], lento = false, seqReal?: string): number {
+  // 🎬 12/10: com as cobranças de verdade guardadas, conta ELAS (a morte súbita real pode ter rodadas de
+  // dois erros, mais longa que a remontada)
+  const real = sequenciaGuardada(pens, seqReal)
+  if (real) return 0.7 + Math.max(real.length, 10) * pensPasso(lento) + 0.6
   // 🎯 11/09: conta as cobranças DE VERDADE (a mesma sequência que a tela
   // desenha), em vez de estimar — a estimativa antiga podia liberar o vencedor
   // antes da última bolinha pipocar, e na morte súbita comprida chutava 12.
@@ -6399,7 +6403,7 @@ export function pensRevealDelay(pens: [number, number], lento = false): number {
   const b = sequenciaPenaltis(pens, mulberry(0xC0FFEE)).length
   return 0.7 + Math.max(a, b, 10) * pensPasso(lento) + 0.6
 }
-export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false }: { pens: [number, number]; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
+export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false }: { pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
@@ -6411,8 +6415,8 @@ export function PensShootout({ pens, aName, bName, colorOf, compactOnline=false,
   let salt = 0; for (const ch of aName + '|' + bName) salt = (salt * 31 + ch.charCodeAt(0)) >>> 0
   const rng = mulberry(((pens[0] * 31 + pens[1] * 7) ^ salt ^ 0xA1B2) >>> 0)
   const win = pens[0] > pens[1] ? 0 : 1
-  const seq = sequenciaPenaltis(pens, rng)
-  const nSlots = Math.max(5, pens[0], pens[1])
+  const seq = sequenciaGuardada(pens, seqReal) ?? sequenciaPenaltis(pens, rng)
+  const nSlots = Math.max(5, pens[0], pens[1], Math.ceil(seq.length / 2))
   const suddenDeath = nSlots > 5 // morte súbita de qualquer tamanho (6×5, 7×6…)
   const step = pensPasso(lento), lead = 0.7
   // resultado de cada time na ORDEM das cobranças dele + índice global (delay)

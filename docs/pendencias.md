@@ -1,3 +1,14 @@
+## 🎬 Pênaltis de verdade nas salas rápidas e Minhas Ligas (12/10) ✅ NO AR
+Queixa do pessoal: *"sempre perde… sempre tem algo óbvio… às vezes buga nos pênaltis"*. Auditoria: o sorteio é justo
+(76% por cobrança, 50/50, sem força de time), MAS a tela **reconstruía** a sequência a partir do placar — mesmo placar =
+mesma cena, e na morte súbita todo mundo "acertava". Agora `disputaPenaltisComSequencia` guarda cada cobrança em
+`QuickCopaTie.pensSeq` ('1' gol / '0' erro) e a `PensShootout` mostra a fita real (`sequenciaGuardada`). O placar NÃO
+mudou (mesmo consumo do rng — trava `npm run penaltis`, 20 mil disputas). Sala/save antigo sem fita = reconstrução de antes.
+Copa do Mundo e copa regional seguem reconstruindo (motores próprios) — se ele quiser, é o mesmo passo lá.
+- ⏳ **Propostos, SEM OK**: (b) o PULAR do dono esperar a disputa acabar (hoje corta pra todos); (c) morte súbita mais
+  rápida depois de ~8 cobranças. Peso de time mais forte no pênalti: decisão separada, não pedida.
+- Também: a disputa da lista de jogos da copa regional passou a dizer se tem gente (`lento`), igual à disputa grande.
+
 ## 🏟️ Lista de salas mostra a copa extra (12/10) ✅ NO AR
 - Sala de estadual aparecia "só liga": a lista lê colunas magras e não tinha a do estadual nem a da Copa do
   Mundo depois da liga. Nova coluna `ls_copa2` no gatilho (`docs/sql/lista-salas-copa-extra.sql`, aplicado) +
