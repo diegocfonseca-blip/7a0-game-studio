@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Etapas do estádio — revisão local</title>
+<style>
+body{margin:0;background:#F4ECD6;color:#0C0C0C;font:16px/1.45 system-ui}main{max-width:1200px;margin:auto;padding:16px;box-sizing:border-box}h1{font-size:26px;line-height:1.15}p{max-width:850px}.review-status{background:#FFC400;padding:10px;border:3px solid;border-radius:12px;font-weight:700}.review-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0}.review-controls button,.review-controls select{font:inherit;padding:10px;background:#F4ECD6;color:#0C0C0C;border:2px solid;border-radius:8px;min-height:44px;max-width:100%}.review-controls select{flex:1;min-width:0;width:100%}.review-controls button[aria-pressed=true]{background:#FFC400}.review-controls button:disabled{opacity:.4}.review-window{height:min(65vh,650px);min-height:300px;position:relative;overflow:hidden;border:3px solid;border-radius:12px}.review-title{font-weight:700}.review-link{color:inherit;text-decoration:underline}
+</style>
+<div id="root"></div>
+<script type="module">
+import React,{useState} from 'react';import{createRoot}from'react-dom/client';
+import './src/index.css';
+import {PresidenciaEstadioMapa} from './src/escalacao/presidencia-estadio-mapa.tsx';
+import {PresidenciaEstadioImagem} from './src/escalacao/presidencia-estadio-imagem.tsx';
+import stages from './docs/presidencia-etapas-revisao.json';
+document.body.style.cssText='margin:0;background:#F4ECD6;color:#0C0C0C;font:16px/1.45 system-ui';
+const h=React.createElement;
+function Review(){
+ const[index,setIndex]=useState(0),[camera,setCamera]=useState('map'),stage=stages[index];
+ return h('main',{'data-review-stage':index},
+  h('h1',null,'Cada etapa do estádio'),
+  h('p',{className:'review-status'},'REVISÃO LOCAL · NÃO PUBLICADO'),
+  h('p',null,'Percorra cada clique de obra, compras isoladas e melhorias acumuladas. O mapa e a janela usam os mesmos dados da etapa escolhida. São cenários de teste; nenhuma compra é feita na conta.'),
+  h('a',{className:'review-link',href:'./qa-presidencia-revisao.html'},'Voltar às capturas da revisão'),
+  h('div',{className:'review-controls'},
+   h('button',{onClick:()=>setIndex(i=>i-1),disabled:index===0},'Anterior'),
+   h('select',{'aria-label':'Etapa do estádio',value:index,onChange:e=>setIndex(Number(e.target.value))},stages.map((s,i)=>h('option',{value:i,key:i},s.name))),
+   h('button',{onClick:()=>setIndex(i=>i+1),disabled:index===stages.length-1},'Próxima')),
+  h('p',{className:'review-title','aria-live':'polite'},`${index+1} de ${stages.length} · ${stage.name}`),
+  h('div',{className:'review-controls'},
+   h('button',{'aria-pressed':camera==='map',onClick:()=>setCamera('map')},'Mapa e circulação'),
+   h('button',{'aria-pressed':camera==='window',onClick:()=>setCamera('window')},'Janela da Presidência')),
+  camera==='map'?h(PresidenciaEstadioMapa,{stadium:stage.stadium}):h('div',{className:'review-window'},h(PresidenciaEstadioImagem,{stadium:stage.stadium,camera:'window',movementPaused:true})))
+}
+createRoot(document.getElementById('root')).render(h(Review));
+</script>
+</html>

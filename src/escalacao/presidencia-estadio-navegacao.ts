@@ -9,11 +9,17 @@ export function obstaculosDoEstadio(st?:StadiumSave):ObstaculoSolo[]{
  const out:ObstaculoSolo[]=[],add=(id:string,pairs:readonly (readonly [number,number])[])=>out.push({id,polygon:poly(pairs)})
  if(primeiroAndarConcluido(st)||['geral','cadeiras','visitante','camarote'].some(k=>(st.inv[k]??0)>0))add('arena',[[388,376],[427,312],[1065,312],[1117,416],[1060,491],[930,565],[910,588],[586,588],[444,497]])
  if(st.ext.includes('hotel'))add('hotel',[[188,512],[320,590],[444,552],[451,569],[327,612],[185,538]])
+ // Small raised planter under the palm on the hotel's paved approach.
+ // Registered against the same master as the hotel, not its overhanging leaves.
+ if(st.ext.includes('asfalto'))add('palmeira-acesso-hotel',[[455,574],[463,571],[471,576],[469,584],[460,586],[454,581]])
  if(st.ext.includes('loja'))add('loja',[[1188,397],[1246,382],[1270,427],[1210,448]])
  if(st.ext.includes('chopp'))add('chopp',[[1053,298],[1138,284],[1198,304],[1192,327],[1090,321]])
  if(st.ext.includes('praca'))add('praca',[[986,556],[1120,505],[1241,493],[1289,468],[1284,517],[1183,584],[1095,615],[987,581]])
  if(st.ext.includes('estacao'))add('estacao',[[947,118],[1440,209],[1434,251],[1040,177],[925,231],[912,217]])
  if(st.ext.includes('asfalto')){
+  // Flower border on the east sidewalk, registered in the close street crop.
+  add('canteiro-calcada-leste',[[1210,775],[1240,762],[1270,748],[1300,734],[1300,742],[1270,756],[1240,770],[1210,783]])
+  add('jardim-acesso-hotel',[[301,598],[395,574],[434,588],[423,612],[337,636]])
   add('fonte',[[695,631],[815,631],[815,671],[695,671]])
   add('canteiro-central',[[730,722],[771,722],[775,826],[729,826]])
   add('canteiro-direito',[[830,632],[853,632],[853,670],[830,670]])

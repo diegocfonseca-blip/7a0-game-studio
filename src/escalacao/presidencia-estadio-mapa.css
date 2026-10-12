@@ -7,3 +7,5 @@
 .pe-map-viewport{aspect-ratio:auto;height:clamp(420px,72svh,960px)}
 .pe-map-world{position:absolute;left:50%;top:50%;height:auto}
 @media(max-width:600px){.pe-map-viewport{height:72svh;min-height:380px}.pe-map-tools{gap:6px}}
+
+.pe-territory .pe-actor:not(.pe-actor-car){filter:drop-shadow(.4px .4px .4px #30291a80)}

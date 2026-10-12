@@ -16,4 +16,8 @@ function loadDependency(name,options={}){
  }
  throw Error('Missing '+name+'. Install it locally or set PRESIDENCIA_NODE_MODULES to an existing node_modules directory. No automatic download was attempted.');
 }
-module.exports={loadDependency};
+function browserOptions(){
+ const executablePath=process.env.PRESIDENCIA_BROWSER_PATH||(process.platform==='linux'?'/usr/bin/chromium':undefined);
+ return executablePath?{headless:true,executablePath,args:['--no-sandbox','--enable-unsafe-swiftshader']}:{headless:true,channel:'msedge'};
+}
+module.exports={loadDependency,browserOptions};

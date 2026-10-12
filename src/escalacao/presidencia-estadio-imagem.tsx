@@ -2,7 +2,7 @@ import {PresidenciaEstadioTerritorio} from './presidencia-estadio-territorio'
 import {etapaBaseEstadio,vistaInicialEstadio} from './presidencia-vista-estadio'
 import type {StadiumSave} from './estadiodata'
 import {useT} from './lang'
-import {estadioCompletoNaAerea} from './presidencia-estadio-completo'
+import {estadioCompletoNaAerea,estadioCompletoNaJanela} from './presidencia-estadio-completo'
 import {geralNaAerea} from './presidencia-estadio-geral'
 import {cadeirasExatasParaArte} from './presidencia-estadio-cadeiras'
 import {visitanteExatoParaArte} from './presidencia-estadio-visitante'
@@ -15,7 +15,7 @@ import {PresidenciaEstadioPopulacao} from './presidencia-estadio-populacao'
 import {PresidenciaEstadioCirculacao} from './presidencia-estadio-circulacao'
 import './presidencia-estadio-camadas.css'
 import './presidencia-estadio-mapa.css'
-type EstadioImagemProps={stadium?:StadiumSave;camera:'window'|'aerial';movementPaused?:boolean;detail?:boolean}
+type EstadioImagemProps={stadium?:StadiumSave;camera:'window'|'aerial';movementPaused?:boolean;detail?:boolean;pitchDetail?:boolean}
 /** Corrige somente a curva superior direita nas duas bases aéreas compatíveis. */
 function CantoArquibancadaAerea(){
  return <img data-stadium-corner="closed" src={import.meta.env.BASE_URL+'estadio-v242/canto-direito-overlay.png'} alt="" aria-hidden="true" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'fill',pointerEvents:'none'}}/>
@@ -43,8 +43,8 @@ function EstadioImagemRecuperavel(props:EstadioImagemProps){
  </div>
 }
 /** Mesmas obras em todas as câmeras, sem alterar o raster nem inventar setores. */
-function EstadioImagemConteudo({stadium,camera,movementPaused,detail}:EstadioImagemProps){
- if(camera==='aerial')return <PresidenciaEstadioTerritorio stadium={stadium} detail={detail} movementPaused={movementPaused}/>
+function EstadioImagemConteudo({stadium,camera,movementPaused,detail,pitchDetail}:EstadioImagemProps){
+ if(camera==='aerial')return <PresidenciaEstadioTerritorio stadium={stadium} detail={detail} pitchDetail={pitchDetail} movementPaused={movementPaused}/>
  return <EstadioJanelaConteudo stadium={stadium} camera={camera} movementPaused={movementPaused}/>
 }
 function EstadioJanelaConteudo({stadium,camera,movementPaused}:EstadioImagemProps){
@@ -88,7 +88,7 @@ function ObraMapa({stadium}:{stadium?:StadiumSave}){
 }
 function EstadioImagemBase({stadium,camera}:EstadioImagemProps){
  const t=useT(),view=vistaInicialEstadio(stadium),aerial=camera==='aerial'
- if(!aerial&&estadioCompletoNaAerea(stadium))return <div data-stadium-camera="window" data-stadium-complete="true" data-roof-closed={stadium?.roofClosed===true} style={{height:'100%',width:'100%'}}>
+ if(!aerial&&estadioCompletoNaJanela(stadium))return <div data-stadium-camera="window" data-stadium-complete="true" data-roof-closed={stadium?.roofClosed===true} style={{height:'100%',width:'100%'}}>
   <img src={import.meta.env.BASE_URL+`estadio-v115/${stadium?.roofClosed===true?'fechado':'aberto'}-janela.webp`} alt={stadium?.roofClosed===true?t('Estádio completo visto do terraço da presidência, teto fechado','Completed stadium seen from the presidential terrace, roof closed'):t('Estádio completo visto do terraço da presidência, teto aberto','Completed stadium seen from the presidential terrace, roof open')} style={{display:'block',width:'100%',height:'100%',objectFit:'cover'}}/>
  </div>
  if(!aerial&&camaroteExatoParaArte(stadium))return <div data-stadium-camera="window" data-stadium-stage="camarote" style={{height:'100%',width:'100%'}}>

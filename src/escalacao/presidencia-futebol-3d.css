@@ -1,0 +1,8 @@
+.pe-football-3d{width:100%;border:2px solid #0c0c0c;border-radius:12px;overflow:hidden;background:#f4ecd6}
+.pe-football-canvas{width:100%;height:clamp(460px,76svh,960px);position:relative;touch-action:none;overflow:hidden}
+.pe-football-canvas canvas{display:block;width:100%;height:100%;touch-action:none}
+@media(max-width:600px){.pe-football-canvas{height:78svh;min-height:440px}}
+/* Registered meshes share the host's 3:2 world, crop, pan and zoom. */
+.pe-football-registered{position:absolute;inset:0;z-index:20;pointer-events:none}
+.pe-football-registered canvas{display:block;width:100%;height:100%}
+.pe-live-foreground{position:absolute;inset:0;z-index:30;pointer-events:none;clip-path:polygon(0 76.5%,18% 80.5%,36% 82.4%,52% 82.8%,71% 81.9%,86% 79.8%,100% 76.5%,100% 100%,0 100%)}

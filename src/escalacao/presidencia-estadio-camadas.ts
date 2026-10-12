@@ -1,6 +1,6 @@
 import {STADIUM_SECTORS,STADIUM_EXTRAS,type StadiumSave} from './estadiodata'
 import {estadioVisualValido} from './presidencia-estadio-validacao'
-import {estruturaEstadioCompleta,estadioCompletoNaAerea} from './presidencia-estadio-completo'
+import {estruturaEstadioCompleta,estadioCompletoNaAerea,estadioCompletoNaJanela} from './presidencia-estadio-completo'
 
 export type CameraEstadio='window'|'aerial'
 export type CamadaEstadio={id:string;src:string;clip:string;progress:number;bounds?:{left:number;top:number;width:number;height:number};sourceBounds?:{left:number;top:number;width:number;height:number};depth?:number}
@@ -42,7 +42,7 @@ export function progressoVisualSetor(st:StadiumSave,key:string):number{
  return Math.max(0,Math.min(1,(st.inv[key]??0)/sector.cost))
 }
 export function camadasEstadio(st:StadiumSave|undefined,camera:CameraEstadio):CamadaEstadio[]{
- if(!estadioVisualValido(st)||camera==='window'&&estadioCompletoNaAerea(st))return []
+ if(!estadioVisualValido(st)||camera==='window'&&estadioCompletoNaJanela(st))return []
  const layers:CamadaEstadio[]=[]
  for(const sector of STADIUM_SECTORS){
   const progress=progressoVisualSetor(st,sector.k),clip=sectors[sector.k]?.[camera]

@@ -1,9 +1,45 @@
 <!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Revisão local do mapa</title><div id="root"></div><script type="module">
+import * as THREE from 'three';window.qaThree=THREE;
 import './src/index.css';import React from 'react';import{createRoot}from'react-dom/client';
 import{PresidenciaEstadioMapa}from'./src/escalacao/presidencia-estadio-mapa.tsx';
 import{PresidenciaPartida}from'./src/escalacao/presidencia-partida.tsx';
+import{PresidenciaEstadioCamera}from'./src/escalacao/presidencia-estadio-camera.tsx';
+import{PresidenciaEstadioTerritorio}from'./src/escalacao/presidencia-estadio-territorio.tsx';
 const root=createRoot(document.getElementById('root'));
 document.body.style.cssText='margin:0;background:#f4ecd6;color:#0c0c0c;font-family:Arial';
 window.renderScene=(stadium,state)=>root.render(React.createElement('main',{style:{maxWidth:900,margin:'auto'}},state?React.createElement(PresidenciaPartida,{state}):React.createElement(PresidenciaEstadioMapa,{stadium})));
+window.renderDetailReview=stadium=>root.render(React.createElement('main',{style:{width:900,margin:0}},React.createElement(PresidenciaEstadioTerritorio,{stadium,detail:true,pitchDetail:true,movementPaused:true})));
+window.renderSync=(state,id,publish=true,homeClubId)=>root.render(React.createElement('main',null,publish?React.createElement(PresidenciaPartida,{key:'source',state}):null,React.createElement(PresidenciaEstadioCamera,{key:'map',stadium:state.context.stadium,matchId:id,homeClubId})));
+window.renderStageReview=stages=>root.render(React.createElement('main',{style:{display:'grid',gridTemplateColumns:'repeat(3, 1fr)',gap:12}},stages.map(stage=>React.createElement('section',{key:stage.name},React.createElement('h3',{style:{fontSize:14}},stage.name),React.createElement(PresidenciaEstadioTerritorio,{stadium:stage.stadium,movementPaused:true})))));
+// Importação sob demanda: este cenário exercita o placar de produção, sem outro motor.
+window.renderScoreFixture=async(props)=>{
+ await import('./src/escalacao/screens.tsx');
+ const {LiveScoreCard,FaixaPlacarEstadio}=await import('./src/escalacao/pyramidseason.tsx');
+ const {usePartidaNoMapa}=await import('./src/escalacao/presidencia-partida-sincronia.ts');
+ window.ScoreProbe??=function ScoreProbe({id}){const state=usePartidaNoMapa(id);return React.createElement('output',{id:'score-probe',hidden:true},JSON.stringify(state??null))};
+ root.render(React.createElement('main',null,React.createElement(LiveScoreCard,{key:'score',...props}),React.createElement(window.ScoreProbe,{id:props.stadiumMatch.id}),React.createElement('div',{id:'mini-score-fixture'},React.createElement(FaixaPlacarEstadio,{matchId:props.stadiumMatch.id,topo:0,min:props.displayMinute,fim:props.displayMinute>=93,home:props.homeName,away:props.awayName,hg:props.goals.filter(g=>g.home&&g.min<=props.displayMinute).length,ag:props.goals.filter(g=>!g.home&&g.min<=props.displayMinute).length,youIsHome:true,onAbrir:()=>{}})),React.createElement(PresidenciaEstadioCamera,{key:'map',stadium:props.stadiumMatch.stadium,matchId:props.stadiumMatch.id})));
+};
+window.renderCupFixture=async(props,homeClubId)=>{
+ await import('./src/escalacao/screens.tsx');
+ const {MyCopaMatch}=await import('./src/escalacao/pyramidseason.tsx');
+ const {usePartidaNoMapa}=await import('./src/escalacao/presidencia-partida-sincronia.ts');
+ window.CupProbe??=function CupProbe({id}){return React.createElement('output',{id:'cup-probe',hidden:true},JSON.stringify(usePartidaNoMapa(undefined,id)))};
+ root.render(React.createElement('main',null,React.createElement(MyCopaMatch,props),React.createElement(window.CupProbe,{id:homeClubId}),React.createElement(PresidenciaEstadioCamera,{homeClubId,stadium:props.stadiumContext.stadiums[homeClubId]})));
+};
+window.renderInternationalFixture=async(props)=>{
+ await import('./src/escalacao/screens.tsx');
+ const {JogoGrande}=await import('./src/escalacao/career-international-view.tsx');
+ const {EscProvider}=await import('./src/escalacao/store.tsx');
+ const {usePartidaNoMapa}=await import('./src/escalacao/presidencia-partida-sincronia.ts');
+ const id=`${props.campaign.seed}:intl:${props.campaign.season}:${props.comp}:${props.roundKey}:${props.match.home}:${props.match.away}`;
+ window.internationalDone=0;window.internationalFrames=[];
+ window.InternationalProbe??=function InternationalProbe({id}){
+  const state=usePartidaNoMapa(id);
+  React.useEffect(()=>{if(state)window.internationalFrames.push(state)},[state]);
+  return React.createElement('output',{id:'international-probe',hidden:true},JSON.stringify(state));
+ };
+ root.render(React.createElement(EscProvider,null,React.createElement(JogoGrande,{...props,onFim:()=>{window.internationalDone++}}),React.createElement(window.InternationalProbe,{id})));
+};
+window.renderWindowReview=async stadium=>{const {PresidenciaEstadioImagem}=await import('./src/escalacao/presidencia-estadio-imagem.tsx');root.render(React.createElement('main',{style:{width:'100%',height:400}},React.createElement(PresidenciaEstadioImagem,{stadium,camera:'window',movementPaused:true})))};
 window.renderScene({inv:{},ext:[]});
 </script></html>

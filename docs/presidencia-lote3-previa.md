@@ -1,3 +1,9 @@
+> **Continuação local posterior:** a ordem atual de Diego é acumular o trabalho
+> e publicar somente ao final. Este incremento histórico foi publicado como
+> `2496b73b`. Os avanços posteriores, testes e pendências atuais estão em
+> [presidencia-retomada-sessao.md](presidencia-retomada-sessao.md); continuam sem
+> commit/deploy. As autorizações e pendências abaixo registram aquele momento.
+
 # Atualização do incremento privado em 11 de outubro de 2026
 
 Diego autorizou publicar avanços testados somente para

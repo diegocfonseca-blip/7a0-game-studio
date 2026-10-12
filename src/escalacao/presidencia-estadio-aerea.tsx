@@ -1,4 +1,5 @@
-import {useRef} from 'react'
+import {useRef,useState} from 'react'
+import type {EstadoPartidaEstadio} from './presidencia-partida-model'
 import {Btn} from './ui-primitives'
 import {useT} from './lang'
 import type {StadiumSave} from './estadiodata'
@@ -14,13 +15,14 @@ import {estadioVisualValido} from './presidencia-estadio-validacao'
 import {podeOperarTeto} from './presidencia-estadio-integrado'
 import {extrasSemArte} from './presidencia-estadio-camadas'
 /** Ampliação da câmera real disponível; não reaproveita SVG rejeitado. */
-export function PresidenciaEstadioAerea({stadium,onRoof}:{stadium?:StadiumSave;onRoof?:(closed:boolean)=>void}){
+export function PresidenciaEstadioAerea({stadium,onRoof,match}:{stadium?:StadiumSave;match?:EstadoPartidaEstadio|null;onRoof?:(closed:boolean)=>void}){
+ const [open,setOpen]=useState(false)
  const t=useT(),dialog=useRef<HTMLDialogElement>(null),trigger=useRef<HTMLSpanElement>(null),view=vistaInicialEstadio(stadium)
  return <>
-  <span ref={trigger}><Btn bg="#fff" onClick={()=>{const d=dialog.current;if(d){d.showModal();d.querySelector('h2')?.focus({preventScroll:true});d.scrollTop=0}}}>{t('VISÃO AÉREA','AERIAL VIEW')}</Btn></span>
-  <dialog ref={dialog} className="gp-dialog" style={{width:'min(960px,calc(100vw - 24px))'}} aria-label={t('Visão aérea do estádio','Stadium aerial view')} onClose={()=>trigger.current?.querySelector('button')?.focus()}>
+  <span ref={trigger}><Btn bg="#fff" onClick={()=>{const d=dialog.current;if(d){d.showModal();setOpen(true);d.querySelector('h2')?.focus({preventScroll:true});d.scrollTop=0}}}>{t('VISÃO AÉREA','AERIAL VIEW')}</Btn></span>
+  <dialog ref={dialog} className="gp-dialog" style={{width:'min(960px,calc(100vw - 24px))'}} aria-label={t('Visão aérea do estádio','Stadium aerial view')} onClose={()=>{setOpen(false);trigger.current?.querySelector('button')?.focus()}}>
    <h2 tabIndex={-1} style={{fontFamily:'Oswald,sans-serif'}}>{t('SEU ESTÁDIO E A REGIÃO','YOUR STADIUM AND ITS AREA')}</h2>
-   <PresidenciaEstadioMapa stadium={stadium}/>
+   <PresidenciaEstadioMapa stadium={stadium} match={open?match:null}/>
    {estadioVisualValido(stadium)&&stadium.ext.includes('retratil')&&!podeOperarTeto(stadium)&&<p>{t('Conclua Gramado, Geral, Cadeiras, Visitante e Camarote para usar o teto. Loja e outros negócios não são necessários.','Complete Pitch, Terraces, Seats, Away end and Boxes to use the roof. Stores and other businesses are not required.')}</p>}
    {estadioVisualValido(stadium)&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}>
     <p role="status">{stadium.roofClosed?t('Teto fechado','Roof closed'):t('Teto aberto','Roof open')}</p>
