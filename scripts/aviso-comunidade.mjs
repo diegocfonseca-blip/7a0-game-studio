@@ -44,7 +44,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 .wrap{padding:56px 54px 46px}
 .top{display:flex;align-items:center;justify-content:space-between}
 .marca{font:700 30px Oswald;letter-spacing:.02em}.marca span{color:#C2452F}
-.pill{border:4px solid #C2452F;color:#C2452F;border-radius:10px;background:#fff;font:700 24px Oswald;letter-spacing:.1em;padding:4px 14px;transform:rotate(-6deg);box-shadow:3px 3px 0 #000}
+.pill{border:4px solid #C2452F;color:#C2452F;border-radius:10px;background:#fff;font:700 24px Oswald;letter-spacing:.1em;padding:4px 14px;box-shadow:3px 3px 0 #000}
 .card{position:relative;overflow:hidden}
 .marca-dagua{position:absolute;right:-40px;bottom:-60px;font-size:330px;opacity:.06;transform:rotate(-25deg);pointer-events:none}
 .card{margin-top:30px;background:#fff;border:5px solid #000;border-radius:34px;box-shadow:10px 10px 0 #000;padding:40px 42px 36px}
@@ -57,9 +57,9 @@ h1{margin:8px 0 0;font:700 64px/1.02 Oswald;text-transform:uppercase}
 .it{display:flex;gap:20px;align-items:flex-start;margin-top:26px}
 .tag{flex:none;position:relative;width:196px;margin-top:2px;filter:drop-shadow(3px 3px 0 #000)}
 .tag .in{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 34px;font:700 19px Oswald;letter-spacing:.08em;
-  clip-path:polygon(18px 0,100% 0,100% 100%,18px 100%,0 50%);transform:rotate(-3deg);position:relative}
+  clip-path:polygon(18px 0,100% 0,100% 100%,18px 100%,0 50%);position:relative}
 .tag .in:before{content:"";position:absolute;left:14px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px #000}
-.tag .bd{position:absolute;inset:0;clip-path:polygon(18px 0,100% 0,100% 100%,18px 100%,0 50%);background:#000;transform:rotate(-3deg) scale(1.04,1.12)}
+.tag .bd{position:absolute;inset:0;clip-path:polygon(18px 0,100% 0,100% 100%,18px 100%,0 50%);background:#000;transform:scale(1.03,1.1)}
 .it{padding-bottom:22px;border-bottom:2px dashed rgba(0,0,0,.18)}.it:last-of-type{border-bottom:0;padding-bottom:0}
 .tx{font-size:28px;line-height:1.38;font-weight:500}.tx b{font-weight:800}
 .rod{margin-top:34px;border:4px solid #000;border-radius:24px;background:#1B7A3D;color:#fff;box-shadow:6px 6px 0 #000;padding:20px 26px;font:700 30px/1.2 Oswald;display:flex;align-items:center;gap:16px}
