@@ -12379,6 +12379,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
   const meuNomeAtual = (() => {
     const ativo = state.managers[state.youIdx]
     if (state.multiClubeAtivo && state.multiClube) return state.multiClube.team
+    // 🤝 DUPLA (12/10): o PARCEIRO não pinta o time com o batismo dele no próprio aparelho —
+    // o time veste o do DONO (ou o do parceiro só se o dono não tiver), igual pra sala toda.
+    const dupla = ativo ? state.duplas?.[ativo.id] : undefined
+    if (dupla && state.youUid && dupla.ownerUid !== state.youUid) return undefined
     return ativo?.isHuman ? ativo.teamName : undefined
   })()
   useEffect(() => { registraMeusNomes([meuNomeAtual]) }, [meuNomeAtual])
@@ -12400,12 +12404,38 @@ export function EscProvider({ children }: { children: ReactNode }) {
     if (!salaDosMimos) { limpaMimosDaSala(); return }
     let vivo = true
     const nomePorAssento = new Map(stateRef.current.managers.map(m => [m.id, m.teamName]))
-    supabase.rpc('esc_mimos_sala', { p_room: salaDosMimos }).then(({ data }) => {
+    // 🪑 12/10 (Diego, sala de DUPLAS: "eu e o Fabulous com o escudo do Guimarães SCI do saci"):
+    // o servidor diz o mimo pelo assento CRU do banco (`player_index`), que conta também a
+    // linha do PARCEIRO da dupla e os buracos de quem saiu. O time do jogo é numerado só pelos
+    // DONOS, em sequência (`seatUids`). Casar assento cru → time pegava o escudo do vizinho.
+    // Agora: assento cru → CONTA (room_players) → posição dessa conta em `seatUids` → time.
+    // Sem `seatUids` (estado velho) fica o casamento de antes.
+    const crachas = stateRef.current.seatUids
+    const pedeContas = crachas?.length
+      ? supabase.from('room_players').select('user_id, player_index, dupla_partner_of').eq('room_id', salaDosMimos)
+      : Promise.resolve({ data: null })
+    Promise.all([supabase.rpc('esc_mimos_sala', { p_room: salaDosMimos }), pedeContas]).then(([{ data }, { data: contas }]) => {
       if (!vivo || !Array.isArray(data)) return
-      const linhas: { clube: string; mascote?: string | null; escudo?: string | null }[] = []
+      type Conta = { user_id: string; player_index: number; dupla_partner_of?: string | null }
+      const contaDoAssento = Array.isArray(contas) ? new Map((contas as Conta[]).map(c => [c.player_index, c])) : null
+      // 🤝 DUPLA (12/10): o time veste o mimo do DONO do assento; se o dono não tem
+      // batismo e o PARCEIRO tem, veste o do parceiro. Nenhum dos dois = escudo pelo nome.
+      const doDono = new Map<number, { mascote?: string | null; escudo?: string | null }>()
+      const doParceiro = new Map<number, { mascote?: string | null; escudo?: string | null }>()
       for (const r of data as { player_index: number; mascote_key: string | null; escudo_time: string | null }[]) {
-        const clube = nomePorAssento.get(r.player_index)
-        if (clube) linhas.push({ clube, mascote: r.mascote_key, escudo: r.escudo_time })
+        const mimo = { mascote: r.mascote_key, escudo: r.escudo_time }
+        if (!crachas?.length) { doDono.set(r.player_index, mimo); continue }
+        const c = contaDoAssento?.get(r.player_index)
+        if (!c) continue
+        const dono = crachas.indexOf(c.user_id)
+        if (dono >= 0) { doDono.set(dono, mimo); continue }
+        const doTime = c.dupla_partner_of ? crachas.indexOf(c.dupla_partner_of) : -1
+        if (doTime >= 0) doParceiro.set(doTime, mimo)
+      }
+      const linhas: { clube: string; mascote?: string | null; escudo?: string | null }[] = []
+      for (const [time, mimo] of [...doParceiro, ...doDono]) { // dono por último = ganha do parceiro
+        const clube = nomePorAssento.get(time)
+        if (clube) linhas.push({ clube, ...mimo })
       }
       registraMimosDaSala(linhas)
     }, () => { /* sem rede: fica sem os mimos dos outros, nada quebra */ })

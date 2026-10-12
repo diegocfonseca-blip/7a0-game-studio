@@ -128,6 +128,19 @@ console.log('\n8) 🚪 linha torta do servidor nao quebra nada')
   ok(mascoteDaSala('') === null, 'nome vazio nunca casa')
 }
 
+
+// 🪑 12/10 — sala de DUPLAS 0TTPMC: o time do Neymarzetti (5º dono) vestiu o escudo do Guimarães SCI
+// (assento cru nº 4, parceiro de outra dupla). O mimo da sala tem que casar pela CONTA (seatUids),
+// nunca pelo `player_index` cru — e o parceiro só veste o time quando o dono não tem batismo.
+{
+  const { readFileSync } = await import('node:fs')
+  const st = readFileSync('src/escalacao/store.tsx', 'utf8')
+  const bloco = st.slice(st.indexOf("supabase.rpc('esc_mimos_sala'") - 2500, st.indexOf("supabase.rpc('esc_mimos_sala'") + 2500)
+  ok(bloco.includes('crachas.indexOf(c.user_id)'), 'mimo da sala casa assento → conta → time (seatUids), não pelo índice cru')
+  ok(bloco.includes('doParceiro') && bloco.includes('...doParceiro, ...doDono'), 'dupla: dono ganha do parceiro; parceiro só quando o dono não tem')
+  ok(/dupla\.ownerUid !== state\.youUid\) return undefined/.test(st), 'dupla: o parceiro não pinta o time com o batismo dele no próprio aparelho')
+}
+
 console.log(falhas === 0 ? '\n✅ tudo certo\n' : `\n❌ ${falhas} falha(s)\n`)
 await vite.close()
 process.exit(falhas === 0 ? 0 : 1)
