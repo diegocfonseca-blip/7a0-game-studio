@@ -41,7 +41,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
-import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
+import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -61,6 +61,9 @@ import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
+import { useSaf2 } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
+import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
+import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
 import { CentralCarreira } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
@@ -77,6 +80,7 @@ import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewar
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
+import { useDireitos, meusDireitos } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
@@ -2291,7 +2295,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
     '🎟️ Boas-vindas de sócio (uma vez só)': '🎟️ Member welcome bonus (one time)', '🎟️ Moedas de sócio do mês': '🎟️ Member coins of the month',
   }
   const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? traduzirLancamentoPresidencia(l)) : l)
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
@@ -7602,6 +7606,13 @@ const abreCraqueNuvem = () => { window.location.href = `${window.location.origin
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
   const econBots = useEconBots() // 💰 caixa dos rivais na Central (13/10)
+  // 🏢➡️⚽ SAF que vira 2º clube (13/10): só carreira SOLO e só com a chave (conta do Diego por enquanto)
+  const saf2Ui = useSaf2() && state.onlineMode !== 'online' && !state.roomId
+  useDireitos() // re-desenha quando o plano da conta chega do banco (o "pagante" da SAF nova)
+  const saf2Jan = saf2Ui && saf2Janela(state)
+  const saf2Pagante = ehPagante(myApoioPerk()?.tier, meusDireitos())
+  const saf2Migrar = saf2Ui && precisaMigrar({ temSaf: !!state.careerFilial, tem2o: !!segundoClube(state), migrado: state.saf2?.migrado })
+  const [saf2MigrarDepois, setSaf2MigrarDepois] = useState(false)
   const soAparelhoPe = useNuvemSoAparelho(state.seed) // ☁️⭐ legenda do "Sair e salvar" (07/10)
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
@@ -9468,6 +9479,17 @@ export function PyramidSeasonScreen() {
           passou a existir também na virada da temporada (15/09), o modal teria
           ficado pra trás e o clique não abriria nada. Overlay fixo não tem por que
           morar dentro de uma aba. */}
+      {/* 📣 SAF NOVA (13/10): "O jogo mudou" abre sozinho na virada pra quem tem SAF e 2º clube separados.
+          Dá pra deixar pra depois: a mesma caixa fica na aba Clube › Estrutura. */}
+      {saf2Migrar && saf2Jan && !saf2MigrarDepois && state.careerFilial && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
+          <div style={{ maxWidth: 380, width: '100%', maxHeight: '100%', overflowY: 'auto' }}>
+            <Saf2Migracao saf={{ nome: state.careerFilial.team, div: saf2DivDaSaf(state) }}
+              clube={{ nome: segundoClube(state)?.teamName ?? '—', div: (state.careerPlacements?.[`m${segundoClube(state)?.id}`] ?? 'D') as string }}
+              janela={saf2Jan} onEscolher={fica => dispatch({ type: 'SAF2_MIGRAR', fica })} onDepois={() => setSaf2MigrarDepois(true)} />
+          </div>
+        </div>
+      )}
       {venderAsk && state.multiClube && (() => {
         const vendido = state.multiClube.team
         return (
@@ -10340,6 +10362,7 @@ export function PyramidSeasonScreen() {
                         um clique torto venderia o clube errado. */}
                     {(() => {
                       const dorm = state.managers.find(m => m.id === state.multiClube!.id)
+                      if (saf2Ui) return <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.55)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{tr('💸 Vender o 2º clube: aba Clube › Estrutura, antes da 1ª rodada da próxima temporada (pela coleção de taças).', '💸 Selling the 2nd club: Club › Facilities tab, before round 1 of next season (by the trophy collection).')}</p>
                       return dorm?.mine
                         ? <button onClick={() => setVenderAsk(true)} style={{ width: '100%', marginTop: 7, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr(`💸 Vender o ${dormindo} · 3.000 🪙`, `💸 Sell ${dormindo} · 3,000 🪙`)}</button>
                         : <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.55)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
@@ -10502,7 +10525,7 @@ export function PyramidSeasonScreen() {
               <>
               {/* 🕴️ SUA AGÊNCIA — saiu do Elenco e veio pro Clube (Diego 19/09).
                   A escada de desbloqueios vem junto: tudo de agência num lugar só. */}
-              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial} />
+              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={temSafAgencia(state)} />
               {/* 📚 COLEÇÕES DE CLUBES (04/10): fechou um clube no álbum → recebe AQUI, nesta carreira. */}
               {colecoesOn && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
               <AgenciadosTab cards={state.agenciados ?? []}
@@ -10517,7 +10540,7 @@ export function PyramidSeasonScreen() {
                   return out.sort((a, b) => (b.fame - a.fame) || a.name.localeCompare(b.name))
                 })()}
                 hist={state.agenciaHist} fatura={state.agenciaFatura}
-                st={agenciaEstadio(state)} hasFilial={!!state.careerFilial}
+                st={agenciaEstadio(state)} hasFilial={temSafAgencia(state)}
                 primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}
                 clubes={state.multiClube ? [
                   { id: youId, nome: state.managers[state.youIdx]?.teamName ?? '', dorme: false },
@@ -10532,7 +10555,7 @@ export function PyramidSeasonScreen() {
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
               <>
               {colecoesOn && state.onlineMode !== 'online' && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
-              <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
+              <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : temSafAgencia(state)} />
               </>
             ) : clubeSub === 'loja' && lojaLib ? (
               // 🛍️ LOJA DO CLUBE — a camisa montada (escudo + fornecedor + Master), o
@@ -10678,8 +10701,21 @@ export function PyramidSeasonScreen() {
                 return null
               })()}
               onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId })}
-              onSellFilial={() => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
-              filialSale={myFilial ? filialSaleValue(state, myFilial) : undefined}
+              onSellFilial={saf2Ui ? undefined : () => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
+              filialSale={myFilial && !saf2Ui ? filialSaleValue(state, myFilial) : undefined}
+              saf2={saf2Ui ? {
+                // 🏢➡️⚽ empréstimo da SAF só na janela (virada); fora dela a tela explica o porquê e o caminho
+                buyLock: segundoClube(state) ? tr('Você já tem um 2º clube: a escada é uma só (SAF → 2º clube). Pra comprar uma SAF nova, venda o 2º clube antes.', 'You already have a 2nd club: there is a single ladder (SAF → 2nd club). To buy a new SAF, sell the 2nd club first.') : null,
+                loanLock: saf2Jan ? null : tr('Empréstimo com a SAF só na virada da temporada (antes da 1ª rodada). Os de agora voltam sozinhos no fim desta temporada.', 'Loans with the SAF only at the season turn (before round 1). Current ones come back by themselves at the end of this season.'),
+                painel: myFilial && !segundoClube(state) ? (
+                  <Saf2SafPainel team={myFilial.team} div={saf2DivDaSaf(state)} desde={myFilial.since} seasonNo={state.seasonNo ?? 1} semEspera={state.saf2?.semEspera}
+                    caixaPrincipal={Math.round(state.careerCoins?.[clubePrincipal(state)?.id ?? youId] ?? 0)} pagante={saf2Pagante} janela={saf2Jan}
+                    ativoEhPrincipal={!state.managers[state.youIdx]?.mine}
+                    planosBtn={<ApoieButton startScreen="choice" trigger={(open) => <button onClick={open} style={{ background: 'transparent', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', fontSize: 10.5 }}>{tr('Ver os planos', 'See the plans')}</button>} />}
+                    onAssumir={() => dispatch({ type: 'SAF2_ASSUMIR', pagante: saf2Pagante })}
+                    onVender={() => dispatch({ type: 'SAF2_VENDER_SAF' })} />
+                ) : null,
+              } : undefined}
               mySquad={state.managers[state.youIdx]?.squad}
               filialSquad={myFilial ? (state.cpuSquads?.[myFilial.team] as WonCard[] | undefined) : undefined}
               loanableOutIds={(() => {
@@ -10692,7 +10728,7 @@ export function PyramidSeasonScreen() {
                 const fm = FORMATIONS['4-3-3']
                 return new Set(safSq.filter(c => !c.emprestado && safSq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
               })()}
-              onLoanTo={cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
+              onLoanTo={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
               loanContratoAviso={cardId => {
                 // ⏳ contrato acabando? a tela abre a caixa em vez de emprestar. A trava
                 // de VERDADE está no reducer (travaContratoSaf) — aqui é só o aviso,
@@ -10706,8 +10742,8 @@ export function PyramidSeasonScreen() {
                 return { nome: c.name, pos: c.pos, clube: c.club, ano: c.year, jaVenceu: c.contratoAte < state.seasonNo, opcoes }
               }}
               onLoanToRenovando={(cardId, anos) => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId, renovarAnos: anos as RenewAnos })}
-              onLoanFrom={cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
-              onReturnLoan={cardId => dispatch({ type: 'RETURN_FILIAL_LOAN', cardId, mgrId: youId })}
+              onLoanFrom={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
+              onReturnLoan={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'RETURN_FILIAL_LOAN', cardId, mgrId: youId })}
               trimNotice={state.filialTrimNotice}
               onDismissTrimNotice={() => dispatch({ type: 'CLEAR_FILIAL_TRIM_NOTICE' })}
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
@@ -10753,6 +10789,7 @@ export function PyramidSeasonScreen() {
                     const dorm = state.managers.find(m => m.id === state.multiClube!.id)
                     const podeVender = !!dorm?.mine
                     if (multiTravada) return null // rodada/Copa rolando: a mesma trava da troca
+                    if (saf2Ui) return <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{tr('💸 A venda do 2º clube agora é pela coleção de taças — logo abaixo, na virada da temporada.', '💸 Selling the 2nd club now goes by the trophy collection — just below, at the season turn.')}</p>
                     return podeVender
                       ? <button onClick={() => setVenderAsk(true)} style={{ width: '100%', marginTop: 7, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr(`💸 Vender o ${dormindo} · 3.000 🪙`, `💸 Sell ${dormindo} · 3,000 🪙`)}</button>
                       : <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
@@ -10782,7 +10819,39 @@ export function PyramidSeasonScreen() {
             {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · só solo. ⚠️ dizia "em construção, só
                 testers veem" e estava VELHO: a compra está no ar pra todo mundo desde
                 que apareça o tier — quem não é Lenda vê a área com o botão APOIE. */}
-            {state.onlineMode !== 'online' && (() => {
+            {/* 🏢➡️⚽ SAF NOVA (13/10): "O jogo mudou" (quem tem os dois separados) + o 2º clube no dia a dia */}
+            {saf2Ui && saf2Migrar && (() => {
+              const seg = segundoClube(state)
+              return <div style={{ marginTop: 10 }}><Saf2Migracao saf={{ nome: state.careerFilial!.team, div: saf2DivDaSaf(state) }} clube={{ nome: seg?.teamName ?? '—', div: (state.careerPlacements?.[`m${seg?.id}`] ?? 'D') as string }} janela={saf2Jan} onEscolher={fica => dispatch({ type: 'SAF2_MIGRAR', fica })} /></div>
+            })()}
+            {saf2Ui && segundoClube(state) && (() => {
+              const seg = segundoClube(state)!, prin = clubePrincipal(state)
+              const venda = saf2Valor2o(state)
+              if (!prin || !venda) return null
+              const emps = state.saf2?.emprestimos ?? []
+              const caixaDe = (id: number) => Math.round(state.careerCoins?.[id] ?? 0)
+              // a MESMA conta do reducer (SAF2_EMPRESTAR / SAF2_TRANSFERIR) — só pra apagar quem não pode
+              const jogs = (de: typeof prin, para: typeof prin) => (de.squad as WonCard[]).filter(c => !c.fake && !c.cria && !c.emprestado).map(c => {
+                const sobra = de.squad.filter(x => x.pos === c.pos && !x.fake && !x.emprestado).length - 1 >= FORMATIONS[de.formation][c.pos]
+                const valor = Math.max(1, valorOficial(state, c))
+                const contratoOk = !(state.contratosOn && c.contratoAte != null && c.contratoAte <= (state.seasonNo ?? 1))
+                const tr1 = podeTransferir({ janela: saf2Jan, ultimaTransf: state.saf2?.transfSeason, seasonNo: state.seasonNo ?? 1, caixaComprador: caixaDe(para.id), valor })
+                const livreEmp = sobra && contratoOk && emps.filter(e => e.de === de.id).length < EMPRESTIMOS_ENTRE_CLUBES
+                return { id: c.id, name: c.name, pos: c.pos, valor, livre: livreEmp, livreT: sobra && tr1 === 'ok',
+                  motivo: !sobra ? tr('abriria buraco no titular', 'would leave a hole in the XI') : !contratoOk ? tr('contrato acabando: renove antes', 'contract ending: renew first') : tr1 === 'caixa' ? tr('o outro clube não tem esse caixa', 'the other club lacks that cash') : undefined }
+              })
+              const jp = jogs(prin, seg), js = jogs(seg, prin)
+              const nomeCarta = (id: string) => { for (const m of [prin, seg]) { const c = m.squad.find(x => x.id === id); if (c) return { nome: c.name, pos: c.pos } } return { nome: '—', pos: '' } }
+              return <Saf2Clube2Painel principal={{ id: prin.id, nome: prin.teamName, caixa: caixaDe(prin.id) }} seg={{ id: seg.id, nome: seg.teamName, caixa: caixaDe(seg.id), div: (state.careerPlacements?.[`m${seg.id}`] ?? 'D') as string }}
+                ativoId={state.managers[state.youIdx]?.id ?? youId} janela={saf2Jan} tacas={saf2Tacas(state)} venda={venda}
+                emprestimos={emps.map(e => ({ ...nomeCarta(e.cardId), de: e.de, para: e.para }))}
+                jogPrincipal={jp} jogSeg={js} transfFeita={state.saf2?.transfSeason === (state.seasonNo ?? 1)}
+                onAporte={valor => dispatch({ type: 'SAF2_APORTE', valor })}
+                onEmprestar={cardId => dispatch({ type: 'SAF2_EMPRESTAR', cardId })}
+                onTransferir={cardId => dispatch({ type: 'SAF2_TRANSFERIR', cardId })}
+                onVender={() => dispatch({ type: 'SAF2_VENDER_2O' })} />
+            })()}
+            {state.onlineMode !== 'online' && !saf2Ui && (() => {
               const opcoes = (() => {
                 const safName = myFilial?.team
                 // 🏛️ IGUAL À SAF: a lista vem de `tables.D` (a Série D DE VERDADE, exista

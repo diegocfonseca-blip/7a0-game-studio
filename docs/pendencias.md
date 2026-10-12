@@ -7,9 +7,26 @@
 - Código: `aplicaEconomiaBots`/`balancoBot`/`folhaDoBot` (store.tsx), trava `npm run econ-bots`.
 - ⏳ Diego testar numa carreira dele → liberar pra todos (`ECON_BOTS_GERAL = true`).
 - 🎬 Vídeo da SAF→2º clube pronto (`scripts/video-saf-reels.mjs`) — NÃO postar antes da SAF nova estar no jogo.
-- ⏳ PRÓXIMO: codar a SAF que vira 2º clube (regras aprovadas logo abaixo).
+- ✅ SAF que vira 2º clube CODADA (ver a seção logo abaixo) — só nas contas do Diego.
 
-## 🏢➡️⚽ SAF que vira 2º clube — REGRAS APROVADAS PELO DIEGO (13/10, "Ok pode ser assim") · ⏳ AINDA NÃO CODADO
+## 🏢➡️⚽ SAF que vira 2º clube — REGRAS APROVADAS PELO DIEGO (13/10, "Ok pode ser assim") · ✅ CODADO, SÓ NAS CONTAS DO DIEGO
+- **Chave:** `SAF2_GERAL = false` em `sport.ts` (testers: as duas contas do Diego). Desligada = SAF e 2º clube antigos
+  EXATAMENTE como eram (a trava `npm run saf2` confere isso também). Liberar pra todos: `SAF2_GERAL = true` + linha em
+  `novidades.ts` (PT/EN) na mesma entrega.
+- **Código:** regras puras em `src/escalacao/saf2.ts` (tela e reducer usam as mesmas) · telas em `saf2-telas.tsx` (mockup
+  ②③④⑤⑥⑦⑧) · estado em `EscState.saf2` · ações `SAF2_ASSUMIR / VENDER_SAF / VENDER_2O / APORTE / TRANSFERIR / EMPRESTAR /
+  MIGRAR` (store.tsx). Trava: `npm run saf2` (82 conferências, inclusive a virada de verdade).
+- **"Janela" = a tela da temporada ANTES da 1ª rodada** (rodada 0, as "decisões da virada"). Assumir, vender, migrar,
+  emprestar e transferir só ali. Empréstimo vale 1 temporada e volta sozinho na virada seguinte; cada lado paga METADE
+  do salário (a SAF paga a metade dela do `clubCash`).
+- **Decisões tomadas sem perguntar (conferir com o Diego):** (1) as 10 temporadas contam do `careerFilial.since` (todo
+  save já tem a data da compra); (2) taça conta enquanto o clube é SEU 2º clube — inclusive ganha com o auxiliar no
+  comando; a internacional só conta se era ele no comando; (3) 2º clube antigo começa a coleção do zero na 1ª virada com
+  a chave (o histórico velho não separa título "antes/depois"), por isso vale o piso de 3.000; (4) na migração "fica com
+  a SAF" o caixa POSITIVO do 2º clube antigo volta junto pro principal ("ninguém perde dinheiro"); (5) o 2º clube que
+  nasce da SAF continua destravando a categoria 👑 Lenda na Agência (senão subir de degrau tirava um destrave);
+  (6) empréstimo entre os dois clubes: 2 de cada lado (mockup "1 DE 2"); (7) com 2º clube não se compra SAF (escada única).
+- ⏳ Diego testar numa carreira dele (com SAF antiga, com 2º clube antigo e com os dois) → liberar.
 Análise: `docs/analise-carreira-2026-10-13.md`. **Mockup completo: `scripts/mockups/carreira-saf-completo.png`** (os
 mockups `carreira-saf.png`/`carreira-saf-venda.png` são versões velhas — valem os números daqui).
 - **Escada:** compra a SAF (**2.000**, igual hoje; precisa estádio completo; clube da Série D; bot no comando) → depois de

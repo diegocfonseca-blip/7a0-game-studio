@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { Saf2Regras, saf2LoanSub } from './saf2-telas' // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com a chave)
 import { CareerStadiumView } from './career-stadium-view'
 import { CareerSponsorVisual } from './career-sponsor-visual'
 // ─── 🏟️ ESTÁDIO — aba da carreira (o estádio que CRESCE na tela) ─────────
@@ -587,9 +588,13 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, saf2 }: {
   presidencyView?: ReactNode
   cinematic?: boolean
+  // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com `useSaf2()`): troca as regras velhas pelas novas, mostra o
+  // painel novo (relógio das 10 temporadas · assumir o comando · vender pela divisão) e a trava da janela
+  // dos empréstimos. Sem esta prop a seção da SAF fica EXATAMENTE como sempre foi.
+  saf2?: { painel: ReactNode; loanLock?: string | null; buyLock?: string | null }
   st: StadiumSave | undefined
   coins: number
   onInvest: (sector: string) => void
@@ -896,7 +901,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         const logged = !!loggedEmail()
         const allDone = STADIUM_SECTORS.every(x => sectorPct(st, x.k) >= 100) && extras.every(e => hasExtra(st, e.k))
         const canBuy = logged && allDone && coins >= 2000
-        const regras = getLang() === 'en' ? (
+        const regras = saf2 ? <Saf2Regras /> : getLang() === 'en' ? (
           <ul style={{ margin: '7px 0 0', paddingLeft: 16, fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.7)', lineHeight: 1.55 }}>
             <li>💰 The SAF costs <b>2,000</b> · one-off purchase · the rights are yours <b>forever in this career</b> (no selling, no swapping)</li>
             <li>🏆 Entitled to <b>50% of campaign profits</b> (title and promotion) — they land in your till at the turn of the season</li>
@@ -933,10 +938,11 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
             {/* 🔄 JANELA DE EMPRÉSTIMO — propriedade nunca muda; agora o empréstimo PERSISTE */}
             <div style={{ marginTop: 10, borderTop: '2px dashed rgba(0,0,0,.15)', paddingTop: 9 }}>
               <p style={{ fontWeight: 900, fontSize: 12, margin: '0 0 2px', ...OSW }}>{tr('🔄 Janela de empréstimo', '🔄 Loan window')}</p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>{getLang() === 'en' ? <>Up to <b>{loanSlots}</b> {loanSlots === 1 ? 'player' : 'players'} per side in this division · grows with promotion (D 1 · C 2 · B 3 · A 4) · <b>stays until you bring them back</b> (doesn\'t vanish at the turn of the season)</> : <>Até <b>{loanSlots}</b> {loanSlots === 1 ? 'jogador' : 'jogadores'} por lado nesta divisão · cresce ao acessar (D 1 · C 2 · B 3 · A 4) · <b>fica valendo até você trazer de volta</b> (não some sozinho na virada)</>}</p>
+              {saf2 ? <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>{tr(`Até ${loanSlots} por lado nesta divisão (D 1 · C 2 · B 3 · A 4)`, `Up to ${loanSlots} per side in this division (D 1 · C 2 · B 3 · A 4)`)} · {saf2LoanSub()}</p> : <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.5)', margin: '0 0 7px' }}>{getLang() === 'en' ? <>Up to <b>{loanSlots}</b> {loanSlots === 1 ? 'player' : 'players'} per side in this division · grows with promotion (D 1 · C 2 · B 3 · A 4) · <b>stays until you bring them back</b> (doesn\'t vanish at the turn of the season)</> : <>Até <b>{loanSlots}</b> {loanSlots === 1 ? 'jogador' : 'jogadores'} por lado nesta divisão · cresce ao acessar (D 1 · C 2 · B 3 · A 4) · <b>fica valendo até você trazer de volta</b> (não some sozinho na virada)</>}</p>}
+              {saf2?.loanLock && <p style={{ fontSize: 10.5, fontWeight: 800, background: '#FDE9C8', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', margin: '0 0 7px', lineHeight: 1.4 }}>🔒 {saf2.loanLock}</p>}
 
               {/* 🏢 aviso: rebaixou e perdeu vaga → alguns voltaram sozinhos */}
-              {(trimNotice ?? 0) > 0 && (
+              {!saf2 && (trimNotice ?? 0) > 0 && (
                 <div style={{ background: '#FDE9C8', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', marginBottom: 7, fontSize: 10.5, fontWeight: 800, lineHeight: 1.4, position: 'relative' }}>
                   {getLang() === 'en' ? <>⚠️ You went down a division and the SAF lost a slot: <b>{trimNotice}</b> {trimNotice === 1 ? 'loan went' : 'loans went'} back by themselves. The rest still stands.</> : <>⚠️ Você caiu de divisão e a SAF perdeu vaga: <b>{trimNotice}</b> {trimNotice === 1 ? 'empréstimo voltou' : 'empréstimos voltaram'} sozinho pro lugar. O resto continua valendo.</>}
                   {onDismissTrimNotice && (
@@ -1049,6 +1055,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
               ) : null}
             </div>
             {regras}
+            {saf2?.painel}
 
             {/* 💸 VENDER A SAF — valor progressivo (divisão + títulos), com o porquê */}
             {onSellFilial && filialSale && (
@@ -1100,7 +1107,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
             </p>
             {logged && allDone && regras}
             {logged && allDone && <div style={{ height: 7 }} />}
-            {logged && allDone && !buying && (
+            {logged && allDone && !buying && saf2?.buyLock && (
+              <p style={{ fontSize: 10.5, fontWeight: 800, background: '#FDE9C8', border: `2px solid ${INK}`, borderRadius: 9, padding: '7px 9px', margin: 0, lineHeight: 1.4 }}>🔒 {saf2.buyLock}</p>
+            )}
+            {logged && allDone && !buying && !saf2?.buyLock && (
               <button onClick={() => canBuy && setBuying(true)} disabled={!canBuy}
                 style={{ width: '100%', border: 'none', borderRadius: 10, padding: '10px 0', fontWeight: 900, fontSize: 13.5, ...OSW, background: canBuy ? INK : '#d9cfb4', color: canBuy ? '#fff' : '#7d7358', cursor: canBuy ? 'pointer' : 'default' }}>
                 {canBuy ? tr('💼 Comprar a SAF de um clube · −2.000 💰', '💼 Buy a club\'s SAF · −2,000 💰') : tr(`Junte 2.000 💰 (tem ${coins})`, `Save up 2,000 💰 (you have ${coins})`)}
@@ -1111,7 +1121,7 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
                 <p style={{ fontSize: 11, fontWeight: 900, margin: '2px 0 6px', ...OSW }}>{tr('Escolha o clube (Série D atual):', 'Pick the club (current Série D):')}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                   {(filialOptions ?? []).map(t => (
-                    <button key={t} onClick={() => { if (window.confirm(tr(`Comprar a SAF do ${t} por 2.000 💰? Você vira dono dos direitos dele pra sempre nesta carreira.`, `Buy the ${t} SAF for 2,000 💰? You own its rights forever in this career.`))) { onBuyFilial(t); setBuying(false) } }}
+                    <button key={t} onClick={() => { if (window.confirm(saf2 ? tr(`Comprar a SAF do ${t} por 2.000 💰? O bot continua no comando dela; você é o sócio.`, `Buy the ${t} SAF for 2,000 💰? The bot stays in charge; you are the partner.`) : tr(`Comprar a SAF do ${t} por 2.000 💰? Você vira dono dos direitos dele pra sempre nesta carreira.`, `Buy the ${t} SAF for 2,000 💰? You own its rights forever in this career.`))) { onBuyFilial(t); setBuying(false) } }}
                       style={{ border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 4px', fontWeight: 900, fontSize: 11, ...OSW, background: '#fff', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t}</button>
                   ))}
                 </div>
