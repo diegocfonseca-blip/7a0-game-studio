@@ -403,7 +403,8 @@ interface LinhaSala { user_id: string; player_index: number; manager_name: strin
 //   · 30/09: bandeira 75 → 45s (Diego, vendo a live do canalmeianacanela: *"tempo de
 //     escolha de seleção do modo Copa do Mundo passe pra 45s por seleção"*). A
 //     convocação e o banner não mudaram.
-const SEG_BANDEIRA = 45, SEG_BANNER = 15, SEG_CONVOCA = 90
+//   · 13/10: bandeira 45 → 40s (Diego: *"baixe o tempo de escolha pra 40s"*).
+const SEG_BANDEIRA = 40, SEG_BANNER = 15, SEG_CONVOCA = 90
 const temPais = (p?: CopaPick | null): p is CopaPick => !!p && typeof p.pais === 'string' && !!p.pais
 const temTime = (p?: CopaPick | null): boolean => !!p && Array.isArray(p.xiKeys) && p.xiKeys.length === 11
 /** a PIOR seleção que ainda está livre — o castigo de quem deixou os 45s passarem */

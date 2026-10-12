@@ -47,7 +47,8 @@ const nomeLado = (id: CopaRegionalId, l: 0 | 1) => { const s = COPAS_REGIONAIS[i
 // (*"tem q ter um banner avisando antes c 15s"*) · 45s pra escolher o clube, um de cada
 // vez (*"reduza o tempo p 45s"*) · 15s de banner · 90s de convocação, todo mundo junto
 // (a mesma constante do Leilão de Clubes).
-export const SEG_ESCOLHA = 45
+// · 13/10: 45 → 40s (Diego: *"baixe o tempo de escolha pra 40s também o do time"*)
+export const SEG_ESCOLHA = 40
 const SEG_AVISO = 15
 const SEG_BANNER = 15
 export const SEG_CONVOCA = Math.round(CONVOCACAO_MS / 1000)

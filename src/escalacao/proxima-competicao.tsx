@@ -42,12 +42,11 @@ export function useCopasDaSala(roomId: string | null | undefined, ativo: boolean
 
 export type ProximaCompeticao = { emoji: string; nome: string; quem: string }
 
-export function proximasCompeticoes(copaMode: string | undefined, sala: { mundo: boolean; regional: CopaRegionalId | null } | null): ProximaCompeticao[] {
+// Só as que têm CONVOCAÇÃO depois da liga (Copa do Mundo e regionais). Diego 13/10: na Copa dos 8,
+// Libertadores e Champions da sala não tem convocação — o time entra sozinho, ninguém perde nada.
+export function proximasCompeticoes(sala: { mundo: boolean; regional: CopaRegionalId | null } | null): ProximaCompeticao[] {
   const en = getLang() === 'en'
   const out: ProximaCompeticao[] = []
-  if (copaMode === 'liga_copa') out.push({ emoji: '🏆', nome: tr('Copa dos 8', 'Cup of 8'), quem: tr('os 8 primeiros jogam', 'the top 8 play') })
-  if (copaMode === 'liga_liberta') out.push({ emoji: '🌎', nome: 'Libertadores', quem: tr('os 8 primeiros jogam', 'the top 8 play') })
-  if (copaMode === 'liga_champions') out.push({ emoji: '⭐', nome: 'Champions League', quem: tr('os primeiros da liga jogam', 'the top of the league play') })
   if (sala?.mundo) out.push({ emoji: '🌐', nome: tr('Copa do Mundo', 'World Cup'), quem: tr('todo mundo escolhe seleção e convoca', 'everyone picks a nation and calls up') })
   if (sala?.regional) {
     const c = COPAS_REGIONAIS[sala.regional]

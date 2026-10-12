@@ -6403,7 +6403,7 @@ export function EscSeason() {
       </div>
     }>
       {/* (o RITMO da Copa é montado mais abaixo, COLADO nas abas — veja lá) */}
-      {faixaProxAtiva && <FaixaProximaCompeticao lista={proximasCompeticoes(state.copaMode, copasDaSala)} />}
+      {faixaProxAtiva && <FaixaProximaCompeticao lista={proximasCompeticoes(copasDaSala)} />}
       {copaLive && qc ? (() => {
         // 🏀 os PLAYOFFS têm nome próprio em cada fase (1ª rodada → semis de conf. →
         // finais de conf. → FINALS); a NBA CUP é copa normal (quartas → semi → final).
@@ -10658,10 +10658,9 @@ export function EscEnd() {
   const [mundoPendente, setMundoPendente] = useState(false)
   // 🚪 a liga recolhe embaixo do portão enquanto a Copa do Mundo não acaba (19/09)
   const mundoEsperando = online && !!state.roomId && (mundoNaLiga || !!regionalNaLiga) && !copaPending && !libPending && mundoPendente
-  // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a competição ainda por vir —
-  // parecia que o jogo tinha ACABADO e o pessoal saía (Diego 13/10). Com competição pendente, diz qual é.
-  const proxNomeFim = champPending ? 'Champions League' : libPending ? 'Libertadores' : copaPending ? (state.copaMode === 'liga_liberta' ? 'Libertadores' : state.copaMode === 'liga_champions' ? 'Champions League' : LE('Copa dos 8', 'Cup of 8'))
-    : mundoEsperando ? (regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : LE('Copa do Mundo', 'World Cup')) : null
+  // 🔜 o cartão da colocação dizia "Ano que vem tem pregão de novo" com a Copa do Mundo/regional ainda por
+  // vir — parecia que o jogo tinha ACABADO e o pessoal saía antes da convocação (Diego 13/10).
+  const proxNomeFim = mundoEsperando ? (regionalNaLiga ? (endLang === 'en' ? COPAS_REGIONAIS[regionalNaLiga].nomeEn : COPAS_REGIONAIS[regionalNaLiga].nome) : LE('Copa do Mundo', 'World Cup')) : null
   const [campeaoDoMundo, setCampeaoDoMundo] = useState<{ nome: string; pais: string } | null>(null)
   useEffect(() => { if (mundoNaLiga || regionalNaLiga) setMundoPendente(true) }, [mundoNaLiga, regionalNaLiga])
   useEffect(() => {
@@ -10863,7 +10862,7 @@ export function EscEnd() {
       ) : (
       <>
       {/* 🔜 com Copa do Mundo/regional ainda por vir, a colocação desce (vai junto da tabela, embaixo) e a competição fica no topo (Diego 13/10) */}
-      {!copaPending && !libPending && !champPending && !mundoEsperando && (state.careerDivision ? placementHeader('pt-8') : ligaOnlyHeader())}
+      {!copaPending && !libPending && !mundoEsperando && (state.careerDivision ? placementHeader('pt-8') : ligaOnlyHeader())}
       {/* 🃏 BAFO: a cascata é O prêmio deste modo — vem logo depois da colocação,
           antes da tabela, porque é a primeira coisa que a galera quer ver. */}
       {state.bafoOn && (state.bafoValendo !== false ? <BafoCascata /> : (
@@ -11078,7 +11077,7 @@ export function EscEnd() {
             })} />
         </Suspense></CercaDaCopa>
       )}
-      {privateEnd && (copaPending || libPending || champPending || mundoEsperando) ? <details className="ll26-bracket-history"><summary>{LE('LIGA ENCERRADA · CAMPEÃO, CLASSIFICAÇÃO E ESTATÍSTICAS', 'LEAGUE OVER · CHAMPION, STANDINGS AND STATS')}</summary>{ligaOnlyHeader('pt-2')}{ligaBlocks}</details> : <>{(copaPending || libPending || champPending || mundoEsperando) && ligaOnlyHeader('pt-2')}{ligaBlocks}</>}
+      {privateEnd && (copaPending || libPending || mundoEsperando) ? <details className="ll26-bracket-history"><summary>{LE('LIGA ENCERRADA · CAMPEÃO, CLASSIFICAÇÃO E ESTATÍSTICAS', 'LEAGUE OVER · CHAMPION, STANDINGS AND STATS')}</summary>{ligaOnlyHeader('pt-2')}{ligaBlocks}</details> : <>{(copaPending || libPending || mundoEsperando) && ligaOnlyHeader('pt-2')}{ligaBlocks}</>}
       </>
       )}
       {/* 🏆 A LIGA NUM LUGAR SÓ (pílulas). Aqui, no FIM, ela também GRAVA a
