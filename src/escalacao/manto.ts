@@ -98,6 +98,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🐓👑 Le Prince FC — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (08/10): preto 66% (mediana #0F0E0D)
   // e branco das listras 20% (#E6E2DD).
   'henriquejunger07@gmail.com': ['#0F0E0D', '#E6E2DD'],
+  // 💴🔴⚫ Rossini Money — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou (12/10): preto 79% (mediana #120D0D)
+  // e o vermelho VIVO das faixas e golas (#C21C1B; a mediana de todo vermelho dava #961413, puxada pela sombra do desenho).
+  'luizeduardorossini0013@gmail.com': ['#120D0D', '#C21C1B'],
   // 🥊⚫⚪ Inter Vale FC — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (12/10): preto 73% (mediana #0E0E0E)
   // e branco da gola/listras 4% (#E4E3E1).
   'marcus.viniciuslopessantos79@gmail.com': ['#0E0E0E', '#E4E3E1'],

@@ -72,6 +72,7 @@ const BATISMOS = [
   ['bastosmbc@gmail.com', 'El Mineiro'], // 🐓 Série C (27/09) — no assento do bot Brodeiragem
   ['heitormonaco98@gmail.com', 'Arrogantchi FC'], // 😜🔵⚫ Série A (08/10) — assento do Bagres 1993, que desceu pra B
   ['marcus.viniciuslopessantos79@gmail.com', 'Inter Vale FC'], // 🥊⚫⚪ Série C (12/10) — no assento do bot Tetéia SAF
+  ['luizeduardorossini0013@gmail.com', 'Rossini Money'], // 💴🔴⚫ Série A (12/10) — assento do Bagres de Wall Street FC, que desceu pra B
   ['henriquejunger07@gmail.com', 'Le Prince FC'], // 🐓👑 Várzea (08/10) — no assento do bot Perna de Pau City
   ['atilasoaresjr21@gmail.com', 'Mengão Malvadão'], // 🦅🔴⚫ Série A (06/10) — assento do Nata de SP, que desceu pra B
   ['kelvinoliveiraandradeenunes@gmail.com', 'K9 FC'], // 👑🧊 Várzea (06/10) — no assento do bot Meia-Boca FC

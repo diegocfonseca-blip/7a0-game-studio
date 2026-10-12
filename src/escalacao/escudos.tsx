@@ -65,6 +65,7 @@ import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC 
 import mengaoEscudoImg from './img/mengao-escudo.webp' // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21): arte própria do dono
 import arrogantchiEscudoImg from './img/arrogantchi-escudo.webp' // 😜🔵⚫ Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleEscudoImg from './img/intervale-escudo.webp' // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
+import rossiniEscudoImg from './img/rossini-escudo.webp' // 💴🔴⚫ Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceEscudoImg from './img/leprince-escudo.webp' // 🐓👑 Le Prince FC (henriquejunger07): arte própria do dono
 import k9EscudoImg from './img/k9-escudo.webp' // 👑🧊 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
 import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
@@ -878,6 +879,13 @@ const mengaoEscudoRender = (size: number) => (
 // 😜🔵⚫ ARROGANTCHI FC (heitormonaco98, batismo de 08/10) — Série A, no assento do Bagres 1993 (que desceu pra B).
 // 📏 266×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo. Fundo verde tirado pelo recorte chroma;
 // conferido sobre fundo colorido.
+// 💴🔴⚫ ROSSINI MONEY (luizeduardorossini0013, batismo de 12/10) — Série A, no assento do Bagres de Wall Street FC.
+// 📏 287×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo (escudo com a coroa, os corvos e a lua vermelha).
+// Fundo verde chroma tirado; conferido sobre fundo verde e creme.
+const rossiniEscudoRender = (size: number) => (
+  <img src={rossiniEscudoImg} height={size} width={Math.round(size * 287 / 360)} alt="Rossini Money" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 🥊⚫⚪ INTER VALE FC (marcus.viniciuslopessantos79, batismo de 12/10) — Série C, no assento do bot Tetéia SAF.
 // 📏 346×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo (escudo redondo com o monograma IV).
 // Fundo verde chroma tirado; conferido sobre fundo vermelho e creme.
@@ -1499,6 +1507,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Le Prince EC': leprinceEscudoRender,
   'Le Prince SC': leprinceEscudoRender,
   'Perna de Pau City': leprinceEscudoRender,
+  // 💴🔴⚫ Rossini Money (luizeduardorossini0013) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho:
+  // o Bagres de Wall Street continua existindo (foi pra B).
+  'Rossini Money': rossiniEscudoRender,
+  'Rossini Money FC': rossiniEscudoRender,
+  'Rossini Money EC': rossiniEscudoRender,
+  'Rossini Money SC': rossiniEscudoRender,
   // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79) — BATISMO. As 4 formas do nome (regra 20/08). Só o nome
   // INTEIRO (nunca "Inter" sozinho — regra do Arruda). Sem o nome velho: o Tetéia SAF segue vivo no jogo rápido.
   'Inter Vale FC': intervaleEscudoRender,
