@@ -645,6 +645,7 @@ function ToggleRow({ icon, title, sub, on, onClick }: { icon: string; title: str
 let semColunaPregao = false
 let semColunaClubes = false // 🧱 idem, pro selo do Leilão de Clubes (ls_clubes)
 let semColunaLive = false // 🔴 idem, pro link da live (ls_live)
+let semColunaCopa2 = false // 🏟️ idem, pra copa extra da sala (ls_copa2: estadual ou Copa do Mundo depois da liga)
 
 // 🔴 LINK DA LIVE (05/10, Diego: *"nessa área da sala, pra quem é streamer, com link… tem que ser
 // streamer que tá rolando ao vivo mesmo, e com link do ao vivo"*). Só aceita link https de
@@ -1901,7 +1902,14 @@ export function EscLobby() {
     // 🧱 28/09: + `ls_clubes` (selo 🧱 CLUBES), num degrau PRÓPRIO da rede: se só ela
     // faltar no banco, cai pra consulta com a Tocaia — o selo 🐊 não some junto.
     // 🔴 05/10: + `ls_live` (link da live), no degrau mais alto da rede.
-    if (!semColunaLive) {
+    // 🏟️ 12/10: + `ls_copa2` (estadual / Copa do Mundo depois da liga) no degrau mais alto — sem ela a sala
+    // aparecia como "só liga" (Diego: *"criei uma sala do Rio SP e apareceu só Liga"*).
+    if (!semColunaCopa2) {
+      const rc = await busca(`${COLS}, gholandes:ls_holandes, gclubes:ls_clubes, glive:ls_live, gcopa2:ls_copa2`)
+      if (rc.error) semColunaCopa2 = true
+      else rooms = rc.data as unknown[]
+    }
+    if (rooms === null && !semColunaLive) {
       const rl = await busca(`${COLS}, gholandes:ls_holandes, gclubes:ls_clubes, glive:ls_live`)
       if (rl.error) semColunaLive = true
       else rooms = rl.data as unknown[]
@@ -1917,10 +1925,10 @@ export function EscLobby() {
       else rooms = r1.data as unknown[]
     }
     if (rooms === null) rooms = ((await busca(COLS)).data ?? []) as unknown[]
-    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null }
+    type SlimRow = { id: string; code: string; host_id: string; max_players: number; status: string; updated_at?: string; gname: string | null; gdeck: string | null; gvarzea: string | null; gmode: string | null; gat: string | null; gcareer: string | null; gmanual: string | null; gcopa: string | null; gliga: string | null; glocked: string | null; gstream: string | null; gpw: string | null; gchat: string | null; gduplas: string | null; gholandes?: string | null; gclubes?: string | null; glive?: string | null; gcopa2?: string | null }
     const list: RoomInfo[] = ((rooms ?? []) as unknown as SlimRow[]).map(r => ({
       id: r.id, code: r.code, host_id: r.host_id, max_players: r.max_players, status: r.status, updated_at: r.updated_at,
-      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: r.gclubes === 'true' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined } as GS,
+      game_state: { __game: tagAtual(), roomName: r.gname ?? undefined, deck: (['br', 'eu', 'both', 'todos'].includes(r.gdeck ?? '') ? r.gdeck : undefined) as GS['deck'], varzea: r.gvarzea === 'true' || undefined, mode: (r.gmode ?? undefined) as GS['mode'], ligaAt: r.gat ?? undefined, careerOnline: r.gcareer === 'true' || undefined, manual: r.gmanual === 'true' || undefined, copaMode: (r.gcopa ?? undefined) as GS['copaMode'], ligaFechada: r.gliga === 'true' || undefined, locked: r.glocked === 'true' || undefined, stream: r.gstream === 'true' || undefined, pwHash: r.gpw ?? undefined, chatOff: r.gchat === 'true' || undefined, duplasMode: r.gduplas === 'true' || undefined, holandes: r.gholandes === undefined ? undefined : r.gholandes === 'true', clubes: r.gclubes === 'true' || undefined, liveUrl: plataformaDaLive(r.glive) ? (r.glive ?? undefined) : undefined, ...(r.gcopa2 === 'mundo' ? { mundoNaLiga: true } : r.gcopa2 ? { regionalNaLiga: r.gcopa2 } : {}) } as GS,
     }))
     const ids = list.map(r => r.id)
     const counts: Record<string, number> = {}
@@ -3387,7 +3395,7 @@ export function EscLobby() {
                     ? [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['liga_liberta', tr('🌎 Liga + Liberta', '🌎 League + Liberta')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]
                     : [['liga_copa', tr('🏆 Liga + Copa', '🏆 League + Cup')], ['champions', tr('⭐ Só Champions', '⭐ Champions only')], ['liga_mundo', tr('🌐 Liga + Mundo', '🌐 League + World')], ['liga', tr('📊 Só liga', '📊 League only')]]) as ['liga_copa' | 'liga_liberta' | 'champions' | 'liga_mundo' | 'liga', string][]),
                       // 🏟️ as copas regionais (liberadas pra todos em 11/10)
-                      ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${COPAS_REGIONAIS[id].emoji} ${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
+                      ...(regionalOn ? (['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, `${tr('Liga +', 'League +')} ${getLang() === 'en' ? COPAS_REGIONAIS[id].nomeEn : COPAS_REGIONAIS[id].nome}`] as ['liga_riosp' | 'liga_sulminas' | 'liga_nordeste', string]) : [])]
                     const convoca = (v: ModoCopa) => v === 'liga_mundo' || regionalId(v) !== null
                     const prateleira = (titulo: string, lista: [ModoCopa, string][]) => lista.length === 0 ? null : (
                       <>
@@ -3546,7 +3554,7 @@ export function EscLobby() {
             const isCareerRoom = r.game_state?.mode === 'carreira' || (r.game_state as GS & { careerOnline?: boolean })?.careerOnline
             const ritmoLbl = r.game_state?.manual ? '🎮 manual' : '⚡ auto' // padrão = auto (igual nos dois idiomas)
             const regLbl = (r.game_state as GS & { regionalNaLiga?: string })?.regionalNaLiga
-            const copaLbl = ehCopaRegional(regLbl) ? `${COPAS_REGIONAIS[regLbl].emoji} ${tr('liga+', 'league+')}${(getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome).toLowerCase()}` : (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
+            const copaLbl = ehCopaRegional(regLbl) ? `${tr('Liga + ', 'League + ')}${getLang() === 'en' ? COPAS_REGIONAIS[regLbl].nomeEn : COPAS_REGIONAIS[regLbl].nome}` : (r.game_state as GS & { mundoNaLiga?: boolean })?.mundoNaLiga ? tr('🌐 liga+mundo', '🌐 league+world') : r.game_state?.copaMode === 'liga' ? tr('📊 só liga', '📊 league only') : r.game_state?.copaMode === 'liga_liberta' ? tr('🌎 liga+liberta', '🌎 league+liberta') : r.game_state?.copaMode === 'champions' ? tr('⭐ só champions', '⭐ champions only') : r.game_state?.copaMode === 'liga_champions' ? tr('⭐ liga+champions', '⭐ league+champions') : tr('🏆 liga+copa', '🏆 league+cup') // padrão = liga+copa
             const ligaFechadaRoom = !!(r.game_state as GS & { ligaFechada?: boolean })?.ligaFechada // 🏆 liga só com a galera
             const duplasRoom = !!(r.game_state as GS & { duplasMode?: boolean })?.duplasMode // 🤝 sala de duplas
             const ligaRoom = r.game_state?.mode === 'liga' // 🏆 liga: sala que fica de pé, com dia marcado

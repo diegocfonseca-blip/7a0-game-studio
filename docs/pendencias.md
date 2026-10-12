@@ -1,3 +1,10 @@
+## 🏟️ Lista de salas mostra a copa extra (12/10) ✅ NO AR
+- Sala de estadual aparecia "só liga": a lista lê colunas magras e não tinha a do estadual nem a da Copa do
+  Mundo depois da liga. Nova coluna `ls_copa2` no gatilho (`docs/sql/lista-salas-copa-extra.sql`, aplicado) +
+  degrau novo na busca. Rótulo por escrito, sem emoji: "Liga + Rio × São Paulo" / "Liga + Copa do Nordeste" /
+  "Liga + Sul × Minas-Paraná" (também nas opções de criar sala).
+- 📲 Lista de salas: quadro verde da COMUNIDADE do WhatsApp no lugar da linha do grupo VIP (`comunidade.ts`).
+
 ## 📲 Faixa da comunidade do WhatsApp (11/10) ✅ NO AR
 - Faixa verde SÓ na home (`ComunidadeBanner` em index.tsx), no fluxo da página (não tampa nada), link
   `chat.whatsapp.com/KfSkVvbjjdiHptHfJE5hQN`, ✕ esconde no aparelho. Tirar: `COMUNIDADE_LINK = null`.
