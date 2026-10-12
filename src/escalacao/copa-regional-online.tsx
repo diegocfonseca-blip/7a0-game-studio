@@ -29,6 +29,7 @@ import { startCrowd, stopCrowd } from './sound'
 import { Escudo } from './escudos'
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
 import { CONVOCACAO_MS } from './store'
+import { NaoSai, useChamaNaVez, CartaoSuaVez } from './proxima-competicao'
 import {
   COPAS_REGIONAIS, clubesDaCopa, poolDoClube, completaXIClube, xiPorChavesClube, xiDaMaquinaClube, forcaDoXI,
   piorClubeLivre, melhorClubeLivre, simulaRegional, tabelaDoLado, passosRegional, passoRegionalRodaBola, artilhariaRegional,
@@ -274,6 +275,11 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   const minha = meuUid ? picks.get(meuUid) ?? null : null
   const souAVez = fase?.fase === 'bandeira' && fase.vez_uid === meuUid && !minha
   const fiqueiDeFora = !!meuUid && classificacao.some(c => c.humano && uidDe.get(c.id) === meuUid) && !fila.some(f => f.uid === meuUid)
+  // 🔜 NÃO SAI + CHAMA NA VEZ (Diego 13/10) — só aviso, não mexe na fila nem no relógio
+  const minhaFila = fila.find(f => f.uid === meuUid)
+  const antesDeMim = minhaFila ? fila.filter(f => f.vez < minhaFila.vez && !picks.get(f.uid)).length : 0
+  const mostraNaoSai = !!minhaFila && !minha && !souAVez && (!fase || fase.fase === 'aviso' || fase.fase === 'bandeira')
+  const chama = useChamaNaVez(souAVez ? `vez-${fase?.edicao}` : fase?.fase === 'convocacao' && minha && !temTime(minha) ? `convoca-${fase?.edicao}` : null)
 
   // ─── 👑 só o DONO empurra a fase (a vez, o prazo, o castigo de quem dormiu) ───
   const passo = useCallback(async () => {
@@ -377,8 +383,11 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
 
   return (
     <>
+      {/* na convocação a tela dos 11 já abre sozinha: lá só vibra/apita, sem cartão (não gasta toque do relógio) */}
+      {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={`${nomeCopa(copa)} · ${en ? `you have ${SEG_ESCOLHA}s to pick your club` : `você tem ${SEG_ESCOLHA}s pra pegar o clube`}`} botao={tr('Escolher meu clube', 'Pick my club')} aoFechar={chama.fechar} />}
       <CompetitionStage kind="copa8" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={nomeCopa(copa)} detail={detalhe} status={status}>
         <div className="ll26-cup-entry">
+          {mostraNaoSai && <NaoSai minhaVez={minhaFila!.vez} antes={antesDeMim} fase={fase?.fase} seg={seg} segPorVez={SEG_ESCOLHA} />}
           {fiqueiDeFora && <p className="ll27-portao-aviso">{tr(`😬 Você terminou a liga fora dos ${vagas} primeiros — fica de fora desta copa. Dá pra assistir daqui.`, `😬 You finished outside the top ${vagas} — you sit out this cup. You can watch from here.`)}</p>}
           {!!fila.length && fase?.fase !== 'torneio' && fase?.fase !== 'convocacao' && (
             <div className="ll27-fila">

@@ -45,6 +45,7 @@ import './online-match-visual.css'
 import { supabase } from '../lib/supabase'
 import { rankingSelecoes } from './paises'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
+import { NaoSai, useChamaNaVez, CartaoSuaVez } from './proxima-competicao'
 import {
   CMModal, ConvocacaoScreen, CupScreen, COPA_TEAMS, flagOf,
   countryPool, xiPorChaves, xiDaMaquina, xiStrength, completaXI,
@@ -630,6 +631,12 @@ export function PortaoDaCopa({ nLiga, fase, lido, souDono, comecando, erro, fila
   return (
     <CompetitionStage kind="world" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={tr('Copa do Mundo', 'World Cup')} detail={detail} status={status}>
       <div className="ll26-cup-entry">
+        {/* 🔜 NÃO SAI (Diego 13/10): quem está na fila e ainda não escolheu vê que ainda joga */}
+        {(() => {
+          const eu = fila.find(f => f.uid === meuUid)
+          if (!eu || minha || souAVez || (fase && fase !== 'bandeira')) return null
+          return <NaoSai minhaVez={eu.vez} antes={fila.filter(f => f.vez < eu.vez && !picks.get(f.uid)).length} fase={fase} seg={seg} segPorVez={SEG_BANDEIRA} />
+        })()}
         {/* 🥇 a fila, na ordem da tabela — some depois que todo mundo tem bandeira */}
         {!!fila.length && fase !== 'torneio' && fase !== 'convocacao' && (
           <div className="ll27-fila">
@@ -820,6 +827,8 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   const seg = segundosAte(fase?.ate)
   const minha = meuUid ? picks.get(meuUid) ?? null : null
   const souAVez = fase?.fase === 'bandeira' && fase.vez_uid === meuUid && !minha
+  // 🔜 CHAMA NA VEZ (Diego 13/10): vibra, apita e abre o cartão — na vez da bandeira e quando abre a convocação
+  const chama = useChamaNaVez(souAVez ? `vez-${fase?.edicao}` : fase?.fase === 'convocacao' && minha && !temTime(minha) ? `convoca-${fase?.edicao}` : null)
 
   // ─── 👑 O DONO EMPURRA O RELÓGIO ──────────────────────────────────────────
   // Só ele escreve. Roda junto da batidinha de leitura (2s), então a vez anda
@@ -960,6 +969,8 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
   return (
     <>
       <style>{'@keyframes cmSheen{0%{background-position:180% 180%}100%{background-position:-80% -80%}}'}</style>
+      {/* na convocação a tela dos 11 já abre sozinha: lá só vibra/apita, sem cartão (não gasta toque do relógio) */}
+      {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={tr(`Copa do Mundo · você tem ${SEG_BANDEIRA}s pra pegar a seleção`, `World Cup · you have ${SEG_BANDEIRA}s to pick your nation`)} botao={tr('Escolher minha seleção', 'Pick my nation')} aoFechar={chama.fechar} />}
       {/* 🚪 O PORTÃO (19/09): o banner grande da Copa no TOPO do fim da liga, com a
           fila, a grade das seleções e a convocação embaixo dele — o mesmo desenho
           da Copa dos 8/Libertadores. Antes a escolha da bandeira subia num modal

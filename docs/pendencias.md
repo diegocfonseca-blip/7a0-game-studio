@@ -1,4 +1,5 @@
-## 🔜 "Não sai, ainda tem competição" (13/10) — ⏳ MOCKUP ENVIADO, esperando OK do Diego
+## 🔜 "Não sai, ainda tem competição" (13/10) — ✅ NO AR (Diego: "Perfeito. Pode fazer. E serve pra todas competições que tem convocação")
+Código em `src/escalacao/proxima-competicao.tsx`. Faixa (últimas 5 rodadas, toda competição da sala) em `EscSeason`; colocação desce e diz "Agora tem X ↑" no fim; "Não sai!" + chamada na vez (vibra/apito/título da aba/cartão) no portão da Copa regional e da Copa do Mundo (as que têm convocação). Na convocação só vibra/apita — a tela dos 11 já abre sozinha.
 Gente sai da sala no fim da liga sem saber que vem Copa regional/Copa do Mundo/Liberta/Champions/Copa dos 8, e na hora de escolher clube já saiu. Mockup `scripts/mockup-proxima-competicao.mjs` → `scripts/mockups/proxima-competicao.png`: (1) faixa nas últimas 5 rodadas · (2) competição no TOPO do fim com "Não sai! Sua vez em ~2 min" e sai o "Ano que vem tem pregão de novo" (screens.tsx ~10628/10752) · (3) na sua vez: vibra + apito + título da aba "⚠️ SUA VEZ!".
 
 ## 💬 Chat da sala melhorado (13/10) — ✅ NO AR o 1, 3 e 4 (Diego: "faz 1, 3 e 4 somente"). 🚫 O 2 (zoeira rápida em botões) ele NÃO quis — não repropor. 🔁 E no mesmo dia tirou o ESCUDO do 1: *"deixa apenas o nome dourado… pra não ficar muita informação"* — só o nome na cor do plano.
