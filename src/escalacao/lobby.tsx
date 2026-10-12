@@ -4,6 +4,7 @@ import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { instrumenta, medeRecebida } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
 import { MascoteAtravessa, MascoteMini } from './mascote-atravessa' // 🐊 o bicho atravessa a sala de espera também (25/09)
@@ -1101,10 +1102,11 @@ export function EscLobby() {
     } catch { setLobbyChat([]) }
     setLobbyUnread(0)
     fetchPlayers(room.id)
-    const ch = supabase.channel(`esclobby:${room.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, () => fetchPlayers(room.id))
+    const ch = instrumenta(supabase.channel(`esclobby:${room.id}`), 'espera', room.id) // 📏 conta o que passa no canal da sala de espera
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, (p: unknown) => { medeRecebida('espera', room.id, 'db:room_players', p); fetchPlayers(room.id) })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` },
         ({ new: r }: { new: RoomInfo }) => {
+          medeRecebida('espera', room.id, 'db:game_rooms', r)
           // 📣 A SALA VOLTOU PRA ESPERA → a PRÓXIMA largada é uma largada NOVA.
           // (18/09, relato do Bruno pro Diego: *"eu tô jogando entre duas pessoas, chega
           // um amigo, eu clico pra voltar pra sala de espera, ele entra, eu abro o pregão
@@ -1134,7 +1136,7 @@ export function EscLobby() {
         })
       // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
       // aviso na hora; a exclusão da sala é a rede de segurança).
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` }, () => setHostLeft(true))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` }, () => { medeRecebida('espera', room.id, 'db:sala_apagada', null); setHostLeft(true) })
       .on('broadcast', { event: 'host_left' }, () => setHostLeft(true))
       .on('broadcast', { event: 'chat' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'emote' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))

@@ -985,6 +985,7 @@ import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
+import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
 import { econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
@@ -12165,6 +12166,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       const rid = stateRef.current.roomId
       if (stateRef.current.hostInbox && rid) {
         if (!inboxRef.current || inboxRef.current.sala !== rid) inboxRef.current = { sala: rid, ch: supabase.channel(`escalacao-in:${rid}`) }
+        medeEnviada('caixa-dono', rid, 'action', action) // 📏
         inboxRef.current.ch.httpSend('action', action).catch(() => { channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action }) })
       } else channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
       // ⏳ marca "mandei um recado e ainda não veio estado": é o que deixa o vigia pedir o
@@ -12240,7 +12242,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // canal realtime quando online
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
-    const ch = supabase.channel(`escalacao:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } })
+    const ch = instrumenta(supabase.channel(`escalacao:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } }), 'sala', state.roomId, true) // 📏 conta tudo que passa no canal da sala
+    medidorPapel(!!state.isHost)
 
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
@@ -12384,7 +12387,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // 🧹 `removeChannel` (e não só `unsubscribe`): tira o canal do registro do
     // Supabase também. Sem isso o canal velho fica guardado com o MESMO nome, e o
     // canal novo nasce brigando com o fantasma do antigo.
-    return () => { repergunta.forEach(clearTimeout); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); try { supabase.removeChannel(ch) } catch { ch.unsubscribe() } channelRef.current = null }
+    return () => { void medidorFlush(); repergunta.forEach(clearTimeout); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); try { supabase.removeChannel(ch) } catch { ch.unsubscribe() } channelRef.current = null }
   }, [state.roomId, state.onlineMode, state.isHost, reconexao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // host retransmite estado (sanitizado: envelopes pendentes não vazam)
@@ -12423,7 +12426,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // direto pra cá, e só o dono escuta — uma entrega por lance em vez de uma por pessoa.
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || !state.hostInbox) return
-    const inbox = supabase.channel(`escalacao-in:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } })
+    const inbox = instrumenta(supabase.channel(`escalacao-in:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } }), 'caixa-dono', state.roomId) // 📏
     inbox.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
     inbox.subscribe()
     return () => { try { supabase.removeChannel(inbox) } catch { inbox.unsubscribe() } }
