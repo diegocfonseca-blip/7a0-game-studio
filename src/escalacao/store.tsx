@@ -848,6 +848,8 @@ export function folhaDoBot(squad: readonly Card[] | undefined): number {
   let f = 0
   for (const c of squad ?? []) {
     if ((c as { fake?: boolean }).fake || isFillerClub(c.club)) continue
+    // emprestado não entra: quem paga o salário dele é a regra do empréstimo (metade pra cada lado, saf2)
+    if ((c as { emprestado?: unknown }).emprestado) continue
     f += Math.round(Math.max((c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c)) / 10)
   }
   return f

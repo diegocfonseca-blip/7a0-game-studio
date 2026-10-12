@@ -1,4 +1,14 @@
-## 💰 Economia dos bots na carreira (13/10) ✅ NO AR — SÓ NAS CONTAS DO DIEGO (`ECON_BOTS_GERAL = false`, sport.ts)
+## 🟢 LIBERADO PRA TODOS (13/10, Diego: "pode publicar"): economia dos bots + SAF que vira 2º clube
+- `ECON_BOTS_GERAL = true` e `SAF2_GERAL = true` (sport.ts). Linhas novas em `novidades.ts`. Vídeo (`scripts/video-saf-reels.mjs`)
+  e aviso (`scripts/posts/aviso-2026-10-13-saf-2o-clube.png`) liberados pra postar.
+- Decisões dele na hora de liberar: **o auxiliar NUNCA dá lance no leilão** (*"quem manda é o usuário"*) — o clube parado fica fora
+  do leilão (como já era: `auctioningManagers` tira quem está `dormindo`); **ranking global conta só o clube principal** (já era:
+  `pyramidseason.tsx` não manda o retrato quando `multiClubeAtivo`). Dinheiro: caixa separado por clube; só passa por aporte
+  (principal → 2º), transferência de jogador pelo valor oficial ou venda do 2º clube. Taças: cada clube guarda as suas.
+- Conserto junto: com as duas ligadas, a SAF pagava o emprestado 2× (metade do empréstimo + folha do bot) — emprestado saiu da
+  `folhaDoBot`.
+
+## 💰 Economia dos bots na carreira (13/10) ✅ NO AR — liberado pra todos no mesmo dia (ver acima)
 - Mockup aprovado: `scripts/mockups/carreira-bots.png` ("Perfeito pode fazer"). Na virada, cada clube bot ganha a MESMA
   TV da divisão (`TV_COTA`) + bilheteria (`BOT_BILHETERIA` A 40 · B 30 · C 20 · D 12 · V 6) e paga a folha (maior entre
   pago e tabela ÷ 10). O que passa do teto (`BOT_CAIXA_TETO` A 900 · B 700 · C 500 · D 300 · V 150) "vira obra"; quem já

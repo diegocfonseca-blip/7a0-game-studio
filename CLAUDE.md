@@ -766,6 +766,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Liberta · Champions · Mundial, cada uma UMA vez; 0 = 3.000, 6 = 6.500). *"Gosto mais do prejuízo porque ninguém mandou ele
   comprar"*. Empréstimo vira principal ↔ 2º clube. Quem tem os dois separados ESCOLHE um e recebe o dinheiro do outro de
   volta inteiro. Tudo em `docs/pendencias.md` (13/10) e no mockup `scripts/mockups/carreira-saf-completo.png`.
+  🟢 **LIBERADO PRA TODOS EM 13/10** (`SAF2_GERAL`/`ECON_BOTS_GERAL = true`). Duas regras dele na liberação: **o auxiliar NUNCA
+  dá lance no leilão** (*"quem manda é o usuário"* — não repropor) e **o ranking global conta só o clube principal**.
 
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque

@@ -960,7 +960,7 @@ export function usePlanos2(): boolean {
 // TV + bilheteria pela divisão e a pagar salário, igual o humano (mockup `scripts/mockups/carreira-bots.png`).
 // 🔒 Primeiro SÓ nas contas do Diego, pra ele testar numa carreira dele; liberar pra todos: ECON_BOTS_GERAL = true.
 // A regra mora em `store.tsx` (`aplicaEconomiaBots`) e só roda na virada da temporada.
-const ECON_BOTS_GERAL = false
+const ECON_BOTS_GERAL = true // 🟢 13/10: liberado pra todos (Diego: "pode publicar")
 const ECON_BOTS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 let econBotsOk = ECON_BOTS_GERAL
 function applyEconBots(email?: string | null): void {
@@ -980,7 +980,7 @@ export function useEconBots(): boolean {
 // compra a SAF → 10 temporadas como dono → assume o comando (só pagante) → vende pela divisão/coleção de taças.
 // 🔒 Primeiro SÓ nas contas do Diego; liberar pra todos: SAF2_GERAL = true. Com a chave desligada, a SAF e o
 // 2º clube antigos seguem EXATAMENTE como sempre foram. As regras puras moram em `saf2.ts`.
-const SAF2_GERAL = false
+const SAF2_GERAL = true // 🟢 13/10: liberado pra todos (Diego: "pode publicar")
 const SAF2_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 let saf2Ok = SAF2_GERAL
 function applySaf2(email?: string | null): void {

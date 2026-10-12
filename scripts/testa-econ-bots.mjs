@@ -22,6 +22,8 @@ try {
   const fake = { name: 'Z', club: 'Várzea', fame: 1, pos: 'ZAG', fake: true, paid: 50 }
   assert.equal(folhaDoBot([lenda, caro, fake]), 3 + 7)
   assert.equal(folhaDoBot(undefined), 0)
+  // emprestado não entra na folha do bot: a regra do empréstimo (metade pra cada lado) já cobra
+  assert.equal(folhaDoBot([lenda, { ...caro, emprestado: true }]), 3, 'emprestado fora da folha (senão a SAF pagava 2×)')
   // 60 temporadas: nenhuma divisão passa do teto, e a Série A chega nele em menos de 15
   for (const d of ['V', 'D', 'C', 'B', 'A']) {
     let c = 100, chegou = null
