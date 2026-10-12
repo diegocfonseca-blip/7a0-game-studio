@@ -70,6 +70,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Guimarães SCI": "guimaraes-camisa-v1.webp", // 🔴⚪ Guimarães SCI (jadriovani, 02/10)
   "Gaviões SCCP": "gavioes-camisa-v1.webp", // 🦅⚫⚪ Gaviões SCCP (kauealves584, 02/10)
   "Arrogantchi FC": "arrogantchi-camisa-v1.webp", // 😜🔵⚫ Arrogantchi FC (heitormonaco98, 08/10)
+  "Inter Vale FC": "intervale-camisa-v1.webp", // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79, 12/10)
   "Le Prince FC": "leprince-camisa-v1.webp", // 🐓👑 Le Prince FC (henriquejunger07, 08/10)
   "Mengão Malvadão": "mengao-camisa-v1.webp", // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21, 06/10)
   "K9 FC": "k9-camisa-v1.webp", // 👑🧊 K9 FC (kelvinoliveiraandradeenunes, 06/10)

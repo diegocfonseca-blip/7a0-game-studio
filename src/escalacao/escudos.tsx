@@ -64,6 +64,7 @@ import gavioesEscudoImg from './img/gavioes-escudo.webp' // 🦅⚫⚪ Gaviões 
 import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC (felipe.vrod10): arte própria do dono
 import mengaoEscudoImg from './img/mengao-escudo.webp' // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21): arte própria do dono
 import arrogantchiEscudoImg from './img/arrogantchi-escudo.webp' // 😜🔵⚫ Arrogantchi FC (heitormonaco98): arte própria do dono
+import intervaleEscudoImg from './img/intervale-escudo.webp' // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
 import leprinceEscudoImg from './img/leprince-escudo.webp' // 🐓👑 Le Prince FC (henriquejunger07): arte própria do dono
 import k9EscudoImg from './img/k9-escudo.webp' // 👑🧊 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
 import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (luck.45): arte própria do dono
@@ -877,6 +878,13 @@ const mengaoEscudoRender = (size: number) => (
 // 😜🔵⚫ ARROGANTCHI FC (heitormonaco98, batismo de 08/10) — Série A, no assento do Bagres 1993 (que desceu pra B).
 // 📏 266×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo. Fundo verde tirado pelo recorte chroma;
 // conferido sobre fundo colorido.
+// 🥊⚫⚪ INTER VALE FC (marcus.viniciuslopessantos79, batismo de 12/10) — Série C, no assento do bot Tetéia SAF.
+// 📏 346×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo (escudo redondo com o monograma IV).
+// Fundo verde chroma tirado; conferido sobre fundo vermelho e creme.
+const intervaleEscudoRender = (size: number) => (
+  <img src={intervaleEscudoImg} height={size} width={Math.round(size * 346 / 360)} alt="Inter Vale FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const arrogantchiEscudoRender = (size: number) => (
   <img src={arrogantchiEscudoImg} height={size} width={Math.round(size * 266 / 360)} alt="Arrogantchi FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1491,6 +1499,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Le Prince EC': leprinceEscudoRender,
   'Le Prince SC': leprinceEscudoRender,
   'Perna de Pau City': leprinceEscudoRender,
+  // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79) — BATISMO. As 4 formas do nome (regra 20/08). Só o nome
+  // INTEIRO (nunca "Inter" sozinho — regra do Arruda). Sem o nome velho: o Tetéia SAF segue vivo no jogo rápido.
+  'Inter Vale FC': intervaleEscudoRender,
+  'Inter Vale': intervaleEscudoRender,
+  'Inter Vale EC': intervaleEscudoRender,
+  'Inter Vale SC': intervaleEscudoRender,
   // 😜🔵⚫ Arrogantchi FC (heitormonaco98) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o
   // Bagres 1993 continua existindo (foi pra B).
   'Arrogantchi FC': arrogantchiEscudoRender,

@@ -68,6 +68,7 @@ import gavioesMascoteImg from './img/gavioes-mascote.webp' // 🦅 Gaviões SCCP
 import vieiraMascoteImg from './img/vieira-mascote.webp' // 😈 Vieira FC (felipe.vrod10): arte própria do dono
 import mengaoMascoteImg from './img/mengao-mascote.webp' // 🦅 Mengão Malvadão (atilasoaresjr21): arte própria do dono
 import arrogantchiMascoteImg from './img/arrogantchi-mascote.webp' // 😜 Arrogantchi FC (heitormonaco98): arte própria do dono
+import intervaleMascoteImg from './img/intervale-mascote.webp' // 🥊 Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
 import leprinceMascoteImg from './img/leprince-mascote.webp' // 🐓 Le Prince FC (henriquejunger07): arte própria do dono
 import k9MascoteImg from './img/k9-mascote.webp' // 👑 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
 import madrugaMascoteImg from './img/madruga-mascote.webp' // 👒 Real Madruga (luck.45): arte própria do dono
@@ -367,6 +368,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 🐓👑 O GALO REI (mascote do Le Prince FC — henriquejunger07, 08/10): o galo de coroa e manto real,
   // apontando o dedo, surfando em cima do lobo azul. A cena inteira é a mascote. Arte do próprio dono.
   // 📏 333×440, ≤45 KB — a altura fica em 176. mascote_key = "leprince_galo_rei".
+  // 🥊 O LUTADOR (mascote do Inter Vale FC — marcus.viniciuslopessantos79, 12/10): o lutador de muay thai,
+  // careca, tapa-olho e cicatriz, mãos enfaixadas, em cima da pedra "DISCIPLINA FORÇA VALE". A cena inteira é a
+  // mascote. Arte do próprio dono. 📏 322×440, ≤45 KB — altura 176. mascote_key = "intervale_lutador".
+  intervale_lutador: (
+    <img src={intervaleMascoteImg} height={176} width={Math.round(176 * 322 / 440)} alt="O Lutador — Inter Vale FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 😜 O ARROGANTCHI (mascote do Arrogantchi FC — heitormonaco98, 08/10): o boleiro de boné pra trás, língua de
   // fora, com a boneca "Mavie" no colo e a bola no pé ("pra que jogar a bola na Mavie?"). A cena inteira é a
   // mascote. Arte do próprio dono. 📏 299×440, ≤45 KB — altura 176. mascote_key = "arrogantchi_boleiro".
@@ -1163,6 +1170,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Le Prince EC': 'leprince_galo_rei',
   'Le Prince SC': 'leprince_galo_rei',
   'Perna de Pau City': 'leprince_galo_rei',
+  // 🥊 o Lutador carimba o gol do Inter Vale FC (marcus.viniciuslopessantos79, 12/10).
+  'Inter Vale FC': 'intervale_lutador',
+  'Inter Vale': 'intervale_lutador',
+  'Inter Vale EC': 'intervale_lutador',
+  'Inter Vale SC': 'intervale_lutador',
   // 😜 o Arrogantchi carimba o gol do Arrogantchi FC (heitormonaco98, 08/10).
   'Arrogantchi FC': 'arrogantchi_boleiro',
   'Arrogantchi': 'arrogantchi_boleiro',
@@ -1284,6 +1296,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   gavioes_gaviao: 'O Gavião', // 🦅 Gaviões SCCP (kauealves584, 02/10)
   vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
   mengao_urubu: 'O Urubu Malvadão', // 🦅 Mengão Malvadão (atilasoaresjr21, 06/10)
+  intervale_lutador: 'O Lutador', // 🥊 Inter Vale FC (marcus.viniciuslopessantos79, 12/10)
   arrogantchi_boleiro: 'O Arrogantchi', // 😜 Arrogantchi FC (heitormonaco98, 08/10)
   leprince_galo_rei: 'O Galo Rei', // 🐓👑 Le Prince FC (henriquejunger07, 08/10)
   k9_rei: 'O Rei K9', // 👑 K9 FC (kelvinoliveiraandradeenunes, 06/10)

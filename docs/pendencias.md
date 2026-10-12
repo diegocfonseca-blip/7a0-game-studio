@@ -1,3 +1,13 @@
+## 🥊⚫⚪ Batismo Inter Vale FC (12/10) ✅ NO AR
+- Dono `marcus.viniciuslopessantos79@gmail.com` (conta de 30/08, existia antes do batismo ✔). **Série C**, no assento do
+  bot **Tetéia SAF** (1º bot sem dono da C; `OLD_NAME` leva save antigo pro nome novo; o Tetéia SAF segue no jogo rápido,
+  por isso o nome velho NÃO desenha o escudo novo). Técnico na pirâmide: "Marcus". Fundador nº89 · sócio nº70.
+- Arte do dono (prancha chroma, recorte limpo): escudo 346×360/29 KB · mascote "O Lutador" (muay thai, na pedra
+  "Disciplina Força Vale") 322×440/42 KB · camisa da Loja. Manto medido: preto #0E0E0E (73%) + branco #E4E3E1.
+- Banco feito: user_colors ouro · esc_fundadores 89 · esc_socios 70 · esc_nomes_batismo "Inter Vale" (FC/EC pelo gatilho).
+- Post: `scripts/posts/intervale-post.png`. ⏳ Falta o time do coração (post e `esc_socios.time_coracao`) e o nome/apelido
+  que ele quer no post (usei "Marcus", do e-mail).
+
 ## 🎬 Pênaltis de verdade nas salas rápidas e Minhas Ligas (12/10) ✅ NO AR
 Queixa do pessoal: *"sempre perde… sempre tem algo óbvio… às vezes buga nos pênaltis"*. Auditoria: o sorteio é justo
 (76% por cobrança, 50/50, sem força de time), MAS a tela **reconstruía** a sequência a partir do placar — mesmo placar =

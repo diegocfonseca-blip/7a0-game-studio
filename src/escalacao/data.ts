@@ -3600,6 +3600,7 @@ export function ehPromessa(c: { name: string; club?: string; year?: number; prom
 }
 
 export const OLD_NAME: Record<string, string> = {
+  'Inter Vale FC': 'Tetéia SAF', // 🥊⚫⚪ batismo do marcus.viniciuslopessantos79 (12/10): assumiu o assento da Série C que era do bot Tetéia SAF — save antigo com Tetéia SAF vira Inter Vale FC ao abrir. (O Tetéia SAF continua existindo na lista CPU_MANAGERS do jogo rápido; só o assento da pirâmide mudou de nome.)
   'Le Prince FC': 'Perna de Pau City', // 🐓👑 batismo do henriquejunger07 (08/10): assumiu o assento da Várzea que era do bot Perna de Pau City — save antigo com Perna de Pau City vira Le Prince FC ao abrir.
   'K9 FC': 'Meia-Boca FC', // 👑🧊 batismo do kelvinoliveiraandradeenunes (06/10): assumiu o assento da Várzea que era do bot Meia-Boca FC — save antigo com Meia-Boca FC vira K9 FC ao abrir.
   'Vasco SAF': 'Vasco da Grana', // ⚽🏴‍☠️ batismo do brunnodeluca90 (24/09): o Vasco da Grana (batismo sem dono, pedido do Diego em 03/08) virou Vasco SAF — save antigo chega no nome novo
@@ -3962,7 +3963,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // da Série C). `OLD_NAME` leva save antigo pro nome novo. O Zorra FC continua existindo em
     // CLASSIC_CLUBS (partida rápida); só o assento da pirâmide mudou de nome.
     { name: 'Gavião', team: 'Gaviões SCCP' }, // 🦅⚫⚪ clube BATIZADO por apoiador (kauealves584 — Gaviões SCCP, ex-Zorra FC, Série C; escudo listrado com o gavião de asas abertas, mascote O Gavião; preto #161314 + branco #F9F8F8 MEDIDOS na camisa do dono; Lenda + fundador nº83, 02/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
-    { name: 'Bilu Tetéia', team: 'Tetéia SAF' },
+    // 🥊 INTER VALE FC (marcus.viniciuslopessantos79, batismo de 12/10) no assento do bot Tetéia SAF
+    // (o 1º bot sem dono da Série C). `OLD_NAME` leva save antigo pro nome novo. O Tetéia SAF continua
+    // existindo em CPU_MANAGERS (o elenco do jogo rápido, outra lista).
+    { name: 'Marcus', team: 'Inter Vale FC' }, // 🥊⚫⚪ clube BATIZADO por apoiador (marcus.viniciuslopessantos79 — Inter Vale FC, ex-Tetéia SAF, Série C; escudo redondo alvinegro com o monograma IV e o 08, mascote O Lutador de muay thai; preto #0E0E0E + branco #E4E3E1 MEDIDOS na camisa do dono; Lenda + fundador nº89 + sócio nº70, 12/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Gugu Canela', team: 'Napolitano' },
     { name: 'Boss', team: 'Final Boss FC' }, // 🐂 clube BATIZADO por apoiador (gustavo99828 — Final Boss FC, ex-Ponte Branca, Série C; mascote o touro O Boss, vermelho + preto sobre branco; Lenda + fundador nº57, 05/09)
     { name: 'Vavá Peteca', team: 'CRBebê' },
