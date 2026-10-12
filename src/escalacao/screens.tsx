@@ -1797,7 +1797,7 @@ function Duvidas() {
     ['How do I get a crest and a mascot of my own?', <>
       It\'s the <b>🖋️ Club naming</b>. You pick the name, send whatever art you like (or we draw it), and the club gets its <b>crest, mascot, kit and stadium name</b> — made just for it.<br /><br />
       <b>Where:</b> 💛 Support → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>How much:</b> R$ 69.90 (🖋️ Legend Naming) · R$ 79.99 (🖋️✨ Plus Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 69.90 (Série B, C, D or Várzea) · R$ 79.99 (👑 Série A).<br /></>}
+      {planos2Liberado() ? <><b>How much:</b> R$ 69.90 (🖋️ Legend Naming) · R$ 89.90 (🖋️✨ Plus Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 69.90 (Série B, C, D or Várzea) · R$ 79.99 (👑 Série A).<br /></>}
       <b>How:</b> pay via Pix, send the receipt and the name by DM. We confirm <b>within 24h</b> and it enters the next update.<br /><br />
       The name is <b>reserved in 4 forms</b> (with and without FC/EC, upper or lower case) — nobody else can use it.
     </>],
@@ -1812,7 +1812,7 @@ function Duvidas() {
       ⚽ <b>Free — R$ 0.</b> Career, Quick Play, public rooms and your friends\' rooms and leagues.<br />
       ⭐ <b>Full Star — R$ 12.90 a month.</b> Manual Mode, levels and scout up to Legend, premium look, 4 careers, create rooms and My Leagues, VIP group.<br />
       🖋️ <b>Legend Naming — R$ 69.90, one time.</b> <b>Everything in Star, forever</b>, plus your club (crest, mascot, kit, stadium) in Série A.<br />
-      🖋️✨ <b>Plus Naming — R$ 79.99, one time.</b> Everything in Legend Naming + a unique grand entrance + a crowd chant in Career.<br /><br />
+      🖋️✨ <b>Plus Naming — R$ 89.90, one time.</b> Everything in Legend Naming + a unique grand entrance + a crowd chant in Career.<br /><br />
       Already bought Star, Legend, Membership or a Naming before? <b>You keep all of it, forever.</b><br /><br />
       </> : <>
       There are <b>4</b>, and all the details are in the <b>💛 Support</b> button:<br /><br />
@@ -1863,7 +1863,7 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo Lenda) · R$ 79,99 (🖋️✨ Batismo Plus, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 69,90 (Série B, C, D ou Várzea) · R$ 79,99 (👑 Série A).<br /></>}
+      {planos2Liberado() ? <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo Lenda) · R$ 89,90 (🖋️✨ Batismo Plus, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 69,90 (Série B, C, D ou Várzea) · R$ 79,99 (👑 Série A).<br /></>}
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
@@ -1878,7 +1878,7 @@ function Duvidas() {
       ⚽ <b>Gratuito — R$ 0.</b> Carreira, Jogo Rápido, salas públicas e as salas e ligas dos amigos.<br />
       ⭐ <b>Craque completo — R$ 12,90 por mês.</b> Modo Manual, nível e olheiro até Lenda, visual premium, 4 carreiras, cria salas e Minhas Ligas, grupo VIP.<br />
       🖋️ <b>Batismo Lenda — R$ 69,90, uma vez só.</b> <b>Tudo do Craque, pra sempre</b>, mais o seu clube (escudo, mascote, manto, estádio) na Série A.<br />
-      🖋️✨ <b>Batismo Plus — R$ 79,99, uma vez só.</b> Tudo do Batismo Lenda + entrada de gala única + canto de torcida na Carreira.<br /><br />
+      🖋️✨ <b>Batismo Plus — R$ 89,90, uma vez só.</b> Tudo do Batismo Lenda + entrada de gala única + canto de torcida na Carreira.<br /><br />
       Já comprou Craque, Lenda, Sócio ou Batismo antes? <b>Continua tudo seu, pra sempre.</b><br /><br />
       </> : <>
       São <b>4</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />

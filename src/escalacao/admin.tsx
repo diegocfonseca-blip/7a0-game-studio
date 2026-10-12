@@ -343,7 +343,7 @@ function CraqueMensalAdmin() {
     const em = bEmail.trim().toLowerCase()
     if (!em.includes('@') || bPid.trim().length < 3) { setMsg('❌ falta o e-mail ou o ID do Pix do batismo'); return }
     setBusy(true); setMsg('')
-    const { data, error } = await supabase.rpc('esc_admin_batismo_compra', { p_email: em, p_plano: bPlano, p_pagamento_id: bPid.trim(), p_valor: bPlano === 'plus' ? 79.99 : 69.9 })
+    const { data, error } = await supabase.rpc('esc_admin_batismo_compra', { p_email: em, p_plano: bPlano, p_pagamento_id: bPid.trim(), p_valor: bPlano === 'plus' ? PRECOS.batismoPlus : PRECOS.batismoLenda })
     const r = data as { repetido?: boolean; plano?: string } | null
     setMsg(error ? `❌ ${error.message}` : r?.repetido ? '⚠️ esse pagamento já estava registrado — nada mudou' : `✅ ${em} registrado como Batismo ${r?.plano === 'plus' ? 'Plus' : 'Lenda'} (o roteiro do batismo segue como sempre)`)
     if (!error && !r?.repetido) { setBEmail(''); setBPid('') }
@@ -379,7 +379,7 @@ function CraqueMensalAdmin() {
         </tbody>
       </table>
       <details style={{ marginTop: 10 }}>
-        <summary style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#FFC400', cursor: 'pointer', textTransform: 'uppercase' }}>🖋 Registrar batismo novo (Lenda R$ 69,90 / Plus R$ 79,99)</summary>
+        <summary style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#FFC400', cursor: 'pointer', textTransform: 'uppercase' }}>🖋 Registrar batismo novo (Lenda R$ 69,90 / Plus R$ 89,90)</summary>
         <div style={{ display: 'flex', gap: 6, margin: '8px 0' }}>
           {(['lenda', 'plus'] as const).map(k => <button key={k} onClick={() => setBPlano(k)} style={{ flex: 1, border: '2px solid #FFC400', borderRadius: 8, padding: 6, ...OSWALD, fontWeight: 900, fontSize: 11.5, background: bPlano === k ? '#FFC400' : 'transparent', color: bPlano === k ? '#0C0C0C' : '#FFC400', cursor: 'pointer' }}>{k === 'plus' ? '🖋✨ PLUS' : '🖋 LENDA'}</button>)}
         </div>

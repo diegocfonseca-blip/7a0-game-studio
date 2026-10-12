@@ -6,6 +6,15 @@ Gente sai da sala no fim da liga sem saber que vem Copa regional/Copa do Mundo/L
 Peças em `src/escalacao/chat-sala.tsx` (usadas pelos dois chats). Responder = campo `re` na mensagem (versão velha ignora). Aviso: `scripts/avisos/2026-10-13-chat-sala.json` → `scripts/posts/aviso-chat-sala.png`.
 `scripts/mockup-chat-sala.mjs` → `scripts/mockups/chat-sala.png`. 4 ideias: (1) escudo do clube + cor do PRÓPRIO tier no nome · (2) zoeira rápida (botões prontos, espera de 3s) · (3) responder com citação · (4) gaveta mais baixa sem escurecer o pregão. Sem "digitando" (não pode gastar realtime a mais). Mexe só no `ChatWidget` (screens.tsx) e no `LobbyChatDock` (lobby.tsx).
 
+
+## 13/10/2026 — 💳 BATISMO PLUS AGORA É R$ 89,90 (era 79,99)
+
+Diego: *"coloque o mais top por 89 que ganha a mais canto da torcida… e entrada de gala exclusiva"* → perguntei e ele
+escolheu **"Plus passa a custar 89"** (continua com gala única + canto; Lenda segue R$ 69,90). Preço mora em
+`PRECOS.batismoPlus` (planos-regras.ts); tela, Pix e painel do admin leem dali. Trava: `npm run planos`.
+⚠️ Os planos v2 ainda estão SÓ nas contas do Diego (`PLANOS2_GERAL = false`); pro público continua a tela velha
+(Batismo B/C/D/Várzea 69,90 · Série A 79,99), que não mudou. Quem já comprou o Plus a 79,99 fica como está.
+
 ## 📏 Medidor de mensagens ao vivo (13/10, Diego: "Ok pode") ✅ NO AR — invisível pro jogador
 Motivo: a conta do Supabase passou de ~40 milhões de mensagens ao vivo no mês (o plano inclui 5 milhões).
 Cada aparelho conta o que RECEBE e o que MANDA por tipo (estado, ação, chat, emoji, mascote, som, presença,

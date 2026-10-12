@@ -58,7 +58,7 @@ const Controles = () => <div style={{ display: 'flex', gap: 3, justifyContent: '
 
 
 // 💳 PLANOS V2 (08/10, Diego): 4 planos, nesta ordem — Gratuito · ⭐ Craque completo (R$ 12,90/mês) ·
-// 🖋 Batismo Lenda (R$ 69,90) · 🖋✨ Batismo Plus (R$ 79,99). O Craque/Lenda avulso e o sócio pago
+// 🖋 Batismo Lenda (R$ 69,90) · 🖋✨ Batismo Plus (R$ 89,90). O Craque/Lenda avulso e o sócio pago
 // SAÍRAM da vitrine — quem já comprou continua com tudo (o aviso fica no pé da tela).
 export type SupportPlanKeyV2 = 'gratis' | 'craque' | 'batismo' | 'plus' | 'prata' | 'ouro' | 'socio'
 type Props = {
@@ -184,7 +184,7 @@ export function SupportPlansV2(p: Props) {
     </SupportPlanCard>
 
     {/* 4️⃣ BATISMO PLUS */}
-    <SupportPlanCard id="support-plus" title={tr('🖋✨ Batismo Plus', '🖋✨ Plus Naming')} price="R$ 79,99" cadence={tr('uma vez só · pra sempre', 'one-off · forever')} tone="plus">
+    <SupportPlanCard id="support-plus" title={tr('🖋✨ Batismo Plus', '🖋✨ Plus Naming')} price="R$ 89,90" cadence={tr('uma vez só · pra sempre', 'one-off · forever')} tone="plus">
       <h3>{tr('Tudo do Batismo Lenda + entrada de gala única e personalizada + canto de torcida na Carreira.', 'Everything in Legend Naming + a unique custom grand entrance + a crowd chant in Career.')}</h3>
       <Vitrine titulo={tr('o que só o Plus tem', 'what only Plus has')}>
         <div className="ll-vit-grid">
@@ -205,7 +205,7 @@ export function SupportPlansV2(p: Props) {
       <Ok><b>{tr('Canto de torcida', 'Crowd chant')}</b>{tr(' do seu clube tocando no estádio da sua Carreira', ' of your club playing at your Career stadium')}</Ok>
       <p className="ll-support-note">{tr('A gala e o canto são feitos sob medida: entram no jogo assim que ficam prontos (o Diego combina com você).', 'The entrance and the chant are made to order: they go into the game as soon as they are ready (Diego sorts it out with you).')}</p>
       {p.batismoPlano === 'plus' ? <p className="ll-vit-seu">{tr('✅ você já tem o Plus', '✅ you already have Plus')}</p>
-        : <button className="ll-support-button gold" onClick={() => p.onNaming('plus')}>{p.batismoPlano ? tr('QUERO SUBIR PRO PLUS', 'UPGRADE TO PLUS') : tr('QUERO O BATISMO PLUS · R$ 79,99', 'I WANT PLUS NAMING · R$ 79.99')}</button>}
+        : <button className="ll-support-button gold" onClick={() => p.onNaming('plus')}>{p.batismoPlano ? tr('QUERO SUBIR PRO PLUS', 'UPGRADE TO PLUS') : tr('QUERO O BATISMO PLUS · R$ 89,90', 'I WANT PLUS NAMING · R$ 89.90')}</button>}
     </SupportPlanCard>
 
     {/* 🛟 quem já comprou antes */}

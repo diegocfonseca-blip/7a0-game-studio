@@ -935,7 +935,7 @@ export function useElencoNovo(): boolean {
 }
 
 // ─── 💳 PLANOS V2 (08–09/10) ──────────────────────────────────────────────────
-// Gratuito · ⭐ Craque completo R$ 9,90/mês · 🖋 Batismo Lenda R$ 69,90 · 🖋✨ Batismo Plus R$ 79,99.
+// Gratuito · ⭐ Craque completo R$ 9,90/mês · 🖋 Batismo Lenda R$ 69,90 · 🖋✨ Batismo Plus R$ 89,90 (era 79,99 até 13/10).
 // Diego (09/10): *"publique só pro meu usuário pra eu ver como ficará"*. Enquanto for `false`, só as
 // contas abaixo veem a vitrine nova, a tela do mensal e os textos novos; o resto do mundo segue com os
 // planos antigos, sem mudar nada. A 2ª conta (diego2, grátis) serve pra ele ver como o gratuito enxerga.

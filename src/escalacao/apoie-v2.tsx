@@ -130,7 +130,7 @@ export function ApoieButtonV2({ big = false, startScreen = 'choice', trigger }: 
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
   const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
   const [clube, setClube] = useState('')
-  // 🖋 BATISMO (planos v2, 08/10): Lenda R$ 69,90 ou Plus R$ 79,99 — os dois já entram na Série A
+  // 🖋 BATISMO (planos v2, 08/10): Lenda R$ 69,90 ou Plus R$ 89,90 (era 79,99 até 13/10) — os dois já entram na Série A
   // (antes era a escolha de série, 59,90 × 69,90). Preços em planos-regras.ts.
   const [planoBatismo, setPlanoBatismo] = useState<'lenda' | 'plus'>('lenda')
   const precoCheioBatismo = planoBatismo === 'plus' ? PRECOS.batismoPlus : PRECOS.batismoLenda
