@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 const {escalaValida,atletasEmCampo,quadroPartida,projetarCampo,progressoChute}=await import('../src/escalacao/presidencia-partida-model.ts')
 const {segmentoLivre,caminhoSeguro,obstaculosDoEstadio}=await import('../src/escalacao/presidencia-estadio-navegacao.ts')
-const {aproximarMapa,limitarVistaMapa,atoresDoMapa,raioCorpoAtor,quadroAtor,comprimentoRota}=await import('../src/escalacao/presidencia-estadio-mapa-model.ts')
+const {aproximarMapa,limitarVistaMapa,atoresDoMapa,raioCorpoAtor,quadroAtor,comprimentoRota,ROTAS_ESTADIO}=await import('../src/escalacao/presidencia-estadio-mapa-model.ts')
 const roles=['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA']
 const team=side=>roles.map((pos,i)=>({id:side+i,name:`Atleta demonstrativo ${side} ${i+1}`,pos}))
 const state={context:{id:'fixture-local',home:team('casa'),away:team('fora')},minute:20,homeScore:0,awayScore:0,paused:false,finished:false,homeColor:'#1B7A3D',awayColor:'#C2452F'}
@@ -64,6 +64,14 @@ console.log('PASS: bola confirmada dentro das duas balizas da câmera interna')
 
 assert.ok(quadroPartida({...state,minute:46,goal:{...goal,minute:45,phase:'confirmed'}},0).ball.x>1,'Gol do primeiro tempo na fila mantém o lado correto')
 assert.ok(quadroPartida({...state,minute:46,goal:{...goal,minute:46,phase:'confirmed'}},0).ball.x<0,'Gol do segundo tempo respeita a troca de lado')
+const queuedHalf=quadroPartida({...second,goal:{...goal,minute:45}},0,0)
+const queuedScorer=queuedHalf.actors.find(p=>p.id==='casa10')
+assert.ok(queuedScorer,'Autor do lance de 45 permanece até a fila terminar')
+assert.ok(!queuedHalf.actors.some(p=>p.id===replacement.id),'Substituto não entra no meio do chute anterior')
+assert.equal(queuedHalf.ball.x,queuedScorer.x)
+assert.equal(queuedHalf.ball.y,queuedScorer.y)
+assert.ok(queuedHalf.actors.find(p=>p.id==='casa0').x<.1,'Time inteiro conserva o lado do lance')
+assert.ok(atletasEmCampo({...second,goal:undefined}).some(p=>p.id===replacement.id),'Escalação do segundo tempo assume ao terminar o lance')
 console.log('PASS: lado do gol usa o minuto do evento, mesmo em fila após o intervalo')
 
 const parked=atoresDoMapa({inv:{},ext:['estac']}).find(a=>a.route==='parking')
@@ -120,3 +128,111 @@ const portraitAnchor={x:35,y:20},portraitZoom=aproximarMapa({zoom:1,x:0,y:0},2,p
 assert.equal((portraitAnchor.x-portraitZoom.x)/portraitZoom.zoom,portraitAnchor.x)
 assert.equal((portraitAnchor.y-portraitZoom.y)/portraitZoom.zoom,portraitAnchor.y)
 console.log('PASS: mapa alto, limites laterais, vista inteira e zoom ancorado preservam proporção')
+
+const {tempoVisualPartida}=await import('../src/escalacao/presidencia-partida-model.ts')
+const {escalaNoGramado,CAMPO_MAPA}=await import('../src/escalacao/presidencia-partida-geometria.ts')
+assert.equal(tempoVisualPartida({...state,visualClock:{seconds:10,sampledAt:1000,running:true}},2500),11.5)
+assert.equal(tempoVisualPartida({...state,visualClock:{seconds:10,sampledAt:1000,running:false}},2500),10)
+for(const field of [CAMPO_INTERNO,CAMPO_MAPA])for(const y of [0,.5,1]){
+ const scale=escalaNoGramado(field,y)
+ assert.ok(Math.abs(scale.ballDiameter/scale.athleteHeight-.22/(1.8*scale.verticalProjection))<1e-12,'Altura considera a inclinação; diâmetro esférico conserva a escala métrica')
+ assert.ok(scale.athleteHeight>0)
+}
+console.log('PASS: relógio compartilhado e escala física comum para atletas e bola')
+
+// Chegar ao destino também importa: recortar uma rota antes da parede evita
+// atravessar o prédio, mas não pode deixar o visitante da loja preso na praça.
+const businessKeys=['loja','hotel','chopp','praca','estacao','asfalto','estac']
+for(let mask=0;mask<2**businessKeys.length;mask++){
+ const stadium={inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:150},ext:businessKeys.filter((_,i)=>mask&(1<<i))}
+ const actors=atoresDoMapa(stadium),obstacles=obstaculosDoEstadio(stadium)
+ for(const key of businessKeys.slice(0,5)){
+  const visitor=actors.find(a=>a.id==='visitor-'+key)
+  assert.equal(!!visitor,stadium.ext.includes(key),'Só estabelecimento comprado recebe visitante: '+key)
+  if(!visitor)continue
+  assert.deepEqual(visitor.path.points.at(-1),ROTAS_ESTADIO[visitor.route].points.at(-1),'Rota chega ao acesso mesmo com vizinhos: '+key+' '+mask)
+  for(let i=1;i<visitor.path.points.length;i++)assert.ok(segmentoLivre(visitor.path.points[i-1],visitor.path.points[i],obstacles,raioCorpoAtor(visitor)),'Corpo inteiro passa pelo caminho do visitante')
+ }
+}
+console.log('PASS: visitantes chegam aos cinco destinos nas 128 combinações de negócios, asfalto e estacionamento, sem atravessar volumes cadastrados')
+
+for(const home of [true,false])for(const minute of [20,70])for(const outcome of ['defendeu','trave','fora','isolou']){
+ const chance={id:'chance-local',home,minute,startedAt:1000,outcome},s={...state,minute,chance},right=home!==(minute>45)
+ const start=quadroPartida(s,0,0,0),impact=quadroPartida(s,0,0,.6),end=quadroPartida(s,0,0,1.2)
+ assert.ok(start.actors.some(p=>p.side===(home?'home':'away')&&!p.keeper&&p.x===start.ball.x&&p.y===start.ball.y),'Bola parte dos pés de um atleta da equipe correta')
+ assert.equal(end.ball.inNet,false);assert.equal(end.homeScore,0);assert.equal(end.awayScore,0)
+ if(outcome==='defendeu'||outcome==='trave')assert.ok(right?end.ball.x<impact.ball.x:end.ball.x>impact.ball.x,'Rebote volta para dentro do campo')
+ if(outcome==='fora')assert.ok(Math.abs(end.ball.y-.5)>7.32/68/2,'Chute passa por fora da baliza')
+ if(outcome==='isolou')assert.ok(end.ball.elevation>2.44,'Bola passa acima do travessão')
+ const priority=quadroPartida({...s,goal:{...goal,phase:'confirmed'}},0,1,1)
+ assert.equal(priority.ball.inNet,true,'Evento de gol tem prioridade sobre chance anterior')
+}
+console.log('PASS: chances herdadas do placar preservam lado, rebote, fora, altura e resultado, com prioridade do gol')
+
+for(const paved of [false,true]){
+ const actors=atoresDoMapa({inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:50},ext:paved?['asfalto']:[]})
+ const guard=actors.find(a=>a.kind==='security'),post=quadroAtor(guard,0)
+ const exclusion=[{id:'posto-seguranca',polygon:[{x:post.x-2,y:post.y-2},{x:post.x+2,y:post.y-2},{x:post.x+2,y:post.y+2},{x:post.x-2,y:post.y+2}]}]
+ for(const actor of actors.filter(a=>a.kind!=='security'))for(let i=1;i<actor.path.points.length;i++)assert.ok(segmentoLivre(actor.path.points[i-1],actor.path.points[i],exclusion,raioCorpoAtor(actor)),'Segurança não bloqueia torcedores, trabalhadores ou veículos')
+}
+console.log('PASS: posto do segurança fica fora da circulação com e sem asfalto, inclusive durante obras')
+
+for(const ext of [[],['asfalto']]){
+ const stadium={inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:50},ext},obstacles=obstaculosDoEstadio(stadium)
+ const actors=atoresDoMapa(stadium).filter(a=>a.lane)
+ for(let seconds=0;seconds<600;seconds+=.1){
+  const frames=actors.map(a=>quadroAtor(a,seconds))
+  for(let i=0;i<actors.length;i++){
+   const p=frames[i],next=quadroAtor(actors[i],seconds+.001)
+   assert.ok(segmentoLivre(p,next,obstacles,raioCorpoAtor(actors[i])),'Faixas e curvas de retorno respeitam corpo e obstáculos')
+   assert.ok(Math.hypot(next.x-p.x,next.y-p.y)<.02,'Não há salto lateral nos cantos ou ao retornar')
+   for(let j=i+1;j<actors.length;j++)if(actors[i].route===actors[j].route)assert.ok(Math.hypot(p.x-frames[j].x,p.y-frames[j].y)>raioCorpoAtor(actors[i])+raioCorpoAtor(actors[j]),'Pedestres da mesma rota não atravessam uns aos outros')
+  }
+ }
+}
+console.log('PASS: dez minutos de circulação em dois sentidos, sem cruzar corpos nas rotas compartilhadas, sem salto no retorno e sem penetrar obstáculos cadastrados')
+
+const streetActors=atoresDoMapa({inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:150},ext:['asfalto']})
+const pavement=streetActors.find(a=>a.route==='sidewalk')
+for(const car of streetActors.filter(a=>a.kind==='car'&&a.route.startsWith('road'))){
+ const laneSegments=car.path.points.slice(1).map((p,i)=>({id:'faixa-carro',polygon:[car.path.points[i],p]}))
+ const clearance=raioCorpoAtor(car)+raioCorpoAtor(pavement)+(pavement.lane??0)
+ for(let i=1;i<pavement.path.points.length;i++)assert.ok(segmentoLivre(pavement.path.points[i-1],pavement.path.points[i],laneSegments,clearance),'Calçada separa todo o corpo do pedestre da carroceria, inclusive nas curvas')
+}
+console.log('PASS: calçada conserva separação física das duas faixas de veículos ao longo de todo o trajeto')
+
+// Regressão visual: a antiga via direita atravessava o estacionamento.
+// Os lotes registrados na própria composição precisam ficar fora da via,
+// mesmo enquanto ainda não foram comprados.
+const {AREAS_MUNDO}=await import('../src/escalacao/presidencia-estadio-mundo.ts')
+// parkingLeft inclui uma faixa de calçada no recorte da arte, portanto seu
+// polígono de composição não serve como volume físico de estacionamento.
+const privatePlots=['parkingRight','hotel','loja','praca'].map(id=>({id,polygon:AREAS_MUNDO[id].map(([x,y])=>({x,y}))}))
+for(const actor of streetActors.filter(a=>a.route==='sidewalk'||a.route.startsWith('road'))){
+ const route=actor.path.points,radius=raioCorpoAtor(actor)+(actor.lane??0)
+ for(let i=1;i<route.length;i++)assert.ok(segmentoLivre(route[i-1],route[i],privatePlots,radius),`${actor.id}: via pública não corta estacionamento ou lote de negócio`)
+}
+console.log('PASS: tráfego público e calçada ficam fora do estacionamento direito e dos lotes comerciais, incluindo a margem do corpo')
+
+const assistedGoal={...goal,assist:state.context.home[7].name}
+const passStart=quadroPartida({...state,goal:assistedGoal},0,0),passEnd=quadroPartida({...state,goal:assistedGoal},0,.25)
+const helper=passStart.actors.find(p=>p.name===assistedGoal.assist),finisher=passEnd.actors.find(p=>p.name===assistedGoal.name)
+assert.equal(passStart.ball.x,helper.x);assert.equal(passStart.ball.y,helper.y)
+assert.equal(passEnd.ball.x,finisher.x);assert.equal(passEnd.ball.y,finisher.y)
+assert.equal(passEnd.homeScore,0);assert.equal(passEnd.ball.inNet,false)
+assert.equal(quadroPartida({...state,goal:{...assistedGoal,phase:'confirmed'},homeScore:1},0,1).ball.inNet,true)
+assert.deepEqual(quadroPartida({...state,goal:{...goal,assist:'nome ausente'}},0,.5).ball,quadroPartida({...state,goal},0,.5).ball,'Não inventa assistente ausente do XI')
+console.log('PASS: assistência registrada parte do passador real, chega ao finalizador e conserva o instante de confirmação do gol')
+
+for(let step=0;step<30;step++){
+ for(const local of [.1,.5,2,2.7]){
+  const frame=quadroPartida(state,step*2.8+local)
+  assert.ok(frame.actors.some(p=>Math.hypot(p.x-frame.ball.x,p.y-frame.ball.y)<1e-10),'Domínio e recepção apoiam a bola nos pés de um atleta do XI')
+  assert.equal(frame.ball.inNet,false);assert.equal(frame.homeScore,state.homeScore);assert.equal(frame.awayScore,state.awayScore)
+ }
+ const a=quadroPartida(state,(step+1)*2.8-.000001),b=quadroPartida(state,(step+1)*2.8+.000001)
+ assert.ok(Math.hypot(a.ball.x-b.ball.x,a.ball.y-b.ball.y)<.000001,'Recepção e próximo passe não teleportam a bola')
+}
+const kickoff=quadroPartida({...state,minute:0},0)
+assert.equal(kickoff.ball.x,.5);assert.equal(kickoff.ball.y,.5)
+console.log('PASS: bola dominada/recebida nos pés, circulação contínua entre passes e saída no centro, sem alterar placar ou inventar gol')

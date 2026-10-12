@@ -57,4 +57,18 @@ export function camadasMundo(st?:StadiumSave):CamadaMundo[]{
 }
 
 /** Recortes registrados: a travessa do acesso e copas ocultam quem passa atrás. */
-export const OCLUSORES_MUNDO:readonly AreaMundo[]=[[[812,786],[862,786],[866,809],[810,809]],[[809,716],[867,716],[867,735],[809,735]],[[820,617],[834,609],[849,617],[852,635],[843,645],[825,640]],[[820,648],[834,636],[851,646],[850,665],[831,669],[817,659]]]
+export const OCLUSORES_MUNDO:readonly {id:string;area:AreaMundo;groundY:number;requires?:string}[]=[
+ {id:'acesso-externo',groundY:823,area:[[812,786],[862,786],[866,809],[810,809]]},
+ {id:'acesso-interno',groundY:750,area:[[809,716],[867,716],[867,735],[809,735]]},
+ {id:'arvore-acesso-norte',groundY:648,area:[[820,617],[834,609],[849,617],[852,635],[843,645],[825,640]]},
+ {id:'arvore-acesso-sul',groundY:672,area:[[820,648],[834,636],[851,646],[850,665],[831,669],[817,659]]},
+ // Estas copas pertencem ao lote da estação, mesmo antes do asfalto.
+ {id:'palmeira-estacao-oeste',requires:'estacao',groundY:302,area:[[1298,278],[1303,276],[1308,280],[1314,284],[1310,289],[1305,292],[1301,289],[1295,292],[1294,286],[1290,284],[1295,281]]},
+ {id:'palmeira-estacao-leste',requires:'estacao',groundY:311,area:[[1326,286],[1331,285],[1334,290],[1339,293],[1335,298],[1330,300],[1325,298],[1320,301],[1319,295],[1322,290]]},
+ {id:'palmeira-calcada-leste',groundY:740,area:[[1278,715],[1282,716],[1285,723],[1289,727],[1287,732],[1282,732],[1278,735],[1273,731],[1271,725],[1275,724]]},
+ {id:'palmeira-calcada-oeste',groundY:755,area:[[1247,726],[1251,726],[1255,731],[1259,737],[1256,745],[1250,741],[1244,746],[1239,740],[1238,735],[1243,731]]},
+ {id:'arvore-acesso-hotel',groundY:580,area:[[457,552],[466,552],[471,558],[476,559],[471,567],[468,571],[460,569],[453,571],[454,563],[449,560]]},
+]
+
+/** A oclusão acompanha a compra que realmente desenha o objeto. */
+export const oclusoresDoMundo=(st?:StadiumSave)=>OCLUSORES_MUNDO.filter(o=>st?.ext.includes(o.requires??'asfalto'))

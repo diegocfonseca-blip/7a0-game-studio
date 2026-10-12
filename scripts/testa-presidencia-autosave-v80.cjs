@@ -1,5 +1,5 @@
 const{chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright'),assert=require('node:assert/strict');
-(async()=>{const browser=await chromium.launch({headless:true,channel:'msedge'});try{
+(async()=>{const browser=await chromium.launch(require('./presidencia-runtime.cjs').browserOptions());try{
  const page=await browser.newPage();await page.addInitScript(()=>localStorage.setItem('bl_lang','pt'));
  await page.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:4196/')?r.continue():r.abort());
  await page.route('**/src/escalacao/presidente-acesso.ts*',r=>r.fulfill({contentType:'text/javascript',body:'export const presidentWritesEnabled=()=>true;export const usePresidentPreview=()=>true;export const PRESIDENT_INTEGRATION_RELEASED=true;'}));

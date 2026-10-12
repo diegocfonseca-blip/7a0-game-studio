@@ -1,0 +1,692 @@
+[
+  {
+    "name": "00 — Terreno sem investimento",
+    "stadium": {
+      "inv": {},
+      "ext": []
+    }
+  },
+  {
+    "name": "🌱 Gramado — clique 1 — 20/30",
+    "stadium": {
+      "inv": {
+        "grama": 20
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "🌱 Gramado — clique 2 — 30/30",
+    "stadium": {
+      "inv": {
+        "grama": 30
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Geral — clique 1 — 20/40",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 20
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Geral — clique 2 — 40/40",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Cadeiras — clique 1 — 20/90",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 20
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Cadeiras — clique 2 — 40/90",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 40
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Cadeiras — clique 3 — 60/90",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 60
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Cadeiras — clique 4 — 80/90",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 80
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Cadeiras — clique 5 — 90/90",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Visitante — clique 1 — 20/120",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 20
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Visitante — clique 2 — 40/120",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 40
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Visitante — clique 3 — 60/120",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 60
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Visitante — clique 4 — 80/120",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 80
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Visitante — clique 5 — 100/120",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 100
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Visitante — clique 6 — 120/120",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Camarote — clique 1 — 20/150",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 20
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Camarote — clique 2 — 40/150",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 40
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Camarote — clique 3 — 60/150",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 60
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Camarote — clique 4 — 80/150",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 80
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Camarote — clique 5 — 100/150",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 100
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Camarote — clique 6 — 120/150",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 120
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Camarote — clique 7 — 140/150",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 140
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "Camarote — clique 8 — 150/150",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": []
+    }
+  },
+  {
+    "name": "💡 Refletores — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl"
+      ]
+    }
+  },
+  {
+    "name": "📺 Telão — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "telao"
+      ]
+    }
+  },
+  {
+    "name": "🛍️ Loja do Clube — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "loja"
+      ]
+    }
+  },
+  {
+    "name": "🅿️ Estacionamento — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "estac"
+      ]
+    }
+  },
+  {
+    "name": "🍔 Praça de Alimentação — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "praca"
+      ]
+    }
+  },
+  {
+    "name": "🍻 Choperia do Estádio — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "chopp"
+      ]
+    }
+  },
+  {
+    "name": "🚇 Estação / Acesso Fácil — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "estacao"
+      ]
+    }
+  },
+  {
+    "name": "☂️ Cobertura — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "cober"
+      ]
+    }
+  },
+  {
+    "name": "🏨 Hotel do Clube — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "hotel"
+      ]
+    }
+  },
+  {
+    "name": "🏟️ Cobertura Retrátil — compra individual",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "cober",
+        "retratil"
+      ]
+    }
+  },
+  {
+    "name": "Teto fechado sem negócios",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "cober",
+        "retratil"
+      ],
+      "roofClosed": true
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 💡 Refletores",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 📺 Telão",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 🛍️ Loja do Clube",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou Ruas internas e calçadas",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 🅿️ Estacionamento",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto",
+        "estac"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 🍔 Praça de Alimentação",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto",
+        "estac",
+        "praca"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 🍻 Choperia do Estádio",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto",
+        "estac",
+        "praca",
+        "chopp"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 🚇 Estação / Acesso Fácil",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto",
+        "estac",
+        "praca",
+        "chopp",
+        "estacao"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou ☂️ Cobertura",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto",
+        "estac",
+        "praca",
+        "chopp",
+        "estacao",
+        "cober"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 🏨 Hotel do Clube",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto",
+        "estac",
+        "praca",
+        "chopp",
+        "estacao",
+        "cober",
+        "hotel"
+      ]
+    }
+  },
+  {
+    "name": "Mapa acumulado — adicionou 🏟️ Cobertura Retrátil",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto",
+        "estac",
+        "praca",
+        "chopp",
+        "estacao",
+        "cober",
+        "hotel",
+        "retratil"
+      ]
+    }
+  },
+  {
+    "name": "Complexo completo — teto fechado",
+    "stadium": {
+      "inv": {
+        "grama": 30,
+        "geral": 40,
+        "cadeiras": 90,
+        "visitante": 120,
+        "camarote": 150
+      },
+      "ext": [
+        "refl",
+        "telao",
+        "loja",
+        "asfalto",
+        "estac",
+        "praca",
+        "chopp",
+        "estacao",
+        "cober",
+        "hotel",
+        "retratil"
+      ],
+      "roofClosed": true
+    }
+  }
+]

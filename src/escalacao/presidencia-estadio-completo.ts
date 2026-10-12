@@ -25,3 +25,11 @@ export function estadioCompletoNaAerea(st?:StadiumSave):boolean{
   return s.k==='grama'&&st.ext.includes('grama')||Number.isFinite(paid)&&paid>=s.cost
  })&&STADIUM_EXTRAS.every(e=>st.ext.includes(e.k))
 }
+
+/** The office camera cannot see the surrounding shops, hotel or parking lots. */
+export function estadioCompletoNaJanela(st?:StadiumSave):boolean{
+ if(!estruturaEstadioCompleta(st)||!st||!catalogoCobertoNaAerea())return false
+ if(st.ext.some(key=>!ART_EXTRAS.includes(key)&&!['grama','medico','asfalto'].includes(key)))return false
+ if(Object.entries(st.inv).some(([key,value])=>!ART_SECTORS.includes(key)&&value!==0))return false
+ return ['refl','telao','cober','retratil'].every(key=>st.ext.includes(key))
+}

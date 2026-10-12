@@ -1,6 +1,6 @@
 const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright'),assert=require('node:assert/strict');
 process.env.TEMP=process.env.TMP=require('node:path').resolve('test-results');
-(async()=>{const browser=await chromium.launch({headless:true,channel:'msedge'});try{
+(async()=>{const browser=await chromium.launch(require('./presidencia-runtime.cjs').browserOptions());try{
  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>localStorage.setItem('bl_lang','pt'));
  await page.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:4196/')?r.continue():r.abort());

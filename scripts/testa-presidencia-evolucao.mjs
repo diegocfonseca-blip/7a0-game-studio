@@ -26,6 +26,7 @@ registerHooks({
 })
 const {STADIUM_SECTORS,STADIUM_EXTRAS}=await import('../src/escalacao/estadiodata.ts')
 const {camadasEstadio,populacaoEstadio,extrasSemArte,vistaTemPendencias,progressoVisualSetor}=await import('../src/escalacao/presidencia-estadio-camadas.ts')
+const {estadioCompletoNaJanela}=await import('../src/escalacao/presidencia-estadio-completo.ts')
 const {obrasVisuaisEstadio}=await import('../src/escalacao/presidencia-estadio-obras.ts')
 const fullInv=Object.fromEntries(STADIUM_SECTORS.map(s=>[s.k,s.cost]))
 let checked=0
@@ -42,7 +43,7 @@ for(let mask=0;mask<2**STADIUM_EXTRAS.length;mask++){
     assert.ok(!/v254|v255|v256|v259/.test(layer.src),'Arte rejeitada')
     if(key==='retratil')assert.ok(roofClosed&&ext.includes('cober'))
    }
-   if(ext.includes('cober')&&ext.includes('retratil')&&(camera==='aerial'||ext.length<STADIUM_EXTRAS.length)){
+   if(ext.includes('cober')&&ext.includes('retratil')&&(camera==='aerial'||!estadioCompletoNaJanela(st))){
     assert.equal(layers.some(layer=>layer.id.startsWith('retratil:')),roofClosed,'Teto sem negócios: '+camera)
    }
    if(camera==='window')assert.ok(!layers.some(layer=>['hotel','loja','chopp','praca','estac','estacao'].includes(layer.id.split(':')[0])),'Negócios fora da janela')
@@ -91,9 +92,9 @@ for(const actor of populated){
   const p=quadroAtor(actor,seconds)
   assert.ok([p.x,p.y,p.angle,p.depth,p.scale].every(Number.isFinite),'Quadro finito')
   assert.ok(p.frame>=0&&p.frame<(actor.frames??1),'Quadro de caminhada dentro da folha')
-  // Cada quadro pertence a um segmento da rota, sem cortar as curvas.
-  const route=ROTAS_ESTADIO[actor.route]
-  assert.ok(route.points.slice(1).some((b,i)=>{const a=route.points[i],dx=b.x-a.x,dy=b.y-a.y;const cross=Math.abs((p.x-a.x)*dy-(p.y-a.y)*dx);const dot=(p.x-a.x)*dx+(p.y-a.y)*dy;return cross<1e-6&&dot>=-1e-6&&dot<=dx*dx+dy*dy+1e-6}),'Ator não sai da rota: '+actor.id)
+  // Cada quadro fica na faixa validada ao redor da rota, incluindo o retorno em arco.
+  const route=actor.path??ROTAS_ESTADIO[actor.route]
+  assert.ok(route.points.slice(1).some((b,i)=>{const a=route.points[i],dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/l)):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)<=(actor.lane??0)+1e-6}),'Ator não sai do corredor seguro: '+actor.id)
  }
 }
 const walking=populated.find(actor=>actor.kind==='fan'&&actor.route==='entranceBare')
@@ -212,7 +213,7 @@ if(process.argv.includes('--preview')){
  const {personagensEstadio}=await import('../src/escalacao/presidencia-estadio-camadas.ts')
  const asset=src=>pathToFileURL(path.join(root,'public',src)).href
  const render=(st,camera)=>{
-  const stage=etapaBaseEstadio(st),complete=estadioCompletoNaAerea(st),grass=vistaInicialEstadio(st).grass
+  const stage=etapaBaseEstadio(st),complete=camera==='window'?estadioCompletoNaJanela(st):estadioCompletoNaAerea(st),grass=vistaInicialEstadio(st).grass
   const names={geral:camera==='aerial'?'estadio-v104/geral.webp':'estadio-v112/geral-janela.webp',cadeiras:camera==='aerial'?'estadio-v223/cadeiras-aerea.webp':'estadio-v223/cadeiras-janela.webp',visitante:camera==='aerial'?'estadio-v225/visitante-aerea.webp':'estadio-v225/visitante-janela.webp',camarote:camera==='aerial'?'estadio-v226/camarote-aerea.webp':'estadio-v225/visitante-janela.webp'}
   const base=camera==='aerial'?'estadio-mapa/terreno.webp':complete?(camera==='aerial'?`estadio-v104/${st.roofClosed?'fechado':'aberto'}.webp`:`estadio-v115/${st.roofClosed?'fechado':'aberto'}-janela.webp`):names[stage]??(camera==='aerial'?'estadio-v104/terra.webp':'estadio-v106/terra-janela.webp')
   let layers=camadasEstadio(st,camera)

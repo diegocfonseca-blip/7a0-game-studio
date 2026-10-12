@@ -3,7 +3,7 @@ const path=require('node:path');
 process.env.TEMP=process.env.TMP=path.resolve('test-results');
 const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright');
 (async()=>{
- const browser=await chromium.launch({headless:true,channel:'msedge'});
+ const browser=await chromium.launch(require('./presidencia-runtime.cjs').browserOptions());
  try{
   const page=await browser.newPage();
   await page.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:4196/')?r.continue():r.abort());

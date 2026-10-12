@@ -23,7 +23,7 @@ export function OnlineScorePresentation(p: {
   // 🧤 defendeu · 🥅 trave · 💨 fora · 🚀 isolou · ⚽ gol (entra e a rede balança).
   // `palcoOn` liga a faixa (sem ela, o placar é byte a byte o de antes).
   // 🎭 A mascote do carimbo NÃO muda: ela continua na cena do gol, como sempre.
-  palcoOn?: boolean; palco?: { side: 'h' | 'a'; fim: 'defendeu' | 'trave' | 'fora' | 'isolou' | 'gol'; key: number; veredito: string } | null;
+  palcoOn?: boolean; palco?: { speed?:number; side: 'h' | 'a'; fim: 'defendeu' | 'trave' | 'fora' | 'isolou' | 'gol'; key: number; veredito: string } | null;
 }) {
   const team = (home: boolean) => {
     const name = home ? p.homeName : p.awayName
@@ -48,7 +48,7 @@ export function OnlineScorePresentation(p: {
     {p.palcoOn && (
       // ⚽🥅 a faixa do golzinho: `key` reinicia a animação a cada lance novo. Lado
       // `h` = a casa atacou → a bola vai pra DIREITA (rede do visitante); `a` → esquerda.
-      <div key={p.palco?.key ?? 'quieto'} className={`ll32-palco${p.palco ? ` ll32-${p.palco.side === 'h' ? 'dir' : 'esq'} ll32-${p.palco.fim}` : ''}`} aria-hidden="true">
+      <div key={p.palco?.key ?? 'quieto'} style={{'--ll32-speed':p.palco?.speed??1} as CSSProperties} className={`ll32-palco${p.palco ? ` ll32-${p.palco.side === 'h' ? 'dir' : 'esq'} ll32-${p.palco.fim}` : ''}`} aria-hidden="true">
         <span className="ll32-meta ll32-m-esq">🥅</span><span className="ll32-luva ll32-l-esq">🧤</span>
         <div className="ll32-pista">
           <i className="ll32-metade ll32-mt-esq" style={{ borderColor: p.homeColor }} /><i className="ll32-metade ll32-mt-dir" style={{ borderColor: p.awayColor }} />

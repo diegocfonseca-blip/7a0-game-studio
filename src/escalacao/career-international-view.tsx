@@ -1,3 +1,5 @@
+import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
+import {usePresidentPreview} from './presidente-acesso'
 // ─── 🌎 CARREIRA INTERNACIONAL — a tela, PASSO A PASSO (01/10, pedido do Diego) ────
 //
 // Palavras dele no 1º teste: *"primeiro deveria aparecer só o banner da competição
@@ -463,15 +465,17 @@ function frasesDoApito(fase: 'liga' | 'ida' | 'volta' | 'final', comp: Comp, voc
   }
 }
 
-function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase = 'liga' }: { match: InternationalMatch; campaign: InternationalCampaign; comp: Comp; roundKey: number; speed: number; onFim: () => void; fase?: 'liga' | 'ida' | 'volta' | 'final' }) {
+export function JogoGrande({ match, campaign, comp, roundKey, speed, onFim, fase = 'liga' }: { match: InternationalMatch; campaign: InternationalCampaign; comp: Comp; roundKey: number; speed: number; onFim: () => void; fase?: 'liga' | 'ida' | 'volta' | 'final' }) {
+  const {state}=useEsc(),presidentAvailable=usePresidentPreview()
   const teams = new Map(campaign.teams.map(t => [t.id, t]))
   const home = teams.get(match.home)!, away = teams.get(match.away)!
+  const stadiumMatch=contextoPartidaCompeticao({enabled:presidentAvailable,id:`${campaign.seed}:intl:${campaign.season}:${comp}:${roundKey}:${match.home}:${match.away}`,speed,home,away,stadiums:state.stadiums})
   const goals: ScoreGoal[] = match.goals.map(g => ({ name: g.name, min: g.min, home: g.home, assist: g.assist }))
   const [fim, setFim] = useState(false)
   useEffect(() => { setFim(false) }, [roundKey])
   useApitoDeLargada('intl-carreira', roundKey, true)
   const tecnico = `${tr('TÉCNICO', 'COACH')}: ${campaign.userTeam.toUpperCase()}`
-  return <LiveScoreCard enhancedCareer homeName={home.institution} awayName={away.institution}
+  return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} homeName={home.institution} awayName={away.institution}
     homeColor={copaSideColor(home.institution)} awayColor={copaSideColor(away.institution)}
     homeEmblem={<SeloClube clube={home.institution} size={58} />} awayEmblem={<SeloClube clube={away.institution} size={58} />}
     homeOwner={home.you ? tecnico : undefined} awayOwner={away.you ? tecnico : undefined}
