@@ -685,7 +685,8 @@ export function ChatWidget() {
           )}
         </button>
       )}
-      {chatOpen && (
+      {/* 🔊 portal pro <body>: a gaveta fica sempre acima do botão de som do canto (13/10) */}
+      {chatOpen && createPortal(
         // 4) 🪟 GAVETA BAIXA (13/10): sem escurecer e sem tampar o jogo — o pregão (relógio,
         // cartas, lance) continua à vista e tocável em cima. Fecha no ✕.
         <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pointerEvents: 'none' }}>{/* 🔊 acima do botão de som do canto (z 99998), que tampava o ENVIAR — print do Diego 13/10 */}
@@ -736,7 +737,8 @@ export function ChatWidget() {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )

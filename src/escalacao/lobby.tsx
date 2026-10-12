@@ -31,6 +31,7 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampion
 import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
+import { createPortal } from 'react-dom'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
@@ -128,7 +129,8 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
           )}
         </button>
       )}
-      {open && (
+      {/* 🔊 vai pro <body> (portal): assim nenhuma caixa da sala prende a gaveta embaixo do botão de som do canto (13/10) */}
+      {open && createPortal(
         // 🪟 gaveta baixa, sem escurecer nem tampar a sala (13/10 — mesma do chat do jogo)
         <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pointerEvents: 'none' }}>{/* 🔊 acima do botão de som do canto (z 99998), que tampava o ENVIAR — print do Diego 13/10 */}
           <div style={{ position: 'relative', pointerEvents: 'auto', color: INK, background: '#FBF6E7', border: `3px solid ${INK}`, borderBottom: 0, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '52vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.15)' }}>
@@ -162,7 +164,8 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
               <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>{tr('Enviar', 'Send')}</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )
