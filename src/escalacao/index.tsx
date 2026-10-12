@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
+import { COMUNIDADE_LINK } from './comunidade'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
 import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
@@ -64,8 +65,7 @@ function AvisoTopo({ escondido }: { escondido: boolean }) {
 // comunidade"*. Diferente da faixa de manutenção (que era FIXA e tampava as moedas de quem joga online), esta
 // entra no FLUXO da página: empurra o conteúdo pra baixo em vez de cobrir. E só aparece na HOME (ordem dele),
 // nunca nas salas, no leilão ou na temporada. O ✕ esconde neste aparelho.
-// Tirar pra todos: COMUNIDADE_LINK = null.
-const COMUNIDADE_LINK: string | null = 'https://chat.whatsapp.com/KfSkVvbjjdiHptHfJE5hQN'
+// Tirar pra todos: COMUNIDADE_LINK = null (comunidade.ts).
 const COMUNIDADE_FECHADA = 'esc-comunidade-zap-fechada'
 function ComunidadeBanner() {
   const { state } = useEsc()

@@ -32,6 +32,7 @@ import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { getSport, useSport } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
+import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
@@ -3670,35 +3671,20 @@ export function EscLobby() {
             ordem de 29/08 (*"de forma mais sutil"*) continua valendo.
             💾 Brilho em CSS = 0 KB (mesma regra do escudo animado: animação é CSS,
             nunca arquivo). Reverter = tirar a classe `zap-brilha`. */}
-        {/* 👑 06/10: virou "grupo VIP junto com o dono do jogo" (pedido do Diego). */}
-        {(() => {
-          const jaTem = myApoioPerk()?.tier === 'ouro' || myApoioPerk()?.tier === 'prata'
-          const Zap = <span className="zap-brilha">WhatsApp</span>
-          return (
-          <div className="pt-1">
-            <style>{'@keyframes zapRespira{0%,100%{text-shadow:0 0 4px rgba(37,211,102,.5),0 0 11px rgba(37,211,102,.22)}50%{text-shadow:0 0 9px rgba(37,211,102,.95),0 0 22px rgba(37,211,102,.5)}}.zap-brilha{color:#25D366;font-weight:900;animation:zapRespira 2.4s ease-in-out infinite}@keyframes zapPonto{0%,100%{opacity:.55;box-shadow:0 0 4px rgba(37,211,102,.5)}50%{opacity:1;box-shadow:0 0 9px rgba(37,211,102,.95)}}.zap-ponto{display:inline-block;width:7px;height:7px;border-radius:99px;background:#25D366;margin-right:5px;vertical-align:1px;animation:zapPonto 2.4s ease-in-out infinite}@media (prefers-reduced-motion:reduce){.zap-brilha{animation:none;text-shadow:0 0 7px rgba(37,211,102,.7)}.zap-ponto{animation:none;box-shadow:0 0 7px rgba(37,211,102,.7)}}'}</style>
-            <p className="text-white/45 text-[12.5px] font-bold leading-snug text-center">
-              {/* 🟢 05/10: um tico maior (11→12,5px) e um tico mais claro, a pedido dele ("quase nada").
-                  🟢 a bolinha viva (opção ③, escolha dele): respira no MESMO tempo
-                  da palavra, senão as duas luzes brigam na mesma linha. */}
-              <span className="zap-ponto" />
-              {jaTem ? (<>
-                {getLang() === 'en'
-                  ? <>📱 There is a <b>VIP</b> {Zap} group with the game's owner — and you already have a spot in it.</>
-                  : <>📱 Tem um grupo <b>VIP</b> no {Zap} junto com o dono do jogo — e você já tem vaga nele.</>}{' '}
-                <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noreferrer"
-                  className="underline text-white/60 font-black active:opacity-60">{tr('Pedir o convite', 'Ask for the invite')}</a>
-              </>) : (<>
-                {getLang() === 'en'
-                  ? <>📱 Nobody to call? Join the <b>VIP</b> {Zap} group with the game's owner — from ⭐ Star up.</>
-                  : <>📱 Sem galera pra chamar? Entra no grupo <b>VIP</b> do {Zap} junto com o dono do jogo — é do ⭐ Craque pra cima.</>}{' '}
-                <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=craque` }}
-                  className="underline text-white/60 font-black active:opacity-60">{tr('Saiba mais', 'Learn more')}</button>
-              </>)}
-            </p>
-          </div>
-          )
-        })()}
+        {/* 👑 06/10: virou "grupo VIP junto com o dono do jogo" (pedido do Diego).
+            🔁 11/10: a linha do grupo VIP SAIU daqui e no lugar entrou o quadro verde da COMUNIDADE do WhatsApp
+            (pedido dele: *"no lugar desse negócio do WhatsApp… procurando mais pessoas pra jogar online?"*).
+            Quadro na página, não modal: não interrompe ninguém. Link em `comunidade.ts`. */}
+        {COMUNIDADE_LINK && (
+          <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="block rounded-2xl px-3.5 py-3 active:translate-y-0.5"
+            style={{ background: '#1B7A3D', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff', textDecoration: 'none' }}>
+            <p className="font-black uppercase text-[16px] leading-tight" style={OSWALD}>{tr('📲 Procurando mais gente pra jogar online?', '📲 Looking for more people to play online?')}</p>
+            <p className="text-[12px] font-bold leading-snug mt-1" style={{ color: 'rgba(255,255,255,.88)' }}>{getLang() === 'en'
+              ? <>We just launched the long-awaited <b style={{ color: '#fff' }}>Leilão Legends community on WhatsApp</b>. Come join us too!</>
+              : <>Acabamos de criar a tão pedida <b style={{ color: '#fff' }}>Comunidade do Leilão Legends no WhatsApp</b>. Entre aqui também!</>}</p>
+            <span className="inline-block mt-2 rounded-full px-3.5 py-1 font-black uppercase text-[13px]" style={{ ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}` }}>{tr('Entrar na comunidade →', 'Join the community →')}</span>
+          </a>
+        )}
       </div>}
 
       {tab === 'join' && <div className="space-y-2">
