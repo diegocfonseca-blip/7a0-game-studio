@@ -1,3 +1,14 @@
+## 💰 Economia dos bots na carreira (13/10) ✅ NO AR — SÓ NAS CONTAS DO DIEGO (`ECON_BOTS_GERAL = false`, sport.ts)
+- Mockup aprovado: `scripts/mockups/carreira-bots.png` ("Perfeito pode fazer"). Na virada, cada clube bot ganha a MESMA
+  TV da divisão (`TV_COTA`) + bilheteria (`BOT_BILHETERIA` A 40 · B 30 · C 20 · D 12 · V 6) e paga a folha (maior entre
+  pago e tabela ÷ 10). O que passa do teto (`BOT_CAIXA_TETO` A 900 · B 700 · C 500 · D 300 · V 150) "vira obra"; quem já
+  estava acima (save antigo) não perde nada. O teto do LANCE não mudou (categoria × fator da sala, máx 4×).
+- Central ganhou "💰 Caixa dos rivais" (4 mais ricos + você + o mais liso, com nota do Martelo quando ele chega liso).
+- Código: `aplicaEconomiaBots`/`balancoBot`/`folhaDoBot` (store.tsx), trava `npm run econ-bots`.
+- ⏳ Diego testar numa carreira dele → liberar pra todos (`ECON_BOTS_GERAL = true`).
+- 🎬 Vídeo da SAF→2º clube pronto (`scripts/video-saf-reels.mjs`) — NÃO postar antes da SAF nova estar no jogo.
+- ⏳ PRÓXIMO: codar a SAF que vira 2º clube (regras aprovadas logo abaixo).
+
 ## 🏢➡️⚽ SAF que vira 2º clube — REGRAS APROVADAS PELO DIEGO (13/10, "Ok pode ser assim") · ⏳ AINDA NÃO CODADO
 Análise: `docs/analise-carreira-2026-10-13.md`. **Mockup completo: `scripts/mockups/carreira-saf-completo.png`** (os
 mockups `carreira-saf.png`/`carreira-saf-venda.png` são versões velhas — valem os números daqui).

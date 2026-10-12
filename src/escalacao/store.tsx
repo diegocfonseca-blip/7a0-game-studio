@@ -828,6 +828,59 @@ function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Re
   for (const k in (rewards ?? {})) out[k] = Math.max(0, (out[k] ?? 0) + (rewards as Record<string, number>)[k])
   return out
 }
+// ─── 💰 ECONOMIA DOS BOTS NA CARREIRA (13/10) ────────────────────────────────
+// Diego aprovou o mockup `scripts/mockups/carreira-bots.png` ("Perfeito pode fazer"). Antes o bot
+// começava com a base da divisão e só ganhava prêmio de título: sem TV, sem bilheteria e SEM
+// salário. Da metade da carreira em diante quem joga ficava rico e o bot não tinha como brigar
+// (o "Scholes lenda sem lance nenhum" de 21/09). Agora, na virada, cada clube bot:
+//   + recebe a MESMA cota de TV da divisão que o humano recebe (`TV_COTA`)
+//   + recebe bilheteria pela divisão (`BOT_BILHETERIA` — o estádio de bot não tem obra)
+//   − paga a folha do elenco (salário = o maior entre o pago e a tabela da carta, ÷ 10)
+// e o que passar do teto da divisão (`BOT_CAIXA_TETO`) "vira obra": o clube não acumula
+// infinito, senão em 50 temporadas todo bot seria milionário e o leilão viraria o contrário.
+// ⚠️ O teto do LANCE continua o mesmo de sempre (categoria × fator da sala, máx 4×) — isto só
+// dá dinheiro de verdade pro bot chegar nesse teto. Prêmio de título continua por cima
+// (`clubRewards`), igual era. Humano NÃO passa por aqui (ele tem o próprio `applySeasonMoney`).
+export const BOT_BILHETERIA: Record<string, number> = { A: 40, B: 30, C: 20, D: 12, V: 6 }
+export const BOT_CAIXA_TETO: Record<string, number> = { A: 900, B: 700, C: 500, D: 300, V: 150 }
+export function folhaDoBot(squad: readonly Card[] | undefined): number {
+  let f = 0
+  for (const c of squad ?? []) {
+    if ((c as { fake?: boolean }).fake || isFillerClub(c.club)) continue
+    f += Math.round(Math.max((c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c)) / 10)
+  }
+  return f
+}
+/** o balanço de UM clube bot numa virada (puro — a trava `npm run econ-bots` testa isto) */
+export function balancoBot(div: string, folha: number, caixa: number): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number } {
+  const tv = TV_COTA[div] ?? 10, bilheteria = BOT_BILHETERIA[div] ?? 6
+  const saldo = tv + bilheteria - folha
+  let novo = Math.max(0, caixa + saldo)
+  const teto = BOT_CAIXA_TETO[div] ?? 150
+  // passou do teto? o excedente vira obra. Quem JÁ estava acima (save antigo) não perde nada.
+  if (saldo > 0 && novo > teto) novo = Math.max(caixa, teto)
+  return { tv, bilheteria, folha, saldo, caixa: Math.round(novo) }
+}
+/** aplica a economia em todo clube bot da pirâmide, pela divisão da temporada QUE ACABOU */
+function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> | null | undefined): void {
+  if (!s.careerOnline || !econBotsLiberado()) return
+  if (s.econBotsSeason === s.seasonNo) return // 🧯 toque duplo não paga 2×
+  const humanos = new Set(s.managers.filter(m => m.isHuman).map(m => `m${m.id}`))
+  const cash = { ...(s.clubCash ?? {}) }
+  const rel: NonNullable<EscState['econBotsRel']> = {}
+  for (const [k, div] of Object.entries(divDaTemporada ?? {})) {
+    if (humanos.has(k)) continue
+    const squad = k.startsWith('m') && /^m\d+$/.test(k)
+      ? s.managers.find(m => `m${m.id}` === k)?.squad
+      : (s.cpuSquads?.[k] as Card[] | undefined)
+    const b = balancoBot(div, folhaDoBot(squad), cash[k] ?? DIV_BASE_CASH[div] ?? 100)
+    cash[k] = b.caixa
+    rel[k] = b
+  }
+  s.clubCash = cash
+  s.econBotsRel = rel
+  s.econBotsSeason = s.seasonNo
+}
 // caixa-base por divisão (clubes de cima mais ricos) + os LUCROS das vendas do
 // mercado (persistidos no fim de cada leilão) + prêmios de título/acesso. Assim o
 // caixa é a base da divisão MAIS a história real de transações.
@@ -931,6 +984,7 @@ import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIn
 import { supabase } from '../lib/supabase'
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
+import { econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 
@@ -9480,6 +9534,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      aplicaEconomiaBots(s, s.careerPlacements ?? action.placements) // 💰 bot ganha TV + bilheteria e paga salário (13/10 · só conta do Diego por enquanto)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s, (s.seasonNo ?? 1) + 1) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada · ❄️ contrato volta contado a partir da temporada NOVA
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
@@ -9525,6 +9580,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      aplicaEconomiaBots(s, s.careerPlacements ?? action.placements) // 💰 bot ganha TV + bilheteria e paga salário (13/10 · só conta do Diego por enquanto)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes de trocar placements
       s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
