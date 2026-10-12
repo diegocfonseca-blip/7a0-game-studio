@@ -13,8 +13,9 @@
 //   "data": "12 de outubro de 2026",
 //   "titulo": "Novo batismo: Inter Vale FC",
 //   "destaque": { "escudo": "src/...webp", "mascote": "src/...webp", "camisa": "scripts/kits/...webp",
+//                 "passos": [ { "emoji": "🏢", "titulo": "…", "sub": "…" } ]  ← escada no lugar da arte (novidade sem escudo)
 //                 "nome": "Inter Vale FC", "linha": "Série C · preto e branco" },   ← opcional
-//   "itens": [ { "tag": "batismo|novidade|melhoria|mascote|manto|lenda", "texto": "…" } ],
+//   "itens": [ { "tag": "batismo|novidade|melhoria|mascote|manto|lenda|emprestimo|venda|saf", "texto": "…" } ],
 //   "rodape": "Entre na comunidade…",                                          ← opcional
 //   "saida": "scripts/posts/aviso-xxx.png"
 // }
@@ -34,6 +35,9 @@ const TAGS = {
   melhoria: ['🔨 MELHORIA', '#1B7A3D', '#fff'],
   mascote: ['🔨 MASCOTE', '#C2452F', '#fff'],
   manto: ['🔨 MANTO', '#0C0C0C', '#FFC400'],
+  emprestimo: ['🔨 EMPRÉSTIMO', '#1B7A3D', '#fff'],
+  venda: ['🔨 VENDA', '#C2452F', '#fff'],
+  saf: ['🔨 SAF', '#7C3AED', '#fff'],
   lenda: ['🔨 LENDA', '#FFC400', '#0C0C0C'],
 }
 const d = spec.destaque
@@ -61,6 +65,10 @@ h1{margin:8px 0 0;font:700 64px/1.02 Oswald;text-transform:uppercase}
 .tx{font-size:28px;line-height:1.38;font-weight:500}.tx b{font-weight:800}
 .rod{margin-top:34px;border:4px solid #000;border-radius:24px;background:#1B7A3D;color:#fff;box-shadow:6px 6px 0 #000;padding:20px 26px;font:700 30px/1.2 Oswald;display:flex;align-items:center;gap:16px}
 .rod small{display:block;font:500 21px Oswald5;color:rgba(255,255,255,.85);margin-top:4px}
+.passo{flex:1;align-self:stretch;display:flex;flex-direction:column;justify-content:center;background:#fff;border:4px solid #000;border-radius:20px;box-shadow:5px 5px 0 #000;padding:16px 10px;text-align:center}
+.passo .pe{font-size:62px;line-height:1}.passo b{display:block;font:700 30px Oswald;text-transform:uppercase;margin-top:6px;line-height:1.05}
+.passo span{display:block;font:500 21px Oswald5;color:rgba(0,0,0,.65);margin-top:4px}
+.seta{font:700 44px Oswald;align-self:center}
 .site{text-align:center;margin-top:26px;font:700 24px Oswald;color:rgba(0,0,0,.45);letter-spacing:.06em}
 </style></head><body><div class="wrap">
 <div class="top"><div class="marca">⚽ LEILÃO <span>LEGENDS</span></div><div class="pill">🔨 BATEU O MARTELO</div></div>
@@ -71,6 +79,7 @@ ${d ? `<div class="hero">
   ${d.escudo ? `<div><img src="${url(d.escudo)}" style="height:230px"></div>` : ''}
   ${d.mascote ? `<div><img src="${url(d.mascote)}" style="height:330px"></div>` : ''}
   ${d.camisa ? `<div><img src="${url(d.camisa)}" style="height:250px"></div>` : ''}
+  ${(d.passos ?? []).map((ps, i) => `${i ? '<div class="seta">➜</div>' : ''}<div class="passo"><div class="pe">${ps.emoji}</div><b>${esc(ps.titulo)}</b><span>${esc(ps.sub ?? '')}</span></div>`).join('')}
 </div>${d.nome ? `<div class="hero-tx"><div class="nm" style="margin-top:18px">${esc(d.nome)}</div>${d.linha ? `<div class="ln">${esc(d.linha)}</div>` : ''}</div>` : ''}` : ''}
 ${spec.itens.map(i => { const [t, bg, fg] = TAGS[i.tag] ?? TAGS.novidade; return `<div class="it"><span class="tag" style="background:${bg};color:${fg}">${t}</span><div class="tx">${esc(i.texto)}</div></div>` }).join('')}
 </div>
