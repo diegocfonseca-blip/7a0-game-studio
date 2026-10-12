@@ -1,3 +1,31 @@
+## 🏢➡️⚽ SAF que vira 2º clube — REGRAS APROVADAS PELO DIEGO (13/10, "Ok pode ser assim") · ⏳ AINDA NÃO CODADO
+Análise: `docs/analise-carreira-2026-10-13.md`. **Mockup completo: `scripts/mockups/carreira-saf-completo.png`** (os
+mockups `carreira-saf.png`/`carreira-saf-venda.png` são versões velhas — valem os números daqui).
+- **Escada:** compra a SAF (**2.000**, igual hoje; precisa estádio completo; clube da Série D; bot no comando) → depois de
+  **10 temporadas como dono da SAF** pode "assumir o comando" (**4.000**, igual hoje), só na virada da temporada, e ela vira
+  o 2º clube jogável.
+- **2º clube só pra PAGANTE — qualquer um** (Craque, Lenda, Batismo; antigo ou plano novo). Aviso visível: "⭐ Só pra quem
+  apoia o jogo: Craque, Lenda ou Batismo" + link pros planos. (Hoje o código pede só `ouro`.)
+- **Vender é pra dar prejuízo; lucro no máximo +500** (Diego: *"gosto mais do prejuízo porque ninguém mandou ele comprar"*):
+  · **SAF = pela DIVISÃO dela na hora da venda:** Várzea 500 · D 1.000 · C 1.500 · B 2.000 (empata) · A 2.500 (+500).
+  · **2º clube = pela COLEÇÃO DE TAÇAS ganhas com você no comando**, cada uma UMA vez: Série A · Copa do Brasil · Supercopa ·
+    Libertadores · Champions · Mundial (Copa do Mundo NÃO conta). 0 taças = 3.000 · 6 taças = 6.500 (+500) · proporcional
+    no meio (2 = 4.170). O caixa do clube volta junto (dívida desconta).
+  · RECUSADO (não repropor): 2º clube vendendo por divisão (*"se pegar já na Série A e vende já ganha"*), venda por "quanto
+    subiu" em %, título de Série B/C/D somando, título repetido somando, lucro acima de 500.
+- **Empréstimos:** na fase SAF continuam com a SAF; virou 2º clube → **entre o principal e o 2º clube**, mesmas regras (só na
+  janela, 1 temporada, volta sozinho, metade do salário pra cada lado — fecha o furo do salário). Transferência de vez pelo
+  valor oficial, 1 por janela.
+- **2º clube no dia a dia:** troca entre rodadas de graça; o clube sem você fica com o **auxiliar** (escala, renova, repõe com
+  o caixa dele); caixa próprio; caixa no vermelho = sem lance no leilão (destrava vendendo ou com **aporte**, que só vai do
+  principal pro 2º e não volta).
+- **Quem hoje tem SAF e 2º clube SEPARADOS:** na próxima virada aparece UMA tela "O jogo mudou: escolha qual manter". Fica com
+  o 2º clube → a SAF sai e devolve **2.000 inteiros**; fica com a SAF → o 2º clube sai e devolve **4.000 inteiros**, e a SAF
+  já pode virar 2º clube na hora (sem as 10 temporadas). Ninguém perde dinheiro.
+- **Quem tem só a SAF:** continua; as 10 temporadas contam desde a compra. **Quem tem só o 2º clube antigo:** continua igual;
+  na venda recebe o MAIOR entre o jeito antigo (3.000) e a coleção de taças.
+- Também na fila: 💰 dinheiro dos bots (mockup `scripts/mockups/carreira-bots.png`, esperando OK).
+
 ## 🏢➡️⚽ SAF que vira 2º clube — REGRAS FECHADAS COM O DIEGO (13/10, "Sim") · ⏳ AINDA NÃO CODADO
 Análise: `docs/analise-carreira-2026-10-13.md`. Mockups: `scripts/mockups/carreira-saf.png` + `carreira-saf-venda.png`
 (⚠️ os números do mockup de venda são VELHOS — valem os daqui).
