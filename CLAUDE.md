@@ -753,6 +753,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   **coleção de cartas é unificada** (conta a conta inteira) e a **Agência é UMA lista pros dois clubes**
   (*"deixe uma mesmo pros dois"*). Trava: `npm run cartinha`.
 
+- **📢 AVISO DA COMUNIDADE DO WHATSAPP = `scripts/aviso-comunidade.mjs`, SEMPRE (12/10, *"Perfeito"*).** Um JSON em
+  `scripts/avisos/` vira o PNG (`node scripts/aviso-comunidade.mjs scripts/avisos/<arquivo>.json`). Formato aprovado:
+  cartão branco no creme, data + título grande, destaque dourado com a arte, linhas com SELO na frente e faixa verde no fim.
+  O selo é **reto, no formato dos botões do jogo** (canto arredondado, borda preta, sombra dura, 🔨 na frente). Ele recusou,
+  na ordem: pílula (*"muito igual ao Brasileirinho"*), jornal O MARTELO (*"não gostei"*), selo torto (*"não gostei desses selos
+  virados"*) e etiqueta com ponta/furinho (*"não entendi"*). Não inventar outro sem ele pedir.
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e
