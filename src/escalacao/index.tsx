@@ -83,6 +83,9 @@ function ComunidadeBanner() {
   })
   const fecha = () => { try { localStorage.setItem(chave, '1') } catch { /* ignora */ } setFechadas(f => ({ ...f, [chave]: true })) }
   if (!COMUNIDADE_LINK || fechadas[chave]) return null
+  // 🔨 12/10: nada de faixa NO LEILÃO (pregão, Monte, convocação) — o relógio está correndo e ela comia
+  // 2 dedos da tela bem ali (Diego: "sim pode fazer"). Na tabela, nos jogos, na carreira e nas salas ela segue.
+  if (['auction', 'monte', 'convocacao', 'streamIntro'].includes(state.screen)) return null
   const en = getLang() === 'en'
   return (
     <div className={naHome ? 'll-comunidade' : 'll-comunidade-jogo'} style={{ display: 'flex', alignItems: 'stretch', background: '#1B7A3D', borderBottom: '3px solid #0C0C0C', height: 'var(--ll-zap-h)', boxSizing: 'border-box', overflow: 'hidden' }}>

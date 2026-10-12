@@ -10,6 +10,7 @@ aparecer… só desse novo. Já o aviso na home e nas salas mantenha sempre"*.
 - `ComunidadeBanner` (index.tsx) agora aparece em TODA tela; fora da home usa a chave própria
   `esc-comunidade-zap-jogo-vista`, gravada no ✕ **ou** no toque em ENTRAR → some pra sempre naquele aparelho.
 - A faixa da HOME (chave `esc-comunidade-zap-fechada`) e o quadro verde da lista de salas NÃO mudaram.
+- 🔨 Some DURANTE o leilão (auction · monte · convocacao · streamIntro) — pedido dele pra não comer tela no pregão.
 - Tirar tudo: `COMUNIDADE_LINK = null` (comunidade.ts).
 
 ## 🤝🛡️ Escudo errado em sala de DUPLAS (12/10) ✅ NO AR (OK do Diego: "Ok")
