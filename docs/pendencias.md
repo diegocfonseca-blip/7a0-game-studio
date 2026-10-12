@@ -1,3 +1,7 @@
+## 💰 Batismo mais caro nos planos de hoje (12/10) ✅ NO AR
+- Diego: *"aumente o valor dos batismos pra 69 e 79"*. Planos v1 (os que todo mundo vê): Série B·C·D·Várzea **59,90 → 69,90**
+  e Série A **69,90 → 79,99** (os mesmos números do v2: Lenda 69,90 · Plus 79,99). Pix, vitrine, FAQ PT/EN e cupom seguem o valor novo.
+
 ## 🤝🛡️ Escudo errado em sala de DUPLAS (12/10) ✅ NO AR (OK do Diego: "Ok")
 - Sala 0TTPMC: o time "Neymarzetti|Fabulous EC" (5º dono) apareceu com o escudo e o saci do **Guimarães SCI** (assento
   cru nº 4, parceiro de outra dupla). Causa: `esc_mimos_sala` devolve o assento CRU do banco (conta parceiros e buracos);

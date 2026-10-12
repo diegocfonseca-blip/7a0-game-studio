@@ -383,7 +383,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
   // ⚠️ a chave interna 'd' quer dizer "a divisão CARA", e ela é a Série A desde
   // 30/08 (a troca de letra). O nome da chave ficou pra não mexer no que já
   // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
-  const precoCheioBatismo = serieBatismo === 'd' ? 69.9 : 59.9
+  const precoCheioBatismo = serieBatismo === 'd' ? 79.99 : 69.9 // 💰 12/10 (Diego): subiu de 59,90/69,90 pra 69,90/79,99
   // 🎟️ CUPOM DE INFLUENCIADOR (Diego 07/09): "PANTERA" = 10% off SÓ no batismo.
   // O código é conferido no banco (esc_cupom_validar) — nenhum cupom vive no
   // código do jogo, então ninguém descobre fuçando. O desconto entra no valor do
@@ -597,11 +597,11 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
           <div className="flex gap-1.5 mt-1.5">
             <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('Série B·C·D e Várzea', 'Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 59,90', 'R$ 59.90')}</span>
+              {tr('Série B·C·D e Várzea', 'Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 69,90', 'R$ 69.90')}</span>
             </button>
             <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('👑 Série A (a elite)', '👑 Série A (the elite)')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 69,90', 'R$ 69.90')}</span>
+              {tr('👑 Série A (a elite)', '👑 Série A (the elite)')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 79,99', 'R$ 79.99')}</span>
             </button>
           </div>
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
@@ -1789,7 +1789,7 @@ function Duvidas() {
     ['How do I get a crest and a mascot of my own?', <>
       It\'s the <b>🖋️ Club naming</b>. You pick the name, send whatever art you like (or we draw it), and the club gets its <b>crest, mascot, kit and stadium name</b> — made just for it.<br /><br />
       <b>Where:</b> 💛 Support → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>How much:</b> R$ 69.90 (🖋️ Legend Naming) · R$ 79.99 (🖋️✨ Plus Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 59.90 (Série B, C, D or Várzea) · R$ 69.90 (👑 Série A).<br /></>}
+      {planos2Liberado() ? <><b>How much:</b> R$ 69.90 (🖋️ Legend Naming) · R$ 79.99 (🖋️✨ Plus Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 69.90 (Série B, C, D or Várzea) · R$ 79.99 (👑 Série A).<br /></>}
       <b>How:</b> pay via Pix, send the receipt and the name by DM. We confirm <b>within 24h</b> and it enters the next update.<br /><br />
       The name is <b>reserved in 4 forms</b> (with and without FC/EC, upper or lower case) — nobody else can use it.
     </>],
@@ -1811,7 +1811,7 @@ function Duvidas() {
       🎫 <b>Sócio Legends — R$ 9.90 a month.</b> The only monthly one.<br />
       ⭐ <b>Craque (Star) — R$ 19.90, one time.</b><br />
       👑 <b>Lenda (Legend) — R$ 39.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
-      🖋️ <b>Batismo (Club naming) — from R$ 59.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br /><br />
+      🖋️ <b>Batismo (Club naming) — from R$ 69.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br /><br />
       </>}
       No plan gives an advantage on the pitch — <b>the game is the same for everyone</b>. What changes is colour, shine, story and perks.
     </>],
@@ -1855,7 +1855,7 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo Lenda) · R$ 79,99 (🖋️✨ Batismo Plus, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 59,90 (Série B, C, D ou Várzea) · R$ 69,90 (👑 Série A).<br /></>}
+      {planos2Liberado() ? <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo Lenda) · R$ 79,99 (🖋️✨ Batismo Plus, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 69,90 (Série B, C, D ou Várzea) · R$ 79,99 (👑 Série A).<br /></>}
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
@@ -1877,7 +1877,7 @@ function Duvidas() {
       🎫 <b>Sócio Legends — R$ 9,90 por mês.</b> O único mensal.<br />
       ⭐ <b>Craque — R$ 19,90, uma vez só.</b><br />
       👑 <b>Lenda — R$ 39,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
-      🖋️ <b>Batismo — a partir de R$ 59,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br /><br />
+      🖋️ <b>Batismo — a partir de R$ 69,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br /><br />
       </>}
       Nenhum plano dá vantagem dentro das quatro linhas — <b>o jogo é igual pra todos</b>. O que muda é cor, brilho, história e mimos.
     </>],
