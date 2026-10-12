@@ -64,6 +64,7 @@ import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
+import { zoeiraDoPregao } from './zoeira-pregao' // 🔥 faixa de zoeira na revelação online (12/10)
 import { POS_LABELS, basketClockLabel } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
@@ -5194,6 +5195,31 @@ function Reveal() {
           {cinema && sold && item.card.fame >= 5 && <LendaParty delay={hammerDelay} />}
           {/* (carimbo grande "VENDIDO!" removido — vazava da carta e repetia o texto
               "🔨 VENDIDO pro X por Y!" que já existe embaixo. O festão da Lenda fica.) */}
+          {/* 🔥 ZOEIRA DO PREGÃO (Diego 12/10): salas rápidas e Minhas Ligas online. Logo embaixo do nome,
+              ANTES dos lances (ninguém precisa rolar), e só DEPOIS do martelo (sem spoiler). */}
+          {mesaModo && hammered && sold && (() => {
+            const nm = (id: number) => { const m = state.managers.find(x => x.id === id); return m ? (m.id === you.id ? tr('Você', 'You') : (m.teamName || m.name)) : '' }
+            const z = zoeiraDoPregao({
+              vencedor: nm(item.winner!),
+              carta: item.card.pacote ? nomePacote(item.card).replace(/^\S+\s/, '') : item.card.name,
+              pago: item.bids.find(b => b.mgr === item.winner)?.amount ?? item.paid ?? 0,
+              outros: tie ? [] : item.bids.filter(b => b.mgr !== item.winner && !item.voided.includes(b.mgr)).map(b => ({ nome: nm(b.mgr), valor: b.amount })),
+              forte: item.card.fame >= 5 || (!!item.card.pacote && item.card.fame >= 4),
+              semente: moneySeed(item.card.id) + state.revealIdx,
+              en: getLang() === 'en',
+            })
+            if (!z) return null
+            const bg = z.tipo === 'caro' ? '#FFE1DA' : z.tipo === 'pechincha' ? '#DDF3E3' : '#FFF3C2'
+            return (
+              <motion.div key={`zoe-${item.card.id}`} initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}
+                className="relative border-[3px] border-black rounded-xl px-3 py-2 mt-1 mb-3" style={{ background: bg, boxShadow: `3px 3px 0 ${INK}` }}>
+                <span aria-hidden className="absolute" style={{ right: 8, top: -14, fontSize: 26 }}>{z.emoji}</span>
+                <span className="inline-block rounded-full font-black uppercase" style={{ ...OSWALD, fontSize: 9.5, letterSpacing: '.12em', background: INK, color: GOLD, padding: '1px 8px' }}>{tr('🔥 Zoeira do pregão', '🔥 Auction banter')}</span>
+                <p className="font-black uppercase" style={{ ...OSWALD, fontSize: 15.5, lineHeight: 1.15, marginTop: 5 }}>{z.titulo}</p>
+                <p className="font-bold" style={{ fontSize: 11.5, marginTop: 3, color: 'rgba(0,0,0,.65)' }}>{z.sub}</p>
+              </motion.div>
+            )
+          })()}
           {mesaOn ? (
             <MesaMartelo bids={item.bids} winner={item.winner} voided={item.voided} hammered={hammered}
               youId={you.id} managers={state.managers} passo={state.revealIdx} total={state.revealQueue.length}
@@ -5260,7 +5286,8 @@ function Reveal() {
           {/* 😱 QUASE!: facada revelada — perdeu por 1-2 moedas. Frase BEM variada,
               sorteada de forma determinística pela carta (a sala toda vê a mesma).
               Só drama no reveal que já existe (empate no topo vira desempate). */}
-          {sold && !tie && (() => {
+          {/* (no online o QUASE subiu pra 🔥 Zoeira do pregão, lá em cima — mesmo teatro não aparece duas vezes) */}
+          {sold && !tie && !mesaModo && (() => {
             const win = item.bids.find(b => b.mgr === item.winner)
             const losers = item.bids.filter(b => b.mgr !== item.winner && !item.voided.includes(b.mgr))
             if (!win || losers.length === 0) return null

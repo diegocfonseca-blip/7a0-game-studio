@@ -78,6 +78,7 @@
     "nuvem-craque": "node scripts/testa-nuvem-craque.mjs",
     "planos": "node scripts/testa-planos.mjs",
     "cartinha": "node scripts/testa-cartinha-multiclube.mjs",
+    "zoeira": "node scripts/testa-zoeira-pregao.mjs",
     "troca": "npx tsx scripts/testa-troca-carreira.mts",
     "canal": "node scripts/testa-canal.mjs",
     "estante": "node scripts/testa-estante.mjs",
