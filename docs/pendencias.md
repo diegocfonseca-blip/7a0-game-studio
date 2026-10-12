@@ -1,12 +1,3 @@
-## 🔥 Zoeira do pregão na revelação online (12/10) — PRONTO NO BRANCH, esperando "pode publicar"
-- Pedido do Diego (print: 55 nos goleiros do Bayern, a sala toda zoando): faixa de zoeira logo embaixo do nome da
-  carta/pacote, ANTES dos lances, só DEPOIS do martelo. Vale pra todo modo das **salas rápidas e Minhas Ligas online**
-  (`mesaModo`); solo e carreira não mudam. Mockup: `scripts/mockups/zoeira-pregao.png`.
-- Uma faixa por revelação: 💸 pagou caro (≥ 2× o 2º e +15, ou sozinho com 25+) › 😱 por 1–2 moedas › 🤑 lenda/pacote
-  forte por ≤ 8. No online o QUASE de baixo saiu (subiu pra faixa — mesmo teatro não aparece duas vezes).
-- Código: `zoeira-pregao.ts` (puro, PT+EN) + trava `npm run zoeira`.
-- ⏳ Sem OK: o 4º quadro do mockup (resumo "prêmios da zoeira" na última revelação).
-
 ## 🥊⚫⚪ Batismo Inter Vale FC (12/10) ✅ NO AR
 - Dono `marcus.viniciuslopessantos79@gmail.com` (conta de 30/08, existia antes do batismo ✔). **Série C**, no assento do
   bot **Tetéia SAF** (1º bot sem dono da C; `OLD_NAME` leva save antigo pro nome novo; o Tetéia SAF segue no jogo rápido,
