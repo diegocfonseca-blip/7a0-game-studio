@@ -1,25 +1,20 @@
 {
-  "edicao": 1,
   "data": "12 de outubro de 2026",
-  "chamada": "Batismo de Lenda",
-  "manchete": "Nasceu o Inter Vale FC",
-  "linhaFina": "Disciplina, força e Vale: o clube preto e branco desembarca na Série C, e chega de punho fechado.",
-  "carimbo": "Batizado!",
-  "foto": {
+  "titulo": "Novo batismo: Inter Vale FC",
+  "destaque": {
     "escudo": "src/escalacao/img/intervale-escudo.webp",
     "mascote": "src/escalacao/img/intervale-mascote.webp",
     "camisa": "scripts/kits/intervale-camisa.webp",
-    "legenda": "O Lutador, a nova mascote, já de olho na Série B."
+    "nome": "Inter Vale FC",
+    "linha": "Série C · preto e branco · \"Disciplina, força, Vale\""
   },
-  "lotes": [
-    { "titulo": "Direto na Série C", "texto": "O **Inter Vale FC** entra na carreira com escudo, manto e mascote próprios. Quem cair no grupo dele que se prepare." },
-    { "titulo": "O Lutador soltou o bicho", "texto": "A mascote **carimba a tela em todo gol**, atravessa a tela quando o clube é campeão e aparece no **pênalti decisivo**." },
-    { "titulo": "Manto alvinegro", "texto": "Preto e branco, tirado da camisa do clube. A camisa já está pendurada na **Loja do Clube**." },
-    { "titulo": "Lenda pra sempre", "texto": "O dono vira **👑 Lenda**, **Fundador nº 89** e **Sócio nº 70**, com **entrada de gala** nas salas online." }
+  "itens": [
+    { "tag": "batismo", "texto": "O **Inter Vale FC** chega na **Série C** da carreira, com escudo, manto e mascote próprios." },
+    { "tag": "mascote", "texto": "**O Lutador** carimba a tela em todo gol do Inter Vale, atravessa a tela no título e aparece no pênalti decisivo." },
+    { "tag": "manto", "texto": "Preto e branco, tirado da camisa do clube. A camisa já está na **Loja do Clube**." },
+    { "tag": "lenda", "texto": "O dono vira **👑 Lenda** pra sempre, **Fundador nº 89** e **Sócio nº 70**, com entrada de gala nas salas online." }
   ],
-  "classificado": {
-    "titulo": "Vende-se: um clube com a sua cara",
-    "texto": "Escudo, mascote e manto seus, pra sempre no jogo. Sem fiador, sem pegadinha. Chama o Diego aqui na comunidade."
-  },
+  "rodape": "Quer o SEU clube no jogo também?",
+  "rodapeSub": "Batismo de Lenda: escudo, mascote e manto seus, pra sempre. Chama o Diego aqui na comunidade.",
   "saida": "scripts/posts/aviso-2026-10-12-inter-vale.png"
 }
