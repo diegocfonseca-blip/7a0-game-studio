@@ -760,6 +760,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   na ordem: pílula (*"muito igual ao Brasileirinho"*), jornal O MARTELO (*"não gostei"*), selo torto (*"não gostei desses selos
   virados"*) e etiqueta com ponta/furinho (*"não entendi"*). Não inventar outro sem ele pedir.
 
+- **🏢➡️⚽ SAF VIRA 2º CLUBE, E VENDER É PRA DAR PREJUÍZO (13/10, regra fechada).** Escada: SAF 2.000 → 10 temporadas →
+  assumir o comando 4.000 (2º clube só pra PAGANTE, qualquer plano). Venda com lucro de **no máximo +500**: SAF pela DIVISÃO
+  (V 500 · D 1.000 · C 1.500 · B 2.000 · A 2.500); 2º clube pela COLEÇÃO DE TAÇAS ganhas com você (A · Copa do Brasil ·
+  Supercopa · Liberta · Champions · Mundial, cada uma UMA vez; 0 = 3.000, 6 = 6.500). Palavras dele: *"gosto mais do prejuízo
+  porque ninguém mandou ele comprar"*. Quem já tem não perde nada. Detalhe em `docs/pendencias.md` (13/10).
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e

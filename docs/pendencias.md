@@ -1,3 +1,25 @@
+## 🏢➡️⚽ SAF que vira 2º clube — REGRAS FECHADAS COM O DIEGO (13/10, "Sim") · ⏳ AINDA NÃO CODADO
+Análise: `docs/analise-carreira-2026-10-13.md`. Mockups: `scripts/mockups/carreira-saf.png` + `carreira-saf-venda.png`
+(⚠️ os números do mockup de venda são VELHOS — valem os daqui).
+- **Escada:** compra a SAF (**2.000**, igual hoje) → depois de **10 temporadas como dono da SAF** pode "assumir o comando"
+  (**4.000**, igual hoje) e ela vira o 2º clube jogável. Assumir só na virada da temporada.
+- **2º clube só pra PAGANTE — qualquer um** (Craque, Lenda, Batismo; antigo ou plano novo). Aviso bem visível na tela:
+  "⭐ Só pra quem apoia o jogo: Craque, Lenda ou Batismo" + caminho pra apoiar. (Hoje o código pede só `ouro`.)
+- **Venda é difícil de lucrar de propósito** (Diego: *"gosto mais do prejuízo porque ninguém mandou ele comprar"*;
+  lucro NO MÁXIMO +500):
+  · **SAF = pela DIVISÃO dela na hora da venda:** Várzea 500 · D 1.000 · C 1.500 · B 2.000 (empata) · A 2.500 (+500).
+  · **2º clube = pela COLEÇÃO DE TAÇAS ganhas com você no comando**, cada uma conta UMA vez: Série A · Copa do Brasil ·
+    Supercopa · Libertadores · Champions · Mundial (Copa do Mundo NÃO conta). 0 taças = 3.000 (metade dos 6.000);
+    6 taças = 6.500 (+500); entre os dois, proporcional (3 taças = 4.750).
+  · Ele RECUSOU (não repropor): venda por divisão no 2º clube (*"se pegar já na Série A e vende já ganha"*), venda por
+    "quanto subiu" em %, títulos de Série B/C/D somando, títulos repetidos somando.
+- **Quem já tem (grandfather, ninguém perde nada):** SAF antiga continua, as 10 temporadas contam desde a compra.
+  2º clube antigo continua igual; na venda recebe o MAIOR entre o jeito antigo (3.000) e a coleção de taças.
+- Do mockup aprovado em conceito (detalhar números na hora de codar): empréstimos só na janela, 1 temporada, metade do
+  salário pra cada lado (fecha o furo do salário); auxiliar toca o clube que ficou sem você (escala, renova, repõe);
+  transferência interna pelo valor oficial; caixa próprio, dívida trava lance, aporte só principal → 2º clube.
+- Também na fila: 💰 dinheiro dos bots (mockup `scripts/mockups/carreira-bots.png`, esperando OK).
+
 ## 💴🔴⚫ Batismo Rossini Money (12/10) ✅ NO AR
 - Dono `luizeduardorossini0013@gmail.com` (conta já existia ✔). **Série A**, no assento do **Bagres de Wall Street FC**,
   que DESCEU pra Série B no lugar do bot **Fatality FC** (o último bot da B; segue no jogo rápido). Sem OLD_NAME (ninguém
