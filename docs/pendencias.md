@@ -1,3 +1,10 @@
+## 🏆 Premiação da resenha embaixo do time desde a 1ª tela da cerimônia (12/10) — NO BRANCH, esperando "pode publicar"
+- Diego (print da sala zoando os 55 nos goleiros do Bayern): zoeira *"na cerimônia de revelação, embaixo dos times das
+  pessoas… já no início, sem ter que passar todos os times"*. A premiação (achado · mico · 💸 mão furada · mão de vaca ·
+  perna-de-pau) já existia, mas só aparecia depois do ÚLTIMO elenco (`isLastMgr`). Agora fica embaixo do time sempre.
+- Mão furada de pacote do Leilão de Clubes escreve "Goleiros do Bayern" (campo `pac` no `resenha.furada`), não "Bayern".
+- ❌ A faixa por carta na revelação (1ª leitura minha, errada) foi desfeita — não usar.
+
 ## 🥊⚫⚪ Batismo Inter Vale FC (12/10) ✅ NO AR
 - Dono `marcus.viniciuslopessantos79@gmail.com` (conta de 30/08, existia antes do batismo ✔). **Série C**, no assento do
   bot **Tetéia SAF** (1º bot sem dono da C; `OLD_NAME` leva save antigo pro nome novo; o Tetéia SAF segue no jogo rápido,

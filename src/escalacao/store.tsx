@@ -5805,7 +5805,7 @@ function sealAndResolve(state: EscState) {
       // guarda o PIOR arremate isolado — é a história que dá a piada
       pior: (atual?.pior && atual.pior.jogadoFora >= jogadoFora)
         ? atual.pior
-        : { nome: q.card.name, pago: q.paid, segundo, jogadoFora },
+        : { nome: q.card.pacote?.clube ?? q.card.name, pago: q.paid, segundo, jogadoFora, ...(q.card.pacote ? { pac: q.card.pos } : {}) },
     }
   }
   for (const q of queue) if (q.winner !== null && q.paid > 0) {

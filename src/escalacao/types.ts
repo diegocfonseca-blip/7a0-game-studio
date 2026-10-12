@@ -596,7 +596,7 @@ export interface EscState {
    */
   resenha?: {
     /** por técnico: quanto ele pagou A MAIS que o 2º colocado, somado e no pior caso */
-    furada: Record<number, { total: number; pior: { nome: string; pago: number; segundo: number; jogadoFora: number } }>
+    furada: Record<number, { total: number; pior: { nome: string; pago: number; segundo: number; jogadoFora: number; pac?: Sector } }> // `pac` = era PACOTE do Leilão de Clubes (a tela escreve "Goleiros do Bayern") (12/10)
   }
   revealIdx: number
   stock: Record<Sector, number> // estoque restante no baralho (contador vivo)

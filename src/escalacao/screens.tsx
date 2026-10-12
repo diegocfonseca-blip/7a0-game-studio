@@ -3560,7 +3560,7 @@ export function premiosDaResenha(mgrs: Manager[], resenha?: EscState['resenha'])
   return {
     achado: card(achadoX),
     mico: card(micoX),
-    furada: fMgr && fEntry ? { time: fMgr.teamName, nome: fEntry[1].pior.nome, pago: fEntry[1].pior.pago, segundo: fEntry[1].pior.segundo, total: fEntry[1].total } : null,
+    furada: fMgr && fEntry ? { time: fMgr.teamName, nome: fEntry[1].pior.pac ? nomePacote({ pos: fEntry[1].pior.pac, club: fEntry[1].pior.nome } as Card).replace(/^\S+\s/, '') : fEntry[1].pior.nome, pago: fEntry[1].pior.pago, segundo: fEntry[1].pior.segundo, total: fEntry[1].total } : null,
     vaca: vacaX ? { time: vacaX.teamName, sobrou: vacaX.money } : null,
     pau: pauX ? { time: pauX.mg.teamName, nome: pauX.c.name, lo: pauX.c.lo, hi: pauX.c.hi } : null,
   }
@@ -3599,7 +3599,7 @@ function PremiacaoResenha({ mgrs, resenha }: { mgrs: Manager[]; resenha?: EscSta
         {item(GREEN, '🏅', 'Achado do pregão', `${pr.achado.nome} · ${pr.achado.time}`, <>Nível {pr.achado.lo}–{pr.achado.hi} e pagou <b>{pr.achado.pago}</b>. Roubou.</>)}
         {item('#8B5E3C', '🐴', 'Mico do pregão', `${pr.mico.nome} · ${pr.mico.time}`, <>Nível {pr.mico.lo}–{pr.mico.hi} e pagou <b>{pr.mico.pago}</b>. Doeu.</>)}
         {pr.furada && item('#C2452F', '💸', 'Mão furada', pr.furada.time,
-          <>Pagou <b>{pr.furada.pago}</b> no {pr.furada.nome} e o 2º lance era <b>{pr.furada.segundo}</b>. Jogou <b>{pr.furada.total} 🪙</b> fora no pregão.</>)}
+          <>Pagou <b>{pr.furada.pago}</b> em {pr.furada.nome} e o 2º lance era <b>{pr.furada.segundo}</b>. Jogou <b>{pr.furada.total} 🪙</b> fora no pregão.</>)}
         {pr.vaca && item('#B45309', '🤏', 'Mão de vaca', pr.vaca.time, <>Acabou o pregão com <b>{pr.vaca.sobrou} 🪙</b> no bolso. Guardou pra quê?</>)}
         {pr.pau && item('#6B7280', '🗑️', 'Perna-de-pau titular', pr.pau.time, <>Escalou o <b>{pr.pau.nome}</b> ({pr.pau.lo}–{pr.pau.hi}). De propósito?</>)}
       </>}
@@ -5687,7 +5687,6 @@ export function EscCerimonia() {
   const mgrs = state.managers.filter(m => !m.marketCpu)
   const m = mgrs[Math.min(idx, mgrs.length - 1)]
   const you = state.managers[state.youIdx]
-  const isLastMgr = idx >= mgrs.length - 1
   const canStart = state.onlineMode !== 'online' || state.isHost
 
   // cronômetro de 45s (igual leilão): dá tempo de olhar os times e começa
@@ -5738,9 +5737,12 @@ export function EscCerimonia() {
           })}
         </div>
       </Box>
-      {/* 🏆 a premiação entra no lugar das duas linhas soltas de antes — mesmo
-          gatilho (só depois de passar por todos os elencos), tela cheia. */}
-      {isLastMgr && <PremiacaoResenha mgrs={mgrs} resenha={state.resenha} />}
+      {/* 🏆 a premiação da resenha (achado, mico, mão furada, mão de vaca, perna-de-pau).
+          🔁 12/10 (Diego, print da sala zoando quem deu 55 nos goleiros do Bayern): *"em baixo
+          dos times das pessoas… já no início e não ter mais que passar todos os times pra ver"*.
+          Antes só aparecia depois de passar por TODOS os elencos (e quase ninguém chegava lá
+          nos 45s); agora fica embaixo do time desde a 1ª tela. */}
+      <PremiacaoResenha mgrs={mgrs} resenha={state.resenha} />
       {/* 🌱 CRIA DA BASE: a historinha de quem subiu do Sub-20 nesta virada
           (o técnico deixou um contrato vencido ir e o guri tapou o buraco).
           🔒 SÓ NA CARREIRA (`careerOnline`) — no rápido e no Minhas Ligas não
