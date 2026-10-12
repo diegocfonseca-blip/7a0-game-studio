@@ -32,6 +32,7 @@ import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gra
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
+import { ChatAvatar, ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 
@@ -71,7 +72,7 @@ type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoTime | null; copa?: CopaPick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
-interface LobbyMsg { id: string; uid: string; name: string; text: string }
+interface LobbyMsg { id: string; uid: string; name: string; text: string; re?: ChatRe } // re = ↩ resposta (13/10)
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
 // Chat é pra escrever; emoji/zoeira flutua por cima de tudo (inclusive do chat aberto).
 interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x: number }
@@ -111,10 +112,11 @@ function chatColor(name: string): string {
 // regra tem que ser decidida ANTES da bola rolar — depois do pregão não tem volta.
 function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: {
   open: boolean; setOpen: (o: boolean) => void; unread: number
-  msgs: LobbyMsg[]; myUid?: string; listRef: React.RefObject<HTMLDivElement | null>; onSend: (t: string) => void
+  msgs: LobbyMsg[]; myUid?: string; listRef: React.RefObject<HTMLDivElement | null>; onSend: (t: string, re?: ChatRe) => void
 }) {
   const [text, setText] = useState('')
-  const send = (t: string) => { onSend(t); setText('') }
+  const [resp, setResp] = useState<ChatRe | null>(null)
+  const send = (t: string) => { if (!t.trim()) return; onSend(t, resp ?? undefined); setText(''); setResp(null) }
   return (
     <>
       {!open && (
@@ -127,9 +129,9 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
         </button>
       )}
       {open && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99991, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.28)' }} />
-          <div style={{ position: 'relative', color: INK, background: '#FBF6E7', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '64vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.12)' }}>
+        // 🪟 gaveta baixa, sem escurecer nem tampar a sala (13/10 — mesma do chat do jogo)
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99991, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pointerEvents: 'none' }}>
+          <div style={{ position: 'relative', pointerEvents: 'auto', color: INK, background: '#FBF6E7', border: `3px solid ${INK}`, borderBottom: 0, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '52vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.15)' }}>
             <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px' }}>
               <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>{tr('💬 Zoeira da sala', '💬 Room banter')}</span>
               <button onClick={() => setOpen(false)} aria-label={tr('Fechar', 'Close')} style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
@@ -139,17 +141,21 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
                 ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>{tr('Manda a primeira zoeira 😎', 'Send the first jab 😎')}</p>
                 : msgs.map(m => {
                   const mine = !!myUid && m.uid === myUid
+                  const re = reValido(m.re)
                   return (
-                    <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
-                      <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: chatColor(m.name), marginTop: 4, flexShrink: 0 }} />
-                      <div style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%' }}>
-                        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1, color: chatColor(m.name) }}>{mine ? tr('Você', 'You') : m.name}</span>
-                        <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word' }}>{m.text}</span>
+                    <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
+                      {!mine && <ChatAvatar name={m.name} />}
+                      <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
+                        style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
+                        {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ChatCracha name={m.name} />}
+                        {re && <ChatCita re={re} />}
+                        <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word', display: 'block' }}>{m.text}</span>
                       </div>
                     </div>
                   )
                 })}
             </div>
+            {resp && <ChatRespondendo re={resp} onCancel={() => setResp(null)} />}
             <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
               <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
                 onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder={tr('manda a real…', 'say it…')}
@@ -873,11 +879,11 @@ export function EscLobby() {
     lobbyOpenRef.current = open; setLobbyChatOpen(open)
     if (open) setLobbyUnread(0)
   }
-  const sendLobbyChat = (text: string) => {
+  const sendLobbyChat = (text: string, re?: ChatRe) => {
     const t = cutName(text.trim(), 160) // corte seguro (não parte emoji → nada de json inválido)
     if (!t) return
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
-    const e: LobbyMsg = { id: Math.random().toString(36).slice(2), uid: user?.id ?? 'me', name: myName, text: t }
+    const e: LobbyMsg = { id: Math.random().toString(36).slice(2), uid: user?.id ?? 'me', name: myName, text: t, ...(re ? { re } : {}) }
     addLobbyChat(e, true) // mostra o meu na hora (o canal não devolve o próprio broadcast)
     // 📉 ECO REMOVIDO (04/08, OK do Diego): mandava em 'chat' E 'emote' (dobro de
     // mensagem Realtime na fatura). Agora só 'chat'; o OUVINTE de 'emote' fica

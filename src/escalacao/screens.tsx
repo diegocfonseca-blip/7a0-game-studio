@@ -64,6 +64,7 @@ import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
+import { ChatAvatar, ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { POS_LABELS, basketClockLabel } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
@@ -660,10 +661,10 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
 // FAB no canto + gaveta que abre/fecha. Mensagens efêmeras (broadcast, fora do
 // reducer — não afeta o jogo). Badge de não-lidas POR usuário (some ao abrir,
 // sem aumentar o botão). Host liga/desliga o chat pra sala toda (padrão: on).
-const CHAT_DOTS = [RED, '#2E6FB0', GREEN, PURPLE, GOLD, '#E0731E', '#0EA5A0']
 export function ChatWidget() {
   const { state, chat, chatUnread, sendChat, chatOpen, setChatOpen, dispatch } = useEsc()
   const [text, setText] = useState('')
+  const [resp, setResp] = useState<ChatRe | null>(null) // ↩ respondendo alguém (13/10)
   const listRef = useRef<HTMLDivElement>(null)
   const online = state.onlineMode === 'online'
   const inRoom = online && !!state.roomId
@@ -672,8 +673,7 @@ export function ChatWidget() {
   useEffect(() => { if (chatOpen && listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [chat, chatOpen])
   if (!inRoom) return null
   if (chatOff && !isHost) return null // host desligou → convidados não veem nada
-  const dot = (from: number) => CHAT_DOTS[((from % CHAT_DOTS.length) + CHAT_DOTS.length) % CHAT_DOTS.length]
-  const send = (t: string) => { sendChat(t); setText('') }
+  const send = (t: string) => { if (!t.trim()) return; sendChat(t, resp ?? undefined); setText(''); setResp(null) }
   return (
     <>
       {!chatOpen && (
@@ -686,9 +686,10 @@ export function ChatWidget() {
         </button>
       )}
       {chatOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99991, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          <div onClick={() => setChatOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.28)' }} />
-          <div style={{ position: 'relative', color: INK, background: '#FBF6E7', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '64vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.12)' }}>
+        // 4) 🪟 GAVETA BAIXA (13/10): sem escurecer e sem tampar o jogo — o pregão (relógio,
+        // cartas, lance) continua à vista e tocável em cima. Fecha no ✕.
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99991, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pointerEvents: 'none' }}>
+          <div style={{ position: 'relative', pointerEvents: 'auto', color: INK, background: '#FBF6E7', border: `3px solid ${INK}`, borderBottom: 0, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '52vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.15)' }}>
             <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px' }}>
               <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>{tr('💬 Zoeira da sala', '💬 Room banter')}</span>
               <button onClick={() => setChatOpen(false)} aria-label={tr('Fechar', 'Close')} style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
@@ -711,17 +712,22 @@ export function ChatWidget() {
                       // PESSOA quando existe, senão cai no `from` de sempre (mensagem
                       // antiga guardada no aparelho, ou sala sem dupla).
                       const mine = m.uid ? m.uid === state.youUid : m.from === state.youIdx
+                      const re = reValido(m.re)
+                      // 1) escudo + cor do plano de quem fala · 3) toque na dos outros = responder
                       return (
-                        <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
-                          <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: dot(m.from), marginTop: 4, flexShrink: 0 }} />
-                          <div style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%' }}>
-                            <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1 }}>{mine ? tr('Você', 'You') : m.name}</span>
-                            <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word' }}>{m.text}</span>
+                        <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
+                          {!mine && <ChatAvatar name={m.name} />}
+                          <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
+                            style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
+                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ChatCracha name={m.name} />}
+                            {re && <ChatCita re={re} />}
+                            <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word', display: 'block' }}>{m.text}</span>
                           </div>
                         </div>
                       )
                     })}
                 </div>
+                {resp && <ChatRespondendo re={resp} onCancel={() => setResp(null)} />}
                 <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
                   <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
                     onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder={tr('manda a real…', 'say it…')}

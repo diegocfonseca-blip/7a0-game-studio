@@ -10841,7 +10841,7 @@ export type EmoteEvent = { id: string; from: number; fromId?: number; kind: stri
 // `from` é o TIME (manager id) — numa dupla os DOIS compartilham o mesmo `from`,
 // então "é minha?" usa `uid` (pessoa de verdade) quando disponível, com `from`
 // como fallback pra mensagem antiga guardada no aparelho sem uid.
-export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number } // from=cadeira (compat); fromId=CRACHÁ
+export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number; re?: { name: string; text: string } } // from=cadeira (compat); fromId=CRACHÁ
 
 // ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
 const Ctx = createContext<{
@@ -10852,7 +10852,7 @@ const Ctx = createContext<{
   emotes: EmoteEvent[]
   chat: ChatMsg[]              // 💬 mensagens da sala (efêmeras)
   chatUnread: number           // 💬 quantas ESTE usuário ainda não viu
-  sendChat: (text: string) => void
+  sendChat: (text: string, re?: { name: string; text: string }) => void
   chatOpen: boolean            // 💬 gaveta aberta?
   setChatOpen: (open: boolean) => void
   hostStale: boolean // convidado sem notícias do host há muito tempo (host caiu?)
@@ -11944,7 +11944,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     setChat(prev => prev.some(x => x.id === m.id) ? prev : [...prev.slice(-60), m])
     if (!mine && !chatOpenRef.current) setChatUnread(u => Math.min(99, u + 1)) // não vi ainda → +1 (só as dos outros)
   }, [])
-  const sendChat = useCallback((text: string) => {
+  const sendChat = useCallback((text: string, re?: { name: string; text: string }) => {
     const t = text.trim().slice(0, 160)
     if (!t) return
     const st = stateRef.current
@@ -11959,7 +11959,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meuNome = d?.partnerUid
       ? (st.youUid === d.ownerUid ? d.ownerName : st.youUid === d.partnerUid ? d.partnerName : undefined)
       : undefined
-    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, fromId: me?.id, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now() }
+    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, fromId: me?.id, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now(), ...(re ? { re } : {}) } // ↩ resposta (13/10)
     addChat(m, true) // aparece pra mim na hora (canal usa self:false)
     channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: m })
   }, [addChat])

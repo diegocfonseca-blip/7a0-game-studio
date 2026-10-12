@@ -1,0 +1,40 @@
+{
+  "data": "13 de outubro de 2026",
+  "titulo": "Chat da sala de cara nova",
+  "destaque": {
+    "passos": [
+      {
+        "emoji": "🛡️",
+        "titulo": "Escudo + cor",
+        "sub": "de quem fala"
+      },
+      {
+        "emoji": "↩️",
+        "titulo": "Responder",
+        "sub": "com a frase em cima"
+      },
+      {
+        "emoji": "👀",
+        "titulo": "Pregão à vista",
+        "sub": "chat mais baixo"
+      }
+    ]
+  },
+  "itens": [
+    {
+      "tag": "novidade",
+      "texto": "Cada um aparece no chat com o **escudo do clube** e a **cor do próprio plano**. Dá pra saber de longe quem está zoando."
+    },
+    {
+      "tag": "novidade",
+      "texto": "**Responder:** toque na mensagem de alguém e a sua sai com a frase dele em cima. Acabou o \"tá falando com quem?\"."
+    },
+    {
+      "tag": "melhoria",
+      "texto": "O chat ficou **mais baixo** e não escurece mais a tela: dá pra zoar vendo o relógio e as cartas do pregão."
+    }
+  ],
+  "rodape": "Bora testar hoje nas salas online!",
+  "rodapeSub": "Vale pra todas as salas online, da sala de espera ao fim do jogo.",
+  "saida": "scripts/posts/aviso-chat-sala.png"
+}

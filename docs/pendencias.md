@@ -1,4 +1,5 @@
-## 💬 Chat da sala melhorado (13/10) — ⏳ MOCKUP ENVIADO, esperando OK do Diego
+## 💬 Chat da sala melhorado (13/10) — ✅ NO AR o 1, 3 e 4 (Diego: "faz 1, 3 e 4 somente"). 🚫 O 2 (zoeira rápida em botões) ele NÃO quis — não repropor.
+Peças em `src/escalacao/chat-sala.tsx` (usadas pelos dois chats). Responder = campo `re` na mensagem (versão velha ignora). Aviso: `scripts/avisos/2026-10-13-chat-sala.json` → `scripts/posts/aviso-chat-sala.png`.
 `scripts/mockup-chat-sala.mjs` → `scripts/mockups/chat-sala.png`. 4 ideias: (1) escudo do clube + cor do PRÓPRIO tier no nome · (2) zoeira rápida (botões prontos, espera de 3s) · (3) responder com citação · (4) gaveta mais baixa sem escurecer o pregão. Sem "digitando" (não pode gastar realtime a mais). Mexe só no `ChatWidget` (screens.tsx) e no `LobbyChatDock` (lobby.tsx).
 
 ## 📏 Medidor de mensagens ao vivo (13/10, Diego: "Ok pode") ✅ NO AR — invisível pro jogador
