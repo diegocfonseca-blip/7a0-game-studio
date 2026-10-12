@@ -142,7 +142,7 @@ export interface WonCard extends Card {
 export interface LedgerEntry {
   id: string
   season: number // temporada do lançamento
-  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' | 'socio' | 'presidency' // bens da presidência separados de transferências de jogadores
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' | 'socio' | 'presidency' | 'clube2buy' | 'clube2sell' | 'clube2interno' // bens da presidência separados de transferências de jogadores
   label: string
   amount: number // sinal: + entrada, − saída
   player?: string // compra/venda: nome do jogador
@@ -934,6 +934,19 @@ export interface EscState {
     ledger?: LedgerEntry[]; filial?: EscState['careerFilial']
     empresario?: EmpCard[]; empresarioClaims?: string[]
   } | null
+  // 🏢➡️⚽ SAF QUE VIRA 2º CLUBE (13/10, só com `saf2Liberado()` — sport.ts). Regras puras em `saf2.ts`.
+  // Fica FORA do `multiClube` de propósito: aquele objeto descreve "o clube que dorme" e é refeito a
+  // cada troca de comando — guardar coisa do 2º clube lá dentro trocaria de dono na troca.
+  saf2?: {
+    migrado?: boolean       // já passou pela tela "O jogo mudou" (quem tinha SAF e 2º clube separados)
+    semEspera?: boolean     // ficou com a SAF na migração → pode assumir o comando na hora, sem as 10 temporadas
+    origemSaf?: boolean     // o 2º clube nasceu da SAF (pagou 2.000 + 4.000). Ausente = 2º clube ANTIGO (venda = maior entre 3.000 e as taças)
+    clubeId?: number        // id do assento do 2º clube (o `mine`) a que `tacas`/`aportes` se referem
+    tacas?: string[]        // coleção de taças ganhas com o 2º clube (cada tipo uma vez — ver TACAS_SAF2)
+    aportes?: number        // soma dos aportes principal → 2º clube (conta como investido)
+    transfSeason?: number   // temporada da última transferência de vez entre os dois clubes (1 por janela)
+    emprestimos?: { cardId: string; de: number; para: number; season: number }[] // empréstimos entre os SEUS dois clubes (voltam sozinhos na virada)
+  }
   multiClubeAtivo?: boolean // true = o 2º clube está no comando (youIdx aponta pra ele); false/undefined = principal ativo
   // 🏛️ MULTICLUBES · cartas GUARDADAS: quando o clube que DORMIA foi campeão (título de
   // divisão e/ou Copa Legends), a carta fica pendente aqui, keyed pelo id do clube (já
