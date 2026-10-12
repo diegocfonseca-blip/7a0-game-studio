@@ -1,14 +1,14 @@
-## 🤝🛡️ Escudo errado em sala de DUPLAS (12/10) — CONSERTADO NO BRANCH, esperando "pode publicar"
+## 🤝🛡️ Escudo errado em sala de DUPLAS (12/10) ✅ NO AR (OK do Diego: "Ok")
 - Sala 0TTPMC: o time "Neymarzetti|Fabulous EC" (5º dono) apareceu com o escudo e o saci do **Guimarães SCI** (assento
   cru nº 4, parceiro de outra dupla). Causa: `esc_mimos_sala` devolve o assento CRU do banco (conta parceiros e buracos);
   o time do jogo é numerado só pelos DONOS (`seatUids`). Também podia acontecer em sala normal com buraco de quem saiu.
 - Conserto (`store.tsx`): assento cru → conta (`room_players`) → posição em `seatUids` → time. Estado velho sem
   `seatUids` = casamento de antes. Trava: `npm run mimos`.
-- 🤝 Regra de dupla aplicada (proposta minha, ⏳ confirmar com o Diego): o time veste o batismo do **DONO** do assento;
+- 🤝 Regra de dupla aplicada (proposta minha, confirmada pelo Diego): o time veste o batismo do **DONO** do assento;
   se o dono não tem e o parceiro tem, veste o do **parceiro**; nenhum = escudo pelo nome. O aparelho do parceiro segue a
   mesma regra (não pinta o time com o batismo dele).
 
-## 🏆 Premiação da resenha embaixo do time desde a 1ª tela da cerimônia (12/10) — NO BRANCH, esperando "pode publicar"
+## 🏆 Premiação da resenha embaixo do time desde a 1ª tela da cerimônia (12/10) ✅ NO AR
 - Diego (print da sala zoando os 55 nos goleiros do Bayern): zoeira *"na cerimônia de revelação, embaixo dos times das
   pessoas… já no início, sem ter que passar todos os times"*. A premiação (achado · mico · 💸 mão furada · mão de vaca ·
   perna-de-pau) já existia, mas só aparecia depois do ÚLTIMO elenco (`isLastMgr`). Agora fica embaixo do time sempre.
