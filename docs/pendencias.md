@@ -7,6 +7,14 @@ banco) e grava UMA linha a cada 10 min em `esc_realtime_medidor` (`src/escalacao
 - [ ] Propor o corte (suspeito nº 1: o dono mandando o ESTADO inteiro pra sala toda) — explicar e esperar OK antes de mexer.
 - [ ] Depois da medição, desligar o medidor (ele mesmo gera uma gravação por pessoa a cada 10 min).
 
+
+## 12/10/2026 — 🐛 CAMPINHO DO 3-5-2 ESPREMIDO (print do Arudo FC)
+
+Os alas (laterais) do 3-5-2 descem 14px num embrulho `<div>` sem `flex: 1 1 0` — o ala ficava com a largura do
+NOME inteiro e os 3 meias eram espremidos no meio, um por cima do outro. Conserto: o embrulho ganha o mesmo
+`flex: 1 1 0; minWidth: 0` da raiz do `JogadorNoCampo` (pyramidseason.tsx, aba Elenco). Vale pra TODO mundo
+de 3-5-2 (e o líbero do 5-3-2 líbero, que usa o mesmo recuo). Conserto não vira novidade.
+
 ## 🟢 LIBERADO PRA TODOS (13/10, Diego: "pode publicar"): economia dos bots + SAF que vira 2º clube
 - `ECON_BOTS_GERAL = true` e `SAF2_GERAL = true` (sport.ts). Linhas novas em `novidades.ts`. Vídeo (`scripts/video-saf-reels.mjs`)
   e aviso (`scripts/posts/aviso-2026-10-13-saf-2o-clube.png`) liberados pra postar.

@@ -4785,7 +4785,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
             )
             // recuo sutil (alas do 3-5-2 / líbero) — só um deslocamento de desenho,
             // a troca por toque continua funcionando igual
-            return recuadoIds.has(c.id) ? <div key={c.id} style={{ transform: 'translateY(14px)' }}>{j}</div> : j
+            // 🐛 12/10 (Arudo FC, 3-5-2): o embrulho tem que ter a MESMA largura das outras peças
+            // (flex 1 1 0, igual à raiz do JogadorNoCampo). Sem isso o ala ocupava a largura do
+            // NOME inteiro e os 3 meias ficavam espremidos no meio, um em cima do outro.
+            return recuadoIds.has(c.id) ? <div key={c.id} style={{ flex: '1 1 0', minWidth: 0, display: 'flex', transform: 'translateY(14px)' }}>{j}</div> : j
           }
           // 🥅 linha ÚNICA por setor (nunca quebra): a defesa tem 4 (LAT-ZAG-ZAG-LAT)
           // e no celular a 4ª "pulava" pra baixo, parecendo formação errada.
