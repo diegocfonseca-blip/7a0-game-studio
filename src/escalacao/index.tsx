@@ -67,20 +67,31 @@ function AvisoTopo({ escondido }: { escondido: boolean }) {
 // nunca nas salas, no leilão ou na temporada. O ✕ esconde neste aparelho.
 // Tirar pra todos: COMUNIDADE_LINK = null (comunidade.ts).
 const COMUNIDADE_FECHADA = 'esc-comunidade-zap-fechada'
+// 📣 12/10: a MESMA faixa, agora também FORA da home — em toda tela de jogo (carreira, sala online, leilão…).
+// Pedido do Diego: *"coloque p todos agora tb q estão jogando… se fecharem essa aba ou entrarem no link N precisa
+// mais aparecer… só desse novo. Já o aviso na home e nas salas mantenha sempre"*. Por isso a chave é OUTRA: fechar
+// (✕) ou tocar em Entrar aqui some com ESTA faixa pra sempre neste aparelho, e não mexe na da home nem no quadro
+// das salas. Na home ela não aparece (lá já tem a de sempre).
+const COMUNIDADE_JOGO_VISTA = 'esc-comunidade-zap-jogo-vista'
 function ComunidadeBanner() {
   const { state } = useEsc()
-  const [fechada, setFechada] = useState(() => { try { return localStorage.getItem(COMUNIDADE_FECHADA) === '1' } catch { return false } })
-  if (!COMUNIDADE_LINK || fechada) return null
-  if (state.screen !== 'intro') return null // só na HOME (Diego 11/10: "deixe isso só na home")
+  const naHome = state.screen === 'intro'
+  const chave = naHome ? COMUNIDADE_FECHADA : COMUNIDADE_JOGO_VISTA
+  const [fechadas, setFechadas] = useState<Record<string, boolean>>(() => {
+    const le = (k: string) => { try { return localStorage.getItem(k) === '1' } catch { return false } }
+    return { [COMUNIDADE_FECHADA]: le(COMUNIDADE_FECHADA), [COMUNIDADE_JOGO_VISTA]: le(COMUNIDADE_JOGO_VISTA) }
+  })
+  const fecha = () => { try { localStorage.setItem(chave, '1') } catch { /* ignora */ } setFechadas(f => ({ ...f, [chave]: true })) }
+  if (!COMUNIDADE_LINK || fechadas[chave]) return null
   const en = getLang() === 'en'
   return (
-    <div className="ll-comunidade" style={{ display: 'flex', alignItems: 'stretch', background: '#1B7A3D', borderBottom: '3px solid #0C0C0C', height: 'var(--ll-zap-h)', boxSizing: 'border-box', overflow: 'hidden' }}>
+    <div className={naHome ? 'll-comunidade' : 'll-comunidade-jogo'} style={{ display: 'flex', alignItems: 'stretch', background: '#1B7A3D', borderBottom: '3px solid #0C0C0C', height: 'var(--ll-zap-h)', boxSizing: 'border-box', overflow: 'hidden' }}>
       {/* a home gruda o botão de som no topo: com a faixa na tela ele desce a ALTURA FIXA dela (senão ficava
           em cima do texto). Altura fixa = 64 no celular · 52 no computador. */}
       <style>{':root{--ll-zap-h:52px}@media(max-width:650px){:root{--ll-zap-h:64px}}'
         + '#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(26px + var(--ll-zap-h))!important}'
         + '@media(max-width:650px){#root:has(.ll-comunidade) button[aria-label="Desligar som"],#root:has(.ll-comunidade) button[aria-label="Ligar som"]{top:calc(16px + var(--ll-zap-h))!important}}'}</style>
-      <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 10px', color: '#fff', textDecoration: 'none', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, textAlign: 'center' }}>
+      <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" onClick={() => { if (!naHome) fecha() }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 10px', color: '#fff', textDecoration: 'none', fontWeight: 800, fontSize: 12.5, lineHeight: 1.3, textAlign: 'center' }}>
         <span style={{ fontSize: 18, flex: 'none' }}>📲</span>
         <span style={{ textAlign: 'left' }}>
           <b style={{ display: 'block', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 14, lineHeight: 1.15, textTransform: 'uppercase', letterSpacing: '.02em' }}>{en ? 'Our WhatsApp community is here!' : 'Chegou a comunidade no WhatsApp!'}</b>
@@ -88,7 +99,7 @@ function ComunidadeBanner() {
         </span>
         <span style={{ flex: 'none', background: '#FFC400', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 999, padding: '3px 10px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', boxShadow: '2px 2px 0 #0C0C0C', whiteSpace: 'nowrap' }}>{en ? 'Join' : 'Entrar'}</span>
       </a>
-      <button aria-label={en ? 'close' : 'fechar'} onClick={() => { try { localStorage.setItem(COMUNIDADE_FECHADA, '1') } catch { /* ignora */ } setFechada(true) }}
+      <button aria-label={en ? 'close' : 'fechar'} onClick={fecha}
         style={{ flex: 'none', background: 'transparent', border: 'none', borderLeft: '2px solid rgba(255,255,255,.25)', color: '#fff', fontWeight: 900, fontSize: 15, padding: '0 12px', cursor: 'pointer' }}>✕</button>
     </div>
   )
