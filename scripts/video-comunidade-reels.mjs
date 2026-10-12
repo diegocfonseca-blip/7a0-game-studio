@@ -11,13 +11,15 @@
 // dos grupos são ILUSTRAÇÃO: sem nome de ninguém, só bolinha colorida (regra de não inventar
 // pessoa real, 18/08).
 //
-// 🎞️ Roteiro (~31 s):
+// 🎞️ Roteiro (~36 s):
 //   0,0– 4,4   💬 chegou a comunidade do Leilão Legends no WhatsApp
-//   4,4– 9,6   📢 anúncios e avisos em primeira mão (o aviso de verdade entrando)
-//   9,6–15,0   1️⃣ grupo GERAL: achar gente pra jogar online + dicas da carreira
-//  15,0–20,0   2️⃣ BUGS E SUGESTÕES
-//  20,0–25,0   3️⃣ VIP 👑 só de quem apoia o jogo
-//  25,0–31,0   entra agora: QR + link + marca
+//   4,4– 9,6   📋 "tudo num lugar só": a lista da comunidade redesenhada, com os NOMES DE VERDADE
+//              dos grupos (print do Diego, 13/10) — sem colar o print: ele mostra telefone de membro
+//   9,6–14,8   📢 anúncios e avisos em primeira mão (o aviso de verdade entrando)
+//  14,8–20,2   🌐 Geral - Carreira | Online: achar gente pra jogar online + dicas da carreira
+//  20,2–25,2   🐞 Bugs | Sugestões
+//  25,2–30,2   👑 Leilão Legends - Grupo VIP: só de quem apoia o jogo (pede pra entrar)
+//  30,2–36,2   entra agora: QR + link + marca
 //
 //   node scripts/video-comunidade-reels.mjs [--saida comunidade-reels.mp4]
 import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'node:fs'
@@ -69,6 +71,14 @@ const grupo = (n, emoji, nome, pra, cor, atraso, fundo = '#fff', tinta = INK) =>
     </span>
   </div>`
 
+const linhaZap = (ic, fundo, nome, sub, atraso, destaque = false) => `
+  <div style="display:flex;align-items:center;gap:24px;padding:22px 28px;border-bottom:3px solid #0001;background:${destaque ? '#E8F8EE' : '#fff'};${entra(atraso)}">
+    <span style="flex:none;width:96px;height:96px;border-radius:${ic === '📢' ? '22px' : '50%'};background:${fundo};border:4px solid ${INK};
+      display:flex;align-items:center;justify-content:center;font-size:52px">${ic}</span>
+    <span style="flex:1;text-align:left"><b style="font-size:40px;font-weight:800;display:block;line-height:1.15">${nome}</b>
+      <span style="font-size:28px;font-weight:600;color:rgba(12,12,12,.55)">${sub}</span></span>
+  </div>`
+
 const video = `<!doctype html><meta charset="utf-8"><style>${FONTES}
 *{box-sizing:border-box;margin:0;padding:0}
 body{width:1080px;height:1920px;background:${CREME};font-family:system-ui;overflow:hidden;position:relative}
@@ -92,60 +102,77 @@ ${cena(0, 4.4, `
   <p style="${OSW};font-size:64px;text-transform:uppercase;line-height:1.1;margin-top:14px;${sobe(1.1)}">do Leilão <span style="color:${RED}">Legends</span></p>
   <div style="margin-top:46px;${pop(1.6)}">${pill('📱 no WhatsApp', ZAP, INK, 40)}</div>`)}
 
-<!-- ② anúncios e avisos -->
+
+<!-- ①½ assim é a comunidade (a lista do WhatsApp, redesenhada) -->
 ${cena(4.4, 9.6, `
-  <p style="font-size:110px;line-height:1;${pop(4.5)}">📢</p>
-  <p style="${OSW};font-size:68px;text-transform:uppercase;line-height:1.05;margin:12px 0 10px;${sobe(4.7)}">anúncios e avisos<br><span style="color:${RED}">em primeira mão</span></p>
-  <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.6);margin-bottom:34px;${sobe(4.9)}">batismo novo, novidade do jogo, carta nova…</p>
-  <img src="${AVISO}" style="width:600px;border:5px solid ${INK};border-radius:24px;box-shadow:10px 10px 0 ${INK};animation:cai .7s cubic-bezier(.2,1.4,.4,1) 5.4s both">`)}
+  <p style="${OSW};font-size:66px;text-transform:uppercase;line-height:1.05;margin-bottom:34px;${sobe(4.5)}">tudo num lugar só</p>
+  <div style="width:940px;background:#fff;border:6px solid ${INK};border-radius:30px;box-shadow:10px 10px 0 ${INK};overflow:hidden;${pop(4.7)}">
+    <div style="display:flex;align-items:center;gap:22px;padding:24px 28px;background:${INK};color:#fff">
+      <span style="flex:none;width:96px;height:96px;border-radius:22px;background:${CREME};border:4px solid ${GOLD};display:flex;align-items:center;justify-content:center;
+        ${OSW};font-size:24px;line-height:1;color:${INK}">LEILÃO<br>LEGENDS</span>
+      <span style="text-align:left"><b style="${OSW};font-size:46px;display:block">Leilão Legends</b>
+        <span style="font-size:28px;color:#ccc;font-weight:600">Comunidade · 4 grupos</span></span>
+    </div>
+    ${linhaZap('📢', ZAP, 'Avisos', 'novidades e batismos novos', 5.1, true)}
+    ${linhaZap('🌐', GREEN, 'Geral - Carreira | Online', 'ache gente pra jogar + dicas', 5.4)}
+    ${linhaZap('🐞', '#FFE3DD', 'Bugs | Sugestões', 'print de bug e ideias pro jogo', 5.7)}
+    ${linhaZap('👑', GOLD, 'Leilão Legends - Grupo VIP', 'só de quem apoia o jogo', 6.0)}
+  </div>`)}
+
+<!-- ② anúncios e avisos -->
+${cena(9.6, 14.8, `
+  <p style="font-size:110px;line-height:1;${pop(9.7)}">📢</p>
+  <p style="${OSW};font-size:68px;text-transform:uppercase;line-height:1.05;margin:12px 0 10px;${sobe(9.9)}">anúncios e avisos<br><span style="color:${RED}">em primeira mão</span></p>
+  <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.6);margin-bottom:34px;${sobe(10.1)}">batismo novo, novidade do jogo, carta nova…</p>
+  <img src="${AVISO}" style="width:600px;border:5px solid ${INK};border-radius:24px;box-shadow:10px 10px 0 ${INK};animation:cai .7s cubic-bezier(.2,1.4,.4,1) 10.6s both">`)}
 
 <!-- ③ grupo geral -->
-${cena(9.6, 15.0, `
-  ${grupo(1, '🌐', 'Geral', 'carreira e online', GREEN, 9.7)}
+${cena(14.8, 20.2, `
+  ${grupo(1, '🌐', 'Geral', 'Carreira | Online', GREEN, 14.9)}
   <div style="display:flex;flex-direction:column;gap:22px;align-items:center">
-    ${balao('#7C3AED', 'bora sala online hoje às 22h? 🔨', 10.4)}
-    ${balao('#E8503A', 'tô dentro! cria aí que eu entro', 11.1, 'd')}
-    ${balao('#F2C200', 'como faz pra subir pra Série B na carreira? 🤔', 11.9)}
-    ${balao('#1B7A3D', 'segura o caixa no leilão e investe no ataque 💡', 12.7, 'd')}
+    ${balao('#7C3AED', 'bora sala online hoje às 22h? 🔨', 15.6)}
+    ${balao('#E8503A', 'tô dentro! cria aí que eu entro', 16.3, 'd')}
+    ${balao('#F2C200', 'como faz pra subir pra Série B na carreira? 🤔', 17.1)}
+    ${balao('#1B7A3D', 'segura o caixa no leilão e investe no ataque 💡', 17.9, 'd')}
   </div>
-  <div style="margin-top:44px;${pop(13.4)}">${pill('ache gente pra jogar + dicas da carreira', '#fff', INK, 30)}</div>`)}
+  <div style="margin-top:44px;${pop(18.6)}">${pill('ache gente pra jogar + dicas da carreira', '#fff', INK, 30)}</div>`)}
 
 <!-- ④ bugs e sugestões -->
-${cena(15.0, 20.0, `
-  ${grupo(2, '🐞', 'Bugs e sugestões', 'achou um problema? teve uma ideia?', RED, 15.1)}
+${cena(20.2, 25.2, `
+  ${grupo(2, '🐞', 'Bugs | Sugestões', 'achou um problema? teve uma ideia?', RED, 20.3)}
   <div style="display:flex;flex-direction:column;gap:22px;align-items:center">
-    ${balao('#3B82F6', 'achei um bug na sala, olha o print 📸', 15.8)}
-    ${balao('#E8503A', 'ideia: modo só com goleiros kkkk 💡', 16.6, 'd')}
+    ${balao('#3B82F6', 'achei um bug na sala, olha o print 📸', 21)}
+    ${balao('#E8503A', 'ideia: modo só com goleiros kkkk 💡', 21.8, 'd')}
   </div>
   <div style="display:flex;gap:18px;margin-top:46px">
-    <div style="${pop(17.4)}">${pill('🐞 manda o print', '#fff', INK, 32)}</div>
-    <div style="${pop(17.7)}">${pill('💡 manda a ideia', GOLD, INK, 32)}</div>
+    <div style="${pop(22.6)}">${pill('🐞 manda o print', '#fff', INK, 32)}</div>
+    <div style="${pop(22.9)}">${pill('💡 manda a ideia', GOLD, INK, 32)}</div>
   </div>
-  <p style="font-size:32px;font-weight:800;margin-top:34px;${sobe(18.2)}">quem joga ajuda a deixar o jogo melhor 💪</p>`)}
+  <p style="font-size:32px;font-weight:800;margin-top:34px;${sobe(23.4)}">quem joga ajuda a deixar o jogo melhor 💪</p>`)}
 
 <!-- ⑤ VIP -->
-${cena(20.0, 25.0, `
-  <p style="font-size:120px;line-height:1;${pop(20.1)}">👑</p>
-  ${grupo(3, '', 'Grupo VIP', 'só de quem apoia o jogo', GOLD, 20.4, INK, '#fff')}
+${cena(25.2, 30.2, `
+  <p style="font-size:120px;line-height:1;${pop(25.3)}">👑</p>
+  ${grupo(3, '', 'Grupo VIP', 'só de quem apoia o jogo · pede pra entrar', GOLD, 25.6, INK, '#fff')}
   <div style="width:960px;border:5px solid ${INK};border-radius:28px;box-shadow:9px 9px 0 ${INK};padding:30px;
     background:linear-gradient(110deg,${GOLD} 0%,#FFE27A 40%,#fff6cf 50%,#FFE27A 60%,${GOLD} 100%);background-size:900px 100%;
-    animation:pop .5s cubic-bezier(.2,1.6,.4,1) 21.0s both, brilho 2.2s linear 21.5s infinite">
+    animation:pop .5s cubic-bezier(.2,1.6,.4,1) 26.2s both, brilho 2.2s linear 26.7s infinite">
     <p style="${OSW};font-size:46px;text-transform:uppercase;line-height:1.15">⭐ Craque · 👑 Lenda · 🖋️ Batismo</p>
     <p style="font-size:32px;font-weight:800;margin-top:14px;line-height:1.35">pertinho do criador do jogo,<br>pra quem faz o Leilão Legends crescer 💛</p>
   </div>`)}
 
 <!-- ⑥ entra agora -->
-${cena(25.0, 60, `
-  <p style="${OSW};font-size:84px;text-transform:uppercase;line-height:1.02;${sobe(25.1)}">entra <span style="color:${GREEN}">agora</span></p>
-  <p style="font-size:34px;font-weight:700;color:rgba(12,12,12,.6);margin:12px 0 36px;${sobe(25.3)}">aponta a câmera ou toca no link 👇</p>
-  <div style="background:#fff;border:6px solid ${INK};border-radius:30px;box-shadow:10px 10px 0 ${INK};padding:22px;${pop(25.6)}">
+${cena(30.2, 60, `
+  <p style="${OSW};font-size:84px;text-transform:uppercase;line-height:1.02;${sobe(30.3)}">entra <span style="color:${GREEN}">agora</span></p>
+  <p style="font-size:34px;font-weight:700;color:rgba(12,12,12,.6);margin:12px 0 36px;${sobe(30.5)}">aponta a câmera ou toca no link 👇</p>
+  <div style="background:#fff;border:6px solid ${INK};border-radius:30px;box-shadow:10px 10px 0 ${INK};padding:22px;${pop(30.8)}">
     <img src="${QR}" style="display:block;width:420px;height:420px"></div>
   <div style="margin-top:40px;background:${ZAP};border:5px solid ${INK};border-radius:22px;box-shadow:7px 7px 0 ${INK};padding:18px 28px;
-    ${OSW};font-size:40px;letter-spacing:.01em;${pop(26.1)}">${LINK}</div>
-  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:34px;${pop(26.6)}">
-    ${pill('1 · Geral', '#fff', INK, 28)}${pill('2 · Bugs e sugestões', '#fff', INK, 28)}${pill('3 · VIP 👑', GOLD, INK, 28)}
+    ${OSW};font-size:40px;letter-spacing:.01em;${pop(31.3)}">${LINK}</div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:34px;${pop(31.8)}">
+    ${pill('📢 Avisos', ZAP, INK, 28)}${pill('Geral', '#fff', INK, 28)}${pill('Bugs | Sugestões', '#fff', INK, 28)}${pill('VIP 👑', GOLD, INK, 28)}
   </div>
-  <p style="${OSW};font-size:60px;margin-top:56px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 27.2s infinite">
+  <p style="${OSW};font-size:60px;margin-top:56px;text-transform:uppercase;animation:pulsa 1.4s ease-in-out 32.4s infinite">
     ⚽ Leilão <span style="color:${RED}">Legends</span></p>
   <p style="font-size:32px;font-weight:700;color:rgba(12,12,12,.55);margin-top:12px">leilaolegends.com</p>`)}
 </body>`
@@ -162,7 +189,7 @@ const ctx = await b.newContext({ viewport: { width: 1080, height: 1920 }, record
 const vp = await ctx.newPage()
 await vp.goto('file://' + vtmp)
 await vp.evaluate(() => document.fonts.ready)
-await vp.waitForTimeout(31500)
+await vp.waitForTimeout(36800)
 await ctx.close()
 await b.close()
 
