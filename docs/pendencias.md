@@ -1,3 +1,13 @@
+## 💴🔴⚫ Batismo Rossini Money (12/10) ✅ NO AR
+- Dono `luizeduardorossini0013@gmail.com` (conta já existia ✔). **Série A**, no assento do **Bagres de Wall Street FC**,
+  que DESCEU pra Série B no lugar do bot **Fatality FC** (o último bot da B; segue no jogo rápido). Sem OLD_NAME (ninguém
+  foi renomeado). ⚠️ Agora A e B estão 100% batizadas: o próximo batismo de A/B precisa que alguém desça pra C.
+- Arte do dono (prancha chroma): escudo 287×360/28 KB (tirada uma pena solta) · mascote "O Ninja" 295×440/40 KB (tirado o
+  texto "Disciplina, Estratégia, Dinheiro" que encostava) · camisa da Loja. Manto: preto #120D0D (79%) + vermelho vivo #C21C1B.
+- Banco feito: user_colors ouro · esc_fundadores 90 · esc_socios 71 · esc_nomes_batismo "Rossini Money" (FC/EC pelo gatilho).
+- Post: `scripts/posts/rossini-post.png`. ⏳ Falta time do coração e apelido (usei "Rossini").
+- ⚠️ A mascote é o Itachi (Naruto) — avisei o Diego que é personagem de outra empresa; decisão dele.
+
 ## 💰 Batismo mais caro nos planos de hoje (12/10) ✅ NO AR
 - Diego: *"aumente o valor dos batismos pra 69 e 79"*. Planos v1 (os que todo mundo vê): Série B·C·D·Várzea **59,90 → 69,90**
   e Série A **69,90 → 79,99** (os mesmos números do v2: Lenda 69,90 · Plus 79,99). Pix, vitrine, FAQ PT/EN e cupom seguem o valor novo.

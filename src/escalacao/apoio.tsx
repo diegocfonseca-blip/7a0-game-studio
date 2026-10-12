@@ -115,6 +115,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'bastosmbc@gmail.com': 'ouro', // 👑 Lenda — batismo El Mineiro (Série C, no assento do bot Brodeiragem) + fundador nº80 + sócio nº61 (27/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'heitormonaco98@gmail.com': 'ouro', // 👑 Lenda — batismo Arrogantchi FC (Série A, no assento do Bagres 1993, que desceu pra B) + fundador nº88 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'marcus.viniciuslopessantos79@gmail.com': 'ouro', // 👑 Lenda — batismo Inter Vale FC (Série C, no assento do bot Tetéia SAF) + fundador nº89 + sócio nº70 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'luizeduardorossini0013@gmail.com': 'ouro', // 👑 Lenda — batismo Rossini Money (Série A, no assento do Bagres de Wall Street FC, que desceu pra B) + fundador nº90 + sócio nº71 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'henriquejunger07@gmail.com': 'ouro', // 👑 Lenda — batismo Le Prince FC (Várzea, no assento do bot Perna de Pau City) + fundador nº87 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'atilasoaresjr21@gmail.com': 'ouro', // 👑 Lenda — batismo Mengão Malvadão (Série A, no assento do Nata de SP, que desceu pra B) + fundador nº86 (06/10). Era ⭐ Craque, subiu pra Lenda com o batismo. Regra 17/08: todo batismo já nasce sócio + fundador.
   'kelvinoliveiraandradeenunes@gmail.com': 'ouro', // 👑 Lenda — batismo K9 FC (Várzea, no assento do bot Meia-Boca FC) + fundador nº85 (06/10). Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -226,6 +227,7 @@ const FUNDADOR_N: Record<string, number> = {
   'felipe.vrod10@gmail.com': 84, // 😈🔴⚫ Vieira FC (03/10)
   'heitormonaco98@gmail.com': 88, // 😜🔵⚫ Arrogantchi FC (08/10)
   'marcus.viniciuslopessantos79@gmail.com': 89, // 🥊⚫⚪ Inter Vale FC (12/10)
+  'luizeduardorossini0013@gmail.com': 90, // 💴🔴⚫ Rossini Money (12/10)
   'henriquejunger07@gmail.com': 87, // 🐓👑 Le Prince FC (08/10)
   'atilasoaresjr21@gmail.com': 86, // 🦅🔴⚫ Mengão Malvadão (06/10)
   'kelvinoliveiraandradeenunes@gmail.com': 85, // 👑🧊 K9 FC (06/10)
