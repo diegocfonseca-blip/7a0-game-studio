@@ -64,7 +64,7 @@ import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
 import { MUDANCAS_JOGADORES } from './novidades-jogadores'
 import { useLang, useT, getLang, ordinal, tr } from './lang'
-import { ChatAvatar, ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
+import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { POS_LABELS, basketClockLabel } from './sportcfg'
 import { meuManto, mantoStripes, meuMantoAngle, meuMantoC3, meuMantoC3Buffer, useMeuSocio, nomeLivre, NOME_MSG } from './manto'
 import { MASCOTES, FestaoMascote } from './mascotes'
@@ -713,10 +713,9 @@ export function ChatWidget() {
                       // antiga guardada no aparelho, ou sala sem dupla).
                       const mine = m.uid ? m.uid === state.youUid : m.from === state.youIdx
                       const re = reValido(m.re)
-                      // 1) escudo + cor do plano de quem fala · 3) toque na dos outros = responder
+                      // 1) nome na cor do plano de quem fala (sem escudo: Diego 13/10 "pra não ficar muita informação") · 3) toque na dos outros = responder
                       return (
-                        <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-end', flexDirection: mine ? 'row-reverse' : 'row' }}>
-                          {!mine && <ChatAvatar name={m.name} />}
+                        <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
                           <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
                             style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
                             {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ChatCracha name={m.name} />}

@@ -4,9 +4,9 @@
   "destaque": {
     "passos": [
       {
-        "emoji": "🛡️",
-        "titulo": "Escudo + cor",
-        "sub": "de quem fala"
+        "emoji": "👑",
+        "titulo": "Nome na cor",
+        "sub": "do plano de quem fala"
       },
       {
         "emoji": "↩️",
@@ -23,7 +23,7 @@
   "itens": [
     {
       "tag": "novidade",
-      "texto": "Cada um aparece no chat com o **escudo do clube** e a **cor do próprio plano**. Dá pra saber de longe quem está zoando."
+      "texto": "O **nome** de cada um aparece no chat na **cor do próprio plano**. Dá pra saber de longe quem está zoando."
     },
     {
       "tag": "novidade",

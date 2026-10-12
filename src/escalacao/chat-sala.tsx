@@ -1,7 +1,8 @@
 // 💬 PEÇAS DO CHAT DA SALA (Diego 13/10, mockup `scripts/mockups/chat-sala.png`: "faz 1, 3 e 4").
 // Usadas pelos DOIS chats — o do jogo (`ChatWidget`, screens.tsx) e o da sala de espera
 // (`LobbyChatDock`, lobby.tsx) — pra eles não terem regra própria cada um.
-//   1) quem fala aparece com o ESCUDO do clube + a cor do PRÓPRIO plano (grátis = bege). O plano
+//   1) o NOME de quem fala vem na cor do PRÓPRIO plano (grátis = bege). SEM escudo: o Diego tirou
+//      no mesmo dia ("deixa apenas o nome dourado… pra não ficar muita informação"). O plano
 //      é lido pelo selo que já viaja no nome (👑 ⭐ 💎 e o invisível do verde) — o mesmo jeito que
 //      a lista de jogadores da sala usa; nada é consultado no banco.
 //   3) RESPONDER: a mensagem leva `re` (nome + começo da frase de quem foi respondido).
@@ -9,7 +10,6 @@
 //   4) a gaveta não escurece nem bloqueia o jogo: dá pra continuar vendo e tocando no pregão.
 // ⚠️ Nada aqui manda mensagem a mais pelo canal (sem "digitando") — ver a conta do realtime.
 import { APOIO_PERKS, type ApoioPerk, stripEmoji } from './apoio'
-import { Escudo } from './escudos'
 import { tr } from './lang'
 
 export type ChatRe = { name: string; text: string }
@@ -31,15 +31,6 @@ export function citacao(name: string, text: string): ChatRe {
 export function reValido(re: unknown): ChatRe | undefined {
   const r = re as ChatRe | undefined
   return r && typeof r.name === 'string' && typeof r.text === 'string' ? { name: r.name.slice(0, 40), text: r.text.slice(0, 80) } : undefined
-}
-
-export function ChatAvatar({ name }: { name: string }) {
-  const p = perkDoNome(name)
-  return (
-    <span style={{ width: 30, height: 30, borderRadius: 9, border: '2px solid #000', background: p.grad, display: 'grid', placeItems: 'center', flexShrink: 0, boxShadow: '2px 2px 0 0 #000' }}>
-      <Escudo nome={nomeSemSelo(name)} size={22} />
-    </span>
-  )
 }
 
 export function ChatCracha({ name }: { name: string }) {
