@@ -1,6 +1,17 @@
 ## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
 Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
 
+
+## 13/10/2026 — 🏆📊🖋️ VITRINE EMBAIXO DO "ATUALIZAR LISTA" (mockup aprovado: "sim pode fazer e publicar")
+
+- `src/escalacao/vitrine-salas.tsx` (`VitrineSalas`), chamado no lobby logo depois do 🔄 Atualizar lista.
+- 🏆 Campeões de hoje: ORDEM DE QUEM VAI GANHANDO (mais recente em cima), 5 linhas, só gente (`human_results`).
+- 📊 Ranking da semana: títulos online desde segunda 0h (Brasília), top 5 + "você" tracejado. Liga + cup_titles.
+- 🖋️ Último batismo: maior `socio_n` com origem 'batismo' (hoje Rossini Money — o Diego confirmou), escudo +
+  mascote + botão que abre o Apoie direto no batismo.
+- Tudo numa chamada: RPC `esc_vitrine_salas()` (aplicada no banco; nota em docs/sql/vitrine-salas.sql). Banco
+  sem resposta = a vitrine some, a lista nunca trava. Mockup: `scripts/mockup-lobby-engaja.mjs`.
+
 ## 🔁 Rival com banco: cansa, se machuca e tem 22 + mais dinheiro pros bots (13/10) — 🟢 LIBERADO PRA TODOS em 13/10 (`BOT_BANCO_GERAL = true`; Diego: "pode publicar pra todos já")
 Diego: "pode fazer" + 3 avisos separados (`scripts/avisos/2026-10-13-rivais-{22,cansam,dinheiro}.json` → `scripts/posts/aviso-rivais-*.png`).
 - Motor puro `src/escalacao/bots-banco.ts` (`planoCansacoBot`, `PATROCINIO_BOT`, `premioColocacaoBot`); trava `npm run bots-banco`.

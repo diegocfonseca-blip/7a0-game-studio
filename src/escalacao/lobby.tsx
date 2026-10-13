@@ -36,6 +36,7 @@ import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
+import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
@@ -3668,6 +3669,8 @@ export function EscLobby() {
           })}
         </div>
         <Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big>
+        {/* 🏆📊🖋️ vitrine: campeões de hoje · ranking da semana · último batismo (13/10, mockup aprovado) */}
+        <VitrineSalas logado={!!user} />
         {/* 📱 O GRUPO DE QUEM JOGA ONLINE — mudou de lugar em 29/08, no mesmo dia em
             que nasceu. Palavras do Diego, olhando a tela: *"sobre o WhatsApp, é pra
             aparecer aqui embaixo de atualizar lista, e de forma mais sutil. E não
