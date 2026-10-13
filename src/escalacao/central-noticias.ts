@@ -48,6 +48,8 @@ export type EntradaJornal = {
   lesao?: { nome: string; jogosFora: number; motivo: [string, string] } | null
   /** 🌱 cria da base escalado de titular no próximo jogo */
   criaTitular?: string | null
+  /** 🔁 rival com banco (13/10): lesões e poupados dos bots na última rodada, e o desfalque do seu próximo adversário */
+  rivais?: { dm: { time: string; nome: string; jogos: number }[]; poupados: { time: string; n: number }[]; adversario?: { time: string; fora: string[] } }
   /** 🏆 copas chegando: faltam N rodadas · é na próxima temporada · é nesta temporada */
   copaChegando?: { nome: [string, string]; rodadasFaltam?: number; proximaTemporada?: boolean; esteAno?: boolean }[]
 }
@@ -185,6 +187,14 @@ export function redacaoDaCentral(e: EntradaJornal): Jornal {
   }
   // ── 🌱 cria da base de titular ────────────────────────────────────────────
   if (e.criaTitular) noticias.push({ emoji: '🌱', pt: `Cria da base ${e.criaTitular} vai de titular no próximo jogo — a torcida quer ver.`, en: `Academy kid ${e.criaTitular} starts the next match — the fans want a look.`, tag: ['seu clube', 'your club'] }, 1)
+  // 🔁 RIVAL COM BANCO (13/10): o DM e o rodízio dos bots — o desfalque do SEU adversário vem antes
+  if (e.rivais?.adversario) {
+    const f = e.rivais.adversario.fora, nomes = f.length > 1 ? `${f.slice(0, -1).join(', ')} e ${f[f.length - 1]}` : f[0], nomesEn = f.length > 1 ? `${f.slice(0, -1).join(', ')} and ${f[f.length - 1]}` : f[0]
+    noticias.push({ emoji: '🆚', pt: `Seu próximo adversário, o ${e.rivais.adversario.time}, vem sem ${nomes} (lesão).`, en: `Your next opponent, ${e.rivais.adversario.time}, are without ${nomesEn} (injury).`, tag: ['próximo jogo', 'next match'] }, 2)
+  }
+  for (const d of (e.rivais?.dm ?? []).slice(0, 2)) noticias.push({ emoji: '🚑', pt: `${d.nome} se machuca e desfalca o ${d.time} por ${d.jogos} jogo${d.jogos > 1 ? 's' : ''}.`, en: `${d.nome} gets injured and misses ${d.jogos} match${d.jogos > 1 ? 'es' : ''} for ${d.time}.`, tag: ['departamento médico', 'medical'] }, 6)
+  const poup = [...(e.rivais?.poupados ?? [])].sort((a, b) => b.n - a.n)[0]
+  if (poup) noticias.push({ emoji: '🔁', pt: `${poup.time} poupa ${poup.n} titulares cansados na rodada.`, en: `${poup.time} rest ${poup.n} tired starters this round.`, tag: ['rodízio', 'rotation'] }, 7)
   // ── 🏆 copa chegando ──────────────────────────────────────────────────────
   for (const c of e.copaChegando ?? []) {
     if (c.rodadasFaltam != null) noticias.push({ emoji: '🏆', pt: `${c.nome[0]} chegando: ${c.rodadasFaltam === 0 ? 'o mata-mata começa logo depois desta rodada' : `faltam ${c.rodadasFaltam} rodada${c.rodadasFaltam === 1 ? '' : 's'} pro mata-mata`}.`, en: `${c.nome[1]} is coming: ${c.rodadasFaltam === 0 ? 'the knockout starts right after this round' : `${c.rodadasFaltam} round${c.rodadasFaltam === 1 ? '' : 's'} until the knockout`}.`, tag: ['copa', 'cup'] }, 2)

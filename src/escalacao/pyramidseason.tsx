@@ -36,6 +36,7 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
+import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco' // 🔁 rival com banco (13/10)
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, chaveCarry } from './condicao'
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
@@ -61,7 +62,7 @@ import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
-import { useSaf2 } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
+import { useSaf2, useBotBanco } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
@@ -522,6 +523,13 @@ export function clubRewards(tables: Record<Div, SimTeam[]>): Record<string, numb
   })
   return out
 }
+// 🏅 PRÊMIO PELA COLOCAÇÃO dos bots (13/10, rival com banco): por cima do prêmio de título/acesso,
+// todo clube bot recebe pela posição final na tabela da divisão (`premioColocacaoBot`, bots-banco.ts).
+export function premiosColocacaoBots(tables: Record<Div, SimTeam[]>): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const d of DIVS) tables[d].forEach((t, i) => { if (!t.human) out[teamKey(t)] = premioColocacaoBot(d, i + 1) })
+  return out
+}
 // 🤝 PATROCÍNIO POR APOSTA (05/08): calcula, pra CADA humano, se a aposta da
 // temporada bateu — e quanto rende. Bateu = valor do nível escolhido; não bateu
 // (ficou aquém, ex.: apostou "não cair" e caiu) = ZERO. Superou a meta escolhida
@@ -724,6 +732,17 @@ export type RoundMods = Record<number, Record<number, number>>
 // simulação byte a byte igual. Só humano (bot não cansa — baseline plano).
 export type RoundCardMods = Record<number, Record<number, Record<string, number>>>
 const comMods = (xi: PoolCard[], m: Record<string, number> | undefined): PoolCard[] => (m ? xi.map(c => (m[c.id] ? { ...c, lo: c.lo + m[c.id], hi: c.hi + m[c.id] } : c)) : xi)
+// 🔁 RIVAL COM BANCO (13/10): plano de rodízio/lesão/gás de cada bot da divisão do humano, por NOME do
+// clube (time de fundo tem teamId −1). Sai de `planoCansacoBot` (bots-banco.ts). Vazio = nada muda.
+export type BotPlans = Record<string, { xi: string[][]; mods: Record<number, Record<string, number>> }>
+function botXI(t: SimTeam, r: number, plans?: BotPlans): PoolCard[] {
+  const p = plans?.[t.name]
+  const ids = p?.xi[r]
+  if (!p || !ids) return t.xi
+  const map = new Map(t.squad.map(c => [c.id, c]))
+  const xi = ids.map(id => map.get(id)).filter((c): c is PoolCard => !!c)
+  return xi.length === t.xi.length ? comMods(xi, p.mods[r]) : t.xi // 🛡️ plano torto (carta sumiu) → XI de sempre
+}
 // 🔁 INTERVALO (carreira offline): decisão do 2º tempo por técnico/rodada. O 1º
 // tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
 // é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
@@ -762,7 +781,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -847,8 +866,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const ta: Tac = A.human ? tacAt(tactics, A.teamId, r) : TACS[Math.floor(rng() * 3)]
     // XI daquele jogo: humano usa a escalação que ELE montou (por rodada); CPU o fixo
     // 😓 gás/volta de lesão: só humano, só nesta rodada — a carta em si não muda
-    const hxi = H.human ? comMods(lineupAt(lineups, H.teamId, r, H.squad, H.formation), cardMods[H.teamId]?.[r]) : H.xi
-    const axi = A.human ? comMods(lineupAt(lineups, A.teamId, r, A.squad, A.formation), cardMods[A.teamId]?.[r]) : A.xi
+    // 🔁 RIVAL COM BANCO (13/10): bot com plano (só na divisão do humano, temporada nova) joga com o XI
+    // do plano — rodízio, lesão e gás — em vez do XI fixo. Sem plano: o XI fixo de sempre, byte a byte.
+    const hxi = H.human ? comMods(lineupAt(lineups, H.teamId, r, H.squad, H.formation), cardMods[H.teamId]?.[r]) : botXI(H, r, botPlans)
+    const axi = A.human ? comMods(lineupAt(lineups, A.teamId, r, A.squad, A.formation), cardMods[A.teamId]?.[r]) : botXI(A, r, botPlans)
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
     // 🧢 TÉCNICO = 12ª CARTA (26/08, em teste): o overall dele é sorteado na faixa
     // lo–hi e entra na média do time com peso de UMA carta em 12 — em ataque E
@@ -963,7 +984,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -971,7 +992,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -7816,8 +7837,40 @@ export function PyramidSeasonScreen() {
   // Medido em `scripts/testa-tabela-gas.mjs`: até 43 pontos e 10 posições de
   // diferença entre as duas histórias.
   // Agora as duas saem da MESMA função — não tem como uma esquecer um argumento.
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods),
-    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods])
+  // 🔁 RIVAL COM BANCO (13/10): os bots da SUA divisão cansam, se machucam e rodam o time — com a MESMA
+  // régua do seu gás (só quando o seu gás está ligado, ou seja, Série C pra cima) e só a partir da
+  // temporada em que a regra nasceu (`botFadigaDesde`): temporada em andamento nunca muda de placar.
+  const botBancoOn = useBotBanco()
+  const botFadigaOn = botBancoOn && condOn && state.botFadigaDesde != null && (state.seasonNo ?? 1) >= state.botFadigaDesde
+  const planosBots = useMemo<Record<string, PlanoBot>>(() => {
+    if (!botFadigaOn) return {}
+    const me = state.managers[state.youIdx]
+    const minhaDiv = (Object.keys(world) as Div[]).find(d => world[d].some(t => t.human && t.teamId === me?.id))
+    if (!minhaDiv) return {}
+    const carry = state.botCarry ?? {}
+    const out: Record<string, PlanoBot> = {}
+    for (const t of world[minhaDiv]) {
+      if (t.human) continue
+      const inicio: Record<string, number> = {}
+      for (const c of t.squad as WonCard[]) { const g = carry[chaveCarry(c)]; if (g != null) inicio[c.id] = g }
+      out[t.name] = planoCansacoBot({ squad: t.squad, need: t.formation ? FORMATIONS[t.formation] : NEED, inicio, seed: seasonSeed, seasonNo: state.seasonNo ?? 1, nome: t.name, rodadas: 38 })
+    }
+    return out
+  }, [botFadigaOn, world, state.managers, state.youIdx, state.botCarry, seasonSeed, state.seasonNo])
+  const botPlans = Object.keys(planosBots).length ? planosBots : undefined
+  // o gás com que cada carta de bot TERMINA a temporada → vai na virada (`botCarry`), igual ao seu
+  const botCarryFim = useMemo<Record<string, number> | undefined>(() => {
+    if (!botFadigaOn) return undefined
+    const out: Record<string, number> = {}
+    for (const d of Object.keys(world) as Div[]) for (const t of world[d]) {
+      const p = planosBots[t.name]
+      if (!p) continue
+      for (const c of t.squad as WonCard[]) { const g = p.gasFim[c.id]; if (g != null && g < 100) out[chaveCarry(c)] = Math.round(g * 10) / 10 }
+    }
+    return out
+  }, [botFadigaOn, world, planosBots])
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans),
+    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
@@ -8910,7 +8963,7 @@ export function PyramidSeasonScreen() {
   const stadiumMatch:ContextoPartidaEstadio|undefined=presidentAvailable&&myMatch?(()=>{
     const teams=Object.values(live.tables).flat(),home=teams.find(t=>t.teamId===myMatch.hId),away=teams.find(t=>t.teamId===myMatch.aId)
     if(!home||!away)return undefined
-    const xi=(t:SimTeam)=>t.human?lineupAt(careerLineup,t.teamId,round,t.squad,t.formation):t.xi
+    const xi=(t:SimTeam)=>t.human?lineupAt(careerLineup,t.teamId,round,t.squad,t.formation):botXI(t,round,botPlans) // 🔁 o bot entra com o XI do plano (rodízio/lesão)
     const second=(t:SimTeam)=>{const ids=careerHalftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
     return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,speed:state.simSpeed??1,homeClubId:home.teamId,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeBench:home.squad.filter(c=>!c.fake),awayBench:away.squad.filter(c=>!c.fake),homeSecondHalf:second(home),awaySecondHalf:second(away)}
   })():undefined
@@ -9427,6 +9480,27 @@ export function PyramidSeasonScreen() {
       totalRodadas: 38, temRebaixamento: myDiv !== 'V',
       lesao: suspenso ? { nome: suspenso.nome, jogosFora: Math.max(1, (suspenso.volta ?? 0) - round), motivo: suspenso.tipo === 'lesao' ? ['lesão', 'injury'] : suspenso.tipo === 'expulsao' ? ['suspenso', 'suspended'] : ['noitada', 'night out'] } : null,
       criaTitular: (myXI as WonCard[]).find(c => c.cria)?.name ?? null,
+      rivais: (() => {
+        // 🔁 RIVAL COM BANCO (13/10): o DM e os poupados dos bots viram notícia — só do que já foi revelado
+        if (!botPlans || revCentral < 1) return undefined
+        const nomeDe = (time: string, id: string) => (world[myDiv] ?? []).find(t => t.name === time)?.squad.find(c => c.id === id)?.name ?? ''
+        const rUlt = revCentral - 1
+        const dm: { time: string; nome: string; jogos: number }[] = []
+        const poupados: { time: string; n: number }[] = []
+        for (const [time, p] of Object.entries(planosBots)) {
+          for (const l of p.lesoes) if (l.r === rUlt) { const nome = nomeDe(time, l.id); if (nome) dm.push({ time, nome, jogos: l.rodadas }) }
+          const n = p.poupados[rUlt] ?? 0
+          if (n >= 2) poupados.push({ time, n })
+        }
+        let adversario: { time: string; fora: string[] } | undefined
+        if (proximo) {
+          const adv = proximo.casa === euNome ? proximo.fora : proximo.casa
+          const p = planosBots[adv], ri = proximo.rodada - 1
+          const fora = p ? p.lesoes.filter(l => l.r < ri && l.r + 1 + l.rodadas > ri).map(l => nomeDe(adv, l.id)).filter(Boolean) : []
+          if (fora.length) adversario = { time: adv, fora }
+        }
+        return { dm, poupados, adversario }
+      })(),
       copaChegando: [
         ...(!seasonOver && 38 - round <= 5 ? [{ nome: (copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']) as [string, string], rodadasFaltam: 38 - round }] : []),
         ...(intlEnabled && sn === 39 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
@@ -10197,7 +10271,7 @@ export function PyramidSeasonScreen() {
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
           // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
           // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
-          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
+          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,

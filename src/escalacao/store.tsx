@@ -855,14 +855,15 @@ export function folhaDoBot(squad: readonly Card[] | undefined): number {
   return f
 }
 /** o balanço de UM clube bot numa virada (puro — a trava `npm run econ-bots` testa isto) */
-export function balancoBot(div: string, folha: number, caixa: number): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number } {
+// 🤝 `patrocinio` (13/10, rival com banco): a 3ª receita do bot — `PATROCINIO_BOT` (bots-banco.ts). 0 = como era.
+export function balancoBot(div: string, folha: number, caixa: number, patrocinio = 0): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number } {
   const tv = TV_COTA[div] ?? 10, bilheteria = BOT_BILHETERIA[div] ?? 6
-  const saldo = tv + bilheteria - folha
+  const saldo = tv + bilheteria + patrocinio - folha
   let novo = Math.max(0, caixa + saldo)
   const teto = BOT_CAIXA_TETO[div] ?? 150
   // passou do teto? o excedente vira obra. Quem JÁ estava acima (save antigo) não perde nada.
   if (saldo > 0 && novo > teto) novo = Math.max(caixa, teto)
-  return { tv, bilheteria, folha, saldo, caixa: Math.round(novo) }
+  return { tv, bilheteria, folha, saldo, caixa: Math.round(novo), ...(patrocinio ? { patrocinio } : {}) }
 }
 /** aplica a economia em todo clube bot da pirâmide, pela divisão da temporada QUE ACABOU */
 function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> | null | undefined): void {
@@ -876,7 +877,7 @@ function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> 
     const squad = k.startsWith('m') && /^m\d+$/.test(k)
       ? s.managers.find(m => `m${m.id}` === k)?.squad
       : (s.cpuSquads?.[k] as Card[] | undefined)
-    const b = balancoBot(div, folhaDoBot(squad), cash[k] ?? DIV_BASE_CASH[div] ?? 100)
+    const b = balancoBot(div, folhaDoBot(squad), cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0)
     cash[k] = b.caixa
     rel[k] = b
   }
@@ -988,7 +989,8 @@ import { supabase } from '../lib/supabase'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
-import { econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
+import { PATROCINIO_BOT } from './bots-banco' // 🔁 rival com banco (13/10)
+import { botBancoLiberado, econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
 import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
 import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
@@ -1393,6 +1395,65 @@ function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?:
     }
   }
   s.condicaoCarry = Object.keys(novo).length ? novo : undefined
+}
+// 🔁 RIVAL COM BANCO (13/10): o gás com que cada carta de bot terminou a temporada vem da TELA (é ela
+// que tem o plano — `planoCansacoBot`), igual ao gol/assistência do humano. E, na 1ª virada depois de a
+// regra ligar, marca a temporada NOVA como a 1ª em que os bots cansam: a que está acabando não muda.
+function guardaCansacoBots(s: EscState, carry?: Record<string, number>) {
+  if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
+  if (s.botFadigaDesde == null) s.botFadigaDesde = (s.seasonNo ?? 1) + 1
+  if (carry && Object.keys(carry).length) s.botCarry = carry
+}
+// 🔁 RIVAL COM BANCO (13/10, Diego: *"também pode comprar 22 jogadores"*). Fim do leilão: cada clube
+// bot da SUA divisão (técnico de CPU ou time de fundo) completa 2 por posição com jogador REAL que não
+// tem dono — nunca incógnito (regra nº 1: perna-de-pau não entra em elenco por regra nova) — e PAGA o
+// preço justo da carta do próprio caixa. Sem dinheiro, fica sem o reserva (e o titular cansa). O salário
+// desse banco entra sozinho na folha do bot (`folhaDoBot`) na virada.
+function completaBancoDosBots(s: EscState) {
+  if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
+  const minhaDiv = divisaoDaCarreira(s)
+  const escDv: EscadaDiv | null = (!s.escadaOn || s.escadaLivre) ? null : ((['A', 'B', 'C', 'D', 'V'] as string[]).includes(minhaDiv) ? minhaDiv as EscadaDiv : 'V')
+  const idB = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
+  const usados = new Set<string>()
+  for (const m of s.managers) for (const c of m.squad) if (!c.fake) usados.add(idB(c))
+  for (const cards of Object.values(s.cpuSquads ?? {})) for (const c of cards) if (!(c as Card).fake) usados.add(idB(c as Card))
+  const rngB = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 40503) ^ 0xBA4C0) >>> 0)
+  const cash = { ...(s.clubCash ?? {}) }
+  const NEED_B: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+  const enche = (squad: WonCard[], need: Record<Sector, number>, chaveCaixa: string, tag: string, contrato: boolean): WonCard[] => {
+    const out = [...squad]
+    let caixa = cash[chaveCaixa] ?? DIV_BASE_CASH[minhaDiv] ?? 100
+    for (const pos of SECTORS) {
+      let reais = out.filter(c => c.pos === pos && !c.fake && !c.emprestado).length
+      const alvo = need[pos] * 2
+      if (reais >= alvo) continue
+      const livres = shuffle(ACTIVE_CATALOG[pos].filter(c => !usados.has(idB(c)) && (!escDv || escadaAllows(escDv, c))), rngB)
+      for (const c of livres) {
+        if (reais >= alvo) break
+        const preco = Math.max(s.marketValues?.[ident(c)] ?? 0, justoDaCarta(s, { ...c, pos } as Card))
+        if (preco > caixa) continue
+        caixa -= preco
+        usados.add(idB(c))
+        out.push({ ...c, pos, id: `banco-${tag}-${pos}-${Math.floor(rngB() * 1e9)}`, paid: preco, via: 'monte', ...(contrato && s.contratosOn ? { contratoAte: (s.seasonNo ?? 1) + 4 } : {}) } as WonCard)
+        reais++
+      }
+    }
+    cash[chaveCaixa] = Math.max(0, Math.round(caixa))
+    return out
+  }
+  for (const m of s.managers) {
+    if (m.isHuman || m.dormindo || (s.careerPlacements?.[`m${m.id}`] ?? '') !== minhaDiv) continue
+    m.squad = enche(m.squad as WonCard[], FORMATIONS[m.formation], 'm' + m.id, `m${m.id}`, !!m.rival)
+  }
+  if (s.cpuSquads) {
+    const sq = { ...s.cpuSquads }
+    for (const nome of Object.keys(sq)) {
+      if (s.careerPlacements?.[nome] !== minhaDiv) continue
+      sq[nome] = enche(sq[nome] as WonCard[], NEED_B, nome, nome.slice(0, 12), false)
+    }
+    s.cpuSquads = sq
+  }
+  s.clubCash = cash
 }
 function pinHumanLineups(s: EscState) {
   if (!s.careerOnline) return
@@ -5139,8 +5200,8 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; regional?: string; holandes?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
-  | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
+  | { type: 'REAUCTION_ONLINE'; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: RenewAnos } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — prazo e preço vêm de renewOptions/renewCost (escada por valor; 10+ moedas = só 5/10 anos). Prazo real sai com tempero (±1, exceto 1-2 anos) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); Várzea NÃO RENOVA (vai pro leilão com teto de venda); quem não renovar nas outras divisões também
@@ -8639,6 +8700,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // rivais "auction-only" e times de fundo temporários já cumpriram o papel no
       // leilão — saem antes da temporada (voltam a ser time de fundo na simulação).
       s.managers = s.managers.filter(m => !m.auctionOnly && !m.marketCpu)
+      completaBancoDosBots(s) // 🔁 rival com banco (13/10): os bots da sua divisão fecham 2 por posição com sobra REAL, pagando
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.league = buildLeague(s.managers, !s.ligaFechada)
@@ -8662,14 +8724,14 @@ function reducerBase(state: EscState, action: Action): EscState {
         // real de mercado — não só prêmios. Vale pros que participaram do leilão
         // (rivais escolhidos + bots sorteados), que tiveram money vindo do clubCash.
         const cash = { ...(s.clubCash ?? {}) }
-        for (const m of s.managers) if (!m.isHuman && (m.rival || m.backstop)) cash['m' + m.id] = Math.max(0, Math.round(m.money))
+        for (const m of s.managers) if (!m.isHuman && !m.marketCpu && (m.rival || m.backstop || m.deepSquad)) cash['m' + m.id] = Math.max(0, Math.round(m.money)) // 🔁 + bot que montou banco no leilão (13/10)
         s.clubCash = cash
       }
       if (s.reserveAuction) {
         // fim do leilão: tira o elenco fundo dos humanos (volta a mirar 11) e
         // desmarca os bots que entraram neste leilão (serão sorteados de novo no
         // próximo). O caixa dos bots (clubCash) muda só por prêmios de temporada.
-        for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false } }
+        for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false }; if (!m.isHuman && !m.rival) m.deepSquad = false } // 🔁 o bot volta a mirar 11 fora do pregão (o banco que comprou fica)
         s.marketSellers = {} as Record<Sector, number[]>
         s.reserveAuction = false
       }
@@ -9891,6 +9953,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Copa (applyHonors/careerCopaHonors não têm trava
       // própria). A UI atual nem usa mais este caminho, mas fica blindado.
       if (s.screen === 'auction') return s
+      guardaCansacoBots(s, action.botCarry) // 🔁 rival com banco: o gás dos bots atravessa a virada + marca a 1ª temporada deles
       guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST) — e ⚽🅰️ gols/assistências somam
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague, false, s.regionalSala) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
@@ -9938,6 +10001,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // não pegava porque o seasonNo já tinha subido). Se já estamos na tela de
       // reservas, o 2º toque não faz nada.
       if (s.screen === 'reserveList') return s
+      guardaCansacoBots(s, action.botCarry) // 🔁 rival com banco: o gás dos bots atravessa a virada + marca a 1ª temporada deles
       guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada: anota como cada um terminou — e ⚽🅰️ soma gols/assistências da temporada
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
@@ -10525,6 +10589,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (m.isHuman && !m.dormindo) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
         else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
         else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
+        else if (botBancoLiberado() && !m.isHuman && !m.dormindo && !m.marketCpu && s.onlineMode !== 'online') { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // 🔁 rival com banco (13/10): todo bot pode montar 22 no leilão, gastando o caixa dele
       }
       sorteiaEspeciais(s, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length

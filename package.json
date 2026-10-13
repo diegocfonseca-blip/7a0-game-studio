@@ -84,7 +84,8 @@
     "colecoes": "node scripts/testa-colecoes.mjs",
     "central": "node scripts/testa-central.mjs",
     "econ-bots": "node scripts/testa-econ-bots.mjs",
-    "saf2": "node scripts/testa-saf2.mjs"
+    "saf2": "node scripts/testa-saf2.mjs",
+    "bots-banco": "node scripts/testa-bots-banco.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

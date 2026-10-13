@@ -968,8 +968,10 @@ export interface EscState {
   // o técnico segue 100% livre pra mexer no time quando quiser.
   copaXiSeason?: number // temporada cuja escalação da Copa já foi congelada
   copaXi?: Record<number, string[]> // mgrId → os 11 que entraram na Copa daquela temporada
+  botFadigaDesde?: number // 🔁 rival com banco (13/10): 1ª temporada em que os bots cansam (nasce na virada depois de ligar — temporada em andamento nunca muda)
+  botCarry?: Record<string, number> // 🔁 gás com que cada carta de BOT terminou a temporada (chave = chaveCarry), igual ao condicaoCarry do humano
   econBotsSeason?: number // 💰 economia dos bots (13/10): a última temporada já paga (trava anti-dobro do toque duplo)
-  econBotsRel?: Record<string, { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number }> // 💰 o balanço da última virada de cada clube bot (a Central mostra)
+  econBotsRel?: Record<string, { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number }> // 💰 o balanço da última virada de cada clube bot (a Central mostra)
   copaPrizeDone?: Record<string, boolean> // 🌍 Copa do Mundo: chave `${mgrId}:${temporada}` já creditada (+100) — trava anti-perda/anti-dobro no próprio estado do jogo (persiste no autosave), pra o prêmio não sumir se o app fechar entre creditar e marcar "já joguei".
   // 🌍 ESPELHO do mural da Copa do Mundo (Diego 14/08): o mural "de verdade" segue
   // vivendo local (localStorage `llcopa:<seed>`, ver copa-mundo.tsx — motor isolado

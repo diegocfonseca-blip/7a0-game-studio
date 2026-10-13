@@ -1,0 +1,17 @@
+{
+  "data": "13 de outubro de 2026",
+  "titulo": "Rivais com salário, patrocínio e prêmio",
+  "destaque": { "passos": [
+    { "emoji": "👕", "titulo": "Salário", "sub": "do elenco todo" },
+    { "emoji": "🤝", "titulo": "Patrocínio", "sub": "todo ano" },
+    { "emoji": "🏅", "titulo": "Prêmio", "sub": "pela colocação" }
+  ] },
+  "itens": [
+    { "tag": "novidade", "texto": "Os rivais **pagam salário** do elenco inteiro, igual você. Elenco de 22 pesa no bolso deles." },
+    { "tag": "novidade", "texto": "E agora ganham **patrocínio** todo ano e **prêmio pela colocação** na tabela, além da TV e da bilheteria." },
+    { "tag": "melhoria", "texto": "Quem guarda dinheiro chega **forte no leilão** e briga pelas lendas. Quem gasta demais chega **liso**." }
+  ],
+  "rodape": "Vale no Modo Carreira.",
+  "rodapeSub": "O caixa dos rivais aparece na Central Legends.",
+  "saida": "scripts/posts/aviso-rivais-dinheiro.png"
+}
