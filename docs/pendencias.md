@@ -93,6 +93,13 @@ do Diego) — o esvazia tem que rodar a partir de 12/11. E a lixeira ainda ocupa
 A FAZER (precisa mockup): aviso NO JOGO "essa carreira apaga em 7 dias se você não jogar" pra carreira grátis parada há
 +30 dias (o celular decide, porque só ele sabe a data real) e depois apaga.
 
+## 13/10/2026 — 🛡️ COPAS REGIONAIS COM ESCUDO OFICIAL
+- `copa-regional-online.tsx` usava o `Escudo` genérico; agora usa `SeloClube` (o mesmo do Leilão de Clubes), que pega o
+  escudo oficial de `public/escudos-clubes/` quando existe. ~28 dos 48 clubes já têm.
+- ⏳ FALTA arte oficial de: Juventude, Caxias, Figueirense, Avaí, Criciúma, Paraná, Ipatinga, Londrina, America-RJ,
+  Madureira, Volta Redonda, ABC, América-RN, Botafogo-PB, CRB, CSA, Confiança, Sampaio Corrêa, Moto Club, River-PI
+  (seguem no selo genérico até entrar em `scripts/escudos-oficiais.mjs`).
+
 ## 13/10/2026 — 💳 PAGAMENTOS AUTOMÁTICOS (decidido com o Diego, ⏳ a fazer)
 - **Mercado Pago:** Batismo (69,90) e Batismo Lenda (89,90) em Pix de uma vez OU cartão; Sócio (12,90/mês) SÓ no cartão
   (assinatura que cobra sozinha). Webhook do MP avisa o jogo e libera sozinho.
