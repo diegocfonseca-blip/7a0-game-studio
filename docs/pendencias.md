@@ -1,7 +1,13 @@
 ## 🧪 Trava `npm run copamundo` está vermelha (achado 13/10, JÁ vinha assim antes da abertura das copas)
 Falha: *"🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)"* — reproduz no main anterior (bf9d63d), então não é da abertura. Conferir se é a trava desatualizada ou a ficha contando jogo de copa antes do apito.
 
-## 🎮 Online: 3 IDEIAS (13/10) — ⏳ MOCKUP ENVIADO, esperando o Diego escolher
+## 🆚⭐ Retrospecto entre amigos + craque do jogo (13/10) — ✅ NO AR (Diego: *"pode fazer o 1 e 2… copa dos campeões não quero"*)
+- **Retrospecto**: `src/escalacao/retrospecto.ts` + banco `docs/sql/retrospecto.sql` (APLICADO: `esc_retrospecto` por par de contas, `esc_retrospecto_log` contra contagem dupla, RPC `esc_retrospecto_soma` só do host e só de quem está em `room_players`). RLS: cada um só lê os próprios pares; as tabelas não têm política de escrita (só a função escreve). ⚠️ Os `revoke` de anon/authenticated foram CANCELADOS no execute_sql — a proteção é o RLS (sem política de insert/update/delete = negado); se quiser fechar também por grant, rodar os revokes do arquivo. Liga: grava na revelação da rodada; Copa dos 8/Liberta/Champions (mata-mata): grava quando a perna fecha. Leitura relê a cada rodada (anti-spoiler: o jogo da vez ainda não foi gravado). Só sala online de futebol, nunca carreira, nunca dupla. Fica de fora: grupos da Liberta, tabela da Champions, Copa do Mundo e regionais (seleções/clubes regionais, não o time da pessoa).
+- **Craque do jogo**: no apito, a linha da rádio vira "⭐ CRAQUE DO JOGO" (gol 3, assistência 2; sem autor = sem craque). Vale em todo placar com a rádio (online e carreira).
+- Trava `npm run retrospecto`. Foto `scripts/foto-radio.mjs` → `scripts/mockups/radio-real.png`.
+- 🚫 Copa dos campeões do dia: ele NÃO quis. Não repropor.
+
+## 🎮 Online: 3 IDEIAS (13/10) — resolvido acima
 Mockup `scripts/mockup-3-ideias-online.mjs` → `scripts/mockups/online-3-ideias.png`:
 1. **🆚 Retrospecto entre amigos** — antes da bola rolar, a linha da Rádio vira "VOCÊ × <dono>: 1V 0E 4D" + provocação. Só gente × gente, histórico de todas as salas (precisa de tabela nova no banco por par de contas).
 2. **⭐ Craque do jogo** — no apito final, a linha mostra o melhor em campo (nome, carta, gols/assistências). Gol e assistência juntos (regra 19/09). Fake nunca é craque (regra 19/09).

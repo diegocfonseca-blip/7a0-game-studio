@@ -53,6 +53,7 @@ import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
+import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto' // 🆚 retrospecto entre amigos (13/10)
 import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
@@ -6014,10 +6015,11 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 // conta do placar de baixo. Nunca o placar final antes do apito.
 // 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
 // e um número meio-certo na tira seria pior que tira nenhuma.
-function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline }: {
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro }: {
   homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean
   goals: { name: string; min: number; home: boolean }[]; roundKey: number; roundMs: number
   classico?: boolean; basket?: { h: number; a: number }; enhancedOnline?: boolean
+  retro?: { rival: string; r?: Retro } | null
 }) {
   const caixa = useRef<HTMLDivElement | null>(null)
   const [min, setMin] = useState(0)
@@ -6037,7 +6039,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
         <LiveScoreCard enhancedOnline={enhancedOnline}
           homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
           youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
-          basket={basket} onMinuteChange={reportar} />
+          basket={basket} onMinuteChange={reportar} retro={retro} />
       </div>
       {fora && !basket && (
         <FaixaPlacarMini topo={0} min={min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
@@ -6408,6 +6410,28 @@ export function EscSeason() {
     return () => clearInterval(iv)
   }, [copaTieKey, copaLive, firstLegPending, speedFactor, copaLegMs])
 
+  // 🆚 RETROSPECTO ENTRE AMIGOS (Diego 13/10) — só sala online de futebol (rápida e Minhas Ligas), nunca carreira,
+  // nunca dupla (o "VOCÊ" ficaria ambíguo). Quem é quem: assento → conta pelo `seatUids` (nunca pelo nome).
+  const retroOn = state.onlineMode === 'online' && !state.careerOnline && state.sport !== 'basquete' && !!state.roomId && Array.isArray(state.seatUids) && !(state.duplas && Object.keys(state.duplas).length > 0)
+  const uidDo = (id: number) => (retroOn && state.managers.some(m => m.id === id && m.isHuman) ? state.seatUids?.[id] : undefined) || undefined
+  const meuUidRetro = uidDo(you.id)
+  const uidsHumanos = retroOn ? state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => uidDo(m.id)).filter((u): u is string => !!u) : []
+  const retroMapa = useRetrospecto(meuUidRetro, uidsHumanos, `${state.seed}|${state.seasonNo}|${state.round}|${copaTieKey}`)
+  const retroDe = (oppId: number) => { const u = uidDo(oppId); if (!u || !meuUidRetro || u === meuUidRetro) return null; return { rival: state.managers.find(m => m.id === oppId)?.name || state.managers.find(m => m.id === oppId)?.teamName || '?', r: retroMapa[u] } }
+  // ✍️ o DONO da sala grava a rodada quando o resultado JÁ revelou (nunca antes: anti-spoiler); o banco ignora repetição
+  useEffect(() => {
+    if (!retroOn || !state.isHost || !resultRevealed || copaLive || state.lastResults.length === 0) return
+    const jogos = state.lastResults.map(r => ({ a: uidDo(r.homeId), b: uidDo(r.awayId), ga: r.hg, gb: r.ag })).filter((j): j is JogoRetro => !!j.a && !!j.b && j.a !== j.b)
+    gravaRetrospecto(state.roomId!, `liga:${state.seed}:${state.seasonNo}:${state.round}`, jogos)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retroOn, state.isHost, resultRevealed, copaLive, state.round, state.seed])
+  useEffect(() => {
+    if (!retroOn || !state.isHost || !copaLive || !qc || copaMin < 93 || !copaAdvReady) return
+    const jogos = qc.ties.filter(t => t.legs.length > 0).map(t => { const g = t.legs[t.legs.length - 1]; return { a: uidDo(t.aId), b: uidDo(t.bId), ga: g[0], gb: g[1] } }).filter((j): j is JogoRetro => !!j.a && !!j.b && j.a !== j.b)
+    gravaRetrospecto(state.roomId!, `copa:${state.seed}:${state.seasonNo}:${copaTieKey}`, jogos)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retroOn, state.isHost, copaLive, copaMin >= 93, copaAdvReady, copaTieKey])
+
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
     // pro lado do placar em vez de ficar lá embaixo. No celular não muda nada.
@@ -6694,7 +6718,7 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'repescao' ? 40 : qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={copaLegMs} classico={oppIsHuman}
+                      roundMs={copaLegMs} classico={oppIsHuman} retro={retroDe(oppId)}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
@@ -6771,7 +6795,7 @@ export function EscSeason() {
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
-          enhancedOnline={privateVisual}
+          enhancedOnline={privateVisual} retro={retroDe(oppId)}
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} />
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
