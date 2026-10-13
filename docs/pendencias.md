@@ -1,3 +1,6 @@
+## 🦁⬆️ Leão da Estradinha volta pra Série A (13/10) — ✅ NO AR
+Diego: *"coloque o Leão da Estradinha de volta na Série A… troque pelo Vidraceiro, e Vidraceiro entra no lugar dele"*. Troca 1:1 em `DIVISION_TEAMS` (sem OLD_NAME). Arte nova do dono (jorgericardo777): escudo 256×360 · mascote 370×440 · camisa da Loja sem shorts (saiu o `RECORTE_CAMISA`) · manto remedido `#950C0D`/branco no `batismos.ts`, `MANTO_CONTAS` E no `esc_socios`. Post: `scripts/posts/leao-estradinha-cara-nova.png` (flag nova `--volta` no `mockup-batismo.mjs`). Nome do dono no post ficou em branco (não sei o nome — não inventar).
+
 ## 🚫🔴 Tirar destaque de live falsa (13/10) — ✅ NO AR
 Diego: *"com algum botão de fácil acesso tiro o destaque… o usuário recebe uma faixa… quando fecha não aparece mais… se fizer de novo aparece novamente"*. Botão na lista de salas (só a conta do Diego vê; o banco confere o e-mail) grava em `esc_live_tirada` (`docs/sql/live-tirada.sql`); a lista deixa de destacar a sala. O dono da sala de stream recebe a faixa (`aviso-live.tsx`, leitura a cada 2 min só pra dono de sala com Modo Stream). O jogo da sala nunca é tocado.
 
