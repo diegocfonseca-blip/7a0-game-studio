@@ -372,12 +372,14 @@ export function ApoieModal({ onClose, children }: { onClose: () => void; childre
 }
 // 💳 PLANOS V2 (09/10): quem está em `usePlanos2()` (por enquanto só as contas do Diego) vê o botão novo
 // (`apoie-v2.tsx`); todo o resto continua neste aqui, sem nada mudado.
-type ApoieProps = { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo'; trigger?: (open: () => void) => React.ReactNode }
+type ApoieProps = { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo' | 'batismoInfo'; trigger?: (open: () => void) => React.ReactNode }
 export function ApoieButton(p: ApoieProps) { return usePlanos2() ? <ApoieButtonV2 {...p} /> : <ApoieButtonV1 {...p} /> }
 function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoieProps) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'pay' | 'batismo' | 'manual' | 'socio'>('off')
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
-  const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
+  // 🖋 'batismoInfo' (13/10, Diego): abre a vitrine dos PLANOS rolando até o cartão do batismo — onde está tudo
+  // que o batismo ganha — e não direto na tela do Pix (que não explica nada).
+  const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); if (startScreen === 'batismoInfo') { logApoio('👀 vitrine das salas → batismo'); setAmp('batismo'); setScreen('choice'); return } setScreen(startScreen) }
   const [clube, setClube] = useState('')
   // ⚽ BATISMO: qual série o clube vai jogar — muda o valor do Pix (Série D
   // custa mais, são os rivais escolhidos). Cards viram seletor (09/08).

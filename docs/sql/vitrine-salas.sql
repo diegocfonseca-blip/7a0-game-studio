@@ -1,0 +1,5 @@
+-- 🏆📊🖋️ esc_vitrine_salas() — APLICADA no banco em 13/10 (migração esc_vitrine_salas).
+-- Campeões de hoje (ordem de quem vai ganhando), ranking da semana (desde segunda 0h de Brasília,
+-- top 5 + a posição de quem chama) e o último batismo (maior socio_n de origem 'batismo').
+-- Só lê game_champions.human_results (que só tem GENTE) e esc_socios (só o nome do clube sai).
+-- Ver o texto inteiro em supabase (pg_get_functiondef('public.esc_vitrine_salas'::regproc)).

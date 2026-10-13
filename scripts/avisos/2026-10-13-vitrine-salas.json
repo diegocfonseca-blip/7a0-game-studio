@@ -1,0 +1,20 @@
+{
+  "data": "13 de outubro de 2026",
+  "titulo": "Quem está ganhando nas salas",
+  "destaque": {
+    "passos": [
+      { "emoji": "🏆", "titulo": "Campeões de hoje", "sub": "quem acabou de ganhar" },
+      { "emoji": "📊", "titulo": "Ranking da semana", "sub": "top 5 de títulos" },
+      { "emoji": "🖋️", "titulo": "Último batismo", "sub": "o clube mais novo" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Embaixo da lista de salas online agora aparecem os **🏆 Campeões de hoje**: os últimos que levantaram taça, o mais recente em cima. Só gente, nunca bot." },
+    { "tag": "novidade", "texto": "**📊 Ranking da semana**: os 5 técnicos com mais títulos online e a **sua posição**. Conta Liga, Copa, Liberta, Champions, Mundial e Copas regionais." },
+    { "tag": "novidade", "texto": "A semana vai de **segunda 0h a domingo 23h59** (horário de Brasília). Esta vale de **12/10 a 18/10** e na **segunda 19/10 zera** pra todo mundo começar do zero." },
+    { "tag": "batismo", "texto": "**🖋️ Último batismo**: o clube mais novo do jogo aparece ali com escudo e mascote. Hoje é o **Rossini Money**." }
+  ],
+  "rodape": "Quem vai fechar a semana em 1º?",
+  "rodapeSub": "Entra numa sala hoje e coloca seu nome no ranking.",
+  "saida": "scripts/posts/aviso-2026-10-13-vitrine-salas.png"
+}
