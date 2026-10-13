@@ -1,3 +1,6 @@
+## 🐛 Marcelo repetido no leilão (13/10) — ⏳ INVESTIGAR depois (Diego: "depois falamos disso")
+Print do Diego: no leilão de reservas da carreira, "Leite de Verdade FC" listou **Marcelo (Real Madrid 2017)** com mínimo 194 e o MESMO Marcelo aparece no elenco do usuário (banco, LAT). Não pode existir a mesma carta em dois clubes. Achar de onde veio a cópia (listagem de bot × carta já do usuário).
+
 ## 🔁 Rival com banco: cansa, se machuca e tem 22 + mais dinheiro pros bots (13/10) — 🟢 LIBERADO PRA TODOS em 13/10 (`BOT_BANCO_GERAL = true`; Diego: "pode publicar pra todos já")
 Diego: "pode fazer" + 3 avisos separados (`scripts/avisos/2026-10-13-rivais-{22,cansam,dinheiro}.json` → `scripts/posts/aviso-rivais-*.png`).
 - Motor puro `src/escalacao/bots-banco.ts` (`planoCansacoBot`, `PATROCINIO_BOT`, `premioColocacaoBot`); trava `npm run bots-banco`.
