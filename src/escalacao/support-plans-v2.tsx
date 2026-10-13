@@ -66,7 +66,7 @@ function ItensSocio({ batismo = false }: { batismo?: boolean }) {
     <Ok><b>{tr('🔎 Vê o nível', '🔎 See the level')}</b>{tr(' de todo jogador, até 👑 Lenda', ' of every player, up to 👑 Legend')}</Ok>
     <Ok><b>{tr('🕵️ Olheiro', '🕵️ Scout')}</b>{tr(': acha jogador ', ': finds players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
     <Ok><b>{tr('🏆 Cria salas online e Minhas Ligas', '🏆 Create online rooms and My Leagues')}</b>{tr(' — os amigos entram de graça', ' — friends join for free')}</Ok>
-    <Ok><b>{tr('💾 4 carreiras salvas', '💾 4 saved careers')}</b>{tr(' e o save guardado na nuvem', ' and your save kept in the cloud')}</Ok>
+    <Ok><b>{tr('💾 4 carreiras salvas, guardadas PRA SEMPRE', '💾 4 saved careers, kept FOREVER')}</b>{tr(' na nuvem — todos os seus saves, mesmo parados', ' in the cloud — all your saves, even idle ones')}</Ok>
     <Ok><b>{tr('🌐 Carreira Online e Bafo', '🌐 Online Career and Bafo')}</b>{tr(' inclusos assim que forem lançados', ' included as soon as they launch')}</Ok>
     <Ok><b>{tr('📲 Grupo VIP', '📲 VIP group')}</b>{tr(' no WhatsApp com o Diego', ' on WhatsApp with Diego')}</Ok>
   </>
@@ -131,13 +131,14 @@ export function SupportPlansV2(p: Props) {
     <SupportPlanCard id="support-gratis" title={tr('⚽ Gratuito', '⚽ Free')} price="R$ 0" cadence={tr('pra sempre', 'forever')} tone="gratis">
       <h3>{tr('Dá pra jogar muito sem pagar nada.', 'You can play a lot without paying anything.')}</h3>
       <Ok><b>{tr('Carreira', 'Career')}</b>{tr(' (1 carreira salva) e ', ' (1 saved career) and ')}<b>{tr('Jogo Rápido', 'Quick Play')}</b>{tr(' contra a máquina', ' against the computer')}</Ok>
-      <Ok>{tr('Entra em ', 'Join ')}<b>{tr('salas públicas', 'public rooms')}</b>{tr(' e aceita ', ' and accept ')}<b>{tr('convites', 'invites')}</b></Ok>
+      <Ok>{tr('Entra em ', 'Join ')}<b>{tr('quantas salas quiser', 'as many rooms as you want')}</b>{tr(' — públicas, de convite e dos amigos', ' — public, invite-only and your friends’')}</Ok>
+      <Ok><b>{tr('🌐 Cria 1 sala online por dia', '🌐 Create 1 online room a day')}</b></Ok>
       <Ok>{tr('Joga nas ', 'Play in your friends’ ')}<b>{tr('salas e ligas dos amigos', 'rooms and leagues')}</b>{tr(' — mesmo que o dono seja pagante, você não paga nada pra entrar', ' — even if the owner pays, you pay nothing to join')}</Ok>
       <Ok><b>{tr('🃏 Todos os baralhos', '🃏 Every deck')}</b>{tr(': Brasil, Europa e Resto do Mundo', ': Brazil, Europe and Rest of the World')}</Ok>
       <Ok><b>{tr('🐊 Tocaia e 🧱 Leilão de Clubes', '🐊 Tocaia and 🧱 Clubs Auction')}</b>{tr(' nas salas rápidas', ' in quick rooms')}</Ok>
       <Ok><b>{tr('🌍 Copa do Mundo, Liberta, Champions e Copas regionais', '🌍 World Cup, Liberta, Champions and regional Cups')}</b>{tr(' depois da liga', ' after the league')}</Ok>
       <Ok><b>{tr('📊 Ranking da semana', '📊 Weekly ranking')}</b>{tr(' e a medalha 🥇 do top 3', ' and the top 3 🥇 medal')}</Ok>
-      <p className="ll-support-note">{tr('Entrar na sala de um pagante não te dá os benefícios dele: cada um leva os do próprio plano.', 'Joining a paying owner’s room doesn’t give you their perks: everyone keeps their own plan’s perks.')}</p>
+      <p className="ll-support-note">{tr('💾 No gratuito a carreira fica salva no aparelho, e carreira parada há mais de 30 dias sem jogar é apagada. Entrar na sala de um pagante não te dá os benefícios dele: cada um leva os do próprio plano.', '💾 On the free plan your career is saved on the device, and a career left unplayed for more than 30 days is deleted. Joining a paying owner’s room doesn’t give you their perks: everyone keeps their own plan’s perks.')}</p>
       {meuTier === 'bege' && !temBatismo && <p className="ll-vit-seu">{tr('✅ seu plano hoje', '✅ your plan today')}</p>}
     </SupportPlanCard>
 

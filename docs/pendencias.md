@@ -14,6 +14,10 @@ tudo do Sócio item por item (`ItensSocio batismo`).
 ⚠️ FALTA fazer de verdade, depois do OK: o Sócio mensal ganhar número de sócio + manto 2 cores + estádio com nome
 (hoje a assinatura não cria linha em `esc_socios`), e trocar os nomes "Craque"/"Plus" no Pix (`apoie-v2.tsx`) e no
 texto das regras (screens.tsx). Planos v2 seguem só nas contas do Diego (`PLANOS2_GERAL = false`).
+Pedido seguinte (13/10): Sócio diz "4 carreiras guardadas PRA SEMPRE na nuvem — todos os saves, mesmo parados";
+Gratuito diz "entra em quantas salas quiser" + "🌐 cria 1 sala online por dia" + "carreira parada há mais de 30 dias
+sem jogar é apagada". ⚠️ TUDO ISSO É SÓ TEXTO: falta o limite de 1 sala/dia no grátis e a limpeza dos saves parados
+(no grátis o save fica no APARELHO — confirmar com o Diego antes de apagar qualquer coisa).
 
 ## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
 Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
