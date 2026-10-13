@@ -84,7 +84,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
                 : <b style={{ ...OSW, flex: 1, fontSize: 12.5 }}>{tr('Você ainda não tem título nesta semana — bora pra uma sala! ⚽', 'No title for you this week yet — jump into a room! ⚽')}</b>}
             </div>
           )}
-          <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Conta Liga, Copa, Liberta, Champions, Mundial e Copas regionais das salas online.', '⏳ Resets every Monday at midnight. Counts League, Cup, Liberta, Champions, World Cup and regional Cups in online rooms.')}</p>
+          <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Os 3 primeiros jogam com a medalha 🥇🥈🥉 ao lado do nome.', '⏳ Resets every Monday at midnight. The top 3 play with the 🥇🥈🥉 medal next to their name.')}</p>
         </Caixa>
       )}
 
