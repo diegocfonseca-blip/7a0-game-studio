@@ -769,6 +769,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🟢 **LIBERADO PRA TODOS EM 13/10** (`SAF2_GERAL`/`ECON_BOTS_GERAL = true`). Duas regras dele na liberação: **o auxiliar NUNCA
   dá lance no leilão** (*"quem manda é o usuário"* — não repropor) e **o ranking global conta só o clube principal**.
 
+- **🔁 RIVAL COM BANCO (13/10, liberado pra todos no mesmo dia).** Bots da SUA divisão: elenco de 22 (lance em QUALQUER
+  leilão da virada + completam com jogador sem clube, pagando; também no "mesmo time"), cansaço e lesão com a MESMA régua
+  do humano (só com o gás ligado, C+, e só de temporada nova em diante), patrocínio (= Master de 2 temp.) e prêmio pela
+  colocação. **O bot é ESPERTO** (*"ele pega se ele quiser… e vai melhorando aos poucos"*): verba pelo perfil, o melhor que
+  cabe na vaga, 1 melhora por temporada. Nunca incógnito. Motor em `bots-banco.ts`; trava `npm run bots-banco`.
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e

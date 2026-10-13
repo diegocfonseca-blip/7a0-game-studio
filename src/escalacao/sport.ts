@@ -1002,7 +1002,7 @@ export function useSaf2(): boolean {
 // humano, e duas receitas novas (patrocínio + prêmio pela colocação). Só carreira. O motor puro mora em
 // `bots-banco.ts`. 🔒 Primeiro SÓ nas contas do Diego; liberar pra todos: BOT_BANCO_GERAL = true. Desligada,
 // a carreira segue EXATAMENTE como antes (o cansaço do bot só começa numa temporada NOVA depois de ligar).
-const BOT_BANCO_GERAL = false
+const BOT_BANCO_GERAL = true // 🟢 13/10: liberado pra todos (Diego: "pode publicar pra todos já")
 const BOT_BANCO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 let botBancoOk = BOT_BANCO_GERAL
 function applyBotBanco(email?: string | null): void {

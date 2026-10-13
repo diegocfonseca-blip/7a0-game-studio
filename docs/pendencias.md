@@ -1,4 +1,4 @@
-## 🔁 Rival com banco: cansa, se machuca e tem 22 + mais dinheiro pros bots (13/10) — ✅ CODADO, SÓ NAS CONTAS DO DIEGO (`BOT_BANCO_GERAL = false` em sport.ts)
+## 🔁 Rival com banco: cansa, se machuca e tem 22 + mais dinheiro pros bots (13/10) — 🟢 LIBERADO PRA TODOS em 13/10 (`BOT_BANCO_GERAL = true`; Diego: "pode publicar pra todos já")
 Diego: "pode fazer" + 3 avisos separados (`scripts/avisos/2026-10-13-rivais-{22,cansam,dinheiro}.json` → `scripts/posts/aviso-rivais-*.png`).
 - Motor puro `src/escalacao/bots-banco.ts` (`planoCansacoBot`, `PATROCINIO_BOT`, `premioColocacaoBot`); trava `npm run bots-banco`.
 - Cansaço: só bots da SUA divisão, só com o seu gás ligado (C+), só a partir de `botFadigaDesde` (marcado na 1ª virada depois de ligar → temporada em andamento nunca muda). Plano derivado (passado imutável); `botCarry` atravessa a virada (vem da tela, na action). Começando a 100 ninguém cansa na 1ª temporada (escada −1,4/jogo) — aparece da 2ª em diante.
@@ -7,8 +7,7 @@ Diego: "pode fazer" + 3 avisos separados (`scripts/avisos/2026-10-13-rivais-{22,
 - 🧠 Bot ESPERTO no banco (Diego: *"ele pega se ele quiser… e vai melhorando aos poucos"*): separa uma parte do caixa pelo perfil (gastador 60% · pão-duro 25% · …), em cada vaga leva o MELHOR que cabe na verba (caro demais = não pega), e todo começo de temporada faz 1 troca (2 o gastador) se tiver sem-clube +6 de nível melhor que o pior do elenco — dispensa o pior.
 - Dinheiro: patrocínio no `balancoBot` + prêmio de colocação (`premiosColocacaoBots`) no `clubRewards` da virada.
 - Central: notícias de DM, poupados e desfalque do seu próximo adversário.
-- [ ] Diego testar na carreira dele (o banco aparece no próximo Leilão de Reservas; o cansaço a partir da temporada seguinte, em C+).
-- [ ] Liberar pra todos (`BOT_BANCO_GERAL = true`) + linha em novidades.ts + postar os 3 avisos.
+- [x] Liberado pra todos + linha em novidades.ts. Os 3 avisos prontos em `scripts/posts/aviso-rivais-*.png` (Diego posta).
 Diego gostou de "rival também cansa e machuca" + "pode comprar 22" + "bots têm que ganhar mais dinheiro". Mockup `scripts/mockup-rival-banco.mjs` → `scripts/mockups/rival-banco.png`: todo bot 2 por posição (hoje só rival/backstop tem `deepSquad`), gás/lesão pros bots (`guardaCansaco` pula bot; lesão só rola o XI humano), notícias no giro, e 2 receitas novas no `balancoBot`: patrocínio = `masterPorTemporada(div, 2)` + prêmio por colocação. Só carreira. Números de folha no mockup são estimativa — medir antes de cravar.
 
 ## 🔜 "Não sai, ainda tem competição" (13/10) — ✅ NO AR (Diego: "Perfeito. Pode fazer. E serve pra todas competições que tem convocação")
