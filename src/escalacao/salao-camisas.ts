@@ -102,7 +102,6 @@ export const CAMISAS_SALAO: Record<string, string> = {
 // Janela de exibição das camisas em quatro artes antigas que também têm shorts.
 // Mantém o arquivo original e não mostra a parte inferior do conjunto.
 export const RECORTE_CAMISA: Record<string, [number, number, number]> = {
-  "Leão da Estradinha": [332, 620, 416],
   "Papão United Madrid": [175, 321, 219],
   // 🦇 Neymarzetti saiu daqui em 16/09: a arte NOVA é SÓ A CAMISA (547x700). A velha
   // era o uniforme inteiro (343x620, com calção) e por isso precisava de janela — com

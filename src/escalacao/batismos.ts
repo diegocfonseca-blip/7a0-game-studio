@@ -88,7 +88,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Tôka10', tipo: 'batismo', fundador: 23, manto: ['#FCDC04', '#055E1D'] },
   { clube: 'Skyy FC', tipo: 'batismo', fundador: 24, manto: ['#237581', '#0D3558'] }, // 🦅 ❤️ Vasco da Gama (o Diego confirmou em 19/09). O coração dele fica ANOTADO AQUI, e não no `manto.ts`, porque o Skyy não tem linha lá: o manto dele foi escolhido no painel e mora só em `esc_socios`
   { clube: 'Marinheiros AS', tipo: 'socio', fundador: null, manto: ['#0D4926', '#F5EBE1'] },
-  { clube: 'Leão da Estradinha', tipo: 'batismo', fundador: 28, manto: ['#A32A28', '#FFFFFF'] },
+  { clube: 'Leão da Estradinha', tipo: 'batismo', fundador: 28, manto: ['#950C0D', '#FFFFFF'] }, // 🎨 13/10: arte nova do dono, vermelho remedido na camisa
   { clube: 'Marreco FC', tipo: 'batismo', fundador: 29, manto: ['#04512A', '#E4CDA6'] }, // 🦆👑 verde e creme, medidos na prancha do dono (19/09)
   { clube: 'Pantera Negra FC', tipo: 'batismo', fundador: 74, manto: ['#191615', '#CB9D3E'] }, // 🐆👑 preto e dourado, medidos na prancha do dono (20/09) — o MESMO par do `manto.ts` (o `npm run batismos` reprova se discordarem)
   { clube: 'Grêmio FBPA', tipo: 'batismo', fundador: 75, manto: ['#141C24', '#0B6397'] }, // 🔵⚫⚪ preto e azul, medidos na camisa do dono (21/09) — o MESMO par do `manto.ts`

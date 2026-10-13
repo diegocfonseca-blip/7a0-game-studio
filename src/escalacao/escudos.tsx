@@ -628,7 +628,7 @@ const saoluizEscudoRender = (size: number) => (
   <img src={saoluizEscudoImg} height={size} width={Math.round(size * 360 / 355)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 const leaoEstradinhaRender = (size: number) => (
-  <img src={leaoEstradinhaEscudoImg} height={size} width={Math.round(size * 287 / 360)} alt="Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={leaoEstradinhaEscudoImg} height={size} width={Math.round(size * 256 / 360)} alt="Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🏠🔴⚫ Esqueceram do Lluch FC (lluchmarcel81) — o escudo vermelho e preto com o
 // menino esquecido em casa, o desenho da casa, o ladrão e a viatura. Arte própria
