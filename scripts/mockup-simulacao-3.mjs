@@ -73,6 +73,15 @@ const MONTA = `
     h('p', { style: { font: '600 12px Inter', color: '#53534b', margin: '0 0 10px', minHeight: 34 } }, sub),
     h('div', { style: { border: '4px solid #000', borderRadius: 28, boxShadow: '6px 6px 0 #000', background: '#F4ECD6', padding: 10, overflow: 'hidden' } }, kids))
   const root = document.createElement('div'); document.body.appendChild(root)
+  if (window.__JUNTO) {
+    // 🧩 Diego: *"não entendi como vai ter o termômetro e a narração junto"* → UMA tela com os dois, na ordem:
+    // placar grande → termômetro (uma barrinha colada no placar) → Rádio Legends embaixo
+    createRoot(root).render(h('div', null,
+      h('h1', { style: { ...OSW, fontWeight: 700, fontSize: 30, textTransform: 'uppercase', margin: '0 0 4px' } }, '🧩 Termômetro + Rádio ', h('span', { style: { color: '#C2452F' } }, 'na mesma tela')),
+      h('p', { style: { font: '600 13px Inter', color: '#53534b', margin: '0 0 14px', maxWidth: 390 } }, 'Ordem de cima pra baixo: placar grande → termômetro (uma barra fina colada no placar) → rádio. Os dois falam da mesma partida, o seu jogo.'),
+      phone('⚽', 'Seu jogo · 61′', 'O termômetro é a barrinha; a rádio é a caixa. Um é o "quem está em cima", o outro é o "o que está acontecendo".', h('div', null, placar(61), termo(68, 61, true), radio))))
+    await new Promise(r => setTimeout(r, 9000)); document.fonts && await document.fonts.ready; return
+  }
   createRoot(root).render(h('div', null,
     h('h1', { style: { ...OSW, fontWeight: 700, fontSize: 34, textTransform: 'uppercase', margin: '0 0 4px' } }, '⚽ Simulação dos jogos: ', h('span', { style: { color: '#C2452F' } }, '3 ideias')),
     h('p', { style: { font: '600 14px Inter', color: '#53534b', margin: '0 0 16px' } }, 'Placar grande é o de verdade. As peças novas entram embaixo dele, sem passo novo e sem mexer em resultado. Valem pra liga, copas, online e carreira.'),
@@ -86,10 +95,13 @@ const MONTA = `
 const b = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' })
 const ctx = await b.newContext({ viewport: { width: 1290, height: 900 }, deviceScaleFactor: 2, locale: 'pt-BR' })
 await ctx.addInitScript(() => { try { localStorage.setItem('bl_lang', 'pt') } catch {} })
+const JUNTO = process.argv.includes('--junto')
 const p = await ctx.newPage()
 p.on('pageerror', e => console.error('💥', e.message))
 await p.goto(`http://localhost:${PORTA}/`, { waitUntil: 'domcontentloaded' })
+if (JUNTO) { await p.setViewportSize({ width: 440, height: 900 }); await p.evaluate('window.__JUNTO = true') }
 await p.evaluate(`(async () => { ${MONTA} })()`)
-await p.screenshot({ path: `${SAIDA}/simulacao-3-ideias.png`, fullPage: true })
-console.log(`📸 ${SAIDA}/simulacao-3-ideias.png`)
+const saida = `${SAIDA}/${JUNTO ? 'simulacao-termometro-radio-junto' : 'simulacao-3-ideias'}.png`
+await p.screenshot({ path: saida, fullPage: true })
+console.log(`📸 ${saida}`)
 await b.close(); try { process.kill(-vite.pid) } catch { /* já foi */ }
