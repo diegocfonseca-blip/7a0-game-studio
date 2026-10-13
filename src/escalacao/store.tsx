@@ -35,7 +35,7 @@ import { championsConvidados, potesChampions, calendarioChampions, repescaoChamp
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
 import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS, CARTAS_RENOMEADAS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { fichasDoPlano } from './planos-regras'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
@@ -11388,6 +11388,40 @@ export function compactaHistoricoIntl(save: EscState): EscState {
   })
   return { ...save, careerInternationalHistory: novo, careerIntlBotTotals: totais }
 }
+// 🧬 A MESMA CARTA EM DOIS LUGARES (13/10, Marcelo do Renaton): se um HUMANO tem a carta, qualquer
+// cópia dela em bot, ficha de fundo, baralho do leilão, mesa do pregão ou monte sai. (Bot × bot fica com
+// o `healCpuSquads` de sempre — o mercado dos 80 copia ficha de propósito durante o pregão.) Nunca mexe
+// no elenco de gente e nunca põe ninguém no lugar (o bot repõe na próxima virada).
+function curaCartaRepetida(save: EscState): boolean {
+  if (!Array.isArray(save.managers)) return false
+  const real = (c: Card) => !c.fake && !isFillerClub(c.club)
+  const donoGente = new Set<string>()
+  let mexeu = false
+  // gente = humano + os clubes do PRÓPRIO usuário (2º clube dormindo / Multiclubes) — esses nunca perdem carta aqui
+  const deGente = (m: Manager) => m.isHuman || !!m.dormindo || !!m.mine
+  for (const m of save.managers) if (deGente(m)) for (const c of m.squad as Card[]) if (real(c)) donoGente.add(ident(c))
+  for (const m of save.managers) {
+    if (deGente(m)) continue
+    const antes = m.squad.length
+    m.squad = (m.squad as WonCard[]).filter(c => !real(c) || !donoGente.has(ident(c)))
+    if (m.squad.length !== antes) mexeu = true
+  }
+  if (save.cpuSquads) {
+    const sq: Record<string, Card[]> = {}
+    for (const [nome, cards] of Object.entries(save.cpuSquads)) {
+      const kept = (cards as Card[]).filter(c => !real(c) || !donoGente.has(ident(c)))
+      if (kept.length !== cards.length) mexeu = true
+      sq[nome] = kept
+    }
+    if (mexeu) save.cpuSquads = sq
+  }
+  // no leilão: carta que já tem dono não pode estar à venda (a listada de verdade saiu do elenco de quem listou)
+  const fora = (c: Card) => real(c) && donoGente.has(ident(c))
+  if (save.deck) for (const pos of SECTORS) { const d = save.deck[pos]; if (Array.isArray(d) && d.some(fora)) { save.deck = { ...save.deck, [pos]: d.filter(c => !fora(c)) }; mexeu = true } }
+  if (Array.isArray(save.currentCards) && save.currentCards.some(fora)) { save.currentCards = save.currentCards.filter(c => !fora(c)); mexeu = true }
+  if (Array.isArray(save.monte) && save.monte.some(fora)) { save.monte = save.monte.filter(c => !fora(c)); mexeu = true }
+  return mexeu
+}
 function sincronizaNiveis(save: EscState): EscState {
   save = compactaHistoricoIntl(save)
   let mexeu = 0
@@ -11408,6 +11442,11 @@ function sincronizaNiveis(save: EscState): EscState {
   // 💰 E o livro de preços vai junto (`marketValues` é `nome|clube`): sem isso o
   //    valor de mercado que o clube dele construiu ficaria órfão na chave velha.
   const mudouDeClube: [string, string][] = []
+  const renomeadas: [string, string, string][] = [] // [velho, novo, clube]
+  const renomeDe = (nome: string, clube: string, ano: number): string | null => {
+    for (const [velho, novo, cl, an] of CARTAS_RENOMEADAS) if (nome === velho && ano === an && clubCanon(clube) === clubCanon(cl)) return novo
+    return null
+  }
   // 🏀 save de basquete lê a ficha do baralho NBA; o de futebol nunca passa por lá.
   const nba = save.sport === 'basquete'
   const bioNba = (f: FichaNba) => (getLang() === 'en' ? f.bioEn : f.bioPt)
@@ -11417,6 +11456,12 @@ function sincronizaNiveis(save: EscState): EscState {
     vistos.add(v as object)
     if (Array.isArray(v)) { for (const item of v) anda(item, prof + 1); return }
     const o = v as Record<string, unknown>
+    // 🏷️ CARTA QUE TROCOU DE NOME (13/10, Marcelo do Renaton): qualquer coisa com nome+clube+ano
+    // (carta, linha de artilharia…) passa pro nome novo — senão o jogo acha que são duas pessoas.
+    if (typeof o.name === 'string' && typeof o.club === 'string' && typeof o.year === 'number' && !o.fake) {
+      const rn = renomeDe(o.name, o.club, o.year)
+      if (rn) { renomeadas.push([o.name, rn, o.club]); o.name = rn; mexeu++ }
+    }
     if (typeof o.name === 'string' && typeof o.club === 'string' && typeof o.year === 'number' && typeof o.fame === 'number') {
       // 🎭 INCÓGNITO nunca entra: nome gerado, não existe no baralho.
       if (!o.fake) {
@@ -11464,6 +11509,33 @@ function sincronizaNiveis(save: EscState): EscState {
     }
     save.marketValues = mv
   }
+  // 🏷️ as chaves por carta acompanham o nome novo (livro de preços, "no seu clube", artilharia de
+  // todos os tempos) — e, onde as duas existirem, junta (fica o maior preço / soma o histórico)
+  if (renomeadas.length) {
+    const vistosR = new Set<string>()
+    for (const [velho, novo] of renomeadas) {
+      if (vistosR.has(velho)) continue
+      vistosR.add(velho)
+      const troca = <T,>(rec: Record<string, T> | undefined, junta: (a: T, b: T) => T): Record<string, T> | undefined => {
+        if (!rec) return rec
+        let out: Record<string, T> | null = null
+        for (const k of Object.keys(rec)) {
+          if (!k.startsWith(`${velho}|`)) continue
+          out ??= { ...rec }
+          const nk = `${novo}|${k.slice(velho.length + 1)}`
+          out[nk] = out[nk] != null ? junta(out[nk], rec[k]) : rec[k]
+          delete out[k]
+        }
+        return out ?? rec
+      }
+      save.marketValues = troca(save.marketValues, (a, b) => Math.max(a, b))
+      save.condicaoCarry = troca(save.condicaoCarry, (a, b) => ({ g: Math.min(a.g, b.g), j: a.j + b.j, gl: (a.gl ?? 0) + (b.gl ?? 0), as: (a.as ?? 0) + (b.as ?? 0) }))
+      save.botCarry = troca(save.botCarry, (a, b) => Math.min(a, b))
+      save.careerScorersAll = troca(save.careerScorersAll, (a, b) => ({ ...a, goals: a.goals + b.goals }))
+      save.careerAssistsAll = troca(save.careerAssistsAll, (a, b) => ({ ...a, assists: a.assists + b.assists }))
+    }
+  }
+  if (curaCartaRepetida(save)) mexeu++
   // 🧢💰 CURA DO PREÇO DO TÉCNICO (01/10, save do Renato): valor acima do teto da
   // categoria (4× o piso) desce pro teto. Pega o salário (pago ÷ 10), a multa de
   // demissão e o piso do próximo pregão de uma vez, em todo save que abre.

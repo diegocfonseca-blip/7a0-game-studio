@@ -100,7 +100,7 @@ export async function medidorFlush(): Promise<void> {
   } catch { /* sem rede: perde só este pedaço da medição, nunca o jogo */ }
 }
 
-if (MEDIDOR_LIGADO && typeof window !== 'undefined') {
+if (MEDIDOR_LIGADO && typeof window !== 'undefined' && typeof document !== 'undefined') {
   setInterval(() => { void medidorFlush() }, FLUSH_MS)
   document.addEventListener('visibilitychange', () => { if (document.hidden) void medidorFlush() })
   window.addEventListener('pagehide', () => { void medidorFlush() })
