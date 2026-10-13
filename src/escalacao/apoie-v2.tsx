@@ -124,11 +124,13 @@ function CraqueMensal({ direitos, onDirect, onVoltar }: { direitos: Direitos | n
     </div>
   )
 }
-export function ApoieButtonV2({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo'; trigger?: (open: () => void) => React.ReactNode }) {
+export function ApoieButtonV2({ big = false, startScreen = 'choice', trigger }: { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo' | 'batismoInfo'; trigger?: (open: () => void) => React.ReactNode }) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'mensal' | 'batismo' | 'manual' | 'socio'>('off')
   const direitos = useDireitos() // 💳 planos v2: assinatura do Craque, batismo, pedido do mensal
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
-  const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); setScreen(startScreen) }
+  // 🖋 'batismoInfo' (13/10, Diego): abre a vitrine dos PLANOS rolando até o cartão do batismo — onde está tudo
+  // que o batismo ganha — e não direto na tela do Pix (que não explica nada).
+  const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); if (startScreen === 'batismoInfo') { logApoio('👀 vitrine das salas → batismo'); setAmp('batismo'); setScreen('choice'); return } setScreen(startScreen) }
   const [clube, setClube] = useState('')
   // 🖋 BATISMO (planos v2, 08/10): Lenda R$ 69,90 ou Plus R$ 89,90 (era 79,99 até 13/10) — os dois já entram na Série A
   // (antes era a escolha de série, 59,90 × 69,90). Preços em planos-regras.ts.

@@ -98,7 +98,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
             </div>
             {mascote && <span style={{ flex: 'none', margin: '-8px -4px -6px 0' }}><MascoteMini art={mascote} alt={88} /></span>}
           </div>
-          <ApoieButton startScreen="batismo" trigger={open => (
+          <ApoieButton startScreen="batismoInfo" trigger={open => (
             <button onClick={open} style={{ ...OSW, width: '100%', marginTop: 10, fontSize: 14, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, cursor: 'pointer' }}>
               {tr('🖋️ QUERO BATIZAR O MEU CLUBE →', '🖋️ I WANT TO NAME MY CLUB →')}
             </button>

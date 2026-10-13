@@ -20,7 +20,8 @@ perde… se tiver empate todos que estiverem empatados ganham também"*.
 - 🏆 Campeões de hoje: ORDEM DE QUEM VAI GANHANDO (mais recente em cima), 5 linhas, só gente (`human_results`).
 - 📊 Ranking da semana: títulos online desde segunda 0h (Brasília), top 5 + "você" tracejado. Liga + cup_titles.
 - 🖋️ Último batismo: maior `socio_n` com origem 'batismo' (hoje Rossini Money — o Diego confirmou), escudo +
-  mascote + botão que abre o Apoie direto no batismo.
+  mascote + botão que abre a vitrine dos PLANOS rolando até o cartão do batismo (startScreen `batismoInfo`, 13/10 —
+  o Diego reclamou que antes caía direto no Pix, sem explicar o que o batismo ganha).
 - Tudo numa chamada: RPC `esc_vitrine_salas()` (aplicada no banco; nota em docs/sql/vitrine-salas.sql). Banco
   sem resposta = a vitrine some, a lista nunca trava. Mockup: `scripts/mockup-lobby-engaja.mjs`.
 
