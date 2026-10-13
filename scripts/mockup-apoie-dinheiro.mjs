@@ -20,7 +20,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>${FONTES}
 h1{font:700 34px/1 Oswald;text-transform:uppercase;margin:0}.sub{font-size:14px;line-height:1.4;margin:8px 0 16px;font-weight:600;color:#3a3a32}
 .box{background:#fff;border:4px solid #0C0C0C;border-radius:18px;box-shadow:4px 4px 0 #0C0C0C;padding:16px;margin-bottom:16px}
 h2{font:700 22px/1 Oswald;text-transform:uppercase;margin:0 0 4px}.h2s{font-size:13px;color:#53534b;font-weight:600;margin:0 0 10px}
-.it{display:flex;gap:10px;padding:10px 0;border-top:2px dashed #0c0c0c22}.it:first-of-type{border-top:0}
+.it{display:flex;gap:10px;padding:10px 0;border-top:2px dashed #0c0c0c22}.it:first-of-type{border-top:0}.it.fam{background:#FFF3C4;border:3px solid #0C0C0C;border-radius:14px;box-shadow:3px 3px 0 #0C0C0C;padding:12px;margin:4px 0 8px}.it.fam+.it{border-top:0}
 .ic{font-size:24px;line-height:1;width:30px;text-align:center}.it b{font:700 16px Oswald;text-transform:uppercase}.it p{margin:2px 0 0;font-size:13px;line-height:1.4;color:#3a3a32}
 .selo{margin-top:10px;background:#FFC400;border:3px solid #0C0C0C;border-radius:12px;box-shadow:3px 3px 0 #0C0C0C;padding:10px 12px;font:700 15px/1.3 Oswald}
 .meta h2{display:flex;justify-content:space-between;align-items:baseline}.meta h2 em{font-style:normal;color:#1B7A3D;font-size:28px}
@@ -35,6 +35,7 @@ h2{font:700 22px/1 Oswald;text-transform:uppercase;margin:0 0 4px}.h2s{font-size
 <h1>🔨 Apoie o jogo</h1>
 <p class="sub">O Leilão Legends é de graça e vai continuar de graça. Quem apoia banca o servidor e faz chegar novidade toda semana.</p>
 <div class="box"><h2>💸 Pra onde vai o dinheiro</h2><p class="h2s">Sem mistério: cada real vira jogo.</p>
+<div class="it fam"><span class="ic">💛</span><div><b>O tratamento do meu filho</b><p>Quem faz o jogo é pai de um menino especial, com uma síndrome raríssima: são uns 120 casos no mundo inteiro. Parte de todo apoio vai pro tratamento dele. Cada Pix aqui ajuda um moleque de verdade.</p></div></div>
 ${item('🗄️', 'O cofre da carreira', 'Cada carreira é um mundo inteiro guardado no servidor: elencos, contratos, tabelas, 190 temporadas de história. Tem gente com save de quase 1 MB. Alguém paga esse armário.')}
 ${item('📡', 'A sala ao vivo', 'Cada lance, cada envelope, cada zoeira do chat viaja na hora pra todo mundo da sala. São milhões de mensagens por mês passando pelo servidor.')}
 ${item('🧠', 'Quem faz o jogo', 'Novidade toda semana, conserto no mesmo dia, carta nova, batismo novo. Isso tem ferramenta e tem hora de trabalho.')}
