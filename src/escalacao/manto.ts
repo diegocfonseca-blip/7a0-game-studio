@@ -12,6 +12,8 @@ import { getLang } from './lang' // 🌐 NOME_MSG sai no idioma do botão BR/EN
 
 // reserva no código (beta) — conta → [cor1, cor2]
 export const MANTO_CONTAS: Record<string, [string, string]> = {
+  // 🦁 Leão da Estradinha (jorgericardo777) — vermelho e branco MEDIDOS na camisa da arte nova (13/10)
+  'jorgericardo777@gmail.com': ['#950C0D', '#FFFFFF'],
   // 🦇 Neymarzetti — PRETO e BRANCO, MEDIDOS na arte NOVA que o dono mandou (16/09):
   // branco 83,6% do manto, preto 10,3%. A camisa virou BRANCA com detalhe preto.
   // O PRETO vem primeiro de propósito: listra clara em cima da tela creme do jogo

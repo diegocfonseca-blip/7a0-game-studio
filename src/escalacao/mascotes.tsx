@@ -473,7 +473,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // Rebatismo do Império Samambaia (23/08); a samambaia coroada em SVG fica
   // (regra 6: os SVGs antigos não nascem mais, mas ficam onde estão).
   leao_estradinha: (
-    <img src={leaoEstradinhaMascoteImg} height={176} width={Math.round(176 * 236 / 440)} alt="O Leão — Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={leaoEstradinhaMascoteImg} height={176} width={Math.round(176 * 370 / 440)} alt="O Leão — Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦜 Al Takahdao FC — papagaio de boné e avental de mercado, polegar pra cima.
   // arte própria do dono (webp, fora do bundle). mascote_key = "takahdao_papagaio".
