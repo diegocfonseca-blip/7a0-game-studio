@@ -295,3 +295,89 @@ export function AberturaCopa({ fases, confrontos, seg, total, cor, espera, mais 
     <p className="ll40-bola">{seg == null ? (espera ?? '') : <>⚽ {tr('A BOLA ROLA EM', 'KICK-OFF IN')} <b>{seg}s</b></>}</p>
   </div>
 }
+
+// ─── 🌳 CHAVEAMENTO DESENHADO (Diego 13/10, mockup `scripts/mockups/copas-proximos.png` nº 1) ───
+// A árvore inteira do mata-mata: cada fase numa coluna, quem passou em verde, quem caiu apagado, o seu
+// caminho com borda dourada e o que ainda vem pontilhado com "?". Toque num jogo já jogado abre o detalhe
+// (placar + pênaltis) que quem chama desenha (`detalhe`). Só apresentação: não decide nada, não revela
+// resultado — quem chama só manda gols de fase FECHADA (anti-spoiler é responsabilidade de quem monta).
+export type ChaveLado = { nome: string; crest?: ReactNode; gols?: number | string | null; venceu?: boolean; meu?: boolean }
+export type ChaveJogo = { key: string; a: ChaveLado | null; b: ChaveLado | null; jogado: boolean; pens?: string }
+export type ChaveFase = { label: string; jogos: ChaveJogo[]; estado: 'ok' | 'on' | '' }
+export function ChaveCopa({ fases, detalhe, titulo }: { fases: ChaveFase[]; detalhe?: (fase: number, jogo: number) => ReactNode; titulo?: string }) {
+  const [sel, setSel] = useState<string | null>(null)
+  const [fi, ji] = sel ? sel.split(':').map(Number) : [-1, -1]
+  const aberto = sel && detalhe && fases[fi]?.jogos[ji] ? detalhe(fi, ji) : null
+  return <section className="ll41-chave">
+    <p className="ll41-tit">🌳 {titulo ?? tr('CHAVEAMENTO', 'BRACKET')}<span>{tr('toque num jogo encerrado pra ver o placar · deslize pro lado', 'tap a finished tie to see the score · swipe sideways')}</span></p>
+    <div className="ll41-scroll"><div className="ll41-cols">
+      {fases.map((f, i) => <div key={i} className={`ll41-col ${f.estado}`}>
+        <small>{f.estado === 'ok' ? '✔ ' : ''}{f.label}</small>
+        <div className="ll41-jogos">{f.jogos.map((j, k) => {
+          const meu = !!(j.a?.meu || j.b?.meu)
+          const chave = `${i}:${k}`, clic = j.jogado && !!detalhe
+          return <div key={j.key} className="ll41-slot"><button type="button" disabled={!clic} onClick={() => setSel(sel === chave ? null : chave)}
+            className={`ll41-jogo${meu ? ' meu' : ''}${j.jogado ? ' jogado' : ''}${sel === chave ? ' sel' : ''}${!j.a && !j.b ? ' vazio' : ''}`}>
+            {[j.a, j.b].map((l, li) => <span key={li} className={`ll41-lado${l?.venceu ? ' venceu' : ''}${j.jogado && l && !l.venceu ? ' caiu' : ''}`}>
+              {l ? <>{l.crest}<b>{l.nome}</b>{l.gols != null && <i>{l.gols}</i>}</> : <em>?</em>}
+            </span>)}
+            {j.pens && <small>{j.pens}</small>}
+          </button></div>
+        })}</div>
+      </div>)}
+    </div></div>
+    {aberto && <div className="ll41-detalhe">{aberto}</div>}
+  </section>
+}
+
+// ─── ✅❌ RESUMO DA FASE (mockup nº 2) ───
+// Quando uma fase fecha: 5s com quem PASSOU e quem CAIU, e a contagem pra próxima fase. Entra ANTES da
+// abertura da fase seguinte (`AberturaCopa`). Lista grande de quem caiu (grupos da Copa do Mundo) vira
+// uma linha corrida, senão não cabe nos 5s.
+export type ResumoTime = { nome: string; crest?: ReactNode; meu?: boolean }
+export function ResumoFase({ titulo, passaram, cairam, proxima, seg, total, cor, espera }: {
+  titulo: string; passaram: ResumoTime[]; cairam: ResumoTime[]; proxima: string
+  seg: number | null; total: number; cor: string; espera?: string
+}) {
+  const pct = seg == null || total <= 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - (seg / total) * 100)))
+  const corrida = cairam.length > 8
+  return <div className="ll40-abertura ll41-resumo">
+    <p className="ll41-resumo-tit">{titulo}</p>
+    <p className="ll41-resumo-sub ok">✅ {tr('PASSARAM', 'THROUGH')} · {proxima}</p>
+    <div className="ll41-chips">{passaram.map((t, i) => <span key={i} className={`ok${t.meu ? ' meu' : ''}`}>{t.crest}<b>{t.nome}</b>{t.meu && <i>⭐</i>}</span>)}</div>
+    {cairam.length > 0 && <>
+      <p className="ll41-resumo-sub caiu">❌ {tr('CAÍRAM', 'OUT')}</p>
+      {corrida ? <p className="ll41-corrida">{cairam.map(t => t.nome).join(' · ')}</p>
+        : <div className="ll41-chips">{cairam.map((t, i) => <span key={i} className={`caiu${t.meu ? ' meu' : ''}`}>{t.crest}<b>{t.nome}</b>{t.meu && <i>⭐</i>}</span>)}</div>}
+    </>}
+    <div className="ll40-bar"><i style={{ width: `${pct}%`, background: cor }} /></div>
+    <p className="ll40-bola">{seg == null ? (espera ?? '') : <>⏭ {proxima} {tr('EM', 'IN')} <b>{seg}s</b></>}</p>
+  </div>
+}
+
+// ─── 🏆 CAMPEÃO + 🥇 ARTILHEIRO NO FIM DA COPA (mockup nº 3) ───
+// Dourado só pra QUEM GANHOU (regra de tier: nunca dourado fixo pra todos); pros outros, branco.
+export function CampeaoCopaCard({ titulo, nome, crest, sub, final, meu }: { titulo: string; nome: string; crest?: ReactNode; sub?: ReactNode; final?: ReactNode; meu: boolean }) {
+  return <div className={`ll41-campeao${meu ? ' meu' : ''}`}>
+    <small>🏆 {titulo}</small>
+    <div className="ll41-campeao-escudo">{crest}</div>
+    <h3>{nome}</h3>
+    {sub && <p>{sub}</p>}
+    {final && <p className="ll41-campeao-final">{final}</p>}
+  </div>
+}
+export type ArtilheiroLinha = { nome: string; clube: string; carta?: string; gols: number; crest?: ReactNode; meu?: boolean }
+export function ArtilheiroCopaCard({ titulo, linhas, rotulo }: { titulo: string; linhas: ArtilheiroLinha[]; rotulo?: [string, string] }) {
+  const [um, varios] = rotulo ?? [tr('gol', 'goal'), tr('gols', 'goals')]
+  const top = linhas[0]
+  if (!top) return null
+  return <div className="ll41-artilheiro">
+    <small>🥇 {titulo}</small>
+    <div className={`ll41-art-top${top.meu ? ' meu' : ''}`}>
+      <div className="ll41-art-escudo">{top.crest}</div>
+      <div className="ll41-art-nome"><b>{top.nome}</b><span>{top.clube}{top.carta ? ` · ${top.carta}` : ''}</span></div>
+      <div className="ll41-art-gols"><b>{top.gols}</b><span>{top.gols === 1 ? um : varios}</span></div>
+    </div>
+    {linhas.length > 1 && <div className="ll41-art-resto">{linhas.slice(1, 3).map((l, i) => <p key={i} className={l.meu ? 'meu' : ''}><span>{i === 0 ? '2º' : '3º'}</span>{l.crest}<b>{l.nome}</b><em>{l.clube}</em><strong>{l.gols}</strong></p>)}</div>}
+  </div>
+}
