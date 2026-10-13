@@ -266,3 +266,29 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
   {palcoAgora??<p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Uma cobrança de cada vez…', 'One kick at a time…')}</p>}
  </section>
 }
+
+// ─── 🎬 ABERTURA DA RODADA DA COPA (Diego 13/10, mockup `scripts/mockups/abertura-copas-antes-depois.png`) ───
+// Antes de a bola rolar numa fase da copa das salas online: o CAMINHO da copa (fases, a de agora acesa,
+// o seu time marcado até onde chegou) + os CONFRONTOS da rodada escudo×escudo (o seu em destaque) + a
+// contagem. Some quando a bola rola e volta na fase seguinte. Só apresentação: não decide nada.
+export type AberturaFase = { label: string; estado: 'ok' | 'on' | ''; meu: boolean }
+export type AberturaConfronto = { home: string; away: string; mine: boolean; homeCrest?: ReactNode; awayCrest?: ReactNode }
+export function AberturaCopa({ fases, confrontos, seg, total, cor, espera }: {
+  fases: AberturaFase[]; confrontos: AberturaConfronto[]
+  /** segundos até a bola rolar (null = sem contagem: manual, esperando o host) */
+  seg: number | null; total: number; cor: string
+  /** texto do lugar da contagem quando não há contagem (manual) */
+  espera?: string
+}) {
+  const pct = seg == null || total <= 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - (seg / total) * 100)))
+  return <div className="ll40-abertura">
+    <div className="ll40-caminho">{fases.map((f, i) => <span key={f.label} className={`${f.estado}${f.meu ? ' meu' : ''}`}>{f.estado === 'ok' ? '✔ ' : ''}{f.label}{i < fases.length - 1 ? <i>›</i> : null}</span>)}</div>
+    <p className="ll40-tit">{tr('CONFRONTOS DA RODADA', 'ROUND FIXTURES')}</p>
+    {confrontos.map((c, i) => <div key={i} className={`ll40-jogo${c.mine ? ' eu' : ''}`}>
+      {c.mine && <span className="ll40-tag">⭐ {tr('SEU JOGO', 'YOUR MATCH')}</span>}
+      <div className="ll40-time">{c.homeCrest}<b>{c.home}</b></div><span className="ll40-x">×</span><div className="ll40-time r"><b>{c.away}</b>{c.awayCrest}</div>
+    </div>)}
+    <div className="ll40-bar"><i style={{ width: `${pct}%`, background: cor }} /></div>
+    <p className="ll40-bola">{seg == null ? (espera ?? '') : <>⚽ {tr('A BOLA ROLA EM', 'KICK-OFF IN')} <b>{seg}s</b></>}</p>
+  </div>
+}

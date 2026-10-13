@@ -53,7 +53,7 @@ import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
-import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, type OnlineMatchTab } from './online-match-visual'
+import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, type OnlineMatchTab, type AberturaFase } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
@@ -6332,11 +6332,24 @@ export function EscSeason() {
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
   const copaPensMs = Math.max(13000, ...(qc?.ties ?? []).filter(t => t.pens && !t.ot).map(t => Math.ceil(pensRevealDelay(t.pens!, copaTemGenteQ(t), t.pensSeq) * 1000) + 300))
   const copaAnimMs = Math.round(copaLegMs / speedFactor) + (phaseFullyPlayed && anyPens ? copaPensMs : 0)
+  // 🎬 ABERTURA DA RODADA (Diego 13/10): nas copas do online (Copa dos 8, Liberta, Champions), antes de cada
+  // fase rolar aparece o caminho da copa + os confrontos escudo×escudo. Na 1ª fase usa o tempo de leitura
+  // de sempre (`COPA_INTRO_SECONDS`); nas seguintes o respiro sobe de 3,2s pra 5s pra dar tempo de ler.
+  const aberturaOn = privateVisual && !cupNow && !bbS && copaLive && (firstLegPending || copaJustAdvanced)
+  const ABERTURA_FASE_MS = 5000
+  const [aberturaLeft, setAberturaLeft] = useState(0)
+  useEffect(() => {
+    if (!aberturaOn || firstLegPending || manual) { setAberturaLeft(0); return }
+    const dur = Math.round(ABERTURA_FASE_MS / speedFactor), t0 = Date.now()
+    setAberturaLeft(Math.ceil(dur / 1000))
+    const iv = setInterval(() => setAberturaLeft(Math.max(0, Math.ceil((dur - (Date.now() - t0)) / 1000))), 200)
+    return () => clearInterval(iv)
+  }, [aberturaOn, firstLegPending, manual, speedFactor, copaTieKey])
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending || cupNow) return // a Cup tem o motor dela
-    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round(3200 / speedFactor) : copaAnimMs)
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round((aberturaOn ? ABERTURA_FASE_MS : 3200) / speedFactor) : copaAnimMs)
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow])
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow, aberturaOn])
   // trava o "Próximo jogo da Copa" (manual) enquanto a perna — INCLUINDO a disputa
   // de pênaltis — ainda está animando, pra não cortar clicando cedo.
   const [copaAdvReady, setCopaAdvReady] = useState(true)
@@ -6569,8 +6582,27 @@ export function EscSeason() {
         return (
           <>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
-            {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
+            {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
               {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
+              {aberturaOn && (() => {
+                // 🎬 o caminho da copa: as fases desta copa, a de agora acesa, as passadas ✔, e o SEU time marcado até onde chegou
+                const ordem: { key: string; label: string }[] = chS
+                  ? [{ key: 'tabela', label: LS('TABELA', 'TABLE') }, { key: 'repescao', label: LS('REPESCÃO', 'PLAYOFF') }, { key: 'oitavas', label: LS('OITAVAS', 'R16') }, { key: 'quartas', label: LS('QUARTAS', 'QF') }, { key: 'semis', label: 'SEMI' }, { key: 'final', label: 'FINAL' }]
+                  : libS
+                  ? [{ key: 'grupos', label: LS('GRUPOS', 'GROUPS') }, { key: 'oitavas', label: LS('OITAVAS', 'R16') }, { key: 'quartas', label: LS('QUARTAS', 'QF') }, { key: 'semis', label: 'SEMI' }, { key: 'final', label: 'FINAL' }]
+                  : [{ key: 'quartas', label: LS('QUARTAS', 'QF') }, { key: 'semis', label: 'SEMI' }, { key: 'final', label: 'FINAL' }]
+                const idxAtual = Math.max(0, ordem.findIndex(o => o.key === qc.phase))
+                const jogueiEm = new Set<string>(qc.bracket.filter(b => b.ties.some(t => t.aId === you.id || t.bId === you.id)).map(b => b.phase as string))
+                const meuAgora = !!myTie
+                const fases: AberturaFase[] = ordem.map((o, i) => ({ label: o.label, estado: i < idxAtual ? 'ok' : i === idxAtual ? 'on' : '',
+                  meu: i === idxAtual ? meuAgora : i < idxAtual ? (jogueiEm.has(o.key) || (i === 0 && (meuAgora || jogueiEm.size > 0))) : false }))
+                const confrontos = qc.ties.map(t => ({ home: nameOf(t.aId), away: nameOf(t.bId), mine: t.aId === you.id || t.bId === you.id,
+                  homeCrest: <Escudo nome={nameOf(t.aId)} size={30} />, awayCrest: <Escudo nome={nameOf(t.bId)} size={30} /> }))
+                const seg = manual ? null : firstLegPending ? copaFirstLeft : aberturaLeft
+                const total = firstLegPending ? COPA_INTRO_SECONDS : Math.ceil(ABERTURA_FASE_MS / speedFactor / 1000)
+                const espera = canAdvance ? LS('▶️ Comece nos controles da partida', '▶️ Start from the match controls') : LS('⏳ O host dá a largada', '⏳ The host kicks off')
+                return <AberturaCopa fases={fases} confrontos={confrontos} seg={seg} total={total} cor={chS ? '#7C3AED' : libS ? '#2F6FDB' : '#FFC400'} espera={espera} />
+              })()}
             </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
               <ApoioSheen holo={1} dur={3.2} />
               <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{cupNow ? '🏆 NBA CUP' : chS ? '⭐ CHAMPIONS LEAGUE' : libS ? '🌎 LIBERTADORES' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')}`} · {phaseLabel.toUpperCase()}</p>
@@ -6648,7 +6680,7 @@ export function EscSeason() {
                     )}
                   </>
                 )
-              })() : (
+              })() : aberturaOn ? null : ( // 🎬 com a abertura no palco, o "aguardando o pontapé" seria o mesmo recado duas vezes
                 <Box bg="#fff" className="p-6" shadow={6}>
                   <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the Cup jump ball…' : '🏀 Aguardando a bola ao alto da Copa…') : libS ? LS('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LS('🏁 Aguardando o pontapé inicial da Copa…', '🏁 Waiting for the Cup kick-off…')}</p>
                 </Box>
