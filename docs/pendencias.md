@@ -1,6 +1,18 @@
 ## 🚫🔴 Tirar destaque de live falsa (13/10) — ✅ NO AR
 Diego: *"com algum botão de fácil acesso tiro o destaque… o usuário recebe uma faixa… quando fecha não aparece mais… se fizer de novo aparece novamente"*. Botão na lista de salas (só a conta do Diego vê; o banco confere o e-mail) grava em `esc_live_tirada` (`docs/sql/live-tirada.sql`); a lista deixa de destacar a sala. O dono da sala de stream recebe a faixa (`aviso-live.tsx`, leitura a cada 2 min só pra dono de sala com Modo Stream). O jogo da sala nunca é tocado.
 
+
+## 13/10/2026 — 💳 PLANOS V2 COM NOMES NOVOS (⏳ esperando OK visual — NÃO está na main)
+
+Decisões do Diego: **Sócio** = o mensal R$ 12,90 (ganha NÚMERO DE SÓCIO; tier ouro dourado pros NOVOS — antigos não
+mudam, e isso já era a regra de `tierEfetivo`). **Batismo** = R$ 69,90 · **Batismo Lenda** = R$ 89,90 (gala única +
+canto). Os dois batismos ganham **Fundador nº** e MANTÊM moedas + estádio ("batismo mantém tudo"). **Sem desconto** do
+Sócio pro batismo (ok dele). Exemplo dos cartões do batismo = **Neymarzetti** (escudo, mascote, camisa, helicóptero).
+Listas de cada plano mais compridas ("parecer que tem bastante coisa").
+⚠️ FALTA fazer de verdade, depois do OK: o Sócio mensal ganhar número de sócio + manto 2 cores + estádio com nome
+(hoje a assinatura não cria linha em `esc_socios`), e trocar os nomes "Craque"/"Plus" no Pix (`apoie-v2.tsx`) e no
+texto das regras (screens.tsx). Planos v2 seguem só nas contas do Diego (`PLANOS2_GERAL = false`).
+
 ## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
 Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
 
