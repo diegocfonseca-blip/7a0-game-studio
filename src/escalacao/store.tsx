@@ -10134,6 +10134,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.reserveListMesmo = undefined
       s.reserveListed = {}
       s.phaseDeadline = null
+      completaBancoDosBots(s) // 🔁 rival com banco (Diego 13/10: "o bot também pode participar de qualquer leilão"): sem leilão no "mesmo time", o bot fecha o banco aqui, com sobra real e pagando
       s.screen = 'season'
       return s
     }
