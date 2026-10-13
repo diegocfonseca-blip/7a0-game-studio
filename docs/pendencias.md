@@ -1,6 +1,13 @@
 ## 🧪 Trava `npm run copamundo` está vermelha (achado 13/10, JÁ vinha assim antes da abertura das copas)
 Falha: *"🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)"* — reproduz no main anterior (bf9d63d), então não é da abertura. Conferir se é a trava desatualizada ou a ficha contando jogo de copa antes do apito.
 
+## 🎮 Online: 3 IDEIAS (13/10) — ⏳ MOCKUP ENVIADO, esperando o Diego escolher
+Mockup `scripts/mockup-3-ideias-online.mjs` → `scripts/mockups/online-3-ideias.png`:
+1. **🆚 Retrospecto entre amigos** — antes da bola rolar, a linha da Rádio vira "VOCÊ × <dono>: 1V 0E 4D" + provocação. Só gente × gente, histórico de todas as salas (precisa de tabela nova no banco por par de contas).
+2. **⭐ Craque do jogo** — no apito final, a linha mostra o melhor em campo (nome, carta, gols/assistências). Gol e assistência juntos (regra 19/09). Fake nunca é craque (regra 19/09).
+3. **👑 Copa dos campeões do dia** — cartão na lista de salas, acima de "Campeões de hoje": os campeões de sala de ontem jogam uma copa automática à meia-noite com o time que montaram; campeão ganha carta. (Precisa guardar o elenco do campeão + rotina noturna no banco.)
+Nada feito. Só codar o que ele escolher.
+
 ## 📻 Rádio Legends no placar (13/10) — ✅ NO AR pra todos (Diego: *"pode fazer isso aí! e coloque muita coisa variada… não quero toda hora repetições"*)
 Módulo puro `src/escalacao/radio.ts` (trava `npm run radio`), ligado no `LiveScoreCard` → linha `ll42-radio` no `OnlineScorePresentation`. ABERTURA × LANCE × FECHO = 22 mil frases no meio do jogo (+ começo e fim próprios); 2000 jogos simulados = 93% de frases diferentes; nenhum lance repete no mesmo jogo. Nunca a menos de 3′ de gol ou de chance (o golzinho já narra chance — régua do "mesmo teatro duas vezes"); nunca fala de gol, pênalti, placar, jogador ou dono. Determinística (sala inteira ouve igual). Termômetro NÃO entrou (ele achou informação demais). Foto: `scripts/foto-radio.mjs` → `scripts/mockups/radio-real.png`.
 💡 Pra crescer o acervo: mais linhas em `LANCES`/`ABRE`/`FECHA`, sempre o par PT/EN, sem gol/pênalti/placar (a trava reprova).
