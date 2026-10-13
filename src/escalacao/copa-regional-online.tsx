@@ -21,7 +21,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang'
 import { agoraSala } from './relogio'
-import { CompetitionStage, CompetitionMatch } from './online-match-visual'
+import { CompetitionStage, CompetitionMatch, AberturaCopa, type AberturaFase } from './online-match-visual'
+import { ABERTURA_MS, respiroAntes } from './copa-passos' // 🎬 abertura da rodada (13/10)
 import './online-match-visual.css'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { ChatWidget } from './screens'
@@ -146,10 +147,10 @@ function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost
       const r = atual.current
       if (!isHost || !r) return
       if (r.running) { if (agora >= Date.parse(r.started_at) + r.duration_ms + r.extra_ms) void rpc('finish') }
-      else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + (r.step === 0 ? 500 : 1600)) void rpc('next')
+      else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + respiroAntes(passoRegionalRodaBola(passosRegional(rodadas), r.step + 1), r.step)) void rpc('next') // 🎬 5s de abertura antes de rodar bola
     }, 250)
     return () => clearInterval(t)
-  }, [isHost, rpc, fim])
+  }, [isHost, rpc, fim, rodadas])
   if (semBanco) return undefined
   return { row, now, isHost, busy, command: rpc }
 }
@@ -548,7 +549,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   }, [passoLocal, acabouLocal, !!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (relogio || !acabouLocal || passoLocal >= P.FIM) return
-    const t = setTimeout(() => { const s = passoLocal + 1; setPassoLocal(s); if (passoRegionalRodaBola(P, s)) { setAcabouLocal(false); setInicioLocal(Date.now()) } }, passoLocal === 0 ? 500 : 1600)
+    const t = setTimeout(() => { const s = passoLocal + 1; setPassoLocal(s); if (passoRegionalRodaBola(P, s)) { setAcabouLocal(false); setInicioLocal(Date.now()) } }, respiroAntes(passoRegionalRodaBola(P, passoLocal + 1), passoLocal))
     return () => clearTimeout(t)
   }, [acabouLocal, passoLocal, !!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -636,9 +637,29 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   )
   const etapa = done ? tr('Campeão definido', 'Champion decided') : step === 0 ? tr('Começando', 'Starting') : step <= P.RODADAS ? `${tr('Rodada', 'Round')} ${step} ${tr('de', 'of')} ${P.RODADAS}` : step === P.CHAVE ? tr('Mata-mata definido', 'Knockouts set') : nomeFase(faseAtual?.tipo ?? 'final')
 
+  // 🎬 ABERTURA DA RODADA (Diego 13/10): com a bola parada e o PRÓXIMO passo rodando bola, o palco mostra o
+  // caminho da copa + os confrontos que vêm (o seu em destaque) + a contagem até a largada. Some ao rolar.
+  const proxPasso = step + 1
+  const aberturaOn = liveDone && !done && passoRegionalRodaBola(P, proxPasso)
+  const abertura = aberturaOn ? (() => {
+    const jogosProx: { h: number; a: number }[] = proxPasso <= P.RODADAS ? mundo.rodadas[proxPasso - 1] : (mundo.ko[proxPasso - P.PRIMEIRO_KO]?.ties ?? [])
+    const minhaEm = (js: { h: number; a: number }[]) => js.some(j => isYou(j.h) || isYou(j.a))
+    const ordem: { label: string; passos: number[]; jogos: { h: number; a: number }[] }[] = [
+      { label: tr('RODADAS', 'ROUNDS'), passos: Array.from({ length: P.RODADAS }, (_, i) => i + 1), jogos: mundo.rodadas.flat() },
+      ...mundo.ko.map((f, i) => ({ label: f.tipo === 'quartas' ? tr('QUARTAS', 'QF') : f.tipo === 'semi' ? 'SEMI' : 'FINAL', passos: [P.PRIMEIRO_KO + i], jogos: f.ties })),
+    ]
+    const idxOn = ordem.findIndex(o => o.passos.includes(proxPasso))
+    const fases: AberturaFase[] = ordem.map((o, i) => ({ label: i === 0 && proxPasso <= P.RODADAS ? `${o.label} ${proxPasso}/${P.RODADAS}` : o.label, estado: i < idxOn ? 'ok' : i === idxOn ? 'on' : '', meu: i <= idxOn && minhaEm(o.jogos) }))
+    const meus = jogosProx.filter(j => isYou(j.h) || isYou(j.a)), outros = jogosProx.filter(j => !(isYou(j.h) || isYou(j.a)))
+    const lista = [...meus, ...outros.slice(0, 5)]
+    const confrontos = lista.map(j => ({ home: entrants[j.h].pais, away: entrants[j.a].pais, mine: isYou(j.h) || isYou(j.a), homeCrest: <Escudo nome={entrants[j.h].pais} size={30} />, awayCrest: <Escudo nome={entrants[j.a].pais} size={30} /> }))
+    const seg = relogio?.row ? (relogio.row.manual ? null : Math.max(0, Math.ceil((Date.parse(relogio.row.updated_at) + ABERTURA_MS - relogio.now) / 1000))) : null
+    const espera = relogio?.row?.manual ? (relogio.isHost ? tr('▶️ Dê a largada nos controles', '▶️ Kick off from the controls') : tr('⏳ O host dá a largada', '⏳ The host kicks off')) : tr('⚽ Já vai rolar…', '⚽ About to kick off…')
+    return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={Math.ceil(ABERTURA_MS / 1000)} cor="#E8503A" espera={espera} />
+  })() : null
   return (
     <>
-      <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')} />
+      <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
       {/* RODADAS: o meu jogo ao vivo em cima; os clássicos da rodada; as duas tabelas (só o que já apitou) */}
       {step >= 1 && step <= P.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]

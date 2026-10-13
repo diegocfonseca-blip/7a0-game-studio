@@ -36,3 +36,10 @@ export const PASSO_COPA = {
 /** os passos em que tem bola rolando (rodadas de grupo + as quatro fases do mata-mata) */
 export const passoRodaBola = (s: number): boolean =>
   (s >= 1 && s <= RODADAS_GRUPO) || (s >= PASSO_COPA.OITAVAS && s <= PASSO_COPA.FINAL)
+
+// 🎬 ABERTURA DA RODADA (Diego 13/10): antes de um passo que RODA BOLA, a sala respira 5s mostrando o
+// caminho da copa + os confrontos (escudo×escudo). A pausa entre passos é decidida no APARELHO DO DONO
+// (`dueClockCommand` / `useRelogioRegional`), não no banco — então o SQL do relógio não muda.
+// Passo que não roda bola (sorteio, cerimônia) segue com o respiro curto de sempre.
+export const ABERTURA_MS = 5000
+export const respiroAntes = (proximoRodaBola: boolean, step: number): number => (proximoRodaBola ? ABERTURA_MS : step === 0 ? 500 : 1600)

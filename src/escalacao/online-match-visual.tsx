@@ -273,12 +273,14 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
 // contagem. Some quando a bola rola e volta na fase seguinte. Só apresentação: não decide nada.
 export type AberturaFase = { label: string; estado: 'ok' | 'on' | ''; meu: boolean }
 export type AberturaConfronto = { home: string; away: string; mine: boolean; homeCrest?: ReactNode; awayCrest?: ReactNode }
-export function AberturaCopa({ fases, confrontos, seg, total, cor, espera }: {
+export function AberturaCopa({ fases, confrontos, seg, total, cor, espera, mais = 0 }: {
   fases: AberturaFase[]; confrontos: AberturaConfronto[]
   /** segundos até a bola rolar (null = sem contagem: manual, esperando o host) */
   seg: number | null; total: number; cor: string
   /** texto do lugar da contagem quando não há contagem (manual) */
   espera?: string
+  /** confrontos que ficaram de fora da lista (rodada grande) */
+  mais?: number
 }) {
   const pct = seg == null || total <= 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - (seg / total) * 100)))
   return <div className="ll40-abertura">
@@ -288,6 +290,7 @@ export function AberturaCopa({ fases, confrontos, seg, total, cor, espera }: {
       {c.mine && <span className="ll40-tag">⭐ {tr('SEU JOGO', 'YOUR MATCH')}</span>}
       <div className="ll40-time">{c.homeCrest}<b>{c.home}</b></div><span className="ll40-x">×</span><div className="ll40-time r"><b>{c.away}</b>{c.awayCrest}</div>
     </div>)}
+    {mais > 0 && <p className="ll40-mais">+ {mais} {tr(mais === 1 ? 'confronto' : 'confrontos', mais === 1 ? 'tie' : 'ties')} ↓</p>}
     <div className="ll40-bar"><i style={{ width: `${pct}%`, background: cor }} /></div>
     <p className="ll40-bola">{seg == null ? (espera ?? '') : <>⚽ {tr('A BOLA ROLA EM', 'KICK-OFF IN')} <b>{seg}s</b></>}</p>
   </div>

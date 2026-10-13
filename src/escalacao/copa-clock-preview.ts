@@ -1,6 +1,6 @@
 import {useCallback,useEffect,useRef,useState} from 'react'
 import {supabase} from '../lib/supabase'
-import {PASSO_COPA} from './copa-passos'
+import {PASSO_COPA,passoRodaBola,respiroAntes,ABERTURA_MS} from './copa-passos'
 
 export type CopaClockRow={revision:number;step:number;running:boolean;manual:boolean;speed:number;started_at:string;updated_at:string;duration_ms:number;extra_ms:number}
 export type CopaClockCommand='next'|'skip'|'finish'|'manual'|'auto'|'speed'
@@ -10,10 +10,16 @@ export type CopaClockController={row:CopaClockRow|null;now:number;isHost:boolean
 export function clockMinute(row:CopaClockRow,now:number){
  return row.running?Math.max(0,Math.min(93,Math.round((now-Date.parse(row.started_at))/(row.duration_ms*.82)*93))):93
 }
+/** 🎬 segundos que faltam pra bola rolar no próximo passo (null = sem contagem: rodando, manual ou passo que não roda bola) */
+export function aberturaSegundos(row:CopaClockRow,now:number):number|null{
+ if(row.running||row.manual||row.step>=PASSO_COPA.FIM||!passoRodaBola(row.step+1))return null
+ return Math.max(0,Math.ceil((Date.parse(row.updated_at)+ABERTURA_MS-now)/1000))
+}
 export function dueClockCommand(row:CopaClockRow,now:number):'finish'|'next'|null{
  if(row.running)return now>=Date.parse(row.started_at)+row.duration_ms+row.extra_ms?'finish':null
  // o último passo é a cerimônia (`PASSO_COPA.FIM`); o banco tem a mesma trava
- return !row.manual&&row.step<PASSO_COPA.FIM&&now>=Date.parse(row.updated_at)+(row.step===0?500:1600)?'next':null
+ // 🎬 antes de passo que roda bola, 5s de abertura (copa-passos.ts)
+ return !row.manual&&row.step<PASSO_COPA.FIM&&now>=Date.parse(row.updated_at)+respiroAntes(passoRodaBola(row.step+1),row.step)?'next':null
 }
 
 export function useCopaClockPreview(enabled:boolean,roomId:string,edicao:number,seed:number,isHost:boolean,extraForStep:(step:number)=>number):CopaClockController|undefined{
