@@ -1,0 +1,19 @@
+{
+  "data": "13 de outubro de 2026",
+  "titulo": "Copas do online: chave desenhada",
+  "destaque": {
+    "passos": [
+      { "emoji": "🌳", "titulo": "Chave inteira", "sub": "da 1ª fase à final" },
+      { "emoji": "✅", "titulo": "Resumo da fase", "sub": "quem passou, quem caiu" },
+      { "emoji": "🥇", "titulo": "Artilheiro", "sub": "junto do campeão" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "O mata-mata agora aparece **desenhado**: quem passou em **verde**, quem caiu apagado e o **seu caminho em dourado**. Toque num jogo encerrado pra ver o placar e os pênaltis." },
+    { "tag": "novidade", "texto": "Quando uma fase fecha, **5 segundos de resumo** com quem passou e quem caiu — e aí vem a abertura da próxima fase." },
+    { "tag": "novidade", "texto": "No fim, junto do campeão, o **artilheiro da copa** com gols, clube e carta, mais o 2º e o 3º." }
+  ],
+  "rodape": "Vale pra Copa dos 8, Libertadores, Champions, Copa do Mundo e regionais.",
+  "rodapeSub": "Nas salas online: sala rápida e Minhas Ligas. Nada muda nas regras, só na tela.",
+  "saida": "scripts/posts/aviso-copas-chave.png"
+}

@@ -445,25 +445,26 @@
 .ll40-bola{text-align:center;font:700 14px Oswald,sans-serif;letter-spacing:.08em;margin:6px 0 0;min-height:18px}.ll40-bola b{color:#ffc400}
 .ll40-mais{font:700 10px Oswald,sans-serif;color:rgba(255,255,255,.5);text-align:center;letter-spacing:.08em;margin:2px 0 0}
 /* ─── 🌳 chaveamento desenhado · ✅❌ resumo da fase · 🏆🥇 fim da copa (13/10) ─── */
-.ll41-chave{background:#f4ecd6;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:12px;margin:12px 0;padding:10px 0 8px}
-.ll41-tit{font:700 13px Oswald,sans-serif;letter-spacing:.06em;margin:0 14px 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ll41-tit span{font:600 10px Inter,sans-serif;color:#53534b;letter-spacing:0}
-.ll41-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 10px}
-.ll41-cols{display:flex;align-items:stretch;gap:6px;min-width:max-content}
-.ll41-col{display:flex;flex-direction:column;width:124px}.ll41-col>small{font:700 10px Oswald,sans-serif;letter-spacing:.14em;color:#53534b;text-align:center;margin-bottom:6px}
-.ll41-col.on>small{color:#0c0c0c}.ll41-col.on>small::after{content:"";display:block;height:3px;background:#ffc400;border-radius:3px;margin:2px auto 0;width:28px}
-.ll41-jogos{display:flex;flex-direction:column;flex:1}.ll41-slot{flex:1;display:flex;align-items:center;padding:3px 0}
-.ll41-jogo{width:100%;display:block;background:#fff;border:2px solid #0c0c0c;border-radius:10px;padding:0;overflow:hidden;font:inherit;color:inherit;text-align:left;cursor:default;box-shadow:2px 2px 0 #0c0c0c}
-.ll41-jogo.jogado{cursor:pointer}.ll41-jogo.sel{outline:3px solid #7c3aed;outline-offset:1px}
-.ll41-jogo.meu{border-color:#ffc400;border-width:3px;box-shadow:2px 2px 0 #0c0c0c,0 0 0 1px #0c0c0c}
-.ll41-jogo.vazio{border-style:dashed;background:transparent;box-shadow:none;opacity:.7}
-.ll41-lado{display:flex;align-items:center;gap:4px;padding:3px 5px;min-height:22px;border-bottom:1px solid #0c0c0c22}.ll41-lado:last-of-type{border-bottom:0}
-.ll41-lado img,.ll41-lado svg{width:16px;height:16px;object-fit:contain;flex:none}
-.ll41-lado b{flex:1;font:700 10px/1.1 Oswald,sans-serif;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.ll41-lado i{font:700 11px Oswald,sans-serif;font-style:normal;min-width:12px;text-align:right}
-.ll41-lado em{font:700 11px Oswald,sans-serif;color:#53534b;padding-left:4px}
-.ll41-lado.venceu{background:#1b7a3d;color:#fff}.ll41-lado.caiu{opacity:.45}
-.ll41-jogo>small{display:block;font:700 9px Oswald,sans-serif;letter-spacing:.06em;color:#53534b;text-align:center;padding:1px 0 2px;background:#f4ecd6}
-.ll41-detalhe{margin:8px 14px 0}.ll41-detalhe .ll26-fixture{margin:0}
+.ll41-chave{background:#161616;color:#fff;border:3px solid #0c0c0c;border-radius:14px;box-shadow:4px 4px 0 #0c0c0c;margin:12px 0;padding:10px 6px 8px}
+.ll41-tit{font:700 13px Oswald,sans-serif;letter-spacing:.06em;margin:0 6px 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ll41-tit span{font:600 10px Inter,sans-serif;color:rgba(255,255,255,.55);letter-spacing:0}
+.ll41-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ll41-cols{display:flex;align-items:stretch;gap:4px;min-width:100%}
+.ll41-col{flex:1;min-width:74px;display:flex;flex-direction:column}.ll41-col.ok{opacity:.92}
+.ll41-col>small{font:700 9px Oswald,sans-serif;letter-spacing:.12em;color:rgba(255,255,255,.55);text-align:center;margin-bottom:6px;white-space:nowrap}.ll41-col.on>small{color:#ffc400}
+.ll41-jogos{display:flex;flex-direction:column;flex:1;justify-content:space-around;gap:4px}.ll41-slot{flex:1;display:flex;align-items:center}
+.ll41-jogo{width:100%;display:block;background:#fff;color:#0c0c0c;border:1.5px solid #0c0c0c;border-radius:7px;padding:0;overflow:hidden;font:inherit;text-align:left;cursor:default}
+.ll41-jogo.jogado{cursor:pointer}.ll41-jogo.sel{outline:2.5px solid #7c3aed;outline-offset:1px}
+.ll41-jogo.meu{outline:2.5px solid #ffc400;outline-offset:1px}.ll41-jogo.meu.sel{outline-color:#7c3aed}
+.ll41-jogo.vazio{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff}
+.ll41-jogo:not(.jogado):not(.vazio){background:#fff}
+.ll41-lado{display:flex;align-items:center;gap:3px;padding:3px 3px;min-height:20px}.ll41-lado+.ll41-lado{border-top:1px solid rgba(0,0,0,.12)}.ll41-jogo.vazio .ll41-lado+.ll41-lado{border-top-color:rgba(255,255,255,.15)}
+.ll41-lado img,.ll41-lado svg{width:14px;height:14px;object-fit:contain;flex:none}
+.ll41-lado b{flex:1;font:700 8.5px/1 Oswald,sans-serif;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ll41-lado i{font:700 9px/1 Oswald,sans-serif;font-style:normal;width:9px;text-align:right;flex:none}
+.ll41-lado em{display:flex;align-items:center;gap:4px;font:700 9px Oswald,sans-serif;font-style:normal;color:rgba(255,255,255,.7)}.ll41-lado em::before{content:"";width:14px;height:14px;border-radius:99px;border:1.5px dashed rgba(255,255,255,.5)}
+.ll41-lado.venceu{background:#D8F0DE}.ll41-lado.caiu{opacity:.45}
+.ll41-jogo>small{display:block;font:700 8px Oswald,sans-serif;letter-spacing:.06em;color:#53534b;text-align:center;padding:1px 0 2px;background:#f4ecd6}
+.ll41-detalhe{margin:8px 4px 0}.ll41-detalhe .ll26-fixture{margin:0}
 .ll41-resumo .ll41-resumo-tit{font:700 15px Oswald,sans-serif;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px}
 .ll41-resumo-sub{font:700 11px Oswald,sans-serif;letter-spacing:.14em;margin:8px 0 5px}.ll41-resumo-sub.ok{color:#5fd68a}.ll41-resumo-sub.caiu{color:#ff8a76}
 .ll41-chips{display:grid;grid-template-columns:1fr 1fr;gap:5px}
