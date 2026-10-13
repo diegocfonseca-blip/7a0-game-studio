@@ -24,6 +24,9 @@ export function OnlineScorePresentation(p: {
   // `palcoOn` liga a faixa (sem ela, o placar é byte a byte o de antes).
   // 🎭 A mascote do carimbo NÃO muda: ela continua na cena do gol, como sempre.
   palcoOn?: boolean; palco?: { speed?:number; side: 'h' | 'a'; fim: 'defendeu' | 'trave' | 'fora' | 'isolou' | 'gol'; key: number; veredito: string } | null;
+  // 📻 RÁDIO LEGENDS (13/10): UMA linha entre a faixa do golzinho e os autores dos gols. Sempre ocupa o mesmo
+  // espaço (antes da 1ª frase diz "rádio ligada") pra o placar não pular de tamanho.
+  radio?: { min: string; txt: string } | null;
 }) {
   const team = (home: boolean) => {
     const name = home ? p.homeName : p.awayName
@@ -64,6 +67,7 @@ export function OnlineScorePresentation(p: {
       <strong>{tr('GOOOL!', 'GOOOAL!')}</strong>
       {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}
     </div>}
+    {p.radio && <div className="ll42-radio" aria-live="off"><span className="ll42-radio-tag">📻 {tr('RÁDIO', 'RADIO')}</span>{p.radio.min && <b>{p.radio.min}′</b>}<span key={p.radio.txt} className="ll42-radio-txt">{p.radio.txt}</span></div>}
     <div className="ll25-scorers">{[true, false].map(home => <div key={String(home)}>
       {p.goals.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`}>{p.big ? '⚽ ' : ''}{g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
       {!p.goals.some(g => g.home === home) && <p>{tr('Sem gols', 'No goals')}</p>}

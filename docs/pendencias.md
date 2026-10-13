@@ -1,7 +1,14 @@
 ## 🧪 Trava `npm run copamundo` está vermelha (achado 13/10, JÁ vinha assim antes da abertura das copas)
 Falha: *"🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)"* — reproduz no main anterior (bf9d63d), então não é da abertura. Conferir se é a trava desatualizada ou a ficha contando jogo de copa antes do apito.
 
-## ⚽ Simulação dos jogos: 3 IDEIAS (13/10) — ⏳ MOCKUP ENVIADO, esperando o Diego escolher
+## 📻 Rádio Legends no placar (13/10) — ✅ NO AR pra todos (Diego: *"pode fazer isso aí! e coloque muita coisa variada… não quero toda hora repetições"*)
+Módulo puro `src/escalacao/radio.ts` (trava `npm run radio`), ligado no `LiveScoreCard` → linha `ll42-radio` no `OnlineScorePresentation`. ABERTURA × LANCE × FECHO = 22 mil frases no meio do jogo (+ começo e fim próprios); 2000 jogos simulados = 93% de frases diferentes; nenhum lance repete no mesmo jogo. Nunca a menos de 3′ de gol ou de chance (o golzinho já narra chance — régua do "mesmo teatro duas vezes"); nunca fala de gol, pênalti, placar, jogador ou dono. Determinística (sala inteira ouve igual). Termômetro NÃO entrou (ele achou informação demais). Foto: `scripts/foto-radio.mjs` → `scripts/mockups/radio-real.png`.
+💡 Pra crescer o acervo: mais linhas em `LANCES`/`ABRE`/`FECHA`, sempre o par PT/EN, sem gol/pênalti/placar (a trava reprova).
+
+## 🥅 "Acertei todos os pênaltis e perdi" (13/10) — conferido
+Simulei 200 mil disputas pelo caminho inteiro da tela (sequência real e remontada → `exactPenaltyRows`): **nunca** sai perdedor com todas as cobranças certas, a soma sempre fecha e nenhuma cobrança acontece depois de decidido. O motor está certo. O que existia era a TELA cortando a disputa no meio (Copa do Mundo e regionais da sala — consertado às 18:27 UTC de 13/10, commit `962dc5b`): o jogador via as próprias cobranças todas certas, a disputa sumia antes do erro dele e aparecia o resultado. A última Copa do Mundo de sala antes da conversa terminou às 18:20 UTC — 7 min ANTES do conserto. Se aparecer de novo depois disso, pedir o código da sala.
+
+## ⚽ Simulação dos jogos: 3 IDEIAS (13/10) — ✅ virou a Rádio no placar (acima); craque do jogo e termômetro ficaram de fora
 Diego: *"o que mais poderíamos implementar nas simulações dos jogos… coisas pra engajar"* → *"quero dos 3 mockup"*. Mockup `scripts/mockup-simulacao-3.mjs` → `scripts/mockups/simulacao-3-ideias.png` (placar real + peças desenhadas por cima). Nenhuma mexe em resultado, regra ou ritmo:
 1. **📻 Rádio Legends** — narração correndo o jogo inteiro (falta, trave, defesaça, drible) com banco grande de frases PT/EN; o gol segue com o lance grande no placar (não repete); NUNCA narra pênalti; semeada à parte, sem saber do gol antes da bola entrar.
 2. **⭐ Craque do jogo** — no apito: melhor em campo com nota, escudo, carta + 2 destaques; sai de gol + assistência (goleiro: defesa); na carreira soma na ficha.

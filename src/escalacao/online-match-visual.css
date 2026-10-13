@@ -489,3 +489,10 @@
 .ll41-art-resto p{display:flex;align-items:center;gap:6px;margin:0;padding:3px 4px;font:600 11px Inter,sans-serif;border-radius:6px}.ll41-art-resto p.meu{background:#FFF3C4}
 .ll41-art-resto p>span{width:18px;font:700 10px Oswald,sans-serif;color:#53534b}.ll41-art-resto img,.ll41-art-resto svg{width:16px;height:16px;object-fit:contain}
 .ll41-art-resto b{font:700 12px Oswald,sans-serif}.ll41-art-resto em{flex:1;font-style:normal;color:#53534b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ll41-art-resto strong{font:700 14px Oswald,sans-serif}
+/* 📻 Rádio Legends — uma linha dentro do placar (13/10). Altura fixa de 2 linhas: o placar nunca pula de tamanho. */
+.ll42-radio{display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:52px;border-top:1px solid #59624d;background:rgba(255,196,0,.08);color:#f4ecd6;font:600 12.5px/1.3 Inter,sans-serif}
+.ll42-radio-tag{flex:none;font:700 9px Oswald,sans-serif;letter-spacing:.12em;color:#0c0c0c;background:#ffc400;border-radius:5px;padding:2px 5px}
+.ll42-radio>b{flex:none;font:700 13px Oswald,sans-serif;color:#ffc400}
+.ll42-radio-txt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;animation:ll42Entra .35s ease}
+@keyframes ll42Entra{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.ll30-big .ll42-radio{font-size:13.5px}

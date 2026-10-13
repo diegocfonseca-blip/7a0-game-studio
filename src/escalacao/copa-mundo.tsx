@@ -1077,9 +1077,9 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
   // A disputa só entrava na tela em `liveDone` — que é DEPOIS de `duration + extra`, e o `extra` era justamente o tempo
   // reservado pra disputa. Ou seja: a reserva passava em branco, a disputa começava no fim dela e a cerimônia (1,6s
   // depois) cortava as cobranças no meio. Nas outras fases a abertura escondia o erro (5–10s de respiro). Agora a disputa
-  // entra quando o relógio bate 93' (ainda dentro do `extra`), e `sobraPens` é o que AINDA falta dela quando `liveDone`
-  // chega — serve de segurança pra segurar o "avança"/placar dos pênaltis até a última cobrança, sem atrasar à toa.
-  const sobraPens = (pen: [number, number], lento: boolean) => Math.max(0, pensRevealDelay(pen, lento) - (roundMs * 0.18 / 1000 + 0.7))
+  // entra quando o relógio bate 93' (ainda dentro do `extra`), e como o `extra` cobre a disputa inteira, quando `liveDone` chega ela já
+  // acabou: o "avança"/placar dos pênaltis não precisa mais esperar nada (`sobraPens` = 0).
+  const sobraPens = (_pen: [number, number], _lento: boolean) => 0
 
   const localLiveMin = useLiveMin(roundKey, roundMs, liveDone)
   const liveMin = synced ? synced.row ? clockMinute(synced.row, synced.now) : 0 : localLiveMin

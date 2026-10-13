@@ -96,6 +96,7 @@ import presidentTerno from './img/career-president-terno.webp'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
 import { chancesDoJogo, sementeDasChances, narraChance, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { radioDoJogo, radioNoMinuto, narraRadio } from './radio' // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -3171,6 +3172,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // Os gols continuam sendo os da simulação: a bola entra na rede no MESMO instante
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
   const chances = useMemo(() => (basket || !cinematic) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, roundMs])
+  // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
+  const radioLances = useMemo(() => (basket || !cinematic) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, chances, roundMs])
   const [lance, setLance] = useState<{ side: 'h' | 'a'; fim: FimDaChance; key: number; txt: string; minute:number; startedAt:number; speed:number; roundKey:number } | null>(null)
   const lanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
@@ -3293,6 +3296,11 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
     palcoOn={!basket}
+    radio={basket || radioLances.length === 0 ? null : (() => {
+      const r = fechado ? null : radioNoMinuto(radioLances, min)
+      if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles) }
+      return { min: '', txt: fechado ? tr('Fim de papo aqui na Rádio Legends.', 'That is all from Radio Legends.') : tr('Rádio ligada. Bola rolando!', 'Radio on. Ball rolling!') }
+    })()}
     // 🎬 a bola do GOL sai no minuto do gol (`voo`) e o resto da festa só depois que
     //    ela entra — o `voo` fica até a rede parar de balançar (ver GOL_ENTRA_MS)
     palco={voo ? { side: voo.side, speed:voo.speed, fim: 'gol', key: voo.key, veredito: vereditoDaChance('gol', emIngles) }
