@@ -108,7 +108,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
               <p style={{ ...OSW, margin: 0, fontSize: 20, textTransform: 'uppercase', lineHeight: 1.05 }}>{DESTAQUE.clube}</p>
               <p style={{ margin: '3px 0 0', fontSize: 11.5, fontWeight: 700, color: '#ddd' }}>{tr('no jogo desde', 'in the game since')} {DESTAQUE.desde.split('-').reverse().slice(0, 2).join('/')}</p>
             </div>
-            {mascote && <span style={{ flex: 'none', margin: '-8px -4px -6px 0' }}><MascoteMini art={mascote} alt={88} /></span>}
+            {mascote && <span style={{ flex: 'none', margin: '-22px -6px -14px 0' }}><MascoteMini art={mascote} alt={140} /></span>}
           </div>
           <ApoieButton startScreen="batismoInfo" trigger={open => (
             <button onClick={open} style={{ ...OSW, width: '100%', marginTop: 10, fontSize: 14, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, cursor: 'pointer' }}>
