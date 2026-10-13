@@ -21,7 +21,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang'
 import { agoraSala } from './relogio'
-import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, ChaveCopa, ArtilheiroCopaCard, type AberturaFase, type ChaveFase, type ArtilheiroLinha } from './online-match-visual'
+import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, ArtilheiroCopaCard, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { RESUMO_MS, respiroAntes } from './copa-passos' // 🎬 abertura da rodada + ✅❌ resumo da fase (13/10)
 import './online-match-visual.css'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
@@ -694,8 +694,19 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       })()}
       {step === 0 && controles}
       {(step === 0 || step === P.CHAVE) && <>{tabela(0)}{tabela(1)}</>}
-      {/* CHAVE: o mata-mata definido — a árvore desenhada logo abaixo mostra quem pega quem */}
-      {step === P.CHAVE && controles}
+      {/* CHAVE: quem pega quem no mata-mata (cruzado) */}
+      {step === P.CHAVE && <>
+        {controles}
+        <div style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 10 }}>
+          <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: '0 0 6px' }}>{`⚔️ ${nomeFase(mundo.ko[0].tipo)} · ${tr('CRUZADO, JOGO ÚNICO', 'CROSSED, ONE-OFF')}`}</p>
+          {mundo.ko[0].ties.map((t, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, borderTop: '2px solid rgba(0,0,0,.08)', padding: '6px 2px', fontSize: 12, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>
+              <Escudo nome={entrants[t.h].pais} size={22} /> {entrants[t.h].pais} <span style={{ color: 'rgba(0,0,0,.4)' }}>×</span> {entrants[t.a].pais} <Escudo nome={entrants[t.a].pais} size={22} />
+              {(isYou(t.h) || isYou(t.a)) && <b style={{ color: ROXO }}>{tr(' 👈 VOCÊ', ' 👈 YOU')}</b>}
+            </div>
+          ))}
+        </div>
+      </>}
       {/* MATA-MATA */}
       {faseAtual && (() => {
         const meu = faseAtual.ties.find(t => isYou(t.h) || isYou(t.a))
@@ -716,22 +727,12 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
           </div>
         </>
       })()}
-      {/* 🌳 CHAVEAMENTO DESENHADO (13/10, mockup nº 1): do mata-mata definido em diante, a árvore inteira. Fase fechada
-          (passo virou, ou apitou e os pênaltis rolaram) com placar e quem passou; a de agora só os nomes; o que vem "?" */}
-      {step >= P.CHAVE && (() => {
-        const sel = (i: number) => ({ nome: entrants[i].pais, crest: <Escudo nome={entrants[i].pais} size={16} />, meu: isYou(i) })
-        const fases: ChaveFase[] = mundo.ko.map((f, i) => {
-          const passo = P.PRIMEIRO_KO + i
-          const fechada = step > passo || (step === passo && liveDone)
-          const vendo = step >= passo || i === 0
-          const label = f.tipo === 'quartas' ? tr('QUARTAS', 'QF') : f.tipo === 'semi' ? 'SEMI' : 'FINAL'
-          if (!vendo) return { label, estado: '', jogos: f.ties.map((_, k) => ({ key: `v${k}`, jogado: false, a: null, b: null })) }
-          return { label, estado: fechada ? 'ok' : 'on', jogos: f.ties.map((t, k) => ({ key: `${passo}-${k}`, jogado: fechada, pens: fechada && t.pen ? `${tr('pên.', 'pens')} ${t.pen[0]}×${t.pen[1]}` : undefined,
-            a: { ...sel(t.h), gols: fechada ? t.g[0] : null, venceu: fechada && t.winner === t.h }, b: { ...sel(t.a), gols: fechada ? t.g[1] : null, venceu: fechada && t.winner === t.a } })) }
-        })
-        const detalhe = (fi: number, ji: number) => { const t = mundo.ko[fi]?.ties[ji]; return t ? <CompetitionMatch showOwners goals={t.ev} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={dono(t.h)} awayOwner={dono(t.a)} homeCrest={<Escudo nome={entrants[t.h].pais} size={26} />} awayCrest={<Escudo nome={entrants[t.a].pais} size={26} />} homeScore={t.g[0]} awayScore={t.g[1]} mine={isYou(t.h) || isYou(t.a)} status={t.pen ? `${tr('pênaltis', 'penalties')} ${t.pen[0]}×${t.pen[1]}` : tr('ENCERRADO', 'FULL TIME')} /> : null }
-        return <ChaveCopa fases={fases} detalhe={detalhe} />
-      })()}
+      {/* fases que já passaram, recolhidas */}
+      {mundo.ko.map((f, i) => step > P.PRIMEIRO_KO + i && (
+        <details key={f.tipo} className="ll26-bracket-history"><summary>{nomeFase(f.tipo)} · {tr('RESULTADOS', 'RESULTS')}</summary>
+          {f.ties.map((t, k) => <CompetitionMatch key={k} showOwners goals={t.ev} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={dono(t.h)} awayOwner={dono(t.a)} homeCrest={<Escudo nome={entrants[t.h].pais} size={26} />} awayCrest={<Escudo nome={entrants[t.a].pais} size={26} />} homeScore={t.g[0]} awayScore={t.g[1]} mine={isYou(t.h) || isYou(t.a)} status={t.pen ? `${tr('pênaltis', 'penalties')} ${t.pen[0]}×${t.pen[1]}` : tr('ENCERRADO', 'FULL TIME')} />)}
+        </details>
+      ))}
       {step > P.CHAVE && <details className="ll26-bracket-history"><summary>{tr('FASE DE CLASSIFICAÇÃO · AS DUAS TABELAS', 'QUALIFYING STAGE · BOTH TABLES')}</summary>{tabela(0)}{tabela(1)}</details>}
       {/* CERIMÔNIA */}
       {done && (() => {

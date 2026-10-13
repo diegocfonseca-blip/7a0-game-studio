@@ -297,6 +297,9 @@ export function AberturaCopa({ fases, confrontos, seg, total, cor, espera, mais 
 }
 
 // ─── 🌳 CHAVEAMENTO DESENHADO (Diego 13/10, mockup `scripts/mockups/copas-proximos.png` nº 1) ───
+// ⛔ DESLIGADO NO MESMO DIA, por ordem dele: *"deixa só o resumo mesmo, sem chaveamento"* (a chave e o resumo da
+// fase contavam a mesma coisa). Ninguém importa `ChaveCopa` hoje — o bundle tira sozinho. Fica aqui pronto, com a foto
+// em `scripts/foto-copas-fluxo.mjs`, caso ele queira de volta. Não religar sem ele pedir.
 // A árvore inteira do mata-mata: cada fase numa coluna, quem passou em verde, quem caiu apagado, o seu
 // caminho com borda dourada e o que ainda vem pontilhado com "?". Toque num jogo já jogado abre o detalhe
 // (placar + pênaltis) que quem chama desenha (`detalhe`). Só apresentação: não decide nada, não revela

@@ -53,7 +53,7 @@ import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
-import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, ResumoFase, ChaveCopa, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ChaveFase, type ArtilheiroLinha } from './online-match-visual'
+import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
@@ -6955,30 +6955,7 @@ export function EscSeason() {
             return <RoundMatchPresentation basket={bbS} startedAt={leagueStartedAt} key={`${r.homeId}-${r.awayId}`} home={h?.name ?? 'Clube'} away={a?.name ?? 'Clube'} homeCrest={<Escudo nome={h?.name ?? ''} size={26} />} awayCrest={<Escudo nome={a?.name ?? ''} size={26} />} homeOwner={owner(r.homeId)} awayOwner={owner(r.awayId)} mine={r.homeId===you.id || r.awayId===you.id} score={[r.hg,r.ag]} goals={(r.presentationGoals ?? r.highlights).filter(lanceEhGol).map(g => ({name:g.text,min:g.min,home:g.teamId===r.homeId}))} finished={resultRevealed} roundKey={state.round} roundMs={roundMs} />
           })}
         </div></section>}
-        {privateVisual && copaLive && qc && !bbS && !cupNow && (() => {
-          // 🌳 CHAVEAMENTO DESENHADO (Diego 13/10, mockup nº 1): a árvore inteira — fases fechadas com placar, a
-          // fase de agora só com os nomes (o resultado é dos placares ao vivo lá em cima, nunca daqui: anti-spoiler),
-          // e o que ainda vem pontilhado. Toque num jogo fechado abre o agregado + pênaltis.
-          const ordem: ('repescao' | 'oitavas' | 'quartas' | 'semis' | 'final')[] = chS ? ['repescao', 'oitavas', 'quartas', 'semis', 'final'] : libS ? ['oitavas', 'quartas', 'semis', 'final'] : ['quartas', 'semis', 'final']
-          const vagas = { repescao: 8, oitavas: 8, quartas: 4, semis: 2, final: 1 } as const
-          const agg = (t: QuickCopaTie, a: boolean) => t.legs.reduce((acc, g) => acc + (a ? g[0] : g[1]), 0)
-          const fases: ChaveFase[] = ordem.map(f => {
-            const fechada = qc.bracket.find(b => b.phase === f)
-            if (fechada) return { label: faseNomeQ(f, true), estado: 'ok', jogos: fechada.ties.map(t => ({ key: `${t.aId}-${t.bId}`, jogado: true, pens: t.pens ? `${LS('pên.', 'pens')} ${t.pens[0]}×${t.pens[1]}` : undefined,
-              a: { nome: t.aName, crest: <Escudo nome={t.aName} size={16} />, gols: agg(t, true), venceu: t.winner === t.aId, meu: t.aId === you.id },
-              b: { nome: t.bName, crest: <Escudo nome={t.bName} size={16} />, gols: agg(t, false), venceu: t.winner === t.bId, meu: t.bId === you.id } })) }
-            if (qc.phase === f) return { label: faseNomeQ(f, true), estado: 'on', jogos: qc.ties.map(t => ({ key: `${t.aId}-${t.bId}`, jogado: false,
-              a: { nome: t.aName, crest: <Escudo nome={t.aName} size={16} />, meu: t.aId === you.id }, b: { nome: t.bName, crest: <Escudo nome={t.bName} size={16} />, meu: t.bId === you.id } })) }
-            return { label: faseNomeQ(f, true), estado: '', jogos: Array.from({ length: vagas[f] }, (_, i) => ({ key: `v${i}`, jogado: false, a: null, b: null })) }
-          })
-          const detalhe = (fi: number, ji: number) => {
-            const t = qc.bracket.find(b => b.phase === ordem[fi])?.ties[ji]
-            if (!t) return null
-            return <CompetitionMatch home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={agg(t, true)} awayScore={agg(t, false)} mine={t.aId === you.id || t.bId === you.id} status={ordem[fi] === 'final' ? LS('FINAL · JOGO ÚNICO', 'FINAL · ONE-OFF') : LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${ordem[fi] === 'final' ? LS('é campeão', 'is champion') : LS('avançou', 'advanced')}`} />
-          }
-          return <ChaveCopa fases={fases} detalhe={detalhe} />
-        })()}
-        {privateVisual && copaLive && qc && (bbS || cupNow) && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({repescao:'PLAYOFF',oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({repescao:'REPESCÃO',oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
+        {privateVisual && copaLive && qc && qc.bracket.map(b => <details key={b.phase} className="ll26-bracket-history"><summary>{enS ? ({repescao:'PLAYOFF',oitavas:'ROUND OF 16',quartas:'QUARTER-FINALS',semis:'SEMI-FINALS',final:'FINAL'} as const)[b.phase] : ({repescao:'REPESCÃO',oitavas:'OITAVAS',quartas:'QUARTAS',semis:'SEMIFINAIS',final:'FINAL'} as const)[b.phase]} · {LS('RESULTADOS', 'RESULTS')}</summary>{b.ties.map(t => <CompetitionMatch key={`${t.aId}-${t.bId}`} home={t.aName} away={t.bName} homeCrest={<Escudo nome={t.aName} size={26} />} awayCrest={<Escudo nome={t.bName} size={26} />} homeScore={t.legs.reduce((s,g)=>s+g[0],0)} awayScore={t.legs.reduce((s,g)=>s+g[1],0)} status={LS('AGREGADO FINAL', 'FINAL AGGREGATE')} detail={`${t.pens ? `${t.ot ? LS('Prorrogação', 'Overtime') : LS('Pênaltis', 'Penalties')} ${t.pens[0]} × ${t.pens[1]} · ` : ''}${t.winner===t.aId?t.aName:t.bName} ${LS('avançou', 'advanced')}`} />)}</details>)}
         {/* ⭐ Só Champions: não teve liga — a tabela dela (toda zerada) não aparece */}
         {state.copaMode === 'champions' ? null : privateVisual && copaLive ? <details className="ll26-bracket-history"><summary>{LS('LIGA ENCERRADA · VER CLASSIFICAÇÃO', 'LEAGUE OVER · SEE STANDINGS')}</summary><TableBox highlight={you.id} title={LS('LIGA LEGENDS · CLASSIFICAÇÃO FINAL', 'LIGA LEGENDS · FINAL STANDINGS')} /></details> :
       <TableBox highlight={you.id} holdResults={!resultRevealed} title="🏆 LIGA LEGENDS" cinema={cinemaPreview} />
