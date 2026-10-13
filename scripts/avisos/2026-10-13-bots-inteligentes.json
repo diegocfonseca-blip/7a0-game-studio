@@ -1,18 +1,48 @@
 {
   "data": "13 de outubro de 2026",
   "titulo": "Bots mais inteligentes",
-  "destaque": { "passos": [
-    { "emoji": "🧠", "titulo": "Escolhe bem", "sub": "o melhor que cabe" },
-    { "emoji": "📈", "titulo": "Melhora aos poucos", "sub": "troca o pior" },
-    { "emoji": "💰", "titulo": "Paga o mínimo", "sub": "da sua carta" }
-  ] },
+  "destaque": {
+    "passos": [
+      {
+        "emoji": "🧠",
+        "titulo": "Escolhe bem",
+        "sub": "o melhor que cabe"
+      },
+      {
+        "emoji": "📈",
+        "titulo": "Melhora aos poucos",
+        "sub": "troca o pior"
+      },
+      {
+        "emoji": "🎯",
+        "titulo": "Paga o que vale",
+        "sub": "pra ele"
+      }
+    ]
+  },
   "itens": [
-    { "tag": "novidade", "texto": "Cada bot separa **uma parte do caixa** pro elenco, do jeito dele: o gastador gasta mais, o pão-duro guarda." },
-    { "tag": "novidade", "texto": "Ele leva o **melhor jogador que cabe no bolso**. Se está caro demais, não pega e guarda o dinheiro." },
-    { "tag": "novidade", "texto": "Todo começo de temporada ele **melhora o time aos poucos**: contrata alguém bem melhor e dispensa o pior." },
-    { "tag": "melhoria", "texto": "Listou um jogador caro? Agora o bot com dinheiro **dá lance no mínimo que você pediu**. Quem quiser pode dar mais, e o maior lance leva." }
+    {
+      "tag": "novidade",
+      "texto": "Cada bot separa **uma parte do caixa** pro elenco, do jeito dele: o gastador gasta mais, o pão-duro guarda."
+    },
+    {
+      "tag": "novidade",
+      "texto": "No leilão ele **pensa como gente**: jogador bem melhor que o titular dele vale muito; jogador que só seria reserva vale pouco."
+    },
+    {
+      "tag": "novidade",
+      "texto": "Cada bot tem **o seu limite**, que muda com o jeito dele, a necessidade e o dinheiro. Não adianta decorar número."
+    },
+    {
+      "tag": "novidade",
+      "texto": "Todo começo de temporada ele **melhora o time aos poucos**: contrata alguém bem melhor e dispensa o pior."
+    },
+    {
+      "tag": "melhoria",
+      "texto": "Listou um jogador? Se ele vale o mínimo pro bot, o bot dá lance, **às vezes até mais**. Se não vale, ele passa."
+    }
   ],
   "rodape": "Vale no Modo Carreira.",
-  "rodapeSub": "O bot paga o mínimo da carta, nunca acima. Vender recupera o que você pagou.",
+  "rodapeSub": "A ordem continua: lenda vale mais que craque, que vale mais que promessa, bom jogador e profissional.",
   "saida": "scripts/posts/aviso-bots-inteligentes.png"
 }

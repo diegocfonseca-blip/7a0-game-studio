@@ -2245,7 +2245,7 @@ function fairPrice(v: number): number {
 // 🎭 `perfil` (07/10, `perfis-bot.ts`): o jeito de comprar do clube bot NA CARREIRA —
 // gastador, pão-duro, obcecado, imprevisível ou equilibrado. 'equilibrado' (o padrão, e
 // o que partida rápida/salas sempre recebem) é o leilão de antes, sem mudar nem o rng.
-export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector, pagaPisoDoDono = false): (Bid & { cardId: string })[] {
+export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector, pensaComoGente = false): (Bid & { cardId: string })[] {
   const pos = SECTORS[sectorIdx]
   // FAKE NÃO SEGURA VAGA (só CPU): incógnito no elenco conta como vaga aberta —
   // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
@@ -2289,6 +2289,26 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
     // alcançam ⭐ da mesma época, por mais rico que o bot seja.
     let cap = Math.max(2, Math.round(fairPrice(t.v) * (0.85 + m.aggression * 0.5 + rng() * 0.3) * (catCapEcon > 0 ? catCapEcon : 1)))
     if (catCapEcon > 0) cap = Math.min(cap, Math.max(2, Math.round(catPriceCap(t.c) * catCapEcon * (0.8 + rng() * 0.25))))
+    // 🧠 BOT QUE PENSA COMO GENTE (Diego 13/10, carreira solo): o teto deixa de ser o número fixo da
+    // categoria e vira o teto DESTE bot, nesta carta: categoria (lenda > craque > promessa > bom >
+    // profissional, sempre nessa ordem) × economia da sala × o quanto ele PRECISA do jogador × um
+    // tempero só dele (fixo por bot+carta, ninguém decora o número). Quem é bem melhor que o titular
+    // dele vale o teto cheio (e um pouco mais); parecido, ~60%; só reserva, ~35%. O perfil (gastador/
+    // pão-duro…) ainda mexe logo abaixo. O que ele pagar acima do justo NÃO sobe o piso da carta
+    // (`travaPisoDoBot`), então salário e renovação não disparam.
+    if (pensaComoGente) {
+      const nv = (c: { lo: number; hi: number }) => c.lo + c.hi
+      const titulares = m.squad.filter(c => c.pos === pos && !c.fake).sort((a, b) => nv(b) - nv(a)).slice(0, baseSlots(m.formation, pos))
+      const piorTitular = titulares.length < baseSlots(m.formation, pos) ? null : titulares[titulares.length - 1]
+      const ganho = piorTitular ? nv(t.c) - nv(piorTitular) : 99
+      const necessidade = ganho >= 6 ? 1.15 : ganho >= -4 ? 0.6 : 0.35
+      let hh = 2166136261; const chaveT = `${m.id}|${t.c.name}|${t.c.club}|${t.c.year}`
+      for (let k = 0; k < chaveT.length; k++) { hh ^= chaveT.charCodeAt(k); hh = Math.imul(hh, 16777619) }
+      const tempero = 0.85 + ((hh >>> 0) % 1000) / 1000 * 0.3 // 0,85–1,15
+      cap = Math.max(2, Math.round(catPriceCap(t.c) * (catCapEcon > 0 ? catCapEcon : 1) * necessidade * tempero))
+      // 💰 o bolso: numa carta só, até metade do caixa se for titular; até 1/3 se for reserva
+      cap = Math.min(cap, Math.max(2, Math.floor(m.money * (ganho >= 6 ? 0.5 : 0.34))))
+    }
     // 🧱 pacote vale pelos jogadores que o bot vai escalar dele, não por um só
     if (t.c.pacote) cap = cap * Math.max(1, baseSlots(m.formation, pos))
     // 🎭 perfil mexe no teto (gastador estica por craque, pão-duro nunca passa do justo…)
@@ -2303,15 +2323,10 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
     const floor = (t.c as { paid?: number }).paid ?? 0
     if (floor > 0) {
       if (wallet < floor) continue
-      if (cap + 3 < floor) {
-        // 💰 O BOT ALCANÇA O MÍNIMO DO DONO (Diego 13/10, carreira): carta com mínimo acima do que
-        // ele acha que vale — o caso do Marcelo listado a 194 que nenhum bot olhava. Se o clube tem
-        // caixa (o mínimo cabe em 1/3 do dinheiro dele), ele dá EXATAMENTE o mínimo, nunca mais:
-        // assim quem listou recupera o que pagou, mas não dá pra lucrar comprando e listando.
-        // Gente pode dar mais junto; o envelope maior leva, como sempre.
-        if (!pagaPisoDoDono || floor * 3 > m.money) continue
-        amt = floor
-      } else amt = Math.max(amt, floor)
+      // igual gente: se o que a carta vale PRA ELE não chega no mínimo, não dá lance; se chega,
+      // o lance fica entre o mínimo e o teto dele (13/10 — saiu o "ir até o mínimo" do mesmo dia)
+      if (cap + 3 < floor) continue
+      amt = Math.max(amt, floor)
     }
     amt = Math.min(amt, wallet)
     if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt; wallet -= amt }
@@ -2323,7 +2338,7 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
 function perfilNoLeilao(state: EscState, m: Manager): [PerfilBot, Sector | undefined, boolean] {
   if (!state.careerOnline || m.isHuman) return ['equilibrado', undefined, false]
   const p = perfilDoClube(m.teamName, state.seed ?? 0)
-  // 3º: o bot pode alcançar o mínimo do dono (13/10) — só carreira solo, junto do rival com banco
+  // 3º: o bot PENSA COMO GENTE (13/10): teto pela necessidade + bolso — só carreira solo, junto do rival com banco
   return [p, p === 'obcecado' ? setorDaObsessao(m.teamName, state.seasonNo ?? 1) as Sector : undefined, state.onlineMode !== 'online' && botBancoLiberado()]
 }
 // 🚫📈 o PREÇO JUSTO da carta pra o livro e pro piso (o exagero do gastador não entra):
@@ -2338,8 +2353,8 @@ export function justoDaCarta(state: EscState, c: Card): number {
 // registrada pelo justo (livro + `paid` no elenco dele). Quem vendeu recebe o valor cheio.
 export function travaPisoDoBot(state: EscState, w: Manager | undefined, card: Card, pago: number): number {
   if (!w || w.isHuman || !state.careerOnline) return pago
-  const [perfil] = perfilNoLeilao(state, w)
-  if (!perfilPagaAcima(perfil)) return pago
+  const [perfil, , pensa] = perfilNoLeilao(state, w)
+  if (!perfilPagaAcima(perfil) && !pensa) return pago // 🧠 13/10: com o bot que pensa, vale pra TODO bot
   const justo = justoDaCarta(state, card)
   if (pago <= justo) return pago
   const naMao = w.squad.find(x => x.id === card.id)

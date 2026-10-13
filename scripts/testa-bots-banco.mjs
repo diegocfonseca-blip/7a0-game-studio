@@ -95,15 +95,23 @@ try {
   const st2 = { ...st, seasonNo: 6, managers: st.managers.map(m => ({ ...m, squad: [...m.squad] })) }
   S.completaBancoDosBots(st2)
   assert.deepEqual(st2.managers[1].squad.map(c => c.id), rico.squad.map(c => c.id), 'chave desligada: nada muda')
-  // 10) o bot ALCANÇA O MÍNIMO DO DONO (13/10): dá exatamente o mínimo, nunca mais, e só se cabe em 1/3 do caixa
-  const listado = { id: 'marcelo', name: 'Marcelo', club: 'Real Madrid', year: 2017, pos: 'LAT', lo: 80, hi: 84, fame: 4, paid: 194, seller: 99 }
-  const bot = (money) => ({ id: 7, name: 'Bot', teamName: 'Bot', isHuman: false, formation: '4-3-3', money, aggression: 0.5, starHunger: 0.3, deepSquad: true, squad: [] })
+  // 10) o bot PENSA COMO GENTE (13/10): teto pela necessidade + bolso, a ordem das categorias vale,
+  //     e se o que a carta vale pra ele não chega no mínimo, não dá lance
   const rngFixo = () => 0.5
-  const lance = (money, paga) => S.cpuEnvelope(bot(money), [listado], 1, rngFixo, false, 1, 'equilibrado', undefined, paga)
-  const lanceRico = lance(900, true)
-  assert.equal(lanceRico.length, 1, 'bot com caixa dá lance na carta listada cara')
-  assert.equal(lanceRico[0].amount, 194, 'exatamente o mínimo — nunca acima (senão vira esquema de lucro)')
-  assert.equal(lance(900, false).length, 0, 'sem a regra (sala online/rápida): igual a antes, não dá lance')
-  assert.equal(lance(400, true).length, 0, 'mínimo maior que 1/3 do caixa: não dá lance')
+  const bot = (money, squad = []) => ({ id: 7, name: 'Bot', teamName: 'Bot', isHuman: false, formation: '4-3-3', money, aggression: 0.5, starHunger: 0.3, deepSquad: true, squad })
+  const lat = (id, lv, extra = {}) => ({ id, name: id, club: 'X', year: 2000, pos: 'LAT', lo: lv, hi: lv + 4, fame: 2, ...extra })
+  const lance = (m, carta, pensa = true) => S.cpuEnvelope(m, [carta], 1, rngFixo, false, 4, 'equilibrado', undefined, pensa)[0]?.amount ?? 0
+  const craque = lat('Craque', 86, { fame: 4 }), bom = lat('Bom', 74)
+  // a ORDEM das categorias nunca inverte: com a mesma necessidade, o tempero (±15%) não cruza a fronteira
+  // (lenda 90 · craque 65 · promessa 42 · bom 26 · profissional 16 — pior caso de um ≥ melhor caso do de baixo)
+  const CAT = [90, 65, 42, 26, 16]
+  for (let k = 0; k + 1 < CAT.length; k++) assert.ok(CAT[k] * 0.85 > CAT[k + 1] * 1.15, 'categoria de cima sempre vale mais')
+  // necessidade: com 2 laterais titulares bem melhores, um lateral fraco vale pouco; sem titular, vale mais
+  const timeForte = [lat('T1', 90, { fame: 4 }), lat('T2', 90, { fame: 4 })]
+  const minimoAlto = { ...craque, paid: 200 }
+  assert.equal(lance(bot(3000, timeForte), { ...bom, paid: 60 }), 0, 'reserva fraco com mínimo alto: o bot não paga (não vale pra ele)')
+  assert.ok(lance(bot(3000), minimoAlto) >= 200, 'craque que vira titular, com bolso: paga pelo menos o mínimo')
+  assert.equal(lance(bot(300), minimoAlto), 0, 'sem bolso (metade do caixa < mínimo): não dá lance')
+  assert.equal(lance(bot(3000), minimoAlto, false), 0, 'sala online/rápida: regra antiga (não dá lance acima do teto fixo)')
   console.log('✅ bots-banco: plano determinístico, passado imutável, rodízio sem incógnito, lesão, patrocínio e prêmio')
 } finally { await vite.close() }
