@@ -55,6 +55,14 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
   const mascote = v.batismo ? mascoteInteiraDoTime(v.batismo.clube) : null
   return (
     <div className="space-y-3.5" style={{ marginTop: 6 }}>
+      {/* 🔨 SELO DE NOVIDADE (Diego 13/10: "um selinho pra pessoa saber que tudo pra baixo é novo"). Some
+          sozinho depois de 27/10, ninguém precisa apagar. Mesmo formato dos selos do aviso da comunidade. */}
+      {Date.now() < Date.parse('2026-10-28T03:00:00Z') && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: -4 }}>
+          <span style={{ ...OSW, display: 'inline-flex', alignItems: 'center', gap: 5, background: '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 10, boxShadow: `3px 3px 0 ${INK}`, padding: '3px 10px', fontSize: 13, letterSpacing: '.08em', textTransform: 'uppercase' }}>🔨 {tr('Novidade', 'New')}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 800, color: '#F4ECD6', textShadow: '0 1px 2px rgba(0,0,0,.6)' }}>{tr('tudo aqui embaixo é novo ↓', 'everything below is new ↓')}</span>
+        </div>
+      )}
       <Caixa titulo={tr('🏆 Campeões de hoje', '🏆 Today’s champions')} sub={tr('Quem levantou taça nas salas online hoje — só gente, nunca bot.', 'Who lifted a trophy in the online rooms today — people only, never bots.')}>
         {v.hoje.length === 0
           ? <p style={{ margin: 0, fontSize: 12, fontWeight: 800 }}>{tr('Ninguém levantou taça hoje ainda. O primeiro pode ser você! 👀', 'Nobody has lifted a trophy today yet. The first one could be you! 👀')}</p>
