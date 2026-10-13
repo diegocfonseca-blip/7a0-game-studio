@@ -4,13 +4,16 @@
 // adiantada — então o aviso só pede UMA coisa: salvar antes de fechar. Sem botão de limpar (a limpeza do
 // lixo já roda sozinha toda vez que o jogo abre, `storage-guard.ts`).
 import { useState } from 'react'
-import { useSemEspaco } from './store'
+import { useSemEspaco, useEsc } from './store'
 import { tr } from './lang'
 
 export function AvisoSemEspaco() {
   const cheio = useSemEspaco()
+  const { state } = useEsc()
   const [fechado, setFechado] = useState(false)
-  if (!cheio || fechado) return null
+  // 🎯 só DENTRO da carreira solo (13/10, print do Diego: o aviso aparecia na lista de salas online — nada a ver)
+  const naCarreira = !!state.careerOnline && state.onlineMode !== 'online' && !['intro', 'lobby', 'setup', 'album', 'ranking'].includes(state.screen)
+  if (!cheio || fechado || !naCarreira) return null
   return (
     <div style={{ position: 'fixed', left: 12, right: 12, bottom: 12, zIndex: 99995, maxWidth: 480, margin: '0 auto', background: '#fff', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '4px 4px 0 #0C0C0C', padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
       <span style={{ fontSize: 22, lineHeight: 1 }}>📱</span>
