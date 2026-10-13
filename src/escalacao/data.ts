@@ -51,7 +51,7 @@ export const BIOS: Record<string, string> = {
   "Caio Ribeiro": "Promessa de ouro dos anos 90 — talento e faro de gol que encantaram no São Paulo e nas seleções de base. Hoje, craque de microfone.",
   "Oséas": "Centroavante artilheiro dos anos 90 — oportunista de área, goleador por Cruzeiro e Palmeiras.",
   "Donizete Pantera": "A Pantera — centroavante veloz e matador, artilheiro do Vasco campeão brasileiro de 1997.",
-  "Galeano": "Ponta paraguaio habilidoso do Palmeiras na virada do milênio — velocidade, drible e gol pela ponta.",
+  "Galeano": "Volante do Palmeiras da Libertadores de 99, que também quebrava galho na zaga — marcação e raça no meio.",
   "Cláudio Pitbull": "Centroavante matador e xodó do Coritiba — faro de gol, raça de pitbull na área e artilharias que marcaram época.",
   "Domingos": "Zagueiro titular do Santos bicampeão paulista (2006 e 2007) — firme na marcação, viveu ali o melhor momento da carreira.",
   "Evaristo de Macedo": "Um dos maiores atacantes da história do Flamengo — artilheiro e multicampeão nos anos 50, que ainda brilhou no Barcelona e no Real Madrid. Lenda dentro e fora de campo.",
@@ -967,7 +967,9 @@ const MEI: C[] = [
   { name: "Felipe Bastos", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, bio: "Meia de bom pé em bola parada — rodou o país com passagens marcantes por Vasco e Goiás." },
   { name: "Bobô", club: "Bahia", year: 1988, fame: 3, lo: 72, hi: 85, bio: "Ídolo do Bahia campeão brasileiro de 1988 — faro de gol que depois o eternizou como lenda no Beşiktaş." },
   { name: "Zina", club: "Ceará", year: 2007, fame: 1, lo: 56, hi: 77, folk: true, bio: "Meia folclórico e xodó da torcida do Ceará — categoria e personalidade que marcaram época no Vozão." },
-  { name: "Mattheus (filho do Bebeto)", club: "Flamengo", year: 2014, fame: 1, lo: 54, hi: 77, bio: "Meia canhoto revelado no Flamengo (campeão da Copa do Brasil 2013 e do Carioca 2014) antes de seguir carreira em Portugal." }
+  { name: "Mattheus (filho do Bebeto)", club: "Flamengo", year: 2014, fame: 1, lo: 54, hi: 77, bio: "Meia canhoto revelado no Flamengo (campeão da Copa do Brasil 2013 e do Carioca 2014) antes de seguir carreira em Portugal." },
+  // 🔁 13/10: estava no ATA como "ponta paraguaio" — era volante (que quebrava galho na zaga) brasileiro do Palmeiras de 99/2000 (bug do Renato)
+  { name: "Galeano", club: "Palmeiras", year: 2000, fame: 2, lo: 66, hi: 80 }
 ]
 
 const ATA: C[] = [
@@ -978,7 +980,6 @@ const ATA: C[] = [
   { name: "Caio Ribeiro", club: "São Paulo", year: 1994, fame: 2, lo: 68, hi: 82, promessa: true },
   { name: "Oséas", club: "Cruzeiro", year: 2000, fame: 2, lo: 66, hi: 80 },
   { name: "Donizete Pantera", club: "Vasco", year: 1997, fame: 3, lo: 74, hi: 84 },
-  { name: "Galeano", club: "Palmeiras", year: 2000, fame: 2, lo: 66, hi: 80 },
   { name: "Cláudio Pitbull", club: "Grêmio", year: 2003, fame: 2, lo: 66, hi: 80 },
   { name: "Evaristo de Macedo", club: "Flamengo", year: 1955, fame: 5, lo: 88, hi: 95 },
   { name: "Kaio Jorge", club: "Cruzeiro", year: 2024, fame: 3, lo: 74, hi: 84 },

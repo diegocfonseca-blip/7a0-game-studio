@@ -12,7 +12,7 @@ import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 export const PAIS: Record<string, string> = {
   // ── Baralho BR: SÓ os estrangeiros (o resto é Brasil por padrão) ──
   'Gatito Fernández': 'Paraguai', 'Arce': 'Paraguai', 'Junior Alonso': 'Paraguai',
-  'Gustavo Gómez': 'Paraguai', 'Gamarra': 'Paraguai', 'Galeano': 'Paraguai',
+  'Gustavo Gómez': 'Paraguai', 'Gamarra': 'Paraguai',
   'Sérgio Rochet': 'Uruguai', 'Piquerez': 'Uruguai', 'Arrascaeta': 'Uruguai',
   'Lugano': 'Uruguai', 'Loco Abreu': 'Uruguai', 'Suárez': 'Uruguai',
   'Sorín': 'Argentina', 'Bernabei': 'Argentina', 'Kannemann': 'Argentina',
