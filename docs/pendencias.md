@@ -23,7 +23,14 @@ ter 3 saves e só 1 estar parado). Contagem na nuvem (`esc_pyramid_saves`, `care
 Grátis: ~3.280 contas com carreira parada · ~4.550 carreiras paradas (2.973 contas paradas por inteiro + 463 carreiras
 paradas em 307 contas que jogaram no mês). Pagantes (167 contas) NÃO entram. Save do aparelho não dá pra contar daqui —
 o próprio jogo limpa quando abrir. ⚠️ Revoga o "quem já tem save na nuvem continua igual" de 07/10 — é ordem dele.
-A FAZER: aviso antes de apagar (proposto: 7 dias) + a limpeza; nada apagado ainda.
+✅ FEITO 13/10 (lado da NUVEM, "pode… só os que devem ser mesmo"): `esc_limpa_saves_parados` tirou **3.977 carreiras
+de 2.892 contas** grátis que não abriram o jogo em 30 dias (login + renovação de sessão) e nunca pagaram nada. Contas
+intactas (2.892/2.892), 0 pagante na lixeira, carreira jogada no mês ficou. Tudo em `esc_saves_lixeira`, volta até
+12/11 (`apagar_em`). Roteiro: `docs/sql/lixeira-saves.sql`.
+⚠️ FALTA criar no banco `esc_lixeira_devolve` e `esc_lixeira_esvazia` (estão no roteiro; o pedido foi cancelado na tela
+do Diego) — o esvazia tem que rodar a partir de 12/11. E a lixeira ainda ocupa espaço até lá.
+A FAZER (precisa mockup): aviso NO JOGO "essa carreira apaga em 7 dias se você não jogar" pra carreira grátis parada há
++30 dias (o celular decide, porque só ele sabe a data real) e depois apaga.
 
 ## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
 Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
