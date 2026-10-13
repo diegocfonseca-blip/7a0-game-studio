@@ -11975,8 +11975,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     } catch { /* cota cheia: não marca o carimbo, e a próxima vez tenta juntar de novo */ }
     // 📱 aparelho CHEIO (13/10, caso do Pé de Breque: "volto e estou na 189 de novo"): a versão certa fica
     // na MEMÓRIA e é ela que o "Continuar" abre — nunca a cópia velha que sobrou no aparelho.
-    carreiraEmMemoria = gravou ? null : active.save
-    if (!gravou) avisaSemEspaco(true)
+    carreiraEmMemoria = gravou ? null : active.save // (o aviso de aparelho cheio só sai DENTRO da carreira, pelo autosave)
     // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
     // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
     if (gravou) marcaCloudAt(uid, cloud.iso)
