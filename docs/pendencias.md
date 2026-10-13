@@ -14,6 +14,10 @@ tudo do Sócio item por item (`ItensSocio batismo`).
 ⚠️ FALTA fazer de verdade, depois do OK: o Sócio mensal ganhar número de sócio + manto 2 cores + estádio com nome
 (hoje a assinatura não cria linha em `esc_socios`), e trocar os nomes "Craque"/"Plus" no Pix (`apoie-v2.tsx`) e no
 texto das regras (screens.tsx). Planos v2 seguem só nas contas do Diego (`PLANOS2_GERAL = false`).
+🛡️ REGRA DO DIEGO (13/10): **quem JÁ é Craque ou Lenda hoje fica EXATAMENTE como está** — continua criando salas do
+jeito de hoje, mantém a cor do tier de hoje e tudo o que já tem. Os planos novos (Sócio, limite de 1 sala/dia do grátis,
+dourado do Sócio) valem só pra quem entrar DEPOIS. Ao implementar os limites, conferir que nenhum Craque/Lenda antigo
+cai na régua nova.
 Pedido seguinte (13/10): Sócio diz "4 carreiras guardadas PRA SEMPRE na nuvem — todos os saves, mesmo parados";
 Gratuito diz "entra em quantas salas quiser" + "🌐 cria 1 sala online por dia" + "carreira parada há mais de 30 dias
 sem jogar é apagada". ⚠️ TUDO ISSO É SÓ TEXTO: falta o limite de 1 sala/dia no grátis e a limpeza dos saves parados

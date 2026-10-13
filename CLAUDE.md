@@ -735,6 +735,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   planos). Banco sem resposta = sobe como sempre. **Nunca bloquear o save no APARELHO** (não custa nada e só espanta
   jogador) e **nunca apagar save de ninguém** sem ele pedir. Trava: `npm run nuvem-craque`.
 
+- **🛡️ PLANOS NOVOS NÃO MEXEM EM QUEM JÁ PAGA (13/10, regra permanente).** Palavras dele: *"quem já é craque ou lenda
+  poderá continuar criando salas e mantém cor do tier que já tá hoje… e tudo que eles têm hoje mesmo, sem mudança"*.
+  Sócio/Batismo/Batismo Lenda e os limites novos (1 sala por dia no grátis) valem só pra quem entrar depois.
+
 - **💾 FICHAS DE CARREIRA (05/10, regra permanente): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 · 🖋️ Batismo 4.** Antes era
   2 · 4 · 6 · 8. Palavras dele: *"não mexa nesses usuários que já fizeram saves… a partir de agora o grátis vai ter só um…
   se ele quiser outro, ele tem que excluir"*. Quem já tem mais que o limite fica com todas (grandfather em
