@@ -1,6 +1,13 @@
 ## 🧪 Trava `npm run copamundo` está vermelha (achado 13/10, JÁ vinha assim antes da abertura das copas)
 Falha: *"🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)"* — reproduz no main anterior (bf9d63d), então não é da abertura. Conferir se é a trava desatualizada ou a ficha contando jogo de copa antes do apito.
 
+## ⚽ Simulação dos jogos: 3 IDEIAS (13/10) — ⏳ MOCKUP ENVIADO, esperando o Diego escolher
+Diego: *"o que mais poderíamos implementar nas simulações dos jogos… coisas pra engajar"* → *"quero dos 3 mockup"*. Mockup `scripts/mockup-simulacao-3.mjs` → `scripts/mockups/simulacao-3-ideias.png` (placar real + peças desenhadas por cima). Nenhuma mexe em resultado, regra ou ritmo:
+1. **📻 Rádio Legends** — narração correndo o jogo inteiro (falta, trave, defesaça, drible) com banco grande de frases PT/EN; o gol segue com o lance grande no placar (não repete); NUNCA narra pênalti; semeada à parte, sem saber do gol antes da bola entrar.
+2. **⭐ Craque do jogo** — no apito: melhor em campo com nota, escudo, carta + 2 destaques; sai de gol + assistência (goleiro: defesa); na carreira soma na ficha.
+3. **🌡️ Termômetro de pressão** — barra embaixo do placar pendendo pra quem está em cima, pulando nos "QUASE!" que já existem; só visual.
+Nada feito. Só codar o que ele escolher.
+
 ## 🥅 Pênaltis da Copa do Mundo online cortados na final (13/10) — ✅ CONSERTADO (+ regionais) · ⏱️ jogo da Copa → 16s
 Diego: *"os pênaltis da Copa do Mundo deram bug na final, não apareceu todas as cobranças… e aumente mais 1s em cada jogo da copa"*.
 - **Causa**: a disputa só entrava na tela em `liveDone`, que é DEPOIS de `duration + extra` — e o `extra` era exatamente a reserva pra disputa. A reserva passava em branco, a disputa começava no fim dela e a cerimônia (1,6s depois) cortava no meio. Nas outras fases o respiro da abertura (5–10s) disfarçava. **Agora a disputa entra aos 93'** (`liveMin >= 93`, ainda dentro do `extra`) em `copa-mundo.tsx` (seu confronto + final) e `copa-regional-online.tsx`; `sobraPens` segura o "avança" só pelo que ainda falta. Vale pra carreira também (mesmo código).
