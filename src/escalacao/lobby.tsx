@@ -15,7 +15,7 @@ import type { WonCard } from './types'
 import { AdminButton, useCanCareerOnline } from './admin'
 import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana } from './apoio'
 import { isMuted } from './sound'
 import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
@@ -682,6 +682,9 @@ export function EscLobby() {
   const escRef = useRef(escState)
   escRef.current = escState
   const [user, setUser] = useState<User | null>(null)
+  // 🥇 medalha da semana (13/10): busca a MINHA posição no ranking quando a conta aparece, pra ela ir
+  // grudada no nome (apoioSelo) ao criar/entrar numa sala. Sem banco = sem medalha, nunca trava.
+  useEffect(() => { if (user) void carregaMedalhaDaSemana() }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<Phase>('auth')
   const [authTab] = useState<AuthTab>(() => {
     // veio do aviso "ganhe uma carta" (home/setup)? já abre no Cadastrar

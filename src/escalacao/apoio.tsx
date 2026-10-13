@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang' // 🌐 BR/EN (12/09)
 import { lerDireitos, tierEfetivo, temManual, type Direitos } from './planos-regras'
+import { buscaVitrine, medalhaDaPos } from './vitrine-dados' // 🥇 medalha da semana (13/10)
 
 export type ApoioTier = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
 
@@ -451,17 +452,27 @@ export function emailProblema(email: string): string | null {
 // selo pronto pra colar no fim do nome (' 👑', ' 👑🖋️' pra fundador, ou '').
 // O 🖋️ vem GRUDADO no 👑 — quem procura o 👑 no nome (perkFromSelo etc.)
 // continua achando, então cor/tier não mudam em nada.
+// 🥇🥈🥉 MEDALHA DA SEMANA (13/10, Diego): quem está no TOP 3 do ranking da semana leva a medalha ao
+// lado do nome, junto do selo do plano — nas salas e em todo lugar onde o selo vai. Empate: todos os
+// empatados levam. Saiu do top 3, perde (o nome é montado de novo ao entrar na próxima sala). A posição
+// vem do banco (`esc_vitrine_salas`, campo `eu`) e é LIDA pelo próprio aparelho: ninguém "se dá" medalha
+// digitando, porque o stripEmoji tira 🥇🥈🥉 de nome digitado (são pictogramas).
+let medalhaSemana = ''
+export function minhaMedalhaDaSemana(): string { return medalhaSemana }
+export async function carregaMedalhaDaSemana(): Promise<void> {
+  try { const v = await buscaVitrine(); medalhaSemana = medalhaDaPos(v?.eu?.pos) } catch { /* sem banco: sem medalha */ }
+}
 export function apoioSelo(): string {
   const p = myApoioPerk()
-  if (!p || !p.selo) return ''
-  return ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}`
+  const selo = p && p.selo ? ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}` : ''
+  return medalhaSemana ? `${selo || ' '}${medalhaSemana}` : selo
 }
 
 // nome com o selo garantido (sem duplicar — saves antigos já podem ter o emoji)
 export function apoioName(name: string): string {
   const p = myApoioPerk()
-  if (!p || !p.selo || name.includes(p.selo)) return name
-  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}`
+  if (!p || !p.selo || name.includes(p.selo)) return medalhaSemana && !name.includes(medalhaSemana) ? `${name} ${medalhaSemana}` : name
+  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}${medalhaSemana}`
 }
 
 // tira emoji/pictogramas dos nomes digitados (cadastro, sala, time): os selos

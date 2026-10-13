@@ -8,7 +8,7 @@
 // a semana tem ~900 linhas de campeão e baixar isso no celular a cada lista seria tráfego à toa.
 // Banco sem resposta = a vitrine simplesmente não aparece (nunca trava a lista de salas).
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { buscaVitrine, type Vitrine } from './vitrine-dados'
 import { tr, getLang } from './lang'
 import { Escudo } from './escudos'
 import { mascoteInteiraDoTime } from './mascotes'
@@ -18,12 +18,6 @@ import { ApoieButton } from './screens'
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 
-interface Vitrine {
-  hoje: { nome: string; time: string; titulos: string[]; em: string }[]
-  semana: { nome: string; titulos: number; pos: number }[]
-  eu: { nome: string; titulos: number; pos: number } | null
-  batismo: { clube: string; desde: string } | null
-}
 
 const TACA: Record<string, [string, string]> = {
   liga: ['🏆 Liga', '🏆 League'], copa: ['🏆 Copa', '🏆 Cup'], libertadores: ['🌎 Liberta', '🌎 Liberta'],
@@ -53,7 +47,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
   const [v, setV] = useState<Vitrine | null>(null)
   useEffect(() => {
     let vivo = true
-    void supabase.rpc('esc_vitrine_salas').then(({ data, error }) => { if (vivo && !error && data) setV(data as Vitrine) }, () => {})
+    void buscaVitrine().then(d => { if (vivo && d) setV(d) })
     return () => { vivo = false }
   }, [])
   if (!v) return null

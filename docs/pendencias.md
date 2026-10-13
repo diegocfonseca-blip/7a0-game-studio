@@ -2,6 +2,18 @@
 Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
 
 
+
+## 13/10/2026 — 🥇🥈🥉 MEDALHA DO TOP 3 DA SEMANA AO LADO DO NOME
+
+Diego: *"quem tiver no ranking da semana no top 3 fica com a medalhinha ao lado do nome no tier… se passar ele
+perde… se tiver empate todos que estiverem empatados ganham também"*.
+- A posição vem de `esc_vitrine_salas` (`eu.pos`, `rank()` → empate divide: 1º,2º,2º = ninguém 🥉).
+- `apoio.tsx`: `carregaMedalhaDaSemana()` (chamada no lobby quando a conta aparece) + `apoioSelo()`/`apoioName()`
+  grudam 🥇/🥈/🥉 depois do selo do plano (vale pra grátis também). Cache de 60s em `vitrine-dados.ts`
+  (a vitrine e a medalha usam a MESMA chamada).
+- ⚠️ O nome é montado ao CRIAR/ENTRAR na sala: quem perde o top 3 no meio da sala só perde a medalha na PRÓXIMA.
+- Ninguém forja: `stripEmoji` tira 🥇🥈🥉 de nome digitado.
+
 ## 13/10/2026 — 🏆📊🖋️ VITRINE EMBAIXO DO "ATUALIZAR LISTA" (mockup aprovado: "sim pode fazer e publicar")
 
 - `src/escalacao/vitrine-salas.tsx` (`VitrineSalas`), chamado no lobby logo depois do 🔄 Atualizar lista.
