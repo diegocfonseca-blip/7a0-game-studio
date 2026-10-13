@@ -1806,7 +1806,7 @@ function Duvidas() {
     </>],
     ['How do I make my team show up for everyone in the game?', <>
       It\'s the same <b>Club naming</b> — and that\'s the best part of it.<br /><br />
-      Your club <b>enters a real division</b> and exists for <b>every Leilão Legends player</b>, not just you. Anyone can land in the same table as it, see your crest, your kit, and your mascot celebrating the goal.<br /><br />
+      Your club <b>enters a real division</b> and exists for <b>every Leilão Legends player</b>, not just you — <b>rotating</b> with the other named clubs. Anyone can land in the same table as it, see your crest, your kit, and your mascot celebrating the goal.<br /><br />
       {planos2Liberado() ? <>Both namings put the club in <b>Série A</b>, the elite of the game: those are the clubs that show up in <b>Quick Play</b> and <b>online</b>, and the rivals everyone faces in the career. It\'s the club that appears the most.</> : <><b>Série A costs more</b> (R$ 89.90, the 🖋️✨ Legend Naming) because it\'s the elite of the game: they are the clubs that show up in the <b>online quick match</b> and the rivals everyone faces in the career. It\'s the club that appears the most.</>}
     </>],
     ['What are the support plans?', <>
@@ -1873,7 +1873,7 @@ function Duvidas() {
     </>],
     ['Como faço pro meu time aparecer pra todo mundo no jogo?', <>
       É o mesmo <b>Batismo</b> — e essa é a melhor parte dele.<br /><br />
-      Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo jogador do Leilão Legends</b>, não só pra você. Qualquer pessoa pode cair na mesma tabela que ele, ver o seu escudo, o seu manto, e a sua mascote comemorando o gol.<br /><br />
+      Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo jogador do Leilão Legends</b>, não só pra você — em <b>rodízio</b> com os outros clubes batizados. Qualquer pessoa pode cair na mesma tabela que ele, ver o seu escudo, o seu manto, e a sua mascote comemorando o gol.<br /><br />
       {planos2Liberado() ? <>Os dois batismos colocam o clube na <b>Série A</b>, a elite do jogo: são os clubes que aparecem no <b>Jogo Rápido</b> e no <b>online</b>, e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</> : <>A <b>Série A custa mais</b> (R$ 89,90, o 🖋️✨ Batismo Lenda) porque é a elite do jogo: são os clubes que aparecem no <b>jogo rápido online</b> e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</>}
     </>],
     ['Quais são os planos de apoio?', <>

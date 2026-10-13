@@ -118,8 +118,8 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
       <Ok><b>{tr('🐾 Mascote própria', '🐾 Your own mascot')}</b>{tr(' que comemora todo gol, festeja o título e pula no pênalti', ' that celebrates every goal, the title and jumps at penalties')}</Ok>
       <Ok><b>{tr('🎽 Manto do seu clube', '🎽 Your club’s kit')}</b>{tr(', com a camisa na Loja do Clube', ', with the shirt in the Club Shop')}</Ok>
       {serieA
-        ? <Ok><b>{tr('⚽ Seu clube na Série A', '⚽ Your club in Division A')}</b>{tr(', no Jogo Rápido e no Online — todo mundo enfrenta ele', ', in Quick Play and Online — everyone faces it')}</Ok>
-        : <Ok><b>{tr('⚽ Seu clube na pirâmide de TODO mundo', '⚽ Your club in EVERYONE’s pyramid')}</b>{tr(' — Série B, C, D ou Várzea', ' — Série B, C, D or Várzea')}</Ok>}
+        ? <Ok><b>{tr('⚽ Seu clube aparece pra TODOS os jogadores', '⚽ Your club shows up for EVERY player')}</b>{tr(' — na Série A, no Jogo Rápido, no Online, na tabela e no jornal (em rodízio com os outros clubes batizados)', ' — in Division A, Quick Play, Online, the table and the newspaper (rotating with the other named clubs)')}</Ok>
+        : <Ok><b>{tr('⚽ Seu clube aparece pra TODOS os jogadores', '⚽ Your club shows up for EVERY player')}</b>{tr(' — na carreira de todo mundo (Série B, C, D ou Várzea), no Online, na tabela e no jornal (em rodízio com os outros clubes batizados)', ' — in everyone’s career (Série B, C, D or Várzea), Online, the table and the newspaper (rotating with the other named clubs)')}</Ok>}
       <Ok><b>{tr('👑 Entrada de gala', '👑 Grand entrance')}</b>{tr(' com o seu escudo: a sala inteira para pra te ver chegar', ' with your crest: the whole room stops to watch you arrive')}</Ok>
       <Ok><b>{tr('🖋️ Fundador nº', '🖋️ Founder no.')}</b>{tr(' — seu número no mural do jogo, pra sempre', ' — your number on the game’s wall, forever')}</Ok>
       <Ok><b>{tr('🏟️ Estádio com o nome', '🏟️ Stadium named')}</b>{tr(' que você escolher', ' however you choose')}</Ok>
@@ -152,7 +152,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
       <Ok><b>{tr('🚁 Entrada de gala ÚNICA', '🚁 UNIQUE grand entrance')}</b>{tr(' — helicóptero, moto, fumaça… você conta a ideia e ela é só do seu clube', ' — helicopter, bike, smoke… you pitch the idea and it is only your club’s')}</Ok>
       <Ok><b>{tr('🎤 Canto da sua torcida', '🎤 Your crowd’s chant')}</b>{tr(' tocando no estádio da sua Carreira', ' playing at your Career stadium')}</Ok>
       <Ok><b>{tr('🛡️🐾🎽 Escudo, mascote e manto', '🛡️🐾🎽 Crest, mascot and kit')}</b>{tr(' desenhados pra você', ' designed for you')}</Ok>
-      <Ok><b>{tr('⚽ Série A, Jogo Rápido e Online', '⚽ Division A, Quick Play and Online')}</b>{tr(' com o seu clube', ' with your club')}</Ok>
+      <Ok><b>{tr('⚽ Série A, Jogo Rápido e Online', '⚽ Division A, Quick Play and Online')}</b>{tr(' com o seu clube, pra todos os jogadores (em rodízio com os outros clubes batizados)', ' with your club, for every player (rotating with the other named clubs)')}</Ok>
       <Ok><b>{tr('🖋️ Fundador nº', '🖋️ Founder no.')}</b>{tr(', estádio com nome e 30 🪙 a cada 30 dias, pra sempre', ', a named stadium and 30 🪙 every 30 days, forever')}</Ok>
       <Ok><b>{tr('🔒 Nome reservado', '🔒 Reserved name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
       <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('🎫 e tudo do Sócio, pra sempre e sem mensalidade:', '🎫 and everything in Member, forever with no monthly fee:')}</p>
