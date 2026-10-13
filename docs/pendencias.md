@@ -39,6 +39,16 @@ do Diego) — o esvazia tem que rodar a partir de 12/11. E a lixeira ainda ocupa
 A FAZER (precisa mockup): aviso NO JOGO "essa carreira apaga em 7 dias se você não jogar" pra carreira grátis parada há
 +30 dias (o celular decide, porque só ele sabe a data real) e depois apaga.
 
+## 13/10/2026 — 🖋 BATISMO e 🖋✨ BATISMO LENDA NA VITRINE DE TODO MUNDO (ordem do Diego: "já pode alterar e fazer")
+- Os dois cartões viraram um componente só (`CartoesBatismo`, support-plans-v2.tsx), usado na vitrine PÚBLICA e na v2:
+  exemplo Neymarzetti, lista inteira com "tudo do Sócio" item por item.
+- Regra de série que vale HOJE na pública: **Batismo R$ 69,90 = Série B/C/D/Várzea · Batismo Lenda R$ 89,90 = Série A +
+  gala exclusiva + canto**. (Na v2, `serieA`, os dois dizem Série A — decisão antiga da v2; confirmar com o Diego antes de
+  liberar a v2.) O botão de cada cartão abre o Pix já na série certa (`setSerieBatismo`).
+- Nomes trocados também no Pix (v1 e v2), nas perguntas de ajuda e na lista de planos (agora "São 5"); corrigido o
+  "Série A custa mais (R$ 69,90)" → 89,90.
+- Sócio mensal, Gratuito novo e os limites continuam SÓ nas contas do Diego (`PLANOS2_GERAL = false`).
+
 ## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
 Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
 

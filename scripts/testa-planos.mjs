@@ -84,10 +84,12 @@ try {
 
   // 🖼️ a vitrine: 4 planos, nesta ordem, com os textos do Diego
   const vit = readFileSync('src/escalacao/support-plans-v2.tsx', 'utf8')
-  const ordem = ['support-gratis', 'support-craque', 'support-batismo', 'support-plus'].map(id => vit.indexOf(`id="${id}"`))
-  assert.ok(ordem.every(i => i > 0) && ordem.every((v, i) => i === 0 || v > ordem[i - 1]), 'ordem: Gratuito, Craque, Batismo Lenda, Batismo Plus')
-  assert.ok(vit.includes('Tudo do Craque, para sempre, sem mensalidade + seu clube personalizado.'), 'texto do Batismo Lenda')
-  assert.ok(vit.includes('Tudo do Batismo Lenda + entrada de gala única e personalizada + canto de torcida na Carreira.'), 'texto do Plus')
+  // os dois batismos moram em `CartoesBatismo` (13/10), que a vitrine chama DEPOIS do Sócio — e a pública também usa
+  const ordem = ['support-gratis', 'support-craque', 'CartoesBatismo batismoPlano'].map(id => id.startsWith('Cartoes') ? vit.indexOf(`<${id}`) : vit.indexOf(`id="${id}"`))
+  assert.ok(ordem.every(i => i > 0) && ordem.every((v, i) => i === 0 || v > ordem[i - 1]), 'ordem: Gratuito, Sócio, os dois Batismos')
+  assert.ok(vit.indexOf('id="support-batismo"') < vit.indexOf('id="support-plus"'), 'ordem: Batismo antes do Batismo Lenda')
+  assert.ok(vit.includes("'QUERO O BATISMO · R$ 69,90'") && vit.includes("'QUERO O BATISMO LENDA · R$ 89,90'"), 'nomes: Batismo e Batismo Lenda')
+  assert.ok(readFileSync('src/escalacao/support-plans.tsx', 'utf8').includes('<CartoesBatismo onNaming={p.onNaming} />'), 'a vitrine pública usa os mesmos cartões')
   for (const p of ['R$ 12,90', 'R$ 69,90', 'R$ 89,90', 'R$ 0']) assert.ok(vit.includes(`"${p}"`), `preço à vista: ${p}`)
   for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90', 'R$ 2,90/MÊS', 'R$ 4,90/MÊS', 'R$ 9,90']) assert.ok(!vit.includes(velho), `oferta velha fora da vitrine: ${velho}`)
   assert.ok(vit.includes('continua com TUDO'), 'aviso pra quem já comprou')

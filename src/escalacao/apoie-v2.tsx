@@ -324,8 +324,8 @@ export function ApoieButtonV2({ big = false, startScreen = 'choice', trigger }: 
           <p className="text-[10px] font-bold text-black/45 mt-1.5">{tr('✅ nome de resenha, zoeira leve, homenagem · ❌ ofensa, política, marca de empresa', '✅ banter names, light jokes, tributes · ❌ slurs, politics, company brands')}</p>
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>{tr('Escolhe o batismo e faz o Pix', 'Pick the naming and pay via Pix')}</p>
           <div className="flex gap-1.5 mt-1.5">
-            {([['lenda', tr('🖋 Batismo Lenda', '🖋 Legend Naming'), PRECOS.batismoLenda, tr('tudo do Craque pra sempre + seu clube', 'all of Star forever + your club')],
-               ['plus', tr('🖋✨ Batismo Plus', '🖋✨ Plus Naming'), PRECOS.batismoPlus, tr('+ gala única + canto de torcida', '+ unique entrance + crowd chant')]] as const).map(([k, nome, preco, sub]) => (
+            {([['lenda', tr('🖋 Batismo', '🖋 Club Naming'), PRECOS.batismoLenda, tr('tudo do Sócio pra sempre + seu clube', 'all of Member forever + your club')],
+               ['plus', tr('🖋✨ Batismo Lenda', '🖋✨ Legend Naming'), PRECOS.batismoPlus, tr('+ gala única + canto de torcida', '+ unique entrance + crowd chant')]] as const).map(([k, nome, preco, sub]) => (
               <button key={k} onClick={() => setPlanoBatismo(k)} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
                 style={{ background: planoBatismo === k ? GOLD : '#fff', boxShadow: planoBatismo === k ? `2px 2px 0 0 ${INK}` : 'none' }}>
                 {nome}<br /><span className="text-[12px]" style={OSWALD}>{precoTxt(preco, getLang() === 'en')}</span><br /><span className="font-bold text-black/55">{sub}</span>
@@ -334,7 +334,7 @@ export function ApoieButtonV2({ big = false, startScreen = 'choice', trigger }: 
           </div>
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>Os dois entram na <b>Série A</b>, no <b>Jogo Rápido</b> e no <b>Online</b>, e trazem <b>tudo do Craque pra sempre</b>, sem mensalidade.</>,
                                                                                     <>Both join <b>Division A</b>, <b>Quick Play</b> and <b>Online</b>, and bring <b>everything in Star forever</b>, no monthly fee.</>)}</p>
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${planoBatismo === 'plus' ? '🖋✨ Plus' : '🖋 Lenda'}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${planoBatismo === 'plus' ? '🖋✨ Batismo Lenda' : '🖋 Batismo'}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
           {/* 🎟️ cupom de influenciador — só aqui, no batismo. SUTIL de propósito
               (Diego 08/09: *"deixe de forma mais sutil lá no pagamento e não tão
               óbvio"*): é uma linha cinza embaixo do Pix, "tem cupom?", que só vira
@@ -364,8 +364,8 @@ export function ApoieButtonV2({ big = false, startScreen = 'choice', trigger }: 
             // nada se falhar: a DM com "cupom X" continua sendo a prova pro Diego.
             if (cupom) supabase.rpc('esc_cupom_usar', { p_codigo: cupom.codigo, p_clube: clube.trim(), p_serie: planoBatismo === 'plus' ? 'PLUS' : 'LENDA', p_valor_cheio: precoCheioBatismo, p_valor_pago: precoBatismo }).then(() => {}, () => {})
             igMsg(getLang() === 'en'
-              ? `Hey! I just supported Leilão Legends 💛 I want the ${planoBatismo === 'plus' ? 'PLUS' : 'LEGEND'} naming for my club: "${clube.trim() || '(club name)'}"${cupom ? ` — I used coupon ${cupom.codigo} (${cupom.desconto_pct}% off, paid R$ ${precoBatismo.toFixed(2)})` : ''} — receipt attached!`
-              : `Opa! Acabei de apoiar o Leilão Legends 💛 Quero o Batismo ${planoBatismo === 'plus' ? 'PLUS' : 'LENDA'} do meu clube: "${clube.trim() || '(nome do clube)'}"${cupom ? ` — usei o cupom ${cupom.codigo} (${cupom.desconto_pct}% off, paguei R$ ${precoBatismo.toFixed(2).replace('.', ',')})` : ''} — comprovante em anexo!`)
+              ? `Hey! I just supported Leilão Legends 💛 I want the ${planoBatismo === 'plus' ? 'LEGEND naming' : 'club naming'} for my club: "${clube.trim() || '(club name)'}"${cupom ? ` — I used coupon ${cupom.codigo} (${cupom.desconto_pct}% off, paid R$ ${precoBatismo.toFixed(2)})` : ''} — receipt attached!`
+              : `Opa! Acabei de apoiar o Leilão Legends 💛 Quero o Batismo${planoBatismo === 'plus' ? ' LENDA' : ''} do meu clube: "${clube.trim() || '(nome do clube)'}"${cupom ? ` — usei o cupom ${cupom.codigo} (${cupom.desconto_pct}% off, paguei R$ ${precoBatismo.toFixed(2).replace('.', ',')})` : ''} — comprovante em anexo!`)
           }} className="w-full mt-2 rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
             {tr('📸 CHAMAR NO @leilaolegendscom', '📸 MESSAGE @leilaolegendscom')}

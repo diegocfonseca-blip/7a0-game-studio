@@ -449,7 +449,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
       {screen === 'choice' && <ApoieModal onClose={close}>
         <SupportPlans focus={amp} tier={myApoioPerk()?.tier} name={meuNome} memberActive={!!meuSoc?.ativo} memberNumber={meuSoc?.socioN} foundersLeft={FUNDADOR_VAGAS}
           onPay={tier => { logApoio('👀 escolheu apoio: ' + tier); setPayTier(tier); setScreen(tier === 'prata' ? 'manual' : 'pay') }}
-          onNaming={() => { logApoio('🖋 escolheu batismo'); setScreen('batismo') }}
+          onNaming={plano => { logApoio(`🖋 escolheu batismo ${plano === 'plus' ? 'lenda (89,90)' : '(69,90)'}`); setSerieBatismo(plano === 'plus' ? 'd' : 'abc'); setScreen('batismo') }}
           onMember={() => { if (meuSoc?.ativo) { setScreen('socio'); return } const tier = myApoioPerk()?.tier; logApoio('🎫 abriu assinatura sócio'); window.open(tier === 'ouro' ? MP_SOCIO.lenda : tier === 'prata' ? MP_SOCIO.craque : MP_SOCIO.base, '_blank', 'noopener') }}
           onDonate={() => setScreen('pix')}
           onInstagram={() => window.open(APOIO_IG, '_blank', 'noopener')} />
@@ -601,17 +601,17 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
           <div className="flex gap-1.5 mt-1.5">
             <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('Série B·C·D e Várzea', 'Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 69,90', 'R$ 69.90')}</span>
+              {tr('🖋️ Batismo · Série B·C·D e Várzea', '🖋️ Club Naming · Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 69,90', 'R$ 69.90')}</span>
             </button>
             <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('👑 Série A (a elite)', '👑 Série A (the elite)')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 89,90', 'R$ 89.90')}</span>
+              {tr('🖋️✨ Batismo Lenda · Série A', '🖋️✨ Legend Naming · Série A')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 89,90', 'R$ 89.90')}</span>
             </button>
           </div>
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
                                                                                     <><b>Série A</b> costs more because it is the elite: those are the clubs that show up in <b>quick play</b> and the rivals everybody faces. Tap one of the two to choose.</>)}</p>
           {serieBatismo === 'd' && <p className="text-[10px] font-black mt-1 leading-snug" style={{ color: '#7C3AED' }}>{tr('👑 Só na Série A: entrada de gala EXCLUSIVA do seu clube (helicóptero, moto, fumaça… você conta a ideia) + canto da sua torcida na Carreira.', '👑 Only in Série A: your club’s EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your crowd’s chant in Career.')}</p>}
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '👑 Série A (a elite)' : 'Série B/C/D ou Várzea'}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '🖋️✨ Batismo Lenda · Série A' : '🖋️ Batismo · Série B/C/D ou Várzea'}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
           {/* 🎟️ cupom de influenciador — só aqui, no batismo. SUTIL de propósito
               (Diego 08/09: *"deixe de forma mais sutil lá no pagamento e não tão
               óbvio"*): é uma linha cinza embaixo do Pix, "tem cupom?", que só vira
@@ -1800,29 +1800,30 @@ function Duvidas() {
     ['How do I get a crest and a mascot of my own?', <>
       It\'s the <b>🖋️ Club naming</b>. You pick the name, send whatever art you like (or we draw it), and the club gets its <b>crest, mascot, kit and stadium name</b> — made just for it.<br /><br />
       <b>Where:</b> 💛 Support → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>How much:</b> R$ 69.90 (🖋️ Legend Naming) · R$ 89.90 (🖋️✨ Plus Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 69.90 (Série B, C, D or Várzea) · R$ 89.90 (👑 Série A, with an exclusive grand entrance and a crowd chant in Career).<br /></>}
+      {planos2Liberado() ? <><b>How much:</b> R$ 69.90 (🖋️ Club Naming) · R$ 89.90 (🖋️✨ Legend Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 69.90 (🖋️ Club Naming · Série B, C, D or Várzea) · R$ 89.90 (🖋️✨ Legend Naming · Série A, with an exclusive grand entrance and a crowd chant in Career).<br /></>}
       <b>How:</b> pay via Pix, send the receipt and the name by DM. We confirm <b>within 24h</b> and it enters the next update.<br /><br />
       The name is <b>reserved in 4 forms</b> (with and without FC/EC, upper or lower case) — nobody else can use it.
     </>],
     ['How do I make my team show up for everyone in the game?', <>
       It\'s the same <b>Club naming</b> — and that\'s the best part of it.<br /><br />
       Your club <b>enters a real division</b> and exists for <b>every Leilão Legends player</b>, not just you. Anyone can land in the same table as it, see your crest, your kit, and your mascot celebrating the goal.<br /><br />
-      {planos2Liberado() ? <>Both namings put the club in <b>Série A</b>, the elite of the game: those are the clubs that show up in <b>Quick Play</b> and <b>online</b>, and the rivals everyone faces in the career. It\'s the club that appears the most.</> : <><b>Série A costs more</b> (R$ 69.90) because it\'s the elite of the game: they are the clubs that show up in the <b>online quick match</b> and the rivals everyone faces in the career. It\'s the club that appears the most.</>}
+      {planos2Liberado() ? <>Both namings put the club in <b>Série A</b>, the elite of the game: those are the clubs that show up in <b>Quick Play</b> and <b>online</b>, and the rivals everyone faces in the career. It\'s the club that appears the most.</> : <><b>Série A costs more</b> (R$ 89.90, the 🖋️✨ Legend Naming) because it\'s the elite of the game: they are the clubs that show up in the <b>online quick match</b> and the rivals everyone faces in the career. It\'s the club that appears the most.</>}
     </>],
     ['What are the support plans?', <>
       {planos2Liberado() ? <>
       There are <b>4</b>, and all the details are in the <b>💛 Support</b> button:<br /><br />
       ⚽ <b>Free — R$ 0.</b> Career, Quick Play, public rooms and your friends\' rooms and leagues.<br />
-      ⭐ <b>Full Star — R$ 12.90 a month.</b> Manual Mode, levels and scout up to Legend, premium look, 4 careers, create rooms and My Leagues, VIP group.<br />
-      🖋️ <b>Legend Naming — R$ 69.90, one time.</b> <b>Everything in Star, forever</b>, plus your club (crest, mascot, kit, stadium) in Série A.<br />
-      🖋️✨ <b>Plus Naming — R$ 89.90, one time.</b> Everything in Legend Naming + a unique grand entrance + a crowd chant in Career.<br /><br />
+      🎫 <b>Member — R$ 12.90 a month.</b> Manual Mode, levels and scout up to Legend, premium look, 4 careers, create rooms and My Leagues, VIP group.<br />
+      🖋️ <b>Club Naming — R$ 69.90, one time.</b> <b>Everything in Member, forever</b>, plus your club (crest, mascot, kit, stadium) in Série A.<br />
+      🖋️✨ <b>Legend Naming — R$ 89.90, one time.</b> Everything in Club Naming + a unique grand entrance + a crowd chant in Career.<br /><br />
       Already bought Star, Legend, Membership or a Naming before? <b>You keep all of it, forever.</b><br /><br />
       </> : <>
-      There are <b>4</b>, and all the details are in the <b>💛 Support</b> button:<br /><br />
+      There are <b>5</b>, and all the details are in the <b>💛 Support</b> button:<br /><br />
       🎫 <b>Sócio Legends — R$ 9.90 a month.</b> The only monthly one.<br />
       ⭐ <b>Craque (Star) — R$ 19.90, one time.</b><br />
       👑 <b>Lenda (Legend) — R$ 39.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
-      🖋️ <b>Batismo (Club naming) — from R$ 69.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br /><br />
+      🖋️ <b>Batismo (Club Naming) — R$ 69.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br />
+      🖋️✨ <b>Batismo Lenda (Legend Naming) — R$ 89.90, one time.</b> Everything in Club Naming, with the club in <b>Série A</b> + an exclusive grand entrance + a crowd chant in Career.<br /><br />
       </>}
       No plan gives an advantage on the pitch — <b>the game is the same for everyone</b>. What changes is colour, shine, story and perks.
     </>],
@@ -1866,29 +1867,30 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo Lenda) · R$ 89,90 (🖋️✨ Batismo Plus, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 69,90 (Série B, C, D ou Várzea) · R$ 89,90 (👑 Série A, com entrada de gala exclusiva e canto da torcida na Carreira).<br /></>}
+      {planos2Liberado() ? <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo) · R$ 89,90 (🖋️✨ Batismo Lenda, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo · Série B, C, D ou Várzea) · R$ 89,90 (🖋️✨ Batismo Lenda · Série A, com entrada de gala exclusiva e canto da torcida na Carreira).<br /></>}
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
     ['Como faço pro meu time aparecer pra todo mundo no jogo?', <>
       É o mesmo <b>Batismo</b> — e essa é a melhor parte dele.<br /><br />
       Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo jogador do Leilão Legends</b>, não só pra você. Qualquer pessoa pode cair na mesma tabela que ele, ver o seu escudo, o seu manto, e a sua mascote comemorando o gol.<br /><br />
-      {planos2Liberado() ? <>Os dois batismos colocam o clube na <b>Série A</b>, a elite do jogo: são os clubes que aparecem no <b>Jogo Rápido</b> e no <b>online</b>, e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</> : <>A <b>Série A custa mais</b> (R$ 69,90) porque é a elite do jogo: são os clubes que aparecem no <b>jogo rápido online</b> e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</>}
+      {planos2Liberado() ? <>Os dois batismos colocam o clube na <b>Série A</b>, a elite do jogo: são os clubes que aparecem no <b>Jogo Rápido</b> e no <b>online</b>, e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</> : <>A <b>Série A custa mais</b> (R$ 89,90, o 🖋️✨ Batismo Lenda) porque é a elite do jogo: são os clubes que aparecem no <b>jogo rápido online</b> e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</>}
     </>],
     ['Quais são os planos de apoio?', <>
       {planos2Liberado() ? <>
       São <b>4</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
       ⚽ <b>Gratuito — R$ 0.</b> Carreira, Jogo Rápido, salas públicas e as salas e ligas dos amigos.<br />
-      ⭐ <b>Craque completo — R$ 12,90 por mês.</b> Modo Manual, nível e olheiro até Lenda, visual premium, 4 carreiras, cria salas e Minhas Ligas, grupo VIP.<br />
-      🖋️ <b>Batismo Lenda — R$ 69,90, uma vez só.</b> <b>Tudo do Craque, pra sempre</b>, mais o seu clube (escudo, mascote, manto, estádio) na Série A.<br />
-      🖋️✨ <b>Batismo Plus — R$ 89,90, uma vez só.</b> Tudo do Batismo Lenda + entrada de gala única + canto de torcida na Carreira.<br /><br />
+      🎫 <b>Sócio — R$ 12,90 por mês.</b> Modo Manual, nível e olheiro até Lenda, visual premium, 4 carreiras, cria salas e Minhas Ligas, grupo VIP.<br />
+      🖋️ <b>Batismo — R$ 69,90, uma vez só.</b> <b>Tudo do Sócio, pra sempre</b>, mais o seu clube (escudo, mascote, manto, estádio) na Série A.<br />
+      🖋️✨ <b>Batismo Lenda — R$ 89,90, uma vez só.</b> Tudo do Batismo + entrada de gala única + canto de torcida na Carreira.<br /><br />
       Já comprou Craque, Lenda, Sócio ou Batismo antes? <b>Continua tudo seu, pra sempre.</b><br /><br />
       </> : <>
-      São <b>4</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
+      São <b>5</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
       🎫 <b>Sócio Legends — R$ 9,90 por mês.</b> O único mensal.<br />
       ⭐ <b>Craque — R$ 19,90, uma vez só.</b><br />
       👑 <b>Lenda — R$ 39,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
-      🖋️ <b>Batismo — a partir de R$ 69,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br /><br />
+      🖋️ <b>Batismo — R$ 69,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
+      🖋️✨ <b>Batismo Lenda — R$ 89,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida na Carreira.<br /><br />
       </>}
       Nenhum plano dá vantagem dentro das quatro linhas — <b>o jogo é igual pra todos</b>. O que muda é cor, brilho, história e mimos.
     </>],
