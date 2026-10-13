@@ -146,12 +146,17 @@ export function SupportPlansV2(p: Props) {
     <SupportPlanCard id="support-craque" title={tr('🎫 Sócio', '🎫 Member')} price="R$ 12,90" cadence={tr('por mês · cancela quando quiser', 'per month · cancel anytime')} tone="ouro">
       <h3>{tr('Vira sócio do Leilão Legends: ganha seu número de sócio, o nome dourado brilhando em todo canto e o jogo inteiro na sua mão.', 'Become a Leilão Legends member: get your member number, your name in shining gold everywhere and the whole game in your hands.')}</h3>
       <Vitrine titulo={tr('o que muda na sua tela', 'what changes on your screen')}>
-        <LinhaSala tier="ouro" nome={meu} />
         <div className="ll-vit-grid">
           <Mini rot={tr('🎮 Modo Manual: pausa, acelera 2×/4×, pula rodada', '🎮 Manual Mode: pause, speed up 2×/4×, skip the round')}><Controles /></Mini>
           <Mini rot={tr('🔎 vê o NÍVEL do jogador: até 👑 Lenda', '🔎 see the player’s LEVEL: up to 👑 Legend')}><CartaNivel tier="ouro" nome="Pelé" nivel={96} /></Mini>
           <Mini rot={tr('🏆 Minhas Ligas: a liga da sua turma', '🏆 My Leagues: your crew’s league')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div><div style={{ ...OSW, fontSize: 9, background: INK, color: GOLD, borderRadius: 6, padding: '2px 6px', display: 'inline-block', marginTop: 3 }}>{tr('LIGA DOS CRIA', 'MY CREW LEAGUE')}</div></Mini>
         </div>
+        {/* 👑 exemplo do nome dourado (13/10, Diego: "faltou só o exemplo do nome dourado") — antes × depois */}
+        <p className="ll-vit-rot" style={{ marginTop: 8 }}>{tr('👑 seu nome nas salas, na tabela e no chat', '👑 your name in rooms, tables and chat')}</p>
+        <p style={{ margin: '0 0 3px', fontSize: 11, fontWeight: 700, color: 'rgba(12,12,12,.6)' }}>{tr('grátis', 'free')}</p>
+        <LinhaSala tier="bege" nome={meu} />
+        <p style={{ margin: '6px 0 3px', fontSize: 11, fontWeight: 800, color: INK }}>{tr('sócio ✨ dourado brilhando', 'member ✨ shining gold')}</p>
+        <LinhaSala tier="ouro" nome={meu} />
       </Vitrine>
       <ItensSocio />
       {p.craque === 'ativo' && <p className="ll-vit-seu">{en ? `✅ active · renews ${ate}` : `✅ ativo · vale até ${ate}`}</p>}
