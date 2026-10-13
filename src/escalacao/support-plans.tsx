@@ -5,6 +5,7 @@ import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen } from './apoio'
 import './support-plans.css'
+import { CartoesBatismo } from './support-plans-v2'
 
 // ─── 🍯 "ÁGUA NA BOCA" (Diego 29/09): a tela de planos MOSTRA em vez de listar ──
 // Mockup aprovado: `scripts/mockup-planos-agua-na-boca.mjs`. Cada plano ganha uma
@@ -12,10 +13,9 @@ import './support-plans.css'
 // controles do Manual, a carta com o NÍVEL, e no Batismo escudo + mascote + manto de um
 // clube de verdade). Regras de texto dele: é NÍVEL (nunca "nota"/"overall"); olheiro =
 // "acha jogador fora do leilão, de nível até X"; nada de contagem de vagas.
-const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D'
+const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 const EXEMPLO = 'Al Takhadao FC' // 🦜 o batismo de exemplo (escudo/mascote/manto do jogo)
-const CAMISA_EXEMPLO = `${import.meta.env.BASE_URL}mantos-salao/al-takahdao-camisa.webp`
 
 /** uma linha da lista de técnicos da sala, na cor do tier (igual ao lobby) */
 function LinhaSala({ tier, nome, clube }: { tier: 'bege' | 'prata' | 'ouro'; nome: string; clube?: string }) {
@@ -63,7 +63,7 @@ type Props = {
   memberNumber?: number | null
   foundersLeft: number
   onPay: (tier: 'prata' | 'ouro') => void
-  onNaming: () => void
+  onNaming: (plano: 'lenda' | 'plus') => void
   onMember: () => void
   onDonate: () => void
   onInstagram: () => void
@@ -179,45 +179,8 @@ export function SupportPlans(p: Props) {
         {memberButton('ouro')}
       </SupportPlanCard>
 
-      <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club naming')} price="R$ 69,90" cadence={tr('a partir de · uma vez · Série A R$ 89,90', 'from · one-off · Division A R$ 89.90')} tone="batismo">
-        <h3>{tr('O SEU clube entra no jogo de todo mundo — com escudo, mascote e manto desenhados pra você.', 'YOUR club joins everyone’s game — with a crest, mascot and kit designed for you.')}</h3>
-        <Vitrine titulo={tr('as artes são suas (exemplo real: Al Takhadao FC)', 'the artwork is yours (real example: Al Takhadao FC)')}>
-          <div className="ll-vit-artes">
-            <div><Escudo nome={EXEMPLO} size={72} /><p>{tr('🛡️ escudo', '🛡️ crest')}</p></div>
-            <div>{(() => { const a = mascoteInteiraDoTime(EXEMPLO); return a ? <MascoteMini art={a} alt={96} /> : null })()}<p>{tr('🐦 mascote', '🐦 mascot')}</p></div>
-            <div><img src={CAMISA_EXEMPLO} alt="" loading="lazy" style={{ height: 84, width: 'auto', display: 'block', margin: '0 auto' }} /><p>{tr('🎽 manto', '🎽 kit')}</p></div>
-          </div>
-        </Vitrine>
-        <Vitrine titulo={tr('e onde tudo isso aparece', 'and where all of it shows up')}>
-          <div className="ll-vit-grid">
-            <Mini rot={tr('👑 entrada de gala: a sala inteira para pra te ver chegar', '👑 grand entrance: the whole room stops to watch you arrive')}>
-              <div style={{ background: 'radial-gradient(ellipse at 50% 30%,#3a2e0a,#000 75%)', borderRadius: 7, padding: '6px 4px 2px' }}>
-                <span style={{ display: 'inline-flex', filter: 'drop-shadow(0 0 6px rgba(255,196,0,.9))' }}><Escudo nome={EXEMPLO} size={30} /></span>
-                <p style={{ margin: '2px 0 0', ...OSW, fontSize: 7, color: GOLD, letterSpacing: 2 }}>{tr('CHEGOU NA SALA', 'JUST ARRIVED')}</p>
-              </div>
-            </Mini>
-            <Mini rot={tr('⚽ carimbo no gol: a mascote comemora cada bola na rede', '⚽ goal stamp: the mascot celebrates every goal')}>
-              <div style={{ position: 'relative', background: GREEN, borderRadius: 7, height: 56, overflow: 'hidden' }}>
-                <span style={{ position: 'absolute', left: 4, top: 4, ...OSW, fontSize: 11, color: '#fff' }}>2 × 0</span>
-                {(() => { const a = mascoteInteiraDoTime(EXEMPLO); return a ? <span style={{ position: 'absolute', right: 2, bottom: -4, transform: 'rotate(-8deg)' }}><MascoteMini art={a} alt={54} /></span> : null })()}
-              </div>
-            </Mini>
-            <Mini rot={tr('📋 tabela, jornal e ⭐ Champions com o seu escudo', '📋 table, newspaper and ⭐ Champions with your crest')}>
-              <div style={{ textAlign: 'left', background: '#fff', border: `2px solid ${INK}`, borderRadius: 7, padding: '3px 4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 3, ...OSW, fontSize: 8, background: APOIO_PERKS.ouro.grad, borderRadius: 4, padding: '2px 3px' }}>1º <Escudo nome={EXEMPLO} size={12} /> Al Takhadao</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 3, ...OSW, fontSize: 8, padding: '2px 3px' }}>2º <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#ddd', display: 'inline-block' }} /> Bolacha FC</div>
-              </div>
-            </Mini>
-          </div>
-        </Vitrine>
-        <Ok><b>{tr('Tudo do Lenda incluído', 'Everything in Legend included')}</b>{tr(' + ', ' + ')}<b>{tr('sócio pra sempre', 'membership forever')}</b>{tr(' (sem mensalidade): 30 🪙 a cada 30 dias, estádio com o seu nome', ' (no monthly fee): 30 🪙 every 30 days, a stadium with your name')}</Ok>
-        <Ok><b>{tr('Selo de Fundador', 'Founder badge')}</b>{tr(' e seu nome no mural do jogo', ' and your name on the game’s wall')}</Ok>
-        <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas · seu clube disputa a pirâmide de TODO mundo que joga', ' saved · your club plays in EVERYONE’s pyramid')}</Ok>
-        <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego desenha escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego designs the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
-        <div className="ll-support-prices"><div>{tr('SÉRIES B, C, D E VÁRZEA', 'DIVISIONS B, C, D AND VÁRZEA')}<b>R$ 69,90</b></div><div>{tr('SÉRIE A', 'DIVISION A')}<b>R$ 89,90</b></div></div>
-        <p className="ll-support-note">{tr('No Batismo de R$ 89,90, seu clube entra na Série A, aparece no Jogo Rápido e no modo Online, e ainda ganha entrada de gala EXCLUSIVA (helicóptero, moto, fumaça… você conta a ideia) + canto da sua torcida na Carreira. O clube continua seu: nome, escudo, mascote e manto.', 'With the R$ 89.90 Club Naming, your club joins Division A, appears in Quick Play and Online mode, and also gets an EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your crowd’s chant in Career. The club remains yours: name, crest, mascot and kit.')}</p>
-        <button className="ll-support-button dark" onClick={p.onNaming}>{tr('QUERO BATIZAR MEU CLUBE →', 'I WANT TO NAME MY CLUB →')}</button>
-      </SupportPlanCard>
+      {/* 🖋 os dois batismos (13/10): os MESMOS cartões da vitrine nova, com a regra de série de hoje */}
+      <CartoesBatismo onNaming={p.onNaming} />
 
       {/* ✨ vem por aí (os dois que o Diego deixou) */}
       <div className="ll-vit-breve">

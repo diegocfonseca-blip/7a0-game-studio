@@ -9,6 +9,51 @@ Diego: *"coloque o Leão da Estradinha de volta na Série A… troque pelo Vidra
 ## 🚫🔴 Tirar destaque de live falsa (13/10) — ✅ NO AR
 Diego: *"com algum botão de fácil acesso tiro o destaque… o usuário recebe uma faixa… quando fecha não aparece mais… se fizer de novo aparece novamente"*. Botão na lista de salas (só a conta do Diego vê; o banco confere o e-mail) grava em `esc_live_tirada` (`docs/sql/live-tirada.sql`); a lista deixa de destacar a sala. O dono da sala de stream recebe a faixa (`aviso-live.tsx`, leitura a cada 2 min só pra dono de sala com Modo Stream). O jogo da sala nunca é tocado.
 
+
+## 13/10/2026 — 💳 PLANOS V2 COM NOMES NOVOS (⏳ esperando OK visual — NÃO está na main)
+
+Decisões do Diego: **Sócio** = o mensal R$ 12,90 (ganha NÚMERO DE SÓCIO; tier ouro dourado pros NOVOS — antigos não
+mudam, e isso já era a regra de `tierEfetivo`). **Batismo** = R$ 69,90 · **Batismo Lenda** = R$ 89,90 (gala única +
+canto). Os dois batismos ganham **Fundador nº** e MANTÊM moedas + estádio ("batismo mantém tudo"). **Sem desconto** do
+Sócio pro batismo (ok dele). Exemplo dos cartões do batismo = **Neymarzetti** (escudo, mascote, camisa, helicóptero).
+Listas de cada plano mais compridas ("parecer que tem bastante coisa"). Sócio: 1º Modo Manual, 2º ♾️ "Cria quantas salas
+quiser por dia" (A FAZER: hoje o limite é `LIMITES_SALA.rapidasAbertas`), manto SEM "2 cores". Os dois batismos listam
+tudo do Sócio item por item (`ItensSocio batismo`).
+⚠️ FALTA fazer de verdade, depois do OK: o Sócio mensal ganhar número de sócio + manto 2 cores + estádio com nome
+(hoje a assinatura não cria linha em `esc_socios`), e trocar os nomes "Craque"/"Plus" no Pix (`apoie-v2.tsx`) e no
+texto das regras (screens.tsx). Planos v2 seguem só nas contas do Diego (`PLANOS2_GERAL = false`).
+🛡️ REGRA DO DIEGO (13/10): **quem JÁ é Craque ou Lenda hoje fica EXATAMENTE como está** — continua criando salas do
+jeito de hoje, mantém a cor do tier de hoje e tudo o que já tem. Os planos novos (Sócio, limite de 1 sala/dia do grátis,
+dourado do Sócio) valem só pra quem entrar DEPOIS. Ao implementar os limites, conferir que nenhum Craque/Lenda antigo
+cai na régua nova.
+Pedido seguinte (13/10): Sócio diz "4 carreiras guardadas PRA SEMPRE na nuvem — todos os saves, mesmo parados";
+Gratuito diz "entra em quantas salas quiser" + "🌐 cria 1 sala online por dia" + "carreira parada há mais de 30 dias
+sem jogar é apagada". ⚠️ TUDO ISSO É SÓ TEXTO: falta o limite de 1 sala/dia no grátis e a limpeza dos saves parados
+(no grátis o save fica no APARELHO — confirmar com o Diego antes de apagar qualquer coisa).
+🗑️ PEDIDO DO DIEGO (13/10): apagar carreira PARADA há mais de 30 dias de quem NÃO paga — conta POR CARREIRA (a conta pode
+ter 3 saves e só 1 estar parado). Contagem na nuvem (`esc_pyramid_saves`, `careers[*].at`) em 13/10: 5.282 contas, 1,3 GB.
+Grátis: ~3.280 contas com carreira parada · ~4.550 carreiras paradas (2.973 contas paradas por inteiro + 463 carreiras
+paradas em 307 contas que jogaram no mês). Pagantes (167 contas) NÃO entram. Save do aparelho não dá pra contar daqui —
+o próprio jogo limpa quando abrir. ⚠️ Revoga o "quem já tem save na nuvem continua igual" de 07/10 — é ordem dele.
+✅ FEITO 13/10 (lado da NUVEM, "pode… só os que devem ser mesmo"): `esc_limpa_saves_parados` tirou **3.977 carreiras
+de 2.892 contas** grátis que não abriram o jogo em 30 dias (login + renovação de sessão) e nunca pagaram nada. Contas
+intactas (2.892/2.892), 0 pagante na lixeira, carreira jogada no mês ficou. Tudo em `esc_saves_lixeira`, volta até
+12/11 (`apagar_em`). Roteiro: `docs/sql/lixeira-saves.sql`.
+⚠️ FALTA criar no banco `esc_lixeira_devolve` e `esc_lixeira_esvazia` (estão no roteiro; o pedido foi cancelado na tela
+do Diego) — o esvazia tem que rodar a partir de 12/11. E a lixeira ainda ocupa espaço até lá.
+A FAZER (precisa mockup): aviso NO JOGO "essa carreira apaga em 7 dias se você não jogar" pra carreira grátis parada há
++30 dias (o celular decide, porque só ele sabe a data real) e depois apaga.
+
+## 13/10/2026 — 🖋 BATISMO e 🖋✨ BATISMO LENDA NA VITRINE DE TODO MUNDO (ordem do Diego: "já pode alterar e fazer")
+- Os dois cartões viraram um componente só (`CartoesBatismo`, support-plans-v2.tsx), usado na vitrine PÚBLICA e na v2:
+  exemplo Neymarzetti, lista inteira com "tudo do Sócio" item por item.
+- Regra de série que vale HOJE na pública: **Batismo R$ 69,90 = Série B/C/D/Várzea · Batismo Lenda R$ 89,90 = Série A +
+  gala exclusiva + canto**. (Na v2, `serieA`, os dois dizem Série A — decisão antiga da v2; confirmar com o Diego antes de
+  liberar a v2.) O botão de cada cartão abre o Pix já na série certa (`setSerieBatismo`).
+- Nomes trocados também no Pix (v1 e v2), nas perguntas de ajuda e na lista de planos (agora "São 5"); corrigido o
+  "Série A custa mais (R$ 69,90)" → 89,90.
+- Sócio mensal, Gratuito novo e os limites continuam SÓ nas contas do Diego (`PLANOS2_GERAL = false`).
+
 ## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
 Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
 
