@@ -714,7 +714,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         const grande = meu ?? final
         return <>
           {grande && live(grande.h, grande.a, grande.ev)}
-          {grande && liveDone && grande.pen && (
+          {/* 🥅 13/10: a disputa entra aos 93', dentro do `extra` reservado pra ela (antes esperava `liveDone` e era cortada) */}
+          {grande && liveMin >= 93 && grande.pen && (
             <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, color: INK }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 {grande.g[0]}×{grande.g[1]} {tr('NO TEMPO NORMAL — DECISÃO NOS PÊNALTIS', 'AFTER 90 MINUTES — DECIDED ON PENALTIES')}</p>
               <PensShootout compactOnline final={faseAtual.tipo === 'final'} pens={grande.pen} aName={entrants[grande.h].pais} bName={entrants[grande.a].pais} aCrest={<Escudo nome={entrants[grande.h].pais} size={20} />} bCrest={<Escudo nome={entrants[grande.a].pais} size={20} />} aSquad={entrants[grande.h].xi} bSquad={entrants[grande.a].xi} lento={!!(entrants[grande.h].humano || entrants[grande.a].humano)} />

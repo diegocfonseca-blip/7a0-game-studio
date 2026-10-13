@@ -1070,7 +1070,16 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
 // copas. ⚠️ No ONLINE SINCRONIZADO quem manda é `synced.row.duration_ms`, que vem do
 // BANCO (`esc_copa_clock_preview`): lá o segundo só entra rodando o SQL de
 // `docs/sql/online-copa-clock-mais-1s.sql`. Sem isso, a sala sincronizada segue em 14s.
-  const roundMs = synced?.row?.duration_ms ?? Math.round(((online ? 15000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
+  // ⏱️ 13/10 (Diego: *"aumente mais 1s em cada jogo da copa"*): sala 16s (o banco manda — `docs/sql/online-copa-clock-16s.sql`;
+  // o número daqui só vale sem relógio sincronizado). Carreira segue em 10s.
+  const roundMs = synced?.row?.duration_ms ?? Math.round(((online ? 16000 : 10000) + (manual ? 0 : COPA_AUTO_EXTRA_MS)) / speed)
+  // 🥅 BUG DA FINAL (Diego 13/10: *"os pênaltis da Copa do Mundo deram bug na final, não apareceu todas as cobranças"*).
+  // A disputa só entrava na tela em `liveDone` — que é DEPOIS de `duration + extra`, e o `extra` era justamente o tempo
+  // reservado pra disputa. Ou seja: a reserva passava em branco, a disputa começava no fim dela e a cerimônia (1,6s
+  // depois) cortava as cobranças no meio. Nas outras fases a abertura escondia o erro (5–10s de respiro). Agora a disputa
+  // entra quando o relógio bate 93' (ainda dentro do `extra`), e `sobraPens` é o que AINDA falta dela quando `liveDone`
+  // chega — serve de segurança pra segurar o "avança"/placar dos pênaltis até a última cobrança, sem atrasar à toa.
+  const sobraPens = (pen: [number, number], lento: boolean) => Math.max(0, pensRevealDelay(pen, lento) - (roundMs * 0.18 / 1000 + 0.7))
 
   const localLiveMin = useLiveMin(roundKey, roundMs, liveDone)
   const liveMin = synced ? synced.row ? clockMinute(synced.row, synced.now) : 0 : localLiveMin
@@ -1318,7 +1327,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
   const meuConfronto = (t: KoTie) => (
     <div key={`c${t.h}`}>
       {live(t.h, t.a, t.ev1!)}
-      {liveDone && t.pen && (
+      {liveMin >= 93 && t.pen && (
         <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, borderRadius: 12, boxShadow: `3px 3px 0 0 ${INK}` }}>
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 {t.g1![0]}×{t.g1![1]} {tr('NO TEMPO NORMAL — DECISÃO NOS PÊNALTIS', 'AFTER 90 MINUTES — DECIDED ON PENALTIES')}</p>
           <PensShootout compactOnline={privateVisual} aCrest={<NationalCrest country={entrants[t.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[t.a].pais} size={20}/>} pens={t.pen} aName={entrants[t.h].pais} bName={entrants[t.a].pais} aSquad={entrants[t.h].xi} bSquad={entrants[t.a].xi} lento={koTemGente(entrants, t)} colorOf={paisColor} />
@@ -1451,7 +1460,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
               // 🏆 jogo único: durante a partida os outros rolam em MiniLive (o seu
               // está lá em cima, ao vivo); no apito todos viram linha resolvida —
               // o seu com o "avança" segurado até a última cobrança dos pênaltis.
-              if (step === passo) return <div key={i}>{liveDone ? tieRow(t, true, mine && t.pen ? pensRevealDelay(t.pen, koTemGente(entrants, t)) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
+              if (step === passo) return <div key={i}>{liveDone ? tieRow(t, true, mine && t.pen ? sobraPens(t.pen, koTemGente(entrants, t)) : 0) : mine ? null : <MiniLive privateVisual={privateVisual} homeOwner={owner(t.h)} nmH={nm(t.h)} awayOwner={owner(t.a)} nmA={nm(t.a)} hPais={entrants[t.h].pais} aPais={entrants[t.a].pais} ev={t.ev1!} min={liveMin} />}</div>
               return <div key={i}>{tieRow(t)}</div>
             })}
           </div>
@@ -1462,7 +1471,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
             {step === QUARTAS && myQf && meuConfronto(myQf)}
             {step === SEMI && mySf && meuConfronto(mySf)}
             {step === FINAL && live(world.final.h, world.final.a, world.final.ev)}
-            {step === FINAL && liveDone && world.final.pen && (
+            {step === FINAL && liveMin >= 93 && world.final.pen && (
               <div style={{ border: '3px solid #000', borderRadius: 14, background: '#111', boxShadow: '4px 4px 0 0 #000', padding: 8, marginBottom: 8 }}>
                 <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center', color: GOLD }}>{tr('🥅 FINAL DECIDIDA NOS PÊNALTIS', '🥅 FINAL DECIDED ON PENALTIES')}</p>
                 <PensShootout compactOnline={privateVisual} final aCrest={<NationalCrest country={entrants[world.final.h].pais} size={20}/>} bCrest={<NationalCrest country={entrants[world.final.a].pais} size={20}/>} pens={world.final.pen} aName={entrants[world.final.h].pais} bName={entrants[world.final.a].pais} aSquad={entrants[world.final.h].xi} bSquad={entrants[world.final.a].xi} lento={koTemGente(entrants, world.final)} colorOf={paisColor} />
@@ -1478,7 +1487,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
                 <>
                   <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '8px 0 4px', color: GOLD }}>{tr('🏆 FINAL ÚNICA', '🏆 SINGLE FINAL')}</p>
                   {world.final.pen && <style>{'@keyframes cmWinPop{from{opacity:0}to{opacity:1}}'}</style>}
-                  <p style={{ fontSize: 12, fontWeight: 900, margin: 0, color: '#fff' }}>{nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? <span style={{ opacity: 0, animation: `cmWinPop .35s ease ${pensRevealDelay(world.final.pen, koTemGente(entrants, world.final)).toFixed(2)}s forwards` }}> · {tr('pênaltis', 'penalties')} {world.final.pen[0]}×{world.final.pen[1]}</span> : ''}</p>
+                  <p style={{ fontSize: 12, fontWeight: 900, margin: 0, color: '#fff' }}>{nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? <span style={{ opacity: 0, animation: `cmWinPop .35s ease ${sobraPens(world.final.pen, koTemGente(entrants, world.final)).toFixed(2)}s forwards` }}> · {tr('pênaltis', 'penalties')} {world.final.pen[0]}×{world.final.pen[1]}</span> : ''}</p>
                 </>
               )}
             </div>
