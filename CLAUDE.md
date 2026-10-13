@@ -310,6 +310,10 @@ Agora:
    Lote 40, recuperadas com `git checkout`). E a foto (`catalogo-snapshot.json`,
    formato `DECK|nome|clube|ano` → `{f: fame…}`) é a memória: nunca abrir pra
    escrever antes de ler.
+4b. 🏷️ **MUDOU O NOME DE UMA CARTA? ENTRA EM `CARTAS_RENOMEADAS` (data.ts)** (13/10). Nome é identidade: o save de
+   quem tinha a carta guarda o nome velho, e pro jogo viram DUAS pessoas — o catálogo soltou o "Marcelo" pra um bot
+   enquanto o Renaton tinha o "Marcelo Vieira" (a mesma carta em dois clubes). Com a linha lá, todo save que abre troca
+   o nome e tira a cópia repetida. Trava: `npm run renomeada`.
 5. **Regra permanente (21/08): MEXEU NO JOGADOR, TODO SAVE ATUALIZA.** Palavras
    do Diego: *"sempre que atualizarmos qualquer coisa de jogador deve atualizar,
    seja em carreira antiga, atual, ou em times dos bots — o nível, a categoria,

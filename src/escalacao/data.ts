@@ -3542,6 +3542,17 @@ export const CPU_MANAGERS = [
 // clubes fictícios "de gente grande" (inventados, não são paródia de reais).
 export type CareerTeam = { name: string; team: string }
 
+// ─── 🏷️ CARTAS RENOMEADAS (velho → novo, mesmo clube e ano) ───────────────
+// Quando o NOME de uma carta muda no catálogo, o save de quem já tinha a carta continua com o nome
+// velho — e o jogo passava a achar que eram DUAS pessoas: o catálogo "soltava" a carta de nome novo
+// pra outro clube, e a mesma carta existia em dois elencos (Marcelo do Renaton, 13/10: ele tinha o
+// "Marcelo Vieira" e o Leite de Verdade FC listou o "Marcelo" no leilão). O `sincronizaNiveis`
+// (store.tsx) troca o nome velho pelo novo em todo save que abre e tira a cópia repetida.
+// ⚠️ Mudou o nome de uma carta? ENTRA AQUI, senão o bug volta.
+export const CARTAS_RENOMEADAS: [velho: string, novo: string, clube: string, ano: number][] = [
+  ['Marcelo Vieira', 'Marcelo', 'Real Madrid', 2017], // 26/09: a carta virou só "Marcelo" (pedido do Diego)
+]
+
 // ─── Times RENOMEADOS (novo → velho) ─────────────────────────────────────
 // Saves antigos guardam o nome da época (managers, colocações, caixa, títulos).
 // Estas pontes deixam qualquer geração de save achar o time no nome atual.

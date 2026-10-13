@@ -1,5 +1,5 @@
-## 🐛 Marcelo repetido no leilão (13/10) — ⏳ INVESTIGAR depois (Diego: "depois falamos disso")
-Print do Diego: no leilão de reservas da carreira, "Leite de Verdade FC" listou **Marcelo (Real Madrid 2017)** com mínimo 194 e o MESMO Marcelo aparece no elenco do usuário (banco, LAT). Não pode existir a mesma carta em dois clubes. Achar de onde veio a cópia (listagem de bot × carta já do usuário).
+## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
+Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
 
 ## 🔁 Rival com banco: cansa, se machuca e tem 22 + mais dinheiro pros bots (13/10) — 🟢 LIBERADO PRA TODOS em 13/10 (`BOT_BANCO_GERAL = true`; Diego: "pode publicar pra todos já")
 Diego: "pode fazer" + 3 avisos separados (`scripts/avisos/2026-10-13-rivais-{22,cansam,dinheiro}.json` → `scripts/posts/aviso-rivais-*.png`).
