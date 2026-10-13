@@ -2710,6 +2710,17 @@ export function EscLobby() {
       return nm.toLowerCase().includes(search.trim().toLowerCase())
     })
     return wrap(<>
+      {/* 📲 COMUNIDADE DO WHATSAPP no TOPO da página de salas (13/10, Diego: "ao invés de ter no final… coloque no topo") */}
+      {COMUNIDADE_LINK && (
+        <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="block rounded-2xl px-3.5 py-3 active:translate-y-0.5"
+          style={{ background: '#1B7A3D', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff', textDecoration: 'none' }}>
+          <p className="font-black uppercase text-[16px] leading-tight" style={OSWALD}>{tr('📲 Procurando mais gente pra jogar online?', '📲 Looking for more people to play online?')}</p>
+          <p className="text-[12px] font-bold leading-snug mt-1" style={{ color: 'rgba(255,255,255,.88)' }}>{getLang() === 'en'
+            ? <>We just launched the long-awaited <b style={{ color: '#fff' }}>Leilão Legends community on WhatsApp</b>. Come join us too!</>
+            : <>Acabamos de criar a tão pedida <b style={{ color: '#fff' }}>Comunidade do Leilão Legends no WhatsApp</b>. Entre aqui também!</>}</p>
+          <span className="inline-block mt-2 rounded-full px-3.5 py-1 font-black uppercase text-[13px]" style={{ ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}` }}>{tr('Entrar na comunidade →', 'Join the community →')}</span>
+        </a>
+      )}
       {/* Arte de fundo; identidade e ações continuam sendo controles reais. */}
       <div className="online-welcome rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
         <div className="online-welcome-heading px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
@@ -3693,16 +3704,7 @@ export function EscLobby() {
             🔁 11/10: a linha do grupo VIP SAIU daqui e no lugar entrou o quadro verde da COMUNIDADE do WhatsApp
             (pedido dele: *"no lugar desse negócio do WhatsApp… procurando mais pessoas pra jogar online?"*).
             Quadro na página, não modal: não interrompe ninguém. Link em `comunidade.ts`. */}
-        {COMUNIDADE_LINK && (
-          <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="block rounded-2xl px-3.5 py-3 active:translate-y-0.5"
-            style={{ background: '#1B7A3D', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff', textDecoration: 'none' }}>
-            <p className="font-black uppercase text-[16px] leading-tight" style={OSWALD}>{tr('📲 Procurando mais gente pra jogar online?', '📲 Looking for more people to play online?')}</p>
-            <p className="text-[12px] font-bold leading-snug mt-1" style={{ color: 'rgba(255,255,255,.88)' }}>{getLang() === 'en'
-              ? <>We just launched the long-awaited <b style={{ color: '#fff' }}>Leilão Legends community on WhatsApp</b>. Come join us too!</>
-              : <>Acabamos de criar a tão pedida <b style={{ color: '#fff' }}>Comunidade do Leilão Legends no WhatsApp</b>. Entre aqui também!</>}</p>
-            <span className="inline-block mt-2 rounded-full px-3.5 py-1 font-black uppercase text-[13px]" style={{ ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}` }}>{tr('Entrar na comunidade →', 'Join the community →')}</span>
-          </a>
-        )}
+        {/* 📲 13/10: o quadro da comunidade subiu pro TOPO da página (pedido do Diego, print da lista de salas) */}
       </div>}
 
       {tab === 'join' && <div className="space-y-2">
