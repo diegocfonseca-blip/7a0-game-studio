@@ -7,7 +7,7 @@ Diego: *"o que mais poderíamos implementar nas simulações dos jogos… coisas
 2. **⭐ Craque do jogo** — no apito: melhor em campo com nota, escudo, carta + 2 destaques; sai de gol + assistência (goleiro: defesa); na carreira soma na ficha.
 3. **🌡️ Termômetro de pressão** — barra embaixo do placar pendendo pra quem está em cima, pulando nos "QUASE!" que já existem; só visual.
 Nada feito. Só codar o que ele escolher.
-🤔 Diego, vendo os dois juntos (`simulacao-termometro-radio-junto.png`): *"não sei se gostei… tem também a tática ofensivo/retranca/equilíbrio, a tabela, os jogos… tô na dúvida das informações"*. Proposta levada: nada de caixa nova; no máximo UMA frase da rádio dentro do placar, no lugar de uma linha que já existe. Esperando resposta.
+🤔 Diego, vendo os dois juntos (`simulacao-termometro-radio-junto.png`): *"não sei se gostei… tem também a tática ofensivo/retranca/equilíbrio, a tabela, os jogos… tô na dúvida das informações"*. Proposta levada: nada de caixa nova; UMA frase da rádio dentro do placar, entre a faixa da bola e os autores dos gols, trocando a cada lance; termômetro fora. Mockup `scripts/mockup-radio-no-placar.mjs` → `scripts/mockups/radio-no-placar.png` (hoje × com a frase). ⏳ Esperando OK.
 
 ## 🥅 Pênaltis da Copa do Mundo online cortados na final (13/10) — ✅ CONSERTADO (+ regionais) · ⏱️ jogo da Copa → 16s
 Diego: *"os pênaltis da Copa do Mundo deram bug na final, não apareceu todas as cobranças… e aumente mais 1s em cada jogo da copa"*.
