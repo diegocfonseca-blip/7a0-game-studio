@@ -620,7 +620,10 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     : step < P.FINAL ? `▶️ ${nomeFase(mundo.ko[step + 1 - P.PRIMEIRO_KO]?.tipo ?? 'final')}`
     : tr('🎉 Cerimônia', '🎉 Ceremony')
   const controles = relogio?.row && (
-    <section className="ll31-tournament-controls" style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 10 }}>
+    // 🎮 13/10 (print do Diego na live do Futpoint: *"o que aconteceu com o botão manual?"*): o painel ficava com o
+    // padding próprio por cima do do CSS — o rótulo "RITMO DA PARTIDA" caía em cima do MANUAL — e sem a classe dos
+    // botões. Agora é a MESMA peça do controle da Copa do Mundo (`ll27-world-controls` + `ll31-tournament-controls`).
+    <section className="ll27-world-controls ll31-tournament-controls" aria-label={tr('Ritmo da copa', 'Cup pace')}>
       {relogio.isHost ? <>
         <div className="ll27-world-rhythm">
           <button className={relogio.row.manual ? 'selected' : ''} disabled={relogio.busy} onClick={() => void relogio.command('manual')}>MANUAL</button>
@@ -629,7 +632,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
             <option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={4}>4×</option>
           </select>
         </div>
-        <div className="ll27-world-rhythm">
+        <div className="ll27-world-rhythm ll31-tournament-actions">
           <button className="primary" disabled={relogio.busy || !liveDone || done} onClick={() => void relogio.command('next')}>{proximoRotulo}</button>
           <button disabled={relogio.busy} onClick={() => void relogio.command(relogio.row?.running ? 'skip' : 'next')}>{tr('PULAR', 'SKIP')}</button>
         </div>
