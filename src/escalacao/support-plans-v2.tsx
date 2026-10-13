@@ -52,6 +52,25 @@ function Mini({ rot, children }: { rot: string; children: ReactNode }) {
   return <div className="ll-vit-mini">{children}<p>{rot}</p></div>
 }
 const Ok = ({ children }: { children: ReactNode }) => <div className="ll-vit-ok"><span>✓</span><span>{children}</span></div>
+// 🎫 TUDO DO SÓCIO, item por item (13/10, Diego: "quero que liste tudo… serve pros dois planos de batismo também").
+// Uma lista só: o cartão do Sócio mostra ela inteira; os dois batismos mostram a MESMA, sem os itens que eles já
+// têm do jeito deles (o batismo ganha Fundador nº em vez de número de sócio, e manto/estádio já estão na lista dele).
+function ItensSocio({ batismo = false }: { batismo?: boolean }) {
+  return <>
+    <Ok><b>{tr('🎮 Modo Manual', '🎮 Manual Mode')}</b>{tr(': pausa, acelera 2×/4× e pula rodada', ': pause, speed up 2×/4× and skip the round')}</Ok>
+    <Ok><b>{tr('♾️ Cria quantas salas quiser por dia', '♾️ Create as many rooms as you want each day')}</b></Ok>
+    {!batismo && <Ok><b>{tr('🎫 Número de sócio', '🎫 Member number')}</b>{tr(' — o seu, com carteirinha', ' — your own, with a member card')}</Ok>}
+    <Ok><b>{tr('👑 Nome dourado brilhando', '👑 Shining gold name')}</b>{tr(' nas salas, na tabela, no chat e no jornal', ' in rooms, tables, chat and the newspaper')}</Ok>
+    {!batismo && <Ok><b>{tr('🎽 Manto com as cores do seu clube', '🎽 Kit in your club’s colours')}</b>{tr(', pra todo mundo ver', ', for everyone to see')}</Ok>}
+    {!batismo && <Ok><b>{tr('🏟️ Estádio com o nome', '🏟️ Stadium named')}</b>{tr(' que você quiser', ' however you like')}</Ok>}
+    <Ok><b>{tr('🔎 Vê o nível', '🔎 See the level')}</b>{tr(' de todo jogador, até 👑 Lenda', ' of every player, up to 👑 Legend')}</Ok>
+    <Ok><b>{tr('🕵️ Olheiro', '🕵️ Scout')}</b>{tr(': acha jogador ', ': finds players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
+    <Ok><b>{tr('🏆 Cria salas online e Minhas Ligas', '🏆 Create online rooms and My Leagues')}</b>{tr(' — os amigos entram de graça', ' — friends join for free')}</Ok>
+    <Ok><b>{tr('💾 4 carreiras salvas', '💾 4 saved careers')}</b>{tr(' e o save guardado na nuvem', ' and your save kept in the cloud')}</Ok>
+    <Ok><b>{tr('🌐 Carreira Online e Bafo', '🌐 Online Career and Bafo')}</b>{tr(' inclusos assim que forem lançados', ' included as soon as they launch')}</Ok>
+    <Ok><b>{tr('📲 Grupo VIP', '📲 VIP group')}</b>{tr(' no WhatsApp com o Diego', ' on WhatsApp with Diego')}</Ok>
+  </>
+}
 const Controles = () => <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
   {['¼×', '½×', '2×', '4×', tr('⏭ PULAR', '⏭ SKIP')].map((v, i) => <span key={v} style={{ ...OSW, fontSize: 9, border: `2px solid ${INK}`, borderRadius: 6, padding: '2px 5px', background: i === 2 ? INK : '#fff', color: i === 2 ? '#fff' : INK }}>{v}</span>)}
 </div>
@@ -133,17 +152,7 @@ export function SupportPlansV2(p: Props) {
           <Mini rot={tr('🏆 Minhas Ligas: a liga da sua turma', '🏆 My Leagues: your crew’s league')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div><div style={{ ...OSW, fontSize: 9, background: INK, color: GOLD, borderRadius: 6, padding: '2px 6px', display: 'inline-block', marginTop: 3 }}>{tr('LIGA DOS CRIA', 'MY CREW LEAGUE')}</div></Mini>
         </div>
       </Vitrine>
-      <Ok><b>{tr('🎫 Número de sócio', '🎫 Member number')}</b>{tr(' — o seu, com carteirinha', ' — your own, with a member card')}</Ok>
-      <Ok><b>{tr('👑 Nome dourado brilhando', '👑 Shining gold name')}</b>{tr(' nas salas, na tabela, no chat e no jornal', ' in rooms, tables, chat and the newspaper')}</Ok>
-      <Ok><b>{tr('🎽 Manto com as 2 cores', '🎽 Kit in the 2 colours')}</b>{tr(' do seu clube, pra todo mundo ver', ' of your club, for everyone to see')}</Ok>
-      <Ok><b>{tr('🏟️ Estádio com o nome', '🏟️ Stadium named')}</b>{tr(' que você quiser', ' however you like')}</Ok>
-      <Ok><b>{tr('🎮 Modo Manual', '🎮 Manual Mode')}</b>{tr(': pausa, acelera 2×/4× e pula rodada', ': pause, speed up 2×/4× and skip the round')}</Ok>
-      <Ok><b>{tr('🔎 Vê o nível', '🔎 See the level')}</b>{tr(' de todo jogador, até 👑 Lenda', ' of every player, up to 👑 Legend')}</Ok>
-      <Ok><b>{tr('🕵️ Olheiro', '🕵️ Scout')}</b>{tr(': acha jogador ', ': finds players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
-      <Ok><b>{tr('🏆 Cria salas online e Minhas Ligas', '🏆 Create online rooms and My Leagues')}</b>{tr(' — os amigos entram de graça', ' — friends join for free')}</Ok>
-      <Ok><b>{tr('💾 4 carreiras salvas', '💾 4 saved careers')}</b>{tr(' e o save guardado na nuvem', ' and your save kept in the cloud')}</Ok>
-      <Ok><b>{tr('🌐 Carreira Online e Bafo', '🌐 Online Career and Bafo')}</b>{tr(' inclusos assim que forem lançados', ' included as soon as they launch')}</Ok>
-      <Ok><b>{tr('📲 Grupo VIP', '📲 VIP group')}</b>{tr(' no WhatsApp com o Diego', ' on WhatsApp with Diego')}</Ok>
+      <ItensSocio />
       {p.craque === 'ativo' && <p className="ll-vit-seu">{en ? `✅ active · renews ${ate}` : `✅ ativo · vale até ${ate}`}</p>}
       {p.craque === 'cancelado_no_prazo' && <p className="ll-vit-seu">{en ? `✅ cancelled — still valid until ${ate}` : `✅ cancelado — continua valendo até ${ate}`}</p>}
       {p.craque !== 'ativo' && p.craque !== 'cancelado_no_prazo' && (temBatismo
@@ -192,8 +201,9 @@ export function SupportPlansV2(p: Props) {
       <Ok><b>{tr('🖋️ Fundador nº', '🖋️ Founder no.')}</b>{tr(' — seu número no mural do jogo, pra sempre', ' — your number on the game’s wall, forever')}</Ok>
       <Ok><b>{tr('🏟️ Estádio com o nome', '🏟️ Stadium named')}</b>{tr(' que você escolher', ' however you choose')}</Ok>
       <Ok><b>{tr('🪙 30 moedas a cada 30 dias', '🪙 30 coins every 30 days')}</b>{tr(', pra sempre', ', forever')}</Ok>
-      <Ok><b>{tr('🎫 Tudo do Sócio', '🎫 Everything in Member')}</b>{tr(', pra sempre e sem mensalidade', ', forever and with no monthly fee')}</Ok>
       <Ok><b>{tr('🔒 Nome reservado', '🔒 Reserved name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
+      <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('🎫 e tudo do Sócio, pra sempre e sem mensalidade:', '🎫 and everything in Member, forever with no monthly fee:')}</p>
+      <ItensSocio batismo />
       <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego faz escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego makes the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
       {p.batismoPlano ? <p className="ll-vit-seu">{tr('✅ você já tem batismo', '✅ you already own a club naming')}</p>
         : <button className="ll-support-button dark" onClick={() => p.onNaming('lenda')}>{tr('QUERO O BATISMO · R$ 69,90', 'I WANT CLUB NAMING · R$ 69.90')}</button>}
@@ -221,7 +231,9 @@ export function SupportPlansV2(p: Props) {
       <Ok><b>{tr('🛡️🐾🎽 Escudo, mascote e manto', '🛡️🐾🎽 Crest, mascot and kit')}</b>{tr(' desenhados pra você', ' designed for you')}</Ok>
       <Ok><b>{tr('⚽ Série A, Jogo Rápido e Online', '⚽ Division A, Quick Play and Online')}</b>{tr(' com o seu clube', ' with your club')}</Ok>
       <Ok><b>{tr('🖋️ Fundador nº', '🖋️ Founder no.')}</b>{tr(', estádio com nome e 30 🪙 a cada 30 dias, pra sempre', ', a named stadium and 30 🪙 every 30 days, forever')}</Ok>
-      <Ok><b>{tr('🎫 Tudo do Sócio', '🎫 Everything in Member')}</b>{tr(', pra sempre e sem mensalidade', ', forever and with no monthly fee')}</Ok>
+      <Ok><b>{tr('🔒 Nome reservado', '🔒 Reserved name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
+      <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('🎫 e tudo do Sócio, pra sempre e sem mensalidade:', '🎫 and everything in Member, forever with no monthly fee:')}</p>
+      <ItensSocio batismo />
       <p className="ll-support-note">{tr('A gala e o canto são feitos sob medida: entram no jogo assim que ficam prontos (o Diego combina com você).', 'The entrance and the chant are made to order: they go into the game as soon as they are ready (Diego sorts it out with you).')}</p>
       {p.batismoPlano === 'plus' ? <p className="ll-vit-seu">{tr('✅ você já tem o Batismo Lenda', '✅ you already have Legend Naming')}</p>
         : <button className="ll-support-button gold" onClick={() => p.onNaming('plus')}>{p.batismoPlano ? tr('QUERO SUBIR PRO BATISMO LENDA', 'UPGRADE TO LEGEND NAMING') : tr('QUERO O BATISMO LENDA · R$ 89,90', 'I WANT LEGEND NAMING · R$ 89.90')}</button>}

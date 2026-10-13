@@ -8,7 +8,9 @@ Decisões do Diego: **Sócio** = o mensal R$ 12,90 (ganha NÚMERO DE SÓCIO; tie
 mudam, e isso já era a regra de `tierEfetivo`). **Batismo** = R$ 69,90 · **Batismo Lenda** = R$ 89,90 (gala única +
 canto). Os dois batismos ganham **Fundador nº** e MANTÊM moedas + estádio ("batismo mantém tudo"). **Sem desconto** do
 Sócio pro batismo (ok dele). Exemplo dos cartões do batismo = **Neymarzetti** (escudo, mascote, camisa, helicóptero).
-Listas de cada plano mais compridas ("parecer que tem bastante coisa").
+Listas de cada plano mais compridas ("parecer que tem bastante coisa"). Sócio: 1º Modo Manual, 2º ♾️ "Cria quantas salas
+quiser por dia" (A FAZER: hoje o limite é `LIMITES_SALA.rapidasAbertas`), manto SEM "2 cores". Os dois batismos listam
+tudo do Sócio item por item (`ItensSocio batismo`).
 ⚠️ FALTA fazer de verdade, depois do OK: o Sócio mensal ganhar número de sócio + manto 2 cores + estádio com nome
 (hoje a assinatura não cria linha em `esc_socios`), e trocar os nomes "Craque"/"Plus" no Pix (`apoie-v2.tsx`) e no
 texto das regras (screens.tsx). Planos v2 seguem só nas contas do Diego (`PLANOS2_GERAL = false`).
