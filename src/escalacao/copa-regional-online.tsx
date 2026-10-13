@@ -538,7 +538,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const [inicioLocal, setInicioLocal] = useState(Date.now())
   const [, setTique] = useState(0)
   useEffect(() => { if (relogio) return; const iv = setInterval(() => setTique(t => t + 1), 200); return () => clearInterval(iv) }, [!!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
-  const ROUND_MS = 15000
+  const ROUND_MS = 16000 // ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
   const step = relogio ? relogio.row?.step ?? 0 : passoLocal
   const liveDone = relogio ? !!relogio.row && !relogio.row.running : acabouLocal
   const roundMs = relogio?.row?.duration_ms ?? ROUND_MS
