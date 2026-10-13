@@ -11903,7 +11903,11 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
     // só marca o carimbo novo quando o LOCAL já tinha tudo: se a gente juntou carreira de outro
     // aparelho aqui, o local ainda não tem — o carimbo fica velho e a próxima ida à home baixa e junta.
-    if (localCobreNuvem) marcaCloudAt(uid, up?.updated_at as string | undefined)
+    // 📱 e só se a cópia do APARELHO estiver em dia com o que subiu: aparelho cheio (cópia velha) não marca,
+    //    e a próxima ida à home baixa a da nuvem (13/10, caso do Pé de Breque)
+    const aparelhoEmDia = (() => { if (!isCareerSave(state)) return true; try { const r = localStorage.getItem('esc-solo-career'); const l = r ? JSON.parse(r) as EscState : null; return !!l && l.seed === state.seed && (l.seasonNo ?? 0) >= (state.seasonNo ?? 0) } catch { return false } })()
+    if (localCobreNuvem && aparelhoEmDia) marcaCloudAt(uid, up?.updated_at as string | undefined)
+    if (isCareerSave(state) && !aparelhoEmDia) carreiraEmMemoria = { ...state }
     // 💾 lembra QUANDO e EM QUE PONTO esta carreira subiu (o "salvo na nuvem há X min" da Central)
     if (isCareerSave(state)) anotaSubidaNuvem(state)
     return 'nuvem'
@@ -11956,7 +11960,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     // 💸 pergunta só o carimbo: nuvem igual à que este aparelho já juntou = nada a baixar
     const carimbo = await carimboDaNuvem(uid)
     if (!carimbo) return false // sem save na nuvem (ou sem resposta): fica o do aparelho
-    if (localCareers.length && carimbo === cloudAtConhecido(uid)) return false
+    if (localCareers.length && carimbo === cloudAtConhecido(uid) && !(await nuvemNaFrente(localCareers))) return false
     const cloud = await loadPyramidCloud()
     if (!cloud) return false
     const all = mergeCareers(localCareers, cloud.careers)
@@ -11969,12 +11973,49 @@ export async function syncCareersWithCloud(): Promise<boolean> {
       localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(rest.slice(0, MAX_CAREER_SLOTS)))
       gravou = true
     } catch { /* cota cheia: não marca o carimbo, e a próxima vez tenta juntar de novo */ }
+    // 📱 aparelho CHEIO (13/10, caso do Pé de Breque: "volto e estou na 189 de novo"): a versão certa fica
+    // na MEMÓRIA e é ela que o "Continuar" abre — nunca a cópia velha que sobrou no aparelho.
+    carreiraEmMemoria = gravou ? null : active.save
+    if (!gravou) avisaSemEspaco(true)
     // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
     // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
     if (gravou) marcaCloudAt(uid, cloud.iso)
     anotaSeedsDaNuvem(uid, cloud.careers)
     return true
   } catch { return false }
+}
+// 📱☁️ A CARREIRA SEGUE A CONTA, EM QUALQUER APARELHO (13/10). Diego: *"ele tem que usar o save onde ele
+// quiser, seja PC, Chrome, celular"*. O furo: o carimbo diz "este aparelho já juntou a nuvem" — mas se o
+// aparelho estava CHEIO, a cópia dele não foi gravada e ficou VELHA (temporada 189 com a nuvem na 193).
+// Agora, mesmo com o carimbo igual, o jogo pergunta à nuvem SÓ o resumo (seed + temporada de cada carreira,
+// uns bytes — `esc_pyramid_progresso`) e, se ela estiver na frente de qualquer carreira do aparelho, baixa e junta.
+async function nuvemNaFrente(locais: CareerSlot[]): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('esc_pyramid_progresso')
+    if (error || !Array.isArray(data)) return false
+    const local = new Map(locais.map(c => [(c.save as EscState).seed, (c.save as EscState).seasonNo ?? 0]))
+    return (data as { seed?: number; temp?: number }[]).some(r => r.seed != null && (local.get(r.seed) ?? -1) < (r.temp ?? 0))
+  } catch { return false }
+}
+// a carreira mais nova que NÃO coube no aparelho (só nesta aba)
+let carreiraEmMemoria: EscState | null = null
+/** a carreira ativa pra abrir: a do aparelho, ou a da memória se ela estiver MAIS adiantada (aparelho cheio) */
+export function carreiraAtivaPraAbrir(): EscState | null {
+  let local: EscState | null = null
+  try { const r = localStorage.getItem('esc-solo-career'); local = r ? JSON.parse(r) as EscState : null } catch { local = null }
+  const mem = carreiraEmMemoria
+  if (mem && (!local || local.seed !== mem.seed || (mem.seasonNo ?? 0) >= (local.seasonNo ?? 0))) return mem
+  return local
+}
+// 📱 AVISO DE APARELHO CHEIO: o salvamento automático no aparelho falhou. A carreira continua na nuvem até o
+// último "Sair e salvar"; o aviso só pede pra salvar antes de fechar. Some sozinho quando o aparelho volta a gravar.
+let semEspaco = false
+const semEspacoOuvintes = new Set<() => void>()
+export function avisaSemEspaco(v: boolean) { if (semEspaco === v) return; semEspaco = v; semEspacoOuvintes.forEach(f => { try { f() } catch { /* ignora */ } }) }
+export function useSemEspaco(): boolean {
+  const [, set] = useState(0)
+  useEffect(() => { const f = () => set(x => x + 1); semEspacoOuvintes.add(f); return () => { semEspacoOuvintes.delete(f) } }, [])
+  return semEspaco
 }
 export async function deletePyramidCloud() {
   try { const { data } = await supabase.auth.getUser(); if (data?.user) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id) } catch { /* ignora */ }
@@ -12911,7 +12952,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const presidencySig = sig + assinaturaPresidencia(state)
     if (presidencySig === soloSigRef.current) return
     soloSigRef.current = presidencySig
-    try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
+    // 📱 cota cheia: antes era ignorado calado (e o jogo abria a cópia velha depois). Agora avisa (13/10).
+    try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())); avisaSemEspaco(false) } catch { avisaSemEspaco(true) }
     // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
   }, [state])
 
