@@ -5,6 +5,7 @@ Diego: "pode fazer" + 3 avisos separados (`scripts/avisos/2026-10-13-rivais-{22,
 - 22: no Leilão de Reservas todo bot vira `deepSquad` e gasta o caixa; no FINISH_CEREMONY `completaBancoDosBots` fecha 2 por posição com sobra REAL pagando `justoDaCarta` (nunca incógnito).
 - Os 3 caminhos da virada (Diego: *"o bot também pode participar de qualquer leilão novo"*): **Leilão de Transferências** (bot mira 22 no pregão + completa depois) · **Leilão novo do zero** (todo mundo monta 11, o bot completa o banco no fim da cerimônia) · **Mesmo time** (sem leilão: o bot completa o banco no `CONFIRM_MESMO_TIME`).
 - 🧠 Bot ESPERTO no banco (Diego: *"ele pega se ele quiser… e vai melhorando aos poucos"*): separa uma parte do caixa pelo perfil (gastador 60% · pão-duro 25% · …), em cada vaga leva o MELHOR que cabe na verba (caro demais = não pega), e todo começo de temporada faz 1 troca (2 o gastador) se tiver sem-clube +6 de nível melhor que o pior do elenco — dispensa o pior.
+- 💰 O bot ALCANÇA O MÍNIMO DO DONO (Diego 13/10, "Sim. Isso"): carta listada com mínimo acima do teto do bot → bot com caixa (mínimo ≤ 1/3 do caixa) dá EXATAMENTE o mínimo, nunca acima (anti-esquema de lucro). Gente pode dar mais. Só carreira solo (`perfilNoLeilao` 3º item). Aviso: `scripts/posts/aviso-bots-inteligentes.png`. Resolve o pendente "teto do bot crescer sem extrapolar" (20/09).
 - Dinheiro: patrocínio no `balancoBot` + prêmio de colocação (`premiosColocacaoBots`) no `clubRewards` da virada.
 - Central: notícias de DM, poupados e desfalque do seu próximo adversário.
 - [x] Liberado pra todos + linha em novidades.ts. Os 3 avisos prontos em `scripts/posts/aviso-rivais-*.png` (Diego posta).
@@ -3312,7 +3313,7 @@ Tela do Monte mostra o valor de antes na sua carta e o texto de ajuda diz "volta
 saiu". Novidade PT/EN na home. Trava: `npm run monte` (seção 1a).
 
 ### ⏳ PENDENTE
-1. **Teto do bot crescer sem extrapolar** — ele pediu de novo (20/09, depois do
+1. ✅ (13/10: resolvido pelo "bot alcança o mínimo do dono") **Teto do bot crescer sem extrapolar** — ele pediu de novo (20/09, depois do
    "não entendi nada"): *"precisamos bolar alguma ideia pro piso dos bots de todos os
    clubes aumentar e não ficar preso no 450… algo inteligente que funcione mas também
    não extrapole"*. As réguas medidas estão em `scripts/simula-teto.mts`. Levar UMA

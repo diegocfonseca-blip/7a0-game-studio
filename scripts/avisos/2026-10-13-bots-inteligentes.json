@@ -1,0 +1,18 @@
+{
+  "data": "13 de outubro de 2026",
+  "titulo": "Bots mais inteligentes",
+  "destaque": { "passos": [
+    { "emoji": "🧠", "titulo": "Escolhe bem", "sub": "o melhor que cabe" },
+    { "emoji": "📈", "titulo": "Melhora aos poucos", "sub": "troca o pior" },
+    { "emoji": "💰", "titulo": "Paga o mínimo", "sub": "da sua carta" }
+  ] },
+  "itens": [
+    { "tag": "novidade", "texto": "Cada bot separa **uma parte do caixa** pro elenco, do jeito dele: o gastador gasta mais, o pão-duro guarda." },
+    { "tag": "novidade", "texto": "Ele leva o **melhor jogador que cabe no bolso**. Se está caro demais, não pega e guarda o dinheiro." },
+    { "tag": "novidade", "texto": "Todo começo de temporada ele **melhora o time aos poucos**: contrata alguém bem melhor e dispensa o pior." },
+    { "tag": "melhoria", "texto": "Listou um jogador caro? Agora o bot com dinheiro **dá lance no mínimo que você pediu**. Quem quiser pode dar mais, e o maior lance leva." }
+  ],
+  "rodape": "Vale no Modo Carreira.",
+  "rodapeSub": "O bot paga o mínimo da carta, nunca acima. Vender recupera o que você pagou.",
+  "saida": "scripts/posts/aviso-bots-inteligentes.png"
+}

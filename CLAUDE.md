@@ -773,7 +773,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   leilão da virada + completam com jogador sem clube, pagando; também no "mesmo time"), cansaço e lesão com a MESMA régua
   do humano (só com o gás ligado, C+, e só de temporada nova em diante), patrocínio (= Master de 2 temp.) e prêmio pela
   colocação. **O bot é ESPERTO** (*"ele pega se ele quiser… e vai melhorando aos poucos"*): verba pelo perfil, o melhor que
-  cabe na vaga, 1 melhora por temporada. Nunca incógnito. Motor em `bots-banco.ts`; trava `npm run bots-banco`.
+  cabe na vaga, 1 melhora por temporada. Nunca incógnito. **E alcança o mínimo do dono** (*"Sim. Isso"*): carta
+  listada cara → o bot com caixa dá EXATAMENTE o mínimo (≤ 1/3 do caixa), nunca acima — senão vira esquema de lucro. Motor em `bots-banco.ts`; trava `npm run bots-banco`.
 
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque

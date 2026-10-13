@@ -2245,7 +2245,7 @@ function fairPrice(v: number): number {
 // 🎭 `perfil` (07/10, `perfis-bot.ts`): o jeito de comprar do clube bot NA CARREIRA —
 // gastador, pão-duro, obcecado, imprevisível ou equilibrado. 'equilibrado' (o padrão, e
 // o que partida rápida/salas sempre recebem) é o leilão de antes, sem mudar nem o rng.
-export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector): (Bid & { cardId: string })[] {
+export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector, pagaPisoDoDono = false): (Bid & { cardId: string })[] {
   const pos = SECTORS[sectorIdx]
   // FAKE NÃO SEGURA VAGA (só CPU): incógnito no elenco conta como vaga aberta —
   // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
@@ -2302,8 +2302,16 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
     // não vale o piso (listado caro demais), pula e tenta o próximo do ranking.
     const floor = (t.c as { paid?: number }).paid ?? 0
     if (floor > 0) {
-      if (wallet < floor || cap + 3 < floor) continue
-      amt = Math.max(amt, floor)
+      if (wallet < floor) continue
+      if (cap + 3 < floor) {
+        // 💰 O BOT ALCANÇA O MÍNIMO DO DONO (Diego 13/10, carreira): carta com mínimo acima do que
+        // ele acha que vale — o caso do Marcelo listado a 194 que nenhum bot olhava. Se o clube tem
+        // caixa (o mínimo cabe em 1/3 do dinheiro dele), ele dá EXATAMENTE o mínimo, nunca mais:
+        // assim quem listou recupera o que pagou, mas não dá pra lucrar comprando e listando.
+        // Gente pode dar mais junto; o envelope maior leva, como sempre.
+        if (!pagaPisoDoDono || floor * 3 > m.money) continue
+        amt = floor
+      } else amt = Math.max(amt, floor)
     }
     amt = Math.min(amt, wallet)
     if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt; wallet -= amt }
@@ -2312,10 +2320,11 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
 }
 
 // 🎭 o perfil do bot neste leilão: só CARREIRA e só bot (humano e sala rápida = equilibrado)
-function perfilNoLeilao(state: EscState, m: Manager): [PerfilBot, Sector | undefined] {
-  if (!state.careerOnline || m.isHuman) return ['equilibrado', undefined]
+function perfilNoLeilao(state: EscState, m: Manager): [PerfilBot, Sector | undefined, boolean] {
+  if (!state.careerOnline || m.isHuman) return ['equilibrado', undefined, false]
   const p = perfilDoClube(m.teamName, state.seed ?? 0)
-  return [p, p === 'obcecado' ? setorDaObsessao(m.teamName, state.seasonNo ?? 1) as Sector : undefined]
+  // 3º: o bot pode alcançar o mínimo do dono (13/10) — só carreira solo, junto do rival com banco
+  return [p, p === 'obcecado' ? setorDaObsessao(m.teamName, state.seasonNo ?? 1) as Sector : undefined, state.onlineMode !== 'online' && botBancoLiberado()]
 }
 // 🚫📈 o PREÇO JUSTO da carta pra o livro e pro piso (o exagero do gastador não entra):
 // o mesmo teto que o bot usaria por esse nível, na economia da sala, com 15% de folga

@@ -95,5 +95,15 @@ try {
   const st2 = { ...st, seasonNo: 6, managers: st.managers.map(m => ({ ...m, squad: [...m.squad] })) }
   S.completaBancoDosBots(st2)
   assert.deepEqual(st2.managers[1].squad.map(c => c.id), rico.squad.map(c => c.id), 'chave desligada: nada muda')
+  // 10) o bot ALCANÇA O MÍNIMO DO DONO (13/10): dá exatamente o mínimo, nunca mais, e só se cabe em 1/3 do caixa
+  const listado = { id: 'marcelo', name: 'Marcelo', club: 'Real Madrid', year: 2017, pos: 'LAT', lo: 80, hi: 84, fame: 4, paid: 194, seller: 99 }
+  const bot = (money) => ({ id: 7, name: 'Bot', teamName: 'Bot', isHuman: false, formation: '4-3-3', money, aggression: 0.5, starHunger: 0.3, deepSquad: true, squad: [] })
+  const rngFixo = () => 0.5
+  const lance = (money, paga) => S.cpuEnvelope(bot(money), [listado], 1, rngFixo, false, 1, 'equilibrado', undefined, paga)
+  const lanceRico = lance(900, true)
+  assert.equal(lanceRico.length, 1, 'bot com caixa dá lance na carta listada cara')
+  assert.equal(lanceRico[0].amount, 194, 'exatamente o mínimo — nunca acima (senão vira esquema de lucro)')
+  assert.equal(lance(900, false).length, 0, 'sem a regra (sala online/rápida): igual a antes, não dá lance')
+  assert.equal(lance(400, true).length, 0, 'mínimo maior que 1/3 do caixa: não dá lance')
   console.log('✅ bots-banco: plano determinístico, passado imutável, rodízio sem incógnito, lesão, patrocínio e prêmio')
 } finally { await vite.close() }
