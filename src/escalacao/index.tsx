@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
 import { AvisoDestaqueTirado } from './aviso-live'
+import { AvisoSemEspaco } from './aviso-espaco' // 📱 aparelho cheio: pede pra salvar antes de fechar (13/10)
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
@@ -511,6 +512,7 @@ export default function EscalacaoGame() {
         <SoundGate />
         <ChatWidget />{/* 💬 chat/zoeira da sala — só aparece em partida online */}
         <AvisoDestaqueTirado />{/* 🚫🔴 o dono da sala fica sabendo que o destaque de live saiu (13/10) */}
+        <AvisoSemEspaco />
         {/* FUNDO CREME DO JOGO: o site-estúdio tem fundo quase-preto (#06060f). O
             Leilão Legends é todo em telas cremes. Se alguma tela renderizar vazia
             por um instante (troca de fase, estado incompleto sincronizado, save
