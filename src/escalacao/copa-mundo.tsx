@@ -1539,14 +1539,6 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
           <p style={{ fontSize: 9, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0', position: 'relative' }}>{tr('final', 'final')}: {nm(world.final.h)} {world.final.g[0]}×{world.final.g[1]} {nm(world.final.a)}{world.final.pen ? ` (${tr('pên.', 'pens')} ${world.final.pen[0]}×${world.final.pen[1]})` : ''}</p>
         </div>
       )}
-      {done && online && privateVisual && (() => {
-        // 🥇 ARTILHEIRO DA COPA EM CARTÃO (13/10, mockup nº 3): o 1º com gols, seleção e carta; 2º e 3º embaixo.
-        const linhas: ArtilheiroLinha[] = artilhariaDaCopa(world).slice(0, 3).map(r => {
-          const carta = entrants[r.team].xi.find(c => c.name === r.name)
-          return { nome: r.name, clube: entrants[r.team].pais, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <NationalCrest country={entrants[r.team].pais} size={40} />, meu: isYou(r.team) }
-        })
-        return <ArtilheiroCopaCard titulo={tr('ARTILHEIRO DA COPA DO MUNDO', 'WORLD CUP TOP SCORER')} linhas={linhas} />
-      })()}
       {/* 🎴 CARTA DO CAMPEÃO DO MUNDO — só pra quem venceu (privada). Igual às
           outras copas: a carta é gravada na conta NA HORA (conta mesmo sem abrir). */}
       {/* 🎴 A CARTA DO CAMPEÃO DO MUNDO — na carreira e TAMBÉM na sala (31/08).
@@ -1569,6 +1561,14 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
           <CardCollectPrompt motivo={tr('🌍 Campeão do Mundo Legends', '🌍 Legends World Cup champion')} seasonKey={`co:solo${seed}:${seasonNo}:copamundo`} origin="cpu" onGuaranteed={c => onCard?.(c, `co:solo${seed}:${seasonNo}:copamundo`)} />
         </div>
       )}
+      {done && online && privateVisual && (() => {
+        // 🥇 ARTILHEIRO DA COPA EM CARTÃO (13/10, mockup nº 3) — DEPOIS da carta do campeão, que vem primeiro (Diego: *"tem a cartinha que ganha antes"*): o 1º com gols, seleção e carta; 2º e 3º embaixo.
+        const linhas: ArtilheiroLinha[] = artilhariaDaCopa(world).slice(0, 3).map(r => {
+          const carta = entrants[r.team].xi.find(c => c.name === r.name)
+          return { nome: r.name, clube: entrants[r.team].pais, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <NationalCrest country={entrants[r.team].pais} size={40} />, meu: isYou(r.team) }
+        })
+        return <ArtilheiroCopaCard titulo={tr('ARTILHEIRO DA COPA DO MUNDO', 'WORLD CUP TOP SCORER')} linhas={linhas} />
+      })()}
       {privateVisual && <details className="ll27-copa-stats">
         <summary>{tr('ESTATÍSTICAS DA COPA DO MUNDO', 'WORLD CUP STATS')}</summary>
         <p>{tr('Gols e assistências dos jogos encerrados desta Copa.', 'Goals and assists from the finished games of this Cup.')}</p>
