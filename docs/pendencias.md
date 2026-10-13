@@ -1,3 +1,6 @@
+## 🎬 Abertura da rodada nas copas das salas online (13/10) — ⏳ MOCKUP ENVIADO, esperando OK
+Diego: *"o que fazer pra deixar as telas das copas quando começam os jogos mais organizadas… todas: Mundo, Champions, regionais, Libertadores"*. Mockup `scripts/mockup-abertura-copas.mjs` → `scripts/mockups/abertura-copas.png`: 5s antes da bola rolar, tela com o CAMINHO da copa (fases, o seu marcado) + CONFRONTOS da rodada escudo×escudo (o seu em destaque) + contagem; a bola rola sozinha. Mesma peça pra Copa do Mundo, Liberta, Champions, Copa dos 8 e regionais (só troca cor/arte). Sem passo novo, sem toque.
+
 ## 🦁⬆️ Leão da Estradinha volta pra Série A (13/10) — ✅ NO AR
 Diego: *"coloque o Leão da Estradinha de volta na Série A… troque pelo Vidraceiro, e Vidraceiro entra no lugar dele"*. Troca 1:1 em `DIVISION_TEAMS` (sem OLD_NAME). Arte nova do dono (jorgericardo777): escudo 256×360 · mascote 370×440 · camisa da Loja sem shorts (saiu o `RECORTE_CAMISA`) · manto remedido `#950C0D`/branco no `batismos.ts`, `MANTO_CONTAS` E no `esc_socios`. Post: `scripts/posts/leao-estradinha-cara-nova.png` (flag nova `--volta` no `mockup-batismo.mjs`). Nome do dono no post ficou em branco (não sei o nome — não inventar).
 
