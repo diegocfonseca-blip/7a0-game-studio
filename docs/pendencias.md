@@ -1,6 +1,13 @@
 ## 🧪 Trava `npm run copamundo` está vermelha (achado 13/10, JÁ vinha assim antes da abertura das copas)
 Falha: *"🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)"* — reproduz no main anterior (bf9d63d), então não é da abertura. Conferir se é a trava desatualizada ou a ficha contando jogo de copa antes do apito.
 
+## 🏆 Copas do online: AS 3 PRÓXIMAS (13/10) — ⏳ MOCKUP ENVIADO, esperando o Diego escolher
+Diego: *"teria algo que você implementaria mais? Manda os mockups! Mas o primeiro já não fizemos isso no anterior?"*. Resposta: NÃO — hoje a chave é só a lista "quem pega quem" antes da copa (`ll26-draw-row`) + resultados por fase escondidos num "ver resultados" (`ll26-bracket-history`); a abertura de hoje mostra só os confrontos DA RODADA. Mockup `scripts/mockup-copas-proximos.mjs` → `scripts/mockups/copas-proximos.png`, três ideias:
+1. **Chaveamento desenhado** (árvore OITAVAS → FINAL com escudo, quem passou em verde, quem caiu apagado, o seu caminho com borda dourada, o que vem pontilhado) logo abaixo do palco do mata-mata em diante; toque num jogo já jogado abre placar/pênaltis.
+2. **Resumo da fase** (5s ao fechar a fase: ✅ passaram / ❌ caíram + contagem pra próxima) — entra ANTES da abertura da fase seguinte.
+3. **Artilheiro no fim da copa** (junto do campeão: gols, clube, carta, 2º e 3º) — igual já existe na liga.
+Nada feito ainda. Só codar o que ele escolher, mockup por mockup.
+
 ## 🎬 Abertura da rodada nas copas das salas online (13/10) — ✅ NO AR em TODAS: Copa dos 8 / Libertadores / Champions / Copa do Mundo / regionais
 Diego: *"quero que some depois da abertura… e sempre aparece quando for começar outro confronto… pode fazer"*. Feito em `AberturaCopa` (online-match-visual.tsx) dentro do `CompetitionStage` do quickCopa (screens.tsx): aparece no `firstLegPending` (10s de leitura de sempre) e em toda fase nova (`copaJustAdvanced`, respiro 3,2s → 5s); some quando a bola rola. A caixa "aguardando o pontapé" some junto. Só no visual online público; NBA/basquete fora.
 - [x] **Copa do Mundo e regionais do online** (Diego: *"ok mas faça os outros também"*): a pausa entre passos é decidida no APARELHO DO DONO (`dueClockCommand` / `useRelogioRegional`), o banco só carimba — então `respiroAntes()` em `copa-passos.ts` (5s antes de passo que roda bola, 0,5/1,6s nos outros) resolveu SEM mexer no SQL. A abertura aparece no palco (`CupScreen` só com `online`; `CopaRegionalTorneio`) com a contagem lida do `updated_at` do relógio (todo mundo vê igual). Carreira (Copa do Mundo offline) NÃO mudou. Rodada grande lista o seu jogo + 5 e "+N confrontos".
