@@ -3,12 +3,13 @@
 // das salas… vídeo padrão que sempre fazemos"*. Mesmo molde dos outros reels (cenas em HTML +
 // Playwright gravando + ffmpeg). Nomes e números são os do banco no dia (esc_vitrine_salas).
 //
-// 🎞️ Roteiro (~24 s):
+// 🎞️ Roteiro (~29 s):
 //   0,0– 4,0  📲 novo nas salas online · embaixo do "Atualizar lista"
 //   4,0–10,2  🏆 Campeões de hoje — quem acabou de ganhar entra EM CIMA
 //  10,2–16,4  📊 Ranking da semana — top 5 + você · seg 0h → dom 23h59 · zera toda segunda
-//  16,4–20,6  🖋️ Último batismo — o clube mais novo do jogo
-//  20,6–24,4  quem fecha a semana em 1º? + marca
+//  16,4–21,4  🥇🥈🥉 top 3 leva medalha no nome · saiu do top 3, some (pedido do Diego 13/10)
+//  21,4–25,6  🖋️ Último batismo — o clube mais novo do jogo
+//  25,6–29,4  quem fecha a semana em 1º? + marca
 //
 //   node scripts/video-vitrine-reels.mjs [--saida vitrine-reels.mp4]
 import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'node:fs'
@@ -50,11 +51,11 @@ const semana = SEM.map(([n, t, m], i) => `<div style="display:flex;align-items:c
   <span style="${OSW};font-size:34px;width:64px;text-align:center">87º</span><b style="flex:1;${OSW};font-size:36px">Você · seu clube</b><span style="${OSW};font-size:36px">1 título</span></div>`
 
 const batismo = `<div style="display:flex;align-items:center;gap:26px">
-  <img src="${img('src/escalacao/img/rossini-escudo.webp')}" style="height:190px;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 17.2s both">
+  <img src="${img('src/escalacao/img/rossini-escudo.webp')}" style="height:190px;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 22.2s both">
   <div style="flex:1"><p style="margin:0;${OSW};font-size:60px;text-transform:uppercase;line-height:1">Rossini Money</p>
     <p style="margin:8px 0 0;font-size:30px;font-weight:700;color:#ddd">o clube mais novo do jogo</p></div>
-  <img src="${img('src/escalacao/img/rossini-mascote.webp')}" style="height:250px;margin:-30px -10px -20px 0;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 17.6s both"></div>
-  <div style="margin-top:26px;${OSW};font-size:38px;text-align:center;background:${GOLD};color:${INK};border:4px solid ${INK};border-radius:22px;box-shadow:6px 6px 0 ${INK};padding:20px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 18.4s both">🖋️ QUERO BATIZAR O MEU CLUBE →</div>`
+  <img src="${img('src/escalacao/img/rossini-mascote.webp')}" style="height:250px;margin:-30px -10px -20px 0;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 22.6s both"></div>
+  <div style="margin-top:26px;${OSW};font-size:38px;text-align:center;background:${GOLD};color:${INK};border:4px solid ${INK};border-radius:22px;box-shadow:6px 6px 0 ${INK};padding:20px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 23.4s both">🖋️ QUERO BATIZAR O MEU CLUBE →</div>`
 
 const video = `<!doctype html><meta charset="utf-8"><style>${FONTES}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -65,6 +66,8 @@ body{width:1080px;height:1920px;background:#120f0c;font-family:system-ui;overflo
 @keyframes entra{0%{transform:translateY(-40px);opacity:0}100%{transform:translateY(0);opacity:1}}
 @keyframes sobe{0%{transform:translateY(90px);opacity:0}100%{transform:translateY(0);opacity:1}}
 @keyframes pulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes somePerde{0%{opacity:1;transform:scale(1)}40%{transform:scale(1.3) rotate(-15deg)}100%{opacity:0;transform:scale(.2) translateY(-40px)}}
+.perde{display:inline-block;animation:somePerde .7s ease-in 20.3s both}
 </style><body>
 
 ${cena(0, 4.0, `
@@ -83,13 +86,23 @@ ${cena(10.2, 16.4, `
   <div style="margin-top:40px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) 14.2s both">${pill('seg 0h → dom 23h59', '#fff', INK, 38)}</div>
   <p style="${OSW};font-size:42px;color:${GOLD};margin-top:28px;animation:sobe .45s 14.8s both">⏳ zera toda segunda</p>`)}
 
-${cena(16.4, 20.6, caixa('🖋️ Último batismo', 'O clube mais novo do jogo — de um jogador de verdade.', batismo, 16.5, true))}
+${cena(16.4, 21.4, `
+  <p style="font-size:120px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 16.5s both">🥇🥈🥉</p>
+  <p style="${OSW};font-size:76px;text-transform:uppercase;line-height:1.05;color:#fff;margin:24px 0 40px;animation:sobe .45s 16.8s both">top 3 da semana<br><span style="color:${GOLD}">ganha medalha no nome</span></p>
+  ${[['Broxada Sinistra', '', '🥇', 17.3], ['BarSemLonã', '', '🥈', 17.6], ['GAMA FC', '', '🥈', 17.9]].map(([n, s, m, t]) => `<div style="width:860px;margin-top:18px;display:flex;align-items:center;gap:16px;background:${CREME};border:5px solid ${INK};border-radius:24px;box-shadow:6px 6px 0 ${INK};padding:18px 26px;animation:entra .45s cubic-bezier(.2,1.5,.4,1) ${t}s both">
+    <b style="${OSW};font-size:46px;flex:1;text-align:left">${n}</b><span style="font-size:52px">${s}</span><span style="font-size:60px">${m}</span></div>`).join('')}
+  <p style="font-size:30px;font-weight:700;color:#bbb;margin-top:22px;animation:sobe .45s 18.2s both">nas salas, do lado do selo do plano · empatou, todos levam</p>
+  <div style="width:860px;margin-top:44px;display:flex;align-items:center;gap:16px;background:#2a2520;border:5px dashed #777;border-radius:24px;padding:18px 26px;animation:entra .45s cubic-bezier(.2,1.5,.4,1) 19.2s both">
+    <b style="${OSW};font-size:46px;flex:1;text-align:left;color:#ddd">Diesel Fc</b><span class="perde" style="font-size:60px">🥉</span></div>
+  <p style="${OSW};font-size:44px;color:${RED};margin-top:22px;animation:sobe .45s 19.8s both">saiu do top 3? a medalha some 👋</p>`)}
 
-${cena(20.6, 40, `
-  <p style="font-size:140px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 20.7s both">🏆</p>
-  <p style="${OSW};font-size:84px;text-transform:uppercase;line-height:1.05;color:#fff;margin:20px 0 40px;animation:sobe .45s 21.0s both">quem vai fechar<br>a semana em <span style="color:${GOLD}">1º</span>?</p>
-  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 21.6s both">${pill('entra numa sala hoje', GREEN, '#fff', 40)}</div>
-  <p style="${OSW};font-size:62px;margin-top:70px;text-transform:uppercase;color:#fff;animation:pulsa 1.4s ease-in-out 22.2s infinite">⚽ Leilão <span style="color:${RED}">Legends</span></p>
+${cena(21.4, 25.6, caixa('🖋️ Último batismo', 'O clube mais novo do jogo — de um jogador de verdade.', batismo, 21.5, true))}
+
+${cena(25.6, 40, `
+  <p style="font-size:140px;line-height:1;animation:pop .55s cubic-bezier(.2,1.6,.4,1) 25.7s both">🏆</p>
+  <p style="${OSW};font-size:84px;text-transform:uppercase;line-height:1.05;color:#fff;margin:20px 0 40px;animation:sobe .45s 26.0s both">quem vai fechar<br>a semana em <span style="color:${GOLD}">1º</span>?</p>
+  <div style="animation:pop .5s cubic-bezier(.2,1.6,.4,1) 26.6s both">${pill('entra numa sala hoje', GREEN, '#fff', 40)}</div>
+  <p style="${OSW};font-size:62px;margin-top:70px;text-transform:uppercase;color:#fff;animation:pulsa 1.4s ease-in-out 27.2s infinite">⚽ Leilão <span style="color:${RED}">Legends</span></p>
   <p style="font-size:32px;font-weight:700;color:#999;margin-top:12px">leilaolegends.com</p>`)}
 </body>`
 
@@ -103,7 +116,7 @@ const ctx = await b.newContext({ viewport: { width: 1080, height: 1920 }, record
 const vp = await ctx.newPage()
 await vp.goto('file://' + vtmp)
 await vp.evaluate(() => document.fonts.ready)
-await vp.waitForTimeout(24800)
+await vp.waitForTimeout(29800)
 await ctx.close(); await b.close()
 const webm = readdirSync(REC).find(f => f.endsWith('.webm'))
 if (!webm) throw new Error('o Playwright não gravou o webm')
