@@ -39,6 +39,14 @@ do Diego) — o esvazia tem que rodar a partir de 12/11. E a lixeira ainda ocupa
 A FAZER (precisa mockup): aviso NO JOGO "essa carreira apaga em 7 dias se você não jogar" pra carreira grátis parada há
 +30 dias (o celular decide, porque só ele sabe a data real) e depois apaga.
 
+## 13/10/2026 — 💳 PAGAMENTOS AUTOMÁTICOS (decidido com o Diego, ⏳ a fazer)
+- **Mercado Pago:** Batismo (69,90) e Batismo Lenda (89,90) em Pix de uma vez OU cartão; Sócio (12,90/mês) SÓ no cartão
+  (assinatura que cobra sozinha). Webhook do MP avisa o jogo e libera sozinho.
+- **Vendria:** Sócio no **Pix Automático** (ordem dele: *"pix normal no mercado pago do sócio não quero… tem que ser
+  automático no vendria"*). Taxa vista no site: 4,9% + R$ 1,99 (ou 3% + 1,99 no simulador) — de 12,90 ficam ~10,30.
+- Falta: o Diego colocar a chave do MP no Supabase (nunca pelo chat) e mandar o link de integração/webhook da Vendria.
+- Sócio que não paga volta pro grátis sozinho; Craque/Lenda antigos não mudam (regra de 13/10).
+
 ## 13/10/2026 — 🖋 BATISMO e 🖋✨ BATISMO LENDA NA VITRINE DE TODO MUNDO (ordem do Diego: "já pode alterar e fazer")
 - Os dois cartões viraram um componente só (`CartoesBatismo`, support-plans-v2.tsx), usado na vitrine PÚBLICA e na v2:
   exemplo Neymarzetti, lista inteira com "tudo do Sócio" item por item.
