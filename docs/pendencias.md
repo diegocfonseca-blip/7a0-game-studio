@@ -18,6 +18,12 @@ Pedido seguinte (13/10): Sócio diz "4 carreiras guardadas PRA SEMPRE na nuvem �
 Gratuito diz "entra em quantas salas quiser" + "🌐 cria 1 sala online por dia" + "carreira parada há mais de 30 dias
 sem jogar é apagada". ⚠️ TUDO ISSO É SÓ TEXTO: falta o limite de 1 sala/dia no grátis e a limpeza dos saves parados
 (no grátis o save fica no APARELHO — confirmar com o Diego antes de apagar qualquer coisa).
+🗑️ PEDIDO DO DIEGO (13/10): apagar carreira PARADA há mais de 30 dias de quem NÃO paga — conta POR CARREIRA (a conta pode
+ter 3 saves e só 1 estar parado). Contagem na nuvem (`esc_pyramid_saves`, `careers[*].at`) em 13/10: 5.282 contas, 1,3 GB.
+Grátis: ~3.280 contas com carreira parada · ~4.550 carreiras paradas (2.973 contas paradas por inteiro + 463 carreiras
+paradas em 307 contas que jogaram no mês). Pagantes (167 contas) NÃO entram. Save do aparelho não dá pra contar daqui —
+o próprio jogo limpa quando abrir. ⚠️ Revoga o "quem já tem save na nuvem continua igual" de 07/10 — é ordem dele.
+A FAZER: aviso antes de apagar (proposto: 7 dias) + a limpeza; nada apagado ainda.
 
 ## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
 Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
