@@ -12,7 +12,7 @@ import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMasco
 import { useEsc, listAllCareers, MODO_NOME, MODO_EMOJI, type EmoteEvent } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
-import { AdminButton, useCanCareerOnline } from './admin'
+import { AdminButton, useCanCareerOnline, useIsAdmin } from './admin'
 import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
 import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
@@ -856,6 +856,12 @@ export function EscLobby() {
   // salas abertas (lista pública)
   const [tab, setTab] = useState<'create' | 'open' | 'join'>('open')
   const [openRooms, setOpenRooms] = useState<OpenRoom[]>([])
+  // 🚫🔴 só o Diego vê o botão de tirar o destaque de uma live falsa (13/10); o banco confere de novo
+  const souCriador = useIsAdmin()
+  const tiraDestaque = async (roomId: string) => {
+    const { data } = await supabase.rpc('esc_tira_destaque', { p_room: roomId })
+    if (data === true) setOpenRooms(prev => prev.map(x => (x.id === roomId && x.game_state ? { ...x, game_state: { ...x.game_state, liveUrl: undefined } } : x)))
+  }
   const [listLoading, setListLoading] = useState(false)
   const [search, setSearch] = useState('')
   // edição rápida do nome de técnico (na home)
@@ -2003,6 +2009,16 @@ export function EscLobby() {
     // 29/08, quando o Diego fechou que **a liga é sempre privada** — não aparece na
     // lista de jeito nenhum, só se acha pelo card "🏆 Minhas ligas" ou pelo código +
     // senha. Apagada de vez em vez de só desligada: código morto engana quem lê.
+    // 🚫🔴 DESTAQUE TIRADO PELO DIEGO (13/10): sala com link que não é live de verdade perde a faixa
+    // "AO VIVO" — vive numa tabelinha à parte (`esc_live_tirada`), o jogo da sala nunca é tocado.
+    const comLive = list.filter(r => (r.game_state as GS)?.liveUrl).map(r => r.id)
+    if (comLive.length) {
+      try {
+        const { data: tir } = await supabase.from('esc_live_tirada').select('room_id').in('room_id', comLive)
+        const tirados = new Set((tir ?? []).map(x => (x as { room_id: string }).room_id))
+        for (const r of list) if (tirados.has(r.id) && r.game_state) r.game_state = { ...r.game_state, liveUrl: undefined }
+      } catch { /* sem resposta: a lista segue como sempre */ }
+    }
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
       // 🏆 LIGA APARECE QUANDO TEM GENTE DENTRO (regra final do Diego, 29/08).
       // Ele derrubou duas ideias minhas, e nas duas estava certo:
@@ -3662,6 +3678,12 @@ export function EscLobby() {
                 <a href={liveUrlSala} target="_blank" rel="noopener noreferrer" className="block mx-3 mb-3 text-center border-[3px] border-black rounded-xl py-2.5 font-black text-sm uppercase no-underline" style={{ background: '#E8503A', color: '#fff', boxShadow: `3px 3px 0 ${INK}`, ...OSWALD }}>
                   {tr(`▶ Assistir a live no ${plataforma}`, `▶ Watch the live on ${plataforma}`)}
                 </a>
+              )}
+              {aoVivo && souCriador && (
+                <button onClick={() => { void tiraDestaque(r.id) }} className="block mx-3 mb-3 w-[calc(100%-1.5rem)] text-center border-[2px] border-black rounded-lg py-1.5 font-black text-[11px] uppercase"
+                  style={{ background: '#fff', color: INK, ...OSWALD }}>
+                  {tr('🚫 Tirar destaque (não é live) · só você vê', '🚫 Remove highlight (not live) · only you see this')}
+                </button>
               )}
               </div>
             )
