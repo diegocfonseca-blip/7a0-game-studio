@@ -24,7 +24,9 @@ Diego: *"coloque o mais top por 89 que ganha a mais canto da torcida… e entrad
 escolheu **"Plus passa a custar 89"** (continua com gala única + canto; Lenda segue R$ 69,90). Preço mora em
 `PRECOS.batismoPlus` (planos-regras.ts); tela, Pix e painel do admin leem dali. Trava: `npm run planos`.
 ⚠️ Os planos v2 ainda estão SÓ nas contas do Diego (`PLANOS2_GERAL = false`); pro público continua a tela velha
-(Batismo B/C/D/Várzea 69,90 · Série A 79,99), que não mudou. Quem já comprou o Plus a 79,99 fica como está.
+(Batismo B/C/D/Várzea 69,90 · Série A) — e nela, a pedido dele (*"só os valores novos do batismo"*), a **Série A virou
+R$ 89,90 e ganhou gala exclusiva + canto da torcida na Carreira** (screens.tsx `precoCheioBatismo`, support-plans.tsx e
+o texto das regras). Quem já comprou a 79,99 fica como está.
 
 ## 📏 Medidor de mensagens ao vivo (13/10, Diego: "Ok pode") ✅ NO AR — invisível pro jogador
 Motivo: a conta do Supabase passou de ~40 milhões de mensagens ao vivo no mês (o plano inclui 5 milhões).
@@ -153,6 +155,7 @@ aparecer… só desse novo. Já o aviso na home e nas salas mantenha sempre"*.
 - `ComunidadeBanner` (index.tsx) agora aparece em TODA tela; fora da home usa a chave própria
   `esc-comunidade-zap-jogo-vista`, gravada no ✕ **ou** no toque em ENTRAR → some pra sempre naquele aparelho.
 - A faixa da HOME (chave `esc-comunidade-zap-fechada`) e o quadro verde da lista de salas NÃO mudaram.
+- 📲 13/10: o quadro verde da página de salas subiu pro TOPO (antes ficava no fim da lista), pedido dele.
 - 🔨 Some DURANTE o leilão (auction · monte · convocacao · streamIntro) — pedido dele pra não comer tela no pregão.
 - Tirar tudo: `COMUNIDADE_LINK = null` (comunidade.ts).
 

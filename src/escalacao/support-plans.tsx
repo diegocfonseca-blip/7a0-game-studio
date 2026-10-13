@@ -179,7 +179,7 @@ export function SupportPlans(p: Props) {
         {memberButton('ouro')}
       </SupportPlanCard>
 
-      <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club naming')} price="R$ 69,90" cadence={tr('a partir de · uma vez · Série A R$ 79,99', 'from · one-off · Division A R$ 79.99')} tone="batismo">
+      <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club naming')} price="R$ 69,90" cadence={tr('a partir de · uma vez · Série A R$ 89,90', 'from · one-off · Division A R$ 89.90')} tone="batismo">
         <h3>{tr('O SEU clube entra no jogo de todo mundo — com escudo, mascote e manto desenhados pra você.', 'YOUR club joins everyone’s game — with a crest, mascot and kit designed for you.')}</h3>
         <Vitrine titulo={tr('as artes são suas (exemplo real: Al Takhadao FC)', 'the artwork is yours (real example: Al Takhadao FC)')}>
           <div className="ll-vit-artes">
@@ -214,8 +214,8 @@ export function SupportPlans(p: Props) {
         <Ok><b>{tr('Selo de Fundador', 'Founder badge')}</b>{tr(' e seu nome no mural do jogo', ' and your name on the game’s wall')}</Ok>
         <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas · seu clube disputa a pirâmide de TODO mundo que joga', ' saved · your club plays in EVERYONE’s pyramid')}</Ok>
         <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego desenha escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego designs the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
-        <div className="ll-support-prices"><div>{tr('SÉRIES B, C, D E VÁRZEA', 'DIVISIONS B, C, D AND VÁRZEA')}<b>R$ 69,90</b></div><div>{tr('SÉRIE A', 'DIVISION A')}<b>R$ 79,99</b></div></div>
-        <p className="ll-support-note">{tr('No Batismo de R$ 79,99, seu clube entra na Série A e também aparece no Jogo Rápido e no modo Online. O clube continua seu: nome, escudo, mascote e manto.', 'With the R$ 79.99 Club Naming, your club joins Division A and also appears in Quick Play and Online mode. The club remains yours: name, crest, mascot and kit.')}</p>
+        <div className="ll-support-prices"><div>{tr('SÉRIES B, C, D E VÁRZEA', 'DIVISIONS B, C, D AND VÁRZEA')}<b>R$ 69,90</b></div><div>{tr('SÉRIE A', 'DIVISION A')}<b>R$ 89,90</b></div></div>
+        <p className="ll-support-note">{tr('No Batismo de R$ 89,90, seu clube entra na Série A, aparece no Jogo Rápido e no modo Online, e ainda ganha entrada de gala EXCLUSIVA (helicóptero, moto, fumaça… você conta a ideia) + canto da sua torcida na Carreira. O clube continua seu: nome, escudo, mascote e manto.', 'With the R$ 89.90 Club Naming, your club joins Division A, appears in Quick Play and Online mode, and also gets an EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your crowd’s chant in Career. The club remains yours: name, crest, mascot and kit.')}</p>
         <button className="ll-support-button dark" onClick={p.onNaming}>{tr('QUERO BATIZAR MEU CLUBE →', 'I WANT TO NAME MY CLUB →')}</button>
       </SupportPlanCard>
 
