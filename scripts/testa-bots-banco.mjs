@@ -73,5 +73,27 @@ try {
   const renda = 50 + 40 + PATROCINIO_BOT.A + premioColocacaoBot('A', 10)
   console.log(`   Série A · folha de 22 ≈ ${folha22} · renda (TV+bilheteria+patrocínio+prêmio do 10º) = ${renda}`)
   assert.ok(renda >= folha22 * 0.8, 'a renda nova segura um elenco de 22 sem quebrar de cara')
+  // 9) o BANCO do bot (esperto): rico fecha 22 só com jogador de verdade e guarda parte do caixa; pobre
+  //    não se endivida (pega só o que cabe); nunca incógnito. E melhora aos poucos na temporada seguinte.
+  const SP = await vite.ssrLoadModule('/src/escalacao/sport.ts')
+  SP.botBancoParaTeste(true)
+  const D = await vite.ssrLoadModule('/src/escalacao/data.ts')
+  const pega = (pos, i) => ({ ...D.CATALOG[pos][i], pos, id: `${pos}${i}`, paid: 20 })
+  const xi11 = (o) => [pega('GOL', o), pega('LAT', o), pega('LAT', o + 1), pega('ZAG', o), pega('ZAG', o + 1), pega('MEI', o), pega('MEI', o + 1), pega('MEI', o + 2), pega('ATA', o), pega('ATA', o + 1), pega('ATA', o + 2)]
+  const st = { careerOnline: true, seed: 42, seasonNo: 5, youIdx: 0, careerDivision: 'C', careerPlacements: { m0: 'C', m1: 'C', m2: 'C', m3: 'B' }, clubCash: { m1: 600, m2: 15, m3: 600 }, escadaOn: false, cpuSquads: {},
+    managers: [{ id: 0, isHuman: true, teamName: 'Eu', formation: '4-3-3', squad: xi11(0) }, { id: 1, isHuman: false, teamName: 'Bot Rico', formation: '4-3-3', squad: xi11(5) }, { id: 2, isHuman: false, teamName: 'Bot Pobre', formation: '4-3-3', squad: xi11(10) }, { id: 3, isHuman: false, teamName: 'Outra Divisão', formation: '4-3-3', squad: xi11(15) }] }
+  S.completaBancoDosBots(st)
+  const [eu, rico, pobre, outra] = st.managers
+  assert.equal(rico.squad.length, 22, 'bot com dinheiro fecha 2 por posição')
+  assert.ok(st.clubCash.m1 > 0 && st.clubCash.m1 < 600, 'gasta, mas guarda parte do caixa')
+  assert.ok(st.clubCash.m2 >= 0 && pobre.squad.length < 22, 'bot sem dinheiro não se endivida: fica sem parte do banco')
+  assert.ok(![...rico.squad, ...pobre.squad].some(c => c.fake), 'nenhum incógnito entra pelo banco')
+  assert.equal(eu.squad.length, 11, 'o seu time não é tocado')
+  assert.equal(outra.squad.length, 11, 'bot de OUTRA divisão não muda')
+  const nomes = new Set(); for (const m of st.managers) for (const c of m.squad) { const k = `${c.name}|${c.club}|${c.year}`; assert.ok(!nomes.has(k), `carta repetida em dois clubes: ${k}`); nomes.add(k) }
+  SP.botBancoParaTeste(false)
+  const st2 = { ...st, seasonNo: 6, managers: st.managers.map(m => ({ ...m, squad: [...m.squad] })) }
+  S.completaBancoDosBots(st2)
+  assert.deepEqual(st2.managers[1].squad.map(c => c.id), rico.squad.map(c => c.id), 'chave desligada: nada muda')
   console.log('✅ bots-banco: plano determinístico, passado imutável, rodízio sem incógnito, lesão, patrocínio e prêmio')
 } finally { await vite.close() }

@@ -1409,7 +1409,7 @@ function guardaCansacoBots(s: EscState, carry?: Record<string, number>) {
 // tem dono — nunca incógnito (regra nº 1: perna-de-pau não entra em elenco por regra nova) — e PAGA o
 // preço justo da carta do próprio caixa. Sem dinheiro, fica sem o reserva (e o titular cansa). O salário
 // desse banco entra sozinho na folha do bot (`folhaDoBot`) na virada.
-function completaBancoDosBots(s: EscState) {
+export function completaBancoDosBots(s: EscState) {
   if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
   const minhaDiv = divisaoDaCarreira(s)
   const escDv: EscadaDiv | null = (!s.escadaOn || s.escadaLivre) ? null : ((['A', 'B', 'C', 'D', 'V'] as string[]).includes(minhaDiv) ? minhaDiv as EscadaDiv : 'V')
@@ -1420,36 +1420,78 @@ function completaBancoDosBots(s: EscState) {
   const rngB = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 40503) ^ 0xBA4C0) >>> 0)
   const cash = { ...(s.clubCash ?? {}) }
   const NEED_B: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
-  const enche = (squad: WonCard[], need: Record<Sector, number>, chaveCaixa: string, tag: string, contrato: boolean): WonCard[] => {
-    const out = [...squad]
+  // 🧠 O BOT É ESPERTO (Diego 13/10: *"ele pega se ele quiser… e vai melhorando aos poucos o dele"*):
+  //   · separa só uma PARTE do caixa pro banco, pelo perfil do clube (gastador gasta mais, pão-duro guarda);
+  //   · em cada vaga leva o MELHOR jogador que cabe na verba daquela vaga — não um qualquer;
+  //   · não vale a pena (caro demais pra verba)? não pega e guarda o dinheiro;
+  //   · todo começo de temporada tenta UMA melhora (duas se for gastador): se tem jogador sem clube bem
+  //     melhor que o pior do elenco naquela posição, contrata e dispensa o pior (ele volta a ficar sem clube).
+  //     Assim o time vai subindo devagar, sem virar seleção da noite pro dia.
+  const nivelB = (c: { lo: number; hi: number }) => c.lo + c.hi
+  const PARTE: Record<PerfilBot, number> = { gastador: 0.6, paoduro: 0.25, obcecado: 0.4, imprevisivel: 0.45, equilibrado: 0.35 }
+  const precoDe = (c: Card, pos: Sector) => Math.max(s.marketValues?.[ident(c)] ?? 0, justoDaCarta(s, { ...c, pos } as Card))
+  const livresDe = (pos: Sector): Card[] => ACTIVE_CATALOG[pos].filter(c => !usados.has(idB(c)) && (!escDv || escadaAllows(escDv, c))).map(c => ({ ...c, pos }) as Card)
+  const enche = (squad: WonCard[], need: Record<Sector, number>, chaveCaixa: string, tag: string, contrato: boolean, nomeClube: string): WonCard[] => {
+    let out = [...squad]
     let caixa = cash[chaveCaixa] ?? DIV_BASE_CASH[minhaDiv] ?? 100
+    const perfil = perfilDoClube(nomeClube, s.seed ?? 0)
+    const obsessao = perfil === 'obcecado' ? setorDaObsessao(nomeClube, s.seasonNo ?? 1) : undefined
+    let verba = Math.round(caixa * PARTE[perfil])
+    const novo = (c: Card, pos: Sector, preco: number): WonCard => ({ ...c, pos, id: `banco-${tag}-${pos}-${Math.floor(rngB() * 1e9)}`, paid: preco, via: 'monte', ...(contrato && s.contratosOn ? { contratoAte: (s.seasonNo ?? 1) + 4 } : {}) } as WonCard)
+    // 1) o banco: vagas que faltam, a posição da obsessão primeiro
+    const vagas: Sector[] = []
     for (const pos of SECTORS) {
-      let reais = out.filter(c => c.pos === pos && !c.fake && !c.emprestado).length
-      const alvo = need[pos] * 2
-      if (reais >= alvo) continue
-      const livres = shuffle(ACTIVE_CATALOG[pos].filter(c => !usados.has(idB(c)) && (!escDv || escadaAllows(escDv, c))), rngB)
-      for (const c of livres) {
-        if (reais >= alvo) break
-        const preco = Math.max(s.marketValues?.[ident(c)] ?? 0, justoDaCarta(s, { ...c, pos } as Card))
-        if (preco > caixa) continue
-        caixa -= preco
-        usados.add(idB(c))
-        out.push({ ...c, pos, id: `banco-${tag}-${pos}-${Math.floor(rngB() * 1e9)}`, paid: preco, via: 'monte', ...(contrato && s.contratosOn ? { contratoAte: (s.seasonNo ?? 1) + 4 } : {}) } as WonCard)
-        reais++
+      const reais = out.filter(c => c.pos === pos && !c.fake && !c.emprestado).length
+      for (let k = reais; k < need[pos] * 2; k++) vagas.push(pos)
+    }
+    vagas.sort((a, b) => Number(b === obsessao) - Number(a === obsessao))
+    vagas.forEach((pos, idx) => {
+      const resto = vagas.length - idx
+      const teto = Math.min(caixa, Math.round((verba / resto) * (pos === obsessao ? 2 : perfil === 'gastador' ? 1.5 : 1.2)))
+      const cands = livresDe(pos).map(c => ({ c, preco: precoDe(c, pos) })).filter(x => x.preco <= teto)
+      if (!cands.length) return // caro demais pra verba: não pega, guarda o dinheiro
+      cands.sort((a, b) => (nivelB(b.c) - nivelB(a.c)) || (a.preco - b.preco))
+      const top = cands.slice(0, perfil === 'imprevisivel' ? 4 : 1)
+      const esc = top[Math.floor(rngB() * top.length)]
+      caixa -= esc.preco; verba -= esc.preco
+      usados.add(idB(esc.c))
+      out.push(novo(esc.c, pos, esc.preco))
+    })
+    // 2) melhorar aos poucos: 1 troca por temporada (2 pro gastador), só se valer a pena
+    const trocas = perfil === 'gastador' ? 2 : 1
+    for (let t = 0; t < trocas; t++) {
+      let melhor: { pos: Sector; c: Card; preco: number; ganho: number; sai: WonCard } | null = null
+      for (const pos of SECTORS) {
+        const meus = out.filter(c => c.pos === pos && !c.fake && !c.emprestado && !c.cria)
+        if (!meus.length) continue
+        const pior = [...meus].sort((a, b) => nivelB(a) - nivelB(b))[0]
+        for (const c of livresDe(pos)) {
+          const ganho = nivelB(c) - nivelB(pior)
+          if (ganho < 6) continue // melhora pequena não compensa a troca
+          const preco = precoDe(c, pos)
+          if (preco > Math.min(caixa, Math.max(verba, 0) + Math.round(caixa * 0.15))) continue
+          if (!melhor || ganho > melhor.ganho || (ganho === melhor.ganho && preco < melhor.preco)) melhor = { pos, c, preco, ganho, sai: pior }
+        }
       }
+      if (!melhor) break
+      caixa -= melhor.preco; verba -= melhor.preco
+      usados.add(idB(melhor.c))
+      usados.delete(idB(melhor.sai)) // o dispensado volta a ficar sem clube
+      out = out.filter(c => c.id !== melhor!.sai.id)
+      out.push(novo(melhor.c, melhor.pos, melhor.preco))
     }
     cash[chaveCaixa] = Math.max(0, Math.round(caixa))
     return out
   }
   for (const m of s.managers) {
     if (m.isHuman || m.dormindo || (s.careerPlacements?.[`m${m.id}`] ?? '') !== minhaDiv) continue
-    m.squad = enche(m.squad as WonCard[], FORMATIONS[m.formation], 'm' + m.id, `m${m.id}`, !!m.rival)
+    m.squad = enche(m.squad as WonCard[], FORMATIONS[m.formation], 'm' + m.id, `m${m.id}`, !!m.rival, m.teamName)
   }
   if (s.cpuSquads) {
     const sq = { ...s.cpuSquads }
     for (const nome of Object.keys(sq)) {
       if (s.careerPlacements?.[nome] !== minhaDiv) continue
-      sq[nome] = enche(sq[nome] as WonCard[], NEED_B, nome, nome.slice(0, 12), false)
+      sq[nome] = enche(sq[nome] as WonCard[], NEED_B, nome, nome.slice(0, 12), false, nome)
     }
     s.cpuSquads = sq
   }
