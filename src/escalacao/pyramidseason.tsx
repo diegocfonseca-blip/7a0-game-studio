@@ -96,6 +96,8 @@ import presidentTerno from './img/career-president-terno.webp'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
 import { chancesDoJogo, sementeDasChances, narraChance, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { radioDoJogo, radioNoMinuto, narraRadio } from './radio'
+import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -2954,12 +2956,14 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch }:
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
   footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void
+  /** 🆚 retrospecto entre os DONOS dos dois clubes (sala online, gente × gente) — aparece antes da 1ª frase da rádio */
+  retro?: { rival: string; r?: Retro } | null
   /** 🎭 de quem é a MASCOTE do gol, quando o nome na tela não é o clube do dono (carreira internacional:
    *  aparece "Flamengo", mas quem comemora é a mascote do Neymarzetti, o técnico convidado) */
   mascotHome?: string; mascotAway?: string
@@ -3171,6 +3175,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // Os gols continuam sendo os da simulação: a bola entra na rede no MESMO instante
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
   const chances = useMemo(() => (basket || !cinematic) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, roundMs])
+  // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
+  const radioLances = useMemo(() => (basket || !cinematic) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, chances, roundMs])
   const [lance, setLance] = useState<{ side: 'h' | 'a'; fim: FimDaChance; key: number; txt: string; minute:number; startedAt:number; speed:number; roundKey:number } | null>(null)
   const lanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
@@ -3293,6 +3299,19 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
     palcoOn={!basket}
+    radio={basket || radioLances.length === 0 ? null : (() => {
+      // ⭐ no apito: o CRAQUE DO JOGO (13/10) — sem autor nenhum, a rádio se despede
+      if (fechado) {
+        const c = craqueDoJogo(shown)
+        if (c) return { tag: tr('⭐ CRAQUE DO JOGO', '⭐ PLAYER OF THE MATCH'), tom: 'craque' as const, min: '', txt: fraseCraque(c, nomeLimpo(c.home ? homeName : awayName), emIngles) }
+        return { min: '', txt: tr('Fim de papo aqui na Rádio Legends.', 'That is all from Radio Legends.') }
+      }
+      const r = radioNoMinuto(radioLances, min)
+      if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles) }
+      // 🆚 antes da 1ª frase: o RETROSPECTO entre os dois donos (só sala online, gente × gente)
+      if (retro) return { tag: `🆚 ${tr('VOCÊ', 'YOU')} × ${retro.rival.toUpperCase()}`, tom: 'retro' as const, min: '', txt: fraseRetro(retro.r, emIngles, roundKey) }
+      return { min: '', txt: tr('Rádio ligada. Bola rolando!', 'Radio on. Ball rolling!') }
+    })()}
     // 🎬 a bola do GOL sai no minuto do gol (`voo`) e o resto da festa só depois que
     //    ela entra — o `voo` fica até a rede parar de balançar (ver GOL_ENTRA_MS)
     palco={voo ? { side: voo.side, speed:voo.speed, fim: 'gol', key: voo.key, veredito: vereditoDaChance('gol', emIngles) }

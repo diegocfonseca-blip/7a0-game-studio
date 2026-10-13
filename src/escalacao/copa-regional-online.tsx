@@ -21,7 +21,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang'
 import { agoraSala } from './relogio'
-import { CompetitionStage, CompetitionMatch } from './online-match-visual'
+import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, ArtilheiroCopaCard, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
+import { RESUMO_MS, respiroAntes } from './copa-passos' // 🎬 abertura da rodada + ✅❌ resumo da fase (13/10)
 import './online-match-visual.css'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { ChatWidget } from './screens'
@@ -146,10 +147,10 @@ function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost
       const r = atual.current
       if (!isHost || !r) return
       if (r.running) { if (agora >= Date.parse(r.started_at) + r.duration_ms + r.extra_ms) void rpc('finish') }
-      else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + (r.step === 0 ? 500 : 1600)) void rpc('next')
+      else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + respiroAntes(passoRegionalRodaBola(passosRegional(rodadas), r.step + 1), r.step, r.step + 1 >= passosRegional(rodadas).PRIMEIRO_KO)) void rpc('next') // 🎬 5s de abertura antes de rodar bola (+5s de resumo em fase do mata-mata)
     }, 250)
     return () => clearInterval(t)
-  }, [isHost, rpc, fim])
+  }, [isHost, rpc, fim, rodadas])
   if (semBanco) return undefined
   return { row, now, isHost, busy, command: rpc }
 }
@@ -533,22 +534,23 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   // 🛟 sem relógio no banco: cada aparelho anda sozinho, no automático
   const [passoLocal, setPassoLocal] = useState(0)
   const [acabouLocal, setAcabouLocal] = useState(true)
+  const [paradoDesde, setParadoDesde] = useState(Date.now()) // ✅❌ quando a bola parou / o passo virou (pro resumo local)
   const [inicioLocal, setInicioLocal] = useState(Date.now())
   const [, setTique] = useState(0)
   useEffect(() => { if (relogio) return; const iv = setInterval(() => setTique(t => t + 1), 200); return () => clearInterval(iv) }, [!!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
-  const ROUND_MS = 15000
+  const ROUND_MS = 16000 // ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
   const step = relogio ? relogio.row?.step ?? 0 : passoLocal
   const liveDone = relogio ? !!relogio.row && !relogio.row.running : acabouLocal
   const roundMs = relogio?.row?.duration_ms ?? ROUND_MS
   const liveMin = relogio ? (relogio.row ? minutoDo(relogio.row, relogio.now) : 0) : (acabouLocal ? 93 : Math.max(0, Math.min(93, Math.round((Date.now() - inicioLocal) / (ROUND_MS * 0.82) * 93))))
   useEffect(() => {
     if (relogio || acabouLocal) return
-    const t = setTimeout(() => setAcabouLocal(true), ROUND_MS + 700 + extraDoPasso(passoLocal))
+    const t = setTimeout(() => { setAcabouLocal(true); setParadoDesde(Date.now()) }, ROUND_MS + 700 + extraDoPasso(passoLocal))
     return () => clearTimeout(t)
   }, [passoLocal, acabouLocal, !!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (relogio || !acabouLocal || passoLocal >= P.FIM) return
-    const t = setTimeout(() => { const s = passoLocal + 1; setPassoLocal(s); if (passoRegionalRodaBola(P, s)) { setAcabouLocal(false); setInicioLocal(Date.now()) } }, passoLocal === 0 ? 500 : 1600)
+    const t = setTimeout(() => { const s = passoLocal + 1; setPassoLocal(s); setParadoDesde(Date.now()); if (passoRegionalRodaBola(P, s)) { setAcabouLocal(false); setInicioLocal(Date.now()) } }, respiroAntes(passoRegionalRodaBola(P, passoLocal + 1), passoLocal, passoLocal + 1 >= P.PRIMEIRO_KO))
     return () => clearTimeout(t)
   }, [acabouLocal, passoLocal, !!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -636,9 +638,46 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   )
   const etapa = done ? tr('Campeão definido', 'Champion decided') : step === 0 ? tr('Começando', 'Starting') : step <= P.RODADAS ? `${tr('Rodada', 'Round')} ${step} ${tr('de', 'of')} ${P.RODADAS}` : step === P.CHAVE ? tr('Mata-mata definido', 'Knockouts set') : nomeFase(faseAtual?.tipo ?? 'final')
 
+  // 🎬 ABERTURA DA RODADA (Diego 13/10): com a bola parada e o PRÓXIMO passo rodando bola, o palco mostra o
+  // caminho da copa + os confrontos que vêm (o seu em destaque) + a contagem até a largada. Some ao rolar.
+  const proxPasso = step + 1
+  const aberturaOn = liveDone && !done && passoRegionalRodaBola(P, proxPasso)
+  const abertura = aberturaOn ? (() => {
+    const jogosProx: { h: number; a: number }[] = proxPasso <= P.RODADAS ? mundo.rodadas[proxPasso - 1] : (mundo.ko[proxPasso - P.PRIMEIRO_KO]?.ties ?? [])
+    const minhaEm = (js: { h: number; a: number }[]) => js.some(j => isYou(j.h) || isYou(j.a))
+    const ordem: { label: string; passos: number[]; jogos: { h: number; a: number }[] }[] = [
+      { label: tr('RODADAS', 'ROUNDS'), passos: Array.from({ length: P.RODADAS }, (_, i) => i + 1), jogos: mundo.rodadas.flat() },
+      ...mundo.ko.map((f, i) => ({ label: f.tipo === 'quartas' ? tr('QUARTAS', 'QF') : f.tipo === 'semi' ? 'SEMI' : 'FINAL', passos: [P.PRIMEIRO_KO + i], jogos: f.ties })),
+    ]
+    const idxOn = ordem.findIndex(o => o.passos.includes(proxPasso))
+    const fases: AberturaFase[] = ordem.map((o, i) => ({ label: i === 0 && proxPasso <= P.RODADAS ? `${o.label} ${proxPasso}/${P.RODADAS}` : o.label, estado: i < idxOn ? 'ok' : i === idxOn ? 'on' : '', meu: i <= idxOn && minhaEm(o.jogos) }))
+    const meus = jogosProx.filter(j => isYou(j.h) || isYou(j.a)), outros = jogosProx.filter(j => !(isYou(j.h) || isYou(j.a)))
+    const lista = [...meus, ...outros.slice(0, 5)]
+    const confrontos = lista.map(j => ({ home: entrants[j.h].pais, away: entrants[j.a].pais, mine: isYou(j.h) || isYou(j.a), homeCrest: <Escudo nome={entrants[j.h].pais} size={30} />, awayCrest: <Escudo nome={entrants[j.a].pais} size={30} /> }))
+    const comResumo = proxPasso >= P.PRIMEIRO_KO
+    const respiro = respiroAntes(true, step, comResumo)
+    const seg = relogio?.row ? (relogio.row.manual ? null : Math.max(0, Math.ceil((Date.parse(relogio.row.updated_at) + respiro - relogio.now) / 1000))) : null
+    const espera = relogio?.row?.manual ? (relogio.isHost ? tr('▶️ Dê a largada nos controles', '▶️ Kick off from the controls') : tr('⏳ O host dá a largada', '⏳ The host kicks off')) : tr('⚽ Já vai rolar…', '⚽ About to kick off…')
+    const total = Math.ceil(respiro / 1000)
+    // ✅❌ RESUMO DA FASE (13/10, mockup nº 2): 5s antes da abertura de uma fase do mata-mata — quem passou, quem caiu.
+    // Antes da 1ª fase é o resumo das RODADAS (os classificados dos dois lados).
+    const desde = relogio ? (relogio.row ? Date.parse(relogio.row.updated_at) : 0) : paradoDesde
+    const agora = relogio ? relogio.now : Date.now()
+    if (comResumo && agora < desde + RESUMO_MS) {
+      const sel = (i: number) => ({ nome: entrants[i].pais, crest: <Escudo nome={entrants[i].pais} size={18} />, meu: isYou(i) })
+      const fechada = mundo.ko[proxPasso - P.PRIMEIRO_KO - 1]
+      const passaram = fechada ? fechada.ties.map(t => sel(t.winner)) : [...mundo.classificados[0], ...mundo.classificados[1]].map(sel)
+      const dentro = new Set(fechada ? fechada.ties.map(t => t.winner) : [...mundo.classificados[0], ...mundo.classificados[1]])
+      const cairam = fechada ? fechada.ties.map(t => sel(t.winner === t.h ? t.a : t.h)) : entrants.map((_, i) => i).filter(i => !dentro.has(i)).map(sel)
+      const proxFase = mundo.ko[proxPasso - P.PRIMEIRO_KO]
+      const titulo = fechada ? `${nomeFase(fechada.tipo)} ${fechada.ties.length === 1 ? tr('ENCERRADA', 'OVER') : tr('ENCERRADAS', 'OVER')}` : tr('RODADAS ENCERRADAS', 'ROUNDS OVER')
+      return <ResumoFase titulo={titulo} passaram={passaram} cairam={cairam} proxima={proxFase ? (proxFase.tipo === 'final' ? tr('A FINAL', 'THE FINAL') : nomeFase(proxFase.tipo)) : ''} seg={seg} total={total} cor="#E8503A" espera={espera} />
+    }
+    return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#E8503A" espera={espera} />
+  })() : null
   return (
     <>
-      <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')} />
+      <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
       {/* RODADAS: o meu jogo ao vivo em cima; os clássicos da rodada; as duas tabelas (só o que já apitou) */}
       {step >= 1 && step <= P.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]
@@ -675,7 +714,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         const grande = meu ?? final
         return <>
           {grande && live(grande.h, grande.a, grande.ev)}
-          {grande && liveDone && grande.pen && (
+          {/* 🥅 13/10: a disputa entra aos 93', dentro do `extra` reservado pra ela (antes esperava `liveDone` e era cortada) */}
+          {grande && liveMin >= 93 && grande.pen && (
             <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, color: INK }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 {grande.g[0]}×{grande.g[1]} {tr('NO TEMPO NORMAL — DECISÃO NOS PÊNALTIS', 'AFTER 90 MINUTES — DECIDED ON PENALTIES')}</p>
               <PensShootout compactOnline final={faseAtual.tipo === 'final'} pens={grande.pen} aName={entrants[grande.h].pais} bName={entrants[grande.a].pais} aCrest={<Escudo nome={entrants[grande.h].pais} size={20} />} bCrest={<Escudo nome={entrants[grande.a].pais} size={20} />} aSquad={entrants[grande.h].xi} bSquad={entrants[grande.a].xi} lento={!!(entrants[grande.h].humano || entrants[grande.a].humano)} />
@@ -706,13 +746,8 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
             <p style={{ fontSize: 11, fontWeight: 800, margin: '3px 0 0' }}>{isYou(c) ? tr('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : entrants[c].humano ? `${tr('Técnico', 'Manager')}: ${entrants[c].club}` : tr('Título da máquina 🤖', 'Won by the machine 🤖')}</p>
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0' }}>{tr('final', 'final')}: {entrants[fin.h].pais} {fin.g[0]}×{fin.g[1]} {entrants[fin.a].pais}{fin.pen ? ` (${tr('pên.', 'pens')} ${fin.pen[0]}×${fin.pen[1]})` : ''}</p>
           </div>
-          {art.length > 0 && <div style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 10 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>{tr('⚽ ARTILHARIA DA COPA', '⚽ CUP TOP SCORERS')}</p>
-            {art.map((r, i) => <div key={r.name + r.team} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 11, fontWeight: isYou(r.team) ? 900 : 700, padding: '2px 0' }}>
-              <span style={{ width: 18 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ordinal(i + 1)}</span><Escudo nome={entrants[r.team].pais} size={18} />
-              <span style={{ flex: 1 }}>{r.name}</span><b>{r.goals}</b>
-            </div>)}
-          </div>}
+          {/* 🥇 ARTILHEIRO EM CARTÃO (13/10, mockup nº 3): o 1º com gols, clube e carta; 2º e 3º embaixo */}
+          <ArtilheiroCopaCard titulo={tr('ARTILHEIRO DA COPA', 'CUP TOP SCORER')} linhas={art.slice(0, 3).map((r): ArtilheiroLinha => { const carta = entrants[r.team].xi.find(c => c.name === r.name); return { nome: r.name, clube: entrants[r.team].pais, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <Escudo nome={entrants[r.team].pais} size={40} />, meu: isYou(r.team) } })} />
         </>
       })()}
       <button className="ll31-back-room" onClick={aoFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, ...OSWALD, fontWeight: 900, fontSize: 14, background: done ? GREEN : '#fff', color: done ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('VOLTAR À SALA', 'BACK TO THE ROOM')}</button>

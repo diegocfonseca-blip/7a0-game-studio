@@ -24,6 +24,9 @@ export function OnlineScorePresentation(p: {
   // `palcoOn` liga a faixa (sem ela, o placar é byte a byte o de antes).
   // 🎭 A mascote do carimbo NÃO muda: ela continua na cena do gol, como sempre.
   palcoOn?: boolean; palco?: { speed?:number; side: 'h' | 'a'; fim: 'defendeu' | 'trave' | 'fora' | 'isolou' | 'gol'; key: number; veredito: string } | null;
+  // 📻 RÁDIO LEGENDS (13/10): UMA linha entre a faixa do golzinho e os autores dos gols. Sempre ocupa o mesmo
+  // espaço (antes da 1ª frase diz "rádio ligada") pra o placar não pular de tamanho.
+  radio?: { min: string; txt: string; tag?: string; tom?: 'retro' | 'craque' } | null;
 }) {
   const team = (home: boolean) => {
     const name = home ? p.homeName : p.awayName
@@ -64,6 +67,7 @@ export function OnlineScorePresentation(p: {
       <strong>{tr('GOOOL!', 'GOOOAL!')}</strong>
       {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}
     </div>}
+    {p.radio && <div className={`ll42-radio${p.radio.tom ? ` ll42-${p.radio.tom}` : ''}`} aria-live="off"><span className="ll42-radio-tag">{p.radio.tag ?? `📻 ${tr('RÁDIO', 'RADIO')}`}</span>{p.radio.min && <b>{p.radio.min}′</b>}<span key={p.radio.txt} className="ll42-radio-txt">{p.radio.txt}</span></div>}
     <div className="ll25-scorers">{[true, false].map(home => <div key={String(home)}>
       {p.goals.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`}>{p.big ? '⚽ ' : ''}{g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
       {!p.goals.some(g => g.home === home) && <p>{tr('Sem gols', 'No goals')}</p>}
@@ -265,4 +269,122 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
   {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*passo;const daVez=!done&&next?.side===side&&next.i===i;if(!shown&&!daVez)return null;const sg=sigla(side,i);return <span key={i} className={`${shown?(k.ok?'made':'missed'):'current'}${sg?' sigla':''}`} title={quem(side,i)} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Batendo agora', 'Kicking now')}>{sg??(shown?(k.ok?'✓':'×'):'')}</span>})}</div></div>)}
   {palcoAgora??<p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Uma cobrança de cada vez…', 'One kick at a time…')}</p>}
  </section>
+}
+
+// ─── 🎬 ABERTURA DA RODADA DA COPA (Diego 13/10, mockup `scripts/mockups/abertura-copas-antes-depois.png`) ───
+// Antes de a bola rolar numa fase da copa das salas online: o CAMINHO da copa (fases, a de agora acesa,
+// o seu time marcado até onde chegou) + os CONFRONTOS da rodada escudo×escudo (o seu em destaque) + a
+// contagem. Some quando a bola rola e volta na fase seguinte. Só apresentação: não decide nada.
+export type AberturaFase = { label: string; estado: 'ok' | 'on' | ''; meu: boolean }
+export type AberturaConfronto = { home: string; away: string; mine: boolean; homeCrest?: ReactNode; awayCrest?: ReactNode }
+export function AberturaCopa({ fases, confrontos, seg, total, cor, espera, mais = 0 }: {
+  fases: AberturaFase[]; confrontos: AberturaConfronto[]
+  /** segundos até a bola rolar (null = sem contagem: manual, esperando o host) */
+  seg: number | null; total: number; cor: string
+  /** texto do lugar da contagem quando não há contagem (manual) */
+  espera?: string
+  /** confrontos que ficaram de fora da lista (rodada grande) */
+  mais?: number
+}) {
+  const pct = seg == null || total <= 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - (seg / total) * 100)))
+  return <div className="ll40-abertura">
+    <div className="ll40-caminho">{fases.map((f, i) => <span key={f.label} className={`${f.estado}${f.meu ? ' meu' : ''}`}>{f.estado === 'ok' ? '✔ ' : ''}{f.label}{i < fases.length - 1 ? <i>›</i> : null}</span>)}</div>
+    <p className="ll40-tit">{tr('CONFRONTOS DA RODADA', 'ROUND FIXTURES')}</p>
+    {confrontos.map((c, i) => <div key={i} className={`ll40-jogo${c.mine ? ' eu' : ''}`}>
+      {c.mine && <span className="ll40-tag">⭐ {tr('SEU JOGO', 'YOUR MATCH')}</span>}
+      <div className="ll40-time">{c.homeCrest}<b>{c.home}</b></div><span className="ll40-x">×</span><div className="ll40-time r"><b>{c.away}</b>{c.awayCrest}</div>
+    </div>)}
+    {mais > 0 && <p className="ll40-mais">+ {mais} {tr(mais === 1 ? 'confronto' : 'confrontos', mais === 1 ? 'tie' : 'ties')} ↓</p>}
+    <div className="ll40-bar"><i style={{ width: `${pct}%`, background: cor }} /></div>
+    <p className="ll40-bola">{seg == null ? (espera ?? '') : <>⚽ {tr('A BOLA ROLA EM', 'KICK-OFF IN')} <b>{seg}s</b></>}</p>
+  </div>
+}
+
+// ─── 🌳 CHAVEAMENTO DESENHADO (Diego 13/10, mockup `scripts/mockups/copas-proximos.png` nº 1) ───
+// ⛔ DESLIGADO NO MESMO DIA, por ordem dele: *"deixa só o resumo mesmo, sem chaveamento"* (a chave e o resumo da
+// fase contavam a mesma coisa). Ninguém importa `ChaveCopa` hoje — o bundle tira sozinho. Fica aqui pronto, com a foto
+// em `scripts/foto-copas-fluxo.mjs`, caso ele queira de volta. Não religar sem ele pedir.
+// A árvore inteira do mata-mata: cada fase numa coluna, quem passou em verde, quem caiu apagado, o seu
+// caminho com borda dourada e o que ainda vem pontilhado com "?". Toque num jogo já jogado abre o detalhe
+// (placar + pênaltis) que quem chama desenha (`detalhe`). Só apresentação: não decide nada, não revela
+// resultado — quem chama só manda gols de fase FECHADA (anti-spoiler é responsabilidade de quem monta).
+export type ChaveLado = { nome: string; crest?: ReactNode; gols?: number | string | null; venceu?: boolean; meu?: boolean }
+export type ChaveJogo = { key: string; a: ChaveLado | null; b: ChaveLado | null; jogado: boolean; pens?: string }
+export type ChaveFase = { label: string; jogos: ChaveJogo[]; estado: 'ok' | 'on' | '' }
+export function ChaveCopa({ fases, detalhe, titulo }: { fases: ChaveFase[]; detalhe?: (fase: number, jogo: number) => ReactNode; titulo?: string }) {
+  const [sel, setSel] = useState<string | null>(null)
+  const [fi, ji] = sel ? sel.split(':').map(Number) : [-1, -1]
+  const aberto = sel && detalhe && fases[fi]?.jogos[ji] ? detalhe(fi, ji) : null
+  return <section className="ll41-chave">
+    <p className="ll41-tit">🌳 {titulo ?? tr('CHAVEAMENTO', 'BRACKET')}<span>{tr('toque num jogo encerrado pra ver o placar · deslize pro lado', 'tap a finished tie to see the score · swipe sideways')}</span></p>
+    <div className="ll41-scroll"><div className="ll41-cols">
+      {fases.map((f, i) => <div key={i} className={`ll41-col ${f.estado}`}>
+        <small>{f.estado === 'ok' ? '✔ ' : ''}{f.label}</small>
+        <div className="ll41-jogos">{f.jogos.map((j, k) => {
+          const meu = !!(j.a?.meu || j.b?.meu)
+          const chave = `${i}:${k}`, clic = j.jogado && !!detalhe
+          return <div key={j.key} className="ll41-slot"><button type="button" disabled={!clic} onClick={() => setSel(sel === chave ? null : chave)}
+            className={`ll41-jogo${meu ? ' meu' : ''}${j.jogado ? ' jogado' : ''}${sel === chave ? ' sel' : ''}${!j.a && !j.b ? ' vazio' : ''}`}>
+            {[j.a, j.b].map((l, li) => <span key={li} className={`ll41-lado${l?.venceu ? ' venceu' : ''}${j.jogado && l && !l.venceu ? ' caiu' : ''}`}>
+              {l ? <>{l.crest}<b>{l.nome}</b>{l.gols != null && <i>{l.gols}</i>}</> : <em>?</em>}
+            </span>)}
+            {j.pens && <small>{j.pens}</small>}
+          </button></div>
+        })}</div>
+      </div>)}
+    </div></div>
+    {aberto && <div className="ll41-detalhe">{aberto}</div>}
+  </section>
+}
+
+// ─── ✅❌ RESUMO DA FASE (mockup nº 2) ───
+// Quando uma fase fecha: 5s com quem PASSOU e quem CAIU, e a contagem pra próxima fase. Entra ANTES da
+// abertura da fase seguinte (`AberturaCopa`). Lista grande de quem caiu (grupos da Copa do Mundo) vira
+// uma linha corrida, senão não cabe nos 5s.
+export type ResumoTime = { nome: string; crest?: ReactNode; meu?: boolean }
+export function ResumoFase({ titulo, passaram, cairam, proxima, seg, total, cor, espera }: {
+  titulo: string; passaram: ResumoTime[]; cairam: ResumoTime[]; proxima: string
+  seg: number | null; total: number; cor: string; espera?: string
+}) {
+  const pct = seg == null || total <= 0 ? 0 : Math.max(0, Math.min(100, Math.round(100 - (seg / total) * 100)))
+  const corrida = cairam.length > 8
+  return <div className="ll40-abertura ll41-resumo">
+    <p className="ll41-resumo-tit">{titulo}</p>
+    <p className="ll41-resumo-sub ok">✅ {tr('PASSARAM', 'THROUGH')} · {proxima}</p>
+    <div className="ll41-chips">{passaram.map((t, i) => <span key={i} className={`ok${t.meu ? ' meu' : ''}`}>{t.crest}<b>{t.nome}</b>{t.meu && <i>⭐</i>}</span>)}</div>
+    {cairam.length > 0 && <>
+      <p className="ll41-resumo-sub caiu">❌ {tr('CAÍRAM', 'OUT')}</p>
+      {corrida ? <p className="ll41-corrida">{cairam.map(t => t.nome).join(' · ')}</p>
+        : <div className="ll41-chips">{cairam.map((t, i) => <span key={i} className={`caiu${t.meu ? ' meu' : ''}`}>{t.crest}<b>{t.nome}</b>{t.meu && <i>⭐</i>}</span>)}</div>}
+    </>}
+    <div className="ll40-bar"><i style={{ width: `${pct}%`, background: cor }} /></div>
+    <p className="ll40-bola">{seg == null ? (espera ?? '') : <>⏭ {proxima} {tr('EM', 'IN')} <b>{seg}s</b></>}</p>
+  </div>
+}
+
+// ─── 🏆 CAMPEÃO + 🥇 ARTILHEIRO NO FIM DA COPA (mockup nº 3) ───
+// Dourado só pra QUEM GANHOU (regra de tier: nunca dourado fixo pra todos); pros outros, branco.
+export function CampeaoCopaCard({ titulo, nome, crest, sub, final, meu }: { titulo: string; nome: string; crest?: ReactNode; sub?: ReactNode; final?: ReactNode; meu: boolean }) {
+  return <div className={`ll41-campeao${meu ? ' meu' : ''}`}>
+    <small>🏆 {titulo}</small>
+    <div className="ll41-campeao-escudo">{crest}</div>
+    <h3>{nome}</h3>
+    {sub && <p>{sub}</p>}
+    {final && <p className="ll41-campeao-final">{final}</p>}
+  </div>
+}
+export type ArtilheiroLinha = { nome: string; clube: string; carta?: string; gols: number; crest?: ReactNode; meu?: boolean }
+export function ArtilheiroCopaCard({ titulo, linhas, rotulo }: { titulo: string; linhas: ArtilheiroLinha[]; rotulo?: [string, string] }) {
+  const [um, varios] = rotulo ?? [tr('gol', 'goal'), tr('gols', 'goals')]
+  const top = linhas[0]
+  if (!top) return null
+  return <div className="ll41-artilheiro">
+    <small>🥇 {titulo}</small>
+    <div className={`ll41-art-top${top.meu ? ' meu' : ''}`}>
+      <div className="ll41-art-escudo">{top.crest}</div>
+      <div className="ll41-art-nome"><b>{top.nome}</b><span>{top.clube}{top.carta ? ` · ${top.carta}` : ''}</span></div>
+      <div className="ll41-art-gols"><b>{top.gols}</b><span>{top.gols === 1 ? um : varios}</span></div>
+    </div>
+    {linhas.length > 1 && <div className="ll41-art-resto">{linhas.slice(1, 3).map((l, i) => <p key={i} className={l.meu ? 'meu' : ''}><span>{i === 0 ? '2º' : '3º'}</span>{l.crest}<b>{l.nome}</b><em>{l.clube}</em><strong>{l.gols}</strong></p>)}</div>}
+  </div>
 }

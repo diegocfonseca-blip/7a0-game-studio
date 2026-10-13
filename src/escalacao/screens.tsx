@@ -53,7 +53,8 @@ import { agoraSala } from './relogio' // ⏱️ toda contagem do online corre na
 import { useLegendPresentation } from './presentation-release'
 import { publicCareerVisual } from './career-feature-release'
 import { publicOnlineVisual } from './online-release'
-import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, type OnlineMatchTab } from './online-match-visual'
+import { useRetrospecto, gravaRetrospecto, type Retro, type JogoRetro } from './retrospecto' // 🆚 retrospecto entre amigos (13/10)
+import { useRoundPresentationStart, OnlineRhythm, OnlineMatchTabs, CompetitionStage, CompetitionMatch, RoundMatchPresentation, AberturaCopa, ResumoFase, CampeaoCopaCard, ArtilheiroCopaCard, type OnlineMatchTab, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
 import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão do clube (desenhado por código, do NOME)
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
@@ -6014,10 +6015,11 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 // conta do placar de baixo. Nunca o placar final antes do apito.
 // 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
 // e um número meio-certo na tira seria pior que tira nenhuma.
-function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline }: {
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro }: {
   homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean
   goals: { name: string; min: number; home: boolean }[]; roundKey: number; roundMs: number
   classico?: boolean; basket?: { h: number; a: number }; enhancedOnline?: boolean
+  retro?: { rival: string; r?: Retro } | null
 }) {
   const caixa = useRef<HTMLDivElement | null>(null)
   const [min, setMin] = useState(0)
@@ -6037,7 +6039,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
         <LiveScoreCard enhancedOnline={enhancedOnline}
           homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
           youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
-          basket={basket} onMinuteChange={reportar} />
+          basket={basket} onMinuteChange={reportar} retro={retro} />
       </div>
       {fora && !basket && (
         <FaixaPlacarMini topo={0} min={min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
@@ -6334,11 +6336,34 @@ export function EscSeason() {
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
   const copaPensMs = Math.max(13000, ...(qc?.ties ?? []).filter(t => t.pens && !t.ot).map(t => Math.ceil(pensRevealDelay(t.pens!, copaTemGenteQ(t), t.pensSeq) * 1000) + 300))
   const copaAnimMs = Math.round(copaLegMs / speedFactor) + (phaseFullyPlayed && anyPens ? copaPensMs : 0)
+  // 🎬 ABERTURA DA RODADA (Diego 13/10): nas copas do online (Copa dos 8, Liberta, Champions), antes de cada
+  // fase rolar aparece o caminho da copa + os confrontos escudo×escudo. Na 1ª fase usa o tempo de leitura
+  // de sempre (`COPA_INTRO_SECONDS`); nas seguintes o respiro sobe de 3,2s pra 5s pra dar tempo de ler.
+  const aberturaOn = privateVisual && !cupNow && !bbS && copaLive && (firstLegPending || copaJustAdvanced)
+  const ABERTURA_FASE_MS = 5000
+  // ✅❌ RESUMO DA FASE (Diego 13/10, mockup nº 2): quando uma fase FECHOU (tem fase no `bracket`), antes da
+  // abertura entram 5s com quem passou e quem caiu. Na 1ª fase não tem o que resumir. O respiro da virada vira 10s.
+  const RESUMO_FASE_MS = 5000
+  const resumoCabe = aberturaOn && !firstLegPending && (qc?.bracket.length ?? 0) > 0
+  const respiroFaseMs = ABERTURA_FASE_MS + (resumoCabe ? RESUMO_FASE_MS : 0)
+  const [faseLeftMs, setFaseLeftMs] = useState(0)
+  useEffect(() => {
+    // roda também no MANUAL (só pra trocar resumo → abertura na tela; a contagem não aparece e nada dispara)
+    if (!aberturaOn || firstLegPending) { setFaseLeftMs(0); return }
+    const dur = Math.round(respiroFaseMs / speedFactor), t0 = Date.now()
+    setFaseLeftMs(dur)
+    const iv = setInterval(() => setFaseLeftMs(Math.max(0, dur - (Date.now() - t0))), 200)
+    return () => clearInterval(iv)
+  }, [aberturaOn, firstLegPending, speedFactor, copaTieKey, respiroFaseMs])
+  const aberturaLeft = Math.ceil(faseLeftMs / 1000)
+  const resumoOn = resumoCabe && faseLeftMs > ABERTURA_FASE_MS / speedFactor
   useEffect(() => {
     if (!canAdvance || !copaLive || manual || firstLegPending || cupNow) return // a Cup tem o motor dela
-    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round(3200 / speedFactor) : copaAnimMs)
+    const t = setTimeout(() => dispatch({ type: 'PLAY_COPA_LEG' }), copaJustAdvanced ? Math.round((aberturaOn ? respiroFaseMs : 3200) / speedFactor) : copaAnimMs)
     return () => clearTimeout(t)
-  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow])
+  }, [copaTieKey, copaLive, canAdvance, manual, dispatch, firstLegPending, copaJustAdvanced, copaAnimMs, speedFactor, cupNow, aberturaOn, respiroFaseMs])
+  // 🏷️ nome das fases do mata-mata (chave desenhada, resumo) — ⚽ só; o 🏀 tem nomes próprios e fica fora destas peças
+  const faseNomeQ = (f: string, curto = false): string => f === 'repescao' ? LS('REPESCÃO', 'PLAYOFF') : f === 'oitavas' ? (curto ? LS('OITAVAS', 'R16') : LS('OITAVAS', 'ROUND OF 16')) : f === 'quartas' ? (curto ? LS('QUARTAS', 'QF') : LS('QUARTAS', 'QUARTER-FINALS')) : f === 'semis' ? (curto ? 'SEMI' : LS('SEMIFINAIS', 'SEMI-FINALS')) : 'FINAL'
   // trava o "Próximo jogo da Copa" (manual) enquanto a perna — INCLUINDO a disputa
   // de pênaltis — ainda está animando, pra não cortar clicando cedo.
   const [copaAdvReady, setCopaAdvReady] = useState(true)
@@ -6384,6 +6409,28 @@ export function EscSeason() {
     }, 40)
     return () => clearInterval(iv)
   }, [copaTieKey, copaLive, firstLegPending, speedFactor, copaLegMs])
+
+  // 🆚 RETROSPECTO ENTRE AMIGOS (Diego 13/10) — só sala online de futebol (rápida e Minhas Ligas), nunca carreira,
+  // nunca dupla (o "VOCÊ" ficaria ambíguo). Quem é quem: assento → conta pelo `seatUids` (nunca pelo nome).
+  const retroOn = state.onlineMode === 'online' && !state.careerOnline && state.sport !== 'basquete' && !!state.roomId && Array.isArray(state.seatUids) && !(state.duplas && Object.keys(state.duplas).length > 0)
+  const uidDo = (id: number) => (retroOn && state.managers.some(m => m.id === id && m.isHuman) ? state.seatUids?.[id] : undefined) || undefined
+  const meuUidRetro = uidDo(you.id)
+  const uidsHumanos = retroOn ? state.managers.filter(m => m.isHuman && m.id !== you.id).map(m => uidDo(m.id)).filter((u): u is string => !!u) : []
+  const retroMapa = useRetrospecto(meuUidRetro, uidsHumanos, `${state.seed}|${state.seasonNo}|${state.round}|${copaTieKey}`)
+  const retroDe = (oppId: number) => { const u = uidDo(oppId); if (!u || !meuUidRetro || u === meuUidRetro) return null; return { rival: state.managers.find(m => m.id === oppId)?.name || state.managers.find(m => m.id === oppId)?.teamName || '?', r: retroMapa[u] } }
+  // ✍️ o DONO da sala grava a rodada quando o resultado JÁ revelou (nunca antes: anti-spoiler); o banco ignora repetição
+  useEffect(() => {
+    if (!retroOn || !state.isHost || !resultRevealed || copaLive || state.lastResults.length === 0) return
+    const jogos = state.lastResults.map(r => ({ a: uidDo(r.homeId), b: uidDo(r.awayId), ga: r.hg, gb: r.ag })).filter((j): j is JogoRetro => !!j.a && !!j.b && j.a !== j.b)
+    gravaRetrospecto(state.roomId!, `liga:${state.seed}:${state.seasonNo}:${state.round}`, jogos)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retroOn, state.isHost, resultRevealed, copaLive, state.round, state.seed])
+  useEffect(() => {
+    if (!retroOn || !state.isHost || !copaLive || !qc || copaMin < 93 || !copaAdvReady) return
+    const jogos = qc.ties.filter(t => t.legs.length > 0).map(t => { const g = t.legs[t.legs.length - 1]; return { a: uidDo(t.aId), b: uidDo(t.bId), ga: g[0], gb: g[1] } }).filter((j): j is JogoRetro => !!j.a && !!j.b && j.a !== j.b)
+    gravaRetrospecto(state.roomId!, `copa:${state.seed}:${state.seasonNo}:${copaTieKey}`, jogos)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retroOn, state.isHost, copaLive, copaMin >= 93, copaAdvReady, copaTieKey])
 
   return (
     // 🖥️ `wide`: no DESKTOP (>=1100px) a tela vira duas colunas — a tabela sobe
@@ -6571,8 +6618,36 @@ export function EscSeason() {
         return (
           <>
             {/* 🎨 identidade da Copa dos 8 (Diego 11/08, brilho 14/08): roxo, nome original mantido */}
-            {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
+            {privateVisual ? <CompetitionStage kind={chS ? 'champions' : libS ? 'liberta' : 'copa8'} title={cupNow ? 'NBA CUP' : chS ? 'CHAMPIONS LEAGUE' : libS ? 'LIBERTADORES' : bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')} phase={phaseLabel} detail={enS ? `${legLabel} · ${qc.ties.length} ${qc.ties.length === 1 ? 'tie' : 'ties'} in this round` : `${legLabel} · ${qc.ties.length} confronto${qc.ties.length === 1 ? '' : 's'} na fase`} status={firstLegPending ? (!manual ? LS(`Começa em ${copaFirstLeft}s`, `Starts in ${copaFirstLeft}s`) : canAdvance ? LS('Tudo pronto. Inicie nos controles da partida.', 'All set. Start from the match controls.') : LS('Aguardando o host iniciar', 'Waiting for the host to start')) : aberturaOn && !manual ? LS(`Próxima fase começa em ${aberturaLeft}s`, `Next round starts in ${aberturaLeft}s`) : copaMin < 93 ? LS('Bola rolando · acompanhe os confrontos abaixo', 'Ball rolling · follow the ties below') : LS('Resultados da fase', 'Round results')}>
               {firstLegPending && <details className="ll26-format"><summary>{LS('COMO FUNCIONA A COPA', 'HOW THE CUP WORKS')}</summary><p>{libS ? LS('Os dois primeiros de cada grupo avançam às oitavas. Oitavas, quartas e semifinais em ida e volta; final em jogo único.', 'The top two of each group reach the round of 16. Round of 16, quarters and semis over two legs; single-match final.') : LS('Os oito primeiros da liga se enfrentam: 1º × 8º, 2º × 7º, 3º × 6º e 4º × 5º. Quartas e semifinais em ida e volta; final em jogo único.', 'The league\'s top eight face off: 1st × 8th, 2nd × 7th, 3rd × 6th and 4th × 5th. Quarters and semis over two legs; single-match final.')} {LS('O campeão ganha uma carta para o álbum.', 'The champion earns a card for the album.')}</p></details>}
+              {aberturaOn && (() => {
+                // 🎬 o caminho da copa: as fases desta copa, a de agora acesa, as passadas ✔, e o SEU time marcado até onde chegou
+                const ordem: { key: string; label: string }[] = chS
+                  ? [{ key: 'tabela', label: LS('TABELA', 'TABLE') }, { key: 'repescao', label: LS('REPESCÃO', 'PLAYOFF') }, { key: 'oitavas', label: LS('OITAVAS', 'R16') }, { key: 'quartas', label: LS('QUARTAS', 'QF') }, { key: 'semis', label: 'SEMI' }, { key: 'final', label: 'FINAL' }]
+                  : libS
+                  ? [{ key: 'grupos', label: LS('GRUPOS', 'GROUPS') }, { key: 'oitavas', label: LS('OITAVAS', 'R16') }, { key: 'quartas', label: LS('QUARTAS', 'QF') }, { key: 'semis', label: 'SEMI' }, { key: 'final', label: 'FINAL' }]
+                  : [{ key: 'quartas', label: LS('QUARTAS', 'QF') }, { key: 'semis', label: 'SEMI' }, { key: 'final', label: 'FINAL' }]
+                const idxAtual = Math.max(0, ordem.findIndex(o => o.key === qc.phase))
+                const jogueiEm = new Set<string>(qc.bracket.filter(b => b.ties.some(t => t.aId === you.id || t.bId === you.id)).map(b => b.phase as string))
+                const meuAgora = !!myTie
+                const fases: AberturaFase[] = ordem.map((o, i) => ({ label: o.label, estado: i < idxAtual ? 'ok' : i === idxAtual ? 'on' : '',
+                  meu: i === idxAtual ? meuAgora : i < idxAtual ? (jogueiEm.has(o.key) || (i === 0 && (meuAgora || jogueiEm.size > 0))) : false }))
+                const confrontos = qc.ties.map(t => ({ home: nameOf(t.aId), away: nameOf(t.bId), mine: t.aId === you.id || t.bId === you.id,
+                  homeCrest: <Escudo nome={nameOf(t.aId)} size={30} />, awayCrest: <Escudo nome={nameOf(t.bId)} size={30} /> }))
+                const seg = manual ? null : firstLegPending ? copaFirstLeft : aberturaLeft
+                const total = firstLegPending ? COPA_INTRO_SECONDS : Math.ceil(respiroFaseMs / speedFactor / 1000)
+                const espera = canAdvance ? LS('▶️ Comece nos controles da partida', '▶️ Start from the match controls') : LS('⏳ O host dá a largada', '⏳ The host kicks off')
+                const cor = chS ? '#7C3AED' : libS ? '#2F6FDB' : '#FFC400'
+                // ✅❌ primeiro o RESUMO da fase que fechou (quem passou / quem caiu), depois a abertura da próxima
+                const fechada = resumoOn ? qc.bracket[qc.bracket.length - 1] : null
+                if (fechada) {
+                  const lado = (t: typeof fechada.ties[number], venceu: boolean) => { const id = venceu ? t.winner : (t.winner === t.aId ? t.bId : t.aId); const nome = id === t.aId ? t.aName : t.bName; return { nome, crest: <Escudo nome={nome} size={18} />, meu: id === you.id } }
+                  return <ResumoFase titulo={`${faseNomeQ(fechada.phase)} ${fechada.ties.length === 1 ? LS('ENCERRADA', 'OVER') : LS('ENCERRADAS', 'OVER')}`}
+                    passaram={fechada.ties.map(t => lado(t, true))} cairam={fechada.ties.map(t => lado(t, false))}
+                    proxima={qc.phase === 'final' ? LS('A FINAL', 'THE FINAL') : faseNomeQ(qc.phase)} seg={seg} total={total} cor={cor} espera={espera} />
+                }
+                return <AberturaCopa fases={fases} confrontos={confrontos} seg={seg} total={total} cor={cor} espera={espera} />
+              })()}
             </CompetitionStage> : <Box bg={copaHolo} className="p-3 text-center" shadow={4} style={{ position: 'relative', overflow: 'hidden' }}>
               <ApoioSheen holo={1} dur={3.2} />
               <p className="font-black text-sm relative" style={{ ...OSWALD, color: '#fff', zIndex: 2 }}>{cupNow ? '🏆 NBA CUP' : chS ? '⭐ CHAMPIONS LEAGUE' : libS ? '🌎 LIBERTADORES' : `🏆 ${bbS ? LS('PLAYOFFS', 'PLAYOFFS') : LS('COPA DOS 8', 'CUP OF 8')}`} · {phaseLabel.toUpperCase()}</p>
@@ -6643,14 +6718,14 @@ export function EscSeason() {
                       homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'repescao' ? 40 : qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
-                      roundMs={copaLegMs} classico={oppIsHuman}
+                      roundMs={copaLegMs} classico={oppIsHuman} retro={retroDe(oppId)}
                       footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
                     )}
                   </>
                 )
-              })() : (
+              })() : aberturaOn ? null : ( // 🎬 com a abertura no palco, o "aguardando o pontapé" seria o mesmo recado duas vezes
                 <Box bg="#fff" className="p-6" shadow={6}>
                   <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the Cup jump ball…' : '🏀 Aguardando a bola ao alto da Copa…') : libS ? LS('🌎 Aguardando o pontapé inicial da Libertadores…', '🌎 Waiting for the Libertadores kick-off…') : LS('🏁 Aguardando o pontapé inicial da Copa…', '🏁 Waiting for the Cup kick-off…')}</p>
                 </Box>
@@ -6720,7 +6795,7 @@ export function EscSeason() {
           homeName={nameOf(myLast.homeId)} awayName={nameOf(myLast.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
-          enhancedOnline={privateVisual}
+          enhancedOnline={privateVisual} retro={retroDe(oppId)}
           basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} />
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
@@ -10814,12 +10889,16 @@ export function EscEnd() {
   ) : null
   const copaBlocks = (
     <>
-      {state.quickCopa?.champion && (
-        <Box bg="#FFF6D6" className="p-3 text-center" shadow={4}>
-          <p className="text-[11px] font-black uppercase tracking-widest" style={{ ...OSWALD, color: '#9a6d00' }}>{libEnd ? '🌎 Libertadores' : chEnd ? '⭐ Champions League' : LE('🏆 Copa dos 8', '🏆 Cup of 8')}</p>
-          <p className="font-black text-base" style={OSWALD}>{LE('Campeão', 'Champion')}: {copaChampName}</p>
-        </Box>
-      )}
+      {state.quickCopa?.champion && (() => {
+        // 🏆 CAMPEÃO EM CARTÃO (Diego 13/10, mockup nº 3): escudo grande, dono (se gente) e a final em uma linha.
+        const qc = state.quickCopa, ch = qc.champion!
+        const fin = qc.bracket.find(b => b.phase === 'final')?.ties[0]
+        const dono = state.managers.find(m => m.id === ch.id)
+        const finalTxt = fin ? `${LE('final', 'final')}: ${fin.aName} ${fin.legs.reduce((a, g) => a + g[0], 0)} × ${fin.legs.reduce((a, g) => a + g[1], 0)} ${fin.bName}${fin.pens ? ` (${LE('pên.', 'pens')} ${fin.pens[0]}×${fin.pens[1]})` : ''}` : null
+        return <CampeaoCopaCard titulo={libEnd ? LE('CAMPEÃO DA LIBERTADORES', 'LIBERTADORES CHAMPION') : chEnd ? LE('CAMPEÃO DA CHAMPIONS', 'CHAMPIONS LEAGUE WINNER') : LE('CAMPEÃO DA COPA DOS 8', 'CUP OF 8 CHAMPION')}
+          nome={ch.name} crest={<Escudo nome={ch.name} size={64} />} meu={ch.id === you.id}
+          sub={ch.id === you.id ? LE('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : dono?.isHuman ? `${LE('Técnico', 'Manager')}: ${dono.name}` : LE('Título da máquina 🤖', 'Won by the machine 🤖')} final={finalTxt} />
+      })()}
       {copaChampIsYou && (
         online && state.roomId ? (
           <CardCollectPrompt you={you} seasonKey={`${state.roomId}:${state.seed}:${state.seasonNo}:copa`} origin="online" onClaimed={bcastCard('copa')} onStatus={setCopaCardStatus} />
@@ -10831,7 +10910,21 @@ export function EscEnd() {
       {streamRoom && copaChampHuman && !copaChampIsYou && (
         <StreamSpectatorCard champName={copaChampName} card={streamCopaCard} />
       )}
-      <CopaScorersBox highlight={you.id} />
+      {(() => {
+        // 🥇 ARTILHEIRO DA COPA EM CARTÃO (mockup nº 3): o 1º com gols, clube e carta; 2º e 3º embaixo. A tabela
+        // completa de sempre fica recolhida logo abaixo. (⚽ só — o 🏀 segue com a tabela de cestinhas.)
+        const qc = state.quickCopa
+        if (!qc?.champion || state.sport === 'basquete') return <CopaScorersBox highlight={you.id} />
+        const rows = [...(qc.scorers ?? [])].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 3)
+        const linhas: ArtilheiroLinha[] = rows.map(r => {
+          const carta = state.managers.find(m => m.id === r.teamId)?.squad.find(c => c.name === r.name)
+          return { nome: r.name, clube: r.teamName, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <Escudo nome={r.teamName} size={40} />, meu: r.teamId === you.id }
+        })
+        return <>
+          <ArtilheiroCopaCard titulo={libEnd ? LE('ARTILHEIRO DA LIBERTADORES', 'LIBERTADORES TOP SCORER') : chEnd ? LE('ARTILHEIRO DA CHAMPIONS', 'CHAMPIONS TOP SCORER') : LE('ARTILHEIRO DA COPA', 'CUP TOP SCORER')} linhas={linhas} />
+          {(qc.scorers?.length ?? 0) > 3 && <details className="ll26-bracket-history"><summary>{LE('ARTILHARIA COMPLETA DA COPA', 'FULL CUP SCORING CHART')}</summary><CopaScorersBox highlight={you.id} /></details>}
+        </>
+      })()}
       {nbaCupBlocks}
     </>
   )
