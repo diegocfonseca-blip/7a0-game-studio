@@ -36,7 +36,7 @@ const GANHO: Record<PlanoUnico, [string, string]> = {
   craque: ['Modo Manual, nível e olheiro até Craque, nome prata', 'Manual Mode, levels and scout up to Star, silver name'],
   lenda: ['nível e olheiro até Lenda, nome dourado, salas à vontade, Minhas Ligas', 'levels and scout up to Legend, gold name, unlimited rooms, My Leagues'],
   batismo: ['escudo, mascote e manto feitos só pro seu clube + entrada de gala', 'crest, mascot and kit made just for your club + grand entrance'],
-  fundador: ['gala ÚNICA + canto da torcida + número de fundador', 'UNIQUE entrance + crowd chant + founder number'],
+  fundador: ['gala ÚNICA + canto da torcida + número de fundador + seu clube nas salas online dos outros, mesmo sem você jogar', 'UNIQUE entrance + crowd chant + founder number + your club in other people’s online rooms, even when you’re not playing'],
 }
 
 type Item = { id: string; amount: number; ctx: string; msgPt: string; msgEn: string }
