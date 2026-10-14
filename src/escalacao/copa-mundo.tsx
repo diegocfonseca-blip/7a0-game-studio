@@ -1261,7 +1261,7 @@ export function CupScreen({ entrants, seasonNo, seed, save, potes, onPrize, onCa
         homeEmblem={privateVisual ? <NationalCrest country={entrants[h].pais} size={58} /> : undefined}
         awayEmblem={privateVisual ? <NationalCrest country={entrants[a].pais} size={58} /> : undefined}
         youIsHome={h === myIdx} goals={ev} roundKey={roundKey} roundMs={roundMs} finished={liveDone}
-        footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} />
+        footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} elencos={{ casa: entrants[h].xi, fora: entrants[a].xi }} />
     </div>
   )
   // linha compacta de confronto resolvido (ida+volta+pênaltis) — só pós-apito.
