@@ -1,3 +1,9 @@
+## 🛒 Loja do Clube (14/10) — ⏳ MOCKUP enviado, esperando OK do Diego
+Decisão em construção: volta Craque R$ 19,90 / Lenda R$ 39,90 (uma vez só) + SOBE DE PLANO pagando a diferença (Craque→Lenda
++20 · Craque→Batismo +60 · Lenda→Batismo +40) + vitrine de avulsos que gira toda semana (canto da torcida, comemoração, frase do
+martelo, manto pronto, entrada de gala) + moedas do Banco Legends como FICHA guardada na conta, que a pessoa manda pra carreira
+que quiser. Mockup: `scripts/mockup-loja-clube.mjs` → `scripts/mockups/loja-clube.png`. A Vitrine do Sócio ficou em espera.
+
 ## 🎽 Vitrine do Sócio (14/10) — ⏳ MOCKUP enviado, esperando OK do Diego
 Ideia pra o mensal valer a pena: Sócio escolhe 1 escudo, 1 mascote e 1 manto de uma vitrine PRONTA (~10 de cada, iguais pra
 todo sócio, feitas uma vez só = zero trabalho por pessoa). Abre só no 2º mês pago (contra "paga 1 mês e cancela"). Parou de
