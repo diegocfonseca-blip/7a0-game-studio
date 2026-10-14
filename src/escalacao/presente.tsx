@@ -37,6 +37,7 @@ export function PresenteBox() {
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [pedido, setPedido] = useState<number | null>(null)
+  const [aberto, setAberto] = useState(false) // 14/10 (Diego): "ficou muito grande… teria que esperar apertar pra ampliar"
   const logado = !!loggedEmail()
   const inp: React.CSSProperties = { width: '100%', border: `3px solid ${INK}`, borderRadius: 10, padding: '8px 10px', fontSize: 13, fontWeight: 700, background: '#fff', fontFamily: 'Arial, sans-serif' }
   const rot: React.CSSProperties = { ...OSW, fontSize: 11, letterSpacing: '.1em', color: 'rgba(12,12,12,.6)', margin: '10px 0 5px' }
@@ -57,8 +58,13 @@ export function PresenteBox() {
       style={{ width: '100%', marginTop: 10, ...OSW, fontSize: 14, background: '#E1306C', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 10, cursor: 'pointer' }}>{tr('📸 MANDAR COMPROVANTE NO @leilaolegendscom', '📸 SEND THE RECEIPT TO @leilaolegendscom')}</button>
     <p style={{ textAlign: 'center', margin: '8px 0 0' }}><button onClick={() => { setPedido(null); setPara(''); setRecado('') }} style={{ background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 900, fontSize: 11, color: 'rgba(12,12,12,.5)', cursor: 'pointer' }}>{tr('dar outro presente', 'send another gift')}</button></p>
   </div>
+  if (!aberto) return <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
+    <span style={{ fontSize: 30 }}>🎁</span>
+    <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>{tr('Dê um plano pra um amigo. Ele recebe com o seu recado quando entrar no jogo.', 'Give a plan to a friend. They get it with your message when they open the game.')}</small>
+    <button onClick={() => { logApoio('🎁 abriu o presente'); setAberto(true) }} style={{ ...OSW, fontSize: 14, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 10px', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{tr('PRESENTEAR', 'SEND GIFT')}</button>
+  </div>
   return <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 12 }}>
-    <p style={{ ...rot, marginTop: 0 }}>{tr('O QUE VAI DAR', 'WHAT YOU’LL GIVE')}</p>
+    <p style={{ ...rot, marginTop: 0, display: 'flex', justifyContent: 'space-between' }}>{tr('O QUE VAI DAR', 'WHAT YOU’LL GIVE')}<button onClick={() => setAberto(false)} style={{ background: 'none', border: 'none', fontWeight: 900, fontSize: 12, cursor: 'pointer', color: 'rgba(12,12,12,.5)' }}>✕</button></p>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
       {(Object.keys(NOME) as PlanoUnico[]).map(p => <button key={p} onClick={() => setPlano(p)} style={{ position: 'relative', overflow: 'hidden', ...OSW, fontSize: 13, border: `3px solid ${INK}`, borderRadius: 10, padding: '6px 4px', cursor: 'pointer', background: FUNDO[p], color: p === 'batismo' || p === 'fundador' ? GOLD : INK, boxShadow: plano === p ? `0 0 0 3px ${GOLD}, 2px 2px 0 ${INK}` : 'none', opacity: plano === p ? 1 : .7 }}>
         {(p === 'craque' || p === 'lenda') && <ApoioSheen holo={p === 'lenda' ? .75 : .5} />}
