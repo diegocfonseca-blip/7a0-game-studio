@@ -132,7 +132,7 @@ export function ApoieButtonV2({ big = false, startScreen = 'choice', trigger }: 
   // que o batismo ganha — e não direto na tela do Pix (que não explica nada).
   const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); if (startScreen === 'batismoInfo') { logApoio('👀 vitrine das salas → batismo'); setAmp('batismo'); setScreen('choice'); return } setScreen(startScreen) }
   const [clube, setClube] = useState('')
-  // 🖋 BATISMO (planos v2, 08/10): Lenda R$ 69,90 ou Plus R$ 89,90 (era 79,99 até 13/10) — os dois já entram na Série A
+  // 🖋 BATISMO (planos v2, 08/10): Lenda R$ 79,90 ou Plus R$ 89,90 (era 79,99 até 13/10) — os dois já entram na Série A
   // (antes era a escolha de série, 59,90 × 69,90). Preços em planos-regras.ts.
   const [planoBatismo, setPlanoBatismo] = useState<'lenda' | 'plus'>('lenda')
   const precoCheioBatismo = planoBatismo === 'plus' ? PRECOS.batismoPlus : PRECOS.batismoLenda
@@ -302,7 +302,7 @@ export function ApoieButtonV2({ big = false, startScreen = 'choice', trigger }: 
           {/* 🖋 quer mais que isso? */}
           <p className="text-center font-black uppercase text-[11px] tracking-widest mt-3 mb-1.5" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('prefere pagar uma vez só?', 'rather pay just once?')}</p>
           <button onClick={() => { logApoio('👀 manual → batismo'); setAmp('batismo'); setScreen('choice') }} className="w-full rounded-xl px-1.5 py-2.5 text-center font-black uppercase text-[13px] active:translate-y-0.5" style={{ ...OSWALD, background: INK, color: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
-            {tr('🖋 Ver o Batismo', '🖋 See Club naming')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('tudo do Craque pra sempre + seu clube no jogo · a partir de R$ 69,90', 'all of Star forever + your club in the game · from R$ 69.90')}</span>
+            {tr('🖋 Ver o Batismo', '🖋 See Club naming')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('tudo do Craque pra sempre + seu clube no jogo · a partir de R$ 79,90', 'all of Star forever + your club in the game · from R$ 79.90')}</span>
           </button>
           <div className="ll-support-offer mt-2"><SupportStory /></div>
         </div>

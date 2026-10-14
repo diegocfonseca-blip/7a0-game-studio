@@ -1,7 +1,7 @@
 ## 🧪 Trava `npm run copamundo` está vermelha (achado 13/10, JÁ vinha assim antes da abertura das copas)
 Falha: *"🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)"* — reproduz no main anterior (bf9d63d), então não é da abertura. Conferir se é a trava desatualizada ou a ficha contando jogo de copa antes do apito.
 
-## 💰 Mensal (Sócio/Craque completo) passa a R$ 9,90 (14/10) — ✅ NO AR
+## 💰 Preços novos (14/10) — ✅ NO AR: mensal R$ 9,90 · Batismo R$ 79,90 (era 69,90) · Batismo Lenda R$ 89,90 (igual)
 Diego: *"coloca 9,90 o valor mensal, melhor"*. `PRECOS.craqueMensal` = 9.9 e todos os textos (vitrine, ajuda, Pix, liga, admin). Não havia link de cartão do Mercado Pago ligado (MP_CRAQUE_CARTAO = null), então nenhuma cobrança real ficou com o preço velho. Quem já paga continua igual.
 
 ## 🏟️ 1 sala por dia no grátis (14/10) — ✅ NO AR, ⚠️ Diego com medo de esvaziar

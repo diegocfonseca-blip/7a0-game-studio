@@ -379,7 +379,7 @@ function CraqueMensalAdmin() {
         </tbody>
       </table>
       <details style={{ marginTop: 10 }}>
-        <summary style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#FFC400', cursor: 'pointer', textTransform: 'uppercase' }}>🖋 Registrar batismo novo (Lenda R$ 69,90 / Plus R$ 89,90)</summary>
+        <summary style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#FFC400', cursor: 'pointer', textTransform: 'uppercase' }}>🖋 Registrar batismo novo (Lenda R$ 79,90 / Plus R$ 89,90)</summary>
         <div style={{ display: 'flex', gap: 6, margin: '8px 0' }}>
           {(['lenda', 'plus'] as const).map(k => <button key={k} onClick={() => setBPlano(k)} style={{ flex: 1, border: '2px solid #FFC400', borderRadius: 8, padding: 6, ...OSWALD, fontWeight: 900, fontSize: 11.5, background: bPlano === k ? '#FFC400' : 'transparent', color: bPlano === k ? '#0C0C0C' : '#FFC400', cursor: 'pointer' }}>{k === 'plus' ? '🖋✨ PLUS' : '🖋 LENDA'}</button>)}
         </div>

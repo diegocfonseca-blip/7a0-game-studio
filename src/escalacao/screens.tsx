@@ -388,7 +388,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
   // ⚠️ a chave interna 'd' quer dizer "a divisão CARA", e ela é a Série A desde
   // 30/08 (a troca de letra). O nome da chave ficou pra não mexer no que já
   // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
-  const precoCheioBatismo = serieBatismo === 'd' ? 89.9 : 69.9 // 💰 13/10 (Diego): Série A 79,99 → 89,90, e ela ganha gala exclusiva + canto da torcida
+  const precoCheioBatismo = serieBatismo === 'd' ? 89.9 : 79.9 // 💰 13/10 (Diego): Série A 79,99 → 89,90, e ela ganha gala exclusiva + canto da torcida
   // 🎟️ CUPOM DE INFLUENCIADOR (Diego 07/09): "PANTERA" = 10% off SÓ no batismo.
   // O código é conferido no banco (esc_cupom_validar) — nenhum cupom vive no
   // código do jogo, então ninguém descobre fuçando. O desconto entra no valor do
@@ -450,7 +450,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
       {screen === 'choice' && <ApoieModal onClose={close}>
         <SupportPlans focus={amp} tier={myApoioPerk()?.tier} name={meuNome} memberActive={!!meuSoc?.ativo} memberNumber={meuSoc?.socioN} foundersLeft={FUNDADOR_VAGAS}
           onPay={tier => { logApoio('👀 escolheu apoio: ' + tier); setPayTier(tier); setScreen(tier === 'prata' ? 'manual' : 'pay') }}
-          onNaming={plano => { logApoio(`🖋 escolheu batismo ${plano === 'plus' ? 'lenda (89,90)' : '(69,90)'}`); setSerieBatismo(plano === 'plus' ? 'd' : 'abc'); setScreen('batismo') }}
+          onNaming={plano => { logApoio(`🖋 escolheu batismo ${plano === 'plus' ? 'lenda (89,90)' : '(79,90)'}`); setSerieBatismo(plano === 'plus' ? 'd' : 'abc'); setScreen('batismo') }}
           onMember={() => { if (meuSoc?.ativo) { setScreen('socio'); return } const tier = myApoioPerk()?.tier; logApoio('🎫 abriu assinatura sócio'); window.open(tier === 'ouro' ? MP_SOCIO.lenda : tier === 'prata' ? MP_SOCIO.craque : MP_SOCIO.base, '_blank', 'noopener') }}
           onDonate={() => setScreen('pix')}
           onInstagram={() => window.open(APOIO_IG, '_blank', 'noopener')} />
@@ -602,7 +602,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
           <div className="flex gap-1.5 mt-1.5">
             <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('🖋️ Batismo · Série B·C·D e Várzea', '🖋️ Club Naming · Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 69,90', 'R$ 69.90')}</span>
+              {tr('🖋️ Batismo · Série B·C·D e Várzea', '🖋️ Club Naming · Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 79,90', 'R$ 79.90')}</span>
             </button>
             <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
@@ -1802,7 +1802,7 @@ function Duvidas() {
     ['How do I get a crest and a mascot of my own?', <>
       It\'s the <b>🖋️ Club naming</b>. You pick the name, send whatever art you like (or we draw it), and the club gets its <b>crest, mascot, kit and stadium name</b> — made just for it.<br /><br />
       <b>Where:</b> 💛 Support → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>How much:</b> R$ 69.90 (🖋️ Club Naming) · R$ 89.90 (🖋️✨ Legend Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 69.90 (🖋️ Club Naming · Série B, C, D or Várzea) · R$ 89.90 (🖋️✨ Legend Naming · Série A, with an exclusive grand entrance and a crowd chant in Career).<br /></>}
+      {planos2Liberado() ? <><b>How much:</b> R$ 79.90 (🖋️ Club Naming) · R$ 89.90 (🖋️✨ Legend Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 79.90 (🖋️ Club Naming · Série B, C, D or Várzea) · R$ 89.90 (🖋️✨ Legend Naming · Série A, with an exclusive grand entrance and a crowd chant in Career).<br /></>}
       <b>How:</b> pay via Pix, send the receipt and the name by DM. We confirm <b>within 24h</b> and it enters the next update.<br /><br />
       The name is <b>reserved in 4 forms</b> (with and without FC/EC, upper or lower case) — nobody else can use it.
     </>],
@@ -1816,7 +1816,7 @@ function Duvidas() {
       There are <b>4</b>, and all the details are in the <b>💛 Support</b> button:<br /><br />
       ⚽ <b>Free — R$ 0.</b> Career, Quick Play, public rooms and your friends\' rooms and leagues.<br />
       🎫 <b>Member — R$ 9.90 a month.</b> Manual Mode, levels and scout up to Legend, premium look, 4 careers, create rooms and My Leagues, VIP group.<br />
-      🖋️ <b>Club Naming — R$ 69.90, one time.</b> <b>Everything in Member, forever</b>, plus your club (crest, mascot, kit, stadium) in Série A.<br />
+      🖋️ <b>Club Naming — R$ 79.90, one time.</b> <b>Everything in Member, forever</b>, plus your club (crest, mascot, kit, stadium) in Série A.<br />
       🖋️✨ <b>Legend Naming — R$ 89.90, one time.</b> Everything in Club Naming + a unique grand entrance + a crowd chant in Career.<br /><br />
       Already bought Star, Legend, Membership or a Naming before? <b>You keep all of it, forever.</b><br /><br />
       </> : <>
@@ -1824,7 +1824,7 @@ function Duvidas() {
       🎫 <b>Sócio Legends — R$ 9.90 a month.</b> The only monthly one.<br />
       ⭐ <b>Craque (Star) — R$ 19.90, one time.</b><br />
       👑 <b>Lenda (Legend) — R$ 39.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
-      🖋️ <b>Batismo (Club Naming) — R$ 69.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br />
+      🖋️ <b>Batismo (Club Naming) — R$ 79.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br />
       🖋️✨ <b>Batismo Lenda (Legend Naming) — R$ 89.90, one time.</b> Everything in Club Naming, with the club in <b>Série A</b> + an exclusive grand entrance + a crowd chant in Career.<br /><br />
       </>}
       No plan gives an advantage on the pitch — <b>the game is the same for everyone</b>. What changes is colour, shine, story and perks.
@@ -1869,7 +1869,7 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo) · R$ 89,90 (🖋️✨ Batismo Lenda, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 69,90 (🖋️ Batismo · Série B, C, D ou Várzea) · R$ 89,90 (🖋️✨ Batismo Lenda · Série A, com entrada de gala exclusiva e canto da torcida na Carreira).<br /></>}
+      {planos2Liberado() ? <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo) · R$ 89,90 (🖋️✨ Batismo Lenda, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo · Série B, C, D ou Várzea) · R$ 89,90 (🖋️✨ Batismo Lenda · Série A, com entrada de gala exclusiva e canto da torcida na Carreira).<br /></>}
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
@@ -1883,7 +1883,7 @@ function Duvidas() {
       São <b>4</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
       ⚽ <b>Gratuito — R$ 0.</b> Carreira, Jogo Rápido, salas públicas e as salas e ligas dos amigos.<br />
       🎫 <b>Sócio — R$ 9,90 por mês.</b> Modo Manual, nível e olheiro até Lenda, visual premium, 4 carreiras, cria salas e Minhas Ligas, grupo VIP.<br />
-      🖋️ <b>Batismo — R$ 69,90, uma vez só.</b> <b>Tudo do Sócio, pra sempre</b>, mais o seu clube (escudo, mascote, manto, estádio) na Série A.<br />
+      🖋️ <b>Batismo — R$ 79,90, uma vez só.</b> <b>Tudo do Sócio, pra sempre</b>, mais o seu clube (escudo, mascote, manto, estádio) na Série A.<br />
       🖋️✨ <b>Batismo Lenda — R$ 89,90, uma vez só.</b> Tudo do Batismo + entrada de gala única + canto de torcida na Carreira.<br /><br />
       Já comprou Craque, Lenda, Sócio ou Batismo antes? <b>Continua tudo seu, pra sempre.</b><br /><br />
       </> : <>
@@ -1891,7 +1891,7 @@ function Duvidas() {
       🎫 <b>Sócio Legends — R$ 9,90 por mês.</b> O único mensal.<br />
       ⭐ <b>Craque — R$ 19,90, uma vez só.</b><br />
       👑 <b>Lenda — R$ 39,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
-      🖋️ <b>Batismo — R$ 69,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
+      🖋️ <b>Batismo — R$ 79,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
       🖋️✨ <b>Batismo Lenda — R$ 89,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida na Carreira.<br /><br />
       </>}
       Nenhum plano dá vantagem dentro das quatro linhas — <b>o jogo é igual pra todos</b>. O que muda é cor, brilho, história e mimos.

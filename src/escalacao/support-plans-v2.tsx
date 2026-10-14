@@ -84,13 +84,13 @@ const UmaVezSo = () => <div style={{ display: 'flex', alignItems: 'center', gap:
 </div>
 
 // 🖋 OS DOIS BATISMOS (13/10, Diego: "já pode alterar e fazer o que estamos falando aqui pro batismo e batismo lenda").
-// Batismo R$ 69,90 · Batismo Lenda R$ 89,90, exemplo Neymarzetti, com a lista inteira do Sócio dentro. Mora aqui e é
+// Batismo R$ 79,90 · Batismo Lenda R$ 89,90, exemplo Neymarzetti, com a lista inteira do Sócio dentro. Mora aqui e é
 // usado nas DUAS vitrines: a pública (support-plans.tsx) e a v2. `serieA`: na v2 os dois batismos vão pra Série A; na
 // pública vale a regra de hoje (69,90 = Série B/C/D/Várzea · 89,90 = Série A).
 export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { batismoPlano?: 'antigo' | 'lenda' | 'plus' | null; onNaming: (plano: 'lenda' | 'plus') => void; serieA?: boolean }) {
   return <>
     {/* 3️⃣ BATISMO LENDA */}
-    <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club Naming')} price="R$ 69,90" cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="batismo">
+    <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club Naming')} price="R$ 79,90" cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="batismo">
       <UmaVezSo />
       <h3>{tr('Seu clube no jogo, pra sempre: escudo, mascote e manto desenhados pra você + tudo do Sócio, sem mensalidade.', 'Your club in the game, forever: crest, mascot and kit designed for you + everything in Member, no monthly fee.')}</h3>
       <Vitrine titulo={tr('as artes são suas (exemplo real: Neymarzetti)', 'the artwork is yours (real example: Neymarzetti)')}>
@@ -137,7 +137,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
       <ItensSocio batismo />
       <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego faz escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego makes the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
       {batismoPlano ? <p className="ll-vit-seu">{tr('✅ você já tem batismo', '✅ you already own a club naming')}</p>
-        : <button className="ll-support-button dark" onClick={() => onNaming('lenda')}>{tr('QUERO O BATISMO · R$ 69,90 UMA VEZ SÓ', 'I WANT CLUB NAMING · R$ 69.90 ONCE')}</button>}
+        : <button className="ll-support-button dark" onClick={() => onNaming('lenda')}>{tr('QUERO O BATISMO · R$ 79,90 UMA VEZ SÓ', 'I WANT CLUB NAMING · R$ 79.90 ONCE')}</button>}
     </SupportPlanCard>
 
     {/* 4️⃣ BATISMO PLUS */}
@@ -174,7 +174,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
 }
 
 // 💳 PLANOS V2 (08/10, Diego): 4 planos, nesta ordem — Gratuito · ⭐ Craque completo (R$ 9,90/mês) ·
-// 🖋 Batismo Lenda (R$ 69,90) · 🖋✨ Batismo Plus (R$ 89,90). O Craque/Lenda avulso e o sócio pago
+// 🖋 Batismo Lenda (R$ 79,90) · 🖋✨ Batismo Plus (R$ 89,90). O Craque/Lenda avulso e o sócio pago
 // SAÍRAM da vitrine — quem já comprou continua com tudo (o aviso fica no pé da tela).
 export type SupportPlanKeyV2 = 'gratis' | 'craque' | 'batismo' | 'plus' | 'prata' | 'ouro' | 'socio'
 type Props = {
