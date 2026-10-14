@@ -3,7 +3,7 @@ caelborba@gmail.com (conta existe). Série A no assento do Só Deus Sabe FC, que
 OLD_NAME). Escudo 230×360/28 KB, mascote O Labubu 252×440/31 KB, manto branco #EFEEED + marinho #03101F medidos, camisa na Loja.
 Banco: esc_socios nº72 (origem batismo, até 2099), esc_nomes_batismo 'labubu' (+FC/EC), esc_compras_batismo 'lenda', user_colors
 ouro manual. **Sem número de fundador** (regra nova). Post: `scripts/posts/labubu-post.png`. ⏳ Falta: nome do dono pro rodapé do
-post ("Batizado por —") e o time de coração, se o Diego souber.
+post ("Batizado por —") (coração Real Madrid, confirmado pelo Diego e gravado no banco).
 
 ## 💳 Planos novos (14/10) — ✅ NO AR
 ✅ Vitrine pública: Craque 29,90 · Lenda 49,90 · Batismo 79,90 · 🖋 Fundador 99,90 (ex-Batismo Lenda), todos "PAGAMENTO ÚNICO", Sócio
