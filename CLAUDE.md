@@ -148,7 +148,7 @@ FORA do bundle. Então, sem exceção:
      via `MANTO_TRI`). Sempre os MESMOS lugares no código: `LOGOS_PRONTAS`
      (com as variações do nome + o nome velho) · `MASCOTES` + `MASCOTE_NOME` +
      `CARIMBO_GOL` · `data.ts` (`OLD_NAME` + a divisão) · `apoio.tsx`
-     (tier `'ouro'` **e** `FUNDADOR_N`) · `manto.ts` (`MANTO_CONTAS`) ·
+     (tier `'ouro'`; `FUNDADOR_N` **só se for o plano 🖋 Fundador** — desde 14/10 Batismo de 79,90 não ganha número e entra em `SEM_FUNDADOR` do `checa-batismos.mjs`) · `manto.ts` (`MANTO_CONTAS`) ·
      `batismos.ts` (**a linha do clube E o campo `manto` com as MESMAS 2 cores** —
      desde 18/09; `npm run batismos` reprova se as duas listas discordarem) ·
      `salao-camisas.ts` + o arquivo em `public/mantos-salao/` (a camisa da Loja do
