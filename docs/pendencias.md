@@ -4,6 +4,17 @@ souzact12 (Geovany, coração Santa Cruz, mascote cobra_arruda): `esc_compras_ba
 ## 🛒 Loja (14/10, tarde) — ✅ NO AR
 Gala única avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo); fica 📣 canto avulso R$ 10 + dica "a gala vem no Fundador". Salas extras só aparecem pra quem NÃO cria à vontade (grátis/Craque novo).
 
+
+## 14/10/2026 — 💪 COPA DO MUNDO COM MENOS ZEBRA ✅ NO AR
+- Reclamação: "Camarões campeão" nas salas. Causa medida: gente pega as seleções fortes, a máquina fica com as do meio
+  (Escócia, Suécia, Camarões…) e, quando a máquina ganha, é sempre um país "estranho" (9 de ~83 Copas).
+- Peso da força no jogo da Copa 0,05 → 0,08 (`PESO_FORCA`, copa-mundo.tsx). Bots só: campeã fora das 9 fortes ~25% → ~10%.
+  A força é a média do XI convocado, então convocação ruim continua perdendo (Brasil dos piores 11 × Camarões dos melhores:
+  BR vence ~2%). Vale online (Copa criada depois de `FORCA_DESDE`) e carreira (carimbo `forte` no `emAndamento`); Copa já
+  rolando termina com o peso velho.
+- ⏳ Copas regionais continuam com 0,05 (motor próprio em `copa-regional.ts`) — mudar só se o Diego pedir.
+- ⚠️ `npm run copamundo` já falhava ANTES desta mudança ("jogo de copa só conta com a Copa encerrada") — investigar.
+
 ## 🎟️ Salas extras do dia (14/10) — ✅ NO AR
 (14/10, prints do Diego) Na Loja, tocar num plano abre a tela padrão do Apoie DO COMEÇO (Pra onde vai o dinheiro → todos os planos; "não joga ele no Lenda"). No aviso de limite de sala, os dois botões um embaixo do outro: 👑 ver os planos · 🎟️ 3 salas extras, e tem o botão 💛 VER TODOS OS PLANOS no topo.
 Loja: 3 salas por R$ 4,90, só pra quem não cria à vontade (grátis e Craque novo); também no aviso amarelo de "já criou a sala de
