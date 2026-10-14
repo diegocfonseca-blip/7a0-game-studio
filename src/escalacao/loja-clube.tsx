@@ -37,8 +37,6 @@ const MOEDAS: [number, string, string][] = [[10, 'Cafezinho', 'Coffee money'], [
 // do som (`temCantoProprio`). A gala única mora em `GALA_UNICA` (entrada-gala.tsx, chaveada pelo CLUBE e carregada sob
 // demanda) — aqui vai o E-MAIL de quem tem. Ganhou gala única nova? Entra nas DUAS listas.
 const GALA_UNICA_EMAILS = new Set(['diego.c.fonseca@gmail.com', 'kelvinoliveiraandradeenunes@gmail.com']) // Neymarzetti · K9 FC
-/** 🛒 tocar no plano abre a vitrine de planos (Pra onde vai o dinheiro + todos os planos) rolada até ele (Diego 14/10) */
-const FOCO: Record<PlanoUnico, 'prata' | 'ouro' | 'batismo' | 'plus'> = { craque: 'prata', lenda: 'ouro', batismo: 'batismo', fundador: 'plus' }
 const ORDEM: PlanoUnico[] = ['craque', 'lenda', 'batismo', 'fundador']
 const NOME: Record<PlanoUnico, [string, string]> = { craque: ['⭐ Craque', '⭐ Star'], lenda: ['👑 Lenda', '👑 Legend'], batismo: ['🖋 Batismo', '🖋 Club Naming'], fundador: ['🖋 Fundador', '🖋 Founder'] }
 const GANHO: Record<PlanoUnico, [string, string]> = {
@@ -100,7 +98,7 @@ function Loja({ onClose }: { onClose: () => void }) {
         {acima.length > 0 && <>
           <h2 style={h2}>{tr('⬆️ Sobe de plano', '⬆️ Move up a plan')} <span style={sub}>{atual ? tr('paga só a diferença', 'pay only the difference') : tr('pagamento único', 'one-off payment')}</span></h2>
           <div style={{ display: 'grid', gap: 8 }}>
-            {acima.map(pl => <ApoieButton key={pl} foco={FOCO[pl]} trigger={open => <div role="button" tabIndex={0} onClick={() => { logApoio(`🛒 loja → ver plano ${pl}`); open() }} style={{ ...card, cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: pl === 'lenda' ? APOIO_PERKS.ouro.grad : pl === 'craque' ? APOIO_PERKS.prata.grad : pl === 'fundador' ? 'linear-gradient(135deg,#14251a,#1B7A3D)' : INK, color: pl === 'batismo' || pl === 'fundador' ? CREAM : INK }}>
+            {acima.map(pl => <ApoieButton key={pl} startScreen="choice" trigger={open => <div role="button" tabIndex={0} onClick={() => { logApoio(`🛒 loja → ver plano ${pl}`); open() }} style={{ ...card, cursor: 'pointer', display: 'flex', gap: 10, alignItems: 'center', background: pl === 'lenda' ? APOIO_PERKS.ouro.grad : pl === 'craque' ? APOIO_PERKS.prata.grad : pl === 'fundador' ? 'linear-gradient(135deg,#14251a,#1B7A3D)' : INK, color: pl === 'batismo' || pl === 'fundador' ? CREAM : INK }}>
               <div style={{ flex: 1 }}>
                 <b style={{ ...OSW, fontSize: 18, display: 'block', color: pl === 'batismo' || pl === 'fundador' ? GOLD : INK }}>{tr(NOME[pl][0], NOME[pl][1])}</b>
                 <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr(GANHO[pl][0], GANHO[pl][1])}</small>

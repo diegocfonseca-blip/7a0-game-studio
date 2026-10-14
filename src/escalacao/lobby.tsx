@@ -33,6 +33,7 @@ import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 import { createPortal } from 'react-dom'
 import { LojaButton } from './loja-clube'
+import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
@@ -3752,9 +3753,14 @@ export function EscLobby() {
         <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>
           {tr('Dá pra criar 1 sala por dia — amanhã libera outra. Mas ', 'You can create 1 room per day — another one unlocks tomorrow. But ')}
           <b>{tr('entrar em qualquer sala aberta é sempre de graça', 'joining any open room is always free')}</b>
-          {tr(': é só escolher uma em "Salas abertas". Quer criar quantas quiser? ', ': just pick one in "Open rooms". Want to create as many as you like? ')}
-          <a href={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}?apoie=1`} style={{ color: '#7C3AED', fontWeight: 900, textDecoration: 'underline' }}>{tr('É do 👑 Lenda', 'That’s 👑 Legend')}</a>{' '}<LojaButton style={{ display: 'inline-block', marginTop: 6, background: '#FFC400', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 8, padding: '3px 9px', fontWeight: 900, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #0C0C0C' }}>{tr('ou 🎟️ 3 salas extras por R$ 4,90', 'or 🎟️ 3 extra rooms for R$ 4.90')}</LojaButton>
+          {tr(': é só escolher uma em "Salas abertas".', ': just pick one in "Open rooms".')}
         </p>
+        {/* 14/10 (Diego): os dois caminhos um EMBAIXO do outro. O Lenda abre a tela padrão do Apoie, do começo
+            (Pra onde vai o dinheiro → todos os planos); as salas extras abrem a Loja. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+          <ApoieButton startScreen="choice" trigger={open => <button onClick={open} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('👑 CRIAR QUANTAS QUISER · VER OS PLANOS', '👑 CREATE AS MANY AS YOU LIKE · SEE THE PLANS')}</button>} />
+          <LojaButton style={{ width: '100%', background: '#fff', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('🎟️ OU 3 SALAS EXTRAS · R$ 4,90', '🎟️ OR 3 EXTRA ROOMS · R$ 4.90')}</LojaButton>
+        </div>
       </div>}
       {/* 🚪 o botão de ENCERRAR as salas presas AQUI, na tela de criar sala — a
           mensagem dizia "é só encerrar aqui embaixo", mas o botão só existia

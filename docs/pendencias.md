@@ -1,5 +1,5 @@
 ## 🎟️ Salas extras do dia (14/10) — ✅ NO AR
-(14/10, print do Diego) Na Loja, tocar num plano abre a vitrine de planos (Pra onde vai o dinheiro + todos) já rolada até ele (`foco` no ApoieButton), e tem o botão 💛 VER TODOS OS PLANOS no topo.
+(14/10, prints do Diego) Na Loja, tocar num plano abre a tela padrão do Apoie DO COMEÇO (Pra onde vai o dinheiro → todos os planos; "não joga ele no Lenda"). No aviso de limite de sala, os dois botões um embaixo do outro: 👑 ver os planos · 🎟️ 3 salas extras, e tem o botão 💛 VER TODOS OS PLANOS no topo.
 Loja: 3 salas por R$ 4,90, só pra quem não cria à vontade (grátis e Craque novo); também no aviso amarelo de "já criou a sala de
 hoje". Paga Pix + comprovante → Diego dá +3 no #admin (🎟️ Salas extras). O gatilho `esc_sala_por_dia` gasta 1 extra quando a sala
 grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (aplicado).
