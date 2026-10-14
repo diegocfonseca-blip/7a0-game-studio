@@ -3,9 +3,9 @@
 // Regra dele: *"tudo tem que ter sentido com base nos planos"*. A loja mostra pra cada um SÓ o que faz sentido pro plano
 // que ele tem (`planoAtual`, a mesma régua da vitrine de planos):
 //   · ⬆️ SUBIR DE PLANO — os degraus acima do seu, pagando só a diferença (`precoSubida`).
-//   · 🚁 GALA ÚNICA (R$ 20) e 📣 CANTO DA TORCIDA (R$ 10) — só pra quem tem 🖋 Batismo, porque a gala mostra o ESCUDO no
-//     telão e a MASCOTE atravessando (sem batismo sobraria tela vazia). Os dois avulsos somam 30; subir pro Fundador custa
-//     20 e já traz os dois + o número de fundador — o desconto de quem pagou o Fundador (palavras dele: *"pra ter uma
+//   · 🚁 GALA ÚNICA (R$ 25) e 📣 CANTO DA TORCIDA (R$ 10) — só pra quem tem 🖋 Batismo, porque a gala mostra o ESCUDO no
+//     telão e a MASCOTE atravessando (sem batismo sobraria tela vazia). Os dois avulsos somam 35; subir pro Fundador custa
+//     25 (diferença + 5) e já traz os dois + o número de fundador — o desconto de quem pagou o Fundador (palavras dele: *"pra ter uma
 //     diferença, quem pagou o fundador ter ganhado desconto"*). Fundador vê "✅ já incluso".
 //   · 🎨 (14/10) cor do nome NÃO é vendida — Diego: "não bote negócio de cor… pra não confundir". E o Lenda não promete mais escolher cor.
 //   · 🎟️ SALAS EXTRAS — 3 por R$ 4,90 pra quem não cria à vontade; o gatilho `esc_sala_por_dia` gasta 1 quando a do dia acabou.
@@ -28,7 +28,7 @@ import { PresenteBox } from './presente'
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 /** 💰 avulsos do clube batizado (Diego 14/10) */
-export const LOJA_PRECOS = { galaUnica: 20, canto: 10, salasExtras: 4.9 } as const
+export const LOJA_PRECOS = { galaUnica: 25, canto: 10, salasExtras: 4.9 } as const // 💰 14/10: gala única avulsa 25 (Diego)
 /** 🎟️ quantas salas vêm no pacote (Diego 14/10) */
 export const SALAS_EXTRAS_QTD = 3
 /** 🏦 pacotes do Banco Legends (os mesmos de `BL_PACOTES` em pyramidseason.tsx, R$ 1 = 3 🪙) */

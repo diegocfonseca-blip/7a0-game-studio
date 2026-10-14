@@ -44,7 +44,7 @@ fora, subida pela diferença no botão e no Pix. V2 (mensal) desligada até pra 
 
 ## 🛒 Loja do Clube (14/10) — ✅ NO AR (faixa dourada na home; Ranking saiu da home). Canto = o do TIME DE CORAÇÃO do dono. Fundador aparece nas salas online dos outros em rodízio, mesmo sem jogar.
 Botão 🛒 LOJA dourado no rodapé da home (no lugar do ÁLBUM repetido; no header não coube por causa do som). Mostra por plano:
-subir de plano (só a diferença) · 🚁 gala única R$ 20 e 📣 canto R$ 10 SÓ pra Batismo (somam 30 > Fundador +20 = desconto de
+subir de plano (só a diferença) · 🚁 gala única R$ 25 e 📣 canto R$ 10 SÓ pra Batismo (somam 35 > Fundador +25 = desconto de
 quem sobe) · Fundador vê "já incluso" · 🏦 moedas (10/50/100 → ficha do Banco Legends, resgata na carreira que quiser).
 Pagamento = Pix + comprovante (libera o Diego); nada é liberado pelo cliente. Fotos: `scripts/foto-loja-clube.mjs`.
 (Mockup antigo abaixo, só pra história.)
