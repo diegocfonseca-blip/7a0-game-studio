@@ -1,0 +1,44 @@
+{
+  "data": "14 de outubro de 2026",
+  "titulo": "Bora manter o jogo de pé?",
+  "destaque": {
+    "passos": [
+      {
+        "emoji": "💛",
+        "titulo": "O Luca",
+        "sub": "parte de todo apoio"
+      },
+      {
+        "emoji": "🗄️",
+        "titulo": "O servidor",
+        "sub": "salas e carreiras"
+      },
+      {
+        "emoji": "📊",
+        "titulo": "Meta: 22%",
+        "sub": "de outubro, até agora"
+      }
+    ]
+  },
+  "itens": [
+    {
+      "tag": "apoio",
+      "texto": "No **💛 Apoie** agora tem **Pra onde vai o dinheiro**, sem mistério. E a **meta do mês**: outubro está em **22%** do custo pago. Aos **100% o jogo se paga**; aos 150% sobra pra crescer."
+    },
+    {
+      "tag": "apoio",
+      "texto": "Quem faz o jogo sou eu, de madrugada, sozinho. E faço pelo **Luca, meu filho**: uma condição rara, 120 casos no mundo. **Parte de cada apoio vai pro tratamento dele.**"
+    },
+    {
+      "tag": "novidade",
+      "texto": "Preços novos: **Sócio R$ 9,90/mês** · **Batismo R$ 79,90** · **Batismo Lenda R$ 89,90**. Quem já apoiou continua com **tudo** o que tinha."
+    },
+    {
+      "tag": "regra",
+      "texto": "No gratuito agora dá pra **criar 1 sala por dia**. **Entrar em qualquer sala aberta continua de graça, sempre.** Apoiador cria quantas quiser."
+    }
+  ],
+  "rodape": "Apoiar não deixa ninguém mais forte. Aqui ninguém compra título.",
+  "rodapeSub": "Cada real vira jogo, e uma vida melhor pro Luca. Obrigado por estar aqui 💛",
+  "saida": "scripts/posts/aviso-meta-apoio.png"
+}

@@ -33,6 +33,8 @@ const TAGS = {
   batismo: ['🔨 BATISMO', '#FFC400', '#0C0C0C'],
   novidade: ['🔨 NOVIDADE', '#7C3AED', '#fff'],
   melhoria: ['🔨 MELHORIA', '#1B7A3D', '#fff'],
+  apoio: ['🔨 APOIO', '#FFC400', '#0C0C0C'],
+  regra: ['🔨 REGRA', '#C2452F', '#fff'],
   mascote: ['🔨 MASCOTE', '#C2452F', '#fff'],
   manto: ['🔨 MANTO', '#0C0C0C', '#FFC400'],
   emprestimo: ['🔨 EMPRÉSTIMO', '#1B7A3D', '#fff'],
