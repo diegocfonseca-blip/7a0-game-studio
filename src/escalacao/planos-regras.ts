@@ -16,7 +16,7 @@ export type TierCor = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
 
 /** 💰 preços — o único lugar com número de plano no jogo */
 export const PRECOS = {
-  craqueMensal: 12.9,
+  craqueMensal: 9.9, // 💰 14/10 (Diego: "coloca 9,90 o valor mensal"). Era 12,90 de 09/10 a 13/10.
   batismoLenda: 69.9,
   batismoPlus: 89.9,
 } as const

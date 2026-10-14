@@ -1,4 +1,4 @@
-// 💳 trava dos PLANOS V2 (08/10): Gratuito · ⭐ Craque completo R$ 12,90/mês · 🖋 Batismo Lenda R$ 69,90 ·
+// 💳 trava dos PLANOS V2 (08/10): Gratuito · ⭐ Craque completo R$ 9,90/mês (14/10; era 12,90) · 🖋 Batismo Lenda R$ 69,90 ·
 // 🖋✨ Batismo Plus R$ 89,90. Confere as regras puras (planos-regras.ts), que a tela e o banco seguem,
 // e que a vitrine mostra os 4 planos na ordem certa com os textos que o Diego pediu.
 // O lado do BANCO tem o teste dele: docs/sql/testa-planos-v2.sql (20 cenários, desfeito no fim).
@@ -14,8 +14,8 @@ try {
   const D = o => R.lerDireitos({ ...base, ...o })
 
   // preços
-  assert.equal(R.PRECOS.craqueMensal, 12.9); assert.equal(R.PRECOS.batismoLenda, 69.9); assert.equal(R.PRECOS.batismoPlus, 89.9)
-  assert.equal(R.precoTxt(89.9), 'R$ 89,90'); assert.equal(R.precoTxt(12.9, true), 'R$ 12.90')
+  assert.equal(R.PRECOS.craqueMensal, 9.9); assert.equal(R.PRECOS.batismoLenda, 69.9); assert.equal(R.PRECOS.batismoPlus, 89.9)
+  assert.equal(R.precoTxt(89.9), 'R$ 89,90'); assert.equal(R.precoTxt(9.9, true), 'R$ 9.90')
 
   // gratuito
   const free = D({})
@@ -90,8 +90,8 @@ try {
   assert.ok(vit.indexOf('id="support-batismo"') < vit.indexOf('id="support-plus"'), 'ordem: Batismo antes do Batismo Lenda')
   assert.ok(vit.includes("'QUERO O BATISMO · R$ 69,90 UMA VEZ SÓ'") && vit.includes("'QUERO O BATISMO LENDA · R$ 89,90 UMA VEZ SÓ'") && vit.includes('<UmaVezSo />'), 'nomes: Batismo e Batismo Lenda')
   assert.ok(readFileSync('src/escalacao/support-plans.tsx', 'utf8').includes('<CartoesBatismo onNaming={p.onNaming} />'), 'a vitrine pública usa os mesmos cartões')
-  for (const p of ['R$ 12,90', 'R$ 69,90', 'R$ 89,90', 'R$ 0']) assert.ok(vit.includes(`"${p}"`), `preço à vista: ${p}`)
-  for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90', 'R$ 2,90/MÊS', 'R$ 4,90/MÊS', 'R$ 9,90']) assert.ok(!vit.includes(velho), `oferta velha fora da vitrine: ${velho}`)
+  for (const p of ['R$ 9,90', 'R$ 69,90', 'R$ 89,90', 'R$ 0']) assert.ok(vit.includes(`"${p}"`), `preço à vista: ${p}`)
+  for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90', 'R$ 2,90/MÊS', 'R$ 4,90/MÊS']) assert.ok(!vit.includes(velho), `oferta velha fora da vitrine: ${velho}`)
   assert.ok(vit.includes('continua com TUDO'), 'aviso pra quem já comprou')
   const scr = readFileSync('src/escalacao/apoie-v2.tsx', 'utf8')
   for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90']) assert.ok(!scr.includes(velho), `sem oferta velha na tela nova: ${velho}`)

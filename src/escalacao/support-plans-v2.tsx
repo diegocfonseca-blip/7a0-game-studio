@@ -173,7 +173,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
   </>
 }
 
-// 💳 PLANOS V2 (08/10, Diego): 4 planos, nesta ordem — Gratuito · ⭐ Craque completo (R$ 12,90/mês) ·
+// 💳 PLANOS V2 (08/10, Diego): 4 planos, nesta ordem — Gratuito · ⭐ Craque completo (R$ 9,90/mês) ·
 // 🖋 Batismo Lenda (R$ 69,90) · 🖋✨ Batismo Plus (R$ 89,90). O Craque/Lenda avulso e o sócio pago
 // SAÍRAM da vitrine — quem já comprou continua com tudo (o aviso fica no pé da tela).
 export type SupportPlanKeyV2 = 'gratis' | 'craque' | 'batismo' | 'plus' | 'prata' | 'ouro' | 'socio'
@@ -240,7 +240,7 @@ export function SupportPlansV2(p: Props) {
     </SupportPlanCard>
 
     {/* 2️⃣ CRAQUE COMPLETO */}
-    <SupportPlanCard id="support-craque" title={tr('🎫 Sócio', '🎫 Member')} price="R$ 12,90" cadence={tr('por mês · cancela quando quiser', 'per month · cancel anytime')} tone="ouro">
+    <SupportPlanCard id="support-craque" title={tr('🎫 Sócio', '🎫 Member')} price="R$ 9,90" cadence={tr('por mês · cancela quando quiser', 'per month · cancel anytime')} tone="ouro">
       <h3>{tr('Vira sócio do Leilão Legends: ganha seu número de sócio, o nome dourado brilhando em todo canto e o jogo inteiro na sua mão.', 'Become a Leilão Legends member: get your member number, your name in shining gold everywhere and the whole game in your hands.')}</h3>
       <Vitrine titulo={tr('o que muda na sua tela', 'what changes on your screen')}>
         <div className="ll-vit-grid">
@@ -260,7 +260,7 @@ export function SupportPlansV2(p: Props) {
       {p.craque === 'cancelado_no_prazo' && <p className="ll-vit-seu">{en ? `✅ cancelled — still valid until ${ate}` : `✅ cancelado — continua valendo até ${ate}`}</p>}
       {p.craque !== 'ativo' && p.craque !== 'cancelado_no_prazo' && (temBatismo
         ? <p className="ll-support-note">{tr('Você tem batismo: tudo do Sócio já é seu, pra sempre. Não precisa assinar. 💛', 'You own a club naming: everything in Member is already yours, forever. No need to subscribe. 💛')}</p>
-        : <button className="ll-support-button gold" onClick={p.onCraque}>{p.pedidoAberto ? tr('📲 PEDIDO ENVIADO · VER COMO ESTÁ', '📲 REQUEST SENT · SEE STATUS') : p.craque === 'vencido' ? tr('VOLTAR A SER SÓCIO · R$ 12,90/MÊS', 'BECOME A MEMBER AGAIN · R$ 12.90/MONTH') : tr('QUERO SER SÓCIO · R$ 12,90/MÊS', 'I WANT TO BE A MEMBER · R$ 12.90/MONTH')}</button>)}
+        : <button className="ll-support-button gold" onClick={p.onCraque}>{p.pedidoAberto ? tr('📲 PEDIDO ENVIADO · VER COMO ESTÁ', '📲 REQUEST SENT · SEE STATUS') : p.craque === 'vencido' ? tr('VOLTAR A SER SÓCIO · R$ 9,90/MÊS', 'BECOME A MEMBER AGAIN · R$ 9.90/MONTH') : tr('QUERO SER SÓCIO · R$ 9,90/MÊS', 'I WANT TO BE A MEMBER · R$ 9.90/MONTH')}</button>)}
       <p className="ll-support-addon">{tr('Cancelou? Continua valendo até o fim do mês pago. Se vencer, voltam as regras do gratuito — seus saves, ligas e histórico continuam guardados.', 'Cancelled? It stays valid until the end of the paid month. If it lapses, the free rules come back — your saves, leagues and history stay stored.')}</p>
     </SupportPlanCard>
 
