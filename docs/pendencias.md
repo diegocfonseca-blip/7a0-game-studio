@@ -1,10 +1,8 @@
-## 🎁 Presente de plano + 🎨 cor na Loja + subida +R$ 5 (14/10) — 🟡 feito no branch, esperando OK pra publicar
+## 🎁 Presente de plano + subida +R$ 5 (14/10) — ✅ NO AR
 - Presente: Loja → escolhe plano, e-mail do amigo, nome, recado → `esc_pedir_presente` (servidor confere conta, plano, não é
   pra si) → Pix + comprovante → Diego ENTREGA no #admin (🎁 Presentes de plano). Craque/Lenda ligam o tier; Batismo/Fundador só
   marcam (montar pelo roteiro). Amigo vê "FULANO TE DEU UM PRESENTE!" ao entrar (`PresenteRecebido`). SQL: `docs/sql/presentes.sql` (aplicado).
-- Subir de plano = diferença + R$ 5 (`TAXA_SUBIDA`). Cor do nome saiu do Lenda → item R$ 4,90 (só com plano).
-- ⚠️ Pra ENTREGAR a troca de cor: a cor HOJE é o próprio tier (prata = Craque, ouro = Lenda). Trocar o tier de um Lenda pra
-  roxo faria o jogo achar que ele não tem plano. Precisa de um campo de cor separado antes do 1º pedido — avisar o Diego.
+- Subir de plano = diferença + R$ 5 (`TAXA_SUBIDA`). Cor do nome saiu do Lenda e NÃO virou item (Diego: pra não confundir).
 
 ## 🛍️ Itens novos da Loja (14/10) — ⏳ MOCKUP enviado, NÃO fazer ainda (ordem do Diego)
 Escolhidos por ele: 🎁 dar de presente · 🎖️ título do lado do nome (troca quando quiser) · 😂 figurinhas da sala · 🎨 tema da

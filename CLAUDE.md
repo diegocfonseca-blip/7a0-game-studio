@@ -740,8 +740,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 
 - **💳 PLANOS DE UMA VEZ SÓ, EM ESCADA (14/10).** Sócio (mensal) SAIU. ⭐ Craque 29,90 · 👑 Lenda 49,90 · 🖋 Batismo 79,90 ·
   🖋 Fundador 99,90 (`PRECOS_UNICO`, `planos-regras.ts`). Cada degrau = tudo do anterior + o dele; subir = paga só a diferença
-  (`precoSubida`) **+ R$ 5** (`TAXA_SUBIDA`, 14/10: *"pagar pelo menos 5 reais a mais"*). **Escolher a cor saiu do Lenda**: virou item da
-  Loja (🎨 R$ 4,90, só pra quem tem plano). **🎁 Presente = só de PLANO**, liberado pelo Diego no #admin (`esc_presentes`). Craque tem o Modo Manual *"como sempre teve"*; **criar sala à vontade é do Lenda pra cima** (Craque novo = 1 por
+  (`precoSubida`) **+ R$ 5** (`TAXA_SUBIDA`, 14/10: *"pagar pelo menos 5 reais a mais"*). **Escolher a cor saiu do Lenda** e NÃO é vendida na
+  Loja (*"não bote negócio de cor… pra não confundir"*). **🎁 Presente = só de PLANO**, liberado pelo Diego no #admin (`esc_presentes`). Craque tem o Modo Manual *"como sempre teve"*; **criar sala à vontade é do Lenda pra cima** (Craque novo = 1 por
   dia, igual grátis; os 70 Craques de antes de 14/10 ficaram na foto `esc_craque_antigo` e seguem à vontade). Loja de avulsos
   aprovada (*"adorei"*), ainda a fazer. Diego e quem ele dá plano também pagam o que não têm (*"eu com meu usuário também tenho
   que pagar se quiser as coisas"*): a conta dele = Fundador, o K9 = Batismo.
