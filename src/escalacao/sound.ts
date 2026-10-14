@@ -131,6 +131,18 @@ export function playMp3(url: string) {
   if (!allowed || muted) return
   try { const a = new Audio(url); a.play().catch(() => { /* autoplay bloqueado: silêncio */ }) } catch { /* ignora */ }
 }
+// 🎺 o canto do clube durante uma GALA ÚNICA: toca do começo, abaixa no fim e para quando a gala some
+// (devolve a função que corta — a gala chama ao desmontar). Respeita mudo/permissão como o resto.
+export function playMp3Gala(url: string, ms: number): () => void {
+  if (!allowed || muted) return () => {}
+  let a: HTMLAudioElement | null = null; const ts: ReturnType<typeof setTimeout>[] = []
+  try {
+    a = new Audio(url); a.volume = 0.9; a.play().catch(() => { /* autoplay bloqueado: silêncio */ })
+    for (let i = 1; i <= 6; i++) ts.push(setTimeout(() => { if (a) a.volume = Math.max(0, 0.9 * (1 - i / 6)) }, ms - 700 + i * 110))
+    ts.push(setTimeout(() => { a?.pause() }, ms))
+  } catch { /* ignora */ }
+  return () => { ts.forEach(clearTimeout); try { a?.pause() } catch { /* ignora */ } a = null }
+}
 // 📣 apito do juiz: tom agudo com trinado + sopro
 export function playWhistle() {
   const c = ac(); if (!c || !master) return

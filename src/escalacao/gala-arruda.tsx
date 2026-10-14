@@ -9,11 +9,13 @@
 //
 // Mesmo esquema das outras galas únicas (`gala-helicoptero.tsx`, `gala-k9.tsx`): palco 420×760 escalado pra tela,
 // camada fixa `pointer-events:none`, fora do reducer, sem localStorage; "reduzir movimento" = tudo parado no lugar.
+// Som: o canto da torcida que ele já tem (`sfx/torcida-geovany-v1.mp3`), abaixando no fim.
 // Arte nova: nenhuma (estádio em CSS = 0 KB; escudo e cobra do batismo). Nada do escudo oficial do Santa Cruz.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Escudo } from './escudos'
 import { tr } from './lang'
+import { playMp3Gala } from './sound'
 import arrudaMascoteImg from './img/arruda-mascote.webp'
 
 export const ARRUDA_MS = 6800
@@ -104,6 +106,8 @@ function useEscala() {
 
 export function GalaArruda({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
   const s = useEscala()
+  // 🔊 o CANTO DA TORCIDA dele (o mesmo da carreira) toca junto com a gala — pedido do Diego 14/10
+  useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-geovany-v1.mp3`, T), [chave])
   void grito // o grito dele é o do próprio clube (o Arruda), não o nome curto
   return createPortal(
     <div key={chave} className="gar" aria-hidden>

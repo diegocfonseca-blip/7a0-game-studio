@@ -1,5 +1,5 @@
 ## 🐍 Tricolor do Arruda FC virou 🖋 FUNDADOR (14/10) — banco feito
-souzact12 (Geovany, coração Santa Cruz, mascote cobra_arruda): `esc_compras_batismo` = plus. Já tinha fundador nº43 e o canto. ✅ GALA ÚNICA NO AR (14/10): `gala-arruda.tsx` (arquibancada em faixas retas, bandeirão com o escudo, a cobra SOBE, "Ô ARRUDA!"), registrada em `GALA_UNICA`. Vídeo: `scripts/video-gala-arruda.mjs` → `scripts/posts/gala-arruda.mp4`. ⏳ Decidir se sobe pra Série A.
+souzact12 (Geovany, coração Santa Cruz, mascote cobra_arruda): `esc_compras_batismo` = plus. Já tinha fundador nº43 e o canto. ✅ GALA ÚNICA NO AR (14/10, v2 aprovada): `gala-arruda.tsx` (estádio com teto/refletores/degraus/torcida pulando, bandeirão com o escudo, a cobra numa BANDEIRA GIGANTE subindo de dentro da torcida em 2 mastros, "Ô ARRUDA!") + o CANTO DA TORCIDA dele tocando junto (`playMp3Gala`, abaixa no fim; respeita mudo), registrada em `GALA_UNICA`. Vídeo: `scripts/video-gala-arruda.mjs` → `scripts/posts/gala-arruda.mp4` (com som: `gala-arruda-com-canto.mp4`, áudio juntado com o ffmpeg do `pip install imageio-ffmpeg`). ⏳ Decidir se sobe pra Série A.
 
 ## 🛒 Loja (14/10, tarde) — ✅ NO AR
 Gala única avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo); fica 📣 canto avulso R$ 10 + dica "a gala vem no Fundador". Salas extras só aparecem pra quem NÃO cria à vontade (grátis/Craque novo).
