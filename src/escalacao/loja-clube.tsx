@@ -28,15 +28,12 @@ import { PresenteBox } from './presente'
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 /** 💰 avulsos do clube batizado (Diego 14/10) */
-export const LOJA_PRECOS = { galaUnica: 25, canto: 10, salasExtras: 4.9 } as const // 💰 14/10: gala única avulsa 25 (Diego)
+export const LOJA_PRECOS = { canto: 10, salasExtras: 4.9 } as const // 💰 14/10: a gala avulsa saiu (só no Fundador)
 /** 🎟️ quantas salas vêm no pacote (Diego 14/10) */
 export const SALAS_EXTRAS_QTD = 3
 /** 🏦 pacotes do Banco Legends (os mesmos de `BL_PACOTES` em pyramidseason.tsx, R$ 1 = 3 🪙) */
 const MOEDAS: [number, string, string][] = [[10, 'Cafezinho', 'Coffee money'], [50, 'Reforço pontual', 'Quick boost'], [100, 'Fôlego de temporada', 'Season breather']]
-// 🎁 quem JÁ TEM o item não pode ver ele à venda (Diego 14/10: "o Tricolor do Arruda já tem canto"). O canto vem da lista
-// do som (`temCantoProprio`). A gala única mora em `GALA_UNICA` (entrada-gala.tsx, chaveada pelo CLUBE e carregada sob
-// demanda) — aqui vai o E-MAIL de quem tem. Ganhou gala única nova? Entra nas DUAS listas.
-const GALA_UNICA_EMAILS = new Set(['diego.c.fonseca@gmail.com', 'kelvinoliveiraandradeenunes@gmail.com']) // Neymarzetti · K9 FC
+// 🎁 quem JÁ TEM o canto não vê ele à venda (Diego 14/10: "o Tricolor do Arruda já tem canto") — lista do som (`temCantoProprio`).
 const ORDEM: PlanoUnico[] = ['craque', 'lenda', 'batismo', 'fundador']
 const NOME: Record<PlanoUnico, [string, string]> = { craque: ['⭐ Craque', '⭐ Star'], lenda: ['👑 Lenda', '👑 Legend'], batismo: ['🖋 Batismo', '🖋 Club Naming'], fundador: ['🖋 Fundador', '🖋 Founder'] }
 const GANHO: Record<PlanoUnico, [string, string]> = {
@@ -70,7 +67,7 @@ function Loja({ onClose }: { onClose: () => void }) {
   const [saldoSalas, setSaldoSalas] = useState<number | null>(null)
   useEffect(() => { if (loggedEmail()) supabase.rpc('esc_minhas_salas_extras').then(({ data }) => { if (typeof data === 'number') setSaldoSalas(data) }, () => {}) }, [])
   const email = loggedEmail()
-  const jaTem = { 'gala única': atual === 'fundador' || (!!email && GALA_UNICA_EMAILS.has(email)), 'canto da torcida': atual === 'fundador' || temCantoProprio(email) }
+  const jaTem = { 'canto da torcida': atual === 'fundador' || temCantoProprio(email) }
   const perk = tier ? APOIO_PERKS[tier] : APOIO_PERKS.bege
 
   const card: React.CSSProperties = { background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10 }
@@ -122,22 +119,18 @@ function Loja({ onClose }: { onClose: () => void }) {
         <h2 style={h2}>{tr('🎁 Dar de presente', '🎁 Send a gift')} <span style={sub}>{tr('um plano pra um amigo', 'a plan for a friend')}</span></h2>
         <PresenteBox />
 
-        {/* 🎤 DO CLUBE BATIZADO */}
-        <h2 style={h2}>{tr('🎤 Do seu clube batizado', '🎤 For your named club')} <span style={sub}>{tr('feitos sob medida', 'made to order')}</span></h2>
-        {!temBatismo && <p style={{ ...card, margin: 0, fontSize: 12, fontWeight: 700, background: '#FFF3C4' }}>{tr('🔒 Precisa do 🖋 Batismo: a gala mostra o SEU escudo no telão e a SUA mascote atravessando a tela, e o canto toca no estádio do SEU clube.', '🔒 Needs 🖋 Club Naming: the entrance shows YOUR crest on the big screen and YOUR mascot running across, and the chant plays at YOUR club’s stadium.')}</p>}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: temBatismo ? 0 : 8, opacity: temBatismo ? 1 : .55 }}>
-          {([['🚁', tr('Gala ÚNICA', 'UNIQUE entrance'), tr('helicóptero, moto, fumaça… só o seu clube tem', 'helicopter, bike, smoke… only your club has it'), LOJA_PRECOS.galaUnica, 'gala única'],
-             ['📣', tr('Canto da torcida', 'Crowd chant'), tr('o canto do seu time de coração tocando no estádio da sua Carreira', 'your favourite team’s chant playing at your Career stadium'), LOJA_PRECOS.canto, 'canto da torcida']] as const).map(([ic, t, d, v, ctx]) =>
-            <div key={ctx} style={{ ...card, textAlign: 'center' }}>
-              <div style={{ fontSize: 32 }}>{ic}</div>
-              <b style={{ ...OSW, fontSize: 14, textTransform: 'uppercase', display: 'block' }}>{t}</b>
-              <small style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(12,12,12,.6)', display: 'block', minHeight: 28 }}>{d}</small>
-              {jaTem[ctx] ? <div style={{ ...preco, background: CREAM, color: GREEN, cursor: 'default', marginTop: 6 }}>{atual === 'fundador' ? tr('✅ já incluso', '✅ included') : tr('✅ você já tem', '✅ you have it')}</div>
-                : <button disabled={!temBatismo} onClick={() => setComprando({ id: ctx, amount: v, ctx: `loja · ${ctx}`, msgPt: `Opa! Comprei na Loja do Clube: ${ic} ${ctx.toUpperCase()} (${reais(v)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: ${ic} ${ctx.toUpperCase()} (${reais(v)}). Account e-mail: ____ — receipt attached!` })}
-                  style={{ ...preco, width: '100%', marginTop: 6, cursor: temBatismo ? 'pointer' : 'not-allowed' }}>{reais(v)}</button>}
-            </div>)}
+        {/* 🎤 DO CLUBE BATIZADO — 14/10 (Diego): a gala avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo).
+            Fica só o 📣 canto avulso, o pedacinho barato; a gala única vem no 🖋 Fundador. */}
+        <h2 style={h2}>{tr('📣 Canto da torcida', '📣 Crowd chant')} <span style={sub}>{tr('pro seu clube batizado', 'for your named club')}</span></h2>
+        <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', opacity: temBatismo ? 1 : .6 }}>
+          <span style={{ fontSize: 30 }}>📣</span>
+          <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{temBatismo
+            ? tr('O canto do seu time de coração tocando no estádio da sua Carreira.', 'Your favourite team’s chant playing at your Career stadium.')
+            : tr('🔒 Precisa do 🖋 Batismo: o canto toca no estádio do SEU clube.', '🔒 Needs 🖋 Club Naming: the chant plays at YOUR club’s stadium.')}</small>
+          {jaTem['canto da torcida'] ? <span style={{ ...preco, background: CREAM, color: GREEN, cursor: 'default' }}>{atual === 'fundador' ? tr('✅ incluso', '✅ included') : tr('✅ já tem', '✅ owned')}</span>
+            : <button disabled={!temBatismo} onClick={() => setComprando({ id: 'canto', amount: LOJA_PRECOS.canto, ctx: 'loja · canto da torcida', msgPt: `Opa! Comprei na Loja do Clube: 📣 CANTO DA TORCIDA (${reais(LOJA_PRECOS.canto)}). Meu time de coração: ____. E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 📣 CROWD CHANT (${reais(LOJA_PRECOS.canto)}). My favourite team: ____. Account e-mail: ____ — receipt attached!` })} style={{ ...preco, cursor: temBatismo ? 'pointer' : 'not-allowed' }}>{reais(LOJA_PRECOS.canto)}</button>}
         </div>
-        {atual === 'batismo' && !jaTem['gala única'] && !jaTem['canto da torcida'] && <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: GREEN }}>{tr(`💡 Os dois juntos dão ${reais(LOJA_PRECOS.galaUnica + LOJA_PRECOS.canto)}. Subindo pro 🖋 Fundador você paga ${reais(precoSubida('fundador', 'batismo'))} e ainda ganha o número de fundador.`, `💡 Both together cost ${reais(LOJA_PRECOS.galaUnica + LOJA_PRECOS.canto)}. Moving up to 🖋 Founder costs ${reais(precoSubida('fundador', 'batismo'))} and also gives you a founder number.`)}</p>}
+        {atual === 'batismo' && <p style={{ fontSize: 11.5, fontWeight: 700, margin: '8px 2px 0', color: GREEN, lineHeight: 1.4 }}>{tr(`🚁 Quer a gala única? Ela vem no 🖋 Fundador: + ${reais(precoSubida('fundador', 'batismo'))} e você leva gala + canto + número de fundador + o clube nas salas online dos outros.`, `🚁 Want the unique entrance? It comes with 🖋 Founder: + ${reais(precoSubida('fundador', 'batismo'))} for entrance + chant + founder number + your club in other people’s online rooms.`)}</p>}
 
         {/* 🪙 MOEDAS */}
         <h2 style={h2}>{tr('🏦 Moedas pro clube', '🏦 Coins for your club')} <span style={sub}>{tr('Banco Legends · carreira solo', 'Banco Legends · solo career')}</span></h2>
