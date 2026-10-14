@@ -35,7 +35,7 @@ h2{font:700 22px/1 Oswald;text-transform:uppercase;margin:0 0 4px}.h2s{font-size
 </style></head><body>
 <div class="box"><h2>💸 Pra onde vai o dinheiro</h2><p class="h2s">Sem mistério: cada real vira jogo.</p>
 <div class="it fam"><span class="ic">💛</span><div><b>Uma vida melhor pro Luca</b>
-<p>Sou o Diego. De dia vendo carro com meu pai. De madrugada, quando a casa dorme, faço este jogo — sozinho, na unha.</p>
+<p>Sou o Diego. De madrugada, faço esse jogo sozinho.</p>
 <p>E faço por um motivo com nome: o Luca, meu filho. Ele tem uma condição rara — são 120 casos no mundo — e ele é o menino mais forte do mundo. Ele é a minha <b class="lenda">lenda</b>. Cada apoio vira uma vida melhor pro Luca e este jogo vivo, crescendo toda semana.</p>
 <p>E essa história, que é minha e do Luca, passa a ter um pedaço de você dentro dela.</p>
 <p class="ass">✍ Diego · fundador nº 1</p><p>Pelo Luca: obrigado por estar aqui 💛</p></div></div>
