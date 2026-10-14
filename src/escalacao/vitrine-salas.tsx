@@ -31,6 +31,10 @@ const haQuanto = (iso: string) => {
   const h = Math.round(min / 60)
   return tr(`há ${h} h`, `${h} h ago`)
 }
+// 🖋️ BATISMO EM DESTAQUE (13/10, Diego: "troque o último batismo do Rossini pelo do K9 e não quero mais que seja último
+// batismo… vou fazer uns rodízios"). Quem escolhe o clube é o Diego: pra trocar, é só mudar esta linha (clube + data
+// em que ele chegou no jogo). Não depende mais do banco.
+const DESTAQUE = { clube: 'Leão da Estradinha', desde: '2026-08-09' }
 const medalha = (p: number) => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}º`)
 
 function Caixa({ titulo, sub, escura = false, children }: { titulo: string; sub: string; escura?: boolean; children: React.ReactNode }) {
@@ -52,7 +56,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
   }, [])
   if (!v) return null
   const euNoTop = !!v.eu && v.semana.some(s => s.nome === v.eu!.nome && s.titulos === v.eu!.titulos)
-  const mascote = v.batismo ? mascoteInteiraDoTime(v.batismo.clube) : null
+  const mascote = mascoteInteiraDoTime(DESTAQUE.clube)
   return (
     <div className="space-y-3.5" style={{ marginTop: 6 }}>
       {/* 🔨 SELO DE NOVIDADE (Diego 13/10: "um selinho pra pessoa saber que tudo pra baixo é novo"). Some
@@ -96,15 +100,15 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
         </Caixa>
       )}
 
-      {v.batismo && (
-        <Caixa escura titulo={tr('🖋️ Último batismo', '🖋️ Latest named club')} sub={tr('O clube mais novo do jogo — de um jogador de verdade.', 'The newest club in the game — from a real player.')}>
+      {(
+        <Caixa escura titulo={tr('🖋️ Batismo em destaque', '🖋️ Featured named club')} sub={tr('Um clube de verdade, de um jogador do Leilão Legends.', 'A real club, from a Leilão Legends player.')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Escudo nome={v.batismo.clube} size={70} />
+            <Escudo nome={DESTAQUE.clube} size={70} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ ...OSW, margin: 0, fontSize: 20, textTransform: 'uppercase', lineHeight: 1.05 }}>{v.batismo.clube}</p>
-              <p style={{ margin: '3px 0 0', fontSize: 11.5, fontWeight: 700, color: '#ddd' }}>{tr('chegou no jogo em', 'joined the game on')} {v.batismo.desde.split('-').reverse().slice(0, 2).join('/')}</p>
+              <p style={{ ...OSW, margin: 0, fontSize: 20, textTransform: 'uppercase', lineHeight: 1.05 }}>{DESTAQUE.clube}</p>
+              <p style={{ margin: '3px 0 0', fontSize: 11.5, fontWeight: 700, color: '#ddd' }}>{tr('no jogo desde', 'in the game since')} {DESTAQUE.desde.split('-').reverse().slice(0, 2).join('/')}</p>
             </div>
-            {mascote && <span style={{ flex: 'none', margin: '-8px -4px -6px 0' }}><MascoteMini art={mascote} alt={88} /></span>}
+            {mascote && <span style={{ flex: 'none', margin: '-22px -6px -14px 0' }}><MascoteMini art={mascote} alt={140} /></span>}
           </div>
           <ApoieButton startScreen="batismoInfo" trigger={open => (
             <button onClick={open} style={{ ...OSW, width: '100%', marginTop: 10, fontSize: 14, background: GOLD, color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, cursor: 'pointer' }}>

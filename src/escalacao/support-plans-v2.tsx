@@ -76,6 +76,13 @@ const Controles = () => <div style={{ display: 'flex', gap: 3, justifyContent: '
 </div>
 
 
+// 💳 o batismo NÃO é mensal (13/10, Diego: "deixar claro que é uma vez só… pra pessoa não se confundir que tem que pagar
+// mensal também igual sócio"). Faixa logo no topo do cartão, antes de qualquer lista.
+const UmaVezSo = () => <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 10px', padding: '8px 10px', background: '#E3F2E7', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}` }}>
+  <span style={{ fontSize: 22 }}>💳</span>
+  <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.3 }}><b style={{ ...OSW, fontSize: 15, color: GREEN, textTransform: 'uppercase' }}>{tr('Pagamento único', 'One-off payment')}</b><br />{tr('Paga UMA VEZ e é seu pra sempre. Não é mensal: nada de cobrança todo mês.', 'Pay ONCE and it is yours forever. Not monthly: no charge every month.')}</span>
+</div>
+
 // 🖋 OS DOIS BATISMOS (13/10, Diego: "já pode alterar e fazer o que estamos falando aqui pro batismo e batismo lenda").
 // Batismo R$ 69,90 · Batismo Lenda R$ 89,90, exemplo Neymarzetti, com a lista inteira do Sócio dentro. Mora aqui e é
 // usado nas DUAS vitrines: a pública (support-plans.tsx) e a v2. `serieA`: na v2 os dois batismos vão pra Série A; na
@@ -83,7 +90,8 @@ const Controles = () => <div style={{ display: 'flex', gap: 3, justifyContent: '
 export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { batismoPlano?: 'antigo' | 'lenda' | 'plus' | null; onNaming: (plano: 'lenda' | 'plus') => void; serieA?: boolean }) {
   return <>
     {/* 3️⃣ BATISMO LENDA */}
-    <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club Naming')} price="R$ 69,90" cadence={tr('uma vez só · pra sempre', 'one-off · forever')} tone="batismo">
+    <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club Naming')} price="R$ 69,90" cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="batismo">
+      <UmaVezSo />
       <h3>{tr('Seu clube no jogo, pra sempre: escudo, mascote e manto desenhados pra você + tudo do Sócio, sem mensalidade.', 'Your club in the game, forever: crest, mascot and kit designed for you + everything in Member, no monthly fee.')}</h3>
       <Vitrine titulo={tr('as artes são suas (exemplo real: Neymarzetti)', 'the artwork is yours (real example: Neymarzetti)')}>
         <div className="ll-vit-artes">
@@ -129,11 +137,12 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
       <ItensSocio batismo />
       <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego faz escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego makes the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
       {batismoPlano ? <p className="ll-vit-seu">{tr('✅ você já tem batismo', '✅ you already own a club naming')}</p>
-        : <button className="ll-support-button dark" onClick={() => onNaming('lenda')}>{tr('QUERO O BATISMO · R$ 69,90', 'I WANT CLUB NAMING · R$ 69.90')}</button>}
+        : <button className="ll-support-button dark" onClick={() => onNaming('lenda')}>{tr('QUERO O BATISMO · R$ 69,90 UMA VEZ SÓ', 'I WANT CLUB NAMING · R$ 69.90 ONCE')}</button>}
     </SupportPlanCard>
 
     {/* 4️⃣ BATISMO PLUS */}
-    <SupportPlanCard id="support-plus" title={tr('🖋✨ Batismo Lenda', '🖋✨ Legend Naming')} price="R$ 89,90" cadence={tr('uma vez só · pra sempre', 'one-off · forever')} tone="plus">
+    <SupportPlanCard id="support-plus" title={tr('🖋✨ Batismo Lenda', '🖋✨ Legend Naming')} price="R$ 89,90" cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="plus">
+      <UmaVezSo />
       <h3>{tr('O topo: tudo do Batismo, com o clube na SÉRIE A + uma entrada de gala SÓ SUA (como o helicóptero do Neymarzetti) + o canto da sua torcida na Carreira.', 'The top one: everything in Club Naming, with the club in DIVISION A + a grand entrance that is ONLY YOURS (like Neymarzetti’s helicopter) + your crowd’s chant in Career.')}</h3>
       <Vitrine titulo={tr('o que só o Batismo Lenda tem', 'what only Legend Naming has')}>
         <div className="ll-vit-grid">
@@ -159,7 +168,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
       <ItensSocio batismo />
       <p className="ll-support-note">{tr('A gala e o canto são feitos sob medida: entram no jogo assim que ficam prontos (o Diego combina com você).', 'The entrance and the chant are made to order: they go into the game as soon as they are ready (Diego sorts it out with you).')}</p>
       {batismoPlano === 'plus' ? <p className="ll-vit-seu">{tr('✅ você já tem o Batismo Lenda', '✅ you already have Legend Naming')}</p>
-        : <button className="ll-support-button gold" onClick={() => onNaming('plus')}>{batismoPlano ? tr('QUERO SUBIR PRO BATISMO LENDA', 'UPGRADE TO LEGEND NAMING') : tr('QUERO O BATISMO LENDA · R$ 89,90', 'I WANT LEGEND NAMING · R$ 89.90')}</button>}
+        : <button className="ll-support-button gold" onClick={() => onNaming('plus')}>{batismoPlano ? tr('QUERO SUBIR PRO BATISMO LENDA', 'UPGRADE TO LEGEND NAMING') : tr('QUERO O BATISMO LENDA · R$ 89,90 UMA VEZ SÓ', 'I WANT LEGEND NAMING · R$ 89.90 ONCE')}</button>}
     </SupportPlanCard>
   </>
 }
