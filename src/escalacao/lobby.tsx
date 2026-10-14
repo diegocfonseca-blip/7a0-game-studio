@@ -836,6 +836,7 @@ export function EscLobby() {
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
+  const [limiteDia, setLimiteDia] = useState(false) // 🏟️ grátis já criou a sala do dia (14/10)
   // 🚪 códigos das salas que estão travando a criação (ver a trava mais abaixo)
   const [salasPresas, setSalasPresas] = useState<string[]>([])
   const [encerrando, setEncerrando] = useState(false)
@@ -851,7 +852,7 @@ export function EscLobby() {
     if (user) {
       await supabase.from('game_rooms').delete().eq('host_id', user.id).in('code', salasPresas).then(() => {}, () => {})
     }
-    setSalasPresas([]); setRoomError(''); setEncerrando(false)
+    setSalasPresas([]); setRoomError(''); setLimiteDia(false); setEncerrando(false)
     if (criarDepois) await createRoom()
   }
   const [resumeRoom, setResumeRoom] = useState<RoomInfo | null>(null) // partida em andamento: pergunta voltar/sair
@@ -1864,6 +1865,9 @@ export function EscLobby() {
       // (sem permissão), PGRST116 = criou mas não deixou ler de volta (RLS de leitura),
       // 23505 = código repetido. Assim dá pra consertar a trava certa sem adivinhar.
       console.error('[createRoom] falhou:', re)
+      // 🏟️ 1 SALA POR DIA NO GRÁTIS (Diego 14/10). Quem decide é o BANCO (gatilho `esc_sala_por_dia`, docs/sql/sala-por-dia.sql);
+      // a tela só explica o porquê e o caminho: entrar em sala aberta é sempre de graça, e quem apoia cria à vontade.
+      if (re?.message?.includes('LIMITE_SALA_DIA')) { setRoomError(''); setLimiteDia(true); setLoading(false); return }
       const code2 = re?.code
       const hint = code2 === '42501' ? tr('sem permissão (RLS). Avise o Diego.', 'no permission (RLS). Let Diego know.')
         : code2 === 'PGRST116' ? tr('a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.', 'the room was created but the app could not read it back (read RLS). Let Diego know.')
@@ -3742,6 +3746,15 @@ export function EscLobby() {
       </div>}
 
       {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+      {limiteDia && <div style={{ background: '#FFF3C4', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '10px 12px', margin: '8px 0' }}>
+        <p style={{ margin: 0, fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif' }}>{tr('🏟️ HOJE VOCÊ JÁ CRIOU A SUA SALA', '🏟️ YOU ALREADY CREATED YOUR ROOM TODAY')}</p>
+        <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>
+          {tr('No gratuito dá pra criar 1 sala por dia — amanhã libera outra. Mas ', 'On the free plan you can create 1 room per day — another one unlocks tomorrow. But ')}
+          <b>{tr('entrar em qualquer sala aberta é sempre de graça', 'joining any open room is always free')}</b>
+          {tr(': é só escolher uma em "Salas abertas". Quer criar quantas quiser? ', ': just pick one in "Open rooms". Want to create as many as you like? ')}
+          <a href={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}?apoie=1`} style={{ color: '#7C3AED', fontWeight: 900, textDecoration: 'underline' }}>{tr('Vire apoiador ⭐', 'Become a supporter ⭐')}</a>
+        </p>
+      </div>}
       {/* 🚪 o botão de ENCERRAR as salas presas AQUI, na tela de criar sala — a
           mensagem dizia "é só encerrar aqui embaixo", mas o botão só existia
           dentro de dois pop-ups (senha e continuar carreira). Quem batia na trava
