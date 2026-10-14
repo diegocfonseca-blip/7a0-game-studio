@@ -1,3 +1,8 @@
+## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
+🏅 Prêmios da noite (fim de toda sala, sai dos dados do leilão) + 🏛️ Galeria da Minha Liga (campeões por temporada, quem manda
+na liga, rivalidade). Mockup: `scripts/mockup-online-premios-galeria.mjs` → `scripts/mockups/online-premios-galeria.png`.
+Outras na mesa: cartão pro grupo do zap, rivalidade, sala marcada. 🎨 Cor do nome NÃO se vende (reconfirmado 14/10).
+
 ## 🎁 Presente de plano + subida +R$ 5 (14/10) — ✅ NO AR
 - Presente: Loja → escolhe plano, e-mail do amigo, nome, recado → `esc_pedir_presente` (servidor confere conta, plano, não é
   pra si) → Pix + comprovante → Diego ENTREGA no #admin (🎁 Presentes de plano). Craque/Lenda ligam o tier; Batismo/Fundador só
