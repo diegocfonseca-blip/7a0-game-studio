@@ -12,9 +12,8 @@ const b64 = f => readFileSync(f).toString('base64')
 const F = w => `@font-face{font-family:Oswald;src:url(data:font/woff2;base64,${b64(`scripts/fonts/oswald-latin-${w}-normal.woff2`)}) format('woff2');font-weight:${w}}`
 const ESC = `data:image/webp;base64,${b64('src/escalacao/img/arruda-escudo.webp')}`
 const MAS = `data:image/webp;base64,${b64('src/escalacao/img/arruda-mascote.webp')}`
-// mosaico da arquibancada: faixas vermelho/branco/preto em quadradinhos, com "ruído" de torcedor
-let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
-const mosaico = (lin, col) => { let h = ''; for (let y = 0; y < lin; y++) for (let x = 0; x < col; x++) { const faixa = Math.floor((x + y * 0.4) / 5) % 3; const base = ['#C8102E', '#F4F4F4', '#111'][faixa]; const c = rnd() < .12 ? ['#C8102E', '#F4F4F4', '#111'][Math.floor(rnd() * 3)] : base; h += `<i style="background:${c}"></i>` } return h }
+// mosaico da arquibancada: faixas vermelho/branco/preto em LINHA RETA (14/10, Diego: "tem que ser uma linha reta")
+const mosaico = (lin, col) => { let h = ''; for (let y = 0; y < lin; y++) for (let x = 0; x < col; x++) { const faixa = Math.floor(x / 6) % 3; const c = ['#C8102E', '#F4F4F4', '#111'][faixa]; h += `<i style="background:${c}"></i>` } return h }
 const cena = (fase) => `<div class="tela">
   <div class="estadio">
     <div class="teto"></div>
@@ -36,7 +35,7 @@ h1{font:700 30px Oswald;text-transform:uppercase;margin:0 0 4px}.sub{font-weight
 .band{position:absolute;left:-10px;right:-10px;top:120px;height:110px;background:#F4F4F4;border-top:5px solid #C8102E;border-bottom:5px solid #111;transform:rotate(-2deg);display:flex;flex-direction:column;justify-content:center;padding-left:24px;box-shadow:0 6px 0 rgba(0,0,0,.4)}
 .band .t1{font:700 25px/1 Oswald;color:#C8102E;letter-spacing:.02em;text-shadow:2px 2px 0 #111}.band .t2{font:700 13px Oswald;color:#111;letter-spacing:.12em;margin-top:4px}
 .cobra{position:absolute;right:2px;top:-40px;height:105px;transform:rotate(6deg);filter:drop-shadow(2px 3px 0 rgba(0,0,0,.5))}
-.mos{position:absolute;left:0;right:0;top:250px;height:300px;display:grid;grid-template-columns:repeat(36,1fr);grid-template-rows:repeat(14,1fr);gap:1px;padding:2px;background:#000;transform:perspective(500px) rotateX(18deg);transform-origin:top}
+.mos{position:absolute;left:0;right:0;top:250px;height:300px;display:grid;grid-template-columns:repeat(36,1fr);grid-template-rows:repeat(14,1fr);gap:1px;padding:2px;background:#000;}
 .mos i{display:block;border-radius:1px}
 .gram{position:absolute;left:0;right:0;bottom:0;height:80px;background:repeating-linear-gradient(90deg,#1B7A3D 0 30px,#219048 30px 60px);border-top:4px solid #F4ECD6}
 .esc{position:absolute;left:50%;width:auto;filter:drop-shadow(0 0 22px rgba(255,255,255,.55)) drop-shadow(4px 4px 0 #000)}
