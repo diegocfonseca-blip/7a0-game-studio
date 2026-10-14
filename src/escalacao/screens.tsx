@@ -2094,21 +2094,19 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
           <button className="ll-mode ll-online" onClick={onOnline}><span className="ll-symbol" aria-hidden="true">◎</span><span className="ll-copy"><strong>{t('JOGAR ONLINE', 'PLAY ONLINE')}</strong><small>{t('Entre no pregão com seus amigos.', 'Join the auction with your friends.')}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
           <button className="ll-mode ll-career" onClick={onCareer}><span className="ll-symbol" aria-hidden="true">★</span><span className="ll-copy"><strong>{t('MODO CARREIRA', 'CAREER MODE')}</strong><small>{t('Construa a história do seu clube.', "Build your club's story.")}</small></span><span className="ll-arrow" aria-hidden="true">→</span></button>
         </div>
-        {/* 🏛️ Salão + 📖 Meu Álbum lado a lado (Diego 04/10: *"na home coloque meu álbum ao lado do salão de batismo"*) */}
-        <div className="ll-extras">
-          <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
-          <button className="ll-salao-entry ll-album-entry" onClick={onAlbum}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
-          {/* 🛒 LOJA DO CLUBE (14/10): faixa dourada de largura inteira, embaixo do Salão e do Álbum — Diego: "a loja precisa ter melhor a visão" */}
+        {/* 🎨 14/10 (Diego, mockup aprovado: "ok publique assim, perfeito"): Carreira VERDE, a Loja logo abaixo dela
+            (único dourado da home) e Salão · Regras · Álbum lado a lado. O botão pequeno de Apoiar do rodapé saiu: o quadro
+            grande "Apoie o Leilão Legends" lá do fim já faz isso. */}
+        <div className="ll-loja-linha">
           <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, gala, canto da torcida e moedas', 'Move up a plan, grand entrance, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
+        </div>
+        <div className="ll-extras ll-extras-3">
+          <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
+          <button className="ll-salao-entry ll-regras-entry" onClick={onManual}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>
+          <button className="ll-salao-entry ll-album-entry" onClick={onAlbum}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
         </div>
       </section>
       <footer className="ll-footer">
-        <nav aria-label="Mais opções">
-          {/* 14/10 (Diego): saiu o RANKING da home (*"basta o ranking dentro da carreira e o semanal das salas online"*) e o
-              ÁLBUM repetido (já tem a entrada grande "📖 MEU ÁLBUM"). A Loja virou faixa dourada lá em cima, junto do Salão. */}
-          <button onClick={onManual}>{t('REGRAS', 'RULES')}</button>
-          <ApoieButton trigger={open => <button onClick={open}>{t('APOIAR', 'SUPPORT')}</button>} />
-        </nav>
         <div className="ll-web">
           <span>leilaolegends.com</span> · {t('Seu clube. Sua história.', 'Your club. Your story.')}
           {/* 📬 CONTATO SUTIL NA HOME (Diego 15/09: *"em baixo das telas da home ou
