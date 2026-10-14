@@ -96,10 +96,10 @@ function Loja({ onClose }: { onClose: () => void }) {
 
         {/* 🎤 DO CLUBE BATIZADO */}
         <h2 style={h2}>{tr('🎤 Do seu clube batizado', '🎤 For your named club')} <span style={sub}>{tr('feitos sob medida', 'made to order')}</span></h2>
-        {!temBatismo && <p style={{ ...card, margin: 0, fontSize: 12, fontWeight: 700, background: '#FFF3C4' }}>{tr('🔒 Precisa do 🖋 Batismo: a gala mostra o SEU escudo no telão e a SUA mascote atravessando a tela, e o canto é da torcida do SEU clube.', '🔒 Needs 🖋 Club Naming: the entrance shows YOUR crest on the big screen and YOUR mascot running across, and the chant belongs to YOUR club’s crowd.')}</p>}
+        {!temBatismo && <p style={{ ...card, margin: 0, fontSize: 12, fontWeight: 700, background: '#FFF3C4' }}>{tr('🔒 Precisa do 🖋 Batismo: a gala mostra o SEU escudo no telão e a SUA mascote atravessando a tela, e o canto toca no estádio do SEU clube.', '🔒 Needs 🖋 Club Naming: the entrance shows YOUR crest on the big screen and YOUR mascot running across, and the chant plays at YOUR club’s stadium.')}</p>}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: temBatismo ? 0 : 8, opacity: temBatismo ? 1 : .55 }}>
           {([['🚁', tr('Gala ÚNICA', 'UNIQUE entrance'), tr('helicóptero, moto, fumaça… só o seu clube tem', 'helicopter, bike, smoke… only your club has it'), LOJA_PRECOS.galaUnica, 'gala única'],
-             ['📣', tr('Canto da torcida', 'Crowd chant'), tr('toca no estádio da sua Carreira', 'plays at your Career stadium'), LOJA_PRECOS.canto, 'canto da torcida']] as const).map(([ic, t, d, v, ctx]) =>
+             ['📣', tr('Canto da torcida', 'Crowd chant'), tr('o canto do seu time de coração tocando no estádio da sua Carreira', 'your favourite team’s chant playing at your Career stadium'), LOJA_PRECOS.canto, 'canto da torcida']] as const).map(([ic, t, d, v, ctx]) =>
             <div key={ctx} style={{ ...card, textAlign: 'center' }}>
               <div style={{ fontSize: 32 }}>{ic}</div>
               <b style={{ ...OSW, fontSize: 14, textTransform: 'uppercase', display: 'block' }}>{t}</b>

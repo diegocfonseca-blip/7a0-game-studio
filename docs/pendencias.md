@@ -1,4 +1,4 @@
-## 💳 Planos novos (14/10) — 🟡 FEITO no branch, esperando OK pra publicar
+## 💳 Planos novos (14/10) — ✅ NO AR
 ✅ Vitrine pública: Craque 29,90 · Lenda 49,90 · Batismo 79,90 · 🖋 Fundador 99,90 (ex-Batismo Lenda), todos "PAGAMENTO ÚNICO", Sócio
 fora, subida pela diferença no botão e no Pix. V2 (mensal) desligada até pra conta do Diego. FAQ atualizado.
 ✅ BANCO (já valendo): `esc_craque_antigo` (70 Craques de antes) + `salas_pagas` só Lenda+ ou Craque antigo (`docs/sql/salas-so-lenda.sql`).
@@ -6,7 +6,7 @@ fora, subida pela diferença no botão e no Pix. V2 (mensal) desligada até pra 
 ⏳ Falta: canto da torcida do Diego (Fundador tem direito); Loja do Clube de verdade; nº de fundador fora do Batismo é PROCESSO
 (não inserir `esc_fundadores` em Batismo de 79,90).
 
-## 🛒 Loja do Clube (14/10) — 🟡 FEITA no branch (`loja-clube.tsx`), esperando OK pra publicar
+## 🛒 Loja do Clube (14/10) — ✅ NO AR (faixa dourada na home; Ranking saiu da home). Canto = o do TIME DE CORAÇÃO do dono. Fundador aparece nas salas online dos outros em rodízio, mesmo sem jogar.
 Botão 🛒 LOJA dourado no rodapé da home (no lugar do ÁLBUM repetido; no header não coube por causa do som). Mostra por plano:
 subir de plano (só a diferença) · 🚁 gala única R$ 20 e 📣 canto R$ 10 SÓ pra Batismo (somam 30 > Fundador +20 = desconto de
 quem sobe) · Fundador vê "já incluso" · 🏦 moedas (10/50/100 → ficha do Banco Legends, resgata na carreira que quiser).
