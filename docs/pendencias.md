@@ -15,9 +15,8 @@ agora usa o nome mais recente da semana (`docs/sql/vitrine-nome-mais-recente.sql
 ✅ CASO 2 CONSERTADO (14/10, "Faça"): título de sala que o dono apagou (SAIR) ia pro lixo junto (`game_champions`
 ON DELETE CASCADE). Agora vai pro `game_champions_arquivo` (gatilho que nunca trava o SAIR) e a vitrine soma os dois.
 Semana de 12/10 recuperada: 214 temporadas (1 descartada por 2 campeões). Labubu 13 → 23, 1º da semana.
-`docs/sql/titulos-sala-apagada.sql`. Só o RANKING DA SEMANA usa o arquivo (ordem dele). ⚠️ O teste de apagar sala de
-mentira foi barrado pela ferramenta — conferir depois que um título de sala apagada HOJE aparece no arquivo
-(`select * from game_champions_arquivo where origem='sala_apagada'`).
+`docs/sql/titulos-sala-apagada.sql`. Só o RANKING DA SEMANA usa o arquivo (ordem dele). ✅ Conferido ao vivo (14/10 22h UTC): 3 títulos
+de salas apagadas já caíram sozinhos no arquivo (origem `sala_apagada`).
 ⏳ O ranking GERAL (`esc_ranking_cache`) está com foto parada em 02/09 — avisado, sem mexer.
 
 ## 🐍 Tricolor do Arruda FC virou 🖋 FUNDADOR (14/10) — banco feito
