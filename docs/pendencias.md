@@ -3,6 +3,13 @@ Loja: 3 salas por R$ 4,90, só pra quem não cria à vontade (grátis e Craque n
 hoje". Paga Pix + comprovante → Diego dá +3 no #admin (🎟️ Salas extras). O gatilho `esc_sala_por_dia` gasta 1 extra quando a sala
 grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (aplicado).
 
+
+## 14/10/2026 — 🧑‍💼 PRESIDENTE DO USUÁRIO EM TODO CANTO (⏳ mockup enviado, esperando o OK final)
+- Regra fechada: escudo = clube · presidente = pessoa (ver CLAUDE.md). 12 lugares no mockup (sala, chat, martelo, pódio,
+  vitrine, jornal, presidência, troféus, caixa, convite, Central, perfil). Sugestão minha: começar por sala + pódio + presidência + jornal.
+- Guarda-roupa por plano com as roupas que JÁ estão em `public/presidente-v*` + roupa avulsa (sugestão R$ 4,90).
+- FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
+
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
 🏅 Prêmios da noite (fim de toda sala, sai dos dados do leilão) + 🏛️ Galeria da Minha Liga (campeões por temporada, quem manda
 na liga, rivalidade). Mockup: `scripts/mockup-online-premios-galeria.mjs` → `scripts/mockups/online-premios-galeria.png`.
