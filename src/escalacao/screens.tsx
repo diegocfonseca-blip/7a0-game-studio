@@ -620,7 +620,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
           </div>
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
                                                                                     <><b>Série A</b> costs more because it is the elite: those are the clubs that show up in <b>quick play</b> and the rivals everybody faces. Tap one of the two to choose.</>)}</p>
-          {serieBatismo === 'd' && <p className="text-[10px] font-black mt-1 leading-snug" style={{ color: '#7C3AED' }}>{tr('👑 Só no Fundador: entrada de gala EXCLUSIVA do seu clube (helicóptero, moto, fumaça… você conta a ideia) + o canto do seu time de coração na Carreira + o seu número de Fundador + o seu clube aparecendo nas salas online dos outros, em rodízio, mesmo quando você não está jogando.', '👑 Founder only: your club’s EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your favourite team’s chant in Career + your Founder number + your club showing up in other people’s online rooms, rotating, even when you are not playing.')}</p>}
+          {serieBatismo === 'd' && <p className="text-[10px] font-black mt-1 leading-snug" style={{ color: '#7C3AED' }}>{tr('👑 Só no Fundador: entrada de gala EXCLUSIVA do seu clube (helicóptero, moto, fumaça… você conta a ideia) + o canto do seu time de coração (na Carreira e no online, junto com a gala) + o seu número de Fundador + o seu clube aparecendo nas salas online dos outros, em rodízio, mesmo quando você não está jogando.', '👑 Founder only: your club’s EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your favourite team’s chant (in Career and online, with the entrance) + your Founder number + your club showing up in other people’s online rooms, rotating, even when you are not playing.')}</p>}
           <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '🖋️ Fundador · Série A' : '🖋️ Batismo · Série B/C/D ou Várzea'}${planoJa ? ` · subida de ${planoJa}` : ''}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
           {/* 🎟️ cupom de influenciador — só aqui, no batismo. SUTIL de propósito
               (Diego 08/09: *"deixe de forma mais sutil lá no pagamento e não tão
@@ -1878,7 +1878,7 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo) · R$ 89,90 (🖋️✨ Batismo Lenda, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo · Série B, C, D ou Várzea) · R$ 99,90 (🖋️ Fundador · Série A, com entrada de gala exclusiva, canto da torcida na Carreira e número de Fundador).<br /></>}
+      {planos2Liberado() ? <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo) · R$ 89,90 (🖋️✨ Batismo Lenda, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo · Série B, C, D ou Várzea) · R$ 99,90 (🖋️ Fundador · Série A, com entrada de gala exclusiva, canto da torcida na Carreira e no online e número de Fundador).<br /></>}
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
@@ -1900,7 +1900,7 @@ function Duvidas() {
       ⭐ <b>Craque — R$ 29,90, uma vez só.</b><br />
       👑 <b>Lenda — R$ 49,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
       🖋️ <b>Batismo — R$ 79,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
-      🖋️ <b>Fundador — R$ 99,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida na Carreira + número de Fundador.<br /><br />
+      🖋️ <b>Fundador — R$ 99,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida (na Carreira, nos jogos, e no online, junto com a gala) + número de Fundador.<br /><br />
       Quer subir de plano? <b>Paga só a diferença.</b><br /><br />
       </>}
       Nenhum plano dá vantagem dentro das quatro linhas — <b>o jogo é igual pra todos</b>. O que muda é cor, brilho, história e mimos.

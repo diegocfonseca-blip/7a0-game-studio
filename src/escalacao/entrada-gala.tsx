@@ -45,6 +45,8 @@ export const GALA_MS = 5600
 // entra com a gala padrão. A 1ª é a do Neymarzetti (helicóptero). Quem entrar com o 🖋✨ Batismo
 // Plus ganha a sua aqui — chave = o nome do clube em `BATISMOS` (o mesmo que `clubeDaConta` devolve,
 // que segue o E-MAIL do dono, nunca o nome digitado).
+// 📣 14/10 (Diego): o CANTO DA TORCIDA vale nos dois lugares — Carreira (jogos) e online (a gala). Quem tem canto
+// (`AMBIENTE_CARREIRA_POR_EMAIL`, sound.ts) e gala única: a gala toca o canto com `playMp3Gala` (ver `gala-arruda.tsx`).
 const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> = {
   Neymarzetti: { ms: HELI_MS, Show: GalaHelicoptero },
   'K9 FC': { ms: K9_MS, Show: GalaK9 }, // 🧊👑 O Rei Gelado (09/10)

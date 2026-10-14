@@ -128,7 +128,7 @@ function Loja({ onClose }: { onClose: () => void }) {
         <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', opacity: temBatismo ? 1 : .6 }}>
           <span style={{ fontSize: 30 }}>📣</span>
           <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{temBatismo
-            ? tr('O canto do seu time de coração tocando no estádio da sua Carreira.', 'Your favourite team’s chant playing at your Career stadium.')
+            ? tr('Vale nos DOIS lugares: 🏟️ na Carreira, tocando no estádio durante os jogos, e 🌐 no online, junto com a sua entrada de gala (se você tiver a gala).', 'Works in BOTH places: 🏟️ in Career, playing at the stadium during matches, and 🌐 online, together with your grand entrance (if you have one).')
             : tr('🔒 Precisa do 🖋 Batismo: o canto toca no estádio do SEU clube.', '🔒 Needs 🖋 Club Naming: the chant plays at YOUR club’s stadium.')}</small>
           {jaTem['canto da torcida'] ? <span style={{ ...preco, background: CREAM, color: GREEN, cursor: 'default' }}>{atual === 'fundador' ? tr('✅ incluso', '✅ included') : tr('✅ já tem', '✅ owned')}</span>
             : <button disabled={!temBatismo} onClick={() => setComprando({ id: 'canto', amount: LOJA_PRECOS.canto, ctx: 'loja · canto da torcida', msgPt: `Opa! Comprei na Loja do Clube: 📣 CANTO DA TORCIDA (${reais(LOJA_PRECOS.canto)}). Meu time de coração: ____. E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 📣 CROWD CHANT (${reais(LOJA_PRECOS.canto)}). My favourite team: ____. Account e-mail: ____ — receipt attached!` })} style={{ ...preco, cursor: temBatismo ? 'pointer' : 'not-allowed' }}>{reais(LOJA_PRECOS.canto)}</button>}
