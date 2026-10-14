@@ -2,6 +2,7 @@
 Escolhidos por ele: 🎁 dar de presente · 🎖️ título do lado do nome (troca quando quiser) · 😂 figurinhas da sala · 🎨 tema da
 sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o canto do TIME DE CORAÇÃO (sem escudo de clube real).
 Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
+🎁 14/10: presente APROVADO, mas **só de PLANO** (Craque/Lenda/Batismo/Fundador) — *"presente é só dos planos, nada de títulos figurinhas"*.
 
 ## 🐰 Batismo Labubu FC (14/10) — ✅ código + banco + deploy
 caelborba@gmail.com (conta existe). Série A no assento do Só Deus Sabe FC, que DESCEU pra Série C na vaga do bot Napolitano (sem
