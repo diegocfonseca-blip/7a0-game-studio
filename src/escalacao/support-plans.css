@@ -49,3 +49,20 @@
 @keyframes llHeli{0%,100%{transform:translate(0,0)}50%{transform:translate(70px,6px)}}
 @keyframes llOnda{from{transform:scaleY(.45)}to{transform:scaleY(1)}}
 @media (prefers-reduced-motion:reduce){.ll-vit-gala .heli,.ll-vit-canto i{animation:none}}
+/* 💸 pra onde vai o dinheiro + meta do mês (14/10) — creme/bordas pretas/sombra dura, padrão do jogo */
+.ll-money{background:#fff;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:14px;box-shadow:3px 3px 0 #0c0c0c;padding:16px;margin-top:22px;text-align:left}
+.ll-money h3{font:800 20px/1.2 Oswald,sans-serif;margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ll-money h3 em{font-style:normal;color:#1b7a3d;font-size:26px}
+.ll-money .ll-money-sub{font:600 12px/1.4 Arial,sans-serif;color:#53534b;margin:4px 0 10px}
+.ll-money-it{display:flex;gap:10px;padding:10px 0;border-top:2px dashed #0c0c0c22}.ll-money-it>span{font-size:22px;line-height:1;width:28px;text-align:center;flex:none}
+.ll-money-it b{font:700 15px Oswald,sans-serif}.ll-money-it p{font:13px/1.5 Arial,sans-serif;color:#3a3a32;margin:3px 0 0}
+.ll-money-luca{background:#fff3c4;border:3px solid #0c0c0c;border-radius:12px;box-shadow:3px 3px 0 #0c0c0c;padding:12px;margin:2px 0 8px}.ll-money-luca+.ll-money-it{border-top:0}
+.ll-money-luca p{margin:6px 0 0}.ll-money-luca .ll-support-luca-legend{color:#b8860b;font-weight:800;text-shadow:none}.ll-money-luca .ll-money-ass{font:700 14px Oswald,sans-serif;color:#92600a}
+.ll-money .ll-money-selo{background:#ffc400;border:3px solid #0c0c0c;border-radius:12px;box-shadow:3px 3px 0 #0c0c0c;padding:10px 12px;font:700 14px/1.35 Oswald,sans-serif;margin:10px 0 0}
+.ll-money-bar{position:relative;height:24px;border:3px solid #0c0c0c;border-radius:12px;background:#f4ecd6;margin:34px 0 10px}
+.ll-money-bar>i{position:absolute;inset:0 auto 0 0;border-radius:8px;background:repeating-linear-gradient(135deg,#1b7a3d 0 12px,#239a4e 12px 24px)}
+.ll-money-mk{position:absolute;top:-30px;bottom:-3px;width:3px;margin-left:-1.5px;background:linear-gradient(#0000 0 22px,#0c0c0c 22px)}
+.ll-money-mk b{position:absolute;top:0;left:50%;transform:translateX(-50%);white-space:nowrap;font:700 11px Oswald,sans-serif;background:#fff;border:2px solid #0c0c0c;border-radius:7px;padding:1px 6px}
+.ll-money-mk.fim b{left:auto;right:-2px;transform:none}.ll-money-mk.ok b{background:#1b7a3d;color:#fff}
+.ll-money .ll-money-lin{font:600 13px/1.4 Arial,sans-serif;margin:6px 0}.ll-money-lin b{font:700 14px Oswald,sans-serif}
+.ll-money .ll-money-pq{font:11px/1.4 Arial,sans-serif;color:#53534b;margin:8px 0 0}

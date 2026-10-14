@@ -5,7 +5,7 @@ import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen } from './apoio'
 import './support-plans.css'
-import { SupportPlanCard, SupportStory } from './support-plans'
+import { SupportPlanCard, SupportMoney } from './support-plans'
 
 // 💳 PLANOS V2 (08–09/10) — a vitrine nova, por enquanto SÓ nas contas do Diego (`usePlanos2`, sport.ts).
 // Quem não está na lista continua vendo `support-plans.tsx` exatamente como era.
@@ -265,6 +265,6 @@ export function SupportPlansV2(p: Props) {
     </div>
 
     <p className="ll-support-note">{tr('Jogar continua grátis. Os planos mudam visual, ritmo e informação — nunca a força dos jogadores.', 'Playing stays free. Plans change looks, pace and information — never the players’ strength.')}</p>
-    <div className="ll-support-bottom"><button className="ll-support-button green" onClick={p.onDonate}>{tr('💛 SÓ APOIAR A RESENHA · QUALQUER VALOR', '💛 JUST CHIP IN · ANY AMOUNT')}</button><button className="ll-support-button" onClick={p.onInstagram}>{tr('SEGUIR NO INSTAGRAM TAMBÉM AJUDA 📲', 'FOLLOWING ON INSTAGRAM HELPS TOO 📲')}</button><SupportStory /></div>
+    <div className="ll-support-bottom"><button className="ll-support-button green" onClick={p.onDonate}>{tr('💛 SÓ APOIAR A RESENHA · QUALQUER VALOR', '💛 JUST CHIP IN · ANY AMOUNT')}</button><button className="ll-support-button" onClick={p.onInstagram}>{tr('SEGUIR NO INSTAGRAM TAMBÉM AJUDA 📲', 'FOLLOWING ON INSTAGRAM HELPS TOO 📲')}</button><SupportMoney /></div>
   </div>
 }
