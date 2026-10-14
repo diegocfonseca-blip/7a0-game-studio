@@ -376,14 +376,16 @@ export function ApoieModal({ onClose, children }: { onClose: () => void; childre
 }
 // 💳 PLANOS V2 (09/10): quem está em `usePlanos2()` (por enquanto só as contas do Diego) vê o botão novo
 // (`apoie-v2.tsx`); todo o resto continua neste aqui, sem nada mudado.
-type ApoieProps = { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo' | 'batismoInfo'; trigger?: (open: () => void) => React.ReactNode }
+type ApoieProps = { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo' | 'batismoInfo'; trigger?: (open: () => void) => React.ReactNode
+  /** 🛒 14/10: a Loja abre a vitrine de planos já rolada até o plano tocado (prata = Craque · ouro = Lenda · batismo · plus = Fundador) */
+  foco?: 'prata' | 'ouro' | 'batismo' | 'plus' }
 export function ApoieButton(p: ApoieProps) { return usePlanos2() ? <ApoieButtonV2 {...p} /> : <ApoieButtonV1 {...p} /> }
-function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoieProps) {
+function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: ApoieProps) {
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'pay' | 'batismo' | 'manual' | 'socio'>('off')
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
   // 🖋 'batismoInfo' (13/10, Diego): abre a vitrine dos PLANOS rolando até o cartão do batismo — onde está tudo
   // que o batismo ganha — e não direto na tela do Pix (que não explica nada).
-  const openApoio = () => { if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); if (startScreen === 'batismoInfo') { logApoio('👀 vitrine das salas → batismo'); setAmp('batismo'); setScreen('choice'); return } setScreen(startScreen) }
+  const openApoio = () => { if (foco) { logApoio(`👀 loja → vitrine no ${foco}`); setAmp(foco); setScreen('choice'); return } if (startScreen === 'manual') logApoio('👀 abriu: modo manual (trava)'); if (startScreen === 'batismoInfo') { logApoio('👀 vitrine das salas → batismo'); setAmp('batismo'); setScreen('choice'); return } setScreen(startScreen) }
   const [clube, setClube] = useState('')
   // ⚽ BATISMO: qual série o clube vai jogar — muda o valor do Pix (Série D
   // custa mais, são os rivais escolhidos). Cards viram seletor (09/08).
@@ -421,7 +423,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
   const precoBatismo = cupom ? Math.round(precoCheioBatismo * (100 - cupom.desconto_pct)) / 100 : precoCheioBatismo
   // 🎯 alvo do LINK DIRETO (?apoie=lenda). Antes isto era a sanfona aberta; agora
   // que tudo fica à vista (23/08), ele só rola até o card e acende um brilho.
-  const [amp, setAmp] = useState<null | 'socio' | 'prata' | 'ouro' | 'batismo'>(null)
+  const [amp, setAmp] = useState<null | 'socio' | 'prata' | 'ouro' | 'batismo' | 'plus'>(null)
   const [payTier, setPayTier] = useState<'prata' | 'ouro'>('prata')
   const [meuNome, setMeuNome] = useState('') // nome da conta, pra simular na cor com o nome REAL da pessoa
   useEffect(() => {

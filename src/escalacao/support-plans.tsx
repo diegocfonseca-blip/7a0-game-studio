@@ -56,7 +56,7 @@ const Controles = () => <div style={{ display: 'flex', gap: 3, justifyContent: '
 </div>
 
 
-export type SupportPlanKey = 'prata' | 'ouro' | 'batismo' | 'socio'
+export type SupportPlanKey = 'prata' | 'ouro' | 'batismo' | 'socio' | 'plus' // plus = o cartão do 🖋 Fundador (id support-plus)
 type Props = {
   focus: SupportPlanKey | null
   tier?: string
