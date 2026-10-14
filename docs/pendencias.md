@@ -1,3 +1,8 @@
+## 🛍️ Itens novos da Loja (14/10) — ⏳ MOCKUP enviado, NÃO fazer ainda (ordem do Diego)
+Escolhidos por ele: 🎁 dar de presente · 🎖️ título do lado do nome (troca quando quiser) · 😂 figurinhas da sala · 🎨 tema da
+sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o canto do TIME DE CORAÇÃO (sem escudo de clube real).
+Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
+
 ## 🐰 Batismo Labubu FC (14/10) — ✅ código + banco + deploy
 caelborba@gmail.com (conta existe). Série A no assento do Só Deus Sabe FC, que DESCEU pra Série C na vaga do bot Napolitano (sem
 OLD_NAME). Escudo 230×360/28 KB, mascote O Labubu 252×440/31 KB, manto branco #EFEEED + marinho #03101F medidos, camisa na Loja.
