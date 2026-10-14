@@ -17,7 +17,7 @@
     },
     {
       "tag": "apoio",
-      "texto": "Quem faz o jogo sou eu, de madrugada, sozinho. E faço pelo **Luca, meu filho**: uma condição rara, 120 casos no mundo. **Parte de cada apoio vai pro tratamento dele.**"
+      "texto": "O jogo é **de graça e vai continuar de graça**. Mas servidor, salas ao vivo e as carreiras guardadas custam todo mês. **Sem apoio, não tem como manter o jogo rodando.**"
     },
     {
       "tag": "novidade",
@@ -29,6 +29,6 @@
     }
   ],
   "rodape": "Apoiar não deixa ninguém mais forte. Aqui ninguém compra título.",
-  "rodapeSub": "Cada real vira jogo, e uma vida melhor pro Luca. Obrigado por estar aqui 💛",
+  "rodapeSub": "Cada real vira jogo. Obrigado por estar aqui 💛",
   "saida": "scripts/posts/aviso-meta-apoio.png"
 }
