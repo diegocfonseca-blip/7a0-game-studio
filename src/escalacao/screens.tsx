@@ -2051,7 +2051,7 @@ function HomeMenuFixo({ onInicio, onRegras, onAlbum, onRanking, apoiar }: {
 // 🏛️ Vitrine ilustrada do salão do pregão. É deliberadamente um componente
 // isolado: a home geral continua no bloco antigo logo abaixo e pode ser
 // comparada/revertida sem misturar seus estilos com esta experiência.
-function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, onQuick, onAlbum, onRanking, onManual, overlays }: {
+function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, onQuick, onAlbum, onManual, overlays }: {
   resumable: ReturnType<typeof useResumableRoom>
   solo: ReturnType<typeof useResumableSolo>
   shared: boolean
@@ -2060,7 +2060,6 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
   onOnline: () => void
   onQuick: () => void
   onAlbum: () => void
-  onRanking: () => void
   onManual: () => void
   onShare: () => void
   overlays: ReactNode
@@ -2099,13 +2098,15 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         <div className="ll-extras">
           <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
           <button className="ll-salao-entry ll-album-entry" onClick={onAlbum}><span aria-hidden="true">📖</span><span><strong>{t('MEU ÁLBUM', 'MY ALBUM')}</strong><small>{t('Cartas, coleções e trocas', 'Cards, collections and trades')}</small></span><span aria-hidden="true">›</span></button>
+          {/* 🛒 LOJA DO CLUBE (14/10): faixa dourada de largura inteira, embaixo do Salão e do Álbum — Diego: "a loja precisa ter melhor a visão" */}
+          <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, gala, canto da torcida e moedas', 'Move up a plan, grand entrance, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
         </div>
       </section>
       <footer className="ll-footer">
         <nav aria-label="Mais opções">
-          {/* 🛒 LOJA DO CLUBE (14/10, mockup aprovado: "adorei"). No header não coube no celular (o botão de som mora ali);
-              entra no rodapé no lugar do ÁLBUM, que já tem a entrada grande "📖 MEU ÁLBUM" logo acima. */}
-          <button onClick={onManual}>{t('REGRAS', 'RULES')}</button><button onClick={onRanking}>{t('RANKING', 'RANKING')}</button><LojaButton className="ll-loja" />
+          {/* 14/10 (Diego): saiu o RANKING da home (*"basta o ranking dentro da carreira e o semanal das salas online"*) e o
+              ÁLBUM repetido (já tem a entrada grande "📖 MEU ÁLBUM"). A Loja virou faixa dourada lá em cima, junto do Salão. */}
+          <button onClick={onManual}>{t('REGRAS', 'RULES')}</button>
           <ApoieButton trigger={open => <button onClick={open}>{t('APOIAR', 'SUPPORT')}</button>} />
         </nav>
         <div className="ll-web">
@@ -2185,7 +2186,6 @@ export function EscIntro() {
       onOnline={() => dispatch({ type: 'GO_LOBBY_ONLINE' })}
       onQuick={() => dispatch({ type: 'GO_SETUP' })}
       onAlbum={() => dispatch({ type: 'GO_ALBUM' })}
-      onRanking={() => dispatch({ type: 'GO_RANKING' })}
       onManual={() => setShowManual(true)}
       onShare={shareGame}
       overlays={<>

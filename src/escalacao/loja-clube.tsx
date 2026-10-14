@@ -41,10 +41,10 @@ const GANHO: Record<PlanoUnico, [string, string]> = {
 
 type Item = { id: string; amount: number; ctx: string; msgPt: string; msgEn: string }
 
-export function LojaButton({ className }: { className?: string }) {
+export function LojaButton({ className, children }: { className?: string; children?: React.ReactNode }) {
   const [aberta, setAberta] = useState(false)
   return <>
-    <button className={className} onClick={() => { logApoio('🛒 abriu a loja'); setAberta(true) }}>{tr('🛒 LOJA', '🛒 SHOP')}</button>
+    <button className={className} onClick={() => { logApoio('🛒 abriu a loja'); setAberta(true) }}>{children ?? tr('🛒 LOJA', '🛒 SHOP')}</button>
     {aberta && <Loja onClose={() => setAberta(false)} />}
   </>
 }

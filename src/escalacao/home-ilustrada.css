@@ -69,4 +69,5 @@
   .ll-home .ll-choices{bottom:136px}
 }
 /* 🛒 Loja do Clube (14/10): botão dourado do lado de MINHA CONTA */
-.ll-home .ll-footer .ll-loja{background:#ffc400}
+.ll-home .ll-extras{flex-wrap:wrap!important}.ll-home .ll-loja-entry{flex:1 1 100%!important;background:linear-gradient(105deg,#ffd84a,#ffc400 55%,#e8a200)!important;border-color:#0c0c0c!important}
+.ll-home .ll-loja-entry strong{color:#0c0c0c!important}.ll-home .ll-loja-entry small{color:#3a2c00!important;display:block!important}.ll-home .ll-loja-entry>span:last-child{color:#0c0c0c}
