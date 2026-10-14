@@ -1,3 +1,6 @@
+## 🛒 Loja (14/10, tarde) — ✅ NO AR
+Gala única avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo); fica 📣 canto avulso R$ 10 + dica "a gala vem no Fundador". Salas extras só aparecem pra quem NÃO cria à vontade (grátis/Craque novo).
+
 ## 🎟️ Salas extras do dia (14/10) — ✅ NO AR
 (14/10, prints do Diego) Na Loja, tocar num plano abre a tela padrão do Apoie DO COMEÇO (Pra onde vai o dinheiro → todos os planos; "não joga ele no Lenda"). No aviso de limite de sala, os dois botões um embaixo do outro: 👑 ver os planos · 🎟️ 3 salas extras, e tem o botão 💛 VER TODOS OS PLANOS no topo.
 Loja: 3 salas por R$ 4,90, só pra quem não cria à vontade (grátis e Craque novo); também no aviso amarelo de "já criou a sala de

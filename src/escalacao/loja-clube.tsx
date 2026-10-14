@@ -63,7 +63,8 @@ function Loja({ onClose }: { onClose: () => void }) {
   const acima = ORDEM.slice(atual ? ORDEM.indexOf(atual) + 1 : 0)
   const temBatismo = atual === 'batismo' || atual === 'fundador'
   // 🎟️ salas extras: só pra quem NÃO cria à vontade (grátis e Craque novo). O saldo vem do banco.
-  const salasAVontade = !!direitos?.salasPagas
+  // 14/10 (Diego): "se ele é batismo por que aparece salas extras?" — quem cria à vontade (Lenda+, ou Craque antigo) NEM VÊ a seção
+  const salasAVontade = !!direitos?.salasPagas || atual === 'lenda' || atual === 'batismo' || atual === 'fundador'
   const [saldoSalas, setSaldoSalas] = useState<number | null>(null)
   useEffect(() => { if (loggedEmail()) supabase.rpc('esc_minhas_salas_extras').then(({ data }) => { if (typeof data === 'number') setSaldoSalas(data) }, () => {}) }, [])
   const email = loggedEmail()
@@ -105,6 +106,7 @@ function Loja({ onClose }: { onClose: () => void }) {
           </div>
         </>}
 
+        {!salasAVontade && <>
         {/* 🎟️ SALAS EXTRAS DO DIA (14/10, Diego: "pode fazer sala extras do dia") */}
         <h2 style={h2}>{tr('🎟️ Salas extras', '🎟️ Extra rooms')} <span style={sub}>{tr('pra criar mais de 1 sala no dia', 'to create more than 1 room a day')}</span></h2>
         <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -114,6 +116,7 @@ function Loja({ onClose }: { onClose: () => void }) {
             : <>{tr(`${SALAS_EXTRAS_QTD} salas a mais pra usar quando a do dia acabar. Não vencem.`, `${SALAS_EXTRAS_QTD} more rooms to use once today’s is gone. They never expire.`)}{saldoSalas ? <b style={{ display: 'block', color: GREEN, marginTop: 3 }}>{tr(`Você tem ${saldoSalas} sala${saldoSalas > 1 ? 's' : ''} extra${saldoSalas > 1 ? 's' : ''}.`, `You have ${saldoSalas} extra room${saldoSalas > 1 ? 's' : ''}.`)}</b> : null}<span style={{ display: 'block', color: 'rgba(12,12,12,.55)', marginTop: 3 }}>{tr('Criar à vontade, pra sempre, é do 👑 Lenda.', 'Unlimited rooms, forever, come with 👑 Legend.')}</span></>}</small>
           {!salasAVontade && <button onClick={() => setComprando({ id: 'salas', amount: LOJA_PRECOS.salasExtras, ctx: 'loja · 3 salas extras', msgPt: `Opa! Comprei na Loja do Clube: 🎟️ ${SALAS_EXTRAS_QTD} SALAS EXTRAS (${reais(LOJA_PRECOS.salasExtras)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🎟️ ${SALAS_EXTRAS_QTD} EXTRA ROOMS (${reais(LOJA_PRECOS.salasExtras)}). Account e-mail: ____ — receipt attached!` })} style={preco}>{reais(LOJA_PRECOS.salasExtras)}</button>}
         </div>
+        </>}
 
         {/* 🎁 DAR DE PRESENTE (14/10) — só planos */}
         <h2 style={h2}>{tr('🎁 Dar de presente', '🎁 Send a gift')} <span style={sub}>{tr('um plano pra um amigo', 'a plan for a friend')}</span></h2>
