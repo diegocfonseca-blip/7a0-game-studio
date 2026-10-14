@@ -307,6 +307,43 @@ function ApoioAdmin() {
   )
 }
 
+// 🎁 PRESENTES DE PLANO (14/10). O jogador pede pela Loja (nada é liberado) → paga e manda comprovante → aqui você
+// ENTREGA. Craque/Lenda ligam o tier na hora (nunca rebaixam quem já tem mais). Batismo/Fundador só marcam entregue: o
+// clube você monta pelo roteiro de batismo, falando com o amigo. O amigo vê "FULANO TE DEU UM PRESENTE!" ao entrar.
+type Presente = { id: number; de_email: string; para_email: string; plano: string; recado: string | null; status: string; criado_em: string }
+function PresentesAdmin() {
+  const [lista, setLista] = useState<Presente[]>([])
+  const [msg, setMsg] = useState('')
+  const carregar = async () => { const { data } = await supabase.rpc('esc_admin_presentes'); setLista((data ?? []) as Presente[]) }
+  useEffect(() => { carregar() }, [])
+  const entregar = async (r: Presente) => {
+    if (!window.confirm(`Pagamento do presente nº${r.id} conferido? Entregar ${r.plano.toUpperCase()} pra ${r.para_email}?`)) return
+    const { data, error } = await supabase.rpc('esc_admin_presente_entregar', { p_id: r.id })
+    setMsg(error ? `❌ ${error.message}` : `✅ nº${r.id} entregue — ${data}`); carregar()
+  }
+  const recusar = async (r: Presente) => { if (!window.confirm(`Recusar o presente nº${r.id}?`)) return; await supabase.rpc('esc_admin_presente_recusar', { p_id: r.id }); carregar() }
+  const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>🎁 Presentes de plano</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Só entregue depois de ver o Pix com o nº do presente. Craque/Lenda ligam sozinhos; Batismo/Fundador: monte o clube pelo roteiro.</p>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '0 0 8px' }}>{msg}</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#F2E8CF' }}>
+        <tbody>
+          {lista.map(r => <tr key={r.id} style={{ opacity: r.status === 'pedido' ? 1 : .5 }}>
+            <td style={td}><b>nº{r.id}</b><br />{new Date(r.criado_em).toLocaleDateString('pt-BR')}</td>
+            <td style={td}><b>{r.plano.toUpperCase()}</b><br />de {r.de_email}<br />pra <b>{r.para_email}</b>{r.recado ? <><br /><i>"{r.recado}"</i></> : null}</td>
+            <td style={td}>{r.status === 'pedido'
+              ? <><button onClick={() => entregar(r)} style={{ border: 'none', borderRadius: 8, padding: '4px 8px', background: '#6fdb8f', fontWeight: 900, cursor: 'pointer' }}>ENTREGAR</button><br /><button onClick={() => recusar(r)} style={{ background: 'none', border: 'none', color: '#ff8a75', fontWeight: 800, cursor: 'pointer', marginTop: 4 }}>recusar</button></>
+              : r.status}</td>
+          </tr>)}
+          {lista.length === 0 && <tr><td style={td}>nenhum presente pedido ainda</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ⭐ CRAQUE MENSAL · pedidos e pagamentos (planos v2, 08/10). A pessoa deixa o WhatsApp na tela do
 // Craque → aparece aqui → você manda o link pelo WhatsApp → pagou, cola o ID do pagamento e confirma.
 // O MESMO ID duas vezes não soma nada (proteção contra confirmar repetido). O mês novo começa no fim
@@ -1023,7 +1060,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PresentesAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

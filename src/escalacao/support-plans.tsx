@@ -239,7 +239,8 @@ export function SupportPlans(p: Props) {
           <div className="ll-vit-grid">
             <Mini rot={tr('🔎 vê o NÍVEL do jogador: até 👑 Lenda', '🔎 see the player’s LEVEL: up to 👑 Legend')}><CartaNivel tier="ouro" nome="Pelé" nivel={96} /></Mini>
             <Mini rot={tr('🏆 Minhas Ligas: até 5, com a sua turma', '🏆 My Leagues: up to 5, with your crew')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div><div style={{ ...OSW, fontSize: 9, background: INK, color: GOLD, borderRadius: 6, padding: '2px 6px', display: 'inline-block', marginTop: 3 }}>{tr('LIGA DOS CRIA', 'MY CREW LEAGUE')}</div></Mini>
-            <Mini rot={tr('🎨 ouro — ou a cor que você escolher', '🎨 gold — or the colour you choose')}><div style={{ display: 'flex', gap: 3, justifyContent: 'center' }}>{['#FFC400', '#8B5CF6', '#2E9E5B', '#E8503A'].map(c => <span key={c} style={{ width: 16, height: 16, borderRadius: '50%', background: c, border: `2px solid ${INK}` }} />)}</div></Mini>
+            {/* 🎨 14/10 (Diego): "escolher cor" saiu do Lenda — virou item da Loja (R$ 4,90). */}
+            <Mini rot={tr('🎨 nome em ouro brilhante', '🎨 shining gold name')}><div style={{ display: 'flex', gap: 3, justifyContent: 'center' }}>{['#FFC400'].map(c => <span key={c} style={{ width: 22, height: 22, borderRadius: '50%', background: c, border: `2px solid ${INK}` }} />)}</div></Mini>
           </div>
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>

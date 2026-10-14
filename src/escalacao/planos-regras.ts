@@ -26,10 +26,14 @@ export const PRECOS = {
  *  Subir de plano = paga só a DIFERENÇA entre os preços de hoje (`precoSubida`). */
 export const PRECOS_UNICO = { craque: 29.9, lenda: 49.9, batismo: 79.9, fundador: 99.9 } as const
 export type PlanoUnico = keyof typeof PRECOS_UNICO
-/** quanto custa chegar em `alvo` pra quem já tem `atual` (nunca negativo; o mesmo plano = 0) */
+/** 💰 14/10 (Diego): *"todo usuário que tem um plano e quer passar pra um novo teria que pagar pelo menos 5 reais a mais"*.
+ *  Subir de plano = a diferença + R$ 5. */
+export const TAXA_SUBIDA = 5
+/** quanto custa chegar em `alvo` pra quem já tem `atual` (nunca negativo; o mesmo plano ou um menor = 0) */
 export function precoSubida(alvo: PlanoUnico, atual: PlanoUnico | null): number {
-  const v = PRECOS_UNICO[alvo] - (atual ? PRECOS_UNICO[atual] : 0)
-  return Math.max(0, Math.round(v * 100) / 100)
+  const dif = PRECOS_UNICO[alvo] - (atual ? PRECOS_UNICO[atual] : 0)
+  if (dif <= 0) return 0
+  return Math.round((dif + (atual ? TAXA_SUBIDA : 0)) * 100) / 100
 }
 /** o plano que a pessoa já tem, lido dos direitos do banco + o tier (prata = Craque · ouro = Lenda) */
 export function planoAtual(d: { batismoPlano: 'antigo' | 'lenda' | 'plus' | null } | null, tier: TierCor | null | undefined): PlanoUnico | null {

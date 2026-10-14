@@ -7,6 +7,8 @@
 //     telão e a MASCOTE atravessando (sem batismo sobraria tela vazia). Os dois avulsos somam 30; subir pro Fundador custa
 //     20 e já traz os dois + o número de fundador — o desconto de quem pagou o Fundador (palavras dele: *"pra ter uma
 //     diferença, quem pagou o fundador ter ganhado desconto"*). Fundador vê "✅ já incluso".
+//   · 🎨 COR DO NOME (R$ 4,90) — saiu do Lenda (14/10); só pra quem tem plano, porque troca a cor BRILHANTE que já tem.
+//   · 🎁 DAR DE PRESENTE — só PLANO, pra um amigo (`presente.tsx`; o Diego confirma o pagamento e entrega no #admin).
 //   · 🪙 MOEDAS pro clube — os pacotes do Banco Legends (R$ 1 = 3 🪙). Viram uma FICHA que a pessoa resgata na carreira que
 //     quiser (Clube › Finanças › Banco Legends). Só valem na carreira solo.
 //
@@ -19,11 +21,12 @@ import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmai
 import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
+import { PresenteBox } from './presente'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 /** 💰 avulsos do clube batizado (Diego 14/10) */
-export const LOJA_PRECOS = { galaUnica: 20, canto: 10 } as const
+export const LOJA_PRECOS = { galaUnica: 20, canto: 10, cor: 4.9 } as const
 /** 🏦 pacotes do Banco Legends (os mesmos de `BL_PACOTES` em pyramidseason.tsx, R$ 1 = 3 🪙) */
 const MOEDAS: [number, string, string][] = [[10, 'Cafezinho', 'Coffee money'], [50, 'Reforço pontual', 'Quick boost'], [100, 'Fôlego de temporada', 'Season breather']]
 // 🎁 quem JÁ TEM o item não pode ver ele à venda (Diego 14/10: "o Tricolor do Arruda já tem canto"). O canto vem da lista
@@ -93,6 +96,18 @@ function Loja({ onClose }: { onClose: () => void }) {
             </div>)}
           </div>
         </>}
+
+        {/* 🎨 TROCAR A COR (14/10, Diego): saiu do Lenda e virou item — R$ 4,90, troca a cor brilhante do nome */}
+        <h2 style={h2}>{tr('🎨 Cor do seu nome', '🎨 Your name colour')} <span style={sub}>{tr('troca a cor brilhante', 'swap your shiny colour')}</span></h2>
+        <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', opacity: atual ? 1 : .55 }}>
+          <div style={{ display: 'flex', gap: 4 }}>{[APOIO_PERKS.ouro.grad, APOIO_PERKS.roxo.grad, APOIO_PERKS.verde.grad, APOIO_PERKS.prata.grad].map((g, i) => <span key={i} style={{ width: 22, height: 22, borderRadius: '50%', background: g, border: `2px solid ${INK}` }} />)}</div>
+          <small style={{ flex: 1, fontSize: 11, fontWeight: 700, lineHeight: 1.3 }}>{atual ? tr('Escolha outra cor com brilho pro seu nome nas salas, na tabela e no chat. Seu plano continua o mesmo.', 'Pick another shiny colour for your name in rooms, tables and chat. Your plan stays the same.') : tr('🔒 Precisa de um plano: a cor brilhante vem com ele.', '🔒 Needs a plan: the shiny colour comes with it.')}</small>
+          <button disabled={!atual} onClick={() => setComprando({ id: 'cor', amount: LOJA_PRECOS.cor, ctx: 'loja · trocar a cor do nome', msgPt: `Opa! Comprei na Loja do Clube: 🎨 TROCAR A COR DO NOME (${reais(LOJA_PRECOS.cor)}). Cor que eu quero: ____. E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🎨 NAME COLOUR SWAP (${reais(LOJA_PRECOS.cor)}). Colour I want: ____. Account e-mail: ____ — receipt attached!` })} style={{ ...preco, cursor: atual ? 'pointer' : 'not-allowed' }}>{reais(LOJA_PRECOS.cor)}</button>
+        </div>
+
+        {/* 🎁 DAR DE PRESENTE (14/10) — só planos */}
+        <h2 style={h2}>{tr('🎁 Dar de presente', '🎁 Send a gift')} <span style={sub}>{tr('um plano pra um amigo', 'a plan for a friend')}</span></h2>
+        <PresenteBox />
 
         {/* 🎤 DO CLUBE BATIZADO */}
         <h2 style={h2}>{tr('🎤 Do seu clube batizado', '🎤 For your named club')} <span style={sub}>{tr('feitos sob medida', 'made to order')}</span></h2>
