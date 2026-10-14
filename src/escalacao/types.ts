@@ -248,6 +248,9 @@ export interface Manager {
   // (XI + banco = 2× a formação por posição). Fora do leilão de reservas fica
   // undefined, então o leilão normal (T1/solo/dinastia/rápido) segue mirando 11.
   deepSquad?: boolean
+  // 🔁 carreira (14/10): jogadores que perderam a vaga pra um reforço do bot e vão ser LISTADOS no próximo leilão
+  // (o bot recebe o dinheiro da venda, igual quem lista). Só bot rival; humano nunca.
+  aVender?: string[]
   /** 🧱 no leilão de clubes, durante o pregão o técnico precisa de 1 PACOTE por setor */
   modoClubes?: boolean
   // 🏀 carreira do basquete: alvo de vagas POR POSIÇÃO deste técnico (1 quinteto →
@@ -277,6 +280,8 @@ export interface Manager {
 export interface Bid {
   mgr: number
   amount: number
+  /** 🔁 lance de REFORÇO de bot com elenco cheio (14/10): vale mesmo sem vaga aberta; quem perde a vaga vai a leilão depois */
+  reforco?: boolean
 }
 
 // resultado da disputa de uma carta, pronto pra revelação dramática

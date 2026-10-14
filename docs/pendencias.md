@@ -1,3 +1,9 @@
+## 🤖 Bots voltaram a dar lance no leilão da carreira (14/10) — ✅ NO AR
+Reclamação do Leão da Estradinha. Causa: banco de 22 cheio = bot sem vaga = sem lance. Conserto: 1 lance de reforço por setor
+(só carta bem melhor que o pior titular); o jogador que perde a vaga vai LISTADO pelo bot no próximo leilão (bot recebe se vender;
+ninguém comprando, cai no monte pela metade como qualquer lista). Código: `cpuEnvelope` (reforco), `resolve`, `marcaAVender`.
+👀 Acompanhar: se o pessoal achar que bot agora disputa demais, subir o corte de `ganho >= 6`.
+
 ## 🧪 Trava `npm run copamundo` está vermelha (achado 13/10, JÁ vinha assim antes da abertura das copas)
 Falha: *"🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)"* — reproduz no main anterior (bf9d63d), então não é da abertura. Conferir se é a trava desatualizada ou a ficha contando jogo de copa antes do apito.
 

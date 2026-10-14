@@ -1409,6 +1409,23 @@ function guardaCansacoBots(s: EscState, carry?: Record<string, number>) {
 // tem dono — nunca incógnito (regra nº 1: perna-de-pau não entra em elenco por regra nova) — e PAGA o
 // preço justo da carta do próprio caixa. Sem dinheiro, fica sem o reserva (e o titular cansa). O salário
 // desse banco entra sozinho na folha do bot (`folhaDoBot`) na virada.
+// 🔁 (14/10) depois do leilão: bot que passou do elenco numa posição (ganhou um reforço com o elenco cheio) separa os mais
+// fracos daquela posição pra LISTAR no próximo leilão — recebe o dinheiro se alguém comprar, igual a qualquer lista.
+export function marcaAVender(s: EscState) {
+  if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
+  for (const m of s.managers) {
+    if (m.isHuman || !m.rival) continue
+    const nv = (c: { lo: number; hi: number }) => c.lo + c.hi
+    const marcados = new Set(m.aVender ?? [])
+    for (const pos of SECTORS) {
+      const teto = 2 * FORMATIONS[m.formation][pos]
+      const reais = m.squad.filter(c => c.pos === pos && !c.fake && !marcados.has(c.id)).sort((a, b) => nv(a) - nv(b))
+      for (const c of reais.slice(0, Math.max(0, reais.length - teto))) marcados.add(c.id)
+    }
+    m.aVender = marcados.size ? [...marcados] : undefined
+  }
+}
+
 export function completaBancoDosBots(s: EscState) {
   if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
   const minhaDiv = divisaoDaCarreira(s)
@@ -2251,7 +2268,13 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
   // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
   // fim (FINISH_CEREMONY). Humano decide sozinho, então segue só com openSlots.
   const fakeSlots = m.isHuman ? 0 : m.squad.filter(c => c.pos === pos && c.fake).length
-  const need = Math.min(slotsOf(m, pos), openSlots(m, pos) + fakeSlots)
+  let need = Math.min(slotsOf(m, pos), openSlots(m, pos) + fakeSlots)
+  // 🔁 REFORÇO COM ELENCO CHEIO (Diego 14/10, reclamação do Leão da Estradinha: "depois das mexidas nos bots quase ninguém
+  // dá lance mais"). Com o banco de 22, o bot chegava ao leilão SEM vaga e não disputava nada. Agora, na carreira (bot que
+  // pensa como gente), elenco cheio ainda dá UM lance por setor — só em carta BEM melhor que o pior titular dele. Se ganhar,
+  // o jogador que perde a vaga vai a leilão no próximo leilão (`marcaAVender`) e o dinheiro da venda é do bot.
+  const reforco = need === 0 && pensaComoGente && !rescue && !m.isHuman
+  if (reforco) need = 1
   if (need === 0 || m.money <= 0) return []
   const remaining = SECTORS.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
   const shape = 0.65 + m.aggression * 0.8
@@ -2301,6 +2324,7 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
       const titulares = m.squad.filter(c => c.pos === pos && !c.fake).sort((a, b) => nv(b) - nv(a)).slice(0, baseSlots(m.formation, pos))
       const piorTitular = titulares.length < baseSlots(m.formation, pos) ? null : titulares[titulares.length - 1]
       const ganho = piorTitular ? nv(t.c) - nv(piorTitular) : 99
+      if (reforco && ganho < 6) continue // elenco cheio: só vale a pena se for reforço de verdade
       const necessidade = ganho >= 6 ? 1.15 : ganho >= -4 ? 0.6 : 0.35
       let hh = 2166136261; const chaveT = `${m.id}|${t.c.name}|${t.c.club}|${t.c.year}`
       for (let k = 0; k < chaveT.length; k++) { hh ^= chaveT.charCodeAt(k); hh = Math.imul(hh, 16777619) }
@@ -2329,7 +2353,7 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
       amt = Math.max(amt, floor)
     }
     amt = Math.min(amt, wallet)
-    if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt; wallet -= amt }
+    if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id, ...(reforco ? { reforco: true } : {}) }); left -= amt; wallet -= amt }
   }
   return result
 }
@@ -2416,7 +2440,9 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     let i = 0
     for (; i < sorted.length; i++) {
       const m = managers.find(x => x.id === sorted[i].mgr)!
-      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
+      // 🔁 lance de reforço de bot (elenco cheio) vale sem vaga aberta — o pior da posição vai a leilão depois (`marcaAVender`)
+      const temVaga = openSlots(m, card.pos) > 0 || (!!sorted[i].reforco && !m.isHuman)
+      if (!temVaga || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
       break
     }
     if (i >= sorted.length) { // ninguém elegível
@@ -2429,7 +2455,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const tiedTop: number[] = []
     for (let j = i; j < sorted.length && sorted[j].amount === top; j++) {
       const m = managers.find(x => x.id === sorted[j].mgr)!
-      if (openSlots(m, card.pos) > 0 && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
+      if ((openSlots(m, card.pos) > 0 || (!!sorted[j].reforco && !m.isHuman)) && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
     }
     if (tiedTop.length >= 2) {
       // empate no topo → desempate (vencedor decidido depois). Sem dedução aqui.
@@ -6220,7 +6246,7 @@ function sealAndResolve(state: EscState) {
     if (holandesJaDecidiu) break
     if (m.isHuman || !m.auctionRival) continue
     for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) {
-      pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
+      pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount, ...(b.reforco ? { reforco: true } : {}) })
     }
   }
   // humanos (envelopes coletados)
@@ -6244,7 +6270,7 @@ function sealAndResolve(state: EscState) {
         const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
         const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
         for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) {
-          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard) })
+          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard), ...(b.reforco ? { reforco: true } : {}) })
         }
       }
     }
@@ -8766,6 +8792,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // rivais "auction-only" e times de fundo temporários já cumpriram o papel no
       // leilão — saem antes da temporada (voltam a ser time de fundo na simulação).
       s.managers = s.managers.filter(m => !m.auctionOnly && !m.marketCpu)
+      marcaAVender(s) // 🔁 (14/10) quem perdeu a vaga pra um reforço do bot vai a leilão no próximo leilão
       completaBancoDosBots(s) // 🔁 rival com banco (13/10): os bots da sua divisão fecham 2 por posição com sobra REAL, pagando
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
@@ -10307,6 +10334,18 @@ function reducerBase(state: EscState, action: Action): EscState {
       // abre), pra levantar grana e reforçar. NÃO são idênticos: cada um sorteia
       // quantos quer listar nesta temporada (uns 0, uns 1, uns 2-3), sempre as
       // reservas mais FRACAS que sobram (mais que o XI). Determinístico por seed.
+      // 🔁 (14/10) os que perderam a vaga pra um reforço vão pro leilão agora — o bot recebe o dinheiro da venda
+      {
+        const rlR = { ...(s.reserveListed ?? {}) }
+        for (const m of s.managers) {
+          if (m.isHuman || !m.rival || !m.aVender?.length) continue
+          const tem = new Set(m.squad.map(c => c.id))
+          const ids = m.aVender.filter(id => tem.has(id))
+          if (ids.length) rlR[m.id] = [...new Set([...(rlR[m.id] ?? []), ...ids])]
+          m.aVender = undefined
+        }
+        s.reserveListed = rlR
+      }
       if (s.seasonNo >= 3) {
         const rate = (c: WonCard) => (c.lo + c.hi) / 2
         const rl = { ...(s.reserveListed ?? {}) }

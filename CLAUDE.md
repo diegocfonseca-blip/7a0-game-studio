@@ -785,6 +785,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   categoria × economia × necessidade (bem melhor que o titular / parecido / reserva) × tempero × perfil, limitado pelo bolso; o
   mínimo só filtra (não vale pra ele = não dá lance). Ordem das categorias nunca inverte. **Os valores da tabela não mudam**
   (piso = salário/renovação de todo save) e o exagero do bot nunca sobe o piso. Motor em `bots-banco.ts`; trava `npm run bots-banco`.
+  🔁 **14/10 (Leão da Estradinha: "quase ninguém dá lance")**: com o banco de 22 o bot chegava sem vaga e sumia do leilão.
+  Agora elenco cheio ainda dá **1 lance de REFORÇO por setor**, só em carta bem melhor que o pior titular. O jogador que perde a
+  vaga é **LISTADO no próximo leilão** pelo bot (`marcaAVender`) — dispensar não dá dinheiro, vender dá (*"pra ele ter grana"*).
 
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
