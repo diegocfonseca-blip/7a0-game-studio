@@ -941,7 +941,9 @@ export function useElencoNovo(): boolean {
 // planos antigos, sem mudar nada. A 2ª conta (diego2, grátis) serve pra ele ver como o gratuito enxerga.
 // Liberar pra todos: PLANOS2_GERAL = true.
 const PLANOS2_GERAL = false
-const PLANOS2_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+// 💳 14/10: o Sócio mensal SAIU (Diego). A V2 (vitrine do mensal) fecha também pra ele — todo mundo vê a mesma tela
+// (V1, com Craque/Lenda/Batismo/Fundador de uma vez só). Pra reabrir o teste, recoloque os e-mails aqui.
+const PLANOS2_TESTERS = new Set<string>([])
 let planos2Ok = PLANOS2_GERAL
 function applyPlanos2(email?: string | null): void {
   const u = PLANOS2_GERAL || (!!email && PLANOS2_TESTERS.has(email.toLowerCase()))

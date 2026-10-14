@@ -6,6 +6,7 @@ import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen } from './apoio'
 import './support-plans.css'
 import { SupportPlanCard, SupportMoney } from './support-plans'
+import { PRECOS_UNICO, precoSubida, precoTxt, type PlanoUnico } from './planos-regras'
 
 // 💳 PLANOS V2 (08–09/10) — a vitrine nova, por enquanto SÓ nas contas do Diego (`usePlanos2`, sport.ts).
 // Quem não está na lista continua vendo `support-plans.tsx` exatamente como era.
@@ -87,12 +88,15 @@ const UmaVezSo = () => <div style={{ display: 'flex', alignItems: 'center', gap:
 // Batismo R$ 79,90 · Batismo Lenda R$ 89,90, exemplo Neymarzetti, com a lista inteira do Sócio dentro. Mora aqui e é
 // usado nas DUAS vitrines: a pública (support-plans.tsx) e a v2. `serieA`: na v2 os dois batismos vão pra Série A; na
 // pública vale a regra de hoje (69,90 = Série B/C/D/Várzea · 89,90 = Série A).
-export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { batismoPlano?: 'antigo' | 'lenda' | 'plus' | null; onNaming: (plano: 'lenda' | 'plus') => void; serieA?: boolean }) {
+export function CartoesBatismo({ batismoPlano, onNaming, serieA = false, atual = null }: { batismoPlano?: 'antigo' | 'lenda' | 'plus' | null; onNaming: (plano: 'lenda' | 'plus') => void; serieA?: boolean; atual?: PlanoUnico | null }) {
+  // 💳 14/10 (Diego): Batismo 79,90 · 🖋️ FUNDADOR 99,90 (era "Batismo Lenda"). Quem já tem plano paga só a diferença.
+  const reais = (v: number) => precoTxt(v, getLang() === 'en')
+  const subBat = precoSubida('batismo', atual), subFun = precoSubida('fundador', atual)
   return <>
     {/* 3️⃣ BATISMO LENDA */}
-    <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club Naming')} price="R$ 79,90" cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="batismo">
+    <SupportPlanCard id="support-batismo" title={tr('🖋 Batismo', '🖋 Club Naming')} price={reais(PRECOS_UNICO.batismo)} cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="batismo">
       <UmaVezSo />
-      <h3>{tr('Seu clube no jogo, pra sempre: escudo, mascote e manto desenhados pra você + tudo do Sócio, sem mensalidade.', 'Your club in the game, forever: crest, mascot and kit designed for you + everything in Member, no monthly fee.')}</h3>
+      <h3>{tr('Seu clube no jogo, pra sempre: escudo, mascote e manto desenhados pra você + tudo do Lenda, sem mensalidade.', 'Your club in the game, forever: crest, mascot and kit designed for you + everything in Legend, no monthly fee.')}</h3>
       <Vitrine titulo={tr('as artes são suas (exemplo real: Neymarzetti)', 'the artwork is yours (real example: Neymarzetti)')}>
         <div className="ll-vit-artes">
           <div><Escudo nome={EXEMPLO} size={72} /><p>{tr('🛡️ escudo', '🛡️ crest')}</p></div>
@@ -129,22 +133,21 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
         ? <Ok><b>{tr('⚽ Seu clube aparece pra TODOS os jogadores', '⚽ Your club shows up for EVERY player')}</b>{tr(' — na Série A, no Jogo Rápido, no Online, na tabela e no jornal (em rodízio com os outros clubes batizados)', ' — in Division A, Quick Play, Online, the table and the newspaper (rotating with the other named clubs)')}</Ok>
         : <Ok><b>{tr('⚽ Seu clube aparece pra TODOS os jogadores', '⚽ Your club shows up for EVERY player')}</b>{tr(' — na carreira de todo mundo (Série B, C, D ou Várzea), no Online, na tabela e no jornal (em rodízio com os outros clubes batizados)', ' — in everyone’s career (Série B, C, D or Várzea), Online, the table and the newspaper (rotating with the other named clubs)')}</Ok>}
       <Ok><b>{tr('👑 Entrada de gala', '👑 Grand entrance')}</b>{tr(' com o seu escudo: a sala inteira para pra te ver chegar', ' with your crest: the whole room stops to watch you arrive')}</Ok>
-      <Ok><b>{tr('🖋️ Fundador nº', '🖋️ Founder no.')}</b>{tr(' — seu número no mural do jogo, pra sempre', ' — your number on the game’s wall, forever')}</Ok>
       <Ok><b>{tr('🏟️ Estádio com o nome', '🏟️ Stadium named')}</b>{tr(' que você escolher', ' however you choose')}</Ok>
       <Ok><b>{tr('🪙 30 moedas a cada 30 dias', '🪙 30 coins every 30 days')}</b>{tr(', pra sempre', ', forever')}</Ok>
       <Ok><b>{tr('🔒 Nome reservado', '🔒 Reserved name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
-      <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('🎫 e tudo do Sócio, pra sempre e sem mensalidade:', '🎫 and everything in Member, forever with no monthly fee:')}</p>
+      <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('👑 e tudo do Lenda, pra sempre e sem mensalidade:', '👑 and everything in Legend, forever with no monthly fee:')}</p>
       <ItensSocio batismo />
       <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego faz escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego makes the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
       {batismoPlano ? <p className="ll-vit-seu">{tr('✅ você já tem batismo', '✅ you already own a club naming')}</p>
-        : <button className="ll-support-button dark" onClick={() => onNaming('lenda')}>{tr('QUERO O BATISMO · R$ 79,90 UMA VEZ SÓ', 'I WANT CLUB NAMING · R$ 79.90 ONCE')}</button>}
+        : <button className="ll-support-button dark" onClick={() => onNaming('lenda')}>{atual ? tr(`SUBIR PRO BATISMO · + ${reais(subBat)}`, `UPGRADE TO CLUB NAMING · + ${reais(subBat)}`) : tr(`QUERO O BATISMO · ${reais(PRECOS_UNICO.batismo)} UMA VEZ SÓ`, `I WANT CLUB NAMING · ${reais(PRECOS_UNICO.batismo)} ONCE`)}</button>}
     </SupportPlanCard>
 
-    {/* 4️⃣ BATISMO PLUS */}
-    <SupportPlanCard id="support-plus" title={tr('🖋✨ Batismo Lenda', '🖋✨ Legend Naming')} price="R$ 89,90" cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="plus">
+    {/* 4️⃣ FUNDADOR (era Batismo Lenda até 14/10) — o único que ganha número de fundador */}
+    <SupportPlanCard id="support-plus" title={tr('🖋 Fundador', '🖋 Founder')} price={reais(PRECOS_UNICO.fundador)} cadence={tr('PAGA UMA VEZ SÓ · sem mensalidade', 'PAY ONCE · no monthly fee')} tone="plus">
       <UmaVezSo />
-      <h3>{tr('O topo: tudo do Batismo, com o clube na SÉRIE A + uma entrada de gala SÓ SUA (como o helicóptero do Neymarzetti) + o canto da sua torcida na Carreira.', 'The top one: everything in Club Naming, with the club in DIVISION A + a grand entrance that is ONLY YOURS (like Neymarzetti’s helicopter) + your crowd’s chant in Career.')}</h3>
-      <Vitrine titulo={tr('o que só o Batismo Lenda tem', 'what only Legend Naming has')}>
+      <h3>{tr('O topo: tudo do Batismo, com o clube na SÉRIE A + uma entrada de gala SÓ SUA (como o helicóptero do Neymarzetti) + o canto da sua torcida na Carreira + o seu NÚMERO DE FUNDADOR.', 'The top one: everything in Club Naming, with the club in DIVISION A + a grand entrance that is ONLY YOURS (like Neymarzetti’s helicopter) + your crowd’s chant in Career + your FOUNDER NUMBER.')}</h3>
+      <Vitrine titulo={tr('o que só o Fundador tem', 'what only Founder has')}>
         <div className="ll-vit-grid">
           <Mini rot={tr('🚁 gala ÚNICA: a sua chegada, do seu jeito — só o seu clube tem', '🚁 UNIQUE entrance: your arrival, your way — only your club has it')}>
             <div className="ll-vit-gala">
@@ -162,13 +165,14 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false }: { bat
       <Ok><b>{tr('🎤 Canto da sua torcida', '🎤 Your crowd’s chant')}</b>{tr(' tocando no estádio da sua Carreira', ' playing at your Career stadium')}</Ok>
       <Ok><b>{tr('🛡️🐾🎽 Escudo, mascote e manto', '🛡️🐾🎽 Crest, mascot and kit')}</b>{tr(' desenhados pra você', ' designed for you')}</Ok>
       <Ok><b>{tr('⚽ Série A, Jogo Rápido e Online', '⚽ Division A, Quick Play and Online')}</b>{tr(' com o seu clube, pra todos os jogadores (em rodízio com os outros clubes batizados)', ' with your club, for every player (rotating with the other named clubs)')}</Ok>
-      <Ok><b>{tr('🖋️ Fundador nº', '🖋️ Founder no.')}</b>{tr(', estádio com nome e 30 🪙 a cada 30 dias, pra sempre', ', a named stadium and 30 🪙 every 30 days, forever')}</Ok>
+      <Ok><b>{tr('🖋️ Fundador nº', '🖋️ Founder no.')}</b>{tr(' — seu número no mural do jogo, pra sempre. Só quem é Fundador tem.', ' — your number on the game’s wall, forever. Only Founders get one.')}</Ok>
+      <Ok><b>{tr('🏟️ Estádio com nome', '🏟️ Named stadium')}</b>{tr(' e 30 🪙 a cada 30 dias, pra sempre', ' and 30 🪙 every 30 days, forever')}</Ok>
       <Ok><b>{tr('🔒 Nome reservado', '🔒 Reserved name')}</b>{tr(' — ninguém mais usa o nome do seu clube', ' — nobody else can use your club’s name')}</Ok>
-      <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('🎫 e tudo do Sócio, pra sempre e sem mensalidade:', '🎫 and everything in Member, forever with no monthly fee:')}</p>
+      <p className="ll-vit-rot" style={{ margin: '10px 0 4px' }}>{tr('👑 e tudo do Lenda, pra sempre e sem mensalidade:', '👑 and everything in Legend, forever with no monthly fee:')}</p>
       <ItensSocio batismo />
       <p className="ll-support-note">{tr('A gala e o canto são feitos sob medida: entram no jogo assim que ficam prontos (o Diego combina com você).', 'The entrance and the chant are made to order: they go into the game as soon as they are ready (Diego sorts it out with you).')}</p>
-      {batismoPlano === 'plus' ? <p className="ll-vit-seu">{tr('✅ você já tem o Batismo Lenda', '✅ you already have Legend Naming')}</p>
-        : <button className="ll-support-button gold" onClick={() => onNaming('plus')}>{batismoPlano ? tr('QUERO SUBIR PRO BATISMO LENDA', 'UPGRADE TO LEGEND NAMING') : tr('QUERO O BATISMO LENDA · R$ 89,90 UMA VEZ SÓ', 'I WANT LEGEND NAMING · R$ 89.90 ONCE')}</button>}
+      {batismoPlano === 'plus' ? <p className="ll-vit-seu">{tr('✅ você já é Fundador', '✅ you are already a Founder')}</p>
+        : <button className="ll-support-button gold" onClick={() => onNaming('plus')}>{atual ? tr(`SUBIR PRO FUNDADOR · + ${reais(subFun)}`, `UPGRADE TO FOUNDER · + ${reais(subFun)}`) : tr(`QUERO SER FUNDADOR · ${reais(PRECOS_UNICO.fundador)} UMA VEZ SÓ`, `I WANT FOUNDER · ${reais(PRECOS_UNICO.fundador)} ONCE`)}</button>}
     </SupportPlanCard>
   </>
 }

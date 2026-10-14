@@ -19,7 +19,8 @@ import { supabase } from '../lib/supabase'
 import { resilientWrite } from './pending'
 import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
-import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN } from './apoio'
+import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN, useDireitos } from './apoio'
+import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
 import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
@@ -389,7 +390,11 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
   // ⚠️ a chave interna 'd' quer dizer "a divisão CARA", e ela é a Série A desde
   // 30/08 (a troca de letra). O nome da chave ficou pra não mexer no que já
   // funciona; o que o jogador LÊ é o texto ao lado, que já diz Série A.
-  const precoCheioBatismo = serieBatismo === 'd' ? 89.9 : 79.9 // 💰 13/10 (Diego): Série A 79,99 → 89,90, e ela ganha gala exclusiva + canto da torcida
+  // 💳 14/10 (Diego): Batismo 79,90 · 🖋 FUNDADOR 99,90 (era "Batismo Lenda" 89,90). Quem já tem plano paga só a diferença.
+  const direitosApoie = useDireitos()
+  const planoJa = planoAtual(direitosApoie, myApoioPerk()?.tier)
+  const reaisApoie = (v: number) => precoTxt(v, getLang() === 'en')
+  const precoCheioBatismo = precoSubida(serieBatismo === 'd' ? 'fundador' : 'batismo', planoJa)
   // 🎟️ CUPOM DE INFLUENCIADOR (Diego 07/09): "PANTERA" = 10% off SÓ no batismo.
   // O código é conferido no banco (esc_cupom_validar) — nenhum cupom vive no
   // código do jogo, então ninguém descobre fuçando. O desconto entra no valor do
@@ -451,7 +456,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
       {screen === 'choice' && <ApoieModal onClose={close}>
         <SupportPlans focus={amp} tier={myApoioPerk()?.tier} name={meuNome} memberActive={!!meuSoc?.ativo} memberNumber={meuSoc?.socioN} foundersLeft={FUNDADOR_VAGAS}
           onPay={tier => { logApoio('👀 escolheu apoio: ' + tier); setPayTier(tier); setScreen(tier === 'prata' ? 'manual' : 'pay') }}
-          onNaming={plano => { logApoio(`🖋 escolheu batismo ${plano === 'plus' ? 'lenda (89,90)' : '(79,90)'}`); setSerieBatismo(plano === 'plus' ? 'd' : 'abc'); setScreen('batismo') }}
+          onNaming={plano => { logApoio(`🖋 escolheu ${plano === 'plus' ? 'fundador (99,90)' : 'batismo (79,90)'}`); setSerieBatismo(plano === 'plus' ? 'd' : 'abc'); setScreen('batismo') }}
           onMember={() => { if (meuSoc?.ativo) { setScreen('socio'); return } const tier = myApoioPerk()?.tier; logApoio('🎫 abriu assinatura sócio'); window.open(tier === 'ouro' ? MP_SOCIO.lenda : tier === 'prata' ? MP_SOCIO.craque : MP_SOCIO.base, '_blank', 'noopener') }}
           onDonate={() => setScreen('pix')}
           onInstagram={() => window.open(APOIO_IG, '_blank', 'noopener')} />
@@ -542,14 +547,14 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
             <ApoioSheen holo={.6} />
             <span className="relative font-black uppercase text-[20px]" style={OSWALD}>⭐ {tr('Craque', 'Star')}</span>
             <span className="relative ml-auto text-right">
-              <b className="block font-black text-[24px] leading-none" style={OSWALD}>R$ 19,90</b>
+              <b className="block font-black text-[24px] leading-none" style={OSWALD}>{reaisApoie(PRECOS_UNICO.craque)}</b>
               <small className="block font-extrabold text-[9px] uppercase tracking-wider opacity-80">{tr('paga uma vez · é seu pra sempre', 'pay once · yours forever')}</small>
             </span>
           </div>
-          <div className="mt-3"><PixBox label="copiar Pix (R$ 19,90)" ctx="craque (manual + cor)" amount={19.9} /></div>
+          <div className="mt-3"><PixBox label={`copiar Pix (${reaisApoie(PRECOS_UNICO.craque)})`} ctx="craque (manual + cor)" amount={PRECOS_UNICO.craque} /></div>
           <div className="flex gap-1.5 mt-2.5">
             <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>1</b>{tr('paga o Pix no app do banco', 'pay the Pix in your bank app')}</div>
-            <button onClick={() => { logApoio('⭐ QUER O CRAQUE / MANUAL (R$ 19,90)'); igMsg(tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP). E-mail da conta: ____ — comprovante em anexo!', 'Hey! I supported Leilão Legends 💛 I want ⭐ STAR (Manual Mode + club colour + VIP). Account email: ____ — receipt attached!')) }}
+            <button onClick={() => { logApoio(`⭐ QUER O CRAQUE / MANUAL (${reaisApoie(PRECOS_UNICO.craque)})`); igMsg(tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP). E-mail da conta: ____ — comprovante em anexo!', 'Hey! I supported Leilão Legends 💛 I want ⭐ STAR (Manual Mode + club colour + VIP). Account email: ____ — receipt attached!')) }}
               className="flex-1 rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight active:translate-y-0.5" style={{ border: `2px solid ${INK}`, background: '#E1306C', color: '#fff', boxShadow: `2px 2px 0 ${INK}` }}>
               <b className="block text-[13px]" style={OSWALD}>2</b>{tr('manda o comprovante no @leilaolegendscom', 'send the receipt to @leilaolegendscom')}
             </button>
@@ -561,7 +566,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
           <p className="text-center font-black uppercase text-[11px] tracking-widest mt-3 mb-1.5" style={{ ...OSWALD, color: 'rgba(12,12,12,.55)' }}>{tr('quer mais que isso?', 'want more than that?')}</p>
           <div className="flex gap-2">
             <button onClick={() => { logApoio('👀 manual → lenda'); setAmp('ouro'); setScreen('choice') }} className="flex-1 rounded-xl px-1.5 py-2.5 text-center font-black uppercase text-[13px] active:translate-y-0.5" style={{ ...OSWALD, background: APOIO_PERKS.ouro.grad, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
-              {tr('👑 Ver o Lenda', '👑 See Legend')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('R$ 39,90 · vê até Lenda', 'R$ 39.90 · see up to Legend')}</span>
+              {tr('👑 Ver o Lenda', '👑 See Legend')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr(`${reaisApoie(PRECOS_UNICO.lenda)} · vê até Lenda`, `${reaisApoie(PRECOS_UNICO.lenda)} · see up to Legend`)}</span>
             </button>
             <button onClick={() => { logApoio('👀 manual → batismo'); setAmp('batismo'); setScreen('choice') }} className="flex-1 rounded-xl px-1.5 py-2.5 text-center font-black uppercase text-[13px] active:translate-y-0.5" style={{ ...OSWALD, background: INK, color: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
               {tr('🖋 Ver o Batismo', '🖋 See Club naming')}<br /><span className="text-[9px] font-extrabold opacity-75">{tr('seu clube no jogo', 'your club in the game')}</span>
@@ -573,14 +578,14 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
 
       {screen === 'pay' && (() => {
         const ouro = payTier === 'ouro'
-        const upgrade = ouro && myApoioPerk()?.tier === 'prata'
-        const amount = ouro ? (upgrade ? 20 : 39.9) : 19.9
+        const upgrade = ouro && planoJa === 'craque'
+        const amount = precoSubida(ouro ? 'lenda' : 'craque', ouro ? planoJa : null)
         return (
         <ApoieModal onClose={close}>
-          <p className="font-black text-xl text-center" style={OSWALD}>{upgrade ? tr('👑 UPGRADE LENDA · R$ 20,00', '👑 LEGEND UPGRADE · R$ 20.00') : ouro ? tr('👑 LENDA · R$ 39,90', '👑 LEGEND · R$ 39.90') : tr('⭐ CRAQUE · R$ 19,90', '⭐ STAR · R$ 19.90')}</p>
-          <p className="text-[10.5px] font-bold text-black/55 text-center mt-1 leading-snug">{ouro ? tr('ouro (ou qualquer cor) com brilho + selo + 🎮 Manual + 📲 grupo VIP + 🕵️ Olheiro de tudo + 💾 6 fichas', 'gold (or any colour) with shine + badge + 🎮 Manual + 📲 VIP group + 🕵️ Scout for everything + 💾 6 save slots') : tr('cor prata com brilho + 🎮 Modo Manual + 📲 grupo VIP + 🕵️ Olheiro até ⭐ + 💾 4 fichas', 'shining silver + 🎮 Manual Mode + 📲 VIP group + 🕵️ Scout up to ⭐ + 💾 4 save slots')}</p>
+          <p className="font-black text-xl text-center" style={OSWALD}>{upgrade ? tr(`👑 UPGRADE LENDA · ${reaisApoie(amount)}`, `👑 LEGEND UPGRADE · ${reaisApoie(amount)}`) : ouro ? tr(`👑 LENDA · ${reaisApoie(amount)}`, `👑 LEGEND · ${reaisApoie(amount)}`) : tr(`⭐ CRAQUE · ${reaisApoie(amount)}`, `⭐ STAR · ${reaisApoie(amount)}`)}</p>
+          <p className="text-[10.5px] font-bold text-black/55 text-center mt-1 leading-snug">{ouro ? tr('ouro (ou qualquer cor) com brilho + selo + 🎮 Manual + 📲 grupo VIP + 🕵️ Olheiro de tudo + 💾 4 carreiras', 'gold (or any colour) with shine + badge + 🎮 Manual + 📲 VIP group + 🕵️ Scout for everything + 💾 4 careers') : tr('cor prata com brilho + 🎮 Modo Manual + 📲 grupo VIP + 🕵️ Olheiro até ⭐ + 💾 2 carreiras', 'shining silver + 🎮 Manual Mode + 📲 VIP group + 🕵️ Scout up to ⭐ + 💾 2 careers')}</p>
           <div className="mt-3.5"><PixBox label="copiar Pix" ctx={ouro ? 'lenda' : 'craque (manual + cor)'} amount={amount} /></div>
-          <button onClick={() => { logApoio(ouro ? '👑 QUER O LENDA (R$ 39,90)' : '⭐ QUER O CRAQUE (R$ 19,90)'); igMsg(ouro ? tr('Opa! Apoiei o Leilão Legends 💛 Quero o 👑 LENDA (ouro/cor com brilho + Manual + grupo VIP) — comprovante em anexo!', 'Hey! I just supported Leilão Legends 💛 I want the 👑 LEGEND tier (shining gold/colour + Manual + VIP group) — receipt attached!') : tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP) — comprovante em anexo!', 'Hey! I just supported Leilão Legends 💛 I want the ⭐ STAR tier (Manual Mode + club colour + VIP group) — receipt attached!')) }}
+          <button onClick={() => { logApoio(ouro ? `👑 QUER O LENDA (${reaisApoie(amount)})` : `⭐ QUER O CRAQUE (${reaisApoie(amount)})`); igMsg(ouro ? tr('Opa! Apoiei o Leilão Legends 💛 Quero o 👑 LENDA (ouro/cor com brilho + Manual + grupo VIP) — comprovante em anexo!', 'Hey! I just supported Leilão Legends 💛 I want the 👑 LEGEND tier (shining gold/colour + Manual + VIP group) — receipt attached!') : tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP) — comprovante em anexo!', 'Hey! I just supported Leilão Legends 💛 I want the ⭐ STAR tier (Manual Mode + club colour + VIP group) — receipt attached!')) }}
             className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-3 mt-2.5 active:translate-y-0.5"
             style={{ background: '#E1306C', color: '#fff', boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
             {tr('📸 MANDAR COMPROVANTE NO @leilaolegendscom', '📸 SEND THE RECEIPT TO @leilaolegendscom')}
@@ -603,17 +608,17 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger }: ApoiePr
           <div className="flex gap-1.5 mt-1.5">
             <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'abc' ? GOLD : '#fff', boxShadow: serieBatismo === 'abc' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('🖋️ Batismo · Série B·C·D e Várzea', '🖋️ Club Naming · Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 79,90', 'R$ 79.90')}</span>
+              {tr('🖋️ Batismo · Série B·C·D e Várzea', '🖋️ Club Naming · Série B·C·D and Várzea')}<br /><span className="text-[12px]" style={OSWALD}>{planoJa ? '+ ' : ''}{reaisApoie(precoSubida('batismo', planoJa))}</span>
             </button>
             <button onClick={() => setSerieBatismo('d')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
               style={{ background: serieBatismo === 'd' ? GOLD : '#fff', boxShadow: serieBatismo === 'd' ? `2px 2px 0 0 ${INK}` : 'none' }}>
-              {tr('🖋️✨ Batismo Lenda · Série A', '🖋️✨ Legend Naming · Série A')}<br /><span className="text-[12px]" style={OSWALD}>{tr('R$ 89,90', 'R$ 89.90')}</span>
+              {tr('🖋️ Fundador · Série A', '🖋️ Founder · Série A')}<br /><span className="text-[12px]" style={OSWALD}>{planoJa ? '+ ' : ''}{reaisApoie(precoSubida('fundador', planoJa))}</span>
             </button>
           </div>
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
                                                                                     <><b>Série A</b> costs more because it is the elite: those are the clubs that show up in <b>quick play</b> and the rivals everybody faces. Tap one of the two to choose.</>)}</p>
-          {serieBatismo === 'd' && <p className="text-[10px] font-black mt-1 leading-snug" style={{ color: '#7C3AED' }}>{tr('👑 Só na Série A: entrada de gala EXCLUSIVA do seu clube (helicóptero, moto, fumaça… você conta a ideia) + canto da sua torcida na Carreira.', '👑 Only in Série A: your club’s EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your crowd’s chant in Career.')}</p>}
-          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '🖋️✨ Batismo Lenda · Série A' : '🖋️ Batismo · Série B/C/D ou Várzea'}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
+          {serieBatismo === 'd' && <p className="text-[10px] font-black mt-1 leading-snug" style={{ color: '#7C3AED' }}>{tr('👑 Só no Fundador: entrada de gala EXCLUSIVA do seu clube (helicóptero, moto, fumaça… você conta a ideia) + canto da sua torcida na Carreira + o seu número de Fundador.', '👑 Founder only: your club’s EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your crowd’s chant in Career + your Founder number.')}</p>}
+          <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '🖋️ Fundador · Série A' : '🖋️ Batismo · Série B/C/D ou Várzea'}${planoJa ? ` · subida de ${planoJa}` : ''}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
           {/* 🎟️ cupom de influenciador — só aqui, no batismo. SUTIL de propósito
               (Diego 08/09: *"deixe de forma mais sutil lá no pagamento e não tão
               óbvio"*): é uma linha cinza embaixo do Pix, "tem cupom?", que só vira
@@ -1803,14 +1808,14 @@ function Duvidas() {
     ['How do I get a crest and a mascot of my own?', <>
       It\'s the <b>🖋️ Club naming</b>. You pick the name, send whatever art you like (or we draw it), and the club gets its <b>crest, mascot, kit and stadium name</b> — made just for it.<br /><br />
       <b>Where:</b> 💛 Support → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>How much:</b> R$ 79.90 (🖋️ Club Naming) · R$ 89.90 (🖋️✨ Legend Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 79.90 (🖋️ Club Naming · Série B, C, D or Várzea) · R$ 89.90 (🖋️✨ Legend Naming · Série A, with an exclusive grand entrance and a crowd chant in Career).<br /></>}
+      {planos2Liberado() ? <><b>How much:</b> R$ 79.90 (🖋️ Club Naming) · R$ 89.90 (🖋️✨ Legend Naming, with a unique grand entrance and a crowd chant). Both are one-off and forever.<br /></> : <><b>How much:</b> R$ 79.90 (🖋️ Club Naming · Série B, C, D or Várzea) · R$ 99.90 (🖋️ Founder · Série A, with an exclusive grand entrance, a crowd chant in Career and a Founder number).<br /></>}
       <b>How:</b> pay via Pix, send the receipt and the name by DM. We confirm <b>within 24h</b> and it enters the next update.<br /><br />
       The name is <b>reserved in 4 forms</b> (with and without FC/EC, upper or lower case) — nobody else can use it.
     </>],
     ['How do I make my team show up for everyone in the game?', <>
       It\'s the same <b>Club naming</b> — and that\'s the best part of it.<br /><br />
       Your club <b>enters a real division</b> and exists for <b>every Leilão Legends player</b>, not just you — <b>rotating</b> with the other named clubs. Anyone can land in the same table as it, see your crest, your kit, and your mascot celebrating the goal.<br /><br />
-      {planos2Liberado() ? <>Both namings put the club in <b>Série A</b>, the elite of the game: those are the clubs that show up in <b>Quick Play</b> and <b>online</b>, and the rivals everyone faces in the career. It\'s the club that appears the most.</> : <><b>Série A costs more</b> (R$ 89.90, the 🖋️✨ Legend Naming) because it\'s the elite of the game: they are the clubs that show up in the <b>online quick match</b> and the rivals everyone faces in the career. It\'s the club that appears the most.</>}
+      {planos2Liberado() ? <>Both namings put the club in <b>Série A</b>, the elite of the game: those are the clubs that show up in <b>Quick Play</b> and <b>online</b>, and the rivals everyone faces in the career. It\'s the club that appears the most.</> : <><b>Série A costs more</b> (R$ 99.90, the 🖋️ Founder) because it\'s the elite of the game: they are the clubs that show up in the <b>online quick match</b> and the rivals everyone faces in the career. It\'s the club that appears the most.</>}
     </>],
     ['What are the support plans?', <>
       {planos2Liberado() ? <>
@@ -1821,12 +1826,12 @@ function Duvidas() {
       🖋️✨ <b>Legend Naming — R$ 89.90, one time.</b> Everything in Club Naming + a unique grand entrance + a crowd chant in Career.<br /><br />
       Already bought Star, Legend, Membership or a Naming before? <b>You keep all of it, forever.</b><br /><br />
       </> : <>
-      There are <b>5</b>, and all the details are in the <b>💛 Support</b> button:<br /><br />
-      🎫 <b>Sócio Legends — R$ 9.90 a month.</b> The only monthly one.<br />
-      ⭐ <b>Craque (Star) — R$ 19.90, one time.</b><br />
-      👑 <b>Lenda (Legend) — R$ 39.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
+      There are <b>4</b>, all one-off (no monthly fee), and all the details are in the <b>💛 Support</b> button:<br /><br />
+      ⭐ <b>Craque (Star) — R$ 29.90, one time.</b><br />
+      👑 <b>Lenda (Legend) — R$ 49.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
       🖋️ <b>Batismo (Club Naming) — R$ 79.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br />
-      🖋️✨ <b>Batismo Lenda (Legend Naming) — R$ 89.90, one time.</b> Everything in Club Naming, with the club in <b>Série A</b> + an exclusive grand entrance + a crowd chant in Career.<br /><br />
+      🖋️ <b>Fundador (Founder) — R$ 99.90, one time.</b> Everything in Club Naming, with the club in <b>Série A</b> + an exclusive grand entrance + a crowd chant in Career + a Founder number.<br /><br />
+      Moving up a plan? <b>You only pay the difference.</b><br /><br />
       </>}
       No plan gives an advantage on the pitch — <b>the game is the same for everyone</b>. What changes is colour, shine, story and perks.
     </>],
@@ -1870,14 +1875,14 @@ function Duvidas() {
     ['Como faço pra ter escudo e mascote do meu jeito?', <>
       É o <b>🖋️ Batismo do clube</b>. Você escolhe o nome, manda a arte que quiser (ou a gente desenha), e o clube passa a ter <b>escudo, mascote, manto e nome de estádio</b> — feitos só pra ele.<br /><br />
       <b>Onde:</b> 💛 Apoiar → 🖋️ Batismo.<br />
-      {planos2Liberado() ? <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo) · R$ 89,90 (🖋️✨ Batismo Lenda, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo · Série B, C, D ou Várzea) · R$ 89,90 (🖋️✨ Batismo Lenda · Série A, com entrada de gala exclusiva e canto da torcida na Carreira).<br /></>}
+      {planos2Liberado() ? <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo) · R$ 89,90 (🖋️✨ Batismo Lenda, com entrada de gala única e canto de torcida). Os dois são uma vez só, pra sempre.<br /></> : <><b>Quanto:</b> R$ 79,90 (🖋️ Batismo · Série B, C, D ou Várzea) · R$ 99,90 (🖋️ Fundador · Série A, com entrada de gala exclusiva, canto da torcida na Carreira e número de Fundador).<br /></>}
       <b>Como:</b> paga no Pix, manda o comprovante e o nome no direct. A gente confirma <b>em até 24h</b> e ele entra na atualização seguinte.<br /><br />
       O nome fica <b>reservado em 4 formas</b> (com e sem FC/EC, maiúscula ou minúscula) — mais ninguém pode usar.
     </>],
     ['Como faço pro meu time aparecer pra todo mundo no jogo?', <>
       É o mesmo <b>Batismo</b> — e essa é a melhor parte dele.<br /><br />
       Seu clube <b>entra numa divisão de verdade</b> e passa a existir pra <b>todo jogador do Leilão Legends</b>, não só pra você — em <b>rodízio</b> com os outros clubes batizados. Qualquer pessoa pode cair na mesma tabela que ele, ver o seu escudo, o seu manto, e a sua mascote comemorando o gol.<br /><br />
-      {planos2Liberado() ? <>Os dois batismos colocam o clube na <b>Série A</b>, a elite do jogo: são os clubes que aparecem no <b>Jogo Rápido</b> e no <b>online</b>, e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</> : <>A <b>Série A custa mais</b> (R$ 89,90, o 🖋️✨ Batismo Lenda) porque é a elite do jogo: são os clubes que aparecem no <b>jogo rápido online</b> e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</>}
+      {planos2Liberado() ? <>Os dois batismos colocam o clube na <b>Série A</b>, a elite do jogo: são os clubes que aparecem no <b>Jogo Rápido</b> e no <b>online</b>, e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</> : <>A <b>Série A custa mais</b> (R$ 99,90, o 🖋️ Fundador) porque é a elite do jogo: são os clubes que aparecem no <b>jogo rápido online</b> e os rivais que todo mundo enfrenta na carreira. É o clube que mais aparece.</>}
     </>],
     ['Quais são os planos de apoio?', <>
       {planos2Liberado() ? <>
@@ -1888,12 +1893,12 @@ function Duvidas() {
       🖋️✨ <b>Batismo Lenda — R$ 89,90, uma vez só.</b> Tudo do Batismo + entrada de gala única + canto de torcida na Carreira.<br /><br />
       Já comprou Craque, Lenda, Sócio ou Batismo antes? <b>Continua tudo seu, pra sempre.</b><br /><br />
       </> : <>
-      São <b>5</b>, e todos os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
-      🎫 <b>Sócio Legends — R$ 9,90 por mês.</b> O único mensal.<br />
-      ⭐ <b>Craque — R$ 19,90, uma vez só.</b><br />
-      👑 <b>Lenda — R$ 39,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
+      São <b>4</b>, todos de uma vez só (nada de mensalidade), e os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
+      ⭐ <b>Craque — R$ 29,90, uma vez só.</b><br />
+      👑 <b>Lenda — R$ 49,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
       🖋️ <b>Batismo — R$ 79,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
-      🖋️✨ <b>Batismo Lenda — R$ 89,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida na Carreira.<br /><br />
+      🖋️ <b>Fundador — R$ 99,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida na Carreira + número de Fundador.<br /><br />
+      Quer subir de plano? <b>Paga só a diferença.</b><br /><br />
       </>}
       Nenhum plano dá vantagem dentro das quatro linhas — <b>o jogo é igual pra todos</b>. O que muda é cor, brilho, história e mimos.
     </>],

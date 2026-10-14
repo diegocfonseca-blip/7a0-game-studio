@@ -21,6 +21,25 @@ export const PRECOS = {
   batismoPlus: 89.9,
 } as const
 
+/** 💳 14/10 (Diego): PLANOS DE UMA VEZ SÓ, a vitrine que o PÚBLICO vê. Sai o Sócio (mensal); o Batismo Lenda passa a
+ *  se chamar 🖋️ FUNDADOR (o único que ganha número de fundador daqui pra frente — quem já tem número fica com ele).
+ *  Subir de plano = paga só a DIFERENÇA entre os preços de hoje (`precoSubida`). */
+export const PRECOS_UNICO = { craque: 29.9, lenda: 49.9, batismo: 79.9, fundador: 99.9 } as const
+export type PlanoUnico = keyof typeof PRECOS_UNICO
+/** quanto custa chegar em `alvo` pra quem já tem `atual` (nunca negativo; o mesmo plano = 0) */
+export function precoSubida(alvo: PlanoUnico, atual: PlanoUnico | null): number {
+  const v = PRECOS_UNICO[alvo] - (atual ? PRECOS_UNICO[atual] : 0)
+  return Math.max(0, Math.round(v * 100) / 100)
+}
+/** o plano que a pessoa já tem, lido dos direitos do banco + o tier (prata = Craque · ouro = Lenda) */
+export function planoAtual(d: { batismoPlano: 'antigo' | 'lenda' | 'plus' | null } | null, tier: TierCor | null | undefined): PlanoUnico | null {
+  if (d?.batismoPlano === 'plus') return 'fundador'
+  if (d?.batismoPlano) return 'batismo'
+  if (tier === 'ouro') return 'lenda'
+  if (tier === 'prata') return 'craque'
+  return null
+}
+
 /** "R$ 12,90" / "R$ 12.90" */
 export function precoTxt(v: number, en = false): string {
   return `R$ ${v.toFixed(2).replace('.', en ? '.' : ',')}`

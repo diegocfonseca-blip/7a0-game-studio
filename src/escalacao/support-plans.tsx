@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
-import { tr } from './lang'
+import { tr, getLang } from './lang'
 import { Escudo } from './escudos'
 import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
-import { APOIO_PERKS, ApoioSheen } from './apoio'
+import { APOIO_PERKS, ApoioSheen, useDireitos } from './apoio'
+import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
 import './support-plans.css'
 import { CartoesBatismo } from './support-plans-v2'
 
@@ -180,12 +181,18 @@ export function SupportPlans(p: Props) {
     const timer = setTimeout(() => root.current?.querySelector('#support-' + target)?.scrollIntoView({ block: 'start' }), 40)
     return () => clearTimeout(timer)
   }, [p.focus, p.tier])
-  const memberButton = (tier: 'prata' | 'ouro') => p.tier === tier
+  // 💳 14/10 (Diego): o Sócio (mensal) SAIU da vitrine. Quem JÁ é sócio continua vendo o botão da área dele.
+  const memberButton = (tier: 'prata' | 'ouro') => p.tier === tier && p.memberActive
     ? <button className={'ll-support-button ' + (tier === 'ouro' ? 'gold' : 'prata')} onClick={p.onMember}>{p.memberActive
       ? tr('ABRIR MINHA ÁREA DE SÓCIO →', 'OPEN MY MEMBER AREA →')
       : tr(tier === 'ouro' ? 'ADICIONAR SÓCIO · R$ 2,90/MÊS' : 'ADICIONAR SÓCIO · R$ 4,90/MÊS', tier === 'ouro' ? 'ADD MEMBERSHIP · R$ 2.90/MONTH' : 'ADD MEMBERSHIP · R$ 4.90/MONTH')}</button>
     : null
   const meu = p.name || tr('Seu Time', 'Your Club')
+  // 💳 14/10: preços de UMA VEZ SÓ (planos-regras) e subida pagando só a diferença
+  const direitos = useDireitos()
+  const atual = planoAtual(direitos, p.tier as 'prata' | 'ouro' | undefined)
+  const reais = (v: number) => precoTxt(v, getLang() === 'en')
+  const subLenda = precoSubida('lenda', atual)
   const meuTier: 'bege' | 'prata' | 'ouro' = p.tier === 'ouro' ? 'ouro' : p.tier === 'prata' ? 'prata' : 'bege'
   return <div className="ll-support" ref={root}>
     {/* 💸 14/10 (Diego): "pra onde vai o dinheiro" mora LÁ EM CIMA de tudo; depois "na mesma sala…" e os planos */}
@@ -205,7 +212,7 @@ export function SupportPlans(p: Props) {
     </div>
 
     <h3 className="ll-support-section">{tr('⚡ PAGUE UMA VEZ · É SEU PRA SEMPRE', '⚡ PAY ONCE · YOURS FOREVER')}</h3>
-      <SupportPlanCard id="support-prata" title={tr('⭐ Craque', '⭐ Star')} price="R$ 19,90" cadence={tr('uma vez só', 'one-off payment')} tone="prata">
+      <SupportPlanCard id="support-prata" title={tr('⭐ Craque', '⭐ Star')} price={reais(PRECOS_UNICO.craque)} cadence={tr('uma vez só', 'one-off payment')} tone="prata">
         <h3>{tr('Manda no ritmo do jogo, vê o nível dos jogadores até Craque e brilha em prata na sala.', 'Run the pace of the game, see player levels up to Star and shine in silver in the room.')}</h3>
         <Vitrine titulo={tr('o que muda na sua tela', 'what changes on your screen')}>
           <LinhaSala tier="prata" nome={meu} />
@@ -217,12 +224,12 @@ export function SupportPlans(p: Props) {
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Craque', ', up to Star level')}</Ok>
         <Ok><b>{tr('2 carreiras', '2 careers')}</b>{tr(' salvas ao mesmo tempo · grupo VIP no WhatsApp com o Diego', ' saved at once · VIP WhatsApp group with Diego')}</Ok>
         <p className="ll-support-note">{tr('O olheiro do Craque não revela nem sonda Lendas. No online normal, o ritmo é o mesmo para todos.', 'The Star scout does not reveal or scout Legends. In regular online play, the pace is the same for everyone.')}</p>
-        <button className="ll-support-button prata" onClick={() => p.onPay('prata')}>{tr('ESCOLHER CRAQUE · R$ 19,90', 'CHOOSE STAR · R$ 19.90')}</button>
-        <p className="ll-support-addon">{tr('Quer também escudo, mascote, manto e nome do estádio? Sendo Craque, adicione o Sócio por apenas R$ 4,90/mês. Inclui carteirinha e 30 moedas a cada 30 dias. Cancele quando quiser.', 'Want a crest, mascot, kit and stadium name too? As a Star, add Membership for only R$ 4.90/month. Includes a membership card and 30 coins every 30 days. Cancel anytime.')}</p>
+        {atual ? <p className="ll-vit-seu">{tr('✅ você já tem o Craque', '✅ you already have Star')}</p>
+          : <button className="ll-support-button prata" onClick={() => p.onPay('prata')}>{tr(`ESCOLHER CRAQUE · ${reais(PRECOS_UNICO.craque)}`, `CHOOSE STAR · ${reais(PRECOS_UNICO.craque)}`)}</button>}
         {memberButton('prata')}
       </SupportPlanCard>
 
-      <SupportPlanCard id="support-ouro" title={tr('👑 Lenda', '👑 Legend')} price="R$ 39,90" cadence={tr('uma vez só · ou +R$ 20 se já é Craque', 'one-off · or +R$ 20 if you have Star')} tone="ouro">
+      <SupportPlanCard id="support-ouro" title={tr('👑 Lenda', '👑 Legend')} price={reais(PRECOS_UNICO.lenda)} cadence={tr(`uma vez só · ou + ${reais(precoSubida('lenda', 'craque'))} se já é Craque`, `one-off · or + ${reais(precoSubida('lenda', 'craque'))} if you have Star`)} tone="ouro">
         <h3>{tr('Tudo do Craque, sem teto: vê o nível até Lenda, acha jogador fora do leilão até Lenda, brilha em ouro e cria a sua liga.', 'Everything in Star, no ceiling: see levels up to Legend, find players outside the auction up to Legend, shine in gold and create your own league.')}</h3>
         <Vitrine titulo={tr('o que muda na sua tela', 'what changes on your screen')}>
           <LinhaSala tier="ouro" nome={meu} />
@@ -234,19 +241,19 @@ export function SupportPlans(p: Props) {
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
         <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas · 🎮 Modo Manual · grupo VIP no WhatsApp com o Diego', ' saved · 🎮 Manual Mode · VIP WhatsApp group with Diego')}</Ok>
-        <p className="ll-support-note">{tr('Já tem Craque? Suba para Lenda pagando a diferença: R$ 20,00.', 'Already have Star? Upgrade to Legend for the difference: R$ 20.00.')}</p>
-        <button className="ll-support-button gold" onClick={() => p.onPay('ouro')}>{p.tier === 'prata' ? tr('SUBIR PARA LENDA · R$ 20,00', 'UPGRADE TO LEGEND · R$ 20.00') : tr('ESCOLHER LENDA · R$ 39,90', 'CHOOSE LEGEND · R$ 39.90')}</button>
-        <p className="ll-support-addon">{tr('Quer também escudo, mascote, manto e nome do estádio? Sendo Lenda, adicione o Sócio por apenas R$ 2,90/mês. Inclui carteirinha e 30 moedas a cada 30 dias. Cancele quando quiser.', 'Want a crest, mascot, kit and stadium name too? As a Legend, add Membership for only R$ 2.90/month. Includes a membership card and 30 coins every 30 days. Cancel anytime.')}</p>
+        <p className="ll-support-note">{tr('Já tem Craque? Suba para Lenda pagando só a diferença.', 'Already have Star? Upgrade to Legend paying only the difference.')}</p>
+        {atual && atual !== 'craque' ? <p className="ll-vit-seu">{tr('✅ você já tem o Lenda', '✅ you already have Legend')}</p>
+          : <button className="ll-support-button gold" onClick={() => p.onPay('ouro')}>{atual === 'craque' ? tr(`SUBIR PARA LENDA · + ${reais(subLenda)}`, `UPGRADE TO LEGEND · + ${reais(subLenda)}`) : tr(`ESCOLHER LENDA · ${reais(PRECOS_UNICO.lenda)}`, `CHOOSE LEGEND · ${reais(PRECOS_UNICO.lenda)}`)}</button>}
         {memberButton('ouro')}
       </SupportPlanCard>
 
       {/* 🖋 os dois batismos (13/10): os MESMOS cartões da vitrine nova, com a regra de série de hoje */}
-      <CartoesBatismo onNaming={p.onNaming} />
+      <CartoesBatismo onNaming={p.onNaming} batismoPlano={direitos?.batismoPlano ?? null} atual={atual} />
 
       {/* ✨ vem por aí (os dois que o Diego deixou) */}
       <div className="ll-vit-breve">
         <h3>{tr('✨ E vem mais por aí — só pra quem apoia', '✨ And more is coming — only for supporters')}</h3>
-        <div className="it"><span style={{ fontSize: 22 }}>🚁</span><div><b>{tr('Entrada de gala do SEU jeito', 'A grand entrance YOUR way')}</b><span>{tr('cada clube batizado com a entrada própria: helicóptero, moto, fumaça…', 'every named club with its own entrance: helicopter, bike, smoke…')}</span></div><span className="lock">{tr('batismo', 'naming')}</span></div>
+        <div className="it"><span style={{ fontSize: 22 }}>🚁</span><div><b>{tr('Entrada de gala do SEU jeito', 'A grand entrance YOUR way')}</b><span>{tr('cada Fundador com a entrada própria: helicóptero, moto, fumaça…', 'every Founder with their own entrance: helicopter, bike, smoke…')}</span></div><span className="lock">{tr('fundador', 'founder')}</span></div>
         <div className="it"><span style={{ fontSize: 22 }}>🛡️</span><div><b>{tr('Seu escudo na tela de TODO mundo', 'Your crest on EVERYONE’s screen')}</b><span>{tr('trocou o nome do clube? escudo e mascote seguem você pra qualquer sala', 'renamed your club? crest and mascot follow you into any room')}</span></div><span className="lock">{tr('batismo', 'naming')}</span></div>
         <p>{tr('quem já apoiou recebe tudo isso sem pagar de novo 💛', 'those who already support get all of it without paying again 💛')}</p>
       </div>
