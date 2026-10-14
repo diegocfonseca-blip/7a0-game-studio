@@ -1,0 +1,59 @@
+{
+  "data": "14 de outubro de 2026",
+  "titulo": "Abriu a Loja do Clube 🛒",
+  "destaque": {
+    "passos": [
+      {
+        "emoji": "⭐",
+        "titulo": "Craque",
+        "sub": "Modo Manual"
+      },
+      {
+        "emoji": "👑",
+        "titulo": "Lenda",
+        "sub": "salas à vontade"
+      },
+      {
+        "emoji": "🖋",
+        "titulo": "Batismo",
+        "sub": "seu clube no jogo"
+      },
+      {
+        "emoji": "🖋",
+        "titulo": "Fundador",
+        "sub": "o topo"
+      }
+    ],
+    "nome": "Os planos agora são uma escada",
+    "linha": "cada degrau traz tudo do anterior + o dele"
+  },
+  "itens": [
+    {
+      "tag": "loja",
+      "texto": "Na home tem a nova **🛒 Loja do Clube**, a faixa dourada. Lá dentro: **subir de plano**, **🚁 gala única** e **📣 canto do seu time de coração** pro clube batizado, **🏦 moedas pra sua carreira**, **🎟️ salas extras** e **🎁 presente**. Cada um só vê o que serve pro plano que tem."
+    },
+    {
+      "tag": "plano",
+      "texto": "Todos os planos agora são **pagamento único: paga uma vez e é seu pra sempre, nada de mensalidade**. Já tem um plano e quer subir? **Paga só a diferença.**"
+    },
+    {
+      "tag": "presente",
+      "texto": "Dá pra **dar um plano de presente pra um amigo**. Ele recebe com o seu recado na hora em que entrar no jogo."
+    },
+    {
+      "tag": "regra",
+      "texto": "Bateu o limite de **1 sala por dia**? Agora tem **🎟️ salas extras** na Loja. E no **👑 Lenda** você cria quantas quiser. **Entrar em sala continua de graça, sempre.**"
+    },
+    {
+      "tag": "batismo",
+      "texto": "No **🖋 Fundador** o seu clube aparece **nas salas online dos outros, em rodízio, mesmo quando você não está jogando** — e só ele ganha o **número de fundador**."
+    },
+    {
+      "tag": "melhoria",
+      "texto": "**Quem já tinha plano não perde nada**: continua com tudo o que tinha."
+    }
+  ],
+  "rodape": "Nas salas online ninguém compra vantagem: lá é todo mundo igual.",
+  "rodapeSub": "Cada real vira jogo. Obrigado por estar aqui 💛",
+  "saida": "scripts/posts/aviso-loja-planos.png"
+}
