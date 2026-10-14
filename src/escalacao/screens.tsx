@@ -46,6 +46,7 @@ const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then
 import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
+import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { useOnlinePreview } from './online-preview'
 import { anotaTrava } from './caixa-preta'
@@ -6016,12 +6017,12 @@ export function SpeedControls({ speed, onSet }: { speed: number; onSet: (v: numb
 // conta do placar de baixo. Nunca o placar final antes do apito.
 // 🏀 No basquete a tira não aparece: lá o placar SOBE por pontos (não conta lances),
 // e um número meio-certo na tira seria pior que tira nenhuma.
-function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro }: {
+function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, classico, basket, enhancedOnline, retro, elencos }: {
   homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean
   goals: { name: string; min: number; home: boolean }[]; roundKey: number; roundMs: number
   classico?: boolean; basket?: { h: number; a: number }; enhancedOnline?: boolean
   retro?: { rival: string; r?: Retro } | null
-}) {
+; elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[] }}) {
   const caixa = useRef<HTMLDivElement | null>(null)
   const [min, setMin] = useState(0)
   const fora = usePlacarFora(caixa)
@@ -6040,7 +6041,7 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
         <LiveScoreCard enhancedOnline={enhancedOnline}
           homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
           youIsHome={youIsHome} goals={goals} roundKey={roundKey} roundMs={roundMs} classico={classico}
-          basket={basket} onMinuteChange={reportar} retro={retro} />
+          basket={basket} onMinuteChange={reportar} retro={retro} elencos={elencos} />
       </div>
       {fora && !basket && (
         <FaixaPlacarMini topo={0} min={min} fim={fim} home={homeName} away={awayName} hg={hg} ag={ag}
@@ -6720,7 +6721,7 @@ export function EscSeason() {
                       youIsHome={homeIsYou} goals={goals}
                       roundKey={myTie.legs.length + (qc.phase === 'repescao' ? 40 : qc.phase === 'oitavas' ? 30 : qc.phase === 'quartas' ? 0 : qc.phase === 'semis' ? 10 : 20)}
                       roundMs={copaLegMs} classico={oppIsHuman} retro={retroDe(oppId)}
-                      footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} />
+                      footTint={libS ? { bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 } : { bg: '#F3EAFE', border: '#d9c3f5', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === legHomeId)?.squad, fora: state.managers.find(m => m.id === legAwayId)?.squad }} />
                     {myTie.legs.length === 2 && (
                       <p className="text-center text-[11px] font-black text-black/55 -mt-1" style={privateVisual ? {color:CREAM} : undefined}>↩️ Ida: {nameOf(myTie.aId)} {myTie.legs[0][0]} × {myTie.legs[0][1]} {nameOf(myTie.bId)}</p>
                     )}
@@ -6797,7 +6798,7 @@ export function EscSeason() {
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={state.round} roundMs={roundMs} classico={oppIsHuman}
           enhancedOnline={privateVisual} retro={retroDe(oppId)}
-          basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} />
+          basket={state.sport === 'basquete' ? { h: myLast.hg, a: myLast.ag } : undefined} elencos={{ casa: state.managers.find(m => m.id === myLast.homeId)?.squad, fora: state.managers.find(m => m.id === myLast.awayId)?.squad }} />
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>{state.sport === 'basquete' ? (getLang() === 'en' ? '🏀 Waiting for the jump ball…' : '🏀 Aguardando a bola ao alto…') : LS('🏁 Aguardando o pontapé inicial…', '🏁 Waiting for kick-off…')}</p>
@@ -7941,7 +7942,7 @@ export function EscLiberta() {
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={lb.rodada} roundMs={roundMs} classico={oppIsHuman}
-          footTint={{ bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 }} />
+          footTint={{ bg: '#E8EEFB', border: '#b9c9ef', holo: 0.5 }} elencos={{ casa: state.managers.find(m => m.id === meuJogo.homeId)?.squad, fora: state.managers.find(m => m.id === meuJogo.awayId)?.squad }} />
       })() : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>
@@ -8288,7 +8289,7 @@ export function EscChampions() {
           homeName={nomeDe(meuJogo.homeId)} awayName={nomeDe(meuJogo.awayId)}
           homeColor={homeIsYou ? youColor : oppColor} awayColor={homeIsYou ? oppColor : youColor}
           youIsHome={homeIsYou} goals={goals} roundKey={passo} roundMs={roundMs} classico={oppIsHuman}
-          enhancedOnline={privateVisual} />
+          enhancedOnline={privateVisual} elencos={{ casa: state.managers.find(m => m.id === meuJogo.homeId)?.squad, fora: state.managers.find(m => m.id === meuJogo.awayId)?.squad }} />
       })() : (portaoRepescao && revealed) || portaoOitavas ? null : (
         <Box bg="#fff" className="p-6" shadow={6}>
           <p className="text-center font-black" style={OSWALD}>

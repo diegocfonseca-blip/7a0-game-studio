@@ -96,7 +96,7 @@ import presidentTerno from './img/career-president-terno.webp'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
 import { chancesDoJogo, sementeDasChances, narraChance, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
-import { radioDoJogo, radioNoMinuto, narraRadio } from './radio'
+import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
 import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 
 const INK = '#0C0C0C'
@@ -662,7 +662,7 @@ export function torcidaBonusRewards(careerTorcida: Record<string, number> | unde
 }
 
 export interface Goal { name: string; min: number; home: boolean; assist?: string } // 🅰️ assist = quem deu o passe (undefined = jogada individual/pênalti — e a tela DIZ isso, nunca fica em branco)
-export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[] }
+export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[]; hxi?: CartaRadio[]; axi?: CartaRadio[] }
 
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
 // `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (placar + quem fez os
@@ -975,7 +975,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     if (hgF > agF) { H.pts += 3; H.w++; A.l++ } else if (agF > hgF) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
       const goals: Goal[] = [...hFinal.map(e => ({ ...e, home: true })), ...aFinal.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
-      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals })
+      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals, hxi, axi }) // 📻 a escalação vai junto pra rádio citar o jogador
     }
   }
 }
@@ -2956,7 +2956,7 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro }:
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos }:
   { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
@@ -2964,6 +2964,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void
   /** 🆚 retrospecto entre os DONOS dos dois clubes (sala online, gente × gente) — aparece antes da 1ª frase da rádio */
   retro?: { rival: string; r?: Retro } | null
+  /** 📻🧑 escalação dos dois times, pra rádio citar o JOGADOR pelo nome (14/10). Sem isto, a rádio fala do clube. */
+  elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[] }
   /** 🎭 de quem é a MASCOTE do gol, quando o nome na tela não é o clube do dono (carreira internacional:
    *  aparece "Flamengo", mas quem comemora é a mascote do Neymarzetti, o técnico convidado) */
   mascotHome?: string; mascotAway?: string
@@ -3307,7 +3309,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         return { min: '', txt: tr('Fim de papo aqui na Rádio Legends.', 'That is all from Radio Legends.') }
       }
       const r = radioNoMinuto(radioLances, min)
-      if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles) }
+      if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles, elencos) }
       // 🆚 antes da 1ª frase: o RETROSPECTO entre os dois donos (só sala online, gente × gente)
       if (retro) return { tag: `🆚 ${tr('VOCÊ', 'YOU')} × ${retro.rival.toUpperCase()}`, tom: 'retro' as const, min: '', txt: fraseRetro(retro.r, emIngles, roundKey) }
       return { min: '', txt: tr('Rádio ligada. Bola rolando!', 'Radio on. Ball rolling!') }
@@ -3383,7 +3385,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi }} />
 }
 
 // ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────

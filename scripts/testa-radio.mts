@@ -1,5 +1,5 @@
 // 📻 trava da Rádio Legends (13/10): `npm run radio`
-import { radioDoJogo, narraRadio, frasesPorJogo, BANCOS_RADIO, ACERVO_RADIO } from '../src/escalacao/radio.ts'
+import { radioDoJogo, narraRadio, frasesPorJogo, BANCOS_RADIO, ACERVO_RADIO, NOMEADOS_RADIO, type CartaRadio } from '../src/escalacao/radio.ts'
 import { chancesDoJogo, sementeDasChances } from '../src/escalacao/chances.ts'
 let falhas = 0
 const ok = (c: boolean, m: string) => { console.log(`  ${c ? '✅' : '❌'} ${m}`); if (!c) falhas++ }
@@ -36,5 +36,28 @@ ok(JSON.stringify(s1) === JSON.stringify(s2), 'mesma rodada e mesmos clubes = me
 const ex = s1.map(l => `${l.min}′ ${narraRadio(l, 'K9 FC', 'Fabulous EC', false)}`)
 console.log('\n  exemplo (K9 FC × Fabulous EC):\n   ' + ex.join('\n   '))
 console.log('   EN: ' + narraRadio(s1[0], 'K9 FC', 'Fabulous EC', true))
+// 🧑 jogador pelo nome (14/10): toda versão com nome casa com um lance do clube, cita {p} e os mesmos clubes nos dois idiomas
+const ptsLances = new Set(BANCOS_RADIO.LANCES.map(p => p[0]))
+let nomOk = true
+for (const [k, [pt, en]] of Object.entries(NOMEADOS_RADIO)) {
+  if (!ptsLances.has(k)) { nomOk = false; console.log('   versão com nome sem lance do clube →', k) }
+  if (PROIBIDO.test(pt) || PROIBIDO.test(en)) { nomOk = false; console.log('   proibido →', pt) }
+  const vp = (pt.match(/\{[top]\}/g) ?? []).sort().join(), ve = (en.match(/\{[top]\}/g) ?? []).sort().join()
+  if (vp !== ve || !vp.includes('{p}')) { nomOk = false; console.log('   PT/EN diferentes ou sem jogador →', pt, '|', en) }
+}
+ok(nomOk, `${Object.keys(NOMEADOS_RADIO).length} lances com versão que fala o nome do jogador (PT e EN batendo)`)
+const casa: CartaRadio[] = [{ name: 'Taffarel', pos: 'GOL' }, { name: 'Aldair', pos: 'ZAG' }, { name: 'Zico', pos: 'MEI' }, { name: 'Romário', pos: 'ATA' }, { name: 'Branco', pos: 'LAT' }]
+const fora: CartaRadio[] = [{ name: 'Zé Ninguém', pos: 'GOL', club: 'Várzea' }, { name: 'Dida', pos: 'GOL', fake: true }]
+let citou = 0, fakeCitado = 0, totalN = 0
+for (let r = 0; r < 600; r++) {
+  const rad = radioDoJogo(sementeDasChances(r, 'Leão da Estradinha', 'Guimarães SCI'), [], 16000)
+  for (const l of rad) { totalN++; const txt = narraRadio(l, 'Leão da Estradinha', 'Guimarães SCI', false, { casa, fora }); if (/Taffarel|Aldair|Zico|Romário|Branco/.test(txt)) citou++; if (/Zé Ninguém|Dida/.test(txt)) fakeCitado++ }
+}
+ok(citou > totalN * 0.2, `com escalação, a rádio cita jogador em ${Math.round(citou / totalN * 100)}% das frases`)
+ok(fakeCitado === 0, 'jogador de mentira (Várzea/fake) nunca é citado — o lance volta pro nome do clube')
+const sem = radioDoJogo(sementeDasChances(3, 'A', 'B'), [], 16000).map(l => narraRadio(l, 'A', 'B', false))
+ok(sem.every(t => !/\{p\}/.test(t)), 'sem escalação, nenhuma frase fica com buraco no lugar do nome')
+const exN = radioDoJogo(sementeDasChances(11, 'Leão da Estradinha', 'Guimarães SCI'), [], 16000).map(l => `${l.min}′ ${narraRadio(l, 'Leão da Estradinha', 'Guimarães SCI', false, { casa, fora: casa })}`)
+console.log('\n  com escalação:\n   ' + exN.join('\n   '))
 console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ rádio ok — variada, sem gol, sem pênalti, sem placar')
 process.exit(falhas ? 1 : 0)
