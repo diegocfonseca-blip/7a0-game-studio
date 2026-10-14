@@ -26,10 +26,12 @@ const GOLD = '#FFC400', VERM = '#C8102E', BRANCO = '#F4F4F4', PRETO = '#111'
 const MH = 250, MW = Math.round(MH * 304 / 440)
 
 // 🧑‍🤝‍🧑 a torcida: cabeças (2 fileiras desencontradas) + braço/ombro + a sombra do degrau, por cima da cor do setor
-const cabecas = (px: number, w: number, h: number) =>
-  `radial-gradient(circle at 50% 35%,#e0a97f 0 ${px}px,transparent ${px + .6}px) 0 0/${w}px ${h}px,` +
-  `radial-gradient(circle at 50% 35%,#8a5a3c 0 ${px}px,transparent ${px + .6}px) ${w / 2}px ${h / 2}px/${w}px ${h}px`
-const SETORES = `repeating-linear-gradient(90deg,${VERM} 0 64px,${BRANCO} 64px 128px,${PRETO} 128px 192px)`
+// (cabeça meio apagada, pra cor do MOSAICO mandar — é o que se vê de longe no estádio)
+const cabecas = (px: number, w: number, h: number, a = .4) =>
+  `radial-gradient(circle at 50% 35%,rgba(224,169,127,${a}) 0 ${px}px,transparent ${px + .6}px) 0 0/${w}px ${h}px,` +
+  `radial-gradient(circle at 50% 35%,rgba(138,90,60,${a}) 0 ${px}px,transparent ${px + .6}px) ${w / 2}px ${h / 2}px/${w}px ${h}px`
+// 🖤🤍❤️ como o mosaico de verdade no Arruda (foto que o Diego mandou, 14/10): PRETO de um lado, BRANCO no meio, VERMELHO do outro
+const SETORES = `linear-gradient(90deg,${PRETO} 0 33.4%,${BRANCO} 33.4% 66.6%,${VERM} 66.6%)`
 
 // braços da fila da frente: [x, altura, atraso] — espaçamento torto de propósito
 const BRACOS: [number, number, number][] = Array.from({ length: 30 }, (_, i) => [i * 14 + ((i * 7) % 5) * 2, 20 + ((i * 11) % 4) * 5, ((i * 3) % 5) / 10])
@@ -79,7 +81,7 @@ const CSS = `
 .gar-corpos{position:absolute;left:0;right:0;bottom:0;height:52px;background:${SETORES};
   -webkit-mask:radial-gradient(ellipse 9px 15px at 50% 100%,#000 96%,transparent) 0 6px/18px 26px,radial-gradient(ellipse 9px 15px at 50% 100%,#000 96%,transparent) 9px 18px/18px 26px;
   mask:radial-gradient(ellipse 9px 15px at 50% 100%,#000 96%,transparent) 0 6px/18px 26px,radial-gradient(ellipse 9px 15px at 50% 100%,#000 96%,transparent) 9px 18px/18px 26px;animation:garPula .36s steps(2) infinite}
-.gar-frente .gar-gente{inset:0;background:radial-gradient(circle at 50% 50%,#d9a27a 0 5.5px,transparent 6px) 0 -2px/18px 26px,radial-gradient(circle at 50% 50%,#7a4d31 0 5.5px,transparent 6px) 9px 10px/18px 26px;animation-duration:.36s}
+.gar-frente .gar-gente{inset:0;background:radial-gradient(circle at 50% 50%,rgba(217,162,122,.7) 0 5.5px,transparent 6px) 0 -2px/18px 26px,radial-gradient(circle at 50% 50%,rgba(122,77,49,.7) 0 5.5px,transparent 6px) 9px 10px/18px 26px;animation-duration:.36s}
 /* 🙌 braços pra cima (mão no topo), em espaçamento torto pra não virar grade */
 .gar-bracos{position:absolute;left:0;right:0;top:-30px;height:38px;transform-origin:bottom;animation:garBracos ${T}ms ease forwards}
 .gar-bracos i{position:absolute;bottom:0;width:5px;border-radius:3px 3px 0 0;background:#d39a70;animation:garAceno .5s ease-in-out infinite alternate}
