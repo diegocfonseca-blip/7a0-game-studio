@@ -239,8 +239,8 @@ export function SupportPlans(p: Props) {
           <div className="ll-vit-grid">
             <Mini rot={tr('🔎 vê o NÍVEL do jogador: até 👑 Lenda', '🔎 see the player’s LEVEL: up to 👑 Legend')}><CartaNivel tier="ouro" nome="Pelé" nivel={96} /></Mini>
             <Mini rot={tr('🏆 Minhas Ligas: até 5, com a sua turma', '🏆 My Leagues: up to 5, with your crew')}><div style={{ ...OSW, fontSize: 22, lineHeight: 1 }}>🏆</div><div style={{ ...OSW, fontSize: 9, background: INK, color: GOLD, borderRadius: 6, padding: '2px 6px', display: 'inline-block', marginTop: 3 }}>{tr('LIGA DOS CRIA', 'MY CREW LEAGUE')}</div></Mini>
-            {/* 🎨 14/10 (Diego): "escolher cor" saiu do Lenda — virou item da Loja (R$ 4,90). */}
-            <Mini rot={tr('🎨 nome em ouro brilhante', '🎨 shining gold name')}><div style={{ display: 'flex', gap: 3, justifyContent: 'center' }}>{['#FFC400'].map(c => <span key={c} style={{ width: 22, height: 22, borderRadius: '50%', background: c, border: `2px solid ${INK}` }} />)}</div></Mini>
+            {/* 14/10 (Diego): saiu a bolinha de "escolher a cor" — no lugar, as salas à vontade (o que o Lenda tem e o Craque não) */}
+            <Mini rot={tr('♾️ cria quantas salas online quiser por dia', '♾️ create as many online rooms as you want a day')}><div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>{['A9XHEV', 'K9FC22', 'LIGA07'].map(c => <span key={c} style={{ ...OSW, fontSize: 9, background: '#fff', border: `2px solid ${INK}`, borderRadius: 6, padding: '1px 6px' }}>🌐 {tr('SALA', 'ROOM')} {c}</span>)}<span style={{ ...OSW, fontSize: 11, background: INK, color: GOLD, borderRadius: 6, padding: '1px 8px' }}>+ ♾️</span></div></Mini>
           </div>
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
@@ -255,13 +255,7 @@ export function SupportPlans(p: Props) {
       {/* 🖋 os dois batismos (13/10): os MESMOS cartões da vitrine nova, com a regra de série de hoje */}
       <CartoesBatismo onNaming={p.onNaming} batismoPlano={direitos?.batismoPlano ?? null} atual={atual} />
 
-      {/* ✨ vem por aí (os dois que o Diego deixou) */}
-      <div className="ll-vit-breve">
-        <h3>{tr('✨ E vem mais por aí — só pra quem apoia', '✨ And more is coming — only for supporters')}</h3>
-        <div className="it"><span style={{ fontSize: 22 }}>🚁</span><div><b>{tr('Entrada de gala do SEU jeito', 'A grand entrance YOUR way')}</b><span>{tr('cada Fundador com a entrada própria: helicóptero, moto, fumaça…', 'every Founder with their own entrance: helicopter, bike, smoke…')}</span></div><span className="lock">{tr('fundador', 'founder')}</span></div>
-        <div className="it"><span style={{ fontSize: 22 }}>🛡️</span><div><b>{tr('Seu escudo na tela de TODO mundo', 'Your crest on EVERYONE’s screen')}</b><span>{tr('trocou o nome do clube? escudo e mascote seguem você pra qualquer sala', 'renamed your club? crest and mascot follow you into any room')}</span></div><span className="lock">{tr('batismo', 'naming')}</span></div>
-        <p>{tr('quem já apoiou recebe tudo isso sem pagar de novo 💛', 'those who already support get all of it without paying again 💛')}</p>
-      </div>
+      {/* ✨ o quadro "E vem mais por aí" SAIU em 14/10 (Diego: "remova esse modal aí de que vem mais por aí") */}
 
       <p className="ll-support-note">{tr('Jogar continua grátis. Os planos mudam visual, ritmo e informação — nunca a força dos jogadores.', 'Playing stays free. Plans change looks, pace and information — never the players’ strength.')}</p>
     <div className="ll-support-bottom"><button className="ll-support-button green" onClick={p.onDonate}>{tr('💛 SÓ APOIAR A RESENHA · QUALQUER VALOR', '💛 JUST CHIP IN · ANY AMOUNT')}</button><button className="ll-support-button" onClick={p.onInstagram}>{tr('SEGUIR NO INSTAGRAM TAMBÉM AJUDA 📲', 'FOLLOWING ON INSTAGRAM HELPS TOO 📲')}</button></div>
