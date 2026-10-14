@@ -10,7 +10,9 @@ with marcos as (
 ),
 gente as (
   select g.id, g.created_at, x
-  from game_champions g, marcos m, jsonb_array_elements(coalesce(g.human_results, '[]'::jsonb)) x
+  from (select id, created_at, human_results from game_champions
+        union all select id, created_at, human_results from game_champions_arquivo) g,  -- 🏆 + títulos de sala apagada (caso 2, 14/10)
+       marcos m, jsonb_array_elements(coalesce(g.human_results, '[]'::jsonb)) x
   where g.created_at >= m.semana
 ),
 taca as (

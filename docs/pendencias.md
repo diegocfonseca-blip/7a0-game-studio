@@ -2,9 +2,13 @@
 Diego: *"tem que ser com base no e-mail… quando ele trocar o nome, troca ali também"*. A vitrine já somava por conta
 (user_id); só o NOME vinha errado (max = último no alfabeto → "M.D.REAL" no lugar de "LABUBU F.C"). `esc_vitrine_salas`
 agora usa o nome mais recente da semana (`docs/sql/vitrine-nome-mais-recente.sql`). **A regra de contar NÃO mudou** (ordem dele).
-ℹ️ Achado, SEM mexer (Diego mandou não mexer): título de sala que o dono apagou some do ranking da semana
-(`game_champions` tem ON DELETE CASCADE). Labubu: 13 no ranking; com as salas apagadas seriam 27. E o ranking GERAL
-(`esc_ranking_cache`) está com foto parada em 02/09.
+✅ CASO 2 CONSERTADO (14/10, "Faça"): título de sala que o dono apagou (SAIR) ia pro lixo junto (`game_champions`
+ON DELETE CASCADE). Agora vai pro `game_champions_arquivo` (gatilho que nunca trava o SAIR) e a vitrine soma os dois.
+Semana de 12/10 recuperada: 214 temporadas (1 descartada por 2 campeões). Labubu 13 → 23, 1º da semana.
+`docs/sql/titulos-sala-apagada.sql`. Só o RANKING DA SEMANA usa o arquivo (ordem dele). ⚠️ O teste de apagar sala de
+mentira foi barrado pela ferramenta — conferir depois que um título de sala apagada HOJE aparece no arquivo
+(`select * from game_champions_arquivo where origem='sala_apagada'`).
+⏳ O ranking GERAL (`esc_ranking_cache`) está com foto parada em 02/09 — avisado, sem mexer.
 
 ## 🐍 Tricolor do Arruda FC virou 🖋 FUNDADOR (14/10) — banco feito
 souzact12 (Geovany, coração Santa Cruz, mascote cobra_arruda): `esc_compras_batismo` = plus. Já tinha fundador nº43 e o canto. ✅ GALA ÚNICA NO AR (14/10, v2 aprovada): `gala-arruda.tsx` (estádio com teto/refletores/degraus/torcida pulando, mosaico PRETO · BRANCO · VERMELHO igual à foto do Arruda, bandeirão com o escudo, a cobra numa BANDEIRA GIGANTE subindo de dentro da torcida em 2 mastros, "Ô ARRUDA!") + o CANTO DA TORCIDA dele tocando junto (`playMp3Gala`, abaixa no fim; respeita mudo), registrada em `GALA_UNICA`. Vídeo: `scripts/video-gala-arruda.mjs` → `scripts/posts/gala-arruda.mp4` (com som: `gala-arruda-com-canto.mp4`, áudio juntado com o ffmpeg do `pip install imageio-ffmpeg`). ⏳ Decidir se sobe pra Série A.
