@@ -1,3 +1,6 @@
+## 🐍 Tricolor do Arruda FC virou 🖋 FUNDADOR (14/10) — banco feito
+souzact12 (Geovany, coração Santa Cruz, mascote cobra_arruda): `esc_compras_batismo` = plus. Já tinha fundador nº43 e o canto. ⏳ Falta a GALA ÚNICA (ideias da cobra mandadas pro Diego) e decidir se o clube sobe pra Série A (o Fundador promete aparecer nas salas online dos outros).
+
 ## 🛒 Loja (14/10, tarde) — ✅ NO AR
 Gala única avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo); fica 📣 canto avulso R$ 10 + dica "a gala vem no Fundador". Salas extras só aparecem pra quem NÃO cria à vontade (grátis/Craque novo).
 
