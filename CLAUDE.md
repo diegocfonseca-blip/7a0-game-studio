@@ -750,6 +750,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   poderá continuar criando salas e mantém cor do tier que já tá hoje… e tudo que eles têm hoje mesmo, sem mudança"*.
   Sócio/Batismo/Batismo Lenda e os limites novos (1 sala por dia no grátis) valem só pra quem entrar depois.
 
+- **🧑‍💼 PRESIDENTE × ESCUDO (14/10, regra dele: "ok").** 🛡️ Escudo = o CLUBE (tabela, placar, gol, jogos, copas) · 🧑‍💼
+  presidente (o boneco do usuário) = a PESSOA (lista de técnicos da sala, chat, martelo de quem ganhou, pódio, Campeões de hoje/
+  ranking da semana, capa do O MARTELO, sala da presidência, Sala de Troféus, caixa do fim de temporada, convite internacional,
+  Central Legends, perfil). O usuário NÃO escolhe entre os dois. Mockup dos 12 lugares enviado (14/10); guarda-roupa por plano
+  (grátis · ⭐ Craque · 👑 Lenda) + roupa avulsa. Editor ainda em teste só na conta dele; a arte do ROSTO não está no repo.
+
 - **💾 FICHAS DE CARREIRA (05/10, regra permanente): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 · 🖋️ Batismo 4.** Antes era
   2 · 4 · 6 · 8. Palavras dele: *"não mexa nesses usuários que já fizeram saves… a partir de agora o grátis vai ter só um…
   se ele quiser outro, ele tem que excluir"*. Quem já tem mais que o limite fica com todas (grandfather em
