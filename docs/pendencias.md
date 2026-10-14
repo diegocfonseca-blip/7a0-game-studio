@@ -1,3 +1,9 @@
+## 💳 Planos novos (14/10) — ⏳ decidindo com o Diego
+Sócio (mensal) SAI. Voltam planos de uma vez: ⭐ Craque 29,90 · 👑 Lenda 49,90 · 🖋️ Batismo 79,90 · 🖋️ Fundador 99,90
+(Fundador = Batismo + entrada de gala única + canto da torcida; emoji da caneta também). Sobe de plano pagando a diferença. Loja
+de avulsos aprovada (*"adorei"*). Em aberto: Craque 29,90 ou 24,90? Batismo 79,90 ainda ganha nº de fundador? Batismo Lenda 89,90
+some? Quem já é sócio fica até o fim do que pagou.
+
 ## 🛒 Loja do Clube (14/10) — ⏳ MOCKUP enviado, esperando OK do Diego
 Decisão em construção: volta Craque R$ 19,90 / Lenda R$ 39,90 (uma vez só) + SOBE DE PLANO pagando a diferença (Craque→Lenda
 +20 · Craque→Batismo +60 · Lenda→Batismo +40) + vitrine de avulsos que gira toda semana (canto da torcida, comemoração, frase do
