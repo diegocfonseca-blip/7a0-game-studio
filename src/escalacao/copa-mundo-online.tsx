@@ -75,6 +75,8 @@ export interface CopaFicha {
    *  sorteio velho — trocar o chaveamento no meio do caminho é o estrago de
    *  04/08 ("mudou o resultado da Copa"). */
   potes?: boolean
+  /** 💪 nasceu com o peso de força novo (14/10)? Mesma régua do `potes`: Copa que já rolava termina igual */
+  forte?: boolean
 }
 
 // 🏺 O INSTANTE EM QUE O SORTEIO POR POTES ENTROU NO AR (Diego, 20/09: *"a Copa
@@ -83,6 +85,10 @@ export interface CopaFicha {
 export const POTES_DESDE = Date.parse('2026-09-20T22:00:00Z')
 export const copaTemPotes = (criadaEm?: string | null): boolean =>
   !!criadaEm && Date.parse(criadaEm) >= POTES_DESDE
+// 💪 O INSTANTE EM QUE O PESO DA FORÇA SUBIU (14/10, menos zebra). Copa criada antes termina com o peso velho.
+export const FORCA_DESDE = Date.parse('2026-10-14T15:40:00Z')
+export const copaForte = (criadaEm?: string | null): boolean =>
+  !!criadaEm && Date.parse(criadaEm) >= FORCA_DESDE
 
 /** as 32 seleções do jogo (Copa de 32, 02/10), na ordem de quem tem mais carta no baralho */
 export const paisesDaCopa = (): string[] => rankingSelecoes().slice(0, COPA_TEAMS).map(p => p.pais)
@@ -217,7 +223,7 @@ const SAVE_VAZIO: CopaSave = { anchor: 0, mural: [], played: [], emAndamento: nu
 export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono=false, visible=true }: { ficha: CopaFicha; roomId: string; meuUid?: string; aoCampeao?: (nome: string, pais: string) => void; aoFechar: () => void; souDono?:boolean; visible?:boolean }) {
   const cinematic = ONLINE_VISUAL_RELEASED
   const entrants = useMemo(() => entrantesDaFicha(ficha, meuUid), [ficha, meuUid])
-  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao,ficha.potes):null,[cinematic,entrants,ficha.seed,ficha.edicao,ficha.potes])
+  const clockWorld=useMemo(()=>cinematic?simulaCopaMundo(entrants,ficha.seed,ficha.edicao,ficha.potes,ficha.forte):null,[cinematic,entrants,ficha.seed,ficha.edicao,ficha.potes,ficha.forte])
   // ⏱️ o tempo a mais dos PÊNALTIS de cada passo, pro relógio da sala esperar a
   // disputa inteira. Os passos vêm de `copa-passos` (jogo único desde 19/09).
   const extraForStep=(step:number)=>{
@@ -234,7 +240,7 @@ export function CopaDaSala({ ficha, roomId, meuUid, aoCampeao, aoFechar, souDono
   if(!visible)return null
   return (
     <CMModal wide cinematic={cinematic} onlineBroadcast>
-      <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO} potes={ficha.potes}
+      <CupScreen entrants={entrants} seasonNo={ficha.edicao} seed={ficha.seed} save={SAVE_VAZIO} potes={ficha.potes} forte={ficha.forte}
         myForm="4-3-3" online={online} onClose={aoFechar} />
     </CMModal>
   )
@@ -934,7 +940,7 @@ export function CopaDaLigaGate({ roomId, souDono, meuUid, classificacao, matchSe
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
 
-  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em) } : null
+  const ficha: CopaFicha | null = fase?.fase === 'torneio' && fase.times ? { seed: fase.seed, edicao: fase.edicao, times: fase.times, potes: copaTemPotes(fase.criada_em), forte: copaForte(fase.criada_em) } : null
   // 🎬 abre SOZINHA só enquanto a Copa está por decidir. Com campeão já gravado
   // (a noite acabou), a pessoa que voltar do pacote/jornal NÃO leva o torneio
   // inteiro de novo na cara — o botão "VOLTAR PRA COPA" fica ali pra quem quiser
