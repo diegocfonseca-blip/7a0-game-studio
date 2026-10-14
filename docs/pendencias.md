@@ -1,3 +1,9 @@
+## 🎽 Vitrine do Sócio (14/10) — ⏳ MOCKUP enviado, esperando OK do Diego
+Ideia pra o mensal valer a pena: Sócio escolhe 1 escudo, 1 mascote e 1 manto de uma vitrine PRONTA (~10 de cada, iguais pra
+todo sócio, feitas uma vez só = zero trabalho por pessoa). Abre só no 2º mês pago (contra "paga 1 mês e cancela"). Parou de
+pagar → volta ao visual normal. Batismo segue sendo a arte única e pra sempre. Mockup: `scripts/mockup-vitrine-socio.mjs` →
+`scripts/mockups/vitrine-socio.png` (artes de EXEMPLO). Ainda em aberto: plano anual R$ 79,90.
+
 ## 🤖 Bots voltaram a dar lance no leilão da carreira (14/10) — ✅ NO AR
 Reclamação do Leão da Estradinha. Causa: banco de 22 cheio = bot sem vaga = sem lance. Conserto: 1 lance de reforço por setor
 (só carta bem melhor que o pior titular); o jogador que perde a vaga vai LISTADO pelo bot no próximo leilão (bot recebe se vender;
