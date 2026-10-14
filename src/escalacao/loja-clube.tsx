@@ -15,7 +15,8 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { tr, getLang } from './lang'
-import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen } from './apoio'
+import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
+import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
 
@@ -25,6 +26,10 @@ const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 export const LOJA_PRECOS = { galaUnica: 20, canto: 10 } as const
 /** 🏦 pacotes do Banco Legends (os mesmos de `BL_PACOTES` em pyramidseason.tsx, R$ 1 = 3 🪙) */
 const MOEDAS: [number, string, string][] = [[10, 'Cafezinho', 'Coffee money'], [50, 'Reforço pontual', 'Quick boost'], [100, 'Fôlego de temporada', 'Season breather']]
+// 🎁 quem JÁ TEM o item não pode ver ele à venda (Diego 14/10: "o Tricolor do Arruda já tem canto"). O canto vem da lista
+// do som (`temCantoProprio`). A gala única mora em `GALA_UNICA` (entrada-gala.tsx, chaveada pelo CLUBE e carregada sob
+// demanda) — aqui vai o E-MAIL de quem tem. Ganhou gala única nova? Entra nas DUAS listas.
+const GALA_UNICA_EMAILS = new Set(['diego.c.fonseca@gmail.com', 'kelvinoliveiraandradeenunes@gmail.com']) // Neymarzetti · K9 FC
 const ORDEM: PlanoUnico[] = ['craque', 'lenda', 'batismo', 'fundador']
 const NOME: Record<PlanoUnico, [string, string]> = { craque: ['⭐ Craque', '⭐ Star'], lenda: ['👑 Lenda', '👑 Legend'], batismo: ['🖋 Batismo', '🖋 Club Naming'], fundador: ['🖋 Fundador', '🖋 Founder'] }
 const GANHO: Record<PlanoUnico, [string, string]> = {
@@ -53,6 +58,8 @@ function Loja({ onClose }: { onClose: () => void }) {
   const setComprando = (it: Item | null) => { setComprandoRaw(it); if (it) setTimeout(() => document.getElementById('loja-pagar')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60) }
   const acima = ORDEM.slice(atual ? ORDEM.indexOf(atual) + 1 : 0)
   const temBatismo = atual === 'batismo' || atual === 'fundador'
+  const email = loggedEmail()
+  const jaTem = { 'gala única': atual === 'fundador' || (!!email && GALA_UNICA_EMAILS.has(email)), 'canto da torcida': atual === 'fundador' || temCantoProprio(email) }
   const perk = tier ? APOIO_PERKS[tier] : APOIO_PERKS.bege
 
   const card: React.CSSProperties = { background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10 }
@@ -97,12 +104,12 @@ function Loja({ onClose }: { onClose: () => void }) {
               <div style={{ fontSize: 32 }}>{ic}</div>
               <b style={{ ...OSW, fontSize: 14, textTransform: 'uppercase', display: 'block' }}>{t}</b>
               <small style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(12,12,12,.6)', display: 'block', minHeight: 28 }}>{d}</small>
-              {atual === 'fundador' ? <div style={{ ...preco, background: CREAM, color: GREEN, cursor: 'default', marginTop: 6 }}>{tr('✅ já incluso', '✅ included')}</div>
+              {jaTem[ctx] ? <div style={{ ...preco, background: CREAM, color: GREEN, cursor: 'default', marginTop: 6 }}>{atual === 'fundador' ? tr('✅ já incluso', '✅ included') : tr('✅ você já tem', '✅ you have it')}</div>
                 : <button disabled={!temBatismo} onClick={() => setComprando({ id: ctx, amount: v, ctx: `loja · ${ctx}`, msgPt: `Opa! Comprei na Loja do Clube: ${ic} ${ctx.toUpperCase()} (${reais(v)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: ${ic} ${ctx.toUpperCase()} (${reais(v)}). Account e-mail: ____ — receipt attached!` })}
                   style={{ ...preco, width: '100%', marginTop: 6, cursor: temBatismo ? 'pointer' : 'not-allowed' }}>{reais(v)}</button>}
             </div>)}
         </div>
-        {atual === 'batismo' && <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: GREEN }}>{tr(`💡 Os dois juntos dão ${reais(LOJA_PRECOS.galaUnica + LOJA_PRECOS.canto)}. Subindo pro 🖋 Fundador você paga ${reais(precoSubida('fundador', 'batismo'))} e ainda ganha o número de fundador.`, `💡 Both together cost ${reais(LOJA_PRECOS.galaUnica + LOJA_PRECOS.canto)}. Moving up to 🖋 Founder costs ${reais(precoSubida('fundador', 'batismo'))} and also gives you a founder number.`)}</p>}
+        {atual === 'batismo' && !jaTem['gala única'] && !jaTem['canto da torcida'] && <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: GREEN }}>{tr(`💡 Os dois juntos dão ${reais(LOJA_PRECOS.galaUnica + LOJA_PRECOS.canto)}. Subindo pro 🖋 Fundador você paga ${reais(precoSubida('fundador', 'batismo'))} e ainda ganha o número de fundador.`, `💡 Both together cost ${reais(LOJA_PRECOS.galaUnica + LOJA_PRECOS.canto)}. Moving up to 🖋 Founder costs ${reais(precoSubida('fundador', 'batismo'))} and also gives you a founder number.`)}</p>}
 
         {/* 🪙 MOEDAS */}
         <h2 style={h2}>{tr('🏦 Moedas pro clube', '🏦 Coins for your club')} <span style={sub}>{tr('Banco Legends · carreira solo', 'Banco Legends · solo career')}</span></h2>

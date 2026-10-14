@@ -181,6 +181,8 @@ const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
   'souzact12@gmail.com': 'sfx/torcida-geovany-v1.mp3', // Geovany
 }
+/** 🛒 a Loja do Clube pergunta isto pra não vender canto a quem já tem (Tricolor do Arruda, 14/10) */
+export function temCantoProprio(email: string | null | undefined): boolean { return !!email && email.toLowerCase() in AMBIENTE_CARREIRA_POR_EMAIL }
 let emailDoSom: string | null = null
 let crowdArquivo: string | null = null // qual arquivo a torcida que está tocando usa
 const arquivoAmbiente = () => (crowdCarreira && emailDoSom ? AMBIENTE_CARREIRA_POR_EMAIL[emailDoSom] : undefined) ?? SFX_AMBIENTE
