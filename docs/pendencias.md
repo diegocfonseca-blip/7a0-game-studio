@@ -1,8 +1,10 @@
-## 💳 Planos novos (14/10) — ⏳ decidindo com o Diego
-Sócio (mensal) SAI. Voltam planos de uma vez: ⭐ Craque 29,90 · 👑 Lenda 49,90 · 🖋️ Batismo 79,90 · 🖋️ Fundador 99,90
-(Fundador = Batismo + entrada de gala única + canto da torcida; emoji da caneta também). Sobe de plano pagando a diferença. Loja
-de avulsos aprovada (*"adorei"*). Em aberto: Craque 29,90 ou 24,90? Batismo 79,90 ainda ganha nº de fundador? Batismo Lenda 89,90
-some? Quem já é sócio fica até o fim do que pagou.
+## 💳 Planos novos (14/10) — 🟡 FEITO no branch, esperando OK pra publicar
+✅ Vitrine pública: Craque 29,90 · Lenda 49,90 · Batismo 79,90 · 🖋 Fundador 99,90 (ex-Batismo Lenda), todos "PAGAMENTO ÚNICO", Sócio
+fora, subida pela diferença no botão e no Pix. V2 (mensal) desligada até pra conta do Diego. FAQ atualizado.
+✅ BANCO (já valendo): `esc_craque_antigo` (70 Craques de antes) + `salas_pagas` só Lenda+ ou Craque antigo (`docs/sql/salas-so-lenda.sql`).
+✅ Conta do Diego = Fundador (`esc_compras_batismo` plus). K9 segue Batismo (antigo).
+⏳ Falta: canto da torcida do Diego (Fundador tem direito); Loja do Clube de verdade; nº de fundador fora do Batismo é PROCESSO
+(não inserir `esc_fundadores` em Batismo de 79,90).
 
 ## 🛒 Loja do Clube (14/10) — ⏳ MOCKUP enviado, esperando OK do Diego
 Decisão em construção: volta Craque R$ 19,90 / Lenda R$ 39,90 (uma vez só) + SOBE DE PLANO pagando a diferença (Craque→Lenda

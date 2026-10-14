@@ -98,7 +98,10 @@ FORA do bundle. Então, sem exceção:
    sente). Só não nascem mais. Antes de chegar perto de ~500 batismos,
    converter esses 16 em `.webp` e **tirar a lista de nomes do código pro
    banco** — é o último pedaço que ainda multiplica por jogador.
-7. **Regra permanente (17/08): todo batismo JÁ NASCE sócio + fundador.**
+7. 🔁 **MUDOU EM 14/10: o NÚMERO DE FUNDADOR agora é só do plano 🖋 FUNDADOR (R$ 99,90, o antigo "Batismo Lenda").**
+   Palavras do Diego: *"melhor deixar fundador só qm faz o fundador… mas qm já tem número de fundador deixe como está"*.
+   Batismo de R$ 79,90 leva tier ouro e o resto, mas **não** ganha linha em `esc_fundadores`/`FUNDADOR_N`. Quem já tem
+   número fica com ele pra sempre. (Texto antigo, só pra história:) **Regra permanente (17/08): todo batismo JÁ NASCE sócio + fundador.**
    Sempre que alguém vira dono de um clube batizado, ele automaticamente leva
    tier ouro (👑 Lenda) + o próximo número de `FUNDADOR_N` em `apoio.tsx` —
    não precisa o Diego pedir de novo caso a caso.
@@ -735,6 +738,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   planos). Banco sem resposta = sobe como sempre. **Nunca bloquear o save no APARELHO** (não custa nada e só espanta
   jogador) e **nunca apagar save de ninguém** sem ele pedir. Trava: `npm run nuvem-craque`.
 
+- **💳 PLANOS DE UMA VEZ SÓ, EM ESCADA (14/10).** Sócio (mensal) SAIU. ⭐ Craque 29,90 · 👑 Lenda 49,90 · 🖋 Batismo 79,90 ·
+  🖋 Fundador 99,90 (`PRECOS_UNICO`, `planos-regras.ts`). Cada degrau = tudo do anterior + o dele; subir = paga só a diferença
+  (`precoSubida`). Craque tem o Modo Manual *"como sempre teve"*; **criar sala à vontade é do Lenda pra cima** (Craque novo = 1 por
+  dia, igual grátis; os 70 Craques de antes de 14/10 ficaram na foto `esc_craque_antigo` e seguem à vontade). Loja de avulsos
+  aprovada (*"adorei"*), ainda a fazer. Diego e quem ele dá plano também pagam o que não têm (*"eu com meu usuário também tenho
+  que pagar se quiser as coisas"*): a conta dele = Fundador, o K9 = Batismo.
 - **🛡️ PLANOS NOVOS NÃO MEXEM EM QUEM JÁ PAGA (13/10, regra permanente).** Palavras dele: *"quem já é craque ou lenda
   poderá continuar criando salas e mantém cor do tier que já tá hoje… e tudo que eles têm hoje mesmo, sem mudança"*.
   Sócio/Batismo/Batismo Lenda e os limites novos (1 sala por dia no grátis) valem só pra quem entrar depois.

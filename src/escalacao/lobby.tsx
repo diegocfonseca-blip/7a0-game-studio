@@ -3749,10 +3749,10 @@ export function EscLobby() {
       {limiteDia && <div style={{ background: '#FFF3C4', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '10px 12px', margin: '8px 0' }}>
         <p style={{ margin: 0, fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif' }}>{tr('🏟️ HOJE VOCÊ JÁ CRIOU A SUA SALA', '🏟️ YOU ALREADY CREATED YOUR ROOM TODAY')}</p>
         <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>
-          {tr('No gratuito dá pra criar 1 sala por dia — amanhã libera outra. Mas ', 'On the free plan you can create 1 room per day — another one unlocks tomorrow. But ')}
+          {tr('Dá pra criar 1 sala por dia — amanhã libera outra. Mas ', 'You can create 1 room per day — another one unlocks tomorrow. But ')}
           <b>{tr('entrar em qualquer sala aberta é sempre de graça', 'joining any open room is always free')}</b>
           {tr(': é só escolher uma em "Salas abertas". Quer criar quantas quiser? ', ': just pick one in "Open rooms". Want to create as many as you like? ')}
-          <a href={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}?apoie=1`} style={{ color: '#7C3AED', fontWeight: 900, textDecoration: 'underline' }}>{tr('Vire apoiador ⭐', 'Become a supporter ⭐')}</a>
+          <a href={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}?apoie=1`} style={{ color: '#7C3AED', fontWeight: 900, textDecoration: 'underline' }}>{tr('É do 👑 Lenda', 'That’s 👑 Legend')}</a>
         </p>
       </div>}
       {/* 🚪 o botão de ENCERRAR as salas presas AQUI, na tela de criar sala — a

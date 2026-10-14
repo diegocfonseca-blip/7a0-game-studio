@@ -7,7 +7,7 @@ import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen, useDireitos } from './apoio'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
 import './support-plans.css'
-import { CartoesBatismo } from './support-plans-v2'
+import { CartoesBatismo, UmaVezSo } from './support-plans-v2'
 
 // ─── 🍯 "ÁGUA NA BOCA" (Diego 29/09): a tela de planos MOSTRA em vez de listar ──
 // Mockup aprovado: `scripts/mockup-planos-agua-na-boca.mjs`. Cada plano ganha uma
@@ -213,6 +213,7 @@ export function SupportPlans(p: Props) {
 
     <h3 className="ll-support-section">{tr('⚡ PAGUE UMA VEZ · É SEU PRA SEMPRE', '⚡ PAY ONCE · YOURS FOREVER')}</h3>
       <SupportPlanCard id="support-prata" title={tr('⭐ Craque', '⭐ Star')} price={reais(PRECOS_UNICO.craque)} cadence={tr('uma vez só', 'one-off payment')} tone="prata">
+        <UmaVezSo />
         <h3>{tr('Manda no ritmo do jogo, vê o nível dos jogadores até Craque e brilha em prata na sala.', 'Run the pace of the game, see player levels up to Star and shine in silver in the room.')}</h3>
         <Vitrine titulo={tr('o que muda na sua tela', 'what changes on your screen')}>
           <LinhaSala tier="prata" nome={meu} />
@@ -223,6 +224,7 @@ export function SupportPlans(p: Props) {
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Craque', ', up to Star level')}</Ok>
         <Ok><b>{tr('2 carreiras', '2 careers')}</b>{tr(' salvas ao mesmo tempo · grupo VIP no WhatsApp com o Diego', ' saved at once · VIP WhatsApp group with Diego')}</Ok>
+        <Ok><b>{tr('🏟️ 1 sala online por dia', '🏟️ 1 online room per day')}</b>{tr(' (igual ao grátis) — criar à vontade é do 👑 Lenda', ' (same as free) — unlimited rooms come with 👑 Legend')}</Ok>
         <p className="ll-support-note">{tr('O olheiro do Craque não revela nem sonda Lendas. No online normal, o ritmo é o mesmo para todos.', 'The Star scout does not reveal or scout Legends. In regular online play, the pace is the same for everyone.')}</p>
         {atual ? <p className="ll-vit-seu">{tr('✅ você já tem o Craque', '✅ you already have Star')}</p>
           : <button className="ll-support-button prata" onClick={() => p.onPay('prata')}>{tr(`ESCOLHER CRAQUE · ${reais(PRECOS_UNICO.craque)}`, `CHOOSE STAR · ${reais(PRECOS_UNICO.craque)}`)}</button>}
@@ -230,7 +232,8 @@ export function SupportPlans(p: Props) {
       </SupportPlanCard>
 
       <SupportPlanCard id="support-ouro" title={tr('👑 Lenda', '👑 Legend')} price={reais(PRECOS_UNICO.lenda)} cadence={tr(`uma vez só · ou + ${reais(precoSubida('lenda', 'craque'))} se já é Craque`, `one-off · or + ${reais(precoSubida('lenda', 'craque'))} if you have Star`)} tone="ouro">
-        <h3>{tr('Tudo do Craque, sem teto: vê o nível até Lenda, acha jogador fora do leilão até Lenda, brilha em ouro e cria a sua liga.', 'Everything in Star, no ceiling: see levels up to Legend, find players outside the auction up to Legend, shine in gold and create your own league.')}</h3>
+        <UmaVezSo />
+        <h3>{tr('Tudo do Craque, sem teto: vê o nível até Lenda, acha jogador fora do leilão até Lenda, brilha em ouro, cria a sua liga e quantas salas quiser.', 'Everything in Star, no ceiling: see levels up to Legend, find players outside the auction up to Legend, shine in gold, create your own league and as many rooms as you like.')}</h3>
         <Vitrine titulo={tr('o que muda na sua tela', 'what changes on your screen')}>
           <LinhaSala tier="ouro" nome={meu} />
           <div className="ll-vit-grid">
@@ -240,6 +243,7 @@ export function SupportPlans(p: Props) {
           </div>
         </Vitrine>
         <Ok><b>{tr('🕵️ Olheiro:', '🕵️ Scout:')}</b> {tr('chance de achar jogador ', 'a chance to find players ')}<b>{tr('fora do leilão', 'outside the auction')}</b>{tr(', de nível até Lenda', ', up to Legend level')}</Ok>
+        <Ok><b>{tr('♾️ Cria quantas salas online quiser por dia', '♾️ Create as many online rooms as you like each day')}</b>{tr(' (no grátis e no Craque é 1 por dia)', ' (free and Star: 1 per day)')}</Ok>
         <Ok><b>{tr('4 carreiras', '4 careers')}</b>{tr(' salvas · 🎮 Modo Manual · grupo VIP no WhatsApp com o Diego', ' saved · 🎮 Manual Mode · VIP WhatsApp group with Diego')}</Ok>
         <p className="ll-support-note">{tr('Já tem Craque? Suba para Lenda pagando só a diferença.', 'Already have Star? Upgrade to Legend paying only the difference.')}</p>
         {atual && atual !== 'craque' ? <p className="ll-vit-seu">{tr('✅ você já tem o Lenda', '✅ you already have Legend')}</p>
