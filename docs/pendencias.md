@@ -1,3 +1,10 @@
+## 🚪 Quem aperta SAIR depois do apito continua dono do título (14/10, sala do Futpoint) — ✅
+Guimarães SCI ganhou liga + Copa do Mundo e não apareceu no ranking/"Campeões de hoje". Causa: a partida é gravada 2×
+(fim da liga e fim da Copa do Mundo); na 2ª, quem já tinha apertado SAIR era CPU no estado do dono e sumia do
+`human_results` — o título ficava "de um bot". Conserto: a tela manda TODOS os times com `humano`, e o LigaHub herda a
+gravação anterior da mesma partida (time já anotado como de alguém continua dele, com o user_id). Banco: a linha da
+sala 3C6RII ganhou o Guimarães (liga + mundial) e os user_id de Real Pirituba/NICOLAS/Palmolego.
+
 ## 🏆 Ranking da Semana: nome = o MAIS RECENTE da conta (14/10) — ✅ no banco
 Diego: *"tem que ser com base no e-mail… quando ele trocar o nome, troca ali também"*. A vitrine já somava por conta
 (user_id); só o NOME vinha errado (max = último no alfabeto → "M.D.REAL" no lugar de "LABUBU F.C"). `esc_vitrine_salas`

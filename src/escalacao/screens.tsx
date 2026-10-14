@@ -11229,7 +11229,9 @@ export function EscEnd() {
         const chTab = soChampions && state.champions ? championsTabela(state.champions) : null
         const chCamp = soChampions ? state.quickCopa?.champion ?? null : null
         const posDe = (id: number) => chTab ? chTab.findIndex(t => t.id === id) : table.findIndex(t => t.id === id)
-        const resultados: ResultadoHumanoEntrada[] = state.managers.filter(m => m.isHuman).map(m => {
+        // 🚪 vão TODOS os times da partida com o carimbo `humano`: o LigaHub só aproveita o que não é gente
+        // agora se a mesma partida já o tinha anotado como de alguém (quem apertou SAIR depois do apito, 14/10)
+        const resultados: ResultadoHumanoEntrada[] = state.managers.map(m => {
           const pos = posDe(m.id)
           const cupTitles: TituloSalaRapida[] = []
           if (!chTab && copaDone && state.quickCopa?.champion?.id === m.id) cupTitles.push(libEnd ? 'libertadores' : 'copa')
@@ -11242,6 +11244,7 @@ export function EscEnd() {
             relegated: chTab ? false : pos >= 0 && pos + 1 >= zoneBot(table.length),
             leagueChampion: chTab ? chCamp?.id === m.id : champ.id === m.id,
             cupTitles,
+            humano: m.isHuman,
           }
         })
         return (
