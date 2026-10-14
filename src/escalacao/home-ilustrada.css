@@ -68,3 +68,5 @@
   .ll-home:has(.ll-salao-entry){min-height:936px}
   .ll-home .ll-choices{bottom:136px}
 }
+/* 🛒 Loja do Clube (14/10): botão dourado do lado de MINHA CONTA */
+.ll-home .ll-footer .ll-loja{background:#ffc400}

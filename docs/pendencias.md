@@ -6,7 +6,12 @@ fora, subida pela diferença no botão e no Pix. V2 (mensal) desligada até pra 
 ⏳ Falta: canto da torcida do Diego (Fundador tem direito); Loja do Clube de verdade; nº de fundador fora do Batismo é PROCESSO
 (não inserir `esc_fundadores` em Batismo de 79,90).
 
-## 🛒 Loja do Clube (14/10) — ⏳ MOCKUP enviado, esperando OK do Diego
+## 🛒 Loja do Clube (14/10) — 🟡 FEITA no branch (`loja-clube.tsx`), esperando OK pra publicar
+Botão 🛒 LOJA dourado no rodapé da home (no lugar do ÁLBUM repetido; no header não coube por causa do som). Mostra por plano:
+subir de plano (só a diferença) · 🚁 gala única R$ 20 e 📣 canto R$ 10 SÓ pra Batismo (somam 30 > Fundador +20 = desconto de
+quem sobe) · Fundador vê "já incluso" · 🏦 moedas (10/50/100 → ficha do Banco Legends, resgata na carreira que quiser).
+Pagamento = Pix + comprovante (libera o Diego); nada é liberado pelo cliente. Fotos: `scripts/foto-loja-clube.mjs`.
+(Mockup antigo abaixo, só pra história.)
 Decisão em construção: volta Craque R$ 19,90 / Lenda R$ 39,90 (uma vez só) + SOBE DE PLANO pagando a diferença (Craque→Lenda
 +20 · Craque→Batismo +60 · Lenda→Batismo +40) + vitrine de avulsos que gira toda semana (canto da torcida, comemoração, frase do
 martelo, manto pronto, entrada de gala) + moedas do Banco Legends como FICHA guardada na conta, que a pessoa manda pra carreira

@@ -21,6 +21,7 @@ import { CATALOG, CATALOG_EU, BIOS, ehPromessa, TIMES_ELITE } from './data'
 import { AdminButton } from './admin'
 import { stripEmoji, myApoioPerk, APOIO_PERKS, ApoioSheen, logApoio, useHasManual, myFundadorN, useDireitos } from './apoio'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
+import { LojaButton } from './loja-clube'
 import type { ApoioTier } from './apoio'
 import { fotoDoJogador } from './rostos'
 import { AvatarLote1, avatarLote1 } from './avatar-lote1'
@@ -2102,7 +2103,9 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
       </section>
       <footer className="ll-footer">
         <nav aria-label="Mais opções">
-          <button onClick={onManual}>{t('REGRAS', 'RULES')}</button><button onClick={onAlbum}>{t('ÁLBUM', 'ALBUM')}</button><button onClick={onRanking}>{t('RANKING', 'RANKING')}</button>
+          {/* 🛒 LOJA DO CLUBE (14/10, mockup aprovado: "adorei"). No header não coube no celular (o botão de som mora ali);
+              entra no rodapé no lugar do ÁLBUM, que já tem a entrada grande "📖 MEU ÁLBUM" logo acima. */}
+          <button onClick={onManual}>{t('REGRAS', 'RULES')}</button><button onClick={onRanking}>{t('RANKING', 'RANKING')}</button><LojaButton className="ll-loja" />
           <ApoieButton trigger={open => <button onClick={open}>{t('APOIAR', 'SUPPORT')}</button>} />
         </nav>
         <div className="ll-web">
