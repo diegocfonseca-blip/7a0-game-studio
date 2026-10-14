@@ -188,6 +188,8 @@ export function SupportPlans(p: Props) {
   const meu = p.name || tr('Seu Time', 'Your Club')
   const meuTier: 'bege' | 'prata' | 'ouro' = p.tier === 'ouro' ? 'ouro' : p.tier === 'prata' ? 'prata' : 'bege'
   return <div className="ll-support" ref={root}>
+    {/* 💸 14/10 (Diego): "pra onde vai o dinheiro" mora LÁ EM CIMA de tudo; depois "na mesma sala…" e os planos */}
+    <div style={{ marginBottom: 16 }}><SupportMoney /></div>
     {/* 🌐 a mesma sala, três jeitos de entrar */}
     <div className="ll-vit-hero">
       <h1>{tr('Na mesma sala,', 'In the same room,')}<br /><b>{tr('cada um entra de um jeito.', 'everyone walks in differently.')}</b></h1>
@@ -250,6 +252,6 @@ export function SupportPlans(p: Props) {
       </div>
 
       <p className="ll-support-note">{tr('Jogar continua grátis. Os planos mudam visual, ritmo e informação — nunca a força dos jogadores.', 'Playing stays free. Plans change looks, pace and information — never the players’ strength.')}</p>
-    <div className="ll-support-bottom"><button className="ll-support-button green" onClick={p.onDonate}>{tr('💛 SÓ APOIAR A RESENHA · QUALQUER VALOR', '💛 JUST CHIP IN · ANY AMOUNT')}</button><button className="ll-support-button" onClick={p.onInstagram}>{tr('SEGUIR NO INSTAGRAM TAMBÉM AJUDA 📲', 'FOLLOWING ON INSTAGRAM HELPS TOO 📲')}</button><SupportMoney /></div>
+    <div className="ll-support-bottom"><button className="ll-support-button green" onClick={p.onDonate}>{tr('💛 SÓ APOIAR A RESENHA · QUALQUER VALOR', '💛 JUST CHIP IN · ANY AMOUNT')}</button><button className="ll-support-button" onClick={p.onInstagram}>{tr('SEGUIR NO INSTAGRAM TAMBÉM AJUDA 📲', 'FOLLOWING ON INSTAGRAM HELPS TOO 📲')}</button></div>
   </div>
 }
