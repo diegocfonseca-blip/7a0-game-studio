@@ -80,7 +80,7 @@ const Controles = () => <div style={{ display: 'flex', gap: 3, justifyContent: '
 // mensal também igual sócio"). Faixa logo no topo do cartão, antes de qualquer lista.
 const UmaVezSo = () => <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 10px', padding: '8px 10px', background: '#E3F2E7', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}` }}>
   <span style={{ fontSize: 22 }}>💳</span>
-  <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.3 }}><b style={{ ...OSW, fontSize: 15, color: GREEN, textTransform: 'uppercase' }}>{tr('Pagamento único', 'One-off payment')}</b><br />{tr('Paga UMA VEZ e é seu pra sempre. Não é mensal: nada de cobrança todo mês.', 'Pay ONCE and it is yours forever. Not monthly: no charge every month.')}</span>
+  <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.3 }}><b style={{ ...OSW, fontSize: 15, color: GREEN, textTransform: 'uppercase' }}>{tr('Pagamento único', 'One-off payment')}</b><br />{tr('Paga UMA VEZ e é seu pra sempre. Não é mensal.', 'Pay ONCE and it is yours forever. Not monthly.')}</span>
 </div>
 
 // 🖋 OS DOIS BATISMOS (13/10, Diego: "já pode alterar e fazer o que estamos falando aqui pro batismo e batismo lenda").
