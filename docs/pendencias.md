@@ -1,3 +1,8 @@
+## 🎟️ Salas extras do dia (14/10) — ✅ NO AR
+Loja: 3 salas por R$ 4,90, só pra quem não cria à vontade (grátis e Craque novo); também no aviso amarelo de "já criou a sala de
+hoje". Paga Pix + comprovante → Diego dá +3 no #admin (🎟️ Salas extras). O gatilho `esc_sala_por_dia` gasta 1 extra quando a sala
+grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (aplicado).
+
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
 🏅 Prêmios da noite (fim de toda sala, sai dos dados do leilão) + 🏛️ Galeria da Minha Liga (campeões por temporada, quem manda
 na liga, rivalidade). Mockup: `scripts/mockup-online-premios-galeria.mjs` → `scripts/mockups/online-premios-galeria.png`.

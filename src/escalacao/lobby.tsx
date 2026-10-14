@@ -32,6 +32,7 @@ import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gra
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
 import { createPortal } from 'react-dom'
+import { LojaButton } from './loja-clube'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
@@ -3752,7 +3753,7 @@ export function EscLobby() {
           {tr('Dá pra criar 1 sala por dia — amanhã libera outra. Mas ', 'You can create 1 room per day — another one unlocks tomorrow. But ')}
           <b>{tr('entrar em qualquer sala aberta é sempre de graça', 'joining any open room is always free')}</b>
           {tr(': é só escolher uma em "Salas abertas". Quer criar quantas quiser? ', ': just pick one in "Open rooms". Want to create as many as you like? ')}
-          <a href={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}?apoie=1`} style={{ color: '#7C3AED', fontWeight: 900, textDecoration: 'underline' }}>{tr('É do 👑 Lenda', 'That’s 👑 Legend')}</a>
+          <a href={`${typeof window !== 'undefined' ? window.location.origin + window.location.pathname : ''}?apoie=1`} style={{ color: '#7C3AED', fontWeight: 900, textDecoration: 'underline' }}>{tr('É do 👑 Lenda', 'That’s 👑 Legend')}</a>{' '}<LojaButton style={{ display: 'inline-block', marginTop: 6, background: '#FFC400', color: '#0C0C0C', border: '2px solid #0C0C0C', borderRadius: 8, padding: '3px 9px', fontWeight: 900, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #0C0C0C' }}>{tr('ou 🎟️ 3 salas extras por R$ 4,90', 'or 🎟️ 3 extra rooms for R$ 4.90')}</LojaButton>
         </p>
       </div>}
       {/* 🚪 o botão de ENCERRAR as salas presas AQUI, na tela de criar sala — a

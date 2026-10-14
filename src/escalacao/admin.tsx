@@ -310,6 +310,30 @@ function ApoioAdmin() {
 // 🎁 PRESENTES DE PLANO (14/10). O jogador pede pela Loja (nada é liberado) → paga e manda comprovante → aqui você
 // ENTREGA. Craque/Lenda ligam o tier na hora (nunca rebaixam quem já tem mais). Batismo/Fundador só marcam entregue: o
 // clube você monta pelo roteiro de batismo, falando com o amigo. O amigo vê "FULANO TE DEU UM PRESENTE!" ao entrar.
+// 🎟️ SALAS EXTRAS (14/10): Pix de R$ 4,90 caiu → e-mail da conta → +3. O gatilho da sala do dia gasta 1 quando a grátis acabou.
+function SalasExtrasAdmin() {
+  const [email, setEmail] = useState('')
+  const [msg, setMsg] = useState('')
+  const dar = async () => {
+    const em = email.trim().toLowerCase()
+    if (!em.includes('@')) { setMsg('❌ digita o e-mail da conta'); return }
+    const { data, error } = await supabase.rpc('esc_admin_salas_extras_add', { p_email: em, p_qtd: 3 })
+    setMsg(error ? `❌ ${error.message.includes('SEM_CONTA') ? 'não existe conta com esse e-mail' : error.message}` : `✅ ${em} agora tem ${data} sala(s) extra(s)`)
+    if (!error) setEmail('')
+  }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>🎟️ Salas extras · +3</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 8px' }}>Só depois de ver o Pix de R$ 4,90. Não vencem.</p>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta" style={{ flex: 1, border: '2px solid #FFC400', borderRadius: 10, padding: '8px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13 }} />
+        <button onClick={dar} style={{ border: 'none', borderRadius: 10, padding: '8px 12px', background: '#FFC400', fontWeight: 900, cursor: 'pointer' }}>+3</button>
+      </div>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '7px 0 0' }}>{msg}</p>}
+    </div>
+  )
+}
+
 type Presente = { id: number; de_email: string; para_email: string; plano: string; recado: string | null; status: string; criado_em: string }
 function PresentesAdmin() {
   const [lista, setLista] = useState<Presente[]>([])
@@ -1060,7 +1084,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PresentesAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

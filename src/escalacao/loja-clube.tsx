@@ -8,13 +8,15 @@
 //     20 e já traz os dois + o número de fundador — o desconto de quem pagou o Fundador (palavras dele: *"pra ter uma
 //     diferença, quem pagou o fundador ter ganhado desconto"*). Fundador vê "✅ já incluso".
 //   · 🎨 (14/10) cor do nome NÃO é vendida — Diego: "não bote negócio de cor… pra não confundir". E o Lenda não promete mais escolher cor.
+//   · 🎟️ SALAS EXTRAS — 3 por R$ 4,90 pra quem não cria à vontade; o gatilho `esc_sala_por_dia` gasta 1 quando a do dia acabou.
 //   · 🎁 DAR DE PRESENTE — só PLANO, pra um amigo (`presente.tsx`; o Diego confirma o pagamento e entrega no #admin).
 //   · 🪙 MOEDAS pro clube — os pacotes do Banco Legends (R$ 1 = 3 🪙). Viram uma FICHA que a pessoa resgata na carreira que
 //     quiser (Clube › Finanças › Banco Legends). Só valem na carreira solo.
 //
 // 🔒 Segurança (ordem do Diego): a loja NUNCA libera nada sozinha. Clicar, copiar o Pix ou voltar do banco não dá nada —
 // quem libera é o Diego (ou, depois, a Vendria confirmando o pagamento no servidor). Aqui só se mostra o preço e o Pix.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { createPortal } from 'react-dom'
 import { tr, getLang } from './lang'
 import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
@@ -26,7 +28,9 @@ import { PresenteBox } from './presente'
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 /** 💰 avulsos do clube batizado (Diego 14/10) */
-export const LOJA_PRECOS = { galaUnica: 20, canto: 10 } as const
+export const LOJA_PRECOS = { galaUnica: 20, canto: 10, salasExtras: 4.9 } as const
+/** 🎟️ quantas salas vêm no pacote (Diego 14/10) */
+export const SALAS_EXTRAS_QTD = 3
 /** 🏦 pacotes do Banco Legends (os mesmos de `BL_PACOTES` em pyramidseason.tsx, R$ 1 = 3 🪙) */
 const MOEDAS: [number, string, string][] = [[10, 'Cafezinho', 'Coffee money'], [50, 'Reforço pontual', 'Quick boost'], [100, 'Fôlego de temporada', 'Season breather']]
 // 🎁 quem JÁ TEM o item não pode ver ele à venda (Diego 14/10: "o Tricolor do Arruda já tem canto"). O canto vem da lista
@@ -44,10 +48,10 @@ const GANHO: Record<PlanoUnico, [string, string]> = {
 
 type Item = { id: string; amount: number; ctx: string; msgPt: string; msgEn: string }
 
-export function LojaButton({ className, children }: { className?: string; children?: React.ReactNode }) {
+export function LojaButton({ className, style, children }: { className?: string; style?: React.CSSProperties; children?: React.ReactNode }) {
   const [aberta, setAberta] = useState(false)
   return <>
-    <button className={className} onClick={() => { logApoio('🛒 abriu a loja'); setAberta(true) }}>{children ?? tr('🛒 LOJA', '🛒 SHOP')}</button>
+    <button className={className} style={style} onClick={() => { logApoio('🛒 abriu a loja'); setAberta(true) }}>{children ?? tr('🛒 LOJA', '🛒 SHOP')}</button>
     {aberta && <Loja onClose={() => setAberta(false)} />}
   </>
 }
@@ -61,6 +65,10 @@ function Loja({ onClose }: { onClose: () => void }) {
   const setComprando = (it: Item | null) => { setComprandoRaw(it); if (it) setTimeout(() => document.getElementById('loja-pagar')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60) }
   const acima = ORDEM.slice(atual ? ORDEM.indexOf(atual) + 1 : 0)
   const temBatismo = atual === 'batismo' || atual === 'fundador'
+  // 🎟️ salas extras: só pra quem NÃO cria à vontade (grátis e Craque novo). O saldo vem do banco.
+  const salasAVontade = !!direitos?.salasPagas
+  const [saldoSalas, setSaldoSalas] = useState<number | null>(null)
+  useEffect(() => { if (loggedEmail()) supabase.rpc('esc_minhas_salas_extras').then(({ data }) => { if (typeof data === 'number') setSaldoSalas(data) }, () => {}) }, [])
   const email = loggedEmail()
   const jaTem = { 'gala única': atual === 'fundador' || (!!email && GALA_UNICA_EMAILS.has(email)), 'canto da torcida': atual === 'fundador' || temCantoProprio(email) }
   const perk = tier ? APOIO_PERKS[tier] : APOIO_PERKS.bege
@@ -96,6 +104,16 @@ function Loja({ onClose }: { onClose: () => void }) {
             </div>)}
           </div>
         </>}
+
+        {/* 🎟️ SALAS EXTRAS DO DIA (14/10, Diego: "pode fazer sala extras do dia") */}
+        <h2 style={h2}>{tr('🎟️ Salas extras', '🎟️ Extra rooms')} <span style={sub}>{tr('pra criar mais de 1 sala no dia', 'to create more than 1 room a day')}</span></h2>
+        <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
+          <span style={{ fontSize: 30 }}>🎟️</span>
+          <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>{salasAVontade
+            ? tr('✅ Você já cria quantas salas quiser — não precisa disso.', '✅ You already create as many rooms as you like — no need for this.')
+            : <>{tr(`${SALAS_EXTRAS_QTD} salas a mais pra usar quando a do dia acabar. Não vencem.`, `${SALAS_EXTRAS_QTD} more rooms to use once today’s is gone. They never expire.`)}{saldoSalas ? <b style={{ display: 'block', color: GREEN, marginTop: 3 }}>{tr(`Você tem ${saldoSalas} sala${saldoSalas > 1 ? 's' : ''} extra${saldoSalas > 1 ? 's' : ''}.`, `You have ${saldoSalas} extra room${saldoSalas > 1 ? 's' : ''}.`)}</b> : null}<span style={{ display: 'block', color: 'rgba(12,12,12,.55)', marginTop: 3 }}>{tr('Criar à vontade, pra sempre, é do 👑 Lenda.', 'Unlimited rooms, forever, come with 👑 Legend.')}</span></>}</small>
+          {!salasAVontade && <button onClick={() => setComprando({ id: 'salas', amount: LOJA_PRECOS.salasExtras, ctx: 'loja · 3 salas extras', msgPt: `Opa! Comprei na Loja do Clube: 🎟️ ${SALAS_EXTRAS_QTD} SALAS EXTRAS (${reais(LOJA_PRECOS.salasExtras)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🎟️ ${SALAS_EXTRAS_QTD} EXTRA ROOMS (${reais(LOJA_PRECOS.salasExtras)}). Account e-mail: ____ — receipt attached!` })} style={preco}>{reais(LOJA_PRECOS.salasExtras)}</button>}
+        </div>
 
         {/* 🎁 DAR DE PRESENTE (14/10) — só planos */}
         <h2 style={h2}>{tr('🎁 Dar de presente', '🎁 Send a gift')} <span style={sub}>{tr('um plano pra um amigo', 'a plan for a friend')}</span></h2>
