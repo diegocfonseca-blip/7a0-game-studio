@@ -71,13 +71,28 @@ h1{margin:8px 0 0;font:700 64px/1.02 Oswald;text-transform:uppercase}
 .passo .pe{font-size:62px;line-height:1}.passo b{display:block;font:700 30px Oswald;text-transform:uppercase;margin-top:6px;line-height:1.05}
 .passo span{display:block;font:500 21px Oswald5;color:rgba(0,0,0,.65);margin-top:4px}
 .seta{font:700 44px Oswald;align-self:center}
+.meta{margin-top:30px;border:4px solid #000;border-radius:26px;box-shadow:5px 5px 0 #000;background:linear-gradient(135deg,#FFC400,#FFE27A);padding:24px 28px 26px}
+.meta-top{display:flex;justify-content:space-between;align-items:baseline}.meta-top b{font:700 40px Oswald;text-transform:uppercase}.meta-top em{font:700 84px/1 Oswald;font-style:normal;color:#1B7A3D}
+.meta-sub{font:500 24px Oswald5;color:rgba(0,0,0,.7);margin-top:2px}
+.meta-bar{position:relative;height:56px;border:5px solid #000;border-radius:20px;background:#fff;margin:62px 0 6px}
+.meta-bar>i{position:absolute;inset:0 auto 0 0;border-radius:14px;background:repeating-linear-gradient(135deg,#1B7A3D 0 22px,#239a4e 22px 44px)}
+.meta-bar .mk{position:absolute;top:-58px;bottom:-5px;width:5px;margin-left:-2.5px;background:linear-gradient(#0000 0 44px,#000 44px)}
+.meta-bar .mk b{position:absolute;top:0;left:50%;transform:translateX(-50%);white-space:nowrap;font:700 22px Oswald;background:#fff;border:3px solid #000;border-radius:10px;padding:2px 10px}
+.meta-bar .mk.fim{left:100%}.meta-bar .mk.fim b{left:auto;right:-4px;transform:none}
+.meta-cta{margin-top:22px;background:#0C0C0C;color:#FFC400;border:4px solid #000;border-radius:16px;padding:14px 18px;font:700 32px/1.2 Oswald;text-align:center;box-shadow:4px 4px 0 #7C3AED}
 .site{text-align:center;margin-top:26px;font:700 24px Oswald;color:rgba(0,0,0,.45);letter-spacing:.06em}
 </style></head><body><div class="wrap">
 <div class="top"><div class="marca">⚽ LEILÃO <span>LEGENDS</span></div><div class="pill">🔨 BATEU O MARTELO</div></div>
 <div class="card"><div class="marca-dagua">🔨</div>
 <div class="data">${esc(spec.data)}</div>
 <h1>${esc(spec.titulo)}</h1>
-${d ? `<div class="hero">
+${d && d.barra ? (() => { const B = d.barra, sus = B.sustentavel ?? 150, L = v => Math.min(100, v / sus * 100); return `<div class="meta">
+  <div class="meta-top"><b>📊 ${esc(B.titulo)}</b><em>${B.pct}%</em></div>
+  <div class="meta-sub">${esc(B.sub ?? '')}</div>
+  <div class="meta-bar"><i style="width:${L(B.pct)}%"></i><span class="mk" style="left:${L(100)}%"><b>🧾 100% · o jogo se paga</b></span><span class="mk fim"><b>🚀 ${sus}%</b></span></div>
+  ${B.cta ? `<div class="meta-cta">${esc(B.cta)}</div>` : ''}
+</div>` })() : ''}
+${d && !d.barra ? `<div class="hero">
   ${d.escudo ? `<div><img src="${url(d.escudo)}" style="height:230px"></div>` : ''}
   ${d.mascote ? `<div><img src="${url(d.mascote)}" style="height:330px"></div>` : ''}
   ${d.camisa ? `<div><img src="${url(d.camisa)}" style="height:250px"></div>` : ''}

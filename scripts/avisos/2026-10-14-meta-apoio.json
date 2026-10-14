@@ -2,28 +2,18 @@
   "data": "14 de outubro de 2026",
   "titulo": "Bora manter o jogo de pé?",
   "destaque": {
-    "passos": [
-      {
-        "emoji": "💛",
-        "titulo": "O Luca",
-        "sub": "parte de todo apoio"
-      },
-      {
-        "emoji": "🗄️",
-        "titulo": "O servidor",
-        "sub": "salas e carreiras"
-      },
-      {
-        "emoji": "📊",
-        "titulo": "Meta: 22%",
-        "sub": "de outubro, até agora"
-      }
-    ]
+    "barra": {
+      "titulo": "Meta de outubro",
+      "pct": 22,
+      "sustentavel": 150,
+      "sub": "quanto do custo do mês o apoio da galera já pagou",
+      "cta": "💛 Bora levar essa barra até os 100%? Toque em 💛 Apoie"
+    }
   },
   "itens": [
     {
       "tag": "apoio",
-      "texto": "No **💛 Apoie** agora tem **Pra onde vai o dinheiro**, sem mistério. E a **meta do mês**: outubro está em **22%** do custo pago. Aos **100% o jogo se paga**; aos 150% sobra pra crescer."
+      "texto": "No **💛 Apoie** agora tem **Pra onde vai o dinheiro**, sem mistério. Outubro está em **22%**: aos **100% o jogo se paga**, aos 150% sobra pra crescer. **Qualquer valor ajuda**, até o Pix de \"só apoiar\"."
     },
     {
       "tag": "apoio",
