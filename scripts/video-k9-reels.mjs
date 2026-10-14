@@ -114,8 +114,11 @@ await b.close()
 console.log(`${pngs.length} cenas desenhadas`)
 
 // ── ffmpeg: zoom lento em cada cena + transição suave entre elas ───────────
-const DUR = Number(arg('dur', '5')), FADE = 0.8, FPS = 30 // 14/10: 3s ficou "muito rápido" (Diego) → 5s por cena
+// 14/10 (Diego): 3s em tudo ficou rápido; 5s em tudo gastou tempo no começo. Agora cada cena tem o SEU tempo:
+// escudo/mascote/manto passam rápido, as CARTAS do K9 e a PROPAGANDA final ficam mais na tela.
+const DURS = [2.6, 2.6, 2.6, 2.6, 6, 8], FADE = 0.6, FPS = 30
 const clipes = pngs.map((png, i) => {
+  const DUR = DURS[i]
   const out = path.join(tmpDir, `c${i}.mp4`)
   const frames = Math.round(DUR * FPS)
   // ⚠️ ARMADILHA DO ZOOMPAN (peguei na marra 24/08): `d` é quantos quadros ele
@@ -134,7 +137,7 @@ const clipes = pngs.map((png, i) => {
 })
 // costura com xfade encadeado
 let atual = clipes[0]
-let acc = DUR
+let acc = DURS[0]
 for (let i = 1; i < clipes.length; i++) {
   const out = path.join(tmpDir, `j${i}.mp4`)
   const offset = (acc - FADE).toFixed(2)
@@ -144,7 +147,7 @@ for (let i = 1; i < clipes.length; i++) {
     ...(o.alta ? ['-maxrate', '16M', '-bufsize', '32M', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.2'] : []),
     '-y', out])
   atual = out
-  acc += DUR - FADE
+  acc += DURS[i] - FADE
 }
 fs.copyFileSync(atual, o.saida)
 const dur = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', o.saida]).toString().trim()
