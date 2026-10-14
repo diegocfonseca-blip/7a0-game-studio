@@ -382,8 +382,11 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
             position: r.position,
             qualified: r.qualified,
             relegated: r.relegated,
-            league_champion: r.leagueChampion,
-            cup_titles: r.cupTitles,
+            // 🏆 quem SAIU só leva o que já tinha ganhado ENQUANTO estava na sala (o que a gravação anterior
+            // anotou). Taça que o time dele ganhou depois, jogado pela CPU, NÃO é dele (Diego 14/10: *"isso não
+            // quero dar troféu p eles"*). Quem saiu antes da 1ª gravação nem entra (não tem `velho`).
+            league_champion: r.humano === false ? !!velho?.league_champion : r.leagueChampion,
+            cup_titles: r.humano === false ? (velho?.cup_titles ?? []) : r.cupTitles,
           }))
         })
         const payload = {

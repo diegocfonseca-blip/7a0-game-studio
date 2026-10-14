@@ -4,6 +4,9 @@ Guimarães SCI ganhou liga + Copa do Mundo e não apareceu no ranking/"Campeões
 `human_results` — o título ficava "de um bot". Conserto: a tela manda TODOS os times com `humano`, e o LigaHub herda a
 gravação anterior da mesma partida (time já anotado como de alguém continua dele, com o user_id). Banco: a linha da
 sala 3C6RII ganhou o Guimarães (liga + mundial) e os user_id de Real Pirituba/NICOLAS/Palmolego.
+🚫 **Regra do Diego (14/10): quem SAI antes de acabar não ganha troféu** (*"isso não quero dar troféu p eles"*). Quem saiu
+antes da 1ª gravação (fim da liga/copa) nem entra; quem saiu depois leva SÓ o que a gravação anterior já tinha anotado —
+taça que o time dele ganhar depois, jogado pela CPU, não é dele.
 
 ## 🏆 Ranking da Semana: nome = o MAIS RECENTE da conta (14/10) — ✅ no banco
 Diego: *"tem que ser com base no e-mail… quando ele trocar o nome, troca ali também"*. A vitrine já somava por conta
