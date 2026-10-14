@@ -23,7 +23,7 @@ await p.evaluate(`(async()=>{
   await new Promise(r=>setTimeout(r,700))
   createRoot(root).render(h(G.GalaArruda,{clube:'Tricolor do Arruda FC',chave:'v',mostra:'Tricolor do Arruda FC',grito:'ARRUDA'}))
 })()`)
-await p.waitForTimeout(7400)
+await p.waitForTimeout(7800)
 await ctx.close(); await b.close(); try { process.kill(-vite.pid) } catch {}
 const f = readdirSync('/tmp/claude-0/vid').filter(x => x.endsWith('.webm')).map(x => '/tmp/claude-0/vid/' + x).pop()
 renameSync(f, 'scripts/posts/gala-arruda.webm'); console.log('🎬 scripts/posts/gala-arruda.webm')
