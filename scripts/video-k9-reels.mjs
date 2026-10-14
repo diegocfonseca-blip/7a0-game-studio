@@ -114,7 +114,7 @@ await b.close()
 console.log(`${pngs.length} cenas desenhadas`)
 
 // ── ffmpeg: zoom lento em cada cena + transição suave entre elas ───────────
-const DUR = 3.0, FADE = 0.5, FPS = 30
+const DUR = Number(arg('dur', '5')), FADE = 0.8, FPS = 30 // 14/10: 3s ficou "muito rápido" (Diego) → 5s por cena
 const clipes = pngs.map((png, i) => {
   const out = path.join(tmpDir, `c${i}.mp4`)
   const frames = Math.round(DUR * FPS)
