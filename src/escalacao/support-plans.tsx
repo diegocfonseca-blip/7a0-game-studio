@@ -254,13 +254,7 @@ export function SupportPlans(p: Props) {
       {/* 🖋 os dois batismos (13/10): os MESMOS cartões da vitrine nova, com a regra de série de hoje */}
       <CartoesBatismo onNaming={p.onNaming} batismoPlano={direitos?.batismoPlano ?? null} atual={atual} />
 
-      {/* ✨ vem por aí (os dois que o Diego deixou) */}
-      <div className="ll-vit-breve">
-        <h3>{tr('✨ E vem mais por aí — só pra quem apoia', '✨ And more is coming — only for supporters')}</h3>
-        <div className="it"><span style={{ fontSize: 22 }}>🚁</span><div><b>{tr('Entrada de gala do SEU jeito', 'A grand entrance YOUR way')}</b><span>{tr('cada Fundador com a entrada própria: helicóptero, moto, fumaça…', 'every Founder with their own entrance: helicopter, bike, smoke…')}</span></div><span className="lock">{tr('fundador', 'founder')}</span></div>
-        <div className="it"><span style={{ fontSize: 22 }}>🛡️</span><div><b>{tr('Seu escudo na tela de TODO mundo', 'Your crest on EVERYONE’s screen')}</b><span>{tr('trocou o nome do clube? escudo e mascote seguem você pra qualquer sala', 'renamed your club? crest and mascot follow you into any room')}</span></div><span className="lock">{tr('batismo', 'naming')}</span></div>
-        <p>{tr('quem já apoiou recebe tudo isso sem pagar de novo 💛', 'those who already support get all of it without paying again 💛')}</p>
-      </div>
+      {/* ✨ o quadro "E vem mais por aí" SAIU em 14/10 (Diego: "remova esse modal aí de que vem mais por aí") */}
 
       <p className="ll-support-note">{tr('Jogar continua grátis. Os planos mudam visual, ritmo e informação — nunca a força dos jogadores.', 'Playing stays free. Plans change looks, pace and information — never the players’ strength.')}</p>
     <div className="ll-support-bottom"><button className="ll-support-button green" onClick={p.onDonate}>{tr('💛 SÓ APOIAR A RESENHA · QUALQUER VALOR', '💛 JUST CHIP IN · ANY AMOUNT')}</button><button className="ll-support-button" onClick={p.onInstagram}>{tr('SEGUIR NO INSTAGRAM TAMBÉM AJUDA 📲', 'FOLLOWING ON INSTAGRAM HELPS TOO 📲')}</button></div>
