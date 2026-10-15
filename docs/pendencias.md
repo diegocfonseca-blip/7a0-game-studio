@@ -1,4 +1,4 @@
-## 🪪 5 Garrinchas no elenco do Fabulous EC (15/10) — conserto pronto no branch, ESPERANDO OK pra publicar
+## 🪪 5 Garrinchas no elenco do Fabulous EC (15/10) — ✅ NO AR (15/10)
 - Causa: sondagem de clube de FUNDO dava à carta o id `sond-<id do fundo>`, e o id de fundo (`ATA-25`) se repete entre
   clubes. Garrincha (sondado antes) e Pelé (agora) nasceram os dois `sond-ATA-25`; a tela desenha o elenco pelo id e
   embaralhou (5 Garrinchas na lista; no elenco de verdade eram 1 Pelé + 1 Garrincha).
@@ -8,6 +8,40 @@
 - Labubu FC (caelborba): "bug no 1º leilão" — sala CAYJZH parou no envelope porque o aparelho do DONO (ele, iPhone)
   não fechou o prazo; o motor fecha normal. Esperando o print dele. Proposta (sem OK ainda): dono fecha o envelope
   vencido assim que volta pra frente do jogo.
+
+## 👑 KINGS LEAGUE — 🟢 NO AR NA PARTIDA RÁPIDA, SÓ NA CONTA DO DIEGO (15/10, "faça tudo e publique apenas no partida rápida")
+`src/escalacao/kings-rapida.tsx`: jogo À PARTE por cima da tela de configurar a Partida Rápida (botão preto "👑 KINGS LEAGUE ·
+TESTE · SÓ VOCÊ VÊ", trava `useKingsLiberada`/`KINGS_TESTERS` em sport.ts). Estado próprio (não passa pelo reducer), guarda no
+aparelho em `kings-rapida-v1`. Fluxo: regras → leilão às cegas de 7 (GOL·ZAG·MEI·ATA, 100 🪙, bots dão lance, sobra vai pro
+monte de graça) → 9 rodadas (vestiário 20s com a carta → partida de ~3 min com banners de 7s: início, dado, intervalo,
+bola, shootout) → pênalti do presidente nos dois sentidos (você bate com o PenaltyArt; o do bot você defende) → carta
+(pênalti/shootout você bate; suspensão/gol em dobro entram na conta) → empate = shootout manual 5+5 e morte súbita →
+mata-mata (1º direto na semi) → campeão. Testado no navegador do começo ao campeão, sem erro.
+⏳ Falta: levar pras SALAS ONLINE (duelo gente × gente) quando ele aprovar o rápido; o nome "Kings League" é marca registrada (avisado).
+(histórico da etapa 1 abaixo)
+
+Conceito inteiro: **`docs/conceito-kings-league.md`** (regras da Kings League BRASIL, nome "Kings League", ritmo mais
+lento: ~3 min/partida, banners de 6–8s explicando cada regra, intervalo 15s, vestiário 20s). Mockups:
+`scripts/mockups/kings-league.png` + `campinho-reis.png` (o campinho; o selo vira "KINGS LEAGUE").
+✅ Etapa 1: motor PURO `src/escalacao/kings.ts` (10 times/9 rodadas, 3·2·1·0, calendário, chave 1º-na-semi, partida com
+dado no 18, bola dourada/vermelha no 38, cartas, pênalti do presidente, shootout, duelo de canto). Trava `npm run kings`.
+Média medida: ~6,3 gols/jogo, ~18% vai pro shootout. Não está ligado em tela nenhuma ainda.
+⏳ Etapas 2–5 (só na conta do Diego até ele aprovar): tipo de sala + leilão de 7 com campinho · liga de 10 + partida ·
+vestiário/carta/pênalti do presidente (online) · duelo manual + banners + mata-mata.
+
+## 🤝 Dupla nas copas com convocação: só UM escolhe e convoca (15/10, "Ok pode fazer") — ✅
+Bug da sala do Futpoint (dupla Futpoint + Cativeiro): no Rio × SP cada um escolheu um clube, e o Cativeiro escolheu na
+vez da dupla Gui|Palmolego. Causa: Copa do Mundo/regional montavam "assento → pessoa" com TODAS as linhas do
+room_players, e a linha do parceiro guarda um `player_index` velho (a renumeração só mexe nos donos) que caía no
+assento de outro. Agora `dupla-copa.ts` (`quemAgePorAssento`): linha de parceiro nunca vira assento, e quem age pela
+dupla é o marcado na sala de espera (**🏳️ Quem escolhe o clube e convoca**, `dupla_categories.CONV`; ninguém marcou =
+dono). O outro vê o aviso roxo "👀 Fulano escolhe e convoca pela dupla", a fila mostra "Fulano escolhe · Ciclano
+assiste", e os botões dele somem (nada de botão mudo). Mockup: `scripts/mockups/dupla-convoca.png`.
+⚠️ "Ao vivo" pro parceiro = ele vê o clube na hora e o time quando o outro CONFIRMA os 11 (a convocação não grava
+escolha por escolha).
+🛡️ "As 2 listas": a sala "Rio-SP no YouTube" (ARJSUE) tinha `mundoNaLiga` E `regionalNaLiga` → abria as duas copas
+lendo as mesmas escolhas (e a convocação do "São Paulo" procurava o PAÍS São Paulo = 0 jogadores). Agora com as duas
+marcas vale só a regional. 🚫 Sala "🌐 Copa do Mundo" direta não oferece mais Duplas (15/10, ordem dele). ⏳ Achar COMO a sala ganhou as duas marcas (a criação é exclusiva; 3 salas assim desde 13/10).
 
 ## 🚪 Quem aperta SAIR depois do apito continua dono do título (14/10, sala do Futpoint) — ✅
 Guimarães SCI ganhou liga + Copa do Mundo e não apareceu no ranking/"Campeões de hoje". Causa: a partida é gravada 2×
@@ -26,9 +60,8 @@ agora usa o nome mais recente da semana (`docs/sql/vitrine-nome-mais-recente.sql
 ✅ CASO 2 CONSERTADO (14/10, "Faça"): título de sala que o dono apagou (SAIR) ia pro lixo junto (`game_champions`
 ON DELETE CASCADE). Agora vai pro `game_champions_arquivo` (gatilho que nunca trava o SAIR) e a vitrine soma os dois.
 Semana de 12/10 recuperada: 214 temporadas (1 descartada por 2 campeões). Labubu 13 → 23, 1º da semana.
-`docs/sql/titulos-sala-apagada.sql`. Só o RANKING DA SEMANA usa o arquivo (ordem dele). ⚠️ O teste de apagar sala de
-mentira foi barrado pela ferramenta — conferir depois que um título de sala apagada HOJE aparece no arquivo
-(`select * from game_champions_arquivo where origem='sala_apagada'`).
+`docs/sql/titulos-sala-apagada.sql`. Só o RANKING DA SEMANA usa o arquivo (ordem dele). ✅ Conferido ao vivo (14/10 22h UTC): 3 títulos
+de salas apagadas já caíram sozinhos no arquivo (origem `sala_apagada`).
 ⏳ O ranking GERAL (`esc_ranking_cache`) está com foto parada em 02/09 — avisado, sem mexer.
 
 ## 🐍 Tricolor do Arruda FC virou 🖋 FUNDADOR (14/10) — banco feito

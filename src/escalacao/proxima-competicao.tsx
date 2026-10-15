@@ -122,3 +122,18 @@ export function CartaoSuaVez({ titulo, texto, botao, aoFechar }: { titulo: strin
     </div>
   )
 }
+
+/** 🤝 DUPLA (15/10): quem NÃO convoca vê, no lugar dos botões, quem está escolhendo/convocando pela dupla. */
+export function AvisoDupla({ quem }: { quem: string }) {
+  return (
+    <div style={{ background: '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 12px', marginBottom: 10 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 16, margin: 0, textTransform: 'uppercase' }}>
+        {getLang() === 'en' ? `👀 ${quem} picks and calls up for your duo` : `👀 ${quem} escolhe e convoca pela dupla`}
+      </p>
+      <p style={{ fontSize: 11.5, fontWeight: 700, margin: '3px 0 0', opacity: 0.92, lineHeight: 1.4 }}>
+        {tr('Vocês são dupla: só um escolhe o clube e convoca os 11 (foi o que vocês marcaram na sala de espera). Você acompanha daqui — o time é dos dois.',
+          'You are a duo: only one picks the club and calls up the 11 (as you set in the lobby). You follow from here — the team belongs to both of you.')}
+      </p>
+    </div>
+  )
+}

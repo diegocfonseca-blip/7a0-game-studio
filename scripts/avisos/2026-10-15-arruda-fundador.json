@@ -1,0 +1,20 @@
+{
+  "data": "15 de outubro de 2026",
+  "titulo": "Tricolor do Arruda virou Fundador 🖋",
+  "destaque": {
+    "escudo": "src/escalacao/img/arruda-escudo.webp",
+    "mascote": "src/escalacao/img/arruda-mascote.webp",
+    "camisa": "scripts/kits/arruda-camisa.webp",
+    "nome": "Tricolor do Arruda FC",
+    "linha": "🖋 Fundador · \"O Terror do Nordeste\""
+  },
+  "itens": [
+    { "tag": "plano", "texto": "O **Tricolor do Arruda FC** subiu pro **🖋 Fundador**, o topo dos planos do jogo." },
+    { "tag": "novidade", "texto": "**🎬 Entrada de gala só dele**: o estádio enche, o bandeirão \"O TERROR DO NORDESTE\" desce do teto e a **cobra sobe numa bandeira gigante de dentro da torcida** — com o grito **\"Ô TRICOLOR!\"**." },
+    { "tag": "mascote", "texto": "**📣 Canto da torcida** nos dois lugares: na **carreira**, tocando no estádio durante os jogos, e no **online**, junto com a entrada de gala nas salas." },
+    { "tag": "lenda", "texto": "Fundador também leva o clube **nas salas online dos outros, em rodízio, mesmo quando o dono não está jogando**." }
+  ],
+  "rodape": "Quer a SUA entrada de gala também?",
+  "rodapeSub": "Ela vem no 🖋 Fundador — tá na 🛒 Loja do Clube, ou chama o Diego aqui na comunidade.",
+  "saida": "scripts/posts/aviso-2026-10-15-arruda-fundador.png"
+}

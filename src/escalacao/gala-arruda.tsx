@@ -5,7 +5,8 @@
 // saiu de dentro dela tipo bandeira… com nego subindo a bandeira"*. Então agora:
 // teto com refletores → arquibancada de verdade (degraus, gente pulando, setores retos vermelho/branco/preto,
 // sinalizador) → o bandeirão com o ESCUDO desce do teto → a BANDEIRA GIGANTE da cobra sobe de DENTRO da torcida,
-// segura em dois mastros, com a fila da frente de braço pra cima tapando o pé dela → "CHEGOU NA SALA" + o grito.
+// segura em dois mastros (pano branco, sem a faixa vermelha de cima — Diego 15/10), com a fila da frente de braço pra cima tapando o pé dela → "CHEGOU NA SALA" + o grito "Ô TRICOLOR!".
+// 15/10 (Diego): bandeirão com "TRICOLOR DO ARRUDA" em preto e "O TERROR DO NORDESTE" em vermelho.
 //
 // Mesmo esquema das outras galas únicas (`gala-helicoptero.tsx`, `gala-k9.tsx`): palco 420×760 escalado pra tela,
 // camada fixa `pointer-events:none`, fora do reducer, sem localStorage; "reduzir movimento" = tudo parado no lugar.
@@ -61,8 +62,8 @@ const CSS = `
 .gar-band{position:absolute;left:-12px;right:-12px;top:84px;height:98px;z-index:4;background:${BRANCO};border-top:6px solid ${VERM};border-bottom:6px solid ${PRETO};box-shadow:0 7px 0 rgba(0,0,0,.45);display:flex;align-items:center;gap:10px;padding:0 22px 0 30px;animation:garBand ${T}ms cubic-bezier(.3,1.4,.5,1) forwards}
 @keyframes garBand{0%,${pct(500)}{transform:translateY(-230px) rotate(-2deg)}${pct(1200)}{transform:translateY(0) rotate(-2deg)}100%{transform:translateY(0) rotate(-2deg)}}
 .gar-band .tx{flex:1;min-width:0}
-.gar-band b{display:block;font:700 28px/1 Oswald,sans-serif;color:${VERM};text-shadow:2px 2px 0 ${PRETO};white-space:nowrap}
-.gar-band small{display:block;font:700 12px Oswald,sans-serif;letter-spacing:.14em;color:${PRETO};margin-top:5px;white-space:nowrap}
+.gar-band b{display:block;font:700 28px/1 Oswald,sans-serif;color:${PRETO};white-space:nowrap}
+.gar-band small{display:block;font:700 13px Oswald,sans-serif;letter-spacing:.14em;color:${VERM};margin-top:5px;white-space:nowrap}
 .gar-band .esc{flex:none;display:inline-flex;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.45))}
 /* 🐍 a BANDEIRA da cobra sobe de DENTRO da torcida, em dois mastros (o pé dela fica atrás da fila da frente) */
 .gar-bandeira{position:absolute;left:50%;top:600px;width:300px;height:330px;margin-left:-150px;z-index:2;animation:garSobe ${T}ms cubic-bezier(.3,.85,.35,1) forwards}
@@ -71,7 +72,7 @@ const CSS = `
 .gar-mastro::before{content:'';position:absolute;left:-4px;top:-8px;width:15px;height:15px;border-radius:50%;background:${GOLD};border:2px solid #000}
 .gar-pano{position:absolute;left:10px;right:10px;top:0;bottom:0;transform-origin:top;animation:garOnda 1.5s ease-in-out infinite,garDobra 1.8s linear infinite;
   background:repeating-linear-gradient(100deg,rgba(0,0,0,.24) 0,transparent 34px,rgba(255,255,255,.2) 62px,transparent 92px,rgba(0,0,0,.24) 140px) 0 0/140px 100%,
-  linear-gradient(180deg,${VERM} 0 12%,${BRANCO} 12% 88%,${PRETO} 88%);
+  linear-gradient(180deg,${BRANCO} 0 88%,${PRETO} 88%);
   border:3px solid #000;border-radius:4px 4px 10px 10px;box-shadow:0 8px 24px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
 @keyframes garDobra{to{background-position:140px 0,0 0}}
 @keyframes garOnda{0%,100%{transform:perspective(500px) rotateY(-7deg) skewY(1.4deg)}50%{transform:perspective(500px) rotateY(7deg) skewY(-1.4deg)}}
@@ -129,7 +130,7 @@ export function GalaArruda({ clube, chave, mostra, grito }: { clube: string; cha
           {[30, 120, 210, 300, 390].map(x => <span key={x} className="gar-luz" style={{ left: x }} />)}
         </div>
         <div className="gar-band">
-          <div className="tx"><b>TRICOLOR DO ARRUDA</b><small>{tr('A TORCIDA MAIS APAIXONADA', 'THE MOST PASSIONATE CROWD')}</small></div>
+          <div className="tx"><b>TRICOLOR DO ARRUDA</b><small>{'O TERROR DO NORDESTE'}</small></div>
           <span className="esc"><Escudo nome={clube} size={74} /></span>
         </div>
         <div className="gar-bandeira">
@@ -146,7 +147,7 @@ export function GalaArruda({ clube, chave, mostra, grito }: { clube: string; cha
         <div className="gar-faixa">
           <small>{tr('🐍 CHEGOU NA SALA', '🐍 JUST ARRIVED')}</small>
           <b>{mostra}</b>
-          <em>🔊 Ô ARRUDA! Ô ARRUDA! 🔊</em>
+          <em>🔊 Ô TRICOLOR! Ô TRICOLOR! 🔊</em>
         </div>
       </div>
     </div>,

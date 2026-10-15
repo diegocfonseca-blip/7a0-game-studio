@@ -31,6 +31,7 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampion
 import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
+import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
 import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
@@ -1844,7 +1845,7 @@ export function EscLobby() {
     // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1859,7 +1860,7 @@ export function EscLobby() {
       }
     }
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
       .select().single()
     if (re || !rd) {
       // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
@@ -2654,6 +2655,22 @@ export function EscLobby() {
     fetchPlayers(room.id)
   }
 
+  // 🏳️ QUEM ESCOLHE O CLUBE E CONVOCA nas copas com convocação (Copa do Mundo / regional) — 15/10. Fica na MESMA
+  // divisão das posições (`dupla_categories.CONV`, linha do dono, gravada pela função do banco que confere a dupla).
+  // Tocar no que já está marcado desmarca (volta ao padrão: o dono convoca). Regra lida em `dupla-copa.ts`.
+  async function tocarConvoca(dono: RoomPlayer, quem: string) {
+    if (!room || !user) return
+    const par = players.find(p => p.dupla_partner_of === dono.user_id)
+    if (!par || (user.id !== dono.user_id && user.id !== par.user_id)) return
+    if (quem !== dono.user_id && quem !== par.user_id) return
+    const { data: fresh } = await supabase.from('room_players').select('dupla_categories').eq('room_id', room.id).eq('user_id', dono.user_id).maybeSingle()
+    const novo: Record<string, string> = { ...((fresh?.dupla_categories ?? {}) as Record<string, string>) }
+    if (novo[DUPLA_CONVOCA] === quem) delete novo[DUPLA_CONVOCA]; else novo[DUPLA_CONVOCA] = quem
+    const { error } = await supabase.rpc('dupla_definir', { p_room: room.id, p_dono: dono.user_id, p_cats: novo })
+    if (error) setRoomError(`${tr('Não consegui salvar quem convoca', 'Couldn\'t save who calls up')}: ${error.message}`)
+    fetchPlayers(room.id)
+  }
+
   // host remove um técnico da sala de espera (antes de abrir o pregão): apaga
   // a vaga dele. O cliente removido percebe pela realtime que sumiu da lista e
   // volta sozinho pro menu (efeito abaixo).
@@ -3248,8 +3265,9 @@ export function EscLobby() {
               </>)}
               {!criar2 && quadroLiga}
             </div>
-            {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
-            {!isCareer && (
+            {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto. 🚫 Nem na sala "🌐 Copa do Mundo" direta (Diego 15/10):
+                lá não tem leilão, e a escolha de seleção não sabe de dupla (cada um escolheria a sua). */}
+            {!isCareer && roomMode !== 'mundo' && (
               <div>
                 <SegField label={tr('Quem comanda cada time', 'Who runs each team')}>
                   <Seg options={[[false, '👤 Solo'], [true, tr('🤝 Duplas (beta)', '🤝 Duos (beta)')]] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
@@ -4300,6 +4318,33 @@ export function EscLobby() {
                         ? (getLang() === 'en' ? `All split: green is yours, the rest is ${nomeDoOutro}'s. At the auction, only whoever runs the position bids.` : `Tudo dividido: o verde é seu, o resto é do ${nomeDoOutro}. Na hora do leilão, só quem manda na posição dá o lance.`)
                         : (getLang() === 'en' ? `Tap 3 positions. The other 3 go automatically to ${nomeDoOutro} — and if you don't choose, the game splits them on its own at kick-off.` : `Toque em 3 posições. As outras 3 ficam automático com o ${nomeDoOutro} — e se vocês não escolherem, o jogo divide sozinho na hora de começar.`)}
                     </p>
+                    {/* 🏳️ QUEM CONVOCA — só em sala com convocação (Copa do Mundo ou copa regional depois da liga) */}
+                    {(() => {
+                      const gsC = room?.game_state as (GS & { regionalNaLiga?: string }) | undefined
+                      if (!gsC?.mundoNaLiga && !gsC?.regionalNaLiga) return null
+                      const conv = (p.dupla_categories as Record<string, string> | null | undefined)?.[DUPLA_CONVOCA] ?? p.user_id
+                      const nomeDe = (r: RoomPlayer) => stripEmoji(r.manager_name).trim()
+                      return (
+                        <div className="mt-2.5 pt-2" style={{ borderTop: '2px dashed rgba(0,0,0,.12)' }}>
+                          <p className="text-black/60 text-[10.5px] font-black uppercase tracking-wide mb-1.5" style={OSWALD}>{tr('🏳️ Quem escolhe o clube e convoca', '🏳️ Who picks the club and calls up')}</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {[p, par].map(r => {
+                              const marcado = conv === r.user_id
+                              return (
+                                <button key={r.user_id} onClick={() => tocarConvoca(p, r.user_id)}
+                                  className="border-2 border-black rounded-lg py-1.5 px-1 font-black text-[11.5px] leading-tight active:translate-y-0.5"
+                                  style={{ ...OSWALD, background: marcado ? GREEN : '#fff', color: marcado ? '#fff' : '#000' }}>
+                                  {r.user_id === user?.id ? tr('🙋 EU', '🙋 ME') : tr('🤝 PARCEIRO', '🤝 PARTNER')}<br /><span style={{ fontSize: 10, opacity: 0.8 }}>{nomeDe(r)}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                          <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-1.5">
+                            {getLang() === 'en' ? `In the World Cup / regional cup only ONE picks the club and calls up the 11 — the other watches live. Nobody chose = ${nomeDe(p)} calls up.` : `Na Copa do Mundo / copa regional só UM escolhe o clube e convoca os 11 — o outro assiste. Ninguém marcou = ${nomeDe(p)} convoca.`}
+                          </p>
+                        </div>
+                      )
+                    })()}
                   </div>
                 )
               })()}

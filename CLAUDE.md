@@ -808,6 +808,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   Agora elenco cheio ainda dá **1 lance de REFORÇO por setor**, só em carta bem melhor que o pior titular. O jogador que perde a
   vaga é **LISTADO no próximo leilão** pelo bot (`marcaAVender`) — dispensar não dá dinheiro, vender dá (*"pra ele ter grana"*).
 
+- **👑 KINGS LEAGUE (15/10): sala online nova, com o nome "Kings League" e as regras da Kings League BRASIL.** Tudo em
+  `docs/conceito-kings-league.md`. Duas ordens dele que não se mexem: *"tem que ser muito explicativo"* (banner parando o
+  jogo 6–8s em cada regra) e *"mais demorado por partida… mais que todos"* (~3 min por partida). Duplas fora por enquanto.
+
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e
