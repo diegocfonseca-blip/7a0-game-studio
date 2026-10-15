@@ -44,6 +44,7 @@ const FORM_NEED: Record<FormationKey, Record<Sector, number>> = {
   '5-3-2': { GOL: 1, LAT: 2, ZAG: 3, MEI: 3, ATA: 2 },
   '4-2-4': { GOL: 1, LAT: 2, ZAG: 2, MEI: 2, ATA: 4 },
   '5-4-1': { GOL: 1, LAT: 2, ZAG: 3, MEI: 4, ATA: 1 },
+  kings: { GOL: 1, LAT: 0, ZAG: 2, MEI: 2, ATA: 2 }, // 👑 só existe pro tipo (a Dinastia nunca usa)
 }
 const SECTORS: Sector[] = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
 const SECTOR_LABEL: Record<Sector, string> = { GOL: 'Goleiros', LAT: 'Laterais', ZAG: 'Zagueiros', MEI: 'Meio-campo', ATA: 'Ataque' }

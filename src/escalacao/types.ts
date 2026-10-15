@@ -198,7 +198,7 @@ export interface EventoManchete { season: number; round: number; emoji: string; 
 // 4-2-4 e 5-4-1 entraram em 26/08 (martelo do Diego nas 15 formações), medidas
 // no motor real (25 temporadas × 4 perfis de elenco): nenhuma passa de 48% de
 // título nem no cenário mais favorável — mesma faixa das 5 antigas.
-export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1'
+export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1' | 'kings'
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
@@ -208,6 +208,9 @@ export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '5-3-2': { GOL: 1, LAT: 2, ZAG: 3, MEI: 3, ATA: 2 }, // 🧱 muralha: 5 na defesa (2 lat + 3 zag), retranca
   '4-2-4': { GOL: 1, LAT: 2, ZAG: 2, MEI: 2, ATA: 4 }, // 🔥 tudo no ataque: 4 atacantes DE VERDADE (exigência do Diego: "424 não pode ser 433")
   '5-4-1': { GOL: 1, LAT: 2, ZAG: 3, MEI: 4, ATA: 1 }, // 🚌 ônibus: 5 atrás + 4 meias segurando, 1 lá na frente
+  // 👑 KINGS LEAGUE (15/10, só a conta do Diego): futebol 7 = goleiro + 6. Só nasce no START com `kings` — nenhuma
+  // tela de escolha de formação oferece esta (o leilão de sempre monta 7 vagas por time).
+  kings: { GOL: 1, LAT: 0, ZAG: 2, MEI: 2, ATA: 2 },
 }
 
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'

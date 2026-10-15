@@ -10,10 +10,10 @@
 // Guarda o andamento no aparelho (uma chave só, `kings-rapida-v1`) no começo de cada rodada.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { CATALOG_BOTH } from './data'
-import type { Sector } from './types'
+import type { Manager, Sector } from './types'
 import { FAME_TIER } from './screens'
 import { PenaltyArt, type PenaltyArtHandle } from './penalty-art'
+import { CampinhoKings } from './kings-campinho'
 import {
   KINGS_TIMES, KINGS_FORMACAO, calendarioKings, chaveKings, semisKings, simulaPartidaKings, anotaJogoKings, ordenaKings,
   presidenteBot, dueloKings, rngKings, CARTAS_KINGS, JANELA_CARTA, JANELA_PRESIDENTE, MIN_DADO, MIN_INTERVALO, MIN_BOLA, MIN_FIM,
@@ -25,54 +25,44 @@ const INK = '#0C0C0C', CREAM = '#F4ECD6', GOLD = '#FFC400', GREEN = '#1B7A3D', R
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 900 as const, textTransform: 'uppercase' as const }
 const box = (bg = '#fff'): React.CSSProperties => ({ background: bg, color: INK, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `3px 3px 0 ${INK}` })
 const SETORES: Sector[] = ['GOL', 'ZAG', 'MEI', 'ATA']
-const NOME_SETOR: Record<Sector, string> = { GOL: 'Goleiro', LAT: 'Lateral', ZAG: 'Zagueiros', MEI: 'Meias', ATA: 'Atacantes' }
-const BOTS = ['Fúria do Asfalto', 'Real Várzea', 'Tropa do Gol', 'Atlético Pé de Pano', 'Sporting Chinelo', 'Inter de Bairro', 'Galácticos da Laje', 'Dínamo Resenha', 'Unidos do Rolê']
 const NOME_CARTA: Record<CartaKings, { ic: string; nome: string; txt: string }> = {
   penalti: { ic: '⚽', nome: 'Pênalti', txt: 'uma cobrança a seu favor — você bate' },
   shootout: { ic: '🏃', nome: 'Shootout', txt: 'sai do meio de campo, 5s contra o goleiro — você bate' },
   suspensao: { ic: '🟥', nome: 'Suspensão', txt: 'um rival fica 4 minutos fora (mais gol pra você)' },
   gol_dobro: { ic: '✖️2', nome: 'Gol em dobro', txt: 'seus gols valem 2 por 4 minutos' },
 }
-const SAVE = 'kings-rapida-v1'
+const SAVE = 'kings-rapida-v2'
 const MS_MIN = KINGS_MS_PARTIDA / MIN_FIM
 
 interface CardK { name: string; club: string; year: number; fame: number; lo: number; hi: number; pos: Sector }
 interface TimeK { id: number; nome: string; humano: boolean; elenco: CardK[]; dinheiro: number }
 interface Mata { etapa: 'quartas' | 'semi' | 'final'; jogos: [number, number][]; semiDireto?: number; venc: number[]; feitos: PartidaKings[] }
 interface Save {
-  v: 1; seed: number; fase: 'leilao' | 'liga' | 'mata' | 'fim'
-  times: TimeK[]; setor: number; lote: CardK[]; logLeilao: string[]
+  v: 2; seed: number; fase: 'liga' | 'mata' | 'fim'
+  times: TimeK[]
   cal: [number, number][][]; rodada: number; tabela: LinhaKings[]; resultados: PartidaKings[][]
   mata: Mata | null; campeao: number | null
 }
 const nivel = (c: CardK) => (c.lo + c.hi) / 2
 const forcaDe = (t: TimeK) => t.elenco.length ? t.elenco.reduce((a, c) => a + nivel(c), 0) / 7 : 40
-const chave = (c: CardK) => `${c.name}|${c.club}|${c.year}`
-const precisa = (t: TimeK, pos: Sector) => KINGS_FORMACAO[pos] - t.elenco.filter(c => c.pos === pos).length
 const tier = (f: number) => FAME_TIER[f] ?? FAME_TIER[1]
-const tierEmoji = (f: number) => (f >= 5 ? '👑' : f === 4 ? '⭐' : f === 1 ? '🪵' : '🎯')
-const sobrenome = (n: string) => { const l = n.replace(/\s*\(.*?\)\s*/g, ' ').trim(); return l.split(' ').pop() || l }
 
-function sorteiaLote(seed: number, pos: Sector, usadas: Set<string>, n: number): CardK[] {
-  const r = rngKings(seed)
-  const pool = (CATALOG_BOTH[pos] as unknown as CardK[]).filter(c => !usadas.has(`${c.name}|${c.club}|${c.year}`))
-  const out: CardK[] = []
-  const vistos = new Set<string>()
-  for (let i = 0; i < 400 && out.length < n && pool.length; i++) {
-    const c = pool[Math.floor(r() * pool.length)]
-    const k = `${c.name}|${c.club}|${c.year}`
-    if (vistos.has(k)) continue
-    vistos.add(k); out.push({ name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi, pos })
-  }
-  return out.sort((a, b) => b.fame - a.fame || nivel(b) - nivel(a))
+/** 🔨 os 10 times vêm do LEILÃO DE SEMPRE (formação 'kings' = goleiro + 6): pega os 7 de cada um */
+function timesDoLeilao(managers: Manager[]): TimeK[] {
+  const ord = [...managers].sort((a, b) => Number(b.isHuman) - Number(a.isHuman) || a.id - b.id).slice(0, KINGS_TIMES)
+  return ord.map((m, i) => {
+    const elenco: CardK[] = []
+    for (const pos of SETORES) {
+      const daPos = m.squad.filter(c => c.pos === pos).sort((a, b) => (b.lo + b.hi) - (a.lo + a.hi)).slice(0, KINGS_FORMACAO[pos])
+      for (const c of daPos) elenco.push({ name: c.name, club: c.club, year: c.year, fame: c.fame, lo: c.lo, hi: c.hi, pos })
+    }
+    return { id: i, nome: m.teamName, humano: m.isHuman, elenco, dinheiro: m.money }
+  })
 }
-
-function novoJogo(nome: string): Save {
-  const seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0
-  const times: TimeK[] = [{ id: 0, nome: nome || 'Meu Time', humano: true, elenco: [], dinheiro: 100 },
-    ...BOTS.slice(0, KINGS_TIMES - 1).map((b, i) => ({ id: i + 1, nome: b, humano: false, elenco: [], dinheiro: 100 }))]
+function novoCampeonato(managers: Manager[], seed: number): Save {
+  const times = timesDoLeilao(managers)
   return {
-    v: 1, seed, fase: 'leilao', times, setor: 0, lote: sorteiaLote(seed, 'GOL', new Set(), KINGS_FORMACAO.GOL * KINGS_TIMES + 3), logLeilao: [],
+    v: 2, seed, fase: 'liga', times,
     cal: calendarioKings(times.map(t => t.id)), rodada: 0,
     tabela: times.map(t => ({ id: t.id, nome: t.nome, pts: 0, j: 0, v: 0, vs: 0, ds: 0, d: 0, gp: 0, gc: 0 })),
     resultados: [], mata: null, campeao: null,
@@ -144,119 +134,6 @@ function Duelo({ titulo, modo, extraErro = 0, aoFim }: { titulo: string; modo: '
           <div style={{ ...OSW, fontSize: 13, color: GOLD, marginTop: 6 }}>⏱️ {seg}s</div>
         </>}
       </div>
-    </div>
-  )
-}
-
-function CampinhoKings({ elenco }: { elenco: CardK[] }) {
-  const SPOT: { pos: Sector; x: number; y: number; i: number }[] = [
-    { pos: 'ATA', x: 32, y: 20, i: 0 }, { pos: 'ATA', x: 68, y: 20, i: 1 }, { pos: 'MEI', x: 24, y: 44, i: 0 }, { pos: 'MEI', x: 76, y: 44, i: 1 },
-    { pos: 'ZAG', x: 30, y: 67, i: 0 }, { pos: 'ZAG', x: 70, y: 67, i: 1 }, { pos: 'GOL', x: 50, y: 85, i: 0 },
-  ]
-  return (
-    <div style={{ position: 'relative', width: '100%', maxWidth: 330, margin: '0 auto', aspectRatio: '1 / 1.3', border: `3px solid ${INK}`, borderRadius: 14, overflow: 'hidden', boxShadow: `4px 4px 0 ${INK}`, background: 'repeating-linear-gradient(180deg,#1f8f4a 0 9%,#1a8042 9% 18%)' }}>
-      <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '5.5%', background: '#111', color: GOLD, ...OSW, fontSize: 9, letterSpacing: '.15em', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, whiteSpace: 'nowrap' }}>KINGS LEAGUE · 👑 · KINGS LEAGUE · 👑 · KINGS LEAGUE</div>
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '5.5%', background: '#111', color: GOLD, ...OSW, fontSize: 9, letterSpacing: '.15em', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, whiteSpace: 'nowrap' }}>LEILÃO LEGENDS · 🔨 · LEILÃO LEGENDS · 🔨</div>
-      <svg viewBox="0 0 100 130" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-        <g fill="none" stroke="rgba(255,255,255,.85)" strokeWidth="0.9"><rect x="6" y="8" width="88" height="114" rx="2" /><line x1="6" y1="65" x2="94" y2="65" /><circle cx="50" cy="65" r="11" /><rect x="28" y="8" width="44" height="17" /><rect x="28" y="105" width="44" height="17" /></g>
-      </svg>
-      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: 80, height: 80, borderRadius: '50%', border: '3px solid rgba(255,255,255,.55)', background: 'rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,.9)' }}><span style={{ ...OSW, fontSize: 11, lineHeight: .95, textAlign: 'center' }}>KINGS<br />LEAGUE</span><span>👑</span></div>
-      {SPOT.map(({ pos, x, y, i }) => {
-        const c = elenco.filter(e => e.pos === pos)[i]
-        const t = c ? tier(c.fame) : null
-        return (
-          <div key={`${pos}${i}`} style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)', width: 78, textAlign: 'center', zIndex: 3 }}>
-            <div style={{ border: `3px ${c ? 'solid' : 'dashed'} ${INK}`, borderRadius: 10, boxShadow: c ? `2px 3px 0 ${INK}` : 'none', padding: '3px 3px 4px', background: c && t ? t.grad : 'rgba(255,255,255,.4)' }}>
-              <span style={{ ...OSW, display: 'inline-block', fontSize: 9.5, background: c ? INK : 'rgba(0,0,0,.55)', color: '#fff', borderRadius: 6, padding: '1px 6px' }}>{pos}</span>
-              {c && t ? <><div style={{ ...OSW, fontSize: 12, lineHeight: 1, color: t.ink, textTransform: 'none' }}>{sobrenome(c.name)}</div><div style={{ fontSize: 10 }}>{tierEmoji(c.fame)}</div></> : <div style={{ ...OSW, fontSize: 10.5, color: 'rgba(12,12,12,.7)', textTransform: 'none' }}>Vazio</div>}
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-// ── o leilão de 7 (cego, por setor) ──────────────────────────────────────────────────────────────────────────
-function resolveLeilao(s: Save, meus: Record<string, number>): Save {
-  const pos = SETORES[s.setor]
-  const r = rngKings(s.seed + 777 * (s.setor + 1))
-  const times = s.times.map(t => ({ ...t, elenco: [...t.elenco] }))
-  const lances: { time: number; card: CardK; v: number; des: number }[] = []
-  for (const c of s.lote) { const v = meus[chave(c)] ?? 0; if (v > 0) lances.push({ time: 0, card: c, v, des: r() }) }
-  for (const t of times.filter(x => !x.humano)) {
-    const falta = precisa(t, pos)
-    if (falta <= 0) continue
-    const base: Record<number, number> = { 5: 26, 4: 15, 3: 8, 2: 5, 1: 2 }
-    const alvo = [...s.lote].sort(() => r() - 0.5).sort((a, b) => b.fame - a.fame + (r() - 0.5) * 2.5).slice(0, falta + 2)
-    const teto = Math.max(2, Math.floor(t.dinheiro / Math.max(1, (SETORES.length - s.setor)) * 1.6))
-    for (const c of alvo) lances.push({ time: t.id, card: c, v: Math.max(1, Math.min(teto, Math.round((base[c.fame] ?? 3) * (0.6 + r() * 0.8)))), des: r() })
-  }
-  lances.sort((a, b) => b.v - a.v || a.des - b.des)
-  const levadas = new Set<string>()
-  const log: string[] = []
-  for (const l of lances) {
-    const k = chave(l.card), t = times.find(x => x.id === l.time)!
-    if (levadas.has(k) || precisa(t, pos) <= 0 || t.dinheiro < l.v) continue
-    levadas.add(k); t.dinheiro -= l.v; t.elenco.push(l.card)
-    log.push(`${t.humano ? '🟢 VOCÊ' : t.nome} levou ${l.card.name} por ${l.v} 🪙`)
-  }
-  // quem não completou: pega de graça o que sobrou do lote (o "monte"), do mais fraco pro mais forte
-  const sobras = s.lote.filter(c => !levadas.has(chave(c))).sort((a, b) => nivel(a) - nivel(b))
-  for (const t of times) while (precisa(t, pos) > 0 && sobras.length) { const c = sobras.shift()!; t.elenco.push(c); log.push(`📦 ${t.humano ? 'VOCÊ' : t.nome} pegou ${c.name} no monte (de graça)`) }
-  const prox = s.setor + 1
-  const usadas = new Set(times.flatMap(t => t.elenco.map(chave)))
-  if (prox >= SETORES.length) {
-    // completa quem ainda tiver buraco (catálogo grande, quase nunca acontece)
-    for (const t of times) for (const p of SETORES) { const extra = sorteiaLote(s.seed + t.id * 31 + p.length, p, usadas, 6); while (precisa(t, p) > 0 && extra.length) { const c = extra.pop()!; usadas.add(chave(c)); t.elenco.push(c) } }
-    return { ...s, times, setor: prox, lote: [], logLeilao: log, fase: 'liga' }
-  }
-  const np = SETORES[prox]
-  return { ...s, times, setor: prox, lote: sorteiaLote(s.seed + prox * 101, np, usadas, KINGS_FORMACAO[np] * KINGS_TIMES + 3), logLeilao: log }
-}
-
-function TelaLeilao({ s, setS }: { s: Save; setS: (n: Save) => void }) {
-  const eu = s.times[0]
-  const pos = SETORES[s.setor]
-  const [lances, setLances] = useState<Record<string, number>>({})
-  const [verLog, setVerLog] = useState(false)
-  const gasto = Object.values(lances).reduce((a, b) => a + b, 0)
-  const falta = precisa(eu, pos)
-  const muda = (c: CardK, d: number) => setLances(L => { const v = Math.max(0, (L[chave(c)] ?? 0) + d); const tot = gasto - (L[chave(c)] ?? 0) + v; if (tot > eu.dinheiro) return L; return { ...L, [chave(c)]: v } })
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {verLog && s.logLeilao.length > 0 && (
-        <div style={{ ...box('#fff'), padding: 12 }}>
-          <div style={{ ...OSW, fontSize: 15 }}>🔨 Resultado do setor anterior</div>
-          {s.logLeilao.map((l, i) => <div key={i} style={{ fontSize: 12, fontWeight: 700, padding: '3px 0', borderTop: i ? '1px solid #eee' : 'none' }}>{l}</div>)}
-        </div>
-      )}
-      <div style={{ ...box(INK), color: '#fff', padding: 12 }}>
-        <div style={{ ...OSW, color: GOLD, fontSize: 12, letterSpacing: '.1em' }}>🔨 LEILÃO ÀS CEGAS · {s.setor + 1}/4</div>
-        <div style={{ ...OSW, fontSize: 24 }}>{NOME_SETOR[pos]} · faltam {falta}</div>
-        <div style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>Dê lance nos que você quer (pode dar em mais de {falta}). Ninguém vê o lance de ninguém. O maior leva. Quem ficar sem, pega de graça no monte o que sobrar.</div>
-        <div style={{ ...OSW, fontSize: 18, color: GOLD, marginTop: 6 }}>💰 {eu.dinheiro - gasto} 🪙 livres <span style={{ color: '#fff', fontSize: 12 }}>(de {eu.dinheiro})</span></div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        {s.lote.map(c => {
-          const t = tier(c.fame), v = lances[chave(c)] ?? 0
-          return (
-            <div key={chave(c)} style={{ ...box(t.grad), padding: 8, outline: v ? `3px solid ${GREEN}` : 'none', outlineOffset: 2 }}>
-              <div style={{ ...OSW, fontSize: 14, lineHeight: 1.05, color: t.ink, textTransform: 'none' }}>{c.name}</div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: t.ink, opacity: .8 }}>{c.club} · {c.year} · {tierEmoji(c.fame)}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                <button onClick={() => muda(c, -1)} style={{ ...box('#fff'), width: 28, height: 28, ...OSW, fontSize: 16, padding: 0 }}>−</button>
-                <div style={{ flex: 1, textAlign: 'center', ...OSW, fontSize: 16, background: '#fff', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 0' }}>{v} 🪙</div>
-                <button onClick={() => muda(c, 1)} style={{ ...box('#fff'), width: 28, height: 28, ...OSW, fontSize: 16, padding: 0 }}>+</button>
-                <button onClick={() => muda(c, 5)} style={{ ...box(GOLD), width: 34, height: 28, ...OSW, fontSize: 12, padding: 0 }}>+5</button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <Botao bg={GREEN} cor="#fff" onClick={() => { setLances({}); setVerLog(true); setS(resolveLeilao(s, lances)) }}>🔒 LACRAR ENVELOPE</Botao>
-      <div style={{ ...OSW, fontSize: 13, color: 'rgba(0,0,0,.6)' }}>🔨 Seu time · {eu.elenco.length}/7</div>
-      <CampinhoKings elenco={eu.elenco} />
     </div>
   )
 }
@@ -457,13 +334,17 @@ function Tabela({ s }: { s: Save }) {
 }
 
 // ── o jogo inteiro ──────────────────────────────────────────────────────────────────────────────────────────
-export default function KingsLeagueRapida({ nomeTime, aoSair }: { nomeTime: string; aoSair: () => void }) {
-  const [s, setSRaw] = useState<Save | null>(() => { try { const r = localStorage.getItem(SAVE); const j = r ? JSON.parse(r) as Save : null; return j?.v === 1 ? j : null } catch { return null } })
+export default function KingsLeagueRapida({ managers, seed, aoSair, aoNovo }: { managers: Manager[]; seed: number; aoSair: () => void; aoNovo: () => void }) {
+  // o campeonato é DESTE leilão (mesma semente): voltou de outro leilão = campeonato novo
+  const [s, setSRaw] = useState<Save | null>(() => {
+    try { const r = localStorage.getItem(SAVE); const j = r ? JSON.parse(r) as Save : null; if (j?.v === 2 && j.seed === seed) return j } catch { /* sem save */ }
+    return novoCampeonato(managers, seed)
+  })
   const setS = (n: Save) => { setSRaw(n); try { localStorage.setItem(SAVE, JSON.stringify(n)) } catch { /* sem espaço: segue só na memória */ } }
   const [etapa, setEtapa] = useState<'menu' | 'vestiario' | 'jogo' | 'pos'>('menu')
   const [carta, setCarta] = useState<CartaKings | null>(null)
   const [ultimos, setUltimos] = useState<PartidaKings[]>([])
-  const [regras, setRegras] = useState(!s)
+  const [regras, setRegras] = useState(() => !s || (s.rodada === 0 && s.fase === 'liga'))
   useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = '' } }, [])
 
   // o meu jogo desta rodada / desta etapa do mata-mata
@@ -529,7 +410,7 @@ export default function KingsLeagueRapida({ nomeTime, aoSair }: { nomeTime: stri
         <div style={{ fontSize: 12.5, fontWeight: 700, opacity: .9 }}>Partida rápida · regras da Kings League Brasil · <b>teste: só você vê</b></div>
       </div>
       <div style={{ ...box('#fff'), padding: 12, fontSize: 13, fontWeight: 700, lineHeight: 1.6 }}>
-        <div>⚽ <b>Futebol 7</b>: leilão às cegas de <b>goleiro + 6</b> (2 zagueiros, 2 meias, 2 atacantes)</div>
+        <div>⚽ <b>Futebol 7</b>: seu time do leilão, com <b>goleiro + 6</b> (2 zagueiros, 2 meias, 2 atacantes)</div>
         <div>🏆 <b>10 times</b>, todos contra todos (9 rodadas). Pontos: vitória <b>3</b> · vitória no shootout <b>2</b> · derrota no shootout <b>1</b> · derrota <b>0</b></div>
         <div>🥇 <b>1º direto na semi</b> · 2º ao 7º jogam as quartas</div>
         <div>🎲 <b>Minuto 18</b>: o dado decide 2 ou 3 por time até o intervalo</div>
@@ -538,11 +419,9 @@ export default function KingsLeagueRapida({ nomeTime, aoSair }: { nomeTime: stri
         <div>🚫 <b>Não tem empate</b>: shootout</div>
         <div style={{ color: GREEN, marginTop: 4 }}>Calma: o jogo explica cada regra na hora que ela acontece. 😉</div>
       </div>
-      {s && <Botao onClick={() => setRegras(false)}>▶️ CONTINUAR O CAMPEONATO</Botao>}
-      <Botao bg={GREEN} cor="#fff" onClick={() => { setS(novoJogo(nomeTime)); setRegras(false); setEtapa('menu') }}>{s ? '🔁 COMEÇAR UM NOVO' : '👑 COMEÇAR A KINGS LEAGUE'}</Botao>
+      <Botao bg={GREEN} cor="#fff" onClick={() => setRegras(false)}>{s && s.rodada > 0 ? '▶️ CONTINUAR O CAMPEONATO' : '👑 BORA PRA 1ª RODADA'}</Botao>
     </div>
   )
-  else if (s.fase === 'leilao') corpo = <TelaLeilao s={s} setS={setS} />
   else if (etapa === 'vestiario') { const mj = meuJogo(s)!; corpo = <Vestiario titulo={tituloEtapa} rival={nome(mj[0] === 0 ? mj[1] : mj[0])} aoFim={c => { setCarta(c); setEtapa('jogo') }} /> }
   else if (etapa === 'jogo') { const mj = meuJogo(s)!; corpo = <TelaPartida key={`${s.rodada}-${s.mata?.etapa ?? ''}`} s={s} idA={mj[0]} idB={mj[1]} cartaMinha={carta} titulo={tituloEtapa} aoFim={p => fechaRodada(s, p)} /> }
   else if (s.fase === 'fim') corpo = (
@@ -555,7 +434,7 @@ export default function KingsLeagueRapida({ nomeTime, aoSair }: { nomeTime: stri
       </div>
       {ultimos.length > 0 && <div style={{ ...box('#fff'), padding: 10, fontSize: 13, fontWeight: 700 }}>Final: {nome(ultimos[0].idA)} {ultimos[0].golsA} × {ultimos[0].golsB} {nome(ultimos[0].idB)}{ultimos[0].shootout ? ` (shootout ${ultimos[0].shootout.a} × ${ultimos[0].shootout.b})` : ''}</div>}
       <Tabela s={s} />
-      <Botao bg={GREEN} cor="#fff" onClick={() => { setS(novoJogo(nomeTime)); setEtapa('menu') }}>🔁 JOGAR DE NOVO</Botao>
+      <Botao bg={GREEN} cor="#fff" onClick={aoNovo}>🔁 JOGAR DE NOVO (novo leilão)</Botao>
     </div>
   )
   else corpo = (
@@ -581,7 +460,7 @@ export default function KingsLeagueRapida({ nomeTime, aoSair }: { nomeTime: stri
       <Botao bg={GREEN} cor="#fff" onClick={avancar}>{meuJogo(s) ? `▶️ ${s.fase === 'liga' ? `JOGAR A RODADA ${s.rodada + 1}` : `JOGAR A ${tituloEtapa.toUpperCase()}`}` : '⏩ VER OS JOGOS DESTA FASE'}</Botao>
       <Tabela s={s} />
       <div style={{ ...OSW, fontSize: 13, color: 'rgba(0,0,0,.6)' }}>🔨 Seu time</div>
-      <CampinhoKings elenco={s.times[0].elenco} />
+      <CampinhoKings elenco={s.times[0].elenco} tier={tier} />
     </div>
   )
 
@@ -590,7 +469,7 @@ export default function KingsLeagueRapida({ nomeTime, aoSair }: { nomeTime: stri
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '12px 16px 40px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <button onClick={aoSair} style={{ ...box('#fff'), ...OSW, fontSize: 13, padding: '5px 10px' }}>‹ SAIR</button>
-          <span style={{ ...OSW, fontSize: 14 }}>👑 KINGS LEAGUE{s && s.fase !== 'leilao' && !regras ? ` · ${tituloEtapa}` : ''}</span>
+          <span style={{ ...OSW, fontSize: 14 }}>👑 KINGS LEAGUE{s && !regras ? ` · ${tituloEtapa}` : ''}</span>
           {s && !regras && etapa !== 'jogo' && <button onClick={() => setRegras(true)} style={{ ...box('#fff'), ...OSW, fontSize: 12, padding: '5px 8px' }}>📖 REGRAS</button>}
         </div>
         {corpo}

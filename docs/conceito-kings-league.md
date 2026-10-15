@@ -15,6 +15,8 @@ Tudo aqui foi decidido no chat de 15/10. Mockups: `scripts/mockups/kings-league.
 - Mata-mata: **1º direto na semi**, **2º–7º quartas**, 8º–10º fora. Semi e final.
 
 ## Leilão
+- 🔨 **É O LEILÃO DE SEMPRE DO JOGO** (Diego 15/10: *"o leilão é sempre igual ao de sempre nosso"*) — envelope, revelação,
+  monte e cerimônia normais; só muda a formação (`'kings'`) e o campinho. Nunca inventar outro pregão.
 - **Futebol 7**: goleiro + 6 → **1 GOL · 2 ZAG · 2 MEI · 2 ATA**. Mesmas cartas e níveis de sempre.
 - Campinho próprio no leilão (como a quadra do basquete): gramado sintético de arena, placas pretas com letra dourada,
   selo "KINGS LEAGUE 👑" no meio.

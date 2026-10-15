@@ -811,6 +811,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 - **👑 KINGS LEAGUE (15/10): sala online nova, com o nome "Kings League" e as regras da Kings League BRASIL.** Tudo em
   `docs/conceito-kings-league.md`. Duas ordens dele que não se mexem: *"tem que ser muito explicativo"* (banner parando o
   jogo 6–8s em cada regra) e *"mais demorado por partida… mais que todos"* (~3 min por partida). Duplas fora por enquanto.
+  🔨 **E o LEILÃO é o DE SEMPRE** (*"o leilão é sempre igual ao de sempre nosso"*): eu inventei um pregão próprio e ele cortou. Vale
+  pra QUALQUER modo novo: o pregão é o do jogo (envelope/revelação/monte); muda só formação, vagas ou baralho.
 
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque

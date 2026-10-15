@@ -46,6 +46,7 @@ import { pedaco } from './recarga'
 const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate }))))
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
 const KingsRapidaLazy = lazy(pedaco(() => import('./kings-rapida'))) // 👑 Kings League na partida rápida (15/10, só a conta do Diego)
+import { CampinhoKings } from './kings-campinho'
 import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
@@ -1193,6 +1194,8 @@ function YourPitch({ small = false }: { small?: boolean }) {
   const shown = pendingIds.size ? { ...base, squad: base.squad.filter(c => !pendingIds.has(c.id)) } : base
   // 🏀 basquete: a QUADRA no lugar do campinho (mesma lógica anti-spoiler acima).
   if (state.sport === 'basquete') return <NbaCourt m={shown} />
+  // 👑 Kings League: o campinho de 7 (goleiro + 6) no lugar do de 11 — mesmo leilão, mesma regra anti-spoiler acima
+  if (shown.formation === 'kings') return <CampinhoKings elenco={shown.squad.filter(c => !c.fake)} tier={f => FAME_TIER[f] ?? FAME_TIER[1]} />
   // 🧱 leilão de clubes: no pregão você junta PACOTES (um por setor), não jogadores —
   // o campinho de 11 ficaria com um clube inteiro espremido numa bolinha. Mostra a
   // lista dos 5 setores; o campinho de verdade aparece na convocação.
@@ -2619,7 +2622,6 @@ export function EscSetup() {
   const clubesOn = true
   const [clubes, setClubes] = useState(false)
   const kingsOn = useKingsLiberada() // 👑 Kings League (15/10): só a conta do Diego
-  const [kingsAberta, setKingsAberta] = useState(false)
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2827,13 +2829,12 @@ export function EscSetup() {
       {/* 👑 KINGS LEAGUE (15/10) — jogo à parte por cima da tela, com estado próprio (`kings-rapida.tsx`). Só a
           conta do Diego vê (`useKingsLiberada`); o resto da partida rápida não muda nada. */}
       {!career && kingsOn && (
-        <button onClick={() => setKingsAberta(true)} className="w-full text-left active:translate-y-0.5"
+        <button onClick={() => dispatch({ type: 'START', teamName: name.trim() || accountName || 'Meu Time', formation: '4-3-3', rivals: 9, kings: true, copaMode: 'liga', league })} className="w-full text-left active:translate-y-0.5"
           style={{ background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #C2452F', padding: '12px 14px' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: '#FFC400', display: 'block' }}>👑 KINGS LEAGUE <span style={{ fontSize: 11, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE · SÓ VOCÊ VÊ</span></span>
-          <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{t('Futebol 7 com as regras da Kings League Brasil: dado, carta secreta, pênalti do presidente e shootout.', 'Seven-a-side with Kings League Brasil rules: dice, secret card, president penalty and shootout.')}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{t('O leilão de sempre com 7 vagas (goleiro + 6) e 10 times. Depois, as regras da Kings League Brasil: dado, carta secreta, pênalti do presidente e shootout.', 'The usual auction with 7 spots (keeper + 6) and 10 teams. Then Kings League Brasil rules: dice, secret card, president penalty and shootout.')}</span>
         </button>
       )}
-      {kingsAberta && <Suspense fallback={null}><KingsRapidaLazy nomeTime={name.trim() || accountName || ''} aoSair={() => setKingsAberta(false)} /></Suspense>}
       <Box className="p-4 space-y-4">
         {!career && clubesOn && (
           <div>
@@ -6070,6 +6071,20 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
           onAbrir={() => caixa.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })} />
       )}
     </>
+  )
+}
+
+// 👑 KINGS LEAGUE (15/10): depois do leilão de sempre (formação 'kings'), a temporada é a da Kings — jogo à parte
+// por cima da tela (`kings-rapida.tsx`), com os 10 elencos que saíram do pregão. Só a conta do Diego chega aqui.
+export function EscKingsSeason() {
+  const { state, dispatch } = useEsc()
+  const eu = state.managers[state.youIdx]
+  return (
+    <Suspense fallback={null}>
+      <KingsRapidaLazy managers={state.managers} seed={state.seed}
+        aoSair={() => dispatch({ type: 'GO_LOBBY' })}
+        aoNovo={() => dispatch({ type: 'START', teamName: eu?.teamName || 'Meu Time', formation: '4-3-3', rivals: 9, kings: true, copaMode: 'liga', league: (state.deckLeague === 'eu' || state.deckLeague === 'both' ? state.deckLeague : 'br') })} />
+    </Suspense>
   )
 }
 

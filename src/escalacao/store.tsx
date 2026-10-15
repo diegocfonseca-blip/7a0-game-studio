@@ -1205,7 +1205,7 @@ function healCpuSquads(s: EscState) {
 // então um F5 no meio da carreira nunca "perde" o banco maior.
 let MODO_ONLINE = false
 export function marcaModoOnline(on: boolean) { MODO_ONLINE = on }
-const extraDoDono = (m: Manager): number => (ACTIVE_SPORT === 'basquete' || MODO_ONLINE || !elencoNovoLiberado() ? 0 : m.isHuman ? 1 : 0)
+const extraDoDono = (m: Manager): number => (ACTIVE_SPORT === 'basquete' || MODO_ONLINE || !elencoNovoLiberado() || m.formation === 'kings' ? 0 : m.isHuman ? 1 : 0)
 export function slotsOf(m: Manager, pos: Sector): number {
   // 🏀 basquete: o alvo é POR TÉCNICO (nbaSlots) — quinteto 1 → rotação 2 →
   // elenco 3, crescendo a cada temporada só p/ você; bots sem nbaSlots = quinteto.
@@ -5268,7 +5268,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -7053,7 +7053,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       // avulsa. Rivais = os escolhidos (carreira) ou os primeiros da D (rápida).
       const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : tiraClones(TIMES_ELITE, [action.teamName || 'Meu Time']).slice(0, action.rivals)
       // na Série D todos os rivais começam com você — sem "auction-only".
-      const { managers: soloManagers, botPlans: soloPlans } = makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', soloRivalDefs, [], rng)
+      const { managers: soloManagers0, botPlans: soloPlans0 } = makeCareerManagers(action.teamName || 'Meu Time', action.kings ? 'kings' : action.formation, 'D', soloRivalDefs, [], rng)
+      // 👑 KINGS LEAGUE (15/10, só a conta do Diego): o LEILÃO DE SEMPRE, com 10 times (você + 9 rivais que dão
+      // lance) e a formação 'kings' (goleiro + 6). Sem time de preenchimento: a liga da Kings tem 10. Depois da
+      // cerimônia a temporada é a da Kings (`kings-rapida.tsx`), não a liga de 38 rodadas.
+      const soloManagers = action.kings ? soloManagers0.filter(m => m.isHuman || m.auctionRival).slice(0, 10) : soloManagers0
+      if (action.kings) for (const m of soloManagers) m.formation = 'kings'
+      const soloPlans = action.kings ? [] : soloPlans0
       s.managers = soloManagers
       s.youIdx = 0
       // modo Dinastia: mesmo leilão real da carreira, só que o orçamento é o do

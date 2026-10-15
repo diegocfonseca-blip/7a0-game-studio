@@ -1,5 +1,10 @@
 ## 👑 KINGS LEAGUE — 🟢 NO AR NA PARTIDA RÁPIDA, SÓ NA CONTA DO DIEGO (15/10, "faça tudo e publique apenas no partida rápida")
-`src/escalacao/kings-rapida.tsx`: jogo À PARTE por cima da tela de configurar a Partida Rápida (botão preto "👑 KINGS LEAGUE ·
+🔁 **15/10 (madrugada), Diego: *"o leilão é sempre igual ao de sempre nosso"*** — o leilão inventado SAIU. Agora o botão dá
+`START` com `kings: true` → o LEILÃO DE SEMPRE (envelope, revelação, monte, cerimônia) com a formação `'kings'` (types.ts:
+GOL 1 · LAT 0 · ZAG 2 · MEI 2 · ATA 2), 10 times (você + 9 rivais que dão lance, sem preenchimento) e o campinho de 7
+(`kings-campinho.tsx`) no `YourPitch`. Na tela 'season' o Router abre `EscKingsSeason` → `kings-rapida.tsx` com os 10 elencos
+do pregão. Trava: `npm run kings` (motor + leilão real chegando na temporada com 7 por time, sem fake, e o rápido normal intacto).
+(texto antigo:) `src/escalacao/kings-rapida.tsx`: jogo À PARTE por cima da tela de configurar a Partida Rápida (botão preto "👑 KINGS LEAGUE ·
 TESTE · SÓ VOCÊ VÊ", trava `useKingsLiberada`/`KINGS_TESTERS` em sport.ts). Estado próprio (não passa pelo reducer), guarda no
 aparelho em `kings-rapida-v1`. Fluxo: regras → leilão às cegas de 7 (GOL·ZAG·MEI·ATA, 100 🪙, bots dão lance, sobra vai pro
 monte de graça) → 9 rodadas (vestiário 20s com a carta → partida de ~3 min com banners de 7s: início, dado, intervalo,
