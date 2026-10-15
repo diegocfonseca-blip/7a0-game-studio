@@ -122,6 +122,12 @@ sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o c
 Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
 🎁 14/10: presente APROVADO, mas **só de PLANO** (Craque/Lenda/Batismo/Fundador) — *"presente é só dos planos, nada de títulos figurinhas"*.
 
+## 🏆 Moldura do pódio da semana (15/10) — ✅ NO AR
+Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalha, sem mexer no fundo (fundo = cor do plano).
+`podio-semana.tsx`: moldura de metal girando POR FORA da linha na lista de técnicos da sala (ouro · prata · bronze), coroinha
+no 1º e fita "1º RANKING SEMANAL" (texto pedido por ele). Posição = a medalha 🥇🥈🥉 que já vai no nome (vem do banco).
+Mockup: `scripts/mockup-podio-semana.mjs`. Ideia futura (não pedida): levar a moldura pra outros lugares (placar, chat).
+
 ## 🟢 Batismo ComVerissimo FC (15/10) — ✅ código + banco + deploy
 cesar.verissimo27@gmail.com (conta existe desde 30/07). Plano 🖋 FUNDADOR. Série D no assento do bot Soberano Nacional
 (`OLD_NAME` leva save antigo pro nome novo). Escudo 254×360/29 KB, mascote O Verissimo 241×440/38 KB, manto verde #034727 +
