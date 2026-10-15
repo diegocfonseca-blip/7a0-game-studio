@@ -103,6 +103,9 @@ grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (apl
 - Regra fechada: escudo = clube · presidente = pessoa (ver CLAUDE.md). 12 lugares no mockup (sala, chat, martelo, pódio,
   vitrine, jornal, presidência, troféus, caixa, convite, Central, perfil). Sugestão minha: começar por sala + pódio + presidência + jornal.
 - Guarda-roupa por plano com as roupas que JÁ estão em `public/presidente-v*` + roupa avulsa (sugestão R$ 4,90).
+- 🔁 15/10 (Diego): **boneco só do ⭐ Craque pra cima** — grátis não ganha nada (mostra o escudo no lugar). Quer VENDER
+  boneco/roupa. Proposta enviada: Craque = boneco + roupas básicas · Lenda = + roupas de gala · Batismo/Fundador = + roupa com o
+  manto do clube · Loja = roupa/cabelo avulso R$ 4,90. ⏳ Falta ele dizer se o GRÁTIS pode comprar o boneco avulso na Loja.
 - FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
 
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
