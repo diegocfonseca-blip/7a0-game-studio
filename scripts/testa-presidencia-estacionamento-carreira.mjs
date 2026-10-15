@@ -23,7 +23,7 @@ const project = await import('../src/escalacao/presidencia-estadio-projeto.ts')
 const { podeAlterarPresidencia } = await import('../src/escalacao/presidencia-carreira.ts')
 const { valorEstadioPresidencia } = await import('../src/escalacao/presidencia-valores.ts')
 const flags = await import('../src/escalacao/presidencia-lotes.ts')
-assert.equal(flags.PRESIDENCY_PARKING_STAGES_RELEASED, false, 'a compra gradual continua fechada enquanto o mapa antigo está ativo')
+assert.equal(flags.PRESIDENCY_PARKING_STAGES_RELEASED, true, 'publicação privada autorizada junto ao mapa com etapas físicas')
 
 const source = fs.readFileSync(new URL('../src/escalacao/store.tsx', import.meta.url), 'utf8')
 const begin = source.indexOf("    case 'STADIUM_PARKING_INVEST': {"), end = source.indexOf("    case 'BECOME_HOST': {", begin)
@@ -47,12 +47,12 @@ const fixture = (stadium = { inv: { grama: 30 }, ext: ['loja'] }, coins = 70) =>
  untouched: { title: 'preservar', squad: ['jogador-real'] },
 })
 const action = expectedStage => ({ type: 'STADIUM_PARKING_INVEST', mgrId: 7, expectedStage })
-const gated = buildReducer(flags.PRESIDENCY_PARKING_STAGES_RELEASED)
-const enabled = buildReducer(true)
+const gated = buildReducer(false)
+const enabled = buildReducer(flags.PRESIDENCY_PARKING_STAGES_RELEASED)
 const denyAccount = buildReducer(true, false)
 let state = fixture()
 const original = structuredClone(state), oldValue = valorEstadioPresidencia(state.stadiums[7])
-assert.strictEqual(gated(state, action(0)), state, 'flag real fechada impede a nova compra até para a conta autorizada')
+assert.strictEqual(gated(state, action(0)), state, 'desligar a publicação impede a nova compra até para a conta autorizada')
 assert.strictEqual(denyAccount(state, action(0)), state, 'a flag sozinha não concede acesso à conta')
 const totals = []
 for (let stage = 0; stage < 4; stage++) {

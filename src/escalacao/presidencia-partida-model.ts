@@ -1,6 +1,7 @@
 import type {StadiumSave} from './estadiodata'
+import type {AgendaJogoComplexo} from './presidencia-complexo-jornada'
 export type AtletaEstadio={id:string;name:string;pos:string;fake?:boolean}
-export type ContextoPartidaEstadio={id:string;homeClubId?:number;speed?:number;stadium?:StadiumSave;home:readonly AtletaEstadio[];away:readonly AtletaEstadio[];homeBench?:readonly AtletaEstadio[];awayBench?:readonly AtletaEstadio[];homeSecondHalf?:readonly AtletaEstadio[];awaySecondHalf?:readonly AtletaEstadio[]}
+export type ContextoPartidaEstadio={id:string;homeClubId?:number;awayClubId?:number;agenda?:AgendaJogoComplexo;speed?:number;stadium?:StadiumSave;home:readonly AtletaEstadio[];away:readonly AtletaEstadio[];homeBench?:readonly AtletaEstadio[];awayBench?:readonly AtletaEstadio[];homeSecondHalf?:readonly AtletaEstadio[];awaySecondHalf?:readonly AtletaEstadio[]}
 export type GolEstadio={id:string;home:boolean;name:string;assist?:string;minute?:number;startedAt?:number;speed?:number;phase:'shot'|'confirmed'}
 export type ChanceEstadio={id:string;home:boolean;minute:number;startedAt:number;speed?:number;outcome:'defendeu'|'trave'|'fora'|'isolou'}
 export type EstadoPartidaEstadio={visualClock?:{seconds:number;sampledAt:number;running:boolean;rate?:number};context:ContextoPartidaEstadio;minute:number;homeScore:number;awayScore:number;goal?:GolEstadio;chance?:ChanceEstadio;paused:boolean;finished:boolean;homeColor:string;awayColor:string}

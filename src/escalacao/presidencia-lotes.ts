@@ -3,6 +3,6 @@
 export const PRESIDENCY_ECONOMY_RELEASED: boolean = true
 export const PRESIDENCY_ROOF_RELEASED: boolean = true
 export const PRESIDENCY_STADIUM_RELEASED: boolean = true
-// A compra por lotes só será ligada junto ao mapa que representa cada etapa.
-// Continua fechada na carreira, inclusive para a conta da prévia.
-export const PRESIDENCY_PARKING_STAGES_RELEASED: boolean = false
+// Publicação autorizada em 15/10 junto ao mapa que representa cada etapa.
+// A conta verificada de Diego e as permissões da carreira continuam obrigatórias.
+export const PRESIDENCY_PARKING_STAGES_RELEASED: boolean = true

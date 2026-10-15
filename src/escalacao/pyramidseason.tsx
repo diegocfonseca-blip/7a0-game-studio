@@ -1,5 +1,6 @@
 import {VelocidadeEstadio} from './presidencia-velocidade'
 import {DiaDoEstadio} from './presidencia-estadio-dia'
+import {agendaLigaComplexo,agendaFasesComplexo,diasDasFasesCopaComplexo} from './presidencia-complexo-jornada'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import { placarParaK } from './kings-liga'
 import {PresidenciaPartida} from './presidencia-partida'
@@ -6603,7 +6604,7 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
 // (vira a volta), o `roundKey` muda e ele reinicia com os gols do 2º jogo — e
 // os lados trocam, porque na volta quem manda é o outro.
 // 🛟 (13/09) o SEU jogo da Copa também fica numa zona segura — mesmo motivo da lista.
-type ContextoCopaEstadio={id:string;stadiums?:Record<number,import('./estadiodata').StadiumSave>}
+type ContextoCopaEstadio={id:string;stadiums?:Record<number,import('./estadiodata').StadiumSave>;calendar?:{seasonKey:string;previousMatchdays:number;phaseMatchdays:number[];phaseIndex:number}}
 export function MyCopaMatch(props: { stadiumContext?:ContextoCopaEstadio; tie: CopaTie; pos: number; phase: number; colors: Record<number, FCol>; safName?: string; myColor: string; simSpeed?: number; legMs?: number; final?: boolean; footTint?: { bg: string; border: string; holo?: number } }) {
   return <ZonaSegura nome="copa-meu-jogo" aviso={tr('⏳ atualizando o seu jogo…', '⏳ refreshing your match…')}><MyCopaMatchInner {...props} /></ZonaSegura>
 }
@@ -6622,6 +6623,7 @@ function MyCopaMatchInner({ stadiumContext, tie, pos, phase, colors, safName, my
   const goals: ScoreGoal[] = g.map(e => ({ name: e.name, min: e.min, home: swap ? !e.home : e.home, assist: e.assist }))
   const homeT = swap ? tie.b : tie.a, awayT = swap ? tie.a : tie.b
   const stadiumMatch=contextoPartidaCompeticao({enabled:!!stadiumContext,id:`${stadiumContext?.id}:leg:${legIdx}:${homeT.teamId}:${awayT.teamId}`,speed:simSpeed,home:homeT,away:awayT,stadiums:stadiumContext?.stadiums})
+  if(stadiumMatch&&stadiumContext?.calendar)stadiumMatch.agenda=agendaFasesComplexo({...stadiumContext.calendar,fixtureId:stadiumMatch.id,competition:'cup',legIndex:legIdx,homeClubId:stadiumMatch.homeClubId})
   const liveField=useRef<string|undefined>(undefined),[finishedField,setFinishedField]=useState<string|undefined>(undefined)
   if(!done)liveField.current=stadiumMatch?.id
   const presenting=!!stadiumMatch&&liveField.current===stadiumMatch.id
@@ -8994,7 +8996,7 @@ export function PyramidSeasonScreen() {
     if(!home||!away)return undefined
     const xi=(t:SimTeam)=>t.human?lineupAt(careerLineup,t.teamId,round,t.squad,t.formation):botXI(t,round,botPlans) // 🔁 o bot entra com o XI do plano (rodízio/lesão)
     const second=(t:SimTeam)=>{const ids=careerHalftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
-    return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,speed:state.simSpeed??1,homeClubId:home.teamId,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeBench:home.squad.filter(c=>!c.fake),awayBench:away.squad.filter(c=>!c.fake),homeSecondHalf:second(home),awaySecondHalf:second(away)}
+    return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,agenda:agendaLigaComplexo({fixtureId:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,seasonKey:`${state.seed}:${state.seasonNo??1}`,round,homeClubId:home.teamId}),awayClubId:away.teamId,speed:state.simSpeed??1,homeClubId:home.teamId,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeBench:home.squad.filter(c=>!c.fake),awayBench:away.squad.filter(c=>!c.fake),homeSecondHalf:second(home),awaySecondHalf:second(away)}
   })():undefined
 
   const humansOf = (d: Div) => tables[d].filter(t => t.human || t.rival).map(t => ({ name: t.name, teamId: t.teamId, you: t.you, rival: !!t.rival, dorm: !!t.dorm }))
@@ -10189,7 +10191,7 @@ export function PyramidSeasonScreen() {
         )}
         {/* COPA ao vivo: SEU jogo fica no MESMO lugar do placar da liga (em cima
             das abas) — suave, quase não muda o layout. Só quando você está na fase. */}
-        {copaPlaying && myCopaTie && <MyCopaMatch stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed} legMs={copaLegMs}
+        {copaPlaying && myCopaTie && <MyCopaMatch stadiumContext={presidentAvailable?{id:`${seasonSeed}:copa:${copaRound}:${copaFase?.name}`,stadiums:state.stadiums,calendar:{seasonKey:`${state.seed}:${state.seasonNo??1}`,previousMatchdays:38,phaseMatchdays:diasDasFasesCopaComplexo(copa?.rounds??[]),phaseIndex:copaRound}}:undefined} final={privateCareer && (copaFase?.name === 'Final' || copaFase?.name === 'Supercopa')} tie={myCopaTie} pos={copaPos} phase={copaRound} colors={colors} safName={safTeamName} myColor={myCol.solid} simSpeed={state.simSpeed} legMs={copaLegMs}
           footTint={copaFase?.name === 'Supercopa' ? { bg: '#E1EBFF', border: '#a8c2ff', holo: 0.5 } : copaBrOk ? { bg: '#DFF6E8', border: '#9adcb6', holo: 0.5 } : undefined} />}
         {/* 🎮 mesmos controles da liga valem na COPA quando o manual está ligado:
             velocidade + Próxima fase / Pular / Modo auto. No AUTO a Copa segue
@@ -10787,7 +10789,7 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><>{state.onlineMode!=='online'&&<VelocidadeEstadio speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}/>}<PresidenciaEstadioCamera homeClubId={youId} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><>{state.onlineMode!=='online'&&<VelocidadeEstadio speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}/>}<PresidenciaEstadioCamera homeClubId={youId} career={{key:`${state.seed}:${state.seasonNo??1}:${youId}`,state,mgrId:youId,day:{division:me?.div??state.careerDivision??'V',support:torcidaPct,rain:chuvaHoje}}} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
               onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
