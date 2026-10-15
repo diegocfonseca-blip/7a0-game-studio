@@ -68,3 +68,16 @@ grant execute on function public.esc_mp_briefing(uuid, jsonb) to authenticated;
 
 -- ✅ Diego (15/10): o que dá pra liberar sozinho, libera sozinho
 update public.esc_mp_config set auto_liberar = true, atualizado_em = now() where id;
+
+-- 📲 15/10 (Diego: "o telefone não quero antes do Pix… tudo é depois"): o WhatsApp opcional é pedido DEPOIS de pagar
+create or replace function public.esc_mp_telefone(p_id uuid, p_tel text)
+returns boolean language plpgsql security definer set search_path = public as $$
+declare tel text := nullif(regexp_replace(coalesce(p_tel, ''), '\D', '', 'g'), '');
+begin
+  if tel is null or length(tel) < 10 or length(tel) > 13 then return false; end if;
+  update public.esc_mp_pedidos set telefone = tel
+  where id = p_id and email = lower(coalesce(auth.jwt() ->> 'email', '')) and status in ('pago', 'liberado');
+  return found;
+end $$;
+revoke all on function public.esc_mp_telefone(uuid, text) from public, anon;
+grant execute on function public.esc_mp_telefone(uuid, text) to authenticated;

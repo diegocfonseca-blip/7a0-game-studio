@@ -2,7 +2,8 @@
 //
 // Diego trocou a chave fixa + "manda o comprovante no Instagram" pelo Pix gerado na hora (mockup aprovado:
 // `scripts/mockups/pix-mp.png`, *"perfeito, pode fazer tudo já"*). Regras dele:
-//  · tudo é PIX ÚNICO (nada mensal) · pede só o WhatsApp, OPCIONAL (e-mail já vem do login; nada de CPF nem nome)
+//  · tudo é PIX ÚNICO (nada mensal) · antes do Pix NÃO pede nada (*"o telefone não quero antes do Pix… tudo é depois"*):
+//    o WhatsApp, opcional, só aparece depois de pagar (e-mail já vem do login; nada de CPF nem nome)
 //  · no celular o COPIAR vem primeiro e grande (o QR fica embaixo) · o Pix vale 24h · se a pessoa voltar, o mesmo Pix
 //    ainda está ali ("você tem um Pix esperando") · ao voltar do app do banco, o jogo confere sozinho
 //  · liberou o automático (Craque, Lenda, salas, tudo do Lenda no Batismo/Fundador) → mostra na hora; o PERSONALIZADO
@@ -50,7 +51,6 @@ export function PixMP({ produto, valor }: { produto: ProdutoMp; valor?: number }
   const en = getLang() === 'en'
   const [fase, setFase] = useState<Fase>('inicio')
   const [pix, setPix] = useState<Pix | null>(null)
-  const [tel, setTel] = useState('')
   const [erro, setErro] = useState('')
   const [copiou, setCopiou] = useState(false)
   const [liberado, setLiberado] = useState(true)
@@ -91,7 +91,7 @@ export function PixMP({ produto, valor }: { produto: ProdutoMp; valor?: number }
   const gerar = async () => {
     setFase('gerando'); setErro('')
     logApoio(`💳 gerou Pix MP · ${produto}`)
-    const { data, error } = await supabase.functions.invoke('mp-criar-pix', { body: { produto, telefone: tel.replace(/\D/g, '') } })
+    const { data, error } = await supabase.functions.invoke('mp-criar-pix', { body: { produto } })
     if (error || !data?.qr_code) {
       let cod = ''
       try { cod = (await (error as { context?: Response })?.context?.json?.())?.erro ?? '' } catch { /* sem corpo */ }
@@ -121,12 +121,6 @@ export function PixMP({ produto, valor }: { produto: ProdutoMp; valor?: number }
 
       {(fase === 'inicio' || fase === 'gerando' || fase === 'erro') && <>
         <p className="text-[12px] font-bold leading-snug" style={{ color: '#5a5240' }}>{tr('O Pix sai com o valor certinho. Não precisa mandar comprovante: o jogo vê sozinho quando cair.', 'The Pix comes with the exact amount. No receipt needed: the game sees it on its own when it lands.')}</p>
-        <label className="block text-left mt-3">
-          <span className="text-[11px] font-black uppercase tracking-wide" style={{ ...OSW, color: '#5a5240' }}>{tr('Seu WhatsApp (opcional)', 'Your WhatsApp (optional)')}</span>
-          <input value={tel} onChange={e => setTel(e.target.value.replace(/[^\d()+\s-]/g, '').slice(0, 20))} inputMode="tel" placeholder="(11) 91234-5678"
-            className="w-full rounded-xl px-3 py-2 mt-1 font-bold text-[15px] bg-white" style={{ border: `2px solid ${INK}` }} />
-          <span className="block text-[10.5px] font-bold mt-1" style={{ color: 'rgba(12,12,12,.5)' }}>{tr('Só pra gente te ajudar se der algum problema.', 'Only so we can help you if something goes wrong.')}</span>
-        </label>
         {fase === 'erro' && <p className="text-[12px] font-black mt-2" style={{ color: RED }}>{erro}</p>}
         <button onClick={gerar} disabled={fase === 'gerando'} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5" style={btn(GREEN, '#fff')}>
           {fase === 'gerando' ? tr('⏳ Gerando…', '⏳ Creating…') : tr('⚡ Gerar meu Pix', '⚡ Create my Pix')}
@@ -162,10 +156,30 @@ function Pago({ produto, liberado, pedido }: { produto: ProdutoMp; liberado: boo
       <div className="text-[56px] leading-none mt-1">✅</div>
       <p className="font-black uppercase text-[24px] mt-1" style={{ ...OSW, color: GREEN }}>{tr('Pagamento confirmado!', 'Payment confirmed!')}</p>
       <p className="text-[13px] font-bold mt-1 leading-snug">{liberado ? tr(GANHOU[produto][0], GANHOU[produto][1]) : tr('Chegou pro Diego liberar. Em instantes está na sua conta.', 'It reached Diego to unlock. It will be in your account shortly.')}</p>
-      {clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : (
+      {clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
+        <Telefone pedido={pedido} />
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"
           style={{ ...OSW, background: GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{tr('🎮 Bora jogar', '🎮 Let’s play')}</button>
-      )}
+      </>}
+    </div>
+  )
+}
+
+/** 📲 o WhatsApp OPCIONAL, só depois de pagar */
+function Telefone({ pedido, embutido = false }: { pedido: string; embutido?: boolean }) {
+  const [tel, setTel] = useState('')
+  const [ok, setOk] = useState<null | boolean>(null)
+  const salvar = async () => { const { data } = await supabase.rpc('esc_mp_telefone', { p_id: pedido, p_tel: tel }); setOk(!!data) }
+  if (ok) return <p className="text-[12px] font-black mt-2" style={{ color: GREEN }}>{tr('📲 WhatsApp salvo. Valeu!', '📲 WhatsApp saved. Thanks!')}</p>
+  return (
+    <div className={`text-left ${embutido ? 'mt-2.5' : 'mt-3 rounded-xl p-3'}`} style={embutido ? undefined : { background: CREAM, border: `2px solid ${INK}` }}>
+      <span className="text-[11px] font-black uppercase tracking-wide" style={{ ...OSW, color: '#5a5240' }}>{tr('Seu WhatsApp (opcional)', 'Your WhatsApp (optional)')}</span>
+      <div className="flex gap-2 mt-1">
+        <input value={tel} onChange={e => { setTel(e.target.value.replace(/[^\d()+\s-]/g, '').slice(0, 20)); setOk(null) }} inputMode="tel" placeholder="(11) 91234-5678"
+          className="flex-1 min-w-0 rounded-xl px-3 py-2 font-bold text-[15px] bg-white" style={{ border: `2px solid ${INK}` }} />
+        <button onClick={salvar} disabled={tel.replace(/\D/g, '').length < 10} className="rounded-xl px-3 text-[14px] uppercase" style={{ ...OSW, background: GOLD, border: `2px solid ${INK}`, opacity: tel.replace(/\D/g, '').length < 10 ? .5 : 1 }}>{tr('Salvar', 'Save')}</button>
+      </div>
+      <span className="block text-[10.5px] font-bold mt-1" style={{ color: 'rgba(12,12,12,.5)' }}>{ok === false ? tr('Confere o número com DDD.', 'Check the number with area code.') : tr('Só pra gente te ajudar se precisar.', 'Only so we can help you if needed.')}</span>
     </div>
   )
 }
@@ -206,6 +220,7 @@ function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
         <p className="text-[11px] font-black mt-2.5 leading-snug" style={{ color: '#7C3AED' }}>{tr('🎨 Não precisa mandar imagem: a arte é feita pelo Leilão Legends, exclusiva pro seu clube.', '🎨 No need to send images: the art is made by Leilão Legends, exclusive to your club.')}</p>
         <button onClick={salvar} disabled={busy} className="w-full rounded-xl py-2.5 mt-2.5 text-[16px] uppercase active:translate-y-0.5" style={{ ...OSW, background: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{busy ? '…' : tr('📨 Enviar', '📨 Send')}</button>
       </> : <p className="text-[13px] font-black mt-1.5" style={{ color: GREEN }}>{tr('✅ Recebido! O Diego começa a fazer o seu clube.', '✅ Got it! Diego will start building your club.')}</p>}
+      <Telefone pedido={pedido} embutido />
       <p className="text-[11.5px] font-bold mt-3" style={{ color: '#5a5240' }}>{tr('Quer falar com o Diego? Escolhe por onde:', 'Want to talk to Diego? Pick how:')}</p>
       <div className="flex gap-2 mt-1.5">
         {WHATSAPP_CONTATO && <a href={`https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" className="flex-1 rounded-xl py-2 text-center text-[14px] uppercase" style={{ ...OSW, background: '#25D366', color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>📲 WhatsApp</a>}

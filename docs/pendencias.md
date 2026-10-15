@@ -418,7 +418,7 @@ SERVIDOR (29,90/49,90/79,90/99,90, subida = diferença + 5, salas 4,90, teste R$
 approved E o valor bater, `auto_liberar = true` (decisão dele: o automático entra sozinho — Craque prata · Lenda ouro · Batismo/
 Fundador = ouro + `esc_compras_batismo` · salas +3). O personalizado (escudo, mascote, manto, canto, gala, nº de fundador, sócio)
 continua no roteiro de batismo.
-✅ Edge Functions `mp-criar-pix` (login obrigatório, WhatsApp opcional, Pix vale 24h, guarda o QR pro "Pix esperando") e
+✅ Edge Functions `mp-criar-pix` (login obrigatório, sem pedir nada antes do Pix (o WhatsApp opcional vem DEPOIS de pagar, `esc_mp_telefone`), Pix vale 24h, guarda o QR pro "Pix esperando") e
 `mp-webhook` (assinatura + busca o pagamento no MP antes de acreditar).
 ✅ Tela (`pix-mp.tsx`): gerar → COPIAR grande + QR → "esperando" (confere a cada 5s e ao voltar do banco) → "Pagamento
 confirmado!". Batismo/Fundador: "✍️ Conta como você imagina o seu clube" (nome, coração, cores, escudo, mascote, canto no
