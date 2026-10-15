@@ -117,6 +117,10 @@ grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (apl
   dos donos de batismo (`esc_socios.time_coracao`, 15/10): Corinthians 13 · Flamengo 7 · São Paulo 7 · Palmeiras 6 · Inter 4 ·
   Atlético-MG 3 · Grêmio 3 · Santos 3 · Cruzeiro 2 · Vasco 2 · Botafogo · CRB · Paraná · Paysandu · Remo · Rio Branco-PR ·
   Santa Cruz (17 do Brasil). ⏳ Próximo: mockup com 3 (Corinthians, Flamengo, São Paulo) no boneco antes de fazer o resto.
+  🎽 15/10: 1ª versão (listrado genérico) reprovada: *"N ficou bom pq N é oficial"*. Ele mandou pesquisar a oficial SEM
+  patrocínio. 2ª versão = Flamengo 2025 jogo 1 (6 pretas/5 vermelhas com filete, gola V preta, manga preta, 3 listras vermelhas
+  no ombro, escudo e Adidas brancos) pintada SOBRE a camiseta branca da base (mesma arte, webp). Gerador:
+  `python3 scripts/camisas-presidente/flamengo-2025.py <pasta>`; mockup em `scripts/mockups/camisa-presidente-flamengo-2025.png`.
 - FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
 
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
