@@ -106,6 +106,9 @@ grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (apl
 - 🔁 15/10 (Diego): **boneco só do ⭐ Craque pra cima** — grátis não ganha nada (mostra o escudo no lugar). Quer VENDER
   boneco/roupa. Proposta enviada: Craque = boneco + roupas básicas · Lenda = + roupas de gala · Batismo/Fundador = + roupa com o
   manto do clube · Loja = roupa/cabelo avulso R$ 4,90. ⏳ Falta ele dizer se o GRÁTIS pode comprar o boneco avulso na Loja.
+  Ele esclareceu: é a CRIAÇÃO DE PERSONAGEM. 2ª proposta (15/10): grátis monta pra ver mas não salva · Craque = pele + 14 roupas
+  básicas + cabelos/barbas clássicos · Lenda = + 9 roupas especiais · Batismo/Fundador = + 10 roupas de gala · cabelos de craque
+  (Neymar, Messi, CR7…) avulsos R$ 2,90 e roupas especiais R$ 4,90 na Loja. ⏳ esperando o OK.
 - FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
 
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado

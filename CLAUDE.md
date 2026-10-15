@@ -759,7 +759,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (grátis · ⭐ Craque · 👑 Lenda) + roupa avulsa. Editor ainda em teste só na conta dele; a arte do ROSTO não está no repo.
   🔁 **15/10: O BONECO É PAGO, NADA DE GRAÇA** (*"quero vender eles!! Nada é de graça até msm no plano gratuito.. Começa a
   ganhar boneco apenas no modo craque pra cima"*). Grátis NÃO tem presidente (no lugar dele vai o escudo); o boneco nasce no
-  ⭐ Craque e as roupas sobem por plano; peça extra é vendida na Loja.
+  ⭐ Craque e as roupas sobem por plano; peça extra é vendida na Loja. É a CRIAÇÃO DE PERSONAGEM (`presidente-editor.tsx`:
+  pele, 33 roupas, 20 cabelos, 7 barbas, brinco) — hoje 14 roupas estão marcadas 'free' em `presidente-roupas.ts`; isso muda.
 
 - **💾 FICHAS DE CARREIRA (05/10, regra permanente): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 · 🖋️ Batismo 4.** Antes era
   2 · 4 · 6 · 8. Palavras dele: *"não mexa nesses usuários que já fizeram saves… a partir de agora o grátis vai ter só um…
