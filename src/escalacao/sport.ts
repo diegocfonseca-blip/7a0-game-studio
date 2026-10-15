@@ -977,7 +977,7 @@ export function usePlanos2(): boolean {
 // servidor confere antes de liberar (`pix-mp.tsx` + Edge Functions `mp-criar-pix`/`mp-webhook`). Primeiro SÓ na conta do
 // Diego, pra ele fazer o Pix de teste de R$ 1; o resto do mundo segue com a chave fixa + comprovante. Liberar: PIX_MP_GERAL = true.
 const PIX_MP_GERAL = false
-const PIX_MP_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+const PIX_MP_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 let pixMpOk = PIX_MP_GERAL
 function applyPixMp(email?: string | null): void {
   const u = PIX_MP_GERAL || (!!email && PIX_MP_TESTERS.has(email.toLowerCase()))
