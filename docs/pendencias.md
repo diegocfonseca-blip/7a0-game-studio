@@ -128,7 +128,11 @@ cesar.verissimo27@gmail.com (conta existe desde 30/07). Plano 🖋 FUNDADOR. Sé
 branco #F0F0EC medidos, camisa na Loja (`comverissimo-camisa-v1.webp`). Coração Palmeiras.
 Banco: esc_socios nº73 (origem batismo, até 2099), esc_nomes_batismo 'comverissimo' (+FC/EC), esc_compras_batismo 'plus',
 user_colors ouro manual. ⚠️ **Ele JÁ era fundador nº3 desde agosto** (Lenda pago) — ficou com o nº3, NÃO ganhou outro número.
-Post: `scripts/posts/comverissimo-post.png`. ⏳ Falta: **canto da torcida e gala personalizada** (o Diego vai mandar).
+Post: `scripts/posts/comverissimo-post.png`.
+✅ Gala única NO AR (15/10): `gala-comverissimo.tsx`, no formato dos vídeos do Instagram dele (parede de camisas, notícia em
+cima com a tarja @comverissimo, legenda branca com palavra amarela). O Diego recusou a 1ª versão (celular gravando com REC)
+e mandou tirar o "NA SEMANA PASSADA". Vídeo: `scripts/posts/gala-comverissimo.webm`.
+⏳ Falta só o **canto da torcida** (o Diego vai mandar) → carreira (`AMBIENTE_CARREIRA_POR_EMAIL`) + `playMp3Gala` na gala.
 
 ## 🐰 Batismo Labubu FC (14/10) — ✅ código + banco + deploy
 caelborba@gmail.com (conta existe). Série A no assento do Só Deus Sabe FC, que DESCEU pra Série C na vaga do bot Napolitano (sem

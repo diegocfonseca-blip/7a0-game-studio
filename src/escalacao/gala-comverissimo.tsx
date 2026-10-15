@@ -6,7 +6,8 @@
 // 1) a parede de CAMISAS penduradas no varal de madeira (o cenário fixo dele)
 // 2) ele (o Verissimo, caricatura do batismo) de boné virado, do peito pra cima, falando pra câmera
 // 3) a "notícia" num quadro em cima, com a tarja azul do @comverissimo embaixo
-// 4) a legenda grandona embaixo, branca com contorno preto e a palavra-chave em AMARELO
+// 4) a legenda grandona embaixo, branca com contorno preto e a palavra-chave em AMARELO (2 falas: o Diego
+//    mandou tirar o "NA SEMANA PASSADA" do meio)
 // 5) clarão → o quadro de cima vira o ESCUDO e entra a faixa "CHEGOU NA SALA"
 // ⚠️ As camisas da parede são NOSSAS (só cor e listra, sem marca nem escudo de clube real).
 //
@@ -54,9 +55,8 @@ const PAREDE: [number, number, number, string, string, ('v' | 'h' | undefined)][
 
 // 📝 as legendas, uma de cada vez: [linha 1, palavra amarela, linha 2 (PT)] + [EN] + de / até
 const LEGENDAS: { pt: [string, string, string]; en: [string, string, string]; de: number; ate: number }[] = [
-  { pt: ['FALA,', 'GALERA!', ''], en: ['WHAT’S UP,', 'GUYS!', ''], de: 900, ate: 2100 },
-  { pt: ['NA SEMANA', 'PASSADA', ''], en: ['LAST', 'WEEK', ''], de: 2100, ate: 3100 },
-  { pt: ['O', 'COMVERISSIMO', 'CHEGOU NA SALA'], en: ['', 'COMVERISSIMO', 'JUST ARRIVED'], de: 3100, ate: 4600 },
+  { pt: ['FALA,', 'GALERA!', ''], en: ['WHAT’S UP,', 'GUYS!', ''], de: 900, ate: 2700 },
+  { pt: ['O', 'COMVERISSIMO', 'CHEGOU NA SALA'], en: ['', 'COMVERISSIMO', 'JUST ARRIVED'], de: 2700, ate: 4600 },
 ]
 
 const CSS = `
