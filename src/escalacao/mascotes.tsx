@@ -69,6 +69,7 @@ import vieiraMascoteImg from './img/vieira-mascote.webp' // 😈 Vieira FC (feli
 import mengaoMascoteImg from './img/mengao-mascote.webp' // 🦅 Mengão Malvadão (atilasoaresjr21): arte própria do dono
 import arrogantchiMascoteImg from './img/arrogantchi-mascote.webp' // 😜 Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleMascoteImg from './img/intervale-mascote.webp' // 🥊 Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
+import comverissimoMascoteImg from './img/comverissimo-mascote.webp' // 🟢 ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniMascoteImg from './img/rossini-mascote.webp' // 💴 Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceMascoteImg from './img/leprince-mascote.webp' // 🐓 Le Prince FC (henriquejunger07): arte própria do dono
@@ -370,6 +371,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 🐓👑 O GALO REI (mascote do Le Prince FC — henriquejunger07, 08/10): o galo de coroa e manto real,
   // apontando o dedo, surfando em cima do lobo azul. A cena inteira é a mascote. Arte do próprio dono.
   // 📏 333×440, ≤45 KB — a altura fica em 176. mascote_key = "leprince_galo_rei".
+  // 🟢 O VERISSIMO (mascote do ComVerissimo FC — cesar.verissimo27, 15/10): o próprio dono em caricatura, boné
+  // virado, camisa verde nº 10 apontando pra frente e o pé em cima da bola. Arte do dono.
+  // 📏 241×440, 37 KB — altura 176. mascote_key = "comverissimo".
+  comverissimo: (
+    <img src={comverissimoMascoteImg} height={176} width={Math.round(176 * 241 / 440)} alt="O Verissimo — ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
   // 🐰 O LABUBU (mascote do Labubu FC — caelborba, 14/10): o bichinho de pelo preto, orelhas de coelho e olhos de
   // cores diferentes, com o uniforme branco nº 10 e a bola debaixo do braço. Arte do próprio dono.
   // 📏 252×440, ≤45 KB — altura 176. mascote_key = "labubu".
@@ -1184,6 +1191,12 @@ export const CARIMBO_GOL: Record<string, string> = {
   'Le Prince EC': 'leprince_galo_rei',
   'Le Prince SC': 'leprince_galo_rei',
   'Perna de Pau City': 'leprince_galo_rei',
+  // 🟢 o Verissimo carimba o gol do ComVerissimo FC (cesar.verissimo27, 15/10).
+  'ComVerissimo FC': 'comverissimo',
+  'ComVerissimo': 'comverissimo',
+  'ComVerissimo EC': 'comverissimo',
+  'ComVerissimo SC': 'comverissimo',
+  'Soberano Nacional': 'comverissimo',
   // 🐰 o Labubu carimba o gol do Labubu FC (caelborba, 14/10).
   'Labubu FC': 'labubu',
   'Labubu': 'labubu',
@@ -1321,6 +1334,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
   mengao_urubu: 'O Urubu Malvadão', // 🦅 Mengão Malvadão (atilasoaresjr21, 06/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)
+  comverissimo: 'O Verissimo', // 🟢 ComVerissimo FC (cesar.verissimo27, 15/10)
   rossini_ninja: 'O Ninja', // 💴 Rossini Money (luizeduardorossini0013, 12/10)
   intervale_lutador: 'O Lutador', // 🥊 Inter Vale FC (marcus.viniciuslopessantos79, 12/10)
   arrogantchi_boleiro: 'O Arrogantchi', // 😜 Arrogantchi FC (heitormonaco98, 08/10)

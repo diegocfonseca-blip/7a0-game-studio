@@ -3633,6 +3633,7 @@ export const OLD_NAME: Record<string, string> = {
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
   'Pesadelo Verde FC': 'Zé Colmeia', // 🌑🐺 batismo do portaltech.ep (18/09): assumiu o assento da Série C que era do Zé Colmeia — save antigo com Zé Colmeia vira Pesadelo Verde FC ao abrir. (O Zé Colmeia continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Fridão FC': 'Casa de Vó', // 🐴 batismo do felipe.ofrida (16/09): assumiu o assento da Série C que era do Casa de Vó — save antigo com Casa de Vó vira Fridão FC ao abrir. (O Casa de Vó continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
+  'ComVerissimo FC': 'Soberano Nacional', // 🟢 batismo do cesar.verissimo27 (15/10): assumiu o assento da Série D que era do bot Soberano Nacional — save antigo com Soberano Nacional vira ComVerissimo FC ao abrir.
   'Internacional de Madrid': 'Adão Esporte', // 👑 batismo do matheusstefanello372 (14/09): assumiu o assento da Série C que era do Adão Esporte — save antigo com Adão Esporte vira Internacional de Madrid ao abrir. (O Adão Esporte continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Bonança SSFC': 'Torta de Rã', // 🔊 batismo do duselecta: assumiu o assento da Série C que era do Torta de Rã — save antigo com Torta de Rã (ou Fogaréu EC, o nome mais velho ainda) vira Bonança SSFC ao carregar (09/09)
   'Final Boss FC': 'Ponte Branca', // 🐂 batismo do gustavo99828: assumiu o assento da Série C que era do Ponte Branca — save antigo com Ponte Branca (ou Grelha SAF, o nome mais velho ainda) vira Final Boss FC ao carregar (05/09)
@@ -4001,7 +4002,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // ⭐🐺 CRUZEIRO DE BERRETINHO (weslleygomes749, batismo de 25/09) no assento do bot
     // Metrópole FC (o 1º bot sem dono da lista). `OLD_NAME` leva save antigo pro nome novo.
     { name: 'Berretinho', team: 'Cruzeiro de Berretinho' }, // ⭐🐺 clube BATIZADO por apoiador (weslleygomes749 — Cruzeiro de Berretinho, ex-Metrópole FC; escudo com a coroa, os dois lobos e o Cruzeiro do Sul, mascote O Lobo Rei no trono; coração CRUZEIRO; Lenda + fundador nº79 + sócio nº60, 25/09)
-    { name: 'Soberano', team: 'Soberano Nacional' },
+    { name: 'Verissimo', team: 'ComVerissimo FC' }, // 🟢⚪ clube BATIZADO por apoiador (cesar.verissimo27 — ComVerissimo FC, ex-Soberano Nacional; coração PALMEIRAS; escudo coroado com a caricatura do dono e o P, "Futebol e Resenha"; mascote O Verissimo; verde #034727 + branco #F0F0EC MEDIDOS na camisa; plano 🖋 Fundador: ouro + fundador nº3 (já tinha desde agosto) + sócio nº73, 15/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Sistematizado', team: 'Sistematizados FC' }, // 🎮 clube BATIZADO por apoiador (gaancaxd — Sistematizados FC, ex-Coliseu United, Série D; mascote O Sistematizado, preto + roxo; Lenda + fundador nº61, 07/09)
     { name: 'Cometa', team: 'Galáxia EC' },
     { name: 'Imperador', team: 'Imperador SAF' },

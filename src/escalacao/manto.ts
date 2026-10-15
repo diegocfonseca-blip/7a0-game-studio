@@ -100,6 +100,9 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🐓👑 Le Prince FC — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (08/10): preto 66% (mediana #0F0E0D)
   // e branco das listras 20% (#E6E2DD).
   'henriquejunger07@gmail.com': ['#0F0E0D', '#E6E2DD'],
+  // 🟢⚪ ComVerissimo FC — VERDE e BRANCO, MEDIDOS na camisa que o dono mandou (15/10): verde do corpo (#034727)
+  // e o branco da gola/punhos (#F0F0EC).
+  'cesar.verissimo27@gmail.com': ['#034727', '#F0F0EC'],
   // 🐰⚪ Labubu FC — BRANCO e AZUL-MARINHO, MEDIDOS na camisa que o dono mandou (14/10): branco do corpo (mediana dos
   // pixels claros, #EFEEED — a marca d'água cinza do bicho puxava pra #DFDDDD) e o marinho da gola e dos punhos (#03101F).
   'caelborba@gmail.com': ['#EFEEED', '#03101F'],

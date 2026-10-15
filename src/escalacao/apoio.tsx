@@ -81,7 +81,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Bicho da Seda 🦋 — CORREÇÃO FINAL 10/08: a mariposa/Palmeiras são do Davi)
   'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
-  'cesar.verissimo27@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'cesar.verissimo27@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº3. Batismo ComVerissimo FC (Série D, plano 🖋 Fundador, sócio nº73, 15/10) — mantém o nº3 (quem já tem número fica com ele)
   'denilson.stifler10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo Xurupitas FC (o porco 🐷, Palmeiras de coração; nome bate com o "Xurupitas" que ele já usa no ranking)
   'filipeabraaodasilva@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N)
   'taylorsenachek2@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR

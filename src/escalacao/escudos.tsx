@@ -65,6 +65,7 @@ import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC 
 import mengaoEscudoImg from './img/mengao-escudo.webp' // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21): arte própria do dono
 import arrogantchiEscudoImg from './img/arrogantchi-escudo.webp' // 😜🔵⚫ Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleEscudoImg from './img/intervale-escudo.webp' // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
+import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniEscudoImg from './img/rossini-escudo.webp' // 💴🔴⚫ Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceEscudoImg from './img/leprince-escudo.webp' // 🐓👑 Le Prince FC (henriquejunger07): arte própria do dono
@@ -883,6 +884,10 @@ const mengaoEscudoRender = (size: number) => (
 // 🐰⚪ LABUBU FC (caelborba, batismo de 14/10) — Série A, no assento do Só Deus Sabe FC (que desceu pra C).
 // 📏 230×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo (escudo coroado com o monograma e o pelo preto atrás).
 // Fundo verde chroma tirado; conferido sobre verde, creme e preto.
+const comverissimoEscudoRender = (size: number) => (
+  <img src={comverissimoEscudoImg} height={size} width={Math.round(size * 254 / 360)} alt="ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const labubuEscudoRender = (size: number) => (
   <img src={labubuEscudoImg} height={size} width={Math.round(size * 230 / 360)} alt="Labubu FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1515,6 +1520,13 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Le Prince EC': leprinceEscudoRender,
   'Le Prince SC': leprinceEscudoRender,
   'Perna de Pau City': leprinceEscudoRender,
+  // 🟢⚪ ComVerissimo FC (cesar.verissimo27) — BATISMO. As 4 formas do nome (regra 20/08) + o nome VELHO do
+  // assento (Soberano Nacional só existia como bot da Série D, então save antigo passa a desenhar o clube novo).
+  'ComVerissimo FC': comverissimoEscudoRender,
+  'ComVerissimo': comverissimoEscudoRender,
+  'ComVerissimo EC': comverissimoEscudoRender,
+  'ComVerissimo SC': comverissimoEscudoRender,
+  'Soberano Nacional': comverissimoEscudoRender,
   // 🐰⚪ Labubu FC (caelborba) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o Só Deus Sabe continua
   // existindo (foi pra C).
   'Labubu FC': labubuEscudoRender,

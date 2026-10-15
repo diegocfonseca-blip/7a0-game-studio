@@ -122,6 +122,14 @@ sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o c
 Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
 🎁 14/10: presente APROVADO, mas **só de PLANO** (Craque/Lenda/Batismo/Fundador) — *"presente é só dos planos, nada de títulos figurinhas"*.
 
+## 🟢 Batismo ComVerissimo FC (15/10) — ✅ código + banco + deploy
+cesar.verissimo27@gmail.com (conta existe desde 30/07). Plano 🖋 FUNDADOR. Série D no assento do bot Soberano Nacional
+(`OLD_NAME` leva save antigo pro nome novo). Escudo 254×360/29 KB, mascote O Verissimo 241×440/38 KB, manto verde #034727 +
+branco #F0F0EC medidos, camisa na Loja (`comverissimo-camisa-v1.webp`). Coração Palmeiras.
+Banco: esc_socios nº73 (origem batismo, até 2099), esc_nomes_batismo 'comverissimo' (+FC/EC), esc_compras_batismo 'plus',
+user_colors ouro manual. ⚠️ **Ele JÁ era fundador nº3 desde agosto** (Lenda pago) — ficou com o nº3, NÃO ganhou outro número.
+Post: `scripts/posts/comverissimo-post.png`. ⏳ Falta: **canto da torcida e gala personalizada** (o Diego vai mandar).
+
 ## 🐰 Batismo Labubu FC (14/10) — ✅ código + banco + deploy
 caelborba@gmail.com (conta existe). Série A no assento do Só Deus Sabe FC, que DESCEU pra Série C na vaga do bot Napolitano (sem
 OLD_NAME). Escudo 230×360/28 KB, mascote O Labubu 252×440/31 KB, manto branco #EFEEED + marinho #03101F medidos, camisa na Loja.
