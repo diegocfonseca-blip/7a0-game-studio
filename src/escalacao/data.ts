@@ -1855,6 +1855,8 @@ const MEI_EU: C[] = [
   { name: "Deschamps", club: "Juventus", year: 1998, fame: 3, lo: 76, hi: 84 },
   { name: "Xavi Simons", club: "RB Leipzig", year: 2024, fame: 3, lo: 78, hi: 86 },
   { name: "Warren Zaïre-Emery", club: "PSG", year: 2025, fame: 3, lo: 72, hi: 83, promessa: true },
+  { name: "Vitinha", club: "PSG", year: 2025, fame: 4, lo: 86, hi: 92, bio: "Maestro português do PSG campeão da Europa — dita o ritmo do meio, quase não erra passe e foi pódio da Bola de Ouro." },
+  { name: "João Neves", club: "PSG", year: 2025, fame: 4, lo: 83, hi: 90, bio: "Volante português de 20 anos que joga como veterano — rouba, distribui e chega na área no PSG campeão da Champions." },
   { name: "Alexis Mac Allister", club: "Liverpool", year: 2024, fame: 4, lo: 82, hi: 89 },
   { name: "Arturo Vidal", club: "Juventus", year: 2015, fame: 4, lo: 85, hi: 91 },
   { name: "Bruno Fernandes", club: "Man United", year: 2021, fame: 4, lo: 85, hi: 91 },
