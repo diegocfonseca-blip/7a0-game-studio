@@ -1,5 +1,16 @@
 # Retomada da Presidência, estádio evolutivo e NPCs
 
+Atualização de **15/10/2026 — publicação privada autorizada por Diego**:
+o pedido “Publique tudo no meu usuário q fez até agora” substitui a pausa
+histórica abaixo. A tela 3D está ligada à carreira, com email verificado,
+obras, estacionamento gradual e partida/agenda reais. Main preservada até
+`3dc79cc3`. Build, CPU e navegador em desktop/celular emulado passaram;
+outras contas e logout também foram conferidos. Ainda é versão de teste,
+com acabamento e demais limites registrados em
+[presidencia-publicacao-20261015.md](presidencia-publicacao-20261015.md).
+A publicação deve ser confirmada pelo resultado do GitHub Pages; registros
+abaixo descrevem etapas anteriores, inclusive a antiga pausa de deploy.
+
 Atualização de **14/10/2026 — continuação: mesmo passageiro até o assento e saída física**:
 o transporte passou a conectar o passageiro ao assento construído, preservando
 o corpo durante desembarque, caminhada, escadas, permanência e retorno ao veículo.

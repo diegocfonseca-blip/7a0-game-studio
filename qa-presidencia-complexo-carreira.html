@@ -83,7 +83,7 @@ function App(){
  window.vestirCarreiraComplexo=(outfit,appearance)=>{
   const current=ref.current;if(!adaptarCarreiraAoComplexo(current))return {ok:false,error:'disabled'};
   const old=current.state.careerPresidentBase??{version:5,name:'Presidente local',outfit:'terno'};
-  const saved=salvarPresidenteNaCarreira(current.state,mgrId,{...old,outfit,...(appearance?{appearance}:{})},'ouro');
+  const saved=salvarPresidenteNaCarreira(current.state,mgrId,{...old,outfit,...(appearance?{appearance}:{})},'fundador');
   if(saved.ok){commit({...current,state:saved.value});message('Visual atualizado somente nesta carreira fictícia.')}
   return {ok:saved.ok,...(!saved.ok?{error:saved.error}:{})};
  };
@@ -108,7 +108,7 @@ function App(){
   h('output',{'aria-live':'polite'},status),
   h('p',null,`Saldo local: ${wallet?.cash??'indisponível'} · Bens: ${wallet?.owned.map(item=>item.id).join(', ')||'nenhum'}`),
   h('div',{className:'qa-tools'},h('label',null,'Roupa salva',h('select',{value:sala?.president?.outfit??'terno',disabled:!adapted,onChange:e=>window.vestirCarreiraComplexo(e.target.value)},...VESTUARIO_MODULAR.map(outfit=>h('option',{key:outfit.id,value:outfit.id},outfit.pt)))),h('label',null,'Tom de pele',h('select',{value:sala?.president?.appearance?.skinTone??'medium',disabled:!sala?.president,onChange:e=>changeSkin(e.target.value)},...TONS_PELE.map(skin=>h('option',{key:skin.id,value:skin.id},skin.pt))))),
-  h('p',null,'O catálogo completo de roupas é habilitado apenas nesta fixture, com tier de teste. Isso não concede plano ou roupa a nenhuma conta.'),
+  h('p',null,'O catálogo completo de roupas é habilitado apenas nesta fixture, com plano Fundador de teste. Isso não concede plano ou roupa a nenhuma conta.'),
   sala?.president?h('section',{className:'qa-president','aria-label':'Personagem salvo existente'},h('div',{className:'qa-portrait'},h(PresidenteCamadas,{ids:sala.layerIds,pose:sala.pose,onReady:portraitReady})),h('div',{className:'qa-data'},h('h2',null,sala.president.name),h('p',null,sala.identity?.name??'Identidade não fornecida'),h('p',null,sala.pose==='seated'?'Mesa e cadeira compradas: pose sentada preservada.':'Sem o par mesa/cadeira: pose em pé preservada.'),h('p',null,`Mandato registrado: temporada ${sala.president.sinceSeason??'não informada'}`),h('p',null,sala.hasShelf?`Títulos existentes para a estante: ${sala.trophies.map(t=>`${t.label} ×${t.count}`).join(', ')||'nenhum'}`:'Sem estante comprada; títulos continuam guardados.'))):h('p',null,adapted?'Nenhum personagem válido cadastrado nesta fixture.':'Prévia local desligada.'),
   adapted&&(!sala?.president||portraitPrepared)?h(Complexo,{...adapted.complexo,onReady:api=>{window.carreiraComplexo3D=api}}):null,
   h('details',null,h('summary',null,'Conferir dados locais de entrada e adaptação'),h('pre',null,JSON.stringify({input,adapted},null,2))),

@@ -1,3 +1,18 @@
+## 15/10/2026 — Presidência: candidata à publicação privada autorizada
+
+- Diego pediu **“Publique tudo no meu usuário q fez até agora”**. Isso substitui
+  a pausa de publicação dos registros históricos abaixo. A versão de teste
+  permanece restrita ao email verificado `diego.c.fonseca@gmail.com`.
+- Complexo 3D integrado à carreira em **Clube → Estrutura**, com obras reais,
+  estacionamento gradual, contexto da partida e agenda quarta 21h/domingo 16h.
+  Main preservada até `3dc79cc3`, incluindo personagem da conta e planos.
+- Build, TypeScript, CPU e navegador passaram; percursos e tela integrada foram
+  conferidos em desktop/celular emulado, incluindo outra conta e logout.
+- Permanecem acabamento/fidelidade à arte, rotas da massa restante da torcida,
+  antecipação de transporte e presidente físico. Detalhes e limites em
+  [presidencia-publicacao-20261015.md](presidencia-publicacao-20261015.md).
+  Declarar publicado somente após confirmar sucesso do GitHub Pages.
+
 ## 14/10/2026 — Presidência: continuação do transporte até o assento
 
 - Mesmo passageiro do veículo até a cadeira, com escadas e retorno físico;

@@ -9,9 +9,12 @@ planos ou alterações diretas no banco da conta.
 ## Conteúdo preparado
 
 - Trabalho acumulado preservado no commit `6366c367`; main atualizada até
-  `890175ea` incorporada por `707548fa`. Conflitos resolvidos preservando tanto
+  `890175ea` incorporada por `707548fa` e até `3dc79cc3` por `dd6eab4a`.
+  A integração da carreira está em `30b1fe84`. Conflitos resolvidos preservando tanto
   o estacionamento gradual quanto o painel da SAF/segundo clube, e os dois
-  registros de pendências. Não substituir a main por uma cópia antiga.
+  registros de pendências. As atualizações do personagem da conta e dos planos
+  também foram preservadas; a prévia local usa o plano Fundador de teste,
+  sem conceder plano à conta real. Não substituir a main por uma cópia antiga.
 - A aba **Clube → Estrutura**, na carreira solo da conta autorizada, passa a
   abrir o complexo 3D com o estádio, obras, estabelecimentos, entorno, Vadico,
   ruas, metrô, ônibus, carros, torcida, camarote e mobiliário existentes.
@@ -34,7 +37,10 @@ planos ou alterações diretas no banco da conta.
 
 ## Validação da candidata
 
-- Build e TypeScript passaram após a integração e a conciliação com a main.
+- Build e TypeScript passaram após a integração e a conciliação com a main,
+  inclusive `DEPLOY_BASE=/ VITE_ONLY_GAME=escalacao npm run build` após `dd6eab4a`.
+  As páginas HTML de QA não entram no artefato publicado. `npm run presidente`
+  passou com as regras de plano da main atualizada.
 - Evolução: 2.048 combinações + 4.096 combinações do mapa; gate verificado,
   falha fechada, compras e pré-requisitos privados.
 - Estacionamento: quatro etapas, 18 recusas, extrato, saldo, outros gestores e
@@ -45,8 +51,15 @@ planos ou alterações diretas no banco da conta.
   dono. Os testes físicos anteriores da mesma geometria permanecem registrados
   em `presidencia-complexo-3d-reconstrucao.md`.
 - Partida: 136 quadros, 22 atletas, pausa/gols/substituição, árbitro e bancos.
-- Navegador: execução final em andamento. Atualizar esta seção com o resultado
-  antes de enviar. Relatórios e capturas em `test-results/complexo-3d/`.
+- Navegador: percursos passaram em desktop e celular emulado, seis checkpoints
+  por dispositivo, sem erros ou arquivos ausentes (`percurso-browser-report.json`).
+- Tela integrada da carreira: PASS em desktop e celular emulado, usando o hook
+  real de acesso e um cliente de autenticação local fictício. Outra conta fica
+  sem a tela; Diego recebe o mapa; sair remove a cena. Conferidos calendário
+  quarta/noite e domingo/dia, relógio compartilhado, 22 atletas também na várzea,
+  estacionamento, câmera preservada entre rodadas e save sem alterações.
+  Não foi feito login na conta real. Relatório `publicacao-browser-report.json`
+  e capturas `*-publicacao-*.png` em `test-results/complexo-3d/`.
 
 ## Limites desta versão de teste
 
@@ -56,6 +69,8 @@ não toda a amostra de até 800. Chegada antecipada depende de integração adic
 com o calendário. Torcida visitante exige dados confirmados do adversário.
 O personagem existente e sua sala ilustrada permanecem no fluxo da Presidência;
 não há ainda um novo corpo físico do presidente no camarote.
+As capturas mostram que a iluminação noturna e o enquadramento próximo de certas
+estruturas ainda precisam de refinamento. Não houve medição em celular físico.
 
 A publicação só deve ser declarada concluída quando a main contiver a candidata
 e o workflow GitHub Pages terminar com sucesso. A evidência do deploy será

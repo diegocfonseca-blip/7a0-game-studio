@@ -6,6 +6,17 @@ ser muito fiéis à arte aprovada. A referência continua sendo
 Esta reconstrução ainda não é uma entrega visual aprovada. Não substituir a arte
 existente nem publicar a maquete como acabamento final.
 
+## 15/10/2026 — integração da carreira e publicação de teste autorizada
+
+Diego pediu para publicar o trabalho atual apenas no seu usuário. Esta nova
+autorização substitui a pausa histórica, preservando o caráter de teste e as
+pendências de acabamento. A carreira agora usa o complexo com obras, partida,
+calendário e estacionamento; verificação do email mantém acesso só para Diego.
+Build, CPU e navegador passaram, incluindo percursos e tela integrada em
+desktop/celular emulado. Histórico, evidências e limites em
+[presidencia-publicacao-20261015.md](presidencia-publicacao-20261015.md).
+O sucesso do GitHub Pages deve ser confirmado antes de declarar publicado.
+
 ## 14/10/2026 — continuação: transporte até o assento e saída física de parte da torcida
 
 Estado atual da **prévia local**; esta seção substitui as pendências de ligação

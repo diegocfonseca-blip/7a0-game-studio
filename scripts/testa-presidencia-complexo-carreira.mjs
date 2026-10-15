@@ -172,7 +172,7 @@ for (const outfit of VESTUARIO_MODULAR) for (const skin of TONS_PELE) {
   appearance: { version: 22, hair: 'marcelo-2017-hair', beard: 'gullit-1988-moustache', accessories: ['silver-studs'], skinTone: skin.id }, sinceSeason: 1 }
  // Existing validator/access rule, with an explicit local fixture tier. The
  // adapter never reads a tier from the avatar and never changes a saved outfit.
- const saved = salvarPresidenteNaCarreira(acquired, mgrId, president, 'ouro'); assert(saved.ok)
+ const saved = salvarPresidenteNaCarreira(acquired, mgrId, president, 'fundador'); assert(saved.ok)
  const output = adaptarCarreiraAoComplexo({ ...input, state: saved.value })
  assert.deepEqual(output.sala.president, president)
  assert.deepEqual(output.sala.layerIds, camadasDoPresidente(president))
