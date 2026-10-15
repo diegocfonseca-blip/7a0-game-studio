@@ -11,7 +11,7 @@ export const SALA_MOVEIS=[
  {id:'quadro',pt:'Moldura da camisa',en:'Shirt frame'},
  {id:'aquario',pt:'Aquário',en:'Aquarium'},
  {id:'planta',pt:'Planta',en:'Plant'},
- {id:'carro',pt:'Carro · fora da sala',en:'Car · outside the office'},
+ {id:'carro',pt:'Carro · garagem',en:'Car · garage'},
 ] as const
 export type SalaMovel=typeof SALA_MOVEIS[number]['id']
 export function normalizarSala(raw:unknown):SalaMovel[]{

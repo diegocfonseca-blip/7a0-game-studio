@@ -21,7 +21,7 @@ const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright
   assert.equal(await page.locator('.pe-map:visible [data-world-layer="cober"]').count(),name==='completo'?1:0);
   assert.equal(await page.locator('.pe-map:visible [data-world-layer="hotel:hotel"]').count(),stadium.ext.includes('hotel')?1:0);
   assert.equal(await page.locator('.pe-map:visible [data-athlete]').count(),0,'Only the 3D players are rendered');
-  await page.getByRole('button',{name:'VER TUDO',exact:true}).click();
+  await page.getByRole('button',{name:'ENQUADRAR',exact:true}).click();
   await page.getByRole('button',{name:'PAUSAR MOVIMENTO',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[aria-busy="false"]'));
   await page.locator('.pe-map:visible').screenshot({path:`test-results/futebol-3d/mapa-${name}.png`});
@@ -40,12 +40,12 @@ const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright
     await page.locator('.pe-map:visible').screenshot({path:'test-results/futebol-3d/mapa-completo-12x.png'});
     assert.equal(await page.locator('.pe-map:visible .pe-football-registered').getAttribute('data-players'),'22');
    }
-   await page.getByRole('button',{name:'VER TUDO',exact:true}).click();
+   await page.getByRole('button',{name:'ENQUADRAR',exact:true}).click();
   }
   await page.getByRole('button',{name:'RETOMAR MOVIMENTO',exact:true}).click();
  }
  await page.setViewportSize({width:390,height:844});
- await page.getByRole('button',{name:'VER TUDO',exact:true}).click();
+ await page.getByRole('button',{name:'ENQUADRAR',exact:true}).click();
  assert.ok(await page.locator('.pe-map-viewport:visible').evaluate(n=>n.clientHeight>=600));
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.locator('.pe-map:visible').screenshot({path:'test-results/futebol-3d/mapa-3d-celular.png'});

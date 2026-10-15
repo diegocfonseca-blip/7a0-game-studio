@@ -1,3 +1,5 @@
+import {VelocidadeEstadio} from './presidencia-velocidade'
+import {DiaDoEstadio} from './presidencia-estadio-dia'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import {PresidenciaPartida} from './presidencia-partida'
 import {usePartidaNoMapa} from './presidencia-partida-sincronia'
@@ -22,7 +24,7 @@ import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED,presidentWritesEnable
 import {podeAlterarPresidencia,negociarNaCarreira,exibirDuplaNaCarreira} from './presidencia-carreira'
 import {PresidenciaClube} from './presidencia-clube'
 import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
-import {PRESIDENCY_STADIUM_RELEASED} from './presidencia-lotes'
+import {PRESIDENCY_STADIUM_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
@@ -8345,15 +8347,17 @@ export function PyramidSeasonScreen() {
   // ⚠️ Este número alimenta os DOIS relógios da Copa (o card do seu jogo e a lista das
   // outras chaves). Eles têm que sair daqui juntos, senão um apita antes do outro.
   const copaLegMs = manual ? COPA_LEG_MS : COPA_LEG_MS + AUTO_EXTRA_MS
+  const copaClock=useRef({key:'',elapsed:0})
   // cada JOGO rola ~copaLegMs (como uma partida da liga): toca a IDA inteira e
   // depois a VOLTA, todos os jogos juntos. Avança de fase quando termina + folga.
   useEffect(() => {
     if (!copaPlaying) return
-    setCopaPos(0); setCopaReady(false)
+    const clockKey=`${seasonSeed}:${copaRound}:${copaNLegs}:${copaFaseTotal}`
+    if(copaClock.current.key!==clockKey){copaClock.current={key:clockKey,elapsed:0};setCopaPos(0);setCopaReady(false)}
     const sf = state.simSpeed && state.simSpeed > 0 ? state.simSpeed : 1 // ⏩ marcha escolhida
     const dur = Math.round((copaNLegs * copaLegMs) / sf)
-    const t0 = Date.now()
-    const iv = setInterval(() => setCopaPos(Math.min(copaFaseTotal, ((Date.now() - t0) / dur) * copaFaseTotal)), 90)
+    const t0 = Date.now(),already=copaClock.current.elapsed/sf
+    const iv = setInterval(() => setCopaPos(Math.min(copaFaseTotal, ((already+Date.now() - t0) / dur) * copaFaseTotal)), 90)
     // 🎯 SE O SEU JOGO FOI PRA PÊNALTIS, A FASE ESPERA A DISPUTA ACABAR.
     // Bug pego por e-mail (02/09): *"toda vez que uma partida do meu time empata
     // no mata-mata, vai para os pênaltis e a equipe é eliminada automaticamente,
@@ -8370,9 +8374,9 @@ export function PyramidSeasonScreen() {
     // animar e espera o toque. AUTO: avança sozinho depois da folga, como sempre.
     // O botão também espera os pênaltis: senão ele aparecia no meio da disputa e o
     // toque pulava a própria coisa que o jogador quer ver.
-    const rdy = setTimeout(() => setCopaReady(true), Math.round(dur * 0.9) + 250 + penMs)
-    const adv = manual ? null : setTimeout(() => setCopaRound(r => r + 1), dur + 2200 + penMs)
-    return () => { clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
+    const rdy = setTimeout(() => setCopaReady(true), Math.max(0,Math.round(dur * 0.9)+250+penMs-already))
+    const adv = manual ? null : setTimeout(() => setCopaRound(r => r + 1), Math.max(0,dur+2200+penMs-already))
+    return () => { copaClock.current.elapsed+=(Date.now()-t0)*sf; clearInterval(iv); clearTimeout(rdy); if (adv) clearTimeout(adv) }
     // 🔒 dependência PRIMITIVA (copaPenMs), nunca o objeto do confronto: se a Copa for
     // remontada por qualquer motivo, o relógio NÃO reinicia (13/09, Copa presa no 1').
   }, [copaPlaying, copaRound, copaNLegs, copaFaseTotal, state.simSpeed, manual, copaLegMs, copaPenMs])
@@ -10474,7 +10478,7 @@ export function PyramidSeasonScreen() {
             </div>
             </SubAbasGrudadas>
             {clubeSub === 'presidencia' && presidentAvailable ? (
-              <PresidenciaClube key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
+              <DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><PresidenciaClube key={youId} state={state} mgrId={youId} member={meuSocFesta} tierColor={myCol.solid} onBack={()=>setClubeSub('estadio')} onStadium={()=>setClubeSub('estadio')} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})} onTrade={quote=>{
                 if(!presidentWritesEnabled()||!negociarNaCarreira(state,youId,quote,true).ok)return false
                 dispatch({type:'PRESIDENCY_TRADE',mgrId:youId,quote,confirmed:true});return true
               }} onDisplay={display=>{
@@ -10484,7 +10488,7 @@ export function PyramidSeasonScreen() {
                 if(!presidentWritesEnabled())return false
                 dispatch({type:'PRESIDENCY_SAVE_BASE',mgrId:youId,value})
                 return true
-              }}/>
+              }}/></DiaDoEstadio>
             ) : clubeSub === 'presidencia' && privateCareer && PRESIDENT_ROOM_RELEASED ? (
               <PresidenciaPrivate
                 onNavigate={setClubeSub}
@@ -10655,9 +10659,10 @@ export function PyramidSeasonScreen() {
                 🏗️ ESTRUTURA (Agência 2.0, ordem aprovada pelo Diego): o DESENHO do
                 estádio continua a primeira coisa visível (sagrado) → patrocínio →
                 agência. Então aqui o patrocínio só aparece ANTES no jogo clássico. */}
-            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<PresidenciaEstadioCamera homeClubId={youId} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
+            <StadiumTab presidencyView={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED?<DiaDoEstadio clubId={youId} day={{division:me?.div??state.careerDivision??undefined,support:torcidaPct,rain:chuvaHoje}}><>{state.onlineMode!=='online'&&<VelocidadeEstadio speed={state.simSpeed??1} onSet={speed=>dispatch({type:'SET_SIM_SPEED',speed})}/>}<PresidenciaEstadioCamera homeClubId={youId} stadium={state.stadiums?.[youId]} onRoof={closed=>dispatch({type:'PRESIDENCY_ROOF',mgrId:youId,closed})}/></></DiaDoEstadio>:undefined} cinematic={privateCareer} st={state.stadiums?.[youId]} coins={state.careerCoins?.[youId] ?? 0} medicoOn={!!state.agenciaOn} divClube={(state.careerPlacements?.[`m${youId}`] ?? state.careerDivision ?? 'V') as string}
               onInvest={sec => dispatch({ type: 'STADIUM_INVEST', mgrId: youId, sector: sec })}
               onBuild={e => dispatch({ type: 'STADIUM_BUILD', mgrId: youId, ext: e })}
+              onInvestParking={presidentAvailable&&PRESIDENCY_STADIUM_RELEASED&&PRESIDENCY_PARKING_STAGES_RELEASED?expectedStage=>dispatch({type:'STADIUM_PARKING_INVEST',mgrId:youId,expectedStage}):undefined}
               filial={myFilial}
               filialOptions={(() => {
                 // 🏢 só dá pra comprar clube que VAI FICAR na Série D: tira os 4

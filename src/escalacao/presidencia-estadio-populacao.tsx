@@ -1,10 +1,11 @@
+import {useDiaEstadio} from './presidencia-estadio-dia'
 import {useState,type CSSProperties} from 'react'
 import {personagensEstadio,type CameraEstadio} from './presidencia-estadio-camadas'
 import type {StadiumSave} from './estadiodata'
 import {useT} from './lang'
 /** Pequenos grupos ilustrativos, não simulação da lotação ou renda do clube. */
 export function PresidenciaEstadioPopulacao({stadium,camera}:{stadium?:StadiumSave;camera:CameraEstadio}){
- const t=useT(),[paused,setPaused]=useState(false),people=personagensEstadio(stadium,camera)
+ const t=useT(),[paused,setPaused]=useState(false),people=personagensEstadio(stadium,camera,useDiaEstadio())
  if(!people.length)return null
  return <>
   <div className={'pe-population'+(paused?' paused':'')} data-stadium-npcs={people.length} aria-hidden="true">

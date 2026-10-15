@@ -1,6 +1,8 @@
+import {publicoDoEstadio,type DiaEstadio} from './presidencia-estadio-publico'
 import {STADIUM_SECTORS,STADIUM_EXTRAS,type StadiumSave} from './estadiodata'
 import {estadioVisualValido} from './presidencia-estadio-validacao'
 import {estruturaEstadioCompleta,estadioCompletoNaAerea,estadioCompletoNaJanela} from './presidencia-estadio-completo'
+import {etapaBaseEstadio} from './presidencia-vista-estadio'
 
 export type CameraEstadio='window'|'aerial'
 export type CamadaEstadio={id:string;src:string;clip:string;progress:number;bounds?:{left:number;top:number;width:number;height:number};sourceBounds?:{left:number;top:number;width:number;height:number};depth?:number}
@@ -44,9 +46,14 @@ export function progressoVisualSetor(st:StadiumSave,key:string):number{
 export function camadasEstadio(st:StadiumSave|undefined,camera:CameraEstadio):CamadaEstadio[]{
  if(!estadioVisualValido(st)||camera==='window'&&estadioCompletoNaJanela(st))return []
  const layers:CamadaEstadio[]=[]
- for(const sector of STADIUM_SECTORS){
+ const baseJanela=camera==='window'?etapaBaseEstadio(st):null
+ const ultimoSetorNaBase=STADIUM_SECTORS.findIndex(sector=>sector.k===baseJanela)
+ for(const [index,sector] of STADIUM_SECTORS.entries()){
   const progress=progressoVisualSetor(st,sector.k),clip=sectors[sector.k]?.[camera]
-  if(progress>0&&(camera==='aerial'||progress<1)&&clip)layers.push({id:sector.k,src:files[sector.k][camera],clip,progress,depth:camera==='aerial'?2000:undefined})
+  // A obra completa fora da sequência não está na imagem-base. Omiti-la
+  // apenas porque chegou a 100% fazia desaparecer o investimento na janela.
+  const representadoNaBase=camera==='window'&&index<=ultimoSetorNaBase
+  if(progress>0&&!representadoNaBase&&clip)layers.push({id:sector.k,src:files[sector.k][camera],clip,progress,depth:camera==='aerial'?2000:undefined})
  }
  for(const extra of STADIUM_EXTRAS){
   if(!st.ext.includes(extra.k))continue
@@ -79,10 +86,11 @@ export function populacaoEstadio(st?:StadiumSave):{workers:number;fans:number;se
  const completed=progress.slice(1).filter(p=>p===1).length
  return {workers:progress.some(p=>p>0&&p<1)?2:0,fans:completed===0?0:Math.min(6,completed+(st.ext.includes('estacao')?2:0)+(st.ext.includes('praca')?1:0)),security:completed>=3?1:0}
 }
-export function personagensEstadio(st:StadiumSave|undefined,camera:CameraEstadio){
+export function personagensEstadio(st:StadiumSave|undefined,camera:CameraEstadio,day?:DiaEstadio){
  const population=populacaoEstadio(st)
+ if(day)population.fans=publicoDoEstadio(st,day).inside
  const sources=['workers','groundskeepers','security','fans-beige','fans-green','family']
- const people=[...Array.from({length:population.workers},(_,i)=>({source:i%2,stand:false})),...Array.from({length:population.fans},(_,i)=>({source:3+i%3,stand:i%2===0})),...Array.from({length:population.security},()=>({source:2,stand:false}))]
+ const people=[...Array.from({length:population.workers},(_,i)=>({source:i%2,stand:false})),...Array.from({length:population.fans},(_,i)=>({source:3+i%3,stand:day?true:i%2===0})),...Array.from({length:population.security},()=>({source:2,stand:false}))]
  const closed=estruturaEstadioCompleta(st)&&st?.ext.includes('retratil')&&st.ext.includes('cober')&&st.roofClosed===true
  const complete=estadioCompletoNaAerea(st)
  return people.map(({source,stand:initialStand},index)=>{

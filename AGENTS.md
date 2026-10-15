@@ -47,7 +47,10 @@ Tem humor brasileiro de várzea em tudo: zoeira, provocação, apelido.
 ## 🏛️ O que está sendo feito AGORA: a Sala da Presidência
 Uma sala de presidente de clube que o jogador **vai mobiliando com o dinheiro
 do clube**. Cada móvel comprado aparece. Pela janela se vê **o estádio dele**,
-que muda conforme ele faz obras, e o **carro** que ele comprou na vaga.
+que muda conforme ele faz obras. Atualização de Diego em 12/10/2026: a sala é
+um **grande camarote integrado ao estádio**, com janela para o campo. Não há
+rua/rampa subindo até a Presidência nem carro diante da sala; os veículos
+comprados continuam na garagem. A futura casa do presidente é outro trabalho.
 
 - **O brief completo da arte está em `docs/prompt-arte-presidencia.md`** —
   leia esse arquivo antes de gerar qualquer coisa. Tem os prompts prontos, a
@@ -56,10 +59,13 @@ que muda conforme ele faz obras, e o **carro** que ele comprou na vaga.
   `scripts/kits/presidencia-referencia-2.jpg`. É esse estilo, essa câmera,
   essa luz. (`presidencia-referencia.jpg` é a primeira versão, também dele.)
 - Decidido e fechado: **uma sala só** (sem fases por divisão) · **janela grande
-  de fábrica** · **sem diamante** · carro **de frente** pro escritório ·
+  de fábrica** · **sem diamante** · camarote integrado, **sem acesso veicular** ·
   escudo de um lado da fachada do estádio e mascote do outro · a fachada é de
   **concreto** (a cor dourada/prata/bege é das **cadeiras**, só aparece onde as
   cadeiras aparecem de verdade).
+- O contorno do estádio deve ser **oval**, fiel à arte original; Diego rejeitou
+  a reconstrução retangular. Mandantes entram pela frente do mapa e visitantes
+  por um portão lateral separado, com caminhos e vãos físicos para os NPCs.
 
 ## 🖼️ Como entregar a arte
 Peça por peça, PNG com **fundo transparente**, todas na **mesma câmera e

@@ -1,0 +1,6 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module">
+import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {VelocidadeEstadio} from './src/escalacao/presidencia-velocidade.tsx';
+const h=React.createElement;
+function Test(){const [speed,setSpeed]=useState(4),[open,setOpen]=useState(false);return h('main',null,h('button',{onClick:()=>setOpen(v=>!v)},open?'Sair do estádio':'Abrir estádio'),h('button',{onClick:()=>setSpeed(2)},'Simulação 2×'),h('output',{id:'speed'},String(speed)),open&&h(VelocidadeEstadio,{speed,onSet:setSpeed}))}
+createRoot(document.getElementById('root')).render(h(Test));
+</script></html>

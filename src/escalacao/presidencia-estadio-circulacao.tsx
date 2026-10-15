@@ -1,3 +1,4 @@
+import {useDiaEstadio} from './presidencia-estadio-dia'
 import {useEffect,useRef,useState,type CSSProperties} from 'react'
 import type {StadiumSave} from './estadiodata'
 import {useT} from './lang'
@@ -6,7 +7,8 @@ import {atoresDoMapa,quadroAtor,MAPA_ESTADIO} from './presidencia-estadio-mapa-m
 export function PresidenciaEstadioCirculacao({stadium,movementPaused}:{stadium?:StadiumSave;movementPaused?:boolean}){
  const t=useT(),[localPaused,setPaused]=useState(false),paused=movementPaused??localPaused,root=useRef<HTMLDivElement>(null)
  const elapsed=useRef(0)
- const actors=atoresDoMapa(stadium),signature=JSON.stringify(actors)
+ const day=useDiaEstadio()
+ const actors=atoresDoMapa(stadium,day),signature=JSON.stringify(actors)
  useEffect(()=>{
   const container=root.current
   if(!container)return
@@ -18,6 +20,8 @@ export function PresidenciaEstadioCirculacao({stadium,movementPaused}:{stadium?:
    node.style.left=p.x/MAPA_ESTADIO.width*100+'%'
    node.style.top=p.y/MAPA_ESTADIO.height*100+'%'
    node.style.zIndex=String(p.depth)
+   node.style.clipPath=p.hiddenFraction?`inset(0 0 ${p.hiddenFraction*100}% 0)`:''
+   node.dataset.visit=p.visit
    node.style.transformOrigin=actor.kind==='car'?'center center':'center bottom'
    node.style.transform=`translate(-50%,${actor.kind==='car'?'-50%':'-100%'}) scale(${p.scale})${actor.kind==='car'?` rotate(${p.angle}deg)`:` scaleX(${p.flip?-1:1})`}`
    for(const image of Array.from(node.querySelectorAll<HTMLImageElement>('img'))){

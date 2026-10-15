@@ -24,9 +24,9 @@ const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright
    await page.waitForFunction(({selector,world,before})=>{const el=document.querySelector(selector),v=el.getBoundingClientRect(),w=el.querySelector(world).getBoundingClientRect();return Math.abs((v.x+v.width/2-w.x)/w.width-before[0])<.0001&&Math.abs((v.y+v.height/2-w.y)/w.height-before[1])<.0001},{selector,world,before});
    if(field)assert.equal(await page.locator('.pe-football-registered').getAttribute('data-ball'),frozen,'Rotating does not move the paused ball');
   }
-  await page.getByRole('button',{name:field?'VER CAMPO':'VER TUDO',exact:true}).click();
+  await page.getByRole('button',{name:field?'VER CAMPO':'ENQUADRAR',exact:true}).click();
   await page.setViewportSize({width:844,height:390});
-  await page.waitForFunction(({selector,world})=>{const v=document.querySelector(selector).getBoundingClientRect(),w=document.querySelector(world).getBoundingClientRect();return w.left>=v.left-.5&&w.right<=v.right+.5&&w.top>=v.top-.5&&w.bottom<=v.bottom+.5},{selector,world});
+  await page.waitForFunction(({selector,world,field})=>{const v=document.querySelector(selector).getBoundingClientRect(),w=document.querySelector(world).getBoundingClientRect();return field?w.left>=v.left-.5&&w.right<=v.right+.5&&w.top>=v.top-.5&&w.bottom<=v.bottom+.5:w.left<=v.left+3&&w.right>=v.right-3&&w.top<=v.top+3&&w.bottom>=v.bottom-3},{selector,world,field});
  }
  assert.deepEqual(errors,[]);console.log('PASS: field and NPC map preserve the viewed location across portrait, landscape, desktop and back; paused ball and overview remain correct.');
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
