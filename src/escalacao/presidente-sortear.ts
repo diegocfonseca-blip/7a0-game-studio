@@ -4,12 +4,13 @@ import {montarPresidenteLayers} from './presidente-rig'
 import {PECAS_PRESIDENTE} from './presidente-pecas'
 import {VESTUARIO_MODULAR} from './presidente-vestuario-modular'
 import {podeVestirModular} from './presidente-vestuario-acesso'
-import type {PresidenteRoupaTier} from './presidente-roupas'
+import type {PlanoUnico} from './planos-regras'
 
 /** Só rascunho, só peças integradas. Nome, tom de pele e mandato são mantidos.
- * Nenhum pacote de jogador inteiro; cabelo e barba são sorteados à parte. */
-export function sortearPresidente(value:PresidenteBaseSave,random:()=>number=Math.random,tier:PresidenteRoupaTier|null=null):PresidenteBaseSave{
- const outfits=VESTUARIO_MODULAR.filter(roupa=>podeVestirModular(roupa.id,tier))
+ * Nenhum pacote de jogador inteiro; cabelo e barba são sorteados à parte.
+ * 🔁 15/10: a roupa sorteada respeita o PLANO da conta (nada de sortear roupa que a pessoa não pode usar). */
+export function sortearPresidente(value:PresidenteBaseSave,random:()=>number=Math.random,plano:PlanoUnico|null|undefined=null):PresidenteBaseSave{
+ const outfits=VESTUARIO_MODULAR.filter(roupa=>podeVestirModular(roupa.id,plano))
  if(!outfits.length)return value
  const pick=<T,>(items:readonly T[]):T=>{const n=random();return items[Number.isFinite(n)&&n>=0&&n<1?Math.floor(n*items.length):0]}
  const ready=PECAS_PRESIDENTE.filter(p=>p.ready)

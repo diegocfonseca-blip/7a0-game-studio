@@ -1,9 +1,10 @@
-import {PRESIDENTE_ROUPAS,podeVestirRoupa,type PresidenteRoupaId,type PresidenteRoupaTier} from './presidente-roupas'
+import {PRESIDENTE_ROUPAS,podeVestirRoupa,seloRoupa,type PresidenteRoupaId} from './presidente-roupas'
 import {roupaModularValida,type RoupaModular} from './presidente-vestuario-modular'
+import type {PlanoUnico} from './planos-regras'
 
 /** Reuse the agreed access catalog, NOT its rejected legacy artwork.
  * Exhaustive mapping: a new modular outfit must declare its access rule.
- * Tier is supplied by the account caller, never taken from the avatar save. */
+ * 🔁 15/10: quem libera é o PLANO da conta (presidente-plano.ts), nunca o tier do rascunho. */
 export const REGRA_ROUPA_MODULAR:Record<RoupaModular,PresidenteRoupaId>={
  'mestre-envelopes':'mestre-envelopes',
  'dono-lua':'dono-lua',
@@ -30,15 +31,12 @@ export const REGRA_ROUPA_MODULAR:Record<RoupaModular,PresidenteRoupaId>={
  'polo-verde':'polo-verde','camiseta-branca':'camiseta-branca',
  'social-azul':'social-azul',agasalho:'jaqueta-esportiva','blazer-vinho':'blazer-vinho',
 }
-export function podeVestirModular(id:unknown,tier:PresidenteRoupaTier|null=null):id is RoupaModular{
- return roupaModularValida(id)&&podeVestirRoupa(REGRA_ROUPA_MODULAR[id],tier)
+export function podeVestirModular(id:unknown,plano:PlanoUnico|null|undefined):id is RoupaModular{
+ return roupaModularValida(id)&&podeVestirRoupa(REGRA_ROUPA_MODULAR[id],plano)
 }
-/** Labels share the access rule; future premium clothes must never say FREE. */
+/** Labels share the access rule; nothing here ever says FREE (Diego, 15/10). */
 export function seloRoupaModular(id:unknown):readonly [string,string]{
- const rule=roupaModularValida(id)?REGRA_ROUPA_MODULAR[id]:undefined
- const access=PRESIDENTE_ROUPAS.find(r=>r.id===rule)?.access
- if(access==='free')return ['GRÁTIS','FREE']
- if(access==='craque')return ['CRAQUE / LENDA','STAR / LEGEND']
- if(access==='lenda')return ['LENDA','LEGEND']
- return ['INDISPONÍVEL','UNAVAILABLE']
+ if(!roupaModularValida(id))return ['INDISPONÍVEL','UNAVAILABLE']
+ const rule=REGRA_ROUPA_MODULAR[id]
+ return PRESIDENTE_ROUPAS.some(r=>r.id===rule)?seloRoupa(rule):['INDISPONÍVEL','UNAVAILABLE']
 }

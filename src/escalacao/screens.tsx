@@ -31,7 +31,7 @@ import { AvatarLote1, avatarLote1 } from './avatar-lote1'
 import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
 import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
 import {PresidenteFormulario} from './presidente-formulario'
-import {usePresidentOutfitTier,getPresidentOutfitTier} from './presidente-tier-conta'
+import {usePlanoConta,getPlanoConta} from './presidente-conta'
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -2602,7 +2602,7 @@ export function EscSetup() {
   const presidentAccount = usePresidentPreview()
   const modularSetup = presidentAccount && PRESIDENT_INTEGRATION_RELEASED && state.sport !== 'basquete'
   // Keep the account check alive between the editor and final career step.
-  usePresidentOutfitTier(career && modularSetup)
+  usePlanoConta()
   const privatePreview = modularSetup || legacyPrivatePreview
   const setupMember = useMeuSocio()
   const [presidentDraft,setPresidentDraft] = useState(()=>sugestaoPresidente(undefined))
@@ -2680,8 +2680,8 @@ export function EscSetup() {
     // carreira offline = pirâmide de 4 divisões (baralho sempre BR + Europa juntos).
     // O modo rápido (career=false) segue no START normal com o baralho escolhido.
     if (career) {
-      if(modularSetup&&!podeVestirModular(presidentDraft.outfit,getPresidentOutfitTier())){
-        setNameErr(tr('Não foi possível confirmar o acesso a esta roupa. Confira seu plano ou escolha uma gratuita.','Could not confirm access to this outfit. Check your plan or choose a free outfit.'))
+      if(modularSetup&&!podeVestirModular(presidentDraft.outfit,getPlanoConta())){
+        setNameErr(tr('Esta roupa não está no seu plano. Escolha uma do seu plano ou suba de plano na Loja do Clube.','This outfit is not in your plan. Pick one from your plan or move up a plan in the Club Shop.'))
         setPrivateStep(2);return
       }
       // 🪜 VÁRIOS SAVES: guarda a carreira ATUAL no arquivo (não apaga!) antes de

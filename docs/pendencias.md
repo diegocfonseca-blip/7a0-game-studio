@@ -235,6 +235,21 @@ transporte/assento e metrô mandante desta rodada.
   a arte aprovada nem considerar visual concluído pelos testes técnicos.
 - Estado detalhado e limites: `docs/presidencia-complexo-3d-reconstrucao.md`.
   Alterações acumuladas locais, acesso futuro inicial só Diego; nenhum novo deploy.
+## 🧑‍💼 CRIAÇÃO DE PERSONAGEM NA CONTA (15/10) — ✅ feito, SÓ NA CONTA DO DIEGO
+- Diego: *"já bote pra fazer tudo sobre a criação do personagem… sempre com base no e-mail… já pode fazer pro meu usuário apenas"*.
+- Onde mora: tabela `esc_presidente` (1 linha por conta, `docs/sql/presidente-conta.sql`, aplicada em 15/10, RLS só o dono).
+  Porta de entrada: 🛒 Loja do Clube › "🧑‍💼 Meu presidente" (`presidente-loja.tsx`). A Presidência da carreira
+  (`presidencia-clube.tsx`) passa a mostrar/editar o presidente DA CONTA e grava nos dois (conta + save da carreira, que
+  guarda só a posse `sinceSeason`). Trava de conta: `PRESIDENTE_CONTA_TESTERS`/`PRESIDENTE_CONTA_GERAL` em `presidente-conta.ts`.
+- Régua por PLANO (`presidente-plano.ts`, `npm run presidente`): grátis monta e NÃO salva (trava diz o porquê e o caminho) ·
+  ⭐ Craque = pele + cabelos/barbas + 14 roupas básicas · 👑 Lenda = + 9 especiais · 🖋 Batismo/Fundador = + 10 de gala.
+  O antigo `presidente-tier-conta.ts` (tier do Diego lido do user_colors) SAIU; tudo lê `getPlanoConta()` (a régua da Loja).
+- 🧹 Cabelo e barba CLÁSSICOS consertados (`public/presidente-v17`): o cabelo tinha restos de contorno de barba no queixo e a
+  barba estava cortada reta do lado direito (espelhada a metade boa). Os outros 19 cabelos e 6 barbas estão limpos
+  (`scripts/mockups/presidente-classicos-antes-depois.png`).
+- ⏳ Falta decidir com ele: preço dos AVULSOS (cabelo de craque, roupa especial fora do plano) e se o grátis pode comprar o boneco
+  avulso. ⏳ Mostrar o presidente nos 12 lugares do mockup de 14/10 (hoje só Loja + Presidência). ⏳ Liberar geral.
+
 ## 🪪 5 Garrinchas no elenco do Fabulous EC (15/10) — ✅ NO AR (15/10)
 - ✅ 👑 **KINGS v2 NO AR (15/10, só na conta do Diego)** — `scripts/mockups/kings-v2.png` (bola caindo da gaiola, 1×1→7×7, dado gigante 👑/2×2/3×3, presidente sem botão com contagem e minuto fixo por rodada, carta secreta sorteada, roteiro). Detalhes em `docs/conceito-kings-league.md` (v2). Feito: bola caindo da gaiola, faixa 1×1→7×7, dado gigante 3D, presidente e cartas sorteadas na agenda da rodada com cobrança de 5 s (bate/defende; não escolheu = sorteio), liga e mata-mata. ⏳ Falta: versão online gente × gente (a agenda e o `KINGS_DECIDIR` já foram feitos pensando nela).
 
@@ -340,6 +355,26 @@ grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (apl
 - Regra fechada: escudo = clube · presidente = pessoa (ver CLAUDE.md). 12 lugares no mockup (sala, chat, martelo, pódio,
   vitrine, jornal, presidência, troféus, caixa, convite, Central, perfil). Sugestão minha: começar por sala + pódio + presidência + jornal.
 - Guarda-roupa por plano com as roupas que JÁ estão em `public/presidente-v*` + roupa avulsa (sugestão R$ 4,90).
+- 🔁 15/10 (Diego): **boneco só do ⭐ Craque pra cima** — grátis não ganha nada (mostra o escudo no lugar). Quer VENDER
+  boneco/roupa. Proposta enviada: Craque = boneco + roupas básicas · Lenda = + roupas de gala · Batismo/Fundador = + roupa com o
+  manto do clube · Loja = roupa/cabelo avulso R$ 4,90. ⏳ Falta ele dizer se o GRÁTIS pode comprar o boneco avulso na Loja.
+  Ele esclareceu: é a CRIAÇÃO DE PERSONAGEM. 2ª proposta (15/10): grátis monta pra ver mas não salva · Craque = pele + 14 roupas
+  básicas + cabelos/barbas clássicos · Lenda = + 9 roupas especiais · Batismo/Fundador = + 10 roupas de gala · cabelos de craque
+  (Neymar, Messi, CR7…) avulsos R$ 2,90 e roupas especiais R$ 4,90 na Loja. ⏳ esperando o OK.
+  ➕ 15/10: quer VENDER CAMISA DE TIME DE CORAÇÃO pro personagem. Proposta: camisa nas CORES do time (listra/faixa do
+  jeito do clube), SEM escudo oficial e SEM patrocinador — vender a camisa oficial com escudo é usar marca de clube pra
+  cobrar. R$ 4,90 cada, começando pelos 20 da Série A. ⏳ esperando ele escolher.
+  ✅ Decidido (Diego): *"nem o fundador terá"* — camisa de time NÃO vem em plano nenhum, nem no Fundador; é só comprada.
+  ✅ Decidido (Diego): **camisa OFICIAL, com escudo** (avisado do risco de marca; a escolha é dele). Lista = os times de coração
+  dos donos de batismo (`esc_socios.time_coracao`, 15/10): Corinthians 13 · Flamengo 7 · São Paulo 7 · Palmeiras 6 · Inter 4 ·
+  Atlético-MG 3 · Grêmio 3 · Santos 3 · Cruzeiro 2 · Vasco 2 · Botafogo · CRB · Paraná · Paysandu · Remo · Rio Branco-PR ·
+  Santa Cruz (17 do Brasil). ⏳ Próximo: mockup com 3 (Corinthians, Flamengo, São Paulo) no boneco antes de fazer o resto.
+  🎽 15/10: 1ª versão (listrado genérico) reprovada: *"N ficou bom pq N é oficial"*. Ele mandou pesquisar a oficial SEM
+  patrocínio. 2ª versão = Flamengo 2025 jogo 1 (6 pretas/5 vermelhas com filete, gola V preta, manga preta, 3 listras vermelhas
+  no ombro, escudo e Adidas brancos) pintada SOBRE a camiseta branca da base (mesma arte, webp). Gerador:
+  `python3 scripts/camisas-presidente/flamengo-2025.py <pasta>`; mockup em `scripts/mockups/camisa-presidente-flamengo-2025.png`.
+  ⛔ 15/10, 2ª versão também reprovada: *"tá muito ruim a camisa do Flamengo. Melhor você não fazer isso agora"*. Camisa de
+  time PARADA até ele pedir de novo (precisa de arte de verdade, não de pintura por cima da camiseta). O gerador fica guardado.
 - FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
 
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado

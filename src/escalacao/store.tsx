@@ -7,7 +7,7 @@ import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Lei
 import type { ReactNode } from 'react'
 import {presidentWritesEnabled} from './presidente-acesso'
 import {PRESIDENCY_ECONOMY_RELEASED,PRESIDENCY_ROOF_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
-import {getPresidentOutfitTier} from './presidente-tier-conta'
+import {getPlanoConta} from './presidente-conta'
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {presidenteCadastrado,sugestaoPresidente} from './presidencia-entrada-model'
 import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,podeAlterarPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
@@ -6881,7 +6881,7 @@ function reducerBase(state: EscState, action: Action): EscState {
     // 🏟️ ESTÁDIO da carreira: investe aos poucos num setor (custa do caixa de moedas)
     case 'PRESIDENCY_SAVE_BASE': {
       if(!presidentWritesEnabled())return state
-      const result=salvarPresidenteNaCarreira(s,action.mgrId,action.value,getPresidentOutfitTier())
+      const result=salvarPresidenteNaCarreira(s,action.mgrId,action.value,getPlanoConta())
       return result.ok?result.value:state
     }
     case 'PRESIDENCY_TRADE': {
@@ -7424,7 +7424,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Só identidade visual. Ausente mantém compatibilidade total com o fluxo
       // público e com saves criados antes do novo criador.
       s.careerPresident = action.president
-      s.careerPresidentBase = presidentWritesEnabled() && s.sport !== 'basquete' && presidenteCadastrado(action.presidentBase) && podeVestirModular(action.presidentBase.outfit,getPresidentOutfitTier())
+      s.careerPresidentBase = presidentWritesEnabled() && s.sport !== 'basquete' && presidenteCadastrado(action.presidentBase) && podeVestirModular(action.presidentBase.outfit,getPlanoConta())
         ? {...sugestaoPresidente(action.presidentBase),name:action.presidentBase.name.trim(),sinceSeason:1} : undefined
       if(s.careerPresidentBase)s.careerPresident={name:s.careerPresidentBase.name,outfit:roupaLegada(s.careerPresidentBase.outfit)}
       s.careerPresidency = undefined

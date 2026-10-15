@@ -757,6 +757,17 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   ranking da semana, capa do O MARTELO, sala da presidência, Sala de Troféus, caixa do fim de temporada, convite internacional,
   Central Legends, perfil). O usuário NÃO escolhe entre os dois. Mockup dos 12 lugares enviado (14/10); guarda-roupa por plano
   (grátis · ⭐ Craque · 👑 Lenda) + roupa avulsa. Editor ainda em teste só na conta dele; a arte do ROSTO não está no repo.
+  🔁 **15/10: O BONECO É PAGO, NADA DE GRAÇA** (*"quero vender eles!! Nada é de graça até msm no plano gratuito.. Começa a
+  ganhar boneco apenas no modo craque pra cima"*). Grátis NÃO tem presidente (no lugar dele vai o escudo); o boneco nasce no
+  ⭐ Craque e as roupas sobem por plano; peça extra é vendida na Loja. É a CRIAÇÃO DE PERSONAGEM (`presidente-editor.tsx`:
+  pele, 33 roupas, 20 cabelos, 7 barbas, brinco).
+  ✅ **FEITO em 15/10 (só na conta dele)**: o presidente é DA CONTA (`esc_presidente`, por e-mail — `presidente-conta.ts`), mora na
+  🛒 Loja do Clube (seção "🧑‍💼 Meu presidente", `presidente-loja.tsx`) e a Presidência da carreira abre o MESMO editor. A régua
+  é por PLANO (`presidente-plano.ts`, trava `npm run presidente`): grátis monta e não salva · ⭐ Craque = pele, cabelos/barbas e 14
+  roupas básicas · 👑 Lenda = + 9 especiais · 🖋 Batismo/Fundador = + 10 de gala. **Nenhum selo diz GRÁTIS.** Avulsos (cabelo de
+  craque, camisa de time) ainda SEM preço fechado. Liberar geral = `PRESIDENTE_CONTA_GERAL = true`.
+  🎽 **Camisa de time do personagem: PARADA (15/10)** — duas versões pintadas por cima da camiseta reprovadas (*"tá muito ruim"*);
+  só volta com arte de verdade, quando ele pedir.
 
 - **💾 FICHAS DE CARREIRA (05/10, regra permanente): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 · 🖋️ Batismo 4.** Antes era
   2 · 4 · 6 · 8. Palavras dele: *"não mexa nesses usuários que já fizeram saves… a partir de agora o grátis vai ter só um…
