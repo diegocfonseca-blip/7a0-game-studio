@@ -10760,8 +10760,12 @@ export function EscEnd() {
       .then(({ data }) => {
         if (!vivo) return
         const d = data as { flag?: string; reg?: string } | null
-        setMundoNaLiga(String(d?.flag) === 'true')
-        setRegionalNaLiga(ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null)
+        // 🛡️ sala com as DUAS marcas (achado 15/10, sala "Rio-SP no YouTube" do Futpoint): abria a Copa do Mundo E o
+        // Rio × SP juntos, lendo as MESMAS escolhas — "2 listas" e a convocação do São Paulo vazia (procurava o PAÍS São
+        // Paulo). Uma copa só por noite: a regional, que é a escolha mais específica, ganha.
+        const reg = ehCopaRegional(d?.reg) ? d!.reg as CopaRegionalId : null
+        setMundoNaLiga(String(d?.flag) === 'true' && !reg)
+        setRegionalNaLiga(reg)
         setMundoChecado(true)
       }, () => {})
     return () => { vivo = false }

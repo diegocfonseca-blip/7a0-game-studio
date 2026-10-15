@@ -31,6 +31,7 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampion
 import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
+import { DUPLA_CONVOCA } from './dupla-copa'
 import { createPortal } from 'react-dom'
 import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
@@ -2654,6 +2655,22 @@ export function EscLobby() {
     fetchPlayers(room.id)
   }
 
+  // 🏳️ QUEM ESCOLHE O CLUBE E CONVOCA nas copas com convocação (Copa do Mundo / regional) — 15/10. Fica na MESMA
+  // divisão das posições (`dupla_categories.CONV`, linha do dono, gravada pela função do banco que confere a dupla).
+  // Tocar no que já está marcado desmarca (volta ao padrão: o dono convoca). Regra lida em `dupla-copa.ts`.
+  async function tocarConvoca(dono: RoomPlayer, quem: string) {
+    if (!room || !user) return
+    const par = players.find(p => p.dupla_partner_of === dono.user_id)
+    if (!par || (user.id !== dono.user_id && user.id !== par.user_id)) return
+    if (quem !== dono.user_id && quem !== par.user_id) return
+    const { data: fresh } = await supabase.from('room_players').select('dupla_categories').eq('room_id', room.id).eq('user_id', dono.user_id).maybeSingle()
+    const novo: Record<string, string> = { ...((fresh?.dupla_categories ?? {}) as Record<string, string>) }
+    if (novo[DUPLA_CONVOCA] === quem) delete novo[DUPLA_CONVOCA]; else novo[DUPLA_CONVOCA] = quem
+    const { error } = await supabase.rpc('dupla_definir', { p_room: room.id, p_dono: dono.user_id, p_cats: novo })
+    if (error) setRoomError(`${tr('Não consegui salvar quem convoca', 'Couldn\'t save who calls up')}: ${error.message}`)
+    fetchPlayers(room.id)
+  }
+
   // host remove um técnico da sala de espera (antes de abrir o pregão): apaga
   // a vaga dele. O cliente removido percebe pela realtime que sumiu da lista e
   // volta sozinho pro menu (efeito abaixo).
@@ -4300,6 +4317,33 @@ export function EscLobby() {
                         ? (getLang() === 'en' ? `All split: green is yours, the rest is ${nomeDoOutro}'s. At the auction, only whoever runs the position bids.` : `Tudo dividido: o verde é seu, o resto é do ${nomeDoOutro}. Na hora do leilão, só quem manda na posição dá o lance.`)
                         : (getLang() === 'en' ? `Tap 3 positions. The other 3 go automatically to ${nomeDoOutro} — and if you don't choose, the game splits them on its own at kick-off.` : `Toque em 3 posições. As outras 3 ficam automático com o ${nomeDoOutro} — e se vocês não escolherem, o jogo divide sozinho na hora de começar.`)}
                     </p>
+                    {/* 🏳️ QUEM CONVOCA — só em sala com convocação (Copa do Mundo ou copa regional depois da liga) */}
+                    {(() => {
+                      const gsC = room?.game_state as (GS & { regionalNaLiga?: string }) | undefined
+                      if (!gsC?.mundoNaLiga && !gsC?.regionalNaLiga) return null
+                      const conv = (p.dupla_categories as Record<string, string> | null | undefined)?.[DUPLA_CONVOCA] ?? p.user_id
+                      const nomeDe = (r: RoomPlayer) => stripEmoji(r.manager_name).trim()
+                      return (
+                        <div className="mt-2.5 pt-2" style={{ borderTop: '2px dashed rgba(0,0,0,.12)' }}>
+                          <p className="text-black/60 text-[10.5px] font-black uppercase tracking-wide mb-1.5" style={OSWALD}>{tr('🏳️ Quem escolhe o clube e convoca', '🏳️ Who picks the club and calls up')}</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {[p, par].map(r => {
+                              const marcado = conv === r.user_id
+                              return (
+                                <button key={r.user_id} onClick={() => tocarConvoca(p, r.user_id)}
+                                  className="border-2 border-black rounded-lg py-1.5 px-1 font-black text-[11.5px] leading-tight active:translate-y-0.5"
+                                  style={{ ...OSWALD, background: marcado ? GREEN : '#fff', color: marcado ? '#fff' : '#000' }}>
+                                  {r.user_id === user?.id ? tr('🙋 EU', '🙋 ME') : tr('🤝 PARCEIRO', '🤝 PARTNER')}<br /><span style={{ fontSize: 10, opacity: 0.8 }}>{nomeDe(r)}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                          <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-1.5">
+                            {getLang() === 'en' ? `In the World Cup / regional cup only ONE picks the club and calls up the 11 — the other watches live. Nobody chose = ${nomeDe(p)} calls up.` : `Na Copa do Mundo / copa regional só UM escolhe o clube e convoca os 11 — o outro assiste. Ninguém marcou = ${nomeDe(p)} convoca.`}
+                          </p>
+                        </div>
+                      )
+                    })()}
                   </div>
                 )
               })()}

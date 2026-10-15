@@ -30,7 +30,8 @@ import { startCrowd, stopCrowd } from './sound'
 import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
 import { CONVOCACAO_MS } from './store'
-import { NaoSai, useChamaNaVez, CartaoSuaVez } from './proxima-competicao'
+import { NaoSai, useChamaNaVez, CartaoSuaVez, AvisoDupla } from './proxima-competicao'
+import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento } from './dupla-copa'
 import {
   COPAS_REGIONAIS, clubesDaCopa, poolDoClube, completaXIClube, xiPorChavesClube, xiDaMaquinaClube, forcaDoXI,
   piorClubeLivre, melhorClubeLivre, simulaRegional, tabelaDoLado, passosRegional, passoRegionalRodaBola, artilhariaRegional,
@@ -65,7 +66,7 @@ export interface FichaRegional { seed: number; edicao: number; times: TimeRegion
 export interface LugarNaLiga { id: number; nome: string; humano: boolean }
 type Fase = 'aviso' | 'bandeira' | 'banner' | 'convocacao' | 'torneio'
 interface LinhaFase { edicao: number; seed: number; fase: Fase; vez_uid: string | null; ate: string | null; times: TimeRegional[] | null; campeao: string | null }
-interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: Pick | null }
+interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: Pick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null }
 
 const segundosAte = (ate?: string | null) => (ate ? Math.max(0, Math.ceil((new Date(ate).getTime() - agoraSala()) / 1000)) : 0)
 
@@ -253,7 +254,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   const ler = useCallback(async () => {
     try {
       const [{ data: pls, error: e1 }, { data: fs, error: e2 }] = await Promise.all([
-        supabase.from('room_players').select('user_id, player_index, manager_name, copa').eq('room_id', roomId),
+        supabase.from('room_players').select('user_id, player_index, manager_name, copa, dupla_partner_of, dupla_categories').eq('room_id', roomId),
         supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).eq('edicao', edicao).limit(1),
       ])
       if (e1 || e2 || !pls || !fs) return null
@@ -266,7 +267,11 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   }, [roomId, edicao])
   useEffect(() => { void ler(); const iv = setInterval(() => { void ler() }, 2000); return () => clearInterval(iv) }, [ler])
 
-  const uidDe = useMemo(() => new Map(linhas.map(l => [l.player_index, l.user_id])), [linhas])
+  // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
+  const uidDe = useMemo(() => quemAgePorAssento(linhas), [linhas])
+  const dupla = useMemo(() => minhaDuplaNaCopa(linhas, meuUid), [linhas, meuUid])
+  const euUid = dupla?.age ?? meuUid       // o "eu" da copa: na dupla, é quem convoca por ela
+  const soAssisto = !!dupla && dupla.age !== meuUid
   const nomeDe = useMemo(() => new Map(linhas.map(l => [l.user_id, semEmoji(l.manager_name)])), [linhas])
   const picks = useMemo(() => { const m = new Map<string, Pick>(); for (const l of linhas) if (temClube(l.copa)) m.set(l.user_id, l.copa); return m }, [linhas])
   // a FILA: só gente, só quem ficou entre os classificados da liga, na ordem da tabela
@@ -274,14 +279,14 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   const fila = useMemo(() => classificados.filter(c => c.humano && uidDe.has(c.id)).map((c, i) => ({ ...c, uid: uidDe.get(c.id)!, vez: i + 1 })), [classificados, uidDe])
   const pegos = useMemo(() => { const m = new Map<string, string>(); for (const f of fila) { const p = picks.get(f.uid); if (p) m.set(p.pais, f.nome) } return m }, [fila, picks])
   const seg = segundosAte(fase?.ate)
-  const minha = meuUid ? picks.get(meuUid) ?? null : null
-  const souAVez = fase?.fase === 'bandeira' && fase.vez_uid === meuUid && !minha
-  const fiqueiDeFora = !!meuUid && classificacao.some(c => c.humano && uidDe.get(c.id) === meuUid) && !fila.some(f => f.uid === meuUid)
+  const minha = euUid ? picks.get(euUid) ?? null : null
+  const souAVez = !soAssisto && fase?.fase === 'bandeira' && fase.vez_uid === meuUid && !minha
+  const fiqueiDeFora = !!euUid && classificacao.some(c => c.humano && uidDe.get(c.id) === euUid) && !fila.some(f => f.uid === euUid)
   // 🔜 NÃO SAI + CHAMA NA VEZ (Diego 13/10) — só aviso, não mexe na fila nem no relógio
-  const minhaFila = fila.find(f => f.uid === meuUid)
+  const minhaFila = fila.find(f => f.uid === euUid)
   const antesDeMim = minhaFila ? fila.filter(f => f.vez < minhaFila.vez && !picks.get(f.uid)).length : 0
   const mostraNaoSai = !!minhaFila && !minha && !souAVez && (!fase || fase.fase === 'aviso' || fase.fase === 'bandeira')
-  const chama = useChamaNaVez(souAVez ? `vez-${fase?.edicao}` : fase?.fase === 'convocacao' && minha && !temTime(minha) ? `convoca-${fase?.edicao}` : null)
+  const chama = useChamaNaVez(soAssisto ? null : souAVez ? `vez-${fase?.edicao}` : fase?.fase === 'convocacao' && minha && !temTime(minha) ? `convoca-${fase?.edicao}` : null)
 
   // ─── 👑 só o DONO empurra a fase (a vez, o prazo, o castigo de quem dormiu) ───
   const passo = useCallback(async () => {
@@ -290,7 +295,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     if (!l?.fase) return
     const f = l.fase
     const pk = new Map<string, Pick>(); for (const x of l.linhas) if (temClube(x.copa)) pk.set(x.user_id, x.copa)
-    const uid = new Map(l.linhas.map(x => [x.player_index, x.user_id]))
+    const uid = quemAgePorAssento(l.linhas)
     const filaAgora = classificados.filter(c => c.humano).map(c => ({ id: c.id, uid: uid.get(c.id) })).filter((x): x is { id: number; uid: string } => !!x.uid)
     const venceu = f.ate ? agoraSala() >= new Date(f.ate).getTime() : true
     const grava = (o: Record<string, unknown>) => supabase.from('esc_copa_salas').update(o).eq('room_id', roomId).eq('edicao', f.edicao)
@@ -345,11 +350,11 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     } finally { setComecando(false) }
   }
   async function gravaClube(clube: string) {
-    if (!meuUid) return
+    if (!meuUid || soAssisto) return
     try { await supabase.from('room_players').update({ copa: { pais: clube, form: '4-3-3', xiKeys: [] } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* a batida tenta de novo */ }
   }
   async function gravaTime(xiKeys: string[], form: Formation, parcial = false) {
-    if (!meuUid || !minha) return
+    if (!meuUid || !minha || soAssisto) return
     if (!parcial && xiKeys.length !== 11) return
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
@@ -374,13 +379,13 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   const status = fase?.fase === 'aviso' ? `${tr('A escolha dos clubes começa em', 'Club picks start in')} ${seg}s`
     : fase?.fase === 'bandeira' ? (souAVez ? tr('É a sua vez de escolher o clube', 'Your turn to pick a club') : `${daVezNome} ${tr('está escolhendo o clube', 'is picking a club')} · ${seg}s`)
     : fase?.fase === 'banner' ? `${tr('A convocação abre em', 'Call-up opens in')} ${seg}s`
-    : fase?.fase === 'convocacao' ? (temTime(minha) ? tr('Seu time está convocado · esperando a turma', 'Your team is called up · waiting for the crew') : `${tr('Convoque os seus 11', 'Call up your 11')} · ${seg}s`)
+    : fase?.fase === 'convocacao' ? (temTime(minha) ? tr('Seu time está convocado · esperando a turma', 'Your team is called up · waiting for the crew') : soAssisto ? `${dupla!.nomeAge} ${tr('está convocando pela dupla', 'is calling up for your duo')} · ${seg}s` : `${tr('Convoque os seus 11', 'Call up your 11')} · ${seg}s`)
     : fase?.fase === 'torneio' ? tr('Competição em andamento', 'Competition in progress')
     : tr('Aguardando o dono abrir a copa', 'Waiting for the host to open the cup')
   const detalhe = en
     ? `The top ${vagas} of the league pick a club in table order (${SEG_ESCOLHA}s each) and call up their 11. The last ones sit this one out.`
     : `Os ${vagas} primeiros da liga escolhem um clube na ordem da tabela (${SEG_ESCOLHA}s cada) e convocam os 11. Os últimos ficam de fora.`
-  const removiveis = fila.filter(f => f.uid !== meuUid)
+  const removiveis = fila.filter(f => f.uid !== euUid)
   const [gerenciar, setGerenciar] = useState(false)
 
   return (
@@ -389,18 +394,20 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={`${nomeCopa(copa)} · ${en ? `you have ${SEG_ESCOLHA}s to pick your club` : `você tem ${SEG_ESCOLHA}s pra pegar o clube`}`} botao={tr('Escolher meu clube', 'Pick my club')} aoFechar={chama.fechar} />}
       <CompetitionStage kind="copa8" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={nomeCopa(copa)} detail={detalhe} status={status}>
         <div className="ll26-cup-entry">
+          {soAssisto && dupla && <AvisoDupla quem={dupla.nomeAge} />}
           {mostraNaoSai && <NaoSai minhaVez={minhaFila!.vez} antes={antesDeMim} fase={fase?.fase} seg={seg} segPorVez={SEG_ESCOLHA} />}
           {fiqueiDeFora && <p className="ll27-portao-aviso">{tr(`😬 Você terminou a liga fora dos ${vagas} primeiros — fica de fora desta copa. Dá pra assistir daqui.`, `😬 You finished outside the top ${vagas} — you sit out this cup. You can watch from here.`)}</p>}
           {!!fila.length && fase?.fase !== 'torneio' && fase?.fase !== 'convocacao' && (
             <div className="ll27-fila">
               <h3>{tr('🥇 QUEM TERMINOU NA FRENTE ESCOLHE PRIMEIRO', '🥇 WHOEVER FINISHED HIGHER PICKS FIRST')}</h3>
               {fila.map(f => {
-                const p = picks.get(f.uid), eu = f.uid === meuUid
+                const p = picks.get(f.uid), eu = f.uid === euUid
+                const du = duplaDoAssento(linhas, f.id)
                 const daVez = fase?.fase === 'bandeira' && !p && fila.find(x => !picks.get(x.uid))?.uid === f.uid
                 return (
                   <div key={f.uid} className={`ll27-fila-linha${daVez ? ' vez' : ''}${eu ? ' eu' : ''}`}>
                     <span className="ll27-fila-n">{ordinal(f.vez)}</span>
-                    <span className="ll27-fila-nome">{f.nome}{eu ? tr(' (você)', ' (you)') : ''}</span>
+                    <span className="ll27-fila-nome">{f.nome}{eu ? (soAssisto ? tr(' (sua dupla)', ' (your duo)') : tr(' (você)', ' (you)')) : ''}{du && <small style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{en ? `🏳️ ${du.nomeAge} picks · 🤝 ${du.nomeOutro} watches` : `🏳️ ${du.nomeAge} escolhe · 🤝 ${du.nomeOutro} assiste`}</small>}</span>
                     {p ? <span className="ll27-fila-pais"><SeloClube clube={p.pais} size={22} /> {p.pais}{temTime(p) ? ' ✔️' : ''}</span>
                       : <span className="ll27-fila-espera">{daVez ? `⏳ ${seg}s` : tr('na fila', 'in line')}</span>}
                   </div>
@@ -455,9 +462,9 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
           )}
           {fase?.fase === 'convocacao' && (
             <div className="ll27-convoca">
-              <h3>{temTime(minha) ? tr('✅ TIME CONVOCADO', '✅ TEAM CALLED UP') : tr('⚽ CONVOQUE OS 11', '⚽ CALL UP THE 11')}</h3>
+              <h3>{temTime(minha) ? tr('✅ TIME CONVOCADO', '✅ TEAM CALLED UP') : soAssisto ? (en ? `⏳ ${dupla!.nomeAge.toUpperCase()} IS CALLING UP THE 11` : `⏳ ${dupla!.nomeAge.toUpperCase()} ESTÁ CONVOCANDO OS 11`) : tr('⚽ CONVOQUE OS 11', '⚽ CALL UP THE 11')}</h3>
               <Barra seg={seg} total={SEG_CONVOCA} />
-              {minha && !temTime(minha) && <div style={{ marginTop: 10 }}><button className="ll27-portao-botao verde" onClick={() => setConvocaAberta(true)}>{tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP')}</button></div>}
+              {minha && !temTime(minha) && !soAssisto && <div style={{ marginTop: 10 }}><button className="ll27-portao-botao verde" onClick={() => setConvocaAberta(true)}>{tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP')}</button></div>}
               {temTime(minha) && <p className="ll27-portao-aviso" style={{ marginTop: 8 }}><SeloClube clube={minha!.pais} size={22} /> <b>{minha!.pais}</b> {tr('com 11 no papel. A copa começa quando o tempo acabar (ou quando todo mundo terminar).', 'with 11 on paper. The cup starts when time runs out (or when everyone finishes).')}</p>}
             </div>
           )}
@@ -478,7 +485,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       </CompetitionStage>
 
       {/* a convocação (a MESMA tela da Copa do Mundo, com o elenco do clube) abre sozinha */}
-      {fase?.fase === 'convocacao' && convocaAberta && minha && !temTime(minha) && (
+      {fase?.fase === 'convocacao' && convocaAberta && minha && !temTime(minha) && !soAssisto && (
         <CMModal>
           <ConvocacaoScreen pais={minha.pais} poolPronto={poolDoClube(minha.pais)} emblema={<SeloClube clube={minha.pais} size={30} />} rotuloTime={tr('seu clube', 'your club')} prazoSeg={seg}
             onBack={() => setConvocaAberta(false)}
@@ -490,7 +497,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
         <CMModal wide cinematic onlineBroadcast>
           {/* 💬 o modal da copa cobre o botão do chat da sala — então ele vem junto, por cima */}
           <ChatWidget />
-          <CopaRegionalTorneio copa={copa} ficha={ficha} roomId={roomId} meuUid={meuUid} souDono={souDono}
+          <CopaRegionalTorneio copa={copa} ficha={ficha} roomId={roomId} meuUid={euUid} souDono={souDono}
             aoCampeao={(nome, clube) => { void gravaCampeao(nome, clube) }} aoFechar={() => setAberta(false)} />
         </CMModal>
       )}

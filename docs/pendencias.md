@@ -1,3 +1,17 @@
+## 🤝 Dupla nas copas com convocação: só UM escolhe e convoca (15/10, "Ok pode fazer") — ✅
+Bug da sala do Futpoint (dupla Futpoint + Cativeiro): no Rio × SP cada um escolheu um clube, e o Cativeiro escolheu na
+vez da dupla Gui|Palmolego. Causa: Copa do Mundo/regional montavam "assento → pessoa" com TODAS as linhas do
+room_players, e a linha do parceiro guarda um `player_index` velho (a renumeração só mexe nos donos) que caía no
+assento de outro. Agora `dupla-copa.ts` (`quemAgePorAssento`): linha de parceiro nunca vira assento, e quem age pela
+dupla é o marcado na sala de espera (**🏳️ Quem escolhe o clube e convoca**, `dupla_categories.CONV`; ninguém marcou =
+dono). O outro vê o aviso roxo "👀 Fulano escolhe e convoca pela dupla", a fila mostra "Fulano escolhe · Ciclano
+assiste", e os botões dele somem (nada de botão mudo). Mockup: `scripts/mockups/dupla-convoca.png`.
+⚠️ "Ao vivo" pro parceiro = ele vê o clube na hora e o time quando o outro CONFIRMA os 11 (a convocação não grava
+escolha por escolha).
+🛡️ "As 2 listas": a sala "Rio-SP no YouTube" (ARJSUE) tinha `mundoNaLiga` E `regionalNaLiga` → abria as duas copas
+lendo as mesmas escolhas (e a convocação do "São Paulo" procurava o PAÍS São Paulo = 0 jogadores). Agora com as duas
+marcas vale só a regional. ⏳ Achar COMO a sala ganhou as duas marcas (a criação é exclusiva; 3 salas assim desde 13/10).
+
 ## 🚪 Quem aperta SAIR depois do apito continua dono do título (14/10, sala do Futpoint) — ✅
 Guimarães SCI ganhou liga + Copa do Mundo e não apareceu no ranking/"Campeões de hoje". Causa: a partida é gravada 2×
 (fim da liga e fim da Copa do Mundo); na 2ª, quem já tinha apertado SAIR era CPU no estado do dono e sumia do
