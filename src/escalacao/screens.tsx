@@ -2622,6 +2622,8 @@ export function EscSetup() {
   const clubesOn = true
   const [clubes, setClubes] = useState(false)
   const kingsOn = useKingsLiberada() // 👑 Kings League (15/10): só a conta do Diego
+  const [kings, setKings] = useState(false) // ligado = o MESMO leilão escolhido embaixo, com a formação 'kings' e 10 times
+  const kingsLigado = kingsOn && kings
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2694,7 +2696,7 @@ export function EscSetup() {
         presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
-    else dispatch({ type: 'START', teamName: clean, formation, rivals, career, rivalTeams: picks, league, copaMode, holandes, clubes: clubesOn && clubes, intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado ? 'liga' : copaMode, holandes, clubes: clubesOn && clubes, kings: kingsLigado || undefined, intro: true })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -2829,10 +2831,12 @@ export function EscSetup() {
       {/* 👑 KINGS LEAGUE (15/10) — jogo à parte por cima da tela, com estado próprio (`kings-rapida.tsx`). Só a
           conta do Diego vê (`useKingsLiberada`); o resto da partida rápida não muda nada. */}
       {!career && kingsOn && (
-        <button onClick={() => dispatch({ type: 'START', teamName: name.trim() || accountName || 'Meu Time', formation: '4-3-3', rivals: 9, kings: true, copaMode: 'liga', league })} className="w-full text-left active:translate-y-0.5"
-          style={{ background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #C2452F', padding: '12px 14px' }}>
-          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: '#FFC400', display: 'block' }}>👑 KINGS LEAGUE <span style={{ fontSize: 11, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE · SÓ VOCÊ VÊ</span></span>
-          <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{t('O leilão de sempre com 7 vagas (goleiro + 6) e 10 times. Depois, as regras da Kings League Brasil: dado, carta secreta, pênalti do presidente e shootout.', 'The usual auction with 7 spots (keeper + 6) and 10 teams. Then Kings League Brasil rules: dice, secret card, president penalty and shootout.')}</span>
+        <button onClick={() => setKings(k => !k)} className="w-full text-left active:translate-y-0.5"
+          style={{ background: kings ? '#0C0C0C' : '#fff', color: kings ? '#fff' : INK, border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: kings ? '4px 4px 0 #C2452F' : 'none', padding: '12px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: kings ? '#FFC400' : INK, display: 'block' }}>{kings ? '✅' : '⬜'} 👑 KINGS LEAGUE <span style={{ fontSize: 11, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE · SÓ VOCÊ VÊ</span></span>
+          <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{kings
+            ? t('Ligado: escolha embaixo o leilão como sempre (envelope ou Tocaia, baralho, jogador ou clubes). Muda só: 7 vagas (goleiro + 6), 10 times e, depois do leilão, as regras da Kings League Brasil.', 'On: pick the auction below as usual (sealed bid or Ambush, deck, players or clubs). Only changes: 7 spots (keeper + 6), 10 teams and, after the auction, Kings League Brasil rules.')
+            : t('Toque pra ligar. O leilão continua o de sempre, com tudo que você escolher embaixo.', 'Tap to turn on. The auction stays the usual one, with everything you pick below.')}</span>
         </button>
       )}
       <Box className="p-4 space-y-4">
@@ -2893,7 +2897,7 @@ export function EscSetup() {
           {league === 'br' && <p className="text-[11px] font-bold mt-0.5" style={{ color: '#8a6d1f' }}>{t('🃏 Quer resenha? Só aqui tem até o Walter Minhoca.', '🃏 Want a laugh? Only here you find even Walter Minhoca.')}</p>}
         </div>
         )}
-        {!career && (
+        {!career && !kingsLigado && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Depois da liga', 'After the league')}</p>
             {/* ⭐ 25/09 — as MESMAS opções do online (Diego: *"tem que ter todos também… liga
@@ -2967,6 +2971,9 @@ export function EscSetup() {
             <p className="text-[11px] font-semibold text-black/55 mt-1">{t('🔗 É o nome da sua conta — vale no CPU, na carreira e no online. Se editar aqui, troca em todos os lugares (e nas estatísticas).', '🔗 This is your account name — it counts vs CPU, in career and online. Editing here changes it everywhere (stats included).')}</p>
           )}
         </div>
+        {kingsLigado ? (
+          <p className="text-[11px] font-bold text-black/65">{t('👑 Kings League: formação travada em goleiro + 2 zagueiros + 2 meias + 2 atacantes, e 10 times (você + 9 rivais).', '👑 Kings League: formation locked at keeper + 2 defenders + 2 midfielders + 2 forwards, and 10 teams (you + 9 rivals).')}</p>
+        ) : <>
         <div>
           <p className="text-xs font-black uppercase mb-1">{t('Formação (travada antes do pregão)', 'Formation (locked before the auction)')}</p>
           <div className="grid grid-cols-4 gap-2">
@@ -2994,6 +3001,7 @@ export function EscSetup() {
           </div>
           <p className="text-[11px] font-semibold text-black/60 mt-1.5 leading-snug"><b>{t('Mais rivais:', 'More rivals:')}</b> {t('mais técnicos brigando no leilão e maior variedade de jogadores.', 'more managers fighting at the auction and a wider spread of players.')} <b>{t('Menos rivais:', 'Fewer rivals:')}</b> {t('menos técnicos brigando e jogo mais rápido.', 'fewer managers fighting and a quicker game.')}</p>
         </div>
+        </>}
         {career && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('🔥 Escolha seus rivais', '🔥 Pick your rivals')} <span className="text-black/50">({rivalPicks.length}/{rivals})</span></p>
@@ -6083,7 +6091,7 @@ export function EscKingsSeason() {
     <Suspense fallback={null}>
       <KingsRapidaLazy managers={state.managers} seed={state.seed}
         aoSair={() => dispatch({ type: 'GO_LOBBY' })}
-        aoNovo={() => dispatch({ type: 'START', teamName: eu?.teamName || 'Meu Time', formation: '4-3-3', rivals: 9, kings: true, copaMode: 'liga', league: (state.deckLeague === 'eu' || state.deckLeague === 'both' ? state.deckLeague : 'br') })} />
+        aoNovo={() => dispatch({ type: 'START', teamName: eu?.teamName || 'Meu Time', formation: '4-3-3', rivals: 9, kings: true, copaMode: 'liga', holandes: !!state.holandes, clubes: !!state.leilaoClubes, league: (state.deckLeague === 'eu' || state.deckLeague === 'both' ? state.deckLeague : 'br') })} />
     </Suspense>
   )
 }

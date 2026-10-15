@@ -17,6 +17,9 @@ Tudo aqui foi decidido no chat de 15/10. Mockups: `scripts/mockups/kings-league.
 ## Leilão
 - 🔨 **É O LEILÃO DE SEMPRE DO JOGO** (Diego 15/10: *"o leilão é sempre igual ao de sempre nosso"*) — envelope, revelação,
   monte e cerimônia normais; só muda a formação (`'kings'`) e o campinho. Nunca inventar outro pregão.
+- 🔀 **E TODAS as escolhas do leilão continuam valendo** (Diego 15/10: *"se é envelope, Tocaia, baralho BR, EU ou mundo, clubes
+  ou jogador… é tudo igual"*). Na partida rápida a Kings é um INTERRUPTOR por cima da tela de sempre: liga e escolhe o resto
+  normal. Fixos só: 10 times, formação `'kings'` e sem "depois da liga". Trava: `npm run kings` roda as 6 combinações.
 - **Futebol 7**: goleiro + 6 → **1 GOL · 2 ZAG · 2 MEI · 2 ATA**. Mesmas cartas e níveis de sempre.
 - Campinho próprio no leilão (como a quadra do basquete): gramado sintético de arena, placas pretas com letra dourada,
   selo "KINGS LEAGUE 👑" no meio.
