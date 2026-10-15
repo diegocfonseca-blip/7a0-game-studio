@@ -5,8 +5,12 @@
 // `onEscolha` (vira `KINGS_DECIDIR` no reducer) e, quando a contagem zera, mostra o resultado que o motor deu.
 import { useEffect, useState } from 'react'
 import { tr } from './lang'
+import { Escudo } from './escudos'
 import type { CartaKingsInfo, CartaKingsTipo, DueloKingsInfo } from './types'
 
+// 🏟️ ARENA DA KINGS (fotos que o Diego mandou, 15/10): piso PRETO com linha branca, círculo do meio em NEON com a cor de
+// cada time (azul de um lado, rosa do outro) e o escudo de cada time PROJETADO no chão da sua metade.
+export const NEON_CASA = '#1EC8FF', NEON_FORA = '#FF2BD6'
 const INK = '#0C0C0C', GOLD = '#FFC400', CREAM = '#FFF6DE', PURPLE = '#7C3AED', RED = '#C2452F', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 
@@ -31,23 +35,44 @@ function Explica({ titulo, texto, cor = PURPLE }: { titulo: string; texto: strin
   )
 }
 
+/** o piso da arena: preto, linhas brancas, círculo neon e os escudos projetados */
+export function Arena({ casa, fora, children, altura = 210 }: { casa?: string; fora?: string; children?: React.ReactNode; altura?: number }) {
+  return (
+    <div className="kc-campo" style={{ height: altura }}>
+      <div className="kc-linhas" />
+      {casa && <div className="kc-proj" style={{ left: '22%', filter: `grayscale(1) brightness(2.2) drop-shadow(0 0 6px ${NEON_CASA}) drop-shadow(0 0 2px ${NEON_CASA})` }}><Escudo nome={casa} size={74} /></div>}
+      {fora && <div className="kc-proj" style={{ left: '78%', filter: `grayscale(1) brightness(2.2) drop-shadow(0 0 6px ${NEON_FORA}) drop-shadow(0 0 2px ${NEON_FORA})` }}><Escudo nome={fora} size={74} /></div>}
+      <div className="kc-neon" />
+      {children}
+    </div>
+  )
+}
+
 // ── ⚽ PONTAPÉ: a gaiola no teto abre e a bola cai no meio do campo, 1×1 + goleiros
-export function CenaPontape({ posse, ladoPosse }: { posse?: string; ladoPosse?: 'e' | 'd' }) {
+// ⏱️ todo jogo tem 5 s de contagem antes de a bola cair (Diego 15/10, com a foto do "3" gigante na arena)
+export const PONTAPE_CONTA_MS = 5000
+export function CenaPontape({ posse, ladoPosse, casa, fora }: { posse?: string; ladoPosse?: 'e' | 'd'; casa?: string; fora?: string }) {
   const [pegou, setPegou] = useState(false)
-  useEffect(() => { const t = setTimeout(() => setPegou(true), 3300); return () => clearTimeout(t) }, [])
+  const [conta, setConta] = useState(5)
+  useEffect(() => {
+    const t0 = Date.now()
+    const iv = setInterval(() => { const c = 5 - Math.floor((Date.now() - t0) / 1000); setConta(Math.max(0, c)); if (c <= 0) clearInterval(iv) }, 100)
+    const t = setTimeout(() => setPegou(true), PONTAPE_CONTA_MS + 2600)
+    return () => { clearInterval(iv); clearTimeout(t) }
+  }, [])
+  const caindo = conta <= 0
   return (
     <Palco tag={tr('PONTAPÉ', 'KICK-OFF')}>
-      <div className="kc-campo" style={{ height: 210 }}>
-        <div className="kc-linhas" />
+      <Arena casa={casa} fora={fora}>
         <div className="kc-gaiola" />
-        <div className="kc-bola-cai">⚽</div>
-        <i className="kc-jg" style={{ left: '8%', top: '50%', background: RED, borderColor: GOLD }} />
-        <i className="kc-jg" style={{ left: '92%', top: '50%', background: PURPLE, borderColor: GOLD }} />
-        <i className="kc-jg kc-corre-e" style={{ top: '50%', background: RED }} />
-        <i className="kc-jg kc-corre-d" style={{ top: '50%', background: PURPLE }} />
-        <div className="kc-conta"><span>3</span><span>2</span><span>1</span></div>
+        <div className={caindo ? 'kc-bola-cai' : 'kc-bola-presa'}>⚽</div>
+        <i className="kc-jg" style={{ left: '8%', top: '50%', background: NEON_CASA, borderColor: GOLD }} />
+        <i className="kc-jg" style={{ left: '92%', top: '50%', background: NEON_FORA, borderColor: GOLD }} />
+        <i className={`kc-jg${caindo ? ' kc-corre-e' : ''}`} style={{ left: '22%', top: '50%', background: NEON_CASA }} />
+        <i className={`kc-jg${caindo ? ' kc-corre-d' : ''}`} style={{ left: '78%', top: '50%', background: NEON_FORA }} />
+        {!caindo && <div key={conta} className="kc-num">{conta}</div>}
         {pegou && posse && <div className="kc-pegou" style={{ [ladoPosse === 'd' ? 'right' : 'left']: 10 } as React.CSSProperties}>⚽ {tr(`${posse} ficou com a bola!`, `${posse} won the ball!`)}</div>}
-      </div>
+      </Arena>
       <Explica titulo={pegou && posse ? tr(`⚽ ${posse.toUpperCase()} PEGOU A BOLA!`, `⚽ ${posse.toUpperCase()} WON IT!`) : tr('⚽ A BOLA CAI DO ALTO!', '⚽ THE BALL DROPS FROM ABOVE!')}
         texto={tr('Na Kings não tem saída no meio: a bola cai de uma gaiola no teto e começa 1 contra 1 (mais os goleiros). Entra mais um de cada lado por minuto até 7×7.', 'No centre kick-off in the Kings: the ball drops from a cage in the roof and it starts 1 v 1 (plus keepers). One more per side joins every minute up to 7 v 7.')} />
     </Palco>
@@ -61,19 +86,18 @@ export function CenaEntra({ n, casa, fora }: { n: number; casa: string; fora: st
   const completo = n >= 7
   return (
     <Palco tag={completo ? tr('TIME COMPLETO', 'FULL TEAMS') : tr(`MINUTO ${n - 1} · ENTRA MAIS UM`, `MINUTE ${n - 1} · ONE MORE IN`)} cor={completo ? GREEN : PURPLE}>
-      <div className="kc-campo" style={{ height: 200 }}>
-        <div className="kc-linhas" />
-        <i className="kc-jg" style={{ left: '7%', top: '50%', background: RED, borderColor: GOLD }} />
-        <i className="kc-jg" style={{ left: '93%', top: '50%', background: PURPLE, borderColor: GOLD }} />
+      <Arena casa={casa} fora={fora} altura={200}>
+        <i className="kc-jg" style={{ left: '7%', top: '50%', background: NEON_CASA, borderColor: GOLD }} />
+        <i className="kc-jg" style={{ left: '93%', top: '50%', background: NEON_FORA, borderColor: GOLD }} />
         {POS_E.slice(0, n).map(([x, y], i) => (
           <span key={i}>
-            <i className={`kc-jg${i === n - 1 ? ' kc-novo' : ''}`} style={{ left: `${x}%`, top: `${y}%`, background: RED }} />
-            <i className={`kc-jg${i === n - 1 ? ' kc-novo' : ''}`} style={{ left: `${100 - x}%`, top: `${y}%`, background: PURPLE }} />
+            <i className={`kc-jg${i === n - 1 ? ' kc-novo' : ''}`} style={{ left: `${x}%`, top: `${y}%`, background: NEON_CASA }} />
+            <i className={`kc-jg${i === n - 1 ? ' kc-novo' : ''}`} style={{ left: `${100 - x}%`, top: `${y}%`, background: NEON_FORA }} />
           </span>
         ))}
         <div className="kc-placa">{n} × {n}</div>
-        <div className="kc-times"><span style={{ background: RED }}>{casa}</span><span style={{ background: PURPLE }}>{fora}</span></div>
-      </div>
+        <div className="kc-times"><span style={{ background: '#0b6f94' }}>{casa}</span><span style={{ background: '#9c1583' }}>{fora}</span></div>
+      </Arena>
       <Explica cor={completo ? GREEN : PURPLE}
         titulo={completo ? tr('⚡ 7 × 7! AGORA ACELERA', '⚡ 7 v 7! NOW IT SPEEDS UP') : `➕ ${n} × ${n}!`}
         texto={completo
@@ -266,15 +290,21 @@ export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscol
 
 const CSS = `
 @keyframes kcPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
-.kc-campo{position:relative;border:4px solid ${INK};border-radius:16px;overflow:hidden;background:repeating-linear-gradient(90deg,#16683a 0 36px,#135d33 36px 72px);box-shadow:5px 5px 0 ${GOLD}}
-.kc-linhas{position:absolute;inset:8px;border:2px solid rgba(255,255,255,.75);border-radius:4px;background:linear-gradient(90deg,transparent calc(50% - 1px),rgba(255,255,255,.75) calc(50% - 1px) calc(50% + 1px),transparent calc(50% + 1px))}
+.kc-campo{position:relative;border:4px solid ${INK};border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 0,rgba(255,255,255,.08),transparent 60%),repeating-linear-gradient(90deg,#0d0f12 0 36px,#101317 36px 72px);box-shadow:5px 5px 0 ${GOLD}}
+.kc-neon{position:absolute;left:50%;top:50%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;border:4px solid transparent;background:conic-gradient(from 180deg,${NEON_CASA} 0 50%,${NEON_FORA} 50% 100%) border-box;-webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;filter:drop-shadow(0 0 6px ${NEON_CASA}) drop-shadow(0 0 6px ${NEON_FORA});animation:kcNeon 1.6s ease-in-out infinite alternate;z-index:1}
+@keyframes kcNeon{from{opacity:.75}to{opacity:1}}
+.kc-proj{position:absolute;top:50%;transform:translate(-50%,-50%);opacity:.38;z-index:1;pointer-events:none}
+.kc-num{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;${'font:700 110px/1 Oswald,sans-serif'};color:#f3f3f3;text-shadow:0 2px 0 #bbb,0 4px 0 #999,0 6px 0 #777,0 10px 18px rgba(0,0,0,.8),0 0 30px rgba(255,255,255,.35);animation:kcNum 1s ease-out}
+@keyframes kcNum{from{transform:translate(-50%,-50%) scale(1.8);opacity:0}25%{opacity:1}to{transform:translate(-50%,-50%) scale(1)}}
+.kc-bola-presa{position:absolute;left:50%;top:6px;margin-left:-15px;font-size:30px;line-height:1;z-index:3;transform:scale(.7);filter:drop-shadow(0 0 8px #fff)}
+.kc-linhas{position:absolute;inset:8px;border:2px solid rgba(255,255,255,.85);z-index:1;border-radius:4px;background:linear-gradient(90deg,transparent calc(50% - 1px),rgba(255,255,255,.75) calc(50% - 1px) calc(50% + 1px),transparent calc(50% + 1px))}
 .kc-linhas::after{content:'';position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border:2px solid rgba(255,255,255,.75);border-radius:50%}
 .kc-gaiola{position:absolute;left:50%;top:-4px;width:60px;height:42px;margin-left:-30px;border:3px solid #cfd3d8;border-top:none;border-radius:0 0 12px 12px;background:repeating-linear-gradient(90deg,transparent 0 7px,#b9bec5 7px 9px);box-shadow:0 0 22px rgba(255,255,220,.7);z-index:2}
-.kc-bola-cai{position:absolute;left:50%;top:6px;margin-left:-15px;font-size:30px;line-height:1;z-index:3;filter:drop-shadow(0 0 8px #fff);animation:kcCai 3.6s cubic-bezier(.5,0,.75,0) forwards}
-@keyframes kcCai{0%,58%{transform:translateY(0) scale(.7)}74%{transform:translateY(86px) scale(1.15)}82%{transform:translateY(62px) scale(1)}90%{transform:translateY(86px) scale(1.1)}100%{transform:translateY(80px) scale(1)}}
+.kc-bola-cai{position:absolute;left:50%;top:6px;margin-left:-15px;font-size:30px;line-height:1;z-index:3;filter:drop-shadow(0 0 8px #fff);animation:kcCai 1.6s cubic-bezier(.5,0,.75,0) forwards}
+@keyframes kcCai{0%{transform:translateY(0) scale(.7)}30%{transform:translateY(86px) scale(1.15)}82%{transform:translateY(62px) scale(1)}90%{transform:translateY(86px) scale(1.1)}100%{transform:translateY(80px) scale(1)}}
 .kc-jg{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:3px solid #fff;box-shadow:1px 2px 0 #000;z-index:2}
-.kc-corre-e{left:30%;animation:kcCorreE 3.6s ease-in forwards}.kc-corre-d{left:70%;animation:kcCorreD 3.6s ease-in forwards}
-@keyframes kcCorreE{0%,62%{left:22%}100%{left:44%}}@keyframes kcCorreD{0%,62%{left:78%}100%{left:56%}}
+.kc-jg.kc-corre-e{animation:kcCorreE 1.8s ease-in forwards}.kc-jg.kc-corre-d{animation:kcCorreD 1.8s ease-in forwards}
+@keyframes kcCorreE{0%{left:22%}100%{left:44%}}@keyframes kcCorreD{0%{left:78%}100%{left:56%}}
 .kc-conta{position:absolute;right:14px;top:10px;width:44px;height:52px;overflow:hidden;z-index:3}
 .kc-conta span{position:absolute;inset:0;${'font:700 46px/52px Oswald,sans-serif'};color:${GOLD};-webkit-text-stroke:2px #000;opacity:0;animation:kcConta 3.6s linear forwards}
 .kc-conta span:nth-child(2){animation-delay:.7s}.kc-conta span:nth-child(3){animation-delay:1.4s}
@@ -305,4 +335,13 @@ const CSS = `
 .kc-roleta{background:${INK};border:4px solid ${GOLD};border-radius:20px;padding:10px;box-shadow:0 0 30px rgba(255,196,0,.4)}
 .kc-rol-l{${'font:700 22px Oswald,sans-serif'};color:#fff;padding:8px;border-radius:12px}.kc-rol-l.op{opacity:.35;font-size:16px}.kc-rol-l.on{background:linear-gradient(160deg,#C9A8FF,${PURPLE});border:3px solid #fff;font-size:28px}
 @media (prefers-reduced-motion:reduce){.kc-bola-cai,.kc-dado-voo,.kc-cubo,.kc-carta,.kc-conta span,.kc-corre-e,.kc-corre-d{animation-duration:.01s!important}}
+`
+
+/** 🏟️ o placar de sempre ganha a cara da ARENA da Kings (piso preto, neon azul/rosa) enquanto a temporada da Kings roda.
+ *  É só CSS por cima das peças do placar padrão (`.ll25-score`, `.ll32-palco`) — liga/desliga com a classe no <body>. */
+export const KINGS_ARENA_CSS = `
+body.kings-arena .ll25-score,body.kings-arena .ll26-score{background:radial-gradient(ellipse at 22% 65%,rgba(30,200,255,.22),transparent 45%),radial-gradient(ellipse at 78% 65%,rgba(255,43,214,.22),transparent 45%),radial-gradient(ellipse at 50% 0,rgba(255,255,255,.1),transparent 60%),#07080b!important;border-color:#0c0c0c}
+body.kings-arena .ll32-palco{background:repeating-linear-gradient(90deg,#0d0f12 0 28px,#111418 28px 56px)!important;border-top:2px solid rgba(255,255,255,.55)}
+body.kings-arena .ll32-pista::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(255,255,255,.7)}
+body.kings-arena .ll32-pista::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid;border-color:${NEON_CASA} ${NEON_FORA} ${NEON_FORA} ${NEON_CASA};box-shadow:0 0 8px ${NEON_CASA},0 0 8px ${NEON_FORA};pointer-events:none}
 `

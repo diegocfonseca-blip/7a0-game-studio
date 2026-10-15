@@ -1,6 +1,6 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
-import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos } from './kings-cenas'
+import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
 import type { MatchResult, CartaKingsInfo } from './types'
 import { SeloClube } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09)
 import { createPortal } from 'react-dom'
@@ -6108,7 +6108,7 @@ function nomeGolKings(text: string): string | null {
 export const KINGS_ROUND_MS = 130_000 // ~50 s de bola rolando + as cenas (bola caindo, dado, cartas, cobranças) + os banners
 // ⏱️ as cenas em que alguém DECIDE (ou precisa ler o sorteio) têm tempo FIXO — a marcha ⏩ não encurta a contagem da
 // cobrança. Os banners de leitura (intervalo, bola do 38') aceleram com a marcha, como o resto do jogo.
-const KINGS_CENA_MS = { pontape: 5200, entra: 2600, dado: 6500, carta: 7500, duelo: 7500, intervalo: 12000, bola: 7000 }
+const KINGS_CENA_MS = { pontape: 9000, entra: 2600, dado: 6500, carta: 7500, duelo: 7500, intervalo: 12000, bola: 7000 }
 const KINGS_FIXO_MAX = KINGS_CENA_MS.pontape + 6 * KINGS_CENA_MS.entra + KINGS_CENA_MS.dado + 2 * KINGS_CENA_MS.carta + 4 * KINGS_CENA_MS.duelo
 // 🐢 enquanto não está 7×7 (o começo do jogo e a fase do dado) o relógio anda na METADE da velocidade — Diego: *"o jogo
 // rola mais devagar por um tempo em cada disputa de 1x1, 2x2 até chegar em 7x7… sempre rola mais rápido no 7x7"*
@@ -6193,7 +6193,7 @@ function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, spee
 /** 👑 a cena da vez, desenhada por cima do jogo */
 function CenaKingsTela({ cena, jogo, youId, nome, onEscolha }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void }) {
   if (cena.tipo === 'banner') return <BannerKingsTela b={cena.b} />
-  if (cena.tipo === 'pontape') { const p = jogo?.kings?.posse; return <CenaPontape posse={p != null ? nome(p) : undefined} ladoPosse={p === jogo?.awayId ? 'd' : 'e'} /> }
+  if (cena.tipo === 'pontape') { const p = jogo?.kings?.posse; return <CenaPontape posse={p != null ? nome(p) : undefined} ladoPosse={p === jogo?.awayId ? 'd' : 'e'} casa={jogo ? nome(jogo.homeId) : undefined} fora={jogo ? nome(jogo.awayId) : undefined} /> }
   if (cena.tipo === 'entra') return <CenaEntra key={cena.n} n={cena.n} casa={jogo ? nome(jogo.homeId) : ''} fora={jogo ? nome(jogo.awayId) : ''} />
   if (cena.tipo === 'dado') return <CenaDado face={cena.face} />
   if (cena.tipo === 'carta') return <CenaCarta key={`${cena.carta.teamId}-${cena.carta.min}`} carta={cena.carta} time={nome(cena.carta.teamId)} rival={jogo ? nome(cena.carta.teamId === jogo.homeId ? jogo.awayId : jogo.homeId) : ''} />
@@ -6254,6 +6254,8 @@ export function EscSeason() {
   const enS = seasonLang === 'en'
   const you = state.managers[state.youIdx]
   const kingsS = ehKings(state) // 👑 Kings League: a tela é esta mesma, com o relógio e os banners da Kings por cima
+  // 🏟️ a cara da ARENA da Kings no placar de sempre (piso preto, neon azul/rosa) — só enquanto esta tela está aberta
+  useEffect(() => { if (!kingsS) return; document.body.classList.add('kings-arena'); return () => document.body.classList.remove('kings-arena') }, [kingsS])
   const online = state.onlineMode === 'online'
   // 🎽 mantos da SALA (pedido do Diego 10/08): os campinhos dos OUTROS também
   // vestem o manto do dono (sócio/batismo). O servidor devolve SÓ assento →
@@ -6996,6 +6998,7 @@ export function EscSeason() {
         </Box>
       )}
 
+      {kingsS && <style>{KINGS_ARENA_CSS}</style>}
       {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto })} />}
       {kingsS && kJogo?.kings?.duelos && kRel.min > 0 && kRel.min < kParaPlacar(7) && <FaixaEmCampo n={Math.min(7, 1 + placarParaK(kRel.min))} />}
       {kingsS && kJogo?.kings?.cartas && (() => {

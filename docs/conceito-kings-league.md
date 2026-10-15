@@ -97,3 +97,8 @@ Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se jo
 - 🔄 Pênalti inverso explicado na carta e na cobrança: "pênalti ao contrário — quem bate é o rival; se ele ERRAR o gol é seu".
   Ele perguntou o que era (*"N entendi oq é pênalti inverso"*) — se continuar confuso, tirar da roleta é uma linha (`CARTAS_SORTEIO`).
 - 🎩 Já era assim e ele reconfirmou: 1 pênalti de presidente por time por jogo (gente ou bot).
+- ⏱️ **Contagem de 5 s antes da bola cair** (número gigante branco, igual à foto do "3" na arena) — `PONTAPE_CONTA_MS`.
+- 🏟️ **Visual da ARENA** (fotos do Diego, 15/10): piso PRETO com linha branca, círculo do meio em NEON azul (casa) / rosa
+  (visitante) e o escudo de cada time PROJETADO no chão da sua metade — nas cenas (`Arena` em `kings-cenas.tsx`), no placar
+  de sempre (`KINGS_ARENA_CSS`, classe `kings-arena` no body só enquanto a temporada da Kings está aberta) e no campinho do
+  leilão (`kings-campinho.tsx`). Fotos: `scripts/mockups/kings-arena-no-jogo.png`.
