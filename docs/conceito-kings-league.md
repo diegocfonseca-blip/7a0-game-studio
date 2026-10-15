@@ -106,3 +106,9 @@ Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se jo
   minuto da Kings no 1×1…6×6 e na fase do dado (pode sair gol); o 7×7 roda rápido (`KINGS_MS_POR_MIN_LENTO`, `KINGS_MS_7X7`).
   🎲 Depois do dado aparece o campinho N×N "até o intervalo" e, no intervalo, o campinho do 7×7 de volta. Partida ≈ 3,7 min,
   campeonato ≈ 45 min — ele aceitou: *"vai aumentar mais o tempo de cada partida mas não tem jeito"*.
+- 🔢 **O número bate com o relógio** (Diego 15/10: *"4x4 aparece 3' no placar"*): 1×1 do 0' ao 2', 2×2 no 2', 3×3 no 3'… 7×7 no 7'.
+- 🎙️ **Narração com JOGADOR e mais variada** (mesmo dia: *"quase não fala jogador… tá sempre falando do time"*): o lance
+  grande do placar (defendeu/trave/fora/isolou) cita um atacante/meia DE VERDADE do time (`quemFinalizou`, 4 em 5 vezes —
+  vale pro jogo todo, não só Kings); frase de lateral cita zagueiro quando não tem lateral; e na Kings a rádio fala até 18
+  frases por jogo e mistura um banco próprio (`KINGS` em `radio.ts`: goleiro-linha, presidente na tribuna, troca volante,
+  DJ, telão, campo de futebol 7…).

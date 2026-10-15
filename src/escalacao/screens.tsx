@@ -6115,8 +6115,8 @@ const KINGS_FIXO_MAX = KINGS_CENA_MS.pontape + 8 * KINGS_CENA_MS.entra + KINGS_C
 // Tempo FIXO de bola rolando por minuto da Kings nessas fases (a marcha ⏩ só mexe no 7×7).
 const KINGS_MS_POR_MIN_LENTO = 5000
 const KINGS_MS_7X7 = 45_000 // o resto do jogo (7×7) na marcha normal
-const trechosLentos = (): [number, number][] => [[0, kParaPlacar(6)], [PLACAR_DADO, PLACAR_INTERVALO]]
-const KINGS_LENTO_MS = (6 + 2) * KINGS_MS_POR_MIN_LENTO
+const trechosLentos = (): [number, number][] => [[0, kParaPlacar(7)], [PLACAR_DADO, PLACAR_INTERVALO]]
+const KINGS_LENTO_MS = (7 + 2) * KINGS_MS_POR_MIN_LENTO
 /** tempo de uma rodada da Kings na marcha escolhida: cenas fixas + fases lentas fixas + o 7×7 (que acelera com a marcha) */
 export const kingsRoundMs = (speed: number) => Math.round((KINGS_FIXO_MAX + (KINGS_CENA_MS.intervalo + KINGS_CENA_MS.bola) / speed + KINGS_LENTO_MS + KINGS_MS_7X7 / speed + 1500) / 0.84)
 type BannerKings = { emoji: string; titulo: string; texto: string; cor: string }
@@ -6129,7 +6129,8 @@ function cenasDoJogo(r: MatchResult, nome: (id: number) => string): { min: numbe
   if (novo) {
     ev.push({ min: 0, ms: KINGS_CENA_MS.pontape, fixo: true, c: { tipo: 'pontape' } })
     // ➕ a cada minuto entra mais um de cada lado: o campinho mostra 2×2, 3×3… até 7×7
-    for (let k = 1; k <= 6; k++) ev.push({ min: kParaPlacar(k), ms: KINGS_CENA_MS.entra, fixo: true, c: { tipo: 'entra', n: k + 1 } })
+    // o número bate com o RELÓGIO (Diego 15/10: "4x4 aparece 3' no placar"): 1×1 do 0' ao 2', 2×2 no 2', 3×3 no 3'… 7×7 no 7'
+    for (let k = 2; k <= 7; k++) ev.push({ min: kParaPlacar(k), ms: KINGS_CENA_MS.entra, fixo: true, c: { tipo: 'entra', n: k } })
   }
   ev.push(novo
     ? { min: PLACAR_DADO, ms: KINGS_CENA_MS.dado, fixo: true, c: { tipo: 'dado', face: k.dado } }
@@ -7009,7 +7010,7 @@ export function EscSeason() {
 
       {kingsS && <style>{KINGS_ARENA_CSS}</style>}
       {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto })} />}
-      {kingsS && kJogo?.kings?.duelos && kRel.min > 0 && kRel.min < kParaPlacar(7) && <FaixaEmCampo n={Math.min(7, 1 + placarParaK(kRel.min))} />}
+      {kingsS && kJogo?.kings?.duelos && kRel.min > 0 && kRel.min < kParaPlacar(7) && <FaixaEmCampo n={Math.max(1, Math.min(7, placarParaK(kRel.min)))} />}
       {kingsS && kJogo?.kings?.duelos && kRel.min >= PLACAR_DADO && kRel.min < PLACAR_INTERVALO && <FaixaEmCampo n={kJogo.kings.dado} dado />}
       {kingsS && kJogo?.kings?.cartas && (() => {
         // 📌 o que está VALENDO agora (gol em dobro, suspensão, jogador estrela), com até que minuto

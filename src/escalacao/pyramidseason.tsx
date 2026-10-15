@@ -96,7 +96,7 @@ import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
-import { chancesDoJogo, sementeDasChances, narraChance, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
 import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
 import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 
@@ -3179,7 +3179,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
   const chances = useMemo(() => (basket || !cinematic) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, roundMs])
   // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
-  const radioLances = useMemo(() => (basket || !cinematic) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, chances, roundMs])
+  const radioLances = useMemo(() => (basket || !cinematic) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], roundMs, !!relogioKings), [basket, cinematic, roundKey, homeName, awayName, goals, chances, roundMs, relogioKings])
   const [lance, setLance] = useState<{ side: 'h' | 'a'; fim: FimDaChance; key: number; txt: string; minute:number; startedAt:number; speed:number; roundKey:number } | null>(null)
   const lanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
@@ -3192,7 +3192,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (!c) return
     lancesVistos.current.mins.push(c.min)
     const clube = nomeLimpo(c.home ? homeName : awayName)
-    setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en') })
+    setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en', quemFinalizou(c.home ? elencos?.casa : elencos?.fora, c, clube)) })
     if (lanceTimer.current) clearTimeout(lanceTimer.current)
     lanceTimer.current = setTimeout(() => { setLance(null); lanceTimer.current = null }, CHANCE_MS/fieldSpeed)
     // eslint-disable-next-line react-hooks/exhaustive-deps

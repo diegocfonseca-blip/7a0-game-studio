@@ -31,9 +31,9 @@ function mulberry(seed: number) { return () => { seed |= 0; seed = (seed + 0x6D2
 // ⏱️ quanto tempo uma frase precisa ficar na tela pra dar tempo de ler
 export const RADIO_LER_MS = 2200
 /** quantas frases cabem num jogo de `roundMs` (online 16s ≈ 5 · carreira ≈ 4 · rodada instantânea = 0) */
-export function frasesPorJogo(roundMs: number): number {
+export function frasesPorJogo(roundMs: number, max = 9): number {
   const dur = Math.max(400, roundMs * 0.82)
-  return Math.max(0, Math.min(9, Math.floor(dur / RADIO_LER_MS)))
+  return Math.max(0, Math.min(max, Math.floor(dur / RADIO_LER_MS)))
 }
 
 // {t} = clube do lance · {o} = o outro clube
@@ -185,10 +185,40 @@ const NOMEADO: Record<string, Nomeado> = {
 const deVerdade = (c: CartaRadio) => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup' && !!c.name
 /** quem a rádio cita: alguém da posição pedida, sempre o MESMO pra mesma frase (sala inteira ouve igual) */
 function quemCitar(lista: CartaRadio[] | undefined, pos: string, l: RadioLance): string | null {
-  const daPos = (lista ?? []).filter(c => (c.pos ?? c.sec) === pos && deVerdade(c))
+  let daPos = (lista ?? []).filter(c => (c.pos ?? c.sec) === pos && deVerdade(c))
+  // 👑 Kings (futebol 7) não tem lateral: a frase de lateral cita um zagueiro
+  if (!daPos.length && pos === 'LAT') daPos = (lista ?? []).filter(c => (c.pos ?? c.sec) === 'ZAG' && deVerdade(c))
   if (!daPos.length) return null
   return daPos[(l.min * 31 + l.a * 7 + l.f) % daPos.length].name
 }
+
+// 👑 FRASES DA KINGS LEAGUE (15/10): o que acontece numa partida da Kings e não acontece num jogo comum. `c` = versão do
+// clube; `p` = versão com o jogador ({p}) da posição `pos`, do time `quem` (t = quem faz · o = o outro). Nada de gol,
+// chance, pênalti (tem tela própria) nem placar — mesmas regras do resto da rádio.
+type FraseKings = { c: Par; p?: Par; pos?: 'GOL' | 'ZAG' | 'MEI' | 'ATA'; quem?: 't' | 'o' }
+const KINGS: FraseKings[] = [
+  { c: ['o goleiro do {t} sai da área e vira jogador de linha. Coisa de Kings', 'the {t} keeper leaves the box and plays outfield. Pure Kings'], p: ['{p}, goleiro do {t}, sai da área e vira jogador de linha. Coisa de Kings', '{p}, the {t} keeper, leaves the box and plays outfield. Pure Kings'], pos: 'GOL' },
+  { c: ['o presidente do {t} levanta na tribuna e pede raça', 'the {t} president stands up in the box and demands fight'] },
+  { c: ['a torcida grita o nome do presidente do {o}', 'the crowd chants the name of the {o} president'] },
+  { c: ['campo pequeno: o {t} chega no ataque em dois toques', 'small pitch: {t} reach the attack in two touches'], p: ['campo pequeno: {p} recebe e o {t} já está no ataque', 'small pitch: {p} receives and {t} are already attacking'], pos: 'MEI' },
+  { c: ['troca volante no {t}: entra um, sai outro, e o jogo nem para', 'rolling sub for {t}: one on, one off, and play never stops'], p: ['troca volante no {t}: {p} sai pra respirar e já volta daqui a pouco', 'rolling sub for {t}: {p} comes off for a breather and will be back soon'], pos: 'ATA' },
+  { c: ['o banco do {t} já discute qual carta pode sair na vez deles', 'the {t} bench is already guessing which card they might draw'] },
+  { c: ['o DJ da arena solta o som e a arquibancada pula', 'the arena DJ drops a beat and the stands are jumping'] },
+  { c: ['o telão mostra a torcida do {t} fantasiada. Que festa', 'the big screen shows the {t} fans in costume. What a party'] },
+  { c: ['as luzes da arena piscam na cor do {t}', 'the arena lights flash in {t} colours'] },
+  { c: ['o streamer do {o} grita tanto que dá pra ouvir daqui', 'the {o} streamer is shouting so loud you can hear it from here'] },
+  { c: ['parede de 7 do {o}: todo mundo atrás da linha da bola', '{o} park all 7 behind the ball'], p: ['{p} organiza a parede do {o}: todo mundo atrás da linha da bola', '{p} organises the {o} wall: everyone behind the ball'], pos: 'ZAG', quem: 'o' },
+  { c: ['o {t} pressiona alto, em campo de futebol 7 não tem pra onde correr', '{t} press high, on a 7-a-side pitch there is nowhere to run'], p: ['{p} pressiona alto pelo {t}, em campo de futebol 7 não tem pra onde correr', '{p} presses high for {t}, on a 7-a-side pitch there is nowhere to run'], pos: 'ATA' },
+  { c: ['tabelinha rápida do {t} contra a tabela, quase na parede da arena', 'a quick one-two by {t} right by the arena boards'], p: ['tabelinha de {p} com o companheiro, quase na parede da arena', '{p} plays a quick one-two right by the arena boards'], pos: 'MEI' },
+  { c: ['o {o} rouba a bola e sai em contra-ataque de três contra dois', '{o} win it back and break three against two'], p: ['{p} rouba a bola e o {o} sai em três contra dois', '{p} wins it back and {o} break three against two'], pos: 'ZAG', quem: 'o' },
+  { c: ['o juiz da Kings pede calma, ninguém quer cartão nessa hora', 'the Kings ref calls for calm, nobody wants a card now'] },
+  { c: ['o {t} chama a torcida com os braços. A arena responde', '{t} wave the crowd on. The arena answers'], p: ['{p} chama a torcida do {t} com os braços. A arena responde', '{p} waves the {t} crowd on. The arena answers'], pos: 'ATA' },
+  { c: ['lance de habilidade do {t} na lateral da arena, a câmera nem acompanha', 'a skill move by {t} by the arena wall, the camera can barely keep up'], p: ['{p} faz um lance de habilidade na lateral da arena, a câmera nem acompanha', '{p} pulls off a skill move by the arena wall, the camera can barely keep up'], pos: 'ATA' },
+  { c: ['o goleiro do {o} repõe rápido com a mão, jogo de Kings é sem respiro', 'the {o} keeper throws it out quickly, Kings games never pause'], p: ['{p}, goleiro do {o}, repõe rápido com a mão: jogo de Kings é sem respiro', '{p}, the {o} keeper, throws it out quickly: Kings games never pause'], pos: 'GOL', quem: 'o' },
+  { c: ['os comentaristas apostam na transmissão quem leva hoje', 'the commentators are betting on air who takes it today'] },
+  { c: ['o {t} gira a bola de pé em pé, a arena faz olé', '{t} pass it around, the arena shouts olé'], p: ['{p} gira a bola do {t} de pé em pé, a arena faz olé', '{p} moves the {t} ball around, the arena shouts olé'], pos: 'MEI' },
+]
+export const ACERVO_KINGS_RADIO = KINGS.length
 
 // 🕐 começo de jogo e fim de jogo têm cara própria (sem dizer placar)
 const CEDO: Par[] = [
@@ -207,8 +237,10 @@ const TARDE: Par[] = [
 ]
 
 /** 🎲 a rádio de UM jogo: minutos e frases, sem gol, sem chance, sem repetir lance */
-export function radioDoJogo(seed: number, ocupados: number[], roundMs: number): RadioLance[] {
-  const n = frasesPorJogo(roundMs)
+/** `kings`: jogo da Kings League (15/10) — partida longa, então a rádio fala MAIS (até 18 frases) e mistura frases próprias
+ *  da Kings (goleiro-linha, presidente na tribuna, campo de futebol 7, arena, DJ…) com as de sempre. */
+export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, kings = false): RadioLance[] {
+  const n = frasesPorJogo(roundMs, kings ? 18 : 9)
   if (n === 0) return []
   const rng = mulberry((seed ^ 0x5AD10) >>> 0)
   const livre = (m: number, ja: number[]) => ocupados.every(o => Math.abs(o - m) >= 3) && ja.every(o => Math.abs(o - m) >= 5) && !(m >= 44 && m <= 46)
@@ -221,6 +253,12 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number): 
   mins.sort((a, b) => a - b)
   const usados = new Set<number>()
   return mins.map(min => {
+    if (kings && rng() < 0.45) {
+      let i = Math.floor(rng() * KINGS.length)
+      for (let t = 0; t < KINGS.length && usados.has(3000 + i); t++) i = (i + 1) % KINGS.length
+      usados.add(3000 + i)
+      return { min, i: 3000 + i, a: Math.floor(rng() * ABRE.length), f: Math.floor(rng() * FECHA.length), home: rng() < 0.5 }
+    }
     const lista = min <= 12 ? 'cedo' : min >= 82 ? 'tarde' : 'meio'
     const tam = lista === 'cedo' ? CEDO.length : lista === 'tarde' ? TARDE.length : LANCES.length
     let i = Math.floor(rng() * tam)
@@ -234,6 +272,18 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number): 
 /** o texto da frase, no idioma pedido */
 export function narraRadio(l: RadioLance, casa: string, fora: string, en: boolean, elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[] }): string {
   const k = en ? 1 : 0
+  if (l.i >= 3000) {
+    // 👑 frase da Kings: com jogador quando dá (posição pedida), senão a versão do clube
+    const kf = KINGS[(l.i - 3000) % KINGS.length]
+    const t = l.home ? casa : fora, o = l.home ? fora : casa
+    const doTime = kf.pos ? ((kf.quem ?? 't') === 't') === l.home ? elencos?.casa : elencos?.fora : undefined
+    const jogador = kf.pos ? quemCitar(doTime, kf.pos, l) : null
+    const cru = jogador && kf.p ? kf.p[k].replace(/\{p\}/g, jogador) : kf.c[k]
+    const abre = ABRE[l.a][k]
+    const corpo = cru.replace(/\{t\}/g, t).replace(/\{o\}/g, o)
+    const txt = abre + (abre && !(abre.endsWith(', ') || abre.endsWith(': ')) ? corpo.charAt(0).toUpperCase() + corpo.slice(1) : corpo)
+    return (/[.!?…]$/.test(txt) ? txt : txt + '.') + FECHA[l.f][k]
+  }
   const par = l.i >= 2000 ? TARDE[l.i - 2000] : l.i >= 1000 ? CEDO[l.i - 1000] : LANCES[l.i]
   const t = l.home ? casa : fora, o = l.home ? fora : casa
   // 🧑 versão com o nome do jogador, quando a escalação está na mão (14/10)

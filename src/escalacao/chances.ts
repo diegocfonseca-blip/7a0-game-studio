@@ -25,8 +25,8 @@
 //     inteira dura 11 s (93' em ~9 s), então lá cabe UMA por lado, bem espaçada;
 //     na carreira (rodada mais lenta) cabem mais. Quem manda é `roundMs`.
 //   · 🚫 SEM PÊNALTI (ordem de 19/09): pênalti tem tela própria.
-//   · 🧍 Fala do CLUBE, não de jogador: o placar não tem escalação, e inventar
-//     quem chutou seria inventar como uma pessoa é (regra de 18/08).
+//   · 🧍 Fala do JOGADOR quando o placar tem a escalação (15/10, `quemFinalizou`): um atacante/meia DE VERDADE do
+//     time, nunca inventado. Sem escalação, fala do clube (regra de 18/08: não inventar quem é a pessoa).
 //   · 🌐 PT e EN com a MESMA quantidade de frases (o sorteio é por índice).
 
 export type FimDaChance = 'defendeu' | 'trave' | 'fora' | 'isolou'
@@ -130,10 +130,23 @@ const BANCO: Record<FimDaChance, Par[]> = {
 // de jogada. Nenhuma frase aqui narra cobrança de pênalti (ordem de 19/09).
 
 /** o texto da chance, no idioma pedido — determinístico pelo minuto + clube */
-export function narraChance(c: Chance, clube: string, en: boolean): string {
+export function narraChance(c: Chance, clube: string, en: boolean, jogador?: string | null): string {
   const lista = BANCO[c.fim]
   const par = lista[hash(clube, c.min * 31 + c.fim.length) % lista.length]
-  return (en ? par[1] : par[0]).replace(/\{t\}/g, clube)
+  return (en ? par[1] : par[0]).replace(/\{t\}/g, jogador || clube)
+}
+/** 🧑 QUEM finalizou a chance (15/10, Diego: *"as narrações quase não falam jogador… tá sempre falando do time"*).
+ *  Com a escalação na mão, é um atacante ou meia DE VERDADE do time (nunca carta de mentira), sempre o mesmo pra mesma
+ *  chance (a sala inteira vê igual). De vez em quando (1 em 5) a narração continua falando do clube, pra variar. */
+export function quemFinalizou(lista: { name: string; pos?: string; sec?: string; club?: string; fake?: boolean }[] | undefined, c: Chance, clube: string): string | null {
+  const ok = (x: { name: string; pos?: string; sec?: string; club?: string; fake?: boolean }) => !x.fake && x.club !== 'Várzea' && x.club !== 'Pickup' && !!x.name
+  const atac = (lista ?? []).filter(x => ['ATA', 'MEI'].includes(x.pos ?? x.sec ?? '') && ok(x))
+  if (!atac.length) return null
+  const h = hash(clube, c.min * 13 + 7)
+  if (h % 5 === 0) return null
+  // atacante pesa o dobro do meia
+  const peso = atac.flatMap(x => (x.pos ?? x.sec) === 'ATA' ? [x, x] : [x])
+  return peso[h % peso.length].name
 }
 
 /** o veredito que pula na faixa — o MESMO vocabulário do palco dos pênaltis */
