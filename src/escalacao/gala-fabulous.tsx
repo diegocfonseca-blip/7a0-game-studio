@@ -12,11 +12,12 @@
 //
 // Mesmo esquema das outras galas únicas (`gala-arruda.tsx`, `gala-k9.tsx`): palco 420×760 escalado pra tela,
 // camada fixa `pointer-events:none`, fora do reducer, sem localStorage; "reduzir movimento" = tudo parado no lugar.
-// Sem som próprio (ele não tem canto da torcida).
+// Som: o canto da torcida dele (`sfx/torcida-fabulous-v1.mp3`, o mesmo da carreira), abaixando no fim — igual ao Arruda.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Escudo } from './escudos'
 import { tr } from './lang'
+import { playMp3Gala } from './sound'
 import fabulousMascoteImg from './img/fabulous-mascote.webp'
 
 export const FABULOUS_MS = 7400
@@ -120,6 +121,8 @@ function useEscala() {
 
 export function GalaFabulous({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
   const s = useEscala()
+  // 🔊 o CANTO DA TORCIDA dele (o mesmo da carreira) toca junto com a gala — igual ao Tricolor do Arruda
+  useEffect(() => playMp3Gala(`${import.meta.env.BASE_URL}sfx/torcida-fabulous-v1.mp3`, T), [chave])
   void grito
   return createPortal(
     <div key={chave} className="gfa" aria-hidden>

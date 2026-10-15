@@ -37,6 +37,7 @@ import { tr } from './lang'
 import { GalaHelicoptero, HELI_MS } from './gala-helicoptero'
 import { GalaK9, K9_MS } from './gala-k9'
 import { GalaArruda, ARRUDA_MS } from './gala-arruda'
+import { GalaFabulous, FABULOUS_MS } from './gala-fabulous'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
@@ -51,6 +52,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   Neymarzetti: { ms: HELI_MS, Show: GalaHelicoptero },
   'K9 FC': { ms: K9_MS, Show: GalaK9 }, // 🧊👑 O Rei Gelado (09/10)
   'Tricolor do Arruda FC': { ms: ARRUDA_MS, Show: GalaArruda }, // 🐍 a cobra sobe da arquibancada (14/10, Fundador)
+  'Fabulous EC': { ms: FABULOUS_MS, Show: GalaFabulous }, // 🦅⚡ guerreiros se transformam, trovoada e a águia (15/10, Fundador)
 }
 /** quanto tempo a entrada deste clube ocupa a tela (a fila espera isso antes da próxima) */
 export function duracaoGala(clube: string): number { return GALA_UNICA[clube]?.ms ?? GALA_MS }
