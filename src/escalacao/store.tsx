@@ -10420,7 +10420,17 @@ function reducerBase(state: EscState, action: Action): EscState {
           // lote. A identidade (nome|clube|ano) é a mesma, que é o que importa.
           const f = s.aliciarFundo
           if (f && f.cardId === cid && !f.card.fake) {
-            listedCards.push({ ...f.card, id: `sond-${cid}`, semContrato: true })
+            // 🐛 15/10 (Fabulous EC, "comprei o Pelé e apareceram 5 Garrinchas"): o id de fundo
+            // se REPETE entre clubes diferentes (`ATA-25` do clube X e do clube Y), então dois
+            // sondados de temporadas diferentes nasciam com o MESMO `sond-ATA-25` — e a tela, que
+            // desenha o elenco pelo id, embaralhava as duas cartas. Agora leva a temporada e, se
+            // ainda assim bater com algum id que já existe, ganha um sufixo.
+            const usados = new Set<string>()
+            for (const m of s.managers) for (const c of m.squad) usados.add(String(c.id))
+            for (const c of listedCards) usados.add(String(c.id))
+            let novoId = `sond-${s.seasonNo}-${cid}`
+            for (let n = 2; usados.has(novoId); n++) novoId = `sond-${s.seasonNo}-${cid}~${n}`
+            listedCards.push({ ...f.card, id: novoId, semContrato: true })
             // 🎯 O CLUBE SONDADO ENTRA NO LEILÃO INTEIRO (Diego 13/09): *"esse time
             // sondado tem direito a participar da leva inteira do leilão também, seja
             // técnico a atacante, na rodada que o jogador dele for pro leilão"*.
@@ -11461,6 +11471,62 @@ function curaCartaRepetida(save: EscState): boolean {
   if (Array.isArray(save.monte) && save.monte.some(fora)) { save.monte = save.monte.filter(c => !fora(c)); mexeu = true }
   return mexeu
 }
+/** 🪪 DUAS CARTAS COM O MESMO ID (15/10, Fabulous EC: Pelé e Garrincha os dois `sond-ATA-25`).
+ *  A tela desenha o elenco pelo id, então duas cartas DIFERENTES com o mesmo id viravam
+ *  cópias da mesma na lista (5 Garrinchas). Aqui a 2ª carta de cada id ganha um id novo —
+ *  só o id muda: nome, clube, ano, contrato e valor ficam como estão. Carta IGUAL (mesma
+ *  identidade) com o mesmo id não é tocada: isso é assunto do `curaCartaRepetida`. */
+function curaIdRepetido(save: EscState): boolean {
+  if (!Array.isArray(save.managers)) return false
+  const todos = new Set<string>()
+  for (const m of save.managers) for (const c of m.squad ?? []) todos.add(String(c.id))
+  let mexeu = false
+  const trocas: [number, string, string][] = [] // [mgrId, id velho, id novo]
+  // só os clubes de GENTE (humano, 2º clube, Multiclubes): é onde a tela embaralha. Id de bot
+  // fica quieto — outras partes do save (sondagem pendente, listagem) apontam pra ele.
+  for (const m of save.managers) {
+    if (!Array.isArray(m.squad) || !(m.isHuman || m.dormindo || m.mine)) continue
+    const visto = new Map<string, string>() // id → ident da 1ª carta que o usou NESTE elenco
+    let novo: WonCard[] | null = null
+    m.squad.forEach((c, i) => {
+      const id = String(c.id), quem = ident(c)
+      const dono = visto.get(id)
+      if (dono == null) { visto.set(id, quem); return }
+      if (dono === quem) return
+      let nid = `${id}~2`
+      for (let n = 3; todos.has(nid); n++) nid = `${id}~${n}`
+      todos.add(nid); visto.set(nid, quem)
+      novo ??= [...m.squad]
+      novo[i] = { ...c, id: nid }
+      trocas.push([m.id, id, nid])
+    })
+    if (novo) { m.squad = novo; mexeu = true }
+  }
+  // 📋 a escalação guardou as DUAS cartas com o id velho (no Fabulous: Pelé e Garrincha lado a
+  // lado no ataque). A 1ª ocorrência continua sendo da 1ª carta; a 2ª passa pro id novo.
+  const segunda = (ids: string[] | undefined, velho: string, nid: string): string[] | undefined => {
+    if (!Array.isArray(ids)) return ids
+    const i1 = ids.indexOf(velho); if (i1 < 0) return ids
+    const i2 = ids.indexOf(velho, i1 + 1); if (i2 < 0) return ids
+    const out = [...ids]; out[i2] = nid; return out
+  }
+  for (const [mid, velho, nid] of trocas) {
+    const lu = save.careerLineup?.[mid]
+    if (lu) {
+      const n: Record<number, string[]> = {}
+      for (const [r, ids] of Object.entries(lu)) n[Number(r)] = segunda(ids, velho, nid) ?? ids
+      save.careerLineup = { ...save.careerLineup, [mid]: n }
+    }
+    const ht = save.careerHalftime?.[mid]
+    if (ht) {
+      const n: typeof ht = {}
+      for (const [r, h] of Object.entries(ht)) n[Number(r)] = { ...h, xi2: segunda(h.xi2, velho, nid) ?? h.xi2 }
+      save.careerHalftime = { ...save.careerHalftime, [mid]: n }
+    }
+    if (save.copaXi?.[mid]) save.copaXi = { ...save.copaXi, [mid]: segunda(save.copaXi[mid], velho, nid) ?? save.copaXi[mid] }
+  }
+  return mexeu
+}
 function sincronizaNiveis(save: EscState): EscState {
   save = compactaHistoricoIntl(save)
   let mexeu = 0
@@ -11575,6 +11641,7 @@ function sincronizaNiveis(save: EscState): EscState {
     }
   }
   if (curaCartaRepetida(save)) mexeu++
+  if (curaIdRepetido(save)) mexeu++
   // 🧢💰 CURA DO PREÇO DO TÉCNICO (01/10, save do Renato): valor acima do teto da
   // categoria (4× o piso) desce pro teto. Pega o salário (pago ÷ 10), a multa de
   // demissão e o piso do próximo pregão de uma vez, em todo save que abre.

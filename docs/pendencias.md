@@ -1,3 +1,14 @@
+## 🪪 5 Garrinchas no elenco do Fabulous EC (15/10) — conserto pronto no branch, ESPERANDO OK pra publicar
+- Causa: sondagem de clube de FUNDO dava à carta o id `sond-<id do fundo>`, e o id de fundo (`ATA-25`) se repete entre
+  clubes. Garrincha (sondado antes) e Pelé (agora) nasceram os dois `sond-ATA-25`; a tela desenha o elenco pelo id e
+  embaralhou (5 Garrinchas na lista; no elenco de verdade eram 1 Pelé + 1 Garrincha).
+- Conserto (`store.tsx`): id novo leva a temporada + sufixo se ainda bater; `curaIdRepetido` (no `sincronizaNiveis`)
+  troca o id da 2ª carta repetida nos clubes de GENTE e acerta a 2ª ocorrência em `careerLineup`/`careerHalftime`/`copaXi`.
+  Testado no save real dele (T103): 22 ids únicos, Pelé e Garrincha nos 2 lugares do ataque.
+- Labubu FC (caelborba): "bug no 1º leilão" — sala CAYJZH parou no envelope porque o aparelho do DONO (ele, iPhone)
+  não fechou o prazo; o motor fecha normal. Esperando o print dele. Proposta (sem OK ainda): dono fecha o envelope
+  vencido assim que volta pra frente do jogo.
+
 ## 🚪 Quem aperta SAIR depois do apito continua dono do título (14/10, sala do Futpoint) — ✅
 Guimarães SCI ganhou liga + Copa do Mundo e não apareceu no ranking/"Campeões de hoje". Causa: a partida é gravada 2×
 (fim da liga e fim da Copa do Mundo); na 2ª, quem já tinha apertado SAIR era CPU no estado do dono e sumia do
