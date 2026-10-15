@@ -486,7 +486,7 @@ export const PAIS: Record<string, string> = {
   //        SELEÇÃO ESPANHOLA, e aqui vale onde ele joga (regra do Diego).
   'Dean Huijsen': 'Espanha',
   // Laterais
-  'Nuno Mendes': 'Portugal', 'Grimaldo': 'Espanha', 'Dimarco': 'Itália',
+  'Nuno Mendes': 'Portugal', 'Vitinha': 'Portugal', 'João Neves': 'Portugal', 'Grimaldo': 'Espanha', 'Dimarco': 'Itália',
   'Dumfries': 'Holanda', 'Frimpong': 'Holanda', 'Pedro Porro': 'Espanha',
   'Aït-Nouri': 'Argélia', 'Vanderson': 'Brasil', 'Álvaro Carreras': 'Espanha',
   'Milos Kerkez': 'Hungria', // (Yan Couto já estava etiquetado mais acima)
