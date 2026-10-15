@@ -1,4 +1,14 @@
-## 👑 KINGS LEAGUE — sala online nova (15/10, "Pode ser") — 🚧 ETAPA 1 de 5 feita
+## 👑 KINGS LEAGUE — 🟢 NO AR NA PARTIDA RÁPIDA, SÓ NA CONTA DO DIEGO (15/10, "faça tudo e publique apenas no partida rápida")
+`src/escalacao/kings-rapida.tsx`: jogo À PARTE por cima da tela de configurar a Partida Rápida (botão preto "👑 KINGS LEAGUE ·
+TESTE · SÓ VOCÊ VÊ", trava `useKingsLiberada`/`KINGS_TESTERS` em sport.ts). Estado próprio (não passa pelo reducer), guarda no
+aparelho em `kings-rapida-v1`. Fluxo: regras → leilão às cegas de 7 (GOL·ZAG·MEI·ATA, 100 🪙, bots dão lance, sobra vai pro
+monte de graça) → 9 rodadas (vestiário 20s com a carta → partida de ~3 min com banners de 7s: início, dado, intervalo,
+bola, shootout) → pênalti do presidente nos dois sentidos (você bate com o PenaltyArt; o do bot você defende) → carta
+(pênalti/shootout você bate; suspensão/gol em dobro entram na conta) → empate = shootout manual 5+5 e morte súbita →
+mata-mata (1º direto na semi) → campeão. Testado no navegador do começo ao campeão, sem erro.
+⏳ Falta: levar pras SALAS ONLINE (duelo gente × gente) quando ele aprovar o rápido; o nome "Kings League" é marca registrada (avisado).
+(histórico da etapa 1 abaixo)
+
 Conceito inteiro: **`docs/conceito-kings-league.md`** (regras da Kings League BRASIL, nome "Kings League", ritmo mais
 lento: ~3 min/partida, banners de 6–8s explicando cada regra, intervalo 15s, vestiário 20s). Mockups:
 `scripts/mockups/kings-league.png` + `campinho-reis.png` (o campinho; o selo vira "KINGS LEAGUE").

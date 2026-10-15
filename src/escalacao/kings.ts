@@ -171,11 +171,11 @@ export function presidenteBot(seed: number, lado: 'A' | 'B'): LanceExterno {
   return { min, lado, tipo: 'presidente', gol: r() < 0.7 }
 }
 
-/** 🥅 duelo de canto (gente × gente ou gente × bot): 6 cantos; goleiro no MESMO canto = defesa (canto vizinho de
- *  cima/baixo na mesma coluna = 50%) */
-export type Canto = 'ce' | 'cm' | 'cd' | 'be' | 'bm' | 'bd'
+/** 🥅 duelo de canto (gente × gente ou gente × bot). Cantos = as 6 zonas do `PenaltyArt` (0 ↖ · 1 ↑ · 2 ↗ ·
+ *  3 ↙ · 4 ↓ · 5 ↘). Goleiro na MESMA zona = defesa; mesma coluna, altura errada = meia chance. */
+export type Canto = 0 | 1 | 2 | 3 | 4 | 5
 export function dueloKings(chute: Canto, pulo: Canto, sorte: number): boolean {
   if (chute === pulo) return false
-  if (chute[1] === pulo[1]) return sorte < 0.5 // mesma coluna (esq/meio/dir), altura errada: meia chance
+  if (chute % 3 === pulo % 3) return sorte < 0.5
   return true
 }

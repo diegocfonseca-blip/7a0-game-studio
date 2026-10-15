@@ -43,7 +43,7 @@ const totalPts = tab.reduce((a, l) => a + l.pts, 0), jogos = tab.reduce((a, l) =
 ok(totalPts >= jogos * 3 && totalPts <= jogos * 3, 'todo jogo distribui exatamente 3 pontos (3+0 ou 2+1)')
 const ord = ordenaKings(tab)
 ok(ord.every((l, i) => i === 0 || ord[i - 1].pts >= l.pts), 'tabela ordenada por pontos')
-ok(dueloKings('cd', 'cd', 0) === false && dueloKings('ce', 'bd', 0.9) === true, 'duelo: goleiro no canto certo defende')
+ok(dueloKings(2, 2, 0) === false && dueloKings(0, 5, 0.9) === true && dueloKings(0, 3, 0.9) === false, 'duelo: goleiro no canto certo defende')
 
 // gol de carta/presidente com gol em dobro ativo vale 2
 const d = simulaPartidaKings({ idA: 0, idB: 1, forcaA: 1, forcaB: 1, seed: 7, usos: [{ min: 25, lado: 'A', carta: 'gol_dobro' }], externos: [{ min: 26, lado: 'A', tipo: 'presidente', gol: true }] })

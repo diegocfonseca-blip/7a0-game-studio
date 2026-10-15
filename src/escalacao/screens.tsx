@@ -45,6 +45,7 @@ import { PyramidOverlay } from './pyramid'
 import { pedaco } from './recarga'
 const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate }))))
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
+const KingsRapidaLazy = lazy(pedaco(() => import('./kings-rapida'))) // 👑 Kings League na partida rápida (15/10, só a conta do Diego)
 import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
@@ -62,7 +63,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, useKingsLiberada, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
@@ -2617,6 +2618,8 @@ export function EscSetup() {
   // liberar"). No online a opção aparece travada até ele mandar abrir (`useClubesLiberado`).
   const clubesOn = true
   const [clubes, setClubes] = useState(false)
+  const kingsOn = useKingsLiberada() // 👑 Kings League (15/10): só a conta do Diego
+  const [kingsAberta, setKingsAberta] = useState(false)
   // carreira: quais times da Série D viram seus rivais fixos (vazio = os padrões).
   // Ao selecionar mais que o número escolhido, o mais antigo sai (fila).
   const [rivalPicks, setRivalPicks] = useState<string[]>([])
@@ -2821,6 +2824,16 @@ export function EscSetup() {
           <p className="text-xs font-bold text-black/75">💾 <b>{t('Salva e continua:', 'Save and continue:')}</b> {t('pare e volte depois, em qualquer aparelho.', 'stop and come back later, on any device.')}</p>
         </Box>
       )}
+      {/* 👑 KINGS LEAGUE (15/10) — jogo à parte por cima da tela, com estado próprio (`kings-rapida.tsx`). Só a
+          conta do Diego vê (`useKingsLiberada`); o resto da partida rápida não muda nada. */}
+      {!career && kingsOn && (
+        <button onClick={() => setKingsAberta(true)} className="w-full text-left active:translate-y-0.5"
+          style={{ background: '#0C0C0C', color: '#fff', border: '3px solid #0C0C0C', borderRadius: 16, boxShadow: '4px 4px 0 #C2452F', padding: '12px 14px' }}>
+          <span style={{ ...OSWALD, fontWeight: 900, fontSize: 22, color: '#FFC400', display: 'block' }}>👑 KINGS LEAGUE <span style={{ fontSize: 11, background: '#C2452F', color: '#fff', borderRadius: 6, padding: '1px 6px', verticalAlign: 'middle' }}>TESTE · SÓ VOCÊ VÊ</span></span>
+          <span style={{ fontSize: 12, fontWeight: 700, opacity: .85 }}>{t('Futebol 7 com as regras da Kings League Brasil: dado, carta secreta, pênalti do presidente e shootout.', 'Seven-a-side with Kings League Brasil rules: dice, secret card, president penalty and shootout.')}</span>
+        </button>
+      )}
+      {kingsAberta && <Suspense fallback={null}><KingsRapidaLazy nomeTime={name.trim() || accountName || ''} aoSair={() => setKingsAberta(false)} /></Suspense>}
       <Box className="p-4 space-y-4">
         {!career && clubesOn && (
           <div>
@@ -8031,7 +8044,7 @@ export function EscLiberta() {
 // as cores da CARTA batem com as faixas de nível da Cerimônia (tierBadge):
 // 🟡 lenda=ouro · 🟠 craque=bronze · 🟢 bom jogador=verde · 🫒 foi profissional=bege.
 // brilho (holo): ouro brilha forte, promessa brilha sutil, os demais são estáticos.
-const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tierColor: string; crestBg: string; crestInk: string; holo?: boolean; holoAlpha?: number }> = {
+export const FAME_TIER: Record<number, { label: string; grad: string; ink: string; tierColor: string; crestBg: string; crestInk: string; holo?: boolean; holoAlpha?: number }> = {
   5: { label: '👑 LENDA', grad: 'linear-gradient(150deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', ink: '#0C0C0C', tierColor: '#7a4d00', crestBg: 'rgba(255,255,255,.42)', crestInk: '#7a4d00', holo: true, holoAlpha: .85 },
   4: { label: '⭐ CRAQUE', grad: 'linear-gradient(150deg,#F4F7FB,#CBD4DE 45%,#9BA7B5 78%,#EAEFF4)', ink: '#0C0C0C', tierColor: '#44546a', crestBg: 'rgba(255,255,255,.5)', crestInk: '#44546a', holo: true, holoAlpha: .72 },
   3: { label: '🎯 BOM JOGADOR', grad: 'linear-gradient(150deg,#41C07A,#2E9E5B 55%,#1E7A45)', ink: '#fff', tierColor: 'rgba(255,255,255,.92)', crestBg: 'rgba(255,255,255,.35)', crestInk: '#14532d' },
