@@ -13,6 +13,8 @@ const NOMES: Record<string, string> = {
   craque: 'Plano Craque', lenda: 'Plano Lenda', batismo: 'Plano Batismo', fundador: 'Plano Fundador',
   salas_extras: '3 salas extras', teste: 'Teste de pagamento',
 }
+// ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
+const VALIDADE_MIN = 24 * 60
 const resp = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
 // o MP quer a validade com fuso: devolve no horário de Brasília (-03:00)
 const validade = (min: number) => {
@@ -31,12 +33,12 @@ Deno.serve(async (req) => {
   const { data: u } = await anon.auth.getUser(jwt)
   const email = u?.user?.email?.toLowerCase()
   if (!email) return resp(401, { erro: 'sem_login' })
-  let produto = ''
-  try { produto = String((await req.json())?.produto ?? '') } catch { /* corpo inválido */ }
+  let produto = '', telefone = ''
+  try { const b = await req.json(); produto = String(b?.produto ?? ''); telefone = String(b?.telefone ?? '').replace(/\D/g, '').slice(0, 13) } catch { /* corpo inválido */ }
   if (!NOMES[produto]) return resp(400, { erro: 'produto' })
 
   const adm = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-  const { data: ped, error } = await adm.rpc('esc_mp_criar_pedido', { p_email: email, p_produto: produto })
+  const { data: ped, error } = await adm.rpc('esc_mp_criar_pedido', { p_email: email, p_produto: produto, p_telefone: telefone || null })
   if (error || !ped?.[0]) return resp(409, { erro: /JA_TEM/.test(error?.message ?? '') ? 'ja_tem' : 'pedido' })
   const { pedido_id, valor } = ped[0] as { pedido_id: string; valor: number }
 
@@ -50,7 +52,7 @@ Deno.serve(async (req) => {
       payer: { email },
       external_reference: pedido_id,
       notification_url: `${url}/functions/v1/mp-webhook`,
-      date_of_expiration: validade(30),
+      date_of_expiration: validade(VALIDADE_MIN),
     }),
   })
   const pg = await r.json().catch(() => null)
@@ -59,6 +61,7 @@ Deno.serve(async (req) => {
     console.error('mp-criar-pix: MP recusou', r.status, pg?.message ?? pg?.error ?? '')
     return resp(502, { erro: 'mp', status: r.status })
   }
-  await adm.rpc('esc_mp_anota_pix', { p_pedido: pedido_id, p_mp_id: String(pg.id), p_mp_status: String(pg.status ?? '') })
-  return resp(200, { pedido_id, valor: Number(valor), qr_code: td.qr_code, qr_code_base64: td.qr_code_base64, ticket_url: td.ticket_url, validade_min: 30 })
+  const expira = new Date(Date.now() + VALIDADE_MIN * 60_000).toISOString()
+  await adm.rpc('esc_mp_anota_pix', { p_pedido: pedido_id, p_mp_id: String(pg.id), p_mp_status: String(pg.status ?? ''), p_qr: td.qr_code, p_qr64: td.qr_code_base64 ?? null, p_expira: expira })
+  return resp(200, { pedido_id, valor: Number(valor), qr_code: td.qr_code, qr_code_base64: td.qr_code_base64, expira_em: expira })
 })

@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
 import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
+import { PixMP } from './pix-mp'
 import { CenaPontape, CenaEntra, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo, FaixaEfeitos, KINGS_ARENA_CSS } from './kings-cenas'
 import type { MatchResult, CartaKingsInfo } from './types'
 import { SeloClube } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09)
@@ -66,7 +67,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, useKingsLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
@@ -385,6 +386,7 @@ type ApoieProps = { big?: boolean; startScreen?: 'choice' | 'manual' | 'batismo'
   foco?: 'prata' | 'ouro' | 'batismo' | 'plus' }
 export function ApoieButton(p: ApoieProps) { return usePlanos2() ? <ApoieButtonV2 {...p} /> : <ApoieButtonV1 {...p} /> }
 function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: ApoieProps) {
+  const pixMp = usePixMp() // 💳 15/10: Pix do Mercado Pago (gerado na hora, sem comprovante) — por enquanto só na conta do Diego
   const [screen, setScreen] = useState<'off' | 'choice' | 'pix' | 'pay' | 'batismo' | 'manual' | 'socio'>('off')
   const meuSoc = useMeuSocio() // 🎫 sócio ativo vê a ÁREA dele no lugar da propaganda
   // 🖋 'batismoInfo' (13/10, Diego): abre a vitrine dos PLANOS rolando até o cartão do batismo — onde está tudo
@@ -558,6 +560,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
               <small className="block font-extrabold text-[9px] uppercase tracking-wider opacity-80">{tr('paga uma vez · é seu pra sempre', 'pay once · yours forever')}</small>
             </span>
           </div>
+          {pixMp ? <div className="mt-3"><PixMP produto="craque" valor={precoSubida('craque', planoJa) || PRECOS_UNICO.craque} /></div> : <>
           <div className="mt-3"><PixBox label={`copiar Pix (${reaisApoie(PRECOS_UNICO.craque)})`} ctx="craque (manual + cor)" amount={PRECOS_UNICO.craque} /></div>
           <div className="flex gap-1.5 mt-2.5">
             <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>1</b>{tr('paga o Pix no app do banco', 'pay the Pix in your bank app')}</div>
@@ -567,6 +570,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
             </button>
             <div className="flex-1 bg-white rounded-xl px-1.5 py-1.5 text-center font-extrabold text-[9.5px] leading-tight" style={{ border: `2px solid ${INK}` }}><b className="block text-[13px]" style={OSWALD}>3</b>{tr('libera em até 24h · nome prata ⭐ na sala', 'unlocked within 24h · silver name ⭐ in the room')}</div>
           </div>
+          </>}
           <p className="text-center text-[10px] font-bold mt-3 leading-relaxed" style={{ color: 'rgba(12,12,12,.5)' }}>{tr('Não muda a força de ninguém — só o ritmo e o que você enxerga. No online o tempo é igual pra todos.', 'It doesn’t change anyone’s strength — only the pace and what you see. Online, the clock is the same for everyone.')}</p>
 
           {/* 👑🖋 quer mais que isso? */}
@@ -591,6 +595,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
         <ApoieModal onClose={close}>
           <p className="font-black text-xl text-center" style={OSWALD}>{upgrade ? tr(`👑 UPGRADE LENDA · ${reaisApoie(amount)}`, `👑 LEGEND UPGRADE · ${reaisApoie(amount)}`) : ouro ? tr(`👑 LENDA · ${reaisApoie(amount)}`, `👑 LEGEND · ${reaisApoie(amount)}`) : tr(`⭐ CRAQUE · ${reaisApoie(amount)}`, `⭐ STAR · ${reaisApoie(amount)}`)}</p>
           <p className="text-[10.5px] font-bold text-black/55 text-center mt-1 leading-snug">{ouro ? tr('ouro com brilho + selo + 🎮 Manual + 📲 grupo VIP + 🕵️ Olheiro de tudo + 💾 4 carreiras', 'shining gold + badge + 🎮 Manual + 📲 VIP group + 🕵️ Scout for everything + 💾 4 careers') : tr('cor prata com brilho + 🎮 Modo Manual + 📲 grupo VIP + 🕵️ Olheiro até ⭐ + 💾 2 carreiras', 'shining silver + 🎮 Manual Mode + 📲 VIP group + 🕵️ Scout up to ⭐ + 💾 2 careers')}</p>
+          {pixMp ? <div className="mt-3.5"><PixMP key={ouro ? 'lenda' : 'craque'} produto={ouro ? 'lenda' : 'craque'} valor={amount} /></div> : <>
           <div className="mt-3.5"><PixBox label="copiar Pix" ctx={ouro ? 'lenda' : 'craque (manual + cor)'} amount={amount} /></div>
           <button onClick={() => { logApoio(ouro ? `👑 QUER O LENDA (${reaisApoie(amount)})` : `⭐ QUER O CRAQUE (${reaisApoie(amount)})`); igMsg(ouro ? tr('Opa! Apoiei o Leilão Legends 💛 Quero o 👑 LENDA (ouro/cor com brilho + Manual + grupo VIP) — comprovante em anexo!', 'Hey! I just supported Leilão Legends 💛 I want the 👑 LEGEND tier (shining gold/colour + Manual + VIP group) — receipt attached!') : tr('Opa! Apoiei o Leilão Legends 💛 Quero o ⭐ CRAQUE (Modo Manual + cor do time + grupo VIP) — comprovante em anexo!', 'Hey! I just supported Leilão Legends 💛 I want the ⭐ STAR tier (Manual Mode + club colour + VIP group) — receipt attached!')) }}
             className="w-full rounded-xl border-[3px] border-black font-black text-[14px] py-3 mt-2.5 active:translate-y-0.5"
@@ -598,6 +603,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
             {tr('📸 MANDAR COMPROVANTE NO @leilaolegendscom', '📸 SEND THE RECEIPT TO @leilaolegendscom')}
           </button>
           <p className="text-[10px] font-bold text-black/45 text-center mt-1.5">{tr('a mensagem já vai copiada · liberamos em até 24h no seu e-mail · upgrade depois? paga só a diferença 😉', 'the message is already copied · we unlock it within 24h on your e-mail · upgrade later? you only pay the difference 😉')}</p>
+          </>}
           <p className="text-center mt-3"><button onClick={() => setScreen('choice')} className="text-[11px] font-black underline text-black/45">{tr('← voltar pros pacotes', '← back to the packages')}</button></p>
         </ApoieModal>
         )
@@ -607,10 +613,12 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
         <ApoieModal onClose={close}>
           <p className="font-black text-2xl text-center" style={OSWALD}>{tr('⚽ BATIZA TEU CLUBE', '⚽ NAME YOUR CLUB')}</p>
           <p className="text-xs font-bold text-black/60 text-center mt-1">{tr('3 coisinhas e teu time entra em campo:', '3 little things and your team takes the field:')}</p>
+          {!pixMp && <>
           <p className="font-black text-[13px] mt-3" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>1</span>{tr('Escolhe o nome do clube', 'Pick the club name')}</p>
           <input value={clube} onChange={e => setClube(stripEmoji(e.target.value))} maxLength={26} placeholder={tr('Ex.: Atlético do Jefão', 'e.g. Atlético do Jefão')}
             className="w-full border-[3px] border-black rounded-xl px-3 py-2.5 mt-2 font-black text-base bg-white" style={OSWALD} />
           <p className="text-[10px] font-bold text-black/45 mt-1.5">{tr('✅ nome de resenha, zoeira leve, homenagem · ❌ ofensa, política, marca de empresa', '✅ banter names, light jokes, tributes · ❌ slurs, politics, company brands')}</p>
+          </>}
           <p className="font-black text-[13px] mt-3.5" style={OSWALD}><span className="inline-block w-5 h-5 rounded-full text-center text-[11px] leading-5 mr-1.5" style={{ background: INK, color: GOLD }}>2</span>{tr('Escolhe a série e faz o Pix', 'Pick the division and pay via Pix')}</p>
           <div className="flex gap-1.5 mt-1.5">
             <button onClick={() => setSerieBatismo('abc')} className="flex-1 border-2 border-black rounded-lg px-2 py-1.5 text-[9.5px] font-black text-center active:translate-y-0.5"
@@ -625,6 +633,8 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
           <p className="text-[9.5px] font-bold text-black/50 mt-1 leading-snug">{L(<>a <b>Série A</b> custa mais porque é a elite: são os clubes que aparecem no <b>jogo rápido</b> e os rivais que todo mundo enfrenta. Toque numa das duas pra escolher.</>,
                                                                                     <><b>Série A</b> costs more because it is the elite: those are the clubs that show up in <b>quick play</b> and the rivals everybody faces. Tap one of the two to choose.</>)}</p>
           {serieBatismo === 'd' && <p className="text-[10px] font-black mt-1 leading-snug" style={{ color: '#7C3AED' }}>{tr('👑 Só no Fundador: entrada de gala EXCLUSIVA do seu clube (helicóptero, moto, fumaça… você conta a ideia) + o canto do seu time de coração (na Carreira e no online, junto com a gala) + o seu número de Fundador + o seu clube aparecendo nas salas online dos outros, em rodízio, mesmo quando você não está jogando.', '👑 Founder only: your club’s EXCLUSIVE grand entrance (helicopter, bike, smoke… you pitch the idea) + your favourite team’s chant (in Career and online, with the entrance) + your Founder number + your club showing up in other people’s online rooms, rotating, even when you are not playing.')}</p>}
+          {pixMp ? <div className="mt-2"><PixMP key={serieBatismo} produto={serieBatismo === 'd' ? 'fundador' : 'batismo'} valor={precoCheioBatismo} />
+            <p className="text-[10.5px] font-bold text-black/50 mt-1.5 text-center">{tr('Depois do Pix, você conta por escrito o nome do clube e como imagina o escudo e a mascote.', 'After the Pix, you describe in writing the club name and how you picture the crest and mascot.')}</p></div> : <>
           <div className="mt-2"><PixBox label="copiar chave Pix" ctx={`batismo do clube · ${serieBatismo === 'd' ? '🖋️ Fundador · Série A' : '🖋️ Batismo · Série B/C/D ou Várzea'}${planoJa ? ` · subida de ${planoJa}` : ''}${cupom ? ` · cupom ${cupom.codigo}` : ''}`} amount={precoBatismo} /></div>
           {/* 🎟️ cupom de influenciador — só aqui, no batismo. SUTIL de propósito
               (Diego 08/09: *"deixe de forma mais sutil lá no pagamento e não tão
@@ -662,6 +672,7 @@ function ApoieButtonV1({ big = false, startScreen = 'choice', trigger, foco }: A
             {tr('📸 CHAMAR NO @leilaolegendscom', '📸 MESSAGE @leilaolegendscom')}
           </button>
           <p className="text-[10px] font-bold text-black/45 mt-1.5 text-center">{tr('(a mensagem já vai copiada — é só colar na DM e anexar o comprovante)', '(the message is already copied — just paste it in the DM and attach the receipt)')}</p>
+          </>}
           <p className="text-[11px] font-bold text-black/55 mt-3 leading-snug text-center">{tr('A gente responde em até 24h confirmando o clube — e na próxima atualização ele já tá jogando pra todo mundo. ⚽', 'We reply within 24h confirming the club — and in the next update it is already playing for everyone. ⚽')}</p>
           <p className="text-[10.5px] font-bold text-black/60 mt-2 leading-snug text-center">{L(<>👑 <b>Bônus:</b> batizar já inclui <b>tudo do Lenda</b> + o <b>🎫 Sócio Legends</b> (manto, escudo, mascote, estádio batizado). Se alguém cobrir a proposta pelo nome, você perde <b>só o nome</b> — o resto continua com você. Aí é cobrir ou chorar. 😄</>,
                                                                                                 <>👑 <b>Bonus:</b> naming a club already includes <b>everything from Legend</b> + <b>🎫 Legends Membership</b> (kit, crest, mascot, named stadium). If someone outbids you for the name, you only lose <b>the name</b> — everything else stays with you. Then it's outbid or cry. 😄</>)}</p>

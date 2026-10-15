@@ -409,20 +409,26 @@ sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o c
 Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
 🎁 14/10: presente APROVADO, mas **só de PLANO** (Craque/Lenda/Batismo/Fundador) — *"presente é só dos planos, nada de títulos figurinhas"*.
 
-## 💳 Mercado Pago · PIX ÚNICO automático (15/10) — 🟡 SERVIDOR NO AR, tela esperando OK do mockup
+## 💳 Mercado Pago · PIX ÚNICO automático (15/10) — 🟢 NO AR SÓ NA CONTA DO DIEGO (`PIX_MP_GERAL = false`)
 Diego trocou a Vendria pelo MP: *"somente Pix direto… tudo no Pix, Pix único só"* (nada mensal, nada de cartão).
-✅ Diego criou a aplicação "Leilao Legends" (Checkout Transparente) e salvou nas Secrets `MP_ACCESS_TOKEN` (renovado depois
-que a foto vazou no chat) e `MP_WEBHOOK_SECRET`; webhook do MP aponta pra `.../functions/v1/mp-webhook` (evento Pagamentos).
-✅ Banco (`supabase/migrations/20261015220000_mercado_pago_pix.sql`): `esc_mp_pedidos`, `esc_mp_config.auto_liberar` (DESLIGADO),
-preço calculado NO SERVIDOR (`esc_mp_preco`: 29,90/49,90/79,90/99,90, subida = diferença + 5, salas extras 4,90, teste R$ 1 só
-na conta do Diego), `esc_mp_registrar_pagamento` (só conta se o MP disser approved E o valor bater), `esc_mp_entregar`
-(Craque=prata, Lenda=ouro, Batismo/Fundador=ouro + `esc_compras_batismo`, salas +3), `esc_admin_mp_lista/liberar`, `esc_mp_meu_pedido`.
-✅ Edge Functions: `mp-criar-pix` (login obrigatório; cria o Pix com external_reference = pedido) e `mp-webhook` (assinatura +
-busca o pagamento no MP antes de acreditar). Código em `supabase/functions/`.
-⏳ Falta: (1) Diego aprovar o mockup `scripts/mockups/pix-mp.png` e decidir se LIBERA SOZINHO (`update esc_mp_config set
-auto_liberar = true`) ou aprova no #admin; (2) a tela no jogo (trocar `PixBox`+Instagram por gerar Pix/QR/esperando/caiu) +
-lista no #admin; (3) teste com Pix de R$ 1 na conta dele; (4) presentes/canto/moedas ainda no Pix antigo; (5) apagar a Vendria
-(`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar que largou de vez.
+✅ Diego: aplicação "Leilao Legends" (Checkout Transparente) · Secrets `MP_ACCESS_TOKEN` (renovado depois que a foto vazou)
+e `MP_WEBHOOK_SECRET` · webhook do MP → `.../functions/v1/mp-webhook` (evento Pagamentos).
+✅ Banco (`supabase/migrations/20261015220000_mercado_pago_pix.sql` + `…230000_mercado_pago_pix_v2.sql`): pedidos, preço NO
+SERVIDOR (29,90/49,90/79,90/99,90, subida = diferença + 5, salas 4,90, teste R$ 1 só na conta dele), só conta se o MP disser
+approved E o valor bater, `auto_liberar = true` (decisão dele: o automático entra sozinho — Craque prata · Lenda ouro · Batismo/
+Fundador = ouro + `esc_compras_batismo` · salas +3). O personalizado (escudo, mascote, manto, canto, gala, nº de fundador, sócio)
+continua no roteiro de batismo.
+✅ Edge Functions `mp-criar-pix` (login obrigatório, WhatsApp opcional, Pix vale 24h, guarda o QR pro "Pix esperando") e
+`mp-webhook` (assinatura + busca o pagamento no MP antes de acreditar).
+✅ Tela (`pix-mp.tsx`): gerar → COPIAR grande + QR → "esperando" (confere a cada 5s e ao voltar do banco) → "Pagamento
+confirmado!". Batismo/Fundador: "✍️ Conta como você imagina o seu clube" (nome, coração, cores, escudo, mascote, canto no
+Fundador) — POR ESCRITO, *"não quero que mandem imagem… eu que quero fazer as artes"* — + falar com o Diego por WhatsApp ou
+e-mail. Ligada em: Craque (manual e pay), Lenda, Batismo/Fundador e salas extras da Loja. #admin: "💳 Pix do Mercado Pago"
+(lista, 🖋 Batismos pra fazer, não pagos com WhatsApp, botão LIBERAR se precisar, 🧪 Pix de teste R$ 1).
+⏳ Falta: (1) Diego fazer o Pix de teste de R$ 1 no #admin e ver o ✅; (2) o NÚMERO de WhatsApp dele (`WHATSAPP_CONTATO` em
+pix-mp.tsx; sem número só aparece o e-mail); (3) liberar pra todos (`PIX_MP_GERAL = true`); (4) cupom de influenciador no
+batismo ainda não vale no Pix novo (preço do servidor ignora cupom); (5) presentes, canto avulso e moedas seguem no Pix
+antigo; (6) apagar a Vendria (`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar.
 
 ## 🏆 Moldura do pódio da semana (15/10) — ✅ NO AR
 Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalha, sem mexer no fundo (fundo = cor do plano).

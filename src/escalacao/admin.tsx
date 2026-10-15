@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { logout } from './apoio'
 import { PRECOS } from './planos-regras'
+import { PixMP } from './pix-mp'
 import { guardaStorage, medeStorage, testaEscrita, type ProbeStorage } from '../storage-guard' // 🗄️ armazenamento do aparelho (21/09)
 
 const ADMIN_EMAIL = 'diego.c.fonseca@gmail.com'
@@ -330,6 +331,55 @@ function SalasExtrasAdmin() {
         <button onClick={dar} style={{ border: 'none', borderRadius: 10, padding: '8px 12px', background: '#FFC400', fontWeight: 900, cursor: 'pointer' }}>+3</button>
       </div>
       {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '7px 0 0' }}>{msg}</p>}
+    </div>
+  )
+}
+
+// 💳 PIX DO MERCADO PAGO (15/10). Cada Pix gerado no jogo vira um pedido; o MP avisa, o servidor confere no MP e libera
+// sozinho o automático (Craque, Lenda, salas extras, tudo do Lenda no Batismo/Fundador). Aqui: o que caiu, quem deixou
+// WhatsApp, o "🖋 Batismos pra fazer" (o que a pessoa escreveu de como imagina o clube) e o Pix de teste de R$ 1.
+type PedidoMp = { id: string; email: string; produto: string; valor: number; status: string; telefone: string | null; criado_em: string; pago_em: string | null; liberado_por: string | null; briefing: Record<string, string> | null }
+function PixMpAdmin() {
+  const [lista, setLista] = useState<PedidoMp[]>([])
+  const [msg, setMsg] = useState('')
+  const [teste, setTeste] = useState(false)
+  const carregar = async () => { const { data, error } = await supabase.rpc('esc_admin_mp_lista'); if (error) setMsg(`❌ ${error.message}`); setLista((data ?? []) as PedidoMp[]) }
+  useEffect(() => { carregar() }, [])
+  const liberar = async (r: PedidoMp) => {
+    if (!window.confirm(`Liberar ${r.produto.toUpperCase()} pra ${r.email}?`)) return
+    const { data, error } = await supabase.rpc('esc_admin_mp_liberar', { p_pedido: r.id })
+    setMsg(error ? `❌ ${error.message}` : `✅ ${data}`); carregar()
+  }
+  const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
+  const cor: Record<string, string> = { criado: 'rgba(242,232,207,.5)', pago: '#FFC400', liberado: '#6fdb8f', divergente: '#ff8a75', cancelado: 'rgba(242,232,207,.4)' }
+  const batismos = lista.filter(r => (r.produto === 'batismo' || r.produto === 'fundador') && (r.status === 'pago' || r.status === 'liberado'))
+  const naoPagos = lista.filter(r => r.status === 'criado')
+  return (
+    <div style={{ border: '2px solid #009EE3', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#5fc8ff', textTransform: 'uppercase', margin: '0 0 4px' }}>💳 Pix do Mercado Pago</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Só conta o que o Mercado Pago confirmou com o valor certo. Craque/Lenda/salas/Lenda-do-batismo entram sozinhos; o personalizado é com você.</p>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '0 0 8px' }}>{msg}</p>}
+      <button onClick={() => setTeste(t => !t)} style={{ border: 'none', borderRadius: 8, padding: '6px 10px', background: '#5fc8ff', fontWeight: 900, cursor: 'pointer', marginBottom: 10 }}>{teste ? 'fechar teste' : '🧪 Fazer um Pix de teste (R$ 1)'}</button>
+      {teste && <div style={{ maxWidth: 380, marginBottom: 12, color: INK }}><PixMP produto="teste" valor={1} /></div>}
+      {batismos.length > 0 && <>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#FFC400', margin: '8px 0 4px' }}>🖋 Batismos pra fazer</p>
+        {batismos.map(r => <div key={r.id} style={{ fontSize: 11, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0' }}>
+          <b>{r.produto.toUpperCase()}</b> · {r.email}{r.telefone ? ` · 📲 ${r.telefone}` : ''} · {new Date(r.pago_em ?? r.criado_em).toLocaleString('pt-BR')}<br />
+          {r.briefing ? Object.entries(r.briefing).filter(([, v]) => v).map(([k, v]) => <span key={k} style={{ display: 'block' }}>• <b>{k}</b>: {v}</span>) : <i>ainda não escreveu como imagina o clube</i>}
+        </div>)}
+      </>}
+      {naoPagos.length > 0 && <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '10px 0 4px' }}>⏳ {naoPagos.length} Pix gerado(s) e ainda não pago(s) nas últimas 24h{naoPagos.some(r => r.telefone) ? ' · quem deixou WhatsApp aparece na lista: dá pra chamar e recuperar a venda' : ''}</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#F2E8CF', marginTop: 6 }}>
+        <tbody>
+          {lista.map(r => <tr key={r.id}>
+            <td style={td}>{new Date(r.criado_em).toLocaleString('pt-BR')}<br /><span style={{ opacity: .5 }}>{r.id.slice(0, 8).toUpperCase()}</span></td>
+            <td style={td}><b>{r.produto.toUpperCase()}</b> · R$ {Number(r.valor).toFixed(2).replace('.', ',')}<br />{r.email}{r.telefone ? <><br />📲 {r.telefone}</> : null}</td>
+            <td style={{ ...td, color: cor[r.status] ?? '#F2E8CF', fontWeight: 900 }}>{r.status}{r.liberado_por ? <><br /><span style={{ fontWeight: 700, opacity: .7 }}>({r.liberado_por})</span></> : null}
+              {r.status === 'pago' && <><br /><button onClick={() => liberar(r)} style={{ border: 'none', borderRadius: 8, padding: '4px 8px', background: '#6fdb8f', fontWeight: 900, cursor: 'pointer', marginTop: 4 }}>LIBERAR</button></>}</td>
+          </tr>)}
+          {lista.length === 0 && <tr><td style={td}>nenhum Pix ainda</td></tr>}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -1084,7 +1134,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )
