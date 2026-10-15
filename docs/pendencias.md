@@ -1,3 +1,13 @@
+## 👑 KINGS LEAGUE — sala online nova (15/10, "Pode ser") — 🚧 ETAPA 1 de 5 feita
+Conceito inteiro: **`docs/conceito-kings-league.md`** (regras da Kings League BRASIL, nome "Kings League", ritmo mais
+lento: ~3 min/partida, banners de 6–8s explicando cada regra, intervalo 15s, vestiário 20s). Mockups:
+`scripts/mockups/kings-league.png` + `campinho-reis.png` (o campinho; o selo vira "KINGS LEAGUE").
+✅ Etapa 1: motor PURO `src/escalacao/kings.ts` (10 times/9 rodadas, 3·2·1·0, calendário, chave 1º-na-semi, partida com
+dado no 18, bola dourada/vermelha no 38, cartas, pênalti do presidente, shootout, duelo de canto). Trava `npm run kings`.
+Média medida: ~6,3 gols/jogo, ~18% vai pro shootout. Não está ligado em tela nenhuma ainda.
+⏳ Etapas 2–5 (só na conta do Diego até ele aprovar): tipo de sala + leilão de 7 com campinho · liga de 10 + partida ·
+vestiário/carta/pênalti do presidente (online) · duelo manual + banners + mata-mata.
+
 ## 🤝 Dupla nas copas com convocação: só UM escolhe e convoca (15/10, "Ok pode fazer") — ✅
 Bug da sala do Futpoint (dupla Futpoint + Cativeiro): no Rio × SP cada um escolheu um clube, e o Cativeiro escolheu na
 vez da dupla Gui|Palmolego. Causa: Copa do Mundo/regional montavam "assento → pessoa" com TODAS as linhas do

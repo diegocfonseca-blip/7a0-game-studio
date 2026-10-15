@@ -88,7 +88,8 @@
     "econ-bots": "node scripts/testa-econ-bots.mjs",
     "saf2": "node scripts/testa-saf2.mjs",
     "bots-banco": "node scripts/testa-bots-banco.mjs",
-    "renomeada": "node scripts/testa-carta-renomeada.mjs"
+    "renomeada": "node scripts/testa-carta-renomeada.mjs",
+    "kings": "npx tsx scripts/testa-kings.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
