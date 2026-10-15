@@ -82,40 +82,48 @@ export function CenaPontape({ posse, ladoPosse, casa, fora }: { posse?: string; 
 // ── ➕ ENTROU MAIS UM: o campinho com N de cada lado (1×1 no pontapé → 7×7 no 6'). O que acabou de entrar pisca.
 //    Posições de cada lado do campo (esquerda), espelhadas pro outro lado — o goleiro fica sempre no gol.
 const POS_E: [number, number][] = [[40, 50], [30, 28], [30, 72], [20, 42], [40, 20], [40, 80], [22, 64]]
-export function CenaEntra({ n, casa, fora }: { n: number; casa: string; fora: string }) {
+/** `modo`: 'entra' (1'–6', entra mais um) · 'dado' (o dado mandou N×N até o intervalo) · 'volta' (2º tempo: voltou o 7×7) */
+export function CenaEntra({ n, casa, fora, modo = 'entra' }: { n: number; casa: string; fora: string; modo?: 'entra' | 'dado' | 'volta' }) {
   const completo = n >= 7
+  const tag = modo === 'dado' ? tr('O DADO MANDOU', 'THE DICE SAYS') : modo === 'volta' ? tr('2º TEMPO · VOLTOU O 7×7', '2ND HALF · BACK TO 7 v 7')
+    : completo ? tr('TIME COMPLETO', 'FULL TEAMS') : tr(`MINUTO ${n - 1} · ENTRA MAIS UM`, `MINUTE ${n - 1} · ONE MORE IN`)
+  const titulo = modo === 'dado' ? (n === 1 ? tr('👑 1 × 1 ATÉ O INTERVALO', '👑 1 v 1 UNTIL HALF-TIME') : tr(`🎲 ${n} × ${n} ATÉ O INTERVALO`, `🎲 ${n} v ${n} UNTIL HALF-TIME`))
+    : modo === 'volta' ? tr('⚡ 7 × 7 DE NOVO! ACELERA', '⚡ 7 v 7 AGAIN! SPEEDING UP')
+    : completo ? tr('⚡ 7 × 7! AGORA ACELERA', '⚡ 7 v 7! NOW IT SPEEDS UP') : `➕ ${n} × ${n}!`
+  const texto = modo === 'dado'
+    ? tr(`Saem jogadores dos dois lados: fica ${n === 1 ? 'só 1' : n} na linha + o goleiro até o fim do 1º tempo. Nessa fase o jogo rola mais devagar.`, `Players leave on both sides: ${n === 1 ? 'only 1' : n} outfield + the keeper until the end of the 1st half. This phase runs slower.`)
+    : modo === 'volta' ? tr('No 2º tempo os dois times voltam completos (goleiro + 6) e o jogo volta ao ritmo normal.', 'In the 2nd half both teams are complete again (keeper + 6) and the game runs at normal speed.')
+    : completo ? tr('Os dois times estão completos (goleiro + 6). Daqui pra frente o jogo rola no ritmo normal.', 'Both teams are complete (keeper + 6). From here on the game runs at normal speed.')
+    : tr(`Entrou mais um de cada lado. Enquanto não chega no 7×7 o jogo rola mais devagar — cada minuto entra mais um.`, `One more in on each side. Until it reaches 7 v 7 the game runs slower — one more joins every minute.`)
+  const novo = modo === 'entra' ? n - 1 : -1
   return (
-    <Palco tag={completo ? tr('TIME COMPLETO', 'FULL TEAMS') : tr(`MINUTO ${n - 1} · ENTRA MAIS UM`, `MINUTE ${n - 1} · ONE MORE IN`)} cor={completo ? GREEN : PURPLE}>
+    <Palco tag={tag} cor={completo ? GREEN : PURPLE}>
       <Arena casa={casa} fora={fora} altura={200}>
         <i className="kc-jg" style={{ left: '7%', top: '50%', background: NEON_CASA, borderColor: GOLD }} />
         <i className="kc-jg" style={{ left: '93%', top: '50%', background: NEON_FORA, borderColor: GOLD }} />
         {POS_E.slice(0, n).map(([x, y], i) => (
           <span key={i}>
-            <i className={`kc-jg${i === n - 1 ? ' kc-novo' : ''}`} style={{ left: `${x}%`, top: `${y}%`, background: NEON_CASA }} />
-            <i className={`kc-jg${i === n - 1 ? ' kc-novo' : ''}`} style={{ left: `${100 - x}%`, top: `${y}%`, background: NEON_FORA }} />
+            <i className={`kc-jg${i === novo ? ' kc-novo' : ''}`} style={{ left: `${x}%`, top: `${y}%`, background: NEON_CASA }} />
+            <i className={`kc-jg${i === novo ? ' kc-novo' : ''}`} style={{ left: `${100 - x}%`, top: `${y}%`, background: NEON_FORA }} />
           </span>
         ))}
         <div className="kc-placa">{n} × {n}</div>
         <div className="kc-times"><span style={{ background: '#0b6f94' }}>{casa}</span><span style={{ background: '#9c1583' }}>{fora}</span></div>
       </Arena>
-      <Explica cor={completo ? GREEN : PURPLE}
-        titulo={completo ? tr('⚡ 7 × 7! AGORA ACELERA', '⚡ 7 v 7! NOW IT SPEEDS UP') : `➕ ${n} × ${n}!`}
-        texto={completo
-          ? tr('Os dois times estão completos (goleiro + 6). Daqui pra frente o jogo rola no ritmo normal.', 'Both teams are complete (keeper + 6). From here on the game runs at normal speed.')
-          : tr(`Entrou mais um de cada lado. Enquanto não chega no 7×7 o jogo rola mais devagar — cada minuto entra mais um.`, `One more in on each side. Until it reaches 7 v 7 the game runs slower — one more joins every minute.`)} />
+      <Explica cor={completo ? GREEN : PURPLE} titulo={titulo} texto={texto} />
     </Palco>
   )
 }
 
 // ── ➕ a faixa do "quantos tem em campo" (só nos primeiros minutos)
-export function FaixaEmCampo({ n }: { n: number }) {
+export function FaixaEmCampo({ n, dado = false }: { n: number; dado?: boolean }) {
   return (
     <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px', textAlign: 'center' }}>
       <p style={{ ...OSW, fontSize: 18, margin: 0 }}>{tr('EM CAMPO', 'ON THE PITCH')}: {n} × {n}</p>
       <div style={{ display: 'flex', gap: 6, justifyContent: 'center', margin: '5px 0' }}>
         {Array.from({ length: 7 }, (_, i) => <span key={i} style={{ width: 18, height: 18, borderRadius: 99, border: `3px solid ${INK}`, background: i < n ? GREEN : '#ddd', transition: 'background .3s' }} />)}
       </div>
-      <p style={{ fontSize: 11, fontWeight: 700, margin: 0, opacity: .75 }}>{tr('Entra 1 de cada lado por minuto: 1×1 no 0\' → 7×7 no 6\'', 'One more per side every minute: 1 v 1 at 0\' → 7 v 7 at 6\'')}</p>
+      <p style={{ fontSize: 11, fontWeight: 700, margin: 0, opacity: .75 }}>{dado ? tr('🎲 Fase do dado: até o intervalo. No 2º tempo volta o 7×7.', '🎲 Dice phase: until half-time. 7 v 7 again in the 2nd half.') : tr('Entra 1 de cada lado por minuto: 1×1 no 0\' → 7×7 no 6\'', 'One more per side every minute: 1 v 1 at 0\' → 7 v 7 at 6\'')}</p>
     </div>
   )
 }

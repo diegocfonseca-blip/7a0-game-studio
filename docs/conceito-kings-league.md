@@ -102,3 +102,7 @@ Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se jo
   (visitante) e o escudo de cada time PROJETADO no chão da sua metade — nas cenas (`Arena` em `kings-cenas.tsx`), no placar
   de sempre (`KINGS_ARENA_CSS`, classe `kings-arena` no body só enquanto a temporada da Kings está aberta) e no campinho do
   leilão (`kings-campinho.tsx`). Fotos: `scripts/mockups/kings-arena-no-jogo.png`.
+- 🐢 **Fases com menos gente ROLAM de verdade** (Diego 15/10: *"não real mas também não a jato"*): 5 s de bola rolando por
+  minuto da Kings no 1×1…6×6 e na fase do dado (pode sair gol); o 7×7 roda rápido (`KINGS_MS_POR_MIN_LENTO`, `KINGS_MS_7X7`).
+  🎲 Depois do dado aparece o campinho N×N "até o intervalo" e, no intervalo, o campinho do 7×7 de volta. Partida ≈ 3,7 min,
+  campeonato ≈ 45 min — ele aceitou: *"vai aumentar mais o tempo de cada partida mas não tem jeito"*.
