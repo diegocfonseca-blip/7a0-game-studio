@@ -24,7 +24,7 @@ import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
 import { PresenteBox } from './presente'
-import { PixMP } from './pix-mp'
+import { PixMP, type ProdutoMp } from './pix-mp'
 import { usePixMp } from './sport'
 import { MeuPresidenteLoja } from './presidente-loja'
 
@@ -56,6 +56,8 @@ export function LojaButton({ className, style, children }: { className?: string;
   </>
 }
 
+// 💳 item da Loja → produto do Pix do Mercado Pago (15/10): salas extras, canto e moedas já vão pelo Pix novo
+const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : null
 function Loja({ onClose }: { onClose: () => void }) {
   const pixMp = usePixMp()
   const direitos = useDireitos()
@@ -158,7 +160,7 @@ function Loja({ onClose }: { onClose: () => void }) {
         {comprando && <div id="loja-pagar" style={{ ...card, marginTop: 18, background: '#FFF8E1' }}>
           <p style={{ ...OSW, fontSize: 16, textTransform: 'uppercase', margin: '0 0 8px' }}>{tr('💳 Pagar', '💳 Pay')} · {reais(comprando.amount)}</p>
           {/* 💳 15/10: as salas extras já vão pelo Pix do Mercado Pago (só na conta do Diego por enquanto); o resto segue no Pix antigo */}
-          {pixMp && comprando.id === 'salas' ? <PixMP produto="salas_extras" valor={comprando.amount} /> : <>
+          {pixMp && produtoMp(comprando.id) ? <PixMP key={comprando.id} produto={produtoMp(comprando.id)!} valor={comprando.amount} /> : <>
           <PixBox ctx={comprando.ctx} amount={comprando.amount} />
           <button onClick={async () => { logApoio(`🛒 mandou comprovante · ${comprando.ctx}`); try { await navigator.clipboard.writeText(tr(comprando.msgPt, comprando.msgEn)) } catch { /* segue */ } window.open(APOIO_IG, '_blank', 'noopener') }}
             style={{ width: '100%', marginTop: 10, ...OSW, fontSize: 14, background: '#E1306C', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 10, cursor: 'pointer' }}>{tr('📸 MANDAR COMPROVANTE NO @leilaolegendscom', '📸 SEND THE RECEIPT TO @leilaolegendscom')}</button>

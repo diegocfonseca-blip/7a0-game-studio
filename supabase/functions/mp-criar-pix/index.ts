@@ -12,6 +12,7 @@ const CORS = {
 const NOMES: Record<string, string> = {
   craque: 'Plano Craque', lenda: 'Plano Lenda', batismo: 'Plano Batismo', fundador: 'Plano Fundador',
   salas_extras: '3 salas extras', teste: 'Teste de pagamento',
+  moedas_10: '30 moedas', moedas_50: '150 moedas', moedas_100: '300 moedas', canto: 'Canto da torcida', presente: 'Presente de plano',
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60
@@ -33,12 +34,12 @@ Deno.serve(async (req) => {
   const { data: u } = await anon.auth.getUser(jwt)
   const email = u?.user?.email?.toLowerCase()
   if (!email) return resp(401, { erro: 'sem_login' })
-  let produto = '', telefone = ''
-  try { const b = await req.json(); produto = String(b?.produto ?? ''); telefone = String(b?.telefone ?? '').replace(/\D/g, '').slice(0, 13) } catch { /* corpo inválido */ }
+  let produto = '', telefone = '', ref = ''
+  try { const b = await req.json(); produto = String(b?.produto ?? ''); telefone = String(b?.telefone ?? '').replace(/\D/g, '').slice(0, 13); ref = String(b?.ref ?? '').replace(/[^\w-]/g, '').slice(0, 20) } catch { /* corpo inválido */ }
   if (!NOMES[produto]) return resp(400, { erro: 'produto' })
 
   const adm = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-  const { data: ped, error } = await adm.rpc('esc_mp_criar_pedido', { p_email: email, p_produto: produto, p_telefone: telefone || null })
+  const { data: ped, error } = await adm.rpc('esc_mp_criar_pedido', { p_email: email, p_produto: produto, p_telefone: telefone || null, p_ref: ref })
   if (error || !ped?.[0]) return resp(409, { erro: /JA_TEM/.test(error?.message ?? '') ? 'ja_tem' : 'pedido' })
   const { pedido_id, valor } = ped[0] as { pedido_id: string; valor: number }
 

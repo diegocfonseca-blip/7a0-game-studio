@@ -19,10 +19,12 @@ import { precoTxt } from './planos-regras'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'canto' | 'presente'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
+  moedas_10: ['🏦 30 moedas', '🏦 30 coins'], moedas_50: ['🏦 150 moedas', '🏦 150 coins'], moedas_100: ['🏦 300 moedas', '🏦 300 coins'],
+  canto: ['📣 Canto da torcida', '📣 Crowd chant'], presente: ['🎁 Presente', '🎁 Gift'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],
@@ -31,6 +33,11 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   fundador: ['Tudo do 👑 Lenda já está valendo. Agora é a parte do seu clube: conta pra gente como você imagina.', 'Everything from 👑 Legend is live. Now for your club: tell us how you picture it.'],
   salas_extras: ['Suas 3 salas extras já estão na conta. Bora criar!', 'Your 3 extra rooms are in your account. Go create!'],
   teste: ['Teste aprovado: o Pix caiu e o jogo viu sozinho. ✅', 'Test passed: the Pix landed and the game saw it on its own. ✅'],
+  moedas_10: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
+  moedas_50: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
+  moedas_100: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
+  canto: ['Agora conta qual canto você quer: o Diego monta e coloca no seu clube.', 'Now tell us which chant you want: Diego builds it and adds it to your club.'],
+  presente: ['Presente entregue! Seu amigo recebe com o seu recado quando entrar no jogo. 🎁', 'Gift delivered! Your friend gets it with your message when they open the game. 🎁'],
 }
 // 📲 contato do Diego depois de pagar (o WhatsApp entra quando ele mandar o número; sem número, só o e-mail aparece)
 export const WHATSAPP_CONTATO = ''
@@ -47,24 +54,25 @@ const resta = (iso: string) => {
 }
 
 /** a caixa do Pix novo. `valor` é só pra MOSTRAR antes de gerar (o valor de verdade vem do servidor). */
-export function PixMP({ produto, valor }: { produto: ProdutoMp; valor?: number }) {
+export function PixMP({ produto, valor, refId = '' }: { produto: ProdutoMp; valor?: number; refId?: string }) {
   const en = getLang() === 'en'
   const [fase, setFase] = useState<Fase>('inicio')
   const [pix, setPix] = useState<Pix | null>(null)
   const [erro, setErro] = useState('')
   const [copiou, setCopiou] = useState(false)
   const [liberado, setLiberado] = useState(true)
+  const [ficha, setFicha] = useState<string | null>(null)
   const [, tick] = useState(0)
 
   // ⏳ "você tem um Pix esperando": volta o mesmo Pix se ainda vale e o preço é o mesmo
   useEffect(() => {
     let vivo = true
-    supabase.rpc('esc_mp_meu_pendente', { p_produto: produto }).then(({ data }) => {
+    supabase.rpc('esc_mp_meu_pendente2', { p_produto: produto, p_ref: refId }).then(({ data }) => {
       const r = Array.isArray(data) ? data[0] as Pix & { qr_base64?: string } : undefined
       if (vivo && r?.pedido_id) { setPix({ ...r, qr_code_base64: r.qr_base64 ?? null }); setFase('gerado') }
     }, () => {})
     return () => { vivo = false }
-  }, [produto])
+  }, [produto, refId])
 
   // 👀 confere o status: a cada 5 s enquanto espera e toda vez que a pessoa volta pro jogo (saiu pro app do banco)
   const conferindo = useRef(false)
@@ -72,10 +80,11 @@ export function PixMP({ produto, valor }: { produto: ProdutoMp; valor?: number }
     if (!pix || conferindo.current) return
     conferindo.current = true
     try {
-      const { data } = await supabase.rpc('esc_mp_status_pedido', { p_id: pix.pedido_id })
-      const st = Array.isArray(data) ? (data[0] as { status: string } | undefined)?.status : undefined
+      const { data } = await supabase.rpc('esc_mp_status_v2', { p_id: pix.pedido_id })
+      const row = Array.isArray(data) ? (data[0] as { status: string; ficha: string | null } | undefined) : undefined
+      const st = row?.status
       if (st === 'pago' || st === 'liberado') {
-        setLiberado(st === 'liberado'); setFase('pago'); recarregaDireitos()
+        setLiberado(st === 'liberado'); setFicha(row?.ficha ?? null); setFase('pago'); recarregaDireitos()
         logApoio(`💳 PIX MP caiu · ${produto} · ${st}`)
       }
     } finally { conferindo.current = false }
@@ -91,7 +100,7 @@ export function PixMP({ produto, valor }: { produto: ProdutoMp; valor?: number }
   const gerar = async () => {
     setFase('gerando'); setErro('')
     logApoio(`💳 gerou Pix MP · ${produto}`)
-    const { data, error } = await supabase.functions.invoke('mp-criar-pix', { body: { produto } })
+    const { data, error } = await supabase.functions.invoke('mp-criar-pix', { body: { produto, ref: refId } })
     if (error || !data?.qr_code) {
       let cod = ''
       try { cod = (await (error as { context?: Response })?.context?.json?.())?.erro ?? '' } catch { /* sem corpo */ }
@@ -143,19 +152,25 @@ export function PixMP({ produto, valor }: { produto: ProdutoMp; valor?: number }
         <button onClick={confere} className="text-[11px] font-black underline mt-2" style={{ color: 'rgba(12,12,12,.55)' }}>{tr('Já paguei, conferir agora', 'I already paid, check now')}</button>
       </>}
 
-      {fase === 'pago' && <Pago produto={produto} liberado={liberado} pedido={pix?.pedido_id ?? ''} />}
+      {fase === 'pago' && <Pago produto={produto} liberado={liberado} pedido={pix?.pedido_id ?? ''} ficha={ficha} />}
     </div>
   )
 }
 
 /** ✅ caiu! — e, no Batismo/Fundador, o "conta como você imagina" (por escrito) + falar com o Diego */
-function Pago({ produto, liberado, pedido }: { produto: ProdutoMp; liberado: boolean; pedido: string }) {
-  const clubeDeGente = produto === 'batismo' || produto === 'fundador' || produto === 'teste'
+function Pago({ produto, liberado, pedido, ficha }: { produto: ProdutoMp; liberado: boolean; pedido: string; ficha: string | null }) {
+  const clubeDeGente = produto === 'batismo' || produto === 'fundador' || produto === 'teste' || produto === 'canto'
+  const [copiouF, setCopiouF] = useState(false)
   return (
     <div>
       <div className="text-[56px] leading-none mt-1">✅</div>
       <p className="font-black uppercase text-[24px] mt-1" style={{ ...OSW, color: GREEN }}>{tr('Pagamento confirmado!', 'Payment confirmed!')}</p>
       <p className="text-[13px] font-bold mt-1 leading-snug">{liberado ? tr(GANHOU[produto][0], GANHOU[produto][1]) : tr('Chegou pro Diego liberar. Em instantes está na sua conta.', 'It reached Diego to unlock. It will be in your account shortly.')}</p>
+      {ficha && <div className="mt-2.5">
+        <button onClick={async () => { try { await navigator.clipboard.writeText(ficha) } catch { /* à vista */ } setCopiouF(true) }} className="w-full rounded-xl py-2.5 text-[22px] tracking-widest active:translate-y-0.5"
+          style={{ ...OSW, background: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{ficha}</button>
+        <p className="text-[11.5px] font-bold mt-1.5 leading-snug" style={{ color: '#5a5240' }}>{copiouF ? tr('✅ Copiada! ', '✅ Copied! ') : tr('Toque pra copiar. ', 'Tap to copy. ')}{tr('Resgate na carreira que quiser: Clube › Finanças › 🏦 Banco Legends.', 'Redeem it in whichever career you like: Club › Finances › 🏦 Banco Legends.')}</p>
+      </div>}
       {clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
         <Telefone pedido={pedido} />
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"
@@ -188,8 +203,9 @@ function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
   const [d, setD] = useState({ clube: '', coracao: '', cores: '', escudo: '', mascote: '', canto: '' })
   const [salvo, setSalvo] = useState(false)
   const [busy, setBusy] = useState(false)
-  const fundador = produto === 'fundador' || produto === 'teste'
-  const nomeProd = produto === 'fundador' ? 'Fundador' : produto === 'batismo' ? 'Batismo' : 'Teste'
+  const fundador = produto === 'fundador' || produto === 'teste' || produto === 'canto'
+  const soCanto = produto === 'canto'
+  const nomeProd = produto === 'fundador' ? 'Fundador' : produto === 'batismo' ? 'Batismo' : produto === 'canto' ? 'Canto da torcida' : 'Teste'
   const num = pedido.slice(0, 8).toUpperCase()
   const salvar = async () => {
     setBusy(true)
@@ -209,13 +225,13 @@ function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
   )
   return (
     <div className="mt-3 rounded-xl p-3 text-left" style={{ background: CREAM, border: `2px solid ${INK}` }}>
-      <p className="font-black uppercase text-[16px]" style={OSW}>{tr('✍️ Conta como você imagina o seu clube', '✍️ Tell us how you picture your club')}</p>
+      <p className="font-black uppercase text-[16px]" style={OSW}>{soCanto ? tr('✍️ Conta qual canto você quer', '✍️ Tell us which chant you want') : tr('✍️ Conta como você imagina o seu clube', '✍️ Tell us how you picture your club')}</p>
       {!salvo ? <>
-        {campo('clube', ['Nome do clube', 'Club name'], ['Ex.: Atlético do Jefão', 'e.g. Atlético do Jefão'])}
+        {!soCanto && campo('clube', ['Nome do clube', 'Club name'], ['Ex.: Atlético do Jefão', 'e.g. Atlético do Jefão'])}
         {campo('coracao', ['Time de coração', 'Favourite team'], ['Ex.: Palmeiras', 'e.g. Palmeiras'])}
-        {campo('cores', ['Cores do clube', 'Club colours'], ['Ex.: verde e branco', 'e.g. green and white'])}
-        {campo('escudo', ['Como você imagina o escudo', 'How you picture the crest'], ['Ex.: uma coroa em cima e o meu apelido no meio', 'e.g. a crown on top and my nickname in the middle'], true)}
-        {campo('mascote', ['Como você imagina a mascote', 'How you picture the mascot'], ['Ex.: um leão de boné, bravo', 'e.g. a lion with a cap, fierce'], true)}
+        {!soCanto && campo('cores', ['Cores do clube', 'Club colours'], ['Ex.: verde e branco', 'e.g. green and white'])}
+        {!soCanto && campo('escudo', ['Como você imagina o escudo', 'How you picture the crest'], ['Ex.: uma coroa em cima e o meu apelido no meio', 'e.g. a crown on top and my nickname in the middle'], true)}
+        {!soCanto && campo('mascote', ['Como você imagina a mascote', 'How you picture the mascot'], ['Ex.: um leão de boné, bravo', 'e.g. a lion with a cap, fierce'], true)}
         {fundador && campo('canto', ['Canto da torcida (música ou letra)', 'Fan chant (song or lyrics)'], ['Ex.: o canto do meu time de coração', 'e.g. my favourite team’s chant'], true)}
         <p className="text-[11px] font-black mt-2.5 leading-snug" style={{ color: '#7C3AED' }}>{tr('🎨 Não precisa mandar imagem: a arte é feita pelo Leilão Legends, exclusiva pro seu clube.', '🎨 No need to send images: the art is made by Leilão Legends, exclusive to your club.')}</p>
         <button onClick={salvar} disabled={busy} className="w-full rounded-xl py-2.5 mt-2.5 text-[16px] uppercase active:translate-y-0.5" style={{ ...OSW, background: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{busy ? '…' : tr('📨 Enviar', '📨 Send')}</button>
