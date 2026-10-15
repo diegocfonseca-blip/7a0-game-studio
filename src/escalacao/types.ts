@@ -404,7 +404,22 @@ export interface MatchHighlight {
   kind?: 'gol' | 'assist'
 }
 
+/** 👑 KINGS LEAGUE (15/10): o que a regra da Kings fez nesta partida (só existe na liga da Kings). Os minutos dos
+ *  lances seguem na escala de sempre do placar (0–93); a tela traduz pros 40 da Kings (`kings-liga.ts`). */
+export interface KingsInfo {
+  dado: 2 | 3
+  bola: 'dourada' | 'vermelha'
+  /** decidido no gol de ouro (bola dourada) */
+  ouro: boolean
+  /** 🎩 o pênalti do presidente de cada time */
+  pres: { teamId: number; min: number; gol: boolean }[]
+  /** empate no apito = SHOOTOUT (casa, fora) — quem ganha leva 2 pontos, quem perde 1 */
+  pens?: [number, number]
+  pensSeq?: string
+}
+
 export interface MatchResult {
+  kings?: KingsInfo
   presentationGoals?: MatchHighlight[] // prévia: eventos reais, sem alterar highlights públicos
   homeId: number
   awayId: number
@@ -426,6 +441,8 @@ export interface QuickCopaTie {
   ot?: boolean             // 🏀 o desempate foi PRORROGAÇÃO (basquete), não pênaltis (14/09)
   winner: number | null    // id de quem passou (null = ainda rolando)
   lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
+  /** 👑 Kings: o que a regra da Kings fez no último jogo (banners do relógio) */
+  lastKings?: KingsInfo
 }
 // 🌎 'oitavas' existe SÓ pra Libertadores, que começa o mata-mata com 16 clubes
 // (a Copa dos 8 continua começando nas quartas — nada muda pra ela).
@@ -440,6 +457,8 @@ export interface QuickCopaState {
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
   assists?: AssistRow[] // 🅰️ garçons SÓ da Copa (mesma regra: não mistura com a liga)
+  /** 👑 Kings League: o 1º da liga, que pula as quartas e espera direto na semi */
+  kingsDireto?: number
 }
 
 // 🌎 LIBERTADORES — a fase de GRUPOS. O mata-mata depois dela reusa o

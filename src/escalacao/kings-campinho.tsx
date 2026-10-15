@@ -1,5 +1,5 @@
 // 👑 O CAMPINHO DE 7 DA KINGS LEAGUE (15/10) — o mesmo desenho no leilão de sempre (`YourPitch`, screens.tsx) e na
-// tela da liga (`kings-rapida.tsx`). Arquivo pequeno à parte pra não puxar o jogo da Kings inteiro pro leilão.
+// temporada (a de sempre, com a regra da Kings por cima: `kings-liga.ts`). Arquivo pequeno à parte pra não puxar o jogo da Kings inteiro pro leilão.
 import type { Sector } from './types'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'

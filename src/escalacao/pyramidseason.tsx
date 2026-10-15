@@ -1,4 +1,5 @@
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
+import { placarParaK } from './kings-liga'
 import {PresidenciaPartida} from './presidencia-partida'
 import {usePartidaNoMapa} from './presidencia-partida-sincronia'
 import type {ContextoPartidaEstadio} from './presidencia-partida-model'
@@ -2956,8 +2957,8 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos }:
-  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings }:
+  { /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
@@ -3128,7 +3129,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // pra baixo (Q1 12:00 → Q4 0:00). O `min` (0→93) só dirige a animação — aqui
   // vira o rótulo certo por esporte.
   // (a conta mora em `sportcfg.ts` pra TODA tela do basquete marcar o mesmo quarto)
-  const minLabel = basket ? basketClockLabel(min) : (fechado ? tr('FIM', 'FT') : min > 90 ? `90+${min - 90}'` : `${min}'`)
+  const minLabel = basket ? basketClockLabel(min) : (fechado ? tr('FIM', 'FT') : relogioKings ? `${placarParaK(min)}'` : min > 90 ? `90+${min - 90}'` : `${min}'`)
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
   const homeCol = homeColor, awayCol = awayColor
@@ -3280,8 +3281,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // confete (ele barrou os dois). Nasceu travado na conta dele e foi LIBERADO PRA TODOS
   // no mesmo dia, depois que ele viu no celular.
   const grande = (privatePreview || carreiraPublica) && !basket
-  const minTxt = (m: number) => (m > 90 ? `90+${m - 90}` : `${m}`)
-  const lanceUltimo = grande && last ? lanceDoGol(last, roundKey) : ''
+  const minTxt = (m: number) => (relogioKings ? `${placarParaK(m)}` : m > 90 ? `90+${m - 90}` : `${m}`)
+  // 👑 gol que a REGRA da Kings fez (pênalti do presidente, bola vermelha) não ganha lance inventado — não foi jogada
+  const lanceUltimo = grande && last && !(relogioKings && /presidente|president|Bola vermelha|Red ball/i.test(last.name)) ? lanceDoGol(last, roundKey) : ''
   // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
   const meusGols = youIsHome ? hg : ag, delesGols = youIsHome ? ag : hg
   const resultado: 'h' | 'a' | null = fechado && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null
@@ -3296,7 +3298,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}
-    youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={shown}
+    youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={relogioKings ? shown.map(g => ({ ...g, min: placarParaK(g.min) })) : shown}
     goalSide={golSide} mascot={carimboSlot} eventKey={goalSeed}
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
@@ -3321,7 +3323,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     stamp={`${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}′` : ''}${lanceUltimo ? ` — ${lanceUltimo}` : ''}`}
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
-    narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name} — ${lanceUltimo}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
+    narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
     {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:min,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:!!pauseAtHalf&&!resumeHalf&&min>=45,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
    </>
   return (
@@ -3336,7 +3338,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       <div style={{ background: golSide ? (lateGoal ? '#FF5B4D' : GOLD) : INK, textAlign: 'center', transition: 'background .3s ease' }}>
         <p key={golSide ? 'g' + goalSeed : (ritualTxt ?? 'idle')} style={{ margin: 0, padding: '7px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, letterSpacing: 0.4, color: golSide ? (lateGoal ? '#fff' : INK) : '#fff', animation: golSide ? 'coBanner .3s ease' : (ritualTxt ? 'coFade .4s ease' : undefined), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {golSide
-            ? `${goalStamp}${last ? ` ${last.name} ${last.min > 90 ? `90+${last.min - 90}` : last.min}'` : ''}`
+            ? `${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}'` : ''}`
             : (ritualTxt ?? (done ? (basket ? tr('sem cestas', 'no baskets') : tr('sem gols', 'no goals')) : (basket ? tr('🟢 bola quicando…', '🟢 ball bouncing…') : tr('🟢 bola rolando…', '🟢 ball rolling…'))))}
         </p>
       </div>
@@ -6468,7 +6470,7 @@ export function pensRevealDelay(pens: [number, number], lento = false, seqReal?:
   const b = sequenciaPenaltis(pens, mulberry(0xC0FFEE)).length
   return 0.7 + Math.max(a, b, 10) * pensPasso(lento) + 0.6
 }
-export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false }: { pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
+export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false, shootout=false }: { /** 👑 Kings: é SHOOTOUT (1×1 do meio-campo), não pênalti — muda só o nome na tela */ shootout?: boolean; pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
@@ -6537,7 +6539,7 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
   // (antes só pras contas de teste). Mesma chave que liberou o visual da carreira.
   if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && (privatePenalty || CAREER_VISUAL_RELEASED))) {
     const exact=exactPenaltyRows(pens,rows)
-    return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
+    return <CompactPenalties shootout={shootout} official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
   }
   return (
     <div style={{ margin: '4px 0 0', position: 'relative', animation: `pensShake .4s ease ${totalDelay.toFixed(2)}s` }}>
@@ -6552,7 +6554,7 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
         fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', margin: '0 0 3px', letterSpacing: 0.5,
         color: naMorteSubita ? '#fff' : '#B23B2E',
         ...(naMorteSubita ? { background: FIN_RED, borderRadius: 6, padding: '3px 0', border: `2px solid ${INK}` } : {}),
-      }}>{naMorteSubita ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT')}</p>
+      }}>{naMorteSubita ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : (shootout ? tr('🥅 SHOOTOUT (1×1 do meio-campo)', '🥅 SHOOTOUT (1v1 from halfway)') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT'))}</p>
       {/* 📏 as duas linhas ficam ALINHADAS ENTRE SI (à esquerda, coluna com coluna) e o
           bloco inteiro fica centralizado no card. Antes cada linha se centralizava
           sozinha — com um time uma bolinha à frente do outro (o normal: o A bate

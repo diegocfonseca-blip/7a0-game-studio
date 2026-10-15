@@ -24,6 +24,15 @@ Tudo aqui foi decidido no chat de 15/10. Mockups: `scripts/mockups/kings-league.
 - Campinho próprio no leilão (como a quadra do basquete): gramado sintético de arena, placas pretas com letra dourada,
   selo "KINGS LEAGUE 👑" no meio.
 
+## 📺 A TELA É A DE SEMPRE (Diego 15/10: *"tudo é padrão do nosso jogo… as regras são diferentes, mas tabela, jogos, placar"*)
+- Depois do leilão, a temporada roda na `EscSeason` normal: placar, rádio, tabela, giro, controles, mata-mata no motor da
+  Copa. A 1ª versão (`kings-rapida.tsx`, tela própria com placar próprio) foi APAGADA — ele achou o placar "deformado".
+- Por cima da partida de sempre (`simMatch`), `kings-liga.ts` aplica a regra: presidente, dado, bola dourada/vermelha,
+  shootout, pontos 3/2/1/0. O relógio mostra 0–40' (por dentro anda 0–93 como todo jogo) e PARA nos banners.
+- Tabela: coluna SH (jogos no shootout) no lugar do E; 1º = SEMI, 2º–7º = QF, sem rebaixamento.
+- Mata-mata: `quickCopa` com `kingsDireto` (o 1º), tudo jogo único, empate = shootout da própria partida.
+- ⏳ Ainda NÃO entram (vêm depois, se ele quiser): carta secreta e o presidente BATENDO na mão (hoje é sorteado).
+
 ## A partida (2 tempos de 20 min, NÃO tem empate)
 - 🎲 **Minuto 18 — o dado**: cada time fica com **2 ou 3** até o fim do 1º tempo. Mesmo minuto em TODOS os jogos da sala.
 - 🃏 **Carta secreta** (escolhida no vestiário, usada no **2º tempo**, num botão, 1×): pênalti · shootout (sai do meio,

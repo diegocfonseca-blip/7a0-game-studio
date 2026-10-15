@@ -1,4 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
+import { aplicaRegrasKings, aplicaResultadoKings, somaListas } from './kings-liga'
+import { calendarioKings, chaveKings } from './kings'
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
 import {presidentWritesEnabled} from './presidente-acesso'
@@ -3908,9 +3910,12 @@ export function garcomDoGol(base: number, teamId: number, squad: WonCard[], scor
 // dela, e o garçom tem que ficar na MESMA tabela do gol. Sem isso o passe de um
 // jogo da Copa aparecia na lista de garçons DA LIGA (o número não batia com os
 // gols da liga, exatamente o tipo de coisa que o Diego não aceita).
-function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[]): MatchResult {
+// `lancesSempre` (👑 Kings, 15/10): escreve os lances de TODO jogo (não só o do humano) — a regra da Kings precisa
+// saber minuto e autor de cada gol pra aplicar a bola dourada/vermelha. Nada mais muda (mesmo rng, mesmos gols).
+function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[], lancesSempre = false): MatchResult {
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
+  const comLances = involveHuman || lancesSempre
   const tacticOf = (id: number): Tactic => {
     const m = state.managers.find(x => x.id === id)
     if (!m) return 'equilibrio'
@@ -4091,9 +4096,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
         }
         golsDoJogo.push({ nome: scorerName, min })
-        if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
+        if (comLances) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
         if (capturePresentation) presentationGoals.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
-      } else if (involveHuman) {
+      } else if (comLances) {
         highlights.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id, kind: 'gol' })
       }
       if (!scorerName && capturePresentation) presentationGoals.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id, kind: 'gol' })
@@ -4116,7 +4121,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           if (row) row.assists++
           else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
         }
-        if (involveHuman) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id, kind: 'assist' })
+        if (comLances) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id, kind: 'assist' })
       })
     }
   }
@@ -4124,6 +4129,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const aName = nomeDoTime(awayId)
   creditGoals(homeId, hg, hName)
   creditGoals(awayId, ag, aName)
+  if (comLances) highlights.sort((a, b) => a.min - b.min)
   if (involveHuman) {
     highlights.sort((a, b) => a.min - b.min)
     for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
@@ -4160,7 +4166,8 @@ export function topScorers(state: EscState, limit = 10): ScorerRow[] {
 // partida poder ANIMAR na tela antes — a tela dispara FINISH_SEASON quando acaba.
 function finishSeason(s: EscState) {
   s.champion = sortedTable(s.league)[0].id
-  if (s.copaMode === 'liga_copa' && !s.quickCopa) {
+  if (ehKings(s)) { if (!s.quickCopa) seedKingsCopa(s) }
+  else if (s.copaMode === 'liga_copa' && !s.quickCopa) {
     const bbCopa = s.sport === 'basquete'
     s.quickCopa = seedQuickCopa(s.league, bbCopa)
     // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
@@ -4676,6 +4683,32 @@ function playNbaCupRound(s: EscState): void {
     }
   }
   s.news = [...heads, ...s.news].slice(0, 12)
+}
+
+/** 👑 a sala é de KINGS LEAGUE? (a formação 'kings' só nasce no START com `kings`) */
+export function ehKings(s: Pick<EscState, 'managers'>): boolean { return s.managers.some(m => m.formation === 'kings') }
+/** 👑 um jogo da Kings: a partida de sempre + a regra da Kings por cima (`kings-liga.ts`). A artilharia passa por listas
+ *  à parte porque o gol que a bola dourada anula não pode ficar na conta de ninguém. */
+function jogoKings(s: EscState, homeId: number, awayId: number, rng: () => number, scorers: ScorerRow[], assists: AssistRow[], neutral = false): MatchResult {
+  const tmpS: ScorerRow[] = [], tmpA: AssistRow[] = []
+  const r = simMatch(s, homeId, awayId, rng, tmpS, neutral, tmpA, true)
+  const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+  aplicaRegrasKings(r, rng, { h: nome(homeId), a: nome(awayId) }, tmpS, tmpA)
+  somaListas(scorers, tmpS, assists, tmpA)
+  // os lances dos jogos SEM humano só serviram pra regra — não ficam no save
+  if (!s.managers.some(m => m.isHuman && (m.id === homeId || m.id === awayId))) r.highlights = []
+  return r
+}
+/** 👑 fim da liga da Kings: 1º direto na SEMI, quartas 2×7 · 3×6 · 4×5, tudo jogo único */
+function seedKingsCopa(s: EscState) {
+  const ord = sortedTable(s.league)
+  const ch = chaveKings(ord.map(t => t.id))
+  const nome = (id: number) => ord.find(t => t.id === id)?.name ?? '?'
+  s.quickCopa = {
+    phase: 'quartas', legIdx: 0, bracket: [], scorers: [], assists: [], kingsDireto: ch.semiDireto,
+    ties: ch.quartas.map(([a, b]) => ({ aId: a, bId: b, aName: nome(a), bName: nome(b), legs: [], winner: null })),
+  }
+  s.news = [tr(`👑 Acabou a liga da Kings! ${nome(ch.semiDireto)} foi 1º e espera direto na SEMI. Do 2º ao 7º jogam as QUARTAS (jogo único).`, `👑 The Kings league is over! ${nome(ch.semiDireto)} finished 1st and waits in the SEMI. 2nd–7th play the QUARTERS (single game).`)]
 }
 
 function applyResult(league: LeagueTeam[], r: MatchResult) {
@@ -7056,7 +7089,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const { managers: soloManagers0, botPlans: soloPlans0 } = makeCareerManagers(action.teamName || 'Meu Time', action.kings ? 'kings' : action.formation, 'D', soloRivalDefs, [], rng)
       // 👑 KINGS LEAGUE (15/10, só a conta do Diego): o LEILÃO DE SEMPRE, com 10 times (você + 9 rivais que dão
       // lance) e a formação 'kings' (goleiro + 6). Sem time de preenchimento: a liga da Kings tem 10. Depois da
-      // cerimônia a temporada é a da Kings (`kings-rapida.tsx`), não a liga de 38 rodadas.
+      // cerimônia a temporada é a de SEMPRE (EscSeason), com a regra da Kings por cima (`kings-liga.ts`): 9 rodadas + mata-mata.
       const soloManagers = action.kings ? soloManagers0.filter(m => m.isHuman || m.auctionRival).slice(0, 10) : soloManagers0
       if (action.kings) for (const m of soloManagers) m.formation = 'kings'
       const soloPlans = action.kings ? [] : soloPlans0
@@ -7287,8 +7320,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-        s.league = buildLeague(s.managers, !s.ligaFechada)
-        s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+        s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.tactics = {}
         s.screen = 'season'
       }
@@ -7541,8 +7574,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerLedger = []
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
       s.screen = 'season'
       return s
@@ -8802,8 +8835,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       completaBancoDosBots(s) // 🔁 rival com banco (13/10): os bots da sua divisão fecham 2 por posição com sobra REAL, pagando
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
       s.scorers = []; s.assists = []
       if (s.careerOnline) {
@@ -9228,8 +9261,11 @@ function reducerBase(state: EscState, action: Action): EscState {
         // fotografa posições e gols ANTES pra narrar as viradas
         const prevRank = new Map(sortedTable(s.league).map((t, idx) => [t.id, idx + 1]))
         const prevGoals = new Map(s.scorers.map(sc => [sc.name + ':' + sc.teamId, sc.goals]))
-        const results = s.fixtures[s.round].map(([h, a]) => simMatch(s, h, a, rng))
-        results.forEach(r => applyResult(s.league, r))
+        // 👑 Kings: a partida de sempre + a regra da Kings por cima, e pontos 3/2/1/0
+        const kingsLiga = ehKings(s)
+        if (kingsLiga && !s.assists) s.assists = []
+        const results = s.fixtures[s.round].map(([h, a]) => kingsLiga ? jogoKings(s, h, a, rng, s.scorers, s.assists!) : simMatch(s, h, a, rng))
+        results.forEach(r => kingsLiga ? aplicaResultadoKings(s.league, r) : applyResult(s.league, r))
         // rivalidade: só confrontos entre dois humanos contam
         results.forEach(r => { if (isHumanId(r.homeId) && isHumanId(r.awayId)) bumpRivalry(s, r.homeId, r.awayId, r.hg, r.ag) })
         // carreira: retrospecto contra seus rivais fixos que estão na sua divisão
@@ -9342,7 +9378,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const bbSerie = s.sport === 'basquete'
       const vitoriasNaSerie = (t: QuickCopaTie): [number, number] =>
         t.legs.reduce<[number, number]>((acc, [a, b]) => { if (a > b) acc[0]++; else acc[1]++; return acc }, [0, 0])
-      const legsNeeded = bbSerie ? 3 : (isFinal ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
+      const kingsCopa = ehKings(s) // 👑 mata-mata da Kings: TUDO jogo único
+      const legsNeeded = bbSerie ? 3 : (isFinal || kingsCopa ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
       const legsPlayed = qc.ties[0]?.legs.length ?? 0
       // ── AVANÇO de fase: passo À PARTE de jogar a perna. Só roda DEPOIS que a
       // última perna já teve tempo de animar na tela (o dispatch anterior tocou a
@@ -9363,6 +9400,17 @@ function reducerBase(state: EscState, action: Action): EscState {
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
+        } else if (kingsCopa && qc.phase === 'quartas' && qc.kingsDireto != null) {
+          // 👑 semis da Kings Brasil: o 1º × quem passou do 4×5, e (2×7) × (3×6)
+          const winnerName = (t: QuickCopaTie) => t.winner === t.aId ? t.aName : t.bName
+          const [q27, q36, q45] = qc.ties
+          const nomeDireto = s.league.find(t => t.id === qc.kingsDireto)?.name ?? '?'
+          qc.ties = [
+            { aId: qc.kingsDireto, bId: q45.winner!, aName: nomeDireto, bName: winnerName(q45), legs: [], winner: null },
+            { aId: q27.winner!, bId: q36.winner!, aName: winnerName(q27), bName: winnerName(q36), legs: [], winner: null },
+          ]
+          qc.phase = 'semis'
+          qc.legIdx = 0
         } else if (qc.phase === 'repescao' && s.champions) {
           // ⭐ fim do repescão da Champions: os 8 que passaram encaram o top 8 da tabela,
           // no MESMO cruzamento de antes (1º × o último dos que subiram…). A fase da
@@ -9415,11 +9463,12 @@ function reducerBase(state: EscState, action: Action): EscState {
         // pros dois. Ida/volta mantêm a casa (que se alterna, então também é justo).
         // 🅰️ garçom da Copa vai na lista DA COPA (qc.assists), pelo mesmo motivo.
         if (!qc.assists) qc.assists = []
-        const r = simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
+        const r = kingsCopa ? jogoKings(s, homeId, awayId, rng, qc.scorers, qc.assists, isFinal) : simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
         const leg: [number, number] = emCasaA ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [pontos/gols de A, de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
         tie.lastPresentationGoals = r.presentationGoals
+        if (kingsCopa) tie.lastKings = r.kings
         if (bbSerie) {
           // 🏀 fechou 2 vitórias? acabou a série (pode ter sido em 2 jogos). No 3º
           // jogo alguém já chega a 2 obrigatoriamente — jogo de basquete não empata
@@ -9427,6 +9476,11 @@ function reducerBase(state: EscState, action: Action): EscState {
           const [va, vb] = vitoriasNaSerie(tie)
           if (va >= 2 || vb >= 2) tie.winner = va > vb ? tie.aId : tie.bId
           else if (tie.legs.length >= 3) resolveQuickCopaTie(tie, rng, true) // salvaguarda
+        } else if (kingsCopa && r.kings?.pens) {
+          // 👑 empatou: o SHOOTOUT da Kings já foi batido no jogo — vale ele (virado pro lado de A)
+          tie.pens = emCasaA ? r.kings.pens : [r.kings.pens[1], r.kings.pens[0]]
+          tie.pensSeq = r.kings.pensSeq
+          tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
         } else if (isLastLeg) resolveQuickCopaTie(tie, rng) // ⚽ agregado → pênaltis se empatar
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
@@ -10784,8 +10838,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         const adj = fillerAdj(s.managers, DIVISION_BASE[res.nextDiv]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
-        s.league = buildLeague(s.managers, !s.ligaFechada)
-        s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+        s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.seasonNo++
         s.screen = 'season'
         return s
@@ -10908,8 +10962,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
     }
@@ -10938,8 +10992,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // rivais do Dinastia → aparecem com 🔥 na tabela e no painel embaixo do campinho (igual carreira)
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
     }
@@ -10954,8 +11008,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
       // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
       s.seed = Math.floor(Math.random() * 1e9)
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
       s.scorers = []; s.assists = []
       s.lastResults = []

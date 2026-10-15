@@ -8,7 +8,7 @@ import { flushPendingWrites } from './pending'
 import { EscProvider, useEsc } from './store'
 import { COMUNIDADE_LINK } from './comunidade'
 import { setSoundAllowed, isMuted, toggleMuted, onSoundChange, playCoin } from './sound'
-import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscKingsSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
+import { EscIntro, EscSetup, EscStreamIntro, EscAuction, EscMonte, EscCerimonia, EscSeason, EscLiberta, EscChampions, EscEnd, EscAlbum, EscRanking, GameFooter, ChatWidget } from './screens'
 import { EscLobby } from './lobby'
 import { EscConvocacaoClubes } from './convocacao-clubes' // 🧱 leilão de clubes (em teste)
 import { useSport, useSportUnlocked, SPORT_BRAND } from './sport'
@@ -37,7 +37,7 @@ function Router() {
     case 'cerimonia': return <EscCerimonia />
     case 'convocacao': return <EscConvocacaoClubes />
     case 'reserveList': return <ReserveListScreen />
-    case 'season':    return state.careerOnline ? <PyramidSeasonScreen /> : state.managers[state.youIdx]?.formation === 'kings' ? <EscKingsSeason /> : <EscSeason />
+    case 'season':    return state.careerOnline ? <PyramidSeasonScreen /> : <EscSeason />
     case 'liberta':   return <EscLiberta />
     case 'champions': return <EscChampions />
     case 'end':       return <EscEnd />

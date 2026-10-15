@@ -48,7 +48,9 @@ export function disputaPenaltis(rng: () => number): [number, number] {
  * (`seq`: '1' gol / '0' erro, na ordem — A, B, A, B…) e a tela só mostra o que aconteceu.
  * ⚠️ O rng é consumido EXATAMENTE igual ao de antes: mesmo placar, mesmo vencedor, em toda sala.
  */
-export function disputaPenaltisComSequencia(rng: () => number): { gols: [number, number]; seq: string } {
+/** `conv` (👑 Kings, 15/10): chance de cada cobrança entrar — o SHOOTOUT da Kings sai do meio-campo, 1 contra o goleiro, 5 s pra chutar,
+ *  e entra bem menos que pênalti. Sem passar nada, é o pênalti de sempre (mesmo rng, mesmo resultado). */
+export function disputaPenaltisComSequencia(rng: () => number, conv = CONVERSAO): { gols: [number, number]; seq: string } {
   const gols: [number, number] = [0, 0]
   const cobradas: [number, number] = [0, 0]
   let seq = ''
@@ -58,7 +60,7 @@ export function disputaPenaltisComSequencia(rng: () => number): { gols: [number,
     for (const s of [0, 1] as const) {
       if (decidido()) return { gols, seq }
       cobradas[s]++
-      const ok = rng() < CONVERSAO
+      const ok = rng() < conv
       if (ok) gols[s]++
       seq += ok ? '1' : '0'
     }
@@ -66,7 +68,7 @@ export function disputaPenaltisComSequencia(rng: () => number): { gols: [number,
   if (gols[0] !== gols[1]) return { gols, seq }
   // 🎯 MORTE SÚBITA: rodada completa; quem fizer e o outro perder, leva.
   for (let r = 0; r < 30; r++) {
-    const a = rng() < CONVERSAO, b = rng() < CONVERSAO
+    const a = rng() < conv, b = rng() < conv
     if (a) gols[0]++
     if (b) gols[1]++
     seq += (a ? '1' : '0') + (b ? '1' : '0')

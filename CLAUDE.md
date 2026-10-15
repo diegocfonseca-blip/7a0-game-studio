@@ -813,6 +813,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   jogo 6–8s em cada regra) e *"mais demorado por partida… mais que todos"* (~3 min por partida). Duplas fora por enquanto.
   🔨 **E o LEILÃO é o DE SEMPRE** (*"o leilão é sempre igual ao de sempre nosso"*): eu inventei um pregão próprio e ele cortou. Vale
   pra QUALQUER modo novo: o pregão é o do jogo (envelope/revelação/monte); muda só formação, vagas ou baralho.
+  📺 **E A TEMPORADA TAMBÉM É A DE SEMPRE** (mesmo dia: *"está tudo deformado o placar… tudo é padrão do nosso jogo"*): modo novo
+  NUNCA ganha placar/tabela/tela própria — usa a `EscSeason` e põe a regra POR CIMA (`kings-liga.ts`). E shootout ≠ pênalti.
 
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque

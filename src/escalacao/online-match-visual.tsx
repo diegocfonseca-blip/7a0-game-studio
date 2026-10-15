@@ -158,13 +158,13 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
 
 export function goalPlayer(text:string){return text.match(/⚽\s+(.+?)\s+marca para/)?.[1] ?? text.replace(/^⚽\s*/, '').replace(/\.$/,'')}
 
-export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCrest,official,final=false,aTeam,bTeam,passo=.85}:{rows:{ok:boolean;at:number}[][];totalDelay:number;nSlots:number;aName:string;bName:string;aCrest?:ReactNode;bCrest?:ReactNode;official:[number,number];final?:boolean;aTeam?:Batedores;bTeam?:Batedores;passo?:number}){
+export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCrest,official,final=false,aTeam,bTeam,passo=.85,shootout=false}:{shootout?:boolean;rows:{ok:boolean;at:number}[][];totalDelay:number;nSlots:number;aName:string;bName:string;aCrest?:ReactNode;bCrest?:ReactNode;official:[number,number];final?:boolean;aTeam?:Batedores;bTeam?:Batedores;passo?:number}){
  const [elapsed,setElapsed]=useState(0)
  const signature=JSON.stringify(rows)
  useEffect(()=>{const start=Date.now();setElapsed(0);const id=setInterval(()=>{const t=(Date.now()-start)/1000;setElapsed(t);if(t>=totalDelay)clearInterval(id)},80);return()=>clearInterval(id)},[signature,aName,bName,totalDelay])
  const done=elapsed>=totalDelay
  const valid=rows.every((r,i)=>r.filter(k=>k.ok).length===official[i])
- if(!valid)return <section className="ll28-pens" aria-label="Resultado dos pênaltis"><header><b>{tr('PÊNALTIS', 'PENALTIES')}</b><strong>{done?`${official[0]} × ${official[1]}`:'– × –'}</strong></header><p>{aName} × {bName}</p><p className="ll28-pen-winner">{done?`${official[0]>official[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Decisão em andamento…', 'Shoot-out in progress…')}</p></section>
+ if(!valid)return <section className="ll28-pens" aria-label="Resultado dos pênaltis"><header><b>{shootout?'SHOOTOUT':tr('PÊNALTIS', 'PENALTIES')}</b><strong>{done?`${official[0]} × ${official[1]}`:'– × –'}</strong></header><p>{aName} × {bName}</p><p className="ll28-pen-winner">{done?`${official[0]>official[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Decisão em andamento…', 'Shoot-out in progress…')}</p></section>
  const visible=rows.map(r=>r.filter(k=>elapsed>=.7+k.at*passo))
  const scores=visible.map(r=>r.filter(k=>k.ok).length)
  const next=rows.flatMap((r,side)=>r.map((k,i)=>({...k,side,i}))).filter(k=>elapsed<.7+k.at*passo).sort((a,b)=>a.at-b.at)[0]
@@ -265,7 +265,7 @@ export function CompactPenalties({rows,totalDelay,nSlots,aName,bName,aCrest,bCre
  // linhas: cobrança 1 sempre em cima da cobrança 1, e nada se mexe quando nasce a próxima.
  // Morte súbita comprida quebra linha em vez de estourar o cartão.
  return <section className="ll28-pens" aria-label="Disputa de pênaltis">
-  <header><b>{naMorteSubita?tr('MORTE SÚBITA', 'SUDDEN DEATH'):tr('PÊNALTIS', 'PENALTIES')}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?tr('ENCERRADO', 'OVER'):tr('COBRANÇAS', 'KICKS')}</span></header>
+  <header><b>{naMorteSubita?tr('MORTE SÚBITA', 'SUDDEN DEATH'):shootout?'SHOOTOUT':tr('PÊNALTIS', 'PENALTIES')}</b><strong>{scores[0]} × {scores[1]}</strong><span>{done?tr('ENCERRADO', 'OVER'):shootout?tr('TENTATIVAS', 'ATTEMPTS'):tr('COBRANÇAS', 'KICKS')}</span></header>
   {rows.map((r,side)=><div className="ll28-pens-row" key={side}><div>{side===0?aCrest:bCrest}<span>{side===0?aName:bName}</span></div><div className="ll28-kicks">{Array.from({length:nSlots},(_,i)=>{const k=r[i];if(!k)return null;const shown=elapsed>=.7+k.at*passo;const daVez=!done&&next?.side===side&&next.i===i;if(!shown&&!daVez)return null;const sg=sigla(side,i);return <span key={i} className={`${shown?(k.ok?'made':'missed'):'current'}${sg?' sigla':''}`} title={quem(side,i)} aria-label={shown?(k.ok?tr('Gol', 'Goal'):tr('Errou', 'Missed')):tr('Batendo agora', 'Kicking now')}>{sg??(shown?(k.ok?'✓':'×'):'')}</span>})}</div></div>)}
   {palcoAgora??<p className="ll28-pen-winner">{done?`${scores[0]>scores[1]?aName:bName} · ${final?tr('CAMPEÃO', 'CHAMPION'):tr('CLASSIFICADO', 'THROUGH')}`:tr('Uma cobrança de cada vez…', 'One kick at a time…')}</p>}
  </section>
