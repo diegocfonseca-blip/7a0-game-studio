@@ -10,7 +10,7 @@ assiste", e os botões dele somem (nada de botão mudo). Mockup: `scripts/mockup
 escolha por escolha).
 🛡️ "As 2 listas": a sala "Rio-SP no YouTube" (ARJSUE) tinha `mundoNaLiga` E `regionalNaLiga` → abria as duas copas
 lendo as mesmas escolhas (e a convocação do "São Paulo" procurava o PAÍS São Paulo = 0 jogadores). Agora com as duas
-marcas vale só a regional. ⏳ Achar COMO a sala ganhou as duas marcas (a criação é exclusiva; 3 salas assim desde 13/10).
+marcas vale só a regional. 🚫 Sala "🌐 Copa do Mundo" direta não oferece mais Duplas (15/10, ordem dele). ⏳ Achar COMO a sala ganhou as duas marcas (a criação é exclusiva; 3 salas assim desde 13/10).
 
 ## 🚪 Quem aperta SAIR depois do apito continua dono do título (14/10, sala do Futpoint) — ✅
 Guimarães SCI ganhou liga + Copa do Mundo e não apareceu no ranking/"Campeões de hoje". Causa: a partida é gravada 2×
