@@ -1,6 +1,7 @@
 import { type CSSProperties, type ReactNode, Component, Fragment, useEffect, useMemo, useRef, useState, lazy, Suspense, useCallback } from 'react'
-import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK } from './kings-liga'
-import type { MatchResult } from './types'
+import { PLACAR_BOLA, PLACAR_DADO, PLACAR_INTERVALO, placarParaK, kParaPlacar } from './kings-liga'
+import { CenaPontape, CenaDado, CenaCarta, CenaDuelo, FaixaEmCampo } from './kings-cenas'
+import type { MatchResult, CartaKingsInfo } from './types'
 import { SeloClube } from './selo-clube' // 🧱 selo estilo B dos clubes reais (28/09)
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -6093,66 +6094,99 @@ function PlacarOnlineQueEncolhe({ homeName, awayName, homeColor, awayColor, youI
 function nomeGolKings(text: string): string | null {
   if (text.startsWith('🎩')) return tr('Pênalti do presidente', 'President penalty')
   if (text.startsWith('🔴')) return tr('Bola vermelha (+1)', 'Red ball (+1)')
+  if (text.startsWith('🃏 PÊNALTI')) return tr('Pênalti (carta)', 'Penalty (card)')
+  if (text.startsWith('🃏 SHOOTOUT')) return tr('Shootout (carta)', 'Shootout (card)')
+  if (text.startsWith('🔄')) return tr('Pênalti inverso (carta)', 'Reverse penalty (card)')
+  if (text.startsWith('🟥')) return tr('Com um a mais (carta)', 'Man up (card)')
+  if (text.startsWith('✖️2')) return tr('Gol em dobro (+1)', 'Double goal (+1)')
+  if (text.startsWith('⭐')) return tr('Jogador estrela (+1)', 'Star player (+1)')
   const ouro = /^🟡 GOL DE OURO! (.+?) marca para/.exec(text)
   if (ouro) return `${ouro[1]} ${tr('(gol de ouro)', '(golden goal)')}`
   if (text.startsWith('🟡')) return tr('Gol de ouro', 'Golden goal')
   return null
 }
-export const KINGS_ROUND_MS = 110_000 // ~1 min e meio de bola rolando + as paradas dos banners
-const KINGS_PAUSAS = { dado: 7000, intervalo: 12000, bola: 7000, presidente: 5500 }
+export const KINGS_ROUND_MS = 130_000 // ~50 s de bola rolando + as cenas (bola caindo, dado, cartas, cobranças) + os banners
+// ⏱️ as cenas em que alguém DECIDE (ou precisa ler o sorteio) têm tempo FIXO — a marcha ⏩ não encurta a contagem da
+// cobrança. Os banners de leitura (intervalo, bola do 38') aceleram com a marcha, como o resto do jogo.
+const KINGS_CENA_MS = { pontape: 3800, dado: 6500, carta: 5000, duelo: 7500, intervalo: 12000, bola: 7000 }
+const KINGS_FIXO_MAX = KINGS_CENA_MS.pontape + KINGS_CENA_MS.dado + 2 * KINGS_CENA_MS.carta + 4 * KINGS_CENA_MS.duelo
+/** tempo de uma rodada da Kings na marcha escolhida — nunca menor que as cenas fixas + um jogo inteiro */
+export const kingsRoundMs = (speed: number) => Math.round(Math.max(KINGS_ROUND_MS / speed, (KINGS_FIXO_MAX + (KINGS_CENA_MS.intervalo + KINGS_CENA_MS.bola) / speed + 12000) / 0.84))
 type BannerKings = { emoji: string; titulo: string; texto: string; cor: string }
-function bannersDoJogo(r: MatchResult, nome: (id: number) => string): { min: number; ms: number; b: BannerKings }[] {
+type CenaKings = { tipo: 'banner'; b: BannerKings } | { tipo: 'pontape' } | { tipo: 'dado'; face: 1 | 2 | 3 } | { tipo: 'carta'; carta: CartaKingsInfo } | { tipo: 'duelo'; key: string }
+function cenasDoJogo(r: MatchResult, nome: (id: number) => string): { min: number; ms: number; fixo: boolean; c: CenaKings }[] {
   const k = r.kings
   if (!k) return []
-  const ev: { min: number; ms: number; b: BannerKings }[] = [
-    { min: PLACAR_DADO, ms: KINGS_PAUSAS.dado, b: { emoji: '🎲', titulo: tr('O DADO DO MINUTO 18', 'THE MINUTE-18 DICE'), cor: PURPLE,
-      texto: tr(`Saiu ${k.dado}! Até o intervalo cada time joga só com ${k.dado} na linha + o goleiro. Campo aberto = mais gol.`, `It rolled ${k.dado}! Until half-time each team plays with only ${k.dado} outfield + the keeper. Open pitch = more goals.`) } },
-    { min: PLACAR_INTERVALO, ms: KINGS_PAUSAS.intervalo, b: { emoji: '⏸️', titulo: tr('INTERVALO · 20\'', 'HALF-TIME · 20\''), cor: INK,
-      texto: tr('Na Kings são 2 tempos de 20 minutos e NINGUÉM empata: se acabar igual, vai pro SHOOTOUT. No minuto 38 entra a bola especial.', 'Kings games are 2 halves of 20 minutes and NOBODY draws: level at the end means a SHOOTOUT. At minute 38 the special ball comes in.') } },
-    { min: PLACAR_BOLA, ms: KINGS_PAUSAS.bola, b: k.bola === 'dourada'
-      ? { emoji: '🟡', titulo: tr('BOLA DOURADA · 38\'', 'GOLDEN BALL · 38\''), cor: '#B8860B', texto: tr('Está EMPATADO! Quem marcar primeiro VENCE e o jogo acaba na hora. Ninguém marcou? SHOOTOUT.', 'It is LEVEL! Next goal WINS and the game ends right there. No goal? SHOOTOUT.') }
-      : { emoji: '🔴', titulo: tr('BOLA VERMELHA · 38\'', 'RED BALL · 38\''), cor: '#C2452F', texto: tr('Alguém está na frente: até o apito, TODO gol vale 2!', 'Someone is ahead: until the whistle, EVERY goal counts double!') } },
-  ]
-  for (const p of k.pres) ev.push({ min: p.min, ms: KINGS_PAUSAS.presidente, b: { emoji: '🎩', titulo: tr('PÊNALTI DO PRESIDENTE', 'PRESIDENT PENALTY'), cor: '#1B7A3D',
-    texto: tr(`O presidente do ${nome(p.teamId)} vai pra bola! Cada time tem 1 por jogo… ${p.gol ? 'GOOOL!' : 'PERDEU!'}`, `${nome(p.teamId)}'s president takes it! One per team per game… ${p.gol ? 'GOAL!' : 'MISSED!'}`) } })
-  return ev.sort((a, b) => a.min - b.min)
+  const ev: { min: number; ms: number; fixo: boolean; c: CenaKings }[] = []
+  const novo = !!k.duelos // jogo jogado com a regra v2 (bola caindo, dado de 3 faces, cartas sorteadas)
+  if (novo) ev.push({ min: 0, ms: KINGS_CENA_MS.pontape, fixo: true, c: { tipo: 'pontape' } })
+  ev.push(novo
+    ? { min: PLACAR_DADO, ms: KINGS_CENA_MS.dado, fixo: true, c: { tipo: 'dado', face: k.dado } }
+    : { min: PLACAR_DADO, ms: KINGS_CENA_MS.bola, fixo: false, c: { tipo: 'banner', b: { emoji: '🎲', titulo: tr('O DADO DO MINUTO 18', 'THE MINUTE-18 DICE'), cor: PURPLE, texto: tr(`Saiu ${k.dado}! Até o intervalo cada time joga só com ${k.dado} na linha + o goleiro.`, `It rolled ${k.dado}! Until half-time each team plays with only ${k.dado} outfield + the keeper.`) } } })
+  ev.push({ min: PLACAR_INTERVALO, ms: KINGS_CENA_MS.intervalo, fixo: false, c: { tipo: 'banner', b: { emoji: '⏸️', titulo: tr('INTERVALO · 20\'', 'HALF-TIME · 20\''), cor: INK,
+    texto: tr('Na Kings são 2 tempos de 20 minutos e NINGUÉM empata: se acabar igual, vai pro SHOOTOUT. No minuto 38 entra a bola especial.', 'Kings games are 2 halves of 20 minutes and NOBODY draws: level at the end means a SHOOTOUT. At minute 38 the special ball comes in.') } } })
+  ev.push({ min: PLACAR_BOLA, ms: KINGS_CENA_MS.bola, fixo: false, c: { tipo: 'banner', b: k.bola === 'dourada'
+    ? { emoji: '🟡', titulo: tr('BOLA DOURADA · 38\'', 'GOLDEN BALL · 38\''), cor: '#B8860B', texto: tr('Está EMPATADO! Quem marcar primeiro VENCE e o jogo acaba na hora. Ninguém marcou? SHOOTOUT.', 'It is LEVEL! Next goal WINS and the game ends right there. No goal? SHOOTOUT.') }
+    : { emoji: '🔴', titulo: tr('BOLA VERMELHA · 38\'', 'RED BALL · 38\''), cor: '#C2452F', texto: tr('Alguém está na frente: até o apito, TODO gol vale 2!', 'Someone is ahead: until the whistle, EVERY goal counts double!') } } })
+  if (novo) {
+    for (const d of k.duelos!.filter(x => x.tipo === 'presidente')) ev.push({ min: d.min, ms: KINGS_CENA_MS.duelo, fixo: true, c: { tipo: 'duelo', key: d.key } })
+    for (const c of k.cartas ?? []) {
+      ev.push({ min: c.min, ms: KINGS_CENA_MS.carta, fixo: true, c: { tipo: 'carta', carta: c } })
+      const lado = c.teamId === r.homeId ? 'h' : 'a'
+      if (k.duelos!.some(d => d.key === `carta:${lado}`)) ev.push({ min: c.min, ms: KINGS_CENA_MS.duelo, fixo: true, c: { tipo: 'duelo', key: `carta:${lado}` } })
+    }
+  } else for (const p of k.pres) ev.push({ min: p.min, ms: 5500, fixo: false, c: { tipo: 'banner', b: { emoji: '🎩', titulo: tr('PÊNALTI DO PRESIDENTE', 'PRESIDENT PENALTY'), cor: '#1B7A3D',
+    texto: tr(`O presidente do ${nome(p.teamId)} vai pra bola!… ${p.gol ? 'GOOOL!' : 'PERDEU!'}`, `${nome(p.teamId)}'s president takes it!… ${p.gol ? 'GOAL!' : 'MISSED!'}`) } } })
+  // mesmo minuto: a carta vira ANTES da cobrança que ela dá (ordem de entrada)
+  return ev.map((e, i) => ({ e, i })).sort((x, y) => x.e.min - y.e.min || x.i - y.i).map(x => x.e)
 }
-/** relógio da Kings: anda 0→93 (escala do placar) e PARA em cada regra pelo tempo do banner. Acaba antes de 85% da
- *  rodada, que é quando a tela libera o resultado — então a tabela nunca entrega o placar antes do apito. */
+/** relógio da Kings: anda 0→93 (escala do placar) e PARA em cada cena pelo tempo dela. Acaba antes de 85% da rodada,
+ *  que é quando a tela libera o resultado — então a tabela nunca entrega o placar antes do apito. */
 function useRelogioKings(ativo: boolean, roundKey: number, roundMs: number, speed: number, r: MatchResult | undefined, nome: (id: number) => string) {
   const [min, setMin] = useState(0)
-  const [banner, setBanner] = useState<BannerKings | null>(null)
+  const [cena, setCena] = useState<CenaKings | null>(null)
   const rk = useRef(roundKey)
-  if (rk.current !== roundKey) { rk.current = roundKey; setMin(0); setBanner(null) }
-  // o jogo vem por ref: o estado é recriado a cada toque (tática, velocidade…) e o relógio NÃO pode recomeçar por isso
+  if (rk.current !== roundKey) { rk.current = roundKey; setMin(0); setCena(null) }
+  // o jogo vem por ref: o estado é recriado a cada toque (tática, velocidade, a escolha do canto…) e o relógio NÃO pode recomeçar por isso
   const rRef = useRef(r); rRef.current = r
   const nomeRef = useRef(nome); nomeRef.current = nome
   useEffect(() => {
     const r = rRef.current, nome = nomeRef.current
     if (!ativo || !r) return
-    const ev = bannersDoJogo(r, nome)
-    // 🟡 gol de ouro: o jogo ACABA no minuto do gol
-    const ouro = r.kings?.ouro ? r.highlights.filter(lanceEhGol).find(h => h.min > PLACAR_BOLA)?.min : undefined
-    const pausas = ev.reduce((a, e) => a + e.ms, 0) / speed
-    const corrida = Math.max(2000, (roundMs - pausas - 1500) * 0.82)
+    const ev = cenasDoJogo(r, nome)
+    const pausas = ev.reduce((a, e) => a + (e.fixo ? e.ms : e.ms / speed), 0)
+    const corrida = Math.max(2000, roundMs * 0.84 - pausas - 500)
     let cur = 0, idx = 0, ate = 0, ult = Date.now()
     setMin(0)
     const iv = setInterval(() => {
       const agora = Date.now(), dt = agora - ult
       ult = agora
       if (ate > agora) return
-      if (ate) { ate = 0; setBanner(null) }
+      if (ate) { ate = 0; setCena(null) }
       cur += dt * 93 / corrida
       if (idx < ev.length && cur >= ev[idx].min) {
-        cur = ev[idx].min; ate = agora + ev[idx].ms / speed; setBanner(ev[idx].b); idx++
+        cur = ev[idx].min; ate = agora + (ev[idx].fixo ? ev[idx].ms : ev[idx].ms / speed); setCena(ev[idx].c); idx++
       }
+      // 🟡 gol de ouro: o jogo ACABA no minuto do gol (lido na hora — a escolha de canto pode ter mudado o jogo)
+      const rr = rRef.current
+      const ouro = rr?.kings?.ouro ? rr.highlights.filter(lanceEhGol).find(h => h.min > PLACAR_BOLA)?.min : undefined
       if (ouro != null && cur >= ouro) cur = 93
       if (cur >= 93) { cur = 93; clearInterval(iv) }
       setMin(Math.round(cur))
     }, 60)
     return () => clearInterval(iv)
   }, [ativo, roundKey, !!r, roundMs, speed])
-  return { min, banner }
+  return { min, cena }
+}
+/** 👑 a cena da vez, desenhada por cima do jogo */
+function CenaKingsTela({ cena, jogo, youId, nome, onEscolha }: { cena: CenaKings; jogo: MatchResult | undefined; youId: number; nome: (id: number) => string; onEscolha: (key: string, canto: number) => void }) {
+  if (cena.tipo === 'banner') return <BannerKingsTela b={cena.b} />
+  if (cena.tipo === 'pontape') return <CenaPontape />
+  if (cena.tipo === 'dado') return <CenaDado face={cena.face} />
+  if (cena.tipo === 'carta') return <CenaCarta carta={cena.carta} time={nome(cena.carta.teamId)} />
+  const d = jogo?.kings?.duelos?.find(x => x.key === cena.key)
+  if (!d) return null
+  return <CenaDuelo key={d.key} duelo={d} souBatedor={d.batedor === youId} nomeBatedor={nome(d.batedor)} nomeGoleiro={nome(d.goleiro)} onEscolha={c => onEscolha(d.key, c)} />
 }
 function BannerKingsTela({ b }: { b: BannerKings }) {
   return (
@@ -6253,8 +6287,8 @@ export function EscSeason() {
   // 🏀 basquete tem 82 rodadas (não 38): acelera cada rodada pra a temporada
   // caber no MESMO tempo total (~3 min), senão levaria mais que o dobro. Futebol
   // segue com o ROUND_MS de sempre (38 rodadas) — nada muda lá.
-  const baseRoundMs = kingsS ? KINGS_ROUND_MS : state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
-  const roundMs = Math.round(baseRoundMs / speedFactor)
+  const baseRoundMs = state.sport === 'basquete' ? Math.round(SEASON_TOTAL_MS / (state.fixtures.length || 82)) + ROUND_EXTRA_MS : (online ? ROUND_MS_ONLINE : ROUND_MS) // 🏀 o basquete ganha o mesmo segundo (*"modo online qualquer também"*)
+  const roundMs = kingsS ? kingsRoundMs(speedFactor) : Math.round(baseRoundMs / speedFactor)
   const myTactic = state.tactics[you.id] ?? 'equilibrio'
   const table = sortedTable(state.league)
   // 🏆 total de rodadas real: 20 times = 38 (como sempre); Liga Fechada = calendário
@@ -6467,7 +6501,7 @@ export function EscSeason() {
   // jogos rolando no modo auto"*) — mesma regra da partida da liga. No manual quem manda
   // no ritmo é o 🐢/⏩. Os TRÊS relógios da Copa daqui saem deste número (o avanço da
   // perna, o minuto do placar e o card do seu jogo), senão um apita antes do outro.
-  const copaLegMs = kingsS ? KINGS_ROUND_MS : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
+  const copaLegMs = kingsS ? roundMs * speedFactor : manual ? QUICK_COPA_LEG_MS : QUICK_COPA_LEG_MS + AUTO_EXTRA_MS // 👑 o mata-mata da Kings no mesmo ritmo lento da liga dela
   // 🎭 (25/09) disputa com GENTE é mais lenta (`pensPasso`), então a espera sai da
   // disputa MAIS LONGA da fase — com piso nos 13 s de sempre, pra bot × bot não mudar.
   const copaTemGenteQ = (t: { aId: number; bId: number }) => state.managers.some(m => m.isHuman && (m.id === t.aId || m.id === t.bId))
@@ -6479,7 +6513,7 @@ export function EscSeason() {
     ? (kTie?.lastKings ? { homeId: kTie.aId, awayId: kTie.bId, hg: kTie.legs[0][0], ag: kTie.legs[0][1], highlights: kTie.lastHighlights ?? [], kings: kTie.lastKings } : undefined)
     : myLast
   const kKey = copaLive ? 500 + (qc?.bracket.length ?? 0) * 10 + (kTie?.legs.length ?? 0) : state.round
-  const kRel = useRelogioKings(kingsS, kKey, copaLive ? copaLegMs : roundMs, speedFactor, kJogo, nomeLiga)
+  const kRel = useRelogioKings(kingsS, kKey, roundMs, speedFactor, kJogo, nomeLiga)
   // 🎬 ABERTURA DA RODADA (Diego 13/10): nas copas do online (Copa dos 8, Liberta, Champions), antes de cada
   // fase rolar aparece o caminho da copa + os confrontos escudo×escudo. Na 1ª fase usa o tempo de leitura
   // de sempre (`COPA_INTRO_SECONDS`); nas seguintes o respiro sobe de 3,2s pra 5s pra dar tempo de ler.
@@ -6949,7 +6983,8 @@ export function EscSeason() {
         </Box>
       )}
 
-      {kingsS && kRel.banner && <BannerKingsTela b={kRel.banner} />}
+      {kingsS && kRel.cena && <CenaKingsTela cena={kRel.cena} jogo={kJogo} youId={you.id} nome={nomeLiga} onEscolha={(key, canto) => dispatch({ type: 'KINGS_DECIDIR', key, canto })} />}
+      {kingsS && kJogo?.kings?.duelos && kRel.min > 0 && kRel.min < kParaPlacar(7) && <FaixaEmCampo n={Math.min(7, 1 + placarParaK(kRel.min))} />}
       {kingsS && !copaLive && myLast?.kings?.pens && kRel.min >= 93 && (() => {
         // 🥅 empatou no apito: SHOOTOUT (já decidido no jogo — a tela só mostra as cobranças)
         const hN = nomeLiga(myLast.homeId), aN = nomeLiga(myLast.awayId)

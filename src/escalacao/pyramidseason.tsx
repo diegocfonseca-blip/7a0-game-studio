@@ -3283,7 +3283,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const grande = (privatePreview || carreiraPublica) && !basket
   const minTxt = (m: number) => (relogioKings ? `${placarParaK(m)}` : m > 90 ? `90+${m - 90}` : `${m}`)
   // 👑 gol que a REGRA da Kings fez (pênalti do presidente, bola vermelha) não ganha lance inventado — não foi jogada
-  const lanceUltimo = grande && last && !(relogioKings && /presidente|president|Bola vermelha|Red ball/i.test(last.name)) ? lanceDoGol(last, roundKey) : ''
+  const lanceUltimo = grande && last && !(relogioKings && /presidente|president|Bola vermelha|Red ball|\(carta\)|\(card\)|\(\+1\)/i.test(last.name)) ? lanceDoGol(last, roundKey) : ''
   // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
   const meusGols = youIsHome ? hg : ag, delesGols = youIsHome ? ag : hg
   const resultado: 'h' | 'a' | null = fechado && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null

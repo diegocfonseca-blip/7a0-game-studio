@@ -49,12 +49,31 @@ for (const clubes of [false, true]) for (const holandes of [false, true]) for (c
     s = reducer(s, { type: 'FORCE_SEAL' })
   }
   ok(s.league.length === 10 && s.fixtures.length === 9 && s.fixtures.every(r => r.length === 5), `liga da Kings: 10 times, 9 rodadas de 5 jogos (deu ${s.league.length} times, ${s.fixtures.length} rodadas)`)
-  let empate = false, semKings = false
+  let empate = false, semKings = false, agendaIgual = true, decidiu = 0, defendeuQuandoMandou = true, umaVez = true
   for (let r = 0; r < 9; r++) {
     s = reducer(s, { type: 'PLAY_ROUND' })
+    // 🗓️ o presidente da casa e o do visitante batem no MESMO minuto em todos os jogos da rodada
+    const mins = s.lastResults.map(x => (x.kings?.duelos ?? []).filter(d => d.key.startsWith('pres')).map(d => d.min).join(','))
+    if (new Set(mins).size !== 1) agendaIgual = false
+    // 🥅 a pessoa escolhe: no pênalti do presidente do SEU time, chuta no canto em que o goleiro do bot pula → defendido
+    const meu = s.lastResults.find(x => x.kingsBase)!
+    const eu = s.managers[s.youIdx].id
+    const presMeu = meu.kings!.duelos!.find(d => d.tipo === 'presidente' && d.batedor === eu)!
+    const ptsAntes = s.league.reduce((a, t) => a + t.pts, 0)
+    s = reducer(s, { type: 'KINGS_DECIDIR', key: presMeu.key, canto: presMeu.pulo })
+    const depois = s.lastResults.find(x => x.kingsBase)!
+    const d2 = depois.kings!.duelos!.find(d => d.key === presMeu.key)!
+    if (d2.gol || d2.chute !== presMeu.pulo) defendeuQuandoMandou = false
+    if (s.league.reduce((a, t) => a + t.pts, 0) !== ptsAntes) empate = true
+    decidiu++
+    const s2 = reducer(s, { type: 'KINGS_DECIDIR', key: presMeu.key, canto: (presMeu.pulo + 1) % 6 })
+    if (JSON.stringify(s2.lastResults) !== JSON.stringify(s.lastResults)) umaVez = false
     for (const x of s.lastResults) { if (!x.kings) semKings = true; if (x.hg === x.ag && !x.kings?.pens) empate = true }
   }
   ok(!semKings, 'todo jogo passou pela regra da Kings (dado, presidente, bola)')
+  ok(agendaIgual, 'presidente da casa e do visitante no MESMO minuto em todos os jogos da rodada')
+  ok(decidiu === 9 && defendeuQuandoMandou, 'a escolha da pessoa vale: chutou onde o goleiro pulou = defendido')
+  ok(umaVez, 'a escolha vale UMA vez por cobrança')
   ok(!empate, 'nenhum jogo termina empatado sem shootout')
   const pts = s.league.reduce((a, t) => a + t.pts, 0)
   ok(pts === 45 * 3, `todo jogo distribui 3 pontos (3+0 ou 2+1): ${pts} de ${45 * 3}`)
@@ -65,6 +84,26 @@ for (const clubes of [false, true]) for (const holandes of [false, true]) for (c
   s = reducer(s, { type: 'FINISH_SEASON' })
   ok(s.quickCopa?.phase === 'quartas' && s.quickCopa.ties.length === 3 && s.quickCopa.kingsDireto != null, 'fim da liga: 3 quartas + o 1º direto na semi')
   s = reducer(s, { type: 'START_COPA' })
+  // 🥅 a escolha também vale no mata-mata: o jogo é refeito e o confronto fica coerente (placar, shootout, quem passa)
+  {
+    let t = structuredClone(s)
+    // garante gente num confronto das quartas (o time de teste pode estar direto na semi)
+    const alvo = t.quickCopa!.ties[0].aId
+    t.managers = t.managers.map(m => m.id === alvo ? { ...m, isHuman: true } : m)
+    t.youIdx = t.managers.findIndex(m => m.id === alvo)
+    for (let i = 0; i < 6 && !t.quickCopa!.ties.some(x => x.kingsJogo); i++) t = reducer(t, { type: 'PLAY_COPA_LEG' })
+    const tie = t.quickCopa!.ties.find(x => x.kingsJogo)
+    if (tie) {
+      const d = tie.kingsJogo!.kings!.duelos![0]
+      const eu = t.managers[t.youIdx].id
+      const canto = d.batedor === eu ? d.pulo : d.chute
+      t = reducer(t, { type: 'KINGS_DECIDIR', key: d.key, canto })
+      const t2 = t.quickCopa!.ties.find(x => x.aId === tie.aId)!
+      const [a, b] = t2.legs[0]
+      const coerente = a !== b ? (t2.winner === (a > b ? t2.aId : t2.bId) && !t2.pens) : (!!t2.pens && t2.winner === (t2.pens[0] > t2.pens[1] ? t2.aId : t2.bId))
+      ok(coerente && t2.kingsJogo?.kingsBase?.decisoes[d.key] === canto, `mata-mata: a escolha refaz o jogo e quem passa bate com o placar (${a}×${b}${t2.pens ? ` pên ${t2.pens.join('×')}` : ''})`)
+    } else ok(true, 'mata-mata: você não jogou esta fase (sem cobrança pra escolher)')
+  }
   const fases: string[] = []
   for (let i = 0; i < 20 && s.quickCopa && s.quickCopa.phase !== 'done'; i++) { fases.push(`${s.quickCopa.phase}(${s.quickCopa.ties.length})`); s = reducer(s, { type: 'PLAY_COPA_LEG' }) }
   ok(JSON.stringify([...new Set(fases)]) === JSON.stringify(['quartas(3)', 'semis(2)', 'final(1)']), `mata-mata jogo único: ${[...new Set(fases)].join(' → ')}`)

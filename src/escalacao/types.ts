@@ -404,22 +404,56 @@ export interface MatchHighlight {
   kind?: 'gol' | 'assist'
 }
 
+/** 👑 KINGS LEAGUE (15/10): a carta secreta é SORTEADA (ninguém escolhe) — o coringa vira outra na hora */
+export type CartaKingsTipo = 'penalti' | 'shootout' | 'suspensao' | 'gol_dobro' | 'estrela' | 'penalti_inverso' | 'coringa'
+/** 🎩🃏 uma cobrança 1×1 da partida (presidente ou carta): quem bate, quem defende, os cantos e se entrou */
+export interface DueloKingsInfo {
+  key: string
+  tipo: 'presidente' | 'penalti' | 'shootout' | 'penalti_inverso'
+  /** minuto na escala do placar (0–93) */
+  min: number
+  batedor: number; goleiro: number
+  /** cantos 0..5 (↖ ↑ ↗ ↙ ↓ ↘) */
+  chute: number; pulo: number
+  gol: boolean
+  /** quem ganhou o gol (no pênalti inverso, o gol é de quem DEFENDEU) — `null` = não saiu gol */
+  golPara: number | null
+}
+export interface CartaKingsInfo { teamId: number; min: number; sorteada: CartaKingsTipo; vale: Exclude<CartaKingsTipo, 'coringa'>; estrela?: string }
 /** 👑 KINGS LEAGUE (15/10): o que a regra da Kings fez nesta partida (só existe na liga da Kings). Os minutos dos
  *  lances seguem na escala de sempre do placar (0–93); a tela traduz pros 40 da Kings (`kings-liga.ts`). */
 export interface KingsInfo {
-  dado: 2 | 3
+  /** 🎲 o dado do 18': 1 = 👑 cara do rei (1×1 com goleiro) · 2 = 2×2 · 3 = 3×3 */
+  dado: 1 | 2 | 3
   bola: 'dourada' | 'vermelha'
   /** decidido no gol de ouro (bola dourada) */
   ouro: boolean
   /** 🎩 o pênalti do presidente de cada time */
   pres: { teamId: number; min: number; gol: boolean }[]
+  /** 🃏 a carta sorteada de cada time */
+  cartas?: CartaKingsInfo[]
+  /** 🥅 as cobranças 1×1 (presidente e cartas de pênalti/shootout/inverso) */
+  duelos?: DueloKingsInfo[]
   /** empate no apito = SHOOTOUT (casa, fora) — quem ganha leva 2 pontos, quem perde 1 */
   pens?: [number, number]
   pensSeq?: string
 }
+/** 👑 a partida "crua" (antes da regra da Kings) guardada nos jogos de GENTE: quando a pessoa escolhe o canto, a
+ *  partida é refeita a partir daqui (mesma semente) com a escolha dela. */
+export interface KingsBase {
+  highlights: MatchHighlight[]
+  tmpS: ScorerRow[]; tmpA: AssistRow[]
+  seed: number
+  rodada: number
+  /** escolha de quem é gente em cada cobrança (chave do duelo → canto) */
+  decisoes: Record<string, number>
+  /** artilharia/garçons que ESTE jogo pôs nas listas (pra tirar antes de refazer) */
+  art: { s: ScorerRow[]; a: AssistRow[] }
+}
 
 export interface MatchResult {
   kings?: KingsInfo
+  kingsBase?: KingsBase
   presentationGoals?: MatchHighlight[] // prévia: eventos reais, sem alterar highlights públicos
   homeId: number
   awayId: number
@@ -443,6 +477,8 @@ export interface QuickCopaTie {
   lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
   /** 👑 Kings: o que a regra da Kings fez no último jogo (banners do relógio) */
   lastKings?: KingsInfo
+  /** 👑 Kings: o último jogo inteiro, se tem gente nele (pra refazer quando a pessoa escolhe o canto) */
+  kingsJogo?: MatchResult
 }
 // 🌎 'oitavas' existe SÓ pra Libertadores, que começa o mata-mata com 16 clubes
 // (a Copa dos 8 continua começando nas quartas — nada muda pra ela).

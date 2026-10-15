@@ -64,7 +64,7 @@ Tudo aqui foi decidido no chat de 15/10. Mockups: `scripts/mockups/kings-league.
 4. Vestiário + carta secreta + pênalti do presidente com os botões (online: dono da sala decide, convidado pede).
 5. Duelo manual gente × gente (pênalti do presidente e shootout) + banners explicativos + mata-mata.
 
-## 🔁 v2 PROPOSTA (15/10, mockup `scripts/mockups/kings-v2.png`, ESPERANDO OK) — o que ele pediu depois de jogar
+## ✅ v2 NO AR (15/10, mockup `scripts/mockups/kings-v2.png` aprovado: *"Sim… ok faça"*) — o que ele pediu depois de jogar
 Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se joga" e na Arena/Portal da Kings:
 - ⚽ **Pontapé**: a bola CAI de uma gaiola no teto, no meio do campo; começa **1×1 + goleiros** e entra 1 de cada lado por
   minuto até **7×7** (no 6').
@@ -76,3 +76,13 @@ Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se jo
   pênalti · shootout · suspensão 4' · gol em dobro 4' · jogador estrela · pênalti inverso · coringa. Pênalti/shootout de
   carta = batida na mão com contagem.
 - ⚠️ Fotos reais da liga NÃO entram no jogo (marca/direito de imagem) — servem só de referência pra arte nossa em CSS.
+
+### Como a v2 foi feita (pra quem mexer depois)
+- Motor: `kings-liga.ts` → `agendaKings(seed, rodada)` (minutos do presidente/carta da casa e do visitante, iguais em todos
+  os jogos da rodada) · `aplicaRegrasKings(r, base, ctx)` SEMPRE recomeça da partida crua (`kingsBase`), com todos os
+  sorteios feitos de uma vez na mesma ordem — por isso a escolha de canto da pessoa (`KINGS_DECIDIR`) refaz o jogo sem
+  mudar o resto. Liga: troca o resultado na tabela/artilharia; mata-mata: troca placar, shootout e quem passa.
+- O gol da cobrança entra 1 tique DEPOIS do minuto dela (o relógio para no minuto e o placar não pode entregar antes).
+- Tela: `kings-cenas.tsx` (pontapé com a gaiola, faixa EM CAMPO, dado 3D, carta virando, cobrança com contagem de 5 s).
+  As cenas de decisão têm tempo FIXO (a marcha ⏩ não encurta); `kingsRoundMs` garante que a rodada cabe nelas.
+- Trava: `npm run kings` (agenda igual na rodada, a escolha vale e vale UMA vez, tabela fecha 3 pts por jogo, mata-mata coerente).

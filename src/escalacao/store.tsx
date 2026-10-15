@@ -1,5 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
-import { aplicaRegrasKings, aplicaResultadoKings, somaListas } from './kings-liga'
+import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings } from './kings-liga'
+import type { CtxKings } from './kings-liga'
+import type { KingsBase } from './types'
 import { calendarioKings, chaveKings } from './kings'
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
@@ -4689,15 +4691,43 @@ function playNbaCupRound(s: EscState): void {
 export function ehKings(s: Pick<EscState, 'managers'>): boolean { return s.managers.some(m => m.formation === 'kings') }
 /** 👑 um jogo da Kings: a partida de sempre + a regra da Kings por cima (`kings-liga.ts`). A artilharia passa por listas
  *  à parte porque o gol que a bola dourada anula não pode ficar na conta de ninguém. */
-function jogoKings(s: EscState, homeId: number, awayId: number, rng: () => number, scorers: ScorerRow[], assists: AssistRow[], neutral = false): MatchResult {
+function ctxKings(s: EscState, homeId: number, awayId: number, rodada: number): CtxKings {
+  const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+  return {
+    agenda: agendaKings(s.seed, rodada),
+    nomes: { h: nome(homeId), a: nome(awayId) },
+    humanos: s.managers.filter(m => m.isHuman).map(m => m.id),
+    // ⭐ jogador estrela = o craque de ataque do time (o mais famoso, depois o de nível mais alto)
+    estrela: (id: number) => {
+      const sq = (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => !ehFake(c))
+      const pref = sq.filter(c => c.pos === 'ATA').length ? sq.filter(c => c.pos === 'ATA') : sq.filter(c => c.pos === 'MEI')
+      return [...pref].sort((x, y) => y.fame - x.fame || y.hi - x.hi)[0]?.name ?? null
+    },
+  }
+}
+function jogoKings(s: EscState, homeId: number, awayId: number, rng: () => number, scorers: ScorerRow[], assists: AssistRow[], neutral: boolean, rodada: number): MatchResult {
   const tmpS: ScorerRow[] = [], tmpA: AssistRow[] = []
   const r = simMatch(s, homeId, awayId, rng, tmpS, neutral, tmpA, true)
-  const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
-  aplicaRegrasKings(r, rng, { h: nome(homeId), a: nome(awayId) }, tmpS, tmpA)
-  somaListas(scorers, tmpS, assists, tmpA)
-  // os lances dos jogos SEM humano só serviram pra regra — não ficam no save
-  if (!s.managers.some(m => m.isHuman && (m.id === homeId || m.id === awayId))) r.highlights = []
+  const base: KingsBase = { highlights: r.highlights.map(h => ({ ...h })), tmpS, tmpA, seed: sementeJogoKings(s.seed, rodada, homeId, awayId), rodada, decisoes: {}, art: { s: [], a: [] } }
+  const art = aplicaRegrasKings(r, base, ctxKings(s, homeId, awayId, rodada))
+  somaListas(scorers, art.s, assists, art.a)
+  // os lances dos jogos SEM humano só serviram pra regra — não ficam no save. Com gente, guarda a partida crua: quando a
+  // pessoa escolhe o canto da cobrança, ela é refeita daqui (`KINGS_DECIDIR`).
+  if (s.managers.some(m => m.isHuman && (m.id === homeId || m.id === awayId))) r.kingsBase = { ...base, art }
+  else r.highlights = []
   return r
+}
+/** 👑 refaz um jogo da Kings com a escolha de canto da pessoa; devolve o jogo novo (ou null se não deu) */
+function refazJogoKings(s: EscState, r: MatchResult, key: string, canto: number, scorers: ScorerRow[], assists: AssistRow[]): MatchResult | null {
+  const b = r.kingsBase
+  if (!b || b.decisoes[key] != null || !(r.kings?.duelos ?? []).some(d => d.key === key)) return null
+  tiraListas(scorers, b.art, assists)
+  const novo: MatchResult = { ...r, highlights: [] }
+  const base: KingsBase = { ...b, decisoes: { ...b.decisoes, [key]: canto } }
+  const art = aplicaRegrasKings(novo, base, ctxKings(s, r.homeId, r.awayId, b.rodada))
+  somaListas(scorers, art.s, assists, art.a)
+  novo.kingsBase = { ...base, art }
+  return novo
 }
 /** 👑 fim da liga da Kings: 1º direto na SEMI, quartas 2×7 · 3×6 · 4×5, tudo jogo único */
 function seedKingsCopa(s: EscState) {
@@ -5301,6 +5331,7 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
+  | { type: 'KINGS_DECIDIR'; key: string; canto: number }
   | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
@@ -9264,7 +9295,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         // 👑 Kings: a partida de sempre + a regra da Kings por cima, e pontos 3/2/1/0
         const kingsLiga = ehKings(s)
         if (kingsLiga && !s.assists) s.assists = []
-        const results = s.fixtures[s.round].map(([h, a]) => kingsLiga ? jogoKings(s, h, a, rng, s.scorers, s.assists!) : simMatch(s, h, a, rng))
+        const results = s.fixtures[s.round].map(([h, a]) => kingsLiga ? jogoKings(s, h, a, rng, s.scorers, s.assists!, false, s.round) : simMatch(s, h, a, rng))
         results.forEach(r => kingsLiga ? aplicaResultadoKings(s.league, r) : applyResult(s.league, r))
         // rivalidade: só confrontos entre dois humanos contam
         results.forEach(r => { if (isHumanId(r.homeId) && isHumanId(r.awayId)) bumpRivalry(s, r.homeId, r.awayId, r.hg, r.ag) })
@@ -9315,6 +9346,48 @@ function reducerBase(state: EscState, action: Action): EscState {
       // não existe campeão de liga pra coroar. Quem fecha é o mata-mata da Champions.
       if (s.copaMode === 'champions') return s
       finishSeason(s)
+      return s
+    }
+    case 'KINGS_DECIDIR': {
+      // 👑 a pessoa escolheu o canto (bater) ou pra onde pular (defender) numa cobrança da Kings. A partida é REFEITA com a
+      // escolha dela, a partir da partida crua guardada (mesma semente: o resto do jogo não muda), e a tabela/artilharia
+      // trocam o resultado velho pelo novo. Escolha vale UMA vez por cobrança.
+      if (!ehKings(s)) return s
+      const qc = s.quickCopa
+      if (qc && qc.phase !== 'done' && s.round >= (s.fixtures.length || TOTAL_ROUNDS)) {
+        const tie = qc.ties.find(t => t.kingsJogo?.kingsBase && t.legs.length === 1)
+        if (!tie?.kingsJogo) return s
+        if (!qc.scorers) qc.scorers = []
+        if (!qc.assists) qc.assists = []
+        const novo = refazJogoKings(s, tie.kingsJogo, action.key, action.canto, qc.scorers, qc.assists)
+        if (!novo) return s
+        const emCasaA = novo.homeId === tie.aId
+        tie.legs[0] = emCasaA ? [novo.hg, novo.ag] : [novo.ag, novo.hg]
+        tie.lastHighlights = novo.highlights
+        tie.lastKings = novo.kings
+        tie.kingsJogo = novo
+        if (novo.kings?.pens) {
+          tie.pens = emCasaA ? novo.kings.pens : [novo.kings.pens[1], novo.kings.pens[0]]
+          tie.pensSeq = novo.kings.pensSeq
+          tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
+        } else {
+          tie.pens = undefined; tie.pensSeq = undefined
+          tie.winner = tie.legs[0][0] > tie.legs[0][1] ? tie.aId : tie.bId
+        }
+        return s
+      }
+      const i = s.lastResults.findIndex(r => !!r.kingsBase)
+      if (i < 0) return s
+      const velho = s.lastResults[i]
+      if (!s.assists) s.assists = []
+      const novo = refazJogoKings(s, velho, action.key, action.canto, s.scorers, s.assists)
+      if (!novo) return s
+      desfazResultadoKings(s.league, velho)
+      aplicaResultadoKings(s.league, novo)
+      s.lastResults = s.lastResults.map((r, j) => j === i ? novo : r)
+      // as manchetes do giro sobre ESTE jogo foram escritas com o placar velho — saem (as dos outros jogos ficam)
+      const nh = s.league.find(t => t.id === novo.homeId)?.name, na = s.league.find(t => t.id === novo.awayId)?.name
+      if (nh && na) s.news = s.news.filter(n => !(n.includes(nh) && n.includes(na)))
       return s
     }
     case 'START_COPA': {
@@ -9463,12 +9536,12 @@ function reducerBase(state: EscState, action: Action): EscState {
         // pros dois. Ida/volta mantêm a casa (que se alterna, então também é justo).
         // 🅰️ garçom da Copa vai na lista DA COPA (qc.assists), pelo mesmo motivo.
         if (!qc.assists) qc.assists = []
-        const r = kingsCopa ? jogoKings(s, homeId, awayId, rng, qc.scorers, qc.assists, isFinal) : simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
+        const r = kingsCopa ? jogoKings(s, homeId, awayId, rng, qc.scorers, qc.assists, isFinal, 100 + qc.bracket.length) : simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
         const leg: [number, number] = emCasaA ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [pontos/gols de A, de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
         tie.lastPresentationGoals = r.presentationGoals
-        if (kingsCopa) tie.lastKings = r.kings
+        if (kingsCopa) { tie.lastKings = r.kings; tie.kingsJogo = r.kingsBase ? r : undefined }
         if (bbSerie) {
           // 🏀 fechou 2 vitórias? acabou a série (pode ter sido em 2 jogos). No 3º
           // jogo alguém já chega a 2 obrigatoriamente — jogo de basquete não empata
