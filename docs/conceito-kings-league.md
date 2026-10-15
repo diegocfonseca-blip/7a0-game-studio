@@ -63,3 +63,16 @@ Tudo aqui foi decidido no chat de 15/10. Mockups: `scripts/mockups/kings-league.
 3. Liga de 10 com a pontuação 3/2/1/0 e a partida com dado, bolas dourada/vermelha e shootout automático.
 4. Vestiário + carta secreta + pênalti do presidente com os botões (online: dono da sala decide, convidado pede).
 5. Duelo manual gente × gente (pênalti do presidente e shootout) + banners explicativos + mata-mata.
+
+## 🔁 v2 PROPOSTA (15/10, mockup `scripts/mockups/kings-v2.png`, ESPERANDO OK) — o que ele pediu depois de jogar
+Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se joga" e na Arena/Portal da Kings:
+- ⚽ **Pontapé**: a bola CAI de uma gaiola no teto, no meio do campo; começa **1×1 + goleiros** e entra 1 de cada lado por
+  minuto até **7×7** (no 6').
+- 🎲 **Dado gigante jogado na tela** no 18': 6 faces, duas de cada — 👑 **cara do rei** (1×1 com goleiro), **2×2**, **3×3** —
+  até o intervalo.
+- 🎩 **Pênalti do presidente SEM botão**: 1 por time, num minuto sorteado POR RODADA e igual pra todos os jogos (casa no 1º
+  tempo, fora no 2º). Contagem de segundos; um escolhe o canto, o outro a defesa; não escolheu = o jogo bate/pula sozinho.
+- 🃏 **Carta secreta SORTEADA** (ninguém escolhe), uma vez de cada time, no mesmo esquema de minuto fixo da rodada. Lista:
+  pênalti · shootout · suspensão 4' · gol em dobro 4' · jogador estrela · pênalti inverso · coringa. Pênalti/shootout de
+  carta = batida na mão com contagem.
+- ⚠️ Fotos reais da liga NÃO entram no jogo (marca/direito de imagem) — servem só de referência pra arte nossa em CSS.
