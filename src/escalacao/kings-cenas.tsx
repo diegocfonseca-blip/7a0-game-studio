@@ -32,7 +32,9 @@ function Explica({ titulo, texto, cor = PURPLE }: { titulo: string; texto: strin
 }
 
 // ── ⚽ PONTAPÉ: a gaiola no teto abre e a bola cai no meio do campo, 1×1 + goleiros
-export function CenaPontape() {
+export function CenaPontape({ posse, ladoPosse }: { posse?: string; ladoPosse?: 'e' | 'd' }) {
+  const [pegou, setPegou] = useState(false)
+  useEffect(() => { const t = setTimeout(() => setPegou(true), 3300); return () => clearTimeout(t) }, [])
   return (
     <Palco tag={tr('PONTAPÉ', 'KICK-OFF')}>
       <div className="kc-campo" style={{ height: 210 }}>
@@ -44,9 +46,39 @@ export function CenaPontape() {
         <i className="kc-jg kc-corre-e" style={{ top: '50%', background: RED }} />
         <i className="kc-jg kc-corre-d" style={{ top: '50%', background: PURPLE }} />
         <div className="kc-conta"><span>3</span><span>2</span><span>1</span></div>
+        {pegou && posse && <div className="kc-pegou" style={{ [ladoPosse === 'd' ? 'right' : 'left']: 10 } as React.CSSProperties}>⚽ {tr(`${posse} ficou com a bola!`, `${posse} won the ball!`)}</div>}
       </div>
-      <Explica titulo={tr('⚽ A BOLA CAI DO ALTO!', '⚽ THE BALL DROPS FROM ABOVE!')}
+      <Explica titulo={pegou && posse ? tr(`⚽ ${posse.toUpperCase()} PEGOU A BOLA!`, `⚽ ${posse.toUpperCase()} WON IT!`) : tr('⚽ A BOLA CAI DO ALTO!', '⚽ THE BALL DROPS FROM ABOVE!')}
         texto={tr('Na Kings não tem saída no meio: a bola cai de uma gaiola no teto e começa 1 contra 1 (mais os goleiros). Entra mais um de cada lado por minuto até 7×7.', 'No centre kick-off in the Kings: the ball drops from a cage in the roof and it starts 1 v 1 (plus keepers). One more per side joins every minute up to 7 v 7.')} />
+    </Palco>
+  )
+}
+
+// ── ➕ ENTROU MAIS UM: o campinho com N de cada lado (1×1 no pontapé → 7×7 no 6'). O que acabou de entrar pisca.
+//    Posições de cada lado do campo (esquerda), espelhadas pro outro lado — o goleiro fica sempre no gol.
+const POS_E: [number, number][] = [[40, 50], [30, 28], [30, 72], [20, 42], [40, 20], [40, 80], [22, 64]]
+export function CenaEntra({ n, casa, fora }: { n: number; casa: string; fora: string }) {
+  const completo = n >= 7
+  return (
+    <Palco tag={completo ? tr('TIME COMPLETO', 'FULL TEAMS') : tr(`MINUTO ${n - 1} · ENTRA MAIS UM`, `MINUTE ${n - 1} · ONE MORE IN`)} cor={completo ? GREEN : PURPLE}>
+      <div className="kc-campo" style={{ height: 200 }}>
+        <div className="kc-linhas" />
+        <i className="kc-jg" style={{ left: '7%', top: '50%', background: RED, borderColor: GOLD }} />
+        <i className="kc-jg" style={{ left: '93%', top: '50%', background: PURPLE, borderColor: GOLD }} />
+        {POS_E.slice(0, n).map(([x, y], i) => (
+          <span key={i}>
+            <i className={`kc-jg${i === n - 1 ? ' kc-novo' : ''}`} style={{ left: `${x}%`, top: `${y}%`, background: RED }} />
+            <i className={`kc-jg${i === n - 1 ? ' kc-novo' : ''}`} style={{ left: `${100 - x}%`, top: `${y}%`, background: PURPLE }} />
+          </span>
+        ))}
+        <div className="kc-placa">{n} × {n}</div>
+        <div className="kc-times"><span style={{ background: RED }}>{casa}</span><span style={{ background: PURPLE }}>{fora}</span></div>
+      </div>
+      <Explica cor={completo ? GREEN : PURPLE}
+        titulo={completo ? tr('⚡ 7 × 7! AGORA ACELERA', '⚡ 7 v 7! NOW IT SPEEDS UP') : `➕ ${n} × ${n}!`}
+        texto={completo
+          ? tr('Os dois times estão completos (goleiro + 6). Daqui pra frente o jogo rola no ritmo normal.', 'Both teams are complete (keeper + 6). From here on the game runs at normal speed.')
+          : tr(`Entrou mais um de cada lado. Enquanto não chega no 7×7 o jogo rola mais devagar — cada minuto entra mais um.`, `One more in on each side. Until it reaches 7 v 7 the game runs slower — one more joins every minute.`)} />
     </Palco>
   )
 }
@@ -60,6 +92,21 @@ export function FaixaEmCampo({ n }: { n: number }) {
         {Array.from({ length: 7 }, (_, i) => <span key={i} style={{ width: 18, height: 18, borderRadius: 99, border: `3px solid ${INK}`, background: i < n ? GREEN : '#ddd', transition: 'background .3s' }} />)}
       </div>
       <p style={{ fontSize: 11, fontWeight: 700, margin: 0, opacity: .75 }}>{tr('Entra 1 de cada lado por minuto: 1×1 no 0\' → 7×7 no 6\'', 'One more per side every minute: 1 v 1 at 0\' → 7 v 7 at 6\'')}</p>
+    </div>
+  )
+}
+
+// ── 📌 OS EFEITOS QUE ESTÃO VALENDO (embaixo do placar): gol em dobro, suspensão, jogador estrela — com o tempo correndo
+export function FaixaEfeitos({ itens }: { itens: { ic: string; txt: string; cor: string }[] }) {
+  if (!itens.length) return null
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      {itens.map((x, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: x.cor, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '6px 10px', animation: 'kcPop .3s ease' }}>
+          <style>{CSS}</style>
+          <span style={{ fontSize: 20 }}>{x.ic}</span><b style={{ ...OSW, fontSize: 14, lineHeight: 1.15, textAlign: 'left' }}>{x.txt}</b>
+        </div>
+      ))}
     </div>
   )
 }
@@ -105,19 +152,45 @@ export function cartaRotulo(c: Exclude<CartaKingsTipo, 'coringa'> | CartaKingsTi
     default: return { ic: '🃏', nome: tr('CORINGA', 'JOKER') }
   }
 }
-function cartaTexto(c: CartaKingsInfo, time: string): string {
+function cartaTexto(c: CartaKingsInfo, time: string, rival: string): string {
   switch (c.vale) {
     case 'penalti': return tr(`Uma cobrança de pênalti a favor do ${time}, agora!`, `A penalty for ${time}, right now!`)
     case 'shootout': return tr(`Um shootout pro ${time}: sai do meio-campo, 5 segundos contra o goleiro!`, `A shootout for ${time}: from halfway, 5 seconds against the keeper!`)
-    case 'suspensao': return tr(`Um jogador do rival fica 4 minutos fora. O ${time} joga com um a mais!`, `A rival player sits out 4 minutes. ${time} plays a man up!`)
+    case 'suspensao': return c.suspenso ? tr(`🟥 ${c.suspenso} (${rival}) sai de campo por 4 minutos! O ${time} joga com um a mais.`, `🟥 ${c.suspenso} (${rival}) leaves the pitch for 4 minutes! ${time} plays a man up.`) : tr(`Um jogador do ${rival} fica 4 minutos fora. O ${time} joga com um a mais!`, `A ${rival} player sits out 4 minutes. ${time} plays a man up!`)
     case 'gol_dobro': return tr(`Por 4 minutos, todo gol do ${time} vale 2!`, `For 4 minutes, every ${time} goal counts double!`)
-    case 'estrela': return c.estrela ? tr(`O 1º gol do ${c.estrela} (${time}) vale 2!`, `${c.estrela}'s first goal (${time}) counts double!`) : tr(`O 1º gol do craque do ${time} vale 2!`, `${time}'s star's first goal counts double!`)
-    default: return tr(`O rival bate um pênalti: se fizer, NÃO vale; se errar, o gol é do ${time}!`, `The rival takes a penalty: if they score it does NOT count; if they miss, the goal goes to ${time}!`)
+    case 'estrela': return c.estrela ? tr(`⭐ ${c.estrela}, o craque do ${time}, vira o JOGADOR ESTRELA: o próximo gol dele vale 2!`, `⭐ ${c.estrela}, ${time}'s star, becomes the STAR PLAYER: his next goal counts double!`) : tr(`O 1º gol do craque do ${time} vale 2!`, `${time}'s star's first goal counts double!`)
+    default: return tr(`É um pênalti AO CONTRÁRIO: quem bate é o ${rival}, e o goleiro é o do ${time}. Se o ${rival} ERRAR (ou o goleiro defender), o gol é do ${time}! Se fizer, ninguém ganha nada.`, `It is a penalty IN REVERSE: ${rival} shoots and ${time}'s keeper defends. If ${rival} MISSES (or it is saved), ${time} gets the goal! If they score, nobody gets anything.`)
   }
 }
-export function CenaCarta({ carta, time }: { carta: CartaKingsInfo; time: string }) {
+const ROLETA: CartaKingsTipo[] = ['penalti', 'shootout', 'suspensao', 'gol_dobro', 'estrela', 'penalti_inverso', 'coringa']
+export function CenaCarta({ carta, time, rival }: { carta: CartaKingsInfo; time: string; rival: string }) {
   const r = cartaRotulo(carta.vale)
   const coringa = carta.sorteada === 'coringa'
+  // 🎰 a ROLETA: os itens passam rápido, vão freando e param no sorteado (tipo cassino) — aí a carta vira
+  const [giro, setGiro] = useState(0)
+  const [parou, setParou] = useState(false)
+  useEffect(() => {
+    const alvo = ROLETA.indexOf(carta.sorteada)
+    const passos = ROLETA.length * 3 + alvo // 3 voltas inteiras e para no sorteado
+    let i = 0, t: ReturnType<typeof setTimeout>
+    const anda = () => { i++; setGiro(i); if (i >= passos) { setParou(true); return } t = setTimeout(anda, 45 + Math.pow(i / passos, 3) * 260) }
+    t = setTimeout(anda, 60)
+    return () => clearTimeout(t)
+  }, [carta.sorteada, carta.teamId, carta.min])
+  if (!parou) {
+    const atual = ROLETA[giro % ROLETA.length]
+    const vizinho = (d: number) => cartaRotulo(ROLETA[(giro + d + ROLETA.length) % ROLETA.length])
+    return (
+      <Palco tag={tr(`VEZ DO ${time.toUpperCase()} · SORTEANDO A CARTA`, `${time.toUpperCase()}'S TURN · DRAWING THE CARD`)}>
+        <div className="kc-roleta">
+          <div className="kc-rol-l op">{vizinho(-1).ic} {vizinho(-1).nome}</div>
+          <div className="kc-rol-l on">{cartaRotulo(atual).ic} {cartaRotulo(atual).nome}</div>
+          <div className="kc-rol-l op">{vizinho(1).ic} {vizinho(1).nome}</div>
+        </div>
+        <p style={{ ...OSW, color: '#fff', fontSize: 16, margin: '12px 0 0' }}>{tr('🎰 Sorteando… ninguém escolhe a carta!', '🎰 Drawing… nobody picks the card!')}</p>
+      </Palco>
+    )
+  }
   return (
     <Palco tag={tr(`VEZ DO ${time.toUpperCase()}`, `${time.toUpperCase()}'S TURN`)}>
       <div style={{ perspective: 700, height: 250 }}>
@@ -130,7 +203,7 @@ export function CenaCarta({ carta, time }: { carta: CartaKingsInfo; time: string
           </div>
         </div>
       </div>
-      <Explica titulo={`🃏 ${r.nome}`} texto={cartaTexto(carta, time) + ' ' + tr('(A carta é sorteada — ninguém escolhe.)', '(Cards are drawn — nobody picks.)')} />
+      <Explica titulo={`🃏 ${r.nome}`} texto={cartaTexto(carta, time, rival)} />
     </Palco>
   )
 }
@@ -157,10 +230,10 @@ export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscol
     ? (duelo.tipo === 'presidente' ? tr('O SEU PRESIDENTE BATE!', 'YOUR PRESIDENT SHOOTS!') : tr('VOCÊ BATE!', 'YOU SHOOT!'))
     : tr(`🧤 ${nomeBatedor.toUpperCase()} BATE — DEFENDA!`, `🧤 ${nomeBatedor.toUpperCase()} SHOOTS — SAVE IT!`)
   const ajuda = duelo.tipo === 'penalti_inverso'
-    ? (souBatedor ? tr('Se você fizer, NÃO vale. Se errar, o gol é do rival.', 'If you score it does NOT count. If you miss, the rival gets the goal.') : tr('Defendeu? O gol é SEU!', 'Save it and the goal is YOURS!'))
+    ? (souBatedor ? tr(`Pênalti ao contrário (carta do ${nomeGoleiro}): você é obrigado a bater. FAZ pra se salvar — se errar, o gol é DELES!`, `Reverse penalty (${nomeGoleiro}'s card): you must shoot. SCORE to stay safe — miss and THEY get the goal!`) : tr('Pênalti ao contrário (sua carta): DEFENDA e o gol é SEU!', 'Reverse penalty (your card): SAVE it and the goal is YOURS!'))
     : duelo.tipo === 'shootout' ? tr('Sai do meio-campo: 5 segundos cara a cara.', 'From halfway: 5 seconds one on one.') : ''
   const resultado = duelo.tipo === 'penalti_inverso'
-    ? (duelo.gol ? tr('⚽ FEZ… MAS NÃO VALE!', '⚽ SCORED… BUT IT DOES NOT COUNT!') : tr(`🧤 ERROU! GOL DO ${nomeGoleiro.toUpperCase()}!`, `🧤 MISSED! ${nomeGoleiro.toUpperCase()} GETS THE GOAL!`))
+    ? (duelo.gol ? tr('⚽ FEZ! NINGUÉM GANHA GOL', '⚽ SCORED! NO GOAL FOR ANYONE') : tr(`🧤 ERROU! GOL DO ${nomeGoleiro.toUpperCase()}!`, `🧤 MISSED! ${nomeGoleiro.toUpperCase()} GETS THE GOAL!`))
     : (duelo.gol ? tr('⚽ GOOOOL!', '⚽ GOAAAL!') : tr('🧤 DEFENDEU!', '🧤 SAVED!'))
   const marca = (i: number) => escolha === i || (fim && (souBatedor ? duelo.chute === i : duelo.pulo === i))
   const outro = fim ? (souBatedor ? duelo.pulo : duelo.chute) : null
@@ -168,6 +241,7 @@ export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscol
     <Palco tag={tag} cor={RED}>
       <div style={{ background: INK, color: '#fff', border: `4px solid ${INK}`, borderRadius: 20, padding: 14, boxShadow: `5px 5px 0 ${RED}` }}>
         <p style={{ ...OSW, fontSize: 24, margin: 0, lineHeight: 1.1 }}>{titulo}</p>
+        {ajuda && duelo.tipo === 'penalti_inverso' && !fim && <p style={{ fontSize: 13, fontWeight: 800, margin: '6px 0 0', background: '#2a2140', border: `2px solid ${PURPLE}`, borderRadius: 10, padding: '6px 8px' }}>🔄 {ajuda}</p>}
         {!fim && <p style={{ ...OSW, fontSize: 28, margin: '6px 0 0', color: INK, background: GOLD, borderRadius: 12, display: 'inline-block', padding: '0 12px' }}>⏱️ {seg}</p>}
         <div className="kc-gol">
           {SETAS.map((s, i) => (
@@ -178,12 +252,12 @@ export function CenaDuelo({ duelo, souBatedor, nomeBatedor, nomeGoleiro, onEscol
           ))}
         </div>
         {fim
-          ? <p style={{ ...OSW, fontSize: 28, margin: '8px 0 0', color: (duelo.golPara != null) === souBatedor ? GOLD : '#ff8a7a', animation: 'kcPop .35s cubic-bezier(.2,1.4,.4,1)' }}>{resultado}</p>
+          ? <p style={{ ...OSW, fontSize: 28, margin: '8px 0 0', color: (duelo.tipo === 'penalti_inverso' ? duelo.gol === souBatedor : (duelo.golPara != null) === souBatedor) ? GOLD : '#ff8a7a', animation: 'kcPop .35s cubic-bezier(.2,1.4,.4,1)' }}>{resultado}</p>
           : <p style={{ fontSize: 12.5, fontWeight: 700, margin: '6px 0 0', opacity: .9 }}>
               {escolha != null ? tr('✅ Escolhido! Esperando a contagem…', '✅ Picked! Waiting for the countdown…')
                 : souBatedor ? tr('Toque no canto. Não tocou até zerar? O jogo bate sozinho.', 'Tap a corner. No tap before zero? The game shoots for you.')
                 : tr('Toque pra onde o goleiro pula. Não tocou? O jogo pula sozinho.', 'Tap where the keeper dives. No tap? The game dives for you.')}
-              {ajuda ? <><br />{ajuda}</> : null}
+              {ajuda && duelo.tipo !== 'penalti_inverso' ? <><br />{ajuda}</> : null}
             </p>}
       </div>
     </Palco>
@@ -222,5 +296,13 @@ const CSS = `
 .kc-gol{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:10px;margin:10px 0 0;border:5px solid #fff;border-bottom:none;background:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 6px,transparent 6px 12px)}
 .kc-z{background:rgba(255,255,255,.12);border:2px solid #fff;border-radius:10px;color:#fff;${'font:700 24px Oswald,sans-serif'};padding:12px 0;cursor:pointer}
 .kc-z:disabled{cursor:default}.kc-z.on{background:${GOLD};color:${INK};box-shadow:0 0 14px ${GOLD}}.kc-z.outro{background:#fff;color:${INK}}
+
+.kc-pegou{position:absolute;bottom:10px;z-index:4;background:${GOLD};color:${INK};border:3px solid ${INK};border-radius:10px;${'font:700 14px Oswald,sans-serif'};padding:2px 10px;box-shadow:2px 2px 0 #000;animation:kcPop .3s ease}
+.kc-novo{animation:kcNovo .5s ease-in-out 4 alternate;box-shadow:0 0 0 4px ${GOLD},1px 2px 0 #000}
+@keyframes kcNovo{from{transform:scale(1)}to{transform:scale(1.6)}}
+.kc-placa{position:absolute;left:50%;top:8px;transform:translateX(-50%);background:${INK};color:${GOLD};border:3px solid ${GOLD};border-radius:10px;${'font:700 22px Oswald,sans-serif'};padding:0 12px;z-index:3}
+.kc-times{position:absolute;left:8px;right:8px;bottom:8px;display:flex;justify-content:space-between;z-index:3}.kc-times span{color:#fff;border:2px solid ${INK};border-radius:8px;${'font:700 11px Oswald,sans-serif'};padding:1px 7px;max-width:45%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.kc-roleta{background:${INK};border:4px solid ${GOLD};border-radius:20px;padding:10px;box-shadow:0 0 30px rgba(255,196,0,.4)}
+.kc-rol-l{${'font:700 22px Oswald,sans-serif'};color:#fff;padding:8px;border-radius:12px}.kc-rol-l.op{opacity:.35;font-size:16px}.kc-rol-l.on{background:linear-gradient(160deg,#C9A8FF,${PURPLE});border:3px solid #fff;font-size:28px}
 @media (prefers-reduced-motion:reduce){.kc-bola-cai,.kc-dado-voo,.kc-cubo,.kc-carta,.kc-conta span,.kc-corre-e,.kc-corre-d{animation-duration:.01s!important}}
 `

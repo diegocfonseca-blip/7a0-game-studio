@@ -4703,6 +4703,7 @@ function ctxKings(s: EscState, homeId: number, awayId: number, rodada: number): 
       const pref = sq.filter(c => c.pos === 'ATA').length ? sq.filter(c => c.pos === 'ATA') : sq.filter(c => c.pos === 'MEI')
       return [...pref].sort((x, y) => y.fame - x.fame || y.hi - x.hi)[0]?.name ?? null
     },
+    linha: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name),
   }
 }
 function jogoKings(s: EscState, homeId: number, awayId: number, rng: () => number, scorers: ScorerRow[], assists: AssistRow[], neutral: boolean, rodada: number): MatchResult {

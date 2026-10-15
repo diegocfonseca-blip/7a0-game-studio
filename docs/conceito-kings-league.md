@@ -86,3 +86,14 @@ Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se jo
 - Tela: `kings-cenas.tsx` (pontapé com a gaiola, faixa EM CAMPO, dado 3D, carta virando, cobrança com contagem de 5 s).
   As cenas de decisão têm tempo FIXO (a marcha ⏩ não encurta); `kingsRoundMs` garante que a rodada cabe nelas.
 - Trava: `npm run kings` (agenda igual na rodada, a escolha vale e vale UMA vez, tabela fecha 3 pts por jogo, mata-mata coerente).
+
+### 🔁 v2.1 (15/10, 2º teste dele no celular)
+- ⚽ No pontapé aparece QUEM ficou com a bola (`kings.posse`).
+- ➕ A cada minuto (1'–6') o CAMPINHO aparece com N×N (2×2 … 7×7, "agora acelera") — Diego: *"o campinho é mais pra ficar claro a regra"*.
+- 🐢 Enquanto não é 7×7 (0'–6' e a fase do dado 18'–20') o relógio anda na METADE; no 7×7 volta ao normal (`KINGS_LENTO`).
+- 🎰 A carta é sorteada numa ROLETA (tipo cassino) e só depois vira.
+- 📌 Todo efeito fica VISÍVEL numa faixa embaixo do placar: gol em dobro (até que minuto), suspensão (QUEM saiu, sorteado do rival,
+  até que minuto), jogador estrela (o craque do time; some quando o gol dele sai).
+- 🔄 Pênalti inverso explicado na carta e na cobrança: "pênalti ao contrário — quem bate é o rival; se ele ERRAR o gol é seu".
+  Ele perguntou o que era (*"N entendi oq é pênalti inverso"*) — se continuar confuso, tirar da roleta é uma linha (`CARTAS_SORTEIO`).
+- 🎩 Já era assim e ele reconfirmou: 1 pênalti de presidente por time por jogo (gente ou bot).

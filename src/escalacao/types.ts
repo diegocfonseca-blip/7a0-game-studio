@@ -419,12 +419,16 @@ export interface DueloKingsInfo {
   /** quem ganhou o gol (no pênalti inverso, o gol é de quem DEFENDEU) — `null` = não saiu gol */
   golPara: number | null
 }
-export interface CartaKingsInfo { teamId: number; min: number; sorteada: CartaKingsTipo; vale: Exclude<CartaKingsTipo, 'coringa'>; estrela?: string }
+export interface CartaKingsInfo { teamId: number; min: number; sorteada: CartaKingsTipo; vale: Exclude<CartaKingsTipo, 'coringa'>; estrela?: string
+  /** 🟥 suspensão: o jogador do RIVAL que sai 4 min (sorteado) */
+  suspenso?: string }
 /** 👑 KINGS LEAGUE (15/10): o que a regra da Kings fez nesta partida (só existe na liga da Kings). Os minutos dos
  *  lances seguem na escala de sempre do placar (0–93); a tela traduz pros 40 da Kings (`kings-liga.ts`). */
 export interface KingsInfo {
   /** 🎲 o dado do 18': 1 = 👑 cara do rei (1×1 com goleiro) · 2 = 2×2 · 3 = 3×3 */
   dado: 1 | 2 | 3
+  /** ⚽ quem ficou com a bola quando ela caiu da gaiola */
+  posse?: number
   bola: 'dourada' | 'vermelha'
   /** decidido no gol de ouro (bola dourada) */
   ouro: boolean

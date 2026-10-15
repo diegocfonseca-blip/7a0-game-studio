@@ -64,6 +64,8 @@ export interface CtxKings {
   humanos: number[]
   /** o craque do time pra carta de jogador estrela */
   estrela: (teamId: number) => string | null
+  /** os jogadores de LINHA do time (a suspensão sorteia um deles) */
+  linha: (teamId: number) => string[]
 }
 
 /**
@@ -90,6 +92,8 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
   const dados = () => ({ chute: Math.floor(rng() * 6), pulo: Math.floor(rng() * 6), sorte: rng(), sorte2: rng() })
   const dPresH = dados(), dPresA = dados(), dCartaH = dados(), dCartaA = dados()
   const suspH = { chance: rng(), quando: rng() }, suspA = { chance: rng(), quando: rng() }
+  const posse = rng() < 0.5 ? H : A // ⚽ quem chega primeiro na bola que caiu da gaiola
+  const quemSaiH = rng(), quemSaiA = rng() // 🟥 qual jogador do rival a suspensão tira
   const gols: MatchHighlight[] = []
   const duelos: DueloKingsInfo[] = []
   // ── 🥅 uma cobrança 1×1: quem é gente escolhe (batedor = canto do chute · goleiro = pra onde pula); quem não escolheu, sorteio
@@ -118,8 +122,9 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
   duelo('pres:a', 'presidente', ag.presFora, A, dPresA)
   // 🃏 as cartas
   const cartas: CartaKingsInfo[] = []
-  const usaCarta = (teamId: number, kMin: number, c: ReturnType<typeof sorteiaCarta>, d: ReturnType<typeof dados>, susp: { chance: number; quando: number }, lado: 'h' | 'a') => {
+  const usaCarta = (teamId: number, kMin: number, c: ReturnType<typeof sorteiaCarta>, d: ReturnType<typeof dados>, susp: { chance: number; quando: number }, lado: 'h' | 'a', quemSai: number) => {
     const info: CartaKingsInfo = { teamId, min: kParaPlacar(kMin), sorteada: c.sorteada, vale: c.vale }
+    if (c.vale === 'suspensao') { const l = ctx.linha(rival(teamId)); if (l.length) info.suspenso = l[Math.floor(quemSai * l.length)] }
     if (c.vale === 'penalti' || c.vale === 'shootout') duelo(`carta:${lado}`, c.vale, kMin, teamId, d)
     else if (c.vale === 'penalti_inverso') duelo(`carta:${lado}`, 'penalti_inverso', kMin, rival(teamId), d)
     else if (c.vale === 'suspensao' && susp.chance < 0.45) {
@@ -128,8 +133,8 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
     } else if (c.vale === 'estrela') info.estrela = ctx.estrela(teamId) ?? undefined
     cartas.push(info)
   }
-  usaCarta(H, ag.cartaCasa, cartaH, dCartaH, suspH, 'h')
-  usaCarta(A, ag.cartaFora, cartaA, dCartaA, suspA, 'a')
+  usaCarta(H, ag.cartaCasa, cartaH, dCartaH, suspH, 'h', quemSaiH)
+  usaCarta(A, ag.cartaFora, cartaA, dCartaA, suspA, 'a', quemSaiA)
   r.highlights.push(...gols)
   r.highlights.sort((x, y) => x.min - y.min)
   // ✖️2 / ⭐ gols que valem 2 (entra um 2º lance no mesmo minuto — o placar de sempre conta lance a lance)
@@ -178,7 +183,7 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
   }
   r.hg = r.highlights.filter(h => ehGol(h) && h.teamId === H).length
   r.ag = r.highlights.filter(h => ehGol(h) && h.teamId === A).length
-  const info: KingsInfo = { dado, bola, ouro, pres: duelos.filter(d => d.tipo === 'presidente').map(d => ({ teamId: d.batedor, min: d.min, gol: d.gol })), cartas, duelos }
+  const info: KingsInfo = { dado, posse, bola, ouro, pres: duelos.filter(d => d.tipo === 'presidente').map(d => ({ teamId: d.batedor, min: d.min, gol: d.gol })), cartas, duelos }
   if (r.hg === r.ag) {
     // 🥅 SHOOTOUT da Kings (regra oficial): 5 por time, cada um sai do MEIO-CAMPO cara a cara com o goleiro e tem 5 s pra
     // chutar; acaba antes se um não alcança mais; empatou nas 5, morte súbita. Entra bem menos que pênalti (~55%).
