@@ -112,6 +112,7 @@ grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (apl
   ➕ 15/10: quer VENDER CAMISA DE TIME DE CORAÇÃO pro personagem. Proposta: camisa nas CORES do time (listra/faixa do
   jeito do clube), SEM escudo oficial e SEM patrocinador — vender a camisa oficial com escudo é usar marca de clube pra
   cobrar. R$ 4,90 cada, começando pelos 20 da Série A. ⏳ esperando ele escolher.
+  ✅ Decidido (Diego): *"nem o fundador terá"* — camisa de time NÃO vem em plano nenhum, nem no Fundador; é só comprada.
 - FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
 
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
