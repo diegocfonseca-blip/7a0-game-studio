@@ -65,6 +65,8 @@ import vieiraEscudoImg from './img/vieira-escudo.webp' // 😈🔴⚫ Vieira FC 
 import mengaoEscudoImg from './img/mengao-escudo.webp' // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21): arte própria do dono
 import arrogantchiEscudoImg from './img/arrogantchi-escudo.webp' // 😜🔵⚫ Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleEscudoImg from './img/intervale-escudo.webp' // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
+import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
+import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniEscudoImg from './img/rossini-escudo.webp' // 💴🔴⚫ Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceEscudoImg from './img/leprince-escudo.webp' // 🐓👑 Le Prince FC (henriquejunger07): arte própria do dono
 import k9EscudoImg from './img/k9-escudo.webp' // 👑🧊 K9 FC (kelvinoliveiraandradeenunes): arte própria do dono
@@ -628,7 +630,7 @@ const saoluizEscudoRender = (size: number) => (
   <img src={saoluizEscudoImg} height={size} width={Math.round(size * 360 / 355)} alt="São Luiz FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 const leaoEstradinhaRender = (size: number) => (
-  <img src={leaoEstradinhaEscudoImg} height={size} width={Math.round(size * 287 / 360)} alt="Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={leaoEstradinhaEscudoImg} height={size} width={Math.round(size * 256 / 360)} alt="Leão da Estradinha" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 // 🏠🔴⚫ Esqueceram do Lluch FC (lluchmarcel81) — o escudo vermelho e preto com o
 // menino esquecido em casa, o desenho da casa, o ladrão e a viatura. Arte própria
@@ -879,6 +881,17 @@ const mengaoEscudoRender = (size: number) => (
 // 😜🔵⚫ ARROGANTCHI FC (heitormonaco98, batismo de 08/10) — Série A, no assento do Bagres 1993 (que desceu pra B).
 // 📏 266×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo. Fundo verde tirado pelo recorte chroma;
 // conferido sobre fundo colorido.
+// 🐰⚪ LABUBU FC (caelborba, batismo de 14/10) — Série A, no assento do Só Deus Sabe FC (que desceu pra C).
+// 📏 230×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo (escudo coroado com o monograma e o pelo preto atrás).
+// Fundo verde chroma tirado; conferido sobre verde, creme e preto.
+const comverissimoEscudoRender = (size: number) => (
+  <img src={comverissimoEscudoImg} height={size} width={Math.round(size * 254 / 360)} alt="ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
+const labubuEscudoRender = (size: number) => (
+  <img src={labubuEscudoImg} height={size} width={Math.round(size * 230 / 360)} alt="Labubu FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 // 💴🔴⚫ ROSSINI MONEY (luizeduardorossini0013, batismo de 12/10) — Série A, no assento do Bagres de Wall Street FC.
 // 📏 287×360, ≤30 KB — largura pela PROPORÇÃO REAL do arquivo (escudo com a coroa, os corvos e a lua vermelha).
 // Fundo verde chroma tirado; conferido sobre fundo verde e creme.
@@ -1507,6 +1520,19 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Le Prince EC': leprinceEscudoRender,
   'Le Prince SC': leprinceEscudoRender,
   'Perna de Pau City': leprinceEscudoRender,
+  // 🟢⚪ ComVerissimo FC (cesar.verissimo27) — BATISMO. As 4 formas do nome (regra 20/08) + o nome VELHO do
+  // assento (Soberano Nacional só existia como bot da Série D, então save antigo passa a desenhar o clube novo).
+  'ComVerissimo FC': comverissimoEscudoRender,
+  'ComVerissimo': comverissimoEscudoRender,
+  'ComVerissimo EC': comverissimoEscudoRender,
+  'ComVerissimo SC': comverissimoEscudoRender,
+  'Soberano Nacional': comverissimoEscudoRender,
+  // 🐰⚪ Labubu FC (caelborba) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o Só Deus Sabe continua
+  // existindo (foi pra C).
+  'Labubu FC': labubuEscudoRender,
+  'Labubu': labubuEscudoRender,
+  'Labubu EC': labubuEscudoRender,
+  'Labubu SC': labubuEscudoRender,
   // 💴🔴⚫ Rossini Money (luizeduardorossini0013) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho:
   // o Bagres de Wall Street continua existindo (foi pra B).
   'Rossini Money': rossiniEscudoRender,

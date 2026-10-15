@@ -307,6 +307,67 @@ function ApoioAdmin() {
   )
 }
 
+// 🎁 PRESENTES DE PLANO (14/10). O jogador pede pela Loja (nada é liberado) → paga e manda comprovante → aqui você
+// ENTREGA. Craque/Lenda ligam o tier na hora (nunca rebaixam quem já tem mais). Batismo/Fundador só marcam entregue: o
+// clube você monta pelo roteiro de batismo, falando com o amigo. O amigo vê "FULANO TE DEU UM PRESENTE!" ao entrar.
+// 🎟️ SALAS EXTRAS (14/10): Pix de R$ 4,90 caiu → e-mail da conta → +3. O gatilho da sala do dia gasta 1 quando a grátis acabou.
+function SalasExtrasAdmin() {
+  const [email, setEmail] = useState('')
+  const [msg, setMsg] = useState('')
+  const dar = async () => {
+    const em = email.trim().toLowerCase()
+    if (!em.includes('@')) { setMsg('❌ digita o e-mail da conta'); return }
+    const { data, error } = await supabase.rpc('esc_admin_salas_extras_add', { p_email: em, p_qtd: 3 })
+    setMsg(error ? `❌ ${error.message.includes('SEM_CONTA') ? 'não existe conta com esse e-mail' : error.message}` : `✅ ${em} agora tem ${data} sala(s) extra(s)`)
+    if (!error) setEmail('')
+  }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>🎟️ Salas extras · +3</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 8px' }}>Só depois de ver o Pix de R$ 4,90. Não vencem.</p>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta" style={{ flex: 1, border: '2px solid #FFC400', borderRadius: 10, padding: '8px 10px', background: 'transparent', color: '#F2E8CF', fontWeight: 700, fontSize: 13 }} />
+        <button onClick={dar} style={{ border: 'none', borderRadius: 10, padding: '8px 12px', background: '#FFC400', fontWeight: 900, cursor: 'pointer' }}>+3</button>
+      </div>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '7px 0 0' }}>{msg}</p>}
+    </div>
+  )
+}
+
+type Presente = { id: number; de_email: string; para_email: string; plano: string; recado: string | null; status: string; criado_em: string }
+function PresentesAdmin() {
+  const [lista, setLista] = useState<Presente[]>([])
+  const [msg, setMsg] = useState('')
+  const carregar = async () => { const { data } = await supabase.rpc('esc_admin_presentes'); setLista((data ?? []) as Presente[]) }
+  useEffect(() => { carregar() }, [])
+  const entregar = async (r: Presente) => {
+    if (!window.confirm(`Pagamento do presente nº${r.id} conferido? Entregar ${r.plano.toUpperCase()} pra ${r.para_email}?`)) return
+    const { data, error } = await supabase.rpc('esc_admin_presente_entregar', { p_id: r.id })
+    setMsg(error ? `❌ ${error.message}` : `✅ nº${r.id} entregue — ${data}`); carregar()
+  }
+  const recusar = async (r: Presente) => { if (!window.confirm(`Recusar o presente nº${r.id}?`)) return; await supabase.rpc('esc_admin_presente_recusar', { p_id: r.id }); carregar() }
+  const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>🎁 Presentes de plano</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Só entregue depois de ver o Pix com o nº do presente. Craque/Lenda ligam sozinhos; Batismo/Fundador: monte o clube pelo roteiro.</p>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '0 0 8px' }}>{msg}</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#F2E8CF' }}>
+        <tbody>
+          {lista.map(r => <tr key={r.id} style={{ opacity: r.status === 'pedido' ? 1 : .5 }}>
+            <td style={td}><b>nº{r.id}</b><br />{new Date(r.criado_em).toLocaleDateString('pt-BR')}</td>
+            <td style={td}><b>{r.plano.toUpperCase()}</b><br />de {r.de_email}<br />pra <b>{r.para_email}</b>{r.recado ? <><br /><i>"{r.recado}"</i></> : null}</td>
+            <td style={td}>{r.status === 'pedido'
+              ? <><button onClick={() => entregar(r)} style={{ border: 'none', borderRadius: 8, padding: '4px 8px', background: '#6fdb8f', fontWeight: 900, cursor: 'pointer' }}>ENTREGAR</button><br /><button onClick={() => recusar(r)} style={{ background: 'none', border: 'none', color: '#ff8a75', fontWeight: 800, cursor: 'pointer', marginTop: 4 }}>recusar</button></>
+              : r.status}</td>
+          </tr>)}
+          {lista.length === 0 && <tr><td style={td}>nenhum presente pedido ainda</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ⭐ CRAQUE MENSAL · pedidos e pagamentos (planos v2, 08/10). A pessoa deixa o WhatsApp na tela do
 // Craque → aparece aqui → você manda o link pelo WhatsApp → pagou, cola o ID do pagamento e confirma.
 // O MESMO ID duas vezes não soma nada (proteção contra confirmar repetido). O mês novo começa no fim
@@ -323,7 +384,7 @@ function CraqueMensalAdmin() {
   const carregar = async () => { const { data } = await supabase.rpc('esc_admin_pedidos_craque'); setLista((data ?? []) as PedidoCraque[]) }
   useEffect(() => { carregar() }, [])
   const dia = (v: string | null) => v ? new Date(v).toLocaleDateString('pt-BR') : '—'
-  const zapLink = (n: string) => `https://wa.me/${n.length <= 11 ? '55' + n : n}?text=${encodeURIComponent('Fala! Aqui é o Diego do Leilão Legends 💛 Segue o link pra assinar o ⭐ Craque completo (R$ 12,90/mês): ')}`
+  const zapLink = (n: string) => `https://wa.me/${n.length <= 11 ? '55' + n : n}?text=${encodeURIComponent('Fala! Aqui é o Diego do Leilão Legends 💛 Segue o link pra assinar o ⭐ Craque completo (R$ 9,90/mês): ')}`
   const status = async (id: number, st: string) => { await supabase.rpc('esc_admin_pedido_status', { p_id: id, p_status: st }); carregar() }
   const confirmar = async () => {
     const em = email.trim().toLowerCase()
@@ -343,7 +404,7 @@ function CraqueMensalAdmin() {
     const em = bEmail.trim().toLowerCase()
     if (!em.includes('@') || bPid.trim().length < 3) { setMsg('❌ falta o e-mail ou o ID do Pix do batismo'); return }
     setBusy(true); setMsg('')
-    const { data, error } = await supabase.rpc('esc_admin_batismo_compra', { p_email: em, p_plano: bPlano, p_pagamento_id: bPid.trim(), p_valor: bPlano === 'plus' ? 79.99 : 69.9 })
+    const { data, error } = await supabase.rpc('esc_admin_batismo_compra', { p_email: em, p_plano: bPlano, p_pagamento_id: bPid.trim(), p_valor: bPlano === 'plus' ? PRECOS.batismoPlus : PRECOS.batismoLenda })
     const r = data as { repetido?: boolean; plano?: string } | null
     setMsg(error ? `❌ ${error.message}` : r?.repetido ? '⚠️ esse pagamento já estava registrado — nada mudou' : `✅ ${em} registrado como Batismo ${r?.plano === 'plus' ? 'Plus' : 'Lenda'} (o roteiro do batismo segue como sempre)`)
     if (!error && !r?.repetido) { setBEmail(''); setBPid('') }
@@ -353,7 +414,7 @@ function CraqueMensalAdmin() {
   const td = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' } as const
   return (
     <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>⭐ Craque completo · mensal R$ 12,90</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>⭐ Craque completo · mensal R$ 9,90</p>
       <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Pedido chega aqui com o WhatsApp → toca no 📲 e manda o link → pagou: e-mail + ID do pagamento → CONFIRMAR. Mesmo ID duas vezes não conta. Cancelar só marca: vale até o fim do mês pago.</p>
       <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email da conta" style={inp} />
       <input value={pid} onChange={e => setPid(e.target.value)} placeholder="ID do pagamento (código do Pix / Mercado Pago)" style={inp} />
@@ -379,7 +440,7 @@ function CraqueMensalAdmin() {
         </tbody>
       </table>
       <details style={{ marginTop: 10 }}>
-        <summary style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#FFC400', cursor: 'pointer', textTransform: 'uppercase' }}>🖋 Registrar batismo novo (Lenda R$ 69,90 / Plus R$ 79,99)</summary>
+        <summary style={{ ...OSWALD, fontWeight: 900, fontSize: 11.5, color: '#FFC400', cursor: 'pointer', textTransform: 'uppercase' }}>🖋 Registrar batismo novo (Lenda R$ 79,90 / Plus R$ 89,90)</summary>
         <div style={{ display: 'flex', gap: 6, margin: '8px 0' }}>
           {(['lenda', 'plus'] as const).map(k => <button key={k} onClick={() => setBPlano(k)} style={{ flex: 1, border: '2px solid #FFC400', borderRadius: 8, padding: 6, ...OSWALD, fontWeight: 900, fontSize: 11.5, background: bPlano === k ? '#FFC400' : 'transparent', color: bPlano === k ? '#0C0C0C' : '#FFC400', cursor: 'pointer' }}>{k === 'plus' ? '🖋✨ PLUS' : '🖋 LENDA'}</button>)}
         </div>
@@ -1023,7 +1084,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

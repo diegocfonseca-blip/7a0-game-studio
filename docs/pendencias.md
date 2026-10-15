@@ -235,6 +235,490 @@ transporte/assento e metrô mandante desta rodada.
   a arte aprovada nem considerar visual concluído pelos testes técnicos.
 - Estado detalhado e limites: `docs/presidencia-complexo-3d-reconstrucao.md`.
   Alterações acumuladas locais, acesso futuro inicial só Diego; nenhum novo deploy.
+## 🪪 5 Garrinchas no elenco do Fabulous EC (15/10) — ✅ NO AR (15/10)
+- ✅ 👑 **KINGS v2 NO AR (15/10, só na conta do Diego)** — `scripts/mockups/kings-v2.png` (bola caindo da gaiola, 1×1→7×7, dado gigante 👑/2×2/3×3, presidente sem botão com contagem e minuto fixo por rodada, carta secreta sorteada, roteiro). Detalhes em `docs/conceito-kings-league.md` (v2). Feito: bola caindo da gaiola, faixa 1×1→7×7, dado gigante 3D, presidente e cartas sorteadas na agenda da rodada com cobrança de 5 s (bate/defende; não escolheu = sorteio), liga e mata-mata. ⏳ Falta: versão online gente × gente (a agenda e o `KINGS_DECIDIR` já foram feitos pensando nela).
+
+- 👑 **KINGS LEAGUE NA TELA DE SEMPRE (15/10)** — Diego: *"está tudo deformado o placar… tudo é padrão do nosso jogo"*. A tela própria (`kings-rapida.tsx`) saiu; a temporada é a `EscSeason` com a regra por cima (`kings-liga.ts`): relógio 40', banners que param o jogo (dado, presidente, intervalo, bola), tabela com SH, mata-mata jogo único com o 1º direto na semi, SHOOTOUT de verdade (1×1 do meio, 5 s, ~55%). Só na conta dele. Trava `npm run kings` (motor, 6 combinações de leilão, liga, mata-mata). ⏳ Falta: carta secreta e o presidente/shootout BATIDOS na mão (hoje sorteados) — perguntar se ele quer; versão online gente × gente.
+
+- 🦅⚡ **FABULOUS EC VIROU 🖋 FUNDADOR (15/10)**: koeppfabio já tinha fundador nº76; gravado `esc_compras_batismo` = plus (o mesmo do Arruda). ✅ **GALA ÚNICA NO AR (15/10, com o canto)**: `gala-fabulous.tsx` (guerreiro PRETO entra pela esquerda e VERMELHO pela direita → giram e viram luz num clarão → céu fecha, nuvens, raios e a tela pisca → o escudo acende e a águia sobe → "CHEGOU NA SALA"). Guerreiros são NOSSOS (capacete + raio no peito), nada da marca Power Rangers. Vídeo: `node scripts/video-gala-fabulous.mjs` → `scripts/posts/gala-fabulous.mp4`. Registrada em `GALA_UNICA`. 📣 CANTO DA TORCIDA (15/10): 11 s do vídeo que o Diego mandou → `public/sfx/torcida-fabulous-v1.mp3` (mono 32 kHz 56 kbps, −20,6 dB igual ao do Geovany), toca na carreira (`AMBIENTE_CARREIRA_POR_EMAIL`, o gol continua o de todos) e na gala (`playMp3Gala`). Vídeo com som: `scripts/posts/gala-fabulous-com-canto.mp4`.
+
+- Causa: sondagem de clube de FUNDO dava à carta o id `sond-<id do fundo>`, e o id de fundo (`ATA-25`) se repete entre
+  clubes. Garrincha (sondado antes) e Pelé (agora) nasceram os dois `sond-ATA-25`; a tela desenha o elenco pelo id e
+  embaralhou (5 Garrinchas na lista; no elenco de verdade eram 1 Pelé + 1 Garrincha).
+- Conserto (`store.tsx`): id novo leva a temporada + sufixo se ainda bater; `curaIdRepetido` (no `sincronizaNiveis`)
+  troca o id da 2ª carta repetida nos clubes de GENTE e acerta a 2ª ocorrência em `careerLineup`/`careerHalftime`/`copaXi`.
+  Testado no save real dele (T103): 22 ids únicos, Pelé e Garrincha nos 2 lugares do ataque.
+- Labubu FC (caelborba): "bug no 1º leilão" — sala CAYJZH parou no envelope porque o aparelho do DONO (ele, iPhone)
+  não fechou o prazo; o motor fecha normal. Esperando o print dele. Proposta (sem OK ainda): dono fecha o envelope
+  vencido assim que volta pra frente do jogo.
+
+## 👑 KINGS LEAGUE — 🟢 NO AR NA PARTIDA RÁPIDA, SÓ NA CONTA DO DIEGO (15/10, "faça tudo e publique apenas no partida rápida")
+🔁 **15/10 (madrugada), Diego: *"o leilão é sempre igual ao de sempre nosso"*** — o leilão inventado SAIU. Agora o botão dá
+`START` com `kings: true` → o LEILÃO DE SEMPRE (envelope, revelação, monte, cerimônia) com a formação `'kings'` (types.ts:
+GOL 1 · LAT 0 · ZAG 2 · MEI 2 · ATA 2), 10 times (você + 9 rivais que dão lance, sem preenchimento) e o campinho de 7
+(`kings-campinho.tsx`) no `YourPitch`. Na tela 'season' o Router abre `EscKingsSeason` → `kings-rapida.tsx` com os 10 elencos
+do pregão. Trava: `npm run kings` (motor + leilão real chegando na temporada com 7 por time, sem fake, e o rápido normal intacto).
+(texto antigo:) `src/escalacao/kings-rapida.tsx`: jogo À PARTE por cima da tela de configurar a Partida Rápida (botão preto "👑 KINGS LEAGUE ·
+TESTE · SÓ VOCÊ VÊ", trava `useKingsLiberada`/`KINGS_TESTERS` em sport.ts). Estado próprio (não passa pelo reducer), guarda no
+aparelho em `kings-rapida-v1`. Fluxo: regras → leilão às cegas de 7 (GOL·ZAG·MEI·ATA, 100 🪙, bots dão lance, sobra vai pro
+monte de graça) → 9 rodadas (vestiário 20s com a carta → partida de ~3 min com banners de 7s: início, dado, intervalo,
+bola, shootout) → pênalti do presidente nos dois sentidos (você bate com o PenaltyArt; o do bot você defende) → carta
+(pênalti/shootout você bate; suspensão/gol em dobro entram na conta) → empate = shootout manual 5+5 e morte súbita →
+mata-mata (1º direto na semi) → campeão. Testado no navegador do começo ao campeão, sem erro.
+⏳ Falta: levar pras SALAS ONLINE (duelo gente × gente) quando ele aprovar o rápido; o nome "Kings League" é marca registrada (avisado).
+(histórico da etapa 1 abaixo)
+
+Conceito inteiro: **`docs/conceito-kings-league.md`** (regras da Kings League BRASIL, nome "Kings League", ritmo mais
+lento: ~3 min/partida, banners de 6–8s explicando cada regra, intervalo 15s, vestiário 20s). Mockups:
+`scripts/mockups/kings-league.png` + `campinho-reis.png` (o campinho; o selo vira "KINGS LEAGUE").
+✅ Etapa 1: motor PURO `src/escalacao/kings.ts` (10 times/9 rodadas, 3·2·1·0, calendário, chave 1º-na-semi, partida com
+dado no 18, bola dourada/vermelha no 38, cartas, pênalti do presidente, shootout, duelo de canto). Trava `npm run kings`.
+Média medida: ~6,3 gols/jogo, ~18% vai pro shootout. Não está ligado em tela nenhuma ainda.
+⏳ Etapas 2–5 (só na conta do Diego até ele aprovar): tipo de sala + leilão de 7 com campinho · liga de 10 + partida ·
+vestiário/carta/pênalti do presidente (online) · duelo manual + banners + mata-mata.
+
+## 🤝 Dupla nas copas com convocação: só UM escolhe e convoca (15/10, "Ok pode fazer") — ✅
+Bug da sala do Futpoint (dupla Futpoint + Cativeiro): no Rio × SP cada um escolheu um clube, e o Cativeiro escolheu na
+vez da dupla Gui|Palmolego. Causa: Copa do Mundo/regional montavam "assento → pessoa" com TODAS as linhas do
+room_players, e a linha do parceiro guarda um `player_index` velho (a renumeração só mexe nos donos) que caía no
+assento de outro. Agora `dupla-copa.ts` (`quemAgePorAssento`): linha de parceiro nunca vira assento, e quem age pela
+dupla é o marcado na sala de espera (**🏳️ Quem escolhe o clube e convoca**, `dupla_categories.CONV`; ninguém marcou =
+dono). O outro vê o aviso roxo "👀 Fulano escolhe e convoca pela dupla", a fila mostra "Fulano escolhe · Ciclano
+assiste", e os botões dele somem (nada de botão mudo). Mockup: `scripts/mockups/dupla-convoca.png`.
+⚠️ "Ao vivo" pro parceiro = ele vê o clube na hora e o time quando o outro CONFIRMA os 11 (a convocação não grava
+escolha por escolha).
+🛡️ "As 2 listas": a sala "Rio-SP no YouTube" (ARJSUE) tinha `mundoNaLiga` E `regionalNaLiga` → abria as duas copas
+lendo as mesmas escolhas (e a convocação do "São Paulo" procurava o PAÍS São Paulo = 0 jogadores). Agora com as duas
+marcas vale só a regional. 🚫 Sala "🌐 Copa do Mundo" direta não oferece mais Duplas (15/10, ordem dele). ⏳ Achar COMO a sala ganhou as duas marcas (a criação é exclusiva; 3 salas assim desde 13/10).
+
+## 🚪 Quem aperta SAIR depois do apito continua dono do título (14/10, sala do Futpoint) — ✅
+Guimarães SCI ganhou liga + Copa do Mundo e não apareceu no ranking/"Campeões de hoje". Causa: a partida é gravada 2×
+(fim da liga e fim da Copa do Mundo); na 2ª, quem já tinha apertado SAIR era CPU no estado do dono e sumia do
+`human_results` — o título ficava "de um bot". Conserto: a tela manda TODOS os times com `humano`, e o LigaHub herda a
+gravação anterior da mesma partida (time já anotado como de alguém continua dele, com o user_id). Banco: a linha da
+sala 3C6RII ganhou o Guimarães (liga + mundial) e os user_id de Real Pirituba/NICOLAS/Palmolego.
+🚫 **Regra do Diego (14/10): quem SAI antes de acabar não ganha troféu** (*"isso não quero dar troféu p eles"*). Quem saiu
+antes da 1ª gravação (fim da liga/copa) nem entra; quem saiu depois leva SÓ o que a gravação anterior já tinha anotado —
+taça que o time dele ganhar depois, jogado pela CPU, não é dele.
+
+## 🏆 Ranking da Semana: nome = o MAIS RECENTE da conta (14/10) — ✅ no banco
+Diego: *"tem que ser com base no e-mail… quando ele trocar o nome, troca ali também"*. A vitrine já somava por conta
+(user_id); só o NOME vinha errado (max = último no alfabeto → "M.D.REAL" no lugar de "LABUBU F.C"). `esc_vitrine_salas`
+agora usa o nome mais recente da semana (`docs/sql/vitrine-nome-mais-recente.sql`). **A regra de contar NÃO mudou** (ordem dele).
+✅ CASO 2 CONSERTADO (14/10, "Faça"): título de sala que o dono apagou (SAIR) ia pro lixo junto (`game_champions`
+ON DELETE CASCADE). Agora vai pro `game_champions_arquivo` (gatilho que nunca trava o SAIR) e a vitrine soma os dois.
+Semana de 12/10 recuperada: 214 temporadas (1 descartada por 2 campeões). Labubu 13 → 23, 1º da semana.
+`docs/sql/titulos-sala-apagada.sql`. Só o RANKING DA SEMANA usa o arquivo (ordem dele). ✅ Conferido ao vivo (14/10 22h UTC): 3 títulos
+de salas apagadas já caíram sozinhos no arquivo (origem `sala_apagada`).
+⏳ O ranking GERAL (`esc_ranking_cache`) está com foto parada em 02/09 — avisado, sem mexer.
+
+## 🐍 Tricolor do Arruda FC virou 🖋 FUNDADOR (14/10) — banco feito
+souzact12 (Geovany, coração Santa Cruz, mascote cobra_arruda): `esc_compras_batismo` = plus. Já tinha fundador nº43 e o canto. ✅ GALA ÚNICA NO AR (14/10, v2 aprovada): `gala-arruda.tsx` (estádio com teto/refletores/degraus/torcida pulando, mosaico PRETO · BRANCO · VERMELHO igual à foto do Arruda, bandeirão com o escudo, a cobra numa BANDEIRA GIGANTE subindo de dentro da torcida em 2 mastros, "Ô ARRUDA!") + o CANTO DA TORCIDA dele tocando junto (`playMp3Gala`, abaixa no fim; respeita mudo), registrada em `GALA_UNICA`. Vídeo: `scripts/video-gala-arruda.mjs` → `scripts/posts/gala-arruda.mp4` (com som: `gala-arruda-com-canto.mp4`, áudio juntado com o ffmpeg do `pip install imageio-ffmpeg`). ⏳ Decidir se sobe pra Série A.
+
+## 🛒 Loja (14/10, tarde) — ✅ NO AR
+Gala única avulsa SAIU (custava o mesmo que subir pro Fundador, que traz tudo); fica 📣 canto avulso R$ 10 + dica "a gala vem no Fundador". Salas extras só aparecem pra quem NÃO cria à vontade (grátis/Craque novo).
+
+
+## 14/10/2026 — 💪 COPA DO MUNDO COM MENOS ZEBRA ✅ NO AR
+- Reclamação: "Camarões campeão" nas salas. Causa medida: gente pega as seleções fortes, a máquina fica com as do meio
+  (Escócia, Suécia, Camarões…) e, quando a máquina ganha, é sempre um país "estranho" (9 de ~83 Copas).
+- Peso da força no jogo da Copa 0,05 → 0,08 (`PESO_FORCA`, copa-mundo.tsx). Bots só: campeã fora das 9 fortes ~25% → ~10%.
+  A força é a média do XI convocado, então convocação ruim continua perdendo (Brasil dos piores 11 × Camarões dos melhores:
+  BR vence ~2%). Vale online (Copa criada depois de `FORCA_DESDE`) e carreira (carimbo `forte` no `emAndamento`); Copa já
+  rolando termina com o peso velho.
+- ⏳ Copas regionais continuam com 0,05 (motor próprio em `copa-regional.ts`) — mudar só se o Diego pedir.
+- ⚠️ `npm run copamundo` já falhava ANTES desta mudança ("jogo de copa só conta com a Copa encerrada") — investigar.
+
+## 🎟️ Salas extras do dia (14/10) — ✅ NO AR
+(14/10, prints do Diego) Na Loja, tocar num plano abre a tela padrão do Apoie DO COMEÇO (Pra onde vai o dinheiro → todos os planos; "não joga ele no Lenda"). No aviso de limite de sala, os dois botões um embaixo do outro: 👑 ver os planos · 🎟️ 3 salas extras, e tem o botão 💛 VER TODOS OS PLANOS no topo.
+Loja: 3 salas por R$ 4,90, só pra quem não cria à vontade (grátis e Craque novo); também no aviso amarelo de "já criou a sala de
+hoje". Paga Pix + comprovante → Diego dá +3 no #admin (🎟️ Salas extras). O gatilho `esc_sala_por_dia` gasta 1 extra quando a sala
+grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (aplicado).
+
+
+## 14/10/2026 — 🧑‍💼 PRESIDENTE DO USUÁRIO EM TODO CANTO (⏳ mockup enviado, esperando o OK final)
+- Regra fechada: escudo = clube · presidente = pessoa (ver CLAUDE.md). 12 lugares no mockup (sala, chat, martelo, pódio,
+  vitrine, jornal, presidência, troféus, caixa, convite, Central, perfil). Sugestão minha: começar por sala + pódio + presidência + jornal.
+- Guarda-roupa por plano com as roupas que JÁ estão em `public/presidente-v*` + roupa avulsa (sugestão R$ 4,90).
+- FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
+
+## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
+🏅 Prêmios da noite (fim de toda sala, sai dos dados do leilão) + 🏛️ Galeria da Minha Liga (campeões por temporada, quem manda
+na liga, rivalidade). Mockup: `scripts/mockup-online-premios-galeria.mjs` → `scripts/mockups/online-premios-galeria.png`.
+Outras na mesa: cartão pro grupo do zap, rivalidade, sala marcada. 🎨 Cor do nome NÃO se vende (reconfirmado 14/10).
+
+## 🎁 Presente de plano + subida +R$ 5 (14/10) — ✅ NO AR
+- Presente: Loja → escolhe plano, e-mail do amigo, nome, recado → `esc_pedir_presente` (servidor confere conta, plano, não é
+  pra si) → Pix + comprovante → Diego ENTREGA no #admin (🎁 Presentes de plano). Craque/Lenda ligam o tier; Batismo/Fundador só
+  marcam (montar pelo roteiro). Amigo vê "FULANO TE DEU UM PRESENTE!" ao entrar (`PresenteRecebido`). SQL: `docs/sql/presentes.sql` (aplicado).
+- Subir de plano = diferença + R$ 5 (`TAXA_SUBIDA`). Cor do nome saiu do Lenda e NÃO virou item (Diego: pra não confundir).
+
+## 🛍️ Itens novos da Loja (14/10) — ⏳ MOCKUP enviado, NÃO fazer ainda (ordem do Diego)
+Escolhidos por ele: 🎁 dar de presente · 🎖️ título do lado do nome (troca quando quiser) · 😂 figurinhas da sala · 🎨 tema da
+sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o canto do TIME DE CORAÇÃO (sem escudo de clube real).
+Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
+🎁 14/10: presente APROVADO, mas **só de PLANO** (Craque/Lenda/Batismo/Fundador) — *"presente é só dos planos, nada de títulos figurinhas"*.
+
+## 🏆 Moldura do pódio da semana (15/10) — ✅ NO AR
+Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalha, sem mexer no fundo (fundo = cor do plano).
+`podio-semana.tsx`: moldura de metal girando POR FORA da linha na lista de técnicos da sala (ouro · prata · bronze), coroinha
+no 1º e fita "1º DA SEMANA" (ele testou "1º RANKING SEMANAL" e voltou pro "da semana"). Posição = a medalha 🥇🥈🥉 que já vai no nome (vem do banco).
+Mockup: `scripts/mockup-podio-semana.mjs`. Ideia futura (não pedida): levar a moldura pra outros lugares (placar, chat).
+
+## 🟢 Batismo ComVerissimo FC (15/10) — ✅ código + banco + deploy
+cesar.verissimo27@gmail.com (conta existe desde 30/07). Plano 🖋 FUNDADOR. Série D no assento do bot Soberano Nacional
+(`OLD_NAME` leva save antigo pro nome novo). Escudo 254×360/29 KB, mascote O Verissimo 241×440/38 KB, manto verde #034727 +
+branco #F0F0EC medidos, camisa na Loja (`comverissimo-camisa-v1.webp`). Coração Palmeiras.
+Banco: esc_socios nº73 (origem batismo, até 2099), esc_nomes_batismo 'comverissimo' (+FC/EC), esc_compras_batismo 'plus',
+user_colors ouro manual. ⚠️ **Ele JÁ era fundador nº3 desde agosto** (Lenda pago) — ficou com o nº3, NÃO ganhou outro número.
+Post: `scripts/posts/comverissimo-post.png`.
+✅ Gala única NO AR (15/10): `gala-comverissimo.tsx`, no formato dos vídeos do Instagram dele (parede de camisas, notícia em
+cima com a tarja @comverissimo, legenda branca com palavra amarela). O Diego recusou a 1ª versão (celular gravando com REC)
+e mandou tirar o "NA SEMANA PASSADA". Vídeo: `scripts/posts/gala-comverissimo.webm`.
+⏳ Falta só o **canto da torcida** (o Diego vai mandar) → carreira (`AMBIENTE_CARREIRA_POR_EMAIL`) + `playMp3Gala` na gala.
+
+## 🐰 Batismo Labubu FC (14/10) — ✅ código + banco + deploy
+caelborba@gmail.com (conta existe). Série A no assento do Só Deus Sabe FC, que DESCEU pra Série C na vaga do bot Napolitano (sem
+OLD_NAME). Escudo 230×360/28 KB, mascote O Labubu 252×440/31 KB, manto branco #EFEEED + marinho #03101F medidos, camisa na Loja.
+Banco: esc_socios nº72 (origem batismo, até 2099), esc_nomes_batismo 'labubu' (+FC/EC), esc_compras_batismo 'lenda', user_colors
+ouro manual. **Sem número de fundador** (regra nova). Post: `scripts/posts/labubu-post.png`. ⏳ Falta: nome do dono pro rodapé do
+post ("Batizado por —") (coração Real Madrid, confirmado pelo Diego e gravado no banco).
+
+## 💳 Planos novos (14/10) — ✅ NO AR
+✅ Vitrine pública: Craque 29,90 · Lenda 49,90 · Batismo 79,90 · 🖋 Fundador 99,90 (ex-Batismo Lenda), todos "PAGAMENTO ÚNICO", Sócio
+fora, subida pela diferença no botão e no Pix. V2 (mensal) desligada até pra conta do Diego. FAQ atualizado.
+✅ BANCO (já valendo): `esc_craque_antigo` (70 Craques de antes) + `salas_pagas` só Lenda+ ou Craque antigo (`docs/sql/salas-so-lenda.sql`).
+✅ Conta do Diego = Fundador (`esc_compras_batismo` plus). K9 segue Batismo (antigo).
+⏳ Falta: canto da torcida do Diego (Fundador tem direito); Loja do Clube de verdade; nº de fundador fora do Batismo é PROCESSO
+(não inserir `esc_fundadores` em Batismo de 79,90).
+
+## 🛒 Loja do Clube (14/10) — ✅ NO AR (faixa dourada na home; Ranking saiu da home). Canto = o do TIME DE CORAÇÃO do dono. Fundador aparece nas salas online dos outros em rodízio, mesmo sem jogar.
+Botão 🛒 LOJA dourado no rodapé da home (no lugar do ÁLBUM repetido; no header não coube por causa do som). Mostra por plano:
+subir de plano (só a diferença) · 🚁 gala única R$ 25 e 📣 canto R$ 10 SÓ pra Batismo (somam 35 > Fundador +25 = desconto de
+quem sobe) · Fundador vê "já incluso" · 🏦 moedas (10/50/100 → ficha do Banco Legends, resgata na carreira que quiser).
+Pagamento = Pix + comprovante (libera o Diego); nada é liberado pelo cliente. Fotos: `scripts/foto-loja-clube.mjs`.
+(Mockup antigo abaixo, só pra história.)
+Decisão em construção: volta Craque R$ 19,90 / Lenda R$ 39,90 (uma vez só) + SOBE DE PLANO pagando a diferença (Craque→Lenda
++20 · Craque→Batismo +60 · Lenda→Batismo +40) + vitrine de avulsos que gira toda semana (canto da torcida, comemoração, frase do
+martelo, manto pronto, entrada de gala) + moedas do Banco Legends como FICHA guardada na conta, que a pessoa manda pra carreira
+que quiser. Mockup: `scripts/mockup-loja-clube.mjs` → `scripts/mockups/loja-clube.png`. A Vitrine do Sócio ficou em espera.
+
+## 🎽 Vitrine do Sócio (14/10) — ⏳ MOCKUP enviado, esperando OK do Diego
+Ideia pra o mensal valer a pena: Sócio escolhe 1 escudo, 1 mascote e 1 manto de uma vitrine PRONTA (~10 de cada, iguais pra
+todo sócio, feitas uma vez só = zero trabalho por pessoa). Abre só no 2º mês pago (contra "paga 1 mês e cancela"). Parou de
+pagar → volta ao visual normal. Batismo segue sendo a arte única e pra sempre. Mockup: `scripts/mockup-vitrine-socio.mjs` →
+`scripts/mockups/vitrine-socio.png` (artes de EXEMPLO). Ainda em aberto: plano anual R$ 79,90.
+
+## 🤖 Bots voltaram a dar lance no leilão da carreira (14/10) — ✅ NO AR
+Reclamação do Leão da Estradinha. Causa: banco de 22 cheio = bot sem vaga = sem lance. Conserto: 1 lance de reforço por setor
+(só carta bem melhor que o pior titular); o jogador que perde a vaga vai LISTADO pelo bot no próximo leilão (bot recebe se vender;
+ninguém comprando, cai no monte pela metade como qualquer lista). Código: `cpuEnvelope` (reforco), `resolve`, `marcaAVender`.
+👀 Acompanhar: se o pessoal achar que bot agora disputa demais, subir o corte de `ganho >= 6`.
+
+## 🧪 Trava `npm run copamundo` está vermelha (achado 13/10, JÁ vinha assim antes da abertura das copas)
+Falha: *"🙈 jogo de copa só conta com a Copa encerrada na tela (sem spoiler)"* — reproduz no main anterior (bf9d63d), então não é da abertura. Conferir se é a trava desatualizada ou a ficha contando jogo de copa antes do apito.
+
+## 💰 Preços novos (14/10) — ✅ NO AR: mensal R$ 9,90 · Batismo R$ 79,90 (era 69,90) · Batismo Lenda R$ 89,90 (igual)
+Diego: *"coloca 9,90 o valor mensal, melhor"*. `PRECOS.craqueMensal` = 9.9 e todos os textos (vitrine, ajuda, Pix, liga, admin). Não havia link de cartão do Mercado Pago ligado (MP_CRAQUE_CARTAO = null), então nenhuma cobrança real ficou com o preço velho. Quem já paga continua igual.
+
+## 🏟️ 1 sala por dia no grátis (14/10) — ✅ NO AR, DECIDIDO: fica 1 (*"1 sala só mesmo"*)
+Gatilho no banco (`docs/sql/sala-por-dia.sql`), contagem zerada em 14/10; quem apoia cria à vontade; aviso amigável na tela com "entrar é sempre de graça" + link pro apoie. Medido nos 7 dias anteriores: com 1/dia, 349 de 731 salas do grátis seriam barradas (153 de 304 pessoas); com 3/dia, 84 salas (38 pessoas). Proposta levada: subir pra 3 (troca de uma linha no gatilho, sem deploy). ⏳ esperando resposta.
+🗑️ Apagar save GRÁTIS parado há 30 dias — Diego: *"pode ser de antes já"* (vale pros que JÁ estão parados). Alvo medido: 90 saves de nuvem de conta grátis (17 MB de 624 MB) sem salvar, sem login e sem temporada jogada há 30+ dias; pagantes nunca. Feito: lixeira `esc_pyramid_saves_apagados` (7 dias pra devolver). ⛔ BLOQUEADO: o execute_sql cancelou a função 3 vezes (apaga dados → pede aprovação). Pronto pra o Diego rodar no SQL Editor: `docs/sql/limpa-saves-parados.sql` (cria, roda uma vez, agenda diário 4h07; tem como devolver e como parar). NADA foi apagado até agora.
+📢 Post da comunidade: `scripts/avisos/2026-10-14-meta-apoio.json` → `scripts/posts/aviso-meta-apoio.png` (meta 22%, Luca, preços novos, 1 sala/dia). Tags novas no gerador: `apoio` e `regra`.
+
+## ✉️ E-mail válido nas contas NOVAS (14/10) — ⏳ esperando o Diego decidir o serviço de e-mail
+Diego: *"as novas contas têm que ser e-mail válido e as duas senhas iguais"* + **regra: "quem já tem conta não mude nada e permita normal ele jogar, mesmo com e-mail errado"**. Já existe no cadastro (`conta.tsx`): senha + confirmar senha (`erroSenhaNova`) e e-mail com formato/typo/temporário barrados (`emailProblema`). Falta só a confirmação por link: precisa de SMTP (Resend, 3 mil/mês grátis) porque o e-mail padrão do Supabase manda poucos por hora e entram ~770 contas/semana. As 14.721 contas atuais já estão confirmadas — ligar a confirmação NÃO trava nenhuma delas.
+
+## 🔌 Integração com a Vendria (14/10) — 🟡 FASE 1 NO AR (recebe e guarda; NÃO libera nada ainda)
+Docs que o Diego mandou (prints): POST com `Webhook-Id`, `Webhook-Timestamp`, `Webhook-Signature`, `Webhook-Secret-Version`; assinatura = `v1,` + base64url(HMAC-SHA256(segredo, id.timestamp.corpo_bruto)); entrega at-least-once (dedupe pelo `id`); eventos order.paid (completionKind PAYMENT/FREE), order.refunded, order.chargeback, subscription.started/renewed/past_due/cancelled/ended…
+Feito: Edge Function `vendria-webhook` (código em `supabase/functions/vendria-webhook/index.ts`, verify_jwt off porque quem prova é a assinatura) → URL `https://faabglpjutwursgmrpny.supabase.co/functions/v1/vendria-webhook`; guarda em `esc_vendria_eventos` (RLS sem política = só o servidor). Sem o segredo configurado responde 500 (a Vendria tenta de novo).
+✅ 14/10: endpoint criado e `VENDRIA_WEBHOOK_SECRET` salvo pelo Diego nas Secrets. ⚠️ Sobrou uma cópia do segredo na tabela `esc_segredos` (sem grant pra anon/authenticated, RLS sem política) — apagar no SQL Editor: `delete from public.esc_segredos where nome = 'VENDRIA_WEBHOOK_SECRET';` (o execute_sql cancelou). Como o segredo passou pelo chat, recomendado rotacionar na Vendria e salvar o novo direto nas Secrets. ⏳ Esperando a compra teste. (Antes:) Falta (Diego): criar o endpoint na Vendria com essa URL + eventos order.paid/refunded/chargeback e subscription.*; copiar o `whsec_` e salvar no Supabase (Edge Functions → Secrets → `VENDRIA_WEBHOOK_SECRET`); fazer 1 compra teste (pode ser gratuita/cupom 100% → completionKind FREE).
+Falta (fase 2, eu): ler o 1º evento real guardado, achar e-mail do comprador e produto, e ligar a entrega (Sócio = esc_assinaturas; Batismo/Lenda = esc_compras_batismo + aviso pro Diego fazer a arte); refund/chargeback/subscription.ended revogam. Pedido FREE (cupom) não pode virar batismo sem o Diego conferir.
+
+## 💸 Apoie: "Pra onde vai o dinheiro" + META DO MÊS (13–14/10) — ✅ NO AR (`SupportMoney` no fim dos dois modais de planos, no lugar do bloco "Quem faz isso aqui"; meta em `esc_meta_mes`, `docs/sql/meta-mes.sql`). Outubro em **22%** por escolha do Diego (*"não sei ainda quanto entrou, mas vamos colocar 22%"*). Custos conhecidos: Claude R$ 600/mês; Supabase ainda sem número. Quando ele souber o total de Pix e a fatura, atualizar a % (`update esc_meta_mes …`). Foto: `scripts/foto-apoie-dinheiro.mjs`.
+Diego mandou o print do Brasileirinho: *"dizer aonde vai o dinheiro mas sempre com nossa forma de falar… padrões visuais"* + barra do mês (recebido × custo: Supabase + ~600 de Claude), com marca de "o jogo se paga" (100%) e "sustentável" (lucro; mockup usa 150%). Mockup `scripts/mockup-apoie-dinheiro.mjs` → `scripts/mockups/apoie-dinheiro.png` (52% é EXEMPLO).
+⚠️ O jogo NÃO tem registro dos Pix recebidos (`esc_pagamentos` vazia — Mercado Pago ainda não ligado). Estimativa de outubro pelo que foi liberado no banco: 10 batismos (~R$ 650) + 16 ouros e 12 pratas mexidos no mês (parte é batismo/renovação) → algo na faixa de R$ 1.100. Falta o Diego dizer: quanto ENTROU de verdade e quanto o Supabase cobrou (e se os 600 de Claude são reais ou dólar). 🧩 Formato combinado (14/10): NÃO é tela nova nem título "Apoie o jogo" — é só a seção "Pra onde vai o dinheiro" + meta, DENTRO do modal de apoio, perto dos planos; a história do Diego vai INTEIRA dentro do quadro "Uma vida melhor pro Luca" (e sai o bloco separado do fim do modal); sem o subtítulo de cima (a faixa dourada já diz que não dá vantagem). 💛 Diego (13/10): o texto DELE ("Quem faz isso aqui", `SupportStory` em support-plans.tsx — o Luca, 120 casos no mundo) é melhor que o meu e SOBE pro topo da tela de apoio; na lista do dinheiro fica uma linha curta "Uma vida melhor pro Luca". Nunca reescrever o texto dele. ✂️ 14/10 ele encurtou a 1ª frase: *"Sou o Diego. De madrugada, faço esse jogo sozinho."* (sai o "de dia vendo carro com meu pai"). Ideia de produção: tabela de meta do mês que só o Diego edita (custo + recebido) e a tela mostra só a %.
+
+## 📱☁️ "Volto e estou na 189 de novo" — Pé de Breque (13/10) — ✅ CONSERTADO
+Causa: aparelho CHEIO (save de ~1 MB, 193 temporadas). O autosave no aparelho falhava CALADO e a cópia dele ficou na 189; o "Sair e salvar" subia a certa (193) pra nuvem e marcava o carimbo como "aparelho em dia" — então a home nunca mais baixava e o Continuar abria a 189. Diego: *"ele tem que usar o save onde ele quiser, seja PC, Chrome, celular"*.
+Conserto (`store.tsx`): (1) `nuvemNaFrente` — mesmo com carimbo igual, pergunta à nuvem só o resumo (`esc_pyramid_progresso`, `docs/sql/pyramid-progresso.sql`, APLICADO) e baixa se ela estiver na frente; (2) se o aparelho não consegue gravar, a versão certa fica na MEMÓRIA (`carreiraAtivaPraAbrir`) e é ela que o Continuar abre; (3) o "Sair e salvar" só marca o carimbo se a cópia do aparelho estiver em dia; (4) autosave que falha mostra o aviso `AvisoSemEspaco` (pede pra apertar "Sair e salvar carreira" antes de fechar; sem botão de limpar — Diego: *"vai ter risco?"*). Nada apaga save; a nuvem continua só no Salvar.
+⚠️ Limite: progresso jogado DEPOIS do último "Sair e salvar" num aparelho cheio só vive na aba aberta — por isso o aviso.
+
+## 🆚⭐ Retrospecto entre amigos + craque do jogo (13/10) — ✅ NO AR (Diego: *"pode fazer o 1 e 2… copa dos campeões não quero"*)
+- **Retrospecto**: `src/escalacao/retrospecto.ts` + banco `docs/sql/retrospecto.sql` (APLICADO: `esc_retrospecto` por par de contas, `esc_retrospecto_log` contra contagem dupla, RPC `esc_retrospecto_soma` só do host e só de quem está em `room_players`). RLS: cada um só lê os próprios pares; as tabelas não têm política de escrita (só a função escreve). Permissões fechadas também por grant (13/10, rodado em partes depois de um cancelamento): anon não lê nem escreve; logado só LÊ os próprios pares; o log não é acessível a ninguém; só a função escreve. Liga: grava na revelação da rodada; Copa dos 8/Liberta/Champions (mata-mata): grava quando a perna fecha. Leitura relê a cada rodada (anti-spoiler: o jogo da vez ainda não foi gravado). Só sala online de futebol, nunca carreira, nunca dupla. Fica de fora: grupos da Liberta, tabela da Champions, Copa do Mundo e regionais (seleções/clubes regionais, não o time da pessoa).
+- **Craque do jogo**: no apito, a linha da rádio vira "⭐ CRAQUE DO JOGO" (gol 3, assistência 2; sem autor = sem craque). Vale em todo placar com a rádio (online e carreira).
+- Trava `npm run retrospecto`. Foto `scripts/foto-radio.mjs` → `scripts/mockups/radio-real.png`.
+- 🚫 Copa dos campeões do dia: ele NÃO quis. Não repropor.
+
+## 🎮 Online: 3 IDEIAS (13/10) — resolvido acima
+Mockup `scripts/mockup-3-ideias-online.mjs` → `scripts/mockups/online-3-ideias.png`:
+1. **🆚 Retrospecto entre amigos** — antes da bola rolar, a linha da Rádio vira "VOCÊ × <dono>: 1V 0E 4D" + provocação. Só gente × gente, histórico de todas as salas (precisa de tabela nova no banco por par de contas).
+2. **⭐ Craque do jogo** — no apito final, a linha mostra o melhor em campo (nome, carta, gols/assistências). Gol e assistência juntos (regra 19/09). Fake nunca é craque (regra 19/09).
+3. **👑 Copa dos campeões do dia** — cartão na lista de salas, acima de "Campeões de hoje": os campeões de sala de ontem jogam uma copa automática à meia-noite com o time que montaram; campeão ganha carta. (Precisa guardar o elenco do campeão + rotina noturna no banco.)
+Nada feito. Só codar o que ele escolher.
+
+## 📻 Rádio Legends no placar (13/10) — ✅ NO AR pra todos (Diego: *"pode fazer isso aí! e coloque muita coisa variada… não quero toda hora repetições"*)
+Módulo puro `src/escalacao/radio.ts` (trava `npm run radio`), ligado no `LiveScoreCard` → linha `ll42-radio` no `OnlineScorePresentation`. ABERTURA × LANCE × FECHO = 22 mil frases no meio do jogo (+ começo e fim próprios); 2000 jogos simulados = 93% de frases diferentes; nenhum lance repete no mesmo jogo. Nunca a menos de 3′ de gol ou de chance (o golzinho já narra chance — régua do "mesmo teatro duas vezes"); nunca fala de gol, pênalti, placar, jogador ou dono. Determinística (sala inteira ouve igual). Termômetro NÃO entrou (ele achou informação demais). Foto: `scripts/foto-radio.mjs` → `scripts/mockups/radio-real.png`.
+💡 Pra crescer o acervo: mais linhas em `LANCES`/`ABRE`/`FECHA`, sempre o par PT/EN, sem gol/pênalti/placar (a trava reprova).
+
+## 🥅 "Acertei todos os pênaltis e perdi" (13/10) — conferido
+Simulei 200 mil disputas pelo caminho inteiro da tela (sequência real e remontada → `exactPenaltyRows`): **nunca** sai perdedor com todas as cobranças certas, a soma sempre fecha e nenhuma cobrança acontece depois de decidido. O motor está certo. O que existia era a TELA cortando a disputa no meio (Copa do Mundo e regionais da sala — consertado às 18:27 UTC de 13/10, commit `962dc5b`): o jogador via as próprias cobranças todas certas, a disputa sumia antes do erro dele e aparecia o resultado. A última Copa do Mundo de sala antes da conversa terminou às 18:20 UTC — 7 min ANTES do conserto. Se aparecer de novo depois disso, pedir o código da sala.
+
+## ⚽ Simulação dos jogos: 3 IDEIAS (13/10) — ✅ virou a Rádio no placar (acima); craque do jogo e termômetro ficaram de fora
+Diego: *"o que mais poderíamos implementar nas simulações dos jogos… coisas pra engajar"* → *"quero dos 3 mockup"*. Mockup `scripts/mockup-simulacao-3.mjs` → `scripts/mockups/simulacao-3-ideias.png` (placar real + peças desenhadas por cima). Nenhuma mexe em resultado, regra ou ritmo:
+1. **📻 Rádio Legends** — narração correndo o jogo inteiro (falta, trave, defesaça, drible) com banco grande de frases PT/EN; o gol segue com o lance grande no placar (não repete); NUNCA narra pênalti; semeada à parte, sem saber do gol antes da bola entrar.
+2. **⭐ Craque do jogo** — no apito: melhor em campo com nota, escudo, carta + 2 destaques; sai de gol + assistência (goleiro: defesa); na carreira soma na ficha.
+3. **🌡️ Termômetro de pressão** — barra embaixo do placar pendendo pra quem está em cima, pulando nos "QUASE!" que já existem; só visual.
+Nada feito. Só codar o que ele escolher.
+🤔 Diego, vendo os dois juntos (`simulacao-termometro-radio-junto.png`): *"não sei se gostei… tem também a tática ofensivo/retranca/equilíbrio, a tabela, os jogos… tô na dúvida das informações"*. Proposta levada: nada de caixa nova; UMA frase da rádio dentro do placar, entre a faixa da bola e os autores dos gols, trocando a cada lance; termômetro fora. Mockup `scripts/mockup-radio-no-placar.mjs` → `scripts/mockups/radio-no-placar.png` (hoje × com a frase). ⏳ Esperando OK.
+
+## 🥅 Pênaltis da Copa do Mundo online cortados na final (13/10) — ✅ CONSERTADO (+ regionais) · ⏱️ jogo da Copa → 16s
+Diego: *"os pênaltis da Copa do Mundo deram bug na final, não apareceu todas as cobranças… e aumente mais 1s em cada jogo da copa"*.
+- **Causa**: a disputa só entrava na tela em `liveDone`, que é DEPOIS de `duration + extra` — e o `extra` era exatamente a reserva pra disputa. A reserva passava em branco, a disputa começava no fim dela e a cerimônia (1,6s depois) cortava no meio. Nas outras fases o respiro da abertura (5–10s) disfarçava. **Agora a disputa entra aos 93'** (`liveMin >= 93`, ainda dentro do `extra`) em `copa-mundo.tsx` (seu confronto + final) e `copa-regional-online.tsx`; `sobraPens` segura o "avança" só pelo que ainda falta. Vale pra carreira também (mesmo código).
+- **16s**: `docs/sql/online-copa-clock-16s.sql` APLICADO no banco (13/10). Achado: o +1s de 19/09 (`mais-1s.sql`, 15000) **nunca tinha chegado ao banco** — a função no ar era a de `oitavas.sql`, em 14000. Foi direto pra 16s (15 combinado + 1). Regionais também foram pra **16s** (*"sim, quero"*): `docs/sql/regional-clock-16s.sql` APLICADO + `ROUND_MS` local.
+
+## 🏆 Copas do online: AS 3 PRÓXIMAS (13/10) — ✅ NO AR o resumo da fase e o artilheiro; ⛔ a CHAVE DESENHADA saiu no mesmo dia
+Diego, depois de ver o fluxo tela por tela (`scripts/foto-copas-fluxo.mjs` → `scripts/mockups/copas-fluxo.png`): *"deixa só o resumo mesmo, sem chaveamento"* — chave e resumo contavam a mesma coisa. As fases recolhidas "ver resultados" e o "quem pega quem" da regional voltaram como eram. `ChaveCopa` continua em `online-match-visual.tsx` sem ninguém usar (o bundle tira), pronta caso ele queira de volta — não religar sem ele pedir.
+Mockup `scripts/mockup-copas-proximos.mjs` → `scripts/mockups/copas-proximos.png`; foto dos componentes REAIS `scripts/foto-copas-proximas.mjs` → `scripts/mockups/copas-proximos-real.png`. Peças em `online-match-visual.tsx` (CSS `ll41-*`): `ChaveCopa` · `ResumoFase` · `CampeaoCopaCard` · `ArtilheiroCopaCard`. Só apresentação: nenhuma regra, relógio ou resultado mudou.
+1. **Chaveamento desenhado** — Copa dos 8/Liberta/Champions (screens.tsx, no lugar das fases recolhidas "ver resultados"; 🏀 segue com as recolhidas), Copa do Mundo online (`chaveMundo`, do sorteio em diante) e regionais (no lugar da lista "quem pega quem" + fases recolhidas). Anti-spoiler: a fase de agora só com NOMES; placar só de fase fechada (passo virou, ou apitou e os pênaltis já rolaram — `liveDone` inclui a disputa). Toque num jogo fechado abre o `CompetitionMatch` (agregado + pênaltis).
+2. **Resumo da fase** — 5s antes da abertura, só em virada de FASE (`RESUMO_MS` em `copa-passos.ts`, `respiroAntes(…, comResumo)`): quickCopa (`resumoOn`, respiro da virada 5s → 10s; no manual também troca resumo → abertura, sem contagem), Copa do Mundo (`resumoAberto` em `copa-clock-preview.ts`, `passoComResumo` = oitavas/quartas/semi/final; antes das oitavas é o resumo dos GRUPOS, com os 16 que caíram em linha corrida) e regionais (fases do mata-mata; antes da 1ª é o resumo das rodadas, os classificados dos dois lados). SQL do relógio intacto (o respiro é decidido no aparelho do dono). Carreira (Copa do Mundo offline) NÃO mudou.
+3. **Artilheiro no fim** — tela de fim do rápido/Minhas Ligas (campeão em cartão com escudo, dono e a final; artilheiro com gols/clube/carta + 2º/3º; a tabela completa recolhida), cerimônia da Copa do Mundo online e das regionais (a lista de 5 virou o cartão).
+⚠️ Dourado no cartão de campeão SÓ pra quem ganhou (regra de tier); pros outros, branco.
+
+## 🎬 Abertura da rodada nas copas das salas online (13/10) — ✅ NO AR em TODAS: Copa dos 8 / Libertadores / Champions / Copa do Mundo / regionais
+Diego: *"quero que some depois da abertura… e sempre aparece quando for começar outro confronto… pode fazer"*. Feito em `AberturaCopa` (online-match-visual.tsx) dentro do `CompetitionStage` do quickCopa (screens.tsx): aparece no `firstLegPending` (10s de leitura de sempre) e em toda fase nova (`copaJustAdvanced`, respiro 3,2s → 5s); some quando a bola rola. A caixa "aguardando o pontapé" some junto. Só no visual online público; NBA/basquete fora.
+- [x] **Copa do Mundo e regionais do online** (Diego: *"ok mas faça os outros também"*): a pausa entre passos é decidida no APARELHO DO DONO (`dueClockCommand` / `useRelogioRegional`), o banco só carimba — então `respiroAntes()` em `copa-passos.ts` (5s antes de passo que roda bola, 0,5/1,6s nos outros) resolveu SEM mexer no SQL. A abertura aparece no palco (`CupScreen` só com `online`; `CopaRegionalTorneio`) com a contagem lida do `updated_at` do relógio (todo mundo vê igual). Carreira (Copa do Mundo offline) NÃO mudou. Rodada grande lista o seu jogo + 5 e "+N confrontos".
+Diego: *"o que fazer pra deixar as telas das copas quando começam os jogos mais organizadas… todas: Mundo, Champions, regionais, Libertadores"*. Mockups `scripts/mockup-abertura-copas.mjs` → `scripts/mockups/abertura-copas.png` e o HOJE × DEPOIS `scripts/mockup-abertura-copas-antes-depois.mjs` → `scripts/mockups/abertura-copas-antes-depois.png` (ele cobrou: *"tô falando do online, tá? sala rápida e Minhas Ligas"*): 5s antes da bola rolar, tela com o CAMINHO da copa (fases, o seu marcado) + CONFRONTOS da rodada escudo×escudo (o seu em destaque) + contagem; a bola rola sozinha. Mesma peça pra Copa do Mundo, Liberta, Champions, Copa dos 8 e regionais (só troca cor/arte). Sem passo novo, sem toque.
+
+## 🦁⬆️ Leão da Estradinha volta pra Série A (13/10) — ✅ NO AR
+Diego: *"coloque o Leão da Estradinha de volta na Série A… troque pelo Vidraceiro, e Vidraceiro entra no lugar dele"*. Troca 1:1 em `DIVISION_TEAMS` (sem OLD_NAME). Arte nova do dono (jorgericardo777): escudo 256×360 · mascote 370×440 · camisa da Loja sem shorts (saiu o `RECORTE_CAMISA`) · manto remedido `#950C0D`/branco no `batismos.ts`, `MANTO_CONTAS` E no `esc_socios`. Post: `scripts/posts/leao-estradinha-cara-nova.png` (flag nova `--volta` no `mockup-batismo.mjs`). Nome do dono no post ficou em branco (não sei o nome — não inventar).
+
+## 🚫🔴 Tirar destaque de live falsa (13/10) — ✅ NO AR
+Diego: *"com algum botão de fácil acesso tiro o destaque… o usuário recebe uma faixa… quando fecha não aparece mais… se fizer de novo aparece novamente"*. Botão na lista de salas (só a conta do Diego vê; o banco confere o e-mail) grava em `esc_live_tirada` (`docs/sql/live-tirada.sql`); a lista deixa de destacar a sala. O dono da sala de stream recebe a faixa (`aviso-live.tsx`, leitura a cada 2 min só pra dono de sala com Modo Stream). O jogo da sala nunca é tocado.
+
+
+## 13/10/2026 — 💳 PLANOS V2 COM NOMES NOVOS (⏳ esperando OK visual — NÃO está na main)
+
+Decisões do Diego: **Sócio** = o mensal R$ 12,90 (ganha NÚMERO DE SÓCIO; tier ouro dourado pros NOVOS — antigos não
+mudam, e isso já era a regra de `tierEfetivo`). **Batismo** = R$ 69,90 · **Batismo Lenda** = R$ 89,90 (gala única +
+canto). Os dois batismos ganham **Fundador nº** e MANTÊM moedas + estádio ("batismo mantém tudo"). **Sem desconto** do
+Sócio pro batismo (ok dele). Exemplo dos cartões do batismo = **Neymarzetti** (escudo, mascote, camisa, helicóptero).
+Listas de cada plano mais compridas ("parecer que tem bastante coisa"). Sócio: 1º Modo Manual, 2º ♾️ "Cria quantas salas
+quiser por dia" (A FAZER: hoje o limite é `LIMITES_SALA.rapidasAbertas`), manto SEM "2 cores". Os dois batismos listam
+tudo do Sócio item por item (`ItensSocio batismo`).
+⚠️ FALTA fazer de verdade, depois do OK: o Sócio mensal ganhar número de sócio + manto 2 cores + estádio com nome
+(hoje a assinatura não cria linha em `esc_socios`), e trocar os nomes "Craque"/"Plus" no Pix (`apoie-v2.tsx`) e no
+texto das regras (screens.tsx). Planos v2 seguem só nas contas do Diego (`PLANOS2_GERAL = false`).
+🛡️ REGRA DO DIEGO (13/10): **quem JÁ é Craque ou Lenda hoje fica EXATAMENTE como está** — continua criando salas do
+jeito de hoje, mantém a cor do tier de hoje e tudo o que já tem. Os planos novos (Sócio, limite de 1 sala/dia do grátis,
+dourado do Sócio) valem só pra quem entrar DEPOIS. Ao implementar os limites, conferir que nenhum Craque/Lenda antigo
+cai na régua nova.
+Pedido seguinte (13/10): Sócio diz "4 carreiras guardadas PRA SEMPRE na nuvem — todos os saves, mesmo parados";
+Gratuito diz "entra em quantas salas quiser" + "🌐 cria 1 sala online por dia" + "carreira parada há mais de 30 dias
+sem jogar é apagada". ⚠️ TUDO ISSO É SÓ TEXTO: falta o limite de 1 sala/dia no grátis e a limpeza dos saves parados
+(no grátis o save fica no APARELHO — confirmar com o Diego antes de apagar qualquer coisa).
+🗑️ PEDIDO DO DIEGO (13/10): apagar carreira PARADA há mais de 30 dias de quem NÃO paga — conta POR CARREIRA (a conta pode
+ter 3 saves e só 1 estar parado). Contagem na nuvem (`esc_pyramid_saves`, `careers[*].at`) em 13/10: 5.282 contas, 1,3 GB.
+Grátis: ~3.280 contas com carreira parada · ~4.550 carreiras paradas (2.973 contas paradas por inteiro + 463 carreiras
+paradas em 307 contas que jogaram no mês). Pagantes (167 contas) NÃO entram. Save do aparelho não dá pra contar daqui —
+o próprio jogo limpa quando abrir. ⚠️ Revoga o "quem já tem save na nuvem continua igual" de 07/10 — é ordem dele.
+✅ FEITO 13/10 (lado da NUVEM, "pode… só os que devem ser mesmo"): `esc_limpa_saves_parados` tirou **3.977 carreiras
+de 2.892 contas** grátis que não abriram o jogo em 30 dias (login + renovação de sessão) e nunca pagaram nada. Contas
+intactas (2.892/2.892), 0 pagante na lixeira, carreira jogada no mês ficou. Tudo em `esc_saves_lixeira`, volta até
+12/11 (`apagar_em`). Roteiro: `docs/sql/lixeira-saves.sql`.
+⚠️ FALTA criar no banco `esc_lixeira_devolve` e `esc_lixeira_esvazia` (estão no roteiro; o pedido foi cancelado na tela
+do Diego) — o esvazia tem que rodar a partir de 12/11. E a lixeira ainda ocupa espaço até lá.
+A FAZER (precisa mockup): aviso NO JOGO "essa carreira apaga em 7 dias se você não jogar" pra carreira grátis parada há
++30 dias (o celular decide, porque só ele sabe a data real) e depois apaga.
+
+## 13/10/2026 — 🛡️ COPAS REGIONAIS COM ESCUDO OFICIAL
+- `copa-regional-online.tsx` usava o `Escudo` genérico; agora usa `SeloClube` (o mesmo do Leilão de Clubes), que pega o
+  escudo oficial de `public/escudos-clubes/` quando existe. ~28 dos 48 clubes já têm.
+- ⏳ FALTA arte oficial de: Juventude, Caxias, Figueirense, Avaí, Criciúma, Paraná, Ipatinga, Londrina, America-RJ,
+  Madureira, Volta Redonda, ABC, América-RN, Botafogo-PB, CRB, CSA, Confiança, Sampaio Corrêa, Moto Club, River-PI
+  (seguem no selo genérico até entrar em `scripts/escudos-oficiais.mjs`).
+
+## 13/10/2026 — 💳 PAGAMENTOS AUTOMÁTICOS (decidido com o Diego, ⏳ a fazer)
+- **Mercado Pago:** Batismo (69,90) e Batismo Lenda (89,90) em Pix de uma vez OU cartão; Sócio (12,90/mês) SÓ no cartão
+  (assinatura que cobra sozinha). Webhook do MP avisa o jogo e libera sozinho.
+- **Vendria:** Sócio no **Pix Automático** (ordem dele: *"pix normal no mercado pago do sócio não quero… tem que ser
+  automático no vendria"*). Taxa vista no site: 4,9% + R$ 1,99 (ou 3% + 1,99 no simulador) — de 12,90 ficam ~10,30.
+- Falta: o Diego colocar a chave do MP no Supabase (nunca pelo chat) e mandar o link de integração/webhook da Vendria.
+- Sócio que não paga volta pro grátis sozinho; Craque/Lenda antigos não mudam (regra de 13/10).
+
+## 13/10/2026 — 🖋 BATISMO e 🖋✨ BATISMO LENDA NA VITRINE DE TODO MUNDO (ordem do Diego: "já pode alterar e fazer")
+- Os dois cartões viraram um componente só (`CartoesBatismo`, support-plans-v2.tsx), usado na vitrine PÚBLICA e na v2:
+  exemplo Neymarzetti, lista inteira com "tudo do Sócio" item por item.
+- Regra de série que vale HOJE na pública: **Batismo R$ 69,90 = Série B/C/D/Várzea · Batismo Lenda R$ 89,90 = Série A +
+  gala exclusiva + canto**. (Na v2, `serieA`, os dois dizem Série A — decisão antiga da v2; confirmar com o Diego antes de
+  liberar a v2.) O botão de cada cartão abre o Pix já na série certa (`setSerieBatismo`).
+- Nomes trocados também no Pix (v1 e v2), nas perguntas de ajuda e na lista de planos (agora "São 5"); corrigido o
+  "Série A custa mais (R$ 69,90)" → 89,90.
+- Sócio mensal, Gratuito novo e os limites continuam SÓ nas contas do Diego (`PLANOS2_GERAL = false`).
+
+## 🐛 Marcelo repetido no leilão (13/10) — ✅ CONSERTADO
+Causa: em 26/09 a carta "Marcelo Vieira" (Real Madrid 2017) virou só "Marcelo" no catálogo. Quem já tinha a carta (Renaton) ficou com o nome VELHO no save; pro jogo eram duas pessoas, então o "Marcelo" de nome novo ficou livre, um bot (Leite de Verdade FC) pegou e listou. Conserto: `CARTAS_RENOMEADAS` (data.ts) + `sincronizaNiveis` troca o nome velho pelo novo em todo save que abre (livro de preços, "no seu clube" e artilharia vão junto) e `curaCartaRepetida` tira a cópia de bot/ficha de fundo/baralho/mesa do pregão/monte quando um HUMANO tem a carta. Trava: `npm run renomeada`.
+
+
+
+## 13/10/2026 — 🥇🥈🥉 MEDALHA DO TOP 3 DA SEMANA AO LADO DO NOME
+
+Diego: *"quem tiver no ranking da semana no top 3 fica com a medalhinha ao lado do nome no tier… se passar ele
+perde… se tiver empate todos que estiverem empatados ganham também"*.
+- A posição vem de `esc_vitrine_salas` (`eu.pos`, `rank()` → empate divide: 1º,2º,2º = ninguém 🥉).
+- `apoio.tsx`: `carregaMedalhaDaSemana()` (chamada no lobby quando a conta aparece) + `apoioSelo()`/`apoioName()`
+  grudam 🥇/🥈/🥉 depois do selo do plano (vale pra grátis também). Cache de 60s em `vitrine-dados.ts`
+  (a vitrine e a medalha usam a MESMA chamada).
+- ⚠️ O nome é montado ao CRIAR/ENTRAR na sala: quem perde o top 3 no meio da sala só perde a medalha na PRÓXIMA.
+- Ninguém forja: `stripEmoji` tira 🥇🥈🥉 de nome digitado.
+
+## 13/10/2026 — 🏆📊🖋️ VITRINE EMBAIXO DO "ATUALIZAR LISTA" (mockup aprovado: "sim pode fazer e publicar")
+
+- `src/escalacao/vitrine-salas.tsx` (`VitrineSalas`), chamado no lobby logo depois do 🔄 Atualizar lista.
+- 🏆 Campeões de hoje: ORDEM DE QUEM VAI GANHANDO (mais recente em cima), 5 linhas, só gente (`human_results`).
+- 📊 Ranking da semana: títulos online desde segunda 0h (Brasília), top 5 + "você" tracejado. Liga + cup_titles.
+- 🖋️ Último batismo: maior `socio_n` com origem 'batismo' (hoje Rossini Money — o Diego confirmou), escudo +
+  mascote + botão que abre a vitrine dos PLANOS rolando até o cartão do batismo (startScreen `batismoInfo`, 13/10 —
+  o Diego reclamou que antes caía direto no Pix, sem explicar o que o batismo ganha).
+- Tudo numa chamada: RPC `esc_vitrine_salas()` (aplicada no banco; nota em docs/sql/vitrine-salas.sql). Banco
+  sem resposta = a vitrine some, a lista nunca trava. Mockup: `scripts/mockup-lobby-engaja.mjs`.
+
+## 🔁 Rival com banco: cansa, se machuca e tem 22 + mais dinheiro pros bots (13/10) — 🟢 LIBERADO PRA TODOS em 13/10 (`BOT_BANCO_GERAL = true`; Diego: "pode publicar pra todos já")
+Diego: "pode fazer" + 3 avisos separados (`scripts/avisos/2026-10-13-rivais-{22,cansam,dinheiro}.json` → `scripts/posts/aviso-rivais-*.png`).
+- Motor puro `src/escalacao/bots-banco.ts` (`planoCansacoBot`, `PATROCINIO_BOT`, `premioColocacaoBot`); trava `npm run bots-banco`.
+- Cansaço: só bots da SUA divisão, só com o seu gás ligado (C+), só a partir de `botFadigaDesde` (marcado na 1ª virada depois de ligar → temporada em andamento nunca muda). Plano derivado (passado imutável); `botCarry` atravessa a virada (vem da tela, na action). Começando a 100 ninguém cansa na 1ª temporada (escada −1,4/jogo) — aparece da 2ª em diante.
+- 22: no Leilão de Reservas todo bot vira `deepSquad` e gasta o caixa; no FINISH_CEREMONY `completaBancoDosBots` fecha 2 por posição com sobra REAL pagando `justoDaCarta` (nunca incógnito).
+- Os 3 caminhos da virada (Diego: *"o bot também pode participar de qualquer leilão novo"*): **Leilão de Transferências** (bot mira 22 no pregão + completa depois) · **Leilão novo do zero** (todo mundo monta 11, o bot completa o banco no fim da cerimônia) · **Mesmo time** (sem leilão: o bot completa o banco no `CONFIRM_MESMO_TIME`).
+- 🧠 Bot ESPERTO no banco (Diego: *"ele pega se ele quiser… e vai melhorando aos poucos"*): separa uma parte do caixa pelo perfil (gastador 60% · pão-duro 25% · …), em cada vaga leva o MELHOR que cabe na verba (caro demais = não pega), e todo começo de temporada faz 1 troca (2 o gastador) se tiver sem-clube +6 de nível melhor que o pior do elenco — dispensa o pior.
+- 🧠 O bot PENSA COMO GENTE no leilão (Diego 13/10, "pode fazer e publique"): teto = categoria (lenda 90 › craque 65 › promessa 42 › bom 26 › prof 16) × economia × NECESSIDADE (bem melhor que o pior titular 1,15 · parecido 0,6 · reserva 0,35) × tempero fixo por bot+carta (0,85–1,15) × perfil; bolso: até ½ do caixa se vira titular, ⅓ se reserva. Mínimo acima do que vale pra ele → não dá lance; senão lance entre o mínimo e o teto. `travaPisoDoBot` vale pra TODO bot (exagero não sobe piso). Substituiu o "ir até o mínimo do dono" do mesmo dia. Valores da tabela NÃO mudaram (decisão: piso mexe em salário/renovação de todo save).
+- Dinheiro: patrocínio no `balancoBot` + prêmio de colocação (`premiosColocacaoBots`) no `clubRewards` da virada.
+- Central: notícias de DM, poupados e desfalque do seu próximo adversário.
+- [x] Liberado pra todos + linha em novidades.ts. Os 3 avisos prontos em `scripts/posts/aviso-rivais-*.png` (Diego posta).
+Diego gostou de "rival também cansa e machuca" + "pode comprar 22" + "bots têm que ganhar mais dinheiro". Mockup `scripts/mockup-rival-banco.mjs` → `scripts/mockups/rival-banco.png`: todo bot 2 por posição (hoje só rival/backstop tem `deepSquad`), gás/lesão pros bots (`guardaCansaco` pula bot; lesão só rola o XI humano), notícias no giro, e 2 receitas novas no `balancoBot`: patrocínio = `masterPorTemporada(div, 2)` + prêmio por colocação. Só carreira. Números de folha no mockup são estimativa — medir antes de cravar.
+
+## 🔜 "Não sai, ainda tem competição" (13/10) — ✅ NO AR (Diego: "Perfeito. Pode fazer. E serve pra todas competições que tem convocação")
+Código em `src/escalacao/proxima-competicao.tsx`. Faixa (últimas 5 rodadas, toda competição da sala) em `EscSeason`; colocação desce e diz "Agora tem X ↑" no fim; "Não sai!" + chamada na vez (vibra/apito/título da aba/cartão) no portão da Copa regional e da Copa do Mundo (as que têm convocação). Na convocação só vibra/apita — a tela dos 11 já abre sozinha. 🔁 Mesmo dia: Diego lembrou que Copa dos 8/Liberta/Champions da sala NÃO têm convocação → a faixa e o "Agora tem X" ficaram SÓ pra Copa do Mundo e regionais. E a escolha de clube/seleção caiu de 45 → **40s** (`SEG_ESCOLHA`/`SEG_BANDEIRA`).
+Gente sai da sala no fim da liga sem saber que vem Copa regional/Copa do Mundo/Liberta/Champions/Copa dos 8, e na hora de escolher clube já saiu. Mockup `scripts/mockup-proxima-competicao.mjs` → `scripts/mockups/proxima-competicao.png`: (1) faixa nas últimas 5 rodadas · (2) competição no TOPO do fim com "Não sai! Sua vez em ~2 min" e sai o "Ano que vem tem pregão de novo" (screens.tsx ~10628/10752) · (3) na sua vez: vibra + apito + título da aba "⚠️ SUA VEZ!".
+
+## 💬 Chat da sala melhorado (13/10) — ✅ NO AR o 1, 3 e 4 (Diego: "faz 1, 3 e 4 somente"). 🚫 O 2 (zoeira rápida em botões) ele NÃO quis — não repropor. 🔁 E no mesmo dia tirou o ESCUDO do 1: *"deixa apenas o nome dourado… pra não ficar muita informação"* — só o nome na cor do plano.
+Peças em `src/escalacao/chat-sala.tsx` (usadas pelos dois chats). Responder = campo `re` na mensagem (versão velha ignora). Aviso: `scripts/avisos/2026-10-13-chat-sala.json` → `scripts/posts/aviso-chat-sala.png`.
+`scripts/mockup-chat-sala.mjs` → `scripts/mockups/chat-sala.png`. 4 ideias: (1) escudo do clube + cor do PRÓPRIO tier no nome · (2) zoeira rápida (botões prontos, espera de 3s) · (3) responder com citação · (4) gaveta mais baixa sem escurecer o pregão. Sem "digitando" (não pode gastar realtime a mais). Mexe só no `ChatWidget` (screens.tsx) e no `LobbyChatDock` (lobby.tsx).
+
+
+## 13/10/2026 — 💳 BATISMO PLUS AGORA É R$ 89,90 (era 79,99)
+
+Diego: *"coloque o mais top por 89 que ganha a mais canto da torcida… e entrada de gala exclusiva"* → perguntei e ele
+escolheu **"Plus passa a custar 89"** (continua com gala única + canto; Lenda segue R$ 69,90). Preço mora em
+`PRECOS.batismoPlus` (planos-regras.ts); tela, Pix e painel do admin leem dali. Trava: `npm run planos`.
+⚠️ Os planos v2 ainda estão SÓ nas contas do Diego (`PLANOS2_GERAL = false`); pro público continua a tela velha
+(Batismo B/C/D/Várzea 69,90 · Série A) — e nela, a pedido dele (*"só os valores novos do batismo"*), a **Série A virou
+R$ 89,90 e ganhou gala exclusiva + canto da torcida na Carreira** (screens.tsx `precoCheioBatismo`, support-plans.tsx e
+o texto das regras). Quem já comprou a 79,99 fica como está.
+
+## 📏 Medidor de mensagens ao vivo (13/10, Diego: "Ok pode") ✅ NO AR — invisível pro jogador
+Motivo: a conta do Supabase passou de ~40 milhões de mensagens ao vivo no mês (o plano inclui 5 milhões).
+Cada aparelho conta o que RECEBE e o que MANDA por tipo (estado, ação, chat, emoji, mascote, som, presença,
+banco) e grava UMA linha a cada 10 min em `esc_realtime_medidor` (`src/escalacao/medidor-realtime.ts`,
+`docs/sql/medidor-realtime.sql`). Desligar = `MEDIDOR_LIGADO = false`.
+- [ ] Depois de 1–2 dias: rodar a consulta do `.sql` e dizer pro Diego quanto é chat × emoji × jogo.
+- [ ] Propor o corte (suspeito nº 1: o dono mandando o ESTADO inteiro pra sala toda) — explicar e esperar OK antes de mexer.
+- [ ] Depois da medição, desligar o medidor (ele mesmo gera uma gravação por pessoa a cada 10 min).
+
+
+## 12/10/2026 — 🐛 CAMPINHO DO 3-5-2 ESPREMIDO (print do Arudo FC)
+
+Os alas (laterais) do 3-5-2 descem 14px num embrulho `<div>` sem `flex: 1 1 0` — o ala ficava com a largura do
+NOME inteiro e os 3 meias eram espremidos no meio, um por cima do outro. Conserto: o embrulho ganha o mesmo
+`flex: 1 1 0; minWidth: 0` da raiz do `JogadorNoCampo` (pyramidseason.tsx, aba Elenco). Vale pra TODO mundo
+de 3-5-2 (e o líbero do 5-3-2 líbero, que usa o mesmo recuo). Conserto não vira novidade.
+
+## 🟢 LIBERADO PRA TODOS (13/10, Diego: "pode publicar"): economia dos bots + SAF que vira 2º clube
+- `ECON_BOTS_GERAL = true` e `SAF2_GERAL = true` (sport.ts). Linhas novas em `novidades.ts`. Vídeo (`scripts/video-saf-reels.mjs`)
+  e aviso (`scripts/posts/aviso-2026-10-13-saf-2o-clube.png`) liberados pra postar.
+- Decisões dele na hora de liberar: **o auxiliar NUNCA dá lance no leilão** (*"quem manda é o usuário"*) — o clube parado fica fora
+  do leilão (como já era: `auctioningManagers` tira quem está `dormindo`); **ranking global conta só o clube principal** (já era:
+  `pyramidseason.tsx` não manda o retrato quando `multiClubeAtivo`). Dinheiro: caixa separado por clube; só passa por aporte
+  (principal → 2º), transferência de jogador pelo valor oficial ou venda do 2º clube. Taças: cada clube guarda as suas.
+- Conserto junto: com as duas ligadas, a SAF pagava o emprestado 2× (metade do empréstimo + folha do bot) — emprestado saiu da
+  `folhaDoBot`.
+
+## 💰 Economia dos bots na carreira (13/10) ✅ NO AR — liberado pra todos no mesmo dia (ver acima)
+- Mockup aprovado: `scripts/mockups/carreira-bots.png` ("Perfeito pode fazer"). Na virada, cada clube bot ganha a MESMA
+  TV da divisão (`TV_COTA`) + bilheteria (`BOT_BILHETERIA` A 40 · B 30 · C 20 · D 12 · V 6) e paga a folha (maior entre
+  pago e tabela ÷ 10). O que passa do teto (`BOT_CAIXA_TETO` A 900 · B 700 · C 500 · D 300 · V 150) "vira obra"; quem já
+  estava acima (save antigo) não perde nada. O teto do LANCE não mudou (categoria × fator da sala, máx 4×).
+- Central ganhou "💰 Caixa dos rivais" (4 mais ricos + você + o mais liso, com nota do Martelo quando ele chega liso).
+- Código: `aplicaEconomiaBots`/`balancoBot`/`folhaDoBot` (store.tsx), trava `npm run econ-bots`.
+- ⏳ Diego testar numa carreira dele → liberar pra todos (`ECON_BOTS_GERAL = true`).
+- 🎬 Vídeo da SAF→2º clube pronto (`scripts/video-saf-reels.mjs`) — NÃO postar antes da SAF nova estar no jogo.
+- ✅ SAF que vira 2º clube CODADA (ver a seção logo abaixo) — só nas contas do Diego.
+
+## 🏢➡️⚽ SAF que vira 2º clube — REGRAS APROVADAS PELO DIEGO (13/10, "Ok pode ser assim") · ✅ CODADO, SÓ NAS CONTAS DO DIEGO
+- **Chave:** `SAF2_GERAL = false` em `sport.ts` (testers: as duas contas do Diego). Desligada = SAF e 2º clube antigos
+  EXATAMENTE como eram (a trava `npm run saf2` confere isso também). Liberar pra todos: `SAF2_GERAL = true` + linha em
+  `novidades.ts` (PT/EN) na mesma entrega.
+- **Código:** regras puras em `src/escalacao/saf2.ts` (tela e reducer usam as mesmas) · telas em `saf2-telas.tsx` (mockup
+  ②③④⑤⑥⑦⑧) · estado em `EscState.saf2` · ações `SAF2_ASSUMIR / VENDER_SAF / VENDER_2O / APORTE / TRANSFERIR / EMPRESTAR /
+  MIGRAR` (store.tsx). Trava: `npm run saf2` (82 conferências, inclusive a virada de verdade).
+- **"Janela" = a tela da temporada ANTES da 1ª rodada** (rodada 0, as "decisões da virada"). Assumir, vender, migrar,
+  emprestar e transferir só ali. Empréstimo vale 1 temporada e volta sozinho na virada seguinte; cada lado paga METADE
+  do salário (a SAF paga a metade dela do `clubCash`).
+- **Decisões tomadas sem perguntar (conferir com o Diego):** (1) as 10 temporadas contam do `careerFilial.since` (todo
+  save já tem a data da compra); (2) taça conta enquanto o clube é SEU 2º clube — inclusive ganha com o auxiliar no
+  comando; a internacional só conta se era ele no comando; (3) 2º clube antigo começa a coleção do zero na 1ª virada com
+  a chave (o histórico velho não separa título "antes/depois"), por isso vale o piso de 3.000; (4) na migração "fica com
+  a SAF" o caixa POSITIVO do 2º clube antigo volta junto pro principal ("ninguém perde dinheiro"); (5) o 2º clube que
+  nasce da SAF continua destravando a categoria 👑 Lenda na Agência (senão subir de degrau tirava um destrave);
+  (6) empréstimo entre os dois clubes: 2 de cada lado (mockup "1 DE 2"); (7) com 2º clube não se compra SAF (escada única).
+- ⏳ Diego testar numa carreira dele (com SAF antiga, com 2º clube antigo e com os dois) → liberar.
+Análise: `docs/analise-carreira-2026-10-13.md`. **Mockup completo: `scripts/mockups/carreira-saf-completo.png`** (os
+mockups `carreira-saf.png`/`carreira-saf-venda.png` são versões velhas — valem os números daqui).
+- **Escada:** compra a SAF (**2.000**, igual hoje; precisa estádio completo; clube da Série D; bot no comando) → depois de
+  **10 temporadas como dono da SAF** pode "assumir o comando" (**4.000**, igual hoje), só na virada da temporada, e ela vira
+  o 2º clube jogável.
+- **2º clube só pra PAGANTE — qualquer um** (Craque, Lenda, Batismo; antigo ou plano novo). Aviso visível: "⭐ Só pra quem
+  apoia o jogo: Craque, Lenda ou Batismo" + link pros planos. (Hoje o código pede só `ouro`.)
+- **Vender é pra dar prejuízo; lucro no máximo +500** (Diego: *"gosto mais do prejuízo porque ninguém mandou ele comprar"*):
+  · **SAF = pela DIVISÃO dela na hora da venda:** Várzea 500 · D 1.000 · C 1.500 · B 2.000 (empata) · A 2.500 (+500).
+  · **2º clube = pela COLEÇÃO DE TAÇAS ganhas com você no comando**, cada uma UMA vez: Série A · Copa do Brasil · Supercopa ·
+    Libertadores · Champions · Mundial (Copa do Mundo NÃO conta). 0 taças = 3.000 · 6 taças = 6.500 (+500) · proporcional
+    no meio (2 = 4.170). O caixa do clube volta junto (dívida desconta).
+  · RECUSADO (não repropor): 2º clube vendendo por divisão (*"se pegar já na Série A e vende já ganha"*), venda por "quanto
+    subiu" em %, título de Série B/C/D somando, título repetido somando, lucro acima de 500.
+- **Empréstimos:** na fase SAF continuam com a SAF; virou 2º clube → **entre o principal e o 2º clube**, mesmas regras (só na
+  janela, 1 temporada, volta sozinho, metade do salário pra cada lado — fecha o furo do salário). Transferência de vez pelo
+  valor oficial, 1 por janela.
+- **2º clube no dia a dia:** troca entre rodadas de graça; o clube sem você fica com o **auxiliar** (escala, renova, repõe com
+  o caixa dele); caixa próprio; caixa no vermelho = sem lance no leilão (destrava vendendo ou com **aporte**, que só vai do
+  principal pro 2º e não volta).
+- **Quem hoje tem SAF e 2º clube SEPARADOS:** na próxima virada aparece UMA tela "O jogo mudou: escolha qual manter". Fica com
+  o 2º clube → a SAF sai e devolve **2.000 inteiros**; fica com a SAF → o 2º clube sai e devolve **4.000 inteiros**, e a SAF
+  já pode virar 2º clube na hora (sem as 10 temporadas). Ninguém perde dinheiro.
+- **Quem tem só a SAF:** continua; as 10 temporadas contam desde a compra. **Quem tem só o 2º clube antigo:** continua igual;
+  na venda recebe o MAIOR entre o jeito antigo (3.000) e a coleção de taças.
+- Também na fila: 💰 dinheiro dos bots (mockup `scripts/mockups/carreira-bots.png`, esperando OK).
+
+## 🏢➡️⚽ SAF que vira 2º clube — REGRAS FECHADAS COM O DIEGO (13/10, "Sim") · ⏳ AINDA NÃO CODADO
+Análise: `docs/analise-carreira-2026-10-13.md`. Mockups: `scripts/mockups/carreira-saf.png` + `carreira-saf-venda.png`
+(⚠️ os números do mockup de venda são VELHOS — valem os daqui).
+- **Escada:** compra a SAF (**2.000**, igual hoje) → depois de **10 temporadas como dono da SAF** pode "assumir o comando"
+  (**4.000**, igual hoje) e ela vira o 2º clube jogável. Assumir só na virada da temporada.
+- **2º clube só pra PAGANTE — qualquer um** (Craque, Lenda, Batismo; antigo ou plano novo). Aviso bem visível na tela:
+  "⭐ Só pra quem apoia o jogo: Craque, Lenda ou Batismo" + caminho pra apoiar. (Hoje o código pede só `ouro`.)
+- **Venda é difícil de lucrar de propósito** (Diego: *"gosto mais do prejuízo porque ninguém mandou ele comprar"*;
+  lucro NO MÁXIMO +500):
+  · **SAF = pela DIVISÃO dela na hora da venda:** Várzea 500 · D 1.000 · C 1.500 · B 2.000 (empata) · A 2.500 (+500).
+  · **2º clube = pela COLEÇÃO DE TAÇAS ganhas com você no comando**, cada uma conta UMA vez: Série A · Copa do Brasil ·
+    Supercopa · Libertadores · Champions · Mundial (Copa do Mundo NÃO conta). 0 taças = 3.000 (metade dos 6.000);
+    6 taças = 6.500 (+500); entre os dois, proporcional (3 taças = 4.750).
+  · Ele RECUSOU (não repropor): venda por divisão no 2º clube (*"se pegar já na Série A e vende já ganha"*), venda por
+    "quanto subiu" em %, títulos de Série B/C/D somando, títulos repetidos somando.
+- **Quem já tem (grandfather, ninguém perde nada):** SAF antiga continua, as 10 temporadas contam desde a compra.
+  2º clube antigo continua igual; na venda recebe o MAIOR entre o jeito antigo (3.000) e a coleção de taças.
+- Do mockup aprovado em conceito (detalhar números na hora de codar): empréstimos só na janela, 1 temporada, metade do
+  salário pra cada lado (fecha o furo do salário); auxiliar toca o clube que ficou sem você (escala, renova, repõe);
+  transferência interna pelo valor oficial; caixa próprio, dívida trava lance, aporte só principal → 2º clube.
+- Também na fila: 💰 dinheiro dos bots (mockup `scripts/mockups/carreira-bots.png`, esperando OK).
 
 ## 💴🔴⚫ Batismo Rossini Money (12/10) ✅ NO AR
 - Dono `luizeduardorossini0013@gmail.com` (conta já existia ✔). **Série A**, no assento do **Bagres de Wall Street FC**,
@@ -258,6 +742,7 @@ aparecer… só desse novo. Já o aviso na home e nas salas mantenha sempre"*.
 - `ComunidadeBanner` (index.tsx) agora aparece em TODA tela; fora da home usa a chave própria
   `esc-comunidade-zap-jogo-vista`, gravada no ✕ **ou** no toque em ENTRAR → some pra sempre naquele aparelho.
 - A faixa da HOME (chave `esc-comunidade-zap-fechada`) e o quadro verde da lista de salas NÃO mudaram.
+- 📲 13/10: o quadro verde da página de salas subiu pro TOPO (antes ficava no fim da lista), pedido dele.
 - 🔨 Some DURANTE o leilão (auction · monte · convocacao · streamIntro) — pedido dele pra não comer tela no pregão.
 - Tirar tudo: `COMUNIDADE_LINK = null` (comunidade.ts).
 
@@ -3413,7 +3898,7 @@ Tela do Monte mostra o valor de antes na sua carta e o texto de ajuda diz "volta
 saiu". Novidade PT/EN na home. Trava: `npm run monte` (seção 1a).
 
 ### ⏳ PENDENTE
-1. **Teto do bot crescer sem extrapolar** — ele pediu de novo (20/09, depois do
+1. ✅ (13/10: resolvido pelo "bot alcança o mínimo do dono") **Teto do bot crescer sem extrapolar** — ele pediu de novo (20/09, depois do
    "não entendi nada"): *"precisamos bolar alguma ideia pro piso dos bots de todos os
    clubes aumentar e não ficar preso no 450… algo inteligente que funcione mas também
    não extrapole"*. As réguas medidas estão em `scripts/simula-teto.mts`. Levar UMA

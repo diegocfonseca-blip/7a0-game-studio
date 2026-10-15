@@ -1,0 +1,17 @@
+{
+  "data": "13 de outubro de 2026",
+  "titulo": "Rivais agora têm elenco de 22",
+  "destaque": { "passos": [
+    { "emoji": "⚽", "titulo": "11 titulares", "sub": "como sempre" },
+    { "emoji": "🪑", "titulo": "+11 no banco", "sub": "2 por posição" },
+    { "emoji": "💰", "titulo": "Pago do caixa", "sub": "quem pode, compra" }
+  ] },
+  "itens": [
+    { "tag": "novidade", "texto": "Os bots e rivais da **sua divisão** montam elenco de **22**, igual ao seu: 2 jogadores por posição." },
+    { "tag": "novidade", "texto": "Eles também dão lance no **Leilão de Reservas**. As cartas boas ficam mais disputadas." },
+    { "tag": "melhoria", "texto": "O banco deles é só de **jogador de verdade**, pago com o dinheiro do clube. Rival sem dinheiro fica sem reserva." }
+  ],
+  "rodape": "Vale no Modo Carreira.",
+  "rodapeSub": "Seu time não muda nada.",
+  "saida": "scripts/posts/aviso-rivais-22.png"
+}

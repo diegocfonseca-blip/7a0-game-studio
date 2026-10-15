@@ -426,3 +426,76 @@
 .ll32-v-gol{background:#1b7a3d;animation-delay:calc(.9s / var(--ll32-speed,1))}.ll32-v-defendeu,.ll32-v-trave{background:#c2452f}.ll32-v-fora{background:#5b5b5b}.ll32-v-isolou{background:#5b5b5b;animation-delay:calc(1.05s / var(--ll32-speed,1))}
 @keyframes ll32-veredito{to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @media(prefers-reduced-motion:reduce){.ll32-bola,.ll32-sombra,.ll32-luva,.ll32-meta{animation:none!important}.ll32-veredito{animation-duration:calc(.01s / var(--ll32-speed,1));animation-delay:0s}}
+
+/* 🎬 abertura da rodada da copa (13/10) */
+.ll40-abertura{background:linear-gradient(160deg,rgba(12,12,12,.92),rgba(12,12,12,.78));color:#fff;padding:12px 14px 10px;border-top:1px solid #f4ecd644}
+.ll40-caminho{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font:700 10px Oswald,sans-serif;letter-spacing:.06em;margin-bottom:10px}
+.ll40-caminho span{display:inline-flex;align-items:center;gap:4px;border:1.5px solid rgba(255,255,255,.35);border-radius:6px;padding:2px 6px;color:rgba(255,255,255,.55)}
+.ll40-caminho span.ok{color:#fff;border-color:rgba(255,255,255,.6)}.ll40-caminho span.on{background:#ffc400;color:#000;border-color:#000;box-shadow:2px 2px 0 #000}
+.ll40-caminho span.meu{border-style:solid;border-color:#ffc400}.ll40-caminho span.on.meu{border-color:#000}
+.ll40-caminho i{font-style:normal;color:rgba(255,255,255,.4);margin-left:4px}
+.ll40-tit{font:700 11px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.6);margin:0 0 6px}
+.ll40-jogo{position:relative;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.18);border-radius:12px;padding:7px 9px;margin-bottom:6px}
+.ll40-jogo.eu{background:#f4ecd6;color:#0c0c0c;border:3px solid #000;box-shadow:3px 3px 0 #ffc400;padding-top:12px;margin-top:10px}
+.ll40-tag{position:absolute;top:-9px;left:9px;background:#ffc400;color:#000;border:2px solid #000;border-radius:7px;font:700 9px Oswald,sans-serif;letter-spacing:.1em;padding:1px 6px}
+.ll40-time{flex:1;display:flex;align-items:center;gap:6px;min-width:0}.ll40-time.r{justify-content:flex-end;text-align:right}
+.ll40-time b{font:700 12px/1.1 Oswald,sans-serif;text-transform:uppercase;overflow-wrap:anywhere}
+.ll40-x{font:700 16px Oswald,sans-serif;color:#ffc400;padding:0 2px}.ll40-jogo.eu .ll40-x{color:#c2452f}
+.ll40-bar{height:8px;border:2px solid rgba(255,255,255,.5);border-radius:6px;overflow:hidden;margin-top:8px}.ll40-bar i{display:block;height:100%;transition:width .25s linear}
+.ll40-bola{text-align:center;font:700 14px Oswald,sans-serif;letter-spacing:.08em;margin:6px 0 0;min-height:18px}.ll40-bola b{color:#ffc400}
+.ll40-mais{font:700 10px Oswald,sans-serif;color:rgba(255,255,255,.5);text-align:center;letter-spacing:.08em;margin:2px 0 0}
+/* ─── 🌳 chaveamento desenhado · ✅❌ resumo da fase · 🏆🥇 fim da copa (13/10) ─── */
+.ll41-chave{background:#161616;color:#fff;border:3px solid #0c0c0c;border-radius:14px;box-shadow:4px 4px 0 #0c0c0c;margin:12px 0;padding:10px 6px 8px}
+.ll41-tit{font:700 13px Oswald,sans-serif;letter-spacing:.06em;margin:0 6px 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ll41-tit span{font:600 10px Inter,sans-serif;color:rgba(255,255,255,.55);letter-spacing:0}
+.ll41-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ll41-cols{display:flex;align-items:stretch;gap:4px;min-width:100%}
+.ll41-col{flex:1;min-width:74px;display:flex;flex-direction:column}.ll41-col.ok{opacity:.92}
+.ll41-col>small{font:700 9px Oswald,sans-serif;letter-spacing:.12em;color:rgba(255,255,255,.55);text-align:center;margin-bottom:6px;white-space:nowrap}.ll41-col.on>small{color:#ffc400}
+.ll41-jogos{display:flex;flex-direction:column;flex:1;justify-content:space-around;gap:4px}.ll41-slot{flex:1;display:flex;align-items:center}
+.ll41-jogo{width:100%;display:block;background:#fff;color:#0c0c0c;border:1.5px solid #0c0c0c;border-radius:7px;padding:0;overflow:hidden;font:inherit;text-align:left;cursor:default}
+.ll41-jogo.jogado{cursor:pointer}.ll41-jogo.sel{outline:2.5px solid #7c3aed;outline-offset:1px}
+.ll41-jogo.meu{outline:2.5px solid #ffc400;outline-offset:1px}.ll41-jogo.meu.sel{outline-color:#7c3aed}
+.ll41-jogo.vazio{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff}
+.ll41-jogo:not(.jogado):not(.vazio){background:#fff}
+.ll41-lado{display:flex;align-items:center;gap:3px;padding:3px 3px;min-height:20px}.ll41-lado+.ll41-lado{border-top:1px solid rgba(0,0,0,.12)}.ll41-jogo.vazio .ll41-lado+.ll41-lado{border-top-color:rgba(255,255,255,.15)}
+.ll41-lado img,.ll41-lado svg{width:14px;height:14px;object-fit:contain;flex:none}
+.ll41-lado b{flex:1;font:700 8.5px/1 Oswald,sans-serif;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ll41-lado i{font:700 9px/1 Oswald,sans-serif;font-style:normal;width:9px;text-align:right;flex:none}
+.ll41-lado em{display:flex;align-items:center;gap:4px;font:700 9px Oswald,sans-serif;font-style:normal;color:rgba(255,255,255,.7)}.ll41-lado em::before{content:"";width:14px;height:14px;border-radius:99px;border:1.5px dashed rgba(255,255,255,.5)}
+.ll41-lado.venceu{background:#D8F0DE}.ll41-lado.caiu{opacity:.45}
+.ll41-jogo>small{display:block;font:700 8px Oswald,sans-serif;letter-spacing:.06em;color:#53534b;text-align:center;padding:1px 0 2px;background:#f4ecd6}
+.ll41-detalhe{margin:8px 4px 0}.ll41-detalhe .ll26-fixture{margin:0}
+.ll41-resumo .ll41-resumo-tit{font:700 15px Oswald,sans-serif;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px}
+.ll41-resumo-sub{font:700 11px Oswald,sans-serif;letter-spacing:.14em;margin:8px 0 5px}.ll41-resumo-sub.ok{color:#5fd68a}.ll41-resumo-sub.caiu{color:#ff8a76}
+.ll41-chips{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.ll41-chips span{display:flex;align-items:center;gap:5px;min-height:28px;padding:3px 7px;border-radius:9px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);min-width:0}
+.ll41-chips span.ok{background:#f4ecd6;color:#0c0c0c;border-color:#0c0c0c}.ll41-chips span.caiu{opacity:.55}
+.ll41-chips span.meu{border-color:#ffc400;box-shadow:0 0 0 2px #ffc400}
+.ll41-chips img,.ll41-chips svg{width:18px;height:18px;object-fit:contain;flex:none}
+.ll41-chips b{flex:1;font:700 11px/1.1 Oswald,sans-serif;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ll41-chips i{font-style:normal;font-size:11px}
+.ll41-corrida{font:600 11px/1.5 Inter,sans-serif;color:rgba(255,255,255,.6);margin:0}
+.ll41-campeao{background:#fff;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:14px;box-shadow:4px 4px 0 #0c0c0c;padding:12px 14px;text-align:center;margin:0 0 10px}
+.ll41-campeao.meu{background:linear-gradient(150deg,#FFE79A,#FFC400 55%,#E8A200)}
+.ll41-campeao small{display:block;font:700 10px Oswald,sans-serif;letter-spacing:.18em;color:#92600a}.ll41-campeao.meu small{color:#0c0c0c}
+.ll41-campeao-escudo{display:flex;justify-content:center;margin:6px 0 4px}.ll41-campeao-escudo img,.ll41-campeao-escudo svg{height:64px;max-width:64px;object-fit:contain}
+.ll41-campeao h3{font:700 26px/1 Oswald,sans-serif;text-transform:uppercase;margin:0}.ll41-campeao p{font:600 11px/1.35 Inter,sans-serif;margin:4px 0 0}.ll41-campeao-final{color:#53534b}
+.ll41-artilheiro{background:#fff;color:#0c0c0c;border:3px solid #0c0c0c;border-radius:14px;box-shadow:4px 4px 0 #0c0c0c;padding:10px 12px;margin:0 0 10px}
+.ll41-artilheiro small{display:block;font:700 10px Oswald,sans-serif;letter-spacing:.18em;color:#92600a;margin-bottom:6px}
+.ll41-art-top{display:flex;align-items:center;gap:10px;border-radius:10px;padding:4px}.ll41-art-top.meu{background:#FFF3C4;outline:2px solid #ffc400}
+.ll41-art-escudo{flex:none;width:44px;display:flex;justify-content:center}.ll41-art-escudo img,.ll41-art-escudo svg{height:40px;max-width:44px;object-fit:contain}
+.ll41-art-nome{flex:1;min-width:0}.ll41-art-nome b{display:block;font:700 20px/1.05 Oswald,sans-serif}.ll41-art-nome span{display:block;font:600 11px Inter,sans-serif;color:#53534b;margin-top:2px}
+.ll41-art-gols{text-align:center;flex:none}.ll41-art-gols b{display:block;font:700 34px/.9 Oswald,sans-serif;color:#1b7a3d}.ll41-art-gols span{font:700 9px Oswald,sans-serif;letter-spacing:.12em;color:#1b7a3d}
+.ll41-art-resto{border-top:1px solid #0c0c0c22;margin-top:8px;padding-top:6px}
+.ll41-art-resto p{display:flex;align-items:center;gap:6px;margin:0;padding:3px 4px;font:600 11px Inter,sans-serif;border-radius:6px}.ll41-art-resto p.meu{background:#FFF3C4}
+.ll41-art-resto p>span{width:18px;font:700 10px Oswald,sans-serif;color:#53534b}.ll41-art-resto img,.ll41-art-resto svg{width:16px;height:16px;object-fit:contain}
+.ll41-art-resto b{font:700 12px Oswald,sans-serif}.ll41-art-resto em{flex:1;font-style:normal;color:#53534b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ll41-art-resto strong{font:700 14px Oswald,sans-serif}
+/* 📻 Rádio Legends — uma linha dentro do placar (13/10). Altura fixa de 2 linhas: o placar nunca pula de tamanho. */
+.ll42-radio{display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:52px;border-top:1px solid #59624d;background:rgba(255,196,0,.08);color:#f4ecd6;font:600 12.5px/1.3 Inter,sans-serif}
+.ll42-radio-tag{flex:none;font:700 9px Oswald,sans-serif;letter-spacing:.12em;color:#0c0c0c;background:#ffc400;border-radius:5px;padding:2px 5px}
+.ll42-radio>b{flex:none;font:700 13px Oswald,sans-serif;color:#ffc400}
+.ll42-radio-txt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;animation:ll42Entra .35s ease}
+@keyframes ll42Entra{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.ll30-big .ll42-radio{font-size:13.5px}
+/* 🆚 retrospecto (roxo) e ⭐ craque do jogo (dourado) — a MESMA linha da rádio, só muda o tom (13/10) */
+.ll42-retro{background:rgba(124,58,237,.2)}.ll42-retro .ll42-radio-tag{background:#C9B3FF;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ll42-craque{background:rgba(255,196,0,.16)}.ll42-craque .ll42-radio-txt{font-weight:700}

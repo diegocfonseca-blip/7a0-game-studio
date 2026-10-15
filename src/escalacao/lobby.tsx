@@ -4,6 +4,7 @@ import './online-visual.css'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { instrumenta, medeRecebida } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
 import { MascoteAtravessa, MascoteMini } from './mascote-atravessa' // 🐊 o bicho atravessa a sala de espera também (25/09)
@@ -11,10 +12,11 @@ import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMasco
 import { useEsc, listAllCareers, MODO_NOME, MODO_EMOJI, type EmoteEvent } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
-import { AdminButton, useCanCareerOnline } from './admin'
+import { AdminButton, useCanCareerOnline, useIsAdmin } from './admin'
 import { JanelaConta } from './conta'
 import { erroSenhaNova } from './campo-senha'
-import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout } from './apoio'
+import { PodioMoldura, posPodio } from './podio-semana'
+import { apoioSelo, stripEmoji, APOIO_PERKS, ApoioSheen, myApoioPerk, logout, carregaMedalhaDaSemana } from './apoio'
 import { isMuted } from './sound'
 import { anotaTrava } from './caixa-preta' // 🧾 caixa-preta da coroa: prova o que a largada decidiu
 import type { ApoioPerk } from './apoio'
@@ -30,9 +32,15 @@ import { useLigaLiberada, useSalaElencoLiberada, useLibertaLiberada, useChampion
 import { EscolhaSelecao, PainelDaCopa, CopaDaSala, FaixaCopa, EstanteDaCopa, gravaCampeaoDaCopa, montaFicha, copaPickOk, type CopaPick, type CopaFicha } from './copa-mundo-online' // 👔 Sala de Elenco / 🌎 Libertadores: modos novos, só a conta do Diego enxerga
 import type { EscState, FormationKey, DuplaSeat, DuplaCat } from './types'
 import { DUPLA_CATS, DUPLA_CAT_LABEL, DUPLA_CAT_ICON, duplaToggleCat } from './types'
+import { DUPLA_CONVOCA } from './dupla-copa'
+import { createPortal } from 'react-dom'
+import { LojaButton } from './loja-clube'
+import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
+import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
+import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
 // A Escalação usa as mesmas tabelas do Draft (game_rooms/room_players).
 // Marcamos a sala como nossa via game_state.__game pra não colidir com o Draft.
@@ -70,7 +78,7 @@ type AuthTab = 'login' | 'register'
 
 interface RoomPlayer { user_id: string; manager_name: string; player_index: number; bafo?: BafoTime | null; copa?: CopaPick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null; dupla_seek?: 'aberta' | 'privada' | null; dupla_name?: string | null; dupla_request_to?: string | null; dupla_request_at?: string | null }
 // 💬 mensagem do chat da sala de espera (uid = quem mandou, pra saber o "meu")
-interface LobbyMsg { id: string; uid: string; name: string; text: string }
+interface LobbyMsg { id: string; uid: string; name: string; text: string; re?: ChatRe } // re = ↩ resposta (13/10)
 // 🎈 reação que FLUTUA (sobe e some) na sala de espera — NÃO entra no chat.
 // Chat é pra escrever; emoji/zoeira flutua por cima de tudo (inclusive do chat aberto).
 interface LobbyFloat { id: string; emoji: string; text?: string; name: string; x: number }
@@ -110,10 +118,11 @@ function chatColor(name: string): string {
 // regra tem que ser decidida ANTES da bola rolar — depois do pregão não tem volta.
 function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: {
   open: boolean; setOpen: (o: boolean) => void; unread: number
-  msgs: LobbyMsg[]; myUid?: string; listRef: React.RefObject<HTMLDivElement | null>; onSend: (t: string) => void
+  msgs: LobbyMsg[]; myUid?: string; listRef: React.RefObject<HTMLDivElement | null>; onSend: (t: string, re?: ChatRe) => void
 }) {
   const [text, setText] = useState('')
-  const send = (t: string) => { onSend(t); setText('') }
+  const [resp, setResp] = useState<ChatRe | null>(null)
+  const send = (t: string) => { if (!t.trim()) return; onSend(t, resp ?? undefined); setText(''); setResp(null) }
   return (
     <>
       {!open && (
@@ -125,10 +134,11 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
           )}
         </button>
       )}
-      {open && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99991, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.28)' }} />
-          <div style={{ position: 'relative', color: INK, background: '#FBF6E7', borderTop: `3px solid ${INK}`, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '64vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.12)' }}>
+      {/* 🔊 vai pro <body> (portal): assim nenhuma caixa da sala prende a gaveta embaixo do botão de som do canto (13/10) */}
+      {open && createPortal(
+        // 🪟 gaveta baixa, sem escurecer nem tampar a sala (13/10 — mesma do chat do jogo)
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pointerEvents: 'none' }}>{/* 🔊 acima do botão de som do canto (z 99998), que tampava o ENVIAR — print do Diego 13/10 */}
+          <div style={{ position: 'relative', pointerEvents: 'auto', color: INK, background: '#FBF6E7', border: `3px solid ${INK}`, borderBottom: 0, borderRadius: '18px 18px 0 0', maxWidth: 460, width: '100%', margin: '0 auto', maxHeight: '52vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -6px 0 0 rgba(0,0,0,.15)' }}>
             <div style={{ background: INK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px' }}>
               <span style={{ ...OSWALD, fontWeight: 900, textTransform: 'uppercase', fontSize: 14 }}>{tr('💬 Zoeira da sala', '💬 Room banter')}</span>
               <button onClick={() => setOpen(false)} aria-label={tr('Fechar', 'Close')} style={{ width: 24, height: 24, borderRadius: 999, background: '#fff', color: '#000', border: '2px solid #000', ...OSWALD, fontWeight: 900, cursor: 'pointer' }}>✕</button>
@@ -138,17 +148,20 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
                 ? <p style={{ textAlign: 'center', color: '#8a7d59', fontWeight: 700, fontSize: 12, marginTop: 10 }}>{tr('Manda a primeira zoeira 😎', 'Send the first jab 😎')}</p>
                 : msgs.map(m => {
                   const mine = !!myUid && m.uid === myUid
+                  const re = reValido(m.re)
                   return (
                     <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
-                      <span style={{ width: 11, height: 11, borderRadius: 999, border: '1.5px solid #000', background: chatColor(m.name), marginTop: 4, flexShrink: 0 }} />
-                      <div style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%' }}>
-                        <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1, color: chatColor(m.name) }}>{mine ? tr('Você', 'You') : m.name}</span>
-                        <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word' }}>{m.text}</span>
+                      <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
+                        style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
+                        {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ChatCracha name={m.name} />}
+                        {re && <ChatCita re={re} />}
+                        <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word', display: 'block' }}>{m.text}</span>
                       </div>
                     </div>
                   )
                 })}
             </div>
+            {resp && <ChatRespondendo re={resp} onCancel={() => setResp(null)} />}
             <div style={{ display: 'flex', gap: 6, padding: 9, borderTop: '2px solid #000', background: CREAM }}>
               <input value={text} onChange={e => setText(e.target.value)} maxLength={160}
                 onKeyDown={e => { if (e.key === 'Enter') send(text) }} placeholder={tr('manda a real…', 'say it…')}
@@ -156,7 +169,8 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
               <button onClick={() => send(text)} disabled={!text.trim()} style={{ ...OSWALD, fontWeight: 900, fontSize: 13, background: text.trim() ? GREEN : '#cfc6ae', color: '#fff', border: '2px solid #000', borderRadius: 9, padding: '0 14px', boxShadow: '2px 2px 0 0 #000', cursor: text.trim() ? 'pointer' : 'default', flexShrink: 0 }}>{tr('Enviar', 'Send')}</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )
@@ -672,6 +686,9 @@ export function EscLobby() {
   const escRef = useRef(escState)
   escRef.current = escState
   const [user, setUser] = useState<User | null>(null)
+  // 🥇 medalha da semana (13/10): busca a MINHA posição no ranking quando a conta aparece, pra ela ir
+  // grudada no nome (apoioSelo) ao criar/entrar numa sala. Sem banco = sem medalha, nunca trava.
+  useEffect(() => { if (user) void carregaMedalhaDaSemana() }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const [phase, setPhase] = useState<Phase>('auth')
   const [authTab] = useState<AuthTab>(() => {
     // veio do aviso "ganhe uma carta" (home/setup)? já abre no Cadastrar
@@ -823,6 +840,7 @@ export function EscLobby() {
   const [players, setPlayers] = useState<RoomPlayer[]>([])
   const [isHost, setIsHost] = useState(false)
   const [roomError, setRoomError] = useState('')
+  const [limiteDia, setLimiteDia] = useState(false) // 🏟️ grátis já criou a sala do dia (14/10)
   // 🚪 códigos das salas que estão travando a criação (ver a trava mais abaixo)
   const [salasPresas, setSalasPresas] = useState<string[]>([])
   const [encerrando, setEncerrando] = useState(false)
@@ -838,7 +856,7 @@ export function EscLobby() {
     if (user) {
       await supabase.from('game_rooms').delete().eq('host_id', user.id).in('code', salasPresas).then(() => {}, () => {})
     }
-    setSalasPresas([]); setRoomError(''); setEncerrando(false)
+    setSalasPresas([]); setRoomError(''); setLimiteDia(false); setEncerrando(false)
     if (criarDepois) await createRoom()
   }
   const [resumeRoom, setResumeRoom] = useState<RoomInfo | null>(null) // partida em andamento: pergunta voltar/sair
@@ -847,6 +865,12 @@ export function EscLobby() {
   // salas abertas (lista pública)
   const [tab, setTab] = useState<'create' | 'open' | 'join'>('open')
   const [openRooms, setOpenRooms] = useState<OpenRoom[]>([])
+  // 🚫🔴 só o Diego vê o botão de tirar o destaque de uma live falsa (13/10); o banco confere de novo
+  const souCriador = useIsAdmin()
+  const tiraDestaque = async (roomId: string) => {
+    const { data } = await supabase.rpc('esc_tira_destaque', { p_room: roomId })
+    if (data === true) setOpenRooms(prev => prev.map(x => (x.id === roomId && x.game_state ? { ...x, game_state: { ...x.game_state, liveUrl: undefined } } : x)))
+  }
   const [listLoading, setListLoading] = useState(false)
   const [search, setSearch] = useState('')
   // edição rápida do nome de técnico (na home)
@@ -872,11 +896,11 @@ export function EscLobby() {
     lobbyOpenRef.current = open; setLobbyChatOpen(open)
     if (open) setLobbyUnread(0)
   }
-  const sendLobbyChat = (text: string) => {
+  const sendLobbyChat = (text: string, re?: ChatRe) => {
     const t = cutName(text.trim(), 160) // corte seguro (não parte emoji → nada de json inválido)
     if (!t) return
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
-    const e: LobbyMsg = { id: Math.random().toString(36).slice(2), uid: user?.id ?? 'me', name: myName, text: t }
+    const e: LobbyMsg = { id: Math.random().toString(36).slice(2), uid: user?.id ?? 'me', name: myName, text: t, ...(re ? { re } : {}) }
     addLobbyChat(e, true) // mostra o meu na hora (o canal não devolve o próprio broadcast)
     // 📉 ECO REMOVIDO (04/08, OK do Diego): mandava em 'chat' E 'emote' (dobro de
     // mensagem Realtime na fatura). Agora só 'chat'; o OUVINTE de 'emote' fica
@@ -1101,10 +1125,11 @@ export function EscLobby() {
     } catch { setLobbyChat([]) }
     setLobbyUnread(0)
     fetchPlayers(room.id)
-    const ch = supabase.channel(`esclobby:${room.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, () => fetchPlayers(room.id))
+    const ch = instrumenta(supabase.channel(`esclobby:${room.id}`), 'espera', room.id) // 📏 conta o que passa no canal da sala de espera
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${room.id}` }, (p: unknown) => { medeRecebida('espera', room.id, 'db:room_players', p); fetchPlayers(room.id) })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` },
         ({ new: r }: { new: RoomInfo }) => {
+          medeRecebida('espera', room.id, 'db:game_rooms', r)
           // 📣 A SALA VOLTOU PRA ESPERA → a PRÓXIMA largada é uma largada NOVA.
           // (18/09, relato do Bruno pro Diego: *"eu tô jogando entre duas pessoas, chega
           // um amigo, eu clico pra voltar pra sala de espera, ele entra, eu abro o pregão
@@ -1134,7 +1159,7 @@ export function EscLobby() {
         })
       // 👑 host saiu → a sala é encerrada: banner + volta pro menu (broadcast é o
       // aviso na hora; a exclusão da sala é a rede de segurança).
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` }, () => setHostLeft(true))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` }, () => { medeRecebida('espera', room.id, 'db:sala_apagada', null); setHostLeft(true) })
       .on('broadcast', { event: 'host_left' }, () => setHostLeft(true))
       .on('broadcast', { event: 'chat' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'emote' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
@@ -1797,7 +1822,7 @@ export function EscLobby() {
       setLoading(false); return
     }
     if (liga && !canLiga) {
-      setRoomError((planos2Liberado() ? tr('🏆 Criar uma Liga é do ⭐ Craque completo (R$ 12,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.', '🏆 Creating a League is a ⭐ Full Star (R$ 12.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.') : tr('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".', '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".')))
+      setRoomError((planos2Liberado() ? tr('🏆 Criar uma Liga é do ⭐ Craque completo (R$ 9,90/mês) ou do 🖋 Batismo — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra JOGAR numa liga você não precisa pagar nada: peça o código pra quem criou.', '🏆 Creating a League is a ⭐ Full Star (R$ 9.90/month) or 🖋 Club naming perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you pay nothing: ask the creator for the code.') : tr('🏆 Criar uma Liga é benefício do 👑 Lenda — é a liga que fica de pé, com a sala de troféus guardando campeão e artilheiro temporada após temporada. Pra jogar numa liga você NÃO precisa ser Lenda: peça o código pra quem criou. Pra criar a sua, vire Lenda em "Apoiar".', '🏆 Creating a League is a 👑 Legend perk — it is the league that stays up, with the trophy room keeping champion and top scorer season after season. To PLAY in a league you do NOT need to be Legend: ask the creator for the code. To create yours, become Legend in "Support".')))
       setLoading(false); return
     }
     // 📅 DIA E HORA TÊM QUE ESTAR PREENCHIDOS (achado em 29/08, antes do 1º teste
@@ -1821,7 +1846,7 @@ export function EscLobby() {
     // pra até 36 técnicos (sem duplas — dupla continua nos 20 times). Medido antes: o
     // baralho fecha 36 elencos sem jogador fake em qualquer baralho, no 4-3-3 e no 4-4-2.
     const soChampionsSala = !carreira && !elenco && !mundo && !roomDuplas && rapidoCopaMode === 'champions'
-    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas ? { duplasMode: true } : {}) }) }
+    const gs = { __game: tagAtual(), ...(getSport() === 'basquete' ? { sport: 'basquete' as const } : {}), formation, roomName: name, ...(locked ? { locked: true, pwHash } : {}), ...(roomStream ? { stream: true } : {}), ...(roomStream && plataformaDaLive(liveUrl) ? { liveUrl: liveUrl.trim() } : {}), ...((roomManual && !carreira) ? { manual: true } : {}), ...(roomChat ? {} : { chatOff: true }), ...(roomStream && !rapidoHolandes && auctionSecs !== 45 ? { auctionSecs } : {}), ...(carreira ? { mode: 'carreira', deck: careerDeck, deckSala: careerDeck, rivals: careerRivals, rivalTeams: careerRivalPicks } : { deck: rapidoDeck, deckSala: rapidoDeck, ...(mundo ? { mode: 'mundo', copaMode: 'liga' } : elenco ? { mode: 'elenco', copaMode: 'liga', ...(bafoValendo ? {} : { bafoSemCarta: true }) } : (rapidoCopaMode === 'liga_mundo' ? { copaMode: 'liga', mundoNaLiga: true } : regionalId(rapidoCopaMode) ? { copaMode: 'liga', regionalNaLiga: regionalId(rapidoCopaMode) } : { copaMode: rapidoCopaMode })), ...(rapidoDeck === 'br' && rapidoVarzea ? { varzea: true } : {}), ...((roomMode === 'rapido' || liga) && clubesOn && rapidoClubes ? { clubes: true, deck: 'todos', deckSala: 'todos' } : {}), ...((roomMode === 'rapido' || liga) && rapidoHolandes ? { holandes: true } : {}), ...(liga ? { mode: 'liga', ligaAt, ligaFechada: !ligaComBots } : {}), ...(roomDuplas && !mundo ? { duplasMode: true } : {}) }) }
     // 🧯 TETO DE 2 LIGAS POR PESSOA (Diego, 20/08: *"ele só pode criar duas ligas
     // por usuário; pra criar mais tem que excluir outra"*). Liga é sala que fica
     // de pé pra sempre — sem teto, uma pessoa sozinha encheria o banco de ligas
@@ -1836,7 +1861,7 @@ export function EscLobby() {
       }
     }
     const { data: rd, error: re } = await supabase.from('game_rooms')
-      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
+      .insert({ code, host_id: user.id, mode: 'leilao', status: 'waiting', max_players: roomDuplas && !mundo ? MAX_PLAYERS * 2 : soChampionsSala ? MAX_PLAYERS_CHAMPIONS : MAX_PLAYERS, game_state: gs })
       .select().single()
     if (re || !rd) {
       // 🔎 mostra a CAUSA real (antes era só "Erro ao criar sala." e a gente ficava no
@@ -1844,6 +1869,9 @@ export function EscLobby() {
       // (sem permissão), PGRST116 = criou mas não deixou ler de volta (RLS de leitura),
       // 23505 = código repetido. Assim dá pra consertar a trava certa sem adivinhar.
       console.error('[createRoom] falhou:', re)
+      // 🏟️ 1 SALA POR DIA NO GRÁTIS (Diego 14/10). Quem decide é o BANCO (gatilho `esc_sala_por_dia`, docs/sql/sala-por-dia.sql);
+      // a tela só explica o porquê e o caminho: entrar em sala aberta é sempre de graça, e quem apoia cria à vontade.
+      if (re?.message?.includes('LIMITE_SALA_DIA')) { setRoomError(''); setLimiteDia(true); setLoading(false); return }
       const code2 = re?.code
       const hint = code2 === '42501' ? tr('sem permissão (RLS). Avise o Diego.', 'no permission (RLS). Let Diego know.')
         : code2 === 'PGRST116' ? tr('a sala foi criada mas o app não pôde lê-la de volta (RLS de leitura). Avise o Diego.', 'the room was created but the app could not read it back (read RLS). Let Diego know.')
@@ -1993,6 +2021,16 @@ export function EscLobby() {
     // 29/08, quando o Diego fechou que **a liga é sempre privada** — não aparece na
     // lista de jeito nenhum, só se acha pelo card "🏆 Minhas ligas" ou pelo código +
     // senha. Apagada de vez em vez de só desligada: código morto engana quem lê.
+    // 🚫🔴 DESTAQUE TIRADO PELO DIEGO (13/10): sala com link que não é live de verdade perde a faixa
+    // "AO VIVO" — vive numa tabelinha à parte (`esc_live_tirada`), o jogo da sala nunca é tocado.
+    const comLive = list.filter(r => (r.game_state as GS)?.liveUrl).map(r => r.id)
+    if (comLive.length) {
+      try {
+        const { data: tir } = await supabase.from('esc_live_tirada').select('room_id').in('room_id', comLive)
+        const tirados = new Set((tir ?? []).map(x => (x as { room_id: string }).room_id))
+        for (const r of list) if (tirados.has(r.id) && r.game_state) r.game_state = { ...r.game_state, liveUrl: undefined }
+      } catch { /* sem resposta: a lista segue como sempre */ }
+    }
     setOpenRooms(list.map(r => ({ ...r, count: counts[r.id] ?? 0 }))
       // 🏆 LIGA APARECE QUANDO TEM GENTE DENTRO (regra final do Diego, 29/08).
       // Ele derrubou duas ideias minhas, e nas duas estava certo:
@@ -2618,6 +2656,22 @@ export function EscLobby() {
     fetchPlayers(room.id)
   }
 
+  // 🏳️ QUEM ESCOLHE O CLUBE E CONVOCA nas copas com convocação (Copa do Mundo / regional) — 15/10. Fica na MESMA
+  // divisão das posições (`dupla_categories.CONV`, linha do dono, gravada pela função do banco que confere a dupla).
+  // Tocar no que já está marcado desmarca (volta ao padrão: o dono convoca). Regra lida em `dupla-copa.ts`.
+  async function tocarConvoca(dono: RoomPlayer, quem: string) {
+    if (!room || !user) return
+    const par = players.find(p => p.dupla_partner_of === dono.user_id)
+    if (!par || (user.id !== dono.user_id && user.id !== par.user_id)) return
+    if (quem !== dono.user_id && quem !== par.user_id) return
+    const { data: fresh } = await supabase.from('room_players').select('dupla_categories').eq('room_id', room.id).eq('user_id', dono.user_id).maybeSingle()
+    const novo: Record<string, string> = { ...((fresh?.dupla_categories ?? {}) as Record<string, string>) }
+    if (novo[DUPLA_CONVOCA] === quem) delete novo[DUPLA_CONVOCA]; else novo[DUPLA_CONVOCA] = quem
+    const { error } = await supabase.rpc('dupla_definir', { p_room: room.id, p_dono: dono.user_id, p_cats: novo })
+    if (error) setRoomError(`${tr('Não consegui salvar quem convoca', 'Couldn\'t save who calls up')}: ${error.message}`)
+    fetchPlayers(room.id)
+  }
+
   // host remove um técnico da sala de espera (antes de abrir o pregão): apaga
   // a vaga dele. O cliente removido percebe pela realtime que sumiu da lista e
   // volta sozinho pro menu (efeito abaixo).
@@ -2700,6 +2754,17 @@ export function EscLobby() {
       return nm.toLowerCase().includes(search.trim().toLowerCase())
     })
     return wrap(<>
+      {/* 📲 COMUNIDADE DO WHATSAPP no TOPO da página de salas (13/10, Diego: "ao invés de ter no final… coloque no topo") */}
+      {COMUNIDADE_LINK && (
+        <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="block rounded-2xl px-3.5 py-3 active:translate-y-0.5"
+          style={{ background: '#1B7A3D', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff', textDecoration: 'none' }}>
+          <p className="font-black uppercase text-[16px] leading-tight" style={OSWALD}>{tr('📲 Procurando mais gente pra jogar online?', '📲 Looking for more people to play online?')}</p>
+          <p className="text-[12px] font-bold leading-snug mt-1" style={{ color: 'rgba(255,255,255,.88)' }}>{getLang() === 'en'
+            ? <>We just launched the long-awaited <b style={{ color: '#fff' }}>Leilão Legends community on WhatsApp</b>. Come join us too!</>
+            : <>Acabamos de criar a tão pedida <b style={{ color: '#fff' }}>Comunidade do Leilão Legends no WhatsApp</b>. Entre aqui também!</>}</p>
+          <span className="inline-block mt-2 rounded-full px-3.5 py-1 font-black uppercase text-[13px]" style={{ ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}` }}>{tr('Entrar na comunidade →', 'Join the community →')}</span>
+        </a>
+      )}
       {/* Arte de fundo; identidade e ações continuam sendo controles reais. */}
       <div className="online-welcome rounded-2xl border-[3px] border-black overflow-hidden" style={{ boxShadow: `5px 5px 0 ${INK}` }}>
         <div className="online-welcome-heading px-4 py-4 relative" style={{ background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)` }}>
@@ -3007,7 +3072,7 @@ export function EscLobby() {
                   <button onClick={() => { window.location.href = `${window.location.origin}${window.location.pathname}?apoie=lenda` }}
                     className="w-full rounded-xl border-[3px] border-black font-black text-[15px] py-3 active:translate-y-0.5"
                     style={{ background: 'linear-gradient(180deg,#FFE07A,#F5B301)', color: INK, boxShadow: `4px 4px 0 0 ${INK}`, ...OSWALD }}>
-                    {planos2Liberado() ? (tr('⭐ QUERO O CRAQUE · R$ 12,90/MÊS', '⭐ I WANT STAR · R$ 12.90/MONTH')) : (tr('👑 QUERO SER LENDA', '👑 I WANT TO BE LEGEND'))}
+                    {planos2Liberado() ? (tr('⭐ QUERO O CRAQUE · R$ 9,90/MÊS', '⭐ I WANT STAR · R$ 9.90/MONTH')) : (tr('👑 QUERO SER LENDA', '👑 I WANT TO BE LEGEND'))}
                   </button>
                   <p className="text-white/55 text-[11px] font-bold leading-snug mt-2.5">
                     {planos2Liberado() ? (getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If someone creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se alguém criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>) : (getLang() === 'en' ? <>✅ <b className="text-white">To PLAY you need nothing.</b> If a Legend creates the league and gives you the code, you join and play like everyone else — trophies and all.</> : <>✅ <b className="text-white">Pra JOGAR você não precisa de nada.</b> Se um Lenda criar a liga e te passar o código, você entra e joga igual a todo mundo — com troféu e tudo.</>)}
@@ -3201,8 +3266,9 @@ export function EscLobby() {
               </>)}
               {!criar2 && quadroLiga}
             </div>
-            {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto */}
-            {!isCareer && (
+            {/* 🤝 DUPLAS (beta) — só no Rápido por enquanto. 🚫 Nem na sala "🌐 Copa do Mundo" direta (Diego 15/10):
+                lá não tem leilão, e a escolha de seleção não sabe de dupla (cada um escolheria a sua). */}
+            {!isCareer && roomMode !== 'mundo' && (
               <div>
                 <SegField label={tr('Quem comanda cada time', 'Who runs each team')}>
                   <Seg options={[[false, '👤 Solo'], [true, tr('🤝 Duplas (beta)', '🤝 Duos (beta)')]] as [boolean, string][]} value={roomDuplas} onSet={v => setRoomDuplas(v)} />
@@ -3642,11 +3708,19 @@ export function EscLobby() {
                   {tr(`▶ Assistir a live no ${plataforma}`, `▶ Watch the live on ${plataforma}`)}
                 </a>
               )}
+              {aoVivo && souCriador && (
+                <button onClick={() => { void tiraDestaque(r.id) }} className="block mx-3 mb-3 w-[calc(100%-1.5rem)] text-center border-[2px] border-black rounded-lg py-1.5 font-black text-[11px] uppercase"
+                  style={{ background: '#fff', color: INK, ...OSWALD }}>
+                  {tr('🚫 Tirar destaque (não é live) · só você vê', '🚫 Remove highlight (not live) · only you see this')}
+                </button>
+              )}
               </div>
             )
           })}
         </div>
         <Big onClick={() => fetchOpenRooms()} color="#fff">{tr('🔄 Atualizar lista', '🔄 Refresh list')}</Big>
+        {/* 🏆📊🖋️ vitrine: campeões de hoje · ranking da semana · último batismo (13/10, mockup aprovado) */}
+        <VitrineSalas logado={!!user} />
         {/* 📱 O GRUPO DE QUEM JOGA ONLINE — mudou de lugar em 29/08, no mesmo dia em
             que nasceu. Palavras do Diego, olhando a tela: *"sobre o WhatsApp, é pra
             aparecer aqui embaixo de atualizar lista, e de forma mais sutil. E não
@@ -3683,16 +3757,7 @@ export function EscLobby() {
             🔁 11/10: a linha do grupo VIP SAIU daqui e no lugar entrou o quadro verde da COMUNIDADE do WhatsApp
             (pedido dele: *"no lugar desse negócio do WhatsApp… procurando mais pessoas pra jogar online?"*).
             Quadro na página, não modal: não interrompe ninguém. Link em `comunidade.ts`. */}
-        {COMUNIDADE_LINK && (
-          <a href={COMUNIDADE_LINK} target="_blank" rel="noopener noreferrer" className="block rounded-2xl px-3.5 py-3 active:translate-y-0.5"
-            style={{ background: '#1B7A3D', border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}`, color: '#fff', textDecoration: 'none' }}>
-            <p className="font-black uppercase text-[16px] leading-tight" style={OSWALD}>{tr('📲 Procurando mais gente pra jogar online?', '📲 Looking for more people to play online?')}</p>
-            <p className="text-[12px] font-bold leading-snug mt-1" style={{ color: 'rgba(255,255,255,.88)' }}>{getLang() === 'en'
-              ? <>We just launched the long-awaited <b style={{ color: '#fff' }}>Leilão Legends community on WhatsApp</b>. Come join us too!</>
-              : <>Acabamos de criar a tão pedida <b style={{ color: '#fff' }}>Comunidade do Leilão Legends no WhatsApp</b>. Entre aqui também!</>}</p>
-            <span className="inline-block mt-2 rounded-full px-3.5 py-1 font-black uppercase text-[13px]" style={{ ...OSWALD, background: '#FFC400', color: INK, border: `2px solid ${INK}`, boxShadow: `2px 2px 0 ${INK}` }}>{tr('Entrar na comunidade →', 'Join the community →')}</span>
-          </a>
-        )}
+        {/* 📲 13/10: o quadro da comunidade subiu pro TOPO da página (pedido do Diego, print da lista de salas) */}
       </div>}
 
       {tab === 'join' && <div className="space-y-2">
@@ -3702,6 +3767,20 @@ export function EscLobby() {
       </div>}
 
       {!pwModal && roomError && <p className="text-red-400 text-sm font-bold">{roomError}</p>}
+      {limiteDia && <div style={{ background: '#FFF3C4', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 14, boxShadow: '3px 3px 0 #0C0C0C', padding: '10px 12px', margin: '8px 0' }}>
+        <p style={{ margin: 0, fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif' }}>{tr('🏟️ HOJE VOCÊ JÁ CRIOU A SUA SALA', '🏟️ YOU ALREADY CREATED YOUR ROOM TODAY')}</p>
+        <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, lineHeight: 1.4 }}>
+          {tr('Dá pra criar 1 sala por dia — amanhã libera outra. Mas ', 'You can create 1 room per day — another one unlocks tomorrow. But ')}
+          <b>{tr('entrar em qualquer sala aberta é sempre de graça', 'joining any open room is always free')}</b>
+          {tr(': é só escolher uma em "Salas abertas".', ': just pick one in "Open rooms".')}
+        </p>
+        {/* 14/10 (Diego): os dois caminhos um EMBAIXO do outro. O Lenda abre a tela padrão do Apoie, do começo
+            (Pra onde vai o dinheiro → todos os planos); as salas extras abrem a Loja. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+          <ApoieButton startScreen="choice" trigger={open => <button onClick={open} style={{ width: '100%', background: 'linear-gradient(160deg,#FFE79A,#FFC400 40%,#E8A200 70%,#FFDD70)', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('👑 CRIAR QUANTAS QUISER · VER OS PLANOS', '👑 CREATE AS MANY AS YOU LIKE · SEE THE PLANS')}</button>} />
+          <LojaButton style={{ width: '100%', background: '#fff', color: '#0C0C0C', border: '3px solid #0C0C0C', borderRadius: 12, padding: '9px 10px', fontWeight: 900, fontSize: 15, fontFamily: 'Oswald, sans-serif', cursor: 'pointer', boxShadow: '3px 3px 0 #0C0C0C' }}>{tr('🎟️ OU 3 SALAS EXTRAS · R$ 4,90', '🎟️ OR 3 EXTRA ROOMS · R$ 4.90')}</LojaButton>
+        </div>
+      </div>}
       {/* 🚪 o botão de ENCERRAR as salas presas AQUI, na tela de criar sala — a
           mensagem dizia "é só encerrar aqui embaixo", mas o botão só existia
           dentro de dois pop-ups (senha e continuar carreira). Quem batia na trava
@@ -4148,8 +4227,8 @@ export function EscLobby() {
             // 👑 dono de batismo: linha DOURADA, escudo no lugar da bolinha e a mascote
             // pulando na ponta (fora do modo duplas, que tem a linha própria dele)
             const gala = !duplasOn && getSport() !== 'basquete' ? (galaDaConta?.mapa.get(p.user_id) ?? null) : null // 📧 pela CONTA, nunca pelo nome
-            return (
-            <div key={p.user_id} className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
+            return (<PodioMoldura key={p.user_id} pos={posPodio(p.manager_name)}>{/* 🏆 top 3 da semana: moldura de metal POR FORA (15/10) */}
+            <div className={duplasOn ? 'rounded-xl border-2 border-black/15 p-2' : gala ? 'gala-linha' : ''} style={duplasOn ? { background: '#fff' } : undefined}>
               <div className="flex items-center gap-3" style={gala ? { position: 'relative', zIndex: 1 } : undefined}>
                 {gala ? <GalaEscudoBotao clube={gala} souEu={souEu} /> : (() => { const pkAv = pk ?? APOIO_PERKS.bege; return (
                   <div className="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center text-sm font-black"
@@ -4240,6 +4319,33 @@ export function EscLobby() {
                         ? (getLang() === 'en' ? `All split: green is yours, the rest is ${nomeDoOutro}'s. At the auction, only whoever runs the position bids.` : `Tudo dividido: o verde é seu, o resto é do ${nomeDoOutro}. Na hora do leilão, só quem manda na posição dá o lance.`)
                         : (getLang() === 'en' ? `Tap 3 positions. The other 3 go automatically to ${nomeDoOutro} — and if you don't choose, the game splits them on its own at kick-off.` : `Toque em 3 posições. As outras 3 ficam automático com o ${nomeDoOutro} — e se vocês não escolherem, o jogo divide sozinho na hora de começar.`)}
                     </p>
+                    {/* 🏳️ QUEM CONVOCA — só em sala com convocação (Copa do Mundo ou copa regional depois da liga) */}
+                    {(() => {
+                      const gsC = room?.game_state as (GS & { regionalNaLiga?: string }) | undefined
+                      if (!gsC?.mundoNaLiga && !gsC?.regionalNaLiga) return null
+                      const conv = (p.dupla_categories as Record<string, string> | null | undefined)?.[DUPLA_CONVOCA] ?? p.user_id
+                      const nomeDe = (r: RoomPlayer) => stripEmoji(r.manager_name).trim()
+                      return (
+                        <div className="mt-2.5 pt-2" style={{ borderTop: '2px dashed rgba(0,0,0,.12)' }}>
+                          <p className="text-black/60 text-[10.5px] font-black uppercase tracking-wide mb-1.5" style={OSWALD}>{tr('🏳️ Quem escolhe o clube e convoca', '🏳️ Who picks the club and calls up')}</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {[p, par].map(r => {
+                              const marcado = conv === r.user_id
+                              return (
+                                <button key={r.user_id} onClick={() => tocarConvoca(p, r.user_id)}
+                                  className="border-2 border-black rounded-lg py-1.5 px-1 font-black text-[11.5px] leading-tight active:translate-y-0.5"
+                                  style={{ ...OSWALD, background: marcado ? GREEN : '#fff', color: marcado ? '#fff' : '#000' }}>
+                                  {r.user_id === user?.id ? tr('🙋 EU', '🙋 ME') : tr('🤝 PARCEIRO', '🤝 PARTNER')}<br /><span style={{ fontSize: 10, opacity: 0.8 }}>{nomeDe(r)}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                          <p className="text-black/45 text-[10.5px] font-bold leading-snug mt-1.5">
+                            {getLang() === 'en' ? `In the World Cup / regional cup only ONE picks the club and calls up the 11 — the other watches live. Nobody chose = ${nomeDe(p)} calls up.` : `Na Copa do Mundo / copa regional só UM escolhe o clube e convoca os 11 — o outro assiste. Ninguém marcou = ${nomeDe(p)} convoca.`}
+                          </p>
+                        </div>
+                      )
+                    })()}
                   </div>
                 )
               })()}
@@ -4298,7 +4404,7 @@ export function EscLobby() {
                   </>))}
                 </div>
               )}
-            </div>
+            </div></PodioMoldura>
             )
           })}
           {players.length < 2 && <p className="text-black/40 text-xs italic mt-1">{tr('Aguardando mais técnicos…', 'Waiting for more managers…')}</p>}

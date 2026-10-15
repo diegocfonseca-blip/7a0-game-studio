@@ -68,3 +68,24 @@
   .ll-home:has(.ll-salao-entry){min-height:936px}
   .ll-home .ll-choices{bottom:136px}
 }
+/* 🛒 Loja do Clube (14/10): botão dourado do lado de MINHA CONTA */
+.ll-home .ll-extras{flex-wrap:wrap!important}.ll-home .ll-loja-entry{flex:1 1 100%!important;background:linear-gradient(105deg,#ffd84a,#ffc400 55%,#e8a200)!important;border-color:#0c0c0c!important}
+.ll-home .ll-loja-entry strong{color:#0c0c0c!important}.ll-home .ll-loja-entry small{color:#3a2c00!important;display:block!important}.ll-home .ll-loja-entry>span:last-child{color:#0c0c0c}
+/* 🎨 14/10 (Diego, mockup aprovado): Carreira VERDE; a Loja é a ÚNICA faixa dourada e mora logo abaixo dos modos;
+   Salão · Regras · Álbum viram 3 blocos escuros lado a lado; o rodapé perdeu os botões (Regras subiu, Apoiar é o quadro grande do fim). */
+.ll-home .ll-mode.ll-career{background:#1b7a3d;color:#fff}
+.ll-home .ll-loja-linha{display:flex;margin-top:12px}
+.ll-home .ll-loja-linha .ll-loja-entry{flex:1 1 100%!important}
+.ll-home .ll-extras.ll-extras-3{flex-wrap:nowrap!important}
+.ll-regras-entry{background:linear-gradient(105deg,#1d1b16,#141210)!important}
+@media(max-width:650px){
+  .ll-home .ll-extras.ll-extras-3 .ll-salao-entry{flex-direction:column;justify-content:center;text-align:center;gap:3px;min-height:66px;padding:7px 4px}
+  .ll-home .ll-extras.ll-extras-3 .ll-salao-entry>span:first-child{font-size:22px}
+  .ll-home .ll-extras.ll-extras-3 .ll-salao-entry>span:last-child{display:none}
+  .ll-home .ll-extras.ll-extras-3 .ll-salao-entry>span:nth-child(2){flex:0 0 auto;width:100%}
+  .ll-home .ll-loja-linha{margin-top:10px}
+}
+.ll-home .ll-footer{justify-content:center}.ll-home .ll-footer .ll-web{text-align:center}
+@media(max-width:650px){.ll-home .ll-choices{bottom:96px}}
+/* o botão do quadro de apoio do fim da home: só a BORDA dourada (o dourado cheio é só da Loja) */
+.ll-support-home-tail .ll-support-footer>button{background:transparent!important;color:#ffc400!important;border-color:#ffc400!important}

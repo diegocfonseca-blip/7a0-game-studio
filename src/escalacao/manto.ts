@@ -12,6 +12,8 @@ import { getLang } from './lang' // 🌐 NOME_MSG sai no idioma do botão BR/EN
 
 // reserva no código (beta) — conta → [cor1, cor2]
 export const MANTO_CONTAS: Record<string, [string, string]> = {
+  // 🦁 Leão da Estradinha (jorgericardo777) — vermelho e branco MEDIDOS na camisa da arte nova (13/10)
+  'jorgericardo777@gmail.com': ['#950C0D', '#FFFFFF'],
   // 🦇 Neymarzetti — PRETO e BRANCO, MEDIDOS na arte NOVA que o dono mandou (16/09):
   // branco 83,6% do manto, preto 10,3%. A camisa virou BRANCA com detalhe preto.
   // O PRETO vem primeiro de propósito: listra clara em cima da tela creme do jogo
@@ -98,6 +100,12 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🐓👑 Le Prince FC — PRETO e BRANCO, MEDIDOS na camisa que o dono mandou (08/10): preto 66% (mediana #0F0E0D)
   // e branco das listras 20% (#E6E2DD).
   'henriquejunger07@gmail.com': ['#0F0E0D', '#E6E2DD'],
+  // 🟢⚪ ComVerissimo FC — VERDE e BRANCO, MEDIDOS na camisa que o dono mandou (15/10): verde do corpo (#034727)
+  // e o branco da gola/punhos (#F0F0EC).
+  'cesar.verissimo27@gmail.com': ['#034727', '#F0F0EC'],
+  // 🐰⚪ Labubu FC — BRANCO e AZUL-MARINHO, MEDIDOS na camisa que o dono mandou (14/10): branco do corpo (mediana dos
+  // pixels claros, #EFEEED — a marca d'água cinza do bicho puxava pra #DFDDDD) e o marinho da gola e dos punhos (#03101F).
+  'caelborba@gmail.com': ['#EFEEED', '#03101F'],
   // 💴🔴⚫ Rossini Money — PRETO e VERMELHO, MEDIDOS na camisa que o dono mandou (12/10): preto 79% (mediana #120D0D)
   // e o vermelho VIVO das faixas e golas (#C21C1B; a mediana de todo vermelho dava #961413, puxada pela sombra do desenho).
   'luizeduardorossini0013@gmail.com': ['#120D0D', '#C21C1B'],

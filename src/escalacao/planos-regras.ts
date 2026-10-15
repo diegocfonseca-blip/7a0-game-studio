@@ -1,6 +1,6 @@
 // ─── 💳 PLANOS V2 (08/10, Diego) — as REGRAS num lugar só ─────────────────────
 //
-// Gratuito · ⭐ Craque completo R$ 12,90/mês (era 9,90 até 09/10) · 🖋 Batismo Lenda R$ 69,90 · 🖋✨ Batismo Plus R$ 79,99.
+// Gratuito · ⭐ Craque completo R$ 12,90/mês (era 9,90 até 09/10) · 🖋 Batismo Lenda R$ 69,90 · 🖋✨ Batismo Plus R$ 89,90 (era 79,99 até 13/10, Diego: "Plus passa a custar 89").
 // Não existe mais Craque/Lenda avulso nem passe trimestral. Quem comprou o antigo FICA com tudo.
 //
 // Este arquivo é PURO (sem banco, sem React): a tela, o reducer e a trava `npm run planos` leem as
@@ -16,10 +16,33 @@ export type TierCor = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
 
 /** 💰 preços — o único lugar com número de plano no jogo */
 export const PRECOS = {
-  craqueMensal: 12.9,
-  batismoLenda: 69.9,
-  batismoPlus: 79.99,
+  craqueMensal: 9.9, // 💰 14/10 (Diego: "coloca 9,90 o valor mensal"). Era 12,90 de 09/10 a 13/10.
+  batismoLenda: 79.9, // 💰 14/10 (Diego): Batismo 79,90 (era 69,90); Batismo Lenda segue 89,90
+  batismoPlus: 89.9,
 } as const
+
+/** 💳 14/10 (Diego): PLANOS DE UMA VEZ SÓ, a vitrine que o PÚBLICO vê. Sai o Sócio (mensal); o Batismo Lenda passa a
+ *  se chamar 🖋️ FUNDADOR (o único que ganha número de fundador daqui pra frente — quem já tem número fica com ele).
+ *  Subir de plano = paga só a DIFERENÇA entre os preços de hoje (`precoSubida`). */
+export const PRECOS_UNICO = { craque: 29.9, lenda: 49.9, batismo: 79.9, fundador: 99.9 } as const
+export type PlanoUnico = keyof typeof PRECOS_UNICO
+/** 💰 14/10 (Diego): *"todo usuário que tem um plano e quer passar pra um novo teria que pagar pelo menos 5 reais a mais"*.
+ *  Subir de plano = a diferença + R$ 5. */
+export const TAXA_SUBIDA = 5
+/** quanto custa chegar em `alvo` pra quem já tem `atual` (nunca negativo; o mesmo plano ou um menor = 0) */
+export function precoSubida(alvo: PlanoUnico, atual: PlanoUnico | null): number {
+  const dif = PRECOS_UNICO[alvo] - (atual ? PRECOS_UNICO[atual] : 0)
+  if (dif <= 0) return 0
+  return Math.round((dif + (atual ? TAXA_SUBIDA : 0)) * 100) / 100
+}
+/** o plano que a pessoa já tem, lido dos direitos do banco + o tier (prata = Craque · ouro = Lenda) */
+export function planoAtual(d: { batismoPlano: 'antigo' | 'lenda' | 'plus' | null } | null, tier: TierCor | null | undefined): PlanoUnico | null {
+  if (d?.batismoPlano === 'plus') return 'fundador'
+  if (d?.batismoPlano) return 'batismo'
+  if (tier === 'ouro') return 'lenda'
+  if (tier === 'prata') return 'craque'
+  return null
+}
 
 /** "R$ 12,90" / "R$ 12.90" */
 export function precoTxt(v: number, en = false): string {

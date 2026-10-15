@@ -286,6 +286,21 @@ export function useAliciarJogador(): boolean {
   return aliciarJogOk
 }
 
+// 👑 KINGS LEAGUE na Partida Rápida (15/10) — só a conta do Diego até ele aprovar (`docs/conceito-kings-league.md`)
+const KINGS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+let kingsOk = false
+function applyKings(email?: string | null): void {
+  const u = !!email && KINGS_TESTERS.has(email.toLowerCase())
+  if (u === kingsOk) return
+  kingsOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function useKingsLiberada(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return kingsOk
+}
+
 const PEN_TEST_TESTERS = new Set<string>([])
 let penTestOk = false
 function applyPenTest(email?: string | null): void {
@@ -935,13 +950,15 @@ export function useElencoNovo(): boolean {
 }
 
 // ─── 💳 PLANOS V2 (08–09/10) ──────────────────────────────────────────────────
-// Gratuito · ⭐ Craque completo R$ 9,90/mês · 🖋 Batismo Lenda R$ 69,90 · 🖋✨ Batismo Plus R$ 79,99.
+// Gratuito · ⭐ Craque completo R$ 9,90/mês · 🖋 Batismo Lenda R$ 69,90 · 🖋✨ Batismo Plus R$ 89,90 (era 79,99 até 13/10).
 // Diego (09/10): *"publique só pro meu usuário pra eu ver como ficará"*. Enquanto for `false`, só as
 // contas abaixo veem a vitrine nova, a tela do mensal e os textos novos; o resto do mundo segue com os
 // planos antigos, sem mudar nada. A 2ª conta (diego2, grátis) serve pra ele ver como o gratuito enxerga.
 // Liberar pra todos: PLANOS2_GERAL = true.
 const PLANOS2_GERAL = false
-const PLANOS2_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+// 💳 14/10: o Sócio mensal SAIU (Diego). A V2 (vitrine do mensal) fecha também pra ele — todo mundo vê a mesma tela
+// (V1, com Craque/Lenda/Batismo/Fundador de uma vez só). Pra reabrir o teste, recoloque os e-mails aqui.
+const PLANOS2_TESTERS = new Set<string>([])
 let planos2Ok = PLANOS2_GERAL
 function applyPlanos2(email?: string | null): void {
   const u = PLANOS2_GERAL || (!!email && PLANOS2_TESTERS.has(email.toLowerCase()))
@@ -956,8 +973,72 @@ export function usePlanos2(): boolean {
   return planos2Ok
 }
 
-supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); if (internacionalCarreiraAuthVersion === 0) authorizeInternacionalCarreira(data?.user, 0); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyChampionsUnlock(data?.user?.email); applyRegionalUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyCentralUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email); applyClubesUnlock(data?.user?.email); applyColecoesUnlock(data?.user?.email); applyPlanos2(data?.user?.email) }, () => { applyColecoesUnlock(null); if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(null) })
-supabase.auth.onAuthStateChange((_event, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); verifyInternacionalCarreira(s?.user); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyChampionsUnlock(s?.user?.email); applyRegionalUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyCentralUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email); applyElenco27(s?.user?.email); applyClubesUnlock(s?.user?.email); applyColecoesUnlock(s?.user?.email); applyPlanos2(s?.user?.email) })
+// 💰 ECONOMIA DOS BOTS NA CARREIRA (13/10, Diego: "Perfeito pode fazer"). Os clubes bot passam a ganhar
+// TV + bilheteria pela divisão e a pagar salário, igual o humano (mockup `scripts/mockups/carreira-bots.png`).
+// 🔒 Primeiro SÓ nas contas do Diego, pra ele testar numa carreira dele; liberar pra todos: ECON_BOTS_GERAL = true.
+// A regra mora em `store.tsx` (`aplicaEconomiaBots`) e só roda na virada da temporada.
+const ECON_BOTS_GERAL = true // 🟢 13/10: liberado pra todos (Diego: "pode publicar")
+const ECON_BOTS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+let econBotsOk = ECON_BOTS_GERAL
+function applyEconBots(email?: string | null): void {
+  const u = ECON_BOTS_GERAL || (!!email && ECON_BOTS_TESTERS.has(email.toLowerCase()))
+  if (u === econBotsOk) return
+  econBotsOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function econBotsLiberado(): boolean { return econBotsOk }
+export function useEconBots(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return econBotsOk
+}
+
+// 🏢➡️⚽ SAF QUE VIRA 2º CLUBE (13/10, Diego: "Ok pode ser assim"). A SAF e o 2º clube viram UM degrau só:
+// compra a SAF → 10 temporadas como dono → assume o comando (só pagante) → vende pela divisão/coleção de taças.
+// 🔒 Primeiro SÓ nas contas do Diego; liberar pra todos: SAF2_GERAL = true. Com a chave desligada, a SAF e o
+// 2º clube antigos seguem EXATAMENTE como sempre foram. As regras puras moram em `saf2.ts`.
+const SAF2_GERAL = true // 🟢 13/10: liberado pra todos (Diego: "pode publicar")
+const SAF2_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+let saf2Ok = SAF2_GERAL
+function applySaf2(email?: string | null): void {
+  const u = SAF2_GERAL || (!!email && SAF2_TESTERS.has(email.toLowerCase()))
+  if (u === saf2Ok) return
+  saf2Ok = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function saf2Liberado(): boolean { return saf2Ok }
+/** 🧪 só pra trava `npm run saf2` (node, sem login): liga/desliga a chave na hora. O jogo nunca chama. */
+export function saf2ParaTeste(on: boolean): void { saf2Ok = on }
+export function useSaf2(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return saf2Ok
+}
+
+// 🔁 RIVAL COM BANCO (13/10, Diego: "pode fazer"): bots com elenco de 22, cansaço e lesão iguais aos do
+// humano, e duas receitas novas (patrocínio + prêmio pela colocação). Só carreira. O motor puro mora em
+// `bots-banco.ts`. 🔒 Primeiro SÓ nas contas do Diego; liberar pra todos: BOT_BANCO_GERAL = true. Desligada,
+// a carreira segue EXATAMENTE como antes (o cansaço do bot só começa numa temporada NOVA depois de ligar).
+const BOT_BANCO_GERAL = true // 🟢 13/10: liberado pra todos (Diego: "pode publicar pra todos já")
+const BOT_BANCO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
+let botBancoOk = BOT_BANCO_GERAL
+function applyBotBanco(email?: string | null): void {
+  const u = BOT_BANCO_GERAL || (!!email && BOT_BANCO_TESTERS.has(email.toLowerCase()))
+  if (u === botBancoOk) return
+  botBancoOk = u
+  listeners.forEach(fn => { try { fn() } catch { /* ignora */ } })
+}
+export function botBancoLiberado(): boolean { return botBancoOk }
+/** 🧪 só pra trava `npm run bots-banco` (node, sem login). O jogo nunca chama. */
+export function botBancoParaTeste(on: boolean): void { botBancoOk = on }
+export function useBotBanco(): boolean {
+  const [, force] = useState(0)
+  useEffect(() => onSportChange(() => force(n => n + 1)), [])
+  return botBancoOk
+}
+
+supabase.auth.getUser().then(({ data }) => { applyUnlock(data?.user?.email); applyTemaUnlock(data?.user?.email); applyAgenciaUnlock(data?.user?.email); applyRevealCinema(data?.user?.email); applyPenTest(data?.user?.email); applyFormacoes15(data?.user?.email); applyAliciarJog(data?.user?.email); applyCopaBrasilUnlock(data?.user?.email); if (internacionalCarreiraAuthVersion === 0) authorizeInternacionalCarreira(data?.user, 0); applySalaElencoUnlock(data?.user?.email); applyLigaUnlock(data?.user?.email); applyLigaFechadaUnlock(data?.user?.email); applyLibertaUnlock(data?.user?.email); applyChampionsUnlock(data?.user?.email); applyRegionalUnlock(data?.user?.email); applyHomeNovaUnlock(data?.user?.email); applyHomeIlustradaUnlock(data?.user?.email); applyBarraCarrUnlock(data?.user?.email); applyCentralUnlock(data?.user?.email); applyPregaoUnlock(data?.user?.email); applyFimTempUnlock(data?.user?.email); applyPilulasUnlock(data?.user?.email); applyCriar2(data?.user?.email); applyPreviewComum(data?.user?.email); applySalao(data?.user?.email); applyMundo(data?.user?.email); applyLojaUnlock(data?.user?.email); applyElenco27(data?.user?.email); applyClubesUnlock(data?.user?.email); applyColecoesUnlock(data?.user?.email); applyPlanos2(data?.user?.email); applyEconBots(data?.user?.email); applySaf2(data?.user?.email); applyBotBanco(data?.user?.email); applyKings(data?.user?.email) }, () => { applyColecoesUnlock(null); if (internacionalCarreiraAuthVersion === 0) applyInternacionalCarreira(null) })
+supabase.auth.onAuthStateChange((_event, s) => { applyUnlock(s?.user?.email); applyTemaUnlock(s?.user?.email); applyAgenciaUnlock(s?.user?.email); applyRevealCinema(s?.user?.email); applyPenTest(s?.user?.email); applyFormacoes15(s?.user?.email); applyAliciarJog(s?.user?.email); applyCopaBrasilUnlock(s?.user?.email); verifyInternacionalCarreira(s?.user); applySalaElencoUnlock(s?.user?.email); applyLigaUnlock(s?.user?.email); applyLigaFechadaUnlock(s?.user?.email); applyLibertaUnlock(s?.user?.email); applyChampionsUnlock(s?.user?.email); applyRegionalUnlock(s?.user?.email); applyHomeNovaUnlock(s?.user?.email); applyHomeIlustradaUnlock(s?.user?.email); applyBarraCarrUnlock(s?.user?.email); applyCentralUnlock(s?.user?.email); applyPregaoUnlock(s?.user?.email); applyFimTempUnlock(s?.user?.email); applyPilulasUnlock(s?.user?.email); applyCriar2(s?.user?.email); applyPreviewComum(s?.user?.email); applySalao(s?.user?.email); applyMundo(s?.user?.email); applyLojaUnlock(s?.user?.email); applyElenco27(s?.user?.email); applyClubesUnlock(s?.user?.email); applyColecoesUnlock(s?.user?.email); applyPlanos2(s?.user?.email); applyEconBots(s?.user?.email); applySaf2(s?.user?.email); applyBotBanco(s?.user?.email); applyKings(s?.user?.email) })
 
 export function isSportUnlocked(): boolean { return unlocked }
 

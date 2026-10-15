@@ -1,4 +1,8 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
+import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
+import type { CtxKings } from './kings-liga'
+import type { KingsBase } from './types'
+import { calendarioKings, chaveKings } from './kings'
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
 import {presidentWritesEnabled} from './presidente-acesso'
@@ -36,7 +40,7 @@ import { championsConvidados, potesChampions, calendarioChampions, repescaoChamp
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
 import { summarizeInternationalCampaign } from './career-international-summary'
 import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
-import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS } from './data'
+import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS, CARTAS_RENOMEADAS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
 import { fichasDoPlano } from './planos-regras'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
@@ -308,6 +312,7 @@ function chargeSalaries(s: EscState) {
     folha += salarioPreparador(preparadorDe(s.careerPreparador?.[m.teamName]))
     if (folha > 0) cc[m.id] = (cc[m.id] ?? 0) - folha // folha REAL, pode negativar (dívida)
   }
+  if (saf2On(s)) folhaEmprestimosSaf2(s, cc) // 🏢➡️⚽ empréstimo paga METADE do salário pra cada lado (13/10, só com a chave)
   s.careerCoins = cc
 }
 // 🎟️🪙 BRINDES DE SÓCIO — os DOIS valores moram aqui e em lugar nenhum mais.
@@ -396,8 +401,8 @@ export function agenciaEstadio(s: EscState): NonNullable<EscState['stadiums']>[n
   const dorm = s.multiClube?.id
   if (s.agenciaDividir && dorm != null) {
     const a = s.stadiums?.[y], b = s.stadiums?.[dorm]
-    const ra = agenciaRenda(s.agenciados ?? [], a, !!s.careerFilial).total
-    const rb = agenciaRenda(s.agenciados ?? [], b, !!s.careerFilial).total
+    const ra = agenciaRenda(s.agenciados ?? [], a, temSafAgencia(s)).total
+    const rb = agenciaRenda(s.agenciados ?? [], b, temSafAgencia(s)).total
     return rb > ra ? b : a
   }
   return s.stadiums?.[s.agenciaClubeId ?? y]
@@ -757,7 +762,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
         s.careerCoins = { ...(s.careerCoins ?? {}), [y]: (s.careerCoins?.[y] ?? 0) + meuLado, [dorm]: (s.careerCoins?.[dorm] ?? 0) + (valor - meuLado) }
       } else s.careerCoins = { ...(s.careerCoins ?? {}), [dest]: (s.careerCoins?.[dest] ?? 0) + valor }
     }
-    const renda = agenciaRenda(s.agenciados, dividir ? agenciaEstadio(s) : s.stadiums?.[dest], !!s.careerFilial)
+    const renda = agenciaRenda(s.agenciados, dividir ? agenciaEstadio(s) : s.stadiums?.[dest], temSafAgencia(s))
     paga(renda.total)
     // histórico por carta ("já te rendeu X"): mensalidade de quem rendeu de fato
     if (renda.total > 0) {
@@ -797,12 +802,12 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   }
   if (!online) {
     const maduras = (s.empresarioCards ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
-    const inc = empresarioIncome(maduras, s.stadiums?.[y], !!s.careerFilial).total
+    const inc = empresarioIncome(maduras, s.stadiums?.[y], temSafAgencia(s)).total
     if (inc > 0) s.careerCoins = { ...s.careerCoins, [y]: (s.careerCoins[y] ?? 0) + inc }
     if (dorm != null) {
       // agência do clube dormindo mora no stash; estádio é o DELE; SAF é compartilhada
       const madurasD = (s.multiClube?.empresario ?? []).filter(c => (c.season ?? 0) < (s.seasonNo ?? 1))
-      const incD = empresarioIncome(madurasD, s.stadiums?.[dorm], !!s.careerFilial).total
+      const incD = empresarioIncome(madurasD, s.stadiums?.[dorm], temSafAgencia(s)).total
       if (incD > 0) s.careerCoins = { ...s.careerCoins, [dorm]: (s.careerCoins[dorm] ?? 0) + incD }
     }
   } else {
@@ -828,6 +833,62 @@ function applyClubRewards(cash: Record<string, number> | undefined, rewards?: Re
   const out = { ...(cash ?? {}) }
   for (const k in (rewards ?? {})) out[k] = Math.max(0, (out[k] ?? 0) + (rewards as Record<string, number>)[k])
   return out
+}
+// ─── 💰 ECONOMIA DOS BOTS NA CARREIRA (13/10) ────────────────────────────────
+// Diego aprovou o mockup `scripts/mockups/carreira-bots.png` ("Perfeito pode fazer"). Antes o bot
+// começava com a base da divisão e só ganhava prêmio de título: sem TV, sem bilheteria e SEM
+// salário. Da metade da carreira em diante quem joga ficava rico e o bot não tinha como brigar
+// (o "Scholes lenda sem lance nenhum" de 21/09). Agora, na virada, cada clube bot:
+//   + recebe a MESMA cota de TV da divisão que o humano recebe (`TV_COTA`)
+//   + recebe bilheteria pela divisão (`BOT_BILHETERIA` — o estádio de bot não tem obra)
+//   − paga a folha do elenco (salário = o maior entre o pago e a tabela da carta, ÷ 10)
+// e o que passar do teto da divisão (`BOT_CAIXA_TETO`) "vira obra": o clube não acumula
+// infinito, senão em 50 temporadas todo bot seria milionário e o leilão viraria o contrário.
+// ⚠️ O teto do LANCE continua o mesmo de sempre (categoria × fator da sala, máx 4×) — isto só
+// dá dinheiro de verdade pro bot chegar nesse teto. Prêmio de título continua por cima
+// (`clubRewards`), igual era. Humano NÃO passa por aqui (ele tem o próprio `applySeasonMoney`).
+export const BOT_BILHETERIA: Record<string, number> = { A: 40, B: 30, C: 20, D: 12, V: 6 }
+export const BOT_CAIXA_TETO: Record<string, number> = { A: 900, B: 700, C: 500, D: 300, V: 150 }
+export function folhaDoBot(squad: readonly Card[] | undefined): number {
+  let f = 0
+  for (const c of squad ?? []) {
+    if ((c as { fake?: boolean }).fake || isFillerClub(c.club)) continue
+    // emprestado não entra: quem paga o salário dele é a regra do empréstimo (metade pra cada lado, saf2)
+    if ((c as { emprestado?: unknown }).emprestado) continue
+    f += Math.round(Math.max((c as { paid?: number }).paid ?? 0, CONTRATO_TABELA(c)) / 10)
+  }
+  return f
+}
+/** o balanço de UM clube bot numa virada (puro — a trava `npm run econ-bots` testa isto) */
+// 🤝 `patrocinio` (13/10, rival com banco): a 3ª receita do bot — `PATROCINIO_BOT` (bots-banco.ts). 0 = como era.
+export function balancoBot(div: string, folha: number, caixa: number, patrocinio = 0): { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number } {
+  const tv = TV_COTA[div] ?? 10, bilheteria = BOT_BILHETERIA[div] ?? 6
+  const saldo = tv + bilheteria + patrocinio - folha
+  let novo = Math.max(0, caixa + saldo)
+  const teto = BOT_CAIXA_TETO[div] ?? 150
+  // passou do teto? o excedente vira obra. Quem JÁ estava acima (save antigo) não perde nada.
+  if (saldo > 0 && novo > teto) novo = Math.max(caixa, teto)
+  return { tv, bilheteria, folha, saldo, caixa: Math.round(novo), ...(patrocinio ? { patrocinio } : {}) }
+}
+/** aplica a economia em todo clube bot da pirâmide, pela divisão da temporada QUE ACABOU */
+function aplicaEconomiaBots(s: EscState, divDaTemporada: Record<string, string> | null | undefined): void {
+  if (!s.careerOnline || !econBotsLiberado()) return
+  if (s.econBotsSeason === s.seasonNo) return // 🧯 toque duplo não paga 2×
+  const humanos = new Set(s.managers.filter(m => m.isHuman).map(m => `m${m.id}`))
+  const cash = { ...(s.clubCash ?? {}) }
+  const rel: NonNullable<EscState['econBotsRel']> = {}
+  for (const [k, div] of Object.entries(divDaTemporada ?? {})) {
+    if (humanos.has(k)) continue
+    const squad = k.startsWith('m') && /^m\d+$/.test(k)
+      ? s.managers.find(m => `m${m.id}` === k)?.squad
+      : (s.cpuSquads?.[k] as Card[] | undefined)
+    const b = balancoBot(div, folhaDoBot(squad), cash[k] ?? DIV_BASE_CASH[div] ?? 100, botBancoLiberado() ? (PATROCINIO_BOT[div] ?? 0) : 0)
+    cash[k] = b.caixa
+    rel[k] = b
+  }
+  s.clubCash = cash
+  s.econBotsRel = rel
+  s.econBotsSeason = s.seasonNo
 }
 // caixa-base por divisão (clubes de cima mais ricos) + os LUCROS das vendas do
 // mercado (persistidos no fim de cada leilão) + prêmios de título/acesso. Assim o
@@ -930,8 +991,13 @@ import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
+import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
 import { agenciaLiberada, escadaLiberada, internacionalCarreiraLiberada, internacionalCarreiraAuthResolvida } from './sport'
 import { elencoNovoLiberado } from './sport' // 👥 banco de 16: por enquanto SÓ a conta do Diego
+import { PATROCINIO_BOT } from './bots-banco' // 🔁 rival com banco (13/10)
+import { botBancoLiberado, econBotsLiberado } from './sport' // 💰 economia dos bots (13/10): por enquanto SÓ a conta do Diego
+import { saf2Liberado } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10): por enquanto SÓ a conta do Diego
+import { addTaca, colecao, valorVendaSaf, valorVenda2oClube, investido2o, podeAssumir, precisaMigrar, reembolsoMigracao, metadeSalario, janelaAberta, podeTransferir, podeAportar, EMPRESTIMOS_ENTRE_CLUBES, PRECO_COMANDO, type TacaSaf2 } from './saf2'
 import { logPlay, logVisit, heartbeat, logTravaSalva } from './analytics'
 import { pack, unpack } from './netpack'
 
@@ -1144,7 +1210,7 @@ function healCpuSquads(s: EscState) {
 // então um F5 no meio da carreira nunca "perde" o banco maior.
 let MODO_ONLINE = false
 export function marcaModoOnline(on: boolean) { MODO_ONLINE = on }
-const extraDoDono = (m: Manager): number => (ACTIVE_SPORT === 'basquete' || MODO_ONLINE || !elencoNovoLiberado() ? 0 : m.isHuman ? 1 : 0)
+const extraDoDono = (m: Manager): number => (ACTIVE_SPORT === 'basquete' || MODO_ONLINE || !elencoNovoLiberado() || m.formation === 'kings' ? 0 : m.isHuman ? 1 : 0)
 export function slotsOf(m: Manager, pos: Sector): number {
   // 🏀 basquete: o alvo é POR TÉCNICO (nbaSlots) — quinteto 1 → rotação 2 →
   // elenco 3, crescendo a cada temporada só p/ você; bots sem nbaSlots = quinteto.
@@ -1334,6 +1400,124 @@ function guardaCansaco(s: EscState, golsCard?: Record<string, number>, assCard?:
     }
   }
   s.condicaoCarry = Object.keys(novo).length ? novo : undefined
+}
+// 🔁 RIVAL COM BANCO (13/10): o gás com que cada carta de bot terminou a temporada vem da TELA (é ela
+// que tem o plano — `planoCansacoBot`), igual ao gol/assistência do humano. E, na 1ª virada depois de a
+// regra ligar, marca a temporada NOVA como a 1ª em que os bots cansam: a que está acabando não muda.
+function guardaCansacoBots(s: EscState, carry?: Record<string, number>) {
+  if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
+  if (s.botFadigaDesde == null) s.botFadigaDesde = (s.seasonNo ?? 1) + 1
+  if (carry && Object.keys(carry).length) s.botCarry = carry
+}
+// 🔁 RIVAL COM BANCO (13/10, Diego: *"também pode comprar 22 jogadores"*). Fim do leilão: cada clube
+// bot da SUA divisão (técnico de CPU ou time de fundo) completa 2 por posição com jogador REAL que não
+// tem dono — nunca incógnito (regra nº 1: perna-de-pau não entra em elenco por regra nova) — e PAGA o
+// preço justo da carta do próprio caixa. Sem dinheiro, fica sem o reserva (e o titular cansa). O salário
+// desse banco entra sozinho na folha do bot (`folhaDoBot`) na virada.
+// 🔁 (14/10) depois do leilão: bot que passou do elenco numa posição (ganhou um reforço com o elenco cheio) separa os mais
+// fracos daquela posição pra LISTAR no próximo leilão — recebe o dinheiro se alguém comprar, igual a qualquer lista.
+export function marcaAVender(s: EscState) {
+  if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
+  for (const m of s.managers) {
+    if (m.isHuman || !m.rival) continue
+    const nv = (c: { lo: number; hi: number }) => c.lo + c.hi
+    const marcados = new Set(m.aVender ?? [])
+    for (const pos of SECTORS) {
+      const teto = 2 * FORMATIONS[m.formation][pos]
+      const reais = m.squad.filter(c => c.pos === pos && !c.fake && !marcados.has(c.id)).sort((a, b) => nv(a) - nv(b))
+      for (const c of reais.slice(0, Math.max(0, reais.length - teto))) marcados.add(c.id)
+    }
+    m.aVender = marcados.size ? [...marcados] : undefined
+  }
+}
+
+export function completaBancoDosBots(s: EscState) {
+  if (!s.careerOnline || s.onlineMode === 'online' || !botBancoLiberado()) return
+  const minhaDiv = divisaoDaCarreira(s)
+  const escDv: EscadaDiv | null = (!s.escadaOn || s.escadaLivre) ? null : ((['A', 'B', 'C', 'D', 'V'] as string[]).includes(minhaDiv) ? minhaDiv as EscadaDiv : 'V')
+  const idB = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
+  const usados = new Set<string>()
+  for (const m of s.managers) for (const c of m.squad) if (!c.fake) usados.add(idB(c))
+  for (const cards of Object.values(s.cpuSquads ?? {})) for (const c of cards) if (!(c as Card).fake) usados.add(idB(c as Card))
+  const rngB = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 40503) ^ 0xBA4C0) >>> 0)
+  const cash = { ...(s.clubCash ?? {}) }
+  const NEED_B: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+  // 🧠 O BOT É ESPERTO (Diego 13/10: *"ele pega se ele quiser… e vai melhorando aos poucos o dele"*):
+  //   · separa só uma PARTE do caixa pro banco, pelo perfil do clube (gastador gasta mais, pão-duro guarda);
+  //   · em cada vaga leva o MELHOR jogador que cabe na verba daquela vaga — não um qualquer;
+  //   · não vale a pena (caro demais pra verba)? não pega e guarda o dinheiro;
+  //   · todo começo de temporada tenta UMA melhora (duas se for gastador): se tem jogador sem clube bem
+  //     melhor que o pior do elenco naquela posição, contrata e dispensa o pior (ele volta a ficar sem clube).
+  //     Assim o time vai subindo devagar, sem virar seleção da noite pro dia.
+  const nivelB = (c: { lo: number; hi: number }) => c.lo + c.hi
+  const PARTE: Record<PerfilBot, number> = { gastador: 0.6, paoduro: 0.25, obcecado: 0.4, imprevisivel: 0.45, equilibrado: 0.35 }
+  const precoDe = (c: Card, pos: Sector) => Math.max(s.marketValues?.[ident(c)] ?? 0, justoDaCarta(s, { ...c, pos } as Card))
+  const livresDe = (pos: Sector): Card[] => ACTIVE_CATALOG[pos].filter(c => !usados.has(idB(c)) && (!escDv || escadaAllows(escDv, c))).map(c => ({ ...c, pos }) as Card)
+  const enche = (squad: WonCard[], need: Record<Sector, number>, chaveCaixa: string, tag: string, contrato: boolean, nomeClube: string): WonCard[] => {
+    let out = [...squad]
+    let caixa = cash[chaveCaixa] ?? DIV_BASE_CASH[minhaDiv] ?? 100
+    const perfil = perfilDoClube(nomeClube, s.seed ?? 0)
+    const obsessao = perfil === 'obcecado' ? setorDaObsessao(nomeClube, s.seasonNo ?? 1) : undefined
+    let verba = Math.round(caixa * PARTE[perfil])
+    const novo = (c: Card, pos: Sector, preco: number): WonCard => ({ ...c, pos, id: `banco-${tag}-${pos}-${Math.floor(rngB() * 1e9)}`, paid: preco, via: 'monte', ...(contrato && s.contratosOn ? { contratoAte: (s.seasonNo ?? 1) + 4 } : {}) } as WonCard)
+    // 1) o banco: vagas que faltam, a posição da obsessão primeiro
+    const vagas: Sector[] = []
+    for (const pos of SECTORS) {
+      const reais = out.filter(c => c.pos === pos && !c.fake && !c.emprestado).length
+      for (let k = reais; k < need[pos] * 2; k++) vagas.push(pos)
+    }
+    vagas.sort((a, b) => Number(b === obsessao) - Number(a === obsessao))
+    vagas.forEach((pos, idx) => {
+      const resto = vagas.length - idx
+      const teto = Math.min(caixa, Math.round((verba / resto) * (pos === obsessao ? 2 : perfil === 'gastador' ? 1.5 : 1.2)))
+      const cands = livresDe(pos).map(c => ({ c, preco: precoDe(c, pos) })).filter(x => x.preco <= teto)
+      if (!cands.length) return // caro demais pra verba: não pega, guarda o dinheiro
+      cands.sort((a, b) => (nivelB(b.c) - nivelB(a.c)) || (a.preco - b.preco))
+      const top = cands.slice(0, perfil === 'imprevisivel' ? 4 : 1)
+      const esc = top[Math.floor(rngB() * top.length)]
+      caixa -= esc.preco; verba -= esc.preco
+      usados.add(idB(esc.c))
+      out.push(novo(esc.c, pos, esc.preco))
+    })
+    // 2) melhorar aos poucos: 1 troca por temporada (2 pro gastador), só se valer a pena
+    const trocas = perfil === 'gastador' ? 2 : 1
+    for (let t = 0; t < trocas; t++) {
+      let melhor: { pos: Sector; c: Card; preco: number; ganho: number; sai: WonCard } | null = null
+      for (const pos of SECTORS) {
+        const meus = out.filter(c => c.pos === pos && !c.fake && !c.emprestado && !c.cria)
+        if (!meus.length) continue
+        const pior = [...meus].sort((a, b) => nivelB(a) - nivelB(b))[0]
+        for (const c of livresDe(pos)) {
+          const ganho = nivelB(c) - nivelB(pior)
+          if (ganho < 6) continue // melhora pequena não compensa a troca
+          const preco = precoDe(c, pos)
+          if (preco > Math.min(caixa, Math.max(verba, 0) + Math.round(caixa * 0.15))) continue
+          if (!melhor || ganho > melhor.ganho || (ganho === melhor.ganho && preco < melhor.preco)) melhor = { pos, c, preco, ganho, sai: pior }
+        }
+      }
+      if (!melhor) break
+      caixa -= melhor.preco; verba -= melhor.preco
+      usados.add(idB(melhor.c))
+      usados.delete(idB(melhor.sai)) // o dispensado volta a ficar sem clube
+      out = out.filter(c => c.id !== melhor!.sai.id)
+      out.push(novo(melhor.c, melhor.pos, melhor.preco))
+    }
+    cash[chaveCaixa] = Math.max(0, Math.round(caixa))
+    return out
+  }
+  for (const m of s.managers) {
+    if (m.isHuman || m.dormindo || (s.careerPlacements?.[`m${m.id}`] ?? '') !== minhaDiv) continue
+    m.squad = enche(m.squad as WonCard[], FORMATIONS[m.formation], 'm' + m.id, `m${m.id}`, !!m.rival, m.teamName)
+  }
+  if (s.cpuSquads) {
+    const sq = { ...s.cpuSquads }
+    for (const nome of Object.keys(sq)) {
+      if (s.careerPlacements?.[nome] !== minhaDiv) continue
+      sq[nome] = enche(sq[nome] as WonCard[], NEED_B, nome, nome.slice(0, 12), false, nome)
+    }
+    s.cpuSquads = sq
+  }
+  s.clubCash = cash
 }
 function pinHumanLineups(s: EscState) {
   if (!s.careerOnline) return
@@ -2083,13 +2267,19 @@ function fairPrice(v: number): number {
 // 🎭 `perfil` (07/10, `perfis-bot.ts`): o jeito de comprar do clube bot NA CARREIRA —
 // gastador, pão-duro, obcecado, imprevisível ou equilibrado. 'equilibrado' (o padrão, e
 // o que partida rápida/salas sempre recebem) é o leilão de antes, sem mudar nem o rng.
-export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector): (Bid & { cardId: string })[] {
+export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: () => number, rescue: boolean, catCapEcon = 0, perfil: PerfilBot = 'equilibrado', obsessao?: Sector, pensaComoGente = false): (Bid & { cardId: string })[] {
   const pos = SECTORS[sectorIdx]
   // FAKE NÃO SEGURA VAGA (só CPU): incógnito no elenco conta como vaga aberta —
   // o bot briga por jogador REAL e, se estourar o teto, o fake é dispensado no
   // fim (FINISH_CEREMONY). Humano decide sozinho, então segue só com openSlots.
   const fakeSlots = m.isHuman ? 0 : m.squad.filter(c => c.pos === pos && c.fake).length
-  const need = Math.min(slotsOf(m, pos), openSlots(m, pos) + fakeSlots)
+  let need = Math.min(slotsOf(m, pos), openSlots(m, pos) + fakeSlots)
+  // 🔁 REFORÇO COM ELENCO CHEIO (Diego 14/10, reclamação do Leão da Estradinha: "depois das mexidas nos bots quase ninguém
+  // dá lance mais"). Com o banco de 22, o bot chegava ao leilão SEM vaga e não disputava nada. Agora, na carreira (bot que
+  // pensa como gente), elenco cheio ainda dá UM lance por setor — só em carta BEM melhor que o pior titular dele. Se ganhar,
+  // o jogador que perde a vaga vai a leilão no próximo leilão (`marcaAVender`) e o dinheiro da venda é do bot.
+  const reforco = need === 0 && pensaComoGente && !rescue && !m.isHuman
+  if (reforco) need = 1
   if (need === 0 || m.money <= 0) return []
   const remaining = SECTORS.slice(sectorIdx).reduce((s, p) => s + SECTOR_WEIGHT[p], 0)
   const shape = 0.65 + m.aggression * 0.8
@@ -2127,6 +2317,27 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
     // alcançam ⭐ da mesma época, por mais rico que o bot seja.
     let cap = Math.max(2, Math.round(fairPrice(t.v) * (0.85 + m.aggression * 0.5 + rng() * 0.3) * (catCapEcon > 0 ? catCapEcon : 1)))
     if (catCapEcon > 0) cap = Math.min(cap, Math.max(2, Math.round(catPriceCap(t.c) * catCapEcon * (0.8 + rng() * 0.25))))
+    // 🧠 BOT QUE PENSA COMO GENTE (Diego 13/10, carreira solo): o teto deixa de ser o número fixo da
+    // categoria e vira o teto DESTE bot, nesta carta: categoria (lenda > craque > promessa > bom >
+    // profissional, sempre nessa ordem) × economia da sala × o quanto ele PRECISA do jogador × um
+    // tempero só dele (fixo por bot+carta, ninguém decora o número). Quem é bem melhor que o titular
+    // dele vale o teto cheio (e um pouco mais); parecido, ~60%; só reserva, ~35%. O perfil (gastador/
+    // pão-duro…) ainda mexe logo abaixo. O que ele pagar acima do justo NÃO sobe o piso da carta
+    // (`travaPisoDoBot`), então salário e renovação não disparam.
+    if (pensaComoGente) {
+      const nv = (c: { lo: number; hi: number }) => c.lo + c.hi
+      const titulares = m.squad.filter(c => c.pos === pos && !c.fake).sort((a, b) => nv(b) - nv(a)).slice(0, baseSlots(m.formation, pos))
+      const piorTitular = titulares.length < baseSlots(m.formation, pos) ? null : titulares[titulares.length - 1]
+      const ganho = piorTitular ? nv(t.c) - nv(piorTitular) : 99
+      if (reforco && ganho < 6) continue // elenco cheio: só vale a pena se for reforço de verdade
+      const necessidade = ganho >= 6 ? 1.15 : ganho >= -4 ? 0.6 : 0.35
+      let hh = 2166136261; const chaveT = `${m.id}|${t.c.name}|${t.c.club}|${t.c.year}`
+      for (let k = 0; k < chaveT.length; k++) { hh ^= chaveT.charCodeAt(k); hh = Math.imul(hh, 16777619) }
+      const tempero = 0.85 + ((hh >>> 0) % 1000) / 1000 * 0.3 // 0,85–1,15
+      cap = Math.max(2, Math.round(catPriceCap(t.c) * (catCapEcon > 0 ? catCapEcon : 1) * necessidade * tempero))
+      // 💰 o bolso: numa carta só, até metade do caixa se for titular; até 1/3 se for reserva
+      cap = Math.min(cap, Math.max(2, Math.floor(m.money * (ganho >= 6 ? 0.5 : 0.34))))
+    }
     // 🧱 pacote vale pelos jogadores que o bot vai escalar dele, não por um só
     if (t.c.pacote) cap = cap * Math.max(1, baseSlots(m.formation, pos))
     // 🎭 perfil mexe no teto (gastador estica por craque, pão-duro nunca passa do justo…)
@@ -2140,20 +2351,24 @@ export function cpuEnvelope(m: Manager, cards: Card[], sectorIdx: number, rng: (
     // não vale o piso (listado caro demais), pula e tenta o próximo do ranking.
     const floor = (t.c as { paid?: number }).paid ?? 0
     if (floor > 0) {
-      if (wallet < floor || cap + 3 < floor) continue
+      if (wallet < floor) continue
+      // igual gente: se o que a carta vale PRA ELE não chega no mínimo, não dá lance; se chega,
+      // o lance fica entre o mínimo e o teto dele (13/10 — saiu o "ir até o mínimo" do mesmo dia)
+      if (cap + 3 < floor) continue
       amt = Math.max(amt, floor)
     }
     amt = Math.min(amt, wallet)
-    if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id }); left -= amt; wallet -= amt }
+    if (amt > 0) { result.push({ mgr: m.id, amount: amt, cardId: t.c.id, ...(reforco ? { reforco: true } : {}) }); left -= amt; wallet -= amt }
   }
   return result
 }
 
 // 🎭 o perfil do bot neste leilão: só CARREIRA e só bot (humano e sala rápida = equilibrado)
-function perfilNoLeilao(state: EscState, m: Manager): [PerfilBot, Sector | undefined] {
-  if (!state.careerOnline || m.isHuman) return ['equilibrado', undefined]
+function perfilNoLeilao(state: EscState, m: Manager): [PerfilBot, Sector | undefined, boolean] {
+  if (!state.careerOnline || m.isHuman) return ['equilibrado', undefined, false]
   const p = perfilDoClube(m.teamName, state.seed ?? 0)
-  return [p, p === 'obcecado' ? setorDaObsessao(m.teamName, state.seasonNo ?? 1) as Sector : undefined]
+  // 3º: o bot PENSA COMO GENTE (13/10): teto pela necessidade + bolso — só carreira solo, junto do rival com banco
+  return [p, p === 'obcecado' ? setorDaObsessao(m.teamName, state.seasonNo ?? 1) as Sector : undefined, state.onlineMode !== 'online' && botBancoLiberado()]
 }
 // 🚫📈 o PREÇO JUSTO da carta pra o livro e pro piso (o exagero do gastador não entra):
 // o mesmo teto que o bot usaria por esse nível, na economia da sala, com 15% de folga
@@ -2167,8 +2382,8 @@ export function justoDaCarta(state: EscState, c: Card): number {
 // registrada pelo justo (livro + `paid` no elenco dele). Quem vendeu recebe o valor cheio.
 export function travaPisoDoBot(state: EscState, w: Manager | undefined, card: Card, pago: number): number {
   if (!w || w.isHuman || !state.careerOnline) return pago
-  const [perfil] = perfilNoLeilao(state, w)
-  if (!perfilPagaAcima(perfil)) return pago
+  const [perfil, , pensa] = perfilNoLeilao(state, w)
+  if (!perfilPagaAcima(perfil) && !pensa) return pago // 🧠 13/10: com o bot que pensa, vale pra TODO bot
   const justo = justoDaCarta(state, card)
   if (pago <= justo) return pago
   const naMao = w.squad.find(x => x.id === card.id)
@@ -2230,7 +2445,9 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     let i = 0
     for (; i < sorted.length; i++) {
       const m = managers.find(x => x.id === sorted[i].mgr)!
-      if (openSlots(m, card.pos) <= 0 || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
+      // 🔁 lance de reforço de bot (elenco cheio) vale sem vaga aberta — o pior da posição vai a leilão depois (`marcaAVender`)
+      const temVaga = openSlots(m, card.pos) > 0 || (!!sorted[i].reforco && !m.isHuman)
+      if (!temVaga || m.money < sorted[i].amount || sorted[i].amount < floor || (exDono != null && sameOwner(m.id, exDono))) { voided.push(sorted[i].mgr); continue }
       break
     }
     if (i >= sorted.length) { // ninguém elegível
@@ -2243,7 +2460,7 @@ function resolve(cards: Card[], bidMap: BidMap, managers: Manager[], via: 'leila
     const tiedTop: number[] = []
     for (let j = i; j < sorted.length && sorted[j].amount === top; j++) {
       const m = managers.find(x => x.id === sorted[j].mgr)!
-      if (openSlots(m, card.pos) > 0 && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
+      if ((openSlots(m, card.pos) > 0 || (!!sorted[j].reforco && !m.isHuman)) && m.money >= top && !(exDono != null && sameOwner(m.id, exDono))) tiedTop.push(sorted[j].mgr)
     }
     if (tiedTop.length >= 2) {
       // empate no topo → desempate (vencedor decidido depois). Sem dedução aqui.
@@ -2811,6 +3028,275 @@ function trimFilialLoansToDivision(s: EscState): number {
   cpuSq[f.team] = safSquad; s.cpuSquads = cpuSq
   s.careerFilial = { ...f, loanOut: keptOut, loanIn: keptIn }
   return returned
+}
+
+// ─── 🏢➡️⚽ SAF QUE VIRA 2º CLUBE (13/10) ──────────────────────────────────────
+// A REGRA mora em `saf2.ts` (pura, a tela usa a mesma). Aqui só o que mexe no estado.
+// Tudo isto só roda com `saf2Liberado()` e na carreira SOLO — com a chave desligada nada
+// daqui é chamado e a SAF/2º clube antigos seguem idênticos.
+/** 🕴️ a SAF destrava a categoria 👑 Lenda na Agência. Com a SAF nova, quem ASSUMIU o comando não pode
+ *  perder esse destrave por ter subido de degrau: o 2º clube que nasceu da SAF continua valendo. */
+export function temSafAgencia(s: EscState): boolean {
+  return !!s.careerFilial || (saf2On(s) && !!s.saf2?.origemSaf && !!segundoClube(s))
+}
+export function saf2On(s: EscState): boolean {
+  return saf2Liberado() && !!s.careerOnline && s.onlineMode !== 'online'
+}
+export function saf2Janela(s: EscState): boolean {
+  return janelaAberta({ careerOnline: s.careerOnline, online: s.onlineMode === 'online', screen: s.screen, round: s.round })
+}
+/** o 2º clube = o único assento humano com `mine` (o principal NUNCA tem — ver SELL_MULTICLUBE) */
+export function segundoClube(s: EscState): Manager | undefined {
+  return s.multiClube ? s.managers.find(m => m.isHuman && m.mine) : undefined
+}
+/** o clube principal = o humano que não é o `mine` (ativo ou dormindo) */
+export function clubePrincipal(s: EscState): Manager | undefined {
+  return s.managers.find(m => m.isHuman && !m.mine)
+}
+/** a divisão ATUAL da SAF (bot da sua liga → `m<id>`; time de fundo → pelo nome) */
+export function saf2DivDaSaf(s: EscState, team?: string): string {
+  const t = team ?? s.careerFilial?.team
+  if (!t) return 'D'
+  const nome = chaveFilial(s, t)
+  const mgr = s.managers.find(m => !m.isHuman && (m.teamName === nome || m.teamName === t))
+  return (mgr ? s.careerPlacements?.[`m${mgr.id}`] : undefined) ?? s.careerPlacements?.[nome] ?? 'D'
+}
+/** a coleção de taças do 2º clube atual (vazia se o registro for de outro clube) */
+export function saf2Tacas(s: EscState): TacaSaf2[] {
+  const seg = segundoClube(s)
+  if (!seg || s.saf2?.clubeId !== seg.id) return []
+  return colecao(s.saf2?.tacas)
+}
+/** o valor de venda do 2º clube HOJE + o que foi investido nele (a tela e o reducer usam esta) */
+export function saf2Valor2o(s: EscState): { tacas: number; base: number; caixa: number; total: number; investido: number; antigo: boolean } | null {
+  const seg = segundoClube(s)
+  if (!seg) return null
+  const meu = s.saf2?.clubeId === seg.id
+  const antigo = !(meu && s.saf2?.origemSaf)
+  const v = valorVenda2oClube({ tacas: saf2Tacas(s), caixa: s.careerCoins?.[seg.id] ?? 0, antigo })
+  return { ...v, investido: investido2o({ origemSaf: !antigo, aportes: meu ? s.saf2?.aportes : 0 }), antigo }
+}
+/** 🏆 anota as taças da temporada que o 2º clube ganhou (chamado na virada, ANTES do seasonNo++) */
+function saf2CreditaTacas(s: EscState, champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>, copaChampion?: string | null, supercopaChampion?: string | null) {
+  if (!saf2On(s)) return
+  const seg = segundoClube(s)
+  if (!seg) return
+  const k = `m${seg.id}`
+  const base = s.saf2?.clubeId === seg.id ? s.saf2.tacas : []
+  let t = colecao(base)
+  if (champions?.[k] === 'A') t = addTaca(t, 'A')
+  if (copaChampion === k) t = addTaca(t, 'copa')
+  if (supercopaChampion === k) t = addTaca(t, 'supercopa')
+  s.saf2 = { ...(s.saf2 ?? {}), clubeId: seg.id, tacas: t }
+}
+/** 🤝 devolve os empréstimos entre os SEUS dois clubes (virada da temporada / venda do 2º clube) */
+function saf2DevolveEmprestimos(s: EscState, temporadaVolta = s.seasonNo ?? 1) {
+  const lista = s.saf2?.emprestimos ?? []
+  if (!lista.length) return
+  for (const e of lista) {
+    const para = s.managers.find(m => m.id === e.para)
+    const de = s.managers.find(m => m.id === e.de)
+    const card = para?.squad.find(c => c.id === e.cardId) as WonCard | undefined
+    if (!para || !card) continue
+    para.squad = para.squad.filter(c => c.id !== e.cardId)
+    // se o dono sumiu (2º clube vendido), o jogador fica com quem estava — nunca some do jogo
+    const dono = de && de.isHuman ? de : para
+    dono.squad = [...dono.squad, descongelaContrato({ ...card, emprestado: undefined, byClub: undefined } as WonCard, temporadaVolta)]
+  }
+  s.saf2 = { ...(s.saf2 ?? {}), emprestimos: [] }
+}
+/** 💸 METADE do salário de cada emprestado pra cada lado (SAF e entre os seus dois clubes). Antes: zero. */
+function folhaEmprestimosSaf2(s: EscState, cc: Record<number, number>) {
+  const humans = s.managers.filter(m => m.isHuman)
+  const principal = clubePrincipal(s) ?? s.managers[s.youIdx]
+  const f = s.careerFilial
+  let safPaga = 0
+  if (f) {
+    // seu jogador jogando na SAF: você paga metade, a SAF a outra metade
+    for (const lo of loanList(f.loanOut)) {
+      const meio = metadeSalario(lo.paid); if (!meio) continue
+      const dono = humans.find(m => m.id === lo.byClub) ?? principal
+      if (dono) cc[dono.id] = (cc[dono.id] ?? 0) - meio
+      safPaga += meio
+    }
+    // jogador da SAF jogando com você: quem está com ele paga metade, a SAF a outra metade
+    const inIds = new Set(loanList(f.loanIn).map(c => c.id))
+    for (const m of humans) for (const c of m.squad as WonCard[]) {
+      if (!inIds.has(c.id)) continue
+      const meio = metadeSalario(c.paid); if (!meio) continue
+      cc[m.id] = (cc[m.id] ?? 0) - meio
+      safPaga += meio
+    }
+    if (safPaga > 0) {
+      const nome = chaveFilial(s, f.team)
+      const mgr = s.managers.find(m => !m.isHuman && (m.teamName === nome || m.teamName === f.team))
+      const key = mgr ? `m${mgr.id}` : nome
+      s.clubCash = { ...(s.clubCash ?? {}), [key]: Math.max(0, (s.clubCash?.[key] ?? 0) - safPaga) }
+    }
+  }
+  // entre os SEUS dois clubes: metade de quem emprestou, metade de quem recebeu
+  for (const e of s.saf2?.emprestimos ?? []) {
+    const para = humans.find(m => m.id === e.para)
+    const card = para?.squad.find(c => c.id === e.cardId) as WonCard | undefined
+    if (!card) continue
+    const meio = metadeSalario(card.paid); if (!meio) continue
+    cc[e.para] = (cc[e.para] ?? 0) - meio
+    if (humans.some(m => m.id === e.de)) cc[e.de] = (cc[e.de] ?? 0) - meio
+  }
+}
+/** 🤖 o AUXILIAR do clube que está sem você: tapa buraco do titular com o caixa DELE (o jogador mais
+ *  barato que cabe); sem caixa, sobe um Cria da Base (de graça). A renovação de contrato ele já faz na
+ *  janela (renovação automática, paga do caixa do próprio clube). Roda no leilão de reservas da virada. */
+function auxiliarRepoe(s: EscState, m: Manager, rng: () => number) {
+  if (!xiHoles(m)) return
+  const used = ownedRealIdents(s)
+  for (const name in (s.cpuSquads ?? {})) for (const c of s.cpuSquads![name]) used.add(ident(c))
+  const need = FORMATIONS[m.formation]
+  for (const pos of SECTORS) {
+    let falta = need[pos] - m.squad.filter(c => c.pos === pos && !c.fake).length
+    while (falta > 0) {
+      const caixa = s.careerCoins?.[m.id] ?? 0
+      const cands = ACTIVE_CATALOG[pos].filter(c => !used.has(ident(c)) && (c.fame ?? 1) <= 2 && !isFillerClub(c.club))
+        .map(c => ({ c, preco: Math.max(1, valorOficial(s, c as Card)) }))
+        .filter(x => x.preco <= caixa)
+        .sort((a, b) => a.preco - b.preco)
+      const pick = cands.length ? cands[Math.floor(rng() * Math.min(3, cands.length))] : null
+      if (pick) {
+        used.add(ident(pick.c))
+        const card = { ...pick.c, id: `aux-${pos}-${nextBuildTok()}`, pos, paid: pick.preco, buyPrice: pick.preco, via: 'bot' as const,
+          ...(s.contratosOn ? { contratoAte: (s.seasonNo ?? 1) + contratoDur(5, rng) - 1 } : {}) } as WonCard
+        m.squad = [...m.squad, card]
+        s.careerCoins = { ...(s.careerCoins ?? {}), [m.id]: caixa - pick.preco }
+        logFin(s, 'buy', `🤖 Auxiliar contratou ${card.name}`, -pick.preco, { player: card.name, pos }, m.id)
+        ;(s.marketLog = s.marketLog ?? []).push(`🤖 ${m.teamName}: o auxiliar contratou ${card.name} por ${pick.preco} 🪙 pra fechar o time`)
+      } else {
+        spawnCriaCore(s, m, pos, '', rng, undefined, 'vaga') // sem caixa: o auxiliar sobe um guri da base (de graça)
+      }
+      falta--
+    }
+  }
+}
+// 🔄 troca de comando entre os dois clubes (o mesmo miolo do SWITCH_MULTICLUBE, sem as travas da tela)
+function trocaComando(s: EscState): boolean {
+  if (!s.multiClube) return false
+  const active = s.managers[s.youIdx]
+  const sleepIdx = s.managers.findIndex(m => m.id === s.multiClube!.id)
+  if (!active || sleepIdx < 0) return false
+  const sleeping = s.managers[sleepIdx]
+  active.dormindo = true; sleeping.dormindo = false
+  s.youIdx = sleepIdx
+  if (!s.careerFilial && s.multiClube.filial) s.careerFilial = s.multiClube.filial // migra SAF de save antigo
+  // swap dos campos ÚNICOS (o que estava ativo vai pro stash; o que dormia volta) —
+  // SEM a SAF (compartilhada) e SEM patrocínio (a aposta 05/08 já é por mgrId,
+  // os dois clubes têm a própria sem precisar de troca-troca).
+  const stash = { ledger: s.careerLedger ?? [], empresario: s.empresarioCards ?? [], empresarioClaims: s.empresarioClaimKeys ?? [] }
+  s.careerLedger = s.multiClube.ledger ?? []
+  s.empresarioCards = s.multiClube.empresario ?? []
+  s.empresarioClaimKeys = s.multiClube.empresarioClaims ?? []
+  s.multiClube = { team: active.teamName, id: active.id, since: s.multiClube.since, ...stash }
+  s.multiClubeAtivo = !s.multiClubeAtivo
+  return true
+}
+// 🧹 desfaz o 2º clube (o miolo do SELL_MULTICLUBE, sem o dinheiro): empréstimos voltam pro dono certo,
+// o assento volta a ser BOT no mesmo lugar e some tudo que só existia por causa dele.
+function desfazSegundoClube(s: EscState, you: Manager, vendido: Manager) {
+  // 🤝 EMPRÉSTIMOS (pedido dele): *"os jogadores emprestado pelo Adão Esporte voltam
+  // pra ele e os jogadores emprestados para o Adão Esporte voltam pro primeiro clube"*.
+  // Nada que não seja do vendido sai junto, e nada dele fica pra trás.
+  const f = s.careerFilial
+  if (f) {
+    const outs = loanList(f.loanOut), ins = loanList(f.loanIn)
+    const cpuSq = { ...(s.cpuSquads ?? {}) }
+    const safSquad = [...((cpuSq[f.team] ?? []) as WonCard[])]
+    const volta = s.seasonNo ?? 1
+    const tiraOut = new Set<string>(), tiraIn = new Set<string>()
+
+    // (1) o que o VENDIDO tinha emprestado PRA SAF volta pro elenco dele (e sai junto).
+    for (const lo of outs.filter(c => c.byClub === vendido.id)) {
+      const i = safSquad.findIndex(c => c.id === lo.id)
+      if (i >= 0) safSquad.splice(i, 1)
+      vendido.squad = [...vendido.squad, descongelaContrato({ ...lo, emprestado: undefined, byClub: undefined } as WonCard, volta)]
+      tiraOut.add(lo.id)
+    }
+    // (2) o que o VENDIDO tinha PEGADO emprestado sai do elenco dele. Se o jogador é
+    // do SEU outro clube (ele viajou principal → SAF → 2º clube), volta pro DONO, que
+    // é o primeiro clube. Se for da SAF mesmo, volta pra SAF.
+    for (const li of ins.filter(c => c.byClub === vendido.id)) {
+      vendido.squad = vendido.squad.filter(c => c.id !== li.id)
+      const meu = outs.find(o => o.id === li.id && o.byClub === you.id)
+      if (meu) {
+        you.squad = [...you.squad, descongelaContrato({ ...meu, emprestado: undefined, byClub: undefined } as WonCard, volta)]
+        tiraOut.add(li.id)
+      } else {
+        safSquad.push({ ...li, emprestado: undefined, byClub: undefined } as WonCard)
+      }
+      tiraIn.add(li.id)
+    }
+    if (tiraOut.size || tiraIn.size) {
+      cpuSq[f.team] = safSquad
+      s.cpuSquads = cpuSq
+      s.careerFilial = { ...f, loanOut: outs.filter(c => !tiraOut.has(c.id)), loanIn: ins.filter(c => !tiraIn.has(c.id)) }
+    }
+  }
+
+  // 🤖 o assento volta a ser BOT, no mesmo lugar da pirâmide. Fica com o estádio, os
+  // títulos e a caixa dele (`clubCash`/`careerHonors`/`stadiums` são keyed por id e
+  // não são tocados) — nada disso vem pro dono.
+  vendido.mine = false; vendido.dormindo = false; vendido.isHuman = false
+
+  // 🧹 e some tudo que só existia por causa do 2º clube — é o que ele pediu:
+  // *"quando vender some também as coisas de trocar, hibernar e etc e mantém tudo
+  // como era antes"*. A UI de trocar/dormir é toda gated em `state.multiClube`,
+  // então ela se apaga sozinha; aqui limpo o que fica no save.
+  s.multiClube = null
+  s.multiClubeAtivo = false
+  if (s.multiClubePendingCards?.[vendido.id]) {
+    const pend = { ...s.multiClubePendingCards }; delete pend[vendido.id]; s.multiClubePendingCards = pend
+  }
+  if (s.agenciaClubeId === vendido.id) s.agenciaClubeId = you.id
+  s.agenciaDividir = false // "dividir a renda" só existe com 2 clubes
+  if (s.eventoTemporada?.mgrId === vendido.id) s.eventoTemporada = null // evento preso ao clube que saiu
+}
+/** ⚽ assume o comando da SAF: ela vira o 2º clube jogável (mesmo clube, mesmos títulos). Devolve false se não deu. */
+function saf2AssumeComando(s: EscState): boolean {
+  const f = s.careerFilial
+  const you = clubePrincipal(s)
+  if (!f || !you || s.multiClube) return false
+  revertFilialLoans(s) // os empréstimos com a SAF voltam pro lugar antes da troca de dono
+  const nome = chaveFilial(s, f.team)
+  const coins = s.careerCoins?.[you.id] ?? 0
+  // CASO 1 — a SAF é um bot da SUA liga: só transforma o assento (igual BUY_MULTICLUBE)
+  let club = s.managers.find(m => !m.isHuman && !m.rival && !m.auctionRival && !m.marketCpu && !m.mine && (m.teamName === nome || m.teamName === f.team))
+  let caixaSaf: number
+  if (club) {
+    caixaSaf = Math.round(s.clubCash?.[`m${club.id}`] ?? s.clubCash?.[nome] ?? 100)
+    club.mine = true; club.dormindo = true; club.isHuman = true; club.auctionRival = false
+  } else {
+    // CASO 2 — time de FUNDO (outra divisão): vira um assento novo, com o MESMO elenco e na MESMA
+    // divisão em que a SAF está hoje (a SAF pode ter subido da D — o 2º clube nasce onde ela está).
+    if (you.teamName === nome || s.careerRivals.some(r => r.team === nome)) return false
+    const div = s.careerPlacements?.[nome] ?? 'D'
+    const newId = Math.max(0, ...s.managers.map(m => m.id)) + 1
+    const squad = ((s.cpuSquads?.[nome] ?? s.cpuSquads?.[f.team] ?? []) as WonCard[]).map(c => ({ ...c, emprestado: undefined, byClub: undefined }))
+    club = { id: newId, name: nome, teamName: nome, isHuman: true, auctionRival: false, mine: true, dormindo: true, formation: '4-3-3', money: 0, squad, aggression: 0.5, starHunger: 0.5 }
+    s.managers = [...s.managers, club]
+    const pl = { ...(s.careerPlacements ?? {}) }
+    pl[`m${newId}`] = div
+    delete pl[nome]
+    s.careerPlacements = pl
+    caixaSaf = Math.round(s.clubCash?.[nome] ?? 100)
+    s.clubCash = { ...(s.clubCash ?? {}), [`m${newId}`]: caixaSaf }
+  }
+  const cc = { ...(s.careerCoins ?? {}) }
+  cc[you.id] = coins - PRECO_COMANDO
+  cc[club.id] = caixaSaf // o caixa da SAF vem junto: vira o caixa próprio do 2º clube
+  s.careerCoins = cc
+  s.multiClube = { team: club.teamName, since: s.seasonNo, id: club.id }
+  s.multiClubeAtivo = false
+  s.careerFilial = null
+  s.saf2 = { ...(s.saf2 ?? {}), origemSaf: true, clubeId: club.id, tacas: [], aportes: 0, semEspera: undefined, migrado: true }
+  logFin(s, 'clube2buy', `⚽ Assumiu o comando · ${club.teamName} vira o 2º clube`, -PRECO_COMANDO, undefined, you.id)
+  return true
 }
 
 // 🧾 GRAVA UM TÍTULO DE COPA COM RECIBO (16/08 — conserto do "ganhei e não contou").
@@ -3427,9 +3913,12 @@ export function garcomDoGol(base: number, teamId: number, squad: WonCard[], scor
 // dela, e o garçom tem que ficar na MESMA tabela do gol. Sem isso o passe de um
 // jogo da Copa aparecia na lista de garçons DA LIGA (o número não batia com os
 // gols da liga, exatamente o tipo de coisa que o Diego não aceita).
-function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[]): MatchResult {
+// `lancesSempre` (👑 Kings, 15/10): escreve os lances de TODO jogo (não só o do humano) — a regra da Kings precisa
+// saber minuto e autor de cada gol pra aplicar a bola dourada/vermelha. Nada mais muda (mesmo rng, mesmos gols).
+function simMatch(state: EscState, homeId: number, awayId: number, rng: () => number, scorersList: ScorerRow[] = state.scorers, neutral = false, assistsList?: AssistRow[], lancesSempre = false): MatchResult {
   const isHuman = (id: number) => state.managers.some(m => m.id === id && m.isHuman)
   const involveHuman = isHuman(homeId) || isHuman(awayId)
+  const comLances = involveHuman || lancesSempre
   const tacticOf = (id: number): Tactic => {
     const m = state.managers.find(x => x.id === id)
     if (!m) return 'equilibrio'
@@ -3610,9 +4099,9 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           else scorersList.push({ name: scorerName, teamId: id, teamName: prefix, goals: 1 })
         }
         golsDoJogo.push({ nome: scorerName, min })
-        if (involveHuman) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
+        if (comLances) highlights.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
         if (capturePresentation) presentationGoals.push({ min, text: `⚽ ${scorerName} marca para ${prefix}!`, teamId: id, kind: 'gol' })
-      } else if (involveHuman) {
+      } else if (comLances) {
         highlights.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id, kind: 'gol' })
       }
       if (!scorerName && capturePresentation) presentationGoals.push({ min, text: `⚽ Gol de ${prefix}.`, teamId: id, kind: 'gol' })
@@ -3635,7 +4124,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
           if (row) row.assists++
           else lista.push({ name: nome, teamId: id, teamName: prefix, assists: 1 })
         }
-        if (involveHuman) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id, kind: 'assist' })
+        if (comLances) highlights.push({ min: golsDoJogo[i].min, text: `🅰️ ${nome} deu o passe para o gol de ${prefix}.`, teamId: id, kind: 'assist' })
       })
     }
   }
@@ -3643,6 +4132,7 @@ function simMatch(state: EscState, homeId: number, awayId: number, rng: () => nu
   const aName = nomeDoTime(awayId)
   creditGoals(homeId, hg, hName)
   creditGoals(awayId, ag, aName)
+  if (comLances) highlights.sort((a, b) => a.min - b.min)
   if (involveHuman) {
     highlights.sort((a, b) => a.min - b.min)
     for (const [id, f] of [[homeId, fh], [awayId, fa]] as [number, TeamForm][]) {
@@ -3679,7 +4169,8 @@ export function topScorers(state: EscState, limit = 10): ScorerRow[] {
 // partida poder ANIMAR na tela antes — a tela dispara FINISH_SEASON quando acaba.
 function finishSeason(s: EscState) {
   s.champion = sortedTable(s.league)[0].id
-  if (s.copaMode === 'liga_copa' && !s.quickCopa) {
+  if (ehKings(s)) { if (!s.quickCopa) seedKingsCopa(s) }
+  else if (s.copaMode === 'liga_copa' && !s.quickCopa) {
     const bbCopa = s.sport === 'basquete'
     s.quickCopa = seedQuickCopa(s.league, bbCopa)
     // 📣 zera o giro da liga: durante a Copa o giro fala DA COPA, não das rodadas
@@ -4195,6 +4686,69 @@ function playNbaCupRound(s: EscState): void {
     }
   }
   s.news = [...heads, ...s.news].slice(0, 12)
+}
+
+/** 👑 a sala é de KINGS LEAGUE? (a formação 'kings' só nasce no START com `kings`) */
+export function ehKings(s: Pick<EscState, 'managers'>): boolean { return s.managers.some(m => m.formation === 'kings') }
+/** 👑 um jogo da Kings: a partida de sempre + a regra da Kings por cima (`kings-liga.ts`). A artilharia passa por listas
+ *  à parte porque o gol que a bola dourada anula não pode ficar na conta de ninguém. */
+function ctxKings(s: EscState, homeId: number, awayId: number, rodada: number): CtxKings {
+  const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+  return {
+    agenda: agendaKings(s.seed, rodada),
+    nomes: { h: nome(homeId), a: nome(awayId) },
+    humanos: s.managers.filter(m => m.isHuman).map(m => m.id),
+    // ⭐ jogador estrela = o craque de ataque do time (o mais famoso, depois o de nível mais alto)
+    estrela: (id: number) => {
+      const sq = (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => !ehFake(c))
+      const pref = sq.filter(c => c.pos === 'ATA').length ? sq.filter(c => c.pos === 'ATA') : sq.filter(c => c.pos === 'MEI')
+      return [...pref].sort((x, y) => y.fame - x.fame || y.hi - x.hi)[0]?.name ?? null
+    },
+    linha: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name),
+  }
+}
+function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => number, scorers: ScorerRow[], assists: AssistRow[], _neutral: boolean, rodada: number): MatchResult {
+  // ⚽ os gols da Kings saem do sorteio PRÓPRIO dela (`simulaGolsKings`: ~7 por jogo, mais no 1×1 e no dado) — não do
+  // `simMatch` do futebol de 11. Mesma semente = mesma partida em todo aparelho.
+  const seed = sementeJogoKings(s.seed, rodada, homeId, awayId)
+  const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+  const elenco = (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).map(c => ({ name: c.name, pos: c.pos, lo: c.lo, hi: c.hi, fake: c.fake, club: c.club }))
+  const tat = (id: number) => s.managers.some(m => m.id === id && m.isHuman) ? s.tactics[id] : undefined
+  const g = simulaGolsKings({ homeId, awayId, nomes: { h: nome(homeId), a: nome(awayId) }, seed, elencos: { h: elenco(homeId), a: elenco(awayId) }, taticas: { h: tat(homeId), a: tat(awayId) }, ehFake })
+  const r: MatchResult = { homeId, awayId, hg: 0, ag: 0, highlights: [] }
+  const base: KingsBase = { highlights: g.highlights, tmpS: g.tmpS, tmpA: g.tmpA, cartoes: g.cartoes, seed, rodada, decisoes: {}, art: { s: [], a: [] } }
+  const art = aplicaRegrasKings(r, base, ctxKings(s, homeId, awayId, rodada))
+  if (r.kings) r.kings.cartoes = g.cartoes // 🟨🟥 a tela mostra quem está fora e até quando
+  somaListas(scorers, art.s, assists, art.a)
+  // Com gente, guarda a partida crua: quando a pessoa escolhe o canto da cobrança, ela é refeita daqui (`KINGS_DECIDIR`).
+  // 🔁 15/10: os lances dos jogos SEM gente FICAM (antes eram apagados) — o giro precisa deles pra mostrar os gols rolando
+  // (o Diego via "–" no giro e achava que não saía gol no 1×1). É pouca coisa: a Kings tem 5 jogos por rodada.
+  if (s.managers.some(m => m.isHuman && (m.id === homeId || m.id === awayId))) r.kingsBase = { ...base, art }
+  return r
+}
+/** 👑 refaz um jogo da Kings com a escolha de canto da pessoa; devolve o jogo novo (ou null se não deu) */
+function refazJogoKings(s: EscState, r: MatchResult, key: string, canto: number, scorers: ScorerRow[], assists: AssistRow[]): MatchResult | null {
+  const b = r.kingsBase
+  if (!b || b.decisoes[key] != null || !(r.kings?.duelos ?? []).some(d => d.key === key)) return null
+  tiraListas(scorers, b.art, assists)
+  const novo: MatchResult = { ...r, highlights: [] }
+  const base: KingsBase = { ...b, decisoes: { ...b.decisoes, [key]: canto } }
+  const art = aplicaRegrasKings(novo, base, ctxKings(s, r.homeId, r.awayId, b.rodada))
+  if (novo.kings) novo.kings.cartoes = base.cartoes
+  somaListas(scorers, art.s, assists, art.a)
+  novo.kingsBase = { ...base, art }
+  return novo
+}
+/** 👑 fim da liga da Kings: 1º direto na SEMI, quartas 2×7 · 3×6 · 4×5, tudo jogo único */
+function seedKingsCopa(s: EscState) {
+  const ord = sortedTable(s.league)
+  const ch = chaveKings(ord.map(t => t.id))
+  const nome = (id: number) => ord.find(t => t.id === id)?.name ?? '?'
+  s.quickCopa = {
+    phase: 'quartas', legIdx: 0, bracket: [], scorers: [], assists: [], kingsDireto: ch.semiDireto,
+    ties: ch.quartas.map(([a, b]) => ({ aId: a, bId: b, aName: nome(a), bName: nome(b), legs: [], winner: null })),
+  }
+  s.news = [tr(`👑 Acabou a liga da Kings! ${nome(ch.semiDireto)} foi 1º e espera direto na SEMI. Do 2º ao 7º jogam as QUARTAS (jogo único).`, `👑 The Kings league is over! ${nome(ch.semiDireto)} finished 1st and waits in the SEMI. 2nd–7th play the QUARTERS (single game).`)]
 }
 
 function applyResult(league: LeagueTeam[], r: MatchResult) {
@@ -4787,7 +5341,8 @@ type Action =
   | { type: 'GO_SETUP_CAREER' }
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
+  | { type: 'KINGS_DECIDIR'; key: string; canto: number }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -4811,8 +5366,8 @@ type Action =
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
   | { type: 'START_ONLINE'; regional?: string; holandes?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
-  | { type: 'REAUCTION_ONLINE'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
-  | { type: 'OPEN_RESERVE_LIST'; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
+  | { type: 'REAUCTION_ONLINE'; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
+  | { type: 'OPEN_RESERVE_LIST'; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
   | { type: 'RELEASE_CONTRACT'; mgrId: number; cardId: string } // 🌱 marca/desmarca "deixar ir" na janela de renovação (se quebrar o XI, um Cria da Base assume)
   | { type: 'RENEW_CONTRACT'; mgrId: number; cardId: string; anos: RenewAnos } // 📝 CONTRATOS: renova um jogador com contrato ENCERRADO — prazo e preço vêm de renewOptions/renewCost (escada por valor; 10+ moedas = só 5/10 anos). Prazo real sai com tempero (±1, exceto 1-2 anos) pra nunca re-alinhar vencimentos. Na tela de venda (reserveList); Várzea NÃO RENOVA (vai pro leilão com teto de venda); quem não renovar nas outras divisões também
@@ -4895,6 +5450,13 @@ type Action =
   | { type: 'LOAN_TO_FILIAL'; cardId: string; mgrId?: number; renovarAnos?: RenewAnos } // 🏢 empresta um jogador SEU pra SAF (propriedade não muda; agora PERSISTE entre temporadas). `renovarAnos` = renovar ANTES de emprestar, num passo só (ver a trava do contrato acabando no reducer)
   | { type: 'LOAN_FROM_FILIAL'; cardId: string; mgrId?: number } // 🏢 pega um jogador emprestado DA SAF (idem)
   | { type: 'RETURN_FILIAL_LOAN'; cardId: string; mgrId?: number } // 🏢 traz UM empréstimo de volta na hora (seu volta pro elenco / o da SAF volta pra SAF)
+  | { type: 'SAF2_ASSUMIR'; pagante: boolean } // 🏢➡️⚽ SAF nova (13/10): a SAF vira o 2º clube (4.000, 10 temporadas, só pagante, só na janela). `pagante` vem da conta (a tela lê o mesmo `ehPagante`)
+  | { type: 'SAF2_VENDER_SAF' } // 🏢➡️⚽ vende a SAF pela DIVISÃO dela (V 500 · D 1.000 · C 1.500 · B 2.000 · A 2.500), só na janela
+  | { type: 'SAF2_VENDER_2O' } // 🏢➡️⚽ vende o 2º clube pela COLEÇÃO DE TAÇAS (+ o caixa dele), só na janela
+  | { type: 'SAF2_APORTE'; valor: number } // 🏢➡️⚽ aporte: moedas do principal pro 2º clube (só nessa direção, não volta)
+  | { type: 'SAF2_TRANSFERIR'; cardId: string } // 🏢➡️⚽ transferência DE VEZ entre os seus dois clubes, pelo valor oficial, 1 por janela
+  | { type: 'SAF2_EMPRESTAR'; cardId: string } // 🏢➡️⚽ empréstimo entre os seus dois clubes (1 temporada, metade do salário pra cada lado)
+  | { type: 'SAF2_MIGRAR'; fica: '2o' | 'saf' } // 🏢➡️⚽ "O jogo mudou": quem tinha SAF e 2º clube separados escolhe UM (devolve 2.000 ou 4.000)
   | { type: 'CLEAR_FILIAL_TRIM_NOTICE' } // 🏢 dispensa o aviso de "empréstimos voltaram por rebaixamento"
   | { type: 'MONTE_PASS'; mgrId: number; by?: string } // carreira: recusa as sobras e passa a vez (o time já tem os 11). by = 🤝 crachá (duplas)
   | { type: 'SET_TACTIC'; mgrId: number; tactic: Tactic }
@@ -5759,7 +6321,7 @@ function sealAndResolve(state: EscState) {
     if (holandesJaDecidiu) break
     if (m.isHuman || !m.auctionRival) continue
     for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) {
-      pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount })
+      pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: b.amount, ...(b.reforco ? { reforco: true } : {}) })
     }
   }
   // humanos (envelopes coletados)
@@ -5783,7 +6345,7 @@ function sealAndResolve(state: EscState) {
         const perSlot = Math.max(1, Math.floor(m.money / Math.max(1, totalHoles(m))))
         const capPerCard = Math.max(1, Math.round(perSlot * 1.6))
         for (const b of cpuEnvelope(m, state.currentCards, state.sectorIdx, rng, rescue, econ, ...perfilNoLeilao(state, m))) {
-          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard) })
+          pushBid(bidMap, b.cardId, { mgr: b.mgr, amount: Math.min(b.amount, capPerCard), ...(b.reforco ? { reforco: true } : {}) })
         }
       }
     }
@@ -6248,6 +6810,15 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerIntlBotTotals = somaBotsIntl(s.careerIntlBotTotals, expected.botPlayerStats)
       const { botPlayerStats: _somado, ...entrada } = expected
       s.careerInternationalHistory = [...(s.careerInternationalHistory ?? []), entrada]
+      // 🏢➡️⚽ SAF nova: a taça internacional entra na coleção do 2º clube se era ELE no comando
+      if (saf2On(s) && s.managers[s.youIdx]?.mine) {
+        const seg = s.managers[s.youIdx]
+        let t = colecao(s.saf2?.clubeId === seg.id ? s.saf2.tacas : [])
+        if (expected.libertadores) t = addTaca(t, 'libertadores')
+        if (expected.champions) t = addTaca(t, 'champions')
+        if (expected.mundial) t = addTaca(t, 'mundial')
+        s.saf2 = { ...(s.saf2 ?? {}), clubeId: seg.id, tacas: t }
+      }
       if (expected.prizeCoins > 0) {
         const id = s.managers[s.youIdx]?.id
         if (id != null) {
@@ -6572,7 +7143,13 @@ function reducerBase(state: EscState, action: Action): EscState {
       // avulsa. Rivais = os escolhidos (carreira) ou os primeiros da D (rápida).
       const soloRivalDefs = action.career ? coDivRivalDefs(s.careerRivals, 'D') : tiraClones(TIMES_ELITE, [action.teamName || 'Meu Time']).slice(0, action.rivals)
       // na Série D todos os rivais começam com você — sem "auction-only".
-      const { managers: soloManagers, botPlans: soloPlans } = makeCareerManagers(action.teamName || 'Meu Time', action.formation, 'D', soloRivalDefs, [], rng)
+      const { managers: soloManagers0, botPlans: soloPlans0 } = makeCareerManagers(action.teamName || 'Meu Time', action.kings ? 'kings' : action.formation, 'D', soloRivalDefs, [], rng)
+      // 👑 KINGS LEAGUE (15/10, só a conta do Diego): o LEILÃO DE SEMPRE, com 10 times (você + 9 rivais que dão
+      // lance) e a formação 'kings' (goleiro + 6). Sem time de preenchimento: a liga da Kings tem 10. Depois da
+      // cerimônia a temporada é a de SEMPRE (EscSeason), com a regra da Kings por cima (`kings-liga.ts`): 9 rodadas + mata-mata.
+      const soloManagers = action.kings ? soloManagers0.filter(m => m.isHuman || m.auctionRival).slice(0, 10) : soloManagers0
+      if (action.kings) for (const m of soloManagers) m.formation = 'kings'
+      const soloPlans = action.kings ? [] : soloPlans0
       s.managers = soloManagers
       s.youIdx = 0
       // modo Dinastia: mesmo leilão real da carreira, só que o orçamento é o do
@@ -6800,8 +7377,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         s.reserveAuction = false; s.reserveListed = {}
         for (const m of s.managers) m.deepSquad = false
         const adj = cpuAdjFor(s); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-        s.league = buildLeague(s.managers, !s.ligaFechada)
-        s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+        s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.tactics = {}
         s.screen = 'season'
       }
@@ -6932,7 +7509,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🏛️ BUG AO VIVO (04/08, print do Murriz): carreira NOVA nascia com o
       // MULTICLUBES fantasma da carreira anterior (seletor "M10 × M10") — o stash
       // nunca era limpo no START. Carreira nova = UM clube, sempre.
-      s.multiClube = undefined; s.multiClubePendingCards = undefined
+      s.multiClube = undefined; s.multiClubePendingCards = undefined; s.saf2 = undefined // 🏢➡️⚽ a SAF nova também nasce limpa
       s.careerTitles = 0; s.careerTitlesA = 0; s.careerDivision = s.escadaOn ? 'V' : 'D'
       s.clubCash = seedClubCash({}, pl)
       const used = new Set<string>()
@@ -7038,7 +7615,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.condicaoDesde = undefined; s.condicaoDesdeR = undefined // 😓 gás: nasce desligado
       s.agenciaDividir = false
       s.stadiums = {}; s.careerFilial = undefined
-      s.multiClube = undefined; s.multiClubePendingCards = undefined
+      s.multiClube = undefined; s.multiClubePendingCards = undefined; s.saf2 = undefined // 🏢➡️⚽ a SAF nova também nasce limpa
       s.careerTitles = 0; s.careerTitlesA = 0
       s.clubCash = seedClubCash({}, plQ)
       s.careerTactics = {}; s.careerLineup = {}; s.careerHalftime = {}; s.careerPenalty = {}
@@ -7054,8 +7631,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerLedger = []
       logFin(s, 'opening', '🏁 Saldo inicial', 100)
       // 🏟️ campeonato novo com os MESMOS elencos — igual "Nova temporada (mesmo time)"
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0; s.champion = null; s.scorers = []; s.assists = []; s.lastResults = []; s.news = []; s.tactics = {}
       s.screen = 'season'
       return s
@@ -7619,6 +8196,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         return s
       }
       if (!s.careerOnline || s.careerFilial) return s
+      if (saf2On(s) && s.multiClube) return s // 🏢➡️⚽ escada única: com 2º clube não se compra SAF (venda o 2º clube antes)
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const coins = s.careerCoins?.[you.id] ?? 0
@@ -7642,6 +8220,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // títulos, estádio, divisão JÁ separados por construção). Começa DORMINDO.
       const PRECO = 4000
       if (s.onlineMode === 'online' || !s.careerOnline || s.multiClube) return s
+      if (saf2On(s)) return s // 🏢➡️⚽ SAF nova: o 2º clube só nasce da SAF (SAF2_ASSUMIR), nunca mais comprado direto
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const coins = s.careerCoins?.[you.id] ?? 0
@@ -7695,22 +8274,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // igual. (Saves antigos guardavam uma SAF no clube que dormia: se a atual
       // estiver vazia, adoto a que estava guardada pra não perder.)
       if (s.onlineMode === 'online' || !s.careerOnline || !s.multiClube) return s
-      const active = s.managers[s.youIdx]
-      const sleepIdx = s.managers.findIndex(m => m.id === s.multiClube!.id)
-      if (!active || sleepIdx < 0) return s
-      const sleeping = s.managers[sleepIdx]
-      active.dormindo = true; sleeping.dormindo = false
-      s.youIdx = sleepIdx
-      if (!s.careerFilial && s.multiClube.filial) s.careerFilial = s.multiClube.filial // migra SAF de save antigo
-      // swap dos campos ÚNICOS (o que estava ativo vai pro stash; o que dormia volta) —
-      // SEM a SAF (compartilhada) e SEM patrocínio (a aposta 05/08 já é por mgrId,
-      // os dois clubes têm a própria sem precisar de troca-troca).
-      const stash = { ledger: s.careerLedger ?? [], empresario: s.empresarioCards ?? [], empresarioClaims: s.empresarioClaimKeys ?? [] }
-      s.careerLedger = s.multiClube.ledger ?? []
-      s.empresarioCards = s.multiClube.empresario ?? []
-      s.empresarioClaimKeys = s.multiClube.empresarioClaims ?? []
-      s.multiClube = { team: active.teamName, id: active.id, since: s.multiClube.since, ...stash }
-      s.multiClubeAtivo = !s.multiClubeAtivo
+      trocaComando(s) // 🔄 o miolo mora em `trocaComando` (a SAF nova reusa na tela "O jogo mudou")
       return s
     }
     case 'SELL_MULTICLUBE': {
@@ -7735,6 +8299,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // e diga q foi tudo de luxo gasto na festa"*. Paga 4.000, recebe 3.000.
       const PRECO = 4000, FESTA = 1000
       if (s.onlineMode === 'online' || !s.careerOnline || !s.multiClube) return s
+      if (saf2On(s)) return s // 🏢➡️⚽ com a SAF nova a venda é a SAF2_VENDER_2O (pela coleção de taças)
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const vIdx = s.managers.findIndex(m => m.id === s.multiClube!.id && m.mine)
@@ -7742,49 +8307,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       const vendido = s.managers[vIdx]
       if (vendido.id === you.id) return s // nunca vende a cadeira em que você está sentado
 
-      // 🤝 EMPRÉSTIMOS (pedido dele): *"os jogadores emprestado pelo Adão Esporte voltam
-      // pra ele e os jogadores emprestados para o Adão Esporte voltam pro primeiro clube"*.
-      // Nada que não seja do vendido sai junto, e nada dele fica pra trás.
-      const f = s.careerFilial
-      if (f) {
-        const outs = loanList(f.loanOut), ins = loanList(f.loanIn)
-        const cpuSq = { ...(s.cpuSquads ?? {}) }
-        const safSquad = [...((cpuSq[f.team] ?? []) as WonCard[])]
-        const volta = s.seasonNo ?? 1
-        const tiraOut = new Set<string>(), tiraIn = new Set<string>()
-
-        // (1) o que o VENDIDO tinha emprestado PRA SAF volta pro elenco dele (e sai junto).
-        for (const lo of outs.filter(c => c.byClub === vendido.id)) {
-          const i = safSquad.findIndex(c => c.id === lo.id)
-          if (i >= 0) safSquad.splice(i, 1)
-          vendido.squad = [...vendido.squad, descongelaContrato({ ...lo, emprestado: undefined, byClub: undefined } as WonCard, volta)]
-          tiraOut.add(lo.id)
-        }
-        // (2) o que o VENDIDO tinha PEGADO emprestado sai do elenco dele. Se o jogador é
-        // do SEU outro clube (ele viajou principal → SAF → 2º clube), volta pro DONO, que
-        // é o primeiro clube. Se for da SAF mesmo, volta pra SAF.
-        for (const li of ins.filter(c => c.byClub === vendido.id)) {
-          vendido.squad = vendido.squad.filter(c => c.id !== li.id)
-          const meu = outs.find(o => o.id === li.id && o.byClub === you.id)
-          if (meu) {
-            you.squad = [...you.squad, descongelaContrato({ ...meu, emprestado: undefined, byClub: undefined } as WonCard, volta)]
-            tiraOut.add(li.id)
-          } else {
-            safSquad.push({ ...li, emprestado: undefined, byClub: undefined } as WonCard)
-          }
-          tiraIn.add(li.id)
-        }
-        if (tiraOut.size || tiraIn.size) {
-          cpuSq[f.team] = safSquad
-          s.cpuSquads = cpuSq
-          s.careerFilial = { ...f, loanOut: outs.filter(c => !tiraOut.has(c.id)), loanIn: ins.filter(c => !tiraIn.has(c.id)) }
-        }
-      }
-
-      // 🤖 o assento volta a ser BOT, no mesmo lugar da pirâmide. Fica com o estádio, os
-      // títulos e a caixa dele (`clubCash`/`careerHonors`/`stadiums` são keyed por id e
-      // não são tocados) — nada disso vem pro dono.
-      vendido.mine = false; vendido.dormindo = false; vendido.isHuman = false
+      // 🤝 empréstimos voltam pro dono certo + o assento volta a ser bot + some o que era só do 2º
+      // clube: tudo em `desfazSegundoClube` (a SAF nova usa o mesmo miolo na venda e na migração).
+      desfazSegundoClube(s, you, vendido)
 
       // 💰 os dois lançamentos entram SEPARADOS no extrato, pra ficar claro de onde saiu
       // a mordida em vez de chegar um número quebrado sem explicação.
@@ -7794,19 +8319,6 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerCoins = cc
       logFin(s, 'safsell', `🏛️ Venda do 2º clube · ${vendido.teamName}`, PRECO)
       logFin(s, 'safsell', `🍖 Festa de despedida do ${vendido.teamName} (no capricho)`, -FESTA)
-
-      // 🧹 e some tudo que só existia por causa do 2º clube — é o que ele pediu:
-      // *"quando vender some também as coisas de trocar, hibernar e etc e mantém tudo
-      // como era antes"*. A UI de trocar/dormir é toda gated em `state.multiClube`,
-      // então ela se apaga sozinha; aqui limpo o que fica no save.
-      s.multiClube = null
-      s.multiClubeAtivo = false
-      if (s.multiClubePendingCards?.[vendido.id]) {
-        const pend = { ...s.multiClubePendingCards }; delete pend[vendido.id]; s.multiClubePendingCards = pend
-      }
-      if (s.agenciaClubeId === vendido.id) s.agenciaClubeId = you.id
-      s.agenciaDividir = false // "dividir a renda" só existe com 2 clubes
-      if (s.eventoTemporada?.mgrId === vendido.id) s.eventoTemporada = null // evento preso ao clube que saiu
       return s
     }
     case 'CLEAR_MULTICLUBE_PENDING': {
@@ -7836,6 +8348,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         return s
       }
       if (!s.careerOnline || !s.careerFilial) return s
+      if (saf2On(s)) return s // 🏢➡️⚽ SAF nova: a venda é pela divisão (SAF2_VENDER_SAF), só na janela
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const team = s.careerFilial.team
@@ -7894,6 +8407,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         return s
       }
       if (!s.careerOnline || !s.careerFilial) return s
+      if (saf2On(s) && !saf2Janela(s)) return s // 🏢➡️⚽ SAF nova: empréstimo só na janela (virada), vale 1 temporada
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const outs = loanList(s.careerFilial.loanOut)
@@ -7940,6 +8454,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         return s
       }
       if (!s.careerOnline || !s.careerFilial) return s
+      if (saf2On(s) && !saf2Janela(s)) return s // 🏢➡️⚽ SAF nova: empréstimo só na janela (virada), vale 1 temporada
       const you = s.managers[s.youIdx]
       if (!you?.isHuman) return s
       const ins = loanList(s.careerFilial.loanIn)
@@ -7972,6 +8487,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       const you = online ? s.managers.find(m => m.id === action.mgrId) : s.managers[s.youIdx]
       const f = online ? (you ? s.careerFilials?.[you.id] : undefined) : s.careerFilial
       if (!s.careerOnline || !you?.isHuman || !f) return s
+      if (!online && saf2On(s) && !saf2Janela(s)) return s // 🏢➡️⚽ SAF nova: só desfaz na janela — senão volta sozinho na virada (fecha o furo do salário)
       const outs = loanList(f.loanOut), ins = loanList(f.loanIn)
       const outCard = outs.find(c => c.id === action.cardId)
       const inCard = ins.find(c => c.id === action.cardId)
@@ -7992,6 +8508,139 @@ function reducerBase(state: EscState, action: Action): EscState {
       const newF = { ...f, loanOut: outs.filter(c => c.id !== action.cardId), loanIn: ins.filter(c => c.id !== action.cardId) }
       if (online) s.careerFilials = { ...(s.careerFilials ?? {}), [you.id]: newF }
       else s.careerFilial = newF
+      return s
+    }
+    // ─── 🏢➡️⚽ SAF QUE VIRA 2º CLUBE (13/10) ─────────────────────────────────────
+    // Toda trava daqui é a MESMA função que a tela lê (`saf2.ts`) — nunca regra própria.
+    case 'SAF2_ASSUMIR': {
+      if (!saf2On(s) || s.screen !== 'season') return s
+      const you = clubePrincipal(s)
+      if (!you || s.managers[s.youIdx]?.id !== you.id) return s
+      const r = podeAssumir({
+        temSaf: !!s.careerFilial, tem2o: !!segundoClube(s), janela: saf2Janela(s), pagante: action.pagante,
+        seasonNo: s.seasonNo ?? 1, safDesde: s.careerFilial?.since, semEspera: s.saf2?.semEspera, caixa: s.careerCoins?.[you.id] ?? 0,
+      })
+      if (!r.ok) return s
+      saf2AssumeComando(s)
+      return s
+    }
+    case 'SAF2_VENDER_SAF': {
+      if (!saf2On(s) || !s.careerFilial || !saf2Janela(s)) return s
+      const you = clubePrincipal(s)
+      if (!you || s.managers[s.youIdx]?.id !== you.id) return s
+      const team = s.careerFilial.team
+      const valor = valorVendaSaf(saf2DivDaSaf(s))
+      revertFilialLoans(s) // empréstimos com a SAF voltam antes de vender
+      s.careerCoins = { ...(s.careerCoins ?? {}), [you.id]: (s.careerCoins?.[you.id] ?? 0) + valor }
+      logFin(s, 'safsell', `🏢 Venda da SAF · ${team}`, valor, undefined, you.id)
+      s.careerFilial = null
+      s.saf2 = { ...(s.saf2 ?? {}), semEspera: undefined }
+      return s
+    }
+    case 'SAF2_VENDER_2O': {
+      if (!saf2On(s) || !saf2Janela(s)) return s
+      const you = s.managers[s.youIdx]
+      const vendido = segundoClube(s)
+      // 🚫 o principal NUNCA se vende, e nunca a cadeira em que você está sentado
+      if (!you?.isHuman || you.mine || !vendido || vendido.id === you.id) return s
+      const v = saf2Valor2o(s); if (!v) return s
+      saf2DevolveEmprestimos(s) // empréstimos entre os dois clubes voltam pro dono antes da venda
+      desfazSegundoClube(s, you, vendido)
+      const cc = { ...(s.careerCoins ?? {}) }
+      cc[you.id] = (cc[you.id] ?? 0) + v.total // as taças + o caixa dele (dívida desconta)
+      delete cc[vendido.id]
+      s.careerCoins = cc
+      logFin(s, 'clube2sell', `🏛️ Venda do 2º clube · ${vendido.teamName} (${v.tacas} de 6 taças)`, v.base, undefined, you.id)
+      if (v.caixa) logFin(s, 'clube2sell', `🏛️ Caixa do ${vendido.teamName} volta junto`, v.caixa, undefined, you.id)
+      s.saf2 = { ...(s.saf2 ?? {}), origemSaf: undefined, clubeId: undefined, tacas: [], aportes: 0, transfSeason: undefined, emprestimos: [] }
+      return s
+    }
+    case 'SAF2_APORTE': {
+      if (!saf2On(s) || s.screen !== 'season') return s
+      const principal = clubePrincipal(s), seg = segundoClube(s)
+      if (!principal || !seg) return s
+      const caixaP = s.careerCoins?.[principal.id] ?? 0
+      if (!podeAportar({ valor: action.valor, caixaPrincipal: caixaP })) return s
+      s.careerCoins = { ...(s.careerCoins ?? {}), [principal.id]: caixaP - action.valor, [seg.id]: (s.careerCoins?.[seg.id] ?? 0) + action.valor }
+      const meu = s.saf2?.clubeId === seg.id
+      s.saf2 = { ...(s.saf2 ?? {}), clubeId: seg.id, tacas: meu ? s.saf2?.tacas : [], aportes: (meu ? (s.saf2?.aportes ?? 0) : 0) + action.valor }
+      logFin(s, 'clube2interno', `💰 Aporte pro ${seg.teamName}`, -action.valor, undefined, principal.id)
+      logFin(s, 'clube2interno', `💰 Aporte do ${principal.teamName}`, action.valor, undefined, seg.id)
+      return s
+    }
+    case 'SAF2_TRANSFERIR': {
+      if (!saf2On(s)) return s
+      const principal = clubePrincipal(s), seg = segundoClube(s)
+      if (!principal || !seg) return s
+      const de = principal.squad.some(c => c.id === action.cardId) ? principal : seg.squad.some(c => c.id === action.cardId) ? seg : null
+      if (!de) return s
+      const para = de === principal ? seg : principal
+      const card = de.squad.find(c => c.id === action.cardId) as WonCard
+      if (card.emprestado || card.fake || card.cria) return s
+      if (de.squad.filter(c => c.pos === card.pos && !c.fake && !c.emprestado).length - 1 < FORMATIONS[de.formation][card.pos]) return s // não abre buraco no titular de quem vende
+      const valor = Math.max(1, valorOficial(s, card))
+      if (podeTransferir({ janela: saf2Janela(s), ultimaTransf: s.saf2?.transfSeason, seasonNo: s.seasonNo ?? 1, caixaComprador: s.careerCoins?.[para.id] ?? 0, valor }) !== 'ok') return s
+      de.squad = de.squad.filter(c => c.id !== card.id)
+      para.squad = [...para.squad, card] // salário (paid) e contrato vão junto com ele
+      s.careerCoins = { ...(s.careerCoins ?? {}), [de.id]: (s.careerCoins?.[de.id] ?? 0) + valor, [para.id]: (s.careerCoins?.[para.id] ?? 0) - valor }
+      s.saf2 = { ...(s.saf2 ?? {}), transfSeason: s.seasonNo ?? 1 }
+      logFin(s, 'clube2interno', `🤝 ${card.name} vendido pro ${para.teamName}`, valor, { player: card.name, pos: card.pos }, de.id)
+      logFin(s, 'clube2interno', `🤝 ${card.name} comprado do ${de.teamName}`, -valor, { player: card.name, pos: card.pos }, para.id)
+      return s
+    }
+    case 'SAF2_EMPRESTAR': {
+      if (!saf2On(s) || !saf2Janela(s)) return s
+      const principal = clubePrincipal(s), seg = segundoClube(s)
+      if (!principal || !seg) return s
+      const de = principal.squad.some(c => c.id === action.cardId) ? principal : seg.squad.some(c => c.id === action.cardId) ? seg : null
+      if (!de) return s
+      const para = de === principal ? seg : principal
+      const card = de.squad.find(c => c.id === action.cardId) as WonCard
+      if (card.emprestado || card.fake || card.cria) return s
+      if (s.contratosOn && card.contratoAte != null && card.contratoAte <= (s.seasonNo ?? 1)) return s // contrato acabando: renove antes (senão some da janela de renovação)
+      const lista = s.saf2?.emprestimos ?? []
+      if (lista.filter(e => e.de === de.id).length >= EMPRESTIMOS_ENTRE_CLUBES) return s
+      if (de.squad.filter(c => c.pos === card.pos && !c.fake && !c.emprestado).length - 1 < FORMATIONS[de.formation][card.pos]) return s
+      de.squad = de.squad.filter(c => c.id !== card.id)
+      // ❄️ congela o contrato como o empréstimo da SAF (volta com o mesmo número) · 'saf' = "não é seu, não vende"
+      para.squad = [...para.squad, { ...card, emprestado: 'saf', byClub: de.id, contratoRestante: card.contratoAte != null ? card.contratoAte - (s.seasonNo ?? 1) : undefined } as WonCard]
+      s.saf2 = { ...(s.saf2 ?? {}), emprestimos: [...lista, { cardId: card.id, de: de.id, para: para.id, season: s.seasonNo ?? 1 }] }
+      return s
+    }
+    case 'SAF2_MIGRAR': {
+      if (!saf2On(s) || !saf2Janela(s)) return s
+      if (!precisaMigrar({ temSaf: !!s.careerFilial, tem2o: !!segundoClube(s), migrado: s.saf2?.migrado })) return s
+      const principal = clubePrincipal(s)
+      if (!principal) return s
+      if (action.fica === '2o') {
+        // fica com o 2º clube: a SAF sai e os 2.000 voltam INTEIROS
+        const team = s.careerFilial!.team
+        revertFilialLoans(s)
+        s.careerFilial = null
+        const ref = reembolsoMigracao('2o')
+        s.careerCoins = { ...(s.careerCoins ?? {}), [principal.id]: (s.careerCoins?.[principal.id] ?? 0) + ref }
+        logFin(s, 'safsell', `📣 O jogo mudou: SAF do ${team} devolvida (dinheiro de volta)`, ref, undefined, principal.id)
+        const seg = segundoClube(s)
+        s.saf2 = { ...(s.saf2 ?? {}), migrado: true, clubeId: seg?.id, tacas: [], aportes: 0, origemSaf: undefined }
+        return s
+      }
+      // fica com a SAF: o 2º clube antigo sai, os 4.000 voltam INTEIROS (+ o caixa positivo dele —
+      // "ninguém perde dinheiro"), e a SAF já pode virar 2º clube na hora, sem as 10 temporadas.
+      if (s.managers[s.youIdx]?.mine) trocaComando(s) // o 2º clube estava no comando: volta pro principal antes
+      const vendido = segundoClube(s)
+      const you = s.managers[s.youIdx]
+      if (!vendido || !you || vendido.id === you.id) return s
+      saf2DevolveEmprestimos(s)
+      const caixaDele = Math.max(0, Math.round(s.careerCoins?.[vendido.id] ?? 0))
+      desfazSegundoClube(s, you, vendido)
+      const ref = reembolsoMigracao('saf')
+      const cc = { ...(s.careerCoins ?? {}) }
+      cc[you.id] = (cc[you.id] ?? 0) + ref + caixaDele
+      delete cc[vendido.id]
+      s.careerCoins = cc
+      logFin(s, 'clube2sell', `📣 O jogo mudou: 2º clube ${vendido.teamName} devolvido (dinheiro de volta)`, ref, undefined, you.id)
+      if (caixaDele) logFin(s, 'clube2sell', `🏛️ Caixa do ${vendido.teamName} volta junto`, caixaDele, undefined, you.id)
+      s.saf2 = { ...(s.saf2 ?? {}), migrado: true, semEspera: true, clubeId: undefined, tacas: [], aportes: 0, emprestimos: [] }
       return s
     }
     case 'CLEAR_FILIAL_TRIM_NOTICE': {
@@ -8239,10 +8888,12 @@ function reducerBase(state: EscState, action: Action): EscState {
       // rivais "auction-only" e times de fundo temporários já cumpriram o papel no
       // leilão — saem antes da temporada (voltam a ser time de fundo na simulação).
       s.managers = s.managers.filter(m => !m.auctionOnly && !m.marketCpu)
+      marcaAVender(s) // 🔁 (14/10) quem perdeu a vaga pra um reforço do bot vai a leilão no próximo leilão
+      completaBancoDosBots(s) // 🔁 rival com banco (13/10): os bots da sua divisão fecham 2 por posição com sobra REAL, pagando
       const adj = cpuAdjFor(s) // nível-base fixo por divisão nos bots de fundo; rivais sem ajuste
       s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
       s.scorers = []; s.assists = []
       if (s.careerOnline) {
@@ -8262,14 +8913,14 @@ function reducerBase(state: EscState, action: Action): EscState {
         // real de mercado — não só prêmios. Vale pros que participaram do leilão
         // (rivais escolhidos + bots sorteados), que tiveram money vindo do clubCash.
         const cash = { ...(s.clubCash ?? {}) }
-        for (const m of s.managers) if (!m.isHuman && (m.rival || m.backstop)) cash['m' + m.id] = Math.max(0, Math.round(m.money))
+        for (const m of s.managers) if (!m.isHuman && !m.marketCpu && (m.rival || m.backstop || m.deepSquad)) cash['m' + m.id] = Math.max(0, Math.round(m.money)) // 🔁 + bot que montou banco no leilão (13/10)
         s.clubCash = cash
       }
       if (s.reserveAuction) {
         // fim do leilão: tira o elenco fundo dos humanos (volta a mirar 11) e
         // desmarca os bots que entraram neste leilão (serão sorteados de novo no
         // próximo). O caixa dos bots (clubCash) muda só por prêmios de temporada.
-        for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false } }
+        for (const m of s.managers) { if (m.isHuman) m.deepSquad = false; if (m.backstop) { m.backstop = false; m.deepSquad = false }; if (!m.isHuman && !m.rival) m.deepSquad = false } // 🔁 o bot volta a mirar 11 fora do pregão (o banco que comprou fica)
         s.marketSellers = {} as Record<Sector, number[]>
         s.reserveAuction = false
       }
@@ -8667,8 +9318,11 @@ function reducerBase(state: EscState, action: Action): EscState {
         // fotografa posições e gols ANTES pra narrar as viradas
         const prevRank = new Map(sortedTable(s.league).map((t, idx) => [t.id, idx + 1]))
         const prevGoals = new Map(s.scorers.map(sc => [sc.name + ':' + sc.teamId, sc.goals]))
-        const results = s.fixtures[s.round].map(([h, a]) => simMatch(s, h, a, rng))
-        results.forEach(r => applyResult(s.league, r))
+        // 👑 Kings: a partida de sempre + a regra da Kings por cima, e pontos 3/2/1/0
+        const kingsLiga = ehKings(s)
+        if (kingsLiga && !s.assists) s.assists = []
+        const results = s.fixtures[s.round].map(([h, a]) => kingsLiga ? jogoKings(s, h, a, rng, s.scorers, s.assists!, false, s.round) : simMatch(s, h, a, rng))
+        results.forEach(r => kingsLiga ? aplicaResultadoKings(s.league, r) : applyResult(s.league, r))
         // rivalidade: só confrontos entre dois humanos contam
         results.forEach(r => { if (isHumanId(r.homeId) && isHumanId(r.awayId)) bumpRivalry(s, r.homeId, r.awayId, r.hg, r.ag) })
         // carreira: retrospecto contra seus rivais fixos que estão na sua divisão
@@ -8718,6 +9372,48 @@ function reducerBase(state: EscState, action: Action): EscState {
       // não existe campeão de liga pra coroar. Quem fecha é o mata-mata da Champions.
       if (s.copaMode === 'champions') return s
       finishSeason(s)
+      return s
+    }
+    case 'KINGS_DECIDIR': {
+      // 👑 a pessoa escolheu o canto (bater) ou pra onde pular (defender) numa cobrança da Kings. A partida é REFEITA com a
+      // escolha dela, a partir da partida crua guardada (mesma semente: o resto do jogo não muda), e a tabela/artilharia
+      // trocam o resultado velho pelo novo. Escolha vale UMA vez por cobrança.
+      if (!ehKings(s)) return s
+      const qc = s.quickCopa
+      if (qc && qc.phase !== 'done' && s.round >= (s.fixtures.length || TOTAL_ROUNDS)) {
+        const tie = qc.ties.find(t => t.kingsJogo?.kingsBase && t.legs.length === 1)
+        if (!tie?.kingsJogo) return s
+        if (!qc.scorers) qc.scorers = []
+        if (!qc.assists) qc.assists = []
+        const novo = refazJogoKings(s, tie.kingsJogo, action.key, action.canto, qc.scorers, qc.assists)
+        if (!novo) return s
+        const emCasaA = novo.homeId === tie.aId
+        tie.legs[0] = emCasaA ? [novo.hg, novo.ag] : [novo.ag, novo.hg]
+        tie.lastHighlights = novo.highlights
+        tie.lastKings = novo.kings
+        tie.kingsJogo = novo
+        if (novo.kings?.pens) {
+          tie.pens = emCasaA ? novo.kings.pens : [novo.kings.pens[1], novo.kings.pens[0]]
+          tie.pensSeq = novo.kings.pensSeq
+          tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
+        } else {
+          tie.pens = undefined; tie.pensSeq = undefined
+          tie.winner = tie.legs[0][0] > tie.legs[0][1] ? tie.aId : tie.bId
+        }
+        return s
+      }
+      const i = s.lastResults.findIndex(r => !!r.kingsBase)
+      if (i < 0) return s
+      const velho = s.lastResults[i]
+      if (!s.assists) s.assists = []
+      const novo = refazJogoKings(s, velho, action.key, action.canto, s.scorers, s.assists)
+      if (!novo) return s
+      desfazResultadoKings(s.league, velho)
+      aplicaResultadoKings(s.league, novo)
+      s.lastResults = s.lastResults.map((r, j) => j === i ? novo : r)
+      // as manchetes do giro sobre ESTE jogo foram escritas com o placar velho — saem (as dos outros jogos ficam)
+      const nh = s.league.find(t => t.id === novo.homeId)?.name, na = s.league.find(t => t.id === novo.awayId)?.name
+      if (nh && na) s.news = s.news.filter(n => !(n.includes(nh) && n.includes(na)))
       return s
     }
     case 'START_COPA': {
@@ -8781,7 +9477,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const bbSerie = s.sport === 'basquete'
       const vitoriasNaSerie = (t: QuickCopaTie): [number, number] =>
         t.legs.reduce<[number, number]>((acc, [a, b]) => { if (a > b) acc[0]++; else acc[1]++; return acc }, [0, 0])
-      const legsNeeded = bbSerie ? 3 : (isFinal ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
+      const kingsCopa = ehKings(s) // 👑 mata-mata da Kings: TUDO jogo único
+      const legsNeeded = bbSerie ? 3 : (isFinal || kingsCopa ? 1 : 2) // ⚽ ida+volta / jogo único · 🏀 até 3 jogos
       const legsPlayed = qc.ties[0]?.legs.length ?? 0
       // ── AVANÇO de fase: passo À PARTE de jogar a perna. Só roda DEPOIS que a
       // última perna já teve tempo de animar na tela (o dispatch anterior tocou a
@@ -8802,6 +9499,17 @@ function reducerBase(state: EscState, action: Action): EscState {
           qc.phase = 'done'
           qc.ties = []
           s.screen = 'end'
+        } else if (kingsCopa && qc.phase === 'quartas' && qc.kingsDireto != null) {
+          // 👑 semis da Kings Brasil: o 1º × quem passou do 4×5, e (2×7) × (3×6)
+          const winnerName = (t: QuickCopaTie) => t.winner === t.aId ? t.aName : t.bName
+          const [q27, q36, q45] = qc.ties
+          const nomeDireto = s.league.find(t => t.id === qc.kingsDireto)?.name ?? '?'
+          qc.ties = [
+            { aId: qc.kingsDireto, bId: q45.winner!, aName: nomeDireto, bName: winnerName(q45), legs: [], winner: null },
+            { aId: q27.winner!, bId: q36.winner!, aName: winnerName(q27), bName: winnerName(q36), legs: [], winner: null },
+          ]
+          qc.phase = 'semis'
+          qc.legIdx = 0
         } else if (qc.phase === 'repescao' && s.champions) {
           // ⭐ fim do repescão da Champions: os 8 que passaram encaram o top 8 da tabela,
           // no MESMO cruzamento de antes (1º × o último dos que subiram…). A fase da
@@ -8854,11 +9562,12 @@ function reducerBase(state: EscState, action: Action): EscState {
         // pros dois. Ida/volta mantêm a casa (que se alterna, então também é justo).
         // 🅰️ garçom da Copa vai na lista DA COPA (qc.assists), pelo mesmo motivo.
         if (!qc.assists) qc.assists = []
-        const r = simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
+        const r = kingsCopa ? jogoKings(s, homeId, awayId, rng, qc.scorers, qc.assists, isFinal, 100 + qc.bracket.length) : simMatch(s, homeId, awayId, rng, qc.scorers, isFinal, qc.assists)
         const leg: [number, number] = emCasaA ? [r.hg, r.ag] : [r.ag, r.hg] // sempre [pontos/gols de A, de B]
         tie.legs.push(leg)
         tie.lastHighlights = r.highlights
         tie.lastPresentationGoals = r.presentationGoals
+        if (kingsCopa) { tie.lastKings = r.kings; tie.kingsJogo = r.kingsBase ? r : undefined }
         if (bbSerie) {
           // 🏀 fechou 2 vitórias? acabou a série (pode ter sido em 2 jogos). No 3º
           // jogo alguém já chega a 2 obrigatoriamente — jogo de basquete não empata
@@ -8866,6 +9575,11 @@ function reducerBase(state: EscState, action: Action): EscState {
           const [va, vb] = vitoriasNaSerie(tie)
           if (va >= 2 || vb >= 2) tie.winner = va > vb ? tie.aId : tie.bId
           else if (tie.legs.length >= 3) resolveQuickCopaTie(tie, rng, true) // salvaguarda
+        } else if (kingsCopa && r.kings?.pens) {
+          // 👑 empatou: o SHOOTOUT da Kings já foi batido no jogo — vale ele (virado pro lado de A)
+          tie.pens = emCasaA ? r.kings.pens : [r.kings.pens[1], r.kings.pens[0]]
+          tie.pensSeq = r.kings.pensSeq
+          tie.winner = tie.pens[0] > tie.pens[1] ? tie.aId : tie.bId
         } else if (isLastLeg) resolveQuickCopaTie(tie, rng) // ⚽ agregado → pênaltis se empatar
       }
       // 📣 GIRO DA COPA: manchetes do que acabou de rolar (placar, quem passou,
@@ -9491,14 +10205,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Copa (applyHonors/careerCopaHonors não têm trava
       // própria). A UI atual nem usa mais este caminho, mas fica blindado.
       if (s.screen === 'auction') return s
+      guardaCansacoBots(s, action.botCarry) // 🔁 rival com banco: o gás dos bots atravessa a virada + marca a 1ª temporada deles
       guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada (idem OPEN_RESERVE_LIST) — e ⚽🅰️ gols/assistências somam
       s.seasonVotes = {} // temporada nova: zera a votação
       setActiveCatalog(s.deckLeague, false, s.regionalSala) // reancora o baralho ANTES de montar o deck (reload zera o ponteiro pra BR)
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES de zerar/refazer o leilão
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      aplicaEconomiaBots(s, s.careerPlacements ?? action.placements) // 💰 bot ganha TV + bilheteria e paga salário (13/10 · só conta do Diego por enquanto)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       revertFilialLoans(s, (s.seasonNo ?? 1) + 1) // 🏢 empréstimos voltam sozinhos; janela reabre pra próxima temporada · ❄️ contrato volta contado a partir da temporada NOVA
+      if (saf2On(s)) { saf2DevolveEmprestimos(s, (s.seasonNo ?? 1) + 1); saf2CreditaTacas(s, action.champions, action.copaChampion, action.supercopaChampion) } // 🏢➡️⚽ SAF nova
       s.careerHonors = applyHonors(s.careerHonors, action.champions) // títulos da temporada
       creditaCopa(s, action.copaChampion, 'copa') // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador) — com recibo por temporada
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
@@ -9536,12 +10253,14 @@ function reducerBase(state: EscState, action: Action): EscState {
       // não pegava porque o seasonNo já tinha subido). Se já estamos na tela de
       // reservas, o 2º toque não faz nada.
       if (s.screen === 'reserveList') return s
+      guardaCansacoBots(s, action.botCarry) // 🔁 rival com banco: o gás dos bots atravessa a virada + marca a 1ª temporada deles
       guardaCansaco(s, action.golsCard, action.assCard, action.jogosCard) // 😓 o cansaço atravessa a virada: anota como cada um terminou — e ⚽🅰️ soma gols/assistências da temporada
       pinHumanLineups(s) // fixa o SEU XI ANTES do leilão — reforço novo vai pro banco
       s.seasonVotes = {} // temporada nova: zera a votação
       applySeasonMoney(s, action.rewards, action.sponsorRewards, action.stadiumOcc, action.finalPos) // 💰 prêmios + 🏟️ bilheteria + 💸 folha + 🤝 patrocínio (e registra no extrato) — ANTES da venda/leilão de reservas
       if (action.sponsorResults) s.careerSponsorResult = { ...(s.careerSponsorResult ?? {}), ...Object.fromEntries(Object.entries(action.sponsorResults).map(([id, r]) => [id, { ...r, season: s.seasonNo ?? 1 }])) }
       s.clubCash = applyClubRewards(seedClubCash(s.clubCash ?? {}, action.placements), action.clubRewards) // caixa dos outros times (base + premios)
+      aplicaEconomiaBots(s, s.careerPlacements ?? action.placements) // 💰 bot ganha TV + bilheteria e paga salário (13/10 · só conta do Diego por enquanto)
       applyFilialCommission(s, action.clubRewards ?? {}) // 🏢 50% da campanha da filial pro dono (teste)
       registraCronica(s, action.champions, action.copaChampion, action.supercopaChampion) // 📼 memória do jornal — antes de trocar placements
       s.careerPlacements = action.placements // ⚠️ ANTES do trim: a devolução do excedente usa a divisão NOVA
@@ -9561,7 +10280,13 @@ function reducerBase(state: EscState, action: Action): EscState {
         }
       }
       escadaAfterPlacements(s) // 🪜 subiu da estreia? destrava o banco
-      s.filialTrimNotice = trimFilialLoansToDivision(s) || null // 🏢 empréstimo PERSISTE; só devolve o excedente se rebaixou (com aviso)
+      if (saf2On(s)) {
+        // 🏢➡️⚽ SAF nova (13/10): empréstimo vale UMA temporada e volta sozinho na virada — com a SAF e
+        // entre os seus dois clubes. A folha (metade de cada lado) já foi cobrada lá em cima.
+        revertFilialLoans(s, (s.seasonNo ?? 1) + 1)
+        saf2DevolveEmprestimos(s, (s.seasonNo ?? 1) + 1)
+        s.filialTrimNotice = null
+      } else s.filialTrimNotice = trimFilialLoansToDivision(s) || null // 🏢 empréstimo PERSISTE; só devolve o excedente se rebaixou (com aviso)
       s.careerHonors = applyHonors(s.careerHonors, action.champions)
       // 🎪 TORCIDÔMETRO: soma o delta da temporada (colocação + subida/queda de
       // verdade), sempre travado 0-100. Nunca mexe no caixa aqui — só na régua.
@@ -9580,6 +10305,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       creditaCopa(s, action.copaChampion, 'copa') // 🏆 Copa no histórico (Legends OU do Brasil, mesmo contador) — com recibo por temporada
       creditaCopa(s, action.supercopaChampion, 'supercopa') // 🏆🔵 Supercopa (critério próprio) — idem
       recordDormantCards(s, action.champions, action.copaChampion) // 🏛️ guarda a carta se o 2º clube (dormindo) foi campeão
+      saf2CreditaTacas(s, action.champions, action.copaChampion, action.supercopaChampion) // 🏢➡️⚽ coleção de taças do 2º clube (só com a chave)
       // 🌱 cria que não é mais necessário SOME do jogo ("volta pra base"): se a
       // posição fecha a formação sem ele (chegou reforço de verdade), ele sai de
       // graça, com carinho no resumo. Nunca sai se a saída quebrar o XI.
@@ -9660,6 +10386,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.reserveListMesmo = undefined
       s.reserveListed = {}
       s.phaseDeadline = null
+      completaBancoDosBots(s) // 🔁 rival com banco (Diego 13/10: "o bot também pode participar de qualquer leilão"): sem leilão no "mesmo time", o bot fecha o banco aqui, com sobra real e pagando
       s.screen = 'season'
       return s
     }
@@ -9766,6 +10493,18 @@ function reducerBase(state: EscState, action: Action): EscState {
       // abre), pra levantar grana e reforçar. NÃO são idênticos: cada um sorteia
       // quantos quer listar nesta temporada (uns 0, uns 1, uns 2-3), sempre as
       // reservas mais FRACAS que sobram (mais que o XI). Determinístico por seed.
+      // 🔁 (14/10) os que perderam a vaga pra um reforço vão pro leilão agora — o bot recebe o dinheiro da venda
+      {
+        const rlR = { ...(s.reserveListed ?? {}) }
+        for (const m of s.managers) {
+          if (m.isHuman || !m.rival || !m.aVender?.length) continue
+          const tem = new Set(m.squad.map(c => c.id))
+          const ids = m.aVender.filter(id => tem.has(id))
+          if (ids.length) rlR[m.id] = [...new Set([...(rlR[m.id] ?? []), ...ids])]
+          m.aVender = undefined
+        }
+        s.reserveListed = rlR
+      }
       if (s.seasonNo >= 3) {
         const rate = (c: WonCard) => (c.lo + c.hi) / 2
         const rl = { ...(s.reserveListed ?? {}) }
@@ -9840,7 +10579,17 @@ function reducerBase(state: EscState, action: Action): EscState {
           // lote. A identidade (nome|clube|ano) é a mesma, que é o que importa.
           const f = s.aliciarFundo
           if (f && f.cardId === cid && !f.card.fake) {
-            listedCards.push({ ...f.card, id: `sond-${cid}`, semContrato: true })
+            // 🐛 15/10 (Fabulous EC, "comprei o Pelé e apareceram 5 Garrinchas"): o id de fundo
+            // se REPETE entre clubes diferentes (`ATA-25` do clube X e do clube Y), então dois
+            // sondados de temporadas diferentes nasciam com o MESMO `sond-ATA-25` — e a tela, que
+            // desenha o elenco pelo id, embaralhava as duas cartas. Agora leva a temporada e, se
+            // ainda assim bater com algum id que já existe, ganha um sufixo.
+            const usados = new Set<string>()
+            for (const m of s.managers) for (const c of m.squad) usados.add(String(c.id))
+            for (const c of listedCards) usados.add(String(c.id))
+            let novoId = `sond-${s.seasonNo}-${cid}`
+            for (let n = 2; usados.has(novoId); n++) novoId = `sond-${s.seasonNo}-${cid}~${n}`
+            listedCards.push({ ...f.card, id: novoId, semContrato: true })
             // 🎯 O CLUBE SONDADO ENTRA NO LEILÃO INTEIRO (Diego 13/09): *"esse time
             // sondado tem direito a participar da leva inteira do leilão também, seja
             // técnico a atacante, na rodada que o jogador dele for pro leilão"*.
@@ -9950,6 +10699,10 @@ function reducerBase(state: EscState, action: Action): EscState {
         }
         // os soltos que não couberam voltam pro mundo em silêncio (sobras futuras)
       }
+      // 🏢➡️⚽ SAF nova (13/10): o clube que está SEM você (o auxiliar) não vai ao leilão — se ficou buraco
+      // no titular dele, o auxiliar repõe com o caixa do próprio clube (ou sobe um guri da base). A
+      // renovação ele já fez logo acima (renovação automática, paga do caixa dele).
+      if (saf2On(s)) { const auxRng = mulberry((s.seed ^ ((s.seasonNo ?? 1) * 92821) ^ 0xA0C1) >>> 0); for (const m of s.managers) if (m.isHuman && m.dormindo) auxiliarRepoe(s, m, auxRng) }
       // 2) baralho ANTES de marcar elenco fundo — assim a demanda usa a formação
       // NORMAL (não dobrada) e a quantidade por posição fica IGUAL ao leilão online
       // comum (2 usuários disputam 3 goleiros, etc.).
@@ -10111,6 +10864,7 @@ function reducerBase(state: EscState, action: Action): EscState {
         if (m.isHuman && !m.dormindo) { m.deepSquad = true; m.money = s.careerCoins?.[m.id] ?? 0 }
         else if (m.rival) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // rival = "humano": enche banco, gasta clubCash
         else if (m.backstop) { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // LIBERADO: além de repor, pode pegar reserva (mira 22 como todo mundo)
+        else if (botBancoLiberado() && !m.isHuman && !m.dormindo && !m.marketCpu && s.onlineMode !== 'online') { m.deepSquad = true; m.money = cash['m' + m.id] ?? 100 } // 🔁 rival com banco (13/10): todo bot pode montar 22 no leilão, gastando o caixa dele
       }
       sorteiaEspeciais(s, rng)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -10183,8 +10937,8 @@ function reducerBase(state: EscState, action: Action): EscState {
         const adj = fillerAdj(s.managers, DIVISION_BASE[res.nextDiv]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
         s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
         s.sectorIdx = 0; s.sectorCursor = 0
-        s.league = buildLeague(s.managers, !s.ligaFechada)
-        s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+        s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+        s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
         s.seasonNo++
         s.screen = 'season'
         return s
@@ -10235,7 +10989,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.careerTecnicoContrato = undefined; s.careerTecnicoPago = undefined
       s.careerTecnicoExDono = undefined; s.careerFormacaoExtra = undefined
       s.careerPreparador = undefined; s.careerPreparadorContrato = undefined
-      s.multiClube = undefined; s.multiClubePendingCards = undefined
+      s.multiClube = undefined; s.multiClubePendingCards = undefined; s.saf2 = undefined // 🏢➡️⚽ a SAF nova também nasce limpa
       s.copaMundoMural = undefined
       s.copaMundoStats = undefined
       s.careerInternational = null; s.careerInternationalHistory = []; s.careerIntlBotTotals = {}
@@ -10307,8 +11061,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       const adj = fillerAdj(s.managers, DIVISION_BASE[sv.division]); s.cpuAtkAdj = adj.atk; s.cpuDefAdj = adj.def
       s.deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] }
       s.sectorIdx = 0; s.sectorCursor = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
     }
@@ -10337,8 +11091,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // rivais do Dinastia → aparecem com 🔥 na tabela e no painel embaixo do campinho (igual carreira)
       s.careerRivals = (action.rivals ?? []).map(r => ({ team: r.team, name: r.name, division: r.division, h2h: [0, 0, 0] as [number, number, number], lastPos: null }))
       s.careerTitles = 0; s.careerTitlesA = 0
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.screen = 'season'
       return s
     }
@@ -10353,8 +11107,8 @@ function reducerBase(state: EscState, action: Action): EscState {
       // pra prever/farmar título). Cada recomeço agora é uma temporada diferente.
       // (host dispara e sincroniza por SYNC_STATE, então online também fica ok.)
       s.seed = Math.floor(Math.random() * 1e9)
-      s.league = buildLeague(s.managers, !s.ligaFechada)
-      s.fixtures = buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
+      s.league = buildLeague(s.managers, !s.ligaFechada && !ehKings(s))
+      s.fixtures = ehKings(s) ? calendarioKings(s.league.map(t => t.id)) : buildFixtures(s.league, mulberry((s.seed ^ 0xCA1E0) >>> 0))
       s.round = 0
       s.scorers = []; s.assists = []
       s.lastResults = []
@@ -10427,7 +11181,7 @@ export type EmoteEvent = { id: string; from: number; fromId?: number; kind: stri
 // `from` é o TIME (manager id) — numa dupla os DOIS compartilham o mesmo `from`,
 // então "é minha?" usa `uid` (pessoa de verdade) quando disponível, com `from`
 // como fallback pra mensagem antiga guardada no aparelho sem uid.
-export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number } // from=cadeira (compat); fromId=CRACHÁ
+export type ChatMsg = { id: string; from: number; fromId?: number; uid?: string; name: string; text: string; ts: number; re?: { name: string; text: string } } // from=cadeira (compat); fromId=CRACHÁ
 
 // ─── contexto + provider (host-autoritativo, espelha o modo Draft) ───
 const Ctx = createContext<{
@@ -10438,7 +11192,7 @@ const Ctx = createContext<{
   emotes: EmoteEvent[]
   chat: ChatMsg[]              // 💬 mensagens da sala (efêmeras)
   chatUnread: number           // 💬 quantas ESTE usuário ainda não viu
-  sendChat: (text: string) => void
+  sendChat: (text: string, re?: { name: string; text: string }) => void
   chatOpen: boolean            // 💬 gaveta aberta?
   setChatOpen: (open: boolean) => void
   hostStale: boolean // convidado sem notícias do host há muito tempo (host caiu?)
@@ -10842,6 +11596,96 @@ export function compactaHistoricoIntl(save: EscState): EscState {
   })
   return { ...save, careerInternationalHistory: novo, careerIntlBotTotals: totais }
 }
+// 🧬 A MESMA CARTA EM DOIS LUGARES (13/10, Marcelo do Renaton): se um HUMANO tem a carta, qualquer
+// cópia dela em bot, ficha de fundo, baralho do leilão, mesa do pregão ou monte sai. (Bot × bot fica com
+// o `healCpuSquads` de sempre — o mercado dos 80 copia ficha de propósito durante o pregão.) Nunca mexe
+// no elenco de gente e nunca põe ninguém no lugar (o bot repõe na próxima virada).
+function curaCartaRepetida(save: EscState): boolean {
+  if (!Array.isArray(save.managers)) return false
+  const real = (c: Card) => !c.fake && !isFillerClub(c.club)
+  const donoGente = new Set<string>()
+  let mexeu = false
+  // gente = humano + os clubes do PRÓPRIO usuário (2º clube dormindo / Multiclubes) — esses nunca perdem carta aqui
+  const deGente = (m: Manager) => m.isHuman || !!m.dormindo || !!m.mine
+  for (const m of save.managers) if (deGente(m)) for (const c of m.squad as Card[]) if (real(c)) donoGente.add(ident(c))
+  for (const m of save.managers) {
+    if (deGente(m)) continue
+    const antes = m.squad.length
+    m.squad = (m.squad as WonCard[]).filter(c => !real(c) || !donoGente.has(ident(c)))
+    if (m.squad.length !== antes) mexeu = true
+  }
+  if (save.cpuSquads) {
+    const sq: Record<string, Card[]> = {}
+    for (const [nome, cards] of Object.entries(save.cpuSquads)) {
+      const kept = (cards as Card[]).filter(c => !real(c) || !donoGente.has(ident(c)))
+      if (kept.length !== cards.length) mexeu = true
+      sq[nome] = kept
+    }
+    if (mexeu) save.cpuSquads = sq
+  }
+  // no leilão: carta que já tem dono não pode estar à venda (a listada de verdade saiu do elenco de quem listou)
+  const fora = (c: Card) => real(c) && donoGente.has(ident(c))
+  if (save.deck) for (const pos of SECTORS) { const d = save.deck[pos]; if (Array.isArray(d) && d.some(fora)) { save.deck = { ...save.deck, [pos]: d.filter(c => !fora(c)) }; mexeu = true } }
+  if (Array.isArray(save.currentCards) && save.currentCards.some(fora)) { save.currentCards = save.currentCards.filter(c => !fora(c)); mexeu = true }
+  if (Array.isArray(save.monte) && save.monte.some(fora)) { save.monte = save.monte.filter(c => !fora(c)); mexeu = true }
+  return mexeu
+}
+/** 🪪 DUAS CARTAS COM O MESMO ID (15/10, Fabulous EC: Pelé e Garrincha os dois `sond-ATA-25`).
+ *  A tela desenha o elenco pelo id, então duas cartas DIFERENTES com o mesmo id viravam
+ *  cópias da mesma na lista (5 Garrinchas). Aqui a 2ª carta de cada id ganha um id novo —
+ *  só o id muda: nome, clube, ano, contrato e valor ficam como estão. Carta IGUAL (mesma
+ *  identidade) com o mesmo id não é tocada: isso é assunto do `curaCartaRepetida`. */
+function curaIdRepetido(save: EscState): boolean {
+  if (!Array.isArray(save.managers)) return false
+  const todos = new Set<string>()
+  for (const m of save.managers) for (const c of m.squad ?? []) todos.add(String(c.id))
+  let mexeu = false
+  const trocas: [number, string, string][] = [] // [mgrId, id velho, id novo]
+  // só os clubes de GENTE (humano, 2º clube, Multiclubes): é onde a tela embaralha. Id de bot
+  // fica quieto — outras partes do save (sondagem pendente, listagem) apontam pra ele.
+  for (const m of save.managers) {
+    if (!Array.isArray(m.squad) || !(m.isHuman || m.dormindo || m.mine)) continue
+    const visto = new Map<string, string>() // id → ident da 1ª carta que o usou NESTE elenco
+    let novo: WonCard[] | null = null
+    m.squad.forEach((c, i) => {
+      const id = String(c.id), quem = ident(c)
+      const dono = visto.get(id)
+      if (dono == null) { visto.set(id, quem); return }
+      if (dono === quem) return
+      let nid = `${id}~2`
+      for (let n = 3; todos.has(nid); n++) nid = `${id}~${n}`
+      todos.add(nid); visto.set(nid, quem)
+      novo ??= [...m.squad]
+      novo[i] = { ...c, id: nid }
+      trocas.push([m.id, id, nid])
+    })
+    if (novo) { m.squad = novo; mexeu = true }
+  }
+  // 📋 a escalação guardou as DUAS cartas com o id velho (no Fabulous: Pelé e Garrincha lado a
+  // lado no ataque). A 1ª ocorrência continua sendo da 1ª carta; a 2ª passa pro id novo.
+  const segunda = (ids: string[] | undefined, velho: string, nid: string): string[] | undefined => {
+    if (!Array.isArray(ids)) return ids
+    const i1 = ids.indexOf(velho); if (i1 < 0) return ids
+    const i2 = ids.indexOf(velho, i1 + 1); if (i2 < 0) return ids
+    const out = [...ids]; out[i2] = nid; return out
+  }
+  for (const [mid, velho, nid] of trocas) {
+    const lu = save.careerLineup?.[mid]
+    if (lu) {
+      const n: Record<number, string[]> = {}
+      for (const [r, ids] of Object.entries(lu)) n[Number(r)] = segunda(ids, velho, nid) ?? ids
+      save.careerLineup = { ...save.careerLineup, [mid]: n }
+    }
+    const ht = save.careerHalftime?.[mid]
+    if (ht) {
+      const n: typeof ht = {}
+      for (const [r, h] of Object.entries(ht)) n[Number(r)] = { ...h, xi2: segunda(h.xi2, velho, nid) ?? h.xi2 }
+      save.careerHalftime = { ...save.careerHalftime, [mid]: n }
+    }
+    if (save.copaXi?.[mid]) save.copaXi = { ...save.copaXi, [mid]: segunda(save.copaXi[mid], velho, nid) ?? save.copaXi[mid] }
+  }
+  return mexeu
+}
 function sincronizaNiveis(save: EscState): EscState {
   save = compactaHistoricoIntl(save)
   let mexeu = 0
@@ -10862,6 +11706,11 @@ function sincronizaNiveis(save: EscState): EscState {
   // 💰 E o livro de preços vai junto (`marketValues` é `nome|clube`): sem isso o
   //    valor de mercado que o clube dele construiu ficaria órfão na chave velha.
   const mudouDeClube: [string, string][] = []
+  const renomeadas: [string, string, string][] = [] // [velho, novo, clube]
+  const renomeDe = (nome: string, clube: string, ano: number): string | null => {
+    for (const [velho, novo, cl, an] of CARTAS_RENOMEADAS) if (nome === velho && ano === an && clubCanon(clube) === clubCanon(cl)) return novo
+    return null
+  }
   // 🏀 save de basquete lê a ficha do baralho NBA; o de futebol nunca passa por lá.
   const nba = save.sport === 'basquete'
   const bioNba = (f: FichaNba) => (getLang() === 'en' ? f.bioEn : f.bioPt)
@@ -10871,6 +11720,12 @@ function sincronizaNiveis(save: EscState): EscState {
     vistos.add(v as object)
     if (Array.isArray(v)) { for (const item of v) anda(item, prof + 1); return }
     const o = v as Record<string, unknown>
+    // 🏷️ CARTA QUE TROCOU DE NOME (13/10, Marcelo do Renaton): qualquer coisa com nome+clube+ano
+    // (carta, linha de artilharia…) passa pro nome novo — senão o jogo acha que são duas pessoas.
+    if (typeof o.name === 'string' && typeof o.club === 'string' && typeof o.year === 'number' && !o.fake) {
+      const rn = renomeDe(o.name, o.club, o.year)
+      if (rn) { renomeadas.push([o.name, rn, o.club]); o.name = rn; mexeu++ }
+    }
     if (typeof o.name === 'string' && typeof o.club === 'string' && typeof o.year === 'number' && typeof o.fame === 'number') {
       // 🎭 INCÓGNITO nunca entra: nome gerado, não existe no baralho.
       if (!o.fake) {
@@ -10918,6 +11773,34 @@ function sincronizaNiveis(save: EscState): EscState {
     }
     save.marketValues = mv
   }
+  // 🏷️ as chaves por carta acompanham o nome novo (livro de preços, "no seu clube", artilharia de
+  // todos os tempos) — e, onde as duas existirem, junta (fica o maior preço / soma o histórico)
+  if (renomeadas.length) {
+    const vistosR = new Set<string>()
+    for (const [velho, novo] of renomeadas) {
+      if (vistosR.has(velho)) continue
+      vistosR.add(velho)
+      const troca = <T,>(rec: Record<string, T> | undefined, junta: (a: T, b: T) => T): Record<string, T> | undefined => {
+        if (!rec) return rec
+        let out: Record<string, T> | null = null
+        for (const k of Object.keys(rec)) {
+          if (!k.startsWith(`${velho}|`)) continue
+          out ??= { ...rec }
+          const nk = `${novo}|${k.slice(velho.length + 1)}`
+          out[nk] = out[nk] != null ? junta(out[nk], rec[k]) : rec[k]
+          delete out[k]
+        }
+        return out ?? rec
+      }
+      save.marketValues = troca(save.marketValues, (a, b) => Math.max(a, b))
+      save.condicaoCarry = troca(save.condicaoCarry, (a, b) => ({ g: Math.min(a.g, b.g), j: a.j + b.j, gl: (a.gl ?? 0) + (b.gl ?? 0), as: (a.as ?? 0) + (b.as ?? 0) }))
+      save.botCarry = troca(save.botCarry, (a, b) => Math.min(a, b))
+      save.careerScorersAll = troca(save.careerScorersAll, (a, b) => ({ ...a, goals: a.goals + b.goals }))
+      save.careerAssistsAll = troca(save.careerAssistsAll, (a, b) => ({ ...a, assists: a.assists + b.assists }))
+    }
+  }
+  if (curaCartaRepetida(save)) mexeu++
+  if (curaIdRepetido(save)) mexeu++
   // 🧢💰 CURA DO PREÇO DO TÉCNICO (01/10, save do Renato): valor acima do teto da
   // categoria (4× o piso) desce pro teto. Pega o salário (pago ÷ 10), a multa de
   // demissão e o piso do próximo pregão de uma vez, em todo save que abre.
@@ -11285,7 +12168,11 @@ export async function savePyramidCloud(state: EscState, force = false): Promise<
     const { data: up } = await supabase.from('esc_pyramid_saves').upsert({ user_id: uid, save: payload, updated_at: nowIso }).select('updated_at').maybeSingle()
     // só marca o carimbo novo quando o LOCAL já tinha tudo: se a gente juntou carreira de outro
     // aparelho aqui, o local ainda não tem — o carimbo fica velho e a próxima ida à home baixa e junta.
-    if (localCobreNuvem) marcaCloudAt(uid, up?.updated_at as string | undefined)
+    // 📱 e só se a cópia do APARELHO estiver em dia com o que subiu: aparelho cheio (cópia velha) não marca,
+    //    e a próxima ida à home baixa a da nuvem (13/10, caso do Pé de Breque)
+    const aparelhoEmDia = (() => { if (!isCareerSave(state)) return true; try { const r = localStorage.getItem('esc-solo-career'); const l = r ? JSON.parse(r) as EscState : null; return !!l && l.seed === state.seed && (l.seasonNo ?? 0) >= (state.seasonNo ?? 0) } catch { return false } })()
+    if (localCobreNuvem && aparelhoEmDia) marcaCloudAt(uid, up?.updated_at as string | undefined)
+    if (isCareerSave(state) && !aparelhoEmDia) carreiraEmMemoria = { ...state }
     // 💾 lembra QUANDO e EM QUE PONTO esta carreira subiu (o "salvo na nuvem há X min" da Central)
     if (isCareerSave(state)) anotaSubidaNuvem(state)
     return 'nuvem'
@@ -11338,7 +12225,7 @@ export async function syncCareersWithCloud(): Promise<boolean> {
     // 💸 pergunta só o carimbo: nuvem igual à que este aparelho já juntou = nada a baixar
     const carimbo = await carimboDaNuvem(uid)
     if (!carimbo) return false // sem save na nuvem (ou sem resposta): fica o do aparelho
-    if (localCareers.length && carimbo === cloudAtConhecido(uid)) return false
+    if (localCareers.length && carimbo === cloudAtConhecido(uid) && !(await nuvemNaFrente(localCareers))) return false
     const cloud = await loadPyramidCloud()
     if (!cloud) return false
     const all = mergeCareers(localCareers, cloud.careers)
@@ -11351,12 +12238,48 @@ export async function syncCareersWithCloud(): Promise<boolean> {
       localStorage.setItem(CAREER_ARCHIVE_KEY, JSON.stringify(rest.slice(0, MAX_CAREER_SLOTS)))
       gravou = true
     } catch { /* cota cheia: não marca o carimbo, e a próxima vez tenta juntar de novo */ }
+    // 📱 aparelho CHEIO (13/10, caso do Pé de Breque: "volto e estou na 189 de novo"): a versão certa fica
+    // na MEMÓRIA e é ela que o "Continuar" abre — nunca a cópia velha que sobrou no aparelho.
+    carreiraEmMemoria = gravou ? null : active.save // (o aviso de aparelho cheio só sai DENTRO da carreira, pelo autosave)
     // o local agora tem tudo o que a nuvem tem → guarda o carimbo. NÃO sobe de volta: a nuvem
     // só recebe no "Sair e salvar carreira" (regra do Diego, 04/10).
     if (gravou) marcaCloudAt(uid, cloud.iso)
     anotaSeedsDaNuvem(uid, cloud.careers)
     return true
   } catch { return false }
+}
+// 📱☁️ A CARREIRA SEGUE A CONTA, EM QUALQUER APARELHO (13/10). Diego: *"ele tem que usar o save onde ele
+// quiser, seja PC, Chrome, celular"*. O furo: o carimbo diz "este aparelho já juntou a nuvem" — mas se o
+// aparelho estava CHEIO, a cópia dele não foi gravada e ficou VELHA (temporada 189 com a nuvem na 193).
+// Agora, mesmo com o carimbo igual, o jogo pergunta à nuvem SÓ o resumo (seed + temporada de cada carreira,
+// uns bytes — `esc_pyramid_progresso`) e, se ela estiver na frente de qualquer carreira do aparelho, baixa e junta.
+async function nuvemNaFrente(locais: CareerSlot[]): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('esc_pyramid_progresso')
+    if (error || !Array.isArray(data)) return false
+    const local = new Map(locais.map(c => [(c.save as EscState).seed, (c.save as EscState).seasonNo ?? 0]))
+    return (data as { seed?: number; temp?: number }[]).some(r => r.seed != null && (local.get(r.seed) ?? -1) < (r.temp ?? 0))
+  } catch { return false }
+}
+// a carreira mais nova que NÃO coube no aparelho (só nesta aba)
+let carreiraEmMemoria: EscState | null = null
+/** a carreira ativa pra abrir: a do aparelho, ou a da memória se ela estiver MAIS adiantada (aparelho cheio) */
+export function carreiraAtivaPraAbrir(): EscState | null {
+  let local: EscState | null = null
+  try { const r = localStorage.getItem('esc-solo-career'); local = r ? JSON.parse(r) as EscState : null } catch { local = null }
+  const mem = carreiraEmMemoria
+  if (mem && (!local || local.seed !== mem.seed || (mem.seasonNo ?? 0) >= (local.seasonNo ?? 0))) return mem
+  return local
+}
+// 📱 AVISO DE APARELHO CHEIO: o salvamento automático no aparelho falhou. A carreira continua na nuvem até o
+// último "Sair e salvar"; o aviso só pede pra salvar antes de fechar. Some sozinho quando o aparelho volta a gravar.
+let semEspaco = false
+const semEspacoOuvintes = new Set<() => void>()
+export function avisaSemEspaco(v: boolean) { if (semEspaco === v) return; semEspaco = v; semEspacoOuvintes.forEach(f => { try { f() } catch { /* ignora */ } }) }
+export function useSemEspaco(): boolean {
+  const [, set] = useState(0)
+  useEffect(() => { const f = () => set(x => x + 1); semEspacoOuvintes.add(f); return () => { semEspacoOuvintes.delete(f) } }, [])
+  return semEspaco
 }
 export async function deletePyramidCloud() {
   try { const { data } = await supabase.auth.getUser(); if (data?.user) await supabase.from('esc_pyramid_saves').delete().eq('user_id', data.user.id) } catch { /* ignora */ }
@@ -11530,7 +12453,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     setChat(prev => prev.some(x => x.id === m.id) ? prev : [...prev.slice(-60), m])
     if (!mine && !chatOpenRef.current) setChatUnread(u => Math.min(99, u + 1)) // não vi ainda → +1 (só as dos outros)
   }, [])
-  const sendChat = useCallback((text: string) => {
+  const sendChat = useCallback((text: string, re?: { name: string; text: string }) => {
     const t = text.trim().slice(0, 160)
     if (!t) return
     const st = stateRef.current
@@ -11545,7 +12468,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const meuNome = d?.partnerUid
       ? (st.youUid === d.ownerUid ? d.ownerName : st.youUid === d.partnerUid ? d.partnerName : undefined)
       : undefined
-    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, fromId: me?.id, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now() }
+    const m: ChatMsg = { id: Math.random().toString(36).slice(2), from: st.youIdx, fromId: me?.id, uid: st.youUid, name: (meuNome || me?.teamName || me?.name || 'Você'), text: t, ts: Date.now(), ...(re ? { re } : {}) } // ↩ resposta (13/10)
     addChat(m, true) // aparece pra mim na hora (canal usa self:false)
     channelRef.current?.send({ type: 'broadcast', event: 'chat', payload: m })
   }, [addChat])
@@ -11752,6 +12675,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
       const rid = stateRef.current.roomId
       if (stateRef.current.hostInbox && rid) {
         if (!inboxRef.current || inboxRef.current.sala !== rid) inboxRef.current = { sala: rid, ch: supabase.channel(`escalacao-in:${rid}`) }
+        medeEnviada('caixa-dono', rid, 'action', action) // 📏
         inboxRef.current.ch.httpSend('action', action).catch(() => { channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action }) })
       } else channelRef.current?.send({ type: 'broadcast', event: 'action', payload: action })
       // ⏳ marca "mandei um recado e ainda não veio estado": é o que deixa o vigia pedir o
@@ -11827,7 +12751,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // canal realtime quando online
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.roomId) return
-    const ch = supabase.channel(`escalacao:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } })
+    const ch = instrumenta(supabase.channel(`escalacao:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } }), 'sala', state.roomId, true) // 📏 conta tudo que passa no canal da sala
+    medidorPapel(!!state.isHost)
 
     if (state.isHost) {
       ch.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
@@ -11971,7 +12896,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // 🧹 `removeChannel` (e não só `unsubscribe`): tira o canal do registro do
     // Supabase também. Sem isso o canal velho fica guardado com o MESMO nome, e o
     // canal novo nasce brigando com o fantasma do antigo.
-    return () => { repergunta.forEach(clearTimeout); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); try { supabase.removeChannel(ch) } catch { ch.unsubscribe() } channelRef.current = null }
+    return () => { void medidorFlush(); repergunta.forEach(clearTimeout); if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVis); try { supabase.removeChannel(ch) } catch { ch.unsubscribe() } channelRef.current = null }
   }, [state.roomId, state.onlineMode, state.isHost, reconexao]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // host retransmite estado (sanitizado: envelopes pendentes não vazam)
@@ -12010,7 +12935,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
   // direto pra cá, e só o dono escuta — uma entrega por lance em vez de uma por pessoa.
   useEffect(() => {
     if (state.onlineMode !== 'online' || !state.isHost || !state.roomId || !state.hostInbox) return
-    const inbox = supabase.channel(`escalacao-in:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } })
+    const inbox = instrumenta(supabase.channel(`escalacao-in:${state.roomId}`, { config: { broadcast: { self: false, ack: false } } }), 'caixa-dono', state.roomId) // 📏
     inbox.on('broadcast', { event: 'action' }, ({ payload }: { payload: Action }) => rawDispatch(payload))
     inbox.subscribe()
     return () => { try { supabase.removeChannel(inbox) } catch { inbox.unsubscribe() } }
@@ -12291,7 +13216,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const presidencySig = sig + assinaturaPresidencia(state)
     if (presidencySig === soloSigRef.current) return
     soloSigRef.current = presidencySig
-    try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())) } catch { /* cota cheia — ignora */ }
+    // 📱 cota cheia: antes era ignorado calado (e o jogo abria a cópia velha depois). Agora avisa (13/10).
+    try { localStorage.setItem('esc-solo-career', comLacre(state)); localStorage.setItem('esc-solo-career-at', String(Date.now())); avisaSemEspaco(false) } catch { avisaSemEspaco(true) }
     // ☁️ a NUVEM não recebe daqui: só no "Sair e salvar carreira" (regra do Diego, 04/10 — ver `savePyramidCloud`)
   }, [state])
 

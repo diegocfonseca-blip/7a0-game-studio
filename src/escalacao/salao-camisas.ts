@@ -71,6 +71,8 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Gaviões SCCP": "gavioes-camisa-v1.webp", // 🦅⚫⚪ Gaviões SCCP (kauealves584, 02/10)
   "Arrogantchi FC": "arrogantchi-camisa-v1.webp", // 😜🔵⚫ Arrogantchi FC (heitormonaco98, 08/10)
   "Inter Vale FC": "intervale-camisa-v1.webp", // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79, 12/10)
+  "ComVerissimo FC": "comverissimo-camisa-v1.webp", // 🟢⚪ ComVerissimo FC (cesar.verissimo27, 15/10)
+  "Labubu FC": "labubu-camisa-v1.webp", // 🐰⚪ Labubu FC (caelborba, 14/10)
   "Rossini Money": "rossini-camisa-v1.webp", // 💴🔴⚫ Rossini Money (luizeduardorossini0013, 12/10)
   "Le Prince FC": "leprince-camisa-v1.webp", // 🐓👑 Le Prince FC (henriquejunger07, 08/10)
   "Mengão Malvadão": "mengao-camisa-v1.webp", // 🦅🔴⚫ Mengão Malvadão (atilasoaresjr21, 06/10)
@@ -102,7 +104,6 @@ export const CAMISAS_SALAO: Record<string, string> = {
 // Janela de exibição das camisas em quatro artes antigas que também têm shorts.
 // Mantém o arquivo original e não mostra a parte inferior do conjunto.
 export const RECORTE_CAMISA: Record<string, [number, number, number]> = {
-  "Leão da Estradinha": [332, 620, 416],
   "Papão United Madrid": [175, 321, 219],
   // 🦇 Neymarzetti saiu daqui em 16/09: a arte NOVA é SÓ A CAMISA (547x700). A velha
   // era o uniforme inteiro (343x620, com calção) e por isso precisava de janela — com

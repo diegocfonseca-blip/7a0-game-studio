@@ -1,5 +1,5 @@
-// 💳 trava dos PLANOS V2 (08/10): Gratuito · ⭐ Craque completo R$ 12,90/mês · 🖋 Batismo Lenda R$ 69,90 ·
-// 🖋✨ Batismo Plus R$ 79,99. Confere as regras puras (planos-regras.ts), que a tela e o banco seguem,
+// 💳 trava dos PLANOS V2 (08/10): Gratuito · ⭐ Craque completo R$ 9,90/mês (14/10; era 12,90) · 🖋 Batismo Lenda R$ 69,90 ·
+// 🖋✨ Batismo Plus R$ 89,90. Confere as regras puras (planos-regras.ts), que a tela e o banco seguem,
 // e que a vitrine mostra os 4 planos na ordem certa com os textos que o Diego pediu.
 // O lado do BANCO tem o teste dele: docs/sql/testa-planos-v2.sql (20 cenários, desfeito no fim).
 //   npm run planos
@@ -14,8 +14,8 @@ try {
   const D = o => R.lerDireitos({ ...base, ...o })
 
   // preços
-  assert.equal(R.PRECOS.craqueMensal, 12.9); assert.equal(R.PRECOS.batismoLenda, 69.9); assert.equal(R.PRECOS.batismoPlus, 79.99)
-  assert.equal(R.precoTxt(79.99), 'R$ 79,99'); assert.equal(R.precoTxt(12.9, true), 'R$ 12.90')
+  assert.equal(R.PRECOS.craqueMensal, 9.9); assert.equal(R.PRECOS.batismoLenda, 79.9); assert.equal(R.PRECOS.batismoPlus, 89.9)
+  assert.equal(R.precoTxt(89.9), 'R$ 89,90'); assert.equal(R.precoTxt(9.9, true), 'R$ 9.90')
 
   // gratuito
   const free = D({})
@@ -84,12 +84,30 @@ try {
 
   // 🖼️ a vitrine: 4 planos, nesta ordem, com os textos do Diego
   const vit = readFileSync('src/escalacao/support-plans-v2.tsx', 'utf8')
-  const ordem = ['support-gratis', 'support-craque', 'support-batismo', 'support-plus'].map(id => vit.indexOf(`id="${id}"`))
-  assert.ok(ordem.every(i => i > 0) && ordem.every((v, i) => i === 0 || v > ordem[i - 1]), 'ordem: Gratuito, Craque, Batismo Lenda, Batismo Plus')
-  assert.ok(vit.includes('Tudo do Craque, para sempre, sem mensalidade + seu clube personalizado.'), 'texto do Batismo Lenda')
-  assert.ok(vit.includes('Tudo do Batismo Lenda + entrada de gala única e personalizada + canto de torcida na Carreira.'), 'texto do Plus')
-  for (const p of ['R$ 12,90', 'R$ 69,90', 'R$ 79,99', 'R$ 0']) assert.ok(vit.includes(`"${p}"`), `preço à vista: ${p}`)
-  for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90', 'R$ 2,90/MÊS', 'R$ 4,90/MÊS', 'R$ 9,90']) assert.ok(!vit.includes(velho), `oferta velha fora da vitrine: ${velho}`)
+  // os dois batismos moram em `CartoesBatismo` (13/10), que a vitrine chama DEPOIS do Sócio — e a pública também usa
+  const ordem = ['support-gratis', 'support-craque', 'CartoesBatismo batismoPlano'].map(id => id.startsWith('Cartoes') ? vit.indexOf(`<${id}`) : vit.indexOf(`id="${id}"`))
+  assert.ok(ordem.every(i => i > 0) && ordem.every((v, i) => i === 0 || v > ordem[i - 1]), 'ordem: Gratuito, Sócio, os dois Batismos')
+  assert.ok(vit.indexOf('id="support-batismo"') < vit.indexOf('id="support-plus"'), 'ordem: Batismo antes do Batismo Lenda')
+  assert.ok(vit.includes("QUERO O BATISMO · ${reais(PRECOS_UNICO.batismo)}") && vit.includes("QUERO SER FUNDADOR · ${reais(PRECOS_UNICO.fundador)}") && vit.includes('<UmaVezSo />'), 'nomes: Batismo e Fundador (14/10)')
+  assert.ok(readFileSync('src/escalacao/support-plans.tsx', 'utf8').includes('<CartoesBatismo onNaming={p.onNaming}'), 'a vitrine pública usa os mesmos cartões')
+  for (const p of ['R$ 9,90', 'R$ 0']) assert.ok(vit.includes(`"${p}"`), `preço à vista: ${p}`)
+  // 💳 14/10 (Diego): planos de UMA VEZ SÓ na vitrine pública — 29,90 · 49,90 · 79,90 · 99,90, subida = só a diferença
+  assert.deepEqual({ ...R.PRECOS_UNICO }, { craque: 29.9, lenda: 49.9, batismo: 79.9, fundador: 99.9 })
+  // subir = diferença + R$ 5 (Diego 14/10)
+  assert.equal(R.precoSubida('lenda', 'craque'), 25)
+  assert.equal(R.precoSubida('batismo', 'craque'), 55)
+  assert.equal(R.precoSubida('batismo', 'lenda'), 35)
+  assert.equal(R.precoSubida('fundador', 'batismo'), 25)
+  assert.equal(R.precoSubida('craque', null), 29.9, 'sem plano paga o preço cheio, sem taxa')
+  assert.equal(R.precoSubida('craque', 'fundador'), 0, 'descer de plano nunca vira crédito')
+  assert.equal(R.planoAtual({ batismoPlano: 'plus' }, 'ouro'), 'fundador')
+  assert.equal(R.planoAtual({ batismoPlano: 'antigo' }, 'ouro'), 'batismo')
+  assert.equal(R.planoAtual(null, 'ouro'), 'lenda')
+  assert.equal(R.planoAtual(null, 'prata'), 'craque')
+  assert.equal(R.planoAtual(null, 'bege'), null)
+  const pub = readFileSync('src/escalacao/support-plans.tsx', 'utf8')
+  assert.ok(!pub.includes('R$ 4,90/mês') && !pub.includes('R$ 2,90/mês'), 'o Sócio (mensal) saiu da vitrine pública')
+  for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90', 'R$ 2,90/MÊS', 'R$ 4,90/MÊS']) assert.ok(!vit.includes(velho), `oferta velha fora da vitrine: ${velho}`)
   assert.ok(vit.includes('continua com TUDO'), 'aviso pra quem já comprou')
   const scr = readFileSync('src/escalacao/apoie-v2.tsx', 'utf8')
   for (const velho of ['R$ 19,90', 'R$ 39,90', 'R$ 59,90']) assert.ok(!scr.includes(velho), `sem oferta velha na tela nova: ${velho}`)

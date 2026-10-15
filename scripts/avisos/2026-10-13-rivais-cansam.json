@@ -1,0 +1,17 @@
+{
+  "data": "13 de outubro de 2026",
+  "titulo": "Rivais também cansam e se machucam",
+  "destaque": { "passos": [
+    { "emoji": "😓", "titulo": "Cansou", "sub": "rende menos" },
+    { "emoji": "🔁", "titulo": "Roda o time", "sub": "reserva entra" },
+    { "emoji": "🚑", "titulo": "Lesão", "sub": "fica de fora" }
+  ] },
+  "itens": [
+    { "tag": "novidade", "texto": "A **mesma regra de gás** do seu time agora vale pros bots e rivais: titular cansado rende menos e pode se machucar." },
+    { "tag": "novidade", "texto": "Quem tem banco **poupa os cansados**. Quem não tem joga com o time capenga." },
+    { "tag": "novidade", "texto": "Na **Central Legends** aparece quem está no departamento médico e se o seu **próximo adversário vem desfalcado**." }
+  ],
+  "rodape": "Vale no Modo Carreira, da Série C pra cima.",
+  "rodapeSub": "O cansaço deles vai aparecendo com as temporadas, igual ao do seu elenco.",
+  "saida": "scripts/posts/aviso-rivais-cansam.png"
+}

@@ -12,7 +12,7 @@ import { CATALOG, CATALOG_EU, CATALOG_WORLD } from './data'
 export const PAIS: Record<string, string> = {
   // ── Baralho BR: SÓ os estrangeiros (o resto é Brasil por padrão) ──
   'Gatito Fernández': 'Paraguai', 'Arce': 'Paraguai', 'Junior Alonso': 'Paraguai',
-  'Gustavo Gómez': 'Paraguai', 'Gamarra': 'Paraguai', 'Galeano': 'Paraguai',
+  'Gustavo Gómez': 'Paraguai', 'Gamarra': 'Paraguai',
   'Sérgio Rochet': 'Uruguai', 'Piquerez': 'Uruguai', 'Arrascaeta': 'Uruguai',
   'Lugano': 'Uruguai', 'Loco Abreu': 'Uruguai', 'Suárez': 'Uruguai',
   'Sorín': 'Argentina', 'Bernabei': 'Argentina', 'Kannemann': 'Argentina',
@@ -486,7 +486,7 @@ export const PAIS: Record<string, string> = {
   //        SELEÇÃO ESPANHOLA, e aqui vale onde ele joga (regra do Diego).
   'Dean Huijsen': 'Espanha',
   // Laterais
-  'Nuno Mendes': 'Portugal', 'Grimaldo': 'Espanha', 'Dimarco': 'Itália',
+  'Nuno Mendes': 'Portugal', 'Vitinha': 'Portugal', 'João Neves': 'Portugal', 'Grimaldo': 'Espanha', 'Dimarco': 'Itália',
   'Dumfries': 'Holanda', 'Frimpong': 'Holanda', 'Pedro Porro': 'Espanha',
   'Aït-Nouri': 'Argélia', 'Vanderson': 'Brasil', 'Álvaro Carreras': 'Espanha',
   'Milos Kerkez': 'Hungria', // (Yan Couto já estava etiquetado mais acima)

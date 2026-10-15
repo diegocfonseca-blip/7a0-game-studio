@@ -98,7 +98,10 @@ FORA do bundle. Então, sem exceção:
    sente). Só não nascem mais. Antes de chegar perto de ~500 batismos,
    converter esses 16 em `.webp` e **tirar a lista de nomes do código pro
    banco** — é o último pedaço que ainda multiplica por jogador.
-7. **Regra permanente (17/08): todo batismo JÁ NASCE sócio + fundador.**
+7. 🔁 **MUDOU EM 14/10: o NÚMERO DE FUNDADOR agora é só do plano 🖋 FUNDADOR (R$ 99,90, o antigo "Batismo Lenda").**
+   Palavras do Diego: *"melhor deixar fundador só qm faz o fundador… mas qm já tem número de fundador deixe como está"*.
+   Batismo de R$ 79,90 leva tier ouro e o resto, mas **não** ganha linha em `esc_fundadores`/`FUNDADOR_N`. Quem já tem
+   número fica com ele pra sempre. (Texto antigo, só pra história:) **Regra permanente (17/08): todo batismo JÁ NASCE sócio + fundador.**
    Sempre que alguém vira dono de um clube batizado, ele automaticamente leva
    tier ouro (👑 Lenda) + o próximo número de `FUNDADOR_N` em `apoio.tsx` —
    não precisa o Diego pedir de novo caso a caso.
@@ -145,7 +148,7 @@ FORA do bundle. Então, sem exceção:
      via `MANTO_TRI`). Sempre os MESMOS lugares no código: `LOGOS_PRONTAS`
      (com as variações do nome + o nome velho) · `MASCOTES` + `MASCOTE_NOME` +
      `CARIMBO_GOL` · `data.ts` (`OLD_NAME` + a divisão) · `apoio.tsx`
-     (tier `'ouro'` **e** `FUNDADOR_N`) · `manto.ts` (`MANTO_CONTAS`) ·
+     (tier `'ouro'`; `FUNDADOR_N` **só se for o plano 🖋 Fundador** — desde 14/10 Batismo de 79,90 não ganha número e entra em `SEM_FUNDADOR` do `checa-batismos.mjs`) · `manto.ts` (`MANTO_CONTAS`) ·
      `batismos.ts` (**a linha do clube E o campo `manto` com as MESMAS 2 cores** —
      desde 18/09; `npm run batismos` reprova se as duas listas discordarem) ·
      `salao-camisas.ts` + o arquivo em `public/mantos-salao/` (a camisa da Loja do
@@ -310,6 +313,10 @@ Agora:
    Lote 40, recuperadas com `git checkout`). E a foto (`catalogo-snapshot.json`,
    formato `DECK|nome|clube|ano` → `{f: fame…}`) é a memória: nunca abrir pra
    escrever antes de ler.
+4b. 🏷️ **MUDOU O NOME DE UMA CARTA? ENTRA EM `CARTAS_RENOMEADAS` (data.ts)** (13/10). Nome é identidade: o save de
+   quem tinha a carta guarda o nome velho, e pro jogo viram DUAS pessoas — o catálogo soltou o "Marcelo" pra um bot
+   enquanto o Renaton tinha o "Marcelo Vieira" (a mesma carta em dois clubes). Com a linha lá, todo save que abre troca
+   o nome e tira a cópia repetida. Trava: `npm run renomeada`.
 5. **Regra permanente (21/08): MEXEU NO JOGADOR, TODO SAVE ATUALIZA.** Palavras
    do Diego: *"sempre que atualizarmos qualquer coisa de jogador deve atualizar,
    seja em carreira antiga, atual, ou em times dos bots — o nível, a categoria,
@@ -731,6 +738,26 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   planos). Banco sem resposta = sobe como sempre. **Nunca bloquear o save no APARELHO** (não custa nada e só espanta
   jogador) e **nunca apagar save de ninguém** sem ele pedir. Trava: `npm run nuvem-craque`.
 
+- **💳 PLANOS DE UMA VEZ SÓ, EM ESCADA (14/10).** Sócio (mensal) SAIU. ⭐ Craque 29,90 · 👑 Lenda 49,90 · 🖋 Batismo 79,90 ·
+  🖋 Fundador 99,90 (`PRECOS_UNICO`, `planos-regras.ts`). Cada degrau = tudo do anterior + o dele; subir = paga só a diferença
+  (`precoSubida`) **+ R$ 5** (`TAXA_SUBIDA`, 14/10: *"pagar pelo menos 5 reais a mais"*). **Escolher a cor saiu do Lenda** e NÃO é vendida na
+  Loja (*"não bote negócio de cor… pra não confundir"*). **🎁 Presente = só de PLANO**, liberado pelo Diego no #admin (`esc_presentes`). Craque tem o Modo Manual *"como sempre teve"*; **criar sala à vontade é do Lenda pra cima** (Craque novo = 1 por
+  dia, igual grátis; os 70 Craques de antes de 14/10 ficaram na foto `esc_craque_antigo` e seguem à vontade). **🎟️ Salas extras**: 3 por R$ 4,90
+  na Loja (`esc_salas_extras`, o gatilho gasta 1 quando a do dia acabou). **Gala única NÃO é vendida avulsa** (só no Fundador); avulso de
+  clube batizado = só o 📣 canto (R$ 10). **📣 O CANTO VALE NOS DOIS LUGARES** (14/10): Carreira (toca nos jogos) e online (toca junto com a entrada
+  de gala, se a pessoa tiver a gala) — o texto da Loja/planos tem que dizer os dois. Loja de avulsos
+  aprovada (*"adorei"*), ainda a fazer. Diego e quem ele dá plano também pagam o que não têm (*"eu com meu usuário também tenho
+  que pagar se quiser as coisas"*): a conta dele = Fundador, o K9 = Batismo.
+- **🛡️ PLANOS NOVOS NÃO MEXEM EM QUEM JÁ PAGA (13/10, regra permanente).** Palavras dele: *"quem já é craque ou lenda
+  poderá continuar criando salas e mantém cor do tier que já tá hoje… e tudo que eles têm hoje mesmo, sem mudança"*.
+  Sócio/Batismo/Batismo Lenda e os limites novos (1 sala por dia no grátis) valem só pra quem entrar depois.
+
+- **🧑‍💼 PRESIDENTE × ESCUDO (14/10, regra dele: "ok").** 🛡️ Escudo = o CLUBE (tabela, placar, gol, jogos, copas) · 🧑‍💼
+  presidente (o boneco do usuário) = a PESSOA (lista de técnicos da sala, chat, martelo de quem ganhou, pódio, Campeões de hoje/
+  ranking da semana, capa do O MARTELO, sala da presidência, Sala de Troféus, caixa do fim de temporada, convite internacional,
+  Central Legends, perfil). O usuário NÃO escolhe entre os dois. Mockup dos 12 lugares enviado (14/10); guarda-roupa por plano
+  (grátis · ⭐ Craque · 👑 Lenda) + roupa avulsa. Editor ainda em teste só na conta dele; a arte do ROSTO não está no repo.
+
 - **💾 FICHAS DE CARREIRA (05/10, regra permanente): grátis 1 · ⭐ Craque 2 · 👑 Lenda 4 · 🖋️ Batismo 4.** Antes era
   2 · 4 · 6 · 8. Palavras dele: *"não mexa nesses usuários que já fizeram saves… a partir de agora o grátis vai ter só um…
   se ele quiser outro, ele tem que excluir"*. Quem já tem mais que o limite fica com todas (grandfather em
@@ -759,6 +786,35 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   O selo é **reto, no formato dos botões do jogo** (canto arredondado, borda preta, sombra dura, 🔨 na frente). Ele recusou,
   na ordem: pílula (*"muito igual ao Brasileirinho"*), jornal O MARTELO (*"não gostei"*), selo torto (*"não gostei desses selos
   virados"*) e etiqueta com ponta/furinho (*"não entendi"*). Não inventar outro sem ele pedir.
+
+- **🏢➡️⚽ SAF VIRA 2º CLUBE, E VENDER É PRA DAR PREJUÍZO (13/10, aprovado).** SAF 2.000 → 10 temporadas → assumir o
+  comando 4.000 (2º clube só pra PAGANTE, qualquer plano). Lucro na venda de **no máximo +500**: SAF pela DIVISÃO (V 500 ·
+  D 1.000 · C 1.500 · B 2.000 · A 2.500); 2º clube pela COLEÇÃO DE TAÇAS ganhas com você (A · Copa do Brasil · Supercopa ·
+  Liberta · Champions · Mundial, cada uma UMA vez; 0 = 3.000, 6 = 6.500). *"Gosto mais do prejuízo porque ninguém mandou ele
+  comprar"*. Empréstimo vira principal ↔ 2º clube. Quem tem os dois separados ESCOLHE um e recebe o dinheiro do outro de
+  volta inteiro. Tudo em `docs/pendencias.md` (13/10) e no mockup `scripts/mockups/carreira-saf-completo.png`.
+  🟢 **LIBERADO PRA TODOS EM 13/10** (`SAF2_GERAL`/`ECON_BOTS_GERAL = true`). Duas regras dele na liberação: **o auxiliar NUNCA
+  dá lance no leilão** (*"quem manda é o usuário"* — não repropor) e **o ranking global conta só o clube principal**.
+
+- **🔁 RIVAL COM BANCO (13/10, liberado pra todos no mesmo dia).** Bots da SUA divisão: elenco de 22 (lance em QUALQUER
+  leilão da virada + completam com jogador sem clube, pagando; também no "mesmo time"), cansaço e lesão com a MESMA régua
+  do humano (só com o gás ligado, C+, e só de temporada nova em diante), patrocínio (= Master de 2 temp.) e prêmio pela
+  colocação. **O bot é ESPERTO** (*"ele pega se ele quiser… e vai melhorando aos poucos"*): verba pelo perfil, o melhor que
+  cabe na vaga, 1 melhora por temporada. Nunca incógnito. **E no leilão PENSA COMO GENTE** (13/10): teto de CADA bot =
+  categoria × economia × necessidade (bem melhor que o titular / parecido / reserva) × tempero × perfil, limitado pelo bolso; o
+  mínimo só filtra (não vale pra ele = não dá lance). Ordem das categorias nunca inverte. **Os valores da tabela não mudam**
+  (piso = salário/renovação de todo save) e o exagero do bot nunca sobe o piso. Motor em `bots-banco.ts`; trava `npm run bots-banco`.
+  🔁 **14/10 (Leão da Estradinha: "quase ninguém dá lance")**: com o banco de 22 o bot chegava sem vaga e sumia do leilão.
+  Agora elenco cheio ainda dá **1 lance de REFORÇO por setor**, só em carta bem melhor que o pior titular. O jogador que perde a
+  vaga é **LISTADO no próximo leilão** pelo bot (`marcaAVender`) — dispensar não dá dinheiro, vender dá (*"pra ele ter grana"*).
+
+- **👑 KINGS LEAGUE (15/10): sala online nova, com o nome "Kings League" e as regras da Kings League BRASIL.** Tudo em
+  `docs/conceito-kings-league.md`. Duas ordens dele que não se mexem: *"tem que ser muito explicativo"* (banner parando o
+  jogo 6–8s em cada regra) e *"mais demorado por partida… mais que todos"* (~3 min por partida). Duplas fora por enquanto.
+  🔨 **E o LEILÃO é o DE SEMPRE** (*"o leilão é sempre igual ao de sempre nosso"*): eu inventei um pregão próprio e ele cortou. Vale
+  pra QUALQUER modo novo: o pregão é o do jogo (envelope/revelação/monte); muda só formação, vagas ou baralho.
+  📺 **E A TEMPORADA TAMBÉM É A DE SEMPRE** (mesmo dia: *"está tudo deformado o placar… tudo é padrão do nosso jogo"*): modo novo
+  NUNCA ganha placar/tabela/tela própria — usa a `EscSeason` e põe a regra POR CIMA (`kings-liga.ts`). E shootout ≠ pênalti.
 
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque

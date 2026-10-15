@@ -1,0 +1,22 @@
+{
+  "data": "13 de outubro de 2026",
+  "titulo": "A SAF agora vira seu 2º clube",
+  "destaque": {
+    "passos": [
+      { "emoji": "🏢", "titulo": "Compra a SAF", "sub": "2.000 🪙 · Série D" },
+      { "emoji": "⏳", "titulo": "10 temporadas", "sub": "como dono dela" },
+      { "emoji": "⚽", "titulo": "Assume o comando", "sub": "4.000 🪙 · vira seu 2º clube" }
+    ],
+    "nome": "Modo Carreira",
+    "linha": "Clube › Estrutura · abaixo do estádio"
+  },
+  "itens": [
+    { "tag": "saf", "texto": "Compra a **SAF** e, depois de **10 temporadas**, assume o comando: ela vira o seu **2º clube jogável**, com os títulos que já tinha. Só pra apoiador (**Craque, Lenda ou Batismo**)." },
+    { "tag": "emprestimo", "texto": "**Novidade:** agora dá pra **emprestar e pegar jogador entre o seu clube principal e o seu 2º clube**. Na virada da temporada, vale 1 temporada, volta sozinho e cada clube paga metade do salário." },
+    { "tag": "novidade", "texto": "Troca de clube entre as rodadas, de graça. O clube que fica sem você é tocado pelo **auxiliar**, com o caixa dele." },
+    { "tag": "venda", "texto": "Comprar clube é risco: na venda, **lucro máximo de 500 🪙**. A SAF vale pela divisão; o 2º clube, pela **coleção de taças** que ganhou com você." }
+  ],
+  "rodape": "Bora montar o seu grupo de clubes?",
+  "rodapeSub": "Dúvida ou ideia? Manda no grupo Bugs | Sugestões aqui da comunidade.",
+  "saida": "scripts/posts/aviso-2026-10-13-saf-2o-clube.png"
+}

@@ -21,14 +21,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang'
 import { agoraSala } from './relogio'
-import { CompetitionStage, CompetitionMatch } from './online-match-visual'
+import { CompetitionStage, CompetitionMatch, AberturaCopa, ResumoFase, ArtilheiroCopaCard, type AberturaFase, type ArtilheiroLinha } from './online-match-visual'
+import { RESUMO_MS, respiroAntes } from './copa-passos' // 🎬 abertura da rodada + ✅❌ resumo da fase (13/10)
 import './online-match-visual.css'
 import { LiveScoreCard, PensShootout, pensRevealDelay, useApitoDeLargada, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
 import { ChatWidget } from './screens'
 import { startCrowd, stopCrowd } from './sound'
-import { Escudo } from './escudos'
+import { SeloClube } from './selo-clube' // 🛡️ 13/10: escudo OFICIAL do clube quando o jogo tem (os mesmos do Leilão de Clubes)
 import { CMModal, ConvocacaoScreen, type Entrant, type Formation } from './copa-mundo'
 import { CONVOCACAO_MS } from './store'
+import { NaoSai, useChamaNaVez, CartaoSuaVez, AvisoDupla } from './proxima-competicao'
+import { quemAgePorAssento, minhaDuplaNaCopa, duplaDoAssento } from './dupla-copa'
 import {
   COPAS_REGIONAIS, clubesDaCopa, poolDoClube, completaXIClube, xiPorChavesClube, xiDaMaquinaClube, forcaDoXI,
   piorClubeLivre, melhorClubeLivre, simulaRegional, tabelaDoLado, passosRegional, passoRegionalRodaBola, artilhariaRegional,
@@ -46,7 +49,8 @@ const nomeLado = (id: CopaRegionalId, l: 0 | 1) => { const s = COPAS_REGIONAIS[i
 // (*"tem q ter um banner avisando antes c 15s"*) · 45s pra escolher o clube, um de cada
 // vez (*"reduza o tempo p 45s"*) · 15s de banner · 90s de convocação, todo mundo junto
 // (a mesma constante do Leilão de Clubes).
-export const SEG_ESCOLHA = 45
+// · 13/10: 45 → 40s (Diego: *"baixe o tempo de escolha pra 40s também o do time"*)
+export const SEG_ESCOLHA = 40
 const SEG_AVISO = 15
 const SEG_BANNER = 15
 export const SEG_CONVOCA = Math.round(CONVOCACAO_MS / 1000)
@@ -62,7 +66,7 @@ export interface FichaRegional { seed: number; edicao: number; times: TimeRegion
 export interface LugarNaLiga { id: number; nome: string; humano: boolean }
 type Fase = 'aviso' | 'bandeira' | 'banner' | 'convocacao' | 'torneio'
 interface LinhaFase { edicao: number; seed: number; fase: Fase; vez_uid: string | null; ate: string | null; times: TimeRegional[] | null; campeao: string | null }
-interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: Pick | null }
+interface LinhaSala { user_id: string; player_index: number; manager_name: string; copa: Pick | null; dupla_partner_of?: string | null; dupla_categories?: Record<string, string> | null }
 
 const segundosAte = (ate?: string | null) => (ate ? Math.max(0, Math.ceil((new Date(ate).getTime() - agoraSala()) / 1000)) : 0)
 
@@ -144,10 +148,10 @@ function useRelogioRegional(roomId: string, edicao: number, seed: number, isHost
       const r = atual.current
       if (!isHost || !r) return
       if (r.running) { if (agora >= Date.parse(r.started_at) + r.duration_ms + r.extra_ms) void rpc('finish') }
-      else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + (r.step === 0 ? 500 : 1600)) void rpc('next')
+      else if (!r.manual && r.step < fim && agora >= Date.parse(r.updated_at) + respiroAntes(passoRegionalRodaBola(passosRegional(rodadas), r.step + 1), r.step, r.step + 1 >= passosRegional(rodadas).PRIMEIRO_KO)) void rpc('next') // 🎬 5s de abertura antes de rodar bola (+5s de resumo em fase do mata-mata)
     }, 250)
     return () => clearInterval(t)
-  }, [isHost, rpc, fim])
+  }, [isHost, rpc, fim, rodadas])
   if (semBanco) return undefined
   return { row, now, isHost, busy, command: rpc }
 }
@@ -165,7 +169,7 @@ function GradeDeClubes({ copa, pegos, marcado, podeMarcar, aoMarcar }: { copa: C
             <button key={c} disabled={!!dono || !podeMarcar} onClick={() => aoMarcar(c)}
               style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', border: `2.5px solid ${INK}`, borderRadius: 11, padding: '7px 8px', cursor: dono || !podeMarcar ? 'default' : 'pointer',
                 background: dono ? '#e7e1d0' : eu ? GOLD : '#fff', opacity: dono ? .7 : 1, boxShadow: dono ? 'none' : `2px 2px 0 0 ${INK}`, color: INK }}>
-              <Escudo nome={c} size={30} />
+              <SeloClube clube={c} size={30} />
               <span style={{ minWidth: 0 }}>
                 <span style={{ ...OSWALD, fontWeight: 900, fontSize: 13, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c}</span>
                 <span style={{ fontSize: 9.5, fontWeight: 800, color: dono ? '#B23B2E' : GREEN }}>{dono ? `🔒 ${dono}` : eu ? tr('✔️ marcado', '✔️ marked') : tr('livre', 'free')}</span>
@@ -250,7 +254,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   const ler = useCallback(async () => {
     try {
       const [{ data: pls, error: e1 }, { data: fs, error: e2 }] = await Promise.all([
-        supabase.from('room_players').select('user_id, player_index, manager_name, copa').eq('room_id', roomId),
+        supabase.from('room_players').select('user_id, player_index, manager_name, copa, dupla_partner_of, dupla_categories').eq('room_id', roomId),
         supabase.from('esc_copa_salas').select('edicao, seed, fase, vez_uid, ate, times, campeao').eq('room_id', roomId).eq('edicao', edicao).limit(1),
       ])
       if (e1 || e2 || !pls || !fs) return null
@@ -263,7 +267,11 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   }, [roomId, edicao])
   useEffect(() => { void ler(); const iv = setInterval(() => { void ler() }, 2000); return () => clearInterval(iv) }, [ler])
 
-  const uidDe = useMemo(() => new Map(linhas.map(l => [l.player_index, l.user_id])), [linhas])
+  // 🤝 assento → quem age por ele (na dupla, só UM escolhe e convoca — `dupla-copa.ts`, 15/10)
+  const uidDe = useMemo(() => quemAgePorAssento(linhas), [linhas])
+  const dupla = useMemo(() => minhaDuplaNaCopa(linhas, meuUid), [linhas, meuUid])
+  const euUid = dupla?.age ?? meuUid       // o "eu" da copa: na dupla, é quem convoca por ela
+  const soAssisto = !!dupla && dupla.age !== meuUid
   const nomeDe = useMemo(() => new Map(linhas.map(l => [l.user_id, semEmoji(l.manager_name)])), [linhas])
   const picks = useMemo(() => { const m = new Map<string, Pick>(); for (const l of linhas) if (temClube(l.copa)) m.set(l.user_id, l.copa); return m }, [linhas])
   // a FILA: só gente, só quem ficou entre os classificados da liga, na ordem da tabela
@@ -271,9 +279,14 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   const fila = useMemo(() => classificados.filter(c => c.humano && uidDe.has(c.id)).map((c, i) => ({ ...c, uid: uidDe.get(c.id)!, vez: i + 1 })), [classificados, uidDe])
   const pegos = useMemo(() => { const m = new Map<string, string>(); for (const f of fila) { const p = picks.get(f.uid); if (p) m.set(p.pais, f.nome) } return m }, [fila, picks])
   const seg = segundosAte(fase?.ate)
-  const minha = meuUid ? picks.get(meuUid) ?? null : null
-  const souAVez = fase?.fase === 'bandeira' && fase.vez_uid === meuUid && !minha
-  const fiqueiDeFora = !!meuUid && classificacao.some(c => c.humano && uidDe.get(c.id) === meuUid) && !fila.some(f => f.uid === meuUid)
+  const minha = euUid ? picks.get(euUid) ?? null : null
+  const souAVez = !soAssisto && fase?.fase === 'bandeira' && fase.vez_uid === meuUid && !minha
+  const fiqueiDeFora = !!euUid && classificacao.some(c => c.humano && uidDe.get(c.id) === euUid) && !fila.some(f => f.uid === euUid)
+  // 🔜 NÃO SAI + CHAMA NA VEZ (Diego 13/10) — só aviso, não mexe na fila nem no relógio
+  const minhaFila = fila.find(f => f.uid === euUid)
+  const antesDeMim = minhaFila ? fila.filter(f => f.vez < minhaFila.vez && !picks.get(f.uid)).length : 0
+  const mostraNaoSai = !!minhaFila && !minha && !souAVez && (!fase || fase.fase === 'aviso' || fase.fase === 'bandeira')
+  const chama = useChamaNaVez(soAssisto ? null : souAVez ? `vez-${fase?.edicao}` : fase?.fase === 'convocacao' && minha && !temTime(minha) ? `convoca-${fase?.edicao}` : null)
 
   // ─── 👑 só o DONO empurra a fase (a vez, o prazo, o castigo de quem dormiu) ───
   const passo = useCallback(async () => {
@@ -282,7 +295,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     if (!l?.fase) return
     const f = l.fase
     const pk = new Map<string, Pick>(); for (const x of l.linhas) if (temClube(x.copa)) pk.set(x.user_id, x.copa)
-    const uid = new Map(l.linhas.map(x => [x.player_index, x.user_id]))
+    const uid = quemAgePorAssento(l.linhas)
     const filaAgora = classificados.filter(c => c.humano).map(c => ({ id: c.id, uid: uid.get(c.id) })).filter((x): x is { id: number; uid: string } => !!x.uid)
     const venceu = f.ate ? agoraSala() >= new Date(f.ate).getTime() : true
     const grava = (o: Record<string, unknown>) => supabase.from('esc_copa_salas').update(o).eq('room_id', roomId).eq('edicao', f.edicao)
@@ -337,11 +350,11 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
     } finally { setComecando(false) }
   }
   async function gravaClube(clube: string) {
-    if (!meuUid) return
+    if (!meuUid || soAssisto) return
     try { await supabase.from('room_players').update({ copa: { pais: clube, form: '4-3-3', xiKeys: [] } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* a batida tenta de novo */ }
   }
   async function gravaTime(xiKeys: string[], form: Formation, parcial = false) {
-    if (!meuUid || !minha) return
+    if (!meuUid || !minha || soAssisto) return
     if (!parcial && xiKeys.length !== 11) return
     try { await supabase.from('room_players').update({ copa: { ...minha, form, xiKeys } }).eq('room_id', roomId).eq('user_id', meuUid); await ler() } catch { /* idem */ }
   }
@@ -366,31 +379,36 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
   const status = fase?.fase === 'aviso' ? `${tr('A escolha dos clubes começa em', 'Club picks start in')} ${seg}s`
     : fase?.fase === 'bandeira' ? (souAVez ? tr('É a sua vez de escolher o clube', 'Your turn to pick a club') : `${daVezNome} ${tr('está escolhendo o clube', 'is picking a club')} · ${seg}s`)
     : fase?.fase === 'banner' ? `${tr('A convocação abre em', 'Call-up opens in')} ${seg}s`
-    : fase?.fase === 'convocacao' ? (temTime(minha) ? tr('Seu time está convocado · esperando a turma', 'Your team is called up · waiting for the crew') : `${tr('Convoque os seus 11', 'Call up your 11')} · ${seg}s`)
+    : fase?.fase === 'convocacao' ? (temTime(minha) ? tr('Seu time está convocado · esperando a turma', 'Your team is called up · waiting for the crew') : soAssisto ? `${dupla!.nomeAge} ${tr('está convocando pela dupla', 'is calling up for your duo')} · ${seg}s` : `${tr('Convoque os seus 11', 'Call up your 11')} · ${seg}s`)
     : fase?.fase === 'torneio' ? tr('Competição em andamento', 'Competition in progress')
     : tr('Aguardando o dono abrir a copa', 'Waiting for the host to open the cup')
   const detalhe = en
     ? `The top ${vagas} of the league pick a club in table order (${SEG_ESCOLHA}s each) and call up their 11. The last ones sit this one out.`
     : `Os ${vagas} primeiros da liga escolhem um clube na ordem da tabela (${SEG_ESCOLHA}s cada) e convocam os 11. Os últimos ficam de fora.`
-  const removiveis = fila.filter(f => f.uid !== meuUid)
+  const removiveis = fila.filter(f => f.uid !== euUid)
   const [gerenciar, setGerenciar] = useState(false)
 
   return (
     <>
+      {/* na convocação a tela dos 11 já abre sozinha: lá só vibra/apita, sem cartão (não gasta toque do relógio) */}
+      {chama.aberto?.startsWith('vez') && <CartaoSuaVez titulo={tr('Sua vez de escolher!', 'Your turn to pick!')} texto={`${nomeCopa(copa)} · ${en ? `you have ${SEG_ESCOLHA}s to pick your club` : `você tem ${SEG_ESCOLHA}s pra pegar o clube`}`} botao={tr('Escolher meu clube', 'Pick my club')} aoFechar={chama.fechar} />}
       <CompetitionStage kind="copa8" title={tr('A LIGA TERMINOU · PRÓXIMA COMPETIÇÃO', 'THE LEAGUE IS OVER · NEXT COMPETITION')} phase={nomeCopa(copa)} detail={detalhe} status={status}>
         <div className="ll26-cup-entry">
+          {soAssisto && dupla && <AvisoDupla quem={dupla.nomeAge} />}
+          {mostraNaoSai && <NaoSai minhaVez={minhaFila!.vez} antes={antesDeMim} fase={fase?.fase} seg={seg} segPorVez={SEG_ESCOLHA} />}
           {fiqueiDeFora && <p className="ll27-portao-aviso">{tr(`😬 Você terminou a liga fora dos ${vagas} primeiros — fica de fora desta copa. Dá pra assistir daqui.`, `😬 You finished outside the top ${vagas} — you sit out this cup. You can watch from here.`)}</p>}
           {!!fila.length && fase?.fase !== 'torneio' && fase?.fase !== 'convocacao' && (
             <div className="ll27-fila">
               <h3>{tr('🥇 QUEM TERMINOU NA FRENTE ESCOLHE PRIMEIRO', '🥇 WHOEVER FINISHED HIGHER PICKS FIRST')}</h3>
               {fila.map(f => {
-                const p = picks.get(f.uid), eu = f.uid === meuUid
+                const p = picks.get(f.uid), eu = f.uid === euUid
+                const du = duplaDoAssento(linhas, f.id)
                 const daVez = fase?.fase === 'bandeira' && !p && fila.find(x => !picks.get(x.uid))?.uid === f.uid
                 return (
                   <div key={f.uid} className={`ll27-fila-linha${daVez ? ' vez' : ''}${eu ? ' eu' : ''}`}>
                     <span className="ll27-fila-n">{ordinal(f.vez)}</span>
-                    <span className="ll27-fila-nome">{f.nome}{eu ? tr(' (você)', ' (you)') : ''}</span>
-                    {p ? <span className="ll27-fila-pais"><Escudo nome={p.pais} size={22} /> {p.pais}{temTime(p) ? ' ✔️' : ''}</span>
+                    <span className="ll27-fila-nome">{f.nome}{eu ? (soAssisto ? tr(' (sua dupla)', ' (your duo)') : tr(' (você)', ' (you)')) : ''}{du && <small style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{en ? `🏳️ ${du.nomeAge} picks · 🤝 ${du.nomeOutro} watches` : `🏳️ ${du.nomeAge} escolhe · 🤝 ${du.nomeOutro} assiste`}</small>}</span>
+                    {p ? <span className="ll27-fila-pais"><SeloClube clube={p.pais} size={22} /> {p.pais}{temTime(p) ? ' ✔️' : ''}</span>
                       : <span className="ll27-fila-espera">{daVez ? `⏳ ${seg}s` : tr('na fila', 'in line')}</span>}
                   </div>
                 )
@@ -416,7 +434,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
             ? <EscolheClube copa={copa} pegos={pegos} seg={seg} aoConfirmar={c => { void gravaClube(c) }} />
             : <>
                 <p className="ll27-portao-aviso">{minha
-                  ? (en ? <><Escudo nome={minha.pais} size={22} /> You are <b>{minha.pais}</b>. Now wait for the line — <b>{daVezNome}</b> is picking ({seg}s).</> : <><Escudo nome={minha.pais} size={22} /> Você é o <b>{minha.pais}</b>. Agora é esperar a fila — <b>{daVezNome}</b> está escolhendo ({seg}s).</>)
+                  ? (en ? <><SeloClube clube={minha.pais} size={22} /> You are <b>{minha.pais}</b>. Now wait for the line — <b>{daVezNome}</b> is picking ({seg}s).</> : <><SeloClube clube={minha.pais} size={22} /> Você é o <b>{minha.pais}</b>. Agora é esperar a fila — <b>{daVezNome}</b> está escolhendo ({seg}s).</>)
                   : (en ? <>⏳ <b>{daVezNome}</b> is picking a club ({seg}s). Your turn comes in table order.</> : <>⏳ <b>{daVezNome}</b> está escolhendo o clube ({seg}s). A sua vez vem na ordem da tabela.</>)}</p>
                 <GradeDeClubes copa={copa} pegos={pegos} marcado={minha?.pais ?? null} podeMarcar={false} aoMarcar={() => {}} />
               </>)}
@@ -444,10 +462,10 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
           )}
           {fase?.fase === 'convocacao' && (
             <div className="ll27-convoca">
-              <h3>{temTime(minha) ? tr('✅ TIME CONVOCADO', '✅ TEAM CALLED UP') : tr('⚽ CONVOQUE OS 11', '⚽ CALL UP THE 11')}</h3>
+              <h3>{temTime(minha) ? tr('✅ TIME CONVOCADO', '✅ TEAM CALLED UP') : soAssisto ? (en ? `⏳ ${dupla!.nomeAge.toUpperCase()} IS CALLING UP THE 11` : `⏳ ${dupla!.nomeAge.toUpperCase()} ESTÁ CONVOCANDO OS 11`) : tr('⚽ CONVOQUE OS 11', '⚽ CALL UP THE 11')}</h3>
               <Barra seg={seg} total={SEG_CONVOCA} />
-              {minha && !temTime(minha) && <div style={{ marginTop: 10 }}><button className="ll27-portao-botao verde" onClick={() => setConvocaAberta(true)}>{tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP')}</button></div>}
-              {temTime(minha) && <p className="ll27-portao-aviso" style={{ marginTop: 8 }}><Escudo nome={minha!.pais} size={22} /> <b>{minha!.pais}</b> {tr('com 11 no papel. A copa começa quando o tempo acabar (ou quando todo mundo terminar).', 'with 11 on paper. The cup starts when time runs out (or when everyone finishes).')}</p>}
+              {minha && !temTime(minha) && !soAssisto && <div style={{ marginTop: 10 }}><button className="ll27-portao-botao verde" onClick={() => setConvocaAberta(true)}>{tr('⚽ VOLTAR PRA CONVOCAÇÃO', '⚽ BACK TO THE CALL-UP')}</button></div>}
+              {temTime(minha) && <p className="ll27-portao-aviso" style={{ marginTop: 8 }}><SeloClube clube={minha!.pais} size={22} /> <b>{minha!.pais}</b> {tr('com 11 no papel. A copa começa quando o tempo acabar (ou quando todo mundo terminar).', 'with 11 on paper. The cup starts when time runs out (or when everyone finishes).')}</p>}
             </div>
           )}
           {!!erro && <p style={{ fontSize: 11, fontWeight: 800, color: '#B23B2E', margin: '8px 2px 0', lineHeight: 1.4 }}>{erro}</p>}
@@ -467,9 +485,9 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
       </CompetitionStage>
 
       {/* a convocação (a MESMA tela da Copa do Mundo, com o elenco do clube) abre sozinha */}
-      {fase?.fase === 'convocacao' && convocaAberta && minha && !temTime(minha) && (
+      {fase?.fase === 'convocacao' && convocaAberta && minha && !temTime(minha) && !soAssisto && (
         <CMModal>
-          <ConvocacaoScreen pais={minha.pais} poolPronto={poolDoClube(minha.pais)} emblema={<Escudo nome={minha.pais} size={30} />} rotuloTime={tr('seu clube', 'your club')} prazoSeg={seg}
+          <ConvocacaoScreen pais={minha.pais} poolPronto={poolDoClube(minha.pais)} emblema={<SeloClube clube={minha.pais} size={30} />} rotuloTime={tr('seu clube', 'your club')} prazoSeg={seg}
             onBack={() => setConvocaAberta(false)}
             aoEstourar={(parcial, f) => { setConvocaAberta(false); void gravaTime(parcial.map(chaveCarta), f, true) }}
             onDone={(xi, f) => { setConvocaAberta(false); void gravaTime(xi.map(chaveCarta), f) }} />
@@ -479,7 +497,7 @@ export function CopaRegionalGate({ copa, roomId, souDono, meuUid, classificacao,
         <CMModal wide cinematic onlineBroadcast>
           {/* 💬 o modal da copa cobre o botão do chat da sala — então ele vem junto, por cima */}
           <ChatWidget />
-          <CopaRegionalTorneio copa={copa} ficha={ficha} roomId={roomId} meuUid={meuUid} souDono={souDono}
+          <CopaRegionalTorneio copa={copa} ficha={ficha} roomId={roomId} meuUid={euUid} souDono={souDono}
             aoCampeao={(nome, clube) => { void gravaCampeao(nome, clube) }} aoFechar={() => setAberta(false)} />
         </CMModal>
       )}
@@ -523,22 +541,23 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   // 🛟 sem relógio no banco: cada aparelho anda sozinho, no automático
   const [passoLocal, setPassoLocal] = useState(0)
   const [acabouLocal, setAcabouLocal] = useState(true)
+  const [paradoDesde, setParadoDesde] = useState(Date.now()) // ✅❌ quando a bola parou / o passo virou (pro resumo local)
   const [inicioLocal, setInicioLocal] = useState(Date.now())
   const [, setTique] = useState(0)
   useEffect(() => { if (relogio) return; const iv = setInterval(() => setTique(t => t + 1), 200); return () => clearInterval(iv) }, [!!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
-  const ROUND_MS = 15000
+  const ROUND_MS = 16000 // ⏱️ 13/10 (Diego: +1s em cada jogo da copa). O banco manda (`docs/sql/regional-clock-16s.sql`); este só vale sem relógio
   const step = relogio ? relogio.row?.step ?? 0 : passoLocal
   const liveDone = relogio ? !!relogio.row && !relogio.row.running : acabouLocal
   const roundMs = relogio?.row?.duration_ms ?? ROUND_MS
   const liveMin = relogio ? (relogio.row ? minutoDo(relogio.row, relogio.now) : 0) : (acabouLocal ? 93 : Math.max(0, Math.min(93, Math.round((Date.now() - inicioLocal) / (ROUND_MS * 0.82) * 93))))
   useEffect(() => {
     if (relogio || acabouLocal) return
-    const t = setTimeout(() => setAcabouLocal(true), ROUND_MS + 700 + extraDoPasso(passoLocal))
+    const t = setTimeout(() => { setAcabouLocal(true); setParadoDesde(Date.now()) }, ROUND_MS + 700 + extraDoPasso(passoLocal))
     return () => clearTimeout(t)
   }, [passoLocal, acabouLocal, !!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (relogio || !acabouLocal || passoLocal >= P.FIM) return
-    const t = setTimeout(() => { const s = passoLocal + 1; setPassoLocal(s); if (passoRegionalRodaBola(P, s)) { setAcabouLocal(false); setInicioLocal(Date.now()) } }, passoLocal === 0 ? 500 : 1600)
+    const t = setTimeout(() => { const s = passoLocal + 1; setPassoLocal(s); setParadoDesde(Date.now()); if (passoRegionalRodaBola(P, s)) { setAcabouLocal(false); setInicioLocal(Date.now()) } }, respiroAntes(passoRegionalRodaBola(P, passoLocal + 1), passoLocal, passoLocal + 1 >= P.PRIMEIRO_KO))
     return () => clearTimeout(t)
   }, [acabouLocal, passoLocal, !!relogio]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -566,16 +585,16 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   const live = (h: number, a: number, ev: GolRegional[]) => (
     <PlacarQueGruda min={Math.min(93, liveMin)} fim={liveDone} home={entrants[h].pais} away={entrants[a].pais} goals={golsAte(ev)} youIsHome={isYou(h)}>
       <LiveScoreCard enhancedOnline displayMinute={relogio ? liveMin : undefined} homeName={entrants[h].pais} awayName={entrants[a].pais} homeColor={GREEN} awayColor="#C2452F"
-        homeOwner={dono(h)} awayOwner={dono(a)} homeEmblem={<Escudo nome={entrants[h].pais} size={58} />} awayEmblem={<Escudo nome={entrants[a].pais} size={58} />}
-        youIsHome={isYou(h)} goals={ev} roundKey={step} roundMs={roundMs} finished={liveDone} footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} />
+        homeOwner={dono(h)} awayOwner={dono(a)} homeEmblem={<SeloClube clube={entrants[h].pais} size={58} />} awayEmblem={<SeloClube clube={entrants[a].pais} size={58} />}
+        youIsHome={isYou(h)} goals={ev} roundKey={step} roundMs={roundMs} finished={liveDone} footTint={{ bg: '#FFF3C2', border: '#f0d98a', holo: 0.5 }} elencos={{ casa: entrants[h].xi, fora: entrants[a].xi }} />
     </PlacarQueGruda>
   )
   const jogoLinha = (h: number, a: number, ev: GolRegional[], key: string, status: string, pen?: [number, number]) => {
     const g = golsAte(ev)
     return <CompetitionMatch key={key} showOwners goals={g} home={entrants[h].pais} away={entrants[a].pais} homeOwner={dono(h)} awayOwner={dono(a)}
-      homeCrest={<Escudo nome={entrants[h].pais} size={26} />} awayCrest={<Escudo nome={entrants[a].pais} size={26} />}
+      homeCrest={<SeloClube clube={entrants[h].pais} size={26} />} awayCrest={<SeloClube clube={entrants[a].pais} size={26} />}
       homeScore={g.filter(x => x.home).length} awayScore={g.filter(x => !x.home).length} mine={isYou(h) || isYou(a)} status={status}
-      detail={pen && liveDone ? <PensShootout compactOnline pens={pen} aName={entrants[h].pais} bName={entrants[a].pais} aCrest={<Escudo nome={entrants[h].pais} size={20} />} bCrest={<Escudo nome={entrants[a].pais} size={20} />} aSquad={entrants[h].xi} bSquad={entrants[a].xi} lento={!!(entrants[h].humano || entrants[a].humano)} /> : undefined} />
+      detail={pen && liveDone ? <PensShootout compactOnline pens={pen} aName={entrants[h].pais} bName={entrants[a].pais} aCrest={<SeloClube clube={entrants[h].pais} size={20} />} bCrest={<SeloClube clube={entrants[a].pais} size={20} />} aSquad={entrants[h].xi} bSquad={entrants[a].xi} lento={!!(entrants[h].humano || entrants[a].humano)} /> : undefined} />
   }
   const tabela = (lado: 0 | 1) => {
     const linhas = tabelaDoLado(mundo, lado, rodadasVistas)
@@ -590,7 +609,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
           <div key={r.t}>
             <div style={{ display: 'grid', gridTemplateColumns: COLS, gap: 6, alignItems: 'center', padding: '4px 6px', fontSize: 11.5, fontWeight: isYou(r.t) ? 900 : 700,
               background: i < vagasLado ? '#D8F0DE' : 'transparent', borderLeft: `4px solid ${i < vagasLado ? GREEN : 'transparent'}`, outline: isYou(r.t) ? `2.5px solid ${ROXO}` : undefined, outlineOffset: -2.5 }}>
-              <span>{i + 1}</span><Escudo nome={entrants[r.t].pais} size={22} />
+              <span>{i + 1}</span><SeloClube clube={entrants[r.t].pais} size={22} />
               <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entrants[r.t].pais}{entrants[r.t].humano ? <small style={{ fontWeight: 700, color: 'rgba(0,0,0,.5)' }}> · {entrants[r.t].club}</small> : null}</span>
               <span style={{ textAlign: 'right', fontWeight: 900 }}>{r.pts}</span><span style={{ textAlign: 'right' }}>{r.w}</span><span style={{ textAlign: 'right' }}>{r.sg > 0 ? '+' : ''}{r.sg}</span>
             </div>
@@ -608,7 +627,10 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
     : step < P.FINAL ? `▶️ ${nomeFase(mundo.ko[step + 1 - P.PRIMEIRO_KO]?.tipo ?? 'final')}`
     : tr('🎉 Cerimônia', '🎉 Ceremony')
   const controles = relogio?.row && (
-    <section className="ll31-tournament-controls" style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 10 }}>
+    // 🎮 13/10 (print do Diego na live do Futpoint: *"o que aconteceu com o botão manual?"*): o painel ficava com o
+    // padding próprio por cima do do CSS — o rótulo "RITMO DA PARTIDA" caía em cima do MANUAL — e sem a classe dos
+    // botões. Agora é a MESMA peça do controle da Copa do Mundo (`ll27-world-controls` + `ll31-tournament-controls`).
+    <section className="ll27-world-controls ll31-tournament-controls" aria-label={tr('Ritmo da copa', 'Cup pace')}>
       {relogio.isHost ? <>
         <div className="ll27-world-rhythm">
           <button className={relogio.row.manual ? 'selected' : ''} disabled={relogio.busy} onClick={() => void relogio.command('manual')}>MANUAL</button>
@@ -617,7 +639,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
             <option value={0.25}>¼×</option><option value={0.5}>½×</option><option value={1}>Normal</option><option value={2}>2×</option><option value={4}>4×</option>
           </select>
         </div>
-        <div className="ll27-world-rhythm">
+        <div className="ll27-world-rhythm ll31-tournament-actions">
           <button className="primary" disabled={relogio.busy || !liveDone || done} onClick={() => void relogio.command('next')}>{proximoRotulo}</button>
           <button disabled={relogio.busy} onClick={() => void relogio.command(relogio.row?.running ? 'skip' : 'next')}>{tr('PULAR', 'SKIP')}</button>
         </div>
@@ -626,9 +648,46 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
   )
   const etapa = done ? tr('Campeão definido', 'Champion decided') : step === 0 ? tr('Começando', 'Starting') : step <= P.RODADAS ? `${tr('Rodada', 'Round')} ${step} ${tr('de', 'of')} ${P.RODADAS}` : step === P.CHAVE ? tr('Mata-mata definido', 'Knockouts set') : nomeFase(faseAtual?.tipo ?? 'final')
 
+  // 🎬 ABERTURA DA RODADA (Diego 13/10): com a bola parada e o PRÓXIMO passo rodando bola, o palco mostra o
+  // caminho da copa + os confrontos que vêm (o seu em destaque) + a contagem até a largada. Some ao rolar.
+  const proxPasso = step + 1
+  const aberturaOn = liveDone && !done && passoRegionalRodaBola(P, proxPasso)
+  const abertura = aberturaOn ? (() => {
+    const jogosProx: { h: number; a: number }[] = proxPasso <= P.RODADAS ? mundo.rodadas[proxPasso - 1] : (mundo.ko[proxPasso - P.PRIMEIRO_KO]?.ties ?? [])
+    const minhaEm = (js: { h: number; a: number }[]) => js.some(j => isYou(j.h) || isYou(j.a))
+    const ordem: { label: string; passos: number[]; jogos: { h: number; a: number }[] }[] = [
+      { label: tr('RODADAS', 'ROUNDS'), passos: Array.from({ length: P.RODADAS }, (_, i) => i + 1), jogos: mundo.rodadas.flat() },
+      ...mundo.ko.map((f, i) => ({ label: f.tipo === 'quartas' ? tr('QUARTAS', 'QF') : f.tipo === 'semi' ? 'SEMI' : 'FINAL', passos: [P.PRIMEIRO_KO + i], jogos: f.ties })),
+    ]
+    const idxOn = ordem.findIndex(o => o.passos.includes(proxPasso))
+    const fases: AberturaFase[] = ordem.map((o, i) => ({ label: i === 0 && proxPasso <= P.RODADAS ? `${o.label} ${proxPasso}/${P.RODADAS}` : o.label, estado: i < idxOn ? 'ok' : i === idxOn ? 'on' : '', meu: i <= idxOn && minhaEm(o.jogos) }))
+    const meus = jogosProx.filter(j => isYou(j.h) || isYou(j.a)), outros = jogosProx.filter(j => !(isYou(j.h) || isYou(j.a)))
+    const lista = [...meus, ...outros.slice(0, 5)]
+    const confrontos = lista.map(j => ({ home: entrants[j.h].pais, away: entrants[j.a].pais, mine: isYou(j.h) || isYou(j.a), homeCrest: <SeloClube clube={entrants[j.h].pais} size={30} />, awayCrest: <SeloClube clube={entrants[j.a].pais} size={30} /> }))
+    const comResumo = proxPasso >= P.PRIMEIRO_KO
+    const respiro = respiroAntes(true, step, comResumo)
+    const seg = relogio?.row ? (relogio.row.manual ? null : Math.max(0, Math.ceil((Date.parse(relogio.row.updated_at) + respiro - relogio.now) / 1000))) : null
+    const espera = relogio?.row?.manual ? (relogio.isHost ? tr('▶️ Dê a largada nos controles', '▶️ Kick off from the controls') : tr('⏳ O host dá a largada', '⏳ The host kicks off')) : tr('⚽ Já vai rolar…', '⚽ About to kick off…')
+    const total = Math.ceil(respiro / 1000)
+    // ✅❌ RESUMO DA FASE (13/10, mockup nº 2): 5s antes da abertura de uma fase do mata-mata — quem passou, quem caiu.
+    // Antes da 1ª fase é o resumo das RODADAS (os classificados dos dois lados).
+    const desde = relogio ? (relogio.row ? Date.parse(relogio.row.updated_at) : 0) : paradoDesde
+    const agora = relogio ? relogio.now : Date.now()
+    if (comResumo && agora < desde + RESUMO_MS) {
+      const sel = (i: number) => ({ nome: entrants[i].pais, crest: <SeloClube clube={entrants[i].pais} size={18} />, meu: isYou(i) })
+      const fechada = mundo.ko[proxPasso - P.PRIMEIRO_KO - 1]
+      const passaram = fechada ? fechada.ties.map(t => sel(t.winner)) : [...mundo.classificados[0], ...mundo.classificados[1]].map(sel)
+      const dentro = new Set(fechada ? fechada.ties.map(t => t.winner) : [...mundo.classificados[0], ...mundo.classificados[1]])
+      const cairam = fechada ? fechada.ties.map(t => sel(t.winner === t.h ? t.a : t.h)) : entrants.map((_, i) => i).filter(i => !dentro.has(i)).map(sel)
+      const proxFase = mundo.ko[proxPasso - P.PRIMEIRO_KO]
+      const titulo = fechada ? `${nomeFase(fechada.tipo)} ${fechada.ties.length === 1 ? tr('ENCERRADA', 'OVER') : tr('ENCERRADAS', 'OVER')}` : tr('RODADAS ENCERRADAS', 'ROUNDS OVER')
+      return <ResumoFase titulo={titulo} passaram={passaram} cairam={cairam} proxima={proxFase ? (proxFase.tipo === 'final' ? tr('A FINAL', 'THE FINAL') : nomeFase(proxFase.tipo)) : ''} seg={seg} total={total} cor="#E8503A" espera={espera} />
+    }
+    return <AberturaCopa fases={fases} confrontos={confrontos} mais={Math.max(0, jogosProx.length - lista.length)} seg={seg} total={total} cor="#E8503A" espera={espera} />
+  })() : null
   return (
     <>
-      <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')} />
+      <CompetitionStage kind="copa8" title={nomeCopa(copa).toUpperCase()} phase={etapa} detail={tr('Cada clube enfrenta os do outro lado. Tabela separada por lado.', 'Each club faces the other side. One table per side.')}>{abertura}</CompetitionStage>
       {/* RODADAS: o meu jogo ao vivo em cima; os clássicos da rodada; as duas tabelas (só o que já apitou) */}
       {step >= 1 && step <= P.RODADAS && (() => {
         const rod = mundo.rodadas[rodadaAtual - 1]
@@ -652,7 +711,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
           <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, margin: '0 0 6px' }}>{`⚔️ ${nomeFase(mundo.ko[0].tipo)} · ${tr('CRUZADO, JOGO ÚNICO', 'CROSSED, ONE-OFF')}`}</p>
           {mundo.ko[0].ties.map((t, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, borderTop: '2px solid rgba(0,0,0,.08)', padding: '6px 2px', fontSize: 12, fontWeight: isYou(t.h) || isYou(t.a) ? 900 : 700 }}>
-              <Escudo nome={entrants[t.h].pais} size={22} /> {entrants[t.h].pais} <span style={{ color: 'rgba(0,0,0,.4)' }}>×</span> {entrants[t.a].pais} <Escudo nome={entrants[t.a].pais} size={22} />
+              <SeloClube clube={entrants[t.h].pais} size={22} /> {entrants[t.h].pais} <span style={{ color: 'rgba(0,0,0,.4)' }}>×</span> {entrants[t.a].pais} <SeloClube clube={entrants[t.a].pais} size={22} />
               {(isYou(t.h) || isYou(t.a)) && <b style={{ color: ROXO }}>{tr(' 👈 VOCÊ', ' 👈 YOU')}</b>}
             </div>
           ))}
@@ -665,10 +724,11 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         const grande = meu ?? final
         return <>
           {grande && live(grande.h, grande.a, grande.ev)}
-          {grande && liveDone && grande.pen && (
+          {/* 🥅 13/10: a disputa entra aos 93', dentro do `extra` reservado pra ela (antes esperava `liveDone` e era cortada) */}
+          {grande && liveMin >= 93 && grande.pen && (
             <div style={{ ...box('#fff'), padding: 8, marginBottom: 8, color: INK }}>
               <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, margin: '0 0 4px', textAlign: 'center' }}>🥅 {grande.g[0]}×{grande.g[1]} {tr('NO TEMPO NORMAL — DECISÃO NOS PÊNALTIS', 'AFTER 90 MINUTES — DECIDED ON PENALTIES')}</p>
-              <PensShootout compactOnline final={faseAtual.tipo === 'final'} pens={grande.pen} aName={entrants[grande.h].pais} bName={entrants[grande.a].pais} aCrest={<Escudo nome={entrants[grande.h].pais} size={20} />} bCrest={<Escudo nome={entrants[grande.a].pais} size={20} />} aSquad={entrants[grande.h].xi} bSquad={entrants[grande.a].xi} lento={!!(entrants[grande.h].humano || entrants[grande.a].humano)} />
+              <PensShootout compactOnline final={faseAtual.tipo === 'final'} pens={grande.pen} aName={entrants[grande.h].pais} bName={entrants[grande.a].pais} aCrest={<SeloClube clube={entrants[grande.h].pais} size={20} />} bCrest={<SeloClube clube={entrants[grande.a].pais} size={20} />} aSquad={entrants[grande.h].xi} bSquad={entrants[grande.a].xi} lento={!!(entrants[grande.h].humano || entrants[grande.a].humano)} />
             </div>
           )}
           {controles}
@@ -681,7 +741,7 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
       {/* fases que já passaram, recolhidas */}
       {mundo.ko.map((f, i) => step > P.PRIMEIRO_KO + i && (
         <details key={f.tipo} className="ll26-bracket-history"><summary>{nomeFase(f.tipo)} · {tr('RESULTADOS', 'RESULTS')}</summary>
-          {f.ties.map((t, k) => <CompetitionMatch key={k} showOwners goals={t.ev} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={dono(t.h)} awayOwner={dono(t.a)} homeCrest={<Escudo nome={entrants[t.h].pais} size={26} />} awayCrest={<Escudo nome={entrants[t.a].pais} size={26} />} homeScore={t.g[0]} awayScore={t.g[1]} mine={isYou(t.h) || isYou(t.a)} status={t.pen ? `${tr('pênaltis', 'penalties')} ${t.pen[0]}×${t.pen[1]}` : tr('ENCERRADO', 'FULL TIME')} />)}
+          {f.ties.map((t, k) => <CompetitionMatch key={k} showOwners goals={t.ev} home={entrants[t.h].pais} away={entrants[t.a].pais} homeOwner={dono(t.h)} awayOwner={dono(t.a)} homeCrest={<SeloClube clube={entrants[t.h].pais} size={26} />} awayCrest={<SeloClube clube={entrants[t.a].pais} size={26} />} homeScore={t.g[0]} awayScore={t.g[1]} mine={isYou(t.h) || isYou(t.a)} status={t.pen ? `${tr('pênaltis', 'penalties')} ${t.pen[0]}×${t.pen[1]}` : tr('ENCERRADO', 'FULL TIME')} />)}
         </details>
       ))}
       {step > P.CHAVE && <details className="ll26-bracket-history"><summary>{tr('FASE DE CLASSIFICAÇÃO · AS DUAS TABELAS', 'QUALIFYING STAGE · BOTH TABLES')}</summary>{tabela(0)}{tabela(1)}</details>}
@@ -691,18 +751,13 @@ export function CopaRegionalTorneio({ copa, ficha, roomId, meuUid, souDono, aoCa
         const art = artilhariaRegional(mundo).slice(0, 5)
         return <>
           <div style={{ ...box(isYou(c) ? `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)` : '#fff'), color: INK, padding: 14, marginBottom: 10, textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}><Escudo nome={entrants[c].pais} size={70} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}><SeloClube clube={entrants[c].pais} size={70} /></div>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 19, margin: '6px 0 0', textTransform: 'uppercase' }}>{entrants[c].pais} {tr('CAMPEÃO!', 'CHAMPION!')}</p>
             <p style={{ fontSize: 11, fontWeight: 800, margin: '3px 0 0' }}>{isYou(c) ? tr('🎉 É VOCÊ! A taça é sua.', '🎉 IT’S YOU! The trophy is yours.') : entrants[c].humano ? `${tr('Técnico', 'Manager')}: ${entrants[c].club}` : tr('Título da máquina 🤖', 'Won by the machine 🤖')}</p>
             <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '6px 0 0' }}>{tr('final', 'final')}: {entrants[fin.h].pais} {fin.g[0]}×{fin.g[1]} {entrants[fin.a].pais}{fin.pen ? ` (${tr('pên.', 'pens')} ${fin.pen[0]}×${fin.pen[1]})` : ''}</p>
           </div>
-          {art.length > 0 && <div style={{ ...box('#fff'), color: INK, padding: 10, marginBottom: 10 }}>
-            <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: '0 0 4px' }}>{tr('⚽ ARTILHARIA DA COPA', '⚽ CUP TOP SCORERS')}</p>
-            {art.map((r, i) => <div key={r.name + r.team} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 11, fontWeight: isYou(r.team) ? 900 : 700, padding: '2px 0' }}>
-              <span style={{ width: 18 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : ordinal(i + 1)}</span><Escudo nome={entrants[r.team].pais} size={18} />
-              <span style={{ flex: 1 }}>{r.name}</span><b>{r.goals}</b>
-            </div>)}
-          </div>}
+          {/* 🥇 ARTILHEIRO EM CARTÃO (13/10, mockup nº 3): o 1º com gols, clube e carta; 2º e 3º embaixo */}
+          <ArtilheiroCopaCard titulo={tr('ARTILHEIRO DA COPA', 'CUP TOP SCORER')} linhas={art.slice(0, 3).map((r): ArtilheiroLinha => { const carta = entrants[r.team].xi.find(c => c.name === r.name); return { nome: r.name, clube: entrants[r.team].pais, carta: carta ? `${carta.club} ${carta.year}` : undefined, gols: r.goals, crest: <SeloClube clube={entrants[r.team].pais} size={40} />, meu: isYou(r.team) } })} />
         </>
       })()}
       <button className="ll31-back-room" onClick={aoFechar} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, ...OSWALD, fontWeight: 900, fontSize: 14, background: done ? GREEN : '#fff', color: done ? '#fff' : INK, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer' }}>{tr('VOLTAR À SALA', 'BACK TO THE ROOM')}</button>

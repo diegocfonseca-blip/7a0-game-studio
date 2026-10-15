@@ -36,6 +36,9 @@ import { MascoteMini } from './mascote-atravessa'
 import { tr } from './lang'
 import { GalaHelicoptero, HELI_MS } from './gala-helicoptero'
 import { GalaK9, K9_MS } from './gala-k9'
+import { GalaArruda, ARRUDA_MS } from './gala-arruda'
+import { GalaFabulous, FABULOUS_MS } from './gala-fabulous'
+import { GalaComverissimo, COMVERISSIMO_MS } from './gala-comverissimo'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
@@ -44,9 +47,14 @@ export const GALA_MS = 5600
 // entra com a gala padrão. A 1ª é a do Neymarzetti (helicóptero). Quem entrar com o 🖋✨ Batismo
 // Plus ganha a sua aqui — chave = o nome do clube em `BATISMOS` (o mesmo que `clubeDaConta` devolve,
 // que segue o E-MAIL do dono, nunca o nome digitado).
+// 📣 14/10 (Diego): o CANTO DA TORCIDA vale nos dois lugares — Carreira (jogos) e online (a gala). Quem tem canto
+// (`AMBIENTE_CARREIRA_POR_EMAIL`, sound.ts) e gala única: a gala toca o canto com `playMp3Gala` (ver `gala-arruda.tsx`).
 const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> = {
   Neymarzetti: { ms: HELI_MS, Show: GalaHelicoptero },
   'K9 FC': { ms: K9_MS, Show: GalaK9 }, // 🧊👑 O Rei Gelado (09/10)
+  'Tricolor do Arruda FC': { ms: ARRUDA_MS, Show: GalaArruda }, // 🐍 a cobra sobe da arquibancada (14/10, Fundador)
+  'ComVerissimo FC': { ms: COMVERISSIMO_MS, Show: GalaComverissimo }, // 🎬🧢 no formato dos vídeos dele: parede de camisas, notícia, legenda amarela (15/10, Fundador)
+  'Fabulous EC': { ms: FABULOUS_MS, Show: GalaFabulous }, // 🦅⚡ guerreiros se transformam, trovoada e a águia (15/10, Fundador)
 }
 /** quanto tempo a entrada deste clube ocupa a tela (a fila espera isso antes da próxima) */
 export function duracaoGala(clube: string): number { return GALA_UNICA[clube]?.ms ?? GALA_MS }

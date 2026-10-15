@@ -1,0 +1,20 @@
+{
+  "data": "12 de outubro de 2026",
+  "titulo": "Novo batismo: Rossini Money",
+  "destaque": {
+    "escudo": "src/escalacao/img/rossini-escudo.webp",
+    "mascote": "src/escalacao/img/rossini-mascote.webp",
+    "camisa": "scripts/kits/rossini-camisa.webp",
+    "nome": "Rossini Money",
+    "linha": "Série A · preto e vermelho · \"Disciplina, estratégia, dinheiro\""
+  },
+  "itens": [
+    { "tag": "batismo", "texto": "O **Rossini Money** chega direto na **Série A**, a elite: aparece na carreira, no **Jogo Rápido** e nas **salas online**." },
+    { "tag": "mascote", "texto": "**O Ninja** carimba a tela em todo gol do Rossini, atravessa a tela no título e aparece no pênalti decisivo." },
+    { "tag": "manto", "texto": "Preto e vermelho, tirado da camisa do clube. A camisa já está na **Loja do Clube**." },
+    { "tag": "lenda", "texto": "O dono vira **👑 Lenda** pra sempre, **Fundador nº 90** e **Sócio nº 71**, com entrada de gala nas salas online." }
+  ],
+  "rodape": "Quer o SEU clube no jogo também?",
+  "rodapeSub": "Batismo de Lenda: escudo, mascote e manto seus, pra sempre. Chama o Diego aqui na comunidade.",
+  "saida": "scripts/posts/aviso-2026-10-12-rossini-money.png"
+}

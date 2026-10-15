@@ -60,6 +60,9 @@ export type CentralProps = {
   /** 💸 todos os negócios do pregão desta temporada (de todo clube), do maior pro menor */
   mercado: { negocios: { name: string; pos: string; paid: number; team: string; you: boolean }[]; maisCaro: Contratacao | null }
   agenda: CentralAgenda[]
+  /** 💰 CAIXA DOS RIVAIS (13/10, economia dos bots): o caixa de cada clube da sua divisão, do mais rico pro
+   *  mais liso. Só vem quando a economia dos bots está ligada (por enquanto só na conta do Diego). */
+  caixas?: { name: string; caixa: number; you: boolean }[]
   /** o botão grande do camarote: rótulo, o que faz, e se está travado (e por quê) */
   botao: { label: string; sub?: string; disabled?: boolean; onClick: () => void }
   onTab: (t: 'jogos' | 'tabelas' | 'ranking' | 'elenco' | 'estadio') => void
@@ -308,6 +311,27 @@ export function CentralCarreira(p: CentralProps) {
             {!p.mercado.negocios.length && !p.mercado.maisCaro && <p style={{ padding: '10px 13px', fontSize: 11, fontWeight: 700, opacity: .75, margin: 0 }}>{t('Sem negócios registrados nesta temporada.', 'No deals on record this season.')}</p>}
             </div>
           </div>
+          {/* 💰 CAIXA DOS RIVAIS (13/10, mockup `scripts/mockups/carreira-bots.png` aprovado): quem chega rico e
+              quem chega liso no próximo leilão. Os 4 mais ricos + você + o mais liso; o resto abre em Ranking. */}
+          {p.caixas && p.caixas.length > 0 && (() => {
+            const lista = p.caixas
+            const eu = lista.findIndex(x => x.you)
+            const mostra = lista.map((x, i) => ({ ...x, pos: i + 1 })).filter((_x, i) => i < 4 || i === eu || i === lista.length - 1)
+            const liso = lista[lista.length - 1]
+            return (
+              <div className="ll-central-card ll-c-caixas" style={{ background: CREME }}>
+                <Cabecalho titulo={t('💰 Caixa dos rivais', '💰 Rivals’ bank')} sub={t('pro próximo leilão', 'for the next auction')} link={t('ranking', 'ranking')} onClick={() => p.onTab('ranking')} />
+                {mostra.map((x, i) => (
+                  <div key={x.name} className="ll-central-row" style={{ padding: '6px 9px', gap: 6, fontSize: 11.5, background: x.you ? '#FFF3C4' : x.pos === lista.length ? '#FFE1DA' : undefined, borderTop: i > 0 && mostra[i - 1].pos !== x.pos - 1 ? '2px dashed rgba(0,0,0,.18)' : undefined }}>
+                    <span style={{ width: 20, color: '#777' }}>{x.pos}º</span><Escudo nome={x.name} size={18} />
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.you ? `🫵 ${x.name}` : x.name}</span>
+                    <b style={{ ...OSW, fontSize: 14 }}>{x.caixa} 🪙</b>
+                  </div>
+                ))}
+                {liso && !liso.you && liso.caixa < 60 && <p style={{ padding: '7px 11px', margin: 0, font: 'italic 11.5px Georgia, serif', color: '#444' }}>📰 {t(`"${liso.name} chega liso no leilão: só ${liso.caixa} 🪙 no caixa."`, `"${liso.name} arrive broke at the auction: only ${liso.caixa} 🪙 in the bank."`)}</p>}
+              </div>
+            )
+          })()}
         </div>
       </div>
     </div>

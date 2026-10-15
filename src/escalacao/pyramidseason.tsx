@@ -1,6 +1,7 @@
 import {VelocidadeEstadio} from './presidencia-velocidade'
 import {DiaDoEstadio} from './presidencia-estadio-dia'
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
+import { placarParaK } from './kings-liga'
 import {PresidenciaPartida} from './presidencia-partida'
 import {usePartidaNoMapa} from './presidencia-partida-sincronia'
 import type {ContextoPartidaEstadio} from './presidencia-partida-model'
@@ -38,12 +39,13 @@ import type { Card, Manager, Sector, WonCard, LedgerEntry, EmpCard, FormationKey
 import { SECTORS, FORMATIONS } from './types'
 import { sorteiaEvento, eventoTituloBanner, eventoEmoji, traitDe, historiaDesgaste, EVENTO_MIN_ROUND, EVENTO_MAX_ROUND } from './eventos'
 import type { EventoCard } from './eventos'
+import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco' // 🔁 rival com banco (13/10)
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, chaveCarry } from './condicao'
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
-import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA } from './store'
+import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
@@ -62,6 +64,10 @@ import { CareerInternationalView, topoInternacional, CarreiraPresidente } from '
 import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
+import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
+import { useSaf2, useBotBanco } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
+import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
+import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
 import { CentralCarreira } from './central'
 import { ColecoesDaCarreira } from './album-colecoes' // 📚 receber coleção de clube dentro da carreira (04/10) // 📺 a home do modo carreira (03/10, só a conta do Diego)
@@ -78,6 +84,7 @@ import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewar
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
+import { useDireitos, meusDireitos } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
@@ -91,7 +98,9 @@ import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
 import { startCrowd, stopCrowd, playWhistle, crowdRoar, TORCIDA_NOVA } from './sound' // 📣 torcida e apito: a CARREIRA não tinha nenhum dos dois (18/09)
 import { lanceDoGol } from './lances'
-import { chancesDoJogo, sementeDasChances, narraChance, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
+import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
+import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -519,6 +528,13 @@ export function clubRewards(tables: Record<Div, SimTeam[]>): Record<string, numb
   })
   return out
 }
+// 🏅 PRÊMIO PELA COLOCAÇÃO dos bots (13/10, rival com banco): por cima do prêmio de título/acesso,
+// todo clube bot recebe pela posição final na tabela da divisão (`premioColocacaoBot`, bots-banco.ts).
+export function premiosColocacaoBots(tables: Record<Div, SimTeam[]>): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const d of DIVS) tables[d].forEach((t, i) => { if (!t.human) out[teamKey(t)] = premioColocacaoBot(d, i + 1) })
+  return out
+}
 // 🤝 PATROCÍNIO POR APOSTA (05/08): calcula, pra CADA humano, se a aposta da
 // temporada bateu — e quanto rende. Bateu = valor do nível escolhido; não bateu
 // (ficou aquém, ex.: apostou "não cair" e caiu) = ZERO. Superou a meta escolhida
@@ -649,7 +665,7 @@ export function torcidaBonusRewards(careerTorcida: Record<string, number> | unde
 }
 
 export interface Goal { name: string; min: number; home: boolean; assist?: string } // 🅰️ assist = quem deu o passe (undefined = jogada individual/pênalti — e a tela DIZ isso, nunca fica em branco)
-export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[] }
+export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[]; hxi?: CartaRadio[]; axi?: CartaRadio[] }
 
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
 // `lastMatches` recebe os jogos da ÚLTIMA rodada jogada (placar + quem fez os
@@ -721,6 +737,17 @@ export type RoundMods = Record<number, Record<number, number>>
 // simulação byte a byte igual. Só humano (bot não cansa — baseline plano).
 export type RoundCardMods = Record<number, Record<number, Record<string, number>>>
 const comMods = (xi: PoolCard[], m: Record<string, number> | undefined): PoolCard[] => (m ? xi.map(c => (m[c.id] ? { ...c, lo: c.lo + m[c.id], hi: c.hi + m[c.id] } : c)) : xi)
+// 🔁 RIVAL COM BANCO (13/10): plano de rodízio/lesão/gás de cada bot da divisão do humano, por NOME do
+// clube (time de fundo tem teamId −1). Sai de `planoCansacoBot` (bots-banco.ts). Vazio = nada muda.
+export type BotPlans = Record<string, { xi: string[][]; mods: Record<number, Record<string, number>> }>
+function botXI(t: SimTeam, r: number, plans?: BotPlans): PoolCard[] {
+  const p = plans?.[t.name]
+  const ids = p?.xi[r]
+  if (!p || !ids) return t.xi
+  const map = new Map(t.squad.map(c => [c.id, c]))
+  const xi = ids.map(id => map.get(id)).filter((c): c is PoolCard => !!c)
+  return xi.length === t.xi.length ? comMods(xi, p.mods[r]) : t.xi // 🛡️ plano torto (carta sumiu) → XI de sempre
+}
 // 🔁 INTERVALO (carreira offline): decisão do 2º tempo por técnico/rodada. O 1º
 // tempo roda IGUAL (rng compartilhado intocado); só o 2º tempo do jogo do humano
 // é re-simulado com um rng ISOLADO — por isso nenhum outro jogo/divisão muda.
@@ -759,7 +786,7 @@ export function penaltyPlan(seasonSeed: number): number[] {
   while (out.size < n && guard++ < 60) out.add(4 + Math.floor(rng() * 31)) // índices 4..34
   return [...out]
 }
-function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}) {
+function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, scorers: Map<string, SeasonScorer>, tactics: RoundTactics, lineups: RoundLineups, lastMatches?: SimMatch[], capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, assists?: Map<string, SeasonAssist>, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans) {
   const rng = mulberry((seed ^ 0x51ED2C) >>> 0)
   const fix = roundRobin(20)
   // RODÍZIO DE CALENDÁRIO por temporada: o esqueleto do round-robin é fixo, mas
@@ -844,8 +871,10 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     const ta: Tac = A.human ? tacAt(tactics, A.teamId, r) : TACS[Math.floor(rng() * 3)]
     // XI daquele jogo: humano usa a escalação que ELE montou (por rodada); CPU o fixo
     // 😓 gás/volta de lesão: só humano, só nesta rodada — a carta em si não muda
-    const hxi = H.human ? comMods(lineupAt(lineups, H.teamId, r, H.squad, H.formation), cardMods[H.teamId]?.[r]) : H.xi
-    const axi = A.human ? comMods(lineupAt(lineups, A.teamId, r, A.squad, A.formation), cardMods[A.teamId]?.[r]) : A.xi
+    // 🔁 RIVAL COM BANCO (13/10): bot com plano (só na divisão do humano, temporada nova) joga com o XI
+    // do plano — rodízio, lesão e gás — em vez do XI fixo. Sem plano: o XI fixo de sempre, byte a byte.
+    const hxi = H.human ? comMods(lineupAt(lineups, H.teamId, r, H.squad, H.formation), cardMods[H.teamId]?.[r]) : botXI(H, r, botPlans)
+    const axi = A.human ? comMods(lineupAt(lineups, A.teamId, r, A.squad, A.formation), cardMods[A.teamId]?.[r]) : botXI(A, r, botPlans)
     const fh = rollForm(hxi, th, ta, rng), fa = rollForm(axi, ta, th, rng)
     // 🧢 TÉCNICO = 12ª CARTA (26/08, em teste): o overall dele é sorteado na faixa
     // lo–hi e entra na média do time com peso de UMA carta em 12 — em ataque E
@@ -949,7 +978,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
     if (hgF > agF) { H.pts += 3; H.w++; A.l++ } else if (agF > hgF) { A.pts += 3; A.w++; H.l++ } else { H.pts++; A.pts++; H.d++; A.d++ }
     if (lastMatches && r === nr - 1) {
       const goals: Goal[] = [...hFinal.map(e => ({ ...e, home: true })), ...aFinal.map(e => ({ ...e, home: false }))].sort((x, y) => x.min - y.min)
-      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals })
+      lastMatches.push({ h: H.name, a: A.name, hg: hgF, ag: agF, hId: H.teamId, aId: A.teamId, you: !!(H.you || A.you), hum: !!(H.human || A.human), goals, hxi, axi }) // 📻 a escalação vai junto pra rádio citar o jogador
     }
   }
 }
@@ -960,7 +989,7 @@ function simDivTo(teams: SimTeam[], div: Div, seed: number, round: number, score
 export function sortDiv(teams: SimTeam[]) { return teams.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf) }
 
 // simula as 4 divisões até a rodada atual — resultado idêntico em todos os aparelhos
-export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
+export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, round: number, tactics: RoundTactics = {}, lineups: RoundLineups = {}, capElite = 1.2, realGoals = false, fairBoost = false, mods: RoundMods = {}, halftime: RoundHalftime = {}, penalty: RoundPenalty = {}, tecs?: SimTecnicos, cardMods: RoundCardMods = {}, botPlans?: BotPlans): { tables: Record<Div, SimTeam[]>; scorers: SeasonScorer[]; scorersAll: SeasonScorer[]; matches: Record<Div, SimMatch[]>; goalsByCard: Record<string, number>; assistsByCard: Record<string, number>; assistsAll: SeasonAssist[]; divTop: Record<Div, SeasonScorer | undefined> } {
   const scorers = new Map<string, SeasonScorer>()
   const assists = new Map<string, SeasonAssist>() // 🅰️ garçons da temporada
   const tables = {} as Record<Div, SimTeam[]>
@@ -968,7 +997,7 @@ export function simulatePyramid(world: Record<Div, SimTeam[]>, seed: number, rou
   for (const d of DIVS) {
     const teams = world[d].map(t => ({ ...t, xi: t.xi, pts: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }))
     const lm: SimMatch[] = []
-    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods)
+    simDivTo(teams, d, (seed ^ (d.charCodeAt(0) * 2654435761)) >>> 0, round, scorers, tactics, lineups, lm, capElite, realGoals, fairBoost, mods, halftime, penalty, assists, tecs, cardMods, botPlans)
     tables[d] = sortDiv(teams)
     matches[d] = lm
   }
@@ -1316,7 +1345,7 @@ function MultiClubeBuy({ jaTem, opcoes, coins, preco, isLenda, onBuy }: {
         <>
           <div style={lock}>{planos2Liberado() ? (getLang() === 'en' ? <>🔒 <b>⭐ Full Star</b> perk — subscribe to manage 2 clubs.</> : <>🔒 Regalia do <b>⭐ Craque completo</b> — assine pra comandar 2 clubes.</>) : (getLang() === 'en' ? <>🔒 <b>Legend 👑</b> perk — become Legend to manage 2 clubs.</> : <>🔒 Regalia de <b>Lenda 👑</b> — vire Lenda pra comandar 2 clubes.</>)}</div>
           <ApoieButton startScreen="choice" trigger={(open) => (
-            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>{planos2Liberado() ? (tr('⭐ VER O CRAQUE · R$ 12,90/MÊS', '⭐ SEE STAR · R$ 12.90/MONTH')) : (tr('👑 VIRAR LENDA NO APOIE', '👑 BECOME LEGEND IN SUPPORT'))}</button>
+            <button onClick={open} style={{ width: '100%', marginTop: 9, border: '3px solid #000', borderRadius: 12, padding: 11, fontWeight: 900, fontSize: 14, background: 'linear-gradient(135deg,#FFE79A,#FFC400,#E8A200)', color: '#000', cursor: 'pointer', ...OSWALD }}>{planos2Liberado() ? (tr('⭐ VER O CRAQUE · R$ 9,90/MÊS', '⭐ SEE STAR · R$ 9.90/MONTH')) : (tr('👑 VIRAR LENDA NO APOIE', '👑 BECOME LEGEND IN SUPPORT'))}</button>
           )} />
         </>
       )}
@@ -2292,7 +2321,7 @@ function FinancasTab({ ledger, caixa, seasonNo, squad, marketValues }: {
     '🎟️ Boas-vindas de sócio (uma vez só)': '🎟️ Member welcome bonus (one time)', '🎟️ Moedas de sócio do mês': '🎟️ Member coins of the month',
   }
   const ledgerLabel = (l?: string) => (l && getLang() === 'en' ? (LEDGER_EN[l] ?? traduzirLancamentoPresidencia(l)) : l)
-  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
+  const lbl = (k: LedgerEntry['kind']) => k === 'reward' ? tr('🏆 Prêmios da temporada', '🏆 Season prizes') : k === 'gate' ? tr('🎟️ Bilheteria', '🎟️ Gate money') : k === 'salary' ? tr('💸 Folha salarial', '💸 Payroll') : k === 'saf' ? tr('🏢 Prêmios da SAF', '🏢 SAF prizes') : k === 'stadium' ? tr('🏟️ Obra no estádio', '🏟️ Stadium works') : k === 'safbuy' ? tr('🏢 Compra da SAF', '🏢 SAF purchase') : k === 'safsell' ? tr('🏢 Venda da SAF', '🏢 SAF sale') : k === 'clube2buy' ? tr('🏛️ Compra do 2º clube', '🏛️ 2nd club purchase') : k === 'clube2sell' ? tr('🏛️ Venda do 2º clube', '🏛️ 2nd club sale') : k === 'clube2interno' ? tr('🔁 Entre os seus clubes', '🔁 Between your clubs') : k === 'empresario' ? tr('💼 Renda do Empresário', '💼 Agent income') : k === 'opening' ? tr('🏁 Saldo inicial', '🏁 Opening balance') : k === 'bico' ? tr('🕴️ Bico de Folga', '🕴️ Side Job') : k === 'socio' ? tr('🎟️ Moedas de sócio', '🎟️ Member coins') : ''
   return (
     <>
       {/* RESUMO fixo: caixa atual + saldo da temporada */}
@@ -2930,12 +2959,16 @@ export function useApitoDeLargada(competicao: string | null | undefined, partida
   }, [competicao, partida, copa])
 }
 
-export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch }:
-  { homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
+export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsHome, goals, roundKey, roundMs, finished, classico, basket, pauseAtHalf, onReachHalf, resumeHalf, footTint, homeOwner, awayOwner, homeEmblem, awayEmblem, enhancedOnline, enhancedCareer, displayMinute, onMinuteChange, mascotHome, mascotAway, apitoFrases, stadiumMatch, retro, elencos, relogioKings, radioExtra }:
+  { /** 👑 Kings League: o relógio mostra os 40 min da Kings (o placar anda 0–93 por dentro, igual a todo jogo) */ relogioKings?: boolean; /** 👑 Kings: frase que a rádio dá OBRIGATORIAMENTE naquele minuto (cartão 🟨🟥), por 4 minutos do placar */ radioExtra?: { min: number; txt: string }[]; homeName: string; awayName: string; homeColor: string; awayColor: string; youIsHome: boolean; goals: ScoreGoal[]; roundKey: number; roundMs: number; finished?: boolean; classico?: boolean; basket?: { h: number; a: number }; pauseAtHalf?: boolean; onReachHalf?: () => void; resumeHalf?: boolean
   // 🎨 identidade de cada copa também na barra de baixo (Diego 15/08) — cor +
   // brilho holográfico igual o resto da tela daquela competição. Sem isso, a
   // barra fica sempre no bege neutro de sempre (o padrão da liga normal).
   footTint?: { bg: string; border: string; holo?: number }; homeOwner?: string; awayOwner?: string; homeEmblem?: ReactNode; awayEmblem?: ReactNode; enhancedOnline?: boolean; enhancedCareer?: boolean; displayMinute?: number; onMinuteChange?: (minute: number) => void
+  /** 🆚 retrospecto entre os DONOS dos dois clubes (sala online, gente × gente) — aparece antes da 1ª frase da rádio */
+  retro?: { rival: string; r?: Retro } | null
+  /** 📻🧑 escalação dos dois times, pra rádio citar o JOGADOR pelo nome (14/10). Sem isto, a rádio fala do clube. */
+  elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[] }
   /** 🎭 de quem é a MASCOTE do gol, quando o nome na tela não é o clube do dono (carreira internacional:
    *  aparece "Flamengo", mas quem comemora é a mascote do Neymarzetti, o técnico convidado) */
   mascotHome?: string; mascotAway?: string
@@ -3098,7 +3131,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // pra baixo (Q1 12:00 → Q4 0:00). O `min` (0→93) só dirige a animação — aqui
   // vira o rótulo certo por esporte.
   // (a conta mora em `sportcfg.ts` pra TODA tela do basquete marcar o mesmo quarto)
-  const minLabel = basket ? basketClockLabel(min) : (fechado ? tr('FIM', 'FT') : min > 90 ? `90+${min - 90}'` : `${min}'`)
+  const minLabel = basket ? basketClockLabel(min) : (fechado ? tr('FIM', 'FT') : relogioKings ? `${placarParaK(min)}'` : min > 90 ? `90+${min - 90}'` : `${min}'`)
   const iAmHome = youIsHome
   const last = shown.length ? [...shown].sort((a, b) => a.min - b.min)[shown.length - 1] : null
   const homeCol = homeColor, awayCol = awayColor
@@ -3147,6 +3180,8 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // Os gols continuam sendo os da simulação: a bola entra na rede no MESMO instante
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
   const chances = useMemo(() => (basket || !cinematic) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, roundMs])
+  // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
+  const radioLances = useMemo(() => (basket || !cinematic) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], roundMs, !!relogioKings), [basket, cinematic, roundKey, homeName, awayName, goals, chances, roundMs, relogioKings])
   const [lance, setLance] = useState<{ side: 'h' | 'a'; fim: FimDaChance; key: number; txt: string; minute:number; startedAt:number; speed:number; roundKey:number } | null>(null)
   const lanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
@@ -3159,7 +3194,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (!c) return
     lancesVistos.current.mins.push(c.min)
     const clube = nomeLimpo(c.home ? homeName : awayName)
-    setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en') })
+    setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en', relogioKings ? quemFinalizou(c.home ? elencos?.casa : elencos?.fora, c, clube) : null) }) // 🧑 jogador no lance: SÓ na Kings (Diego 15/10: "isso é só pra Kings League")
     if (lanceTimer.current) clearTimeout(lanceTimer.current)
     lanceTimer.current = setTimeout(() => { setLance(null); lanceTimer.current = null }, CHANCE_MS/fieldSpeed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3248,8 +3283,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // confete (ele barrou os dois). Nasceu travado na conta dele e foi LIBERADO PRA TODOS
   // no mesmo dia, depois que ele viu no celular.
   const grande = (privatePreview || carreiraPublica) && !basket
-  const minTxt = (m: number) => (m > 90 ? `90+${m - 90}` : `${m}`)
-  const lanceUltimo = grande && last ? lanceDoGol(last, roundKey) : ''
+  const minTxt = (m: number) => (relogioKings ? `${placarParaK(m)}` : m > 90 ? `90+${m - 90}` : `${m}`)
+  // 👑 gol que a REGRA da Kings fez (pênalti do presidente, bola vermelha) não ganha lance inventado — não foi jogada
+  const lanceUltimo = grande && last && !(relogioKings && /presidente|president|Bola vermelha|Red ball|\(carta\)|\(card\)|\(\+1\)/i.test(last.name)) ? lanceDoGol(last, roundKey) : ''
   // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
   const meusGols = youIsHome ? hg : ag, delesGols = youIsHome ? ag : hg
   const resultado: 'h' | 'a' | null = fechado && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null
@@ -3264,11 +3300,26 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     homeName={homeName} awayName={awayName} homeColor={homeColor} awayColor={awayColor}
     homeCrest={homeEmblem ?? <Escudo nome={homeName} size={grande ? 92 : 58} />} awayCrest={awayEmblem ?? <Escudo nome={awayName} size={grande ? 92 : 58} />}
     homeOwner={homeOwner} awayOwner={awayOwner}
-    youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={shown}
+    youIsHome={youIsHome} clock={minLabel} homeScore={hg} awayScore={ag} goals={relogioKings ? shown.map(g => ({ ...g, min: placarParaK(g.min) })) : shown}
     goalSide={golSide} mascot={carimboSlot} eventKey={goalSeed}
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
     palcoOn={!basket}
+    radio={basket || radioLances.length === 0 ? null : (() => {
+      // ⭐ no apito: o CRAQUE DO JOGO (13/10) — sem autor nenhum, a rádio se despede
+      if (fechado) {
+        const c = craqueDoJogo(shown)
+        if (c) return { tag: tr('⭐ CRAQUE DO JOGO', '⭐ PLAYER OF THE MATCH'), tom: 'craque' as const, min: '', txt: fraseCraque(c, nomeLimpo(c.home ? homeName : awayName), emIngles) }
+        return { min: '', txt: tr('Fim de papo aqui na Rádio Legends.', 'That is all from Radio Legends.') }
+      }
+      const ex = radioExtra?.filter(e => min >= e.min && min < e.min + 4).pop()
+      if (ex) return { min: minTxt(ex.min), txt: ex.txt }
+      const r = radioNoMinuto(radioLances, min)
+      if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles, elencos, !!relogioKings) }
+      // 🆚 antes da 1ª frase: o RETROSPECTO entre os dois donos (só sala online, gente × gente)
+      if (retro) return { tag: `🆚 ${tr('VOCÊ', 'YOU')} × ${retro.rival.toUpperCase()}`, tom: 'retro' as const, min: '', txt: fraseRetro(retro.r, emIngles, roundKey) }
+      return { min: '', txt: tr('Rádio ligada. Bola rolando!', 'Radio on. Ball rolling!') }
+    })()}
     // 🎬 a bola do GOL sai no minuto do gol (`voo`) e o resto da festa só depois que
     //    ela entra — o `voo` fica até a rede parar de balançar (ver GOL_ENTRA_MS)
     palco={voo ? { side: voo.side, speed:voo.speed, fim: 'gol', key: voo.key, veredito: vereditoDaChance('gol', emIngles) }
@@ -3276,7 +3327,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     stamp={`${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}′` : ''}${lanceUltimo ? ` — ${lanceUltimo}` : ''}`}
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
-    narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name} — ${lanceUltimo}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
+    narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
     {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:min,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:!!pauseAtHalf&&!resumeHalf&&min>=45,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
    </>
   return (
@@ -3291,7 +3342,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       <div style={{ background: golSide ? (lateGoal ? '#FF5B4D' : GOLD) : INK, textAlign: 'center', transition: 'background .3s ease' }}>
         <p key={golSide ? 'g' + goalSeed : (ritualTxt ?? 'idle')} style={{ margin: 0, padding: '7px 10px', fontWeight: 900, fontSize: 12.5, ...OSWALD, letterSpacing: 0.4, color: golSide ? (lateGoal ? '#fff' : INK) : '#fff', animation: golSide ? 'coBanner .3s ease' : (ritualTxt ? 'coFade .4s ease' : undefined), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {golSide
-            ? `${goalStamp}${last ? ` ${last.name} ${last.min > 90 ? `90+${last.min - 90}` : last.min}'` : ''}`
+            ? `${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}'` : ''}`
             : (ritualTxt ?? (done ? (basket ? tr('sem cestas', 'no baskets') : tr('sem gols', 'no goals')) : (basket ? tr('🟢 bola quicando…', '🟢 ball bouncing…') : tr('🟢 bola rolando…', '🟢 ball rolling…'))))}
         </p>
       </div>
@@ -3340,7 +3391,7 @@ function MyMatchCard({ m, youName, finished, col, colors, roundKey, roundMs = RO
   const oppId = iAmHome ? m.aId : m.hId
   const oppCol = colors?.[oppId]?.solid ?? '#3A7CA5'
   return <LiveScoreCard enhancedCareer stadiumMatch={stadiumMatch} onMinuteChange={onMinuteChange} homeName={m.h} awayName={m.a} homeColor={iAmHome ? col.solid : oppCol} awayColor={iAmHome ? oppCol : col.solid}
-    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} />
+    youIsHome={iAmHome} goals={m.goals} roundKey={roundKey} roundMs={roundMs} finished={finished} pauseAtHalf={pauseAtHalf} onReachHalf={onReachHalf} resumeHalf={resumeHalf} elencos={{ casa: m.hxi, fora: m.axi }} />
 }
 
 // ─── ⬇️ O PLACAR QUE ENCOLHE (ideia do Diego, 15/09) ────────────────────────
@@ -4782,7 +4833,10 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
             )
             // recuo sutil (alas do 3-5-2 / líbero) — só um deslocamento de desenho,
             // a troca por toque continua funcionando igual
-            return recuadoIds.has(c.id) ? <div key={c.id} style={{ transform: 'translateY(14px)' }}>{j}</div> : j
+            // 🐛 12/10 (Arudo FC, 3-5-2): o embrulho tem que ter a MESMA largura das outras peças
+            // (flex 1 1 0, igual à raiz do JogadorNoCampo). Sem isso o ala ocupava a largura do
+            // NOME inteiro e os 3 meias ficavam espremidos no meio, um em cima do outro.
+            return recuadoIds.has(c.id) ? <div key={c.id} style={{ flex: '1 1 0', minWidth: 0, display: 'flex', transform: 'translateY(14px)' }}>{j}</div> : j
           }
           // 🥅 linha ÚNICA por setor (nunca quebra): a defesa tem 4 (LAT-ZAG-ZAG-LAT)
           // e no celular a 4ª "pulava" pra baixo, parecendo formação errada.
@@ -6420,7 +6474,7 @@ export function pensRevealDelay(pens: [number, number], lento = false, seqReal?:
   const b = sequenciaPenaltis(pens, mulberry(0xC0FFEE)).length
   return 0.7 + Math.max(a, b, 10) * pensPasso(lento) + 0.6
 }
-export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false }: { pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
+export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnline=false, compactCareer=false, aCrest, bCrest, final=false, aSquad, bSquad, lento=false, shootout=false }: { /** 👑 Kings: é SHOOTOUT (1×1 do meio-campo), não pênalti — muda só o nome na tela */ shootout?: boolean; pens: [number, number]; /** 🎬 as cobranças de verdade (12/10) — sem isto, remonta pelo placar como antes */ seqReal?: string; aName: string; bName: string; colorOf?: (name: string) => string; compactOnline?:boolean; compactCareer?:boolean; aCrest?:ReactNode; bCrest?:ReactNode; final?:boolean; /** 🎯 elenco em campo de cada time — vira a fila dos batedores no palco (24/09) */ aSquad?: CartaBatedor[]; bSquad?: CartaBatedor[]; /** 🎭 tem time de GENTE na disputa: cobrança mais lenta (25/09) */ lento?: boolean }) {
   // REGRA REAL: 5 cobranças alternadas; PARA na hora que decide (quem não
   const privatePenalty = useOnlinePreview()
   // alcança mais nem batendo todas, acabou — as bolinhas restantes ficam
@@ -6489,7 +6543,7 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
   // (antes só pras contas de teste). Mesma chave que liberou o visual da carreira.
   if((compactOnline && (privatePenalty || ONLINE_VISUAL_RELEASED)) || (compactCareer && (privatePenalty || CAREER_VISUAL_RELEASED))) {
     const exact=exactPenaltyRows(pens,rows)
-    return <CompactPenalties official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
+    return <CompactPenalties shootout={shootout} official={pens} rows={exact} totalDelay={lead+exact.flat().length*step+.25} nSlots={nSlots} aName={aName} bName={bName} aCrest={aCrest} bCrest={bCrest} final={final} aTeam={ordemBatedores(aSquad)} bTeam={ordemBatedores(bSquad)} passo={step}/>
   }
   return (
     <div style={{ margin: '4px 0 0', position: 'relative', animation: `pensShake .4s ease ${totalDelay.toFixed(2)}s` }}>
@@ -6504,7 +6558,7 @@ export function PensShootout({ pens, seqReal, aName, bName, colorOf, compactOnli
         fontSize: 9, fontWeight: 900, ...OSWALD, textAlign: 'center', margin: '0 0 3px', letterSpacing: 0.5,
         color: naMorteSubita ? '#fff' : '#B23B2E',
         ...(naMorteSubita ? { background: FIN_RED, borderRadius: 6, padding: '3px 0', border: `2px solid ${INK}` } : {}),
-      }}>{naMorteSubita ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT')}</p>
+      }}>{naMorteSubita ? tr('⚠️ MORTE SÚBITA', '⚠️ SUDDEN DEATH') : (shootout ? tr('🥅 SHOOTOUT (1×1 do meio-campo)', '🥅 SHOOTOUT (1v1 from halfway)') : tr('🎯 DISPUTA DE PÊNALTIS', '🎯 PENALTY SHOOT-OUT'))}</p>
       {/* 📏 as duas linhas ficam ALINHADAS ENTRE SI (à esquerda, coluna com coluna) e o
           bloco inteiro fica centralizado no card. Antes cada linha se centralizava
           sozinha — com um time uma bolinha à frente do outro (o normal: o A bate
@@ -7602,6 +7656,14 @@ const abreCraqueNuvem = () => { window.location.href = `${window.location.origin
 
 export function PyramidSeasonScreen() {
   const { state, dispatch } = useEsc()
+  const econBots = useEconBots() // 💰 caixa dos rivais na Central (13/10)
+  // 🏢➡️⚽ SAF que vira 2º clube (13/10): só carreira SOLO e só com a chave (conta do Diego por enquanto)
+  const saf2Ui = useSaf2() && state.onlineMode !== 'online' && !state.roomId
+  useDireitos() // re-desenha quando o plano da conta chega do banco (o "pagante" da SAF nova)
+  const saf2Jan = saf2Ui && saf2Janela(state)
+  const saf2Pagante = ehPagante(myApoioPerk()?.tier, meusDireitos())
+  const saf2Migrar = saf2Ui && precisaMigrar({ temSaf: !!state.careerFilial, tem2o: !!segundoClube(state), migrado: state.saf2?.migrado })
+  const [saf2MigrarDepois, setSaf2MigrarDepois] = useState(false)
   const soAparelhoPe = useNuvemSoAparelho(state.seed) // ☁️⭐ legenda do "Sair e salvar" (07/10)
   const privatePreview = useOnlinePreview()
   const presidentAccount = usePresidentPreview()
@@ -7802,8 +7864,40 @@ export function PyramidSeasonScreen() {
   // Medido em `scripts/testa-tabela-gas.mjs`: até 43 pontos e 10 posições de
   // diferença entre as duas histórias.
   // Agora as duas saem da MESMA função — não tem como uma esquecer um argumento.
-  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods),
-    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods])
+  // 🔁 RIVAL COM BANCO (13/10): os bots da SUA divisão cansam, se machucam e rodam o time — com a MESMA
+  // régua do seu gás (só quando o seu gás está ligado, ou seja, Série C pra cima) e só a partir da
+  // temporada em que a regra nasceu (`botFadigaDesde`): temporada em andamento nunca muda de placar.
+  const botBancoOn = useBotBanco()
+  const botFadigaOn = botBancoOn && condOn && state.botFadigaDesde != null && (state.seasonNo ?? 1) >= state.botFadigaDesde
+  const planosBots = useMemo<Record<string, PlanoBot>>(() => {
+    if (!botFadigaOn) return {}
+    const me = state.managers[state.youIdx]
+    const minhaDiv = (Object.keys(world) as Div[]).find(d => world[d].some(t => t.human && t.teamId === me?.id))
+    if (!minhaDiv) return {}
+    const carry = state.botCarry ?? {}
+    const out: Record<string, PlanoBot> = {}
+    for (const t of world[minhaDiv]) {
+      if (t.human) continue
+      const inicio: Record<string, number> = {}
+      for (const c of t.squad as WonCard[]) { const g = carry[chaveCarry(c)]; if (g != null) inicio[c.id] = g }
+      out[t.name] = planoCansacoBot({ squad: t.squad, need: t.formation ? FORMATIONS[t.formation] : NEED, inicio, seed: seasonSeed, seasonNo: state.seasonNo ?? 1, nome: t.name, rodadas: 38 })
+    }
+    return out
+  }, [botFadigaOn, world, state.managers, state.youIdx, state.botCarry, seasonSeed, state.seasonNo])
+  const botPlans = Object.keys(planosBots).length ? planosBots : undefined
+  // o gás com que cada carta de bot TERMINA a temporada → vai na virada (`botCarry`), igual ao seu
+  const botCarryFim = useMemo<Record<string, number> | undefined>(() => {
+    if (!botFadigaOn) return undefined
+    const out: Record<string, number> = {}
+    for (const d of Object.keys(world) as Div[]) for (const t of world[d]) {
+      const p = planosBots[t.name]
+      if (!p) continue
+      for (const c of t.squad as WonCard[]) { const g = p.gasFim[c.id]; if (g != null && g < 100) out[chaveCarry(c)] = Math.round(g * 10) / 10 }
+    }
+    return out
+  }, [botFadigaOn, world, planosBots])
+  const simulaAte = useCallback((ate: number) => simulatePyramid(world, seasonSeed, ate, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans),
+    [world, seasonSeed, careerTactics, careerLineup, capElite, realGoals, fairBoost, eventoMods, careerHalftime, careerPenalty, simTecs, condMods, botPlans])
   const live = useMemo(() => simulaAte(round), [simulaAte, round])
   const matches = live.matches // os jogos da RODADA ATUAL — são eles que animam na tela
   // a TABELA de classificação (pontos) fica no estado de ANTES da partida que
@@ -8898,7 +8992,7 @@ export function PyramidSeasonScreen() {
   const stadiumMatch:ContextoPartidaEstadio|undefined=presidentAvailable&&myMatch?(()=>{
     const teams=Object.values(live.tables).flat(),home=teams.find(t=>t.teamId===myMatch.hId),away=teams.find(t=>t.teamId===myMatch.aId)
     if(!home||!away)return undefined
-    const xi=(t:SimTeam)=>t.human?lineupAt(careerLineup,t.teamId,round,t.squad,t.formation):t.xi
+    const xi=(t:SimTeam)=>t.human?lineupAt(careerLineup,t.teamId,round,t.squad,t.formation):botXI(t,round,botPlans) // 🔁 o bot entra com o XI do plano (rodízio/lesão)
     const second=(t:SimTeam)=>{const ids=careerHalftime?.[t.teamId]?.[round-1]?.xi2;if(!ids)return undefined;return ids.flatMap(id=>{const card=t.squad.find(c=>c.id===id);return card?[card]:[]})}
     return {id:`${seasonSeed}:${round}:${home.teamId}:${away.teamId}`,speed:state.simSpeed??1,homeClubId:home.teamId,stadium:state.stadiums?.[home.teamId],home:xi(home),away:xi(away),homeBench:home.squad.filter(c=>!c.fake),awayBench:away.squad.filter(c=>!c.fake),homeSecondHalf:second(home),awaySecondHalf:second(away)}
   })():undefined
@@ -9415,6 +9509,27 @@ export function PyramidSeasonScreen() {
       totalRodadas: 38, temRebaixamento: myDiv !== 'V',
       lesao: suspenso ? { nome: suspenso.nome, jogosFora: Math.max(1, (suspenso.volta ?? 0) - round), motivo: suspenso.tipo === 'lesao' ? ['lesão', 'injury'] : suspenso.tipo === 'expulsao' ? ['suspenso', 'suspended'] : ['noitada', 'night out'] } : null,
       criaTitular: (myXI as WonCard[]).find(c => c.cria)?.name ?? null,
+      rivais: (() => {
+        // 🔁 RIVAL COM BANCO (13/10): o DM e os poupados dos bots viram notícia — só do que já foi revelado
+        if (!botPlans || revCentral < 1) return undefined
+        const nomeDe = (time: string, id: string) => (world[myDiv] ?? []).find(t => t.name === time)?.squad.find(c => c.id === id)?.name ?? ''
+        const rUlt = revCentral - 1
+        const dm: { time: string; nome: string; jogos: number }[] = []
+        const poupados: { time: string; n: number }[] = []
+        for (const [time, p] of Object.entries(planosBots)) {
+          for (const l of p.lesoes) if (l.r === rUlt) { const nome = nomeDe(time, l.id); if (nome) dm.push({ time, nome, jogos: l.rodadas }) }
+          const n = p.poupados[rUlt] ?? 0
+          if (n >= 2) poupados.push({ time, n })
+        }
+        let adversario: { time: string; fora: string[] } | undefined
+        if (proximo) {
+          const adv = proximo.casa === euNome ? proximo.fora : proximo.casa
+          const p = planosBots[adv], ri = proximo.rodada - 1
+          const fora = p ? p.lesoes.filter(l => l.r < ri && l.r + 1 + l.rodadas > ri).map(l => nomeDe(adv, l.id)).filter(Boolean) : []
+          if (fora.length) adversario = { time: adv, fora }
+        }
+        return { dm, poupados, adversario }
+      })(),
       copaChegando: [
         ...(!seasonOver && 38 - round <= 5 ? [{ nome: (copaBrOk ? ['Copa do Brasil', 'Copa do Brasil'] : ['Copa Legends', 'Legends Cup']) as [string, string], rodadasFaltam: 38 - round }] : []),
         ...(intlEnabled && sn === 39 ? [{ nome: ['Libertadores', 'Libertadores'] as [string, string], proximaTemporada: true }] : []),
@@ -9449,7 +9564,8 @@ export function PyramidSeasonScreen() {
       return { label: tr(`▶ Jogar rodada ${round + 1}`, `▶ Play round ${round + 1}`), sub: tr('🎮 manual · o botão de sempre, no mesmo lugar', '🎮 manual · the usual button, same place'), onClick: avancarRodada }
     })()
     return <CentralCarreira seasonNo={sn} round={round} divName={DIV_NAME[myDiv]} youId={youId} euNome={euNome} proximo={compProximo ?? (compPalco ? null : proximo)} palco={compPalco} formas={centralFormas} giro={compGiro ?? giro}
-      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem} />
+      tabela={minha.map(t => ({ name: t.name, pts: t.pts, you: t.you }))} jornal={jornal} mercado={{ negocios, maisCaro }} agenda={agenda} botao={botao} onTab={escolheAba} salvar={salvarNuvem}
+      caixas={econBots ? [...(tables[myDiv] ?? [])].map(t => ({ name: t.name, you: t.you, caixa: Math.round(t.human ? (state.careerCoins?.[t.teamId] ?? 0) : (state.clubCash?.[teamKey(t)] ?? 0)) })).sort((a, b) => b.caixa - a.caixa) : undefined} />
   }
   return (
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
@@ -9469,6 +9585,17 @@ export function PyramidSeasonScreen() {
           passou a existir também na virada da temporada (15/09), o modal teria
           ficado pra trás e o clique não abriria nada. Overlay fixo não tem por que
           morar dentro de uma aba. */}
+      {/* 📣 SAF NOVA (13/10): "O jogo mudou" abre sozinho na virada pra quem tem SAF e 2º clube separados.
+          Dá pra deixar pra depois: a mesma caixa fica na aba Clube › Estrutura. */}
+      {saf2Migrar && saf2Jan && !saf2MigrarDepois && state.careerFilial && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(8,6,3,.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
+          <div style={{ maxWidth: 380, width: '100%', maxHeight: '100%', overflowY: 'auto' }}>
+            <Saf2Migracao saf={{ nome: state.careerFilial.team, div: saf2DivDaSaf(state) }}
+              clube={{ nome: segundoClube(state)?.teamName ?? '—', div: (state.careerPlacements?.[`m${segundoClube(state)?.id}`] ?? 'D') as string }}
+              janela={saf2Jan} onEscolher={fica => dispatch({ type: 'SAF2_MIGRAR', fica })} onDepois={() => setSaf2MigrarDepois(true)} />
+          </div>
+        </div>
+      )}
       {venderAsk && state.multiClube && (() => {
         const vendido = state.multiClube.team
         return (
@@ -10173,7 +10300,7 @@ export function PyramidSeasonScreen() {
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
           // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
           // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
-          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
+          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
@@ -10341,6 +10468,7 @@ export function PyramidSeasonScreen() {
                         um clique torto venderia o clube errado. */}
                     {(() => {
                       const dorm = state.managers.find(m => m.id === state.multiClube!.id)
+                      if (saf2Ui) return <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.55)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{tr('💸 Vender o 2º clube: aba Clube › Estrutura, antes da 1ª rodada da próxima temporada (pela coleção de taças).', '💸 Selling the 2nd club: Club › Facilities tab, before round 1 of next season (by the trophy collection).')}</p>
                       return dorm?.mine
                         ? <button onClick={() => setVenderAsk(true)} style={{ width: '100%', marginTop: 7, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr(`💸 Vender o ${dormindo} · 3.000 🪙`, `💸 Sell ${dormindo} · 3,000 🪙`)}</button>
                         : <p style={{ fontFamily: 'system-ui', fontSize: 9, color: 'rgba(255,255,255,.55)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
@@ -10503,7 +10631,7 @@ export function PyramidSeasonScreen() {
               <>
               {/* 🕴️ SUA AGÊNCIA — saiu do Elenco e veio pro Clube (Diego 19/09).
                   A escada de desbloqueios vem junto: tudo de agência num lugar só. */}
-              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={!!state.careerFilial} />
+              <AgenciaDesbloqueios st={agenciaEstadio(state)} hasFilial={temSafAgencia(state)} />
               {/* 📚 COLEÇÕES DE CLUBES (04/10): fechou um clube no álbum → recebe AQUI, nesta carreira. */}
               {colecoesOn && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
               <AgenciadosTab cards={state.agenciados ?? []}
@@ -10518,7 +10646,7 @@ export function PyramidSeasonScreen() {
                   return out.sort((a, b) => (b.fame - a.fame) || a.name.localeCompare(b.name))
                 })()}
                 hist={state.agenciaHist} fatura={state.agenciaFatura}
-                st={agenciaEstadio(state)} hasFilial={!!state.careerFilial}
+                st={agenciaEstadio(state)} hasFilial={temSafAgencia(state)}
                 primeiroClube={state.managers.find(m => m.id === (state.agenciaClubeId ?? youId))?.teamName ?? 'seu 1º clube'}
                 clubes={state.multiClube ? [
                   { id: youId, nome: state.managers[state.youIdx]?.teamName ?? '', dorme: false },
@@ -10533,7 +10661,7 @@ export function PyramidSeasonScreen() {
               // existe (um clubeSub 'escritorio' herdado cai na Estrutura, logo abaixo).
               <>
               {colecoesOn && state.onlineMode !== 'online' && <ColecoesDaCarreira seed={state.seed} nome={state.managers[state.youIdx]?.teamName ?? ''} onPago={(moedas, marca) => dispatch({ type: 'COLECAO_RECEBIDA', moedas, marca })} />}
-              <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : !!state.careerFilial} />
+              <EscritorioTab cards={(state.onlineMode === 'online' ? state.careerEmpresario?.[youId] : state.empresarioCards) ?? []} st={state.stadiums?.[youId]} hasFilial={state.onlineMode === 'online' ? !!state.careerFilials?.[youId] : temSafAgencia(state)} />
               </>
             ) : clubeSub === 'loja' && lojaLib ? (
               // 🛍️ LOJA DO CLUBE — a camisa montada (escudo + fornecedor + Master), o
@@ -10680,8 +10808,21 @@ export function PyramidSeasonScreen() {
                 return null
               })()}
               onBuyFilial={team => dispatch({ type: 'BUY_FILIAL', team, mgrId: youId })}
-              onSellFilial={() => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
-              filialSale={myFilial ? filialSaleValue(state, myFilial) : undefined}
+              onSellFilial={saf2Ui ? undefined : () => dispatch({ type: 'SELL_FILIAL', mgrId: youId })}
+              filialSale={myFilial && !saf2Ui ? filialSaleValue(state, myFilial) : undefined}
+              saf2={saf2Ui ? {
+                // 🏢➡️⚽ empréstimo da SAF só na janela (virada); fora dela a tela explica o porquê e o caminho
+                buyLock: segundoClube(state) ? tr('Você já tem um 2º clube: a escada é uma só (SAF → 2º clube). Pra comprar uma SAF nova, venda o 2º clube antes.', 'You already have a 2nd club: there is a single ladder (SAF → 2nd club). To buy a new SAF, sell the 2nd club first.') : null,
+                loanLock: saf2Jan ? null : tr('Empréstimo com a SAF só na virada da temporada (antes da 1ª rodada). Os de agora voltam sozinhos no fim desta temporada.', 'Loans with the SAF only at the season turn (before round 1). Current ones come back by themselves at the end of this season.'),
+                painel: myFilial && !segundoClube(state) ? (
+                  <Saf2SafPainel team={myFilial.team} div={saf2DivDaSaf(state)} desde={myFilial.since} seasonNo={state.seasonNo ?? 1} semEspera={state.saf2?.semEspera}
+                    caixaPrincipal={Math.round(state.careerCoins?.[clubePrincipal(state)?.id ?? youId] ?? 0)} pagante={saf2Pagante} janela={saf2Jan}
+                    ativoEhPrincipal={!state.managers[state.youIdx]?.mine}
+                    planosBtn={<ApoieButton startScreen="choice" trigger={(open) => <button onClick={open} style={{ background: 'transparent', border: 'none', padding: 0, fontWeight: 900, textDecoration: 'underline', cursor: 'pointer', fontSize: 10.5 }}>{tr('Ver os planos', 'See the plans')}</button>} />}
+                    onAssumir={() => dispatch({ type: 'SAF2_ASSUMIR', pagante: saf2Pagante })}
+                    onVender={() => dispatch({ type: 'SAF2_VENDER_SAF' })} />
+                ) : null,
+              } : undefined}
               mySquad={state.managers[state.youIdx]?.squad}
               filialSquad={myFilial ? (state.cpuSquads?.[myFilial.team] as WonCard[] | undefined) : undefined}
               loanableOutIds={(() => {
@@ -10694,7 +10835,7 @@ export function PyramidSeasonScreen() {
                 const fm = FORMATIONS['4-3-3']
                 return new Set(safSq.filter(c => !c.emprestado && safSq.filter(x => x.pos === c.pos && !x.fake).length - 1 >= fm[c.pos]).map(c => c.id))
               })()}
-              onLoanTo={cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
+              onLoanTo={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId })}
               loanContratoAviso={cardId => {
                 // ⏳ contrato acabando? a tela abre a caixa em vez de emprestar. A trava
                 // de VERDADE está no reducer (travaContratoSaf) — aqui é só o aviso,
@@ -10708,8 +10849,8 @@ export function PyramidSeasonScreen() {
                 return { nome: c.name, pos: c.pos, clube: c.club, ano: c.year, jaVenceu: c.contratoAte < state.seasonNo, opcoes }
               }}
               onLoanToRenovando={(cardId, anos) => dispatch({ type: 'LOAN_TO_FILIAL', cardId, mgrId: youId, renovarAnos: anos as RenewAnos })}
-              onLoanFrom={cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
-              onReturnLoan={cardId => dispatch({ type: 'RETURN_FILIAL_LOAN', cardId, mgrId: youId })}
+              onLoanFrom={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'LOAN_FROM_FILIAL', cardId, mgrId: youId })}
+              onReturnLoan={saf2Ui && !saf2Jan ? undefined : cardId => dispatch({ type: 'RETURN_FILIAL_LOAN', cardId, mgrId: youId })}
               trimNotice={state.filialTrimNotice}
               onDismissTrimNotice={() => dispatch({ type: 'CLEAR_FILIAL_TRIM_NOTICE' })}
               loanSlots={/* mesma fonte de divisão da REGRA (colocação gravada; tabela ao vivo
@@ -10755,6 +10896,7 @@ export function PyramidSeasonScreen() {
                     const dorm = state.managers.find(m => m.id === state.multiClube!.id)
                     const podeVender = !!dorm?.mine
                     if (multiTravada) return null // rodada/Copa rolando: a mesma trava da troca
+                    if (saf2Ui) return <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{tr('💸 A venda do 2º clube agora é pela coleção de taças — logo abaixo, na virada da temporada.', '💸 Selling the 2nd club now goes by the trophy collection — just below, at the season turn.')}</p>
                     return podeVender
                       ? <button onClick={() => setVenderAsk(true)} style={{ width: '100%', marginTop: 7, border: '2.5px solid #000', borderRadius: 10, padding: 9, fontWeight: 900, fontSize: 12, background: '#C2452F', color: '#fff', cursor: 'pointer', ...OSWALD }}>{tr(`💸 Vender o ${dormindo} · 3.000 🪙`, `💸 Sell ${dormindo} · 3,000 🪙`)}</button>
                       : <p style={{ fontFamily: 'system-ui', fontSize: 9.5, color: 'rgba(255,255,255,.62)', margin: '7px 0 0', textAlign: 'center', lineHeight: 1.45 }}>{getLang() === 'en' ? <>🔒 Only the <b>second club</b> can be sold. Hand command back to your main club to sell it.</> : <>🔒 Só o <b>segundo clube</b> pode ser vendido. Passe o comando pro seu clube principal pra poder vender.</>}</p>
@@ -10784,7 +10926,39 @@ export function PyramidSeasonScreen() {
             {/* 🏛️ MULTICLUBES (Fase 1 — a compra) · só solo. ⚠️ dizia "em construção, só
                 testers veem" e estava VELHO: a compra está no ar pra todo mundo desde
                 que apareça o tier — quem não é Lenda vê a área com o botão APOIE. */}
-            {state.onlineMode !== 'online' && (() => {
+            {/* 🏢➡️⚽ SAF NOVA (13/10): "O jogo mudou" (quem tem os dois separados) + o 2º clube no dia a dia */}
+            {saf2Ui && saf2Migrar && (() => {
+              const seg = segundoClube(state)
+              return <div style={{ marginTop: 10 }}><Saf2Migracao saf={{ nome: state.careerFilial!.team, div: saf2DivDaSaf(state) }} clube={{ nome: seg?.teamName ?? '—', div: (state.careerPlacements?.[`m${seg?.id}`] ?? 'D') as string }} janela={saf2Jan} onEscolher={fica => dispatch({ type: 'SAF2_MIGRAR', fica })} /></div>
+            })()}
+            {saf2Ui && segundoClube(state) && (() => {
+              const seg = segundoClube(state)!, prin = clubePrincipal(state)
+              const venda = saf2Valor2o(state)
+              if (!prin || !venda) return null
+              const emps = state.saf2?.emprestimos ?? []
+              const caixaDe = (id: number) => Math.round(state.careerCoins?.[id] ?? 0)
+              // a MESMA conta do reducer (SAF2_EMPRESTAR / SAF2_TRANSFERIR) — só pra apagar quem não pode
+              const jogs = (de: typeof prin, para: typeof prin) => (de.squad as WonCard[]).filter(c => !c.fake && !c.cria && !c.emprestado).map(c => {
+                const sobra = de.squad.filter(x => x.pos === c.pos && !x.fake && !x.emprestado).length - 1 >= FORMATIONS[de.formation][c.pos]
+                const valor = Math.max(1, valorOficial(state, c))
+                const contratoOk = !(state.contratosOn && c.contratoAte != null && c.contratoAte <= (state.seasonNo ?? 1))
+                const tr1 = podeTransferir({ janela: saf2Jan, ultimaTransf: state.saf2?.transfSeason, seasonNo: state.seasonNo ?? 1, caixaComprador: caixaDe(para.id), valor })
+                const livreEmp = sobra && contratoOk && emps.filter(e => e.de === de.id).length < EMPRESTIMOS_ENTRE_CLUBES
+                return { id: c.id, name: c.name, pos: c.pos, valor, livre: livreEmp, livreT: sobra && tr1 === 'ok',
+                  motivo: !sobra ? tr('abriria buraco no titular', 'would leave a hole in the XI') : !contratoOk ? tr('contrato acabando: renove antes', 'contract ending: renew first') : tr1 === 'caixa' ? tr('o outro clube não tem esse caixa', 'the other club lacks that cash') : undefined }
+              })
+              const jp = jogs(prin, seg), js = jogs(seg, prin)
+              const nomeCarta = (id: string) => { for (const m of [prin, seg]) { const c = m.squad.find(x => x.id === id); if (c) return { nome: c.name, pos: c.pos } } return { nome: '—', pos: '' } }
+              return <Saf2Clube2Painel principal={{ id: prin.id, nome: prin.teamName, caixa: caixaDe(prin.id) }} seg={{ id: seg.id, nome: seg.teamName, caixa: caixaDe(seg.id), div: (state.careerPlacements?.[`m${seg.id}`] ?? 'D') as string }}
+                ativoId={state.managers[state.youIdx]?.id ?? youId} janela={saf2Jan} tacas={saf2Tacas(state)} venda={venda}
+                emprestimos={emps.map(e => ({ ...nomeCarta(e.cardId), de: e.de, para: e.para }))}
+                jogPrincipal={jp} jogSeg={js} transfFeita={state.saf2?.transfSeason === (state.seasonNo ?? 1)}
+                onAporte={valor => dispatch({ type: 'SAF2_APORTE', valor })}
+                onEmprestar={cardId => dispatch({ type: 'SAF2_EMPRESTAR', cardId })}
+                onTransferir={cardId => dispatch({ type: 'SAF2_TRANSFERIR', cardId })}
+                onVender={() => dispatch({ type: 'SAF2_VENDER_2O' })} />
+            })()}
+            {state.onlineMode !== 'online' && !saf2Ui && (() => {
               const opcoes = (() => {
                 const safName = myFilial?.team
                 // 🏛️ IGUAL À SAF: a lista vem de `tables.D` (a Série D DE VERDADE, exista

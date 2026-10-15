@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang' // 🌐 BR/EN (12/09)
 import { lerDireitos, tierEfetivo, temManual, type Direitos } from './planos-regras'
+import { buscaVitrine, medalhaDaPos } from './vitrine-dados' // 🥇 medalha da semana (13/10)
 
 export type ApoioTier = 'bege' | 'verde' | 'roxo' | 'prata' | 'ouro'
 
@@ -80,7 +81,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'dasilva1227br@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
   'davisantana1312@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Bicho da Seda 🦋 — CORREÇÃO FINAL 10/08: a mariposa/Palmeiras são do Davi)
   'ambielvictor@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
-  'cesar.verissimo27@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
+  'cesar.verissimo27@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR nº3. Batismo ComVerissimo FC (Série D, plano 🖋 Fundador, sócio nº73, 15/10) — mantém o nº3 (quem já tem número fica com ele)
   'denilson.stifler10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo Xurupitas FC (o porco 🐷, Palmeiras de coração; nome bate com o "Xurupitas" que ele já usa no ranking)
   'filipeabraaodasilva@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro, SEM fundador (não entra no FUNDADOR_N)
   'taylorsenachek2@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR
@@ -115,6 +116,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'bastosmbc@gmail.com': 'ouro', // 👑 Lenda — batismo El Mineiro (Série C, no assento do bot Brodeiragem) + fundador nº80 + sócio nº61 (27/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'heitormonaco98@gmail.com': 'ouro', // 👑 Lenda — batismo Arrogantchi FC (Série A, no assento do Bagres 1993, que desceu pra B) + fundador nº88 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'marcus.viniciuslopessantos79@gmail.com': 'ouro', // 👑 Lenda — batismo Inter Vale FC (Série C, no assento do bot Tetéia SAF) + fundador nº89 + sócio nº70 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'caelborba@gmail.com': 'ouro', // 👑 batismo Labubu FC (Série A, no assento do Só Deus Sabe FC, que desceu pra C) + sócio nº72 (14/10). Regra NOVA 14/10: batismo de 79,90 NÃO ganha número de fundador (só o plano Fundador).
   'luizeduardorossini0013@gmail.com': 'ouro', // 👑 Lenda — batismo Rossini Money (Série A, no assento do Bagres de Wall Street FC, que desceu pra B) + fundador nº90 + sócio nº71 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'henriquejunger07@gmail.com': 'ouro', // 👑 Lenda — batismo Le Prince FC (Várzea, no assento do bot Perna de Pau City) + fundador nº87 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'atilasoaresjr21@gmail.com': 'ouro', // 👑 Lenda — batismo Mengão Malvadão (Série A, no assento do Nata de SP, que desceu pra B) + fundador nº86 (06/10). Era ⭐ Craque, subiu pra Lenda com o batismo. Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -451,17 +453,27 @@ export function emailProblema(email: string): string | null {
 // selo pronto pra colar no fim do nome (' 👑', ' 👑🖋️' pra fundador, ou '').
 // O 🖋️ vem GRUDADO no 👑 — quem procura o 👑 no nome (perkFromSelo etc.)
 // continua achando, então cor/tier não mudam em nada.
+// 🥇🥈🥉 MEDALHA DA SEMANA (13/10, Diego): quem está no TOP 3 do ranking da semana leva a medalha ao
+// lado do nome, junto do selo do plano — nas salas e em todo lugar onde o selo vai. Empate: todos os
+// empatados levam. Saiu do top 3, perde (o nome é montado de novo ao entrar na próxima sala). A posição
+// vem do banco (`esc_vitrine_salas`, campo `eu`) e é LIDA pelo próprio aparelho: ninguém "se dá" medalha
+// digitando, porque o stripEmoji tira 🥇🥈🥉 de nome digitado (são pictogramas).
+let medalhaSemana = ''
+export function minhaMedalhaDaSemana(): string { return medalhaSemana }
+export async function carregaMedalhaDaSemana(): Promise<void> {
+  try { const v = await buscaVitrine(); medalhaSemana = medalhaDaPos(v?.eu?.pos) } catch { /* sem banco: sem medalha */ }
+}
 export function apoioSelo(): string {
   const p = myApoioPerk()
-  if (!p || !p.selo) return ''
-  return ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}`
+  const selo = p && p.selo ? ` ${p.selo}${myFundadorN() != null ? '🖋️' : ''}` : ''
+  return medalhaSemana ? `${selo || ' '}${medalhaSemana}` : selo
 }
 
 // nome com o selo garantido (sem duplicar — saves antigos já podem ter o emoji)
 export function apoioName(name: string): string {
   const p = myApoioPerk()
-  if (!p || !p.selo || name.includes(p.selo)) return name
-  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}`
+  if (!p || !p.selo || name.includes(p.selo)) return medalhaSemana && !name.includes(medalhaSemana) ? `${name} ${medalhaSemana}` : name
+  return `${name} ${p.selo}${myFundadorN() != null ? '🖋️' : ''}${medalhaSemana}`
 }
 
 // tira emoji/pictogramas dos nomes digitados (cadastro, sala, time): os selos

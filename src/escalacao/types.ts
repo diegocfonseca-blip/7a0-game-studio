@@ -142,7 +142,7 @@ export interface WonCard extends Card {
 export interface LedgerEntry {
   id: string
   season: number // temporada do lançamento
-  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' | 'socio' | 'presidency' // bens da presidência separados de transferências de jogadores
+  kind: 'reward' | 'gate' | 'salary' | 'buy' | 'sell' | 'sponsor' | 'saf' | 'stadium' | 'safbuy' | 'safsell' | 'opening' | 'empresario' | 'banco' | 'bico' | 'socio' | 'presidency' | 'clube2buy' | 'clube2sell' | 'clube2interno' // bens da presidência separados de transferências de jogadores
   label: string
   amount: number // sinal: + entrada, − saída
   player?: string // compra/venda: nome do jogador
@@ -198,7 +198,7 @@ export interface EventoManchete { season: number; round: number; emoji: string; 
 // 4-2-4 e 5-4-1 entraram em 26/08 (martelo do Diego nas 15 formações), medidas
 // no motor real (25 temporadas × 4 perfis de elenco): nenhuma passa de 48% de
 // título nem no cenário mais favorável — mesma faixa das 5 antigas.
-export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1'
+export type FormationKey = '4-3-3' | '4-4-2' | '4-5-1' | '3-4-3' | '5-3-2' | '4-2-4' | '5-4-1' | 'kings'
 
 export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '4-3-3': { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 },
@@ -208,6 +208,9 @@ export const FORMATIONS: Record<FormationKey, Record<Sector, number>> = {
   '5-3-2': { GOL: 1, LAT: 2, ZAG: 3, MEI: 3, ATA: 2 }, // 🧱 muralha: 5 na defesa (2 lat + 3 zag), retranca
   '4-2-4': { GOL: 1, LAT: 2, ZAG: 2, MEI: 2, ATA: 4 }, // 🔥 tudo no ataque: 4 atacantes DE VERDADE (exigência do Diego: "424 não pode ser 433")
   '5-4-1': { GOL: 1, LAT: 2, ZAG: 3, MEI: 4, ATA: 1 }, // 🚌 ônibus: 5 atrás + 4 meias segurando, 1 lá na frente
+  // 👑 KINGS LEAGUE (15/10, só a conta do Diego): futebol 7 = goleiro + 6. Só nasce no START com `kings` — nenhuma
+  // tela de escolha de formação oferece esta (o leilão de sempre monta 7 vagas por time).
+  kings: { GOL: 1, LAT: 0, ZAG: 2, MEI: 2, ATA: 2 },
 }
 
 export type Tactic = 'retranca' | 'equilibrio' | 'ataque'
@@ -248,6 +251,9 @@ export interface Manager {
   // (XI + banco = 2× a formação por posição). Fora do leilão de reservas fica
   // undefined, então o leilão normal (T1/solo/dinastia/rápido) segue mirando 11.
   deepSquad?: boolean
+  // 🔁 carreira (14/10): jogadores que perderam a vaga pra um reforço do bot e vão ser LISTADOS no próximo leilão
+  // (o bot recebe o dinheiro da venda, igual quem lista). Só bot rival; humano nunca.
+  aVender?: string[]
   /** 🧱 no leilão de clubes, durante o pregão o técnico precisa de 1 PACOTE por setor */
   modoClubes?: boolean
   // 🏀 carreira do basquete: alvo de vagas POR POSIÇÃO deste técnico (1 quinteto →
@@ -277,6 +283,8 @@ export interface Manager {
 export interface Bid {
   mgr: number
   amount: number
+  /** 🔁 lance de REFORÇO de bot com elenco cheio (14/10): vale mesmo sem vaga aberta; quem perde a vaga vai a leilão depois */
+  reforco?: boolean
 }
 
 // resultado da disputa de uma carta, pronto pra revelação dramática
@@ -396,7 +404,66 @@ export interface MatchHighlight {
   kind?: 'gol' | 'assist'
 }
 
+/** 👑 KINGS LEAGUE (15/10): a carta secreta é SORTEADA (ninguém escolhe) — o coringa vira outra na hora */
+export type CartaKingsTipo = 'penalti' | 'shootout' | 'suspensao' | 'gol_dobro' | 'estrela' | 'penalti_inverso' | 'coringa'
+/** 🎩🃏 uma cobrança 1×1 da partida (presidente ou carta): quem bate, quem defende, os cantos e se entrou */
+export interface DueloKingsInfo {
+  key: string
+  tipo: 'presidente' | 'penalti' | 'shootout' | 'penalti_inverso'
+  /** minuto na escala do placar (0–93) */
+  min: number
+  batedor: number; goleiro: number
+  /** cantos 0..5 (↖ ↑ ↗ ↙ ↓ ↘) */
+  chute: number; pulo: number
+  gol: boolean
+  /** quem ganhou o gol (no pênalti inverso, o gol é de quem DEFENDEU) — `null` = não saiu gol */
+  golPara: number | null
+}
+export interface CartaKingsInfo { teamId: number; min: number; sorteada: CartaKingsTipo; vale: Exclude<CartaKingsTipo, 'coringa'>; estrela?: string
+  /** 🟥 suspensão: o jogador do RIVAL que sai 4 min (sorteado) */
+  suspenso?: string }
+/** 👑 KINGS LEAGUE (15/10): o que a regra da Kings fez nesta partida (só existe na liga da Kings). Os minutos dos
+ *  lances seguem na escala de sempre do placar (0–93); a tela traduz pros 40 da Kings (`kings-liga.ts`). */
+export interface KingsInfo {
+  /** 🎲 o dado do 18': 1 = 👑 cara do rei (1×1 com goleiro) · 2 = 2×2 · 3 = 3×3 */
+  dado: 1 | 2 | 3
+  /** ⚽ quem ficou com a bola quando ela caiu da gaiola */
+  posse?: number
+  bola: 'dourada' | 'vermelha'
+  /** decidido no gol de ouro (bola dourada) */
+  ouro: boolean
+  /** 🎩 o pênalti do presidente de cada time */
+  pres: { teamId: number; min: number; gol: boolean }[]
+  /** 🃏 a carta sorteada de cada time */
+  cartas?: CartaKingsInfo[]
+  /** 🥅 as cobranças 1×1 (presidente e cartas de pênalti/shootout/inverso) */
+  duelos?: DueloKingsInfo[]
+  /** 🟨🟥 cartões: na Kings ninguém é expulso de vez — amarelo = 2 min fora, vermelho = 5 min fora (o time joga com um a menos) */
+  cartoes?: CartaoKingsInfo[]
+  /** empate no apito = SHOOTOUT (casa, fora) — quem ganha leva 2 pontos, quem perde 1 */
+  pens?: [number, number]
+  pensSeq?: string
+}
+/** 👑 a partida "crua" (antes da regra da Kings) guardada nos jogos de GENTE: quando a pessoa escolhe o canto, a
+ *  partida é refeita a partir daqui (mesma semente) com a escolha dela. */
+/** 🟨🟥 um cartão da Kings: `min` no relógio do placar (0–93), `ate` = minuto da KINGS (0–40) em que o jogador volta */
+export interface CartaoKingsInfo { teamId: number; nome: string; cor: 'amarelo' | 'vermelho'; min: number; ate: number }
+export interface KingsBase {
+  highlights: MatchHighlight[]
+  /** 🟨🟥 os cartões do jogo (saem junto com os gols, no `simulaGolsKings`) */
+  cartoes?: CartaoKingsInfo[]
+  tmpS: ScorerRow[]; tmpA: AssistRow[]
+  seed: number
+  rodada: number
+  /** escolha de quem é gente em cada cobrança (chave do duelo → canto) */
+  decisoes: Record<string, number>
+  /** artilharia/garçons que ESTE jogo pôs nas listas (pra tirar antes de refazer) */
+  art: { s: ScorerRow[]; a: AssistRow[] }
+}
+
 export interface MatchResult {
+  kings?: KingsInfo
+  kingsBase?: KingsBase
   presentationGoals?: MatchHighlight[] // prévia: eventos reais, sem alterar highlights públicos
   homeId: number
   awayId: number
@@ -418,6 +485,10 @@ export interface QuickCopaTie {
   ot?: boolean             // 🏀 o desempate foi PRORROGAÇÃO (basquete), não pênaltis (14/09)
   winner: number | null    // id de quem passou (null = ainda rolando)
   lastHighlights?: MatchHighlight[] // gols do ÚLTIMO leg jogado — pro placar ao vivo
+  /** 👑 Kings: o que a regra da Kings fez no último jogo (banners do relógio) */
+  lastKings?: KingsInfo
+  /** 👑 Kings: o último jogo inteiro, se tem gente nele (pra refazer quando a pessoa escolhe o canto) */
+  kingsJogo?: MatchResult
 }
 // 🌎 'oitavas' existe SÓ pra Libertadores, que começa o mata-mata com 16 clubes
 // (a Copa dos 8 continua começando nas quartas — nada muda pra ela).
@@ -432,6 +503,8 @@ export interface QuickCopaState {
   champion?: { id: number; name: string; you: boolean } | null
   scorers?: ScorerRow[] // 🏆 artilharia SÓ da Copa (não mistura com a da liga)
   assists?: AssistRow[] // 🅰️ garçons SÓ da Copa (mesma regra: não mistura com a liga)
+  /** 👑 Kings League: o 1º da liga, que pula as quartas e espera direto na semi */
+  kingsDireto?: number
 }
 
 // 🌎 LIBERTADORES — a fase de GRUPOS. O mata-mata depois dela reusa o
@@ -934,6 +1007,19 @@ export interface EscState {
     ledger?: LedgerEntry[]; filial?: EscState['careerFilial']
     empresario?: EmpCard[]; empresarioClaims?: string[]
   } | null
+  // 🏢➡️⚽ SAF QUE VIRA 2º CLUBE (13/10, só com `saf2Liberado()` — sport.ts). Regras puras em `saf2.ts`.
+  // Fica FORA do `multiClube` de propósito: aquele objeto descreve "o clube que dorme" e é refeito a
+  // cada troca de comando — guardar coisa do 2º clube lá dentro trocaria de dono na troca.
+  saf2?: {
+    migrado?: boolean       // já passou pela tela "O jogo mudou" (quem tinha SAF e 2º clube separados)
+    semEspera?: boolean     // ficou com a SAF na migração → pode assumir o comando na hora, sem as 10 temporadas
+    origemSaf?: boolean     // o 2º clube nasceu da SAF (pagou 2.000 + 4.000). Ausente = 2º clube ANTIGO (venda = maior entre 3.000 e as taças)
+    clubeId?: number        // id do assento do 2º clube (o `mine`) a que `tacas`/`aportes` se referem
+    tacas?: string[]        // coleção de taças ganhas com o 2º clube (cada tipo uma vez — ver TACAS_SAF2)
+    aportes?: number        // soma dos aportes principal → 2º clube (conta como investido)
+    transfSeason?: number   // temporada da última transferência de vez entre os dois clubes (1 por janela)
+    emprestimos?: { cardId: string; de: number; para: number; season: number }[] // empréstimos entre os SEUS dois clubes (voltam sozinhos na virada)
+  }
   multiClubeAtivo?: boolean // true = o 2º clube está no comando (youIdx aponta pra ele); false/undefined = principal ativo
   // 🏛️ MULTICLUBES · cartas GUARDADAS: quando o clube que DORMIA foi campeão (título de
   // divisão e/ou Copa Legends), a carta fica pendente aqui, keyed pelo id do clube (já
@@ -955,6 +1041,10 @@ export interface EscState {
   // o técnico segue 100% livre pra mexer no time quando quiser.
   copaXiSeason?: number // temporada cuja escalação da Copa já foi congelada
   copaXi?: Record<number, string[]> // mgrId → os 11 que entraram na Copa daquela temporada
+  botFadigaDesde?: number // 🔁 rival com banco (13/10): 1ª temporada em que os bots cansam (nasce na virada depois de ligar — temporada em andamento nunca muda)
+  botCarry?: Record<string, number> // 🔁 gás com que cada carta de BOT terminou a temporada (chave = chaveCarry), igual ao condicaoCarry do humano
+  econBotsSeason?: number // 💰 economia dos bots (13/10): a última temporada já paga (trava anti-dobro do toque duplo)
+  econBotsRel?: Record<string, { tv: number; bilheteria: number; folha: number; saldo: number; caixa: number; patrocinio?: number }> // 💰 o balanço da última virada de cada clube bot (a Central mostra)
   copaPrizeDone?: Record<string, boolean> // 🌍 Copa do Mundo: chave `${mgrId}:${temporada}` já creditada (+100) — trava anti-perda/anti-dobro no próprio estado do jogo (persiste no autosave), pra o prêmio não sumir se o app fechar entre creditar e marcar "já joguei".
   // 🌍 ESPELHO do mural da Copa do Mundo (Diego 14/08): o mural "de verdade" segue
   // vivendo local (localStorage `llcopa:<seed>`, ver copa-mundo.tsx — motor isolado

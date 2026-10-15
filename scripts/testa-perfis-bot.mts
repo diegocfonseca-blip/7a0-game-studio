@@ -89,7 +89,9 @@ console.log('5) 🚫📈 o exagero do bot não entra no piso')
   const registrado = S.travaPisoDoBot(st, w, c, justo * 3)
   ok(registrado === justo && w.squad[0].paid === justo, `gastador pagou ${justo * 3}, a carta fica registrada no justo (${justo})`)
   const w2 = bot(paoduro); w2.squad.push({ ...c, paid: justo * 3 })
-  ok(S.travaPisoDoBot(st, w2, c, justo * 3) === justo * 3, 'perfil que não paga acima (pão-duro) segue a regra de sempre')
+  // 🧠 13/10 (bot que pensa como gente, carreira solo): a trava vale pra TODO bot — o pão-duro também
+  // pode pagar acima do justo quando precisa muito, e o piso continua no justo
+  ok(S.travaPisoDoBot(st, w2, c, justo * 3) === justo, 'com o bot que pensa, o pão-duro também fica registrado no justo')
   const humano = { ...bot('Eu'), isHuman: true }
   ok(S.travaPisoDoBot(st, humano, c, justo * 3) === justo * 3, 'humano nunca passa pela trava (o que ele paga é o que vale)')
   ok(S.travaPisoDoBot({ ...st, careerOnline: false }, w, c, justo * 3) === justo * 3, 'fora da carreira nada muda')

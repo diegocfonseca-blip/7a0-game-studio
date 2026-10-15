@@ -51,7 +51,7 @@ export const BIOS: Record<string, string> = {
   "Caio Ribeiro": "Promessa de ouro dos anos 90 — talento e faro de gol que encantaram no São Paulo e nas seleções de base. Hoje, craque de microfone.",
   "Oséas": "Centroavante artilheiro dos anos 90 — oportunista de área, goleador por Cruzeiro e Palmeiras.",
   "Donizete Pantera": "A Pantera — centroavante veloz e matador, artilheiro do Vasco campeão brasileiro de 1997.",
-  "Galeano": "Ponta paraguaio habilidoso do Palmeiras na virada do milênio — velocidade, drible e gol pela ponta.",
+  "Galeano": "Volante do Palmeiras da Libertadores de 99, que também quebrava galho na zaga — marcação e raça no meio.",
   "Cláudio Pitbull": "Centroavante matador e xodó do Coritiba — faro de gol, raça de pitbull na área e artilharias que marcaram época.",
   "Domingos": "Zagueiro titular do Santos bicampeão paulista (2006 e 2007) — firme na marcação, viveu ali o melhor momento da carreira.",
   "Evaristo de Macedo": "Um dos maiores atacantes da história do Flamengo — artilheiro e multicampeão nos anos 50, que ainda brilhou no Barcelona e no Real Madrid. Lenda dentro e fora de campo.",
@@ -967,7 +967,9 @@ const MEI: C[] = [
   { name: "Felipe Bastos", club: "Vasco", year: 2011, fame: 1, lo: 55, hi: 77, bio: "Meia de bom pé em bola parada — rodou o país com passagens marcantes por Vasco e Goiás." },
   { name: "Bobô", club: "Bahia", year: 1988, fame: 3, lo: 72, hi: 85, bio: "Ídolo do Bahia campeão brasileiro de 1988 — faro de gol que depois o eternizou como lenda no Beşiktaş." },
   { name: "Zina", club: "Ceará", year: 2007, fame: 1, lo: 56, hi: 77, folk: true, bio: "Meia folclórico e xodó da torcida do Ceará — categoria e personalidade que marcaram época no Vozão." },
-  { name: "Mattheus (filho do Bebeto)", club: "Flamengo", year: 2014, fame: 1, lo: 54, hi: 77, bio: "Meia canhoto revelado no Flamengo (campeão da Copa do Brasil 2013 e do Carioca 2014) antes de seguir carreira em Portugal." }
+  { name: "Mattheus (filho do Bebeto)", club: "Flamengo", year: 2014, fame: 1, lo: 54, hi: 77, bio: "Meia canhoto revelado no Flamengo (campeão da Copa do Brasil 2013 e do Carioca 2014) antes de seguir carreira em Portugal." },
+  // 🔁 13/10: estava no ATA como "ponta paraguaio" — era volante (que quebrava galho na zaga) brasileiro do Palmeiras de 99/2000 (bug do Renato)
+  { name: "Galeano", club: "Palmeiras", year: 2000, fame: 2, lo: 66, hi: 80 }
 ]
 
 const ATA: C[] = [
@@ -978,7 +980,6 @@ const ATA: C[] = [
   { name: "Caio Ribeiro", club: "São Paulo", year: 1994, fame: 2, lo: 68, hi: 82, promessa: true },
   { name: "Oséas", club: "Cruzeiro", year: 2000, fame: 2, lo: 66, hi: 80 },
   { name: "Donizete Pantera", club: "Vasco", year: 1997, fame: 3, lo: 74, hi: 84 },
-  { name: "Galeano", club: "Palmeiras", year: 2000, fame: 2, lo: 66, hi: 80 },
   { name: "Cláudio Pitbull", club: "Grêmio", year: 2003, fame: 2, lo: 66, hi: 80 },
   { name: "Evaristo de Macedo", club: "Flamengo", year: 1955, fame: 5, lo: 88, hi: 95 },
   { name: "Kaio Jorge", club: "Cruzeiro", year: 2024, fame: 3, lo: 74, hi: 84 },
@@ -1854,6 +1855,8 @@ const MEI_EU: C[] = [
   { name: "Deschamps", club: "Juventus", year: 1998, fame: 3, lo: 76, hi: 84 },
   { name: "Xavi Simons", club: "RB Leipzig", year: 2024, fame: 3, lo: 78, hi: 86 },
   { name: "Warren Zaïre-Emery", club: "PSG", year: 2025, fame: 3, lo: 72, hi: 83, promessa: true },
+  { name: "Vitinha", club: "PSG", year: 2025, fame: 4, lo: 86, hi: 92, bio: "Maestro português do PSG campeão da Europa — dita o ritmo do meio, quase não erra passe e foi pódio da Bola de Ouro." },
+  { name: "João Neves", club: "PSG", year: 2025, fame: 4, lo: 83, hi: 90, bio: "Volante português de 20 anos que joga como veterano — rouba, distribui e chega na área no PSG campeão da Champions." },
   { name: "Alexis Mac Allister", club: "Liverpool", year: 2024, fame: 4, lo: 82, hi: 89 },
   { name: "Arturo Vidal", club: "Juventus", year: 2015, fame: 4, lo: 85, hi: 91 },
   { name: "Bruno Fernandes", club: "Man United", year: 2021, fame: 4, lo: 85, hi: 91 },
@@ -3542,6 +3545,17 @@ export const CPU_MANAGERS = [
 // clubes fictícios "de gente grande" (inventados, não são paródia de reais).
 export type CareerTeam = { name: string; team: string }
 
+// ─── 🏷️ CARTAS RENOMEADAS (velho → novo, mesmo clube e ano) ───────────────
+// Quando o NOME de uma carta muda no catálogo, o save de quem já tinha a carta continua com o nome
+// velho — e o jogo passava a achar que eram DUAS pessoas: o catálogo "soltava" a carta de nome novo
+// pra outro clube, e a mesma carta existia em dois elencos (Marcelo do Renaton, 13/10: ele tinha o
+// "Marcelo Vieira" e o Leite de Verdade FC listou o "Marcelo" no leilão). O `sincronizaNiveis`
+// (store.tsx) troca o nome velho pelo novo em todo save que abre e tira a cópia repetida.
+// ⚠️ Mudou o nome de uma carta? ENTRA AQUI, senão o bug volta.
+export const CARTAS_RENOMEADAS: [velho: string, novo: string, clube: string, ano: number][] = [
+  ['Marcelo Vieira', 'Marcelo', 'Real Madrid', 2017], // 26/09: a carta virou só "Marcelo" (pedido do Diego)
+]
+
 // ─── Times RENOMEADOS (novo → velho) ─────────────────────────────────────
 // Saves antigos guardam o nome da época (managers, colocações, caixa, títulos).
 // Estas pontes deixam qualquer geração de save achar o time no nome atual.
@@ -3621,6 +3635,7 @@ export const OLD_NAME: Record<string, string> = {
   'Alfacehh': 'Athletico do Porto', // ⚽ batismo do matheus223lms: ele DESCEU pra Série B em 23/08 e passou a ocupar o assento do Athletico do Porto — save antigo com esse nome vira Alfacehh ao carregar
   'Pesadelo Verde FC': 'Zé Colmeia', // 🌑🐺 batismo do portaltech.ep (18/09): assumiu o assento da Série C que era do Zé Colmeia — save antigo com Zé Colmeia vira Pesadelo Verde FC ao abrir. (O Zé Colmeia continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Fridão FC': 'Casa de Vó', // 🐴 batismo do felipe.ofrida (16/09): assumiu o assento da Série C que era do Casa de Vó — save antigo com Casa de Vó vira Fridão FC ao abrir. (O Casa de Vó continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
+  'ComVerissimo FC': 'Soberano Nacional', // 🟢 batismo do cesar.verissimo27 (15/10): assumiu o assento da Série D que era do bot Soberano Nacional — save antigo com Soberano Nacional vira ComVerissimo FC ao abrir.
   'Internacional de Madrid': 'Adão Esporte', // 👑 batismo do matheusstefanello372 (14/09): assumiu o assento da Série C que era do Adão Esporte — save antigo com Adão Esporte vira Internacional de Madrid ao abrir. (O Adão Esporte continua existindo na lista morta CPU_MANAGERS; só o assento da pirâmide mudou de nome.)
   'Bonança SSFC': 'Torta de Rã', // 🔊 batismo do duselecta: assumiu o assento da Série C que era do Torta de Rã — save antigo com Torta de Rã (ou Fogaréu EC, o nome mais velho ainda) vira Bonança SSFC ao carregar (09/09)
   'Final Boss FC': 'Ponte Branca', // 🐂 batismo do gustavo99828: assumiu o assento da Série C que era do Ponte Branca — save antigo com Ponte Branca (ou Grelha SAF, o nome mais velho ainda) vira Final Boss FC ao carregar (05/09)
@@ -3813,11 +3828,11 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
   // o batismo de R$69,90 compra. (era a "Série D" até 30/08)
   A: [
     { name: 'Zé Ruela', team: 'Neymarzetti' }, // ⚽ clube BATIZADO (time do Diego, dono do jogo — ex-Paixandu)
-    { name: 'Anjo Caído', team: 'Só Deus Sabe FC' }, // 🙏 clube BATIZADO por apoiador (contateste577660006 — Só Deus Sabe FC; coração Atlético Mineiro; anjo de joelhos no gramado, preto + dourado; Lenda + fundador nº65 + sócio nº43, 09/09). Assento que era do Nightfull FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Nightfull não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Pelado FR).
+    { name: 'Labubu', team: 'Labubu FC' }, // 🐰⚪ clube BATIZADO por apoiador (caelborba — Labubu FC; coração Real Madrid; escudo coroado com o monograma e o pelo preto atrás, mascote O Labubu de uniforme branco nº 10; branco #EFEEED + marinho #03101F MEDIDOS na camisa; ouro + sócio nº72, SEM nº de fundador pela regra de 14/10). Assento que era do Só Deus Sabe FC, que DESCEU pra Série C por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Só Deus Sabe não foi renomeado, só mudou de divisão. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Heitor', team: 'Arrogantchi FC' }, // 😜🔵⚫ clube BATIZADO por apoiador (heitormonaco98 — Arrogantchi FC; o boleiro de boné e língua de fora com a boneca Mavie no colo; azul-celeste #4EC3FC + preto #141716 MEDIDOS na camisa; era grátis, virou Lenda + fundador nº88 + sócio nº69, 08/10). Assento que era do Bagres 1993, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Bagres 1993 não foi renomeado, só mudou de divisão. ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Marcão', team: 'São Marcos Antônio FC' }, // 😇🐷 clube BATIZADO por apoiador (marcomak03 — São Marcos Antônio FC; o goleiro de auréola e o porquinho, verde-garrafa + creme; coração Palmeiras; era ⭐ Craque, virou Lenda + fundador nº68 + sócio nº49, 13/09). Assento que era do Marolados FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Marolados não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Real Madruga). ⚠️ Isto aqui é memória do repo — no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Seu Bruno da Roça', team: 'Leite de Verdade FC' }, // 🐮 clube BATIZADO por apoiador (brunolopesmiranda15 — Leite de Verdade FC; vaca malhada de chapéu de palha e óculos escuros, creme e preto com dourado; Lenda + fundador nº67 + sócio nº45, 10/09). Assento que era do Barcenite FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Barcenite não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Milanesa FC).
-    { name: 'Zé da Vidraça', team: 'Vidraceiro FC' }, // 🪟 clube BATIZADO por apoiador (guiouriques — Vidraceiro FC; Lenda + fundador nº58 + sócio nº36, 05/09). Assento que era do Murriz FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Igual ao caso do Marreco/Al Takhadao: NÃO existe OLD_NAME aqui — o Murriz não foi renomeado, só mudou de divisão, e mapear faria os dois desenharem o mesmo escudo. Escudo, mascote (🪟 O Cristal) e manto azul-vidro + preto com a arte própria do dono.
+    { name: 'Tião Bagre', team: 'Leão da Estradinha' }, // ⚽🦁 clube BATIZADO por apoiador (jorgericardo777 — Leão da Estradinha, ex-Império Samambaia, ex-Cuiabagre; homenagem ao Rio Branco-PR, o Leão da Estradinha de 1913, time do coração dele; rebatismo 23/08). ⬆️ VOLTOU pra Série A em 13/10 (decisão do Diego, com arte nova), no assento do Vidraceiro FC, que desceu pra B na vaga dele. SEM OLD_NAME: nenhum dos dois foi renomeado. ⚠️ No POST não se diz de quem era o assento (regra 05/09).
     { name: 'Saci', team: 'Guimarães SCI' }, // 🔴⚪ clube BATIZADO por apoiador (jadriovani — Guimarães SCI; o Saci de gorro vermelho e cachimbo; vermelho + branco; Lenda + fundador nº82 + sócio nº63, 02/10). Assento que era do Tôka10, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Tôka10 não foi renomeado, só mudou de divisão (a corrente Biriba United → Tôka10 segue valendo). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'D10', team: 'Fala D10' }, // 🎙️ clube BATIZADO por apoiador (diegohdsf — Fala D10; coração Corinthians; Lenda + fundador nº64 + sócio nº42, 09/09). Assento que era do Skyy FC, que DESCEU pra Série D por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Skyy não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Fortuna SAF).
     { name: 'Galo', team: 'Briga de Galo FC' }, // 🐓 clube BATIZADO por apoiador (pedrovianacarneiroq — Briga de Galo FC; preto e branco listrado com dourado, mascote o Galo de punhos fechados; Lenda + fundador nº62 + sócio nº40, 08/09). Assento que era do Vasco da Grana, que DESCEU pra Série D por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Vasco da Grana não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Magrão EC).
@@ -3843,14 +3858,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // abrir o assento do Mengão Malvadão. Ocupa a vaga que era do bot "Nacional da Serra" (só existia
     // aqui e em CLASSIC_CLUBS). SEM OLD_NAME: não foi renomeado, só mudou de divisão.
     { name: 'Cabeção da Vila', team: 'Nata de SP' }, // ⚽ clube BATIZADO por apoiador (pedrinhocamisa8 — Nata de SP, ex-Paris São Geraldo, 17/08)
-    // 🦁 LEÃO DA ESTRADINHA (jorgericardo777) DESCEU da Série A pra cá em 24/09, por
-    // decisão do Diego, pra abrir o assento do Julia Barranquila. Ocupa a vaga que era
-    // do bot "Esporte do Cerrado" (escolhido por só existir aqui e em CLASSIC_CLUBS, em
-    // mais lugar nenhum do jogo — o bot continua vivo no jogo rápido).
-    // ⚠️ DE PROPÓSITO **não** existe `OLD_NAME['Leão da Estradinha'] = 'Esporte do
-    // Cerrado'`: ele não foi renomeado, só mudou de divisão — a corrente dele (Império
-    // Samambaia ← Cuiabagre) segue valendo.
-    { name: 'Tião Bagre', team: 'Leão da Estradinha' }, // ⚽🦁 clube BATIZADO por apoiador (jorgericardo777 — Leão da Estradinha, ex-Império Samambaia, ex-Cuiabagre; homenagem ao Rio Branco-PR, o Leão da Estradinha de 1913, time do coração dele; rebatismo 23/08). ⬇️ Veio da Série A em 24/09.
+    // 🪟 VIDRACEIRO FC (guiouriques) DESCEU da Série A pra cá em 13/10, por decisão do Diego, pra
+    // abrir o assento do Leão da Estradinha, que voltou pra A. Ocupa a vaga do Leão (troca 1:1).
+    // SEM OLD_NAME: não foi renomeado, só mudou de divisão.
+    { name: 'Zé da Vidraça', team: 'Vidraceiro FC' }, // 🪟 clube BATIZADO por apoiador (guiouriques — Vidraceiro FC; Lenda + fundador nº58 + sócio nº36, 05/09). Assento que era do Murriz FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ Igual ao caso do Marreco/Al Takhadao: NÃO existe OLD_NAME aqui — o Murriz não foi renomeado, só mudou de divisão, e mapear faria os dois desenharem o mesmo escudo. Escudo, mascote (🪟 O Cristal) e manto azul-vidro + preto com a arte própria do dono.
     // ⚽ Manfré FC (danielmanfre5) DESCEU da Série A pra cá em 09/09, por decisão
     // do Diego, pra abrir o assento do Bagres de Wall Street FC. Ocupa a vaga que era
     // do bot "União da Baixada" (escolhido por só existir aqui e em CLASSIC_CLUBS,
@@ -3970,7 +3981,10 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // (o 1º bot sem dono da Série C). `OLD_NAME` leva save antigo pro nome novo. O Tetéia SAF continua
     // existindo em CPU_MANAGERS (o elenco do jogo rápido, outra lista).
     { name: 'Marcus', team: 'Inter Vale FC' }, // 🥊⚫⚪ clube BATIZADO por apoiador (marcus.viniciuslopessantos79 — Inter Vale FC, ex-Tetéia SAF, Série C; escudo redondo alvinegro com o monograma IV e o 08, mascote O Lutador de muay thai; preto #0E0E0E + branco #E4E3E1 MEDIDOS na camisa do dono; Lenda + fundador nº89 + sócio nº70, 12/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
-    { name: 'Gugu Canela', team: 'Napolitano' },
+    // 🙏 SÓ DEUS SABE FC (contateste577660006) DESCEU da Série A pra cá em 14/10, por decisão do Diego, pra abrir o
+    // assento do Labubu FC. Ocupa a vaga do bot "Napolitano" (o 1º bot sem dono da Série C). SEM OLD_NAME: nem o
+    // Só Deus Sabe nem o Napolitano foram renomeados — o Napolitano só saiu da pirâmide.
+    { name: 'Anjo Caído', team: 'Só Deus Sabe FC' }, // 🙏 clube BATIZADO por apoiador (contateste577660006 — Só Deus Sabe FC; coração Atlético Mineiro; anjo de joelhos no gramado, preto + dourado; Lenda + fundador nº65 + sócio nº43, 09/09). Assento que era do Nightfull FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Nightfull não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Pelado FR).
     { name: 'Boss', team: 'Final Boss FC' }, // 🐂 clube BATIZADO por apoiador (gustavo99828 — Final Boss FC, ex-Ponte Branca, Série C; mascote o touro O Boss, vermelho + preto sobre branco; Lenda + fundador nº57, 05/09)
     { name: 'Vavá Peteca', team: 'CRBebê' },
     { name: 'Relâmpago', team: 'Stocco FC' }, // ⚡🐺 clube BATIZADO por apoiador (stoccoassessoria — Stocco FC, ex-Semervilha, Série C; mascote o Lobo Relâmpago, roxo + preto; Lenda + fundador nº56, 04/09)
@@ -3990,7 +4004,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // ⭐🐺 CRUZEIRO DE BERRETINHO (weslleygomes749, batismo de 25/09) no assento do bot
     // Metrópole FC (o 1º bot sem dono da lista). `OLD_NAME` leva save antigo pro nome novo.
     { name: 'Berretinho', team: 'Cruzeiro de Berretinho' }, // ⭐🐺 clube BATIZADO por apoiador (weslleygomes749 — Cruzeiro de Berretinho, ex-Metrópole FC; escudo com a coroa, os dois lobos e o Cruzeiro do Sul, mascote O Lobo Rei no trono; coração CRUZEIRO; Lenda + fundador nº79 + sócio nº60, 25/09)
-    { name: 'Soberano', team: 'Soberano Nacional' },
+    { name: 'Verissimo', team: 'ComVerissimo FC' }, // 🟢⚪ clube BATIZADO por apoiador (cesar.verissimo27 — ComVerissimo FC, ex-Soberano Nacional; coração PALMEIRAS; escudo coroado com a caricatura do dono e o P, "Futebol e Resenha"; mascote O Verissimo; verde #034727 + branco #F0F0EC MEDIDOS na camisa; plano 🖋 Fundador: ouro + fundador nº3 (já tinha desde agosto) + sócio nº73, 15/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Sistematizado', team: 'Sistematizados FC' }, // 🎮 clube BATIZADO por apoiador (gaancaxd — Sistematizados FC, ex-Coliseu United, Série D; mascote O Sistematizado, preto + roxo; Lenda + fundador nº61, 07/09)
     { name: 'Cometa', team: 'Galáxia EC' },
     { name: 'Imperador', team: 'Imperador SAF' },
