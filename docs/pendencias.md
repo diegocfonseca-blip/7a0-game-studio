@@ -1,4 +1,6 @@
 ## 🪪 5 Garrinchas no elenco do Fabulous EC (15/10) — ✅ NO AR (15/10)
+- 🦅⚡ **FABULOUS EC VIROU 🖋 FUNDADOR (15/10)**: koeppfabio já tinha fundador nº76; gravado `esc_compras_batismo` = plus (o mesmo do Arruda). ⏳ **GALA ÚNICA esperando OK do Diego**: `gala-fabulous.tsx` (guerreiro PRETO entra pela esquerda e VERMELHO pela direita → giram e viram luz num clarão → céu fecha, nuvens, raios e a tela pisca → o escudo acende e a águia sobe → "CHEGOU NA SALA"). Guerreiros são NOSSOS (capacete + raio no peito), nada da marca Power Rangers. Vídeo: `node scripts/video-gala-fabulous.mjs` → `scripts/posts/gala-fabulous.mp4`. Falta: registrar em `GALA_UNICA` (entrada-gala.tsx) quando ele aprovar. Sem canto (ele não comprou).
+
 - Causa: sondagem de clube de FUNDO dava à carta o id `sond-<id do fundo>`, e o id de fundo (`ATA-25`) se repete entre
   clubes. Garrincha (sondado antes) e Pelé (agora) nasceram os dois `sond-ATA-25`; a tela desenha o elenco pelo id e
   embaralhou (5 Garrinchas na lista; no elenco de verdade eram 1 Pelé + 1 Garrincha).
