@@ -109,6 +109,9 @@ grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (apl
   Ele esclareceu: é a CRIAÇÃO DE PERSONAGEM. 2ª proposta (15/10): grátis monta pra ver mas não salva · Craque = pele + 14 roupas
   básicas + cabelos/barbas clássicos · Lenda = + 9 roupas especiais · Batismo/Fundador = + 10 roupas de gala · cabelos de craque
   (Neymar, Messi, CR7…) avulsos R$ 2,90 e roupas especiais R$ 4,90 na Loja. ⏳ esperando o OK.
+  ➕ 15/10: quer VENDER CAMISA DE TIME DE CORAÇÃO pro personagem. Proposta: camisa nas CORES do time (listra/faixa do
+  jeito do clube), SEM escudo oficial e SEM patrocinador — vender a camisa oficial com escudo é usar marca de clube pra
+  cobrar. R$ 4,90 cada, começando pelos 20 da Série A. ⏳ esperando ele escolher.
 - FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
 
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
