@@ -2,7 +2,7 @@
 //
 // Pedido do Diego: *"quero que o primeiro, segundo e terceiro ganhe algo mais forte no nome a mais que as medalhas…
 // problema de pôr fundo é que quem já tem dourado não mudaria nada"*. Mockup aprovado (`scripts/mockup-podio-semana.mjs`,
-// *"gostei da moldura, perfeito"*), com a fita escrita "1º RANKING SEMANAL" (pedido dele).
+// *"gostei da moldura, perfeito"*), com a fita "1º DA SEMANA" (ele chegou a pedir "1º RANKING SEMANAL" e voltou atrás: *"melhor do jeito que você falou mesmo"*).
 // O FUNDO continua sendo o do PLANO (regra sagrada do tier); o pódio vem POR FORA: moldura de metal girando
 // (ouro · prata · bronze), coroinha no 1º e a fita pendurada.
 // Quem diz a posição é a MEDALHA que já vai no nome (🥇🥈🥉, `apoioSelo`): ela vem do banco e o `stripEmoji` tira
@@ -46,7 +46,7 @@ export function PodioMoldura({ pos, children }: { pos: 0 | 1 | 2 | 3; children: 
       <span className="podio-anel" aria-hidden />
       {pos === 1 && <span className="podio-coroa" aria-hidden>👑</span>}
       <span className="podio-fita" style={{ background: fundo, color: cor }}>
-        {['', '🥇', '🥈', '🥉'][pos]} {tr(`${pos}º RANKING SEMANAL`, `#${pos} WEEKLY RANKING`)}
+        {['', '🥇', '🥈', '🥉'][pos]} {tr(`${pos}º DA SEMANA`, `#${pos} OF THE WEEK`)}
       </span>
       <div className="podio-dentro">{children}</div>
     </div>
