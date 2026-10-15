@@ -23,6 +23,8 @@
 // 🎲 DETERMINÍSTICO: semente da rodada + clubes → a sala inteira ouve a mesma rádio no mesmo minuto.
 // 🌐 PT e EN andam juntos (par por par), então o sorteio vale pros dois idiomas.
 
+import { kParaPlacar, PLACAR_DADO, PLACAR_INTERVALO } from './kings-liga'
+
 type Par = [pt: string, en: string]
 export type RadioLance = { min: number; i: number; a: number; f: number; home: boolean }
 
@@ -220,6 +222,29 @@ const KINGS: FraseKings[] = [
 ]
 export const ACERVO_KINGS_RADIO = KINGS.length
 
+// 👑 FASES ABERTAS DA KINGS (15/10, Diego: *"no rádio não tô vendo quase nada falando dos jogadores"*): enquanto o campo
+// está vazio (1×1 do pontapé até o 6×6, e a fase do dado) a rádio tem frases PRÓPRIAS, sempre com o nome de alguém do
+// time. Antes essa fase caía nas frases genéricas de "começo de jogo", que não citam ninguém. Nada de gol/chance/placar.
+const KINGS_FASE: FraseKings[] = [
+  { c: ['campo inteiro aberto no 1×1: o {t} conduz em velocidade', 'the whole pitch is open in the 1v1: {t} drive forward at speed'], p: ['campo inteiro aberto no 1×1: {p} conduz em velocidade pelo {t}', 'the whole pitch is open in the 1v1: {p} drives forward at speed for {t}'], pos: 'ATA' },
+  { c: ['no 1×1 até o goleiro joga: o do {t} sai com a bola no pé', 'in the 1v1 even the keeper plays: the {t} keeper brings it out'], p: ['no 1×1 até o goleiro joga: {p} sai da área com a bola no pé', 'in the 1v1 even the keeper plays: {p} walks out of the box with the ball'], pos: 'GOL' },
+  { c: ['o {t} ganha mais um em campo e já pede a bola', '{t} get one more on the pitch and he wants the ball'], p: ['{p} acaba de entrar pelo {t} e já pede a bola', '{p} has just come on for {t} and already wants the ball'], pos: 'MEI' },
+  { c: ['a defesa do {o} está sozinha atrás enquanto o time ainda entra', 'the {o} defence is on its own while the team is still coming on'], p: ['{p} segura o {o} sozinho atrás enquanto o time ainda entra', '{p} holds {o} together alone at the back while the team is still coming on'], pos: 'ZAG', quem: 'o' },
+  { c: ['com pouca gente em campo, sobra espaço por todo lado pro {t}', 'with few players on the pitch, {t} find space everywhere'], p: ['com pouca gente em campo, {p} acha espaço por todo lado', 'with few players on the pitch, {p} finds space everywhere'], pos: 'MEI' },
+  { c: ['o {t} cansa o marcador do {o}: campo aberto é coisa de Kings', '{t} wear out the {o} marker: open pitches are pure Kings'], p: ['{p} cansa o marcador do {o}: campo aberto é coisa de Kings', '{p} wears out the {o} marker: open pitches are pure Kings'], pos: 'ATA' },
+  { c: ['o {t} entra correndo do banco e a arena aplaude', '{t} add a runner from the bench and the arena applauds'], p: ['{p} entra correndo do banco do {t} e a arena aplaude', '{p} sprints on from the {t} bench and the arena applauds'], pos: 'ATA' },
+  { c: ['o goleiro do {o} grita pra organizar quem acabou de entrar', 'the {o} keeper is yelling to organise the new arrivals'], p: ['{p}, goleiro do {o}, grita pra organizar quem acabou de entrar', '{p}, the {o} keeper, yells to organise the new arrivals'], pos: 'GOL', quem: 'o' },
+  { c: ['o {t} encara o marcador no mano a mano, a arena prende a respiração', '{t} take on the defender one against one, the arena holds its breath'], p: ['{p} encara o marcador do {o} no mano a mano, a arena prende a respiração', '{p} takes on the {o} defender one against one, the arena holds its breath'], pos: 'ATA' },
+  { c: ['o {o} corre atrás de todo mundo, não tem onde se esconder nesse campo', '{o} chase everyone, there is nowhere to hide on this pitch'], p: ['{p} corre atrás de todo mundo pelo {o}, não tem onde se esconder nesse campo', '{p} chases everyone for {o}, there is nowhere to hide on this pitch'], pos: 'ZAG', quem: 'o' },
+  { c: ['o {t} tabela rápido no campo vazio e a defesa nem acompanha', '{t} play a quick one-two on the empty pitch and the defence cannot keep up'], p: ['{p} tabela rápido no campo vazio e a defesa do {o} nem acompanha', '{p} plays a quick one-two on the empty pitch and the {o} defence cannot keep up'], pos: 'MEI' },
+  { c: ['o dado mudou tudo: o {t} tem espaço de sobra agora', 'the dice changed everything: {t} have space to spare now'], p: ['o dado mudou tudo: {p} tem espaço de sobra agora', 'the dice changed everything: {p} has space to spare now'], pos: 'ATA' },
+  { c: ['o goleiro do {t} vira o último homem com o campo vazio do dado', 'the {t} keeper becomes the last man on the empty dice pitch'], p: ['{p}, goleiro do {t}, vira o último homem com o campo vazio do dado', '{p}, the {t} keeper, becomes the last man on the empty dice pitch'], pos: 'GOL' },
+  { c: ['o {o} recua pra fechar o meio, com tão pouca gente cada passo conta', '{o} drop back to close the middle, with so few players every step counts'], p: ['{p} recua pra fechar o meio do {o}: com tão pouca gente cada passo conta', '{p} drops back to close the middle for {o}: with so few players every step counts'], pos: 'ZAG', quem: 'o' },
+]
+export const ACERVO_KINGS_FASE = KINGS_FASE.length
+/** 👑 minuto do placar em que a Kings está com o campo aberto (1×1 até 6×6, ou a fase do dado) */
+const kingsAberto = (m: number) => m < kParaPlacar(7) || (m >= PLACAR_DADO && m < PLACAR_INTERVALO)
+
 // 🕐 começo de jogo e fim de jogo têm cara própria (sem dizer placar)
 const CEDO: Par[] = [
   ['o {t} começa estudando o {o}, sem pressa', '{t} start by sizing up {o}, no rush'],
@@ -245,6 +270,14 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, k
   const rng = mulberry((seed ^ 0x5AD10) >>> 0)
   const livre = (m: number, ja: number[]) => ocupados.every(o => Math.abs(o - m) >= 3) && ja.every(o => Math.abs(o - m) >= 5) && !(m >= 44 && m <= 46)
   const mins: number[] = []
+  // 👑 Kings: as fases de campo aberto rolam DEVAGAR na tela (5 s por minuto da Kings), então ganham uma frase por
+  // minuto da Kings — senão a pessoa passa o 1×1 inteiro sem ouvir nada
+  const extras: number[] = []
+  if (kings) {
+    for (let k = 0; k < 7; k++) extras.push(Math.max(1, kParaPlacar(k) + 1))
+    for (let m = PLACAR_DADO + 1; m < PLACAR_INTERVALO; m += 2) extras.push(m)
+    for (const m of extras) if (ocupados.every(o => Math.abs(o - m) >= 1) && mins.every(o => Math.abs(o - m) >= 2)) mins.push(m)
+  }
   // espalha: um minuto por fatia do jogo, pra não amontoar
   for (let k = 0; k < n; k++) {
     const ini = 2 + Math.floor((k * 88) / n), fim = 2 + Math.floor(((k + 1) * 88) / n)
@@ -253,16 +286,24 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, k
   mins.sort((a, b) => a - b)
   const usados = new Set<number>()
   return mins.map(min => {
-    if (kings && rng() < 0.45) {
+    if (kings && kingsAberto(min)) {
+      let i = Math.floor(rng() * KINGS_FASE.length)
+      for (let t = 0; t < KINGS_FASE.length && usados.has(4000 + i); t++) i = (i + 1) % KINGS_FASE.length
+      usados.add(4000 + i)
+      return { min, i: 4000 + i, a: Math.floor(rng() * ABRE.length), f: Math.floor(rng() * FECHA.length), home: rng() < 0.5 }
+    }
+    if (kings && rng() < 0.5) {
       let i = Math.floor(rng() * KINGS.length)
-      for (let t = 0; t < KINGS.length && usados.has(3000 + i); t++) i = (i + 1) % KINGS.length
+      // prefere as frases que citam jogador (as outras só entram quando essas acabam)
+      for (let t = 0; t < 2 * KINGS.length && (usados.has(3000 + i) || (t < KINGS.length && !KINGS[i].p)); t++) i = (i + 1) % KINGS.length
       usados.add(3000 + i)
       return { min, i: 3000 + i, a: Math.floor(rng() * ABRE.length), f: Math.floor(rng() * FECHA.length), home: rng() < 0.5 }
     }
-    const lista = min <= 12 ? 'cedo' : min >= 82 ? 'tarde' : 'meio'
+    // 👑 Kings: nada de frase genérica de começo/fim (não citam ninguém) — só lance, e de preferência um com jogador
+    const lista = kings ? 'meio' : min <= 12 ? 'cedo' : min >= 82 ? 'tarde' : 'meio'
     const tam = lista === 'cedo' ? CEDO.length : lista === 'tarde' ? TARDE.length : LANCES.length
     let i = Math.floor(rng() * tam)
-    for (let t = 0; t < tam && usados.has(i + (lista === 'cedo' ? 1000 : lista === 'tarde' ? 2000 : 0)); t++) i = (i + 1) % tam
+    for (let t = 0; t < 2 * tam && (usados.has(i + (lista === 'cedo' ? 1000 : lista === 'tarde' ? 2000 : 0)) || (kings && t < tam && !NOMEADO[LANCES[i][0]])); t++) i = (i + 1) % tam
     usados.add(i + (lista === 'cedo' ? 1000 : lista === 'tarde' ? 2000 : 0))
     const a = Math.floor(rng() * ABRE.length), f = Math.floor(rng() * FECHA.length)
     return { min, i: lista === 'cedo' ? 1000 + i : lista === 'tarde' ? 2000 + i : i, a, f, home: rng() < 0.5 }
@@ -274,7 +315,7 @@ export function narraRadio(l: RadioLance, casa: string, fora: string, en: boolea
   const k = en ? 1 : 0
   if (l.i >= 3000) {
     // 👑 frase da Kings: com jogador quando dá (posição pedida), senão a versão do clube
-    const kf = KINGS[(l.i - 3000) % KINGS.length]
+    const kf = l.i >= 4000 ? KINGS_FASE[(l.i - 4000) % KINGS_FASE.length] : KINGS[(l.i - 3000) % KINGS.length]
     const t = l.home ? casa : fora, o = l.home ? fora : casa
     const doTime = kf.pos ? ((kf.quem ?? 't') === 't') === l.home ? elencos?.casa : elencos?.fora : undefined
     const jogador = kf.pos ? quemCitar(doTime, kf.pos, l, true) : null

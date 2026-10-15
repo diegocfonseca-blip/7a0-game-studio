@@ -4715,13 +4715,14 @@ function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => numb
   const tat = (id: number) => s.managers.some(m => m.id === id && m.isHuman) ? s.tactics[id] : undefined
   const g = simulaGolsKings({ homeId, awayId, nomes: { h: nome(homeId), a: nome(awayId) }, seed, elencos: { h: elenco(homeId), a: elenco(awayId) }, taticas: { h: tat(homeId), a: tat(awayId) }, ehFake })
   const r: MatchResult = { homeId, awayId, hg: 0, ag: 0, highlights: [] }
-  const base: KingsBase = { highlights: g.highlights, tmpS: g.tmpS, tmpA: g.tmpA, seed, rodada, decisoes: {}, art: { s: [], a: [] } }
+  const base: KingsBase = { highlights: g.highlights, tmpS: g.tmpS, tmpA: g.tmpA, cartoes: g.cartoes, seed, rodada, decisoes: {}, art: { s: [], a: [] } }
   const art = aplicaRegrasKings(r, base, ctxKings(s, homeId, awayId, rodada))
+  if (r.kings) r.kings.cartoes = g.cartoes // 🟨🟥 a tela mostra quem está fora e até quando
   somaListas(scorers, art.s, assists, art.a)
-  // os lances dos jogos SEM humano só serviram pra regra — não ficam no save. Com gente, guarda a partida crua: quando a
-  // pessoa escolhe o canto da cobrança, ela é refeita daqui (`KINGS_DECIDIR`).
+  // Com gente, guarda a partida crua: quando a pessoa escolhe o canto da cobrança, ela é refeita daqui (`KINGS_DECIDIR`).
+  // 🔁 15/10: os lances dos jogos SEM gente FICAM (antes eram apagados) — o giro precisa deles pra mostrar os gols rolando
+  // (o Diego via "–" no giro e achava que não saía gol no 1×1). É pouca coisa: a Kings tem 5 jogos por rodada.
   if (s.managers.some(m => m.isHuman && (m.id === homeId || m.id === awayId))) r.kingsBase = { ...base, art }
-  else r.highlights = []
   return r
 }
 /** 👑 refaz um jogo da Kings com a escolha de canto da pessoa; devolve o jogo novo (ou null se não deu) */
@@ -4732,6 +4733,7 @@ function refazJogoKings(s: EscState, r: MatchResult, key: string, canto: number,
   const novo: MatchResult = { ...r, highlights: [] }
   const base: KingsBase = { ...b, decisoes: { ...b.decisoes, [key]: canto } }
   const art = aplicaRegrasKings(novo, base, ctxKings(s, r.homeId, r.awayId, b.rodada))
+  if (novo.kings) novo.kings.cartoes = base.cartoes
   somaListas(scorers, art.s, assists, art.a)
   novo.kingsBase = { ...base, art }
   return novo

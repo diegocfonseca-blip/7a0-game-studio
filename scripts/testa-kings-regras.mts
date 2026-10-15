@@ -4,10 +4,13 @@ import { reducer, INITIAL } from '../src/escalacao/store'
 import type { EscState, MatchResult } from '../src/escalacao/types'
 import { PLACAR_BOLA, kParaPlacar, aplicaRegrasKings, agendaKings } from '../src/escalacao/kings-liga'
 import type { KingsBase } from '../src/escalacao/types'
+import { radioDoJogo, narraRadio } from '../src/escalacao/radio'
 let falhas = 0
 const ok = (c: boolean, m: string) => { console.log(c ? '✅' : '❌', m); if (!c) falhas++ }
 const gols = (r: MatchResult, id: number) => r.highlights.filter(h => h.kind === 'gol' && h.teamId === id)
 const jogos: MatchResult[] = []
+let giroVazio = 0
+let ultimo: EscState | null = null
 for (let t = 0; t < 12; t++) {
   let s = reducer(structuredClone(INITIAL) as EscState, { type: 'START', teamName: 'Teste FC', formation: '4-3-3', rivals: 9, kings: true, copaMode: 'liga', league: 'br' })
   for (let i = 0; i < 3000 && s.screen !== 'season'; i++) {
@@ -16,7 +19,11 @@ for (let t = 0; t < 12; t++) {
     if (s.screen === 'cerimonia') { s = reducer(s, { type: 'FINISH_CEREMONY' }); continue }
     s = reducer(s, { type: 'FORCE_SEAL' })
   }
-  for (let r = 0; r < 9; r++) { s = reducer(s, { type: 'PLAY_ROUND' }); jogos.push(...s.lastResults.filter(x => x.kingsBase)) }
+  for (let r = 0; r < 9; r++) {
+    s = reducer(s, { type: 'PLAY_ROUND' }); jogos.push(...s.lastResults.filter(x => x.kingsBase))
+    if (s.lastResults.some(x => !x.kingsBase && x.highlights.filter(h => h.kind === 'gol').length !== x.hg + x.ag)) giroVazio++
+  }
+  ultimo = s
 }
 console.log(`(${jogos.length} partidas com gente conferidas lance a lance)`)
 // ⚽ quantidade e MOMENTO dos gols (a Kings de verdade: ~7 por jogo; muito gol no 1×1 e no dado)
@@ -93,5 +100,31 @@ ok(emp.length > 0 && emp.every(r => !!r.kings!.pens && r.kings!.pens[0] !== r.ki
 // dado
 const faces = new Set(jogos.map(r => r.kings!.dado))
 ok(faces.has(1) && faces.has(2) && faces.has(3), '🎲 DADO: sai 👑 cara do rei (1×1), 2×2 e 3×3')
+
+// 📺 GIRO: os jogos sem gente também guardam os lances (senão o giro mostra '–' até o apito e parece que não sai gol)
+ok(giroVazio === 0, '📺 GIRO: todo jogo da rodada (até bot × bot) tem os gols lance a lance pra rolar no giro')
+// 🟨🟥 CARTÕES: amarelo = 2 min fora, vermelho = 5 min fora, nunca antes do 7×7, nome de gente de verdade
+{
+  const cs = jogos.flatMap(r => (r.kings!.cartoes ?? []).map(c => ({ r, c })))
+  const am = cs.filter(x => x.c.cor === 'amarelo'), vm = cs.filter(x => x.c.cor === 'vermelho')
+  const durOk = cs.every(({ c }) => { const k = Math.round(c.min * 40 / 93); return c.ate === 40 || (c.ate - k >= (c.cor === 'amarelo' ? 2 : 5) && c.ate - k <= (c.cor === 'amarelo' ? 4 : 7)) })
+  for (const { c } of cs) { const k = Math.round(c.min * 40 / 93); if (!(c.ate === 40 || (c.ate - k >= (c.cor === 'amarelo' ? 2 : 5) && c.ate - k <= (c.cor === 'amarelo' ? 4 : 7))) || c.min < kParaPlacar(7) || !c.nome) console.log('   ⚠️', JSON.stringify(c)) }
+  ok(am.length > 0 && vm.length >= 0 && cs.every(({ c }) => c.min >= kParaPlacar(7) && !!c.nome) && durOk,
+    `🟨🟥 CARTÕES: ${am.length} amarelos (2 min fora) e ${vm.length} vermelhos (5 min fora) em ${jogos.length} jogos, todos depois do 7×7 e com o nome de quem saiu`)
+}
+// 📻 RÁDIO DA KINGS: fala MUITO de jogador (Diego 15/10: "não tô vendo quase nada falando dos jogadores")
+{
+  const r = jogos[0], m = ultimo!.managers
+  const casa = m.find(x => x.id === r.homeId)!.squad, fora = m.find(x => x.id === r.awayId)!.squad
+  let tot = 0, comNome = 0, cedo = 0
+  const nomes = [...casa, ...fora].filter(c => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup').map(c => c.name)
+  for (let sem = 0; sem < 40; sem++) for (const l of radioDoJogo(sem * 7919, [], 220_000, true)) {
+    const txt = narraRadio(l, 'Casa FC', 'Fora FC', false, { casa, fora }, true)
+    tot++; if (nomes.some(n => txt.includes(n))) comNome++
+    if (l.min < kParaPlacar(7)) cedo++
+  }
+  ok(comNome / tot >= 0.6, `📻 RÁDIO DA KINGS cita jogador pelo nome em ${Math.round(comNome / tot * 100)}% das frases`)
+  ok(cedo / 40 >= 5, `📻 RÁDIO DA KINGS fala no 1×1 até o 6×6: ${(cedo / 40).toFixed(1)} frases por jogo nessa fase`)
+}
 console.log(falhas ? `💥 ${falhas} falha(s)` : '🟢 todas as regras da Kings conferidas')
 process.exit(falhas ? 1 : 0)

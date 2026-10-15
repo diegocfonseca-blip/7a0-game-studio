@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
 import { tr } from './lang' // 🌐 BR/EN
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
+import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
 import { type Batedores, batedorDaVez, siglasDoTime, sementePalco, jeitoDoErro, type JeitoDoErro } from './penaltis' // 🎯 o palco dos batedores (24/09)
 
 type Goal = { name: string; min: number; home: boolean }
@@ -140,8 +141,13 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
   // de 0 a 3 (ele contava os LANCES narrados, que são meia dúzia) e depois pulava
   // pra 108 × 99 no apito. Agora anda de verdade até o placar final.
   basket?: boolean
+  /** 👑 Kings (15/10): o giro anda no MESMO relógio do jogo da pessoa (que para nas cenas) e mostra os 40 min da Kings.
+   *  Antes cada jogo do giro tinha relógio próprio e os gols do 1×1 passavam por baixo da cena do pontapé — o Diego
+   *  achava que não saía gol no começo. */
+  minutoFixo?: number; relogioKings?: boolean
 }) {
-  const [minute, setMinute] = useState(0)
+  const [minuteLocal, setMinute] = useState(0)
+  const minute = p.minutoFixo ?? minuteLocal
   useEffect(() => {
     const tick = () => setMinute(Math.min(93, Math.round((Date.now() - startedAt) / Math.max(400, roundMs * .82) * 93)))
     tick()
@@ -152,8 +158,10 @@ export function RoundMatchPresentation({ goals, finished, roundKey, roundMs, sco
   const parcial = (final: number) => Math.round(final * Math.min(1, minute / 93))
   const homeScore = finished ? score[0] : basket ? parcial(score[0]) : known ? goals.filter(g => g.home && g.min <= minute).length : '–'
   const awayScore = finished ? score[1] : basket ? parcial(score[1]) : known ? goals.filter(g => !g.home && g.min <= minute).length : '–'
-  const relogio = basket ? basketClockLabel(minute, tr('FIM', 'FINAL')) : `${Math.min(90, minute)}′`
-  return <CompetitionMatch {...p} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={finished ? tr('ENCERRADO', 'FULL TIME') : `${relogio} · ${tr('AO VIVO', 'LIVE')}`} detail={!finished && !known && !basket ? tr('Placar revelado no apito final', 'Score revealed at the final whistle') : p.detail} />
+  const relogio = basket ? basketClockLabel(minute, tr('FIM', 'FINAL')) : p.relogioKings ? `${placarParaK(minute)}′` : `${Math.min(90, minute)}′`
+  const { minutoFixo: _mf, relogioKings: _rk, ...resto } = p
+  void _mf; void _rk
+  return <CompetitionMatch {...resto} goals={goals.filter(g=>finished||g.min<=minute)} homeScore={homeScore} awayScore={awayScore} status={finished ? tr('ENCERRADO', 'FULL TIME') : `${relogio} · ${tr('AO VIVO', 'LIVE')}`} detail={!finished && !known && !basket ? tr('Placar revelado no apito final', 'Score revealed at the final whistle') : p.detail} />
 }
 
 export function goalPlayer(text:string){return text.match(/⚽\s+(.+?)\s+marca para/)?.[1] ?? text.replace(/^⚽\s*/, '').replace(/\.$/,'')}

@@ -9,7 +9,7 @@
 //  · ⏱️ 38': empatado → 🟡 bola dourada (o próximo gol vence e acaba) · alguém na frente → 🔴 bola vermelha (gol vale 2)
 //  · empate no apito → SHOOTOUT; pontos 3 (vitória) · 2 (vitória no shootout) · 1 (derrota no shootout) · 0
 // A partida tem 40 min; o placar de sempre anda de 0 a 93, então os minutos são traduzidos pela proporção.
-import type { AssistRow, CartaKingsInfo, CartaKingsTipo, DueloKingsInfo, KingsBase, KingsInfo, LeagueTeam, MatchHighlight, MatchResult, ScorerRow } from './types'
+import type { AssistRow, CartaKingsInfo, CartaoKingsInfo, CartaKingsTipo, DueloKingsInfo, KingsBase, KingsInfo, LeagueTeam, MatchHighlight, MatchResult, ScorerRow } from './types'
 import { MIN_BOLA, MIN_DADO, MIN_INTERVALO, MIN_FIM, rngKings, dueloKings } from './kings'
 import type { Canto } from './kings'
 import { disputaPenaltisComSequencia } from './penaltis'
@@ -65,8 +65,15 @@ const forcaDe = (elenco: CartaGol[]) => {
 export function simulaGolsKings(o: {
   homeId: number; awayId: number; nomes: { h: string; a: string }; seed: number
   elencos: { h: CartaGol[]; a: CartaGol[] }; taticas?: { h?: string; a?: string }; ehFake: (c: CartaGol) => boolean
-}): { highlights: MatchHighlight[]; tmpS: ScorerRow[]; tmpA: AssistRow[] } {
+}): { highlights: MatchHighlight[]; tmpS: ScorerRow[]; tmpA: AssistRow[]; cartoes: CartaoKingsInfo[] } {
   const rng = rngKings(o.seed ^ 0x601A5)
+  // 🟨🟥 CARTÕES (15/10, Diego: *"o cartão amarelo, o jogador tem que esperar 2 minutos lá fora"*). Na Kings ninguém é
+  // expulso de vez: amarelo = 2 min fora, vermelho = 5 min fora, e o time joga com UM A MENOS nesse tempo (marca menos,
+  // leva mais). Só depois do 7×7 completo (no 1×1 não sobra ninguém pra tirar). Sorteio PRÓPRIO (`rc`), separado do gol.
+  const rc = rngKings(o.seed ^ 0xCA27D)
+  const cartoes: CartaoKingsInfo[] = []
+  const foraAte: Record<'h' | 'a', number> = { h: -1, a: -1 }
+  const pesoCartao = (c: CartaGol) => c.pos === 'ZAG' ? 3 : c.pos === 'LAT' ? 2.2 : c.pos === 'MEI' ? 2 : c.pos === 'ATA' ? 1.4 : 0
   const dado = dadoDoJogo(o.seed)
   const fH = forcaDe(o.elencos.h), fA = forcaDe(o.elencos.a)
   const tat = (t?: string) => t === 'ataque' ? [1.15, 1.12] : t === 'retranca' ? [0.85, 0.8] : [1, 1]
@@ -94,9 +101,23 @@ export function simulaGolsKings(o: {
   for (let k = 0; k < MIN_FIM; k++) {
     const n = emCampoKings(k, dado)
     const base = k >= 36 ? GOL_RETA_FINAL : GOL_POR_MIN[n]
+    // 🟨🟥 alguém tomou cartão neste minuto? (o time fica com um a menos a partir do minuto seguinte)
+    if (k >= 7 && k < MIN_FIM - 1) for (const lado of ['h', 'a'] as const) {
+      const r = rc(), r2 = rc(), r3 = rc()
+      if (foraAte[lado] >= k) continue
+      const cor = r < 0.013 ? 'amarelo' : r < 0.0145 ? 'vermelho' : null
+      if (!cor) continue
+      const quem = sorteiaCom(o.elencos[lado].filter(c => !o.ehFake(c)), pesoCartao, r2)
+      if (!quem) continue
+      const ate = Math.min(MIN_FIM, k + 1 + (cor === 'amarelo' ? 2 : 5))
+      foraAte[lado] = ate - 1
+      cartoes.push({ teamId: lado === 'h' ? o.homeId : o.awayId, nome: quem.name, cor, min: Math.max(1, Math.min(92, kParaPlacar(k) + Math.floor(r3 * kParaPlacar(1)))), ate })
+    }
     for (const lado of ['h', 'a'] as const) {
       const sorteioGol = rng(), quando = rng()
-      if (sorteioGol >= base * (lado === 'h' ? multH : multA)) continue
+      const meuFora = foraAte[lado] >= k, rivalFora = foraAte[lado === 'h' ? 'a' : 'h'] >= k
+      const homem = (meuFora ? 0.7 : 1) * (rivalFora ? 1.35 : 1)
+      if (sorteioGol >= base * homem * (lado === 'h' ? multH : multA)) continue
       const id = lado === 'h' ? o.homeId : o.awayId, time = lado === 'h' ? o.nomes.h : o.nomes.a
       const elenco = o.elencos[lado]
       const min = Math.max(1, Math.min(93, kParaPlacar(k) + Math.floor(quando * kParaPlacar(1))))
@@ -116,7 +137,15 @@ export function simulaGolsKings(o: {
     }
   }
   highlights.sort((x, y) => x.min - y.min)
-  return { highlights, tmpS, tmpA }
+  return { highlights, tmpS, tmpA, cartoes }
+}
+/** sorteio com peso e com o número já tirado (o cartão usa o rng próprio dele) */
+function sorteiaCom<T>(itens: T[], peso: (x: T) => number, r: number): T | null {
+  const tot = itens.reduce((a, x) => a + peso(x), 0)
+  if (tot <= 0) return null
+  let x = r * tot
+  for (const it of itens) { x -= peso(it); if (x <= 0) return it }
+  return itens[itens.length - 1]
 }
 
 // ── 🗓️ AGENDA DA RODADA (Diego 15/10): o pênalti do presidente e a carta caem no MESMO minuto em todos os jogos da
