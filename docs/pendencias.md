@@ -409,6 +409,21 @@ sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o c
 Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
 🎁 14/10: presente APROVADO, mas **só de PLANO** (Craque/Lenda/Batismo/Fundador) — *"presente é só dos planos, nada de títulos figurinhas"*.
 
+## 💳 Mercado Pago · PIX ÚNICO automático (15/10) — 🟡 SERVIDOR NO AR, tela esperando OK do mockup
+Diego trocou a Vendria pelo MP: *"somente Pix direto… tudo no Pix, Pix único só"* (nada mensal, nada de cartão).
+✅ Diego criou a aplicação "Leilao Legends" (Checkout Transparente) e salvou nas Secrets `MP_ACCESS_TOKEN` (renovado depois
+que a foto vazou no chat) e `MP_WEBHOOK_SECRET`; webhook do MP aponta pra `.../functions/v1/mp-webhook` (evento Pagamentos).
+✅ Banco (`supabase/migrations/20261015220000_mercado_pago_pix.sql`): `esc_mp_pedidos`, `esc_mp_config.auto_liberar` (DESLIGADO),
+preço calculado NO SERVIDOR (`esc_mp_preco`: 29,90/49,90/79,90/99,90, subida = diferença + 5, salas extras 4,90, teste R$ 1 só
+na conta do Diego), `esc_mp_registrar_pagamento` (só conta se o MP disser approved E o valor bater), `esc_mp_entregar`
+(Craque=prata, Lenda=ouro, Batismo/Fundador=ouro + `esc_compras_batismo`, salas +3), `esc_admin_mp_lista/liberar`, `esc_mp_meu_pedido`.
+✅ Edge Functions: `mp-criar-pix` (login obrigatório; cria o Pix com external_reference = pedido) e `mp-webhook` (assinatura +
+busca o pagamento no MP antes de acreditar). Código em `supabase/functions/`.
+⏳ Falta: (1) Diego aprovar o mockup `scripts/mockups/pix-mp.png` e decidir se LIBERA SOZINHO (`update esc_mp_config set
+auto_liberar = true`) ou aprova no #admin; (2) a tela no jogo (trocar `PixBox`+Instagram por gerar Pix/QR/esperando/caiu) +
+lista no #admin; (3) teste com Pix de R$ 1 na conta dele; (4) presentes/canto/moedas ainda no Pix antigo; (5) apagar a Vendria
+(`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar que largou de vez.
+
 ## 🏆 Moldura do pódio da semana (15/10) — ✅ NO AR
 Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalha, sem mexer no fundo (fundo = cor do plano).
 `podio-semana.tsx`: moldura de metal girando POR FORA da linha na lista de técnicos da sala (ouro · prata · bronze), coroinha

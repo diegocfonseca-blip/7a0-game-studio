@@ -1,0 +1,64 @@
+// 💳 MERCADO PAGO · cria um PIX ÚNICO pra quem está logado (15/10).
+// O cliente só diz QUAL produto quer. Quem é a pessoa sai do LOGIN (JWT) e o PREÇO sai do banco (`esc_mp_criar_pedido`,
+// mesma régua de `PRECOS_UNICO`/`precoSubida`). O Pix nasce com `external_reference` = id do pedido, e é por ele que o
+// `mp-webhook` acha o pedido quando o Mercado Pago avisar que pagou. O token mora só nas Secrets (`MP_ACCESS_TOKEN`).
+import { createClient } from 'jsr:@supabase/supabase-js@2'
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+const NOMES: Record<string, string> = {
+  craque: 'Plano Craque', lenda: 'Plano Lenda', batismo: 'Plano Batismo', fundador: 'Plano Fundador',
+  salas_extras: '3 salas extras', teste: 'Teste de pagamento',
+}
+const resp = (status: number, corpo: unknown) => new Response(JSON.stringify(corpo), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
+// o MP quer a validade com fuso: devolve no horário de Brasília (-03:00)
+const validade = (min: number) => {
+  const d = new Date(Date.now() + min * 60_000 - 3 * 3600_000)
+  return d.toISOString().replace('Z', '-03:00')
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  if (req.method !== 'POST') return resp(405, { erro: 'metodo' })
+  const token = Deno.env.get('MP_ACCESS_TOKEN')
+  if (!token) return resp(500, { erro: 'sem_token' })
+  const url = Deno.env.get('SUPABASE_URL')!
+  const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
+  const anon = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!)
+  const { data: u } = await anon.auth.getUser(jwt)
+  const email = u?.user?.email?.toLowerCase()
+  if (!email) return resp(401, { erro: 'sem_login' })
+  let produto = ''
+  try { produto = String((await req.json())?.produto ?? '') } catch { /* corpo inválido */ }
+  if (!NOMES[produto]) return resp(400, { erro: 'produto' })
+
+  const adm = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+  const { data: ped, error } = await adm.rpc('esc_mp_criar_pedido', { p_email: email, p_produto: produto })
+  if (error || !ped?.[0]) return resp(409, { erro: /JA_TEM/.test(error?.message ?? '') ? 'ja_tem' : 'pedido' })
+  const { pedido_id, valor } = ped[0] as { pedido_id: string; valor: number }
+
+  const r = await fetch('https://api.mercadopago.com/v1/payments', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': pedido_id },
+    body: JSON.stringify({
+      transaction_amount: Number(valor),
+      description: `Leilão Legends — ${NOMES[produto]}`,
+      payment_method_id: 'pix',
+      payer: { email },
+      external_reference: pedido_id,
+      notification_url: `${url}/functions/v1/mp-webhook`,
+      date_of_expiration: validade(30),
+    }),
+  })
+  const pg = await r.json().catch(() => null)
+  const td = pg?.point_of_interaction?.transaction_data
+  if (!r.ok || !td?.qr_code) {
+    console.error('mp-criar-pix: MP recusou', r.status, pg?.message ?? pg?.error ?? '')
+    return resp(502, { erro: 'mp', status: r.status })
+  }
+  await adm.rpc('esc_mp_anota_pix', { p_pedido: pedido_id, p_mp_id: String(pg.id), p_mp_status: String(pg.status ?? '') })
+  return resp(200, { pedido_id, valor: Number(valor), qr_code: td.qr_code, qr_code_base64: td.qr_code_base64, ticket_url: td.ticket_url, validade_min: 30 })
+})
