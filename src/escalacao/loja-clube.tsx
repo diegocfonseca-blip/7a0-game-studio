@@ -24,6 +24,7 @@ import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
 import { PresenteBox } from './presente'
+import { MeuPresidenteLoja } from './presidente-loja'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -91,6 +92,9 @@ function Loja({ onClose }: { onClose: () => void }) {
 
         {/* 💛 14/10 (Diego): da Loja tem que dar pra ver TODOS os planos e "pra onde vai o dinheiro" */}
         <ApoieButton startScreen="choice" trigger={open => <button onClick={() => { logApoio('🛒 loja → ver todos os planos'); open() }} style={{ marginTop: 10, width: '100%', ...OSW, fontSize: 14, background: '#FFF3C4', color: INK, border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: '8px 10px', cursor: 'pointer' }}>{tr('💛 VER TODOS OS PLANOS E PRA ONDE VAI O DINHEIRO ›', '💛 SEE ALL PLANS AND WHERE THE MONEY GOES ›')}</button>} />
+
+        {/* 🧑‍💼 MEU PRESIDENTE (15/10) — o boneco mora na conta; só pra conta liberada enquanto está em teste */}
+        <MeuPresidenteLoja />
 
         {/* ⬆️ SUBIR DE PLANO */}
         {acima.length > 0 && <>

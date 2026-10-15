@@ -1,3 +1,18 @@
+## 🧑‍💼 CRIAÇÃO DE PERSONAGEM NA CONTA (15/10) — ✅ feito, SÓ NA CONTA DO DIEGO
+- Diego: *"já bote pra fazer tudo sobre a criação do personagem… sempre com base no e-mail… já pode fazer pro meu usuário apenas"*.
+- Onde mora: tabela `esc_presidente` (1 linha por conta, `docs/sql/presidente-conta.sql`, aplicada em 15/10, RLS só o dono).
+  Porta de entrada: 🛒 Loja do Clube › "🧑‍💼 Meu presidente" (`presidente-loja.tsx`). A Presidência da carreira
+  (`presidencia-clube.tsx`) passa a mostrar/editar o presidente DA CONTA e grava nos dois (conta + save da carreira, que
+  guarda só a posse `sinceSeason`). Trava de conta: `PRESIDENTE_CONTA_TESTERS`/`PRESIDENTE_CONTA_GERAL` em `presidente-conta.ts`.
+- Régua por PLANO (`presidente-plano.ts`, `npm run presidente`): grátis monta e NÃO salva (trava diz o porquê e o caminho) ·
+  ⭐ Craque = pele + cabelos/barbas + 14 roupas básicas · 👑 Lenda = + 9 especiais · 🖋 Batismo/Fundador = + 10 de gala.
+  O antigo `presidente-tier-conta.ts` (tier do Diego lido do user_colors) SAIU; tudo lê `getPlanoConta()` (a régua da Loja).
+- 🧹 Cabelo e barba CLÁSSICOS consertados (`public/presidente-v17`): o cabelo tinha restos de contorno de barba no queixo e a
+  barba estava cortada reta do lado direito (espelhada a metade boa). Os outros 19 cabelos e 6 barbas estão limpos
+  (`scripts/mockups/presidente-classicos-antes-depois.png`).
+- ⏳ Falta decidir com ele: preço dos AVULSOS (cabelo de craque, roupa especial fora do plano) e se o grátis pode comprar o boneco
+  avulso. ⏳ Mostrar o presidente nos 12 lugares do mockup de 14/10 (hoje só Loja + Presidência). ⏳ Liberar geral.
+
 ## 🪪 5 Garrinchas no elenco do Fabulous EC (15/10) — ✅ NO AR (15/10)
 - ✅ 👑 **KINGS v2 NO AR (15/10, só na conta do Diego)** — `scripts/mockups/kings-v2.png` (bola caindo da gaiola, 1×1→7×7, dado gigante 👑/2×2/3×3, presidente sem botão com contagem e minuto fixo por rodada, carta secreta sorteada, roteiro). Detalhes em `docs/conceito-kings-league.md` (v2). Feito: bola caindo da gaiola, faixa 1×1→7×7, dado gigante 3D, presidente e cartas sorteadas na agenda da rodada com cobrança de 5 s (bate/defende; não escolheu = sorteio), liga e mata-mata. ⏳ Falta: versão online gente × gente (a agenda e o `KINGS_DECIDIR` já foram feitos pensando nela).
 
@@ -121,6 +136,8 @@ grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (apl
   patrocínio. 2ª versão = Flamengo 2025 jogo 1 (6 pretas/5 vermelhas com filete, gola V preta, manga preta, 3 listras vermelhas
   no ombro, escudo e Adidas brancos) pintada SOBRE a camiseta branca da base (mesma arte, webp). Gerador:
   `python3 scripts/camisas-presidente/flamengo-2025.py <pasta>`; mockup em `scripts/mockups/camisa-presidente-flamengo-2025.png`.
+  ⛔ 15/10, 2ª versão também reprovada: *"tá muito ruim a camisa do Flamengo. Melhor você não fazer isso agora"*. Camisa de
+  time PARADA até ele pedir de novo (precisa de arte de verdade, não de pintura por cima da camiseta). O gerador fica guardado.
 - FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
 
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado

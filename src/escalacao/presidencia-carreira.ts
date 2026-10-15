@@ -1,6 +1,6 @@
 import {roupaModularValida,type RoupaModular} from './presidente-vestuario-modular'
 import {podeVestirModular} from './presidente-vestuario-acesso'
-import type {PresidenteRoupaTier} from './presidente-roupas'
+import type {PlanoUnico} from './planos-regras'
 import {carteiraPresidenciaValida,confirmarPresidencia,type PresidenciaBem,type PresidenciaOrcamento,type PresidenciaCarteira} from './presidencia-economia'
 import {duplaDaGaragem,duplaGaragemValida,type DuplaGaragem} from './presidencia-garagem'
 import {aparenciaValida,copiarAparencia,type PresidenteAparencia} from './presidente-aparencia'
@@ -23,8 +23,8 @@ export function podeAlterarPresidencia(s:CarreiraPresidencia,mgrId:number){
  const you=s.managers[s.youIdx]
  return !!s.careerOnline&&s.onlineMode==='cpu'&&s.sport!=='basquete'&&!!you?.isHuman&&you.id===mgrId
 }
-export function salvarPresidenteNaCarreira<T extends CarreiraPresidencia>(state:T,mgrId:number,value:PresidenteBaseSave,tier:PresidenteRoupaTier|null=null){
- if(!podeAlterarPresidencia(state,mgrId)||!presidenteBaseValido(value)||!value.name.trim()||!podeVestirModular(value.outfit,tier))return {ok:false as const,error:'invalid-state' as const}
+export function salvarPresidenteNaCarreira<T extends CarreiraPresidencia>(state:T,mgrId:number,value:PresidenteBaseSave,plano:PlanoUnico|null|undefined=null){
+ if(!podeAlterarPresidencia(state,mgrId)||!presidenteBaseValido(value)||!value.name.trim()||!podeVestirModular(value.outfit,plano))return {ok:false as const,error:'invalid-state' as const}
  // Posse vem da carreira, nunca do editor. Editar não reinicia nem reescreve
  // mandato; save antigo sem data continua desconhecido, sem retroagir.
  const existing=presidenteBaseValido(state.careerPresidentBase)&&!!state.careerPresidentBase.name.trim()

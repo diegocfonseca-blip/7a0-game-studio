@@ -79,6 +79,7 @@
     "nuvem": "node scripts/testa-nuvem.mjs",
     "nuvem-craque": "node scripts/testa-nuvem-craque.mjs",
     "planos": "node scripts/testa-planos.mjs",
+    "presidente": "node scripts/testa-presidente.mjs",
     "cartinha": "node scripts/testa-cartinha-multiclube.mjs",
     "troca": "npx tsx scripts/testa-troca-carreira.mts",
     "canal": "node scripts/testa-canal.mjs",

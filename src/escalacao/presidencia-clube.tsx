@@ -4,7 +4,7 @@ import {PresidentePainel} from './presidente-painel'
 import {salvarPresidenteNaCarreira,type CarreiraPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
 import {conquistasDaCarreira,type ConquistasCarreira} from './presidencia-conquistas'
 import {useState} from 'react'
-import {getPresidentOutfitTier} from './presidente-tier-conta'
+import {getPlanoConta,presidenteContaLiberado,salvarPresidenteConta,usePresidenteConta} from './presidente-conta'
 import {carteiraDaCarreira} from './presidencia-carreira'
 import {GaragemCarreira} from './garagem-carreira'
 import type {PresidenciaOrcamento} from './presidencia-economia'
@@ -21,7 +21,10 @@ import {acessosDaPresidencia} from './presidencia-acessos'
 import {valorEstadioPresidencia,valorElencoPresidencia} from './presidencia-valores'
 
 /** O save da carreira controla tanto o primeiro cadastro quanto a edição.
- * Nenhum visual temporário é tratado como persistido. */
+ * Nenhum visual temporário é tratado como persistido.
+ * 🔁 15/10 (Diego: "sempre com base no e-mail"): com a conta ligada (`presidenteContaLiberado`), o presidente
+ * que aparece e se edita aqui é o DA CONTA — a mesma pessoa em toda carreira. A posse (`sinceSeason`) continua
+ * vindo do save da carreira, porque mandato é do clube, não da pessoa. Salvar grava nos DOIS: conta e carreira. */
 export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tradeHandler,onDisplay:displayHandler,member,tierColor}:{
  state:CarreiraPresidencia & CarreiraComEstadio & ConquistasCarreira & CronicaPresidencia & DivisaoPresidencia & {careerPresident?:{name:string;outfit:string};seasonNo?:number;managers:readonly {id:number;isHuman?:boolean;teamName?:string;squad?:readonly {paid?:number}[]}[]};
  mgrId:number;onSave:(value:PresidenteBaseSave)=>boolean;onBack:()=>void;
@@ -36,8 +39,15 @@ export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tr
  const wallet=carteiraDaCarreira(state,mgrId)
  const valuationManagers:readonly {id:number;squad?:readonly {paid?:number}[]}[]=state.managers
  const identity=identidadeDaConta(state.managers[state.youIdx]?.teamName??'',member,tierColor)
- const save=(value:PresidenteBaseSave)=>salvarPresidenteNaCarreira(state,mgrId,value,getPresidentOutfitTier()).ok&&onSave(value)
- return <PresidenciaEntrada saved={state.careerPresidentBase} legacy={state.careerPresident} onSave={save} onBack={onBack}>
+ const conta=usePresidenteConta(),contaOk=presidenteContaLiberado()
+ const posse=state.careerPresidentBase?.sinceSeason
+ const saved:PresidenteBaseSave|undefined=contaOk&&conta.value?{...conta.value,...(posse!==undefined?{sinceSeason:posse}:{})}:state.careerPresidentBase
+ const save=async(value:PresidenteBaseSave)=>{
+  if(!salvarPresidenteNaCarreira(state,mgrId,value,getPlanoConta()).ok)return false
+  if(contaOk&&!(await salvarPresidenteConta(value)))return false
+  return onSave(value)
+ }
+ return <PresidenciaEntrada saved={saved} legacy={state.careerPresident} onSave={save} onBack={onBack}>
   {value=>garage==='room'?<div className="pp-club-panel"><SalaMontagem state={state} mgrId={mgrId} president={value} identity={identity}/><div style={{display:'flex',flexWrap:'wrap',gap:12,marginTop:12}}>{onStadium&&<Btn onClick={onStadium}>{t('IR AO ESTÁDIO','GO TO STADIUM')}</Btn>}<Btn bg="#fff" onClick={()=>G(null)}>{t('VOLTAR','BACK')}</Btn></div></div>:garage&&onTrade&&onDisplay?<GaragemCarreira key={garage} furniture={garage==='furniture'} stadiumSave={state.stadiums?.[mgrId]} wallet={carteiraDaCarreira(state,mgrId)} display={state.careerPresidency?.[mgrId]?.display} onTrade={onTrade} onDisplay={onDisplay} onBack={()=>G(null)}/>:<div className="pp-club-panel"><PresidentePainel value={value} onSave={save} onClose={onBack} data={{
    club:state.managers[state.youIdx]?.teamName??'',season:state.seasonNo,
    sinceSeason:value.sinceSeason,

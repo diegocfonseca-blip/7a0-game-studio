@@ -1,5 +1,9 @@
 // Catálogo cosmético. Não compra moedas, não altera tier nem concede atributos.
 // As artes precisam de aprovação de encaixe antes de habilitar a seleção.
+// 🔁 15/10 (Diego: "nada é de graça"): `access` aqui é o NÍVEL da roupa no catálogo, não quem pode usar.
+// Quem decide é o PLANO da conta, em presidente-plano.ts: 'free' = Craque · 'craque' = Lenda · 'lenda' = Batismo+.
+import type { PlanoUnico } from './planos-regras'
+import { podeVestirAcesso, seloAcesso } from './presidente-plano'
 export const PRESIDENTE_ROUPAS = [
  {id:'polo-azul',pt:'Polo azul-marinho',en:'Navy polo',access:'free'},
  {id:'polo-verde',pt:'Polo verde',en:'Green polo',access:'free'},
@@ -36,17 +40,19 @@ export const PRESIDENTE_ROUPAS = [
  {id:'mestre-envelopes',pt:'Mestre dos Envelopes',en:'Master of envelopes',access:'lenda'},
 ] as const
 export type PresidenteRoupaId=typeof PRESIDENTE_ROUPAS[number]['id']
-export type PresidenteRoupaTier='bege'|'verde'|'roxo'|'prata'|'ouro'
 export const PRESIDENTE_ROUPAS_ARTES:Partial<Record<PresidenteRoupaId,string>>={'polo-azul':'presidente-v2/polo-azul-v3.webp'}
 export function roupaPronta(id:unknown):boolean{return typeof id==='string'&&!!PRESIDENTE_ROUPAS_ARTES[id as PresidenteRoupaId]}
 export function normalizarRoupa(id:unknown):PresidenteRoupaId{
  return PRESIDENTE_ROUPAS.find(r=>r.id===id)?.id??'polo-azul'
 }
-// O tier deve vir da conta, nunca do rascunho ou do nome do clube.
-export function podeVestirRoupa(id:unknown,tier:PresidenteRoupaTier|null):boolean{
+// O plano deve vir da conta (`getPlanoConta`), nunca do rascunho ou do nome do clube.
+export function podeVestirRoupa(id:unknown,plano:PlanoUnico|null|undefined):boolean{
  const r=PRESIDENTE_ROUPAS.find(r=>r.id===id)
- return !!r&&(r.access==='free'||tier==='ouro'||(r.access==='craque'&&tier==='prata'))
+ return !!r&&podeVestirAcesso(r.access,plano)
 }
-export function roupaDisponivel(id:unknown,tier:PresidenteRoupaTier|null):PresidenteRoupaId{
- return podeVestirRoupa(id,tier)?normalizarRoupa(id):'polo-azul'
+export function seloRoupa(id:unknown):readonly [string,string]{
+ return seloAcesso(PRESIDENTE_ROUPAS.find(r=>r.id===id)?.access)
+}
+export function roupaDisponivel(id:unknown,plano:PlanoUnico|null|undefined):PresidenteRoupaId{
+ return podeVestirRoupa(id,plano)?normalizarRoupa(id):'polo-azul'
 }
