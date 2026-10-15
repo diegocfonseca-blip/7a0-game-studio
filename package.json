@@ -89,6 +89,7 @@
     "saf2": "node scripts/testa-saf2.mjs",
     "bots-banco": "node scripts/testa-bots-banco.mjs",
     "renomeada": "node scripts/testa-carta-renomeada.mjs",
+    "kings-regras": "npx tsx scripts/testa-kings-regras.mts",
     "kings": "npx tsx scripts/testa-kings.mjs && npx tsx scripts/testa-kings-leilao.mts"
   },
   "dependencies": {
