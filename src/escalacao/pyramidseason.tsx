@@ -3192,7 +3192,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (!c) return
     lancesVistos.current.mins.push(c.min)
     const clube = nomeLimpo(c.home ? homeName : awayName)
-    setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en', quemFinalizou(c.home ? elencos?.casa : elencos?.fora, c, clube)) })
+    setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en', relogioKings ? quemFinalizou(c.home ? elencos?.casa : elencos?.fora, c, clube) : null) }) // 🧑 jogador no lance: SÓ na Kings (Diego 15/10: "isso é só pra Kings League")
     if (lanceTimer.current) clearTimeout(lanceTimer.current)
     lanceTimer.current = setTimeout(() => { setLance(null); lanceTimer.current = null }, CHANCE_MS/fieldSpeed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3311,7 +3311,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         return { min: '', txt: tr('Fim de papo aqui na Rádio Legends.', 'That is all from Radio Legends.') }
       }
       const r = radioNoMinuto(radioLances, min)
-      if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles, elencos) }
+      if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles, elencos, !!relogioKings) }
       // 🆚 antes da 1ª frase: o RETROSPECTO entre os dois donos (só sala online, gente × gente)
       if (retro) return { tag: `🆚 ${tr('VOCÊ', 'YOU')} × ${retro.rival.toUpperCase()}`, tom: 'retro' as const, min: '', txt: fraseRetro(retro.r, emIngles, roundKey) }
       return { min: '', txt: tr('Rádio ligada. Bola rolando!', 'Radio on. Ball rolling!') }

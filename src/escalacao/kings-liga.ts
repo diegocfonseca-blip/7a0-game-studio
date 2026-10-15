@@ -35,6 +35,90 @@ function desconta<T extends { name: string; teamId: number }>(lista: T[], nome: 
   if (row[campo] <= 0) lista.splice(i, 1)
 }
 
+// ── ⚽ OS GOLS DA KINGS (15/10, Diego: *"você precisa entender melhor o jogo da Kings… onde sai mais gol, onde sai menos…
+// muitas vezes sai gol no minuto 1 quando tá 1x1"*). A partida de sempre (`simMatch`) dá placar de futebol de 11 (2–3
+// gols); a Kings de verdade dá ~7 por jogo (Copa do Mundo da Kings 2024: 407 gols em 55 jogos = 7,4; placares tipo 7×5,
+// 8×4, 5×5). Então a Kings tem o PRÓPRIO sorteio de gols, minuto a minuto, pela quantidade de gente em campo:
+//   · 1×1 do pontapé (0'–2', goleiro + 1, campo inteiro aberto): muito gol — e o GOLEIRO também marca
+//   · escalonado (2×2 no 2' … 6×6 no 6'): vai caindo conforme entra gente
+//   · 7×7: ritmo de futsal grande, bem menos
+//   · fase do dado (👑 1×1 · 2×2 · 3×3): volta a chover gol
+//   · reta final: todo mundo no ataque, sobe um pouco
+// Placar médio de bola rolando ≈ 5,5 + presidente/cartas/bola do fim ≈ 7–8. Força do time (média dos 7 melhores) e
+// tática mexem na chance. Autor e garçom saem do elenco DE VERDADE (carta de mentira faz o gol mas não entra na súmula).
+export interface CartaGol { name: string; pos: string; lo: number; hi: number; fake?: boolean; club?: string }
+const GOL_POR_MIN: Record<number, number> = { 1: 0.16, 2: 0.15, 3: 0.13, 4: 0.11, 5: 0.095, 6: 0.08, 7: 0.04 }
+const GOL_RETA_FINAL = 0.055
+/** quantos de linha cada time tem no minuto `k` da Kings */
+export function emCampoKings(k: number, dado: 1 | 2 | 3): number {
+  if (k < 2) return 1
+  if (k < 7) return k
+  if (k >= MIN_DADO && k < MIN_INTERVALO) return dado
+  return 7
+}
+/** o dado do jogo sai da MESMA semente da regra (`aplicaRegrasKings` sorteia ele primeiro) */
+export const dadoDoJogo = (seed: number): 1 | 2 | 3 => FACES_DADO[Math.floor(rngKings(seed)() * 6)]
+const forcaDe = (elenco: CartaGol[]) => {
+  const top = elenco.map(c => (c.lo + c.hi) / 2).sort((a, b) => b - a).slice(0, 7)
+  return top.length ? top.reduce((a, b) => a + b, 0) / top.length : 60
+}
+export function simulaGolsKings(o: {
+  homeId: number; awayId: number; nomes: { h: string; a: string }; seed: number
+  elencos: { h: CartaGol[]; a: CartaGol[] }; taticas?: { h?: string; a?: string }; ehFake: (c: CartaGol) => boolean
+}): { highlights: MatchHighlight[]; tmpS: ScorerRow[]; tmpA: AssistRow[] } {
+  const rng = rngKings(o.seed ^ 0x601A5)
+  const dado = dadoDoJogo(o.seed)
+  const fH = forcaDe(o.elencos.h), fA = forcaDe(o.elencos.a)
+  const tat = (t?: string) => t === 'ataque' ? [1.15, 1.12] : t === 'retranca' ? [0.85, 0.8] : [1, 1]
+  const [hOwn, hGive] = tat(o.taticas?.h), [aOwn, aGive] = tat(o.taticas?.a)
+  const multH = Math.min(1.9, Math.max(0.45, Math.pow(fH / fA, 1.4))) * hOwn * aGive
+  const multA = Math.min(1.9, Math.max(0.45, Math.pow(fA / fH, 1.4))) * aOwn * hGive
+  const highlights: MatchHighlight[] = []
+  const tmpS: ScorerRow[] = [], tmpA: AssistRow[] = []
+  // "dia" de cada jogador (o craque pode apagar, o perna-de-pau pode brilhar), igual à partida de sempre
+  const dia = new Map<string, number>()
+  for (const c of [...o.elencos.h, ...o.elencos.a]) dia.set(c.name, 0.4 + rng() * 2.2)
+  const nivel = (c: CartaGol) => 0.12 + Math.pow(Math.max(0, ((c.lo + c.hi) / 2 - 40) / 42), 2) * 1.8
+  const sorteia = <T,>(itens: T[], peso: (x: T) => number): T | null => {
+    const tot = itens.reduce((a, x) => a + peso(x), 0)
+    if (tot <= 0) return null
+    let r = rng() * tot
+    for (const x of itens) { r -= peso(x); if (r <= 0) return x }
+    return itens[itens.length - 1]
+  }
+  const credita = <R extends { name: string; teamId: number; teamName: string }>(lista: R[], nome: string, teamId: number, teamName: string, campo: 'goals' | 'assists') => {
+    const row = lista.find(x => x.name === nome && x.teamId === teamId) as unknown as Record<string, number> | undefined
+    if (row) row[campo]++
+    else lista.push({ name: nome, teamId, teamName, [campo]: 1 } as unknown as R)
+  }
+  for (let k = 0; k < MIN_FIM; k++) {
+    const n = emCampoKings(k, dado)
+    const base = k >= 36 ? GOL_RETA_FINAL : GOL_POR_MIN[n]
+    for (const lado of ['h', 'a'] as const) {
+      const sorteioGol = rng(), quando = rng()
+      if (sorteioGol >= base * (lado === 'h' ? multH : multA)) continue
+      const id = lado === 'h' ? o.homeId : o.awayId, time = lado === 'h' ? o.nomes.h : o.nomes.a
+      const elenco = o.elencos[lado]
+      const min = Math.max(1, Math.min(93, kParaPlacar(k) + Math.floor(quando * kParaPlacar(1))))
+      // ⚽ quem fez: no 1×1/2×2 o goleiro joga junto e marca de vez em quando; depois é coisa de atacante
+      const autor = sorteia(elenco, c => (c.pos === 'ATA' ? 6 : c.pos === 'MEI' ? 3 : c.pos === 'LAT' ? 1 : c.pos === 'ZAG' ? 0.8 : (n <= 2 ? 2.5 : 0.04)) * nivel(c) * (dia.get(c.name) ?? 1))
+      if (!autor) { highlights.push({ min, text: `⚽ Gol de ${time}.`, teamId: id, kind: 'gol' }); continue }
+      highlights.push({ min, text: `⚽ ${autor.name} marca para ${time}!`, teamId: id, kind: 'gol' })
+      if (!o.ehFake(autor)) credita(tmpS, autor.name, id, time, 'goals')
+      // 🅰️ o passe (no 1×1 quase sempre é jogada individual)
+      if (rng() < (n <= 1 ? 0.15 : 0.62)) {
+        const garcom = sorteia(elenco.filter(c => c.name !== autor.name), c => (c.pos === 'MEI' ? 4 : c.pos === 'ATA' ? 3 : c.pos === 'GOL' ? 0.6 : 1.5) * nivel(c))
+        if (garcom) {
+          highlights.push({ min, text: `🅰️ ${garcom.name} deu o passe para o gol de ${time}.`, teamId: id, kind: 'assist' })
+          if (!o.ehFake(garcom)) credita(tmpA, garcom.name, id, time, 'assists')
+        }
+      }
+    }
+  }
+  highlights.sort((x, y) => x.min - y.min)
+  return { highlights, tmpS, tmpA }
+}
+
 // ── 🗓️ AGENDA DA RODADA (Diego 15/10): o pênalti do presidente e a carta caem no MESMO minuto em todos os jogos da
 // rodada — um minuto pro time da CASA (1º tempo) e outro pro VISITANTE (2º tempo). Assim, no online, ninguém se atropela.
 export interface AgendaKings { presCasa: number; cartaCasa: number; presFora: number; cartaFora: number }
@@ -81,7 +165,7 @@ export function aplicaRegrasKings(r: MatchResult, base: KingsBase, ctx: CtxKings
   const nome = (id: number) => id === H ? ctx.nomes.h : ctx.nomes.a
   const rival = (id: number) => id === H ? A : H
   // ── todos os sorteios de uma vez, sempre na mesma ordem (a escolha de alguém nunca muda o resto do jogo)
-  const dado = FACES_DADO[Math.floor(rng() * 6)]
+  const dado = FACES_DADO[Math.floor(rng() * 6)] // ⚠️ 1º sorteio da semente — `dadoDoJogo` depende disto
   const sorteiaCarta = () => {
     const sorteada = CARTAS_SORTEIO[Math.floor(rng() * CARTAS_SORTEIO.length)]
     const outras = CARTAS_SORTEIO.filter(c => c !== 'coringa') as Exclude<CartaKingsTipo, 'coringa'>[]

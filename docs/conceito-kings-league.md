@@ -112,3 +112,14 @@ Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se jo
   vale pro jogo todo, não só Kings); frase de lateral cita zagueiro quando não tem lateral; e na Kings a rádio fala até 18
   frases por jogo e mistura um banco próprio (`KINGS` em `radio.ts`: goleiro-linha, presidente na tribuna, troca volante,
   DJ, telão, campo de futebol 7…).
+- ⚽ **GOLS DA KINGS = SORTEIO PRÓPRIO** (Diego 15/10: *"entender melhor… onde sai mais gol, onde sai menos… muitas vezes sai
+  gol no minuto 1 quando tá 1x1"*). `simulaGolsKings` (kings-liga.ts): gol por minuto pela quantidade em campo (1×1 0,16 ·
+  2×2 0,15 … 6×6 0,08 · 7×7 0,04 · reta final 0,055, por time), força dos 7 melhores e tática; goleiro marca no 1×1/2×2.
+  Medido (`npm run kings-regras`): **7,6 gols/jogo** (Kings real: 7,4 na Copa do Mundo da Kings 2024), gol nos 2 primeiros
+  minutos em ~60% dos jogos, 1×1 e dado com ~4× mais gol por minuto que o 7×7. O futebol de sempre NÃO mudou (o `simMatch`
+  só deixou de ser usado na Kings).
+- 🎙️ Jogador no lance do placar e a troca lateral→zagueiro da rádio: **SÓ na Kings** (*"isso que estamos fazendo é só pra
+  Kings League"*) — o jogo normal voltou ao que era.
+- ⏳ **PERGUNTADO A ELE (15/10)**: o regulamento mais novo da Kings Brasil (out/2025) mudou os minutos — gol vale dobrado
+  do 17' ao 20' · dado do 20' ao 23' (começo do 2º tempo) · parada final no 36' (match ball). Hoje usamos dado no 18' e
+  bola dourada/vermelha no 38'. Só mudar com o OK dele.

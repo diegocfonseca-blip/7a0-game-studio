@@ -184,10 +184,10 @@ const NOMEADO: Record<string, Nomeado> = {
 // carta de mentira (filler da Várzea/Pickup) nunca é citada — mesma régua do `ehFake` da súmula
 const deVerdade = (c: CartaRadio) => !c.fake && c.club !== 'Várzea' && c.club !== 'Pickup' && !!c.name
 /** quem a rádio cita: alguém da posição pedida, sempre o MESMO pra mesma frase (sala inteira ouve igual) */
-function quemCitar(lista: CartaRadio[] | undefined, pos: string, l: RadioLance): string | null {
+function quemCitar(lista: CartaRadio[] | undefined, pos: string, l: RadioLance, kings = false): string | null {
   let daPos = (lista ?? []).filter(c => (c.pos ?? c.sec) === pos && deVerdade(c))
   // 👑 Kings (futebol 7) não tem lateral: a frase de lateral cita um zagueiro
-  if (!daPos.length && pos === 'LAT') daPos = (lista ?? []).filter(c => (c.pos ?? c.sec) === 'ZAG' && deVerdade(c))
+  if (!daPos.length && kings && pos === 'LAT') daPos = (lista ?? []).filter(c => (c.pos ?? c.sec) === 'ZAG' && deVerdade(c))
   if (!daPos.length) return null
   return daPos[(l.min * 31 + l.a * 7 + l.f) % daPos.length].name
 }
@@ -270,14 +270,14 @@ export function radioDoJogo(seed: number, ocupados: number[], roundMs: number, k
 }
 
 /** o texto da frase, no idioma pedido */
-export function narraRadio(l: RadioLance, casa: string, fora: string, en: boolean, elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[] }): string {
+export function narraRadio(l: RadioLance, casa: string, fora: string, en: boolean, elencos?: { casa?: CartaRadio[]; fora?: CartaRadio[] }, kings = false): string {
   const k = en ? 1 : 0
   if (l.i >= 3000) {
     // 👑 frase da Kings: com jogador quando dá (posição pedida), senão a versão do clube
     const kf = KINGS[(l.i - 3000) % KINGS.length]
     const t = l.home ? casa : fora, o = l.home ? fora : casa
     const doTime = kf.pos ? ((kf.quem ?? 't') === 't') === l.home ? elencos?.casa : elencos?.fora : undefined
-    const jogador = kf.pos ? quemCitar(doTime, kf.pos, l) : null
+    const jogador = kf.pos ? quemCitar(doTime, kf.pos, l, true) : null
     const cru = jogador && kf.p ? kf.p[k].replace(/\{p\}/g, jogador) : kf.c[k]
     const abre = ABRE[l.a][k]
     const corpo = cru.replace(/\{t\}/g, t).replace(/\{o\}/g, o)
@@ -289,7 +289,7 @@ export function narraRadio(l: RadioLance, casa: string, fora: string, en: boolea
   // 🧑 versão com o nome do jogador, quando a escalação está na mão (14/10)
   const nom = l.i < 1000 ? NOMEADO[par[0]] : undefined
   const doTime = nom ? ((nom[3] === 't') === l.home ? elencos?.casa : elencos?.fora) : undefined
-  const jogador = nom ? quemCitar(doTime, nom[2], l) : null
+  const jogador = nom ? quemCitar(doTime, nom[2], l, kings) : null
   const cru = nom && jogador ? nom[k].replace(/\{p\}/g, jogador) : par[k]
   // o NOME do clube nunca muda de caixa (é identidade); só a 1ª letra de frase comum
   const comVar = cru.startsWith('{') || (!!jogador && !!nom && nom[k].startsWith('{p}'))

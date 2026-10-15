@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState } from 'react'
-import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings } from './kings-liga'
+import { aplicaRegrasKings, aplicaResultadoKings, desfazResultadoKings, somaListas, tiraListas, agendaKings, sementeJogoKings, simulaGolsKings } from './kings-liga'
 import type { CtxKings } from './kings-liga'
 import type { KingsBase } from './types'
 import { calendarioKings, chaveKings } from './kings'
@@ -4706,10 +4706,16 @@ function ctxKings(s: EscState, homeId: number, awayId: number, rodada: number): 
     linha: (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).filter(c => c.pos !== 'GOL').map(c => c.name),
   }
 }
-function jogoKings(s: EscState, homeId: number, awayId: number, rng: () => number, scorers: ScorerRow[], assists: AssistRow[], neutral: boolean, rodada: number): MatchResult {
-  const tmpS: ScorerRow[] = [], tmpA: AssistRow[] = []
-  const r = simMatch(s, homeId, awayId, rng, tmpS, neutral, tmpA, true)
-  const base: KingsBase = { highlights: r.highlights.map(h => ({ ...h })), tmpS, tmpA, seed: sementeJogoKings(s.seed, rodada, homeId, awayId), rodada, decisoes: {}, art: { s: [], a: [] } }
+function jogoKings(s: EscState, homeId: number, awayId: number, _rng: () => number, scorers: ScorerRow[], assists: AssistRow[], _neutral: boolean, rodada: number): MatchResult {
+  // ⚽ os gols da Kings saem do sorteio PRÓPRIO dela (`simulaGolsKings`: ~7 por jogo, mais no 1×1 e no dado) — não do
+  // `simMatch` do futebol de 11. Mesma semente = mesma partida em todo aparelho.
+  const seed = sementeJogoKings(s.seed, rodada, homeId, awayId)
+  const nome = (id: number) => s.league.find(t => t.id === id)?.name ?? '?'
+  const elenco = (id: number) => (s.managers.find(m => m.id === id)?.squad ?? []).map(c => ({ name: c.name, pos: c.pos, lo: c.lo, hi: c.hi, fake: c.fake, club: c.club }))
+  const tat = (id: number) => s.managers.some(m => m.id === id && m.isHuman) ? s.tactics[id] : undefined
+  const g = simulaGolsKings({ homeId, awayId, nomes: { h: nome(homeId), a: nome(awayId) }, seed, elencos: { h: elenco(homeId), a: elenco(awayId) }, taticas: { h: tat(homeId), a: tat(awayId) }, ehFake })
+  const r: MatchResult = { homeId, awayId, hg: 0, ag: 0, highlights: [] }
+  const base: KingsBase = { highlights: g.highlights, tmpS: g.tmpS, tmpA: g.tmpA, seed, rodada, decisoes: {}, art: { s: [], a: [] } }
   const art = aplicaRegrasKings(r, base, ctxKings(s, homeId, awayId, rodada))
   somaListas(scorers, art.s, assists, art.a)
   // os lances dos jogos SEM humano só serviram pra regra — não ficam no save. Com gente, guarda a partida crua: quando a

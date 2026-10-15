@@ -25,8 +25,8 @@
 //     inteira dura 11 s (93' em ~9 s), então lá cabe UMA por lado, bem espaçada;
 //     na carreira (rodada mais lenta) cabem mais. Quem manda é `roundMs`.
 //   · 🚫 SEM PÊNALTI (ordem de 19/09): pênalti tem tela própria.
-//   · 🧍 Fala do JOGADOR quando o placar tem a escalação (15/10, `quemFinalizou`): um atacante/meia DE VERDADE do
-//     time, nunca inventado. Sem escalação, fala do clube (regra de 18/08: não inventar quem é a pessoa).
+//   · 🧍 Fala do CLUBE no jogo de sempre. SÓ na Kings League (15/10, `quemFinalizou`) fala do JOGADOR — um
+//     atacante/meia DE VERDADE do time, nunca inventado (Diego: *"isso que estamos fazendo é só pra Kings League"*).
 //   · 🌐 PT e EN com a MESMA quantidade de frases (o sorteio é por índice).
 
 export type FimDaChance = 'defendeu' | 'trave' | 'fora' | 'isolou'

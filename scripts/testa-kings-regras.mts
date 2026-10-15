@@ -19,6 +19,19 @@ for (let t = 0; t < 12; t++) {
   for (let r = 0; r < 9; r++) { s = reducer(s, { type: 'PLAY_ROUND' }); jogos.push(...s.lastResults.filter(x => x.kingsBase)) }
 }
 console.log(`(${jogos.length} partidas com gente conferidas lance a lance)`)
+// ⚽ quantidade e MOMENTO dos gols (a Kings de verdade: ~7 por jogo; muito gol no 1×1 e no dado)
+{
+  const tot = jogos.reduce((a, r) => a + r.hg + r.ag, 0) / jogos.length
+  const crus = jogos.map(r => r.kingsBase!.highlights.filter(h => h.kind === 'gol'))
+  const porMin = (a: number, b: number) => crus.reduce((x, l) => x + l.filter(h => h.min >= kParaPlacar(a) && h.min < kParaPlacar(b)).length, 0) / crus.length / (b - a)
+  const um = porMin(0, 2), escal = porMin(2, 7), sete = porMin(7, 18), dado = porMin(18, 20), seg = porMin(20, 36)
+  const cedo = crus.filter(l => l.some(h => h.min < kParaPlacar(2))).length / crus.length
+  const goleiro = jogos.some(r => r.kingsBase!.highlights.some(h => h.kind === 'gol' && h.min < kParaPlacar(3) && /^⚽ /.test(h.text)) )
+  console.log(`   média ${tot.toFixed(1)} gols/jogo · por minuto: 1×1 ${um.toFixed(2)} · escalonado ${escal.toFixed(2)} · 7×7 ${sete.toFixed(2)} · dado ${dado.toFixed(2)} · 2º tempo ${seg.toFixed(2)} · ${Math.round(cedo * 100)}% dos jogos com gol nos 2 primeiros minutos`)
+  ok(tot >= 6 && tot <= 9.5, `⚽ média de ${tot.toFixed(1)} gols por jogo (Kings de verdade ≈ 7,4)`)
+  ok(um > sete * 2 && dado > sete * 1.8 && escal > sete, '⚽ sai MUITO mais gol no 1×1 e no dado do que no 7×7')
+  ok(cedo > 0.2 && goleiro, `⚽ gol logo no 1×1 acontece (${Math.round(cedo * 100)}% dos jogos)`)
+}
 // placar
 ok(jogos.every(r => gols(r, r.homeId).length === r.hg && gols(r, r.awayId).length === r.ag), 'PLACAR: o número que aparece na tela (lance a lance) bate com o resultado da tabela em TODA partida')
 // bola dourada
