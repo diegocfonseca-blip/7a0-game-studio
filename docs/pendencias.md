@@ -113,6 +113,10 @@ grátis do dia já foi usada; não vencem. SQL: `docs/sql/salas-extras.sql` (apl
   jeito do clube), SEM escudo oficial e SEM patrocinador — vender a camisa oficial com escudo é usar marca de clube pra
   cobrar. R$ 4,90 cada, começando pelos 20 da Série A. ⏳ esperando ele escolher.
   ✅ Decidido (Diego): *"nem o fundador terá"* — camisa de time NÃO vem em plano nenhum, nem no Fundador; é só comprada.
+  ✅ Decidido (Diego): **camisa OFICIAL, com escudo** (avisado do risco de marca; a escolha é dele). Lista = os times de coração
+  dos donos de batismo (`esc_socios.time_coracao`, 15/10): Corinthians 13 · Flamengo 7 · São Paulo 7 · Palmeiras 6 · Inter 4 ·
+  Atlético-MG 3 · Grêmio 3 · Santos 3 · Cruzeiro 2 · Vasco 2 · Botafogo · CRB · Paraná · Paysandu · Remo · Rio Branco-PR ·
+  Santa Cruz (17 do Brasil). ⏳ Próximo: mockup com 3 (Corinthians, Flamengo, São Paulo) no boneco antes de fazer o resto.
 - FALTA: o editor (`presidente-editor.tsx`) está só na conta do Diego e a arte do rosto (`presidente-v2/*`) não está no repo.
 
 ## 🌐 Ideias pro online/Minhas Ligas (14/10) — ⏳ MOCKUP enviado
