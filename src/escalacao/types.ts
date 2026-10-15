@@ -438,14 +438,20 @@ export interface KingsInfo {
   cartas?: CartaKingsInfo[]
   /** 🥅 as cobranças 1×1 (presidente e cartas de pênalti/shootout/inverso) */
   duelos?: DueloKingsInfo[]
+  /** 🟨🟥 cartões: na Kings ninguém é expulso de vez — amarelo = 2 min fora, vermelho = 5 min fora (o time joga com um a menos) */
+  cartoes?: CartaoKingsInfo[]
   /** empate no apito = SHOOTOUT (casa, fora) — quem ganha leva 2 pontos, quem perde 1 */
   pens?: [number, number]
   pensSeq?: string
 }
 /** 👑 a partida "crua" (antes da regra da Kings) guardada nos jogos de GENTE: quando a pessoa escolhe o canto, a
  *  partida é refeita a partir daqui (mesma semente) com a escolha dela. */
+/** 🟨🟥 um cartão da Kings: `min` no relógio do placar (0–93), `ate` = minuto da KINGS (0–40) em que o jogador volta */
+export interface CartaoKingsInfo { teamId: number; nome: string; cor: 'amarelo' | 'vermelho'; min: number; ate: number }
 export interface KingsBase {
   highlights: MatchHighlight[]
+  /** 🟨🟥 os cartões do jogo (saem junto com os gols, no `simulaGolsKings`) */
+  cartoes?: CartaoKingsInfo[]
   tmpS: ScorerRow[]; tmpA: AssistRow[]
   seed: number
   rodada: number

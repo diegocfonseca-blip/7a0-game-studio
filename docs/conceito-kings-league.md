@@ -123,3 +123,18 @@ Regras conferidas no regulamento oficial PT (14/10/2025), na página "Como se jo
 - ⏳ **PERGUNTADO A ELE (15/10)**: o regulamento mais novo da Kings Brasil (out/2025) mudou os minutos — gol vale dobrado
   do 17' ao 20' · dado do 20' ao 23' (começo do 2º tempo) · parada final no 36' (match ball). Hoje usamos dado no 18' e
   bola dourada/vermelha no 38'. Só mudar com o OK dele.
+
+
+## 🟨 15/10 (noite) — cartões, giro e rádio com nome
+Diego: *"nunca vejo sair gol no 1×1, 2×2… não tô vendo nada falando dos jogadores… o cartão amarelo, o jogador tem que
+esperar 2 minutos lá fora"*.
+- **Gols do começo**: o sorteio já dava gol no 1×1 em ~55% dos jogos — o problema era a TELA. O giro dos outros jogos andava
+  num relógio próprio (os gols do 1×1 passavam por baixo da cena do pontapé) e os jogos bot × bot tinham os lances APAGADOS
+  (o giro mostrava "–"). Agora o giro anda no relógio do jogo da pessoa (para nas cenas, mostra os 40 min) e todo jogo
+  guarda os gols.
+- **Cartões** (regra da Kings: ninguém é expulso de vez): 🟨 amarelo = **2 min fora**, 🟥 vermelho = **5 min fora**; o time
+  joga com um a menos (marca menos, leva mais). Só depois do 7×7. ~0,9 amarelo e ~0,1 vermelho por jogo. Aparece na faixa
+  dos efeitos ("FORA 2 MIN · volta no X'") e a rádio narra na hora.
+- **Rádio**: nas fases de campo aberto (1×1 até 6×6 e a do dado) tem uma frase por minuto da Kings, todas com nome de
+  jogador (banco `KINGS_FASE`); no resto, a Kings prefere as frases com jogador. Tudo SÓ na Kings.
+- Trava: `npm run kings-regras` confere giro, cartões e o % de frases com nome.
