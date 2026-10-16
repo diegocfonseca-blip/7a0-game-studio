@@ -28,23 +28,23 @@ h1{margin:0;font-size:28px;text-transform:uppercase}.sub{margin:2px 0 16px;font-
 .ct .ini{position:absolute;top:34px;left:50%;transform:translateX(-50%);width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:20px;font-weight:700}
 .ct b{font-size:12.5px;line-height:1}.ct small{font-size:9px;opacity:.85}
 .ct .gr{position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);background:#FFC400;color:#000;border:2px solid #000;border-radius:7px;font-size:9.5px;padding:0 5px;white-space:nowrap}
-.btn{display:inline-block;margin-top:20px;background:#1B7A3D;color:#fff;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;padding:6px 18px;font-weight:700;font-size:16px;text-transform:uppercase}
+@keyframes enc{from{width:100%}to{width:0}}.barra{height:6px;background:#1B7A3D;border-radius:4px;width:62%;margin:-4px 0 8px}.btn{display:inline-block;margin-top:20px;background:#1B7A3D;color:#fff;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;padding:6px 18px;font-weight:700;font-size:16px;text-transform:uppercase}
 </style></head><body>
 <h1>🎁 Pregão aberto sem Monte</h1><p class="sub">Onde a pessoa fica sabendo do jogador de graça.</p>
 <div class="cols">
  <div class="col"><span class="tag">1 · Aviso no topo, desde o começo</span>
   <div class="hd"><span style="font-size:28px">🔨</span><div><b>Pregão aberto</b><small>carta 45 de 115 · ordem embaralhada: ninguém sabe a próxima</small>
-   <span class="novo">🎁 Sem Monte: vaga vazia no fim ganha jogador profissional ou bom, de graça</span></div><span class="cx">32<br><small style="font-size:9px">SEU CAIXA</small></span></div>
+   <span class="novo">🎁 Sem Monte: vaga vazia no fim ganha jogador de graça (nunca craque nem lenda)</span></div><span class="cx">32<br><small style="font-size:9px">SEU CAIXA</small></span></div>
   <p class="nota">Uma linha verde fixa embaixo do título. Quem entra já sabe que não tem Monte e que não vai ficar com time furado.</p></div>
  <div class="col"><span class="tag">2 · Quando ninguém quer a carta</span>
   <div class="roxo velho">🙈 Ninguém quis Robert Pires. Foi pro Monte.</div>
   <div class="roxo">🙈 Ninguém quis Robert Pires. Fica na sobra e pode cair de graça em quem terminar com vaga vazia.</div>
   <p class="nota">O texto de cima (riscado) é o de hoje. Sai o "foi pro Monte", que não existe mais nesse modo.</p></div>
- <div class="col"><span class="tag">3 · No fim, antes da temporada</span>
-  <div class="modal"><div style="font-size:34px">🎁</div><h2>Seu time fechou de graça!</h2><p>Você terminou com 3 vagas vazias. Elas ganharam jogador profissional ou bom, sem pagar nada.</p>
+ <div class="col"><span class="tag">3 · No fim, sem botão</span>
+  <div class="modal"><div class="barra"></div><div style="font-size:34px">🎁</div><h2>Seu time fechou de graça!</h2><p>Você terminou com 3 vagas vazias. Elas ganharam jogador de graça.</p>
    <div class="cards">${carta('ATA', 'Robert Pires', 'Arsenal · 2004', '🎯 BOM', '#2fa65a')}${carta('LAT', 'Zé Roberto', 'Bayern · 2003', '⚽ PROF.', '#5f7f99')}${carta('ZAG', 'Gamarra', 'Corinthians · 1998', '🎯 BOM', '#2fa65a')}</div>
-   <span class="btn">Bora pra temporada ⚽</span></div>
-  <p class="nota">Aparece só pra quem ganhou carta de graça, uma vez, logo depois do último martelo. Quem completou o time no lance não vê nada.</p></div>
+   <p style="margin:18px 0 0;font-size:11px;opacity:.6">some sozinho em 6s · toque fora pra fechar antes</p></div>
+  <p class="nota">SEM BOTÃO e sem parar nada: aparece por cima da tela seguinte, some sozinho em 6s (a barrinha em cima mostra o tempo) e não segura a sala. Só pra quem ganhou carta.</p></div>
 </div></body></html>`
 mkdirSync('scripts/mockups', { recursive: true })
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
