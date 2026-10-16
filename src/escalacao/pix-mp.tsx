@@ -19,11 +19,11 @@ import { precoTxt } from './planos-regras'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'canto' | 'presente'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
-  moedas_10: ['🏦 30 moedas', '🏦 30 coins'], moedas_50: ['🏦 150 moedas', '🏦 150 coins'], moedas_100: ['🏦 300 moedas', '🏦 300 coins'],
+  moedas_10: ['🏦 30 moedas', '🏦 30 coins'], moedas_50: ['🏦 150 moedas', '🏦 150 coins'], moedas_100: ['🏦 300 moedas', '🏦 300 coins'], moedas_500: ['🏦 1.500 moedas', '🏦 1,500 coins'], moedas_1000: ['🏦 3.000 moedas', '🏦 3,000 coins'],
   canto: ['📣 Canto da torcida', '📣 Crowd chant'], presente: ['🎁 Presente', '🎁 Gift'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
@@ -36,6 +36,8 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   moedas_10: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
   moedas_50: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
   moedas_100: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
+  moedas_500: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
+  moedas_1000: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
   canto: ['Agora conta qual canto você quer: o Diego monta e coloca no seu clube.', 'Now tell us which chant you want: Diego builds it and adds it to your club.'],
   presente: ['Presente entregue! Seu amigo recebe com o seu recado quando entrar no jogo. 🎁', 'Gift delivered! Your friend gets it with your message when they open the game. 🎁'],
 }
@@ -54,7 +56,8 @@ const resta = (iso: string) => {
 }
 
 /** a caixa do Pix novo. `valor` é só pra MOSTRAR antes de gerar (o valor de verdade vem do servidor). */
-export function PixMP({ produto, valor, refId = '' }: { produto: ProdutoMp; valor?: number; refId?: string }) {
+/** `aoReceberFicha`: comprou DENTRO da carreira (🏦 Banco Legends) → a ficha é resgatada sozinha ali e devolve as moedas creditadas */
+export function PixMP({ produto, valor, refId = '', aoReceberFicha }: { produto: ProdutoMp; valor?: number; refId?: string; aoReceberFicha?: (ficha: string) => Promise<number | null> }) {
   const en = getLang() === 'en'
   const [fase, setFase] = useState<Fase>('inicio')
   const [pix, setPix] = useState<Pix | null>(null)
@@ -152,21 +155,30 @@ export function PixMP({ produto, valor, refId = '' }: { produto: ProdutoMp; valo
         <button onClick={confere} className="text-[11px] font-black underline mt-2" style={{ color: 'rgba(12,12,12,.55)' }}>{tr('Já paguei, conferir agora', 'I already paid, check now')}</button>
       </>}
 
-      {fase === 'pago' && <Pago produto={produto} liberado={liberado} pedido={pix?.pedido_id ?? ''} ficha={ficha} />}
+      {fase === 'pago' && <Pago produto={produto} liberado={liberado} pedido={pix?.pedido_id ?? ''} ficha={ficha} aoReceberFicha={aoReceberFicha} />}
     </div>
   )
 }
 
 /** ✅ caiu! — e, no Batismo/Fundador, o "conta como você imagina" (por escrito) + falar com o Diego */
-function Pago({ produto, liberado, pedido, ficha }: { produto: ProdutoMp; liberado: boolean; pedido: string; ficha: string | null }) {
+function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: ProdutoMp; liberado: boolean; pedido: string; ficha: string | null; aoReceberFicha?: (ficha: string) => Promise<number | null> }) {
   const clubeDeGente = produto === 'batismo' || produto === 'fundador' || produto === 'teste' || produto === 'canto'
   const [copiouF, setCopiouF] = useState(false)
+  // 🏦 comprou dentro da carreira: a ficha cai sozinha no caixa DESTE clube (uma vez só)
+  const [creditou, setCreditou] = useState<number | null>(null)
+  const jaTentou = useRef(false)
+  useEffect(() => {
+    if (!ficha || !aoReceberFicha || jaTentou.current) return
+    jaTentou.current = true
+    aoReceberFicha(ficha).then(v => setCreditou(v ?? null), () => {})
+  }, [ficha, aoReceberFicha])
   return (
     <div>
       <div className="text-[56px] leading-none mt-1">✅</div>
       <p className="font-black uppercase text-[24px] mt-1" style={{ ...OSW, color: GREEN }}>{tr('Pagamento confirmado!', 'Payment confirmed!')}</p>
       <p className="text-[13px] font-bold mt-1 leading-snug">{liberado ? tr(GANHOU[produto][0], GANHOU[produto][1]) : tr('Chegou pro Diego liberar. Em instantes está na sua conta.', 'It reached Diego to unlock. It will be in your account shortly.')}</p>
-      {ficha && <div className="mt-2.5">
+      {creditou != null && creditou > 0 && <p className="font-black text-[26px] mt-2" style={{ ...OSW, color: GREEN }}>+{creditou} 🪙 {tr('no caixa do clube!', 'in the club’s till!')}</p>}
+      {ficha && !(creditou != null && creditou > 0) && <div className="mt-2.5">
         <button onClick={async () => { try { await navigator.clipboard.writeText(ficha) } catch { /* à vista */ } setCopiouF(true) }} className="w-full rounded-xl py-2.5 text-[22px] tracking-widest active:translate-y-0.5"
           style={{ ...OSW, background: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{ficha}</button>
         <p className="text-[11.5px] font-bold mt-1.5 leading-snug" style={{ color: '#5a5240' }}>{copiouF ? tr('✅ Copiada! ', '✅ Copied! ') : tr('Toque pra copiar. ', 'Tap to copy. ')}{tr('Resgate na carreira que quiser: Clube › Finanças › 🏦 Banco Legends.', 'Redeem it in whichever career you like: Club › Finances › 🏦 Banco Legends.')}</p>
