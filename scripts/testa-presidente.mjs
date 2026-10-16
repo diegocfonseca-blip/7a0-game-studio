@@ -40,8 +40,11 @@ try {
   assert.equal(A.podeVestirModular('rei-pregao', 'lenda'), false)
   assert.equal(todas.filter(id => A.podeVestirModular(id, 'lenda')).length, 23, 'Lenda alcança 14 + 9')
 
-  // 🖋 Batismo e Fundador: tudo
-  for (const pl of ['batismo', 'fundador']) for (const id of todas) assert.equal(A.podeVestirModular(id, pl), true, `${pl} veste ${id}`)
+  // 🖋 Fundador: tudo · Batismo: tudo MENOS astronauta e gala dourada (só Fundador, Diego 16/10)
+  const SO_FUNDADOR = ['astronauta', 'gala-dourada']
+  for (const id of todas) assert.equal(A.podeVestirModular(id, 'fundador'), true, `fundador veste ${id}`)
+  for (const id of todas) assert.equal(A.podeVestirModular(id, 'batismo'), !SO_FUNDADOR.includes(id), `batismo ${SO_FUNDADOR.includes(id) ? 'NÃO ' : ''}veste ${id}`)
+  assert.deepEqual([...A.seloRoupaModular('astronauta')], ['🖋 FUNDADOR', '🖋 FOUNDER'])
 
   // selos nunca dizem GRÁTIS; o nível certo em cada degrau
   for (const id of todas) {
@@ -78,5 +81,5 @@ try {
   const conta = readFileSync('src/escalacao/presidente-conta.ts', 'utf8')
   assert.ok(conta.includes('podeSalvarPresidente(plano)') && conta.includes('podeVestirModular(v.outfit, plano)'), 'salvar na conta confere plano e roupa')
 
-  console.log('✅ presidente × plano: grátis só olha · Craque 14 · Lenda 23 · Batismo/Fundador 33 · sem GRÁTIS · sorteio no plano · conta com a mesma régua')
+  console.log('✅ presidente × plano: grátis só olha · Craque 14 · Lenda 23 · Batismo 31 · Fundador 33 (astronauta e gala dourada só no Fundador) · sem GRÁTIS · sorteio no plano · conta com a mesma régua')
 } finally { await vite.close() }

@@ -1,7 +1,7 @@
 // Catálogo cosmético. Não compra moedas, não altera tier nem concede atributos.
 // As artes precisam de aprovação de encaixe antes de habilitar a seleção.
 // 🔁 15/10 (Diego: "nada é de graça"): `access` aqui é o NÍVEL da roupa no catálogo, não quem pode usar.
-// Quem decide é o PLANO da conta, em presidente-plano.ts: 'free' = Craque · 'craque' = Lenda · 'lenda' = Batismo+.
+// Quem decide é o PLANO da conta, em presidente-plano.ts: 'free' = Craque · 'craque' = Lenda · 'lenda' = Batismo+ · 'fundador' = só Fundador.
 import type { PlanoUnico } from './planos-regras'
 import { podeVestirAcesso, seloAcesso } from './presidente-plano'
 export const PRESIDENTE_ROUPAS = [
@@ -28,8 +28,8 @@ export const PRESIDENTE_ROUPAS = [
  {id:'streetwear',pt:'Streetwear',en:'Streetwear',access:'craque'},
  {id:'astro-rock',pt:'Astro do rock',en:'Rock star',access:'craque'},
  {id:'executivo-futurista',pt:'Executivo futurista',en:'Futuristic executive',access:'craque'},
- {id:'gala-dourada',pt:'Traje de gala dourado',en:'Gold gala outfit',access:'lenda'},
- {id:'astronauta',pt:'Fantasia de astronauta',en:'Astronaut costume',access:'lenda'},
+ {id:'gala-dourada',pt:'Traje de gala dourado',en:'Gold gala outfit',access:'fundador'}, // 🖋 só Fundador (16/10)
+ {id:'astronauta',pt:'Fantasia de astronauta',en:'Astronaut costume',access:'fundador'}, // 🖋 só Fundador (16/10)
  {id:'traje-real',pt:'Traje real com capa',en:'Royal cape outfit',access:'lenda'},
  {id:'magico',pt:'Mágico',en:'Magician',access:'lenda'},
  {id:'rei-pregao',pt:'Rei do Pregão',en:'Auction king',access:'lenda'},
