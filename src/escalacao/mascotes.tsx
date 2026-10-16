@@ -70,6 +70,7 @@ import mengaoMascoteImg from './img/mengao-mascote.webp' // 🦅 Mengão Malvad�
 import arrogantchiMascoteImg from './img/arrogantchi-mascote.webp' // 😜 Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleMascoteImg from './img/intervale-mascote.webp' // 🥊 Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
 import comverissimoMascoteImg from './img/comverissimo-mascote.webp' // 🟢 ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
+import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniMascoteImg from './img/rossini-mascote.webp' // 💴 Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceMascoteImg from './img/leprince-mascote.webp' // 🐓 Le Prince FC (henriquejunger07): arte própria do dono
@@ -376,6 +377,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 241×440, 37 KB — altura 176. mascote_key = "comverissimo".
   comverissimo: (
     <img src={comverissimoMascoteImg} height={176} width={Math.round(176 * 241 / 440)} alt="O Verissimo — ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🦁 O LEÃO DA MASSA (mascote do Chelsão da Massa FC — ccaonta, 16/10): o leão azul de turbante branco, capa e roupa
+  // azul com dourado, braços cruzados e a faixa "Proerd" na cintura. Arte do dono.
+  // 📏 297×440, 44 KB — altura 176. mascote_key = "chelsao_leao".
+  chelsao_leao: (
+    <img src={chelsaoMascoteImg} height={176} width={Math.round(176 * 297 / 440)} alt="O Leão da Massa — Chelsão da Massa FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐰 O LABUBU (mascote do Labubu FC — caelborba, 14/10): o bichinho de pelo preto, orelhas de coelho e olhos de
   // cores diferentes, com o uniforme branco nº 10 e a bola debaixo do braço. Arte do próprio dono.
@@ -1197,6 +1204,13 @@ export const CARIMBO_GOL: Record<string, string> = {
   'ComVerissimo EC': 'comverissimo',
   'ComVerissimo SC': 'comverissimo',
   'Soberano Nacional': 'comverissimo',
+  // 🦁 o Leão da Massa carimba o gol do Chelsão da Massa FC (ccaonta, 16/10).
+  'Chelsão da Massa FC': 'chelsao_leao',
+  'Chelsão da Massa': 'chelsao_leao',
+  'Chelsão da Massa EC': 'chelsao_leao',
+  'Chelsão da Massa SC': 'chelsao_leao',
+  'CRBebê': 'chelsao_leao',
+  'Peteca FR': 'chelsao_leao',
   // 🐰 o Labubu carimba o gol do Labubu FC (caelborba, 14/10).
   'Labubu FC': 'labubu',
   'Labubu': 'labubu',
@@ -1333,6 +1347,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   gavioes_gaviao: 'O Gavião', // 🦅 Gaviões SCCP (kauealves584, 02/10)
   vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
   mengao_urubu: 'O Urubu Malvadão', // 🦅 Mengão Malvadão (atilasoaresjr21, 06/10)
+  chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)
   comverissimo: 'O Verissimo', // 🟢 ComVerissimo FC (cesar.verissimo27, 15/10)
   rossini_ninja: 'O Ninja', // 💴 Rossini Money (luizeduardorossini0013, 12/10)

@@ -66,6 +66,7 @@ import mengaoEscudoImg from './img/mengao-escudo.webp' // 🦅🔴⚫ Mengão Ma
 import arrogantchiEscudoImg from './img/arrogantchi-escudo.webp' // 😜🔵⚫ Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleEscudoImg from './img/intervale-escudo.webp' // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
 import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
+import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniEscudoImg from './img/rossini-escudo.webp' // 💴🔴⚫ Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceEscudoImg from './img/leprince-escudo.webp' // 🐓👑 Le Prince FC (henriquejunger07): arte própria do dono
@@ -888,6 +889,11 @@ const comverissimoEscudoRender = (size: number) => (
   <img src={comverissimoEscudoImg} height={size} width={Math.round(size * 254 / 360)} alt="ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🦁🔵 CHELSÃO DA MASSA FC (ccaonta, batismo de 16/10) — Série C, no assento do bot CRBebê. 📏 246×360, 28 KB.
+const chelsaoEscudoRender = (size: number) => (
+  <img src={chelsaoEscudoImg} height={size} width={Math.round(size * 246 / 360)} alt="Chelsão da Massa FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const labubuEscudoRender = (size: number) => (
   <img src={labubuEscudoImg} height={size} width={Math.round(size * 230 / 360)} alt="Labubu FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1527,6 +1533,14 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'ComVerissimo EC': comverissimoEscudoRender,
   'ComVerissimo SC': comverissimoEscudoRender,
   'Soberano Nacional': comverissimoEscudoRender,
+  // 🦁🔵 Chelsão da Massa FC (ccaonta) — BATISMO. As 4 formas do nome (regra 20/08) + os nomes VELHOS do assento
+  // (CRBebê e Peteca FR só existiam como bot da Série C).
+  'Chelsão da Massa FC': chelsaoEscudoRender,
+  'Chelsão da Massa': chelsaoEscudoRender,
+  'Chelsão da Massa EC': chelsaoEscudoRender,
+  'Chelsão da Massa SC': chelsaoEscudoRender,
+  'CRBebê': chelsaoEscudoRender,
+  'Peteca FR': chelsaoEscudoRender,
   // 🐰⚪ Labubu FC (caelborba) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o Só Deus Sabe continua
   // existindo (foi pra C).
   'Labubu FC': labubuEscudoRender,
