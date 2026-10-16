@@ -1,3 +1,13 @@
+## 🦁🔵 Batismo Chelsão da Massa FC (16/10) — ✅ NO AR
+- Dono `ccaonta@gmail.com` (conta desde 12/10, já tinha comprado o Batismo: `esc_compras_batismo` = lenda). **Série C**, no
+  assento do bot **CRBebê** (`OLD_NAME` leva save com CRBebê/Peteca FR pro nome novo).
+- Arte do dono (prancha no verde chroma, `recorta-prancha-chroma.py`): escudo 246×360/28 KB · mascote "O Leão da Massa"
+  297×440/44 KB · camisa da Loja (`public/mantos-salao/chelsao-camisa-v1.webp`). Manto medido: azul #032169 (77%) + dourado
+  #E4A745 (frisos e leão do peito).
+- Banco: ouro/manual (já estava) · sócio nº74 · nomes reservados "Chelsão da Massa" e "Chelsao da Massa" (+FC/EC pelo gatilho).
+  **Sem número de fundador** (regra 14/10) → `SEM_FUNDADOR` no checa-batismos.
+- Falta: **time de coração** e **nome do dono** pro post (`scripts/posts/chelsao-post.png` saiu com "batizado por —").
+
 ## 📣 ANÚNCIO DO DIA SELF-SERVICE + LOJA DE ANÚNCIO PRA TODOS (16/10) — ✅ NO AR
 - Diego: *"pode liberar tudo já pro geral, mostrar pra todos e Pix também"* → `PATROCINIO_GERAL = true` (seção "Sua marca no jogo").
 - O comprador do 📣 Anúncio do dia (R$ 25) ESCREVE o próprio texto logo depois do Pix (`EscreveAnuncio`, pix-mp.tsx), até **82

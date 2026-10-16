@@ -3614,6 +3614,7 @@ export function ehPromessa(c: { name: string; club?: string; year?: number; prom
 }
 
 export const OLD_NAME: Record<string, string> = {
+  'Chelsão da Massa FC': 'CRBebê', // 🦁 batismo do ccaonta (16/10): assumiu o assento da Série C que era do bot CRBebê — save antigo com CRBebê (ou Peteca FR, o nome mais velho) vira Chelsão da Massa FC ao abrir.
   'Inter Vale FC': 'Tetéia SAF', // 🥊⚫⚪ batismo do marcus.viniciuslopessantos79 (12/10): assumiu o assento da Série C que era do bot Tetéia SAF — save antigo com Tetéia SAF vira Inter Vale FC ao abrir. (O Tetéia SAF continua existindo na lista CPU_MANAGERS do jogo rápido; só o assento da pirâmide mudou de nome.)
   'Le Prince FC': 'Perna de Pau City', // 🐓👑 batismo do henriquejunger07 (08/10): assumiu o assento da Várzea que era do bot Perna de Pau City — save antigo com Perna de Pau City vira Le Prince FC ao abrir.
   'K9 FC': 'Meia-Boca FC', // 👑🧊 batismo do kelvinoliveiraandradeenunes (06/10): assumiu o assento da Várzea que era do bot Meia-Boca FC — save antigo com Meia-Boca FC vira K9 FC ao abrir.
@@ -3986,7 +3987,7 @@ export const DIVISION_TEAMS: Record<'A' | 'B' | 'C' | 'D', CareerTeam[]> = {
     // Só Deus Sabe nem o Napolitano foram renomeados — o Napolitano só saiu da pirâmide.
     { name: 'Anjo Caído', team: 'Só Deus Sabe FC' }, // 🙏 clube BATIZADO por apoiador (contateste577660006 — Só Deus Sabe FC; coração Atlético Mineiro; anjo de joelhos no gramado, preto + dourado; Lenda + fundador nº65 + sócio nº43, 09/09). Assento que era do Nightfull FC, que DESCEU pra Série B por decisão do Diego pra abrir esta vaga. ⚠️ SEM OLD_NAME: o Nightfull não foi renomeado, só mudou de divisão (o OLD_NAME dele continua sendo o Pelado FR).
     { name: 'Boss', team: 'Final Boss FC' }, // 🐂 clube BATIZADO por apoiador (gustavo99828 — Final Boss FC, ex-Ponte Branca, Série C; mascote o touro O Boss, vermelho + preto sobre branco; Lenda + fundador nº57, 05/09)
-    { name: 'Vavá Peteca', team: 'CRBebê' },
+    { name: 'Leão da Massa', team: 'Chelsão da Massa FC' }, // 🦁🔵 clube BATIZADO por apoiador (ccaonta — Chelsão da Massa FC, ex-CRBebê, Série C; escudo coroado com o leão azul de turbante; mascote O Leão da Massa de capa e turbante; azul #032169 + dourado #E4A745 MEDIDOS na camisa; plano 🖋 Batismo: ouro + sócio nº74, sem nº de fundador, 16/10). ⚠️ Memória do repo: no POST não se diz de quem era o assento (regra 05/09).
     { name: 'Relâmpago', team: 'Stocco FC' }, // ⚡🐺 clube BATIZADO por apoiador (stoccoassessoria — Stocco FC, ex-Semervilha, Série C; mascote o Lobo Relâmpago, roxo + preto; Lenda + fundador nº56, 04/09)
     { name: 'Dão da Feira', team: 'Milhaça FC' }, // ⚽🌽 clube BATIZADO por apoiador (igormarquesn99 / @igumarques, jornalista — Milhaça FC, ex-Real Bets, Série C; escudo e mascote com arte própria do dono, 24/08)
     { name: 'Mão de Onça', team: 'Goiaba FC' },
