@@ -12,7 +12,7 @@ const CORS = {
 const NOMES: Record<string, string> = {
   craque: 'Plano Craque', lenda: 'Plano Lenda', batismo: 'Plano Batismo', fundador: 'Plano Fundador',
   salas_extras: '3 salas extras', teste: 'Teste de pagamento',
-  moedas_10: '30 moedas', moedas_50: '150 moedas', moedas_100: '300 moedas', moedas_500: '1.500 moedas', moedas_1000: '3.000 moedas', canto: 'Canto da torcida', presente: 'Presente de plano',
+  moedas_10: '30 moedas', moedas_50: '150 moedas', moedas_100: '300 moedas', canto: 'Canto da torcida', presente: 'Presente de plano',
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60

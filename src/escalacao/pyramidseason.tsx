@@ -1972,6 +1972,26 @@ function BancoLegends() {
   const [fails, setFails] = useState(0)
   const [coolAte, setCoolAte] = useState(0)
   const [msg, setMsg] = useState<{ ok: boolean; coins?: number; tx: string } | null>(null)
+  // 💳 15/10 (Diego: "ele compra na tela que ele tá… depois escolhe o save"): moedas compradas na LOJA pelo Pix do Mercado
+  // Pago ficam GUARDADAS na conta; aqui aparecem com "Depositar neste clube" — a pessoa escolhe a carreira abrindo ela.
+  // (creditar direto num save fechado mexeria no save guardado — regra do Diego: nunca arriscar save de ninguém)
+  const [guardadas, setGuardadas] = useState<{ code: string; coins: number }[]>([])
+  const carregaGuardadas = useCallback(() => {
+    supabase.rpc('esc_mp_minhas_fichas').then(({ data }) => setGuardadas(Array.isArray(data) ? data as { code: string; coins: number }[] : []), () => {})
+  }, [])
+  useEffect(() => { carregaGuardadas() }, [carregaGuardadas])
+  const depositar = async (f: { code: string; coins: number }) => {
+    if (busy) return
+    setBusy(true); setMsg(null)
+    try {
+      const { data, error } = await supabase.rpc('bl_redeem', { p_code: f.code })
+      if (!error && typeof data === 'number' && data > 0) {
+        dispatch({ type: 'BANCO_CREDIT', coins: data, code: f.code })
+        setMsg({ ok: true, coins: data, tx: tr('Depositado direto do Pix. O banco tá de olho. 👀', 'Deposited straight from the Pix. The bank is watching. 👀') })
+      } else setMsg({ ok: false, tx: tr('Essas moedas já foram depositadas em outra carreira.', 'These coins were already deposited in another career.') })
+    } catch { setMsg({ ok: false, tx: tr('Sem conexão com o banco agora — tenta de novo em instantes.', 'No connection to the bank right now — try again in a moment.') }) }
+    setBusy(false); setAberto(true); carregaGuardadas()
+  }
   if (state.onlineMode === 'online' || !state.careerOnline) return null
   const emCooldown = Date.now() < coolAte
   const resgatar = async () => {
@@ -1995,6 +2015,13 @@ function BancoLegends() {
   }
   return (
     <div style={{ marginTop: 12 }}>
+      {guardadas.map(f => (
+        <div key={f.code} style={{ display: 'flex', alignItems: 'center', gap: 10, border: `3px solid ${INK}`, borderRadius: 14, padding: '10px 12px', background: '#FFF3C4', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
+          <span style={{ fontSize: 24 }}>🪙</span>
+          <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800, lineHeight: 1.3 }}>{tr(`Você tem ${f.coins} moedas esperando (compradas na Loja).`, `You have ${f.coins} coins waiting (bought in the Shop).`)}</span>
+          <button onClick={() => depositar(f)} disabled={busy} style={{ border: `3px solid ${INK}`, borderRadius: 11, padding: '8px 10px', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{busy ? '…' : tr('Depositar neste clube', 'Deposit in this club')}</button>
+        </div>
+      ))}
       {!aberto ? (
         <button onClick={() => setAberto(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 12px', background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left' }}>
           <span style={{ fontSize: 24 }}>🏦</span>

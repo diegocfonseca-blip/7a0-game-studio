@@ -33,11 +33,11 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   fundador: ['Tudo do 👑 Lenda já está valendo. Agora é a parte do seu clube: conta pra gente como você imagina.', 'Everything from 👑 Legend is live. Now for your club: tell us how you picture it.'],
   salas_extras: ['Suas 3 salas extras já estão na conta. Bora criar!', 'Your 3 extra rooms are in your account. Go create!'],
   teste: ['Teste aprovado: o Pix caiu e o jogo viu sozinho. ✅', 'Test passed: the Pix landed and the game saw it on its own. ✅'],
-  moedas_10: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
-  moedas_50: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
-  moedas_100: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
-  moedas_500: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
-  moedas_1000: ['Sua ficha do Banco Legends está pronta:', 'Your Banco Legends voucher is ready:'],
+  moedas_10: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
+  moedas_50: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
+  moedas_100: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
+  moedas_500: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
+  moedas_1000: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
   canto: ['Agora conta qual canto você quer: o Diego monta e coloca no seu clube.', 'Now tell us which chant you want: Diego builds it and adds it to your club.'],
   presente: ['Presente entregue! Seu amigo recebe com o seu recado quando entrar no jogo. 🎁', 'Gift delivered! Your friend gets it with your message when they open the game. 🎁'],
 }
@@ -163,7 +163,6 @@ export function PixMP({ produto, valor, refId = '', aoReceberFicha }: { produto:
 /** ✅ caiu! — e, no Batismo/Fundador, o "conta como você imagina" (por escrito) + falar com o Diego */
 function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: ProdutoMp; liberado: boolean; pedido: string; ficha: string | null; aoReceberFicha?: (ficha: string) => Promise<number | null> }) {
   const clubeDeGente = produto === 'batismo' || produto === 'fundador' || produto === 'teste' || produto === 'canto'
-  const [copiouF, setCopiouF] = useState(false)
   // 🏦 comprou dentro da carreira: a ficha cai sozinha no caixa DESTE clube (uma vez só)
   const [creditou, setCreditou] = useState<number | null>(null)
   const jaTentou = useRef(false)
@@ -178,11 +177,9 @@ function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: P
       <p className="font-black uppercase text-[24px] mt-1" style={{ ...OSW, color: GREEN }}>{tr('Pagamento confirmado!', 'Payment confirmed!')}</p>
       <p className="text-[13px] font-bold mt-1 leading-snug">{liberado ? tr(GANHOU[produto][0], GANHOU[produto][1]) : tr('Chegou pro Diego liberar. Em instantes está na sua conta.', 'It reached Diego to unlock. It will be in your account shortly.')}</p>
       {creditou != null && creditou > 0 && <p className="font-black text-[26px] mt-2" style={{ ...OSW, color: GREEN }}>+{creditou} 🪙 {tr('no caixa do clube!', 'in the club’s till!')}</p>}
-      {ficha && !(creditou != null && creditou > 0) && <div className="mt-2.5">
-        <button onClick={async () => { try { await navigator.clipboard.writeText(ficha) } catch { /* à vista */ } setCopiouF(true) }} className="w-full rounded-xl py-2.5 text-[22px] tracking-widest active:translate-y-0.5"
-          style={{ ...OSW, background: GOLD, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{ficha}</button>
-        <p className="text-[11.5px] font-bold mt-1.5 leading-snug" style={{ color: '#5a5240' }}>{copiouF ? tr('✅ Copiada! ', '✅ Copied! ') : tr('Toque pra copiar. ', 'Tap to copy. ')}{tr('Resgate na carreira que quiser: Clube › Finanças › 🏦 Banco Legends.', 'Redeem it in whichever career you like: Club › Finances › 🏦 Banco Legends.')}</p>
-      </div>}
+      {ficha && !(creditou != null && creditou > 0) && <p className="text-[10.5px] font-bold mt-2" style={{ color: 'rgba(12,12,12,.5)' }}>
+        {tr('Código de reserva (se precisar): ', 'Backup code (if needed): ')}<b className="select-all">{ficha}</b>
+      </p>}
       {clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
         <Telefone pedido={pedido} />
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"

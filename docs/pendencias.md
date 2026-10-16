@@ -428,7 +428,7 @@ e-mail. Ligada em: Craque (manual e pay), Lenda, Batismo/Fundador e salas extras
 ⏳ Falta: (1) Diego fazer o Pix de teste de R$ 1 no #admin e ver o ✅; (2) o NÚMERO de WhatsApp dele (`WHATSAPP_CONTATO` em
 pix-mp.tsx; sem número só aparece o e-mail); (3) liberar pra todos (`PIX_MP_GERAL = true`); (4) cupom de influenciador no
 batismo ainda não vale no Pix novo (preço do servidor ignora cupom); (5) ✅ moedas (ficha do Banco Legends nasce sozinha), canto avulso (registra + "conta qual canto") e presente
-(entregue pro amigo) já vão pelo Pix novo (`…240000_mercado_pago_pix_v3.sql`); 2ª conta do Diego também testa; (6) apagar a Vendria (`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar.
+(entregue pro amigo) já vão pelo Pix novo (`…240000_mercado_pago_pix_v3.sql`); 2ª conta do Diego também testa; 🏦 moedas da Loja ficam GUARDADAS na conta e aparecem no Banco Legends de qualquer carreira com "Depositar neste clube" (`esc_mp_minhas_fichas` + `bl_redeem`) — Diego: "compra na tela que tá e depois escolhe o save" (creditar direto em save fechado = mexer em save guardado, não); (6) apagar a Vendria (`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar.
 
 ## 🏆 Moldura do pódio da semana (15/10) — ✅ NO AR
 Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalha, sem mexer no fundo (fundo = cor do plano).
