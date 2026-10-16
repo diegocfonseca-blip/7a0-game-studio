@@ -1,3 +1,11 @@
+## 🎁 PREGÃO ABERTO SEM MONTE (16/10) — motor pronto no branch, telas esperando OK do mockup
+- Diego: sem Monte no fim do pregão aberto; quem ficou com vaga vazia ganha profissional/bom DE GRAÇA (das sobras da mesa,
+  depois do catálogo livre; só se acabar tudo entra o incógnito). Perguntei se cobrava a abertura: *"deixa sem mesmo porque
+  ele já vai ter jogador fraco no time"*. Motor: `paCompletaElencos` + `paFecha` (store.tsx) → vai direto pra cerimônia;
+  `state.paPresentes` guarda o que cada time ganhou. Trava: `npm run pregao-aberto` (todo time fecha, Monte vazio, tudo grátis).
+- Telas (mockup `scripts/mockups/pregao-sem-monte.png`): faixa verde no topo · "ninguém quis" sem falar de Monte · janela
+  "🎁 Seu time fechou de graça!" no fim com as cartas. A fazer depois do OK.
+
 ## 🧑‍💼 PRESIDENTE LIBERADO PRA TODOS (16/10) — ✅ NO AR
 - Diego: *"já pode publicar p todos p personagem"* → `PRESIDENTE_CONTA_GERAL = true`. Vale: editor na 🛒 Loja (régua por plano) + Presidência da carreira.
 - 🧑‍💼 **Na sala online (16/10, ✅ NO AR — Diego: "pode")**: lista de técnicos, chat (os 2) e martelo de quem levou.

@@ -6240,15 +6240,51 @@ function paMartelo(state: EscState) {
   paProximaCarta(state)
 }
 /** acabou a fila: as sobras vão pro Monte e o jogo segue como sempre (Monte → cerimônia → temporada) */
+// 🚫🃏 SEM MONTE NO PREGÃO ABERTO (16/10, Diego): *"não ter monte quando acabar… quem deixou de comprar o sistema dá
+// aleatoriamente jogadores entre profissional e bom jogador que sobraram… e caso precise de mais cartas… dá outras de
+// profissional ou bom jogador"*. E DE GRAÇA (perguntei se cobrava a abertura): *"deixa sem mesmo porque ele já vai ter jogador
+// fraco no time"*. Toda vaga vazia (gente e robô) recebe uma carta de VERDADE da posição que falta: primeiro das sobras da
+// mesa, depois do catálogo livre. Só se as duas acabarem é que entra o incógnito de sempre (`fillerCard`), pra ninguém
+// ficar com time furado.
+export function paCompletaElencos(state: EscState, sobras: Card[]): number {
+  state.paPresentes = {}
+  const idC = (c: { name: string; club?: string; year?: number }) => `${c.name}|${c.club ?? ''}|${c.year ?? ''}`
+  const usados = new Set<string>(), nomes = new Set<string>()
+  for (const m of state.managers) for (const c of m.squad) if (!c.fake) { usados.add(idC(c)); nomes.add(c.name) }
+  const fraca = (c: Card) => !c.fake && !c.promessa && (c.fame ?? 1) <= 3 // profissional ou bom jogador
+  const rng = rngOf(state)
+  const pega = (lista: Card[]) => lista.length ? lista[Math.floor(rng() * lista.length)] : undefined
+  let dados = 0
+  for (const m of state.managers) {
+    for (const pos of SECTORS) {
+      let guard = 0
+      while (openSlots(m, pos) > 0 && guard++ < 6) {
+        const livre = (c: Card) => fraca(c) && !usados.has(idC(c)) && !nomes.has(c.name)
+        const daMesa = pega(sobras.filter(c => c.pos === pos && livre(c)))
+        const card = daMesa ?? pega(((ACTIVE_CATALOG[pos] ?? []) as Card[]).filter(livre))
+        const ganho = card
+          ? ({ ...card, pos, id: `pa-sobra-${m.id}-${pos}-${Math.floor(rng() * 1e9)}`, paid: 0, buyPrice: 0, via: 'monte' } as WonCard)
+          : ({ ...fillerCard(pos, rng), paid: 0 } as WonCard)
+        if (card) { usados.add(idC(card)); nomes.add(card.name) }
+        m.squad.push(ganho)
+        ;((state.paPresentes = state.paPresentes ?? {})[m.id] = state.paPresentes[m.id] ?? []).push(ganho.id)
+        dados++
+      }
+    }
+  }
+  return dados
+}
 function paFecha(state: EscState) {
   const pa = state.pa
   if (!pa) return
-  montePush(state, pa.sobras)
+  const dados = paCompletaElencos(state, pa.sobras)
+  if (dados > 0) (state.marketLog = state.marketLog ?? []).push(`🎁 Sem Monte no pregão aberto: ${dados} vaga(s) vazia(s) ganharam jogador profissional ou bom, de graça.`)
   state.currentCards = []
   state.pa = undefined
   state.sectorIdx = SECTORS.length - 1
   state.sectorCursor = 0; state.sectorUnsoldAccum = []
-  advanceSectorOrFinish(state, rngOf(state))
+  state.monte = []
+  enterCerimonia(state)
 }
 
 function holandesTick(state: EscState) {
@@ -7336,6 +7372,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       s.holandes = !!action.holandes
       // 🔨 pregão aberto (16/10, em teste): só no rápido; é um jeito de lance à parte, então desliga a Tocaia
       s.pregaoAberto = !action.career && !action.dinastia && !!action.pregaoAberto
+      s.paPresentes = undefined
       if (s.pregaoAberto) s.holandes = false
       s.pa = undefined
       // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.

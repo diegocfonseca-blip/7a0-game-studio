@@ -715,6 +715,8 @@ export interface EscState {
   pregaoAberto?: boolean
   /** 🔨 estado vivo do pregão aberto (só existe enquanto `phase === 'pregao'`) */
   pa?: PregaoAbertoState
+  /** 🎁 pregão aberto sem Monte (16/10): as cartas dadas de graça a cada time no fim (id do técnico → ids das cartas) */
+  paPresentes?: Record<number, string[]>
   /** 🔻 estado vivo do holandês (só existe enquanto `phase === 'holandes'`) */
   hol?: HolandesState
   /**

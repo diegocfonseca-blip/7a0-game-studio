@@ -6,7 +6,7 @@
 //   · o martelo vende pro líder; sem lance, a carta vai pro Monte; e no fim o jogo segue pro Monte/cerimônia
 //   npx tsx scripts/testa-pregao-aberto.mts
 import assert from 'node:assert/strict'
-import { reducer, paPodeLancar, paMinimo, paAbertura, PA_MARTELO_MS, PA_TICK_MS } from '../src/escalacao/store'
+import { reducer, paPodeLancar, paMinimo, paAbertura, PA_MARTELO_MS, PA_TICK_MS, openSlots } from '../src/escalacao/store'
 import type { EscState } from '../src/escalacao/types'
 import { SECTORS } from '../src/escalacao/types'
 
@@ -85,6 +85,14 @@ while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
 assert.ok(guard < 20000, 'o pregão termina')
 assert.ok(['monte', 'cerimonia', 'season'].includes(s.screen), `seguiu pro Monte/cerimônia (tela ${s.screen})`)
 assert.equal(s.pa, undefined, 'estado vivo limpo no fim')
+// 🚫🃏 16/10: sem Monte — todo time fecha as vagas de graça (profissional/bom de verdade), e o Monte fica vazio
+assert.equal(s.monte.length, 0, 'pregão aberto não tem Monte')
+for (const m of s.managers) for (const pos of ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA'] as const) assert.equal(openSlots(m, pos), 0, `${m.teamName} fechou ${pos}`)
+const presentes = s.managers.flatMap(m => m.squad.filter(c => String(c.id).startsWith('pa-sobra-')))
+for (const c of presentes) { assert.equal((c as { paid?: number }).paid, 0, 'jogador da sobra é de graça'); assert.ok(!c.promessa && (c.fame ?? 1) <= 3, `${c.name} é profissional ou bom`) }
+// a carta dada nunca repete um jogador que já está em algum elenco (o baralho "todos" tem xarás de baralhos diferentes, isso é de lei)
+for (const c of presentes) assert.equal(s.managers.flatMap(m => m.squad).filter(x => x.name === c.name).length, 1, `${c.name} dado sem repetir ninguém`)
+console.log(`🎁 ${presentes.length} vaga(s) completada(s) de graça no fim`)
 // toda carta vendida está no elenco do comprador, uma vez só, e ninguém ficou negativo
 for (const [id, v] of vendidos) {
   const donos = s.managers.filter(m => m.squad.some(c => c.id === id))
@@ -103,6 +111,6 @@ for (const m of s.managers) for (const pos of SECTORS) {
   assert.ok(n <= 6, `${m.teamName} com ${n} em ${pos}`)
 }
 console.log(`🧠 maior teto de robô na 1ª carta: ${tetoMax1}`)
-console.log(`✅ pregão aberto: ${cartas} cartas na mesa · ${vendidos.size} vendidas · ${semLance} sem lance → Monte · humano levou ${vendasHumano} · ${recusas} lances inválidos recusados · tela final: ${s.screen} · martelo ${PA_MARTELO_MS / 1000}s`)
+console.log(`✅ pregão aberto: ${cartas} cartas na mesa · ${vendidos.size} vendidas · ${semLance} sem lance (sobra, sem Monte) · humano levou ${vendasHumano} · ${recusas} lances inválidos recusados · tela final: ${s.screen} · martelo ${PA_MARTELO_MS / 1000}s`)
 Date.now = realNow
 process.exit(0)
