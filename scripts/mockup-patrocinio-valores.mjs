@@ -1,5 +1,5 @@
 // 💼 MOCKUP · VALORES DO PATROCÍNIO (16/10). Tabela proposta ao Diego com base em ~5 mil contas ativas/mês
-// (mensal: competição 300 · LED+placar 200 · O MARTELO 150 · os 3 juntos 500 · 1º mês pela metade; diário: Dia da marca 50).
+// (mensal: competição 300 · LED+placar 200 · O MARTELO 150 · os 3 juntos 500; diário: Dia da marca 50).
 // É pra mandar no PRIVADO pra marca interessada — na Loja o mensal não aparece com preço (decisão do Diego).
 // uso: node scripts/mockup-patrocinio-valores.mjs → scripts/mockups/patrocinio-valores.png
 import { readFileSync, mkdirSync } from 'node:fs'
@@ -28,14 +28,13 @@ h1{margin:0;font-size:30px;text-transform:uppercase}.sub{margin:2px 0 16px;font-
   ${lin('🏟️', 'LED do estádio + placar', 'placa no estádio e linha embaixo do placar', 'R$ 200')}
   ${lin('📰', 'Anúncio no O MARTELO', 'quadro no jornal do campeão', 'R$ 150')}
   ${lin('📦', 'Os 3 juntos', 'competição + LED/placar + O MARTELO', 'R$ 500', true)}
-  <span class="tag">🎉 1º mês pela metade</span>
   <p class="nota">Toda marca mensal entra na 🏪 Vitrine dos patrocinadores, com logo, bio, Instagram e cupom.</p></div>
  <div class="box"><h2>⚡ Diário</h2><p class="s">Paga uma vez. A marca domina o jogo por 24 horas.</p>
   ${lin('⚡', 'Dia da marca', 'cartão na home + LED dividido com a marca do mês', 'R$ 50', true)}
   <p class="nota">Quem paga o mês nunca perde o espaço: no Dia da marca o LED alterna as duas marcas, e a competição e o O MARTELO continuam com a do mês.</p>
   <p class="nota">O Dia da marca pode ficar na 🛒 Loja com preço. O mensal só é negociado no privado.</p></div>
 </div>
-<div class="base">📊 Base do preço: <b>5.052 contas entraram nos últimos 30 dias</b> (~1.000 por semana) e <b>4.366 contas novas</b> no mês, sem contar quem joga sem conta. Quando passar de ~10 mil contas ativas no mês, os valores sobem.</div>
+
 </body></html>`
 mkdirSync('scripts/mockups', { recursive: true })
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })

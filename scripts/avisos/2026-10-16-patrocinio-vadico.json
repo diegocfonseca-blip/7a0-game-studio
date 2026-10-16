@@ -1,23 +1,26 @@
 {
-  "data": "16 de outubro de 2026",
-  "titulo": "Patrocínio no Leilão Legends 🚗",
+  "data": "🤝 Novo parceiro do Leilão Legends · 16 de outubro de 2026",
+  "titulo": "Vadico Veículos 🚗",
   "destaque": {
-    "passos": [
-      { "emoji": "🏆", "titulo": "Competição", "sub": "apresentada por" },
-      { "emoji": "🏟️", "titulo": "LED", "sub": "estádio e placar" },
-      { "emoji": "📰", "titulo": "O MARTELO", "sub": "jornal do campeão" },
-      { "emoji": "🏪", "titulo": "Vitrine", "sub": "dos patrocinadores" }
-    ],
-    "nome": "Exemplo: Vadico Veículos",
-    "linha": "empresa familiar com 45 anos de mercado"
+    "mascote": "scripts/mockups/vadico-faixa.png",
+    "nome": "Onde a Vadico aparece no jogo",
+    "linha": "competição · LED e placar · O MARTELO · vitrine"
   },
   "itens": [
-    { "tag": "novidade", "texto": "**🚗 Vadico Veículos**: empresa familiar com **45 anos de mercado**, fundada pelo **Sr. Osvaldo Fonseca Filho**, com **duas lojas no Rio de Janeiro**: **Itaguaí** e **Barra da Tijuca**." },
-    { "tag": "novidade", "texto": "**Sem pegadinha**: não anuncia veículo de leilão nem anúncio enganoso. **Veículo com garantia e documentação em nome da loja.**" },
-    { "tag": "melhoria", "texto": "**Onde a marca aparece no jogo**: no nome da competição, no LED do estádio e embaixo do placar, no jornal **O MARTELO** e na **🏪 Vitrine dos patrocinadores**, com bio, Instagram e cupom." },
-    { "tag": "plano", "texto": "**Sua empresa também pode aparecer pra milhares de jogadores.** Uma marca por espaço, de forma discreta, sem atrapalhar o jogo. Fala com a gente no privado." }
+    {
+      "tag": "novidade",
+      "texto": "**Empresa familiar com 45 anos de mercado**, fundada pelo **Sr. Osvaldo Fonseca Filho**, com **duas lojas no Rio de Janeiro**: **Itaguaí** e **Barra da Tijuca**."
+    },
+    {
+      "tag": "novidade",
+      "texto": "**Sem pegadinha**: não anuncia veículo de leilão nem anúncio enganoso. **Veículo com garantia e documentação em nome da loja.**"
+    },
+    {
+      "tag": "melhoria",
+      "texto": "No jogo, a marca vai aparecer no nome da **⭐ Champions Legends** (*apresentada por Vadico Veículos*), no LED do estádio, embaixo do placar, no jornal **O MARTELO** e na **🏪 Vitrine dos patrocinadores**."
+    }
   ],
   "rodape": "🌐 vadicoveiculos.com.br · 📷 @vadicoveiculos",
-  "rodapeSub": "Quer patrocinar o Leilão Legends? Chama a gente no privado 💛",
+  "rodapeSub": "Obrigado, Vadico, por fortalecer o Leilão Legends 💛",
   "saida": "scripts/posts/aviso-2026-10-16-patrocinio-vadico.png"
 }
