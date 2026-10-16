@@ -17,6 +17,7 @@ h1{margin:0;font-size:30px;text-transform:uppercase}.sub{margin:2px 0 16px;font-
 .e{font-size:26px}.t{flex:1}.t b{display:block;font-size:17px;text-transform:uppercase}.t small{font-weight:500;font-size:12px}
 .p{background:#0C0C0C;color:#FFC400;border-radius:10px;padding:4px 10px;font-weight:700;font-size:18px;white-space:nowrap}
 .tag{display:inline-block;margin-top:4px;background:#1B7A3D;color:#fff;border:2px solid #000;border-radius:9px;padding:3px 9px;font-weight:700;font-size:13px}
+.todos{margin-top:16px;background:#1B7A3D;color:#fff;border:4px solid #000;border-radius:14px;box-shadow:4px 4px 0 #000;padding:10px 14px;font-weight:500;font-size:15px}.todos b{color:#FFC400}
 .nota{font-weight:500;font-size:13px;margin:8px 2px 0;line-height:1.35}
 .base{margin-top:16px;background:#141414;color:#fff;border-radius:14px;padding:10px 14px;font-weight:500;font-size:13.5px;box-shadow:4px 4px 0 #000}
 .base b{color:#FFC400}
@@ -28,14 +29,14 @@ h1{margin:0;font-size:30px;text-transform:uppercase}.sub{margin:2px 0 16px;font-
   ${lin('🏟️', 'LED do estádio', 'a placa no fundo do estádio, como estádio de verdade', 'R$ 200')}
   ${lin('📰', 'Anúncio no O MARTELO', 'quadro no jornal do campeão', 'R$ 100')}
   ${lin('🏢', 'Patrocinador Master na carreira', 'sua marca entre as propostas no início da temporada', 'R$ 150')}
-  ${lin('📦', 'Pacote completo', 'os 4 espaços + Vitrine + 📲 post no Instagram + 📢 aviso na comunidade do WhatsApp', 'R$ 500', true)}
-  <p class="nota">Toda marca mensal entra na 🏪 Vitrine dos patrocinadores, com logo, bio, Instagram e cupom. No pacote completo vêm de brinde um post no Instagram @leilaolegendscom e um aviso na comunidade dos fãs no WhatsApp.</p></div>
+  ${lin('📦', 'Pacote completo', 'os 4 espaços juntos + Vitrine', 'R$ 500', true)}
+  <p class="nota">Toda marca mensal entra na 🏪 Vitrine dos patrocinadores, com logo, bio, Instagram e cupom.</p></div>
  <div class="box"><h2>⚡ Diário</h2><p class="s">Paga uma vez. A marca domina o jogo por 24 horas.</p>
   ${lin('⚡', 'Dia da marca', 'cartão na home + LED do estádio dividido com a marca do mês', 'R$ 50', true)}
   <p class="nota">Quem paga o mês nunca perde o espaço: no Dia da marca o LED alterna as duas marcas, e a competição e o O MARTELO continuam com a do mês.</p>
   <p class="nota">O Dia da marca pode ficar na 🛒 Loja com preço. O mensal só é negociado no privado.</p></div>
 </div>
-
+<div class="todos">📲 <b>Em qualquer plano</b> (Dia da marca, um espaço mensal ou o pacote completo): <b>post no Instagram @leilaolegendscom</b> + <b>aviso na comunidade dos fãs no WhatsApp</b>, apresentando a marca.</div>
 </body></html>`
 mkdirSync('scripts/mockups', { recursive: true })
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })

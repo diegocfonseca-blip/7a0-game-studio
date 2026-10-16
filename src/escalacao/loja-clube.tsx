@@ -227,7 +227,7 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
             <span style={{ fontSize: 30 }}>⚡</span>
             <div style={{ flex: 1 }}>
               <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Dia da marca', 'Brand day')}</b>
-              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Por 24 horas sua marca ganha o destaque da home, com bio e cupom, e passa no LED do estádio. Depois do Pix, você combina o dia com o Diego.', 'For 24 hours your brand gets the home spotlight, with bio and coupon, and runs on the stadium LED. After the Pix, you set the day with Diego.')}</small>
+              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Por 24 horas sua marca ganha o destaque da home, com bio e cupom, e passa no LED do estádio. Vem junto um post no Instagram e um aviso na comunidade dos fãs. Depois do Pix, você combina o dia com o Diego.', 'For 24 hours your brand gets the home spotlight, with bio and coupon, and runs on the stadium LED. It also comes with an Instagram post and an announcement in the fans’ community. After the Pix, you set the day with Diego.')}</small>
             </div>
             <button onClick={() => setComprando({ id: 'dia-marca', amount: 50, ctx: 'loja · dia da marca', msgPt: 'Opa! Comprei o ⚡ DIA DA MARCA (R$ 50). Minha marca: ____', msgEn: 'Hey! I bought the ⚡ BRAND DAY (R$ 50). My brand: ____' })} style={preco}>{reais(50)}</button>
           </div>
@@ -239,7 +239,7 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
               <li>{tr('📰 Anúncio no jornal O MARTELO do campeão', '📰 Ad in the champion’s O MARTELO newspaper')}</li>
               <li>{tr('🏢 Patrocinador Master na carreira: sua marca entre as propostas de patrocínio no início da temporada', '🏢 Master sponsor in career mode: your brand among the sponsorship offers at the start of each season')}</li>
               <li>{tr('🏪 Cartão na Vitrine dos patrocinadores, com logo, bio, Instagram e cupom', '🏪 Card in the Sponsors showcase, with logo, bio, Instagram and coupon')}</li>
-              <li>{tr('📲 No pacote completo: post no Instagram @leilaolegendscom e aviso na comunidade dos fãs no WhatsApp', '📲 In the full package: a post on Instagram @leilaolegendscom and an announcement in the fans’ WhatsApp community')}</li>
+              <li>{tr('📲 Post no Instagram @leilaolegendscom e aviso na comunidade dos fãs no WhatsApp apresentando a marca', '📲 A post on Instagram @leilaolegendscom and an announcement in the fans’ WhatsApp community introducing your brand')}</li>
             </ul>
             <p style={{ fontSize: 11.5, fontWeight: 800, margin: '8px 0 0' }}>{tr('Quer saber mais? Fala com a gente:', 'Want to know more? Talk to us:')}</p>
             <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
