@@ -3,8 +3,8 @@
   na linha "💬 Dúvida sobre Batismo ou Fundador?" embaixo dos planos na Loja (pra TODOS) e depois do Pix do Dia da marca.
 - Seção "💼 Sua marca no jogo" (gate `patrocinioLojaOk`): ⚡ Dia da marca R$ 50 (Pix MP, produto `dia_marca`; depois do Pix mostra
   WhatsApp + Instagram pra combinar dia/nome/bio/cupom) e 📅 mensal SEM preço (o que vem + direct @leilaolegendscom + e-mail).
-- ⚠️ **O Pix do Dia da marca só funciona depois de publicar a Edge Function `mp-criar-pix`** (o arquivo local já tem `dia_marca`,
-  `moedas_500`, `moedas_1000`). Banco já aceita (`esc_mp_preco_ref` → 50,00). Esperando o OK do Diego pro deploy.
+- ✅ Edge Function `mp-criar-pix` v5 PUBLICADA (16/10, OK do Diego) com `dia_marca`,
+  `moedas_500`, `moedas_1000`. Banco aceita (`esc_mp_preco_ref` → 50,00). Mensal: o Diego manda LINK de pagamento (ver abaixo).
 
 ## 🚗 VADICO VEÍCULOS: "Champions Legends apresentada por" (16/10) — ✅ NO AR só nas contas do Diego
 - Diego: *"publique agora da Vadico Veículos pra eu ver como fica… deixe a Champions Legends apresentada por Vadico Veículos"*.
