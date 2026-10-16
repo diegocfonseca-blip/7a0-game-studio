@@ -339,6 +339,44 @@ function SalasExtrasAdmin() {
 // sozinho o automático (Craque, Lenda, salas extras, tudo do Lenda no Batismo/Fundador). Aqui: o que caiu, quem deixou
 // WhatsApp, o "🖋 Batismos pra fazer" (o que a pessoa escreveu de como imagina o clube) e o Pix de teste de R$ 1.
 type PedidoMp = { id: string; email: string; produto: string; valor: number; status: string; telefone: string | null; criado_em: string; pago_em: string | null; liberado_por: string | null; briefing: Record<string, string> | null }
+// ⚡ DIA DA MARCA (16/10): o Diego marca a data e a marca; naquele dia a Copa dos 8 sai "apresentada por…" pra todo mundo
+function DiaMarcaAdmin() {
+  const [lista, setLista] = useState<{ dia: string; nome: string; emoji: string }[]>([])
+  const [dia, setDia] = useState(() => new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10))
+  const [nome, setNome] = useState('')
+  const [emoji, setEmoji] = useState('⭐')
+  const [msg, setMsg] = useState('')
+  const carregar = async () => {
+    const hoje = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10)
+    const { data } = await supabase.from('esc_dia_marca').select('dia, nome, emoji').gte('dia', hoje).order('dia')
+    setLista((data ?? []) as { dia: string; nome: string; emoji: string }[])
+  }
+  useEffect(() => { carregar() }, [])
+  const salvar = async (d: string, n: string, e: string) => {
+    const { data, error } = await supabase.rpc('esc_admin_dia_marca', { p_dia: d, p_nome: n, p_emoji: e })
+    setMsg(error ? `❌ ${error.message}` : data === 'apagado' ? '🗑️ apagado' : `✅ ${d}: Copa dos 8 apresentada por ${n}`)
+    carregar()
+  }
+  const inp: React.CSSProperties = { background: '#fff', color: '#0C0C0C', border: '2px solid #000', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700 }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>⚡ Dia da marca · Copa dos 8</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>No dia marcado (horário de Brasília), a Copa dos 8 sai "apresentada por" essa marca pra TODO MUNDO. Some sozinho no dia seguinte.</p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <input type="date" value={dia} onChange={e => setDia(e.target.value)} style={inp} />
+        <input value={emoji} onChange={e => setEmoji(e.target.value)} maxLength={8} style={{ ...inp, width: 46, textAlign: 'center' }} />
+        <input value={nome} onChange={e => setNome(e.target.value)} maxLength={40} placeholder="Nome da marca" style={{ ...inp, flex: 1, minWidth: 140 }} />
+        <button disabled={!dia || nome.trim().length < 2} onClick={() => { salvar(dia, nome, emoji); setNome('') }} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer' }}>Marcar</button>
+      </div>
+      {msg && <p style={{ fontSize: 11, fontWeight: 800, color: '#F2E8CF', margin: '8px 0 0' }}>{msg}</p>}
+      {lista.map(r => <div key={r.dia} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', marginTop: 6 }}>
+        <b>{r.dia.split('-').reverse().join('/')}</b><span style={{ flex: 1 }}>{r.emoji} {r.nome}</span>
+        <button onClick={() => window.confirm(`Tirar ${r.nome} do dia ${r.dia}?`) && salvar(r.dia, '', '')} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
+      </div>)}
+    </div>
+  )
+}
+
 function PixMpAdmin() {
   const [lista, setLista] = useState<PedidoMp[]>([])
   const [msg, setMsg] = useState('')
@@ -352,7 +390,10 @@ function PixMpAdmin() {
   }
   const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
   const cor: Record<string, string> = { criado: 'rgba(242,232,207,.5)', pago: '#FFC400', liberado: '#6fdb8f', divergente: '#ff8a75', cancelado: 'rgba(242,232,207,.4)' }
-  const batismos = lista.filter(r => (r.produto === 'batismo' || r.produto === 'fundador') && (r.status === 'pago' || r.status === 'liberado'))
+  // 💛 plano duplo (16/10) e presente de Batismo/Fundador também viram clube pra fazer: vão como 'presente' (ref 'd-<id>' = duplo)
+  const ehBat = (r: { produto: string; valor: number | string }) => r.produto === 'batismo' || r.produto === 'fundador' || (r.produto === 'presente' && Number(r.valor) >= 79.9)
+  const rotulo = (r: { produto: string; ref?: string | null }) => r.produto === 'presente' && r.ref?.startsWith('d-') ? '💛 DUPLO (você + presente)' : r.produto.toUpperCase()
+  const batismos = lista.filter(r => ehBat(r) && (r.status === 'pago' || r.status === 'liberado'))
   const naoPagos = lista.filter(r => r.status === 'criado')
   return (
     <div style={{ border: '2px solid #009EE3', borderRadius: 16, padding: 14, marginTop: 16 }}>
@@ -364,7 +405,7 @@ function PixMpAdmin() {
       {batismos.length > 0 && <>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#FFC400', margin: '8px 0 4px' }}>🖋 Batismos pra fazer</p>
         {batismos.map(r => <div key={r.id} style={{ fontSize: 11, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0' }}>
-          <b>{r.produto.toUpperCase()}</b> · {r.email}{r.telefone ? ` · 📲 ${r.telefone}` : ''} · {new Date(r.pago_em ?? r.criado_em).toLocaleString('pt-BR')}<br />
+          <b>{rotulo(r)}</b> · {r.email}{r.telefone ? ` · 📲 ${r.telefone}` : ''} · {new Date(r.pago_em ?? r.criado_em).toLocaleString('pt-BR')}<br />
           {r.briefing ? Object.entries(r.briefing).filter(([, v]) => v).map(([k, v]) => <span key={k} style={{ display: 'block' }}>• <b>{k}</b>: {v}</span>) : <i>ainda não escreveu como imagina o clube</i>}
         </div>)}
       </>}
@@ -373,7 +414,7 @@ function PixMpAdmin() {
         <tbody>
           {lista.map(r => <tr key={r.id}>
             <td style={td}>{new Date(r.criado_em).toLocaleString('pt-BR')}<br /><span style={{ opacity: .5 }}>{r.id.slice(0, 8).toUpperCase()}</span></td>
-            <td style={td}><b>{r.produto.toUpperCase()}</b> · R$ {Number(r.valor).toFixed(2).replace('.', ',')}<br />{r.email}{r.telefone ? <><br />📲 {r.telefone}</> : null}</td>
+            <td style={td}><b>{rotulo(r)}</b> · R$ {Number(r.valor).toFixed(2).replace('.', ',')}<br />{r.email}{r.telefone ? <><br />📲 {r.telefone}</> : null}</td>
             <td style={{ ...td, color: cor[r.status] ?? '#F2E8CF', fontWeight: 900 }}>{r.status}{r.liberado_por ? <><br /><span style={{ fontWeight: 700, opacity: .7 }}>({r.liberado_por})</span></> : null}
               {r.status === 'pago' && <><br /><button onClick={() => liberar(r)} style={{ border: 'none', borderRadius: 8, padding: '4px 8px', background: '#6fdb8f', fontWeight: 900, cursor: 'pointer', marginTop: 4 }}>LIBERAR</button></>}</td>
           </tr>)}
@@ -1178,7 +1219,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><DiaMarcaAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

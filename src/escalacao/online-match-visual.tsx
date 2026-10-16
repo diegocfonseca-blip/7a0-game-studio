@@ -2,6 +2,8 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
 import { tr } from './lang' // 🌐 BR/EN
+import { usePatrocinio } from './patrocinio' // 💼 'apresentada por' (16/10)
+import { LedEstadio } from './patrocinio-visual' // 🏟️ LED do estádio (16/10)
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
 import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
 import { type Batedores, batedorDaVez, siglasDoTime, sementePalco, jeitoDoErro, type JeitoDoErro } from './penaltis' // 🎯 o palco dos batedores (24/09)
@@ -95,10 +97,18 @@ export function CompetitionStage({ kind, title, phase, detail, status, children 
   kind: 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'; title: string; phase: string;
   detail: string; status?: string; children?: ReactNode
 }) {
+  const patro = usePatrocinio(kind)
   return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`}>
+    <LedEstadio />
     {/* 🧹 `detail` vazio não vira parágrafo em branco (Diego 19/09: a liga não precisa
         da linha "acompanhe sua divisão…"; a Copa continua dizendo o formato da fase) */}
-    <div className="ll26-competition-copy"><small>{title}</small><h2>{phase}</h2>{detail ? <p>{detail}</p> : null}</div>
+    <div className="ll26-competition-copy"><small>{title}</small><h2>{phase}</h2>{detail ? <p>{detail}</p> : null}
+      {/* 💼 "apresentada por" (16/10): o patrocinador da competição, embaixo do nome */}
+      {patro && <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8, fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' }}>
+        {tr('apresentada por', 'presented by')}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#0C0C0C', color: '#FFC400', border: '2px solid #FFC400', borderRadius: 8, padding: '1px 8px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 13, letterSpacing: '.04em' }}>{patro.emoji} {patro.nome.toUpperCase()}</span>
+      </div>}
+    </div>
     {status && <div className="ll26-competition-status"><span />{status}</div>}
     {children}
   </section>

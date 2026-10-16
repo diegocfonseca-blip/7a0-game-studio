@@ -1,3 +1,67 @@
+## 🚗 VADICO NOS 3 ESPAÇOS DA TELA (16/10) — ✅ NO AR PRA TODOS (*"o resto já pode publicar… LED no estádio faça também"*)
+- Champions Legends "apresentada por Vadico Veículos" liberada pra todos (`ESPACOS_GERAL = true` em `patrocinio.ts`).
+  Copa dos 8 **sem** Vadico (ordem dele: *"já vai ter na Champions"*) — ela só ganha marca no Dia da marca.
+- 🏟️ LED do estádio: letreiro verde passando no topo do palco das partidas online (`LedEstadio`, `patrocinio-visual.tsx`),
+  lista `LED_ESTADIO` (mais de um mensal = passam um atrás do outro). Placar não mudou.
+- 📰 Anúncio no O MARTELO: quadro com a logo no FIM do jornal — **Diego NÃO gostou** (*"até agora gostei só do apresentado por"*);
+  desligado e RELIGADO no mesmo dia (*"coloque o anúncio no Martelo no final sim"*). LED corrigido: só "VADICO VEÍCULOS" passando.
+- 📣 Anúncio no GIRO DA RODADA (`GIRO_ANUNCIO`): última manchete do letreiro, em BRANCO, com o letreiro um pouco mais lento
+  quando tem anúncio. Texto de hoje: "Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio".
+  Trocar a oferta = trocar essa linha.
+- A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
+- Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
+
+## 🦅⚫⚪ GAVIÕES SCCP VIROU 🖋 FUNDADOR (16/10) — ✅ NO AR: banco + gala v3 "Aqui é Fiel" + canto (aprovado pelo Diego)
+- kauealves584 já tinha fundador nº83; gravado `esc_compras_batismo` = plus (16/10).
+- 📣 Canto: 12 s de "Todo Poderoso Timão" (o áudio que o Diego mandou, trecho 3,2 s → 15,2 s, de pausa a pausa) →
+  `public/sfx/torcida-gavioes-v1.mp3` (mono 32 kHz 56 kbps, −20,6 dB igual ao Fabulous). Carreira (`AMBIENTE_CARREIRA_POR_EMAIL`) + gala.
+- ✨ Gala `gala-gavioes.tsx` (8 s): estádio preto e branco, bandeiras listradas, bando de gaviões no céu, fumaça P&B, o Gavião
+  do clube mergulha e solta penas, escudo acende → "O BANDO DE LOUCOS CHEGOU". Nada de marca oficial do Corinthians/torcida.
+  🔁 v2 "O ataque do Gavião" (Diego: *"quero outra ideia melhor, mais impactante"*): olho gigante pisca → o Gavião voa na câmera →
+  a tela estilhaça → bandeirão listrado sobe → bando gira em volta do escudo + LED "TODO PODEROSO" (8,6 s).
+  🔁 v3 "AQUI É FIEL" (Diego não entendeu o olho e sentiu falta do Corinthians → *"ok faz"*): torcida P&B pulando +
+  sinalizadores → bandeirão "TIMÃO" sobe e desce → mosaico de cartões vira o escudo → escudo sobe e o Gavião sai do mosaico
+  com rajada de vento → faixa "CHEGOU NA SALA · AQUI É FIEL" (8,6 s).
+  Vídeo: `node scripts/video-gala-gavioes.mjs` → `scripts/posts/gala-gavioes-com-canto.mp4`. Registrada em `GALA_UNICA`.
+
+## 💼 LOJA: "SUA MARCA NO JOGO" + WhatsApp do Diego (16/10) — ✅ publicado (seção de marca só nas contas do Diego)
+- WhatsApp do Diego **(21) 99888-6982** (`WHATSAPP_CONTATO` em pix-mp.tsx): aparece depois do Pix de Batismo/Fundador/canto (briefing),
+  na linha "💬 Dúvida sobre Batismo ou Fundador?" embaixo dos planos na Loja (pra TODOS) e depois do Pix do Dia da marca.
+- Seção "💼 Sua marca no jogo" (gate `patrocinioLojaOk`): ⚡ Dia da marca R$ 50 (Pix MP, produto `dia_marca`; depois do Pix mostra
+  WhatsApp + Instagram pra combinar dia/nome/bio/cupom) e 📅 mensal SEM preço (o que vem + direct @leilaolegendscom + e-mail).
+- ✅ Edge Function `mp-criar-pix` v5 PUBLICADA (16/10, OK do Diego) com `dia_marca`,
+  `moedas_500`, `moedas_1000`. Banco aceita (`esc_mp_preco_ref` → 50,00). Mensal: **link de pagamento da VENDRIA** que o Diego gera na hora de fechar com o mensalista (16/10:
+  *"faça o mensal pelo Vendria e repasse o custo… 1,99 fixo"*) → valor + R$ 1,99. Sem código.
+- 🏷️ 16/10: "naming rights" — mensal = naming rights da competição; ⚡ Dia da marca leva os naming rights da **Copa dos 8** por 24 h
+  ("Copa dos 8 apresentada por…"). ✅ FEITO 16/10: o Diego marca data+marca no #admin (⚡ Dia da marca · `esc_dia_marca`) e o
+  selo liga SOZINHO naquele dia pra todo mundo (`usePatrocinio` em patrocinio.ts). Champions/Vadico segue só na conta do Diego.
+- 🏢 16/10: entrou **Patrocinador Master na carreira** (a marca vira uma das propostas do início da temporada, como Vadico/ERO/Max
+  Jóias/Rei das Tintas/Uomo em `SPONSOR_BRANDS`) por R$ 150, e **o pacote completo (os 4) fica em R$ 500** (Diego: *"tudo de 500 pra quem
+  fechar tudo"*), e **post no Instagram + aviso na comunidade do WhatsApp em QUALQUER plano** (Dia da marca, espaço mensal avulso ou pacote — Diego 16/10). Avulsos: competição 300 · LED 200 · O MARTELO 100 (Diego 16/10) · Master 150.
+- 🏦 Loja segue com SÓ 3 pacotes de moedas (10 · 50 · 100); 500/1000 aceitos no Pix mas escondidos (Diego 16/10: *"deixe como tava"*).
+
+## 🚗 VADICO VEÍCULOS: "Champions Legends apresentada por" (16/10) — ✅ NO AR só nas contas do Diego
+- Diego: *"publique agora da Vadico Veículos pra eu ver como fica… deixe a Champions Legends apresentada por Vadico Veículos"*.
+- `src/escalacao/patrocinio.ts` (`POR_COMPETICAO`, uma marca por competição) + selo no `CompetitionStage` (online-match-visual.tsx).
+- Liberar pra todos: `PATROCINIO_GERAL = true`. Falta: logo oficial (hoje é 🚗 + nome), LED do estádio, O MARTELO, Vitrine.
+- 🚫 **"Placar oferecido por" NÃO** (16/10, minha opinião aceita como pergunta dele): o placar fica limpo; o LED fica no FUNDO do
+  estádio, parado ou bem devagar. Valores mantidos: competição 300 · LED do estádio 200 · O MARTELO 150 · os 3 juntos 500 · Dia 50.
+- Combinado em conversa (16/10): vários mensais convivem — 1 marca por competição (até ~6), LED gira até 4 marcas, O MARTELO
+  reveza por edição, Vitrine mostra todas. Combo proposto: competição + LED R$ 450 (esperando OK).
+
+## 💛 PLANO DUPLO (✅ NO AR no Pix novo, 16/10) + 🔄 REPAGINAR CLUBE (proposta, esperando OK)
+- **Plano duplo**: 2 do MESMO plano (um pra você, outro de presente) com 10% a menos, **num Pix só, já com desconto**
+  (Diego: *"o valor tem que ser um só pagando, já com desconto"*). Linha discreta embaixo do plano. Proposta: Craque R$ 53,90 ·
+  Lenda R$ 89,90 (arredondado pro ,90); Batismo/Fundador fora (trabalho de arte). O 2º chega como 🎁 presente (`esc_presentes`).
+  Mockup: `scripts/mockups/plano-duplo.png`. ✅ FEITO (*"pode fazer isso aí"*), com Batismo 143,90 e Fundador 179,90 também:
+  vai como 'presente' com ref `d-<id>` (sem deploy da Edge Function) — `esc_mp_preco_ref`/`esc_mp_entregar` + `PRECOS_DUPLO` +
+  `PresenteBox duplo` + linha "💛 Leve 2" na Loja (só aparece com o Pix novo, que hoje é só das contas do Diego) + #admin mostra
+  "💛 DUPLO" e põe Batismo/Fundador de presente/duplo na lista de clubes pra fazer. Nenhum pagamento real testado ainda.
+- **Repaginar clube** (só batismo/Fundador, sem batismo novo; ele escolhe o que troca): proposta mascote R$ 29,90 · escudo
+  R$ 24,90 · os dois R$ 44,90 · manto R$ 9,90. Briefing por escrito, sem imagem; o velho sai quando o novo entra. Esperando OK.
+- Contexto (16/10): 70 clubes batizados, só 2 com canto (Geovany, Fabulous) e 5 Fundador → canto e subida pro Fundador são o
+  dinheiro parado mais fácil.
+
 ## 🎁 PREGÃO ABERTO SEM MONTE + CARTA COBERTA (16/10) — ✅ NO AR (só Diego e Rossini)
 - Diego: sem Monte no fim do pregão aberto; quem ficou com vaga vazia ganha profissional/bom DE GRAÇA (das sobras da mesa,
   depois do catálogo livre; só se acabar tudo entra o incógnito). Perguntei se cobrava a abertura: *"deixa sem mesmo porque
