@@ -21,6 +21,12 @@ export const PRESIDENTE_LAYERS:readonly PresidenteLayer[]=[{
  src:'presidente-v135/pirlo-hair.webp',ready:true,
  bounds:{x:397,y:12,width:230,height:227},raster:{width:230,height:227},
 },{
+ // 🩹 16/10 (Diego: "cabelo do Pirlo tá com buraco próximo da orelha vazando o fundo"): o recorte da orelha no cabelo era
+ // maior que a orelha. Esta camada fica ATRÁS do corpo e só aparece nos vãos (orelha e roupa ficam na frente).
+ id:'pirlo-hair-back-v136',rig:PRESIDENTE_RIG.id,kind:'hair-back',
+ src:'presidente-v135/pirlo-hair-back.webp',ready:true,
+ bounds:{x:397,y:12,width:230,height:227},raster:{width:230,height:227},
+},{
  id:'ronaldinho-hair-v129',rig:PRESIDENTE_RIG.id,kind:'hair-front',
  src:'presidente-v129/ronaldinho-hair.webp',ready:true,
  bounds:{x:392,y:16,width:240,height:257},raster:{width:240,height:257},

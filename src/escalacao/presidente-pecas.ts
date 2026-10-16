@@ -6,7 +6,7 @@ export const PECAS_PRESIDENTE:readonly PecaPresidente[]=[
  {id:'marcelo-2017-hair',category:'hair',pt:'MARCELO · REAL MADRID 2017',en:'MARCELO · REAL MADRID 2017',ready:true,layers:['marcelo-hair-v220']},
  {id:'marcelo-2017-beard',category:'beard',pt:'BARBA DO MARCELO',en:'MARCELO BEARD',ready:true,layers:['marcelo-beard-v220']},
  {id:'puyol-2010-hair',category:'hair',pt:'PUYOL · BARCELONA 2010',en:'PUYOL · BARCELONA 2010',ready:true,layers:['puyol-hair-v145']},
- {id:'pirlo-2006-hair',category:'hair',pt:'PIRLO · MILAN 2006',en:'PIRLO · MILAN 2006',ready:true,layers:['pirlo-hair-v135']},
+ {id:'pirlo-2006-hair',category:'hair',pt:'PIRLO · MILAN 2006',en:'PIRLO · MILAN 2006',ready:true,layers:['pirlo-hair-v135','pirlo-hair-back-v136']},
  {id:'ronaldinho-2005-hair',category:'hair',pt:'RONALDINHO · BARCELONA',en:'RONALDINHO · BARCELONA',ready:true,layers:['ronaldinho-hair-v129']},
  {id:'classic-hair',category:'hair',pt:'CABELO CLÁSSICO',en:'CLASSIC HAIR',ready:true,layers:['cabelo-classico']},
  {id:'classic-beard',category:'beard',pt:'BARBA CLÁSSICA',en:'CLASSIC BEARD',ready:true,layers:['barba-classico']},
