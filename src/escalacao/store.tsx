@@ -5326,6 +5326,7 @@ export const INITIAL: EscState = {
   cpuAtkAdj: 0, cpuDefAdj: 0, streamMode: false, manualRoom: false,
   sectorCursor: 0, sectorUnsoldAccum: [], roundIdx: 0,
   holandes: false, hol: undefined, holFechando: false, // 🔻 modo holandês desligado: o pregão cego é o padrão
+  pregaoAberto: false, pa: undefined, // 🔨 pregão aberto desligado (16/10, em teste)
   seasonNo: 1,
   restartPending: false, restartReady: [],
   tiebreaks: [], tiebreakIdx: 0, tiebreakPending: {},
@@ -5342,7 +5343,7 @@ type Action =
   | { type: 'GO_ALBUM' }
   | { type: 'GO_RANKING' }
   | { type: 'KINGS_DECIDIR'; key: string; canto: number }
-  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean }
+  | { type: 'START'; teamName: string; formation: FormationKey; rivals: number; kings?: boolean; clubes?: boolean; career?: boolean; rivalTeams?: string[]; dinastia?: boolean; budget?: number; league?: 'br' | 'eu' | 'both' | 'todos'; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; intro?: boolean; holandes?: boolean; pregaoAberto?: boolean }
   | { type: 'START_NBA'; teamName: string; rivals: number } // 🏀 jogo rápido do basquete (mesmo motor)
   | { type: 'START_NBA_CAREER'; teamName: string } // 🏀 carreira: Street League (liga cheia, rotação de 10). Em teste.
   | { type: 'NEXT_NBA_SEASON' } // 🏀 carreira: avança a temporada e abre o leilão de reservas (mantém o quinteto)
@@ -5426,6 +5427,9 @@ type Action =
   // No online QUEM DISPARA O TICK É SEMPRE O HOST — o convidado só desenha o
   // preço que chegou e roteia o PEGAR pro host, como toda ação da sala.
   | { type: 'HOLANDES_TICK' }
+  // 🔨 PREGÃO ABERTO: o relógio de 1s (martelo + lance dos robôs) e o lance de gente. No online só o host tica.
+  | { type: 'PREGAO_ABERTO_TICK' }
+  | { type: 'PREGAO_ABERTO_LANCE'; mgrId: number; valor: number; by?: string }
   | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
@@ -6051,6 +6055,150 @@ function holResgate(state: EscState) {
   }
 }
 
+
+// ─── 🔨 PREGÃO ABERTO (16/10, ideia do Diego) ───────────────────────────────────────────────────────────
+// O leilão aberto clássico: UMA carta por vez na mesa, lance à vista ("dou 10… 11… 12… uma, duas, três,
+// vendido!"), e ninguém sabe qual carta vem depois — nem de que posição, porque a fila é o baralho inteiro
+// EMBARALHADO entre as posições (é isso que segura todo mundo no jogo: quem já tem goleiro briga pelas outras).
+// Martelo: 6s sem lance novo. Quem já fechou a posição só assiste. Ninguém deu lance? A carta vai pro Monte.
+// 🧱 MOTOR DE SEMPRE: cada martelo entrega o arremate pro `sealAndResolve` (pagamento, elenco, livro de preços,
+// resenha, vendedor) — a MESMA porta que o envelope e a Tocaia usam. Os robôs decidem o teto com o MESMO
+// `cpuEnvelope`, carta a carta, e vão cobrindo de 1 em 1 até o teto deles.
+// 👑 No online (quando for ligado): quem roda o relógio e o martelo é SÓ o dono da sala; o convidado roteia o lance.
+export const PA_MARTELO_MS = 6_000
+export const PA_TICK_MS = 1_000
+export const PA_ABERTURA = 1
+
+function paRobosQueDisputam(state: EscState): Manager[] {
+  return state.managers.filter(m => !m.isHuman && (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu))))
+}
+/** teto de cada robô pra ESTA carta — o mesmo envelope que ele escreveria, só que agora ele cobre até lá */
+function paTetos(state: EscState, card: Card): Record<number, number> {
+  const rng = rngOf(state)
+  const econ = state.careerOnline ? escadaEconFactor(state) : 0
+  const sectorIdx = SECTORS.indexOf(card.pos)
+  const tetos: Record<number, number> = {}
+  for (const m of paRobosQueDisputam(state)) {
+    if (openSlots(m, card.pos) <= 0 || m.money <= 0) continue
+    const [b] = cpuEnvelope(m, [card], sectorIdx, rng, false, econ, ...perfilNoLeilao(state, m))
+    if (b && b.amount >= PA_ABERTURA) tetos[m.id] = Math.min(Math.floor(b.amount), Math.floor(m.money))
+  }
+  return tetos
+}
+/** alguém (gente ou robô) ainda tem vaga e dinheiro pra esta posição? senão a carta nem entra na mesa */
+function paAlguemQuer(state: EscState, pos: Sector): boolean {
+  return state.managers.some(m => openSlots(m, pos) > 0 && m.money >= PA_ABERTURA && (m.isHuman ? !m.dormindo : (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu)))))
+}
+function abrePregaoAberto(state: EscState) {
+  const rng = rngOf(state)
+  const fila: Card[] = []
+  for (const pos of SECTORS) fila.push(...state.deck[pos])
+  for (let i = fila.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const x = fila[i]; fila[i] = fila[j]; fila[j] = x }
+  // o cursor dos setores vai pro fim: ninguém mais "deal" leva por setor nesta partida
+  for (const pos of SECTORS) state.stock[pos] = 0
+  state.sectorCursor = 0; state.sectorUnsoldAccum = []
+  state.pa = { fila, idx: -1, preco: 0, lider: null, lances: [], deadline: null, tetos: {}, vendidos: [], sobras: [] }
+  state.phase = 'pregao'
+  state.submitted = []; state.pendingEnvelopes = {}; state.revealQueue = []; state.revealIdx = 0; state.phaseDeadline = null
+  paProximaCarta(state)
+}
+function paProximaCarta(state: EscState) {
+  const pa = state.pa
+  if (!pa) return
+  while (true) {
+    pa.idx++
+    if (pa.idx >= pa.fila.length) { paFecha(state); return }
+    const card = pa.fila[pa.idx]
+    if (!paAlguemQuer(state, card.pos)) { pa.sobras.push(card); continue } // ninguém pode: nem perde tempo na mesa
+    state.currentCards = [card]
+    state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos))
+    pa.preco = 0; pa.lider = null; pa.lances = []
+    pa.tetos = paTetos(state, card)
+    pa.deadline = Date.now() + PA_MARTELO_MS
+    return
+  }
+}
+/** o lance mínimo de agora: 1 pra abrir, senão o atual + 1 */
+export function paMinimo(state: EscState): number { return state.pa && state.pa.lider !== null ? state.pa.preco + 1 : PA_ABERTURA }
+/** a tela pergunta isto pra acender os botões — a MESMA régua que o motor usa pra aceitar o lance */
+export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?: string): boolean {
+  const pa = state.pa
+  const card = state.currentCards[0]
+  const m = state.managers.find(x => x.id === mgrId)
+  if (state.phase !== 'pregao' || !pa || !card || !m || m.dormindo) return false
+  if (!duplaPodeAgir(state.duplas, mgrId, card.pos, uid)) return false
+  if (openSlots(m, card.pos) <= 0) return false
+  if (pa.lider === mgrId) return false // já está na frente: não cobre o próprio lance
+  const v = Math.floor(Number(valor))
+  if (!Number.isFinite(v) || v < paMinimo(state)) return false
+  return v <= Math.floor(m.money)
+}
+function paRegistraLance(state: EscState, mgrId: number, valor: number) {
+  const pa = state.pa
+  if (!pa) return
+  pa.preco = valor; pa.lider = mgrId
+  pa.lances.push({ mgr: mgrId, valor })
+  pa.deadline = Date.now() + PA_MARTELO_MS // todo lance novo zera o relógio
+}
+/** um segundo passou: martelo se venceu; senão, no máximo UM robô cobre (pra parecer gente, não metralhadora) */
+function paTick(state: EscState) {
+  const pa = state.pa
+  if (!pa) return
+  const card = state.currentCards[0]
+  if (!card) { paProximaCarta(state); return }
+  if (pa.deadline !== null && Date.now() >= pa.deadline) { paMartelo(state); return }
+  const rng = rngOf(state)
+  const minimo = paMinimo(state)
+  const cands = paRobosQueDisputam(state).filter(m => m.id !== pa.lider && (pa.tetos[m.id] ?? 0) >= minimo && Math.floor(m.money) >= minimo && openSlots(m, card.pos) > 0)
+  if (!cands.length) return
+  const m = cands[Math.floor(rng() * cands.length)]
+  const folga = pa.tetos[m.id] - minimo
+  // abrir é fácil; cobrir fica mais difícil conforme chega perto do teto
+  const chance = pa.lider === null ? 0.75 : Math.min(0.85, 0.35 + folga * 0.08 + m.aggression * 0.25)
+  if (rng() >= chance) return
+  const salto = folga >= 4 && rng() < 0.3 ? 2 : 1
+  paRegistraLance(state, m.id, Math.min(minimo + salto - 1, pa.tetos[m.id]))
+}
+/** uma, duas, três… vendido! (ou ninguém quis → Monte) — e a carta seguinte entra na mesa */
+function paMartelo(state: EscState) {
+  const pa = state.pa
+  const card = state.currentCards[0]
+  if (!pa || !card) return
+  if (pa.lider === null) {
+    pa.sobras.push(card)
+    pa.vendidos.unshift({ cardId: card.id, nome: card.pacote?.clube ?? card.name, pos: card.pos, mgr: null, time: null, preco: 0, segundo: 0 })
+    state.currentCards = []
+    paProximaCarta(state)
+    return
+  }
+  // o arremate entra pela MESMA porta do envelope: o lance do líder (+ o do 2º, pra resenha do "jogou fora")
+  const segundo = [...pa.lances].reverse().find(l => l.mgr !== pa.lider)
+  state.pendingEnvelopes = { [pa.lider]: [{ cardId: card.id, amount: pa.preco }], ...(segundo ? { [segundo.mgr]: [{ cardId: card.id, amount: segundo.valor }] } : {}) }
+  state.holFechando = true
+  sealAndResolve(state)
+  state.holFechando = false
+  const q = state.revealQueue[0]
+  const w = q?.winner != null ? state.managers.find(m => m.id === q.winner) : undefined
+  pa.vendidos.unshift({ cardId: card.id, nome: card.pacote?.clube ?? card.name, pos: card.pos, mgr: q?.winner ?? null, time: w?.teamName ?? null, preco: q?.paid ?? pa.preco, segundo: segundo?.valor ?? 0 })
+  if (pa.vendidos.length > 60) pa.vendidos.length = 60
+  if (!q || q.winner == null) pa.sobras.push(card) // não devia acontecer (lance válido), mas carta nunca some
+  state.revealQueue = []; state.revealIdx = 0; state.currentCards = []; state.pendingEnvelopes = {}
+  state.tiebreaks = []; state.tiebreakIdx = 0; state.tiebreakPending = {}
+  state.phase = 'pregao'
+  paProximaCarta(state)
+}
+/** acabou a fila: as sobras vão pro Monte e o jogo segue como sempre (Monte → cerimônia → temporada) */
+function paFecha(state: EscState) {
+  const pa = state.pa
+  if (!pa) return
+  montePush(state, pa.sobras)
+  state.currentCards = []
+  state.pa = undefined
+  state.sectorIdx = SECTORS.length - 1
+  state.sectorCursor = 0; state.sectorUnsoldAccum = []
+  advanceSectorOrFinish(state, rngOf(state))
+}
+
 function holandesTick(state: EscState) {
   const hol = state.hol
   if (!hol) return
@@ -6159,6 +6307,8 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
     if (state.onlineMode !== 'online' && humansToSubmit(state, SECTORS[state.sectorIdx]).length === 0) sealAndResolve(state)
     return
   }
+  // 🔨 PREGÃO ABERTO: a fila é o baralho inteiro embaralhado; abre uma vez e vai até o Monte
+  if (state.pregaoAberto && !rescue && !state.leilaoClubes) { abrePregaoAberto(state); return }
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {
@@ -7132,6 +7282,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // 🔻 modo do pregão: holandês (preço caindo) ou o cego de sempre. Escolha
       // por partida — o padrão é SEMPRE o leilão de hoje.
       s.holandes = !!action.holandes
+      // 🔨 pregão aberto (16/10, em teste): só no rápido; é um jeito de lance à parte, então desliga a Tocaia
+      s.pregaoAberto = !action.career && !action.dinastia && !!action.pregaoAberto
+      if (s.pregaoAberto) s.holandes = false
+      s.pa = undefined
       // 🧱 leilão de clubes (em teste, 27/09): só no rápido. Etapa 1 = envelope às cegas.
       s.leilaoClubes = !!action.clubes && !action.career && !action.dinastia
       s.leilaoClubesConvocado = false
@@ -8001,6 +8155,21 @@ function reducerBase(state: EscState, action: Action): EscState {
     case 'HOLANDES_TICK': {
       if (s.phase !== 'holandes' || !s.hol) return s
       holandesTick(s)
+      return s
+    }
+    // ─── 🔨 PREGÃO ABERTO ─────────────────────────────────────────────────
+    case 'PREGAO_ABERTO_TICK': {
+      if (s.phase !== 'pregao' || !s.pa) return s
+      paTick(s)
+      return s
+    }
+    case 'PREGAO_ABERTO_LANCE': {
+      if (s.phase !== 'pregao' || !s.pa) return s
+      const m = s.managers.find(x => x.id === action.mgrId)
+      if (!m?.isHuman) return s // robô não passa por aqui: ele cobre no tick
+      const valor = Math.floor(Number(action.valor))
+      if (!paPodeLancar(s, action.mgrId, valor, action.by)) return s
+      paRegistraLance(s, action.mgrId, valor)
       return s
     }
     case 'HOLANDES_PEGAR': {
