@@ -1,7 +1,10 @@
 ## 🧑‍💼 PRESIDENTE LIBERADO PRA TODOS (16/10) — ✅ NO AR
 - Diego: *"já pode publicar p todos p personagem"* → `PRESIDENTE_CONTA_GERAL = true`. Vale: editor na 🛒 Loja (régua por plano) + Presidência da carreira.
-- ⚠️ Os OUTROS lugares do mockup (lista de técnicos, chat, martelo, capa do O MARTELO, Central, perfil) AINDA NÃO desenham o boneco — a fazer.
-  Pra isso a sala precisa ler o boneco dos OUTROS (hoje a RLS de `esc_presidente` só deixa ler o próprio).
+- 🧑‍💼 **Na sala online (16/10, no branch, esperando OK da foto)**: lista de técnicos, chat (os 2) e martelo de quem levou.
+  Banco: `esc_presidentes_publicos2` (docs/sql/presidente-publico.sql) devolve só visual + plano de quem é Craque+.
+  Fundo do busto = cor do PLANO (Diego 16/10: ouro Lenda/Batismo/Fundador · prata Craque · grátis bolinha bege de sempre).
+  Código: `presidente-avatar.tsx` (busto montado 1x por visual, guardado como imagem). Foto: `scripts/mockups/presidente-sala-online.png`.
+- ⏳ Ainda faltam: capa do O MARTELO, Central Legends, perfil; e linha de gala (batismo) ainda mostra só o escudo.
 - Reverter: `PRESIDENTE_CONTA_GERAL = false` em `presidente-conta.ts`.
 
 ## 💼 Patrocínio de verdade (marca real) — 3 espaços (16/10) — 👀 MOCKUP ENVIADO

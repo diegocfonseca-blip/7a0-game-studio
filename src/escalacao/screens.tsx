@@ -34,6 +34,7 @@ import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-a
 import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPlanoConta} from './presidente-conta'
+import {PresidenteDaConta} from './presidente-avatar'
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -747,6 +748,7 @@ export function ChatWidget() {
                       // 1) nome na cor do plano de quem fala (sem escudo: Diego 13/10 "pra não ficar muita informação") · 3) toque na dos outros = responder
                       return (
                         <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
+                          <PresidenteDaConta uid={m.uid} size={28} reserva={null} />{/* 🧑‍💼 16/10: quem fala, pelo presidente (só quem tem; grátis fica como era) */}
                           <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
                             style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
                             {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ChatCracha name={m.name} />}
@@ -5446,8 +5448,10 @@ function Reveal() {
                   </motion.p>
                 </>
               )}
-              {!privateReveal && <p className="font-black text-lg" style={OSWALD}>
-                🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
+              {!privateReveal && <p className="font-black text-lg" style={{ ...OSWALD, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {/* 🧑‍💼 16/10: no online, quem levou aparece pelo presidente dele (só quem tem; grátis fica só o texto) */}
+                <PresidenteDaConta uid={state.seatUids?.[state.managers.indexOf(winnerMgr)]} size={34} reserva={null} />
+                <span>🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!</span>
               </p>}
               {/* 🕴️ AGÊNCIA 2.0: agenciado negociado → banner de comissão no tempo
                   morto do martelo (não adiciona passo). A moeda já entrou no motor. */}

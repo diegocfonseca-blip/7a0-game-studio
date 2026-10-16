@@ -16,6 +16,7 @@ import { planoAtual, type PlanoUnico } from './planos-regras'
 import { presidenteBaseValido, type PresidenteBaseSave } from './presidencia-carreira'
 import { copiarAparencia } from './presidente-aparencia'
 import { podeSalvarPresidente } from './presidente-plano'
+import { esquecerPresidente } from './presidente-avatar'
 import { podeVestirModular } from './presidente-vestuario-acesso'
 
 const PRESIDENTE_CONTA_GERAL = true // 🟢 16/10: liberado pra todos (Diego: "já pode publicar p todos p personagem")
@@ -76,6 +77,7 @@ export async function salvarPresidenteConta(v: PresidenteBaseSave): Promise<bool
     const { error } = await supabase.from('esc_presidente').upsert({ user_id: uid, email, visual, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     if (error) return false
     muda({ status: 'pronto', value: visual, email })
+    esquecerPresidente() // 🧑‍💼 a minha linha na sala muda na hora (presidente-avatar.tsx)
     return true
   } catch { return false }
 }
