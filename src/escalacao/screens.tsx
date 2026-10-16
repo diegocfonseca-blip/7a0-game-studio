@@ -32,6 +32,7 @@ import { AvatarLote1, avatarLote1 } from './avatar-lote1'
 import { PRESIDENT_EDITOR_RELEASED } from './career-feature-release'
 import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-acesso'
 import {PresidenteFormulario} from './presidente-formulario'
+import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPlanoConta} from './presidente-conta'
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
@@ -67,7 +68,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePregaoAberto, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
@@ -2623,6 +2624,10 @@ export function EscSetup() {
   const [league, setLeague] = useState<'br' | 'eu' | 'both'>('br') // baralho: 🇧🇷 Brasileirão, 🌍 Liga Europa ou 🌎 os dois juntos
   const [copaMode, setCopaMode] = useState<'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'>('liga_copa') // rápido offline: liga só, liga + copa dos 8 ou liga + Libertadores
   const [holandes, setHolandes] = useState(false) // 🔻 pregão holandês (modo à parte); padrão = o leilão cego de hoje
+  // 🔨 PREGÃO ABERTO (16/10): o 3º jeito de dar lance — uma carta por vez, lance à vista, ordem embaralhada,
+  // martelo em 6s. Só pra conta de teste (`PREGAO_ABERTO_TESTERS`); pra todo o resto o jogo segue idêntico.
+  const [pregaoAb, setPregaoAb] = useState(false)
+  const pregaoAbertoOk = usePregaoAberto()
   // 🌎 a Libertadores também aparece no rápido OFFLINE — é onde dá pra testar
   // sozinho, sem juntar 8 pessoas. Mesma trava de conta do online.
   const libertaOn = useLibertaLiberada()
@@ -2709,7 +2714,7 @@ export function EscSetup() {
         presidentBase: modularSetup ? presidentDraft : undefined,
       })
     }
-    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado ? 'liga' : copaMode, holandes, clubes: clubesOn && clubes, kings: kingsLigado || undefined, intro: true })
+    else dispatch({ type: 'START', teamName: clean, formation, rivals: kingsLigado ? 9 : rivals, career, rivalTeams: picks, league, copaMode: kingsLigado ? 'liga' : copaMode, holandes: holandes && !pregaoAb, pregaoAberto: pregaoAbertoOk && pregaoAb, clubes: clubesOn && clubes, kings: kingsLigado || undefined, intro: true })
   }
   if (career && privatePreview) {
     const outfits = [
@@ -2942,11 +2947,11 @@ export function EscSetup() {
         {!career && (
           <div>
             <p className="text-xs font-black uppercase mb-1">{t('Como é o leilão', 'Auction format')}</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className={`grid ${pregaoAbertoOk ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
               {([[false, t('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${t(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]).map(([m, label]) => (
-                <button key={String(m)} onClick={() => setHolandes(m)}
+                <button key={String(m)} onClick={() => { setHolandes(m); setPregaoAb(false) }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
-                  style={{ backgroundColor: holandes === m ? GOLD : '#fff', boxShadow: holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  style={{ backgroundColor: !pregaoAb && holandes === m ? GOLD : '#fff', boxShadow: !pregaoAb && holandes === m ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
                   {/* 🏷️ tarja NOVO — a MESMA da sala online, pra as duas telas não
                       contarem histórias diferentes. Ela some sozinha 45 dias depois
                       de o modo nascer (`MODO_NOME_NASCEU`), igual às novidades
@@ -2963,9 +2968,23 @@ export function EscSetup() {
                   {label}
                 </button>
               ))}
+              {pregaoAbertoOk && (
+                <button onClick={() => { setPregaoAb(true); setHolandes(false) }}
+                  className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
+                  style={{ backgroundColor: pregaoAb ? GOLD : '#fff', boxShadow: pregaoAb ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
+                  <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+                    letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
+                    border: `1.5px solid ${INK}`, background: pregaoAb ? INK : GOLD, color: pregaoAb ? GOLD : INK }}>
+                    {t('teste', 'test')}
+                  </span>
+                  {t('🔨 Pregão aberto', '🔨 Open auction')}
+                </button>
+              )}
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">
-              {holandes
+              {pregaoAb
+                ? t('🔨 Uma carta por vez, lance ABERTO na frente de todos: dou 10… 11… 12… uma, duas, três, vendido! A ordem das posições vem embaralhada (ninguém sabe a próxima carta), 5 segundos sem lance novo bate o martelo, e quem já fechou a posição só assiste. Sobrou carta sem lance? Vai pro Monte, como sempre.', '🔨 One card at a time, OPEN bidding in front of everyone: 10… 11… 12… going once, twice, sold! Positions come shuffled (nobody knows the next card), 5 seconds without a new bid drops the hammer, and whoever already filled the position just watches. Unsold card? Off to the leftovers, as always.')
+                : holandes
                 ? t('🐊 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🐊 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
                 : t('✉️ O leilão de sempre: você escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: you write your bid in secret and the highest wins at the hammer.')}
             </p>
@@ -3370,7 +3389,7 @@ async function chamarMaisGente(roomId: string | undefined | null, dispatch: Retu
   dispatch({ type: 'VOLTA_ESPERA' })
 }
 
-function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) {
+export function AuctionBar({ vagas, ajuda }: { vagas?: number; ajuda?: boolean } = {}) {
   const { state, dispatch } = useEsc()
   const you = state.managers[state.youIdx]
   const [regras, setRegras] = useState(false)
@@ -3742,7 +3761,8 @@ const seloNovoHolandes = (): string | undefined =>
 export function EscAuction() {
   const { state } = useEsc()
   let sub
-  if (state.phase === 'holandes') sub = <Holandes />
+  if (state.phase === 'pregao') sub = <PregaoAberto />
+  else if (state.phase === 'holandes') sub = <Holandes />
   else if (state.phase === 'envelope' || state.phase === 'resq_envelope') sub = <Envelope />
   else if (state.phase === 'tiebreak') sub = <Tiebreak />
   else sub = <Reveal />

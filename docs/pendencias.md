@@ -13,6 +13,47 @@
 - +1 ficha de carreira além do limite do plano (grátis 1 · Craque 2 · Lenda 4 · Batismo 4), igual às 🎟️ salas extras.
 - Vende pelo Pix do Mercado Pago (produto novo no `esc_mp_preco`/`esc_mp_entregar` + nome na edge function).
 - Mockup na Loja ANTES de codar. Nunca apagar/travar save por causa do limite.
+## 🔨 PREGÃO ABERTO — o 3º jeito de dar lance (16/10) — ✅ NO AR, SÓ PRA CONTA DO DIEGO (Partida Rápida)
+Diego aprovou o mockup: *"Deixa assim msm c 20 e faça aí acontecer. Siga padrões do nosso jogo de motor do leilão… e faça
+apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
+- **Onde liga**: Partida Rápida → "Como é o leilão" ganha o 3º botão "🔨 Pregão aberto" (selo *teste*), só pra
+  `PREGAO_ABERTO_TESTERS` (sport.ts; `PREGAO_ABERTO_GERAL = false`). Pra todo o resto a tela é a de sempre (2 botões).
+  Não existe em carreira, dinastia, salas online nem Leilão de Clubes (lá cai no envelope de sempre).
+- **Motor** (store.tsx, bloco `abrePregaoAberto`/`paTick`/`paMartelo`/`paFecha`): a fila é o BARALHO INTEIRO embaralhado
+  (`pa.fila`); uma carta por vez; abre em 1, cada lance é +1 ou mais; o relógio de 6s (`PA_MARTELO_MS`) zera a cada lance;
+  o arremate entra pela MESMA porta do envelope (`pendingEnvelopes` + `sealAndResolve`, com `holFechando` pra silenciar os
+  bots — o mesmo caminho da Tocaia), então pagamento, livro de preços, elenco e resenha ficam idênticos. Sem lance = Monte.
+  Carta que NINGUÉM pode levar (posição fechada em todo mundo) nem entra na mesa. No fim, `advanceSectorOrFinish` → Monte/
+  cerimônia/temporada os de sempre.
+- **Bots**: teto por carta vem do `cpuEnvelope` (perfil, economia, necessidade, os mesmos de sempre); por tique, UM bot
+  cobre com uma chance que cai conforme chega perto do teto. Nunca cobre o próprio lance, nunca sem vaga, nunca sem caixa.
+- **Tela** (`pregao-aberto.tsx`): carta em tamanho de vitrine (a grande empurrava os botões pra fora do celular), faixa
+  do lance atual + ⏱ (vira vermelha nos 2s finais: UMA… DUAS… TRÊS… VENDIDO!), últimos 4 lances, botões mínimo/+1/+4 e
+  "outro", travas explicadas (posição cheia · já está na frente · caixa não cobre), resenha do último martelo, campinho.
+  Só o aparelho que joga tica (`PREGAO_ABERTO_TICK`); no online, quando for ligado, só o dono tica — por isso o lance já
+  vai com `by` (uid), pronto pra rotear pro dono.
+- 🔁 **1º teste do Diego (16/10, 02:57): *"tem certeza que os bots estão inteligentes? só tem 100 moedas e teve gente que de
+  primeira já chegou em quase 50 num jogador"*.** Dois robôs duelaram até 49 num craque. Causa: o teto vinha do `cpuEnvelope`,
+  que divide o caixa por SETOR na ordem GOL→ATA — ATA é o último, então uma carta de ATA ganhava o bolso INTEIRO. Virou
+  `paTeto`: caixa ÷ vagas que faltam × categoria (lenda 2,6× · craque 1,8× · bom 1,1× · pro 0,8× · perna 0,5×), tempero por
+  bot+carta, preso ao `fairPrice`, e nunca mais que 35% do caixa numa carta (40% lenda). Medido: média 8 🪙 por carta, maior ~26,
+  todo robô fecha os 11. No caminho achei outro bug: `rngOf(state)` é fixo por estado e o tique não muda nada do estado — o
+  sorteio se REPETIA em todo tique e em toda carta do setor, então setores inteiros iam pro Monte sem lance (`paRng` agora anda
+  por carta e por tique). E ele pediu *"reduzir mais o tempo"*: martelo 6s → 4s → **5s** (ele cravou: *"eu falei 5s p martelar"*), o robô que abre já abre com uma fatia do
+  teto ("dou 8!") e pula 2–3 com folga. Medido: ~9s por carta, ~18 min com 10 clubes (115 cartas), ~33 min com 20.
+- **Trava**: `npm run pregao-aberto` (partida inteira no reducer: fila embaralhada, lance inválido recusado, uma carta =
+  um dono, pagou o lance final, ninguém negativo, termina no Monte/cerimônia).
+- **Reverter**: `PREGAO_ABERTO_TESTERS` vazio esconde o botão; sem o botão nenhum save entra no modo.
+- ⏳ **Falta** (depois do teste dele): liberar pra todos (`PREGAO_ABERTO_GERAL = true` + linha em `novidades.ts`), levar pras
+  salas online (rotear `PREGAO_ABERTO_LANCE` pro dono via `hostInbox`, só o dono tica) e pro lobby ("Como é o leilão").
+Histórico do pedido:
+Ideia do Diego: leilão aberto clássico, UMA carta por vez, lance à vista ("dou 10… 11… uma, duas, três, vendido"), e ninguém
+sabe qual carta vem depois. Medo dele: 20 pessoas = 20 goleiros e o 1º que pegar fica esperando. Respondido: o baralho dá de
+sobra (só o BR tem 82 GOL · 90 LAT · 93 ZAG · 198 MEI · 240 ATA; o Envelope de 20 já tira 220 cartas), o problema é TEMPO.
+Proposta no mockup (`scripts/mockup-pregao-aberto.mjs` → `scripts/mockups/pregao-aberto.png`): ordem das POSIÇÕES embaralhada
+(ninguém fica parado: quem já tem goleiro briga pelas outras), martelo em 6s sem lance novo, quem já fechou a posição só
+assiste (trava explicada), botões +1/+2/+5/outro valor, lista dos últimos lances, campinho do que falta. ~25 min com 20 pessoas,
+~10 com 6–8. Encaixa como "jeito do lance" ao lado de ✉️ Envelope e 🐊 Tocaia; Monte/cerimônia/temporada os de sempre.
 
 ## 🛒 Painel do Criador: "Quem quase comprou" (16/10) — ✅ NO AR
 Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas na lista dos 40 últimos, afogados por
