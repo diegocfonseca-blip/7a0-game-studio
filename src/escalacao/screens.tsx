@@ -7539,7 +7539,8 @@ function leagueBeforeResults<T extends { id: number; pts: number; w: number; d: 
 // na mesma sala — então a tradução é feita AQUI, por quem vê, casando os moldes
 // fixos do `narrateRound`/giro da Copa (store.tsx). Molde desconhecido = fica
 // como veio (nunca inventa).
-function traduzManchete(h: string): string {
+// (16/10: o letreiro virou só anúncio; estas duas ficam exportadas pra voltar o giro de notícias se ele pedir)
+export function traduzManchete(h: string): string {
   if (getLang() !== 'en') return h
   const m = h.match(/^(R\d+ · )?(.*)$/s)
   const pre = m?.[1] ?? '', t = m?.[2] ?? h
@@ -7585,32 +7586,19 @@ function traduzManchete(h: string): string {
 //     uma manchete parada por vez, com o fade de antes.
 //   · o `key` da corrida é a lista inteira → manchete nova reinicia a corrida do
 //     começo, então a mais recente é sempre a primeira a entrar.
-const corDoLed = (h: string) => /CAMPE[ÃA]O|👑|WINS|CHAMPION/.test(h) ? '#FFE066' : /🎯|🕐|PÊNALTIS|PENALTIES|PRORROGAÇÃO|OVERTIME/.test(h) ? '#FF5A3C' : '#FFB000'
-export function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[]; isCopa?: boolean; cinema?: boolean }) {
-  // ✂️ 26/09 (Diego): o "R1 · / R2 ·" na frente de cada manchete sai do letreiro —
-  //    *"isso não precisa aparecer, fica muita coisa"*. Só na TELA: a manchete
-  //    guardada continua com a rodada (o filtro anti-spoiler e o resto leem ela).
-  const noticias = news.slice(0, 6).map(h => traduzManchete(h.replace(/^R\d+ · /, '')))
-  // 📣 16/10: os anúncios entram como as últimas "manchetes" (em branco); só aparecem junto de notícia de verdade
+export const corDoLed = (h: string) => /CAMPE[ÃA]O|👑|WINS|CHAMPION/.test(h) ? '#FFE066' : /🎯|🕐|PÊNALTIS|PENALTIES|PRORROGAÇÃO|OVERTIME/.test(h) ? '#FF5A3C' : '#FFB000'
+export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean }) {
+  // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
+  // O letreiro virou o ANÚNCIO DO DIA: só passa propaganda (o avulso de 1 dia do banco + o mensal), nada de manchete de jogo.
+  // O botão "Anuncie aqui" abre a Loja na seção de anúncio. Sem anunciante, o próprio letreiro oferece o espaço.
   const anuncios = useAnunciosGiro()
-  const ehAnuncio = (h: string) => anuncios.includes(h)
-  const anuncio = noticias.length && anuncios.length ? anuncios : null
-  const list = anuncio ? [...noticias, ...anuncio] : noticias
+  const en = getLang() === 'en'
+  const list = anuncios.length ? anuncios : [en ? '📣 This space can be yours · Advertise here' : '📣 Este espaço pode ser seu · Anuncie aqui']
   const key = list.join('|')
-  const [idx, setIdx] = useState(0)
-  const keyRef = useRef(key)
-  if (keyRef.current !== key) { keyRef.current = key; setIdx(0) }
-  useEffect(() => {
-    if (list.length <= 1) return
-    const iv = setInterval(() => setIdx(i => (i + 1) % list.length), 3200)
-    return () => clearInterval(iv)
-  }, [key, list.length])
-  if (list.length === 0) return null
-  // velocidade constante: ~0,13s por letra, com piso de 14s pra lista curta não passar
-  // voando. (26/09, Diego: *"aumenta só um pouco mais a velocidade, quase nada"* — era 0,16/18s)
+  // devagar, pra dar tempo de ler o anúncio inteiro (16/10: "deixar o texto completo passar de forma devagar")
   const chars = list.reduce((n, h) => n + h.length + 4, 0)
-  const dur = Math.max(14, Math.round(chars * (anuncio ? 0.16 : 0.13))) // 28/09: *"só um pouquinho mais rápido"* (era 0,145/16s) · com anúncio, mais devagar (16/10: "passar de forma devagar")
-  const rotulo = getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')
+  const dur = Math.max(14, Math.round(chars * 0.16))
+  const COR = '#FFC400' // letreiro dourado: é anúncio, não resultado
   return (
     <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden' }}>
       <style>{`@keyframes giroCorre{to{transform:translateX(-50%)}}@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
@@ -7622,24 +7610,21 @@ export function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[];
 .giro-sep{color:rgba(255,176,0,.45);margin:0 18px;font-size:11px}
 .giro-parado{display:none}
 @media (prefers-reduced-motion:reduce){.giro-corre{display:none}.giro-parado{display:flex;align-items:center;height:100%;padding:0 12px;animation:giroFade .35s ease}}`}</style>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px 5px', background: CREAM, borderBottom: `3px solid ${INK}` }}>
-        {/* 📣 16/10 (Diego): "em vez de giro da rodada coloque Anuncie aqui" → abre a Loja na seção de anúncio. Só onde a seção
-            da Loja já aparece (por enquanto, as contas do Diego); pros outros fica o título de sempre. */}
-        {patrocinioLojaOk()
-          ? <LojaButton ancora="loja-marca" className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK, background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', cursor: 'pointer' }}>{getLang() === 'en' ? '📣 Advertise here ›' : '📣 Anuncie aqui ›'}</LojaButton>
-          : <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{rotulo}</span>}
-        {list.length > 1 && <span>{list.map((_, i) => ehAnuncio(list[i]) ? null : <i key={i} style={{ display: 'inline-block', width: 5, height: 5, borderRadius: 99, background: i === idx ? INK : '#d9cfae', marginLeft: 4 }} />)}</span>}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 10px 5px', background: CREAM, borderBottom: `3px solid ${INK}` }}>
+        <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{en ? '📢 Ad of the day' : '📢 Anúncio do dia'}</span>
+        {/* o botão só aparece onde a seção de anúncio da Loja existe (patrocinioLojaOk) — senão seria um botão que não leva a nada */}
+        {patrocinioLojaOk() && <LojaButton ancora="loja-marca" className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK, background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', cursor: 'pointer' }}>{en ? 'Advertise here ›' : 'Anuncie aqui ›'}</LojaButton>}
       </div>
       <div className="giro-led">
         <div key={key} className="giro-corre" style={{ animationDuration: `${dur}s` }}>
           {[...list, ...list].map((h, i) => (
             <Fragment key={i}>
-              <span className="giro-m" style={ehAnuncio(h) ? { color: '#fff', textShadow: '0 0 6px #ffffff88' } : { color: corDoLed(h), textShadow: `0 0 6px ${corDoLed(h)}88` }}>{h}</span>
+              <span className="giro-m" style={{ color: COR, textShadow: `0 0 6px ${COR}88` }}>{h}</span>
               <span className="giro-sep">◆</span>
             </Fragment>
           ))}
         </div>
-        <div key={`p${idx}`} className="giro-parado"><span className="giro-m" style={{ color: corDoLed(list[idx]), textShadow: `0 0 6px ${corDoLed(list[idx])}88`, whiteSpace: 'normal', fontSize: 13, lineHeight: 1.15 }}>{list[idx]}</span></div>
+        <div className="giro-parado"><span className="giro-m" style={{ color: COR, textShadow: `0 0 6px ${COR}88`, whiteSpace: 'normal', fontSize: 13, lineHeight: 1.15 }}>{list[0]}</span></div>
       </div>
     </div>
   )
