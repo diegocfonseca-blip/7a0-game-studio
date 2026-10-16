@@ -1,3 +1,10 @@
+## 🚗 VADICO VEÍCULOS: "Champions Legends apresentada por" (16/10) — ✅ NO AR só nas contas do Diego
+- Diego: *"publique agora da Vadico Veículos pra eu ver como fica… deixe a Champions Legends apresentada por Vadico Veículos"*.
+- `src/escalacao/patrocinio.ts` (`POR_COMPETICAO`, uma marca por competição) + selo no `CompetitionStage` (online-match-visual.tsx).
+- Liberar pra todos: `PATROCINIO_GERAL = true`. Falta: logo oficial (hoje é 🚗 + nome), LED/placar, O MARTELO, Vitrine.
+- Combinado em conversa (16/10): vários mensais convivem — 1 marca por competição (até ~6), LED gira até 4 marcas, O MARTELO
+  reveza por edição, Vitrine mostra todas. Combo proposto: competição + LED R$ 450 (esperando OK).
+
 ## 💛 PLANO DUPLO (✅ NO AR no Pix novo, 16/10) + 🔄 REPAGINAR CLUBE (proposta, esperando OK)
 - **Plano duplo**: 2 do MESMO plano (um pra você, outro de presente) com 10% a menos, **num Pix só, já com desconto**
   (Diego: *"o valor tem que ser um só pagando, já com desconto"*). Linha discreta embaixo do plano. Proposta: Craque R$ 53,90 ·
