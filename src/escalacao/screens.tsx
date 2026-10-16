@@ -90,6 +90,7 @@ import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
+import { anuncioDoGiro } from './patrocinio' // 📣 anúncio do patrocinador no giro (16/10)
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
@@ -7589,7 +7590,10 @@ export function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[];
   // ✂️ 26/09 (Diego): o "R1 · / R2 ·" na frente de cada manchete sai do letreiro —
   //    *"isso não precisa aparecer, fica muita coisa"*. Só na TELA: a manchete
   //    guardada continua com a rodada (o filtro anti-spoiler e o resto leem ela).
-  const list = news.slice(0, 6).map(h => traduzManchete(h.replace(/^R\d+ · /, '')))
+  const noticias = news.slice(0, 6).map(h => traduzManchete(h.replace(/^R\d+ · /, '')))
+  // 📣 16/10: o anúncio do patrocinador entra como a última "manchete" (em branco); só aparece junto de notícia de verdade
+  const anuncio = noticias.length ? anuncioDoGiro() : null
+  const list = anuncio ? [...noticias, anuncio] : noticias
   const key = list.join('|')
   const [idx, setIdx] = useState(0)
   const keyRef = useRef(key)
@@ -7603,7 +7607,7 @@ export function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[];
   // velocidade constante: ~0,13s por letra, com piso de 14s pra lista curta não passar
   // voando. (26/09, Diego: *"aumenta só um pouco mais a velocidade, quase nada"* — era 0,16/18s)
   const chars = list.reduce((n, h) => n + h.length + 4, 0)
-  const dur = Math.max(14, Math.round(chars * 0.13)) // 28/09: *"só um pouquinho mais rápido"* (era 0,145/16s)
+  const dur = Math.max(14, Math.round(chars * (anuncio ? 0.16 : 0.13))) // 28/09: *"só um pouquinho mais rápido"* (era 0,145/16s) · com anúncio, mais devagar (16/10: "passar de forma devagar")
   const rotulo = getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')
   return (
     <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden' }}>
@@ -7618,13 +7622,13 @@ export function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[];
 @media (prefers-reduced-motion:reduce){.giro-corre{display:none}.giro-parado{display:flex;align-items:center;height:100%;padding:0 12px;animation:giroFade .35s ease}}`}</style>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px 5px', background: CREAM, borderBottom: `3px solid ${INK}` }}>
         <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{rotulo}</span>
-        {list.length > 1 && <span>{list.map((_, i) => <i key={i} style={{ display: 'inline-block', width: 5, height: 5, borderRadius: 99, background: i === idx ? INK : '#d9cfae', marginLeft: 4 }} />)}</span>}
+        {list.length > 1 && <span>{list.map((_, i) => list[i] === anuncio ? null : <i key={i} style={{ display: 'inline-block', width: 5, height: 5, borderRadius: 99, background: i === idx ? INK : '#d9cfae', marginLeft: 4 }} />)}</span>}
       </div>
       <div className="giro-led">
         <div key={key} className="giro-corre" style={{ animationDuration: `${dur}s` }}>
           {[...list, ...list].map((h, i) => (
             <Fragment key={i}>
-              <span className="giro-m" style={{ color: corDoLed(h), textShadow: `0 0 6px ${corDoLed(h)}88` }}>{h}</span>
+              <span className="giro-m" style={h === anuncio ? { color: '#fff', textShadow: '0 0 6px #ffffff88' } : { color: corDoLed(h), textShadow: `0 0 6px ${corDoLed(h)}88` }}>{h}</span>
               <span className="giro-sep">◆</span>
             </Fragment>
           ))}

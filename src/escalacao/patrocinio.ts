@@ -38,8 +38,8 @@ export function ledDoEstadio(): MarcaLed[] { return espacosOk() ? LED_ESTADIO : 
 
 // 📰 Anúncio no O MARTELO (R$ 100/mês): um quadro no fim do jornal. Um anunciante por vez.
 export type AnuncioJornal = Patrocinio & { texto: string; contato?: string; logo?: string; logoProp?: number }
-// 16/10: Diego não gostou do quadro (*"até agora gostei só do apresentado por"*) → desligado até ele aprovar outro formato
-const ANUNCIO_MARTELO_LIGADO = false
+// 16/10: desligado quando ele disse "até agora gostei só do apresentado por"; religado no mesmo dia (*"coloque o anúncio no Martelo no final sim"*)
+const ANUNCIO_MARTELO_LIGADO = true
 const ANUNCIO_MARTELO: AnuncioJornal | null = {
   nome: 'Vadico Veículos', emoji: '🚗', logo: VADICO_LOGO_ALFA, logoProp: 496 / 140,
   texto: '45 anos de empresa familiar. Garantia e documento no nome da loja, sem carro de leilão. Itaguaí e Barra da Tijuca.',
@@ -85,3 +85,9 @@ export function usePatrocinio(kind: Competicao): Patrocinio | null {
   if (kind === 'copa8' && diaMarca?.dia === hojeBrasilia() && diaMarca.marca) return diaMarca.marca
   return patrocinioDe(kind)
 }
+
+// 📣 Anúncio no GIRO DA RODADA (16/10, Diego: *"o giro da rodada pode servir mais de propaganda do que qualquer coisa… deixar
+// o texto completo passar devagar"*). Entra como UMA manchete a mais no letreiro, depois das notícias da rodada, em branco
+// (as notícias são âmbar) pra ninguém confundir anúncio com resultado. O texto é o que a marca manda.
+const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio'
+export function anuncioDoGiro(): string | null { return espacosOk() ? GIRO_ANUNCIO : null }

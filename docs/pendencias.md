@@ -4,7 +4,10 @@
 - 🏟️ LED do estádio: letreiro verde passando no topo do palco das partidas online (`LedEstadio`, `patrocinio-visual.tsx`),
   lista `LED_ESTADIO` (mais de um mensal = passam um atrás do outro). Placar não mudou.
 - 📰 Anúncio no O MARTELO: quadro com a logo no FIM do jornal — **Diego NÃO gostou** (*"até agora gostei só do apresentado por"*);
-  desligado (`ANUNCIO_MARTELO_LIGADO = false`) até ele aprovar outro formato. LED corrigido: só "VADICO VEÍCULOS" passando.
+  desligado e RELIGADO no mesmo dia (*"coloque o anúncio no Martelo no final sim"*). LED corrigido: só "VADICO VEÍCULOS" passando.
+- 📣 Anúncio no GIRO DA RODADA (`GIRO_ANUNCIO`): última manchete do letreiro, em BRANCO, com o letreiro um pouco mais lento
+  quando tem anúncio. Texto de hoje: "Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio".
+  Trocar a oferta = trocar essa linha.
 - A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
 - Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
 
