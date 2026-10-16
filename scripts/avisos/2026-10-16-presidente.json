@@ -1,0 +1,20 @@
+{
+  "data": "16 de outubro de 2026",
+  "titulo": "Crie o seu presidente 🧑‍💼",
+  "destaque": {
+    "escudo": "scripts/mockups/presidente-bonecos/pirlo-busto.png",
+    "mascote": "scripts/mockups/presidente-bonecos/astro-corpo.png",
+    "camisa": "scripts/mockups/presidente-bonecos/r10-busto.png",
+    "nome": "O presidente é VOCÊ",
+    "linha": "pele, cabelo de lenda, barba e roupa"
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Na **🛒 Loja do Clube** tem o **🧑‍💼 Meu presidente**: você monta o boneco que representa VOCÊ no jogo — **pele, cabelo de lenda (Pirlo, Ronaldinho, Puyol…), barba e roupa**." },
+    { "tag": "novidade", "texto": "Ele aparece **na lista de técnicos da sala, no chat, no martelo de quem ganhou, na capa do O MARTELO, na Central Legends, na sala da presidência e no seu perfil**. O escudo continua sendo o do clube na tabela e no placar." },
+    { "tag": "plano", "texto": "**⭐ Craque** cria o presidente com as roupas básicas · **👑 Lenda** libera as especiais (smoking, couro, motoqueiro…) · **🖋 Batismo** as de gala · **🖋 Fundador** leva também a **fantasia de astronauta** e o **traje de gala dourado**." },
+    { "tag": "melhoria", "texto": "**No grátis você monta à vontade pra ver como fica.** Pra salvar e aparecer no jogo, é a partir do ⭐ Craque. Quem não tem presidente aparece com o **escudo do clube**, nunca em branco." }
+  ],
+  "rodape": "Nas salas ninguém compra vantagem: o presidente é só visual.",
+  "rodapeSub": "Monte o seu na 🛒 Loja do Clube 💛",
+  "saida": "scripts/posts/aviso-2026-10-16-presidente.png"
+}
