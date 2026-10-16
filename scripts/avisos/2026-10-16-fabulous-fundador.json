@@ -1,0 +1,20 @@
+{
+  "data": "🖋 Do Batismo pro Fundador · 16 de outubro de 2026",
+  "titulo": "Fabulous EC agora é Fundador 🦅",
+  "destaque": {
+    "escudo": "src/escalacao/img/fabulous-escudo.webp",
+    "mascote": "src/escalacao/img/fabulous-mascote.webp",
+    "camisa": "public/mantos-salao/fabulous-camisa-v1.webp",
+    "nome": "Fabulous EC",
+    "linha": "Série A · preto e vermelho · coração rubro-negro"
+  },
+  "itens": [
+    { "tag": "batismo", "texto": "O **🦅 Fabulous EC** subiu do **🖋 Batismo** pro **🖋 Fundador**: o degrau mais alto do Leilão Legends." },
+    { "tag": "novidade", "texto": "**✨ Entrada de gala personalizada**: um guerreiro **preto** e um **vermelho** entram, viram luz num clarão, o céu fecha com raios e o escudo acende com a **águia subindo**. Só o Fabulous tem essa." },
+    { "tag": "novidade", "texto": "**📣 Canto da torcida do Flamengo**: toca nos jogos da carreira dele e junto com a entrada de gala nas salas online." },
+    { "tag": "plano", "texto": "Quer o seu clube assim também? **🖋 Fundador** traz gala única, canto da torcida e número de fundador. Tá na **🛒 Loja do Clube**." }
+  ],
+  "rodape": "Quando o Fabulous entrar na sala, você vai saber 🦅🔴⚫",
+  "rodapeSub": "Batismo e Fundador: dúvidas no WhatsApp do Diego (21) 99888-6982",
+  "saida": "scripts/posts/aviso-2026-10-16-fabulous-fundador.png"
+}
