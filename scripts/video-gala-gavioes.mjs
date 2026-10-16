@@ -23,7 +23,7 @@ await p.evaluate(`(async()=>{
   await new Promise(r=>setTimeout(r,700))
   createRoot(root).render(h(G.GalaGavioes,{clube:'Gaviões SCCP',chave:'v',mostra:'Gaviões SCCP',grito:'GAVIOES'}))
 })()`)
-await p.waitForTimeout(9000)
+await p.waitForTimeout(9800)
 await ctx.close(); await b.close(); try { process.kill(-vite.pid) } catch {}
 const f = readdirSync('/tmp/claude-0/vidg').filter(x => x.endsWith('.webm')).map(x => '/tmp/claude-0/vidg/' + x).pop()
 renameSync(f, 'scripts/posts/gala-gavioes.webm'); console.log('🎬 scripts/posts/gala-gavioes.webm')

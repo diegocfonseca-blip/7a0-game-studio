@@ -4,6 +4,8 @@
   `public/sfx/torcida-gavioes-v1.mp3` (mono 32 kHz 56 kbps, −20,6 dB igual ao Fabulous). Carreira (`AMBIENTE_CARREIRA_POR_EMAIL`) + gala.
 - ✨ Gala `gala-gavioes.tsx` (8 s): estádio preto e branco, bandeiras listradas, bando de gaviões no céu, fumaça P&B, o Gavião
   do clube mergulha e solta penas, escudo acende → "O BANDO DE LOUCOS CHEGOU". Nada de marca oficial do Corinthians/torcida.
+  🔁 v2 "O ataque do Gavião" (Diego: *"quero outra ideia melhor, mais impactante"*): olho gigante pisca → o Gavião voa na câmera →
+  a tela estilhaça → bandeirão listrado sobe → bando gira em volta do escudo + LED "TODO PODEROSO" (8,6 s).
   Vídeo: `node scripts/video-gala-gavioes.mjs` → `scripts/posts/gala-gavioes-com-canto.mp4`. Registrada em `GALA_UNICA`.
 
 ## 💼 LOJA: "SUA MARCA NO JOGO" + WhatsApp do Diego (16/10) — ✅ publicado (seção de marca só nas contas do Diego)
