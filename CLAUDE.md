@@ -764,7 +764,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   ✅ **FEITO em 15/10 (só na conta dele)**: o presidente é DA CONTA (`esc_presidente`, por e-mail — `presidente-conta.ts`), mora na
   🛒 Loja do Clube (seção "🧑‍💼 Meu presidente", `presidente-loja.tsx`) e a Presidência da carreira abre o MESMO editor. A régua
   é por PLANO (`presidente-plano.ts`, trava `npm run presidente`): grátis monta e não salva · ⭐ Craque = pele, cabelos/barbas e 14
-  roupas básicas · 👑 Lenda = + 9 especiais · 🖋 Batismo/Fundador = + 10 de gala. **Nenhum selo diz GRÁTIS.** Avulsos (cabelo de
+  roupas básicas · 👑 Lenda = + 9 especiais · 🖋 Batismo/Fundador = + 10 de gala, sendo que **astronauta e traje de gala
+  dourado são SÓ do Fundador** (16/10: *"camisa do astronauta quero apenas no plano fundador, e gala dourada smoking dourado também"*).
+  Peça de Fundador **não é vendida avulsa**: quem é Craque e quer o astronauta sobe pro Fundador (*"deixa só no Fundador mesmo"*).
+  🚫 **PÓDIO: NÃO FAZER** (16/10, *"não faz pódio não"*) — dos 12 lugares do mockup, o pódio do fim de campeonato saiu. **Nenhum selo diz GRÁTIS.** Avulsos (cabelo de
   craque, camisa de time) ainda SEM preço fechado. Liberar geral = `PRESIDENTE_CONTA_GERAL = true`.
   🎽 **Camisa de time do personagem: PARADA (15/10)** — duas versões pintadas por cima da camiseta reprovadas (*"tá muito ruim"*);
   só volta com arte de verdade, quando ele pedir.

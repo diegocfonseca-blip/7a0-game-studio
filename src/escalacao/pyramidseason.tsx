@@ -69,7 +69,8 @@ import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
-import { useSaf2, useBotBanco } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
+import { useSaf2, useBotBanco, usePixMp } from './sport'
+import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
@@ -1968,6 +1969,29 @@ const BL_PIX = 'diego.c.fonseca@gmail.com' // chave Pix REAL do Diego (04/08) �
 export const BL_TRIPLO = 3
 const BL_PACOTES: [number, string][] = [[10, 'CAFEZINHO'], [50, 'REFORÇO PONTUAL'], [100, 'FÔLEGO DE TEMPORADA'], [500, 'PROJETO SAF'], [1000, 'INVESTIDOR VISIONÁRIO 👑']]
 const BL_PACOTES_EN: Record<number, string> = { 10: 'COFFEE MONEY', 50: 'QUICK BOOST', 100: 'SEASON BREATHER', 500: 'SAF PROJECT', 1000: 'VISIONARY INVESTOR 👑' }
+/** 🏦 moedas compradas na LOJA com destino ESTA carreira (`esc_mp_destino`): caem sozinhas quando a carreira abre */
+function DepositoPix() {
+  const { state, dispatch } = useEsc()
+  const [aviso, setAviso] = useState<number | null>(null)
+  const feito = useRef<number | null>(null)
+  useEffect(() => {
+    if (state.onlineMode === 'online' || !state.careerOnline || !state.seed || feito.current === state.seed) return
+    feito.current = state.seed
+    let vivo = true
+    supabase.rpc('esc_mp_minhas_fichas2').then(async ({ data }) => {
+      const minhas = (Array.isArray(data) ? data as { code: string; coins: number; seed_destino: number | null }[] : []).filter(f => f.seed_destino != null && Number(f.seed_destino) === state.seed)
+      let soma = 0
+      for (const f of minhas) {
+        const { data: v } = await supabase.rpc('bl_redeem', { p_code: f.code })
+        if (typeof v === 'number' && v > 0) { dispatch({ type: 'BANCO_CREDIT', coins: v, code: f.code }); soma += v }
+      }
+      if (vivo && soma > 0) { setAviso(soma); setTimeout(() => setAviso(null), 5000) }
+    }, () => {})
+    return () => { vivo = false }
+  }, [state.seed, state.careerOnline, state.onlineMode, dispatch])
+  if (!aviso) return null
+  return <div style={{ position: 'fixed', left: '50%', top: 16, transform: 'translateX(-50%)', zIndex: 9999, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 16px', ...OSWALD, fontWeight: 900, fontSize: 16, whiteSpace: 'nowrap' }}>🏦 +{aviso} 🪙 {tr('do Pix caíram no caixa!', 'from the Pix landed in the till!')}</div>
+}
 function BancoLegends() {
   const { state, dispatch } = useEsc()
   const [aberto, setAberto] = useState(false)
@@ -1976,7 +2000,42 @@ function BancoLegends() {
   const [fails, setFails] = useState(0)
   const [coolAte, setCoolAte] = useState(0)
   const [msg, setMsg] = useState<{ ok: boolean; coins?: number; tx: string } | null>(null)
+  // 💳 15/10 (Diego: "ele compra na tela que ele tá… depois escolhe o save"): moedas compradas na LOJA pelo Pix do Mercado
+  // Pago ficam GUARDADAS na conta; aqui aparecem com "Depositar neste clube" — a pessoa escolhe a carreira abrindo ela.
+  // (creditar direto num save fechado mexeria no save guardado — regra do Diego: nunca arriscar save de ninguém)
+  const [guardadas, setGuardadas] = useState<{ code: string; coins: number }[]>([])
+  const carregaGuardadas = useCallback(() => {
+    supabase.rpc('esc_mp_minhas_fichas2').then(({ data }) => setGuardadas(Array.isArray(data) ? (data as { code: string; coins: number; seed_destino: number | null }[]).filter(f => f.seed_destino == null || Number(f.seed_destino) !== state.seed) : []), () => {})
+  }, [state.seed])
+  useEffect(() => { carregaGuardadas() }, [carregaGuardadas])
+  const pixMp = usePixMp()
+  const depositar = async (f: { code: string; coins: number }) => {
+    if (busy) return
+    setBusy(true); setMsg(null)
+    try {
+      const { data, error } = await supabase.rpc('bl_redeem', { p_code: f.code })
+      if (!error && typeof data === 'number' && data > 0) {
+        dispatch({ type: 'BANCO_CREDIT', coins: data, code: f.code })
+        setMsg({ ok: true, coins: data, tx: tr('Depositado direto do Pix. O banco tá de olho. 👀', 'Deposited straight from the Pix. The bank is watching. 👀') })
+      } else setMsg({ ok: false, tx: tr('Essas moedas já foram depositadas em outra carreira.', 'These coins were already deposited in another career.') })
+    } catch { setMsg({ ok: false, tx: tr('Sem conexão com o banco agora — tenta de novo em instantes.', 'No connection to the bank right now — try again in a moment.') }) }
+    setBusy(false); setAberto(true); carregaGuardadas()
+  }
   if (state.onlineMode === 'online' || !state.careerOnline) return null
+  // 🛒 16/10 (Diego: "não deveria ter Banco Legends… deveria ter apenas a loja direto"): com o Pix novo, uma porta só —
+  // a Loja do Clube aberta daqui sabe que é ESTA carreira e as moedas caem direto no caixa
+  if (pixMp) return (
+    <div style={{ marginTop: 12 }}>
+      <LojaButton naCarreira style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 12px', background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left' }}>
+        <span style={{ fontSize: 24 }}>🛒</span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>{tr('Loja do Clube', 'Club Shop')}</span>
+          <span style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#8a8069' }}>{tr('Moedas pelo Pix: caem direto no caixa deste clube.', 'Coins via Pix: they land straight in this club’s till.')}</span>
+        </span>
+        <span style={{ fontWeight: 900, fontSize: 18 }}>›</span>
+      </LojaButton>
+    </div>
+  )
   const emCooldown = Date.now() < coolAte
   const resgatar = async () => {
     if (busy || emCooldown || !code.trim()) return
@@ -1999,6 +2058,13 @@ function BancoLegends() {
   }
   return (
     <div style={{ marginTop: 12 }}>
+      {guardadas.map(f => (
+        <div key={f.code} style={{ display: 'flex', alignItems: 'center', gap: 10, border: `3px solid ${INK}`, borderRadius: 14, padding: '10px 12px', background: '#FFF3C4', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
+          <span style={{ fontSize: 24 }}>🪙</span>
+          <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800, lineHeight: 1.3 }}>{tr(`Você tem ${f.coins} moedas esperando (compradas na Loja)${(f as { destino_nome?: string | null }).destino_nome ? ` · reservadas pro ${(f as { destino_nome?: string | null }).destino_nome}` : ''}.`, `You have ${f.coins} coins waiting (bought in the Shop).`)}</span>
+          <button onClick={() => depositar(f)} disabled={busy} style={{ border: `3px solid ${INK}`, borderRadius: 11, padding: '8px 10px', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{busy ? '…' : tr('Depositar neste clube', 'Deposit in this club')}</button>
+        </div>
+      ))}
       {!aberto ? (
         <button onClick={() => setAberto(true)} style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 12px', background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left' }}>
           <span style={{ fontSize: 24 }}>🏦</span>
@@ -9641,6 +9707,7 @@ export function PyramidSeasonScreen() {
   }
   return (
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+      <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
       {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}

@@ -12,6 +12,8 @@ import { tr, getLang } from './lang'
 import { logApoio, recarregaDireitos, loggedEmail, APOIO_PERKS, ApoioSheen } from './apoio'
 import { PRECOS_UNICO, precoTxt, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG } from './screens'
+import { PixMP } from './pix-mp'
+import { usePixMp } from './sport'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -29,6 +31,7 @@ const erroTxt = (msg: string) => { const k = Object.keys(ERROS).find(e => msg.in
 
 /** a caixa "🎁 Dar de presente" dentro da Loja do Clube */
 export function PresenteBox() {
+  const pixMp = usePixMp() // 💳 15/10: Pix do Mercado Pago — o presente é entregue pro amigo assim que o Pix cai
   const reais = (v: number) => precoTxt(v, getLang() === 'en')
   const [plano, setPlano] = useState<PlanoUnico>('craque')
   const [para, setPara] = useState('')
@@ -52,10 +55,12 @@ export function PresenteBox() {
   }
   if (pedido) return <div style={{ background: '#FFF8E1', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 12 }}>
     <p style={{ ...OSW, fontSize: 16, textTransform: 'uppercase', margin: '0 0 4px' }}>{tr(`🎁 Presente nº ${pedido} registrado`, `🎁 Gift no. ${pedido} registered`)}</p>
-    <p style={{ fontSize: 12, fontWeight: 700, margin: '0 0 10px', color: 'rgba(12,12,12,.7)' }}>{tr(`${NOME[plano][0]} pra ${para.trim()}. Agora é só pagar e mandar o comprovante — seu amigo recebe assim que a gente confirmar.`, `${NOME[plano][1]} for ${para.trim()}. Now just pay and send the receipt — your friend gets it as soon as we confirm.`)}</p>
+    <p style={{ fontSize: 12, fontWeight: 700, margin: '0 0 10px', color: 'rgba(12,12,12,.7)' }}>{pixMp ? tr(`${NOME[plano][0]} pra ${para.trim()}. Pagou o Pix, seu amigo já recebe.`, `${NOME[plano][1]} for ${para.trim()}. Once the Pix is paid, your friend gets it.`) : tr(`${NOME[plano][0]} pra ${para.trim()}. Agora é só pagar e mandar o comprovante — seu amigo recebe assim que a gente confirmar.`, `${NOME[plano][1]} for ${para.trim()}. Now just pay and send the receipt — your friend gets it as soon as we confirm.`)}</p>
+    {pixMp ? <PixMP produto="presente" refId={String(pedido)} valor={PRECOS_UNICO[plano]} /> : <>
     <PixBox ctx={`presente nº${pedido} · ${plano} pra ${para.trim()}`} amount={PRECOS_UNICO[plano]} />
     <button onClick={async () => { logApoio(`🎁 mandou comprovante do presente nº${pedido}`); try { await navigator.clipboard.writeText(tr(`Opa! Paguei o PRESENTE nº ${pedido}: ${NOME[plano][0]} (${reais(PRECOS_UNICO[plano])}) pra ${para.trim()}. Comprovante em anexo!`, `Hey! I paid GIFT no. ${pedido}: ${NOME[plano][1]} (${reais(PRECOS_UNICO[plano])}) for ${para.trim()}. Receipt attached!`)) } catch { /* segue */ } window.open(APOIO_IG, '_blank', 'noopener') }}
       style={{ width: '100%', marginTop: 10, ...OSW, fontSize: 14, background: '#E1306C', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 10, cursor: 'pointer' }}>{tr('📸 MANDAR COMPROVANTE NO @leilaolegendscom', '📸 SEND THE RECEIPT TO @leilaolegendscom')}</button>
+    </>}
     <p style={{ textAlign: 'center', margin: '8px 0 0' }}><button onClick={() => { setPedido(null); setPara(''); setRecado('') }} style={{ background: 'none', border: 'none', textDecoration: 'underline', fontWeight: 900, fontSize: 11, color: 'rgba(12,12,12,.5)', cursor: 'pointer' }}>{tr('dar outro presente', 'send another gift')}</button></p>
   </div>
   if (!aberto) return <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 10, display: 'flex', gap: 10, alignItems: 'center' }}>

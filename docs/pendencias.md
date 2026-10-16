@@ -73,6 +73,25 @@
 - Análise, testes e limites estão em
   [presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md).
 
+## 🛒 Painel do Criador: "Quem quase comprou" (16/10) — ✅ NO AR
+Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas na lista dos 40 últimos, afogados por
+"abriu o modo manual"/"abriu a loja" (267/225 em 3 dias). Caixa nova `QuaseComprouAdmin` (admin.tsx). Diego corrigiu na hora: *"abriu Pix também — é importante saber
+quem apertou mas não seguiu"* → virou POR PESSOA (7 dias): a trilha dos toques (abriu → viu plano → gerou Pix → copiou → caiu) com a
+cor de até onde chegou; cinza = só abriu e parou (o lead pra chamar). No mesmo commit o
+Pix do Mercado Pago foi liberado pra todos (`PIX_MP_GERAL = true`). ⚠️ Pendência que já existia: cupom de influenciador no
+batismo ainda não vale no Pix novo (o preço do servidor ignora cupom).
+
+## 📮 FECHAR CONVOCAÇÃO DO LEILÃO DE CLUBES NÃO FECHAVA (16/10, Arroganthi) — ✅ NO AR
+- Relato: *"tinha selecionado os jogadores… não deixou eu confirmar o time e todos os selecionados mudaram"* (sala QRNW8G,
+  7 pessoas, noite de 14→15/10, a sala toda engasgando). O pedido "Fechar convocação" do convidado ia pro dono UMA vez, sem
+  reenvio e sem resposta na tela; perdido, o relógio dos 90s estourava e ele levava o PIOR de cada pacote. E o dono "valia a 1ª"
+  lista: se o envio automático dos 0s saía pela metade, o Fechar de depois era ignorado.
+- Ordem do Diego: *"ele tem que apertar o botão e tem que funcionar fechar"*. Feito: o botão vira "⏳ Enviando pro dono…" e
+  reenvia a lista ATUAL a cada 3s até o dono confirmar (`convocacao-clubes.tsx`); o dono aceita a lista mais NOVA enquanto a
+  convocação está aberta (`CONVOCAR_CLUBES`, só fora de dupla). O 1º reenvio registra `esc_travas_salvas` fase 'convocacao'
+  (evidência pra próxima vez — o `room_acoes` é apagado pelo dono e não serve de prova). Trava das duplas (`npm run duplas`) ok.
+
+
 ## 15/10/2026 — Presidência: candidata à publicação privada autorizada
 
 - Diego pediu **“Publique tudo no meu usuário q fez até agora”**. Isso substitui
@@ -484,11 +503,35 @@ sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o c
 Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
 🎁 14/10: presente APROVADO, mas **só de PLANO** (Craque/Lenda/Batismo/Fundador) — *"presente é só dos planos, nada de títulos figurinhas"*.
 
+## 💳 Mercado Pago · PIX ÚNICO automático (15/10) — 🟢 NO AR SÓ NA CONTA DO DIEGO (`PIX_MP_GERAL = false`)
+Diego trocou a Vendria pelo MP: *"somente Pix direto… tudo no Pix, Pix único só"* (nada mensal, nada de cartão).
+✅ Diego: aplicação "Leilao Legends" (Checkout Transparente) · Secrets `MP_ACCESS_TOKEN` (renovado depois que a foto vazou)
+e `MP_WEBHOOK_SECRET` · webhook do MP → `.../functions/v1/mp-webhook` (evento Pagamentos).
+✅ Banco (`supabase/migrations/20261015220000_mercado_pago_pix.sql` + `…230000_mercado_pago_pix_v2.sql`): pedidos, preço NO
+SERVIDOR (29,90/49,90/79,90/99,90, subida = diferença + 5, salas 4,90, teste R$ 1 só na conta dele), só conta se o MP disser
+approved E o valor bater, `auto_liberar = true` (decisão dele: o automático entra sozinho — Craque prata · Lenda ouro · Batismo/
+Fundador = ouro + `esc_compras_batismo` · salas +3). O personalizado (escudo, mascote, manto, canto, gala, nº de fundador, sócio)
+continua no roteiro de batismo.
+✅ Edge Functions `mp-criar-pix` (login obrigatório, sem pedir nada antes do Pix (o WhatsApp opcional vem DEPOIS de pagar, `esc_mp_telefone`), Pix vale 24h, guarda o QR pro "Pix esperando") e
+`mp-webhook` (assinatura + busca o pagamento no MP antes de acreditar).
+✅ Tela (`pix-mp.tsx`): gerar → COPIAR grande + QR → "esperando" (confere a cada 5s e ao voltar do banco) → "Pagamento
+confirmado!". Batismo/Fundador: "✍️ Conta como você imagina o seu clube" (nome, coração, cores, escudo, mascote, canto no
+Fundador) — POR ESCRITO, *"não quero que mandem imagem… eu que quero fazer as artes"* — + falar com o Diego por WhatsApp ou
+e-mail. Ligada em: Craque (manual e pay), Lenda, Batismo/Fundador e salas extras da Loja. #admin: "💳 Pix do Mercado Pago"
+(lista, 🖋 Batismos pra fazer, não pagos com WhatsApp, botão LIBERAR se precisar, 🧪 Pix de teste R$ 1).
+⏳ Falta: (1) Diego fazer o Pix de teste de R$ 1 no #admin e ver o ✅; (2) o NÚMERO de WhatsApp dele (`WHATSAPP_CONTATO` em
+pix-mp.tsx; sem número só aparece o e-mail); (3) ✅ LIBERADO PRA TODOS em 16/10 (Diego: *"pode liberar já o pix novo e configuração nova p todos"*; `PIX_MP_GERAL = true`); (4) cupom de influenciador no
+batismo ainda não vale no Pix novo (preço do servidor ignora cupom); (5) ✅ moedas (ficha do Banco Legends nasce sozinha), canto avulso (registra + "conta qual canto") e presente
+(entregue pro amigo) já vão pelo Pix novo (`…240000_mercado_pago_pix_v3.sql`); 2ª conta do Diego também testa; 🏦 moedas: comprou na Loja da home → escolhe a carreira na hora (cai sozinha quando ela abrir, `DepositoPix`); comprou pela 🛒 Loja aberta DE DENTRO da carreira (Clube › Finanças, no lugar do Banco Legends — Diego: "não deveria ter Banco Legends… apenas a loja direto"; só pra quem tem o Pix novo) → cai direto no caixa; o campo de código antigo mora dentro da Loja na carreira; sem escolher → aparece no Banco Legends com "Depositar neste clube" (`esc_mp_minhas_fichas` + `bl_redeem`) — Diego: "compra na tela que tá e depois escolhe o save" (creditar direto em save fechado = mexer em save guardado, não); (6) apagar a Vendria (`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar.
+
 ## 🏆 Moldura do pódio da semana (15/10) — ✅ NO AR
 Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalha, sem mexer no fundo (fundo = cor do plano).
 `podio-semana.tsx`: moldura de metal girando POR FORA da linha na lista de técnicos da sala (ouro · prata · bronze), coroinha
 no 1º e fita "1º DA SEMANA" (ele testou "1º RANKING SEMANAL" e voltou pro "da semana"). Posição = a medalha 🥇🥈🥉 que já vai no nome (vem do banco).
 Mockup: `scripts/mockup-podio-semana.mjs`. Ideia futura (não pedida): levar a moldura pra outros lugares (placar, chat).
+✅ 16/10 (Diego: *"no ranking coloque a moldura que falamos"*): a MESMA moldura no top 3 do 📊 Ranking da Semana da home
+(`vitrine-salas.tsx`), e o rodapé diz que o top 3 leva medalha + moldura + fita nas salas. ⏳ Ele falou *"além das moedas"* —
+hoje o ranking da semana NÃO dá moeda; perguntado se quer criar prêmio em 🪙 (e quanto). Não inventar sem resposta.
 
 ## 🟢 Batismo ComVerissimo FC (15/10) — ✅ código + banco + deploy
 cesar.verissimo27@gmail.com (conta existe desde 30/07). Plano 🖋 FUNDADOR. Série D no assento do bot Soberano Nacional
