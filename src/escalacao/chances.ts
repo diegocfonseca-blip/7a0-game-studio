@@ -25,8 +25,8 @@
 //     inteira dura 11 s (93' em ~9 s), então lá cabe UMA por lado, bem espaçada;
 //     na carreira (rodada mais lenta) cabem mais. Quem manda é `roundMs`.
 //   · 🚫 SEM PÊNALTI (ordem de 19/09): pênalti tem tela própria.
-//   · 🧍 Fala do CLUBE no jogo de sempre. SÓ na Kings League (15/10, `quemFinalizou`) fala do JOGADOR — um
-//     atacante/meia DE VERDADE do time, nunca inventado (Diego: *"isso que estamos fazendo é só pra Kings League"*).
+//   · 🧍 Fala do JOGADOR (`quemFinalizou`): um atacante/meia DE VERDADE do time, nunca inventado. Começou só na Kings
+//     (15/10) e foi pra todo jogo em 16/10 (Diego: *"tem que falar mais o nome dos jogadores"*). Sem escalação, fala do clube.
 //   · 🌐 PT e EN com a MESMA quantidade de frases (o sorteio é por índice).
 
 export type FimDaChance = 'defendeu' | 'trave' | 'fora' | 'isolou'
@@ -100,6 +100,14 @@ const BANCO: Record<FimDaChance, Par[]> = {
     ['{t} sozinho na cara do gol… e DEFENDEU com o pé! Inacreditável.', '{t} one-on-one with the keeper… SAVED with the foot! Unbelievable.'],
     ['bomba do {t} de fora da área… o goleiro VOOU no ângulo!', 'a rocket from {t} from outside the box… the keeper FLEW to the top corner!'],
     ['{t} finaliza cruzado… o goleiro caiu no canto certo. Defendeu.', '{t} shoots across goal… the keeper went the right way. Saved.'],
+    ['{t} gira em cima do zagueiro e bate… o goleiro buscou no canto! DEFENDEU.', '{t} turns the defender and shoots… the keeper reached the corner! SAVED.'],
+    ['{t} recebe na entrada da área, bate colocado… e o goleiro se estica todo. Defendeu!', '{t} takes it at the edge of the box, places it… and the keeper stretches all the way. Saved!'],
+    ['{t} dá um tapa por cobertura… o goleiro volta e tira com a ponta dos dedos!', '{t} tries a delicate lob… the keeper backpedals and tips it away!'],
+    ['{t} solta a bomba de canhota… o goleiro rebate e a zaga afasta!', '{t} unleashes a left-footed rocket… the keeper parries and the defence clears!'],
+    ['{t} aparece na segunda trave, cabeceia firme… o goleiro segura firme!', '{t} pops up at the far post, firm header… the keeper holds on!'],
+    ['{t} tabela, invade a área e chuta… parou no goleiro!', '{t} plays a one-two, bursts into the box and shoots… stopped by the keeper!'],
+    ['{t} tenta de bicicleta… e o goleiro defende sem rebote. Que lance!', '{t} tries a bicycle kick… and the keeper saves without a rebound. What a moment!'],
+    ['{t} arranca do meio-campo, passa por dois e bate… DEFESAÇA!', '{t} surges from midfield, beats two and shoots… WHAT A SAVE!'],
   ],
   trave: [
     ['{t} bate cruzado… NA TRAVE! O estádio gelou.', '{t} hits it across goal… OFF THE POST! The stadium froze.'],
@@ -108,6 +116,14 @@ const BANCO: Record<FimDaChance, Par[]> = {
     ['{t} tira o goleiro da jogada… e a bola explode na TRAVE!', '{t} takes the keeper out of it… and the ball smashes the POST!'],
     ['cobrança de falta do {t}… tocou no travessão e saiu. Quase!', 'a free kick from {t}… clipped the bar and went out. So close!'],
     ['{t} finaliza de primeira… TRAVE! O goleiro nem se mexeu.', '{t} shoots first time… POST! The keeper never moved.'],
+    ['{t} bate de primeira, de chapa… a bola beija a TRAVE e sai!', '{t} side-foots it first time… the ball kisses the POST and goes out!'],
+    ['{t} tenta o chapéu no goleiro… TRAVESSÃO! O estádio levantou.', '{t} tries to chip the keeper… CROSSBAR! The stadium jumped up.'],
+    ['{t} cobra a falta no ângulo… e a bola carimba o travessão!', '{t} curls the free kick to the top corner… and it stamps the bar!'],
+    ['{t} chuta cruzado, o goleiro nem viu… e a TRAVE salvou!', '{t} shoots across, the keeper never saw it… and the POST saved them!'],
+    ['{t} de calcanhar, na pequena área… bate na TRAVE! Que ousadia.', '{t} with a backheel in the six-yard box… off the POST! What nerve.'],
+    ['{t} pega o rebote e bate forte… na TRAVE de novo! Esse gol não quer sair.', '{t} picks up the rebound and hits it hard… the POST again! This goal will not come.'],
+    ['{t} tenta o gol olímpico… a bola faz a curva e bate na TRAVE!', '{t} tries straight from the corner… the ball curls and hits the POST!'],
+    ['{t} cabeceia pro chão, a bola quica… e sobe no TRAVESSÃO!', '{t} heads it down, it bounces… and rises onto the CROSSBAR!'],
   ],
   fora: [
     ['{t} arrisca de longe… PRA FORA! Passou raspando.', '{t} tries from range… WIDE! Just past the post.'],
@@ -116,6 +132,14 @@ const BANCO: Record<FimDaChance, Par[]> = {
     ['{t} tenta o chute colocado… passou perto, mas foi pra fora.', '{t} goes for the placed shot… close, but wide.'],
     ['{t} bate de fora da área e a bola passa rente ao poste.', '{t} shoots from outside the box and the ball skims past the post.'],
     ['{t} livre na área… e chutou pra fora! Perdeu gol feito.', '{t} free in the box… and shot wide! A sitter missed.'],
+    ['{t} recebe livre, ajeita pra perna boa… e manda pra fora. Desperdiçou!', '{t} gets it free, sets it on the good foot… and puts it wide. Wasted!'],
+    ['{t} tenta de voleio… a bola sai pela linha de fundo.', '{t} tries the volley… the ball goes out for a goal kick.'],
+    ['{t} bate rasteiro, cruzado… passou rente à trave. Uhhh!', '{t} drives it low across goal… inches past the post. Ooooh!'],
+    ['{t} cabeceia de peixinho… mas pega mal e a bola vai pra fora.', '{t} goes for a diving header… but gets it wrong and it goes wide.'],
+    ['{t} chuta de longe, sem ângulo… pra fora. Era melhor ter tocado.', '{t} shoots from distance with no angle… wide. Should have passed.'],
+    ['{t} dribla o goleiro… e chuta pra fora com o gol vazio! Inacreditável.', '{t} rounds the keeper… and shoots wide into an empty net! Unbelievable.'],
+    ['{t} pega de primeira o cruzamento… a bola passa por cima e pelo lado.', '{t} meets the cross first time… the ball goes up and away past the post.'],
+    ['{t} tenta colocar no cantinho… e erra o alvo por pouco.', '{t} tries to tuck it in the corner… and misses by a whisker.'],
   ],
   isolou: [
     ['{t} sozinho na área… ISOLOU! Foi pra arquibancada.', '{t} alone in the box… SKIED IT! Into the stands.'],
@@ -124,6 +148,14 @@ const BANCO: Record<FimDaChance, Par[]> = {
     ['{t} na marca do pênalti… CHUTOU PRA LUA! Que isso!', '{t} at the penalty spot… KICKED IT TO THE MOON! What was that!'],
     ['{t} de cabeça, sem marcação… por cima do travessão. Isolou.', '{t} with a free header… over the bar. Skied.'],
     ['{t} recebe na entrada da área… bateu torto e a bola foi embora!', '{t} picks it up at the edge of the box… mishit, and the ball is gone!'],
+    ['{t} enche o pé de fora da área… a bola foi parar na torcida!', '{t} leathers it from outside the box… the ball ends up in the crowd!'],
+    ['{t} tenta de bicicleta… e manda a bola lá no alto. Isolou!', '{t} tries an overhead kick… and sends it sky-high. Skied!'],
+    ['{t} pega mal na bola, de canela… ela sobe e vai embora.', '{t} shins it… the ball balloons up and away.'],
+    ['{t} bate de três dedos… e a bola sai pela arquibancada. Quase acerta o placar eletrônico!', '{t} hits it with the outside of the boot… into the stands. Nearly hit the scoreboard!'],
+    ['{t} chega atrasado no cruzamento e joga a bola por cima.', '{t} arrives late on the cross and puts it over.'],
+    ['{t} arrisca de meia-bicicleta… a bola some no céu!', '{t} tries a scissor kick… the ball disappears into the sky!'],
+    ['{t} tenta o chute de longe com tudo… pra fora do estádio, quase na rua!', '{t} goes for it from range with everything… out of the stadium, nearly onto the street!'],
+    ['{t} recebe sozinho e bate de bico… isolou! A torcida não acredita.', '{t} is alone and toe-pokes it… skied! The crowd cannot believe it.'],
   ],
 }
 // ⚠️ "na marca do pênalti" é LUGAR do campo, não cobrança de pênalti — o lance é

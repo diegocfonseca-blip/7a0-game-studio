@@ -499,3 +499,18 @@
 /* 🆚 retrospecto (roxo) e ⭐ craque do jogo (dourado) — a MESMA linha da rádio, só muda o tom (13/10) */
 .ll42-retro{background:rgba(124,58,237,.2)}.ll42-retro .ll42-radio-tag{background:#C9B3FF;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ll42-craque{background:rgba(255,196,0,.16)}.ll42-craque .ll42-radio-txt{font-weight:700}
+
+/* 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10, opção B): o rádio leva tudo — a fala de agora grande e a anterior apagadinha.
+   Altura mínima fixa pra o placar não pular de tamanho quando a frase troca. */
+.ll43-radio{padding:8px 12px 9px;min-height:88px;border-top:1px solid #59624d;background:rgba(255,196,0,.08);color:#f4ecd6}
+.ll43-radio>.ll42-radio-tag{display:inline-block;margin-bottom:5px}
+.ll43-ln{display:flex;align-items:flex-start;gap:7px;padding:2px 0;font:700 13px/1.3 Inter,sans-serif}
+.ll43-tg{flex:none;font:700 9px Oswald,sans-serif;letter-spacing:.08em;border-radius:5px;padding:2px 5px;margin-top:2px;background:#59624d;color:#f4ecd6}
+.ll43-ln>b{flex:none;font:700 13px Oswald,sans-serif;color:#ffc400;margin-top:1px}
+.ll43-tx{flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;animation:ll42Entra .35s ease}
+.ll43-gol .ll43-tg{background:#ffc400;color:#0c0c0c}.ll43-gol .ll43-tx{color:#ffc400}
+.ll43-lance .ll43-tg{background:#f4ecd6;color:#0c0c0c}
+.ll43-retro .ll43-tg{background:#C9B3FF;color:#0c0c0c;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ll43-craque .ll43-tg{background:#ffc400;color:#0c0c0c}
+.ll43-velha{opacity:.45;font-size:12px;margin-top:2px}.ll43-velha .ll43-tx{animation:none;-webkit-line-clamp:1}
+.ll30-big .ll43-ln{font-size:14px}.ll30-big .ll43-velha{font-size:12.5px}

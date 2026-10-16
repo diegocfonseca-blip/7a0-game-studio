@@ -17,7 +17,13 @@
 - A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
 - Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
 
-## 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10) — ⏳ mockup enviado, esperando ele escolher A ou B
+## 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10) — ✅ NO AR (ele escolheu a OPÇÃO B: *"B"*)
+- Feito: com `narracaoNoRadio` a faixa de cima do placar SAI e o 📻 RÁDIO LEGENDS leva tudo, por prioridade (apito final ·
+  gol · chance do golzinho · apito inicial/intervalo · cartão da Kings · frase do rádio · retrospecto), com selo por tipo
+  (⚽ GOL · 🥅 LANCE · 📻 JOGO) e a fala anterior apagadinha embaixo (`falaMem` em `pyramidseason.tsx`, `LinhaFala` em
+  `online-match-visual.tsx`). Chance agora fala o NOME do jogador em todo jogo (antes só Kings) e ganhou +8 frases por tipo
+  (defendeu · trave · fora · isolou = 14 cada). Basquete e rodada instantânea seguem como antes (sem rádio = faixa de cima).
+- Reverter: tirar o `narracaoNoRadio` do `LiveScoreCard` volta as duas falas como eram.
 - Diego: *"não tá tendo muito sentido o rádio com as legendas no topo… em cima tem narração e no rádio também. Tem que juntar
   todo tipo de frase num lugar só… e mais variedade, falar mais o nome dos jogadores: vai chutar, chutou pra fora, fez o gol"*.
 - Hoje: topo do placar (`ll25-narration`, frases de chance/gol de `chances.ts`/`lances.ts`) + 📻 rádio embaixo do golzinho
