@@ -5,7 +5,10 @@
   WhatsApp + Instagram pra combinar dia/nome/bio/cupom) e 📅 mensal SEM preço (o que vem + direct @leilaolegendscom + e-mail).
 - ✅ Edge Function `mp-criar-pix` v5 PUBLICADA (16/10, OK do Diego) com `dia_marca`,
   `moedas_500`, `moedas_1000`. Banco aceita (`esc_mp_preco_ref` → 50,00). Mensal: **link de pagamento da VENDRIA** que o Diego gera na hora de fechar com o mensalista (16/10:
-  *"faça o mensal pelo Vendria e repasse o custo… 1,99 fixo"*) → valor + R$ 1,99 (301,99 · 201,99 · 151,99 · 501,99). Sem código.
+  *"faça o mensal pelo Vendria e repasse o custo… 1,99 fixo"*) → valor + R$ 1,99. Sem código.
+- 🏢 16/10: entrou **Patrocinador Master na carreira** (a marca vira uma das propostas do início da temporada, como Vadico/ERO/Max
+  Jóias/Rei das Tintas/Uomo em `SPONSOR_BRANDS`) por R$ 150, e **o pacote completo (os 4) fica em R$ 500** (Diego: *"tudo de 500 pra quem
+  fechar tudo"*). Avulsos: competição 300 · LED 200 · O MARTELO 150 · Master 150.
 - 🏦 Loja segue com SÓ 3 pacotes de moedas (10 · 50 · 100); 500/1000 aceitos no Pix mas escondidos (Diego 16/10: *"deixe como tava"*).
 
 ## 🚗 VADICO VEÍCULOS: "Champions Legends apresentada por" (16/10) — ✅ NO AR só nas contas do Diego

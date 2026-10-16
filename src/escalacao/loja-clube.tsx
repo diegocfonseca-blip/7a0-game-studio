@@ -237,6 +237,7 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
               <li>{tr('🏆 Nome da competição: "Champions Legends apresentada por… sua marca"', '🏆 Competition name: "Champions Legends presented by… your brand"')}</li>
               <li>{tr('🏟️ Placa de LED no fundo do estádio', '🏟️ LED board at the back of the stadium')}</li>
               <li>{tr('📰 Anúncio no jornal O MARTELO do campeão', '📰 Ad in the champion’s O MARTELO newspaper')}</li>
+              <li>{tr('🏢 Patrocinador Master na carreira: sua marca entre as propostas de patrocínio no início da temporada', '🏢 Master sponsor in career mode: your brand among the sponsorship offers at the start of each season')}</li>
               <li>{tr('🏪 Cartão na Vitrine dos patrocinadores, com logo, bio, Instagram e cupom', '🏪 Card in the Sponsors showcase, with logo, bio, Instagram and coupon')}</li>
             </ul>
             <p style={{ fontSize: 11.5, fontWeight: 800, margin: '8px 0 0' }}>{tr('Quer saber mais? Fala com a gente:', 'Want to know more? Talk to us:')}</p>

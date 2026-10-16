@@ -1,5 +1,5 @@
 // 💼 MOCKUP · VALORES DO PATROCÍNIO (16/10). Tabela proposta ao Diego com base em ~5 mil contas ativas/mês
-// (mensal: competição 300 · LED+placar 200 · O MARTELO 150 · os 3 juntos 500; diário: Dia da marca 50).
+// (mensal: competição 300 · LED 200 · O MARTELO 150 · Master na carreira 150 · pacote completo 500; diário: Dia da marca 50).
 // É pra mandar no PRIVADO pra marca interessada — na Loja o mensal não aparece com preço (decisão do Diego).
 // uso: node scripts/mockup-patrocinio-valores.mjs → scripts/mockups/patrocinio-valores.png
 import { readFileSync, mkdirSync } from 'node:fs'
@@ -27,7 +27,8 @@ h1{margin:0;font-size:30px;text-transform:uppercase}.sub{margin:2px 0 16px;font-
   ${lin('🏆', 'Nome da competição', '"Champions Legends apresentada por…"', 'R$ 300')}
   ${lin('🏟️', 'LED do estádio', 'a placa no fundo do estádio, como estádio de verdade', 'R$ 200')}
   ${lin('📰', 'Anúncio no O MARTELO', 'quadro no jornal do campeão', 'R$ 150')}
-  ${lin('📦', 'Os 3 juntos', 'competição + LED do estádio + O MARTELO', 'R$ 500', true)}
+  ${lin('🏢', 'Patrocinador Master na carreira', 'sua marca entre as propostas no início da temporada', 'R$ 150')}
+  ${lin('📦', 'Pacote completo', 'os 4 espaços juntos + Vitrine', 'R$ 500', true)}
   <p class="nota">Toda marca mensal entra na 🏪 Vitrine dos patrocinadores, com logo, bio, Instagram e cupom.</p></div>
  <div class="box"><h2>⚡ Diário</h2><p class="s">Paga uma vez. A marca domina o jogo por 24 horas.</p>
   ${lin('⚡', 'Dia da marca', 'cartão na home + LED do estádio dividido com a marca do mês', 'R$ 50', true)}
