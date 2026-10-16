@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import { logApoio, recarregaDireitos } from './apoio'
 import { precoTxt } from './planos-regras'
+import { listAllCareers } from './store'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
@@ -33,11 +34,11 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   fundador: ['Tudo do 👑 Lenda já está valendo. Agora é a parte do seu clube: conta pra gente como você imagina.', 'Everything from 👑 Legend is live. Now for your club: tell us how you picture it.'],
   salas_extras: ['Suas 3 salas extras já estão na conta. Bora criar!', 'Your 3 extra rooms are in your account. Go create!'],
   teste: ['Teste aprovado: o Pix caiu e o jogo viu sozinho. ✅', 'Test passed: the Pix landed and the game saw it on its own. ✅'],
-  moedas_10: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
-  moedas_50: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
-  moedas_100: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
-  moedas_500: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
-  moedas_1000: ['Suas moedas estão guardadas na sua conta. Abra a carreira que quiser → Clube › Finanças › 🏦 Banco Legends → Depositar neste clube.', 'Your coins are saved in your account. Open whichever career you like → Club › Finances › 🏦 Banco Legends → Deposit in this club.'],
+  moedas_10: ['Pagamento recebido! Agora escolha em qual carreira as moedas vão cair:', 'Payment received! Now pick which career the coins go to:'],
+  moedas_50: ['Pagamento recebido! Agora escolha em qual carreira as moedas vão cair:', 'Payment received! Now pick which career the coins go to:'],
+  moedas_100: ['Pagamento recebido! Agora escolha em qual carreira as moedas vão cair:', 'Payment received! Now pick which career the coins go to:'],
+  moedas_500: ['Pagamento recebido! Agora escolha em qual carreira as moedas vão cair:', 'Payment received! Now pick which career the coins go to:'],
+  moedas_1000: ['Pagamento recebido! Agora escolha em qual carreira as moedas vão cair:', 'Payment received! Now pick which career the coins go to:'],
   canto: ['Agora conta qual canto você quer: o Diego monta e coloca no seu clube.', 'Now tell us which chant you want: Diego builds it and adds it to your club.'],
   presente: ['Presente entregue! Seu amigo recebe com o seu recado quando entrar no jogo. 🎁', 'Gift delivered! Your friend gets it with your message when they open the game. 🎁'],
 }
@@ -177,6 +178,7 @@ function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: P
       <p className="font-black uppercase text-[24px] mt-1" style={{ ...OSW, color: GREEN }}>{tr('Pagamento confirmado!', 'Payment confirmed!')}</p>
       <p className="text-[13px] font-bold mt-1 leading-snug">{liberado ? tr(GANHOU[produto][0], GANHOU[produto][1]) : tr('Chegou pro Diego liberar. Em instantes está na sua conta.', 'It reached Diego to unlock. It will be in your account shortly.')}</p>
       {creditou != null && creditou > 0 && <p className="font-black text-[26px] mt-2" style={{ ...OSW, color: GREEN }}>+{creditou} 🪙 {tr('no caixa do clube!', 'in the club’s till!')}</p>}
+      {ficha && !aoReceberFicha && <EscolheSave pedido={pedido} />}
       {ficha && !(creditou != null && creditou > 0) && <p className="text-[10.5px] font-bold mt-2" style={{ color: 'rgba(12,12,12,.5)' }}>
         {tr('Código de reserva (se precisar): ', 'Backup code (if needed): ')}<b className="select-all">{ficha}</b>
       </p>}
@@ -185,6 +187,39 @@ function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: P
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"
           style={{ ...OSW, background: GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{tr('🎮 Bora jogar', '🎮 Let’s play')}</button>
       </>}
+    </div>
+  )
+}
+
+/** 🏦 moedas compradas FORA da carreira: a pessoa escolhe a carreira; quando ela abrir, as moedas caem sozinhas
+ *  (`DepositoPix` na carreira). Não mexe no save guardado — só anota o destino no pedido. */
+function EscolheSave({ pedido }: { pedido: string }) {
+  const [lista] = useState(() => { try { return listAllCareers() } catch { return [] } })
+  const [escolhido, setEscolhido] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const escolher = async (seed: number, nome: string) => {
+    setBusy(true)
+    const { data } = await supabase.rpc('esc_mp_destino', { p_id: pedido, p_seed: seed, p_nome: nome })
+    setBusy(false)
+    if (data) { setEscolhido(nome); logApoio(`🏦 moedas do Pix → carreira ${nome}`) }
+  }
+  if (escolhido) return <p className="text-[13px] font-black mt-2.5 leading-snug" style={{ color: GREEN }}>{tr(`✅ Vão cair no ${escolhido} assim que você abrir essa carreira.`, `✅ They will land in ${escolhido} as soon as you open that career.`)}</p>
+  if (!lista.length) return <p className="text-[12px] font-bold mt-2.5 leading-snug" style={{ color: '#5a5240' }}>{tr('Você ainda não tem carreira neste aparelho. As moedas ficam guardadas: abra uma carreira → Clube › Finanças › 🏦 Banco Legends → Depositar.', 'You have no career on this device yet. The coins stay saved: open a career → Club › Finances › 🏦 Banco Legends → Deposit.')}</p>
+  return (
+    <div className="mt-2.5 text-left">
+      {lista.map(({ slot, active }) => {
+        const sv = slot.save, nome = sv.managers[sv.youIdx]?.name ?? '—'
+        return (
+          <button key={sv.seed} disabled={busy} onClick={() => escolher(sv.seed, nome)} className="w-full flex items-center gap-2 rounded-xl px-3 py-2.5 mt-1.5 active:translate-y-0.5 bg-white"
+            style={{ border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>
+            <span className="text-[20px]">🏟️</span>
+            <span className="flex-1 text-left"><b className="block uppercase text-[15px]" style={OSW}>{nome}</b>
+              <span className="text-[11px] font-bold" style={{ color: 'rgba(12,12,12,.55)' }}>{tr(`Temporada ${sv.seasonNo ?? 1}`, `Season ${sv.seasonNo ?? 1}`)}{active ? tr(' · a última que você jogou', ' · the last one you played') : ''}</span></span>
+            <span className="font-black text-[18px]">›</span>
+          </button>
+        )
+      })}
+      <p className="text-[10.5px] font-bold mt-1.5" style={{ color: 'rgba(12,12,12,.5)' }}>{tr('Se preferir, deixe pra depois: dá pra depositar pelo 🏦 Banco Legends de qualquer carreira.', 'Or leave it for later: you can deposit from 🏦 Banco Legends in any career.')}</p>
     </div>
   )
 }

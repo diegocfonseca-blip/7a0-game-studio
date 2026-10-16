@@ -66,7 +66,8 @@ import type { InternationalHistoryEntry } from './career-international-season'
 import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
-import { useSaf2, useBotBanco } from './sport' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
+import { useSaf2, useBotBanco, usePixMp } from './sport'
+import { PixMP, type ProdutoMp } from './pix-mp' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
@@ -1964,6 +1965,29 @@ const BL_PIX = 'diego.c.fonseca@gmail.com' // chave Pix REAL do Diego (04/08) �
 export const BL_TRIPLO = 3
 const BL_PACOTES: [number, string][] = [[10, 'CAFEZINHO'], [50, 'REFORÇO PONTUAL'], [100, 'FÔLEGO DE TEMPORADA'], [500, 'PROJETO SAF'], [1000, 'INVESTIDOR VISIONÁRIO 👑']]
 const BL_PACOTES_EN: Record<number, string> = { 10: 'COFFEE MONEY', 50: 'QUICK BOOST', 100: 'SEASON BREATHER', 500: 'SAF PROJECT', 1000: 'VISIONARY INVESTOR 👑' }
+/** 🏦 moedas compradas na LOJA com destino ESTA carreira (`esc_mp_destino`): caem sozinhas quando a carreira abre */
+function DepositoPix() {
+  const { state, dispatch } = useEsc()
+  const [aviso, setAviso] = useState<number | null>(null)
+  const feito = useRef<number | null>(null)
+  useEffect(() => {
+    if (state.onlineMode === 'online' || !state.careerOnline || !state.seed || feito.current === state.seed) return
+    feito.current = state.seed
+    let vivo = true
+    supabase.rpc('esc_mp_minhas_fichas2').then(async ({ data }) => {
+      const minhas = (Array.isArray(data) ? data as { code: string; coins: number; seed_destino: number | null }[] : []).filter(f => f.seed_destino != null && Number(f.seed_destino) === state.seed)
+      let soma = 0
+      for (const f of minhas) {
+        const { data: v } = await supabase.rpc('bl_redeem', { p_code: f.code })
+        if (typeof v === 'number' && v > 0) { dispatch({ type: 'BANCO_CREDIT', coins: v, code: f.code }); soma += v }
+      }
+      if (vivo && soma > 0) { setAviso(soma); setTimeout(() => setAviso(null), 5000) }
+    }, () => {})
+    return () => { vivo = false }
+  }, [state.seed, state.careerOnline, state.onlineMode, dispatch])
+  if (!aviso) return null
+  return <div style={{ position: 'fixed', left: '50%', top: 16, transform: 'translateX(-50%)', zIndex: 9999, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 16px', ...OSWALD, fontWeight: 900, fontSize: 16, whiteSpace: 'nowrap' }}>🏦 +{aviso} 🪙 {tr('do Pix caíram no caixa!', 'from the Pix landed in the till!')}</div>
+}
 function BancoLegends() {
   const { state, dispatch } = useEsc()
   const [aberto, setAberto] = useState(false)
@@ -1977,9 +2001,18 @@ function BancoLegends() {
   // (creditar direto num save fechado mexeria no save guardado — regra do Diego: nunca arriscar save de ninguém)
   const [guardadas, setGuardadas] = useState<{ code: string; coins: number }[]>([])
   const carregaGuardadas = useCallback(() => {
-    supabase.rpc('esc_mp_minhas_fichas').then(({ data }) => setGuardadas(Array.isArray(data) ? data as { code: string; coins: number }[] : []), () => {})
-  }, [])
+    supabase.rpc('esc_mp_minhas_fichas2').then(({ data }) => setGuardadas(Array.isArray(data) ? (data as { code: string; coins: number; seed_destino: number | null }[]).filter(f => f.seed_destino == null || Number(f.seed_destino) !== state.seed) : []), () => {})
+  }, [state.seed])
   useEffect(() => { carregaGuardadas() }, [carregaGuardadas])
+  const pixMp = usePixMp()
+  const [pacoteMp, setPacoteMp] = useState<10 | 50 | 100 | null>(null)
+  // 🏦 comprou AQUI dentro: a ficha é resgatada sozinha e cai no caixa DESTE clube
+  const creditaFicha = useCallback(async (ficha: string): Promise<number | null> => {
+    const { data, error } = await supabase.rpc('bl_redeem', { p_code: ficha })
+    if (error || typeof data !== 'number' || data <= 0) return null
+    dispatch({ type: 'BANCO_CREDIT', coins: data, code: ficha })
+    return data
+  }, [dispatch])
   const depositar = async (f: { code: string; coins: number }) => {
     if (busy) return
     setBusy(true); setMsg(null)
@@ -2018,7 +2051,7 @@ function BancoLegends() {
       {guardadas.map(f => (
         <div key={f.code} style={{ display: 'flex', alignItems: 'center', gap: 10, border: `3px solid ${INK}`, borderRadius: 14, padding: '10px 12px', background: '#FFF3C4', boxShadow: `3px 3px 0 0 ${INK}`, marginBottom: 10 }}>
           <span style={{ fontSize: 24 }}>🪙</span>
-          <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800, lineHeight: 1.3 }}>{tr(`Você tem ${f.coins} moedas esperando (compradas na Loja).`, `You have ${f.coins} coins waiting (bought in the Shop).`)}</span>
+          <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800, lineHeight: 1.3 }}>{tr(`Você tem ${f.coins} moedas esperando (compradas na Loja)${(f as { destino_nome?: string | null }).destino_nome ? ` · reservadas pro ${(f as { destino_nome?: string | null }).destino_nome}` : ''}.`, `You have ${f.coins} coins waiting (bought in the Shop).`)}</span>
           <button onClick={() => depositar(f)} disabled={busy} style={{ border: `3px solid ${INK}`, borderRadius: 11, padding: '8px 10px', ...OSWALD, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', background: GREEN, color: '#fff', boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{busy ? '…' : tr('Depositar neste clube', 'Deposit in this club')}</button>
         </div>
       ))}
@@ -2041,13 +2074,15 @@ function BancoLegends() {
             </div>
           </div>
           <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 10.5, letterSpacing: .5, margin: '0 0 7px', color: '#1B7A3D' }}>{getLang() === 'en' ? <>💱 Here every R$ 1 becomes <b>3 coins</b> — always TRIPLE!</> : <>💱 Aqui cada R$ 1 vira <b>3 moedas</b> — sempre o TRIPLO!</>}</p>
+          {pixMp && <p style={{ fontSize: 10.5, fontWeight: 800, textAlign: 'center', margin: '0 0 7px' }}>{tr('💳 Toque no pacote, pague o Pix e as moedas caem direto no caixa deste clube.', '💳 Tap a pack, pay the Pix and the coins land straight in this club’s till.')}</p>}
           {BL_PACOTES.map(([v, tag]) => (
-            <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${INK}`, borderRadius: 12, background: v === 100 ? '#FFF7DB' : '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', marginBottom: 6 }}>
+            <div key={v} onClick={pixMp && (v === 10 || v === 50 || v === 100) ? () => setPacoteMp(p => p === v ? null : v as 10 | 50 | 100) : undefined} style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${INK}`, borderRadius: 12, background: pacoteMp === v ? '#E3F5E8' : v === 100 ? '#FFF7DB' : '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', marginBottom: 6, cursor: pixMp && v <= 100 ? 'pointer' : undefined }}>
               <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, minWidth: 78 }}>{(v * BL_TRIPLO).toLocaleString('pt-BR')} 🪙</span>
               <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: .5, color: '#8a8069' }}>{getLang() === 'en' ? (BL_PACOTES_EN[v] ?? tag) : tag}</span>
               <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, fontSize: 13, background: GOLD, border: `2px solid ${INK}`, borderRadius: 9, padding: '3px 10px', whiteSpace: 'nowrap' }}>R$ {v}</span>
             </div>
           ))}
+          {pixMp && pacoteMp && <div style={{ margin: '8px 0' }}><PixMP key={pacoteMp} produto={`moedas_${pacoteMp}` as ProdutoMp} valor={pacoteMp} aoReceberFicha={creditaFicha} /></div>}
           <div style={{ ...box(), padding: '9px 11px', margin: '10px 0' }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px' }}>{tr('Como funciona', 'How it works')}</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>{tr('1️⃣ Escolha o pacote e mande o Pix pra chave:', '1️⃣ Pick a pack and send the Pix to this key:')}<br /></p>
@@ -9598,6 +9633,7 @@ export function PyramidSeasonScreen() {
   }
   return (
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+      <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
       {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
           coins={Math.round(state.careerCoins?.[youId] ?? 0)} cor={myCol.solid}

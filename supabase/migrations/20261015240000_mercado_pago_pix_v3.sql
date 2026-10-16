@@ -12,3 +12,12 @@ alter table public.esc_pagamentos add constraint esc_pagamentos_produto_check ch
 -- (+ moedas → bl_fichas, presente → amigo, canto → só registra) · esc_mp_briefing (+ canto).
 -- Preços: moedas_10/50/100 = R$ 10/50/100 (×3 moedas) · canto = R$ 10, só com Batismo (rank 3; Fundador já traz) ·
 -- presente = preço cheio do plano do `esc_presentes` pedido pelo PRÓPRIO comprador.
+
+-- 🏦 16/10 (Diego: "ao comprar já deveria aparecer os saves… e já cai direto"): moedas compradas na Loja da home →
+-- depois de pagar a pessoa ESCOLHE a carreira (`esc_mp_destino` anota seed + nome no pedido) e, quando ela abrir essa
+-- carreira, as moedas caem sozinhas (`esc_mp_minhas_fichas2` + `bl_redeem`). Dentro da carreira (🏦 Banco Legends) o
+-- Pix credita direto no caixa. O save guardado NUNCA é editado de fora.
+-- Também: pacotes moedas_500 / moedas_1000 aceitos no banco (a função do Pix ainda não — deploy recusado em 16/10).
+alter table public.esc_mp_pedidos add column if not exists seed_destino bigint, add column if not exists destino_nome text;
+-- funções: esc_mp_destino(id, seed, nome) · esc_mp_minhas_fichas2() · esc_mp_minhas_fichas() · esc_mp_preco_ref (+500/1000)
+-- · esc_mp_entregar (moedas_% → ficha)
