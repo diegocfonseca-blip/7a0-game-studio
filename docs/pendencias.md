@@ -11,6 +11,15 @@
 - A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
 - Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
 
+## 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10) — ⏳ mockup enviado, esperando ele escolher A ou B
+- Diego: *"não tá tendo muito sentido o rádio com as legendas no topo… em cima tem narração e no rádio também. Tem que juntar
+  todo tipo de frase num lugar só… e mais variedade, falar mais o nome dos jogadores: vai chutar, chutou pra fora, fez o gol"*.
+- Hoje: topo do placar (`ll25-narration`, frases de chance/gol de `chances.ts`/`lances.ts`) + 📻 rádio embaixo do golzinho
+  (`ll42-radio`, `radio.ts`, que é PROIBIDA de narrar chute e gol). Mockup `node scripts/mockup-narracao-um-lugar.mjs` →
+  `scripts/mockups/narracao-um-lugar.png`: A = tudo numa faixa no TOPO (recomendei) · B = tudo no rádio embaixo.
+- Depois do OK: juntar as três fontes numa fila só por minuto, liberar a rádio pra chute/trave/defesa/gol COM NOME, e manter
+  pênalti fora e nada que entregue o placar antes da hora. Vale pro online, carreira e Kings (mesmo placar).
+
 ## 🦅⚫⚪ GAVIÕES SCCP VIROU 🖋 FUNDADOR (16/10) — ✅ NO AR: banco + gala v3 "Aqui é Fiel" + canto (aprovado pelo Diego)
 - kauealves584 já tinha fundador nº83; gravado `esc_compras_batismo` = plus (16/10).
 - 📣 Canto: 12 s de "Todo Poderoso Timão" (o áudio que o Diego mandou, trecho 3,2 s → 15,2 s, de pausa a pausa) →
