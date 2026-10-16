@@ -1,3 +1,8 @@
+## 💼 Patrocínio de verdade (marca real) — 3 espaços (16/10) — 👀 MOCKUP ENVIADO
+- 1) nome da competição ("apresentada por") · 2) LED do estádio + linha embaixo do placar · 3) anúncio no pé do O MARTELO.
+- Uma marca por espaço (ele cortou o patrocinador DENTRO do jogo por excesso). Sem casa de aposta no começo (lei + menores).
+- Mockup: `node scripts/mockup-patrocinio.mjs` → `scripts/mockups/patrocinio.png`. Falta: OK dele + números de jogadores pra tabela de preço.
+
 ## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 9,90 (16/10) — ⏳ A FAZER
 - Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*.
 - +1 ficha de carreira além do limite do plano (grátis 1 · Craque 2 · Lenda 4 · Batismo 4), igual às 🎟️ salas extras.
