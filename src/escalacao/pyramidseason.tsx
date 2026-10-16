@@ -67,7 +67,7 @@ import { internationalTitleCounts } from './career-international-rank-snapshot'
 import { supabase } from '../lib/supabase'
 import { useEconBots } from './sport' // 💰 caixa dos rivais na Central (13/10 · só conta do Diego por enquanto)
 import { useSaf2, useBotBanco, usePixMp } from './sport'
-import { PixMP, type ProdutoMp } from './pix-mp' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
+import { LojaButton } from './loja-clube' // 🏢➡️⚽ SAF que vira 2º clube (13/10 · só conta do Diego por enquanto)
 import { ehPagante, precisaMigrar, podeTransferir, EMPRESTIMOS_ENTRE_CLUBES } from './saf2'
 import { Saf2SafPainel, Saf2Clube2Painel, Saf2Migracao } from './saf2-telas'
 import { useAgenciaLiberada, useEscadaLiberada, usePenaltiTeste, useCopaBrasilLiberada, useBarraCarreira, useTelaDesfecho, useSubAbasGrudadas, useFormacoes15, useElencoNovo, useAliciarJogador, useLojaLiberada, useInternacionalCarreiraLiberada, useInternacionalCarreiraAuthResolvida, useCentralCarreira, useColecoesLiberadas, planos2Liberado } from './sport'
@@ -2005,14 +2005,6 @@ function BancoLegends() {
   }, [state.seed])
   useEffect(() => { carregaGuardadas() }, [carregaGuardadas])
   const pixMp = usePixMp()
-  const [pacoteMp, setPacoteMp] = useState<10 | 50 | 100 | null>(null)
-  // 🏦 comprou AQUI dentro: a ficha é resgatada sozinha e cai no caixa DESTE clube
-  const creditaFicha = useCallback(async (ficha: string): Promise<number | null> => {
-    const { data, error } = await supabase.rpc('bl_redeem', { p_code: ficha })
-    if (error || typeof data !== 'number' || data <= 0) return null
-    dispatch({ type: 'BANCO_CREDIT', coins: data, code: ficha })
-    return data
-  }, [dispatch])
   const depositar = async (f: { code: string; coins: number }) => {
     if (busy) return
     setBusy(true); setMsg(null)
@@ -2026,6 +2018,20 @@ function BancoLegends() {
     setBusy(false); setAberto(true); carregaGuardadas()
   }
   if (state.onlineMode === 'online' || !state.careerOnline) return null
+  // 🛒 16/10 (Diego: "não deveria ter Banco Legends… deveria ter apenas a loja direto"): com o Pix novo, uma porta só —
+  // a Loja do Clube aberta daqui sabe que é ESTA carreira e as moedas caem direto no caixa
+  if (pixMp) return (
+    <div style={{ marginTop: 12 }}>
+      <LojaButton naCarreira style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: '11px 12px', background: '#fff', boxShadow: `3px 3px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left' }}>
+        <span style={{ fontSize: 24 }}>🛒</span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: 'block', ...OSWALD, fontWeight: 900, fontSize: 14, textTransform: 'uppercase' }}>{tr('Loja do Clube', 'Club Shop')}</span>
+          <span style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#8a8069' }}>{tr('Moedas pelo Pix: caem direto no caixa deste clube.', 'Coins via Pix: they land straight in this club’s till.')}</span>
+        </span>
+        <span style={{ fontWeight: 900, fontSize: 18 }}>›</span>
+      </LojaButton>
+    </div>
+  )
   const emCooldown = Date.now() < coolAte
   const resgatar = async () => {
     if (busy || emCooldown || !code.trim()) return
@@ -2074,15 +2080,13 @@ function BancoLegends() {
             </div>
           </div>
           <p style={{ textAlign: 'center', fontWeight: 900, fontSize: 10.5, letterSpacing: .5, margin: '0 0 7px', color: '#1B7A3D' }}>{getLang() === 'en' ? <>💱 Here every R$ 1 becomes <b>3 coins</b> — always TRIPLE!</> : <>💱 Aqui cada R$ 1 vira <b>3 moedas</b> — sempre o TRIPLO!</>}</p>
-          {pixMp && <p style={{ fontSize: 10.5, fontWeight: 800, textAlign: 'center', margin: '0 0 7px' }}>{tr('💳 Toque no pacote, pague o Pix e as moedas caem direto no caixa deste clube.', '💳 Tap a pack, pay the Pix and the coins land straight in this club’s till.')}</p>}
           {BL_PACOTES.map(([v, tag]) => (
-            <div key={v} onClick={pixMp && (v === 10 || v === 50 || v === 100) ? () => setPacoteMp(p => p === v ? null : v as 10 | 50 | 100) : undefined} style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${INK}`, borderRadius: 12, background: pacoteMp === v ? '#E3F5E8' : v === 100 ? '#FFF7DB' : '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', marginBottom: 6, cursor: pixMp && v <= 100 ? 'pointer' : undefined }}>
+            <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2.5px solid ${INK}`, borderRadius: 12, background: v === 100 ? '#FFF7DB' : '#fff', boxShadow: `2px 2px 0 0 ${INK}`, padding: '7px 10px', marginBottom: 6 }}>
               <span style={{ ...OSWALD, fontWeight: 900, fontSize: 16, minWidth: 78 }}>{(v * BL_TRIPLO).toLocaleString('pt-BR')} 🪙</span>
               <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: .5, color: '#8a8069' }}>{getLang() === 'en' ? (BL_PACOTES_EN[v] ?? tag) : tag}</span>
               <span style={{ marginLeft: 'auto', ...OSWALD, fontWeight: 900, fontSize: 13, background: GOLD, border: `2px solid ${INK}`, borderRadius: 9, padding: '3px 10px', whiteSpace: 'nowrap' }}>R$ {v}</span>
             </div>
           ))}
-          {pixMp && pacoteMp && <div style={{ margin: '8px 0' }}><PixMP key={pacoteMp} produto={`moedas_${pacoteMp}` as ProdutoMp} valor={pacoteMp} aoReceberFicha={creditaFicha} /></div>}
           <div style={{ ...box(), padding: '9px 11px', margin: '10px 0' }}>
             <p style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', margin: '0 0 4px' }}>{tr('Como funciona', 'How it works')}</p>
             <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>{tr('1️⃣ Escolha o pacote e mande o Pix pra chave:', '1️⃣ Pick a pack and send the Pix to this key:')}<br /></p>

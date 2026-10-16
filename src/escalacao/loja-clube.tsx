@@ -15,7 +15,7 @@
 //
 // 🔒 Segurança (ordem do Diego): a loja NUNCA libera nada sozinha. Clicar, copiar o Pix ou voltar do banco não dá nada —
 // quem libera é o Diego (ou, depois, a Vendria confirmando o pagamento no servidor). Aqui só se mostra o preço e o Pix.
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { createPortal } from 'react-dom'
 import { tr, getLang } from './lang'
@@ -26,6 +26,7 @@ import { PixBox, APOIO_IG, ApoieButton } from './screens'
 import { PresenteBox } from './presente'
 import { PixMP, type ProdutoMp } from './pix-mp'
 import { usePixMp } from './sport'
+import { useEsc } from './store'
 import { MeuPresidenteLoja } from './presidente-loja'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
@@ -48,18 +49,63 @@ const GANHO: Record<PlanoUnico, [string, string]> = {
 
 type Item = { id: string; amount: number; ctx: string; msgPt: string; msgEn: string }
 
-export function LojaButton({ className, style, children }: { className?: string; style?: React.CSSProperties; children?: React.ReactNode }) {
+/** `naCarreira`: aberta de DENTRO da carreira (Clube › Finanças) — as moedas caem direto no caixa da carreira aberta */
+export function LojaButton({ className, style, children, naCarreira = false }: { className?: string; style?: React.CSSProperties; children?: React.ReactNode; naCarreira?: boolean }) {
   const [aberta, setAberta] = useState(false)
   return <>
-    <button className={className} style={style} onClick={() => { logApoio('🛒 abriu a loja'); setAberta(true) }}>{children ?? tr('🛒 LOJA', '🛒 SHOP')}</button>
-    {aberta && <Loja onClose={() => setAberta(false)} />}
+    <button className={className} style={style} onClick={() => { logApoio(naCarreira ? '🛒 abriu a loja (carreira)' : '🛒 abriu a loja'); setAberta(true) }}>{children ?? tr('🛒 LOJA', '🛒 SHOP')}</button>
+    {aberta && <Loja onClose={() => setAberta(false)} naCarreira={naCarreira} />}
   </>
+}
+
+/** 🏦 dentro da carreira: moedas já pagas esperando (compradas sem escolher carreira) + quem tem um CÓDIGO de ficha antigo */
+function ResgateFicha() {
+  const { state, dispatch } = useEsc()
+  const [guardadas, setGuardadas] = useState<{ code: string; coins: number }[]>([])
+  const [cod, setCod] = useState('')
+  const [msg, setMsg] = useState<{ ok: boolean; tx: string } | null>(null)
+  const [busy, setBusy] = useState(false)
+  const carrega = useCallback(() => {
+    supabase.rpc('esc_mp_minhas_fichas2').then(({ data }) => setGuardadas((Array.isArray(data) ? data as { code: string; coins: number; seed_destino: number | null }[] : []).filter(f => f.seed_destino == null || Number(f.seed_destino) !== state.seed)), () => {})
+  }, [state.seed])
+  useEffect(() => { carrega() }, [carrega])
+  const resgata = async (code: string) => {
+    if (busy || !code.trim()) return
+    setBusy(true); setMsg(null)
+    const { data, error } = await supabase.rpc('bl_redeem', { p_code: code.trim() })
+    setBusy(false)
+    if (!error && typeof data === 'number' && data > 0) { dispatch({ type: 'BANCO_CREDIT', coins: data, code: code.trim().toUpperCase() }); setMsg({ ok: true, tx: tr(`+${data} 🪙 no caixa deste clube!`, `+${data} 🪙 in this club’s till!`) }); setCod('') }
+    else setMsg({ ok: false, tx: tr('Código inválido ou já usado.', 'Invalid or already used code.') })
+    carrega()
+  }
+  return <div style={{ marginTop: 10 }}>
+    {guardadas.map(f => <div key={f.code} style={{ display: 'flex', alignItems: 'center', gap: 8, border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 10px', background: '#FFF3C4', marginBottom: 8 }}>
+      <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800 }}>🪙 {tr(`${f.coins} moedas já pagas, esperando.`, `${f.coins} coins already paid, waiting.`)}</span>
+      <button onClick={() => resgata(f.code)} disabled={busy} style={{ ...OSW, fontSize: 12, textTransform: 'uppercase', background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 9px', cursor: 'pointer' }}>{tr('Depositar aqui', 'Deposit here')}</button>
+    </div>)}
+    <div style={{ display: 'flex', gap: 6 }}>
+      <input value={cod} onChange={e => setCod(e.target.value)} placeholder={tr('Tem um código de ficha? BL-XXXX-XX', 'Got a voucher code? BL-XXXX-XX')} maxLength={14}
+        style={{ flex: 1, minWidth: 0, border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 9px', fontSize: 12, fontWeight: 700, background: '#fff', textTransform: 'uppercase' }} />
+      <button onClick={() => resgata(cod)} disabled={busy || !cod.trim()} style={{ ...OSW, fontSize: 12, textTransform: 'uppercase', background: GOLD, border: `2px solid ${INK}`, borderRadius: 10, padding: '6px 10px', cursor: 'pointer' }}>{tr('Resgatar', 'Redeem')}</button>
+    </div>
+    {msg && <p style={{ fontSize: 11.5, fontWeight: 900, margin: '6px 2px 0', color: msg.ok ? GREEN : '#C2452F' }}>{msg.tx}</p>}
+  </div>
 }
 
 // 💳 item da Loja → produto do Pix do Mercado Pago (15/10): salas extras, canto e moedas já vão pelo Pix novo
 const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : null
-function Loja({ onClose }: { onClose: () => void }) {
+function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira?: boolean }) {
   const pixMp = usePixMp()
+  const { state: esc, dispatch: escDispatch } = useEsc()
+  const naCarr = naCarreira && !!esc.careerOnline && esc.onlineMode !== 'online'
+  // 🏦 comprou de DENTRO da carreira: a ficha do Pix é resgatada sozinha e cai no caixa da carreira aberta (16/10, Diego:
+  // "na loja dentro da carreira já saberia que é o save atual dele"; o Banco Legends saiu pra ser uma porta só)
+  const creditaFicha = useCallback(async (ficha: string): Promise<number | null> => {
+    const { data, error } = await supabase.rpc('bl_redeem', { p_code: ficha })
+    if (error || typeof data !== 'number' || data <= 0) return null
+    escDispatch({ type: 'BANCO_CREDIT', coins: data, code: ficha })
+    return data
+  }, [escDispatch])
   const direitos = useDireitos()
   const tier = myApoioPerk()?.tier
   const atual = planoAtual(direitos, tier)
@@ -145,7 +191,7 @@ function Loja({ onClose }: { onClose: () => void }) {
         {atual === 'batismo' && <p style={{ fontSize: 11.5, fontWeight: 700, margin: '8px 2px 0', color: GREEN, lineHeight: 1.4 }}>{tr(`🚁 Quer a gala única? Ela vem no 🖋 Fundador: + ${reais(precoSubida('fundador', 'batismo'))} e você leva gala + canto + número de fundador + o clube nas salas online dos outros.`, `🚁 Want the unique entrance? It comes with 🖋 Founder: + ${reais(precoSubida('fundador', 'batismo'))} for entrance + chant + founder number + your club in other people’s online rooms.`)}</p>}
 
         {/* 🪙 MOEDAS */}
-        <h2 style={h2}>{tr('🏦 Moedas pro clube', '🏦 Coins for your club')} <span style={sub}>{tr('Banco Legends · carreira solo', 'Banco Legends · solo career')}</span></h2>
+        <h2 style={h2}>{tr('🏦 Moedas pro clube', '🏦 Coins for your club')} <span style={sub}>{pixMp ? (naCarr ? tr('caem direto neste clube', 'straight into this club') : tr('carreira solo', 'solo career')) : tr('Banco Legends · carreira solo', 'Banco Legends · solo career')}</span></h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
           {MOEDAS.map(([r, pt, en], i) => <div key={r} style={{ ...card, textAlign: 'center', background: i === 1 ? '#FFF3C4' : '#fff', padding: 8 }}>
             <div style={{ fontSize: 24 }}>🪙</div>
@@ -154,13 +200,17 @@ function Loja({ onClose }: { onClose: () => void }) {
             <button onClick={() => setComprando({ id: `moedas-${r}`, amount: r, ctx: `loja · banco legends ${r * 3} moedas`, msgPt: `Opa! Comprei na Loja do Clube: 🏦 ${r * 3} MOEDAS (${reais(r)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🏦 ${r * 3} COINS (${reais(r)}). Account e-mail: ____ — receipt attached!` })} style={{ ...preco, width: '100%', marginTop: 6 }}>{reais(r)}</button>
           </div>)}
         </div>
-        <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: 'rgba(12,12,12,.6)', lineHeight: 1.4 }}>{tr('Você recebe uma FICHA e resgata na carreira que quiser, quando quiser: Clube › Finanças › 🏦 Banco Legends. Moeda vale só na carreira solo (não entra em sala online nem em liga dos amigos).', 'You get a VOUCHER and redeem it in whichever career you like, whenever you like: Club › Finances › 🏦 Banco Legends. Coins only work in the solo career (not in online rooms or friends’ leagues).')}</p>
+        {pixMp ? <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: 'rgba(12,12,12,.6)', lineHeight: 1.4 }}>{naCarr
+          ? tr('Pagou o Pix, as moedas caem na hora no caixa desta carreira. Vale só na carreira solo.', 'Pay the Pix and the coins land right away in this career’s till. Solo career only.')
+          : tr('Depois de pagar, você escolhe em qual carreira elas caem. Vale só na carreira solo.', 'After paying, you choose which career they go to. Solo career only.')}</p>
+          : <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: 'rgba(12,12,12,.6)', lineHeight: 1.4 }}>{tr('Você recebe uma FICHA e resgata na carreira que quiser, quando quiser: Clube › Finanças › 🏦 Banco Legends. Moeda vale só na carreira solo (não entra em sala online nem em liga dos amigos).', 'You get a VOUCHER and redeem it in whichever career you like, whenever you like: Club › Finances › 🏦 Banco Legends. Coins only work in the solo career (not in online rooms or friends’ leagues).')}</p>}
+        {naCarr && <ResgateFicha />}
 
         {/* 💳 COMO PAGAR (o item escolhido) */}
         {comprando && <div id="loja-pagar" style={{ ...card, marginTop: 18, background: '#FFF8E1' }}>
           <p style={{ ...OSW, fontSize: 16, textTransform: 'uppercase', margin: '0 0 8px' }}>{tr('💳 Pagar', '💳 Pay')} · {reais(comprando.amount)}</p>
           {/* 💳 15/10: as salas extras já vão pelo Pix do Mercado Pago (só na conta do Diego por enquanto); o resto segue no Pix antigo */}
-          {pixMp && produtoMp(comprando.id) ? <PixMP key={comprando.id} produto={produtoMp(comprando.id)!} valor={comprando.amount} /> : <>
+          {pixMp && produtoMp(comprando.id) ? <PixMP key={comprando.id} produto={produtoMp(comprando.id)!} valor={comprando.amount} aoReceberFicha={naCarr && comprando.id.startsWith('moedas-') ? creditaFicha : undefined} /> : <>
           <PixBox ctx={comprando.ctx} amount={comprando.amount} />
           <button onClick={async () => { logApoio(`🛒 mandou comprovante · ${comprando.ctx}`); try { await navigator.clipboard.writeText(tr(comprando.msgPt, comprando.msgEn)) } catch { /* segue */ } window.open(APOIO_IG, '_blank', 'noopener') }}
             style={{ width: '100%', marginTop: 10, ...OSW, fontSize: 14, background: '#E1306C', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 10, cursor: 'pointer' }}>{tr('📸 MANDAR COMPROVANTE NO @leilaolegendscom', '📸 SEND THE RECEIPT TO @leilaolegendscom')}</button>
