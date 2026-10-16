@@ -5,6 +5,7 @@ import { FotoJornal, FOTO_GENERICA, fotoJornal } from './jornal-manto' // 🎽 a
 import scorerArt from './img/jornal-artilheiro-v22.webp'
 import './jornal-online-visual.css'
 import { tr, ordinal } from './lang' // 🌐 BR/EN
+import { AnuncioMartelo } from './patrocinio-visual' // 📰 anúncio do fim do jornal (16/10)
 
 export function JornalOnlineVisual({ ed, onCompartilhar, compartilhando }: { ed: EdicaoSala; onCompartilhar: () => void; compartilhando: boolean }) {
   return <article className="jornal-v22" aria-label="O Martelo — edição da sala">
@@ -41,6 +42,7 @@ export function JornalOnlineVisual({ ed, onCompartilhar, compartilhando }: { ed:
           <p className="jv-byline">{l.quem && `${l.quem} · `}{l.pts} {tr('pontos', 'points')}</p><p>{l.nota}</p></div>
       </article>)}</div>
     </section>
+    <AnuncioMartelo />
     <footer className="jv-footer">leilaolegends.com</footer>
     <button className="jv-share" onClick={onCompartilhar} disabled={compartilhando}>{compartilhando ? tr('Montando a imagem…', 'Building the image…') : tr('Compartilhar jornal', 'Share newspaper')}</button>
   </article>

@@ -4,15 +4,18 @@
 // Veículos"*. Primeiro espaço ligado: o NOME DA COMPETIÇÃO ("apresentada por"), no palco da competição (`CompetitionStage`).
 // Regra combinada: uma marca por competição; cada competição pode ter a sua. Sem logo oficial ainda → marca escrita.
 //
-// 🔒 Nasce só nas contas do Diego (pra ele ver). Pra todo mundo ver: `PATROCINIO_GERAL = true`.
+// 🔒 A seção da Loja ("Sua marca no jogo") segue só nas contas do Diego (`PATROCINIO_GERAL`). Os espaços na TELA (nome da
+// competição, LED do estádio, anúncio no O MARTELO) foram pro ar pra todos em 16/10 (`ESPACOS_GERAL`, Diego: "pode publicar").
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { loggedEmail } from './apoio'
+import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 
 export type Patrocinio = { nome: string; emoji: string }
 type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'
 
 const PATROCINIO_GERAL = false
+const ESPACOS_GERAL = true
 const PATROCINIO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 const POR_COMPETICAO: Partial<Record<Competicao, Patrocinio>> = {
   champions: { nome: 'Vadico Veículos', emoji: '🚗' }, // 🚗 Vadico Veículos (Itaguaí e Barra da Tijuca) — 16/10
@@ -21,9 +24,26 @@ const POR_COMPETICAO: Partial<Record<Competicao, Patrocinio>> = {
 /** a marca que apresenta esta competição (null = sem patrocinador, ou ainda escondido pra esta conta) */
 export function patrocinioDe(kind: Competicao): Patrocinio | null {
   const email = (loggedEmail() ?? '').toLowerCase()
-  if (!PATROCINIO_GERAL && !PATROCINIO_TESTERS.has(email)) return null
+  if (!ESPACOS_GERAL && !PATROCINIO_TESTERS.has(email)) return null
   return POR_COMPETICAO[kind] ?? null
 }
+const espacosOk = () => ESPACOS_GERAL || PATROCINIO_TESTERS.has((loggedEmail() ?? '').toLowerCase())
+
+// 🏟️ LED do estádio (R$ 200/mês): quem está aqui passa no letreiro do palco das partidas online, uma marca atrás da outra.
+export type MarcaLed = Patrocinio & { chamada?: string }
+const LED_ESTADIO: MarcaLed[] = [
+  { nome: 'Vadico Veículos', emoji: '🚗', chamada: 'Itaguaí · Barra da Tijuca · 45 anos' },
+]
+export function ledDoEstadio(): MarcaLed[] { return espacosOk() ? LED_ESTADIO : [] }
+
+// 📰 Anúncio no O MARTELO (R$ 100/mês): um quadro no fim do jornal. Um anunciante por vez.
+export type AnuncioJornal = Patrocinio & { texto: string; contato?: string; logo?: string; logoProp?: number }
+const ANUNCIO_MARTELO: AnuncioJornal | null = {
+  nome: 'Vadico Veículos', emoji: '🚗', logo: VADICO_LOGO_ALFA, logoProp: 496 / 140,
+  texto: '45 anos de empresa familiar. Garantia e documento no nome da loja, sem carro de leilão. Itaguaí e Barra da Tijuca.',
+  contato: 'vadicoveiculos.com.br · @vadicoveiculos',
+}
+export function anuncioDoMartelo(): AnuncioJornal | null { return espacosOk() ? ANUNCIO_MARTELO : null }
 
 /** 💼 a seção "Sua marca no jogo" da Loja (Dia da marca + mensal) — mesma trava: começa só nas contas do Diego */
 export function patrocinioLojaOk(): boolean {

@@ -29,6 +29,7 @@ import { JornalOnlineVisual, buildOnlineSalaBlob } from './jornal-online-visual'
 // 🌐 BR/EN (12/09): o jornal sai no idioma do site. As notas são traduzidas
 // pelo SENTIDO (zoeira de redação), não palavra por palavra.
 import { tr, ordinal, useLang, getLang } from './lang'
+import { AnuncioMartelo } from './patrocinio-visual' // 📰 anúncio do fim do jornal (16/10)
 
 const INK = '#0C0C0C', PAPEL = '#FBF6E9', VERM = '#B23A2A', GOLD = '#FFC400', GREEN = '#1B7A3D', ROXO = '#7C3AED'
 const SERIF = { fontFamily: "Georgia, 'Times New Roman', serif" } as const
@@ -517,6 +518,7 @@ export function JornalDaSala({ ed, onCompartilhar, compartilhando }: { ed: Edica
         </div>
       </div>
 
+      <AnuncioMartelo />
       {/* 🥇 rodapé dourado — é ele que vai junto na imagem compartilhada */}
       <div style={{ marginTop: 12, background: `linear-gradient(100deg,#FFD44A,${GOLD} 45%,#E0A800)`, border: `3px solid ${INK}`, borderRadius: 8, padding: '9px 8px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg,transparent 32%,rgba(255,255,255,.55) 48%,transparent 63%)' }} />

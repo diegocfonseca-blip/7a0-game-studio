@@ -1,3 +1,12 @@
+## 🚗 VADICO NOS 3 ESPAÇOS DA TELA (16/10) — ✅ NO AR PRA TODOS (*"o resto já pode publicar… LED no estádio faça também"*)
+- Champions Legends "apresentada por Vadico Veículos" liberada pra todos (`ESPACOS_GERAL = true` em `patrocinio.ts`).
+  Copa dos 8 **sem** Vadico (ordem dele: *"já vai ter na Champions"*) — ela só ganha marca no Dia da marca.
+- 🏟️ LED do estádio: letreiro verde passando no topo do palco das partidas online (`LedEstadio`, `patrocinio-visual.tsx`),
+  lista `LED_ESTADIO` (mais de um mensal = passam um atrás do outro). Placar não mudou.
+- 📰 Anúncio no O MARTELO: quadro com a logo no FIM do jornal (sala online, torneio offline e carreira), `ANUNCIO_MARTELO`.
+- A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
+- Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
+
 ## 🦅⚫⚪ GAVIÕES SCCP VIROU 🖋 FUNDADOR (16/10) — ✅ NO AR: banco + gala v3 "Aqui é Fiel" + canto (aprovado pelo Diego)
 - kauealves584 já tinha fundador nº83; gravado `esc_compras_batismo` = plus (16/10).
 - 📣 Canto: 12 s de "Todo Poderoso Timão" (o áudio que o Diego mandou, trecho 3,2 s → 15,2 s, de pausa a pausa) →

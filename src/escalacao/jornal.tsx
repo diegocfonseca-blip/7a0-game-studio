@@ -26,6 +26,7 @@ import ligaArtSrc from './img/jornal-liga-v22.webp'
 import copaArtSrc from './img/jornal-copa-v22.webp'
 import scorerArtSrc from './img/jornal-artilheiro-v22.webp'
 import bolaOuroArtSrc from './img/jornal-bola-ouro-v1.webp' // 🥇 a arte que o Diego mandou (marca apagada — ver o commit dela)
+import { AnuncioMartelo } from './patrocinio-visual' // 📰 anúncio do fim do jornal (16/10)
 
 // 🛡️→🖼️ rasteriza o escudo (o MESMO <Escudo> da tela) pra desenhar no canvas do
 // compartilhar. Antes a imagem do jornal mostrava só a 1ª LETRA do time — então a
@@ -1225,6 +1226,7 @@ export function SeasonJornal({ me, tables, copa, divTop, seasonNo, agenciaNews, 
         )
       })()}
 
+      <AnuncioMartelo />
       {/* rodapé: compartilhar + fechar */}
       <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
         <button onClick={share} style={{ flex: 1, background: '#1faa54', color: '#fff', border: `3px solid ${INK}`, borderRadius: 11, padding: 9, fontWeight: 900, fontSize: 13, ...COND, cursor: 'pointer', boxShadow: `3px 3px 0 0 ${INK}` }}>{copied ? tr('✅ Copiado!', '✅ Copied!') : tr('📲 Mandar no grupo', '📲 Send to the group')}</button>
