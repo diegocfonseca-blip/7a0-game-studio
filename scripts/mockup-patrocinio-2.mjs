@@ -42,6 +42,9 @@ h1{margin:0;font-size:30px;text-transform:uppercase;font-weight:700}.sub{margin:
 .estadio{position:relative;height:120px;margin:0 12px 12px;border:3px solid #000;border-radius:14px;overflow:hidden;background:url(${img('online-estadio-v25.webp')}) center/cover}
 .led{position:absolute;left:0;right:0;bottom:10px;height:24px;background:#0C0C0C;display:flex;align-items:center;gap:22px;padding-left:10px;white-space:nowrap}
 .led span{color:#7CFF9B;font-weight:700;font-size:12px;letter-spacing:.12em;text-shadow:0 0 6px #3f3}
+.quem{margin:0 12px 12px;background:#fff;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;padding:4px 10px}
+.ql{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:2px solid #eee;font-weight:500;font-size:13px}.ql:last-child{border:0}
+.ql b{font-size:12px;border:2px solid #000;border-radius:7px;padding:0 6px}.ql .dia{background:#FFD3CA}.ql .mes{background:#CDEBD6}.ql .div{background:#FFC400}
 /* vitrine */
 .vt{padding:12px}.vt h3{margin:0;font-size:22px;text-transform:uppercase}.vt .s{margin:0 0 10px;font-weight:500;font-size:13px}
 .mc{display:flex;gap:10px;align-items:flex-start;background:#fff;border:3px solid #000;border-radius:14px;box-shadow:3px 3px 0 #000;padding:10px;margin-bottom:10px;position:relative}
@@ -53,16 +56,19 @@ h1{margin:0;font-size:30px;text-transform:uppercase;font-weight:700}.sub{margin:
 .quero{display:block;text-align:center;margin-top:4px;background:#fff;border:3px dashed #000;border-radius:12px;padding:8px;font-weight:700;font-size:13px;text-transform:uppercase}
 </style></head><body>
 <h1>💼 Dia da marca + Vitrine dos patrocinadores</h1>
-<p class="sub">Marcas fictícias, só de exemplo. Os 3 espaços já aprovados continuam como estão.</p>
+<p class="sub">Marcas fictícias, só de exemplo. No Dia da marca, quem paga o mês NÃO perde espaço.</p>
 <div class="cols">
  <div class="col"><span class="tag">4 · ⚡ Dia da marca (24h)</span>
   <div class="cel"><div class="hd"><span>🔨 LEILÃO LEGENDS</span><span style="font-size:13px">BR | EN</span></div>
-   <div class="take"><small>Hoje o jogo é oferecido por</small><h2>👕 Resenha Camisas</h2>
-    <p>Camisas retrô de futebol feitas no Brasil. Cupom de hoje pra quem joga:</p>
-    <div class="row"><span class="btn">🎟️ LEGENDS10</span><span class="relo">⏳ acaba em 13:42:10</span></div></div>
-   <div class="onde"><div><i>🏆</i>nome das competições</div><div><i>🏟️</i>LED e placar</div><div><i>📰</i>O MARTELO</div></div>
-   <div class="estadio"><div class="led"><span>👕 RESENHA CAMISAS</span><span>👕 RESENHA CAMISAS</span><span>👕 RESENHA CAMISAS</span></div></div></div>
-  <p class="nota">Por 24 horas a marca toma os 3 espaços de uma vez, e ganha um cartão na home com bio, cupom e o relógio do dia. No dia seguinte tudo volta ao normal.</p>
+   <div class="take" style="background:linear-gradient(135deg,#C2452F,#7d2414)"><small>Hoje o jogo é oferecido por</small><h2>🍕 Golaço Pizzaria</h2>
+    <p>A pizza oficial do pós-jogo. Cupom de hoje pra quem joga:</p>
+    <div class="row"><span class="btn">🎟️ MARTELO15</span><span class="relo">⏳ acaba em 13:42:10</span></div></div>
+   <div class="estadio"><div class="led"><span style="color:#FF8A75;text-shadow:0 0 6px #f53">🍕 GOLAÇO PIZZARIA</span><span>👕 RESENHA CAMISAS</span><span style="color:#FF8A75;text-shadow:0 0 6px #f53">🍕 GOLAÇO PIZZARIA</span><span>👕 RESENHA CAMISAS</span></div></div>
+   <div class="quem"><div class="ql"><span>🏠 Cartão da home</span><b class="dia">🍕 só a do dia</b></div>
+    <div class="ql"><span>🏟️ LED do estádio</span><b class="div">🍕 + 👕 alternando</b></div>
+    <div class="ql"><span>🏆 Nome da competição</span><b class="mes">👕 continua a do mês</b></div>
+    <div class="ql"><span>📰 O MARTELO</span><b class="mes">👕 continua a do mês</b></div></div></div>
+  <p class="nota">A marca do mês (👕 Resenha Camisas) nunca perde o espaço dela. A do dia (🍕 Golaço Pizzaria) ganha o destaque da home só pra ela e divide o LED, alternando. No dia seguinte o LED volta a ser só da marca do mês.</p>
   <span class="preco">⚡ pontual · paga uma vez</span></div>
  <div class="col"><span class="tag">5 · 🏪 Vitrine dos patrocinadores</span>
   <div class="cel"><div class="vt"><h3>🤝 Quem faz o jogo acontecer</h3><p class="s">Em ordem de quem mais apoiou o Leilão Legends.</p>

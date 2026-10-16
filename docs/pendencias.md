@@ -5,6 +5,7 @@
 - Diego gostou dos 3 + **⚡ Dia da marca** (pontual: 24h tomando os 3 espaços + cartão na home com bio/cupom/relógio) e da
   **🏪 Vitrine dos patrocinadores** (logo, bio, Instagram, cupom; ordem de quem mais apoiou, **SEM ouro/prata/bronze**, só o nº).
   Cobrança: ele está entre mensal, único e leilão — recomendei MENSAL fixo (1º mês mais barato; leilão só se tiver fila).
+  Dia da marca NÃO tira o mensal: home só da marca do dia · LED alternando as duas · competição e O MARTELO seguem com a do mês.
   Mockup 2: `node scripts/mockup-patrocinio-2.mjs` → `scripts/mockups/patrocinio-2.png`.
 
 ## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 9,90 (16/10) — ⏳ A FAZER
