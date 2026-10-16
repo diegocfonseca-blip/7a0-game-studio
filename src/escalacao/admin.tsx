@@ -339,75 +339,54 @@ function SalasExtrasAdmin() {
 // sozinho o automático (Craque, Lenda, salas extras, tudo do Lenda no Batismo/Fundador). Aqui: o que caiu, quem deixou
 // WhatsApp, o "🖋 Batismos pra fazer" (o que a pessoa escreveu de como imagina o clube) e o Pix de teste de R$ 1.
 type PedidoMp = { id: string; email: string; produto: string; valor: number; status: string; telefone: string | null; criado_em: string; pago_em: string | null; liberado_por: string | null; briefing: Record<string, string> | null }
-// ⚡ DIA DA MARCA (16/10): o Diego marca a data e a marca; naquele dia a Copa dos 8 sai "apresentada por…" pra todo mundo
-function DiaMarcaAdmin() {
-  const [lista, setLista] = useState<{ dia: string; nome: string; emoji: string }[]>([])
-  const [dia, setDia] = useState(() => new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10))
-  const [nome, setNome] = useState('')
+// ⏱️ ANÚNCIOS PAGOS DE 24 H (16/10, Diego: "todo anúncio dura 24h desde que colocado no ar"): ⚡ Dia da marca (Copa dos 8
+// "apresentada por…") e 📣 Anúncio do dia (letreiro). O Diego escolhe QUANDO entra no ar (padrão: agora) e ele sai sozinho 24 h
+// depois. Os manuais (mensal, como a Vadico) continuam no código (`patrocinio.ts`), até ele trocar.
+type AnuncioAdm = { id: number; tipo: string; texto: string; emoji: string; inicio: string; fim: string }
+const agoraLocal = () => { const d = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000); return d.toISOString().slice(0, 16) }
+const quando = (iso: string) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' }) {
+  const marca = tipo === 'marca'
+  const [lista, setLista] = useState<AnuncioAdm[]>([])
+  const [inicio, setInicio] = useState(agoraLocal)
+  const [texto, setTexto] = useState('')
   const [emoji, setEmoji] = useState('⭐')
   const [msg, setMsg] = useState('')
   const carregar = async () => {
-    const hoje = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10)
-    const { data } = await supabase.from('esc_dia_marca').select('dia, nome, emoji').gte('dia', hoje).order('dia')
-    setLista((data ?? []) as { dia: string; nome: string; emoji: string }[])
+    const { data } = await supabase.from('esc_anuncios').select('id, tipo, texto, emoji, inicio, fim').eq('tipo', tipo).gt('fim', new Date().toISOString()).order('inicio')
+    setLista((data ?? []) as AnuncioAdm[])
   }
   useEffect(() => { carregar() }, [])
-  const salvar = async (d: string, n: string, e: string) => {
-    const { data, error } = await supabase.rpc('esc_admin_dia_marca', { p_dia: d, p_nome: n, p_emoji: e })
-    setMsg(error ? `❌ ${error.message}` : data === 'apagado' ? '🗑️ apagado' : `✅ ${d}: Copa dos 8 apresentada por ${n}`)
-    carregar()
+  const salvar = async () => {
+    const ini = new Date(inicio)
+    const { error } = await supabase.rpc('esc_admin_anuncio', { p_tipo: tipo, p_inicio: isNaN(ini.getTime()) ? null : ini.toISOString(), p_texto: texto, p_emoji: emoji })
+    setMsg(error ? `❌ ${error.message}` : `✅ no ar de ${quando(ini.toISOString())} até 24 h depois`)
+    setTexto(''); setInicio(agoraLocal()); carregar()
+  }
+  const tirar = async (r: AnuncioAdm) => {
+    if (!window.confirm(`Tirar "${r.texto}" do ar?`)) return
+    const { error } = await supabase.rpc('esc_admin_anuncio_tirar', { p_id: r.id })
+    setMsg(error ? `❌ ${error.message}` : '🗑️ tirado'); carregar()
   }
   const inp: React.CSSProperties = { background: '#fff', color: '#0C0C0C', border: '2px solid #000', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700 }
+  const agora = Date.now()
   return (
     <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>⚡ Dia da marca · Copa dos 8</p>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>No dia marcado (horário de Brasília), a Copa dos 8 sai "apresentada por" essa marca pra TODO MUNDO. Some sozinho no dia seguinte.</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>{marca ? '⚡ Dia da marca · Copa dos 8' : '📣 Anúncio do dia · letreiro'}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>{marca
+        ? 'A Copa dos 8 sai "apresentada por" essa marca pra TODO MUNDO por 24 h, contando de quando entra no ar.'
+        : 'O texto passa no letreiro "Anúncio do dia" de TODO MUNDO por 24 h, contando de quando entra no ar, antes da Vadico. Até 120 letras.'}</p>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <input type="date" value={dia} onChange={e => setDia(e.target.value)} style={inp} />
-        <input value={emoji} onChange={e => setEmoji(e.target.value)} maxLength={8} style={{ ...inp, width: 46, textAlign: 'center' }} />
-        <input value={nome} onChange={e => setNome(e.target.value)} maxLength={40} placeholder="Nome da marca" style={{ ...inp, flex: 1, minWidth: 140 }} />
-        <button disabled={!dia || nome.trim().length < 2} onClick={() => { salvar(dia, nome, emoji); setNome('') }} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer' }}>Marcar</button>
+        <input type="datetime-local" value={inicio} onChange={e => setInicio(e.target.value)} style={inp} />
+        {marca && <input value={emoji} onChange={e => setEmoji(e.target.value)} maxLength={8} style={{ ...inp, width: 46, textAlign: 'center' }} />}
+        <input value={texto} onChange={e => setTexto(e.target.value)} maxLength={marca ? 40 : 120} placeholder={marca ? 'Nome da marca' : 'Marca · Oferta do dia: …'} style={{ ...inp, flex: 1, minWidth: 160 }} />
+        <button disabled={texto.trim().length < (marca ? 2 : 4)} onClick={salvar} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer' }}>Pôr no ar</button>
       </div>
       {msg && <p style={{ fontSize: 11, fontWeight: 800, color: '#F2E8CF', margin: '8px 0 0' }}>{msg}</p>}
-      {lista.map(r => <div key={r.dia} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', marginTop: 6 }}>
-        <b>{r.dia.split('-').reverse().join('/')}</b><span style={{ flex: 1 }}>{r.emoji} {r.nome}</span>
-        <button onClick={() => window.confirm(`Tirar ${r.nome} do dia ${r.dia}?`) && salvar(r.dia, '', '')} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
-      </div>)}
-    </div>
-  )
-}
-
-// 📣 ANÚNCIO NO GIRO, 1 DIA (16/10, R$ 25 na Loja): o Diego marca a data e o texto; naquele dia ele passa no giro de todo mundo
-function GiroAnuncioAdmin() {
-  const [lista, setLista] = useState<{ dia: string; texto: string }[]>([])
-  const [dia, setDia] = useState(() => new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10))
-  const [texto, setTexto] = useState('')
-  const [msg, setMsg] = useState('')
-  const carregar = async () => {
-    const hoje = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10)
-    const { data } = await supabase.from('esc_giro_anuncio').select('dia, texto').gte('dia', hoje).order('dia')
-    setLista((data ?? []) as { dia: string; texto: string }[])
-  }
-  useEffect(() => { carregar() }, [])
-  const salvar = async (d: string, t: string) => {
-    const { data, error } = await supabase.rpc('esc_admin_giro_anuncio', { p_dia: d, p_texto: t })
-    setMsg(error ? `❌ ${error.message}` : data === 'apagado' ? '🗑️ apagado' : `✅ ${d}: "${t}" no giro`)
-    carregar()
-  }
-  const inp: React.CSSProperties = { background: '#fff', color: '#0C0C0C', border: '2px solid #000', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700 }
-  return (
-    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>📣 Anúncio no giro · 1 dia</p>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>No dia marcado (horário de Brasília), o texto passa em branco no giro da rodada de TODO MUNDO, antes do mensal. Some sozinho no dia seguinte. Até 120 letras.</p>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <input type="date" value={dia} onChange={e => setDia(e.target.value)} style={inp} />
-        <input value={texto} onChange={e => setTexto(e.target.value)} maxLength={120} placeholder="Marca · Oferta do dia: …" style={{ ...inp, flex: 1, minWidth: 180 }} />
-        <button disabled={!dia || texto.trim().length < 4} onClick={() => { salvar(dia, texto); setTexto('') }} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer' }}>Marcar</button>
-      </div>
-      {msg && <p style={{ fontSize: 11, fontWeight: 800, color: '#F2E8CF', margin: '8px 0 0' }}>{msg}</p>}
-      {lista.map(r => <div key={r.dia} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', marginTop: 6 }}>
-        <b>{r.dia.split('-').reverse().join('/')}</b><span style={{ flex: 1 }}>{r.texto}</span>
-        <button onClick={() => window.confirm(`Tirar o anúncio do dia ${r.dia}?`) && salvar(r.dia, '')} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
+      {lista.map(r => <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', marginTop: 6 }}>
+        <b style={{ flex: 'none' }}>{Date.parse(r.inicio) <= agora ? '🟢 no ar' : '⏳ ' + quando(r.inicio)}</b>
+        <span style={{ flex: 1 }}>{marca ? r.emoji + ' ' : ''}{r.texto} <small style={{ opacity: .6 }}>· até {quando(r.fim)}</small></span>
+        <button onClick={() => tirar(r)} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
       </div>)}
     </div>
   )
@@ -1255,7 +1234,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><DiaMarcaAdmin /><GiroAnuncioAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

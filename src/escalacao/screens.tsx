@@ -7593,7 +7593,7 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
   // O botão "Anuncie aqui" abre a Loja na seção de anúncio. Sem anunciante, o próprio letreiro oferece o espaço.
   const anuncios = useAnunciosGiro()
   const en = getLang() === 'en'
-  const list = anuncios.length ? anuncios : [en ? '📣 This space can be yours · Advertise here' : '📣 Este espaço pode ser seu · Anuncie aqui']
+  const list = anuncios.length ? anuncios : [en ? '📣 This space can be yours' : '📣 Este espaço pode ser seu']
   const key = list.join('|')
   // devagar, pra dar tempo de ler o anúncio inteiro (16/10: "deixar o texto completo passar de forma devagar")
   const chars = list.reduce((n, h) => n + h.length + 4, 0)
@@ -7611,9 +7611,12 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
 .giro-parado{display:none}
 @media (prefers-reduced-motion:reduce){.giro-corre{display:none}.giro-parado{display:flex;align-items:center;height:100%;padding:0 12px;animation:giroFade .35s ease}}`}</style>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 10px 5px', background: CREAM, borderBottom: `3px solid ${INK}` }}>
-        <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{en ? '📢 Ad of the day' : '📢 Anúncio do dia'}</span>
-        {/* o botão só aparece onde a seção de anúncio da Loja existe (patrocinioLojaOk) — senão seria um botão que não leva a nada */}
-        {patrocinioLojaOk() && <LojaButton ancora="loja-marca" className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK, background: GOLD, border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', cursor: 'pointer' }}>{en ? 'Advertise here ›' : 'Anuncie aqui ›'}</LojaButton>}
+        {/* 16/10 (Diego): "tire esse Anuncie aqui, porque já tem Anúncio do dia" → o próprio título leva pra Loja (onde a seção
+            de anúncio existe); pros outros é só o título */}
+        {patrocinioLojaOk()
+          ? <LojaButton ancora="loja-marca" className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>{en ? '📢 Ad of the day ›' : '📢 Anúncio do dia ›'}</LojaButton>
+          : <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{en ? '📢 Ad of the day' : '📢 Anúncio do dia'}</span>}
+
       </div>
       <div className="giro-led">
         <div key={key} className="giro-corre" style={{ animationDuration: `${dur}s` }}>

@@ -1,7 +1,11 @@
 ## 📢 O GIRO DA RODADA ACABOU: AGORA É "ANÚNCIO DO DIA" (16/10) — ✅ NO AR
 - Diego: *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*. O letreiro
   (`GiroDaRodada`, screens.tsx) mostra SÓ anúncio (avulso do dia `esc_giro_anuncio` + mensal `GIRO_ANUNCIO`), dourado e devagar.
-  Título "📢 ANÚNCIO DO DIA" + botão "ANUNCIE AQUI ›" que abre a Loja na seção de anúncio. Sem anunciante: "Este espaço pode ser seu".
+  Título "📢 ANÚNCIO DO DIA" (o botão "Anuncie aqui" SAIU — *"tire esse Anuncie aqui, já tem anúncio do dia"*; o próprio título
+  leva pra Loja onde a seção existe). Sem anunciante: "Este espaço pode ser seu".
+- ⏱️ **REGRA (16/10): anúncio PAGO dura 24 h desde que entra no ar**; só os MANUAIS (mensal, tipo Vadico, no código) ficam até o
+  Diego trocar. Tabela única `esc_anuncios` (tipo 'marca' = Dia da marca na Copa dos 8 · 'giro' = Anúncio do dia), #admin com
+  "Pôr no ar" (data/hora, padrão agora) e "tirar". `esc_dia_marca`/`esc_giro_anuncio` ficaram vazias e sem uso.
   Nada de "Clássico da sala"/resultado ali. `traduzManchete`/`corDoLed` ficaram exportadas caso ele queira o giro de volta.
 - ⚠️ O botão "Anuncie aqui" só aparece onde a seção "Sua marca no jogo" da Loja existe — hoje só nas contas do Diego
   (`PATROCINIO_GERAL = false`). Pra ele aparecer pra TODOS, ligar `PATROCINIO_GERAL` (falta o OK dele: quem não tem o Pix MP

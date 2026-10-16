@@ -52,73 +52,53 @@ export function patrocinioLojaOk(): boolean {
   return PATROCINIO_GERAL || PATROCINIO_TESTERS.has((loggedEmail() ?? '').toLowerCase())
 }
 
-// ⚡ DIA DA MARCA (16/10, Diego: "dia da marca… terá nome apresentado por na Copa dos 8 também, naming rights"): o Diego marca
-// no #admin a DATA e a marca (`esc_dia_marca`); naquele dia (horário de Brasília) a Copa dos 8 sai "apresentada por…" pra
-// TODO MUNDO — é patrocínio pago, não teste. Uma leitura pequena por sessão (sem canal, sem repetição: regra do tráfego).
-let diaMarca: { dia: string; marca: Patrocinio | null } | null = null
+// ⏱️ ANÚNCIOS AVULSOS PAGOS (16/10, regra do Diego: *"todo anúncio dura 24h desde que colocado no ar… somente anúncios manuais
+// como da Vadico ficam direto até eu alterar"*). O Diego põe no ar pelo #admin (`esc_anuncios`: tipo 'marca' = Dia da marca na
+// Copa dos 8 · tipo 'giro' = Anúncio do dia no letreiro) e cada um vale 24 h a partir do `inicio`. Os MANUAIS (mensal, como a
+// Vadico) moram no código e ficam até ele trocar. Leitura pequena: uma por sessão, refeita no máximo a cada 30 min (tráfego).
+type Avulso = { tipo: 'giro' | 'marca'; texto: string; emoji: string; inicio: number; fim: number }
+let avulsos: Avulso[] = []
+let lidoEm = 0
 let pedindo: Promise<void> | null = null
 const ouvintes = new Set<() => void>()
-const hojeBrasilia = () => new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10)
-function carregaDiaMarca(): Promise<void> {
-  const hoje = hojeBrasilia()
-  if (diaMarca?.dia === hoje) return Promise.resolve()
+function carregaAvulsos(): Promise<void> {
+  if (Date.now() - lidoEm < 30 * 60_000) return Promise.resolve()
   if (pedindo) return pedindo
   pedindo = (async () => {
     try {
-      const { data } = await supabase.from('esc_dia_marca').select('nome, emoji').eq('dia', hoje).maybeSingle()
-      diaMarca = { dia: hoje, marca: data?.nome ? { nome: String(data.nome), emoji: String(data.emoji ?? '⭐') } : null }
-    } catch { diaMarca = { dia: hoje, marca: null } }
-    pedindo = null
+      const { data } = await supabase.from('esc_anuncios').select('tipo, texto, emoji, inicio, fim').gt('fim', new Date().toISOString()).order('inicio').limit(20)
+      avulsos = ((data ?? []) as { tipo: string; texto: string; emoji: string; inicio: string; fim: string }[])
+        .map(r => ({ tipo: r.tipo === 'marca' ? 'marca' : 'giro', texto: String(r.texto), emoji: String(r.emoji ?? '⭐'), inicio: Date.parse(r.inicio), fim: Date.parse(r.fim) }) as Avulso)
+    } catch { avulsos = [] }
+    lidoEm = Date.now(); pedindo = null
     ouvintes.forEach(f => { try { f() } catch { /* ignora */ } })
   })()
   return pedindo
 }
-/** hook do palco: a marca do mês (código) ou, na Copa dos 8, a marca do DIA (banco) */
-export function usePatrocinio(kind: Competicao): Patrocinio | null {
+const noAr = (tipo: Avulso['tipo']) => { const t = Date.now(); return avulsos.filter(a => a.tipo === tipo && a.inicio <= t && t < a.fim) }
+function useAvulsos(ligado = true) {
   const [, re] = useState(0)
   useEffect(() => {
-    if (kind !== 'copa8') return
+    if (!ligado) return
     const f = () => re(n => n + 1)
-    ouvintes.add(f); carregaDiaMarca()
+    ouvintes.add(f); carregaAvulsos()
     return () => { ouvintes.delete(f) }
-  }, [kind])
-  if (kind === 'copa8' && diaMarca?.dia === hojeBrasilia() && diaMarca.marca) return diaMarca.marca
+  }, [ligado])
+}
+
+/** hook do palco: a marca do mês (código) ou, na Copa dos 8, o ⚡ Dia da marca que está no ar (banco, 24 h) */
+export function usePatrocinio(kind: Competicao): Patrocinio | null {
+  useAvulsos(kind === 'copa8')
+  const m = kind === 'copa8' ? noAr('marca')[0] : undefined
+  if (m) return { nome: m.texto, emoji: m.emoji }
   return patrocinioDe(kind)
 }
 
-// 📣 Anúncio no GIRO DA RODADA (16/10, Diego: *"o giro da rodada pode servir mais de propaganda do que qualquer coisa… deixar
-// o texto completo passar devagar"*). Entra como UMA manchete a mais no letreiro, depois das notícias da rodada, em branco
-// (as notícias são âmbar) pra ninguém confundir anúncio com resultado. O texto é o que a marca manda.
-const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio'
-// 📣 E o anúncio AVULSO de 1 dia (R$ 25 na Loja): o Diego marca no #admin a data e o texto (`esc_giro_anuncio`); naquele dia
-// (Brasília) ele passa no giro de todo mundo, antes do mensal. Uma leitura pequena por dia (regra do tráfego).
-let giroDia: { dia: string; texto: string | null } | null = null
-let pedindoGiro: Promise<void> | null = null
-const ouvintesGiro = new Set<() => void>()
-function carregaGiroDia(): Promise<void> {
-  const hoje = hojeBrasilia()
-  if (giroDia?.dia === hoje) return Promise.resolve()
-  if (pedindoGiro) return pedindoGiro
-  pedindoGiro = (async () => {
-    try {
-      const { data } = await supabase.from('esc_giro_anuncio').select('texto').eq('dia', hoje).maybeSingle()
-      giroDia = { dia: hoje, texto: data?.texto ? String(data.texto) : null }
-    } catch { giroDia = { dia: hoje, texto: null } }
-    pedindoGiro = null
-    ouvintesGiro.forEach(f => { try { f() } catch { /* ignora */ } })
-  })()
-  return pedindoGiro
-}
-/** os anúncios que passam no giro hoje: o avulso do dia (banco, pra todos) + o mensal (código) */
+// 📢 ANÚNCIO DO DIA (o letreiro que era o giro da rodada): o avulso pago (24 h) passa antes do manual.
+const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio' // manual: fica até o Diego trocar
 export function useAnunciosGiro(): string[] {
-  const [, re] = useState(0)
-  useEffect(() => {
-    const f = () => re(n => n + 1)
-    ouvintesGiro.add(f); carregaGiroDia()
-    return () => { ouvintesGiro.delete(f) }
-  }, [])
-  const out: string[] = []
-  if (giroDia?.dia === hojeBrasilia() && giroDia.texto) out.push('📣 ' + giroDia.texto)
+  useAvulsos()
+  const out = noAr('giro').map(a => '📣 ' + a.texto)
   if (espacosOk() && GIRO_ANUNCIO) out.push(GIRO_ANUNCIO)
   return out
 }
