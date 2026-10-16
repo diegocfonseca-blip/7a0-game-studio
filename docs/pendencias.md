@@ -1,3 +1,12 @@
+## 🔨 PREGÃO ABERTO — o 3º jeito de dar lance (16/10) — ⏳ mockup enviado, esperando OK
+Ideia do Diego: leilão aberto clássico, UMA carta por vez, lance à vista ("dou 10… 11… uma, duas, três, vendido"), e ninguém
+sabe qual carta vem depois. Medo dele: 20 pessoas = 20 goleiros e o 1º que pegar fica esperando. Respondido: o baralho dá de
+sobra (só o BR tem 82 GOL · 90 LAT · 93 ZAG · 198 MEI · 240 ATA; o Envelope de 20 já tira 220 cartas), o problema é TEMPO.
+Proposta no mockup (`scripts/mockup-pregao-aberto.mjs` → `scripts/mockups/pregao-aberto.png`): ordem das POSIÇÕES embaralhada
+(ninguém fica parado: quem já tem goleiro briga pelas outras), martelo em 6s sem lance novo, quem já fechou a posição só
+assiste (trava explicada), botões +1/+2/+5/outro valor, lista dos últimos lances, campinho do que falta. ~25 min com 20 pessoas,
+~10 com 6–8. Encaixa como "jeito do lance" ao lado de ✉️ Envelope e 🐊 Tocaia; Monte/cerimônia/temporada os de sempre.
+
 ## 🛒 Painel do Criador: "Quem quase comprou" (16/10) — ✅ NO AR
 Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas na lista dos 40 últimos, afogados por
 "abriu o modo manual"/"abriu a loja" (267/225 em 3 dias). Caixa nova `QuaseComprouAdmin` (admin.tsx). Diego corrigiu na hora: *"abriu Pix também — é importante saber
