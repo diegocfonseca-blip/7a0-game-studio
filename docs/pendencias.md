@@ -1,3 +1,9 @@
+## 🧑‍💼 PRESIDENTE LIBERADO PRA TODOS (16/10) — ✅ NO AR
+- Diego: *"já pode publicar p todos p personagem"* → `PRESIDENTE_CONTA_GERAL = true`. Vale: editor na 🛒 Loja (régua por plano) + Presidência da carreira.
+- ⚠️ Os OUTROS lugares do mockup (lista de técnicos, chat, martelo, capa do O MARTELO, Central, perfil) AINDA NÃO desenham o boneco — a fazer.
+  Pra isso a sala precisa ler o boneco dos OUTROS (hoje a RLS de `esc_presidente` só deixa ler o próprio).
+- Reverter: `PRESIDENTE_CONTA_GERAL = false` em `presidente-conta.ts`.
+
 ## 💼 Patrocínio de verdade (marca real) — 3 espaços (16/10) — 👀 MOCKUP ENVIADO
 - 1) nome da competição ("apresentada por") · 2) LED do estádio + linha embaixo do placar · 3) anúncio no pé do O MARTELO.
 - Uma marca por espaço (ele cortou o patrocinador DENTRO do jogo por excesso). Sem casa de aposta no começo (lei + menores).
