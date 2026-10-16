@@ -90,4 +90,35 @@ export function usePatrocinio(kind: Competicao): Patrocinio | null {
 // o texto completo passar devagar"*). Entra como UMA manchete a mais no letreiro, depois das notícias da rodada, em branco
 // (as notícias são âmbar) pra ninguém confundir anúncio com resultado. O texto é o que a marca manda.
 const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio'
-export function anuncioDoGiro(): string | null { return espacosOk() ? GIRO_ANUNCIO : null }
+// 📣 E o anúncio AVULSO de 1 dia (R$ 25 na Loja): o Diego marca no #admin a data e o texto (`esc_giro_anuncio`); naquele dia
+// (Brasília) ele passa no giro de todo mundo, antes do mensal. Uma leitura pequena por dia (regra do tráfego).
+let giroDia: { dia: string; texto: string | null } | null = null
+let pedindoGiro: Promise<void> | null = null
+const ouvintesGiro = new Set<() => void>()
+function carregaGiroDia(): Promise<void> {
+  const hoje = hojeBrasilia()
+  if (giroDia?.dia === hoje) return Promise.resolve()
+  if (pedindoGiro) return pedindoGiro
+  pedindoGiro = (async () => {
+    try {
+      const { data } = await supabase.from('esc_giro_anuncio').select('texto').eq('dia', hoje).maybeSingle()
+      giroDia = { dia: hoje, texto: data?.texto ? String(data.texto) : null }
+    } catch { giroDia = { dia: hoje, texto: null } }
+    pedindoGiro = null
+    ouvintesGiro.forEach(f => { try { f() } catch { /* ignora */ } })
+  })()
+  return pedindoGiro
+}
+/** os anúncios que passam no giro hoje: o avulso do dia (banco, pra todos) + o mensal (código) */
+export function useAnunciosGiro(): string[] {
+  const [, re] = useState(0)
+  useEffect(() => {
+    const f = () => re(n => n + 1)
+    ouvintesGiro.add(f); carregaGiroDia()
+    return () => { ouvintesGiro.delete(f) }
+  }, [])
+  const out: string[] = []
+  if (giroDia?.dia === hojeBrasilia() && giroDia.texto) out.push('📣 ' + giroDia.texto)
+  if (espacosOk() && GIRO_ANUNCIO) out.push(GIRO_ANUNCIO)
+  return out
+}

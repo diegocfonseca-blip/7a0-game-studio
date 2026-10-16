@@ -14,6 +14,7 @@ const NOMES: Record<string, string> = {
   salas_extras: '3 salas extras', teste: 'Teste de pagamento',
   moedas_10: '30 moedas', moedas_50: '150 moedas', moedas_100: '300 moedas', canto: 'Canto da torcida', presente: 'Presente de plano',
   moedas_500: '1.500 moedas', moedas_1000: '3.000 moedas', dia_marca: 'Dia da marca', // 16/10 (publicado com o OK do Diego)
+  giro_dia: 'Anúncio no giro (1 dia)', // 16/10: Diego pediu o anúncio de 25 na Loja
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60

@@ -51,11 +51,12 @@ const GANHO: Record<PlanoUnico, [string, string]> = {
 type Item = { id: string; amount: number; ctx: string; msgPt: string; msgEn: string }
 
 /** `naCarreira`: aberta de DENTRO da carreira (Clube › Finanças) — as moedas caem direto no caixa da carreira aberta */
-export function LojaButton({ className, style, children, naCarreira = false }: { className?: string; style?: React.CSSProperties; children?: React.ReactNode; naCarreira?: boolean }) {
+/** `ancora`: id de uma seção da Loja pra já abrir rolada nela (ex.: 'loja-marca', o "📣 Anuncie aqui" do giro) */
+export function LojaButton({ className, style, children, naCarreira = false, ancora }: { className?: string; style?: React.CSSProperties; children?: React.ReactNode; naCarreira?: boolean; ancora?: string }) {
   const [aberta, setAberta] = useState(false)
   return <>
-    <button className={className} style={style} onClick={() => { logApoio(naCarreira ? '🛒 abriu a loja (carreira)' : '🛒 abriu a loja'); setAberta(true) }}>{children ?? tr('🛒 LOJA', '🛒 SHOP')}</button>
-    {aberta && <Loja onClose={() => setAberta(false)} naCarreira={naCarreira} />}
+    <button className={className} style={style} onClick={() => { logApoio(ancora ? `🛒 abriu a loja (${ancora})` : naCarreira ? '🛒 abriu a loja (carreira)' : '🛒 abriu a loja'); setAberta(true) }}>{children ?? tr('🛒 LOJA', '🛒 SHOP')}</button>
+    {aberta && <Loja onClose={() => setAberta(false)} naCarreira={naCarreira} ancora={ancora} />}
   </>
 }
 
@@ -94,9 +95,14 @@ function ResgateFicha() {
 }
 
 // 💳 item da Loja → produto do Pix do Mercado Pago (15/10): salas extras, canto e moedas já vão pelo Pix novo
-const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : id === 'dia-marca' ? 'dia_marca' : null
-function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira?: boolean }) {
+const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : id === 'dia-marca' ? 'dia_marca' : id === 'giro-dia' ? 'giro_dia' : null
+function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; naCarreira?: boolean; ancora?: string }) {
   const pixMp = usePixMp()
+  useEffect(() => {
+    if (!ancora) return
+    const t = setTimeout(() => document.getElementById(ancora)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120)
+    return () => clearTimeout(t)
+  }, [ancora])
   const { state: esc, dispatch: escDispatch } = useEsc()
   const naCarr = naCarreira && !!esc.careerOnline && esc.onlineMode !== 'online'
   // 🏦 comprou de DENTRO da carreira: a ficha do Pix é resgatada sozinha e cai no caixa da carreira aberta (16/10, Diego:
@@ -222,7 +228,7 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
         {/* 💼 SUA MARCA NO JOGO (16/10, Diego): ⚡ Dia da marca pago no Pix (depois chama o Diego) · 📅 mensal SEM preço, só o que
             vem no pacote e o contato. Começa só nas contas do Diego (`patrocinioLojaOk`). */}
         {patrocinioLojaOk() && <>
-          <h2 style={h2}>{tr('💼 Sua marca no jogo', '💼 Your brand in the game')} <span style={sub}>{tr('pra empresas', 'for businesses')}</span></h2>
+          <h2 id="loja-marca" style={h2}>{tr('💼 Sua marca no jogo', '💼 Your brand in the game')} <span style={sub}>{tr('pra empresas', 'for businesses')}</span></h2>
           <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
             <span style={{ fontSize: 30 }}>⚡</span>
             <div style={{ flex: 1 }}>
@@ -230,6 +236,16 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
               <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Por 24 horas sua marca leva os naming rights da Copa dos 8 ("Copa dos 8 apresentada por…"), ganha o destaque da home, com bio e cupom, e passa no LED do estádio. Vem junto um post no Instagram e um aviso na comunidade dos fãs. Depois do Pix, você combina o dia com o Diego.', 'For 24 hours your brand gets the Copa dos 8 naming rights ("Copa dos 8 presented by…"), the home spotlight, with bio and coupon, and runs on the stadium LED. It also comes with an Instagram post and an announcement in the fans’ community. After the Pix, you set the day with Diego.')}</small>
             </div>
             <button onClick={() => setComprando({ id: 'dia-marca', amount: 50, ctx: 'loja · dia da marca', msgPt: 'Opa! Comprei o ⚡ DIA DA MARCA (R$ 50). Minha marca: ____', msgEn: 'Hey! I bought the ⚡ BRAND DAY (R$ 50). My brand: ____' })} style={preco}>{reais(50)}</button>
+          </div>
+          {/* 📣 ANÚNCIO NO GIRO, 1 DIA (16/10, Diego: "por 25 na lojinha embaixo do anúncio do dia de 50"; o "Anuncie aqui" do giro
+              abre a Loja nesta seção) */}
+          <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center', marginTop: 8 }}>
+            <span style={{ fontSize: 30 }}>📣</span>
+            <div style={{ flex: 1 }}>
+              <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Anúncio no giro · 1 dia', 'Ticker ad · 1 day')}</b>
+              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Por 24 horas o seu texto passa no letreiro do giro da rodada, em todas as salas, junto das notícias dos jogos. Ex.: "Sua marca · Oferta do dia: …". Depois do Pix, você combina o dia e o texto com o Diego.', 'For 24 hours your text runs on the round ticker, in every room, right next to the match news. E.g. "Your brand · Deal of the day: …". After the Pix, you set the day and the text with Diego.')}</small>
+            </div>
+            <button onClick={() => setComprando({ id: 'giro-dia', amount: 25, ctx: 'loja · anúncio no giro', msgPt: 'Opa! Comprei o 📣 ANÚNCIO NO GIRO (R$ 25). Meu texto: ____', msgEn: 'Hey! I bought the 📣 TICKER AD (R$ 25). My text: ____' })} style={preco}>{reais(25)}</button>
           </div>
           <div style={{ ...card, marginTop: 8 }}>
             <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('📅 Patrocínio mensal', '📅 Monthly sponsorship')}</b>
