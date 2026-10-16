@@ -38,6 +38,11 @@
   *"ficha avulsa pode botar aí R$ 14,90"*. Mockup do cartão + 6 ideias novas pra ele escolher:
   `node scripts/mockup-loja-ideias.mjs` → `scripts/mockups/loja-ideias.png` (frase do martelo 4,90 · pacote de áudios de zoeira
   4,90 · figurinhas do chat 3,90 · capa do O MARTELO 4,90 · vitrine semanal do presidente 2,90+ · presente de avulso). ⏳ ele escolher.
+- 2ª leva de ideias (mesmo dia, ele pediu *"mais ideias"*), também só visual/zoeira, ⏳ ele escolher: 🏆 taça com nome da sala
+  online (4,90 por sala) · 👕 aposentar a camisa de um ídolo na carreira, vai pra Sala de Troféus (2,90) · ✨ carta brilhante do seu
+  craque, só no seu elenco (2,90) · 🎉 mosaico da torcida com o nome do clube no jogo do título (4,90) · 🌧️ tema da sala online
+  (noite, chuva, neve) escolhido pelo dono (4,90) · 🎙️ narrador gritando o nome do seu clube no gol, carreira (9,90) · 💌 convite de
+  sala com a arte do seu clube pra mandar no zap (1,90).
 - +1 ficha de carreira além do limite do plano (grátis 1 · Craque 2 · Lenda 4 · Batismo 4), igual às 🎟️ salas extras.
 - Vende pelo Pix do Mercado Pago (produto novo no `esc_mp_preco`/`esc_mp_entregar` + nome na edge function).
 - Mockup na Loja ANTES de codar. Nunca apagar/travar save por causa do limite.
