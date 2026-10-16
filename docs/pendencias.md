@@ -1,7 +1,9 @@
 ## 🚗 VADICO VEÍCULOS: "Champions Legends apresentada por" (16/10) — ✅ NO AR só nas contas do Diego
 - Diego: *"publique agora da Vadico Veículos pra eu ver como fica… deixe a Champions Legends apresentada por Vadico Veículos"*.
 - `src/escalacao/patrocinio.ts` (`POR_COMPETICAO`, uma marca por competição) + selo no `CompetitionStage` (online-match-visual.tsx).
-- Liberar pra todos: `PATROCINIO_GERAL = true`. Falta: logo oficial (hoje é 🚗 + nome), LED/placar, O MARTELO, Vitrine.
+- Liberar pra todos: `PATROCINIO_GERAL = true`. Falta: logo oficial (hoje é 🚗 + nome), LED do estádio, O MARTELO, Vitrine.
+- 🚫 **"Placar oferecido por" NÃO** (16/10, minha opinião aceita como pergunta dele): o placar fica limpo; o LED fica no FUNDO do
+  estádio, parado ou bem devagar. Valores mantidos: competição 300 · LED do estádio 200 · O MARTELO 150 · os 3 juntos 500 · Dia 50.
 - Combinado em conversa (16/10): vários mensais convivem — 1 marca por competição (até ~6), LED gira até 4 marcas, O MARTELO
   reveza por edição, Vitrine mostra todas. Combo proposto: competição + LED R$ 450 (esperando OK).
 

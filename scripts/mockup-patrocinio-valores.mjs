@@ -25,12 +25,12 @@ h1{margin:0;font-size:30px;text-transform:uppercase}.sub{margin:2px 0 16px;font-
 <div class="cols">
  <div class="box"><h2>📅 Mensal</h2><p class="s">A marca fica 30 dias no espaço, sem sair.</p>
   ${lin('🏆', 'Nome da competição', '"Champions Legends apresentada por…"', 'R$ 300')}
-  ${lin('🏟️', 'LED do estádio + placar', 'placa no estádio e linha embaixo do placar', 'R$ 200')}
+  ${lin('🏟️', 'LED do estádio', 'a placa no fundo do estádio, como estádio de verdade', 'R$ 200')}
   ${lin('📰', 'Anúncio no O MARTELO', 'quadro no jornal do campeão', 'R$ 150')}
-  ${lin('📦', 'Os 3 juntos', 'competição + LED/placar + O MARTELO', 'R$ 500', true)}
+  ${lin('📦', 'Os 3 juntos', 'competição + LED do estádio + O MARTELO', 'R$ 500', true)}
   <p class="nota">Toda marca mensal entra na 🏪 Vitrine dos patrocinadores, com logo, bio, Instagram e cupom.</p></div>
  <div class="box"><h2>⚡ Diário</h2><p class="s">Paga uma vez. A marca domina o jogo por 24 horas.</p>
-  ${lin('⚡', 'Dia da marca', 'cartão na home + LED dividido com a marca do mês', 'R$ 50', true)}
+  ${lin('⚡', 'Dia da marca', 'cartão na home + LED do estádio dividido com a marca do mês', 'R$ 50', true)}
   <p class="nota">Quem paga o mês nunca perde o espaço: no Dia da marca o LED alterna as duas marcas, e a competição e o O MARTELO continuam com a do mês.</p>
   <p class="nota">O Dia da marca pode ficar na 🛒 Loja com preço. O mensal só é negociado no privado.</p></div>
 </div>
