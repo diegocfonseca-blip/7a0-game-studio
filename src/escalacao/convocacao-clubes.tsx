@@ -14,6 +14,7 @@ import { useT, getLang } from './lang'
 import { JogadorNoCampo, VagaNoCampo } from './jogadorcampo' // 🧍 a MESMA peça do campinho da carreira (boneco solto na grama)
 import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
+import { logTravaSalva } from './analytics'
 import { FORMATIONS, SECTORS, duplaPodeAgir, type Card, type Sector, type WonCard } from './types'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
@@ -68,11 +69,31 @@ export function EscConvocacaoClubes() {
   const fechei = !!me && ((state.convocacaoFeitos ?? []).includes(me.id) || (emDupla && (state.convocacaoDuplaFeitos ?? []).includes(`${me.id}:${state.youUid}`)))
   const selRef = useRef(sel); selRef.current = sel
   const mandou = useRef(false)
+  // 📮 16/10 (Diego, caso do Arroganthi: "apertei fechar, não fechou e o time mudou"): o pedido de fechar ia
+  // pro dono UMA vez, sem reenvio e sem resposta na tela. Se o recado se perdia, o relógio estourava e o jogo
+  // dava o PIOR de cada pacote pra ele. Ordem dele: *"ele tem que apertar o botão e tem que funcionar fechar"*.
+  // Agora: apertou → "Enviando…" e a lista ATUAL é reenviada a cada 3s até o dono confirmar (igual ao envelope);
+  // o dono aceita a lista mais nova enquanto a convocação está aberta (reducer, CONVOCAR_CLUBES).
+  const [enviando, setEnviando] = useState(false)
+  const enviar = () => {
+    if (!me) return
+    mandou.current = true; setEnviando(true)
+    dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current), by: state.youUid })
+  }
   useEffect(() => {
     if (!me || seg === null || seg > 0 || fechei || mandou.current) return
-    mandou.current = true
-    dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current), by: state.youUid })
+    enviar()
   }, [seg, fechei]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!enviando || fechei || !me) return
+    let n = 0
+    const iv = setInterval(() => {
+      n++
+      if (n === 1 && state.onlineMode === 'online') logTravaSalva('convocacao', 2, state.roomId, state.isHost) // 🧊 1º reenvio = notícia: o 1º tiro se perdeu
+      dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(selRef.current), by: state.youUid })
+    }, 3_000)
+    return () => clearInterval(iv)
+  }, [enviando, fechei]) // eslint-disable-line react-hooks/exhaustive-deps
   const humanos = state.managers.filter(m => m.isHuman && m.modoClubes)
   const faltamFechar = humanos.filter(m => !(state.convocacaoFeitos ?? []).includes(m.id))
 
@@ -216,9 +237,10 @@ export function EscConvocacaoClubes() {
         </div>
 
         {pronto ? (
-          <button onClick={() => dispatch({ type: 'CONVOCAR_CLUBES', mgrId: me.id, cartas: Object.keys(sel), by: state.youUid })}
-            style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, ...OSWALD, background: `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: 'pointer', textTransform: 'uppercase', color: INK }}>
-            {t('✅ Fechar convocação', '✅ Close call-up')}
+          <button onClick={enviar} disabled={enviando}
+            style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 12, fontWeight: 900, fontSize: 15, ...OSWALD, background: enviando ? '#E9F5EC' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, boxShadow: `4px 4px 0 0 ${INK}`, cursor: enviando ? 'default' : 'pointer', textTransform: 'uppercase', color: INK }}>
+            {enviando ? t('⏳ Enviando pro dono da sala…', '⏳ Sending to the room owner…') : t('✅ Fechar convocação', '✅ Close call-up')}
+            {enviando && <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, fontFamily: 'system-ui', textTransform: 'none', marginTop: 2 }}>{t('Sua lista está guardada e vai de novo a cada 3s até ele confirmar. Pode ajustar: vale a última.', 'Your list is kept and re-sent every 3s until they confirm. You can still adjust: the latest one counts.')}</span>}
           </button>
         ) : (
           <div style={{ width: '100%', border: `3px solid ${INK}`, borderRadius: 14, padding: 11, fontWeight: 900, fontSize: 13, ...OSWALD, background: '#CBBF9E', color: 'rgba(0,0,0,.55)', textAlign: 'center', textTransform: 'uppercase' }}>

@@ -1,3 +1,14 @@
+## 📮 FECHAR CONVOCAÇÃO DO LEILÃO DE CLUBES NÃO FECHAVA (16/10, Arroganthi) — ✅ NO AR
+- Relato: *"tinha selecionado os jogadores… não deixou eu confirmar o time e todos os selecionados mudaram"* (sala QRNW8G,
+  7 pessoas, noite de 14→15/10, a sala toda engasgando). O pedido "Fechar convocação" do convidado ia pro dono UMA vez, sem
+  reenvio e sem resposta na tela; perdido, o relógio dos 90s estourava e ele levava o PIOR de cada pacote. E o dono "valia a 1ª"
+  lista: se o envio automático dos 0s saía pela metade, o Fechar de depois era ignorado.
+- Ordem do Diego: *"ele tem que apertar o botão e tem que funcionar fechar"*. Feito: o botão vira "⏳ Enviando pro dono…" e
+  reenvia a lista ATUAL a cada 3s até o dono confirmar (`convocacao-clubes.tsx`); o dono aceita a lista mais NOVA enquanto a
+  convocação está aberta (`CONVOCAR_CLUBES`, só fora de dupla). O 1º reenvio registra `esc_travas_salvas` fase 'convocacao'
+  (evidência pra próxima vez — o `room_acoes` é apagado pelo dono e não serve de prova). Trava das duplas (`npm run duplas`) ok.
+
+
 ## 15/10/2026 — Presidência: candidata à publicação privada autorizada
 
 - Diego pediu **“Publique tudo no meu usuário q fez até agora”**. Isso substitui
