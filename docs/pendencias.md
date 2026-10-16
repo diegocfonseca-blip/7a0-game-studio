@@ -1,3 +1,9 @@
+## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 9,90 (16/10) — ⏳ A FAZER
+- Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*.
+- +1 ficha de carreira além do limite do plano (grátis 1 · Craque 2 · Lenda 4 · Batismo 4), igual às 🎟️ salas extras.
+- Vende pelo Pix do Mercado Pago (produto novo no `esc_mp_preco`/`esc_mp_entregar` + nome na edge function).
+- Mockup na Loja ANTES de codar. Nunca apagar/travar save por causa do limite.
+
 ## 🛒 Painel do Criador: "Quem quase comprou" (16/10) — ✅ NO AR
 Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas na lista dos 40 últimos, afogados por
 "abriu o modo manual"/"abriu a loja" (267/225 em 3 dias). Caixa nova `QuaseComprouAdmin` (admin.tsx). Diego corrigiu na hora: *"abriu Pix também — é importante saber
