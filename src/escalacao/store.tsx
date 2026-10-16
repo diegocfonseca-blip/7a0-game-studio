@@ -6066,8 +6066,14 @@ function holResgate(state: EscState) {
 // `cpuEnvelope`, carta a carta, e vão cobrindo de 1 em 1 até o teto deles.
 // 👑 No online (quando for ligado): quem roda o relógio e o martelo é SÓ o dono da sala; o convidado roteia o lance.
 export const PA_MARTELO_MS = 5_000 // 🔁 16/10: era 6s; ele pediu pra encurtar e cravou: "eu falei 5s p martelar"
-export const PA_TICK_MS = 1_000
-export const PA_ABERTURA = 1
+export const PA_TICK_MS = 500 // 🔁 16/10 (Diego: "muito lento"): o robô age a cada meio segundo, não a cada segundo
+/** 💰 A CARTA JÁ ABRE NO PREÇO DA CATEGORIA (16/10, números do Diego: "lenda já abrir em 10, craque em 5, promessa 4,
+ * bom jogador 3, profissional 1"). Ninguém mais sobe de 1 em 1 desde o 1 — é o lance mínimo da carta na mesa. */
+export function paAbertura(c: { fame?: number; promessa?: boolean }): number {
+  if (c.promessa) return 4
+  const f = c.fame ?? 1
+  return f >= 5 ? 10 : f === 4 ? 5 : f === 3 ? 3 : 1
+}
 
 function paRobosQueDisputam(state: EscState): Manager[] {
   return state.managers.filter(m => !m.isHuman && (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu))))
@@ -6081,7 +6087,7 @@ function paRobosQueDisputam(state: EscState): Manager[] {
  * (`fairPrice`, como no envelope) e NUNCA passa de 35% do caixa numa carta só (40% se for lenda). */
 function paTeto(m: Manager, card: Card, rng: () => number, econ: number): number {
   const vagas = SECTORS.reduce((s, p) => s + openSlots(m, p), 0)
-  if (vagas <= 0 || m.money < PA_ABERTURA) return 0
+  if (vagas <= 0 || m.money < paAbertura(card)) return 0
   const media = m.money / vagas
   const cat = card.promessa ? 1.4 : card.fame >= 5 ? 2.6 : card.fame === 4 ? 1.8 : card.fame === 3 ? 1.1 : card.fame === 2 ? 0.8 : 0.5
   let hh = 2166136261; const chave = `${m.id}|${card.name}|${card.club}|${card.year}`
@@ -6091,6 +6097,11 @@ function paTeto(m: Manager, card: Card, rng: () => number, econ: number): number
   let teto = media * cat * tempero * vontade
   const vale = fairPrice(perceived(card, rng)) * (0.85 + m.aggression * 0.5 + rng() * 0.3) * (econ > 0 ? econ : 1)
   teto = Math.min(teto, vale, m.money * (card.fame >= 5 ? 0.4 : 0.35))
+  // 💰 com a abertura por categoria, o bot de caixa curto no fim do pregão ficava ABAIXO da abertura e nem entrava —
+  // e terminava com 9 jogadores. Se ele precisa da vaga e o caixa cobre a abertura E ainda sobra pro resto das vagas,
+  // ele topa pelo menos a abertura (é o que uma pessoa faria: "tenho 7, o mínimo é 5, pego o cara").
+  const ab = paAbertura(card)
+  if (teto < ab && m.money >= ab + (vagas - 1) * 2) teto = ab
   const piso = (card as { paid?: number }).paid ?? 0
   if (piso > 0 && teto + 3 < piso) return 0 // listado caro demais pra ele: nem entra
   return Math.max(0, Math.floor(Math.min(teto, m.money)))
@@ -6111,13 +6122,14 @@ function paTetos(state: EscState, card: Card): Record<number, number> {
   for (const m of paRobosQueDisputam(state)) {
     if (openSlots(m, card.pos) <= 0 || m.money <= 0) continue
     const t = paTeto(m, card, rng, econ)
-    if (t >= PA_ABERTURA) tetos[m.id] = t
+    if (t >= paAbertura(card)) tetos[m.id] = t // vale menos que a abertura pra ele? não entra na briga
   }
   return tetos
 }
 /** alguém (gente ou robô) ainda tem vaga e dinheiro pra esta posição? senão a carta nem entra na mesa */
-function paAlguemQuer(state: EscState, pos: Sector): boolean {
-  return state.managers.some(m => openSlots(m, pos) > 0 && m.money >= PA_ABERTURA && (m.isHuman ? !m.dormindo : (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu)))))
+function paAlguemQuer(state: EscState, card: Card): boolean {
+  const pos = card.pos
+  return state.managers.some(m => openSlots(m, pos) > 0 && m.money >= paAbertura(card) && (m.isHuman ? !m.dormindo : (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu)))))
 }
 function abrePregaoAberto(state: EscState) {
   const rng = rngOf(state)
@@ -6139,7 +6151,7 @@ function paProximaCarta(state: EscState) {
     pa.idx++
     if (pa.idx >= pa.fila.length) { paFecha(state); return }
     const card = pa.fila[pa.idx]
-    if (!paAlguemQuer(state, card.pos)) { pa.sobras.push(card); continue } // ninguém pode: nem perde tempo na mesa
+    if (!paAlguemQuer(state, card)) { pa.sobras.push(card); continue } // ninguém pode: nem perde tempo na mesa
     state.currentCards = [card]
     state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos))
     pa.preco = 0; pa.lider = null; pa.lances = []
@@ -6149,7 +6161,12 @@ function paProximaCarta(state: EscState) {
   }
 }
 /** o lance mínimo de agora: 1 pra abrir, senão o atual + 1 */
-export function paMinimo(state: EscState): number { return state.pa && state.pa.lider !== null ? state.pa.preco + 1 : PA_ABERTURA }
+export function paMinimo(state: EscState): number {
+  if (!state.pa) return 1
+  if (state.pa.lider !== null) return state.pa.preco + 1
+  const card = state.currentCards[0]
+  return card ? paAbertura(card) : 1
+}
 /** a tela pergunta isto pra acender os botões — a MESMA régua que o motor usa pra aceitar o lance */
 export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?: string): boolean {
   const pa = state.pa
@@ -6185,7 +6202,8 @@ function paTick(state: EscState) {
   const m = cands[Math.floor(rng() * cands.length)]
   const folga = pa.tetos[m.id] - minimo
   // abrir é fácil; cobrir fica mais difícil conforme chega perto do teto
-  const chance = pa.lider === null ? 0.75 : Math.min(0.85, 0.35 + folga * 0.08 + m.aggression * 0.25)
+  // (tique de 0,5s: a chance por tique é menor que a de antes por segundo, mas são dois tiques por segundo)
+  const chance = pa.lider === null ? 0.75 : Math.min(0.85, 0.4 + folga * 0.08 + m.aggression * 0.2)
   if (rng() >= chance) return
   // ⏱️ ritmo (16/10, Diego: "reduzir mais o tempo"): quem ABRE já abre com um lance de verdade ("dou 8!"), uma fatia do
   // próprio teto — não começa em 1 e sobe de 1 em 1 até lá. E com folga o robô pula 2 ou 3 em vez de 1.

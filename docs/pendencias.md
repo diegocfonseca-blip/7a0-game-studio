@@ -26,6 +26,12 @@ apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
   sorteio se REPETIA em todo tique e em toda carta do setor, então setores inteiros iam pro Monte sem lance (`paRng` agora anda
   por carta e por tique). E ele pediu *"reduzir mais o tempo"*: martelo 6s → 4s → **5s** (ele cravou: *"eu falei 5s p martelar"*), o robô que abre já abre com uma fatia do
   teto ("dou 8!") e pula 2–3 com folga. Medido: ~9s por carta, ~18 min com 10 clubes (115 cartas), ~33 min com 20.
+- 🔁 **2º teste (16/10, *"tô achando MUITO lento… diminua pra 5s"*)**: martelo em **5s** (`PA_MARTELO_MS`, ele cravou o número) e, com o
+  OK dele (*"Isso"*): **a carta já abre no preço da categoria** — lenda 10 · craque 5 · promessa 4 · bom 3 · profissional/perna 1
+  (`paAbertura`, é o lance mínimo da carta na mesa) — e **o robô age a cada meio segundo** (`PA_TICK_MS = 500`). Bot de caixa curto no
+  fim topa pelo menos a abertura se o caixa cobre e sobra pro resto das vagas (senão terminava com 9). Medido: ~8s por carta
+  (~15 min com 10 clubes · ~29 min com 20), média 8,7 🪙, maior ~26, todo robô fecha os 11. Pergunta dele em aberto: ordem das
+  posições ALEATÓRIA (como está) ou POR ORDEM — recomendei aleatória (ninguém fica parado esperando o setor dele).
 - **Trava**: `npm run pregao-aberto` (partida inteira no reducer: fila embaralhada, lance inválido recusado, uma carta =
   um dono, pagou o lance final, ninguém negativo, termina no Monte/cerimônia).
 - **Reverter**: `PREGAO_ABERTO_TESTERS` vazio esconde o botão; sem o botão nenhum save entra no modo.

@@ -6,7 +6,7 @@
 //   · o martelo vende pro líder; sem lance, a carta vai pro Monte; e no fim o jogo segue pro Monte/cerimônia
 //   npx tsx scripts/testa-pregao-aberto.mts
 import assert from 'node:assert/strict'
-import { reducer, paPodeLancar, paMinimo, PA_MARTELO_MS } from '../src/escalacao/store'
+import { reducer, paPodeLancar, paMinimo, paAbertura, PA_MARTELO_MS, PA_TICK_MS } from '../src/escalacao/store'
 import type { EscState } from '../src/escalacao/types'
 import { SECTORS } from '../src/escalacao/types'
 
@@ -45,9 +45,14 @@ while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
   for (const [id, teto] of Object.entries(pa.tetos)) {
     const m = s.managers.find(x => x.id === Number(id))!
     const lim = Math.floor(m.money * (card.fame >= 5 ? 0.4 : 0.35))
-    assert.ok(teto <= Math.max(lim, 1), `${m.teamName} toparia ${teto} com ${m.money} no caixa (${card.name}, ${card.fame}⭐)`)
+    // (exceção: a ABERTURA da categoria, quando o caixa cobre e ainda sobra pro resto das vagas)
+    assert.ok(teto <= Math.max(lim, paAbertura(card)), `${m.teamName} toparia ${teto} com ${m.money} no caixa (${card.name}, ${card.fame}⭐)`)
   }
   if (cartas === 1) tetoMax1 = Math.max(0, ...Object.values(pa.tetos))
+  // 💰 a carta abre no preço da categoria (lenda 10 · craque 5 · promessa 4 · bom 3 · profissional 1), e esse é o mínimo
+  assert.equal(paMinimo(s), paAbertura(card), `abre no preço da categoria (${card.name} ${card.fame}⭐)`)
+  assert.equal(paAbertura({ fame: 5 }), 10); assert.equal(paAbertura({ fame: 4 }), 5); assert.equal(paAbertura({ fame: 3, promessa: true }), 4)
+  assert.equal(paAbertura({ fame: 3 }), 3); assert.equal(paAbertura({ fame: 2 }), 1); assert.equal(paAbertura({ fame: 1 }), 1)
   // o humano briga em ~1 de cada 4 cartas, até um teto dele
   const quer = cartas % 4 === 0 && paPodeLancar(s, you.id, paMinimo(s))
   const meuTeto = quer ? paMinimo(s) + 6 : 0
@@ -59,8 +64,8 @@ while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
   recusas += 2
   let ticks = 0
   const id = card.id
-  while (s.currentCards[0]?.id === id && s.phase === 'pregao' && ticks++ < 400) {
-    avanca(1000)
+  while (s.currentCards[0]?.id === id && s.phase === 'pregao' && ticks++ < 800) {
+    avanca(PA_TICK_MS)
     if (quer && s.pa!.lider !== you.id && paMinimo(s) <= meuTeto && paPodeLancar(s, you.id, paMinimo(s))) {
       s = reducer(s, { type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: paMinimo(s) } as never)
       assert.equal(s.pa!.lider, you.id, 'meu lance válido entra e eu fico na frente')
