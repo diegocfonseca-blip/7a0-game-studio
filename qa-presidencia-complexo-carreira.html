@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>Carreira local — camarote e visual preservado</title>
+ <style>
+  body{margin:0;background:#f4ecd6;color:#252820;font:15px system-ui}main{max-width:1440px;margin:auto;padding:16px}h1{font-size:25px;margin:8px 0}h2{font-size:20px}p{line-height:1.5}.qa-note{background:#fff9e9;border:2px solid #80735a;border-radius:10px;padding:12px}.qa-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}.qa-tools button,.qa-tools select{min-height:42px;padding:8px;border:1px solid #726d58;border-radius:7px;background:#fffdf5;font:inherit;color:inherit}.qa-tools button:disabled{opacity:.5}.qa-tools label{display:flex;align-items:center;gap:6px}.qa-president{display:flex;gap:24px;align-items:center;background:#ebe2ca;border:2px solid #84765e;border-radius:12px;padding:18px;margin:16px 0}.qa-portrait{width:150px;flex:0 0 150px;max-width:40vw}.qa-data{overflow-wrap:anywhere}.qa-data p{margin:7px 0}output{display:block;min-height:24px;font-weight:600}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}@media(max-width:600px){main{padding:10px}.qa-president{gap:12px;padding:10px}.qa-portrait{width:110px;flex-basis:110px}h1{font-size:21px}}
+ </style>
+</head>
+<body><div id="root"></div>
+<script type="module">
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import Complexo from './src/escalacao/presidencia-complexo-3d.tsx';
+import {PresidenteCamadas} from './src/escalacao/presidente-camadas.tsx';
+import {adaptarCarreiraAoComplexo} from './src/escalacao/presidencia-complexo-carreira.ts';
+import {carteiraDaCarreira,negociarNaCarreira,salvarPresidenteNaCarreira} from './src/escalacao/presidencia-carreira.ts';
+import {PRESIDENCIA_CATALOGO,orcarPresidencia} from './src/escalacao/presidencia-economia.ts';
+import {VESTUARIO_MODULAR} from './src/escalacao/presidente-vestuario-modular.ts';
+import {TONS_PELE} from './src/escalacao/presidente-pele.ts';
+import {aparenciaInicial,escolherTomPele} from './src/escalacao/presidente-aparencia.ts';
+import {identidadeDaConta} from './src/escalacao/presidencia-identidade-conta.ts';
+import {STADIUM_SECTORS,STADIUM_EXTRAS} from './src/escalacao/estadiodata.ts';
+import {PAVIMENTACAO_ESTADIO} from './src/escalacao/presidencia-estadio-projeto.ts';
+
+const h=React.createElement,mgrId=17,awayId=42;
+const inv=Object.fromEntries(STADIUM_SECTORS.map(s=>[s.k,s.cost]));
+const presets={empty:{inv:{},ext:[]},lower:{inv:{...inv,camarote:0},ext:[]},upper:{inv:{...inv},ext:[]},complete:{inv:{...inv},ext:[...STADIUM_EXTRAS,PAVIMENTACAO_ESTADIO].map(e=>e.k)}};
+const items=PRESIDENCIA_CATALOGO.filter(item=>!['carro','duas-rodas'].includes(item.slot));
+const team=side=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'].map((pos,i)=>({id:side+i,name:side+i,pos}));
+const makeMatch=(minute,fixtureId='qa-carreira-camarote-local')=>({context:{id:fixtureId,homeClubId:mgrId,home:team('h'),away:team('a'),speed:.25},minute,homeScore:0,awayScore:0,paused:true,finished:false,homeColor:'#1b7a3d',awayColor:'#c2452f',visualClock:{seconds:14,sampledAt:performance.now(),running:false,rate:.25}});
+const initial={enabled:true,mgrId,day:{division:'C',support:74,rain:false},identity:identidadeDaConta('Clube da revisão',undefined,'#b2a583'),state:{
+ careerOnline:true,onlineMode:'cpu',sport:'futebol',youIdx:1,seasonNo:3,
+ managers:[{id:awayId,isHuman:false,teamName:'Adversário local'},{id:mgrId,isHuman:true,teamName:'Clube da revisão'}],
+ stadiums:{[mgrId]:structuredClone(presets.complete),[awayId]:structuredClone(presets.lower)},careerCoins:{[mgrId]:5000,[awayId]:11},
+ careerHonors:{m17:{A:0,B:0,C:0,D:1,V:1}},careerPresidentBase:{version:5,name:'Presidente local',outfit:'terno',appearance:{version:22,hair:'classic-hair',beard:'classic-beard',accessories:['silver-studs'],skinTone:'medium'},sinceSeason:1},
+}};
+window.carreiraComplexoFixtures={mgrId,awayId,presets:structuredClone(presets),initial:structuredClone(initial),items:structuredClone(items),outfits:structuredClone(VESTUARIO_MODULAR),skinTones:structuredClone(TONS_PELE)};
+
+/** Browser contract, only on this explicit local fixture:
+ * carreiraComplexo3D: current renderer API, or null after unmount.
+ * carreiraComplexoSnapshot(): {input,adapted,status}; detached fixture data.
+ * setCarreiraComplexo(patch): shallow input patch; state is supplied whole.
+ * setCarreiraComplexoStage('empty'|'lower'|'upper'|'complete').
+ * setCarreiraComplexoAgenda(1|2|undefined): explicit fixture calendar only.
+ * negociarCarreiraComplexo({kind,id,replaceId?}): actual quote + confirmed transaction.
+ * vestirCarreiraComplexo(outfit,appearance?): existing save validator, local test tier.
+ * No account hook, browser storage, remote request or production UI is involved.
+ */
+function App(){
+ const [input,setInput]=React.useState(()=>structuredClone(initial)),ref=React.useRef(input);
+ const [selected,select]=React.useState('mesa-simples'),[status,message]=React.useState('Carteira fictícia iniciada sem móveis.');
+ // Finish the existing portrait's initial image loads before the synchronous
+ // 3D setup. Later outfit/pose changes must not unmount an already running world.
+ const [portraitPrepared,setPortraitPrepared]=React.useState(false);
+ const portraitReady=React.useCallback(key=>{if(key)setPortraitPrepared(true)},[]);
+ ref.current=input;
+ const commit=next=>{ref.current=next;setInput(next)};
+ window.setCarreiraComplexo=patch=>commit({...ref.current,...structuredClone(patch)});
+ window.setCarreiraComplexoAgenda=ordinal=>{
+  const current=ref.current;
+  if(ordinal===undefined){commit({...current,agenda:undefined,journeyPhase:undefined});return true}
+  if(ordinal!==1&&ordinal!==2)return false;
+  const fixtureId=`qa-carreira-camarote-local:jornada:${ordinal}`;
+  commit({...current,agenda:{fixtureId,seasonKey:'qa-carreira:temporada-3',competition:'league',ordinal,homeClubId:mgrId},
+   ...(current.match?{match:{...current.match,context:{...current.match.context,id:fixtureId}}}:{}),
+   ...(current.away?{away:{...current.away,matchId:fixtureId}}:{})});return true;
+ };
+ window.setCarreiraComplexoStage=key=>{
+  if(!Object.hasOwn(presets,key))return false;
+  const current=ref.current;commit({...current,state:{...current.state,stadiums:{...current.state.stadiums,[mgrId]:structuredClone(presets[key])}}});return true;
+ };
+ window.negociarCarreiraComplexo=pedido=>{
+  const current=ref.current,wallet=carteiraDaCarreira(current.state,mgrId);
+  if(!adaptarCarreiraAoComplexo(current)||!wallet){message('Prévia ou carteira indisponível.');return {ok:false,error:'invalid-state'}}
+  const quote=orcarPresidencia(wallet,pedido);
+  if(!quote.ok){message('Transação recusada: '+quote.error);return quote}
+  const traded=negociarNaCarreira(current.state,mgrId,quote.value,true);
+  if(traded.ok){commit({...current,state:traded.value});message('Transação local confirmada; a carreira real não foi alterada.')}
+  else message('Transação recusada: '+traded.error);
+  return {ok:traded.ok,...(!traded.ok?{error:traded.error}:{})};
+ };
+ window.vestirCarreiraComplexo=(outfit,appearance)=>{
+  const current=ref.current;if(!adaptarCarreiraAoComplexo(current))return {ok:false,error:'disabled'};
+  const old=current.state.careerPresidentBase??{version:5,name:'Presidente local',outfit:'terno'};
+  const saved=salvarPresidenteNaCarreira(current.state,mgrId,{...old,outfit,...(appearance?{appearance}:{})},'fundador');
+  if(saved.ok){commit({...current,state:saved.value});message('Visual atualizado somente nesta carreira fictícia.')}
+  return {ok:saved.ok,...(!saved.ok?{error:saved.error}:{})};
+ };
+ const adapted=adaptarCarreiraAoComplexo(input),sala=adapted?.sala,wallet=adapted?.complexo.presidency;
+ React.useEffect(()=>{if(!adapted)setPortraitPrepared(false)},[!!adapted]);
+ window.carreiraComplexoSnapshot=()=>structuredClone({input:ref.current,adapted:adaptarCarreiraAoComplexo(ref.current),status});
+ const target=items.find(item=>item.id===selected),replacement=wallet?.owned.find(item=>PRESIDENCIA_CATALOGO.find(p=>p.id===item.id)?.slot===target?.slot);
+ const setMatch=minute=>window.setCarreiraComplexo({match:minute===null?undefined:makeMatch(minute,ref.current.agenda?.fixtureId),journeyPhase:undefined});
+ const changeSkin=id=>{
+  const president=ref.current.state.careerPresidentBase;if(!president)return;
+  const appearance=escolherTomPele(president.appearance??aparenciaInicial(),id);
+  if(appearance)window.vestirCarreiraComplexo(president.outfit,appearance);
+ };
+ return h('main',null,
+  h('h1',null,'CARREIRA LOCAL — CAMAROTE E VISUAL PRESERVADO'),
+  h('p',{className:'qa-note'},'Dados fictícios de revisão, sem login e sem gravação na conta. O personagem abaixo usa as mesmas artes e escolhas existentes; não representa um novo corpo 3D dentro do camarote. As compras usam as regras atuais sobre um saldo de teste.'),
+  h('div',{className:'qa-tools'},h('label',null,h('input',{type:'checkbox',checked:input.enabled,onChange:e=>window.setCarreiraComplexo({enabled:e.target.checked})}),'Mostrar prévia local'),...Object.entries({empty:'Várzea',lower:'1º andar',upper:'2º andar',complete:'Todas as obras'}).map(([key,label])=>h('button',{key,onClick:()=>window.setCarreiraComplexoStage(key)},label))),
+  h('div',{className:'qa-tools'},h('button',{onClick:()=>setMatch(null)},'Sem partida'),h('button',{onClick:()=>setMatch(20)},'Partida local pausada · 20′'),h('button',{onClick:()=>setMatch(45)},'Intervalo local · 45′'),h('button',{onClick:()=>window.setCarreiraComplexo({day:input.day?undefined:{division:'C',support:74,rain:false}})},input.day?'Retirar dados do dia':'Restaurar dados do dia'),h('button',{onClick:()=>window.setCarreiraComplexo({away:input.away?undefined:{matchId:input.match?.context.id??input.agenda?.fixtureId??'qa-carreira-camarote-local',mgrId:awayId,day:{division:'D',support:31,rain:false}}})},input.away?'Retirar dados visitantes':'Informar adversário desta partida')),
+  h('div',{className:'qa-tools'},h('button',{onClick:()=>window.setCarreiraComplexoAgenda(1)},'Quarta · 21h · noite'),h('button',{onClick:()=>window.setCarreiraComplexoAgenda(2)},'Domingo · 16h · dia'),h('button',{onClick:()=>window.setCarreiraComplexoAgenda(undefined)},'Sem calendário informado'),h('button',{disabled:!input.agenda,onClick:()=>window.setCarreiraComplexo({match:undefined,journeyPhase:'arrival'})},'Chegada da torcida'),h('button',{disabled:!input.agenda,onClick:()=>window.setCarreiraComplexo({match:{...makeMatch(93,input.agenda.fixtureId),finished:true},journeyPhase:undefined})},'Fim · saída da torcida')),
+  h('p',null,adapted?.complexo.journey?`Calendário fictício informado: ${adapted.complexo.journey.weekday==='quarta'?'quarta-feira':'domingo'} · ${adapted.complexo.journey.kickoffTime} · ${adapted.complexo.journey.period==='day'?'dia':'noite'} · ${adapted.complexo.journey.phase}`:'Sem posição de calendário informada; temporada e relógio do aparelho não definem o dia da partida.'),
+  h('div',{className:'qa-tools'},h('label',null,'Móvel',h('select',{value:selected,onChange:e=>select(e.target.value)},...items.map(item=>h('option',{key:item.id,value:item.id},`${item.pt} · ${item.price}`)))),h('button',{disabled:!adapted,onClick:()=>window.negociarCarreiraComplexo({kind:'buy',id:selected})},'Simular compra confirmada'),h('button',{disabled:!adapted||!replacement||replacement.id===selected,onClick:()=>window.negociarCarreiraComplexo({kind:'buy',id:selected,replaceId:replacement.id})},'Trocar o móvel desta categoria'),h('button',{disabled:!adapted||!wallet?.owned.some(item=>item.id===selected),onClick:()=>window.negociarCarreiraComplexo({kind:'sell',id:selected})},'Simular revenda confirmada')),
+  h('output',{'aria-live':'polite'},status),
+  h('p',null,`Saldo local: ${wallet?.cash??'indisponível'} · Bens: ${wallet?.owned.map(item=>item.id).join(', ')||'nenhum'}`),
+  h('div',{className:'qa-tools'},h('label',null,'Roupa salva',h('select',{value:sala?.president?.outfit??'terno',disabled:!adapted,onChange:e=>window.vestirCarreiraComplexo(e.target.value)},...VESTUARIO_MODULAR.map(outfit=>h('option',{key:outfit.id,value:outfit.id},outfit.pt)))),h('label',null,'Tom de pele',h('select',{value:sala?.president?.appearance?.skinTone??'medium',disabled:!sala?.president,onChange:e=>changeSkin(e.target.value)},...TONS_PELE.map(skin=>h('option',{key:skin.id,value:skin.id},skin.pt))))),
+  h('p',null,'O catálogo completo de roupas é habilitado apenas nesta fixture, com plano Fundador de teste. Isso não concede plano ou roupa a nenhuma conta.'),
+  sala?.president?h('section',{className:'qa-president','aria-label':'Personagem salvo existente'},h('div',{className:'qa-portrait'},h(PresidenteCamadas,{ids:sala.layerIds,pose:sala.pose,onReady:portraitReady})),h('div',{className:'qa-data'},h('h2',null,sala.president.name),h('p',null,sala.identity?.name??'Identidade não fornecida'),h('p',null,sala.pose==='seated'?'Mesa e cadeira compradas: pose sentada preservada.':'Sem o par mesa/cadeira: pose em pé preservada.'),h('p',null,`Mandato registrado: temporada ${sala.president.sinceSeason??'não informada'}`),h('p',null,sala.hasShelf?`Títulos existentes para a estante: ${sala.trophies.map(t=>`${t.label} ×${t.count}`).join(', ')||'nenhum'}`:'Sem estante comprada; títulos continuam guardados.'))):h('p',null,adapted?'Nenhum personagem válido cadastrado nesta fixture.':'Prévia local desligada.'),
+  adapted&&(!sala?.president||portraitPrepared)?h(Complexo,{...adapted.complexo,onReady:api=>{window.carreiraComplexo3D=api}}):null,
+  h('details',null,h('summary',null,'Conferir dados locais de entrada e adaptação'),h('pre',null,JSON.stringify({input,adapted},null,2))),
+ );
+}
+createRoot(document.getElementById('root')).render(h(App));
+</script></body></html>

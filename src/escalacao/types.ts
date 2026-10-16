@@ -1058,7 +1058,7 @@ export interface EscState {
   // Ouro e na artilharia de todos os tempos. Uma temporada só: a próxima sobrescreve.
   copaMundoStats?: { season: number; linhas: { name: string; club: string; year: number; pais: string; gols: number; ass: number; jogos: number }[] }
   copaRound?: number // 🌐 ONLINE (Diego 11/08): fase da Copa Legends ao vivo AGORA (0=oitavas), sincronizada pelo host — sem isto, cada convidado avançava a fase sozinho no próprio relógio e via um placar diferente do host num F5/reconexão.
-  stadiums?: Record<number, { inv: Record<string, number>; ext: string[] }> // 🏟️ estádio da carreira por técnico (mgrId): moedas investidas por setor + melhorias prontas. Rende no fim de cada temporada.
+  stadiums?: Record<number, import('./estadiodata').StadiumSave> // 🏟️ estádio da carreira por técnico (mgrId): setores, melhorias e investimentos graduais preservados no save.
   careerCopaHonors?: Record<string, number> // 🏆 títulos da Copa (teamKey → nº de Copas) — MESMO contador serve pra Copa Legends E Copa do Brasil (Diego 16/08: "não são coisas novas, só alterou o nome e o formato" — quem já tinha títulos de Copa Legends não perde nada, o histórico é o mesmo, só troca a etiqueta exibida)
   careerSupercopaHonors?: Record<string, number> // 🏆🔵 títulos da SUPERCOPA LEGENDS por time — essa sim é NOVA de verdade, critério próprio no ranking, logo depois da Copa (docs/conceito-copa-brasil.md §7.3)
   // 🧾 O RECIBO DOS SEUS TÍTULOS DE COPA (16/08 — relato "ganhei a Copa do Brasil

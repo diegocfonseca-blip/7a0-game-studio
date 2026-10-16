@@ -8,6 +8,259 @@
   convocação está aberta (`CONVOCAR_CLUBES`, só fora de dupla). O 1º reenvio registra `esc_travas_salvas` fase 'convocacao'
   (evidência pra próxima vez — o `room_acoes` é apagado pelo dono e não serve de prova). Trava das duplas (`npm run duplas`) ok.
 
+
+## 15/10/2026 — Presidência: candidata à publicação privada autorizada
+
+- Diego pediu **“Publique tudo no meu usuário q fez até agora”**. Isso substitui
+  a pausa de publicação dos registros históricos abaixo. A versão de teste
+  permanece restrita ao email verificado `diego.c.fonseca@gmail.com`.
+- Complexo 3D integrado à carreira em **Clube → Estrutura**, com obras reais,
+  estacionamento gradual, contexto da partida e agenda quarta 21h/domingo 16h.
+  Main preservada até `3dc79cc3`, incluindo personagem da conta e planos.
+- Build, TypeScript, CPU e navegador passaram; percursos e tela integrada foram
+  conferidos em desktop/celular emulado, incluindo outra conta e logout.
+- Permanecem acabamento/fidelidade à arte, rotas da massa restante da torcida,
+  antecipação de transporte e presidente físico. Detalhes e limites em
+  [presidencia-publicacao-20261015.md](presidencia-publicacao-20261015.md).
+  Declarar publicado somente após confirmar sucesso do GitHub Pages.
+
+## 14/10/2026 — Presidência: continuação do transporte até o assento
+
+- Mesmo passageiro do veículo até a cadeira, com escadas e retorno físico;
+  propriedade/reserva do assento impede duplicação e aguarda o dono anterior.
+  Visitas antigas terminam na origem. Metrô também recebe rota mandante até
+  o portão frontal, além da visitante lateral, conforme obras e demanda.
+- Corredores coordenam transporte/visitas e coorte de **até seis torcedores,
+  três por lado**, dentro da mesma quota da amostra sentada. Saída e retorno
+  ocorrem um por corredor, por pisos reais; corpos continuam visíveis em pontos
+  distintos da calçada. A câmera permanece no mesmo corpo escolhido.
+- CPU confirmado: fluxo **864 + 1.194**, calendário **1.338**, movimento
+  **1.843**, carreira **165**; transporte/assento **9.568 verificações lógicas,
+  36 de corpo, 4.299 de transferência e 9.824 verificações físicas**. Coorte **87.786 poses, 35.774 apoios
+  e 219.465 separações**; registro em
+  `test-results/complexo-3d/torcida-saida-cpu.log` e `torcida-saida-report.json`.
+  A correção de orçamento da coorte passou em cinco cenários lógicos, mantendo
+  os seis corpos: lado sem quota sai fisicamente e fica fora; restauração permite
+  retorno andando. Log `test-results/complexo-3d/torcida-orcamento-cpu.log`.
+  Metrô mandante passou em três estágios: 20.784 apoios de sola,
+  1.056.202 verificações de corpo, 23.430 amostras de rota e 2.598 poses.
+  **Build PASS, exit 0**, em `test-results/complexo-3d/percurso-build.log`.
+  Navegador desta continuação ainda em execução neste registro. Os PASS
+  abaixo são históricos; aprovação visual do acabamento continua pendente.
+- Pendências: rotas para a massa de até 800 sentados (**só seis evacuáveis nesta
+  coorte**), antecipar transporte ao calendário — caminhada atual leva tempo
+  humano real —, telas reais da carreira, personagem da Presidência e acabamento
+  fiel do estádio/entorno/sala-camarote. Calendário preservado: **quarta 21h/noite;
+  domingo 16h/dia**. Sem publicar ou modificar conta real; acumular até concluir,
+  com acesso inicial apenas para `diego.c.fonseca@gmail.com`.
+  Se a coorte nasceu sem quota, permanece vazia nesta vida da cena; o crescimento
+  posterior da amostra estática não cria personagens nas cadeiras da coorte.
+
+## 14/10/2026 — Presidência: jornadas e iluminação validadas localmente
+
+Registro histórico; a continuação acima substitui as pendências de ligação
+transporte/assento e metrô mandante desta rodada.
+
+- Agenda explícita, corrigida por Diego: **quarta às 21h/noite e domingo às
+  16h/dia**, por partida; `kickoffTime` registra o horário do calendário do jogo
+  e `period` aciona a iluminação, sem depender do dispositivo. Prévias e
+  expectativas do teste de navegador atualizadas; CPU calendário (1.338 casos)
+  e adaptador (165 visuais, mais cenários de agenda) passaram após a correção. Sem inventar
+  calendário quando os dados não existem. Chegada, permanência e saída físicas,
+  orçamento reservado e troca de uniforme na origem preservam os NPCs.
+- Refletores conforme compras/teto; postes, asfalto/passeios, passarelas,
+  fachadas, faróis e cabines iluminados. Fontes próximas têm orçamento fixo;
+  piso recebe atlas de luz com cotas separadas e oclusão estática de paredes.
+- Build e CPU passaram. Navegador final: desktop 9 checkpoints, celular emulado
+  8; nove imagens, sem erros. Inclui remover partida encerrada e novo adversário
+  azul/branco sem trocar corpos/posições. Fonte da falha de uniformes corrigida.
+  Evidências: `test-results/complexo-3d/jornada-browser-report.json` e imagens
+  `*-jornada-*.png`. Resumo completo em `presidencia-retomada-sessao.md`.
+  Essa rodada de navegador antecede a correção dos horários: nomes de capturas
+  quarta-dia/domingo-noite são históricos; a suíte completa não foi repetida
+  para a correção.
+  Build após a correção **PASS, exit 0**:
+  `test-results/complexo-3d/horarios-corrigidos-build.log`.
+- Pendências naquela rodada: integração à carreira e calendário real, mesmo passageiro do
+  transporte até o assento, metrô para mandantes, esvaziamento da massa sentada,
+  personagem físico e acabamento fiel à arte. Nenhuma publicação/conta alterada.
+  Manter eventual liberação inicial só para Diego e publicação acumulada ao final.
+
+## 14/10/2026 — Presidência: rodada local de mapa amplo e zoom validada
+
+- Área maior em desktop/celular, expansão na tela sem remontar a cena, destinos
+  em **Locais**, zoom acessível e rotação explícita. Arraste com um dedo/botão
+  esquerdo move; pinça e roda aproximam/afastam. Teclado atua apenas com foco
+  no mapa. Resize/expansão preservam o local explorado; projeção limita bordas.
+- Resolução limitada por GPU/área (até 2,5 MP/DPR 2,5 celular, 4 MP/DPR 2
+  desktop; perfil conservador para até 2 GB), anisotropia de superfícies e
+  fibras próximas no gramado, preservando imagem, cores, faixas e metragem.
+  Geometria, NPCs, bola, etapas, compras e relógio permanecem preservados.
+- Build e helpers CPU de câmera/qualidade/material **PASS**; regressão da
+  partida **136 quadros PASS**. Desktop **1400×1000** e celular emulado
+  **390×844 PASS**, oito checkpoints por aparelho, sem erros/transbordamento.
+  Bug real de pinça com página rolada corrigido no helper por ancoragem client,
+  sem tocar dependência/APIs privadas. CPU e nova rodada mobile preservam
+  scrollY de 249, alvo no gramado e distância de 40 m; capturas próximas conferidas.
+  Foco/rolagem/estado preservados; canvas expandido celular **780×1688/DPR 2**.
+  Build após correção touch passou; relatório consolidado
+  `test-results/complexo-3d/navegacao-report.json`.
+- Após o reinício, helpers CPU de câmera/qualidade/material e **301 etapas de
+  plantio PASS**. Corrigido `Shift +` no teclado principal, com um render por
+  ação; demais atalhos modificados continuam livres.
+- Faixas curvas na praça/teto Vadico diagnosticadas como autossombra PCF.
+  A/B com bias escalado remove as faixas e mantém as sombras. **Correção já
+  integrada em `updateShadows`**; build final **PASS, exit 0**, e recaptura
+  final **PASS em desktop 1400×1000 e celular emulado 390×844/canvas 780×1688**.
+  Conferência visual final sem faixas, com sombras, gramado e atletas próximos
+  preservados. Logs da rodada atual:
+  `test-results/complexo-3d/qualidade-final-build.log` e
+  `test-results/complexo-3d/qualidade-final-browser.log`.
+  Relatório `test-results/complexo-3d/qualidade-final-report.json` e imagens
+  `*-qualidade-final-mapa.png` / `*-qualidade-final-campo.png` na mesma pasta.
+  Primeiro script falhou usando roda no contexto móvel; corrigido para pinça
+  via CDP, mantendo a tolerância **40 m ± 0,1 m**. PNG móvel teve textos/ícone
+  confirmados por pixels/OCR; sem bug de interface nem alteração adicional.
+  Evidências/limites no primeiro tópico de `presidencia-complexo-3d-reconstrucao.md`.
+- Logs `/tmp` citados no histórico são registros de execuções anteriores e
+  não foram recuperados após o reinício; não são evidência da rodada atual.
+- Acabamento fiel/aprovação visual, personagem físico e integração à carreira
+  continuam pendentes. Sem commit/push/deploy ou acesso à conta real; eventual
+  liberação inicial apenas para `diego.c.fonseca@gmail.com`.
+
+## 14/10/2026 — Presidência: rede de ruas e pedestres validada localmente
+
+- Ruas sobrepostas consolidadas sem preencher vãos; rede conectada com oito
+  ligações na várzea/nove no completo asfaltado. Rua leste contorna estacionamento;
+  oeste deixa de cortar o hotel e ganha retorno, passeio e ramal à via pública.
+- Anel decorativo que atravessava estabelecimentos removido; dez conexões
+  pedestres respeitam compras e preservam percursos dos NPCs. Vãos nas cercas
+  vivas e entradas de parques somente onde existe calçada válida.
+- Calçada e acesso lateral do estacionamento noroeste corrigidos. Física final
+  **PASS: sete cenários/221.848 sondagens**, incluindo 2.709 da esquina e 2.535
+  do acesso/vagas. Pedestres: **17 cenários/4.590 verificações**, geometria com
+  **7.344 pisos/594 raios de corpo**, todos PASS. Planejador, build final,
+  circulação (cinco minutos a 20 Hz/1.464 quinas de solas) e transporte PASS.
+- Entorno final: **nove estados PASS**, máximo **46 malhas/292.613 triângulos**
+  (várzea: 40/244.060). Browser desktop/celular: 12 capturas mais seis
+  recapturas finais PASS, sem erros ou transbordamento; entrada aberta e
+  continuidade da calçada conferidas visualmente. Evidências em
+  `test-results/complexo-3d/ruas-browser-report.json` e
+  `test-results/complexo-3d/ruas-parking-browser-report.json`.
+- Manobra noroeste: carro 1,9×4,6 m/curva 3,5 m PASS em 7.928 poses geométricas
+  e 11.910 sondagens de piso. **Passagem apertada**, com limite contínuo de
+  folga acima de 11,03 cm; valida um trajeto específico, sem implementar
+  animação de estacionamento nem garantir qualquer manobra.
+- No completo, apenas uma travessia norte é elevada (16 cm/rampas de 2,2 m);
+  ligação sul redesenhada para evitar a rodovia, sem travessia elevada.
+- Personagem físico, integração visual à carreira e acabamento/aprovação de
+  Diego continuam pendentes. Sem commit, deploy ou acesso à conta real.
+
+## 14/10/2026 — Presidência: metrô e Vadico Veículos validados localmente
+
+- Revisão de 13/10 passou na suíte física completa: duas passarelas, ida/volta,
+  desembarque fora do asfalto, apoio de pés, portas, carrocerias e rodas.
+  Build e recaptura `--views-only` passaram em desktop 1280×960 e celulares
+  emulados 390×844/320×844; cinco carros na estação, partida preservada em
+  14 segundos com 22 jogadores. Contagens e evidências na seção do metrô em
+  `presidencia-complexo-3d-reconstrucao.md`.
+- **Vadico Veículos implementada e validada localmente**: loja no bairro
+  oeste, letreiro vermelho, seis carros físicos e câmera responsiva. Acesso
+  público independente de asfalto comprado, pedestres separados, sem nova
+  economia/save. Guia de 0,17 m no acesso corrigida sem relaxar tolerâncias;
+  build final, nove estados do entorno e física na várzea/completo passaram,
+  preservando 38 rotas, 17 reservas de obras e tráfego. Navegador desktop passou
+  no completo/várzea. Inspeção do celular reprovou carros ocultos pelo hotel,
+  apesar de o teste de enquadramento passar. Câmera de retrato corrigida com
+  superfícies/rotas/carros preservados. Build e recaptura finais passaram em
+  desktop 1280×960 e celular 390×844, completo/várzea: sete raios livres por
+  cenário, sem transbordamento nem erros JS/WebGL. Relatório
+  `test-results/complexo-3d/vadico-browser-report.json` e capturas
+  `*-vadico-complete.png`, `*-vadico-empty.png`, `*-vadico-mapa.png`.
+  Validação da equipe; aprovação visual de Diego continua pendente.
+- Acabamento fiel à referência e integração visual à carreira continuam
+  pendentes. Nenhum commit/push/deploy/login real; acesso futuro inicial só Diego.
+
+## 12/10/2026 — Presidência: complexo inteiro em revisão local, SEM PUBLICAR
+
+- Diego reafirmou fidelidade à arte original em todas as etapas e melhorias.
+- Correção em 13/10: reset da prévia do estacionamento removia também a
+  estação e produzia a foto sem metrô. Agora conserva as outras compras;
+  estação mantida na avenida acima/à direita do estádio conforme referência.
+  Compras 0..4 passaram em desktop/celular. Corrigido também enquadramento
+  que cortava a extremidade da estação no retrato; build aprovado. Recapturas
+  e projeção passaram em desktop/390/320 px, sem erros JS/WebGL. Nenhuma
+  publicação ou mudança de conta.
+- Continuação atual em revisão: transporte físico (metrô, ônibus e van),
+  dois pontos e desembarque/retorno por portas. Estacionamento comprado por
+  etapas 20/20/20/10, vagas 9/16/46/79, compra antiga preservada. Lotes/acessos
+  aparecem conforme compra, sem conceder estação. Público exterior compartilhado.
+  Nova integração de compra preparada com flag desligada até o mapa representar
+  etapas na carreira. Van ainda inicia na portaria; conversão com tráfego geral
+  pendente. Build final, domínio/reducer, física/lifecycle e browser passaram;
+  desktop quatro compras, celular primeira compra e três transportes. Câmera do
+  metrô corrigida e recapturada à altura humana na plataforma em ambos formatos.
+  Resultados finais no primeiro registro de
+  `presidencia-complexo-3d-reconstrucao.md`. Sem commit/push/deploy.
+- Continuação anterior: oito acessos (seis inferiores + primeira fila superior por
+  lado), escadas internas com patamar/corrimãos, recortes reais e reserva por
+  torcida. Loja/hotel/choperia recebem até três pedestres limitados ao público,
+  com entrada/espera/retorno e rotas separadas das torcidas/carros. Variação suave
+  no terreno residual asfaltado. Testes puros, build e browser superior/destinos
+  passaram desktop/celular emulado. Demais filas superiores, acabamento fiel,
+  personagem físico e instalação controlada na carreira seguem pendentes.
+  Capturas e limites no primeiro registro de `presidencia-complexo-3d-reconstrucao.md`.
+  Refino de concreto/UVs também passou: geometria idêntica em 11 estados,
+  compilação final e capturas de mapa/subida/assento desktop/celular emulado.
+  Tudo local; nenhum commit/push/deploy/login real.
+- Continuação anterior: destinos nas filas 0/5/10 do primeiro andar por entrada,
+  um ator por lado, apoio nos degraus reais e câmera que acompanha o percurso.
+  Adaptador de leitura da carreira + fixture local preservam estádio/carteira,
+  identidade, roupas/tons/poses e relógio compartilhado. Testes puros e build
+  passaram, assim como browser desktop/celular emulado de visitas e carreira.
+  Corrigidos o reinício do torcedor da casa ao mudar visitantes e o carregamento
+  inicial do retrato na fixture. Capturas `*-visita-*-fila10-*.png` e
+  `*-carreira-*.png`; detalhes no primeiro registro de
+  `presidencia-complexo-3d-reconstrucao.md`. Não instalado na conta.
+- Incremento anterior: dois acessos físicos até cadeira inferior, com o mesmo
+  NPC entrando/subindo/sentando/saindo; reservas impedem duplicação. Escadas entre
+  filas agora alinhadas. Mobília do camarote lê compras válidas (13 IDs), com piso,
+  corredor livre, câmera humana e luminárias fixas. Testes puros e browser de
+  mobília/visitas/lifecycle passaram desktop/celular emulado. Capturas novas em
+  `*-mobilia-sala-*.png` e `*-visita-*.png`. Ainda faltam ampliar acessos internos,
+  personagem físico, fidelidade de acabamento e integração à carreira. Detalhe
+  de até 96 cadeiras próximas acrescenta espessura/encosto/suportes sem duplicação
+  ou mudar posições e permanece abaixo de 190 mil triângulos na arquitetura.
+- Continuação local: árvores apoiadas, casas orientadas aos acessos, texturas e
+  fachadas refinadas. Torcida sentada usa as cadeiras construídas, com modos
+  explícitos de QA/carreira e limite de 800 personagens; sem dados não inventa
+  visitantes. Updates de público preservam câmera, pausa, canvas e relógios.
+  Testes puros, lifecycle e capturas desktop/celular emulado passaram. Mapas
+  recentes: `*-paisagismo-*.png`; aproximações: `*-acabamento-*.png`. Ainda falta
+  ampliar os dois percursos novos a outros assentos/andares e integrar à carreira.
+- Pedido seguinte: preencher vazios bege. Praças públicas, passeios e arborização
+  adicionados à revisão 3D; parque regional prolonga a vista afastada no celular.
+  Corrigidas a névoa nessa câmera e invasões de casas/árvores nas reservas de obras
+  e acessos futuros. Conferência em `testa-presidencia-complexo-paisagismo.mjs` e
+  capturas `*-paisagismo-*.png`; não é publicação nem acabamento final aprovado.
+- Correção seguinte: formato **oval**, grande camarote presidencial integrado;
+  retirar subida/rua e carro diante da sala. Casa futura fora do escopo. Planta
+  oval, camarote, portões frontal/mandantes e lateral/visitantes implementados na
+  revisão local; torcedores entram e saem por corredores físicos separados.
+- Carros retirados da janela da sala nas fontes, mantendo propriedade e garagem.
+  Teste de torcida passou em cinco etapas, com 300 verificações de solas e bloqueio
+  real do portão. Mobília e dois percursos até cadeiras acrescentados na revisão
+  local; integração à carreira e demais acessos continuam pendentes.
+- Navegador desktop/celular aprovado: portões/camarote, campo e relógio/gestos/gol.
+  Corrigida também a terra sobreposta ao gramado na câmera baixa sob o teto fechado;
+  capturas e teste de pixels em `testa-presidencia-complexo-gramado.cjs`.
+- Nova revisão `qa-presidencia-complexo-3d.html`: 16 obras do save, arquibancadas,
+  cobertura após dois andares, estabelecimentos, vias e campo/partida compartilhados.
+- Correção na janela original para setores completos comprados fora da sequência.
+- A reconstrução 3D ainda precisa de acabamento e população completa; não substituir
+  a arte aprovada nem considerar visual concluído pelos testes técnicos.
+- Estado detalhado e limites: `docs/presidencia-complexo-3d-reconstrucao.md`.
+  Alterações acumuladas locais, acesso futuro inicial só Diego; nenhum novo deploy.
 ## 🧑‍💼 CRIAÇÃO DE PERSONAGEM NA CONTA (15/10) — ✅ feito, SÓ NA CONTA DO DIEGO
 - Diego: *"já bote pra fazer tudo sobre a criação do personagem… sempre com base no e-mail… já pode fazer pro meu usuário apenas"*.
 - Onde mora: tabela `esc_presidente` (1 linha por conta, `docs/sql/presidente-conta.sql`, aplicada em 15/10, RLS só o dono).
@@ -166,6 +419,27 @@ Escolhidos por ele: 🎁 dar de presente · 🎖️ título do lado do nome (tro
 sala (quem cria escolhe, todos veem) · 🎆 festa do título com as cores e o canto do TIME DE CORAÇÃO (sem escudo de clube real).
 Mockup: `scripts/mockup-loja-itens.mjs` → `scripts/mockups/loja-itens.png` (preços de exemplo).
 🎁 14/10: presente APROVADO, mas **só de PLANO** (Craque/Lenda/Batismo/Fundador) — *"presente é só dos planos, nada de títulos figurinhas"*.
+
+## 💳 Mercado Pago · PIX ÚNICO automático (15/10) — 🟢 NO AR SÓ NA CONTA DO DIEGO (`PIX_MP_GERAL = false`)
+Diego trocou a Vendria pelo MP: *"somente Pix direto… tudo no Pix, Pix único só"* (nada mensal, nada de cartão).
+✅ Diego: aplicação "Leilao Legends" (Checkout Transparente) · Secrets `MP_ACCESS_TOKEN` (renovado depois que a foto vazou)
+e `MP_WEBHOOK_SECRET` · webhook do MP → `.../functions/v1/mp-webhook` (evento Pagamentos).
+✅ Banco (`supabase/migrations/20261015220000_mercado_pago_pix.sql` + `…230000_mercado_pago_pix_v2.sql`): pedidos, preço NO
+SERVIDOR (29,90/49,90/79,90/99,90, subida = diferença + 5, salas 4,90, teste R$ 1 só na conta dele), só conta se o MP disser
+approved E o valor bater, `auto_liberar = true` (decisão dele: o automático entra sozinho — Craque prata · Lenda ouro · Batismo/
+Fundador = ouro + `esc_compras_batismo` · salas +3). O personalizado (escudo, mascote, manto, canto, gala, nº de fundador, sócio)
+continua no roteiro de batismo.
+✅ Edge Functions `mp-criar-pix` (login obrigatório, sem pedir nada antes do Pix (o WhatsApp opcional vem DEPOIS de pagar, `esc_mp_telefone`), Pix vale 24h, guarda o QR pro "Pix esperando") e
+`mp-webhook` (assinatura + busca o pagamento no MP antes de acreditar).
+✅ Tela (`pix-mp.tsx`): gerar → COPIAR grande + QR → "esperando" (confere a cada 5s e ao voltar do banco) → "Pagamento
+confirmado!". Batismo/Fundador: "✍️ Conta como você imagina o seu clube" (nome, coração, cores, escudo, mascote, canto no
+Fundador) — POR ESCRITO, *"não quero que mandem imagem… eu que quero fazer as artes"* — + falar com o Diego por WhatsApp ou
+e-mail. Ligada em: Craque (manual e pay), Lenda, Batismo/Fundador e salas extras da Loja. #admin: "💳 Pix do Mercado Pago"
+(lista, 🖋 Batismos pra fazer, não pagos com WhatsApp, botão LIBERAR se precisar, 🧪 Pix de teste R$ 1).
+⏳ Falta: (1) Diego fazer o Pix de teste de R$ 1 no #admin e ver o ✅; (2) o NÚMERO de WhatsApp dele (`WHATSAPP_CONTATO` em
+pix-mp.tsx; sem número só aparece o e-mail); (3) liberar pra todos (`PIX_MP_GERAL = true`); (4) cupom de influenciador no
+batismo ainda não vale no Pix novo (preço do servidor ignora cupom); (5) ✅ moedas (ficha do Banco Legends nasce sozinha), canto avulso (registra + "conta qual canto") e presente
+(entregue pro amigo) já vão pelo Pix novo (`…240000_mercado_pago_pix_v3.sql`); 2ª conta do Diego também testa; (6) apagar a Vendria (`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar.
 
 ## 🏆 Moldura do pódio da semana (15/10) — ✅ NO AR
 Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalha, sem mexer no fundo (fundo = cor do plano).

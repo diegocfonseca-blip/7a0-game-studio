@@ -28,6 +28,8 @@ import { fornPorTemporada, fornLiberado, fornOfertas, fornBonusLoja, fornecedorD
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN (12/09)
 import { PassoPill, type PassoVirada } from './passo-virada' // 🪜 PASSO X DE N (15/09)
 import {PAVIMENTACAO_ESTADIO,podeInvestirNoProjeto,extraLiberadoNoProjeto,requisitoExtraNoProjeto,setorPagoNoProjeto} from './presidencia-estadio-projeto'
+import {estacionamentoDoSave,ESTACIONAMENTO_CUSTO_TOTAL,type EtapaEstacionamento} from './presidencia-estacionamento'
+import {PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 
 const INK = '#0C0C0C'
 const GOLD = '#F5B301'
@@ -588,7 +590,7 @@ export function StadiumSvg({ st, perkOverride }: { st: StadiumSave | undefined; 
 // 🏢 SAF: lançada pra TODOS (era gate de teste fechado — validado com os
 // primeiros donos). loggedEmail() segue sendo checado só pra exigir login.
 const LOAN_POS: Record<string, string> = { GOL: 'GOL', LAT: 'LAT', ZAG: 'ZAG', MEI: 'MEI', ATA: 'ATA' }
-export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, saf2 }: {
+export function StadiumTab({ st, coins, onInvest, onBuild, onInvestParking, medicoOn, filial, filialOptions, filialInfo, onBuyFilial, onSellFilial, filialSale, mySquad, filialSquad, loanableOutIds, loanableInIds, onLoanTo, loanContratoAviso, onLoanToRenovando, onLoanFrom, onReturnLoan, loanSlots = 1, trimNotice, onDismissTrimNotice, torcidaPct, chuvaHoje, divClube, cinematic = false, presidencyView, saf2 }: {
   presidencyView?: ReactNode
   cinematic?: boolean
   // 🏢➡️⚽ SAF que vira 2º clube (13/10, só com `useSaf2()`): troca as regras velhas pelas novas, mostra o
@@ -599,6 +601,8 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   coins: number
   onInvest: (sector: string) => void
   onBuild: (ext: string) => void
+  /** Fornecido somente pelo acesso privado; a flag de lançamento continua independente. */
+  onInvestParking?: (expectedStage: EtapaEstacionamento) => void
   // 🏗️ melhorias NOVAS (retrátil, praça, chopp, estação, hotel) SÓ nas carreiras
   // novas (agenciaOn). Carreira antiga nem VÊ — regra nova nunca muda o meio da
   // carreira de ninguém. (O nome vem do Dep. Médico, que era a 1ª obra gateada e
@@ -675,8 +679,10 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
   // % pronto, nem na exigência da SAF — senão save antigo travava em 91%).
   // (o 🏟️ retrátil segue o MESMO gate do médico: só carreiras novas veem/exigem)
   const extras = medicoOn ? STADIUM_EXTRAS : STADIUM_EXTRAS.filter(e => !extraNovaOnly(e.k))
+  const parkingStages = PRESIDENCY_PARKING_STAGES_RELEASED && !!onInvestParking
+  const parking = estacionamentoDoSave(st)
   const totalPieces = STADIUM_SECTORS.length + extras.length
-  const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + extras.filter(e => hasExtra(st, e.k)).length) / totalPieces * 100)
+  const prontoPct = Math.round((STADIUM_SECTORS.reduce((a, s) => a + sectorPct(st, s.k) / 100, 0) + extras.reduce((sum,e)=>sum+(parkingStages&&e.k==='estac'&&parking.valid?parking.progress:Number(hasExtra(st,e.k))),0)) / totalPieces * 100)
   return (
     <>
       <div style={{ ...box('#FBF6E9'), padding: 12, marginBottom: 12 }}>
@@ -856,6 +862,26 @@ export function StadiumTab({ st, coins, onInvest, onBuild, medicoOn, filial, fil
         )
       })()}
       {(presidencyView ? extras.flatMap(e=>e.k==='loja'?[e,PAVIMENTACAO_ESTADIO]:[e]) : extras).map(e => {
+        if(e.k==='estac'&&parkingStages){
+          const unlocked=hasExtra(st,'loja'),poor=!Number.isSafeInteger(coins)||coins<parking.nextCost
+          const disabled=!parking.valid||parking.complete||!unlocked||poor
+          return <div key={e.k} data-parking-stage={parking.stage} style={{...box('#FBF6E9'),borderRadius:14,padding:'10px 11px',marginBottom:9,display:'flex',alignItems:'center',gap:11}}>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontWeight:900,fontSize:14.5,...OSW}}>{extraNome(e)}</div>
+              {parking.valid?<>
+                <p style={{fontSize:12,fontWeight:900,margin:'4px 0'}}>{tr('Etapa','Stage')} {parking.stage}/4 · {parking.capacity} {tr('vagas','spaces')}</p>
+                <div role="progressbar" aria-label={tr('Etapas do estacionamento','Parking stages')} aria-valuemin={0} aria-valuemax={4} aria-valuenow={parking.stage} style={{height:9,background:'#e6dcc2',border:`1.5px solid ${INK}`,borderRadius:6,overflow:'hidden',margin:'5px 0'}}><div style={{height:'100%',width:`${parking.stage*25}%`,background:parking.complete?GOLD:ACC}}/></div>
+                <p style={{fontSize:10.5,fontWeight:700,margin:'4px 0',color:'rgba(0,0,0,.65)'}}>{tr('Investido','Invested')} {parking.investment}/{ESTACIONAMENTO_CUSTO_TOTAL} 💰 · {tr('cada etapa abre novas vagas','each stage opens more spaces')}</p>
+                <p style={{fontSize:10.5,fontWeight:700,margin:'4px 0',color:'rgba(0,0,0,.65)'}}>{parking.complete?tr('Renda +4/temp · requisito da estação concluído','Income +4/season · station requirement complete'):tr('Renda +4/temp e acesso à compra da estação na etapa 4/4.','Income +4/season and access to the station purchase at stage 4/4.')}</p>
+                {!parking.complete&&!unlocked&&<p style={{fontSize:11,margin:'4px 0'}}>{tr('Construa a Loja do Clube para começar.','Build the Club Store to begin.')}</p>}
+                {!parking.complete&&unlocked&&poor&&<p style={{fontSize:11,margin:'4px 0'}}>{tr(`São necessárias ${parking.nextCost} moedas para a próxima etapa.`,`The next stage requires ${parking.nextCost} coins.`)}</p>}
+              </>:<p role="status" style={{fontSize:11,margin:'4px 0'}}>{tr('Não foi possível conferir a obra. Reabra a carreira antes de investir.','The construction could not be verified. Reopen your career before investing.')}</p>}
+            </div>
+            <button type="button" disabled={disabled} onClick={()=>!disabled&&onInvestParking?.(parking.stage)} style={{flex:'none',minWidth:88,border:'none',borderRadius:10,padding:'9px 11px',fontWeight:900,fontSize:12.5,cursor:disabled?'default':'pointer',lineHeight:1.15,...OSW,background:parking.complete?GOLD:disabled?'#d9cfb4':INK,color:parking.complete?INK:disabled?'#7d7358':'#fff'}}>
+              {parking.complete?tr('✅ completo','✅ complete'):!parking.valid?tr('Indisponível','Unavailable'):!unlocked?'🔒':<>{tr('Ampliar','Expand')}<span style={{display:'block',fontSize:9,opacity:.85}}>−{parking.nextCost} 💰</span></>}
+            </button>
+          </div>
+        }
         const done = hasExtra(st, e.k), unlocked = presidencyView ? extraLiberadoNoProjeto(st,e.k) : extraUnlocked(st,e.k), poor = coins < e.cost
         // 🛍️ com a LOJA DO CLUBE de verdade ligada (teste fechado), a obra da loja
         // deixa de prometer "+6/temp": ela passou a render pela VENDA DE CAMISAS e

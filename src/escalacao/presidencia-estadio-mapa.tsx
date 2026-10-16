@@ -23,7 +23,7 @@ export function PresidenciaEstadioMapa({stadium,match}:{stadium?:StadiumSave;mat
  const maxZoom=match?12:4
  const roofHidesField=camadasMundo(stadium).some(layer=>layer.id==='retratil')
  const [paused,setPaused]=useState(false),[world,setWorld]=useState({width:0,height:0})
- const dimensions=()=>{const el=viewport.current,width=el?.clientWidth??0,height=el?.clientHeight??0,w=Math.max(width,height*1.5);return {width,height,world:{width:w,height:w/1.5},minZoom:w?Math.min(width/w,height/(w/1.5)):1}}
+ const dimensions=()=>{const el=viewport.current,width=el?.clientWidth??0,height=el?.clientHeight??0,w=Math.max(width,height*1.5);return {width,height,world:{width:w,height:w/1.5},minZoom:1}}
  const fit=()=>{const d=dimensions();pointers.current.clear();gesture.current=null;setView({zoom:d.minZoom,x:0,y:0})}
  const current=useRef(view),pointers=useRef(new Map<number,{x:number;y:number}>())
  const gesture=useRef<{view:VistaMapa;cx:number;cy:number;distance:number}|null>(null)
@@ -58,7 +58,7 @@ export function PresidenciaEstadioMapa({stadium,match}:{stadium?:StadiumSave;mat
    <button type="button" onClick={()=>zoom(1.35)} disabled={view.zoom>=maxZoom} aria-label={t('Aproximar mapa','Zoom in')}>+</button>
    <output aria-live="polite">{Math.round(view.zoom*100)}%</output>
    <button type="button" onClick={()=>zoom(1/1.35)} disabled={view.zoom<=dimensions().minZoom} aria-label={t('Afastar mapa','Zoom out')}>−</button>
-   <button type="button" onClick={fit}>{t('VER TUDO','FIT MAP')}</button>
+   <button type="button" onClick={fit}>{t('ENQUADRAR','FRAME MAP')}</button>
    <button type="button" aria-pressed={paused} onClick={()=>setPaused(!paused)}>{paused?t('RETOMAR MOVIMENTO','RESUME MOVEMENT'):t('PAUSAR MOVIMENTO','PAUSE MOVEMENT')}</button>
   </div>
   <div ref={viewport} className="pe-map-viewport" data-map-zoom={view.zoom} tabIndex={0} role="group" aria-label={t('Arraste o mapa; use dois dedos para aproximar','Drag the map; pinch to zoom')}
@@ -88,7 +88,7 @@ export function PresidenciaEstadioMapa({stadium,match}:{stadium?:StadiumSave;mat
     if(event.key==='-'){event.preventDefault();zoom(1/1.35)}
     if(event.key==='Home'){event.preventDefault();fit()}
    }}>
-   <div className="pe-map-world" style={{width:world.width||'100%',height:world.height||'100%',transform:`translate(-50%,-50%) translate(${view.x}px,${view.y}px) scale(${view.zoom})`}}><PresidenciaEstadioImagem stadium={stadium} camera="aerial" detail={world.width*view.zoom*(typeof window==='undefined'?1:window.devicePixelRatio||1)>600} pitchDetail={texturaCampoDetalhada(CAMPO_MAPA,world.width*view.zoom*(typeof window==='undefined'?1:window.devicePixelRatio||1))} movementPaused={paused}/>{match&&!roofHidesField&&<PartidaNoTerritorio key={match.context.id} state={{...match,context:{...match.context,stadium}}} resolution={world.width*view.zoom*(typeof window==='undefined'?1:window.devicePixelRatio||1)} crop={janelaVisivel3D(view,size(),world)}/>}</div>
+   <div className="pe-map-world" style={{width:world.width?world.width*view.zoom:'100%',height:world.height?world.height*view.zoom:'100%',transform:`translate(-50%,-50%) translate(${view.x}px,${view.y}px)`}}><PresidenciaEstadioImagem stadium={stadium} camera="aerial" detail={world.width*view.zoom*(typeof window==='undefined'?1:window.devicePixelRatio||1)>600} pitchDetail={texturaCampoDetalhada(CAMPO_MAPA,world.width*view.zoom*(typeof window==='undefined'?1:window.devicePixelRatio||1))} movementPaused={paused}/>{match&&!roofHidesField&&<PartidaNoTerritorio key={match.context.id} state={{...match,context:{...match.context,stadium}}} resolution={world.width*view.zoom*(typeof window==='undefined'?1:window.devicePixelRatio||1)} crop={janelaVisivel3D(view,size(),world)}/>}</div>
   </div>
   <p className="pe-map-help">{t('Arraste para explorar. Aproxime com dois dedos ou pelos botões.','Drag to explore. Pinch or use the buttons to zoom.')}</p>
  </section>

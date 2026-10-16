@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QA local da publicação privada</title>
+<style>body{margin:0;background:#f4ecd6;font:16px system-ui}main{max-width:1440px;margin:auto;padding:12px;box-sizing:border-box}h1{font-size:22px}button{min-height:44px}</style></head>
+<body><main><h1>Revisão local da tela da carreira</h1><div id="root"></div></main>
+<script type="module">
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {PresidenciaEstadioCamera} from './src/escalacao/presidencia-estadio-camera.tsx';
+import {usePublicarPartida} from './src/escalacao/presidencia-partida-sincronia.ts';
+import {STADIUM_SECTORS,STADIUM_EXTRAS} from './src/escalacao/estadiodata.ts';
+import {agendaLigaComplexo} from './src/escalacao/presidencia-complexo-jornada.ts';
+const h=React.createElement,club=17;
+const full={inv:Object.fromEntries(STADIUM_SECTORS.map(s=>[s.k,s.cost])),ext:[...STADIUM_EXTRAS.map(e=>e.k),'asfalto'],estacionamentoInvestido:70};
+const initial={careerOnline:true,onlineMode:'cpu',sport:'futebol',youIdx:0,seasonNo:3,managers:[{id:club,isHuman:true}],stadiums:{[club]:full},careerCoins:{[club]:321},careerPresidency:{[club]:{revision:2,owned:[{id:'mesa-simples',paid:20},{id:'cadeira-simples',paid:20}]}}};
+const team=side=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'].map((pos,i)=>({id:side+i,name:side+i,pos}));
+function App(){
+ const [state,setState]=React.useState(initial),[round,setRound]=React.useState(1),[finished,setFinished]=React.useState(false);
+ const fixtureId=`qa-publicacao:${round}`,agenda=agendaLigaComplexo({fixtureId,seasonKey:'qa-local:3',round,homeClubId:club});
+ const frame=usePublicarPartida({context:{id:fixtureId,agenda,homeClubId:club,home:team('h'),away:team('a'),speed:4},minute:finished?93:21,homeScore:0,awayScore:0,paused:true,finished,homeColor:'#1b7a3d',awayColor:'#c2452f'});
+ window.qaPublishedFrame=frame;window.qaCareer=state;
+ window.qaSetRound=setRound;window.qaFinish=()=>setFinished(true);
+ window.qaEmpty=()=>setState(s=>({...s,stadiums:{...s.stadiums,[club]:{inv:{},ext:[]}}}));
+ return h(PresidenciaEstadioCamera,{stadium:state.stadiums[club],homeClubId:club,career:{key:'qa-local:3:17',state,mgrId:club,day:{division:'C',support:74,rain:false}},onReady:api=>{window.qaPublishedApi=api}});
+}
+createRoot(document.getElementById('root')).render(h(App));
+</script></body></html>

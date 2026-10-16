@@ -2,73 +2,19 @@ import {instanciarPersonagens} from './presidencia-personagens-instancias'
 import {useEffect,useRef,useState} from 'react'
 import * as THREE from 'three'
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
-import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
+import {criarCampo3D} from './presidencia-complexo-partida'
 import {quadroFutebol3D} from './presidencia-futebol-motor'
 import {atletasEmCampo,type EstadoPartidaEstadio} from './presidencia-partida-model'
 import {useT} from './lang'
 import './presidencia-futebol-3d.css'
 import {progressoVisualSetor} from './presidencia-estadio-camadas'
 import {person,pose} from './presidencia-atleta-3d'
-import {BANCO_Z,TECNICO_Z,FUNDO_AREA_TECNICA_Z} from './presidencia-area-tecnica'
+import {BANCO_Z,TECNICO_Z} from './presidencia-area-tecnica'
 import {JANELA_3D_INTEIRA,matrizRecorte3D,type Janela3D} from './presidencia-janela-3d'
-import {materialSolo3D} from './presidencia-solo-3d'
-import {faixasGramado3D} from './presidencia-gramado-3d'
 import {matrizCameraRegistrada,type CantosRegistrados} from './presidencia-camera-registrada'
 
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
-function tube(parent:THREE.Object3D,a:THREE.Vector3,b:THREE.Vector3,r:number,mat:THREE.Material){const delta=b.clone().sub(a),mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),8),mat);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());mesh.castShadow=true;parent.add(mesh)}
-function pitch(scene:THREE.Scene,state:EstadoPartidaEstadio,registered=false,onTextureReady?:()=>void){
- if(!registered){const ground=material('#8d825c');box(scene,125,.3,86,0,-.17,0,ground)}else{const contact=new THREE.Mesh(new THREE.PlaneGeometry(120,84),new THREE.ShadowMaterial({opacity:.22}));contact.rotation.x=-Math.PI/2;contact.position.y=-.01;contact.receiveShadow=true;scene.add(contact)}
- const grass=new THREE.TextureLoader().load(import.meta.env.BASE_URL+'estadio-partida/grass-base.webp',onTextureReady,undefined,()=>{
-  if(grass.userData.disposed)return
-  for(const mat of greens){mat.map=null;mat.needsUpdate=true}
-  onTextureReady?.()
- });grass.wrapS=grass.wrapT=THREE.RepeatWrapping;grass.repeat.set(26,17);grass.colorSpace=THREE.SRGBColorSpace;grass.anisotropy=8
- const stadium=state.context.stadium,progress=stadium?progressoVisualSetor(stadium,'grama'):0
- const greens=['#c1d89c','#d5e4b4'].map(color=>new THREE.MeshStandardMaterial({color,map:grass,roughness:1})),dirt=materialSolo3D()
- for(const band of faixasGramado3D(progress)){
-  const geometry=new THREE.PlaneGeometry(band.width,68),uv=geometry.getAttribute('uv')
-  // One continuous grass texture across the 105 m field, including partial strips.
-  for(let j=0;j<uv.count;j++)uv.setX(j,(band.left+52.5+uv.getX(j)*band.width)/105)
-  const strip=new THREE.Mesh(geometry,band.grass?greens[band.stripe]:dirt)
-  strip.rotation.x=-Math.PI/2;strip.position.set(band.left+band.width/2,.002,0);strip.receiveShadow=true;scene.add(strip)
-  // Native-resolution ground under boots/benches, within the registered apron.
-  const apronDepth=-34-FUNDO_AREA_TECNICA_Z,apronGeometry=new THREE.PlaneGeometry(band.width,apronDepth),apronUv=apronGeometry.getAttribute('uv')
-  for(let j=0;j<apronUv.count;j++){apronUv.setX(j,(band.left+52.5+apronUv.getX(j)*band.width)/105);apronUv.setY(j,1+apronUv.getY(j)*apronDepth/68)}
-  const apron=new THREE.Mesh(apronGeometry,band.grass?greens[band.stripe]:dirt)
-  apron.rotation.x=-Math.PI/2;apron.position.set(band.left+band.width/2,.002,(-34+FUNDO_AREA_TECNICA_Z)/2);apron.receiveShadow=true;scene.add(apron)
- }
- const white=material('#f4f0df')
- const line=(points:[number,number][])=>{for(let i=1;i<points.length;i++){const [x,z]=points[i-1],[bx,bz]=points[i];tube(scene,new THREE.Vector3(x,.025,z),new THREE.Vector3(bx,.025,bz),.06,white)}}
- line([[-52.5,-34],[52.5,-34],[52.5,34],[-52.5,34],[-52.5,-34]]);line([[0,-34],[0,34]])
- const arc=(cx:number,cz:number,r:number,start=0,end=Math.PI*2)=>line(Array.from({length:81},(_,i)=>{const a=start+(end-start)*i/80;return [cx+Math.cos(a)*r,cz+Math.sin(a)*r]}))
- arc(0,0,9.15)
- for(const sign of [-1,1]){
-  const x=sign*52.5
-  line([[x,-20.16],[x-sign*16.5,-20.16],[x-sign*16.5,20.16],[x,20.16]])
-  line([[x,-9.16],[x-sign*5.5,-9.16],[x-sign*5.5,9.16],[x,9.16]])
-  arc(x-sign*11,0,.12)
-  const half=Math.acos(5.5/9.15);arc(x-sign*11,0,9.15,sign===-1?-half:Math.PI-half,sign===-1?half:Math.PI+half)
-  for(const z of [-34,34]){tube(scene,new THREE.Vector3(x,.05,z),new THREE.Vector3(x,1.5,z),.025,white);box(scene,.3,.22,.015,x+.15,1.35,z,material('#FFC400'))}
-  // Actual goal frame and net in space; players and ball use depth testing.
-  tube(scene,new THREE.Vector3(x,0,-3.66),new THREE.Vector3(x,2.44,-3.66),.06,white)
-  tube(scene,new THREE.Vector3(x,0,3.66),new THREE.Vector3(x,2.44,3.66),.06,white)
-  tube(scene,new THREE.Vector3(x,2.44,-3.66),new THREE.Vector3(x,2.44,3.66),.06,white)
-  const verts:number[]=[];const segment=(a:number[],b:number[])=>verts.push(...a,...b)
-  for(let z=-3.66;z<=3.67;z+=.244){segment([x+sign*2,0,z],[x+sign*2,2.44,z]);segment([x,2.44,z],[x+sign*2,2.44,z])}
-  for(let y=0;y<=2.45;y+=.244){segment([x+sign*2,y,-3.66],[x+sign*2,y,3.66]);for(const z of [-3.66,3.66])segment([x,y,z],[x+sign*2,y,z])}
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));scene.add(new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({color:'#e2e4d7',transparent:true,opacity:.65})))
- }
- // Merge static markings/frames and grass strips to reduce mobile draw calls.
- scene.updateMatrixWorld(true)
- const groups=new Map<THREE.Material,THREE.Mesh[]>()
- for(const node of scene.children){if(node instanceof THREE.Mesh&&!Array.isArray(node.material)){const group=groups.get(node.material)??[];group.push(node);groups.set(node.material,group)}}
- for(const [mat,nodes] of groups){if(nodes.length<2)continue;const pieces=nodes.map(node=>node.geometry.clone().applyMatrix4(node.matrixWorld)),merged=mergeGeometries(pieces);pieces.forEach(g=>g.dispose());if(!merged)continue;for(const node of nodes){scene.remove(node);node.geometry.dispose()}const mesh=new THREE.Mesh(merged,mat);mesh.castShadow=nodes.some(n=>n.castShadow);mesh.receiveShadow=true;scene.add(mesh)}
- // Dispose unused materials, which otherwise are not visited with the scene.
- for(const mat of [...greens,dirt])if(!groups.has(mat))mat.dispose()
- return grass
-}
 export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_3D_INTEIRA,onUnavailable}:{state:EstadoPartidaEstadio;registered?:CantosRegistrados;resolution?:number;crop?:Janela3D;onUnavailable?:()=>void}){
  const t=useT(),root=useRef<HTMLDivElement>(null),current=useRef(state),[error,setError]=useState(false),controlsRef=useRef<OrbitControls|null>(null),fitRef=useRef(()=>{}),resizeRef=useRef(()=>{}),repaint=useRef(()=>{})
  const cropRef=useRef(crop),resolutionRef=useRef(resolution),unavailable=useRef(onUnavailable)
@@ -100,7 +46,7 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
   el.dataset.floodlit=String(floodlit)
   scene.add(new THREE.HemisphereLight('#fff7e5','#526344',2.2*light))
   const sun=new THREE.DirectionalLight('#fff4dc',3*light);sun.position.set(-35,75,30);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-70,right:70,top:55,bottom:-55,near:1,far:150});sun.shadow.normalBias=.025;scene.add(sun)
-  const grass=pitch(scene,state,!!registered,()=>repaint.current())
+  const grass=criarCampo3D(scene,state.context.stadium,!!registered,()=>repaint.current())
   const bodies=atletasEmCampo(state).map((p,i)=>{const body=person(p.keeper?'#d6b329':p.side==='home'?state.homeColor:state.awayColor,['#b9815b','#805439','#d5aa80'][i%3],p.keeper);scene.add(body.group);return body})
   const referee=person('#efc42f','#a87250');scene.add(referee.group)
   const coaches:{body:ReturnType<typeof person>;x:number}[]=[],seated:THREE.Group[]=[]

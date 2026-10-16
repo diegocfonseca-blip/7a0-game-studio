@@ -6,12 +6,13 @@ import { calendarioKings, chaveKings } from './kings'
 import { NAO_E_CLUBE } from './selos-clubes' // 🧱 seleção não entra no Leilão de Clubes
 import type { ReactNode } from 'react'
 import {presidentWritesEnabled} from './presidente-acesso'
-import {PRESIDENCY_ECONOMY_RELEASED,PRESIDENCY_ROOF_RELEASED} from './presidencia-lotes'
+import {PRESIDENCY_ECONOMY_RELEASED,PRESIDENCY_ROOF_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {getPlanoConta} from './presidente-conta'
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {presidenteCadastrado,sugestaoPresidente} from './presidencia-entrada-model'
 import {assinaturaPresidencia,salvarPresidenteNaCarreira,negociarNaCarreira,exibirDuplaNaCarreira,podeAlterarPresidencia,type PresidenteBaseSave} from './presidencia-carreira'
 import {PAVIMENTACAO_ESTADIO,podeInvestirNoProjeto,extraLiberadoNoProjeto} from './presidencia-estadio-projeto'
+import {investirEstacionamento,type EtapaEstacionamento} from './presidencia-estacionamento'
 import {roupaLegada} from './presidente-vestuario-modular'
 import type {PresidenciaOrcamento} from './presidencia-economia'
 import type {DuplaGaragem} from './presidencia-garagem'
@@ -5401,6 +5402,7 @@ type Action =
   | { type: 'PRESIDENCY_TRADE'; mgrId:number; quote:PresidenciaOrcamento; confirmed:boolean }
   | { type: 'PRESIDENCY_DISPLAY'; mgrId:number; display:DuplaGaragem }
   | { type: 'PRESIDENCY_ROOF'; mgrId:number; closed:boolean }
+  | { type: 'STADIUM_PARKING_INVEST'; mgrId:number; expectedStage:EtapaEstacionamento }
   | { type: 'STADIUM_INVEST'; mgrId: number; sector: string } // 🏟️ carreira: investe +20 no setor
   | { type: 'STADIUM_BUILD'; mgrId: number; ext: string } // 🏟️ carreira: compra melhoria destravada
   | { type: 'BECOME_HOST' }
@@ -6898,6 +6900,17 @@ function reducerBase(state: EscState, action: Action): EscState {
       if(!PRESIDENCY_ROOF_RELEASED||!presidentWritesEnabled())return state
       return alterarTetoPresidencia(state,action.mgrId,action.closed)??state
     }
+    case 'STADIUM_PARKING_INVEST': {
+      if (!PRESIDENCY_PARKING_STAGES_RELEASED || !presidentWritesEnabled() ||
+        !Number.isSafeInteger(action.mgrId) || action.mgrId < 0 || !podeAlterarPresidencia(s, action.mgrId)) return state
+      const result = investirEstacionamento({ stadium: s.stadiums?.[action.mgrId],
+        cash: s.careerCoins?.[action.mgrId] ?? 0, expectedStage: action.expectedStage })
+      if (!result.ok) return state
+      s.stadiums = { ...s.stadiums, [action.mgrId]: result.value.stadium }
+      s.careerCoins = { ...s.careerCoins, [action.mgrId]: result.value.cash }
+      logFin(s, 'stadium', `🅿️ Estacionamento: etapa ${result.value.parking.stage}/4`, -result.charged, undefined, action.mgrId)
+      return s
+    }
     case 'STADIUM_INVEST': {
       if (!s.careerOnline) return s
       const sec = STADIUM_SECTORS.find(x => x.k === action.sector); if (!sec) return s
@@ -6919,6 +6932,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       const ext = privateProject && action.ext === 'asfalto' ? PAVIMENTACAO_ESTADIO : STADIUM_EXTRAS.find(x => x.k === action.ext); if (!ext) return s
       if (extraNovaOnly(action.ext) && !s.agenciaOn) return s // 🏥🍔🍻🚇🏨 médico/retrátil + estabelecimentos novos: só carreira nova
       const st = s.stadiums?.[action.mgrId] ?? emptyStadium()
+      // Um clique da tela antiga nunca cobra outras 70 moedas por uma obra
+      // parcial. Saves públicos sem esse campo mantêm a compra original.
+      if (action.ext === 'estac' && (st.estacionamentoInvestido !== undefined ||
+        (privateProject && PRESIDENCY_PARKING_STAGES_RELEASED))) return s
       const wallet = s.careerCoins?.[action.mgrId] ?? 0
       if (st.ext.includes(action.ext) || !(privateProject ? extraLiberadoNoProjeto(st, action.ext) : extraUnlocked(st, action.ext)) || !Number.isFinite(wallet) || wallet < ext.cost) return s
       s.stadiums = { ...(s.stadiums ?? {}), [action.mgrId]: { ...st, inv: st.inv, ext: [...st.ext, action.ext] } }

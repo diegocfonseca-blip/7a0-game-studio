@@ -22,13 +22,13 @@ const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright
    await page.waitForFunction(old=>Number(document.querySelector('[data-map-zoom]').dataset.mapZoom)>Number(old),oldZoom);
    assert.ok((await page.locator('.pe-map-viewport').boundingBox()).height>=600,'Mapa ocupa área grande');
    const ratio=await page.locator('.pe-map-world').evaluate(n=>n.offsetWidth/n.offsetHeight);assert.ok(Math.abs(ratio-1.5)<.01,'Mundo mantém proporção sem esticar');
-   // Após VER TUDO, um único passo em tela estreita ainda pode caber nos
+   // Após ENQUADRAR, um único passo em tela estreita ainda pode caber nos
    // 600 px da prévia. Amplia até exigir os detalhes, independentemente do DPR.
    for(let step=0;step<2;step++)await page.getByRole('button',{name:'Aproximar mapa',exact:true}).click();
    await page.waitForFunction(()=>[...document.querySelectorAll('img[data-map-detail]')].some(i=>i.complete&&i.naturalWidth>0));
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`overflow ${width} ${stage.name}`);
    if(index===stages.length-1)await page.screenshot({path:`test-results/mapa-browser/mapa-${width}.png`});
-   await page.getByRole('button',{name:'VER TUDO',exact:true}).click();
+   await page.getByRole('button',{name:'ENQUADRAR',exact:true}).click();
   }
  }
  await page.getByRole('button',{name:'PAUSAR MOVIMENTO',exact:true}).click();

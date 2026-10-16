@@ -20,6 +20,6 @@ export function usePublicarPartida(state:EstadoPartidaEstadio){
  useEffect(()=>{const token=owner.current;return()=>{if(active?.owner===token){active=null;notify()}}},[])
  return frame
 }
-export function usePartidaNoMapa(matchId?:string,homeClubId?:number){
- return useSyncExternalStore(subscribe,()=>{const s=active?.state;if(!s)return null;return matchId?s.context.id===matchId?s:null:homeClubId!==undefined&&s.context.homeClubId===homeClubId&&!s.finished?s:null},()=>null)
+export function usePartidaNoMapa(matchId?:string,homeClubId?:number,includeFinished=false){
+ return useSyncExternalStore(subscribe,()=>{const s=active?.state;if(!s)return null;return matchId?s.context.id===matchId?s:null:homeClubId!==undefined&&s.context.homeClubId===homeClubId&&(includeFinished||!s.finished)?s:null},()=>null)
 }

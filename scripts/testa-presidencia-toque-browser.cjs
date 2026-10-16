@@ -24,7 +24,7 @@ const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright
  await page.setViewportSize({width:844,height:390});
  await page.waitForFunction(()=>document.documentElement.scrollWidth<=innerWidth);
  assert.ok(await viewport.evaluate(n=>n.clientHeight>=380),'Mapa mantém altura útil na horizontal');
- await page.getByRole('button',{name:'VER TUDO',exact:true}).click();
+ await page.getByRole('button',{name:'ENQUADRAR',exact:true}).click();
  const fit=await zoom();assert.ok(fit<=1);
  await page.setViewportSize({width:390,height:844});
  await viewport.scrollIntoViewIfNeeded();

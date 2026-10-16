@@ -1,3 +1,5 @@
+import {PORTA_LOJA,PORTA_HOTEL,PORTA_BAR,portaAcessivel,visitaNaPorta,type PortaEstadio} from './presidencia-estadio-portas'
+import {publicoDoEstadio,type DiaEstadio} from './presidencia-estadio-publico'
 import {obstaculosDoEstadio,caminhoSeguro} from './presidencia-estadio-navegacao'
 import type {StadiumSave} from './estadiodata'
 import {estadioVisualValido} from './presidencia-estadio-validacao'
@@ -31,14 +33,14 @@ export const ROTAS_ESTADIO:Readonly<Record<string,RotaMapa>>={
  // canteiros ou telhados como atalho para ligar duas entradas distantes.
  shop:{id:'shop',points:points([[1178,443],[1192,448],[1203,455],[1222,448]]),loop:false},
  food:{id:'food',points:points([[1118,620],[1133,610],[1155,604],[1168,596]]),loop:false},
- beer:{id:'beer',points:points([[1242,451],[1170,469],[1139,442],[1127,391],[1130,345],[1145,330]]),loop:false},
- hotel:{id:'hotel',points:points([[306,638],[337,644],[395,629],[444,614],[478,587],[479,573],[466,558],[455,541]]),loop:false},
+ beer:{id:'beer',points:points([[1242,451],[1170,469],[1139,442],[1127,391],[1130,345],[1145,330],[1166,331]]),loop:false},
+ hotel:{id:'hotel',points:points([[306,638],[337,644],[395,629],[444,614],[478,587],[479,573],[480,560],[474,553],[445,544],[428,544]]),loop:false},
  station:{id:'station',points:points([[1485,345],[1440,334],[1384,313],[1327,297],[1275,286],[1235,280],[1227,275]]),loop:false},
  parking:{id:'parking',points:points([[951,853],[939,837],[926,791],[913,757]]),loop:false},
  construction:{id:'construction',points:points([[688,602],[723,602],[772,602],[812,602]]),loop:false},
  securityPost:{id:'securityPost',points:points([[849,600],[851,600]]),loop:false},
 }
-export type AtorMapa={id:string;kind:'worker'|'fan'|'security'|'car';src:string;srcBack?:string;frames?:number;route:string;speed:number;phase:number;width:number;height:number;lane?:number;path?:RotaMapa}
+export type AtorMapa={id:string;kind:'worker'|'fan'|'security'|'car';src:string;srcBack?:string;frames?:number;route:string;speed:number;phase:number;width:number;height:number;lane?:number;path?:RotaMapa;portal?:PortaEstadio}
 /** Carro gira pelo centro: o círculo contém toda a carroceria, inclusive nas
  * curvas. Pedestre colide pelos pés, não pelo retângulo vertical do sprite. */
 export function raioCorpoAtor(actor:Pick<AtorMapa,'kind'|'width'|'height'>):number{
@@ -46,25 +48,34 @@ export function raioCorpoAtor(actor:Pick<AtorMapa,'kind'|'width'|'height'>):numb
 }
 /** Tráfego é ambiente da rua pública; estacionamento comprado recebe desvios.
  * Não representa veículos adquiridos pela conta nem simula renda/lotação. */
-export function atoresDoMapa(st?:StadiumSave):AtorMapa[]{
+export function atoresDoMapa(st?:StadiumSave,day?:DiaEstadio):AtorMapa[]{
  if(!estadioVisualValido(st))return []
- const pop=populacaoEstadio(st),actors:AtorMapa[]=[]
+ const pop=populacaoEstadio(st),audience=day?publicoDoEstadio(st,day):undefined,actors:AtorMapa[]=[]
  const add=(id:string,kind:AtorMapa['kind'],src:string,route:string,speed:number,phase:number)=>{
   const walking=kind==='worker'||kind==='fan',personHeight=alturaPessoa*(walking?96/92:1)
   actors.push({id,kind,src:'estadio-circulacao/'+src+(walking?'-walk':'')+'.webp',srcBack:walking?'estadio-circulacao/'+src+'-walk-back.webp':undefined,frames:walking?4:undefined,lane:walking&&['sidewalk','entrance','entranceBare','construction'].includes(route)?(route==='sidewalk'?2.75:2.5):0,route,speed:speed*(kind==='car'?1.7:1.3),phase,width:kind==='car'?19:personHeight*(walking?.75:.5),height:kind==='car'?11:personHeight})
  }
  add('traffic-cream','car','car-cream','roadOut',19,0.2)
- add('traffic-green','car','car-green','roadBack',17,0.55)
+ if(!audience||audience.cars>=2)add('traffic-green','car','car-green','roadBack',17,0.55)
+ if(audience&&audience.cars>=3)add('traffic-extra-out','car','car-green','roadOut',19,.48)
+ if(audience&&audience.cars>=4)add('traffic-extra-back','car','car-cream','roadBack',17,.05)
  for(let i=0;i<pop.workers;i++)add('worker-'+i,'worker','worker','construction',3.2,i*.4)
  if(pop.workers)add('work-truck','car','truck','roadOut',19,.7)
- for(let i=0;i<pop.fans;i++)add('fan-'+i,'fan','fan',i%2?(st.ext.includes('asfalto')?'entrance':'entranceBare'):'sidewalk',4,i*.13)
+ for(let i=0;i<(audience?.outside??pop.fans);i++)add('fan-'+i,'fan','fan',i%2?(st.ext.includes('asfalto')?'entrance':'entranceBare'):'sidewalk',4,i*.13)
  // Posto lateral: o segurança não ocupa a linha percorrida pelos visitantes.
  if(pop.security)add('security','security','security','securityPost',0,.8)
  const destinations=[['loja','shop'],['praca','food'],['chopp','beer'],['hotel','hotel'],['estacao','station']] as const
  for(const [key,route] of destinations)if(st.ext.includes(key))add('visitor-'+key,'fan','fan',route,3.5,.35)
  if(st.ext.includes('estac'))add('parking-car','car','car-cream','parking',7,.15)
+ // Interior visits exist only for purchased buildings with registered doors.
+ if(day)for(const [id,portal] of [['visitor-loja',PORTA_LOJA],['visitor-hotel',PORTA_HOTEL],['visitor-chopp',PORTA_BAR]] as const){const visitor=actors.find(a=>a.id===id);if(visitor)visitor.portal=portal}
  const obstacles=obstaculosDoEstadio(st)
- return actors.flatMap(actor=>{const route=ROTAS_ESTADIO[actor.route],safe=caminhoSeguro(route.points,obstacles,raioCorpoAtor(actor)+(actor.lane??0));return safe.length?[{...actor,path:{...route,points:safe}}]:[]})
+ return actors.flatMap(actor=>{
+  const route=ROTAS_ESTADIO[actor.route],radius=raioCorpoAtor(actor),safe=caminhoSeguro(route.points,obstacles,radius+(actor.lane??0))
+  if(!safe.length)return []
+  const portal=actor.portal&&portaAcessivel(actor.portal,safe.at(-1)!,obstacles,radius)?actor.portal:undefined
+  return [{...actor,portal,path:{...route,points:safe}}]
+ })
 }
 export function comprimentoRota(route:RotaMapa):number{
  return route.points.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-route.points[i].x,p.y-route.points[i].y),0)
@@ -110,31 +121,33 @@ function passeioEmFaixas(actor:AtorMapa,route:RotaMapa,seconds:number){
 export function quadroAtor(actor:AtorMapa,seconds:number){
  const route=actor.path??ROTAS_ESTADIO[actor.route],length=comprimentoRota(route)
  const road=actor.route==='roadOut'||actor.route==='roadBack'
+ let portalPose:ReturnType<typeof visitaNaPorta>|undefined
  const lane=actor.lane&&actor.speed>0&&length>0?passeioEmFaixas(actor,route,seconds):undefined
  let distance=actor.phase*length+Math.max(0,seconds)*actor.speed
  let walking=actor.speed>0
  // Pedestres aguardam nas entradas e destinos antes de voltar. O relógio
  // compartilhado da circulação também congela essa espera durante a pausa.
  if(actor.kind!=='car'&&actor.speed>0&&length>0){
-  const trip=length/actor.speed,wait=2,cycle=2*(trip+wait)
+  const trip=length/actor.speed,visitDuration=actor.portal?visitaNaPorta(actor.portal,0,actor.speed).total:2,wait=2,cycle=2*trip+visitDuration+wait
   const time=((Math.max(0,seconds)+actor.phase*trip)%cycle+cycle)%cycle
   if(time<trip)distance=time*actor.speed
-  else if(time<trip+wait){distance=length;walking=false}
-  else if(time<2*trip+wait)distance=length+(time-trip-wait)*actor.speed
+  else if(time<trip+visitDuration){distance=length;walking=false;if(actor.portal)portalPose=visitaNaPorta(actor.portal,time-trip,actor.speed)}
+  else if(time<2*trip+visitDuration)distance=length+(time-trip-visitDuration)*actor.speed
   else {distance=2*length;walking=false}
  }
  const end=route.points.at(-1)!,outside=(p:PontoMapa)=>p.x< -actor.width||p.x>MAPA_ESTADIO.width+actor.width||p.y< -actor.height||p.y>MAPA_ESTADIO.height+actor.height
  // Só reaparece do outro lado quando a carroceria já saiu inteira da imagem.
  const canWrap=road&&outside(route.points[0])&&outside(end)
  const blocked=road&&!canWrap&&distance>=length
- const p=lane??(blocked?{...end,angle:Math.atan2(end.y-route.points.at(-2)!.y,end.x-route.points.at(-2)!.x)*180/Math.PI}:posicaoNaRota(route,distance,!road))
+ const p=portalPose??lane??(blocked?{...end,angle:Math.atan2(end.y-route.points.at(-2)!.y,end.x-route.points.at(-2)!.x)*180/Math.PI}:posicaoNaRota(route,distance,!road))
  if(lane)walking=lane.walking
+ if(portalPose)walking=portalPose.walking
  if(!lane&&actor.kind!=='car'&&!walking&&actor.speed>0&&distance===2*length)p.angle+=180
  // Estacionamento: retorno de ré mantém a frente do veículo no mesmo sentido.
  if(actor.kind==='car'&&!road&&length&&distance%(2*length)>length)p.angle-=180
  const scale=escalaAmbiente(p.y)
  const back=Math.sin(p.angle*Math.PI/180)<0
- return {...p,scale,depth:Math.round(p.y*10),back,flip:back?Math.cos(p.angle*Math.PI/180)<0:Math.cos(p.angle*Math.PI/180)>0,frame:actor.frames&&walking?Math.floor(Math.max(0,seconds)*6+actor.phase*4)%actor.frames:0}
+ return {...p,hiddenFraction:portalPose?.hiddenFraction??0,visit:portalPose?.visit??'walking',scale,depth:Math.round(p.y*10),back,flip:back?Math.cos(p.angle*Math.PI/180)<0:Math.cos(p.angle*Math.PI/180)>0,frame:actor.frames&&walking?Math.floor(Math.max(0,seconds)*6+actor.phase*4)%actor.frames:0}
 }
 
 export type VistaMapa={zoom:number;x:number;y:number}

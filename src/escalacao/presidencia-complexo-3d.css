@@ -1,0 +1,46 @@
+.pc3-review{width:100%;color:#0c0c0c;font-family:system-ui,sans-serif;isolation:isolate}
+.pc3-stage{height:clamp(480px,84svh,1080px);position:relative;overflow:hidden;border:3px solid #0c0c0c;border-radius:16px;background:#cbd2cd}
+.pc3-viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none}
+.pc3-viewport canvas{display:block;width:100%;height:100%;touch-action:none;outline-offset:-6px;cursor:grab}
+.pc3-viewport canvas:active{cursor:grabbing}
+.pc3-review button{display:flex;align-items:center;justify-content:center;min-width:48px;min-height:48px;padding:10px 14px;border:2px solid #0c0c0c;border-radius:10px;background:#f4ecd6;color:#0c0c0c;font:700 13px/1.15 system-ui,sans-serif;cursor:pointer;touch-action:manipulation;box-shadow:2px 3px 0 #0c0c0c}
+.pc3-review button:disabled{cursor:wait;opacity:.55}
+.pc3-review button[aria-pressed=true],.pc3-review button[aria-expanded=true]{background:#ffc400}
+.pc3-review button:focus-visible,.pc3-viewport canvas:focus-visible{outline:3px solid #1b7a3d;outline-offset:3px}
+.pc3-viewport canvas:focus-visible{outline-offset:-6px}
+@media(hover:hover){.pc3-review button:not(:disabled):hover{background:#ffe19a}}
+.pc3-hud{position:absolute;z-index:2;pointer-events:none}
+.pc3-hud button{pointer-events:auto}
+.pc3-topbar{top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.pc3-primary{display:flex;gap:7px}
+.pc3-primary button{gap:6px}
+.pc3-expand{flex:0 0 48px;padding:10px!important}
+.pc3-expand svg{width:23px;height:23px}
+.pc3-navigation{right:max(12px,env(safe-area-inset-right));bottom:max(42px,calc(env(safe-area-inset-bottom) + 36px));display:flex;flex-direction:column;gap:8px}
+.pc3-navigation button{width:66px;padding:8px 3px}
+.pc3-navigation .pc3-zoom{font:500 28px/1 system-ui,sans-serif}
+.pc3-places{position:absolute;z-index:3;top:72px;left:max(12px,env(safe-area-inset-left));width:min(310px,calc(100% - 96px));max-height:calc(100% - 116px);overflow-y:auto;overscroll-behavior:contain;border:2px solid #0c0c0c;border-radius:12px;background:#f4ecd6;padding:12px;box-shadow:3px 4px 0 #0c0c0c}
+.pc3-places p{font:700 13px/1.4 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;margin:4px 0 10px}
+.pc3-places p:not(:first-child){margin-top:20px}
+.pc3-places button{width:100%;justify-content:flex-start;text-align:left;box-shadow:none;margin-top:6px;min-height:46px;background:#fffaf0}
+.pc3-places .pc3-pause{margin-top:18px;background:#f4ecd6}
+.pc3-help{position:absolute;bottom:0;left:0;right:0;z-index:1;margin:0;padding:8px max(12px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-bottom));background:#f4ecd6ed;border-top:1px solid #0c0c0c40;font-size:12px;line-height:1.4;pointer-events:none}
+.pc3-help-touch{display:none}
+.pc3-error,.pc3-loading{position:absolute;inset:0;display:grid;place-content:center;padding:30px;background:#f4ecd6;text-align:center;margin:0}
+.pc3-error{z-index:4}
+.pc3-expanded{position:fixed;inset:0;z-index:10000;width:100%;height:100vh;height:100dvh;background:#f4ecd6;overscroll-behavior:none}
+.pc3-expanded .pc3-stage{width:100%;height:100%;border:0;border-radius:0}
+@media(pointer:coarse){.pc3-help-touch{display:inline}.pc3-help-mouse{display:none}}
+@media(max-width:600px){
+ .pc3-stage{height:calc(100svh - 92px);min-height:320px;max-height:none;border-radius:12px}
+ .pc3-topbar{top:max(10px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));gap:8px}
+ .pc3-primary{gap:5px}.pc3-primary button{padding:8px;font-size:12px}
+ .pc3-navigation{right:max(8px,env(safe-area-inset-right));gap:7px}.pc3-navigation button{width:58px;min-height:48px;font-size:12px}
+ .pc3-places{top:68px;left:8px;width:min(310px,calc(100% - 82px))}
+ .pc3-help{font-size:11px;padding-top:7px}
+}
+@media(max-height:520px) and (orientation:landscape){
+ .pc3-stage{height:88svh;min-height:260px}
+ .pc3-navigation{flex-direction:row;bottom:max(34px,calc(env(safe-area-inset-bottom) + 30px))}
+ .pc3-expanded .pc3-stage{height:100%;min-height:0}
+}

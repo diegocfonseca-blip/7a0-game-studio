@@ -5,13 +5,10 @@ import {carteiraDaCarreira,type PresidenteBaseSave} from './presidencia-carreira
 import {conquistasDaCarreira,type ConquistasCarreira} from './presidencia-conquistas'
 import {type CarreiraComEstadio} from './presidencia-estadio-integrado'
 import {itemPresidencia} from './presidencia-economia'
-import {vistaJanelaDisponivel} from './presidencia-vista-estadio'
 import {getLang,useT} from './lang'
 import './presidencia-sala-montagem.css'
 import type {IdentidadePresidencia} from './presidencia-identidade-conta'
 import {IdentidadeNaSala} from './presidencia-identidade-visual'
-import {duplaDaGaragem} from './presidencia-garagem'
-import {VeiculoNoSolo} from './veiculo-no-solo'
 import {Fragment,useState} from 'react'
 import {PresidenciaImagemLocal} from './presidencia-imagem-local'
 import {Btn} from './ui-primitives'
@@ -27,8 +24,6 @@ export function SalaMontagem({state,mgrId,president,identity}:{state:CarreiraCom
  const assetFailed=(id:string)=>setFailed(old=>old.includes(id)?old:[...old,id])
  if(!wallet)return <p role="alert">{t('Não foi possível conferir os móveis comprados.','Could not verify purchased furniture.')}</p>
  const owned=new Set(wallet.owned.map(b=>b.id)),st=state.stadiums?.[mgrId]
- const initial=vistaJanelaDisponivel(st)
- const pair=duplaDaGaragem(wallet.owned,state.careerPresidency?.[mgrId]?.display)
  const shelf=owned.has('estante-simples')||owned.has('estante-madeira'),trophies=conquistasDaCarreira(state,mgrId,getLang()==='en')
  const pages=Math.max(1,Math.ceil(trophies.length/6)),page=Math.min(shelfPage,pages-1)
  const seated=podeSentarPresidente(president.outfit,wallet.owned)
@@ -36,7 +31,6 @@ export function SalaMontagem({state,mgrId,president,identity}:{state:CarreiraCom
  return <section aria-label={t('Montagem da sala','Office assembly')}>
   <div className="pr-scene">
    <div className="pr-window"><PresidenciaEstadioImagem stadium={st} camera="window"/></div>
-   {initial&&<div className="pr-window pr-vehicles">{pair.map((id,index)=>id?<VeiculoNoSolo key={index} id={id} position={index} camera="room"/>:null)}</div>}
    <PresidenciaImagemLocal key={'room:'+attempt} className="pr-layer" onUnavailable={()=>assetFailed('room')} onRecovered={()=>assetRecovered('room')} src={import.meta.env.BASE_URL+'presidencia-moveis/sala-vazia.webp'} alt=""/>
    {furniture.filter(([id])=>owned.has(id)).map(([id,file])=><Fragment key={id}>
     {seated&&id.startsWith('mesa-')&&<div aria-hidden="true" className="pr-president pr-president-seated pr-president-body"><PresidenteCamadas ids={camadasDoPresidente(president)} pose="seated"/></div>}

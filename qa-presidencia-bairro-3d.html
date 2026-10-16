@@ -1,0 +1,5 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Entorno do clube — prévia 3D local</title><style>html,body{margin:0;background:#f4ecd6}</style></head><body><div id="root"></div><script type="module">
+import React from 'react';import {createRoot} from 'react-dom/client';
+import PresidenciaBairro3D from './src/escalacao/presidencia-bairro-3d.tsx';
+createRoot(document.getElementById('root')).render(React.createElement(PresidenciaBairro3D,{onReady:api=>{window.bairro3D=api}}));
+</script></body></html>

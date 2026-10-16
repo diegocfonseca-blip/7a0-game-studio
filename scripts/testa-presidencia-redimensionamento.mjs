@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 await import('./testa-presidencia-evolucao.mjs')
 const {redimensionarVistaMapa}=await import('../src/escalacao/presidencia-estadio-mapa-model.ts')
-const dimensions=(width,height)=>{const w=Math.max(width,height*1.5);return {width,height,world:{width:w,height:w/1.5},minZoom:Math.min(width/w,height/(w/1.5))}}
+const dimensions=(width,height)=>{const w=Math.max(width,height*1.5);return {width,height,world:{width:w,height:w/1.5},minZoom:1}}
 const sizes=[dimensions(364,608),dimensions(818,380),dimensions(1000,720)]
 const center=(v,d)=>[.5-v.x/(d.world.width*v.zoom),.5-v.y/(d.world.height*v.zoom)]
 for(const before of sizes)for(const after of sizes){

@@ -22,9 +22,9 @@ function sobrepostos(a,p,b,q){
   return Math.min(...px)<Math.max(...py)&&Math.min(...py)<Math.max(...px)
  }))
 }
-for(const works of [false,true])for(const paved of [false,true]){
+for(const day of [undefined,{division:'V',support:0,match:'idle'},{division:'A',support:100,match:'playing'}])for(const works of [false,true])for(const paved of [false,true]){
  const stadium={inv:{grama:30,geral:40,cadeiras:90,visitante:120,camarote:works?50:150},ext:[...(paved?['asfalto']:[]),'hotel','loja','chopp','praca','estacao','estac',...(!works?['cober']:[])]}
- const actors=atoresDoMapa(stadium)
+ const actors=atoresDoMapa(stadium,day)
  for(let sample=0;sample<6000;sample++){
   const seconds=sample/10,frames=actors.map(actor=>quadroAtor(actor,seconds))
   for(let i=0;i<actors.length;i++)for(let j=i+1;j<actors.length;j++){

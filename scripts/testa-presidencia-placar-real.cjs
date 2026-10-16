@@ -61,6 +61,12 @@ const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright
  const beforeSpeed=(await state()).minute;props.roundMs=2500;props.stadiumMatch.speed=4;await render();
  await page.waitForFunction(()=>JSON.parse(document.querySelector('#score-probe').textContent)?.visualClock?.rate===4);
  assert.ok((await state()).minute>=beforeSpeed,'Speed change preserves elapsed minutes');
+ for(const rate of [.5,.25]){
+  const minuteBefore=(await state()).minute;
+  props.stadiumMatch.speed=rate;props.roundMs=10000/rate;await render();
+  await page.waitForFunction(rate=>JSON.parse(document.querySelector('#score-probe').textContent)?.visualClock?.rate===rate,rate);
+  assert.ok((await state()).minute>=minuteBefore,'Slowing down preserves the minute');
+ }
  await page.evaluate(()=>{window.allowPresident=false});await render();
  await page.waitForFunction(()=>!document.querySelector('.pe-live')&&!document.querySelector('.pe-map-score'));
  assert.equal(await page.locator('[data-athlete]').count(),0,'Revogar acesso desmonta a publicação privada e os atletas do mapa');
