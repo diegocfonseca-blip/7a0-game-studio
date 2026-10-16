@@ -22,11 +22,8 @@ const CSS = `
 export function LedEstadio() {
   const marcas = ledDoEstadio()
   if (!marcas.length) return null
-  const volta = marcas.flatMap(m => [
-    <span key={m.nome + 'a'}>{m.emoji} {m.nome}</span>,
-    ...(m.chamada ? [<span key={m.nome + 'b'}>{m.chamada}</span>] : []),
-    <span key={m.nome + 'c'} className="pled-casa">🔨 Leilão Legends</span>,
-  ])
+  // Diego (16/10): *"no LED tem que vir escrito só Vadico Veículos"* — só o nome da marca, sem emoji, chamada nem Leilão Legends
+  const volta = marcas.flatMap(m => [0, 1, 2].map(k => <span key={m.nome + k}>{m.nome}</span>))
   // a volta vai duas vezes no trilho: andando −50% ela emenda sem pulo
   return <div className="pled" aria-label={tr('Patrocinador do estádio', 'Stadium sponsor')}>
     <style>{CSS}</style>

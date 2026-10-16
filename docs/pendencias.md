@@ -3,7 +3,8 @@
   Copa dos 8 **sem** Vadico (ordem dele: *"já vai ter na Champions"*) — ela só ganha marca no Dia da marca.
 - 🏟️ LED do estádio: letreiro verde passando no topo do palco das partidas online (`LedEstadio`, `patrocinio-visual.tsx`),
   lista `LED_ESTADIO` (mais de um mensal = passam um atrás do outro). Placar não mudou.
-- 📰 Anúncio no O MARTELO: quadro com a logo no FIM do jornal (sala online, torneio offline e carreira), `ANUNCIO_MARTELO`.
+- 📰 Anúncio no O MARTELO: quadro com a logo no FIM do jornal — **Diego NÃO gostou** (*"até agora gostei só do apresentado por"*);
+  desligado (`ANUNCIO_MARTELO_LIGADO = false`) até ele aprovar outro formato. LED corrigido: só "VADICO VEÍCULOS" passando.
 - A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
 - Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
 

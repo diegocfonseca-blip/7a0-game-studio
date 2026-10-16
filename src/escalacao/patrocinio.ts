@@ -38,12 +38,14 @@ export function ledDoEstadio(): MarcaLed[] { return espacosOk() ? LED_ESTADIO : 
 
 // 📰 Anúncio no O MARTELO (R$ 100/mês): um quadro no fim do jornal. Um anunciante por vez.
 export type AnuncioJornal = Patrocinio & { texto: string; contato?: string; logo?: string; logoProp?: number }
+// 16/10: Diego não gostou do quadro (*"até agora gostei só do apresentado por"*) → desligado até ele aprovar outro formato
+const ANUNCIO_MARTELO_LIGADO = false
 const ANUNCIO_MARTELO: AnuncioJornal | null = {
   nome: 'Vadico Veículos', emoji: '🚗', logo: VADICO_LOGO_ALFA, logoProp: 496 / 140,
   texto: '45 anos de empresa familiar. Garantia e documento no nome da loja, sem carro de leilão. Itaguaí e Barra da Tijuca.',
   contato: 'vadicoveiculos.com.br · @vadicoveiculos',
 }
-export function anuncioDoMartelo(): AnuncioJornal | null { return espacosOk() ? ANUNCIO_MARTELO : null }
+export function anuncioDoMartelo(): AnuncioJornal | null { return espacosOk() && ANUNCIO_MARTELO_LIGADO ? ANUNCIO_MARTELO : null }
 
 /** 💼 a seção "Sua marca no jogo" da Loja (Dia da marca + mensal) — mesma trava: começa só nas contas do Diego */
 export function patrocinioLojaOk(): boolean {
