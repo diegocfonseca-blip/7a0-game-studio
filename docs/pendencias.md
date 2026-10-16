@@ -33,8 +33,11 @@
   Dia da marca NÃO tira o mensal: home só da marca do dia · LED alternando as duas · competição e O MARTELO seguem com a do mês.
   Mockup 2: `node scripts/mockup-patrocinio-2.mjs` → `scripts/mockups/patrocinio-2.png`.
 
-## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 9,90 (16/10) — ⏳ A FAZER
-- Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*.
+## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 14,90 (16/10) — ⏳ A FAZER
+- Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*, e na mesma conversa subiu:
+  *"ficha avulsa pode botar aí R$ 14,90"*. Mockup do cartão + 6 ideias novas pra ele escolher:
+  `node scripts/mockup-loja-ideias.mjs` → `scripts/mockups/loja-ideias.png` (frase do martelo 4,90 · pacote de áudios de zoeira
+  4,90 · figurinhas do chat 3,90 · capa do O MARTELO 4,90 · vitrine semanal do presidente 2,90+ · presente de avulso). ⏳ ele escolher.
 - +1 ficha de carreira além do limite do plano (grátis 1 · Craque 2 · Lenda 4 · Batismo 4), igual às 🎟️ salas extras.
 - Vende pelo Pix do Mercado Pago (produto novo no `esc_mp_preco`/`esc_mp_entregar` + nome na edge function).
 - Mockup na Loja ANTES de codar. Nunca apagar/travar save por causa do limite.
