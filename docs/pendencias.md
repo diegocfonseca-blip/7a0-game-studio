@@ -6,6 +6,9 @@
   do clube mergulha e solta penas, escudo acende → "O BANDO DE LOUCOS CHEGOU". Nada de marca oficial do Corinthians/torcida.
   🔁 v2 "O ataque do Gavião" (Diego: *"quero outra ideia melhor, mais impactante"*): olho gigante pisca → o Gavião voa na câmera →
   a tela estilhaça → bandeirão listrado sobe → bando gira em volta do escudo + LED "TODO PODEROSO" (8,6 s).
+  🔁 v3 "AQUI É FIEL" (Diego não entendeu o olho e sentiu falta do Corinthians → *"ok faz"*): torcida P&B pulando +
+  sinalizadores → bandeirão "TIMÃO" sobe e desce → mosaico de cartões vira o escudo → escudo sobe e o Gavião sai do mosaico
+  com rajada de vento → faixa "CHEGOU NA SALA · AQUI É FIEL" (8,6 s).
   Vídeo: `node scripts/video-gala-gavioes.mjs` → `scripts/posts/gala-gavioes-com-canto.mp4`. Registrada em `GALA_UNICA`.
 
 ## 💼 LOJA: "SUA MARCA NO JOGO" + WhatsApp do Diego (16/10) — ✅ publicado (seção de marca só nas contas do Diego)
