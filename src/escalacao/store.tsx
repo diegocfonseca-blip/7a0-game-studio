@@ -6065,7 +6065,7 @@ function holResgate(state: EscState) {
 // resenha, vendedor) — a MESMA porta que o envelope e a Tocaia usam. Os robôs decidem o teto com o MESMO
 // `cpuEnvelope`, carta a carta, e vão cobrindo de 1 em 1 até o teto deles.
 // 👑 No online (quando for ligado): quem roda o relógio e o martelo é SÓ o dono da sala; o convidado roteia o lance.
-export const PA_MARTELO_MS = 4_000 // 🔁 16/10: era 6s; Diego no 1º teste pediu pra encurtar ("reduzir mais o tempo")
+export const PA_MARTELO_MS = 5_000 // 🔁 16/10: era 6s; ele pediu pra encurtar e cravou: "eu falei 5s p martelar"
 export const PA_TICK_MS = 1_000
 export const PA_ABERTURA = 1
 

@@ -24,7 +24,7 @@ apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
   bot+carta, preso ao `fairPrice`, e nunca mais que 35% do caixa numa carta (40% lenda). Medido: média 8 🪙 por carta, maior ~26,
   todo robô fecha os 11. No caminho achei outro bug: `rngOf(state)` é fixo por estado e o tique não muda nada do estado — o
   sorteio se REPETIA em todo tique e em toda carta do setor, então setores inteiros iam pro Monte sem lance (`paRng` agora anda
-  por carta e por tique). E ele pediu *"reduzir mais o tempo"*: martelo 6s → **4s**, o robô que abre já abre com uma fatia do
+  por carta e por tique). E ele pediu *"reduzir mais o tempo"*: martelo 6s → 4s → **5s** (ele cravou: *"eu falei 5s p martelar"*), o robô que abre já abre com uma fatia do
   teto ("dou 8!") e pula 2–3 com folga. Medido: ~9s por carta, ~18 min com 10 clubes (115 cartas), ~33 min com 20.
 - **Trava**: `npm run pregao-aberto` (partida inteira no reducer: fila embaralhada, lance inválido recusado, uma carta =
   um dono, pagou o lance final, ninguém negativo, termina no Monte/cerimônia).
