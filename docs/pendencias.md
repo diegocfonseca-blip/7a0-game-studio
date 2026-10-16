@@ -7,7 +7,8 @@
   `moedas_500`, `moedas_1000`. Banco aceita (`esc_mp_preco_ref` → 50,00). Mensal: **link de pagamento da VENDRIA** que o Diego gera na hora de fechar com o mensalista (16/10:
   *"faça o mensal pelo Vendria e repasse o custo… 1,99 fixo"*) → valor + R$ 1,99. Sem código.
 - 🏷️ 16/10: "naming rights" — mensal = naming rights da competição; ⚡ Dia da marca leva os naming rights da **Copa dos 8** por 24 h
-  ("Copa dos 8 apresentada por…"; o selo já existe no `CompetitionStage`, kind `copa8` — falta ligar por data quando vender).
+  ("Copa dos 8 apresentada por…"). ✅ FEITO 16/10: o Diego marca data+marca no #admin (⚡ Dia da marca · `esc_dia_marca`) e o
+  selo liga SOZINHO naquele dia pra todo mundo (`usePatrocinio` em patrocinio.ts). Champions/Vadico segue só na conta do Diego.
 - 🏢 16/10: entrou **Patrocinador Master na carreira** (a marca vira uma das propostas do início da temporada, como Vadico/ERO/Max
   Jóias/Rei das Tintas/Uomo em `SPONSOR_BRANDS`) por R$ 150, e **o pacote completo (os 4) fica em R$ 500** (Diego: *"tudo de 500 pra quem
   fechar tudo"*), e **post no Instagram + aviso na comunidade do WhatsApp em QUALQUER plano** (Dia da marca, espaço mensal avulso ou pacote — Diego 16/10). Avulsos: competição 300 · LED 200 · O MARTELO 100 (Diego 16/10) · Master 150.

@@ -2,7 +2,7 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
 import { tr } from './lang' // 🌐 BR/EN
-import { patrocinioDe } from './patrocinio' // 💼 'apresentada por' (16/10)
+import { usePatrocinio } from './patrocinio' // 💼 'apresentada por' (16/10)
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
 import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
 import { type Batedores, batedorDaVez, siglasDoTime, sementePalco, jeitoDoErro, type JeitoDoErro } from './penaltis' // 🎯 o palco dos batedores (24/09)
@@ -96,7 +96,7 @@ export function CompetitionStage({ kind, title, phase, detail, status, children 
   kind: 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'; title: string; phase: string;
   detail: string; status?: string; children?: ReactNode
 }) {
-  const patro = patrocinioDe(kind)
+  const patro = usePatrocinio(kind)
   return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`}>
     {/* 🧹 `detail` vazio não vira parágrafo em branco (Diego 19/09: a liga não precisa
         da linha "acompanhe sua divisão…"; a Copa continua dizendo o formato da fase) */}

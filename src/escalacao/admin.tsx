@@ -339,6 +339,44 @@ function SalasExtrasAdmin() {
 // sozinho o automático (Craque, Lenda, salas extras, tudo do Lenda no Batismo/Fundador). Aqui: o que caiu, quem deixou
 // WhatsApp, o "🖋 Batismos pra fazer" (o que a pessoa escreveu de como imagina o clube) e o Pix de teste de R$ 1.
 type PedidoMp = { id: string; email: string; produto: string; valor: number; status: string; telefone: string | null; criado_em: string; pago_em: string | null; liberado_por: string | null; briefing: Record<string, string> | null }
+// ⚡ DIA DA MARCA (16/10): o Diego marca a data e a marca; naquele dia a Copa dos 8 sai "apresentada por…" pra todo mundo
+function DiaMarcaAdmin() {
+  const [lista, setLista] = useState<{ dia: string; nome: string; emoji: string }[]>([])
+  const [dia, setDia] = useState(() => new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10))
+  const [nome, setNome] = useState('')
+  const [emoji, setEmoji] = useState('⭐')
+  const [msg, setMsg] = useState('')
+  const carregar = async () => {
+    const hoje = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10)
+    const { data } = await supabase.from('esc_dia_marca').select('dia, nome, emoji').gte('dia', hoje).order('dia')
+    setLista((data ?? []) as { dia: string; nome: string; emoji: string }[])
+  }
+  useEffect(() => { carregar() }, [])
+  const salvar = async (d: string, n: string, e: string) => {
+    const { data, error } = await supabase.rpc('esc_admin_dia_marca', { p_dia: d, p_nome: n, p_emoji: e })
+    setMsg(error ? `❌ ${error.message}` : data === 'apagado' ? '🗑️ apagado' : `✅ ${d}: Copa dos 8 apresentada por ${n}`)
+    carregar()
+  }
+  const inp: React.CSSProperties = { background: '#fff', color: '#0C0C0C', border: '2px solid #000', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700 }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>⚡ Dia da marca · Copa dos 8</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>No dia marcado (horário de Brasília), a Copa dos 8 sai "apresentada por" essa marca pra TODO MUNDO. Some sozinho no dia seguinte.</p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <input type="date" value={dia} onChange={e => setDia(e.target.value)} style={inp} />
+        <input value={emoji} onChange={e => setEmoji(e.target.value)} maxLength={8} style={{ ...inp, width: 46, textAlign: 'center' }} />
+        <input value={nome} onChange={e => setNome(e.target.value)} maxLength={40} placeholder="Nome da marca" style={{ ...inp, flex: 1, minWidth: 140 }} />
+        <button disabled={!dia || nome.trim().length < 2} onClick={() => { salvar(dia, nome, emoji); setNome('') }} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer' }}>Marcar</button>
+      </div>
+      {msg && <p style={{ fontSize: 11, fontWeight: 800, color: '#F2E8CF', margin: '8px 0 0' }}>{msg}</p>}
+      {lista.map(r => <div key={r.dia} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', marginTop: 6 }}>
+        <b>{r.dia.split('-').reverse().join('/')}</b><span style={{ flex: 1 }}>{r.emoji} {r.nome}</span>
+        <button onClick={() => window.confirm(`Tirar ${r.nome} do dia ${r.dia}?`) && salvar(r.dia, '', '')} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
+      </div>)}
+    </div>
+  )
+}
+
 function PixMpAdmin() {
   const [lista, setLista] = useState<PedidoMp[]>([])
   const [msg, setMsg] = useState('')
@@ -1181,7 +1219,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><DiaMarcaAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )
