@@ -1,3 +1,13 @@
+## 💛 PLANO DUPLO + 🔄 REPAGINAR CLUBE (16/10) — 👀 propostas/mockup, esperando OK
+- **Plano duplo**: 2 do MESMO plano (um pra você, outro de presente) com 10% a menos, **num Pix só, já com desconto**
+  (Diego: *"o valor tem que ser um só pagando, já com desconto"*). Linha discreta embaixo do plano. Proposta: Craque R$ 53,90 ·
+  Lenda R$ 89,90 (arredondado pro ,90); Batismo/Fundador fora (trabalho de arte). O 2º chega como 🎁 presente (`esc_presentes`).
+  Mockup: `scripts/mockups/plano-duplo.png`. Precisa: produto novo no Pix MP + e-mail do amigo + entrega dupla no servidor.
+- **Repaginar clube** (só batismo/Fundador, sem batismo novo; ele escolhe o que troca): proposta mascote R$ 29,90 · escudo
+  R$ 24,90 · os dois R$ 44,90 · manto R$ 9,90. Briefing por escrito, sem imagem; o velho sai quando o novo entra. Esperando OK.
+- Contexto (16/10): 70 clubes batizados, só 2 com canto (Geovany, Fabulous) e 5 Fundador → canto e subida pro Fundador são o
+  dinheiro parado mais fácil.
+
 ## 🎁 PREGÃO ABERTO SEM MONTE + CARTA COBERTA (16/10) — ✅ NO AR (só Diego e Rossini)
 - Diego: sem Monte no fim do pregão aberto; quem ficou com vaga vazia ganha profissional/bom DE GRAÇA (das sobras da mesa,
   depois do catálogo livre; só se acabar tudo entra o incógnito). Perguntei se cobrava a abertura: *"deixa sem mesmo porque
