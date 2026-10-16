@@ -8664,8 +8664,18 @@ function reducerBase(state: EscState, action: Action): EscState {
     }
     case 'CONVOCAR_CLUBES': {
       if (s.screen !== 'convocacao' || !s.leilaoClubes) return s
-      if ((s.convocacaoFeitos ?? []).includes(action.mgrId)) return s // chegou pelas duas estradas: vale a 1ª
       const donos = donosDaConvocacao(s.duplas, action.mgrId)
+      if ((s.convocacaoFeitos ?? []).includes(action.mgrId)) {
+        // 🔁 16/10 (Diego, caso do Arroganthi): enquanto a convocação está ABERTA, vale a lista mais NOVA da
+        // mesma pessoa — a tela reenvia a cada 3s e o envio automático dos 0s pode ter saído pela metade.
+        // Antes "valia a 1ª" e o "Fechar" apertado depois era ignorado. Dupla continua como era (cada metade
+        // fecha uma vez); chegar repetido pelas duas estradas com a MESMA lista não muda nada.
+        if (donos || !Array.isArray(action.cartas)) return s
+        const atual = (s.convocacaoEscolhas ?? {})[action.mgrId] ?? []
+        if (atual.length === action.cartas.length && atual.every((id, i) => id === action.cartas[i])) return s
+        s.convocacaoEscolhas = { ...(s.convocacaoEscolhas ?? {}), [action.mgrId]: action.cartas }
+        return s
+      }
       if (donos) {
         // 🤝 DUPLA: cada um manda SÓ nos setores dele. O host junta as duas metades e o
         // time só conta como "fechado" quando os dois mandaram (ou o relógio acaba).
