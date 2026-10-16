@@ -96,7 +96,7 @@ export function PregaoAberto() {
               <b style={{ ...OSW, fontWeight: 900, fontSize: 34, lineHeight: 1 }}>{pa.lider !== null ? `${pa.preco} 🪙` : '—'}</b>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <small style={{ display: 'block', fontSize: 9, fontWeight: 900, letterSpacing: 1, opacity: .75 }}>{pa.lider !== null ? t('LANCE ATUAL', 'CURRENT BID') : t('NINGUÉM DEU LANCE', 'NO BIDS YET')}</small>
-                <span style={{ ...OSW, fontWeight: 900, fontSize: 16, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{lider ? `${lider.teamName}${lider.id === you.id ? ` · ${t('VOCÊ', 'YOU')}` : ''}` : t(`abre com ${minimo} 🪙`, `opens at ${minimo} 🪙`)}</span>
+                <span style={{ ...OSW, fontWeight: 900, fontSize: 16, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{lider ? `${lider.teamName}${lider.id === you.id ? ` · ${t('VOCÊ', 'YOU')}` : ''}` : t('lance livre: dá quanto quiser', 'open bid: offer what you want')}</span>
               </div>
               <div style={{ textAlign: 'center', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: '4px 10px', minWidth: 62 }}>
                 <b style={{ ...OSW, fontWeight: 900, fontSize: 22, lineHeight: 1 }}>⏱ {seg}s</b>
