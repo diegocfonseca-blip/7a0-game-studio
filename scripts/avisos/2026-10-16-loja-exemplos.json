@@ -1,0 +1,24 @@
+{
+  "data": "16 de outubro de 2026",
+  "titulo": "O que tem na Loja do Clube 🛒",
+  "destaque": {
+    "passos": [
+      { "emoji": "🧑‍💼", "titulo": "Presidente", "sub": "roupas por plano" },
+      { "emoji": "🎟️", "titulo": "Salas extras", "sub": "3 por R$ 4,90" },
+      { "emoji": "🏦", "titulo": "Moedas", "sub": "direto no save" },
+      { "emoji": "📣", "titulo": "Canto", "sub": "a torcida do seu clube" }
+    ],
+    "nome": "Tudo de uma vez só, no Pix",
+    "linha": "nada de mensalidade"
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "**🧑‍💼 Meu presidente**: monte o boneco que é VOCÊ no jogo. **⭐ Craque** tem as roupas básicas, **👑 Lenda** libera smoking, couro e motoqueiro, e o **🖋 Fundador** leva a **fantasia de astronauta** e o **traje de gala dourado**." },
+    { "tag": "novidade", "texto": "**🎟️ Salas extras: 3 por R$ 4,90.** Acabou a sala do dia? Usa uma extra. **Não vencem nunca.**" },
+    { "tag": "novidade", "texto": "**🏦 Moedas pra carreira**: R$ 10 = 30 · R$ 50 = 150 · R$ 100 = 300 moedas. Comprou dentro da carreira, **cai direto no save que está aberto**. Comprou pela home, você **escolhe o save**." },
+    { "tag": "batismo", "texto": "**📣 Canto da torcida (R$ 10)** pra quem tem clube batizado: toca nos jogos da carreira e, no online, junto com a sua entrada de gala." },
+    { "tag": "plano", "texto": "**Planos de uma vez só**: ⭐ Craque R$ 29,90 · 👑 Lenda R$ 49,90 · 🖋 Batismo R$ 79,90 · 🖋 Fundador R$ 99,90. Subir de plano = paga só a diferença + R$ 5." }
+  ],
+  "rodape": "Nas salas ninguém compra vantagem: o lance é igual pra todos.",
+  "rodapeSub": "Abra a 🛒 Loja do Clube na home 💛",
+  "saida": "scripts/posts/aviso-2026-10-16-loja-exemplos.png"
+}
