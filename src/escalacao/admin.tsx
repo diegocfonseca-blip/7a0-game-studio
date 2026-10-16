@@ -384,30 +384,44 @@ function PixMpAdmin() {
   )
 }
 
-// 🛒 QUEM QUASE COMPROU (16/10, Diego: "os cliques da loja já estão conectados no painel?"). Estavam — mas afogados na
-// lista dos 40 últimos toques (267 "abriu o modo manual" em 3 dias). Aqui só o que é DINHEIRO: copiou um Pix (antigo ou
-// do Mercado Pago), gerou Pix MP, mandou comprovante, pediu presente, escolheu batismo. Últimos 100, pra cruzar com o extrato.
+// 🛒 QUEM QUASE COMPROU (16/10). Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas
+// afogados na lista dos 40 últimos toques. Depois corrigiu o pedido: *"abriu Pix também — é importante saber quem apertou
+// mas não seguiu"*. Então aqui é POR PESSOA: a trilha dos toques dela nos últimos 7 dias (abriu a loja → viu o plano →
+// gerou o Pix → copiou → caiu) e ATÉ ONDE ela chegou. Quem só abriu e parou aparece em cinza — é o lead pra chamar.
 type Toque = { id: number; created_at: string; email: string | null; nick: string | null; choice: string }
-const TOQUES_DE_DINHEIRO = ['💰 copiou%', '💳 %', '🛒 mandou%', '🎁 pediu%', '🎁 mandou%', '🖋 escolheu%', '🖋 briefing%', '🏦 moedas%']
+const PASSO = (c: string): [number, string] =>
+  /caiu|liberado|entregue/.test(c) ? [4, '#6fdb8f'] : /copiou|comprovante|pediu presente|briefing/.test(c) ? [3, '#FFC400'] : /gerou|escolheu|deixou o WhatsApp|ver plano|mensal/.test(c) ? [2, '#5fc8ff'] : [1, 'rgba(242,232,207,.5)']
 function QuaseComprouAdmin() {
   const [lista, setLista] = useState<Toque[]>([])
   useEffect(() => {
-    supabase.from('apoio_intents').select('*').or(TOQUES_DE_DINHEIRO.map(p => `choice.ilike.${p}`).join(',')).order('id', { ascending: false }).limit(100)
+    supabase.from('apoio_intents').select('*').gte('created_at', new Date(Date.now() - 7 * 86400e3).toISOString()).order('id', { ascending: false }).limit(1500)
       .then(({ data }) => { if (data) setLista(data as Toque[]) }, () => {})
   }, [])
-  const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
+  // junta por pessoa (e-mail; sem e-mail vale o apelido; sem nada = anônimo) — do toque mais novo pro mais velho
+  const pessoas = new Map<string, { quem: string; ultimo: string; trilha: string[]; topo: number; cor: string }>()
+  for (const r of lista) {
+    const k = (r.email ?? r.nick ?? 'anônimo').toLowerCase()
+    const c = r.choice.replace(/\s*\(trava\)$/, '')
+    const [n, cor] = PASSO(c)
+    let p = pessoas.get(k)
+    if (!p) { p = { quem: r.email ?? r.nick ?? 'anônimo', ultimo: r.created_at, trilha: [], topo: 0, cor: 'rgba(242,232,207,.5)' }; pessoas.set(k, p) }
+    if (!p.trilha.includes(c) && p.trilha.length < 8) p.trilha.push(c)
+    if (n > p.topo) { p.topo = n; p.cor = cor }
+  }
+  const linhas = [...pessoas.values()].sort((a, b) => b.topo - a.topo || b.ultimo.localeCompare(a.ultimo)).slice(0, 120)
+  const td: React.CSSProperties = { padding: '5px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
   return (
     <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
-      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>🛒 Quem quase comprou</p>
-      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Só os toques de dinheiro: copiou Pix (antigo ou MP), gerou Pix MP, mandou comprovante, pediu presente, escolheu batismo. Últimos 100. Cruza com o extrato; "abriu" não entra aqui.</p>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>🛒 Quem quase comprou · últimos 7 dias</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Uma linha por pessoa, com o caminho que ela fez (do 1º toque ao último) e a cor de até onde chegou: <span style={{ color: '#6fdb8f' }}>■ pagou</span> · <span style={{ color: '#FFC400' }}>■ copiou o Pix / mandou comprovante</span> · <span style={{ color: '#5fc8ff' }}>■ gerou Pix / viu o plano</span> · <span style={{ color: 'rgba(242,232,207,.5)' }}>■ só abriu e parou</span>. Os cinzas e azuis são quem apertou e não seguiu.</p>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#F2E8CF' }}>
         <tbody>
-          {lista.map(r => <tr key={r.id}>
-            <td style={{ ...td, whiteSpace: 'nowrap', opacity: .6 }}>{new Date(r.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
-            <td style={{ ...td, fontWeight: 800, maxWidth: 170, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.email ?? r.nick ?? 'anônimo'}</td>
-            <td style={td}>{r.choice}</td>
+          {linhas.map(p => <tr key={p.quem}>
+            <td style={{ ...td, whiteSpace: 'nowrap', opacity: .6 }}>{new Date(p.ultimo).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+            <td style={{ ...td, fontWeight: 800, color: p.cor, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.quem}</td>
+            <td style={td}>{[...p.trilha].reverse().join(' → ')}</td>
           </tr>)}
-          {lista.length === 0 && <tr><td style={td}>ninguém ainda</td></tr>}
+          {linhas.length === 0 && <tr><td style={td}>ninguém ainda</td></tr>}
         </tbody>
       </table>
     </div>

@@ -1,7 +1,8 @@
 ## 🛒 Painel do Criador: "Quem quase comprou" (16/10) — ✅ NO AR
 Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas na lista dos 40 últimos, afogados por
-"abriu o modo manual"/"abriu a loja" (267/225 em 3 dias). Caixa nova `QuaseComprouAdmin` (admin.tsx): só toques de dinheiro
-(copiou Pix antigo/MP, gerou Pix MP, mandou comprovante, pediu presente, escolheu batismo), últimos 100. No mesmo commit o
+"abriu o modo manual"/"abriu a loja" (267/225 em 3 dias). Caixa nova `QuaseComprouAdmin` (admin.tsx). Diego corrigiu na hora: *"abriu Pix também — é importante saber
+quem apertou mas não seguiu"* → virou POR PESSOA (7 dias): a trilha dos toques (abriu → viu plano → gerou Pix → copiou → caiu) com a
+cor de até onde chegou; cinza = só abriu e parou (o lead pra chamar). No mesmo commit o
 Pix do Mercado Pago foi liberado pra todos (`PIX_MP_GERAL = true`). ⚠️ Pendência que já existia: cupom de influenciador no
 batismo ainda não vale no Pix novo (o preço do servidor ignora cupom).
 
