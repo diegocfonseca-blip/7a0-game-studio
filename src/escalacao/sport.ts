@@ -976,7 +976,9 @@ export function usePlanos2(): boolean {
 // 💳 PIX DO MERCADO PAGO (15/10, Diego: "pode fazer tudo já… pode publicar"). Pix único gerado na hora, o MP avisa e o
 // servidor confere antes de liberar (`pix-mp.tsx` + Edge Functions `mp-criar-pix`/`mp-webhook`). Primeiro SÓ na conta do
 // Diego, pra ele fazer o Pix de teste de R$ 1; o resto do mundo segue com a chave fixa + comprovante. Liberar: PIX_MP_GERAL = true.
-const PIX_MP_GERAL = false
+// 🔓 LIBERADO GERAL (16/10, Diego: *"pode liberar já o pix novo e configuração nova p todos"*), depois dos testes dele
+// (moedas e salas extras caíram e liberaram sozinhas). Pra voltar ao teste fechado: PIX_MP_GERAL = false e a lista reassume.
+const PIX_MP_GERAL = true
 const PIX_MP_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 let pixMpOk = PIX_MP_GERAL
 function applyPixMp(email?: string | null): void {

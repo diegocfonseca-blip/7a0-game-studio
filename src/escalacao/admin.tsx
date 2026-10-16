@@ -384,6 +384,36 @@ function PixMpAdmin() {
   )
 }
 
+// 🛒 QUEM QUASE COMPROU (16/10, Diego: "os cliques da loja já estão conectados no painel?"). Estavam — mas afogados na
+// lista dos 40 últimos toques (267 "abriu o modo manual" em 3 dias). Aqui só o que é DINHEIRO: copiou um Pix (antigo ou
+// do Mercado Pago), gerou Pix MP, mandou comprovante, pediu presente, escolheu batismo. Últimos 100, pra cruzar com o extrato.
+type Toque = { id: number; created_at: string; email: string | null; nick: string | null; choice: string }
+const TOQUES_DE_DINHEIRO = ['💰 copiou%', '💳 %', '🛒 mandou%', '🎁 pediu%', '🎁 mandou%', '🖋 escolheu%', '🖋 briefing%', '🏦 moedas%']
+function QuaseComprouAdmin() {
+  const [lista, setLista] = useState<Toque[]>([])
+  useEffect(() => {
+    supabase.from('apoio_intents').select('*').or(TOQUES_DE_DINHEIRO.map(p => `choice.ilike.${p}`).join(',')).order('id', { ascending: false }).limit(100)
+      .then(({ data }) => { if (data) setLista(data as Toque[]) }, () => {})
+  }, [])
+  const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>🛒 Quem quase comprou</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>Só os toques de dinheiro: copiou Pix (antigo ou MP), gerou Pix MP, mandou comprovante, pediu presente, escolheu batismo. Últimos 100. Cruza com o extrato; "abriu" não entra aqui.</p>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#F2E8CF' }}>
+        <tbody>
+          {lista.map(r => <tr key={r.id}>
+            <td style={{ ...td, whiteSpace: 'nowrap', opacity: .6 }}>{new Date(r.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+            <td style={{ ...td, fontWeight: 800, maxWidth: 170, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.email ?? r.nick ?? 'anônimo'}</td>
+            <td style={td}>{r.choice}</td>
+          </tr>)}
+          {lista.length === 0 && <tr><td style={td}>ninguém ainda</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 type Presente = { id: number; de_email: string; para_email: string; plano: string; recado: string | null; status: string; criado_em: string }
 function PresentesAdmin() {
   const [lista, setLista] = useState<Presente[]>([])
@@ -1134,7 +1164,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

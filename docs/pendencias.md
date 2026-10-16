@@ -1,3 +1,10 @@
+## 🛒 Painel do Criador: "Quem quase comprou" (16/10) — ✅ NO AR
+Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas na lista dos 40 últimos, afogados por
+"abriu o modo manual"/"abriu a loja" (267/225 em 3 dias). Caixa nova `QuaseComprouAdmin` (admin.tsx): só toques de dinheiro
+(copiou Pix antigo/MP, gerou Pix MP, mandou comprovante, pediu presente, escolheu batismo), últimos 100. No mesmo commit o
+Pix do Mercado Pago foi liberado pra todos (`PIX_MP_GERAL = true`). ⚠️ Pendência que já existia: cupom de influenciador no
+batismo ainda não vale no Pix novo (o preço do servidor ignora cupom).
+
 ## 📮 FECHAR CONVOCAÇÃO DO LEILÃO DE CLUBES NÃO FECHAVA (16/10, Arroganthi) — ✅ NO AR
 - Relato: *"tinha selecionado os jogadores… não deixou eu confirmar o time e todos os selecionados mudaram"* (sala QRNW8G,
   7 pessoas, noite de 14→15/10, a sala toda engasgando). O pedido "Fechar convocação" do convidado ia pro dono UMA vez, sem
@@ -437,7 +444,7 @@ Fundador) — POR ESCRITO, *"não quero que mandem imagem… eu que quero fazer 
 e-mail. Ligada em: Craque (manual e pay), Lenda, Batismo/Fundador e salas extras da Loja. #admin: "💳 Pix do Mercado Pago"
 (lista, 🖋 Batismos pra fazer, não pagos com WhatsApp, botão LIBERAR se precisar, 🧪 Pix de teste R$ 1).
 ⏳ Falta: (1) Diego fazer o Pix de teste de R$ 1 no #admin e ver o ✅; (2) o NÚMERO de WhatsApp dele (`WHATSAPP_CONTATO` em
-pix-mp.tsx; sem número só aparece o e-mail); (3) liberar pra todos (`PIX_MP_GERAL = true`); (4) cupom de influenciador no
+pix-mp.tsx; sem número só aparece o e-mail); (3) ✅ LIBERADO PRA TODOS em 16/10 (Diego: *"pode liberar já o pix novo e configuração nova p todos"*; `PIX_MP_GERAL = true`); (4) cupom de influenciador no
 batismo ainda não vale no Pix novo (preço do servidor ignora cupom); (5) ✅ moedas (ficha do Banco Legends nasce sozinha), canto avulso (registra + "conta qual canto") e presente
 (entregue pro amigo) já vão pelo Pix novo (`…240000_mercado_pago_pix_v3.sql`); 2ª conta do Diego também testa; 🏦 moedas: comprou na Loja da home → escolhe a carreira na hora (cai sozinha quando ela abrir, `DepositoPix`); comprou pela 🛒 Loja aberta DE DENTRO da carreira (Clube › Finanças, no lugar do Banco Legends — Diego: "não deveria ter Banco Legends… apenas a loja direto"; só pra quem tem o Pix novo) → cai direto no caixa; o campo de código antigo mora dentro da Loja na carreira; sem escolher → aparece no Banco Legends com "Depositar neste clube" (`esc_mp_minhas_fichas` + `bl_redeem`) — Diego: "compra na tela que tá e depois escolhe o save" (creditar direto em save fechado = mexer em save guardado, não); (6) apagar a Vendria (`vendria-webhook`, `esc_vendria_eventos`, secret) quando ele confirmar.
 
