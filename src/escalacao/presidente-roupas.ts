@@ -30,7 +30,7 @@ export const PRESIDENTE_ROUPAS = [
  {id:'executivo-futurista',pt:'Executivo futurista',en:'Futuristic executive',access:'craque'},
  {id:'gala-dourada',pt:'Traje de gala dourado',en:'Gold gala outfit',access:'fundador'}, // 🖋 só Fundador (16/10)
  {id:'astronauta',pt:'Fantasia de astronauta',en:'Astronaut costume',access:'fundador'}, // 🖋 só Fundador (16/10)
- {id:'traje-real',pt:'Traje real com capa',en:'Royal cape outfit',access:'lenda'},
+ {id:'traje-real',pt:'Traje real com capa',en:'Royal cape outfit',access:'fundador'}, // 🖋 só Fundador (16/10: "traje real, coloque só para fundador")
  {id:'magico',pt:'Mágico',en:'Magician',access:'lenda'},
  {id:'rei-pregao',pt:'Rei do Pregão',en:'Auction king',access:'lenda'},
  {id:'cavaleiro-clube',pt:'Cavaleiro do Clube',en:'Club knight',access:'lenda'},
