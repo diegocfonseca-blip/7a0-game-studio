@@ -1,3 +1,11 @@
+## 🦅⚫⚪ GAVIÕES SCCP VIROU 🖋 FUNDADOR (16/10) — banco feito; gala + canto no branch, esperando OK do vídeo
+- kauealves584 já tinha fundador nº83; gravado `esc_compras_batismo` = plus (16/10).
+- 📣 Canto: 12 s de "Todo Poderoso Timão" (o áudio que o Diego mandou, trecho 3,2 s → 15,2 s, de pausa a pausa) →
+  `public/sfx/torcida-gavioes-v1.mp3` (mono 32 kHz 56 kbps, −20,6 dB igual ao Fabulous). Carreira (`AMBIENTE_CARREIRA_POR_EMAIL`) + gala.
+- ✨ Gala `gala-gavioes.tsx` (8 s): estádio preto e branco, bandeiras listradas, bando de gaviões no céu, fumaça P&B, o Gavião
+  do clube mergulha e solta penas, escudo acende → "O BANDO DE LOUCOS CHEGOU". Nada de marca oficial do Corinthians/torcida.
+  Vídeo: `node scripts/video-gala-gavioes.mjs` → `scripts/posts/gala-gavioes-com-canto.mp4`. Registrada em `GALA_UNICA`.
+
 ## 💼 LOJA: "SUA MARCA NO JOGO" + WhatsApp do Diego (16/10) — ✅ publicado (seção de marca só nas contas do Diego)
 - WhatsApp do Diego **(21) 99888-6982** (`WHATSAPP_CONTATO` em pix-mp.tsx): aparece depois do Pix de Batismo/Fundador/canto (briefing),
   na linha "💬 Dúvida sobre Batismo ou Fundador?" embaixo dos planos na Loja (pra TODOS) e depois do Pix do Dia da marca.
