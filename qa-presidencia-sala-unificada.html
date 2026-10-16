@@ -1,0 +1,27 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sala unificada — revisão local</title><style>body{margin:0;background:#f4ecd6;font-family:system-ui}main{max-width:1200px;margin:auto;padding:10px}</style></head><body><main id="root"></main><script type="module">
+import React from 'react';import{createRoot}from'react-dom/client';
+import{SalaMontagem}from'./src/escalacao/presidencia-sala-montagem.tsx';
+import{STADIUM_SECTORS,STADIUM_EXTRAS}from'./src/escalacao/estadiodata.ts';
+import{PRESIDENCIA_CATALOGO}from'./src/escalacao/presidencia-economia.ts';
+import{usePublicarPartida}from'./src/escalacao/presidencia-partida-sincronia.ts';
+const h=React.createElement,root=createRoot(document.getElementById('root'));
+const full={inv:Object.fromEntries(STADIUM_SECTORS.map(s=>[s.k,s.cost])),ext:STADIUM_EXTRAS.map(s=>s.k)};
+const premium=PRESIDENCIA_CATALOGO.filter(p=>!['carro','duas-rodas'].includes(p.slot)&&!['mesa-simples','cadeira-simples','estante-simples'].includes(p.id)).map(p=>({id:p.id,paid:p.price}));
+const team=s=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'].map((pos,i)=>({id:s+i,name:s+i,pos}));
+const noCollection=new URLSearchParams(location.search).has('no-collection');
+const Panel=new URLSearchParams(location.search).has('panel')?(await import('./src/escalacao/presidencia-clube.tsx')).PresidenciaClube:null;
+window.panelEvents={save:0,trade:0,display:0,back:0,stadium:0};
+const retryOnly=new URLSearchParams(location.search).has('retry');
+window.roomConfig={stage:retryOnly?'bare':'full',owned:retryOnly?[]:premium,outfit:'terno',hair:'classic-hair',beard:'classic-beard',skin:'medium',accessories:[],identity:noCollection?undefined:{name:'Neymarzetti',crest:'Neymarzetti',shirt:'Neymarzetti',mascot:'neymarzetti_mascarado',color:'#1b7a3d'}};
+function Room({config}){
+ const stadium=config.stage==='bare'?{inv:{},ext:[]}:config.stage==='partial'?{inv:{...full.inv,camarote:60},ext:['refl']}:config.stage==='closed'?{...full,roofClosed:true}:full;
+ const state={careerOnline:true,onlineMode:'cpu',sport:'futebol',youIdx:0,managers:[{id:17,isHuman:true}],careerCoins:{17:1000},stadiums:{17:stadium},careerPresidency:{17:{revision:1,owned:config.owned}},careerHonors:{m17:{A:3,B:2,C:1,D:1,V:1}},careerCopaHonors:{m17:2},careerSupercopaHonors:{m17:1}};
+ const president={version:5,name:'Presidente local',outfit:config.outfit,appearance:{version:22,hair:config.hair,beard:config.beard,skinTone:config.skin,accessories:config.accessories}};
+ if(noCollection){delete state.careerHonors;delete state.careerCopaHonors;delete state.careerSupercopaHonors;}
+ window.roomSource={state,president};
+ usePublicarPartida({context:{id:'room-match',homeClubId:17,home:team('h'),away:team('a')},minute:20,homeScore:0,awayScore:0,paused:true,finished:false,homeColor:'#1b7a3d',awayColor:'#c2452f'});
+ if(Panel)return h(Panel,{state:{...state,careerPresidentBase:president},mgrId:17,onSave:()=>{window.panelEvents.save++;return false},onTrade:()=>{window.panelEvents.trade++;return false},onDisplay:()=>{window.panelEvents.display++;return false},onBack:()=>window.panelEvents.back++,onStadium:()=>window.panelEvents.stadium++});
+ return h(SalaMontagem,{state,mgrId:17,president,identity:config.identity,onReady:api=>window.roomApi=api});
+}
+window.renderRoom=updates=>{window.roomConfig={...window.roomConfig,...updates};root.render(h(Room,{config:window.roomConfig}));};window.renderRoom({});
+</script></body></html>

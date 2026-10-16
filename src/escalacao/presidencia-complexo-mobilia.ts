@@ -15,10 +15,10 @@ const isFurniture = (id: string): id is FurnitureId => (FURNITURE as readonly st
 /** Read-only presentation of the existing wallet. No default furniture, trophy,
  * identity or substitute president is granted. The room stays usable before
  * this physical box is built through the existing SalaMontagem presentation. */
-export function criarMobiliaComplexo(scene: THREE.Scene, state: EstadoComplexo, wallet?: PresidenciaCarteira | null) {
+export function criarMobiliaComplexo(scene: THREE.Scene, state: EstadoComplexo, wallet?: PresidenciaCarteira | null, options:{interior?:boolean}={}) {
   const root = new THREE.Group(); root.name = 'complexo-mobilia-presidencia'; scene.add(root)
   const { floor, ceiling } = PLANTA_COMPLEXO.presidentBox
-  const available = state.valid && state.lowerComplete && state.progress.camarote > 0
+  const available = state.valid && (options.interior===true || (state.lowerComplete && state.progress.camarote > 0))
   const materials: THREE.MeshStandardMaterial[] = []
   const material = (name: string, color: string, roughness = .7, metalness = 0) => {
     const m = new THREE.MeshStandardMaterial({ name: `mobilia-${name}`, color, roughness, metalness }); materials.push(m); return m
@@ -97,8 +97,8 @@ export function criarMobiliaComplexo(scene: THREE.Scene, state: EstadoComplexo, 
         box(add, leather, 0, .785, 0, .96, .013, .56, .008)
         box(add, brass, 0, .815, -.31, .24, .045, .05, .006)
       }
-    })
-    else if (id === 'cadeira-simples' || id === 'cadeira-couro') item(id, -6.4, 71.7, 'floor', add => {
+    },Math.PI)
+    else if (id === 'cadeira-simples' || id === 'cadeira-couro') item(id, -6.4, 69.7, 'floor', add => {
       const basic = id === 'cadeira-simples', cover = basic ? plastic : leather
       box(add, cover, 0, .45, 0, .49, .075, .48, .027)
       box(add, cover, 0, basic ? .74 : .83, .215, .48, basic ? .45 : .66, .09, .034)
@@ -117,7 +117,7 @@ export function criarMobiliaComplexo(scene: THREE.Scene, state: EstadoComplexo, 
         }
         for (const x of [-.175, .175]) box(add, stitching, x, .83, .162, .007, .49, .006, 0)
       }
-    })
+    },Math.PI)
     else if (id === 'estante-simples' || id === 'estante-madeira') item(id, -12.5, 78.25, 'floor', add => {
       const basic = id === 'estante-simples', w = basic ? 1.8 : 3.1, h = basic ? 1.85 : 2.35
       const m = basic ? steel : walnut, d = basic ? .38 : .5

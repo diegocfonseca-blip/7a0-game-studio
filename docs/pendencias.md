@@ -1,3 +1,78 @@
+## 16/10/2026 — Jogadores e NPCs sem rosto (acabamento local)
+
+- Melhorados volumes, cabelo, roupas e calçados dos jogadores, pedestres,
+  visitas/passageiros e torcida, mantendo rostos sem olhos, nariz ou boca.
+- Registro, capturas e limites em
+  [acabamento dos humanos](presidencia-humanos-acabamento-20261016.md).
+- Preservados percursos, escala, obras, assentos, cores e a arte original
+  do presidente. Restrição à conta verificada de Diego inalterada.
+- PASS: contatos reais de pés/mãos com a bola, passadas, transporte/visitas,
+  dez capturas de NPCs, doze capturas de campo em duas etapas e build.
+- Trabalho local; ainda sem novo commit ou deploy.
+
+## 16/10/2026 — Personagem original na sala (correção local)
+
+- Diego rejeitou o boneco geométrico, mesmo usando os IDs da conta. A sala
+  passa a reutilizar as artes originais do criador: roupa, pele, cabelo,
+  barba e acessórios, em pé/sentado e com profundidade diante dos móveis.
+- Registro e verificações em
+  [personagem original](presidencia-personagem-original-20261016.md).
+  PASS: comparação com o editor, 66 roupas/poses, ciclo de carga/retry,
+  timeout com evento atrasado, sala em 1200/390 px, gestos, etapas e build.
+- A arte tem vista frontal; não é um modelo volumétrico de 360°. Sala,
+  janela e trabalho anterior do futebol preservados. Sem novo deploy.
+
+## 16/10/2026 — Continuidade das jogadas oficiais (validada localmente)
+
+- Continuação de “Siga”: preparação, recepção, passe, condução e finalização
+  compartilhados pelo campo, narração e miniatura. Autor e assistente se
+  movimentam no plano; o resultado continua pertencendo à competição.
+- Alvos variados de gol, erros laterais/altos, postes e travessão; condução
+  considera a geometria real das chuteiras e as poses interpoladas.
+- Registro atual em [jogadas contínuas](presidencia-jogadas-continuas-20261016.md).
+  Build, auditoria independente, 51.926 quadros da regressão do motor, dez
+  reposições, navegador e 40 capturas 3D passaram. Bola nova com painéis
+  legíveis, escala e contato conferidos; condução natural também corrigida.
+- O vídeo revelou passe atravessando quadril/shorts. Corrigida a orientação
+  do recebedor para o passador; nova regressão passou em 832 medições da
+  malha real, além das 4.326 verificações de chuteira e da recaptura visual.
+- Continuam pendentes faltas/impedimentos, disputas aéreas, jogadas ensaiadas,
+  acabamento e física livre. A cauda dos chutes para fora é amortecimento
+  guiado, inclusive no ar; não confundir com física completa.
+- Sala e trabalho anterior preservados. Sem commit, push ou novo deploy;
+  restrição à conta verificada de Diego mantida.
+
+## 16/10/2026 — Futebol revisado e sala 3D unificada (local)
+
+- Pedido mais recente de Diego prioriza o futebol real no estádio. Corrigidos
+  reposições sem teletransporte, contato pé/bola, apoio das passadas,
+  cruzamentos naturais, linha do gol, IDs de atletas, intervalo e viés das defesas.
+- Calendário de chances permanece ao trocar velocidade; narração privada só
+  descreve ações executadas e anuncia desfechos no impacto. Testes do motor
+  e navegador passaram; o motor ainda não executa todos os lances de futebol.
+- A sala passa a usar o ambiente 3D, presidente sem rosto, compras e coleção.
+  Integração e visibilidade verificadas em desktop/celular emulado, incluindo
+  gestos e alternativa WebGL. Sem publicação; acabamento visual ainda pendente.
+- Referências atuais: [revisão do futebol](presidencia-futebol-revisao-20261016.md)
+  e [sala unificada](presidencia-sala-unificada-20261016.md). As pendências de
+  faltas, impedimentos, cabeceios, jogadas ensaiadas e física completa continuam.
+- Preservada a restrição a `diego.c.fonseca@gmail.com`; nenhum novo deploy.
+
+## 15/10/2026 — Revisão do motor, etapas e janela após a publicação
+
+- A versão `2aa90a0d` teve deploy confirmado no GitHub Pages (run
+  `38810648788`), mantendo o acesso privado de Diego. A revisão seguinte está
+  local em `fix/presidencia-revisao-motor-20261015`, ainda sem publicação.
+- Corrigidos duração de passes/chutes por distância, relógio compartilhado
+  entre campo e placar, pausa/troca de velocidade e encerramento do último
+  lance. A janela da sala passa a usar a geometria do mapa; refletores comprados
+  iluminam o campo sob teto fechado também de dia.
+- Ainda faltam incidentes completos de faltas, impedimentos, cartões/expulsões,
+  jogadas ensaiadas e um roteiro comum com a narração. Reposições ainda têm
+  saltos de bola; acabamento fiel à arte e presidente físico continuam pendentes.
+- Análise, testes e limites estão em
+  [presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md).
+
 ## 15/10/2026 — Presidência: candidata à publicação privada autorizada
 
 - Diego pediu **“Publique tudo no meu usuário q fez até agora”**. Isso substitui

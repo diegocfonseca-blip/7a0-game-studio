@@ -16,6 +16,7 @@ const cases=[
  {name:'torres',save:{inv:{grama:fullInv.grama,geral:fullInv.geral},ext:['refl']},floodlights:4},
  {name:'completo',save:{inv:fullInv,ext:[...STADIUM_EXTRAS.map(s=>s.k),'asfalto']},floodlights:4},
  {name:'teto-fechado',save:{inv:fullInv,ext:STADIUM_EXTRAS.map(s=>s.k),roofClosed:true},floodlights:4},
+ {name:'teto-fechado-sem-refletores',save:{inv:fullInv,ext:['cober','retratil'],roofClosed:true},floodlights:0},
 ]
 const report=[]
 for(const sample of cases){
@@ -53,8 +54,9 @@ for(const sample of cases){
  assert(materials.every(m=>Number.isFinite(m.emissiveIntensity)))
  lighting.setPeriod('day');lighting.update(camera,target)
  assert.equal(sun.intensity,3.1);assert.equal(hemisphere.intensity,.85);assert.equal(scene.environmentIntensity,.35)
- assert.equal(scene.background.getHexString(),'cbd2cd');assert.equal(lighting.inspect().activeStadium.length,0)
- scene.getObjectByName('complexo-iluminacao').traverse(o=>{if(o instanceof THREE.Light)assert.equal(o.visible,false,'inactive night lights must not render shadow passes')})
+ assert.equal(scene.background.getHexString(),'cbd2cd');assert.equal(lighting.inspect().activeStadium.length,state.roofClosed?sample.floodlights:0)
+ assert.equal(lighting.inspect().activeLocal.length,0,'cidade diurna não acende junto com o campo coberto')
+ scene.getObjectByName('complexo-iluminacao').traverse(o=>{if(o instanceof THREE.Light)assert.equal(o.visible,state.roofClosed&&state.floodlit&&o.name.startsWith('refletor-noturno-'),'somente o campo coberto e com refletores comprados permanece iluminado')})
  lighting.setPeriod('night');lighting.update(camera,target);assert.deepEqual(lighting.inspect(),night,'day/night switching does not multiply sources')
  assert.equal(scene.children.length,rootChildren)
  report.push({stage:sample.name,...night,streetPosts:surround?.root.userData.streetLighting.posts})

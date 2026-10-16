@@ -315,6 +315,7 @@ try {
       assert.equal(material.opacity, 1)
       assert.equal(material.depthTest, true)
       assert.equal(material.depthWrite, true)
+      assert.equal(material.vertexColors, true, 'acabamento do cabelo, roupa e calçado mantém cores por instância')
       assert.equal(material.map, null, 'torcida sem retratos/texturas de rosto')
       assert.equal(material.alphaMap, null)
     }
@@ -349,6 +350,18 @@ try {
   assert(bodyBounds.max.z > .2, 'pernas dobradas ficam à frente do assento')
   const actualTriangles = crowdMeshes.reduce((total, mesh) => total + (mesh.geometry.index?.count ?? mesh.geometry.getAttribute('position').count) / 3 * mesh.count, 0)
   assert.equal(crowd.inspect().triangles, actualTriangles, 'orçamento conta a geometria renderizada')
+  assert(actualTriangles / occupied.size <= 2500, 'silhueta refinada permanece limitada a 2500 triângulos por torcedor')
+  assert.equal(new Set(crowdMeshes.map(mesh => mesh.material)).size, 3, 'cabelo e calçado não abrem materiais nem draw calls por pessoa')
+  for (const geometry of new Set(crowdMeshes.filter(mesh => mesh.userData.part === 'skin').map(mesh => mesh.geometry))) {
+    const colors = geometry.getAttribute('color'), positions = geometry.getAttribute('position')
+    assert(colors && colors.count === positions.count, 'todos os vértices da pele têm acabamento válido')
+    let hair = 0, skin = 0
+    for (let i = 0; i < colors.count; i++) {
+      if (positions.getY(i) > 1.1 && colors.getX(i) < .2) hair++
+      if (positions.getY(i) > 1.1 && colors.getX(i) > .5) skin++
+    }
+    assert(hair > 0 && skin > 0, 'cabelo ocupa somente parte da cabeça e preserva pele sem rosto desenhado')
+  }
   assert.equal(crowd.inspect().batches, crowdMeshes.length, 'inspeção conta todos os batches alocados')
   const ray = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0), up = down.clone().negate()
   const lowerParts = new Map(crowdMeshes.filter(mesh => mesh.userData.part === 'lower').map(mesh => [mesh.geometry, mesh.material]))

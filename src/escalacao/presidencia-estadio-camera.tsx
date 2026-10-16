@@ -1,4 +1,4 @@
-import {lazy,Suspense,useRef,useState} from 'react'
+import {lazy,Suspense,useMemo,useRef,useState} from 'react'
 import {useT} from './lang'
 import {usePartidaNoMapa} from './presidencia-partida-sincronia'
 import type {StadiumSave} from './estadiodata'
@@ -10,6 +10,8 @@ import {podeOperarTeto} from './presidencia-estadio-integrado'
 import type {EstadoPartidaEstadio} from './presidencia-partida-model'
 import type {ControleComplexo} from './presidencia-complexo-3d'
 import {Btn} from './ui-primitives'
+import {usePresidenteConta,presidenteContaLiberado} from './presidente-conta'
+import {artesIdentidadeSala} from './presidencia-sala-identidade-assets'
 const Campo=lazy(()=>import('./presidencia-partida').then(module=>({default:module.Campo})))
 const Complexo=lazy(()=>import('./presidencia-complexo-3d'))
 export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'> & {key:string}
@@ -17,6 +19,8 @@ export type CarreiraCameraEstadio=Omit<EntradaCarreiraComplexo,'enabled'|'match'
 export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,career,onReady}:{stadium?:StadiumSave;matchId?:string;homeClubId?:number;onRoof?:(closed:boolean)=>void;career?:CarreiraCameraEstadio;onReady?:(api:ControleComplexo|null)=>void}){
  const match=usePartidaNoMapa(matchId,homeClubId,!!career),[field,setField]=useState(false),[illustrated,setIllustrated]=useState(false),t=useT()
  const account=usePresidentPreview(),last=useRef<{key:string;match:EstadoPartidaEstadio}|null>(null)
+ const accountPresident=usePresidenteConta()
+ const identityArt=useMemo(()=>artesIdentidadeSala(career?.identity),[career?.identity])
  if(last.current?.key!==career?.key)last.current=null
  if(career&&account&&match)last.current={key:career.key,match}
  if(!account)last.current=null
@@ -28,7 +32,7 @@ export function PresidenciaEstadioCamera({stadium,onRoof,matchId,homeClubId,care
  if(career&&!account)return null
  if(adapted)return <section data-presidencia-complexo-carreira>
   <Suspense fallback={<p role="status">{t('Carregando seu estádio e a região…','Loading your stadium and its surroundings…')}</p>}>
-   <Complexo {...adapted.complexo} onReady={onReady}/>
+   <Complexo {...adapted.complexo} president={presidenteContaLiberado()&&accountPresident.value?accountPresident.value:adapted.sala.president} identityArt={identityArt} trophies={adapted.sala.trophies} onReady={onReady}/>
   </Suspense>
   {onRoof&&podeOperarTeto(stadium)&&<div style={{margin:'12px 0'}}><Btn onClick={()=>onRoof(stadium?.roofClosed!==true)}>{stadium?.roofClosed?t('ABRIR TETO','OPEN ROOF'):t('FECHAR TETO','CLOSE ROOF')}</Btn></div>}
   <details onToggle={event=>setIllustrated(event.currentTarget.open)} style={{marginTop:12}}>

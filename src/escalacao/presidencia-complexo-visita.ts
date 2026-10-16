@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { criarRelogioJornadaComplexo, type JornadaMovimentoComplexo } from './presidencia-complexo-jornada-relogio'
 import type { AcessoAssentoComplexo, AssentoComplexo } from './presidencia-complexo-arquitetura'
 import { caminhosTorcidaComplexo, deslocarCaminhoComplexo, type EstadoComplexo } from './presidencia-complexo-model'
+import { geometriaHumana, materialHumano } from './presidencia-humano-acabamento.ts'
 
 export type PontoVisitaComplexo = { x: number; y: number; z: number }
 export type OpcoesPasseioComplexo = {
@@ -236,23 +237,46 @@ export function criarCorpoVisitaComplexo(parent: THREE.Object3D, options: { id: 
   root.name = `complexo-corpo-${options.id}`; root.userData = { side: options.side }; root.visible = false; parent.add(root)
   const geometries = new Set<THREE.BufferGeometry>(), materials = new Set<THREE.Material>()
   const shape = <T extends THREE.BufferGeometry>(geometry: T) => { geometries.add(geometry); return geometry }
-  const material = (color: string) => { const value = new THREE.MeshStandardMaterial({ color, roughness: .86 }); materials.add(value); return value }
-  const skin = material('#a56f4c'), shirt = material(options.color ?? (options.side === 'home' ? '#1B7A3D' : '#C2452F')), lower = material('#29312f'), sole = material('#a9a592')
-  const sphere = shape(new THREE.SphereGeometry(1, 12, 8)), cylinder = shape(new THREE.CylinderGeometry(1, 1, 1, 8)), cube = shape(new THREE.BoxGeometry(1, 1, 1))
+  const material = (color: string, kind: Parameters<typeof materialHumano>[1]) => { const value = materialHumano(color, kind); materials.add(value); return value }
+  const skin = material('#a56f4c', 'skin'), shirt = material(options.color ?? (options.side === 'home' ? '#1B7A3D' : '#C2452F'), 'fabric')
+  const lower = material('#29312f', 'fabric'), sole = material('#a9a592', 'sole'), shoe = material('#252a28', 'shoe'), hair = material('#24211e', 'hair')
+  const humanShapes = new Map<Parameters<typeof geometriaHumana>[0], THREE.BufferGeometry>()
+  const humanShape = (part: Parameters<typeof geometriaHumana>[0]) => {
+    let value = humanShapes.get(part)
+    if (!value) {
+      value = shape(geometriaHumana(part))
+      // These bone meshes point +Y from shoulder/hip towards hand/foot.
+      if (['upperArm', 'forearm', 'thigh', 'shin'].includes(part)) {
+        value.rotateZ(Math.PI); value.userData.humanoShape += ':flip'
+      }
+      humanShapes.set(part, value)
+    }
+    return value
+  }
+  const sphere = shape(new THREE.SphereGeometry(1, 12, 8)), cylinder = shape(new THREE.CylinderGeometry(1, 1, 1, 8))
   function mesh(geometry: THREE.BufferGeometry, mat: THREE.Material, size: number[], position: number[] = [0, 0, 0], parent: THREE.Object3D = root) {
+    if ((mat as THREE.MeshStandardMaterial).vertexColors && !geometry.hasAttribute('color')) {
+      geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(1), 3))
+    }
     const value = new THREE.Mesh(geometry, mat); value.scale.set(size[0], size[1], size[2]); value.position.set(position[0], position[1], position[2]); value.castShadow = value.receiveShadow = true; parent.add(value); return value
   }
   const upper = new THREE.Group(); root.add(upper)
-  mesh(cylinder, shirt, [.205, .44, .14], [0, HIP + .30, 0], upper)
+  mesh(humanShape('torso'), shirt, [.41, .44, .28], [0, HIP + .30, 0], upper).name = 'visita-camisa-modelada'
   mesh(cylinder, skin, [.06, .10, .06], [0, HIP + .565, 0], upper)
-  const head = mesh(sphere, skin, [.145, .167, .145], [0, HIP + .74, 0], upper); head.name = 'visita-cabeca-sem-rosto'
-  mesh(sphere, lower, [.165, .09, .12], [0, HIP, 0])
-  const arms = [-1, 1].map(side => ({ side, upper: mesh(cylinder, shirt, [.071, 1, .071]), forearm: mesh(cylinder, skin, [.048, 1, .048]), hand: mesh(sphere, skin, [.055, .066, .055]) }))
+  mesh(humanShape('head'), skin, [.29, .334, .29], [0, HIP + .74, 0], upper).name = 'visita-cabeca-sem-rosto'
+  mesh(humanShape('hair'), hair, [.29, .334, .29], [0, HIP + .74, 0], upper).name = 'visita-cabelo'
+  mesh(humanShape('pelvis'), lower, [.33, .18, .24], [0, HIP, 0]).name = 'visita-calca-cintura'
+  const collar = mesh(shape(new THREE.TorusGeometry(.064, .005, 6, 20)), shirt, [1, 1, 1], [0, HIP + .52, 0], upper)
+  collar.rotation.x = Math.PI / 2; collar.name = 'visita-gola'
+  const arms = [-1, 1].map(side => ({ side,
+    shoulder: mesh(sphere, shirt, [.063, .05, .066]),
+    upper: mesh(humanShape('upperArm'), shirt, [.142, 1, .142]),
+    forearm: mesh(humanShape('forearm'), skin, [.096, 1, .096]), hand: mesh(sphere, skin, [.055, .066, .055]) }))
   const legs = [-1, 1].map((side, index) => {
     const foot = new THREE.Group(); root.add(foot)
-    const soleMesh = mesh(cube, sole, [.146, .028, .285], [0, .014, 0], foot); soleMesh.name = `visita-sola-${index}`
-    mesh(cube, lower, [.14, .065, .26], [0, .058, -.005], foot)
-    const thigh = mesh(cylinder, lower, [.075, 1, .075]), shin = mesh(cylinder, lower, [.053, 1, .053])
+    const soleMesh = mesh(humanShape('shoe'), sole, [.146, .028, .285], [0, .014, 0], foot); soleMesh.name = `visita-sola-${index}`
+    mesh(humanShape('shoe'), shoe, [.14, .065, .26], [0, .058, -.005], foot).name = 'visita-tenis'
+    const thigh = mesh(humanShape('thigh'), lower, [.15, 1, .15]), shin = mesh(humanShape('shin'), lower, [.106, 1, .106])
     thigh.name = `visita-coxa-${index}`; shin.name = `visita-canela-${index}`
     return { side, thigh, shin, knee: mesh(sphere, lower, [.067, .068, .067]), foot, sole: soleMesh }
   })
@@ -280,6 +304,9 @@ export function criarCorpoVisitaComplexo(parent: THREE.Object3D, options: { id: 
       bone(leg.thigh, a, joint); bone(leg.shin, joint, b); leg.knee.position.copy(joint)
       const arm = arms[i], lean = .06 * Math.sin(last.seated * Math.PI)
       const swing = clamp(-leg.foot.position.z * .48, -.16, .16) * (1 - last.seated)
+      // The shoulder cover joins the tapered shirt and sleeve without moving
+      // either articulated arm anchor or widening the pedestrian corridor.
+      arm.shoulder.position.set(arm.side * .205, HIP + .465, lean * .6)
       a.set(arm.side * .235, HIP + .49, lean); joint.set(arm.side * .24, HIP + .235, .07 + last.seated * .07 + swing * .65)
       b.set(arm.side * .16, HIP + .03, .04 + last.seated * .27 + swing)
       bone(arm.upper, a, joint); bone(arm.forearm, joint, b); arm.hand.position.copy(b)
@@ -289,7 +316,13 @@ export function criarCorpoVisitaComplexo(parent: THREE.Object3D, options: { id: 
   }
   return { root, feet: legs.map(leg => leg.sole), updatePose,
     setColor(color: string) { if (!disposed) shirt.color.set(color) },
-    dispose() { if (disposed) return; disposed = true; root.removeFromParent(); root.clear(); geometries.forEach(value => value.dispose()); materials.forEach(value => value.dispose()) },
+    dispose() {
+      if (disposed) return
+      disposed = true; root.removeFromParent(); root.clear(); geometries.forEach(value => value.dispose())
+      const textures = new Set<THREE.Texture>()
+      materials.forEach(value => Object.values(value).forEach(property => { if (property instanceof THREE.Texture) textures.add(property) }))
+      textures.forEach(value => value.dispose()); materials.forEach(value => value.dispose())
+    },
   }
 }
 

@@ -4,8 +4,11 @@ import {agendaLigaComplexo,agendaFasesComplexo,diasDasFasesCopaComplexo} from '.
 import {contextoPartidaCompeticao} from './presidencia-partida-competicao'
 import { placarParaK } from './kings-liga'
 import {PresidenciaPartida} from './presidencia-partida'
-import {usePartidaNoMapa} from './presidencia-partida-sincronia'
-import type {ContextoPartidaEstadio} from './presidencia-partida-model'
+import {usePartidaNoMapa,partidaPublicada} from './presidencia-partida-sincronia'
+import type {ContextoPartidaEstadio,ApresentacaoLanceEstadio} from './presidencia-partida-model'
+import {criarRelogioLance} from './presidencia-lance-tempo'
+import {acompanharLance} from './presidencia-lance-apresentacao'
+import {narrarChanceEstadio,narrarGolEstadio,narrarEtapaLanceEstadio} from './presidencia-futebol-narracao'
 // ─── CARREIRA ONLINE · TEMPORADA SIMULADA (as 4 divisões) ────────────────
 // Depois do LEILÃO REAL, a temporada roda SIMULADA a partir dos elencos de
 // verdade (mesmo motor da Dinastia, aqui auto-contido). Tudo é DETERMINÍSTICO
@@ -665,7 +668,7 @@ export function torcidaBonusRewards(careerTorcida: Record<string, number> | unde
   return out
 }
 
-export interface Goal { name: string; min: number; home: boolean; assist?: string } // 🅰️ assist = quem deu o passe (undefined = jogada individual/pênalti — e a tela DIZ isso, nunca fica em branco)
+export interface Goal { name: string; min: number; home: boolean; id?:string; assist?: string; assistId?:string } // 🅰️ assist = quem deu o passe (undefined = jogada individual/pênalti — e a tela DIZ isso, nunca fica em branco)
 export interface SimMatch { h: string; a: string; hg: number; ag: number; hId: number; aId: number; you: boolean; hum: boolean; goals: Goal[]; hxi?: CartaRadio[]; axi?: CartaRadio[] }
 
 // joga UMA divisão até a rodada `round` (determinístico), acumulando artilharia.
@@ -1165,7 +1168,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
   // em outra fase também) — sem ele, o mesmo autor no mesmo minuto repetiria o
   // garçom em dois jogos diferentes.
   let legSeq = 0
-  const marcaPasses = (e: { t: SimTeam; div: Div }, xi: PoolCard[], evs: { name: string; min: number; id: string; assist?: string }[], jogo: number) => {
+  const marcaPasses = (e: { t: SimTeam; div: Div }, xi: PoolCard[], evs: { name: string; min: number; id: string; assist?: string; assistId?: string }[], jogo: number) => {
     if (!evs.length) return evs
     const chave = `${e.t.name}#${jogo}`
     const escolhidos = evs.map(g => pickAssist(seed, chave, xi, g.id, g.min, false))
@@ -1173,6 +1176,7 @@ export function computeCopa(tables: Record<Div, SimTeam[]>, seed: number, season
     escolhidos.forEach((a, i) => {
       if (!a) return
       evs[i].assist = a.name
+      evs[i].assistId = a.id
       const k = `${e.t.name}:${a.id}`, row = assists.get(k)
       if (row) row.assists++
       else assists.set(k, { name: a.name, teamName: e.t.name, teamId: e.t.teamId, div: e.div, assists: 1, you: e.t.you, human: e.t.human, rival: e.t.rival, cardId: a.id, club: a.club, year: a.year })
@@ -2887,7 +2891,7 @@ function RivalryTicker({ items }: { items: Flavor[] }) {
 }
 // ── PLACAR AO VIVO (reutilizável): relógio animado, selo GOOOL, flash e bump.
 // Usado na carreira (pirâmide) E no jogo rápido (offline/online) — mesmo visual.
-export interface ScoreGoal { name: string; min: number; home: boolean; assist?: string } // 🅰️ quem deu o passe (some quando é jogada individual)
+export interface ScoreGoal { name: string; min: number; home: boolean; id?:string; assist?: string; assistId?:string } // 🅰️ quem deu o passe (some quando é jogada individual)
 // ─── ⚽ OS GOLEADORES EMBAIXO DO PLACAR ──────────────────────────────────────
 // 🐛 BUG (achado pelo Giovani Picolo, 18/08): a partir do 3º gol a lista "dava
 // uma tremidinha" e o goleador NOVO nunca aparecia — no print, 3 a 0 mostrando
@@ -2979,6 +2983,15 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const privatePreview = useOnlinePreview()
   const presidentFieldAccount = usePresidentPreview()
   const fieldSpeed=stadiumMatch&&presidentFieldAccount&&Number.isFinite(stadiumMatch.speed)?Math.max(.25,Math.min(8,stadiumMatch.speed!)):1
+  const privateField=!!stadiumMatch&&presidentFieldAccount&&!!enhancedCareer&&!basket
+  // Speed controls playback, never which chances exist. Freeze the base
+  // duration per fixture; rounding roundMs at another speed must not reseed it.
+  const incidentKey=`${privateField}:${stadiumMatch?.id??''}:${roundKey}`
+  const incidentCalendar=useRef({key:incidentKey,duration:roundMs*fieldSpeed})
+  if(incidentCalendar.current.key!==incidentKey)incidentCalendar.current={key:incidentKey,duration:roundMs*fieldSpeed}
+  const incidentRoundMs=privateField?incidentCalendar.current.duration:roundMs
+  const presentedGoals=useRef<{key:string;assisted:Map<number,boolean>}>({key:incidentKey,assisted:new Map()})
+  if(presentedGoals.current.key!==incidentKey)presentedGoals.current={key:incidentKey,assisted:new Map()}
   // 🔓 19/09: a apresentação da CARREIRA saiu da prévia e foi pra todo mundo, por ordem
   // do Diego (*"pode publicar p todos"*). Uma chave só, `CAREER_VISUAL_RELEASED` — pôr
   // `false` devolve a carreira ao visual antigo inteirinha, sem tocar no online.
@@ -2997,8 +3010,25 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   //    rede e a bola que está no ar agora. Nascem aqui porque a rodada nova zera os
   //    dois na mesma linha que zera o relógio.
   const [confirmados, setConfirmados] = useState(0)
-  const [voo, setVoo] = useState<{ side: 'h' | 'a'; key: number; dentro: boolean; startedAt: number; speed:number } | null>(null)
+  const [voo, setVoo] = useState<(ApresentacaoLanceEstadio&{ side: 'h' | 'a'; key: number; dentro: boolean; startedAt: number; speed:number; txt?:string }) | null>(null)
+  const [lance, setLance] = useState<(ApresentacaoLanceEstadio&{ side: 'h' | 'a'; fim: FimDaChance; key: number; txt: string; minute:number; startedAt:number; speed:number; roundKey:number }) | null>(null)
+  const privatePlayback=useRef({goalGeneration:0,chanceGeneration:0,cancelGoal:(()=>{}) as ()=>void,cancelChance:(()=>{}) as ()=>void})
+  const fieldSettings=useRef({rate:fieldSpeed,running:true})
+  fieldSettings.current={rate:fieldSpeed,running:!(pauseAtHalf&&!resumeHalf&&min>=45)}
+  useEffect(()=>()=>{const p=privatePlayback.current;p.goalGeneration++;p.chanceGeneration++;p.cancelGoal();p.cancelChance()},[roundKey,privateField])
   const vooTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const playbackMode = useRef(privateField)
+  useEffect(()=>{
+    if(playbackMode.current===privateField)return
+    playbackMode.current=privateField
+    // The old clock was cancelled by the cleanup above. Release its visual
+    // state too, so an unconfirmed goal can restart in the current mode.
+    // Confirmed goals remain counted; neither mode may confirm them twice.
+    if(vooTimer.current){clearTimeout(vooTimer.current);vooTimer.current=null}
+    if(lanceTimer.current){clearTimeout(lanceTimer.current);lanceTimer.current=null}
+    setVoo(null);setLance(null)
+  },[privateField])
   const fieldMinute=useRef({round:roundKey,half:!!resumeHalf,minute:resumeHalf?45:0})
   const rkRef = useRef(roundKey)
   if (rkRef.current !== roundKey) { rkRef.current = roundKey; setMin(finished ? 93 : 0); setConfirmados(0); setVoo(null) }
@@ -3054,7 +3084,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const fila = teatro ? [...vencidos].sort((a, b) => a.min - b.min) : vencidos
   const shown = teatro ? fila.slice(0, confirmados) : vencidos
   // ⏱️ o placar só está FECHADO quando o último gol já entrou na rede
-  const fechado = done && (!teatro || confirmados >= fila.length)
+  const fechado = done && (!teatro || confirmados >= fila.length) && (!privateField || (!lance&&!voo))
   const proximoGol = teatro && fila.length > confirmados ? fila[confirmados] : null
   // 🐛 "APARECE FIM E AINDA SAI GOL" (relato de jogador, 09/10). O relógio batia 93' e
   //    escrevia FIM, mas no visual novo a bola do gol dos acréscimos ainda estava NO AR
@@ -3069,6 +3099,27 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (!proximoGol) return
     if (voo && !voo.dentro) return // bola no ar: o próximo espera ela entrar
     if (vooTimer.current) clearTimeout(vooTimer.current)
+    if(privateField&&stadiumMatch){
+      const p=privatePlayback.current,generation=++p.goalGeneration
+      p.cancelGoal();p.chanceGeneration++;p.cancelChance();setLance(null)
+      const start=(plan?:ApresentacaoLanceEstadio['plan'])=>{
+        if(generation!==p.goalGeneration)return
+        const now=performance.now(),settings=fieldSettings.current,clock=criarRelogioLance(now,settings.rate,settings.running)
+        const club=nomeLimpo(proximoGol.home?homeName:awayName),en=getLang()==='en'
+        let text=narrarEtapaLanceEstadio(plan,0,club,en)
+        setVoo({side:proximoGol.home?'h':'a',key:confirmados,dentro:false,startedAt:now,speed:settings.rate,plan,clock,txt:text})
+        p.cancelGoal=acompanharLance({clock,impactMs:plan?.durationMs??GOL_ENTRA_MS,settings:()=>fieldSettings.current,
+          onProgress:elapsed=>{const next=narrarEtapaLanceEstadio(plan,elapsed,club,en);if(next&&next!==text){text=next;setVoo(v=>v?.clock===clock?{...v,txt:next}:v)}},
+          onImpact:()=>{presentedGoals.current.assisted.set(confirmados,!!plan?.assist);setConfirmados(c=>c+1);setVoo(v=>v?{...v,dentro:true}:v)},onEnd:()=>setVoo(null)})
+      }
+      // Load the physical planner only for the verified private stadium view.
+      import('./presidencia-futebol-motor').then(({planejarLanceFutebol})=>{
+        if(generation!==p.goalGeneration)return
+        const current=partidaPublicada(stadiumMatch.id)
+        start(current?planejarLanceFutebol(current,{...proximoGol,id:stadiumMatch.id+':'+confirmados,minute:proximoGol.min,scorerId:proximoGol.id},performance.now()):undefined)
+      }).catch(()=>start())
+      return
+    }
     setVoo({ side: proximoGol.home ? 'h' : 'a', key: proximoGol.min * 10 + (proximoGol.home ? 7 : 8), dentro: false, startedAt: performance.now(),speed:fieldSpeed })
     vooTimer.current = setTimeout(() => {
       // 🥅 ENTROU: o gol passa a existir na tela (placar, selo, carimbo, urro)
@@ -3078,7 +3129,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
       vooTimer.current = setTimeout(() => { vooTimer.current = null; setVoo(null) }, (CHANCE_MS - GOL_ENTRA_MS)/fieldSpeed)
     }, GOL_ENTRA_MS/fieldSpeed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [proximoGol?.min, proximoGol?.home, voo?.dentro, roundKey])
+  }, [proximoGol?.min, proximoGol?.home, voo?.dentro, roundKey,privateField])
   // 🧹 rodada nova ou tela fechada: nenhuma bola fica no ar
   useEffect(() => () => { if (vooTimer.current) { clearTimeout(vooTimer.current); vooTimer.current = null } }, [roundKey])
   // futebol: placar = nº de gols mostrados. 🏀 basquete: pontos interpolados 0→total.
@@ -3180,21 +3231,37 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   // decide quantas cabem é o `roundMs` (11 s no online = 1 por lado; carreira, mais).
   // Os gols continuam sendo os da simulação: a bola entra na rede no MESMO instante
   // em que o placar já mudava. Módulo puro: `chances.ts` (trava `npm run chances`).
-  const chances = useMemo(() => (basket || !cinematic) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, roundMs), [basket, cinematic, roundKey, homeName, awayName, goals, roundMs])
+  const chances = useMemo(() => (basket || !cinematic) ? [] : chancesDoJogo(sementeDasChances(roundKey, homeName, awayName), goals, incidentRoundMs), [basket, cinematic, roundKey, homeName, awayName, goals, incidentRoundMs])
   // 📻 RÁDIO LEGENDS (Diego 13/10): uma frase dentro do placar, trocando a cada lance — longe (±3′) de gol e de chance
-  const radioLances = useMemo(() => (basket || !cinematic) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], roundMs, !!relogioKings), [basket, cinematic, roundKey, homeName, awayName, goals, chances, roundMs, relogioKings])
-  const [lance, setLance] = useState<{ side: 'h' | 'a'; fim: FimDaChance; key: number; txt: string; minute:number; startedAt:number; speed:number; roundKey:number } | null>(null)
-  const lanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const radioLances = useMemo(() => (basket || !cinematic) ? [] : radioDoJogo(sementeDasChances(roundKey, homeName, awayName), [...goals.map(g => g.min), ...chances.map(c => c.min)], incidentRoundMs, !!relogioKings), [basket, cinematic, roundKey, homeName, awayName, goals, chances, incidentRoundMs, relogioKings])
   const lancesVistos = useRef<{ key: number; mins: number[] }>({ key: roundKey, mins: [] })
   useEffect(() => {
     if (lancesVistos.current.key !== roundKey) { lancesVistos.current = { key: roundKey, mins: [] }; if (lanceTimer.current) clearTimeout(lanceTimer.current); setLance(null) }
-    if (finished || done || goal || voo) return // 🥅 bola de GOL no ar/na rede: a chance espera
+    if (finished || done || goal || voo || (privateField && lance)) return // 🥅 bola de GOL no ar/na rede: a chance espera
     // a chance cujo minuto ACABOU de passar (janela curta: quem abre a tela no 70'
     // não vê a chance do 12' rodando atrasada)
     const c = chances.find(x => x.min <= min && min - x.min <= 4 && !lancesVistos.current.mins.includes(x.min))
     if (!c) return
     lancesVistos.current.mins.push(c.min)
     const clube = nomeLimpo(c.home ? homeName : awayName)
+    if(privateField&&stadiumMatch){
+      const p=privatePlayback.current,generation=++p.chanceGeneration;p.cancelChance()
+      const start=(plan?:ApresentacaoLanceEstadio['plan'])=>{
+        if(generation!==p.chanceGeneration)return
+        const now=performance.now(),settings=fieldSettings.current,clock=criarRelogioLance(now,settings.rate,settings.running)
+        const en=getLang()==='en';let text=narrarEtapaLanceEstadio(plan,0,clube,en)??narrarChanceEstadio(c.fim,clube,en,false)
+        setLance({minute:c.min,startedAt:now,speed:settings.rate,roundKey,side:c.home?'h':'a',fim:c.fim,key:c.min*10+(c.home?1:2),txt:text,plan,clock})
+        p.cancelChance=acompanharLance({clock,impactMs:plan?.durationMs??600,tailMs:1300,settings:()=>fieldSettings.current,
+          onProgress:elapsed=>{const next=narrarEtapaLanceEstadio(plan,elapsed,clube,en);if(next&&next!==text){text=next;setLance(l=>l?.clock===clock?{...l,txt:next}:l)}},
+          onImpact:()=>setLance(l=>l?.roundKey===roundKey&&l.key===c.min*10+(c.home?1:2)?{...l,txt:narrarChanceEstadio(c.fim,clube,getLang()==='en',true,plan?.finishing?.surface)}:l),onEnd:()=>setLance(null)})
+      }
+      import('./presidencia-futebol-motor').then(({planejarLanceFutebol})=>{
+        if(generation!==p.chanceGeneration)return
+        const current=partidaPublicada(stadiumMatch.id)
+        start(current?planejarLanceFutebol(current,{id:stadiumMatch.id+':chance:'+(c.min*10+(c.home?1:2)),home:c.home,minute:c.min,outcome:c.fim},performance.now()):undefined)
+      }).catch(()=>start())
+      return
+    }
     setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en', relogioKings ? quemFinalizou(c.home ? elencos?.casa : elencos?.fora, c, clube) : null) }) // 🧑 jogador no lance: SÓ na Kings (Diego 15/10: "isso é só pra Kings League")
     if (lanceTimer.current) clearTimeout(lanceTimer.current)
     lanceTimer.current = setTimeout(() => { setLance(null); lanceTimer.current = null }, CHANCE_MS/fieldSpeed)
@@ -3286,7 +3353,7 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
   const grande = (privatePreview || carreiraPublica) && !basket
   const minTxt = (m: number) => (relogioKings ? `${placarParaK(m)}` : m > 90 ? `90+${m - 90}` : `${m}`)
   // 👑 gol que a REGRA da Kings fez (pênalti do presidente, bola vermelha) não ganha lance inventado — não foi jogada
-  const lanceUltimo = grande && last && !(relogioKings && /presidente|president|Bola vermelha|Red ball|\(carta\)|\(card\)|\(\+1\)/i.test(last.name)) ? lanceDoGol(last, roundKey) : ''
+  const lanceUltimo = grande && last && !(relogioKings && /presidente|president|Bola vermelha|Red ball|\(carta\)|\(card\)|\(\+1\)/i.test(last.name)) ? (privateField?narrarGolEstadio(last,presentedGoals.current.assisted.get(shown.length-1)??false,emIngles):lanceDoGol(last, roundKey)) : ''
   // 📢 apito final COM o resultado (só na prévia): vitória/derrota/empate de quem joga
   const meusGols = youIsHome ? hg : ag, delesGols = youIsHome ? ag : hg
   const resultado: 'h' | 'a' | null = fechado && !basket ? (hg > ag ? 'h' : ag > hg ? 'a' : null) : null
@@ -3313,6 +3380,9 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
         if (c) return { tag: tr('⭐ CRAQUE DO JOGO', '⭐ PLAYER OF THE MATCH'), tom: 'craque' as const, min: '', txt: fraseCraque(c, nomeLimpo(c.home ? homeName : awayName), emIngles) }
         return { min: '', txt: tr('Fim de papo aqui na Rádio Legends.', 'That is all from Radio Legends.') }
       }
+      // The public radio library includes incidents not yet simulated in 3D.
+      // Keep this preview factual until those actions share the match record.
+      if(privateField)return {min:'',txt:tr(`Ao vivo: ${nomeLimpo(homeName)} × ${nomeLimpo(awayName)}. Acompanhe a bola no estádio.`,`Live: ${nomeLimpo(homeName)} × ${nomeLimpo(awayName)}. Follow the ball in the stadium.`)}
       const ex = radioExtra?.filter(e => min >= e.min && min < e.min + 4).pop()
       if (ex) return { min: minTxt(ex.min), txt: ex.txt }
       const r = radioNoMinuto(radioLances, min)
@@ -3323,13 +3393,13 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     })()}
     // 🎬 a bola do GOL sai no minuto do gol (`voo`) e o resto da festa só depois que
     //    ela entra — o `voo` fica até a rede parar de balançar (ver GOL_ENTRA_MS)
-    palco={voo ? { side: voo.side, speed:voo.speed, fim: 'gol', key: voo.key, veredito: vereditoDaChance('gol', emIngles) }
-      : lance ? { side: lance.side, speed:lance.speed, fim: lance.fim, key: lance.key, veredito: vereditoDaChance(lance.fim, emIngles) } : null}
+    palco={voo ? { side: voo.side, speed:voo.speed, clock:voo.clock, impactMs:voo.plan?.durationMs, shotStartMs:voo.plan?.sequence?.shotStartMs, fim: 'gol', key: voo.key, veredito: vereditoDaChance('gol', emIngles) }
+      : lance ? { side: lance.side, speed:lance.speed, clock:lance.clock, impactMs:lance.plan?.durationMs, shotStartMs:lance.plan?.sequence?.shotStartMs, fim: lance.fim, key: lance.key, veredito: lance.plan?.finishing?.surface==='travessao'?tr('NO TRAVESSÃO!','OFF THE CROSSBAR!'):vereditoDaChance(lance.fim, emIngles) } : null}
     stamp={`${goalStamp}${last ? ` ${last.name} ${minTxt(last.min)}′` : ''}${lanceUltimo ? ` — ${lanceUltimo}` : ''}`}
     // 🎙️ enquanto a chance está na tela, o texto dela ganha do apito inicial/intervalo
     //    (senão a bola batia na trave aos 16' e a faixa dizia "rolou a bola")
-    narration={fimTxt ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
-    {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:min,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:!!pauseAtHalf&&!resumeHalf&&min>=45,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
+    narration={fimTxt ?? (privateField&&voo&&!voo.dentro?voo.txt:undefined) ?? (lance ? lance.txt : ritualTxt ?? (fechado ? tr('FIM DE JOGO', 'FULL TIME') : (grande && last ? `⚽ ${minTxt(last.min)}′ ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` : tr('🟢 BOLA ROLANDO', '🟢 BALL ROLLING'))))} />
+    {stadiumMatch&&presidentFieldAccount&&enhancedCareer&&!basket&&<PresidenciaPartida state={{context:stadiumMatch,minute:min,homeScore:hg,awayScore:ag,homeColor,awayColor,paused:!!pauseAtHalf&&!resumeHalf&&min>=45,finished:fechado,chance:!voo&&!fechado&&lance?.roundKey===roundKey?{id:stadiumMatch.id+':chance:'+lance.key,home:lance.side==='h',minute:lance.minute,startedAt:lance.startedAt,speed:lance.speed,plan:lance.plan,clock:lance.clock,outcome:lance.fim}:undefined,goal:voo?{id:stadiumMatch.id+':'+(voo.dentro?Math.max(0,confirmados-1):confirmados),home:voo.side==='h',startedAt:voo.startedAt,speed:voo.speed,plan:voo.plan,clock:voo.clock,minute:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.min,name:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.name??'',scorerId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.id,assistId:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assistId,assist:fila[voo.dentro?Math.max(0,confirmados-1):confirmados]?.assist,phase:voo.dentro?'confirmed':'shot'}:undefined}}/>}
    </>
   return (
     <div style={{ ...box(classico ? '#FFF4D6' : '#fff'), overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
@@ -6620,7 +6690,7 @@ function MyCopaMatchInner({ stadiumContext, tie, pos, phase, colors, safName, my
   const g = legG[legIdx] ?? []
   // nos legGoals, `home` sempre significa "o time A marcou" — na volta inverte
   // pra bater com quem está de fato à esquerda no card.
-  const goals: ScoreGoal[] = g.map(e => ({ name: e.name, min: e.min, home: swap ? !e.home : e.home, assist: e.assist }))
+  const goals: ScoreGoal[] = g.map(e => ({ ...e, home: swap ? !e.home : e.home }))
   const homeT = swap ? tie.b : tie.a, awayT = swap ? tie.a : tie.b
   const stadiumMatch=contextoPartidaCompeticao({enabled:!!stadiumContext,id:`${stadiumContext?.id}:leg:${legIdx}:${homeT.teamId}:${awayT.teamId}`,speed:simSpeed,home:homeT,away:awayT,stadiums:stadiumContext?.stadiums})
   if(stadiumMatch&&stadiumContext?.calendar)stadiumMatch.agenda=agendaFasesComplexo({...stadiumContext.calendar,fixtureId:stadiumMatch.id,competition:'cup',legIndex:legIdx,homeClubId:stadiumMatch.homeClubId})

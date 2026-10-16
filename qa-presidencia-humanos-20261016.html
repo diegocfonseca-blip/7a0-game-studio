@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Torcedores — revisão local</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f4ecd6;font:14px system-ui;color:#222}main{max-width:1200px;margin:auto;padding:8px}h1{font-size:18px;margin:4px 0}p{margin:5px 0;font-size:12px}.stage{height:78vh;min-height:500px;max-height:760px;border:3px solid #222;border-radius:14px;overflow:hidden;background:#c3cccd}.stage canvas{width:100%;height:100%;display:block}.tools{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}button{padding:7px 12px;border:2px solid #222;border-radius:8px;background:#fff9e9;color:#222}
+</style></head><body><main><h1>Torcedores no estádio · revisão local</h1><p>Recorte das escadas e cadeiras reais do jogo, com os mesmos corpos e caminhos. Bairro e partida omitidos. Amostra local, sem alterar contas.</p><div class="tools"><button id="home">Casa</button><button id="away">Visitantes</button><button id="climbing">Escada</button><button id="seated">Cadeira</button><button id="stands">Torcida sentada</button></div><div class="stage" data-humanos-stage></div><p id="status">Preparando o recorte…</p></main>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {criarArquiteturaComplexo} from './src/escalacao/presidencia-complexo-arquitetura.ts';
+import {criarTorcidaComplexo} from './src/escalacao/presidencia-complexo-torcida.ts';
+import {criarVisitaComplexo,opcoesVisitaComplexo} from './src/escalacao/presidencia-complexo-visita.ts';
+import {complexoDoEstadio} from './src/escalacao/presidencia-complexo-model.ts';
+import {STADIUM_SECTORS} from './src/escalacao/estadiodata.ts';
+const element=document.querySelector('.stage'),status=document.querySelector('#status');
+const scene=new THREE.Scene();scene.background=new THREE.Color('#c3cccd');
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(2,devicePixelRatio));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;element.append(renderer.domElement);
+const camera=new THREE.PerspectiveCamera(42,1,.06,600),controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=false;controls.minDistance=2.5;controls.maxDistance=35;controls.maxPolarAngle=Math.PI/2-.04;
+scene.add(new THREE.HemisphereLight('#e8f0ed','#655d42',2.1));
+const sun=new THREE.DirectionalLight('#ffdda5',3.1);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.near=.5;sun.shadow.camera.far=220;sun.shadow.bias=-.0001;sun.shadow.normalBias=.012;scene.add(sun,sun.target);
+const save={inv:Object.fromEntries(STADIUM_SECTORS.map(sector=>[sector.k,sector.cost])),ext:[]},state=complexoDoEstadio(save);
+const architecture=criarArquiteturaComplexo(scene,state);
+const accesses=['home','away'].map(side=>architecture.seatAccess.find(access=>access.side===side&&access.seat.tier==='lower'&&access.seat.row===5));
+if(accesses.some(access=>!access))throw Error('A arquitetura real não forneceu acessos para revisão.');
+const visits=accesses.map(access=>criarVisitaComplexo(scene,opcoesVisitaComplexo(state,access)));
+// Keep actual seat coordinates, geometry and the crowd's own bounded batching.
+// Only nearby samples are included, so this is not a full-map performance test.
+const nearSeats=architecture.seats.filter(seat=>accesses.some(access=>Math.hypot(seat.position.x-access.seat.position.x,seat.position.y-access.seat.position.y,seat.position.z-access.seat.position.z)<9));
+const crowd=criarTorcidaComplexo(scene,nearSeats,{mode:'qa-sample',homeOccupancy:1,awayOccupancy:1});
+crowd.reserve(accesses.map(access=>access.seatId));
+let side='home',phase='seated',seconds=0,ready=false;
+function render(){architecture.updateSeats(camera);scene.updateMatrixWorld(true);renderer.render(scene,camera)}
+function inspect(){
+ let meshes=0,invalidTransforms=0,facialParts=0;
+ for(const body of visits)body.root.traverse(object=>{
+  if(object.isMesh){meshes++;if(/olho|nariz|boca|eye|mouth|nose/i.test(object.name))facialParts++;}
+  if(!object.matrixWorld.elements.every(Number.isFinite))invalidTransforms++;
+ });
+ return {side,phase,seconds,visits:visits.map(visit=>visit.inspect()),crowd:crowd.inspect(),seatDetail:architecture.inspectSeatDetail(),camera:camera.position.toArray(),target:controls.target.toArray(),canvas:[renderer.domElement.width,renderer.domElement.height],drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,meshes,invalidTransforms,facialParts,shadowMap:renderer.shadowMap.enabled};
+}
+function show(next={}){
+ side=next.side??side;phase=next.phase??phase;
+ const index=side==='home'?0:1,visit=visits[index],access=accesses[index];
+ const stages=visit.inspect().stages.filter(stage=>stage.phase===(phase==='stands'?'seated':phase));
+ const stage=stages.at(phase==='climbing'?-1:0);if(!stage)throw Error('Fase real ausente: '+phase);
+ seconds=stage.at+stage.duration*.5;visits.forEach(body=>body.update(seconds));
+ const pose=visit.inspect().pose,heading=access.seat.heading;
+ const target=phase==='stands'?new THREE.Vector3(access.seat.position.x,access.seat.position.y+1,access.seat.position.z):new THREE.Vector3(pose.hip.x,pose.hip.y+.22,pose.hip.z);
+ controls.target.copy(target);
+ const distance=phase==='stands'?7.2:4.1,sideways=phase==='stands'?1.4:1.8;
+ camera.position.set(target.x+Math.sin(heading)*distance+Math.cos(heading)*sideways,target.y+(phase==='stands'?1.9:1.0),target.z+Math.cos(heading)*distance-Math.sin(heading)*sideways);
+ sun.target.position.copy(target);sun.position.copy(target).add(new THREE.Vector3(-60,100,55));Object.assign(sun.shadow.camera,{left:-14,right:14,top:14,bottom:-14});sun.shadow.camera.updateProjectionMatrix();
+ controls.update();camera.lookAt(target);camera.updateMatrixWorld();render();
+ status.textContent=`${side==='home'?'Torcida da casa':'Torcida visitante'} · ${phase==='climbing'?'subindo escada':phase==='stands'?'torcida sentada':'sentado na própria cadeira'} · quadro pausado`;
+ return inspect();
+}
+function resize(){renderer.setSize(element.clientWidth,element.clientHeight,false);camera.aspect=element.clientWidth/element.clientHeight;camera.updateProjectionMatrix();if(ready)show()}
+controls.addEventListener('change',()=>{if(ready)render()});new ResizeObserver(resize).observe(element);
+document.querySelector('#home').onclick=()=>show({side:'home'});document.querySelector('#away').onclick=()=>show({side:'away'});
+for(const name of ['climbing','seated','stands'])document.querySelector('#'+name).onclick=()=>show({phase:name});
+window.qaHumans={show,inspect,ready:()=>ready};resize();ready=true;show();
+window.addEventListener('beforeunload',()=>{visits.forEach(visit=>visit.dispose());crowd.dispose();architecture.dispose();controls.dispose();renderer.dispose()});
+</script></body></html>

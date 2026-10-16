@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js'
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js'
 import type {QuadroBairro} from './presidencia-bairro-model'
+import {geometriaHumana, materialHumano} from './presidencia-humano-acabamento.ts'
 
 // Same faceless proportions as the football figures, with a separate walking rig.
 // Everything is measured in metres, including soles, wheel radii and shadow casters.
@@ -25,20 +26,35 @@ export function criarAtoresBairro(scene:THREE.Scene) {
     materials.add(value)
     return value
   }
-  const boxGeometry = geometry(new THREE.BoxGeometry(1, 1, 1))
+  const humanMaterial = (color:string, kind:Parameters<typeof materialHumano>[1]) => {
+    const value = materialHumano(color, kind)
+    materials.add(value)
+    return value
+  }
+  const humanShapes = new Map<string, THREE.BufferGeometry>()
+  const humanShape = (part:Parameters<typeof geometriaHumana>[0]) => {
+    // Leg IK points +Y towards the ankle; the sculpted profile's +Y is proximal.
+    const reverse = part === 'thigh' || part === 'shin', key = part + (reverse ? ':flip' : '')
+    let value = humanShapes.get(key)
+    if (!value) {
+      value = geometry(geometriaHumana(part))
+      if (reverse) { value.rotateZ(Math.PI); value.userData.humanoShape += ':flip' }
+      humanShapes.set(key, value)
+    }
+    return value
+  }
   const sphereGeometry = geometry(new THREE.SphereGeometry(1, 16, 12))
   const mesh = (parent:THREE.Object3D, shape:THREE.BufferGeometry, mat:THREE.Material, name?:string) => {
+    // A shared coloured material also dresses neck, hands and joint primitives.
+    // Supply white vertex tint explicitly rather than inheriting a GPU attribute.
+    if ((mat as THREE.MeshStandardMaterial).vertexColors && !shape.hasAttribute('color')) {
+      shape.setAttribute('color', new THREE.BufferAttribute(new Float32Array(shape.getAttribute('position').count * 3).fill(1), 3))
+    }
     const value = new THREE.Mesh(shape, mat)
     value.castShadow = true
     value.receiveShadow = true
     if (name) value.name = name
     parent.add(value)
-    return value
-  }
-  const box = (parent:THREE.Object3D, mat:THREE.Material, size:number[], position:number[], name?:string) => {
-    const value = mesh(parent, boxGeometry, mat, name)
-    value.scale.set(size[0], size[1], size[2])
-    value.position.set(position[0], position[1], position[2])
     return value
   }
   const capsule = (parent:THREE.Object3D, mat:THREE.Material, radius:number, length:number, position:number[]) => {
@@ -50,53 +66,52 @@ export function criarAtoresBairro(scene:THREE.Scene) {
   const pedestre = new THREE.Group()
   pedestre.name = 'bairro-pedestre'
   scene.add(pedestre)
-  const skin = material('#98623f', .72)
-  const shirt = material('#1B7A3D', .94)
-  const cream = material('#F4ECD6')
-  const trousers = material('#4d514a')
-  const shoes = material('#242822')
-  const soles = material('#c8c3ad')
+  const skin = humanMaterial('#98623f', 'skin')
+  const shirt = humanMaterial('#1B7A3D', 'fabric')
+  const trimShirt = humanMaterial('#193b26', 'fabric')
+  const trousers = humanMaterial('#4d514a', 'fabric')
+  const shoes = humanMaterial('#242822', 'shoe')
+  const soles = humanMaterial('#c8c3ad', 'sole')
+  const hair = humanMaterial('#25221e', 'hair')
+  const human = (parent:THREE.Object3D, part:Parameters<typeof geometriaHumana>[0], mat:THREE.Material, size:number[], position:number[], name?:string) => {
+    const value = mesh(parent, humanShape(part), mat, name)
+    value.scale.set(size[0], size[1], size[2]); value.position.set(position[0], position[1], position[2])
+    return value
+  }
   const upper = new THREE.Group()
   pedestre.add(upper)
-  const torso = mesh(upper, geometry(new THREE.CylinderGeometry(.218, .172, .45, 12)), shirt)
-  torso.scale.z = .68
-  torso.position.y = 1.195
-  const pelvis = capsule(pedestre, trousers, .145, .09, [0, .897, 0])
-  pelvis.rotation.z = Math.PI / 2
-  pelvis.scale.z = .82
+  human(upper, 'torso', shirt, [.436, .45, .296], [0, 1.195, 0], 'bairro-camisa-modelada')
+  human(pedestre, 'pelvis', trousers, [.38, .29, .238], [0, .897, 0], 'bairro-calca-cintura')
   capsule(upper, skin, .062, .058, [0, 1.46, 0])
-  const head = mesh(upper, sphereGeometry, skin, 'bairro-cabeca-sem-rosto')
-  head.position.y = 1.635
-  head.scale.set(.145, .166, .144)
-  const collar = mesh(upper, geometry(new THREE.TorusGeometry(.078, .012, 6, 16)), cream)
+  human(upper, 'head', skin, [.29, .332, .288], [0, 1.635, 0], 'bairro-cabeca-sem-rosto')
+  human(upper, 'hair', hair, [.29, .332, .288], [0, 1.635, 0], 'bairro-cabelo')
+  const collar = mesh(upper, geometry(new THREE.TorusGeometry(.066, .006, 6, 20)), trimShirt, 'bairro-gola')
   collar.rotation.x = Math.PI / 2
   collar.position.y = 1.417
   const arms = [-1, 1].map(side => {
     const shoulder = new THREE.Group()
     shoulder.position.set(side * .247, 1.38, 0)
     upper.add(shoulder)
-    capsule(shoulder, shirt, .078, .085, [0, -.072, 0])
-    capsule(shoulder, skin, .054, .092, [0, -.175, 0])
+    human(shoulder, 'upperArm', shirt, [.156, .22, .145], [0, -.065, 0], 'bairro-manga')
+    human(shoulder, 'upperArm', skin, [.108, .155, .105], [0, -.185, 0])
     const elbow = new THREE.Group()
     elbow.position.y = -.26
     shoulder.add(elbow)
-    capsule(elbow, skin, .046, .115, [0, -.095, 0])
+    human(elbow, 'forearm', skin, [.096, .205, .095], [0, -.1025, 0])
     capsule(elbow, skin, .053, .025, [0, -.204, 0])
     elbow.rotation.x = -.16
     return shoulder
   })
-  const thighGeometry = geometry(new THREE.CylinderGeometry(.084, .066, 1, 10))
-  const shinGeometry = geometry(new THREE.CylinderGeometry(.065, .048, 1, 10))
   const legs = [-1, 1].map((side, index) => {
-    const thigh = mesh(pedestre, thighGeometry, trousers)
-    const shin = mesh(pedestre, shinGeometry, trousers)
+    const thigh = human(pedestre, 'thigh', trousers, [.168, 1, .168], [0, 0, 0])
+    const shin = human(pedestre, 'shin', trousers, [.13, 1, .13], [0, 0, 0])
     const knee = mesh(pedestre, sphereGeometry, trousers)
     knee.scale.set(.067, .07, .067)
     const foot = new THREE.Group()
     foot.name = `bairro-pe-${index}`
     pedestre.add(foot)
-    const sole = box(foot, soles, [.146, .028, .285], [0, .014, .066], `bairro-sola-${index}`)
-    box(foot, shoes, [.139, .064, .258], [0, .057, .058])
+    const sole = human(foot, 'shoe', soles, [.146, .028, .285], [0, .014, .066], `bairro-sola-${index}`)
+    human(foot, 'shoe', shoes, [.139, .064, .258], [0, .057, .058], 'bairro-tenis')
     return {side, thigh, shin, knee, foot, sole}
   })
   const feet = legs.map(leg => leg.sole)
@@ -357,6 +372,9 @@ export function criarAtoresBairro(scene:THREE.Scene) {
       disposed = true
       scene.remove(pedestre, carro)
       geometries.forEach(value => value.dispose())
+      const textures = new Set<THREE.Texture>()
+      materials.forEach(value => Object.values(value).forEach(property => { if (property instanceof THREE.Texture) textures.add(property) }))
+      textures.forEach(value => value.dispose())
       materials.forEach(value => value.dispose())
     },
   }

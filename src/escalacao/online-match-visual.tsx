@@ -5,6 +5,7 @@ import { tr } from './lang' // 🌐 BR/EN
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
 import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
 import { type Batedores, batedorDaVez, siglasDoTime, sementePalco, jeitoDoErro, type JeitoDoErro } from './penaltis' // 🎯 o palco dos batedores (24/09)
+import {tempoLance,type RelogioLance} from './presidencia-lance-tempo'
 
 type Goal = { name: string; min: number; home: boolean }
 export function OnlineScorePresentation(p: {
@@ -24,11 +25,29 @@ export function OnlineScorePresentation(p: {
   // 🧤 defendeu · 🥅 trave · 💨 fora · 🚀 isolou · ⚽ gol (entra e a rede balança).
   // `palcoOn` liga a faixa (sem ela, o placar é byte a byte o de antes).
   // 🎭 A mascote do carimbo NÃO muda: ela continua na cena do gol, como sempre.
-  palcoOn?: boolean; palco?: { speed?:number; side: 'h' | 'a'; fim: 'defendeu' | 'trave' | 'fora' | 'isolou' | 'gol'; key: number; veredito: string } | null;
+  palcoOn?: boolean; palco?: { speed?:number; clock?:RelogioLance; impactMs?:number; shotStartMs?:number; side: 'h' | 'a'; fim: 'defendeu' | 'trave' | 'fora' | 'isolou' | 'gol'; key: number; veredito: string } | null;
   // 📻 RÁDIO LEGENDS (13/10): UMA linha entre a faixa do golzinho e os autores dos gols. Sempre ocupa o mesmo
   // espaço (antes da 1ª frase diz "rádio ligada") pra o placar não pular de tamanho.
   radio?: { min: string; txt: string; tag?: string; tom?: 'retro' | 'craque' } | null;
 }) {
+  const palcoRef=useRef<HTMLDivElement>(null)
+  useEffect(()=>{
+    const clock=p.palco?.clock,element=palcoRef.current
+    if(!clock||!element)return
+    const base=p.palco?.fim==='gol'?900:600,impact=p.palco?.impactMs??base
+    const shotStart=Math.min(impact-1,Math.max(0,p.palco?.shotStartMs??0))
+    let frame=0,stopped=false
+    const paint=(now:number)=>{
+      if(stopped)return
+      // The miniature represents the shot. It waits while the same shared
+      // plan is still receiving/passing/carrying the ball in the stadium.
+      const elapsed=tempoLance(clock,now),time=elapsed<impact?Math.max(0,elapsed-shotStart)/(impact-shotStart)*base:base+elapsed-impact
+      for(const animation of element.getAnimations({subtree:true})){animation.pause();animation.currentTime=time}
+      frame=requestAnimationFrame(paint)
+    }
+    paint(performance.now())
+    return()=>{stopped=true;cancelAnimationFrame(frame)}
+  },[p.palco?.clock,p.palco?.impactMs,p.palco?.shotStartMs,p.palco?.fim])
   const team = (home: boolean) => {
     const name = home ? p.homeName : p.awayName
     const fim = p.big && p.result ? (p.result === (home ? 'h' : 'a') ? ' ll30-win' : ' ll30-lose') : ''
@@ -52,7 +71,7 @@ export function OnlineScorePresentation(p: {
     {p.palcoOn && (
       // ⚽🥅 a faixa do golzinho: `key` reinicia a animação a cada lance novo. Lado
       // `h` = a casa atacou → a bola vai pra DIREITA (rede do visitante); `a` → esquerda.
-      <div key={p.palco?.key ?? 'quieto'} style={{'--ll32-speed':p.palco?.speed??1} as CSSProperties} className={`ll32-palco${p.palco ? ` ll32-${p.palco.side === 'h' ? 'dir' : 'esq'} ll32-${p.palco.fim}` : ''}`} aria-hidden="true">
+      <div ref={palcoRef} key={p.palco?.key ?? 'quieto'} style={{'--ll32-speed':p.palco?.clock?1:p.palco?.speed??1} as CSSProperties} className={`ll32-palco${p.palco ? ` ll32-${p.palco.side === 'h' ? 'dir' : 'esq'} ll32-${p.palco.fim}` : ''}`} aria-hidden="true">
         <span className="ll32-meta ll32-m-esq">🥅</span><span className="ll32-luva ll32-l-esq">🧤</span>
         <div className="ll32-pista">
           <i className="ll32-metade ll32-mt-esq" style={{ borderColor: p.homeColor }} /><i className="ll32-metade ll32-mt-dir" style={{ borderColor: p.awayColor }} />

@@ -8,6 +8,7 @@ for(const side of ['home','away'])for(const z of [-34,34])for(const speed of [1,
  const state={...base,context:{...base.context,speed}},m=new MotorFutebol(state)
  const taker=m.players.find(p=>p.side===side&&!p.keeper)
  taker.mx=0;taker.mz=z
+ m.ball={x:0,z,y:.11}
  m.prepareRestart('lateral',{x:0,z},side)
  const body=person('#1b7a3d','#b9815b');let preparation,previous,release
  for(let i=0;i<300;i++){
@@ -47,6 +48,7 @@ console.log('PASS: eight throw-ins, gradual preparation, exact two-hand release,
 // A real substitution while preparing the throw must not orphan the ball.
 for(const who of ['key','receiver']){
  const m=new MotorFutebol(base),taker=m.players.find(p=>p.key==='home:h1');taker.mx=0;taker.mz=-34
+ m.ball={x:0,z:-34,y:.11}
  m.prepareRestart('lateral',{x:0,z:-34},'home')
  let frame
  for(let i=0;i<180&&!m.throwIn;i++)frame=m.sample(base,i/60,i*1000/60)

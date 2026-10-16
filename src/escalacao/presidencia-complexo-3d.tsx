@@ -22,15 +22,25 @@ import {calcularQualidadeComplexo,aplicarQualidadeTexturasComplexo} from './pres
 import type {JornadaComplexo} from './presidencia-complexo-jornada'
 import {criarIluminacaoComplexo} from './presidencia-complexo-iluminacao'
 import type {PresidenciaCarteira} from './presidencia-economia'
+import type {PresidenteBaseSave} from './presidencia-carreira'
+import {criarPresidenteComplexo,type EstadoArtePresidente} from './presidencia-presidente-3d'
+import {criarColecaoSala} from './presidencia-sala-colecao-3d'
+import type {TrofeuPresidencia} from './presidencia-trofeus'
+import type {ArtesIdentidadeSala} from './presidencia-sala-identidade-assets'
 import './presidencia-complexo-3d.css'
 
-export type VistaComplexo='original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'
+export type VistaComplexo='original'|'region'|'field'|'stands'|'entrance'|'away-entrance'|'office'|'room'|'president'|'shelf'|'visit-home'|'visit-away'|'follow-home'|'follow-away'|'loja'|'hotel'|'chopp'|'praca'|'estacao'|'metro'|'onibus'|'estacionamento'|'vadico'
 export type ControleComplexo={view:(view:VistaComplexo)=>void;zoom:(direction:1|-1)=>void;setNavigationMode:(mode:ModoNavegacaoComplexo)=>void;seekCirculation:(seconds:number)=>void;inspect:()=>unknown;checkLighting:()=>{invalidSamples:number;litSamples:number};checkDealershipView:()=>{id:string;visible:boolean;occluder?:string}[]}
 
 /** Physical reconstruction for local visual review. It only reads the existing save and match clock. */
-export default function PresidenciaComplexo3D({stadium,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,journey,visitRow=5,visitTier='lower',onReady}:{stadium?:StadiumSave;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;journey?:JornadaComplexo;visitRow?:number;visitTier?:'lower'|'upper';onReady?:(api:ControleComplexo|null)=>void}){
+export default function PresidenciaComplexo3D({stadium,match,circulation=false,qaPopulation=false,day,awayStadium,awayDay,presidency,president,trophies=[],identityArt,trophyPage=0,journey,visitRow=5,visitTier='lower',presentation='map',onUnavailable,onReady}:{stadium?:StadiumSave;match?:EstadoPartidaEstadio;circulation?:boolean;qaPopulation?:boolean;day?:DiaEstadio;awayStadium?:StadiumSave;awayDay?:DiaEstadio;presidency?:PresidenciaCarteira|null;president?:PresidenteBaseSave;trophies?:readonly TrofeuPresidencia[];identityArt?:ArtesIdentidadeSala;trophyPage?:number;journey?:JornadaComplexo;visitRow?:number;visitTier?:'lower'|'upper';presentation?:'map'|'window'|'office';onUnavailable?:()=>void;onReady?:(api:ControleComplexo|null)=>void}){
  const root=useRef<HTMLDivElement>(null),api=useRef<ControleComplexo|null>(null),ready=useRef(onReady),matchRef=useRef(match),wake=useRef(()=>{}),refreshPopulation=useRef(()=>{}),refreshFurniture=useRef(()=>{}),refreshJourney=useRef(()=>{}),walletRef=useRef(presidency),journeyRef=useRef(journey)
  ready.current=onReady;matchRef.current=match;walletRef.current=presidency;journeyRef.current=journey
+ const isWindow=presentation==='window',isOffice=presentation==='office',unavailable=useRef(onUnavailable);unavailable.current=onUnavailable
+ const presidentRef=useRef(president);presidentRef.current=president
+ const [presidentStatus,setPresidentStatus]=useState<EstadoArtePresidente>('empty'),retryPresident=useRef(()=>{})
+ const collectionRef=useRef({trophies,identityArt,trophyPage});collectionRef.current={trophies,identityArt,trophyPage}
+ const presidentKey=JSON.stringify([president??null,trophies,identityArt,trophyPage])
  const [error,setError]=useState(''),[loaded,setLoaded]=useState(false),[hasSeatView,setHasSeatView]=useState(false),[visitable,setVisitable]=useState({home:false,away:false}),[following,setFollowing]=useState<'home'|'away'|null>(null),[paused,setPaused]=useState(false),pausedRef=useRef(paused)
  const [expanded,setExpanded]=useState(false),[placesOpen,setPlacesOpen]=useState(false),[navigationMode,setNavigationMode]=useState<ModoNavegacaoComplexo>('pan'),[selectedView,setSelectedView]=useState<VistaComplexo>('original')
  const section=useRef<HTMLElement>(null),expandButton=useRef<HTMLButtonElement>(null),placesButton=useRef<HTMLButtonElement>(null),navigationModeRef=useRef(navigationMode)
@@ -99,10 +109,10 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const save:StadiumSave=JSON.parse(saveKey),state=complexoDoEstadio(save)
   let renderer:THREE.WebGLRenderer
   try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',logarithmicDepthBuffer:true})}
-  catch{setError('Não foi possível abrir esta vista 3D neste aparelho.');return}
+  catch{setError('Não foi possível abrir esta vista 3D neste aparelho.');unavailable.current?.();return}
   renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap
-  renderer.domElement.setAttribute('aria-label','Mapa do estádio em três dimensões');renderer.domElement.setAttribute('aria-describedby',`${uiId}-help`);renderer.domElement.tabIndex=0;el.append(renderer.domElement)
+  renderer.domElement.setAttribute('aria-label',isOffice?'Sala da Presidência em três dimensões':isWindow?'Estádio visto pela janela da Presidência':'Mapa do estádio em três dimensões');if(!isWindow)renderer.domElement.setAttribute('aria-describedby',`${uiId}-help`);renderer.domElement.tabIndex=isWindow?-1:0;el.append(renderer.domElement)
   const scene=new THREE.Scene();scene.background=new THREE.Color('#cbd2cd');scene.fog=new THREE.Fog('#cbd2cd',1100,2200)
   const visualProfile=(width:number,height:number)=>calcularQualidadeComplexo({width,height,devicePixelRatio:window.devicePixelRatio||1,
    coarsePointer:window.matchMedia('(pointer: coarse)').matches,deviceMemory:(navigator as Navigator&{deviceMemory?:number}).deviceMemory,
@@ -114,10 +124,26 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const sun=new THREE.DirectionalLight('#ffdda5',3.1);sun.position.set(-340,450,270);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048)
   sun.shadow.normalBias=.055;sun.shadow.bias=-.00012;sun.shadow.radius=2.5
   sun.shadow.camera.near=1;sun.shadow.camera.far=1300;scene.add(sun,sun.target)
-  const surround=criarEntornoComplexo(scene,state),architecture=criarArquiteturaComplexo(scene,state)
+  const surround=criarEntornoComplexo(scene,state),architecture=criarArquiteturaComplexo(scene,state,{interior:isOffice})
   setHasSeatView(architecture.seats.length>0)
-  const furniture=criarMobiliaComplexo(scene,state,walletRef.current)
+  const furniture=criarMobiliaComplexo(scene,state,walletRef.current,{interior:isOffice})
   let render=()=>{},disposed=false
+  let avatarFrame:number|undefined
+  const roomLights:THREE.SpotLight[]=[]
+  const presidentBody=criarPresidenteComplexo(scene,state,{interior:isOffice,onChange:status=>{
+   if(disposed)return
+   setPresidentStatus(status)
+   if(status==='loading')return
+   if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame)
+   // Rendering is separate from the artwork promise: a WebGL exception must
+   // not be mistaken for an image download failure or discard valid artwork.
+   avatarFrame=requestAnimationFrame(()=>{
+    avatarFrame=undefined;if(disposed)return
+    sharpenTextures();roomLights.forEach(lamp=>{lamp.shadow.needsUpdate=true});render()
+   })
+  }})
+  retryPresident.current=()=>{presidentBody.retry()}
+  const collection=criarColecaoSala(scene,state,()=>render(),isOffice);collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage)
   const game=criarPartidaComplexo(scene,save,matchRef.current,()=>render())
   // The probe sees real static geometry. Exclude bump derivatives from its convolution.
   const bumpMaps=new Map<THREE.MeshStandardMaterial,THREE.Texture>()
@@ -132,13 +158,12 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   scene.environment=reflection.texture;scene.environmentIntensity=.35;generator.dispose()
   // Local ceiling light keeps purchased furniture readable under the roof.
   // Bounded cones illuminate this room; the outdoor exposure stays unchanged.
-  const roomLights:THREE.SpotLight[]=[]
   if(architecture.counts.presidentBox){
-   for(const [x,z,targetZ,intensity] of [[-6.4,72.4,70.6,150],[8,74.1,72.5,130]]){
+   for(const [x,z,targetZ,intensity] of [[-6.4,72.4,69.7,390],[8,74.1,72.5,170]]){
     const lamp=new THREE.SpotLight('#ffe6c4',intensity,12,.42,.70,2)
     lamp.position.set(x,16.43,z);lamp.target.position.set(x,9.7,targetZ)
     lamp.castShadow=true;lamp.shadow.mapSize.set(512,512)
-    lamp.shadow.normalBias=.012;lamp.shadow.bias=-.00002
+    lamp.shadow.normalBias=.032;lamp.shadow.bias=-.00002
     lamp.shadow.camera.near=.1;lamp.shadow.camera.far=12
     lamp.shadow.autoUpdate=false;lamp.shadow.needsUpdate=true
     scene.add(lamp,lamp.target);roomLights.push(lamp)
@@ -162,7 +187,7 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const visitorKeys=new Map<ReturnType<typeof criarVisitaComplexo>,string>()
   const followedActor=(side:'home'|'away')=>transportActors?.actor(side)??visits.find(visit=>visitorSides.get(visit)===side)
   const selectedAccess=(side:'home'|'away')=>architecture.seatAccess.filter(access=>access.side===side&&access.seat.tier===populationRef.current.visitTier&&!crowdDeparture?.reserveSeatIds().includes(access.seatId)).sort((a,b)=>Math.abs(a.seat.row-populationRef.current.visitRow)-Math.abs(b.seat.row-populationRef.current.visitRow)||a.seat.row-b.seat.row)[0]
-  let mode:VistaComplexo='original',focusedSeat:string|undefined,raf=0,visible=true,rendering=false,seconds=6,last=0
+  let mode:VistaComplexo=isOffice?'room':isWindow?'office':'original',focusedSeat:string|undefined,raf=0,visible=true,rendering=false,seconds=6,last=0
   const rebuildPopulation=()=>{
    const population=populationRef.current,publico=crowd.inspect()
    // A reserved place consumes the same bounded crowd budget as its occupant.
@@ -280,6 +305,22 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   render=()=>{
    if(disposed||rendering)return
    rendering=true
+   if(isOffice){
+    const b=PLANTA_COMPLEXO.presidentBox
+    camera.position.clamp(new THREE.Vector3(b.minX+.5,b.floor+.6,b.minZ+.5),new THREE.Vector3(b.maxX-.5,b.ceiling-.5,b.maxZ-.5))
+    if(mode!=='office'){
+     controls.target.clamp(new THREE.Vector3(b.minX+1,b.floor+.5,b.minZ+1),new THREE.Vector3(b.maxX-1,b.ceiling-1,b.maxZ-1))
+     for(const item of furniture.inspect().placements){
+      const min=new THREE.Vector3(item.bounds.min.x-.25,item.bounds.min.y-.25,item.bounds.min.z-.25),max=new THREE.Vector3(item.bounds.max.x+.25,item.bounds.max.y+.25,item.bounds.max.z+.25)
+      if(new THREE.Box3(min,max).containsPoint(camera.position)){
+       const choices: ['x'|'y'|'z',number][]=[['x',min.x],['x',max.x],['y',max.y],['z',min.z],['z',max.z]]
+       choices.sort((a,b)=>Math.abs(camera.position[a[0]]-a[1])-Math.abs(camera.position[b[0]]-b[1]))
+       camera.position[choices[0][0]]=choices[0][1]
+      }
+     }
+    }
+    camera.lookAt(controls.target);camera.updateMatrixWorld()
+   }
    game.update(matchRef.current,performance.now())
    circulationActors?.update(seconds)
    const departure=crowdDeparture?.inspect()
@@ -333,7 +374,10 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   }
   const navigation=criarNavegacaoComplexo({camera,controls,onChange:()=>render(),onExplore:()=>{followSide=undefined;followedCenter=undefined;setFollowing(null)}})
   navigation.setMode(navigationModeRef.current)
+  if(isWindow)controls.enabled=false
   const view=(next:VistaComplexo,draw=true)=>{
+   if(isOffice&&!['room','office','president','shelf'].includes(next))next='room'
+   if(isOffice){controls.enabled=next!=='office';camera.fov=next==='president'?32:48;camera.updateProjectionMatrix()}
    navigation.beginView({fitOnResize:['original','region','field','estacao','vadico'].includes(next),terrainGuard:['original','region','estacao','vadico'].includes(next)||(next==='field'&&!state.roofClosed)})
    setSelectedView(next)
    mode=next;focusedSeat=undefined;followSide=undefined;followedCenter=undefined;setFollowing(null)
@@ -371,11 +415,17 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     controls.target.copy(p);camera.position.set(p.x+(Math.sin(h)*5+Math.cos(h)*2)*distance,p.y+1.7*distance,p.z+(Math.cos(h)*5-Math.sin(h)*2)*distance)
    }
    else if(next==='room'){
-    if(architecture.counts.presidentBox){camera.position.set(1,11.1,76.8);controls.target.set(-6.4,10,70.6)}
+    if(architecture.counts.presidentBox){camera.position.set(-6.4,11.4,76.3);controls.target.set(-6.4,10.1,69.7)}
     else{view('entrance');return}
    }
+   else if(next==='president'){
+    const body=presidentBody.inspect().president,seat=body?.seated
+    const x=seat?-6.4:-4.5,z=seat?69.7:70,y=PLANTA_COMPLEXO.presidentBox.floor+(seat?1.1:1.4)
+    controls.target.set(x,y,z);camera.position.set(x+.65,y+.35,z+3.2)
+   }
+   else if(next==='shelf'){controls.target.set(-12.5,10.3,78.2);camera.position.set(-10.7,11.4,73.5)}
    else if(next==='office'){
-    if(architecture.counts.presidentBox){camera.position.fromArray(PLANTA_COMPLEXO.presidentBox.camera);controls.target.fromArray(PLANTA_COMPLEXO.presidentBox.target)}
+    if(architecture.counts.presidentBox||isWindow){camera.position.fromArray(PLANTA_COMPLEXO.presidentBox.camera);controls.target.fromArray(PLANTA_COMPLEXO.presidentBox.target)}
     else{mode='entrance';controls.target.set(0,2,82);camera.position.set(18,12,116)}
    }
    else if(next==='vadico'){
@@ -411,15 +461,16 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
   const resize=()=>{const width=el.clientWidth,height=el.clientHeight;if(!width||!height)return
    quality=visualProfile(width,height);renderer.setPixelRatio(quality.pixelRatio)
    renderer.setSize(width,height,false);sharpenTextures();navigation.resize(width,height,()=>view(mode,false))
+   if(isWindow){view('office',false);camera.lookAt(controls.target);render()}
   }
   const walking=()=>!!(circulationActors||transportActors||visits.length||crowdDeparture)&&!pausedRef.current&&!reduced.matches
   const running=()=>visible&&!document.hidden&&(walking()||(!!matchRef.current&&(matchRef.current.visualClock?.running??(!matchRef.current.paused&&!matchRef.current.finished))))
   const tick=(now:number)=>{if(disposed)return;if(walking()&&last)seconds+=(now-last)/1000;last=now;render();if(running())raf=requestAnimationFrame(tick)}
   const resume=()=>{cancelAnimationFrame(raf);last=0;render();if(running())raf=requestAnimationFrame(tick)};wake.current=resume
   refreshPopulation.current=()=>{if(disposed)return;crowd.update(populationRef.current.crowdPopulation);if(rebuildPopulation())resume();else render()}
-  refreshFurniture.current=()=>{if(disposed)return;if(furniture.update(walletRef.current)){roomLights.forEach(lamp=>{lamp.shadow.needsUpdate=true});sharpenTextures()}render()}
+  refreshFurniture.current=()=>{if(disposed)return;const changed=furniture.update(walletRef.current),bodyChanged=presidentBody.update(presidentRef.current,walletRef.current),collectionChanged=collection.update(walletRef.current,collectionRef.current.trophies,collectionRef.current.identityArt,collectionRef.current.trophyPage);if(changed||bodyChanged||collectionChanged){roomLights.forEach(lamp=>{lamp.shadow.needsUpdate=true});sharpenTextures();render()}}
   refreshJourney.current=()=>{if(disposed)return;lighting.setPeriod(journeyRef.current?.period??'day');rebuildPopulation();resume()}
-  const homeKey=(event:KeyboardEvent)=>{if(event.key==='Home'&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&event.target===renderer.domElement){event.preventDefault();view('original')}}
+  const homeKey=(event:KeyboardEvent)=>{if(event.key==='Home'&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&event.target===renderer.domElement){event.preventDefault();view(isOffice?'room':'original')}}
   renderer.domElement.addEventListener('keydown',homeKey)
   const checkLighting=()=>{const pixels=new Uint16Array(reflection.width*reflection.height*4);renderer.readRenderTargetPixels(reflection,0,0,reflection.width,reflection.height,pixels);let invalidSamples=0,litSamples=0;for(let i=0;i<pixels.length;i++)if(i%4!==3){if((pixels[i]&0x7c00)===0x7c00)invalidSamples++;else if(pixels[i]>0)litSamples++}return {invalidSamples,litSamples}}
   const inspectCirculation=()=>circulationActors?{...circulationActors.inspect(),attendance:populationRef.current.attendance,awayAttendance:populationRef.current.awayAttendance}:undefined
@@ -441,21 +492,25 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     return{id:target.id,visible:!hit,occluder:hit?.object.name}
    })
   }
-  api.current={view,zoom:navigation.zoom,setNavigationMode:value=>{navigation.setMode(value);setNavigationMode(value)},checkLighting,checkDealershipView,seekCirculation:value=>{seconds=Number.isFinite(value)?Math.max(0,value):0;last=0;render()},inspect:()=>({state,journey:journeyRef.current,lighting:lighting.inspect(),match:game.inspect(),circulation:inspectCirculation(),transport:transportActors?.inspect(),flow,crowd:crowd.inspect(),crowdDeparture:crowdDeparture?.inspect(),visits:visits.map(visit=>({...visit.inspect(),source:populationRef.current.crowdPopulation.mode})),furniture:{...furniture.inspect(),ceilingLights:roomLights.length},populationRebuilds,view:mode,following:followSide??null,visitRow:populationRef.current.visitRow,visitTier:populationRef.current.visitTier,focusedSeat,camera:camera.position.toArray(),target:controls.target.toArray(),cameraFov:camera.fov,viewport:[el.clientWidth,el.clientHeight],navigation:navigation.inspect(),quality,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,canvas:[renderer.domElement.width,renderer.domElement.height],shadowMap:renderer.shadowMap.enabled,architecture:architecture.root.userData,seatDetail:architecture.inspectSeatDetail(),landscape:surround.root.userData.landscape,roads:surround.root.userData.roadNetwork?.diagnostics,pedestrianNetwork:surround.root.userData.pedestrianNetwork,dealership:surround.root.userData.dealership,establishments:[...surround.establishments]})}
+  api.current={view,zoom:direction=>{if(isOffice&&mode==='office'){camera.fov=THREE.MathUtils.clamp(camera.fov*(direction===1?.82:1.22),16,65);camera.updateProjectionMatrix();render()}else navigation.zoom(direction)},setNavigationMode:value=>{navigation.setMode(value);setNavigationMode(value)},checkLighting,checkDealershipView,seekCirculation:value=>{seconds=Number.isFinite(value)?Math.max(0,value):0;last=0;render()},inspect:()=>({state,journey:journeyRef.current,lighting:lighting.inspect(),match:game.inspect(),circulation:inspectCirculation(),transport:transportActors?.inspect(),flow,crowd:crowd.inspect(),crowdDeparture:crowdDeparture?.inspect(),visits:visits.map(visit=>({...visit.inspect(),source:populationRef.current.crowdPopulation.mode})),president:presidentBody.inspect(),collection:collection.inspect(),furniture:{...furniture.inspect(),ceilingLights:roomLights.length},populationRebuilds,view:mode,following:followSide??null,visitRow:populationRef.current.visitRow,visitTier:populationRef.current.visitTier,focusedSeat,camera:camera.position.toArray(),target:controls.target.toArray(),cameraFov:camera.fov,viewport:[el.clientWidth,el.clientHeight],navigation:navigation.inspect(),quality,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,canvas:[renderer.domElement.width,renderer.domElement.height],shadowMap:renderer.shadowMap.enabled,architecture:architecture.root.userData,seatDetail:architecture.inspectSeatDetail(),landscape:surround.root.userData.landscape,roads:surround.root.userData.roadNetwork?.diagnostics,pedestrianNetwork:surround.root.userData.pedestrianNetwork,dealership:surround.root.userData.dealership,establishments:[...surround.establishments]})}
   const observer=new ResizeObserver(resize);observer.observe(el)
   const visibility=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting===true;resume()});visibility.observe(el)
   document.addEventListener('visibilitychange',resume)
   reduced.addEventListener('change',resume)
-  const lost=(event:Event)=>{event.preventDefault();cancelAnimationFrame(raf);setError('A vista 3D foi interrompida. Reabra para tentar novamente.')};renderer.domElement.addEventListener('webglcontextlost',lost)
+  const lost=(event:Event)=>{event.preventDefault();cancelAnimationFrame(raf);setError('A vista 3D foi interrompida. Reabra para tentar novamente.');unavailable.current?.()};renderer.domElement.addEventListener('webglcontextlost',lost)
   resize();setLoaded(true);ready.current?.(api.current);resume()
-  return()=>{disposed=true;cancelAnimationFrame(raf);api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);navigation.dispose();renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
- },[saveKey])
+  // Start artwork downloads after the synchronous world/probe construction.
+  // Otherwise its loading timeout can expire while the initial 3D render is
+  // still blocking the main thread on a slow device.
+  presidentBody.update(presidentRef.current,walletRef.current)
+  return()=>{disposed=true;cancelAnimationFrame(raf);if(avatarFrame!==undefined)cancelAnimationFrame(avatarFrame);retryPresident.current=()=>{};api.current=null;ready.current?.(null);wake.current=()=>{};refreshPopulation.current=()=>{};refreshFurniture.current=()=>{};refreshJourney.current=()=>{};observer.disconnect();visibility.disconnect();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener('change',resume);navigation.dispose();renderer.domElement.removeEventListener('keydown',homeKey);controls.dispose();renderer.domElement.removeEventListener('webglcontextlost',lost);lighting.dispose();circulationActors?.dispose();transportActors?.dispose();visits.forEach(visit=>visit.dispose());presidentBody.dispose();collection.dispose();furniture.dispose();crowdDeparture?.dispose();crowd.dispose();game.dispose();architecture.dispose();surround.dispose();reflection.dispose();roomLights.forEach(lamp=>{lamp.shadow.map?.dispose();lamp.dispose()});sun.shadow.map?.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
+ },[saveKey,isWindow,isOffice])
  useEffect(()=>{refreshPopulation.current()},[populationKey])
- useEffect(()=>{refreshFurniture.current()},[walletKey])
+ useEffect(()=>{refreshFurniture.current()},[walletKey,presidentKey])
  useEffect(()=>{refreshJourney.current()},[journeyKey])
  const go=(destination:VistaComplexo)=>{api.current?.view(destination);root.current?.querySelector('canvas')?.focus({preventScroll:true});setPlacesOpen(false)}
- return <section ref={section} className={`pc3-review${expanded?' pc3-expanded':''}`} data-expanded={expanded}
-  role={expanded?'dialog':undefined} aria-modal={expanded?true:undefined} aria-label="Mapa do estádio" onKeyDown={event=>{
+ return <section ref={section} className={`pc3-review${isOffice?' pc3-office':''}${isWindow?' pc3-window':''}${expanded?' pc3-expanded':''}`} data-expanded={expanded} data-presentation={presentation}
+  role={expanded?'dialog':undefined} aria-modal={expanded?true:undefined} aria-label={isOffice?'Sala da Presidência':'Mapa do estádio'} onKeyDown={event=>{
    if(event.key==='Escape'){
     if(placesOpen){setPlacesOpen(false);placesButton.current?.focus();event.preventDefault();event.stopPropagation()}
     else if(expanded){setExpanded(false);event.preventDefault();event.stopPropagation()}
@@ -472,17 +527,21 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
     {!loaded&&!error&&<p className="pc3-loading" role="status">Preparando o mapa…</p>}
     {error&&<p className="pc3-error" role="alert">{error}</p>}
    </div>
-   <div className="pc3-hud pc3-topbar">
+   {!isWindow&&loaded&&(presidentStatus==='loading'||presidentStatus==='error')&&<div className="pc3-avatar-status" role={presidentStatus==='error'?'alert':'status'}>
+    {presidentStatus==='loading'?'Carregando seu personagem…':<>O visual não carregou. Suas escolhas foram mantidas.<button type="button" onClick={()=>retryPresident.current()}>Tentar novamente</button></>}
+   </div>}
+   {!isWindow&&<><div className="pc3-hud pc3-topbar">
     <div className="pc3-primary">
+     {isOffice?<><button type="button" disabled={!loaded} aria-pressed={selectedView==='room'} onClick={()=>go('room')}>Minha sala</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='office'} onClick={()=>go('office')}>Janela</button><button type="button" disabled={!loaded} aria-pressed={selectedView==='president'} onClick={()=>go('president')}>Presidente</button><button type="button" disabled={!loaded} onClick={()=>go('shelf')}>Estante</button></>:<>
      <button type="button" disabled={!loaded} aria-label="Estádio e região" aria-pressed={selectedView==='original'||selectedView==='region'} onClick={()=>go('original')}>Mapa</button>
      <button type="button" disabled={!loaded} aria-pressed={selectedView==='field'} onClick={()=>go('field')}>Ver campo</button>
-     <button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>Locais <span aria-hidden="true">⌄</span></button>
+     <button ref={placesButton} type="button" disabled={!loaded} aria-expanded={placesOpen} aria-controls={`${uiId}-places`} onClick={()=>setPlacesOpen(value=>!value)}>Locais <span aria-hidden="true">⌄</span></button></>}
     </div>
-    <button ref={expandButton} className="pc3-expand" type="button" aria-label={expanded?'Fechar mapa ampliado':'Ampliar mapa'} title={expanded?'Fechar mapa ampliado':'Ampliar mapa'} onClick={toggleExpanded}>
+    <button ref={expandButton} className="pc3-expand" type="button" aria-label={isOffice?(expanded?'Fechar sala ampliada':'Ampliar sala'):(expanded?'Fechar mapa ampliado':'Ampliar mapa')} title={isOffice?(expanded?'Fechar sala ampliada':'Ampliar sala'):(expanded?'Fechar mapa ampliado':'Ampliar mapa')} onClick={toggleExpanded}>
      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{expanded?<path d="m6 6 12 12M18 6 6 18"/>:<path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/>}</svg>
     </button>
    </div>
-   {placesOpen&&<div className="pc3-places" id={`${uiId}-places`} aria-label="Locais do mapa">
+   {placesOpen&&!isOffice&&<div className="pc3-places" id={`${uiId}-places`} aria-label="Locais do mapa">
     <p>Explore o estádio</p>
     {hasSeatView&&<button type="button" onClick={()=>go('stands')}>Arquibancada</button>}
     <button type="button" onClick={()=>go('entrance')}>Entrada dos mandantes</button>
@@ -501,10 +560,10 @@ export default function PresidenciaComplexo3D({stadium,match,circulation=false,q
    <div className="pc3-hud pc3-navigation" aria-label="Controles do mapa">
     <button type="button" className="pc3-zoom" disabled={!loaded} aria-label="Aproximar" title="Aproximar" onClick={()=>api.current?.zoom(1)}>+</button>
     <button type="button" className="pc3-zoom" disabled={!loaded} aria-label="Afastar" title="Afastar" onClick={()=>api.current?.zoom(-1)}>−</button>
-    <button type="button" disabled={!loaded} onClick={()=>go('original')}>Ver tudo</button>
+    <button type="button" disabled={!loaded} onClick={()=>go(isOffice?'room':'original')}>{isOffice?'Ver sala':'Ver tudo'}</button>
     <button type="button" disabled={!loaded} aria-label="Girar" aria-pressed={navigationMode==='rotate'} title="Ativar ou desativar rotação ao arrastar" onClick={()=>api.current?.setNavigationMode(navigationMode==='pan'?'rotate':'pan')}>Girar</button>
    </div>
-   <p className="pc3-help" id={`${uiId}-help`}>{navigationMode==='rotate'?'Arraste para girar.':'Arraste para explorar.'} <span className="pc3-help-touch">Use dois dedos para aproximar.</span><span className="pc3-help-mouse">Use a roda para aproximar. Setas para mover.</span></p>
+   <p className="pc3-help" id={`${uiId}-help`}>{navigationMode==='rotate'?'Arraste para girar.':'Arraste para explorar.'} <span className="pc3-help-touch">Use dois dedos para aproximar.</span><span className="pc3-help-mouse">Use a roda para aproximar. Setas para mover.</span></p></>}
   </div>
  </section>
 }

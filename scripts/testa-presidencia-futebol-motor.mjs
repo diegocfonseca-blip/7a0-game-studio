@@ -11,11 +11,17 @@ for(let i=1;i<=3600;i++){
  for(let j=0;j<22;j++){
   const p=f.players[j],old=prev.players[j]
   assert.ok(Math.hypot(p.mx-old.mx,p.mz-old.mz)<.1,'Player speed cannot exceed 6m/s at 1x')
-  assert.ok(Math.abs(p.mx)<=52.6&&Math.abs(p.mz)<=34.1)
+  assert.ok(Math.abs(p.mx)<=55.01&&Math.abs(p.mz)<=36.01,'Bodies remain on the pitch or its recovery apron')
+  if(Math.abs(p.mx)>52.6||Math.abs(p.mz)>34.1)assert.ok(
+   (a.restart?.taker===p.key&&a.restart.recovery)||Math.abs(old.mx)>52.6||Math.abs(old.mz)>34.1,
+   'Only a player retrieving an out-of-play ball may newly leave the touchline')
   assert.ok(Number.isFinite(p.heading))
  }
  assert.ok(f.ball.y>=.11-1e-8)
- if(f.owner&&f.phase==='dominio'){const p=f.players.find(p=>p.key===f.owner);assert.ok(Math.hypot(f.ball.x-p.mx,f.ball.z-p.mz)<.65,'Possessed ball stays at the feet')}
+ // The animated front boot plus the 11 cm ball reaches 0.6875 m from the
+ // body axis. Keep a small motion margin; exact boot clearance is tested by
+ // testa-presidencia-conducao-contato.mjs, including first-touch frames.
+ if(f.owner&&f.phase==='dominio'){const p=f.players.find(p=>p.key===f.owner);assert.ok(Math.hypot(f.ball.x-p.mx,f.ball.z-p.mz)<.75,'Possessed ball stays within one foot reach')}
  prev=f
 }
 const once=b.sample(state,60,60000)
@@ -38,7 +44,8 @@ console.log('PASS: 22 real players, bounded movement, possession, deterministic 
  m.sample({...state,chance},0,0)
  const out=m.sample({...state,chance},1.8,1800)
  assert.ok(out.ball.x>52.5&&Math.abs(out.ball.z)>3.66)
- const corner=m.sample(state,1.9,1900);assert.equal(corner.phase,'escanteio');assert.equal(corner.ball.x,52.5);assert.equal(corner.ball.z,34)
+ const corner=m.sample(state,1.9,1900);assert.equal(corner.phase,'escanteio')
+ assert.deepEqual(corner.ball,out.ball,'The ball is recovered from its visible position before the corner, without teleporting')
  let delivered=false
  for(let i=115;i<2200;i++){const f=m.sample(state,i/60,i*1000/60);if(f.phase==='escanteio'&&f.ball.y>1)delivered=true}
  assert.ok(delivered,'Corner taker reaches the corner and delivers an aerial cross')
@@ -82,7 +89,10 @@ for(const home of [true,false]){
  for(let i=115;i<240;i++){
   const f=m.sample(state,i/60,i*1000/60)
   assert.notEqual(f.phase,'tiro-de-meta')
-  if(f.phase==='passe'&&f.players.find(p=>p.key===keeper.key).kick>0){passed=true;break}
+  if(['passe','lancamento'].includes(f.phase)&&f.players.find(p=>p.key===keeper.key).kick>0){
+   assert.equal(m.flight.side,keeper.side);assert.ok(m.flight.receiver,'distribuição tem companheiro de destino')
+   passed=true;break
+  }
  }
  assert.ok(passed,'The keeper distributes the caught save to a teammate')
 }

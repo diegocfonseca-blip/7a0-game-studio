@@ -1,18 +1,20 @@
 import type {StadiumSave} from './estadiodata'
 import type {AgendaJogoComplexo} from './presidencia-complexo-jornada'
+import type {PlanoLanceFutebol,RelogioLance} from './presidencia-lance-tempo'
 export type AtletaEstadio={id:string;name:string;pos:string;fake?:boolean}
 export type ContextoPartidaEstadio={id:string;homeClubId?:number;awayClubId?:number;agenda?:AgendaJogoComplexo;speed?:number;stadium?:StadiumSave;home:readonly AtletaEstadio[];away:readonly AtletaEstadio[];homeBench?:readonly AtletaEstadio[];awayBench?:readonly AtletaEstadio[];homeSecondHalf?:readonly AtletaEstadio[];awaySecondHalf?:readonly AtletaEstadio[]}
-export type GolEstadio={id:string;home:boolean;name:string;assist?:string;minute?:number;startedAt?:number;speed?:number;phase:'shot'|'confirmed'}
-export type ChanceEstadio={id:string;home:boolean;minute:number;startedAt:number;speed?:number;outcome:'defendeu'|'trave'|'fora'|'isolou'}
+export type ApresentacaoLanceEstadio={plan?:PlanoLanceFutebol;clock?:RelogioLance}
+export type GolEstadio=ApresentacaoLanceEstadio&{id:string;home:boolean;name:string;scorerId?:string;assist?:string;assistId?:string;minute?:number;startedAt?:number;speed?:number;phase:'shot'|'confirmed'}
+export type ChanceEstadio=ApresentacaoLanceEstadio&{id:string;home:boolean;minute:number;startedAt:number;speed?:number;outcome:'defendeu'|'trave'|'fora'|'isolou'}
 export type EstadoPartidaEstadio={visualClock?:{seconds:number;sampledAt:number;running:boolean;rate?:number};context:ContextoPartidaEstadio;minute:number;homeScore:number;awayScore:number;goal?:GolEstadio;chance?:ChanceEstadio;paused:boolean;finished:boolean;homeColor:string;awayColor:string}
 export function escalaValida(players:readonly AtletaEstadio[]):boolean{
  return players.length===11&&new Set(players.map(p=>p.id)).size===11&&players.filter(p=>p.pos==='GOL').length===1&&players.every(p=>!p.fake&&p.id.trim()&&p.name.trim()&&['GOL','LAT','ZAG','MEI','ATA'].includes(p.pos))
 }
-export function atletasEmCampo(state:EstadoPartidaEstadio){
+export function atletasEmCampo(state:EstadoPartidaEstadio,incidentMinute?:number){
  // A fila do placar pode terminar um lance de 45' com o relógio já em 46'.
  // Preserva os participantes e o lado desse lance até a apresentação terminar.
  const event=state.goal??state.chance
- const second=event?.minute!==undefined?event.minute>45:(state.minute>45||(state.minute===45&&!state.paused))
+ const second=incidentMinute!==undefined?incidentMinute>45:event?.minute!==undefined?event.minute>45:(state.minute>45||(state.minute===45&&!state.paused))
  const home=second&&state.context.homeSecondHalf?state.context.homeSecondHalf:state.context.home
  const away=second&&state.context.awaySecondHalf?state.context.awaySecondHalf:state.context.away
  if(!escalaValida(home)||!escalaValida(away))return []

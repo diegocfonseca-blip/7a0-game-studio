@@ -17,7 +17,7 @@ export type AncoraLuzComplexo = {
   /** A moving vehicle may disable its beam without removing its physical lamp. */
   enabled?: boolean
 }
-export type EmissaoNoturnaComplexo = { color: string; intensity: number; dayIntensity?: number }
+export type EmissaoNoturnaComplexo = { color: string; intensity: number; dayIntensity?: number; stadium?:boolean }
 type Fonte = { owner: THREE.Object3D; spec: AncoraLuzComplexo; position: THREE.Vector3; target: THREE.Vector3 }
 
 const isVisible = (object: THREE.Object3D) => {
@@ -56,9 +56,10 @@ export function criarIluminacaoComplexo({ scene, state, sun, hemisphere, solids 
   let activeLocal: string[] = [], activeStadium: string[] = []
   const applyEmission = () => {
     for (const [material, before] of materials) {
-      if (period === 'night') material.emissive.set(before.spec.color)
+      const lit=period==='night'||(before.spec.stadium===true&&state.roofClosed&&state.floodlit)
+      if (lit) material.emissive.set(before.spec.color)
       else material.emissive.copy(before.color)
-      material.emissiveIntensity = period === 'night' ? before.spec.intensity : before.spec.dayIntensity ?? before.intensity
+      material.emissiveIntensity = lit ? before.spec.intensity : before.spec.dayIntensity ?? before.intensity
     }
   }
   function refreshSources() {
@@ -114,7 +115,9 @@ export function criarIluminacaoComplexo({ scene, state, sun, hemisphere, solids 
     light.updateMatrixWorld(); light.target.updateMatrixWorld()
   }
   function update(camera: THREE.PerspectiveCamera, target: THREE.Vector3) {
-    if (disposed || period !== 'night') return
+    // Closing an owned roof also removes daylight from the pitch. Only the
+    // purchased stadium lamps come on; the city remains in its daytime state.
+    if (disposed || (period !== 'night' && !(state.roofClosed&&state.floodlit))) return
     applyEmission()
     scene.updateMatrixWorld(true)
     const visible = sources.filter(source => {
@@ -126,6 +129,9 @@ export function criarIluminacaoComplexo({ scene, state, sun, hemisphere, solids 
     const stadium = state.floodlit ? visible.filter(source => source.spec.kind === (state.roofBuilt ? 'roof' : 'tower')).slice(0, 4) : []
     activeStadium = stadium.map(source => source.spec.id)
     stadiumLights.forEach((light, i) => place(light, stadium[i]))
+    if(period!=='night'){
+      activeLocal=[];localLights.forEach(light=>place(light));return
+    }
     const direction = new THREE.Vector3(), focus = new THREE.Vector3()
     const score = (source: Fonte) => {
       const length = focus.copy(target).sub(source.position).length()

@@ -12,6 +12,7 @@ import {person,pose} from './presidencia-atleta-3d'
 import {BANCO_Z,TECNICO_Z} from './presidencia-area-tecnica'
 import {JANELA_3D_INTEIRA,matrizRecorte3D,type Janela3D} from './presidencia-janela-3d'
 import {matrizCameraRegistrada,type CantosRegistrados} from './presidencia-camera-registrada'
+import {criarBolaFutebol3D} from './presidencia-bola-3d'
 
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
@@ -68,8 +69,7 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
   }
   const people=instanciarPersonagens(scene,[...bodies.map(b=>b.group),referee.group,...coaches.map(c=>c.body.group),...seated])
   el.dataset.personParts=String(people.sourceCount);el.dataset.personBatches=String(people.batchCount)
-  const ball=new THREE.Mesh(new THREE.SphereGeometry(.11,20,14),new THREE.MeshStandardMaterial({color:'#f9f5e8',roughness:.6}));ball.castShadow=true;scene.add(ball)
-  const seam=new THREE.Mesh(new THREE.IcosahedronGeometry(.1105,0),new THREE.MeshBasicMaterial({color:'#30352c',wireframe:true}));ball.add(seam)
+  const ball=criarBolaFutebol3D();scene.add(ball)
   let frame=0,visible=true,disposed=false
   let shadowState:EstadoPartidaEstadio|undefined,shadowTime=-1
   const draw=()=>{
@@ -96,7 +96,22 @@ export default function Futebol3D({state,registered,resolution=1536,crop=JANELA_
   const observer=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting??false;wake()});observer.observe(el)
   const lost=(event:Event)=>{event.preventDefault();setError(true);unavailable.current?.()};renderer.domElement.addEventListener('webglcontextlost',lost)
   document.addEventListener('visibilitychange',wake)
-  return()=>{resizeRef.current=()=>{};repaint.current=()=>{};disposed=true;cancelAnimationFrame(frame);observer.disconnect();resize.disconnect();document.removeEventListener('visibilitychange',wake);controls.dispose();controlsRef.current=null;grass.userData.disposed=true;grass.dispose();people.dispose();scene.traverse(object=>{if(object instanceof THREE.Mesh||object instanceof THREE.LineSegments){object.geometry.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(m=>m.dispose())}});renderer.domElement.removeEventListener('webglcontextlost',lost);renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
+  return()=>{
+   resizeRef.current=()=>{};repaint.current=()=>{};disposed=true;cancelAnimationFrame(frame)
+   observer.disconnect();resize.disconnect();document.removeEventListener('visibilitychange',wake);controls.dispose();controlsRef.current=null
+   // Batches share their sources' geometry and cloth maps. Remove the cloned
+   // materials first, then release each owned source resource exactly once.
+   people.dispose()
+   const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),textures=new Set<THREE.Texture>([grass])
+   scene.traverse(object=>{if(object instanceof THREE.Mesh||object instanceof THREE.LineSegments){
+    geometries.add(object.geometry)
+    for(const mat of Array.isArray(object.material)?object.material:[object.material]){
+     materials.add(mat);for(const value of Object.values(mat))if(value instanceof THREE.Texture)textures.add(value)
+    }
+   }})
+   textures.forEach(texture=>{texture.userData.disposed=true;texture.dispose()});geometries.forEach(geometry=>geometry.dispose());materials.forEach(mat=>mat.dispose())
+   renderer.domElement.removeEventListener('webglcontextlost',lost);renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()
+  }
  // State advances through the shared clock; camera changes never restart the match.
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[state.context.id,signature,registered,construction])

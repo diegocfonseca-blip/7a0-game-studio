@@ -4,6 +4,7 @@ import type { AssentoComplexo } from './presidencia-complexo-arquitetura'
 import type { StadiumSave } from './estadiodata'
 import { publicoDoEstadio, type DiaEstadio } from './presidencia-estadio-publico'
 import { estadioVisualValido } from './presidencia-estadio-validacao'
+import { geometriaHumana, materialHumano } from './presidencia-humano-acabamento'
 
 type Colors = { homeColor?: string; awayColor?: string }
 export type PublicoTorcidaComplexo = Colors & (
@@ -30,37 +31,53 @@ const color = (value: unknown, fallback: string) => typeof value === 'string' &&
  * soles remain on the same step instead of scaling a standing character. */
 function seatedGeometry(seatHeight: number): Record<Part, THREE.BufferGeometry> {
   const pieces: Record<Part, THREE.BufferGeometry[]> = { skin: [], shirt: [], lower: [] }
-  const add = (part: Part, geometry: THREE.BufferGeometry, x: number, y: number, z: number) => {
+  const add = (part: Part, geometry: THREE.BufferGeometry, x: number, y: number, z: number, shade = 1) => {
     geometry.translate(x, y, z)
     const flat = geometry.index ? geometry.toNonIndexed() : geometry
     if (flat !== geometry) geometry.dispose()
+    // The three instanced batches keep their per-supporter colors. Hair and
+    // shoe finish are baked into vertex colors, without extra draw calls or
+    // materials and without coloring the anonymous face with facial marks.
+    let colors = flat.getAttribute('color')
+    if (!colors) {
+      colors = new THREE.Float32BufferAttribute(new Float32Array(flat.getAttribute('position').count * 3).fill(1), 3)
+      flat.setAttribute('color', colors)
+    }
+    if (shade !== 1) for (let i = 0; i < colors.count; i++) colors.setXYZ(i, colors.getX(i) * shade, colors.getY(i) * shade, colors.getZ(i) * shade)
     pieces[part].push(flat)
   }
-  const box = (part: Part, w: number, h: number, d: number, x: number, y: number, z: number) => add(part, new THREE.BoxGeometry(w, h, d), x, y, z)
-  const limb = (part: Part, a: THREE.Vector3, b: THREE.Vector3, radius: number) => {
-    const direction = b.clone().sub(a), geometry = new THREE.CylinderGeometry(radius, radius, direction.length(), 6, 1, true)
+  const shape = (part: Part, form: Parameters<typeof geometriaHumana>[0], w: number, h: number, d: number, x: number, y: number, z: number, shade = 1) => {
+    const geometry = geometriaHumana(form, 'crowd')
+    geometry.scale(w, h, d); add(part, geometry, x, y, z, shade)
+  }
+  const limb = (part: Part, form: 'upperArm' | 'forearm' | 'thigh' | 'shin', a: THREE.Vector3, b: THREE.Vector3, width: number, depth = width) => {
+    // Profile +Y is proximal: the fuller shoulder/thigh belongs at a,
+    // while its taper reaches the elbow/knee at b.
+    const direction = a.clone().sub(b), geometry = geometriaHumana(form, 'crowd')
+    geometry.scale(width, direction.length(), depth)
     geometry.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(UP, direction.normalize()))
     add(part, geometry, (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2)
   }
-  box('lower', .29, .15, .21, 0, seatHeight + .075, -.055)
-  const torso = new THREE.CylinderGeometry(.215, .17, .43, 8)
-  torso.scale(1, 1, .68); add('shirt', torso, 0, seatHeight + .355, -.055)
-  limb('skin', new THREE.Vector3(0, seatHeight + .57, -.055), new THREE.Vector3(0, seatHeight + .65, -.055), .06)
-  const head = new THREE.SphereGeometry(.145, 8, 5)
-  head.scale(1, 1.16, 1); add('skin', head, 0, seatHeight + .805, -.055)
+  shape('lower', 'pelvis', .31, .15, .235, 0, seatHeight + .075, -.055)
+  shape('shirt', 'torso', .43, .47, .255, 0, seatHeight + .355, -.055)
+  add('skin', new THREE.CylinderGeometry(.057, .065, .085, 8), 0, seatHeight + .625, -.055)
+  shape('skin', 'head', .255, .335, .275, 0, seatHeight + .81, -.055)
+  shape('skin', 'hair', .262, .341, .282, 0, seatHeight + .812, -.055, .09)
   for (const side of [-1, 1]) {
     const shoulder = new THREE.Vector3(side * .21, seatHeight + .535, -.055)
     const elbow = new THREE.Vector3(side * .225, seatHeight + .27, .13)
     const sleeveEnd = shoulder.clone().lerp(elbow, .42)
     const hand = new THREE.Vector3(side * .15, seatHeight + .17, .27)
-    limb('shirt', shoulder, sleeveEnd, .071)
-    limb('skin', sleeveEnd, elbow, .051); limb('skin', elbow, hand, .045)
-    add('skin', new THREE.IcosahedronGeometry(.055, 0), hand.x, hand.y, hand.z)
+    limb('shirt', 'upperArm', shoulder, sleeveEnd, .145, .135)
+    limb('skin', 'upperArm', sleeveEnd, elbow, .102, .096)
+    limb('skin', 'forearm', elbow, hand, .095, .082)
+    const palm = new THREE.SphereGeometry(1, 8, 4)
+    palm.scale(.046, .035, .065); add('skin', palm, hand.x, hand.y, hand.z)
     const hip = new THREE.Vector3(side * .105, seatHeight + .08, -.055)
     const knee = new THREE.Vector3(side * .11, seatHeight + .065, .27)
-    limb('lower', hip, knee, .07)
-    limb('lower', knee, new THREE.Vector3(side * .11, .095, .29), .052)
-    box('lower', .14, .095, .24, side * .11, .0475, .365)
+    limb('lower', 'thigh', hip, knee, .15, .145)
+    limb('lower', 'shin', knee, new THREE.Vector3(side * .11, .095, .29), .114, .105)
+    shape('lower', 'shoe', .14, .095, .24, side * .11, .0475, .365, .32)
   }
   return Object.fromEntries((['skin', 'shirt', 'lower'] as const).map(part => {
     const geometry = mergeGeometries(pieces[part], false)!
@@ -97,7 +114,11 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
   const quota = { home: places.length ? Math.round(budget * available.home / places.length) : 0, away: 0 }
   quota.away = budget - quota.home
   const prototypes = new Map<number, Record<Part, THREE.BufferGeometry>>()
-  const materials = (['skin', 'shirt', 'lower'] as const).map(part => new THREE.MeshStandardMaterial({ name: `torcida-${part}`, color: '#ffffff', roughness: .88 }))
+  const materials = (['skin', 'shirt', 'lower'] as const).map(part => {
+    const material = materialHumano('#ffffff', part === 'skin' ? 'skin' : 'fabric')
+    material.name = `torcida-${part}`
+    return material
+  })
   const groups = new Map<string, Place[]>()
   for (const side of ['home', 'away'] as const) for (const place of ranked[side]) {
     const key = `${place.side}:${place.sector}:${place.tier}:${place.seatHeight}`
@@ -213,7 +234,12 @@ export function criarTorcidaComplexo(scene: THREE.Scene, seats: readonly Assento
       root.removeFromParent(); root.clear()
       for (const batch of batches) for (const mesh of batch.meshes) { mesh.count = 0; mesh.visible = false; mesh.userData.seatIds = []; mesh.dispose() }
       for (const geometry of prototypes.values()) for (const part of Object.values(geometry)) part.dispose()
-      materials.forEach(material => material.dispose())
+      const maps = new Set<THREE.Texture>()
+      materials.forEach(material => {
+        for (const value of Object.values(material)) if (value instanceof THREE.Texture) maps.add(value)
+        material.dispose()
+      })
+      maps.forEach(map => map.dispose())
       selected = []; counts.home = counts.away = 0
     },
   }

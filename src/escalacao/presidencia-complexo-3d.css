@@ -1,4 +1,11 @@
 .pc3-review{width:100%;color:#0c0c0c;font-family:system-ui,sans-serif;isolation:isolate}
+.pc3-office .pc3-stage{height:clamp(540px,80svh,1000px)}
+.pc3-office .pc3-primary{flex-wrap:wrap}
+.pc3-avatar-status{position:absolute;z-index:2;bottom:48px;left:12px;max-width:calc(100% - 112px);padding:10px 12px;border:2px solid #0c0c0c;border-radius:10px;background:#f4ecd6;font:600 13px/1.4 system-ui,sans-serif}
+.pc3-avatar-status button{margin-top:8px}
+.pc3-review.pc3-window{height:100%;pointer-events:none}
+.pc3-window .pc3-stage{height:100%!important;min-height:0!important;border:0;border-radius:0}
+.pc3-window .pc3-viewport,.pc3-window canvas{touch-action:auto;cursor:default}
 .pc3-stage{height:clamp(480px,84svh,1080px);position:relative;overflow:hidden;border:3px solid #0c0c0c;border-radius:16px;background:#cbd2cd}
 .pc3-viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;overscroll-behavior:none}
 .pc3-viewport canvas{display:block;width:100%;height:100%;touch-action:none;outline-offset:-6px;cursor:grab}

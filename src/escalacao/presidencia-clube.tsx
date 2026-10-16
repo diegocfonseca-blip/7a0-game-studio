@@ -19,6 +19,7 @@ import {getLang,useT} from './lang'
 import {melhorDivisaoRegistrada,type DivisaoPresidencia} from './presidencia-divisao'
 import {acessosDaPresidencia} from './presidencia-acessos'
 import {valorEstadioPresidencia,valorElencoPresidencia} from './presidencia-valores'
+import {usePresidentPreview} from './presidente-acesso'
 
 /** O save da carreira controla tanto o primeiro cadastro quanto a edição.
  * Nenhum visual temporário é tratado como persistido.
@@ -32,7 +33,9 @@ export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tr
  onStadium?:()=>void;onRoof?:(closed:boolean)=>void;
  member?:MeuSocio|null;tierColor?:string;
 }){
- const [garage,G]=useState<'garage'|'furniture'|'room'|null>(null)
+ const privateRoom=usePresidentPreview()
+ const [destination,G]=useState<'entry'|'garage'|'furniture'|'room'|null>('entry')
+ const garage=destination==='entry'?(privateRoom?'room':null):destination
  const onTrade=PRESIDENCY_ECONOMY_RELEASED?tradeHandler:undefined
  const onDisplay=PRESIDENCY_ECONOMY_RELEASED?displayHandler:undefined
  const t=useT()
@@ -48,7 +51,7 @@ export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tr
   return onSave(value)
  }
  return <PresidenciaEntrada saved={saved} legacy={state.careerPresident} onSave={save} onBack={onBack}>
-  {value=>garage==='room'?<div className="pp-club-panel"><SalaMontagem state={state} mgrId={mgrId} president={value} identity={identity}/><div style={{display:'flex',flexWrap:'wrap',gap:12,marginTop:12}}>{onStadium&&<Btn onClick={onStadium}>{t('IR AO ESTÁDIO','GO TO STADIUM')}</Btn>}<Btn bg="#fff" onClick={()=>G(null)}>{t('VOLTAR','BACK')}</Btn></div></div>:garage&&onTrade&&onDisplay?<GaragemCarreira key={garage} furniture={garage==='furniture'} stadiumSave={state.stadiums?.[mgrId]} wallet={carteiraDaCarreira(state,mgrId)} display={state.careerPresidency?.[mgrId]?.display} onTrade={onTrade} onDisplay={onDisplay} onBack={()=>G(null)}/>:<div className="pp-club-panel"><PresidentePainel value={value} onSave={save} onClose={onBack} data={{
+  {value=>garage==='room'?<div className="pp-club-panel"><SalaMontagem state={state} mgrId={mgrId} president={value} identity={identity}/><div style={{display:'flex',flexWrap:'wrap',gap:12,marginTop:12}}><Btn bg="#fff" onClick={()=>G(null)}>{t('PERFIL E APARÊNCIA','PROFILE AND APPEARANCE')}</Btn>{onTrade&&onDisplay&&<><Btn onClick={()=>G('furniture')}>{t('MOBÍLIAS','FURNITURE')}</Btn><Btn bg="#fff" onClick={()=>G('garage')}>{t('GARAGEM','GARAGE')}</Btn></>}{onStadium&&<Btn onClick={onStadium}>{t('IR AO ESTÁDIO','GO TO STADIUM')}</Btn>}</div></div>:garage&&onTrade&&onDisplay?<GaragemCarreira key={garage} furniture={garage==='furniture'} stadiumSave={state.stadiums?.[mgrId]} wallet={carteiraDaCarreira(state,mgrId)} display={state.careerPresidency?.[mgrId]?.display} onTrade={onTrade} onDisplay={onDisplay} onBack={()=>G(privateRoom?'room':null)}/>:<div className="pp-club-panel"><PresidentePainel value={value} onSave={save} onClose={onBack} data={{
    club:state.managers[state.youIdx]?.teamName??'',season:state.seasonNo,
    sinceSeason:value.sinceSeason,
    bestDivision:melhorDivisaoRegistrada(state,mgrId,getLang()==='en'),
@@ -58,6 +61,6 @@ export function PresidenciaClube({state,mgrId,onSave,onBack,onStadium,onTrade:tr
    cash:state.careerCoins?.[mgrId],owned:wallet?.owned,
    trophies:conquistasDaCarreira(state,mgrId,getLang()==='en'),
    timeline:historiaDaPresidencia(state,mgrId,getLang()==='en'),
-  }}/><div style={{marginTop:16}}><Btn bg="#fff" onClick={()=>G('room')}>{t('VER MONTAGEM DA SALA','VIEW OFFICE LAYOUT')}</Btn></div>{onTrade&&onDisplay&&<div style={{marginTop:16,display:'flex',flexWrap:'wrap',gap:12}}><Btn onClick={()=>G('garage')}>{t('GARAGEM','GARAGE')}</Btn><Btn bg="#fff" onClick={()=>G('furniture')}>{t('MOBÍLIAS','FURNITURE')}</Btn></div>}</div>}
+  }}/><div style={{marginTop:16}}><Btn bg="#fff" onClick={()=>G('room')}>{t('ENTRAR NA SALA','ENTER OFFICE')}</Btn></div>{onTrade&&onDisplay&&<div style={{marginTop:16,display:'flex',flexWrap:'wrap',gap:12}}><Btn onClick={()=>G('garage')}>{t('GARAGEM','GARAGE')}</Btn><Btn bg="#fff" onClick={()=>G('furniture')}>{t('MOBÍLIAS','FURNITURE')}</Btn></div>}</div>}
  </PresidenciaEntrada>
 }

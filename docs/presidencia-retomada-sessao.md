@@ -1,5 +1,55 @@
 # Retomada da Presidência, estádio evolutivo e NPCs
 
+Prioridade mais recente de **16/10/2026 — jogadores e NPCs sem rosto**:
+ler [acabamento dos humanos](presidencia-humanos-acabamento-20261016.md).
+Corpos, roupas, cabelo e calçados foram refinados no campo, ruas, visitas,
+passageiros e torcida. Sem olhos, nariz ou boca. A mesma branch preserva o
+trabalho anterior da sala e do motor; alterações locais, sem novo deploy.
+Capturas em `test-results/humanos-20261016/`.
+
+Continuação anterior de **16/10/2026 — personagem original na sala**:
+Diego rejeitou o boneco geométrico. Ler
+[a correção com as artes do criador](presidencia-personagem-original-20261016.md).
+Sala e janela permanecem 3D; o personagem reutiliza os mesmos WebP, poses e
+camadas da criação, com profundidade na cena. Não é uma nova interpretação
+volumétrica da aparência. Trabalho local, sem novo deploy; futebol preservado.
+
+Continuação de **16/10/2026 — jogadas oficiais em movimento**:
+ler primeiro [jogadas contínuas](presidencia-jogadas-continuas-20261016.md).
+O plano agora inclui domínio, passe, condução e chute com participantes em
+movimento, alvos variados e narração por fase. Build, contato geométrico,
+dez reposições, relógio/navegador e 40 capturas 3D passaram. A bola tem painéis
+esféricos legíveis; condução e retorno após o lance foram corrigidos. O vídeo
+revelou um passe atravessando o quadril: corrigido com giro do recebedor,
+832 medições na malha real sem penetração e novas capturas. Ainda
+faltam tipos de incidentes, acabamento e física completa, conforme o registro.
+Não há novo commit/deploy. Os registros abaixo preservam o histórico e os
+limites de cada entrega.
+
+Atualização de **16/10/2026 — prioridade: futebol dentro do estádio**:
+ler [a revisão por tipo de lance](presidencia-futebol-revisao-20261016.md)
+e [a integração da sala 3D](presidencia-sala-unificada-20261016.md).
+Há alterações locais preservadas na mesma branch, sem novo deploy. Reposições,
+contatos, cruzamentos, identidade, intervalo e sincronização foram corrigidos;
+calendário e narração privada passaram nos testes de seis velocidades. A sala
+3D com personagem/coleção passou na integração e no navegador em 1200/390 px,
+com gestos, etapas e alternativa WebGL; acabamento visual ainda pendente. Não confundir
+“testes passaram” com “motor completo”: faltas, impedimentos, disputas aéreas,
+jogadas ensaiadas, condições do piso e física completa continuam pendentes.
+Os registros de 15/10 e anteriores abaixo são históricos.
+
+Atualização de **15/10/2026 — revisão após a publicação**:
+o deploy de `2aa90a0d` foi confirmado no GitHub Pages, run `38810648788`.
+As correções seguintes estão locais na branch
+`fix/presidencia-revisao-motor-20261015`, sem novo deploy: tempo físico dos
+lances, pausa/velocidade compartilhadas, último gol antes do apito, janela
+com a geometria real do estádio e iluminação sob teto fechado durante o dia.
+Os testes passaram nos cenários registrados, mas faltas, impedimentos,
+cartões, expulsões e narração com a mesma jogada ainda não estão completos.
+Consultar a análise atual em
+[presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md)
+antes de continuar. Os registros abaixo são históricos.
+
 Atualização de **15/10/2026 — publicação privada autorizada por Diego**:
 o pedido “Publique tudo no meu usuário q fez até agora” substitui a pausa
 histórica abaixo. A tela 3D está ligada à carreira, com email verificado,

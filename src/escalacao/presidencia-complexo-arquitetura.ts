@@ -67,7 +67,7 @@ function expanded(o: Outline, amount: number, centerZ = o.centerZ): Outline {
  * A imagem única não fornece medidas de projeto; o registro dessa inferência
  * está separado das pegadas conservadoras que os NPCs já usam.
  */
-export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComplexo) {
+export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComplexo, options:{interior?:boolean}={}) {
   const root = new THREE.Group()
   root.name = 'estadio-arquitetura-volumetrica'
   scene.add(root)
@@ -140,7 +140,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
   light.emissive.set('#ffbe62'); light.emissiveIntensity = 1.65
   light.userData.complexoNightEmission = {color:'#ffcf8b',intensity:1.8,dayIntensity:.15}
   const floodlight = mat('lente-refletor', '#e0e6df', .22, .08)
-  floodlight.userData.complexoNightEmission = {color:'#edf4ff',intensity:3,dayIntensity:0}
+  floodlight.userData.complexoNightEmission = {color:'#edf4ff',intensity:3,dayIntensity:0,stadium:true}
   glass.userData.complexoNightEmission = {color:'#e8bd76',intensity:.23}
   const screen = mat('tela-placar-sem-texto', '#1d302c', .54)
   screen.emissive.set('#28413a'); screen.emissiveIntensity = .2
@@ -197,13 +197,20 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
   woodTexture.generateMipmaps = true; woodTexture.needsUpdate = true
   textures.push(woodTexture); wood.map = woodTexture
 
-  let carveOpenings = true
-  // Subtração convexa exata das caixas de escada. As faces de piso, viga,
+  let carveOpenings = true, carveFacadeRoom = false
+  type Opening = Pick<(typeof upperAccessSpecs)[number], 'origin' | 'along' | 'outward' | 'minX' | 'maxX' | 'minZ' | 'maxZ' | 'minY' | 'maxY'>
+  const room = PLANTA_COMPLEXO.presidentBox
+  const officeEnvelope: Opening = {
+    origin: new THREE.Vector3(), along: new THREE.Vector3(1, 0, 0), outward: new THREE.Vector3(0, 0, 1),
+    minX: room.minX - .175, maxX: room.maxX + .175, minZ: room.minZ - .1, maxZ: room.maxZ + .125,
+    minY: room.floor - .3, maxY: room.ceiling + .32,
+  }
+  // Subtração convexa exata dos vãos físicos. As faces de piso, viga,
   // espelho e fachada recebem o mesmo vão; câmera e NPC não escondem lajes.
   // Conserva UV e normais interpoladas, inclusive nos triângulos recortados.
-  function carve(g: THREE.BufferGeometry) {
+  function carve(g: THREE.BufferGeometry, openings: readonly Opening[] = upperAccessSpecs) {
     type Vertex = { p: THREE.Vector3; n: THREE.Vector3; uv: THREE.Vector2 }
-    for (const opening of upperAccessSpecs) {
+    for (const opening of openings) {
       const position = g.getAttribute('position'), normalAttribute = g.getAttribute('normal'), uv = g.getAttribute('uv'), index = g.index
       const vertices: Vertex[] = []
       for (let i = 0; i < position.count; i++) vertices.push({
@@ -273,6 +280,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
   }
   function add(g: THREE.BufferGeometry, material: THREE.Material) {
     if (carveOpenings && upperAccessSpecs.length) g = carve(g)
+    if (carveFacadeRoom) g = carve(g, [officeEnvelope])
     if (!g.getAttribute('position').count) { g.dispose(); return }
 
     const uv = g.getAttribute('uv'), p = g.getAttribute('position'), n = g.getAttribute('normal')
@@ -593,6 +601,12 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
     return Math.abs(p.x) < 6.5 && p.z > 73 || p.x > 97 && Math.abs(p.z - 6) < 5.5
   }
   function facade(range: Range, upper: boolean) {
+    // The oval skin remains outside the box. Its former apartment walls,
+    // slabs and diagonal braces must stop at the office envelope, instead of
+    // crossing the bought cabinet and its trophies. The room supplies its own
+    // floor, ceiling and walls later; this cut never moves or hides furniture.
+    const previousCarve = carveFacadeRoom
+    carveFacadeRoom = upper
     const start = upper ? 8.3 : .2, height = upper ? 8.4 : 7.8
     const moduleCount = 64
     for (let module = Math.floor(range.from * moduleCount); module / moduleCount < range.to; module++) {
@@ -650,6 +664,7 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
       }
       counts.facadeModules++
     }
+    carveFacadeRoom = previousCarve
   }
   function garden(x: number, z: number, y: number, width: number, depth: number, angle = 0) {
     box(concrete, x, y + .35, z, width, .7, depth, angle)
@@ -845,7 +860,9 @@ export function criarArquiteturaComplexo(scene: THREE.Scene, state: EstadoComple
     }
     if (state.lowerComplete) frontAnnex()
     entranceGates()
-    if (upperProgress > 0) presidentialBox()
+    // The office screen has always been available before buying the upper tier.
+    // Its interior uses the same room mesh, without granting an exterior tier.
+    if (upperProgress > 0 || options.interior===true) presidentialBox()
     if (state.roofBuilt && state.upperComplete && (state.progress.grama ?? 0) > 0) roofShell()
     // A obra física acompanha a compra válida; acender continua seguindo o
     // estado de iluminação do jogo, que também considera o avanço do gramado.

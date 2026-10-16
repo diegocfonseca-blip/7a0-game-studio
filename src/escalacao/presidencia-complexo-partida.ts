@@ -10,6 +10,7 @@ import {atletasEmCampo,type AtletaEstadio,type EstadoPartidaEstadio} from './pre
 import {quadroFutebol3D,type QuadroFutebol} from './presidencia-futebol-motor'
 import {person,pose} from './presidencia-atleta-3d'
 import {instanciarPersonagens} from './presidencia-personagens-instancias'
+import {criarBolaFutebol3D} from './presidencia-bola-3d'
 
 const material=(color:string)=>new THREE.MeshStandardMaterial({color,roughness:.88})
 function box(parent:THREE.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:THREE.Material){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
@@ -157,8 +158,7 @@ export function criarPartidaComplexo(scene:THREE.Scene,stadium?:StadiumSave,stat
     const white=material('#e9e5d9');for(const dx of [-6,6])box(area,.10,.025,2.4,dx,.03,35.6,white);box(area,12,.025,.1,0,.03,34.4,white)
    }
    const people=instanciarPersonagens(root,[...[...bodies.values()].map(b=>b.group),referee.group,...coaches.map(c=>c.body.group),...reserves.map(r=>r.body.group)])
-   const ball=new THREE.Mesh(new THREE.SphereGeometry(.11,20,14),new THREE.MeshStandardMaterial({color:'#f9f5e8',roughness:.6}));ball.name='match-ball';ball.castShadow=true;root.add(ball)
-   ball.add(new THREE.Mesh(new THREE.IcosahedronGeometry(.1105,0),new THREE.MeshBasicMaterial({color:'#30352c',wireframe:true})))
+   const ball=criarBolaFutebol3D();root.add(ball)
    scene.add(root);match={root,signature,bodies,referee,coaches,reserves,ball,people}
   }
   const {bodies,referee,coaches,reserves,ball,people}=match

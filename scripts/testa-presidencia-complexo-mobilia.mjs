@@ -92,8 +92,8 @@ for (const sample of samples) {
  const contactPoints = []
  if (basicDesk) for (const dx of [-.72, .72]) for (const dz of [-.31, .31]) contactPoints.push(['mesa-simples', -6.4 + dx, 70.6 + dz])
  if (premiumDesk) for (const dx of [-.89, .89]) contactPoints.push(['mesa-madeira', -6.4 + dx, 70.6])
- if (sample.ids.includes('cadeira-simples')) for (const dx of [-.19, .19]) for (const dz of [-.18, .18]) contactPoints.push(['cadeira-simples', -6.4 + dx, 71.7 + dz])
- if (sample.ids.includes('cadeira-couro')) for (let i = 0; i < 5; i++) contactPoints.push(['cadeira-couro', -6.4 + Math.sin(i * Math.PI * 2 / 5) * .28, 71.7 + Math.cos(i * Math.PI * 2 / 5) * .28])
+ if (sample.ids.includes('cadeira-simples')) for (const dx of [-.19, .19]) for (const dz of [-.18, .18]) contactPoints.push(['cadeira-simples', -6.4 + dx, 69.7 + dz])
+ if (sample.ids.includes('cadeira-couro')) for (let i = 0; i < 5; i++) contactPoints.push(['cadeira-couro', -6.4 + Math.sin(i * Math.PI * 2 / 5 + Math.PI) * .28, 69.7 + Math.cos(i * Math.PI * 2 / 5 + Math.PI) * .28])
  for (const [id, x, z] of contactPoints) {
   const itemMeshes = room.root.getObjectByName(id).children
   ray.set(new THREE.Vector3(x, box.floor + rugY - .02, z), new THREE.Vector3(0, 1, 0)); ray.far = .04

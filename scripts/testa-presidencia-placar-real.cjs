@@ -48,13 +48,11 @@ const {chromium}=require('./presidencia-runtime.cjs').loadDependency('playwright
  s=await frame({goalPhase:'shot',goalName:'h10'});assert.equal(s.goal.speed,4);assert.equal(s.homeScore,0);
  const confirmed=await frame({homeScore:1});
  const elapsed=confirmed._at-s.goal.startedAt;
- const timers=await page.evaluate(()=>window.scoreTimers),goalTimer=timers.find(t=>t.delay===225&&Math.abs(t.scheduled-s.goal.startedAt)<20);
- // SwiftShader can block the browser task queue. Validate the requested clock
- // and callback ordering independently from that hardware-dependent latency.
- assert.ok(goalTimer,'4x schedules goal confirmation at 225ms, not 900ms');
- assert.ok(goalTimer.fired>=goalTimer.scheduled+200,'A goal cannot confirm before the shot duration');
- assert.ok(confirmed._at>=goalTimer.fired&&elapsed>=200,'Published score follows the authoritative timer');
- console.log('4x timing (software renderer):',JSON.stringify({scheduledMs:goalTimer.delay,callbackMs:goalTimer.fired-goalTimer.scheduled,publishedMs:elapsed}));
+ const duration=s.goal.plan?.durationMs??900;
+ assert.ok(elapsed>=duration/4-30,'4x preserves the planned travel time before score confirmation');
+ const clock=confirmed.goal?.clock;
+ assert.ok(clock&&clock.elapsedMs+(confirmed._at-clock.sampledAt)*clock.rate>=duration-30,'Published score and field use the same event clock');
+ console.log('4x timing:',JSON.stringify({plannedMs:duration,expectedAt4x:duration/4,publishedMs:elapsed}));
  // Switching speed during the same round cannot rewind the simulation minute.
  props.roundKey=5;props.stadiumMatch.id='real-5';props.stadiumMatch.speed=1;delete props.displayMinute;props.goals=[];props.roundMs=10000;await render();
  await page.waitForFunction(()=>JSON.parse(document.querySelector('#score-probe').textContent)?.minute>=5);

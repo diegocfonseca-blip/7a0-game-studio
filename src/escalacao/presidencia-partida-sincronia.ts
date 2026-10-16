@@ -6,6 +6,9 @@ let active:Publicacao|null=null
 const listeners=new Set<()=>void>()
 const notify=()=>listeners.forEach(fn=>fn())
 const subscribe=(fn:()=>void)=>{listeners.add(fn);return()=>{listeners.delete(fn)}}
+/** Somente a apresentação privada usa esta leitura ao preparar um lance.
+ * O id impede reaproveitar posições de outra partida. */
+export function partidaPublicada(id:string){return active?.state.context.id===id?active.state:null}
 /** Só a apresentação privada do placar publica. Sem storage, rede, RNG ou gols novos. */
 export function usePublicarPartida(state:EstadoPartidaEstadio){
  const owner=useRef(Symbol('placar')),clock=useRef({id:state.context.id,seconds:0,sampledAt:performance.now(),running:false,rate:1})

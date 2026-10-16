@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <link rel="icon" href="data:,">
+ <title>Personagem original — conferência local</title>
+ <style>
+  html,body{margin:0;background:transparent;font-family:system-ui}
+  main{display:flex;align-items:flex-start;gap:32px}
+  section{flex:none;width:1024px}
+  #reference,#composition{width:1024px;height:1536px;position:relative;overflow:hidden}
+  #composition canvas{display:block;width:1024px;height:1536px}
+  .pc-frame{width:1024px!important;height:1536px!important;aspect-ratio:auto!important}
+ </style>
+</head>
+<body><main><section><div id="reference"></div></section><section><div id="composition"></div></section></main>
+<script type="module">
+ import React from 'react';
+ import {createRoot} from 'react-dom/client';
+ import {PresidenteCamadas} from './src/escalacao/presidente-camadas.tsx';
+ import {camadasDoPresidente} from './src/escalacao/presidente-aparencia.ts';
+ import {comporPresidenteOriginal} from './src/escalacao/presidente-textura-original.ts';
+ import {VESTUARIO_MODULAR} from './src/escalacao/presidente-vestuario-modular.ts';
+ import {arteSentada} from './src/escalacao/presidente-pose.ts';
+ const root=createRoot(document.getElementById('reference'));
+ let revision=0;
+ const imageInfo=src=>new Promise((resolve,reject)=>{
+  const image=new Image();image.onload=()=>resolve({src,width:image.naturalWidth,height:image.naturalHeight});
+  image.onerror=()=>reject(Error('Não carregou: '+src));image.src=import.meta.env.BASE_URL+src;
+ });
+ window.avatarQa={
+  async assets(){
+   const result=[];
+   for(const outfit of VESTUARIO_MODULAR){
+    result.push({outfit:outfit.id,pose:'standing',...await imageInfo(outfit.src)});
+    result.push({outfit:outfit.id,pose:'seated',...await imageInfo(arteSentada(outfit.id))});
+   }
+   return result;
+  },
+  async set(config){
+   const president={version:5,name:'Presidente da conferência local',outfit:config.outfit??'terno',appearance:{version:22,hair:config.hair??'classic-hair',beard:config.beard??'classic-beard',skinTone:config.skin??'medium',accessories:config.accessories??[]}};
+   const pose=config.pose??'standing',ids=camadasDoPresidente(president),before=JSON.stringify(president),serial=++revision;
+   let timeout;
+   const referenceReady=new Promise((resolve,reject)=>{
+    timeout=setTimeout(()=>reject(Error('O editor original não ficou pronto.')),16000);
+    root.render(React.createElement(PresidenteCamadas,{key:serial,ids,pose,onReady:key=>{if(key){clearTimeout(timeout);resolve();}}}));
+   });
+   const [composition]=await Promise.all([comporPresidenteOriginal(president,pose),referenceReady]);
+   document.getElementById('composition').replaceChildren(composition.canvas);
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+   window.avatarQa.composition=composition;
+   window.avatarQa.president=president;
+   window.avatarQa.pose=pose;
+   return {ids,pose,president,unchanged:JSON.stringify(president)===before,width:composition.canvas.width,height:composition.canvas.height,bounds:composition.bounds,baseBounds:composition.baseBounds,layers:composition.layers};
+  },
+ };
+</script>
+</body>
+</html>
