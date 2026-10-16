@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react'
 import { buscaVitrine, type Vitrine } from './vitrine-dados'
 import { tr, getLang } from './lang'
+import { PodioMoldura } from './podio-semana'
 import { Escudo } from './escudos'
 import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
@@ -82,12 +83,16 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
 
       {v.semana.length > 0 && (
         <Caixa titulo={tr('📊 Ranking da semana', '📊 Ranking of the week')} sub={tr('Os técnicos com mais títulos online nesta semana.', 'The managers with the most online titles this week.')}>
+          {/* 🏆 16/10 (Diego: "no ranking coloque a moldura que falamos"): o top 3 aparece aqui com a MESMA moldura de
+              metal + fita que ele já leva na lista de técnicos da sala (`podio-semana.tsx`). A posição vem do ranking. */}
           {v.semana.map((s, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : { borderTop: '1.5px solid #0001' }) }}>
-              <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{medalha(s.pos)}</span>
-              <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.nome}</b>
-              <span style={{ ...OSW, fontSize: 15 }}>{s.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{s.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
-            </div>
+            <PodioMoldura key={i} pos={(s.pos >= 1 && s.pos <= 3 ? s.pos : 0) as 0 | 1 | 2 | 3}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 6px', borderRadius: 9, ...(i === 0 ? { background: `linear-gradient(90deg,#FFE79A,${GOLD})`, border: `2px solid ${INK}` } : s.pos > 3 ? { borderTop: '1.5px solid #0001' } : {}) }}>
+                <span style={{ ...OSW, fontSize: 15, width: 26, textAlign: 'center' }}>{medalha(s.pos)}</span>
+                <b style={{ ...OSW, flex: 1, fontSize: 14, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.nome}</b>
+                <span style={{ ...OSW, fontSize: 15 }}>{s.titulos} <span style={{ fontSize: 10, fontWeight: 600 }}>{s.titulos === 1 ? tr('título', 'title') : tr('títulos', 'titles')}</span></span>
+              </div>
+            </PodioMoldura>
           ))}
           {logado && !euNoTop && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 6px', marginTop: 6, border: `2px dashed ${INK}`, borderRadius: 9, background: '#fff' }}>
@@ -96,7 +101,7 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
                 : <b style={{ ...OSW, flex: 1, fontSize: 12.5 }}>{tr('Você ainda não tem título nesta semana — bora pra uma sala! ⚽', 'No title for you this week yet — jump into a room! ⚽')}</b>}
             </div>
           )}
-          <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Os 3 primeiros jogam com a medalha 🥇🥈🥉 ao lado do nome.', '⏳ Resets every Monday at midnight. The top 3 play with the 🥇🥈🥉 medal next to their name.')}</p>
+          <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Os 3 primeiros jogam a semana inteira com a medalha 🥇🥈🥉 ao lado do nome, a moldura de metal e a fita "1º DA SEMANA" nas salas online.', '⏳ Resets every Monday at midnight. The top 3 play all week with the 🥇🥈🥉 medal next to their name, the metal frame and the "#1 OF THE WEEK" ribbon in the online rooms.')}</p>
         </Caixa>
       )}
 
