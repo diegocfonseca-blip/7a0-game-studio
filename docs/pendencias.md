@@ -8,6 +8,12 @@
 - 📣 Anúncio no GIRO DA RODADA (`GIRO_ANUNCIO`): última manchete do letreiro, em BRANCO, com o letreiro um pouco mais lento
   quando tem anúncio. Texto de hoje: "Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio".
   Trocar a oferta = trocar essa linha.
+- 📣 **ANUNCIE AQUI (16/10)**: o título do giro virou o botão "📣 Anuncie aqui ›", que abre a Loja já na seção "Sua marca no
+  jogo". Lá, embaixo do Dia da marca (R$ 50), entrou o **Anúncio no giro · 1 dia — R$ 25** (Pix MP, produto `giro_dia`; preço no
+  banco `esc_mp_preco_ref`; Edge `mp-criar-pix` v6). Depois do Pix aparece o WhatsApp do Diego. O Diego marca dia + texto no
+  #admin (📣 Anúncio no giro → `esc_giro_anuncio`) e naquele dia o texto passa em branco no giro de todo mundo, antes do mensal.
+  ⚠️ O botão "Anuncie aqui" e a seção da Loja ainda aparecem SÓ nas contas do Diego (`PATROCINIO_GERAL`/`patrocinioLojaOk`) e o
+  Pix MP também (`PIX_MP`). Pra abrir pra todos: ligar os dois (falta o 1º pagamento real de teste).
 - A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
 - Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
 

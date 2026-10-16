@@ -377,6 +377,42 @@ function DiaMarcaAdmin() {
   )
 }
 
+// 📣 ANÚNCIO NO GIRO, 1 DIA (16/10, R$ 25 na Loja): o Diego marca a data e o texto; naquele dia ele passa no giro de todo mundo
+function GiroAnuncioAdmin() {
+  const [lista, setLista] = useState<{ dia: string; texto: string }[]>([])
+  const [dia, setDia] = useState(() => new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10))
+  const [texto, setTexto] = useState('')
+  const [msg, setMsg] = useState('')
+  const carregar = async () => {
+    const hoje = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10)
+    const { data } = await supabase.from('esc_giro_anuncio').select('dia, texto').gte('dia', hoje).order('dia')
+    setLista((data ?? []) as { dia: string; texto: string }[])
+  }
+  useEffect(() => { carregar() }, [])
+  const salvar = async (d: string, t: string) => {
+    const { data, error } = await supabase.rpc('esc_admin_giro_anuncio', { p_dia: d, p_texto: t })
+    setMsg(error ? `❌ ${error.message}` : data === 'apagado' ? '🗑️ apagado' : `✅ ${d}: "${t}" no giro`)
+    carregar()
+  }
+  const inp: React.CSSProperties = { background: '#fff', color: '#0C0C0C', border: '2px solid #000', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700 }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>📣 Anúncio no giro · 1 dia</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>No dia marcado (horário de Brasília), o texto passa em branco no giro da rodada de TODO MUNDO, antes do mensal. Some sozinho no dia seguinte. Até 120 letras.</p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <input type="date" value={dia} onChange={e => setDia(e.target.value)} style={inp} />
+        <input value={texto} onChange={e => setTexto(e.target.value)} maxLength={120} placeholder="Marca · Oferta do dia: …" style={{ ...inp, flex: 1, minWidth: 180 }} />
+        <button disabled={!dia || texto.trim().length < 4} onClick={() => { salvar(dia, texto); setTexto('') }} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer' }}>Marcar</button>
+      </div>
+      {msg && <p style={{ fontSize: 11, fontWeight: 800, color: '#F2E8CF', margin: '8px 0 0' }}>{msg}</p>}
+      {lista.map(r => <div key={r.dia} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', marginTop: 6 }}>
+        <b>{r.dia.split('-').reverse().join('/')}</b><span style={{ flex: 1 }}>{r.texto}</span>
+        <button onClick={() => window.confirm(`Tirar o anúncio do dia ${r.dia}?`) && salvar(r.dia, '')} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
+      </div>)}
+    </div>
+  )
+}
+
 function PixMpAdmin() {
   const [lista, setLista] = useState<PedidoMp[]>([])
   const [msg, setMsg] = useState('')
@@ -1219,7 +1255,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><DiaMarcaAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><DiaMarcaAdmin /><GiroAnuncioAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

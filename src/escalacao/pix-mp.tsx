@@ -20,12 +20,12 @@ import { listAllCareers } from './store'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
   moedas_10: ['🏦 30 moedas', '🏦 30 coins'], moedas_50: ['🏦 150 moedas', '🏦 150 coins'], moedas_100: ['🏦 300 moedas', '🏦 300 coins'], moedas_500: ['🏦 1.500 moedas', '🏦 1,500 coins'], moedas_1000: ['🏦 3.000 moedas', '🏦 3,000 coins'],
-  canto: ['📣 Canto da torcida', '📣 Crowd chant'], presente: ['🎁 Presente', '🎁 Gift'], dia_marca: ['⚡ Dia da marca', '⚡ Brand day'],
+  canto: ['📣 Canto da torcida', '📣 Crowd chant'], presente: ['🎁 Presente', '🎁 Gift'], dia_marca: ['⚡ Dia da marca', '⚡ Brand day'], giro_dia: ['📣 Anúncio no giro', '📣 Ticker ad'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],
@@ -42,6 +42,7 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   canto: ['Agora conta qual canto você quer: o Diego monta e coloca no seu clube.', 'Now tell us which chant you want: Diego builds it and adds it to your club.'],
   presente: ['Presente entregue! Seu amigo recebe com o seu recado quando entrar no jogo. 🎁', 'Gift delivered! Your friend gets it with your message when they open the game. 🎁'],
   dia_marca: ['Pagamento recebido! Agora chama o Diego pra combinar o dia e mandar o nome, a bio e o cupom da sua marca.', 'Payment received! Now message Diego to pick the day and send your brand’s name, bio and coupon.'],
+  giro_dia: ['Pagamento recebido! Agora chama o Diego pra combinar o dia e mandar o texto do seu anúncio.', 'Payment received! Now message Diego to pick the day and send your ad text.'],
 }
 // 📲 contato do Diego depois de pagar (o WhatsApp entra quando ele mandar o número; sem número, só o e-mail aparece)
 export const WHATSAPP_CONTATO = '5521998886982' // 16/10: número que o Diego passou (batismo, Fundador e Dia da marca)
@@ -184,7 +185,7 @@ function Pago({ produto, liberado, pedido, ficha, aoReceberFicha }: { produto: P
       {ficha && !(creditou != null && creditou > 0) && <p className="text-[10.5px] font-bold mt-2" style={{ color: 'rgba(12,12,12,.5)' }}>
         {tr('Código de reserva (se precisar): ', 'Backup code (if needed): ')}<b className="select-all">{ficha}</b>
       </p>}
-      {produto === 'dia_marca' ? <ContatoDiego pedido={pedido} /> : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
+      {produto === 'dia_marca' || produto === 'giro_dia' ? <ContatoDiego pedido={pedido} produto={produto} /> : clubeDeGente ? <Briefing produto={produto} pedido={pedido} /> : <>
         <Telefone pedido={pedido} />
         <button onClick={() => window.location.reload()} className="w-full rounded-xl py-3 mt-3 text-[18px] uppercase active:translate-y-0.5"
           style={{ ...OSW, background: GREEN, color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>{tr('🎮 Bora jogar', '🎮 Let’s play')}</button>
@@ -294,12 +295,17 @@ function Briefing({ produto, pedido }: { produto: ProdutoMp; pedido: string }) {
 
 /** ⚡ Dia da marca (16/10, Diego: "precisa passar meu telefone pra eles entrarem em contato após pagar"): o Diego combina o
  *  dia, o nome, a bio e o cupom pelo WhatsApp. Nada vai pro ar sem ele aprovar. */
-function ContatoDiego({ pedido }: { pedido: string }) {
-  const msg = tr(`Oi Diego! Paguei o ⚡ Dia da marca no Leilão Legends (pedido ${pedido.slice(0, 8)}). Minha marca é: ____`, `Hi Diego! I paid the ⚡ Brand day on Leilão Legends (order ${pedido.slice(0, 8)}). My brand is: ____`)
+function ContatoDiego({ pedido, produto }: { pedido: string; produto: ProdutoMp }) {
+  const giro = produto === 'giro_dia' // 📣 anúncio no giro (16/10): mesmo caminho, só muda o que a pessoa manda
+  const msg = giro
+    ? tr(`Oi Diego! Paguei o 📣 Anúncio no giro no Leilão Legends (pedido ${pedido.slice(0, 8)}). Meu texto é: ____`, `Hi Diego! I paid the 📣 Ticker ad on Leilão Legends (order ${pedido.slice(0, 8)}). My text is: ____`)
+    : tr(`Oi Diego! Paguei o ⚡ Dia da marca no Leilão Legends (pedido ${pedido.slice(0, 8)}). Minha marca é: ____`, `Hi Diego! I paid the ⚡ Brand day on Leilão Legends (order ${pedido.slice(0, 8)}). My brand is: ____`)
   return (
     <div className="mt-3 rounded-xl p-3 text-left" style={{ background: CREAM, border: `2px solid ${INK}` }}>
       <p className="font-black uppercase text-[16px]" style={OSW}>{tr('📲 Fala com o Diego', '📲 Talk to Diego')}</p>
-      <p className="text-[12.5px] font-bold mt-1 leading-snug">{tr(`WhatsApp ${WHATSAPP_TXT}. Manda o nome da marca, uma bio curta, o Instagram e o cupom (se tiver). Ele combina o dia com você.`, `WhatsApp ${WHATSAPP_TXT}. Send your brand name, a short bio, Instagram and a coupon (if any). He’ll set the day with you.`)}</p>
+      <p className="text-[12.5px] font-bold mt-1 leading-snug">{giro
+        ? tr(`WhatsApp ${WHATSAPP_TXT}. Manda o texto do anúncio (uma frase curta) e o dia que você quer. Ele confere e coloca no ar.`, `WhatsApp ${WHATSAPP_TXT}. Send the ad text (one short line) and the day you want. He checks it and puts it live.`)
+        : tr(`WhatsApp ${WHATSAPP_TXT}. Manda o nome da marca, uma bio curta, o Instagram e o cupom (se tiver). Ele combina o dia com você.`, `WhatsApp ${WHATSAPP_TXT}. Send your brand name, a short bio, Instagram and a coupon (if any). He’ll set the day with you.`)}</p>
       <div className="flex gap-2 mt-2">
         <a href={`https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" className="flex-1 rounded-xl py-2 text-center text-[14px] uppercase" style={{ ...OSW, background: '#25D366', color: '#fff', border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>📲 WhatsApp</a>
         <a href="https://instagram.com/leilaolegendscom" target="_blank" rel="noreferrer" className="flex-1 rounded-xl py-2 text-center text-[14px] uppercase bg-white" style={{ ...OSW, border: `3px solid ${INK}`, boxShadow: `3px 3px 0 ${INK}` }}>📷 Instagram</a>
