@@ -2,6 +2,10 @@
 - 1) nome da competição ("apresentada por") · 2) LED do estádio + linha embaixo do placar · 3) anúncio no pé do O MARTELO.
 - Uma marca por espaço (ele cortou o patrocinador DENTRO do jogo por excesso). Sem casa de aposta no começo (lei + menores).
 - Mockup: `node scripts/mockup-patrocinio.mjs` → `scripts/mockups/patrocinio.png`. Falta: OK dele + números de jogadores pra tabela de preço.
+- Diego gostou dos 3 + **⚡ Dia da marca** (pontual: 24h tomando os 3 espaços + cartão na home com bio/cupom/relógio) e da
+  **🏪 Vitrine dos patrocinadores** (logo, bio, Instagram, cupom; ordem de quem mais apoiou, **SEM ouro/prata/bronze**, só o nº).
+  Cobrança: ele está entre mensal, único e leilão — recomendei MENSAL fixo (1º mês mais barato; leilão só se tiver fila).
+  Mockup 2: `node scripts/mockup-patrocinio-2.mjs` → `scripts/mockups/patrocinio-2.png`.
 
 ## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 9,90 (16/10) — ⏳ A FAZER
 - Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*.
