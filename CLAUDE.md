@@ -832,7 +832,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
 
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
   ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
-  *"eu falei 5s p martelar"*), quem fechou a posição só assiste. ⚠️ O dado do pregão é `paRng` (anda por carta e por tique) — o
+  *"eu falei 5s p martelar"*), quem fechou a posição só assiste. **A carta abre no preço da categoria** (lenda 10 · craque 5 · promessa 4 · bom 3 ·
+  profissional 1 — números dele, `paAbertura`) e o robô age a cada 0,5s. ⚠️ O dado do pregão é `paRng` (anda por carta e por tique) — o
   `rngOf(state)` é FIXO por estado e congelava o sorteio (setores inteiros iam pro Monte sem lance). Teto do robô = `paTeto`
   (caixa ÷ vagas que faltam × categoria, nunca mais que 35% do caixa numa carta) — o `cpuEnvelope` dava o bolso inteiro pro ATA.
   Ele aceitou o tempo (*"deixa assim mesmo com 20"*) e mandou seguir o MOTOR DE SEMPRE: o arremate entra pela porta do
