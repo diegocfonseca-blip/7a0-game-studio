@@ -743,7 +743,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (`precoSubida`) **+ R$ 5** (`TAXA_SUBIDA`, 14/10: *"pagar pelo menos 5 reais a mais"*). **Escolher a cor saiu do Lenda** e NÃO é vendida na
   Loja (*"não bote negócio de cor… pra não confundir"*). **🎁 Presente = só de PLANO**, liberado pelo Diego no #admin (`esc_presentes`). Craque tem o Modo Manual *"como sempre teve"*; **criar sala à vontade é do Lenda pra cima** (Craque novo = 1 por
   dia, igual grátis; os 70 Craques de antes de 14/10 ficaram na foto `esc_craque_antigo` e seguem à vontade). **🎟️ Salas extras**: 3 por R$ 4,90
-  na Loja (`esc_salas_extras`, o gatilho gasta 1 quando a do dia acabou). **Gala única NÃO é vendida avulsa** (só no Fundador); avulso de
+  na Loja (`esc_salas_extras`, o gatilho gasta 1 quando a do dia acabou). **💾 Ficha extra de carreira**: R$ 9,90 na Loja (16/10, escolha dele; +1 ficha além do limite do plano — a fazer, mockup primeiro). **Gala única NÃO é vendida avulsa** (só no Fundador); avulso de
   clube batizado = só o 📣 canto (R$ 10). **📣 O CANTO VALE NOS DOIS LUGARES** (14/10): Carreira (toca nos jogos) e online (toca junto com a entrada
   de gala, se a pessoa tiver a gala) — o texto da Loja/planos tem que dizer os dois. Loja de avulsos
   aprovada (*"adorei"*), ainda a fazer. Diego e quem ele dá plano também pagam o que não têm (*"eu com meu usuário também tenho

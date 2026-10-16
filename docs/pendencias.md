@@ -1,3 +1,24 @@
+## 🧑‍💼 PRESIDENTE LIBERADO PRA TODOS (16/10) — ✅ NO AR
+- Diego: *"já pode publicar p todos p personagem"* → `PRESIDENTE_CONTA_GERAL = true`. Vale: editor na 🛒 Loja (régua por plano) + Presidência da carreira.
+- ⚠️ Os OUTROS lugares do mockup (lista de técnicos, chat, martelo, capa do O MARTELO, Central, perfil) AINDA NÃO desenham o boneco — a fazer.
+  Pra isso a sala precisa ler o boneco dos OUTROS (hoje a RLS de `esc_presidente` só deixa ler o próprio).
+- Reverter: `PRESIDENTE_CONTA_GERAL = false` em `presidente-conta.ts`.
+
+## 💼 Patrocínio de verdade (marca real) — 3 espaços (16/10) — 👀 MOCKUP ENVIADO
+- 1) nome da competição ("apresentada por") · 2) LED do estádio + linha embaixo do placar · 3) anúncio no pé do O MARTELO.
+- Uma marca por espaço (ele cortou o patrocinador DENTRO do jogo por excesso). Sem casa de aposta no começo (lei + menores).
+- Mockup: `node scripts/mockup-patrocinio.mjs` → `scripts/mockups/patrocinio.png`. Falta: OK dele + números de jogadores pra tabela de preço.
+- Diego gostou dos 3 + **⚡ Dia da marca** (pontual: 24h tomando os 3 espaços + cartão na home com bio/cupom/relógio) e da
+  **🏪 Vitrine dos patrocinadores** (logo, bio, Instagram, cupom; ordem de quem mais apoiou, **SEM ouro/prata/bronze**, só o nº).
+  Cobrança: ele está entre mensal, único e leilão — recomendei MENSAL fixo (1º mês mais barato; leilão só se tiver fila).
+  Dia da marca NÃO tira o mensal: home só da marca do dia · LED alternando as duas · competição e O MARTELO seguem com a do mês.
+  Mockup 2: `node scripts/mockup-patrocinio-2.mjs` → `scripts/mockups/patrocinio-2.png`.
+
+## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 9,90 (16/10) — ⏳ A FAZER
+- Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*.
+- +1 ficha de carreira além do limite do plano (grátis 1 · Craque 2 · Lenda 4 · Batismo 4), igual às 🎟️ salas extras.
+- Vende pelo Pix do Mercado Pago (produto novo no `esc_mp_preco`/`esc_mp_entregar` + nome na edge function).
+- Mockup na Loja ANTES de codar. Nunca apagar/travar save por causa do limite.
 ## 🔨 PREGÃO ABERTO — o 3º jeito de dar lance (16/10) — ✅ NO AR, SÓ PRA CONTA DO DIEGO (Partida Rápida)
 Diego aprovou o mockup: *"Deixa assim msm c 20 e faça aí acontecer. Siga padrões do nosso jogo de motor do leilão… e faça
 apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
