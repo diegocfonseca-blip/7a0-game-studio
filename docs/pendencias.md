@@ -1,3 +1,16 @@
+## 16/10/2026 — Publicação do pacote acumulado autorizada
+
+- Diego solicitou publicar tudo que foi feito até agora em seu usuário.
+  [Registro da publicação](presidencia-publicacao-20261016.md) reúne escopo,
+  testes e limites. Não considerar os estados “sem commit/deploy” abaixo
+  como bloqueio atual: são históricos.
+- Pacote `56d8d4c5` integrado à main `44c33a64` pelo merge `bf4001ce`.
+  Compras e mudanças do criador já publicadas foram preservadas.
+- Novidades do estádio, sala e futebol aprimorado continuam restritas à conta
+  verificada `diego.c.fonseca@gmail.com`. Sem migração ou escrita na conta.
+- Conferir o resultado do GitHub Pages do commit final para confirmar o deploy.
+  Publicar o trabalho atual não elimina as pendências do motor e acabamento.
+
 ## 16/10/2026 — Jogadores e NPCs sem rosto (acabamento local)
 
 - Melhorados volumes, cabelo, roupas e calçados dos jogadores, pedestres,
