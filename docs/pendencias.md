@@ -32,6 +32,8 @@ apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
   fim topa pelo menos a abertura se o caixa cobre e sobra pro resto das vagas (senão terminava com 9). Medido: ~8s por carta
   (~15 min com 10 clubes · ~29 min com 20), média 8,7 🪙, maior ~26, todo robô fecha os 11. Pergunta dele em aberto: ordem das
   posições ALEATÓRIA (como está) ou POR ORDEM — recomendei aleatória (ninguém fica parado esperando o setor dele).
+- 👥 **16/10: Rossini Money (luizeduardorossini0013) liberado como testador** do Pregão Aberto E da 👑 Kings League, a pedido do Diego
+  (`PREGAO_ABERTO_TESTERS` / `KINGS_TESTERS`).
 - **Trava**: `npm run pregao-aberto` (partida inteira no reducer: fila embaralhada, lance inválido recusado, uma carta =
   um dono, pagou o lance final, ninguém negativo, termina no Monte/cerimônia).
 - **Reverter**: `PREGAO_ABERTO_TESTERS` vazio esconde o botão; sem o botão nenhum save entra no modo.
