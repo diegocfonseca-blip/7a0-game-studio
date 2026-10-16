@@ -1,0 +1,20 @@
+{
+  "data": "16 de outubro de 2026",
+  "titulo": "Novo batismo: Chelsão da Massa FC",
+  "destaque": {
+    "escudo": "src/escalacao/img/chelsao-escudo.webp",
+    "mascote": "src/escalacao/img/chelsao-mascote.webp",
+    "camisa": "scripts/kits/chelsao-camisa.webp",
+    "nome": "Chelsão da Massa FC",
+    "linha": "Série C · azul e dourado"
+  },
+  "itens": [
+    { "tag": "batismo", "texto": "O **Chelsão da Massa FC** chega na **Série C** da carreira, com escudo, manto e mascote próprios." },
+    { "tag": "mascote", "texto": "**O Leão da Massa**, de turbante e capa, carimba a tela em todo gol do clube, atravessa a tela no título e aparece no pênalti decisivo." },
+    { "tag": "manto", "texto": "Azul e dourado, tirado da camisa do clube. A camisa já está na **Loja do Clube**." },
+    { "tag": "lenda", "texto": "O dono vira **👑 Lenda** pra sempre e **Sócio nº 74**, com entrada de gala nas salas online." }
+  ],
+  "rodape": "Quer o SEU clube no jogo também?",
+  "rodapeSub": "Batismo: escudo, mascote e manto seus, pra sempre. Tá na 🛒 Loja do Clube, ou chama o Diego aqui na comunidade.",
+  "saida": "scripts/posts/aviso-2026-10-16-chelsao.png"
+}
