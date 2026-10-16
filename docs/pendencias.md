@@ -1,4 +1,4 @@
-## 🦅⚫⚪ GAVIÕES SCCP VIROU 🖋 FUNDADOR (16/10) — banco feito; gala + canto no branch, esperando OK do vídeo
+## 🦅⚫⚪ GAVIÕES SCCP VIROU 🖋 FUNDADOR (16/10) — ✅ NO AR: banco + gala v3 "Aqui é Fiel" + canto (aprovado pelo Diego)
 - kauealves584 já tinha fundador nº83; gravado `esc_compras_batismo` = plus (16/10).
 - 📣 Canto: 12 s de "Todo Poderoso Timão" (o áudio que o Diego mandou, trecho 3,2 s → 15,2 s, de pausa a pausa) →
   `public/sfx/torcida-gavioes-v1.mp3` (mono 32 kHz 56 kbps, −20,6 dB igual ao Fabulous). Carreira (`AMBIENTE_CARREIRA_POR_EMAIL`) + gala.
