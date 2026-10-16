@@ -5,6 +5,11 @@
   `state.paPresentes` guarda o que cada time ganhou. Trava: `npm run pregao-aberto` (todo time fecha, Monte vazio, tudo grátis).
 - Telas (mockup `scripts/mockups/pregao-sem-monte.png`): faixa verde no topo · "ninguém quis" sem falar de Monte · janela
   "🎁 Seu time fechou de graça!" no fim com as cartas. A fazer depois do OK.
+- 🔁 Ajustes do Diego (16/10): a janela do fim NÃO tem botão (some sozinha em 6s, não segura sala online) e o aviso do topo
+  diz só "nunca craque nem lenda" (sem falar "profissional/bom").
+- 🃏 **Carta coberta (ideia dele, mockup `scripts/mockups/carta-coberta.png`)**: no pregão aberto a carta aparece SEM
+  categoria, cor, estrela e ROSTO até o martelo; aí vira e mostra tudo. Exige abrir TODA carta no mesmo preço (1), senão o
+  preço de abertura (`paAbertura`) entrega a categoria. Esperando OK.
 
 ## 🧑‍💼 PRESIDENTE LIBERADO PRA TODOS (16/10) — ✅ NO AR
 - Diego: *"já pode publicar p todos p personagem"* → `PRESIDENTE_CONTA_GERAL = true`. Vale: editor na 🛒 Loja (régua por plano) + Presidência da carreira.
