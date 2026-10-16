@@ -227,14 +227,14 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
             <span style={{ fontSize: 30 }}>⚡</span>
             <div style={{ flex: 1 }}>
               <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Dia da marca', 'Brand day')}</b>
-              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Por 24 horas sua marca ganha o destaque da home, com bio e cupom, e passa no LED do estádio. Vem junto um post no Instagram e um aviso na comunidade dos fãs. Depois do Pix, você combina o dia com o Diego.', 'For 24 hours your brand gets the home spotlight, with bio and coupon, and runs on the stadium LED. It also comes with an Instagram post and an announcement in the fans’ community. After the Pix, you set the day with Diego.')}</small>
+              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Por 24 horas sua marca leva os naming rights da Copa dos 8 ("Copa dos 8 apresentada por…"), ganha o destaque da home, com bio e cupom, e passa no LED do estádio. Vem junto um post no Instagram e um aviso na comunidade dos fãs. Depois do Pix, você combina o dia com o Diego.', 'For 24 hours your brand gets the Copa dos 8 naming rights ("Copa dos 8 presented by…"), the home spotlight, with bio and coupon, and runs on the stadium LED. It also comes with an Instagram post and an announcement in the fans’ community. After the Pix, you set the day with Diego.')}</small>
             </div>
             <button onClick={() => setComprando({ id: 'dia-marca', amount: 50, ctx: 'loja · dia da marca', msgPt: 'Opa! Comprei o ⚡ DIA DA MARCA (R$ 50). Minha marca: ____', msgEn: 'Hey! I bought the ⚡ BRAND DAY (R$ 50). My brand: ____' })} style={preco}>{reais(50)}</button>
           </div>
           <div style={{ ...card, marginTop: 8 }}>
             <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('📅 Patrocínio mensal', '📅 Monthly sponsorship')}</b>
             <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 12, fontWeight: 700, lineHeight: 1.55 }}>
-              <li>{tr('🏆 Nome da competição: "Champions Legends apresentada por… sua marca"', '🏆 Competition name: "Champions Legends presented by… your brand"')}</li>
+              <li>{tr('🏆 Naming rights da competição: "Champions Legends apresentada por… sua marca"', '🏆 Competition naming rights: "Champions Legends presented by… your brand"')}</li>
               <li>{tr('🏟️ Placa de LED no fundo do estádio', '🏟️ LED board at the back of the stadium')}</li>
               <li>{tr('📰 Anúncio no jornal O MARTELO do campeão', '📰 Ad in the champion’s O MARTELO newspaper')}</li>
               <li>{tr('🏢 Patrocinador Master na carreira: sua marca entre as propostas de patrocínio no início da temporada', '🏢 Master sponsor in career mode: your brand among the sponsorship offers at the start of each season')}</li>
