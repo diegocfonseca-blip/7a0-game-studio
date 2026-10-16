@@ -1,3 +1,12 @@
+## 📣 ANÚNCIO DO DIA SELF-SERVICE + LOJA DE ANÚNCIO PRA TODOS (16/10) — ✅ NO AR
+- Diego: *"pode liberar tudo já pro geral, mostrar pra todos e Pix também"* → `PATROCINIO_GERAL = true` (seção "Sua marca no jogo").
+- O comprador do 📣 Anúncio do dia (R$ 25) ESCREVE o próprio texto logo depois do Pix (`EscreveAnuncio`, pix-mp.tsx), até **82
+  letras** (`ANUNCIO_MAX` = o tamanho do texto da Vadico), confirma e ele entra no ar NA HORA por 24 h. Quem decide é o servidor
+  (`esc_mp_anuncio_giro`: dono + produto `giro_dia` + pedido pago/liberado, 1 anúncio por pedido). Fechou sem escrever? A Loja mostra
+  o campo de novo (`AnunciosPendentes` / `esc_mp_anuncio_pendente`).
+- No letreiro: pago em VERDE, a Vadico (manual) em DOURADO, um depois do outro.
+- ⚠️ Não tem moderação antes de ir pro ar: se alguém escrever besteira, o Diego tira no #admin (📣 Anúncio do dia → "tirar").
+
 ## 📢 O GIRO DA RODADA ACABOU: AGORA É "ANÚNCIO DO DIA" (16/10) — ✅ NO AR
 - Diego: *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*. O letreiro
   (`GiroDaRodada`, screens.tsx) mostra SÓ anúncio (avulso do dia `esc_giro_anuncio` + mensal `GIRO_ANUNCIO`), dourado e devagar.

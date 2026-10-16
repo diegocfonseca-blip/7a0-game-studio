@@ -24,7 +24,7 @@ import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, PRECOS_UNICO, PRECOS_DUPLO, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
 import { PresenteBox } from './presente'
-import { PixMP, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
+import { PixMP, AnunciosPendentes, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
 import { patrocinioLojaOk } from './patrocinio'
 import { usePixMp } from './sport'
 import { useEsc } from './store'
@@ -243,10 +243,11 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
             <span style={{ fontSize: 30 }}>📣</span>
             <div style={{ flex: 1 }}>
               <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Anúncio do dia · 24 h', 'Ad of the day · 24 h')}</b>
-              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Por 24 horas, contando de quando entra no ar, o seu texto passa no letreiro "Anúncio do dia", em todas as salas. Ex.: "Sua marca · Oferta do dia: …". Depois do Pix, você combina o dia e o texto com o Diego.', 'For 24 hours from the moment it goes live, your text runs on the "Ad of the day" ticker, in every room. E.g. "Your brand · Deal of the day: …". After the Pix, you set the day and the text with Diego.')}</small>
+              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Você mesmo escreve (até 82 letras) logo depois do Pix. Ele entra no ar na hora e passa por 24 horas no letreiro "Anúncio do dia" de todas as salas, revezando com os outros anúncios. Ex.: "Sua marca · Oferta do dia: …".', 'You write it yourself (up to 82 characters) right after the Pix. It goes live right away and runs for 24 hours on the "Ad of the day" ticker in every room, taking turns with the other ads. E.g. "Your brand · Deal of the day: …".')}</small>
             </div>
             <button onClick={() => setComprando({ id: 'giro-dia', amount: 25, ctx: 'loja · anúncio no giro', msgPt: 'Opa! Comprei o 📣 ANÚNCIO NO GIRO (R$ 25). Meu texto: ____', msgEn: 'Hey! I bought the 📣 TICKER AD (R$ 25). My text: ____' })} style={preco}>{reais(25)}</button>
           </div>
+          <AnunciosPendentes />
           <div style={{ ...card, marginTop: 8 }}>
             <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('📅 Patrocínio mensal', '📅 Monthly sponsorship')}</b>
             <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 12, fontWeight: 700, lineHeight: 1.55 }}>

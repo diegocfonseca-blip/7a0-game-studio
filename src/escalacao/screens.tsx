@@ -7593,12 +7593,13 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
   // O botão "Anuncie aqui" abre a Loja na seção de anúncio. Sem anunciante, o próprio letreiro oferece o espaço.
   const anuncios = useAnunciosGiro()
   const en = getLang() === 'en'
-  const list = anuncios.length ? anuncios : [en ? '📣 This space can be yours' : '📣 Este espaço pode ser seu']
+  const itens = anuncios.length ? anuncios : [{ texto: en ? '📣 This space can be yours' : '📣 Este espaço pode ser seu', cor: '#FFC400' }]
+  const list = itens.map(a => a.texto)
+  const corDe = (i: number) => itens[i % itens.length].cor
   const key = list.join('|')
   // devagar, pra dar tempo de ler o anúncio inteiro (16/10: "deixar o texto completo passar de forma devagar")
   const chars = list.reduce((n, h) => n + h.length + 4, 0)
   const dur = Math.max(14, Math.round(chars * 0.16))
-  const COR = '#FFC400' // letreiro dourado: é anúncio, não resultado
   return (
     <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden' }}>
       <style>{`@keyframes giroCorre{to{transform:translateX(-50%)}}@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
@@ -7622,12 +7623,12 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
         <div key={key} className="giro-corre" style={{ animationDuration: `${dur}s` }}>
           {[...list, ...list].map((h, i) => (
             <Fragment key={i}>
-              <span className="giro-m" style={{ color: COR, textShadow: `0 0 6px ${COR}88` }}>{h}</span>
+              <span className="giro-m" style={{ color: corDe(i), textShadow: `0 0 6px ${corDe(i)}88` }}>{h}</span>
               <span className="giro-sep">◆</span>
             </Fragment>
           ))}
         </div>
-        <div className="giro-parado"><span className="giro-m" style={{ color: COR, textShadow: `0 0 6px ${COR}88`, whiteSpace: 'normal', fontSize: 13, lineHeight: 1.15 }}>{list[0]}</span></div>
+        <div className="giro-parado"><span className="giro-m" style={{ color: corDe(0), textShadow: `0 0 6px ${corDe(0)}88`, whiteSpace: 'normal', fontSize: 13, lineHeight: 1.15 }}>{list[0]}</span></div>
       </div>
     </div>
   )

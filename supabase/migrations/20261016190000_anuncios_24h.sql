@@ -28,3 +28,8 @@ revoke all on function public.esc_admin_anuncio(text, timestamptz, text, text) f
 revoke all on function public.esc_admin_anuncio_tirar(bigint) from public, anon;
 grant execute on function public.esc_admin_anuncio(text, timestamptz, text, text) to authenticated;
 grant execute on function public.esc_admin_anuncio_tirar(bigint) to authenticated;
+-- 📣 16/10: o comprador escreve o próprio anúncio depois do Pix (máx 82 letras) — só com pedido 'giro_dia' pago/liberado.
+alter table public.esc_anuncios add column if not exists pedido_id uuid unique;
+-- esc_mp_anuncio_giro(p_id uuid, p_texto text) → 'ok' | 'curto' | 'longo' | 'sem_pedido' | 'ja_tem'  (insere 24 h a partir de now())
+-- esc_mp_anuncio_pendente() → ids dos pedidos giro_dia pagos do próprio usuário que ainda não viraram anúncio
+-- (corpo completo: pg_get_functiondef no banco)

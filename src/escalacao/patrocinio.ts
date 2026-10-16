@@ -14,7 +14,7 @@ import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
 export type Patrocinio = { nome: string; emoji: string }
 type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'
 
-const PATROCINIO_GERAL = false
+const PATROCINIO_GERAL = true // 16/10: Diego "pode liberar tudo já pro geral, mostrar pra todos, e Pix também"
 const ESPACOS_GERAL = true
 const PATROCINIO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com'])
 const POR_COMPETICAO: Partial<Record<Competicao, Patrocinio>> = {
@@ -96,9 +96,14 @@ export function usePatrocinio(kind: Competicao): Patrocinio | null {
 
 // 📢 ANÚNCIO DO DIA (o letreiro que era o giro da rodada): o avulso pago (24 h) passa antes do manual.
 const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio' // manual: fica até o Diego trocar
-export function useAnunciosGiro(): string[] {
+// 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
+export type AnuncioGiro = { texto: string; cor: string }
+export const ANUNCIO_MAX = 82 // = tamanho do texto da Vadico (Diego: "número máximo de caracteres… tipo o da Vadico")
+export function useAnunciosGiro(): AnuncioGiro[] {
   useAvulsos()
-  const out = noAr('giro').map(a => '📣 ' + a.texto)
-  if (espacosOk() && GIRO_ANUNCIO) out.push(GIRO_ANUNCIO)
+  const out: AnuncioGiro[] = noAr('giro').map(a => ({ texto: '📣 ' + a.texto, cor: '#5CFF8A' }))
+  if (espacosOk() && GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400' })
   return out
 }
+/** depois que alguém põe o anúncio no ar, relê na hora (pra pessoa já se ver no letreiro) */
+export function releAnuncios() { lidoEm = 0; carregaAvulsos() }
