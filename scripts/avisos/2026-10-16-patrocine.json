@@ -1,0 +1,51 @@
+{
+  "data": "16 de outubro de 2026",
+  "titulo": "Sua marca no Leilão Legends 💼",
+  "destaque": {
+    "passos": [
+      {
+        "emoji": "🏆",
+        "titulo": "Competição",
+        "sub": "apresentada por"
+      },
+      {
+        "emoji": "🏟️",
+        "titulo": "LED",
+        "sub": "no estádio"
+      },
+      {
+        "emoji": "📰",
+        "titulo": "O MARTELO",
+        "sub": "jornal do campeão"
+      },
+      {
+        "emoji": "🏢",
+        "titulo": "Carreira",
+        "sub": "patrocinador Master"
+      }
+    ],
+    "nome": "Milhares de jogadores todo mês",
+    "linha": "uma marca por espaço, sem atrapalhar o jogo"
+  },
+  "itens": [
+    {
+      "tag": "novidade",
+      "texto": "**Tem uma empresa ou conhece alguém que tem?** Agora dá pra colocar a marca **dentro do Leilão Legends**, pra milhares de jogadores verem toda semana."
+    },
+    {
+      "tag": "novidade",
+      "texto": "**📅 Patrocínio mensal**: o nome da competição (\"Champions Legends apresentada por…\"), a placa de **LED do estádio**, anúncio no jornal **O MARTELO**, **patrocinador Master na carreira** e um cartão na **🏪 Vitrine dos patrocinadores**, com bio, Instagram e cupom."
+    },
+    {
+      "tag": "melhoria",
+      "texto": "**⚡ Dia da marca**: a marca ganha o destaque da home por 24 horas. Ótimo pra uma promoção ou um lançamento."
+    },
+    {
+      "tag": "plano",
+      "texto": "**Nada de propaganda chata**: sem vídeo, sem janela pulando e nada no placar. A marca aparece como num estádio de verdade."
+    }
+  ],
+  "rodape": "Quer saber mais? Chama no direct do @leilaolegendscom",
+  "rodapeSub": "ou no WhatsApp do Diego: (21) 99888-6982 💛",
+  "saida": "scripts/posts/aviso-2026-10-16-patrocine.png"
+}
