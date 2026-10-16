@@ -1,0 +1,8 @@
+-- 💛 PLANO DUPLO (16/10, aplicado no banco pelo MCP; este arquivo é a memória). Diego: *"plano duplo poderia ter desconto de
+-- 10%… de qualquer plano"* + *"o valor tem que ser um só pagando, já com desconto"* + Batismo/Fundador também (*"pode fazer"*).
+-- Sem produto novo (a Edge Function `mp-criar-pix` tem lista fechada e o deploy dela foi recusado em 16/10): vai como
+-- 'presente' com ref 'd-<id do esc_presentes>'. O pedido do presente é do PRÓPRIO comprador, como no presente normal.
+-- · esc_mp_preco_ref: ref 'd-…' → 53,90 · 89,90 · 143,90 · 179,90 (só se quem paga ainda não tem esse plano nem maior)
+-- · esc_mp_entregar: presente com ref 'd-…' entrega o plano pro amigo E pra quem pagou (mesma régua do resto)
+-- Tabela espelhada em `PRECOS_DUPLO` (planos-regras.ts): mudou um, muda o outro.
+-- (corpo completo das duas funções: pg_get_functiondef no banco)

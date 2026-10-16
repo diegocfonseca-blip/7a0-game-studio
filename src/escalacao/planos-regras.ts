@@ -26,6 +26,9 @@ export const PRECOS = {
  *  Subir de plano = paga só a DIFERENÇA entre os preços de hoje (`precoSubida`). */
 export const PRECOS_UNICO = { craque: 29.9, lenda: 49.9, batismo: 79.9, fundador: 99.9 } as const
 export type PlanoUnico = keyof typeof PRECOS_UNICO
+/** 💛 PLANO DUPLO (16/10, Diego): 2 do MESMO plano — um pra quem paga, outro de presente — num Pix só, com 10% a menos
+ *  (arredondado pro ,90). A MESMA tabela mora no banco (`esc_mp_preco_ref`, ref 'd-<id do presente>'): mudou aqui, muda lá. */
+export const PRECOS_DUPLO: Record<PlanoUnico, number> = { craque: 53.9, lenda: 89.9, batismo: 143.9, fundador: 179.9 }
 /** 💰 14/10 (Diego): *"todo usuário que tem um plano e quer passar pra um novo teria que pagar pelo menos 5 reais a mais"*.
  *  Subir de plano = a diferença + R$ 5. */
 export const TAXA_SUBIDA = 5

@@ -21,7 +21,7 @@ import { createPortal } from 'react-dom'
 import { tr, getLang } from './lang'
 import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
 import { temCantoProprio } from './sound'
-import { precoSubida, precoTxt, planoAtual, type PlanoUnico } from './planos-regras'
+import { precoSubida, precoTxt, planoAtual, PRECOS_UNICO, PRECOS_DUPLO, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
 import { PresenteBox } from './presente'
 import { PixMP, type ProdutoMp } from './pix-mp'
@@ -111,6 +111,7 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
   const atual = planoAtual(direitos, tier)
   const reais = (v: number) => precoTxt(v, getLang() === 'en')
   const [comprando, setComprandoRaw] = useState<Item | null>(null)
+  const [duploAberto, setDuploAberto] = useState<PlanoUnico | null>(null)
   const setComprando = (it: Item | null) => { setComprandoRaw(it); if (it) setTimeout(() => document.getElementById('loja-pagar')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60) }
   const acima = ORDEM.slice(atual ? ORDEM.indexOf(atual) + 1 : 0)
   const temBatismo = atual === 'batismo' || atual === 'fundador'
@@ -158,6 +159,14 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
               </div>
               <span style={{ ...preco, background: '#fff', color: INK }}>{atual ? '+ ' : ''}{reais(precoSubida(pl, atual))} ›</span>
             </div>} />)}
+            {/* 💛 PLANO DUPLO (16/10, Diego: "plano duplo… 10%… sutilmente embaixo do plano" + "o valor tem que ser um só pagando"):
+                só no Pix novo, e só quando sai mais barato que subir + presentear separado */}
+            {pixMp && acima.filter(pl => PRECOS_DUPLO[pl] < precoSubida(pl, atual) + PRECOS_UNICO[pl]).map(pl => duploAberto === pl
+              ? <PresenteBox key={`d-${pl}`} duplo={pl} onClose={() => setDuploAberto(null)} />
+              : <button key={`d-${pl}`} onClick={() => { logApoio(`💛 loja → plano duplo ${pl}`); setDuploAberto(pl) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: '#FFF8E1', border: `2px dashed ${INK}`, borderRadius: 11, padding: '6px 10px', cursor: 'pointer', textAlign: 'left', fontFamily: 'Arial, sans-serif' }}>
+                  <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800 }}>{tr(`💛 Leve 2 ${NOME[pl][0]}: um pra você, outro de presente`, `💛 Get 2 ${NOME[pl][1]}: one for you, one as a gift`)}</span>
+                  <span style={{ whiteSpace: 'nowrap', fontSize: 12 }}><s style={{ opacity: .5 }}>{reais(PRECOS_UNICO[pl] * 2)}</s> <b style={{ ...OSW, fontSize: 14 }}>{reais(PRECOS_DUPLO[pl])}</b> <i style={{ fontStyle: 'normal', background: GREEN, color: '#fff', borderRadius: 6, padding: '0 5px', fontSize: 10.5, fontWeight: 900 }}>-10%</i></span>
+                </button>)}
           </div>
         </>}
 

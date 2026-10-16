@@ -352,7 +352,10 @@ function PixMpAdmin() {
   }
   const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
   const cor: Record<string, string> = { criado: 'rgba(242,232,207,.5)', pago: '#FFC400', liberado: '#6fdb8f', divergente: '#ff8a75', cancelado: 'rgba(242,232,207,.4)' }
-  const batismos = lista.filter(r => (r.produto === 'batismo' || r.produto === 'fundador') && (r.status === 'pago' || r.status === 'liberado'))
+  // 💛 plano duplo (16/10) e presente de Batismo/Fundador também viram clube pra fazer: vão como 'presente' (ref 'd-<id>' = duplo)
+  const ehBat = (r: { produto: string; valor: number | string }) => r.produto === 'batismo' || r.produto === 'fundador' || (r.produto === 'presente' && Number(r.valor) >= 79.9)
+  const rotulo = (r: { produto: string; ref?: string | null }) => r.produto === 'presente' && r.ref?.startsWith('d-') ? '💛 DUPLO (você + presente)' : r.produto.toUpperCase()
+  const batismos = lista.filter(r => ehBat(r) && (r.status === 'pago' || r.status === 'liberado'))
   const naoPagos = lista.filter(r => r.status === 'criado')
   return (
     <div style={{ border: '2px solid #009EE3', borderRadius: 16, padding: 14, marginTop: 16 }}>
@@ -364,7 +367,7 @@ function PixMpAdmin() {
       {batismos.length > 0 && <>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#FFC400', margin: '8px 0 4px' }}>🖋 Batismos pra fazer</p>
         {batismos.map(r => <div key={r.id} style={{ fontSize: 11, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0' }}>
-          <b>{r.produto.toUpperCase()}</b> · {r.email}{r.telefone ? ` · 📲 ${r.telefone}` : ''} · {new Date(r.pago_em ?? r.criado_em).toLocaleString('pt-BR')}<br />
+          <b>{rotulo(r)}</b> · {r.email}{r.telefone ? ` · 📲 ${r.telefone}` : ''} · {new Date(r.pago_em ?? r.criado_em).toLocaleString('pt-BR')}<br />
           {r.briefing ? Object.entries(r.briefing).filter(([, v]) => v).map(([k, v]) => <span key={k} style={{ display: 'block' }}>• <b>{k}</b>: {v}</span>) : <i>ainda não escreveu como imagina o clube</i>}
         </div>)}
       </>}
@@ -373,7 +376,7 @@ function PixMpAdmin() {
         <tbody>
           {lista.map(r => <tr key={r.id}>
             <td style={td}>{new Date(r.criado_em).toLocaleString('pt-BR')}<br /><span style={{ opacity: .5 }}>{r.id.slice(0, 8).toUpperCase()}</span></td>
-            <td style={td}><b>{r.produto.toUpperCase()}</b> · R$ {Number(r.valor).toFixed(2).replace('.', ',')}<br />{r.email}{r.telefone ? <><br />📲 {r.telefone}</> : null}</td>
+            <td style={td}><b>{rotulo(r)}</b> · R$ {Number(r.valor).toFixed(2).replace('.', ',')}<br />{r.email}{r.telefone ? <><br />📲 {r.telefone}</> : null}</td>
             <td style={{ ...td, color: cor[r.status] ?? '#F2E8CF', fontWeight: 900 }}>{r.status}{r.liberado_por ? <><br /><span style={{ fontWeight: 700, opacity: .7 }}>({r.liberado_por})</span></> : null}
               {r.status === 'pago' && <><br /><button onClick={() => liberar(r)} style={{ border: 'none', borderRadius: 8, padding: '4px 8px', background: '#6fdb8f', fontWeight: 900, cursor: 'pointer', marginTop: 4 }}>LIBERAR</button></>}</td>
           </tr>)}

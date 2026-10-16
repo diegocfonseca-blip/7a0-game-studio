@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { tr, getLang } from './lang'
 import { logApoio, recarregaDireitos, loggedEmail, APOIO_PERKS, ApoioSheen } from './apoio'
-import { PRECOS_UNICO, precoTxt, type PlanoUnico } from './planos-regras'
+import { PRECOS_UNICO, PRECOS_DUPLO, precoTxt, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG } from './screens'
 import { PixMP } from './pix-mp'
 import { usePixMp } from './sport'
@@ -30,17 +30,21 @@ const ERROS: Record<string, [string, string]> = {
 const erroTxt = (msg: string) => { const k = Object.keys(ERROS).find(e => msg.includes(e)); return k ? tr(ERROS[k][0], ERROS[k][1]) : tr('Não deu pra registrar agora. Tenta de novo.', 'Couldn’t register it now. Try again.') }
 
 /** a caixa "🎁 Dar de presente" dentro da Loja do Clube */
-export function PresenteBox() {
+/** `duplo`: 💛 PLANO DUPLO (16/10) — o mesmo formulário do presente, com o plano travado, e o Pix cobra os DOIS planos
+ *  (um pra quem paga + o do amigo) já com o desconto. Só existe no Pix novo (o servidor entrega os dois sozinho). */
+export function PresenteBox({ duplo, onClose }: { duplo?: PlanoUnico; onClose?: () => void } = {}) {
   const pixMp = usePixMp() // 💳 15/10: Pix do Mercado Pago — o presente é entregue pro amigo assim que o Pix cai
   const reais = (v: number) => precoTxt(v, getLang() === 'en')
-  const [plano, setPlano] = useState<PlanoUnico>('craque')
+  const [planoEscolhido, setPlano] = useState<PlanoUnico>('craque')
+  const plano = duplo ?? planoEscolhido
+  const valor = duplo ? PRECOS_DUPLO[duplo] : PRECOS_UNICO[plano]
   const [para, setPara] = useState('')
   const [nome, setNome] = useState('')
   const [recado, setRecado] = useState('')
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [pedido, setPedido] = useState<number | null>(null)
-  const [aberto, setAberto] = useState(false) // 14/10 (Diego): "ficou muito grande… teria que esperar apertar pra ampliar"
+  const [aberto, setAberto] = useState(!!duplo) // 14/10 (Diego): "ficou muito grande… teria que esperar apertar pra ampliar"
   const logado = !!loggedEmail()
   const inp: React.CSSProperties = { width: '100%', border: `3px solid ${INK}`, borderRadius: 10, padding: '8px 10px', fontSize: 13, fontWeight: 700, background: '#fff', fontFamily: 'Arial, sans-serif' }
   const rot: React.CSSProperties = { ...OSW, fontSize: 11, letterSpacing: '.1em', color: 'rgba(12,12,12,.6)', margin: '10px 0 5px' }
@@ -50,13 +54,14 @@ export function PresenteBox() {
     const { data, error } = await supabase.rpc('esc_pedir_presente', { p_para: para.trim(), p_plano: plano, p_recado: recado.trim(), p_de_nome: nome.trim() })
     setBusy(false)
     if (error || typeof data !== 'number') { setErro(erroTxt(error?.message ?? '')); return }
-    logApoio(`🎁 pediu presente nº${data}: ${plano} pra ${para.trim()}`)
+    logApoio(`${duplo ? '💛 pediu plano DUPLO' : '🎁 pediu presente'} nº${data}: ${plano} pra ${para.trim()}`)
     setPedido(data)
   }
   if (pedido) return <div style={{ background: '#FFF8E1', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 12 }}>
-    <p style={{ ...OSW, fontSize: 16, textTransform: 'uppercase', margin: '0 0 4px' }}>{tr(`🎁 Presente nº ${pedido} registrado`, `🎁 Gift no. ${pedido} registered`)}</p>
+    <p style={{ ...OSW, fontSize: 16, textTransform: 'uppercase', margin: '0 0 4px' }}>{duplo ? tr(`💛 Plano duplo nº ${pedido}`, `💛 Double plan no. ${pedido}`) : tr(`🎁 Presente nº ${pedido} registrado`, `🎁 Gift no. ${pedido} registered`)}</p>
     <p style={{ fontSize: 12, fontWeight: 700, margin: '0 0 10px', color: 'rgba(12,12,12,.7)' }}>{pixMp ? tr(`${NOME[plano][0]} pra ${para.trim()}. Pagou o Pix, seu amigo já recebe.`, `${NOME[plano][1]} for ${para.trim()}. Once the Pix is paid, your friend gets it.`) : tr(`${NOME[plano][0]} pra ${para.trim()}. Agora é só pagar e mandar o comprovante — seu amigo recebe assim que a gente confirmar.`, `${NOME[plano][1]} for ${para.trim()}. Now just pay and send the receipt — your friend gets it as soon as we confirm.`)}</p>
-    {pixMp ? <PixMP produto="presente" refId={String(pedido)} valor={PRECOS_UNICO[plano]} /> : <>
+    {duplo && <p style={{ fontSize: 12, fontWeight: 800, margin: '0 0 8px', color: '#1B7A3D' }}>{tr(`💛 Um Pix só: o seu ${NOME[plano][0]} + o do amigo, já com 10% a menos.`, `💛 One Pix: your ${NOME[plano][1]} + your friend’s, already 10% off.`)}</p>}
+    {pixMp ? <PixMP produto="presente" refId={duplo ? `d-${pedido}` : String(pedido)} valor={valor} /> : <>
     <PixBox ctx={`presente nº${pedido} · ${plano} pra ${para.trim()}`} amount={PRECOS_UNICO[plano]} />
     <button onClick={async () => { logApoio(`🎁 mandou comprovante do presente nº${pedido}`); try { await navigator.clipboard.writeText(tr(`Opa! Paguei o PRESENTE nº ${pedido}: ${NOME[plano][0]} (${reais(PRECOS_UNICO[plano])}) pra ${para.trim()}. Comprovante em anexo!`, `Hey! I paid GIFT no. ${pedido}: ${NOME[plano][1]} (${reais(PRECOS_UNICO[plano])}) for ${para.trim()}. Receipt attached!`)) } catch { /* segue */ } window.open(APOIO_IG, '_blank', 'noopener') }}
       style={{ width: '100%', marginTop: 10, ...OSW, fontSize: 14, background: '#E1306C', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 10, cursor: 'pointer' }}>{tr('📸 MANDAR COMPROVANTE NO @leilaolegendscom', '📸 SEND THE RECEIPT TO @leilaolegendscom')}</button>
@@ -69,13 +74,14 @@ export function PresenteBox() {
     <button onClick={() => { logApoio('🎁 abriu o presente'); setAberto(true) }} style={{ ...OSW, fontSize: 14, background: GREEN, color: '#fff', border: `2px solid ${INK}`, borderRadius: 9, padding: '6px 10px', boxShadow: `2px 2px 0 ${INK}`, cursor: 'pointer', whiteSpace: 'nowrap' }}>{tr('PRESENTEAR', 'SEND GIFT')}</button>
   </div>
   return <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: 12 }}>
-    <p style={{ ...rot, marginTop: 0, display: 'flex', justifyContent: 'space-between' }}>{tr('O QUE VAI DAR', 'WHAT YOU’LL GIVE')}<button onClick={() => setAberto(false)} style={{ background: 'none', border: 'none', fontWeight: 900, fontSize: 12, cursor: 'pointer', color: 'rgba(12,12,12,.5)' }}>✕</button></p>
+    <p style={{ ...rot, marginTop: 0, display: 'flex', justifyContent: 'space-between' }}>{tr('O QUE VAI DAR', 'WHAT YOU’LL GIVE')}<button onClick={() => { setAberto(false); onClose?.() }} style={{ background: 'none', border: 'none', fontWeight: 900, fontSize: 12, cursor: 'pointer', color: 'rgba(12,12,12,.5)' }}>✕</button></p>
+    {duplo ? <p style={{ ...OSW, fontSize: 15, margin: 0 }}>{tr(`💛 2× ${NOME[duplo][0]}: um pra você, outro de presente · ${reais(valor)}`, `💛 2× ${NOME[duplo][1]}: one for you, one as a gift · ${reais(valor)}`)} <s style={{ fontSize: 12, opacity: .5 }}>{reais(PRECOS_UNICO[duplo] * 2)}</s></p> :
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
       {(Object.keys(NOME) as PlanoUnico[]).map(p => <button key={p} onClick={() => setPlano(p)} style={{ position: 'relative', overflow: 'hidden', ...OSW, fontSize: 13, border: `3px solid ${INK}`, borderRadius: 10, padding: '6px 4px', cursor: 'pointer', background: FUNDO[p], color: p === 'batismo' || p === 'fundador' ? GOLD : INK, boxShadow: plano === p ? `0 0 0 3px ${GOLD}, 2px 2px 0 ${INK}` : 'none', opacity: plano === p ? 1 : .7 }}>
         {(p === 'craque' || p === 'lenda') && <ApoioSheen holo={p === 'lenda' ? .75 : .5} />}
         <span style={{ position: 'relative' }}>{tr(NOME[p][0], NOME[p][1])}<br /><small style={{ fontSize: 11 }}>{reais(PRECOS_UNICO[p])}</small></span>
       </button>)}
-    </div>
+    </div>}
     {(plano === 'batismo' || plano === 'fundador') && <p style={{ fontSize: 11, fontWeight: 700, margin: '6px 0 0', color: '#7C3AED' }}>{tr('🖋 O clube é montado com o seu amigo: o Diego fala com ele pra combinar nome, escudo, mascote e manto.', '🖋 The club is built with your friend: Diego talks to them to sort out name, crest, mascot and kit.')}</p>}
     <p style={rot}>{tr('PRA QUEM (E-MAIL DA CONTA DO AMIGO)', 'TO WHOM (YOUR FRIEND’S ACCOUNT E-MAIL)')}</p>
     <input value={para} onChange={e => setPara(e.target.value)} placeholder="amigo@email.com" type="email" autoCapitalize="none" style={inp} />
@@ -86,7 +92,7 @@ export function PresenteBox() {
     {erro && <p style={{ fontSize: 12, fontWeight: 800, color: '#C2452F', margin: '8px 0 0' }}>{erro}</p>}
     <button disabled={!logado || busy || !para.trim()} onClick={pedir}
       style={{ width: '100%', marginTop: 12, ...OSW, fontSize: 16, textTransform: 'uppercase', background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, boxShadow: `3px 3px 0 ${INK}`, padding: 9, cursor: logado && para.trim() ? 'pointer' : 'not-allowed', opacity: logado && para.trim() ? 1 : .55 }}>
-      {busy ? '…' : tr(`🎁 PRESENTEAR · ${reais(PRECOS_UNICO[plano])}`, `🎁 SEND GIFT · ${reais(PRECOS_UNICO[plano])}`)}</button>
+      {busy ? '…' : duplo ? tr(`💛 CONTINUAR · ${reais(valor)}`, `💛 CONTINUE · ${reais(valor)}`) : tr(`🎁 PRESENTEAR · ${reais(PRECOS_UNICO[plano])}`, `🎁 SEND GIFT · ${reais(PRECOS_UNICO[plano])}`)}</button>
     {!logado && <p style={{ fontSize: 11, fontWeight: 700, margin: '6px 0 0', textAlign: 'center', color: 'rgba(12,12,12,.6)' }}>{tr('Entre na sua conta pra dar presente.', 'Sign in to send a gift.')}</p>}
     <p style={{ fontSize: 10.5, fontWeight: 700, margin: '8px 0 0', color: 'rgba(12,12,12,.55)', lineHeight: 1.4 }}>{tr('Pagamento único, sem mensalidade. Seu amigo recebe quando a gente confirmar o pagamento.', 'One-off payment, no monthly fee. Your friend gets it once we confirm the payment.')}</p>
   </div>

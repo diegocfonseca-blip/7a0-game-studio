@@ -1,8 +1,11 @@
-## 💛 PLANO DUPLO + 🔄 REPAGINAR CLUBE (16/10) — 👀 propostas/mockup, esperando OK
+## 💛 PLANO DUPLO (✅ NO AR no Pix novo, 16/10) + 🔄 REPAGINAR CLUBE (proposta, esperando OK)
 - **Plano duplo**: 2 do MESMO plano (um pra você, outro de presente) com 10% a menos, **num Pix só, já com desconto**
   (Diego: *"o valor tem que ser um só pagando, já com desconto"*). Linha discreta embaixo do plano. Proposta: Craque R$ 53,90 ·
   Lenda R$ 89,90 (arredondado pro ,90); Batismo/Fundador fora (trabalho de arte). O 2º chega como 🎁 presente (`esc_presentes`).
-  Mockup: `scripts/mockups/plano-duplo.png`. Precisa: produto novo no Pix MP + e-mail do amigo + entrega dupla no servidor.
+  Mockup: `scripts/mockups/plano-duplo.png`. ✅ FEITO (*"pode fazer isso aí"*), com Batismo 143,90 e Fundador 179,90 também:
+  vai como 'presente' com ref `d-<id>` (sem deploy da Edge Function) — `esc_mp_preco_ref`/`esc_mp_entregar` + `PRECOS_DUPLO` +
+  `PresenteBox duplo` + linha "💛 Leve 2" na Loja (só aparece com o Pix novo, que hoje é só das contas do Diego) + #admin mostra
+  "💛 DUPLO" e põe Batismo/Fundador de presente/duplo na lista de clubes pra fazer. Nenhum pagamento real testado ainda.
 - **Repaginar clube** (só batismo/Fundador, sem batismo novo; ele escolhe o que troca): proposta mascote R$ 29,90 · escudo
   R$ 24,90 · os dois R$ 44,90 · manto R$ 9,90. Briefing por escrito, sem imagem; o velho sai quando o novo entra. Esperando OK.
 - Contexto (16/10): 70 clubes batizados, só 2 com canto (Geovany, Fabulous) e 5 Fundador → canto e subida pro Fundador são o
