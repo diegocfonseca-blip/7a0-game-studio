@@ -831,7 +831,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   NUNCA ganha placar/tabela/tela própria — usa a `EscSeason` e põe a regra POR CIMA (`kings-liga.ts`). E shootout ≠ pênalti.
 
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
-  ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 6s sem lance novo, quem fechou a posição só assiste.
+  ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 4s sem lance novo (`PA_MARTELO_MS`; era 6s, ele pediu
+  pra encurtar no 1º teste), quem fechou a posição só assiste. ⚠️ O dado do pregão é `paRng` (anda por carta e por tique) — o
+  `rngOf(state)` é FIXO por estado e congelava o sorteio (setores inteiros iam pro Monte sem lance). Teto do robô = `paTeto`
+  (caixa ÷ vagas que faltam × categoria, nunca mais que 35% do caixa numa carta) — o `cpuEnvelope` dava o bolso inteiro pro ATA.
   Ele aceitou o tempo (*"deixa assim mesmo com 20"*) e mandou seguir o MOTOR DE SEMPRE: o arremate entra pela porta do
   envelope (`sealAndResolve` com `holFechando`, igual à Tocaia) — nada de pagamento/elenco próprio. Gate `PREGAO_ABERTO_*`
   em `sport.ts` (o `PREGAO_*` sem "ABERTO" é OUTRA coisa, o pregão limpo). Trava `npm run pregao-aberto`.

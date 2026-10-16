@@ -341,6 +341,8 @@ export type PregaoAbertoState = {
   deadline: number | null
   /** teto de cada robô pra carta da mesa (o MESMO `cpuEnvelope` do envelope decide) */
   tetos: Record<number, number>
+  /** 🎲 contador de tiques da carta: o dado do pregão precisa ANDAR a cada tique (o `rngOf` é fixo por estado) */
+  tiques: number
   /** o que já saiu, pra tela contar a história (mgr null = ninguém quis) */
   vendidos: { cardId: string; nome: string; pos: Sector; mgr: number | null; time: string | null; preco: number; segundo: number }[]
   /** ninguém quis → vai pro Monte no fim */

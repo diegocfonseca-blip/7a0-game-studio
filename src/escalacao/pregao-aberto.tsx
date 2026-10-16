@@ -1,5 +1,5 @@
 // 🔨 PREGÃO ABERTO — a tela (16/10, mockup aprovado: `scripts/mockups/pregao-aberto.png`).
-// Uma carta por vez, lance à vista, ordem embaralhada, martelo em 6s. O motor mora em store.tsx (paTick/paMartelo);
+// Uma carta por vez, lance à vista, ordem embaralhada, martelo em `PA_MARTELO_MS`. O motor mora em store.tsx (paTick/paMartelo);
 // aqui só se desenha e se roteia o lance. No solo o relógio é deste aparelho; no online (quando for ligado) só o dono tica.
 import { useEffect, useRef, useState } from 'react'
 import { useEsc, paPodeLancar, paMinimo, PA_TICK_MS, PA_MARTELO_MS } from './store'
@@ -74,7 +74,7 @@ export function PregaoAberto() {
           <>
             {/* 🃏 a carta da mesa — a MESMA carta do jogo */}
             {/* tamanho de VITRINE (não `big`): no celular a carta grande empurrava o preço e os botões pra fora da tela,
-                e com martelo de 6s o lance tem que estar à mão sem rolar */}
+                e com martelo de poucos segundos o lance tem que estar à mão sem rolar */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <div style={{ width: 210 }}>
                 <CollectibleCard name={card.name} club={card.club} year={card.year} pos={card.pos} fame={card.fame} folk={!!card.folk} promessa={card.promessa} />
@@ -119,7 +119,7 @@ export function PregaoAberto() {
               </div>
             ) : pa.lider === you.id ? (
               <div style={{ background: '#E9F5EC', border: `3px solid ${INK}`, borderRadius: 11, padding: 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 13, textTransform: 'uppercase' }}>
-                ✋ {t('Você está na frente. Se ninguém cobrir em 6s, é seu.', 'You lead. Nobody tops it in 6s and it’s yours.')}
+                ✋ {t(`Você está na frente. Se ninguém cobrir em ${PA_MARTELO_MS / 1000}s, é seu.`, `You lead. Nobody tops it in ${PA_MARTELO_MS / 1000}s and it’s yours.`)}
               </div>
             ) : Math.floor(you.money) < minimo ? (
               <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
@@ -138,7 +138,7 @@ export function PregaoAberto() {
                     <button disabled={!pode(Number(outro))} onClick={() => { lance(Number(outro)); setOutro('') }} style={{ border: 'none', borderLeft: `3px solid ${INK}`, background: pode(Number(outro)) ? GREEN : '#CBBF9E', color: '#fff', fontWeight: 900, padding: '0 8px', cursor: 'pointer' }}>OK</button>
                   </div>
                 </div>
-                <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t('Cada lance novo zera o relógio. 6s sem lance = uma, duas, três… vendido!', 'Every new bid resets the clock. 6s without a bid = going once, twice… sold!')}</p>
+                <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada lance novo zera o relógio. ${PA_MARTELO_MS / 1000}s sem lance = uma, duas, três… vendido!`, `Every new bid resets the clock. ${PA_MARTELO_MS / 1000}s without a bid = going once, twice… sold!`)}</p>
               </>
             )}
           </>

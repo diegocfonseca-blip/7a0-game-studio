@@ -32,7 +32,7 @@ console.log('fila', total, 'cartas', porPos.map(([p, n]) => `${p} ${n}`).join(' 
 
 const me = s.managers[s.youIdx]
 const caixa0 = me.money
-let vendasHumano = 0, recusas = 0, cartas = 0, semLance = 0
+let vendasHumano = 0, recusas = 0, cartas = 0, semLance = 0, tetoMax1 = 0
 const vendidos = new Map<string, { mgr: number; preco: number }>()
 let guard = 0
 while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
@@ -41,6 +41,13 @@ while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
   if (!card) { s = reducer(s, { type: 'PREGAO_ABERTO_TICK' } as never); continue }
   const you = s.managers[s.youIdx]
   cartas++
+  // 🧠 nenhum robô topa mais que 35% do caixa numa carta só (40% se for lenda) — foi o "49 de primeira" do 1º teste
+  for (const [id, teto] of Object.entries(pa.tetos)) {
+    const m = s.managers.find(x => x.id === Number(id))!
+    const lim = Math.floor(m.money * (card.fame >= 5 ? 0.4 : 0.35))
+    assert.ok(teto <= Math.max(lim, 1), `${m.teamName} toparia ${teto} com ${m.money} no caixa (${card.name}, ${card.fame}⭐)`)
+  }
+  if (cartas === 1) tetoMax1 = Math.max(0, ...Object.values(pa.tetos))
   // o humano briga em ~1 de cada 4 cartas, até um teto dele
   const quer = cartas % 4 === 0 && paPodeLancar(s, you.id, paMinimo(s))
   const meuTeto = quer ? paMinimo(s) + 6 : 0
@@ -90,6 +97,7 @@ for (const m of s.managers) for (const pos of SECTORS) {
   const n = m.squad.filter(c => c.pos === pos).length
   assert.ok(n <= 6, `${m.teamName} com ${n} em ${pos}`)
 }
+console.log(`🧠 maior teto de robô na 1ª carta: ${tetoMax1}`)
 console.log(`✅ pregão aberto: ${cartas} cartas na mesa · ${vendidos.size} vendidas · ${semLance} sem lance → Monte · humano levou ${vendasHumano} · ${recusas} lances inválidos recusados · tela final: ${s.screen} · martelo ${PA_MARTELO_MS / 1000}s`)
 Date.now = realNow
 process.exit(0)

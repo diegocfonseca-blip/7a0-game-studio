@@ -17,6 +17,15 @@ apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
   "outro", travas explicadas (posição cheia · já está na frente · caixa não cobre), resenha do último martelo, campinho.
   Só o aparelho que joga tica (`PREGAO_ABERTO_TICK`); no online, quando for ligado, só o dono tica — por isso o lance já
   vai com `by` (uid), pronto pra rotear pro dono.
+- 🔁 **1º teste do Diego (16/10, 02:57): *"tem certeza que os bots estão inteligentes? só tem 100 moedas e teve gente que de
+  primeira já chegou em quase 50 num jogador"*.** Dois robôs duelaram até 49 num craque. Causa: o teto vinha do `cpuEnvelope`,
+  que divide o caixa por SETOR na ordem GOL→ATA — ATA é o último, então uma carta de ATA ganhava o bolso INTEIRO. Virou
+  `paTeto`: caixa ÷ vagas que faltam × categoria (lenda 2,6× · craque 1,8× · bom 1,1× · pro 0,8× · perna 0,5×), tempero por
+  bot+carta, preso ao `fairPrice`, e nunca mais que 35% do caixa numa carta (40% lenda). Medido: média 8 🪙 por carta, maior ~26,
+  todo robô fecha os 11. No caminho achei outro bug: `rngOf(state)` é fixo por estado e o tique não muda nada do estado — o
+  sorteio se REPETIA em todo tique e em toda carta do setor, então setores inteiros iam pro Monte sem lance (`paRng` agora anda
+  por carta e por tique). E ele pediu *"reduzir mais o tempo"*: martelo 6s → **4s**, o robô que abre já abre com uma fatia do
+  teto ("dou 8!") e pula 2–3 com folga. Medido: ~9s por carta, ~18 min com 10 clubes (115 cartas), ~33 min com 20.
 - **Trava**: `npm run pregao-aberto` (partida inteira no reducer: fila embaralhada, lance inválido recusado, uma carta =
   um dono, pagou o lance final, ninguém negativo, termina no Monte/cerimônia).
 - **Reverter**: `PREGAO_ABERTO_TESTERS` vazio esconde o botão; sem o botão nenhum save entra no modo.
