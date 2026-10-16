@@ -446,6 +446,9 @@ Pedido do Diego: o top 3 do Ranking da Semana ganha algo MAIS FORTE que a medalh
 `podio-semana.tsx`: moldura de metal girando POR FORA da linha na lista de técnicos da sala (ouro · prata · bronze), coroinha
 no 1º e fita "1º DA SEMANA" (ele testou "1º RANKING SEMANAL" e voltou pro "da semana"). Posição = a medalha 🥇🥈🥉 que já vai no nome (vem do banco).
 Mockup: `scripts/mockup-podio-semana.mjs`. Ideia futura (não pedida): levar a moldura pra outros lugares (placar, chat).
+✅ 16/10 (Diego: *"no ranking coloque a moldura que falamos"*): a MESMA moldura no top 3 do 📊 Ranking da Semana da home
+(`vitrine-salas.tsx`), e o rodapé diz que o top 3 leva medalha + moldura + fita nas salas. ⏳ Ele falou *"além das moedas"* —
+hoje o ranking da semana NÃO dá moeda; perguntado se quer criar prêmio em 🪙 (e quanto). Não inventar sem resposta.
 
 ## 🟢 Batismo ComVerissimo FC (15/10) — ✅ código + banco + deploy
 cesar.verissimo27@gmail.com (conta existe desde 30/07). Plano 🖋 FUNDADOR. Série D no assento do bot Soberano Nacional
