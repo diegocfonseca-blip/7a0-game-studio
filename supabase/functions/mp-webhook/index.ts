@@ -21,7 +21,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('metodo', { status: 405 })
-  const segredo = Deno.env.get('MP_WEBHOOK_SECRET'), token = Deno.env.get('MP_ACCESS_TOKEN')
+  // (as Secrets foram salvas com letra trocada — `MP_WRBHOOK_SECRET`/`MP_ACESSS_TOKEN` — e as duas grafias valem)
+  const segredo = Deno.env.get('MP_WEBHOOK_SECRET') ?? Deno.env.get('MP_WRBHOOK_SECRET'), token = Deno.env.get('MP_ACCESS_TOKEN') ?? Deno.env.get('MP_ACESSS_TOKEN')
   if (!segredo || !token) return new Response('sem_config', { status: 500 }) // 500 = o MP tenta de novo depois
   const u = new URL(req.url)
   const corpo = await req.text()

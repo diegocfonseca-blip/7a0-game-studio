@@ -26,7 +26,8 @@ const validade = (min: number) => {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   if (req.method !== 'POST') return resp(405, { erro: 'metodo' })
-  const token = Deno.env.get('MP_ACCESS_TOKEN')
+  // (o Diego salvou com a letra trocada — `MP_ACESSS_TOKEN` — e as duas grafias valem)
+  const token = Deno.env.get('MP_ACCESS_TOKEN') ?? Deno.env.get('MP_ACESSS_TOKEN')
   if (!token) return resp(500, { erro: 'sem_token' })
   const url = Deno.env.get('SUPABASE_URL')!
   const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
