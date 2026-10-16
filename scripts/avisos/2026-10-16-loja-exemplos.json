@@ -3,22 +3,22 @@
   "titulo": "O que tem na Loja do Clube 🛒",
   "destaque": {
     "passos": [
-      { "emoji": "🧑‍💼", "titulo": "Presidente", "sub": "roupas por plano" },
-      { "emoji": "🎟️", "titulo": "Salas extras", "sub": "3 por R$ 4,90" },
-      { "emoji": "🏦", "titulo": "Moedas", "sub": "direto no save" },
-      { "emoji": "📣", "titulo": "Canto", "sub": "a torcida do seu clube" }
+      { "emoji": "🧑‍💼", "titulo": "Presidente", "sub": "o boneco que é você" },
+      { "emoji": "⭐", "titulo": "Planos", "sub": "de uma vez só" },
+      { "emoji": "🎟️", "titulo": "Salas extras", "sub": "não vencem" },
+      { "emoji": "🏦", "titulo": "Moedas", "sub": "pra carreira" }
     ],
-    "nome": "Tudo de uma vez só, no Pix",
-    "linha": "nada de mensalidade"
+    "nome": "Tudo no Pix, nada de mensalidade",
+    "linha": "abre na 🛒 Loja do Clube, na home"
   },
   "itens": [
-    { "tag": "novidade", "texto": "**🧑‍💼 Meu presidente**: monte o boneco que é VOCÊ no jogo. **⭐ Craque** tem as roupas básicas, **👑 Lenda** libera smoking, couro e motoqueiro, e o **🖋 Fundador** leva a **fantasia de astronauta** e o **traje de gala dourado**." },
-    { "tag": "novidade", "texto": "**🎟️ Salas extras: 3 por R$ 4,90.** Acabou a sala do dia? Usa uma extra. **Não vencem nunca.**" },
-    { "tag": "novidade", "texto": "**🏦 Moedas pra carreira**: R$ 10 = 30 · R$ 50 = 150 · R$ 100 = 300 moedas. Comprou dentro da carreira, **cai direto no save que está aberto**. Comprou pela home, você **escolhe o save**." },
-    { "tag": "batismo", "texto": "**📣 Canto da torcida (R$ 10)** pra quem tem clube batizado: toca nos jogos da carreira e, no online, junto com a sua entrada de gala." },
-    { "tag": "plano", "texto": "**Planos de uma vez só**: ⭐ Craque R$ 29,90 · 👑 Lenda R$ 49,90 · 🖋 Batismo R$ 79,90 · 🖋 Fundador R$ 99,90. Subir de plano = paga só a diferença + R$ 5." }
+    { "tag": "novidade", "texto": "**🧑‍💼 Meu presidente**: monte o boneco que é VOCÊ, com pele, cabelo de lenda, barba e roupa. Ele aparece **na lista de técnicos da sala, no chat e no martelo quando você leva a carta**, com o fundo na cor do seu plano." },
+    { "tag": "plano", "texto": "**Os planos são uma escada**: ⭐ Craque · 👑 Lenda · 🖋 Batismo · 🖋 Fundador. Cada degrau leva tudo do anterior e libera mais roupas pro presidente, até a **fantasia de astronauta** e o **traje de gala dourado** do Fundador. Subir de plano = paga só a diferença." },
+    { "tag": "novidade", "texto": "**🎟️ Salas extras**: acabou a sala do dia? Usa uma extra. **Não vencem nunca.**" },
+    { "tag": "novidade", "texto": "**🏦 Moedas pra carreira**: reforço de caixa pro seu clube na hora de buscar aquele craque." },
+    { "tag": "batismo", "texto": "**📣 Canto da torcida** pra quem tem clube batizado: toca nos jogos da carreira e, no online, junto com a sua entrada de gala." }
   ],
-  "rodape": "Nas salas ninguém compra vantagem: o lance é igual pra todos.",
-  "rodapeSub": "Abra a 🛒 Loja do Clube na home 💛",
+  "rodape": "Tá tudo na 🛒 Loja do Clube, direto na home.",
+  "rodapeSub": "Nas salas ninguém compra vantagem: o lance é igual pra todos 💛",
   "saida": "scripts/posts/aviso-2026-10-16-loja-exemplos.png"
 }
