@@ -1,3 +1,12 @@
+## 📢 O GIRO DA RODADA ACABOU: AGORA É "ANÚNCIO DO DIA" (16/10) — ✅ NO AR
+- Diego: *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*. O letreiro
+  (`GiroDaRodada`, screens.tsx) mostra SÓ anúncio (avulso do dia `esc_giro_anuncio` + mensal `GIRO_ANUNCIO`), dourado e devagar.
+  Título "📢 ANÚNCIO DO DIA" + botão "ANUNCIE AQUI ›" que abre a Loja na seção de anúncio. Sem anunciante: "Este espaço pode ser seu".
+  Nada de "Clássico da sala"/resultado ali. `traduzManchete`/`corDoLed` ficaram exportadas caso ele queira o giro de volta.
+- ⚠️ O botão "Anuncie aqui" só aparece onde a seção "Sua marca no jogo" da Loja existe — hoje só nas contas do Diego
+  (`PATROCINIO_GERAL = false`). Pra ele aparecer pra TODOS, ligar `PATROCINIO_GERAL` (falta o OK dele: quem não tem o Pix MP
+  pagaria no Pix de sempre + comprovante no Instagram).
+
 ## 🚗 VADICO NOS 3 ESPAÇOS DA TELA (16/10) — ✅ NO AR PRA TODOS (*"o resto já pode publicar… LED no estádio faça também"*)
 - Champions Legends "apresentada por Vadico Veículos" liberada pra todos (`ESPACOS_GERAL = true` em `patrocinio.ts`).
   Copa dos 8 **sem** Vadico (ordem dele: *"já vai ter na Champions"*) — ela só ganha marca no Dia da marca.
