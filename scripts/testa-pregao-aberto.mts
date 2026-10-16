@@ -32,7 +32,7 @@ console.log('fila', total, 'cartas', porPos.map(([p, n]) => `${p} ${n}`).join(' 
 
 const me = s.managers[s.youIdx]
 const caixa0 = me.money
-let vendasHumano = 0, recusas = 0, cartas = 0, semLance = 0, tetoMax1 = 0
+let vendasHumano = 0, recusas = 0, cartas = 0, semLance = 0, tetoMax1 = 0, viradas = 0
 const vendidos = new Map<string, { mgr: number; preco: number }>()
 let guard = 0
 while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
@@ -41,6 +41,12 @@ while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
   if (!card) { s = reducer(s, { type: 'PREGAO_ABERTO_TICK' } as never); continue }
   const you = s.managers[s.youIdx]
   cartas++
+  // 🃏 carta coberta: a anterior fica virada PA_VIRA_MS na mesa; nesse meio-tempo ninguém lança
+  if (pa.viraAte && pa.viraAte > nowRef.t) {
+    assert.equal(paPodeLancar(s, you.id, paMinimo(s)), false, 'enquanto a carta anterior vira, lance é recusado')
+    viradas++
+    avanca(pa.viraAte - nowRef.t)
+  }
   // 🧠 nenhum robô topa mais que 35% do caixa numa carta só (40% se for lenda) — foi o "49 de primeira" do 1º teste
   for (const [id, teto] of Object.entries(pa.tetos)) {
     const m = s.managers.find(x => x.id === Number(id))!
@@ -50,7 +56,7 @@ while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
   }
   if (cartas === 1) tetoMax1 = Math.max(0, ...Object.values(pa.tetos))
   // 💰 a carta abre no preço da categoria (lenda 10 · craque 5 · promessa 4 · bom 3 · profissional 1), e esse é o mínimo
-  assert.equal(paMinimo(s), paAbertura(card), `abre no preço da categoria (${card.name} ${card.fame}⭐)`)
+  assert.equal(paMinimo(s), 1, `carta coberta: abre em 1 pra todas (${card.name} ${card.fame}⭐) — o preço não entrega a categoria`)
   assert.equal(paAbertura({ fame: 5 }), 10); assert.equal(paAbertura({ fame: 4 }), 5); assert.equal(paAbertura({ fame: 3, promessa: true }), 4)
   assert.equal(paAbertura({ fame: 3 }), 3); assert.equal(paAbertura({ fame: 2 }), 1); assert.equal(paAbertura({ fame: 1 }), 1)
   // o humano briga em ~1 de cada 4 cartas, até um teto dele
@@ -92,7 +98,8 @@ const presentes = s.managers.flatMap(m => m.squad.filter(c => String(c.id).start
 for (const c of presentes) { assert.equal((c as { paid?: number }).paid, 0, 'jogador da sobra é de graça'); assert.ok(!c.promessa && (c.fame ?? 1) <= 3, `${c.name} é profissional ou bom`) }
 // a carta dada nunca repete um jogador que já está em algum elenco (o baralho "todos" tem xarás de baralhos diferentes, isso é de lei)
 for (const c of presentes) assert.equal(s.managers.flatMap(m => m.squad).filter(x => x.name === c.name).length, 1, `${c.name} dado sem repetir ninguém`)
-console.log(`🎁 ${presentes.length} vaga(s) completada(s) de graça no fim`)
+console.log(`🎁 ${presentes.length} vaga(s) completada(s) de graça no fim · 🃏 ${viradas} cartas viraram na mesa`)
+assert.ok(viradas > 50, 'a carta vendida vira na mesa antes da próxima')
 // toda carta vendida está no elenco do comprador, uma vez só, e ninguém ficou negativo
 for (const [id, v] of vendidos) {
   const donos = s.managers.filter(m => m.squad.some(c => c.id === id))

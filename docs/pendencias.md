@@ -1,4 +1,4 @@
-## 🎁 PREGÃO ABERTO SEM MONTE (16/10) — motor pronto no branch, telas esperando OK do mockup
+## 🎁 PREGÃO ABERTO SEM MONTE + CARTA COBERTA (16/10) — ✅ NO AR (só Diego e Rossini)
 - Diego: sem Monte no fim do pregão aberto; quem ficou com vaga vazia ganha profissional/bom DE GRAÇA (das sobras da mesa,
   depois do catálogo livre; só se acabar tudo entra o incógnito). Perguntei se cobrava a abertura: *"deixa sem mesmo porque
   ele já vai ter jogador fraco no time"*. Motor: `paCompletaElencos` + `paFecha` (store.tsx) → vai direto pra cerimônia;
@@ -9,7 +9,10 @@
   diz só "nunca craque nem lenda" (sem falar "profissional/bom").
 - 🃏 **Carta coberta (ideia dele, mockup `scripts/mockups/carta-coberta.png`)**: no pregão aberto a carta aparece SEM
   categoria, cor, estrela e ROSTO até o martelo; aí vira e mostra tudo. Exige abrir TODA carta no mesmo preço (1), senão o
-  preço de abertura (`paAbertura`) entrega a categoria. Esperando OK.
+  preço de abertura (`paAbertura`) entrega a categoria. ✅ FEITO (*"ok pode fazer"*): toda carta abre em 1 (`PA_ABRE`);
+  `paAbertura` ficou só como régua interna do robô. A carta vendida VIRA NO MESMO LUGAR por 2s (`PA_VIRA_MS`, Diego: *"a carta
+  tem que apenas se transformar, não precisa ter uma do lado da outra"*) e ninguém lança nesse meio-tempo. A janela do fim
+  (`PresentesPregao`, index.tsx) some sozinha em 6s. ⚠️ A ÚLTIMA carta do pregão não vira (vai direto pra cerimônia).
 
 ## 🧑‍💼 PRESIDENTE LIBERADO PRA TODOS (16/10) — ✅ NO AR
 - Diego: *"já pode publicar p todos p personagem"* → `PRESIDENTE_CONTA_GERAL = true`. Vale: editor na 🛒 Loja (régua por plano) + Presidência da carreira.

@@ -339,6 +339,8 @@ export type PregaoAbertoState = {
   lances: { mgr: number; valor: number }[]
   /** quando o martelo bate se ninguém cobrir (ms) */
   deadline: number | null
+  /** 🃏 carta coberta (16/10): até quando a carta que acabou de sair fica VIRADA na mesa antes da próxima abrir (ms) */
+  viraAte?: number
   /** teto de cada robô pra carta da mesa (o MESMO `cpuEnvelope` do envelope decide) */
   tetos: Record<number, number>
   /** 🎲 contador de tiques da carta: o dado do pregão precisa ANDAR a cada tique (o `rngOf` é fixo por estado) */

@@ -6129,7 +6129,7 @@ function paTetos(state: EscState, card: Card): Record<number, number> {
 /** alguém (gente ou robô) ainda tem vaga e dinheiro pra esta posição? senão a carta nem entra na mesa */
 function paAlguemQuer(state: EscState, card: Card): boolean {
   const pos = card.pos
-  return state.managers.some(m => openSlots(m, pos) > 0 && m.money >= paAbertura(card) && (m.isHuman ? !m.dormindo : (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu)))))
+  return state.managers.some(m => openSlots(m, pos) > 0 && (m.isHuman ? (!m.dormindo && m.money >= PA_ABRE) : (m.money >= paAbertura(card) && (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu))))))
 }
 function abrePregaoAberto(state: EscState) {
   const rng = rngOf(state)
@@ -6156,7 +6156,11 @@ function paProximaCarta(state: EscState) {
     state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos))
     pa.preco = 0; pa.lider = null; pa.lances = []
     pa.tetos = paTetos(state, card)
-    pa.deadline = Date.now() + PA_MARTELO_MS
+    // 🃏 CARTA COBERTA (16/10, Diego: "a carta tem que apenas se transformar"): a que acabou de sair vira NA MESA por
+    // `PA_VIRA_MS` antes desta abrir — ninguém dá lance nesse meio-tempo, e o relógio dela só começa depois.
+    const vira = pa.vendidos.length > 0 ? PA_VIRA_MS : 0
+    pa.viraAte = vira ? Date.now() + vira : undefined
+    pa.deadline = Date.now() + vira + PA_MARTELO_MS
     return
   }
 }
@@ -6164,9 +6168,13 @@ function paProximaCarta(state: EscState) {
 export function paMinimo(state: EscState): number {
   if (!state.pa) return 1
   if (state.pa.lider !== null) return state.pa.preco + 1
-  const card = state.currentCards[0]
-  return card ? paAbertura(card) : 1
+  // 🃏 CARTA COBERTA (16/10, Diego: "aparecer o jogador mas sem mostrar a categoria da carta"): toda carta abre em 1.
+  // A abertura por categoria (`paAbertura`) entregava a categoria no preço; ela continua só como régua INTERNA do robô.
+  return PA_ABRE
 }
+export const PA_ABRE = 1
+/** quanto tempo a carta vendida fica virada na mesa, mostrando categoria e rosto (ms) */
+export const PA_VIRA_MS = 2000
 /** a tela pergunta isto pra acender os botões — a MESMA régua que o motor usa pra aceitar o lance */
 export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?: string): boolean {
   const pa = state.pa
@@ -6176,6 +6184,7 @@ export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?
   if (!duplaPodeAgir(state.duplas, mgrId, card.pos, uid)) return false
   if (openSlots(m, card.pos) <= 0) return false
   if (pa.lider === mgrId) return false // já está na frente: não cobre o próprio lance
+  if (pa.viraAte && Date.now() < pa.viraAte) return false // a carta anterior ainda está virando na mesa
   const v = Math.floor(Number(valor))
   if (!Number.isFinite(v) || v < paMinimo(state)) return false
   return v <= Math.floor(m.money)
@@ -6193,6 +6202,7 @@ function paTick(state: EscState) {
   if (!pa) return
   const card = state.currentCards[0]
   if (!card) { paProximaCarta(state); return }
+  if (pa.viraAte && Date.now() < pa.viraAte) return // 🃏 a carta que saiu ainda está virando: ninguém lança
   if (pa.deadline !== null && Date.now() >= pa.deadline) { paMartelo(state); return }
   pa.tiques++
   const rng = paRng(state, 0)

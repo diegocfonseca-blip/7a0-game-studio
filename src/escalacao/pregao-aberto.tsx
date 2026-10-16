@@ -48,6 +48,8 @@ export function PregaoAberto() {
   const pode = (v: number) => !!card && paPodeLancar(state, you.id, v, state.youUid)
   const lance = (v: number) => { if (pode(v)) dispatch({ type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: v, by: state.youUid }) }
   const ultimo = pa.vendidos[0]
+  // 🃏 a carta que acabou de sair VIRA no mesmo lugar (rosto, cor, estrelas, selo) por `PA_VIRA_MS`; depois entra a próxima, coberta
+  const virada = pa.viraAte && agora < pa.viraAte && ultimo ? pa.fila.find(x => x.id === ultimo.cardId) ?? null : null
   const form = FORMATIONS[you.formation ?? '4-3-3']
   const total = pa.fila.length
   const n = Math.min(total, pa.idx + 1)
@@ -56,6 +58,7 @@ export function PregaoAberto() {
 
   return (
     <Shell bar={<AuctionBar vagas={posVagas > 0 ? posVagas : undefined} />}>
+      <style>{CSS_VIRA}</style>
       <div className="space-y-3">
         {/* 🏷️ o nome do modo em cima: quem entrou na sala descobre AQUI em que pregão está */}
         <div style={{ background: INK, color: '#fff', border: `3px solid ${INK}`, borderRadius: 13, padding: '8px 11px', display: 'flex', alignItems: 'center', gap: 9, boxShadow: `4px 4px 0 0 ${INK}` }}>
@@ -63,6 +66,8 @@ export function PregaoAberto() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{t('Pregão aberto', 'Open outcry')}</p>
             <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>
+            {/* 🎁 sem Monte (16/10): quem entra já sabe que não fica com time furado — e que o presente nunca é craque nem lenda */}
+            <p style={{ display: 'inline-block', margin: '5px 0 0', background: GREEN, border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10, fontWeight: 800 }}>{t('🎁 Sem Monte: vaga vazia no fim ganha jogador de graça (nunca craque nem lenda)', '🎁 No pile: empty slots at the end get a free player (never a star or a legend)')}</p>
           </div>
           <div style={{ background: GOLD, color: INK, border: '2px solid #fff', borderRadius: 10, padding: '4px 9px', textAlign: 'center' }}>
             <b style={{ ...OSW, display: 'block', fontSize: 15, lineHeight: 1 }}>{Math.floor(you.money)} 🪙</b>
@@ -77,7 +82,9 @@ export function PregaoAberto() {
                 e com martelo de poucos segundos o lance tem que estar à mão sem rolar */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <div style={{ width: 210 }}>
-                <CollectibleCard name={card.name} club={card.club} year={card.year} pos={card.pos} fame={card.fame} folk={!!card.folk} promessa={card.promessa} />
+                {virada
+                  ? <div key={virada.id} className="pa-vira"><CollectibleCard name={virada.name} club={virada.club} year={virada.year} pos={virada.pos} fame={virada.fame} folk={!!virada.folk} promessa={virada.promessa} /></div>
+                  : <CartaCoberta name={card.name} club={card.club} year={card.year} pos={card.pos} />}
               </div>
             </div>
             <p style={{ margin: 0, textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>
@@ -148,14 +155,16 @@ export function PregaoAberto() {
 
         {/* 📣 o último martelo (zoeira curta — nada de teatro duplicado) */}
         {ultimo && (
-          <div style={{ background: ultimo.mgr === you.id ? GREEN : '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 10px', fontSize: 12, fontWeight: 700 }}>
+          <div style={{ background: ultimo.mgr === you.id ? GREEN : '#7C3AED', color: '#fff', border: `3px solid ${INK}`, borderRadius: 12, padding: '8px 10px', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ flex: 1 }}>
             {ultimo.mgr === null
-              ? t(`🙈 Ninguém quis ${ultimo.nome}. Foi pro Monte.`, `🙈 Nobody wanted ${ultimo.nome}. Off to the pile.`)
+              ? t(`🙈 Ninguém quis ${ultimo.nome}. Fica na sobra e pode cair de graça em quem terminar com vaga vazia.`, `🙈 Nobody wanted ${ultimo.nome}. It stays in the leftovers and may go free to whoever ends with an empty slot.`)
               : ultimo.mgr === you.id
                 ? t(`🔨 VENDIDO! ${ultimo.nome} é seu por ${ultimo.preco} 🪙.`, `🔨 SOLD! ${ultimo.nome} is yours for ${ultimo.preco} 🪙.`)
                 : ultimo.segundo > 0 && ultimo.preco - ultimo.segundo <= 2 && pa.vendidos[0] && state.managers.find(m => m.id === you.id)
                   ? t(`💸 ${ultimo.time} levou ${ultimo.nome} por ${ultimo.preco}. Faltou ${ultimo.preco - ultimo.segundo} — QUASE!`, `💸 ${ultimo.time} took ${ultimo.nome} for ${ultimo.preco}. Short by ${ultimo.preco - ultimo.segundo} — SO CLOSE!`)
                   : t(`💸 ${ultimo.time} levou ${ultimo.nome} por ${ultimo.preco} 🪙.`, `💸 ${ultimo.time} took ${ultimo.nome} for ${ultimo.preco} 🪙.`)}
+            </span>
           </div>
         )}
 
@@ -181,5 +190,66 @@ export function PregaoAberto() {
         <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem já fechou a posição não dá lance. Quem ficar sem peça pega no 🃏 Monte, como sempre.', 'Position full? No more bids there. Whoever is left short picks from the 🃏 pile, as always.')}</p>
       </div>
     </Shell>
+  )
+}
+
+// 🃏 CARTA COBERTA (16/10, mockup aprovado `scripts/mockups/carta-coberta.png`): durante o lance a carta não mostra
+// categoria, cor, estrela nem ROSTO — só nome, clube, ano e posição. Quem conhece futebol sabe; o jogo não entrega.
+export function CartaCoberta({ name, club, year, pos }: { name: string; club: string; year: number; pos: string }) {
+  const t = useT()
+  return (
+    <div style={{ position: 'relative', aspectRatio: '5 / 7', border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, overflow: 'hidden', background: 'repeating-linear-gradient(135deg,#E7DEC6 0 14px,#DED3B6 14px 28px)' }}>
+      <span style={{ position: 'absolute', top: 10, left: 10, background: INK, color: '#fff', borderRadius: 7, padding: '1px 7px', ...OSW, fontWeight: 900, fontSize: 13 }}>{pos}</span>
+      <span style={{ position: 'absolute', top: 10, right: 10, background: '#fff', border: `2px solid ${INK}`, borderRadius: 7, padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 11 }}>{t('❓ categoria', '❓ tier')}</span>
+      <div style={{ position: 'absolute', top: '22%', left: '50%', transform: 'translateX(-50%)', width: '46%', aspectRatio: '1', borderRadius: '50%', background: '#C9BD9C', border: '3px dashed #8a7d59', display: 'grid', placeItems: 'center', ...OSW, fontWeight: 900, fontSize: 44, color: '#8a7d59' }}>?</div>
+      <div style={{ position: 'absolute', left: 12, right: 10, bottom: 12 }}>
+        <b style={{ ...OSW, fontWeight: 900, fontSize: 20, display: 'block', lineHeight: 1.05 }}>{name}</b>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,.65)' }}>{club} · {year}</span>
+      </div>
+    </div>
+  )
+}
+
+const CSS_VIRA = `@keyframes paVira{0%{transform:perspective(500px) rotateY(90deg)}100%{transform:perspective(500px) rotateY(0)}}
+.pa-vira{animation:paVira .6s ease-out both}
+@keyframes paPres{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+@keyframes paBarra{from{width:100%}to{width:0}}`
+
+// 🎁 SEU TIME FECHOU DE GRAÇA (16/10): sem Monte no pregão aberto, a vaga vazia ganha jogador. Diego: *"no fim o cara precisa
+// apertar botão?? quando tiver na sala online isso não pode atrapalhar"* → SEM BOTÃO: aparece por cima, some sozinho em 6s,
+// toque fecha antes. Só pra quem ganhou carta, uma vez por partida.
+export function PresentesPregao() {
+  const { state } = useEsc()
+  const t = useT()
+  const you = state.managers[state.youIdx]
+  const ids = you ? state.paPresentes?.[you.id] ?? [] : []
+  const chave = ids.join('|')
+  const [fechado, setFechado] = useState<string | null>(null)
+  useEffect(() => {
+    if (!chave) return
+    const tm = setTimeout(() => setFechado(chave), 6000)
+    return () => clearTimeout(tm)
+  }, [chave])
+  if (!chave || fechado === chave || !you) return null
+  const cartas = you.squad.filter(c => ids.includes(c.id))
+  if (!cartas.length) return null
+  return (
+    <div onClick={() => setFechado(chave)} style={{ position: 'fixed', inset: 0, zIndex: 9990, display: 'grid', placeItems: 'center', padding: 16, background: 'rgba(12,12,12,.35)' }}>
+      <style>{CSS_VIRA}</style>
+      <div style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, textAlign: 'center', animation: 'paPres .35s ease-out both' }}>
+        <div style={{ height: 6, background: GREEN, borderRadius: 4, animation: 'paBarra 6s linear both', marginBottom: 8 }} />
+        <div style={{ fontSize: 32 }}>🎁</div>
+        <p style={{ ...OSW, fontWeight: 900, fontSize: 22, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>{t('Seu time fechou de graça!', 'Your squad got filled for free!')}</p>
+        <p style={{ fontSize: 12.5, fontWeight: 600, margin: '5px 0 12px' }}>{t(`Você terminou com ${cartas.length} vaga${cartas.length > 1 ? 's' : ''} vazia${cartas.length > 1 ? 's' : ''}. ${cartas.length > 1 ? 'Elas ganharam' : 'Ela ganhou'} jogador de graça.`, `You ended with ${cartas.length} empty slot${cartas.length > 1 ? 's' : ''}. ${cartas.length > 1 ? 'They got' : 'It got'} a free player.`)}</p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {cartas.map(c => (
+            <div key={c.id} className="pa-vira" style={{ width: 92 }}>
+              <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={!!c.folk} promessa={c.promessa} />
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: 10.5, fontWeight: 600, opacity: .6, margin: '12px 0 0' }}>{t('some sozinho em 6s · toque pra fechar antes', 'closes by itself in 6s · tap to close now')}</p>
+      </div>
+    </div>
   )
 }
