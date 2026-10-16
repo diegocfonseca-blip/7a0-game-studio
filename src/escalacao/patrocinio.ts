@@ -22,3 +22,8 @@ export function patrocinioDe(kind: Competicao): Patrocinio | null {
   if (!PATROCINIO_GERAL && !PATROCINIO_TESTERS.has(email)) return null
   return POR_COMPETICAO[kind] ?? null
 }
+
+/** 💼 a seção "Sua marca no jogo" da Loja (Dia da marca + mensal) — mesma trava: começa só nas contas do Diego */
+export function patrocinioLojaOk(): boolean {
+  return PATROCINIO_GERAL || PATROCINIO_TESTERS.has((loggedEmail() ?? '').toLowerCase())
+}

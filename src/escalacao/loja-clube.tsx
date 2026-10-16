@@ -24,7 +24,8 @@ import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, PRECOS_UNICO, PRECOS_DUPLO, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
 import { PresenteBox } from './presente'
-import { PixMP, type ProdutoMp } from './pix-mp'
+import { PixMP, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
+import { patrocinioLojaOk } from './patrocinio'
 import { usePixMp } from './sport'
 import { useEsc } from './store'
 import { MeuPresidenteLoja } from './presidente-loja'
@@ -93,7 +94,7 @@ function ResgateFicha() {
 }
 
 // 💳 item da Loja → produto do Pix do Mercado Pago (15/10): salas extras, canto e moedas já vão pelo Pix novo
-const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : null
+const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : id === 'dia-marca' ? 'dia_marca' : null
 function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira?: boolean }) {
   const pixMp = usePixMp()
   const { state: esc, dispatch: escDispatch } = useEsc()
@@ -159,6 +160,9 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
               </div>
               <span style={{ ...preco, background: '#fff', color: INK }}>{atual ? '+ ' : ''}{reais(precoSubida(pl, atual))} ›</span>
             </div>} />)}
+            {/* 📲 16/10 (Diego: "coloque meu telefone também pra quem faz batismo e fundador caso queira tirar dúvidas") */}
+            {acima.some(pl => pl === 'batismo' || pl === 'fundador') && <a href={`https://wa.me/${WHATSAPP_CONTATO}?text=${encodeURIComponent(tr('Oi Diego! Tenho uma dúvida sobre o batismo/Fundador do Leilão Legends.', 'Hi Diego! I have a question about the Leilão Legends Club Naming/Founder.'))}`} target="_blank" rel="noreferrer"
+              style={{ display: 'block', textAlign: 'center', fontSize: 11.5, fontWeight: 800, color: GREEN, textDecoration: 'underline' }}>{tr(`💬 Dúvida sobre Batismo ou Fundador? WhatsApp do Diego: ${WHATSAPP_TXT}`, `💬 Questions about Club Naming or Founder? Diego’s WhatsApp: ${WHATSAPP_TXT}`)}</a>}
             {/* 💛 PLANO DUPLO (16/10, Diego: "plano duplo… 10%… sutilmente embaixo do plano" + "o valor tem que ser um só pagando"):
                 só no Pix novo, e só quando sai mais barato que subir + presentear separado */}
             {pixMp && acima.filter(pl => PRECOS_DUPLO[pl] < precoSubida(pl, atual) + PRECOS_UNICO[pl]).map(pl => duploAberto === pl
@@ -214,6 +218,34 @@ function Loja({ onClose, naCarreira = false }: { onClose: () => void; naCarreira
           : tr('Depois de pagar, você escolhe em qual carreira elas caem. Vale só na carreira solo.', 'After paying, you choose which career they go to. Solo career only.')}</p>
           : <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: 'rgba(12,12,12,.6)', lineHeight: 1.4 }}>{tr('Você recebe uma FICHA e resgata na carreira que quiser, quando quiser: Clube › Finanças › 🏦 Banco Legends. Moeda vale só na carreira solo (não entra em sala online nem em liga dos amigos).', 'You get a VOUCHER and redeem it in whichever career you like, whenever you like: Club › Finances › 🏦 Banco Legends. Coins only work in the solo career (not in online rooms or friends’ leagues).')}</p>}
         {naCarr && <ResgateFicha />}
+
+        {/* 💼 SUA MARCA NO JOGO (16/10, Diego): ⚡ Dia da marca pago no Pix (depois chama o Diego) · 📅 mensal SEM preço, só o que
+            vem no pacote e o contato. Começa só nas contas do Diego (`patrocinioLojaOk`). */}
+        {patrocinioLojaOk() && <>
+          <h2 style={h2}>{tr('💼 Sua marca no jogo', '💼 Your brand in the game')} <span style={sub}>{tr('pra empresas', 'for businesses')}</span></h2>
+          <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 30 }}>⚡</span>
+            <div style={{ flex: 1 }}>
+              <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Dia da marca', 'Brand day')}</b>
+              <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Por 24 horas sua marca ganha o destaque da home, com bio e cupom, e passa no LED do estádio. Depois do Pix, você combina o dia com o Diego.', 'For 24 hours your brand gets the home spotlight, with bio and coupon, and runs on the stadium LED. After the Pix, you set the day with Diego.')}</small>
+            </div>
+            <button onClick={() => setComprando({ id: 'dia-marca', amount: 50, ctx: 'loja · dia da marca', msgPt: 'Opa! Comprei o ⚡ DIA DA MARCA (R$ 50). Minha marca: ____', msgEn: 'Hey! I bought the ⚡ BRAND DAY (R$ 50). My brand: ____' })} style={preco}>{reais(50)}</button>
+          </div>
+          <div style={{ ...card, marginTop: 8 }}>
+            <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('📅 Patrocínio mensal', '📅 Monthly sponsorship')}</b>
+            <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 12, fontWeight: 700, lineHeight: 1.55 }}>
+              <li>{tr('🏆 Nome da competição: "Champions Legends apresentada por… sua marca"', '🏆 Competition name: "Champions Legends presented by… your brand"')}</li>
+              <li>{tr('🏟️ Placa de LED no fundo do estádio', '🏟️ LED board at the back of the stadium')}</li>
+              <li>{tr('📰 Anúncio no jornal O MARTELO do campeão', '📰 Ad in the champion’s O MARTELO newspaper')}</li>
+              <li>{tr('🏪 Cartão na Vitrine dos patrocinadores, com logo, bio, Instagram e cupom', '🏪 Card in the Sponsors showcase, with logo, bio, Instagram and coupon')}</li>
+            </ul>
+            <p style={{ fontSize: 11.5, fontWeight: 800, margin: '8px 0 0' }}>{tr('Quer saber mais? Fala com a gente:', 'Want to know more? Talk to us:')}</p>
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              <a href="https://ig.me/m/leilaolegendscom" target="_blank" rel="noreferrer" style={{ flex: 1, textAlign: 'center', ...OSW, fontSize: 13, textTransform: 'uppercase', background: '#E1306C', color: '#fff', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 6px', textDecoration: 'none' }}>📷 Direct @leilaolegendscom</a>
+              <a href={`mailto:${EMAIL_CONTATO}?subject=${encodeURIComponent('Patrocínio mensal · Leilão Legends')}`} style={{ flex: 1, textAlign: 'center', ...OSW, fontSize: 13, textTransform: 'uppercase', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 6px', textDecoration: 'none' }}>✉️ E-mail</a>
+            </div>
+          </div>
+        </>}
 
         {/* 💳 COMO PAGAR (o item escolhido) */}
         {comprando && <div id="loja-pagar" style={{ ...card, marginTop: 18, background: '#FFF8E1' }}>

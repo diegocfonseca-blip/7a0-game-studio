@@ -1,3 +1,11 @@
+## 💼 LOJA: "SUA MARCA NO JOGO" + WhatsApp do Diego (16/10) — ✅ publicado (seção de marca só nas contas do Diego)
+- WhatsApp do Diego **(21) 99888-6982** (`WHATSAPP_CONTATO` em pix-mp.tsx): aparece depois do Pix de Batismo/Fundador/canto (briefing),
+  na linha "💬 Dúvida sobre Batismo ou Fundador?" embaixo dos planos na Loja (pra TODOS) e depois do Pix do Dia da marca.
+- Seção "💼 Sua marca no jogo" (gate `patrocinioLojaOk`): ⚡ Dia da marca R$ 50 (Pix MP, produto `dia_marca`; depois do Pix mostra
+  WhatsApp + Instagram pra combinar dia/nome/bio/cupom) e 📅 mensal SEM preço (o que vem + direct @leilaolegendscom + e-mail).
+- ⚠️ **O Pix do Dia da marca só funciona depois de publicar a Edge Function `mp-criar-pix`** (o arquivo local já tem `dia_marca`,
+  `moedas_500`, `moedas_1000`). Banco já aceita (`esc_mp_preco_ref` → 50,00). Esperando o OK do Diego pro deploy.
+
 ## 🚗 VADICO VEÍCULOS: "Champions Legends apresentada por" (16/10) — ✅ NO AR só nas contas do Diego
 - Diego: *"publique agora da Vadico Veículos pra eu ver como fica… deixe a Champions Legends apresentada por Vadico Veículos"*.
 - `src/escalacao/patrocinio.ts` (`POR_COMPETICAO`, uma marca por competição) + selo no `CompetitionStage` (online-match-visual.tsx).
