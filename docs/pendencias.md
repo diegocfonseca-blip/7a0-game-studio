@@ -30,6 +30,21 @@
 - A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
 - Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
 
+## 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10) — ✅ NO AR (ele escolheu a OPÇÃO B: *"B"*)
+- Feito: com `narracaoNoRadio` a faixa de cima do placar SAI e o 📻 RÁDIO LEGENDS leva tudo, por prioridade (apito final ·
+  gol · chance do golzinho · apito inicial/intervalo · cartão da Kings · frase do rádio · retrospecto), com selo por tipo
+  (⚽ GOL · 🥅 LANCE · 📻 JOGO) e a fala anterior apagadinha embaixo (`falaMem` em `pyramidseason.tsx`, `LinhaFala` em
+  `online-match-visual.tsx`). Chance agora fala o NOME do jogador em todo jogo (antes só Kings) e ganhou +8 frases por tipo
+  (defendeu · trave · fora · isolou = 14 cada). Basquete e rodada instantânea seguem como antes (sem rádio = faixa de cima).
+- Reverter: tirar o `narracaoNoRadio` do `LiveScoreCard` volta as duas falas como eram.
+- Diego: *"não tá tendo muito sentido o rádio com as legendas no topo… em cima tem narração e no rádio também. Tem que juntar
+  todo tipo de frase num lugar só… e mais variedade, falar mais o nome dos jogadores: vai chutar, chutou pra fora, fez o gol"*.
+- Hoje: topo do placar (`ll25-narration`, frases de chance/gol de `chances.ts`/`lances.ts`) + 📻 rádio embaixo do golzinho
+  (`ll42-radio`, `radio.ts`, que é PROIBIDA de narrar chute e gol). Mockup `node scripts/mockup-narracao-um-lugar.mjs` →
+  `scripts/mockups/narracao-um-lugar.png`: A = tudo numa faixa no TOPO (recomendei) · B = tudo no rádio embaixo.
+- Depois do OK: juntar as três fontes numa fila só por minuto, liberar a rádio pra chute/trave/defesa/gol COM NOME, e manter
+  pênalti fora e nada que entregue o placar antes da hora. Vale pro online, carreira e Kings (mesmo placar).
+
 ## 🦅⚫⚪ GAVIÕES SCCP VIROU 🖋 FUNDADOR (16/10) — ✅ NO AR: banco + gala v3 "Aqui é Fiel" + canto (aprovado pelo Diego)
 - kauealves584 já tinha fundador nº83; gravado `esc_compras_batismo` = plus (16/10).
 - 📣 Canto: 12 s de "Todo Poderoso Timão" (o áudio que o Diego mandou, trecho 3,2 s → 15,2 s, de pausa a pausa) →
@@ -116,8 +131,16 @@
   Dia da marca NÃO tira o mensal: home só da marca do dia · LED alternando as duas · competição e O MARTELO seguem com a do mês.
   Mockup 2: `node scripts/mockup-patrocinio-2.mjs` → `scripts/mockups/patrocinio-2.png`.
 
-## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 9,90 (16/10) — ⏳ A FAZER
-- Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*.
+## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 14,90 (16/10) — ⏳ A FAZER
+- Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*, e na mesma conversa subiu:
+  *"ficha avulsa pode botar aí R$ 14,90"*. Mockup do cartão + 6 ideias novas pra ele escolher:
+  `node scripts/mockup-loja-ideias.mjs` → `scripts/mockups/loja-ideias.png` (frase do martelo 4,90 · pacote de áudios de zoeira
+  4,90 · figurinhas do chat 3,90 · capa do O MARTELO 4,90 · vitrine semanal do presidente 2,90+ · presente de avulso). ⏳ ele escolher.
+- 2ª leva de ideias (mesmo dia, ele pediu *"mais ideias"*), também só visual/zoeira, ⏳ ele escolher: 🏆 taça com nome da sala
+  online (4,90 por sala) · 👕 aposentar a camisa de um ídolo na carreira, vai pra Sala de Troféus (2,90) · ✨ carta brilhante do seu
+  craque, só no seu elenco (2,90) · 🎉 mosaico da torcida com o nome do clube no jogo do título (4,90) · 🌧️ tema da sala online
+  (noite, chuva, neve) escolhido pelo dono (4,90) · 🎙️ narrador gritando o nome do seu clube no gol, carreira (9,90) · 💌 convite de
+  sala com a arte do seu clube pra mandar no zap (1,90).
 - +1 ficha de carreira além do limite do plano (grátis 1 · Craque 2 · Lenda 4 · Batismo 4), igual às 🎟️ salas extras.
 - Vende pelo Pix do Mercado Pago (produto novo no `esc_mp_preco`/`esc_mp_entregar` + nome na edge function).
 - Mockup na Loja ANTES de codar. Nunca apagar/travar save por causa do limite.

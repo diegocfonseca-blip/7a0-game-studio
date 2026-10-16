@@ -29,7 +29,7 @@ import {PresidenciaEstadioCamera} from './presidencia-estadio-camera'
 import {PRESIDENCY_STADIUM_RELEASED,PRESIDENCY_PARKING_STAGES_RELEASED} from './presidencia-lotes'
 import {traduzirLancamentoPresidencia} from './presidencia-extrato'
 import { ONLINE_VISUAL_RELEASED } from './online-release'
-import { OnlineScorePresentation, CompactPenalties } from './online-match-visual'
+import { OnlineScorePresentation, CompactPenalties, type FalaRadio } from './online-match-visual'
 import { CareerCompetitionStage, CareerCompetitionHelp, CareerCupGames, CareerLeagueGames } from './career-match-visual'
 import { ZonaSegura } from './zona-segura' // 🛟 pedaço da tela que cai não derruba a tela (13/09)
 import { careerCupAssists } from './career-match-model'
@@ -3261,12 +3261,14 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     if (!c) return
     lancesVistos.current.mins.push(c.min)
     const clube = nomeLimpo(c.home ? homeName : awayName)
-    setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en', relogioKings ? quemFinalizou(c.home ? elencos?.casa : elencos?.fora, c, clube) : null) }) // 🧑 jogador no lance: SÓ na Kings (Diego 15/10: "isso é só pra Kings League")
+    setLance({ minute:c.min,startedAt:performance.now(),speed:fieldSpeed,roundKey,side: c.home ? 'h' : 'a', fim: c.fim, key: c.min * 10 + (c.home ? 1 : 2), txt: narraChance(c, clube, getLang() === 'en', quemFinalizou(c.home ? elencos?.casa : elencos?.fora, c, clube)) }) // 🧑 jogador no lance: começou SÓ na Kings (15/10) e foi pra todo jogo em 16/10 (Diego: "tem que falar mais o nome dos jogadores")
     if (lanceTimer.current) clearTimeout(lanceTimer.current)
     lanceTimer.current = setTimeout(() => { setLance(null); lanceTimer.current = null }, CHANCE_MS/fieldSpeed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [min, roundKey, finished, done, goal, voo, chances])
   useEffect(() => () => { if (lanceTimer.current) clearTimeout(lanceTimer.current) }, [])
+  // 🎙️ rádio único (16/10, opção B): guarda a fala que acabou de sair pra mostrar apagadinha embaixo da nova
+  const falaMem = useRef<{ key: number; atual: FalaRadio | null; anterior: FalaRadio | null }>({ key: roundKey, atual: null, anterior: null })
   void iAmHome
 
   const Team = ({ name, color, you, flash }: { name: string; color: string; you: boolean; flash?: boolean }) => {
@@ -3372,20 +3374,35 @@ export function LiveScoreCard({ homeName, awayName, homeColor, awayColor, youIsH
     // ⚽🥅 o golzinho: no GOL a bola entra na rede de quem tomou (a casa ataca a
     // direita); numa CHANCE, o final dela. Quieto entre um lance e outro.
     palcoOn={!basket}
+    narracaoNoRadio
     radio={basket || radioLances.length === 0 ? null : (() => {
-      // ⭐ no apito: o CRAQUE DO JOGO (13/10) — sem autor nenhum, a rádio se despede
-      if (fechado) {
-        const c = craqueDoJogo(shown)
-        if (c) return { tag: tr('⭐ CRAQUE DO JOGO', '⭐ PLAYER OF THE MATCH'), tom: 'craque' as const, min: '', txt: fraseCraque(c, nomeLimpo(c.home ? homeName : awayName), emIngles) }
-        return { min: '', txt: tr('Fim de papo aqui na Rádio Legends.', 'That is all from Radio Legends.') }
-      }
-      const ex = radioExtra?.filter(e => min >= e.min && min < e.min + 4).pop()
-      if (ex) return { min: minTxt(ex.min), txt: ex.txt }
-      const r = radioNoMinuto(radioLances, min)
-      if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles, elencos, !!relogioKings) }
-      // 🆚 antes da 1ª frase: o RETROSPECTO entre os dois donos (só sala online, gente × gente)
-      if (retro) return { tag: `🆚 ${tr('VOCÊ', 'YOU')} × ${retro.rival.toUpperCase()}`, tom: 'retro' as const, min: '', txt: fraseRetro(retro.r, emIngles, roundKey) }
-      return { min: '', txt: tr('Rádio ligada. Bola rolando!', 'Radio on. Ball rolling!') }
+      // 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10, opção B do Diego): o rádio leva TUDO, na ordem de prioridade —
+      // apito final · gol (selo + autor + lance) · chance do golzinho · apito inicial/intervalo · cartão da Kings ·
+      // a frase do rádio · retrospecto. A fala que sai fica apagadinha embaixo da nova.
+      const atual: FalaRadio = (() => {
+        if (fechado) {
+          const c = craqueDoJogo(shown)
+          if (c) return { tag: tr('⭐ CRAQUE DO JOGO', '⭐ PLAYER OF THE MATCH'), tom: 'craque' as const, min: '', txt: fraseCraque(c, nomeLimpo(c.home ? homeName : awayName), emIngles) }
+          return { min: '', txt: fimTxt ?? tr('Fim de papo aqui na Rádio Legends.', 'That is all from Radio Legends.') }
+        }
+        if (golSide && last) return { tipo: 'gol' as const, min: minTxt(last.min), txt: `${goalStamp} ${last.name}${lanceUltimo ? ` — ${lanceUltimo}` : ''}` }
+        if (lance) return { tipo: 'lance' as const, min: minTxt(lance.minute), txt: lance.txt }
+        if (ritualTxt) return { min: '', txt: ritualTxt }
+        const ex = radioExtra?.filter(e => min >= e.min && min < e.min + 4).pop()
+        if (ex) return { min: minTxt(ex.min), txt: ex.txt }
+        const r = radioNoMinuto(radioLances, min)
+        if (r) return { min: minTxt(r.min), txt: narraRadio(r, nomeLimpo(homeName), nomeLimpo(awayName), emIngles, elencos, !!relogioKings) }
+        // 🆚 antes da 1ª frase: o RETROSPECTO entre os dois donos (só sala online, gente × gente)
+        if (retro) return { tag: `🆚 ${tr('VOCÊ', 'YOU')} × ${retro.rival.toUpperCase()}`, tom: 'retro' as const, min: '', txt: fraseRetro(retro.r, emIngles, roundKey) }
+        return { min: '', txt: tr('Rádio ligada. Bola rolando!', 'Radio on. Ball rolling!') }
+      })()
+      const mem = falaMem.current
+      if (mem.key !== roundKey) { mem.key = roundKey; mem.atual = null; mem.anterior = null }
+      if (mem.atual && mem.atual.txt !== atual.txt) mem.anterior = mem.atual
+      mem.atual = atual
+      // no apito final, o resultado fica de "anterior" embaixo do craque do jogo
+      const anterior = fechado && fimTxt && atual.tom === 'craque' ? { min: '', txt: fimTxt } : mem.anterior
+      return { ...atual, anterior: anterior && anterior.txt !== atual.txt ? anterior : null }
     })()}
     // 🎬 a bola do GOL sai no minuto do gol (`voo`) e o resto da festa só depois que
     //    ela entra — o `voo` fica até a rede parar de balançar (ver GOL_ENTRA_MS)
