@@ -6,7 +6,7 @@
 //   · o martelo vende pro líder; sem lance, a carta vai pro Monte; e no fim o jogo segue pro Monte/cerimônia
 //   npx tsx scripts/testa-pregao-aberto.mts
 import assert from 'node:assert/strict'
-import { reducer, paPodeLancar, paMinimo, paAbertura, PA_MARTELO_MS, PA_TICK_MS, openSlots } from '../src/escalacao/store'
+import { reducer, paPodeLancar, paMinimo, paAbertura, paMesa, PA_DUPLO_A_PARTIR, PA_MARTELO_MS, PA_TICK_MS, openSlots } from '../src/escalacao/store'
 import type { EscState } from '../src/escalacao/types'
 import { SECTORS } from '../src/escalacao/types'
 
@@ -88,7 +88,7 @@ while (s.phase === 'pregao' && s.screen === 'auction' && guard++ < 20000) {
     else { vendidos.set(id, { mgr: v.mgr, preco: v.preco }); if (v.mgr === you.id) vendasHumano++ }
   }
 }
-assert.ok(guard < 20000, 'o pregão termina')
+assert.ok(guard < 20000, "o pregão termina")
 assert.ok(['monte', 'cerimonia', 'season'].includes(s.screen), `seguiu pro Monte/cerimônia (tela ${s.screen})`)
 assert.equal(s.pa, undefined, 'estado vivo limpo no fim')
 // 🚫🃏 16/10: sem Monte — todo time fecha as vagas de graça (profissional/bom de verdade), e o Monte fica vazio
@@ -119,5 +119,35 @@ for (const m of s.managers) for (const pos of SECTORS) {
 }
 console.log(`🧠 maior teto de robô na 1ª carta: ${tetoMax1}`)
 console.log(`✅ pregão aberto: ${cartas} cartas na mesa · ${vendidos.size} vendidas · ${semLance} sem lance (sobra, sem Monte) · humano levou ${vendasHumano} · ${recusas} lances inválidos recusados · tela final: ${s.screen} · martelo ${PA_MARTELO_MS / 1000}s`)
+// 🔨🔨 DUAS MESAS (17/10, Diego: "a partir de 11 pessoas será duplo, até 10 mantém individual")
+assert.equal(PA_DUPLO_A_PARTIR, 11)
+for (const rivals of [9, 10, 15]) {
+  let d = reducer({} as EscState, { type: 'NEW_GAME' } as never)
+  d = reducer(d, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals, career: false, league: 'both', copaMode: 'liga_copa', intro: false, pregaoAberto: true } as never)
+  const clubes = d.managers.filter(m => m.isHuman || m.auctionRival).length
+  assert.equal(!!d.pa?.duplo, clubes >= 11, `${clubes} clubes: ${clubes >= 11 ? 'duas mesas' : 'uma mesa só'}`)
+  let ticks = 0, mesma = 0, lanceMesa2 = false
+  while (d.screen === 'auction' && ticks++ < 40000) {
+    avanca(PA_TICK_MS)
+    const you = d.managers[d.youIdx]
+    // o humano também briga na mesa 2 (o lance roteia pela mesa certa)
+    if (d.pa?.duplo && paMesa(d, 1)?.card && ticks % 37 === 0 && paPodeLancar(d, you.id, paMinimo(d, 1), undefined, 1)) {
+      d = reducer(d, { type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: paMinimo(d, 1), mesa: 1 } as never)
+      if (paMesa(d, 1)?.M.lider === you.id) lanceMesa2 = true
+    }
+    d = reducer(d, { type: 'PREGAO_ABERTO_TICK' } as never)
+    const a = paMesa(d, 0)?.card, b = d.pa?.duplo ? paMesa(d, 1)?.card : null
+    if (a && b && a.pos === b.pos) mesma++
+  }
+  const part = d.managers.filter(m => m.isHuman || m.auctionRival)
+  const ids = part.flatMap(m => m.squad.map(c => `${c.name}|${c.club}|${c.year}`))
+  assert.ok(d.screen !== 'auction', `${clubes} clubes: o pregão termina`)
+  assert.equal(mesma, 0, 'as duas mesas nunca têm a mesma posição')
+  assert.equal(ids.length, new Set(ids).size, 'nenhuma carta em dois clubes')
+  for (const m of d.managers) assert.ok(m.money >= 0, `${m.teamName} não ficou negativo`)
+  for (const m of part) assert.ok(m.squad.length >= 11, `${m.teamName} fechou o time`)
+  if (clubes >= 11) assert.ok(lanceMesa2, 'o humano conseguiu dar lance na mesa 2')
+  console.log(`   ${clubes} clubes · ${clubes >= 11 ? 'duas mesas' : 'uma mesa'} · ${Math.round(ticks * PA_TICK_MS / 60000)} min de pregão`)
+}
 Date.now = realNow
 process.exit(0)

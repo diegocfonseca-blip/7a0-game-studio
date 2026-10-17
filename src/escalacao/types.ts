@@ -349,6 +349,23 @@ export type PregaoAbertoState = {
   vendidos: { cardId: string; nome: string; pos: Sector; mgr: number | null; time: string | null; preco: number; segundo: number }[]
   /** ninguém quis → vai pro Monte no fim */
   sobras: Card[]
+  /** 🃏 qual carta está VIRANDO na mesa 1 agora (a que acabou de sair dela) */
+  viraId?: string
+  /** 🔨🔨 DUAS MESAS (17/10, Diego: "a partir de 11 pessoas será duplo, até 10 mantém individual"): a 2ª carta na mesa, sempre de
+   *  posição DIFERENTE da 1ª, com lance e relógio próprios. A mesa 1 continua morando nos campos de cima + `currentCards[0]`. */
+  duplo?: boolean
+  m2?: PaMesa
+}
+/** 🔨🔨 a 2ª mesa do pregão aberto: os MESMOS campos da 1ª, mais a carta dela */
+export type PaMesa = {
+  card: Card | null
+  preco: number
+  lider: number | null
+  lances: { mgr: number; valor: number }[]
+  deadline: number | null
+  viraAte?: number
+  viraId?: string
+  tetos: Record<number, number>
 }
 export type HolandesState = {
   /** preço na tela agora — UM só pra leva inteira (vai caindo pela escada) */

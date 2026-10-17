@@ -224,7 +224,10 @@ apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
 - ⏳ **17/10: "tá muito demorado… quanto mais pessoas, mais lento"**. Proposta em mockup (`node scripts/mockup-pregao-duas-cartas.mjs`
   → `scripts/mockups/pregao-duas-cartas.png`): DUAS cartas na mesa, sempre de posições diferentes, cada uma com o próprio relógio
   de 5s (martelou uma, a próxima entra no lugar dela). Corta pela metade (~30 → ~15 min com 20 pessoas). A 2ª mesa liga sozinha
-  a partir de 7 clubes. Esperando o OK dele.
+  a partir de 7 clubes. ✅ **FEITO (17/10)** com a régua dele: *"a partir de 11 pessoas será duplo, até 10 mantém individual"*
+  (`PA_DUPLO_A_PARTIR = 11`, conta só quem DISPUTA: gente + robôs rivais). A 2ª mesa mora em `pa.m2` com os mesmos campos da 1ª;
+  `paMesa(state, k)` lê qualquer uma; o lance leva `mesa`; o caixa já preso como líder na outra mesa não conta (`paComprometido`).
+  Na tela, `MesaPregao` é desenhada 1× ou 2× lado a lado. Medido: 10 clubes 18 min (uma mesa) · 11 clubes 11 min · 16 clubes 16 min.
 - **Trava**: `npm run pregao-aberto` (partida inteira no reducer: fila embaralhada, lance inválido recusado, uma carta =
   um dono, pagou o lance final, ninguém negativo, termina no Monte/cerimônia).
 - **Reverter**: `PREGAO_ABERTO_TESTERS` vazio esconde o botão; sem o botão nenhum save entra no modo.
