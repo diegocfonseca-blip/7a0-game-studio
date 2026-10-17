@@ -41,6 +41,7 @@ import { GalaFabulous, FABULOUS_MS } from './gala-fabulous'
 import { GalaComverissimo, COMVERISSIMO_MS } from './gala-comverissimo'
 import { GalaGavioes, GAVIOES_MS } from './gala-gavioes'
 import { GalaCuiudos, CUIUDOS_MS } from './gala-cuiudos'
+import { GalaSeven, SEVEN_MS } from './gala-seven'
 
 const INK = '#0C0C0C', GOLD = '#FFC400'
 const OSWALD: React.CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 }
@@ -58,6 +59,7 @@ const GALA_UNICA: Record<string, { ms: number; Show: typeof GalaHelicoptero }> =
   'ComVerissimo FC': { ms: COMVERISSIMO_MS, Show: GalaComverissimo }, // 🎬🧢 no formato dos vídeos dele: parede de camisas, notícia, legenda amarela (15/10, Fundador)
   'Fabulous EC': { ms: FABULOUS_MS, Show: GalaFabulous }, // 🦅⚡ guerreiros se transformam, trovoada e a águia (15/10, Fundador)
   'Gaviões SCCP': { ms: GAVIOES_MS, Show: GalaGavioes }, // 🦅⚫⚪ o bando cruza o céu e o Gavião mergulha (16/10, Fundador)
+  'Seven City': { ms: SEVEN_MS, Show: GalaSeven }, // 🍀7️⃣ caça-níquel 7·7·7, jackpot de moedas e trevos (17/10)
   'Cuiudos FC': { ms: CUIUDOS_MS, Show: GalaCuiudos }, // 🤠🔵 porteira, caminhonete, chapéu e laço no escudo (17/10, Fundador)
 }
 /** quanto tempo a entrada deste clube ocupa a tela (a fila espera isso antes da próxima) */

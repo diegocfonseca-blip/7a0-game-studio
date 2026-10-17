@@ -1,4 +1,4 @@
-## 🍀7️⃣ Seven City: gala "Jackpot da Sorte" (17/10) — ⏳ vídeo enviado, ESPERANDO OK
+## 🍀7️⃣ Seven City: gala "Jackpot da Sorte" (17/10) — ✅ NO AR (*"pode publicar"*), gala + canto na carreira
 - Pedido do Diego: supersticioso, 7 é o número da sorte, trevos, canto do Gaviões. `gala-seven.tsx` (8,6 s): máquina caça-níquel
   dourada "SEVEN CITY", roletas param 7·7·7, JACKPOT com chuva de moedas e trevos, escudo com SETE trevos em volta, o Trevo do
   clube jogando a moeda, faixa "SORTE TAMBÉM JOGA". Vídeo `scripts/posts/gala-seven-com-canto.mp4`.
