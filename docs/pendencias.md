@@ -24,7 +24,10 @@
   champions, mundial e supercopa, então coloque 30 moedas"*. Feito: Copa do Mundo (artilheiro jogando pela SUA seleção) ·
   Libertadores · Champions · Mundial (time que você comandou; cada competição tem o próprio artilheiro) · Supercopa. As 4
   primeiras ganham linha própria no extrato ("🥇 Artilheiro da …"); a Supercopa entra nos prêmios da temporada.
-- ⏳ Ficou a oferta (sem resposta): separar o artilheiro da LIGA numa linha própria no extrato.
+- ✅ **17/10: o artilheiro ganhou LINHA PRÓPRIA no extrato** (Diego: *"tem usuário reclamando que parece que não tem ganho com
+  artilheiro… não aparece em lugar nenhum"*). Liga por série, Copa Legends/Copa do Brasil e Supercopa saem de dentro de "Prêmios da
+  temporada" e viram "🥇 Artilheiro da Série A: Johan Cruyff (20 gols) +30" (`artilheirosDaTemporada` monta a lista; `applySeasonMoney`
+  separa sem mudar o total). Na tela do Caixa do roteiro a linha 🥇 aparece SEMPRE, mesmo fora dos 5 maiores.
 - ⚠️ `npm run copamundo` já falhava ANTES desta mudança ("jogo de copa só conta com a Copa encerrada na tela") — não é daqui.
 
 ## 🦁🔵 Batismo Chelsão da Massa FC (16/10) — ✅ NO AR

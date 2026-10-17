@@ -44,7 +44,7 @@ import { planoCansacoBot, premioColocacaoBot, type PlanoBot } from './bots-banco
 import { condicaoAtiva, gasDoElenco, jogosDoElenco, modsDoElenco, modVolta, pctVolta, estadoGas, pctBarra, corBarra, sugerirRodizio, sorteiaLesaoDesgaste, chaveCarry } from './condicao'
 import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora do DONO da sala
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
-import type { RenewAnos } from './store'
+import type { RenewAnos, ArtilheiroPremio } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
@@ -82,7 +82,7 @@ import { fornAtivo } from './loja'
 import { tecnicoPorNome, fichaDoTecnico, CATEGORIA_TECNICO_ROTULO, FAIXA_POR_DIV, poolDaDiv, historiaSondagem } from './tecnicos'
 import type { DivTecnico as DivTec } from './tecnicos'
 import { FORMACOES15, formacaoAtual, formacaoPorRotulo } from './formacoes'
-import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa } from './copa-brasil'
+import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewards, computeSupercopa, CB_SCORER_BONUS, SUPERCOPA_SCORER_BONUS } from './copa-brasil'
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
@@ -1034,6 +1034,23 @@ export function scorerRewards(divTop: Record<Div, SeasonScorer | undefined>): { 
     else { const key = s.teamId >= 0 ? `m${s.teamId}` : s.teamName; clubRewards[key] = (clubRewards[key] ?? 0) + b } // caixa do bot/rival
   }
   return { rewards, clubRewards }
+}
+
+/** 🥇 os prêmios de ARTILHEIRO desta temporada que caem em clube de GENTE, com o texto da linha própria no extrato (17/10).
+ *  Os valores são os MESMOS que já estão em `scorerRewards`/`copaRewards`/`copaBrasilRewards`/`supercopaRewards` — aqui só se
+ *  dá nome a eles. Liga por série · Copa Legends · Copa do Brasil · Supercopa. */
+export function artilheirosDaTemporada(divTop: Record<Div, SeasonScorer | undefined>, copa: { topScorer?: SeasonScorer } | null, cb: { topScorer?: SeasonScorer } | null, supercopa: { scorers?: SeasonScorer[] } | null, en: boolean): ArtilheiroPremio[] {
+  const out: ArtilheiroPremio[] = []
+  const gols = (n: number) => en ? `${n} goal${n === 1 ? '' : 's'}` : `${n} gol${n === 1 ? '' : 's'}`
+  for (const d of DIVS) {
+    const s = divTop[d]
+    if (s?.human && s.teamId >= 0) out.push({ mgr: s.teamId, coins: DIV_SCORER_BONUS[d], txt: en ? `🥇 Top scorer of ${DIV_NAME[d]}: ${s.name} (${gols(s.goals)})` : `🥇 Artilheiro da ${DIV_NAME[d]}: ${s.name} (${gols(s.goals)})` })
+  }
+  const ts = cb?.topScorer ?? copa?.topScorer
+  if (ts?.human && ts.teamId >= 0) out.push({ mgr: ts.teamId, coins: cb?.topScorer ? CB_SCORER_BONUS : COPA_SCORER_BONUS, txt: en ? `🥇 Top scorer of the ${cb?.topScorer ? 'Copa do Brasil' : 'Copa Legends'}: ${ts.name} (${gols(ts.goals)})` : `🥇 Artilheiro da ${cb?.topScorer ? 'Copa do Brasil' : 'Copa Legends'}: ${ts.name} (${gols(ts.goals)})` })
+  const sc = [...(supercopa?.scorers ?? [])].filter(x => x.goals > 0).sort((x, y) => y.goals - x.goals || x.name.localeCompare(y.name))[0]
+  if (sc?.human && sc.teamId >= 0) out.push({ mgr: sc.teamId, coins: SUPERCOPA_SCORER_BONUS, txt: en ? `🥇 Top scorer of the Supercopa: ${sc.name} (${gols(sc.goals)})` : `🥇 Artilheiro da Supercopa: ${sc.name} (${gols(sc.goals)})` })
+  return out
 }
 
 // ─── 🥇 MELHOR DO MUNDO — o prêmio que junta GOL + ASSISTÊNCIA (19/09) ──────
@@ -8497,7 +8514,9 @@ export function PyramidSeasonScreen() {
     // classificação · se manteve · caiu)
     const finalPos: Record<number, number> = {}
     for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) { stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]); finalPos[t.teamId] = i + 1 } })
-    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), stadiumOcc, finalPos })
+    // 🥇 artilheiro com linha própria no extrato (17/10) — o dinheiro já está nos `rewards`, aqui ele ganha nome
+    const artilheiros = artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, getLang() === 'en')
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), stadiumOcc, finalPos, artilheiros })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
@@ -10389,7 +10408,7 @@ export function PyramidSeasonScreen() {
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
           // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
           // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
-          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos })
+          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos, artilheiros: artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, enFim) })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,
@@ -10470,8 +10489,11 @@ export function PyramidSeasonScreen() {
                 const total = led.reduce((n, e) => n + e.amount, 0)
                 const caixa = Math.round(state.careerCoins?.[youId] ?? 0)
                 if (roteiroOn) {
-                  // 🔝 os maiores lançamentos primeiro (o que mais pesou no ano)
-                  const top = [...led].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, 5)
+                  // 🔝 os maiores lançamentos primeiro (o que mais pesou no ano) — e o 🥇 ARTILHEIRO aparece SEMPRE, mesmo
+                  // pequeno (17/10, Diego: "parece que não tem ganho de dinheiro com artilheiro… não aparece em lugar nenhum")
+                  const art = led.filter(e => e.label.startsWith('🥇'))
+                  const top = [...[...led].filter(e => !art.includes(e)).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).slice(0, Math.max(3, 5 - art.length)), ...art]
+                    .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
                   return (
                     <>
                       <div style={{ background: 'linear-gradient(160deg,#1a1a1a,#0C0C0C)', border: `3px solid ${INK}`, borderRadius: 12, padding: 13, color: '#fff', boxShadow: '3px 3px 0 rgba(0,0,0,.3)', marginBottom: 9 }}>
