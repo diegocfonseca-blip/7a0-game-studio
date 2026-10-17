@@ -67,6 +67,7 @@ import arrogantchiEscudoImg from './img/arrogantchi-escudo.webp' // 😜🔵⚫ 
 import intervaleEscudoImg from './img/intervale-escudo.webp' // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
 import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
 import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
+import wenMilanEscudoImg from './img/wenmilan-escudo.webp' // 😈🔴⚫ Wen Milan B (vittor@tidex): arte própria do dono, 17/10
 import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniEscudoImg from './img/rossini-escudo.webp' // 💴🔴⚫ Rossini Money (luizeduardorossini0013): arte própria do dono
@@ -890,6 +891,10 @@ const comverissimoEscudoRender = (size: number) => (
   <img src={comverissimoEscudoImg} height={size} width={Math.round(size * 254 / 360)} alt="ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 😈🔴⚫ WEN MILAN B (vittor@tidex, batismo de 17/10, plano Fundador) — Série A. 📏 247×360, 29 KB.
+const wenMilanEscudoRender = (size: number) => (
+  <img src={wenMilanEscudoImg} height={size} width={Math.round(size * 247 / 360)} alt="Wen Milan B" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
 // 🤠🔵 CUIUDOS FC (matheussoaresg2018, batismo de 17/10, plano Fundador) — Série A. 📏 276×360, 29 KB.
 const cuiudosEscudoRender = (size: number) => (
   <img src={cuiudosEscudoImg} height={size} width={Math.round(size * 276 / 360)} alt="Cuiudos FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -1545,6 +1550,12 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'Cuiudos': cuiudosEscudoRender,
   'Cuiudos EC': cuiudosEscudoRender,
   'Cuiudos SC': cuiudosEscudoRender,
+  // 😈🔴⚫ Wen Milan B (vittor@tidex) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o Al Takhadao continua
+  // existindo (foi pra C).
+  'Wen Milan B': wenMilanEscudoRender,
+  'Wen Milan B FC': wenMilanEscudoRender,
+  'Wen Milan B EC': wenMilanEscudoRender,
+  'Wen Milan B SC': wenMilanEscudoRender,
   // 🦁🔵 Chelsão da Massa FC (ccaonta) — BATISMO. As 4 formas do nome (regra 20/08) + os nomes VELHOS do assento
   // (CRBebê e Peteca FR só existiam como bot da Série C).
   'Chelsão da Massa FC': chelsaoEscudoRender,

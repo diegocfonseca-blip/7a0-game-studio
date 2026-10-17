@@ -1,3 +1,16 @@
+## 😈🔴⚫ BATISMO WEN MILAN B (17/10, plano 🖋 Fundador) — ⛔ PRONTO NO BRANCH, **NÃO PUBLICADO**: falta a CONTA
+- Dono: **vittor@tidex.com.br** (coração São Paulo). ⛔ Em 17/10 esse e-mail NÃO existe em `auth.users` → regra de 07/09: nada no
+  banco e nada na main até a conta existir (o `apoio.tsx`/`manto.ts` também seguem o e-mail). Assim que a conta aparecer:
+  publicar o commit + banco: `esc_socios` (sócio nº76, manto #DF1224/#180F0E, mascote_key `wenmilan_diaba`, escudo_time
+  'Wen Milan B', time_coracao 'São Paulo', origem 'batismo', valido_ate 2099-12-31) · `esc_fundadores` n=92 · `esc_nomes_batismo`
+  'Wen Milan B' (nome_norm minúsculo) · `user_colors` ouro manual.
+- Assento: Série A no lugar do **Al Takhadao FC**, que desce pra **Série C** na vaga do bot Leve-cuscuz (ordem do Diego).
+- Arte recortada da prancha (escudo 247×360/29 KB · mascote 250×440/37 KB · camisa na Loja). Mascote "A Diabinha" = nome PROVISÓRIO.
+  Nome do clube: Diego escreveu "Wen Milan N", a arte diz "WEN MILAN B" → usei **Wen Milan B** (confirmar).
+- Gala "Inferno Rubro-Negro" (`gala-wenmilan.tsx`): fogo, tridente cravando, língua saindo da boca e lambendo a tela (SLURP!),
+  escudo das chamas, a Diabinha rebolando. Canto: "Vai lá de coração" (São Paulo), 11 s, `sfx/torcida-spfc-wen-v1.mp3`, na gala e
+  na carreira. Vídeo `scripts/posts/gala-wenmilan-com-canto.mp4`, post `scripts/posts/wenmilan-post.png`.
+
 ## 📢 Telão (Anúncio do dia/Super Chat/pódio) em TODAS as competições do online (19/10) — ✅ NO AR
 - Pedido: *"aquele telão… deve ser em todas as competições… Copa do Mundo, Copa dos Oito, qualquer tipo de Copa, regional"*.
 - Liga e Champions já tinham. Agora também: Copa dos 8/Kings/Liberta do mata-mata (subiu pra cima dos jogos; o de baixo some na

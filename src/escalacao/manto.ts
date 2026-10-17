@@ -106,6 +106,8 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   // 🤠🔵 Cuiudos FC — AZUL e AMARELO, MEDIDOS na camisa que o dono mandou (17/10): azul do corpo 77% (mediana #02308B) e o
   // amarelo da gola, dos frisos e do nome (#E7AC0B). O verde dos punhos (3%) fica de fora.
   'matheussoaresg2018@gmail.com': ['#02308B', '#E7AC0B'],
+  // 😈🔴⚫ Wen Milan B — VERMELHO e PRETO, MEDIDOS nas listras do peito da camisa que o dono mandou (17/10): #DF1224 e #180F0E.
+  'vittor@tidex.com.br': ['#DF1224', '#180F0E'],
   // 🦁🔵 Chelsão da Massa FC — AZUL e DOURADO, MEDIDOS na camisa que o dono mandou (16/10): azul do corpo 77% (mediana
   // #032169) e o dourado dos frisos e do leão do peito (#E4A745). O preto da gola/ombros (14%) some no azul escuro.
   'ccaonta@gmail.com': ['#032169', '#E4A745'],

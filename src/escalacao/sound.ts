@@ -195,6 +195,7 @@ const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
   'koeppfabio@gmail.com': 'sfx/torcida-fabulous-v1.mp3', // 🦅 Fabão, Fabulous EC (15/10, Fundador): 11 s do vídeo que ele mandou, mesmo padrão do Geovany
   'glaucomiranda@outlook.com': 'sfx/torcida-gavioes-v1.mp3', // 🍀 Seven City (17/10): o mesmo canto do Gaviões SCCP (pedido do Diego)
   'matheussoaresg2018@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🤠🔵 Cuiudos FC (17/10, Fundador): o MESMO canto do Corinthians do Gaviões SCCP (pedido do Diego)
+  'vittor@tidex.com.br': 'sfx/torcida-spfc-wen-v1.mp3', // 😈🔴⚫ Wen Milan B (17/10, Fundador): "Vai lá de coração", torcida do São Paulo (o time de coração dele), 11 s — áudio que o Diego mandou
   'kauealves584@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🦅⚫⚪ Gaviões SCCP (16/10, Fundador): 12 s de "Todo Poderoso Timão" que o Diego mandou, mesmo volume (−20,6 dB) do Fabulous
 }
 /** 🛒 a Loja do Clube pergunta isto pra não vender canto a quem já tem (Tricolor do Arruda, 14/10) */
