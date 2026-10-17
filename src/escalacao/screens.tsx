@@ -7620,12 +7620,12 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
   const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   return (
     <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: 16 }}>
-      <style>{`.placa-led{position:relative;height:96px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
+      <style>{`.placa-led{position:relative;height:84px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
 .placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
 .placa-tag{position:absolute;left:14px;top:6px;font:700 9px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45)}
-.placa-m{position:absolute;left:14px;right:14px;top:20px;font:700 24px/1.05 Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
-.placa-o{position:absolute;left:14px;right:14px;top:51px;font:500 15px/1.12 Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#F4ECD6;max-height:34px;overflow:hidden}
-.placa-o.so{top:22px;font-size:18px;max-height:62px}
+.placa-m{position:absolute;left:14px;right:14px;top:20px;font:700 19px/1.05 Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.placa-o{position:absolute;left:14px;right:14px;top:45px;font:500 13px/1.12 Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#F4ECD6;max-height:30px;overflow:hidden}
+.placa-o.so{top:22px;font-size:15px;max-height:52px}
 .placa-l{display:inline-block;transform-origin:50% 60%;animation:placaVira .38s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes placaVira{0%{transform:rotateX(90deg);opacity:0;filter:brightness(3)}60%{opacity:1}100%{transform:rotateX(0);opacity:1;filter:none}}
 .placa-bar{position:absolute;left:0;bottom:0;height:3px;animation:placaBar ${PLACA_MS}ms linear both}
@@ -7635,7 +7635,7 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
       <div className="placa-led" key={slot} role={ad.link ? 'link' : undefined} tabIndex={ad.link ? 0 : undefined} style={ad.link ? { cursor: 'pointer' } : undefined}
         onClick={ad.link ? () => { logApoio(`📢 clicou no anúncio: ${marca || oferta}`); window.open(ad.link, '_blank', 'noopener,noreferrer') } : undefined}>
         <span className="placa-tag">{en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA'}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
-        {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 19 : undefined }}><LetrasVirando texto={marca} /></div>}
+        {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 16 : undefined }}><LetrasVirando texto={marca} /></div>}
         <div className={`placa-o${marca ? '' : ' so'}`}><LetrasVirando texto={oferta} atraso={180} /></div>
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
