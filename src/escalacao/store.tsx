@@ -6183,10 +6183,38 @@ function paComprometido(state: EscState, mgrId: number, k: number): number {
   const o = paMesa(state, 1 - k)
   return o && o.card && o.M.lider === mgrId ? o.M.preco : 0
 }
+// 👑 MAIS LENDAS NO PREGÃO ABERTO (17/10, Diego jogando com 5: *"apareceu poucas lendas… aumente proporcionalmente, de 2 até 20
+// pessoas, mas só para o pregão aberto"*). O baralho de sempre dá ~1,5 lenda por clube; aqui sobe pra `PA_LENDAS_POR_CLUBE`,
+// trocando CRAQUES por lendas da MESMA posição — o total de cartas não muda. A lenda nova sai do catálogo ATIVO (o baralho da
+// sala: BR/EU/Mundo, estadual, e a Várzea, que não tem lenda, fica como está) e nunca repete nome que já está na mesa ou num
+// elenco. Envelope, Tocaia e Clubes não passam por aqui.
+export const PA_LENDAS_POR_CLUBE = 2.4
+function paMaisLendas(state: EscState, fila: Card[], rng: () => number) {
+  if (state.leilaoClubes || state.sport === 'basquete') return
+  const clubes = state.managers.filter(m => m.isHuman && !m.dormindo).length + paRobosQueDisputam(state).length
+  const ehLenda = (c: Card) => !c.promessa && (c.fame ?? 0) >= 5 && !c.fake
+  const alvo = Math.round(clubes * PA_LENDAS_POR_CLUBE)
+  let falta = alvo - fila.filter(ehLenda).length
+  if (falta <= 0) return
+  const nomes = new Set<string>([...fila.map(c => c.name), ...state.managers.flatMap(m => m.squad.map(c => c.name))])
+  const craques = fila.map((c, i) => [c, i] as const).filter(([c]) => !c.promessa && c.fame === 4 && !c.fake && !(c as { seller?: number }).seller)
+  for (let i = craques.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const x = craques[i]; craques[i] = craques[j]; craques[j] = x }
+  const bt = nextBuildTok()
+  for (const [c, idx] of craques) {
+    if (falta <= 0) break
+    const cands = ((ACTIVE_CATALOG[c.pos] ?? []) as Card[]).filter(x => ehLenda(x) && !nomes.has(x.name))
+    if (!cands.length) continue
+    const l = cands[Math.floor(rng() * cands.length)]
+    nomes.add(l.name)
+    fila[idx] = { ...l, id: `pa-lenda-${c.pos}-${idx}-${bt}`, pos: c.pos } as Card
+    falta--
+  }
+}
 function abrePregaoAberto(state: EscState) {
   const rng = rngOf(state)
   const fila: Card[] = []
   for (const pos of SECTORS) fila.push(...state.deck[pos])
+  paMaisLendas(state, fila, rng)
   for (let i = fila.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const x = fila[i]; fila[i] = fila[j]; fila[j] = x }
   // o cursor dos setores vai pro fim: ninguém mais "deal" leva por setor nesta partida
   for (const pos of SECTORS) state.stock[pos] = 0
