@@ -227,7 +227,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
             ) : (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: compacto ? '1fr 1fr' : '1fr 1fr 1fr 1.35fr', gap: compacto ? 5 : 6 }}>
-                  {(compacto ? [0, 1] : [0, 1, 4]).map(extra => {
+                  {(compacto ? [0, 4] : [0, 1, 4]).map(extra => { // 🔨🔨 17/10 (Diego): na carta dupla os atalhos são +1 e +5, pra andar mais rápido
                     const v = minimo + extra
                     const ok = pode(v)
                     return <button key={extra} disabled={!ok} onClick={() => lance(v)} style={{ ...OSW, fontWeight: 900, fontSize: 14, border: `3px solid ${INK}`, borderRadius: 11, padding: '10px 4px', background: ok ? GOLD : '#CBBF9E', boxShadow: ok ? `3px 3px 0 0 ${INK}` : 'none', cursor: ok ? 'pointer' : 'default', color: ok ? INK : 'rgba(0,0,0,.45)' }}>{M.lider === null ? '' : `+${extra + 1} → `}{v}</button>

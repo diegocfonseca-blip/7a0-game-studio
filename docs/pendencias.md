@@ -31,6 +31,11 @@
 
 - 🎬 Vídeo do pregão aberto no PADRÃO dos reels (17/10, Diego: *"o vídeo tá saindo cortado… quero no padrão dos outros"*): `node scripts/video-pregao-aberto-reels.mjs` → `scripts/posts/pregao-aberto-reels.mp4` (1080×1920, 42s). Gravar a tela do jogo com o recordVideo saiu cortado — o padrão é o reel animado em cenas.
 
+- 🧹 17/10 (Diego: *"no máximo 4 emojis… cada modo tem um tipo"*): zoeira do envelope 5→4 (saiu o 💸, que já é cantada da carta);
+  Monte 6→4 por modo — Jogador: 👆 🐢 🗑️ 🤡 · 🧱 Clubes: 👆 🐢 🧱 "pacote de reserva" 🤏. Tocaia (4), cantada da carta (3) e sala de
+  espera (4) já estavam no teto. Pregão aberto: carta dupla com atalhos **+1 e +5** (antes +1/+2). Criar sala: com 🔨 Pregão aberto
+  marcado, a ⭐ Só Champions fica travada com o selo "fora do pregão" (36 clubes = pregão longo demais).
+
 ## 🔨🌐 PREGÃO ABERTO NA SALA ONLINE (17/10) — ✅ NO AR PRA TODOS (`PREGAO_ABERTO_GERAL = true`, Diego: "pode publicar… para todo mundo")
 - Criar sala: "Como é o leilão" ganha a 3ª opção 🔨 Pregão aberto (só contas de teste via `usePregaoAberto`; some na Só
   Champions = teto de 20 clubes). `game_state.pregaoAberto` → `START_ONLINE` → `s.pregaoAberto` (e no "novo leilão").

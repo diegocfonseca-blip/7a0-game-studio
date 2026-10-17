@@ -3490,8 +3490,8 @@ export function EscLobby() {
                         <p className="font-black mt-2 mb-1" style={{ fontSize: 10.5, letterSpacing: 1, color: 'rgba(255,255,255,.55)', ...OSWALD }}>{titulo}</p>
                         <Seg options={lista}
                           value={rapidoCopaMode} onSet={v => setRapidoCopaMode(v)}
-                          travados={[...(championsOn ? [] : ['champions' as const]), ...regionalTravadas]}
-                          selos={{ liga_mundo: seloNovo(), ...(championsOn ? {} : { champions: tr('em breve', 'soon') }), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : tr('teste', 'test')])) : {}) }} /> {/* 🏷️ 12/10: estaduais com selo TESTE (ordem do Diego) */}
+                          travados={[...(championsOn && !(pregaoAbertoOk && rapidoPregao) ? [] : ['champions' as const]), ...regionalTravadas]}
+                          selos={{ liga_mundo: seloNovo(), ...(!championsOn ? { champions: tr('em breve', 'soon') } : pregaoAbertoOk && rapidoPregao ? { champions: tr('fora do pregão', 'not in open') } : {}), ...(regionalOn ? Object.fromEntries((['riosp', 'sulminas', 'nordeste'] as const).map(id => [`liga_${id}`, clubesDaCopa(id).n < 2 ? tr('em breve', 'soon') : tr('teste', 'test')])) : {}) }} /> {/* 🏷️ 12/10: estaduais com selo TESTE (ordem do Diego) */}
                       </>
                     )
                     return <>

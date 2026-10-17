@@ -4310,7 +4310,7 @@ function Envelope() {
               { ic: '😴', label: 'Dormiu?', mk: n => `${n} dormiu?` },
               { ic: '🔒', label: 'Lacra logo!', mk: n => `Lacra logo, ${n}!` },
               { ic: '🧮', label: 'Conta moeda?', mk: n => `${n} tá contando moeda no dedo?` },
-              { ic: '💸', label: 'Chora depois!', mk: n => `${n} vai gastar tudo e chorar depois` },
+              // 🧹 17/10 (Diego: "no máximo 4 emojis… cada modo tem um tipo"): saiu o 💸 "chora depois" — o 💸 já é a cantada da carta
             ]
             return (
               <div className="mt-3">
@@ -5692,13 +5692,18 @@ export function EscMonte() {
           miram o técnico da vez (curMgr) e aparecem flutuando pra todos, igual leilão. */}
       {online && curMgr && curMgr.id !== you.id && (() => {
         const n = curMgr.teamName || curMgr.name
-        const jabs: { ic: string; label: string; mk: (x: string) => string }[] = [
+        // 🧹 17/10 (Diego: "no máximo 4 emojis… cada modo tem um tipo de emoji"): 4 por modo. No 🧱 Leilão de Clubes o
+        // Monte é de PACOTE, então a zoeira fala de pacote (perna-de-pau e gol contra são de carta solta).
+        const jabs: { ic: string; label: string; mk: (x: string) => string }[] = state.leilaoClubes ? [
           { ic: '👆', label: tr('Aperta o Pegar!', 'Press Take!'), mk: x => getLang() === 'en' ? `How hard is it to press Take, ${x}?` : `Qual a dificuldade de apertar o Pegar, ${x}?` },
           { ic: '🐢', label: tr('Anda!', 'Move!'), mk: x => getLang() === 'en' ? `Come on, ${x}, they're just leftovers!` : `Anda, ${x}, é só sobra!` },
-          { ic: '😴', label: tr('Dormiu?', 'Asleep?'), mk: x => getLang() === 'en' ? `${x} fell asleep on their turn?` : `${x} dormiu na vez?` },
+          { ic: '🧱', label: tr('Pacote de reserva', 'Bench pack'), mk: x => getLang() === 'en' ? `Only the bench pack will be left for ${x}!` : `Só vai sobrar pacote de reserva pro ${x}!` },
+          { ic: '🤏', label: tr('Mão de vaca', 'Cheapskate'), mk: x => getLang() === 'en' ? `Next time stop being a cheapskate, ${x}!` : `Na próxima deixa de ser mão de vaca, ${x}!` },
+        ] : [
+          { ic: '👆', label: tr('Aperta o Pegar!', 'Press Take!'), mk: x => getLang() === 'en' ? `How hard is it to press Take, ${x}?` : `Qual a dificuldade de apertar o Pegar, ${x}?` },
+          { ic: '🐢', label: tr('Anda!', 'Move!'), mk: x => getLang() === 'en' ? `Come on, ${x}, they're just leftovers!` : `Anda, ${x}, é só sobra!` },
           { ic: '🗑️', label: tr('Perna-de-pau', 'Donkey'), mk: x => getLang() === 'en' ? `Only donkeys will be left for ${x}!` : `Só vai sobrar perna-de-pau pro ${x}!` },
           { ic: '🤡', label: tr('Sobra o Gol Contra', 'Own-goal guy is left'), mk: x => getLang() === 'en' ? `Adriano Own-Goal will be left for ${x} 😂` : `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
-          { ic: '🤏', label: tr('Mão de vaca', 'Cheapskate'), mk: x => getLang() === 'en' ? `Next time stop being a cheapskate, ${x}!` : `Na próxima deixa de ser mão de vaca, ${x}!` },
         ]
         return (
           <div className="mt-1">
