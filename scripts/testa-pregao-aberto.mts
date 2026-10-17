@@ -156,9 +156,9 @@ for (const rivals of [9, 10, 15]) {
   c = reducer(c, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals: 7, career: false, league: 'todos', copaMode: 'liga_copa', intro: false, pregaoAberto: true, clubes: true } as never)
   assert.equal(c.phase, 'pregao', 'clubes também abre no pregão aberto (antes caía no envelope)')
   assert.ok(c.pa!.fila.every(x => x.pacote), 'a fila é de pacotes de clube')
-  // 🧱 sem folga: UM pacote por clube em cada setor (17/10, Diego: "se o cara compra zagueiros ele já leva dois")
+  // 🧱 regra do leilão de jogador (17/10): um pacote por pessoa em cada setor + 1 de sobra
   const nClubes = c.managers.filter(m => m.isHuman || m.auctionRival).length
-  for (const pos of SECTORS) assert.equal(c.pa!.fila.filter(x => x.pos === pos).length, nClubes, `${pos}: um pacote por clube (${nClubes})`)
+  for (const pos of SECTORS) assert.equal(c.pa!.fila.filter(x => x.pos === pos).length, nClubes + 1, `${pos}: pessoas + 1 (${nClubes + 1})`)
   let ticks = 0, euLevei = 0
   while (c.screen === 'auction' && ticks++ < 40000) {
     avanca(PA_TICK_MS)
@@ -177,7 +177,7 @@ for (const rivals of [9, 10, 15]) {
   const semPacote = part.filter(m => SECTORS.some(pos => !m.squad.some(x => x.pos === pos && x.pacote))).length
   assert.equal(c.screen, 'convocacao', `depois do pregão vem a convocação (tela: ${c.screen})`)
   assert.equal(semPacote, 0, 'todo clube fecha todos os setores');
-  console.log(`🧱 clubes: ${nClubes * 5} pacotes pra ${nClubes} clubes · ${Math.round(ticks * PA_TICK_MS / 60000)} min · você levou ${euLevei} pacote(s) · ${semPacote} clube(s) com setor sem pacote (a convocação completa)`)
+  console.log(`🧱 clubes: ${(nClubes + 1) * 5} pacotes pra ${nClubes} clubes · ${Math.round(ticks * PA_TICK_MS / 60000)} min · você levou ${euLevei} pacote(s) · ${semPacote} clube(s) com setor sem pacote (a convocação completa)`)
 }
 // 📡 MENSAGENS DA SALA ONLINE (17/10, Diego: "vai gastar muita mensagem do Supabase?"): o tique em que nada acontece devolve o
 // MESMO estado — o dono só manda a tela pra sala quando muda algo de verdade (lance, martelo, carta nova)

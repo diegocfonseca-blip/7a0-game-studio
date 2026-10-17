@@ -1931,14 +1931,14 @@ export function puxaClubesRecentes() {
 // 💸 06/10 (conta do Supabase): antes puxava a cada 2 min pra TODO jogador, até quem nunca joga
 // Leilão de Clubes. Agora: no boot e logo depois de cada sala de clubes montada (pra próxima).
 if (typeof window !== 'undefined') { setTimeout(puxaClubesRecentes, 1500) }
-export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>, exato = false): Record<Sector, Card[]> {
+export function buildDeckClubes(managers: Manager[], rng: () => number, used: Set<string>): Record<Sector, Card[]> {
   if (typeof window !== 'undefined') setTimeout(puxaClubesRecentes, 3000) // atualiza a memória pra PRÓXIMA sala
   const deck = { GOL: [], LAT: [], ZAG: [], MEI: [], ATA: [] } as Record<Sector, Card[]>
   const bt = nextBuildTok()
   const n = Math.max(1, managers.length)
-  // folga: sobra pacote pra ter disputa e monte. 🔨 No PREGÃO ABERTO é UM pacote por clube em cada setor, sem folga (17/10,
-  // Diego: *"se o cara compra zagueiros ele já leva dois… tem q ser um p cada"*) — o pacote já traz vários jogadores
-  const alvo = exato ? n : n + Math.ceil(n * 0.5)
+  // 📦 MESMA REGRA DO LEILÃO DE JOGADOR (17/10, Diego: *"vai ser mais justo"*): um pacote por pessoa em cada setor + 1 de
+  // sobra — envelope, Tocaia e pregão aberto. Antes era pessoas + metade (8 pessoas = 12 pacotes por setor; agora 9).
+  const alvo = n + 1
   const need = {} as Record<Sector, number>
   for (const pos of SECTORS) need[pos] = Math.max(1, ...managers.map(m => baseSlots(m.formation, pos)))
   // clube → cartas, por setor
@@ -6950,7 +6950,7 @@ function redraftSeason(s: EscState): EscState {
   // 🧱 leilão de clubes: a próxima leva continua sendo de clubes (com clubes novos)
   s.leilaoClubesConvocado = false
   if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
-  s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, used, !!s.pregaoAberto) : buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
+  s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, used) : buildDeck(auctioningManagers(s.managers), rng, 1.0, used, 1)
   sorteiaEspeciais(s, rng)
   dealBotSquads(s.managers, botPlans, rng, used)
   for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -7588,7 +7588,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (action.dinastia) { const b = action.budget ?? 50; for (const m of s.managers) m.money = b }
       const soloUsed = new Set<string>()
       if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
-      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, soloUsed, !!s.pregaoAberto) : buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, soloUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, soloUsed, 1)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, soloPlans, rng, soloUsed)
       for (const pos of SECTORS) s.stock[pos] = s.deck[pos].length
@@ -8259,7 +8259,7 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ANTES dos bots pra ficar 100% com reais.
       const onlineUsed = new Set<string>()
       if (s.leilaoClubes) for (const m of auctioningManagers(s.managers)) m.modoClubes = true
-      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed, !!s.pregaoAberto) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, onlineVarzea)
+      s.deck = s.leilaoClubes ? buildDeckClubes(auctioningManagers(s.managers), rng, onlineUsed) : buildDeck(auctioningManagers(s.managers), rng, 1.0, onlineUsed, 1, s.marketValues, false, onlineVarzea)
       sorteiaEspeciais(s, rng)
       dealBotSquads(s.managers, onlinePlans, rng, onlineUsed, onlineVarzea)
       if (onlineVarzea) setActiveCatalog(s.deckLeague, false, s.regionalSala) // baralho várzea já foi montado → restaura o cheio pro resto
