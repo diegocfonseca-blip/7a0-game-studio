@@ -5,8 +5,9 @@
 // preto e o tridente dourado. Então:
 // 1) listras rubro-negras entram e o FOGO sobe do chão
 // 2) o TRIDENTE dourado cai e crava no chão (tremida + faísca)
-// 3) a LÍNGUA gigante entra pela direita e dá uma LAMBIDA na tela inteira ("SLURP!"), deixando o rastro brilhando
-// 4) o ESCUDO sobe das chamas, a DIABINHA entra rebolando e a língua volta pra lamber o escudo (brilho passando)
+// 3) ELA LAMBE A TELA: o rosto da Diabinha cola no vidro e lambe de baixo pra cima duas vezes ("SLURP!"), deixando o
+//    rastro molhado brilhando e escorrendo (o Diego reprovou a língua solta: *"quero ela lambendo a tela"*)
+// 4) o ESCUDO sobe das chamas (brilho passando) e a DIABINHA entra rebolando
 // 5) faixa "CHEGOU NA SALA" + brasas vermelhas e douradas subindo
 // Mesmo esquema das outras galas únicas: palco 420×760 escalado, camada fixa sem clique, fora do reducer, sem localStorage.
 // Som: "Vai lá de coração", da torcida do São Paulo (o time de coração do dono), 11 s (`sfx/torcida-spfc-wen-v1.mp3`).
@@ -16,6 +17,7 @@ import { Escudo } from './escudos'
 import { tr } from './lang'
 import { playMp3Gala } from './sound'
 import mascoteImg from './img/wenmilan-mascote.webp'
+import rostoImg from './img/wenmilan-rosto.webp' // só o rosto da Diabinha (recorte da arte do dono), pra lamber a tela
 
 export const WENMILAN_MS = 8600
 const T = WENMILAN_MS
@@ -51,23 +53,24 @@ const CSS = `
 @keyframes gwmTreme{0%,${pct(1690)}{transform:none}${pct(1730)}{transform:translate(-6px,4px)}${pct(1770)}{transform:translate(6px,-3px)}${pct(1810)}{transform:translate(-4px,2px)}${pct(1860)}{transform:none}100%{transform:none}}
 .gwm-flash{position:absolute;inset:0;z-index:20;background:#fff3b0;opacity:0;animation:gwmFlash ${T}ms linear forwards}
 @keyframes gwmFlash{0%,${pct(1690)}{opacity:0}${pct(1740)}{opacity:.75}${pct(2000)}{opacity:0}${pct(5150)}{opacity:0}${pct(5200)}{opacity:.55}${pct(5500)}{opacity:0}100%{opacity:0}}
-/* 👅 a LÍNGUA gigante: sai pela direita, varre a tela de cima a baixo e volta */
-.gwm-lingua{position:absolute;right:20px;top:280px;width:430px;height:170px;z-index:15;transform-origin:100% 50%;opacity:0;animation:gwmLambe ${T}ms cubic-bezier(.45,0,.35,1) forwards}
-.gwm-lingua::before{content:'';position:absolute;inset:0;border-radius:52% 12% 12% 52% / 50% 38% 38% 50%;
-  background:radial-gradient(ellipse at 22% 38%,#ffd0dc 0%,#ff8aa8 22%,#f05a80 55%,#c7335c 85%,#a3244a 100%);border:5px solid #5e0c22;box-shadow:inset -30px -14px 0 rgba(94,12,34,.22)}
-.gwm-lingua::after{content:'';position:absolute;left:46px;right:40px;top:80px;height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(94,12,34,.2),rgba(94,12,34,.6))}
-.gwm-lingua i{position:absolute;left:40px;top:34px;width:70px;height:26px;border-radius:50%;background:rgba(255,255,255,.55);transform:rotate(-12deg)}
-/* 👄 a boca de onde a língua sai */
-.gwm-boca{position:absolute;right:-70px;top:285px;width:170px;height:160px;z-index:16;border-radius:50%;opacity:0;
-  background:radial-gradient(ellipse at 40% 50%,#2a0008 0 45%,#5e0c22 60%);border:18px solid #c8102e;box-shadow:inset 0 0 0 4px #7a0018,4px 5px 0 rgba(0,0,0,.5);animation:gwmBoca ${T}ms ease forwards}
-@keyframes gwmBoca{0%,${pct(2200)}{opacity:0;transform:scale(.4)}${pct(2400)}{opacity:1;transform:scale(1)}${pct(3800)}{opacity:1;transform:scale(1)}${pct(4000)}{opacity:0;transform:scale(.5)}
-  ${pct(5300)}{opacity:0;transform:scale(.4)}${pct(5450)}{opacity:1;transform:scale(.85)}${pct(6450)}{opacity:1;transform:scale(.85)}${pct(6650)}{opacity:0;transform:scale(.4)}100%{opacity:0}}
-@keyframes gwmLambe{0%,${pct(2300)}{opacity:0;transform:scaleX(0) rotate(30deg)}${pct(2400)}{opacity:1}${pct(2800)}{transform:scaleX(1) rotate(30deg)}${pct(3500)}{transform:scaleX(1) rotate(-32deg)}${pct(3800)}{transform:scaleX(0) rotate(-32deg);opacity:1}${pct(3850)}{opacity:0}
-  ${pct(5400)}{opacity:0;transform:scaleX(0) rotate(-8deg)}${pct(5450)}{opacity:1}${pct(5800)}{transform:scaleX(.72) rotate(-8deg)}${pct(6200)}{transform:scaleX(.72) rotate(14deg)}${pct(6450)}{transform:scaleX(0) rotate(14deg);opacity:1}${pct(6500)}{opacity:0}100%{opacity:0}}
-.gwm-rastro{position:absolute;left:-40px;right:-40px;top:120px;height:460px;z-index:14;border-radius:50%;opacity:0;
-  background:radial-gradient(ellipse at 100% 50%,transparent 52%,rgba(255,220,235,.5) 55%,rgba(255,255,255,.75) 57%,rgba(255,220,235,.35) 60%,transparent 64%);animation:gwmRastro ${T}ms ease forwards}
-@keyframes gwmRastro{0%,${pct(2900)}{opacity:0}${pct(3500)}{opacity:1}${pct(4600)}{opacity:0}100%{opacity:0}}
-.gwm-slurp{position:absolute;left:40px;top:180px;z-index:16;font:700 64px/1 Oswald,sans-serif;color:#ff7096;-webkit-text-stroke:3px #0C0C0C;text-shadow:5px 5px 0 #0C0C0C;letter-spacing:.04em;opacity:0;animation:gwmSlurp ${T}ms cubic-bezier(.2,1.4,.4,1) forwards}
+/* 👅 ELA LAMBE A TELA: o rosto da Diabinha (recorte da arte do dono) cola no vidro e lambe de baixo pra cima, duas vezes,
+   deixando o rastro molhado brilhando por cima de tudo (o rastro fica NO VIDRO, por isso tem z acima do rosto) */
+.gwm-rosto{position:absolute;left:-6px;top:0;width:380px;z-index:15;opacity:0;transform-origin:50% 80%;
+  -webkit-mask-image:linear-gradient(#000 78%,transparent 98%);mask-image:linear-gradient(#000 78%,transparent 98%);animation:gwmRosto ${T}ms cubic-bezier(.45,0,.35,1) forwards}
+.gwm-rosto img{display:block;width:380px;height:auto;filter:drop-shadow(0 0 30px rgba(0,0,0,.6))}
+@keyframes gwmRosto{0%,${pct(2200)}{opacity:0;transform:translate(0,760px)}${pct(2400)}{opacity:1;transform:translate(0,430px) scale(1.04,.97)}
+  ${pct(3300)}{transform:translate(0,60px) rotate(-5deg) scale(1.04,.97)}${pct(3500)}{transform:translate(-80px,430px) rotate(3deg) scale(1.04,.97)}
+  ${pct(4300)}{transform:translate(-80px,60px) rotate(-4deg) scale(1.04,.97)}${pct(4500)}{opacity:1;transform:translate(-80px,70px) scale(.97)}${pct(4750)}{opacity:0;transform:translate(-80px,-30px) scale(.8)}100%{opacity:0}}
+.gwm-trilha{position:absolute;top:412px;width:64px;height:360px;z-index:16;transform-origin:50% 100%;transform:scaleY(0);border-radius:32px;
+  background:linear-gradient(90deg,transparent,rgba(255,235,242,.45) 22%,rgba(255,255,255,.9) 48%,rgba(255,235,242,.5) 74%,transparent);
+  box-shadow:0 0 14px rgba(255,255,255,.25);filter:blur(1.4px);-webkit-mask-image:linear-gradient(#000 0%,rgba(0,0,0,.7) 45%,transparent 100%);mask-image:linear-gradient(#000 0%,rgba(0,0,0,.7) 45%,transparent 100%)}
+.gwm-trilha.um{left:218px;animation:gwmTrilha1 ${T}ms cubic-bezier(.45,0,.35,1) forwards}
+.gwm-trilha.dois{left:138px;animation:gwmTrilha2 ${T}ms cubic-bezier(.45,0,.35,1) forwards}
+@keyframes gwmTrilha1{0%,${pct(2400)}{transform:scaleY(0);opacity:.9}${pct(3300)}{transform:scaleY(1);opacity:.75}${pct(4500)}{opacity:.6}${pct(5100)}{transform:scaleY(1);opacity:0}100%{opacity:0}}
+@keyframes gwmTrilha2{0%,${pct(3500)}{transform:scaleY(0);opacity:.9}${pct(4300)}{transform:scaleY(1);opacity:.75}${pct(4700)}{opacity:.6}${pct(5300)}{transform:scaleY(1);opacity:0}100%{opacity:0}}
+.gwm-gota{position:absolute;width:14px;height:20px;z-index:16;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;background:radial-gradient(circle at 35% 35%,#fff,rgba(255,235,242,.6) 60%,rgba(255,235,242,.2));opacity:0;animation:gwmGota 1800ms ease-in both}
+@keyframes gwmGota{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:.95;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(150px) scaleY(1.3)}}
+.gwm-slurp{position:absolute;left:150px;top:70px;z-index:17;font:700 64px/1 Oswald,sans-serif;color:#ff7096;-webkit-text-stroke:3px #0C0C0C;text-shadow:5px 5px 0 #0C0C0C;letter-spacing:.04em;opacity:0;animation:gwmSlurp ${T}ms cubic-bezier(.2,1.4,.4,1) forwards}
 @keyframes gwmSlurp{0%,${pct(2900)}{opacity:0;transform:scale(.3) rotate(-14deg)}${pct(3150)}{opacity:1;transform:scale(1.1) rotate(-8deg)}${pct(3350)}{transform:scale(1) rotate(-8deg)}${pct(4100)}{opacity:1}${pct(4400)}{opacity:0}100%{opacity:0}}
 /* 🛡️ o escudo sobe das chamas */
 .gwm-esc{position:absolute;left:50%;top:110px;width:240px;height:240px;margin-left:-120px;z-index:10;display:flex;align-items:center;justify-content:center;opacity:0;
@@ -92,7 +95,7 @@ const CSS = `
 .gwm-faixa small{display:block;font:700 13px Oswald,sans-serif;letter-spacing:.22em;color:${GOLD}}
 .gwm-faixa b{display:block;font:700 26px/1.05 Oswald,sans-serif;color:#fff;text-transform:uppercase;margin-top:2px}
 .gwm-faixa em{display:block;font-style:normal;font:700 14px Oswald,sans-serif;color:#ff6b6b;margin-top:3px;letter-spacing:.12em}
-@media (prefers-reduced-motion:reduce){.gwm-fogo,.gwm-tri,.gwm-treme,.gwm-flash,.gwm-lingua,.gwm-boca,.gwm-rastro,.gwm-slurp,.gwm-brilho,.gwm-cora,.gwm-brasa{display:none}.gwm-listras,.gwm-esc,.gwm-masc,.gwm-faixa{animation:none;opacity:1}.gwm-masc img{animation:none}}
+@media (prefers-reduced-motion:reduce){.gwm-fogo,.gwm-tri,.gwm-treme,.gwm-flash,.gwm-rosto,.gwm-trilha,.gwm-gota,.gwm-slurp,.gwm-brilho,.gwm-cora,.gwm-brasa{display:none}.gwm-listras,.gwm-esc,.gwm-masc,.gwm-faixa{animation:none;opacity:1}.gwm-masc img{animation:none}}
 `
 
 function useEscala() {
@@ -105,6 +108,8 @@ function useEscala() {
 // posições fixas (a gala é igual pra todos)
 const CHAMAS = Array.from({ length: 9 }, (_, i) => ({ x: -20 + i * 52, h: 120 + sorte(i + 3) * 90, d: Math.round(sorte(i) * 300) }))
 const BRASAS = Array.from({ length: 18 }, (_, i) => ({ x: 10 + sorte(i + 7) * 400, d: 600 + Math.round(sorte(i + 11) * 2400), dx: Math.round((sorte(i + 5) - 0.5) * 120) }))
+// gotas escorrendo do rastro molhado
+const GOTAS = [{ x: 243, y: 600, t: 3400 }, { x: 230, y: 470, t: 3900 }, { x: 163, y: 650, t: 4400 }, { x: 150, y: 480, t: 4500 }, { x: 240, y: 560, t: 4100 }]
 const CORAS = [{ x: 260, y: 470, t: 5500 }, { x: 330, y: 430, t: 5900 }, { x: 290, y: 520, t: 6400 }, { x: 350, y: 500, t: 7000 }]
 
 export function GalaWenMilan({ clube, chave, mostra, grito }: { clube: string; chave: string; mostra: string; grito: string }) {
@@ -127,9 +132,9 @@ export function GalaWenMilan({ clube, chave, mostra, grito }: { clube: string; c
           {CORAS.map((c, i) => <span key={`c${i}`} className="gwm-cora" style={{ left: c.x, top: c.y, animationDelay: `${c.t}ms` }}>{i % 2 ? '❤️' : '🔥'}</span>)}
           {CHAMAS.map((c, i) => <span key={`f${i}`} className="gwm-fogo" style={{ left: c.x, height: c.h, zIndex: i % 2 ? 8 : 5, animationDelay: `0ms,${c.d}ms` }} />)}
           <div className="gwm-tri"><b /><i /></div>
-          <div className="gwm-rastro" />
-          <div className="gwm-lingua"><i /></div>
-          <div className="gwm-boca" />
+          <div className="gwm-rosto"><img src={rostoImg} alt="" /></div>
+          <div className="gwm-trilha um" /><div className="gwm-trilha dois" />
+          {GOTAS.map((g, i) => <span key={`g${i}`} className="gwm-gota" style={{ left: g.x, top: g.y, animationDelay: `${g.t}ms` }} />)}
           <div className="gwm-slurp">SLURP!</div>
           <div className="gwm-faixa">
             <small>{tr('😈 CHEGOU NA SALA', '😈 JUST ARRIVED')}</small>
