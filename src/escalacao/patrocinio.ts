@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { loggedEmail } from './apoio'
 import VADICO_LOGO_ALFA from './img/patro-vadico-alfa.webp'
+import { MAXJOIAS_LOGO } from './maxjoias'
 
 export type Patrocinio = { nome: string; emoji: string }
 type Competicao = 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'
@@ -110,3 +111,17 @@ export function useAnunciosGiro(): AnuncioGiro[] {
 }
 /** depois que alguém põe o anúncio no ar, relê na hora (pra pessoa já se ver no letreiro) */
 export function releAnuncios() { lidoEm = 0; carregaAvulsos() }
+
+// 🏟️ PLACAS ATRÁS DOS GOLS (17/10, Diego escolheu a ideia 1 do mockup `scripts/mockups/campinho-outras-ideias.png`: *"perfeito
+// pode fazer mas no momento coloque Vadico Veículos e Max Joias"*). Uma placa em cima e outra embaixo de todo campinho, cada uma
+// numa marca, trocando juntas a cada 7 s no MESMO relógio do Anúncio do dia. Com 1 marca só, a outra placa mostra Leilão Legends.
+export type PlacaCampo = { nome: string; logo?: string; prop?: number; fundo: string }
+const PLACAS_CAMPO: PlacaCampo[] = [
+  { nome: 'Vadico Veículos', logo: VADICO_LOGO_ALFA, prop: 496 / 140, fundo: '#ffffff' },
+  { nome: 'Max Joias', logo: MAXJOIAS_LOGO, prop: 365 / 120, fundo: '#0b0b0b' },
+]
+export const PLACA_CASA: PlacaCampo = { nome: 'Leilão Legends', fundo: 'linear-gradient(180deg,#FFD84A,#E8A900)' }
+export function placasDoCampo(): PlacaCampo[] {
+  if (!espacosOk()) return []
+  return PLACAS_CAMPO.length === 1 ? [PLACAS_CAMPO[0], PLACA_CASA] : PLACAS_CAMPO
+}

@@ -53,7 +53,6 @@ const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m =>
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
 import { CampinhoKings } from './kings-campinho'
 import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
-import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
@@ -90,7 +89,8 @@ import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
-import { useAnunciosGiro, patrocinioLojaOk } from './patrocinio' // 📣 anúncios no giro + "Anuncie aqui" (16/10)
+import { useAnunciosGiro } from './patrocinio'
+import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10) // 📣 anúncios no giro + "Anuncie aqui" (16/10)
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
@@ -1078,6 +1078,8 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
           A peça mora em `jogadorcampo.tsx` e é a MESMA do elenco da carreira —
           um lugar só pra mexer, os dois campinhos mudam juntos.
           A bolinha leva o MANTO do dono; sem manto, bege. */}
+      {/* 🏟️ placas atrás dos gols (17/10): uma em cima, outra embaixo, trocando juntas a cada 7 s */}
+      <PlacaGol lado="cima" alt={small ? 24 : 28} />
       <div className="campinho-field px-3 py-3.5 flex flex-col gap-3" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 ${small ? 34 : 38}px, ${g2} ${small ? 34 : 38}px ${small ? 68 : 76}px)` }}>
         {rows.map(row => (
           <div key={row.key} className="campinho-row flex justify-center items-end gap-2">
@@ -1101,10 +1103,8 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
           </div>
         ))}
       </div>
-      {/* placa de patrocínio: faixa branca fina num lado do campo (atrás do gol) */}
-      <div style={{ background: '#fff', borderTop: `3px solid ${INK}`, height: small ? 26 : 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <img src={VADICO_LOGO} alt="Vadico Veículos" style={{ height: small ? 16 : 19, width: 'auto', display: 'block' }} />
-      </div>
+      {/* placa de patrocínio atrás do gol de baixo (era a faixa branca fixa da Vadico; desde 17/10 troca com a de cima) */}
+      <PlacaGol lado="baixo" alt={small ? 24 : 28} />
     </div>
   )
 }
@@ -7619,28 +7619,22 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
   const { marca, oferta } = partesDoAnuncio(ad.texto)
   const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   return (
-    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden' }}>
-      <style>{`.placa-led{position:relative;height:90px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
+    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: 16 }}>
+      <style>{`.placa-led{position:relative;height:96px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
 .placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
-.placa-tag{position:absolute;right:9px;top:6px;font:700 8.5px Oswald,sans-serif;letter-spacing:.2em;color:rgba(255,255,255,.35)}
-.placa-m{position:absolute;left:14px;right:14px;top:11px;font:700 24px/1.05 Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
-.placa-o{position:absolute;left:14px;right:14px;top:43px;font:500 15px/1.12 Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#F4ECD6;max-height:34px;overflow:hidden}
-.placa-o.so{top:14px;font-size:18px;max-height:62px}
+.placa-tag{position:absolute;left:14px;top:6px;font:700 9px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45)}
+.placa-m{position:absolute;left:14px;right:14px;top:20px;font:700 24px/1.05 Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.placa-o{position:absolute;left:14px;right:14px;top:51px;font:500 15px/1.12 Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#F4ECD6;max-height:34px;overflow:hidden}
+.placa-o.so{top:22px;font-size:18px;max-height:62px}
 .placa-l{display:inline-block;transform-origin:50% 60%;animation:placaVira .38s cubic-bezier(.2,.9,.3,1.2) both}
 @keyframes placaVira{0%{transform:rotateX(90deg);opacity:0;filter:brightness(3)}60%{opacity:1}100%{transform:rotateX(0);opacity:1;filter:none}}
 .placa-bar{position:absolute;left:0;bottom:0;height:3px;animation:placaBar ${PLACA_MS}ms linear both}
 @keyframes placaBar{from{width:0}to{width:100%}}
 @media (prefers-reduced-motion:reduce){.placa-l{animation:none}}`}</style>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 10px 5px', background: CREAM, borderBottom: `3px solid ${INK}` }}>
-        {/* 16/10 (Diego): "tire esse Anuncie aqui, porque já tem Anúncio do dia" → o próprio título leva pra Loja */}
-        {patrocinioLojaOk()
-          ? <LojaButton ancora="loja-marca" className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>{en ? '📢 Ad of the day ›' : '📢 Anúncio do dia ›'}</LojaButton>
-          : <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{en ? '📢 Ad of the day' : '📢 Anúncio do dia'}</span>}
-        {itens.length > 1 && <span>{itens.map((_, i) => <i key={i} style={{ display: 'inline-block', width: i === idx ? 16 : 6, height: 6, borderRadius: 9, background: i === idx ? INK : '#d9cfae', marginLeft: 4, transition: 'width .3s' }} />)}</span>}
-      </div>
+      {/* 17/10 (Diego): saiu a faixa creme de título ("pra ser mais discreto e um pouco menor") — o "Anúncio do dia" mora DENTRO da placa */}
       <div className="placa-led" key={slot} role={ad.link ? 'link' : undefined} tabIndex={ad.link ? 0 : undefined} style={ad.link ? { cursor: 'pointer' } : undefined}
         onClick={ad.link ? () => { logApoio(`📢 clicou no anúncio: ${marca || oferta}`); window.open(ad.link, '_blank', 'noopener,noreferrer') } : undefined}>
-        <span className="placa-tag">{ad.link ? (en ? 'AD · TAP TO SEE ›' : 'ANÚNCIO · TOQUE PRA VER ›') : (en ? 'AD' : 'ANÚNCIO')}</span>
+        <span className="placa-tag">{en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA'}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
         {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 19 : undefined }}><LetrasVirando texto={marca} /></div>}
         <div className={`placa-o${marca ? '' : ' so'}`}><LetrasVirando texto={oferta} atraso={180} /></div>
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />

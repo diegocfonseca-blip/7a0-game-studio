@@ -1,3 +1,12 @@
+## 🏟️ PLACAS ATRÁS DOS GOLS em todo campinho + Anúncio do dia mais discreto (17/10) — ✅ NO AR
+- Diego escolheu a ideia 1 de `scripts/mockups/campinho-outras-ideias.png` (*"perfeito pode fazer mas no momento coloque Vadico
+  Veículos e Max Joias"*). `PlacaGol` (patrocinio-visual.tsx): placa em cima e embaixo do campo, cada uma numa marca, trocando
+  juntas a cada 7 s pelo relógio (Date.now). Lista `PLACAS_CAMPO` em patrocinio.ts (Vadico no branco, Max Joias no preto); com 1
+  marca só a outra placa vira "Leilão Legends". Nos 5 campinhos: leilão (`Campinho`), elenco da carreira, convocação da Copa do
+  Mundo, convocação do Leilão de Clubes e convocação internacional. Saiu a faixa branca fixa da Vadico embaixo do campinho.
+- Anúncio do dia (*"falta espaço entre a propaganda e a tabela… tire essa faixa de anúncio do dia"*): saiu a faixa creme de
+  título; "📢 ANÚNCIO DO DIA" virou etiqueta DENTRO da placa; 16 px de folga embaixo. (O atalho pra Loja pelo título saiu junto.)
+
 ## 🥅 Cena do GOOOL cortada no topo (17/10) — ✅ consertado
 - Print do Diego: a arte do gol (mascote + GOOOL) começava 36–46px abaixo do topo do placar (o lugar da faixa de narração,
   que foi pro rádio em 16/10) e os escudos apareciam por cima. Com a narração no rádio, a cena agora cobre o placar inteiro

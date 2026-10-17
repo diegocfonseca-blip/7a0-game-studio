@@ -16,6 +16,7 @@ import { useLegendPresentation } from './presentation-release'
 import { agoraSala } from './relogio' // ⏱️ no online o relógio é o do DONO da sala
 import { logTravaSalva } from './analytics'
 import { FORMATIONS, SECTORS, duplaPodeAgir, type Card, type Sector, type WonCard } from './types'
+import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSWALD = { fontFamily: 'Oswald, sans-serif' } as const
@@ -217,6 +218,7 @@ export function EscConvocacaoClubes() {
           <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{me.teamName} · {me.formation}</span>
           </div>
+          <PlacaGol lado="cima" alt={24} />
           <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {(['ATA', 'MEI', 'DEF', 'GOL'] as const).map(row => {
               const secs: Sector[] = row === 'DEF' ? ['LAT', 'ZAG'] : [row]
@@ -234,6 +236,7 @@ export function EscConvocacaoClubes() {
               )
             })}
           </div>
+          <PlacaGol lado="baixo" alt={24} />
         </div>
 
         {pronto ? (

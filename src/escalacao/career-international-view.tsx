@@ -43,6 +43,7 @@ import libertaImg from './img/online-liberta-v25.webp'
 import championsImg from './img/online-champions-v25.webp'
 import mundialImg from './img/carreira-mundial-clubes-v1.webp'
 import { CARTA_CLUBE } from './convite-cartas'
+import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 
 type Props = {
   season: number; seed: number; userTeam: string; userId: number; squad: WonCard[]
@@ -429,9 +430,11 @@ function InscricaoClube({ userTeam, clube, comp, onConfirm }: { userTeam: string
       <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
         <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, letterSpacing: .5 }}>{clube} · {selected.length}/11 · {shape}</span>
       </div>
+      <PlacaGol lado="cima" alt={24} />
       <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {linha(slotsDe('ATA'))}{linha(slotsDe('MEI'))}{linha([lat[0], ...zag, lat[1]])}{linha(slotsDe('GOL'))}
       </div>
+      <PlacaGol lado="baixo" alt={24} />
     </div>
     <button type="button" disabled={!registered} onClick={() => registered && onConfirm(selected)} style={registered ? btn(GREEN, '#fff') : btnOff}>
       {registered ? `✓ ${tr('Confirmar os 11 e começar a', 'Confirm the 11 and start the')} ${nomeComp(comp)}` : `${tr('Faltam', 'Missing')} ${11 - selected.length} ${tr('pra fechar os 11', 'to complete the 11')}`}
