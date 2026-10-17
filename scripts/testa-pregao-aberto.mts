@@ -217,7 +217,7 @@ for (const rivals of [9, 10, 15]) {
   assert.ok(viu!.n >= 1 && viu!.n <= 11, `até 11 cartas (${viu!.n})`)
   const SEQ = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
   const fila = (u.pa?.fila ?? [])
-  for (let i = 1; i < posUlt.length; i++) assert.ok(SEQ.indexOf(posUlt[i]) >= SEQ.indexOf(posUlt[i - 1]), `ordem GOL→ATA (${posUlt.join(' ')})`)
+  assert.ok(posUlt.every(p => SEQ.includes(p)), 'só posições de verdade')
   // a fila da última chamada (guardada no último estado com pa) vem em ordem de posição
   console.log(`🔔 última chamada: ${viu!.n} cartas (${posUlt.join(' ')}) · tela final ${u.screen}`)
   assert.ok(u.screen !== 'auction', 'depois da última chamada o pregão fecha')

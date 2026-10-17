@@ -6240,7 +6240,7 @@ function paTalvezFecha(state: EscState) {
 }
 // 🔔 ÚLTIMA CHAMADA (17/10, Diego: *"após acabar a rodada poderiam ter mais 11 jogadores finais por ordem de goleiro, laterais,
 // zagueiros, meias e atacantes… últimas tentativas… e aí caso não consigam, aí sim sobram essas cartas"*). Acabou a fila e ainda
-// tem vaga aberta? Entram até 11 cartas NOVAS, na ordem GOL→LAT→ZAG→MEI→ATA (o desenho de um 4-3-3), só das posições em que
+// tem vaga aberta? Entram até 11 cartas NOVAS (o desenho de um 4-3-3: 1 GOL · 2 LAT · 2 ZAG · 3 MEI · 3 ATA, em ordem MISTURADA), só das posições em que
 // alguém ainda tem vaga, com a mistura do pregão. Uma mesa só, lance aberto igual. Depois disso, aí sim a vaga vazia ganha
 // jogador de graça. Não vale no Leilão de Clubes (lá a convocação completa o time).
 const PA_ULTIMA_POR_POS: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
@@ -6275,9 +6275,11 @@ function paAbreUltimaChamada(state: EscState): boolean {
     }
   }
   if (!novas.length) return false
+  // 🔀 17/10 (Diego): as posições vêm MISTURADAS, igual ao pregão inteiro (não mais GOL→ATA)
+  for (let i = novas.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const x = novas[i]; novas[i] = novas[j]; novas[j] = x }
   pa.ultima = { de: pa.fila.length, n: novas.length }
   pa.fila.push(...novas)
-  pa.duplo = false // uma mesa só: a ordem GOL→ATA fica à vista
+  pa.duplo = false // uma mesa só
   paProximaCarta(state, 0)
   return true
 }
