@@ -1,6 +1,9 @@
 - 📢 17/10: mais 2 anúncios MANUAIS na placa depois da Vadico (`GIRO_MANUAIS`): ▶️ Kelvin Oliveira · canal do K9 no YouTube
   (youtube.com/@kelvink9oliveira) e 💍 Max Joias · Compramos ouro (WhatsApp +55 21 96471-7601, com mensagem pronta).
 
+- 📢 17/10: o Anúncio do dia entrou também na CARREIRA (aba Jogos, embaixo do giro de frases), nas duas caras da carreira
+  (visual novo `ll29-board` e o antigo). Antes só existia na temporada da partida rápida/online (`EscSeason`).
+
 ## 💳 LENDA 44,90 · BATISMO→FUNDADOR 29,90 · 💾 FICHA DE CARREIRA 9,99 NA LOJA (17/10) — ✅ NO AR
 - Lenda 49,90 → **44,90**. Subidas: Craque→Lenda 20 · Lenda→Batismo 40 · Lenda→Fundador 60 · Craque→Batismo 55 ·
   Craque→Fundador 75 · **Batismo→Fundador 29,90 fixo** (era 25). Duplo do Lenda 89,90 → **80,90**. Código (`planos-regras.ts`)
@@ -13,8 +16,6 @@
 - ❓ Plano duplo (2 pessoas, -10%): já aparece sutil na Loja embaixo de "Sobe de plano". Na vitrine de planos NÃO aparece —
   perguntar ao Diego se quer lá também.
 - ❓ Botão Manual da carreira (sem plano): abre a trava NOVA (Craque 29,90, Pix na hora, "Ver o Lenda" já com 44,90).
-- 📢 17/10: o Anúncio do dia entrou também na CARREIRA (aba Jogos, embaixo do giro de frases), nas duas caras da carreira
-  (visual novo `ll29-board` e o antigo). Antes só existia na temporada da partida rápida/online (`EscSeason`).
 
 ## 🏟️ PLACAS ATRÁS DOS GOLS em todo campinho + Anúncio do dia mais discreto (17/10) — ✅ NO AR
 - Diego escolheu a ideia 1 de `scripts/mockups/campinho-outras-ideias.png` (*"perfeito pode fazer mas no momento coloque Vadico
