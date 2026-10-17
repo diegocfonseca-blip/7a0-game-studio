@@ -13115,7 +13115,9 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // liga segue o caminho normal (libera a vaga e, no meio do jogo, vira rival CPU).
     if (onlineRef.current === 'online' && isHostRef.current && rid && st.ligaMode) {
       try { localStorage.removeItem('escalacao-room') } catch { /* ignora */ }
-      try { const { data } = await supabase.auth.getUser(); if (data?.user) await supabase.from('room_players').delete().eq('room_id', rid).eq('user_id', data.user.id) } catch { /* silencioso */ }
+      // 🔧 17/10 (Diego: "muitas vezes não consegue continuar a liga"): o dono NÃO apaga mais a
+      // própria linha de room_players. Sem ela, ao voltar, a retomada não o achava na sala
+      // (`triggerStart` → "não sou membro") e a liga ficava sem dono pra abrir o pregão.
       dispatch({ type: 'GO_LOBBY' })
       return
     }
@@ -13202,7 +13204,8 @@ export function EscProvider({ children }: { children: ReactNode }) {
     // sua vaga na sala. Sem isso você fica "fantasma": um restart puxa você como
     // jogador e a galera que ficou espera você lacrar pra sempre.
     if ((action.type === 'NEW_GAME' || action.type === 'GO_LOBBY') && onlineRef.current === 'online' && stateRef.current.roomId) {
-      leaveOnlineRoom(stateRef.current.roomId, !!stateRef.current.careerOnline)
+      // 🏆 dono de liga mantém a cadeira (17/10): a liga é dele do começo ao fim
+      leaveOnlineRoom(stateRef.current.roomId, !!stateRef.current.careerOnline || (isHostRef.current && !!stateRef.current.ligaMode))
     }
     if (onlineRef.current === 'online' && !isHostRef.current && action.type !== 'GO_LOBBY' && action.type !== 'NEW_GAME' && action.type !== 'GO_ALBUM' && action.type !== 'GO_RANKING') {
       // 📮 SALA DE CHAMPIONS: o recado vai SÓ pro dono (caixa de entrada dele), não pra sala

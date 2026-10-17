@@ -2358,7 +2358,16 @@ export function EscLobby() {
       }
       if (rd.status === 'started') {
         if (!mySlot) { setRoomError(tr('Você não está nessa sala.', 'You are not in that room.')); setLoading(false); return }
-        triggerStart(rd); setLoading(false); return
+        // 🔧 17/10 (Diego: "muitas vezes não consegue continuar a liga"): antes o resultado
+        // era ignorado — se a partida guardada não abria, o botão ficava MUDO. Agora, numa
+        // liga, tenta reabrir a sala de espera (mesma função do banco, que nunca mexe em
+        // partida viva nem temporada no meio); fora da liga, avisa.
+        const ok = await triggerStart(rd)
+        if (ok) { setLoading(false); return }
+        if (rd.game_state?.mode !== 'liga') { setRoomError(tr('Não consegui abrir a partida agora. Tenta de novo em instantes.', 'Couldn\'t open the match right now. Try again in a moment.')); setLoading(false); return }
+        const res = await reabreLiga(rd.id)
+        if (res !== 'ok') { setRoomError(AVISO_REABRE[res]); setLoading(false); return }
+        rd = { ...rd, status: 'waiting' } // cai na sala de espera da liga (minha vaga já existe)
       }
     }
     if (rd.status !== 'waiting') { setRoomError(tr('Sala indisponível.', 'Room unavailable.')); setLoading(false); return }

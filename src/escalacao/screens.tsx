@@ -3365,6 +3365,19 @@ function pendingSpend(state: EscState, you: Manager): number {
 // novo" fazia (status 'waiting' no banco + REMATCH/VOLTA_ESPERA), com uma confirmação que
 // explica o que acontece. Sala de carreira online NÃO (lá o pregão entre temporadas é
 // parte do save — voltar pra espera criaria uma carreira nova).
+// 🔧 17/10 (Diego: "muitas vezes não consegue continuar a liga"): voltar pra sala de espera
+// tem que matar o pregão velho NO BANCO também — só o `status: 'waiting'` deixava o
+// `game_state` com `screen` da partida, e a próxima entrada RESTAURAVA o jogo velho em vez
+// de abrir a espera. Mesmo acerto do "Chamar mais gente" (18/09): marca `screen: 'lobby'`.
+async function voltaEsperaNoBanco(roomId: string | undefined | null) {
+  if (!roomId) return
+  try {
+    const { data } = await supabase.from('game_rooms').select('game_state').eq('id', roomId).maybeSingle()
+    const gs = (data?.game_state ?? {}) as Record<string, unknown>
+    await supabase.from('game_rooms').update({ status: 'waiting', game_state: { ...gs, screen: 'lobby' }, updated_at: new Date().toISOString() }).eq('id', roomId)
+  } catch { /* segue: o reducer leva pra espera mesmo assim */ }
+}
+
 async function chamarMaisGente(roomId: string | undefined | null, dispatch: ReturnType<typeof useEsc>['dispatch'], V: (pt: string, en: string) => string, noPregao = false, deckSala?: EscState['deckLeague']) {
   const msg = noPregao
     ? V('Chamar mais gente agora?\n\nEste pregão é desfeito (nenhuma rodada foi jogada) e TODO MUNDO volta pra sala de espera. Lá você convida, o amigo entra com código + senha, e você abre o pregão de novo — com todo mundo. Troféus e ranking ficam.', 'Invite more people now?\n\nThis auction is discarded (no round was played) and EVERYONE goes back to the waiting room. There you invite, your friend joins with code + password, and you open the auction again — with everybody. Trophies and ranking stay.')
@@ -10415,7 +10428,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       // sobrou só o host na sala (ex.: excluiu o único convidado)? Leilão novo
       // precisa de 2+ — volta pra sala de espera pra chamar gente, sem travar.
       if (playerNames.length < 2) {
-        try { await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId) } catch { /* segue */ }
+        await voltaEsperaNoBanco(state.roomId)
         try { alert(V('Você ficou sozinho na sala — o novo leilão precisa de pelo menos 2 pessoas. Te levei pra sala de espera: chama a galera por lá! 📣', 'You are alone in the room — a new auction needs at least 2 people. I took you to the waiting room: call the crew from there! 📣')) } catch { /* ignora */ }
         dispatch({ type: 'REMATCH' })
         return
@@ -10490,7 +10503,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // BidLegends virava futebol no "novo leilão".
         sport: state.sport === 'basquete' ? 'basquete' : undefined,
       })
-    } catch { dispatch({ type: 'REMATCH' }) }
+    } catch { await voltaEsperaNoBanco(state.roomId); dispatch({ type: 'REMATCH' }) }
   }
   const voteBtn = (v: 'mesmo' | 'leilao', label: string, bg: string, fg: string) => (
     <button onClick={() => vote(v)} className="flex-1 rounded-xl border-[3px] border-black py-3 font-black text-sm relative active:translate-y-0.5"
