@@ -70,6 +70,7 @@ import mengaoMascoteImg from './img/mengao-mascote.webp' // 🦅 Mengão Malvad�
 import arrogantchiMascoteImg from './img/arrogantchi-mascote.webp' // 😜 Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleMascoteImg from './img/intervale-mascote.webp' // 🥊 Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
 import comverissimoMascoteImg from './img/comverissimo-mascote.webp' // 🟢 ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
+import cuiudosMascoteImg from './img/cuiudos-mascote.webp' // 🤠 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
 import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniMascoteImg from './img/rossini-mascote.webp' // 💴 Rossini Money (luizeduardorossini0013): arte própria do dono
@@ -377,6 +378,12 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 241×440, 37 KB — altura 176. mascote_key = "comverissimo".
   comverissimo: (
     <img src={comverissimoMascoteImg} height={176} width={Math.round(176 * 241 / 440)} alt="O Verissimo — ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🤠 O CUIUDO (mascote do Cuiudos FC — matheussoaresg2018, 17/10): o boiadeiro de chapéu, óculos escuros e corrente de
+  // ouro, camisa azul e calça branca, segurando o cartaz "Só os Cuiudos FC". Arte do dono.
+  // 📏 267×440, 39 KB — altura 176. mascote_key = "cuiudos".
+  cuiudos: (
+    <img src={cuiudosMascoteImg} height={176} width={Math.round(176 * 267 / 440)} alt="O Cuiudo — Cuiudos FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🦁 O LEÃO DA MASSA (mascote do Chelsão da Massa FC — ccaonta, 16/10): o leão azul de turbante branco, capa e roupa
   // azul com dourado, braços cruzados e a faixa "Proerd" na cintura. Arte do dono.
@@ -1204,6 +1211,11 @@ export const CARIMBO_GOL: Record<string, string> = {
   'ComVerissimo EC': 'comverissimo',
   'ComVerissimo SC': 'comverissimo',
   'Soberano Nacional': 'comverissimo',
+  // 🤠 o Cuiudo carimba o gol do Cuiudos FC (matheussoaresg2018, 17/10).
+  'Cuiudos FC': 'cuiudos',
+  'Cuiudos': 'cuiudos',
+  'Cuiudos EC': 'cuiudos',
+  'Cuiudos SC': 'cuiudos',
   // 🦁 o Leão da Massa carimba o gol do Chelsão da Massa FC (ccaonta, 16/10).
   'Chelsão da Massa FC': 'chelsao_leao',
   'Chelsão da Massa': 'chelsao_leao',
@@ -1347,6 +1359,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   gavioes_gaviao: 'O Gavião', // 🦅 Gaviões SCCP (kauealves584, 02/10)
   vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
   mengao_urubu: 'O Urubu Malvadão', // 🦅 Mengão Malvadão (atilasoaresjr21, 06/10)
+  cuiudos: 'O Cuiudo', // 🤠 Cuiudos FC (matheussoaresg2018, 17/10)
   chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)
   comverissimo: 'O Verissimo', // 🟢 ComVerissimo FC (cesar.verissimo27, 15/10)

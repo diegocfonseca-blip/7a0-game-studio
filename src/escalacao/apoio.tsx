@@ -116,6 +116,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'bastosmbc@gmail.com': 'ouro', // 👑 Lenda — batismo El Mineiro (Série C, no assento do bot Brodeiragem) + fundador nº80 + sócio nº61 (27/09). Regra 17/08: todo batismo já nasce sócio + fundador.
   'heitormonaco98@gmail.com': 'ouro', // 👑 Lenda — batismo Arrogantchi FC (Série A, no assento do Bagres 1993, que desceu pra B) + fundador nº88 (08/10). Regra 17/08: todo batismo já nasce sócio + fundador.
   'marcus.viniciuslopessantos79@gmail.com': 'ouro', // 👑 Lenda — batismo Inter Vale FC (Série C, no assento do bot Tetéia SAF) + fundador nº89 + sócio nº70 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
+  'matheussoaresg2018@gmail.com': 'ouro', // 👑 batismo Cuiudos FC (Série A, plano 🖋 Fundador, no assento do Papão United Madrid, que desceu pra C) + fundador nº91 + sócio nº75 (17/10)
   'ccaonta@gmail.com': 'ouro', // 👑 batismo Chelsão da Massa FC (Série C, no assento do bot CRBebê) + sócio nº74 (16/10). Sem número de fundador (regra 14/10: só o plano Fundador).
   'caelborba@gmail.com': 'ouro', // 👑 batismo Labubu FC (Série A, no assento do Só Deus Sabe FC, que desceu pra C) + sócio nº72 (14/10). Regra NOVA 14/10: batismo de 79,90 NÃO ganha número de fundador (só o plano Fundador).
   'luizeduardorossini0013@gmail.com': 'ouro', // 👑 Lenda — batismo Rossini Money (Série A, no assento do Bagres de Wall Street FC, que desceu pra B) + fundador nº90 + sócio nº71 (12/10). Regra 17/08: todo batismo já nasce sócio + fundador.
@@ -231,6 +232,7 @@ const FUNDADOR_N: Record<string, number> = {
   'heitormonaco98@gmail.com': 88, // 😜🔵⚫ Arrogantchi FC (08/10)
   'marcus.viniciuslopessantos79@gmail.com': 89, // 🥊⚫⚪ Inter Vale FC (12/10)
   'luizeduardorossini0013@gmail.com': 90, // 💴🔴⚫ Rossini Money (12/10)
+  'matheussoaresg2018@gmail.com': 91, // 🤠🔵 Cuiudos FC (17/10, plano Fundador)
   'henriquejunger07@gmail.com': 87, // 🐓👑 Le Prince FC (08/10)
   'atilasoaresjr21@gmail.com': 86, // 🦅🔴⚫ Mengão Malvadão (06/10)
   'kelvinoliveiraandradeenunes@gmail.com': 85, // 👑🧊 K9 FC (06/10)

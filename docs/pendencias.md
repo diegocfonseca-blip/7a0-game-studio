@@ -1,3 +1,16 @@
+## 🤠🔵 Batismo Cuiudos FC (17/10, plano 🖋 Fundador) — ✅ NO AR
+- Dono `matheussoaresg2018@gmail.com` (conta desde 14/09; compra 'plus' já registrada). **Série A**, no assento do
+  **Papão United Madrid**, que DESCEU pra **Série C** (decisão do Diego) na vaga do bot Goiaba FC (saiu da pirâmide). Sem OLD_NAME.
+- Arte do dono (prancha chroma com as peças encostadas — recorte por região, não pelo script padrão): escudo 276×360/29 KB ·
+  mascote "O Cuiudo" 267×440/39 KB · camisa da Loja. Manto medido: azul #02308B (77%) + amarelo #E7AC0B.
+- Banco: ouro/manual · fundador nº91 · sócio nº75 · nome "Cuiudos" reservado (+FC/EC pelo gatilho).
+- ⚠️ A mascote segura um cartaz com um político de terno (arte do dono). Avisei o Diego; ele não pediu pra mudar.
+- 📣 Canto: o MESMO do Corinthians do Gaviões (`torcida-gavioes-v1.mp3`) na carreira dele — ✅ no ar (17/10).
+- ✨ Gala "Rodeio dos Cuiudos" (`gala-cuiudos.tsx`, 8,6 s): porteira fecha/abre, caminhonete freia, chapéu de vaqueiro sobe,
+  laço laça o escudo, placa "SÓ OS CUIUDOS", fogos verde/amarelo. SEM a mascote (cartaz com político). Vídeo
+  `scripts/posts/gala-cuiudos-com-canto.mp4`. ✅ APROVADA e no ar (17/10, *"publica"*).
+- Falta: time de coração e nome do dono pro post (`scripts/posts/cuiudos-post.png`).
+
 - 📢 17/10: mais 2 anúncios MANUAIS na placa depois da Vadico (`GIRO_MANUAIS`): ▶️ Kelvin Oliveira · canal do K9 no YouTube
   (youtube.com/@kelvink9oliveira) e 💍 Max Joias · Compramos ouro (WhatsApp +55 21 96471-7601, com mensagem pronta).
 
