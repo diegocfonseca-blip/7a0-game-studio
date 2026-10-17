@@ -5387,7 +5387,7 @@ type Action =
   | { type: 'RESTORE_CAREER'; save: CareerSave; redraft?: boolean }
   | { type: 'START_DINASTIA_SEASON'; teamName: string; formation: FormationKey; division: Division; seasonNo: number; squad: WonCard[]; others: { name: string; squad: Card[] }[]; rivals?: { team: string; name: string; division: Division }[] }
   | { type: 'RESUME_DINASTIA' }
-  | { type: 'START_ONLINE'; regional?: string; holandes?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
+  | { type: 'START_ONLINE'; regional?: string; holandes?: boolean; pregaoAberto?: boolean; clubes?: boolean; sport?: 'futebol' | 'basquete'; liga?: boolean; seasonNo?: number; roomId: string; roomCode: string; roomName?: string; isHost: boolean; playerIndex: number; playerNames: string[]; seatUids?: string[]; duplasMode?: boolean; duplas?: Record<number, DuplaSeat>; youUid?: string; formation: FormationKey; stream?: boolean; manual?: boolean; chatOff?: boolean; auctionSecs?: number; deck?: 'br' | 'eu' | 'both' | 'todos'; varzea?: boolean; career?: boolean; ligaFechada?: boolean; locked?: boolean; pwHash?: string; rematch?: number; copaMode?: 'liga' | 'liga_copa' | 'liga_liberta' | 'liga_champions' | 'champions'; rivals?: number; rivalTeams?: string[]; bafo?: Record<number, WonCard[]>; bafoDonos?: Record<number, { uid: string; seed: number; via: 'elenco' | 'convocados' }>; bafoValendo?: boolean }
   | { type: 'REAUCTION_ONLINE'; artilheiros?: ArtilheiroPremio[]; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: aplica acessos/quedas e refaz o LEILÃO (novo time), orçamento parelho
   | { type: 'OPEN_RESERVE_LIST'; artilheiros?: ArtilheiroPremio[]; botCarry?: Record<string, number>; golsCard?: Record<string, number>; assCard?: Record<string, number>; jogosCard?: Record<string, number>; placements: Record<string, string>; rewards?: Record<number, number>; clubRewards?: Record<string, number>; champions?: Record<string, 'A' | 'B' | 'C' | 'D' | 'V'>; copaChampion?: string | null; supercopaChampion?: string | null; mesmo?: boolean; sponsorRewards?: Record<number, number>; sponsorResults?: Record<number, { tier: 1 | 2 | 3; brandId: string; hit: boolean; amount: number; floored?: boolean }>; torcidaDeltas?: Record<string, number>; torcidaHist?: Record<string, { delta: number; motivo: string }[]>; stadiumOcc?: Record<number, number>; finalPos?: Record<number, number> } // carreira online: abre a tela de VENDA (listar pra leilão) já na temporada nova, antes da compra. mesmo=true → votou "mesmo time": mesma tela, SÓ decide contrato, sem mercado/leilão depois (vai pro CONFIRM_MESMO_TIME). sponsorRewards/Results = 🤝 aposta do patrocínio da temporada que ACABOU. torcidaDeltas = 🎪 quanto o torcidômetro de cada time humano mudou nesta temporada. torcidaHist = 🎪 chips do histórico sutil (motivo de cada mudança), pra guardar os últimos 6. copaChampion serve pra Copa Legends E Copa do Brasil (mesmo histórico, só troca o nome exibido); supercopaChampion = 🏆🔵 essa sim é critério NOVO, só preenchido quando a Copa do Brasil está rolando
   | { type: 'TOGGLE_RESERVE_LIST'; mgrId: number; cardId: string } // carreira online: lista/tira uma carta da lista de leilão (respeita o XI completo)
@@ -5452,7 +5452,7 @@ type Action =
   | { type: 'HOLANDES_TICK' }
   // 🔨 PREGÃO ABERTO: o relógio de 1s (martelo + lance dos robôs) e o lance de gente. No online só o host tica.
   | { type: 'PREGAO_ABERTO_TICK' }
-  | { type: 'PREGAO_ABERTO_LANCE'; mgrId: number; valor: number; by?: string; mesa?: number } // 🔨🔨 mesa 0 ou 1 (duas mesas a partir de 11 clubes)
+  | { type: 'PREGAO_ABERTO_LANCE'; mgrId: number; valor: number; by?: string; mesa?: number; cardId?: string } // 🔨🔨 mesa 0 ou 1 (duas mesas a partir de 11 clubes)
   | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
@@ -6088,6 +6088,7 @@ function holResgate(state: EscState) {
 // resenha, vendedor) — a MESMA porta que o envelope e a Tocaia usam. Os robôs decidem o teto com o MESMO
 // `cpuEnvelope`, carta a carta, e vão cobrindo de 1 em 1 até o teto deles.
 // 👑 No online (quando for ligado): quem roda o relógio e o martelo é SÓ o dono da sala; o convidado roteia o lance.
+export const PA_FOLGA_ONLINE_MS = 400 // 🌐 17/10: folga do martelo na sala online (o lance do último instante ainda está viajando)
 export const PA_MARTELO_MS = 5_000 // 🔁 16/10: era 6s; ele pediu pra encurtar e cravou: "eu falei 5s p martelar"
 export const PA_TICK_MS = 500 // 🔁 16/10 (Diego: "muito lento"): o robô age a cada meio segundo, não a cada segundo
 /** 💰 A CARTA JÁ ABRE NO PREÇO DA CATEGORIA (16/10, números do Diego: "lenda já abrir em 10, craque em 5, promessa 4,
@@ -6138,7 +6139,10 @@ function paTeto(m: Manager, card: Card, rng: () => number, econ: number): number
  * Diego, 16/10). Aqui a semente anda com a carta (`idx`) e com o tique. */
 function paRng(state: EscState, sal: number): () => number {
   const pa = state.pa
-  return mulberry(state.seed + (pa ? pa.idx * 7919 + pa.tiques * 104729 : 0) + sal)
+  // 🔁 17/10: o tique vem do RELÓGIO (não de `pa.tiques`) — assim um tique em que nada acontece não precisa mudar o estado,
+  // e o dono da sala não manda a tela pra todo mundo à toa (ver `PREGAO_ABERTO_TICK`)
+  const tique = Math.floor(Date.now() / PA_TICK_MS)
+  return mulberry(state.seed + (pa ? pa.idx * 7919 + tique * 104729 : 0) + sal)
 }
 /** teto de cada robô pra ESTA carta — até onde ele cobre */
 function paTetos(state: EscState, card: Card, sal = 31): Record<number, number> {
@@ -6265,6 +6269,13 @@ function paRegistraLance(state: EscState, mgrId: number, valor: number, k = 0) {
   M.deadline = Date.now() + PA_MARTELO_MS // todo lance novo zera o relógio
 }
 /** meio segundo passou: em cada mesa, martelo se venceu; senão, no máximo UM robô cobre (pra parecer gente) */
+/** o que importa no pregão (tudo menos o contador de tiques): mudou isto, a tela muda e a sala recebe */
+function paAssinatura(state: EscState): string {
+  const pa = state.pa
+  if (!pa) return `fim|${state.phase}|${state.screen}`
+  const mesa = (k: number) => { const mv = paMesa(state, k); return mv ? `${mv.card?.id ?? '-'}:${mv.M.lider}:${mv.M.preco}:${mv.M.lances.length}:${mv.M.deadline}:${mv.M.viraAte ?? 0}:${mv.M.viraId ?? ''}` : '' }
+  return `${state.phase}|${state.screen}|${pa.idx}|${pa.vendidos.length}|${pa.sobras.length}|${mesa(0)}|${pa.duplo ? mesa(1) : ''}`
+}
 function paTick(state: EscState) {
   const pa = state.pa
   if (!pa) return
@@ -6283,7 +6294,9 @@ function paTickMesa(state: EscState, k: number) {
   if (!card) { paProximaCarta(state, k); return }
   const M = mv.M
   if (M.viraAte && Date.now() < M.viraAte) return // 🃏 a carta que saiu ainda está virando: ninguém lança
-  if (M.deadline !== null && Date.now() >= M.deadline) { paMartelo(state, k); return }
+  // ⏳ no online o martelo espera uma folguinha depois do 0 da tela: o lance de quem apertou no último instante ainda
+  // está viajando até o dono. Na tela continua "5s"; quem apertou no 0 não perde pra internet.
+  if (M.deadline !== null && Date.now() >= M.deadline + (state.onlineMode === 'online' ? PA_FOLGA_ONLINE_MS : 0)) { paMartelo(state, k); return }
   const rng = paRng(state, k * 13)
   const minimo = paMinimo(state, k)
   const cands = paRobosQueDisputam(state).filter(m => m.id !== M.lider && (M.tetos[m.id] ?? 0) >= minimo && Math.floor(m.money) - paComprometido(state, m.id, k) >= minimo && openSlots(m, card.pos) > 0)
@@ -8085,6 +8098,10 @@ function reducerBase(state: EscState, action: Action): EscState {
       // Padrão é SEMPRE o leilão cego de hoje — sala antiga nem tem o campo.
       // 🚫 Fora da CARREIRA online: lá o pregão é o de sempre, sem novidade.
       s.holandes = !action.career && !!action.holandes // 🧱 Clubes e Tocaia são escolhas SEPARADAS (Diego 27/09: "uma coisa não tem nada a ver com a outra")
+      // 🔨 PREGÃO ABERTO NA SALA (17/10, Diego: "ok"): escolha do dono gravada na sala, igual à Tocaia. Fora da carreira
+      // e do basquete; e com as duas ligadas (sala estranha), vale o pregão aberto.
+      s.pregaoAberto = !action.career && !onlineNba && !!action.pregaoAberto
+      if (s.pregaoAberto) s.holandes = false
       s.varzea = onlineVarzea
       s.sport = onlineNba ? 'basquete' : 'futebol'
       s.nbaCareer = false // online rápido/liga: não é a carreira salva do basquete
@@ -8388,7 +8405,12 @@ function reducerBase(state: EscState, action: Action): EscState {
     // ─── 🔨 PREGÃO ABERTO ─────────────────────────────────────────────────
     case 'PREGAO_ABERTO_TICK': {
       if (s.phase !== 'pregao' || !s.pa) return s
+      // 📡 17/10 (Diego: "esse modo vai gastar muita mensagem do Supabase?"): o tique roda a cada 0,5s, mas na maioria
+      // deles NADA acontece (ninguém lançou, o relógio só andou). Se nada mudou de verdade, devolve o MESMO estado: a
+      // tela não redesenha e o dono não manda nada pra sala. A contagem 5-4-3 cada aparelho faz sozinho, pelo prazo.
+      const antes = paAssinatura(s)
       paTick(s)
+      if (paAssinatura(s) === antes) return state
       return s
     }
     case 'PREGAO_ABERTO_LANCE': {
@@ -8397,6 +8419,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       if (!m?.isHuman) return s // robô não passa por aqui: ele cobre no tick
       const valor = Math.floor(Number(action.valor))
       const k = action.mesa === 1 ? 1 : 0
+      // 🌐 o lance é DAQUELA carta: se chegou atrasado (estrada reserva, internet lenta) e a mesa já trocou de carta,
+      // não vale — nunca dar lance numa carta que a pessoa nem viu
+      if (action.cardId && paMesa(s, k)?.card?.id !== action.cardId) return s
       if (!paPodeLancar(s, action.mgrId, valor, action.by, k)) return s
       paRegistraLance(s, action.mgrId, valor, k)
       return s
@@ -13139,6 +13164,11 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // cego, aqui NÃO tem folga de 5s — o preço está caindo, cada toque é único
       // e não dá pra "segurar o próximo". O reducer recusa o toque com preço
       // velho, então chegar pelas duas estradas nunca compra duas vezes.
+      // 🔨 o lance do PREGÃO ABERTO também (17/10): leva o id da carta, então se chegar atrasado pela estrada reserva e a
+      // mesa já tiver outra carta, o reducer recusa — nunca vira lance numa carta que a pessoa não viu
+      if (action.type === 'PREGAO_ABERTO_LANCE' && stateRef.current.roomId) {
+        supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
+      }
       if (action.type === 'HOLANDES_PEGAR' && stateRef.current.roomId) {
         supabase.from('room_acoes').insert({ room_id: stateRef.current.roomId, payload: action }).then(() => {}, () => {})
       }
@@ -13600,7 +13630,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
             // 🔻 `HOLANDES_PEGAR` na lista: é o recado que, se sumir, tira o
             // jogador da mão de quem apertou. O reducer confere o preço da tela
             // e recusa carta que já tem dono, então repetido não faz mal.
-            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
+            if (a && (a.type === 'SUBMIT_ENVELOPE' || a.type === 'SUBMIT_TIEBREAK' || a.type === 'FORCE_SEAL' || a.type === 'FORCE_TIEBREAK' || a.type === 'HOLANDES_PEGAR' || a.type === 'PREGAO_ABERTO_LANCE' || a.type === 'CONVOCAR_CLUBES' || a.type === 'CONVOCACAO_TIMEOUT')) rawDispatch(a)
           }
           supabase.from('room_acoes').delete().eq('room_id', st.roomId).lte('id', acoesVistasRef.current).then(() => {}, () => {})
         } catch { /* rádio E estrada falharam juntos: a próxima volta tenta de novo */ }
@@ -14490,7 +14520,9 @@ export function sanitize(state: EscState): EscState {
   // cortar o bot em toda carta do pregão. Mesma regra do `pendingEnvelopes`:
   // o que é segredo não sai do host.
   const hol = state.hol ? { ...state.hol, tetos: {} } : state.hol
-  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
+  // 🔨 PREGÃO ABERTO (17/10): mesma regra — os tetos dos robôs (das duas mesas) ficam só no aparelho do dono
+  const pa = state.pa ? { ...state.pa, tetos: {}, ...(state.pa.m2 ? { m2: { ...state.pa.m2, tetos: {} } } : {}) } : state.pa
+  return { ...state, pendingEnvelopes: {}, tiebreakPending: {}, ...(state.convocacaoEscolhas ? { convocacaoEscolhas: {} } : {}), ...(state.hol ? { hol } : {}), ...(state.pa ? { pa } : {}), ...(state.careerOnline ? {} : SEM_BAGAGEM_DE_CARREIRA) }
 }
 // 🧳 A SALA NÃO LEVA A CARREIRA DE NINGUÉM NA MALA (24/09, sala do Final Boss FC).
 // Diego: *"deu erro, travou a sala, os valores e etc"* — Tocaia, jogo rápido online.

@@ -9,6 +9,7 @@ import { useT } from './lang'
 import { playTick, playHammer } from './sound'
 import type { Sector, Card } from './types'
 import { openSlots } from './store'
+import { agoraSala } from './relogio'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
@@ -22,7 +23,9 @@ export function PregaoAberto() {
   const card = state.currentCards[0]
   const online = state.onlineMode === 'online'
   const euTico = !online || state.isHost
-  const [agora, setAgora] = useState(Date.now())
+  // ⏱️ o relógio da SALA (o do dono): no online o prazo do martelo nasce no aparelho dele, e celular adiantado/atrasado
+  // mostraria a contagem errada. No solo `agoraSala()` é o próprio Date.now().
+  const [agora, setAgora] = useState(agoraSala())
 
   // ⏱️ o relógio: 1 tick por segundo (martelo + lance dos robôs) — só quem manda no relógio
   useEffect(() => {
@@ -30,7 +33,7 @@ export function PregaoAberto() {
     const iv = setInterval(() => dispatch({ type: 'PREGAO_ABERTO_TICK' }), PA_TICK_MS)
     return () => clearInterval(iv)
   }, [!!pa, euTico]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { const iv = setInterval(() => setAgora(Date.now()), 250); return () => clearInterval(iv) }, [])
+  useEffect(() => { const iv = setInterval(() => setAgora(agoraSala()), 250); return () => clearInterval(iv) }, [])
 
   // 🔊 tique a cada lance novo, martelo a cada venda
   const nLances = (pa?.lances.length ?? 0) + (pa?.m2?.lances.length ?? 0) // 🔨🔨 as duas mesas fazem barulho
@@ -117,6 +120,30 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
   const t = useT()
   const [outro, setOutro] = useState('')
   const you = state.managers[state.youIdx]
+  const online = state.onlineMode === 'online'
+  // 🌐 LANCE QUE NÃO VALEU NUNCA SOME CALADO (17/10): no online o lance viaja até o dono. Se outro cobriu antes de ele
+  // chegar (ou a carta já trocou), a pessoa vê o porquê — foi a lição da Tocaia (sala do Fridão, 23/09).
+  const [meuLance, setMeuLance] = useState<{ cardId: string; valor: number; em: number } | null>(null)
+  const [aviso, setAviso] = useState('')
+  const mvEu = paMesa(state, k)
+  useEffect(() => {
+    if (!meuLance || !you || !mvEu) return
+    const c = mvEu.card, M0 = mvEu.M
+    if (c?.id === meuLance.cardId && M0.lider === you.id) { setMeuLance(null); return }
+    const coberto = c?.id !== meuLance.cardId || (M0.lider !== null && M0.lider !== you.id && M0.preco >= meuLance.valor)
+    if (coberto) {
+      setMeuLance(null)
+      setAviso(c?.id !== meuLance.cardId
+        ? t('⚠️ O martelo bateu antes do seu lance chegar.', '⚠️ The hammer fell before your bid arrived.')
+        : t(`⚠️ Alguém cobriu antes do seu lance chegar — o mínimo agora é ${paMinimo(state, k)}.`, `⚠️ Someone topped it before your bid arrived — the minimum is now ${paMinimo(state, k)}.`))
+    }
+  }, [mvEu?.card?.id, mvEu?.M.lider, mvEu?.M.preco, meuLance]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!meuLance) return
+    const tm = setTimeout(() => { setMeuLance(null); setAviso(t('⚠️ Seu lance não chegou no dono da sala (internet). Tenta de novo.', '⚠️ Your bid didn’t reach the room owner (connection). Try again.')) }, 5000)
+    return () => clearTimeout(tm)
+  }, [meuLance]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!aviso) return; const tm = setTimeout(() => setAviso(''), 3500); return () => clearTimeout(tm) }, [aviso])
   const mv = paMesa(state, k)
   const pa = state.pa
   if (!mv || !pa || !you) return null
@@ -126,7 +153,11 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
   const minimo = paMinimo(state, k)
   const posVagas = card ? openSlots(you, card.pos) : 0
   const pode = (v: number) => !!card && paPodeLancar(state, you.id, v, state.youUid, k)
-  const lance = (v: number) => { if (pode(v)) dispatch({ type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: v, by: state.youUid, mesa: k }) }
+  const lance = (v: number) => {
+    if (!card || !pode(v)) return
+    dispatch({ type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: v, by: state.youUid, mesa: k, cardId: card.id })
+    if (online) setMeuLance({ cardId: card.id, valor: v, em: Date.now() })
+  }
   // 🃏 a carta que acabou de sair DESTA mesa vira no mesmo lugar (rosto, cor, estrelas, selo) por `PA_VIRA_MS`
   const virada = M.viraAte && agora < M.viraAte && M.viraId ? pa.fila.find(x => x.id === M.viraId) ?? null : null
   const posNome = card ? t(POS_PT[card.pos][0], POS_PT[card.pos][1]) : ''
@@ -177,6 +208,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
               </div>
             )}
 
+            {aviso && <div role="alert" style={{ background: '#FFE3DD', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? '5px 7px' : '7px 10px', fontSize: compacto ? 10.5 : 12, fontWeight: 800, textAlign: 'center' }}>{aviso}</div>}
             {/* 🫵 seus botões — ou a trava explicada */}
             {posVagas <= 0 ? (
               <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>

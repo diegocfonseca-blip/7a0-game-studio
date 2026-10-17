@@ -175,5 +175,32 @@ for (const rivals of [9, 10, 15]) {
   assert.equal(c.screen, 'convocacao', `depois do pregão vem a convocação (tela: ${c.screen})`)
   console.log(`🧱 clubes: ${Math.round(ticks * PA_TICK_MS / 60000)} min · você levou ${euLevei} pacote(s) · ${semPacote} clube(s) com setor sem pacote (a convocação completa)`)
 }
+// 📡 MENSAGENS DA SALA ONLINE (17/10, Diego: "vai gastar muita mensagem do Supabase?"): o tique em que nada acontece devolve o
+// MESMO estado — o dono só manda a tela pra sala quando muda algo de verdade (lance, martelo, carta nova)
+{
+  let o = reducer({} as EscState, { type: 'NEW_GAME' } as never)
+  o = reducer(o, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals: 9, career: false, league: 'both', copaMode: 'liga_copa', intro: false, pregaoAberto: true } as never)
+  let ticks = 0, mudou = 0
+  while (o.screen === 'auction' && o.phase === 'pregao' && ticks++ < 40000) {
+    avanca(PA_TICK_MS)
+    const antes = o
+    o = reducer(o, { type: 'PREGAO_ABERTO_TICK' } as never)
+    if (o !== antes) mudou++
+  }
+  const pct = Math.round(100 * mudou / ticks)
+  assert.ok(pct < 45, `o dono manda a tela em no máximo ~metade dos tiques (foi ${pct}%)`)
+  console.log(`📡 10 clubes: ${ticks} tiques · a tela mudou em ${mudou} (${pct}%) — antes era 100%`)
+  // 🌐 lance atrasado de uma carta que já saiu da mesa não vale
+  let x = reducer({} as EscState, { type: 'NEW_GAME' } as never)
+  x = reducer(x, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals: 5, career: false, league: 'both', copaMode: 'liga_copa', intro: false, pregaoAberto: true } as never)
+  const eu = x.managers[x.youIdx]
+  const min = paMinimo(x, 0)
+  const y = reducer(x, { type: 'PREGAO_ABERTO_LANCE', mgrId: eu.id, valor: min, mesa: 0, cardId: 'carta-que-ja-saiu' } as never)
+  assert.notEqual(paMesa(y, 0)?.M.lider, eu.id, 'lance com o id de outra carta é recusado')
+  if (paPodeLancar(x, eu.id, min, undefined, 0)) {
+    const z = reducer(x, { type: 'PREGAO_ABERTO_LANCE', mgrId: eu.id, valor: min, mesa: 0, cardId: x.currentCards[0].id } as never)
+    assert.equal(paMesa(z, 0)?.M.lider, eu.id, 'lance com o id da carta certa vale')
+  }
+}
 Date.now = realNow
 process.exit(0)

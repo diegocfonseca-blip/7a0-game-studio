@@ -7,6 +7,20 @@
 - 📰❌ 17/10: anúncio do O MARTELO REMOVIDO (*"remova propaganda do martelo"*, `ANUNCIO_MARTELO_LIGADO = false`). Na Loja
   (patrocínio mensal) o item virou "⚽ Placa digital atrás dos gols, nos campinhos do pregão". Não repropor anúncio no jornal.
 
+## 🔨🌐 PREGÃO ABERTO NA SALA ONLINE (17/10, Diego: "ok") — ⏳ no branch, esperando OK pra publicar
+- Criar sala: "Como é o leilão" ganha a 3ª opção 🔨 Pregão aberto (só contas de teste via `usePregaoAberto`; some na Só
+  Champions = teto de 20 clubes). `game_state.pregaoAberto` → `START_ONLINE` → `s.pregaoAberto` (e no "novo leilão").
+  Selo verde 🔨 PREGÃO ABERTO na lista (coluna nova `ls_pregao`, trigger `game_rooms_colunas_magras` já atualizado no banco)
+  e na sala de espera. Print: `scripts/mockups/criar-sala-pregao-aberto.png`.
+- 📡 Mensagens: tique sem novidade devolve o MESMO estado (`paAssinatura`), então o dono só manda a tela quando há lance/
+  martelo/carta nova — 26% dos tiques em vez de 100% (trava mede). O dado do robô passou a usar o relógio, não `pa.tiques`.
+- ⏱️ Contagem pelo relógio do dono (`agoraSala`); martelo online espera +400 ms (`PA_FOLGA_ONLINE_MS`) pelo lance em trânsito.
+- 🌐 Lance leva `cardId` (lance atrasado de carta que já saiu é recusado) e vai pela estrada reserva (`room_acoes`), igual
+  ao PEGAR da Tocaia. Lance que não valeu mostra o porquê ("alguém cobriu antes… mínimo agora X" / "o martelo bateu antes"
+  / "não chegou, tenta de novo"). Tetos dos robôs saem do que viaja (`sanitize`).
+- Duplas: funciona pela trava de sempre (`duplaPodeAgir`: só quem manda na posição lança). Categoria MONTE não se usa.
+- Depois de publicar: medir no `esc_realtime_medidor` as salas com `ls_pregao = 'true'` antes de liberar geral.
+
 ## 🧱🔨 PREGÃO ABERTO + LEILÃO DE CLUBES (17/10) — ⏳ print enviado, esperando OK pra publicar
 - Diego: *"apareceu envelope de clubes e não o leilão aberto… teria que aparecer o escudo dos times, quantos jogadores por
   posição e sem precisar se transformar em carta dourada"*. Causa: `!state.leilaoClubes` no `startSector` mandava Clubes pro envelope.

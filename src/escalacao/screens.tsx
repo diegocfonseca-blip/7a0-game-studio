@@ -10475,6 +10475,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // zera o que não vier na ação, então cada escolha da sala tem que ser
         // reenviada aqui, uma a uma.
         holandes: state.holandes,
+        pregaoAberto: state.pregaoAberto, // 🔨 o pregão aberto também continua no novo leilão (17/10)
         // 🧱 E O LEILÃO DE CLUBES (28/09, mesma regra dele: *"se continuarem jogando na
         // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
         // Clubes voltava como leilão de Jogador no "novo leilão".
