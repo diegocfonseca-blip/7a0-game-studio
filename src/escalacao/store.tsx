@@ -11720,6 +11720,7 @@ function marcaMexido(save: EscState) {
 // 📡 todas as salas online: o dono junta mudanças muito próximas e manda apenas
 // o estado mais novo. A Champions já usava esta janela sem prejuízo perceptível;
 // aplicar a mesma proteção aos demais modos corta Broadcast e Egress repetidos.
+export const EMOTE_ESPERA_MS = 2000 // ⏳ 17/10: reação/zoeira da sala no máximo 1 a cada 2s por pessoa (ver `emote`)
 const ONLINE_ENVIO_MS = 400
 const SOLO_RESUME_KEY = 'esc-solo-inprogress-v1'
 const SOLO_GAME_SCREENS = ['auction', 'monte', 'convocacao', 'cerimonia', 'season', 'end'] as const
@@ -12903,7 +12904,13 @@ export function EscProvider({ children }: { children: ReactNode }) {
     const vida = e.kind.startsWith('masc:') ? 4400 : 2600
     setTimeout(() => setEmotes(prev => prev.filter(x => x.id !== e.id)), vida)
   }, [])
+  // ⏳ 2s ENTRE UMA REAÇÃO E OUTRA (17/10, Diego: *"ela aperta uma vez, espera 2 segundos pra apertar de novo. Ponto."*).
+  // Cada reação vai pra sala inteira (12,8% das mensagens do Supabase no medidor). O toque dentro dos 2s simplesmente não
+  // sai — só no aparelho de quem aperta, nada muda no jogo. Desligar = `EMOTE_ESPERA_MS = 0`.
+  const ultimoEmoteRef = useRef(0)
   const emote = useCallback((kind: string, cardId?: string, text?: string) => {
+    if (Date.now() - ultimoEmoteRef.current < EMOTE_ESPERA_MS) return
+    ultimoEmoteRef.current = Date.now()
     const st0 = stateRef.current
     // fromId = meu CRACHÁ (estável entre aparelhos); `from` (cadeira) fica só por compat
     const e: EmoteEvent = { id: Math.random().toString(36).slice(2), from: st0.youIdx, fromId: (myMgrIdRef.current ?? st0.managers[st0.youIdx]?.id), kind, cardId, text, ts: Date.now() }

@@ -9,7 +9,7 @@ import { nomeLivre, NOME_MSG, useMeuSocio } from './manto'
 import { MASCOTES } from './mascotes'
 import { MascoteAtravessa, MascoteMini } from './mascote-atravessa' // 🐊 o bicho atravessa a sala de espera também (25/09)
 import { useEntradaGala, EntradaGalaShow, GalaEstilo, GalaEscudoBotao, GalaMascoteMini, clubeDaConta } from './entrada-gala' // 👑 entrada de gala do batismo (28/09)
-import { useEsc, listAllCareers, MODO_NOME, MODO_EMOJI, type EmoteEvent } from './store'
+import { useEsc, listAllCareers, MODO_NOME, MODO_EMOJI, type EmoteEvent, EMOTE_ESPERA_MS } from './store'
 import type { PoolCard } from './pyramidseason'
 import type { WonCard } from './types'
 import { AdminButton, useCanCareerOnline, useIsAdmin } from './admin'
@@ -921,7 +921,11 @@ export function EscLobby() {
     setLobbyFloats(prev => prev.some(x => x.id === f.id) ? prev : [...prev.slice(-10), f])
     window.setTimeout(() => setLobbyFloats(prev => prev.filter(x => x.id !== f.id)), 3000)
   }, [])
+  const ultimoFloatRef = useRef(0)
   const sendLobbyFloat = (emoji: string, text?: string) => {
+    // ⏳ 17/10: a mesma espera de 2s das reações da partida (Diego: "aperta uma vez, espera 2 segundos")
+    if (Date.now() - ultimoFloatRef.current < EMOTE_ESPERA_MS) return
+    ultimoFloatRef.current = Date.now()
     const myName = players.find(p => p.user_id === user?.id)?.manager_name ?? 'Você'
     const f: LobbyFloat = { id: Math.random().toString(36).slice(2), emoji, text, name: myName, x: 14 + Math.random() * 62 }
     addLobbyFloat(f) // mostra o meu na hora (o canal não devolve o próprio broadcast)

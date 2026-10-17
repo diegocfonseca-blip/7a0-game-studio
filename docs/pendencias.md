@@ -7,7 +7,16 @@
 - 📰❌ 17/10: anúncio do O MARTELO REMOVIDO (*"remova propaganda do martelo"*, `ANUNCIO_MARTELO_LIGADO = false`). Na Loja
   (patrocínio mensal) o item virou "⚽ Placa digital atrás dos gols, nos campinhos do pregão". Não repropor anúncio no jornal.
 
-## 🔨🌐 PREGÃO ABERTO NA SALA ONLINE (17/10, Diego: "ok") — ⏳ no branch, esperando OK pra publicar
+## 📡 MENSAGENS DO SUPABASE (17/10) — Diego: *"só o que for seguro… não quero nenhum bug na sala… e que eu possa reverter"*
+- Medidor (3 dias, `esc_realtime_medidor`): estado da sala 42% · sala de espera recebendo a linha inteira a cada 3s 23% ·
+  emojis 13% · presença 7% · pedido de tela 5%. O medidor vê ~20 mi/mês; a fatura diz ~50 mi.
+- ✅ FEITO: reação/zoeira no máximo 1 a cada 2s por pessoa (`EMOTE_ESPERA_MS`, partida + sala de espera). Reverter = 0.
+- 🚫 NÃO FEITO (não é 100% seguro): o batimento de 3s do save do dono é lido pela checagem da COROA (`saveFresco` < 9s);
+  espaçar mexe na regra da coroa. O "pedido de tela só pro dono" tem janela de deploy (convidado novo × dono velho).
+  Só reabrir com o Diego.
+- ⚠️ `npm run` da trava `scripts/testa-mascote-lance.mjs` já falhava antes de 17/10 (7 falhas) — olhar.
+
+## 🔨🌐 PREGÃO ABERTO NA SALA ONLINE (17/10) — ✅ NO AR PRA TODOS (`PREGAO_ABERTO_GERAL = true`, Diego: "pode publicar… para todo mundo")
 - Criar sala: "Como é o leilão" ganha a 3ª opção 🔨 Pregão aberto (só contas de teste via `usePregaoAberto`; some na Só
   Champions = teto de 20 clubes). `game_state.pregaoAberto` → `START_ONLINE` → `s.pregaoAberto` (e no "novo leilão").
   Selo verde 🔨 PREGÃO ABERTO na lista (coluna nova `ls_pregao`, trigger `game_rooms_colunas_magras` já atualizado no banco)
@@ -21,7 +30,7 @@
 - Duplas: funciona pela trava de sempre (`duplaPodeAgir`: só quem manda na posição lança). Categoria MONTE não se usa.
 - Depois de publicar: medir no `esc_realtime_medidor` as salas com `ls_pregao = 'true'` antes de liberar geral.
 
-## 🧱🔨 PREGÃO ABERTO + LEILÃO DE CLUBES (17/10) — ⏳ print enviado, esperando OK pra publicar
+## 🧱🔨 PREGÃO ABERTO + LEILÃO DE CLUBES (17/10) — ✅ NO AR
 - Diego: *"apareceu envelope de clubes e não o leilão aberto… teria que aparecer o escudo dos times, quantos jogadores por
   posição e sem precisar se transformar em carta dourada"*. Causa: `!state.leilaoClubes` no `startSector` mandava Clubes pro envelope.
 - Agora o lote na mesa é o PACOTE: escudo + "Goleiros do Corinthians" + "👥 9 jogadores" (`PacoteMesa`, pregao-aberto.tsx), sem
