@@ -38,7 +38,7 @@ import { PREPARADORES, preparadorDe, salarioPreparador, precoRenovacaoPreparador
 import { mancheteDecisao } from './eventos'
 import { championsConvidados, potesChampions, calendarioChampions, repescaoChampions, CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_ID0 } from './champions'
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
-import { summarizeInternationalCampaign } from './career-international-summary'
+import { summarizeInternationalCampaign, artilheirosInternacionais, INTL_ARTILHEIRO_MOEDAS } from './career-international-summary'
 import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS, CARTAS_RENOMEADAS } from './data'
 import { stripEmoji, myApoioPerk } from './apoio'
@@ -319,6 +319,8 @@ function chargeSalaries(s: EscState) {
 // A action SOCIO_CREDIT não aceita número de fora justamente pra ninguém
 // conseguir pedir um valor inventado; quem trava a repetição é o Supabase.
 export const SOCIO_MENSAL = 30       // 🪙 a cada 30 DIAS CORRIDOS desde o último brinde, pra todo sócio ativo (RPC esc_socio_resgatar; era mês de calendário — Diego 23/08: "daqui a 30 dias DE VERDADE")
+/** 🥇🌍 artilheiro da Copa do Mundo jogando pela SUA seleção (Diego 17/10) */
+const ARTILHEIRO_MUNDO_MOEDAS = 30
 export const SOCIO_BOAS_VINDAS = 30  // 🪙 UMA VEZ SÓ na vida da conta, quando o sócio entra (RPC esc_socio_boas_vindas; era 39 — Diego 23/08: "ele ganha 30 qd vira sócio")
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
@@ -5411,6 +5413,7 @@ type Action =
   | { type: 'STEP_DOWN_HOST' } // 🪑 host antigo ABAIXA A BOLA: a posse (game_rooms.host_id) já é de outro no banco → deixo de ser autoritativo e volto a só RECEBER. Garante "um dono só" (nunca dois hosts brigando).
   | { type: 'FIX_YOU_IDX'; idx: number } // 🛟 auto-cura local: reancora "quem sou eu" no assento com o MEU nome (índice deslizou em rematch/reconexão). NUNCA roteado pro host.
   | { type: 'COPA_MUNDO_STATS'; season: number; linhas: { name: string; club: string; year: number; pais: string; gols: number; ass: number; jogos: number }[] } // ⚽🅰️🏃 26/09: o que cada carta fez na Copa do Mundo (ficha + Bola de Ouro)
+  | { type: 'ARTILHEIRO_MUNDO_PREMIO'; mgrId: number; nome: string; gols: number; season: number } // 🥇🌍 artilheiro da Copa do Mundo era da SUA seleção: 30 🪙 pro clube (17/10)
   | { type: 'COPA_MUNDO_PRIZE'; mgrId: number; coins?: number } // 🌍 prêmio da Copa do Mundo Legends POR PARTICIPAÇÃO (campeão 100 · vice 70 · semi 50 · quartas 32 · grupos 10; coins ausente = 100 p/ compat)
   | { type: 'COPA_MUNDO_MURAL_SYNC'; entries: { season: number; selecao: string; campeao: string; voce: boolean }[] } // 🌍 espelha entrada(s) do mural local pro save (nuvem) — pra o título de Copa do Mundo não sumir se a pessoa trocar de aparelho. Idempotente (dedup por temporada).
   | { type: 'TV_BANNER_SEEN'; div: string } // 📺 marca que o banner "a TV descobriu seu clube" já foi mostrado nesta divisão (1x cada)
@@ -7074,6 +7077,16 @@ function reducerBase(state: EscState, action: Action): EscState {
           logFin(s, 'reward', `🌐 ${expected.competition === 'libertadores' ? 'Libertadores' : 'Champions League'}${expected.mundial ? ' + Mundial de Clubes' : ''}`, expected.prizeCoins, undefined, id)
         }
       }
+      // 🥇 ARTILHEIRO de cada competição internacional, se for do SEU time: 30 🪙 cada (Diego 17/10). Fica dentro da mesma
+      // trava da campanha (o histórico já guardado aqui em cima), então nunca paga duas vezes.
+      {
+        const id = s.managers[s.youIdx]?.id
+        const NOME = { libertadores: 'Libertadores', champions: 'Champions League', mundial: 'Mundial de Clubes' } as const
+        if (id != null) for (const a of artilheirosInternacionais(c)) if (a.you) {
+          s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + INTL_ARTILHEIRO_MOEDAS }
+          logFin(s, 'reward', `🥇 Artilheiro da ${NOME[a.comp]}: ${a.name} (${a.goals} gols)`, INTL_ARTILHEIRO_MOEDAS, undefined, id)
+        }
+      }
       return s
     }
     // 🔒 A COPA NÃO MUDA DEPOIS DE SORTEADA (Diego 17/08: "o que aparecer no
@@ -7248,6 +7261,16 @@ function reducerBase(state: EscState, action: Action): EscState {
       // ⚽🅰️🏃 grava UMA vez por temporada: a Copa re-disparando no reload não dobra.
       if (!s.careerOnline || s.copaMundoStats?.season === action.season) return s
       s.copaMundoStats = { season: action.season, linhas: action.linhas.filter(l => l.gols > 0 || l.ass > 0 || l.jogos > 0) }
+      return s
+    }
+    case 'ARTILHEIRO_MUNDO_PREMIO': {
+      // 🥇🌍 ARTILHEIRO DA COPA DO MUNDO (Diego 17/10: *"falta mundo… 30 moedas"*): se o artilheiro jogou pela seleção
+      // que VOCÊ convocou, o clube ganha 30 🪙. Trava por temporada no mesmo mapa do prêmio da Copa (persiste no save).
+      const chave = `artmundo:${action.season}`
+      if (s.copaPrizeDone?.[chave]) return s
+      s.copaPrizeDone = { ...(s.copaPrizeDone ?? {}), [chave]: true }
+      s.careerCoins = { ...(s.careerCoins ?? {}), [action.mgrId]: (s.careerCoins?.[action.mgrId] ?? 0) + ARTILHEIRO_MUNDO_MOEDAS }
+      logFin(s, 'reward', `🥇 Artilheiro da Copa do Mundo: ${action.nome} (${action.gols} gols)`, ARTILHEIRO_MUNDO_MOEDAS, undefined, action.mgrId)
       return s
     }
     case 'COPA_MUNDO_PRIZE': {

@@ -405,6 +405,8 @@ export function computeSupercopa(tables: Record<Div, SimTeam[]>, copaChampion: S
 }
 
 export const SUPERCOPA_PAY = { vice: 8, camp: 20 }
+/** 🥇 artilheiro da Supercopa: 30 🪙 pro clube dele (Diego 17/10: *"falta mundo, libertadores, champions, mundial e supercopa… 30 moedas"*) */
+export const SUPERCOPA_SCORER_BONUS = 30
 
 export function supercopaRewards(tie: CBTie | null): { rewards: Record<number, number>; clubRewards: Record<string, number>; championKey: string | null } {
   const rewards: Record<number, number> = {}, clubRewards: Record<string, number> = {}
@@ -416,6 +418,10 @@ export function supercopaRewards(tie: CBTie | null): { rewards: Record<number, n
   }
   paga(champ, SUPERCOPA_PAY.camp)
   paga(vice, SUPERCOPA_PAY.vice)
+  // 🥇 o artilheiro do jogo único (mais gols; empate = ordem do nome, igual em todo aparelho)
+  const art = [...(tie.scorers ?? [])].filter(x => x.goals > 0).sort((x, y) => y.goals - x.goals || x.name.localeCompare(y.name))[0]
+  const artTeam = art ? [tie.a, tie.b].find(t => t.teamId === art.teamId && (t.teamId >= 0 || t.name === art.teamName)) : undefined
+  if (artTeam) paga(artTeam, SUPERCOPA_SCORER_BONUS)
   return { rewards, clubRewards, championKey: teamKey(champ) }
 }
 

@@ -1,5 +1,24 @@
 import type { InternationalCampaign, InternationalHistoryEntry } from './career-international-season'
 
+/** 🥇 ARTILHEIRO DE CADA COMPETIÇÃO INTERNACIONAL (17/10, Diego: *"falta… libertadores, champions, mundial… 30 moedas"*).
+ *  Conta os gols de cada carta DENTRO da competição (Libertadores, Champions e o Mundial separados) e diz se o artilheiro é
+ *  do time que o usuário comandou (`you`). Empate de gols = ordem do nome, o mesmo em todo aparelho. Só LÊ a campanha. */
+export const INTL_ARTILHEIRO_MOEDAS = 30
+export function artilheirosInternacionais(campaign: InternationalCampaign): { comp: 'libertadores' | 'champions' | 'mundial'; name: string; goals: number; you: boolean }[] {
+  const out: { comp: 'libertadores' | 'champions' | 'mundial'; name: string; goals: number; you: boolean }[] = []
+  for (const comp of ['libertadores', 'champions', 'mundial'] as const) {
+    const tally = new Map<string, { name: string; goals: number; team: string }>()
+    for (const step of campaign.steps) for (const m of step[comp]?.matches ?? []) for (const g of m.goals) {
+      const team = g.home ? m.home : m.away
+      const k = `${g.card}|${team}`
+      const t = tally.get(k) ?? { name: g.name, goals: 0, team }
+      t.goals++; tally.set(k, t)
+    }
+    const top = [...tally.values()].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))[0]
+    if (top && top.goals > 0) out.push({ comp, name: top.name, goals: top.goals, you: !!campaign.teams.find(t => t.id === top.team)?.you })
+  }
+  return out
+}
 export function summarizeInternationalCampaign(campaign: InternationalCampaign): InternationalHistoryEntry {
   const club = campaign.representedClub
   const user = club ? campaign.teams.find(t => t.id === club) : null
