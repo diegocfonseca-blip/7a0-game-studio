@@ -3,10 +3,10 @@
 // aqui só se desenha e se roteia o lance. No solo o relógio é deste aparelho; no online (quando for ligado) só o dono tica.
 import { useEffect, useRef, useState } from 'react'
 import { useEsc, paPodeLancar, paMinimo, PA_TICK_MS, PA_MARTELO_MS } from './store'
-import { Shell, AuctionBar, CollectibleCard } from './screens'
+import { Shell, AuctionBar, CollectibleCard, YourPitch } from './screens'
 import { useT } from './lang'
 import { playTick, playHammer } from './sound'
-import { FORMATIONS, type Sector } from './types'
+import type { Sector } from './types'
 import { openSlots } from './store'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
@@ -50,7 +50,6 @@ export function PregaoAberto() {
   const ultimo = pa.vendidos[0]
   // 🃏 a carta que acabou de sair VIRA no mesmo lugar (rosto, cor, estrelas, selo) por `PA_VIRA_MS`; depois entra a próxima, coberta
   const virada = pa.viraAte && agora < pa.viraAte && ultimo ? pa.fila.find(x => x.id === ultimo.cardId) ?? null : null
-  const form = FORMATIONS[you.formation ?? '4-3-3']
   const total = pa.fila.length
   const n = Math.min(total, pa.idx + 1)
   const posNome = card ? t(POS_PT[card.pos][0], POS_PT[card.pos][1]) : ''
@@ -168,26 +167,11 @@ export function PregaoAberto() {
           </div>
         )}
 
-        {/* 🟩 o campinho: o que já fechou e o que falta — a tela toda cabe num celular */}
-        <div style={{ border: `3px solid ${INK}`, borderRadius: 13, overflow: 'hidden', boxShadow: `4px 4px 0 0 ${INK}` }}>
-          <div style={{ background: INK, color: '#fff', height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ ...OSW, fontWeight: 900, fontSize: 11, textTransform: 'uppercase' }}>{you.teamName} · {you.formation}</span>
-          </div>
-          <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 26px, #166332 26px 52px)`, padding: '8px 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {(['ATA', 'MEI', 'DEF', 'GOL'] as const).map(row => {
-              const secs: Sector[] = row === 'DEF' ? ['LAT', 'ZAG'] : [row]
-              let slots: { s: Sector; ok: boolean }[] = []
-              for (const s of secs) { const tem = you.squad.filter(c => c.pos === s).length; for (let i = 0; i < form[s]; i++) slots.push({ s, ok: i < tem }) }
-              if (row === 'DEF' && form.LAT === 2) { const lat = slots.filter(x => x.s === 'LAT'), zag = slots.filter(x => x.s === 'ZAG'); slots = [lat[0], ...zag, lat[1]] }
-              return (
-                <div key={row} style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>
-                  {slots.map((sl, i) => <div key={i} style={{ width: 40, height: 26, borderRadius: 8, display: 'grid', placeItems: 'center', ...OSW, fontWeight: 900, fontSize: sl.ok ? 14 : 10, ...(sl.ok ? { background: GOLD, color: INK, border: `2px solid ${INK}` } : { border: '2px dashed rgba(255,255,255,.7)', color: '#fff' }) }}>{sl.ok ? '✓' : sl.s}</div>)}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-        <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem já fechou a posição não dá lance. Quem ficar sem peça pega no 🃏 Monte, como sempre.', 'Position full? No more bids there. Whoever is left short picks from the 🃏 pile, as always.')}</p>
+        {/* 🟩 o campinho PADRÃO do leilão (17/10, Diego: "deve ser os campinhos padrões igual os outros modos… quando
+            aparece uma lenda aparece o avatar da lenda") — o MESMO `YourPitch` do envelope e da Tocaia, com rosto e manto */}
+        <p style={{ margin: '4px 0 0', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.45)' }}>{t('Sua escalação', 'Your lineup')}</p>
+        <YourPitch small />
+        <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem já fechou a posição não dá lance. Vaga vazia no fim ganha jogador de graça.', 'Position full? No more bids there. Empty spots at the end get a free player.')}</p>
       </div>
     </Shell>
   )

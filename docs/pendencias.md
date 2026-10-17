@@ -219,6 +219,8 @@ apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
   posições ALEATÓRIA (como está) ou POR ORDEM — recomendei aleatória (ninguém fica parado esperando o setor dele).
 - 👥 **16/10: Rossini Money (luizeduardorossini0013) liberado como testador** do Pregão Aberto E da 👑 Kings League, a pedido do Diego
   (`PREGAO_ABERTO_TESTERS` / `KINGS_TESTERS`).
+- 🟩 **17/10: o campinho virou o PADRÃO** (`YourPitch`, o mesmo do envelope e da Tocaia, com rosto das lendas e manto). Diego:
+  *"deve ser os campinhos padrões igual os outros modos… aparece o avatar da lenda"*.
 - **Trava**: `npm run pregao-aberto` (partida inteira no reducer: fila embaralhada, lance inválido recusado, uma carta =
   um dono, pagou o lance final, ninguém negativo, termina no Monte/cerimônia).
 - **Reverter**: `PREGAO_ABERTO_TESTERS` vazio esconde o botão; sem o botão nenhum save entra no modo.
