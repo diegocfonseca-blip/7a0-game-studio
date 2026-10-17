@@ -49,7 +49,7 @@ import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, 
 import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
-import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard } from './screens'
+import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard, GiroDaRodada } from './screens'
 import { congelaNoApito, type Congelado } from './congela-temporada' // 🧊 o passado não muda depois do apito
 import { SeasonJornal, shareElenco } from './jornal'
 import type { CopaRun, SuperRun } from './jornal'
@@ -11254,6 +11254,7 @@ export function PyramidSeasonScreen() {
         ) : privateCareer && (tab === 'jogos' || tab === 'tabelas') ? (
           <section className="ll29-board" aria-label="Competições da carreira">
             {!done && round > 0 && tab==='jogos' && renderCareerTicker()}
+            {tab === 'jogos' && <GiroDaRodada />}{/* 📢 Anúncio do dia também na carreira (17/10, Diego: "sim, pode ser") */}
             {done && copa && copa.rounds.length ? <>
               {/* 🧹 OS CHIPS DAS FASES SAEM DA ABA JOGOS NO FIM DE TEMPORADA (19/09).
                   Diego, com o print na mão: *"aparece essas coisas aqui misturadas
@@ -11307,6 +11308,7 @@ export function PyramidSeasonScreen() {
             )}
             {done && myMatch && me && <MyMatchCard m={myMatch} youName={me.team} finished col={myCol} colors={colors} roundKey={round} />}
             {renderCareerTicker()}
+            <GiroDaRodada />{/* 📢 Anúncio do dia também na carreira (17/10) */}
             {/* 🖥️ no PC as divisões ficam LADO A LADO (2 colunas) — no celular a
                 classe não faz nada (o CSS dela só existe acima de 1024px) */}
             <div className="desk-grid2">
