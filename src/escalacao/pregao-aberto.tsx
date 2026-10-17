@@ -312,7 +312,7 @@ export function PresentesPregao() {
   return (
     <div onClick={() => setFechado(chave)} style={{ position: 'fixed', inset: 0, zIndex: 9990, display: 'grid', placeItems: 'center', padding: 16, background: 'rgba(12,12,12,.35)' }}>
       <style>{CSS_VIRA}</style>
-      <div style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, textAlign: 'center', animation: 'paPres .35s ease-out both' }}>
+      <div style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', color: INK, border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, textAlign: 'center', animation: 'paPres .35s ease-out both' }}>
         <div style={{ height: 6, background: GREEN, borderRadius: 4, animation: 'paBarra 6s linear both', marginBottom: 8 }} />
         <div style={{ fontSize: 32 }}>🎁</div>
         <p style={{ ...OSW, fontWeight: 900, fontSize: 22, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>{t('Seu time fechou de graça!', 'Your squad got filled for free!')}</p>
