@@ -226,13 +226,18 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
               </div>
             ) : (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: compacto ? '1fr 1fr' : '1fr 1fr 1fr 1.35fr', gap: compacto ? 5 : 6 }}>
-                  {(compacto ? [0, 4] : [0, 1, 4]).map(extra => { // 🔨🔨 17/10 (Diego): na carta dupla os atalhos são +1 e +5, pra andar mais rápido
+                {/* 🔨 atalhos de lance (17/10, Diego): +1 · +2 · +5 · +10 numa mesa só; na carta dupla +1 · +5 · +10 ("lance de dez…
+                    seria mais rápido"). O valor de cima é o quanto SOBE; o de baixo é o lance que vai. O "outro" fica na linha de baixo. */}
+                <div style={{ display: 'grid', gridTemplateColumns: compacto ? '1fr 1fr 1fr' : '1fr 1fr 1fr 1fr', gap: compacto ? 5 : 6 }}>
+                  {(compacto ? [0, 4, 9] : [0, 1, 4, 9]).map(extra => {
                     const v = minimo + extra
                     const ok = pode(v)
-                    return <button key={extra} disabled={!ok} onClick={() => lance(v)} style={{ ...OSW, fontWeight: 900, fontSize: 14, border: `3px solid ${INK}`, borderRadius: 11, padding: '10px 4px', background: ok ? GOLD : '#CBBF9E', boxShadow: ok ? `3px 3px 0 0 ${INK}` : 'none', cursor: ok ? 'pointer' : 'default', color: ok ? INK : 'rgba(0,0,0,.45)' }}>{M.lider === null ? '' : `+${extra + 1} → `}{v}</button>
+                    return <button key={extra} disabled={!ok} onClick={() => lance(v)} style={{ ...OSW, fontWeight: 900, border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? '5px 2px' : '6px 4px', background: ok ? GOLD : '#CBBF9E', boxShadow: ok ? `3px 3px 0 0 ${INK}` : 'none', cursor: ok ? 'pointer' : 'default', color: ok ? INK : 'rgba(0,0,0,.45)', lineHeight: 1.05 }}>
+                      {M.lider !== null && <span style={{ display: 'block', fontSize: compacto ? 10.5 : 11.5, opacity: .75 }}>+{extra + 1}</span>}
+                      <span style={{ display: 'block', fontSize: compacto ? 15 : 18 }}>{v}</span>
+                    </button>
                   })}
-                  <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 11, background: '#fff', overflow: 'hidden', gridColumn: compacto ? '1 / -1' : undefined, minHeight: compacto ? 36 : undefined }}>
+                  <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 11, background: '#fff', overflow: 'hidden', gridColumn: '1 / -1', minHeight: 36 }}>
                     <input inputMode="numeric" value={outro} onChange={e => setOutro(e.target.value.replace(/\D/g, ''))} placeholder={t('outro', 'other')} style={{ width: '100%', minWidth: 0, border: 'none', padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 14, textAlign: 'center' }} />
                     <button disabled={!pode(Number(outro))} onClick={() => { lance(Number(outro)); setOutro('') }} style={{ border: 'none', borderLeft: `3px solid ${INK}`, background: pode(Number(outro)) ? GREEN : '#CBBF9E', color: '#fff', fontWeight: 900, padding: '0 8px', cursor: 'pointer' }}>OK</button>
                   </div>
