@@ -149,5 +149,31 @@ for (const rivals of [9, 10, 15]) {
   if (clubes >= 11) assert.ok(lanceMesa2, 'o humano conseguiu dar lance na mesa 2')
   console.log(`   ${clubes} clubes · ${clubes >= 11 ? 'duas mesas' : 'uma mesa'} · ${Math.round(ticks * PA_TICK_MS / 60000)} min de pregão`)
 }
+// 🧱 CLUBES + PREGÃO ABERTO (17/10, Diego: "apareceu envelope de clubes e não o leilão aberto"): o lote é o PACOTE do clube,
+// cada técnico leva UM por setor, o pregão termina e cai na convocação com todo mundo de time fechado
+{
+  let c = reducer({} as EscState, { type: 'NEW_GAME' } as never)
+  c = reducer(c, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals: 7, career: false, league: 'todos', copaMode: 'liga_copa', intro: false, pregaoAberto: true, clubes: true } as never)
+  assert.equal(c.phase, 'pregao', 'clubes também abre no pregão aberto (antes caía no envelope)')
+  assert.ok(c.pa!.fila.every(x => x.pacote), 'a fila é de pacotes de clube')
+  let ticks = 0, euLevei = 0
+  while (c.screen === 'auction' && ticks++ < 40000) {
+    avanca(PA_TICK_MS)
+    const you = c.managers[c.youIdx]
+    if (ticks % 23 === 0 && c.currentCards[0] && paPodeLancar(c, you.id, paMinimo(c, 0), undefined, 0)) c = reducer(c, { type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: paMinimo(c, 0), mesa: 0 } as never)
+    c = reducer(c, { type: 'PREGAO_ABERTO_TICK' } as never)
+  }
+  assert.ok(c.screen !== 'auction', 'o pregão de clubes termina')
+  const part = c.managers.filter(m => m.isHuman || m.auctionRival)
+  for (const m of part) for (const pos of SECTORS) {
+    const lotes = m.squad.filter(x => x.pos === pos && x.pacote).length
+    if (c.screen === 'convocacao') assert.ok(lotes <= 1, `${m.teamName}: no máximo 1 pacote de ${pos}`)
+  }
+  euLevei = c.managers[c.youIdx].squad.filter(x => x.pacote).length
+  for (const m of c.managers) assert.ok(m.money >= 0, `${m.teamName} não ficou negativo`)
+  const semPacote = part.filter(m => SECTORS.some(pos => !m.squad.some(x => x.pos === pos && x.pacote))).length
+  assert.equal(c.screen, 'convocacao', `depois do pregão vem a convocação (tela: ${c.screen})`)
+  console.log(`🧱 clubes: ${Math.round(ticks * PA_TICK_MS / 60000)} min · você levou ${euLevei} pacote(s) · ${semPacote} clube(s) com setor sem pacote (a convocação completa)`)
+}
 Date.now = realNow
 process.exit(0)

@@ -6111,15 +6111,18 @@ function paRobosQueDisputam(state: EscState): Manager[] {
 function paTeto(m: Manager, card: Card, rng: () => number, econ: number): number {
   const vagas = SECTORS.reduce((s, p) => s + openSlots(m, p), 0)
   if (vagas <= 0 || m.money < paAbertura(card)) return 0
-  const media = m.money / vagas
-  const cat = card.promessa ? 1.4 : card.fame >= 5 ? 2.6 : card.fame === 4 ? 1.8 : card.fame === 3 ? 1.1 : card.fame === 2 ? 0.8 : 0.5
+  // 🧱 pacote de clube (17/10): cada setor é UM lote, mas vale pelos jogadores que o bot vai escalar dele — o caixa é
+  // dividido pelo PESO do setor na formação (meio de 4 pesa mais que goleiro de 1), e a categoria fica neutra
+  const pesoPac = card.pacote ? baseSlots(m.formation, card.pos) / Math.max(1, SECTORS.reduce((s, p) => s + (openSlots(m, p) > 0 ? baseSlots(m.formation, p) : 0), 0)) : 0
+  const media = card.pacote ? m.money * pesoPac : m.money / vagas
+  const cat = card.pacote ? 1 : card.promessa ? 1.4 : card.fame >= 5 ? 2.6 : card.fame === 4 ? 1.8 : card.fame === 3 ? 1.1 : card.fame === 2 ? 0.8 : 0.5
   let hh = 2166136261; const chave = `${m.id}|${card.name}|${card.club}|${card.year}`
   for (let k = 0; k < chave.length; k++) { hh ^= chave.charCodeAt(k); hh = Math.imul(hh, 16777619) }
   const tempero = 0.8 + ((hh >>> 0) % 1000) / 1000 * 0.4 // 0,8–1,2
   const vontade = 0.85 + m.aggression * 0.3 // 0,85–1,15
   let teto = media * cat * tempero * vontade
-  const vale = fairPrice(perceived(card, rng)) * (0.85 + m.aggression * 0.5 + rng() * 0.3) * (econ > 0 ? econ : 1)
-  teto = Math.min(teto, vale, m.money * (card.fame >= 5 ? 0.4 : 0.35))
+  const vale = fairPrice(perceived(card, rng)) * (0.85 + m.aggression * 0.5 + rng() * 0.3) * (econ > 0 ? econ : 1) * (card.pacote ? Math.max(1, baseSlots(m.formation, card.pos)) : 1)
+  teto = Math.min(teto, vale, m.money * (card.pacote ? Math.min(0.6, Math.max(0.35, pesoPac * 1.3)) : card.fame >= 5 ? 0.4 : 0.35))
   // 💰 com a abertura por categoria, o bot de caixa curto no fim do pregão ficava ABAIXO da abertura e nem entrava —
   // e terminava com 9 jogadores. Se ele precisa da vaga e o caixa cobre a abertura E ainda sobra pro resto das vagas,
   // ele topa pelo menos a abertura (é o que uma pessoa faria: "tenho 7, o mínimo é 5, pego o cara").
@@ -6349,6 +6352,23 @@ export function paCompletaElencos(state: EscState, sobras: Card[]): number {
   const rng = rngOf(state)
   const pega = (lista: Card[]) => lista.length ? lista[Math.floor(rng() * lista.length)] : undefined
   let dados = 0
+  // 🧱 leilão de clubes: a vaga vazia ganha um PACOTE que sobrou (de graça) — a convocação depois completa o que faltar
+  if (state.leilaoClubes) {
+    for (const m of state.managers) {
+      if (!m.modoClubes) continue
+      for (const pos of SECTORS) {
+        if (openSlots(m, pos) <= 0) continue
+        const i = sobras.findIndex(c => c.pos === pos && c.pacote)
+        if (i < 0) continue
+        const [lote] = sobras.splice(i, 1)
+        const ganho = { ...lote, paid: 0, buyPrice: 0, via: 'monte' } as WonCard
+        m.squad.push(ganho)
+        ;((state.paPresentes = state.paPresentes ?? {})[m.id] = state.paPresentes[m.id] ?? []).push(ganho.id)
+        dados++
+      }
+    }
+    return dados
+  }
   for (const m of state.managers) {
     for (const pos of SECTORS) {
       let guard = 0
@@ -6372,12 +6392,16 @@ function paFecha(state: EscState) {
   const pa = state.pa
   if (!pa) return
   const dados = paCompletaElencos(state, pa.sobras)
-  if (dados > 0) (state.marketLog = state.marketLog ?? []).push(`🎁 Sem Monte no pregão aberto: ${dados} vaga(s) vazia(s) ganharam jogador profissional ou bom, de graça.`)
+  if (dados > 0) (state.marketLog = state.marketLog ?? []).push(state.leilaoClubes
+    ? `🎁 Sem Monte no pregão aberto: ${dados} setor(es) vazio(s) ganharam um pacote que sobrou, de graça.`
+    : `🎁 Sem Monte no pregão aberto: ${dados} vaga(s) vazia(s) ganharam jogador profissional ou bom, de graça.`)
   state.currentCards = []
+  // 🧱 os pacotes que ninguém levou viram sobra da convocação (reforçam os times de fundo), como no Monte do envelope
+  const sobraPacotes = state.leilaoClubes ? pa.sobras.filter(c => c.pacote) : []
   state.pa = undefined
   state.sectorIdx = SECTORS.length - 1
   state.sectorCursor = 0; state.sectorUnsoldAccum = []
-  state.monte = []
+  state.monte = sobraPacotes
   enterCerimonia(state)
 }
 
@@ -6490,7 +6514,8 @@ function startAuctionPhase(state: EscState, rescue: boolean) {
     return
   }
   // 🔨 PREGÃO ABERTO: a fila é o baralho inteiro embaralhado; abre uma vez e vai até o Monte
-  if (state.pregaoAberto && !rescue && !state.leilaoClubes) { abrePregaoAberto(state); return }
+  // 🧱 17/10 (Diego): com 🧱 Clubes também — o lote vira o PACOTE do clube (escudo + quantos jogadores), não a carta coberta
+  if (state.pregaoAberto && !rescue) { abrePregaoAberto(state); return }
   const pos = SECTORS[state.sectorIdx]
   state.phase = rescue ? 'resq_envelope' : 'envelope'
   if (!rescue) {

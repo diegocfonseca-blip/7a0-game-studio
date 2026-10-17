@@ -7,6 +7,15 @@
 - 📰❌ 17/10: anúncio do O MARTELO REMOVIDO (*"remova propaganda do martelo"*, `ANUNCIO_MARTELO_LIGADO = false`). Na Loja
   (patrocínio mensal) o item virou "⚽ Placa digital atrás dos gols, nos campinhos do pregão". Não repropor anúncio no jornal.
 
+## 🧱🔨 PREGÃO ABERTO + LEILÃO DE CLUBES (17/10) — ⏳ print enviado, esperando OK pra publicar
+- Diego: *"apareceu envelope de clubes e não o leilão aberto… teria que aparecer o escudo dos times, quantos jogadores por
+  posição e sem precisar se transformar em carta dourada"*. Causa: `!state.leilaoClubes` no `startSector` mandava Clubes pro envelope.
+- Agora o lote na mesa é o PACOTE: escudo + "Goleiros do Corinthians" + "👥 9 jogadores" (`PacoteMesa`, pregao-aberto.tsx), sem
+  carta coberta e sem virar. Nomes continuam só na convocação (regra 27/09). Duas mesas a partir de 11 vale igual.
+- Motor: teto do robô pelo PESO do setor na formação (`paTeto`), setor sem pacote no fim ganha um pacote que sobrou de graça
+  (`paCompletaElencos`), pacotes que ninguém levou viram sobra da convocação (`paFecha` → `monte`). Trava `npm run pregao-aberto`
+  ganhou a partida de clubes (8 clubes ≈ 8 min, termina na convocação). Prints em `scripts/mockups/pregao-aberto-clubes*.png`.
+
 ## 💳 LENDA 44,90 · BATISMO→FUNDADOR 29,90 · 💾 FICHA DE CARREIRA 9,99 NA LOJA (17/10) — ✅ NO AR
 - Lenda 49,90 → **44,90**. Subidas: Craque→Lenda 20 · Lenda→Batismo 40 · Lenda→Fundador 60 · Craque→Batismo 55 ·
   Craque→Fundador 75 · **Batismo→Fundador 29,90 fixo** (era 25). Duplo do Lenda 89,90 → **80,90**. Código (`planos-regras.ts`)

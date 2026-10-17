@@ -3,10 +3,11 @@
 // aqui só se desenha e se roteia o lance. No solo o relógio é deste aparelho; no online (quando for ligado) só o dono tica.
 import { useEffect, useRef, useState } from 'react'
 import { useEsc, paPodeLancar, paMinimo, paMesa, paMesasAtivas, PA_TICK_MS, PA_MARTELO_MS } from './store'
-import { Shell, AuctionBar, CollectibleCard, YourPitch } from './screens'
+import { Shell, AuctionBar, CollectibleCard, YourPitch, nomePacote } from './screens'
+import { SeloClube } from './selo-clube'
 import { useT } from './lang'
 import { playTick, playHammer } from './sound'
-import type { Sector } from './types'
+import type { Sector, Card } from './types'
 import { openSlots } from './store'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
@@ -55,9 +56,13 @@ export function PregaoAberto() {
           <span style={{ fontSize: 24 }}>🔨</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{t('Pregão aberto', 'Open outcry')}</p>
-            <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{pa.duplo ? t(`carta ${n} de ${total} · DUAS na mesa, posições diferentes`, `card ${n} of ${total} · TWO on the table, different positions`) : t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>
+            <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{state.leilaoClubes
+              ? (pa.duplo ? t(`pacote ${n} de ${total} · DOIS na mesa, setores diferentes`, `pack ${n} of ${total} · TWO on the table, different sectors`) : t(`pacote ${n} de ${total} · ordem embaralhada: ninguém sabe o próximo`, `pack ${n} of ${total} · shuffled order: nobody knows the next one`))
+              : pa.duplo ? t(`carta ${n} de ${total} · DUAS na mesa, posições diferentes`, `card ${n} of ${total} · TWO on the table, different positions`) : t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>
             {/* 🎁 sem Monte (16/10): quem entra já sabe que não fica com time furado — e que o presente nunca é craque nem lenda */}
-            <p style={{ display: 'inline-block', margin: '5px 0 0', background: GREEN, border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10, fontWeight: 800 }}>{t('🎁 Sem Monte: vaga vazia no fim ganha jogador de graça (nunca craque nem lenda)', '🎁 No pile: empty slots at the end get a free player (never a star or a legend)')}</p>
+            <p style={{ display: 'inline-block', margin: '5px 0 0', background: GREEN, border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10, fontWeight: 800 }}>{state.leilaoClubes
+              ? t('🎁 Sem Monte: setor sem pacote no fim ganha um pacote que sobrou, de graça', '🎁 No pile: a sector without a pack at the end gets a leftover pack for free')
+              : t('🎁 Sem Monte: vaga vazia no fim ganha jogador de graça (nunca craque nem lenda)', '🎁 No pile: empty slots at the end get a free player (never a star or a legend)')}</p>
           </div>
           <div style={{ background: GOLD, color: INK, border: '2px solid #fff', borderRadius: 10, padding: '4px 9px', textAlign: 'center' }}>
             <b style={{ ...OSW, display: 'block', fontSize: 15, lineHeight: 1 }}>{Math.floor(you.money)} 🪙</b>
@@ -72,7 +77,9 @@ export function PregaoAberto() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
                 {mesas.map(k => <MesaPregao key={k} k={k} agora={agora} compacto />)}
               </div>
-              <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada carta tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelas duas — ou só pela que você precisa.`, `Each card has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)}</p>
+              <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{state.leilaoClubes
+                ? t(`Cada pacote tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelos dois — ou só pelo que você precisa.`, `Each pack has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)
+                : t(`Cada carta tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelas duas — ou só pela que você precisa.`, `Each card has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)}</p>
             </>}
 
         {/* 📣 o último martelo (zoeira curta — nada de teatro duplicado) */}
@@ -94,7 +101,9 @@ export function PregaoAberto() {
             aparece uma lenda aparece o avatar da lenda") — o MESMO `YourPitch` do envelope e da Tocaia, com rosto e manto */}
         <p style={{ margin: '4px 0 0', textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 10, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,.45)' }}>{t('Sua escalação', 'Your lineup')}</p>
         <YourPitch small />
-        <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem já fechou a posição não dá lance. Vaga vazia no fim ganha jogador de graça.', 'Position full? No more bids there. Empty spots at the end get a free player.')}</p>
+        <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{state.leilaoClubes
+          ? t('Um pacote por setor: quem já tem o do setor não dá lance. Depois do pregão vem a convocação.', 'One pack per sector: if you have that sector’s pack, no more bids there. The call-up comes after the auction.')
+          : t('Quem já fechou a posição não dá lance. Vaga vazia no fim ganha jogador de graça.', 'Position full? No more bids there. Empty spots at the end get a free player.')}</p>
       </div>
     </Shell>
   )
@@ -129,13 +138,15 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
                 e com martelo de poucos segundos o lance tem que estar à mão sem rolar */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <div style={{ width: compacto ? '100%' : 210 }}>
-                {virada
+                {card.pacote
+                  ? <PacoteMesa c={virada?.pacote ? virada : card} compacto={compacto} />
+                  : virada
                   ? <div key={virada.id} className="pa-vira"><CollectibleCard name={virada.name} club={virada.club} year={virada.year} pos={virada.pos} fame={virada.fame} folk={!!virada.folk} promessa={virada.promessa} /></div>
                   : <CartaCoberta name={card.name} club={card.club} year={card.year} pos={card.pos} />}
               </div>
             </div>
             {!compacto && <p style={{ margin: 0, textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>
-              {t('próxima carta', 'next card')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b> · {t('posição', 'position')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b>
+              {card.pacote ? t('próximo clube', 'next club') : t('próxima carta', 'next card')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b> · {t('posição', 'position')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b>
             </p>}
 
             {/* 💰 o lance atual + o relógio do martelo (GRUDADO: a lista cresce e o preço não pode sumir) */}
@@ -169,7 +180,9 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
             {/* 🫵 seus botões — ou a trava explicada */}
             {posVagas <= 0 ? (
               <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
-                🔒 {t(`Você já tem ${posNome} — nesta carta só assiste.`, `You already have a ${posNome} — just watching this one.`)}
+                🔒 {card.pacote
+                  ? t(`Você já tem o seu pacote de ${posNome} — neste só assiste.`, `You already have your ${posNome} pack — just watching this one.`)
+                  : t(`Você já tem ${posNome} — nesta carta só assiste.`, `You already have a ${posNome} — just watching this one.`)}
               </div>
             ) : M.lider === you.id ? (
               <div style={{ background: '#E9F5EC', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase' }}>
@@ -199,6 +212,24 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
         ) : (
           <div className="pt-6 text-center text-4xl">🔨</div>
         )}</div>
+}
+
+// 🧱 PACOTE DE CLUBE NA MESA (17/10, Diego: "teria que aparecer o escudo dos times, quantos jogadores por posição e sem
+// precisar se transformar em carta dourada… já que clubes não têm Lenda, Craque etc."). Nada fica coberto e nada vira: o
+// lote já é o que é — escudo, "Goleiros do Palmeiras" e QUANTOS jogadores vêm. Os NOMES continuam escondidos até a
+// convocação (regra dele de 27/09: "apenas quantidade que o time tem").
+export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolean }) {
+  const t = useT()
+  const n = c.pacote?.cartas.length ?? 0
+  return (
+    <div style={{ border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, background: '#fff', padding: compacto ? '10px 8px' : '16px 14px', textAlign: 'center' }}>
+      <span style={{ display: 'inline-block', background: INK, color: '#fff', borderRadius: 7, padding: '1px 8px', ...OSW, fontWeight: 900, fontSize: compacto ? 11 : 13 }}>{c.pos}</span>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: compacto ? '6px 0' : '10px 0' }}><SeloClube clube={c.pacote?.clube ?? c.club} size={compacto ? 58 : 96} /></div>
+      <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, display: 'block', lineHeight: 1.05, textTransform: 'uppercase' }}>{nomePacote(c)}</b>
+      <span style={{ display: 'inline-block', marginTop: 6, background: '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 9, padding: '2px 10px', ...OSW, fontWeight: 900, fontSize: compacto ? 12 : 15 }}>👥 {n} {n === 1 ? t('jogador', 'player') : t('jogadores', 'players')}</span>
+      {!compacto && <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem são, você vê na convocação.', 'You see who they are at the call-up.')}</p>}
+    </div>
+  )
 }
 
 // 🃏 CARTA COBERTA (16/10, mockup aprovado `scripts/mockups/carta-coberta.png`): durante o lance a carta não mostra
@@ -248,9 +279,13 @@ export function PresentesPregao() {
         <div style={{ height: 6, background: GREEN, borderRadius: 4, animation: 'paBarra 6s linear both', marginBottom: 8 }} />
         <div style={{ fontSize: 32 }}>🎁</div>
         <p style={{ ...OSW, fontWeight: 900, fontSize: 22, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>{t('Seu time fechou de graça!', 'Your squad got filled for free!')}</p>
-        <p style={{ fontSize: 12.5, fontWeight: 600, margin: '5px 0 12px' }}>{t(`Você terminou com ${cartas.length} vaga${cartas.length > 1 ? 's' : ''} vazia${cartas.length > 1 ? 's' : ''}. ${cartas.length > 1 ? 'Elas ganharam' : 'Ela ganhou'} jogador de graça.`, `You ended with ${cartas.length} empty slot${cartas.length > 1 ? 's' : ''}. ${cartas.length > 1 ? 'They got' : 'It got'} a free player.`)}</p>
+        <p style={{ fontSize: 12.5, fontWeight: 600, margin: '5px 0 12px' }}>{cartas.some(c => c.pacote)
+          ? t(`Você terminou com ${cartas.length} setor${cartas.length > 1 ? 'es' : ''} sem pacote. ${cartas.length > 1 ? 'Eles ganharam' : 'Ele ganhou'} um pacote que sobrou, de graça.`, `You ended with ${cartas.length} sector${cartas.length > 1 ? 's' : ''} without a pack. ${cartas.length > 1 ? 'They got' : 'It got'} a leftover pack for free.`)
+          : t(`Você terminou com ${cartas.length} vaga${cartas.length > 1 ? 's' : ''} vazia${cartas.length > 1 ? 's' : ''}. ${cartas.length > 1 ? 'Elas ganharam' : 'Ela ganhou'} jogador de graça.`, `You ended with ${cartas.length} empty slot${cartas.length > 1 ? 's' : ''}. ${cartas.length > 1 ? 'They got' : 'It got'} a free player.`)}</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {cartas.map(c => (
+          {cartas.map(c => c.pacote ? (
+            <div key={c.id} className="pa-vira" style={{ width: 150 }}><PacoteMesa c={c} compacto /></div>
+          ) : (
             <div key={c.id} className="pa-vira" style={{ width: 92 }}>
               <CollectibleCard name={c.name} club={c.club} year={c.year} pos={c.pos} fame={c.fame} folk={!!c.folk} promessa={c.promessa} />
             </div>
