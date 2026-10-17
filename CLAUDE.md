@@ -701,6 +701,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   vem ANTES do baralho, e Clubes trava o baralho em Todos (BR/EU sozinhos não têm clube suficiente).
   Ele pediu pra ser AVISADO quando BR ou EU sozinhos fecharem — números em `docs/pendencias.md`.
   🟢 Liberado pra todos em 28/09: Partida Rápida, salas online rápidas e Minhas Ligas (nunca carreira).
+  📦 **QUANTOS PACOTES (17/10, *"vai ser mais justo"*): a MESMA regra do leilão de jogador** — um pacote por pessoa em
+  cada posição + 1 de sobra (8 pessoas = 9 por posição, 45 no total), no envelope, Tocaia e pregão aberto. Antes era pessoas
+  + metade (8 = 12 por posição). Sala muito grande pode vir sem a sobra numa posição (não há clube suficiente); todo mundo
+  ainda fecha. Mora em `buildDeckClubes` (`alvo`).
 
 - **📧 O QUE VALE SEMPRE É O E-MAIL DO BATISMO (28/09, regra permanente).** Palavras dele:
   *"Oq vale sempre é o email de batismo"*. Tudo que é mimo de batismo (entrada de gala, escudo,
