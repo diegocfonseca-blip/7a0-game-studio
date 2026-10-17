@@ -1,0 +1,4 @@
+-- 💸 17/10: a meta do mês soma sozinha. Aplicada via MCP.
+-- esc_meta_mes.custo (default 1600) · esc_meta_entradas (mes, valor, descricao) pra patrocínio/entrada fora do Pix ·
+-- esc_meta_mes_pct(p_mes) = (Pix integrado liberado no mês, fora a conta do Diego + entradas) ÷ custo.
+-- Pra lançar um patrocínio: insert into esc_meta_entradas (mes, valor, descricao) values ('AAAA-MM', 250, 'Vadico ...');

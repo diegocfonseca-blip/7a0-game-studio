@@ -86,8 +86,8 @@ export function SupportStory() {
 // ─── 💸 PRA ONDE VAI O DINHEIRO + META DO MÊS (Diego 13–14/10, mockup `scripts/mockups/apoie-dinheiro.png`) ───
 // Pedido dele, olhando o Brasileirinho: dizer pra onde vai o dinheiro, do nosso jeito. Formato combinado: só esta seção,
 // dentro do modal de apoio (perto dos planos); o texto DELE vai inteiro no quadro do Luca (nunca reescrever); a faixa
-// dourada diz que apoio não dá vantagem. A META: o público vê só a %, e quem põe o número é o Diego, na tabela
-// `esc_meta_mes` (um por mês; sem linha no mês = a barra some). 100% = o jogo se paga · 150% = sustentável.
+// dourada diz que apoio não dá vantagem. A META: o público vê só a %, e o número é SOMADO pelo banco (`esc_meta_mes_pct`, 17/10):
+// Pix integrado pago + `esc_meta_entradas` (patrocínio, avisado pelo Diego) ÷ `esc_meta_mes.custo` (R$ 1.600). 100% = o jogo se paga · 150% = sustentável.
 const SUSTENTAVEL = 150
 const MESES: [string, string][] = [['janeiro', 'January'], ['fevereiro', 'February'], ['março', 'March'], ['abril', 'April'], ['maio', 'May'], ['junho', 'June'], ['julho', 'July'], ['agosto', 'August'], ['setembro', 'September'], ['outubro', 'October'], ['novembro', 'November'], ['dezembro', 'December']]
 function useMetaDoMes(): { mes: number; pct: number } | null {
@@ -97,9 +97,15 @@ function useMetaDoMes(): { mes: number; pct: number } | null {
     const d = new Date(Date.now() - 3 * 3600_000)
     const chave = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
     let vivo = true
-    void supabase.from('esc_meta_mes').select('pct').eq('mes', chave).maybeSingle().then(({ data }) => {
+    // 🔁 17/10 (Diego: *"a barra deve somar sozinha"*): a % vem calculada pelo banco (`esc_meta_mes_pct`): Pix integrado
+    // pago no mês + entradas manuais (patrocínio) ÷ custo do mês. Se a função falhar, cai na % fixa antiga da tabela.
+    const fixa = () => supabase.from('esc_meta_mes').select('pct').eq('mes', chave).maybeSingle().then(({ data }) => {
       if (vivo && data && typeof (data as { pct?: number }).pct === 'number') setMeta({ mes: d.getUTCMonth(), pct: (data as { pct: number }).pct })
     }, () => { /* sem rede: sem barra */ })
+    void supabase.rpc('esc_meta_mes_pct', { p_mes: chave }).then(({ data, error }) => {
+      if (error) { void fixa(); return }
+      if (vivo && typeof data === 'number') setMeta({ mes: d.getUTCMonth(), pct: data })
+    }, () => { void fixa() })
     return () => { vivo = false }
   }, [])
   return meta

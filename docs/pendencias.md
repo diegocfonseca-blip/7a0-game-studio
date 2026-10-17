@@ -1,3 +1,10 @@
+## 💸 META DO MÊS SOMA SOZINHA (17/10) — ✅ NO AR
+- Diego: *"a barra deve somar sozinha. Só da Vadico que eu tenho que te avisar"*. A % agora é `esc_meta_mes_pct(mes)` =
+  (Pix integrado liberado no mês, fora a conta do Diego + `esc_meta_entradas`) ÷ `esc_meta_mes.custo` (R$ 1.600 = Supabase
+  1.000 + Claude 600). Mês sem linha usa o último custo (novembro começa em 0% sozinho).
+- 📌 **PATROCÍNIO DA VADICO É MENSAL (R$ 250)**: toda vez que o Diego avisar que pagou, lançar
+  `insert into esc_meta_entradas (mes, valor, descricao) values ('AAAA-MM', 250, 'Patrocínio mensal Vadico …')`. Outubro já lançado (17/10).
+
 ## 🏆 MINHAS LIGAS: "não consigo continuar a liga" (17/10) — ✅ itens 2 e 4 + o DONO do item 1 CONSERTADOS; resto abaixo
 - ✅ FEITO 17/10: (1) o DONO da liga não apaga mais a própria cadeira ao sair (`leaveRoom` ramo liga + `GO_LOBBY`); (2) "Voltar"
   que não abre a partida agora tenta reabrir a sala de espera da liga (`esc_liga_reabre`) e, se não der, AVISA o porquê;
