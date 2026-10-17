@@ -202,5 +202,26 @@ for (const rivals of [9, 10, 15]) {
     assert.equal(paMesa(z, 0)?.M.lider, eu.id, 'lance com o id da carta certa vale')
   }
 }
+// 🔔 ÚLTIMA CHAMADA (17/10): acabou a fila com vaga aberta → até 11 cartas novas, GOL→ATA, só de posição com vaga, uma mesa só
+{
+  let u = reducer({} as EscState, { type: 'NEW_GAME' } as never)
+  u = reducer(u, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals: 4, career: false, league: 'both', copaMode: 'liga_copa', intro: false, pregaoAberto: true } as never)
+  let ticks = 0, viu: { de: number; n: number } | undefined, ordem: string[] = [], posUlt: string[] = []
+  while (u.screen === 'auction' && u.phase === 'pregao' && ticks++ < 40000) {
+    avanca(PA_TICK_MS)
+    u = reducer(u, { type: 'PREGAO_ABERTO_TICK' } as never) // o humano NÃO lança: chega no fim com vaga
+    if (u.pa?.ultima && !viu) posUlt = u.pa.fila.slice(u.pa.ultima.de, u.pa.ultima.de + u.pa.ultima.n).map(c => c.pos)
+    if (u.pa?.ultima) { viu = u.pa.ultima; assert.ok(!u.pa.duplo, 'última chamada é uma mesa só'); const c = u.currentCards[0]; if (c && ordem[ordem.length - 1] !== c.id) ordem.push(c.id) }
+  }
+  assert.ok(viu, 'com vaga aberta no fim, a última chamada abre')
+  assert.ok(viu!.n >= 1 && viu!.n <= 11, `até 11 cartas (${viu!.n})`)
+  const SEQ = ['GOL', 'LAT', 'ZAG', 'MEI', 'ATA']
+  const fila = (u.pa?.fila ?? [])
+  for (let i = 1; i < posUlt.length; i++) assert.ok(SEQ.indexOf(posUlt[i]) >= SEQ.indexOf(posUlt[i - 1]), `ordem GOL→ATA (${posUlt.join(' ')})`)
+  // a fila da última chamada (guardada no último estado com pa) vem em ordem de posição
+  console.log(`🔔 última chamada: ${viu!.n} cartas (${posUlt.join(' ')}) · tela final ${u.screen}`)
+  assert.ok(u.screen !== 'auction', 'depois da última chamada o pregão fecha')
+  void SEQ; void fila; void ordem
+}
 Date.now = realNow
 process.exit(0)

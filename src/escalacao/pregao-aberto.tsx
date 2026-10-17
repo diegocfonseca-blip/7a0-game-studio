@@ -59,9 +59,13 @@ export function PregaoAberto() {
           <span style={{ fontSize: 24 }}>🔨</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{t('Pregão aberto', 'Open outcry')}</p>
-            <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{state.leilaoClubes
+            {pa.ultima && pa.idx >= pa.ultima.de ? (
+              <p style={{ display: 'inline-block', margin: '3px 0 0', background: '#E8503A', border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 }}>
+                {t(`🔔 ÚLTIMA CHAMADA · carta ${Math.min(pa.ultima.n, pa.idx - pa.ultima.de + 1)} de ${pa.ultima.n} · goleiro → atacante`, `🔔 LAST CALL · card ${Math.min(pa.ultima.n, pa.idx - pa.ultima.de + 1)} of ${pa.ultima.n} · goalkeeper → forward`)}
+              </p>
+            ) : <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{state.leilaoClubes
               ? (pa.duplo ? t(`pacote ${n} de ${total} · DOIS na mesa, setores diferentes`, `pack ${n} of ${total} · TWO on the table, different sectors`) : t(`pacote ${n} de ${total} · ordem embaralhada: ninguém sabe o próximo`, `pack ${n} of ${total} · shuffled order: nobody knows the next one`))
-              : pa.duplo ? t(`carta ${n} de ${total} · DUAS na mesa, posições diferentes`, `card ${n} of ${total} · TWO on the table, different positions`) : t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>
+              : pa.duplo ? t(`carta ${n} de ${total} · DUAS na mesa, posições diferentes`, `card ${n} of ${total} · TWO on the table, different positions`) : t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>}
             {/* 🎁 sem Monte (16/10): quem entra já sabe que não fica com time furado — e que o presente nunca é craque nem lenda */}
             <p style={{ display: 'inline-block', margin: '5px 0 0', background: GREEN, border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10, fontWeight: 800 }}>{state.leilaoClubes
               ? t('🎁 Sem Monte: setor sem pacote no fim ganha um pacote que sobrou, de graça', '🎁 No pile: a sector without a pack at the end gets a leftover pack for free')

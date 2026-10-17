@@ -851,6 +851,7 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   tela quando muda algo (`paAssinatura`), a contagem segue o relógio do dono e o lance leva o `cardId`.
   👑 **Mais lendas SÓ no pregão aberto** (17/10): 2,4 por clube (`PA_LENDAS_POR_CLUBE`, `paMaisLendas`), proporcional de 2 a 20 clubes.
   Botões de lance: só o "+" (+1 · +2 · +5 · +10; carta dupla +1 · +5 · +10) — o valor já está na faixa do lance atual.
+  🔔 **Última Chamada** (17/10): fila acabou com vaga aberta → até 11 cartas novas GOL→ATA numa mesa só; só depois a vaga ganha de graça.
 - **📡 MENSAGENS DO SUPABASE: SÓ O QUE FOR 100% SEGURO (17/10, regra dele).** Palavras dele: *"se eu tiver que continuar com 50
   milhões, eu continuo… mas eu quero fazer só o que for seguro… não quero nenhum bug na sala… e que eu possa reverter"*. Feito:
   reação/zoeira 1 a cada 2s por pessoa (`EMOTE_ESPERA_MS`). **Não mexer** no batimento de 3s do save do dono (a coroa lê

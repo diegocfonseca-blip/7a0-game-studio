@@ -6233,7 +6233,53 @@ function paTalvezFecha(state: EscState) {
   const pa = state.pa
   if (!pa || pa.idx < pa.fila.length - 1) return
   if (paMesasAtivas(state).some(k => paMesa(state, k)?.card)) return
-  if (pa.idx >= pa.fila.length - 1) { pa.idx = pa.fila.length; paFecha(state) }
+  if (pa.idx >= pa.fila.length - 1) {
+    if (!pa.ultima && paAbreUltimaChamada(state)) return
+    pa.idx = pa.fila.length; paFecha(state)
+  }
+}
+// 🔔 ÚLTIMA CHAMADA (17/10, Diego: *"após acabar a rodada poderiam ter mais 11 jogadores finais por ordem de goleiro, laterais,
+// zagueiros, meias e atacantes… últimas tentativas… e aí caso não consigam, aí sim sobram essas cartas"*). Acabou a fila e ainda
+// tem vaga aberta? Entram até 11 cartas NOVAS, na ordem GOL→LAT→ZAG→MEI→ATA (o desenho de um 4-3-3), só das posições em que
+// alguém ainda tem vaga, com a mistura do pregão. Uma mesa só, lance aberto igual. Depois disso, aí sim a vaga vazia ganha
+// jogador de graça. Não vale no Leilão de Clubes (lá a convocação completa o time).
+const PA_ULTIMA_POR_POS: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
+function paAbreUltimaChamada(state: EscState): boolean {
+  const pa = state.pa
+  if (!pa || state.leilaoClubes) return false
+  const quem = [...state.managers.filter(m => m.isHuman && !m.dormindo), ...paRobosQueDisputam(state)]
+  const rng = paRng(state, 97)
+  const nomes = new Set<string>([...pa.fila.map(c => c.name), ...state.managers.flatMap(m => m.squad.map(c => c.name))])
+  // a mistura do pregão: lenda · craque · promessa · bom · profissional
+  const sorteiaCategoria = (): ((c: Card) => boolean) => {
+    const r = rng()
+    if (r < 0.2) return c => !c.promessa && (c.fame ?? 0) >= 5
+    if (r < 0.5) return c => !c.promessa && c.fame === 4
+    if (r < 0.6) return c => !!c.promessa
+    if (r < 0.8) return c => !c.promessa && c.fame === 3
+    return c => !c.promessa && (c.fame ?? 0) <= 2
+  }
+  const bt = nextBuildTok()
+  const novas: Card[] = []
+  for (const pos of SECTORS) {
+    const vagas = quem.reduce((s, m) => s + openSlots(m, pos), 0)
+    const quantas = Math.min(PA_ULTIMA_POR_POS[pos], vagas)
+    for (let i = 0; i < quantas; i++) {
+      const livres = ((ACTIVE_CATALOG[pos] ?? []) as Card[]).filter(c => !c.fake && !nomes.has(c.name))
+      if (!livres.length) break
+      const daCat = livres.filter(sorteiaCategoria())
+      const lista = daCat.length ? daCat : livres
+      const c = lista[Math.floor(rng() * lista.length)]
+      nomes.add(c.name)
+      novas.push({ ...c, id: `pa-ult-${pos}-${i}-${bt}`, pos } as Card)
+    }
+  }
+  if (!novas.length) return false
+  pa.ultima = { de: pa.fila.length, n: novas.length }
+  pa.fila.push(...novas)
+  pa.duplo = false // uma mesa só: a ordem GOL→ATA fica à vista
+  paProximaCarta(state, 0)
+  return true
 }
 function paProximaCarta(state: EscState, k = 0) {
   const pa = state.pa
