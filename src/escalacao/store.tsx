@@ -322,6 +322,9 @@ export const SOCIO_MENSAL = 30       // 🪙 a cada 30 DIAS CORRIDOS desde o úl
 /** 🥇🌍 artilheiro da Copa do Mundo jogando pela SUA seleção (Diego 17/10) */
 const ARTILHEIRO_MUNDO_MOEDAS = 30
 export const SOCIO_BOAS_VINDAS = 30  // 🪙 UMA VEZ SÓ na vida da conta, quando o sócio entra (RPC esc_socio_boas_vindas; era 39 — Diego 23/08: "ele ganha 30 qd vira sócio")
+// 🏆🪙 PRÊMIO DO RANKING DA SEMANA (17/10, Diego: "1 lugar 20 moedas 2-10 moedas e 3-5 moedas"). O banco fecha a semana e
+// guarda quem ficou no top 3 (`esc_premio_semana`, trava 1× por semana); o VALOR mora aqui, nunca vem de fora.
+export const RANKING_SEMANA_MOEDAS: Record<1 | 2 | 3, number> = { 1: 20, 2: 10, 3: 5 }
 // 🧾 LIVRO-CAIXA (carreira SOLO): registra um lançamento no extrato. É SÓ pra
 // exibição — NUNCA realimenta o caixa de verdade. Ignora o online (lá não tem a
 // aba Finanças) e valor 0. Guarda as últimas ~250 entradas.
@@ -5395,6 +5398,7 @@ type Action =
   | { type: 'RECORD_SEASON_STATS'; scorers: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; goals: number; you: boolean; human: boolean; cardId?: string; club?: string; year?: number }[]; assists?: { name: string; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; assists: number; you: boolean; human: boolean; cardId?: string; club?: string; year?: number }[]; melhor?: { name: string; club?: string; year?: number; teamName: string; teamId: number; div: 'A' | 'B' | 'C' | 'D' | 'V'; you: boolean; human: boolean; goals: number; assists: number; total: number } | null } // carreira online: soma os artilheiros da temporada (LIGA + COPAS) no acumulado de todos os tempos. 🃏 `club`/`year` = a identidade da carta, que é a chave do acumulado desde 19/09
   | { type: 'BANCO_CREDIT'; coins: number; code: string } // 🏦 Banco Legends: ficha resgatada (RPC já validou/queimou no Supabase) — credita no caixa do clube ATIVO e registra no extrato. Só carreira solo
   | { type: 'CAREER_FROM_QUICK' } // 🪜 "continuar com esse time": o jogo rápido que acabou vira uma CARREIRA — a liga inteira (você + adversários, com os elencos) vira a divisão de estreia. Sem pregão: o time já está montado.
+  | { type: 'RANKING_SEMANA_CREDIT'; pos: 1 | 2 | 3; semana: string } // 🏆 top 3 do Ranking da Semana (RPC já travou 1× no Supabase) — o VALOR vem do código
   | { type: 'SOCIO_CREDIT'; motivo: 'mensal' | 'boas-vindas' } // 🎟️ brinde de sócio (RPC já travou no Supabase, 1× por mês / 1× na vida) — o VALOR vem do código, nunca de fora
   | { type: 'SET_AGENCIA'; cards: AgCard[] } // 🕴️ AGÊNCIA 2.0: grava a convocação dos até 22 "na ativa" (escolhidos do álbum). Só carreira solo nova (agenciaOn)
   | { type: 'SET_AGENCIA_CLUBE'; mgrId: number; dividir?: boolean } // 🕴️×🏛️ com 2 clubes: escolhe pra qual caixa vai a renda da agência (ou dividir meio a meio) — toggle na tela dos Agenciados
@@ -10484,6 +10488,16 @@ function reducerBase(state: EscState, action: Action): EscState {
       const yb = s.managers[s.youIdx]?.id ?? 0
       s.careerCoins = { ...(s.careerCoins ?? {}), [yb]: (s.careerCoins?.[yb] ?? 0) + action.coins }
       logFin(s, 'banco', `🏦 Empréstimo do Banco Legends (ficha ${action.code})`, action.coins, undefined, yb)
+      return s
+    }
+    case 'RANKING_SEMANA_CREDIT': {
+      if (s.onlineMode === 'online' || !s.careerOnline) return s
+      const coins = RANKING_SEMANA_MOEDAS[action.pos]
+      if (!coins) return s
+      const yr = s.managers[s.youIdx]?.id ?? 0
+      s.careerCoins = { ...(s.careerCoins ?? {}), [yr]: (s.careerCoins?.[yr] ?? 0) + coins }
+      const [d, m] = action.semana.split('-').reverse()
+      logFin(s, 'reward', `🏆 ${action.pos}º no Ranking da Semana (semana de ${d}/${m})`, coins, undefined, yr)
       return s
     }
     case 'SOCIO_CREDIT': {

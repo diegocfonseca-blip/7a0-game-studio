@@ -6,6 +6,7 @@ import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen, useDireitos } from './apoio'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
+import { DuploLinha } from './presente'
 import './support-plans.css'
 import { CartoesBatismo, UmaVezSo } from './support-plans-v2'
 
@@ -228,6 +229,7 @@ export function SupportPlans(p: Props) {
         <p className="ll-support-note">{tr('O olheiro do Craque não revela nem sonda Lendas. No online normal, o ritmo é o mesmo para todos.', 'The Star scout does not reveal or scout Legends. In regular online play, the pace is the same for everyone.')}</p>
         {atual ? <p className="ll-vit-seu">{tr('✅ você já tem o Craque', '✅ you already have Star')}</p>
           : <button className="ll-support-button prata" onClick={() => p.onPay('prata')}>{tr(`ESCOLHER CRAQUE · ${reais(PRECOS_UNICO.craque)}`, `CHOOSE STAR · ${reais(PRECOS_UNICO.craque)}`)}</button>}
+        {!atual && <DuploLinha pl="craque" atual={atual} subida={precoSubida('craque', atual)} />}
         {memberButton('prata')}
       </SupportPlanCard>
 
@@ -249,6 +251,7 @@ export function SupportPlans(p: Props) {
         <p className="ll-support-note">{tr('Já tem Craque? Suba para Lenda pagando só a diferença.', 'Already have Star? Upgrade to Legend paying only the difference.')}</p>
         {atual && atual !== 'craque' ? <p className="ll-vit-seu">{tr('✅ você já tem o Lenda', '✅ you already have Legend')}</p>
           : <button className="ll-support-button gold" onClick={() => p.onPay('ouro')}>{atual === 'craque' ? tr(`SUBIR PARA LENDA · + ${reais(subLenda)}`, `UPGRADE TO LEGEND · + ${reais(subLenda)}`) : tr(`ESCOLHER LENDA · ${reais(PRECOS_UNICO.lenda)}`, `CHOOSE LEGEND · ${reais(PRECOS_UNICO.lenda)}`)}</button>}
+        {(!atual || atual === 'craque') && <DuploLinha pl="lenda" atual={atual} subida={subLenda} />}
         {memberButton('ouro')}
       </SupportPlanCard>
 

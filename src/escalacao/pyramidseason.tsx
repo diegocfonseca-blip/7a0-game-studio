@@ -46,7 +46,7 @@ import { agoraSala } from './relogio' // ⏱️ contagem do online corre na hora
 import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoRenovacaoPreparador, jogosPorDescanso, CONTRATO_MAX, CONTRATO_PRAZOS, type Preparador } from './preparadores' // 🏋️ preparador físico (15/09) // 😓 gás (12/09) · barra = leitura (13/09)
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
-import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard, GiroDaRodada } from './screens'
@@ -86,7 +86,7 @@ import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewar
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
-import { useDireitos, meusDireitos } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
+import { useDireitos, meusDireitos, logApoio } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
@@ -145,8 +145,9 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 function ManualLockButton() {
   return (
     <div className="ll-cx-controle" style={{ marginBottom: 10 }}>
-      <ApoieButton startScreen="manual" trigger={open => (
-        <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
+      {/* 17/10 (Diego): o cadeado leva pra vitrine de PLANOS, abrindo no topo ("pra onde vai o dinheiro"), não mais na trava do Craque */}
+      <ApoieButton startScreen="choice" trigger={open => (
+        <button onClick={() => { logApoio('👀 abriu: modo manual (trava) → planos'); open() }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
           <span>{tr('Acelerar e pular', 'Speed up and skip')}</span>
           <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('🔒 Desbloquear', '🔒 Unlock')}</span>
         </button>
@@ -1983,6 +1984,30 @@ const BL_PIX = 'diego.c.fonseca@gmail.com' // chave Pix REAL do Diego (04/08) �
 export const BL_TRIPLO = 3
 const BL_PACOTES: [number, string][] = [[10, 'CAFEZINHO'], [50, 'REFORÇO PONTUAL'], [100, 'FÔLEGO DE TEMPORADA'], [500, 'PROJETO SAF'], [1000, 'INVESTIDOR VISIONÁRIO 👑']]
 const BL_PACOTES_EN: Record<number, string> = { 10: 'COFFEE MONEY', 50: 'QUICK BOOST', 100: 'SEASON BREATHER', 500: 'SAF PROJECT', 1000: 'VISIONARY INVESTOR 👑' }
+/** 🏆 prêmio do RANKING DA SEMANA (17/10): quem ficou no top 3 recebe na 1ª carreira que abrir depois da semana fechar.
+ *  O banco trava 1× por semana (`esc_resgata_premio_semana`); o valor vem de `RANKING_SEMANA_MOEDAS`. */
+function PremioSemana() {
+  const { state, dispatch } = useEsc()
+  const [aviso, setAviso] = useState<{ moedas: number; pos: number } | null>(null)
+  const feito = useRef<number | null>(null)
+  useEffect(() => {
+    if (state.onlineMode === 'online' || !state.careerOnline || !state.seed || feito.current === state.seed) return
+    feito.current = state.seed
+    let vivo = true
+    supabase.rpc('esc_meus_premios_semana').then(async ({ data }) => {
+      const lista = Array.isArray(data) ? data as { semana: string; pos: number }[] : []
+      let soma = 0, melhor = 9
+      for (const p of lista) {
+        const { data: pos } = await supabase.rpc('esc_resgata_premio_semana', { p_semana: p.semana, p_seed: state.seed })
+        if (pos === 1 || pos === 2 || pos === 3) { dispatch({ type: 'RANKING_SEMANA_CREDIT', pos, semana: p.semana }); soma += RANKING_SEMANA_MOEDAS[pos as 1 | 2 | 3]; melhor = Math.min(melhor, pos) }
+      }
+      if (vivo && soma > 0) { setAviso({ moedas: soma, pos: melhor }); setTimeout(() => setAviso(null), 6000) }
+    }, () => {})
+    return () => { vivo = false }
+  }, [state.seed, state.careerOnline, state.onlineMode, dispatch])
+  if (!aviso) return null
+  return <div style={{ position: 'fixed', left: '50%', top: 16, transform: 'translateX(-50%)', zIndex: 9999, background: GREEN, color: '#fff', border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `3px 3px 0 ${INK}`, padding: '10px 16px', ...OSWALD, fontWeight: 900, fontSize: 16, whiteSpace: 'nowrap' }}>🏆 +{aviso.moedas} 🪙 {tr(`· ${aviso.pos}º no Ranking da Semana!`, `· #${aviso.pos} in the Weekly Ranking!`)}</div>
+}
 /** 🏦 moedas compradas na LOJA com destino ESTA carreira (`esc_mp_destino`): caem sozinhas quando a carreira abre */
 function DepositoPix() {
   const { state, dispatch } = useEsc()
@@ -9676,6 +9701,7 @@ export function PyramidSeasonScreen() {
   }
   return (
     <div className={`palco tela-cheia${privateCareer ? ` ll25-career ll29-career ll25-tab-${tab} ll25-clube-${clubeSub}` : ''}`} style={{ background: '#F4ECD6', color: INK }}>
+      <PremioSemana />{/* 🏆 prêmio do top 3 do Ranking da Semana (17/10) */}
       <DepositoPix />{/* 🏦 moedas compradas na Loja pra ESTA carreira caem sozinhas (15/10) */}
       {barraOn && cabFora && (
         <FaixaCarr temporada={state.seasonNo ?? 1} div={me ? DIV_NAME[me.div] : ''} pos={!done && me ? me.pos : undefined}
