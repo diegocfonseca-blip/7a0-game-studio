@@ -7247,7 +7247,7 @@ export function EscSeason() {
         // giroNews é o giro SEGURADO (só atualiza no apito) — o filtro de linhas de
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
-        if (shownNews.length === 0) return null
+        // 📢 17/10: o letreiro virou só ANÚNCIO (não mostra mais manchete) — então aparece sempre, até antes do 1º jogo
         return <GiroDaRodada news={shownNews} isCopa={copaLive} cinema={cinemaPreview} />
       })()}
 

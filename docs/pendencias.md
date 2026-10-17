@@ -13,6 +13,8 @@
 - ❓ Plano duplo (2 pessoas, -10%): já aparece sutil na Loja embaixo de "Sobe de plano". Na vitrine de planos NÃO aparece —
   perguntar ao Diego se quer lá também.
 - ❓ Botão Manual da carreira (sem plano): abre a trava NOVA (Craque 29,90, Pix na hora, "Ver o Lenda" já com 44,90).
+- 📢 17/10: o Anúncio do dia entrou também na CARREIRA (aba Jogos, embaixo do giro de frases), nas duas caras da carreira
+  (visual novo `ll29-board` e o antigo). Antes só existia na temporada da partida rápida/online (`EscSeason`).
 
 ## 🏟️ PLACAS ATRÁS DOS GOLS em todo campinho + Anúncio do dia mais discreto (17/10) — ✅ NO AR
 - Diego escolheu a ideia 1 de `scripts/mockups/campinho-outras-ideias.png` (*"perfeito pode fazer mas no momento coloque Vadico
