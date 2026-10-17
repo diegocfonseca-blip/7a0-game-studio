@@ -270,7 +270,9 @@ export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolea
     <div style={{ border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, background: '#fff', padding: compacto ? '10px 8px' : '16px 14px', textAlign: 'center' }}>
       <span style={{ display: 'inline-block', background: INK, color: '#fff', borderRadius: 7, padding: '1px 8px', ...OSW, fontWeight: 900, fontSize: compacto ? 11 : 13 }}>{c.pos}</span>
       <div style={{ display: 'flex', justifyContent: 'center', margin: compacto ? '6px 0' : '10px 0' }}><SeloClube clube={c.pacote?.clube ?? c.club} size={compacto ? 58 : 96} /></div>
-      <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, display: 'block', lineHeight: 1.05, textTransform: 'uppercase' }}>{nomePacote(c)}</b>
+      {/* 📐 17/10 (Diego, print da mesa dupla): o nome ocupa SEMPRE 2 linhas na mesa dupla — senão "Goleiros do Everton"
+          (2 linhas) empurrava o lance atual dele pra baixo do "Meio do Newcastle" (1 linha) e as duas mesas desalinhavam */}
+      <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1.05, textTransform: 'uppercase', ...(compacto ? { minHeight: '2.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' } : { display: 'block' }) }}>{nomePacote(c)}</b>
       <span style={{ display: 'inline-block', marginTop: 6, background: '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 9, padding: '2px 10px', ...OSW, fontWeight: 900, fontSize: compacto ? 12 : 15 }}>👥 {n} {n === 1 ? t('jogador', 'player') : t('jogadores', 'players')}</span>
       {!compacto && <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem são, você vê na convocação.', 'You see who they are at the call-up.')}</p>}
     </div>
