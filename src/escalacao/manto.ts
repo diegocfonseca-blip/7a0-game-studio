@@ -135,7 +135,7 @@ export const MANTO_CONTAS: Record<string, [string, string]> = {
   //    (R>G) é o medido; só a luz subiu.
   'koeppfabio@gmail.com': ['#161011', '#CE0E17'],
   'denilson.stifler10@gmail.com': ['#063215', '#F8EACF'], // 🟢 Xurupitas FC — verde-escuro e creme, MEDIDOS na camisa que o dono mandou em 09/09 (mediana dos verdes escuros, 78% do manto, e do creme da gola/nome/listras). A GOSMA verde-clara é a 3ª cor (MANTO_TRI)
-  'glaucomiranda@outlook.com': ['#032F13', '#F8EEDC'], // 🍀 Seven City — verde-mata e creme, MEDIDOS na camisa que o dono mandou em 12/09 (mediana dos verdes, 54% do manto, e dos cremes da faixa central e das mangas, 23%). O DOURADO da gola, do 7 e das listras é a 3ª cor (MANTO_TRI). Antes era dourado + azul-marinho, só no banco. ❤️ Corinthians (o Diego confirmou em 19/09)
+  'glaucomiranda@outlook.com': ['#0F0E0D', '#D99E44'], // 🍀 17/10: camisa NOVA preta e dourada — preto 65% (#0F0E0D) + dourado dos frisos (#D99E44), MEDIDOS. (antes: // 🍀 Seven City — verde-mata e creme, MEDIDOS na camisa que o dono mandou em 12/09 (mediana dos verdes, 54% do manto, e dos cremes da faixa central e das mangas, 23%). O DOURADO da gola, do 7 e das listras é a 3ª cor (MANTO_TRI). Antes era dourado + azul-marinho, só no banco. ❤️ Corinthians (o Diego confirmou em 19/09)
   'brunolopesmiranda15@gmail.com': ['#EBE0CD', '#090908'], // 🐮 Leite de Verdade FC — creme-leite e preto malhado, MEDIDOS na camisa que o dono mandou em 10/09 (creme 39% do manto, preto 36%). O creme vem PRIMEIRO porque é a base da camisa e a cara do clube (leite); as manchas de vaca são por cima. O DOURADO da coroa é a 3ª cor (MANTO_TRI) ❤️ Grêmio (o Diego confirmou em 19/09)
   'souzact12@gmail.com': ['#110D0E', '#F5F2EF'], // 🐍 Tricolor do Arruda FC — preto e branco, MEDIDOS na camisa que o dono mandou em 09/09 (faixas horizontais; o VERMELHO é a 3ª cor em MANTO_TRI, com o amortecedor branco de sempre)
   'diegohdsf@gmail.com': ['#0E0C0B', '#DD9C30'], // 🎙️ Fala D10 — preto e dourado, MEDIDOS na camisa que o dono mandou (mediana dos pretos, 83% do manto, e dos dourados das listras/coroa, 09/09). Sem 3ª cor: o branco do "FALA" é só 1% da camisa
@@ -293,7 +293,7 @@ const MANTO_TRI: Record<string, string> = {
   bagreswallst_bagre: '#F8F5EB', // 🐟📉 Bagres de Wall Street FC — 3ª cor BRANCA: as listras do ombro e o "DE WALL STREET" no peito (medida na arte dele, 09/09)
   bichodaseda_bicho: '#DDCEBF', // 🐛 Bicho da Seda — 3ª cor CREME dos fios de seda que cruzam a camisa (medida na arte dele, 09/09)
   xurupitas_gosma: '#819954', // 🟢 Xurupitas FC — 3ª cor VERDE-GOSMA que escorre pela camisa (medida na arte dele, 09/09)
-  trevo_seven: '#DCAC49', // 🍀 Seven City (glaucomiranda) — 3ª cor DOURADA: gola, listras, coroa e o 7 (medida na camisa dele, 12/09)
+  trevo_seven: '#F0EDE2', // 17/10: a 3ª cor agora é o BRANCO da faixa central da camisa nova (o dourado virou a 2ª). Antes: // 🍀 Seven City (glaucomiranda) — 3ª cor DOURADA: gola, listras, coroa e o 7 (medida na camisa dele, 12/09)
   leiteverdade_vaca: '#CDAA77', // 🐮 Leite de Verdade FC — 3ª cor DOURADA da coroa, da gola e do 'FC' (medida na arte dele, 10/09)
   bonanca_selecta: '#B51516', // 🔊 Bonança SSFC (duselecta) — 3ª cor VERMELHA: a listra rasta da camisa, medida na arte dele (09/09)
   pesadelo_lobo: '#D8D6D1', // 🌑🐺 Pesadelo Verde FC (portaltech.ep) — 3ª cor BRANCA: a gola, os punhos e o filete da camisa (medida na arte do dono, 18/09)

@@ -76,7 +76,7 @@ import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (l
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
-import sevenCityEscudoImg from './img/sevencity-escudo.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 12/09 (era SVG à mão)
+import sevenCityEscudoImg from './img/sevencity-escudo-v2.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 17/10 — preto e dourado com a coroa e o 7 no trevo (a de 12/09 era verde)
 import leiteDeVerdadeEscudoImg from './img/leitedeverdade-escudo.webp' // 🐮 Leite de Verdade FC (brunolopesmiranda15): arte do dono, 10/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
@@ -1099,7 +1099,7 @@ const ferrariSCRender = (size: number) => (
 // da sorte, verde e dourado, "SORTE TAMBÉM JOGA") — o escudo azul-marinho em SVG
 // saiu e entrou o .webp dele, 248x360, então a largura sai da PROPORÇÃO real.
 const sevenCityRender = (size: number) => (
-  <img src={sevenCityEscudoImg} height={size} width={Math.round(size * 248 / 360)} alt="Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={sevenCityEscudoImg} height={size} width={Math.round(size * 266 / 360)} alt="Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do

@@ -1,3 +1,10 @@
+## 🍀7️⃣ Seven City: ARTE NOVA preta e dourada (17/10) — ✅ NO AR
+- O dono não gostou da gala com a arte verde e mandou escudo/mascote/camisa NOVOS (*"ele quer esse escudo manto e mascote aqui e
+  faça a gala com esse também"*). Arquivos `-v2` (escudo 266×360/29 KB · mascote 363×440/40 KB · camisa da Loja v2); os antigos
+  ficam no repo sem uso. Manto remedido: preto #0F0E0D + dourado #D99E44 (código + `esc_socios`), 3ª cor `trevo_seven` = branco
+  #F0EDE2 da faixa central. Mascote agora é o boleiro de chapéu preto com a moeda: nome PROVISÓRIO "O Sortudo" (confirmar).
+- Gala "Jackpot da Sorte" refeita em preto e dourado com o mascote novo (`scripts/posts/gala-seven-com-canto.mp4`).
+
 ## 🍀7️⃣ Seven City: gala "Jackpot da Sorte" (17/10) — ✅ NO AR (*"pode publicar"*), gala + canto na carreira
 - Pedido do Diego: supersticioso, 7 é o número da sorte, trevos, canto do Gaviões. `gala-seven.tsx` (8,6 s): máquina caça-níquel
   dourada "SEVEN CITY", roletas param 7·7·7, JACKPOT com chuva de moedas e trevos, escudo com SETE trevos em volta, o Trevo do

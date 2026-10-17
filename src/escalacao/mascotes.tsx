@@ -48,7 +48,7 @@ import soDeusSabeMascoteImg from './img/sodeussabe-mascote.webp' // 🙏 Só Deu
 import bagresWallStMascoteImg from './img/bagreswallst-mascote.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaMascoteImg from './img/bichodaseda-mascote.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09
 import xurupitasMascoteImg from './img/xurupitas-mascote.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09
-import sevenCityMascoteImg from './img/sevencity-mascote.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 12/09
+import sevenCityMascoteImg from './img/sevencity-mascote-v2.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 17/10 (o boleiro de chapéu preto jogando a moeda da sorte em cima dos baús)
 import leiteDeVerdadeMascoteImg from './img/leitedeverdade-mascote.webp' // 🐮 Leite de Verdade FC (brunolopesmiranda15): arte do dono, 10/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
@@ -93,7 +93,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // .webp dele, 303x440 (largura pela proporção real). mascote_key = "trevo_seven".
   // ⚠️ o nome "O Trevo" é PROVISÓRIO (a arte veio sem nome) — confirmar com o dono.
   trevo_seven: (
-    <img src={sevenCityMascoteImg} height={176} width={Math.round(176 * 303 / 440)} alt="O Trevo — Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={sevenCityMascoteImg} height={176} width={Math.round(176 * 363 / 440)} alt="O Sortudo — Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐈💛💙 O Gatão — Barcenite FC (ricardopessoafreire, 16/09). 222x440 no arquivo,
   // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O gato
@@ -1316,7 +1316,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   bagreswallst_bagre: 'O Bagre Investidor', // 🐟📉 Bagres de Wall Street FC (09/09) — o bagre de terno, coroa e charuto sentado no caixote. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   bichodaseda_bicho: 'O Bicho da Seda', // 🐛 Bicho da Seda (09/09) — o bicho de óculos escuros, braços cruzados e pé na bola. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   xurupitas_gosma: 'O Xurupita', // 🟢 Xurupitas FC (09/09) — a gosma verde de sorriso maroto e pé na bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
-  trevo_seven: 'O Trevo', // 🍀 Seven City (12/09) — o trevo da sorte de terno e cartola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
+  trevo_seven: 'O Sortudo', // 🍀 Seven City — 17/10 a arte virou o boleiro de chapéu preto com a moeda da sorte (a key continua trevo_seven pra não quebrar save). ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
   leiteverdade_vaca: 'A Mimosa', // 🐮 Leite de Verdade FC (10/09) — a vaca de chapéu de palha e óculos escuros. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
   porco: 'O Xurupita', // 🧷 chave antiga (10/08) — mesma mascote
   mariposa: 'O Bicho da Seda', // 🧷 chave antiga (10/08) — mesma mascote

@@ -124,7 +124,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Sapekeiros FC', tipo: 'batismo', fundador: 41, manto: ['#0C0C0C', '#C9A227'] },
   { clube: 'Rei da Bola FC', tipo: 'batismo', fundador: 70, manto: ['#D4121F', '#121010'] },
   { clube: 'Raiva Cajuri FC', tipo: 'batismo', fundador: 71, manto: ['#0F0505', '#C40B0E'] },
-  { clube: 'Seven City', tipo: 'batismo', fundador: 42, manto: ['#032F13', '#F8EEDC'] },
+  { clube: 'Seven City', tipo: 'batismo', fundador: 42, manto: ['#0F0E0D', '#D99E44'] }, // 17/10: arte nova preta e dourada (era verde e creme)
   { clube: 'Tricolor do Arruda FC', tipo: 'batismo', fundador: 43, manto: ['#110D0E', '#F5F2EF'] },
   { clube: 'Coringas do Diniz', tipo: 'batismo', fundador: 44, manto: ['#FFFFFF', '#0C0C0C'] },
   { clube: 'Nata de SP', tipo: 'batismo', fundador: 45, manto: ['#FFC400', '#0C0C0C'] },

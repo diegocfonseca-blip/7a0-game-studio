@@ -58,7 +58,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Manfré FC": "manfre-camisa.webp",
   "Nova Eclipse FC": "novaeclipse-camisa.webp",
   "Papão United Madrid": "papao-camisa-v2.webp",
-  "Seven City": "sevencity-camisa.webp",
+  "Seven City": "sevencity-camisa-v2.webp", // 17/10: camisa nova preta e dourada
   "Sistematizados FC": "sistematizados-camisa.webp",
   "Skyy FC": "skyy-camisa.webp",
   "Só Deus Sabe FC": "sodeussabe-camisa.webp",

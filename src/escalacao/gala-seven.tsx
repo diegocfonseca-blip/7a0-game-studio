@@ -6,7 +6,7 @@
 // 1) fundo verde com luz dourada; uma MÁQUINA CAÇA-NÍQUEL dourada com letreiro de lâmpadas "SEVEN CITY"
 // 2) as 3 roletas giram (trevo, moeda, bola, estrela, ferradura…) e param uma por uma: 7 · 7 · 7
 // 3) JACKPOT! — clarão, chuva de MOEDAS e de TREVOS
-// 4) o escudo sobe e SETE trevos acendem um a um em volta dele; o Trevo do clube pula jogando a moeda
+// 4) o escudo sobe e SETE trevos acendem um a um em volta dele; o mascote do clube pula jogando a moeda (arte de 17/10, preto e dourado)
 // 5) faixa "CHEGOU NA SALA · SORTE TAMBÉM JOGA"
 // Mesmo esquema das outras galas únicas: palco 420×760 escalado, camada fixa sem clique, fora do reducer, sem localStorage.
 // Som: o canto da torcida (`sfx/torcida-gavioes-v1.mp3`, o mesmo do Gaviões SCCP).
@@ -15,25 +15,25 @@ import { createPortal } from 'react-dom'
 import { Escudo } from './escudos'
 import { tr } from './lang'
 import { playMp3Gala } from './sound'
-import trevoImg from './img/sevencity-mascote.webp'
+import trevoImg from './img/sevencity-mascote-v2.webp' // 17/10: arte nova (preto e dourado), o boleiro de chapéu jogando a moeda
 
 export const SEVEN_MS = 8600
 const T = SEVEN_MS
 const pct = (ms: number) => (ms / T * 100).toFixed(1) + '%'
-const GOLD = '#FFC400', VERDE = '#0E5A2A'
+const GOLD = '#FFC400', VERDE = '#121110' // 17/10: o clube virou PRETO e dourado (o nome ficou, é a cor de fundo das placas da máquina)
 const sorte = (i: number) => ((i * 7919) % 997) / 997 // espalhado e sempre igual (a gala é igual pra todos)
 
 // as roletas: 16 símbolos, o último é o 7 (é onde cada uma para)
 const SIMB = ['🍀', '🪙', '⚽', '⭐', '🍀', '🎩', '🪙', '⚽', '🍀', '⭐', '🪙', '🍀', '⚽', '🎩', '🍀', '7']
 const CEL = 96 // altura de um símbolo na janela
 const PARA = [2300, 2900, 3500] // quando cada roleta para (ms)
-// a arte do Trevo é 303×440
-const TH = 230, TW = Math.round(TH * 303 / 440)
+// a arte do mascote é 363×440
+const TH = 230, TW = Math.round(TH * 363 / 440)
 
 const CSS = `
 .gsv{position:fixed;inset:0;z-index:99990;pointer-events:none;overflow:hidden;animation:gsvVis ${T}ms ease forwards}
 @keyframes gsvVis{0%{opacity:0}3%{opacity:1}95%{opacity:1}100%{opacity:0}}
-.gsv-ceu{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,#1f8a45,#0b4a22 45%,#03200e)}
+.gsv-ceu{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,#3a2c0a,#151208 45%,#050403)}
 .gsv-palco{position:absolute;left:50%;top:50%;width:420px;height:760px;overflow:hidden}
 .gsv-raios{position:absolute;left:50%;top:300px;width:1000px;height:1000px;margin:-500px 0 0 -500px;z-index:1;background:repeating-conic-gradient(from 0deg,rgba(255,196,0,.10) 0 10deg,transparent 10deg 24deg);animation:gsvGira 14s linear infinite}
 @keyframes gsvGira{to{transform:rotate(360deg)}}
@@ -80,7 +80,7 @@ const CSS = `
 @keyframes gsvFaixa{0%,${pct(6100)}{opacity:0;transform:scale(.4)}${pct(6450)}{opacity:1;transform:scale(1.06)}${pct(6650)}{transform:scale(1)}${pct(8100)}{opacity:1}100%{opacity:0}}
 .gsv-faixa small{display:block;font:700 13px Oswald,sans-serif;letter-spacing:.22em;color:${GOLD}}
 .gsv-faixa b{display:block;font:700 26px/1.05 Oswald,sans-serif;color:#fff;text-transform:uppercase;margin-top:2px}
-.gsv-faixa em{display:block;font-style:normal;font:700 15px Oswald,sans-serif;color:#7CD992;margin-top:3px;letter-spacing:.12em}
+.gsv-faixa em{display:block;font-style:normal;font:700 15px Oswald,sans-serif;color:#5BD27A;margin-top:3px;letter-spacing:.12em}
 @media (prefers-reduced-motion:reduce){.gsv-maq,.gsv-jack,.gsv-flash,.gsv-chuva,.gsv-raios,.gsv-moeda{display:none}.gsv-esc,.gsv-trevo,.gsv-faixa{animation:none;opacity:1}.gsv-trevo7{animation:none;opacity:1;transform:translate(var(--x),var(--y))}}
 `
 
