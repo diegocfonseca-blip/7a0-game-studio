@@ -51,6 +51,8 @@
   espera (4) já estavam no teto. Pregão aberto: atalhos de lance **+1 · +2 · +5 · +10** numa mesa e **+1 · +5 · +10** na carta dupla ("lance de dez… seria mais rápido"), com o "outro" na linha de baixo. Criar sala: com 🔨 Pregão aberto
   marcado, a ⭐ Só Champions fica travada com o selo "fora do pregão" (36 clubes = pregão longo demais).
 
+- 👑 17/10 (Diego, jogando com 5: *"apareceu poucas lendas… aumente proporcionalmente… só para o pregão aberto"*): `paMaisLendas` troca craques por lendas da mesma posição até `PA_LENDAS_POR_CLUBE` = 2,4 por clube (2 → 5 · 5 → 12 · 10 → 24 · 20 → 48; antes ~1,5). Catálogo ativo (Várzea fica sem lenda), nunca repete nome. Envelope/Tocaia/Clubes intactos.
+- 🔁 17/10: a ÚLTIMA CHAMADA (11 cartas no fim) SAIU (Diego ficou com medo de 1 pessoa sozinha esperando). No lugar: **+1 carta de sobra por clube** misturada desde o começo (`paSobraExtra`, `PA_SOBRA_POR_CLUBE`; antes eram só ~5 a mais no total: 2 pessoas 27→29 pra 22 vagas · 20 pessoas 225→245 pra 220) + faixa vermelha **"⏳ FALTAM N CARTAS · corre que tá acabando!"** nas últimas 11 (`PA_ALERTA_FIM`). Vaga vazia no fim continua ganhando jogador de graça. Também: janela "seu time fechou de graça" com letra preta.
 ## 🔨🌐 PREGÃO ABERTO NA SALA ONLINE (17/10) — ✅ NO AR PRA TODOS (`PREGAO_ABERTO_GERAL = true`, Diego: "pode publicar… para todo mundo")
 - Criar sala: "Como é o leilão" ganha a 3ª opção 🔨 Pregão aberto (só contas de teste via `usePregaoAberto`; some na Só
   Champions = teto de 20 clubes). `game_state.pregaoAberto` → `START_ONLINE` → `s.pregaoAberto` (e no "novo leilão").

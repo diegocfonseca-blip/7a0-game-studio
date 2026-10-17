@@ -849,6 +849,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🟢 **LIBERADO PRA TODOS EM 17/10** (`PREGAO_ABERTO_GERAL = true`): Partida Rápida + salas online (rápido e Minhas Ligas; fora
   da Só Champions e da carreira), com 🧱 Clubes (pacote com escudo + quantos jogadores) e 🤝 Duplas. Na sala o dono só manda a
   tela quando muda algo (`paAssinatura`), a contagem segue o relógio do dono e o lance leva o `cardId`.
+  👑 **Mais lendas SÓ no pregão aberto** (17/10): 2,4 por clube (`PA_LENDAS_POR_CLUBE`, `paMaisLendas`), proporcional de 2 a 20 clubes.
+  Botões de lance: só o "+" (+1 · +2 · +5 · +10; carta dupla +1 · +5 · +10) — o valor já está na faixa do lance atual.
+  ➕ **Sobra +1 carta por clube** misturada desde o começo (`PA_SOBRA_POR_CLUBE`) + alerta "⏳ FALTAM N CARTAS" nas últimas 11. A "última chamada"
+  (11 cartas extras no fim) existiu por 1h em 17/10 e SAIU por ordem dele (*"não adicione nada de 11 jogadores"*) — não repropor.
 - **📡 MENSAGENS DO SUPABASE: SÓ O QUE FOR 100% SEGURO (17/10, regra dele).** Palavras dele: *"se eu tiver que continuar com 50
   milhões, eu continuo… mas eu quero fazer só o que for seguro… não quero nenhum bug na sala… e que eu possa reverter"*. Feito:
   reação/zoeira 1 a cada 2s por pessoa (`EMOTE_ESPERA_MS`). **Não mexer** no batimento de 3s do save do dono (a coroa lê

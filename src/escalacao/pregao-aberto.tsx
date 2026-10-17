@@ -13,6 +13,7 @@ import { agoraSala } from './relogio'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
+const PA_ALERTA_FIM = 11 // ⏳ a partir de quantas cartas pro fim o alerta aparece
 const POS_PT: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goalkeeper'], LAT: ['lateral', 'full-back'], ZAG: ['zagueiro', 'centre-back'], MEI: ['meia', 'midfielder'], ATA: ['atacante', 'forward'] }
 
 export function PregaoAberto() {
@@ -48,6 +49,8 @@ export function PregaoAberto() {
   const ultimo = pa.vendidos[0]
   const total = pa.fila.length
   const n = Math.min(total, pa.idx + 1)
+  // quantas cartas ainda vão passar na mesa (as da fila + as que estão na mesa agora)
+  const restantes = Math.max(0, total - pa.idx - 1) + paMesasAtivas(state).filter(k => paMesa(state, k)?.card).length
   const mesas = paMesasAtivas(state)
 
   return (
@@ -59,9 +62,14 @@ export function PregaoAberto() {
           <span style={{ fontSize: 24 }}>🔨</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{t('Pregão aberto', 'Open outcry')}</p>
-            <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{state.leilaoClubes
+            {/* ⏳ FALTAM N CARTAS (17/10, Diego: "uma alertazinha… pra pessoa entender que tá acabando"): nas últimas 11 da fila */}
+            {restantes > 0 && restantes <= PA_ALERTA_FIM ? (
+              <p style={{ display: 'inline-block', margin: '3px 0 0', background: '#E8503A', border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 }}>
+                {restantes === 1 ? t('⏳ ÚLTIMA CARTA DO PREGÃO!', '⏳ LAST CARD OF THE AUCTION!') : t(`⏳ FALTAM ${restantes} ${state.leilaoClubes ? 'PACOTES' : 'CARTAS'} · corre que tá acabando!`, `⏳ ${restantes} ${state.leilaoClubes ? 'PACKS' : 'CARDS'} LEFT · hurry, it’s ending!`)}
+              </p>
+            ) : <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{state.leilaoClubes
               ? (pa.duplo ? t(`pacote ${n} de ${total} · DOIS na mesa, setores diferentes`, `pack ${n} of ${total} · TWO on the table, different sectors`) : t(`pacote ${n} de ${total} · ordem embaralhada: ninguém sabe o próximo`, `pack ${n} of ${total} · shuffled order: nobody knows the next one`))
-              : pa.duplo ? t(`carta ${n} de ${total} · DUAS na mesa, posições diferentes`, `card ${n} of ${total} · TWO on the table, different positions`) : t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>
+              : pa.duplo ? t(`carta ${n} de ${total} · DUAS na mesa, posições diferentes`, `card ${n} of ${total} · TWO on the table, different positions`) : t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>}
             {/* 🎁 sem Monte (16/10): quem entra já sabe que não fica com time furado — e que o presente nunca é craque nem lenda */}
             <p style={{ display: 'inline-block', margin: '5px 0 0', background: GREEN, border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10, fontWeight: 800 }}>{state.leilaoClubes
               ? t('🎁 Sem Monte: setor sem pacote no fim ganha um pacote que sobrou, de graça', '🎁 No pile: a sector without a pack at the end gets a leftover pack for free')
@@ -312,7 +320,7 @@ export function PresentesPregao() {
   return (
     <div onClick={() => setFechado(chave)} style={{ position: 'fixed', inset: 0, zIndex: 9990, display: 'grid', placeItems: 'center', padding: 16, background: 'rgba(12,12,12,.35)' }}>
       <style>{CSS_VIRA}</style>
-      <div style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, textAlign: 'center', animation: 'paPres .35s ease-out both' }}>
+      <div style={{ width: '100%', maxWidth: 380, background: '#F4ECD6', color: INK, border: `4px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 0 ${INK}`, padding: 14, textAlign: 'center', animation: 'paPres .35s ease-out both' }}>
         <div style={{ height: 6, background: GREEN, borderRadius: 4, animation: 'paBarra 6s linear both', marginBottom: 8 }} />
         <div style={{ fontSize: 32 }}>🎁</div>
         <p style={{ ...OSW, fontWeight: 900, fontSize: 22, textTransform: 'uppercase', margin: 0, lineHeight: 1.05 }}>{t('Seu time fechou de graça!', 'Your squad got filled for free!')}</p>

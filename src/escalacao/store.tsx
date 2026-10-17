@@ -6183,10 +6183,70 @@ function paComprometido(state: EscState, mgrId: number, k: number): number {
   const o = paMesa(state, 1 - k)
   return o && o.card && o.M.lider === mgrId ? o.M.preco : 0
 }
+// 👑 MAIS LENDAS NO PREGÃO ABERTO (17/10, Diego jogando com 5: *"apareceu poucas lendas… aumente proporcionalmente, de 2 até 20
+// pessoas, mas só para o pregão aberto"*). O baralho de sempre dá ~1,5 lenda por clube; aqui sobe pra `PA_LENDAS_POR_CLUBE`,
+// trocando CRAQUES por lendas da MESMA posição — o total de cartas não muda. A lenda nova sai do catálogo ATIVO (o baralho da
+// sala: BR/EU/Mundo, estadual, e a Várzea, que não tem lenda, fica como está) e nunca repete nome que já está na mesa ou num
+// elenco. Envelope, Tocaia e Clubes não passam por aqui.
+export const PA_LENDAS_POR_CLUBE = 2.4
+function paMaisLendas(state: EscState, fila: Card[], rng: () => number) {
+  if (state.leilaoClubes || state.sport === 'basquete') return
+  const clubes = state.managers.filter(m => m.isHuman && !m.dormindo).length + paRobosQueDisputam(state).length
+  const ehLenda = (c: Card) => !c.promessa && (c.fame ?? 0) >= 5 && !c.fake
+  const alvo = Math.round(clubes * PA_LENDAS_POR_CLUBE)
+  let falta = alvo - fila.filter(ehLenda).length
+  if (falta <= 0) return
+  const nomes = new Set<string>([...fila.map(c => c.name), ...state.managers.flatMap(m => m.squad.map(c => c.name))])
+  const craques = fila.map((c, i) => [c, i] as const).filter(([c]) => !c.promessa && c.fame === 4 && !c.fake && !(c as { seller?: number }).seller)
+  for (let i = craques.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const x = craques[i]; craques[i] = craques[j]; craques[j] = x }
+  const bt = nextBuildTok()
+  for (const [c, idx] of craques) {
+    if (falta <= 0) break
+    const cands = ((ACTIVE_CATALOG[c.pos] ?? []) as Card[]).filter(x => ehLenda(x) && !nomes.has(x.name))
+    if (!cands.length) continue
+    const l = cands[Math.floor(rng() * cands.length)]
+    nomes.add(l.name)
+    fila[idx] = { ...l, id: `pa-lenda-${c.pos}-${idx}-${bt}`, pos: c.pos } as Card
+    falta--
+  }
+}
+// ➕ SOBRA QUE CRESCE COM A SALA (17/10, Diego: *"acho que não tá vindo com sobra… se tiver 20 usuários, vai ter mais de 11
+// jogadores pra cada?"*). O baralho de sempre traz só ~5 cartas a mais NO TOTAL (2 pessoas: 27 pra 22; 20 pessoas: 225 pra
+// 220). No pregão aberto entra +1 carta POR CLUBE, misturada desde o começo, nas proporções de um 4-3-3 e com a mistura de
+// sempre (lenda · craque · promessa · bom · profissional). Do catálogo ATIVO, sem repetir nome. Fora do Leilão de Clubes.
+export const PA_SOBRA_POR_CLUBE = 1
+function paSobraExtra(state: EscState, fila: Card[], rng: () => number) {
+  if (state.leilaoClubes || state.sport === 'basquete') return
+  const clubes = state.managers.filter(m => m.isHuman && !m.dormindo).length + paRobosQueDisputam(state).length
+  const quantas = Math.round(clubes * PA_SOBRA_POR_CLUBE)
+  const nomes = new Set<string>([...fila.map(c => c.name), ...state.managers.flatMap(m => m.squad.map(c => c.name))])
+  const posicoes: Sector[] = ['GOL', 'LAT', 'LAT', 'ZAG', 'ZAG', 'MEI', 'MEI', 'MEI', 'ATA', 'ATA', 'ATA']
+  const categoria = (): ((c: Card) => boolean) => {
+    const r = rng()
+    if (r < 0.2) return c => !c.promessa && (c.fame ?? 0) >= 5
+    if (r < 0.5) return c => !c.promessa && c.fame === 4
+    if (r < 0.6) return c => !!c.promessa
+    if (r < 0.8) return c => !c.promessa && c.fame === 3
+    return c => !c.promessa && (c.fame ?? 0) <= 2
+  }
+  const bt = nextBuildTok()
+  for (let i = 0; i < quantas; i++) {
+    const pos = posicoes[Math.floor(rng() * posicoes.length)]
+    const livres = ((ACTIVE_CATALOG[pos] ?? []) as Card[]).filter(c => !c.fake && !nomes.has(c.name))
+    if (!livres.length) continue
+    const daCat = livres.filter(categoria())
+    const lista = daCat.length ? daCat : livres
+    const c = lista[Math.floor(rng() * lista.length)]
+    nomes.add(c.name)
+    fila.push({ ...c, id: `pa-extra-${pos}-${i}-${bt}`, pos } as Card)
+  }
+}
 function abrePregaoAberto(state: EscState) {
   const rng = rngOf(state)
   const fila: Card[] = []
   for (const pos of SECTORS) fila.push(...state.deck[pos])
+  paMaisLendas(state, fila, rng)
+  paSobraExtra(state, fila, rng)
   for (let i = fila.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const x = fila[i]; fila[i] = fila[j]; fila[j] = x }
   // o cursor dos setores vai pro fim: ninguém mais "deal" leva por setor nesta partida
   for (const pos of SECTORS) state.stock[pos] = 0
@@ -6205,7 +6265,9 @@ function paTalvezFecha(state: EscState) {
   const pa = state.pa
   if (!pa || pa.idx < pa.fila.length - 1) return
   if (paMesasAtivas(state).some(k => paMesa(state, k)?.card)) return
-  if (pa.idx >= pa.fila.length - 1) { pa.idx = pa.fila.length; paFecha(state) }
+  if (pa.idx >= pa.fila.length - 1) {
+    pa.idx = pa.fila.length; paFecha(state)
+  }
 }
 function paProximaCarta(state: EscState, k = 0) {
   const pa = state.pa

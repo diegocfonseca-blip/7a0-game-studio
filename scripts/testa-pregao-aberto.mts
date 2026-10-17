@@ -202,5 +202,15 @@ for (const rivals of [9, 10, 15]) {
     assert.equal(paMesa(z, 0)?.M.lider, eu.id, 'lance com o id da carta certa vale')
   }
 }
+// ➕ SOBRA QUE CRESCE COM A SALA (17/10): +1 carta por clube, misturada desde o começo (no lugar da "última chamada")
+for (const rivals of [1, 19]) {
+  let x = reducer({} as EscState, { type: 'NEW_GAME' } as never)
+  x = reducer(x, { type: 'START', teamName: 'Testador FC', formation: '4-3-3', rivals, career: false, league: 'both', copaMode: 'liga_copa', intro: false, pregaoAberto: true } as never)
+  const clubes = x.managers.filter(m => m.isHuman || m.auctionRival).length
+  const precisa = clubes * 11
+  const extras = x.pa!.fila.filter(c => c.id.startsWith('pa-extra-')).length
+  assert.equal(extras, clubes, `${clubes} clubes: +${clubes} cartas de sobra (${extras})`)
+  console.log(`➕ ${clubes} clubes: ${x.pa!.fila.length} cartas na mesa pra ${precisa} vagas`)
+}
 Date.now = realNow
 process.exit(0)
