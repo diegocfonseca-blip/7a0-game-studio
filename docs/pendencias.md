@@ -1,3 +1,11 @@
+## 🍀7️⃣ Seven City: gala "Jackpot da Sorte" (17/10) — ⏳ vídeo enviado, ESPERANDO OK
+- Pedido do Diego: supersticioso, 7 é o número da sorte, trevos, canto do Gaviões. `gala-seven.tsx` (8,6 s): máquina caça-níquel
+  dourada "SEVEN CITY", roletas param 7·7·7, JACKPOT com chuva de moedas e trevos, escudo com SETE trevos em volta, o Trevo do
+  clube jogando a moeda, faixa "SORTE TAMBÉM JOGA". Vídeo `scripts/posts/gala-seven-com-canto.mp4`.
+- Pra ligar: `'Seven City': { ms: SEVEN_MS, Show: GalaSeven }` em `GALA_UNICA` (entrada-gala.tsx) + canto na carreira
+  (`'glaucomiranda@outlook.com': 'sfx/torcida-gavioes-v1.mp3'` em `AMBIENTE_CARREIRA_POR_EMAIL`). Gala única é do plano Fundador:
+  conferir/gravar `esc_compras_batismo` = plus pro glaucomiranda se for o caso.
+
 ## 🤠🔵 Batismo Cuiudos FC (17/10, plano 🖋 Fundador) — ✅ NO AR
 - Dono `matheussoaresg2018@gmail.com` (conta desde 14/09; compra 'plus' já registrada). **Série A**, no assento do
   **Papão United Madrid**, que DESCEU pra **Série C** (decisão do Diego) na vaga do bot Goiaba FC (saiu da pirâmide). Sem OLD_NAME.
