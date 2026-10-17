@@ -290,7 +290,11 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
   const total = escolhido ? porTemp * escolhido.anos : 0
   const primeira = !contrato
   const grade = (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+    <div className="master-grade" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      {/* 🖥️ 17/10 (análise do computador): no PC os papéis não enchiam a coluna e ficavam um na esquerda, outro na direita,
+          com um buraco no meio. Agora cada papel enche a sua casa e, em tela larga, os 5 ficam lado a lado numa linha só.
+          O celular continua igual (2 por linha, o último na linha toda). */}
+      <style>{`.master-grade>div>button{width:100%;height:100%}@media (min-width:900px){.master-grade{grid-template-columns:repeat(5,1fr)!important}.master-grade>div{grid-column:auto!important}}`}</style>
       {/* 🧩 NÚMERO ÍMPAR: o ÚLTIMO papel ocupa a linha toda, em vez de ficar sozinho
           na metade esquerda com um buraco do lado. É a mesma régua que o Diego pediu
           pro `Seg` da tela de criar sala em 21/09 (*"organize melhor… estão
@@ -315,7 +319,7 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
   if (cinematic) {
     return (
       <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Patrocinador Master', 'Master sponsor')}>
-        <header><PassoPill passo={passo} /><small>{divNome(div).toUpperCase()} · {primeira ? tr('PRIMEIRA VEZ', 'FIRST TIME') : tr('CONTRATO ACABOU', 'CONTRACT ENDED')}</small><h2>{tr('PATROCINADOR MASTER', 'MASTER SPONSOR')}</h2><p>{tr('Quatro contratos na mesa — cada um com o seu prazo. Escolha um.', 'Four contracts on the desk — each with its own term. Pick one.')}</p></header>
+        <header><PassoPill passo={passo} /><small>{divNome(div).toUpperCase()} · {primeira ? tr('PRIMEIRA VEZ', 'FIRST TIME') : tr('CONTRATO ACABOU', 'CONTRACT ENDED')}</small><h2>{tr('PATROCINADOR MASTER', 'MASTER SPONSOR')}</h2><p>{tr('Cinco contratos na mesa — cada um com o seu prazo. Escolha um.', 'Five contracts on the desk — each with its own term. Pick one.')}</p></header>
         <div style={{ padding: '0 14px 12px' }}>{grade}</div>
         <div className="ll36-office"><article className="ll36-paper">
           {escolhido ? <>
@@ -324,7 +328,7 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
             <p>{escolhido.anos} {escolhido.anos > 1 ? tr('temporadas', 'seasons') : tr('temporada', 'season')} · {total} {tr('no total', 'in total')} · {divNome(div)}</p>
             <strong>+{porTemp}/{tr('TEMPORADA', 'SEASON')}</strong>
             <span className="ll35-signature">{tr('Assinatura do presidente', 'President\'s signature')}</span>
-          </> : <><h3>{tr('Contrato Master', 'Master contract')}</h3><p>{tr('Escolha um dos quatro contratos acima.', 'Pick one of the four contracts above.')}</p></>}
+          </> : <><h3>{tr('Contrato Master', 'Master contract')}</h3><p>{tr('Escolha um dos cinco contratos acima.', 'Pick one of the five contracts above.')}</p></>}
         </article></div>
         <div className="ll29-sponsor-bottom">
           <p>{explica}</p>
@@ -342,7 +346,7 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
             <span style={{ ...OSW, fontWeight: 900, fontSize: 14, color: GOLD }}>🏆 {tr('PATROCINADOR MASTER', 'MASTER SPONSOR')}</span>
             <span style={{ fontSize: 8.5, fontWeight: 800, color: 'rgba(255,255,255,.6)', whiteSpace: 'nowrap' }}>{divNome(div).toUpperCase()} · {primeira ? tr('PRIMEIRA VEZ', 'FIRST TIME') : tr('CONTRATO ACABOU', 'CONTRACT ENDED')}</span>
           </div>
-          <p style={{ fontSize: 10.5, fontWeight: 700, opacity: .85, margin: '3px 0 0' }}>{tr('Quatro contratos na mesa — cada um com o seu prazo. Escolha um.', 'Four contracts on the desk — each with its own term. Pick one.')}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, opacity: .85, margin: '3px 0 0' }}>{tr('Cinco contratos na mesa — cada um com o seu prazo. Escolha um.', 'Five contracts on the desk — each with its own term. Pick one.')}</p>
         </div>
         <div style={{ padding: '12px 11px 11px' }}>
           {grade}

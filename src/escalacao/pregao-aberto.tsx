@@ -176,7 +176,9 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
             {/* tamanho de VITRINE (não `big`): no celular a carta grande empurrava o preço e os botões pra fora da tela,
                 e com martelo de poucos segundos o lance tem que estar à mão sem rolar */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div style={{ width: compacto ? '100%' : 210 }}>
+              {/* 🖥️ 17/10: na mesa dupla do computador a carta enchia meia tela e empurrava o lance pra fora — teto de 230px
+                  (no celular a metade da tela já é menor que isso, então lá nada muda) */}
+              <div style={{ width: compacto ? 'min(100%, 230px)' : 210 }}>
                 {card.pacote
                   ? <PacoteMesa c={virada?.pacote ? virada : card} compacto={compacto} />
                   : virada
