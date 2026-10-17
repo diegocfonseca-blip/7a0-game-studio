@@ -197,7 +197,9 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
               </div>
               <div style={{ textAlign: 'center', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: compacto ? '3px 6px' : '4px 10px', minWidth: compacto ? 44 : 62 }}>
                 <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1 }}>⏱ {seg}s</b>
-                {contagem && <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: .5 }}>{contagem}</span>}
+                {/* 📐 17/10 (Diego): a linha do "uma… duas… vendido!" fica SEMPRE reservada — ao aparecer, ela crescia a faixa de
+                    uma mesa só e as duas mesas desalinhavam */}
+                <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: .5, minHeight: '1.2em' }}>{contagem || '\u00A0'}</span>
               </div>
             </div>
 
