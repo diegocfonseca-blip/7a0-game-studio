@@ -10409,7 +10409,7 @@ export function PyramidSeasonScreen() {
               onPrize={(coins) => { for (const id of (meusNoTop.length ? meusNoTop : [principalId])) dispatch({ type: 'COPA_MUNDO_PRIZE', mgrId: id, coins }) }}
               onCard={(c, key) => dispatch({ type: 'ADD_EMPRESARIO_CARD', mgrId: youId, key, card: { name: c.name, club: c.club, year: c.year, pos: c.pos as Sector, fame: c.fame, folk: c.folk, promessa: c.promessa } })}
               agenciaOn={!!state.agenciaOn}
-              onArtilheiro={(nome, gols) => dispatch({ type: 'AGENCIA_COMISSAO_MUNDO', nome, gols, season: state.seasonNo ?? 1 })}
+              onArtilheiro={(nome, gols, meu) => { dispatch({ type: 'AGENCIA_COMISSAO_MUNDO', nome, gols, season: state.seasonNo ?? 1 }); if (meu) dispatch({ type: 'ARTILHEIRO_MUNDO_PREMIO', mgrId: principalId, nome, gols, season: state.seasonNo ?? 1 }) }}
               onStats={linhas => dispatch({ type: 'COPA_MUNDO_STATS', season: state.seasonNo ?? 1, linhas })}
               onGoRank={() => { setTab('ranking'); setRankSub('clubes') }}
               onMural={entries => dispatch({ type: 'COPA_MUNDO_MURAL_SYNC', entries })} />

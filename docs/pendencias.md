@@ -6,6 +6,15 @@
   `scripts/mockups/anuncio-do-dia-placa.mp4`): um anúncio por vez, parado e inteiro, letras virando como placa de estádio a
   cada 7 s, marca em cima/oferta embaixo, relógio igual pra todos (a sala vê o mesmo anúncio e não recomeça). Esperando OK.
 
+## 🥇 ARTILHEIRO DAS OUTRAS COMPETIÇÕES PAGA 30 🪙 (17/10) — ✅ NO AR
+- Diego perguntou se o artilheiro ainda ganhava moeda (ganha: liga A 30 · B 20 · C 15 · D 10 · V 6 · Copa Legends 16 · Copa do
+  Brasil 10, mas cai MISTURADO na linha "🏆 Prêmios da temporada" do extrato). Aí pediu: *"falta mundo, libertadores,
+  champions, mundial e supercopa, então coloque 30 moedas"*. Feito: Copa do Mundo (artilheiro jogando pela SUA seleção) ·
+  Libertadores · Champions · Mundial (time que você comandou; cada competição tem o próprio artilheiro) · Supercopa. As 4
+  primeiras ganham linha própria no extrato ("🥇 Artilheiro da …"); a Supercopa entra nos prêmios da temporada.
+- ⏳ Ficou a oferta (sem resposta): separar o artilheiro da LIGA numa linha própria no extrato.
+- ⚠️ `npm run copamundo` já falhava ANTES desta mudança ("jogo de copa só conta com a Copa encerrada na tela") — não é daqui.
+
 ## 🦁🔵 Batismo Chelsão da Massa FC (16/10) — ✅ NO AR
 - Dono `ccaonta@gmail.com` (conta desde 12/10, já tinha comprado o Batismo: `esc_compras_batismo` = lenda). **Série C**, no
   assento do bot **CRBebê** (`OLD_NAME` leva save com CRBebê/Peteca FR pro nome novo).

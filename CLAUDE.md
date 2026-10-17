@@ -533,7 +533,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   renovação e do teto de venda — o craque premiado ia ficando impagável temporada
   após temporada. **O prêmio continua existindo, mas é DINHEIRO NO CAIXA do clube**
   (artilheiro por divisão A 30 · B 20 · C 15 · D 10 · V 6; Copa; e as 20 🪙 da Bola de
-  Ouro). O `valorOficial` voltou a ser só o maior entre livro, pago e tabela.
+  Ouro). 🥇 **17/10: artilheiro de Copa do Mundo, Libertadores, Champions, Mundial e Supercopa = 30 🪙** pro clube
+  (*"falta mundo libertadores champions mundial e supercopa… 30 moedas"*): Copa do Mundo só se jogou pela SUA seleção
+  (`ARTILHEIRO_MUNDO_PREMIO`), internacionais pelo time que você comandou (`artilheirosInternacionais`), Supercopa em
+  `supercopaRewards`. Trava `npm run artilheiro-premios`. O `valorOficial` voltou a ser só o maior entre livro, pago e tabela.
   ⚠️ Quem mexer aqui: `careerBolaOuroPiso` continua nos saves antigos como RESÍDUO —
   ninguém escreve e ninguém lê. Não religar sem ele pedir.
 - **👟 FORNECEDOR DE MATERIAL: 20 marcas, a FORMA não muda (20/09).** Ele mandou as
