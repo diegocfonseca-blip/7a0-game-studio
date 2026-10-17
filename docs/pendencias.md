@@ -13,9 +13,21 @@
   Testado no banco com rollback: 9,99 → liberado → +1.
 - 🐛 de quebra: o produto `giro_dia` (Anúncio no giro, R$ 25) NÃO estava na trava `esc_mp_pedidos_produto_check` — o Pix dele
   ia falhar. Entrou junto.
-- ❓ Plano duplo (2 pessoas, -10%): já aparece sutil na Loja embaixo de "Sobe de plano". Na vitrine de planos NÃO aparece —
-  perguntar ao Diego se quer lá também.
-- ❓ Botão Manual da carreira (sem plano): abre a trava NOVA (Craque 29,90, Pix na hora, "Ver o Lenda" já com 44,90).
+- 💛 Plano duplo na VITRINE de planos também (Diego: "sim"): `DuploLinha` (presente.tsx), embaixo do botão de cada plano.
+  ⏳ print enviado, esperando OK pra publicar.
+- 🔒 Botão Manual da carreira (sem plano) agora abre a VITRINE de planos pelo topo ("pra onde vai o dinheiro"), não mais a
+  trava do Craque (Diego 17/10). ✅ no ar. (O cadeado da partida rápida, `QuickManualLock`, continua na trava do Craque.)
+
+## 🏆🪙 PRÊMIO DO RANKING DA SEMANA (17/10) — ⏳ print enviado, esperando OK pra publicar
+- Diego: *"quem ficar entre os 3 ganha moedas na carreira… cai direto na conta após acabar a semana… 1º 20 · 2º 10 · 3º 5"*.
+- Banco (já no ar, não paga nada sozinho): `esc_fecha_semanas()` fecha toda semana terminada desde 12/10 (mesma régua da
+  vitrine: títulos online, segunda 0h Brasília, `rank()` — empate divide a posição e os dois levam) e grava o top 3 em
+  `esc_premio_semana`. `esc_meus_premios_semana()` / `esc_resgata_premio_semana(semana, seed)` (1× por semana). SQL em
+  `docs/sql/ranking-semana-premio.sql`. Só quem tem conta (user_id).
+- Jogo: `PremioSemana` (pyramidseason) credita na 1ª carreira solo que a pessoa abrir depois da semana fechar, com aviso
+  verde "🏆 +20 🪙 · 1º no Ranking da Semana!" e linha no extrato. Valor em `RANKING_SEMANA_MOEDAS` (store.tsx).
+- Linha verde discreta embaixo do ranking: "🪙 E leva moedas pra carreira quando a semana fecha: 1º 20 · 2º 10 · 3º 5".
+- 1ª semana paga: 12/10 → 18/10 (fecha segunda 19/10). Hoje o top 3 seria Labubu F.C 45 · NeymarJR 36 · Gama FC 34.
 
 ## 🏟️ PLACAS ATRÁS DOS GOLS em todo campinho + Anúncio do dia mais discreto (17/10) — ✅ NO AR
 - Diego escolheu a ideia 1 de `scripts/mockups/campinho-outras-ideias.png` (*"perfeito pode fazer mas no momento coloque Vadico

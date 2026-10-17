@@ -136,3 +136,17 @@ export function PresenteRecebido() {
     document.body,
   )
 }
+
+/** 💛 a linha discreta do PLANO DUPLO embaixo do botão de um plano (17/10, Diego: "sim" pra pôr também na tela de planos).
+ *  A MESMA da Loja: só no Pix novo, só quando sai mais barato que subir + presentear separado; abre o formulário ali mesmo. */
+export function DuploLinha({ pl, atual, subida }: { pl: PlanoUnico; atual: PlanoUnico | null; subida: number }) {
+  const pixMp = usePixMp()
+  const [aberto, setAberto] = useState(false)
+  if (!pixMp || !(subida > 0) || !(PRECOS_DUPLO[pl] < subida + PRECOS_UNICO[pl])) return null
+  const reais = (v: number) => precoTxt(v, getLang() === 'en')
+  if (aberto) return <div style={{ marginTop: 8 }}><PresenteBox duplo={pl} onClose={() => setAberto(false)} /></div>
+  return <button onClick={() => { logApoio(`💛 planos → plano duplo ${pl}${atual ? ` (tem ${atual})` : ''}`); setAberto(true) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginTop: 8, background: '#FFF8E1', color: INK, border: `2px dashed ${INK}`, borderRadius: 11, padding: '6px 10px', cursor: 'pointer', textAlign: 'left', fontFamily: 'Arial, sans-serif' }}>
+    <span style={{ flex: 1, fontSize: 11.5, fontWeight: 800 }}>{tr(`💛 Leve 2 ${NOME[pl][0]}: um pra você, outro de presente`, `💛 Get 2 ${NOME[pl][1]}: one for you, one as a gift`)}</span>
+    <span style={{ whiteSpace: 'nowrap', fontSize: 12 }}><s style={{ opacity: .5 }}>{reais(PRECOS_UNICO[pl] * 2)}</s> <b style={{ ...OSW, fontSize: 14 }}>{reais(PRECOS_DUPLO[pl])}</b> <i style={{ fontStyle: 'normal', background: GREEN, color: '#fff', borderRadius: 6, padding: '0 5px', fontSize: 10.5, fontWeight: 900 }}>-10%</i></span>
+  </button>
+}
