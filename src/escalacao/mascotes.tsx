@@ -381,7 +381,7 @@ export const MASCOTES: Record<string, ReactNode> = {
     <img src={comverissimoMascoteImg} height={176} width={Math.round(176 * 241 / 440)} alt="O Verissimo — ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 😈 A DIABINHA (mascote do Wen Milan B — vittor@tidex, 17/10): a diabinha de chifres, rabo de coração e língua de fora,
-  // de uniforme listrado vermelho e preto, sentada na bola. Arte do dono. Nome PROVISÓRIO (confirmar com o Diego).
+  // de uniforme listrado vermelho e preto, sentada na bola. Arte do dono. Nome confirmado pelo Diego (17/10).
   // 📏 250×440, 37 KB — altura 176. mascote_key = "wenmilan_diaba".
   wenmilan_diaba: (
     <img src={wenMilanMascoteImg} height={176} width={Math.round(176 * 250 / 440)} alt="A Diabinha — Wen Milan B" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
@@ -1372,7 +1372,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
   mengao_urubu: 'O Urubu Malvadão', // 🦅 Mengão Malvadão (atilasoaresjr21, 06/10)
   cuiudos: 'O Cuiudo', // 🤠 Cuiudos FC (matheussoaresg2018, 17/10)
-  wenmilan_diaba: 'A Diabinha', // 😈 Wen Milan B (vittor@tidex, 17/10) — nome provisório
+  wenmilan_diaba: 'A Diabinha', // 😈 Wen Milan B (vittor@tidex, 17/10)
   chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)
   comverissimo: 'O Verissimo', // 🟢 ComVerissimo FC (cesar.verissimo27, 15/10)

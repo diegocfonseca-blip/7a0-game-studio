@@ -5,8 +5,8 @@
   'Wen Milan B', time_coracao 'São Paulo', origem 'batismo', valido_ate 2099-12-31) · `esc_fundadores` n=92 · `esc_nomes_batismo`
   'Wen Milan B' (nome_norm minúsculo) · `user_colors` ouro manual.
 - Assento: Série A no lugar do **Al Takhadao FC**, que desce pra **Série C** na vaga do bot Leve-cuscuz (ordem do Diego).
-- Arte recortada da prancha (escudo 247×360/29 KB · mascote 250×440/37 KB · camisa na Loja). Mascote "A Diabinha" = nome PROVISÓRIO.
-  Nome do clube: Diego escreveu "Wen Milan N", a arte diz "WEN MILAN B" → usei **Wen Milan B** (confirmar).
+- Arte recortada da prancha (escudo 247×360/29 KB · mascote 250×440/37 KB · camisa na Loja). Mascote "A Diabinha" (confirmado pelo Diego).
+  Nome do clube: Diego escreveu "Wen Milan N", a arte diz "WEN MILAN B" → **Wen Milan B** (confirmado pelo Diego).
 - ✅ Gala APROVADA pelo Diego (17/10, "aprovado esse"). Gala "Inferno Rubro-Negro" (`gala-wenmilan.tsx`): fogo, tridente cravando, o ROSTO da Diabinha colado na tela LAMBENDO o vidro 2× com rastro molhado (SLURP!) — a língua solta foi reprovada (*"quero ela lambendo a tela"*),
   escudo das chamas, a Diabinha rebolando. Canto: "Vai lá de coração" (São Paulo), 11 s, `sfx/torcida-spfc-wen-v1.mp3`, na gala e
   na carreira. Vídeo `scripts/posts/gala-wenmilan-com-canto.mp4`, post `scripts/posts/wenmilan-post.png`.
