@@ -18,7 +18,12 @@
   os 2 caminhos do item 4 gravam `screen:'lobby'` igual o "Chamar mais gente".
 - ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"* — a fazer): dono escolhe 1 vice; vice abre o pregão só na sala de
   espera quando o dono não está; vice não exclui liga nem mexe em config. Muda a regra "só o dono comanda" — ideia DELE (17/10).
-- 🔁 **Trocar o modo da liga** (pedido 17/10, MOCKUP ANTES): dono troca entre temporadas o lance (envelope/Tocaia/pregão aberto),
+- ✅ **Trocar o modo da liga: NO AR 17/10** (*"perfeito, pode fazer, pode publicar"*). Caixa "🎮 Modo da próxima temporada" na
+  sala de espera da liga (lobby.tsx); só o dono troca, pela função do banco `esc_liga_modo` (recusa não-dono e partida rolando;
+  Clubes força baralho Todos; Só Champions não aceita pregão aberto). Amigos recebem UM aviso no canal (`liga_modo`). O save do
+  dono agora grava `clubes` a partir do estado da partida (senão a guarda velha devolvia Clubes). Pra trocar no fim de uma
+  temporada, o dono vai pra sala de espera ("📣 Chamar mais gente" ou "Guardar e sair" e voltar). Excluir a liga continua no 🗑️.
+- (pedido original) 🔁 **Trocar o modo da liga** (pedido 17/10, MOCKUP ANTES): dono troca entre temporadas o lance (envelope/Tocaia/pregão aberto),
   o tipo (Jogador/Clubes) e o baralho (BR/EU/Todos/Mundo) — *"continua com os mesmos troféus e etc"* (estante e ranking ficam).
 
 ## 🍀7️⃣ Seven City: ARTE NOVA preta e dourada (17/10) — ✅ NO AR

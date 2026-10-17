@@ -1,0 +1,4 @@
+-- 🔁 17/10: o DONO troca o modo da liga (lance, tipo, baralho) na sala de espera. Aplicada via MCP.
+-- Ver a definição viva com: select pg_get_functiondef('public.esc_liga_modo'::regproc);
+-- (esc_liga_modo(p_room uuid, p_lance text 'envelope'|'tocaia'|'pregao', p_clubes boolean, p_deck text 'br'|'eu'|'both')
+--  → 'ok' | 'dono' | 'rolando' | 'erro'; Clubes força 'todos'; Champions não aceita pregão aberto.)

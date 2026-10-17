@@ -14319,7 +14319,10 @@ export function EscProvider({ children }: { children: ReactNode }) {
       // Não toca no pregão atual: é só a identidade da sala para a PRÓXIMA largada.
       const deckSala = st.sport !== 'basquete' && ['br', 'eu', 'both', 'todos'].includes(st.deckLeague)
         ? st.deckLeague : undefined
-      const payload = { ...sanitize(st), ...salaFixaRef.current, ...(deckSala ? { deckSala } : {}), __game: 'escalacao', __hostTab: tabIdRef.current, __hostClaimAt: hostClaimAtRef.current, formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
+      // 🔁 17/10 (trocar o modo da liga): a escolha 🧱 Clubes vem do estado da PARTIDA quando ele sabe dizer — a guarda é lida
+      // uma vez por sala, e sem isto um "Clubes → Jogador" feito na sala de espera voltava a ser Clubes no 1º save.
+      const clubesSala = typeof st.leilaoClubes === 'boolean' ? { clubes: st.leilaoClubes } : {}
+      const payload = { ...sanitize(st), ...salaFixaRef.current, ...clubesSala, ...(deckSala ? { deckSala } : {}), __game: 'escalacao', __hostTab: tabIdRef.current, __hostClaimAt: hostClaimAtRef.current, formation: st.managers.find(m => m.isHuman)?.formation ?? '4-3-3', ...(st.streamMode ? { stream: true } : {}), ...(st.manualRoom ? { manual: true } : {}), ...(st.roomName ? { roomName: st.roomName } : {}), ...(st.careerOnline ? { mode: 'carreira' } : {}) }
       // updated_at aqui é o "batimento cardíaco" da sala: é como a lista de
       // Salas Abertas distingue jogo REALMENTE rolando de sala abandonada (o
       // host fechou a aba e ninguém mais salva nada). Sem escrever isso a

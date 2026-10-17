@@ -1172,6 +1172,11 @@ export function EscLobby() {
       // aviso na hora; a exclusão da sala é a rede de segurança).
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` }, () => { medeRecebida('espera', room.id, 'db:sala_apagada', null); setHostLeft(true) })
       .on('broadcast', { event: 'host_left' }, () => setHostLeft(true))
+      // 🔁 o dono trocou o modo da liga: só os 4 campos do modo (o resto da sala não muda)
+      .on('broadcast', { event: 'liga_modo' }, ({ payload }: { payload: { holandes: boolean; pregaoAberto: boolean; clubes: boolean; deckSala: string; antes: string; depois: string } }) => {
+        setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...(prev.game_state as GS), holandes: payload.holandes, pregaoAberto: payload.pregaoAberto, clubes: payload.clubes, deckSala: payload.deckSala as GS['deckSala'] } as GS } : prev)
+        setModoAviso(`${payload.antes}|${payload.depois}`)
+      })
       .on('broadcast', { event: 'chat' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'emote' }, ({ payload }: { payload: LobbyMsg }) => addLobbyChat(payload, false))
       .on('broadcast', { event: 'float' }, ({ payload }: { payload: LobbyFloat }) => addLobbyFloat(payload))
@@ -2093,6 +2098,11 @@ export function EscLobby() {
   // excluir. Tudo dentro da própria sala, que é onde a pessoa está quando lembra
   // de remarcar.
   const [ligaEdit, setLigaEdit] = useState(false)
+  // 🔁 TROCAR O MODO DA LIGA (17/10, Diego: *"o dono possa trocar o modo da sala… e continua com os mesmos
+  // troféus"*). Só o dono, só na sala de espera; quem grava é o banco (`esc_liga_modo`), que recusa partida rolando.
+  type LanceLiga = 'envelope' | 'tocaia' | 'pregao'
+  const [modoEdit, setModoEdit] = useState<{ lance: LanceLiga; clubes: boolean; deck: 'br' | 'eu' | 'both' } | null>(null)
+  const [modoAviso, setModoAviso] = useState<string | null>(null)
   const [ligaRegrasAberto, setLigaRegrasAberto] = useState(false) // ⚖️ painel de regras do ranking, na espera (só o dono)
   // 👑 só o DONO manda na liga (Diego 23/08: *"só quem manda é o host mesmo, não
   // tem adm não"*). Antes um "adm" da lista `ligaAdmins` também mandava; a lista
@@ -2134,6 +2144,36 @@ export function EscLobby() {
     })
     if (error || data === false) { setRoomError(tr('Não deu pra salvar agora — tente de novo.', 'Couldn\'t save right now — try again.')); return false }
     return true
+  }
+  // 🔁 rótulo curto do modo da liga (chips da sala e aviso pros amigos)
+  function rotuloModoLiga(gs: GS | undefined): string[] {
+    const lance = gs?.pregaoAberto ? tr('🔨 Pregão aberto', '🔨 Open auction') : gs?.holandes ? `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}` : tr('✉️ Envelope', '✉️ Sealed bid')
+    const tipo = gs?.clubes ? tr('🧱 Clubes', '🧱 Clubs') : tr('🃏 Jogador', '🃏 Player')
+    const d: string = typeof gs?.deckSala === 'string' ? gs.deckSala : typeof gs?.deck === 'string' ? gs.deck : 'br'
+    const deck = d === 'eu' ? tr('🌍 Europa', '🌍 Europe') : d === 'both' || d === 'todos' ? tr('🌎 Todos', '🌎 All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
+    return [lance, tipo, deck]
+  }
+  async function salvaModoLiga() {
+    if (!room || !modoEdit) return
+    const antes = rotuloModoLiga(room.game_state as GS).join(' · ')
+    setLoading(true); setRoomError('')
+    const { data, error } = await supabase.rpc('esc_liga_modo', { p_room: room.id, p_lance: modoEdit.lance, p_clubes: modoEdit.clubes, p_deck: modoEdit.deck })
+    setLoading(false)
+    const r = error ? 'erro' : String(data ?? 'erro')
+    if (r !== 'ok') {
+      setRoomError(r === 'rolando' ? tr('⏳ A partida está rolando — o modo só muda na sala de espera, entre uma temporada e outra.', '⏳ The match is running — the mode only changes in the waiting room, between seasons.')
+        : r === 'dono' ? tr('Só o dono da liga troca o modo.', 'Only the league owner can change the mode.')
+        : tr('Não deu pra salvar agora — tente de novo.', 'Couldn\'t save right now — try again.'))
+      return
+    }
+    const deckSala = modoEdit.clubes ? 'todos' : modoEdit.deck
+    const campos = { holandes: modoEdit.lance === 'tocaia', pregaoAberto: modoEdit.lance === 'pregao', clubes: modoEdit.clubes, deckSala }
+    const novo = { ...(room.game_state as GS), ...campos } as GS
+    const depois = rotuloModoLiga(novo).join(' · ')
+    setRoom(rm => (rm ? { ...rm, game_state: novo } : rm))
+    // um aviso só, na hora da troca (nada periódico no canal)
+    if (antes !== depois) lobbyChanRef.current?.send({ type: 'broadcast', event: 'liga_modo', payload: { ...campos, antes, depois } })
+    setModoEdit(null)
   }
   async function patchLiga(campos: LigaCampos) {
     if (!room) return
@@ -4059,6 +4099,71 @@ export function EscLobby() {
 
       {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima) */}
       {ehLigaSala && caixaConvite}
+
+      {/* 🔁 MODO DA PRÓXIMA TEMPORADA (17/10, mockup `scripts/mockups/liga-trocar-modo.png` aprovado).
+          Todo mundo vê o modo; só o DONO troca. Troféus e ranking não mudam (moram em game_champions). */}
+      {ehLigaSala && !ehMundoSala && !elencoOn && (() => {
+        const gs = room.game_state as GS
+        const champ = gs?.copaMode === 'champions'
+        const [antesTxt, depoisTxt] = (modoAviso ?? '').split('|')
+        return (
+          <div className="rounded-2xl border-[3px] border-black p-3 bg-white" style={{ boxShadow: `4px 4px 0 ${INK}` }}>
+            {modoAviso && !mandaNaLiga && (
+              <div className="rounded-xl border-2 border-black px-2.5 py-2 mb-2 text-[12px] font-bold leading-snug" style={{ background: '#EDE4FF' }}>
+                <b>{tr('🔁 O dono trocou o modo da liga!', '🔁 The owner changed the league mode!')}</b><br />
+                <span className="line-through text-black/40">{antesTxt}</span><br />
+                ➡️ <b>{depoisTxt}</b><br />
+                {tr('Troféus e ranking continuam.', 'Trophies and ranking stay.')}
+              </div>
+            )}
+            <p className="font-black text-[13px] uppercase" style={OSWALD}>{tr('🎮 Modo da próxima temporada', '🎮 Next season mode')}</p>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {rotuloModoLiga(gs).map(t => (
+                <span key={t} className="text-[11px] font-black uppercase border-2 border-black rounded-lg px-2 py-0.5" style={OSWALD}>{t}</span>
+              ))}
+            </div>
+            {mandaNaLiga && !modoEdit && (
+              <button onClick={() => {
+                const d = typeof gs?.deckSala === 'string' ? gs.deckSala : 'br'
+                setModoEdit({ lance: gs?.pregaoAberto && !champ ? 'pregao' : gs?.holandes ? 'tocaia' : 'envelope', clubes: !!gs?.clubes, deck: d === 'eu' ? 'eu' : d === 'br' ? 'br' : 'both' })
+              }} className="w-full mt-2 border-2 border-black rounded-xl py-2 font-black text-[12.5px] uppercase bg-white text-black active:translate-y-0.5" style={{ ...OSWALD, boxShadow: `2px 2px 0 ${INK}` }}>
+                {tr('🔁 Trocar o modo', '🔁 Change the mode')}
+              </button>
+            )}
+            {mandaNaLiga && modoEdit && (
+              <div className="mt-2 space-y-2">
+                <div>
+                  <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('Jeito do lance', 'Bidding style')}</p>
+                  <Seg small options={[['envelope', tr('✉️ Envelope', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')]] as [LanceLiga, string][]}
+                    value={modoEdit.lance} onSet={v => setModoEdit(m => m && { ...m, lance: v })} travados={champ || !pregaoAbertoOk ? ['pregao'] : undefined} />
+                </div>
+                {clubesOn && (
+                  <div>
+                    <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('O que vai a leilão', 'What goes up for auction')}</p>
+                    <Seg small options={[[false, tr('🃏 Jogador', '🃏 Player')], [true, tr('🧱 Clubes', '🧱 Clubs')]] as [boolean, string][]}
+                      value={modoEdit.clubes} onSet={v => setModoEdit(m => m && { ...m, clubes: v })} />
+                  </div>
+                )}
+                <div>
+                  <p className="text-black/60 text-[10.5px] font-black uppercase mb-1" style={OSWALD}>{tr('Baralho', 'Deck')}</p>
+                  <Seg small options={[['br', tr('🇧🇷 Brasil', '🇧🇷 Brazil')], ['eu', tr('🌍 Europa', '🌍 Europe')], ['both', tr('🌎 Todos (BR+EU+Mundo)', '🌎 All (BR+EU+World)')]] as ['br' | 'eu' | 'both', string][]}
+                    value={modoEdit.clubes ? 'both' : modoEdit.deck} onSet={v => setModoEdit(m => m && { ...m, deck: v })} travados={modoEdit.clubes ? ['br', 'eu'] : undefined} />
+                  {modoEdit.clubes && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Leilão de Clubes usa o baralho Todos (Brasil ou Europa sozinhos não têm clube suficiente).', '🔒 Club auction uses the All deck (Brazil or Europe alone don\'t have enough clubs).')}</p>}
+                  {champ && <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('🔒 Pregão aberto não vale na Só Champions.', '🔒 Open auction isn\'t available in Champions Only.')}</p>}
+                </div>
+                <div className="rounded-xl border-2 border-black px-2.5 py-2 text-[11.5px] font-bold leading-snug" style={{ background: '#FFF3C4' }}>
+                  {tr('🏆 Fica tudo: troféus, ranking, campeões e artilheiros da liga. Vale a partir da próxima temporada.', '🏆 Everything stays: trophies, ranking, champions and top scorers. It applies from the next season.')}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => setModoEdit(null)} className="border-2 border-black rounded-xl py-2 font-black text-[12px] uppercase bg-white text-black" style={OSWALD}>{tr('Cancelar', 'Cancel')}</button>
+                  <button onClick={() => void salvaModoLiga()} disabled={loading} className="border-2 border-black rounded-xl py-2 font-black text-[12px] uppercase text-black" style={{ ...OSWALD, background: GOLD, boxShadow: `2px 2px 0 ${INK}` }}>{tr('✅ Salvar', '✅ Save')}</button>
+                </div>
+              </div>
+            )}
+            {!mandaNaLiga && <p className="text-black/55 text-[10.5px] font-bold mt-1.5">{tr('Quem escolhe o modo é o dono da liga.', 'The league owner picks the mode.')}</p>}
+          </div>
+        )
+      })()}
 
       {/* 🏆 A LIGA TEM HORA MARCADA — e é a primeira coisa que a pessoa precisa ver
           ao abrir a sala. Sem isto o combinado só vivia na cabeça da turma. */}
