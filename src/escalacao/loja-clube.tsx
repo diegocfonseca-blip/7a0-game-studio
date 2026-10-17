@@ -27,7 +27,7 @@ import { PresenteBox } from './presente'
 import { PixMP, AnunciosPendentes, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
 import { patrocinioLojaOk } from './patrocinio'
 import { usePixMp } from './sport'
-import { useEsc } from './store'
+import { useEsc, fichasExtras, carregaFichasExtras, fichasExtrasCompraveis, FICHA_EXTRA_PRECO } from './store'
 import { MeuPresidenteLoja } from './presidente-loja'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6'
@@ -95,7 +95,7 @@ function ResgateFicha() {
 }
 
 // 💳 item da Loja → produto do Pix do Mercado Pago (15/10): salas extras, canto e moedas já vão pelo Pix novo
-const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : id === 'dia-marca' ? 'dia_marca' : id === 'giro-dia' ? 'giro_dia' : null
+const produtoMp = (id: string): ProdutoMp | null => id === 'salas' ? 'salas_extras' : id === 'canto' ? 'canto' : id === 'moedas-10' ? 'moedas_10' : id === 'moedas-50' ? 'moedas_50' : id === 'moedas-100' ? 'moedas_100' : id === 'dia-marca' ? 'dia_marca' : id === 'giro-dia' ? 'giro_dia' : id === 'ficha' ? 'ficha_carreira' : null
 function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; naCarreira?: boolean; ancora?: string }) {
   const pixMp = usePixMp()
   useEffect(() => {
@@ -127,6 +127,10 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
   const salasAVontade = !!direitos?.salasPagas || atual === 'lenda' || atual === 'batismo' || atual === 'fundador'
   const [saldoSalas, setSaldoSalas] = useState<number | null>(null)
   useEffect(() => { if (loggedEmail()) supabase.rpc('esc_minhas_salas_extras').then(({ data }) => { if (typeof data === 'number') setSaldoSalas(data) }, () => {}) }, [])
+  // 💾 ficha extra de carreira (17/10): o saldo vem do banco; some quando bate no teto que o aparelho guarda
+  const [fichasTem, setFichasTem] = useState(() => fichasExtras())
+  useEffect(() => { carregaFichasExtras().then(setFichasTem, () => {}) }, [])
+  const fichasPode = fichasExtrasCompraveis()
   const email = loggedEmail()
   const jaTem = { 'canto da torcida': atual === 'fundador' || temCantoProprio(email) }
   const perk = tier ? APOIO_PERKS[tier] : APOIO_PERKS.bege
@@ -190,6 +194,21 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
             : <>{tr(`${SALAS_EXTRAS_QTD} salas a mais pra usar quando a do dia acabar. Não vencem.`, `${SALAS_EXTRAS_QTD} more rooms to use once today’s is gone. They never expire.`)}{saldoSalas ? <b style={{ display: 'block', color: GREEN, marginTop: 3 }}>{tr(`Você tem ${saldoSalas} sala${saldoSalas > 1 ? 's' : ''} extra${saldoSalas > 1 ? 's' : ''}.`, `You have ${saldoSalas} extra room${saldoSalas > 1 ? 's' : ''}.`)}</b> : null}<span style={{ display: 'block', color: 'rgba(12,12,12,.55)', marginTop: 3 }}>{tr('Criar à vontade, pra sempre, é do 👑 Lenda.', 'Unlimited rooms, forever, come with 👑 Legend.')}</span></>}</small>
           {!salasAVontade && <button onClick={() => setComprando({ id: 'salas', amount: LOJA_PRECOS.salasExtras, ctx: 'loja · 3 salas extras', msgPt: `Opa! Comprei na Loja do Clube: 🎟️ ${SALAS_EXTRAS_QTD} SALAS EXTRAS (${reais(LOJA_PRECOS.salasExtras)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🎟️ ${SALAS_EXTRAS_QTD} EXTRA ROOMS (${reais(LOJA_PRECOS.salasExtras)}). Account e-mail: ____ — receipt attached!` })} style={preco}>{reais(LOJA_PRECOS.salasExtras)}</button>}
         </div>
+        </>}
+
+        {/* 💾 FICHA EXTRA DE CARREIRA (17/10, Diego: "add ficha de save na lojinha… pra pessoa ter save novo. 9,99").
+            Só no Pix novo (entrega sozinha) e só logado: a ficha é da CONTA. */}
+        {pixMp && email && (fichasPode > 0 || fichasTem > 0) && <>
+          <h2 style={h2}>{tr('💾 Ficha de carreira', '💾 Career slot')} <span style={sub}>{tr('mais uma carreira salva', 'one more saved career')}</span></h2>
+          <div style={{ ...card, display: 'flex', gap: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 30 }}>💾</span>
+            <small style={{ flex: 1, fontSize: 11.5, fontWeight: 700, lineHeight: 1.35 }}>
+              {tr('+1 carreira salva, além das do seu plano. Começa um clube novo sem apagar nenhum. É sua pra sempre.', '+1 saved career on top of your plan’s. Start a new club without deleting any. Yours forever.')}
+              {fichasTem > 0 && <b style={{ display: 'block', color: GREEN, marginTop: 3 }}>{tr(`Você já tem ${fichasTem} ficha${fichasTem > 1 ? 's' : ''} extra${fichasTem > 1 ? 's' : ''}.`, `You already have ${fichasTem} extra slot${fichasTem > 1 ? 's' : ''}.`)}</b>}
+              {fichasPode <= 0 && <span style={{ display: 'block', color: 'rgba(12,12,12,.55)', marginTop: 3 }}>{tr('Você chegou no máximo de carreiras que o jogo guarda.', 'You’ve reached the most careers the game can keep.')}</span>}
+            </small>
+            {fichasPode > 0 && <button onClick={() => setComprando({ id: 'ficha', amount: FICHA_EXTRA_PRECO, ctx: 'loja · ficha extra de carreira', msgPt: `Opa! Comprei na Loja do Clube: 💾 FICHA EXTRA DE CARREIRA (${reais(FICHA_EXTRA_PRECO)}).`, msgEn: `Hey! I bought in the Club Shop: 💾 EXTRA CAREER SLOT (${reais(FICHA_EXTRA_PRECO)}).` })} style={preco}>{reais(FICHA_EXTRA_PRECO)}</button>}
+          </div>
         </>}
 
         {/* 🎁 DAR DE PRESENTE (14/10) — só planos */}

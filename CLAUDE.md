@@ -741,12 +741,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   planos). Banco sem resposta = sobe como sempre. **Nunca bloquear o save no APARELHO** (não custa nada e só espanta
   jogador) e **nunca apagar save de ninguém** sem ele pedir. Trava: `npm run nuvem-craque`.
 
-- **💳 PLANOS DE UMA VEZ SÓ, EM ESCADA (14/10).** Sócio (mensal) SAIU. ⭐ Craque 29,90 · 👑 Lenda 49,90 · 🖋 Batismo 79,90 ·
+- **💳 PLANOS DE UMA VEZ SÓ, EM ESCADA (14/10).** Sócio (mensal) SAIU. ⭐ Craque 29,90 · 👑 Lenda **44,90** (49,90 até 17/10) · 🖋 Batismo 79,90 ·
   🖋 Fundador 99,90 (`PRECOS_UNICO`, `planos-regras.ts`). Cada degrau = tudo do anterior + o dele; subir = paga só a diferença
-  (`precoSubida`) **+ R$ 5** (`TAXA_SUBIDA`, 14/10: *"pagar pelo menos 5 reais a mais"*). **Escolher a cor saiu do Lenda** e NÃO é vendida na
+  (`precoSubida`) **+ R$ 5** (`TAXA_SUBIDA`, 14/10: *"pagar pelo menos 5 reais a mais"*; única exceção: **Batismo → Fundador = 29,90 fixo**, 17/10). **Escolher a cor saiu do Lenda** e NÃO é vendida na
   Loja (*"não bote negócio de cor… pra não confundir"*). **🎁 Presente = só de PLANO**, liberado pelo Diego no #admin (`esc_presentes`). Craque tem o Modo Manual *"como sempre teve"*; **criar sala à vontade é do Lenda pra cima** (Craque novo = 1 por
   dia, igual grátis; os 70 Craques de antes de 14/10 ficaram na foto `esc_craque_antigo` e seguem à vontade). **🎟️ Salas extras**: 3 por R$ 4,90
-  na Loja (`esc_salas_extras`, o gatilho gasta 1 quando a do dia acabou). **💾 Ficha extra de carreira**: R$ 14,90 na Loja (16/10: começou em 9,90 e ele subiu na mesma conversa, *"ficha avulsa R$ 14,90"*; +1 ficha além do limite do plano — a fazer, mockup primeiro). **Gala única NÃO é vendida avulsa** (só no Fundador); avulso de
+  na Loja (`esc_salas_extras`, o gatilho gasta 1 quando a do dia acabou). **💾 Ficha extra de carreira**: **R$ 9,99** na Loja (17/10, preço final; antes 9,90 → 14,90). FEITA: Pix `ficha_carreira` → `esc_fichas_extras` (+1 por compra, da CONTA, pra sempre) → `careerSlotLimit` soma por cima do plano, dentro do teto `MAX_CAREER_SLOTS` (8). Duplo do Lenda = 80,90. **Gala única NÃO é vendida avulsa** (só no Fundador); avulso de
   clube batizado = só o 📣 canto (R$ 10). **📣 O CANTO VALE NOS DOIS LUGARES** (14/10): Carreira (toca nos jogos) e online (toca junto com a entrada
   de gala, se a pessoa tiver a gala) — o texto da Loja/planos tem que dizer os dois. Loja de avulsos
   aprovada (*"adorei"*), ainda a fazer. Diego e quem ele dá plano também pagam o que não têm (*"eu com meu usuário também tenho

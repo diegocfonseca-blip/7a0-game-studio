@@ -21,12 +21,13 @@ import { ANUNCIO_MAX, releAnuncios } from './patrocinio'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', CREAM = '#F4ECD6', RED = '#C2452F'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia'
+export type ProdutoMp = 'craque' | 'lenda' | 'batismo' | 'fundador' | 'salas_extras' | 'teste' | 'moedas_10' | 'moedas_50' | 'moedas_100' | 'moedas_500' | 'moedas_1000' | 'canto' | 'presente' | 'dia_marca' | 'giro_dia' | 'ficha_carreira'
 const NOME: Record<ProdutoMp, [string, string]> = {
   craque: ['⭐ Plano Craque', '⭐ Star plan'], lenda: ['👑 Plano Lenda', '👑 Legend plan'], batismo: ['🖋 Plano Batismo', '🖋 Club Naming plan'],
   fundador: ['🖋 Plano Fundador', '🖋 Founder plan'], salas_extras: ['🎟️ 3 salas extras', '🎟️ 3 extra rooms'], teste: ['🧪 Teste de pagamento', '🧪 Payment test'],
   moedas_10: ['🏦 30 moedas', '🏦 30 coins'], moedas_50: ['🏦 150 moedas', '🏦 150 coins'], moedas_100: ['🏦 300 moedas', '🏦 300 coins'], moedas_500: ['🏦 1.500 moedas', '🏦 1,500 coins'], moedas_1000: ['🏦 3.000 moedas', '🏦 3,000 coins'],
   canto: ['📣 Canto da torcida', '📣 Crowd chant'], presente: ['🎁 Presente', '🎁 Gift'], dia_marca: ['⚡ Dia da marca', '⚡ Brand day'], giro_dia: ['📣 Anúncio no giro', '📣 Ticker ad'],
+  ficha_carreira: ['💾 Ficha extra de carreira', '💾 Extra career slot'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],
@@ -34,6 +35,7 @@ const GANHOU: Record<ProdutoMp, [string, string]> = {
   batismo: ['Tudo do 👑 Lenda já está valendo. Agora é a parte do seu clube: conta pra gente como você imagina.', 'Everything from 👑 Legend is live. Now for your club: tell us how you picture it.'],
   fundador: ['Tudo do 👑 Lenda já está valendo. Agora é a parte do seu clube: conta pra gente como você imagina.', 'Everything from 👑 Legend is live. Now for your club: tell us how you picture it.'],
   salas_extras: ['Suas 3 salas extras já estão na conta. Bora criar!', 'Your 3 extra rooms are in your account. Go create!'],
+  ficha_carreira: ['Sua ficha extra já está na conta: abra 🪜 Minhas Carreiras e comece a nova. Ela é sua pra sempre.', 'Your extra slot is in your account: open 🪜 My Careers and start the new one. It’s yours forever.'],
   teste: ['Teste aprovado: o Pix caiu e o jogo viu sozinho. ✅', 'Test passed: the Pix landed and the game saw it on its own. ✅'],
   moedas_10: ['Pagamento recebido! Agora escolha em qual carreira as moedas vão cair:', 'Payment received! Now pick which career the coins go to:'],
   moedas_50: ['Pagamento recebido! Agora escolha em qual carreira as moedas vão cair:', 'Payment received! Now pick which career the coins go to:'],

@@ -41,7 +41,7 @@ import type { InternationalCampaign, InternationalHistoryEntry } from './career-
 import { summarizeInternationalCampaign, artilheirosInternacionais, INTL_ARTILHEIRO_MOEDAS } from './career-international-summary'
 import { validInternationalXI, INTERNATIONAL_CLUBS, isInternationalClubCard } from './career-international'
 import { CATALOG, CATALOG_EU, CATALOG_BOTH, CATALOG_WORLD, makeIncognita, CLASSIC_CLUBS, DIVISION_TEAMS, TIMES_ELITE, VARZEA_TEAMS, EXTRA_D_TEAMS, CRIA_NOMES, CRIA_APELIDOS, newestTeamName, oldChain, clubCanon, LIBERTA_CLUBS, CARTAS_RENOMEADAS } from './data'
-import { stripEmoji, myApoioPerk } from './apoio'
+import { stripEmoji, myApoioPerk, loggedEmail } from './apoio'
 import { fichasDoPlano } from './planos-regras'
 import { tecnicoPorNome, poolDaDiv, PISO_TECNICO, fichaDoTecnico, tetoTecnico, precoTecnicoSano } from './tecnicos'
 import { perfilDoClube, setorDaObsessao, fatorOrcamento, fatorTeto, LOUCURA_CHANCE, loucuraFator, perfilPagaAcima, type PerfilBot } from './perfis-bot'
@@ -11782,8 +11782,33 @@ export function careerSlotLimit(count: number): number {
   // 💳 planos v2 (08/10): a régua mora em planos-regras.ts; o Craque mensal entra como ouro enquanto
   // vale (myApoioPerk já devolve o tier efetivo). Venceu = volta pra régua do que ela tinha, e o
   // grandfather abaixo segura as carreiras que ela já criou.
-  const base = fichasDoPlano(myApoioPerk()?.tier, souBarao())
+  const base = Math.min(fichasDoPlano(myApoioPerk()?.tier, souBarao()) + fichasExtras(), MAX_CAREER_SLOTS)
   return Math.max(base, Math.min(count, MAX_CAREER_SLOTS))
+}
+// 💾 FICHA EXTRA DE CARREIRA (17/10, Diego: *"add ficha de save na lojinha… pra pessoa ter save novo. 9,99"*). Comprada na
+// Loja pelo Pix; o banco soma em `esc_fichas_extras` (por e-mail, pra sempre) e aqui ela entra por cima da régua do plano —
+// sempre dentro do teto de GUARDA (`MAX_CAREER_SLOTS`), que é o que o aparelho aguenta. A cópia fica no aparelho pra valer
+// também sem internet; é da CONTA, então troca de conta não herda.
+export const FICHA_EXTRA_PRECO = 9.99 // no banco: `esc_mp_preco` ('ficha_carreira') — mudou aqui, muda lá
+const FICHAS_EXTRAS_KEY = 'esc-fichas-extras'
+export function fichasExtras(): number {
+  const email = loggedEmail()
+  if (!email) return 0
+  try { const r = JSON.parse(localStorage.getItem(FICHAS_EXTRAS_KEY) ?? 'null'); return r?.email === email && typeof r.n === 'number' ? Math.max(0, r.n) : 0 } catch { return 0 }
+}
+/** lê o saldo no banco e guarda a cópia; devolve o número (ou o que já estava guardado, se o banco não responder) */
+export async function carregaFichasExtras(): Promise<number> {
+  const email = loggedEmail()
+  if (!email) return 0
+  try {
+    const { data, error } = await supabase.rpc('esc_minhas_fichas_extras')
+    if (!error && typeof data === 'number') { try { localStorage.setItem(FICHAS_EXTRAS_KEY, JSON.stringify({ email, n: data })) } catch { /* ignora */ } return data }
+  } catch { /* ignora */ }
+  return fichasExtras()
+}
+/** quantas fichas a pessoa ainda PODE comprar antes de bater no teto de guarda */
+export function fichasExtrasCompraveis(): number {
+  return Math.max(0, MAX_CAREER_SLOTS - fichasDoPlano(myApoioPerk()?.tier, souBarao()) - fichasExtras())
 }
 const isCareerSave = (s: unknown): s is EscState => !!s && typeof s === 'object' && !!(s as EscState).careerOnline && Array.isArray((s as EscState).managers) && (s as EscState).managers.length > 0
 export function readCareerArchive(): CareerSlot[] {
