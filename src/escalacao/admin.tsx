@@ -440,6 +440,44 @@ function PixMpAdmin() {
   )
 }
 
+// 📢 CLIQUES NOS ANÚNCIOS (17/10). Diego: *"alguma info de que a pessoa apertou no link dos patrocinadores"* — a placa
+// "📢 Anúncio do dia" (onde era o giro da rodada). Cada toque já caía em `apoio_intents`; o banco soma por anúncio
+// (`esc_admin_cliques_anuncios`, só a conta dele) pra não baixar milhares de linhas aqui.
+type CliqueAnuncio = { anuncio: string; hoje: number; sete_dias: number; total: number; pessoas: number; ultimo: string }
+function CliquesAnunciosAdmin() {
+  const [lista, setLista] = useState<CliqueAnuncio[] | null>(null)
+  const carregar = () => { supabase.rpc('esc_admin_cliques_anuncios').then(({ data }) => setLista((data ?? []) as CliqueAnuncio[]), () => setLista([])) }
+  useEffect(carregar, [])
+  const td: React.CSSProperties = { padding: '6px 6px', borderTop: '1px solid rgba(242,232,207,.15)', textAlign: 'right' }
+  const th: React.CSSProperties = { ...td, borderTop: 'none', fontSize: 10, color: 'rgba(242,232,207,.6)', textTransform: 'uppercase', fontWeight: 900 }
+  const soma = (k: 'hoje' | 'sete_dias' | 'total') => (lista ?? []).reduce((a, r) => a + Number(r[k]), 0)
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: 0 }}>📢 Cliques nos anúncios</p>
+        <button onClick={carregar} style={{ border: 'none', borderRadius: 8, padding: '4px 8px', background: '#FFC400', fontWeight: 900, cursor: 'pointer', fontSize: 11 }}>↻ atualizar</button>
+      </div>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '4px 0 10px' }}>Quantas vezes tocaram em cada anúncio da placa "📢 Anúncio do dia" (e abriram o link). "Pessoas" = contas diferentes; quem tocou sem estar logado conta como uma só.</p>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, color: '#F2E8CF' }}>
+        <thead><tr><th style={{ ...th, textAlign: 'left' }}>anúncio</th><th style={th}>hoje</th><th style={th}>7 dias</th><th style={th}>total</th><th style={th}>pessoas</th><th style={th}>último</th></tr></thead>
+        <tbody>
+          {(lista ?? []).map(r => <tr key={r.anuncio}>
+            <td style={{ ...td, textAlign: 'left', fontWeight: 800 }}>{r.anuncio}</td>
+            <td style={{ ...td, fontWeight: 900, color: '#FFC400' }}>{r.hoje}</td>
+            <td style={td}>{r.sete_dias}</td>
+            <td style={td}>{r.total}</td>
+            <td style={td}>{r.pessoas}</td>
+            <td style={{ ...td, whiteSpace: 'nowrap', opacity: .6, fontSize: 10.5 }}>{new Date(r.ultimo).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+          </tr>)}
+          {lista && lista.length > 1 && <tr><td style={{ ...td, textAlign: 'left', fontWeight: 900 }}>TOTAL</td><td style={{ ...td, fontWeight: 900, color: '#FFC400' }}>{soma('hoje')}</td><td style={{ ...td, fontWeight: 900 }}>{soma('sete_dias')}</td><td style={{ ...td, fontWeight: 900 }}>{soma('total')}</td><td style={td} /><td style={td} /></tr>}
+          {lista && lista.length === 0 && <tr><td style={{ ...td, textAlign: 'left' }} colSpan={6}>ninguém tocou ainda</td></tr>}
+          {!lista && <tr><td style={{ ...td, textAlign: 'left' }} colSpan={6}>carregando…</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // 🛒 QUEM QUASE COMPROU (16/10). Diego perguntou se os toques da Loja já caíam no painel. Caíam (`apoio_intents`), mas
 // afogados na lista dos 40 últimos toques. Depois corrigiu o pedido: *"abriu Pix também — é importante saber quem apertou
 // mas não seguiu"*. Então aqui é POR PESSOA: a trilha dos toques dela nos últimos 7 dias (abriu a loja → viu o plano →
@@ -1234,7 +1272,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><CliquesAnunciosAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )
