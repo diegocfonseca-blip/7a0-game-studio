@@ -2,9 +2,10 @@
 - Print do Diego: a arte do gol (mascote + GOOOL) começava 36–46px abaixo do topo do placar (o lugar da faixa de narração,
   que foi pro rádio em 16/10) e os escudos apareciam por cima. Com a narração no rádio, a cena agora cobre o placar inteiro
   (`ll43-sem-faixa` em online-match-visual).
-- 📢 Letreiro "Anúncio do dia": Diego reclamou que a letra sai da caixa e que o texto recomeça. Proposta enviada (mockup
-  `scripts/mockups/anuncio-do-dia-placa.mp4`): um anúncio por vez, parado e inteiro, letras virando como placa de estádio a
-  cada 7 s, marca em cima/oferta embaixo, relógio igual pra todos (a sala vê o mesmo anúncio e não recomeça). Esperando OK.
+- 📢 Letreiro "Anúncio do dia" virou a PLACA (17/10, ✅ NO AR — *"é melhor esse aqui mesmo… publique já"*, escolheu o mockup
+  `scripts/mockups/anuncio-do-dia-placa.mp4` contra as 4 outras ideias): um anúncio por vez, parado e inteiro, marca em cima
+  (cor do anúncio) e oferta embaixo, letras virando a cada 7 s (`PLACA_MS`), barrinha de tempo, relógio pelo Date.now (a sala
+  vê o mesmo anúncio e nada recomeça quando a tela remonta). Marca = texto até o 1º " · " (se tiver até 30 letras).
 
 ## 🦁🔵 Batismo Chelsão da Massa FC (16/10) — ✅ NO AR
 - Dono `ccaonta@gmail.com` (conta desde 12/10, já tinha comprado o Batismo: `esc_compras_batismo` = lenda). **Série C**, no
