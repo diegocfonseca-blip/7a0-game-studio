@@ -7,6 +7,19 @@
 - 📰❌ 17/10: anúncio do O MARTELO REMOVIDO (*"remova propaganda do martelo"*, `ANUNCIO_MARTELO_LIGADO = false`). Na Loja
   (patrocínio mensal) o item virou "⚽ Placa digital atrás dos gols, nos campinhos do pregão". Não repropor anúncio no jornal.
 
+## 💳 LENDA 44,90 · BATISMO→FUNDADOR 29,90 · 💾 FICHA DE CARREIRA 9,99 NA LOJA (17/10) — ✅ NO AR
+- Lenda 49,90 → **44,90**. Subidas: Craque→Lenda 20 · Lenda→Batismo 40 · Lenda→Fundador 60 · Craque→Batismo 55 ·
+  Craque→Fundador 75 · **Batismo→Fundador 29,90 fixo** (era 25). Duplo do Lenda 89,90 → **80,90**. Código (`planos-regras.ts`)
+  e banco (`esc_mp_preco`/`esc_mp_preco_ref`) mudados juntos — SQL em `docs/sql/loja-ficha-e-precos-1710.sql`.
+- 💾 Ficha extra de carreira R$ 9,99 na Loja (só Pix novo, só logado): `esc_fichas_extras` + `esc_minhas_fichas_extras()`,
+  entrega no `esc_mp_entregar`, função `mp-criar-pix` v7. Some da Loja quando plano + extras chega em 8 (teto de guarda).
+  Testado no banco com rollback: 9,99 → liberado → +1.
+- 🐛 de quebra: o produto `giro_dia` (Anúncio no giro, R$ 25) NÃO estava na trava `esc_mp_pedidos_produto_check` — o Pix dele
+  ia falhar. Entrou junto.
+- ❓ Plano duplo (2 pessoas, -10%): já aparece sutil na Loja embaixo de "Sobe de plano". Na vitrine de planos NÃO aparece —
+  perguntar ao Diego se quer lá também.
+- ❓ Botão Manual da carreira (sem plano): abre a trava NOVA (Craque 29,90, Pix na hora, "Ver o Lenda" já com 44,90).
+
 ## 🏟️ PLACAS ATRÁS DOS GOLS em todo campinho + Anúncio do dia mais discreto (17/10) — ✅ NO AR
 - Diego escolheu a ideia 1 de `scripts/mockups/campinho-outras-ideias.png` (*"perfeito pode fazer mas no momento coloque Vadico
   Veículos e Max Joias"*). `PlacaGol` (patrocinio-visual.tsx): placa em cima e embaixo do campo, cada uma numa marca, trocando

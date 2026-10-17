@@ -13,7 +13,7 @@ import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir, type DuplaCat } from './types'
-import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
@@ -1520,6 +1520,9 @@ const DIV_COLOR: Record<string, string> = { A: '#E7A21F', B: '#8C97A3', C: '#C77
 function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
   const { dispatch } = useEsc()
   const [list, setList] = useState<{ slot: CareerSlot; active: boolean }[]>(() => listAllCareers())
+  // 💾 17/10: a ficha extra comprada na Loja vem do banco; quando chega, a tela redesenha com o limite novo
+  const [, setExtras] = useState(0)
+  useEffect(() => { carregaFichasExtras().then(setExtras, () => {}) }, [])
   // confirmação de apagar é DENTRO do jogo (dois toques) — window.confirm é
   // bloqueado no navegador do WhatsApp/Instagram e o 🗑️ "não fazia nada" pra galera.
   const [confirmKey, setConfirmKey] = useState<string | null>(null)
@@ -1576,7 +1579,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
         })}
         {(() => { const lim = careerSlotLimit(list.length); const cheio = list.length >= lim; return (<>
         <button onClick={onNew} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
-        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4. (Whoever already had more than the limit loses nothing.)')}</p>}
+        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, compre uma 💾 ficha extra na 🛒 Loja do Clube, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, buy an 💾 extra slot in the 🛒 Club Shop, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4. (Whoever already had more than the limit loses nothing.)')}</p>}
       </>) })()}
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras. Trocar de save também não — só o 🗑️ apaga.', 'Starting a new one does NOT delete the others. Switching saves doesn\'t either — only 🗑️ deletes.')}</p>
       </div>
@@ -1852,7 +1855,7 @@ function Duvidas() {
       </> : <>
       There are <b>4</b>, all one-off (no monthly fee), and all the details are in the <b>💛 Support</b> button:<br /><br />
       ⭐ <b>Craque (Star) — R$ 29.90, one time.</b><br />
-      👑 <b>Lenda (Legend) — R$ 49.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
+      👑 <b>Lenda (Legend) — R$ 44.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
       🖋️ <b>Batismo (Club Naming) — R$ 79.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br />
       🖋️ <b>Fundador (Founder) — R$ 99.90, one time.</b> Everything in Club Naming, with the club in <b>Série A</b> + an exclusive grand entrance + a crowd chant in Career + a Founder number.<br /><br />
       Moving up a plan? <b>You only pay the difference.</b><br /><br />
@@ -1919,7 +1922,7 @@ function Duvidas() {
       </> : <>
       São <b>4</b>, todos de uma vez só (nada de mensalidade), e os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
       ⭐ <b>Craque — R$ 29,90, uma vez só.</b><br />
-      👑 <b>Lenda — R$ 49,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
+      👑 <b>Lenda — R$ 44,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
       🖋️ <b>Batismo — R$ 79,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
       🖋️ <b>Fundador — R$ 99,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida (na Carreira, nos jogos, e no online, junto com a gala) + número de Fundador.<br /><br />
       Quer subir de plano? <b>Paga só a diferença.</b><br /><br />
