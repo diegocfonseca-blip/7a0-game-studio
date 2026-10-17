@@ -14,11 +14,11 @@
 - 🐛 de quebra: o produto `giro_dia` (Anúncio no giro, R$ 25) NÃO estava na trava `esc_mp_pedidos_produto_check` — o Pix dele
   ia falhar. Entrou junto.
 - 💛 Plano duplo na VITRINE de planos também (Diego: "sim"): `DuploLinha` (presente.tsx), embaixo do botão de cada plano.
-  ⏳ print enviado, esperando OK pra publicar.
+  ✅ no ar (Diego: "sim", 17/10).
 - 🔒 Botão Manual da carreira (sem plano) agora abre a VITRINE de planos pelo topo ("pra onde vai o dinheiro"), não mais a
   trava do Craque (Diego 17/10). ✅ no ar. (O cadeado da partida rápida, `QuickManualLock`, continua na trava do Craque.)
 
-## 🏆🪙 PRÊMIO DO RANKING DA SEMANA (17/10) — ⏳ print enviado, esperando OK pra publicar
+## 🏆🪙 PRÊMIO DO RANKING DA SEMANA (17/10) — ✅ NO AR (avisos em scripts/posts/aviso-2026-10-17-*)
 - Diego: *"quem ficar entre os 3 ganha moedas na carreira… cai direto na conta após acabar a semana… 1º 20 · 2º 10 · 3º 5"*.
 - Banco (já no ar, não paga nada sozinho): `esc_fecha_semanas()` fecha toda semana terminada desde 12/10 (mesma régua da
   vitrine: títulos online, segunda 0h Brasília, `rank()` — empate divide a posição e os dois levam) e grava o top 3 em
