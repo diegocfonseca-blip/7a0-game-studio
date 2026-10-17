@@ -1,3 +1,11 @@
+## 🥅 Cena do GOOOL cortada no topo (17/10) — ✅ consertado
+- Print do Diego: a arte do gol (mascote + GOOOL) começava 36–46px abaixo do topo do placar (o lugar da faixa de narração,
+  que foi pro rádio em 16/10) e os escudos apareciam por cima. Com a narração no rádio, a cena agora cobre o placar inteiro
+  (`ll43-sem-faixa` em online-match-visual).
+- 📢 Letreiro "Anúncio do dia": Diego reclamou que a letra sai da caixa e que o texto recomeça. Proposta enviada (mockup
+  `scripts/mockups/anuncio-do-dia-placa.mp4`): um anúncio por vez, parado e inteiro, letras virando como placa de estádio a
+  cada 7 s, marca em cima/oferta embaixo, relógio igual pra todos (a sala vê o mesmo anúncio e não recomeça). Esperando OK.
+
 ## 🦁🔵 Batismo Chelsão da Massa FC (16/10) — ✅ NO AR
 - Dono `ccaonta@gmail.com` (conta desde 12/10, já tinha comprado o Batismo: `esc_compras_batismo` = lenda). **Série C**, no
   assento do bot **CRBebê** (`OLD_NAME` leva save com CRBebê/Peteca FR pro nome novo).

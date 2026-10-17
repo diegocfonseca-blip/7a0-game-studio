@@ -57,8 +57,11 @@ export function OnlineScorePresentation(p: {
       <small>{(home ? p.homeOwner : p.awayOwner) ?? ((home === p.youIsHome) ? tr('VOCÊ', 'YOU') : tr('RIVAL', 'RIVAL'))}</small>
     </div>
   }
-  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''}`} aria-label="Placar da partida">
-    {!(p.narracaoNoRadio && p.radio) && <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>
+  // 🥅 17/10 (print do Diego): sem a faixa de narração no topo (ela foi pro rádio), a cena do GOOOL tem que cobrir o placar
+  // INTEIRO — antes ela começava 36–46px abaixo (o lugar da faixa) e os escudos apareciam por cima, cortando a arte.
+  const semFaixa = !!(p.narracaoNoRadio && p.radio)
+  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''} ${semFaixa ? 'll43-sem-faixa' : ''}`} aria-label="Placar da partida">
+    {!semFaixa && <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>
       {p.goalSide ? p.stamp : p.narration}
     </div>}
     <div className="ll25-duel">
