@@ -13,6 +13,7 @@ import { agoraSala } from './relogio'
 
 const GOLD = '#FFC400', INK = '#0C0C0C', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif' } as const
+const PA_ALERTA_FIM = 11 // ⏳ a partir de quantas cartas pro fim o alerta aparece
 const POS_PT: Record<Sector, [string, string]> = { GOL: ['goleiro', 'goalkeeper'], LAT: ['lateral', 'full-back'], ZAG: ['zagueiro', 'centre-back'], MEI: ['meia', 'midfielder'], ATA: ['atacante', 'forward'] }
 
 export function PregaoAberto() {
@@ -48,6 +49,8 @@ export function PregaoAberto() {
   const ultimo = pa.vendidos[0]
   const total = pa.fila.length
   const n = Math.min(total, pa.idx + 1)
+  // quantas cartas ainda vão passar na mesa (as da fila + as que estão na mesa agora)
+  const restantes = Math.max(0, total - pa.idx - 1) + paMesasAtivas(state).filter(k => paMesa(state, k)?.card).length
   const mesas = paMesasAtivas(state)
 
   return (
@@ -59,9 +62,10 @@ export function PregaoAberto() {
           <span style={{ fontSize: 24 }}>🔨</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{t('Pregão aberto', 'Open outcry')}</p>
-            {pa.ultima && pa.idx >= pa.ultima.de ? (
+            {/* ⏳ FALTAM N CARTAS (17/10, Diego: "uma alertazinha… pra pessoa entender que tá acabando"): nas últimas 11 da fila */}
+            {restantes > 0 && restantes <= PA_ALERTA_FIM ? (
               <p style={{ display: 'inline-block', margin: '3px 0 0', background: '#E8503A', border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10.5, fontWeight: 900 }}>
-                {t(`🔔 ÚLTIMA CHAMADA · carta ${Math.min(pa.ultima.n, pa.idx - pa.ultima.de + 1)} de ${pa.ultima.n} · última chance antes do jogador de graça`, `🔔 LAST CALL · card ${Math.min(pa.ultima.n, pa.idx - pa.ultima.de + 1)} of ${pa.ultima.n} · last chance before the free player`)}
+                {restantes === 1 ? t('⏳ ÚLTIMA CARTA DO PREGÃO!', '⏳ LAST CARD OF THE AUCTION!') : t(`⏳ FALTAM ${restantes} ${state.leilaoClubes ? 'PACOTES' : 'CARTAS'} · corre que tá acabando!`, `⏳ ${restantes} ${state.leilaoClubes ? 'PACKS' : 'CARDS'} LEFT · hurry, it’s ending!`)}
               </p>
             ) : <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{state.leilaoClubes
               ? (pa.duplo ? t(`pacote ${n} de ${total} · DOIS na mesa, setores diferentes`, `pack ${n} of ${total} · TWO on the table, different sectors`) : t(`pacote ${n} de ${total} · ordem embaralhada: ninguém sabe o próximo`, `pack ${n} of ${total} · shuffled order: nobody knows the next one`))

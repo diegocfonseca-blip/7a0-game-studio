@@ -6210,11 +6210,43 @@ function paMaisLendas(state: EscState, fila: Card[], rng: () => number) {
     falta--
   }
 }
+// ➕ SOBRA QUE CRESCE COM A SALA (17/10, Diego: *"acho que não tá vindo com sobra… se tiver 20 usuários, vai ter mais de 11
+// jogadores pra cada?"*). O baralho de sempre traz só ~5 cartas a mais NO TOTAL (2 pessoas: 27 pra 22; 20 pessoas: 225 pra
+// 220). No pregão aberto entra +1 carta POR CLUBE, misturada desde o começo, nas proporções de um 4-3-3 e com a mistura de
+// sempre (lenda · craque · promessa · bom · profissional). Do catálogo ATIVO, sem repetir nome. Fora do Leilão de Clubes.
+export const PA_SOBRA_POR_CLUBE = 1
+function paSobraExtra(state: EscState, fila: Card[], rng: () => number) {
+  if (state.leilaoClubes || state.sport === 'basquete') return
+  const clubes = state.managers.filter(m => m.isHuman && !m.dormindo).length + paRobosQueDisputam(state).length
+  const quantas = Math.round(clubes * PA_SOBRA_POR_CLUBE)
+  const nomes = new Set<string>([...fila.map(c => c.name), ...state.managers.flatMap(m => m.squad.map(c => c.name))])
+  const posicoes: Sector[] = ['GOL', 'LAT', 'LAT', 'ZAG', 'ZAG', 'MEI', 'MEI', 'MEI', 'ATA', 'ATA', 'ATA']
+  const categoria = (): ((c: Card) => boolean) => {
+    const r = rng()
+    if (r < 0.2) return c => !c.promessa && (c.fame ?? 0) >= 5
+    if (r < 0.5) return c => !c.promessa && c.fame === 4
+    if (r < 0.6) return c => !!c.promessa
+    if (r < 0.8) return c => !c.promessa && c.fame === 3
+    return c => !c.promessa && (c.fame ?? 0) <= 2
+  }
+  const bt = nextBuildTok()
+  for (let i = 0; i < quantas; i++) {
+    const pos = posicoes[Math.floor(rng() * posicoes.length)]
+    const livres = ((ACTIVE_CATALOG[pos] ?? []) as Card[]).filter(c => !c.fake && !nomes.has(c.name))
+    if (!livres.length) continue
+    const daCat = livres.filter(categoria())
+    const lista = daCat.length ? daCat : livres
+    const c = lista[Math.floor(rng() * lista.length)]
+    nomes.add(c.name)
+    fila.push({ ...c, id: `pa-extra-${pos}-${i}-${bt}`, pos } as Card)
+  }
+}
 function abrePregaoAberto(state: EscState) {
   const rng = rngOf(state)
   const fila: Card[] = []
   for (const pos of SECTORS) fila.push(...state.deck[pos])
   paMaisLendas(state, fila, rng)
+  paSobraExtra(state, fila, rng)
   for (let i = fila.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const x = fila[i]; fila[i] = fila[j]; fila[j] = x }
   // o cursor dos setores vai pro fim: ninguém mais "deal" leva por setor nesta partida
   for (const pos of SECTORS) state.stock[pos] = 0
@@ -6234,54 +6266,8 @@ function paTalvezFecha(state: EscState) {
   if (!pa || pa.idx < pa.fila.length - 1) return
   if (paMesasAtivas(state).some(k => paMesa(state, k)?.card)) return
   if (pa.idx >= pa.fila.length - 1) {
-    if (!pa.ultima && paAbreUltimaChamada(state)) return
     pa.idx = pa.fila.length; paFecha(state)
   }
-}
-// 🔔 ÚLTIMA CHAMADA (17/10, Diego: *"após acabar a rodada poderiam ter mais 11 jogadores finais por ordem de goleiro, laterais,
-// zagueiros, meias e atacantes… últimas tentativas… e aí caso não consigam, aí sim sobram essas cartas"*). Acabou a fila e ainda
-// tem vaga aberta? Entram até 11 cartas NOVAS (o desenho de um 4-3-3: 1 GOL · 2 LAT · 2 ZAG · 3 MEI · 3 ATA, em ordem MISTURADA), só das posições em que
-// alguém ainda tem vaga, com a mistura do pregão. Uma mesa só, lance aberto igual. Depois disso, aí sim a vaga vazia ganha
-// jogador de graça. Não vale no Leilão de Clubes (lá a convocação completa o time).
-const PA_ULTIMA_POR_POS: Record<Sector, number> = { GOL: 1, LAT: 2, ZAG: 2, MEI: 3, ATA: 3 }
-function paAbreUltimaChamada(state: EscState): boolean {
-  const pa = state.pa
-  if (!pa || state.leilaoClubes) return false
-  const quem = [...state.managers.filter(m => m.isHuman && !m.dormindo), ...paRobosQueDisputam(state)]
-  const rng = paRng(state, 97)
-  const nomes = new Set<string>([...pa.fila.map(c => c.name), ...state.managers.flatMap(m => m.squad.map(c => c.name))])
-  // a mistura do pregão: lenda · craque · promessa · bom · profissional
-  const sorteiaCategoria = (): ((c: Card) => boolean) => {
-    const r = rng()
-    if (r < 0.2) return c => !c.promessa && (c.fame ?? 0) >= 5
-    if (r < 0.5) return c => !c.promessa && c.fame === 4
-    if (r < 0.6) return c => !!c.promessa
-    if (r < 0.8) return c => !c.promessa && c.fame === 3
-    return c => !c.promessa && (c.fame ?? 0) <= 2
-  }
-  const bt = nextBuildTok()
-  const novas: Card[] = []
-  for (const pos of SECTORS) {
-    const vagas = quem.reduce((s, m) => s + openSlots(m, pos), 0)
-    const quantas = Math.min(PA_ULTIMA_POR_POS[pos], vagas)
-    for (let i = 0; i < quantas; i++) {
-      const livres = ((ACTIVE_CATALOG[pos] ?? []) as Card[]).filter(c => !c.fake && !nomes.has(c.name))
-      if (!livres.length) break
-      const daCat = livres.filter(sorteiaCategoria())
-      const lista = daCat.length ? daCat : livres
-      const c = lista[Math.floor(rng() * lista.length)]
-      nomes.add(c.name)
-      novas.push({ ...c, id: `pa-ult-${pos}-${i}-${bt}`, pos } as Card)
-    }
-  }
-  if (!novas.length) return false
-  // 🔀 17/10 (Diego): as posições vêm MISTURADAS, igual ao pregão inteiro (não mais GOL→ATA)
-  for (let i = novas.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const x = novas[i]; novas[i] = novas[j]; novas[j] = x }
-  pa.ultima = { de: pa.fila.length, n: novas.length }
-  pa.fila.push(...novas)
-  pa.duplo = false // uma mesa só
-  paProximaCarta(state, 0)
-  return true
 }
 function paProximaCarta(state: EscState, k = 0) {
   const pa = state.pa

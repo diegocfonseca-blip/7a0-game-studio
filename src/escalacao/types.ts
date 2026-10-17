@@ -355,8 +355,6 @@ export type PregaoAbertoState = {
    *  posição DIFERENTE da 1ª, com lance e relógio próprios. A mesa 1 continua morando nos campos de cima + `currentCards[0]`. */
   duplo?: boolean
   m2?: PaMesa
-  /** 🔔 ÚLTIMA CHAMADA (17/10): as cartas extras que entram no fim, na ordem GOL→ATA, a partir de `fila[de]` (n cartas) */
-  ultima?: { de: number; n: number }
 }
 /** 🔨🔨 a 2ª mesa do pregão aberto: os MESMOS campos da 1ª, mais a carta dela */
 export type PaMesa = {
