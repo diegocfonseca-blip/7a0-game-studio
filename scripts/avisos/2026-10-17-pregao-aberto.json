@@ -1,0 +1,21 @@
+{
+  "data": "17 de outubro de 2026",
+  "titulo": "Novo jeito de leilão: Pregão aberto",
+  "destaque": {
+    "passos": [
+      { "emoji": "🃏", "titulo": "Uma carta", "sub": "por vez, na mesa" },
+      { "emoji": "🙋", "titulo": "Lance à vista", "sub": "de todo mundo" },
+      { "emoji": "🔨", "titulo": "5s sem lance", "sub": "VENDIDO!" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Agora são **3 jeitos de dar lance**: ✉️ Envelope cego, 🐊 Tocaia e o novo **🔨 Pregão aberto** — o leilão clássico, \"dou 10… 11… uma, duas, três, vendido!\"." },
+    { "tag": "regra", "texto": "A carta vem **coberta**: só nome, clube e ano. A categoria (lenda, craque…) só aparece quando ela é **vendida**. Quem conhece futebol leva vantagem." },
+    { "tag": "regra", "texto": "Cada lance novo **zera o relógio**. **5 segundos** sem ninguém cobrir = martelo. A ordem das posições é **embaralhada**: ninguém sabe qual vem depois." },
+    { "tag": "melhoria", "texto": "**Sem Monte:** sobrou vaga no fim? Ela ganha jogador **de graça**. E a partir de **11 clubes** são **duas cartas na mesa** ao mesmo tempo, pra não demorar." },
+    { "tag": "novidade", "texto": "Combina com o **🧱 Leilão de Clubes** (na mesa aparece o escudo e quantos jogadores vêm) e com as **🤝 Duplas** (cada um dá lance nas posições dele)." }
+  ],
+  "rodape": "Já tá valendo: Partida Rápida e salas online!",
+  "rodapeSub": "Na hora de criar a sala: Como é o leilão → 🔨 Pregão aberto.",
+  "saida": "scripts/posts/aviso-2026-10-17-pregao-aberto.png"
+}
