@@ -3400,7 +3400,7 @@ export function EscLobby() {
               {(roomMode === 'rapido' || roomMode === 'liga') && (
                 <SegField label={tr('Como é o leilão', 'Auction format')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
-                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')]] as ['envelope' | 'tocaia' | 'pregao', string][]}
+                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto (em teste)', '🔨 Open auction (beta)')]] as ['envelope' | 'tocaia' | 'pregao', string][]}
                         value={rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia') }} />
                     : <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />} {/* 🏷️ 12/10: selo NOVO da Tocaia tirado (ordem do Diego) */}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
@@ -3701,7 +3701,7 @@ export function EscLobby() {
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: INK, color: GOLD, ...OSWALD }} title={tr('Leilão de Clubes: cada lote é um setor de um clube, e no fim cada um convoca quem joga', 'Club Auction: each lot is a club sector, and at the end everyone calls up who plays')}>{tr('🧱 CLUBES', '🧱 CLUBS')}</span>
                     )}
                     {temPregao && (r.game_state as GS)?.pregaoAberto ? (
-                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title={tr('Pregão aberto: uma carta por vez, lance à vista de todos, martelo em 5s sem lance novo.', 'Open auction: one card at a time, bids in front of everyone, hammer after 5s without a new bid.')}>{tr('🔨 PREGÃO ABERTO', '🔨 OPEN AUCTION')}</span>
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title={tr('Pregão aberto: uma carta por vez, lance à vista de todos, martelo em 5s sem lance novo.', 'Open auction: one card at a time, bids in front of everyone, hammer after 5s without a new bid.')}>{tr('🔨 PREGÃO ABERTO (EM TESTE)', '🔨 OPEN AUCTION (BETA)')}</span>
                     ) : temPregao && pregaoLido && (holandesRoom ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Tocaia: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Ambush: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()}`}</span>
                     ) : (
@@ -4033,7 +4033,7 @@ export function EscLobby() {
         {!ehMundoSala && !elencoOn && (room.game_state as GS)?.pregaoAberto ? (
           <p className="mt-2">
             <span className="inline-block text-[10px] font-black px-2 py-1 rounded-full border-2 border-black leading-none" style={{ ...OSWALD, background: GREEN, color: '#fff' }}>
-              {tr('🔨 PREGÃO ABERTO · lance à vista, martelo em 5s sem lance novo', '🔨 OPEN AUCTION · bids in the open, hammer after 5s without a new bid')}
+              {tr('🔨 PREGÃO ABERTO (EM TESTE) · lance à vista, martelo em 5s sem lance novo', '🔨 OPEN AUCTION (BETA) · bids in the open, hammer after 5s without a new bid')}
             </span>
           </p>
         ) : !ehMundoSala && !elencoOn && (
