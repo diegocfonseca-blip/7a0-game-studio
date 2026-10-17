@@ -5432,7 +5432,7 @@ type Action =
   | { type: 'HOLANDES_TICK' }
   // 🔨 PREGÃO ABERTO: o relógio de 1s (martelo + lance dos robôs) e o lance de gente. No online só o host tica.
   | { type: 'PREGAO_ABERTO_TICK' }
-  | { type: 'PREGAO_ABERTO_LANCE'; mgrId: number; valor: number; by?: string }
+  | { type: 'PREGAO_ABERTO_LANCE'; mgrId: number; valor: number; by?: string; mesa?: number } // 🔨🔨 mesa 0 ou 1 (duas mesas a partir de 11 clubes)
   | { type: 'HOLANDES_PEGAR'; mgrId: number; cardId: string; preco: number; by?: string } // by = 🤝 crachá da dupla
   | { type: 'SET_MANUAL_ROOM'; on: boolean } // 🎮 host troca o ritmo (auto/manual) no meio da carreira online — sincroniza pra todos
   | { type: 'SUBMIT_TIEBREAK'; mgrId: number; amount: number; by?: string } // by = 🤝 crachá de quem mandou (dupla)
@@ -6111,15 +6111,15 @@ function paTeto(m: Manager, card: Card, rng: () => number, econ: number): number
 }
 /** 🎲 o dado do pregão aberto. O `rngOf(state)` é fixo pelo estado (semente + setor + rodada…) e aqui NADA disso muda
  * entre um tique e outro — então o mesmo sorteio se repetia em todo tique da carta e em toda carta do mesmo setor:
- * se o robô "não quis" no 1º tique, não queria nunca mais, e setores INTEIROS iam pro Monte sem um lance (1º teste do
+ * se o robô "não quis" no 1º tique, não queria nunca mais, e setores INTEIROS iam pro Monte sem lance (1º teste do
  * Diego, 16/10). Aqui a semente anda com a carta (`idx`) e com o tique. */
 function paRng(state: EscState, sal: number): () => number {
   const pa = state.pa
   return mulberry(state.seed + (pa ? pa.idx * 7919 + pa.tiques * 104729 : 0) + sal)
 }
 /** teto de cada robô pra ESTA carta — até onde ele cobre */
-function paTetos(state: EscState, card: Card): Record<number, number> {
-  const rng = paRng(state, 31)
+function paTetos(state: EscState, card: Card, sal = 31): Record<number, number> {
+  const rng = paRng(state, sal)
   const econ = state.careerOnline ? escadaEconFactor(state) : 0
   const tetos: Record<number, number> = {}
   for (const m of paRobosQueDisputam(state)) {
@@ -6134,6 +6134,28 @@ function paAlguemQuer(state: EscState, card: Card): boolean {
   const pos = card.pos
   return state.managers.some(m => openSlots(m, pos) > 0 && (m.isHuman ? (!m.dormindo && m.money >= PA_ABRE) : (m.money >= paAbertura(card) && (m.auctionRival || (state.careerOnline && (m.backstop || m.marketCpu))))))
 }
+// 🔨🔨 DUAS MESAS (17/10, Diego: *"a partir de 11 pessoas será duplo. Até 10 mantém individual"*). A mesa 0 é a de sempre
+// (campos do `pa` + `currentCards[0]`); a mesa 1 mora em `pa.m2` com os MESMOS campos. As duas cartas são SEMPRE de posições
+// diferentes, cada uma com lance e relógio próprios; martelou uma, a próxima entra no lugar dela sem esperar a outra.
+export const PA_DUPLO_A_PARTIR = 11
+type PaMesaVista = { M: { preco: number; lider: number | null; lances: { mgr: number; valor: number }[]; deadline: number | null; viraAte?: number; viraId?: string; tetos: Record<number, number> }; card: Card | null }
+export function paMesasAtivas(state: EscState): number[] { return state.pa?.duplo ? [0, 1] : [0] }
+export function paMesa(state: EscState, k: number): PaMesaVista | null {
+  const pa = state.pa
+  if (!pa) return null
+  if (k === 1) return pa.m2 ? { M: pa.m2, card: pa.m2.card } : null
+  return { M: pa, card: state.currentCards[0] ?? null }
+}
+function paPoeCarta(state: EscState, k: number, card: Card | null) {
+  if (k === 0) { state.currentCards = card ? [card] : []; if (card) state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos)) }
+  else if (state.pa?.m2) state.pa.m2.card = card
+}
+/** quanto o clube já tem PRESO na outra mesa (está na frente lá): o caixa dele aqui é o que sobra */
+function paComprometido(state: EscState, mgrId: number, k: number): number {
+  if (!state.pa?.duplo) return 0
+  const o = paMesa(state, 1 - k)
+  return o && o.card && o.M.lider === mgrId ? o.M.preco : 0
+}
 function abrePregaoAberto(state: EscState) {
   const rng = rngOf(state)
   const fila: Card[] = []
@@ -6142,35 +6164,54 @@ function abrePregaoAberto(state: EscState) {
   // o cursor dos setores vai pro fim: ninguém mais "deal" leva por setor nesta partida
   for (const pos of SECTORS) state.stock[pos] = 0
   state.sectorCursor = 0; state.sectorUnsoldAccum = []
-  state.pa = { fila, idx: -1, preco: 0, lider: null, lances: [], deadline: null, tetos: {}, tiques: 0, vendidos: [], sobras: [] }
+  // conta só quem DISPUTA o pregão (gente + robôs rivais) — a liga também lista clubes que não dão lance
+  const duplo = state.managers.filter(m => m.isHuman && !m.dormindo).length + paRobosQueDisputam(state).length >= PA_DUPLO_A_PARTIR
+  state.pa = { fila, idx: -1, preco: 0, lider: null, lances: [], deadline: null, tetos: {}, tiques: 0, vendidos: [], sobras: [],
+    ...(duplo ? { duplo: true, m2: { card: null, preco: 0, lider: null, lances: [], deadline: null, tetos: {} } } : {}) }
   state.phase = 'pregao'
   state.submitted = []; state.pendingEnvelopes = {}; state.revealQueue = []; state.revealIdx = 0; state.phaseDeadline = null
-  paProximaCarta(state)
+  paProximaCarta(state, 0)
+  if (duplo && state.pa) paProximaCarta(state, 1)
 }
-function paProximaCarta(state: EscState) {
+/** acabou a fila e não tem carta em mesa nenhuma: fecha o pregão */
+function paTalvezFecha(state: EscState) {
+  const pa = state.pa
+  if (!pa || pa.idx < pa.fila.length - 1) return
+  if (paMesasAtivas(state).some(k => paMesa(state, k)?.card)) return
+  if (pa.idx >= pa.fila.length - 1) { pa.idx = pa.fila.length; paFecha(state) }
+}
+function paProximaCarta(state: EscState, k = 0) {
   const pa = state.pa
   if (!pa) return
+  const outra = pa.duplo ? paMesa(state, 1 - k)?.card ?? null : null
   while (true) {
+    if (pa.idx + 1 >= pa.fila.length) { paPoeCarta(state, k, null); paTalvezFecha(state); return }
     pa.idx++
-    if (pa.idx >= pa.fila.length) { paFecha(state); return }
+    if (outra && pa.fila[pa.idx].pos === outra.pos) {
+      // 🔨🔨 a 2ª mesa nunca repete a posição da 1ª: puxa a próxima de outra posição pra cá (a ordem continua embaralhada)
+      const j = pa.fila.findIndex((c, i) => i > pa.idx && c.pos !== outra.pos)
+      if (j < 0) { pa.idx--; paPoeCarta(state, k, null); return } // só sobrou essa posição: esta mesa espera a outra fechar
+      const x = pa.fila[pa.idx]; pa.fila[pa.idx] = pa.fila[j]; pa.fila[j] = x
+    }
     const card = pa.fila[pa.idx]
     if (!paAlguemQuer(state, card)) { pa.sobras.push(card); continue } // ninguém pode: nem perde tempo na mesa
-    state.currentCards = [card]
-    state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos))
-    pa.preco = 0; pa.lider = null; pa.lances = []
-    pa.tetos = paTetos(state, card)
+    paPoeCarta(state, k, card)
+    const M = paMesa(state, k)!.M
+    M.preco = 0; M.lider = null; M.lances = []
+    M.tetos = paTetos(state, card, 31 + k * 17)
     // 🃏 CARTA COBERTA (16/10, Diego: "a carta tem que apenas se transformar"): a que acabou de sair vira NA MESA por
     // `PA_VIRA_MS` antes desta abrir — ninguém dá lance nesse meio-tempo, e o relógio dela só começa depois.
-    const vira = pa.vendidos.length > 0 ? PA_VIRA_MS : 0
-    pa.viraAte = vira ? Date.now() + vira : undefined
-    pa.deadline = Date.now() + vira + PA_MARTELO_MS
+    const vira = M.viraId ? PA_VIRA_MS : 0
+    M.viraAte = vira ? Date.now() + vira : undefined
+    M.deadline = Date.now() + vira + PA_MARTELO_MS
     return
   }
 }
-/** o lance mínimo de agora: 1 pra abrir, senão o atual + 1 */
-export function paMinimo(state: EscState): number {
-  if (!state.pa) return 1
-  if (state.pa.lider !== null) return state.pa.preco + 1
+/** o lance mínimo de agora na mesa `k`: 1 pra abrir, senão o atual + 1 */
+export function paMinimo(state: EscState, k = 0): number {
+  const mv = paMesa(state, k)
+  if (!mv) return 1
+  if (mv.M.lider !== null) return mv.M.preco + 1
   // 🃏 CARTA COBERTA (16/10, Diego: "aparecer o jogador mas sem mostrar a categoria da carta"): toda carta abre em 1.
   // A abertura por categoria (`paAbertura`) entregava a categoria no preço; ela continua só como régua INTERNA do robô.
   return PA_ABRE
@@ -6179,78 +6220,98 @@ export const PA_ABRE = 1
 /** quanto tempo a carta vendida fica virada na mesa, mostrando categoria e rosto (ms) */
 export const PA_VIRA_MS = 2000
 /** a tela pergunta isto pra acender os botões — a MESMA régua que o motor usa pra aceitar o lance */
-export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?: string): boolean {
-  const pa = state.pa
-  const card = state.currentCards[0]
+export function paPodeLancar(state: EscState, mgrId: number, valor: number, uid?: string, k = 0): boolean {
+  const mv = paMesa(state, k)
+  const card = mv?.card
   const m = state.managers.find(x => x.id === mgrId)
-  if (state.phase !== 'pregao' || !pa || !card || !m || m.dormindo) return false
+  if (state.phase !== 'pregao' || !mv || !card || !m || m.dormindo) return false
   if (!duplaPodeAgir(state.duplas, mgrId, card.pos, uid)) return false
   if (openSlots(m, card.pos) <= 0) return false
-  if (pa.lider === mgrId) return false // já está na frente: não cobre o próprio lance
-  if (pa.viraAte && Date.now() < pa.viraAte) return false // a carta anterior ainda está virando na mesa
+  if (mv.M.lider === mgrId) return false // já está na frente: não cobre o próprio lance
+  if (mv.M.viraAte && Date.now() < mv.M.viraAte) return false // a carta anterior ainda está virando na mesa
   const v = Math.floor(Number(valor))
-  if (!Number.isFinite(v) || v < paMinimo(state)) return false
-  return v <= Math.floor(m.money)
+  if (!Number.isFinite(v) || v < paMinimo(state, k)) return false
+  return v <= Math.floor(m.money) - paComprometido(state, mgrId, k) // 🔨🔨 o que já está preso na outra mesa não conta
 }
-function paRegistraLance(state: EscState, mgrId: number, valor: number) {
-  const pa = state.pa
-  if (!pa) return
-  pa.preco = valor; pa.lider = mgrId
-  pa.lances.push({ mgr: mgrId, valor })
-  pa.deadline = Date.now() + PA_MARTELO_MS // todo lance novo zera o relógio
+function paRegistraLance(state: EscState, mgrId: number, valor: number, k = 0) {
+  const mv = paMesa(state, k)
+  if (!mv) return
+  const M = mv.M
+  M.preco = valor; M.lider = mgrId
+  M.lances.push({ mgr: mgrId, valor })
+  M.deadline = Date.now() + PA_MARTELO_MS // todo lance novo zera o relógio
 }
-/** um segundo passou: martelo se venceu; senão, no máximo UM robô cobre (pra parecer gente, não metralhadora) */
+/** meio segundo passou: em cada mesa, martelo se venceu; senão, no máximo UM robô cobre (pra parecer gente) */
 function paTick(state: EscState) {
   const pa = state.pa
   if (!pa) return
-  const card = state.currentCards[0]
-  if (!card) { paProximaCarta(state); return }
-  if (pa.viraAte && Date.now() < pa.viraAte) return // 🃏 a carta que saiu ainda está virando: ninguém lança
-  if (pa.deadline !== null && Date.now() >= pa.deadline) { paMartelo(state); return }
   pa.tiques++
-  const rng = paRng(state, 0)
-  const minimo = paMinimo(state)
-  const cands = paRobosQueDisputam(state).filter(m => m.id !== pa.lider && (pa.tetos[m.id] ?? 0) >= minimo && Math.floor(m.money) >= minimo && openSlots(m, card.pos) > 0)
+  for (const k of paMesasAtivas(state)) {
+    if (!state.pa) return
+    paTickMesa(state, k)
+  }
+  paTalvezFecha(state)
+}
+function paTickMesa(state: EscState, k: number) {
+  const pa = state.pa
+  const mv = paMesa(state, k)
+  if (!pa || !mv) return
+  const card = mv.card
+  if (!card) { paProximaCarta(state, k); return }
+  const M = mv.M
+  if (M.viraAte && Date.now() < M.viraAte) return // 🃏 a carta que saiu ainda está virando: ninguém lança
+  if (M.deadline !== null && Date.now() >= M.deadline) { paMartelo(state, k); return }
+  const rng = paRng(state, k * 13)
+  const minimo = paMinimo(state, k)
+  const cands = paRobosQueDisputam(state).filter(m => m.id !== M.lider && (M.tetos[m.id] ?? 0) >= minimo && Math.floor(m.money) - paComprometido(state, m.id, k) >= minimo && openSlots(m, card.pos) > 0)
   if (!cands.length) return
   const m = cands[Math.floor(rng() * cands.length)]
-  const folga = pa.tetos[m.id] - minimo
+  const folga = M.tetos[m.id] - minimo
   // abrir é fácil; cobrir fica mais difícil conforme chega perto do teto
   // (tique de 0,5s: a chance por tique é menor que a de antes por segundo, mas são dois tiques por segundo)
-  const chance = pa.lider === null ? 0.75 : Math.min(0.85, 0.4 + folga * 0.08 + m.aggression * 0.2)
+  const chance = M.lider === null ? 0.75 : Math.min(0.85, 0.4 + folga * 0.08 + m.aggression * 0.2)
   if (rng() >= chance) return
   // ⏱️ ritmo (16/10, Diego: "reduzir mais o tempo"): quem ABRE já abre com um lance de verdade ("dou 8!"), uma fatia do
   // próprio teto — não começa em 1 e sobe de 1 em 1 até lá. E com folga o robô pula 2 ou 3 em vez de 1.
-  const abertura = pa.lider === null ? Math.max(minimo, Math.round(pa.tetos[m.id] * (0.35 + rng() * 0.25))) : minimo
+  const abertura = M.lider === null ? Math.max(minimo, Math.round(M.tetos[m.id] * (0.35 + rng() * 0.25))) : minimo
   const salto = folga >= 6 && rng() < 0.35 ? 3 : folga >= 3 && rng() < 0.5 ? 2 : 1
-  paRegistraLance(state, m.id, Math.min(abertura + salto - 1, pa.tetos[m.id]))
+  const teto = Math.min(M.tetos[m.id], Math.floor(m.money) - paComprometido(state, m.id, k))
+  paRegistraLance(state, m.id, Math.min(abertura + salto - 1, teto), k)
 }
-/** uma, duas, três… vendido! (ou ninguém quis → Monte) — e a carta seguinte entra na mesa */
-function paMartelo(state: EscState) {
+/** uma, duas, três… vendido! (ou ninguém quis → sobra) — e a carta seguinte entra na mesa */
+function paMartelo(state: EscState, k = 0) {
   const pa = state.pa
-  const card = state.currentCards[0]
-  if (!pa || !card) return
-  if (pa.lider === null) {
+  const mv = paMesa(state, k)
+  const card = mv?.card
+  if (!pa || !mv || !card) return
+  const M = mv.M
+  M.viraId = card.id
+  if (M.lider === null) {
     pa.sobras.push(card)
     pa.vendidos.unshift({ cardId: card.id, nome: card.pacote?.clube ?? card.name, pos: card.pos, mgr: null, time: null, preco: 0, segundo: 0 })
-    state.currentCards = []
-    paProximaCarta(state)
+    paPoeCarta(state, k, null)
+    paProximaCarta(state, k)
     return
   }
-  // o arremate entra pela MESMA porta do envelope: o lance do líder (+ o do 2º, pra resenha do "jogou fora")
-  const segundo = [...pa.lances].reverse().find(l => l.mgr !== pa.lider)
-  state.pendingEnvelopes = { [pa.lider]: [{ cardId: card.id, amount: pa.preco }], ...(segundo ? { [segundo.mgr]: [{ cardId: card.id, amount: segundo.valor }] } : {}) }
+  // o arremate entra pela MESMA porta do envelope: o lance do líder (+ o do 2º, pra resenha do "jogou fora").
+  // 🔨🔨 a porta lê `currentCards`/`sectorIdx`: na mesa 2 a carta dela entra ali só durante o martelo e a da mesa 1 volta.
+  const mesa1Antes = state.currentCards, setorAntes = state.sectorIdx
+  state.currentCards = [card]; state.sectorIdx = Math.max(0, SECTORS.indexOf(card.pos))
+  const segundo = [...M.lances].reverse().find(l => l.mgr !== M.lider)
+  state.pendingEnvelopes = { [M.lider]: [{ cardId: card.id, amount: M.preco }], ...(segundo ? { [segundo.mgr]: [{ cardId: card.id, amount: segundo.valor }] } : {}) }
   state.holFechando = true
   sealAndResolve(state)
   state.holFechando = false
   const q = state.revealQueue[0]
   const w = q?.winner != null ? state.managers.find(m => m.id === q.winner) : undefined
-  pa.vendidos.unshift({ cardId: card.id, nome: card.pacote?.clube ?? card.name, pos: card.pos, mgr: q?.winner ?? null, time: w?.teamName ?? null, preco: q?.paid ?? pa.preco, segundo: segundo?.valor ?? 0 })
+  pa.vendidos.unshift({ cardId: card.id, nome: card.pacote?.clube ?? card.name, pos: card.pos, mgr: q?.winner ?? null, time: w?.teamName ?? null, preco: q?.paid ?? M.preco, segundo: segundo?.valor ?? 0 })
   if (pa.vendidos.length > 60) pa.vendidos.length = 60
   if (!q || q.winner == null) pa.sobras.push(card) // não devia acontecer (lance válido), mas carta nunca some
-  state.revealQueue = []; state.revealIdx = 0; state.currentCards = []; state.pendingEnvelopes = {}
+  state.revealQueue = []; state.revealIdx = 0; state.pendingEnvelopes = {}
   state.tiebreaks = []; state.tiebreakIdx = 0; state.tiebreakPending = {}
   state.phase = 'pregao'
-  paProximaCarta(state)
+  if (k === 0) { state.currentCards = []; state.sectorIdx = setorAntes } else { state.currentCards = mesa1Antes; state.sectorIdx = setorAntes; if (pa.m2) pa.m2.card = null }
+  paProximaCarta(state, k)
 }
 /** acabou a fila: as sobras vão pro Monte e o jogo segue como sempre (Monte → cerimônia → temporada) */
 // 🚫🃏 SEM MONTE NO PREGÃO ABERTO (16/10, Diego): *"não ter monte quando acabar… quem deixou de comprar o sistema dá
@@ -8290,8 +8351,9 @@ function reducerBase(state: EscState, action: Action): EscState {
       const m = s.managers.find(x => x.id === action.mgrId)
       if (!m?.isHuman) return s // robô não passa por aqui: ele cobre no tick
       const valor = Math.floor(Number(action.valor))
-      if (!paPodeLancar(s, action.mgrId, valor, action.by)) return s
-      paRegistraLance(s, action.mgrId, valor)
+      const k = action.mesa === 1 ? 1 : 0
+      if (!paPodeLancar(s, action.mgrId, valor, action.by, k)) return s
+      paRegistraLance(s, action.mgrId, valor, k)
       return s
     }
     case 'HOLANDES_PEGAR': {

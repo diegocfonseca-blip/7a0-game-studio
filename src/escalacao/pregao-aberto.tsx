@@ -2,7 +2,7 @@
 // Uma carta por vez, lance à vista, ordem embaralhada, martelo em `PA_MARTELO_MS`. O motor mora em store.tsx (paTick/paMartelo);
 // aqui só se desenha e se roteia o lance. No solo o relógio é deste aparelho; no online (quando for ligado) só o dono tica.
 import { useEffect, useRef, useState } from 'react'
-import { useEsc, paPodeLancar, paMinimo, PA_TICK_MS, PA_MARTELO_MS } from './store'
+import { useEsc, paPodeLancar, paMinimo, paMesa, paMesasAtivas, PA_TICK_MS, PA_MARTELO_MS } from './store'
 import { Shell, AuctionBar, CollectibleCard, YourPitch } from './screens'
 import { useT } from './lang'
 import { playTick, playHammer } from './sound'
@@ -22,7 +22,6 @@ export function PregaoAberto() {
   const online = state.onlineMode === 'online'
   const euTico = !online || state.isHost
   const [agora, setAgora] = useState(Date.now())
-  const [outro, setOutro] = useState('')
 
   // ⏱️ o relógio: 1 tick por segundo (martelo + lance dos robôs) — só quem manda no relógio
   useEffect(() => {
@@ -33,7 +32,7 @@ export function PregaoAberto() {
   useEffect(() => { const iv = setInterval(() => setAgora(Date.now()), 250); return () => clearInterval(iv) }, [])
 
   // 🔊 tique a cada lance novo, martelo a cada venda
-  const nLances = pa?.lances.length ?? 0
+  const nLances = (pa?.lances.length ?? 0) + (pa?.m2?.lances.length ?? 0) // 🔨🔨 as duas mesas fazem barulho
   const lastRef = useRef(0)
   useEffect(() => { if (nLances > 0 && nLances !== lastRef.current) playTick(); lastRef.current = nLances }, [nLances])
   const nVend = pa?.vendidos.length ?? 0
@@ -41,19 +40,11 @@ export function PregaoAberto() {
   useEffect(() => { if (nVend > vendRef.current) playHammer(); vendRef.current = nVend }, [nVend])
 
   if (!pa || !you) return <Shell bar={<AuctionBar />}><div className="pt-10 text-center text-5xl">🔨</div></Shell>
-  const lider = pa.lider !== null ? state.managers.find(m => m.id === pa.lider) : null
-  const seg = pa.deadline ? Math.min(PA_MARTELO_MS / 1000, Math.max(0, Math.ceil((pa.deadline - agora) / 1000))) : 0 // nunca mostra 7s por um tique atrasado
-  const minimo = paMinimo(state)
   const posVagas = card ? openSlots(you, card.pos) : 0
-  const pode = (v: number) => !!card && paPodeLancar(state, you.id, v, state.youUid)
-  const lance = (v: number) => { if (pode(v)) dispatch({ type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: v, by: state.youUid }) }
   const ultimo = pa.vendidos[0]
-  // 🃏 a carta que acabou de sair VIRA no mesmo lugar (rosto, cor, estrelas, selo) por `PA_VIRA_MS`; depois entra a próxima, coberta
-  const virada = pa.viraAte && agora < pa.viraAte && ultimo ? pa.fila.find(x => x.id === ultimo.cardId) ?? null : null
   const total = pa.fila.length
   const n = Math.min(total, pa.idx + 1)
-  const posNome = card ? t(POS_PT[card.pos][0], POS_PT[card.pos][1]) : ''
-  const contagem = seg <= 1 ? t('TRÊS… VENDIDO!', 'THREE… SOLD!') : seg <= 2 ? t('DUAS…', 'TWICE…') : seg <= 3 ? t('UMA…', 'ONCE…') : ''
+  const mesas = paMesasAtivas(state)
 
   return (
     <Shell bar={<AuctionBar vagas={posVagas > 0 ? posVagas : undefined} />}>
@@ -64,7 +55,7 @@ export function PregaoAberto() {
           <span style={{ fontSize: 24 }}>🔨</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ ...OSW, fontWeight: 900, fontSize: 15, margin: 0, textTransform: 'uppercase' }}>{t('Pregão aberto', 'Open outcry')}</p>
-            <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>
+            <p style={{ fontSize: 10, fontWeight: 700, opacity: .75, margin: '2px 0 0' }}>{pa.duplo ? t(`carta ${n} de ${total} · DUAS na mesa, posições diferentes`, `card ${n} of ${total} · TWO on the table, different positions`) : t(`carta ${n} de ${total} · ordem embaralhada: ninguém sabe a próxima`, `card ${n} of ${total} · shuffled order: nobody knows the next one`)}</p>
             {/* 🎁 sem Monte (16/10): quem entra já sabe que não fica com time furado — e que o presente nunca é craque nem lenda */}
             <p style={{ display: 'inline-block', margin: '5px 0 0', background: GREEN, border: '2px solid #fff', borderRadius: 7, padding: '2px 7px', fontSize: 10, fontWeight: 800 }}>{t('🎁 Sem Monte: vaga vazia no fim ganha jogador de graça (nunca craque nem lenda)', '🎁 No pile: empty slots at the end get a free player (never a star or a legend)')}</p>
           </div>
@@ -74,83 +65,15 @@ export function PregaoAberto() {
           </div>
         </div>
 
-        {card ? (
-          <>
-            {/* 🃏 a carta da mesa — a MESMA carta do jogo */}
-            {/* tamanho de VITRINE (não `big`): no celular a carta grande empurrava o preço e os botões pra fora da tela,
-                e com martelo de poucos segundos o lance tem que estar à mão sem rolar */}
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div style={{ width: 210 }}>
-                {virada
-                  ? <div key={virada.id} className="pa-vira"><CollectibleCard name={virada.name} club={virada.club} year={virada.year} pos={virada.pos} fame={virada.fame} folk={!!virada.folk} promessa={virada.promessa} /></div>
-                  : <CartaCoberta name={card.name} club={card.club} year={card.year} pos={card.pos} />}
+        {/* 🔨🔨 uma mesa (até 10 clubes) ou duas lado a lado (11+, Diego 17/10) — a MESMA mesa desenhada 1 ou 2 vezes */}
+        {mesas.length === 1
+          ? <MesaPregao k={0} agora={agora} />
+          : <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
+                {mesas.map(k => <MesaPregao key={k} k={k} agora={agora} compacto />)}
               </div>
-            </div>
-            <p style={{ margin: 0, textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>
-              {t('próxima carta', 'next card')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b> · {t('posição', 'position')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b>
-            </p>
-
-            {/* 💰 o lance atual + o relógio do martelo (GRUDADO: a lista cresce e o preço não pode sumir) */}
-            <div style={{ position: 'sticky', top: 6, zIndex: 5, display: 'flex', alignItems: 'center', gap: 12, border: `3px solid ${INK}`, borderRadius: 14, padding: '8px 12px', boxShadow: `4px 4px 0 0 ${INK}`, background: seg <= 2 && pa.lider !== null ? '#E8503A' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: seg <= 2 && pa.lider !== null ? '#fff' : INK }}>
-              <b style={{ ...OSW, fontWeight: 900, fontSize: 34, lineHeight: 1 }}>{pa.lider !== null ? `${pa.preco} 🪙` : '—'}</b>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <small style={{ display: 'block', fontSize: 9, fontWeight: 900, letterSpacing: 1, opacity: .75 }}>{pa.lider !== null ? t('LANCE ATUAL', 'CURRENT BID') : t('NINGUÉM DEU LANCE', 'NO BIDS YET')}</small>
-                <span style={{ ...OSW, fontWeight: 900, fontSize: 16, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{lider ? `${lider.teamName}${lider.id === you.id ? ` · ${t('VOCÊ', 'YOU')}` : ''}` : t('lance livre: dá quanto quiser', 'open bid: offer what you want')}</span>
-              </div>
-              <div style={{ textAlign: 'center', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: '4px 10px', minWidth: 62 }}>
-                <b style={{ ...OSW, fontWeight: 900, fontSize: 22, lineHeight: 1 }}>⏱ {seg}s</b>
-                {contagem && <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: .5 }}>{contagem}</span>}
-              </div>
-            </div>
-
-            {/* 📜 os últimos lances */}
-            {pa.lances.length > 0 && (
-              <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 13, overflow: 'hidden' }}>
-                {[...pa.lances].reverse().slice(0, 4).map((l, i) => {
-                  const m = state.managers.find(x => x.id === l.mgr)
-                  return (
-                    <div key={`${l.mgr}-${l.valor}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderTop: i ? '1.5px solid rgba(0,0,0,.08)' : 'none', background: i === 0 ? '#E9F5EC' : '#fff', fontWeight: 700, fontSize: 12 }}>
-                      <span style={{ ...OSW, fontWeight: 700, textTransform: 'uppercase', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', background: m?.id === you.id ? GOLD : '#F4ECD6' }}>{m?.teamName ?? '?'}</span>
-                      <b style={{ ...OSW, marginLeft: 'auto', fontSize: 16 }}>{l.valor} 🪙</b>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {/* 🫵 seus botões — ou a trava explicada */}
-            {posVagas <= 0 ? (
-              <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
-                🔒 {t(`Você já tem ${posNome} — nesta carta só assiste.`, `You already have a ${posNome} — just watching this one.`)}
-              </div>
-            ) : pa.lider === you.id ? (
-              <div style={{ background: '#E9F5EC', border: `3px solid ${INK}`, borderRadius: 11, padding: 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 13, textTransform: 'uppercase' }}>
-                ✋ {t(`Você está na frente. Se ninguém cobrir em ${PA_MARTELO_MS / 1000}s, é seu.`, `You lead. Nobody tops it in ${PA_MARTELO_MS / 1000}s and it’s yours.`)}
-              </div>
-            ) : Math.floor(you.money) < minimo ? (
-              <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
-                🔒 {t(`Seu caixa não cobre ${minimo} 🪙.`, `Your cash doesn’t cover ${minimo} 🪙.`)}
-              </div>
-            ) : (
-              <>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.35fr', gap: 6 }}>
-                  {[0, 1, 4].map(extra => {
-                    const v = minimo + extra
-                    const ok = pode(v)
-                    return <button key={extra} disabled={!ok} onClick={() => lance(v)} style={{ ...OSW, fontWeight: 900, fontSize: 14, border: `3px solid ${INK}`, borderRadius: 11, padding: '10px 4px', background: ok ? GOLD : '#CBBF9E', boxShadow: ok ? `3px 3px 0 0 ${INK}` : 'none', cursor: ok ? 'pointer' : 'default', color: ok ? INK : 'rgba(0,0,0,.45)' }}>{pa.lider === null ? '' : `+${extra + 1} → `}{v}</button>
-                  })}
-                  <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 11, background: '#fff', overflow: 'hidden' }}>
-                    <input inputMode="numeric" value={outro} onChange={e => setOutro(e.target.value.replace(/\D/g, ''))} placeholder={t('outro', 'other')} style={{ width: '100%', minWidth: 0, border: 'none', padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 14, textAlign: 'center' }} />
-                    <button disabled={!pode(Number(outro))} onClick={() => { lance(Number(outro)); setOutro('') }} style={{ border: 'none', borderLeft: `3px solid ${INK}`, background: pode(Number(outro)) ? GREEN : '#CBBF9E', color: '#fff', fontWeight: 900, padding: '0 8px', cursor: 'pointer' }}>OK</button>
-                  </div>
-                </div>
-                <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada lance novo zera o relógio. ${PA_MARTELO_MS / 1000}s sem lance = uma, duas, três… vendido!`, `Every new bid resets the clock. ${PA_MARTELO_MS / 1000}s without a bid = going once, twice… sold!`)}</p>
-              </>
-            )}
-          </>
-        ) : (
-          <div className="pt-6 text-center text-4xl">🔨</div>
-        )}
+              <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada carta tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelas duas — ou só pela que você precisa.`, `Each card has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)}</p>
+            </>}
 
         {/* 📣 o último martelo (zoeira curta — nada de teatro duplicado) */}
         {ultimo && (
@@ -175,6 +98,107 @@ export function PregaoAberto() {
       </div>
     </Shell>
   )
+}
+
+
+// 🔨🔨 UMA MESA do pregão aberto (17/10): a carta, o lance atual com o relógio, os últimos lances e os seus botões. Com uma
+// mesa só ela é a tela de sempre; com duas (`compacto`) cada uma ocupa meia largura e mostra só o essencial.
+function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; compacto?: boolean }) {
+  const { state, dispatch } = useEsc()
+  const t = useT()
+  const [outro, setOutro] = useState('')
+  const you = state.managers[state.youIdx]
+  const mv = paMesa(state, k)
+  const pa = state.pa
+  if (!mv || !pa || !you) return null
+  const M = mv.M, card = mv.card
+  const lider = M.lider !== null ? state.managers.find(m => m.id === M.lider) : null
+  const seg = M.deadline ? Math.min(PA_MARTELO_MS / 1000, Math.max(0, Math.ceil((M.deadline - agora) / 1000))) : 0 // nunca mostra 7s por um tique atrasado
+  const minimo = paMinimo(state, k)
+  const posVagas = card ? openSlots(you, card.pos) : 0
+  const pode = (v: number) => !!card && paPodeLancar(state, you.id, v, state.youUid, k)
+  const lance = (v: number) => { if (pode(v)) dispatch({ type: 'PREGAO_ABERTO_LANCE', mgrId: you.id, valor: v, by: state.youUid, mesa: k }) }
+  // 🃏 a carta que acabou de sair DESTA mesa vira no mesmo lugar (rosto, cor, estrelas, selo) por `PA_VIRA_MS`
+  const virada = M.viraAte && agora < M.viraAte && M.viraId ? pa.fila.find(x => x.id === M.viraId) ?? null : null
+  const posNome = card ? t(POS_PT[card.pos][0], POS_PT[card.pos][1]) : ''
+  const contagem = seg <= 1 ? t('TRÊS… VENDIDO!', 'THREE… SOLD!') : seg <= 2 ? t('DUAS…', 'TWICE…') : seg <= 3 ? t('UMA…', 'ONCE…') : ''
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: compacto ? 7 : 12, minWidth: 0 }}>{card ? (
+          <>
+            {/* 🃏 a carta da mesa — a MESMA carta do jogo */}
+            {/* tamanho de VITRINE (não `big`): no celular a carta grande empurrava o preço e os botões pra fora da tela,
+                e com martelo de poucos segundos o lance tem que estar à mão sem rolar */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ width: compacto ? '100%' : 210 }}>
+                {virada
+                  ? <div key={virada.id} className="pa-vira"><CollectibleCard name={virada.name} club={virada.club} year={virada.year} pos={virada.pos} fame={virada.fame} folk={!!virada.folk} promessa={virada.promessa} /></div>
+                  : <CartaCoberta name={card.name} club={card.club} year={card.year} pos={card.pos} />}
+              </div>
+            </div>
+            {!compacto && <p style={{ margin: 0, textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>
+              {t('próxima carta', 'next card')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b> · {t('posição', 'position')}: <b style={{ display: 'inline-block', width: 20, border: `2px solid ${INK}`, borderRadius: 6, background: '#F4ECD6', textAlign: 'center' }}>?</b>
+            </p>}
+
+            {/* 💰 o lance atual + o relógio do martelo (GRUDADO: a lista cresce e o preço não pode sumir) */}
+            <div style={{ position: 'sticky', top: 6, zIndex: 5, display: 'flex', alignItems: 'center', gap: compacto ? 6 : 12, flexWrap: compacto ? 'wrap' : undefined, border: `3px solid ${INK}`, borderRadius: 14, padding: compacto ? '6px 8px' : '8px 12px', boxShadow: `4px 4px 0 0 ${INK}`, background: seg <= 2 && M.lider !== null ? '#E8503A' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: seg <= 2 && M.lider !== null ? '#fff' : INK }}>
+              <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 22 : 34, lineHeight: 1 }}>{M.lider !== null ? `${M.preco} 🪙` : '—'}</b>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <small style={{ display: 'block', fontSize: 9, fontWeight: 900, letterSpacing: 1, opacity: .75 }}>{M.lider !== null ? t('LANCE ATUAL', 'CURRENT BID') : t('NINGUÉM DEU LANCE', 'NO BIDS YET')}</small>
+                <span style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 11.5 : 16, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{lider ? `${lider.teamName}${lider.id === you.id ? ` · ${t('VOCÊ', 'YOU')}` : ''}` : t('lance livre: dá quanto quiser', 'open bid: offer what you want')}</span>
+              </div>
+              <div style={{ textAlign: 'center', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: compacto ? '3px 6px' : '4px 10px', minWidth: compacto ? 44 : 62 }}>
+                <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1 }}>⏱ {seg}s</b>
+                {contagem && <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: .5 }}>{contagem}</span>}
+              </div>
+            </div>
+
+            {/* 📜 os últimos lances */}
+            {M.lances.length > 0 && (
+              <div style={{ background: '#fff', border: `3px solid ${INK}`, borderRadius: 13, overflow: 'hidden' }}>
+                {[...M.lances].reverse().slice(0, compacto ? 2 : 4).map((l, i) => {
+                  const m = state.managers.find(x => x.id === l.mgr)
+                  return (
+                    <div key={`${l.mgr}-${l.valor}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderTop: i ? '1.5px solid rgba(0,0,0,.08)' : 'none', background: i === 0 ? '#E9F5EC' : '#fff', fontWeight: 700, fontSize: 12 }}>
+                      <span style={{ ...OSW, fontWeight: 700, textTransform: 'uppercase', border: `2px solid ${INK}`, borderRadius: 8, padding: '2px 8px', background: m?.id === you.id ? GOLD : '#F4ECD6' }}>{m?.teamName ?? '?'}</span>
+                      <b style={{ ...OSW, marginLeft: 'auto', fontSize: 16 }}>{l.valor} 🪙</b>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* 🫵 seus botões — ou a trava explicada */}
+            {posVagas <= 0 ? (
+              <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
+                🔒 {t(`Você já tem ${posNome} — nesta carta só assiste.`, `You already have a ${posNome} — just watching this one.`)}
+              </div>
+            ) : M.lider === you.id ? (
+              <div style={{ background: '#E9F5EC', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase' }}>
+                ✋ {t(`Você está na frente. Se ninguém cobrir em ${PA_MARTELO_MS / 1000}s, é seu.`, `You lead. Nobody tops it in ${PA_MARTELO_MS / 1000}s and it’s yours.`)}
+              </div>
+            ) : Math.floor(you.money) < minimo ? (
+              <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
+                🔒 {t(`Seu caixa não cobre ${minimo} 🪙.`, `Your cash doesn’t cover ${minimo} 🪙.`)}
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: compacto ? '1fr 1fr' : '1fr 1fr 1fr 1.35fr', gap: compacto ? 5 : 6 }}>
+                  {(compacto ? [0, 1] : [0, 1, 4]).map(extra => {
+                    const v = minimo + extra
+                    const ok = pode(v)
+                    return <button key={extra} disabled={!ok} onClick={() => lance(v)} style={{ ...OSW, fontWeight: 900, fontSize: 14, border: `3px solid ${INK}`, borderRadius: 11, padding: '10px 4px', background: ok ? GOLD : '#CBBF9E', boxShadow: ok ? `3px 3px 0 0 ${INK}` : 'none', cursor: ok ? 'pointer' : 'default', color: ok ? INK : 'rgba(0,0,0,.45)' }}>{M.lider === null ? '' : `+${extra + 1} → `}{v}</button>
+                  })}
+                  <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 11, background: '#fff', overflow: 'hidden', gridColumn: compacto ? '1 / -1' : undefined, minHeight: compacto ? 36 : undefined }}>
+                    <input inputMode="numeric" value={outro} onChange={e => setOutro(e.target.value.replace(/\D/g, ''))} placeholder={t('outro', 'other')} style={{ width: '100%', minWidth: 0, border: 'none', padding: '0 6px', ...OSW, fontWeight: 900, fontSize: 14, textAlign: 'center' }} />
+                    <button disabled={!pode(Number(outro))} onClick={() => { lance(Number(outro)); setOutro('') }} style={{ border: 'none', borderLeft: `3px solid ${INK}`, background: pode(Number(outro)) ? GREEN : '#CBBF9E', color: '#fff', fontWeight: 900, padding: '0 8px', cursor: 'pointer' }}>OK</button>
+                  </div>
+                </div>
+                {!compacto && <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{t(`Cada lance novo zera o relógio. ${PA_MARTELO_MS / 1000}s sem lance = uma, duas, três… vendido!`, `Every new bid resets the clock. ${PA_MARTELO_MS / 1000}s without a bid = going once, twice… sold!`)}</p>}
+              </>
+            )}
+          </>
+        ) : (
+          <div className="pt-6 text-center text-4xl">🔨</div>
+        )}</div>
 }
 
 // 🃏 CARTA COBERTA (16/10, mockup aprovado `scripts/mockups/carta-coberta.png`): durante o lance a carta não mostra

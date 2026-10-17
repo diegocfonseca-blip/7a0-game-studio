@@ -843,7 +843,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   `rngOf(state)` é FIXO por estado e congelava o sorteio (setores inteiros iam pro Monte sem lance). Teto do robô = `paTeto`
   (caixa ÷ vagas que faltam × categoria, nunca mais que 35% do caixa numa carta) — o `cpuEnvelope` dava o bolso inteiro pro ATA.
   Ele aceitou o tempo (*"deixa assim mesmo com 20"*) e mandou seguir o MOTOR DE SEMPRE: o arremate entra pela porta do
-  envelope (`sealAndResolve` com `holFechando`, igual à Tocaia) — nada de pagamento/elenco próprio. Gate `PREGAO_ABERTO_*`
+  envelope (`sealAndResolve` com `holFechando`, igual à Tocaia) — nada de pagamento/elenco próprio. 🔨🔨 **A partir de 11 clubes são DUAS cartas na mesa** (posições diferentes,
+  relógio próprio; até 10 continua uma — régua dele, 17/10, `PA_DUPLO_A_PARTIR`). Gate `PREGAO_ABERTO_*`
   em `sport.ts` (o `PREGAO_*` sem "ABERTO" é OUTRA coisa, o pregão limpo). Trava `npm run pregao-aberto`.
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
