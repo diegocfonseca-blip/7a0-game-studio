@@ -1,3 +1,20 @@
+## 🏆 MINHAS LIGAS: "não consigo continuar a liga" (17/10) — ⏳ diagnóstico feito, ESPERANDO OK do Diego pra consertar
+- Diego: *"quando acaba o jogo e eles querem continuar a liga… não conseguem, sempre dá um erro"*. Leitura do código (sem rodar):
+  1. **Quem aperta "Voltar pra tela inicial"/"Sair" PERDE A CADEIRA** — `GO_LOBBY` → `leaveOnlineRoom` apaga a linha de
+     `room_players` também em liga (store.tsx ~13142, 11651). A liga some de "Minhas ligas" do convidado, no "mesmo time" ele vira
+     CPU, e até o DONO sem linha não restaura (`triggerStartRaw`: `if (!myPl) return false`, lobby.tsx ~1392).
+  2. **"Voltar" mudo** — `enterRoom` ignora o `false` do `triggerStart` (lobby.tsx ~2361): o botão não faz nada e não avisa.
+  3. **Faixa "voltar pra partida" velha** depois do "Chamar mais gente": 5 tentativas e "Não consegui retomar" (lobby.tsx ~1467/1596).
+  4. **Dois caminhos voltam pra espera sem zerar a tela no banco** (mesma raiz do bug do Bruno 18/09): dono SOZINHO no "Abrir novo
+     leilão" (screens.tsx ~10418, só `status:'waiting'`) e o `catch` do `startLeilao` (~10493, status fica 'started'). Resultado:
+     reabre o jogo VELHO sem os amigos novos.
+  5. Menores: número da temporada pula 1 (`ligaRepeteTemporada` não chega no banco), liga antiga sem `ligaMode` não tem "Chamar mais
+     gente", sala de espera com 1 pessoa não avisa nada.
+- Proposta (esperando OK): liga GUARDA a cadeira de todo mundo ao sair; "Voltar" que falha avisa e tenta o caminho de reabrir;
+  os 2 caminhos do item 4 gravam `screen:'lobby'` igual o "Chamar mais gente".
+- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, esperando OK): dono escolhe 1 vice; vice abre o pregão só na sala de
+  espera quando o dono não está; vice não exclui liga nem mexe em config. Muda a regra "só o dono comanda" — ideia DELE (17/10).
+
 ## 🍀7️⃣ Seven City: ARTE NOVA preta e dourada (17/10) — ✅ NO AR
 - O dono não gostou da gala com a arte verde e mandou escudo/mascote/camisa NOVOS (*"ele quer esse escudo manto e mascote aqui e
   faça a gala com esse também"*). Arquivos `-v2` (escudo 266×360/29 KB · mascote 363×440/40 KB · camisa da Loja v2); os antigos
