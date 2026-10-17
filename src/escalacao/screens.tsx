@@ -1166,7 +1166,7 @@ function NbaCourt({ m }: { m: Manager }) {
   )
 }
 
-function YourPitch({ small = false }: { small?: boolean }) {
+export function YourPitch({ small = false }: { small?: boolean }) {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
   // SEM SPOILER: durante a revelação, os vencedores já estão decididos por
