@@ -8,7 +8,7 @@
 - 📣 Canto: o MESMO do Corinthians do Gaviões (`torcida-gavioes-v1.mp3`) na carreira dele — ✅ no ar (17/10).
 - ✨ Gala "Rodeio dos Cuiudos" (`gala-cuiudos.tsx`, 8,6 s): porteira fecha/abre, caminhonete freia, chapéu de vaqueiro sobe,
   laço laça o escudo, placa "SÓ OS CUIUDOS", fogos verde/amarelo. SEM a mascote (cartaz com político). Vídeo
-  `scripts/posts/gala-cuiudos-com-canto.mp4`. ⏳ ESPERANDO OK — pra ligar: registrar `'Cuiudos FC'` em `GALA_UNICA` (entrada-gala.tsx).
+  `scripts/posts/gala-cuiudos-com-canto.mp4`. ✅ APROVADA e no ar (17/10, *"publica"*).
 - Falta: time de coração e nome do dono pro post (`scripts/posts/cuiudos-post.png`).
 
 - 📢 17/10: mais 2 anúncios MANUAIS na placa depois da Vadico (`GIRO_MANUAIS`): ▶️ Kelvin Oliveira · canal do K9 no YouTube
