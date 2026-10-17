@@ -86,7 +86,7 @@ import { computeCopaBrasil, copaBrasilAsCopaResult, copaBrasilRewardsAsCopaRewar
 import { JanelaConta } from './conta'
 import type { CBGroup, CopaBrasilResult } from './copa-brasil'
 import { resilientWrite } from './pending'
-import { useDireitos, meusDireitos } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
+import { useDireitos, meusDireitos, logApoio } from './apoio' // 🏢➡️⚽ "pagante" da SAF nova (qualquer plano)
 import { myApoioPerk, apoioSelo, apoioName, apoioText, ApoioSheen, ApoioPreviewMark, APOIO_PERKS, stripEmoji, useHasManual, setCareerColorCtx } from './apoio'
 import type { ApoioPerk } from './apoio'
 import { tr, ordinal, getLang } from './lang' // 🌐 BR/EN (12/09): a carreira também lê o idioma do site
@@ -145,8 +145,9 @@ function EmpTag({ mini = false }: { mini?: boolean }) {
 function ManualLockButton() {
   return (
     <div className="ll-cx-controle" style={{ marginBottom: 10 }}>
-      <ApoieButton startScreen="manual" trigger={open => (
-        <button onClick={open} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
+      {/* 17/10 (Diego): o cadeado leva pra vitrine de PLANOS, abrindo no topo ("pra onde vai o dinheiro"), não mais na trava do Craque */}
+      <ApoieButton startScreen="choice" trigger={open => (
+        <button onClick={() => { logApoio('👀 abriu: modo manual (trava) → planos'); open() }} style={{ width: '100%', border: `2.5px solid ${INK}`, borderRadius: 12, padding: '10px 12px', fontWeight: 900, fontSize: 12, background: '#fff', color: INK, boxShadow: `2px 2px 0 0 ${INK}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, ...OSWALD }}>
           <span>{tr('Acelerar e pular', 'Speed up and skip')}</span>
           <span style={{ fontSize: 10, fontWeight: 800, background: GREEN, color: '#fff', borderRadius: 999, padding: '2px 8px' }}>{tr('🔒 Desbloquear', '🔒 Unlock')}</span>
         </button>
