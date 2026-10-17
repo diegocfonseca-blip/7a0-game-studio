@@ -84,14 +84,10 @@ export function PregaoAberto() {
         {/* 🔨🔨 uma mesa (até 10 clubes) ou duas lado a lado (11+, Diego 17/10) — a MESMA mesa desenhada 1 ou 2 vezes */}
         {mesas.length === 1
           ? <MesaPregao k={0} agora={agora} />
-          : <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
-                {mesas.map(k => <MesaPregao key={k} k={k} agora={agora} compacto />)}
-              </div>
-              <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.6)' }}>{state.leilaoClubes
-                ? t(`Cada pacote tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelos dois — ou só pelo que você precisa.`, `Each pack has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)
-                : t(`Cada carta tem o próprio relógio de ${PA_MARTELO_MS / 1000}s. Dá pra brigar pelas duas — ou só pela que você precisa.`, `Each card has its own ${PA_MARTELO_MS / 1000}s clock. Fight for both — or just the one you need.`)}</p>
-            </>}
+          // 🔠 17/10 (Diego, mockup `pregao-duplo-letras.png`): sem a frase de baixo — o topo já diz "DOIS na mesa"
+          : <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
+              {mesas.map(k => <MesaPregao key={k} k={k} agora={agora} compacto />)}
+            </div>}
 
         {/* 📣 o último martelo (zoeira curta — nada de teatro duplicado) */}
         {ultimo && (
@@ -189,19 +185,36 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
             </p>}
 
             {/* 💰 o lance atual + o relógio do martelo (GRUDADO: a lista cresce e o preço não pode sumir) */}
+            {compacto ? (
+              // 🔠 17/10 (mockup `pregao-duplo-letras.png`): na mesa dupla o nome de quem lidera ia cortado ("GUIMARÃ…") —
+              // valor e relógio em cima, o nome INTEIRO embaixo, tudo em letra maior
+              <div style={{ position: 'sticky', top: 6, zIndex: 5, border: `3px solid ${INK}`, borderRadius: 13, padding: '6px 7px', boxShadow: `3px 3px 0 0 ${INK}`, background: seg <= 2 && M.lider !== null ? '#E8503A' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: seg <= 2 && M.lider !== null ? '#fff' : INK }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 5 }}>
+                  <b style={{ ...OSW, fontWeight: 900, fontSize: 28, lineHeight: 1 }}>{M.lider !== null ? `${M.preco} 🪙` : '—'}</b>
+                  <div style={{ textAlign: 'center', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 9, padding: '2px 5px', minWidth: 46 }}>
+                    <b style={{ ...OSW, fontWeight: 900, fontSize: 17, lineHeight: 1, display: 'block' }}>⏱ {seg}s</b>
+                    <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: .5, minHeight: '1.2em' }}>{contagem || '\u00A0'}</span>
+                  </div>
+                </div>
+                <span style={{ display: 'block', marginTop: 4, paddingTop: 3, borderTop: `2px solid ${seg <= 2 && M.lider !== null ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.2)'}`, ...OSW, fontWeight: 900, fontSize: 14, lineHeight: 1.1, textAlign: 'center', textTransform: 'uppercase', overflowWrap: 'anywhere' }}>
+                  {lider ? `${lider.teamName}${lider.id === you.id ? ` · ${t('VOCÊ', 'YOU')}` : ''}` : t('lance livre', 'open bid')}
+                </span>
+              </div>
+            ) : (
             <div style={{ position: 'sticky', top: 6, zIndex: 5, display: 'flex', alignItems: 'center', gap: compacto ? 6 : 12, flexWrap: compacto ? 'wrap' : undefined, border: `3px solid ${INK}`, borderRadius: 14, padding: compacto ? '6px 8px' : '8px 12px', boxShadow: `4px 4px 0 0 ${INK}`, background: seg <= 2 && M.lider !== null ? '#E8503A' : `linear-gradient(150deg,#FFE79A,${GOLD} 55%,#E8A200)`, color: seg <= 2 && M.lider !== null ? '#fff' : INK }}>
-              <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 22 : 34, lineHeight: 1 }}>{M.lider !== null ? `${M.preco} 🪙` : '—'}</b>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <small style={{ display: 'block', fontSize: 9, fontWeight: 900, letterSpacing: 1, opacity: .75 }}>{M.lider !== null ? t('LANCE ATUAL', 'CURRENT BID') : t('NINGUÉM DEU LANCE', 'NO BIDS YET')}</small>
-                <span style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 11.5 : 16, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{lider ? `${lider.teamName}${lider.id === you.id ? ` · ${t('VOCÊ', 'YOU')}` : ''}` : t('lance livre: dá quanto quiser', 'open bid: offer what you want')}</span>
+                <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 22 : 34, lineHeight: 1 }}>{M.lider !== null ? `${M.preco} 🪙` : '—'}</b>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <small style={{ display: 'block', fontSize: 9, fontWeight: 900, letterSpacing: 1, opacity: .75 }}>{M.lider !== null ? t('LANCE ATUAL', 'CURRENT BID') : t('NINGUÉM DEU LANCE', 'NO BIDS YET')}</small>
+                  <span style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 11.5 : 16, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{lider ? `${lider.teamName}${lider.id === you.id ? ` · ${t('VOCÊ', 'YOU')}` : ''}` : t('lance livre: dá quanto quiser', 'open bid: offer what you want')}</span>
+                </div>
+                <div style={{ textAlign: 'center', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: compacto ? '3px 6px' : '4px 10px', minWidth: compacto ? 44 : 62 }}>
+                  <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1 }}>⏱ {seg}s</b>
+                  {/* 📐 17/10 (Diego): a linha do "uma… duas… vendido!" fica SEMPRE reservada — ao aparecer, ela crescia a faixa de
+                      uma mesa só e as duas mesas desalinhavam */}
+                  <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: .5, minHeight: '1.2em' }}>{contagem || '\u00A0'}</span>
+                </div>
               </div>
-              <div style={{ textAlign: 'center', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: compacto ? '3px 6px' : '4px 10px', minWidth: compacto ? 44 : 62 }}>
-                <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1 }}>⏱ {seg}s</b>
-                {/* 📐 17/10 (Diego): a linha do "uma… duas… vendido!" fica SEMPRE reservada — ao aparecer, ela crescia a faixa de
-                    uma mesa só e as duas mesas desalinhavam */}
-                <span style={{ display: 'block', fontSize: 8, fontWeight: 900, letterSpacing: .5, minHeight: '1.2em' }}>{contagem || '\u00A0'}</span>
-              </div>
-            </div>
+            )}
 
             {/* 📜 os últimos lances */}
             {M.lances.length > 0 && (
@@ -221,8 +234,10 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
             {aviso && <div role="alert" style={{ background: '#FFE3DD', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? '5px 7px' : '7px 10px', fontSize: compacto ? 10.5 : 12, fontWeight: 800, textAlign: 'center' }}>{aviso}</div>}
             {/* 🫵 seus botões — ou a trava explicada */}
             {posVagas <= 0 ? (
-              <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 7 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 10.5 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
-                🔒 {card.pacote
+              <div style={{ background: '#CBBF9E', border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? 8 : 10, textAlign: 'center', ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 13, textTransform: 'uppercase', color: 'rgba(0,0,0,.6)' }}>
+                🔒 {compacto
+                  ? t(`Já tem ${card.pos}`, `Got ${card.pos}`)
+                  : card.pacote
                   ? t(`Você já tem o seu pacote de ${posNome} — neste só assiste.`, `You already have your ${posNome} pack — just watching this one.`)
                   : t(`Você já tem ${posNome} — nesta carta só assiste.`, `You already have a ${posNome} — just watching this one.`)}
               </div>
@@ -244,7 +259,7 @@ function MesaPregao({ k, agora, compacto = false }: { k: number; agora: number; 
                     const ok = pode(v)
                     return <button key={extra} disabled={!ok} onClick={() => lance(v)} style={{ ...OSW, fontWeight: 900, border: `3px solid ${INK}`, borderRadius: 11, padding: compacto ? '8px 2px' : '10px 4px', background: ok ? GOLD : '#CBBF9E', boxShadow: ok ? `3px 3px 0 0 ${INK}` : 'none', cursor: ok ? 'pointer' : 'default', color: ok ? INK : 'rgba(0,0,0,.45)', lineHeight: 1.05 }}>
                       {/* 17/10 (Diego): só o "+N" — o valor do lance já aparece na faixa do LANCE ATUAL, mostrar os dois confunde */}
-                      <span style={{ display: 'block', fontSize: compacto ? 17 : 20 }}>+{extra + 1}</span>
+                      <span style={{ display: 'block', fontSize: compacto ? 21 : 20 }}>+{extra + 1}</span>
                     </button>
                   })}
                   <div style={{ display: 'flex', border: `3px solid ${INK}`, borderRadius: 11, background: '#fff', overflow: 'hidden', gridColumn: '1 / -1', minHeight: 36 }}>
@@ -270,12 +285,12 @@ export function PacoteMesa({ c, compacto = false }: { c: Card; compacto?: boolea
   const n = c.pacote?.cartas.length ?? 0
   return (
     <div style={{ border: `4px solid ${INK}`, borderRadius: 16, boxShadow: `5px 5px 0 0 ${INK}`, background: '#fff', padding: compacto ? '10px 8px' : '16px 14px', textAlign: 'center' }}>
-      <span style={{ display: 'inline-block', background: INK, color: '#fff', borderRadius: 7, padding: '1px 8px', ...OSW, fontWeight: 900, fontSize: compacto ? 11 : 13 }}>{c.pos}</span>
-      <div style={{ display: 'flex', justifyContent: 'center', margin: compacto ? '6px 0' : '10px 0' }}><SeloClube clube={c.pacote?.clube ?? c.club} size={compacto ? 58 : 96} /></div>
+      <span style={{ display: 'inline-block', background: INK, color: '#fff', borderRadius: 7, padding: '1px 8px', ...OSW, fontWeight: 900, fontSize: 13 }}>{c.pos}</span>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: compacto ? '6px 0' : '10px 0' }}><SeloClube clube={c.pacote?.clube ?? c.club} size={compacto ? 52 : 96} /></div>
       {/* 📐 17/10 (Diego, print da mesa dupla): o nome ocupa SEMPRE 2 linhas na mesa dupla — senão "Goleiros do Everton"
           (2 linhas) empurrava o lance atual dele pra baixo do "Meio do Newcastle" (1 linha) e as duas mesas desalinhavam */}
-      <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 15 : 22, lineHeight: 1.05, textTransform: 'uppercase', ...(compacto ? { minHeight: '2.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' } : { display: 'block' }) }}>{nomePacote(c)}</b>
-      <span style={{ display: 'inline-block', marginTop: 6, background: '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 9, padding: '2px 10px', ...OSW, fontWeight: 900, fontSize: compacto ? 12 : 15 }}>👥 {n} {n === 1 ? t('jogador', 'player') : t('jogadores', 'players')}</span>
+      <b style={{ ...OSW, fontWeight: 900, fontSize: compacto ? 19 : 22, lineHeight: 1.05, textTransform: 'uppercase', ...(compacto ? { minHeight: '2.1em', display: 'flex', alignItems: 'center', justifyContent: 'center' } : { display: 'block' }) }}>{nomePacote(c)}</b>
+      <span style={{ display: 'inline-block', marginTop: 6, background: '#F4ECD6', border: `2px solid ${INK}`, borderRadius: 9, padding: '2px 10px', ...OSW, fontWeight: 900, fontSize: compacto ? 14 : 15 }}>👥 {n} {n === 1 ? t('jogador', 'player') : t('jogadores', 'players')}</span>
       {!compacto && <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)' }}>{t('Quem são, você vê na convocação.', 'You see who they are at the call-up.')}</p>}
     </div>
   )
