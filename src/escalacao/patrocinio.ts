@@ -99,6 +99,13 @@ export function usePatrocinio(kind: Competicao): Patrocinio | null {
 const GIRO_ANUNCIO: string | null = '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio' // manual: fica até o Diego trocar
 // 🔗 17/10 (Diego): tocar na Vadico abre a oferta do carro do anúncio no site dela. Só anúncio MANUAL leva link (o pago de 24 h é
 // texto escrito pelo comprador e vai pro ar sem ninguém olhar — link ali seria porta pra golpe).
+// 📢 MAIS ANÚNCIOS MANUAIS (17/10, Diego), passando depois da Vadico, cada um com o próprio link:
+// · canal do K9 no YouTube (link limpo, sem o rastreio do Facebook que veio colado)
+// · Max Joias → WhatsApp da loja, com a mensagem já escrita
+const GIRO_MANUAIS: { texto: string; cor: string; link?: string }[] = [
+  { texto: '▶️ Kelvin Oliveira · Siga o novo canal do K9 no YouTube', cor: '#FFC400', link: 'https://www.youtube.com/@kelvink9oliveira' },
+  { texto: '💍 Max Joias · Compramos ouro, clique aqui', cor: '#FFC400', link: 'https://wa.me/5521964717601?text=' + encodeURIComponent('Olá! Vi o anúncio da Max Joias no Leilão Legends e quero vender ouro.') },
+]
 const GIRO_ANUNCIO_LINK = 'https://vadicoveiculos.com.br/Veiculo/haval-h6-1.5-flex-phev19-e-traction-gasolina-e-eletrico-2027/5425264/detalhes'
 // 🎨 cor no letreiro: o manual (Vadico) em dourado; o pago de 24 h em VERDE, pra diferenciar (Diego: "talvez dê outra cor")
 export type AnuncioGiro = { texto: string; cor: string; link?: string }
@@ -106,7 +113,10 @@ export const ANUNCIO_MAX = 82 // = tamanho do texto da Vadico (Diego: "número m
 export function useAnunciosGiro(): AnuncioGiro[] {
   useAvulsos()
   const out: AnuncioGiro[] = noAr('giro').map(a => ({ texto: '📣 ' + a.texto, cor: '#5CFF8A' }))
-  if (espacosOk() && GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
+  if (espacosOk()) {
+    if (GIRO_ANUNCIO) out.push({ texto: GIRO_ANUNCIO, cor: '#FFC400', link: GIRO_ANUNCIO_LINK })
+    out.push(...GIRO_MANUAIS)
+  }
   return out
 }
 /** depois que alguém põe o anúncio no ar, relê na hora (pra pessoa já se ver no letreiro) */

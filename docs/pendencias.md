@@ -1,3 +1,6 @@
+- 📢 17/10: mais 2 anúncios MANUAIS na placa depois da Vadico (`GIRO_MANUAIS`): ▶️ Kelvin Oliveira · canal do K9 no YouTube
+  (youtube.com/@kelvink9oliveira) e 💍 Max Joias · Compramos ouro (WhatsApp +55 21 96471-7601, com mensagem pronta).
+
 ## 🏟️ PLACAS ATRÁS DOS GOLS em todo campinho + Anúncio do dia mais discreto (17/10) — ✅ NO AR
 - Diego escolheu a ideia 1 de `scripts/mockups/campinho-outras-ideias.png` (*"perfeito pode fazer mas no momento coloque Vadico
   Veículos e Max Joias"*). `PlacaGol` (patrocinio-visual.tsx): placa em cima e embaixo do campo, cada uma numa marca, trocando
