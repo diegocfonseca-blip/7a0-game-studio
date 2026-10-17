@@ -253,7 +253,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
             <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 12, fontWeight: 700, lineHeight: 1.55 }}>
               <li>{tr('🏆 Naming rights da competição: "Champions Legends apresentada por… sua marca"', '🏆 Competition naming rights: "Champions Legends presented by… your brand"')}</li>
               <li>{tr('🏟️ Placa de LED no fundo do estádio', '🏟️ LED board at the back of the stadium')}</li>
-              <li>{tr('📰 Anúncio no jornal O MARTELO do campeão', '📰 Ad in the champion’s O MARTELO newspaper')}</li>
+              <li>{tr('⚽ Placa digital atrás dos gols, nos campinhos do pregão', '⚽ Digital board behind the goals, on the auction pitches')}</li>
               <li>{tr('🏢 Patrocinador Master na carreira: sua marca entre as propostas de patrocínio no início da temporada', '🏢 Master sponsor in career mode: your brand among the sponsorship offers at the start of each season')}</li>
               <li>{tr('🏪 Cartão na Vitrine dos patrocinadores, com logo, bio, Instagram e cupom', '🏪 Card in the Sponsors showcase, with logo, bio, Instagram and coupon')}</li>
               <li>{tr('📲 Post no Instagram @leilaolegendscom e aviso na comunidade dos fãs no WhatsApp apresentando a marca', '📲 A post on Instagram @leilaolegendscom and an announcement in the fans’ WhatsApp community introducing your brand')}</li>

@@ -4,6 +4,9 @@
 - 📢 17/10: o Anúncio do dia entrou também na CARREIRA (aba Jogos, embaixo do giro de frases), nas duas caras da carreira
   (visual novo `ll29-board` e o antigo). Antes só existia na temporada da partida rápida/online (`EscSeason`).
 
+- 📰❌ 17/10: anúncio do O MARTELO REMOVIDO (*"remova propaganda do martelo"*, `ANUNCIO_MARTELO_LIGADO = false`). Na Loja
+  (patrocínio mensal) o item virou "⚽ Placa digital atrás dos gols, nos campinhos do pregão". Não repropor anúncio no jornal.
+
 ## 🏟️ PLACAS ATRÁS DOS GOLS em todo campinho + Anúncio do dia mais discreto (17/10) — ✅ NO AR
 - Diego escolheu a ideia 1 de `scripts/mockups/campinho-outras-ideias.png` (*"perfeito pode fazer mas no momento coloque Vadico
   Veículos e Max Joias"*). `PlacaGol` (patrocinio-visual.tsx): placa em cima e embaixo do campo, cada uma numa marca, trocando

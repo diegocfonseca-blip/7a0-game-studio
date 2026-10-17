@@ -39,8 +39,8 @@ export function ledDoEstadio(): MarcaLed[] { return espacosOk() ? LED_ESTADIO : 
 
 // 📰 Anúncio no O MARTELO (R$ 100/mês): um quadro no fim do jornal. Um anunciante por vez.
 export type AnuncioJornal = Patrocinio & { texto: string; contato?: string; logo?: string; logoProp?: number }
-// 16/10: desligado quando ele disse "até agora gostei só do apresentado por"; religado no mesmo dia (*"coloque o anúncio no Martelo no final sim"*)
-const ANUNCIO_MARTELO_LIGADO = true
+// 16/10: desligado/religado no mesmo dia; 17/10 DESLIGADO de vez (*"remova propaganda do martelo"*) — na Loja o item virou as placas atrás dos gols
+const ANUNCIO_MARTELO_LIGADO = false
 const ANUNCIO_MARTELO: AnuncioJornal | null = {
   nome: 'Vadico Veículos', emoji: '🚗', logo: VADICO_LOGO_ALFA, logoProp: 496 / 140,
   texto: '45 anos de empresa familiar. Garantia e documento no nome da loja, sem carro de leilão. Itaguaí e Barra da Tijuca.',
