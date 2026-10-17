@@ -7587,48 +7587,62 @@ export function traduzManchete(h: string): string {
 //   · o `key` da corrida é a lista inteira → manchete nova reinicia a corrida do
 //     começo, então a mais recente é sempre a primeira a entrar.
 export const corDoLed = (h: string) => /CAMPE[ÃA]O|👑|WINS|CHAMPION/.test(h) ? '#FFE066' : /🎯|🕐|PÊNALTIS|PENALTIES|PRORROGAÇÃO|OVERTIME/.test(h) ? '#FF5A3C' : '#FFB000'
+// 📢 PLACA DO ANÚNCIO (17/10, Diego escolheu o mockup `scripts/mockups/anuncio-do-dia-placa.mp4`: *"é melhor esse aqui mesmo"*).
+// Antes o texto corria num letreiro: a letra saía da caixa e a corrida recomeçava toda vez que a tela remontava (a cada
+// rodada). Agora: UM anúncio por vez, parado e inteiro, marca grande em cima e oferta embaixo, trocando a cada 7 s com as
+// letras virando igual placa de estádio. Quem manda na troca é o RELÓGIO (Date.now), não a tela — então a sala inteira vê o
+// mesmo anúncio na mesma hora e nada recomeça quando a rodada muda. 0 KB: só CSS.
+const PLACA_MS = 7000
+function partesDoAnuncio(t: string): { marca: string; oferta: string } {
+  const i = t.indexOf(' · ')
+  if (i > 0 && i <= 30) return { marca: t.slice(0, i), oferta: t.slice(i + 3) }
+  return { marca: '', oferta: t }
+}
+function LetrasVirando({ texto, atraso = 0 }: { texto: string; atraso?: number }) {
+  let n = 0
+  return <>{texto.split(' ').map((w, wi) => <Fragment key={wi}>{wi > 0 && ' '}<span style={{ whiteSpace: 'nowrap' }}>{Array.from(w).map((ch, ci) =>
+    <span key={ci} className="placa-l" style={{ animationDelay: `${atraso + (n++) * 14}ms` }}>{ch}</span>)}</span></Fragment>)}</>
+}
 export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean }) {
   // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
-  // O letreiro virou o ANÚNCIO DO DIA: só passa propaganda (o avulso de 1 dia do banco + o mensal), nada de manchete de jogo.
-  // O botão "Anuncie aqui" abre a Loja na seção de anúncio. Sem anunciante, o próprio letreiro oferece o espaço.
   const anuncios = useAnunciosGiro()
   const en = getLang() === 'en'
   const itens = anuncios.length ? anuncios : [{ texto: en ? '📣 This space can be yours' : '📣 Este espaço pode ser seu', cor: '#FFC400' }]
-  const list = itens.map(a => a.texto)
-  const corDe = (i: number) => itens[i % itens.length].cor
-  const key = list.join('|')
-  // devagar, pra dar tempo de ler o anúncio inteiro (16/10: "deixar o texto completo passar de forma devagar")
-  const chars = list.reduce((n, h) => n + h.length + 4, 0)
-  const dur = Math.max(14, Math.round(chars * 0.16))
+  const vez = () => Math.floor(Date.now() / PLACA_MS)
+  const [slot, setSlot] = useState(vez)
+  useEffect(() => {
+    const iv = setInterval(() => setSlot(s => { const v = vez(); return v === s ? s : v }), 250)
+    return () => clearInterval(iv)
+  }, [])
+  const idx = slot % itens.length
+  const ad = itens[idx]
+  const { marca, oferta } = partesDoAnuncio(ad.texto)
+  const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   return (
     <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden' }}>
-      <style>{`@keyframes giroCorre{to{transform:translateX(-50%)}}@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
-.giro-led{position:relative;height:46px;background:#0a0a0a;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.2px);background-size:4px 4px;box-shadow:inset 0 0 18px rgba(0,0,0,.9)}
-.giro-led:before,.giro-led:after{content:'';position:absolute;top:0;bottom:0;width:26px;z-index:2;pointer-events:none}
-.giro-led:before{left:0;background:linear-gradient(90deg,#0a0a0a,transparent)}.giro-led:after{right:0;background:linear-gradient(270deg,#0a0a0a,transparent)}
-.giro-corre{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;padding-left:100%;animation:giroCorre linear infinite}
-.giro-m{font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:.6px;text-transform:uppercase}
-.giro-sep{color:rgba(255,176,0,.45);margin:0 18px;font-size:11px}
-.giro-parado{display:none}
-@media (prefers-reduced-motion:reduce){.giro-corre{display:none}.giro-parado{display:flex;align-items:center;height:100%;padding:0 12px;animation:giroFade .35s ease}}`}</style>
+      <style>{`.placa-led{position:relative;height:90px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
+.placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
+.placa-tag{position:absolute;right:9px;top:6px;font:700 8.5px Oswald,sans-serif;letter-spacing:.2em;color:rgba(255,255,255,.35)}
+.placa-m{position:absolute;left:14px;right:14px;top:11px;font:700 24px/1.05 Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.placa-o{position:absolute;left:14px;right:14px;top:43px;font:500 15px/1.12 Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#F4ECD6;max-height:34px;overflow:hidden}
+.placa-o.so{top:14px;font-size:18px;max-height:62px}
+.placa-l{display:inline-block;transform-origin:50% 60%;animation:placaVira .38s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes placaVira{0%{transform:rotateX(90deg);opacity:0;filter:brightness(3)}60%{opacity:1}100%{transform:rotateX(0);opacity:1;filter:none}}
+.placa-bar{position:absolute;left:0;bottom:0;height:3px;animation:placaBar ${PLACA_MS}ms linear both}
+@keyframes placaBar{from{width:0}to{width:100%}}
+@media (prefers-reduced-motion:reduce){.placa-l{animation:none}}`}</style>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 10px 5px', background: CREAM, borderBottom: `3px solid ${INK}` }}>
-        {/* 16/10 (Diego): "tire esse Anuncie aqui, porque já tem Anúncio do dia" → o próprio título leva pra Loja (onde a seção
-            de anúncio existe); pros outros é só o título */}
+        {/* 16/10 (Diego): "tire esse Anuncie aqui, porque já tem Anúncio do dia" → o próprio título leva pra Loja */}
         {patrocinioLojaOk()
           ? <LojaButton ancora="loja-marca" className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>{en ? '📢 Ad of the day ›' : '📢 Anúncio do dia ›'}</LojaButton>
           : <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{en ? '📢 Ad of the day' : '📢 Anúncio do dia'}</span>}
-
+        {itens.length > 1 && <span>{itens.map((_, i) => <i key={i} style={{ display: 'inline-block', width: i === idx ? 16 : 6, height: 6, borderRadius: 9, background: i === idx ? INK : '#d9cfae', marginLeft: 4, transition: 'width .3s' }} />)}</span>}
       </div>
-      <div className="giro-led">
-        <div key={key} className="giro-corre" style={{ animationDuration: `${dur}s` }}>
-          {[...list, ...list].map((h, i) => (
-            <Fragment key={i}>
-              <span className="giro-m" style={{ color: corDe(i), textShadow: `0 0 6px ${corDe(i)}88` }}>{h}</span>
-              <span className="giro-sep">◆</span>
-            </Fragment>
-          ))}
-        </div>
-        <div className="giro-parado"><span className="giro-m" style={{ color: corDe(0), textShadow: `0 0 6px ${corDe(0)}88`, whiteSpace: 'normal', fontSize: 13, lineHeight: 1.15 }}>{list[0]}</span></div>
+      <div className="placa-led" key={slot}>
+        <span className="placa-tag">{en ? 'AD' : 'ANÚNCIO'}</span>
+        {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 19 : undefined }}><LetrasVirando texto={marca} /></div>}
+        <div className={`placa-o${marca ? '' : ' so'}`}><LetrasVirando texto={oferta} atraso={180} /></div>
+        <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
     </div>
   )
