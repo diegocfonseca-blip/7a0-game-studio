@@ -5,7 +5,8 @@
 //   no placar (ele achou que "placar oferecido por" cansava). Mais de um mensal → as marcas passam uma atrás da outra.
 // · 📰 Anúncio no O MARTELO: um quadro de anúncio no FIM do jornal (sala e carreira), logo antes do rodapé.
 // Tudo puro CSS + a logo que já existe (0 KB a mais pra quem não vê).
-import { ledDoEstadio, anuncioDoMartelo } from './patrocinio'
+import { useEffect, useState } from 'react'
+import { ledDoEstadio, anuncioDoMartelo, placasDoCampo } from './patrocinio'
 import { tr } from './lang'
 
 const CSS = `
@@ -43,4 +44,37 @@ export function AnuncioMartelo() {
     <p style={{ margin: '4px 0 0', font: '13px/1.35 Georgia,serif', color: 'rgba(0,0,0,.8)' }}>{a.texto}</p>
     {a.contato && <p style={{ margin: '5px 0 0', font: '700 12px Oswald,sans-serif', letterSpacing: '.06em' }}>{a.contato}</p>}
   </div>
+}
+
+// 🏟️ PLACA ATRÁS DO GOL (17/10): `lado` cima/baixo mostra marcas diferentes; as duas trocam juntas a cada 7 s pelo relógio
+// (Date.now), então todo campinho da tela e todo mundo da sala vê a mesma marca na mesma hora. 0 KB: logos que já existiam.
+const PLACA_GOL_MS = 7000
+const CSS_PLACA = `.pgol{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pgol:before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(0,0,0,.3) .6px,transparent 1px);background-size:2.5px 2.5px;pointer-events:none;z-index:2}
+.pgol:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.32),transparent 50%);pointer-events:none;z-index:2}
+.pgol-in{display:flex;align-items:center;justify-content:center;width:100%;height:100%;animation:pgolGira .5s cubic-bezier(.2,.9,.3,1.15) both;transform-origin:50% 50%}
+@keyframes pgolGira{0%{transform:rotateX(90deg);filter:brightness(2.4)}100%{transform:rotateX(0);filter:none}}
+@media (prefers-reduced-motion:reduce){.pgol-in{animation:none}}`
+export function PlacaGol({ lado, alt = 30 }: { lado: 'cima' | 'baixo'; alt?: number }) {
+  const placas = placasDoCampo()
+  const vez = () => Math.floor(Date.now() / PLACA_GOL_MS)
+  const [slot, setSlot] = useState(vez)
+  useEffect(() => {
+    if (placasDoCampo().length < 2) return
+    const iv = setInterval(() => setSlot(s => { const v = vez(); return v === s ? s : v }), 500)
+    return () => clearInterval(iv)
+  }, [])
+  if (!placas.length) return null
+  const p = placas[(slot + (lado === 'baixo' ? 1 : 0)) % placas.length]
+  const borda = lado === 'cima' ? { borderBottom: '3px solid #0C0C0C' } : { borderTop: '3px solid #0C0C0C' }
+  return (
+    <div className="pgol" style={{ height: alt, background: p.fundo, perspective: 300, ...borda }} aria-label={p.nome}>
+      <style>{CSS_PLACA}</style>
+      <div className="pgol-in" key={slot}>
+        {p.logo
+          ? <img src={p.logo} alt={p.nome} draggable={false} style={{ height: Math.round(alt * 0.72), width: Math.round(alt * 0.72 * (p.prop ?? 3)), objectFit: 'contain', display: 'block' }} />
+          : <b style={{ font: `700 ${Math.round(alt * 0.5)}px Oswald, sans-serif`, letterSpacing: '.08em', textTransform: 'uppercase', color: '#0C0C0C' }}>{p.nome}</b>}
+      </div>
+    </div>
+  )
 }

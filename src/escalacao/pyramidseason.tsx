@@ -103,6 +103,7 @@ import { lanceDoGol } from './lances'
 import { chancesDoJogo, sementeDasChances, narraChance, quemFinalizou, vereditoDaChance, CHANCE_MS, GOL_ENTRA_MS, type FimDaChance } from './chances' // ⚽🥅 o golzinho com lances (26/09) // 🎙️ como a bola entrou (Diego 19/09) — só na prévia da conta dele por enquanto
 import { radioDoJogo, radioNoMinuto, narraRadio, type CartaRadio } from './radio'
 import { craqueDoJogo, fraseCraque, fraseRetro, type Retro } from './retrospecto' // 🆚⭐ (13/10) // 📻 Rádio Legends: uma frase dentro do placar (13/10)
+import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 
 const INK = '#0C0C0C'
 const GOLD = '#FFC400'
@@ -4879,6 +4880,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
       <div style={{ display: larga ? 'flex' : 'block', gap: 14, alignItems: 'flex-start' }}>
       <div className="ll-cx-campo" style={larga ? { width: 560, flex: 'none' } : undefined}>
       <div style={{ border: `3px solid ${INK}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
+        <PlacaGol lado="cima" />{/* 🏟️ placas atrás dos gols (17/10) */}
         {/* 🌱 campinho mais vertical (09/08, pedido do Diego: "parece achatado")
             — só o CAMPO cresce (listras + respiro entre as linhas); o balão
             branco do jogador (padding do botão, mais abaixo) fica igual. */}
@@ -4949,6 +4951,7 @@ function ElencoField({ mgr, col, xiIds, xi, goals, assists, selId, onTap, season
             </div>
           )
         })()}
+        <PlacaGol lado="baixo" />
       </div>
       {elencoNovo ? atalhos : blocoClube}
       </div>

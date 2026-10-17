@@ -38,6 +38,7 @@ import { useHasManual, stripEmoji } from './apoio'
 import { resilientWrite } from './pending'
 import { supabase } from '../lib/supabase'
 import { tr, getLang, ordinal } from './lang' // 🌐 BR/EN
+import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10)
 
 const INK = '#0C0C0C', GOLD = '#FFC400', GREEN = '#1B7A3D', RED = '#C2452F'
 const OSWALD = { fontFamily: "'Oswald','Arial Narrow',system-ui,sans-serif" } as const
@@ -806,6 +807,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
         <div style={{ background: INK, color: '#fff', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ ...OSWALD, fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{emblema ? '' : `${flagOf(pais)} `}{rotuloTime ?? tr('sua seleção', 'your team')} · {total}/11 · {form}</span>
         </div>
+        <PlacaGol lado="cima" alt={24} />
         <div style={{ background: `repeating-linear-gradient(180deg, ${GREEN} 0 34px, #166332 34px 68px)`, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {(['ATA', 'MEI', 'DEF', 'GOL'] as (Sec | 'DEF')[]).map(row => {
             const secs: Sec[] = row === 'DEF' ? ['LAT', 'ZAG'] : [row]
@@ -825,6 +827,7 @@ export function ConvocacaoScreen({ pais, onBack, onDone, prazoSeg, aoEstourar, p
             )
           })}
         </div>
+        <PlacaGol lado="baixo" alt={24} />
       </div>
 
       {/* ⏱️🥴 O RELÓGIO E O CASTIGO, na cara de quem está convocando (Diego 01/09:
