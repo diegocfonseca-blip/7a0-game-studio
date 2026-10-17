@@ -6,6 +6,8 @@
   `scripts/mockups/anuncio-do-dia-placa.mp4` contra as 4 outras ideias): um anúncio por vez, parado e inteiro, marca em cima
   (cor do anúncio) e oferta embaixo, letras virando a cada 7 s (`PLACA_MS`), barrinha de tempo, relógio pelo Date.now (a sala
   vê o mesmo anúncio e nada recomeça quando a tela remonta). Marca = texto até o 1º " · " (se tiver até 30 letras).
+  🔗 Tocar na Vadico abre a oferta do Haval H6 no site dela (`GIRO_ANUNCIO_LINK`). Só anúncio MANUAL leva link; o pago de
+  24 h não (texto do comprador vai pro ar sem revisão — link ali seria porta pra golpe).
 
 ## 🦁🔵 Batismo Chelsão da Massa FC (16/10) — ✅ NO AR
 - Dono `ccaonta@gmail.com` (conta desde 12/10, já tinha comprado o Batismo: `esc_compras_batismo` = lenda). **Série C**, no

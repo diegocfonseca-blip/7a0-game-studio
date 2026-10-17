@@ -7638,8 +7638,9 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
           : <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{en ? '📢 Ad of the day' : '📢 Anúncio do dia'}</span>}
         {itens.length > 1 && <span>{itens.map((_, i) => <i key={i} style={{ display: 'inline-block', width: i === idx ? 16 : 6, height: 6, borderRadius: 9, background: i === idx ? INK : '#d9cfae', marginLeft: 4, transition: 'width .3s' }} />)}</span>}
       </div>
-      <div className="placa-led" key={slot}>
-        <span className="placa-tag">{en ? 'AD' : 'ANÚNCIO'}</span>
+      <div className="placa-led" key={slot} role={ad.link ? 'link' : undefined} tabIndex={ad.link ? 0 : undefined} style={ad.link ? { cursor: 'pointer' } : undefined}
+        onClick={ad.link ? () => { logApoio(`📢 clicou no anúncio: ${marca || oferta}`); window.open(ad.link, '_blank', 'noopener,noreferrer') } : undefined}>
+        <span className="placa-tag">{ad.link ? (en ? 'AD · TAP TO SEE ›' : 'ANÚNCIO · TOQUE PRA VER ›') : (en ? 'AD' : 'ANÚNCIO')}</span>
         {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 19 : undefined }}><LetrasVirando texto={marca} /></div>}
         <div className={`placa-o${marca ? '' : ' so'}`}><LetrasVirando texto={oferta} atraso={180} /></div>
         <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
