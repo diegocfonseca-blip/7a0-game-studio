@@ -36,6 +36,12 @@ revogado, e a repetição passou. Os relatórios de futebol conservam o nome
 `/tmp/presidencia-publicacao-20261018-final`, sem páginas de QA; log em
 `test-results/complexo-3d/publicacao-build-final-20261018.log`.
 
+Durante o envio, a main recebeu também `ed264511` (Amigos e perfil público
+em teste). Essa entrega foi preservada integralmente; só houve conflito na
+ordenação da documentação. Não alterou os módulos do estádio, sala ou motor.
+O build da integração fica em
+`test-results/complexo-3d/publicacao-build-amigos-20261018.log`.
+
 ## Autorização e escopo originais
 
 Diego autorizou: “Publique tudo q fez ate o momento no meu usuarion”.

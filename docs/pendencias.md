@@ -99,6 +99,13 @@
   [presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md).
 
 
+## 👥 AMIGOS + PERFIL ("estilo Orkut", ideia do Diego 18/10) — ✅ NO AR SÓ NA CONTA DO DIEGO (`AMIGOS_GERAL = false`)
+- 🚫 **COMUNIDADES: NÃO FAZER** (*"esse negócio de comunidade é doideira, melhor não"*). Não repropor.
+- Feito: `amigos.tsx` (PerfilPublico · MeusAmigos · BotaoAmigos), botão "👥 Amigos" acima de Minhas ligas, toque no nome na sala de
+  espera abre o perfil. Banco: `esc_amizades` + 5 funções (migration 20261018030000). Falta: "chamar pra sala"/"entrar" (precisa de
+  aviso entre contas), toque no nome no chat/ranking/Campeões de hoje, e liberar pra todos quando ele mandar.
+
+
 ## 💸 META DO MÊS SOMA SOZINHA (17/10) — ✅ NO AR
 - Diego: *"a barra deve somar sozinha. Só da Vadico que eu tenho que te avisar"*. A % agora é `esc_meta_mes_pct(mes)` =
   (Pix integrado liberado no mês, fora a conta do Diego + `esc_meta_entradas`) ÷ `esc_meta_mes.custo` (R$ 1.600 = Supabase

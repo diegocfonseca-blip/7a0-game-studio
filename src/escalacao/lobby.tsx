@@ -39,7 +39,8 @@ import { LojaButton } from './loja-clube'
 import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
-import { getSport, useSport, usePregaoAberto } from './sport' // 🏀 qual esporte a pessoa está jogando (separa as salas)
+import { getSport, useSport, usePregaoAberto, useAmigos } from './sport'
+import { BotaoAmigos, PerfilPublico, contaValida } from './amigos' // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
@@ -806,6 +807,8 @@ export function EscLobby() {
   // Pra voltar ao que era: `true` aqui.
   const LIGA_SO_LENDA_ENTRA = false
   const ligaOn = useLigaLiberada() // 🏆 modo Liga: em construção, só a conta do Diego
+  const amigosOn = useAmigos() // 👥 18/10: amigos + perfil, só a conta do Diego por enquanto
+  const [perfilUid, setPerfilUid] = useState<string | null>(null)
   const libertaOn = useLibertaLiberada() // 🌎 Libertadores: em construção, só a conta do Diego
   const championsOn = useChampionsLiberada() // ⭐ Champions: EM BREVE pra geral; só a conta do Diego joga
   // 🏟️ COPAS REGIONAIS (10/10): só a conta do Diego vê, até o OK dele. Copa que o baralho
@@ -2892,6 +2895,9 @@ export function EscLobby() {
         </div>
       )}
 
+      {/* 👥 AMIGOS (18/10): a lista com quem está online e os pedidos — só a conta do Diego por enquanto */}
+      {amigosOn && getSport() !== 'basquete' && <div className="flex justify-end"><BotaoAmigos /></div>}
+
       {/* 🏆 MINHAS LIGAS — a sala que fica de pé. Vem ANTES das carreiras porque
           é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}
       {ligaOn && myLigas.length > 0 && (
@@ -4348,6 +4354,7 @@ export function EscLobby() {
         <p className="text-black/60 text-[11px] font-black uppercase tracking-widest mb-3">
           {duplasOn ? `${tr('Times', 'Teams')} (${donos.length}/20) · ${players.length} ${players.length === 1 ? tr('pessoa', 'person') : tr('pessoas', 'people')}` : `${tr('Técnicos', 'Managers')} (${players.length}/${room.max_players})`}
         </p>
+        {perfilUid && <PerfilPublico uid={perfilUid} onClose={() => setPerfilUid(null)} />}
         <div className="space-y-2">
           {donos.map(p => {
             const par = duplasOn ? parceiroDe(p.user_id) : undefined
@@ -4381,7 +4388,9 @@ export function EscLobby() {
                     {pkAv.holo > 0 && <ApoioSheen holo={pkAv.holo} dur={2.6} />}
                   </div>
                 ); return getSport() === 'basquete' ? bolinha : <PresidenteDaConta uid={p.user_id} size={40} reserva={bolinha} /> /* 🧑‍💼 16/10: a PESSOA = o presidente dela (Craque+); sem boneco, a bolinha de sempre */ })()}
-                <span className="font-black text-black text-sm flex-1" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>
+                {amigosOn && !duplasOn && contaValida(p.user_id)
+                  ? <button onClick={() => setPerfilUid(p.user_id)} className="font-black text-black text-sm flex-1 text-left underline decoration-dotted underline-offset-2" style={pk && !gala ? { color: pk.solid } : undefined}>{p.manager_name}</button>/* 👥 toque no nome = perfil (adicionar amigo) */
+                  : <span className="font-black text-black text-sm flex-1" style={pk && !gala ? { color: pk.solid } : undefined}>{duplasOn && par ? (p.dupla_name || nomeAutoDupla(p.manager_name, par.manager_name)) : p.manager_name}</span>}
                 {gala && <GalaMascoteMini clube={gala} />}
                 {duplasOn && <span className="text-[10px] font-black uppercase border border-black px-2 py-0.5 rounded-full" style={{ background: par ? GREEN : '#e6dcbf', color: par ? '#fff' : 'rgba(0,0,0,.6)' }}>{par ? '2/2 ✅' : '1/2'}</span>}
                 {/* 🃏 BAFO: o estado de cada um, na lista — o host bate o olho e sabe
