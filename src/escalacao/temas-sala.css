@@ -4,6 +4,7 @@
 .tema-sala.tema-neymarzetti_branco{background:linear-gradient(180deg,#f2f2f2 0%,#fff 40%,#d6d6d6 100%)!important;color:#0c0c0c!important}
 .tema-sala.tema-k9_gelo{background:radial-gradient(ellipse at 50% 12%,#1d3fd6 0%,#0a1f7a 45%,#030a33 100%)!important}
 .tema-sala.tema-k9_branco{background:linear-gradient(180deg,#fff 0%,#eef4ff 45%,#cfdcff 100%)!important;color:#0723B4!important}
+.tema-sala.tema-coracao{background:#0c0c0c!important}
 .tema-sala>.col-tela{position:relative;z-index:1}
 .tema-fundo{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .tema-marca{position:absolute;left:50%;top:38%;width:min(92vw,560px);transform:translate(-50%,-50%);filter:grayscale(1);opacity:.12}
@@ -20,6 +21,14 @@
   linear-gradient(115deg,transparent 40%,rgba(190,230,255,.75) 41%,rgba(255,255,255,.95) 46%,transparent 47%) 0 100%/60px 120px repeat-x,
   linear-gradient(65deg,transparent 40%,rgba(160,215,255,.7) 41%,rgba(255,255,255,.9) 46%,transparent 47%) 30px 100%/70px 100px repeat-x}
 .tema-sala.tema-k9_gelo .tema-marca,.tema-sala.tema-k9_branco .tema-marca{filter:none}
+.tema-listras{position:absolute;inset:-20%;transform:skewY(-8deg);opacity:.9}
+.tema-sombra{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 20%,rgba(0,0,0,.2),rgba(0,0,0,.65) 80%)}
+.tema-marca.tema-marca-cor{filter:drop-shadow(0 0 20px rgba(0,0,0,.5));opacity:.2;top:62%;width:min(70vw,360px)}
+.tema-torcida{position:absolute;left:0;right:0;bottom:0;height:150px;opacity:.9;background:
+  radial-gradient(circle at 10px 12px,#111 9px,transparent 10px) 0 0/22px 26px,
+  radial-gradient(circle at 10px 12px,#222 9px,transparent 10px) 11px 13px/22px 26px}
+.tema-bandeira{position:absolute;width:30px;height:44px;border:2px solid #000;border-radius:3px;box-shadow:2px 2px 0 rgba(0,0,0,.4)}
+.tema-bandeira::after{content:'';position:absolute;left:-5px;top:-2px;width:3px;height:68px;background:#5a3b1a}
 @media (min-width:900px){.tema-mascote{right:4%}}
 /* textos da sala no tema CLARO (a sala foi feita pra fundo escuro) */
 .tema-sala.tema-neymarzetti_branco .online-room-code p,.tema-sala.tema-neymarzetti_branco .online-room-code{color:#0c0c0c!important;text-shadow:none!important}

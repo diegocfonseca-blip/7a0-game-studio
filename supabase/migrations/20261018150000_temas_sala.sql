@@ -1,0 +1,7 @@
+-- 🎨 18/10: TEMA DA SALA na Loja. Aplicada via MCP (em pedaços; esc_mp_preco_ref e esc_mp_entregar ganharam os ramos por replace no servidor).
+-- esc_temas_conta (email, tipo 'clube'|'coracao', alvo, status 'ativo'|'producao', origem, pedido_id) · RLS sem policy
+-- esc_meus_temas() · esc_admin_tema(email,tipo,alvo,status) · esc_admin_temas() (só a conta do Diego)
+-- esc_mp_preco_ref: 'tema_coracao' 9,90 (ref = slug do escudo oficial, ^[a-z0-9-]{2,20}$, recusa quem já tem) · 'tema_clube' 9,90 só plano_rank >= 3
+-- esc_mp_entregar: tema_coracao → ativo · tema_clube → 'producao' (alvo = esc_socios.escudo_time)
+-- check esc_mp_pedidos_produto_check ganhou 'tema_coracao','tema_clube'
+-- Definição viva: select pg_get_functiondef('public.<nome>'::regproc);

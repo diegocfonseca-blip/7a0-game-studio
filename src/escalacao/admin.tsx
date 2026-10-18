@@ -440,6 +440,47 @@ function PixMpAdmin() {
   )
 }
 
+// 🎨 TEMAS DA SALA (18/10). Diego: *"o fundador eu pergunto qual ele quer, do time ou mascote"* — aqui ele DÁ o tema incluso do
+// Fundador e LIBERA o tema do clube depois que a arte fica pronta (a compra nasce "em produção"). Só a conta dele (`esc_admin_tema`).
+type TemaLinha = { email: string; tipo: string; alvo: string; status: string; origem: string; criado_em: string }
+function TemasAdmin() {
+  const [lista, setLista] = useState<TemaLinha[]>([])
+  const [em, setEm] = useState(''); const [tipo, setTipo] = useState<'coracao' | 'clube'>('coracao'); const [alvo, setAlvo] = useState('')
+  const [msg, setMsg] = useState('')
+  const carregar = () => { supabase.rpc('esc_admin_temas').then(({ data }) => setLista((data ?? []) as TemaLinha[]), () => {}) }
+  useEffect(carregar, [])
+  const dar = async (e: string, t: string, a: string, st: string) => {
+    const { data, error } = await supabase.rpc('esc_admin_tema', { p_email: e.trim(), p_tipo: t, p_alvo: a.trim(), p_status: st })
+    setMsg(error ? `❌ ${error.message}` : data === 'ok' ? '✅ feito' : `❌ ${data}`); carregar()
+  }
+  const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
+  const inp: React.CSSProperties = { border: '2px solid #FFC400', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700, background: '#111', color: '#F2E8CF' }
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>🎨 Temas da sala</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 8px' }}>Dar o tema incluso do Fundador ou liberar o tema do clube quando a arte ficar pronta. Coração: o "alvo" é o nome do arquivo do escudo (ex.: flamengo, santa-cruz, sao-paulo). Clube: o nome do clube batizado (ex.: K9 FC).</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <input value={em} onChange={e => setEm(e.target.value)} placeholder="e-mail" style={{ ...inp, flex: '2 1 160px' }} />
+        <select value={tipo} onChange={e => setTipo(e.target.value as 'coracao' | 'clube')} style={inp}><option value="coracao">❤️ coração</option><option value="clube">🛡️ clube</option></select>
+        <input value={alvo} onChange={e => setAlvo(e.target.value)} placeholder={tipo === 'coracao' ? 'flamengo' : 'K9 FC'} style={{ ...inp, flex: '1 1 110px' }} />
+        <button onClick={() => void dar(em, tipo, alvo, 'ativo')} disabled={!em.trim() || !alvo.trim()} style={{ border: 'none', borderRadius: 8, padding: '6px 10px', background: '#6fdb8f', fontWeight: 900, cursor: 'pointer' }}>DAR / LIBERAR</button>
+      </div>
+      {msg && <p style={{ fontSize: 11.5, fontWeight: 800, color: msg.startsWith('✅') ? '#6fdb8f' : '#ff8a75', margin: '6px 0 0' }}>{msg}</p>}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#F2E8CF', marginTop: 8 }}>
+        <tbody>
+          {lista.map(r => <tr key={r.email + r.tipo + r.alvo} style={{ opacity: r.status === 'producao' ? 1 : .7 }}>
+            <td style={td}>{r.email}</td><td style={td}>{r.tipo === 'clube' ? '🛡️' : '❤️'} {r.alvo}</td><td style={td}>{r.origem}</td>
+            <td style={td}>{r.status === 'producao'
+              ? <button onClick={() => void dar(r.email, r.tipo, r.alvo, 'ativo')} style={{ border: 'none', borderRadius: 8, padding: '3px 7px', background: '#FFC400', fontWeight: 900, cursor: 'pointer' }}>⏳ em produção → LIBERAR</button>
+              : '✅ ativo'}</td>
+          </tr>)}
+          {lista.length === 0 && <tr><td style={td}>nenhum tema vendido ainda</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // 📢 CLIQUES NOS ANÚNCIOS (17/10). Diego: *"alguma info de que a pessoa apertou no link dos patrocinadores"* — a placa
 // "📢 Anúncio do dia" (onde era o giro da rodada). Cada toque já caía em `apoio_intents`; o banco soma por anúncio
 // (`esc_admin_cliques_anuncios`, só a conta dele) pra não baixar milhares de linhas aqui.
@@ -1272,7 +1313,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><CliquesAnunciosAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><CliquesAnunciosAdmin /><TemasAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

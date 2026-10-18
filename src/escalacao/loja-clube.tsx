@@ -24,6 +24,7 @@ import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, PRECOS_UNICO, PRECOS_DUPLO, type PlanoUnico } from './planos-regras'
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
 import { PresenteBox } from './presente'
+import { TemasNaLoja } from './temas-loja' // 🎨 18/10: tema da sala (time de coração + clube batizado)
 import { PixMP, AnunciosPendentes, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
 import { patrocinioLojaOk } from './patrocinio'
 import { usePixMp } from './sport'
@@ -243,6 +244,9 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
           : tr('Depois de pagar, você escolhe em qual carreira elas caem. Vale só na carreira solo.', 'After paying, you choose which career they go to. Solo career only.')}</p>
           : <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: 'rgba(12,12,12,.6)', lineHeight: 1.4 }}>{tr('Você recebe uma FICHA e resgata na carreira que quiser, quando quiser: Clube › Finanças › 🏦 Banco Legends. Moeda vale só na carreira solo (não entra em sala online nem em liga dos amigos).', 'You get a VOUCHER and redeem it in whichever career you like, whenever you like: Club › Finances › 🏦 Banco Legends. Coins only work in the solo career (not in online rooms or friends’ leagues).')}</p>}
         {naCarr && <ResgateFicha />}
+
+        {/* 🎨 TEMA DA SALA (18/10, Diego): ❤️ time de coração pra qualquer um · 🛡️ do clube só Batismo/Fundador · Fundador ganha 1 */}
+        {pixMp && <TemasNaLoja temBatismo={temBatismo} fundador={atual === 'fundador'} h2={h2} sub={sub} card={card} preco={preco} reais={reais} />}
 
         {/* 💼 SUA MARCA NO JOGO (16/10, Diego): ⚡ Dia da marca pago no Pix (depois chama o Diego) · 📅 mensal SEM preço, só o que
             vem no pacote e o contato. Começa só nas contas do Diego (`patrocinioLojaOk`). */}

@@ -1,3 +1,8 @@
+## 🎨 TEMA DA SALA NA LOJA (18/10) — ✅ NO AR
+- `temas-loja.tsx` (🎨 Tema da sala na Loja): ❤️ time de coração (todo clube com escudo oficial, entra na hora após o Pix) pra todos;
+  🛡️ tema do clube só Batismo+ (nasce "em produção": montar a arte em temas-sala.tsx e o Diego libera no #admin); Fundador ganha 1
+  (o Diego dá no #admin). Banco: `esc_temas_conta` + produtos tema_coracao/tema_clube; edge mp-criar-pix v8. Detalhe no branch do Claude.
+
 ## 18/10/2026 — Retomada da publicação privada da Presidência
 
 - Pedido de Diego para seguir com a publicação; pacote de 16/10 preservado.

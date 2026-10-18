@@ -41,7 +41,7 @@ import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useAmigos } from './sport'
 import { PerfilPublico, contaValida, ComPerfil } from './amigos'
-import { TemaFundo, temaValido, temasDaConta, TEMAS_SALA, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
+import { TemaFundo, temaValido, useTemasDaConta, releMeusTemas, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
@@ -2786,8 +2786,10 @@ export function EscLobby() {
   // de senha com 900px de largura fica ridículo e ainda dificulta a leitura.
   // 🎨 tema do clube (18/10): só na sala de espera, escolhido pelo dono — ver temas-sala.tsx
   const temaSala = phase === 'waiting' && room ? temaValido((room.game_state as GS & { tema?: string })?.tema) : null
+  const meusTemas = useTemasDaConta(user?.email) // 🎨 os temas que ESTA conta pode pôr na sala (código + Loja)
+  useEffect(() => { if (phase === 'waiting' && user?.email) releMeusTemas(user.email) }, [phase, user?.email]) // comprou agora na Loja → já aparece
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
-    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? 'online-room-art' : ''}${temaSala ? ` tema-sala tema-${temaSala.id}` : ''}`} data-online-phase={phase} style={{ backgroundColor: INK }}>
+    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? 'online-room-art' : ''}${temaSala ? ` tema-sala tema-${temaSala.coracao ? 'coracao' : temaSala.id}` : ''}`} data-online-phase={phase} style={{ backgroundColor: INK }}>
       {temaSala && <TemaFundo tema={temaSala} />}
       {onBack && (
         <button onClick={onBack} aria-label={tr('Voltar pra home', 'Back to home')}
@@ -4122,10 +4124,10 @@ export function EscLobby() {
       </div>
 
       {/* 🎨 TEMA DO CLUBE (18/10): só o dono, e só se a conta dele tiver tema (batismo) */}
-      {isHost && temasDaConta(user?.email).length > 0 && (
+      {isHost && meusTemas.length > 0 && (
         <div className="rounded-2xl border-[3px] border-black p-2.5 bg-white" style={{ boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
           <p className="font-black text-[12px] uppercase mb-1.5" style={OSWALD}>{tr('🎨 Tema da sala', '🎨 Room theme')}</p>
-          <Seg small options={[['', tr('Sem tema', 'No theme')], ...temasDaConta(user?.email).map(id => [id, nomeTema(TEMAS_SALA[id])] as [string, string])]}
+          <Seg small options={[['', tr('Sem tema', 'No theme')], ...meusTemas.map(id => [id, temaValido(id) ? nomeTema(temaValido(id)!) : id] as [string, string])]}
             value={temaSala?.id ?? ''} onSet={v => void salvaTema((v || null) as TemaSalaId | null)} />
           <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('Todo mundo que entra na sala vê. Muda só o visual da sala de espera.', 'Everyone who joins sees it. Only the waiting room look changes.')}</p>
         </div>
