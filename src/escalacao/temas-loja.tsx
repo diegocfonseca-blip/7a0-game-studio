@@ -2,7 +2,7 @@
 // Regras do Diego (18/10): *"grátis, craque e lenda podem pegar avulso só de times"* · Batismo compra o tema do CLUBE (as 2
 // versões dele) · *"o fundador eu pergunto qual ele quer, do time ou mascote"* (1 incluso, dado pelo #admin) · extras avulsos
 // de qualquer tipo pra Batismo pra cima. 🔁 18/10: *"o fundador ganha apenas o de mascote… de clubes ele tem que pagar
-// também… e ganha apenas um"* — Fundador = 1 tema do CLUBE (uma versão), time de coração ele compra. R$ 9,90 cada. O preço e quem pode comprar moram no BANCO (`esc_mp_preco_ref`) — a
+// também… e ganha apenas um"* — Fundador = 1 tema do CLUBE (uma versão), time de coração ele compra. R$ 6,90 cada (era 9,90 até 18/10). O preço e quem pode comprar moram no BANCO (`esc_mp_preco_ref`) — a
 // tela só mostra; o tema entra na conta quando o Pix cai (`esc_mp_entregar` → `esc_temas_conta`).
 import { useState, type CSSProperties } from 'react'
 import { tr } from './lang'
@@ -12,7 +12,7 @@ import { CLUBES_TEMA_CORACAO, releMeusTemas, useTemasDaConta, temaValido, type C
 
 const INK = '#0C0C0C'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
-const PRECO = 9.9
+const PRECO = 6.9 // 18/10 (Diego): 9,90 → 6,90, os dois temas
 
 function MiniTema({ c, size = 64 }: { c: ClubeCoracaoTema; size?: number }) {
   return (
