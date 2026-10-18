@@ -845,6 +845,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   (+25%, `RENOVA_MULT`), e quem ouve o mercado perde ela naquela virada; **💔 caiu** com contrato correndo → 1 em 2 a marca
   rescinde, paga 1 temporada de multa e sai. O valor por temporada NÃO mudou. Regras em `master-historia.ts`, dinheiro em
   `applyMasterHistoria` (store). Trava `npm run master-historia`.
+  🎯 **Metas variadas (mesmo dia, *"vareie sempre os tipos de bônus… artilheiros de outras competições, campeão de outras copas,
+  Supercopa, Mundial, Libertadores, Champions"*):** 13 metas — liga (campeão · subir/G4 · metade de cima · não cair · artilheiro da
+  divisão), Copa (ganhar · final · artilheiro), Supercopa, e na A/B da temporada 40+ (solo) Libertadores/Champions · Mundial ·
+  artilheiro internacional. As do fecho usam as `conquistas` que a tela manda (as mesmas que pagam os prêmios das copas); as
+  internacionais pagam em `FINISH_INTERNATIONAL_CAMPAIGN`. Tudo vira linha "🎯 Meta batida" no extrato.
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
   ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
   *"eu falei 5s p martelar"*), quem fechou a posição só assiste. 🔁 **16/10: CARTA COBERTA** — a carta fica sem categoria, cor, estrela e rosto até o martelo e aí VIRA no lugar (2s,

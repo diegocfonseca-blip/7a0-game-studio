@@ -47,6 +47,7 @@ import { PREPARADORES, preparadorDe, temAutomatico, salarioPreparador, precoReno
 import type { RenewAnos, ArtilheiroPremio } from './store'
 import { sequenciaPenaltis, sequenciaGuardada, disputaPenaltis, ordemBatedores, type CartaBatedor } from './penaltis'
 import { useEsc, savePyramidCloud, ultimaSubidaNuvem, useNuvemSoAparelho, squadPayroll, contratoCpuFalta, sondarLiberado, filialSlots, filialSaleValue, ownedRealCount, vagaCheio, elencoCheio, CRIA_HISTORIAS_VAGA, isFillerClub, ehFake, valorOficial, renewOptions, renewCost, catalogTodos, agenciaEstadio, ident, previewCriaNomes, SOCIO_MENSAL, SOCIO_BOAS_VINDAS, RANKING_SEMANA_MOEDAS, TV_EXTRA_POR_VIDEO, TV_EXTRA_ANTIGO, TV_COTA, saf2Janela, segundoClube, clubePrincipal, saf2DivDaSaf, saf2Tacas, saf2Valor2o, temSafAgencia } from './store'
+import { masterIntlAberto } from './master-historia' // 🎯 metas internacionais do Master (17/10)
 import { sectorNome, extraNome, empresarioIncome, empCat, EMP_ORDER, EMP_META, empCatUnlocked, agenciaRenda, AG_VALUES, AG_FOLK_BONUS, sectorsDone, sectorPct, hasExtra, STADIUM_SECTORS, STADIUM_EXTRAS, sponsorBetHit, sponsorBetValue, stadiumOccupancy, sponsorBrandOf, masterAtivo } from './estadiodata'
 import type { EmpCat, StadiumSave, SponsorBetTier } from './estadiodata'
 import { CardCollectPrompt, ApoieButton, useSimMode, SimControls, SpeedControls, CollectibleCard, GiroDaRodada } from './screens'
@@ -1051,6 +1052,18 @@ export function artilheirosDaTemporada(divTop: Record<Div, SeasonScorer | undefi
   if (ts?.human && ts.teamId >= 0) out.push({ mgr: ts.teamId, coins: cb?.topScorer ? CB_SCORER_BONUS : COPA_SCORER_BONUS, txt: en ? `🥇 Top scorer of the ${cb?.topScorer ? 'Copa do Brasil' : 'Copa Legends'}: ${ts.name} (${gols(ts.goals)})` : `🥇 Artilheiro da ${cb?.topScorer ? 'Copa do Brasil' : 'Copa Legends'}: ${ts.name} (${gols(ts.goals)})` })
   const sc = [...(supercopa?.scorers ?? [])].filter(x => x.goals > 0).sort((x, y) => y.goals - x.goals || x.name.localeCompare(y.name))[0]
   if (sc?.human && sc.teamId >= 0) out.push({ mgr: sc.teamId, coins: SUPERCOPA_SCORER_BONUS, txt: en ? `🥇 Top scorer of the Supercopa: ${sc.name} (${gols(sc.goals)})` : `🥇 Artilheiro da Supercopa: ${sc.name} (${gols(sc.goals)})` })
+  return out
+}
+
+// 🎯 o que cada técnico humano CONQUISTOU nas copas da temporada — é o que as metas do Patrocinador Master leem no fecho
+// (17/10, master-historia.ts). Mesmos dados que pagam os prêmios das copas, então a meta nunca discorda do prêmio.
+export function conquistasDaTemporada(copa: CopaResult | null, cb: CopaBrasilResult | null, supercopa: { a: SimTeam; b: SimTeam; win: 'a' | 'b' } | null): Record<number, string[]> {
+  const out: Record<number, string[]> = {}
+  const add = (t: { human?: boolean; teamId: number } | null | undefined, tag: string) => { if (t?.human && t.teamId >= 0) (out[t.teamId] ??= []).push(tag) }
+  add(cb?.champion ?? copa?.champion, 'copa_campeao')
+  add(cb?.vice ?? copa?.vice, 'copa_final')
+  add(cb?.topScorer ?? copa?.topScorer, 'art_copa')
+  if (supercopa?.win) add(supercopa.win === 'a' ? supercopa.a : supercopa.b, 'super_campeao')
   return out
 }
 
@@ -8541,7 +8554,8 @@ export function PyramidSeasonScreen() {
     for (const d of DIVS) tables[d].forEach((t, i) => { if (t.human && t.teamId >= 0) { stadiumOcc[t.teamId] = stadiumOccupancy(i + 1, state.stadiums?.[t.teamId]); finalPos[t.teamId] = i + 1 } })
     // 🥇 artilheiro com linha própria no extrato (17/10) — o dinheiro já está nos `rewards`, aqui ele ganha nome
     const artilheiros = artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, getLang() === 'en')
-    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), stadiumOcc, finalPos, artilheiros })
+    const conquistas = conquistasDaTemporada(copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null) // 🎯 metas do Master
+    dispatch({ type: 'CLOSE_SEASON_BOOKS', rewards: mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), stadiumOcc, finalPos, artilheiros, conquistas })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [copaFinished, state.booksSeason, state.seasonNo])
   // 🏛️ MULTICLUBES: momento SEGURO pra trocar = nenhuma rodada nem Copa animando na
@@ -10252,7 +10266,7 @@ export function PyramidSeasonScreen() {
                     {/* 🏆 1 — MASTER: sem contrato = os 4 papéis; com contrato = a faixa
                         de leitura (que não é passo, é só informação). */}
                     <MasterBanner cinematic={privateCareer} div={me.div} seasonNo={sn}
-                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId}
+                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId} intl={masterIntlAberto(sn, state.onlineMode === 'online')}
                       onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
                       onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}
                       onMercado={() => dispatch({ type: 'MASTER_MERCADO', mgrId: youId })} />
@@ -10436,7 +10450,7 @@ export function PyramidSeasonScreen() {
           const supercopaChampionKey = copaBrOk && supercopaTie ? teamKey(supercopaTie.win === 'a' ? supercopaTie.a : supercopaTie.b) : null
           // ⚽🅰️ os números da temporada VÃO JUNTO na virada: é o reducer que soma eles
           // no acumulado do jogador (`condicaoCarry`), e só ele enxerga o save.
-          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos, artilheiros: artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, enFim) })
+          const args = () => ({ golsCard: golsTemporada, assCard: assTemporada, jogosCard: jogosExtra, placements: newPlacements, rewards: mrg(mrg(mrg(seasonRewards(tables), sb.rewards), cr.rewards), torcBonus), clubRewards: mrg(mrg(mrg(clubRewards(tables), sb.clubRewards), cr.clubRewards), botBancoOn ? premiosColocacaoBots(tables) : {}), botCarry: botCarryFim, champions: seasonChampions(tables), copaChampion: cr.championKey, supercopaChampion: supercopaChampionKey, torcidaDeltas: torcDeltas, torcidaHist: torcidaHistEntries(tables, newPlacements), stadiumOcc, finalPos, artilheiros: artilheirosDaTemporada(divTop, copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null, enFim), conquistas: conquistasDaTemporada(copaBrOk && copaBR ? null : copa, copaBrOk && copaBR ? copaBR : null, copaBrOk && copaBR ? supercopaTie : null) })
           const openLeilao = () => dispatch({ type: 'OPEN_RESERVE_LIST', ...args() })
           // 🔒 "mesmo time" passa pela MESMA tela de contratos (reserveList) — só que
           // sem mercado/leilão depois: o jogador decide renovar/deixar ir de verdade,

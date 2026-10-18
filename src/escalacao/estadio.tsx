@@ -318,13 +318,13 @@ export function MasterFaixa({ contrato, seasonNo, recemAssinado }: { contrato: M
     </div>
   )
 }
-export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = false, passo, seed = 0, mgrId = 0, onRenovar, onMercado }: { div: string; contrato?: MasterContrato; seasonNo: number; onPick: (brandId: string) => void; cinematic?: boolean; passo?: PassoVirada; seed?: number; mgrId?: number; onRenovar?: () => void; onMercado?: () => void }) {
+export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = false, passo, seed = 0, mgrId = 0, intl = false, onRenovar, onMercado }: { div: string; contrato?: MasterContrato; seasonNo: number; onPick: (brandId: string) => void; cinematic?: boolean; passo?: PassoVirada; seed?: number; mgrId?: number; intl?: boolean; onRenovar?: () => void; onMercado?: () => void }) {
   const [sel, setSel] = useState<string | undefined>(undefined)
   const en = getLang() === 'en'
   const ant = contrato as MasterContratoHist | undefined
   if (masterAtivo(contrato, seasonNo)) return <MasterFaixa contrato={contrato} seasonNo={seasonNo} recemAssinado={contrato.desde === seasonNo} />
   // 📞 a marca liga pra renovar (foi bem durante o contrato) — decide isto ANTES dos papéis (a mesma regra do motor)
-  const renova = masterOfertaRenovacao(ant, seasonNo, div, seed, mgrId)
+  const renova = masterOfertaRenovacao(ant, seasonNo, div, seed, mgrId, intl)
   if (renova && onRenovar && onMercado) return <MasterLigacao oferta={renova} contrato={ant} cinematic={cinematic} passo={passo} onRenovar={onRenovar} onMercado={onMercado} />
   // 💔/🔎 a marca que rescindiu ou que você recusou não volta nesta virada
   const fora = masterMarcaFora(ant, seasonNo)
@@ -342,7 +342,7 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
       <style>{CSS_MASTER_PAPEL}</style>
       <div className="mp-grade" style={{ ['--mp-n' as string]: prazos.length } as React.CSSProperties}>
         {prazos.map(p => (
-          <MasterPapel key={p.brandId} brandId={p.brandId} anos={p.anos} div={div} sel={sel === p.brandId} onPick={() => setSel(p.brandId)} meta={masterMetaOferta(seed, seasonNo, mgrId, p.brandId, div)} />
+          <MasterPapel key={p.brandId} brandId={p.brandId} anos={p.anos} div={div} sel={sel === p.brandId} onPick={() => setSel(p.brandId)} meta={masterMetaOferta(seed, seasonNo, mgrId, p.brandId, div, intl)} />
         ))}
       </div>
     </div>

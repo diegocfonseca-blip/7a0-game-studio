@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict'
 import { reducer } from '../src/escalacao/store'
 import type { EscState } from '../src/escalacao/types'
-import { masterMetaOferta, masterMetaBatida, masterOfertaRenovacao, masterRescinde, metasDaDivisao, masterMetaBonus, RENOVA_MULT } from '../src/escalacao/master-historia'
+import { masterMetaOferta, masterMetaBatida, masterMetaBatidaFecho, masterMetaBatidaIntl, masterOfertaRenovacao, masterRescinde, metasDaDivisao, masterMetaBonus, RENOVA_MULT, MASTER_METAS, type MasterMetaId } from '../src/escalacao/master-historia'
 import { masterPorTemporada, MASTER_PRAZOS } from '../src/escalacao/estadiodata'
 
 // 1) regras puras
@@ -21,7 +21,18 @@ assert.equal(masterMetaBatida('nao_cair', 16, 'B', false), true); assert.equal(m
 assert.equal(masterMetaBatida('acesso', 3, 'A', false), false, 'na A não existe acesso')
 const metasVistas = new Set<string>()
 for (let sd = 0; sd < 60; sd++) metasVistas.add(masterMetaOferta(sd, 1, 0, 'vadico', 'B').meta)
-assert.ok(metasVistas.size >= 4, `as metas variam (${metasVistas.size} diferentes)`)
+assert.ok(metasVistas.size >= 8, `as metas variam (${metasVistas.size} diferentes)`)
+// copas e internacionais (17/10, 2ª conversa: "vareie sempre os tipos de bônus")
+assert.ok(metasDaDivisao('B', true).includes('mundial') && !metasDaDivisao('C', true).includes('mundial') && !metasDaDivisao('A', false).includes('mundial'), 'internacionais só na A/B com a campanha aberta')
+const f = (tags: string[]) => ({ pos: 12, div: 'B', artLiga: false, tags })
+assert.equal(masterMetaBatidaFecho('copa_campeao', f(['copa_campeao'])), true); assert.equal(masterMetaBatidaFecho('copa_final', f(['copa_campeao'])), true, 'campeão também chegou na final')
+assert.equal(masterMetaBatidaFecho('copa_final', f(['copa_final'])), true); assert.equal(masterMetaBatidaFecho('copa_campeao', f(['copa_final'])), false)
+assert.equal(masterMetaBatidaFecho('art_copa', f(['art_copa'])), true); assert.equal(masterMetaBatidaFecho('super_campeao', f(['super_campeao'])), true)
+assert.equal(masterMetaBatidaFecho('mundial', f(['copa_campeao'])), false, 'internacional nunca bate no fecho')
+assert.equal(masterMetaBatidaIntl('continental', { continental: true, mundial: false, artilheiro: false }), true)
+assert.equal(masterMetaBatidaIntl('mundial', { continental: true, mundial: false, artilheiro: false }), false)
+assert.equal(masterMetaBatidaIntl('art_intl', { continental: false, mundial: false, artilheiro: true }), true)
+for (const k of Object.keys(MASTER_METAS) as MasterMetaId[]) assert.ok(MASTER_METAS[k].pt && MASTER_METAS[k].en, `${k}: texto PT e EN`)
 
 // 2) motor
 let s = reducer({} as EscState, { type: 'NEW_GAME' } as never)
@@ -44,6 +55,17 @@ assert.ok(pago >= c1.bonus!, `bateu a meta: recebe o bônus (${pago} ≥ ${c1.bo
 assert.equal(x.careerMaster![id].foiBem, true, 'foi bem fica anotado')
 const depois = caixa(x); x = fecha(x, 1, true); assert.equal(caixa(x), depois, 'fecho repetido não paga de novo')
 
+// 2b) meta de COPA paga no fecho de verdade (conquistas vindas da tela)
+{
+  let k = reducer(base(1), { type: 'SET_MASTER', brandId: 'ero', mgrId: id } as never)
+  k = { ...k, careerMaster: { [id]: { ...k.careerMaster![id], meta: 'copa_campeao', bonus: 40 } } } as EscState
+  const c0 = caixa(k)
+  const sem = reducer(k, { type: 'CLOSE_SEASON_BOOKS', finalPos: { [id]: 12 }, artilheiros: [], conquistas: {} } as never)
+  const com = reducer(k, { type: 'CLOSE_SEASON_BOOKS', finalPos: { [id]: 12 }, artilheiros: [], conquistas: { [id]: ['copa_campeao'] } } as never)
+  assert.equal(caixa(com) - caixa(sem), 40, 'ganhou a Copa: +40 de bônus da meta')
+  assert.ok(caixa(com) > c0)
+  assert.ok(/Meta batida|Goal reached/.test(JSON.stringify(com)), 'aparece no extrato como Meta batida')
+}
 // 3) ligação: contrato de 1 temporada (Max Joias) que foi bem → na temporada seguinte a marca liga
 let r = reducer(base(1, 'C'), { type: 'SET_MASTER', brandId: 'maxjoias', mgrId: id } as never)
 r = fecha(r, 2) // top 4 = foi bem
