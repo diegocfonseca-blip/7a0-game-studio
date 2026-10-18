@@ -16,7 +16,7 @@ const PRECO = 9.9
 function MiniTema({ c, size = 64 }: { c: ClubeCoracaoTema; size?: number }) {
   return (
     <span style={{ width: size, height: size * 1.25, flex: 'none', borderRadius: 10, border: `2px solid ${INK}`, overflow: 'hidden', position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      background: `repeating-linear-gradient(160deg,${c.c1} 0 10px,${c.c2} 10px 20px)` }}>
+      background: c.listraMini ?? `repeating-linear-gradient(160deg,${c.c1} 0 10px,${c.c2} 10px 20px)` }}>
       <span style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 30%,rgba(0,0,0,.05),rgba(0,0,0,.55))' }} />
       <img src={import.meta.env.BASE_URL + c.src} alt="" style={{ position: 'relative', width: size * .62, height: size * .62, objectFit: 'contain', filter: 'drop-shadow(1px 2px 0 rgba(0,0,0,.6))' }} />
     </span>

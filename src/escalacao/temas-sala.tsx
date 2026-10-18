@@ -22,7 +22,7 @@ export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
-  id: TemaSalaId; coracao?: { c1: string; c2: string; nome: string }; nome: string; nomeEn: string; selo: string
+  id: TemaSalaId; coracao?: { c1: string; c2: string; nome: string; listra?: string; bandeira?: string }; nome: string; nomeEn: string; selo: string
   escudo: string; mascote: string | null; claro: boolean
   botao: string; botaoTxt: string // o "Abrir o pregão"
   enfeite: 'morcegos' | 'neve' | 'nenhum'
@@ -50,12 +50,22 @@ const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {
 
 // ❤️ TIME DE CORAÇÃO (18/10, Diego: *"pode pôr escudo oficial sim"*): todo clube que tem escudo oficial no jogo (os do Leilão
 // de Clubes, `escudos-oficiais.ts`) vira tema — as cores vêm do selo dele (`selos-clubes.ts`). Arte: 0 KB novo.
-export type ClubeCoracaoTema = { slug: string; nome: string; src: string; c1: string; c2: string }
+export type ClubeCoracaoTema = { slug: string; nome: string; src: string; c1: string; c2: string; listra?: string; listraMini?: string }
+// 🎽 camisa com listra própria. Santa Cruz (18/10, pedido de torcedor via Diego): *"não gosta que a cor vermelha encoste na
+// preta… sempre vermelho e preto com listras brancas"* — faixa vermelha e preta largas, filete BRANCO entre elas.
+const LISTRA_ESPECIAL: Record<string, { listra: string; listraMini: string; bandeira: string }> = {
+  'santa-cruz': {
+    listra: 'repeating-linear-gradient(180deg,#C8102E 0 40px,#F2F2F2 40px 46px,#111 46px 86px,#F2F2F2 86px 92px)',
+    listraMini: 'repeating-linear-gradient(160deg,#C8102E 0 9px,#F2F2F2 9px 11px,#111 11px 20px,#F2F2F2 20px 22px)',
+    bandeira: 'linear-gradient(180deg,#C8102E 0 44%,#F2F2F2 44% 56%,#111 56% 100%)',
+  },
+}
 export const CLUBES_TEMA_CORACAO: ClubeCoracaoTema[] = Object.entries(ESCUDOS_OFICIAIS)
   .map(([nome, e]) => {
     const slug = e.src.replace(/^.*\//, '').replace(/\.webp$/, '')
     const sl = SELOS[nome]
-    return { slug, nome: sl?.nome ?? nome, src: e.src, c1: sl?.c1 ?? '#0C0C0C', c2: sl?.c2 ?? '#FFFFFF' }
+    const esp = LISTRA_ESPECIAL[slug]
+    return { slug, nome: sl?.nome ?? nome, src: e.src, c1: sl?.c1 ?? '#0C0C0C', c2: sl?.c2 ?? '#FFFFFF', ...(esp ? { listra: esp.listra, listraMini: esp.listraMini } : {}) }
   })
   .filter(c => /^[a-z0-9-]{2,20}$/.test(c.slug))
   .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
@@ -68,7 +78,7 @@ function temaCoracao(slug: string): Tema | null {
   const sat = (hex: string) => { const n = parseInt(hex.replace('#', '').padEnd(6, '0').slice(0, 6), 16); const r = n >> 16, g = (n >> 8) & 255, b = n & 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mx === 0 ? 0 : (mx - mn) / mx }
   const corForte = sat(c.c2) > sat(c.c1) + .25 ? c.c2 : claraDemais(c.c1) ? c.c2 : c.c1
   return {
-    id: `c:${slug}`, coracao: { c1: c.c1, c2: c.c2, nome: c.nome }, nome: `❤️ ${c.nome}`, nomeEn: `❤️ ${c.nome}`,
+    id: `c:${slug}`, coracao: { c1: c.c1, c2: c.c2, nome: c.nome, listra: c.listra, bandeira: LISTRA_ESPECIAL[slug]?.bandeira }, nome: `❤️ ${c.nome}`, nomeEn: `❤️ ${c.nome}`,
     selo: `❤️ TIME DO CORAÇÃO · ${c.nome.toUpperCase()}`, escudo: import.meta.env.BASE_URL + c.src, mascote: null, claro: false,
     botao: corForte, botaoTxt: claraDemais(corForte) ? '#0c0c0c' : '#fff', enfeite: 'nenhum', seloBg: '#0c0c0c', seloBorda: corForte,
   }
@@ -115,7 +125,7 @@ export function TemaFundo({ tema }: { tema: Tema }) {
   return (
     <div className={`tema-fundo ${tema.claro ? 'tema-claro' : 'tema-escuro'}`} aria-hidden>
       {tema.coracao && <>
-        <span className="tema-listras" style={{ background: `repeating-linear-gradient(180deg,${tema.coracao.c1} 0 46px,${tema.coracao.c2} 46px 92px)` }} />
+        <span className="tema-listras" style={{ background: tema.coracao.listra ?? `repeating-linear-gradient(180deg,${tema.coracao.c1} 0 46px,${tema.coracao.c2} 46px 92px)` }} />
         <span className="tema-sombra" />
       </>}
       <img src={tema.escudo} className={tema.coracao ? 'tema-marca tema-marca-cor' : 'tema-marca'} alt="" />
@@ -130,7 +140,7 @@ export function TemaFundo({ tema }: { tema: Tema }) {
       </>}
       {tema.coracao && <>
         <span className="tema-torcida" />
-        {[4, 17, 30, 43, 56, 69, 82, 93].map((x, i) => <span key={i} className="tema-bandeira" style={{ left: `${x}%`, bottom: 70 + (i * 13) % 40, transform: `rotate(${((i * 7) % 24) - 12}deg)`, background: `linear-gradient(180deg,${tema.coracao!.c1} 0 50%,${tema.coracao!.c2} 50% 100%)` }} />)}
+        {[4, 17, 30, 43, 56, 69, 82, 93].map((x, i) => <span key={i} className="tema-bandeira" style={{ left: `${x}%`, bottom: 70 + (i * 13) % 40, transform: `rotate(${((i * 7) % 24) - 12}deg)`, background: tema.coracao!.bandeira ?? `linear-gradient(180deg,${tema.coracao!.c1} 0 50%,${tema.coracao!.c2} 50% 100%)` }} />)}
       </>}
       {tema.mascote && <img src={tema.mascote} className="tema-mascote" alt="" />}
       <span className="tema-selo" style={tema.seloBg ? { background: tema.seloBg, borderColor: tema.seloBorda } : undefined}>{tema.selo}</span>
