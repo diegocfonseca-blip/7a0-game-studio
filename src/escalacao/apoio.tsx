@@ -95,7 +95,7 @@ const FOUNDERS: Record<string, ApoioTier> = {
   'ofc.toka10@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Tôka10)
   'gabrielnegreirosamaral99@hotmail.com': 'ouro', // 👑 Lenda — batismo São Luiz FC (Série D) + fundador nº48 (21/08)
   'matheusfilipealves@hotmail.com': 'ouro', // 👑 Lenda — batismo Theuzudo FC (Série B) + fundador nº47 (21/08). Regra 17/08: todo batismo já nasce sócio + fundador.
-  'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) + SÓCIO nº27 do Futpoint FC (o Diego deu, 19/08). NÃO é batismo: não entra no FUNDADOR_N e não tira o lugar de nenhum clube.
+  'gfpicolo13@gmail.com': 'ouro', // 👑 Lenda (pago) + SÓCIO nº27 do Futpoint FC (19/08) · 🖋 18/10: virou FUNDADOR nº93 (ordem do Diego). Continua SÓCIO: não tira o lugar de nenhum clube na pirâmide.
   'delaofut@gmail.com': 'ouro', // 👑 Lenda + SÓCIO nº28 (Guilherme De La Ó, o Diego deu, 22/08). ⚠️ NÃO É BATISMO, e isso foi ordem dele: *"apenas como sócio e lenda. Sem batismo de trocar time do jogo por ele"* — então NÃO entra no FUNDADOR_N, NÃO tem clube em LOGOS_PRONTAS/MASCOTES, NÃO mexe em data.ts e NENHUM time do jogo sai do lugar. O "De La Ó FUT" existe só como mockup (scripts/mockup-batismo.mjs) enquanto ele não aprova.
   'alvarolino7712@gmail.com': 'prata', // ⭐ Craque — cor/selo prata + Modo Manual
   'matheusncruz1@gmail.com': 'ouro', // 👑 Lenda (pago) — tudo do ouro + FUNDADOR + batismo (Skyy FC)
@@ -233,6 +233,7 @@ const FUNDADOR_N: Record<string, number> = {
   'marcus.viniciuslopessantos79@gmail.com': 89, // 🥊⚫⚪ Inter Vale FC (12/10)
   'luizeduardorossini0013@gmail.com': 90, // 💴🔴⚫ Rossini Money (12/10)
   'matheussoaresg2018@gmail.com': 91, // 🤠🔵 Cuiudos FC (17/10, plano Fundador)
+  'gfpicolo13@gmail.com': 93, // 📍 Futpoint FC (18/10, Diego deu o plano Fundador; o 92 está guardado pro Wen Milan B)
   'henriquejunger07@gmail.com': 87, // 🐓👑 Le Prince FC (08/10)
   'atilasoaresjr21@gmail.com': 86, // 🦅🔴⚫ Mengão Malvadão (06/10)
   'kelvinoliveiraandradeenunes@gmail.com': 85, // 👑🧊 K9 FC (06/10)

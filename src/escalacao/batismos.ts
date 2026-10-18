@@ -135,7 +135,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Esqueceram do Lluch', tipo: 'batismo', fundador: 50, manto: ['#C00018', '#111111'] },
   { clube: 'La Bestia Negra', tipo: 'batismo', fundador: 51, manto: ['#011B8A', '#E8E8EB'] },
   { clube: 'SC Ferrari', tipo: 'batismo', fundador: 52, manto: ['#C2452F', '#141414'] },
-  { clube: 'Futpoint FC', tipo: 'socio', fundador: null, manto: ['#181818', '#B89040'] },
+  { clube: 'Futpoint FC', tipo: 'socio', fundador: 93, manto: ['#181818', '#B89040'] },
   { clube: 'Internacional de Madrid', tipo: 'batismo', fundador: 69, manto: ['#A90605', '#FCF6F1'] },
   { clube: 'Fridão FC', tipo: 'batismo', fundador: 72, manto: ['#161616', '#D5D5D5'] },
   { clube: 'Pesadelo Verde FC', tipo: 'batismo', fundador: 73, manto: ['#030A04', '#597751'] },
