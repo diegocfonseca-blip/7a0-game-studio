@@ -37,3 +37,7 @@
 /* caixas da sala com a borda prata do clube */
 .tema-sala .online-attendance{outline:2px solid #bdbdbd;outline-offset:-7px}
 @media (prefers-reduced-motion:reduce){.tema-morcego,.tema-floco{animation:none}}
+/* 👑 K9 (18/10, Diego: "o mascote do Neymarzetti em relação a tamanho me parece melhor que o do K9"): a arte do K9 traz as
+   duas taças junto, então o Rei sai pequeno na mesma altura. Ele ganha mais altura pra ficar do tamanho do Neymarzetti. */
+.tema-sala.tema-k9_gelo .tema-mascote,.tema-sala.tema-k9_branco .tema-mascote{height:min(47vh,440px);right:-6%}
+@media (min-width:900px){.tema-sala.tema-k9_gelo .tema-mascote,.tema-sala.tema-k9_branco .tema-mascote{right:3%}}
