@@ -240,23 +240,47 @@ function MasterPapel({ brandId, anos, div, sel, onPick, meta }: { brandId: strin
   const logo = b ? sponsorLogoSrc(b) : undefined
   const porTemp = masterPorTemporada(div, anos)
   const total = porTemp * anos
+  const m = meta ? MASTER_METAS[meta.meta] : null
+  // 📐 17/10 (Diego: "várias coisas parecem apertadas"): no celular o papel é DEITADO (marca e prazo à esquerda, valor à
+  // direita, a meta numa faixa embaixo, um por linha); em tela larga (container ≥ 720px) vira o papel em pé, 5 lado a lado.
   return (
-    <button onClick={onPick} aria-pressed={sel}
-      style={{ background: '#f6efdc', color: INK, border: `3px solid ${sel ? '#7c3aed' : INK}`, outline: sel ? '3px solid #7c3aed' : 'none', outlineOffset: 1, borderRadius: 6, padding: '9px 6px 7px', textAlign: 'center', boxShadow: `3px 3px 0 ${sel ? INK : 'rgba(0,0,0,.55)'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', minHeight: 0, textTransform: 'none', font: 'inherit' }}>
-      <span style={{ ...OSW, fontWeight: 600, fontSize: 7.5, letterSpacing: '.08em' }}>{tr('CONTRATO MASTER', 'MASTER CONTRACT')}</span>
-      <span style={{ height: 26, width: '70%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {logo ? <img src={logo} alt="" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 22 }}>{b?.emoji}</span>}
+    <button className={`mp-papel${sel ? ' sel' : ''}`} onClick={onPick} aria-pressed={sel}>
+      <span className="mp-top">
+        <span className="mp-logo">{logo ? <img src={logo} alt="" /> : <span style={{ fontSize: 22 }}>{b?.emoji}</span>}</span>
+        <span className="mp-nome"><b>{b?.name ?? brandId}</b><span className="mp-anos">{anos} {anos > 1 ? tr('TEMPORADAS', 'SEASONS') : tr('TEMPORADA', 'SEASON')}</span></span>
+        <span className="mp-valor"><strong>+{porTemp} 🪙</strong><small>{tr('por temporada', 'per season')}</small><small>{total} {tr('no total', 'in total')}</small></span>
       </span>
-      <span style={{ ...OSW, fontWeight: 700, fontSize: 15, lineHeight: 1.05 }}>{b?.name ?? brandId}</span>
-      <span style={{ ...OSW, fontWeight: 700, fontSize: 11, background: INK, color: GOLD, borderRadius: 5, padding: '1px 7px', marginTop: 1 }}>{anos} {anos > 1 ? tr('TEMPORADAS', 'SEASONS') : tr('TEMPORADA', 'SEASON')}</span>
-      <span style={{ ...OSW, fontWeight: 700, fontSize: 24, lineHeight: 1, marginTop: 4 }}>{total} 🪙</span>
-      <span style={{ fontSize: 9.5, fontWeight: 600, opacity: .75 }}>{tr('no total', 'in total')}</span>
-      <span style={{ ...OSW, fontWeight: 700, fontSize: 12, color: GREEN, marginTop: 2 }}>= +{porTemp} {tr('por temporada', 'per season')}</span>
-      {meta && <MetaCaixa meta={meta.meta} bonus={meta.bonus} />}
-      <span style={{ alignSelf: 'stretch', borderTop: '1px solid #897b5d', marginTop: 5, paddingTop: 3, fontSize: 8, fontWeight: 500, color: '#62573f' }}>{sel ? tr('toque em ASSINAR embaixo', 'tap SIGN below') : tr('toque pra escolher', 'tap to choose')}</span>
+      {m && meta && <span className="mp-meta"><span className="mp-meta-t">🎯 {tr('META', 'GOAL')}</span><b>{m.emoji} {tr(m.pt, m.en)}</b><i>{tr(`bateu? +${meta.bonus} 🪙`, `hit it? +${meta.bonus} 🪙`)}</i></span>}
     </button>
   )
 }
+const CSS_MASTER_PAPEL = `.mp-wrap{container-type:inline-size}
+.mp-grade{display:grid;grid-template-columns:1fr;gap:8px}
+.mp-papel{width:100%;height:100%;background:#f6efdc;color:${INK};border:3px solid ${INK};border-radius:8px;box-shadow:3px 3px 0 rgba(0,0,0,.55);padding:8px 10px;display:flex;flex-direction:column;gap:6px;cursor:pointer;text-transform:none;font:inherit;text-align:left}
+.mp-papel.sel{border-color:#7c3aed;outline:3px solid #7c3aed;outline-offset:1px;box-shadow:3px 3px 0 ${INK}}
+.mp-top{display:flex;align-items:center;gap:10px}
+.mp-logo{width:54px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:6px;padding:2px 4px}
+.mp-logo img{max-width:100%;max-height:100%;object-fit:contain}
+.mp-nome{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.mp-nome b{font-family:Oswald,sans-serif;font-weight:700;font-size:16px;line-height:1.05}
+.mp-anos{font-family:Oswald,sans-serif;font-weight:700;font-size:10.5px;background:${INK};color:${GOLD};border-radius:5px;padding:1px 7px}
+.mp-valor{text-align:right;flex-shrink:0;display:flex;flex-direction:column;line-height:1.1}
+.mp-valor strong{font-family:Oswald,sans-serif;font-weight:700;font-size:22px;color:${GREEN};line-height:1}
+.mp-valor small{font-size:9.5px;font-weight:700;opacity:.7}
+.mp-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff3c4;border:2px dashed #b38600;border-radius:6px;padding:4px 7px}
+.mp-meta-t{font-family:Oswald,sans-serif;font-weight:700;font-size:8.5px;letter-spacing:.06em;color:#7a5b00}
+.mp-meta b{font-family:Oswald,sans-serif;font-weight:700;font-size:12.5px;flex:1;min-width:0}
+.mp-meta i{font-style:normal;font-size:10.5px;font-weight:800;color:${GREEN};white-space:nowrap}
+@container (min-width:720px){
+  .mp-grade{grid-template-columns:repeat(var(--mp-n),1fr)}
+  .mp-papel{text-align:center;padding:10px 7px}
+  .mp-top{flex-direction:column;gap:5px}
+  .mp-logo{width:80%}
+  .mp-nome{align-items:center}
+  .mp-valor{text-align:center;margin-top:2px}
+  .mp-meta{flex-direction:column;gap:1px;margin-top:auto;text-align:center}
+  .mp-meta b{font-size:12px}
+}`
 // a faixa de leitura: contrato correndo (início de temporada e aba Clube)
 export function MasterFaixa({ contrato, seasonNo, recemAssinado }: { contrato: MasterContrato; seasonNo: number; recemAssinado?: boolean }) {
   const b = sponsorBrandOf(contrato.brandId)
@@ -314,21 +338,13 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
   const total = escolhido ? porTemp * escolhido.anos : 0
   const primeira = !contrato
   const grade = (
-    <div className="master-grade" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-      {/* 🖥️ 17/10 (análise do computador): no PC os papéis não enchiam a coluna e ficavam um na esquerda, outro na direita,
-          com um buraco no meio. Agora cada papel enche a sua casa e, em tela larga, os 5 ficam lado a lado numa linha só.
-          O celular continua igual (2 por linha, o último na linha toda). */}
-      <style>{`.master-grade>div>button{width:100%;height:100%}@media (min-width:900px){.master-grade{grid-template-columns:repeat(${prazos.length},1fr)!important}.master-grade>div{grid-column:auto!important}}`}</style>
-      {/* 🧩 NÚMERO ÍMPAR: o ÚLTIMO papel ocupa a linha toda, em vez de ficar sozinho
-          na metade esquerda com um buraco do lado. É a mesma régua que o Diego pediu
-          pro `Seg` da tela de criar sala em 21/09 (*"organize melhor… estão
-          apertadas demais"*). Com 4 marcas dava 2×2 certinho; com a Uomo Concetto
-          virando a 5ª, em 23/09, sobrava uma. */}
-      {prazos.map((p, i) => (
-        <div key={p.brandId} style={i === prazos.length - 1 && prazos.length % 2 === 1 ? { gridColumn: '1 / -1' } : undefined}>
-          <MasterPapel brandId={p.brandId} anos={p.anos} div={div} sel={sel === p.brandId} onPick={() => setSel(p.brandId)} meta={masterMetaOferta(seed, seasonNo, mgrId, p.brandId, div)} />
-        </div>
-      ))}
+    <div className="mp-wrap">
+      <style>{CSS_MASTER_PAPEL}</style>
+      <div className="mp-grade" style={{ ['--mp-n' as string]: prazos.length } as React.CSSProperties}>
+        {prazos.map(p => (
+          <MasterPapel key={p.brandId} brandId={p.brandId} anos={p.anos} div={div} sel={sel === p.brandId} onPick={() => setSel(p.brandId)} meta={masterMetaOferta(seed, seasonNo, mgrId, p.brandId, div)} />
+        ))}
+      </div>
     </div>
   )
   const explica = escolhido
