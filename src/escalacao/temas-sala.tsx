@@ -15,10 +15,21 @@ import neymarzettiEscudo from './img/neymarzetti-escudo.webp'
 import neymarzettiMascote from './img/neymarzetti-mascote.webp'
 import k9Escudo from './img/k9-escudo.webp'
 import k9Mascote from './img/k9-mascote.webp'
+import arrudaEscudo from './img/arruda-escudo.webp'
+import arrudaMascote from './img/arruda-mascote.webp'
+import fabulousEscudo from './img/fabulous-escudo.webp'
+import fabulousMascote from './img/fabulous-mascote.webp'
+import gavioesEscudo from './img/gavioes-escudo.webp'
+import gavioesMascote from './img/gavioes-mascote.webp'
+import cuiudosEscudo from './img/cuiudos-escudo.webp'
+import cuiudosMascote from './img/cuiudos-mascote.webp'
+import sevenEscudo from './img/sevencity-escudo-v2.webp'
+import sevenMascote from './img/sevencity-mascote-v2.webp'
 import { tr } from './lang'
 import './temas-sala.css'
 
 export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo' | 'k9_branco'
+  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
@@ -27,6 +38,27 @@ type Tema = {
   botao: string; botaoTxt: string // o "Abrir o pregão"
   enfeite: 'morcegos' | 'neve' | 'nenhum'
   seloBg?: string; seloBorda?: string
+  pano?: string // 🎨 fundo pintado pelo próprio tema (tema de Fundador: as cores do manto), por cima do fundo da sala
+}
+// 🖋 TEMA DO FUNDADOR (18/10, Diego: *"o fundador ganha apenas o de mascote… e ganha apenas um… eles ganham apenas um tema
+// com uma cor"*). UMA versão por clube, montada com o que o batismo já tem: as 2 cores do manto (as MEDIDAS, as mesmas de
+// `batismos.ts`), o escudo de fundo e a mascote na tela. O botão leva a cor mais viva do clube. Arte: 0 KB novo.
+function temaFundador(id: TemaClubeId, clube: string, emoji: string, escudo: string, mascote: string, brilho: string, listra: string, botao: string, botaoTxt: string): Tema {
+  return {
+    id, nome: `${emoji} ${clube}`, nomeEn: `${emoji} ${clube}`, selo: `${emoji} TEMA DO CLUBE · ${clube.toUpperCase()}`, escudo, mascote, claro: false,
+    botao, botaoTxt, enfeite: 'nenhum', seloBg: '#0c0c0c', seloBorda: botao.startsWith('#') ? botao : '#bdbdbd',
+    pano: `repeating-linear-gradient(135deg,${listra} 0 2px,transparent 2px 64px),radial-gradient(ellipse at 50% 10%,${brilho} 0%,#0a0a0a 72%)`,
+  }
+}
+function TEMAS_FUNDADOR_PRONTOS() {
+  return {
+    // 🐍 o Arruda é casa do Santa Cruz: preto, branco e o vermelho — o filete branco separa o vermelho do preto
+    arruda: temaFundador('arruda', 'Tricolor do Arruda FC', '🐍', arrudaEscudo, arrudaMascote, '#7a1420', 'rgba(245,242,239,.16)', '#C8102E', '#fff'),
+    fabulous: temaFundador('fabulous', 'Fabulous EC', '🦅', fabulousEscudo, fabulousMascote, '#7d0a10', 'rgba(206,14,23,.22)', '#CE0E17', '#fff'),
+    gavioes: temaFundador('gavioes', 'Gaviões SCCP', '🦅', gavioesEscudo, gavioesMascote, '#4a4a4a', 'rgba(249,248,248,.12)', CROMO, '#0c0c0c'),
+    cuiudos: temaFundador('cuiudos', 'Cuiudos FC', '🤠', cuiudosEscudo, cuiudosMascote, '#0b46c4', 'rgba(231,172,11,.2)', '#E7AC0B', '#0c0c0c'),
+    seven: temaFundador('seven', 'Seven City', '🍀', sevenEscudo, sevenMascote, '#6b4c1c', 'rgba(217,158,68,.2)', '#D99E44', '#0c0c0c'),
+  } satisfies Partial<Record<TemaClubeId, Tema>>
 }
 const GELO = 'linear-gradient(135deg,#ffffff 0%,#bfe6ff 35%,#ffffff 55%,#8fd0ff 80%,#e8f6ff 100%)'
 const CROMO = 'linear-gradient(135deg,#f5f5f5 0%,#9a9a9a 22%,#ffffff 45%,#6e6e6e 70%,#e6e6e6 100%)'
@@ -35,17 +67,25 @@ export const TEMAS_SALA: Record<TemaClubeId, Tema> = {
   neymarzetti_branco: { id: 'neymarzetti_branco', nome: '⚪ Manto Branco', nomeEn: '⚪ White Kit', selo: '🦇 TEMA DO CLUBE · NEYMARZETTI', escudo: neymarzettiEscudo, mascote: neymarzettiMascote, claro: true, botao: CROMO, botaoTxt: '#0c0c0c', enfeite: 'nenhum' },
   // 👑🧊 K9 FC (18/10, mockup `tema-k9.png`): a coroa com gelo do escudo, o Rei K9 com as taças, branco e azul royal
   k9_gelo: { id: 'k9_gelo', nome: '🧊 Reino de Gelo', nomeEn: '🧊 Ice Kingdom', selo: '👑🧊 TEMA DO CLUBE · K9 FC', escudo: k9Escudo, mascote: k9Mascote, claro: false, botao: GELO, botaoTxt: '#0723B4', enfeite: 'neve', seloBg: '#0723B4', seloBorda: '#FFC400' },
+  ...TEMAS_FUNDADOR_PRONTOS(),
   k9_branco: { id: 'k9_branco', nome: '👑 Rei de Branco', nomeEn: '👑 King in White', selo: '👑🧊 TEMA DO CLUBE · K9 FC', escudo: k9Escudo, mascote: k9Mascote, claro: true, botao: GELO, botaoTxt: '#0723B4', enfeite: 'neve', seloBg: '#0723B4', seloBorda: '#FFC400' },
 }
 // 📧 de quem é cada tema (o e-mail do batismo manda — regra 28/09)
 const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
   'diego.c.fonseca@gmail.com': ['neymarzetti_noite', 'neymarzetti_branco'],
   'kelvinoliveiraandradeenunes@gmail.com': ['k9_gelo', 'k9_branco'], // 👑 K9 FC (pedido do Diego 18/10)
+  // 🖋 Fundadores (18/10): o tema do clube já vem no plano, UM só
+  'souzact12@gmail.com': ['arruda'],
+  'koeppfabio@gmail.com': ['fabulous'],
+  'kauealves584@gmail.com': ['gavioes'],
+  'matheussoaresg2018@gmail.com': ['cuiudos'],
+  'glaucomiranda@outlook.com': ['seven'],
 }
 // 🛡️ tema do CLUBE batizado comprado na Loja (`esc_temas_conta`, tipo clube) → os temas montados pra esse clube
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {
   'Neymarzetti': ['neymarzetti_noite', 'neymarzetti_branco'],
   'K9 FC': ['k9_gelo', 'k9_branco'],
+  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'],
 }
 
 // ❤️ TIME DE CORAÇÃO (18/10, Diego: *"pode pôr escudo oficial sim"*): todo clube que tem escudo oficial no jogo (os do Leilão
@@ -124,11 +164,12 @@ export const nomeTema = (t: Tema) => tr(t.nome, t.nomeEn)
 export function TemaFundo({ tema }: { tema: Tema }) {
   return (
     <div className={`tema-fundo ${tema.claro ? 'tema-claro' : 'tema-escuro'}`} aria-hidden>
+      {tema.pano && <span className="tema-pano" style={{ background: tema.pano }} />}
       {tema.coracao && <>
         <span className="tema-listras" style={{ background: tema.coracao.listra ?? `repeating-linear-gradient(180deg,${tema.coracao.c1} 0 46px,${tema.coracao.c2} 46px 92px)` }} />
         <span className="tema-sombra" />
       </>}
-      <img src={tema.escudo} className={tema.coracao ? 'tema-marca tema-marca-cor' : 'tema-marca'} alt="" />
+      <img src={tema.escudo} className={tema.coracao ? 'tema-marca tema-marca-cor' : tema.pano ? 'tema-marca tema-marca-clube' : 'tema-marca'} alt="" />
       {tema.enfeite === 'morcegos' && <>
         <span className="tema-lua" />
         {[[6, 14, 26, 0], [78, 9, 18, 1.6], [86, 34, 22, 3.1], [4, 46, 16, 2.2], [52, 5, 14, .8], [70, 58, 17, 4]].map(([x, y, s, d], i) =>

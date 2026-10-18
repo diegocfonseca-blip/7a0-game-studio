@@ -41,3 +41,6 @@
    duas taças junto, então o Rei sai pequeno na mesma altura. Ele ganha mais altura pra ficar do tamanho do Neymarzetti. */
 .tema-sala.tema-k9_gelo .tema-mascote,.tema-sala.tema-k9_branco .tema-mascote{height:min(47vh,440px);right:-6%}
 @media (min-width:900px){.tema-sala.tema-k9_gelo .tema-mascote,.tema-sala.tema-k9_branco .tema-mascote{right:3%}}
+/* 🖋 tema de Fundador (18/10): o fundo é pintado pelo tema (cores do manto) e o escudo de fundo fica colorido, bem apagado */
+.tema-pano{position:absolute;inset:0}
+.tema-marca.tema-marca-clube{filter:none;opacity:.13;width:min(80vw,440px);top:40%}

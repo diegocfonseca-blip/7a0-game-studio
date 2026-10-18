@@ -1,7 +1,8 @@
 // ─── 🎨 TEMA DA SALA NA LOJA (18/10) ────────────────────────────────────────────────────────────────────────────────
 // Regras do Diego (18/10): *"grátis, craque e lenda podem pegar avulso só de times"* · Batismo compra o tema do CLUBE (as 2
 // versões dele) · *"o fundador eu pergunto qual ele quer, do time ou mascote"* (1 incluso, dado pelo #admin) · extras avulsos
-// de qualquer tipo pra Batismo pra cima. R$ 9,90 cada. O preço e quem pode comprar moram no BANCO (`esc_mp_preco_ref`) — a
+// de qualquer tipo pra Batismo pra cima. 🔁 18/10: *"o fundador ganha apenas o de mascote… de clubes ele tem que pagar
+// também… e ganha apenas um"* — Fundador = 1 tema do CLUBE (uma versão), time de coração ele compra. R$ 9,90 cada. O preço e quem pode comprar moram no BANCO (`esc_mp_preco_ref`) — a
 // tela só mostra; o tema entra na conta quando o Pix cai (`esc_mp_entregar` → `esc_temas_conta`).
 import { useState, type CSSProperties } from 'react'
 import { tr } from './lang'
@@ -82,7 +83,7 @@ export function TemasNaLoja({ temBatismo, fundador, h2, sub, card, preco, reais 
     <div style={{ ...card, marginTop: 8, opacity: temBatismo ? 1 : .75 }}>
       <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>🛡️ {tr('Tema do seu clube', 'Your club theme')} · {reais(PRECO)}</b>
       <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block', marginTop: 2 }}>{tr('Feito com a arte do SEU clube batizado: escudo gigante no fundo, a mascote na tela e as cores do manto, em 2 versões (escura e clara). A gente monta depois do Pix, em até 2 dias.', 'Made with YOUR named club’s art: giant crest in the background, the mascot on screen and your kit colours, in 2 versions (dark and light). We build it after the Pix, within 2 days.')}</small>
-      {fundador && <p style={{ fontSize: 11.5, fontWeight: 800, margin: '6px 0 0', color: '#7a4d00' }}>🖋 {tr('Fundador: você tem 1 tema de graça (do clube ou do time de coração). Fala com o Diego qual você quer.', 'Founder: you get 1 theme free (club or your team). Tell Diego which one you want.')}</p>}
+      {fundador && <p style={{ fontSize: 11.5, fontWeight: 800, margin: '6px 0 0', color: '#7a4d00' }}>🖋 {tr('Fundador: o tema do seu clube já vem no plano (1 tema). Ele aparece na sua sala de espera. O do time de coração é à parte.', 'Founder: your club theme comes with the plan (1 theme). It shows up in your waiting room. Your team theme is sold separately.')}</p>}
       {temBatismo
         ? (pagando === 'clube'
           ? <div style={{ marginTop: 10 }}><PixMP key="tema-clube" produto="tema_clube" valor={PRECO} /></div>
