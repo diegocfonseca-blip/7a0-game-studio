@@ -24,13 +24,21 @@ export const PRECOS = {
 /** 💳 14/10 (Diego): PLANOS DE UMA VEZ SÓ, a vitrine que o PÚBLICO vê. Sai o Sócio (mensal); o Batismo Lenda passa a
  *  se chamar 🖋️ FUNDADOR (o único que ganha número de fundador daqui pra frente — quem já tem número fica com ele).
  *  Subir de plano = paga só a DIFERENÇA entre os preços de hoje (`precoSubida`). */
-export const PRECOS_UNICO = { craque: 29.9, lenda: 49.9, batismo: 79.9, fundador: 99.9 } as const
+/** 17/10 (Diego): Lenda caiu de 49,90 pra 44,90 — as subidas se ajustam sozinhas (diferença + R$ 5). */
+export const PRECOS_UNICO = { craque: 29.9, lenda: 44.9, batismo: 79.9, fundador: 99.9 } as const
 export type PlanoUnico = keyof typeof PRECOS_UNICO
+/** 💛 PLANO DUPLO (16/10, Diego): 2 do MESMO plano — um pra quem paga, outro de presente — num Pix só, com 10% a menos
+ *  (arredondado pro ,90). A MESMA tabela mora no banco (`esc_mp_preco_ref`, ref 'd-<id do presente>'): mudou aqui, muda lá. */
+export const PRECOS_DUPLO: Record<PlanoUnico, number> = { craque: 53.9, lenda: 80.9, batismo: 143.9, fundador: 179.9 }
 /** 💰 14/10 (Diego): *"todo usuário que tem um plano e quer passar pra um novo teria que pagar pelo menos 5 reais a mais"*.
  *  Subir de plano = a diferença + R$ 5. */
 export const TAXA_SUBIDA = 5
+/** Batismo → Fundador: preço fixo (no banco: `esc_mp_preco`, mudou aqui, muda lá) */
+export const SUBIDA_BATISMO_FUNDADOR = 29.9
 /** quanto custa chegar em `alvo` pra quem já tem `atual` (nunca negativo; o mesmo plano ou um menor = 0) */
 export function precoSubida(alvo: PlanoUnico, atual: PlanoUnico | null): number {
+  // 17/10 (Diego): *"qm já é batismo pra passar p ser fundador aumente de 25 pra 29,90"* — a única subida com preço fixo.
+  if (atual === 'batismo' && alvo === 'fundador') return SUBIDA_BATISMO_FUNDADOR
   const dif = PRECOS_UNICO[alvo] - (atual ? PRECOS_UNICO[atual] : 0)
   if (dif <= 0) return 0
   return Math.round((dif + (atual ? TAXA_SUBIDA : 0)) * 100) / 100

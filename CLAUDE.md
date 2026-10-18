@@ -533,7 +533,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   renovação e do teto de venda — o craque premiado ia ficando impagável temporada
   após temporada. **O prêmio continua existindo, mas é DINHEIRO NO CAIXA do clube**
   (artilheiro por divisão A 30 · B 20 · C 15 · D 10 · V 6; Copa; e as 20 🪙 da Bola de
-  Ouro). O `valorOficial` voltou a ser só o maior entre livro, pago e tabela.
+  Ouro). 🥇 **17/10: artilheiro de Copa do Mundo, Libertadores, Champions, Mundial e Supercopa = 30 🪙** pro clube
+  (*"falta mundo libertadores champions mundial e supercopa… 30 moedas"*): Copa do Mundo só se jogou pela SUA seleção
+  (`ARTILHEIRO_MUNDO_PREMIO`), internacionais pelo time que você comandou (`artilheirosInternacionais`), Supercopa em
+  `supercopaRewards`. Trava `npm run artilheiro-premios`. O `valorOficial` voltou a ser só o maior entre livro, pago e tabela.
   ⚠️ Quem mexer aqui: `careerBolaOuroPiso` continua nos saves antigos como RESÍDUO —
   ninguém escreve e ninguém lê. Não religar sem ele pedir.
 - **👟 FORNECEDOR DE MATERIAL: 20 marcas, a FORMA não muda (20/09).** Ele mandou as
@@ -698,6 +701,10 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   vem ANTES do baralho, e Clubes trava o baralho em Todos (BR/EU sozinhos não têm clube suficiente).
   Ele pediu pra ser AVISADO quando BR ou EU sozinhos fecharem — números em `docs/pendencias.md`.
   🟢 Liberado pra todos em 28/09: Partida Rápida, salas online rápidas e Minhas Ligas (nunca carreira).
+  📦 **QUANTOS PACOTES (17/10, *"vai ser mais justo"*): a MESMA regra do leilão de jogador** — um pacote por pessoa em
+  cada posição + 1 de sobra (8 pessoas = 9 por posição, 45 no total), no envelope, Tocaia e pregão aberto. Antes era pessoas
+  + metade (8 = 12 por posição). Sala muito grande pode vir sem a sobra numa posição (não há clube suficiente); todo mundo
+  ainda fecha. Mora em `buildDeckClubes` (`alvo`).
 
 - **📧 O QUE VALE SEMPRE É O E-MAIL DO BATISMO (28/09, regra permanente).** Palavras dele:
   *"Oq vale sempre é o email de batismo"*. Tudo que é mimo de batismo (entrada de gala, escudo,
@@ -738,12 +745,12 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   planos). Banco sem resposta = sobe como sempre. **Nunca bloquear o save no APARELHO** (não custa nada e só espanta
   jogador) e **nunca apagar save de ninguém** sem ele pedir. Trava: `npm run nuvem-craque`.
 
-- **💳 PLANOS DE UMA VEZ SÓ, EM ESCADA (14/10).** Sócio (mensal) SAIU. ⭐ Craque 29,90 · 👑 Lenda 49,90 · 🖋 Batismo 79,90 ·
+- **💳 PLANOS DE UMA VEZ SÓ, EM ESCADA (14/10).** Sócio (mensal) SAIU. ⭐ Craque 29,90 · 👑 Lenda **44,90** (49,90 até 17/10) · 🖋 Batismo 79,90 ·
   🖋 Fundador 99,90 (`PRECOS_UNICO`, `planos-regras.ts`). Cada degrau = tudo do anterior + o dele; subir = paga só a diferença
-  (`precoSubida`) **+ R$ 5** (`TAXA_SUBIDA`, 14/10: *"pagar pelo menos 5 reais a mais"*). **Escolher a cor saiu do Lenda** e NÃO é vendida na
+  (`precoSubida`) **+ R$ 5** (`TAXA_SUBIDA`, 14/10: *"pagar pelo menos 5 reais a mais"*; única exceção: **Batismo → Fundador = 29,90 fixo**, 17/10). **Escolher a cor saiu do Lenda** e NÃO é vendida na
   Loja (*"não bote negócio de cor… pra não confundir"*). **🎁 Presente = só de PLANO**, liberado pelo Diego no #admin (`esc_presentes`). Craque tem o Modo Manual *"como sempre teve"*; **criar sala à vontade é do Lenda pra cima** (Craque novo = 1 por
   dia, igual grátis; os 70 Craques de antes de 14/10 ficaram na foto `esc_craque_antigo` e seguem à vontade). **🎟️ Salas extras**: 3 por R$ 4,90
-  na Loja (`esc_salas_extras`, o gatilho gasta 1 quando a do dia acabou). **Gala única NÃO é vendida avulsa** (só no Fundador); avulso de
+  na Loja (`esc_salas_extras`, o gatilho gasta 1 quando a do dia acabou). **💾 Ficha extra de carreira**: **R$ 9,99** na Loja (17/10, preço final; antes 9,90 → 14,90). FEITA: Pix `ficha_carreira` → `esc_fichas_extras` (+1 por compra, da CONTA, pra sempre) → `careerSlotLimit` soma por cima do plano, dentro do teto `MAX_CAREER_SLOTS` (8). Duplo do Lenda = 80,90. **Gala única NÃO é vendida avulsa** (só no Fundador); avulso de
   clube batizado = só o 📣 canto (R$ 10). **📣 O CANTO VALE NOS DOIS LUGARES** (14/10): Carreira (toca nos jogos) e online (toca junto com a entrada
   de gala, se a pessoa tiver a gala) — o texto da Loja/planos tem que dizer os dois. Loja de avulsos
   aprovada (*"adorei"*), ainda a fazer. Diego e quem ele dá plano também pagam o que não têm (*"eu com meu usuário também tenho
@@ -765,7 +772,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   🛒 Loja do Clube (seção "🧑‍💼 Meu presidente", `presidente-loja.tsx`) e a Presidência da carreira abre o MESMO editor. A régua
   é por PLANO (`presidente-plano.ts`, trava `npm run presidente`): grátis monta e não salva · ⭐ Craque = pele, cabelos/barbas e 14
   roupas básicas · 👑 Lenda = + 9 especiais · 🖋 Batismo/Fundador = + 10 de gala, sendo que **astronauta e traje de gala
-  dourado são SÓ do Fundador** (16/10: *"camisa do astronauta quero apenas no plano fundador, e gala dourada smoking dourado também"*).
+  dourado são SÓ do Fundador** (16/10: *"camisa do astronauta quero apenas no plano fundador, e gala dourada smoking dourado também"*),
+  e o **traje real também** (mesmo dia: *"traje real, coloque só para fundador"*).
   Peça de Fundador **não é vendida avulsa**: quem é Craque e quer o astronauta sobe pro Fundador (*"deixa só no Fundador mesmo"*).
   🚫 **PÓDIO: NÃO FAZER** (16/10, *"não faz pódio não"*) — dos 12 lugares do mockup, o pódio do fim de campeonato saiu. **Nenhum selo diz GRÁTIS.** Avulsos (cabelo de
   craque, camisa de time) ainda SEM preço fechado. Liberar geral = `PRESIDENTE_CONTA_GERAL = true`.
@@ -830,11 +838,41 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   📺 **E A TEMPORADA TAMBÉM É A DE SEMPRE** (mesmo dia: *"está tudo deformado o placar… tudo é padrão do nosso jogo"*): modo novo
   NUNCA ganha placar/tabela/tela própria — usa a `EscSeason` e põe a regra POR CIMA (`kings-liga.ts`). E shootout ≠ pênalti.
 
+- **🏆📞 PATROCINADOR MASTER COM HISTÓRIA (17/10, *"aprovo, pode fazer os 3"*).** Motivo: *"todo mundo sempre escolhe a
+  Vadico… que rende mais em 5 anos"*. Ele recusou inverter a régua (*"todo mundo vai saber quem paga mais"*) e aprovou a junção
+  de 3 ideias (mockup `scripts/mockups/master-historia.png`): **🎯 cada contrato tem uma META** sorteada (presa na semente — não
+  dá pra decorar) que paga bônus no fecho; **📞 foi bem** (meta batida ou top 4) → no fim do contrato a marca LIGA pra renovar
+  (+25%, `RENOVA_MULT`), e quem ouve o mercado perde ela naquela virada; **💔 caiu** com contrato correndo → 1 em 2 a marca
+  rescinde, paga 1 temporada de multa e sai. O valor por temporada NÃO mudou. Regras em `master-historia.ts`, dinheiro em
+  `applyMasterHistoria` (store). Trava `npm run master-historia`.
+  🎯 **Metas variadas (mesmo dia, *"vareie sempre os tipos de bônus… artilheiros de outras competições, campeão de outras copas,
+  Supercopa, Mundial, Libertadores, Champions"*):** 13 metas — liga (campeão · subir/G4 · metade de cima · não cair · artilheiro da
+  divisão), Copa (ganhar · final · artilheiro), Supercopa, e na A/B da temporada 40+ (solo) Libertadores/Champions · Mundial ·
+  artilheiro internacional. As do fecho usam as `conquistas` que a tela manda (as mesmas que pagam os prêmios das copas); as
+  internacionais pagam em `FINISH_INTERNATIONAL_CAMPAIGN`. Tudo vira linha "🎯 Meta batida" no extrato.
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
-  ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 6s sem lance novo, quem fechou a posição só assiste.
+  ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
+  *"eu falei 5s p martelar"*), quem fechou a posição só assiste. 🔁 **16/10: CARTA COBERTA** — a carta fica sem categoria, cor, estrela e rosto até o martelo e aí VIRA no lugar (2s,
+  `PA_VIRA_MS`); por isso **toda carta abre em 1** (`PA_ABRE`) e a abertura por categoria (lenda 10 · craque 5 · promessa 4 · bom 3 ·
+  profissional 1, `paAbertura`) virou só régua interna do robô. **SEM MONTE**: vaga vazia no fim ganha profissional/bom DE GRAÇA
+  (`paCompletaElencos`), com janela que some sozinha (nada de botão: não pode segurar sala online) e o robô age a cada 0,5s. ⚠️ O dado do pregão é `paRng` (anda por carta e por tique) — o
+  `rngOf(state)` é FIXO por estado e congelava o sorteio (setores inteiros iam pro Monte sem lance). Teto do robô = `paTeto`
+  (caixa ÷ vagas que faltam × categoria, nunca mais que 35% do caixa numa carta) — o `cpuEnvelope` dava o bolso inteiro pro ATA.
   Ele aceitou o tempo (*"deixa assim mesmo com 20"*) e mandou seguir o MOTOR DE SEMPRE: o arremate entra pela porta do
-  envelope (`sealAndResolve` com `holFechando`, igual à Tocaia) — nada de pagamento/elenco próprio. Gate `PREGAO_ABERTO_*`
+  envelope (`sealAndResolve` com `holFechando`, igual à Tocaia) — nada de pagamento/elenco próprio. 🔨🔨 **A partir de 11 clubes são DUAS cartas na mesa** (posições diferentes,
+  relógio próprio; até 10 continua uma — régua dele, 17/10, `PA_DUPLO_A_PARTIR`). Gate `PREGAO_ABERTO_*`
   em `sport.ts` (o `PREGAO_*` sem "ABERTO" é OUTRA coisa, o pregão limpo). Trava `npm run pregao-aberto`.
+  🟢 **LIBERADO PRA TODOS EM 17/10** (`PREGAO_ABERTO_GERAL = true`): Partida Rápida + salas online (rápido e Minhas Ligas; fora
+  da Só Champions e da carreira), com 🧱 Clubes (pacote com escudo + quantos jogadores) e 🤝 Duplas. Na sala o dono só manda a
+  tela quando muda algo (`paAssinatura`), a contagem segue o relógio do dono e o lance leva o `cardId`.
+  👑 **Mais lendas SÓ no pregão aberto** (17/10): 2,4 por clube (`PA_LENDAS_POR_CLUBE`, `paMaisLendas`), proporcional de 2 a 20 clubes.
+  Botões de lance: só o "+" (+1 · +2 · +5 · +10; carta dupla +1 · +5 · +10) — o valor já está na faixa do lance atual.
+  ➕ **Sobra = a do envelope/Tocaia** (demanda + 1 por posição; a "+1 por clube" saiu no mesmo dia, *"no padrão da regra do Tocaia e do Envelope"* — não repropor) + alerta "⏳ FALTAM N CARTAS" nas últimas 11. A "última chamada"
+  (11 cartas extras no fim) existiu por 1h em 17/10 e SAIU por ordem dele (*"não adicione nada de 11 jogadores"*) — não repropor.
+- **📡 MENSAGENS DO SUPABASE: SÓ O QUE FOR 100% SEGURO (17/10, regra dele).** Palavras dele: *"se eu tiver que continuar com 50
+  milhões, eu continuo… mas eu quero fazer só o que for seguro… não quero nenhum bug na sala… e que eu possa reverter"*. Feito:
+  reação/zoeira 1 a cada 2s por pessoa (`EMOTE_ESPERA_MS`). **Não mexer** no batimento de 3s do save do dono (a coroa lê
+  `saveFresco` < 9s) nem em nada que encoste em coroa, lance ou relógio sem ele aprovar com o risco explicado.
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e

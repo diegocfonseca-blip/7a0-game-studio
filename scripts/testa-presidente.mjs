@@ -40,8 +40,8 @@ try {
   assert.equal(A.podeVestirModular('rei-pregao', 'lenda'), false)
   assert.equal(todas.filter(id => A.podeVestirModular(id, 'lenda')).length, 23, 'Lenda alcança 14 + 9')
 
-  // 🖋 Fundador: tudo · Batismo: tudo MENOS astronauta e gala dourada (só Fundador, Diego 16/10)
-  const SO_FUNDADOR = ['astronauta', 'gala-dourada']
+  // 🖋 Fundador: tudo · Batismo: tudo MENOS astronauta, gala dourada e traje real (só Fundador, Diego 16/10)
+  const SO_FUNDADOR = ['astronauta', 'gala-dourada', 'traje-real']
   for (const id of todas) assert.equal(A.podeVestirModular(id, 'fundador'), true, `fundador veste ${id}`)
   for (const id of todas) assert.equal(A.podeVestirModular(id, 'batismo'), !SO_FUNDADOR.includes(id), `batismo ${SO_FUNDADOR.includes(id) ? 'NÃO ' : ''}veste ${id}`)
   assert.deepEqual([...A.seloRoupaModular('astronauta')], ['🖋 FUNDADOR', '🖋 FOUNDER'])
@@ -53,7 +53,8 @@ try {
   }
   assert.deepEqual([...A.seloRoupaModular('polo')], ['⭐ CRAQUE', '⭐ STAR'])
   assert.deepEqual([...A.seloRoupaModular('jaqueta-couro')], ['👑 LENDA', '👑 LEGEND'])
-  assert.deepEqual([...A.seloRoupaModular('traje-real')], ['🖋 BATISMO', '🖋 CLUB NAMING'])
+  assert.deepEqual([...A.seloRoupaModular('traje-real')], ['🖋 FUNDADOR', '🖋 FOUNDER'])
+  assert.deepEqual([...A.seloRoupaModular('magico')], ['🖋 BATISMO', '🖋 CLUB NAMING'])
   assert.deepEqual([...P.seloPeca()], ['⭐ CRAQUE', '⭐ STAR'])
   assert.equal(R.podeVestirRoupa('polo-azul', null), false)
   assert.equal(R.podeVestirRoupa('polo-azul', 'craque'), true)
@@ -81,5 +82,5 @@ try {
   const conta = readFileSync('src/escalacao/presidente-conta.ts', 'utf8')
   assert.ok(conta.includes('podeSalvarPresidente(plano)') && conta.includes('podeVestirModular(v.outfit, plano)'), 'salvar na conta confere plano e roupa')
 
-  console.log('✅ presidente × plano: grátis só olha · Craque 14 · Lenda 23 · Batismo 31 · Fundador 33 (astronauta e gala dourada só no Fundador) · sem GRÁTIS · sorteio no plano · conta com a mesma régua')
+  console.log('✅ presidente × plano: grátis só olha · Craque 14 · Lenda 23 · Batismo 30 · Fundador 33 (astronauta, gala dourada e traje real só no Fundador) · sem GRÁTIS · sorteio no plano · conta com a mesma régua')
 } finally { await vite.close() }

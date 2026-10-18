@@ -15,8 +15,9 @@ import { Escudo } from './escudos'
 import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { ApoieButton } from './screens'
+import { RANKING_SEMANA_MOEDAS } from './store'
 
-const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6'
+const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 
 
@@ -35,7 +36,7 @@ const haQuanto = (iso: string) => {
 // 🖋️ BATISMO EM DESTAQUE (13/10, Diego: "troque o último batismo do Rossini pelo do K9 e não quero mais que seja último
 // batismo… vou fazer uns rodízios"). Quem escolhe o clube é o Diego: pra trocar, é só mudar esta linha (clube + data
 // em que ele chegou no jogo). Não depende mais do banco.
-const DESTAQUE = { clube: 'Leão da Estradinha', desde: '2026-08-09' }
+const DESTAQUE = { clube: 'K9 FC', desde: '2026-10-06' } // 🔁 16/10: volta pro K9 (Diego: "troque o batismo de destaque pelo time do K9")
 const medalha = (p: number) => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}º`)
 
 function Caixa({ titulo, sub, escura = false, children }: { titulo: string; sub: string; escura?: boolean; children: React.ReactNode }) {
@@ -102,6 +103,8 @@ export function VitrineSalas({ logado }: { logado: boolean }) {
             </div>
           )}
           <p style={{ margin: '7px 0 0', fontSize: 10.5, fontWeight: 700, color: '#5a5240' }}>{tr('⏳ Zera toda segunda às 0h. Os 3 primeiros jogam a semana inteira com a medalha 🥇🥈🥉 ao lado do nome, a moldura de metal e a fita "1º DA SEMANA" nas salas online.', '⏳ Resets every Monday at midnight. The top 3 play all week with the 🥇🥈🥉 medal next to their name, the metal frame and the "#1 OF THE WEEK" ribbon in the online rooms.')}</p>
+          {/* 🪙 17/10 (Diego: "encaixa sutilmente aí… 1º 20 · 2º 10 · 3º 5") — o mesmo número de RANKING_SEMANA_MOEDAS */}
+          <p style={{ margin: '4px 0 0', fontSize: 10.5, fontWeight: 800, color: GREEN }}>{tr(`🪙 E leva moedas pra carreira quando a semana fecha: 1º ${RANKING_SEMANA_MOEDAS[1]} · 2º ${RANKING_SEMANA_MOEDAS[2]} · 3º ${RANKING_SEMANA_MOEDAS[3]}.`, `🪙 Plus career coins when the week closes: #1 ${RANKING_SEMANA_MOEDAS[1]} · #2 ${RANKING_SEMANA_MOEDAS[2]} · #3 ${RANKING_SEMANA_MOEDAS[3]}.`)}</p>
         </Caixa>
       )}
 

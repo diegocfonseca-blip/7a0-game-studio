@@ -1,0 +1,2 @@
+-- 📢 17/10: soma dos toques nos anúncios do "📢 Anúncio do dia" pro Painel do Criador. Aplicada via MCP.
+-- Ver a definição viva com: select pg_get_functiondef('public.esc_admin_cliques_anuncios'::regproc);

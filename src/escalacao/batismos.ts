@@ -73,6 +73,8 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Arrogantchi FC', tipo: 'batismo', fundador: 88, manto: ['#4EC3FC', '#141716'] }, // 😜🔵⚫ Série A (08/10) — heitormonaco98, no assento do Bagres 1993 (que desceu pra B). Azul e preto medidos na camisa — o MESMO par do `manto.ts`
   { clube: 'Inter Vale FC', tipo: 'batismo', fundador: 89, manto: ['#0E0E0E', '#E4E3E1'] }, // 🥊⚫⚪ Série C (12/10) — marcus.viniciuslopessantos79, no assento do bot Tetéia SAF. Preto e branco medidos na camisa — o MESMO par do `manto.ts`
   { clube: 'ComVerissimo FC', tipo: 'batismo', fundador: 3, manto: ['#034727', '#F0F0EC'] }, // 🟢⚪ Série D (15/10) — cesar.verissimo27, plano Fundador (já era o fundador nº3 desde agosto), no assento do bot Soberano Nacional. Verde e branco medidos na camisa — o MESMO par do `manto.ts`
+  { clube: 'Cuiudos FC', tipo: 'batismo', fundador: 91, manto: ['#02308B', '#E7AC0B'] }, // 🤠🔵 Série A (17/10) — matheussoaresg2018, plano Fundador, no assento do Papão United Madrid (que desceu pra C). Azul do corpo e amarelo da gola/frisos medidos na camisa — o MESMO par do `manto.ts`
+  { clube: 'Chelsão da Massa FC', tipo: 'batismo', fundador: null, manto: ['#032169', '#E4A745'] }, // 🦁🔵 Série C (16/10) — ccaonta, no assento do bot CRBebê. Azul do corpo e dourado dos frisos/leão medidos na camisa — o MESMO par do `manto.ts`. Sem nº de fundador (regra 14/10)
   { clube: 'Labubu FC', tipo: 'batismo', fundador: null, manto: ['#EFEEED', '#03101F'] }, // 🐰⚪ Série A (14/10) — caelborba, no assento do Só Deus Sabe FC (que desceu pra C). Branco e azul-marinho medidos na camisa — o MESMO par do `manto.ts`. Sem nº de fundador (regra de 14/10: só o plano Fundador ganha)
   { clube: 'Rossini Money', tipo: 'batismo', fundador: 90, manto: ['#120D0D', '#C21C1B'] }, // 💴🔴⚫ Série A (12/10) — luizeduardorossini0013, no assento do Bagres de Wall Street FC (que desceu pra B). Preto e vermelho medidos na camisa — o MESMO par do `manto.ts`
   { clube: 'Le Prince FC', tipo: 'batismo', fundador: 87, manto: ['#0F0E0D', '#E6E2DD'] }, // 🐓👑 Várzea (08/10) — henriquejunger07, no assento do bot Perna de Pau City. Preto e branco medidos na camisa — o MESMO par do `manto.ts`
@@ -122,7 +124,7 @@ export const BATISMOS: Batismo[] = [
   { clube: 'Sapekeiros FC', tipo: 'batismo', fundador: 41, manto: ['#0C0C0C', '#C9A227'] },
   { clube: 'Rei da Bola FC', tipo: 'batismo', fundador: 70, manto: ['#D4121F', '#121010'] },
   { clube: 'Raiva Cajuri FC', tipo: 'batismo', fundador: 71, manto: ['#0F0505', '#C40B0E'] },
-  { clube: 'Seven City', tipo: 'batismo', fundador: 42, manto: ['#032F13', '#F8EEDC'] },
+  { clube: 'Seven City', tipo: 'batismo', fundador: 42, manto: ['#0F0E0D', '#D99E44'] }, // 17/10: arte nova preta e dourada (era verde e creme)
   { clube: 'Tricolor do Arruda FC', tipo: 'batismo', fundador: 43, manto: ['#110D0E', '#F5F2EF'] },
   { clube: 'Coringas do Diniz', tipo: 'batismo', fundador: 44, manto: ['#FFFFFF', '#0C0C0C'] },
   { clube: 'Nata de SP', tipo: 'batismo', fundador: 45, manto: ['#FFC400', '#0C0C0C'] },

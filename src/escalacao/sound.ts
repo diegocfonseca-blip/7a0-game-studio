@@ -193,6 +193,9 @@ const SFX_GOL = 'sfx/gol-torcida-v1.mp3'
 const AMBIENTE_CARREIRA_POR_EMAIL: Record<string, string> = {
   'souzact12@gmail.com': 'sfx/torcida-geovany-v1.mp3', // Geovany
   'koeppfabio@gmail.com': 'sfx/torcida-fabulous-v1.mp3', // 🦅 Fabão, Fabulous EC (15/10, Fundador): 11 s do vídeo que ele mandou, mesmo padrão do Geovany
+  'glaucomiranda@outlook.com': 'sfx/torcida-gavioes-v1.mp3', // 🍀 Seven City (17/10): o mesmo canto do Gaviões SCCP (pedido do Diego)
+  'matheussoaresg2018@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🤠🔵 Cuiudos FC (17/10, Fundador): o MESMO canto do Corinthians do Gaviões SCCP (pedido do Diego)
+  'kauealves584@gmail.com': 'sfx/torcida-gavioes-v1.mp3', // 🦅⚫⚪ Gaviões SCCP (16/10, Fundador): 12 s de "Todo Poderoso Timão" que o Diego mandou, mesmo volume (−20,6 dB) do Fabulous
 }
 /** 🛒 a Loja do Clube pergunta isto pra não vender canto a quem já tem (Tricolor do Arruda, 14/10) */
 export function temCantoProprio(email: string | null | undefined): boolean { return !!email && email.toLowerCase() in AMBIENTE_CARREIRA_POR_EMAIL }

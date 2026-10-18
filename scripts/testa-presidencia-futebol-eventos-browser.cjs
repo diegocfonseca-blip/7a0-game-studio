@@ -30,10 +30,10 @@ const elapsed=(clock,now)=>clock.elapsedMs+(clock.running?Math.max(0,now-clock.s
   };
   const propsFor=(roundKey,duration=60000)=>({homeName:'Casa',awayName:'Visitante',homeColor:'#1b7a3d',awayColor:'#c2452f',youIsHome:true,enhancedCareer:true,roundKey,roundMs:duration,displayMinute:0,goals:[],stadiumMatch:{id:'event-review-'+roundKey,speed:1,home:team('h'),away:team('a')}});
   const render=async props=>{await page.evaluate(p=>window.renderReviewScore(p),props);await page.waitForFunction(id=>window.qaReviewState?.context.id===id,props.stadiumMatch.id);await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));};
-  const narration=()=>page.locator('.ll25-narration').innerText();
+  const narration=()=>page.locator('.ll43-radio .ll43-ln:not(.ll43-velha)').innerText();
   const read=()=>page.evaluate(async()=>{
    const{quadroFutebol3D}=await import('/7a0-game-studio/src/escalacao/presidencia-futebol-motor.ts');const now=performance.now(),state=window.qaReviewState;
-   return{now,state:structuredClone(state),frame:quadroFutebol3D(state,now),text:document.querySelector('.ll25-narration')?.textContent,radio:document.querySelector('.ll-radio')?.textContent,mini:document.querySelector('.ll32-bola')?.getAnimations().map(a=>a.currentTime)};
+   return{now,state:structuredClone(state),frame:quadroFutebol3D(state,now),text:document.querySelector('.ll43-radio .ll43-ln:not(.ll43-velha)')?.textContent,radio:document.querySelector('.ll43-radio')?.textContent,mini:document.querySelector('.ll32-bola')?.getAnimations().map(a=>a.currentTime)};
   });
   // Every rate starts with the same fixture at minute zero, then changes speed
   // before any chance is due. A slower/faster view must retain all incidents.
@@ -67,7 +67,7 @@ const elapsed=(clock,now)=>clock.elapsedMs+(clock.running?Math.max(0,now-clock.s
    props.stadiumMatch.speed=4;props.roundMs=15000;await render(props);
    await page.waitForFunction(()=>{const chance=window.qaReviewState?.chance,clock=chance?.clock;return clock&&clock.elapsedMs+(clock.running?Math.max(0,performance.now()-clock.sampledAt)*clock.rate:0)>=chance.plan.durationMs;});
    const expected={defendeu:/goleiro defendeu/i,trave:/na trave|no travessão/i,fora:/para fora/i,isolou:/por cima/i}[outcome];
-   await page.waitForFunction(pattern=>new RegExp(pattern,'i').test(document.querySelector('.ll25-narration')?.textContent??''),expected.source);
+   await page.waitForFunction(pattern=>new RegExp(pattern,'i').test(document.querySelector('.ll43-radio .ll43-ln:not(.ll43-velha)')?.textContent??''),expected.source);
    const after=await read();
    assert.match(after.text,expected);assert.doesNotMatch(after.text,forbidden);assert.ok(elapsed(after.state.chance.clock,after.now)>=after.state.chance.plan.durationMs,'result only appears at the shared impact');assert.equal(after.state.homeScore,0);assert.equal(after.state.awayScore,0);
    report.chances.push({outcome,before:{text:before.text,elapsed:elapsed(before.state.chance.clock,before.now),impact:before.state.chance.plan.durationMs},pause,after:{text:after.text,elapsed:elapsed(after.state.chance.clock,after.now),impact:after.state.chance.plan.durationMs},rateAfter:4});
@@ -80,15 +80,18 @@ const elapsed=(clock,now)=>clock.elapsedMs+(clock.running?Math.max(0,now-clock.s
    props.goals=[{min:20,home:true,name:'Mesmo Nome',id:'h10',assist:assisted?'Garçom':'Ausente',assistId:assisted?'h6':'missing'}];await render(props);
    props.stadiumMatch.speed=.25;props.roundMs=240000;props.displayMinute=20;await render(props);await page.waitForFunction(()=>!!window.qaReviewState?.goal?.plan);
    const shot=await read();assert.equal(shot.state.goal.scorerId,'h10');assert.equal(shot.state.goal.assistId,assisted?'h6':'missing');assert.equal(shot.state.goal.plan.author.key,'home:h10');assert.equal(shot.state.goal.plan.assist?.key,assisted?'home:h6':undefined);assert.equal(shot.state.homeScore,0);
-   props.stadiumMatch.speed=4;props.roundMs=15000;await render(props);await page.waitForFunction(()=>window.qaReviewState?.homeScore===1&&window.qaReviewState?.goal?.phase==='confirmed'&&document.querySelector('.ll25-narration')?.textContent.includes('Mesmo Nome'));
+   assert.match(shot.text,preparing);assert.doesNotMatch(shot.text,verdict);assert.doesNotMatch(shot.radio,/go+ol|⚽ GOL/i,'the unified radio cannot announce the goal while the ball is still being played');
+   props.stadiumMatch.speed=4;props.roundMs=15000;await render(props);await page.waitForFunction(()=>window.qaReviewState?.homeScore===1&&window.qaReviewState?.goal?.phase==='confirmed'&&document.querySelector('.ll43-radio .ll43-ln:not(.ll43-velha)')?.textContent.includes('Mesmo Nome'));
    const confirmed=await read();assert.match(confirmed.text,/Mesmo Nome/);assert.doesNotMatch(confirmed.text,forbidden);assert.ok(elapsed(confirmed.state.goal.clock,confirmed.now)>=confirmed.state.goal.plan.durationMs);
    if(assisted)assert.match(confirmed.text,/Garçom.*passa.*Mesmo Nome/i);else assert.doesNotMatch(confirmed.text,/Ausente|passa/i);
-   const text=confirmed.text;await page.waitForFunction(()=>!window.qaReviewState?.goal);await page.waitForTimeout(1750);const retained=await narration();assert.doesNotMatch(retained,forbidden);if(assisted)assert.match(retained,/Garçom.*passa.*Mesmo Nome/i);else assert.doesNotMatch(retained,/Ausente|passa/i);
+   const text=confirmed.text;await page.waitForFunction(()=>!window.qaReviewState?.goal);await page.waitForTimeout(1750);const retained=await page.locator('.ll43-radio').innerText();assert.doesNotMatch(retained,forbidden);if(assisted)assert.match(retained,/Garçom.*passa.*Mesmo Nome/i);else assert.doesNotMatch(retained,/Ausente|passa/i);
    report.goals.push({assisted,scorerId:shot.state.goal.scorerId,assistId:shot.state.goal.assistId,plannedAuthor:shot.state.goal.plan.author.key,plannedAssist:shot.state.goal.plan.assist?.key,text,retained});console.log('PASS IDs homônimos, impacto e assistência efetiva: '+assisted);
   }
   // A minute with radio coverage must not invent cards or football actions
   // that the shared field did not actually perform.
-  await open();const props=propsFor(501);props.displayMinute=32;await render(props);const pageText=await page.locator('body').innerText();assert.match(pageText,/Ao vivo: Casa × Visitante\. Acompanhe a bola no estádio\./);assert.doesNotMatch(pageText,forbidden);
+  await open();const props=propsFor(501);props.displayMinute=32;props.radioExtra=[{min:32,txt:'QA: cartão vermelho não simulado'}];await render(props);
+  await page.waitForFunction(()=>document.querySelector('.ll43-radio .ll43-ln:not(.ll43-velha)')?.textContent.includes('Ao vivo: Casa × Visitante. Acompanhe a bola no estádio.'));
+  const pageText=await page.locator('body').innerText();assert.match(await narration(),/Ao vivo: Casa × Visitante\. Acompanhe a bola no estádio\./);assert.doesNotMatch(pageText,forbidden);assert.equal(await page.locator('.ll25-narration').count(),0);
   report.radio={factual:true};assert.deepEqual(report.errors,[]);await context.close();
   fs.writeFileSync(output+'/eventos-browser-20261016.json',JSON.stringify(report,null,2));console.log('PASS eventos privados: seis velocidades, quatro desfechos, pausa, IDs, assistência e rádio factual.');
  }catch(error){report.failure={message:error.message,stack:error.stack};fs.writeFileSync(output+'/eventos-browser-20261016.json',JSON.stringify(report,null,2));if(page)await page.screenshot({path:output+'/eventos-falha.png'}).catch(()=>{});throw error;}finally{await browser.close();}

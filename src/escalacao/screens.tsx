@@ -13,7 +13,7 @@ import { ApoieButtonV2 } from './apoie-v2'
 import onlinePackArt from './img/online-pacote-v20.webp'
 import type { Card, DuplaSeat, EscState, FormationKey, Manager, QuickCopaTie, Sector, Tactic, WonCard } from './types'
 import { FORMATIONS, SECTORS, duplaPodeAgir, type DuplaCat } from './types'
-import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
+import { ehKings, lanceEhGol, championsTabela, useEsc, golsNoJogo, assistsNoJogo, openSlots, slotsCheio, totalHoles, xiHoles, sortedTable, topScorers, rivalryOf, monteMsDe, BATCH_SIZE, batchCount, DIVISION_LABEL, holPodeAgora, holPassoMs, holDono, HOL_ABERTURA, MODO_NOME, MODO_NOME_NASCEU, MODO_EMOJI, MODO_FISGOU, modoNomeDe, ENIGMA_EMOJI, ENIGMA_NOME, ENIGMA_LIGADO, dicaDoEnigma, buildCareerSave, nextDivision, monteBloqueio, mesmoDono, deletePyramidCloud, removeCareerFromCloud, listAllCareers, activateCareerSlot, deleteCareerSlot, stashActiveBeforeNew, careerSlotLimit, carregaFichasExtras, syncCareersWithCloud, carreiraAtivaPraAbrir, patchCareerCofre, fotoDaConexao, aplicaSaidasDeTroca } from './store'
 import { AbaColecoes, AbaTrocas, type CartaDoAlbum } from './album-colecoes'
 import type { CareerSlot } from './store'
 import { CHAMPIONS_CLUBES, CHAMPIONS_RODADAS, CHAMPIONS_DIRETO, CHAMPIONS_REPESCAO } from './champions'
@@ -34,6 +34,7 @@ import {usePresidentPreview,PRESIDENT_INTEGRATION_RELEASED} from './presidente-a
 import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPlanoConta} from './presidente-conta'
+import {PresidenteDaConta} from './presidente-avatar'
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -52,7 +53,6 @@ const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m =>
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
 import { CampinhoKings } from './kings-campinho'
 import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
-import { VADICO_LOGO } from './vadico'
 import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
@@ -89,6 +89,8 @@ import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
+import { useAnunciosGiro } from './patrocinio'
+import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10) // 📣 anúncios no giro + "Anuncie aqui" (16/10)
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
 // basquete = Armadores/Alas/Pivôs em BR ou EN). Usado no topo do pregão.
@@ -747,6 +749,7 @@ export function ChatWidget() {
                       // 1) nome na cor do plano de quem fala (sem escudo: Diego 13/10 "pra não ficar muita informação") · 3) toque na dos outros = responder
                       return (
                         <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
+                          <PresidenteDaConta uid={m.uid} size={40} reserva={null} />{/* 🧑‍💼 16/10 (28→40px, Diego: "aumentar um pouco mais a fotinho"): quem fala, pelo presidente (só quem tem; grátis fica como era) */}
                           <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
                             style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
                             {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ChatCracha name={m.name} />}
@@ -1075,6 +1078,8 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
           A peça mora em `jogadorcampo.tsx` e é a MESMA do elenco da carreira —
           um lugar só pra mexer, os dois campinhos mudam juntos.
           A bolinha leva o MANTO do dono; sem manto, bege. */}
+      {/* 🏟️ placas atrás dos gols (17/10): uma em cima, outra embaixo, trocando juntas a cada 7 s */}
+      <PlacaGol lado="cima" alt={small ? 24 : 28} />
       <div className="campinho-field px-3 py-3.5 flex flex-col gap-3" style={{ background: `repeating-linear-gradient(180deg, ${g1} 0 ${small ? 34 : 38}px, ${g2} ${small ? 34 : 38}px ${small ? 68 : 76}px)` }}>
         {rows.map(row => (
           <div key={row.key} className="campinho-row flex justify-center items-end gap-2">
@@ -1098,10 +1103,8 @@ export function Campinho({ m, small = false, bench = false, title, manto, mantoD
           </div>
         ))}
       </div>
-      {/* placa de patrocínio: faixa branca fina num lado do campo (atrás do gol) */}
-      <div style={{ background: '#fff', borderTop: `3px solid ${INK}`, height: small ? 26 : 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <img src={VADICO_LOGO} alt="Vadico Veículos" style={{ height: small ? 16 : 19, width: 'auto', display: 'block' }} />
-      </div>
+      {/* placa de patrocínio atrás do gol de baixo (era a faixa branca fixa da Vadico; desde 17/10 troca com a de cima) */}
+      <PlacaGol lado="baixo" alt={small ? 24 : 28} />
     </div>
   )
 }
@@ -1163,7 +1166,7 @@ function NbaCourt({ m }: { m: Manager }) {
   )
 }
 
-function YourPitch({ small = false }: { small?: boolean }) {
+export function YourPitch({ small = false }: { small?: boolean }) {
   const { state } = useEsc()
   const you = state.managers[state.youIdx]
   // SEM SPOILER: durante a revelação, os vencedores já estão decididos por
@@ -1517,6 +1520,9 @@ const DIV_COLOR: Record<string, string> = { A: '#E7A21F', B: '#8C97A3', C: '#C77
 function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
   const { dispatch } = useEsc()
   const [list, setList] = useState<{ slot: CareerSlot; active: boolean }[]>(() => listAllCareers())
+  // 💾 17/10: a ficha extra comprada na Loja vem do banco; quando chega, a tela redesenha com o limite novo
+  const [, setExtras] = useState(0)
+  useEffect(() => { carregaFichasExtras().then(setExtras, () => {}) }, [])
   // confirmação de apagar é DENTRO do jogo (dois toques) — window.confirm é
   // bloqueado no navegador do WhatsApp/Instagram e o 🗑️ "não fazia nada" pra galera.
   const [confirmKey, setConfirmKey] = useState<string | null>(null)
@@ -1573,7 +1579,7 @@ function MinhasCarreiras({ onClose, onNew }: { onClose: () => void; onNew: () =>
         })}
         {(() => { const lim = careerSlotLimit(list.length); const cheio = list.length >= lim; return (<>
         <button onClick={onNew} disabled={cheio} style={{ width: '100%', background: cheio ? '#d8cfb5' : '#fff', border: `2.5px dashed ${INK}`, borderRadius: 12, padding: 12, fontWeight: 900, fontSize: 14, ...OSWALD, cursor: cheio ? 'default' : 'pointer', color: INK }}>{t('➕ Começar nova carreira', '➕ Start a new career')}{cheio ? ` (${t('fichas cheias', 'slots full')} ${list.length}/${lim})` : ''}</button>
-        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4. (Whoever already had more than the limit loses nothing.)')}</p>}
+        {cheio && <p style={{ fontSize: 10.5, fontWeight: 800, color: 'rgba(0,0,0,.55)', margin: '6px 2px 0', lineHeight: 1.45 }}>{t('🔒 Suas fichas de carreira estão cheias — apague uma carreira que não usa mais, compre uma 💾 ficha extra na 🛒 Loja do Clube, ou ganhe fichas apoiando: ⭐ Craque tem 2 · 👑 Lenda 4 · 🖋️ Batismo 4. (Quem já tinha mais que o limite não perde nada.)', '🔒 Your career slots are full — delete a career you no longer use, buy an 💾 extra slot in the 🛒 Club Shop, or earn slots by supporting: ⭐ Star has 2 · 👑 Legend 4 · 🖋️ Named club 4. (Whoever already had more than the limit loses nothing.)')}</p>}
       </>) })()}
         <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,.45)', textAlign: 'center', margin: '9px 2px 0' }}>{t('Começar uma nova NÃO apaga as outras. Trocar de save também não — só o 🗑️ apaga.', 'Starting a new one does NOT delete the others. Switching saves doesn\'t either — only 🗑️ deletes.')}</p>
       </div>
@@ -1849,7 +1855,7 @@ function Duvidas() {
       </> : <>
       There are <b>4</b>, all one-off (no monthly fee), and all the details are in the <b>💛 Support</b> button:<br /><br />
       ⭐ <b>Craque (Star) — R$ 29.90, one time.</b><br />
-      👑 <b>Lenda (Legend) — R$ 49.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
+      👑 <b>Lenda (Legend) — R$ 44.90, one time.</b> Gets <b>everything from Star</b> and more.<br />
       🖋️ <b>Batismo (Club Naming) — R$ 79.90, one time.</b> Gets <b>everything from Legend</b>, plus the club with crest, mascot, kit and stadium.<br />
       🖋️ <b>Fundador (Founder) — R$ 99.90, one time.</b> Everything in Club Naming, with the club in <b>Série A</b> + an exclusive grand entrance + a crowd chant in Career + a Founder number.<br /><br />
       Moving up a plan? <b>You only pay the difference.</b><br /><br />
@@ -1916,7 +1922,7 @@ function Duvidas() {
       </> : <>
       São <b>4</b>, todos de uma vez só (nada de mensalidade), e os detalhes estão no botão <b>💛 Apoiar</b>:<br /><br />
       ⭐ <b>Craque — R$ 29,90, uma vez só.</b><br />
-      👑 <b>Lenda — R$ 49,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
+      👑 <b>Lenda — R$ 44,90, uma vez só.</b> Ganha <b>tudo do Craque</b> e mais.<br />
       🖋️ <b>Batismo — R$ 79,90, uma vez só.</b> Ganha <b>tudo do Lenda</b>, mais o clube com escudo, mascote, manto e estádio.<br />
       🖋️ <b>Fundador — R$ 99,90, uma vez só.</b> Tudo do Batismo, com o clube na <b>Série A</b> + entrada de gala exclusiva + canto da torcida (na Carreira, nos jogos, e no online, junto com a gala) + número de Fundador.<br /><br />
       Quer subir de plano? <b>Paga só a diferença.</b><br /><br />
@@ -2975,7 +2981,7 @@ export function EscSetup() {
                   <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                     letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
                     border: `1.5px solid ${INK}`, background: pregaoAb ? INK : GOLD, color: pregaoAb ? GOLD : INK }}>
-                    {t('teste', 'test')}
+                    {t('em teste', 'beta')}
                   </span>
                   {t('🔨 Pregão aberto', '🔨 Open auction')}
                 </button>
@@ -2983,7 +2989,7 @@ export function EscSetup() {
             </div>
             <p className="text-[11px] font-semibold text-black/55 mt-1">
               {pregaoAb
-                ? t('🔨 Uma carta por vez, lance ABERTO na frente de todos: dou 10… 11… 12… uma, duas, três, vendido! A ordem das posições vem embaralhada (ninguém sabe a próxima carta), 6 segundos sem lance novo bate o martelo, e quem já fechou a posição só assiste. Sobrou carta sem lance? Vai pro Monte, como sempre.', '🔨 One card at a time, OPEN bidding in front of everyone: 10… 11… 12… going once, twice, sold! Positions come shuffled (nobody knows the next card), 6 seconds without a new bid drops the hammer, and whoever already filled the position just watches. Unsold card? Off to the leftovers, as always.')
+                ? t('🔨 Uma carta por vez, lance ABERTO na frente de todos: dou 10… 11… 12… uma, duas, três, vendido! A ordem das posições vem embaralhada (ninguém sabe a próxima carta), 5 segundos sem lance novo bate o martelo, e quem já fechou a posição só assiste. Não tem Monte: vaga vazia no fim ganha jogador de graça.', '🔨 One card at a time, OPEN bidding in front of everyone: 10… 11… 12… going once, twice, sold! Positions come shuffled (nobody knows the next card), 5 seconds without a new bid drops the hammer, and whoever already filled the position just watches. No pile: empty slots at the end get a free player.')
                 : holandes
                 ? t('🐊 A leva inteira na tela com UM preço só, abrindo em 100 e CAINDO na frente de todos. Quem apertar primeiro leva o jogador pelo preço que estiver na tela. Ninguém apertou até zerar? Vai pras sobras, como sempre.', '🐊 The whole batch on screen with ONE price, opening at 100 and DROPPING in front of everyone. First to tap takes the player at the price on screen. Nobody tapped before zero? Off to the leftovers, as always.')
                 : t('✉️ O leilão de sempre: você escreve seu lance escondido e o maior leva no martelo.', '✉️ The usual auction: you write your bid in secret and the highest wins at the hammer.')}
@@ -3359,6 +3365,19 @@ function pendingSpend(state: EscState, you: Manager): number {
 // novo" fazia (status 'waiting' no banco + REMATCH/VOLTA_ESPERA), com uma confirmação que
 // explica o que acontece. Sala de carreira online NÃO (lá o pregão entre temporadas é
 // parte do save — voltar pra espera criaria uma carreira nova).
+// 🔧 17/10 (Diego: "muitas vezes não consegue continuar a liga"): voltar pra sala de espera
+// tem que matar o pregão velho NO BANCO também — só o `status: 'waiting'` deixava o
+// `game_state` com `screen` da partida, e a próxima entrada RESTAURAVA o jogo velho em vez
+// de abrir a espera. Mesmo acerto do "Chamar mais gente" (18/09): marca `screen: 'lobby'`.
+async function voltaEsperaNoBanco(roomId: string | undefined | null) {
+  if (!roomId) return
+  try {
+    const { data } = await supabase.from('game_rooms').select('game_state').eq('id', roomId).maybeSingle()
+    const gs = (data?.game_state ?? {}) as Record<string, unknown>
+    await supabase.from('game_rooms').update({ status: 'waiting', game_state: { ...gs, screen: 'lobby' }, updated_at: new Date().toISOString() }).eq('id', roomId)
+  } catch { /* segue: o reducer leva pra espera mesmo assim */ }
+}
+
 async function chamarMaisGente(roomId: string | undefined | null, dispatch: ReturnType<typeof useEsc>['dispatch'], V: (pt: string, en: string) => string, noPregao = false, deckSala?: EscState['deckLeague']) {
   const msg = noPregao
     ? V('Chamar mais gente agora?\n\nEste pregão é desfeito (nenhuma rodada foi jogada) e TODO MUNDO volta pra sala de espera. Lá você convida, o amigo entra com código + senha, e você abre o pregão de novo — com todo mundo. Troféus e ranking ficam.', 'Invite more people now?\n\nThis auction is discarded (no round was played) and EVERYONE goes back to the waiting room. There you invite, your friend joins with code + password, and you open the auction again — with everybody. Trophies and ranking stay.')
@@ -4304,7 +4323,7 @@ function Envelope() {
               { ic: '😴', label: 'Dormiu?', mk: n => `${n} dormiu?` },
               { ic: '🔒', label: 'Lacra logo!', mk: n => `Lacra logo, ${n}!` },
               { ic: '🧮', label: 'Conta moeda?', mk: n => `${n} tá contando moeda no dedo?` },
-              { ic: '💸', label: 'Chora depois!', mk: n => `${n} vai gastar tudo e chorar depois` },
+              // 🧹 17/10 (Diego: "no máximo 4 emojis… cada modo tem um tipo"): saiu o 💸 "chora depois" — o 💸 já é a cantada da carta
             ]
             return (
               <div className="mt-3">
@@ -5446,8 +5465,10 @@ function Reveal() {
                   </motion.p>
                 </>
               )}
-              {!privateReveal && <p className="font-black text-lg" style={OSWALD}>
-                🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!
+              {!privateReveal && <p className="font-black text-lg" style={{ ...OSWALD, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {/* 🧑‍💼 16/10: no online, quem levou aparece pelo presidente dele (só quem tem; grátis fica só o texto) */}
+                <PresidenteDaConta uid={state.seatUids?.[state.managers.indexOf(winnerMgr)]} size={34} reserva={null} />
+                <span>🔨 VENDIDO {winnerMgr.id === you.id ? 'PRA VOCÊ' : `pro ${winnerMgr.teamName}`} por {item.paid}!</span>
               </p>}
               {/* 🕴️ AGÊNCIA 2.0: agenciado negociado → banner de comissão no tempo
                   morto do martelo (não adiciona passo). A moeda já entrou no motor. */}
@@ -5684,13 +5705,18 @@ export function EscMonte() {
           miram o técnico da vez (curMgr) e aparecem flutuando pra todos, igual leilão. */}
       {online && curMgr && curMgr.id !== you.id && (() => {
         const n = curMgr.teamName || curMgr.name
-        const jabs: { ic: string; label: string; mk: (x: string) => string }[] = [
+        // 🧹 17/10 (Diego: "no máximo 4 emojis… cada modo tem um tipo de emoji"): 4 por modo. No 🧱 Leilão de Clubes o
+        // Monte é de PACOTE, então a zoeira fala de pacote (perna-de-pau e gol contra são de carta solta).
+        const jabs: { ic: string; label: string; mk: (x: string) => string }[] = state.leilaoClubes ? [
           { ic: '👆', label: tr('Aperta o Pegar!', 'Press Take!'), mk: x => getLang() === 'en' ? `How hard is it to press Take, ${x}?` : `Qual a dificuldade de apertar o Pegar, ${x}?` },
           { ic: '🐢', label: tr('Anda!', 'Move!'), mk: x => getLang() === 'en' ? `Come on, ${x}, they're just leftovers!` : `Anda, ${x}, é só sobra!` },
-          { ic: '😴', label: tr('Dormiu?', 'Asleep?'), mk: x => getLang() === 'en' ? `${x} fell asleep on their turn?` : `${x} dormiu na vez?` },
+          { ic: '🧱', label: tr('Pacote de reserva', 'Bench pack'), mk: x => getLang() === 'en' ? `Only the bench pack will be left for ${x}!` : `Só vai sobrar pacote de reserva pro ${x}!` },
+          { ic: '🤏', label: tr('Mão de vaca', 'Cheapskate'), mk: x => getLang() === 'en' ? `Next time stop being a cheapskate, ${x}!` : `Na próxima deixa de ser mão de vaca, ${x}!` },
+        ] : [
+          { ic: '👆', label: tr('Aperta o Pegar!', 'Press Take!'), mk: x => getLang() === 'en' ? `How hard is it to press Take, ${x}?` : `Qual a dificuldade de apertar o Pegar, ${x}?` },
+          { ic: '🐢', label: tr('Anda!', 'Move!'), mk: x => getLang() === 'en' ? `Come on, ${x}, they're just leftovers!` : `Anda, ${x}, é só sobra!` },
           { ic: '🗑️', label: tr('Perna-de-pau', 'Donkey'), mk: x => getLang() === 'en' ? `Only donkeys will be left for ${x}!` : `Só vai sobrar perna-de-pau pro ${x}!` },
           { ic: '🤡', label: tr('Sobra o Gol Contra', 'Own-goal guy is left'), mk: x => getLang() === 'en' ? `Adriano Own-Goal will be left for ${x} 😂` : `Vai sobrar o Adriano Gol Contra pro ${x} 😂` },
-          { ic: '🤏', label: tr('Mão de vaca', 'Cheapskate'), mk: x => getLang() === 'en' ? `Next time stop being a cheapskate, ${x}!` : `Na próxima deixa de ser mão de vaca, ${x}!` },
         ]
         return (
           <div className="mt-1">
@@ -7239,7 +7265,7 @@ export function EscSeason() {
         // giroNews é o giro SEGURADO (só atualiza no apito) — o filtro de linhas de
         // Copa fica como segurança extra enquanto a perna anima.
         const shownNews = copaLive && copaMin < 93 ? giroNews.filter(n => !isCopaReveal(n)) : giroNews
-        if (shownNews.length === 0) return null
+        // 📢 17/10: o letreiro virou só ANÚNCIO (não mostra mais manchete) — então aparece sempre, até antes do 1º jogo
         return <GiroDaRodada news={shownNews} isCopa={copaLive} cinema={cinemaPreview} />
       })()}
 
@@ -7534,7 +7560,8 @@ function leagueBeforeResults<T extends { id: number; pts: number; w: number; d: 
 // na mesma sala — então a tradução é feita AQUI, por quem vê, casando os moldes
 // fixos do `narrateRound`/giro da Copa (store.tsx). Molde desconhecido = fica
 // como veio (nunca inventa).
-function traduzManchete(h: string): string {
+// (16/10: o letreiro virou só anúncio; estas duas ficam exportadas pra voltar o giro de notícias se ele pedir)
+export function traduzManchete(h: string): string {
   if (getLang() !== 'en') return h
   const m = h.match(/^(R\d+ · )?(.*)$/s)
   const pre = m?.[1] ?? '', t = m?.[2] ?? h
@@ -7580,52 +7607,58 @@ function traduzManchete(h: string): string {
 //     uma manchete parada por vez, com o fade de antes.
 //   · o `key` da corrida é a lista inteira → manchete nova reinicia a corrida do
 //     começo, então a mais recente é sempre a primeira a entrar.
-const corDoLed = (h: string) => /CAMPE[ÃA]O|👑|WINS|CHAMPION/.test(h) ? '#FFE066' : /🎯|🕐|PÊNALTIS|PENALTIES|PRORROGAÇÃO|OVERTIME/.test(h) ? '#FF5A3C' : '#FFB000'
-export function GiroDaRodada({ news, isCopa, cinema = false }: { news: string[]; isCopa?: boolean; cinema?: boolean }) {
-  // ✂️ 26/09 (Diego): o "R1 · / R2 ·" na frente de cada manchete sai do letreiro —
-  //    *"isso não precisa aparecer, fica muita coisa"*. Só na TELA: a manchete
-  //    guardada continua com a rodada (o filtro anti-spoiler e o resto leem ela).
-  const list = news.slice(0, 6).map(h => traduzManchete(h.replace(/^R\d+ · /, '')))
-  const key = list.join('|')
-  const [idx, setIdx] = useState(0)
-  const keyRef = useRef(key)
-  if (keyRef.current !== key) { keyRef.current = key; setIdx(0) }
+export const corDoLed = (h: string) => /CAMPE[ÃA]O|👑|WINS|CHAMPION/.test(h) ? '#FFE066' : /🎯|🕐|PÊNALTIS|PENALTIES|PRORROGAÇÃO|OVERTIME/.test(h) ? '#FF5A3C' : '#FFB000'
+// 📢 PLACA DO ANÚNCIO (17/10, Diego escolheu o mockup `scripts/mockups/anuncio-do-dia-placa.mp4`: *"é melhor esse aqui mesmo"*).
+// Antes o texto corria num letreiro: a letra saía da caixa e a corrida recomeçava toda vez que a tela remontava (a cada
+// rodada). Agora: UM anúncio por vez, parado e inteiro, marca grande em cima e oferta embaixo, trocando a cada 7 s com as
+// letras virando igual placa de estádio. Quem manda na troca é o RELÓGIO (Date.now), não a tela — então a sala inteira vê o
+// mesmo anúncio na mesma hora e nada recomeça quando a rodada muda. 0 KB: só CSS.
+const PLACA_MS = 7000
+function partesDoAnuncio(t: string): { marca: string; oferta: string } {
+  const i = t.indexOf(' · ')
+  if (i > 0 && i <= 30) return { marca: t.slice(0, i), oferta: t.slice(i + 3) }
+  return { marca: '', oferta: t }
+}
+function LetrasVirando({ texto, atraso = 0 }: { texto: string; atraso?: number }) {
+  let n = 0
+  return <>{texto.split(' ').map((w, wi) => <Fragment key={wi}>{wi > 0 && ' '}<span style={{ whiteSpace: 'nowrap' }}>{Array.from(w).map((ch, ci) =>
+    <span key={ci} className="placa-l" style={{ animationDelay: `${atraso + (n++) * 14}ms` }}>{ch}</span>)}</span></Fragment>)}</>
+}
+export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean }) {
+  // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
+  const anuncios = useAnunciosGiro()
+  const en = getLang() === 'en'
+  const itens = anuncios.length ? anuncios : [{ texto: en ? '📣 This space can be yours' : '📣 Este espaço pode ser seu', cor: '#FFC400' }]
+  const vez = () => Math.floor(Date.now() / PLACA_MS)
+  const [slot, setSlot] = useState(vez)
   useEffect(() => {
-    if (list.length <= 1) return
-    const iv = setInterval(() => setIdx(i => (i + 1) % list.length), 3200)
+    const iv = setInterval(() => setSlot(s => { const v = vez(); return v === s ? s : v }), 250)
     return () => clearInterval(iv)
-  }, [key, list.length])
-  if (list.length === 0) return null
-  // velocidade constante: ~0,13s por letra, com piso de 14s pra lista curta não passar
-  // voando. (26/09, Diego: *"aumenta só um pouco mais a velocidade, quase nada"* — era 0,16/18s)
-  const chars = list.reduce((n, h) => n + h.length + 4, 0)
-  const dur = Math.max(14, Math.round(chars * 0.13)) // 28/09: *"só um pouquinho mais rápido"* (era 0,145/16s)
-  const rotulo = getLang() === 'en' ? (isCopa ? '🏆 Around the cup' : '📣 Around the round') : (isCopa ? '🏆 Giro da Copa' : '📣 Giro da rodada')
+  }, [])
+  const idx = slot % itens.length
+  const ad = itens[idx]
+  const { marca, oferta } = partesDoAnuncio(ad.texto)
+  const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   return (
-    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden' }}>
-      <style>{`@keyframes giroCorre{to{transform:translateX(-50%)}}@keyframes giroFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
-.giro-led{position:relative;height:46px;background:#0a0a0a;background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.2px);background-size:4px 4px;box-shadow:inset 0 0 18px rgba(0,0,0,.9)}
-.giro-led:before,.giro-led:after{content:'';position:absolute;top:0;bottom:0;width:26px;z-index:2;pointer-events:none}
-.giro-led:before{left:0;background:linear-gradient(90deg,#0a0a0a,transparent)}.giro-led:after{right:0;background:linear-gradient(270deg,#0a0a0a,transparent)}
-.giro-corre{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;padding-left:100%;animation:giroCorre linear infinite}
-.giro-m{font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:.6px;text-transform:uppercase}
-.giro-sep{color:rgba(255,176,0,.45);margin:0 18px;font-size:11px}
-.giro-parado{display:none}
-@media (prefers-reduced-motion:reduce){.giro-corre{display:none}.giro-parado{display:flex;align-items:center;height:100%;padding:0 12px;animation:giroFade .35s ease}}`}</style>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px 5px', background: CREAM, borderBottom: `3px solid ${INK}` }}>
-        <span className="font-black text-xs uppercase tracking-wide" style={{ ...OSWALD, color: INK }}>{rotulo}</span>
-        {list.length > 1 && <span>{list.map((_, i) => <i key={i} style={{ display: 'inline-block', width: 5, height: 5, borderRadius: 99, background: i === idx ? INK : '#d9cfae', marginLeft: 4 }} />)}</span>}
-      </div>
-      <div className="giro-led">
-        <div key={key} className="giro-corre" style={{ animationDuration: `${dur}s` }}>
-          {[...list, ...list].map((h, i) => (
-            <Fragment key={i}>
-              <span className="giro-m" style={{ color: corDoLed(h), textShadow: `0 0 6px ${corDoLed(h)}88` }}>{h}</span>
-              <span className="giro-sep">◆</span>
-            </Fragment>
-          ))}
-        </div>
-        <div key={`p${idx}`} className="giro-parado"><span className="giro-m" style={{ color: corDoLed(list[idx]), textShadow: `0 0 6px ${corDoLed(list[idx])}88`, whiteSpace: 'normal', fontSize: 13, lineHeight: 1.15 }}>{list[idx]}</span></div>
+    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: 16 }}>
+      <style>{`.placa-led{position:relative;height:84px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
+.placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
+.placa-tag{position:absolute;left:14px;top:6px;font:700 9px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45)}
+.placa-m{position:absolute;left:14px;right:14px;top:20px;font:700 19px/1.05 Oswald,sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.placa-o{position:absolute;left:14px;right:14px;top:45px;font:500 13px/1.12 Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#F4ECD6;max-height:30px;overflow:hidden}
+.placa-o.so{top:22px;font-size:15px;max-height:52px}
+.placa-l{display:inline-block;transform-origin:50% 60%;animation:placaVira .38s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes placaVira{0%{transform:rotateX(90deg);opacity:0;filter:brightness(3)}60%{opacity:1}100%{transform:rotateX(0);opacity:1;filter:none}}
+.placa-bar{position:absolute;left:0;bottom:0;height:3px;animation:placaBar ${PLACA_MS}ms linear both}
+@keyframes placaBar{from{width:0}to{width:100%}}
+@media (prefers-reduced-motion:reduce){.placa-l{animation:none}}`}</style>
+      {/* 17/10 (Diego): saiu a faixa creme de título ("pra ser mais discreto e um pouco menor") — o "Anúncio do dia" mora DENTRO da placa */}
+      <div className="placa-led" key={slot} role={ad.link ? 'link' : undefined} tabIndex={ad.link ? 0 : undefined} style={ad.link ? { cursor: 'pointer' } : undefined}
+        onClick={ad.link ? () => { logApoio(`📢 clicou no anúncio: ${marca || oferta}`); window.open(ad.link, '_blank', 'noopener,noreferrer') } : undefined}>
+        <span className="placa-tag">{en ? '📢 AD OF THE DAY' : '📢 ANÚNCIO DO DIA'}{ad.link ? (en ? ' · TAP TO SEE ›' : ' · TOQUE PRA VER ›') : ''}{itens.length > 1 ? ` · ${idx + 1}/${itens.length}` : ''}</span>
+        {marca && <div className="placa-m" style={{ color: ad.cor, textShadow: `0 0 8px ${ad.cor}99`, fontSize: marca.length > 20 ? 16 : undefined }}><LetrasVirando texto={marca} /></div>}
+        <div className={`placa-o${marca ? '' : ' so'}`}><LetrasVirando texto={oferta} atraso={180} /></div>
+        <div className="placa-bar" style={{ background: ad.cor, animationDelay: `-${Math.min(PLACA_MS, Math.max(0, decorrido))}ms` }} />
       </div>
     </div>
   )
@@ -10395,7 +10428,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
       // sobrou só o host na sala (ex.: excluiu o único convidado)? Leilão novo
       // precisa de 2+ — volta pra sala de espera pra chamar gente, sem travar.
       if (playerNames.length < 2) {
-        try { await supabase.from('game_rooms').update({ status: 'waiting' }).eq('id', state.roomId) } catch { /* segue */ }
+        await voltaEsperaNoBanco(state.roomId)
         try { alert(V('Você ficou sozinho na sala — o novo leilão precisa de pelo menos 2 pessoas. Te levei pra sala de espera: chama a galera por lá! 📣', 'You are alone in the room — a new auction needs at least 2 people. I took you to the waiting room: call the crew from there! 📣')) } catch { /* ignora */ }
         dispatch({ type: 'REMATCH' })
         return
@@ -10460,6 +10493,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // zera o que não vier na ação, então cada escolha da sala tem que ser
         // reenviada aqui, uma a uma.
         holandes: state.holandes,
+        pregaoAberto: state.pregaoAberto, // 🔨 o pregão aberto também continua no novo leilão (17/10)
         // 🧱 E O LEILÃO DE CLUBES (28/09, mesma regra dele: *"se continuarem jogando na
         // mesma sala deve ser respeitado tudo que foi criado"*). Faltava aqui — a sala de
         // Clubes voltava como leilão de Jogador no "novo leilão".
@@ -10469,7 +10503,7 @@ function OnlineEndVote({ awaitingCard }: { awaitingCard?: boolean }) {
         // BidLegends virava futebol no "novo leilão".
         sport: state.sport === 'basquete' ? 'basquete' : undefined,
       })
-    } catch { dispatch({ type: 'REMATCH' }) }
+    } catch { await voltaEsperaNoBanco(state.roomId); dispatch({ type: 'REMATCH' }) }
   }
   const voteBtn = (v: 'mesmo' | 'leilao', label: string, bg: string, fg: string) => (
     <button onClick={() => vote(v)} className="flex-1 rounded-xl border-[3px] border-black py-3 font-black text-sm relative active:translate-y-0.5"

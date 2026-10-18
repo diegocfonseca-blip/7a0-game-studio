@@ -58,7 +58,7 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Manfré FC": "manfre-camisa.webp",
   "Nova Eclipse FC": "novaeclipse-camisa.webp",
   "Papão United Madrid": "papao-camisa-v2.webp",
-  "Seven City": "sevencity-camisa.webp",
+  "Seven City": "sevencity-camisa-v2.webp", // 17/10: camisa nova preta e dourada
   "Sistematizados FC": "sistematizados-camisa.webp",
   "Skyy FC": "skyy-camisa.webp",
   "Só Deus Sabe FC": "sodeussabe-camisa.webp",
@@ -72,6 +72,8 @@ export const CAMISAS_SALAO: Record<string, string> = {
   "Arrogantchi FC": "arrogantchi-camisa-v1.webp", // 😜🔵⚫ Arrogantchi FC (heitormonaco98, 08/10)
   "Inter Vale FC": "intervale-camisa-v1.webp", // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79, 12/10)
   "ComVerissimo FC": "comverissimo-camisa-v1.webp", // 🟢⚪ ComVerissimo FC (cesar.verissimo27, 15/10)
+  "Cuiudos FC": "cuiudos-camisa-v1.webp", // 🤠🔵 Cuiudos FC (matheussoaresg2018, 17/10)
+  "Chelsão da Massa FC": "chelsao-camisa-v1.webp", // 🦁🔵 Chelsão da Massa FC (ccaonta, 16/10)
   "Labubu FC": "labubu-camisa-v1.webp", // 🐰⚪ Labubu FC (caelborba, 14/10)
   "Rossini Money": "rossini-camisa-v1.webp", // 💴🔴⚫ Rossini Money (luizeduardorossini0013, 12/10)
   "Le Prince FC": "leprince-camisa-v1.webp", // 🐓👑 Le Prince FC (henriquejunger07, 08/10)

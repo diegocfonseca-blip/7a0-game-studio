@@ -339,6 +339,59 @@ function SalasExtrasAdmin() {
 // sozinho o automático (Craque, Lenda, salas extras, tudo do Lenda no Batismo/Fundador). Aqui: o que caiu, quem deixou
 // WhatsApp, o "🖋 Batismos pra fazer" (o que a pessoa escreveu de como imagina o clube) e o Pix de teste de R$ 1.
 type PedidoMp = { id: string; email: string; produto: string; valor: number; status: string; telefone: string | null; criado_em: string; pago_em: string | null; liberado_por: string | null; briefing: Record<string, string> | null }
+// ⏱️ ANÚNCIOS PAGOS DE 24 H (16/10, Diego: "todo anúncio dura 24h desde que colocado no ar"): ⚡ Dia da marca (Copa dos 8
+// "apresentada por…") e 📣 Anúncio do dia (letreiro). O Diego escolhe QUANDO entra no ar (padrão: agora) e ele sai sozinho 24 h
+// depois. Os manuais (mensal, como a Vadico) continuam no código (`patrocinio.ts`), até ele trocar.
+type AnuncioAdm = { id: number; tipo: string; texto: string; emoji: string; inicio: string; fim: string }
+const agoraLocal = () => { const d = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000); return d.toISOString().slice(0, 16) }
+const quando = (iso: string) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+function AnuncioAdmin({ tipo }: { tipo: 'marca' | 'giro' }) {
+  const marca = tipo === 'marca'
+  const [lista, setLista] = useState<AnuncioAdm[]>([])
+  const [inicio, setInicio] = useState(agoraLocal)
+  const [texto, setTexto] = useState('')
+  const [emoji, setEmoji] = useState('⭐')
+  const [msg, setMsg] = useState('')
+  const carregar = async () => {
+    const { data } = await supabase.from('esc_anuncios').select('id, tipo, texto, emoji, inicio, fim').eq('tipo', tipo).gt('fim', new Date().toISOString()).order('inicio')
+    setLista((data ?? []) as AnuncioAdm[])
+  }
+  useEffect(() => { carregar() }, [])
+  const salvar = async () => {
+    const ini = new Date(inicio)
+    const { error } = await supabase.rpc('esc_admin_anuncio', { p_tipo: tipo, p_inicio: isNaN(ini.getTime()) ? null : ini.toISOString(), p_texto: texto, p_emoji: emoji })
+    setMsg(error ? `❌ ${error.message}` : `✅ no ar de ${quando(ini.toISOString())} até 24 h depois`)
+    setTexto(''); setInicio(agoraLocal()); carregar()
+  }
+  const tirar = async (r: AnuncioAdm) => {
+    if (!window.confirm(`Tirar "${r.texto}" do ar?`)) return
+    const { error } = await supabase.rpc('esc_admin_anuncio_tirar', { p_id: r.id })
+    setMsg(error ? `❌ ${error.message}` : '🗑️ tirado'); carregar()
+  }
+  const inp: React.CSSProperties = { background: '#fff', color: '#0C0C0C', border: '2px solid #000', borderRadius: 8, padding: '5px 7px', fontSize: 12, fontWeight: 700 }
+  const agora = Date.now()
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: '0 0 4px' }}>{marca ? '⚡ Dia da marca · Copa dos 8' : '📣 Anúncio do dia · letreiro'}</p>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '0 0 10px' }}>{marca
+        ? 'A Copa dos 8 sai "apresentada por" essa marca pra TODO MUNDO por 24 h, contando de quando entra no ar.'
+        : 'O texto passa no letreiro "Anúncio do dia" de TODO MUNDO por 24 h, contando de quando entra no ar, antes da Vadico. Até 120 letras.'}</p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <input type="datetime-local" value={inicio} onChange={e => setInicio(e.target.value)} style={inp} />
+        {marca && <input value={emoji} onChange={e => setEmoji(e.target.value)} maxLength={8} style={{ ...inp, width: 46, textAlign: 'center' }} />}
+        <input value={texto} onChange={e => setTexto(e.target.value)} maxLength={marca ? 40 : 120} placeholder={marca ? 'Nome da marca' : 'Marca · Oferta do dia: …'} style={{ ...inp, flex: 1, minWidth: 160 }} />
+        <button disabled={texto.trim().length < (marca ? 2 : 4)} onClick={salvar} style={{ ...inp, background: '#1B7A3D', color: '#fff', cursor: 'pointer' }}>Pôr no ar</button>
+      </div>
+      {msg && <p style={{ fontSize: 11, fontWeight: 800, color: '#F2E8CF', margin: '8px 0 0' }}>{msg}</p>}
+      {lista.map(r => <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0', marginTop: 6 }}>
+        <b style={{ flex: 'none' }}>{Date.parse(r.inicio) <= agora ? '🟢 no ar' : '⏳ ' + quando(r.inicio)}</b>
+        <span style={{ flex: 1 }}>{marca ? r.emoji + ' ' : ''}{r.texto} <small style={{ opacity: .6 }}>· até {quando(r.fim)}</small></span>
+        <button onClick={() => tirar(r)} style={{ background: 'transparent', color: '#ff9b8a', border: '1px solid #ff9b8a', borderRadius: 7, fontSize: 11, cursor: 'pointer' }}>tirar</button>
+      </div>)}
+    </div>
+  )
+}
+
 function PixMpAdmin() {
   const [lista, setLista] = useState<PedidoMp[]>([])
   const [msg, setMsg] = useState('')
@@ -352,7 +405,10 @@ function PixMpAdmin() {
   }
   const td: React.CSSProperties = { padding: '4px 6px', borderTop: '1px solid rgba(242,232,207,.15)', verticalAlign: 'top' }
   const cor: Record<string, string> = { criado: 'rgba(242,232,207,.5)', pago: '#FFC400', liberado: '#6fdb8f', divergente: '#ff8a75', cancelado: 'rgba(242,232,207,.4)' }
-  const batismos = lista.filter(r => (r.produto === 'batismo' || r.produto === 'fundador') && (r.status === 'pago' || r.status === 'liberado'))
+  // 💛 plano duplo (16/10) e presente de Batismo/Fundador também viram clube pra fazer: vão como 'presente' (ref 'd-<id>' = duplo)
+  const ehBat = (r: { produto: string; valor: number | string }) => r.produto === 'batismo' || r.produto === 'fundador' || (r.produto === 'presente' && Number(r.valor) >= 79.9)
+  const rotulo = (r: { produto: string; ref?: string | null }) => r.produto === 'presente' && r.ref?.startsWith('d-') ? '💛 DUPLO (você + presente)' : r.produto.toUpperCase()
+  const batismos = lista.filter(r => ehBat(r) && (r.status === 'pago' || r.status === 'liberado'))
   const naoPagos = lista.filter(r => r.status === 'criado')
   return (
     <div style={{ border: '2px solid #009EE3', borderRadius: 16, padding: 14, marginTop: 16 }}>
@@ -364,7 +420,7 @@ function PixMpAdmin() {
       {batismos.length > 0 && <>
         <p style={{ ...OSWALD, fontWeight: 900, fontSize: 13, color: '#FFC400', margin: '8px 0 4px' }}>🖋 Batismos pra fazer</p>
         {batismos.map(r => <div key={r.id} style={{ fontSize: 11, color: '#F2E8CF', borderTop: '1px solid rgba(242,232,207,.15)', padding: '6px 0' }}>
-          <b>{r.produto.toUpperCase()}</b> · {r.email}{r.telefone ? ` · 📲 ${r.telefone}` : ''} · {new Date(r.pago_em ?? r.criado_em).toLocaleString('pt-BR')}<br />
+          <b>{rotulo(r)}</b> · {r.email}{r.telefone ? ` · 📲 ${r.telefone}` : ''} · {new Date(r.pago_em ?? r.criado_em).toLocaleString('pt-BR')}<br />
           {r.briefing ? Object.entries(r.briefing).filter(([, v]) => v).map(([k, v]) => <span key={k} style={{ display: 'block' }}>• <b>{k}</b>: {v}</span>) : <i>ainda não escreveu como imagina o clube</i>}
         </div>)}
       </>}
@@ -373,11 +429,49 @@ function PixMpAdmin() {
         <tbody>
           {lista.map(r => <tr key={r.id}>
             <td style={td}>{new Date(r.criado_em).toLocaleString('pt-BR')}<br /><span style={{ opacity: .5 }}>{r.id.slice(0, 8).toUpperCase()}</span></td>
-            <td style={td}><b>{r.produto.toUpperCase()}</b> · R$ {Number(r.valor).toFixed(2).replace('.', ',')}<br />{r.email}{r.telefone ? <><br />📲 {r.telefone}</> : null}</td>
+            <td style={td}><b>{rotulo(r)}</b> · R$ {Number(r.valor).toFixed(2).replace('.', ',')}<br />{r.email}{r.telefone ? <><br />📲 {r.telefone}</> : null}</td>
             <td style={{ ...td, color: cor[r.status] ?? '#F2E8CF', fontWeight: 900 }}>{r.status}{r.liberado_por ? <><br /><span style={{ fontWeight: 700, opacity: .7 }}>({r.liberado_por})</span></> : null}
               {r.status === 'pago' && <><br /><button onClick={() => liberar(r)} style={{ border: 'none', borderRadius: 8, padding: '4px 8px', background: '#6fdb8f', fontWeight: 900, cursor: 'pointer', marginTop: 4 }}>LIBERAR</button></>}</td>
           </tr>)}
           {lista.length === 0 && <tr><td style={td}>nenhum Pix ainda</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// 📢 CLIQUES NOS ANÚNCIOS (17/10). Diego: *"alguma info de que a pessoa apertou no link dos patrocinadores"* — a placa
+// "📢 Anúncio do dia" (onde era o giro da rodada). Cada toque já caía em `apoio_intents`; o banco soma por anúncio
+// (`esc_admin_cliques_anuncios`, só a conta dele) pra não baixar milhares de linhas aqui.
+type CliqueAnuncio = { anuncio: string; hoje: number; sete_dias: number; total: number; pessoas: number; ultimo: string }
+function CliquesAnunciosAdmin() {
+  const [lista, setLista] = useState<CliqueAnuncio[] | null>(null)
+  const carregar = () => { supabase.rpc('esc_admin_cliques_anuncios').then(({ data }) => setLista((data ?? []) as CliqueAnuncio[]), () => setLista([])) }
+  useEffect(carregar, [])
+  const td: React.CSSProperties = { padding: '6px 6px', borderTop: '1px solid rgba(242,232,207,.15)', textAlign: 'right' }
+  const th: React.CSSProperties = { ...td, borderTop: 'none', fontSize: 10, color: 'rgba(242,232,207,.6)', textTransform: 'uppercase', fontWeight: 900 }
+  const soma = (k: 'hoje' | 'sete_dias' | 'total') => (lista ?? []).reduce((a, r) => a + Number(r[k]), 0)
+  return (
+    <div style={{ border: '2px solid #FFC400', borderRadius: 16, padding: 14, marginTop: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <p style={{ ...OSWALD, fontWeight: 900, fontSize: 15, color: '#FFC400', textTransform: 'uppercase', margin: 0 }}>📢 Cliques nos anúncios</p>
+        <button onClick={carregar} style={{ border: 'none', borderRadius: 8, padding: '4px 8px', background: '#FFC400', fontWeight: 900, cursor: 'pointer', fontSize: 11 }}>↻ atualizar</button>
+      </div>
+      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(242,232,207,.6)', margin: '4px 0 10px' }}>Quantas vezes tocaram em cada anúncio da placa "📢 Anúncio do dia" (e abriram o link). "Pessoas" = contas diferentes; quem tocou sem estar logado conta como uma só.</p>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, color: '#F2E8CF' }}>
+        <thead><tr><th style={{ ...th, textAlign: 'left' }}>anúncio</th><th style={th}>hoje</th><th style={th}>7 dias</th><th style={th}>total</th><th style={th}>pessoas</th><th style={th}>último</th></tr></thead>
+        <tbody>
+          {(lista ?? []).map(r => <tr key={r.anuncio}>
+            <td style={{ ...td, textAlign: 'left', fontWeight: 800 }}>{r.anuncio}</td>
+            <td style={{ ...td, fontWeight: 900, color: '#FFC400' }}>{r.hoje}</td>
+            <td style={td}>{r.sete_dias}</td>
+            <td style={td}>{r.total}</td>
+            <td style={td}>{r.pessoas}</td>
+            <td style={{ ...td, whiteSpace: 'nowrap', opacity: .6, fontSize: 10.5 }}>{new Date(r.ultimo).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+          </tr>)}
+          {lista && lista.length > 1 && <tr><td style={{ ...td, textAlign: 'left', fontWeight: 900 }}>TOTAL</td><td style={{ ...td, fontWeight: 900, color: '#FFC400' }}>{soma('hoje')}</td><td style={{ ...td, fontWeight: 900 }}>{soma('sete_dias')}</td><td style={{ ...td, fontWeight: 900 }}>{soma('total')}</td><td style={td} /><td style={td} /></tr>}
+          {lista && lista.length === 0 && <tr><td style={{ ...td, textAlign: 'left' }} colSpan={6}>ninguém tocou ainda</td></tr>}
+          {!lista && <tr><td style={{ ...td, textAlign: 'left' }} colSpan={6}>carregando…</td></tr>}
         </tbody>
       </table>
     </div>
@@ -1178,7 +1272,7 @@ function AdminOverlay() {
           </div>
         )}
 
-        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
+        {isAdmin && <><Dashboard email={email!} /><StorageAdmin /><CampanhaEmailAdmin /><ApoioAdmin /><PixMpAdmin /><AnuncioAdmin tipo="marca" /><AnuncioAdmin tipo="giro" /><CliquesAnunciosAdmin /><QuaseComprouAdmin /><PresentesAdmin /><SalasExtrasAdmin /><CraqueMensalAdmin /><SocioAdmin /><VotacaoAdmin /><BancoFichasAdmin /><CuponsAdmin /><TVCotaAdmin /></>}
       </div>
     </div>
   )

@@ -287,7 +287,7 @@ export function useAliciarJogador(): boolean {
 }
 
 // 👑 KINGS LEAGUE na Partida Rápida (15/10) — só a conta do Diego até ele aprovar (`docs/conceito-kings-league.md`)
-const KINGS_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+const KINGS_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'luizeduardorossini0013@gmail.com']) // + Rossini Money (16/10, pedido do Diego)
 let kingsOk = false
 function applyKings(email?: string | null): void {
   const u = !!email && KINGS_TESTERS.has(email.toLowerCase())
@@ -690,8 +690,10 @@ export function useRegionalLiberada(): boolean {
 // Ideia dele: o leilão aberto clássico — UMA carta por vez, lance à vista ("dou 10… 11… uma, duas, três,
 // vendido"), ordem das posições embaralhada, martelo em 6s. 3º jeito de dar lance, ao lado do ✉️ Envelope
 // e da 🐊 Tocaia. Nasce escondido: só PREGAO_ABERTO_TESTERS vê a opção na Partida Rápida.
-const PREGAO_ABERTO_GERAL = false
-const PREGAO_ABERTO_TESTERS = new Set(['diego.c.fonseca@gmail.com'])
+// 🟢 LIBERADO PRA TODOS EM 17/10 (Diego: *"já pode publicar também na sala online para todo mundo o novo modo leilão aberto"*):
+// Partida Rápida + salas online (rápido e Minhas Ligas; fora da Só Champions e da carreira). Voltar ao teste fechado: false.
+const PREGAO_ABERTO_GERAL = true
+const PREGAO_ABERTO_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'luizeduardorossini0013@gmail.com']) // + Rossini Money (16/10, pedido do Diego)
 let pregaoAbertoOk = PREGAO_ABERTO_GERAL
 function applyPregaoAberto(email?: string | null): void {
   const u = PREGAO_ABERTO_GERAL || (!!email && PREGAO_ABERTO_TESTERS.has(email.toLowerCase()))

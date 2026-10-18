@@ -14,7 +14,10 @@ const team=s=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'
   const props={homeName:'Casa',awayName:'Visitante',homeColor:'#1b7a3d',awayColor:'#c2452f',youIsHome:true,enhancedCareer:true,roundKey:916,roundMs:240000,displayMinute:0,goals:[],stadiumMatch:{id:'phase-review',speed:.25,home:team('h'),away:team('a')}};
   const render=async()=>{await page.evaluate(p=>window.renderReviewScore(p),props);await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));};
   await render();await page.waitForFunction(()=>!!window.qaReviewState);
-  props.goals=[{min:20,home:true,name:'h10',id:'h10',assist:'h6',assistId:'h6'}];props.displayMinute=20;await render();
+  assert.equal(await page.locator('.ll43-radio .ll43-ln:not(.ll43-velha)').count(),1,'one current narration in the unified radio');
+  assert.equal(await page.locator('.ll25-narration').count(),0,'the retired narration bar must not duplicate the radio');
+  // Goals arrive grouped by team in real fixtures, not necessarily by minute.
+  props.goals=[{min:50,home:false,name:'a10',id:'a10'},{min:20,home:true,name:'h10',id:'h10',assist:'h6',assistId:'h6'}];props.displayMinute=20;await render();
   await page.waitForFunction(()=>!!window.qaReviewState?.goal?.plan?.sequence);
   props.pauseAtHalf=true;props.displayMinute=45;await render();await page.waitForFunction(()=>window.qaReviewState?.goal?.clock?.running===false);
   const plan=await page.evaluate(()=>{const p=window.qaReviewState.goal.plan;return{durationMs:p.durationMs,shotStartMs:p.sequence.shotStartMs,boundaries:p.sequence.boundaries,author:p.author.key,assist:p.assist?.key};});
@@ -25,12 +28,15 @@ const team=s=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'
   for(const b of plan.boundaries.filter(b=>b.kind!=='impact')){
    const at=(b.startMs+b.endMs)/2;
    await page.evaluate(at=>{const clock=window.qaReviewState.goal.clock;clock.elapsedMs=at;clock.sampledAt=performance.now();},at);
-   await page.waitForFunction(pattern=>new RegExp(pattern).test(document.querySelector('.ll25-narration')?.textContent??''),textFor[b.kind].source);
+   await page.waitForFunction(pattern=>new RegExp(pattern).test(document.querySelector('.ll43-radio .ll43-ln:not(.ll43-velha)')?.textContent??''),textFor[b.kind].source);
    const sample=await page.evaluate(async()=>{
     const {quadroFutebol3D}=await import('/7a0-game-studio/src/escalacao/presidencia-futebol-motor.ts');const s=window.qaReviewState;
-    const frame=quadroFutebol3D(s,performance.now());return{text:document.querySelector('.ll25-narration').textContent,score:s.homeScore,ball:frame.ball,players:frame.players.map(p=>({key:p.key,x:p.mx,z:p.mz,speed:p.speed})),mini:document.querySelector('.ll32-bola').getAnimations().map(a=>Number(a.currentTime))};
+    const frame=quadroFutebol3D(s,performance.now());return{text:document.querySelector('.ll43-radio .ll43-ln:not(.ll43-velha)').textContent,radio:document.querySelector('.ll43-radio').textContent,previous:document.querySelectorAll('.ll43-radio .ll43-velha').length,score:s.homeScore,ball:frame.ball,players:frame.players.map(p=>({key:p.key,x:p.mx,z:p.mz,speed:p.speed})),mini:document.querySelector('.ll32-bola').getAnimations().map(a=>Number(a.currentTime))};
    });
    assert.equal(sample.score,0,'phase narration cannot confirm the goal');assert.doesNotMatch(sample.text,/marca|gol!|defendeu|fora|travessão/);
+   assert.doesNotMatch(sample.radio,/finaliza e marca|go+ol|⚽ GOL/i,'neither current nor previous radio line can announce the goal before impact');
+   assert.ok(sample.previous<=1,'the radio retains at most one previous line');
+   assert.equal(await page.locator('.ll43-radio .ll43-ln:not(.ll43-velha)>b').innerText(),'20′','the radio uses the sorted event minute, not the first input goal or the paused match minute');
    assert.ok(sample.mini.length,'the real miniature is animated');
    if(at<plan.shotStartMs)assert.ok(sample.mini.every(t=>Math.abs(t)<1),'miniature waits for the actual shot');
    else assert.ok(sample.mini.some(t=>t>0&&t<900),'miniature advances only through the shot');
@@ -42,9 +48,14 @@ const team=s=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'
    const span=Math.max(...positions.map(a=>Math.hypot(a.x-positions[0].x,a.z-positions[0].z)));
    assert.ok(span>.3,key+' moves through the same plan');
   }
+  await page.evaluate(()=>{const g=window.qaReviewState.goal;g.clock.elapsedMs=g.plan.durationMs-.5;g.clock.sampledAt=performance.now();});
+  await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+  assert.equal(await page.evaluate(()=>window.qaReviewState.homeScore),0,'no score before the exact shared impact');
+  assert.equal(await page.locator('.ll43-radio .ll43-gol').count(),0,'no current or historical goal announcement before impact');
   await page.evaluate(()=>{const g=window.qaReviewState.goal;g.clock.elapsedMs=g.plan.durationMs;g.clock.sampledAt=performance.now();});
   await page.waitForFunction(()=>window.qaReviewState?.homeScore===1&&window.qaReviewState?.goal?.phase==='confirmed');
-  const confirmed=await page.locator('.ll25-narration').innerText();assert.match(confirmed,/h6.*passa.*h10/i);
+  const confirmed=await page.locator('.ll43-radio .ll43-ln:not(.ll43-velha)').innerText();assert.match(confirmed,/h6.*passa.*h10/i);
+  assert.equal(await page.locator('.ll43-radio .ll43-gol:not(.ll43-velha)').count(),1,'the goal becomes the current radio line at impact');
   await page.waitForTimeout(120);assert.equal(await page.evaluate(()=>window.qaReviewState.homeScore),1);
   report.plan=plan;report.confirmed=confirmed;report.privateFixture=true;report.clockSteppedWhilePaused=true;
   assert.deepEqual(report.errors,[]);await page.screenshot({path:output+'/fases-browser-20261016.png'});await context.close();

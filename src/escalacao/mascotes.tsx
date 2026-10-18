@@ -48,7 +48,7 @@ import soDeusSabeMascoteImg from './img/sodeussabe-mascote.webp' // 🙏 Só Deu
 import bagresWallStMascoteImg from './img/bagreswallst-mascote.webp' // 🐟📉 Bagres de Wall Street FC (iago.cortellini): arte propria do dono, 09/09
 import bichoDaSedaMascoteImg from './img/bichodaseda-mascote.webp' // 🐛 Bicho da Seda (davisantana1312): arte NOVA do dono, 09/09
 import xurupitasMascoteImg from './img/xurupitas-mascote.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09
-import sevenCityMascoteImg from './img/sevencity-mascote.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 12/09
+import sevenCityMascoteImg from './img/sevencity-mascote-v2.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 17/10 (o boleiro de chapéu preto jogando a moeda da sorte em cima dos baús)
 import leiteDeVerdadeMascoteImg from './img/leitedeverdade-mascote.webp' // 🐮 Leite de Verdade FC (brunolopesmiranda15): arte do dono, 10/09
 import vidraceiroMascoteImg from './img/vidraceiro-mascote.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresMascoteImg from './img/bagres-mascote.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
@@ -70,6 +70,8 @@ import mengaoMascoteImg from './img/mengao-mascote.webp' // 🦅 Mengão Malvad�
 import arrogantchiMascoteImg from './img/arrogantchi-mascote.webp' // 😜 Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleMascoteImg from './img/intervale-mascote.webp' // 🥊 Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
 import comverissimoMascoteImg from './img/comverissimo-mascote.webp' // 🟢 ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
+import cuiudosMascoteImg from './img/cuiudos-mascote.webp' // 🤠 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
+import chelsaoMascoteImg from './img/chelsao-mascote.webp' // 🦁 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import labubuMascoteImg from './img/labubu-mascote.webp' // 🐰 Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniMascoteImg from './img/rossini-mascote.webp' // 💴 Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceMascoteImg from './img/leprince-mascote.webp' // 🐓 Le Prince FC (henriquejunger07): arte própria do dono
@@ -91,7 +93,7 @@ export const MASCOTES: Record<string, ReactNode> = {
   // .webp dele, 303x440 (largura pela proporção real). mascote_key = "trevo_seven".
   // ⚠️ o nome "O Trevo" é PROVISÓRIO (a arte veio sem nome) — confirmar com o dono.
   trevo_seven: (
-    <img src={sevenCityMascoteImg} height={176} width={Math.round(176 * 303 / 440)} alt="O Trevo — Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+    <img src={sevenCityMascoteImg} height={176} width={Math.round(176 * 363 / 440)} alt="O Sortudo — Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐈💛💙 O Gatão — Barcenite FC (ricardopessoafreire, 16/09). 222x440 no arquivo,
   // então a largura sai da PROPORÇÃO REAL (nunca width={size} chutado). O gato
@@ -376,6 +378,18 @@ export const MASCOTES: Record<string, ReactNode> = {
   // 📏 241×440, 37 KB — altura 176. mascote_key = "comverissimo".
   comverissimo: (
     <img src={comverissimoMascoteImg} height={176} width={Math.round(176 * 241 / 440)} alt="O Verissimo — ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🤠 O CUIUDO (mascote do Cuiudos FC — matheussoaresg2018, 17/10): o boiadeiro de chapéu, óculos escuros e corrente de
+  // ouro, camisa azul e calça branca, segurando o cartaz "Só os Cuiudos FC". Arte do dono.
+  // 📏 267×440, 39 KB — altura 176. mascote_key = "cuiudos".
+  cuiudos: (
+    <img src={cuiudosMascoteImg} height={176} width={Math.round(176 * 267 / 440)} alt="O Cuiudo — Cuiudos FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  ),
+  // 🦁 O LEÃO DA MASSA (mascote do Chelsão da Massa FC — ccaonta, 16/10): o leão azul de turbante branco, capa e roupa
+  // azul com dourado, braços cruzados e a faixa "Proerd" na cintura. Arte do dono.
+  // 📏 297×440, 44 KB — altura 176. mascote_key = "chelsao_leao".
+  chelsao_leao: (
+    <img src={chelsaoMascoteImg} height={176} width={Math.round(176 * 297 / 440)} alt="O Leão da Massa — Chelsão da Massa FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
   ),
   // 🐰 O LABUBU (mascote do Labubu FC — caelborba, 14/10): o bichinho de pelo preto, orelhas de coelho e olhos de
   // cores diferentes, com o uniforme branco nº 10 e a bola debaixo do braço. Arte do próprio dono.
@@ -1197,6 +1211,18 @@ export const CARIMBO_GOL: Record<string, string> = {
   'ComVerissimo EC': 'comverissimo',
   'ComVerissimo SC': 'comverissimo',
   'Soberano Nacional': 'comverissimo',
+  // 🤠 o Cuiudo carimba o gol do Cuiudos FC (matheussoaresg2018, 17/10).
+  'Cuiudos FC': 'cuiudos',
+  'Cuiudos': 'cuiudos',
+  'Cuiudos EC': 'cuiudos',
+  'Cuiudos SC': 'cuiudos',
+  // 🦁 o Leão da Massa carimba o gol do Chelsão da Massa FC (ccaonta, 16/10).
+  'Chelsão da Massa FC': 'chelsao_leao',
+  'Chelsão da Massa': 'chelsao_leao',
+  'Chelsão da Massa EC': 'chelsao_leao',
+  'Chelsão da Massa SC': 'chelsao_leao',
+  'CRBebê': 'chelsao_leao',
+  'Peteca FR': 'chelsao_leao',
   // 🐰 o Labubu carimba o gol do Labubu FC (caelborba, 14/10).
   'Labubu FC': 'labubu',
   'Labubu': 'labubu',
@@ -1290,7 +1316,7 @@ export const MASCOTE_NOME: Record<string, string> = {
   bagreswallst_bagre: 'O Bagre Investidor', // 🐟📉 Bagres de Wall Street FC (09/09) — o bagre de terno, coroa e charuto sentado no caixote. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   bichodaseda_bicho: 'O Bicho da Seda', // 🐛 Bicho da Seda (09/09) — o bicho de óculos escuros, braços cruzados e pé na bola. nome CONFIRMADO pelo Diego em 09/09 ("tá certo os nomes")
   xurupitas_gosma: 'O Xurupita', // 🟢 Xurupitas FC (09/09) — a gosma verde de sorriso maroto e pé na bola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
-  trevo_seven: 'O Trevo', // 🍀 Seven City (12/09) — o trevo da sorte de terno e cartola. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
+  trevo_seven: 'O Sortudo', // 🍀 Seven City — 17/10 a arte virou o boleiro de chapéu preto com a moeda da sorte (a key continua trevo_seven pra não quebrar save). ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
   leiteverdade_vaca: 'A Mimosa', // 🐮 Leite de Verdade FC (10/09) — a vaca de chapéu de palha e óculos escuros. ⚠️ nome PROVISÓRIO: a arte veio sem nome de mascote, confirmar com o Diego/dono
   porco: 'O Xurupita', // 🧷 chave antiga (10/08) — mesma mascote
   mariposa: 'O Bicho da Seda', // 🧷 chave antiga (10/08) — mesma mascote
@@ -1333,6 +1359,8 @@ export const MASCOTE_NOME: Record<string, string> = {
   gavioes_gaviao: 'O Gavião', // 🦅 Gaviões SCCP (kauealves584, 02/10)
   vieira_diabo: 'O Diabo', // 😈 Vieira FC (felipe.vrod10, 03/10)
   mengao_urubu: 'O Urubu Malvadão', // 🦅 Mengão Malvadão (atilasoaresjr21, 06/10)
+  cuiudos: 'O Cuiudo', // 🤠 Cuiudos FC (matheussoaresg2018, 17/10)
+  chelsao_leao: 'O Leão da Massa', // 🦁 Chelsão da Massa FC (ccaonta, 16/10)
   labubu: 'O Labubu', // 🐰 Labubu FC (caelborba, 14/10)
   comverissimo: 'O Verissimo', // 🟢 ComVerissimo FC (cesar.verissimo27, 15/10)
   rossini_ninja: 'O Ninja', // 💴 Rossini Money (luizeduardorossini0013, 12/10)

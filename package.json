@@ -92,7 +92,9 @@
     "renomeada": "node scripts/testa-carta-renomeada.mjs",
     "kings-regras": "npx tsx scripts/testa-kings-regras.mts",
     "kings": "npx tsx scripts/testa-kings.mjs && npx tsx scripts/testa-kings-leilao.mts",
-    "pregao-aberto": "npx tsx scripts/testa-pregao-aberto.mts"
+    "pregao-aberto": "npx tsx scripts/testa-pregao-aberto.mts",
+    "master-historia": "npx tsx scripts/testa-master-historia.mts",
+    "artilheiro-premios": "npx tsx scripts/testa-artilheiro-premios.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

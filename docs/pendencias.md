@@ -1,3 +1,14 @@
+## 18/10/2026 — Retomada da publicação privada da Presidência
+
+- Pedido de Diego para seguir com a publicação; pacote de 16/10 preservado.
+  O push anterior foi recusado porque a main avançou, sem sobrescrita.
+- Main atual `6716bb2e` incorporada com editor público, patrocínios e rádio
+  unificado. Estádio/sala/futebol aprimorado continuam exclusivos da conta
+  verificada `diego.c.fonseca@gmail.com`.
+- Narração privada integrada ao rádio novo, com fases reais e gol no impacto.
+  [Registro da publicação](presidencia-publicacao-20261016.md) reúne o escopo
+  e as evidências. Conferir o deploy do commit final para confirmar a entrega.
+
 ## 16/10/2026 — Publicação do pacote acumulado autorizada
 
 - Diego solicitou publicar tudo que foi feito até agora em seu usuário.
@@ -87,6 +98,346 @@
 - Análise, testes e limites estão em
   [presidencia-revisao-motor-etapas-janela-20261015.md](presidencia-revisao-motor-etapas-janela-20261015.md).
 
+
+## 💸 META DO MÊS SOMA SOZINHA (17/10) — ✅ NO AR
+- Diego: *"a barra deve somar sozinha. Só da Vadico que eu tenho que te avisar"*. A % agora é `esc_meta_mes_pct(mes)` =
+  (Pix integrado liberado no mês, fora a conta do Diego + `esc_meta_entradas`) ÷ `esc_meta_mes.custo` (R$ 1.600 = Supabase
+  1.000 + Claude 600). Mês sem linha usa o último custo (novembro começa em 0% sozinho).
+- 📌 **PATROCÍNIO DA VADICO É MENSAL (R$ 250)**: toda vez que o Diego avisar que pagou, lançar
+  `insert into esc_meta_entradas (mes, valor, descricao) values ('AAAA-MM', 250, 'Patrocínio mensal Vadico …')`. Outubro já lançado (17/10).
+
+## 🏆 MINHAS LIGAS: "não consigo continuar a liga" (17/10) — ✅ itens 2 e 4 + o DONO do item 1 CONSERTADOS; resto abaixo
+- ✅ FEITO 17/10: (1) o DONO da liga não apaga mais a própria cadeira ao sair (`leaveRoom` ramo liga + `GO_LOBBY`); (2) "Voltar"
+  que não abre a partida agora tenta reabrir a sala de espera da liga (`esc_liga_reabre`) e, se não der, AVISA o porquê;
+  (4) dono sozinho no "novo leilão" e o `catch` do `startLeilao` gravam `screen:'lobby'` (`voltaEsperaNoBanco`, screens.tsx).
+- ⏳ FICOU: guardar a cadeira dos CONVIDADOS ao sair (risco de assento — "virei bot" — estudar antes), item 3 e item 5.
+- Diego: *"quando acaba o jogo e eles querem continuar a liga… não conseguem, sempre dá um erro"*. Leitura do código (sem rodar):
+  1. **Quem aperta "Voltar pra tela inicial"/"Sair" PERDE A CADEIRA** — `GO_LOBBY` → `leaveOnlineRoom` apaga a linha de
+     `room_players` também em liga (store.tsx ~13142, 11651). A liga some de "Minhas ligas" do convidado, no "mesmo time" ele vira
+     CPU, e até o DONO sem linha não restaura (`triggerStartRaw`: `if (!myPl) return false`, lobby.tsx ~1392).
+  2. **"Voltar" mudo** — `enterRoom` ignora o `false` do `triggerStart` (lobby.tsx ~2361): o botão não faz nada e não avisa.
+  3. **Faixa "voltar pra partida" velha** depois do "Chamar mais gente": 5 tentativas e "Não consegui retomar" (lobby.tsx ~1467/1596).
+  4. **Dois caminhos voltam pra espera sem zerar a tela no banco** (mesma raiz do bug do Bruno 18/09): dono SOZINHO no "Abrir novo
+     leilão" (screens.tsx ~10418, só `status:'waiting'`) e o `catch` do `startLeilao` (~10493, status fica 'started'). Resultado:
+     reabre o jogo VELHO sem os amigos novos.
+  5. Menores: número da temporada pula 1 (`ligaRepeteTemporada` não chega no banco), liga antiga sem `ligaMode` não tem "Chamar mais
+     gente", sala de espera com 1 pessoa não avisa nada.
+- Proposta (esperando OK): liga GUARDA a cadeira de todo mundo ao sair; "Voltar" que falha avisa e tenta o caminho de reabrir;
+  os 2 caminhos do item 4 gravam `screen:'lobby'` igual o "Chamar mais gente".
+- ⭐ **Vice da liga** (mockup `scripts/mockups/liga-vice.png`, ✅ APROVADO 17/10 *"está sim"* — a fazer): dono escolhe 1 vice; vice abre o pregão só na sala de
+  espera quando o dono não está; vice não exclui liga nem mexe em config. Muda a regra "só o dono comanda" — ideia DELE (17/10).
+- ✅ **Trocar o modo da liga: NO AR 17/10** (*"perfeito, pode fazer, pode publicar"*). Caixa "🎮 Modo da próxima temporada" na
+  sala de espera da liga (lobby.tsx); só o dono troca, pela função do banco `esc_liga_modo` (recusa não-dono e partida rolando;
+  Clubes força baralho Todos; Só Champions não aceita pregão aberto). Amigos recebem UM aviso no canal (`liga_modo`). O save do
+  dono agora grava `clubes` a partir do estado da partida (senão a guarda velha devolvia Clubes). Pra trocar no fim de uma
+  temporada, o dono vai pra sala de espera ("📣 Chamar mais gente" ou "Guardar e sair" e voltar). Excluir a liga continua no 🗑️.
+- (pedido original) 🔁 **Trocar o modo da liga** (pedido 17/10, MOCKUP ANTES): dono troca entre temporadas o lance (envelope/Tocaia/pregão aberto),
+  o tipo (Jogador/Clubes) e o baralho (BR/EU/Todos/Mundo) — *"continua com os mesmos troféus e etc"* (estante e ranking ficam).
+
+## 🍀7️⃣ Seven City: ARTE NOVA preta e dourada (17/10) — ✅ NO AR
+- O dono não gostou da gala com a arte verde e mandou escudo/mascote/camisa NOVOS (*"ele quer esse escudo manto e mascote aqui e
+  faça a gala com esse também"*). Arquivos `-v2` (escudo 266×360/29 KB · mascote 363×440/40 KB · camisa da Loja v2); os antigos
+  ficam no repo sem uso. Manto remedido: preto #0F0E0D + dourado #D99E44 (código + `esc_socios`), 3ª cor `trevo_seven` = branco
+  #F0EDE2 da faixa central. Mascote agora é o boleiro de chapéu preto com a moeda: nome PROVISÓRIO "O Sortudo" (confirmar).
+- Gala "Jackpot da Sorte" refeita em preto e dourado com o mascote novo (`scripts/posts/gala-seven-com-canto.mp4`).
+
+## 🍀7️⃣ Seven City: gala "Jackpot da Sorte" (17/10) — ✅ NO AR (*"pode publicar"*), gala + canto na carreira
+- Pedido do Diego: supersticioso, 7 é o número da sorte, trevos, canto do Gaviões. `gala-seven.tsx` (8,6 s): máquina caça-níquel
+  dourada "SEVEN CITY", roletas param 7·7·7, JACKPOT com chuva de moedas e trevos, escudo com SETE trevos em volta, o Trevo do
+  clube jogando a moeda, faixa "SORTE TAMBÉM JOGA". Vídeo `scripts/posts/gala-seven-com-canto.mp4`.
+- Pra ligar: `'Seven City': { ms: SEVEN_MS, Show: GalaSeven }` em `GALA_UNICA` (entrada-gala.tsx) + canto na carreira
+  (`'glaucomiranda@outlook.com': 'sfx/torcida-gavioes-v1.mp3'` em `AMBIENTE_CARREIRA_POR_EMAIL`). Gala única é do plano Fundador:
+  conferir/gravar `esc_compras_batismo` = plus pro glaucomiranda se for o caso.
+
+## 🤠🔵 Batismo Cuiudos FC (17/10, plano 🖋 Fundador) — ✅ NO AR
+- Dono `matheussoaresg2018@gmail.com` (conta desde 14/09; compra 'plus' já registrada). **Série A**, no assento do
+  **Papão United Madrid**, que DESCEU pra **Série C** (decisão do Diego) na vaga do bot Goiaba FC (saiu da pirâmide). Sem OLD_NAME.
+- Arte do dono (prancha chroma com as peças encostadas — recorte por região, não pelo script padrão): escudo 276×360/29 KB ·
+  mascote "O Cuiudo" 267×440/39 KB · camisa da Loja. Manto medido: azul #02308B (77%) + amarelo #E7AC0B.
+- Banco: ouro/manual · fundador nº91 · sócio nº75 · nome "Cuiudos" reservado (+FC/EC pelo gatilho).
+- ⚠️ A mascote segura um cartaz com um político de terno (arte do dono). Avisei o Diego; ele não pediu pra mudar.
+- 📣 Canto: o MESMO do Corinthians do Gaviões (`torcida-gavioes-v1.mp3`) na carreira dele — ✅ no ar (17/10).
+- ✨ Gala "Rodeio dos Cuiudos" (`gala-cuiudos.tsx`, 8,6 s): porteira fecha/abre, caminhonete freia, chapéu de vaqueiro sobe,
+  laço laça o escudo, placa "SÓ OS CUIUDOS", fogos verde/amarelo. SEM a mascote (cartaz com político). Vídeo
+  `scripts/posts/gala-cuiudos-com-canto.mp4`. ✅ APROVADA e no ar (17/10, *"publica"*).
+- Falta: time de coração e nome do dono pro post (`scripts/posts/cuiudos-post.png`).
+
+- 📢 17/10: mais 2 anúncios MANUAIS na placa depois da Vadico (`GIRO_MANUAIS`): ▶️ Kelvin Oliveira · canal do K9 no YouTube
+  (youtube.com/@kelvink9oliveira) e 💍 Max Joias · Compramos ouro (WhatsApp +55 21 96471-7601, com mensagem pronta).
+
+- 📢 17/10: o Anúncio do dia entrou também na CARREIRA (aba Jogos, embaixo do giro de frases), nas duas caras da carreira
+  (visual novo `ll29-board` e o antigo). Antes só existia na temporada da partida rápida/online (`EscSeason`).
+
+- 📰❌ 17/10: anúncio do O MARTELO REMOVIDO (*"remova propaganda do martelo"*, `ANUNCIO_MARTELO_LIGADO = false`). Na Loja
+  (patrocínio mensal) o item virou "⚽ Placa digital atrás dos gols, nos campinhos do pregão". Não repropor anúncio no jornal.
+
+## 📡 MENSAGENS DO SUPABASE (17/10) — Diego: *"só o que for seguro… não quero nenhum bug na sala… e que eu possa reverter"*
+- Medidor (3 dias, `esc_realtime_medidor`): estado da sala 42% · sala de espera recebendo a linha inteira a cada 3s 23% ·
+  emojis 13% · presença 7% · pedido de tela 5%. O medidor vê ~20 mi/mês; a fatura diz ~50 mi.
+- ✅ FEITO: reação/zoeira no máximo 1 a cada 2s por pessoa (`EMOTE_ESPERA_MS`, partida + sala de espera). Reverter = 0.
+- 🚫 NÃO FEITO (não é 100% seguro): o batimento de 3s do save do dono é lido pela checagem da COROA (`saveFresco` < 9s);
+  espaçar mexe na regra da coroa. O "pedido de tela só pro dono" tem janela de deploy (convidado novo × dono velho).
+  Só reabrir com o Diego.
+- ⚠️ `npm run` da trava `scripts/testa-mascote-lance.mjs` já falhava antes de 17/10 (7 falhas) — olhar.
+
+- 🎬 Vídeo do pregão aberto no PADRÃO dos reels (17/10, Diego: *"o vídeo tá saindo cortado… quero no padrão dos outros"*): `node scripts/video-pregao-aberto-reels.mjs` → `scripts/posts/pregao-aberto-reels.mp4` (1080×1920, 42s). Gravar a tela do jogo com o recordVideo saiu cortado — o padrão é o reel animado em cenas.
+
+- 🧹 17/10 (Diego: *"no máximo 4 emojis… cada modo tem um tipo"*): zoeira do envelope 5→4 (saiu o 💸, que já é cantada da carta);
+  Monte 6→4 por modo — Jogador: 👆 🐢 🗑️ 🤡 · 🧱 Clubes: 👆 🐢 🧱 "pacote de reserva" 🤏. Tocaia (4), cantada da carta (3) e sala de
+  espera (4) já estavam no teto. Pregão aberto: atalhos de lance **+1 · +2 · +5 · +10** numa mesa e **+1 · +5 · +10** na carta dupla ("lance de dez… seria mais rápido"), com o "outro" na linha de baixo. Criar sala: com 🔨 Pregão aberto
+  marcado, a ⭐ Só Champions fica travada com o selo "fora do pregão" (36 clubes = pregão longo demais).
+
+- 👑 17/10 (Diego, jogando com 5: *"apareceu poucas lendas… aumente proporcionalmente… só para o pregão aberto"*): `paMaisLendas` troca craques por lendas da mesma posição até `PA_LENDAS_POR_CLUBE` = 2,4 por clube (2 → 5 · 5 → 12 · 10 → 24 · 20 → 48; antes ~1,5). Catálogo ativo (Várzea fica sem lenda), nunca repete nome. Envelope/Tocaia/Clubes intactos.
+- 🏆📞 17/10: **Patrocinador Master com história** FEITO e publicado (meta + bônus, ligação pra renovar, rescisão de quem cai). Contrato antigo (sem meta) continua igual; ele ainda pode receber a ligação se terminar no top 4. Fornecedor de material NÃO mudou.
+- 🖥️ 17/10: **análise do jogo no COMPUTADOR** (prints em 1440px). Consertado: pregão aberto com 2 mesas (carta com teto de 230px, o lance não sai mais da tela) e Patrocinador Master (5 contratos lado a lado no PC; texto "cinco contratos"). **Ficou de sugestão, sem OK ainda:** no PC, leilão envelope/Tocaia/revelação/Monte em 2 colunas (lista de um lado, campinho do outro) e nomes cortados na lista do Elenco da carreira. **Não analisado:** online por dentro (salas, espera, Minhas Ligas) — precisa de login; pedir print do Diego.
+- 🔠 17/10: mesa dupla com letra maior foi publicada e **desfeita no mesmo dia** (Diego: "muito exagerado o tamanho das fontes"). Ficou só o alinhamento (nome com 2 linhas + linha do "uma… duas…" reservada). Ofereci só passar o nome de quem lidera pra linha de baixo (sem aumentar letra) — sem resposta.
+- 📦 17/10: **Leilão de Clubes = pessoas + 1 pacote por posição** (regra do leilão de jogador), nos três jeitos de lance. Antes pessoas + metade. Simulado: envelope e Tocaia com 2, 8 e 20 pessoas, todo mundo fecha o time (sala de 20 às vezes vem com 20 meias, sem sobra, por falta de clube — ok). Continua havendo a repescagem antes do Monte no envelope.
+- 🔁 17/10: a ÚLTIMA CHAMADA (11 cartas no fim) SAIU (Diego ficou com medo de 1 pessoa sozinha esperando). No lugar: **+1 carta de sobra por clube** misturada desde o começo (`paSobraExtra`, `PA_SOBRA_POR_CLUBE`; antes eram só ~5 a mais no total: 2 pessoas 27→29 pra 22 vagas · 20 pessoas 225→245 pra 220) — 🔁 **e SAIU no mesmo dia**: Diego quis a sobra no padrão do envelope/Tocaia (demanda + 1 por posição, ~+5 no total). Medido antes: a +1 por clube custava ~1 min numa sala de 20 + faixa vermelha **"⏳ FALTAM N CARTAS · corre que tá acabando!"** nas últimas 11 (`PA_ALERTA_FIM`). Vaga vazia no fim continua ganhando jogador de graça. Também: janela "seu time fechou de graça" com letra preta.
+## 🔨🌐 PREGÃO ABERTO NA SALA ONLINE (17/10) — ✅ NO AR PRA TODOS (`PREGAO_ABERTO_GERAL = true`, Diego: "pode publicar… para todo mundo")
+- Criar sala: "Como é o leilão" ganha a 3ª opção 🔨 Pregão aberto (só contas de teste via `usePregaoAberto`; some na Só
+  Champions = teto de 20 clubes). `game_state.pregaoAberto` → `START_ONLINE` → `s.pregaoAberto` (e no "novo leilão").
+  Selo verde 🔨 PREGÃO ABERTO na lista (coluna nova `ls_pregao`, trigger `game_rooms_colunas_magras` já atualizado no banco)
+  e na sala de espera. Print: `scripts/mockups/criar-sala-pregao-aberto.png`.
+- 📡 Mensagens: tique sem novidade devolve o MESMO estado (`paAssinatura`), então o dono só manda a tela quando há lance/
+  martelo/carta nova — 26% dos tiques em vez de 100% (trava mede). O dado do robô passou a usar o relógio, não `pa.tiques`.
+- ⏱️ Contagem pelo relógio do dono (`agoraSala`); martelo online espera +400 ms (`PA_FOLGA_ONLINE_MS`) pelo lance em trânsito.
+- 🌐 Lance leva `cardId` (lance atrasado de carta que já saiu é recusado) e vai pela estrada reserva (`room_acoes`), igual
+  ao PEGAR da Tocaia. Lance que não valeu mostra o porquê ("alguém cobriu antes… mínimo agora X" / "o martelo bateu antes"
+  / "não chegou, tenta de novo"). Tetos dos robôs saem do que viaja (`sanitize`).
+- Duplas: funciona pela trava de sempre (`duplaPodeAgir`: só quem manda na posição lança). Categoria MONTE não se usa.
+- Depois de publicar: medir no `esc_realtime_medidor` as salas com `ls_pregao = 'true'` antes de liberar geral.
+
+## 🧱🔨 PREGÃO ABERTO + LEILÃO DE CLUBES (17/10) — ✅ NO AR
+- Diego: *"apareceu envelope de clubes e não o leilão aberto… teria que aparecer o escudo dos times, quantos jogadores por
+  posição e sem precisar se transformar em carta dourada"*. Causa: `!state.leilaoClubes` no `startSector` mandava Clubes pro envelope.
+- Agora o lote na mesa é o PACOTE: escudo + "Goleiros do Corinthians" + "👥 9 jogadores" (`PacoteMesa`, pregao-aberto.tsx), sem
+  carta coberta e sem virar. Nomes continuam só na convocação (regra 27/09). Duas mesas a partir de 11 vale igual.
+- Motor: teto do robô pelo PESO do setor na formação (`paTeto`), setor sem pacote no fim ganha um pacote que sobrou de graça
+  (`paCompletaElencos`), pacotes que ninguém levou viram sobra da convocação (`paFecha` → `monte`). Trava `npm run pregao-aberto`
+  ganhou a partida de clubes (8 clubes ≈ 8 min, termina na convocação). Prints em `scripts/mockups/pregao-aberto-clubes*.png`.
+
+## 💳 LENDA 44,90 · BATISMO→FUNDADOR 29,90 · 💾 FICHA DE CARREIRA 9,99 NA LOJA (17/10) — ✅ NO AR
+- Lenda 49,90 → **44,90**. Subidas: Craque→Lenda 20 · Lenda→Batismo 40 · Lenda→Fundador 60 · Craque→Batismo 55 ·
+  Craque→Fundador 75 · **Batismo→Fundador 29,90 fixo** (era 25). Duplo do Lenda 89,90 → **80,90**. Código (`planos-regras.ts`)
+  e banco (`esc_mp_preco`/`esc_mp_preco_ref`) mudados juntos — SQL em `docs/sql/loja-ficha-e-precos-1710.sql`.
+- 💾 Ficha extra de carreira R$ 9,99 na Loja (só Pix novo, só logado): `esc_fichas_extras` + `esc_minhas_fichas_extras()`,
+  entrega no `esc_mp_entregar`, função `mp-criar-pix` v7. Some da Loja quando plano + extras chega em 8 (teto de guarda).
+  Testado no banco com rollback: 9,99 → liberado → +1.
+- 🐛 de quebra: o produto `giro_dia` (Anúncio no giro, R$ 25) NÃO estava na trava `esc_mp_pedidos_produto_check` — o Pix dele
+  ia falhar. Entrou junto.
+- 💛 Plano duplo na VITRINE de planos também (Diego: "sim"): `DuploLinha` (presente.tsx), embaixo do botão de cada plano.
+  ✅ no ar (Diego: "sim", 17/10).
+- 🔒 Botão Manual da carreira (sem plano) agora abre a VITRINE de planos pelo topo ("pra onde vai o dinheiro"), não mais a
+  trava do Craque (Diego 17/10). ✅ no ar. (O cadeado da partida rápida, `QuickManualLock`, continua na trava do Craque.)
+
+## 🏆🪙 PRÊMIO DO RANKING DA SEMANA (17/10) — ✅ NO AR (avisos em scripts/posts/aviso-2026-10-17-*)
+- Diego: *"quem ficar entre os 3 ganha moedas na carreira… cai direto na conta após acabar a semana… 1º 20 · 2º 10 · 3º 5"*.
+- Banco (já no ar, não paga nada sozinho): `esc_fecha_semanas()` fecha toda semana terminada desde 12/10 (mesma régua da
+  vitrine: títulos online, segunda 0h Brasília, `rank()` — empate divide a posição e os dois levam) e grava o top 3 em
+  `esc_premio_semana`. `esc_meus_premios_semana()` / `esc_resgata_premio_semana(semana, seed)` (1× por semana). SQL em
+  `docs/sql/ranking-semana-premio.sql`. Só quem tem conta (user_id).
+- Jogo: `PremioSemana` (pyramidseason) credita na 1ª carreira solo que a pessoa abrir depois da semana fechar, com aviso
+  verde "🏆 +20 🪙 · 1º no Ranking da Semana!" e linha no extrato. Valor em `RANKING_SEMANA_MOEDAS` (store.tsx).
+- Linha verde discreta embaixo do ranking: "🪙 E leva moedas pra carreira quando a semana fecha: 1º 20 · 2º 10 · 3º 5".
+- 1ª semana paga: 12/10 → 18/10 (fecha segunda 19/10). Hoje o top 3 seria Labubu F.C 45 · NeymarJR 36 · Gama FC 34.
+
+## 🏟️ PLACAS ATRÁS DOS GOLS em todo campinho + Anúncio do dia mais discreto (17/10) — ✅ NO AR
+- Diego escolheu a ideia 1 de `scripts/mockups/campinho-outras-ideias.png` (*"perfeito pode fazer mas no momento coloque Vadico
+  Veículos e Max Joias"*). `PlacaGol` (patrocinio-visual.tsx): placa em cima e embaixo do campo, cada uma numa marca, trocando
+  juntas a cada 7 s pelo relógio (Date.now). Lista `PLACAS_CAMPO` em patrocinio.ts (Vadico no branco, Max Joias no preto); com 1
+  marca só a outra placa vira "Leilão Legends". Nos 5 campinhos: leilão (`Campinho`), elenco da carreira, convocação da Copa do
+  Mundo, convocação do Leilão de Clubes e convocação internacional. Saiu a faixa branca fixa da Vadico embaixo do campinho.
+- Anúncio do dia (*"falta espaço entre a propaganda e a tabela… tire essa faixa de anúncio do dia"*): saiu a faixa creme de
+  título; "📢 ANÚNCIO DO DIA" virou etiqueta DENTRO da placa; 16 px de folga embaixo. (O atalho pra Loja pelo título saiu junto.)
+
+## 🥅 Cena do GOOOL cortada no topo (17/10) — ✅ consertado
+- Print do Diego: a arte do gol (mascote + GOOOL) começava 36–46px abaixo do topo do placar (o lugar da faixa de narração,
+  que foi pro rádio em 16/10) e os escudos apareciam por cima. Com a narração no rádio, a cena agora cobre o placar inteiro
+  (`ll43-sem-faixa` em online-match-visual).
+- 📢 Letreiro "Anúncio do dia" virou a PLACA (17/10, ✅ NO AR — *"é melhor esse aqui mesmo… publique já"*, escolheu o mockup
+  `scripts/mockups/anuncio-do-dia-placa.mp4` contra as 4 outras ideias): um anúncio por vez, parado e inteiro, marca em cima
+  (cor do anúncio) e oferta embaixo, letras virando a cada 7 s (`PLACA_MS`), barrinha de tempo, relógio pelo Date.now (a sala
+  vê o mesmo anúncio e nada recomeça quando a tela remonta). Marca = texto até o 1º " · " (se tiver até 30 letras).
+  🔗 Tocar na Vadico abre a oferta do Haval H6 no site dela (`GIRO_ANUNCIO_LINK`). Só anúncio MANUAL leva link; o pago de
+  24 h não (texto do comprador vai pro ar sem revisão — link ali seria porta pra golpe).
+
+## 🥇 ARTILHEIRO DAS OUTRAS COMPETIÇÕES PAGA 30 🪙 (17/10) — ✅ NO AR
+- Diego perguntou se o artilheiro ainda ganhava moeda (ganha: liga A 30 · B 20 · C 15 · D 10 · V 6 · Copa Legends 16 · Copa do
+  Brasil 10, mas cai MISTURADO na linha "🏆 Prêmios da temporada" do extrato). Aí pediu: *"falta mundo, libertadores,
+  champions, mundial e supercopa, então coloque 30 moedas"*. Feito: Copa do Mundo (artilheiro jogando pela SUA seleção) ·
+  Libertadores · Champions · Mundial (time que você comandou; cada competição tem o próprio artilheiro) · Supercopa. As 4
+  primeiras ganham linha própria no extrato ("🥇 Artilheiro da …"); a Supercopa entra nos prêmios da temporada.
+- ✅ **17/10: o artilheiro ganhou LINHA PRÓPRIA no extrato** (Diego: *"tem usuário reclamando que parece que não tem ganho com
+  artilheiro… não aparece em lugar nenhum"*). Liga por série, Copa Legends/Copa do Brasil e Supercopa saem de dentro de "Prêmios da
+  temporada" e viram "🥇 Artilheiro da Série A: Johan Cruyff (20 gols) +30" (`artilheirosDaTemporada` monta a lista; `applySeasonMoney`
+  separa sem mudar o total). Na tela do Caixa do roteiro a linha 🥇 aparece SEMPRE, mesmo fora dos 5 maiores.
+- ⚠️ `npm run copamundo` já falhava ANTES desta mudança ("jogo de copa só conta com a Copa encerrada na tela") — não é daqui.
+
+## 🦁🔵 Batismo Chelsão da Massa FC (16/10) — ✅ NO AR
+- Dono `ccaonta@gmail.com` (conta desde 12/10, já tinha comprado o Batismo: `esc_compras_batismo` = lenda). **Série C**, no
+  assento do bot **CRBebê** (`OLD_NAME` leva save com CRBebê/Peteca FR pro nome novo).
+- Arte do dono (prancha no verde chroma, `recorta-prancha-chroma.py`): escudo 246×360/28 KB · mascote "O Leão da Massa"
+  297×440/44 KB · camisa da Loja (`public/mantos-salao/chelsao-camisa-v1.webp`). Manto medido: azul #032169 (77%) + dourado
+  #E4A745 (frisos e leão do peito).
+- Banco: ouro/manual (já estava) · sócio nº74 · nomes reservados "Chelsão da Massa" e "Chelsao da Massa" (+FC/EC pelo gatilho).
+  **Sem número de fundador** (regra 14/10) → `SEM_FUNDADOR` no checa-batismos.
+- Falta: **time de coração** e **nome do dono** pro post (`scripts/posts/chelsao-post.png` saiu com "batizado por —").
+
+## 📣 ANÚNCIO DO DIA SELF-SERVICE + LOJA DE ANÚNCIO PRA TODOS (16/10) — ✅ NO AR
+- Diego: *"pode liberar tudo já pro geral, mostrar pra todos e Pix também"* → `PATROCINIO_GERAL = true` (seção "Sua marca no jogo").
+- O comprador do 📣 Anúncio do dia (R$ 25) ESCREVE o próprio texto logo depois do Pix (`EscreveAnuncio`, pix-mp.tsx), até **82
+  letras** (`ANUNCIO_MAX` = o tamanho do texto da Vadico), confirma e ele entra no ar NA HORA por 24 h. Quem decide é o servidor
+  (`esc_mp_anuncio_giro`: dono + produto `giro_dia` + pedido pago/liberado, 1 anúncio por pedido). Fechou sem escrever? A Loja mostra
+  o campo de novo (`AnunciosPendentes` / `esc_mp_anuncio_pendente`).
+- No letreiro: pago em VERDE, a Vadico (manual) em DOURADO, um depois do outro.
+- ⚠️ Não tem moderação antes de ir pro ar: se alguém escrever besteira, o Diego tira no #admin (📣 Anúncio do dia → "tirar").
+
+## 📢 O GIRO DA RODADA ACABOU: AGORA É "ANÚNCIO DO DIA" (16/10) — ✅ NO AR
+- Diego: *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*. O letreiro
+  (`GiroDaRodada`, screens.tsx) mostra SÓ anúncio (avulso do dia `esc_giro_anuncio` + mensal `GIRO_ANUNCIO`), dourado e devagar.
+  Título "📢 ANÚNCIO DO DIA" (o botão "Anuncie aqui" SAIU — *"tire esse Anuncie aqui, já tem anúncio do dia"*; o próprio título
+  leva pra Loja onde a seção existe). Sem anunciante: "Este espaço pode ser seu".
+- ⏱️ **REGRA (16/10): anúncio PAGO dura 24 h desde que entra no ar**; só os MANUAIS (mensal, tipo Vadico, no código) ficam até o
+  Diego trocar. Tabela única `esc_anuncios` (tipo 'marca' = Dia da marca na Copa dos 8 · 'giro' = Anúncio do dia), #admin com
+  "Pôr no ar" (data/hora, padrão agora) e "tirar". `esc_dia_marca`/`esc_giro_anuncio` ficaram vazias e sem uso.
+  Nada de "Clássico da sala"/resultado ali. `traduzManchete`/`corDoLed` ficaram exportadas caso ele queira o giro de volta.
+- ⚠️ O botão "Anuncie aqui" só aparece onde a seção "Sua marca no jogo" da Loja existe — hoje só nas contas do Diego
+  (`PATROCINIO_GERAL = false`). Pra ele aparecer pra TODOS, ligar `PATROCINIO_GERAL` (falta o OK dele: quem não tem o Pix MP
+  pagaria no Pix de sempre + comprovante no Instagram).
+
+## 🚗 VADICO NOS 3 ESPAÇOS DA TELA (16/10) — ✅ NO AR PRA TODOS (*"o resto já pode publicar… LED no estádio faça também"*)
+- Champions Legends "apresentada por Vadico Veículos" liberada pra todos (`ESPACOS_GERAL = true` em `patrocinio.ts`).
+  Copa dos 8 **sem** Vadico (ordem dele: *"já vai ter na Champions"*) — ela só ganha marca no Dia da marca.
+- 🏟️ LED do estádio: letreiro verde passando no topo do palco das partidas online (`LedEstadio`, `patrocinio-visual.tsx`),
+  lista `LED_ESTADIO` (mais de um mensal = passam um atrás do outro). Placar não mudou.
+- 📰 Anúncio no O MARTELO: quadro com a logo no FIM do jornal — **Diego NÃO gostou** (*"até agora gostei só do apresentado por"*);
+  desligado e RELIGADO no mesmo dia (*"coloque o anúncio no Martelo no final sim"*). LED corrigido: só "VADICO VEÍCULOS" passando.
+- 📣 Anúncio no GIRO DA RODADA (`GIRO_ANUNCIO`): última manchete do letreiro, em BRANCO, com o letreiro um pouco mais lento
+  quando tem anúncio. Texto de hoje: "Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio".
+  Trocar a oferta = trocar essa linha.
+- 📣 **ANUNCIE AQUI (16/10)**: o título do giro virou o botão "📣 Anuncie aqui ›", que abre a Loja já na seção "Sua marca no
+  jogo". Lá, embaixo do Dia da marca (R$ 50), entrou o **Anúncio no giro · 1 dia — R$ 25** (Pix MP, produto `giro_dia`; preço no
+  banco `esc_mp_preco_ref`; Edge `mp-criar-pix` v6). Depois do Pix aparece o WhatsApp do Diego. O Diego marca dia + texto no
+  #admin (📣 Anúncio no giro → `esc_giro_anuncio`) e naquele dia o texto passa em branco no giro de todo mundo, antes do mensal.
+  ⚠️ O botão "Anuncie aqui" e a seção da Loja ainda aparecem SÓ nas contas do Diego (`PATROCINIO_GERAL`/`patrocinioLojaOk`) e o
+  Pix MP também (`PIX_MP`). Pra abrir pra todos: ligar os dois (falta o 1º pagamento real de teste).
+- A seção da Loja "Sua marca no jogo" continua só nas contas do Diego (`PATROCINIO_GERAL = false`).
+- Falta: Vitrine dos patrocinadores; o anúncio ainda não entra na IMAGEM de compartilhar do jornal (só na tela).
+
+## 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10) — ✅ NO AR (ele escolheu a OPÇÃO B: *"B"*)
+- Feito: com `narracaoNoRadio` a faixa de cima do placar SAI e o 📻 RÁDIO LEGENDS leva tudo, por prioridade (apito final ·
+  gol · chance do golzinho · apito inicial/intervalo · cartão da Kings · frase do rádio · retrospecto), com selo por tipo
+  (⚽ GOL · 🥅 LANCE · 📻 JOGO) e a fala anterior apagadinha embaixo (`falaMem` em `pyramidseason.tsx`, `LinhaFala` em
+  `online-match-visual.tsx`). Chance agora fala o NOME do jogador em todo jogo (antes só Kings) e ganhou +8 frases por tipo
+  (defendeu · trave · fora · isolou = 14 cada). Basquete e rodada instantânea seguem como antes (sem rádio = faixa de cima).
+- Reverter: tirar o `narracaoNoRadio` do `LiveScoreCard` volta as duas falas como eram.
+- Diego: *"não tá tendo muito sentido o rádio com as legendas no topo… em cima tem narração e no rádio também. Tem que juntar
+  todo tipo de frase num lugar só… e mais variedade, falar mais o nome dos jogadores: vai chutar, chutou pra fora, fez o gol"*.
+- Hoje: topo do placar (`ll25-narration`, frases de chance/gol de `chances.ts`/`lances.ts`) + 📻 rádio embaixo do golzinho
+  (`ll42-radio`, `radio.ts`, que é PROIBIDA de narrar chute e gol). Mockup `node scripts/mockup-narracao-um-lugar.mjs` →
+  `scripts/mockups/narracao-um-lugar.png`: A = tudo numa faixa no TOPO (recomendei) · B = tudo no rádio embaixo.
+- Depois do OK: juntar as três fontes numa fila só por minuto, liberar a rádio pra chute/trave/defesa/gol COM NOME, e manter
+  pênalti fora e nada que entregue o placar antes da hora. Vale pro online, carreira e Kings (mesmo placar).
+
+## 🦅⚫⚪ GAVIÕES SCCP VIROU 🖋 FUNDADOR (16/10) — ✅ NO AR: banco + gala v3 "Aqui é Fiel" + canto (aprovado pelo Diego)
+- kauealves584 já tinha fundador nº83; gravado `esc_compras_batismo` = plus (16/10).
+- 📣 Canto: 12 s de "Todo Poderoso Timão" (o áudio que o Diego mandou, trecho 3,2 s → 15,2 s, de pausa a pausa) →
+  `public/sfx/torcida-gavioes-v1.mp3` (mono 32 kHz 56 kbps, −20,6 dB igual ao Fabulous). Carreira (`AMBIENTE_CARREIRA_POR_EMAIL`) + gala.
+- ✨ Gala `gala-gavioes.tsx` (8 s): estádio preto e branco, bandeiras listradas, bando de gaviões no céu, fumaça P&B, o Gavião
+  do clube mergulha e solta penas, escudo acende → "O BANDO DE LOUCOS CHEGOU". Nada de marca oficial do Corinthians/torcida.
+  🔁 v2 "O ataque do Gavião" (Diego: *"quero outra ideia melhor, mais impactante"*): olho gigante pisca → o Gavião voa na câmera →
+  a tela estilhaça → bandeirão listrado sobe → bando gira em volta do escudo + LED "TODO PODEROSO" (8,6 s).
+  🔁 v3 "AQUI É FIEL" (Diego não entendeu o olho e sentiu falta do Corinthians → *"ok faz"*): torcida P&B pulando +
+  sinalizadores → bandeirão "TIMÃO" sobe e desce → mosaico de cartões vira o escudo → escudo sobe e o Gavião sai do mosaico
+  com rajada de vento → faixa "CHEGOU NA SALA · AQUI É FIEL" (8,6 s).
+  Vídeo: `node scripts/video-gala-gavioes.mjs` → `scripts/posts/gala-gavioes-com-canto.mp4`. Registrada em `GALA_UNICA`.
+
+## 💼 LOJA: "SUA MARCA NO JOGO" + WhatsApp do Diego (16/10) — ✅ publicado (seção de marca só nas contas do Diego)
+- WhatsApp do Diego **(21) 99888-6982** (`WHATSAPP_CONTATO` em pix-mp.tsx): aparece depois do Pix de Batismo/Fundador/canto (briefing),
+  na linha "💬 Dúvida sobre Batismo ou Fundador?" embaixo dos planos na Loja (pra TODOS) e depois do Pix do Dia da marca.
+- Seção "💼 Sua marca no jogo" (gate `patrocinioLojaOk`): ⚡ Dia da marca R$ 50 (Pix MP, produto `dia_marca`; depois do Pix mostra
+  WhatsApp + Instagram pra combinar dia/nome/bio/cupom) e 📅 mensal SEM preço (o que vem + direct @leilaolegendscom + e-mail).
+- ✅ Edge Function `mp-criar-pix` v5 PUBLICADA (16/10, OK do Diego) com `dia_marca`,
+  `moedas_500`, `moedas_1000`. Banco aceita (`esc_mp_preco_ref` → 50,00). Mensal: **link de pagamento da VENDRIA** que o Diego gera na hora de fechar com o mensalista (16/10:
+  *"faça o mensal pelo Vendria e repasse o custo… 1,99 fixo"*) → valor + R$ 1,99. Sem código.
+- 🏷️ 16/10: "naming rights" — mensal = naming rights da competição; ⚡ Dia da marca leva os naming rights da **Copa dos 8** por 24 h
+  ("Copa dos 8 apresentada por…"). ✅ FEITO 16/10: o Diego marca data+marca no #admin (⚡ Dia da marca · `esc_dia_marca`) e o
+  selo liga SOZINHO naquele dia pra todo mundo (`usePatrocinio` em patrocinio.ts). Champions/Vadico segue só na conta do Diego.
+- 🏢 16/10: entrou **Patrocinador Master na carreira** (a marca vira uma das propostas do início da temporada, como Vadico/ERO/Max
+  Jóias/Rei das Tintas/Uomo em `SPONSOR_BRANDS`) por R$ 150, e **o pacote completo (os 4) fica em R$ 500** (Diego: *"tudo de 500 pra quem
+  fechar tudo"*), e **post no Instagram + aviso na comunidade do WhatsApp em QUALQUER plano** (Dia da marca, espaço mensal avulso ou pacote — Diego 16/10). Avulsos: competição 300 · LED 200 · O MARTELO 100 (Diego 16/10) · Master 150.
+- 🏦 Loja segue com SÓ 3 pacotes de moedas (10 · 50 · 100); 500/1000 aceitos no Pix mas escondidos (Diego 16/10: *"deixe como tava"*).
+
+## 🚗 VADICO VEÍCULOS: "Champions Legends apresentada por" (16/10) — ✅ NO AR só nas contas do Diego
+- Diego: *"publique agora da Vadico Veículos pra eu ver como fica… deixe a Champions Legends apresentada por Vadico Veículos"*.
+- `src/escalacao/patrocinio.ts` (`POR_COMPETICAO`, uma marca por competição) + selo no `CompetitionStage` (online-match-visual.tsx).
+- Liberar pra todos: `PATROCINIO_GERAL = true`. Falta: logo oficial (hoje é 🚗 + nome), LED do estádio, O MARTELO, Vitrine.
+- 🚫 **"Placar oferecido por" NÃO** (16/10, minha opinião aceita como pergunta dele): o placar fica limpo; o LED fica no FUNDO do
+  estádio, parado ou bem devagar. Valores mantidos: competição 300 · LED do estádio 200 · O MARTELO 150 · os 3 juntos 500 · Dia 50.
+- Combinado em conversa (16/10): vários mensais convivem — 1 marca por competição (até ~6), LED gira até 4 marcas, O MARTELO
+  reveza por edição, Vitrine mostra todas. Combo proposto: competição + LED R$ 450 (esperando OK).
+
+## 💛 PLANO DUPLO (✅ NO AR no Pix novo, 16/10) + 🔄 REPAGINAR CLUBE (proposta, esperando OK)
+- **Plano duplo**: 2 do MESMO plano (um pra você, outro de presente) com 10% a menos, **num Pix só, já com desconto**
+  (Diego: *"o valor tem que ser um só pagando, já com desconto"*). Linha discreta embaixo do plano. Proposta: Craque R$ 53,90 ·
+  Lenda R$ 89,90 (arredondado pro ,90); Batismo/Fundador fora (trabalho de arte). O 2º chega como 🎁 presente (`esc_presentes`).
+  Mockup: `scripts/mockups/plano-duplo.png`. ✅ FEITO (*"pode fazer isso aí"*), com Batismo 143,90 e Fundador 179,90 também:
+  vai como 'presente' com ref `d-<id>` (sem deploy da Edge Function) — `esc_mp_preco_ref`/`esc_mp_entregar` + `PRECOS_DUPLO` +
+  `PresenteBox duplo` + linha "💛 Leve 2" na Loja (só aparece com o Pix novo, que hoje é só das contas do Diego) + #admin mostra
+  "💛 DUPLO" e põe Batismo/Fundador de presente/duplo na lista de clubes pra fazer. Nenhum pagamento real testado ainda.
+- **Repaginar clube** (só batismo/Fundador, sem batismo novo; ele escolhe o que troca): proposta mascote R$ 29,90 · escudo
+  R$ 24,90 · os dois R$ 44,90 · manto R$ 9,90. Briefing por escrito, sem imagem; o velho sai quando o novo entra. Esperando OK.
+- Contexto (16/10): 70 clubes batizados, só 2 com canto (Geovany, Fabulous) e 5 Fundador → canto e subida pro Fundador são o
+  dinheiro parado mais fácil.
+
+## 🎁 PREGÃO ABERTO SEM MONTE + CARTA COBERTA (16/10) — ✅ NO AR (só Diego e Rossini)
+- Diego: sem Monte no fim do pregão aberto; quem ficou com vaga vazia ganha profissional/bom DE GRAÇA (das sobras da mesa,
+  depois do catálogo livre; só se acabar tudo entra o incógnito). Perguntei se cobrava a abertura: *"deixa sem mesmo porque
+  ele já vai ter jogador fraco no time"*. Motor: `paCompletaElencos` + `paFecha` (store.tsx) → vai direto pra cerimônia;
+  `state.paPresentes` guarda o que cada time ganhou. Trava: `npm run pregao-aberto` (todo time fecha, Monte vazio, tudo grátis).
+- Telas (mockup `scripts/mockups/pregao-sem-monte.png`): faixa verde no topo · "ninguém quis" sem falar de Monte · janela
+  "🎁 Seu time fechou de graça!" no fim com as cartas. A fazer depois do OK.
+- 🔁 Ajustes do Diego (16/10): a janela do fim NÃO tem botão (some sozinha em 6s, não segura sala online) e o aviso do topo
+  diz só "nunca craque nem lenda" (sem falar "profissional/bom").
+- 🃏 **Carta coberta (ideia dele, mockup `scripts/mockups/carta-coberta.png`)**: no pregão aberto a carta aparece SEM
+  categoria, cor, estrela e ROSTO até o martelo; aí vira e mostra tudo. Exige abrir TODA carta no mesmo preço (1), senão o
+  preço de abertura (`paAbertura`) entrega a categoria. ✅ FEITO (*"ok pode fazer"*): toda carta abre em 1 (`PA_ABRE`);
+  `paAbertura` ficou só como régua interna do robô. A carta vendida VIRA NO MESMO LUGAR por 2s (`PA_VIRA_MS`, Diego: *"a carta
+  tem que apenas se transformar, não precisa ter uma do lado da outra"*) e ninguém lança nesse meio-tempo. A janela do fim
+  (`PresentesPregao`, index.tsx) some sozinha em 6s. ⚠️ A ÚLTIMA carta do pregão não vira (vai direto pra cerimônia).
+
+## 🧑‍💼 PRESIDENTE LIBERADO PRA TODOS (16/10) — ✅ NO AR
+- Diego: *"já pode publicar p todos p personagem"* → `PRESIDENTE_CONTA_GERAL = true`. Vale: editor na 🛒 Loja (régua por plano) + Presidência da carreira.
+- 🧑‍💼 **Na sala online (16/10, ✅ NO AR — Diego: "pode")**: lista de técnicos, chat (os 2) e martelo de quem levou.
+  Banco: `esc_presidentes_publicos2` (docs/sql/presidente-publico.sql) devolve só visual + plano de quem é Craque+.
+  Fundo do busto = cor do PLANO (Diego 16/10: ouro Lenda/Batismo/Fundador · prata Craque · grátis bolinha bege de sempre).
+  Código: `presidente-avatar.tsx` (busto montado 1x por visual, guardado como imagem). Foto: `scripts/mockups/presidente-sala-online.png`.
+- ⏳ Ainda faltam: capa do O MARTELO, Central Legends, perfil; e linha de gala (batismo) ainda mostra só o escudo.
+- Reverter: `PRESIDENTE_CONTA_GERAL = false` em `presidente-conta.ts`.
+
+## 💼 Patrocínio de verdade (marca real) — 3 espaços (16/10) — 👀 MOCKUP ENVIADO
+- 1) nome da competição ("apresentada por") · 2) LED do estádio + linha embaixo do placar · 3) anúncio no pé do O MARTELO.
+- Uma marca por espaço (ele cortou o patrocinador DENTRO do jogo por excesso). Sem casa de aposta no começo (lei + menores).
+- Mockup: `node scripts/mockup-patrocinio.mjs` → `scripts/mockups/patrocinio.png`. Falta: OK dele + números de jogadores pra tabela de preço.
+- Diego gostou dos 3 + **⚡ Dia da marca** (pontual: 24h tomando os 3 espaços + cartão na home com bio/cupom/relógio) e da
+  **🏪 Vitrine dos patrocinadores** (logo, bio, Instagram, cupom; ordem de quem mais apoiou, **SEM ouro/prata/bronze**, só o nº).
+  Cobrança: ele está entre mensal, único e leilão — recomendei MENSAL fixo (1º mês mais barato; leilão só se tiver fila).
+  Dia da marca NÃO tira o mensal: home só da marca do dia · LED alternando as duas · competição e O MARTELO seguem com a do mês.
+  Mockup 2: `node scripts/mockup-patrocinio-2.mjs` → `scripts/mockups/patrocinio-2.png`.
+
+## 🛒 Loja: FICHA EXTRA DE CARREIRA — R$ 14,90 (16/10) — ⏳ A FAZER
+- Diego escolheu entre as ideias de avulso: *"Ficha extra do carreira. 9 90 — guarde isso"*, e na mesma conversa subiu:
+  *"ficha avulsa pode botar aí R$ 14,90"*. Mockup do cartão + 6 ideias novas pra ele escolher:
+  `node scripts/mockup-loja-ideias.mjs` → `scripts/mockups/loja-ideias.png` (frase do martelo 4,90 · pacote de áudios de zoeira
+  4,90 · figurinhas do chat 3,90 · capa do O MARTELO 4,90 · vitrine semanal do presidente 2,90+ · presente de avulso). ⏳ ele escolher.
+- 2ª leva de ideias (mesmo dia, ele pediu *"mais ideias"*), também só visual/zoeira, ⏳ ele escolher: 🏆 taça com nome da sala
+  online (4,90 por sala) · 👕 aposentar a camisa de um ídolo na carreira, vai pra Sala de Troféus (2,90) · ✨ carta brilhante do seu
+  craque, só no seu elenco (2,90) · 🎉 mosaico da torcida com o nome do clube no jogo do título (4,90) · 🌧️ tema da sala online
+  (noite, chuva, neve) escolhido pelo dono (4,90) · 🎙️ narrador gritando o nome do seu clube no gol, carreira (9,90) · 💌 convite de
+  sala com a arte do seu clube pra mandar no zap (1,90).
+- +1 ficha de carreira além do limite do plano (grátis 1 · Craque 2 · Lenda 4 · Batismo 4), igual às 🎟️ salas extras.
+- Vende pelo Pix do Mercado Pago (produto novo no `esc_mp_preco`/`esc_mp_entregar` + nome na edge function).
+- Mockup na Loja ANTES de codar. Nunca apagar/travar save por causa do limite.
 ## 🔨 PREGÃO ABERTO — o 3º jeito de dar lance (16/10) — ✅ NO AR, SÓ PRA CONTA DO DIEGO (Partida Rápida)
 Diego aprovou o mockup: *"Deixa assim msm c 20 e faça aí acontecer. Siga padrões do nosso jogo de motor do leilão… e faça
 apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
@@ -106,6 +457,32 @@ apenas p meu usuário q irei testar no partida rápida"*. Feito assim:
   "outro", travas explicadas (posição cheia · já está na frente · caixa não cobre), resenha do último martelo, campinho.
   Só o aparelho que joga tica (`PREGAO_ABERTO_TICK`); no online, quando for ligado, só o dono tica — por isso o lance já
   vai com `by` (uid), pronto pra rotear pro dono.
+- 🔁 **1º teste do Diego (16/10, 02:57): *"tem certeza que os bots estão inteligentes? só tem 100 moedas e teve gente que de
+  primeira já chegou em quase 50 num jogador"*.** Dois robôs duelaram até 49 num craque. Causa: o teto vinha do `cpuEnvelope`,
+  que divide o caixa por SETOR na ordem GOL→ATA — ATA é o último, então uma carta de ATA ganhava o bolso INTEIRO. Virou
+  `paTeto`: caixa ÷ vagas que faltam × categoria (lenda 2,6× · craque 1,8× · bom 1,1× · pro 0,8× · perna 0,5×), tempero por
+  bot+carta, preso ao `fairPrice`, e nunca mais que 35% do caixa numa carta (40% lenda). Medido: média 8 🪙 por carta, maior ~26,
+  todo robô fecha os 11. No caminho achei outro bug: `rngOf(state)` é fixo por estado e o tique não muda nada do estado — o
+  sorteio se REPETIA em todo tique e em toda carta do setor, então setores inteiros iam pro Monte sem lance (`paRng` agora anda
+  por carta e por tique). E ele pediu *"reduzir mais o tempo"*: martelo 6s → 4s → **5s** (ele cravou: *"eu falei 5s p martelar"*), o robô que abre já abre com uma fatia do
+  teto ("dou 8!") e pula 2–3 com folga. Medido: ~9s por carta, ~18 min com 10 clubes (115 cartas), ~33 min com 20.
+- 🔁 **2º teste (16/10, *"tô achando MUITO lento… diminua pra 5s"*)**: martelo em **5s** (`PA_MARTELO_MS`, ele cravou o número) e, com o
+  OK dele (*"Isso"*): **a carta já abre no preço da categoria** — lenda 10 · craque 5 · promessa 4 · bom 3 · profissional/perna 1
+  (`paAbertura`, é o lance mínimo da carta na mesa) — e **o robô age a cada meio segundo** (`PA_TICK_MS = 500`). Bot de caixa curto no
+  fim topa pelo menos a abertura se o caixa cobre e sobra pro resto das vagas (senão terminava com 9). Medido: ~8s por carta
+  (~15 min com 10 clubes · ~29 min com 20), média 8,7 🪙, maior ~26, todo robô fecha os 11. Pergunta dele em aberto: ordem das
+  posições ALEATÓRIA (como está) ou POR ORDEM — recomendei aleatória (ninguém fica parado esperando o setor dele).
+- 👥 **16/10: Rossini Money (luizeduardorossini0013) liberado como testador** do Pregão Aberto E da 👑 Kings League, a pedido do Diego
+  (`PREGAO_ABERTO_TESTERS` / `KINGS_TESTERS`).
+- 🟩 **17/10: o campinho virou o PADRÃO** (`YourPitch`, o mesmo do envelope e da Tocaia, com rosto das lendas e manto). Diego:
+  *"deve ser os campinhos padrões igual os outros modos… aparece o avatar da lenda"*.
+- ⏳ **17/10: "tá muito demorado… quanto mais pessoas, mais lento"**. Proposta em mockup (`node scripts/mockup-pregao-duas-cartas.mjs`
+  → `scripts/mockups/pregao-duas-cartas.png`): DUAS cartas na mesa, sempre de posições diferentes, cada uma com o próprio relógio
+  de 5s (martelou uma, a próxima entra no lugar dela). Corta pela metade (~30 → ~15 min com 20 pessoas). A 2ª mesa liga sozinha
+  a partir de 7 clubes. ✅ **FEITO (17/10)** com a régua dele: *"a partir de 11 pessoas será duplo, até 10 mantém individual"*
+  (`PA_DUPLO_A_PARTIR = 11`, conta só quem DISPUTA: gente + robôs rivais). A 2ª mesa mora em `pa.m2` com os mesmos campos da 1ª;
+  `paMesa(state, k)` lê qualquer uma; o lance leva `mesa`; o caixa já preso como líder na outra mesa não conta (`paComprometido`).
+  Na tela, `MesaPregao` é desenhada 1× ou 2× lado a lado. Medido: 10 clubes 18 min (uma mesa) · 11 clubes 11 min · 16 clubes 16 min.
 - **Trava**: `npm run pregao-aberto` (partida inteira no reducer: fila embaralhada, lance inválido recusado, uma carta =
   um dono, pagou o lance final, ninguém negativo, termina no Monte/cerimônia).
 - **Reverter**: `PREGAO_ABERTO_TESTERS` vazio esconde o botão; sem o botão nenhum save entra no modo.

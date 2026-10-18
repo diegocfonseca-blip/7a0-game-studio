@@ -16,9 +16,10 @@ import { planoAtual, type PlanoUnico } from './planos-regras'
 import { presidenteBaseValido, type PresidenteBaseSave } from './presidencia-carreira'
 import { copiarAparencia } from './presidente-aparencia'
 import { podeSalvarPresidente } from './presidente-plano'
+import { esquecerPresidente } from './presidente-avatar'
 import { podeVestirModular } from './presidente-vestuario-acesso'
 
-const PRESIDENTE_CONTA_GERAL = false
+const PRESIDENTE_CONTA_GERAL = true // 🟢 16/10: liberado pra todos (Diego: "já pode publicar p todos p personagem")
 const PRESIDENTE_CONTA_TESTERS = new Set(['diego.c.fonseca@gmail.com', 'diego.c.fonseca2@gmail.com']) // 16/10: + diego2 (grátis), pra ele ver como o plano gratuito enxerga o editor e os preços
 /** a conta logada já usa o presidente DA CONTA (em vez do save da carreira)? */
 export function presidenteContaLiberado(email: string | null | undefined = loggedEmail()): boolean {
@@ -76,6 +77,7 @@ export async function salvarPresidenteConta(v: PresidenteBaseSave): Promise<bool
     const { error } = await supabase.from('esc_presidente').upsert({ user_id: uid, email, visual, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     if (error) return false
     muda({ status: 'pronto', value: visual, email })
+    esquecerPresidente() // 🧑‍💼 a minha linha na sala muda na hora (presidente-avatar.tsx)
     return true
   } catch { return false }
 }

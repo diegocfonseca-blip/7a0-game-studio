@@ -2,12 +2,25 @@ import type { ReactNode, CSSProperties } from 'react'
 import { useEffect, useState, useRef, useMemo } from 'react'
 import './online-match-visual.css'
 import { tr } from './lang' // 🌐 BR/EN
+import { usePatrocinio } from './patrocinio' // 💼 'apresentada por' (16/10)
+import { LedEstadio } from './patrocinio-visual' // 🏟️ LED do estádio (16/10)
 import { basketClockLabel } from './sportcfg' // ⏱️ 🏀 Q1 12:00 → Q4 0:00
 import { placarParaK } from './kings-liga' // 👑 relógio de 40 min da Kings no giro
 import { type Batedores, batedorDaVez, siglasDoTime, sementePalco, jeitoDoErro, type JeitoDoErro } from './penaltis' // 🎯 o palco dos batedores (24/09)
 import {tempoLance,type RelogioLance} from './presidencia-lance-tempo'
 
 type Goal = { name: string; min: number; home: boolean }
+export type FalaTipo = 'gol' | 'lance' | 'jogo'
+export type FalaRadio = { min: string; txt: string; tag?: string; tom?: 'retro' | 'craque'; tipo?: FalaTipo }
+const FALA_TAG: Record<FalaTipo, [string, string]> = { gol: ['⚽ GOL', '⚽ GOAL'], lance: ['🥅 LANCE', '🥅 CHANCE'], jogo: ['📻 JOGO', '📻 PLAY'] }
+function LinhaFala({ f, velha }: { f: FalaRadio; velha?: boolean }) {
+  const tipo = f.tipo ?? 'jogo'
+  return <div className={`ll43-ln ll43-${tipo}${f.tom ? ` ll43-${f.tom}` : ''}${velha ? ' ll43-velha' : ''}`}>
+    <span className="ll43-tg">{f.tag ?? tr(FALA_TAG[tipo][0], FALA_TAG[tipo][1])}</span>
+    {f.min && <b>{f.min}′</b>}
+    <span key={velha ? undefined : f.txt} className="ll43-tx">{f.txt}</span>
+  </div>
+}
 export function OnlineScorePresentation(p: {
   homeName: string; awayName: string; homeCrest: ReactNode; awayCrest: ReactNode;
   homeColor: string; awayColor: string; youIsHome: boolean;
@@ -28,7 +41,11 @@ export function OnlineScorePresentation(p: {
   palcoOn?: boolean; palco?: { speed?:number; clock?:RelogioLance; impactMs?:number; shotStartMs?:number; side: 'h' | 'a'; fim: 'defendeu' | 'trave' | 'fora' | 'isolou' | 'gol'; key: number; veredito: string } | null;
   // 📻 RÁDIO LEGENDS (13/10): UMA linha entre a faixa do golzinho e os autores dos gols. Sempre ocupa o mesmo
   // espaço (antes da 1ª frase diz "rádio ligada") pra o placar não pular de tamanho.
-  radio?: { min: string; txt: string; tag?: string; tom?: 'retro' | 'craque' } | null;
+  radio?: { min: string; txt: string; tag?: string; tom?: 'retro' | 'craque'; tipo?: FalaTipo; anterior?: FalaRadio | null } | null;
+  // 🎙️ NARRAÇÃO NUM LUGAR SÓ (16/10, Diego escolheu a opção B do mockup `scripts/mockups/narracao-um-lugar.png`: *"B"*).
+  // Antes eram duas falas ao mesmo tempo — a faixa de cima (chance/gol) e o rádio (o resto do jogo). Com `narracaoNoRadio`
+  // a faixa de cima SAI e tudo (gol, lance, apito, cartão, rádio) entra no rádio, com a fala anterior apagadinha embaixo.
+  narracaoNoRadio?: boolean;
 }) {
   const palcoRef=useRef<HTMLDivElement>(null)
   useEffect(()=>{
@@ -59,10 +76,13 @@ export function OnlineScorePresentation(p: {
       <small>{(home ? p.homeOwner : p.awayOwner) ?? ((home === p.youIsHome) ? tr('VOCÊ', 'YOU') : tr('RIVAL', 'RIVAL'))}</small>
     </div>
   }
-  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''}`} aria-label="Placar da partida">
-    <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>
+  // 🥅 17/10 (print do Diego): sem a faixa de narração no topo (ela foi pro rádio), a cena do GOOOL tem que cobrir o placar
+  // INTEIRO — antes ela começava 36–46px abaixo (o lugar da faixa) e os escudos apareciam por cima, cortando a arte.
+  const semFaixa = !!(p.narracaoNoRadio && p.radio)
+  return <section className={`ll25-score ${p.enhanced ? 'll26-score' : ''} ${p.enhanced && p.goalSide ? 'll26-scoring' : ''} ${p.big ? 'll30-big' : ''} ${semFaixa ? 'll43-sem-faixa' : ''}`} aria-label="Placar da partida">
+    {!semFaixa && <div className={`ll25-narration ${p.goalSide ? 'll25-goal' : ''}`} title={p.goalSide ? p.stamp : p.narration}>
       {p.goalSide ? p.stamp : p.narration}
-    </div>
+    </div>}
     <div className="ll25-duel">
       {team(true)}
       <div className="ll25-numbers"><small>{p.clock}</small><strong>{p.homeScore} <span>×</span> {p.awayScore}</strong></div>
@@ -87,7 +107,12 @@ export function OnlineScorePresentation(p: {
       <strong>{tr('GOOOL!', 'GOOOAL!')}</strong>
       {Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} />)}
     </div>}
-    {p.radio && <div className={`ll42-radio${p.radio.tom ? ` ll42-${p.radio.tom}` : ''}`} aria-live="off"><span className="ll42-radio-tag">{p.radio.tag ?? `📻 ${tr('RÁDIO', 'RADIO')}`}</span>{p.radio.min && <b>{p.radio.min}′</b>}<span key={p.radio.txt} className="ll42-radio-txt">{p.radio.txt}</span></div>}
+    {p.radio && p.narracaoNoRadio && <div className="ll43-radio" aria-live="off">
+      <span className="ll42-radio-tag">📻 {tr('RÁDIO LEGENDS', 'RADIO LEGENDS')}</span>
+      <LinhaFala f={p.radio} />
+      {p.radio.anterior && <LinhaFala f={p.radio.anterior} velha />}
+    </div>}
+    {p.radio && !p.narracaoNoRadio && <div className={`ll42-radio${p.radio.tom ? ` ll42-${p.radio.tom}` : ''}`} aria-live="off"><span className="ll42-radio-tag">{p.radio.tag ?? `📻 ${tr('RÁDIO', 'RADIO')}`}</span>{p.radio.min && <b>{p.radio.min}′</b>}<span key={p.radio.txt} className="ll42-radio-txt">{p.radio.txt}</span></div>}
     <div className="ll25-scorers">{[true, false].map(home => <div key={String(home)}>
       {p.goals.filter(g => g.home === home).map((g, i) => <p key={`${g.name}-${g.min}-${i}`}>{p.big ? '⚽ ' : ''}{g.name} <b>{g.min > 90 ? `90+${g.min - 90}` : g.min}′</b></p>)}
       {!p.goals.some(g => g.home === home) && <p>{tr('Sem gols', 'No goals')}</p>}
@@ -114,10 +139,18 @@ export function CompetitionStage({ kind, title, phase, detail, status, children 
   kind: 'copa8' | 'liberta' | 'world' | 'club-world' | 'league' | 'champions'; title: string; phase: string;
   detail: string; status?: string; children?: ReactNode
 }) {
+  const patro = usePatrocinio(kind)
   return <section className={`ll26-competition ll25-${kind === 'league' ? 'league' : kind}-art`}>
+    <LedEstadio />
     {/* 🧹 `detail` vazio não vira parágrafo em branco (Diego 19/09: a liga não precisa
         da linha "acompanhe sua divisão…"; a Copa continua dizendo o formato da fase) */}
-    <div className="ll26-competition-copy"><small>{title}</small><h2>{phase}</h2>{detail ? <p>{detail}</p> : null}</div>
+    <div className="ll26-competition-copy"><small>{title}</small><h2>{phase}</h2>{detail ? <p>{detail}</p> : null}
+      {/* 💼 "apresentada por" (16/10): o patrocinador da competição, embaixo do nome */}
+      {patro && <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 8, fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' }}>
+        {tr('apresentada por', 'presented by')}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#0C0C0C', color: '#FFC400', border: '2px solid #FFC400', borderRadius: 8, padding: '1px 8px', fontFamily: 'Oswald, sans-serif', fontWeight: 900, fontSize: 13, letterSpacing: '.04em' }}>{patro.emoji} {patro.nome.toUpperCase()}</span>
+      </div>}
+    </div>
     {status && <div className="ll26-competition-status"><span />{status}</div>}
     {children}
   </section>

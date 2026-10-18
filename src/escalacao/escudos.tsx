@@ -66,6 +66,8 @@ import mengaoEscudoImg from './img/mengao-escudo.webp' // 🦅🔴⚫ Mengão Ma
 import arrogantchiEscudoImg from './img/arrogantchi-escudo.webp' // 😜🔵⚫ Arrogantchi FC (heitormonaco98): arte própria do dono
 import intervaleEscudoImg from './img/intervale-escudo.webp' // 🥊⚫⚪ Inter Vale FC (marcus.viniciuslopessantos79): arte própria do dono
 import comverissimoEscudoImg from './img/comverissimo-escudo.webp' // 🟢⚪ ComVerissimo FC (cesar.verissimo27): arte própria do dono, 15/10
+import cuiudosEscudoImg from './img/cuiudos-escudo.webp' // 🤠🔵 Cuiudos FC (matheussoaresg2018): arte própria do dono, 17/10
+import chelsaoEscudoImg from './img/chelsao-escudo.webp' // 🦁🔵 Chelsão da Massa FC (ccaonta): arte própria do dono, 16/10
 import labubuEscudoImg from './img/labubu-escudo.webp' // 🐰⚪ Labubu FC (caelborba): arte própria do dono, 14/10
 import rossiniEscudoImg from './img/rossini-escudo.webp' // 💴🔴⚫ Rossini Money (luizeduardorossini0013): arte própria do dono
 import leprinceEscudoImg from './img/leprince-escudo.webp' // 🐓👑 Le Prince FC (henriquejunger07): arte própria do dono
@@ -74,7 +76,7 @@ import madrugaEscudoImg from './img/madruga-escudo.webp' // 👒 Real Madruga (l
 import juliaEscudoImg from './img/julia-escudo.webp' // 🦈🔴⚪ Julia Barranquila (dondeestasleomessi10): arte própria do dono
 import fabulousEscudoImg from './img/fabulous-escudo.webp' // 🦅🔴⚫ Fabulous EC (koeppfabio): arte própria do dono
 import xurupitasEscudoImg from './img/xurupitas-escudo.webp' // 🟢 Xurupitas FC (denilson.stifler10): arte NOVA do dono, 09/09 (substitui o SVG do porco de 10/08)
-import sevenCityEscudoImg from './img/sevencity-escudo.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 12/09 (era SVG à mão)
+import sevenCityEscudoImg from './img/sevencity-escudo-v2.webp' // 🍀7️⃣ Seven City (glaucomiranda): arte NOVA do dono, 17/10 — preto e dourado com a coroa e o 7 no trevo (a de 12/09 era verde)
 import leiteDeVerdadeEscudoImg from './img/leitedeverdade-escudo.webp' // 🐮 Leite de Verdade FC (brunolopesmiranda15): arte do dono, 10/09
 import vidraceiroEscudoImg from './img/vidraceiro-escudo.webp' // 🪟 Vidraceiro FC (guiouriques): arte própria do dono, 05/09
 import bagresEscudoImg from './img/bagres-escudo.webp' // 🐟 Bagres 1993 (caiohcris): arte própria do dono, 06/09
@@ -888,6 +890,16 @@ const comverissimoEscudoRender = (size: number) => (
   <img src={comverissimoEscudoImg} height={size} width={Math.round(size * 254 / 360)} alt="ComVerissimo FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
+// 🤠🔵 CUIUDOS FC (matheussoaresg2018, batismo de 17/10, plano Fundador) — Série A. 📏 276×360, 29 KB.
+const cuiudosEscudoRender = (size: number) => (
+  <img src={cuiudosEscudoImg} height={size} width={Math.round(size * 276 / 360)} alt="Cuiudos FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
+// 🦁🔵 CHELSÃO DA MASSA FC (ccaonta, batismo de 16/10) — Série C, no assento do bot CRBebê. 📏 246×360, 28 KB.
+const chelsaoEscudoRender = (size: number) => (
+  <img src={chelsaoEscudoImg} height={size} width={Math.round(size * 246 / 360)} alt="Chelsão da Massa FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+)
+
 const labubuEscudoRender = (size: number) => (
   <img src={labubuEscudoImg} height={size} width={Math.round(size * 230 / 360)} alt="Labubu FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
@@ -1087,7 +1099,7 @@ const ferrariSCRender = (size: number) => (
 // da sorte, verde e dourado, "SORTE TAMBÉM JOGA") — o escudo azul-marinho em SVG
 // saiu e entrou o .webp dele, 248x360, então a largura sai da PROPORÇÃO real.
 const sevenCityRender = (size: number) => (
-  <img src={sevenCityEscudoImg} height={size} width={Math.round(size * 248 / 360)} alt="Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
+  <img src={sevenCityEscudoImg} height={size} width={Math.round(size * 266 / 360)} alt="Seven City FC" style={{ flex: 'none', display: 'block', objectFit: 'contain' }} />
 )
 
 // 💰 LOGOS ARTESANAIS (pagas): nome do time → desenho próprio, entra no lugar do
@@ -1527,6 +1539,20 @@ export const LOGOS_PRONTAS: Record<string, (size: number) => ReactNode> = {
   'ComVerissimo EC': comverissimoEscudoRender,
   'ComVerissimo SC': comverissimoEscudoRender,
   'Soberano Nacional': comverissimoEscudoRender,
+  // 🤠🔵 Cuiudos FC (matheussoaresg2018) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o Papão continua
+  // existindo (foi pra C).
+  'Cuiudos FC': cuiudosEscudoRender,
+  'Cuiudos': cuiudosEscudoRender,
+  'Cuiudos EC': cuiudosEscudoRender,
+  'Cuiudos SC': cuiudosEscudoRender,
+  // 🦁🔵 Chelsão da Massa FC (ccaonta) — BATISMO. As 4 formas do nome (regra 20/08) + os nomes VELHOS do assento
+  // (CRBebê e Peteca FR só existiam como bot da Série C).
+  'Chelsão da Massa FC': chelsaoEscudoRender,
+  'Chelsão da Massa': chelsaoEscudoRender,
+  'Chelsão da Massa EC': chelsaoEscudoRender,
+  'Chelsão da Massa SC': chelsaoEscudoRender,
+  'CRBebê': chelsaoEscudoRender,
+  'Peteca FR': chelsaoEscudoRender,
   // 🐰⚪ Labubu FC (caelborba) — BATISMO. As 4 formas do nome (regra 20/08). Sem nome velho: o Só Deus Sabe continua
   // existindo (foi pra C).
   'Labubu FC': labubuEscudoRender,

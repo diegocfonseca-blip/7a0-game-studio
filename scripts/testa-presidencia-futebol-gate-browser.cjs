@@ -32,31 +32,34 @@ const team=s=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'
   const render=async(props,allowed=true)=>{await page.evaluate(async({props,allowed})=>{window.qaAllow=allowed;await window.renderReviewScore(props)}, {props,allowed});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));};
   const ready=props=>page.waitForFunction(id=>window.qaReviewState?.context.id===id,props.stadiumMatch.id);
   const score=()=>page.locator('.ll25-numbers strong').innerText();
+  // While a planner import is pending, the radio may still show the shared
+  // kickoff text. Only the private physical-play narration must be cleared.
+  const currentPrivateText=async()=>{const text=await page.locator('.ll43-radio .ll43-ln:not(.ll43-velha) .ll43-tx').innerText();return /prepara a jogada|recebe e domina|toca para o companheiro|avança com a bola|finaliza em direção/i.test(text)?text:undefined;};
   const calls=()=>page.evaluate(()=>structuredClone(window.qaPlaybackCalls??[]));
   const goalProps=key=>({...propsFor(key),goals:[{min:20,home:true,name:'h10',id:'h10',assist:'h6',assistId:'h6'}]});
-  const expectPublic=async()=>{await page.waitForFunction(()=>window.qaReviewState===null);assert.equal(await page.locator('.pe-live').count(),0);};
+  const expectPublic=async(privateText)=>{await page.waitForFunction(()=>window.qaReviewState===null);assert.equal(await page.locator('.pe-live').count(),0);assert.equal(await page.locator('.ll43-radio .ll43-ln:not(.ll43-velha)').count(),1);if(privateText){const lines=await page.locator('.ll43-radio .ll43-tx').allInnerTexts();assert.ok(!lines.includes(privateText),'losing access clears the private narration from both current and previous radio lines: '+JSON.stringify({privateText,lines}));}};
   const expectOneGoal=async()=>{await page.waitForFunction(()=>document.querySelector('.ll25-numbers strong')?.textContent.replace(/\s/g,'')==='1×0');assert.equal(await score(),'1 × 0');};
-  let props,played;
+  let props,played,privateText;
   if(!process.argv.includes('--pending-only')){
   // A private shot cancelled by losing access must complete in the normal
   // public presentation, with no surviving private confirmation callback.
   await open();props=goalProps(701);await render(props);await ready(props);props.displayMinute=20;await render(props);await page.waitForFunction(()=>!!window.qaReviewState?.goal?.plan);assert.equal(await score(),'0 × 0');
-  await render(props,false);await expectPublic();await expectOneGoal();await page.waitForTimeout(1300);
+  privateText=await currentPrivateText();await render(props,false);await expectPublic(privateText);await expectOneGoal();await page.waitForTimeout(1300);
   played=await calls();assert.ok(played.length);assert.ok(played.every(p=>p.cancelled&&p.impacts.length===0&&p.ends.length===0));assert.equal(await score(),'1 × 0');
   await render(props,true);await ready(props);await page.waitForTimeout(120);assert.equal(await page.evaluate(()=>window.qaReviewState.homeScore),1);assert.equal(await page.evaluate(()=>window.qaReviewState.goal),undefined);
   report.cases.push({name:'gol privado → público → retorno após confirmação',calls:played,score:await score()});console.log('PASS perda do gate durante gol: público conclui uma vez e retorno preserva placar');
   // Return while the replacement public shot is still flying. Its old timer
   // must be cancelled and only the new private clock may confirm the goal.
   await open();props=goalProps(702);await render(props);await ready(props);props.displayMinute=20;await render(props);await page.waitForFunction(()=>!!window.qaReviewState?.goal?.plan);
-  await render(props,false);await expectPublic();await page.waitForTimeout(100);props.stadiumMatch.speed=4;props.roundMs=15000;await render(props,true);await ready(props);await page.waitForFunction(()=>!!window.qaReviewState?.goal?.plan);await expectOneGoal();await page.waitForFunction(()=>!window.qaReviewState?.goal);await page.waitForTimeout(1200);
+  privateText=await currentPrivateText();await render(props,false);await expectPublic(privateText);await page.waitForTimeout(100);props.stadiumMatch.speed=4;props.roundMs=15000;await render(props,true);await ready(props);await page.waitForFunction(()=>!!window.qaReviewState?.goal?.plan);await expectOneGoal();await page.waitForFunction(()=>!window.qaReviewState?.goal);await page.waitForTimeout(1200);
   played=await calls();assert.ok(played.length>=2);assert.equal(played[0].impacts.length,0);assert.equal(played.reduce((sum,p)=>sum+p.impacts.length,0),1);assert.ok(played.every(p=>p.allowed&&p.impacts.every(i=>i.allowed)));assert.equal(await page.evaluate(()=>window.qaReviewState.homeScore),1);
   report.cases.push({name:'retorno ao privado antes do impacto público',calls:played,score:await score()});console.log('PASS retorno durante gol: relógio antigo cancelado e uma confirmação');
   // A cancelled chance may be dismissed by the gate transition; it must not
   // leave its private narration/clock alive or block the next real incident.
   await open();props=propsFor(703);const schedule=chancesDoJogo(sementeDasChances(703,'Casa','Visitante'),[],60000);assert.ok(schedule.length>=2);await render(props);await ready(props);props.displayMinute=schedule[0].min;await render(props);await page.waitForFunction(()=>!!window.qaReviewState?.chance?.plan);
-  await render(props,false);await expectPublic();await page.waitForTimeout(100);props.stadiumMatch.speed=4;props.roundMs=15000;await render(props,true);await ready(props);await page.waitForFunction(()=>!window.qaReviewState?.chance);assert.equal((await calls())[0].impacts.length,0);
+  privateText=await currentPrivateText();await render(props,false);await expectPublic(privateText);await page.waitForTimeout(100);props.stadiumMatch.speed=4;props.roundMs=15000;await render(props,true);await ready(props);await page.waitForFunction(()=>!window.qaReviewState?.chance);assert.equal((await calls())[0].impacts.length,0);
   props.displayMinute=schedule[1].min;await render(props);await page.waitForFunction(min=>window.qaReviewState?.chance?.minute===min&&!!window.qaReviewState.chance.plan,schedule[1].min);await page.waitForFunction(()=>!window.qaReviewState?.chance);
-  played=await calls();assert.ok(played.every(p=>p.allowed&&p.impacts.every(i=>i.allowed)&&p.ends.every(i=>i.allowed)));assert.equal(await score(),'0 × 0');assert.doesNotMatch(await page.locator('.ll25-narration').innerText(),/prepara a jogada/);
+  played=await calls();assert.ok(played.every(p=>p.allowed&&p.impacts.every(i=>i.allowed)&&p.ends.every(i=>i.allowed)));assert.equal(await score(),'0 × 0');assert.doesNotMatch(await page.locator('.ll43-radio .ll43-ln:not(.ll43-velha)').innerText(),/prepara a jogada/);
   report.cases.push({name:'perda/retorno durante chance e próxima chance',calls:played,nextMinute:schedule[1].min,score:await score()});console.log('PASS chance cancelada não fica presa e próximo lance privado acontece');
   }
   // Hold the real dynamic import promise, revoke the gate, then release it.
@@ -66,8 +69,8 @@ const team=s=>['GOL','LAT','LAT','ZAG','ZAG','MEI','MEI','MEI','ATA','ATA','ATA'
    await page.evaluate(()=>{window.qaHoldPlanner=true});
    props.displayMinute=kind==='goal'?20:chancesDoJogo(sementeDasChances(705,'Casa','Visitante'),[],60000)[0].min;
    await render(props);await page.waitForFunction(()=>window.qaPendingPlanner>0);assert.equal((await calls()).length,0);
-   await render(props,false);await expectPublic();await page.evaluate(()=>{window.qaHoldPlanner=false;for(const release of window.qaPlannerReleases??[])release();window.qaPlannerReleases=[];});await page.waitForTimeout(2200);assert.deepEqual(await calls(),[],'stale import must not start private playback after access loss');
-   if(kind==='goal')await expectOneGoal();else{assert.equal(await score(),'0 × 0');assert.doesNotMatch(await page.locator('.ll25-narration').innerText(),/prepara a jogada/);}
+   privateText=await currentPrivateText();await render(props,false);await expectPublic(privateText);await page.evaluate(()=>{window.qaHoldPlanner=false;for(const release of window.qaPlannerReleases??[])release();window.qaPlannerReleases=[];});await page.waitForTimeout(2200);assert.deepEqual(await calls(),[],'stale import must not start private playback after access loss');
+   if(kind==='goal')await expectOneGoal();else{assert.equal(await score(),'0 × 0');assert.doesNotMatch(await page.locator('.ll43-radio .ll43-ln:not(.ll43-velha)').innerText(),/prepara a jogada/);}
    await render(props,true);await ready(props);await page.waitForTimeout(120);assert.equal(await page.evaluate(()=>window.qaReviewState.homeScore),kind==='goal'?1:0);
    report.cases.push({name:'import pendente '+kind,stalePlaybackCancelled:true,score:await score()});console.log('PASS import pendente '+kind+': callback antigo não revive apresentação privada');
   }

@@ -1,5 +1,43 @@
 # Publicação privada da Presidência — 16/10/2026
 
+## Retomada da publicação — 18/10/2026
+
+Diego pediu para seguir com a publicação. O envio anterior não ocorreu: a
+main havia avançado durante os testes e o Git recusou a sobrescrita. O trabalho
+salvo foi recuperado e a main atual `6716bb2e` está sendo incorporada, mantendo
+Pregão Aberto, patrocínios, compras e demais mudanças já publicadas.
+
+O editor de personagem foi liberado para todos em outra entrega da main;
+essa regra é preservada. Ela é independente do acesso às novas telas 3D do
+estádio/sala e ao futebol aprimorado, que continuam apenas para a conta
+verificada `diego.c.fonseca@gmail.com`. O traje real segue exclusivo de Fundador.
+
+A narração unificada no Rádio Legends também foi preservada. Na prévia privada,
+o rádio mostra as fases reais de domínio/passe/condução/chute e só anuncia o
+gol no impacto. O minuto vem da fila cronológica dos gols; mudar de conta
+limpa a memória da fala anterior. As frases de incidentes ainda não simulados
+continuam fora da narração privada. O restante deste documento registra os
+testes e o pacote originais; a validação desta integração terá arquivos datados
+de 18/10 em `test-results/complexo-3d/`, e a confirmação do deploy será registrada
+em `test-results/complexo-3d/publicacao-deploy-20261018.json`.
+
+Validação concluída em 18/10: build de produção PASS (TypeScript + Vite),
+gate de conta PASS, catálogo/plano do presidente PASS e 6.144 combinações
+de estádio/mapa PASS. Navegador desktop/celular PASS, incluindo logout,
+calendário, obras, 22 atletas e ausência de escrita na carreira.
+
+Os testes de fases, eventos e transições de acesso passaram com o rádio novo:
+12 fases físicas, seis velocidades, quatro desfechos, gols desordenados na
+entrada com minuto correto, nenhum anúncio antes do impacto e imports antigos
+cancelados. Detectaram uma chance privada que podia persistir como fala anterior
+após sair da conta; a renderização agora ignora seu relógio quando o acesso é
+revogado, e a repetição passou. Os relatórios de futebol conservam o nome
+`*-browser-20261016.json`, com atualização de 18/10. Build final isolado em
+`/tmp/presidencia-publicacao-20261018-final`, sem páginas de QA; log em
+`test-results/complexo-3d/publicacao-build-final-20261018.log`.
+
+## Autorização e escopo originais
+
 Diego autorizou: “Publique tudo q fez ate o momento no meu usuarion”.
 O pedido inclui o trabalho acumulado desde a entrega de 15/10 e substitui
 os registros históricos que diziam “local, sem commit/deploy”. A publicação

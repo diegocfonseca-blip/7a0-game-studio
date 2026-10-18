@@ -339,12 +339,33 @@ export type PregaoAbertoState = {
   lances: { mgr: number; valor: number }[]
   /** quando o martelo bate se ninguém cobrir (ms) */
   deadline: number | null
+  /** 🃏 carta coberta (16/10): até quando a carta que acabou de sair fica VIRADA na mesa antes da próxima abrir (ms) */
+  viraAte?: number
   /** teto de cada robô pra carta da mesa (o MESMO `cpuEnvelope` do envelope decide) */
   tetos: Record<number, number>
+  /** 🎲 contador de tiques da carta: o dado do pregão precisa ANDAR a cada tique (o `rngOf` é fixo por estado) */
+  tiques: number
   /** o que já saiu, pra tela contar a história (mgr null = ninguém quis) */
   vendidos: { cardId: string; nome: string; pos: Sector; mgr: number | null; time: string | null; preco: number; segundo: number }[]
   /** ninguém quis → vai pro Monte no fim */
   sobras: Card[]
+  /** 🃏 qual carta está VIRANDO na mesa 1 agora (a que acabou de sair dela) */
+  viraId?: string
+  /** 🔨🔨 DUAS MESAS (17/10, Diego: "a partir de 11 pessoas será duplo, até 10 mantém individual"): a 2ª carta na mesa, sempre de
+   *  posição DIFERENTE da 1ª, com lance e relógio próprios. A mesa 1 continua morando nos campos de cima + `currentCards[0]`. */
+  duplo?: boolean
+  m2?: PaMesa
+}
+/** 🔨🔨 a 2ª mesa do pregão aberto: os MESMOS campos da 1ª, mais a carta dela */
+export type PaMesa = {
+  card: Card | null
+  preco: number
+  lider: number | null
+  lances: { mgr: number; valor: number }[]
+  deadline: number | null
+  viraAte?: number
+  viraId?: string
+  tetos: Record<number, number>
 }
 export type HolandesState = {
   /** preço na tela agora — UM só pra leva inteira (vai caindo pela escada) */
@@ -713,6 +734,8 @@ export interface EscState {
   pregaoAberto?: boolean
   /** 🔨 estado vivo do pregão aberto (só existe enquanto `phase === 'pregao'`) */
   pa?: PregaoAbertoState
+  /** 🎁 pregão aberto sem Monte (16/10): as cartas dadas de graça a cada time no fim (id do técnico → ids das cartas) */
+  paPresentes?: Record<number, string[]>
   /** 🔻 estado vivo do holandês (só existe enquanto `phase === 'holandes'`) */
   hol?: HolandesState
   /**
@@ -779,7 +802,7 @@ export interface EscState {
   // por temporada CONGELA na divisão da assinatura (`div`) e paga no fecho de cada
   // temporada de `desde` até `desde + anos − 1`. Vencido, fica guardado (histórico) e a
   // tela oferece os 4 contratos de novo. Regras completas em estadiodata.ts (MASTER_PRAZOS).
-  careerMaster?: Record<number, { brandId: string; anos: number; div: string; desde: number; porTemporada: number }> // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado. floored = não bateu mas a garantia de fidelidade pagou o mínimo mesmo assim
+  careerMaster?: Record<number, import('./master-historia').MasterContratoHist> // 🎯📞💔 17/10: + meta/bônus, ligação pra renovar e rescisão (master-historia.ts) // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado. floored = não bateu mas a garantia de fidelidade pagou o mínimo mesmo assim
   // 🛍️ LOJA DO CLUBE (15/09, teste fechado — trava por e-mail em sport.ts).
   // Por técnico: contrato de material vigente, preço escolhido pra temporada, as 2
   // cores do clube (escudo base) e o balanço da temporada que FECHOU.

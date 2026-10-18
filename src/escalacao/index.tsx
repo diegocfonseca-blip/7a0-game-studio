@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, Component, type ReactNode } from 'react'
 import { AvisoDestaqueTirado } from './aviso-live'
 import { AvisoSemEspaco } from './aviso-espaco' // 📱 aparelho cheio: pede pra salvar antes de fechar (13/10)
-import { PresenteRecebido } from './presente' // 🎁 'Fulano te deu um presente!' — só depois que o Diego entregou (14/10)
+import { PresenteRecebido } from './presente'
+import { PresentesPregao } from './pregao-aberto' // 🎁 'Fulano te deu um presente!' — só depois que o Diego entregou (14/10)
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { flushPendingWrites } from './pending'
@@ -515,6 +516,7 @@ export default function EscalacaoGame() {
         <AvisoDestaqueTirado />{/* 🚫🔴 o dono da sala fica sabendo que o destaque de live saiu (13/10) */}
         <AvisoSemEspaco />
         <PresenteRecebido />
+        <PresentesPregao />{/* 🎁 pregão aberto sem Monte: o que o time ganhou de graça no fim (some sozinho, 16/10) */}
         {/* FUNDO CREME DO JOGO: o site-estúdio tem fundo quase-preto (#06060f). O
             Leilão Legends é todo em telas cremes. Se alguma tela renderizar vazia
             por um instante (troca de fase, estado incompleto sincronizado, save

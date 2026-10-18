@@ -1,0 +1,20 @@
+{
+  "data": "17 de outubro de 2026",
+  "titulo": "Ranking da Semana agora paga moedas",
+  "destaque": {
+    "passos": [
+      { "emoji": "🥇", "titulo": "1º lugar", "sub": "+20 moedas" },
+      { "emoji": "🥈", "titulo": "2º lugar", "sub": "+10 moedas" },
+      { "emoji": "🥉", "titulo": "3º lugar", "sub": "+5 moedas" }
+    ]
+  },
+  "itens": [
+    { "tag": "novidade", "texto": "Quem fechar a semana no **top 3 do Ranking da Semana** leva **moedas pra carreira**: 1º 20, 2º 10 e 3º 5." },
+    { "tag": "novidade", "texto": "Não precisa pedir nada: quando a semana fecha (segunda à 0h), as moedas **caem sozinhas** na próxima carreira que você abrir, com linha no extrato." },
+    { "tag": "lenda", "texto": "E continua valendo: o top 3 joga a semana inteira com a **medalha 🥇🥈🥉** do lado do nome, a **moldura de metal** e a fita **\"1º DA SEMANA\"** nas salas online." },
+    { "tag": "regra", "texto": "Conta **título online** (liga e copas), só de quem joga **logado**. Empatou? Os dois levam o prêmio da posição." }
+  ],
+  "rodape": "A 1ª semana valendo é ESTA. Fecha segunda à 0h!",
+  "rodapeSub": "Bora pras salas online: o ranking fica na lista de salas.",
+  "saida": "scripts/posts/aviso-2026-10-17-ranking-moedas.png"
+}

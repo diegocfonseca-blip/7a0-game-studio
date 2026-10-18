@@ -7,6 +7,7 @@ import { APOIO_PERKS, ApoioSheen } from './apoio'
 import './support-plans.css'
 import { SupportPlanCard, SupportMoney } from './support-plans'
 import { PRECOS_UNICO, precoSubida, precoTxt, type PlanoUnico } from './planos-regras'
+import { DuploLinha } from './presente'
 
 // 💳 PLANOS V2 (08–09/10) — a vitrine nova, por enquanto SÓ nas contas do Diego (`usePlanos2`, sport.ts).
 // Quem não está na lista continua vendo `support-plans.tsx` exatamente como era.
@@ -141,6 +142,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false, atual =
       <div className="ll-vit-como">{tr('🖋 Como funciona: você manda o nome e a ideia (ou a arte) · o Diego faz escudo, mascote e manto · em até 7 dias seu clube está no ar, num post com a sua cara.', '🖋 How it works: you send the name and the idea (or the artwork) · Diego makes the crest, mascot and kit · within 7 days your club is live, in a post made for you.')}</div>
       {batismoPlano ? <p className="ll-vit-seu">{tr('✅ você já tem batismo', '✅ you already own a club naming')}</p>
         : <button className="ll-support-button dark" onClick={() => onNaming('lenda')}>{atual ? tr(`SUBIR PRO BATISMO · + ${reais(subBat)}`, `UPGRADE TO CLUB NAMING · + ${reais(subBat)}`) : tr(`QUERO O BATISMO · ${reais(PRECOS_UNICO.batismo)} UMA VEZ SÓ`, `I WANT CLUB NAMING · ${reais(PRECOS_UNICO.batismo)} ONCE`)}</button>}
+        {atual !== 'batismo' && atual !== 'fundador' && <DuploLinha pl="batismo" atual={atual} subida={subBat} />}
     </SupportPlanCard>
 
     {/* 4️⃣ FUNDADOR (era Batismo Lenda até 14/10) — o único que ganha número de fundador */}
@@ -173,6 +175,7 @@ export function CartoesBatismo({ batismoPlano, onNaming, serieA = false, atual =
       <p className="ll-support-note">{tr('A gala e o canto são feitos sob medida: entram no jogo assim que ficam prontos (o Diego combina com você).', 'The entrance and the chant are made to order: they go into the game as soon as they are ready (Diego sorts it out with you).')}</p>
       {batismoPlano === 'plus' ? <p className="ll-vit-seu">{tr('✅ você já é Fundador', '✅ you are already a Founder')}</p>
         : <button className="ll-support-button gold" onClick={() => onNaming('plus')}>{atual ? tr(`SUBIR PRO FUNDADOR · + ${reais(subFun)}`, `UPGRADE TO FOUNDER · + ${reais(subFun)}`) : tr(`QUERO SER FUNDADOR · ${reais(PRECOS_UNICO.fundador)} UMA VEZ SÓ`, `I WANT FOUNDER · ${reais(PRECOS_UNICO.fundador)} ONCE`)}</button>}
+        {atual !== 'fundador' && <DuploLinha pl="fundador" atual={atual} subida={subFun} />}
     </SupportPlanCard>
   </>
 }

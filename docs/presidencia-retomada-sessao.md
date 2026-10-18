@@ -1,5 +1,12 @@
 # Retomada da Presidência, estádio evolutivo e NPCs
 
+Atualização de **18/10/2026 — retomada da publicação autorizada**:
+o envio de 16/10 foi recusado por avanço da main, sem perda do pacote local.
+A integração agora preserva a main `6716bb2e`, o editor público do presidente
+e a narração unificada, mantendo estádio/sala/futebol aprimorado exclusivos
+de Diego. A confirmação deve usar o deploy do novo commit final, conforme
+[registro da publicação](presidencia-publicacao-20261016.md).
+
 Atualização de **16/10/2026 — publicação de todo o pacote autorizada**:
 Diego pediu “Publique tudo q fez ate o momento no meu usuarion”. O trabalho
 acumulado foi commitado e integrado à main `44c33a64`, preservando as mudanças

@@ -1,0 +1,20 @@
+{
+  "data": "17 de outubro de 2026",
+  "titulo": "Leve 2: um pra você, outro pro seu parceiro",
+  "destaque": {
+    "passos": [
+      { "emoji": "🖋", "titulo": "2 planos", "sub": "o seu e o do amigo" },
+      { "emoji": "💸", "titulo": "1 Pix só", "sub": "e pronto" },
+      { "emoji": "🏷️", "titulo": "10% a menos", "sub": "que comprar separado" }
+    ]
+  },
+  "itens": [
+    { "tag": "presente", "texto": "Agora dá pra comprar **o mesmo plano em dobro**: um fica com você, o outro vai **de presente** pro seu amigo. Tudo num Pix só, com **10% de desconto**." },
+    { "tag": "batismo", "texto": "**2 Batismos por R$ 143,90.** Cada um com o SEU clube no jogo: **escudo, manto e mascote** próprios, pra sempre. Entram os dois juntos na pirâmide." },
+    { "tag": "plano", "texto": "Vale pra todos: **2 Craques R$ 53,90** · **2 Lendas R$ 80,90** · **2 Batismos R$ 143,90** · **2 Fundadores R$ 179,90**." },
+    { "tag": "loja", "texto": "Tá na **🛒 Loja do Clube** e na tela de planos, embaixo do botão de cada plano. É só pôr o e-mail da conta do amigo." }
+  ],
+  "rodape": "Tá esperando o quê? Chama o parceiro e entrem juntos!",
+  "rodapeSub": "Dois clubes batizados, dois escudos, duas mascotes — e a resenha garantida.",
+  "saida": "scripts/posts/aviso-2026-10-17-plano-duplo.png"
+}

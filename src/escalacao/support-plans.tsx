@@ -6,6 +6,7 @@ import { mascoteInteiraDoTime } from './mascotes'
 import { MascoteMini } from './mascote-atravessa'
 import { APOIO_PERKS, ApoioSheen, useDireitos } from './apoio'
 import { PRECOS_UNICO, precoSubida, precoTxt, planoAtual } from './planos-regras'
+import { DuploLinha } from './presente'
 import './support-plans.css'
 import { CartoesBatismo, UmaVezSo } from './support-plans-v2'
 
@@ -85,8 +86,8 @@ export function SupportStory() {
 // ─── 💸 PRA ONDE VAI O DINHEIRO + META DO MÊS (Diego 13–14/10, mockup `scripts/mockups/apoie-dinheiro.png`) ───
 // Pedido dele, olhando o Brasileirinho: dizer pra onde vai o dinheiro, do nosso jeito. Formato combinado: só esta seção,
 // dentro do modal de apoio (perto dos planos); o texto DELE vai inteiro no quadro do Luca (nunca reescrever); a faixa
-// dourada diz que apoio não dá vantagem. A META: o público vê só a %, e quem põe o número é o Diego, na tabela
-// `esc_meta_mes` (um por mês; sem linha no mês = a barra some). 100% = o jogo se paga · 150% = sustentável.
+// dourada diz que apoio não dá vantagem. A META: o público vê só a %, e o número é SOMADO pelo banco (`esc_meta_mes_pct`, 17/10):
+// Pix integrado pago + `esc_meta_entradas` (patrocínio, avisado pelo Diego) ÷ `esc_meta_mes.custo` (R$ 1.600). 100% = o jogo se paga · 150% = sustentável.
 const SUSTENTAVEL = 150
 const MESES: [string, string][] = [['janeiro', 'January'], ['fevereiro', 'February'], ['março', 'March'], ['abril', 'April'], ['maio', 'May'], ['junho', 'June'], ['julho', 'July'], ['agosto', 'August'], ['setembro', 'September'], ['outubro', 'October'], ['novembro', 'November'], ['dezembro', 'December']]
 function useMetaDoMes(): { mes: number; pct: number } | null {
@@ -96,9 +97,15 @@ function useMetaDoMes(): { mes: number; pct: number } | null {
     const d = new Date(Date.now() - 3 * 3600_000)
     const chave = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
     let vivo = true
-    void supabase.from('esc_meta_mes').select('pct').eq('mes', chave).maybeSingle().then(({ data }) => {
+    // 🔁 17/10 (Diego: *"a barra deve somar sozinha"*): a % vem calculada pelo banco (`esc_meta_mes_pct`): Pix integrado
+    // pago no mês + entradas manuais (patrocínio) ÷ custo do mês. Se a função falhar, cai na % fixa antiga da tabela.
+    const fixa = () => supabase.from('esc_meta_mes').select('pct').eq('mes', chave).maybeSingle().then(({ data }) => {
       if (vivo && data && typeof (data as { pct?: number }).pct === 'number') setMeta({ mes: d.getUTCMonth(), pct: (data as { pct: number }).pct })
     }, () => { /* sem rede: sem barra */ })
+    void supabase.rpc('esc_meta_mes_pct', { p_mes: chave }).then(({ data, error }) => {
+      if (error) { void fixa(); return }
+      if (vivo && typeof data === 'number') setMeta({ mes: d.getUTCMonth(), pct: data })
+    }, () => { void fixa() })
     return () => { vivo = false }
   }, [])
   return meta
@@ -228,6 +235,7 @@ export function SupportPlans(p: Props) {
         <p className="ll-support-note">{tr('O olheiro do Craque não revela nem sonda Lendas. No online normal, o ritmo é o mesmo para todos.', 'The Star scout does not reveal or scout Legends. In regular online play, the pace is the same for everyone.')}</p>
         {atual ? <p className="ll-vit-seu">{tr('✅ você já tem o Craque', '✅ you already have Star')}</p>
           : <button className="ll-support-button prata" onClick={() => p.onPay('prata')}>{tr(`ESCOLHER CRAQUE · ${reais(PRECOS_UNICO.craque)}`, `CHOOSE STAR · ${reais(PRECOS_UNICO.craque)}`)}</button>}
+        {!atual && <DuploLinha pl="craque" atual={atual} subida={precoSubida('craque', atual)} />}
         {memberButton('prata')}
       </SupportPlanCard>
 
@@ -249,6 +257,7 @@ export function SupportPlans(p: Props) {
         <p className="ll-support-note">{tr('Já tem Craque? Suba para Lenda pagando só a diferença.', 'Already have Star? Upgrade to Legend paying only the difference.')}</p>
         {atual && atual !== 'craque' ? <p className="ll-vit-seu">{tr('✅ você já tem o Lenda', '✅ you already have Legend')}</p>
           : <button className="ll-support-button gold" onClick={() => p.onPay('ouro')}>{atual === 'craque' ? tr(`SUBIR PARA LENDA · + ${reais(subLenda)}`, `UPGRADE TO LEGEND · + ${reais(subLenda)}`) : tr(`ESCOLHER LENDA · ${reais(PRECOS_UNICO.lenda)}`, `CHOOSE LEGEND · ${reais(PRECOS_UNICO.lenda)}`)}</button>}
+        {(!atual || atual === 'craque') && <DuploLinha pl="lenda" atual={atual} subida={subLenda} />}
         {memberButton('ouro')}
       </SupportPlanCard>
 

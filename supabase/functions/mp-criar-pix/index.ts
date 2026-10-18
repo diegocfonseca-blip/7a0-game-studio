@@ -13,6 +13,9 @@ const NOMES: Record<string, string> = {
   craque: 'Plano Craque', lenda: 'Plano Lenda', batismo: 'Plano Batismo', fundador: 'Plano Fundador',
   salas_extras: '3 salas extras', teste: 'Teste de pagamento',
   moedas_10: '30 moedas', moedas_50: '150 moedas', moedas_100: '300 moedas', canto: 'Canto da torcida', presente: 'Presente de plano',
+  moedas_500: '1.500 moedas', moedas_1000: '3.000 moedas', dia_marca: 'Dia da marca', // 16/10 (publicado com o OK do Diego)
+  giro_dia: 'Anúncio no giro (1 dia)', // 16/10: Diego pediu o anúncio de 25 na Loja
+  ficha_carreira: 'Ficha extra de carreira', // 17/10: +1 carreira salva, R$ 9,99
 }
 // ⏳ o Pix vale 24 h (Diego 15/10: tem gente que só paga quando chega em casa)
 const VALIDADE_MIN = 24 * 60
