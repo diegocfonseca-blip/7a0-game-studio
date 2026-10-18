@@ -40,7 +40,8 @@ import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useAmigos } from './sport'
-import { PerfilPublico, contaValida, ComPerfil } from './amigos' // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
+import { PerfilPublico, contaValida, ComPerfil } from './amigos'
+import { TemaFundo, temaValido, temasDaConta, TEMAS_SALA, nomeTema, type TemaSalaId } from './temas-sala' // 🎨 18/10: tema do clube na sala de espera // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
@@ -397,11 +398,11 @@ function PwField({ label, value, onChange, onKeyDown, placeholder }: { label: st
     </div>
   )
 }
-function Big({ children, onClick, color = GOLD, disabled = false }: { children: React.ReactNode; onClick?: () => void; color?: string; disabled?: boolean }) {
+function Big({ children, onClick, color = GOLD, disabled = false, fundo }: { children: React.ReactNode; onClick?: () => void; color?: string; disabled?: boolean; fundo?: string }) {
   return (
     <motion.button whileTap={disabled ? undefined : { x: 3, y: 3 }} onClick={disabled ? undefined : onClick} disabled={disabled}
       className={`w-full border-[3px] border-black rounded-xl py-3 font-black uppercase text-sm ${disabled ? 'opacity-50' : ''}`}
-      style={{ backgroundColor: color, color: '#000', boxShadow: disabled ? 'none' : `4px 4px 0 ${INK}`, ...OSWALD }}>
+      style={{ ...(fundo ? { background: fundo } : { backgroundColor: color }), color: '#000', boxShadow: disabled ? 'none' : `4px 4px 0 ${INK}`, ...OSWALD }}>
       {children}
     </motion.button>
   )
@@ -1175,6 +1176,10 @@ export function EscLobby() {
       // aviso na hora; a exclusão da sala é a rede de segurança).
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'game_rooms', filter: `id=eq.${room.id}` }, () => { medeRecebida('espera', room.id, 'db:sala_apagada', null); setHostLeft(true) })
       .on('broadcast', { event: 'host_left' }, () => setHostLeft(true))
+      // 🎨 o dono trocou o tema da sala (só o visual da espera)
+      .on('broadcast', { event: 'tema' }, ({ payload }: { payload: { tema: string | null } }) => {
+        setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...(prev.game_state as GS), tema: payload?.tema ?? undefined } as GS } : prev)
+      })
       // 🔁 o dono trocou o modo da liga: só os 4 campos do modo (o resto da sala não muda)
       .on('broadcast', { event: 'liga_modo' }, ({ payload }: { payload: { holandes: boolean; pregaoAberto: boolean; clubes: boolean; deckSala: string; antes: string; depois: string } }) => {
         setRoom(prev => prev && prev.id === room.id ? { ...prev, game_state: { ...(prev.game_state as GS), holandes: payload.holandes, pregaoAberto: payload.pregaoAberto, clubes: payload.clubes, deckSala: payload.deckSala as GS['deckSala'] } as GS } : prev)
@@ -2156,6 +2161,19 @@ export function EscLobby() {
     const deck = d === 'eu' ? tr('🌍 Europa', '🌍 Europe') : d === 'both' || d === 'todos' ? tr('🌎 Todos', '🌎 All') : tr('🇧🇷 Brasil', '🇧🇷 Brazil')
     return [lance, tipo, deck]
   }
+  // 🎨 o dono escolhe o tema da sala (só os da conta dele). Lê o game_state na hora pra não pisar em nada da sala.
+  async function salvaTema(id: TemaSalaId | null) {
+    if (!room) return
+    try {
+      const { data } = await supabase.from('game_rooms').select('game_state').eq('id', room.id).maybeSingle()
+      const gs = { ...((data?.game_state ?? {}) as Record<string, unknown>) }
+      if (id) gs.tema = id; else delete gs.tema
+      const { error } = await supabase.from('game_rooms').update({ game_state: gs }).eq('id', room.id)
+      if (error) { setRoomError(tr('Não deu pra trocar o tema agora — tente de novo.', 'Couldn\'t change the theme right now — try again.')); return }
+      setRoom(r => (r ? { ...r, game_state: { ...(r.game_state as GS), tema: id ?? undefined } as GS } : r))
+      lobbyChanRef.current?.send({ type: 'broadcast', event: 'tema', payload: { tema: id } })
+    } catch { setRoomError(tr('Não deu pra trocar o tema agora — tente de novo.', 'Couldn\'t change the theme right now — try again.')) }
+  }
   async function salvaModoLiga() {
     if (!room || !modoEdit) return
     const antes = rotuloModoLiga(room.game_state as GS).join(' · ')
@@ -2766,8 +2784,11 @@ export function EscLobby() {
   // do online (lista de salas, criar sala, sala de espera) usa a coluna larga:
   // no monitor ela abre pra 900px junto com o jogo todo. Formulário NÃO: campo
   // de senha com 900px de largura fica ridículo e ainda dificulta a leitura.
+  // 🎨 tema do clube (18/10): só na sala de espera, escolhido pelo dono — ver temas-sala.tsx
+  const temaSala = phase === 'waiting' && room ? temaValido((room.game_state as GS & { tema?: string })?.tema) : null
   const wrap = (children: React.ReactNode, onBack?: () => void, estreito = false) => (
-    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? 'online-room-art' : ''}`} data-online-phase={phase} style={{ backgroundColor: INK }}>
+    <div className={`tela-cheia flex flex-col justify-center px-5 py-10 relative ${!estreito && !recovering && (phase === 'menu' || phase === 'waiting') ? 'online-room-art' : ''}${temaSala ? ` tema-sala tema-${temaSala.id}` : ''}`} data-online-phase={phase} style={{ backgroundColor: INK }}>
+      {temaSala && <TemaFundo tema={temaSala} />}
       {onBack && (
         <button onClick={onBack} aria-label={tr('Voltar pra home', 'Back to home')}
           className="absolute top-4 left-4 z-10 flex items-center gap-1 text-white/70 font-black text-sm active:opacity-60" style={OSWALD}>
@@ -4100,6 +4121,16 @@ export function EscLobby() {
         )}
       </div>
 
+      {/* 🎨 TEMA DO CLUBE (18/10): só o dono, e só se a conta dele tiver tema (batismo) */}
+      {isHost && temasDaConta(user?.email).length > 0 && (
+        <div className="rounded-2xl border-[3px] border-black p-2.5 bg-white" style={{ boxShadow: `3px 3px 0 ${INK}`, color: INK }}>
+          <p className="font-black text-[12px] uppercase mb-1.5" style={OSWALD}>{tr('🎨 Tema da sala', '🎨 Room theme')}</p>
+          <Seg small options={[['', tr('Sem tema', 'No theme')], ...temasDaConta(user?.email).map(id => [id, nomeTema(TEMAS_SALA[id])] as [string, string])]}
+            value={temaSala?.id ?? ''} onSet={v => void salvaTema((v || null) as TemaSalaId | null)} />
+          <p className="text-black/55 text-[10.5px] font-bold mt-1">{tr('Todo mundo que entra na sala vê. Muda só o visual da sala de espera.', 'Everyone who joins sees it. Only the waiting room look changes.')}</p>
+        </div>
+      )}
+
       {/* 📣 na LIGA o convite vem colado no código (ver `caixaConvite` acima) */}
       {ehLigaSala && caixaConvite}
 
@@ -4691,7 +4722,7 @@ export function EscLobby() {
         if (ehMundoSala) return null // 🌍 a Copa tem o botão dela no painel de cima
         return isHost
           ? <>
-              <Big onClick={onStart} disabled={!ready} color={ready ? GREEN : '#ccc'}><span style={{ color: ready ? '#fff' : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
+              <Big onClick={onStart} disabled={!ready} color={ready ? GREEN : '#ccc'} fundo={ready && temaSala ? temaSala.botao : undefined}><span style={{ color: ready ? (temaSala ? temaSala.botaoTxt : '#fff') : '#000' }}>{ready ? startLabel : esperaLabel}</span></Big>
               {/* explicação EMBAIXO do botão, no lugar exato — dizendo o porquê e o caminho pra destravar */}
               {!ready && !!travaMsg && <p className="text-white/60 text-[11.5px] font-bold text-center leading-snug mt-1.5 px-2">{travaMsg}</p>}
             </>

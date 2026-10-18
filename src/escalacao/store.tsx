@@ -14409,7 +14409,7 @@ export function EscProvider({ children }: { children: ReactNode }) {
         // Liga de Clubes voltava como leilão de Jogador.
         // 🔴 `liveUrl` entra na lista (05/10): o link da live do dono, que a LISTA de salas mostra em
         // destaque. Nasce na criação e o jogo nunca toca — sem a guarda, o 1º save apagaria.
-        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl']) {
+        for (const k of ['mode', 'ligaAt', 'ligaRegras', 'ligaAdmins', 'mundoNaLiga', 'regionalNaLiga', 'deckSala', 'rivals', 'rivalTeams', 'clubes', 'liveUrl', 'tema']) { // 🎨 'tema' (18/10): o tema do clube da sala de espera sobrevive à partida
           if (gs[k] !== undefined && gs[k] !== null) guarda[k] = gs[k]
         }
         salaFixaRef.current = guarda
