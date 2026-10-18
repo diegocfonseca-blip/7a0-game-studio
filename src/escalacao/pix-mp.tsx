@@ -29,7 +29,7 @@ const NOME: Record<ProdutoMp, [string, string]> = {
   canto: ['📣 Canto da torcida', '📣 Crowd chant'], presente: ['🎁 Presente', '🎁 Gift'], dia_marca: ['⚡ Dia da marca', '⚡ Brand day'], giro_dia: ['📣 Anúncio no giro', '📣 Ticker ad'],
   ficha_carreira: ['💾 Ficha extra de carreira', '💾 Extra career slot'],
   tema_coracao: ['❤️ Tema do time de coração', '❤️ Team theme'], tema_clube: ['🛡️ Tema do seu clube', '🛡️ Club theme'],
-  giro_hora: ['📣 Anúncio no giro · 1 h', '📣 Ticker ad · 1 h'], recado_hora: ['💬 Recado em destaque · 1 h', '💬 Shout-out · 1 h'], recado_dia: ['💬 Recado em destaque · dia todo', '💬 Shout-out · all day'],
+  giro_hora: ['📣 Anúncio no giro · 1 h', '📣 Ticker ad · 1 h'], recado_hora: ['💬 Super Chat · 1 h', '💬 Super Chat · 1 h'], recado_dia: ['💬 Super Chat · dia todo', '💬 Super Chat · all day'],
 }
 const GANHOU: Record<ProdutoMp, [string, string]> = {
   craque: ['Seu ⭐ Craque já está valendo: cor prata, Modo Manual e Olheiro.', 'Your ⭐ Star is live: silver colour, Manual Mode and Scout.'],

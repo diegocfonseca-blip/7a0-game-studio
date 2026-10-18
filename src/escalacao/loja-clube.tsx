@@ -271,7 +271,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <span style={{ fontSize: 30 }}>💬</span>
               <div style={{ flex: 1 }}>
-                <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Recado em destaque', 'Shout-out')}</b>
+                <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('Super Chat', 'Super Chat')}</b>
                 <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Escreva um recado (até 60 letras) e ele gira no letreiro de todas as salas, na cor de recado e com o nome do seu time. Zoeira, parabéns, convite pro pregão…', 'Write a shout-out (up to 60 characters) and it runs on the ticker in every room, in the shout-out colour and with your team name. Banter, congrats, an invite to the auction…')}</small>
               </div>
             </div>
