@@ -40,7 +40,7 @@ import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useAmigos } from './sport'
-import { BotaoAmigos, PerfilPublico, contaValida } from './amigos' // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
+import { BotaoAmigos, PerfilPublico, contaValida, ComPerfil } from './amigos' // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
@@ -153,10 +153,10 @@ function LobbyChatDock({ open, setOpen, unread, msgs, myUid, listRef, onSend }: 
                   const re = reValido(m.re)
                   return (
                     <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
-                      <PresidenteDaConta uid={m.uid} size={40} reserva={null} />{/* 🧑‍💼 16/10 (28→40px, Diego: "aumentar um pouco mais a fotinho"): quem fala, pelo presidente (só quem tem; grátis fica como era) */}
+                      <ComPerfil uid={mine ? null : m.uid}><PresidenteDaConta uid={m.uid} size={40} reserva={null} /></ComPerfil>{/* 🧑‍💼 16/10 (28→40px, Diego: "aumentar um pouco mais a fotinho"): quem fala, pelo presidente (só quem tem; grátis fica como era) */}
                       <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
                         style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
-                        {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ChatCracha name={m.name} />}
+                        {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} /></ComPerfil>}
                         {re && <ChatCita re={re} />}
                         <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word', display: 'block' }}>{m.text}</span>
                       </div>

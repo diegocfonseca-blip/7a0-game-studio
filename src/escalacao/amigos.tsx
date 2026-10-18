@@ -14,6 +14,7 @@ import { tr } from './lang'
 import { APOIO_PERKS, ApoioSheen, type ApoioTier } from './apoio'
 import { PresidenteDaConta } from './presidente-avatar'
 import { Escudo } from './escudos'
+import { useAmigos } from './sport'
 
 const INK = '#0C0C0C', GOLD = '#FFC400', CREME = '#F4ECD6', GREEN = '#1B7A3D', RED = '#E8503A', ROXO = '#7C3AED'
 const OSW: CSSProperties = { fontFamily: 'Oswald, sans-serif', fontWeight: 800, textTransform: 'uppercase' }
@@ -259,5 +260,18 @@ export function BotaoAmigos({ style }: { style?: CSSProperties }) {
       {pedidos > 0 && <span style={{ position: 'absolute', top: -8, right: -8, minWidth: 20, height: 20, borderRadius: 10, background: RED, color: '#fff', border: `2px solid ${INK}`, fontSize: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{pedidos}</span>}
     </button>
     {aberto && <MeusAmigos onClose={() => setAberto(false)} />}
+  </>
+}
+
+// 💬 embrulho pra nome/foto de alguém (chat, listas): com amigos ligado e conta de verdade, o toque abre o PERFIL (com o
+// ➕ Adicionar amigo). O toque NÃO vaza pro que está em volta (no chat, tocar no balão é "responder").
+export function ComPerfil({ uid, children }: { uid: string | null | undefined; children: ReactNode }) {
+  const on = useAmigos()
+  const [aberto, setAberto] = useState(false)
+  if (!on || !contaValida(uid)) return <>{children}</>
+  return <>
+    <span role="button" tabIndex={0} title={tr('Ver perfil', 'View profile')} onClick={e => { e.stopPropagation(); setAberto(true) }}
+      onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); setAberto(true) } }} style={{ cursor: 'pointer', display: 'inline-flex' }}>{children}</span>
+    {aberto && <PerfilPublico uid={uid} onClose={() => setAberto(false)} />}
   </>
 }

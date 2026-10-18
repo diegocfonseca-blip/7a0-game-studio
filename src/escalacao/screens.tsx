@@ -35,6 +35,7 @@ import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPlanoConta} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
+import { ComPerfil } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -749,10 +750,10 @@ export function ChatWidget() {
                       // 1) nome na cor do plano de quem fala (sem escudo: Diego 13/10 "pra não ficar muita informação") · 3) toque na dos outros = responder
                       return (
                         <div key={m.id} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', flexDirection: mine ? 'row-reverse' : 'row' }}>
-                          <PresidenteDaConta uid={m.uid} size={40} reserva={null} />{/* 🧑‍💼 16/10 (28→40px, Diego: "aumentar um pouco mais a fotinho"): quem fala, pelo presidente (só quem tem; grátis fica como era) */}
+                          <ComPerfil uid={mine ? null : m.uid}><PresidenteDaConta uid={m.uid} size={40} reserva={null} /></ComPerfil>{/* 🧑‍💼 16/10 (28→40px, Diego: "aumentar um pouco mais a fotinho"): quem fala, pelo presidente (só quem tem; grátis fica como era) */}
                           <div onClick={mine ? undefined : () => setResp(citacao(m.name, m.text))}
                             style={{ background: mine ? '#FFF3D6' : '#fff', border: '2px solid #000', borderRadius: 11, padding: '4px 9px', boxShadow: '2px 2px 0 0 #000', maxWidth: '78%', cursor: mine ? 'default' : 'pointer' }}>
-                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ChatCracha name={m.name} />}
+                            {mine ? <span style={{ ...OSWALD, fontWeight: 900, fontSize: 10, display: 'block', lineHeight: 1.2 }}>{tr('Você', 'You')}</span> : <ComPerfil uid={m.uid}><ChatCracha name={m.name} /></ComPerfil>}
                             {re && <ChatCita re={re} />}
                             <span style={{ fontSize: 12.5, fontWeight: 600, wordBreak: 'break-word', display: 'block' }}>{m.text}</span>
                           </div>
