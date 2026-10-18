@@ -8740,6 +8740,9 @@ export function EscChampions() {
           </Box>
         )}
 
+        {/* 📢 18/10 (Diego: "na Champions não está aparecendo o telão… que hoje tem propaganda"): o MESMO Anúncio do dia da liga */}
+        <GiroDaRodada cinema={cinemaOnline} />
+
         {/* 🥅 TODOS OS JOGOS DA RODADA — a MESMA lista da liga (cinema) ou a grade simples */}
         {ch.lastResults.length > 0 && !(portaoRepescao && revealed) && !portaoOitavas && (privateVisual
           ? <section className="ll26-round-list"><h3>{vistaTabela ? `${T('TODOS OS JOGOS · RODADA', 'ALL MATCHES · ROUND')} ${ch.rodada}` : `${T('REPESCÃO', 'PLAYOFF')} · ${pernaNaTela === 0 ? T('IDA', '1ST LEG') : T('VOLTA', '2ND LEG')}`}</h3><p>{revealed ? T('Rodada encerrada. Confira os resultados e a classificação.', 'Round over. Check the results and the standings.') : T('Acompanhe a rodada. A classificação atualiza após o apito.', 'Follow the round. Standings update after the final whistle.')}</p><div>
