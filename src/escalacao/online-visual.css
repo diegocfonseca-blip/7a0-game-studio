@@ -187,3 +187,9 @@
    Pra desfazer: apagar este bloco (voltam os dois menus no celular). */
 @media (min-width: 1100px) { .ll-barra-cel { display: none !important; } }
 @media (max-width: 1099.98px) { .ll-barra-desk, .ll-abas-topo { display: none !important; } }
+/* ✨ tarja "NOVO" verde brilhando no Seg da sala (18/10, pregão aberto) */
+.seg-selo-brilho{position:relative;overflow:hidden;animation:segSeloPulsa 1.6s ease-in-out infinite}
+.seg-selo-brilho::after{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);animation:segSeloBrilho 2.2s ease-in-out infinite}
+@keyframes segSeloPulsa{0%,100%{box-shadow:0 0 0 rgba(46,204,113,0)}50%{box-shadow:0 0 9px 2px rgba(46,204,113,.85)}}
+@keyframes segSeloBrilho{0%{left:-60%}60%,100%{left:130%}}
+@media (prefers-reduced-motion:reduce){.seg-selo-brilho,.seg-selo-brilho::after{animation:none}}

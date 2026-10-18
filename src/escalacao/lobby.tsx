@@ -593,7 +593,9 @@ function SegField({ label, children }: { label: string; children: React.ReactNod
 // 🔒 `travados` = a opção APARECE mas não dá pra escolher. É o que sustenta o selo
 // "EM BREVE" da Champions (ordem dele: *"N libere ainda ela pra todos não, coloque
 // um selo de em breve"*) — o recado de que vem aí sem deixar ninguém entrar.
-function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim, selos, travados }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean; selos?: Partial<Record<string, string>>; travados?: string[] }) {
+// ✨ `selosBrilho` = a tarja daquela opção vem VERDE e brilhando (18/10, pregão aberto: *"tire a palavra teste e coloque a
+// palavra novo brilhando verde"*). O brilho é CSS (`seg-selo-brilho`, online-visual.css), 0 KB.
+function Seg<T extends string | number | boolean>({ options, value, onSet, small, dim, selos, selosBrilho, travados }: { options: [T, string][]; value: T; onSet: (v: T) => void; small?: boolean; dim?: boolean; selos?: Partial<Record<string, string>>; selosBrilho?: string[]; travados?: string[] }) {
   const grade = options.length >= 4
   return (
     <div className={grade ? 'grid grid-cols-2 border-[2.5px] border-black rounded-xl overflow-hidden' : 'flex border-[2.5px] border-black rounded-xl overflow-hidden'}
@@ -614,9 +616,9 @@ function Seg<T extends string | number | boolean>({ options, value, onSet, small
             className={`${grade ? (ultimaSozinha ? 'col-span-2' : '') : 'flex-1'} font-black ${borda}`}
             style={{ padding: small ? '8px 2px' : '9px 2px', fontSize: small ? 11 : 12.5, background: escolhido ? GOLD : '#fff', color: '#000', whiteSpace: grade ? 'normal' : 'nowrap', lineHeight: 1.25, opacity: travado ? 0.5 : 1, cursor: travado ? 'not-allowed' : 'pointer', ...OSWALD }}>
             {selo && (
-              <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+              <span className={selosBrilho?.includes(String(v)) ? 'seg-selo-brilho' : undefined} style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                 letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
-                border: `1.5px solid ${INK}`, background: escolhido ? INK : GOLD, color: escolhido ? GOLD : INK }}>{selo}</span>
+                border: `1.5px solid ${INK}`, ...(selosBrilho?.includes(String(v)) ? { background: GREEN, color: '#fff' } : { background: escolhido ? INK : GOLD, color: escolhido ? GOLD : INK }) }}>{selo}</span>
             )}
             {label}
           </button>
@@ -3475,7 +3477,8 @@ export function EscLobby() {
               {(roomMode === 'rapido' || roomMode === 'liga') && (
                 <SegField label={tr('Como é o leilão', 'Auction format')}>
                   {pregaoAbertoOk && rapidoCopaMode !== 'champions'
-                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto (em teste)', '🔨 Open auction (beta)')]] as ['envelope' | 'tocaia' | 'pregao', string][]}
+                    ? <Seg options={[['envelope', tr('✉️ Envelope cego', '✉️ Sealed bid')], ['tocaia', `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`], ['pregao', tr('🔨 Pregão aberto', '🔨 Open auction')]] as ['envelope' | 'tocaia' | 'pregao', string][]}
+                        selos={{ pregao: tr('novo', 'new') }} selosBrilho={['pregao']}
                         value={rapidoPregao ? 'pregao' : rapidoHolandes ? 'tocaia' : 'envelope'} onSet={v => { setRapidoPregao(v === 'pregao'); setRapidoHolandes(v === 'tocaia') }} />
                     : <Seg options={[[false, tr('✉️ Envelope cego', '✉️ Sealed bid')], [true, `${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en)}`]] as [boolean, string][]} value={rapidoHolandes} onSet={v => setRapidoHolandes(v)} />} {/* 🏷️ 12/10: selo NOVO da Tocaia tirado (ordem do Diego) */}
                   <p className="text-white/45 text-[10.5px] font-bold mt-1.5 leading-snug">
@@ -3776,7 +3779,7 @@ export function EscLobby() {
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: INK, color: GOLD, ...OSWALD }} title={tr('Leilão de Clubes: cada lote é um setor de um clube, e no fim cada um convoca quem joga', 'Club Auction: each lot is a club sector, and at the end everyone calls up who plays')}>{tr('🧱 CLUBES', '🧱 CLUBS')}</span>
                     )}
                     {temPregao && (r.game_state as GS)?.pregaoAberto ? (
-                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title={tr('Pregão aberto: uma carta por vez, lance à vista de todos, martelo em 5s sem lance novo.', 'Open auction: one card at a time, bids in front of everyone, hammer after 5s without a new bid.')}>{tr('🔨 PREGÃO ABERTO (EM TESTE)', '🔨 OPEN AUCTION (BETA)')}</span>
+                      <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: GREEN, color: '#fff', ...OSWALD }} title={tr('Pregão aberto: uma carta por vez, lance à vista de todos, martelo em 5s sem lance novo.', 'Open auction: one card at a time, bids in front of everyone, hammer after 5s without a new bid.')}>{tr('🔨 PREGÃO ABERTO', '🔨 OPEN AUCTION')}</span>
                     ) : temPregao && pregaoLido && (holandesRoom ? (
                       <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded border-2 border-black leading-none" style={{ background: '#C2452F', color: '#fff', ...OSWALD }} title={tr('Tocaia: o preço abre em 100 e CAI na frente de todos — quem apertar primeiro leva. Não é o envelope cego.', 'Ambush: the price opens at 100 and DROPS in front of everyone — first to tap wins. Not the sealed bid.')}>{`${MODO_EMOJI} ${tr(MODO_NOME.pt, MODO_NOME.en).toUpperCase()}`}</span>
                     ) : (
@@ -4108,7 +4111,7 @@ export function EscLobby() {
         {!ehMundoSala && !elencoOn && (room.game_state as GS)?.pregaoAberto ? (
           <p className="mt-2">
             <span className="inline-block text-[10px] font-black px-2 py-1 rounded-full border-2 border-black leading-none" style={{ ...OSWALD, background: GREEN, color: '#fff' }}>
-              {tr('🔨 PREGÃO ABERTO (EM TESTE) · lance à vista, martelo em 5s sem lance novo', '🔨 OPEN AUCTION (BETA) · bids in the open, hammer after 5s without a new bid')}
+              {tr('🔨 PREGÃO ABERTO · lance à vista, martelo em 5s sem lance novo', '🔨 OPEN AUCTION · bids in the open, hammer after 5s without a new bid')}
             </span>
           </p>
         ) : !ehMundoSala && !elencoOn && (
