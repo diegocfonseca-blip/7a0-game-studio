@@ -303,6 +303,76 @@ const ROTULO_ABA_PT: Record<Botao, string> = { rank: 'Rank', estante: 'Estante',
 const ROTULO_ABA_EN: Record<Botao, string> = { rank: 'Rank', estante: 'Shelf', temporadas: 'Seasons', ajustes: 'Settings', jogos: 'Matches', estatisticas: 'Stats', elenco: 'Squad' }
 const ROTULO_ABA: Record<Botao, string> = new Proxy(ROTULO_ABA_PT, { get: (_t, k: string) => (getLang() === 'en' ? ROTULO_ABA_EN : ROTULO_ABA_PT)[k as Botao] })
 
+// 🏆 GRAVA A TEMPORADA DA SALA (18/10: saiu de dentro do LigaHub pra poder ser chamada ASSIM QUE O CAMPEÃO APARECE).
+// Regra do Diego: *"se apareceu campeão, então deve contar! Sempre que tiver campeão em qualquer liga ou qualquer copa online
+// deve ganhar carta e contar"*. Caso do Labubu F.C (sala IGORCH): ganhou a liga, a sala parou na Copa e o título sumiu, porque
+// só se gravava na tela final. Mesma linha da partida (semente/temporada): a gravação do fim só COMPLETA o que já estava lá.
+export type GravarTemporada = NonNullable<Parameters<typeof LigaHub>[0]['gravar']>
+export async function gravaTemporadaSala(roomId: string, humanos: string[], gravar: GravarTemporada) {
+  const { data: jogadores } = await supabase.from('room_players')
+    .select('user_id, manager_name, player_index').eq('room_id', roomId)
+  const membrosAgora = (jogadores ?? []) as MembroSala[]
+  // 🚪 QUEM SAIU DEPOIS DO APITO CONTINUA DONO DO TÍTULO (Diego 14/10, sala do Futpoint: o Guimarães
+  // ganhou a liga e a Copa do Mundo e sumiu do ranking). A partida é gravada DE NOVO quando a Copa do
+  // Mundo acaba — e quem já tinha apertado SAIR virou CPU no estado do dono e saiu do room_players, então
+  // a 2ª gravação apagava ele da lista de gente (e o título ia pra "um bot"). Agora a gravação nova HERDA
+  // a anterior da mesma partida: time que já estava anotado como de alguém continua sendo dele.
+  const anterior = gravar.matchSeed != null
+    ? await supabase.from('game_champions').select('humanos, human_results').eq('room_id', roomId).eq('match_seed', gravar.matchSeed).maybeSingle()
+    : await supabase.from('game_champions').select('humanos, human_results').eq('room_id', roomId).eq('season_no', gravar.seasonNo).maybeSingle()
+  const antes = (anterior.data ?? null) as { humanos?: string[] | null; human_results?: ResultadoHumano[] | null } | null
+  const herdaDe = (time: string) => (antes?.human_results ?? []).find(h => h.team_name === time && h.user_id)
+  const resultados: ResultadoHumano[] = (gravar.humanResults ?? []).flatMap(r => {
+    const velho = herdaDe(r.teamName)
+    if (r.humano === false && !velho) return [] // bot de verdade (nunca foi de ninguém nesta partida)
+    const donos = r.humano === false ? [] : membrosAgora.filter(m => m.player_index === r.managerId)
+    const bases = donos.length ? donos : [{ user_id: velho?.user_id ?? null, manager_name: velho?.display_name ?? r.teamName, player_index: r.managerId }]
+    return bases.map(m => ({
+      user_id: m.user_id,
+      display_name: m.manager_name || r.teamName,
+      team_name: r.teamName,
+      position: r.position,
+      qualified: r.qualified,
+      relegated: r.relegated,
+      // 🏆 quem SAIU só leva o que já tinha ganhado ENQUANTO estava na sala (o que a gravação anterior
+      // anotou). Taça que o time dele ganhou depois, jogado pela CPU, NÃO é dele (Diego 14/10: *"isso não
+      // quero dar troféu p eles"*). Quem saiu antes da 1ª gravação nem entra (não tem `velho`).
+      league_champion: r.humano === false ? !!velho?.league_champion : r.leagueChampion,
+      cup_titles: r.humano === false ? (velho?.cup_titles ?? []) : r.cupTitles,
+    }))
+  })
+  const payload = {
+    champion_name: gravar.champName, top_scorer_name: gravar.scorerName ?? null,
+    top_scorer_goals: gravar.scorerGoals ?? null, top_scorer_team: gravar.scorerTeamName ?? null,
+    mico_name: gravar.micoName ?? null, copa_champion_name: gravar.copaChampName ?? null,
+    copa_top_scorer_name: gravar.copaScorerName ?? null, copa_top_scorer_goals: gravar.copaScorerGoals ?? null,
+    // 👥 carimba QUEM ERA GENTE nesta temporada — é o que deixa o amigo que
+    // faltou continuar no ranking com os títulos dele (ver `rankingDaLiga`).
+    // 🚪 + quem já estava anotado nesta partida e saiu depois (mesma régua de cima).
+    humanos: [...new Set([...humanos, ...(antes?.humanos ?? [])])],
+    human_results: resultados,
+  }
+  for (let i = 0; i < 3; i++) {
+    // 🏆 A LINHA É DA PARTIDA, não do número da temporada (Diego 16/08 —
+    // "joguei a segunda e não contou no hall"): o "novo leilão" zera a
+    // temporada pra 1 e a 2ª partida escrevia POR CIMA da 1ª. Com a SEMENTE,
+    // partida diferente = linha nova, sempre.
+    const { error } = gravar.matchSeed != null
+      ? await supabase.from('game_champions').upsert(
+        { room_id: roomId, season_no: gravar.seasonNo, match_seed: gravar.matchSeed, ...payload },
+        { onConflict: 'room_id,match_seed' },
+      )
+      : await (async () => {
+        const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', gravar.seasonNo).maybeSingle()
+        return existe
+          ? supabase.from('game_champions').update(payload).eq('id', existe.id)
+          : supabase.from('game_champions').insert({ room_id: roomId, season_no: gravar.seasonNo, ...payload })
+      })()
+    if (!error) break
+    await new Promise(r => setTimeout(r, 400 * (i + 1)))
+  }
+}
+
 export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo, cinema = false }: {
   roomId: string
   souDono: boolean
@@ -356,70 +426,7 @@ export function LigaHub({ roomId, souDono, humanos, gravar, aoExcluir, abasJogo,
   useEffect(() => {
     let vivo = true
     ;(async () => {
-      if (gravar && souDono) {
-        const { data: jogadores } = await supabase.from('room_players')
-          .select('user_id, manager_name, player_index').eq('room_id', roomId)
-        const membrosAgora = (jogadores ?? []) as MembroSala[]
-        // 🚪 QUEM SAIU DEPOIS DO APITO CONTINUA DONO DO TÍTULO (Diego 14/10, sala do Futpoint: o Guimarães
-        // ganhou a liga e a Copa do Mundo e sumiu do ranking). A partida é gravada DE NOVO quando a Copa do
-        // Mundo acaba — e quem já tinha apertado SAIR virou CPU no estado do dono e saiu do room_players, então
-        // a 2ª gravação apagava ele da lista de gente (e o título ia pra "um bot"). Agora a gravação nova HERDA
-        // a anterior da mesma partida: time que já estava anotado como de alguém continua sendo dele.
-        const anterior = gravar.matchSeed != null
-          ? await supabase.from('game_champions').select('humanos, human_results').eq('room_id', roomId).eq('match_seed', gravar.matchSeed).maybeSingle()
-          : await supabase.from('game_champions').select('humanos, human_results').eq('room_id', roomId).eq('season_no', gravar.seasonNo).maybeSingle()
-        const antes = (anterior.data ?? null) as { humanos?: string[] | null; human_results?: ResultadoHumano[] | null } | null
-        const herdaDe = (time: string) => (antes?.human_results ?? []).find(h => h.team_name === time && h.user_id)
-        const resultados: ResultadoHumano[] = (gravar.humanResults ?? []).flatMap(r => {
-          const velho = herdaDe(r.teamName)
-          if (r.humano === false && !velho) return [] // bot de verdade (nunca foi de ninguém nesta partida)
-          const donos = r.humano === false ? [] : membrosAgora.filter(m => m.player_index === r.managerId)
-          const bases = donos.length ? donos : [{ user_id: velho?.user_id ?? null, manager_name: velho?.display_name ?? r.teamName, player_index: r.managerId }]
-          return bases.map(m => ({
-            user_id: m.user_id,
-            display_name: m.manager_name || r.teamName,
-            team_name: r.teamName,
-            position: r.position,
-            qualified: r.qualified,
-            relegated: r.relegated,
-            // 🏆 quem SAIU só leva o que já tinha ganhado ENQUANTO estava na sala (o que a gravação anterior
-            // anotou). Taça que o time dele ganhou depois, jogado pela CPU, NÃO é dele (Diego 14/10: *"isso não
-            // quero dar troféu p eles"*). Quem saiu antes da 1ª gravação nem entra (não tem `velho`).
-            league_champion: r.humano === false ? !!velho?.league_champion : r.leagueChampion,
-            cup_titles: r.humano === false ? (velho?.cup_titles ?? []) : r.cupTitles,
-          }))
-        })
-        const payload = {
-          champion_name: gravar.champName, top_scorer_name: gravar.scorerName ?? null,
-          top_scorer_goals: gravar.scorerGoals ?? null, top_scorer_team: gravar.scorerTeamName ?? null,
-          mico_name: gravar.micoName ?? null, copa_champion_name: gravar.copaChampName ?? null,
-          copa_top_scorer_name: gravar.copaScorerName ?? null, copa_top_scorer_goals: gravar.copaScorerGoals ?? null,
-          // 👥 carimba QUEM ERA GENTE nesta temporada — é o que deixa o amigo que
-          // faltou continuar no ranking com os títulos dele (ver `rankingDaLiga`).
-          // 🚪 + quem já estava anotado nesta partida e saiu depois (mesma régua de cima).
-          humanos: [...new Set([...humanos, ...(antes?.humanos ?? [])])],
-          human_results: resultados,
-        }
-        for (let i = 0; i < 3; i++) {
-          // 🏆 A LINHA É DA PARTIDA, não do número da temporada (Diego 16/08 —
-          // "joguei a segunda e não contou no hall"): o "novo leilão" zera a
-          // temporada pra 1 e a 2ª partida escrevia POR CIMA da 1ª. Com a SEMENTE,
-          // partida diferente = linha nova, sempre.
-          const { error } = gravar.matchSeed != null
-            ? await supabase.from('game_champions').upsert(
-              { room_id: roomId, season_no: gravar.seasonNo, match_seed: gravar.matchSeed, ...payload },
-              { onConflict: 'room_id,match_seed' },
-            )
-            : await (async () => {
-              const { data: existe } = await supabase.from('game_champions').select('id').eq('room_id', roomId).eq('season_no', gravar.seasonNo).maybeSingle()
-              return existe
-                ? supabase.from('game_champions').update(payload).eq('id', existe.id)
-                : supabase.from('game_champions').insert({ room_id: roomId, season_no: gravar.seasonNo, ...payload })
-            })()
-          if (!error) break
-          await new Promise(r => setTimeout(r, 400 * (i + 1)))
-        }
-      }
+      if (gravar && souDono) await gravaTemporadaSala(roomId, humanos, gravar)
       if (!vivo) return
       carregar()
     })()

@@ -53,7 +53,7 @@ import { pedaco } from './recarga'
 const CopaDaLigaLazy = lazy(pedaco(() => import('./copa-mundo-online').then(m => ({ default: m.CopaDaLigaGate }))))
 const CopaRegionalLazy = lazy(pedaco(() => import('./copa-regional-online').then(m => ({ default: m.CopaRegionalGate })))) // 🏟️ copas regionais (10/10)
 import { CampinhoKings } from './kings-campinho'
-import { LigaHub, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
+import { LigaHub, gravaTemporadaSala, type ResultadoHumanoEntrada, type TituloSalaRapida } from './ligahub' // 🏆 histórico e troféus da sala
 import { useResumableRoom } from './lobby'
 import type { CartaRadio } from './radio' // 📻🧑 escalação pra rádio citar o jogador (14/10)
 import { playerColors, perkFromSelo, LiveScoreCard, useApitoDeLargada, PensShootout, pensRevealDelay, COPA_LEG_MS, AUTO_EXTRA_MS, FaixaPlacarMini, usePlacarFora } from './pyramidseason'
@@ -6304,8 +6304,61 @@ function RegrasKingsBox() {
   )
 }
 
+// 🏆 TÍTULO CONTA NA HORA EM QUE O CAMPEÃO APARECE (18/10, regra do Diego: *"se apareceu campeão, então deve contar! Sempre que
+// tiver campeão em qualquer liga ou qualquer copa online deve ganhar carta e contar"*). Caso do Labubu F.C (sala IGORCH): ganhou a
+// liga, o dono saiu durante a Copa, a sala parou antes da tela final e o título e a carta sumiram — os dois só existiam na tela final.
+// Agora, assim que a liga fecha (ou a Copa/Libertadores tem campeão), no meio da temporada mesmo:
+//  · o CAMPEÃO (no aparelho dele) já ganha a carta, calada, com a MESMA chave da tela final — lá ela aparece revelada, sem duplicar;
+//  · o DONO da sala já grava a temporada (`gravaTemporadaSala`, mesma linha da partida — a tela final só completa).
+async function garanteCartaDoTitulo(seasonKey: string) {
+  const { data: { session } } = await supabase.auth.getSession()
+  const uid = session?.user?.id
+  if (!uid) return
+  const { data } = await supabase.from('user_cards').select('season_key').eq('user_id', uid).eq('season_key', seasonKey).maybeSingle()
+  if (data) return
+  const pool = colecoesLiberadas() ? POOL_COLECOES : ALL_POOL
+  const c = pool[Math.floor(Math.random() * pool.length)]
+  if (!c) return
+  await resilientWrite({ table: 'user_cards', row: { user_id: uid, season_key: seasonKey, origin: 'online', card_name: c.name, card_club: c.club, card_year: c.year, card_pos: c.pos, card_fame: c.fame } })
+}
+function useTitulosNaHora() {
+  const { state } = useEsc()
+  const feitos = useRef(new Set<string>())
+  const online = state.onlineMode === 'online' && !!state.roomId && !state.careerOnline && state.sport !== 'basquete' && state.copaMode !== 'champions'
+  const ligaCamp = online ? state.champion : null
+  const qc = state.quickCopa
+  const copaCamp = online && qc?.phase === 'done' && qc.champion ? qc.champion.id : null
+  useEffect(() => {
+    if (!online || ligaCamp == null) return
+    const roomId = state.roomId!
+    const base = `${roomId}:${state.seed}:${state.seasonNo}`
+    const eu = state.managers[state.youIdx]
+    const vai = (chave: string, f: () => Promise<unknown>) => { if (feitos.current.has(chave)) return; feitos.current.add(chave); void f().catch(() => feitos.current.delete(chave)) }
+    // 🃏 a carta, no aparelho de quem ganhou
+    if (eu?.isHuman && eu.id === ligaCamp) vai(`carta:${base}`, () => garanteCartaDoTitulo(base))
+    if (eu?.isHuman && copaCamp != null && eu.id === copaCamp) vai(`carta:${base}:copa`, () => garanteCartaDoTitulo(`${base}:copa`))
+    // 🖊️ o título, gravado pelo dono da sala
+    if (state.isHost) {
+      const table = sortedTable(state.league)
+      const copaTit: TituloSalaRapida = state.copaMode === 'liga_liberta' ? 'libertadores' : 'copa'
+      const resultados: ResultadoHumanoEntrada[] = state.managers.map(m => {
+        const pos = table.findIndex(t => t.id === m.id)
+        return { managerId: m.id, teamName: m.teamName, position: pos >= 0 ? pos + 1 : 0, qualified: pos >= 0 && pos < copaN(table.length), relegated: pos >= 0 && pos + 1 >= zoneBot(table.length),
+          leagueChampion: m.id === ligaCamp, cupTitles: copaCamp != null && m.id === copaCamp ? [copaTit] : [], humano: m.isHuman }
+      })
+      const champName = state.managers.find(m => m.id === ligaCamp)?.teamName ?? ''
+      vai(`grava:${base}:${copaCamp ?? '-'}`, () => gravaTemporadaSala(roomId, state.managers.filter(m => m.isHuman).map(m => m.teamName), {
+        seasonNo: state.seasonNo, matchSeed: state.ligaMode ? undefined : state.seed, champName,
+        copaChampName: copaCamp != null ? (state.managers.find(m => m.id === copaCamp)?.teamName ?? undefined) : undefined,
+        humanResults: resultados,
+      }))
+    }
+  }, [online, ligaCamp, copaCamp, state.roomId, state.seed, state.seasonNo, state.isHost]) // eslint-disable-line react-hooks/exhaustive-deps
+}
+
 export function EscSeason() {
   const { state, dispatch } = useEsc()
+  useTitulosNaHora() // 🏆 18/10: campeão apareceu = título e carta contam na hora (mesmo que a sala pare antes do fim)
   const previewAccount = useOnlinePreview()
   // 🎬 VISUAL DE TRANSMISSÃO APROVADO (21/09): agora é público no online
   // normal de futebol. Carreira online e basquete continuam com suas peles próprias.
