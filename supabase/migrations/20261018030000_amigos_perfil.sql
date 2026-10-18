@@ -30,3 +30,5 @@ create unique index if not exists esc_amizades_par on public.esc_amizades (least
 alter table public.esc_amizades enable row level security;
 -- 18/10 (2): esc_perfil_rank(uid) → {pos, total, temporada, clube} = melhor carreira no ranking global na temporada em que ela
 -- está (usa esc_pyramid_my_rank); esc_perfil_publico ganhou 'rank'. No perfil: card 📊 + "🔨 Títulos no online" em taças.
+-- 18/10 (3): esc_amigo_buscar(p_q) → uid, nome, relacao — procura pelo NOME de técnico (display_name), mín. 3 letras, máx. 10,
+-- nunca pelo e-mail. Na tela "Meus amigos": "👤 Meu perfil" no topo + "🔎 Procurar técnico".

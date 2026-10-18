@@ -197,6 +197,28 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
 export function MeusAmigos({ onClose }: { onClose: () => void }) {
   const [lista, setLista] = useState<Linha[] | null | 'erro'>(null)
   const [perfil, setPerfil] = useState<string | null>(null)
+  // 👤 18/10 (Diego abriu a lista vazia e não viu nada do mockup): o MEU perfil no topo + 🔎 procurar técnico pelo nome
+  const [eu, setEu] = useState<{ uid: string; p: Perfil | null } | null>(null)
+  const [busca, setBusca] = useState('')
+  const [refaz, setRefaz] = useState(0) // relê a busca depois de mexer numa amizade pelo perfil
+  const [achados, setAchados] = useState<{ uid: string; nome: string; relacao: Linha['relacao'] | null }[] | null>(null)
+  useEffect(() => {
+    let vivo = true
+    supabase.auth.getUser().then(({ data }) => {
+      const uid = data?.user?.id; if (!uid || !vivo) return
+      setEu({ uid, p: null })
+      supabase.rpc('esc_perfil_publico', { p_uid: uid }).then(({ data: d }) => { if (vivo && d) setEu({ uid, p: d as Perfil }) }, () => {})
+    }, () => {})
+    return () => { vivo = false }
+  }, [])
+  useEffect(() => {
+    const q = busca.trim()
+    if (q.length < 3) { setAchados(null); return }
+    const t = setTimeout(() => {
+      supabase.rpc('esc_amigo_buscar', { p_q: q }).then(({ data }) => setAchados((data ?? []) as { uid: string; nome: string; relacao: Linha['relacao'] | null }[]), () => setAchados([]))
+    }, 400) // espera parar de digitar
+    return () => clearTimeout(t)
+  }, [busca, refaz])
   const carrega = () => { supabase.rpc('esc_amigos_lista').then(({ data, error }) => setLista(error ? 'erro' : (data ?? []) as Linha[]), () => setLista('erro')) }
   useEffect(carrega, [])
   const responder = async (id: number, sim: boolean) => { await supabase.rpc('esc_amigo_responder', { p_id: id, p_aceita: sim }); carrega() }
@@ -219,6 +241,34 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
     <Janela titulo={`${tr('👥 Meus amigos', '👥 My friends')}${amigos.length ? ` · ${amigos.length}` : ''}`} onClose={onClose}>
       {lista === null && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('carregando…', 'loading…')}</p>}
       {lista === 'erro' && <p style={{ textAlign: 'center', fontWeight: 800, margin: '24px 0' }}>{tr('Não consegui carregar agora. Tenta de novo.', 'Couldn’t load right now. Try again.')}</p>}
+      {eu && <button onClick={() => setPerfil(eu.uid)} style={{ ...caixa, width: '100%', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', background: APOIO_PERKS[eu.p?.tier && APOIO_PERKS[eu.p.tier] ? eu.p.tier : 'bege'].grad }}>
+        <Rosto uid={eu.uid} nome={eu.p?.nome ?? '?'} size={54} />
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', ...OSW, fontSize: 11, color: '#4a3b10' }}>👤 {tr('Meu perfil', 'My profile')}</span>
+          <span style={{ display: 'block', ...OSW, fontSize: 18, lineHeight: 1.05, color: INK }}>{eu.p?.nome ?? '…'}</span>
+          {eu.p && <span style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: INK, marginTop: 2 }}>
+            {eu.p.rank ? `📊 ${eu.p.rank.pos}º ${tr('no ranking global', 'in the global ranking')} · ` : ''}🏆 {(eu.p.titulos?.ligas ?? 0) + (eu.p.titulos?.copas ?? 0) + (eu.p.titulos?.supercopas ?? 0) + (eu.p.titulos?.libertadores ?? 0) + (eu.p.titulos?.champions ?? 0) + (eu.p.titulos?.mundial ?? 0) + (eu.p.titulos?.copa_mundo ?? 0)} {tr('na carreira', 'in career')} · 🔨 {eu.p.titulos?.salas ?? 0} {tr('no online', 'online')}
+          </span>}
+        </span>
+        <span style={{ ...OSW, fontSize: 18, color: INK }}>›</span>
+      </button>}
+      <div style={caixa}>
+        <p style={h3}>🔎 {tr('Procurar técnico', 'Find a manager')}</p>
+        <input value={busca} onChange={e => setBusca(e.target.value)} maxLength={30} placeholder={tr('digite o nome de técnico (3 letras ou mais)', 'type a manager name (3+ letters)')}
+          style={{ width: '100%', boxSizing: 'border-box', border: `2px solid ${INK}`, borderRadius: 9, padding: '8px 10px', fontSize: 13.5, fontWeight: 700, color: INK, background: '#fff' }} />
+        {achados && achados.length === 0 && <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: '8px 0 0' }}>{tr('Ninguém com esse nome.', 'Nobody with that name.')}</p>}
+        {achados && achados.map(a => (
+          <div key={a.uid} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px dashed #d8ccaa', marginTop: 4 }}>
+            <button onClick={() => setPerfil(a.uid)} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', color: INK }}>
+              <Rosto uid={a.uid} nome={a.nome} size={34} />
+              <b style={{ fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nome}</b>
+            </button>
+            {a.relacao === 'aceito' ? <span style={{ fontSize: 11, fontWeight: 800, color: GREEN }}>✅ {tr('amigo', 'friend')}</span>
+              : a.relacao === 'enviado' ? <span style={{ fontSize: 11, fontWeight: 800, color: '#888' }}>⏳ {tr('enviado', 'sent')}</span>
+              : <button style={bt(GREEN, '#fff')} onClick={() => setPerfil(a.uid)}>{tr('ver perfil', 'view')}</button>}
+          </div>
+        ))}
+      </div>
       {Array.isArray(lista) && <>
         {recebidos.length > 0 && <div style={{ ...caixa, background: '#FFF3C4' }}>
           <p style={h3}>📩 {recebidos.length === 1 ? tr('1 pedido de amizade', '1 friend request') : tr(`${recebidos.length} pedidos de amizade`, `${recebidos.length} friend requests`)}</p>
@@ -231,7 +281,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
         </div>
         <div style={caixa}>
           <p style={h3}>⚪ {tr('Offline', 'Offline')} ({off.length})</p>
-          {off.length === 0 ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: 0 }}>{amigos.length === 0 ? tr('Você ainda não tem amigos. Toque no nome de alguém numa sala e aperte ➕ Adicionar amigo.', 'No friends yet. Tap someone’s name in a room and press ➕ Add friend.') : tr('Todo mundo online!', 'Everyone is online!')}</p>
+          {off.length === 0 ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: 0 }}>{amigos.length === 0 ? tr('Você ainda não tem amigos. Procure pelo nome aqui em cima, ou toque no nome de alguém numa sala ou no chat.', 'No friends yet. Search by name above, or tap someone’s name in a room or in the chat.') : tr('Todo mundo online!', 'Everyone is online!')}</p>
             : off.map(x => linha(x, null, <span style={{ color: '#888' }}>{vistoHa(x.visto_em)}</span>))}
         </div>
         {enviados.length > 0 && <div style={caixa}>
@@ -240,7 +290,7 @@ export function MeusAmigos({ onClose }: { onClose: () => void }) {
         </div>}
         <p style={{ fontSize: 11, color: '#666', fontWeight: 700, margin: '10px 2px 0', lineHeight: 1.4 }}>{tr('Amizade só vale com os dois lados aceitando, e dá pra desfazer quando quiser. Ninguém vê o seu e-mail.', 'A friendship needs both sides to accept, and you can undo it any time. Nobody sees your e-mail.')}</p>
       </>}
-      {perfil && <PerfilPublico uid={perfil} onClose={() => { setPerfil(null); carrega() }} onAbrirOutro={u => setPerfil(u)} />}
+      {perfil && <PerfilPublico uid={perfil} onClose={() => { setPerfil(null); carrega(); setRefaz(n => n + 1) }} onAbrirOutro={u => setPerfil(u)} />}
     </Janela>
   )
 }
