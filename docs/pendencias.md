@@ -101,7 +101,7 @@
 
 ## 👥 AMIGOS + PERFIL ("estilo Orkut", ideia do Diego 18/10) — ✅ NO AR SÓ NA CONTA DO DIEGO (`AMIGOS_GERAL = false`)
 - 🚫 **COMUNIDADES: NÃO FAZER** (*"esse negócio de comunidade é doideira, melhor não"*). Não repropor.
-- Feito: `amigos.tsx` (PerfilPublico · MeusAmigos · BotaoAmigos), botão "👥 Amigos" acima de Minhas ligas, toque no nome na sala de
+- Feito: `amigos.tsx` (PerfilPublico · MeusAmigos · BotaoAmigos), botão "👥 AMIGOS" na HOME, do lado da Loja (18/10: Diego tirou da área de Minhas ligas — "não tem nada a ver"), toque no nome na sala de
   espera abre o perfil. Banco: `esc_amizades` + 5 funções (migration 20261018030000). Falta: "chamar pra sala"/"entrar" (precisa de
   aviso entre contas), toque no nome no chat/ranking/Campeões de hoje, e liberar pra todos quando ele mandar.
 

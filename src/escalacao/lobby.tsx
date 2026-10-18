@@ -40,7 +40,7 @@ import { ApoieButton } from './screens'
 import { tr, getLang } from './lang' // 🌐 BR/EN do futebol (botão no header)
 import { ChatCracha, ChatCita, ChatRespondendo, citacao, reValido, type ChatRe } from './chat-sala'
 import { getSport, useSport, usePregaoAberto, useAmigos } from './sport'
-import { BotaoAmigos, PerfilPublico, contaValida, ComPerfil } from './amigos' // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
+import { PerfilPublico, contaValida, ComPerfil } from './amigos' // 👥 18/10: amigos + perfil (só a conta do Diego por enquanto) // 🏀 qual esporte a pessoa está jogando (separa as salas)
 import { COMUNIDADE_LINK } from './comunidade' // 📲 comunidade do WhatsApp (11/10)
 import { VitrineSalas } from './vitrine-salas' // 🏆📊🖋️ embaixo do Atualizar lista (13/10)
 
@@ -2894,9 +2894,6 @@ export function EscLobby() {
           </div>
         </div>
       )}
-
-      {/* 👥 AMIGOS (18/10): a lista com quem está online e os pedidos — só a conta do Diego por enquanto */}
-      {amigosOn && getSport() !== 'basquete' && <div className="flex justify-end"><BotaoAmigos /></div>}
 
       {/* 🏆 MINHAS LIGAS — a sala que fica de pé. Vem ANTES das carreiras porque
           é a que tem hora marcada: é o que a pessoa abre o jogo pra ver. */}

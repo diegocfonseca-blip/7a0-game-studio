@@ -35,7 +35,7 @@ import {PresidenteFormulario} from './presidente-formulario'
 import { PregaoAberto } from './pregao-aberto'
 import {usePlanoConta,getPlanoConta} from './presidente-conta'
 import {PresidenteDaConta} from './presidente-avatar'
-import { ComPerfil } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
+import { ComPerfil, MeusAmigos } from './amigos' // 👥 18/10: tocar no nome/foto no chat abre o perfil (só com amigos ligado)
 import {podeVestirModular} from './presidente-vestuario-acesso'
 import {sugestaoPresidente,presidenteCadastrado} from './presidencia-entrada-model'
 import {CriarClubePresidencia} from './presidencia-criar-clube'
@@ -69,7 +69,7 @@ import { Escudo, LOGOS_PRONTAS, escudoDe } from './escudos' // 🛡️ brasão d
 import { traduzGalera, ehMancheteGalera } from './giro-galera' // 🎤 giro da galera: tradução + o que segurar até o apito
 import { JornalDaSalaBloco } from './jornal-sala' // 📰 O MARTELO · edição da sala (fim do rápido online)
 import { ehCopaRegional, COPAS_REGIONAIS, type CopaRegionalId } from './copa-regional' // 🏟️ copas regionais (10/10)
-import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePregaoAberto, type Sport } from './sport'
+import { useSport, useSportUnlocked, useTemaLiberado, useAgenciaLiberada, useRevealCinema, useLibertaLiberada, useChampionsLiberada, useHomeNova, useHomeIlustrada, usePregaoLimpo, getSport, escadaLiberada, useColecoesLiberadas, colecoesLiberadas, usePlanos2, planos2Liberado, usePixMp, useKingsLiberada, usePregaoAberto, useAmigos, type Sport } from './sport'
 import { BARALHO_TODO, sorteiaCarta } from './colecoes'
 import { novidadesDaVez, novTitulo, novTexto } from './novidades'
 import { AvisoDaVez } from './aviso'
@@ -2093,6 +2093,8 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
 }) {
   const [contaAberta, setContaAberta] = useState(false)
   const [verSalao, setVerSalao] = useState(false)
+  const amigosOn = useAmigos() // 👥 18/10: Amigos na HOME, do lado da Loja (Diego: "tem que estar na home") — só a conta dele por enquanto
+  const [verAmigos, setVerAmigos] = useState(false)
   const t = useT() // 🌐 BR/EN: o botão fica no header, do lado de MINHA CONTA
   if (verSalao) return <Suspense fallback={<p className="p-6">{t('Carregando…', 'Loading…')}</p>}><SalaoLazy voltar={() => setVerSalao(false)} /></Suspense>
   return (
@@ -2124,9 +2126,11 @@ function HomeIlustradaDiego({ resumable, solo, onCareer, onCareers, onOnline, on
         {/* 🎨 14/10 (Diego, mockup aprovado: "ok publique assim, perfeito"): Carreira VERDE, a Loja logo abaixo dela
             (único dourado da home) e Salão · Regras · Álbum lado a lado. O botão pequeno de Apoiar do rodapé saiu: o quadro
             grande "Apoie o Leilão Legends" lá do fim já faz isso. */}
-        <div className="ll-loja-linha">
+        <div className={amigosOn ? 'll-loja-linha ll-com-amigos' : 'll-loja-linha'}>
           <LojaButton className="ll-salao-entry ll-loja-entry"><span aria-hidden="true">🛒</span><span><strong>{t('LOJA DO CLUBE', 'CLUB SHOP')}</strong><small>{t('Suba de plano, gala, canto da torcida e moedas', 'Move up a plan, grand entrance, crowd chant and coins')}</small></span><span aria-hidden="true">›</span></LojaButton>
+          {amigosOn && <button className="ll-salao-entry ll-amigos-entry" onClick={() => setVerAmigos(true)}><span aria-hidden="true">👥</span><span><strong>{t('AMIGOS', 'FRIENDS')}</strong><small>{t('Quem está online', 'Who is online')}</small></span><span aria-hidden="true">›</span></button>}
         </div>
+        {verAmigos && <MeusAmigos onClose={() => setVerAmigos(false)} />}
         <div className="ll-extras ll-extras-3">
           <button className="ll-salao-entry" onClick={() => { setVerSalao(true); window.scrollTo(0, 0) }}><span aria-hidden="true">🏛️</span><span><strong>{t('SALÃO DOS BATISMOS', 'HALL OF NAMED CLUBS')}</strong><small>{t('Conheça os clubes da comunidade', 'Meet the community’s clubs')}</small></span><span aria-hidden="true">›</span></button>
           <button className="ll-salao-entry ll-regras-entry" onClick={onManual}><span aria-hidden="true">📜</span><span><strong>{t('REGRAS', 'RULES')}</strong><small>{t('Como o jogo funciona', 'How the game works')}</small></span><span aria-hidden="true">›</span></button>

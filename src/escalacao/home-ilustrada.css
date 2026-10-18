@@ -76,6 +76,9 @@
 .ll-home .ll-mode.ll-career{background:#1b7a3d;color:#fff}
 .ll-home .ll-loja-linha{display:flex;margin-top:12px}
 .ll-home .ll-loja-linha .ll-loja-entry{flex:1 1 100%!important}
+/* 👥 18/10: Amigos do lado da Loja (só com amigos ligado) — a Loja continua a maior e a única dourada */
+.ll-home .ll-loja-linha.ll-com-amigos{gap:8px}.ll-home .ll-loja-linha.ll-com-amigos .ll-loja-entry{flex:2 1 0!important}
+.ll-home .ll-choices .ll-amigos-entry{flex:1 1 0!important;background:linear-gradient(105deg,#3b1f78,#2a1557)!important;border-color:#0c0c0c!important}.ll-home .ll-amigos-entry strong{color:#fff!important}
 .ll-home .ll-extras.ll-extras-3{flex-wrap:nowrap!important}
 .ll-regras-entry{background:linear-gradient(105deg,#1d1b16,#141210)!important}
 @media(max-width:650px){
