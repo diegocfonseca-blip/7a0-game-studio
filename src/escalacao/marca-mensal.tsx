@@ -14,7 +14,7 @@ import { tr } from './lang'
 const INK = '#0C0C0C'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 const NUMEROS: { n: string; pt: string; en: string; verde?: boolean; largo?: boolean }[] = [
-  { n: '~500 mil', pt: 'partidas jogadas desde julho', en: 'matches played since July' },
+  { n: '+500 mil', pt: 'partidas jogadas', en: 'matches played' }, // 18/10 (Diego): sem o "desde julho"; eram 497,6 mil com ~2,7 mil por dia
   { n: '28 mil', pt: 'salas online criadas pela galera', en: 'online rooms created by players' },
   { n: '15 mil', pt: 'técnicos com conta no jogo', en: 'managers with an account' },
   { n: '6 mil', pt: 'técnicos diferentes jogaram no último mês', en: 'different managers played last month' },
