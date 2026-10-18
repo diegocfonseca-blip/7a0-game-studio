@@ -28,3 +28,5 @@ create table if not exists public.esc_amizades (
 );
 create unique index if not exists esc_amizades_par on public.esc_amizades (least(de, para), greatest(de, para));
 alter table public.esc_amizades enable row level security;
+-- 18/10 (2): esc_perfil_rank(uid) → {pos, total, temporada, clube} = melhor carreira no ranking global na temporada em que ela
+-- está (usa esc_pyramid_my_rank); esc_perfil_publico ganhou 'rank'. No perfil: card 📊 + "🔨 Títulos no online" em taças.

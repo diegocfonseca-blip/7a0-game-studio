@@ -23,7 +23,7 @@ export const contaValida = (uid: string | null | undefined): uid is string => !!
 type Titulos = { ligas: number; serie_a: number; copas: number; supercopas: number; libertadores: number; champions: number; mundial: number; copa_mundo: number; salas: number; temporadas: number }
 type Perfil = {
   uid: string; nome: string; clube: string | null; tier: ApoioTier | null; fundador_n: number | null
-  titulos: Titulos; amigos_total: number; amigos: { uid: string; nome: string }[]
+  titulos: Titulos; rank: { pos: number; total: number; temporada: number; clube: string | null } | null; amigos_total: number; amigos: { uid: string; nome: string }[]
   relacao: 'aceito' | 'enviado' | 'recebido' | null; amizade_id: number | null; sou_eu: boolean
 }
 type Linha = { amizade_id: number; outro: string; nome: string; relacao: 'aceito' | 'enviado' | 'recebido'; visto_em: string | null; tela: string | null; online: boolean }
@@ -94,7 +94,7 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
   const tits: [string, string, keyof Titulos][] = [
     ['🥇', tr('Ligas', 'Leagues'), 'ligas'], ['🏆', tr('Copas', 'Cups'), 'copas'], ['🛡️', tr('Supercopas', 'Super Cups'), 'supercopas'],
     ['🌎', 'Libertadores', 'libertadores'], ['⭐', 'Champions', 'champions'], ['🌍', tr('Mundial', 'Club World Cup'), 'mundial'],
-    ['🌐', tr('Copa do Mundo', 'World Cup'), 'copa_mundo'], ['🔨', tr('Salas online', 'Online rooms'), 'salas'], ['📅', tr('Temporadas', 'Seasons'), 'temporadas'],
+    ['🌐', tr('Copa do Mundo', 'World Cup'), 'copa_mundo'], ['🥇', tr('Série A', 'Serie A'), 'serie_a'], ['📅', tr('Temporadas', 'Seasons'), 'temporadas'],
   ]
   return (
     <Janela titulo={tr('👤 Perfil', '👤 Profile')} onClose={onClose}>
@@ -117,8 +117,22 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
           </div>
         </div>
 
+        {/* 📊 a melhor carreira no ranking global, na temporada em que ela está (mesma conta do ranking da carreira) */}
+        <div style={{ ...caixa, background: '#FFF7DA', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ textAlign: 'center', minWidth: 92 }}>
+            <div style={{ ...OSW, fontSize: 34, lineHeight: 1, color: INK }}>{p.rank ? `${p.rank.pos}º` : '—'}</div>
+            {p.rank && <div style={{ fontSize: 10.5, fontWeight: 800, color: '#555' }}>{tr('de', 'of')} {p.rank.total.toLocaleString('pt-BR')}</div>}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ ...h3, margin: 0 }}>📊 {tr('Ranking global da carreira', 'Global career ranking')}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#555', margin: '3px 0 0', lineHeight: 1.35 }}>{p.rank
+              ? <>{tr('Melhor carreira', 'Best career')}{p.rank.clube ? <> · <b style={{ color: INK }}>{p.rank.clube}</b></> : null} · {tr('temporada', 'season')} {p.rank.temporada}</>
+              : tr('Ainda sem carreira no ranking (só conta carreira salva na nuvem).', 'No career in the ranking yet (only cloud-saved careers count).')}</p>
+          </div>
+        </div>
+
         <div style={caixa}>
-          <p style={h3}>🏆 {tr('Títulos', 'Titles')}</p>
+          <p style={h3}>🏆 {tr('Títulos na carreira', 'Career titles')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
             {tits.map(([ic, nome, k]) => (
               <div key={k} style={{ border: `2px solid ${INK}`, borderRadius: 10, textAlign: 'center', padding: '6px 2px', background: (p.titulos?.[k] ?? 0) > 0 ? '#FFF7DA' : '#f3eee0' }}>
@@ -128,7 +142,18 @@ export function PerfilPublico({ uid, onClose, onAbrirOutro }: { uid: string; onC
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('Carreira: somando todas as carreiras salvas na nuvem. Salas: títulos de sala online.', 'Career: all careers saved in the cloud. Rooms: online room titles.')}</p>
+          <p style={{ fontSize: 10, color: '#777', fontWeight: 700, margin: '6px 0 0' }}>{tr('Somando todas as carreiras salvas na nuvem.', 'All careers saved in the cloud added up.')}</p>
+        </div>
+
+        {/* 🔨 títulos de sala online, em forma de taça (até 15 desenhadas; o resto vira "+N") */}
+        <div style={caixa}>
+          <p style={h3}>🔨 {tr('Títulos no online', 'Online titles')} ({p.titulos?.salas ?? 0})</p>
+          {(p.titulos?.salas ?? 0) === 0
+            ? <p style={{ fontSize: 12, fontWeight: 700, color: '#666', margin: 0 }}>{tr('Ainda sem título em sala online.', 'No online room title yet.')}</p>
+            : <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+              {Array.from({ length: Math.min(15, p.titulos.salas) }, (_, i) => <span key={i} style={{ fontSize: 26, filter: 'drop-shadow(1px 2px 0 rgba(0,0,0,.35))' }}>🏆</span>)}
+              {p.titulos.salas > 15 && <span style={{ ...OSW, fontSize: 16, marginLeft: 4 }}>+{p.titulos.salas - 15}</span>}
+            </div>}
         </div>
 
         <div style={caixa}>
