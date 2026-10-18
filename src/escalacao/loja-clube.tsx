@@ -232,12 +232,17 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
 
         {/* 🪙 MOEDAS */}
         <h2 style={h2}>{tr('🏦 Moedas pro clube', '🏦 Coins for your club')} <span style={sub}>{pixMp ? (naCarr ? tr('caem direto neste clube', 'straight into this club') : tr('carreira solo', 'solo career')) : tr('Banco Legends · carreira solo', 'Banco Legends · solo career')}</span></h2>
+        <p style={{ fontSize: 12, fontWeight: 700, margin: '0 2px 8px', lineHeight: 1.4 }}>{tr('🏟️ Pra CARREIRA SOLO: cada R$ 1 vira 3 🪙 no caixa do seu clube. Use pra dar lance no leilão, pagar salário e fazer obra no estádio.', '🏟️ For the SOLO CAREER: every R$ 1 becomes 3 🪙 in your club’s till. Use them to bid at the auction, pay wages and build at the stadium.')}</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
           {MOEDAS.map(([r, pt, en], i) => <div key={r} style={{ ...card, textAlign: 'center', background: i === 1 ? '#FFF3C4' : '#fff', padding: 8 }}>
-            <div style={{ fontSize: 24 }}>🪙</div>
-            <b style={{ ...OSW, fontSize: 17, display: 'block' }}>{r * 3} 🪙</b>
-            <small style={{ fontSize: 10, fontWeight: 700, color: 'rgba(12,12,12,.6)', display: 'block', minHeight: 26 }}>{tr(pt, en)}</small>
-            <button onClick={() => setComprando({ id: `moedas-${r}`, amount: r, ctx: `loja · banco legends ${r * 3} moedas`, msgPt: `Opa! Comprei na Loja do Clube: 🏦 ${r * 3} MOEDAS (${reais(r)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🏦 ${r * 3} COINS (${reais(r)}). Account e-mail: ____ — receipt attached!` })} style={{ ...preco, width: '100%', marginTop: 6 }}>{reais(r)}</button>
+            {/* 18/10, Diego: "pague 10 e ganhe 30… mais claro" — o card fala a conta inteira */}
+            <small style={{ ...OSW, fontSize: 11, fontWeight: 800, letterSpacing: '.04em', display: 'block' }}>{tr('PAGUE', 'PAY')}</small>
+            <b style={{ ...OSW, fontSize: 16, display: 'block', whiteSpace: 'nowrap' }}>{reais(r)}</b>
+            <div style={{ fontSize: 13, lineHeight: 1, margin: '2px 0', color: 'rgba(12,12,12,.45)' }}>▼</div>
+            <small style={{ ...OSW, fontSize: 11, fontWeight: 800, color: GREEN, display: 'block', letterSpacing: '.04em' }}>{tr('GANHE', 'GET')}</small>
+            <b style={{ ...OSW, fontSize: 24, display: 'block', color: GREEN, lineHeight: 1.25, whiteSpace: 'nowrap' }}>{r * 3} 🪙</b>
+            <small style={{ fontSize: 10, fontWeight: 700, color: 'rgba(12,12,12,.6)', display: 'block', minHeight: 26, marginTop: 2 }}>{tr(pt, en)}</small>
+            <button onClick={() => setComprando({ id: `moedas-${r}`, amount: r, ctx: `loja · banco legends ${r * 3} moedas`, msgPt: `Opa! Comprei na Loja do Clube: 🏦 ${r * 3} MOEDAS (${reais(r)}). E-mail da conta: ____ — comprovante em anexo!`, msgEn: `Hey! I bought in the Club Shop: 🏦 ${r * 3} COINS (${reais(r)}). Account e-mail: ____ — receipt attached!` })} style={{ ...preco, width: '100%', marginTop: 6 }}>{tr('COMPRAR', 'BUY')}</button>
           </div>)}
         </div>
         {pixMp ? <p style={{ fontSize: 11, fontWeight: 700, margin: '8px 2px 0', color: 'rgba(12,12,12,.6)', lineHeight: 1.4 }}>{naCarr
