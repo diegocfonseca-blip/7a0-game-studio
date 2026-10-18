@@ -29,7 +29,10 @@ import { MarcaMensal } from './marca-mensal' // 📅 18/10: patrocínio mensal c
 import { PixMP, AnunciosPendentes, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
 import { patrocinioLojaOk, type AnuncioGiro } from './patrocinio'
 // 📺 18/10 (Diego): "um telão pro da galera e um telão pro da empresa… passando": exemplos FIXOS que rodam na Loja
-const EX_EMPRESA: AnuncioGiro[] = [{ texto: '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio', cor: '#FFC400' }]
+const EX_EMPRESA: AnuncioGiro[] = [
+  { texto: '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio', cor: '#FFC400' },
+  { texto: '💍 Max Joias · Compramos ouro, clique aqui', cor: '#FFC400' },
+]
 const EX_RECADO: AnuncioGiro[] = [
   { texto: 'Parabéns The Wolf, papou tudo hoje 🐺', cor: '#FF5FA2', recado: { autor: 'Chelsão da Massa FC' } },
   { texto: 'Bom dia grupo! Hoje tem pregão aberto 21h ☀️', cor: '#FF5FA2', recado: { autor: 'Futpoint' } },
