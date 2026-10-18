@@ -1,3 +1,9 @@
+## 🎨 Tema do Fundador (18/10)
+- PUBLICADO: 1 tema por Fundador, uma versão, com as cores do manto + escudo + mascote — Tricolor do Arruda, Fabulous,
+  Gaviões SCCP, Cuiudos, Seven City (`temas-sala.tsx`, mockup `scripts/mockups/temas-fundadores.png`). Rei do K9 maior também.
+- Wen Milan B: tema pronto num commit à parte no branch, sobe junto com o batismo (conta do dono ainda não existe).
+- Bug "lance bugando no online" (18/10): sem causa achada, esperando o Diego dizer sala/tipo.
+
 ## 🎨 TEMA DA SALA NA LOJA (18/10) — ✅ NO AR
 - `temas-loja.tsx` (🎨 Tema da sala na Loja): ❤️ time de coração (todo clube com escudo oficial, entra na hora após o Pix) pra todos;
   🛡️ tema do clube só Batismo+ (nasce "em produção": montar a arte em temas-sala.tsx e o Diego libera no #admin); Fundador ganha 1
