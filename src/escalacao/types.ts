@@ -802,7 +802,7 @@ export interface EscState {
   // por temporada CONGELA na divisão da assinatura (`div`) e paga no fecho de cada
   // temporada de `desde` até `desde + anos − 1`. Vencido, fica guardado (histórico) e a
   // tela oferece os 4 contratos de novo. Regras completas em estadiodata.ts (MASTER_PRAZOS).
-  careerMaster?: Record<number, { brandId: string; anos: number; div: string; desde: number; porTemporada: number }> // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado. floored = não bateu mas a garantia de fidelidade pagou o mínimo mesmo assim
+  careerMaster?: Record<number, import('./master-historia').MasterContratoHist> // 🎯📞💔 17/10: + meta/bônus, ligação pra renovar e rescisão (master-historia.ts) // resultado da temporada PASSADA (bateu?/quanto rendeu) — pro banner de resultado. floored = não bateu mas a garantia de fidelidade pagou o mínimo mesmo assim
   // 🛍️ LOJA DO CLUBE (15/09, teste fechado — trava por e-mail em sport.ts).
   // Por técnico: contrato de material vigente, preço escolhido pra temporada, as 2
   // cores do clube (escudo base) e o balanço da temporada que FECHOU.

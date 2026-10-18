@@ -8,6 +8,7 @@ import { CareerSponsorVisual } from './career-sponsor-visual'
 // Melhorias destravam em árvore. Renda cai sozinha no fim de cada temporada.
 import { sectorNome, extraNome, extraReq, extraPerk, sponsorBetMeta, STADIUM_SECTORS, STADIUM_EXTRAS, STADIUM_STEP, STADIUM_BASE, sectorPct, hasExtra, extraUnlocked, extraNovaOnly, stadiumIncome, stadiumBuiltIncome, stadiumSeats, stadiumLevel, SPONSOR_BET_PAY, sponsorBrandsOfTier, sponsorBrandOf, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterAnoAtual, masterValor } from './estadiodata'
 import type { StadiumSave, SponsorBetTier, SponsorBrand, MasterContrato } from './estadiodata'
+import { MASTER_METAS, masterMetaOferta, masterOfertaRenovacao, masterMarcaFora, type MasterContratoHist, type MasterMetaId } from './master-historia' // 🎯📞💔 17/10
 import { VADICO_LOGO } from './vadico'
 // 🔴 versões com FUNDO TRANSPARENTE dos dois logos que vêm em fundo branco. São usadas
 // SÓ na estampa da camisa (Loja): logo com caixa branca na camisa fica adesivo colado.
@@ -223,7 +224,18 @@ export function SponsorBetBanner({ div, chosen, onPick, fielBrandId, cinematic=f
 //  · COM contrato → só a faixa de leitura (quanto paga · temporada n de N).
 //  `cinematic` = a cena do escritório (mesmas classes do Pontual); senão, caixinha.
 const divNome = (div: string) => (div === 'V' ? tr('Várzea', 'Várzea') : `Série ${div}`)
-function MasterPapel({ brandId, anos, div, sel, onPick }: { brandId: string; anos: number; div: string; sel: boolean; onPick: () => void }) {
+// 🎯 a meta da marca, no papel e na faixa (17/10)
+function MetaCaixa({ meta, bonus, compacta = false }: { meta: MasterMetaId; bonus: number; compacta?: boolean }) {
+  const m = MASTER_METAS[meta]
+  return (
+    <span style={{ alignSelf: 'stretch', display: 'block', marginTop: compacta ? 0 : 4, background: '#fff3c4', border: '2px dashed #b38600', borderRadius: 6, padding: '3px 4px', color: INK, textAlign: 'center' }}>
+      <span style={{ display: 'block', ...OSW, fontWeight: 700, fontSize: 7.5, letterSpacing: '.06em', color: '#7a5b00' }}>🎯 {tr('META DA MARCA', 'BRAND GOAL')}</span>
+      <span style={{ display: 'block', ...OSW, fontWeight: 700, fontSize: 11.5, lineHeight: 1.1 }}>{m.emoji} {tr(m.pt, m.en)}</span>
+      <span style={{ display: 'block', fontSize: 9.5, fontWeight: 800, color: GREEN }}>{tr(`bateu? +${bonus} 🪙 de bônus`, `hit it? +${bonus} 🪙 bonus`)}</span>
+    </span>
+  )
+}
+function MasterPapel({ brandId, anos, div, sel, onPick, meta }: { brandId: string; anos: number; div: string; sel: boolean; onPick: () => void; meta?: { meta: MasterMetaId; bonus: number } }) {
   const b = sponsorBrandOf(brandId)
   const logo = b ? sponsorLogoSrc(b) : undefined
   const porTemp = masterPorTemporada(div, anos)
@@ -240,6 +252,7 @@ function MasterPapel({ brandId, anos, div, sel, onPick }: { brandId: string; ano
       <span style={{ ...OSW, fontWeight: 700, fontSize: 24, lineHeight: 1, marginTop: 4 }}>{total} 🪙</span>
       <span style={{ fontSize: 9.5, fontWeight: 600, opacity: .75 }}>{tr('no total', 'in total')}</span>
       <span style={{ ...OSW, fontWeight: 700, fontSize: 12, color: GREEN, marginTop: 2 }}>= +{porTemp} {tr('por temporada', 'per season')}</span>
+      {meta && <MetaCaixa meta={meta.meta} bonus={meta.bonus} />}
       <span style={{ alignSelf: 'stretch', borderTop: '1px solid #897b5d', marginTop: 5, paddingTop: 3, fontSize: 8, fontWeight: 500, color: '#62573f' }}>{sel ? tr('toque em ASSINAR embaixo', 'tap SIGN below') : tr('toque pra escolher', 'tap to choose')}</span>
     </button>
   )
@@ -274,17 +287,28 @@ export function MasterFaixa({ contrato, seasonNo, recemAssinado }: { contrato: M
       <div style={{ fontSize: 12, fontWeight: 700 }}>
         {en ? <>Season <b>{ano}</b> of <b>{contrato.anos}</b> of the contract · {faltam === 0 ? <b>last one — new offers next season</b> : <><b>{faltam}</b> to go</>}</> : <>Temporada <b>{ano}</b> de <b>{contrato.anos}</b> do contrato · {faltam === 0 ? <b>a última — temporada que vem chegam contratos novos</b> : <>{faltam === 1 ? 'falta' : 'faltam'} <b>{faltam}</b></>}</>}
       </div>
+      {(contrato as MasterContratoHist).meta && (contrato as MasterContratoHist).bonus ? <div style={{ margin: '6px 0 2px' }}><MetaCaixa meta={(contrato as MasterContratoHist).meta!} bonus={(contrato as MasterContratoHist).bonus!} compacta /></div> : null}
       <div style={{ fontSize: 11.5, lineHeight: 1.45, opacity: .8, marginTop: 3 }}>
         {en ? <>Signed in {divNome(contrato.div)}. The amount is the one from the division where you signed and <b>does not change</b> if you go up or down. New offers only when it ends.</> : <>Fechado na {divNome(contrato.div)}. O valor é o da divisão onde você assinou e <b>não muda</b> se subir ou cair. Proposta nova só quando acabar.</>}
       </div>
     </div>
   )
 }
-export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = false, passo }: { div: string; contrato?: MasterContrato; seasonNo: number; onPick: (brandId: string) => void; cinematic?: boolean; passo?: PassoVirada }) {
+export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = false, passo, seed = 0, mgrId = 0, onRenovar, onMercado }: { div: string; contrato?: MasterContrato; seasonNo: number; onPick: (brandId: string) => void; cinematic?: boolean; passo?: PassoVirada; seed?: number; mgrId?: number; onRenovar?: () => void; onMercado?: () => void }) {
   const [sel, setSel] = useState<string | undefined>(undefined)
   const en = getLang() === 'en'
+  const ant = contrato as MasterContratoHist | undefined
   if (masterAtivo(contrato, seasonNo)) return <MasterFaixa contrato={contrato} seasonNo={seasonNo} recemAssinado={contrato.desde === seasonNo} />
-  const escolhido = MASTER_PRAZOS.find(p => p.brandId === sel)
+  // 📞 a marca liga pra renovar (foi bem durante o contrato) — decide isto ANTES dos papéis (a mesma regra do motor)
+  const renova = masterOfertaRenovacao(ant, seasonNo, div, seed, mgrId)
+  if (renova && onRenovar && onMercado) return <MasterLigacao oferta={renova} contrato={ant} cinematic={cinematic} passo={passo} onRenovar={onRenovar} onMercado={onMercado} />
+  // 💔/🔎 a marca que rescindiu ou que você recusou não volta nesta virada
+  const fora = masterMarcaFora(ant, seasonNo)
+  const prazos = MASTER_PRAZOS.filter(p => p.brandId !== fora)
+  const avisoFora = fora && ant ? (ant.rescindido != null
+    ? tr(`💔 A ${sponsorBrandOf(fora)?.name ?? fora} rescindiu quando o time caiu e pagou ${ant.multa ?? 0} 🪙 de multa. Ela não volta nesta temporada.`, `💔 ${sponsorBrandOf(fora)?.name ?? fora} walked away when the team went down and paid a ${ant.multa ?? 0} 🪙 fee. It won't be back this season.`)
+    : tr(`🔎 Você recusou a ${sponsorBrandOf(fora)?.name ?? fora} — ela foi embora. Estes são os outros contratos.`, `🔎 You turned down ${sponsorBrandOf(fora)?.name ?? fora} — it's gone. These are the other contracts.`)) : null
+  const escolhido = prazos.find(p => p.brandId === sel)
   const bEsc = escolhido ? sponsorBrandOf(escolhido.brandId) : undefined
   const porTemp = escolhido ? masterPorTemporada(div, escolhido.anos) : 0
   const total = escolhido ? porTemp * escolhido.anos : 0
@@ -294,15 +318,15 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
       {/* 🖥️ 17/10 (análise do computador): no PC os papéis não enchiam a coluna e ficavam um na esquerda, outro na direita,
           com um buraco no meio. Agora cada papel enche a sua casa e, em tela larga, os 5 ficam lado a lado numa linha só.
           O celular continua igual (2 por linha, o último na linha toda). */}
-      <style>{`.master-grade>div>button{width:100%;height:100%}@media (min-width:900px){.master-grade{grid-template-columns:repeat(5,1fr)!important}.master-grade>div{grid-column:auto!important}}`}</style>
+      <style>{`.master-grade>div>button{width:100%;height:100%}@media (min-width:900px){.master-grade{grid-template-columns:repeat(${prazos.length},1fr)!important}.master-grade>div{grid-column:auto!important}}`}</style>
       {/* 🧩 NÚMERO ÍMPAR: o ÚLTIMO papel ocupa a linha toda, em vez de ficar sozinho
           na metade esquerda com um buraco do lado. É a mesma régua que o Diego pediu
           pro `Seg` da tela de criar sala em 21/09 (*"organize melhor… estão
           apertadas demais"*). Com 4 marcas dava 2×2 certinho; com a Uomo Concetto
           virando a 5ª, em 23/09, sobrava uma. */}
-      {MASTER_PRAZOS.map((p, i) => (
-        <div key={p.brandId} style={i === MASTER_PRAZOS.length - 1 && MASTER_PRAZOS.length % 2 === 1 ? { gridColumn: '1 / -1' } : undefined}>
-          <MasterPapel brandId={p.brandId} anos={p.anos} div={div} sel={sel === p.brandId} onPick={() => setSel(p.brandId)} />
+      {prazos.map((p, i) => (
+        <div key={p.brandId} style={i === prazos.length - 1 && prazos.length % 2 === 1 ? { gridColumn: '1 / -1' } : undefined}>
+          <MasterPapel brandId={p.brandId} anos={p.anos} div={div} sel={sel === p.brandId} onPick={() => setSel(p.brandId)} meta={masterMetaOferta(seed, seasonNo, mgrId, p.brandId, div)} />
         </div>
       ))}
     </div>
@@ -310,8 +334,8 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
   const explica = escolhido
     ? (en ? <><b>{total} coins over {escolhido.anos} season{escolhido.anos > 1 ? 's' : ''} = +{porTemp} per season</b>, guaranteed. The amount locks in {divNome(div)}, where you sign: go up or down, it stays the same until season {escolhido.anos}. Then the contract ends and new offers arrive, at the division you are in.</>
       : <><b>{total} moedas em {escolhido.anos} temporada{escolhido.anos > 1 ? 's' : ''} = +{porTemp} por temporada</b>, garantidas. O valor trava na {divNome(div)}, onde você assina: subiu ou caiu, continua igual até a {escolhido.anos}ª temporada. Depois o contrato acaba e chegam contratos novos, já na divisão em que você estiver.</>)
-    : (en ? <>Each brand offers its own term. The longer the contract, the more it pays per season — and the amount locks in at your current division, up or down.</>
-      : <>Cada marca oferece o seu prazo. Quanto mais longo o contrato, mais paga por temporada — e o valor trava na sua divisão de hoje, suba ou caia.</>)
+    : (en ? <>Each brand offers its own term and its own goal: hit the goal in a season, earn the bonus. Do well and the brand calls to renew; go down and it may walk away.</>
+      : <>Cada marca oferece o seu prazo e a sua meta: bateu a meta no ano, ganha o bônus. Foi bem, a marca liga pra renovar; caiu, ela pode ir embora.</>)
   const rodape = primeira
     ? tr('Começa já na 1ª temporada. Depois só volta quando um contrato termina — com os valores da divisão em que você estiver.', 'Starts in season 1. It only comes back when a contract ends — at the amounts of the division you are in.')
     : tr('Seu contrato anterior acabou. Estes são os valores da sua divisão de hoje.', 'Your previous contract ended. These are the amounts for your current division.')
@@ -319,7 +343,8 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
   if (cinematic) {
     return (
       <section className="ll29-sponsor ll36-sponsor" aria-label={tr('Patrocinador Master', 'Master sponsor')}>
-        <header><PassoPill passo={passo} /><small>{divNome(div).toUpperCase()} · {primeira ? tr('PRIMEIRA VEZ', 'FIRST TIME') : tr('CONTRATO ACABOU', 'CONTRACT ENDED')}</small><h2>{tr('PATROCINADOR MASTER', 'MASTER SPONSOR')}</h2><p>{tr('Cinco contratos na mesa — cada um com o seu prazo. Escolha um.', 'Five contracts on the desk — each with its own term. Pick one.')}</p></header>
+        <header><PassoPill passo={passo} /><small>{divNome(div).toUpperCase()} · {primeira ? tr('PRIMEIRA VEZ', 'FIRST TIME') : tr('CONTRATO ACABOU', 'CONTRACT ENDED')}</small><h2>{tr('PATROCINADOR MASTER', 'MASTER SPONSOR')}</h2><p>{tr('Contratos na mesa — cada um com o seu prazo e a sua meta. Escolha um.', 'Contracts on the desk — each with its own term and goal. Pick one.')}</p></header>
+        {avisoFora && <p style={{ margin: '0 14px 10px', background: '#3a1410', border: '2px solid #E8503A', borderRadius: 10, padding: '7px 10px', fontSize: 12, fontWeight: 700, color: '#ffd9d0' }}>{avisoFora}</p>}
         <div style={{ padding: '0 14px 12px' }}>{grade}</div>
         <div className="ll36-office"><article className="ll36-paper">
           {escolhido ? <>
@@ -328,7 +353,7 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
             <p>{escolhido.anos} {escolhido.anos > 1 ? tr('temporadas', 'seasons') : tr('temporada', 'season')} · {total} {tr('no total', 'in total')} · {divNome(div)}</p>
             <strong>+{porTemp}/{tr('TEMPORADA', 'SEASON')}</strong>
             <span className="ll35-signature">{tr('Assinatura do presidente', 'President\'s signature')}</span>
-          </> : <><h3>{tr('Contrato Master', 'Master contract')}</h3><p>{tr('Escolha um dos cinco contratos acima.', 'Pick one of the five contracts above.')}</p></>}
+          </> : <><h3>{tr('Contrato Master', 'Master contract')}</h3><p>{tr('Escolha um dos contratos acima.', 'Pick one of the contracts above.')}</p></>}
         </article></div>
         <div className="ll29-sponsor-bottom">
           <p>{explica}</p>
@@ -346,15 +371,48 @@ export function MasterBanner({ div, contrato, seasonNo, onPick, cinematic = fals
             <span style={{ ...OSW, fontWeight: 900, fontSize: 14, color: GOLD }}>🏆 {tr('PATROCINADOR MASTER', 'MASTER SPONSOR')}</span>
             <span style={{ fontSize: 8.5, fontWeight: 800, color: 'rgba(255,255,255,.6)', whiteSpace: 'nowrap' }}>{divNome(div).toUpperCase()} · {primeira ? tr('PRIMEIRA VEZ', 'FIRST TIME') : tr('CONTRATO ACABOU', 'CONTRACT ENDED')}</span>
           </div>
-          <p style={{ fontSize: 10.5, fontWeight: 700, opacity: .85, margin: '3px 0 0' }}>{tr('Cinco contratos na mesa — cada um com o seu prazo. Escolha um.', 'Five contracts on the desk — each with its own term. Pick one.')}</p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, opacity: .85, margin: '3px 0 0' }}>{tr('Contratos na mesa — cada um com o seu prazo e a sua meta. Escolha um.', 'Contracts on the desk — each with its own term and goal. Pick one.')}</p>
         </div>
         <div style={{ padding: '12px 11px 11px' }}>
+          {avisoFora && <p style={{ margin: '0 0 10px', background: '#FFE3DD', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 10px', fontSize: 11.5, fontWeight: 700 }}>{avisoFora}</p>}
           {grade}
           <p style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.45, margin: '10px 0 0', color: 'rgba(0,0,0,.7)' }}>{explica}</p>
           <button disabled={!escolhido} onClick={() => escolhido && onPick(escolhido.brandId)}
             style={{ width: '100%', marginTop: 10, border: `3px solid ${INK}`, borderRadius: 12, padding: '11px 10px', fontWeight: 900, fontSize: 13.5, ...OSW, background: escolhido ? GOLD : '#cfc6ae', color: escolhido ? INK : 'rgba(0,0,0,.45)', boxShadow: `3px 3px 0 0 ${INK}`, cursor: escolhido ? 'pointer' : 'default' }}>{btnTxt}</button>
           <p style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(0,0,0,.5)', textAlign: 'center', margin: '8px 0 0', lineHeight: 1.35 }}>{rodape}</p>
         </div>
+      </div>
+    </div>
+  )
+}
+// 📞 A LIGAÇÃO DA MARCA (17/10, tela 2 do mockup `master-historia.png`): o contrato acabou e o clube foi bem
+function MasterLigacao({ oferta, contrato, cinematic, passo, onRenovar, onMercado }: { oferta: NonNullable<ReturnType<typeof masterOfertaRenovacao>>; contrato?: MasterContratoHist; cinematic: boolean; passo?: PassoVirada; onRenovar: () => void; onMercado: () => void }) {
+  const b = sponsorBrandOf(oferta.brandId)
+  const logo = b ? sponsorLogoSrc(b) : undefined
+  const m = MASTER_METAS[oferta.meta]
+  const fala = contrato?.meta
+    ? tr(`“Presidente, que parceria! A gente quer continuar com vocês — e paga mais.”`, `“President, what a partnership! We want to keep going with you — and we'll pay more.”`)
+    : tr(`“Presidente, o time foi bem com a nossa marca. A gente quer continuar — e paga mais.”`, `“President, the team did well with our brand. We want to keep going — and we'll pay more.”`)
+  return (
+    <div style={{ marginBottom: 12, background: cinematic ? '#16120d' : '#fff', color: cinematic ? '#f6efdc' : INK, border: `3px solid ${INK}`, borderRadius: 16, boxShadow: `4px 4px 0 ${INK}`, padding: 14 }}>
+      <PassoPill passo={passo} />
+      <div style={{ ...OSW, fontWeight: 900, fontSize: 20, color: cinematic ? GOLD : INK, margin: '4px 0 8px' }}>📞 {tr('LIGAÇÃO DA MARCA', 'THE BRAND IS CALLING')}</div>
+      <div style={{ background: '#f6efdc', color: INK, border: `3px solid ${INK}`, borderRadius: 12, padding: 12, boxShadow: `3px 3px 0 ${INK}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {logo && <img src={logo} alt="" style={{ height: 30, width: 'auto', maxWidth: 90, objectFit: 'contain' }} />}
+          <div><b style={{ ...OSW, fontWeight: 700, fontSize: 17, display: 'block' }}>{b?.name ?? oferta.brandId}</b><small style={{ fontSize: 10.5, fontWeight: 700, opacity: .65 }}>{tr('fim do contrato', 'contract ended')} · {divNome(oferta.div)}</small></div>
+        </div>
+        <p style={{ fontSize: 13.5, lineHeight: 1.4, fontStyle: 'italic', margin: '10px 0' }}>{fala}</p>
+        <div style={{ background: INK, color: '#fff', borderRadius: 10, padding: 10, textAlign: 'center' }}>
+          <span style={{ display: 'block', ...OSW, fontWeight: 700, fontSize: 10, letterSpacing: '.08em', color: GOLD }}>{tr('PROPOSTA DE RENOVAÇÃO', 'RENEWAL OFFER')}</span>
+          <strong style={{ display: 'block', ...OSW, fontWeight: 700, fontSize: 24, color: '#7CE39A' }}>+{oferta.porTemporada} 🪙 {tr('por temporada', 'per season')}</strong>
+          <small style={{ fontSize: 11, fontWeight: 600, opacity: .85 }}>{oferta.anos} {oferta.anos > 1 ? tr('temporadas', 'seasons') : tr('temporada', 'season')} · {tr('meta nova', 'new goal')}: {m.emoji} {tr(m.pt, m.en)} (+{oferta.bonus} 🪙)</small>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
+          <button onClick={onRenovar} style={{ ...OSW, fontWeight: 700, fontSize: 14, border: `3px solid ${INK}`, borderRadius: 10, padding: '10px 4px', background: GOLD, color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>✍️ {tr('RENOVAR', 'RENEW')}</button>
+          <button onClick={onMercado} style={{ ...OSW, fontWeight: 700, fontSize: 14, border: `3px solid ${INK}`, borderRadius: 10, padding: '10px 4px', background: '#fff', color: INK, boxShadow: `3px 3px 0 ${INK}`, cursor: 'pointer' }}>🔎 {tr('OUVIR O MERCADO', 'HEAR OTHER OFFERS')}</button>
+        </div>
+        <p style={{ fontSize: 11, fontWeight: 600, opacity: .7, margin: '8px 0 0', lineHeight: 1.35 }}>{tr(`Ouvir o mercado abre os outros contratos — pode vir melhor ou pior. A ${b?.name ?? ''} não espera: se recusar, ela vai embora.`, `Hearing other offers opens the other contracts — could be better or worse. ${b?.name ?? ''} won't wait: turn it down and it leaves.`)}</p>
       </div>
     </div>
   )

@@ -1045,7 +1045,7 @@ export function artilheirosDaTemporada(divTop: Record<Div, SeasonScorer | undefi
   const gols = (n: number) => en ? `${n} goal${n === 1 ? '' : 's'}` : `${n} gol${n === 1 ? '' : 's'}`
   for (const d of DIVS) {
     const s = divTop[d]
-    if (s?.human && s.teamId >= 0) out.push({ mgr: s.teamId, coins: DIV_SCORER_BONUS[d], txt: en ? `🥇 Top scorer of ${DIV_NAME[d]}: ${s.name} (${gols(s.goals)})` : `🥇 Artilheiro da ${DIV_NAME[d]}: ${s.name} (${gols(s.goals)})` })
+    if (s?.human && s.teamId >= 0) out.push({ mgr: s.teamId, liga: true, coins: DIV_SCORER_BONUS[d], txt: en ? `🥇 Top scorer of ${DIV_NAME[d]}: ${s.name} (${gols(s.goals)})` : `🥇 Artilheiro da ${DIV_NAME[d]}: ${s.name} (${gols(s.goals)})` })
   }
   const ts = cb?.topScorer ?? copa?.topScorer
   if (ts?.human && ts.teamId >= 0) out.push({ mgr: ts.teamId, coins: cb?.topScorer ? CB_SCORER_BONUS : COPA_SCORER_BONUS, txt: en ? `🥇 Top scorer of the ${cb?.topScorer ? 'Copa do Brasil' : 'Copa Legends'}: ${ts.name} (${gols(ts.goals)})` : `🥇 Artilheiro da ${cb?.topScorer ? 'Copa do Brasil' : 'Copa Legends'}: ${ts.name} (${gols(ts.goals)})` })
@@ -10252,8 +10252,10 @@ export function PyramidSeasonScreen() {
                     {/* 🏆 1 — MASTER: sem contrato = os 4 papéis; com contrato = a faixa
                         de leitura (que não é passo, é só informação). */}
                     <MasterBanner cinematic={privateCareer} div={me.div} seasonNo={sn}
-                      contrato={state.careerMaster?.[youId]} passo={p('master')}
-                      onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })} />
+                      contrato={state.careerMaster?.[youId]} passo={p('master')} seed={state.seed} mgrId={youId}
+                      onPick={brandId => dispatch({ type: 'SET_MASTER', brandId, mgrId: youId })}
+                      onRenovar={() => dispatch({ type: 'MASTER_RENOVAR', mgrId: youId })}
+                      onMercado={() => dispatch({ type: 'MASTER_MERCADO', mgrId: youId })} />
                     {/* 👟 3 — FORNECEDOR, no mesmo escritório do Master. E SOME depois de
                         fechado: *"depois não fica info na home mais, ali é só pra tomar as
                         decisões"*. */}
@@ -10836,7 +10838,7 @@ export function PyramidSeasonScreen() {
                   ? <MasterFaixa contrato={state.careerMaster![youId]} seasonNo={state.seasonNo ?? 1} />
                   : <div style={{ ...box('#fff'), padding: '10px 12px', marginBottom: 12 }}>
                       <p style={{ ...OSWALD, fontWeight: 900, fontSize: 12, margin: 0 }}>🏆 {tr('Patrocinador Master', 'Master sponsor')}</p>
-                      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{tr('Sem contrato correndo. Os 4 contratos aparecem no começo da temporada.', 'No contract running. The 4 contracts show up at the start of the season.')}</p>
+                      <p style={{ fontSize: 10.5, fontWeight: 700, color: 'rgba(0,0,0,.55)', margin: '2px 0 0' }}>{tr('Sem contrato correndo. Os contratos aparecem no começo da temporada.', 'No contract running. The contracts show up at the start of the season.')}</p>
                     </div>)}
                 {/* 👟 FORNECEDOR DE MATERIAL — irmão do Master, aqui e não na Loja.
                     O Diego pegou meu erro em 15/09: *"não era contrato igual tem lá na

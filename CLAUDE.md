@@ -838,6 +838,13 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   📺 **E A TEMPORADA TAMBÉM É A DE SEMPRE** (mesmo dia: *"está tudo deformado o placar… tudo é padrão do nosso jogo"*): modo novo
   NUNCA ganha placar/tabela/tela própria — usa a `EscSeason` e põe a regra POR CIMA (`kings-liga.ts`). E shootout ≠ pênalti.
 
+- **🏆📞 PATROCINADOR MASTER COM HISTÓRIA (17/10, *"aprovo, pode fazer os 3"*).** Motivo: *"todo mundo sempre escolhe a
+  Vadico… que rende mais em 5 anos"*. Ele recusou inverter a régua (*"todo mundo vai saber quem paga mais"*) e aprovou a junção
+  de 3 ideias (mockup `scripts/mockups/master-historia.png`): **🎯 cada contrato tem uma META** sorteada (presa na semente — não
+  dá pra decorar) que paga bônus no fecho; **📞 foi bem** (meta batida ou top 4) → no fim do contrato a marca LIGA pra renovar
+  (+25%, `RENOVA_MULT`), e quem ouve o mercado perde ela naquela virada; **💔 caiu** com contrato correndo → 1 em 2 a marca
+  rescinde, paga 1 temporada de multa e sai. O valor por temporada NÃO mudou. Regras em `master-historia.ts`, dinheiro em
+  `applyMasterHistoria` (store). Trava `npm run master-historia`.
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
   ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
   *"eu falei 5s p martelar"*), quem fechou a posição só assiste. 🔁 **16/10: CARTA COBERTA** — a carta fica sem categoria, cor, estrela e rosto até o martelo e aí VIRA no lugar (2s,

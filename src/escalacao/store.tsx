@@ -526,6 +526,37 @@ function applyMasterIncome(s: EscState) {
     logFin(s, 'sponsor', `🏆 Master · ${sponsorBrandOf(c.brandId)?.name ?? c.brandId} (${season - c.desde + 1}/${c.anos})`, valor, undefined, id, true)
   }
 }
+// 🎯💔 MASTER COM HISTÓRIA (17/10, master-historia.ts): no fecho da temporada, (1) paga o BÔNUS de quem bateu a meta do
+// contrato, (2) marca `foiBem` (meta batida ou top 4) — é isso que faz a marca LIGAR pra renovar quando o contrato acabar —
+// e (3) quem CAIU com contrato ainda correndo pode ser largado: 1 em 2, a marca paga UMA temporada de multa e o contrato
+// termina aqui (na virada o clube volta pro mercado). Roda dentro do applySeasonMoney, que já trava por temporada.
+function applyMasterHistoria(s: EscState, finalPos?: Record<number, number>, artilheiros?: ArtilheiroPremio[]) {
+  if (!finalPos) return
+  const season = s.seasonNo ?? 1
+  for (const id of idsQueRecebem(s)) {
+    const c = s.careerMaster?.[id]
+    const pos = finalPos[id]
+    if (!masterAtivo(c, season) || !pos) continue
+    const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string // a divisão JOGADA (placements ainda não viraram)
+    const novo = { ...c }
+    const marca = sponsorBrandOf(c.brandId)?.name ?? c.brandId
+    if (c.meta && c.bonus && masterMetaBatida(c.meta, pos, div, !!artilheiros?.some(a => a.mgr === id && a.liga))) {
+      s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + c.bonus }
+      logFin(s, 'sponsor', `🎯 ${tr('Meta batida', 'Goal reached')} · ${marca}`, c.bonus, undefined, id, true)
+      novo.foiBem = true
+    }
+    if (pos <= 4) novo.foiBem = true
+    if (masterCaiu(pos, div) && season < c.desde + c.anos - 1 && masterRescinde(s.seed ?? 0, season, id, c.brandId)) {
+      const multa = masterValor(c)
+      s.careerCoins = { ...(s.careerCoins ?? {}), [id]: (s.careerCoins?.[id] ?? 0) + multa }
+      logFin(s, 'sponsor', `💔 ${tr('Multa de rescisão', 'Termination fee')} · ${marca}`, multa, undefined, id, true)
+      novo.anos = season - c.desde + 1; novo.rescindido = season; novo.multa = multa
+      const time = s.managers.find(m => m.id === id)?.teamName ?? ''
+      ;(s.marketLog = s.marketLog ?? []).push(tr(`💔 ${marca.toUpperCase()} RESCINDE COM O ${time.toUpperCase()}: a marca não quis o nome dela na divisão de baixo. Pagou ${multa} 🪙 de multa e foi embora.`, `💔 ${marca.toUpperCase()} DROPS ${time.toUpperCase()}: the brand didn't want its name in the lower division. It paid a ${multa} 🪙 fee and walked away.`))
+    }
+    s.careerMaster = { ...(s.careerMaster ?? {}), [id]: novo }
+  }
+}
 // 👟 FORNECEDOR DE MATERIAL: a parcela do contrato, com a mesma trava do Master (valor
 // congelado na divisão em que assinou). Só paga com a 🛍️ Loja construída — é ela que dá
 // o que patrocinar; se o clube perdeu a loja por algum caminho, o contrato dorme.
@@ -698,7 +729,7 @@ function rngPrazoComissao(s: EscState, tipo: 'tecnico' | 'preparador'): () => nu
 /** 🥇 um prêmio de ARTILHEIRO que vai pro caixa com LINHA PRÓPRIA no extrato (17/10, Diego: *"tem usuário reclamando que parece que
  *  não tem ganho de dinheiro com artilheiro, porque não aparece em lugar nenhum… dá impressão de não ter"*). O valor já vem DENTRO de
  *  `rewards`; aqui ele só é separado da linha "Prêmios da temporada" pra aparecer com nome, gols e competição. */
-export type ArtilheiroPremio = { mgr: number; txt: string; coins: number }
+export type ArtilheiroPremio = { mgr: number; txt: string; coins: number; liga?: boolean } // liga = artilheiro da DIVISÃO (a meta ⚽ do Master lê isto)
 function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsorRewards?: Record<number, number>, stadiumOcc?: Record<number, number>, finalPos?: Record<number, number>, artilheiros?: ArtilheiroPremio[]) {
   // 🔒 UMA VEZ POR TEMPORADA: o fechamento acontece assim que a temporada (liga +
   // copas) termina. Se já foi lançado, qualquer chamada depois (abrir o leilão,
@@ -711,6 +742,7 @@ function applySeasonMoney(s: EscState, rewards?: Record<number, number>, sponsor
   // não teve esse momento. Aqui eles pagam o que ficou pra trás — e a marca
   // `pagoAdiantado` garante que quem já recebeu no início não receba de novo.
   aplicaContratosFixos(s)
+  applyMasterHistoria(s, finalPos, artilheiros) // 🎯 bônus da meta · 💔 rescisão de quem caiu (17/10)
   applyLojaIncome(s, finalPos) // 🛍️ venda de camisas (aposta: só aqui dá pra saber a colocação)
   const online = s.onlineMode === 'online'
   const humans = s.managers.filter(m => m.isHuman)
@@ -1010,6 +1042,7 @@ import { CARTAS_REGIONAIS } from './cartas-regionais'
 import { tr, getLang } from './lang' // 🌐 BR/EN (12/09): avisos da sala online e giro da liga
 import { bicoValor, bicoElegivel, bicoMarcaDe } from './bico'
 import { FORNECEDORES, PRECOS as PRECOS_LOJA, PRECO_PADRAO, fornAtivo, fornLiberado, fornPorTemporada, fornValor, fornecedorDe, fornBonusLoja, lojaConstruida, calculaVendas } from './loja'
+import { masterMetaOferta, masterMetaBatida, masterCaiu, masterRescinde, masterOfertaRenovacao, masterMarcaFora } from './master-historia' // 🏆📞 Master com história (17/10)
 import { STADIUM_STEP, STADIUM_SECTORS, STADIUM_EXTRAS, extraUnlocked, stadiumIncome, stadiumIncomeAt, emptyStadium, sectorPct, hasExtra, extraNovaOnly, empresarioIncome, agenciaRenda, AG_FOLK_BONUS, empCat, MASTER_PRAZOS, masterPorTemporada, masterAtivo, masterValor, sponsorBrandOf } from './estadiodata'
 import { supabase } from '../lib/supabase'
 import { instrumenta, medeEnviada, medidorPapel, medidorFlush } from './medidor-realtime' // 📏 medidor de mensagens ao vivo (13/10)
@@ -5465,6 +5498,8 @@ type Action =
   | { type: 'CONVOCACAO_TIMEOUT' } // 🧱 acabaram os 80s da convocação // 🧱 leilão de clubes: os 11 escolhidos dentro dos pacotes
   // 🚫🤝 SET_SPONSOR_BET saiu em 19/09 junto com o patrocinador pontual (ordem do
   // Diego). O campo `careerSponsorBet` segue no save, sem ninguém escrever nem ler.
+  | { type: 'MASTER_RENOVAR'; mgrId?: number } // 📞 aceita a renovação que a marca ofereceu (17/10)
+  | { type: 'MASTER_MERCADO'; mgrId?: number } // 🔎 recusa a ligação e abre os papéis (a marca sai)
   | { type: 'SET_MASTER'; brandId: string; mgrId?: number } // 🏆 assina o Patrocinador Master (a marca já diz o prazo — MASTER_PRAZOS). Só vale sem contrato correndo; o valor congela na divisão de hoje.
   // 🛍️ LOJA DO CLUBE (15/09; liberada geral no mesmo dia — sport.ts/LOJA_GERAL)
   | { type: 'LOJA_PRECO'; preco: import('./loja').PrecoLoja; mgrId?: number } // 💰 preço da camisa da temporada (a aposta)
@@ -8594,7 +8629,35 @@ function reducerBase(state: EscState, action: Action): EscState {
       const season = s.seasonNo ?? 1
       if (masterAtivo(s.careerMaster?.[id], season)) return s
       const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
-      s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: prazo.brandId, anos: prazo.anos, div, desde: season, porTemporada: masterPorTemporada(div, prazo.anos) } }
+      // 📞💔 17/10: com a ligação de renovação na mesa, primeiro decide ela (RENOVAR ou OUVIR O MERCADO); e a marca que
+      // você recusou ou que rescindiu não volta nesta virada — as MESMAS regras que a tela usa (master-historia.ts)
+      const ant = s.careerMaster?.[id]
+      if (masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id)) return s
+      if (masterMarcaFora(ant, season) === prazo.brandId) return s
+      const mt = masterMetaOferta(s.seed ?? 0, season, id, prazo.brandId, div)
+      s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: prazo.brandId, anos: prazo.anos, div, desde: season, porTemporada: masterPorTemporada(div, prazo.anos), meta: mt.meta, bonus: mt.bonus } }
+      return s
+    }
+    case 'MASTER_RENOVAR': {
+      // 📞 aceita a ligação da marca: mesmo prazo, +25% sobre a régua da divisão de HOJE, meta nova
+      if (!s.careerOnline) return s
+      const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
+      const season = s.seasonNo ?? 1
+      const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
+      const of = masterOfertaRenovacao(s.careerMaster?.[id], season, div, s.seed ?? 0, id)
+      if (!of) return s
+      s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { brandId: of.brandId, anos: of.anos, div, desde: season, porTemporada: of.porTemporada, meta: of.meta, bonus: of.bonus, renovado: true } }
+      return s
+    }
+    case 'MASTER_MERCADO': {
+      // 🔎 recusa a ligação e ouve o mercado: a marca vai embora e os papéis abrem (sem ela)
+      if (!s.careerOnline) return s
+      const id = action.mgrId ?? s.managers[s.youIdx]?.id ?? s.youIdx
+      const season = s.seasonNo ?? 1
+      const div = (s.careerPlacements?.[`m${id}`] ?? s.careerDivision ?? 'V') as string
+      const ant = s.careerMaster?.[id]
+      if (!ant || !masterOfertaRenovacao(ant, season, div, s.seed ?? 0, id)) return s
+      s.careerMaster = { ...(s.careerMaster ?? {}), [id]: { ...ant, recusouRenovar: true } }
       return s
     }
     case 'LOJA_PRECO': {
