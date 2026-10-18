@@ -90,7 +90,7 @@ import presidentCasual from './img/career-president-casual.webp'
 import presidentPolo from './img/career-president-polo.webp'
 import presidentSocial from './img/career-president-social.webp'
 import presidentTerno from './img/career-president-terno.webp'
-import { useAnunciosGiro } from './patrocinio'
+import { useAnunciosGiro, type AnuncioGiro } from './patrocinio'
 import { PlacaGol } from './patrocinio-visual' // 🏟️ placas atrás dos gols (17/10) // 📣 anúncios no giro + "Anuncie aqui" (16/10)
 
 // 🏀/⚽ rótulo do SETOR conforme esporte + idioma (futebol = igual a SECTOR_LABEL;
@@ -7629,9 +7629,11 @@ function LetrasVirando({ texto, atraso = 0 }: { texto: string; atraso?: number }
   return <>{texto.split(' ').map((w, wi) => <Fragment key={wi}>{wi > 0 && ' '}<span style={{ whiteSpace: 'nowrap' }}>{Array.from(w).map((ch, ci) =>
     <span key={ci} className="placa-l" style={{ animationDelay: `${atraso + (n++) * 14}ms` }}>{ch}</span>)}</span></Fragment>)}</>
 }
-export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boolean; cinema?: boolean }) {
+export function GiroDaRodada({ cinema = false, exemplos, mb = 16 }: { news?: string[]; isCopa?: boolean; cinema?: boolean; exemplos?: AnuncioGiro[]; mb?: number }) {
   // 📢 16/10 (Diego): *"não vai ter mais giro da rodada… agora é só propaganda ali… não quero mais nada em relação ao jogo"*.
-  const anuncios = useAnunciosGiro()
+  const doBanco = useAnunciosGiro()
+  // 🛒 18/10 (Diego): a Loja mostra o telão de EXEMPLO rodando (Vadico no da empresa, recados no da galera)
+  const anuncios = exemplos ?? doBanco
   const en = getLang() === 'en'
   const itens = anuncios.length ? anuncios : [{ texto: en ? '📣 This space can be yours' : '📣 Este espaço pode ser seu', cor: '#FFC400' }]
   const vez = () => Math.floor(Date.now() / PLACA_MS)
@@ -7645,7 +7647,7 @@ export function GiroDaRodada({ cinema = false }: { news?: string[]; isCopa?: boo
   const { marca, oferta } = partesDoAnuncio(ad.texto)
   const decorrido = Date.now() - slot * PLACA_MS // a barrinha continua de onde o relógio está (tela que remonta não zera)
   return (
-    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: 16 }}>
+    <div className={cinema ? 'll31-news' : undefined} style={{ background: INK, border: `3px solid ${INK}`, borderRadius: 14, boxShadow: `4px 4px 0 0 ${INK}`, overflow: 'hidden', marginBottom: mb }}>
       <style>{`.placa-led{position:relative;height:84px;overflow:hidden;background:#070707;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.3px);background-size:4px 4px;box-shadow:inset 0 0 22px #000}
 .placa-led:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%);pointer-events:none}
 .placa-tag{position:absolute;left:14px;top:6px;font:700 9px Oswald,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.45)}

@@ -22,12 +22,18 @@ import { tr, getLang } from './lang'
 import { myApoioPerk, useDireitos, logApoio, APOIO_PERKS, ApoioSheen, loggedEmail } from './apoio'
 import { temCantoProprio } from './sound'
 import { precoSubida, precoTxt, planoAtual, PRECOS_UNICO, PRECOS_DUPLO, type PlanoUnico } from './planos-regras'
-import { PixBox, APOIO_IG, ApoieButton } from './screens'
+import { PixBox, APOIO_IG, ApoieButton, GiroDaRodada } from './screens'
 import { PresenteBox } from './presente'
 import { TemasNaLoja } from './temas-loja' // 🎨 18/10: tema da sala (time de coração + clube batizado)
 import { MarcaMensal } from './marca-mensal' // 📅 18/10: patrocínio mensal com números e fotos
 import { PixMP, AnunciosPendentes, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
-import { patrocinioLojaOk } from './patrocinio'
+import { patrocinioLojaOk, type AnuncioGiro } from './patrocinio'
+// 📺 18/10 (Diego): "um telão pro da galera e um telão pro da empresa… passando": exemplos FIXOS que rodam na Loja
+const EX_EMPRESA: AnuncioGiro[] = [{ texto: '🚗 Vadico Veículos · Oferta do dia: GWM Haval H6 0 km blindado · Menor valor do Rio', cor: '#FFC400' }]
+const EX_RECADO: AnuncioGiro[] = [
+  { texto: 'Parabéns The Wolf, papou tudo hoje 🐺', cor: '#FF5FA2', recado: { autor: 'Chelsão da Massa FC' } },
+  { texto: 'Bom dia grupo! Hoje tem pregão aberto 21h ☀️', cor: '#FF5FA2', recado: { autor: 'Futpoint' } },
+]
 import { usePixMp } from './sport'
 import { useEsc, fichasExtras, carregaFichasExtras, fichasExtrasCompraveis, FICHA_EXTRA_PRECO } from './store'
 import { MeuPresidenteLoja } from './presidente-loja'
@@ -266,6 +272,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
                 <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Escreva um recado (até 60 letras) e ele gira no letreiro de todas as salas, na cor de recado e com o nome do seu time. Zoeira, parabéns, convite pro pregão…', 'Write a shout-out (up to 60 characters) and it runs on the ticker in every room, in the shout-out colour and with your team name. Banter, congrats, an invite to the auction…')}</small>
               </div>
             </div>
+            <div style={{ marginTop: 10 }}><GiroDaRodada exemplos={EX_RECADO} mb={0} /></div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
               <button onClick={() => setComprando({ id: 'recado-hora', amount: 2.99, ctx: 'loja · recado 1h', msgPt: 'Opa! Comprei o 💬 RECADO (1 h). Meu recado: ____', msgEn: 'Hey! I bought the 💬 SHOUT-OUT (1 h). My message: ____' })} style={{ ...preco, background: '#FF5FA2', padding: '6px 8px' }}>
                 <small style={{ display: 'block', fontSize: 10, letterSpacing: '.06em' }}>{tr('1 HORA', '1 HOUR')}</small>{reais(2.99)}</button>
@@ -299,6 +306,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
                 <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block' }}>{tr('Você mesmo escreve (até 82 letras) logo depois do Pix. Ele entra no ar na hora no letreiro "Anúncio do dia" de todas as salas, revezando com os outros anúncios. Ex.: "Sua marca · Oferta do dia: …".', 'You write it yourself (up to 82 characters) right after the Pix. It goes live right away on the "Ad of the day" ticker in every room, taking turns with the other ads. E.g. "Your brand · Deal of the day: …".')}</small>
               </div>
             </div>
+            <div style={{ marginTop: 10 }}><GiroDaRodada exemplos={EX_EMPRESA} mb={0} /></div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
               <button onClick={() => setComprando({ id: 'giro-hora', amount: 4.99, ctx: 'loja · anúncio 1h', msgPt: 'Opa! Comprei o 📣 ANÚNCIO (1 h). Meu texto: ____', msgEn: 'Hey! I bought the 📣 AD (1 h). My text: ____' })} style={{ ...preco, padding: '6px 8px' }}>
                 <small style={{ display: 'block', fontSize: 10, letterSpacing: '.06em' }}>{tr('1 HORA', '1 HOUR')}</small>{reais(4.99)}</button>
