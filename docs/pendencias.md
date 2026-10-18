@@ -1,3 +1,8 @@
+## 📅 Patrocínio mensal na Loja com números e fotos (18/10) — PUBLICADO pra todos
+- `marca-mensal.tsx` + fotos em `public/patrocinio-mensal/`. Números medidos no banco em 18/10 e escritos à mão (`NUMEROS`):
+  atualizar de tempos em tempos (só os GRANDES — regra do Diego). Fotos do LED, Master e vitrine ainda são dos mockups
+  aprovados; trocar por foto real do jogo quando der (o LED do mockup mostra "Leilão Legends", que hoje não passa).
+
 ## 🎨 Tema do Fundador (18/10)
 - PUBLICADO: 1 tema por Fundador, uma versão, com as cores do manto + escudo + mascote — Tricolor do Arruda, Fabulous,
   Gaviões SCCP, Cuiudos, Seven City (`temas-sala.tsx`, mockup `scripts/mockups/temas-fundadores.png`). Rei do K9 maior também.

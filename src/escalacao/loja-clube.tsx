@@ -25,6 +25,7 @@ import { precoSubida, precoTxt, planoAtual, PRECOS_UNICO, PRECOS_DUPLO, type Pla
 import { PixBox, APOIO_IG, ApoieButton } from './screens'
 import { PresenteBox } from './presente'
 import { TemasNaLoja } from './temas-loja' // 🎨 18/10: tema da sala (time de coração + clube batizado)
+import { MarcaMensal } from './marca-mensal' // 📅 18/10: patrocínio mensal com números e fotos
 import { PixMP, AnunciosPendentes, WHATSAPP_CONTATO, WHATSAPP_TXT, EMAIL_CONTATO, type ProdutoMp } from './pix-mp'
 import { patrocinioLojaOk } from './patrocinio'
 import { usePixMp } from './sport'
@@ -300,22 +301,7 @@ function Loja({ onClose, naCarreira = false, ancora }: { onClose: () => void; na
                 <small style={{ display: 'block', fontSize: 10, letterSpacing: '.06em' }}>{tr('DIA TODO · 24 H', 'ALL DAY · 24 H')}</small>{reais(25)}</button>
             </div>
           </div>
-          <div style={{ ...card, marginTop: 8 }}>
-            <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>{tr('📅 Patrocínio mensal', '📅 Monthly sponsorship')}</b>
-            <ul style={{ margin: '6px 0 0', paddingLeft: 18, fontSize: 12, fontWeight: 700, lineHeight: 1.55 }}>
-              <li>{tr('🏆 Naming rights da competição: "Champions Legends apresentada por… sua marca"', '🏆 Competition naming rights: "Champions Legends presented by… your brand"')}</li>
-              <li>{tr('🏟️ Placa de LED no fundo do estádio', '🏟️ LED board at the back of the stadium')}</li>
-              <li>{tr('⚽ Placa digital atrás dos gols, nos campinhos do pregão', '⚽ Digital board behind the goals, on the auction pitches')}</li>
-              <li>{tr('🏢 Patrocinador Master na carreira: sua marca entre as propostas de patrocínio no início da temporada', '🏢 Master sponsor in career mode: your brand among the sponsorship offers at the start of each season')}</li>
-              <li>{tr('🏪 Cartão na Vitrine dos patrocinadores, com logo, bio, Instagram e cupom', '🏪 Card in the Sponsors showcase, with logo, bio, Instagram and coupon')}</li>
-              <li>{tr('📲 Post no Instagram @leilaolegendscom e aviso na comunidade dos fãs no WhatsApp apresentando a marca', '📲 A post on Instagram @leilaolegendscom and an announcement in the fans’ WhatsApp community introducing your brand')}</li>
-            </ul>
-            <p style={{ fontSize: 11.5, fontWeight: 800, margin: '8px 0 0' }}>{tr('Quer saber mais? Fala com a gente:', 'Want to know more? Talk to us:')}</p>
-            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-              <a href="https://ig.me/m/leilaolegendscom" target="_blank" rel="noreferrer" style={{ flex: 1, textAlign: 'center', ...OSW, fontSize: 13, textTransform: 'uppercase', background: '#E1306C', color: '#fff', border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 6px', textDecoration: 'none' }}>📷 Direct @leilaolegendscom</a>
-              <a href={`mailto:${EMAIL_CONTATO}?subject=${encodeURIComponent('Patrocínio mensal · Leilão Legends')}`} style={{ flex: 1, textAlign: 'center', ...OSW, fontSize: 13, textTransform: 'uppercase', background: '#fff', color: INK, border: `2px solid ${INK}`, borderRadius: 10, padding: '7px 6px', textDecoration: 'none' }}>✉️ E-mail</a>
-            </div>
-          </div>
+          <MarcaMensal card={card} emailContato={EMAIL_CONTATO} />{/* 📅 18/10: números fortes + fotos de onde a marca aparece (marca-mensal.tsx) */}
         </>}
 
         {/* 💳 COMO PAGAR (o item escolhido) */}
