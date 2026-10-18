@@ -830,6 +830,11 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   📺 **E A TEMPORADA TAMBÉM É A DE SEMPRE** (mesmo dia: *"está tudo deformado o placar… tudo é padrão do nosso jogo"*): modo novo
   NUNCA ganha placar/tabela/tela própria — usa a `EscSeason` e põe a regra POR CIMA (`kings-liga.ts`). E shootout ≠ pênalti.
 
+- **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
+  ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 6s sem lance novo, quem fechou a posição só assiste.
+  Ele aceitou o tempo (*"deixa assim mesmo com 20"*) e mandou seguir o MOTOR DE SEMPRE: o arremate entra pela porta do
+  envelope (`sealAndResolve` com `holFechando`, igual à Tocaia) — nada de pagamento/elenco próprio. Gate `PREGAO_ABERTO_*`
+  em `sport.ts` (o `PREGAO_*` sem "ABERTO" é OUTRA coisa, o pregão limpo). Trava `npm run pregao-aberto`.
 - **🐊 SOLTA A MASCOTE NO MONTE: QUALQUER SALA, 5s DE ESPERA (29/09).** Revoga o "só no Monte da Tocaia" de
   21/09. Palavras dele: *"nessa área aqui seja pra qualquer tipo: Clubes, Jogador, Tocaia ou Envelope… coloque
   com 5s apenas pra poder enviar"*. O botão (`MascoteJab`, screens.tsx) fica no Monte de todo tipo de sala e

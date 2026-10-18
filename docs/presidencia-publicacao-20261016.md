@@ -24,6 +24,10 @@ O pacote está em `56d8d4c5`; o merge `bf4001ce` preserva a main até
 Pirlo. O conflito de documentação foi resolvido mantendo ambos os registros.
 Não há migração de banco nem alteração de dados da conta nesta publicação.
 
+Antes do envio, a main avançou novamente para `94e4ea04` (Pregão Aberto e
+aviso da loja). Essa atualização também foi integrada, sem sobrescrita.
+As telas e regras da Presidência não tiveram novos conflitos de código.
+
 ## Verificações
 
 - Acesso: email verificado, outra conta recusada, logout e troca de conta,

@@ -296,7 +296,7 @@ export interface ResolvedCard {
   voided: number[] // managers cujo lance foi anulado (setor já cheio)
 }
 
-export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_reveal' | 'tiebreak' | 'holandes'
+export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_reveal' | 'tiebreak' | 'holandes' | 'pregao'
 
 // ─── 🔻 LEILÃO HOLANDÊS (modo à parte, aprovado pelo Diego 20/09) ───────────
 // O leilão de sempre é CEGO: todo mundo escreve escondido e o maior lance leva.
@@ -326,6 +326,26 @@ export type AuctionPhase = 'envelope' | 'reveal' | 'resq_envelope' | 'resq_revea
 // e aí o host resolve todos os pedidos daquele preço de uma vez. Gente passa na
 // frente de robô; gente contra gente no mesmo preço vai pra ROLETA. Assim
 // ninguém é roubado por meio segundo de internet.
+/** 🔨 PREGÃO ABERTO (16/10): o leilão aberto clássico — UMA carta por vez, lance à vista, martelo em 6s */
+export type PregaoAbertoState = {
+  /** todas as cartas do baralho, EMBARALHADAS entre as posições (ninguém sabe a próxima) */
+  fila: Card[]
+  /** índice da carta na mesa (fila[idx]); -1 = ainda não abriu */
+  idx: number
+  /** lance atual (0 = ninguém deu lance ainda) e quem está na frente */
+  preco: number
+  lider: number | null
+  /** os lances desta carta, em ordem */
+  lances: { mgr: number; valor: number }[]
+  /** quando o martelo bate se ninguém cobrir (ms) */
+  deadline: number | null
+  /** teto de cada robô pra carta da mesa (o MESMO `cpuEnvelope` do envelope decide) */
+  tetos: Record<number, number>
+  /** o que já saiu, pra tela contar a história (mgr null = ninguém quis) */
+  vendidos: { cardId: string; nome: string; pos: Sector; mgr: number | null; time: string | null; preco: number; segundo: number }[]
+  /** ninguém quis → vai pro Monte no fim */
+  sobras: Card[]
+}
 export type HolandesState = {
   /** preço na tela agora — UM só pra leva inteira (vai caindo pela escada) */
   preco: number
@@ -689,6 +709,10 @@ export interface EscState {
   convocacaoDuplaFeitos?: string[]
   /** 🧱 o que cada um escolheu (só o host guarda; não viaja pros convidados) */
   convocacaoEscolhas?: Record<number, string[]>
+  /** 🔨 modo PREGÃO ABERTO ligado nesta partida (16/10, em teste) */
+  pregaoAberto?: boolean
+  /** 🔨 estado vivo do pregão aberto (só existe enquanto `phase === 'pregao'`) */
+  pa?: PregaoAbertoState
   /** 🔻 estado vivo do holandês (só existe enquanto `phase === 'holandes'`) */
   hol?: HolandesState
   /**

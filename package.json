@@ -91,7 +91,8 @@
     "bots-banco": "node scripts/testa-bots-banco.mjs",
     "renomeada": "node scripts/testa-carta-renomeada.mjs",
     "kings-regras": "npx tsx scripts/testa-kings-regras.mts",
-    "kings": "npx tsx scripts/testa-kings.mjs && npx tsx scripts/testa-kings-leilao.mts"
+    "kings": "npx tsx scripts/testa-kings.mjs && npx tsx scripts/testa-kings-leilao.mts",
+    "pregao-aberto": "npx tsx scripts/testa-pregao-aberto.mts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

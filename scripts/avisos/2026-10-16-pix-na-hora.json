@@ -1,0 +1,23 @@
+{
+  "data": "16 de outubro de 2026",
+  "titulo": "Pix na hora: pagou, liberou",
+  "destaque": {
+    "passos": [
+      { "emoji": "🛒", "titulo": "Escolhe", "sub": "na Loja do Clube" },
+      { "emoji": "💳", "titulo": "Paga o Pix", "sub": "gerado na hora" },
+      { "emoji": "✅", "titulo": "Liberou", "sub": "sozinho, em segundos" }
+    ],
+    "nome": "Acabou o comprovante",
+    "linha": "o jogo confere o pagamento e libera na hora"
+  },
+  "itens": [
+    { "tag": "loja", "texto": "A **🛒 Loja do Clube** está na home, logo abaixo do Modo Carreira. Lá dentro: **subir de plano**, **🎟️ salas extras**, **🏦 moedas pra sua carreira**, **📣 canto da torcida** pro clube batizado e **🎁 presente** pra um amigo." },
+    { "tag": "novidade", "texto": "**Pix automático**: você escolhe o que quer, o jogo gera o **QR Code na hora** (Mercado Pago), você paga e **recebe em segundos**. Sem mandar comprovante, sem esperar ninguém." },
+    { "tag": "plano", "texto": "Fez **⭐ Craque**, **👑 Lenda**, **🖋 Batismo** ou **🖋 Fundador**? **Os benefícios já ficam ativos na sua conta** assim que o Pix cai: nome na cor do plano, Modo Manual, salas à vontade, tudo." },
+    { "tag": "batismo", "texto": "Só as **personalizações** continuam na mão: escudo, mascote, manto, canto e entrada de gala do seu clube batizado **você combina direto com o Diego** aqui na comunidade — é arte feita pra você." },
+    { "tag": "melhoria", "texto": "**Quem já tinha plano não muda nada.** E nas salas online ninguém compra vantagem: lá é todo mundo igual." }
+  ],
+  "rodape": "Paga uma vez e é seu pra sempre. Nada de mensalidade.",
+  "rodapeSub": "Cada real vira jogo. Obrigado por estar aqui 💛",
+  "saida": "scripts/posts/aviso-2026-10-16-pix-na-hora.png"
+}

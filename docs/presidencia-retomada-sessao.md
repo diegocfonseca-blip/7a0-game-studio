@@ -3,7 +3,8 @@
 Atualização de **16/10/2026 — publicação de todo o pacote autorizada**:
 Diego pediu “Publique tudo q fez ate o momento no meu usuarion”. O trabalho
 acumulado foi commitado e integrado à main `44c33a64`, preservando as mudanças
-de compras e do criador. Ler [registro da publicação](presidencia-publicacao-20261016.md)
+de compras e do criador, e à atualização posterior `94e4ea04` do Pregão Aberto.
+Ler [registro da publicação](presidencia-publicacao-20261016.md)
 para escopo, verificações e limites. O acesso das novidades permanece apenas
 para `diego.c.fonseca@gmail.com`. As menções a “local, sem commit/deploy” abaixo
 descrevem etapas anteriores; a conclusão do deploy deve ser conferida na
