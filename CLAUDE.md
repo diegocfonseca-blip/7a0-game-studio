@@ -858,6 +858,9 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   tela acha o campo de novo na Loja (`esc_mp_anuncio_pendentes2`). O Diego tira do ar pelo #admin ("💬 Recados dos jogadores").
   🔁 **Nome na tela = 💬 SUPER CHAT** (18/10, pedido dele; no código continua `recado`). A Loja mostra UM telão de exemplo rodando em
   cada seção (`EX_RECADO`: Chelsão/Futpoint · `EX_EMPRESA`: Vadico → Max Joias, via `GiroDaRodada exemplos`); a parte das marcas fica parada.
+- **🎨 TEMA DA SALA: PREÇOS (18/10).** ❤️ Time de coração **R$ 6,90** (todos) · 🛡️ tema do clube **R$ 6,90** pro Batismo · 🖋 **Fundador
+  R$ 9,90** = o tema do clube + uma 2ª cor de fundo com a mascote (*"Fundador deixe 9,90 ganha clube + segunda cor de fundo do
+  Mascote"*); ele já ganha 1 tema no plano. Régua no banco (`esc_mp_preco_ref`, rank 4 = Fundador) e na tela (`temas-loja.tsx`).
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
   ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
   *"eu falei 5s p martelar"*), quem fechou a posição só assiste. 🔁 **16/10: CARTA COBERTA** — a carta fica sem categoria, cor, estrela e rosto até o martelo e aí VIRA no lugar (2s,

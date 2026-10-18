@@ -13,6 +13,9 @@ import { CLUBES_TEMA_CORACAO, releMeusTemas, useTemasDaConta, temaValido, type C
 const INK = '#0C0C0C'
 const OSW = { fontFamily: 'Oswald, sans-serif', fontWeight: 700 } as const
 const PRECO = 6.9 // 18/10 (Diego): 9,90 → 6,90, os dois temas
+// 🖋 18/10 (Diego): *"Fundador deixe 9,90 ganha clube + segunda cor de fundo do mascote"* — o Fundador já tem 1 tema; o extra dele custa
+// 9,90 e leva o tema do clube + uma 2ª cor de fundo com a mascote. Batismo segue 6,90. O banco cobra a mesma régua (`esc_mp_preco_ref`).
+const PRECO_FUNDADOR = 9.9
 
 function MiniTema({ c, size = 64 }: { c: ClubeCoracaoTema; size?: number }) {
   return (
@@ -27,6 +30,7 @@ function MiniTema({ c, size = 64 }: { c: ClubeCoracaoTema; size?: number }) {
 export function TemasNaLoja({ temBatismo, fundador, h2, sub, card, preco, reais }: {
   temBatismo: boolean; fundador: boolean; h2: CSSProperties; sub: CSSProperties; card: CSSProperties; preco: CSSProperties; reais: (v: number) => string
 }) {
+  const precoClube = fundador ? PRECO_FUNDADOR : PRECO
   const email = loggedEmail()
   const meus = useTemasDaConta(email)
   const [busca, setBusca] = useState('')
@@ -81,13 +85,13 @@ export function TemasNaLoja({ temBatismo, fundador, h2, sub, card, preco, reais 
 
     {/* 🛡️ DO SEU CLUBE — só quem tem clube batizado */}
     <div style={{ ...card, marginTop: 8, opacity: temBatismo ? 1 : .75 }}>
-      <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>🛡️ {tr('Tema do seu clube', 'Your club theme')} · {reais(PRECO)}</b>
+      <b style={{ ...OSW, fontSize: 17, textTransform: 'uppercase', display: 'block' }}>🛡️ {tr('Tema do seu clube', 'Your club theme')} · {reais(precoClube)}</b>
       <small style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3, display: 'block', marginTop: 2 }}>{tr('Feito com a arte do SEU clube batizado: escudo gigante no fundo, a mascote na tela e as cores do manto, em 2 versões (escura e clara). A gente monta depois do Pix, em até 2 dias.', 'Made with YOUR named club’s art: giant crest in the background, the mascot on screen and your kit colours, in 2 versions (dark and light). We build it after the Pix, within 2 days.')}</small>
-      {fundador && <p style={{ fontSize: 11.5, fontWeight: 800, margin: '6px 0 0', color: '#7a4d00' }}>🖋 {tr('Fundador: o tema do seu clube já vem no plano (1 tema). Ele aparece na sua sala de espera. O do time de coração é à parte.', 'Founder: your club theme comes with the plan (1 theme). It shows up in your waiting room. Your team theme is sold separately.')}</p>}
+      {fundador && <p style={{ fontSize: 11.5, fontWeight: 800, margin: '6px 0 0', color: '#7a4d00' }}>🖋 {tr(`Fundador: o tema do seu clube já vem no plano (1 tema). Quer mais? Por ${reais(PRECO_FUNDADOR)} você ganha o tema do clube + uma 2ª cor de fundo com a sua mascote. O do time de coração é à parte.`, `Founder: your club theme comes with the plan (1 theme). Want more? For ${reais(PRECO_FUNDADOR)} you get the club theme + a 2nd background colour with your mascot. Your team theme is sold separately.`)}</p>}
       {temBatismo
         ? (pagando === 'clube'
-          ? <div style={{ marginTop: 10 }}><PixMP key="tema-clube" produto="tema_clube" valor={PRECO} /></div>
-          : <button onClick={() => setPagando('clube')} style={{ ...preco, marginTop: 8 }}>{tr('Comprar', 'Buy')} · {reais(PRECO)}</button>)
+          ? <div style={{ marginTop: 10 }}><PixMP key="tema-clube" produto="tema_clube" valor={precoClube} /></div>
+          : <button onClick={() => setPagando('clube')} style={{ ...preco, marginTop: 8 }}>{tr('Comprar', 'Buy')} · {reais(precoClube)}</button>)
         : <p style={{ fontSize: 11.5, fontWeight: 800, margin: '6px 0 0' }}>🔒 {tr('Só pra quem tem clube batizado (é a arte do seu clube). O tema do time de coração aí em cima é pra todo mundo.', 'Only for named-club owners (it uses your club’s art). The team theme above is for everyone.')}</p>}
     </div>
   </div>
