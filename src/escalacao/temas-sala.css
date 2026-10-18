@@ -2,6 +2,8 @@
 .tema-sala.online-room-art{background-image:none!important}
 .tema-sala.tema-neymarzetti_noite{background:radial-gradient(ellipse at 50% 12%,#3a3a3a 0%,#121212 45%,#000 100%)!important}
 .tema-sala.tema-neymarzetti_branco{background:linear-gradient(180deg,#f2f2f2 0%,#fff 40%,#d6d6d6 100%)!important;color:#0c0c0c!important}
+.tema-sala.tema-k9_gelo{background:radial-gradient(ellipse at 50% 12%,#1d3fd6 0%,#0a1f7a 45%,#030a33 100%)!important}
+.tema-sala.tema-k9_branco{background:linear-gradient(180deg,#fff 0%,#eef4ff 45%,#cfdcff 100%)!important;color:#0723B4!important}
 .tema-sala>.col-tela{position:relative;z-index:1}
 .tema-fundo{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .tema-marca{position:absolute;left:50%;top:38%;width:min(92vw,560px);transform:translate(-50%,-50%);filter:grayscale(1);opacity:.12}
@@ -11,10 +13,18 @@
 @keyframes temaVoa{0%,100%{transform:translate(0,0) rotate(-6deg)}50%{transform:translate(18px,-14px) rotate(6deg)}}
 .tema-mascote{position:absolute;right:-3%;bottom:44px;height:min(42vh,380px);opacity:.95;filter:drop-shadow(4px 5px 0 rgba(0,0,0,.55))}
 .tema-selo{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);white-space:nowrap;font:700 11px Oswald,sans-serif;letter-spacing:.04em;color:#fff;background:#0c0c0c;border:2px solid #bdbdbd;border-radius:99px;padding:5px 12px}
+.tema-floco{position:absolute;top:-20px;color:#fff;opacity:.75;animation:temaNeve linear infinite}
+.tema-claro .tema-floco{color:#7aa6ff}
+@keyframes temaNeve{from{transform:translateY(-20px)}to{transform:translateY(110vh)}}
+.tema-cristais{position:absolute;left:0;right:0;bottom:0;height:120px;opacity:.8;background:
+  linear-gradient(115deg,transparent 40%,rgba(190,230,255,.75) 41%,rgba(255,255,255,.95) 46%,transparent 47%) 0 100%/60px 120px repeat-x,
+  linear-gradient(65deg,transparent 40%,rgba(160,215,255,.7) 41%,rgba(255,255,255,.9) 46%,transparent 47%) 30px 100%/70px 100px repeat-x}
+.tema-sala.tema-k9_gelo .tema-marca,.tema-sala.tema-k9_branco .tema-marca{filter:none}
 @media (min-width:900px){.tema-mascote{right:4%}}
 /* textos da sala no tema CLARO (a sala foi feita pra fundo escuro) */
 .tema-sala.tema-neymarzetti_branco .online-room-code p,.tema-sala.tema-neymarzetti_branco .online-room-code{color:#0c0c0c!important;text-shadow:none!important}
+.tema-sala.tema-k9_branco .online-room-code p,.tema-sala.tema-k9_branco .online-room-code,.tema-sala.tema-k9_branco .text-white,.tema-sala.tema-k9_branco .text-white\/50,.tema-sala.tema-k9_branco .text-white\/60,.tema-sala.tema-k9_branco .text-white\/70{color:#0723B4!important;text-shadow:none!important}
 .tema-sala.tema-neymarzetti_branco .text-white,.tema-sala.tema-neymarzetti_branco .text-white\/50,.tema-sala.tema-neymarzetti_branco .text-white\/60,.tema-sala.tema-neymarzetti_branco .text-white\/70{color:#0c0c0c!important}
 /* caixas da sala com a borda prata do clube */
 .tema-sala .online-attendance{outline:2px solid #bdbdbd;outline-offset:-7px}
-@media (prefers-reduced-motion:reduce){.tema-morcego{animation:none}}
+@media (prefers-reduced-motion:reduce){.tema-morcego,.tema-floco{animation:none}}
