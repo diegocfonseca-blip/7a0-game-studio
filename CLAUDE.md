@@ -856,6 +856,8 @@ As sessões não se veem — o repo é a memória comum. Então TODA sessão dev
   R$ 9,90** · **anúncio de empresa 1 h R$ 4,99 · dia todo R$ 25** (produtos `recado_hora`/`recado_dia`/`giro_hora`/`giro_dia`,
   preço em `esc_mp_preco_ref`). Escreve depois do Pix (`esc_mp_anuncio_escrever`, `EscreveAnuncio` em pix-mp.tsx); quem fechou a
   tela acha o campo de novo na Loja (`esc_mp_anuncio_pendentes2`). O Diego tira do ar pelo #admin ("💬 Recados dos jogadores").
+  🔁 **Nome na tela = 💬 SUPER CHAT** (18/10, pedido dele; no código continua `recado`). A Loja mostra UM telão de exemplo rodando em
+  cada seção (`EX_RECADO`: Chelsão/Futpoint · `EX_EMPRESA`: Vadico → Max Joias, via `GiroDaRodada exemplos`); a parte das marcas fica parada.
 - **🔨 PREGÃO ABERTO = o 3º jeito de dar lance (16/10, só na conta do Diego por enquanto).** Uma carta por vez, lance
   ABERTO na frente de todos, ordem das posições EMBARALHADA, martelo em 5s sem lance novo (`PA_MARTELO_MS`; era 6s, depois 4s, e ele cravou
   *"eu falei 5s p martelar"*), quem fechou a posição só assiste. 🔁 **16/10: CARTA COBERTA** — a carta fica sem categoria, cor, estrela e rosto até o martelo e aí VIRA no lugar (2s,
