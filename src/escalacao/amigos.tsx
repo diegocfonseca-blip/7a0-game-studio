@@ -9,6 +9,7 @@
 // · Cada um com a cor do PRÓPRIO plano (grátis = bege) e o presidente só de quem tem (Craque+); sem boneco, vai a inicial.
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { createRoot, type Root } from 'react-dom/client'
 import { supabase } from '../lib/supabase'
 import { tr } from './lang'
 import { APOIO_PERKS, ApoioSheen, type ApoioTier } from './apoio'
@@ -62,7 +63,7 @@ function Janela({ titulo, onClose, children }: { titulo: string; onClose: () => 
     window.addEventListener('keydown', esc); return () => window.removeEventListener('keydown', esc)
   }, [onClose])
   return createPortal(
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 99980, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 14 }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto', color: INK, background: CREME, border: `3px solid ${INK}`, borderRadius: 20, boxShadow: `5px 5px 0 ${INK}`, padding: 12 }}>
         <div style={{ background: INK, color: GOLD, borderRadius: 12, padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...OSW, fontSize: 15 }}>
           <span>{titulo}</span>
@@ -317,11 +318,18 @@ export function BotaoAmigos({ style }: { style?: CSSProperties }) {
 // ➕ Adicionar amigo). O toque NÃO vaza pro que está em volta (no chat, tocar no balão é "responder").
 export function ComPerfil({ uid, children }: { uid: string | null | undefined; children: ReactNode }) {
   const on = useAmigos()
-  const [aberto, setAberto] = useState(false)
   if (!on || !contaValida(uid)) return <>{children}</>
-  return <>
-    <span role="button" tabIndex={0} title={tr('Ver perfil', 'View profile')} onClick={e => { e.stopPropagation(); setAberto(true) }}
-      onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); setAberto(true) } }} style={{ cursor: 'pointer', display: 'inline-flex' }}>{children}</span>
-    {aberto && <PerfilPublico uid={uid} onClose={() => setAberto(false)} />}
-  </>
+  return <span role="button" tabIndex={0} title={tr('Ver perfil', 'View profile')} onClick={e => { e.stopPropagation(); abrePerfilSolto(uid) }}
+    onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); abrePerfilSolto(uid) } }} style={{ cursor: 'pointer', display: 'inline-flex' }}>{children}</span>
+}
+
+// 🪟 O PERFIL ABERTO PELO CHAT VIVE SOLTO (18/10, Diego: *"quando fecho o chat, fecha a tela de amigos também"*). Antes ele
+// morava dentro do `ComPerfil`, que mora dentro do chat: fechou o chat, o perfil sumia junto (e ainda ficava por baixo da
+// janela do chat). Agora ele tem uma raiz própria no <body>, fora de qualquer tela, e só fecha no X dele.
+let raizPerfil: Root | null = null
+let vezPerfil = 0
+function abrePerfilSolto(uid: string) {
+  if (!raizPerfil) { const el = document.createElement('div'); el.id = 'perfil-solto'; document.body.appendChild(el); raizPerfil = createRoot(el) }
+  vezPerfil++
+  raizPerfil.render(<PerfilPublico key={vezPerfil} uid={uid} onClose={() => raizPerfil?.render(null)} />)
 }
