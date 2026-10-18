@@ -25,11 +25,13 @@ import cuiudosEscudo from './img/cuiudos-escudo.webp'
 import cuiudosMascote from './img/cuiudos-mascote.webp'
 import sevenEscudo from './img/sevencity-escudo-v2.webp'
 import sevenMascote from './img/sevencity-mascote-v2.webp'
+import futpointEscudo from './img/futpoint-escudo.webp'
+import futpointMascote from './img/futpoint-mascote.webp'
 import { tr } from './lang'
 import './temas-sala.css'
 
 export type TemaClubeId = 'neymarzetti_noite' | 'neymarzetti_branco' | 'k9_gelo' | 'k9_branco'
-  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven'
+  | 'arruda' | 'fabulous' | 'gavioes' | 'cuiudos' | 'seven' | 'futpoint'
 /** tema de clube batizado (id fixo) ou de TIME DE CORAÇÃO (`c:<slug>` — o slug é o nome do arquivo do escudo oficial) */
 export type TemaSalaId = TemaClubeId | `c:${string}`
 type Tema = {
@@ -38,6 +40,7 @@ type Tema = {
   botao: string; botaoTxt: string // o "Abrir o pregão"
   enfeite: 'morcegos' | 'neve' | 'nenhum'
   seloBg?: string; seloBorda?: string
+  faixa?: [string, string] // 🔴 [pt, en] — recado fixo do dono na sala (Futpoint: o horário das lives)
   pano?: string // 🎨 fundo pintado pelo próprio tema (tema de Fundador: as cores do manto), por cima do fundo da sala
 }
 // 🖋 TEMA DO FUNDADOR (18/10, Diego: *"o fundador ganha apenas o de mascote… e ganha apenas um… eles ganham apenas um tema
@@ -57,6 +60,8 @@ function TEMAS_FUNDADOR_PRONTOS() {
     fabulous: temaFundador('fabulous', 'Fabulous EC', '🦅', fabulousEscudo, fabulousMascote, '#7d0a10', 'rgba(206,14,23,.22)', '#CE0E17', '#fff'),
     gavioes: temaFundador('gavioes', 'Gaviões SCCP', '🦅', gavioesEscudo, gavioesMascote, '#4a4a4a', 'rgba(249,248,248,.12)', CROMO, '#0c0c0c'),
     cuiudos: temaFundador('cuiudos', 'Cuiudos FC', '🤠', cuiudosEscudo, cuiudosMascote, '#0b46c4', 'rgba(231,172,11,.2)', '#E7AC0B', '#0c0c0c'),
+    // 📍 Futpoint FC (18/10): preto e dourado do manto, o Pontinho na tela e o horário das lives dele (é streamer do jogo)
+    futpoint: { ...temaFundador('futpoint', 'Futpoint FC', '📍', futpointEscudo, futpointMascote, '#5a4318', 'rgba(184,144,64,.2)', '#B89040', '#0c0c0c'), faixa: ['LIVES TODO DIA · 18H E 21H', 'LIVE EVERY DAY · 6PM & 9PM (BRT)'] },
     seven: temaFundador('seven', 'Seven City', '🍀', sevenEscudo, sevenMascote, '#6b4c1c', 'rgba(217,158,68,.2)', '#D99E44', '#0c0c0c'),
   } satisfies Partial<Record<TemaClubeId, Tema>>
 }
@@ -80,12 +85,13 @@ const TEMAS_DA_CONTA: Record<string, TemaClubeId[]> = {
   'kauealves584@gmail.com': ['gavioes'],
   'matheussoaresg2018@gmail.com': ['cuiudos'],
   'glaucomiranda@outlook.com': ['seven'],
+  'gfpicolo13@gmail.com': ['futpoint'], // 📍 virou Fundador em 18/10
 }
 // 🛡️ tema do CLUBE batizado comprado na Loja (`esc_temas_conta`, tipo clube) → os temas montados pra esse clube
 const TEMAS_POR_CLUBE: Record<string, TemaClubeId[]> = {
   'Neymarzetti': ['neymarzetti_noite', 'neymarzetti_branco'],
   'K9 FC': ['k9_gelo', 'k9_branco'],
-  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'],
+  'Tricolor do Arruda FC': ['arruda'], 'Fabulous EC': ['fabulous'], 'Gaviões SCCP': ['gavioes'], 'Cuiudos FC': ['cuiudos'], 'Seven City': ['seven'], 'Futpoint FC': ['futpoint'],
 }
 
 // ❤️ TIME DE CORAÇÃO (18/10, Diego: *"pode pôr escudo oficial sim"*): todo clube que tem escudo oficial no jogo (os do Leilão
@@ -184,6 +190,7 @@ export function TemaFundo({ tema }: { tema: Tema }) {
         {[4, 17, 30, 43, 56, 69, 82, 93].map((x, i) => <span key={i} className="tema-bandeira" style={{ left: `${x}%`, bottom: 70 + (i * 13) % 40, transform: `rotate(${((i * 7) % 24) - 12}deg)`, background: tema.coracao!.bandeira ?? `linear-gradient(180deg,${tema.coracao!.c1} 0 50%,${tema.coracao!.c2} 50% 100%)` }} />)}
       </>}
       {tema.mascote && <img src={tema.mascote} className="tema-mascote" alt="" />}
+      {tema.faixa && <span className="tema-faixa"><i />{tr(...tema.faixa)}</span>}
       <span className="tema-selo" style={tema.seloBg ? { background: tema.seloBg, borderColor: tema.seloBorda } : undefined}>{tema.selo}</span>
     </div>
   )
