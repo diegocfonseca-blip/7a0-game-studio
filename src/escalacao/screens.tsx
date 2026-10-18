@@ -2983,10 +2983,10 @@ export function EscSetup() {
                 <button onClick={() => { setPregaoAb(true); setHolandes(false) }}
                   className="border-[3px] border-black rounded-xl py-2.5 font-black text-sm"
                   style={{ backgroundColor: pregaoAb ? GOLD : '#fff', boxShadow: pregaoAb ? `3px 3px 0 0 ${INK}` : 'none', ...OSWALD }}>
-                  <span style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
+                  <span className="seg-selo-brilho" style={{ display: 'block', margin: '0 auto 3px', width: 'fit-content', fontSize: 8, lineHeight: 1.35,
                     letterSpacing: 1, textTransform: 'uppercase', padding: '1px 7px', borderRadius: 999,
-                    border: `1.5px solid ${INK}`, background: pregaoAb ? INK : GOLD, color: pregaoAb ? GOLD : INK }}>
-                    {t('em teste', 'beta')}
+                    border: `1.5px solid ${INK}`, background: GREEN, color: '#fff' }}>
+                    {t('novo', 'new')}
                   </span>
                   {t('🔨 Pregão aberto', '🔨 Open auction')}
                 </button>
